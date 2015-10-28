@@ -1,0 +1,77 @@
+<!DOCTYPE web-app PUBLIC
+ "-//Sun Microsystems, Inc.//DTD Web Application 2.3//EN"
+ "http://java.sun.com/dtd/web-app_2_3.dtd" >
+
+<web-app>
+  <display-name>RDF Cloud Triple Store Web Access</display-name>
+  <servlet>
+		<servlet-name>LoadDataServlet</servlet-name>
+		<servlet-class>mvm.cloud.rdf.web.partition.LoadDataServlet</servlet-class>
+
+		<init-param>
+			<param-name>rts.instance</param-name>
+			<param-value>stratus</param-value>
+		</init-param>
+		<init-param>
+			<param-name>rts.zk</param-name>
+			<param-value>10.40.190.113:2181</param-value>
+		</init-param>
+		<init-param>
+			<param-name>rts.table</param-name>
+			<param-value>partitionRdf</param-value>
+		</init-param>
+		<init-param>
+			<param-name>rts.shardtable</param-name>
+			<param-value>partitionRdf</param-value>
+		</init-param>
+		<init-param>
+			<param-name>rts.user</param-name>
+			<param-value>root</param-value>
+		</init-param>
+		<init-param>
+			<param-name>rts.password</param-name>
+			<param-value>password</param-value>
+		</init-param>
+	</servlet>
+
+	<servlet-mapping>
+		<servlet-name>LoadDataServlet</servlet-name>
+		<url-pattern>/loadrdf</url-pattern>
+	</servlet-mapping>
+
+  <servlet>
+		<servlet-name>QueryDataServlet</servlet-name>
+		<servlet-class>mvm.cloud.rdf.web.partition.QueryDataServlet</servlet-class>
+
+		<init-param>
+			<param-name>rts.instance</param-name>
+			<param-value>stratus</param-value>
+		</init-param>
+		<init-param>
+			<param-name>rts.zk</param-name>
+			<param-value>10.40.190.113:2181</param-value>
+		</init-param>
+		<init-param>
+			<param-name>rts.table</param-name>
+			<param-value>partitionRdf</param-value>
+		</init-param>
+		<init-param>
+			<param-name>rts.shardtable</param-name>
+			<param-value>partitionRdf</param-value>
+		</init-param>
+		<init-param>
+			<param-name>rts.user</param-name>
+			<param-value>root</param-value>
+		</init-param>
+		<init-param>
+			<param-name>rts.password</param-name>
+			<param-value>password</param-value>
+		</init-param>
+	</servlet>
+
+	<servlet-mapping>
+		<servlet-name>QueryDataServlet</servlet-name>
+		<url-pattern>/queryrdf</url-pattern>
+	</servlet-mapping>
+
+</web-app>

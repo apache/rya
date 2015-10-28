@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<features name="alx.rya">
+    <feature name='org.openrdf.sesame.runtime' version="2.6.4">
+        <bundle>wrap:mvn:org.openrdf.sesame/sesame-model/2.6.4</bundle>
+        <bundle>wrap:mvn:org.openrdf.sesame/sesame-runtime/2.6.4</bundle>
+        <bundle>wrap:mvn:org.openrdf.sesame/sesame-query/2.6.4</bundle>
+        <bundle>wrap:mvn:org.openrdf.sesame/sesame-queryalgebra-model/2.6.4</bundle>
+        <bundle>wrap:mvn:org.openrdf.sesame/sesame-queryparser-api/2.6.4</bundle>
+        <bundle>wrap:mvn:org.openrdf.sesame/sesame-queryparser-serql/2.6.4</bundle>
+        <bundle>wrap:mvn:org.openrdf.sesame/sesame-queryparser-sparql/2.6.4</bundle>
+        <bundle>wrap:mvn:org.openrdf.sesame/sesame-queryresultio-api/2.6.4</bundle>
+        <bundle>wrap:mvn:org.openrdf.sesame/sesame-queryresultio-binary/2.6.4</bundle>
+        <bundle>wrap:mvn:org.openrdf.sesame/sesame-queryresultio-sparqljson/2.6.4</bundle>
+        <bundle>wrap:mvn:org.openrdf.sesame/sesame-queryresultio-text/2.6.4</bundle>
+        <bundle>wrap:mvn:net.sf.opencsv/opencsv/2.0</bundle>
+        <bundle>wrap:mvn:org.openrdf.sesame/sesame-repository-api/2.6.4</bundle>
+        <bundle>wrap:mvn:org.openrdf.sesame/sesame-repository-manager/2.6.4</bundle>
+        <bundle>wrap:mvn:org.openrdf.sesame/sesame-repository-event/2.6.4</bundle>
+        <bundle>wrap:mvn:org.openrdf.sesame/sesame-repository-sail/2.6.4</bundle>
+        <bundle>wrap:mvn:org.openrdf.sesame/sesame-sail-memory/2.6.4</bundle>
+        <bundle>wrap:mvn:org.openrdf.sesame/sesame-sail-inferencer/2.6.4</bundle>
+        <bundle>wrap:mvn:org.openrdf.sesame/sesame-queryalgebra-evaluation/2.6.4</bundle>
+        <bundle>wrap:mvn:org.openrdf.sesame/sesame-repository-sparql/2.6.4</bundle>
+        <bundle>wrap:mvn:org.openrdf.sesame/sesame-repository-http/2.6.4</bundle>
+        <bundle>wrap:mvn:org.openrdf.sesame/sesame-http-client/2.6.4</bundle>
+        <bundle>wrap:mvn:org.openrdf.sesame/sesame-repository-dataset/2.6.4</bundle>
+        <bundle>wrap:mvn:org.openrdf.sesame/sesame-repository-contextaware/2.6.4</bundle>
+        <bundle>wrap:mvn:org.openrdf.sesame/sesame-http-protocol/2.6.4</bundle>
+        <bundle>wrap:mvn:org.openrdf.sesame/sesame-rio-ntriples/2.6.4</bundle>
+        <bundle>wrap:mvn:org.openrdf.sesame/sesame-rio-api/2.6.4</bundle>
+        <bundle>wrap:mvn:org.openrdf.sesame/sesame-rio-binary/2.6.4</bundle>
+        <bundle>wrap:mvn:org.openrdf.sesame/sesame-rio-n3/2.6.4</bundle>
+        <bundle>wrap:mvn:org.openrdf.sesame/sesame-rio-trix/2.6.4</bundle>
+        <bundle>wrap:mvn:org.openrdf.sesame/sesame-rio-turtle/2.6.4</bundle>
+        <bundle>wrap:mvn:org.openrdf.sesame/sesame-rio-trig/2.6.4</bundle>
+        <bundle>wrap:mvn:org.openrdf.sesame/sesame-sail-api/2.6.4</bundle>
+        <bundle>wrap:mvn:org.openrdf.sesame/sesame-sail-nativerdf/2.6.4</bundle>
+        <!--bundle>wrap:mvn:org.openrdf.sesame/sesame-sail-rdbms/2.6.4</bundle>
+        <bundle>wrap:mvn:commons-dbcp/commons-dbcp/1.3</bundle>
+        <bundle>wrap:mvn:commons-pool/commons-pool/1.3</bundle-->
+        <bundle>wrap:mvn:org.openrdf.sesame/sesame-queryresultio-sparqlxml/2.6.4</bundle>
+        <bundle>wrap:mvn:org.openrdf.sesame/sesame-util/2.6.4</bundle>
+        <bundle>wrap:mvn:org.openrdf.sesame/sesame-rio-rdfxml/2.6.4</bundle>
+    </feature>
+    <feature name='tinkerpop.blueprints' version='1.2'>
+        <bundle>wrap:mvn:com.tinkerpop.blueprints/blueprints-core/1.2</bundle>
+        <bundle>mvn:org.codehaus.jettison/jettison/1.3</bundle>
+        <bundle>wrap:mvn:stax/stax-api/1.0.1</bundle>
+        <!--bundle>wrap:mvn:org.codehaus.jackson/jackson-jaxrs/1.8.5</bundle-->
+        <bundle>mvn:org.codehaus.jackson/jackson-core-asl/1.8.5</bundle>
+        <bundle>mvn:org.codehaus.jackson/jackson-mapper-asl/1.8.5</bundle>
+    </feature>
+    <feature name='rya.sail' version='3.0.4'>
+        <!--<feature version="[2.6,3.0)">org.openrdf.sesame.runtime</feature>-->
+        <feature version="1.2">tinkerpop.blueprints</feature>
+        <feature version="[10,12)">google.guava</feature>
+        <bundle>mvn:mvm.rya/sesame-runtime-osgi/2.6.4</bundle>
+        <bundle>wrap:mvn:mvm.rya/rya.api/3.0.4-SNAPSHOT</bundle>
+        <bundle>wrap:mvn:mvm.rya/rya.sail.impl/3.0.4-SNAPSHOT</bundle>
+    </feature>
+    <feature name="cloudbase.rya" version="3.0.4">
+        <feature version="1.0.5">mvm.alx.connect.cloudbase.connect</feature>
+        <feature version="[10,12)">google.guava</feature>
+        <bundle>wrap:mvn:mvm.rya/cloudbase.rya/3.0.4-SNAPSHOT</bundle>
+        <bundle>wrap:mvn:mvm.rya/cloudbase.utils/1.0.1-SNAPSHOT</bundle>
+    </feature>
+    <feature name="accumulo.rya" version="3.0.4">
+        <feature version="1.0.5">mvm.alx.accumulo.connect</feature>
+        <feature version="[10,12)">google.guava</feature>
+        <bundle>wrap:mvn:mvm.rya/accumulo.rya/3.0.4-SNAPSHOT</bundle>
+    </feature>
+    <feature name='alx.rya' version='3.0.4'>
+        <feature version="0.7.1">pax-web</feature>
+        <feature version="[10,12)">google.guava</feature>
+        <feature version="3.0.4">rya.sail</feature>
+        <feature version="3.0.4">accumulo.rya</feature>
+        <!--Ehcache should already be part of alx: net.sf.ehcache:ehcache-core:jar:1.7.1:compile-->
+        <bundle>mvn:mvm.rya/alx.rya/3.0.4-SNAPSHOT</bundle>
+    </feature>
+    <feature name='alx.rya.console' version='3.0.4'>
+        <feature version="3.0.4">alx.rya</feature>
+        <bundle>mvn:mvm.rya/alx.rya.console/3.0.4-SNAPSHOT</bundle>
+    </feature>
+</features>

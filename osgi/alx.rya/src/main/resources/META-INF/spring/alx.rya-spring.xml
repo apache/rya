@@ -1,0 +1,60 @@
+
+<!-- Copyright (C) 2008 PROTEUS Technologies, LLC This program is free software: 
+	you can redistribute it and/or modify it under the terms of the GNU General 
+	Public License as published by the Free Software Foundation, either version 
+	3 of the License, or (at your option) any later version. This program is 
+	distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; 
+	without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR 
+	PURPOSE. See the GNU General Public License for more details. You should 
+	have received a copy of the GNU General Public License along with this program. 
+	If not, see <http://www.gnu.org/licenses/>. -->
+
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:ctx="http://www.springframework.org/schema/context"
+	xmlns:osgix="http://www.springframework.org/schema/osgi-compendium"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+		http://www.springframework.org/schema/beans/spring-beans.xsd
+	http://www.springframework.org/schema/context 
+		http://www.springframework.org/schema/context/spring-context.xsd
+	http://www.springframework.org/schema/osgi-compendium 
+        http://www.springframework.org/schema/osgi-compendium/spring-osgi-compendium.xsd">
+
+	<!-- placeholder configurer -->
+	<ctx:property-placeholder properties-ref="alxProps" />
+
+    <bean id="configurationFactory" class="mvm.rya.alx.util.ConfigurationFactory">
+        <osgix:managed-properties persistent-id="mvm.rya.alx"
+                                  update-strategy="bean-managed" update-method="setProperties" />
+    </bean>
+
+    <bean id="configuration" factory-bean="configurationFactory"
+          factory-method="getConfiguration"/>
+
+    <bean id="rdfEval" class="mvm.rya.accumulo.AccumuloRdfEvalStatsDAO" init-method="init" destroy-method="destroy">
+        <property name="connector" ref="connectorServiceOsgi"/>
+        <property name="conf" ref="configuration"/>
+    </bean>
+
+    <bean id="ryaDAO" class="mvm.rya.accumulo.AccumuloRyaDAO">
+        <property name="connector" ref="connectorServiceOsgi"/>
+        <property name="conf" ref="configuration"/>
+    </bean>
+
+    <bean id="inferenceEngine" class="mvm.rya.rdftriplestore.inference.InferenceEngine">
+        <property name="ryaDAO" ref="ryaDAO"/>
+        <property name="conf" ref="configuration"/>
+    </bean>
+
+    <bean id="rts" class="mvm.rya.rdftriplestore.RdfCloudTripleStore">
+        <property name="ryaDAO" ref="ryaDAO"/>
+        <property name="rdfEvalStatsDAO" ref="rdfEval"/>
+        <property name="inferenceEngine" ref="inferenceEngine"/>
+        <property name="conf" ref="configuration"/>
+    </bean>
+
+    <bean id="sailRepo" class="mvm.rya.rdftriplestore.RyaSailRepository" init-method="initialize" destroy-method="shutDown">
+        <constructor-arg ref="rts"/>
+    </bean>
+
+</beans>

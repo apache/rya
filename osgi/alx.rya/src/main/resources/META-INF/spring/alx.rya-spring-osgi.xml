@@ -1,0 +1,42 @@
+<!-- Copyright (C) 2008 PROTEUS Technologies, LLC This program is free software:
+    you can redistribute it and/or modify it under the terms of the GNU General
+    Public License as published by the Free Software Foundation, either version
+    3 of the License, or (at your option) any later version. This program is
+    distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+    without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+    PURPOSE. See the GNU General Public License for more details. You should
+    have received a copy of the GNU General Public License along with this program.
+    If not, see <http://www.gnu.org/licenses/>. -->
+
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:osgi="http://www.springframework.org/schema/osgi"
+       xmlns:osgix="http://www.springframework.org/schema/osgi-compendium"
+       xmlns:util="http://www.springframework.org/schema/util"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+		http://www.springframework.org/schema/beans/spring-beans.xsd 
+	http://www.springframework.org/schema/osgi 
+		http://www.springframework.org/schema/osgi/spring-osgi.xsd
+	http://www.springframework.org/schema/util 
+		http://www.springframework.org/schema/util/spring-util-2.0.xsd
+	http://www.springframework.org/schema/osgi-compendium 
+        http://www.springframework.org/schema/osgi-compendium/spring-osgi-compendium.xsd">
+
+    <!-- Configuration Admin entry -->
+    <osgix:cm-properties id="alxProps"
+                         persistent-id="mvm.rya.alx">
+        <prop key="query.tblprefix">l_</prop>
+        <prop key="query.printqueryplan">true</prop>
+    </osgix:cm-properties>
+
+    <osgi:reference id="logServiceOsgi" interface="org.osgi.service.log.LogService"
+                    cardinality="1..1"/>
+
+    <osgi:reference id="connectorServiceOsgi"
+                    interface="org.apache.accumulo.core.client.Connector" cardinality="1..1"/>
+
+    <!--<osgi:service ref="rootResourceMapping" auto-export="interfaces"/>-->
+
+    <osgi:service ref="sailRepo" auto-export="interfaces"/>
+    <osgi:service ref="ryaDAO" auto-export="interfaces"/>
+
+</beans>

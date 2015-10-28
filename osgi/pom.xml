@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+    <modelVersion>4.0.0</modelVersion>
+    <properties>
+        <maven-bundle-plugin.version>2.1.0</maven-bundle-plugin.version>
+    </properties>
+    <parent>
+        <groupId>mvm.rya</groupId>
+        <artifactId>parent</artifactId>
+        <version>3.2.9</version>
+    </parent>
+    <artifactId>rya.osgi</artifactId>
+    <packaging>pom</packaging>
+    <name>${project.groupId}.${project.artifactId}</name>
+    <modules>
+        <module>alx.rya</module>
+        <module>alx.rya.console</module>
+        <module>camel.rya</module>
+    </modules>
+    <build>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>org.apache.felix</groupId>
+                    <artifactId>maven-bundle-plugin</artifactId>
+                    <version>${maven-bundle-plugin.version}</version>
+                    <extensions>true</extensions>
+                    <configuration>
+                        <manifestLocation>META-INF</manifestLocation>
+                        <instructions>
+                            <Bundle-SymbolicName>${project.groupId}.${project.artifactId}
+                            </Bundle-SymbolicName>
+                            <Bundle-Version>${project.version}</Bundle-Version>
+                            <Import-Package>*</Import-Package>
+                            <_exportcontents>*</_exportcontents>
+                            <Bundle-ClassPath>.</Bundle-ClassPath>
+                            <!--<DynamicImport-Package>*</DynamicImport-Package>-->
+                        </instructions>
+                    </configuration>
+                    <executions>
+                        <execution>
+                            <id>genManifest</id>
+                            <phase>process-classes</phase>
+                            <goals>
+                                <goal>manifest</goal>
+                            </goals>
+                        </execution>
+                    </executions>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+    </build>
+</project>

@@ -1,0 +1,6 @@
+<BBOX>
+	<gml:Envelope>
+		<gml:LowerCorner>119 33</gml:LowerCorner>
+		<gml:UpperCorner>120 34</gml:UpperCorner>
+	</gml:Envelope>
+</BBOX>

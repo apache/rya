@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<blueprint xmlns="http://www.osgi.org/xmlns/blueprint/v1.0.0"
+           xmlns:ext="http://aries.apache.org/blueprint/xmlns/blueprint-ext/v1.0.0">
+
+    <command-bundle xmlns="http://karaf.apache.org/xmlns/shell/v1.0.0">
+        <command name="rya/info">
+            <action class="mvm.rya.alx.command.InfoRyaCommand"/>
+        </command>
+        <command name="rya/getstatements">
+            <action class="mvm.rya.alx.command.GetStatementsRyaCommand"/>
+        </command>
+    </command-bundle>
+
+</blueprint>

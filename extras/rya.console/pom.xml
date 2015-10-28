@@ -1,0 +1,146 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>mvm.rya</groupId>
+        <artifactId>rya.extras</artifactId>
+        <version>3.2.5-SNAPSHOT</version>
+    </parent>
+    <artifactId>rya.console</artifactId>
+    <packaging>jar</packaging>
+
+    <url>http://maven.apache.org</url>
+
+    <properties>
+        <spring.shell.version>1.0.0.M1</spring.shell.version>
+        <jar.mainclass>org.springframework.shell.Bootstrap</jar.mainclass>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>mvm.rya</groupId>
+            <artifactId>rya.api</artifactId>
+        </dependency>
+	   <dependency>
+            <groupId>mvm.rya</groupId>
+            <artifactId>accumulo.rya</artifactId>
+	        <exclusions>
+                <exclusion>
+                    <groupId>jline</groupId>
+                    <artifactId>jline</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.shell</groupId>
+            <artifactId>spring-shell</artifactId>
+            <version>${spring.shell.version}</version>
+        </dependency>
+
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <source>1.5</source>
+                    <target>1.5</target>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>copy-dependencies</id>
+                        <phase>prepare-package</phase>
+                        <goals>
+                            <goal>copy-dependencies</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>${project.build.directory}/lib</outputDirectory>
+                            <overWriteReleases>true</overWriteReleases>
+                            <overWriteSnapshots>true</overWriteSnapshots>
+                            <overWriteIfNewer>true</overWriteIfNewer>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <configuration>
+                    <archive>
+                        <manifest>
+                            <addClasspath>true</addClasspath>
+                            <!--<useUniqueVersions>false</useUniqueVersions>-->
+                            <classpathPrefix>lib/</classpathPrefix>
+                            <mainClass>${jar.mainclass}</mainClass>
+                        </manifest>
+                        <manifestEntries>
+                            <version>${project.version}</version>
+                        </manifestEntries>
+                    </archive>
+                </configuration>
+            </plugin>
+        </plugins>
+
+    </build>
+
+    <profiles>
+        <profile>
+            <id>accumulo</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <dependencies>
+                <dependency>
+                    <groupId>org.apache.accumulo</groupId>
+                    <artifactId>accumulo-core</artifactId>
+                </dependency>
+                <dependency>
+                    <groupId>mvm.rya</groupId>
+                    <artifactId>accumulo.iterators</artifactId>
+                </dependency>
+            </dependencies>
+        </profile>
+        <profile>
+            <id>cloudbase</id>
+            <activation>
+                <activeByDefault>false</activeByDefault>
+            </activation>
+            <dependencies>
+                <dependency>
+                    <groupId>com.texeltek</groupId>
+                    <artifactId>accumulo-cloudbase-shim</artifactId>
+                </dependency>
+                <dependency>
+                    <groupId>mvm.rya</groupId>
+                    <artifactId>cloudbase.iterators</artifactId>
+                </dependency>
+            </dependencies>
+        </profile>
+		
+    </profiles>
+
+    <repositories>
+        <!-- jline 1.0.S2-B is here http://shrub.appspot.com/spring-roo-repository.springsource.org/release/net/sourceforge/jline/jline/1.0.S2-B/ -->
+        <repository>
+            <id>spring-roo-repository</id>
+            <name>Spring Roo Maven Repository</name>
+            <url>http://spring-roo-repository.springsource.org/release</url>
+        </repository>
+
+        <repository>
+            <id>spring-maven-snapshot</id>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+            <name>Springframework Maven SNAPSHOT Repository</name>
+            <url>http://repo.springsource.org/libs-snapshot</url>
+        </repository>
+    </repositories>
+</project>

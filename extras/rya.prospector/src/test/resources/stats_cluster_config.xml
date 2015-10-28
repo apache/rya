@@ -1,0 +1,76 @@
+<?xml version="1.0"?>
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+<configuration>
+   <!-- Accumulo info -->
+   
+    <property>
+        <name>mock</name>
+        <value>true</value>
+    </property>
+    <property>
+        <name>instance</name>
+        <value>accumulo</value>
+    </property>
+    <property>
+        <name>zookeepers</name>
+        <value>zoo1,zoo2,zoo3</value>
+    </property>
+
+   <!-- User info -->
+    <property>
+        <name>username</name>
+        <value>user</value>
+    </property>
+    <property>
+        <name>password</name>
+        <value>pass</value>
+    </property>
+
+   <!-- Rya info -->
+   <property>
+        <name>spo.table</name>
+        <value>rya_spo</value>
+    </property>
+    <property>
+        <name>prospects.table</name>
+        <value>rya_prospects</value>
+    </property>
+    <property>
+        <name>selectivity.table</name>
+        <value>rya_selectivity</value>
+    </property>
+    <property>
+        <name>auths</name>
+        <value>U</value>
+    </property>
+    <property>
+        <name>prospector.auths</name>
+        <value>U</value>
+    </property>
+	
+    <property>
+        <name>prospector.intable</name>
+        <value>rya_spo</value>
+    </property>
+    <property>
+        <name>prospector.outtable</name>
+        <value>rya_prospects</value>
+    </property>
+	
+    <property>
+        <name>inputpath</name>
+        <value>/tmp/RyaStats/JoinSelectStatisticsSumInput</value>
+    </property>
+    <property>
+        <name>outputpath</name>
+        <value>/tmp/RyaStats/JoinSelectStatisticsSumInput</value>
+    </property>
+     <property>
+        <name>prospects.outputpath</name>
+        <value>/tmp/RyaStats/ProspectsOutput</value>
+    </property>
+	<property>
+        <name>spo.outputpath</name>
+        <value>/tmp/RyaStats/SpoOutput</value>
+    </property>
+</configuration>

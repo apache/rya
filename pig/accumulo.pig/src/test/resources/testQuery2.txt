@@ -1,0 +1,4 @@
+SELECT ?x ?y ?z WHERE {
+?x <uri:talksTo> ?y.
+?y <uri:hangsOutWith> ?z.
+}

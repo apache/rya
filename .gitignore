@@ -1,1 +1,59 @@
+## Eclipse
+*.pydevproject
+.project
+.metadata
+bin/**
+tmp/**
+tmp/**/*
+*.tmp
+*.bak
+*.swp
+*~.nib
+local.properties
+.classpath
+.settings/
+.loadpath
 
+# External tool builders
+.externalToolBuilders/
+
+# Locally stored "Eclipse launch configurations"
+*.launch
+
+# CDT-specific
+.cproject
+
+# PDT-specific
+.buildpath
+
+## Intellij
+*.iml
+*.ipr
+*.iws
+.idea/
+
+## Maven
+target/
+
+## Other
+bin/
+bin-groovy/
+build/
+out/
+.manager/
+.svn/
+*/.svn
+.DS_Store
+.gradle
+*.iws
+*.ipr
+.clover
+
+stagingDir
+JRatOutput
+shiftone-jrat.jar
+*.versionsBackup
+
+blueprints.log
+MANIFEST.MF
+delme*

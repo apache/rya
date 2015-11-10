@@ -4,7 +4,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>mvm.rya</groupId>
     <artifactId>parent</artifactId>
-    <version>3.2.9</version>
+    <version>3.2.10-SNAPSHOT</version>
     <packaging>pom</packaging>
     <name>${project.groupId}.${project.artifactId}</name>
     <licenses>

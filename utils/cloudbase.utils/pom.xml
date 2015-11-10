@@ -4,7 +4,7 @@
     <parent>
         <groupId>mvm.rya</groupId>
 		<artifactId>rya.utils</artifactId>
-		<version>3.2.7-SNAPSHOT</version>
+		<version>3.2.10-SNAPSHOT</version>
     </parent>
     <artifactId>cloudbase.utils</artifactId>
     <name>${project.groupId}.${project.artifactId}</name>

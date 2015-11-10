@@ -3,7 +3,7 @@
     <parent>
         <groupId>mvm.rya</groupId>
         <artifactId>rya.web</artifactId>
-        <version>3.2.9</version>
+        <version>3.2.10-SNAPSHOT</version>
     </parent>
     <artifactId>web.rya</artifactId>
     <name>${project.groupId}.${project.artifactId}</name>

@@ -1,4 +1,4 @@
-package mvm.rya.indexing;
+package mvm.rya.sail.config;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one

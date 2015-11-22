@@ -20,9 +20,9 @@
 import java.util.List;
 
 import mvm.rya.api.RdfCloudTripleStoreConfiguration;
-import mvm.rya.indexing.RyaSailFactory;
 import mvm.rya.indexing.accumulo.ConfigUtils;
 import mvm.rya.mongodb.MongoDBRdfConfiguration;
+import mvm.rya.sail.config.RyaSailFactory;
 
 import org.apache.commons.lang.Validate;
 import org.apache.hadoop.conf.Configuration;

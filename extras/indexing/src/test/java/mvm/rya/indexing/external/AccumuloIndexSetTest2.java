@@ -26,9 +26,9 @@ import java.util.List;
 import junit.framework.Assert;
 import mvm.rya.accumulo.AccumuloRdfConfiguration;
 import mvm.rya.api.persist.RyaDAOException;
-import mvm.rya.indexing.RyaSailFactory;
 import mvm.rya.indexing.accumulo.ConfigUtils;
 import mvm.rya.indexing.external.tupleSet.AccumuloIndexSet;
+import mvm.rya.sail.config.RyaSailFactory;
 
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;

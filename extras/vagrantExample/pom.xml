@@ -1,5 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
-
+<?xml version='1.0'?>
 <!--
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
@@ -23,22 +22,25 @@ under the License.
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>org.apache.rya</groupId>
-        <artifactId>rya-project</artifactId>
+        <artifactId>rya.extras</artifactId>
         <version>3.2.10-SNAPSHOT</version>
     </parent>
 
-    <artifactId>rya.extras</artifactId>
-    <name>Apache Rya Extra Projects</name>
+    <artifactId>rya.vagrant.example</artifactId>
+    <name>Apache Rya Vagrant VM</name>
 
-    <packaging>pom</packaging>
-
-    <modules>
-        <module>rya.prospector</module>
-        <module>rya.manual</module>
-        <module>tinkerpop.rya</module>
-        <module>rya.console</module>
-        <module>indexing</module>
-        <module>indexingExample</module>
-        <module>vagrantExample</module>
-    </modules>
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.rat</groupId>
+                <artifactId>apache-rat-plugin</artifactId>
+                <configuration>
+                    <excludes combine.children="append">
+                        <!--  Vagrant may leave around some files.  These are not checked in -->
+                        <exclude>**/src/main/vagrant/.vagrant/**</exclude>
+                    </excludes>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
 </project>

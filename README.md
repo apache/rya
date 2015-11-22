@@ -39,6 +39,10 @@ Since the data encodings changed in the 3.2.2 release, you will need to run the 
 hadoop jar accumulo.rya-mr.jar mvm.rya.accumulo.mr.upgrade.Upgrade322Tool -Dac.instance={} -Dac.username={} -Dac.pwd={}
 ```
 
+## Quick Start VM
+
+A quickstart Vagrant VM is availible [here](extras/vagrantExample/src/main/vagrant)
+
 ## Quick Start
 
 This tutorial will outline the steps needed to get quickly started with the Rya store using the web based endpoint.

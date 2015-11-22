@@ -21,28 +21,21 @@ package mvm.rya.indexing.external;
 
 
 import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
 
 import junit.framework.Assert;
 import mvm.rya.accumulo.AccumuloRdfConfiguration;
 import mvm.rya.api.persist.RyaDAOException;
-import mvm.rya.indexing.RyaSailFactory;
 import mvm.rya.indexing.accumulo.ConfigUtils;
 import mvm.rya.indexing.external.tupleSet.AccumuloIndexSet;
+import mvm.rya.sail.config.RyaSailFactory;
 
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
 import org.apache.accumulo.core.client.Connector;
-import org.apache.accumulo.core.client.Scanner;
 import org.apache.accumulo.core.client.TableExistsException;
 import org.apache.accumulo.core.client.TableNotFoundException;
 import org.apache.accumulo.core.client.mock.MockInstance;
 import org.apache.accumulo.core.client.security.tokens.PasswordToken;
-import org.apache.accumulo.core.data.Key;
-import org.apache.accumulo.core.data.Value;
-import org.apache.accumulo.core.security.Authorizations;
-import org.apache.hadoop.conf.Configuration;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -63,7 +56,6 @@ import org.openrdf.repository.sail.SailRepository;
 import org.openrdf.repository.sail.SailRepositoryConnection;
 import org.openrdf.sail.Sail;
 import org.openrdf.sail.SailException;
-import org.openrdf.sail.memory.MemoryStore;
 
 public class PrecompJoinOptimizerIntegrationTest {
 

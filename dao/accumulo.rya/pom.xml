@@ -1,108 +1,73 @@
 <?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+Licensed to the Apache Software Foundation (ASF) under one
+or more contributor license agreements.  See the NOTICE file
+distributed with this work for additional information
+regarding copyright ownership.  The ASF licenses this file
+to you under the Apache License, Version 2.0 (the
+"License"); you may not use this file except in compliance
+with the License.  You may obtain a copy of the License at
+
+  http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing,
+software distributed under the License is distributed on an
+"AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+KIND, either express or implied.  See the License for the
+specific language governing permissions and limitations
+under the License.
+-->
+
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
     <parent>
-        <groupId>mvm.rya</groupId>
+        <groupId>org.apache.rya</groupId>
         <artifactId>rya.dao</artifactId>
         <version>3.2.10-SNAPSHOT</version>
     </parent>
-    <modelVersion>4.0.0</modelVersion>
 
     <artifactId>accumulo.rya</artifactId>
-    <name>${project.groupId}.${project.artifactId}</name>
-    <properties>
-
-    </properties>
+    <name>Apache Rya Accumulo DAO</name>
 
     <dependencies>
         <dependency>
-            <groupId>mvm.rya</groupId>
+            <groupId>org.apache.rya</groupId>
             <artifactId>rya.api</artifactId>
         </dependency>
         
         <!-- Accumulo deps -->
         <dependency>
-            <groupId>org.apache.zookeeper</groupId>
-            <artifactId>zookeeper</artifactId>
-            <exclusions>
-                <!-- the log4j that comes with zookeeper 3.3.5 has some bad dependencies -->
-                <exclusion>
-                    <groupId>javax.jms</groupId>
-                    <artifactId>jms</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>com.sun.jdmk</groupId>
-                    <artifactId>jmxtools</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>com.sun.jmx</groupId>
-                    <artifactId>jmxri</artifactId>
-                </exclusion>
-            </exclusions>
+            <groupId>org.apache.accumulo</groupId>
+            <artifactId>accumulo-core</artifactId>
         </dependency>
+
+        <dependency>
+            <groupId>org.openrdf.sesame</groupId>
+            <artifactId>sesame-rio-ntriples</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.openrdf.sesame</groupId>
+            <artifactId>sesame-rio-nquads</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.openrdf.sesame</groupId>
+            <artifactId>sesame-queryalgebra-evaluation</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.openrdf.sesame</groupId>
+            <artifactId>sesame-rio-trig</artifactId>
+            <scope>test</scope>
+        </dependency>
+
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
             <scope>test</scope>
         </dependency>
-        <dependency>
-            <groupId>org.openrdf.sesame</groupId>
-            <artifactId>sesame-rio-ntriples</artifactId>
-            <version>${openrdf.sesame.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.openrdf.sesame</groupId>
-            <artifactId>sesame-rio-nquads</artifactId>
-            <version>${openrdf.sesame.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.openrdf.sesame</groupId>
-            <artifactId>sesame-queryalgebra-evaluation</artifactId>
-            <version>${openrdf.sesame.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.openrdf.sesame</groupId>
-            <artifactId>sesame-rio-trig</artifactId>
-            <version>${openrdf.sesame.version}</version>
-            <scope>test</scope>
-        </dependency>
     </dependencies>
     <profiles>
-        <profile>
-            <id>accumulo</id>
-            <activation>
-                <activeByDefault>true</activeByDefault>
-            </activation>
-            <dependencies>
-                <dependency>
-                    <groupId>org.apache.accumulo</groupId>
-                    <artifactId>accumulo-core</artifactId>
-                    <optional>true</optional>
-                </dependency>
-                <dependency>
-                    <groupId>mvm.rya</groupId>
-                    <artifactId>accumulo.iterators</artifactId>
-                    <optional>true</optional>
-                </dependency>
-            </dependencies>
-        </profile>
-        <profile>
-            <id>cloudbase</id>
-            <activation>
-                <activeByDefault>false</activeByDefault>
-            </activation>
-            <dependencies>
-                <dependency>
-                    <groupId>com.texeltek</groupId>
-                    <artifactId>accumulo-cloudbase-shim</artifactId>
-                    <optional>true</optional>
-                </dependency>
-                <dependency>
-                    <groupId>mvm.rya</groupId>
-                    <artifactId>cloudbase.iterators</artifactId>
-                    <optional>true</optional>
-                </dependency>
-            </dependencies>
-        </profile>
         <profile>
             <id>mr</id>
             <build>

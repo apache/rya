@@ -21,11 +21,6 @@
 
 import java.util.List;
 
-import mvm.rya.accumulo.AccumuloRdfConfiguration;
-import mvm.rya.api.RdfCloudTripleStoreConfiguration;
-import mvm.rya.indexing.RyaSailFactory;
-import mvm.rya.indexing.accumulo.ConfigUtils;
-
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
 import org.apache.accumulo.core.client.TableNotFoundException;
@@ -47,6 +42,11 @@ import org.openrdf.repository.sail.SailRepository;
 import org.openrdf.repository.sail.SailRepositoryConnection;
 import org.openrdf.sail.Sail;
 
+import mvm.rya.accumulo.AccumuloRdfConfiguration;
+import mvm.rya.api.RdfCloudTripleStoreConfiguration;
+import mvm.rya.indexing.RyaSailFactory;
+import mvm.rya.indexing.accumulo.ConfigUtils;
+
 public class EntityDirectExample {
     private static final Logger log = Logger.getLogger(EntityDirectExample.class);
 
@@ -59,18 +59,18 @@ public class EntityDirectExample {
     private static final String INSTANCE = "instance";
     private static final String RYA_TABLE_PREFIX = "x_test_triplestore_";
     private static final String AUTHS = "U";
-    
+
     public static void main(String[] args) throws Exception {
         Configuration conf = getConf();
         conf.setBoolean(ConfigUtils.DISPLAY_QUERY_PLAN, PRINT_QUERIES);
-        
+
         log.info("Creating the tables as root.");
         SailRepository repository = null;
         SailRepositoryConnection conn = null;
-      
+
         try {
             log.info("Connecting to Indexing Sail Repository.");
-            
+
             Sail extSail = RyaSailFactory.getInstance(conf);
             repository = new SailRepository(extSail);
             repository.initialize();
@@ -80,7 +80,7 @@ public class EntityDirectExample {
             testAddAndDelete(conn);
             log.info("Running SAIL/SPARQL Example: Add and Temporal Search");
             testAddAndTemporalSearchWithPCJ(conn);
-            
+
         } finally {
             log.info("Shutting down");
             closeQuietly(conn);
@@ -108,10 +108,10 @@ public class EntityDirectExample {
         }
     }
 
-    
 
 
-   
+
+
     public static void testAddAndDelete(SailRepositoryConnection conn) throws MalformedQueryException,
             RepositoryException, UpdateExecutionException, QueryEvaluationException, TupleQueryResultHandlerException,
             AccumuloException, AccumuloSecurityException, TableNotFoundException {
@@ -127,7 +127,7 @@ public class EntityDirectExample {
 
         Update update = conn.prepareUpdate(QueryLanguage.SPARQL, query);
         update.execute();
-        
+
         query = "select ?x {GRAPH <http://updated/test> {?x <http://acme.com/actions/likes> \"A new book\" . "//
                 + " ?x <http://acme.com/actions/likes> \"Avocados\" }}";
         CountingResultHandler resultHandler = new CountingResultHandler();
@@ -138,29 +138,28 @@ public class EntityDirectExample {
         Validate.isTrue(resultHandler.getCount() == 1);
         resultHandler.resetCount();
 
-        //TODO delete currently not implemented in AccumuloRyaDAO for 
-//        // Delete Data
-//        query = "DELETE DATA\n" //
-//                + "{ GRAPH <http://updated/test> {\n"
-//                + "  <http://acme.com/people/Mike> <http://acme.com/actions/likes> \"A new book\" ;\n"
-//                + "   <http://acme.com/actions/likes> \"Avocados\" .\n" + "}}";
-//
-//        update = conn.prepareUpdate(QueryLanguage.SPARQL, query);
-//        update.execute();
-//
-//        query = "select ?x {GRAPH <http://updated/test> {?x <http://acme.com/actions/likes> \"A new book\" . "//
-//                + " ?x <http://acme.com/actions/likes> \"Avocados\" }}";
-//        tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, query);
-//        tupleQuery.evaluate(resultHandler);
-//        log.info("Result count : " + resultHandler.getCount());
-//
-//        Validate.isTrue(resultHandler.getCount() == 0);
-    }
-    
-    
+        // Delete Data
+        query = "DELETE DATA\n" //
+                + "{ GRAPH <http://updated/test> {\n"
+                + "  <http://acme.com/people/Mike> <http://acme.com/actions/likes> \"A new book\" ;\n"
+                + "   <http://acme.com/actions/likes> \"Avocados\" .\n" + "}}";
 
-    
-    
+        update = conn.prepareUpdate(QueryLanguage.SPARQL, query);
+        update.execute();
+
+        query = "select ?x {GRAPH <http://updated/test> {?x <http://acme.com/actions/likes> \"A new book\" . "//
+                + " ?x <http://acme.com/actions/likes> \"Avocados\" }}";
+        tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, query);
+        tupleQuery.evaluate(resultHandler);
+        log.info("Result count : " + resultHandler.getCount());
+
+        Validate.isTrue(resultHandler.getCount() == 0);
+    }
+
+
+
+
+
     private static void testAddAndTemporalSearchWithPCJ(SailRepositoryConnection conn) throws Exception {
 
         // create some resources and literals to make statements out of
@@ -178,7 +177,7 @@ public class EntityDirectExample {
 
         Update update = conn.prepareUpdate(QueryLanguage.SPARQL, sparqlInsert);
         update.execute();
-        
+
         String queryString = "PREFIX pref: <http://www.model/pref#> \n" //
                 + "SELECT ?x ?z \n" //
                 + "WHERE { \n"
@@ -187,8 +186,8 @@ public class EntityDirectExample {
                 + "  ?x pref:hasProperty2 'property2' . \n"//
                 + "  ?x pref:hasProperty3 'property3' . \n"//
                 + "}";//
-       
-        
+
+
 
         TupleQuery tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, queryString);
         CountingResultHandler tupleHandler = new CountingResultHandler();
@@ -196,7 +195,7 @@ public class EntityDirectExample {
         log.info("Result count : " + tupleHandler.getCount());
         Validate.isTrue(tupleHandler.getCount() == 1);
         Validate.isTrue(tupleHandler.getBsSize() == 2);
-        
+
         queryString = "PREFIX pref: <http://www.model/pref#> \n" //
                 + "SELECT ?x ?w ?z \n" //
                 + "WHERE { \n"
@@ -204,29 +203,29 @@ public class EntityDirectExample {
                 + "  ?x pref:hasProperty4 'property4' . \n"//
                 + "  ?x pref:hasProperty5 ?w . \n"//
                 + "}";//
-       
-        
+
+
         tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, queryString);
         tupleHandler = new CountingResultHandler();
         tupleQuery.evaluate(tupleHandler);
         log.info("Result count : " + tupleHandler.getCount());
         Validate.isTrue(tupleHandler.getCount() == 1);
         Validate.isTrue(tupleHandler.getBsSize() == 3);
-        
-        
-        queryString = "PREFIX pref: <http://www.model/pref#> " 
-                + "SELECT ?v ?w ?x ?y ?z " 
-                + "WHERE { " 
-                + "  ?w a ?z  . " 
-                + "  ?w pref:hasProperty1 ?v . " 
-                + "  ?w pref:hasProperty2 'property2' . " 
-                + "  ?w pref:hasProperty3 'property3' . " 
+
+
+        queryString = "PREFIX pref: <http://www.model/pref#> "
+                + "SELECT ?v ?w ?x ?y ?z "
+                + "WHERE { "
+                + "  ?w a ?z  . "
+                + "  ?w pref:hasProperty1 ?v . "
+                + "  ?w pref:hasProperty2 'property2' . "
+                + "  ?w pref:hasProperty3 'property3' . "
                 + "  ?x a ?z  . "
-                + "  ?x pref:hasProperty4 'property4' . " 
-                + "  ?x pref:hasProperty5 ?y . " 
+                + "  ?x pref:hasProperty4 'property4' . "
+                + "  ?x pref:hasProperty5 ?y . "
                 + "}";
-       
-        
+
+
 
         tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, queryString);
         tupleHandler = new CountingResultHandler();
@@ -234,10 +233,10 @@ public class EntityDirectExample {
         log.info("Result count : " + tupleHandler.getCount());
         Validate.isTrue(tupleHandler.getCount() == 1);
         Validate.isTrue(tupleHandler.getBsSize() == 5);
-        
+
     }
-    
-    
+
+
     private static Configuration getConf() {
 
         AccumuloRdfConfiguration conf = new AccumuloRdfConfiguration();
@@ -254,7 +253,7 @@ public class EntityDirectExample {
 
         return conf;
     }
-    
+
 
     private static class CountingResultHandler implements TupleQueryResultHandler {
         private int count = 0;
@@ -264,11 +263,11 @@ public class EntityDirectExample {
         public int getCount() {
             return count;
         }
-        
+
         public int getBsSize() {
             return bindingSize;
         }
-        
+
         public void resetBsSize() {
             bindingSize = 0;
             bsSizeSet = false;
@@ -298,14 +297,10 @@ public class EntityDirectExample {
 
         @Override
         public void handleBoolean(boolean arg0) throws QueryResultHandlerException {
-          // TODO Auto-generated method stub
-          
         }
 
         @Override
         public void handleLinks(List<String> arg0) throws QueryResultHandlerException {
-          // TODO Auto-generated method stub
-          
         }
     }
 }

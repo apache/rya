@@ -1,4 +1,4 @@
-﻿package mvm.rya.indexing.accumulo.geo;
+package mvm.rya.indexing.accumulo.geo;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one

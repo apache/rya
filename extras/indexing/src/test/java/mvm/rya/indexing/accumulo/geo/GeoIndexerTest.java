@@ -237,7 +237,8 @@ public class GeoIndexerTest {
             Assert.assertEquals(Sets.newHashSet(), getSet(f.queryWithin(pOut, EMPTY_CONSTRAINTS)));
 
             // test a ring for the whole world and make sure the point is gone
-            double[] world = { -180, 90, 180, 90, -180, 90, -180, -90, -180, 90 };
+            // Geomesa is a little sensitive around lon 180, so we only go to 179
+            double[] world = { -180, 90, 179, 90, 179, -90, -180, -90, -180, 90 };
             LinearRing rWorld = gf.createLinearRing(new PackedCoordinateSequence.Double(world, 2));
             Polygon pWorld = gf.createPolygon(rWorld, new LinearRing[] {});
             Assert.assertEquals(Sets.newHashSet(), getSet(f.queryWithin(pWorld, EMPTY_CONSTRAINTS)));

@@ -21,20 +21,19 @@ package mvm.rya.accumulo;
 
 
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
+
+import org.apache.accumulo.core.client.IteratorSetting;
 import org.apache.accumulo.core.security.Authorizations;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Arrays;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-
-/**
- * Date: 1/28/13
- * Time: 8:36 AM
- */
 public class AccumuloRdfConfigurationTest {
     private static final Logger logger = LoggerFactory.getLogger(AccumuloRdfConfigurationTest.class);
 
@@ -55,5 +54,22 @@ public class AccumuloRdfConfigurationTest {
         assertTrue(Arrays.equals(arr, conf.getAuths()));
         assertEquals(str, conf.getAuth());
         assertEquals(auths, conf.getAuthorizations());
+    }
+
+    @Test
+    public void testIterators() {
+        AccumuloRdfConfiguration conf = new AccumuloRdfConfiguration();
+
+        Map<String, String> options = new HashMap<String, String>();
+        options.put("key1", "value1");
+        options.put("key2", "value2");
+        IteratorSetting setting = new IteratorSetting(1, "test", "test2", options);
+
+        conf.setAdditionalIterators(setting);
+        IteratorSetting[] iteratorSettings = conf.getAdditionalIterators();
+        assertTrue(iteratorSettings.length == 1);
+
+        assertEquals(setting, iteratorSettings[0]);
+
     }
 }

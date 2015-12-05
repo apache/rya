@@ -79,15 +79,11 @@ import mvm.rya.api.resolver.RyaTripleContext;
 import mvm.rya.api.resolver.triple.TripleRow;
 import mvm.rya.api.resolver.triple.TripleRowResolverException;
 
-/**
- * Class AccumuloRyaDAO
- * Date: Feb 29, 2012
- * Time: 12:37:22 PM
- */
 public class AccumuloRyaDAO implements RyaDAO<AccumuloRdfConfiguration>, RyaNamespaceManager<AccumuloRdfConfiguration> {
     private static final Log logger = LogFactory.getLog(AccumuloRyaDAO.class);
 
     private boolean initialized = false;
+    private boolean flushEachUpdate = true;
     private Connector connector;
     private BatchWriterConfig batchWriterConfig;
 
@@ -134,6 +130,8 @@ public class AccumuloRyaDAO implements RyaDAO<AccumuloRdfConfiguration>, RyaName
 
             secondaryIndexers = conf.getAdditionalIndexers();
 
+            flushEachUpdate = conf.flushEachUpdate();
+            
             TableOperations tableOperations = connector.tableOperations();
             AccumuloRdfUtils.createTableIfNotExist(tableOperations, tableLayoutStrategy.getSpo());
             AccumuloRdfUtils.createTableIfNotExist(tableOperations, tableLayoutStrategy.getPo());
@@ -151,9 +149,8 @@ public class AccumuloRyaDAO implements RyaDAO<AccumuloRdfConfiguration>, RyaName
             bw_po = mt_bw.getBatchWriter(tableLayoutStrategy.getPo());
             bw_osp = mt_bw.getBatchWriter(tableLayoutStrategy.getOsp());
 
-            bw_ns = connector.createBatchWriter(tableLayoutStrategy.getNs(), MAX_MEMORY,
-                    MAX_TIME, 1);
-
+            bw_ns = mt_bw.getBatchWriter(tableLayoutStrategy.getNs());
+            
             for (AccumuloIndexer index : secondaryIndexers) {
                 index.setMultiTableBatchWriter(mt_bw);
             }
@@ -193,7 +190,6 @@ public class AccumuloRyaDAO implements RyaDAO<AccumuloRdfConfiguration>, RyaName
     @Override
     public void delete(RyaStatement stmt, AccumuloRdfConfiguration aconf) throws RyaDAOException {
         this.delete(Iterators.singletonIterator(stmt), aconf);
-        //TODO currently all indexers do not support delete
     }
 
     @Override
@@ -211,8 +207,7 @@ public class AccumuloRyaDAO implements RyaDAO<AccumuloRdfConfiguration>, RyaName
                     index.deleteStatement(stmt);
                 }
             }
-            mt_bw.flush();
-            //TODO currently all indexers do not support delete
+            if (flushEachUpdate) { mt_bw.flush(); }
         } catch (Exception e) {
             throw new RyaDAOException(e);
         }
@@ -299,7 +294,7 @@ public class AccumuloRyaDAO implements RyaDAO<AccumuloRdfConfiguration>, RyaName
                 }
             }
 
-            mt_bw.flush();
+            if (flushEachUpdate) { mt_bw.flush(); }
         } catch (Exception e) {
             throw new RyaDAOException(e);
         }
@@ -314,10 +309,8 @@ public class AccumuloRyaDAO implements RyaDAO<AccumuloRdfConfiguration>, RyaName
         try {
             initialized = false;
             mt_bw.flush();
-            bw_ns.flush();
 
             mt_bw.close();
-            bw_ns.close();
         } catch (Exception e) {
             throw new RyaDAOException(e);
         }
@@ -329,7 +322,7 @@ public class AccumuloRyaDAO implements RyaDAO<AccumuloRdfConfiguration>, RyaName
             Mutation m = new Mutation(new Text(pfx));
             m.put(INFO_NAMESPACE_TXT, EMPTY_TEXT, new Value(namespace.getBytes()));
             bw_ns.addMutation(m);
-            bw_ns.flush();
+            if (flushEachUpdate) { mt_bw.flush(); }
         } catch (Exception e) {
             throw new RyaDAOException(e);
         }
@@ -360,7 +353,7 @@ public class AccumuloRyaDAO implements RyaDAO<AccumuloRdfConfiguration>, RyaName
             Mutation del = new Mutation(new Text(pfx));
             del.putDelete(INFO_NAMESPACE_TXT, EMPTY_TEXT);
             bw_ns.addMutation(del);
-            bw_ns.flush();
+            if (flushEachUpdate) { mt_bw.flush(); }
         } catch (Exception e) {
             throw new RyaDAOException(e);
         }
@@ -462,6 +455,14 @@ public class AccumuloRyaDAO implements RyaDAO<AccumuloRdfConfiguration>, RyaName
 
     public void setQueryEngine(AccumuloRyaQueryEngine queryEngine) {
         this.queryEngine = queryEngine;
+    }
+
+    public void flush() throws RyaDAOException {
+        try {
+            mt_bw.flush();
+        } catch (MutationsRejectedException e) {
+            throw new RyaDAOException(e);
+        }
     }
 
     protected String[] getTables() {

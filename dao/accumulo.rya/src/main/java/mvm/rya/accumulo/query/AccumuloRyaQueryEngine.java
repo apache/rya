@@ -388,6 +388,12 @@ public class AccumuloRyaQueryEngine implements RyaQueryEngine<AccumuloRdfConfigu
             RegExFilter.setRegexs(setting, regex, null, null, null, false);
             scanner.addScanIterator(setting);
         }
+        if (conf instanceof AccumuloRdfConfiguration) {
+            //TODO should we take the iterator settings as is or should we adjust the priority based on the above?
+            for (IteratorSetting itr : ((AccumuloRdfConfiguration)conf).getAdditionalIterators()) {
+                scanner.addScanIterator(itr);
+            }
+        }
     }
 
     @Override

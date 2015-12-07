@@ -19,5 +19,7 @@ under the License. -->
 
 This branch does not contain any source code.  It exists for two reasons:
 
-1. We pushed a large change and this broke the process that pushes changes to github.  We needed a small commit to wake up the process, so we created this branch and pushed a small change.
+1. We pushed a large change and this broke the process that pushes changes to GitHub.  We needed a small commit to wake up the process, so we created this branch and pushed a small change.
 2. Apache currently prevents branch deletes
+
+If you push a large change and it doesn't immediately get mirrored to GitHub, feel free to edit this readme, push the commit, and hopefully the process wakes up. :)

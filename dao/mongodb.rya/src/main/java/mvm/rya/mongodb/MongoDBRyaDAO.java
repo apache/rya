@@ -69,18 +69,39 @@ public class MongoDBRyaDAO implements RyaDAO<MongoDBRdfConfiguration>{
 	
 	public MongoDBRyaDAO(MongoDBRdfConfiguration conf) throws RyaDAOException{
 		this.conf = conf;
+		initConnection();
+		init();
+	}
+
+	
+	public MongoDBRyaDAO(MongoDBRdfConfiguration conf, MongoClient mongoClient) throws RyaDAOException{
+		this.conf = conf;
+		this.mongoClient = mongoClient;
 		init();
 	}
 
 	public void setConf(MongoDBRdfConfiguration conf) {
 		this.conf = conf;
 	}
+	
+	public void setMongoClient(MongoClient mongoClient) {
+		this.mongoClient = mongoClient;
+	}
+
+	public void setDB(DB db) {
+		this.db = db;
+	}
+
+	
+	public void setDBCollection(DBCollection coll) {
+		this.coll = coll;
+	}
 
     public MongoDBRdfConfiguration getConf() {
         return conf;
     }
 
-    public void init() throws RyaDAOException {
+    public void initConnection() throws RyaDAOException {
         try {
             boolean useMongoTest = conf.getUseTestMongo();
             if (useMongoTest) {
@@ -94,13 +115,26 @@ public class MongoDBRyaDAO implements RyaDAO<MongoDBRdfConfiguration>{
                 if (conf.get(MongoDBRdfConfiguration.MONGO_USER) != null) {
                     MongoCredential cred = MongoCredential.createCredential(
                             conf.get(MongoDBRdfConfiguration.MONGO_USER),
-                            conf.get(MongoDBRdfConfiguration.MONGO_USER_PASSWORD),
-                            conf.get(MongoDBRdfConfiguration.MONGO_DB_NAME).toCharArray());
+                            conf.get(MongoDBRdfConfiguration.MONGO_DB_NAME),
+                            conf.get(MongoDBRdfConfiguration.MONGO_USER_PASSWORD).toCharArray());
                     mongoClient = new MongoClient(server, Arrays.asList(cred));
                 } else {
                     mongoClient = new MongoClient(server);
                 }
             }
+        } catch (UnknownHostException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        } catch (IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+
+    }
+
+    
+    public void init() throws RyaDAOException {
+        try {
             secondaryIndexers = conf.getAdditionalIndexers();
             for(RyaSecondaryIndexer index: secondaryIndexers) {
                 index.setConf(conf);
@@ -179,7 +213,7 @@ public class MongoDBRyaDAO implements RyaDAO<MongoDBRdfConfiguration>{
 
 	public void delete(RyaStatement statement, MongoDBRdfConfiguration conf)
 			throws RyaDAOException {
-		DBObject obj = storageStrategy.serialize(statement);
+		DBObject obj = storageStrategy.getQuery(statement);
 		coll.remove(obj);
 	}
 
@@ -192,7 +226,7 @@ public class MongoDBRyaDAO implements RyaDAO<MongoDBRdfConfiguration>{
 			MongoDBRdfConfiguration conf) throws RyaDAOException {
 		while (statements.hasNext()){
 			RyaStatement ryaStatement = statements.next();
-			coll.remove(storageStrategy.serialize(ryaStatement));
+			coll.remove(storageStrategy.getQuery(ryaStatement));
 		}
 		
 	}

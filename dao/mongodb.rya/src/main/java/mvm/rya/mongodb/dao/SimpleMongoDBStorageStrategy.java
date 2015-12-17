@@ -52,17 +52,12 @@ public class SimpleMongoDBStorageStrategy implements MongoDBStorageStrategy {
 	
 	@Override
 	public void createIndices(DBCollection coll){
-		coll.createIndex("subject");
-		coll.createIndex("predicate");
 		BasicDBObject doc = new BasicDBObject();
 	    doc.put(SUBJECT, 1);
 	    doc.put(PREDICATE, 1);
 		coll.createIndex(doc);
-		doc = new BasicDBObject(OBJECT, 1);
-		doc.put(OBJECT_TYPE, 1);
-		doc.put(PREDICATE, 1);
-		coll.createIndex(doc);
-		doc = new BasicDBObject(OBJECT, 1);
+		doc = new BasicDBObject(PREDICATE, 1);
+		doc.put(OBJECT, 1);
 		doc.put(OBJECT_TYPE, 1);
 		coll.createIndex(doc);
 		doc = new BasicDBObject(OBJECT, 1);

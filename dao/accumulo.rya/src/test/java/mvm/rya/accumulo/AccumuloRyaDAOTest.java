@@ -1,28 +1,38 @@
 package mvm.rya.accumulo;
 
 /*
- * #%L
- * mvm.rya.accumulo.rya
- * %%
- * Copyright (C) 2014 Rya
- * %%
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
  * 
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *   http://www.apache.org/licenses/LICENSE-2.0
  * 
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- * #L%
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
  */
 
+
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 import info.aduna.iteration.CloseableIteration;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.UUID;
+
 import mvm.rya.accumulo.query.AccumuloRyaQueryEngine;
-import mvm.rya.api.RdfCloudTripleStoreUtils;
 import mvm.rya.api.domain.RyaStatement;
 import mvm.rya.api.domain.RyaType;
 import mvm.rya.api.domain.RyaURI;
@@ -32,10 +42,11 @@ import mvm.rya.api.resolver.RdfToRyaConversions;
 import mvm.rya.api.resolver.RyaContext;
 
 import org.apache.accumulo.core.client.Connector;
+import org.apache.accumulo.core.client.IteratorSetting;
 import org.apache.accumulo.core.client.Scanner;
 import org.apache.accumulo.core.client.TableNotFoundException;
 import org.apache.accumulo.core.client.mock.MockInstance;
-import org.calrissian.mango.collect.CloseableIterable;
+import org.apache.accumulo.core.iterators.FirstEntryInRowIterator;
 import org.calrissian.mango.collect.FluentCloseableIterable;
 import org.junit.After;
 import org.junit.Before;
@@ -43,11 +54,6 @@ import org.junit.Test;
 import org.openrdf.model.ValueFactory;
 import org.openrdf.model.impl.ValueFactoryImpl;
 import org.openrdf.model.vocabulary.XMLSchema;
-import org.openrdf.query.BindingSet;
-
-import java.util.*;
-
-import static org.junit.Assert.*;
 
 /**
  * Class AccumuloRdfDAOTest
@@ -628,6 +634,45 @@ public class AccumuloRyaDAOTest {
             assertFalse(tableExists(tableName));
         }
         assertFalse(dao.isInitialized());
+    }
+
+    @Test
+    public void testQueryWithIterators() throws Exception {
+        RyaURI cpu = new RyaURI(litdupsNS + "cpu");
+        RyaURI loadPerc = new RyaURI(litdupsNS + "loadPerc");
+        RyaURI uri1 = new RyaURI(litdupsNS + "uri1");
+        dao.add(new RyaStatement(cpu, loadPerc, uri1, null, "qual1"));
+        dao.add(new RyaStatement(cpu, loadPerc, uri1, null, "qual2"));
+
+        AccumuloRyaQueryEngine queryEngine = dao.getQueryEngine();
+
+        AccumuloRdfConfiguration queryConf = new AccumuloRdfConfiguration(conf);
+        IteratorSetting firstEntryInRow = new IteratorSetting(3 /* correct value?? */, FirstEntryInRowIterator.class);
+        queryConf.setAdditionalIterators(firstEntryInRow);
+
+        Collection<RyaStatement> coll = new ArrayList<>();
+        coll.add(new RyaStatement(null, loadPerc, uri1));
+        CloseableIteration<RyaStatement, RyaDAOException> iter = queryEngine.batchQuery(coll, queryConf);
+        int count = 0;
+        while (iter.hasNext()) {
+            count++;
+            iter.next();
+        }
+        iter.close();
+        assertEquals(1, count);
+
+        //Assert that without the iterator we get 2
+        coll = new ArrayList<>();
+        coll.add(new RyaStatement(null, loadPerc, uri1));
+        iter = queryEngine.batchQuery(coll, conf);
+        count = 0;
+        while (iter.hasNext()) {
+            count++;
+            iter.next();
+        }
+        iter.close();
+        assertEquals(2, count);
+
     }
 
     private boolean areTablesEmpty() throws TableNotFoundException {

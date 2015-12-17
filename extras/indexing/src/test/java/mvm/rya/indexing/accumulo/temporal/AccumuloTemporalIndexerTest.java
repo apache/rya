@@ -1,12 +1,28 @@
-/**
- * 
- */
 package mvm.rya.indexing.accumulo.temporal;
+
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * 
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
+
 
 import static mvm.rya.api.resolver.RdfToRyaConversions.convertStatement;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
-import info.aduna.iteration.CloseableIteration;
 
 import java.io.IOException;
 import java.io.PrintStream;
@@ -22,15 +38,6 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
 
-import junit.framework.Assert;
-import mvm.rya.api.domain.RyaStatement;
-import mvm.rya.indexing.StatementContraints;
-import mvm.rya.indexing.TemporalInstant;
-import mvm.rya.indexing.TemporalInterval;
-import mvm.rya.indexing.accumulo.ConfigUtils;
-import mvm.rya.indexing.accumulo.StatementSerializer;
-
-import org.apache.accumulo.core.Constants;
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
 import org.apache.accumulo.core.client.Scanner;
@@ -39,6 +46,7 @@ import org.apache.accumulo.core.client.TableNotFoundException;
 import org.apache.accumulo.core.client.admin.TableOperations;
 import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Value;
+import org.apache.accumulo.core.security.Authorizations;
 import org.apache.commons.codec.binary.StringUtils;
 import org.apache.commons.io.output.NullOutputStream;
 import org.apache.hadoop.conf.Configuration;
@@ -58,25 +66,34 @@ import org.openrdf.query.QueryEvaluationException;
 
 import com.beust.jcommander.internal.Lists;
 
+import info.aduna.iteration.CloseableIteration;
+import junit.framework.Assert;
+import mvm.rya.api.domain.RyaStatement;
+import mvm.rya.indexing.StatementContraints;
+import mvm.rya.indexing.TemporalInstant;
+import mvm.rya.indexing.TemporalInterval;
+import mvm.rya.indexing.accumulo.ConfigUtils;
+import mvm.rya.indexing.accumulo.StatementSerializer;
+
 /**
  * JUnit tests for TemporalIndexer and it's implementation AccumuloTemporalIndexer
- * 
+ *
  * If you enjoy this test, please read RyaTemporalIndexerTest and YagoKBTest, which contain
  * many example SPARQL queries and updates and attempts to test independently of Accumulo:
- * 
+ *
  *     extras/indexingSail/src/test/java/mvm/rya/indexing/accumulo/RyaTemporalIndexerTest.java
  *     {@link mvm.rya.indexing.accumulo.RyaTemporalIndexerTest}
  *     {@link mvm.rya.indexing.accumulo.YagoKBTest.java}
- *     
+ *
  * Remember, this class in instantiated fresh for each @test method.
  * so fields are reset, unless they are static.
- * 
+ *
  * These are covered:
- *   Instance {before, equals, after} given Instance 
+ *   Instance {before, equals, after} given Instance
  *   Instance {before, after, inside} given Interval
  *   Instance {hasBeginning, hasEnd} given Interval
  * And a few more.
- * 
+ *
  */
 public final class AccumuloTemporalIndexerTest {
     // Configuration properties, this is reset per test in setup.
@@ -248,7 +265,7 @@ public final class AccumuloTemporalIndexerTest {
 
     /**
      * Test method for {@link AccumuloTemporalIndexer#TemporalIndexerImpl(org.apache.hadoop.conf.Configuration)} .
-     * 
+     *
      * @throws TableExistsException
      * @throws TableNotFoundException
      * @throws AccumuloSecurityException
@@ -263,7 +280,7 @@ public final class AccumuloTemporalIndexerTest {
 
     /**
      * Test method for {@link AccumuloTemporalIndexer#storeStatement(convertStatement(org.openrdf.model.Statement)}
-     * 
+     *
      * @throws NoSuchAlgorithmException
      */
     @Test
@@ -319,7 +336,41 @@ public final class AccumuloTemporalIndexerTest {
         Assert.assertEquals("Number of rows stored.", rowsStoredExpected*4, rowsStoredActual); // 4 index entries per statement
 
     }
-    
+
+    @Test
+    public void testDelete() throws IOException, AccumuloException, AccumuloSecurityException, TableNotFoundException, TableExistsException, NoSuchAlgorithmException {
+        // count rows expected to store:
+        int rowsStoredExpected = 0;
+
+        ValueFactory vf = new ValueFactoryImpl();
+
+        URI pred1_atTime = vf.createURI(URI_PROPERTY_AT_TIME);
+        URI pred2_circa = vf.createURI(URI_PROPERTY_CIRCA);
+
+        final String testDate2014InBRST = "2014-12-31T23:59:59-02:00";
+        final String testDate2016InET = "2016-12-31T20:59:59-05:00";
+
+        // These should be stored because they are in the predicate list.
+        // BUT they will get converted to the same exact datetime in UTC.
+        Statement s1 = new StatementImpl(vf.createURI("foo:subj3"), pred1_atTime, vf.createLiteral(testDate2014InBRST));
+        Statement s2 = new StatementImpl(vf.createURI("foo:subj4"), pred2_circa, vf.createLiteral(testDate2016InET));
+        tIndexer.storeStatement(convertStatement(s1));
+        rowsStoredExpected++;
+        tIndexer.storeStatement(convertStatement(s2));
+        rowsStoredExpected++;
+
+        tIndexer.flush();
+
+        int rowsStoredActual = printTables("junit testing: Temporal entities stored in testDelete before delete", System.out, null);
+        Assert.assertEquals("Number of rows stored.", rowsStoredExpected*4, rowsStoredActual); // 4 index entries per statement
+
+        tIndexer.deleteStatement(convertStatement(s1));
+        tIndexer.deleteStatement(convertStatement(s2));
+
+        int afterDeleteRowsStoredActual = printTables("junit testing: Temporal entities stored in testDelete after delete", System.out, null);
+        Assert.assertEquals("Number of rows stored after delete.", 0, afterDeleteRowsStoredActual);
+    }
+
     @Test
     public void testStoreStatementWithInterestingLiterals() throws Exception {
         ValueFactory vf = new ValueFactoryImpl();
@@ -336,36 +387,35 @@ public final class AccumuloTemporalIndexerTest {
     }
 
     /**
-	     * Test method for {@link AccumuloTemporalIndexer#storeStatement(convertStatement(org.openrdf.model.Statement)}
-	     * 
-	     * @throws NoSuchAlgorithmException
-	     */
-	    @Test
-	    public void testStoreStatementBadInterval() throws IOException, AccumuloException, AccumuloSecurityException, TableNotFoundException, TableExistsException, NoSuchAlgorithmException {
-	        // count rows expected to store:
-	        int rowsStoredExpected = 0;
-	
-	        ValueFactory vf = new ValueFactoryImpl();
-	        URI pred1_atTime = vf.createURI(URI_PROPERTY_AT_TIME);
-	
-	        // Test: Should not store an improper date interval, and log a warning (log warning not tested).
-	        final String invalidDateIntervalString="[bad,interval]";
-			// Silently logs a warning for bad dates.
-            tIndexer.storeStatement(convertStatement(new StatementImpl(vf.createURI("foo:subj1"), pred1_atTime, vf.createLiteral(invalidDateIntervalString))));
+     * Test method for {@link AccumuloTemporalIndexer#storeStatement(convertStatement(org.openrdf.model.Statement)}
+     *
+     * @throws NoSuchAlgorithmException
+     */
+    @Test
+    public void testStoreStatementBadInterval() throws IOException, AccumuloException, AccumuloSecurityException, TableNotFoundException, TableExistsException, NoSuchAlgorithmException {
+        // count rows expected to store:
+        int rowsStoredExpected = 0;
 
-	        final String validDateIntervalString="[2016-12-31T20:59:59-05:00,2016-12-31T21:00:00-05:00]";
-            tIndexer.storeStatement(convertStatement(new StatementImpl(vf.createURI("foo:subj2"), pred1_atTime, vf.createLiteral(validDateIntervalString))));
-            rowsStoredExpected++;
-            
-	        tIndexer.flush();
-	
-	        int rowsStoredActual = printTables("junit testing: Temporal intervals stored in testStoreStatement", null, null);
-	        Assert.assertEquals("Only good intervals should be stored.", rowsStoredExpected*2, rowsStoredActual); // 2 index entries per interval statement
-	    }
+        ValueFactory vf = new ValueFactoryImpl();
+        URI pred1_atTime = vf.createURI(URI_PROPERTY_AT_TIME);
 
-	@Test
-    public void testStoreStatementsSameTime() throws IOException, NoSuchAlgorithmException, AccumuloException, AccumuloSecurityException, TableNotFoundException, TableExistsException
-    {
+        // Test: Should not store an improper date interval, and log a warning (log warning not tested).
+        final String invalidDateIntervalString="[bad,interval]";
+        // Silently logs a warning for bad dates.
+        tIndexer.storeStatement(convertStatement(new StatementImpl(vf.createURI("foo:subj1"), pred1_atTime, vf.createLiteral(invalidDateIntervalString))));
+
+        final String validDateIntervalString="[2016-12-31T20:59:59-05:00,2016-12-31T21:00:00-05:00]";
+        tIndexer.storeStatement(convertStatement(new StatementImpl(vf.createURI("foo:subj2"), pred1_atTime, vf.createLiteral(validDateIntervalString))));
+        rowsStoredExpected++;
+
+        tIndexer.flush();
+
+        int rowsStoredActual = printTables("junit testing: Temporal intervals stored in testStoreStatement", null, null);
+        Assert.assertEquals("Only good intervals should be stored.", rowsStoredExpected*2, rowsStoredActual); // 2 index entries per interval statement
+    }
+
+    @Test
+    public void testStoreStatementsSameTime() throws IOException, NoSuchAlgorithmException, AccumuloException, AccumuloSecurityException, TableNotFoundException, TableExistsException {
         ValueFactory vf = new ValueFactoryImpl();
         URI pred1_atTime = vf.createURI(URI_PROPERTY_AT_TIME);
         URI pred2_circa = vf.createURI(URI_PROPERTY_CIRCA);
@@ -396,7 +446,7 @@ public final class AccumuloTemporalIndexerTest {
 
     /**
      * Test method for {@link AccumuloTemporalIndexer#storeStatements(java.util.Collection)} .
-     * 
+     *
      * @throws TableExistsException
      * @throws TableNotFoundException
      * @throws AccumuloSecurityException
@@ -462,9 +512,9 @@ public final class AccumuloTemporalIndexerTest {
     /**
      * Test instant equal to a given instant.
      * From the series: instant {equal, before, after} instant
-     * @throws AccumuloSecurityException 
-     * @throws AccumuloException 
-     * @throws TableNotFoundException 
+     * @throws AccumuloSecurityException
+     * @throws AccumuloException
+     * @throws TableNotFoundException
      */
     @Test
     public void testQueryInstantEqualsInstant() throws IOException, QueryEvaluationException, TableNotFoundException, AccumuloException, AccumuloSecurityException {
@@ -505,9 +555,9 @@ public final class AccumuloTemporalIndexerTest {
     /**
      * Test instant after a given instant.
      * From the series: instant {equal, before, after} instant
-     * @throws AccumuloSecurityException 
-     * @throws AccumuloException 
-     * @throws TableNotFoundException 
+     * @throws AccumuloSecurityException
+     * @throws AccumuloException
+     * @throws TableNotFoundException
      */
     @Test
     public void testQueryInstantAfterInstant() throws IOException, QueryEvaluationException, TableNotFoundException, AccumuloException, AccumuloSecurityException {
@@ -559,7 +609,7 @@ public final class AccumuloTemporalIndexerTest {
         }
         tIndexer.flush();
         CloseableIteration<Statement, QueryEvaluationException> iter;
-        
+
         iter = tIndexer.queryInstantBeforeInstant(seriesTs[searchForSeconds], EMPTY_CONSTRAINTS);
         int count = 0;
         while (iter.hasNext()) {
@@ -743,9 +793,9 @@ public final class AccumuloTemporalIndexerTest {
      * Test method for
      * {@link mvm.rya.indexing.accumulo.temporal.AccumuloTemporalIndexer#queryIntervalEquals(TemporalInterval, StatementContraints)}
      * .
-     * @throws IOException 
-     * @throws QueryEvaluationException 
-     * 
+     * @throws IOException
+     * @throws QueryEvaluationException
+     *
      */
     @Test
     public void testQueryIntervalEquals() throws IOException, QueryEvaluationException {
@@ -769,9 +819,9 @@ public final class AccumuloTemporalIndexerTest {
     /**
      * Test interval before a given interval, for method:
      * {@link AccumuloTemporalIndexer#queryIntervalBefore(TemporalInterval, StatementContraints)}.
-     * 
-     * @throws IOException 
-     * @throws QueryEvaluationException 
+     *
+     * @throws IOException
+     * @throws QueryEvaluationException
      */
     @Test
     public void testQueryIntervalBefore() throws IOException, QueryEvaluationException {
@@ -784,7 +834,7 @@ public final class AccumuloTemporalIndexerTest {
         // instants should be ignored.
         tIndexer.storeStatement(convertStatement(spo_B30_E32));
         tIndexer.storeStatement(convertStatement(seriesSpo[1])); // instance at 1 seconds
-        tIndexer.storeStatement(convertStatement(seriesSpo[2])); 
+        tIndexer.storeStatement(convertStatement(seriesSpo[2]));
         tIndexer.storeStatement(convertStatement(seriesSpo[31]));
         tIndexer.flush();
 
@@ -799,9 +849,9 @@ public final class AccumuloTemporalIndexerTest {
     /**
      * interval is after the given interval.  Find interval beginnings after the endings of the given interval.
      * {@link AccumuloTemporalIndexer#queryIntervalAfter(TemporalInterval, StatementContraints).
-     * 
-     * @throws IOException 
-     * @throws QueryEvaluationException 
+     *
+     * @throws IOException
+     * @throws QueryEvaluationException
      */
     @Test
     public void testQueryIntervalAfter() throws IOException, QueryEvaluationException {
@@ -817,7 +867,7 @@ public final class AccumuloTemporalIndexerTest {
         // instants should be ignored.
         tIndexer.storeStatement(convertStatement(spo_B02));
         tIndexer.storeStatement(convertStatement(seriesSpo[1])); // instance at 1 seconds
-        tIndexer.storeStatement(convertStatement(seriesSpo[2])); 
+        tIndexer.storeStatement(convertStatement(seriesSpo[2]));
         tIndexer.storeStatement(convertStatement(seriesSpo[31]));
         tIndexer.flush();
 
@@ -854,7 +904,7 @@ public final class AccumuloTemporalIndexerTest {
         URI pred3_CIRCA_ = vf.createURI(URI_PROPERTY_CIRCA);  // this one to ignore.
         URI pred2_eventTime = vf.createURI(URI_PROPERTY_EVENT_TIME);
         URI pred1_atTime = vf.createURI(URI_PROPERTY_AT_TIME);
-        
+
         // add the predicate = EventTime ; Store in an array for verification.
         Statement[] SeriesTs_EventTime = new Statement[expectedResultCount+1];
         for (int s = 0; s <= searchForSeconds + expectedResultCount; s++) { // <== logic here
@@ -872,7 +922,7 @@ public final class AccumuloTemporalIndexerTest {
         CloseableIteration<Statement, QueryEvaluationException> iter;
         StatementContraints constraints = new StatementContraints();
         constraints.setPredicates(new HashSet<URI>(Arrays.asList( pred2_eventTime,  pred1_atTime )));
-         
+
         iter = tIndexer.queryInstantAfterInstant(seriesTs[searchForSeconds], constraints); // EMPTY_CONSTRAINTS);//
         int count_AtTime = 0;
         int count_EventTime = 0;
@@ -890,17 +940,17 @@ public final class AccumuloTemporalIndexerTest {
             } else {
                 assertTrue("This predicate should not be returned: "+s, false);
             }
-                
+
         }
-        
+
         Assert.assertEquals("Should find count of atTime    rows.", expectedResultCount, count_AtTime);
         Assert.assertEquals("Should find count of eventTime rows.", expectedResultCount, count_EventTime);
     }
 
-    
+
     /**
      * Test method for {@link AccumuloTemporalIndexer#getIndexablePredicates()} .
-     * 
+     *
      * @throws TableExistsException
      * @throws TableNotFoundException
      * @throws AccumuloSecurityException
@@ -916,7 +966,7 @@ public final class AccumuloTemporalIndexerTest {
     /**
      * Count all the entries in the temporal index table, return the count.
      * Uses printTables for reliability.
-     * 
+     *
      */
     public int countAllRowsInTable() throws AccumuloException, AccumuloSecurityException, TableNotFoundException, NoSuchAlgorithmException {
         return printTables("Counting rows.", null, null);
@@ -924,7 +974,7 @@ public final class AccumuloTemporalIndexerTest {
 
     /**
      * Print and gather statistics on the entire index table.
-     * 
+     *
      * @param description
      *            Printed to the console to find the test case.
      * @param out
@@ -947,19 +997,18 @@ public final class AccumuloTemporalIndexerTest {
         out.println("Reading : " + this.uniquePerTestTemporalIndexTableName);
         out.format(FORMAT, "--Row--", "--ColumnFamily--", "--ColumnQualifier--", "--Value--");
 
-        Scanner s = ConfigUtils.getConnector(conf).createScanner(this.uniquePerTestTemporalIndexTableName, Constants.NO_AUTHS);
+        Scanner s = ConfigUtils.getConnector(conf).createScanner(this.uniquePerTestTemporalIndexTableName, Authorizations.EMPTY);
         for (Entry<Key, org.apache.accumulo.core.data.Value> entry : s) {
             rowsPrinted++;
             Key k = entry.getKey();
-            out.format(FORMAT, toHumanString(k.getRow()), 
-            		toHumanString(k.getColumnFamily()), 
-            		toHumanString(k.getColumnQualifier()), 
-            		toHumanString(entry.getValue()));
+            out.format(FORMAT, toHumanString(k.getRow()),
+                    toHumanString(k.getColumnFamily()),
+                    toHumanString(k.getColumnQualifier()),
+                    toHumanString(entry.getValue()));
             keyHasher = hasher(keyHasher, (StringUtils.getBytesUtf8(entry.getKey().toStringNoTime())));
             valueHasher = hasher(valueHasher, (entry.getValue().get()));
         }
         out.println();
-        // }
 
         if (statistics != null) {
             statistics.put(STAT_COUNT, (long) rowsPrinted);
@@ -974,7 +1023,7 @@ public final class AccumuloTemporalIndexerTest {
     /**
      * Order independent hashcode.
      * Read more: http://stackoverflow.com/questions/18021643/hashing-a-set-of-integers-in-an-order-independent-way
-     * 
+     *
      * @param hashcode
      * @param list
      * @return
@@ -993,28 +1042,28 @@ public final class AccumuloTemporalIndexerTest {
      * @param value
      * @return Human readable representation.
      */
-	static String toHumanString(Value value) {
-		return toHumanString(value==null?null:value.get());
-	}
-	static String toHumanString(Text text) {
-		return toHumanString(text==null?null:text.copyBytes());
-	}
-	static String toHumanString(byte[] bytes) {
-		if (bytes==null) 
-			return "{null}";
-		StringBuilder sb = new StringBuilder();
-		for (byte b : bytes) {
-			if ((b > 0x7e) || (b < 32)) {
-				sb.append("{");
-				sb.append(Integer.toHexString( b & 0xff )); // Lop off the sign extended ones.
-				sb.append("}");
-			} else if (b == '{'||b == '}') { // Escape the literal braces.
-				sb.append("{");
-				sb.append((char)b);
-				sb.append("}");
-			} else
-				sb.append((char)b);
-		}
-		return sb.toString();
-	}
+    static String toHumanString(Value value) {
+        return toHumanString(value==null?null:value.get());
+    }
+    static String toHumanString(Text text) {
+        return toHumanString(text==null?null:text.copyBytes());
+    }
+    static String toHumanString(byte[] bytes) {
+        if (bytes==null)
+            return "{null}";
+        StringBuilder sb = new StringBuilder();
+        for (byte b : bytes) {
+            if ((b > 0x7e) || (b < 32)) {
+                sb.append("{");
+                sb.append(Integer.toHexString( b & 0xff )); // Lop off the sign extended ones.
+                sb.append("}");
+            } else if (b == '{'||b == '}') { // Escape the literal braces.
+                sb.append("{");
+                sb.append((char)b);
+                sb.append("}");
+            } else
+                sb.append((char)b);
+        }
+        return sb.toString();
+    }
 }

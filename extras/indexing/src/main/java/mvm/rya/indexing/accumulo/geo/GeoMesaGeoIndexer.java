@@ -1,26 +1,25 @@
 package mvm.rya.indexing.accumulo.geo;
 
 /*
- * #%L
- * mvm.rya.indexing.accumulo
- * %%
- * Copyright (C) 2014 Rya
- * %%
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
  * 
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *   http://www.apache.org/licenses/LICENSE-2.0
  * 
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- * #L%
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
  */
 
-import info.aduna.iteration.CloseableIteration;
+
 
 import java.io.IOException;
 import java.io.Serializable;
@@ -29,37 +28,23 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import mvm.rya.accumulo.AccumuloRdfConfiguration;
-import mvm.rya.accumulo.experimental.AbstractAccumuloIndexer;
-import mvm.rya.accumulo.experimental.AccumuloIndexer;
-import mvm.rya.api.RdfCloudTripleStoreConfiguration;
-import mvm.rya.api.domain.RyaStatement;
-import mvm.rya.api.domain.RyaURI;
-import mvm.rya.api.resolver.RyaToRdfConversions;
-import mvm.rya.indexing.GeoIndexer;
-import mvm.rya.indexing.StatementContraints;
-import mvm.rya.indexing.accumulo.ConfigUtils;
-import mvm.rya.indexing.accumulo.Md5Hash;
-import mvm.rya.indexing.accumulo.StatementSerializer;
-
-import org.apache.accumulo.core.client.AccumuloException;
-import org.apache.accumulo.core.client.AccumuloSecurityException;
 import org.apache.accumulo.core.client.Instance;
-import org.apache.accumulo.core.client.MultiTableBatchWriter;
-import org.apache.accumulo.core.client.TableNotFoundException;
 import org.apache.accumulo.core.client.mock.MockInstance;
 import org.apache.commons.lang.StringUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.log4j.Logger;
 import org.geotools.data.DataStore;
 import org.geotools.data.DataStoreFinder;
+import org.geotools.data.DataUtilities;
 import org.geotools.data.FeatureSource;
 import org.geotools.data.FeatureStore;
 import org.geotools.data.Query;
+import org.geotools.factory.CommonFactoryFinder;
 import org.geotools.factory.Hints;
 import org.geotools.feature.DefaultFeatureCollection;
 import org.geotools.feature.FeatureIterator;
@@ -67,20 +52,32 @@ import org.geotools.feature.SchemaException;
 import org.geotools.feature.simple.SimpleFeatureBuilder;
 import org.geotools.filter.text.cql2.CQLException;
 import org.geotools.filter.text.ecql.ECQL;
+import org.locationtech.geomesa.accumulo.data.AccumuloDataStore;
 import org.locationtech.geomesa.accumulo.index.Constants;
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes;
 import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.feature.simple.SimpleFeatureType;
 import org.opengis.filter.Filter;
+import org.opengis.filter.FilterFactory;
+import org.opengis.filter.identity.Identifier;
 import org.openrdf.model.Literal;
 import org.openrdf.model.Statement;
 import org.openrdf.model.URI;
 import org.openrdf.query.QueryEvaluationException;
 
-import com.google.common.base.Preconditions;
 import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.io.ParseException;
 import com.vividsolutions.jts.io.WKTReader;
+
+import info.aduna.iteration.CloseableIteration;
+import mvm.rya.accumulo.experimental.AbstractAccumuloIndexer;
+import mvm.rya.api.domain.RyaStatement;
+import mvm.rya.api.resolver.RyaToRdfConversions;
+import mvm.rya.indexing.GeoIndexer;
+import mvm.rya.indexing.StatementContraints;
+import mvm.rya.indexing.accumulo.ConfigUtils;
+import mvm.rya.indexing.accumulo.Md5Hash;
+import mvm.rya.indexing.accumulo.StatementSerializer;
 
 /**
  * A {@link GeoIndexer} wrapper around a GeoMesa {@link AccumuloDataStore}. This class configures and connects to the Datastore, creates the
@@ -128,7 +125,7 @@ public class GeoMesaGeoIndexer extends AbstractAccumuloIndexer implements GeoInd
     private static final Logger logger = Logger.getLogger(GeoMesaGeoIndexer.class);
 
     private static final String FEATURE_NAME = "RDF";
-  
+
     private static final String SUBJECT_ATTRIBUTE = "S";
     private static final String PREDICATE_ATTRIBUTE = "P";
     private static final String OBJECT_ATTRIBUTE = "O";
@@ -140,7 +137,7 @@ public class GeoMesaGeoIndexer extends AbstractAccumuloIndexer implements GeoInd
     private FeatureSource<SimpleFeatureType, SimpleFeature> featureSource;
     private SimpleFeatureType featureType;
     private boolean isInit = false;
-   
+
     //initialization occurs in setConf because index is created using reflection
     @Override
     public void setConf(Configuration conf) {
@@ -155,18 +152,18 @@ public class GeoMesaGeoIndexer extends AbstractAccumuloIndexer implements GeoInd
             }
         }
     }
-    
+
     @Override
     public Configuration getConf() {
         return this.conf;
     }
-    
+
 
     private void init() throws IOException {
         validPredicates = ConfigUtils.getGeoPredicates(conf);
 
         DataStore dataStore = createDataStore(conf);
-        
+
         try {
             featureType = getStatementFeatureType(dataStore);
         } catch (IOException e) {
@@ -234,7 +231,7 @@ public class GeoMesaGeoIndexer extends AbstractAccumuloIndexer implements GeoInd
         // create a feature collection
         DefaultFeatureCollection featureCollection = new DefaultFeatureCollection();
 
-        
+
         for (RyaStatement ryaStatement : ryaStatements) {
 
             Statement statement = RyaToRdfConversions.convertStatement(ryaStatement);
@@ -263,7 +260,7 @@ public class GeoMesaGeoIndexer extends AbstractAccumuloIndexer implements GeoInd
     public void storeStatement(RyaStatement statement) throws IOException {
         storeStatements(Collections.singleton(statement));
     }
-    
+
     private static SimpleFeature createFeature(SimpleFeatureType featureType, Statement statement) throws ParseException {
         String subject = StatementSerializer.writeSubject(statement);
         String predicate = StatementSerializer.writePredicate(statement);
@@ -357,7 +354,7 @@ public class GeoMesaGeoIndexer extends AbstractAccumuloIndexer implements GeoInd
 
             @Override
             public Statement next() throws QueryEvaluationException {
-                SimpleFeature feature = (SimpleFeature) getIterator().next();
+                SimpleFeature feature = getIterator().next();
                 String subjectString = feature.getAttribute(SUBJECT_ATTRIBUTE).toString();
                 String predicateString = feature.getAttribute(PREDICATE_ATTRIBUTE).toString();
                 String objectString = feature.getAttribute(OBJECT_ATTRIBUTE).toString();
@@ -439,8 +436,42 @@ public class GeoMesaGeoIndexer extends AbstractAccumuloIndexer implements GeoInd
        return ConfigUtils.getGeoTablename(conf);
     }
 
+    private void deleteStatements(Collection<RyaStatement> ryaStatements) throws IOException {
+        // create a feature collection
+        DefaultFeatureCollection featureCollection = new DefaultFeatureCollection();
+
+        for (RyaStatement ryaStatement : ryaStatements) {
+            Statement statement = RyaToRdfConversions.convertStatement(ryaStatement);
+            // if the predicate list is empty, accept all predicates.
+            // Otherwise, make sure the predicate is on the "valid" list
+            boolean isValidPredicate = validPredicates.isEmpty() || validPredicates.contains(statement.getPredicate());
+
+            if (isValidPredicate && (statement.getObject() instanceof Literal)) {
+                try {
+                    SimpleFeature feature = createFeature(featureType, statement);
+                    featureCollection.add(feature);
+                } catch (ParseException e) {
+                    logger.warn("Error getting geo from statement: " + statement.toString(), e);
+                }
+            }
+        }
+
+        // remove this feature collection from the store
+        if (!featureCollection.isEmpty()) {
+            Set<Identifier> featureIds = new HashSet<Identifier>();
+            FilterFactory filterFactory = CommonFactoryFinder.getFilterFactory(null);
+            Set<String> stringIds = DataUtilities.fidSet(featureCollection);
+            for (String id : stringIds) {
+                featureIds.add(filterFactory.featureId(id));
+            }
+            Filter filter = filterFactory.id(featureIds);
+            featureStore.removeFeatures(filter);
+        }
+    }
 
 
-  
-
+    @Override
+    public void deleteStatement(RyaStatement statement) throws IOException {
+        deleteStatements(Collections.singleton(statement));
+    }
 }

@@ -1,24 +1,25 @@
 package mvm.rya.accumulo;
 
 /*
- * #%L
- * mvm.rya.accumulo.rya
- * %%
- * Copyright (C) 2014 Rya
- * %%
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
  * 
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *   http://www.apache.org/licenses/LICENSE-2.0
  * 
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- * #L%
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
  */
+
+
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static mvm.rya.accumulo.AccumuloRdfConstants.ALL_AUTHORIZATIONS;
@@ -30,7 +31,6 @@ import static mvm.rya.api.RdfCloudTripleStoreConstants.NUM_THREADS;
 import static mvm.rya.api.RdfCloudTripleStoreConstants.RTS_SUBJECT_RYA;
 import static mvm.rya.api.RdfCloudTripleStoreConstants.RTS_VERSION_PREDICATE_RYA;
 import static mvm.rya.api.RdfCloudTripleStoreConstants.VERSION_RYA;
-import info.aduna.iteration.CloseableIteration;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -38,21 +38,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
-
-import mvm.rya.accumulo.experimental.AbstractAccumuloIndexer;
-import mvm.rya.accumulo.experimental.AccumuloIndexer;
-import mvm.rya.accumulo.query.AccumuloRyaQueryEngine;
-import mvm.rya.api.RdfCloudTripleStoreConfiguration;
-import mvm.rya.api.RdfCloudTripleStoreConstants.TABLE_LAYOUT;
-import mvm.rya.api.domain.RyaStatement;
-import mvm.rya.api.domain.RyaURI;
-import mvm.rya.api.layout.TableLayoutStrategy;
-import mvm.rya.api.persist.RyaDAO;
-import mvm.rya.api.persist.RyaDAOException;
-import mvm.rya.api.persist.RyaNamespaceManager;
-import mvm.rya.api.resolver.RyaTripleContext;
-import mvm.rya.api.resolver.triple.TripleRow;
-import mvm.rya.api.resolver.triple.TripleRowResolverException;
 
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
@@ -79,15 +64,26 @@ import org.openrdf.model.Namespace;
 import com.google.common.collect.Iterators;
 import com.google.common.collect.Lists;
 
-/**
- * Class AccumuloRyaDAO
- * Date: Feb 29, 2012
- * Time: 12:37:22 PM
- */
+import info.aduna.iteration.CloseableIteration;
+import mvm.rya.accumulo.experimental.AccumuloIndexer;
+import mvm.rya.accumulo.query.AccumuloRyaQueryEngine;
+import mvm.rya.api.RdfCloudTripleStoreConfiguration;
+import mvm.rya.api.RdfCloudTripleStoreConstants.TABLE_LAYOUT;
+import mvm.rya.api.domain.RyaStatement;
+import mvm.rya.api.domain.RyaURI;
+import mvm.rya.api.layout.TableLayoutStrategy;
+import mvm.rya.api.persist.RyaDAO;
+import mvm.rya.api.persist.RyaDAOException;
+import mvm.rya.api.persist.RyaNamespaceManager;
+import mvm.rya.api.resolver.RyaTripleContext;
+import mvm.rya.api.resolver.triple.TripleRow;
+import mvm.rya.api.resolver.triple.TripleRowResolverException;
+
 public class AccumuloRyaDAO implements RyaDAO<AccumuloRdfConfiguration>, RyaNamespaceManager<AccumuloRdfConfiguration> {
     private static final Log logger = LogFactory.getLog(AccumuloRyaDAO.class);
 
     private boolean initialized = false;
+    private boolean flushEachUpdate = true;
     private Connector connector;
     private BatchWriterConfig batchWriterConfig;
 
@@ -101,7 +97,7 @@ public class AccumuloRyaDAO implements RyaDAO<AccumuloRdfConfiguration>, RyaName
     private BatchWriter bw_ns;
 
     private List<AccumuloIndexer> secondaryIndexers;
-    
+
     private AccumuloRdfConfiguration conf = new AccumuloRdfConfiguration();
     private RyaTableMutationsFactory ryaTableMutationsFactory;
     private TableLayoutStrategy tableLayoutStrategy;
@@ -131,15 +127,17 @@ public class AccumuloRyaDAO implements RyaDAO<AccumuloRdfConfiguration>, RyaName
             tableLayoutStrategy = conf.getTableLayoutStrategy();
             ryaContext = RyaTripleContext.getInstance(conf);
             ryaTableMutationsFactory = new RyaTableMutationsFactory(ryaContext);
-            
+
             secondaryIndexers = conf.getAdditionalIndexers();
+
+            flushEachUpdate = conf.flushEachUpdate();
             
             TableOperations tableOperations = connector.tableOperations();
             AccumuloRdfUtils.createTableIfNotExist(tableOperations, tableLayoutStrategy.getSpo());
             AccumuloRdfUtils.createTableIfNotExist(tableOperations, tableLayoutStrategy.getPo());
             AccumuloRdfUtils.createTableIfNotExist(tableOperations, tableLayoutStrategy.getOsp());
             AccumuloRdfUtils.createTableIfNotExist(tableOperations, tableLayoutStrategy.getNs());
-            
+
             for (AccumuloIndexer index : secondaryIndexers) {
                 index.setConf(conf);
             }
@@ -151,8 +149,7 @@ public class AccumuloRyaDAO implements RyaDAO<AccumuloRdfConfiguration>, RyaName
             bw_po = mt_bw.getBatchWriter(tableLayoutStrategy.getPo());
             bw_osp = mt_bw.getBatchWriter(tableLayoutStrategy.getOsp());
 
-            bw_ns = connector.createBatchWriter(tableLayoutStrategy.getNs(), MAX_MEMORY,
-                    MAX_TIME, 1);
+            bw_ns = mt_bw.getBatchWriter(tableLayoutStrategy.getNs());
             
             for (AccumuloIndexer index : secondaryIndexers) {
                 index.setMultiTableBatchWriter(mt_bw);
@@ -168,7 +165,8 @@ public class AccumuloRyaDAO implements RyaDAO<AccumuloRdfConfiguration>, RyaName
         }
     }
 
-    public String getVersion() throws RyaDAOException {
+    @Override
+	public String getVersion() throws RyaDAOException {
         String version = null;
         CloseableIteration<RyaStatement, RyaDAOException> versIter = queryEngine.query(new RyaStatement(RTS_SUBJECT_RYA, RTS_VERSION_PREDICATE_RYA, null), conf);
         if (versIter.hasNext()) {
@@ -192,7 +190,6 @@ public class AccumuloRyaDAO implements RyaDAO<AccumuloRdfConfiguration>, RyaName
     @Override
     public void delete(RyaStatement stmt, AccumuloRdfConfiguration aconf) throws RyaDAOException {
         this.delete(Iterators.singletonIterator(stmt), aconf);
-        //TODO currently all indexers do not support delete
     }
 
     @Override
@@ -205,14 +202,17 @@ public class AccumuloRyaDAO implements RyaDAO<AccumuloRdfConfiguration>, RyaName
                 while (query.hasNext()) {
                     deleteSingleRyaStatement(query.next());
                 }
+
+                for (AccumuloIndexer index : secondaryIndexers) {
+                    index.deleteStatement(stmt);
+                }
             }
-            mt_bw.flush();
-            //TODO currently all indexers do not support delete
+            if (flushEachUpdate) { mt_bw.flush(); }
         } catch (Exception e) {
             throw new RyaDAOException(e);
         }
     }
-    
+
     @Override
     public void dropGraph(AccumuloRdfConfiguration conf, RyaURI... graphs) throws RyaDAOException {
         BatchDeleter bd_spo = null;
@@ -233,16 +233,16 @@ public class AccumuloRyaDAO implements RyaDAO<AccumuloRdfConfiguration>, RyaName
                 bd_po.fetchColumnFamily(new Text(graph.getData()));
                 bd_osp.fetchColumnFamily(new Text(graph.getData()));
             }
-            
+
             bd_spo.delete();
             bd_po.delete();
             bd_osp.delete();
-            
+
             //TODO indexers do not support delete-UnsupportedOperation Exception will be thrown
 //            for (AccumuloIndex index : secondaryIndexers) {
 //                index.dropGraph(graphs);
 //            }
-            
+
         } catch (Exception e) {
             throw new RyaDAOException(e);
         } finally {
@@ -250,7 +250,7 @@ public class AccumuloRyaDAO implements RyaDAO<AccumuloRdfConfiguration>, RyaName
             if (bd_po != null) bd_po.close();
             if (bd_osp != null) bd_osp.close();
         }
-        
+
     }
 
     protected void deleteSingleRyaStatement(RyaStatement stmt) throws TripleRowResolverException, MutationsRejectedException {
@@ -280,7 +280,7 @@ public class AccumuloRyaDAO implements RyaDAO<AccumuloRdfConfiguration>, RyaName
             //TODO: Should have a lock here in case we are adding and committing at the same time
             while (commitStatements.hasNext()) {
                 RyaStatement stmt = commitStatements.next();
-                
+
                 Map<TABLE_LAYOUT, Collection<Mutation>> mutationMap = ryaTableMutationsFactory.serialize(stmt);
                 Collection<Mutation> spo = mutationMap.get(TABLE_LAYOUT.SPO);
                 Collection<Mutation> po = mutationMap.get(TABLE_LAYOUT.PO);
@@ -288,13 +288,13 @@ public class AccumuloRyaDAO implements RyaDAO<AccumuloRdfConfiguration>, RyaName
                 bw_spo.addMutations(spo);
                 bw_po.addMutations(po);
                 bw_osp.addMutations(osp);
-                
+
                 for (AccumuloIndexer index : secondaryIndexers) {
                     index.storeStatement(stmt);
                 }
             }
 
-            mt_bw.flush();
+            if (flushEachUpdate) { mt_bw.flush(); }
         } catch (Exception e) {
             throw new RyaDAOException(e);
         }
@@ -309,10 +309,8 @@ public class AccumuloRyaDAO implements RyaDAO<AccumuloRdfConfiguration>, RyaName
         try {
             initialized = false;
             mt_bw.flush();
-            bw_ns.flush();
 
             mt_bw.close();
-            bw_ns.close();
         } catch (Exception e) {
             throw new RyaDAOException(e);
         }
@@ -324,7 +322,7 @@ public class AccumuloRyaDAO implements RyaDAO<AccumuloRdfConfiguration>, RyaName
             Mutation m = new Mutation(new Text(pfx));
             m.put(INFO_NAMESPACE_TXT, EMPTY_TEXT, new Value(namespace.getBytes()));
             bw_ns.addMutation(m);
-            bw_ns.flush();
+            if (flushEachUpdate) { mt_bw.flush(); }
         } catch (Exception e) {
             throw new RyaDAOException(e);
         }
@@ -355,7 +353,7 @@ public class AccumuloRyaDAO implements RyaDAO<AccumuloRdfConfiguration>, RyaName
             Mutation del = new Mutation(new Text(pfx));
             del.putDelete(INFO_NAMESPACE_TXT, EMPTY_TEXT);
             bw_ns.addMutation(del);
-            bw_ns.flush();
+            if (flushEachUpdate) { mt_bw.flush(); }
         } catch (Exception e) {
             throw new RyaDAOException(e);
         }
@@ -432,11 +430,13 @@ public class AccumuloRyaDAO implements RyaDAO<AccumuloRdfConfiguration>, RyaName
     	return mt_bw;
     }
 
-    public AccumuloRdfConfiguration getConf() {
+    @Override
+	public AccumuloRdfConfiguration getConf() {
         return conf;
     }
 
-    public void setConf(AccumuloRdfConfiguration conf) {
+    @Override
+	public void setConf(AccumuloRdfConfiguration conf) {
         this.conf = conf;
     }
 
@@ -448,7 +448,8 @@ public class AccumuloRyaDAO implements RyaDAO<AccumuloRdfConfiguration>, RyaName
         this.ryaTableMutationsFactory = ryaTableMutationsFactory;
     }
 
-    public AccumuloRyaQueryEngine getQueryEngine() {
+    @Override
+	public AccumuloRyaQueryEngine getQueryEngine() {
         return queryEngine;
     }
 
@@ -456,16 +457,24 @@ public class AccumuloRyaDAO implements RyaDAO<AccumuloRdfConfiguration>, RyaName
         this.queryEngine = queryEngine;
     }
 
+    public void flush() throws RyaDAOException {
+        try {
+            mt_bw.flush();
+        } catch (MutationsRejectedException e) {
+            throw new RyaDAOException(e);
+        }
+    }
+
     protected String[] getTables() {
         // core tables
         List<String> tableNames = Lists.newArrayList(
-                tableLayoutStrategy.getSpo(), 
-                tableLayoutStrategy.getPo(), 
-                tableLayoutStrategy.getOsp(), 
+                tableLayoutStrategy.getSpo(),
+                tableLayoutStrategy.getPo(),
+                tableLayoutStrategy.getOsp(),
                 tableLayoutStrategy.getNs(),
                 tableLayoutStrategy.getEval());
-        
-        // Additional Tables        
+
+        // Additional Tables
         for (AccumuloIndexer index : secondaryIndexers) {
             tableNames.add(index.getTableName());
         }

@@ -1,6 +1,24 @@
 package mvm.rya.indexing.accumulo.temporal;
 
-import info.aduna.iteration.CloseableIteration;
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * 
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
+
 
 import java.io.IOException;
 import java.nio.charset.CharacterCodingException;
@@ -15,21 +33,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import javax.xml.datatype.XMLGregorianCalendar;
-
-import mvm.rya.accumulo.AccumuloRdfConfiguration;
-import mvm.rya.accumulo.experimental.AbstractAccumuloIndexer;
-import mvm.rya.accumulo.experimental.AccumuloIndexer;
-import mvm.rya.api.RdfCloudTripleStoreConfiguration;
-import mvm.rya.api.domain.RyaStatement;
-import mvm.rya.api.domain.RyaURI;
-import mvm.rya.api.resolver.RyaToRdfConversions;
-import mvm.rya.indexing.KeyParts;
-import mvm.rya.indexing.StatementContraints;
-import mvm.rya.indexing.TemporalIndexer;
-import mvm.rya.indexing.TemporalInstant;
-import mvm.rya.indexing.TemporalInterval;
-import mvm.rya.indexing.accumulo.ConfigUtils;
-import mvm.rya.indexing.accumulo.StatementSerializer;
 
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
@@ -57,13 +60,24 @@ import org.openrdf.model.URI;
 import org.openrdf.query.QueryEvaluationException;
 
 import cern.colt.Arrays;
+import info.aduna.iteration.CloseableIteration;
+import mvm.rya.accumulo.experimental.AbstractAccumuloIndexer;
+import mvm.rya.api.domain.RyaStatement;
+import mvm.rya.api.resolver.RyaToRdfConversions;
+import mvm.rya.indexing.KeyParts;
+import mvm.rya.indexing.StatementContraints;
+import mvm.rya.indexing.TemporalIndexer;
+import mvm.rya.indexing.TemporalInstant;
+import mvm.rya.indexing.TemporalInterval;
+import mvm.rya.indexing.accumulo.ConfigUtils;
+import mvm.rya.indexing.accumulo.StatementSerializer;
 
 public class AccumuloTemporalIndexer extends AbstractAccumuloIndexer implements TemporalIndexer {
 
 	private static final Logger logger = Logger.getLogger(AccumuloTemporalIndexer.class);
 
     private static final String CF_INTERVAL = "interval";
- 
+
 
 
     // Delimiter used in the interval stored in the triple's object literal.
@@ -79,11 +93,11 @@ public class AccumuloTemporalIndexer extends AbstractAccumuloIndexer implements 
 
     private Set<URI> validPredicates;
     private String temporalIndexTableName;
-    
+
     private boolean isInit = false;
 
-    
-    
+
+
     private void init() throws AccumuloException, AccumuloSecurityException, TableNotFoundException,
             TableExistsException {
         temporalIndexTableName = ConfigUtils.getTemporalTableName(conf);
@@ -96,7 +110,7 @@ public class AccumuloTemporalIndexer extends AbstractAccumuloIndexer implements 
 
         validPredicates = ConfigUtils.getTemporalPredicates(conf);
     }
-    
+
     //initialization occurs in setConf because index is created using reflection
     @Override
     public void setConf(Configuration conf) {
@@ -120,13 +134,13 @@ public class AccumuloTemporalIndexer extends AbstractAccumuloIndexer implements 
             }
         }
     }
-    
+
     @Override
     public Configuration getConf() {
         return this.conf;
     }
-    
-    
+
+
     /**
      * Store a statement in the index if it meets the criterion: Object should be
      * a literal and one of the validPredicates from the configuration.
@@ -160,18 +174,18 @@ public class AccumuloTemporalIndexer extends AbstractAccumuloIndexer implements 
             throw new IOException("While adding interval/instant for statement =" + statement, e);
         }
     }
-    
-    
+
+
     @Override
     public void storeStatement(RyaStatement statement) throws IllegalArgumentException, IOException {
         storeStatement(RyaToRdfConversions.convertStatement(statement));
     }
-    
-    
+
+
 
     /**
      * parse the literal dates from the object of a statement.
-     * 
+     *
      * @param statement
      * @param outputDateTimes
      */
@@ -189,7 +203,7 @@ public class AccumuloTemporalIndexer extends AbstractAccumuloIndexer implements 
 	        	outputDateTimes[1] = new DateTime(matcher.group(2));
 	        	return;
     		} catch (java.lang.IllegalArgumentException e) {
-                logThis = e.getMessage() + " " + logThis;	
+                logThis = e.getMessage() + " " + logThis;
                 outputDateTimes[0]=null;
                 outputDateTimes[1]=null;
     		}
@@ -201,7 +215,7 @@ public class AccumuloTemporalIndexer extends AbstractAccumuloIndexer implements 
 			outputDateTimes[1] = null;
 			return;
 		} catch (java.lang.IllegalArgumentException e) {
-            logThis = e.getMessage();			
+            logThis = e.getMessage();
 		}
 		// Try again using Joda Time DateTime.parse()
 		try {
@@ -210,10 +224,55 @@ public class AccumuloTemporalIndexer extends AbstractAccumuloIndexer implements 
 			//System.out.println(">>>>>>>Joda parsed: "+literalValue.stringValue());
 			return;
 		} catch (java.lang.IllegalArgumentException e) {
-            logThis = e.getMessage() + " " + logThis;			
+            logThis = e.getMessage() + " " + logThis;
 		}
-        logger.warn("TemporalIndexer is unable to parse the date/time from statement="  + statement.toString() + " " +logThis);			
+        logger.warn("TemporalIndexer is unable to parse the date/time from statement="  + statement.toString() + " " +logThis);
 		return;
+    }
+
+    /**
+     * Remove an interval index
+     * TODO: integrate into KeyParts (or eliminate)
+     * @param writer
+     * @param cv
+     * @param interval
+     * @throws MutationsRejectedException
+     */
+    public void removeInterval(BatchWriter writer, TemporalInterval interval, Statement statement) throws MutationsRejectedException {
+        Text cf = new Text(StatementSerializer.writeContext(statement));
+        Text cqBegin = new Text(KeyParts.CQ_BEGIN);
+        Text cqEnd = new Text(KeyParts.CQ_END);
+
+        // Start Begin index
+        Text keyText = new Text(interval.getAsKeyBeginning());
+        KeyParts.appendUniqueness(statement, keyText);
+        Mutation m = new Mutation(keyText);
+        m.putDelete(cf, cqBegin);
+        writer.addMutation(m);
+
+        // now the end index:
+        keyText = new Text(interval.getAsKeyEnd());
+        KeyParts.appendUniqueness(statement, keyText);
+        m = new Mutation(keyText);
+        m.putDelete(cf, cqEnd);
+        writer.addMutation(m);
+    }
+
+    /**
+     * Remove an interval instant
+     *
+     * @param writer
+     * @param cv
+     * @param instant
+     * @throws MutationsRejectedException
+     */
+    public void removeInstant(BatchWriter writer, TemporalInstant instant, Statement statement) throws MutationsRejectedException {
+        KeyParts keyParts = new KeyParts(statement, instant);
+        for (KeyParts  k: keyParts) {
+            Mutation m = new Mutation(k.getStoreKey());
+            m.putDelete(k.cf, k.cq);
+            writer.addMutation(m);
+        }
     }
 
     /**
@@ -230,9 +289,9 @@ public class AccumuloTemporalIndexer extends AbstractAccumuloIndexer implements 
         Text cf = new Text(StatementSerializer.writeContext(statement));
         Text cqBegin = new Text(KeyParts.CQ_BEGIN);
         Text cqEnd = new Text(KeyParts.CQ_END);
-        
+
         // Start Begin index
-        Text keyText =new Text(interval.getAsKeyBeginning());
+        Text keyText = new Text(interval.getAsKeyBeginning());
         KeyParts.appendUniqueness(statement, keyText);
         Mutation m = new Mutation(keyText);
         m.put(cf, cqBegin, statementValue);
@@ -250,29 +309,29 @@ public class AccumuloTemporalIndexer extends AbstractAccumuloIndexer implements 
 
 
     /**
-     * Index a new interval
-     * Make indexes that handle this expression:  
-     *     hash( s? p? ) ?o 
+     * Index a new instant
+     * Make indexes that handle this expression:
+     *     hash( s? p? ) ?o
      *         == o union hash(s)o union hash(p)o  union hash(sp)o
-     * 
+     *
      * @param writer
      * @param cv
      * @param instant
      * @throws MutationsRejectedException
      */
     public void addInstant(BatchWriter writer, TemporalInstant instant, Statement statement) throws MutationsRejectedException {
-    	KeyParts keyParts = new KeyParts(statement, instant);
-    	for (KeyParts k: keyParts) { 
-			Mutation m = new Mutation(k.getStoreKey());
-			m.put(k.cf, k.cq,k.getValue());
-			writer.addMutation(m);
-    	}
+        KeyParts keyParts = new KeyParts(statement, instant);
+        for (KeyParts k : keyParts) {
+            Mutation m = new Mutation(k.getStoreKey());
+            m.put(k.cf, k.cq,k.getValue());
+            writer.addMutation(m);
+        }
     }
 
 
     /**
      * creates a scanner and handles all the throwables and nulls.
-     * 
+     *
      * @param scanner
      * @return
      * @throws IOException
@@ -344,10 +403,10 @@ public class AccumuloTemporalIndexer extends AbstractAccumuloIndexer implements 
 			@Override
 			public Range getRange(KeyParts keyParts) {
 		    	Text start= null;
-				if (keyParts.constraintPrefix != null )  // Yes, has constraints 
+				if (keyParts.constraintPrefix != null )  // Yes, has constraints
 					start = keyParts.constraintPrefix;   // <-- start specific logic
 				else
-					start = new Text(KeyParts.HASH_PREFIX_FOLLOWING);  
+					start = new Text(KeyParts.HASH_PREFIX_FOLLOWING);
 				Text endAt = keyParts.getQueryKey();			       // <-- end specific logic
 				//System.out.println("Scanning queryInstantBeforeInstant: from:" + KeyParts.toHumanString(start) + " up to:" + KeyParts.toHumanString(endAt));
 				return new Range(start, true, endAt, false);
@@ -356,7 +415,7 @@ public class AccumuloTemporalIndexer extends AbstractAccumuloIndexer implements 
 		ScannerBase scanner = query.doQuery(queryInstant, constraints);
 		return getContextIteratorWrapper(scanner, constraints.getContext());
     }
-    
+
     /**
      * get statements where the date object is after the given queryInstant.
      */
@@ -444,7 +503,7 @@ public class AccumuloTemporalIndexer extends AbstractAccumuloIndexer implements 
 
     /**
      * Get intervals stored in the repository matching the given interval.
-     * Indexing Intervals  will probably change or be removed.  
+     * Indexing Intervals  will probably change or be removed.
      * Currently predicate and subject constraints are filtered on the client.
      */
     @Override
@@ -472,7 +531,7 @@ public class AccumuloTemporalIndexer extends AbstractAccumuloIndexer implements 
 	/**
 	 * find intervals stored in the repository before the given Interval. Find interval endings that are
 	 * before the given beginning.
-     * Indexing Intervals  will probably change or be removed.  
+     * Indexing Intervals  will probably change or be removed.
      * Currently predicate and subject constraints are filtered on the client.
 	 */
 	@Override
@@ -495,20 +554,20 @@ public class AccumuloTemporalIndexer extends AbstractAccumuloIndexer implements 
 	/**
 	 * Interval after given interval.  Find intervals that begin after the endings of the given interval.
 	 * Use the special following prefix mechanism to avoid matching the beginning date.
-     * Indexing Intervals  will probably change or be removed.  
+     * Indexing Intervals  will probably change or be removed.
      * Currently predicate and subject and context constraints are filtered on the client.
 	 */
 	@Override
 	public CloseableIteration<Statement, QueryEvaluationException> queryIntervalAfter(
 	        TemporalInterval queryInterval, StatementContraints constraints)
 	        throws QueryEvaluationException {
-	
+
 	    Scanner scanner = getScanner();
 	    if (scanner != null) {
 	        // get rows where the start date is greater than the queryInterval.getEnd()
 	        Range range = new Range(new Key(Range.followingPrefix(new Text(queryInterval.getHasEnd().getAsKeyBytes()))), false, null, true);
 	        scanner.setRange(range);
-	        
+
 	        if (constraints.hasContext())
 	        	scanner.fetchColumn(new Text(constraints.getContext().toString()), new Text(KeyParts.CQ_BEGIN));
 	        else
@@ -520,14 +579,14 @@ public class AccumuloTemporalIndexer extends AbstractAccumuloIndexer implements 
 	// --
 	// -- END of Query functions.  Next up, general stuff used by the queries above.
 	// --
-	
+
 	/**
 	 * Allows passing range specific logic into doQuery.
 	 * Each query function implements an anonymous instance of this and calls it's doQuery().
 	 */
 	abstract class Query {
 		abstract protected Range getRange(KeyParts keyParts);
-	
+
 		public ScannerBase doQuery(TemporalInstant queryInstant, StatementContraints constraints) throws QueryEvaluationException {
 			// key is contraintPrefix + time, or just time.
 			// Any constraints handled here, if the constraints are empty, the
@@ -538,7 +597,7 @@ public class AccumuloTemporalIndexer extends AbstractAccumuloIndexer implements 
 				scanner = getBatchScanner();
 			else
 				scanner = getScanner();
-	
+
 			Collection<Range> ranges = new HashSet<Range>();
 			KeyParts lastKeyParts = null;
 			Range range = null;
@@ -559,7 +618,7 @@ public class AccumuloTemporalIndexer extends AbstractAccumuloIndexer implements 
 
 	/**
      * An iteration wrapper for a loaded scanner that is returned for each query above.
-     * 
+     *
      * @param scanner
      *            the results to iterate, then close.
      * @return an anonymous object that will iterate the resulting statements from a given scanner.
@@ -603,14 +662,14 @@ public class AccumuloTemporalIndexer extends AbstractAccumuloIndexer implements 
         };
     }
 
-    
+
     /**
      * An iteration wrapper for a loaded scanner that is returned for partially supported interval queries above.
-     * 
+     *
      * @param scanner  the results to iterate, then close.
      * @param constraints  limit statements returned by next() to those matching the constraints.
      * @return an anonymous object that will iterate the resulting statements from a given scanner.
-     * @throws QueryEvaluationException 
+     * @throws QueryEvaluationException
      */
 	private static CloseableIteration<Statement, QueryEvaluationException> getConstrainedIteratorWrapper(final Scanner scanner, final StatementContraints constraints) {
 		if (!constraints.hasContext() && !constraints.hasSubject() && !constraints.hasPredicates())
@@ -625,11 +684,11 @@ public class AccumuloTemporalIndexer extends AbstractAccumuloIndexer implements 
     /**
      * An iteration wrapper for a loaded scanner that is returned for queries above.
      * Currently, this temporal index supports contexts only on the client, using this filter.
-     * 
+     *
      * @param scanner  the results to iterate, then close.
      * @param constraints  limit statements returned by next() to those matching the constraints.
      * @return an anonymous object that will iterate the resulting statements from a given scanner.
-     * @throws QueryEvaluationException 
+     * @throws QueryEvaluationException
      */
 	private static CloseableIteration<Statement, QueryEvaluationException> getContextIteratorWrapper(final ScannerBase scanner, final Resource context) {
 		if (context==null)
@@ -651,7 +710,7 @@ public class AccumuloTemporalIndexer extends AbstractAccumuloIndexer implements 
         	private boolean isInitialized = false;
         	final private Iterator<Entry<Key, Value>> i;
         	final private ScannerBase scanner;
-        	
+
         	ConstrainedIteratorWrapper(ScannerBase scanner) {
         		this.scanner = scanner;
         		i=scanner.iterator();
@@ -678,7 +737,7 @@ public class AccumuloTemporalIndexer extends AbstractAccumuloIndexer implements 
             }
 
 			/**
-			 * Gets the next statement meeting constraints and stores in nextStatement.  
+			 * Gets the next statement meeting constraints and stores in nextStatement.
 			 * Sets null when all done, or on exception.
 			 * @throws QueryEvaluationException
 			 */
@@ -707,7 +766,7 @@ public class AccumuloTemporalIndexer extends AbstractAccumuloIndexer implements 
             	}
 			}
 			public abstract boolean allowedBy(Statement s);
-			
+
             @Override
             public void remove() {
                 throw new UnsupportedOperationException("Remove not implemented");
@@ -731,15 +790,15 @@ public class AccumuloTemporalIndexer extends AbstractAccumuloIndexer implements 
         	{System.out.println("Constrain subject: "+constraints.getSubject()+" != " + statement.getSubject()); return false;}
     		//return false;
 
-    	if (! allowedByContext(statement, constraints.getContext())) 
+    	if (! allowedByContext(statement, constraints.getContext()))
 		    return false;
     	    //{System.out.println("Constrain context: "+constraints.getContext()+" != " + statement.getContext()); return false;}
-	
+
     	if (constraints.hasPredicates() && ! constraints.getPredicates().contains(statement.getPredicate()))
     		return false;
     	    //{System.out.println("Constrain predicate: "+constraints.getPredicates()+" != " + statement.getPredicate()); return false;}
-    	
-    	System.out.println("allow statement: "+ statement.toString()); 
+
+    	System.out.println("allow statement: "+ statement.toString());
 		return true;
 	}
 
@@ -792,13 +851,42 @@ public class AccumuloTemporalIndexer extends AbstractAccumuloIndexer implements 
             throw new IOException(msg, e);
         }
     }
-    
-    
+
+
 
     @Override
     public String getTableName() {
        return ConfigUtils.getTemporalTableName(conf);
     }
 
-    
+    private void deleteStatement(Statement statement) throws IOException, IllegalArgumentException {
+        // if the predicate list is empty, accept all predicates.
+        // Otherwise, make sure the predicate is on the "valid" list
+        boolean isValidPredicate = validPredicates.isEmpty() || validPredicates.contains(statement.getPredicate());
+        if (!isValidPredicate || !(statement.getObject() instanceof Literal))
+            return;
+        DateTime[] indexDateTimes = new DateTime[2]; // 0 begin, 1 end of interval
+        extractDateTime(statement, indexDateTimes);
+        if (indexDateTimes[0] == null) {
+            return;
+        }
+
+        // Remove this as an instant, or interval.
+        try {
+            if (indexDateTimes[1] != null) {
+                TemporalInterval interval = new TemporalInterval(new TemporalInstantRfc3339(indexDateTimes[0]), new TemporalInstantRfc3339(indexDateTimes[1]));
+                removeInterval(temporalIndexBatchWriter, interval, statement);
+            } else {
+                TemporalInstant instant = new TemporalInstantRfc3339(indexDateTimes[0]);
+                removeInstant(temporalIndexBatchWriter, instant, statement);
+            }
+        } catch (MutationsRejectedException e) {
+            throw new IOException("While adding interval/instant for statement =" + statement, e);
+        }
+    }
+
+    @Override
+    public void deleteStatement(RyaStatement statement) throws IllegalArgumentException, IOException {
+        deleteStatement(RyaToRdfConversions.convertStatement(statement));
+    }
 }

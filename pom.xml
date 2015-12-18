@@ -608,12 +608,20 @@ under the License.
                         </execution>
                     </executions>
                 </plugin>
-                <plugin>
-                    <!-- Apache Release Audit Tool - reports missing license headers and other issues. -->
-                    <!-- mvn apache-rat:rat -->
-                    <!-- mvn apache-rat:check -->
-                    <groupId>org.apache.rat</groupId>
-                    <artifactId>apache-rat-plugin</artifactId>
+            </plugins>
+        </pluginManagement>
+
+        <plugins>
+            <plugin>
+                <!-- Apache Release Audit Tool - reports missing license headers and other issues. -->
+                <groupId>org.apache.rat</groupId>
+                <artifactId>apache-rat-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>check-licenses</id>
+                        <goals>
+                            <goal>check</goal>
+                        </goals>
                     <configuration>
                         <excludes>
                             <!-- RDF data Files -->
@@ -627,15 +635,8 @@ under the License.
                             <exclude>**/resources/META-INF/services/**</exclude>
                         </excludes>
                     </configuration>
-                </plugin>
-            </plugins>
-        </pluginManagement>
-
-        <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-shade-plugin</artifactId>
-                <version>2.3</version>
+                    </execution>
+                </executions>
             </plugin>
             <plugin>
                 <artifactId>maven-source-plugin</artifactId>

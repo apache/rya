@@ -30,24 +30,25 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Map;
 
+import org.apache.commons.codec.binary.Hex;
+
+import com.google.common.primitives.Bytes;
+
 import mvm.rya.api.RdfCloudTripleStoreConfiguration;
 import mvm.rya.api.RdfCloudTripleStoreConstants;
 import mvm.rya.api.RdfCloudTripleStoreUtils;
 import mvm.rya.api.domain.RyaRange;
 import mvm.rya.api.domain.RyaType;
 import mvm.rya.api.domain.RyaURI;
-import mvm.rya.api.query.strategy.AbstractTriplePatternStrategy;
 import mvm.rya.api.query.strategy.ByteRange;
 import mvm.rya.api.resolver.RyaContext;
 import mvm.rya.api.resolver.RyaTypeResolverException;
-
-import com.google.common.primitives.Bytes;
 
 /**
  * Date: 7/14/12
  * Time: 7:35 AM
  */
-public class HashedPoWholeRowTriplePatternStrategy extends AbstractTriplePatternStrategy {
+public class HashedPoWholeRowTriplePatternStrategy extends AbstractHashedTriplePatternStrategy {
 
     @Override
     public RdfCloudTripleStoreConstants.TABLE_LAYOUT getLayout() {
@@ -80,7 +81,7 @@ public class HashedPoWholeRowTriplePatternStrategy extends AbstractTriplePattern
                     byte[] objStartBytes = ryaContext.serializeType(rv.getStart())[0];
                     byte[] objEndBytes = ryaContext.serializeType(rv.getStop())[0];
                     byte[] predBytes = predicate.getData().getBytes();
-                    byte[] predHash = md.digest(predBytes);
+                    byte[] predHash = Hex.encodeHexString(md.digest(predBytes)).getBytes();
                     start = Bytes.concat(predHash, DELIM_BYTES, predBytes, DELIM_BYTES, objStartBytes);
                     stop = Bytes.concat(predHash, DELIM_BYTES, predBytes,DELIM_BYTES, objEndBytes, DELIM_BYTES, LAST_BYTES);
                 } else {
@@ -91,7 +92,7 @@ public class HashedPoWholeRowTriplePatternStrategy extends AbstractTriplePattern
                         byte[] subjStartBytes = ru.getStart().getData().getBytes();
                         byte[] subjStopBytes = ru.getStop().getData().getBytes();
                         byte[] predBytes = predicate.getData().getBytes();
-                        byte[] predHash = md.digest(predBytes);
+                        byte[] predHash = Hex.encodeHexString(md.digest(predBytes)).getBytes();
                         byte[] objBytes = ryaContext.serializeType(object)[0];
                         start = Bytes.concat(predHash, DELIM_BYTES, predBytes, DELIM_BYTES, objBytes, DELIM_BYTES, subjStartBytes);
                         stop = Bytes.concat(predHash, DELIM_BYTES, predBytes, DELIM_BYTES, objBytes, DELIM_BYTES, subjStopBytes, TYPE_DELIM_BYTES, LAST_BYTES);
@@ -99,7 +100,7 @@ public class HashedPoWholeRowTriplePatternStrategy extends AbstractTriplePattern
                         //po
                         //TODO: There must be a better way than creating multiple byte[]
                         byte[] predBytes = predicate.getData().getBytes();
-                        byte[] predHash = md.digest(predBytes);
+                        byte[] predHash = Hex.encodeHexString(md.digest(predBytes)).getBytes();
                         byte[] objBytes = ryaContext.serializeType(object)[0];
                         start = Bytes.concat(predHash, DELIM_BYTES, predBytes, DELIM_BYTES, objBytes, DELIM_BYTES);
                         stop = Bytes.concat(start, LAST_BYTES);
@@ -108,7 +109,7 @@ public class HashedPoWholeRowTriplePatternStrategy extends AbstractTriplePattern
             } else {
                 //p
                 byte[] predBytes = predicate.getData().getBytes();
-                byte[] predHash = md.digest(predBytes);
+                byte[] predHash = Hex.encodeHexString(md.digest(predBytes)).getBytes();
                 start = Bytes.concat(predHash, DELIM_BYTES, predBytes, DELIM_BYTES);
                 stop = Bytes.concat(start, LAST_BYTES);
             }

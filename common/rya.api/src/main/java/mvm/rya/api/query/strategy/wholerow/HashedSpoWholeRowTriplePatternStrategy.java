@@ -1,5 +1,16 @@
 package mvm.rya.api.query.strategy.wholerow;
 
+import static mvm.rya.api.RdfCloudTripleStoreConstants.DELIM_BYTES;
+import static mvm.rya.api.RdfCloudTripleStoreConstants.LAST_BYTES;
+import static mvm.rya.api.RdfCloudTripleStoreConstants.TYPE_DELIM_BYTES;
+
+import java.io.IOException;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.Map;
+
+import org.apache.commons.codec.binary.Hex;
+
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -24,28 +35,21 @@ package mvm.rya.api.query.strategy.wholerow;
 import com.google.common.primitives.Bytes;
 
 import mvm.rya.api.RdfCloudTripleStoreConfiguration;
+import mvm.rya.api.RdfCloudTripleStoreConstants.TABLE_LAYOUT;
 import mvm.rya.api.RdfCloudTripleStoreUtils;
 import mvm.rya.api.domain.RyaRange;
 import mvm.rya.api.domain.RyaType;
 import mvm.rya.api.domain.RyaURI;
 import mvm.rya.api.domain.RyaURIRange;
-import mvm.rya.api.query.strategy.AbstractTriplePatternStrategy;
 import mvm.rya.api.query.strategy.ByteRange;
 import mvm.rya.api.resolver.RyaContext;
 import mvm.rya.api.resolver.RyaTypeResolverException;
-
-import java.io.IOException;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.util.Map;
-
-import static mvm.rya.api.RdfCloudTripleStoreConstants.*;
 
 /**
  * Date: 7/14/12
  * Time: 7:35 AM
  */
-public class HashedSpoWholeRowTriplePatternStrategy extends AbstractTriplePatternStrategy {
+public class HashedSpoWholeRowTriplePatternStrategy extends AbstractHashedTriplePatternStrategy {
 
 
     @Override
@@ -80,7 +84,7 @@ public class HashedSpoWholeRowTriplePatternStrategy extends AbstractTriplePatter
                         byte[] objStartBytes = ryaContext.serializeType(rv.getStart())[0];
                         byte[] objEndBytes = ryaContext.serializeType(rv.getStop())[0];
                         byte[] subjBytes = subject.getData().getBytes();
-                        byte[] hashSubj = md.digest(subjBytes);
+                        byte[] hashSubj = Hex.encodeHexString(md.digest(subjBytes)).getBytes();
                         byte[] predBytes = predicate.getData().getBytes();
                         start = Bytes.concat(hashSubj, DELIM_BYTES, subjBytes, DELIM_BYTES, predBytes, DELIM_BYTES, objStartBytes);
                         stop = Bytes.concat(hashSubj, DELIM_BYTES,subjBytes, DELIM_BYTES, predBytes, DELIM_BYTES, objEndBytes, DELIM_BYTES, LAST_BYTES);
@@ -89,7 +93,7 @@ public class HashedSpoWholeRowTriplePatternStrategy extends AbstractTriplePatter
                         //range = spo->spo (remove last byte to remove type info)
                         //TODO: There must be a better way than creating multiple byte[]
                         byte[] subjBytes = subject.getData().getBytes();
-                        byte[] hashSubj = md.digest(subjBytes);
+                        byte[] hashSubj = Hex.encodeHexString(md.digest(subjBytes)).getBytes();
                          byte[] objBytes = ryaContext.serializeType(object)[0];
                         start = Bytes.concat(hashSubj, DELIM_BYTES, subjBytes, DELIM_BYTES, predicate.getData().getBytes(), DELIM_BYTES, objBytes, TYPE_DELIM_BYTES);
                         stop = Bytes.concat(start, LAST_BYTES);
@@ -100,7 +104,7 @@ public class HashedSpoWholeRowTriplePatternStrategy extends AbstractTriplePatter
                     RyaRange rv = (RyaRange) predicate;
                     rv = ryaContext.transformRange(rv);
                     byte[] subjBytes = subject.getData().getBytes();
-                    byte[] hashSubj = md.digest(subjBytes);
+                    byte[] hashSubj = Hex.encodeHexString(md.digest(subjBytes)).getBytes();
                     byte[] predStartBytes = rv.getStart().getData().getBytes();
                     byte[] predStopBytes = rv.getStop().getData().getBytes();
                     start = Bytes.concat(hashSubj, DELIM_BYTES, subjBytes, DELIM_BYTES, predStartBytes);
@@ -109,7 +113,7 @@ public class HashedSpoWholeRowTriplePatternStrategy extends AbstractTriplePatter
                     //sp
                     //range = sp
                     byte[] subjBytes = subject.getData().getBytes();
-                    byte[] hashSubj = md.digest(subjBytes);
+                    byte[] hashSubj = Hex.encodeHexString(md.digest(subjBytes)).getBytes();
                     start = Bytes.concat(hashSubj, DELIM_BYTES, subjBytes, DELIM_BYTES, predicate.getData().getBytes(), DELIM_BYTES);
                     stop = Bytes.concat(start, LAST_BYTES);
                 }
@@ -117,7 +121,7 @@ public class HashedSpoWholeRowTriplePatternStrategy extends AbstractTriplePatter
                 //s
                 //range = s
                 byte[] subjBytes = subject.getData().getBytes();
-                byte[] hashSubj = md.digest(subjBytes);
+                byte[] hashSubj = Hex.encodeHexString(md.digest(subjBytes)).getBytes();
                 start = Bytes.concat(hashSubj, DELIM_BYTES, subjBytes, DELIM_BYTES);
                 stop = Bytes.concat(start, LAST_BYTES);
             }

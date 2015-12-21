@@ -1,4 +1,4 @@
-package mvm.rya.api.domain.utils;
+package mvm.rya.accumulo.mr;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -26,13 +26,15 @@ import java.io.DataOutput;
 import java.io.IOException;
 import java.util.Map;
 
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.io.WritableComparable;
+
+import mvm.rya.accumulo.AccumuloRdfConfiguration;
 import mvm.rya.api.RdfCloudTripleStoreConstants;
 import mvm.rya.api.domain.RyaStatement;
 import mvm.rya.api.resolver.RyaTripleContext;
 import mvm.rya.api.resolver.triple.TripleRow;
 import mvm.rya.api.resolver.triple.TripleRowResolverException;
-
-import org.apache.hadoop.io.WritableComparable;
 
 /**
  * Date: 7/17/12
@@ -42,12 +44,19 @@ public class RyaStatementWritable implements WritableComparable {
 
     private RyaTripleContext ryaContext;
     private RyaStatement ryaStatement;
-
+    
+    public RyaStatementWritable(Configuration conf) {
+        this();
+    }
      
     public RyaStatementWritable(RyaTripleContext ryaContext) {
      	this.ryaContext = ryaContext;
     }
-
+    
+    public RyaStatementWritable() {
+        this.ryaContext = RyaTripleContext.getInstance(new AccumuloRdfConfiguration());
+    }
+    
     public RyaStatementWritable(RyaStatement ryaStatement, RyaTripleContext ryaContext) {
     	this(ryaContext);
         this.ryaStatement = ryaStatement;
@@ -87,8 +96,8 @@ public class RyaStatementWritable implements WritableComparable {
             write(dataOutput, ryaStatement.getValue());
             Long timestamp = ryaStatement.getTimestamp();
             boolean b = timestamp != null;
+            dataOutput.writeBoolean(b);
             if (b) {
-                dataOutput.writeBoolean(b);
                 dataOutput.writeLong(timestamp);
             }
         } catch (TripleRowResolverException e) {
@@ -111,8 +120,9 @@ public class RyaStatementWritable implements WritableComparable {
             byte[] bytes = new byte[len];
             dataInput.readFully(bytes);
             return bytes;
+        }else {
+            return null;
         }
-        return null;
     }
 
     @Override

@@ -27,9 +27,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import mvm.rya.api.domain.RyaStatement;
+import mvm.rya.api.resolver.RdfToRyaConversions;
 import mvm.rya.indexing.StatementContraints;
 import mvm.rya.indexing.accumulo.StatementSerializer;
 import mvm.rya.indexing.accumulo.geo.GeoParseUtils;
+import mvm.rya.mongodb.dao.SimpleMongoDBStorageStrategy;
 
 import org.apache.commons.codec.binary.Hex;
 import org.openrdf.model.Statement;
@@ -44,14 +47,9 @@ import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.io.ParseException;
 import com.vividsolutions.jts.io.WKTReader;
 
-public class GeoMongoDBStorageStrategy {
+public class GeoMongoDBStorageStrategy extends SimpleMongoDBStorageStrategy{
 
-	private static final String ID = "_id";
 	private static final String GEO = "location";
-	private static final String CONTEXT = "context";
-	private static final String PREDICATE = "predicate";
-	private static final String OBJECT = "object";
-	private static final String SUBJECT = "subject";
 	public enum GeoQueryType {
 		INTERSECTS {
 			public String getKeyword() {
@@ -124,21 +122,6 @@ public class GeoMongoDBStorageStrategy {
 		return query;
 	}
 
-
-	public Statement deserializeDBObject(DBObject queryResult) {
-		Map result = queryResult.toMap();
-		String subject = (String) result.get(SUBJECT);
-		String object = (String) result.get(OBJECT);
-		String predicate = (String) result.get(PREDICATE);
-		String context = (String) result.get(CONTEXT);
-		if (!context.isEmpty()){
-			return StatementSerializer.readStatement(subject, predicate, object, context);			
-		}
-		return StatementSerializer.readStatement(subject, predicate, object);
-	}
-	
-	
-
 	public DBObject serialize(Statement statement) throws ParseException{
 		// if the object is wkt, then try to index it
         // write the statement data to the fields
@@ -146,28 +129,10 @@ public class GeoMongoDBStorageStrategy {
         if(geo == null || geo.isEmpty() || !geo.isValid()) {
             throw new ParseException("Could not create geometry for statement " + statement);
         }
- 		
-		String context = "";
-		if (statement.getContext() != null){
-			context = StatementSerializer.writeContext(statement);
-		}
-		String id = StatementSerializer.writeSubject(statement) + " " + 
-				StatementSerializer.writePredicate(statement) + " " +  StatementSerializer.writeObject(statement) + " " + context;
-		byte[] bytes = id.getBytes();
-		try {
-			MessageDigest digest = MessageDigest.getInstance("SHA-1");
-			bytes = digest.digest(bytes);
-		} catch (NoSuchAlgorithmException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		BasicDBObject doc = new BasicDBObject(ID, new String(Hex.encodeHex(bytes)))
-		.append(GEO, getCorrespondingPoints(geo))
-		.append(SUBJECT, StatementSerializer.writeSubject(statement))
-	    .append(PREDICATE, StatementSerializer.writePredicate(statement))
-	    .append(OBJECT,  StatementSerializer.writeObject(statement))
-	    .append(CONTEXT, context);
-		return doc;
+ 		RyaStatement ryaStatement = RdfToRyaConversions.convertStatement(statement);
+ 		BasicDBObject base = (BasicDBObject) super.serialize(ryaStatement);
+ 		base.append(GEO, getCorrespondingPoints(geo));	
+		return base;
 		
 	}
 	

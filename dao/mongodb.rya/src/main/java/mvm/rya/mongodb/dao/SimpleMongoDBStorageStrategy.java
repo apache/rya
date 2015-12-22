@@ -38,13 +38,13 @@ import com.mongodb.DBObject;
 
 public class SimpleMongoDBStorageStrategy implements MongoDBStorageStrategy {
 
-	private static final String ID = "_id";
-	private static final String OBJECT_TYPE = "objectType";
-	private static final String CONTEXT = "context";
-	private static final String PREDICATE = "predicate";
-	private static final String OBJECT = "object";
-	private static final String SUBJECT = "subject";
-	private ValueFactoryImpl factory = new ValueFactoryImpl();
+	protected static final String ID = "_id";
+	protected static final String OBJECT_TYPE = "objectType";
+	protected static final String CONTEXT = "context";
+	protected static final String PREDICATE = "predicate";
+	protected static final String OBJECT = "object";
+	protected static final String SUBJECT = "subject";
+	protected ValueFactoryImpl factory = new ValueFactoryImpl();
 
 
 	public SimpleMongoDBStorageStrategy() {
@@ -115,6 +115,10 @@ public class SimpleMongoDBStorageStrategy implements MongoDBStorageStrategy {
 
 	@Override
 	public DBObject serialize(RyaStatement statement){
+		return serializeInternal(statement);		
+	}
+
+	public BasicDBObject serializeInternal(RyaStatement statement){
 		String context = "";
 		if (statement.getContext() != null){
 			context = statement.getContext().getData();

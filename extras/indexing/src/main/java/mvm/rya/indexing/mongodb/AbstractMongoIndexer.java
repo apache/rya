@@ -61,11 +61,6 @@ public abstract class AbstractMongoIndexer implements RyaSecondaryIndexer {
     }
 
     @Override
-    public void deleteStatement(RyaStatement stmt) throws IOException {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
     public void dropGraph(RyaURI... graphs) {
         throw new UnsupportedOperationException();
     }

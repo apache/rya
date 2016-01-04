@@ -25,8 +25,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
 import mvm.rya.api.RdfCloudTripleStoreConfiguration;
 import mvm.rya.api.RdfCloudTripleStoreConstants;
+import mvm.rya.api.RdfCloudTripleStoreConstants.TABLE_LAYOUT;
 import mvm.rya.api.domain.RyaStatement;
 import mvm.rya.api.domain.RyaType;
 import mvm.rya.api.domain.RyaURI;
@@ -41,9 +45,6 @@ import mvm.rya.api.resolver.triple.TripleRowResolver;
 import mvm.rya.api.resolver.triple.TripleRowResolverException;
 import mvm.rya.api.resolver.triple.impl.WholeRowHashedTripleResolver;
 import mvm.rya.api.resolver.triple.impl.WholeRowTripleResolver;
-
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 
 /**
  * Date: 7/16/12
@@ -113,7 +114,16 @@ public class RyaTripleContext {
         return retrieveStrategy(stmt.getSubject(), stmt.getPredicate(), stmt.getObject(), stmt.getContext());
     }
 
-    public TripleRowResolver getTripleResolver() {
+    public TriplePatternStrategy retrieveStrategy(TABLE_LAYOUT layout) {
+        for(TriplePatternStrategy strategy : triplePatternStrategyList) {
+            if (strategy.getLayout().equals(layout)) {
+                return strategy;
+            }
+        }
+        return null;
+    }
+    
+   public TripleRowResolver getTripleResolver() {
         return tripleResolver;
     }
 

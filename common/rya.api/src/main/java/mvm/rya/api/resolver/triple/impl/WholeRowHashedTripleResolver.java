@@ -1,5 +1,18 @@
 package mvm.rya.api.resolver.triple.impl;
 
+import static mvm.rya.api.RdfCloudTripleStoreConstants.DELIM_BYTE;
+import static mvm.rya.api.RdfCloudTripleStoreConstants.DELIM_BYTES;
+import static mvm.rya.api.RdfCloudTripleStoreConstants.EMPTY_BYTES;
+import static mvm.rya.api.RdfCloudTripleStoreConstants.TYPE_DELIM_BYTE;
+
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
+
+import org.apache.commons.codec.binary.Hex;
+
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -23,6 +36,7 @@ package mvm.rya.api.resolver.triple.impl;
 
 import com.google.common.primitives.Bytes;
 
+import mvm.rya.api.RdfCloudTripleStoreConstants.TABLE_LAYOUT;
 import mvm.rya.api.domain.RyaStatement;
 import mvm.rya.api.domain.RyaType;
 import mvm.rya.api.domain.RyaURI;
@@ -31,14 +45,6 @@ import mvm.rya.api.resolver.RyaTypeResolverException;
 import mvm.rya.api.resolver.triple.TripleRow;
 import mvm.rya.api.resolver.triple.TripleRowResolver;
 import mvm.rya.api.resolver.triple.TripleRowResolverException;
-
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
-
-import static mvm.rya.api.RdfCloudTripleStoreConstants.*;
 
 /**
  * Will store triple in spo, po, osp. Storing everything in the whole row.
@@ -69,12 +75,12 @@ public class WholeRowHashedTripleResolver implements TripleRowResolver {
             byte[] predHashBytes = md.digest(predBytes);
             byte[][] objBytes = RyaContext.getInstance().serializeType(object);
             tripleRowMap.put(TABLE_LAYOUT.SPO,
-                    new TripleRow(Bytes.concat(subjHashBytes, DELIM_BYTES, subjBytes, DELIM_BYTES,
+                    new TripleRow(Bytes.concat(Hex.encodeHexString(subjHashBytes).getBytes(), DELIM_BYTES, subjBytes, DELIM_BYTES,
                             predBytes, DELIM_BYTES,
                             objBytes[0], objBytes[1]), cf, qualBytes,
                             timestamp, columnVisibility, value));
             tripleRowMap.put(TABLE_LAYOUT.PO,
-                    new TripleRow(Bytes.concat(predHashBytes, DELIM_BYTES, predBytes, DELIM_BYTES,
+                    new TripleRow(Bytes.concat(Hex.encodeHexString(predHashBytes).getBytes(), DELIM_BYTES, predBytes, DELIM_BYTES,
                             objBytes[0], DELIM_BYTES,
                             subjBytes, objBytes[1]), cf, qualBytes,
                             timestamp, columnVisibility, value));

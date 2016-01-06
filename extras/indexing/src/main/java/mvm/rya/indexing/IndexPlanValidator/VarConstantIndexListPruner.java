@@ -33,7 +33,7 @@ import org.openrdf.query.algebra.ValueConstant;
 import org.openrdf.query.algebra.Var;
 import org.openrdf.query.algebra.helpers.QueryModelVisitorBase;
 
-import com.beust.jcommander.internal.Maps;
+import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 
 

@@ -73,7 +73,7 @@ import org.openrdf.query.parser.sparql.SPARQLParser;
 import org.openrdf.repository.sail.SailRepositoryConnection;
 import org.openrdf.sail.SailException;
 
-import com.beust.jcommander.internal.Sets;
+import com.google.common.collect.Sets;
 import com.google.common.base.Joiner;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;

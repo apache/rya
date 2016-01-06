@@ -37,6 +37,7 @@ import java.util.TreeSet;
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
 import org.apache.accumulo.core.client.BatchWriter;
+import org.apache.accumulo.core.client.Connector;
 import org.apache.accumulo.core.client.IteratorSetting;
 import org.apache.accumulo.core.client.MultiTableBatchWriter;
 import org.apache.accumulo.core.client.MutationsRejectedException;
@@ -64,6 +65,7 @@ import com.google.common.base.Charsets;
 
 import info.aduna.iteration.CloseableIteration;
 import mvm.rya.accumulo.experimental.AbstractAccumuloIndexer;
+import mvm.rya.api.RdfCloudTripleStoreConfiguration;
 import mvm.rya.api.domain.RyaStatement;
 import mvm.rya.api.resolver.RyaToRdfConversions;
 import mvm.rya.indexing.FreeTextIndexer;
@@ -208,7 +210,7 @@ public class AccumuloFreeTextIndexer extends AbstractAccumuloIndexer implements 
     private boolean isInit = false;
 
 
-    private void init() throws AccumuloException, AccumuloSecurityException, TableNotFoundException,
+    private void initInternal() throws AccumuloException, AccumuloSecurityException, TableNotFoundException,
             TableExistsException {
         String doctable = ConfigUtils.getFreeTextDocTablename(conf);
         String termtable = ConfigUtils.getFreeTextTermTablename(conf);
@@ -272,7 +274,7 @@ public class AccumuloFreeTextIndexer extends AbstractAccumuloIndexer implements 
         this.conf = conf;
         if (!isInit) {
             try {
-                init();
+                initInternal();
                 isInit = true;
             } catch (AccumuloException | AccumuloSecurityException | TableNotFoundException | TableExistsException e) {
                 logger.warn("Unable to initialize index.  Throwing Runtime Exception. ", e);
@@ -712,4 +714,39 @@ public class AccumuloFreeTextIndexer extends AbstractAccumuloIndexer implements 
         }
         return false;
     }
+
+
+	@Override
+	public void init() {
+		// TODO Auto-generated method stub
+		
+	}
+
+
+	@Override
+	public void setConnector(Connector connector) {
+		// TODO Auto-generated method stub
+		
+	}
+
+
+	@Override
+	public void destroy() {
+		// TODO Auto-generated method stub
+		
+	}
+
+
+	@Override
+	public void purge(RdfCloudTripleStoreConfiguration configuration) {
+		// TODO Auto-generated method stub
+		
+	}
+
+
+	@Override
+	public void dropAndDestroy() {
+		// TODO Auto-generated method stub
+		
+	}
 }

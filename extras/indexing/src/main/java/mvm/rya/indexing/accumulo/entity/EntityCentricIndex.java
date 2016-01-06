@@ -33,6 +33,7 @@ import java.util.List;
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
 import org.apache.accumulo.core.client.BatchWriter;
+import org.apache.accumulo.core.client.Connector;
 import org.apache.accumulo.core.client.MultiTableBatchWriter;
 import org.apache.accumulo.core.client.MutationsRejectedException;
 import org.apache.accumulo.core.client.TableExistsException;
@@ -50,6 +51,7 @@ import com.google.common.primitives.Bytes;
 
 import mvm.rya.accumulo.AccumuloRdfConfiguration;
 import mvm.rya.accumulo.experimental.AbstractAccumuloIndexer;
+import mvm.rya.api.RdfCloudTripleStoreConfiguration;
 import mvm.rya.api.domain.RyaStatement;
 import mvm.rya.api.domain.RyaType;
 import mvm.rya.api.domain.RyaURI;
@@ -70,7 +72,7 @@ public class EntityCentricIndex extends AbstractAccumuloIndexer {
     public static final String CONF_TABLE_SUFFIX = "ac.indexer.eci.tablename";
 
 
-    private void init() throws AccumuloException, AccumuloSecurityException, TableNotFoundException, IOException,
+    private void initInternal() throws AccumuloException, AccumuloSecurityException, TableNotFoundException, IOException,
             TableExistsException {
         ConfigUtils.createTableIfNotExists(conf, ConfigUtils.getEntityTableName(conf));
     }
@@ -91,7 +93,7 @@ public class EntityCentricIndex extends AbstractAccumuloIndexer {
         }
         if (!isInit) {
             try {
-                init();
+                initInternal();
                 isInit = true;
             } catch (AccumuloException e) {
                 logger.warn("Unable to initialize index.  Throwing Runtime Exception. ", e);
@@ -237,6 +239,41 @@ public class EntityCentricIndex extends AbstractAccumuloIndexer {
                         value//
                 ));
     }
+
+
+	@Override
+	public void init() {
+		// TODO Auto-generated method stub
+		
+	}
+
+
+	@Override
+	public void setConnector(Connector connector) {
+		// TODO Auto-generated method stub
+		
+	}
+
+
+	@Override
+	public void destroy() {
+		// TODO Auto-generated method stub
+		
+	}
+
+
+	@Override
+	public void purge(RdfCloudTripleStoreConfiguration configuration) {
+		// TODO Auto-generated method stub
+		
+	}
+
+
+	@Override
+	public void dropAndDestroy() {
+		// TODO Auto-generated method stub
+		
+	}
 
 
 }

@@ -27,10 +27,12 @@ import java.io.IOException;
 import java.util.Set;
 
 import mvm.rya.accumulo.experimental.AbstractAccumuloIndexer;
+import mvm.rya.api.RdfCloudTripleStoreConfiguration;
 import mvm.rya.api.domain.RyaStatement;
 import mvm.rya.indexing.FreeTextIndexer;
 import mvm.rya.indexing.StatementContraints;
 
+import org.apache.accumulo.core.client.Connector;
 import org.apache.hadoop.conf.Configuration;
 import org.openrdf.model.Statement;
 import org.openrdf.model.URI;
@@ -66,5 +68,35 @@ public class NullFreeTextIndexer extends AbstractAccumuloIndexer implements Free
     public Set<URI> getIndexablePredicates() {
         return null;
     }
+
+	@Override
+	public void init() {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void setConnector(Connector connector) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void destroy() {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void purge(RdfCloudTripleStoreConfiguration configuration) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void dropAndDestroy() {
+		// TODO Auto-generated method stub
+		
+	}
 
 }

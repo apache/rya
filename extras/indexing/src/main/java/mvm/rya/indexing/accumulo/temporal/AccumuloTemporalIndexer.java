@@ -38,6 +38,7 @@ import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
 import org.apache.accumulo.core.client.BatchScanner;
 import org.apache.accumulo.core.client.BatchWriter;
+import org.apache.accumulo.core.client.Connector;
 import org.apache.accumulo.core.client.MultiTableBatchWriter;
 import org.apache.accumulo.core.client.MutationsRejectedException;
 import org.apache.accumulo.core.client.Scanner;
@@ -62,6 +63,7 @@ import org.openrdf.query.QueryEvaluationException;
 import cern.colt.Arrays;
 import info.aduna.iteration.CloseableIteration;
 import mvm.rya.accumulo.experimental.AbstractAccumuloIndexer;
+import mvm.rya.api.RdfCloudTripleStoreConfiguration;
 import mvm.rya.api.domain.RyaStatement;
 import mvm.rya.api.resolver.RyaToRdfConversions;
 import mvm.rya.indexing.KeyParts;
@@ -98,7 +100,7 @@ public class AccumuloTemporalIndexer extends AbstractAccumuloIndexer implements 
 
 
 
-    private void init() throws AccumuloException, AccumuloSecurityException, TableNotFoundException,
+    private void initInternal() throws AccumuloException, AccumuloSecurityException, TableNotFoundException,
             TableExistsException {
         temporalIndexTableName = ConfigUtils.getTemporalTableName(conf);
         // Create one index table on first run.
@@ -117,7 +119,7 @@ public class AccumuloTemporalIndexer extends AbstractAccumuloIndexer implements 
         this.conf = conf;
         if (!isInit) {
             try {
-                init();
+                initInternal();
                 isInit = true;
             } catch (AccumuloException e) {
                 logger.warn("Unable to initialize index.  Throwing Runtime Exception. ", e);
@@ -889,4 +891,34 @@ public class AccumuloTemporalIndexer extends AbstractAccumuloIndexer implements 
     public void deleteStatement(RyaStatement statement) throws IllegalArgumentException, IOException {
         deleteStatement(RyaToRdfConversions.convertStatement(statement));
     }
+
+	@Override
+	public void init() {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void setConnector(Connector connector) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void destroy() {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void purge(RdfCloudTripleStoreConfiguration configuration) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void dropAndDestroy() {
+		// TODO Auto-generated method stub
+		
+	}
 }

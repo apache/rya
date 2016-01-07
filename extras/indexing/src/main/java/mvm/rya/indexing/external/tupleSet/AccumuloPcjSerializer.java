@@ -1,12 +1,10 @@
 package mvm.rya.indexing.external.tupleSet;
 
-import java.util.Set;
-
 import org.openrdf.query.BindingSet;
 
 public class AccumuloPcjSerializer {
 
-	public byte[] serialize(BindingSet bs, Set<String[]> varOrders) {
+	public byte[] serialize(BindingSet bs, String[] varOrder) {
 		return null;
 	}
 

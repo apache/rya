@@ -8,18 +8,18 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import mvm.rya.api.domain.RyaType;
-import mvm.rya.api.resolver.RdfToRyaConversions;
-import mvm.rya.api.resolver.RyaContext;
-import mvm.rya.api.resolver.RyaToRdfConversions;
-import mvm.rya.api.resolver.RyaTypeResolverException;
-
 import org.openrdf.model.Value;
 import org.openrdf.query.BindingSet;
 import org.openrdf.query.algebra.evaluation.QueryBindingSet;
 
 import com.google.common.base.Preconditions;
 import com.google.common.primitives.Bytes;
+
+import mvm.rya.api.domain.RyaType;
+import mvm.rya.api.resolver.RdfToRyaConversions;
+import mvm.rya.api.resolver.RyaContext;
+import mvm.rya.api.resolver.RyaToRdfConversions;
+import mvm.rya.api.resolver.RyaTypeResolverException;
 
 /**
  * AccumuloPcjSerializer provides two methods, serialize and deserialize, which
@@ -31,7 +31,7 @@ public class AccumuloPcjSerializer {
 
 	/**
 	 *
-	 * @param bs {@BindingSet} to be serialized
+	 * @param bs {@link BindingSet} to be serialized
 	 * @param varOrder order in which binding values should be written to byte array
 	 * @return byte array containing serialized values written in order indicated by varOrder
 	 * @throws RyaTypeResolverException
@@ -60,9 +60,9 @@ public class AccumuloPcjSerializer {
 
 	/**
 	 *
-	 * @param row byte rowId (read from Accumulo {@Key})
+	 * @param row byte rowId (read from Accumulo {@link Key})
 	 * @param varOrder indicates the order in which values are written in row
-	 * @return {@BindingSet} formed from serialized values in row and variables in varOrder
+	 * @return {@link BindingSet} formed from serialized values in row and variables in varOrder
 	 * @throws RyaTypeResolverException
 	 */
 	public static BindingSet deSerialize(byte[] row, String[] varOrder) throws RyaTypeResolverException {

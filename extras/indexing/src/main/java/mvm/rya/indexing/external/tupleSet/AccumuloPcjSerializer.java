@@ -47,8 +47,6 @@ public class AccumuloPcjSerializer {
 			final byte[][] serializedVal = RyaContext.getInstance().serializeType(rt);
 			if(i == 0) {
 				byteArray = Bytes.concat(serializedVal[0], serializedVal[1], DELIM_BYTES);
-			} else if(i == varOrder.length -1) {
-				byteArray = Bytes.concat(byteArray, serializedVal[0], serializedVal[1]);
 			} else {
 				byteArray = Bytes.concat(byteArray, serializedVal[0], serializedVal[1], DELIM_BYTES);
 			}
@@ -68,7 +66,8 @@ public class AccumuloPcjSerializer {
 	public static BindingSet deSerialize(byte[] row, String[] varOrder) throws RyaTypeResolverException {
 		Preconditions.checkNotNull(row);
 		Preconditions.checkNotNull(varOrder);
-		final List<byte[]> byteList = getByteValues(row, new ArrayList<byte[]>());
+		final int lastIndex = Bytes.lastIndexOf(row, DELIM_BYTE);
+		final List<byte[]> byteList = getByteValues(Arrays.copyOf(row, lastIndex), new ArrayList<byte[]>());
 		final QueryBindingSet bs = new QueryBindingSet();
 		Preconditions.checkArgument(byteList.size() == varOrder.length);
 		for(int i = 0; i < byteList.size(); i++) {

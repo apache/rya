@@ -8,9 +8,9 @@ package mvm.rya.indexing.external.tupleSet;
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- * 
+ *
  *   http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -39,19 +39,17 @@ import com.google.common.base.Joiner;
 import com.google.common.collect.Maps;
 
 /**
- * Abstract class for an External Tuple Set.  This Tuple 
+ * Abstract class for an External Tuple Set.  This Tuple
  */
 public abstract class ExternalTupleSet extends ExternalSet {
 
-    private Projection tupleExpr;
+	private Projection tupleExpr;
     private Map<String, String> tableVarMap = Maps.newHashMap();
     private Map<String, Set<String>> supportedVarOrders = Maps.newHashMap();
 
-    
     public ExternalTupleSet() {
-    	
     }
-    
+
     public ExternalTupleSet(Projection tupleExpr) {
         this.tupleExpr = tupleExpr;
     }
@@ -81,28 +79,22 @@ public abstract class ExternalTupleSet extends ExternalSet {
     public void setProjectionExpr(Projection tupleExpr) {
         this.tupleExpr = tupleExpr;
     }
-    
-    
+
     public void setTableVarMap(Map<String,String> vars) {
         this.tableVarMap = vars;
     }
-    
-    
+
     public Map<String, String> getTableVarMap() {
         return this.tableVarMap;
     }
-    
-    
+
     public void setSupportedVariableOrderMap(Map<String, Set<String>> varOrders) {
         this.supportedVarOrders = varOrders;
     }
-    
-    
+
     public Map<String, Set<String>> getSupportedVariableOrderMap() {
         return supportedVarOrders;
     }
-    
-
     public void updateTupleExp(final Map<Var, Var> oldToNewBindings) {
         tupleExpr.visit(new QueryModelVisitorBase<RuntimeException>() {
             @Override
@@ -116,54 +108,43 @@ public abstract class ExternalTupleSet extends ExternalSet {
 
     @Override
     public ExternalSet clone() {
-        ExternalTupleSet clone = (ExternalTupleSet) super.clone();
+        final ExternalTupleSet clone = (ExternalTupleSet) super.clone();
         clone.tupleExpr = this.tupleExpr.clone();
         clone.tableVarMap = Maps.newHashMap();
-        for(String s: this.tableVarMap.keySet()) {
+        for(final String s: this.tableVarMap.keySet()) {
             clone.tableVarMap.put(s,this.tableVarMap.get(s));
         }
         clone.supportedVarOrders = Maps.newHashMap();
-        for(String s: this.supportedVarOrders.keySet()) {
+        for(final String s: this.supportedVarOrders.keySet()) {
             clone.supportedVarOrders.put(s,this.supportedVarOrders.get(s));
         }
         return clone;
     }
-    
-    
+
     public Map<String, Set<String>> getSupportedVariableOrders() {
-        
+
         if (supportedVarOrders.size() != 0) {
             return supportedVarOrders;
         } else {
-
-            Set<String> varSet = Sets.newHashSet();
+            final Set<String> varSet = Sets.newHashSet();
             String t = "";
-
-            for (String s : tupleExpr.getAssuredBindingNames()) {
+            for (final String s : tupleExpr.getAssuredBindingNames()) {
                 if (t.length() == 0) {
                     t = s;
                 } else {
                     t = t + "\u0000" + s;
                 }
-
                 varSet.add(s);
                 supportedVarOrders.put(t, new HashSet<String>(varSet));
-
             }
-
             return supportedVarOrders;
         }
     }
-    
-    
-    
-    
+
     public boolean supportsBindingSet(Set<String> bindingNames) {
-
-        Map<String, Set<String>> varOrderMap = getSupportedVariableOrders();
+        final Map<String, Set<String>> varOrderMap = getSupportedVariableOrders();
         String bNames = "";
-
-        for (String s : tupleExpr.getAssuredBindingNames()) {
+        for (final String s : tupleExpr.getAssuredBindingNames()) {
             if (bindingNames.contains(s)) {
                 if(bNames.length() == 0) {
                     bNames = s;
@@ -172,20 +153,15 @@ public abstract class ExternalTupleSet extends ExternalSet {
                 }
             }
         }
-
         return varOrderMap.containsKey(bNames);
     }
-        
-        
-    
+
     @Override
     public boolean equals(Object other) {
-
         if (!(other instanceof ExternalTupleSet)) {
             return false;
         } else {
-
-            ExternalTupleSet arg = (ExternalTupleSet) other;
+            final ExternalTupleSet arg = (ExternalTupleSet) other;
             if (this.getTupleExpr().equals(arg.getTupleExpr())) {
                 return true;
             } else {
@@ -195,19 +171,12 @@ public abstract class ExternalTupleSet extends ExternalSet {
         }
 
     }
-    
-    
+
     @Override
     public int hashCode() {
         int result = 17;
         result = 31*result + tupleExpr.hashCode();
-        
         return result;
     }
-    
-    
- 
-    
-    
-    
+
 }

@@ -115,7 +115,7 @@ public class AccumuloIndexSetNewTest {
         // Get the variable orders the data was written to.
         final PcjMetadata pcjMetadata = pcj.getPcjMetadata(accumuloConn, pcjTableName).get();
 
-        final AccumuloIndexSetNew ais = new AccumuloIndexSetNew(accumuloConn, pcjTableName);
+        final AccumuloIndexSet ais = new AccumuloIndexSet(accumuloConn, pcjTableName);
 
         final CloseableIteration<BindingSet, QueryEvaluationException> results = ais.evaluate(new QueryBindingSet());
         final Set<BindingSet> fetchedResults = new HashSet<BindingSet>();
@@ -179,7 +179,7 @@ public class AccumuloIndexSetNewTest {
         // Create and populate the PCJ table.
         new PcjTables().createAndPopulatePcj(ryaConn, accumuloConn, pcjTableName, sparql, new String[]{"name", "age"}, Optional.<PcjVarOrderFactory>absent());
 
-        final AccumuloIndexSetNew ais = new AccumuloIndexSetNew(accumuloConn, pcjTableName);
+        final AccumuloIndexSet ais = new AccumuloIndexSet(accumuloConn, pcjTableName);
 
         final QueryBindingSet bs = new QueryBindingSet();
         bs.addBinding("name",new URIImpl("http://Alice"));
@@ -225,7 +225,7 @@ public class AccumuloIndexSetNewTest {
         // Create and populate the PCJ table.
         new PcjTables().createAndPopulatePcj(ryaConn, accumuloConn, pcjTableName, sparql, new String[]{"name", "age"}, Optional.<PcjVarOrderFactory>absent());
 
-        final AccumuloIndexSetNew ais = new AccumuloIndexSetNew(accumuloConn, pcjTableName);
+        final AccumuloIndexSet ais = new AccumuloIndexSet(accumuloConn, pcjTableName);
 
         final QueryBindingSet bs = new QueryBindingSet();
         bs.addBinding("birthDate",new LiteralImpl("1983-03-17",new URIImpl("http://www.w3.org/2001/XMLSchema#date")));
@@ -294,7 +294,7 @@ public class AccumuloIndexSetNewTest {
         // Create and populate the PCJ table.
         new PcjTables().createAndPopulatePcj(ryaConn, accumuloConn, pcjTableName, sparql, new String[]{"name", "age"}, Optional.<PcjVarOrderFactory>absent());
 
-        final AccumuloIndexSetNew ais = new AccumuloIndexSetNew(accumuloConn, pcjTableName);
+        final AccumuloIndexSet ais = new AccumuloIndexSet(accumuloConn, pcjTableName);
 
         final CloseableIteration<BindingSet, QueryEvaluationException> results = ais.evaluate(new HashSet<BindingSet>());
 
@@ -335,7 +335,7 @@ public class AccumuloIndexSetNewTest {
         // Create and populate the PCJ table.
         new PcjTables().createAndPopulatePcj(ryaConn, accumuloConn, pcjTableName, sparql, new String[]{"name", "age"}, Optional.<PcjVarOrderFactory>absent());
 
-        final AccumuloIndexSetNew ais = new AccumuloIndexSetNew(accumuloConn, pcjTableName);
+        final AccumuloIndexSet ais = new AccumuloIndexSet(accumuloConn, pcjTableName);
 
         final QueryBindingSet bs = new QueryBindingSet();
         bs.addBinding("birthDate",new LiteralImpl("1983-03-17",new URIImpl("http://www.w3.org/2001/XMLSchema#date")));
@@ -398,7 +398,7 @@ public class AccumuloIndexSetNewTest {
         // Create and populate the PCJ table.
         new PcjTables().createAndPopulatePcj(ryaConn, accumuloConn, pcjTableName, sparql, new String[]{"name", "age"}, Optional.<PcjVarOrderFactory>absent());
 
-        final AccumuloIndexSetNew ais = new AccumuloIndexSetNew(accumuloConn, pcjTableName);
+        final AccumuloIndexSet ais = new AccumuloIndexSet(accumuloConn, pcjTableName);
 
         final QueryBindingSet bs = new QueryBindingSet();
         bs.addBinding("birthDate",new LiteralImpl("1983-03-17",new URIImpl("http://www.w3.org/2001/XMLSchema#date")));
@@ -500,7 +500,7 @@ public class AccumuloIndexSetNewTest {
         final Map<String,String> map = new HashMap<>();
         map.put("x", "name");
         map.put("y", "age");
-        final AccumuloIndexSetNew ais = new AccumuloIndexSetNew(accumuloConn, pcjTableName);
+        final AccumuloIndexSet ais = new AccumuloIndexSet(accumuloConn, pcjTableName);
         ais.setProjectionExpr((Projection) pq.getTupleExpr());
         ais.setTableVarMap(map);
         ais.setSupportedVariableOrderMap(Lists.<String>newArrayList("x;y","y;x"));
@@ -597,7 +597,7 @@ public class AccumuloIndexSetNewTest {
         final ParsedQuery pq1 = p.parseQuery(sparql, null);
         final ParsedQuery pq2 = p.parseQuery(sparql2, null);
 
-        final AccumuloIndexSetNew ais = new AccumuloIndexSetNew(accumuloConn, pcjTableName);
+        final AccumuloIndexSet ais = new AccumuloIndexSet(accumuloConn, pcjTableName);
         ais.setProjectionExpr((Projection) QueryVariableNormalizer.getNormalizedIndex(pq2.getTupleExpr(), pq1.getTupleExpr()).get(0));
 
         final QueryBindingSet bs = new QueryBindingSet();

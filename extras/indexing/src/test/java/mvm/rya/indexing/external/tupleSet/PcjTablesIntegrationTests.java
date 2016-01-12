@@ -9,20 +9,6 @@ import java.util.HashSet;
 import java.util.Map.Entry;
 import java.util.Set;
 
-import mvm.rya.accumulo.AccumuloRdfConfiguration;
-import mvm.rya.accumulo.AccumuloRyaDAO;
-import mvm.rya.api.RdfCloudTripleStoreConfiguration;
-import mvm.rya.api.resolver.RyaTypeResolverException;
-import mvm.rya.indexing.accumulo.ConfigUtils;
-import mvm.rya.indexing.external.tupleSet.PcjTables.PcjException;
-import mvm.rya.indexing.external.tupleSet.PcjTables.PcjMetadata;
-import mvm.rya.indexing.external.tupleSet.PcjTables.PcjTableNameFactory;
-import mvm.rya.indexing.external.tupleSet.PcjTables.PcjVarOrderFactory;
-import mvm.rya.indexing.external.tupleSet.PcjTables.ShiftVarOrderFactory;
-import mvm.rya.indexing.external.tupleSet.PcjTables.VariableOrder;
-import mvm.rya.rdftriplestore.RdfCloudTripleStore;
-import mvm.rya.rdftriplestore.RyaSailRepository;
-
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
 import org.apache.accumulo.core.client.Connector;
@@ -56,6 +42,20 @@ import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
 import com.google.common.io.Files;
+
+import mvm.rya.accumulo.AccumuloRdfConfiguration;
+import mvm.rya.accumulo.AccumuloRyaDAO;
+import mvm.rya.api.RdfCloudTripleStoreConfiguration;
+import mvm.rya.api.resolver.RyaTypeResolverException;
+import mvm.rya.indexing.accumulo.ConfigUtils;
+import mvm.rya.indexing.external.tupleSet.PcjTables.PcjException;
+import mvm.rya.indexing.external.tupleSet.PcjTables.PcjMetadata;
+import mvm.rya.indexing.external.tupleSet.PcjTables.PcjTableNameFactory;
+import mvm.rya.indexing.external.tupleSet.PcjTables.PcjVarOrderFactory;
+import mvm.rya.indexing.external.tupleSet.PcjTables.ShiftVarOrderFactory;
+import mvm.rya.indexing.external.tupleSet.PcjTables.VariableOrder;
+import mvm.rya.rdftriplestore.RdfCloudTripleStore;
+import mvm.rya.rdftriplestore.RyaSailRepository;
 
 public class PcjTablesIntegrationTests {
     private static final Logger log = Logger.getLogger(PcjTablesIntegrationTests.class);
@@ -94,7 +94,7 @@ public class PcjTablesIntegrationTests {
 
         // Create a PCJ table in the Mini Accumulo.
         final String pcjTableName = new PcjTableNameFactory().makeTableName(RYA_TABLE_PREFIX, "testPcj");
-        final Set<VariableOrder> varOrders = new ShiftVarOrderFactory().makeVarOrders(new VariableOrder("name;age"));
+        Set<VariableOrder> varOrders = new ShiftVarOrderFactory().makeVarOrders(new VariableOrder("name;age"));
         PcjTables.createPcjTable(accumuloConn, pcjTableName, varOrders, sparql);
 
         // Fetch the PCJMetadata and ensure it has the correct values.
@@ -120,44 +120,44 @@ public class PcjTablesIntegrationTests {
 
         // Create a PCJ table in the Mini Accumulo.
         final String pcjTableName = new PcjTableNameFactory().makeTableName(RYA_TABLE_PREFIX, "testPcj");
-        final Set<VariableOrder> varOrders = new ShiftVarOrderFactory().makeVarOrders(new VariableOrder("name;age"));
+        Set<VariableOrder> varOrders = new ShiftVarOrderFactory().makeVarOrders(new VariableOrder("name;age"));
         PcjTables.createPcjTable(accumuloConn, pcjTableName, varOrders, sparql);
 
         // Add a few results to the PCJ table.
-        final MapBindingSet alice = new MapBindingSet();
+        MapBindingSet alice = new MapBindingSet();
         alice.addBinding("name", new URIImpl("http://Alice"));
         alice.addBinding("age", new NumericLiteralImpl(14, XMLSchema.INTEGER));
 
-        final MapBindingSet bob = new MapBindingSet();
+        MapBindingSet bob = new MapBindingSet();
         bob.addBinding("name", new URIImpl("http://Bob"));
         bob.addBinding("age", new NumericLiteralImpl(16, XMLSchema.INTEGER));
 
-        final MapBindingSet charlie = new MapBindingSet();
+        MapBindingSet charlie = new MapBindingSet();
         charlie.addBinding("name", new URIImpl("http://Charlie"));
         charlie.addBinding("age", new NumericLiteralImpl(12, XMLSchema.INTEGER));
 
-        final Set<BindingSet> results = Sets.<BindingSet>newHashSet(alice, bob, charlie);
+        Set<BindingSet> results = Sets.<BindingSet>newHashSet(alice, bob, charlie);
         PcjTables.addResults(accumuloConn, pcjTableName, results);
 
         // Get the variable orders the data was written to.
-        final PcjMetadata pcjMetadata = PcjTables.getPcjMetadata(accumuloConn, pcjTableName).get();
+        PcjMetadata pcjMetadata = PcjTables.getPcjMetadata(accumuloConn, pcjTableName).get();
 
         // Scan Accumulo for the stored results.
-        final Multimap<String, BindingSet> fetchedResults = HashMultimap.create();
+        Multimap<String, BindingSet> fetchedResults = HashMultimap.create();
 
-        for(final VariableOrder varOrder : pcjMetadata.getVarOrders()) {
-            final Scanner scanner = accumuloConn.createScanner(pcjTableName, new Authorizations());
+        for(VariableOrder varOrder : pcjMetadata.getVarOrders()) {
+            Scanner scanner = accumuloConn.createScanner(pcjTableName, new Authorizations());
             scanner.fetchColumnFamily( new Text(varOrder.toString()) );
 
-            for(final Entry<Key, Value> entry : scanner) {
-                final byte[] serializedResult = entry.getKey().getRow().getBytes();
-                final BindingSet result = AccumuloPcjSerializer.deSerialize(serializedResult, varOrder.toArray());
+            for(Entry<Key, Value> entry : scanner) {
+                byte[] serializedResult = entry.getKey().getRow().getBytes();
+                BindingSet result = AccumuloPcjSerializer.deSerialize(serializedResult, varOrder.toArray());
                 fetchedResults.put(varOrder.toString(), result);
             }
         }
 
         // Ensure the expected results match those that were stored.
-        final Multimap<String, BindingSet> expectedResults = HashMultimap.create();
+        Multimap<String, BindingSet> expectedResults = HashMultimap.create();
         expectedResults.putAll("name;age", results);
         expectedResults.putAll("age;name", results);
 
@@ -170,7 +170,7 @@ public class PcjTablesIntegrationTests {
     @Test
     public void populatePcj() throws RepositoryException, PcjException, TableNotFoundException, RyaTypeResolverException {
         // Load some Triples into Rya.
-        final Set<Statement> triples = new HashSet<>();
+        Set<Statement> triples = new HashSet<>();
         triples.add( new StatementImpl(new URIImpl("http://Alice"), new URIImpl("http://hasAge"), new NumericLiteralImpl(14, XMLSchema.INTEGER)) );
         triples.add( new StatementImpl(new URIImpl("http://Alice"), new URIImpl("http://playsSport"), new LiteralImpl("Soccer")) );
         triples.add( new StatementImpl(new URIImpl("http://Bob"), new URIImpl("http://hasAge"), new NumericLiteralImpl(16, XMLSchema.INTEGER)) );
@@ -180,7 +180,7 @@ public class PcjTablesIntegrationTests {
         triples.add( new StatementImpl(new URIImpl("http://Eve"), new URIImpl("http://hasAge"), new NumericLiteralImpl(43, XMLSchema.INTEGER)) );
         triples.add( new StatementImpl(new URIImpl("http://Eve"), new URIImpl("http://playsSport"), new LiteralImpl("Soccer")) );
 
-        for(final Statement triple : triples) {
+        for(Statement triple : triples) {
             ryaConn.add(triple);
         }
 
@@ -194,45 +194,45 @@ public class PcjTablesIntegrationTests {
                 "}";
 
         final String pcjTableName = new PcjTableNameFactory().makeTableName(RYA_TABLE_PREFIX, "testPcj");
-        final Set<VariableOrder> varOrders = new ShiftVarOrderFactory().makeVarOrders(new VariableOrder("name;age"));
+        Set<VariableOrder> varOrders = new ShiftVarOrderFactory().makeVarOrders(new VariableOrder("name;age"));
         PcjTables.createPcjTable(accumuloConn, pcjTableName, varOrders, sparql);
 
         // Populate the PCJ table using a Rya connection.
         PcjTables.populatePcj(accumuloConn, pcjTableName, ryaConn, sparql);
 
         // Get the variable orders the data was written to.
-        final PcjMetadata pcjMetadata = PcjTables.getPcjMetadata(accumuloConn, pcjTableName).get();
+        PcjMetadata pcjMetadata = PcjTables.getPcjMetadata(accumuloConn, pcjTableName).get();
 
         // Scan Accumulo for the stored results.
-        final Multimap<String, BindingSet> fetchedResults = HashMultimap.create();
+        Multimap<String, BindingSet> fetchedResults = HashMultimap.create();
 
-        for(final VariableOrder varOrder : pcjMetadata.getVarOrders()) {
-            final Scanner scanner = accumuloConn.createScanner(pcjTableName, new Authorizations());
+        for(VariableOrder varOrder : pcjMetadata.getVarOrders()) {
+            Scanner scanner = accumuloConn.createScanner(pcjTableName, new Authorizations());
             scanner.fetchColumnFamily( new Text(varOrder.toString()) );
 
-            for(final Entry<Key, Value> entry : scanner) {
-                final byte[] serializedResult = entry.getKey().getRow().getBytes();
-                final BindingSet result = AccumuloPcjSerializer.deSerialize(serializedResult, varOrder.toArray());
+            for(Entry<Key, Value> entry : scanner) {
+                byte[] serializedResult = entry.getKey().getRow().getBytes();
+                BindingSet result = AccumuloPcjSerializer.deSerialize(serializedResult, varOrder.toArray());
                 fetchedResults.put(varOrder.toString(), result);
             }
         }
 
         // Ensure the expected results match those that were stored.
-        final MapBindingSet alice = new MapBindingSet();
+        MapBindingSet alice = new MapBindingSet();
         alice.addBinding("name", new URIImpl("http://Alice"));
         alice.addBinding("age", new NumericLiteralImpl(14, XMLSchema.INTEGER));
 
-        final MapBindingSet bob = new MapBindingSet();
+        MapBindingSet bob = new MapBindingSet();
         bob.addBinding("name", new URIImpl("http://Bob"));
         bob.addBinding("age", new NumericLiteralImpl(16, XMLSchema.INTEGER));
 
-        final MapBindingSet charlie = new MapBindingSet();
+        MapBindingSet charlie = new MapBindingSet();
         charlie.addBinding("name", new URIImpl("http://Charlie"));
         charlie.addBinding("age", new NumericLiteralImpl(12, XMLSchema.INTEGER));
 
-        final Set<BindingSet> results = Sets.<BindingSet>newHashSet(alice, bob, charlie);
+        Set<BindingSet> results = Sets.<BindingSet>newHashSet(alice, bob, charlie);
 
-        final Multimap<String, BindingSet> expectedResults = HashMultimap.create();
+        Multimap<String, BindingSet> expectedResults = HashMultimap.create();
         expectedResults.putAll("name;age", results);
         expectedResults.putAll("age;name", results);
 
@@ -245,7 +245,7 @@ public class PcjTablesIntegrationTests {
     @Test
     public void createAndPopulatePcj() throws RepositoryException, PcjException, TableNotFoundException, RyaTypeResolverException {
         // Load some Triples into Rya.
-        final Set<Statement> triples = new HashSet<>();
+        Set<Statement> triples = new HashSet<>();
         triples.add( new StatementImpl(new URIImpl("http://Alice"), new URIImpl("http://hasAge"), new NumericLiteralImpl(14, XMLSchema.INTEGER)) );
         triples.add( new StatementImpl(new URIImpl("http://Alice"), new URIImpl("http://playsSport"), new LiteralImpl("Soccer")) );
         triples.add( new StatementImpl(new URIImpl("http://Bob"), new URIImpl("http://hasAge"), new NumericLiteralImpl(16, XMLSchema.INTEGER)) );
@@ -255,7 +255,7 @@ public class PcjTablesIntegrationTests {
         triples.add( new StatementImpl(new URIImpl("http://Eve"), new URIImpl("http://hasAge"), new NumericLiteralImpl(43, XMLSchema.INTEGER)) );
         triples.add( new StatementImpl(new URIImpl("http://Eve"), new URIImpl("http://playsSport"), new LiteralImpl("Soccer")) );
 
-        for(final Statement triple : triples) {
+        for(Statement triple : triples) {
             ryaConn.add(triple);
         }
 
@@ -274,45 +274,43 @@ public class PcjTablesIntegrationTests {
         PcjTables.createAndPopulatePcj(ryaConn, accumuloConn, pcjTableName, sparql, new String[]{"name", "age"}, Optional.<PcjVarOrderFactory>absent());
 
         // Get the variable orders the data was written to.
-        final PcjMetadata pcjMetadata = PcjTables.getPcjMetadata(accumuloConn, pcjTableName).get();
+        PcjMetadata pcjMetadata = PcjTables.getPcjMetadata(accumuloConn, pcjTableName).get();
 
         // Scan Accumulo for the stored results.
-        final Multimap<String, BindingSet> fetchedResults = HashMultimap.create();
+        Multimap<String, BindingSet> fetchedResults = HashMultimap.create();
 
-        for(final VariableOrder varOrder : pcjMetadata.getVarOrders()) {
-            final Scanner scanner = accumuloConn.createScanner(pcjTableName, new Authorizations());
+        for(VariableOrder varOrder : pcjMetadata.getVarOrders()) {
+            Scanner scanner = accumuloConn.createScanner(pcjTableName, new Authorizations());
             scanner.fetchColumnFamily( new Text(varOrder.toString()) );
 
-            for(final Entry<Key, Value> entry : scanner) {
-                final byte[] serializedResult = entry.getKey().getRow().getBytes();
-                final BindingSet result = AccumuloPcjSerializer.deSerialize(serializedResult, varOrder.toArray());
+            for(Entry<Key, Value> entry : scanner) {
+                byte[] serializedResult = entry.getKey().getRow().getBytes();
+                BindingSet result = AccumuloPcjSerializer.deSerialize(serializedResult, varOrder.toArray());
                 fetchedResults.put(varOrder.toString(), result);
             }
         }
 
         // Ensure the expected results match those that were stored.
-        final MapBindingSet alice = new MapBindingSet();
+        MapBindingSet alice = new MapBindingSet();
         alice.addBinding("name", new URIImpl("http://Alice"));
         alice.addBinding("age", new NumericLiteralImpl(14, XMLSchema.INTEGER));
 
-        final MapBindingSet bob = new MapBindingSet();
+        MapBindingSet bob = new MapBindingSet();
         bob.addBinding("name", new URIImpl("http://Bob"));
         bob.addBinding("age", new NumericLiteralImpl(16, XMLSchema.INTEGER));
 
-        final MapBindingSet charlie = new MapBindingSet();
+        MapBindingSet charlie = new MapBindingSet();
         charlie.addBinding("name", new URIImpl("http://Charlie"));
         charlie.addBinding("age", new NumericLiteralImpl(12, XMLSchema.INTEGER));
 
-        final Set<BindingSet> results = Sets.<BindingSet>newHashSet(alice, bob, charlie);
+        Set<BindingSet> results = Sets.<BindingSet>newHashSet(alice, bob, charlie);
 
-        final Multimap<String, BindingSet> expectedResults = HashMultimap.create();
+        Multimap<String, BindingSet> expectedResults = HashMultimap.create();
         expectedResults.putAll("name;age", results);
         expectedResults.putAll("age;name", results);
 
         assertEquals(expectedResults, fetchedResults);
     }
-
-
 
     @After
     public void shutdownMiniResources() {

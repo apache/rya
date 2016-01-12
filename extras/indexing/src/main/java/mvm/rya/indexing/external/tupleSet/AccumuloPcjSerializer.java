@@ -8,18 +8,18 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import mvm.rya.api.domain.RyaType;
+import mvm.rya.api.resolver.RdfToRyaConversions;
+import mvm.rya.api.resolver.RyaContext;
+import mvm.rya.api.resolver.RyaToRdfConversions;
+import mvm.rya.api.resolver.RyaTypeResolverException;
+
 import org.openrdf.model.Value;
 import org.openrdf.query.BindingSet;
 import org.openrdf.query.algebra.evaluation.QueryBindingSet;
 
 import com.google.common.base.Preconditions;
 import com.google.common.primitives.Bytes;
-
-import mvm.rya.api.domain.RyaType;
-import mvm.rya.api.resolver.RdfToRyaConversions;
-import mvm.rya.api.resolver.RyaContext;
-import mvm.rya.api.resolver.RyaToRdfConversions;
-import mvm.rya.api.resolver.RyaTypeResolverException;
 
 /**
  * AccumuloPcjSerializer provides two methods, serialize and deserialize, which
@@ -67,6 +67,7 @@ public class AccumuloPcjSerializer {
 		Preconditions.checkNotNull(row);
 		Preconditions.checkNotNull(varOrder);
 		final int lastIndex = Bytes.lastIndexOf(row, DELIM_BYTE);
+		Preconditions.checkArgument(lastIndex >= 0);
 		final List<byte[]> byteList = getByteValues(Arrays.copyOf(row, lastIndex), new ArrayList<byte[]>());
 		final QueryBindingSet bs = new QueryBindingSet();
 		Preconditions.checkArgument(byteList.size() == varOrder.length);

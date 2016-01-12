@@ -34,7 +34,7 @@ import org.openrdf.query.QueryEvaluationException;
 public interface PcjQuery {
 
     public abstract CloseableIteration<BindingSet, QueryEvaluationException> queryPrecompJoin(List<String> varOrder,
-            String localityGroup, Map<String, Value> valMap, Collection<BindingSet> constraints) throws QueryEvaluationException,TableNotFoundException;
+            String localityGroup, Map<String, Value> valMap, Map<String, String> varMap, Collection<BindingSet> constraints) throws QueryEvaluationException,TableNotFoundException;
 
 }
 

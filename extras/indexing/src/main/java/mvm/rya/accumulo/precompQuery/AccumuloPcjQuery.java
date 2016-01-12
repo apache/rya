@@ -33,6 +33,7 @@ import java.util.Set;
 import mvm.rya.api.resolver.RyaTypeResolverException;
 import mvm.rya.indexing.PcjQuery;
 import mvm.rya.indexing.external.tupleSet.AccumuloPcjSerializer;
+import mvm.rya.indexing.external.tupleSet.ExternalTupleSet;
 
 import org.apache.accumulo.core.client.BatchScanner;
 import org.apache.accumulo.core.client.Connector;
@@ -61,16 +62,18 @@ public class AccumuloPcjQuery implements PcjQuery {
 
     @Override
     public CloseableIteration<BindingSet, QueryEvaluationException> queryPrecompJoin(List<String> commonVars,
-            String localityGroup, Map<String, org.openrdf.model.Value> valMap, Collection<BindingSet> bsConstraints)
+            String localityGroup, Map<String, org.openrdf.model.Value> valMap, Map<String, String> varMap, Collection<BindingSet> bsConstraints)
             		throws QueryEvaluationException, TableNotFoundException {
 
         final Iterator<Entry<Key,Value>> accIter;
         final Map<String, org.openrdf.model.Value> constValMap = valMap;
         final HashMultimap<Range,BindingSet> map = HashMultimap.create();
+
         final List<BindingSet> extProdList = Lists.newArrayList();
         final List<String> prefixVars = commonVars;
         final BatchScanner bs = accCon.createBatchScanner(tableName, new Authorizations(), 10);
         final Set<Range> ranges = Sets.newHashSet();
+        final Map<String,String> tableVarMap = varMap;
         final boolean bsContainsPrefixVar = bindingsContainsPrefixVar(bsConstraints,prefixVars);
 
 		bs.fetchColumnFamily(new Text(localityGroup));
@@ -81,7 +84,7 @@ public class AccumuloPcjQuery implements PcjQuery {
 				byte[] rangePrefix = null;
 				final QueryBindingSet rangeBs = new QueryBindingSet();
 				for (final String var : prefixVars) {
-					if (var.startsWith("-const-")) {
+					if (var.startsWith(ExternalTupleSet.CONST_PREFIX)) {
 						rangeBs.addBinding(var, constValMap.get(var));
 					} else {
 						rangeBs.addBinding(var, bSet.getBinding(var).getValue());
@@ -106,24 +109,29 @@ public class AccumuloPcjQuery implements PcjQuery {
         //add range of entire table if no constant constraints and
         //bsConstraints consists of single, empty set (occurs when AIS is
         //first node evaluated in query)
-		if (ranges.isEmpty() && prefixVars.size() > 0) {
-			byte[] rangePrefix = null;
-			final QueryBindingSet rangeBs = new QueryBindingSet();
-			for (final String var : prefixVars) {
-				if (var.startsWith("-const-")) {
-					rangeBs.addBinding(var, constValMap.get(var));
+		if (ranges.isEmpty()) {
+			//constant constraints
+			if (prefixVars.size() > 0) {
+				byte[] rangePrefix = null;
+				final QueryBindingSet rangeBs = new QueryBindingSet();
+				for (final String var : prefixVars) {
+					if (var.startsWith(ExternalTupleSet.CONST_PREFIX)) {
+						rangeBs.addBinding(var, constValMap.get(var));
+					}
 				}
+				try {
+					rangePrefix = AccumuloPcjSerializer.serialize(rangeBs,
+							commonVars.toArray(new String[commonVars.size()]));
+				} catch (final RyaTypeResolverException e) {
+					e.printStackTrace();
+				}
+				final Range r = Range.prefix(new Text(rangePrefix));
+				ranges.add(r);
 			}
-			try {
-				rangePrefix = AccumuloPcjSerializer.serialize(rangeBs,
-						commonVars.toArray(new String[commonVars.size()]));
-			} catch (final RyaTypeResolverException e) {
-				e.printStackTrace();
+			// no constant or bindingSet constraints
+			else {
+				ranges.add(new Range("", true, "~", false));
 			}
-			final Range r = Range.prefix(new Text(rangePrefix));
-			ranges.add(r);
-		} else { // no constant or bindingSet constraints
-			ranges.add(new Range("", true, "~", false));
 		}
 
         if (ranges.size() == 0) {
@@ -138,7 +146,7 @@ public class AccumuloPcjQuery implements PcjQuery {
                 throw new UnsupportedOperationException();
             }
             private Iterator<BindingSet> inputSet = null;
-            private final QueryBindingSet currentSolutionBs = null;
+            private QueryBindingSet currentSolutionBs = null;
             private boolean hasNextCalled = false;
             private boolean isEmpty = false;
 
@@ -183,23 +191,23 @@ public class AccumuloPcjQuery implements PcjQuery {
                         // get bindings from scan without values associated with constant constraints
                         BindingSet bs;
 						try {
-							bs = getBindingSetWithoutConstants(k);
+							bs = getBindingSetWithoutConstants(k, tableVarMap);
 						} catch (final RyaTypeResolverException e) {
 							throw new QueryEvaluationException(e);
 						}
+						currentSolutionBs = new QueryBindingSet();
                         currentSolutionBs.addAll(bs);
-
-                        // get prefix range to retrieve remainder of bindingSet from map
-                        byte[] rangePrefix;
-						try {
-							rangePrefix = getPrefixByte(bs, constValMap, prefixVars);
-						} catch (final RyaTypeResolverException e) {
-							throw new QueryEvaluationException(e);
-						}
-                        final Range r = Range.prefix(new Text(rangePrefix));
 
                         //check to see if additional bindingSet constraints exist in map
                         if (map.size() > 0) {
+                        	   // get prefix range to retrieve remainder of bindingSet from map
+                            byte[] rangePrefix;
+    						try {
+    							rangePrefix = getPrefixByte(bs, constValMap, prefixVars);
+    						} catch (final RyaTypeResolverException e) {
+    							throw new QueryEvaluationException(e);
+    						}
+                            final Range r = Range.prefix(new Text(rangePrefix));
                             inputSet = map.get(r).iterator();
                             if (!inputSet.hasNext()) {
                                 continue;
@@ -253,23 +261,23 @@ public class AccumuloPcjQuery implements PcjQuery {
     private static byte[] getPrefixByte(BindingSet bs, Map<String, org.openrdf.model.Value> valMap, List<String> prefixVars) throws RyaTypeResolverException {
     	final QueryBindingSet bSet = new QueryBindingSet();
     	for (final String var : prefixVars) {
-			if (var.startsWith("-const-")) {
+			if (var.startsWith(ExternalTupleSet.CONST_PREFIX)) {
 				bSet.addBinding(var, valMap.get(var));
-			} else if(bs.getBindingNames().size() > 0 && bSet.getBinding(var) != null) {
-				bSet.addBinding(var, bSet.getBinding(var).getValue());
+			} else if(bs.getBindingNames().size() > 0 && bs.getBinding(var) != null) {
+				bSet.addBinding(var, bs.getBinding(var).getValue());
 			}
 		}
-    	return AccumuloPcjSerializer.serialize(bSet, (String[])prefixVars.toArray());
+    	return AccumuloPcjSerializer.serialize(bSet, prefixVars.toArray(new String[prefixVars.size()]));
     }
 
-    private static BindingSet getBindingSetWithoutConstants(Key key) throws RyaTypeResolverException {
+    private static BindingSet getBindingSetWithoutConstants(Key key, Map<String,String> tableVarMap) throws RyaTypeResolverException {
     	final byte[] row = key.getRow().getBytes();
-    	final String[] varOrder = key.getColumnFamily().toString().split(";");
+    	final String[] varOrder = key.getColumnFamily().toString().split(ExternalTupleSet.VAR_ORDER_DELIM);
     	final QueryBindingSet temp = new QueryBindingSet(AccumuloPcjSerializer.deSerialize(row, varOrder));
     	final QueryBindingSet bs = new QueryBindingSet();
     	for(final String var: temp.getBindingNames()) {
-    		if(!var.startsWith("-const-")) {
-    			bs.addBinding(var, temp.getValue(var));
+    		if(!tableVarMap.get(var).startsWith(ExternalTupleSet.CONST_PREFIX)) {
+    			bs.addBinding(tableVarMap.get(var), temp.getValue(var));
     		}
     	}
     	return bs;

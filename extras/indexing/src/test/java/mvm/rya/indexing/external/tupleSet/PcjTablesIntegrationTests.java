@@ -101,10 +101,11 @@ public class PcjTablesIntegrationTests {
         // Create a PCJ table in the Mini Accumulo.
         final String pcjTableName = new PcjTableNameFactory().makeTableName(RYA_TABLE_PREFIX, "testPcj");
         Set<VariableOrder> varOrders = new ShiftVarOrderFactory().makeVarOrders(new VariableOrder("name;age"));
-        PcjTables.createPcjTable(accumuloConn, pcjTableName, varOrders, sparql);
+        PcjTables pcjs = new PcjTables();
+        pcjs.createPcjTable(accumuloConn, pcjTableName, varOrders, sparql);
 
         // Fetch the PCJMetadata and ensure it has the correct values.
-        final Optional<PcjMetadata> pcjMetadata = PcjTables.getPcjMetadata(accumuloConn, pcjTableName);
+        final Optional<PcjMetadata> pcjMetadata = pcjs.getPcjMetadata(accumuloConn, pcjTableName);
 
         // Ensure the metadata matches the expected value.
         final PcjMetadata expected = new PcjMetadata(sparql, 10L, varOrders);
@@ -129,7 +130,8 @@ public class PcjTablesIntegrationTests {
         // Create a PCJ table in the Mini Accumulo.
         final String pcjTableName = new PcjTableNameFactory().makeTableName(RYA_TABLE_PREFIX, "testPcj");
         Set<VariableOrder> varOrders = new ShiftVarOrderFactory().makeVarOrders(new VariableOrder("name;age"));
-        PcjTables.createPcjTable(accumuloConn, pcjTableName, varOrders, sparql);
+        PcjTables pcjs = new PcjTables();
+        pcjs.createPcjTable(accumuloConn, pcjTableName, varOrders, sparql);
 
         // Add a few results to the PCJ table.
         MapBindingSet alice = new MapBindingSet();
@@ -145,7 +147,7 @@ public class PcjTablesIntegrationTests {
         charlie.addBinding("age", new NumericLiteralImpl(12, XMLSchema.INTEGER));
 
         Set<BindingSet> results = Sets.<BindingSet>newHashSet(alice, bob, charlie);
-        PcjTables.addResults(accumuloConn, pcjTableName, results);
+        pcjs.addResults(accumuloConn, pcjTableName, results);
 
         // Scan Accumulo for the stored results.
         Multimap<String, BindingSet> fetchedResults = loadPcjResults(accumuloConn, pcjTableName);
@@ -192,10 +194,11 @@ public class PcjTablesIntegrationTests {
 
         final String pcjTableName = new PcjTableNameFactory().makeTableName(RYA_TABLE_PREFIX, "testPcj");
         Set<VariableOrder> varOrders = new ShiftVarOrderFactory().makeVarOrders(new VariableOrder("name;age"));
-        PcjTables.createPcjTable(accumuloConn, pcjTableName, varOrders, sparql);
+        PcjTables pcjs = new PcjTables();
+        pcjs.createPcjTable(accumuloConn, pcjTableName, varOrders, sparql);
 
         // Populate the PCJ table using a Rya connection.
-        PcjTables.populatePcj(accumuloConn, pcjTableName, ryaConn);
+        pcjs.populatePcj(accumuloConn, pcjTableName, ryaConn);
 
         // Scan Accumulo for the stored results.
         Multimap<String, BindingSet> fetchedResults = loadPcjResults(accumuloConn, pcjTableName);
@@ -257,7 +260,8 @@ public class PcjTablesIntegrationTests {
         final String pcjTableName = new PcjTableNameFactory().makeTableName(RYA_TABLE_PREFIX, "testPcj");
 
         // Create and populate the PCJ table.
-        PcjTables.createAndPopulatePcj(ryaConn, accumuloConn, pcjTableName, sparql, new String[]{"name", "age"}, Optional.<PcjVarOrderFactory>absent());
+        PcjTables pcjs = new PcjTables();
+        pcjs.createAndPopulatePcj(ryaConn, accumuloConn, pcjTableName, sparql, new String[]{"name", "age"}, Optional.<PcjVarOrderFactory>absent());
 
         // Scan Accumulo for the stored results.
         Multimap<String, BindingSet> fetchedResults = loadPcjResults(accumuloConn, pcjTableName);
@@ -293,7 +297,8 @@ public class PcjTablesIntegrationTests {
         Multimap<String, BindingSet> fetchedResults = HashMultimap.create();
 
         // Get the variable orders the data was written to.
-        PcjMetadata pcjMetadata = PcjTables.getPcjMetadata(accumuloConn, pcjTableName).get();
+        PcjTables pcjs = new PcjTables();
+        PcjMetadata pcjMetadata = pcjs.getPcjMetadata(accumuloConn, pcjTableName).get();
 
         // Scan Accumulo for the stored results.
         for(VariableOrder varOrder : pcjMetadata.getVarOrders()) {

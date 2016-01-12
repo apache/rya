@@ -370,7 +370,7 @@ public class PcjTables {
      * @throws PcjException Could not create a new PCJ table either because Accumulo
      *   would not let us create it or the PCJ metadata was not able to be written to it.
      */
-    public static void createPcjTable(
+    public void createPcjTable(
             final Connector accumuloConn,
             final String pcjTableName,
             final Set<VariableOrder> varOrders,
@@ -413,7 +413,7 @@ public class PcjTables {
      * @return The PCJ Metadata that has been stolred in the in the PCJ Table.
      * @throws PcjException The PCJ Table does not exist.
      */
-    public static Optional<PcjMetadata> getPcjMetadata(
+    public Optional<PcjMetadata> getPcjMetadata(
             final Connector accumuloConn,
             final String pcjTableName) throws PcjException {
         checkNotNull(accumuloConn);
@@ -468,7 +468,7 @@ public class PcjTables {
      * @throws PcjException The provided PCJ table doesn't exist, is missing the
      *   PCJ metadata, or the result could not be written to it.
      */
-    public static void addResults(
+    public void addResults(
             final Connector accumuloConn,
             final String pcjTableName,
             final Collection<BindingSet> results) throws PcjException {
@@ -523,7 +523,7 @@ public class PcjTables {
      *   the PCJ table does not exist, or the query that is being execute
      *   was malformed.
      */
-    public static void populatePcj(
+    public void populatePcj(
             final Connector accumuloConn,
             final String pcjTableName,
             final RepositoryConnection ryaConn) throws PcjException {
@@ -533,7 +533,7 @@ public class PcjTables {
 
         try {
             // Fetch the query that needs to be executed from the PCJ table.
-            Optional<PcjMetadata> pcjMetadata = PcjTables.getPcjMetadata(accumuloConn, pcjTableName);
+            Optional<PcjMetadata> pcjMetadata = getPcjMetadata(accumuloConn, pcjTableName);
             if(!pcjMetadata.isPresent()) {
                 throw new PcjException("Could not populate the PCJ table with results from Rya because it is missing PCJ metadata.");
             }
@@ -549,13 +549,13 @@ public class PcjTables {
                 batch.add( results.next() );
 
                 if(batch.size() == 1000) {
-                    PcjTables.addResults(accumuloConn, pcjTableName, batch);
+                    addResults(accumuloConn, pcjTableName, batch);
                     batch.clear();
                 }
             }
 
-            if(batch.size() > 0) {
-                PcjTables.addResults(accumuloConn, pcjTableName, batch);
+            if(!batch.isEmpty()) {
+                addResults(accumuloConn, pcjTableName, batch);
             }
 
         } catch (RepositoryException | MalformedQueryException | QueryEvaluationException e) {
@@ -583,7 +583,7 @@ public class PcjTables {
      * @throws PcjException The PCJ table could not be create or the values from
      *   Rya were not able to be loaded into it.
      */
-    public static void createAndPopulatePcj(
+    public void createAndPopulatePcj(
             final RepositoryConnection ryaConn,
             final Connector accumuloConn,
             final String pcjTableName,

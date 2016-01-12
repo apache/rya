@@ -126,7 +126,7 @@ public class AccumuloIndexSetNew extends ExternalTupleSet implements ExternalBat
         setProjectionExpr((Projection) pq.getTupleExpr());
         PcjMetadata meta = null;
         try {
-			meta = PcjTables.getPcjMetadata(accCon, tablename).get();
+			meta = new PcjTables().getPcjMetadata(accCon, tablename).get();
 		} catch (final PcjException e) {
 			e.printStackTrace();
 		}
@@ -156,7 +156,7 @@ public class AccumuloIndexSetNew extends ExternalTupleSet implements ExternalBat
 			TableNotFoundException {
 		PcjMetadata meta = null;
 		try {
-			meta = PcjTables.getPcjMetadata(accCon, tablename).get();
+			meta = new PcjTables().getPcjMetadata(accCon, tablename).get();
 		} catch (final PcjException e) {
 			e.printStackTrace();
 		}

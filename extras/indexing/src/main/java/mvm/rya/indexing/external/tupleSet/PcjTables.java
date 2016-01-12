@@ -52,7 +52,7 @@ import com.google.common.collect.Lists;
 import mvm.rya.api.resolver.RyaTypeResolverException;
 
 /**
- * TODO impl, test, doc
+ * Functions that create and maintain the PCJ tables that are used by Rya.
  */
 @ParametersAreNonnullByDefault
 public class PcjTables {
@@ -363,14 +363,14 @@ public class PcjTables {
      *   <tr> <td>~SPARQL</td> <td>10:customer;city;worker</td> <td> ... UTF-8 bytes encoding the query string ... </td> </tr>
      * </table>
      *
-     * @param accumuloConn - The connection to Accumulo that will be used. (not null)
+     * @param accumuloConn - A connection to the Accumulo that hosts the PCJ table. (not null)
      * @param pcjTableName - The name of the table that will be created. (not null)
      * @param varOrders - The variable orders the results within the table will be written to. (not null)
      * @param sparql - The query this table's results solves. (not null)
      * @throws PcjException Could not create a new PCJ table either because Accumulo
      *   would not let us create it or the PCJ metadata was not able to be written to it.
      */
-    public static void createPcjTable(
+    public void createPcjTable(
             final Connector accumuloConn,
             final String pcjTableName,
             final Set<VariableOrder> varOrders,
@@ -387,7 +387,7 @@ public class PcjTables {
                 tableOps.create(pcjTableName);
 
                 // Write the PCJ Metadata to the newly created table.
-                // TODO When cardinality updates are implemented, it should begin at 0.
+                // TODO When cardinality updates are implemented, it will begin at 0.
                 final PcjMetadata pcjMetadata = new PcjMetadata(sparql, DEFAULT_CARDINALITY, varOrders);
                 final List<Mutation> mutations = makeWriteMetadataMutations(pcjMetadata);
 
@@ -405,13 +405,15 @@ public class PcjTables {
 
     /**
      * Fetch the {@link PCJMetadata} from an Accumulo table.
+     * <p>
+     * This method assumes the PCJ table has already been created.
      *
-     * @param accumuloConn - A connection to the Accumulo that hosts the table. (not null)
+     * @param accumuloConn - A connection to the Accumulo that hosts the PCJ table. (not null)
      * @param pcjTableName - The name of the table that will be search. (not null)
      * @return The PCJ Metadata that has been stolred in the in the PCJ Table.
      * @throws PcjException The PCJ Table does not exist.
      */
-    public static Optional<PcjMetadata> getPcjMetadata(
+    public Optional<PcjMetadata> getPcjMetadata(
             final Connector accumuloConn,
             final String pcjTableName) throws PcjException {
         checkNotNull(accumuloConn);
@@ -456,17 +458,17 @@ public class PcjTables {
     }
 
     /**
-     * TODO doc
+     * Add a collection of results to a specific PCJ table.
+     * <p>
+     * This method assumes the PCJ table has already been created.
      *
-     *  IGNORE CARDINALITY UPDATES! WE WILL HAVE TO FIX THIS LATER.
-     *
-     * @param accumuloConn
-     * @param pcjTableName
+     * @param accumuloConn - A connection to the Accumulo that hosts the PCJ table. (not null)
+     * @param pcjTableName - The name of the PCJ table that will receive the results. (not null)
      * @param results - Binding sets that will be written to the PCJ table. (not null)
-     * @throws PcjException The provided PCJ table doesn't exist, is missin the
+     * @throws PcjException The provided PCJ table doesn't exist, is missing the
      *   PCJ metadata, or the result could not be written to it.
      */
-    public static void addResults(
+    public void addResults(
             final Connector accumuloConn,
             final String pcjTableName,
             final Collection<BindingSet> results) throws PcjException {
@@ -510,25 +512,33 @@ public class PcjTables {
     }
 
     /**
-     * TODO doc
+     * Scan Rya for results that solve the PCJ's query and store them in the PCJ table.
+     * <p>
+     * This method assumes the PCJ table has already been created.
      *
-     * @param accumuloConn
-     * @param pcjTableName
-     * @param ryaConn
-     * @param sparql
-     * @throws PcjException
+     * @param accumuloConn - A connection to the Accumulo that hosts the PCJ table. (not null)
+     * @param pcjTableName - The name of the PCJ table that will receive the results. (not null)
+     * @param ryaConn - A connection to the Rya store that will be queried to find results. (not null)
+     * @throws PcjException If results could not be written to the PCJ table,
+     *   the PCJ table does not exist, or the query that is being execute
+     *   was malformed.
      */
-    public static void populatePcj(
+    public void populatePcj(
             final Connector accumuloConn,
             final String pcjTableName,
-            final RepositoryConnection ryaConn,
-            final String sparql) throws PcjException {
+            final RepositoryConnection ryaConn) throws PcjException {
         checkNotNull(accumuloConn);
         checkNotNull(pcjTableName);
         checkNotNull(ryaConn);
-        checkNotNull(sparql);
 
         try {
+            // Fetch the query that needs to be executed from the PCJ table.
+            Optional<PcjMetadata> pcjMetadata = getPcjMetadata(accumuloConn, pcjTableName);
+            if(!pcjMetadata.isPresent()) {
+                throw new PcjException("Could not populate the PCJ table with results from Rya because it is missing PCJ metadata.");
+            }
+            String sparql = pcjMetadata.get().getSparql();
+
             // Query Rya for results to the SPARQL query.
             TupleQuery query = ryaConn.prepareTupleQuery(QueryLanguage.SPARQL, sparql);
             TupleQueryResult results = query.evaluate();
@@ -539,13 +549,13 @@ public class PcjTables {
                 batch.add( results.next() );
 
                 if(batch.size() == 1000) {
-                    PcjTables.addResults(accumuloConn, pcjTableName, batch);
+                    addResults(accumuloConn, pcjTableName, batch);
                     batch.clear();
                 }
             }
 
-            if(batch.size() > 0) {
-                PcjTables.addResults(accumuloConn, pcjTableName, batch);
+            if(!batch.isEmpty()) {
+                addResults(accumuloConn, pcjTableName, batch);
             }
 
         } catch (RepositoryException | MalformedQueryException | QueryEvaluationException e) {
@@ -573,7 +583,7 @@ public class PcjTables {
      * @throws PcjException The PCJ table could not be create or the values from
      *   Rya were not able to be loaded into it.
      */
-    public static void createAndPopulatePcj(
+    public void createAndPopulatePcj(
             final RepositoryConnection ryaConn,
             final Connector accumuloConn,
             final String pcjTableName,
@@ -595,7 +605,7 @@ public class PcjTables {
         createPcjTable(accumuloConn, pcjTableName, varOrders, sparql);
 
         // Load historic matches from Rya into the PCJ table.
-        populatePcj(accumuloConn, pcjTableName, ryaConn, sparql);
+        populatePcj(accumuloConn, pcjTableName, ryaConn);
     }
 
     /**

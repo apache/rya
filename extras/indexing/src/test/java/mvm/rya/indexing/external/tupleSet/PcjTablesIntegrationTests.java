@@ -57,6 +57,10 @@ import mvm.rya.indexing.external.tupleSet.PcjTables.VariableOrder;
 import mvm.rya.rdftriplestore.RdfCloudTripleStore;
 import mvm.rya.rdftriplestore.RyaSailRepository;
 
+/**
+ * Performs integration test using {@link MiniAccumuloCluster} to ensure the
+ * functions of {@link PcjTables} work within a cluster setting.
+ */
 public class PcjTablesIntegrationTests {
     private static final Logger log = Logger.getLogger(PcjTablesIntegrationTests.class);
 
@@ -81,6 +85,8 @@ public class PcjTablesIntegrationTests {
     /**
      * Ensure that when a new PCJ table is created, it is initialized with the
      * correct metadata values.
+     * <p>
+     * The method being tested is {@link PcjTables#createPcjTable(Connector, String, Set, String)}
      */
     @Test
     public void createPcjTable() throws PcjException {
@@ -107,6 +113,8 @@ public class PcjTablesIntegrationTests {
 
     /**
      * Ensure when results have been written to the PCJ table that they are in Accumulo.
+     * <p>
+     * The method being tested is {@link PcjTables#addResults(Connector, String, java.util.Collection)}
      */
     @Test
     public void addResults() throws PcjException, TableNotFoundException, RyaTypeResolverException {
@@ -139,22 +147,8 @@ public class PcjTablesIntegrationTests {
         Set<BindingSet> results = Sets.<BindingSet>newHashSet(alice, bob, charlie);
         PcjTables.addResults(accumuloConn, pcjTableName, results);
 
-        // Get the variable orders the data was written to.
-        PcjMetadata pcjMetadata = PcjTables.getPcjMetadata(accumuloConn, pcjTableName).get();
-
         // Scan Accumulo for the stored results.
-        Multimap<String, BindingSet> fetchedResults = HashMultimap.create();
-
-        for(VariableOrder varOrder : pcjMetadata.getVarOrders()) {
-            Scanner scanner = accumuloConn.createScanner(pcjTableName, new Authorizations());
-            scanner.fetchColumnFamily( new Text(varOrder.toString()) );
-
-            for(Entry<Key, Value> entry : scanner) {
-                byte[] serializedResult = entry.getKey().getRow().getBytes();
-                BindingSet result = AccumuloPcjSerializer.deSerialize(serializedResult, varOrder.toArray());
-                fetchedResults.put(varOrder.toString(), result);
-            }
-        }
+        Multimap<String, BindingSet> fetchedResults = loadPcjResults(accumuloConn, pcjTableName);
 
         // Ensure the expected results match those that were stored.
         Multimap<String, BindingSet> expectedResults = HashMultimap.create();
@@ -165,7 +159,10 @@ public class PcjTablesIntegrationTests {
     }
 
     /**
-     * TODO doc
+     * Ensure when results are already stored in Rya, that we are able to populate
+     * the PCJ table for a new SPARQL query using those results.
+     * <p>
+     * The method being tested is: {@link PcjTables#populatePcj(Connector, String, RepositoryConnection, String)}
      */
     @Test
     public void populatePcj() throws RepositoryException, PcjException, TableNotFoundException, RyaTypeResolverException {
@@ -184,7 +181,7 @@ public class PcjTablesIntegrationTests {
             ryaConn.add(triple);
         }
 
-        // Create a PCJ table will include those triples in its results.
+        // Create a PCJ table that will include those triples in its results.
         final String sparql =
                 "SELECT ?name ?age " +
                 "{" +
@@ -198,24 +195,10 @@ public class PcjTablesIntegrationTests {
         PcjTables.createPcjTable(accumuloConn, pcjTableName, varOrders, sparql);
 
         // Populate the PCJ table using a Rya connection.
-        PcjTables.populatePcj(accumuloConn, pcjTableName, ryaConn, sparql);
-
-        // Get the variable orders the data was written to.
-        PcjMetadata pcjMetadata = PcjTables.getPcjMetadata(accumuloConn, pcjTableName).get();
+        PcjTables.populatePcj(accumuloConn, pcjTableName, ryaConn);
 
         // Scan Accumulo for the stored results.
-        Multimap<String, BindingSet> fetchedResults = HashMultimap.create();
-
-        for(VariableOrder varOrder : pcjMetadata.getVarOrders()) {
-            Scanner scanner = accumuloConn.createScanner(pcjTableName, new Authorizations());
-            scanner.fetchColumnFamily( new Text(varOrder.toString()) );
-
-            for(Entry<Key, Value> entry : scanner) {
-                byte[] serializedResult = entry.getKey().getRow().getBytes();
-                BindingSet result = AccumuloPcjSerializer.deSerialize(serializedResult, varOrder.toArray());
-                fetchedResults.put(varOrder.toString(), result);
-            }
-        }
+        Multimap<String, BindingSet> fetchedResults = loadPcjResults(accumuloConn, pcjTableName);
 
         // Ensure the expected results match those that were stored.
         MapBindingSet alice = new MapBindingSet();
@@ -240,7 +223,10 @@ public class PcjTablesIntegrationTests {
     }
 
     /**
-     * TODO doc
+     * Ensure the method that creates a new PCJ table, scans Rya for matches, and
+     * stores them in the PCJ table works.
+     * <p>
+     * The method being tested is: {@link PcjTables#createAndPopulatePcj(RepositoryConnection, Connector, String, String, String[], Optional)}
      */
     @Test
     public void createAndPopulatePcj() throws RepositoryException, PcjException, TableNotFoundException, RyaTypeResolverException {
@@ -259,7 +245,7 @@ public class PcjTablesIntegrationTests {
             ryaConn.add(triple);
         }
 
-        // Create a PCJ table will include those triples in its results.
+        // Create a PCJ table that will include those triples in its results.
         final String sparql =
                 "SELECT ?name ?age " +
                 "{" +
@@ -273,22 +259,8 @@ public class PcjTablesIntegrationTests {
         // Create and populate the PCJ table.
         PcjTables.createAndPopulatePcj(ryaConn, accumuloConn, pcjTableName, sparql, new String[]{"name", "age"}, Optional.<PcjVarOrderFactory>absent());
 
-        // Get the variable orders the data was written to.
-        PcjMetadata pcjMetadata = PcjTables.getPcjMetadata(accumuloConn, pcjTableName).get();
-
         // Scan Accumulo for the stored results.
-        Multimap<String, BindingSet> fetchedResults = HashMultimap.create();
-
-        for(VariableOrder varOrder : pcjMetadata.getVarOrders()) {
-            Scanner scanner = accumuloConn.createScanner(pcjTableName, new Authorizations());
-            scanner.fetchColumnFamily( new Text(varOrder.toString()) );
-
-            for(Entry<Key, Value> entry : scanner) {
-                byte[] serializedResult = entry.getKey().getRow().getBytes();
-                BindingSet result = AccumuloPcjSerializer.deSerialize(serializedResult, varOrder.toArray());
-                fetchedResults.put(varOrder.toString(), result);
-            }
-        }
+        Multimap<String, BindingSet> fetchedResults = loadPcjResults(accumuloConn, pcjTableName);
 
         // Ensure the expected results match those that were stored.
         MapBindingSet alice = new MapBindingSet();
@@ -311,6 +283,33 @@ public class PcjTablesIntegrationTests {
 
         assertEquals(expectedResults, fetchedResults);
     }
+
+    /**
+     * Scan accumulo for the results that are stored in a PCJ table. The
+     * multimap stores a set of deserialized binding sets that were in the PCJ
+     * table for every variable order that is found in the PCJ metadata.
+     */
+    private static Multimap<String, BindingSet> loadPcjResults(Connector accumuloConn, String pcjTableName) throws PcjException, TableNotFoundException, RyaTypeResolverException {
+        Multimap<String, BindingSet> fetchedResults = HashMultimap.create();
+
+        // Get the variable orders the data was written to.
+        PcjMetadata pcjMetadata = PcjTables.getPcjMetadata(accumuloConn, pcjTableName).get();
+
+        // Scan Accumulo for the stored results.
+        for(VariableOrder varOrder : pcjMetadata.getVarOrders()) {
+            Scanner scanner = accumuloConn.createScanner(pcjTableName, new Authorizations());
+            scanner.fetchColumnFamily( new Text(varOrder.toString()) );
+
+            for(Entry<Key, Value> entry : scanner) {
+                byte[] serializedResult = entry.getKey().getRow().getBytes();
+                BindingSet result = AccumuloPcjSerializer.deSerialize(serializedResult, varOrder.toArray());
+                fetchedResults.put(varOrder.toString(), result);
+            }
+        }
+
+        return fetchedResults;
+    }
+
 
     @After
     public void shutdownMiniResources() {

@@ -59,6 +59,51 @@ By default, the VM should be assigned the IP address of `192.168.33.10`.  This v
 
 1. **Test the Accumulo shell**: After ssh'ing into the VM, run the command: `/home/vagrant/accumulo-1.6.4/bin/accumulo shell -u root -p root`
 
+### Common Errors on the VM
+
+Most of the time, the Vagrant script works perfectly and passes all of the verification.  However, below are a list of the common issues that we've seen and how to mitigate those issues
+
+#### Rya libraries are not installed
+The transforms are in this directory: /var/lib/tomcat7/webapps/openrdf-workbench/transformations/
+
+1. Verify that this file exists: create-RyaAccumuloSail.xsl
+1. Verify that create.xsl has been updated for rya.  (run: "cat create.xsl | grep Rya" and make sure there's some stuff there.)
+
+
+run these two commands and see if you have any rya files in the two lib directories:
+
+ls /var/lib/tomcat7/webapps/openrdf-sesame/WEB-INF/lib/rya*
+
+ls /var/lib/tomcat7/webapps/openrdf-workbench/WEB-INF/lib/rya* 
+
+Also, are you able to access the Rya web page at: http://rya-example-box:8080/web.rya/sparqlQuery.jsp
+…
+
+It seems like some of the Rya files were not downloaded properly. Open the vagrant file and look for the line "echo "Downloading Rya"". Try working through those commands manually on your VMs.
+
+#### Other useful commands
+
+Below is a list of other useful commands on the VMs
+
+*Restart Tomcat*
+1. Log into the vm (run: `ssh vagrant@rya-example-box` with pass: `vagrant`)
+2. Switch to root (run: `su` with pass: `vagrant`)
+3. Restart tomcat (run: `service tomcat7 restart`)
+ 
+*Restart Accumulo*
+1. Log into the vm (run: `ssh vagrant@rya-example-box` with pass: `vagrant`)
+1. Switch to root (run: `su` with pass: `vagrant`)
+1. Stop Accumulo (run: `/home/vagrant/accumulo-1.6.4/bin/stop-all.sh`)
+  * If `stop-all` doesn't complete, hit `ctrl-c` once and you should see `Initiating forced shutdown in 15 seconds`.  Wait 15 seconds
+1. Start Accumulo (run: `/home/vagrant/accumulo-1.6.4/bin/start-all.sh`)
+
+*Test and Restart Zookeeper*
+1. Log into the vm (run: `ssh vagrant@rya-example-box` with pass: `vagrant`)
+1. Switch to root (run: `su` with pass: `vagrant`)
+1. Ping Zookeeper (run: `echo ruok | nc 127.0.0.1 2181`).
+  * If Zookeeper is okay, you should see the response `imok`
+  * Otherwise, restart Zookeeper (run `/home/vagrant/zookeeper-3.4.5-cdh4.5.0/bin/zkServer.sh start`)
+
 ## Interacting with Rya on the VM
 
 ### Connecting to Rya via OpenRDF Workbench

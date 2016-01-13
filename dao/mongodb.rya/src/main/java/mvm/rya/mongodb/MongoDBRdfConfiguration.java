@@ -29,6 +29,7 @@ import mvm.rya.api.persist.index.RyaSecondaryIndexer;
 import org.apache.hadoop.conf.Configuration;
 
 import com.google.common.collect.Lists;
+import com.mongodb.MongoClient;
 
 public class MongoDBRdfConfiguration extends RdfCloudTripleStoreConfiguration {
     public static final String MONGO_INSTANCE = "mongo.db.instance";
@@ -40,6 +41,7 @@ public class MongoDBRdfConfiguration extends RdfCloudTripleStoreConfiguration {
     public static final String  MONGO_USER_PASSWORD = "mongo.db.userpassword";
     public static final String USE_TEST_MONGO = "mongo.db.test";
     public static final String CONF_ADDITIONAL_INDEXERS = "ac.additional.indexers";
+	private MongoClient mongoClient;
 
     public MongoDBRdfConfiguration() {
         super();
@@ -113,9 +115,14 @@ public class MongoDBRdfConfiguration extends RdfCloudTripleStoreConfiguration {
 
     public List<RyaSecondaryIndexer> getAdditionalIndexers() {
         return getInstances(CONF_ADDITIONAL_INDEXERS, RyaSecondaryIndexer.class);
+    }    
+    
+    public void setMongoClient(MongoClient client){
+    	this.mongoClient = client;
     }
     
-    
-    
+    public MongoClient getMongoClient() {
+    	return mongoClient;
+    }
 
 }

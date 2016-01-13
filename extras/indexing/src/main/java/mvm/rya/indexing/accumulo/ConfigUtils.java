@@ -36,6 +36,7 @@ import mvm.rya.indexing.accumulo.freetext.Tokenizer;
 import mvm.rya.indexing.accumulo.geo.GeoMesaGeoIndexer;
 import mvm.rya.indexing.accumulo.temporal.AccumuloTemporalIndexer;
 import mvm.rya.indexing.external.PrecompJoinOptimizer;
+import mvm.rya.indexing.mongodb.MongoFreeTextIndexer;
 import mvm.rya.indexing.mongodb.MongoGeoIndexer;
 
 import org.apache.accumulo.core.client.AccumuloException;
@@ -379,6 +380,10 @@ public class ConfigUtils {
         if (ConfigUtils.getUseMongo(conf)) {
             if (getUseGeo(conf)) {
                 indexList.add(MongoGeoIndexer.class.getName());
+                useFilterIndex = true;
+            }
+            if (getUseFreeText(conf)) {
+                indexList.add(MongoFreeTextIndexer.class.getName());
                 useFilterIndex = true;
             }
         } else {

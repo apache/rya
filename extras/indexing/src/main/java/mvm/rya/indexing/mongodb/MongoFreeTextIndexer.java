@@ -22,17 +22,15 @@ package mvm.rya.indexing.mongodb;
 import info.aduna.iteration.CloseableIteration;
 
 import java.io.IOException;
-import java.net.UnknownHostException;
 import java.util.Arrays;
 import java.util.Set;
 
 import mvm.rya.api.domain.RyaStatement;
 import mvm.rya.api.resolver.RdfToRyaConversions;
 import mvm.rya.api.resolver.RyaToRdfConversions;
-import mvm.rya.indexing.GeoIndexer;
+import mvm.rya.indexing.FreeTextIndexer;
 import mvm.rya.indexing.StatementContraints;
 import mvm.rya.indexing.accumulo.ConfigUtils;
-import mvm.rya.indexing.mongodb.GeoMongoDBStorageStrategy.GeoQueryType;
 import mvm.rya.mongodb.MongoDBRdfConfiguration;
 
 import org.apache.hadoop.conf.Configuration;
@@ -49,17 +47,16 @@ import com.mongodb.DBObject;
 import com.mongodb.MongoClient;
 import com.mongodb.MongoCredential;
 import com.mongodb.ServerAddress;
-import com.vividsolutions.jts.geom.Geometry;
 
 import de.flapdoodle.embed.mongo.distribution.Version;
 import de.flapdoodle.embed.mongo.tests.MongodForTestsFactory;
 
-public class MongoGeoIndexer extends AbstractMongoIndexer implements GeoIndexer {
+public class MongoFreeTextIndexer extends AbstractMongoIndexer implements FreeTextIndexer {
 
 	private static final Logger logger = Logger
-			.getLogger(MongoGeoIndexer.class);
+			.getLogger(MongoFreeTextIndexer.class);
 
-	private GeoMongoDBStorageStrategy storageStrategy;
+	private TextMongoDBStorageStrategy storageStrategy;
 	private MongoClient mongoClient;
 	private DB db;
 	private DBCollection coll;
@@ -68,7 +65,7 @@ public class MongoGeoIndexer extends AbstractMongoIndexer implements GeoIndexer 
 	private boolean isInit = false;
 	private String tableName = "";
 
-	private void init() throws NumberFormatException, IOException{
+	private void init() throws IOException{
         boolean useMongoTest = conf.getBoolean(MongoDBRdfConfiguration.USE_TEST_MONGO, false);
         if (useMongoTest) {
         	boolean initializedClient = false;
@@ -84,9 +81,7 @@ public class MongoGeoIndexer extends AbstractMongoIndexer implements GeoIndexer 
         		mongoClient = testsFactory.newMongo();
         		int port = mongoClient.getServerAddressList().get(0).getPort();
         		conf.set(MongoDBRdfConfiguration.MONGO_INSTANCE_PORT, Integer.toString(port));
-        	}
-       		
-         } else {
+        	}        } else {
             ServerAddress server = new ServerAddress(conf.get(MongoDBRdfConfiguration.MONGO_INSTANCE),
                     Integer.valueOf(conf.get(MongoDBRdfConfiguration.MONGO_INSTANCE_PORT)));
             if (conf.get(MongoDBRdfConfiguration.MONGO_USER) != null) {
@@ -99,11 +94,12 @@ public class MongoGeoIndexer extends AbstractMongoIndexer implements GeoIndexer 
                 mongoClient = new MongoClient(server);
             }
         }
-        predicates = ConfigUtils.getGeoPredicates(conf);
+        predicates = ConfigUtils.getFreeTextPredicates(conf);
         tableName = conf.get(MongoDBRdfConfiguration.MONGO_DB_NAME);
         db = mongoClient.getDB(tableName);
         coll = db.getCollection(conf.get(MongoDBRdfConfiguration.MONGO_COLLECTION_PREFIX, "rya"));
-        storageStrategy = new GeoMongoDBStorageStrategy(Double.valueOf(conf.get(MongoDBRdfConfiguration.MONGO_GEO_MAXDISTANCE, "1e-10")));
+        storageStrategy = new TextMongoDBStorageStrategy();
+        storageStrategy.createIndices(coll);
     }
 
 	@Override
@@ -124,11 +120,6 @@ public class MongoGeoIndexer extends AbstractMongoIndexer implements GeoIndexer 
 			try {
 				init();
 				isInit = true;
-			} catch (NumberFormatException e) {
-				logger.warn(
-						"Unable to initialize index.  Throwing Runtime Exception. ",
-						e);
-				throw new RuntimeException(e);
 			} catch (IOException e) {
 				logger.warn(
 						"Unable to initialize index.  Throwing Runtime Exception. ",
@@ -170,54 +161,10 @@ public class MongoGeoIndexer extends AbstractMongoIndexer implements GeoIndexer 
 		storeStatement(RyaToRdfConversions.convertStatement(statement));
 	}
 
-	@Override
-	public CloseableIteration<Statement, QueryEvaluationException> queryEquals(
-			Geometry query, StatementContraints contraints) {
-		DBObject queryObj = storageStrategy.getQuery(contraints, query,
-				GeoQueryType.EQUALS);
-		return getIteratorWrapper(queryObj, coll, storageStrategy);
-	}
-
-	@Override
-	public CloseableIteration<Statement, QueryEvaluationException> queryDisjoint(
-			Geometry query, StatementContraints contraints) {
-		throw new UnsupportedOperationException(
-				"Disjoint queries are not supported in Mongo DB.");
-	}
-
-	@Override
-	public CloseableIteration<Statement, QueryEvaluationException> queryIntersects(
-			Geometry query, StatementContraints contraints) {
-		DBObject queryObj = storageStrategy.getQuery(contraints, query,
-				GeoQueryType.INTERSECTS);
-		return getIteratorWrapper(queryObj, coll, storageStrategy);
-	}
-
-	@Override
-	public CloseableIteration<Statement, QueryEvaluationException> queryTouches(
-			Geometry query, StatementContraints contraints) {
-		throw new UnsupportedOperationException(
-				"Touches queries are not supported in Mongo DB.");
-	}
-
-	@Override
-	public CloseableIteration<Statement, QueryEvaluationException> queryCrosses(
-			Geometry query, StatementContraints contraints) {
-		throw new UnsupportedOperationException(
-				"Crosses queries are not supported in Mongo DB.");
-	}
-
-	@Override
-	public CloseableIteration<Statement, QueryEvaluationException> queryWithin(
-			Geometry query, StatementContraints contraints) {
-		DBObject queryObj = storageStrategy.getQuery(contraints, query,
-				GeoQueryType.WITHIN);
-		return getIteratorWrapper(queryObj, coll, storageStrategy);
-	}
 
 	private CloseableIteration<Statement, QueryEvaluationException> getIteratorWrapper(
 			final DBObject query, final DBCollection coll,
-			final GeoMongoDBStorageStrategy storageStrategy) {
+			final TextMongoDBStorageStrategy storageStrategy) {
 
 		return new CloseableIteration<Statement, QueryEvaluationException>() {
 
@@ -257,20 +204,6 @@ public class MongoGeoIndexer extends AbstractMongoIndexer implements GeoIndexer 
 	}
 
 	@Override
-	public CloseableIteration<Statement, QueryEvaluationException> queryContains(
-			Geometry query, StatementContraints contraints) {
-		throw new UnsupportedOperationException(
-				"Contains queries are not supported in Mongo DB.");
-	}
-
-	@Override
-	public CloseableIteration<Statement, QueryEvaluationException> queryOverlaps(
-			Geometry query, StatementContraints contraints) {
-		throw new UnsupportedOperationException(
-				"Overlaps queries are not supported in Mongo DB.");
-	}
-
-	@Override
 	public Set<URI> getIndexablePredicates() {
 		return predicates;
 	}
@@ -290,6 +223,14 @@ public class MongoGeoIndexer extends AbstractMongoIndexer implements GeoIndexer 
 	public void deleteStatement(RyaStatement stmt) throws IOException {
 	   DBObject obj = storageStrategy.getQuery(stmt);
 	   coll.remove(obj);
+	}
+
+	@Override
+	public CloseableIteration<Statement, QueryEvaluationException> queryText(
+			String query, StatementContraints contraints) throws IOException {
+		DBObject obj = storageStrategy.getQuery(contraints, query);
+		long count = coll.count(obj);
+		return getIteratorWrapper(obj, coll, storageStrategy);
 	}
 
 }

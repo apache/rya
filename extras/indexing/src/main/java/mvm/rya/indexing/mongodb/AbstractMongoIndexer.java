@@ -44,8 +44,7 @@ public abstract class AbstractMongoIndexer implements RyaSecondaryIndexer {
     public Configuration getConf() {
         return null;
     }
-
-
+    
     @Override
     public String getTableName() {
         return null;

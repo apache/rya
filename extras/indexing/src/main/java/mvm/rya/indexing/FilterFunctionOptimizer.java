@@ -34,6 +34,7 @@ import mvm.rya.indexing.accumulo.geo.GeoMesaGeoIndexer;
 import mvm.rya.indexing.accumulo.geo.GeoTupleSet;
 import mvm.rya.indexing.accumulo.temporal.AccumuloTemporalIndexer;
 import mvm.rya.indexing.accumulo.temporal.TemporalTupleSet;
+import mvm.rya.indexing.mongodb.MongoFreeTextIndexer;
 import mvm.rya.indexing.mongodb.MongoGeoIndexer;
 
 import org.apache.accumulo.core.client.AccumuloException;
@@ -103,6 +104,8 @@ public class FilterFunctionOptimizer implements QueryOptimizer, Configurable {
             if (ConfigUtils.getUseMongo(conf)) {
                 this.geoIndexer = new MongoGeoIndexer();
                 geoIndexer.setConf(conf);
+                this.freeTextIndexer = new MongoFreeTextIndexer();
+                freeTextIndexer.setConf(conf);
             } else {
                 this.geoIndexer = new GeoMesaGeoIndexer();
                 geoIndexer.setConf(conf);
@@ -110,8 +113,8 @@ public class FilterFunctionOptimizer implements QueryOptimizer, Configurable {
                 freeTextIndexer.setConf(conf);
                 this.temporalIndexer = new AccumuloTemporalIndexer();
                 temporalIndexer.setConf(conf);
-                init = true; 
             }
+            init = true; 
         }
     }
     

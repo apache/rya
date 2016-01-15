@@ -16,6 +16,8 @@ import java.util.Set;
 import javax.annotation.ParametersAreNonnullByDefault;
 import javax.annotation.concurrent.Immutable;
 
+import mvm.rya.api.resolver.RyaTypeResolverException;
+
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
 import org.apache.accumulo.core.client.BatchWriter;
@@ -54,8 +56,6 @@ import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
-
-import mvm.rya.api.resolver.RyaTypeResolverException;
 
 /**
  * Functions that create and maintain the PCJ tables that are used by Rya.

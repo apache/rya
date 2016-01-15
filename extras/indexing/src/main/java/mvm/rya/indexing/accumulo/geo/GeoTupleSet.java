@@ -8,9 +8,9 @@ package mvm.rya.indexing.accumulo.geo;
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- * 
+ *
  *   http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -31,14 +31,12 @@ import mvm.rya.indexing.IteratorFactory;
 import mvm.rya.indexing.SearchFunction;
 import mvm.rya.indexing.StatementContraints;
 import mvm.rya.indexing.external.tupleSet.ExternalTupleSet;
-import mvm.rya.indexing.external.tupleSet.SimpleExternalTupleSet;
 
 import org.apache.hadoop.conf.Configuration;
 import org.openrdf.model.Statement;
 import org.openrdf.model.URI;
 import org.openrdf.query.BindingSet;
 import org.openrdf.query.QueryEvaluationException;
-import org.openrdf.query.algebra.QueryModelVisitor;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.Maps;
@@ -46,14 +44,14 @@ import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.io.ParseException;
 import com.vividsolutions.jts.io.WKTReader;
 
-//Indexing Node for geo expressions to be inserted into execution plan 
+//Indexing Node for geo expressions to be inserted into execution plan
 //to delegate geo portion of query to geo index
 public class GeoTupleSet extends ExternalTupleSet {
 
     private Configuration conf;
     private GeoIndexer geoIndexer;
     private IndexingExpr filterInfo;
-   
+
 
     public GeoTupleSet(IndexingExpr filterInfo, GeoIndexer geoIndexer) {
         this.filterInfo = filterInfo;
@@ -66,7 +64,8 @@ public class GeoTupleSet extends ExternalTupleSet {
         return filterInfo.getBindingNames();
     }
 
-    public GeoTupleSet clone() {
+    @Override
+	public GeoTupleSet clone() {
         return new GeoTupleSet(filterInfo, geoIndexer);
     }
 
@@ -74,15 +73,15 @@ public class GeoTupleSet extends ExternalTupleSet {
     public double cardinality() {
         return 0.0; // No idea how the estimate cardinality here.
     }
-    
-   
+
+
     @Override
     public String getSignature() {
         return "(GeoTuple Projection) " + "variables: " + Joiner.on(", ").join(this.getBindingNames()).replaceAll("\\s+", " ");
     }
-    
-    
-    
+
+
+
     @Override
     public boolean equals(Object other) {
         if (other == this) {
@@ -94,16 +93,16 @@ public class GeoTupleSet extends ExternalTupleSet {
         GeoTupleSet arg = (GeoTupleSet) other;
         return this.filterInfo.equals(arg.filterInfo);
     }
-    
+
     @Override
     public int hashCode() {
         int result = 17;
         result = 31*result + filterInfo.hashCode();
-        
+
         return result;
     }
-    
-    
+
+
 
     /**
      * Returns an iterator over the result set of the contained IndexingExpr.
@@ -114,37 +113,37 @@ public class GeoTupleSet extends ExternalTupleSet {
     @Override
     public CloseableIteration<BindingSet, QueryEvaluationException> evaluate(BindingSet bindings)
             throws QueryEvaluationException {
-        
-      
+
+
         URI funcURI = filterInfo.getFunction();
-        SearchFunction searchFunction = (new GeoSearchFunctionFactory(conf)).getSearchFunction(funcURI);
+        SearchFunction searchFunction = new GeoSearchFunctionFactory(conf).getSearchFunction(funcURI);
         if(filterInfo.getArguments().length > 1) {
             throw new IllegalArgumentException("Index functions do not support more than two arguments.");
         }
-        
+
         String queryText = filterInfo.getArguments()[0].stringValue();
-        
+
         return IteratorFactory.getIterator(filterInfo.getSpConstraint(), bindings, queryText, searchFunction);
     }
 
 
-    
+
     //returns appropriate search function for a given URI
     //search functions used in GeoMesaGeoIndexer to access index
     public class GeoSearchFunctionFactory {
-        
+
         Configuration conf;
-        
+
         private final Map<URI, SearchFunction> SEARCH_FUNCTION_MAP = Maps.newHashMap();
 
         public GeoSearchFunctionFactory(Configuration conf) {
             this.conf = conf;
         }
-        
+
 
         /**
          * Get a {@link GeoSearchFunction} for a given URI.
-         * 
+         *
          * @param searchFunction
          * @return
          */
@@ -359,6 +358,6 @@ public class GeoTupleSet extends ExternalTupleSet {
         }
 
     }
-   
+
 
 }

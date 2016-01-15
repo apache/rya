@@ -13,6 +13,7 @@ import mvm.rya.api.persist.RyaDAOException;
 import mvm.rya.api.resolver.RyaTypeResolverException;
 import mvm.rya.indexing.RyaSailFactory;
 import mvm.rya.indexing.accumulo.ConfigUtils;
+import mvm.rya.indexing.external.PcjIntegrationTestingUtil;
 import mvm.rya.indexing.external.QueryVariableNormalizer;
 import mvm.rya.indexing.external.tupleSet.PcjTables.PcjException;
 import mvm.rya.indexing.external.tupleSet.PcjTables.PcjTableNameFactory;
@@ -107,9 +108,8 @@ public class AccumuloIndexSetTest {
                 "}";
 
         final String pcjTableName = new PcjTableNameFactory().makeTableName(prefix, "testPcj");
-        final PcjTables pcj = new PcjTables();
         // Create and populate the PCJ table.
-        pcj.createAndPopulatePcj(ryaConn, accumuloConn, pcjTableName, sparql, new String[]{"name", "age"}, Optional.<PcjVarOrderFactory>absent());
+        PcjIntegrationTestingUtil.createAndPopulatePcj(ryaConn, accumuloConn, pcjTableName, sparql, new String[]{"name", "age"}, Optional.<PcjVarOrderFactory>absent());
 
         final AccumuloIndexSet ais = new AccumuloIndexSet(accumuloConn, pcjTableName);
 
@@ -173,7 +173,7 @@ public class AccumuloIndexSetTest {
         final String pcjTableName = new PcjTableNameFactory().makeTableName(prefix, "testPcj");
 
         // Create and populate the PCJ table.
-        new PcjTables().createAndPopulatePcj(ryaConn, accumuloConn, pcjTableName, sparql, new String[]{"name", "age"}, Optional.<PcjVarOrderFactory>absent());
+        PcjIntegrationTestingUtil.createAndPopulatePcj(ryaConn, accumuloConn, pcjTableName, sparql, new String[]{"name", "age"}, Optional.<PcjVarOrderFactory>absent());
 
         final AccumuloIndexSet ais = new AccumuloIndexSet(accumuloConn, pcjTableName);
 
@@ -219,7 +219,7 @@ public class AccumuloIndexSetTest {
         final String pcjTableName = new PcjTableNameFactory().makeTableName(prefix, "testPcj");
 
         // Create and populate the PCJ table.
-        new PcjTables().createAndPopulatePcj(ryaConn, accumuloConn, pcjTableName, sparql, new String[]{"name", "age"}, Optional.<PcjVarOrderFactory>absent());
+        PcjIntegrationTestingUtil.createAndPopulatePcj(ryaConn, accumuloConn, pcjTableName, sparql, new String[]{"name", "age"}, Optional.<PcjVarOrderFactory>absent());
 
         final AccumuloIndexSet ais = new AccumuloIndexSet(accumuloConn, pcjTableName);
 
@@ -288,7 +288,7 @@ public class AccumuloIndexSetTest {
         final String pcjTableName = new PcjTableNameFactory().makeTableName(prefix, "testPcj");
 
         // Create and populate the PCJ table.
-        new PcjTables().createAndPopulatePcj(ryaConn, accumuloConn, pcjTableName, sparql, new String[]{"name", "age"}, Optional.<PcjVarOrderFactory>absent());
+        PcjIntegrationTestingUtil.createAndPopulatePcj(ryaConn, accumuloConn, pcjTableName, sparql, new String[]{"name", "age"}, Optional.<PcjVarOrderFactory>absent());
 
         final AccumuloIndexSet ais = new AccumuloIndexSet(accumuloConn, pcjTableName);
 
@@ -329,7 +329,7 @@ public class AccumuloIndexSetTest {
         final String pcjTableName = new PcjTableNameFactory().makeTableName(prefix, "testPcj");
 
         // Create and populate the PCJ table.
-        new PcjTables().createAndPopulatePcj(ryaConn, accumuloConn, pcjTableName, sparql, new String[]{"name", "age"}, Optional.<PcjVarOrderFactory>absent());
+        PcjIntegrationTestingUtil.createAndPopulatePcj(ryaConn, accumuloConn, pcjTableName, sparql, new String[]{"name", "age"}, Optional.<PcjVarOrderFactory>absent());
 
         final AccumuloIndexSet ais = new AccumuloIndexSet(accumuloConn, pcjTableName);
 
@@ -392,7 +392,7 @@ public class AccumuloIndexSetTest {
         final String pcjTableName = new PcjTableNameFactory().makeTableName(prefix, "testPcj");
 
         // Create and populate the PCJ table.
-        new PcjTables().createAndPopulatePcj(ryaConn, accumuloConn, pcjTableName, sparql, new String[]{"name", "age"}, Optional.<PcjVarOrderFactory>absent());
+        PcjIntegrationTestingUtil.createAndPopulatePcj(ryaConn, accumuloConn, pcjTableName, sparql, new String[]{"name", "age"}, Optional.<PcjVarOrderFactory>absent());
 
         final AccumuloIndexSet ais = new AccumuloIndexSet(accumuloConn, pcjTableName);
 
@@ -480,7 +480,7 @@ public class AccumuloIndexSetTest {
         final String pcjTableName = new PcjTableNameFactory().makeTableName(prefix, "testPcj");
 
         // Create and populate the PCJ table.
-        new PcjTables().createAndPopulatePcj(ryaConn, accumuloConn, pcjTableName, sparql, new String[]{"name", "age"}, Optional.<PcjVarOrderFactory>absent());
+        PcjIntegrationTestingUtil.createAndPopulatePcj(ryaConn, accumuloConn, pcjTableName, sparql, new String[]{"name", "age"}, Optional.<PcjVarOrderFactory>absent());
 
         final String sparql2 =
                 "SELECT ?x ?y " +
@@ -564,7 +564,7 @@ public class AccumuloIndexSetTest {
         final String pcjTableName = new PcjTableNameFactory().makeTableName(prefix, "testPcj");
 
         // Create and populate the PCJ table.
-        new PcjTables().createAndPopulatePcj(ryaConn, accumuloConn, pcjTableName, sparql, new String[]{"name", "age"}, Optional.<PcjVarOrderFactory>absent());
+        PcjIntegrationTestingUtil.createAndPopulatePcj(ryaConn, accumuloConn, pcjTableName, sparql, new String[]{"name", "age"}, Optional.<PcjVarOrderFactory>absent());
 
 //        final byte[] rowPrefix = new byte[]{104, 116, 116, 112, 58, 47, 47, 65, 108, 105, 99, 101, 1, 2, 0, 56, 48, 48, 48, 48, 48, 49, 48, 1, 5, 0};
 //

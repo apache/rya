@@ -26,6 +26,8 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import mvm.rya.indexing.external.PrecompJoinOptimizer;
+
 import org.openrdf.query.BindingSet;
 import org.openrdf.query.QueryEvaluationException;
 import org.openrdf.query.algebra.Projection;
@@ -33,6 +35,12 @@ import org.openrdf.query.algebra.QueryModelVisitor;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.Sets;
+
+/**
+ *  This a testing class to create mock pre-computed join nodes in order to
+ *  test the {@link PrecompJoinOptimizer} for query planning.
+ *
+ */
 
 public class SimpleExternalTupleSet extends ExternalTupleSet {
 

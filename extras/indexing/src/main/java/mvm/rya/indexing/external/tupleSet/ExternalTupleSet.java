@@ -45,9 +45,12 @@ import com.google.common.collect.Maps;
 
 /**
  * This is an abstract class of delegating the evaluation of part
- * of a SPARQL query to an external source.  The variable {@link tupleExpr}
- * represents the SPARQL string that this node evaluates, and {@link tableVarMap}
- * maps the variables of tupleExpr to the variables stored in the external store (which may be different)
+ * of a SPARQL query to an external source.  The {@link TupleExpr} returned by {@link ExternalTupleSet#getTupleExpr()}
+ * represents the SPARQL string that this node evaluates, and table returned by {@link ExternalTupleSet#getTableVarMap()}
+ * maps the variables of TupleExpr to the variables stored in the external store (which may be different).  The map
+ * returned by {@link ExternalTupleSet#getSupportedVariableOrderMap()} provides a map of all the variable orders in which
+ * data is written to the supporting, and is useful for determining which {@link BindingSet} can be passed into
+ * {@link ExternalTupleSet#evaluate(BindingSet)}.
  *
  */
 public abstract class ExternalTupleSet extends ExternalSet {

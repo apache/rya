@@ -22,7 +22,6 @@ package mvm.rya.indexing.external;
 import java.util.List;
 
 import mvm.rya.api.persist.RyaDAOException;
-import mvm.rya.indexing.external.tupleSet.PcjTables;
 import mvm.rya.indexing.external.tupleSet.PcjTables.PcjException;
 import mvm.rya.indexing.external.tupleSet.PcjTables.PcjVarOrderFactory;
 
@@ -95,8 +94,7 @@ public class AccumuloConstantPcjIntegrationTest {
 		conn.add(sub2, RDFS.LABEL, new LiteralImpl("label2"));
 		conn.add(sub2, talksTo, obj2);
 
-		accCon = new MockInstance("instance").getConnector("root",
-				new PasswordToken(""));
+		accCon = new MockInstance("instance").getConnector("root",new PasswordToken(""));
 
 	}
 
@@ -105,6 +103,7 @@ public class AccumuloConstantPcjIntegrationTest {
 			AccumuloSecurityException, TableNotFoundException {
 		PcjIntegrationTestingUtil.closeAndShutdown(conn, repo);
 		PcjIntegrationTestingUtil.closeAndShutdown(pcjConn, pcjRepo);
+		PcjIntegrationTestingUtil.deleteCoreRyaTables(accCon, prefix);
 		PcjIntegrationTestingUtil.deleteIndexTables(accCon, 2, prefix);
 
 
@@ -153,10 +152,10 @@ public class AccumuloConstantPcjIntegrationTest {
 				+ "  ?c a ?f . " //
 				+ "}";//
 
-		new PcjTables().createAndPopulatePcj(conn, accCon, tablename + 1,
+		PcjIntegrationTestingUtil.createAndPopulatePcj(conn, accCon, tablename + 1,
 				indexSparqlString, new String[] { "dog", "pig", "duck" },
 				Optional.<PcjVarOrderFactory> absent());
-		new PcjTables().createAndPopulatePcj(conn, accCon, tablename + 2,
+		PcjIntegrationTestingUtil.createAndPopulatePcj(conn, accCon, tablename + 2,
 				indexSparqlString2, new String[] { "o", "f", "e", "c", "l" },
 				Optional.<PcjVarOrderFactory> absent());
 
@@ -234,13 +233,13 @@ public class AccumuloConstantPcjIntegrationTest {
 				+ "  ?f <uri:subType> <uri:obj>. "//
 				+ "}";//
 
-		new PcjTables().createAndPopulatePcj(conn, accCon, tablename + 1,
+		PcjIntegrationTestingUtil.createAndPopulatePcj(conn, accCon, tablename + 1,
 				indexSparqlString, new String[] { "dog", "pig", "duck" },
 				Optional.<PcjVarOrderFactory> absent());
-		new PcjTables().createAndPopulatePcj(conn, accCon, tablename + 2,
+		PcjIntegrationTestingUtil.createAndPopulatePcj(conn, accCon, tablename + 2,
 				indexSparqlString2, new String[] { "o", "f", "e", "c", "l" },
 				Optional.<PcjVarOrderFactory> absent());
-		new PcjTables().createAndPopulatePcj(conn, accCon, tablename + 3,
+		PcjIntegrationTestingUtil.createAndPopulatePcj(conn, accCon, tablename + 3,
 				indexSparqlString3,
 				new String[] { "wolf", "sheep", "chicken" },
 				Optional.<PcjVarOrderFactory> absent());
@@ -304,7 +303,7 @@ public class AccumuloConstantPcjIntegrationTest {
 				+ " ?c <uri:talksTo> ?d. " //
 				+ "}";//
 
-		new PcjTables().createAndPopulatePcj(conn, accCon, tablename + 1,
+		PcjIntegrationTestingUtil.createAndPopulatePcj(conn, accCon, tablename + 1,
 				indexSparqlString, new String[] { "a", "b", "c", "d" },
 				Optional.<PcjVarOrderFactory> absent());
 
@@ -352,7 +351,7 @@ public class AccumuloConstantPcjIntegrationTest {
 				+ " ?c <uri:talksTo> ?d. " //
 				+ "}";//
 
-		new PcjTables().createAndPopulatePcj(conn, accCon, tablename + 1,
+		PcjIntegrationTestingUtil.createAndPopulatePcj(conn, accCon, tablename + 1,
 				indexSparqlString, new String[] { "a", "b", "c", "d" },
 				Optional.<PcjVarOrderFactory> absent());
 

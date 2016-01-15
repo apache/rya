@@ -28,7 +28,6 @@ import mvm.rya.api.persist.RyaDAOException;
 import mvm.rya.indexing.IndexPlanValidator.IndexPlanValidator;
 import mvm.rya.indexing.external.tupleSet.AccumuloIndexSet;
 import mvm.rya.indexing.external.tupleSet.ExternalTupleSet;
-import mvm.rya.indexing.external.tupleSet.PcjTables;
 import mvm.rya.indexing.external.tupleSet.PcjTables.PcjException;
 import mvm.rya.indexing.external.tupleSet.PcjTables.PcjVarOrderFactory;
 
@@ -137,7 +136,7 @@ public class AccumuloPcjIntegrationTest {
 				+ "  ?e <http://www.w3.org/2000/01/rdf-schema#label> ?l "//
 				+ "}";//
 
-		new PcjTables().createAndPopulatePcj(conn, accCon, tablename + 1,
+		PcjIntegrationTestingUtil.createAndPopulatePcj(conn, accCon, tablename + 1,
 				indexSparqlString, new String[] { "e", "l", "c" },
 				Optional.<PcjVarOrderFactory> absent());
 
@@ -198,11 +197,11 @@ public class AccumuloPcjIntegrationTest {
 		final CountingResultHandler crh1 = new CountingResultHandler();
 		final CountingResultHandler crh2 = new CountingResultHandler();
 
-		new PcjTables().createAndPopulatePcj(conn, accCon, tablename + 1,
+		PcjIntegrationTestingUtil.createAndPopulatePcj(conn, accCon, tablename + 1,
 				indexSparqlString, new String[] { "e", "l", "c" },
 				Optional.<PcjVarOrderFactory> absent());
 
-		new PcjTables().createAndPopulatePcj(conn, accCon, tablename + 2,
+		PcjIntegrationTestingUtil.createAndPopulatePcj(conn, accCon, tablename + 2,
 				indexSparqlString2, new String[] { "e", "o", "l" },
 				Optional.<PcjVarOrderFactory> absent());
 
@@ -253,11 +252,11 @@ public class AccumuloPcjIntegrationTest {
 		final CountingResultHandler crh1 = new CountingResultHandler();
 		final CountingResultHandler crh2 = new CountingResultHandler();
 
-		new PcjTables().createAndPopulatePcj(conn, accCon, tablename + 1,
+		PcjIntegrationTestingUtil.createAndPopulatePcj(conn, accCon, tablename + 1,
 				indexSparqlString, new String[] { "c", "e", "l" },
 				Optional.<PcjVarOrderFactory> absent());
 
-		new PcjTables().createAndPopulatePcj(conn, accCon, tablename + 2,
+		PcjIntegrationTestingUtil.createAndPopulatePcj(conn, accCon, tablename + 2,
 				indexSparqlString2, new String[] { "e", "o", "l" },
 				Optional.<PcjVarOrderFactory> absent());
 
@@ -308,11 +307,11 @@ public class AccumuloPcjIntegrationTest {
 		final CountingResultHandler crh1 = new CountingResultHandler();
 		final CountingResultHandler crh2 = new CountingResultHandler();
 
-		new PcjTables().createAndPopulatePcj(conn, accCon, tablename + 1,
+		PcjIntegrationTestingUtil.createAndPopulatePcj(conn, accCon, tablename + 1,
 				indexSparqlString, new String[] { "e", "c", "l" },
 				Optional.<PcjVarOrderFactory> absent());
 
-		new PcjTables().createAndPopulatePcj(conn, accCon, tablename + 2,
+		PcjIntegrationTestingUtil.createAndPopulatePcj(conn, accCon, tablename + 2,
 				indexSparqlString2, new String[] { "e", "o", "l" },
 				Optional.<PcjVarOrderFactory> absent());
 
@@ -376,11 +375,11 @@ public class AccumuloPcjIntegrationTest {
 		final CountingResultHandler crh1 = new CountingResultHandler();
 		final CountingResultHandler crh2 = new CountingResultHandler();
 
-		new PcjTables().createAndPopulatePcj(conn, accCon, tablename + 1,
+		PcjIntegrationTestingUtil.createAndPopulatePcj(conn, accCon, tablename + 1,
 				indexSparqlString, new String[] { "c", "e", "l" },
 				Optional.<PcjVarOrderFactory> absent());
 
-		new PcjTables().createAndPopulatePcj(conn, accCon, tablename + 2,
+		PcjIntegrationTestingUtil.createAndPopulatePcj(conn, accCon, tablename + 2,
 				indexSparqlString2, new String[] { "e", "c", "l", "f", "o" },
 				Optional.<PcjVarOrderFactory> absent());
 
@@ -438,11 +437,11 @@ public class AccumuloPcjIntegrationTest {
 
 		final CountingResultHandler crh2 = new CountingResultHandler();
 
-		new PcjTables().createAndPopulatePcj(conn, accCon, tablename + 1,
+		PcjIntegrationTestingUtil.createAndPopulatePcj(conn, accCon, tablename + 1,
 				indexSparqlString, new String[] { "dog", "pig", "owl" },
 				Optional.<PcjVarOrderFactory> absent());
 
-		new PcjTables().createAndPopulatePcj(conn, accCon, tablename + 2,
+		PcjIntegrationTestingUtil.createAndPopulatePcj(conn, accCon, tablename + 2,
 				indexSparqlString2, new String[] { "e", "c", "l", "f", "o" },
 				Optional.<PcjVarOrderFactory> absent());
 		PcjIntegrationTestingUtil.deleteCoreRyaTables(accCon, prefix);
@@ -498,11 +497,11 @@ public class AccumuloPcjIntegrationTest {
 
 		final CountingResultHandler crh2 = new CountingResultHandler();
 
-		new PcjTables().createAndPopulatePcj(conn, accCon, tablename + 1,
+		PcjIntegrationTestingUtil.createAndPopulatePcj(conn, accCon, tablename + 1,
 				indexSparqlString, new String[] { "c", "e", "l" },
 				Optional.<PcjVarOrderFactory> absent());
 
-		new PcjTables().createAndPopulatePcj(conn, accCon, tablename + 2,
+		PcjIntegrationTestingUtil.createAndPopulatePcj(conn, accCon, tablename + 2,
 				indexSparqlString2, new String[] { "o", "f", "e", "c", "l" },
 				Optional.<PcjVarOrderFactory> absent());
 		PcjIntegrationTestingUtil.deleteCoreRyaTables(accCon, prefix);
@@ -565,11 +564,11 @@ public class AccumuloPcjIntegrationTest {
 
 		final CountingResultHandler crh1 = new CountingResultHandler();
 		final CountingResultHandler crh2 = new CountingResultHandler();
-		new PcjTables().createAndPopulatePcj(conn, accCon, tablename + 1,
+		PcjIntegrationTestingUtil.createAndPopulatePcj(conn, accCon, tablename + 1,
 				indexSparqlString, new String[] { "c", "e", "l" },
 				Optional.<PcjVarOrderFactory> absent());
 
-		new PcjTables().createAndPopulatePcj(conn, accCon, tablename + 2,
+		PcjIntegrationTestingUtil.createAndPopulatePcj(conn, accCon, tablename + 2,
 				indexSparqlString2, new String[] { "o", "f", "l", "e", "c" },
 				Optional.<PcjVarOrderFactory> absent());
 
@@ -637,11 +636,11 @@ public class AccumuloPcjIntegrationTest {
 		final CountingResultHandler crh1 = new CountingResultHandler();
 		final CountingResultHandler crh2 = new CountingResultHandler();
 
-		new PcjTables().createAndPopulatePcj(conn, accCon, tablename + 1,
+		PcjIntegrationTestingUtil.createAndPopulatePcj(conn, accCon, tablename + 1,
 				indexSparqlString, new String[] { "c", "e", "l" },
 				Optional.<PcjVarOrderFactory> absent());
 
-		new PcjTables().createAndPopulatePcj(conn, accCon, tablename + 2,
+		PcjIntegrationTestingUtil.createAndPopulatePcj(conn, accCon, tablename + 2,
 				indexSparqlString2, new String[] { "o", "f", "e", "l", "c" },
 				Optional.<PcjVarOrderFactory> absent());
 
@@ -711,11 +710,11 @@ public class AccumuloPcjIntegrationTest {
 		final CountingResultHandler crh1 = new CountingResultHandler();
 		final CountingResultHandler crh2 = new CountingResultHandler();
 
-		new PcjTables().createAndPopulatePcj(conn, accCon, tablename + 1,
+		PcjIntegrationTestingUtil.createAndPopulatePcj(conn, accCon, tablename + 1,
 				indexSparqlString, new String[] { "c", "e", "l" },
 				Optional.<PcjVarOrderFactory> absent());
 
-		new PcjTables().createAndPopulatePcj(conn, accCon, tablename + 2,
+		PcjIntegrationTestingUtil.createAndPopulatePcj(conn, accCon, tablename + 2,
 				indexSparqlString2, new String[] { "o", "f", "c", "e", "l" },
 				Optional.<PcjVarOrderFactory> absent());
 
@@ -785,11 +784,11 @@ public class AccumuloPcjIntegrationTest {
 		final CountingResultHandler crh1 = new CountingResultHandler();
 		final CountingResultHandler crh2 = new CountingResultHandler();
 
-		new PcjTables().createAndPopulatePcj(conn, accCon, tablename + 1,
+		PcjIntegrationTestingUtil.createAndPopulatePcj(conn, accCon, tablename + 1,
 				indexSparqlString, new String[] { "c", "e", "l" },
 				Optional.<PcjVarOrderFactory> absent());
 
-		new PcjTables().createAndPopulatePcj(conn, accCon, tablename + 2,
+		PcjIntegrationTestingUtil.createAndPopulatePcj(conn, accCon, tablename + 2,
 				indexSparqlString2, new String[] { "c", "l", "e", "o", "f" },
 				Optional.<PcjVarOrderFactory> absent());
 
@@ -858,11 +857,11 @@ public class AccumuloPcjIntegrationTest {
 		final CountingResultHandler crh1 = new CountingResultHandler();
 		final CountingResultHandler crh2 = new CountingResultHandler();
 
-		new PcjTables().createAndPopulatePcj(conn, accCon, tablename + 1,
+		PcjIntegrationTestingUtil.createAndPopulatePcj(conn, accCon, tablename + 1,
 				indexSparqlString, new String[] { "c", "e", "l" },
 				Optional.<PcjVarOrderFactory> absent());
 
-		new PcjTables().createAndPopulatePcj(conn, accCon, tablename + 2,
+		PcjIntegrationTestingUtil.createAndPopulatePcj(conn, accCon, tablename + 2,
 				indexSparqlString2, new String[] { "o", "l", "c", "e", "f" },
 				Optional.<PcjVarOrderFactory> absent());
 
@@ -921,11 +920,11 @@ public class AccumuloPcjIntegrationTest {
 		final CountingResultHandler crh1 = new CountingResultHandler();
 		final CountingResultHandler crh2 = new CountingResultHandler();
 
-		new PcjTables().createAndPopulatePcj(conn, accCon, tablename + 1,
+		PcjIntegrationTestingUtil.createAndPopulatePcj(conn, accCon, tablename + 1,
 				indexSparqlString, new String[] { "c", "e", "l" },
 				Optional.<PcjVarOrderFactory> absent());
 
-		new PcjTables().createAndPopulatePcj(conn, accCon, tablename + 2,
+		PcjIntegrationTestingUtil.createAndPopulatePcj(conn, accCon, tablename + 2,
 				indexSparqlString2, new String[] { "e", "o", "f", "c", "l" },
 				Optional.<PcjVarOrderFactory> absent());
 
@@ -966,7 +965,7 @@ public class AccumuloPcjIntegrationTest {
 		final CountingResultHandler crh1 = new CountingResultHandler();
 		final CountingResultHandler crh2 = new CountingResultHandler();
 
-		new PcjTables().createAndPopulatePcj(conn, accCon, tablename + 1,
+		PcjIntegrationTestingUtil.createAndPopulatePcj(conn, accCon, tablename + 1,
 				indexSparqlString, new String[] { "dog", "pig", "duck" },
 				Optional.<PcjVarOrderFactory> absent());
 
@@ -1025,11 +1024,11 @@ public class AccumuloPcjIntegrationTest {
 		final CountingResultHandler crh1 = new CountingResultHandler();
 		final CountingResultHandler crh2 = new CountingResultHandler();
 
-		new PcjTables().createAndPopulatePcj(conn, accCon, tablename + 1,
+		PcjIntegrationTestingUtil.createAndPopulatePcj(conn, accCon, tablename + 1,
 				indexSparqlString, new String[] { "dog", "pig", "duck" },
 				Optional.<PcjVarOrderFactory> absent());
 
-		new PcjTables().createAndPopulatePcj(conn, accCon, tablename + 2,
+		PcjIntegrationTestingUtil.createAndPopulatePcj(conn, accCon, tablename + 2,
 				indexSparqlString2, new String[] { "o", "f", "e", "c", "l" },
 				Optional.<PcjVarOrderFactory> absent());
 
@@ -1074,14 +1073,14 @@ public class AccumuloPcjIntegrationTest {
 				+ "}";//
 
 
-		new PcjTables().createAndPopulatePcj(conn, accCon, tablename + 1,
+		PcjIntegrationTestingUtil.createAndPopulatePcj(conn, accCon, tablename + 1,
 				indexSparqlString, new String[] { "dog", "pig", "duck" },
 				Optional.<PcjVarOrderFactory> absent());
 
 		final AccumuloIndexSet ais1 = new AccumuloIndexSet(accCon,
 				tablename + 1);
 
-		new PcjTables().createAndPopulatePcj(conn, accCon, tablename + 2,
+		PcjIntegrationTestingUtil.createAndPopulatePcj(conn, accCon, tablename + 2,
 				indexSparqlString2, new String[] { "o", "f", "e", "c", "l" },
 				Optional.<PcjVarOrderFactory> absent());
 
@@ -1189,11 +1188,11 @@ public class AccumuloPcjIntegrationTest {
 		final CountingResultHandler crh1 = new CountingResultHandler();
 		final CountingResultHandler crh2 = new CountingResultHandler();
 
-		new PcjTables().createAndPopulatePcj(conn, accCon, tablename+1,
+		PcjIntegrationTestingUtil.createAndPopulatePcj(conn, accCon, tablename+1,
 				indexSparqlString, new String[] { "dog", "pig", "duck" },
 				Optional.<PcjVarOrderFactory> absent());
 
-		new PcjTables().createAndPopulatePcj(conn, accCon, tablename+2,
+		PcjIntegrationTestingUtil.createAndPopulatePcj(conn, accCon, tablename+2,
 				indexSparqlString2, new String[] { "o", "f", "e", "c", "l" },
 				Optional.<PcjVarOrderFactory> absent());
 
@@ -1248,13 +1247,13 @@ public class AccumuloPcjIntegrationTest {
 				+ "  ?c a ?f . " //
 				+ "}";//
 
-		new PcjTables().createAndPopulatePcj(conn, accCon, tablename+1,
+		PcjIntegrationTestingUtil.createAndPopulatePcj(conn, accCon, tablename+1,
 				indexSparqlString, new String[] { "dog", "pig", "duck" },
 				Optional.<PcjVarOrderFactory> absent());
 
 		final AccumuloIndexSet ais1 = new AccumuloIndexSet(accCon, tablename+1);
 
-		new PcjTables().createAndPopulatePcj(conn, accCon, tablename+2,
+		PcjIntegrationTestingUtil.createAndPopulatePcj(conn, accCon, tablename+2,
 				indexSparqlString2, new String[] { "o", "f", "e", "c", "l" },
 				Optional.<PcjVarOrderFactory> absent());
 
@@ -1342,19 +1341,19 @@ public class AccumuloPcjIntegrationTest {
 				+ "  ?f <uri:subType> ?o. "//
 				+ "}";//
 
-		new PcjTables().createAndPopulatePcj(conn, accCon, tablename+1,
+		PcjIntegrationTestingUtil.createAndPopulatePcj(conn, accCon, tablename+1,
 				indexSparqlString, new String[] { "dog", "pig", "duck" },
 				Optional.<PcjVarOrderFactory> absent());
 
 		final AccumuloIndexSet ais1 = new AccumuloIndexSet(accCon, tablename+1);
 
-		new PcjTables().createAndPopulatePcj(conn, accCon, tablename+2,
+		PcjIntegrationTestingUtil.createAndPopulatePcj(conn, accCon, tablename+2,
 				indexSparqlString2, new String[] { "o", "f", "e", "c", "l" },
 				Optional.<PcjVarOrderFactory> absent());
 
 		final AccumuloIndexSet ais2 = new AccumuloIndexSet(accCon, tablename+2);
 
-		new PcjTables().createAndPopulatePcj(conn, accCon, tablename+3,
+		PcjIntegrationTestingUtil.createAndPopulatePcj(conn, accCon, tablename+3,
 				indexSparqlString3,
 				new String[] { "wolf", "sheep", "chicken" },
 				Optional.<PcjVarOrderFactory> absent());

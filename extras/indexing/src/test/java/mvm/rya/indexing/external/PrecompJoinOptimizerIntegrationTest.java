@@ -22,7 +22,6 @@ package mvm.rya.indexing.external;
 import java.util.List;
 
 import mvm.rya.api.persist.RyaDAOException;
-import mvm.rya.indexing.external.tupleSet.PcjTables;
 import mvm.rya.indexing.external.tupleSet.PcjTables.PcjException;
 import mvm.rya.indexing.external.tupleSet.PcjTables.PcjVarOrderFactory;
 
@@ -124,7 +123,7 @@ public class PrecompJoinOptimizerIntegrationTest {
 				+ "  ?e <http://www.w3.org/2000/01/rdf-schema#label> ?l "//
 				+ "}";//
 
-		new PcjTables().createAndPopulatePcj(conn, accCon, tablePrefix
+		PcjIntegrationTestingUtil.createAndPopulatePcj(conn, accCon, tablePrefix
 				+ "INDEX_1", indexSparqlString, new String[] { "e", "l", "c" },
 				Optional.<PcjVarOrderFactory> absent());
 		final String queryString = ""//
@@ -181,10 +180,10 @@ public class PrecompJoinOptimizerIntegrationTest {
 				+ "  ?o <http://www.w3.org/2000/01/rdf-schema#label> ?l "//
 				+ "}";//
 
-		new PcjTables().createAndPopulatePcj(conn, accCon, tablePrefix
+		PcjIntegrationTestingUtil.createAndPopulatePcj(conn, accCon, tablePrefix
 				+ "INDEX_1", indexSparqlString, new String[] { "e", "l", "c" },
 				Optional.<PcjVarOrderFactory> absent());
-		new PcjTables().createAndPopulatePcj(conn, accCon, tablePrefix
+		PcjIntegrationTestingUtil.createAndPopulatePcj(conn, accCon, tablePrefix
 				+ "INDEX_2", indexSparqlString2, new String[] { "e", "l", "o" },
 				Optional.<PcjVarOrderFactory> absent());
 		final CountingResultHandler crh = new CountingResultHandler();
@@ -211,7 +210,7 @@ public class PrecompJoinOptimizerIntegrationTest {
 				+ "  ?e <http://www.w3.org/2000/01/rdf-schema#label> ?l "//
 				+ "}";//
 
-		new PcjTables().createAndPopulatePcj(conn, accCon, tablePrefix
+		PcjIntegrationTestingUtil.createAndPopulatePcj(conn, accCon, tablePrefix
 				+ "INDEX_1", indexSparqlString, new String[] { "e", "l", "c" },
 				Optional.<PcjVarOrderFactory> absent());
 		final String queryString = ""//
@@ -252,7 +251,7 @@ public class PrecompJoinOptimizerIntegrationTest {
 				+ "  ?e <http://www.w3.org/2000/01/rdf-schema#label> ?l "//
 				+ "}";//
 
-		new PcjTables().createAndPopulatePcj(conn, accCon, tablePrefix
+		PcjIntegrationTestingUtil.createAndPopulatePcj(conn, accCon, tablePrefix
 				+ "INDEX_2", indexSparqlString2, new String[] { "e", "l", "c" },
 				Optional.<PcjVarOrderFactory> absent());
 
@@ -299,7 +298,7 @@ public class PrecompJoinOptimizerIntegrationTest {
 		conn.add(sub3, RDF.TYPE, subclass3);
 		conn.add(sub3, RDFS.LABEL, new LiteralImpl("label3"));
 
-		new PcjTables().createAndPopulatePcj(conn, accCon, tablePrefix
+		PcjIntegrationTestingUtil.createAndPopulatePcj(conn, accCon, tablePrefix
 				+ "INDEX_1", indexSparqlString1, new String[] { "e", "l", "c" },
 				Optional.<PcjVarOrderFactory> absent());
 		final String queryString = ""//
@@ -362,10 +361,10 @@ public class PrecompJoinOptimizerIntegrationTest {
 				+ " UNION { ?e <uri:talksTo> ?o .  ?o <http://www.w3.org/2000/01/rdf-schema#label> ?l  }"//
 				+ "}";//
 
-		new PcjTables().createAndPopulatePcj(conn, accCon, tablePrefix
+		PcjIntegrationTestingUtil.createAndPopulatePcj(conn, accCon, tablePrefix
 				+ "INDEX_1", indexSparqlString, new String[] { "e", "l", "o" },
 				Optional.<PcjVarOrderFactory> absent());
-		new PcjTables().createAndPopulatePcj(conn, accCon, tablePrefix
+		PcjIntegrationTestingUtil.createAndPopulatePcj(conn, accCon, tablePrefix
 				+ "INDEX_2", indexSparqlString2, new String[] { "e", "l", "o" },
 				Optional.<PcjVarOrderFactory> absent());
 
@@ -427,10 +426,10 @@ public class PrecompJoinOptimizerIntegrationTest {
 				+ " UNION { ?e <uri:talksTo> ?o .  ?o <http://www.w3.org/2000/01/rdf-schema#label> ?l  }}"//
 				+ "}";//
 
-		new PcjTables().createAndPopulatePcj(conn, accCon, tablePrefix
+		PcjIntegrationTestingUtil.createAndPopulatePcj(conn, accCon, tablePrefix
 				+ "INDEX_1", indexSparqlString, new String[] { "e", "l", "o" },
 				Optional.<PcjVarOrderFactory> absent());
-		new PcjTables().createAndPopulatePcj(conn, accCon, tablePrefix
+		PcjIntegrationTestingUtil.createAndPopulatePcj(conn, accCon, tablePrefix
 				+ "INDEX_2", indexSparqlString2, new String[] { "e", "l", "o" },
 				Optional.<PcjVarOrderFactory> absent());
 

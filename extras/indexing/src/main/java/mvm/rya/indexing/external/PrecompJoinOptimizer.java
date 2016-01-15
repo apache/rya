@@ -24,7 +24,6 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
 
 import mvm.rya.api.RdfCloudTripleStoreConfiguration;
@@ -37,25 +36,22 @@ import mvm.rya.indexing.accumulo.ConfigUtils;
 import mvm.rya.indexing.external.QueryVariableNormalizer.VarCollector;
 import mvm.rya.indexing.external.tupleSet.AccumuloIndexSet;
 import mvm.rya.indexing.external.tupleSet.ExternalTupleSet;
+import mvm.rya.indexing.external.tupleSet.PcjTables;
+import mvm.rya.indexing.external.tupleSet.PcjTables.PcjException;
 import mvm.rya.rdftriplestore.inference.DoNotExpandSP;
 import mvm.rya.rdftriplestore.utils.FixedStatementPattern;
 
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
 import org.apache.accumulo.core.client.Connector;
-import org.apache.accumulo.core.client.Scanner;
 import org.apache.accumulo.core.client.TableNotFoundException;
-import org.apache.accumulo.core.data.Key;
-import org.apache.accumulo.core.data.Range;
-import org.apache.accumulo.core.data.Value;
-import org.apache.accumulo.core.security.Authorizations;
 import org.apache.hadoop.conf.Configurable;
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.io.Text;
 import org.openrdf.query.BindingSet;
 import org.openrdf.query.Dataset;
 import org.openrdf.query.MalformedQueryException;
 import org.openrdf.query.QueryEvaluationException;
+import org.openrdf.query.algebra.BinaryTupleOperator;
 import org.openrdf.query.algebra.BindingSetAssignment;
 import org.openrdf.query.algebra.Difference;
 import org.openrdf.query.algebra.Distinct;
@@ -85,9 +81,23 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 
-//optimizer which matches TupleExpressions associated with pre-computed queries
-//to sub-queries of a given query. Each matched sub-query is replaced by an indexing node
-//to delegate that portion of the query to the pre-computed query index
+/**
+ * {@link QueryOptimizer} which matches TupleExpressions associated with
+ * pre-computed queries to sub-queries of a given query. Each matched sub-query
+ * is replaced by an indexing node to delegate that portion of the query to the
+ * pre-computed query index.
+ * <p>
+ *
+ * A query can be broken up into "Join segments", which subsets of the query
+ * joined only by {@link Join} nodes. Any portions of the query that are
+ * attached by {@link BinaryTupleOperator} or {@link UnaryTupleOperator} nodes other
+ * than a Join node mark the beginning of a new Join segment. Pre-computed query
+ * indices, or {@link ExternalTupleset} objects, are compared against the query
+ * nodes in each of its Join segments and replace any nodes which match the
+ * nodes in the ExternalTupleSet's TupleExpr.
+ *
+ */
+
 public class PrecompJoinOptimizer implements QueryOptimizer, Configurable {
 
 	private List<ExternalTupleSet> indexSet;
@@ -103,7 +113,7 @@ public class PrecompJoinOptimizer implements QueryOptimizer, Configurable {
 			indexSet = getAccIndices(conf);
 		} catch (MalformedQueryException | SailException
 				| QueryEvaluationException | TableNotFoundException
-				| AccumuloException | AccumuloSecurityException e) {
+				| AccumuloException | AccumuloSecurityException | PcjException e) {
 			e.printStackTrace();
 		}
 		init = true;
@@ -124,7 +134,8 @@ public class PrecompJoinOptimizer implements QueryOptimizer, Configurable {
 				indexSet = getAccIndices(conf);
 			} catch (MalformedQueryException | SailException
 					| QueryEvaluationException | TableNotFoundException
-					| AccumuloException | AccumuloSecurityException e) {
+					| AccumuloException | AccumuloSecurityException
+					| PcjException e) {
 				e.printStackTrace();
 			}
 			init = true;
@@ -136,6 +147,13 @@ public class PrecompJoinOptimizer implements QueryOptimizer, Configurable {
 		return conf;
 	}
 
+	/**
+	 * @param tupleExpr
+	 *            -- query whose query plan will be optimized -- specified
+	 *            ExternalTupleSet nodes contained in will be placed in query
+	 *            plan where an ExternalTupleSet TupleExpr matches the query's
+	 *            sub-query
+	 */
 	@Override
 	public void optimize(TupleExpr tupleExpr, Dataset dataset,
 			BindingSet bindings) {
@@ -202,6 +220,14 @@ public class PrecompJoinOptimizer implements QueryOptimizer, Configurable {
 		}
 	}
 
+	/**
+	 * Given a list of @ ExternalTuleSet} , this visitor navigates the query
+	 * {@link TupleExpr} specified in the
+	 * {@link PrecompJoinOptimizer#optimize(TupleExpr, Dataset, BindingSet) and
+	 * matches the TupleExpr in the ExternalTupleSet with sub-queries of the
+	 * query and replaces the sub-query with the ExternalTupleSet node.
+	 *
+	 */
 	protected class JoinVisitor extends QueryModelVisitorBase<RuntimeException> {
 
 		private List<ExternalTupleSet> tupList;
@@ -356,13 +382,23 @@ public class PrecompJoinOptimizer implements QueryOptimizer, Configurable {
 			return newJoin;
 		}
 
+		/**
+		 *
+		 * @param joinArgs
+		 *            -- list of non-join nodes contained in the join segment
+		 * @param tupList
+		 *            -- list of indices to match sub-queries in this join
+		 *            segment
+		 * @return updated list of non-join nodes, where any nodes matching an
+		 *         index are replaced by that index
+		 */
 		private List<TupleExpr> matchExternalTupleSets(
 				List<TupleExpr> joinArgs, List<ExternalTupleSet> tupList) {
 
 			List<TupleExpr> bsaList = new ArrayList<>();
 			Set<QueryModelNode> argSet = Sets.newHashSet();
-			for(TupleExpr te: joinArgs) {
-				if(te instanceof BindingSetAssignment) {
+			for (TupleExpr te : joinArgs) {
+				if (te instanceof BindingSetAssignment) {
 					bsaList.add(te);
 				} else {
 					argSet.add(te);
@@ -438,6 +474,16 @@ public class PrecompJoinOptimizer implements QueryOptimizer, Configurable {
 			}
 		}
 
+		/**
+		 *
+		 * @param tupleExpr
+		 *            -- the query
+		 * @param joinArgs
+		 *            -- the non-join nodes contained in the join segment
+		 * @param getFilters
+		 *            -- the filters contained in the query
+		 * @return -- the non-join nodes contained in the join segment
+		 */
 		protected List<QueryModelNode> getJoinArgs(TupleExpr tupleExpr,
 				List<QueryModelNode> joinArgs, boolean getFilters) {
 			if (tupleExpr instanceof Join) {
@@ -462,6 +508,18 @@ public class PrecompJoinOptimizer implements QueryOptimizer, Configurable {
 			return joinArgs;
 		}
 	}
+
+	/**
+	 * Relocates filters based on the binding variables contained in the
+	 * {@link Filter}. If you don't specify the FilterRelocator to stop at the
+	 * first {@link Join}, the relocator pushes the filter as far down the query
+	 * plan as possible, checking if the nodes below contain its binding
+	 * variables. If stopAtFirstJoin = true, the Filter is inserted at the first
+	 * Join node encountered. The relocator tracks whether the node stays in the
+	 * join segment or is inserted outside of the Join segment and returns true
+	 * if the Filter stays in the segment and false otherwise.
+	 *
+	 */
 
 	protected static class FilterRelocator extends
 			QueryModelVisitorBase<RuntimeException> {
@@ -657,6 +715,19 @@ public class PrecompJoinOptimizer implements QueryOptimizer, Configurable {
 		}
 	}
 
+	/**
+	 * This method determines whether an index node is valid. Criteria for a
+	 * valid node are that is have two or more {@link StatementPattern} nodes or
+	 * at least one {@link Filter} and one StatementPattern node. Additionally,
+	 * the number of variables in the Filter cannot exceed the number of
+	 * variables among all non-Filter nodes in the TupleExpr. Also, this method
+	 * calls the {@link ValidQueryVisitor} to determine if the
+	 * ExternalTupleSet's TupleExpr contains an invalid node type.
+	 *
+	 * @param node
+	 *            -- typically an {@link ExternalTupleSet} index node
+	 * @return
+	 */
 	private static boolean isTupleValid(QueryModelNode node) {
 
 		final ValidQueryVisitor vqv = new ValidQueryVisitor();
@@ -690,6 +761,11 @@ public class PrecompJoinOptimizer implements QueryOptimizer, Configurable {
 		return nodeVarNames;
 	}
 
+	/**
+	 * A visitor which checks a TupleExpr associated with an ExternalTupleSet to
+	 * determine whether the TupleExpr contains an invalid node.
+	 *
+	 */
 	private static class ValidQueryVisitor extends
 			QueryModelVisitorBase<RuntimeException> {
 
@@ -744,7 +820,7 @@ public class PrecompJoinOptimizer implements QueryOptimizer, Configurable {
 	private static List<ExternalTupleSet> getAccIndices(Configuration conf)
 			throws MalformedQueryException, SailException,
 			QueryEvaluationException, TableNotFoundException,
-			AccumuloException, AccumuloSecurityException {
+			AccumuloException, AccumuloSecurityException, PcjException {
 
 		List<String> tables = null;
 
@@ -756,24 +832,18 @@ public class PrecompJoinOptimizer implements QueryOptimizer, Configurable {
 				.get(RdfCloudTripleStoreConfiguration.CONF_TBL_PREFIX);
 		final Connector c = ConfigUtils.getConnector(conf);
 		final Map<String, String> indexTables = Maps.newLinkedHashMap();
+		PcjTables pcj = new PcjTables();
 
 		if (tables != null && !tables.isEmpty()) {
 			for (final String table : tables) {
-				final Scanner s = c.createScanner(table, new Authorizations());
-				s.setRange(Range.exact(new Text("~SPARQL")));
-				for (final Entry<Key, Value> e : s) {
-					indexTables.put(table, e.getValue().toString());
-				}
+				indexTables
+						.put(table, pcj.getPcjMetadata(c, table).getSparql());
 			}
 		} else {
 			for (final String table : c.tableOperations().list()) {
 				if (table.startsWith(tablePrefix + "INDEX")) {
-					final Scanner s = c.createScanner(table,
-							new Authorizations());
-					s.setRange(Range.exact(new Text("~SPARQL")));
-					for (final Entry<Key, Value> e : s) {
-						indexTables.put(table, e.getValue().toString());
-					}
+					indexTables.put(table, pcj.getPcjMetadata(c, table)
+							.getSparql());
 				}
 			}
 

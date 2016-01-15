@@ -52,7 +52,7 @@ import com.google.common.base.Optional;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
-public class AccumuloIndexSetNewTest {
+public class AccumuloIndexSetTest {
 
 	 protected static Connector accumuloConn = null;
 	 protected RyaSailRepository ryaRepo = null;

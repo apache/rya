@@ -215,35 +215,6 @@ public class AccumuloIndexSet extends ExternalTupleSet implements ExternalBatchi
 	}
 
 
-    @Override
-	public void setSupportedVariableOrderMap(List<String> orders) {
-    	this.setSupportedVariableOrderMap(createSupportedVarOrderMap(orders));
-    }
-
-    /**
-     *
-     * @param orders
-     * @return - map with all possible orders in which results are written to the table
-     */
-    private Map<String, Set<String>> createSupportedVarOrderMap(List<String> orders) {
-        final Map<String, Set<String>> supportedVars = Maps.newHashMap();
-
-        for (final String t : orders) {
-            final String[] tempOrder = t.split(VAR_ORDER_DELIM);
-            final Set<String> varSet = Sets.newHashSet();
-            String u = "";
-            for (final String s : tempOrder) {
-                if(u.length() == 0) {
-                    u = s;
-                } else{
-                    u = u+ VAR_ORDER_DELIM + s;
-                }
-                varSet.add(s);
-                supportedVars.put(u, new HashSet<String>(varSet));
-            }
-        }
-        return supportedVars;
-    }
 
     @Override
     public CloseableIteration<BindingSet,QueryEvaluationException> evaluate(BindingSet bindingset) throws QueryEvaluationException {
@@ -288,8 +259,7 @@ public class AccumuloIndexSet extends ExternalTupleSet implements ExternalBatchi
                 //use varOrder and tableVarMap to set correct scan column
                 localityGroup = orderToLocGroup(fullVarOrder);
             } else {
-                fullVarOrder = Lists.newArrayList(varOrder.get(0).split(VAR_ORDER_DELIM));
-                localityGroup = orderToLocGroup(fullVarOrder);
+                localityGroup = varOrder.get(0);
             }
             apq = new AccumuloPcjQuery(accCon, tablename);
             final ValueMapVisitor vmv = new ValueMapVisitor();

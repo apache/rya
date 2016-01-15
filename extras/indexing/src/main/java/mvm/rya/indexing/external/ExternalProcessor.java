@@ -8,9 +8,9 @@ package mvm.rya.indexing.external;
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- * 
+ *
  *   http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -25,7 +25,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import mvm.rya.indexing.external.QueryVariableNormalizer.VarCollector;
@@ -42,10 +41,7 @@ import org.openrdf.query.algebra.Var;
 import org.openrdf.query.algebra.helpers.QueryModelVisitorBase;
 import org.openrdf.query.algebra.helpers.StatementPatternCollector;
 
-import com.google.common.collect.BiMap;
-import com.google.common.collect.HashBiMap;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 
 /**
@@ -53,7 +49,7 @@ import com.google.common.collect.Sets;
  */
 public class ExternalProcessor {
 
-    private List<ExternalTupleSet> indexSet;
+    private final List<ExternalTupleSet> indexSet;
 
     public ExternalProcessor(List<ExternalTupleSet> indexSet) {
         this.indexSet = indexSet;
@@ -61,24 +57,24 @@ public class ExternalProcessor {
 
     /**
      * Iterates through list of indexes and replaces all subtrees of query which match index with external tuple object built from index.
-     * 
+     *
      * @param query
      * @return TupleExpr
      */
     public TupleExpr process(TupleExpr query) {
-        TupleExpr rtn = query.clone();
+        final TupleExpr rtn = query.clone();
 
-        
+
         //move BindingSetAssignment Nodes out of the way
         organizeBSAs(rtn);
-        
-        
+
+
         // test to see if query contains no other nodes
         // than filter, join, projection, and statement pattern and
         // test whether query contains duplicate StatementPatterns and filters
         if (isTupleValid(rtn)) {
 
-            for (ExternalTupleSet index : indexSet) {
+            for (final ExternalTupleSet index : indexSet) {
 
                 // test to see if index contains at least one StatementPattern,
                 // that StatementPatterns are unique,
@@ -86,91 +82,37 @@ public class ExternalProcessor {
                 // StatementPattern
                 if (isTupleValid(index.getTupleExpr())) {
 
-                    List<TupleExpr> normalize = getMatches(rtn, index.getTupleExpr());
-                    
-                    for (TupleExpr tup : normalize) {
-                        ExternalTupleSet eTup = (ExternalTupleSet) index.clone();
-                        setTableMap(tup, eTup);
-                        setSupportedVarOrderMap(eTup);
+                    final List<TupleExpr> normalize = getMatches(rtn, index.getTupleExpr());
+
+                    for (final TupleExpr tup : normalize) {
+                        final ExternalTupleSet eTup = (ExternalTupleSet) index.clone();
                         eTup.setProjectionExpr((Projection) tup);
-                        SPBubbleDownVisitor indexVistor = new SPBubbleDownVisitor(eTup);
+                        final SPBubbleDownVisitor indexVistor = new SPBubbleDownVisitor(eTup);
                         rtn.visit(indexVistor);
-                        FilterBubbleManager fbmv = new FilterBubbleManager(eTup);
+                        final FilterBubbleManager fbmv = new FilterBubbleManager(eTup);
                         rtn.visit(fbmv);
-                        SubsetEqualsVisitor subIndexVis = new SubsetEqualsVisitor(eTup);
+                        final SubsetEqualsVisitor subIndexVis = new SubsetEqualsVisitor(eTup);
                         rtn.visit(subIndexVis);
 
                     }
                 }
 
             }
-          
+
             return rtn;
         } else {
             throw new IllegalArgumentException("Invalid Query.");
         }
     }
-    
-    
-    private void setTableMap(TupleExpr tupleMatch, ExternalTupleSet index) {
-        
-        List<String> replacementVars = Lists.newArrayList(tupleMatch.getBindingNames());
-        List<String> tableVars = Lists.newArrayList(index.getTupleExpr().getBindingNames());
-        
-        Map<String,String> tableMap = Maps.newHashMap();
-        
-        for(int i = 0; i < tableVars.size(); i++) {
-            tableMap.put(replacementVars.get(i), tableVars.get(i));
-        }
-        index.setTableVarMap(tableMap);
-          
-        
-    }
-    
-    private void setSupportedVarOrderMap(ExternalTupleSet index) {
 
-        Map<String, Set<String>> supportedVarOrders = Maps.newHashMap();
-        BiMap<String, String> biMap = HashBiMap.create(index.getTableVarMap()).inverse();
-        Map<String, Set<String>> oldSupportedVarOrders = index.getSupportedVariableOrderMap();
-
-        Set<String> temp = null;
-        Set<String> keys = oldSupportedVarOrders.keySet();
-
-        for (String s : keys) {
-            temp = oldSupportedVarOrders.get(s);
-            Set<String> newSet = Sets.newHashSet();
-
-            for (String t : temp) {
-                newSet.add(biMap.get(t));
-            }
-            
-            String[] tempStrings = s.split("\u0000");
-            String v = "";
-            for(String u: tempStrings) {
-                if(v.length() == 0){
-                    v = v + biMap.get(u);
-                } else {
-                    v = v + "\u0000" + biMap.get(u);
-                }
-            }
-
-            supportedVarOrders.put(v, newSet);
-
-        }
-
-        index.setSupportedVariableOrderMap(supportedVarOrders);
-
-    }
-    
-    
 
     private List<TupleExpr> getMatches(TupleExpr query, TupleExpr tuple) {
 
         try {
-            List<TupleExpr> list = QueryVariableNormalizer.getNormalizedIndex(query, tuple);
+            final List<TupleExpr> list = QueryVariableNormalizer.getNormalizedIndex(query, tuple);
            // System.out.println("Match list is " + list);
             return list;
-        } catch (Exception e) {
+        } catch (final Exception e) {
             System.out.println(e);
         }
 
@@ -185,17 +127,17 @@ public class ExternalProcessor {
     // appearing in a Filter must appear in a StatementPattern.
     private static boolean isTupleValid(QueryModelNode node) {
 
-        ValidQueryVisitor vqv = new ValidQueryVisitor();
+        final ValidQueryVisitor vqv = new ValidQueryVisitor();
         node.visit(vqv);
 
-        Set<String> spVars = getVarNames(getQNodes("sp", node));
+        final Set<String> spVars = getVarNames(getQNodes("sp", node));
 
-        if (vqv.isValid() && (spVars.size() > 0)) {
+        if (vqv.isValid() && spVars.size() > 0) {
 
-            FilterCollector fvis = new FilterCollector();
+            final FilterCollector fvis = new FilterCollector();
             node.visit(fvis);
-            List<QueryModelNode> fList = fvis.getFilters();
-            return (fList.size() == Sets.newHashSet(fList).size() && getVarNames(fList).size() <= spVars.size());
+            final List<QueryModelNode> fList = fvis.getFilters();
+            return fList.size() == Sets.newHashSet(fList).size() && getVarNames(fList).size() <= spVars.size();
 
         } else {
             return false;
@@ -203,17 +145,17 @@ public class ExternalProcessor {
     }
 
     private static Set<QueryModelNode> getQNodes(QueryModelNode queryNode) {
-        Set<QueryModelNode> rtns = new HashSet<QueryModelNode>();
+        final Set<QueryModelNode> rtns = new HashSet<QueryModelNode>();
 
-        StatementPatternCollector spc = new StatementPatternCollector();
+        final StatementPatternCollector spc = new StatementPatternCollector();
         queryNode.visit(spc);
         rtns.addAll(spc.getStatementPatterns());
 
-        FilterCollector fvis = new FilterCollector();
+        final FilterCollector fvis = new FilterCollector();
         queryNode.visit(fvis);
         rtns.addAll(fvis.getFilters());
 
-        ExternalTupleCollector eVis = new ExternalTupleCollector();
+        final ExternalTupleCollector eVis = new ExternalTupleCollector();
         queryNode.visit(eVis);
         rtns.addAll(eVis.getExtTup());
 
@@ -223,10 +165,10 @@ public class ExternalProcessor {
     private static Set<QueryModelNode> getQNodes(String node, QueryModelNode queryNode) {
 
         if (node.equals("sp")) {
-            Set<QueryModelNode> eSet = new HashSet<QueryModelNode>();
-            StatementPatternCollector spc = new StatementPatternCollector();
+            final Set<QueryModelNode> eSet = new HashSet<QueryModelNode>();
+            final StatementPatternCollector spc = new StatementPatternCollector();
             queryNode.visit(spc);
-            List<StatementPattern> spList = spc.getStatementPatterns();
+            final List<StatementPattern> spList = spc.getStatementPatterns();
             eSet.addAll(spList);
             // returns empty set if list contains duplicate StatementPatterns
             if (spList.size() > eSet.size()) {
@@ -236,7 +178,7 @@ public class ExternalProcessor {
             }
         } else if (node.equals("filter")) {
 
-            FilterCollector fvis = new FilterCollector();
+            final FilterCollector fvis = new FilterCollector();
             queryNode.visit(fvis);
 
             return Sets.newHashSet(fvis.getFilters());
@@ -250,8 +192,8 @@ public class ExternalProcessor {
     // query tree.
     private static class SPBubbleDownVisitor extends QueryModelVisitorBase<RuntimeException> {
 
-        private TupleExpr tuple;
-        private QueryModelNode indexQNode;
+        private final TupleExpr tuple;
+        private final QueryModelNode indexQNode;
         private Set<QueryModelNode> sSet = Sets.newHashSet();
 
         public SPBubbleDownVisitor(ExternalTupleSet index) {
@@ -262,25 +204,27 @@ public class ExternalProcessor {
 
         }
 
-        public void meet(Projection node) {
+        @Override
+		public void meet(Projection node) {
             // moves external tuples above statement patterns before attempting
             // to bubble down index statement patterns found in query tree
-            
+
             organizeExtTuples(node);
-            
+
             super.meet(node);
         }
 
-        public void meet(Join node) {
+        @Override
+		public void meet(Join node) {
             // if right node contained in index, move it to bottom of query tree
             if (sSet.contains(node.getRightArg())) {
 
-                Set<QueryModelNode> eSet = getQNodes("sp", node);
-                Set<QueryModelNode> compSet = Sets.difference(eSet, sSet);
+                final Set<QueryModelNode> eSet = getQNodes("sp", node);
+                final Set<QueryModelNode> compSet = Sets.difference(eSet, sSet);
 
                 if (eSet.containsAll(sSet)) {
 
-                    QNodeExchanger qne = new QNodeExchanger(node.getRightArg(), compSet);
+                    final QNodeExchanger qne = new QNodeExchanger(node.getRightArg(), compSet);
                     node.visit(qne);
                     node.replaceChildNode(node.getRightArg(), qne.getReplaced());
 
@@ -291,12 +235,12 @@ public class ExternalProcessor {
             // if left node contained in index, move it to bottom of query tree
             else if (sSet.contains(node.getLeftArg())) {
 
-                Set<QueryModelNode> eSet = getQNodes("sp", node);
-                Set<QueryModelNode> compSet = Sets.difference(eSet, sSet);
+                final Set<QueryModelNode> eSet = getQNodes("sp", node);
+                final Set<QueryModelNode> compSet = Sets.difference(eSet, sSet);
 
                 if (eSet.containsAll(sSet)) {
 
-                    QNodeExchanger qne = new QNodeExchanger(node.getLeftArg(), compSet);
+                    final QNodeExchanger qne = new QNodeExchanger(node.getLeftArg(), compSet);
                     node.visit(qne);
                     node.replaceChildNode(node.getLeftArg(), qne.getReplaced());
 
@@ -314,10 +258,10 @@ public class ExternalProcessor {
         // StatementPatterns
         private static void organizeExtTuples(QueryModelNode node) {
 
-            ExternalTupleCollector eVis = new ExternalTupleCollector();
+            final ExternalTupleCollector eVis = new ExternalTupleCollector();
             node.visit(eVis);
 
-            ExtTupleExchangeVisitor oev = new ExtTupleExchangeVisitor(eVis.getExtTup());
+            final ExtTupleExchangeVisitor oev = new ExtTupleExchangeVisitor(eVis.getExtTup());
             node.visit(oev);
         }
 
@@ -331,8 +275,8 @@ public class ExternalProcessor {
     private static class QNodeExchanger extends QueryModelVisitorBase<RuntimeException> {
 
         private QueryModelNode toBeReplaced;
-        private QueryModelNode replacement;
-        private Set<QueryModelNode> compSet;
+        private final QueryModelNode replacement;
+        private final Set<QueryModelNode> compSet;
 
         public QNodeExchanger(QueryModelNode replacement, Set<QueryModelNode> compSet) {
             this.replacement = replacement;
@@ -344,7 +288,8 @@ public class ExternalProcessor {
             return toBeReplaced;
         }
 
-        public void meet(Join node) {
+        @Override
+		public void meet(Join node) {
 
             if (compSet.contains(node.getRightArg())) {
                 this.toBeReplaced = node.getRightArg();
@@ -372,8 +317,8 @@ public class ExternalProcessor {
     //could lead to problems if filter optimizer called before external processor
     private static class FilterBubbleDownVisitor extends QueryModelVisitorBase<RuntimeException> {
 
-        private QueryModelNode filter;
-        private Set<QueryModelNode> compSet;
+        private final QueryModelNode filter;
+        private final Set<QueryModelNode> compSet;
         private boolean filterPlaced = false;
 
         public FilterBubbleDownVisitor(QueryModelNode filter, Set<QueryModelNode> compSet) {
@@ -386,7 +331,8 @@ public class ExternalProcessor {
             return filterPlaced;
         }
 
-        public void meet(Join node) {
+        @Override
+		public void meet(Join node) {
 
             if (!compSet.contains(node.getRightArg())) {
                 // looks for placed to position filter node. if right node is
@@ -394,13 +340,13 @@ public class ExternalProcessor {
                 // and left node is statement pattern node contained in index or
                 // is a join, place
                 // filter above join.
-                if (node.getLeftArg() instanceof Join || !(compSet.contains(node.getLeftArg()))) {
-                    
-                    QueryModelNode pNode = node.getParentNode();
+                if (node.getLeftArg() instanceof Join || !compSet.contains(node.getLeftArg())) {
+
+                    final QueryModelNode pNode = node.getParentNode();
                     ((Filter) filter).setArg(node);
                     pNode.replaceChildNode(node, filter);
                     filterPlaced = true;
-                    
+
                     return;
                 } // otherwise place filter below join and above right arg
                 else {
@@ -410,12 +356,12 @@ public class ExternalProcessor {
                     return;
 
                 }
-            } else if ((node.getLeftArg() instanceof StatementPattern) && !compSet.contains(node.getLeftArg())) {
-                
+            } else if (node.getLeftArg() instanceof StatementPattern && !compSet.contains(node.getLeftArg())) {
+
                 ((Filter) filter).setArg(node.getLeftArg());
                 node.replaceChildNode(node.getLeftArg(), filter);
                 filterPlaced = true;
-                
+
                 return;
             } else {
                 super.meet(node);
@@ -427,12 +373,13 @@ public class ExternalProcessor {
     private static Set<String> getVarNames(Collection<QueryModelNode> nodes) {
 
         List<String> tempVars;
-        Set<String> nodeVarNames = Sets.newHashSet();
+        final Set<String> nodeVarNames = Sets.newHashSet();
 
-        for (QueryModelNode s : nodes) {
+        for (final QueryModelNode s : nodes) {
             tempVars = VarCollector.process(s);
-            for (String t : tempVars)
-                nodeVarNames.add(t);
+            for (final String t : tempVars) {
+				nodeVarNames.add(t);
+			}
         }
         return nodeVarNames;
 
@@ -442,10 +389,10 @@ public class ExternalProcessor {
     // FilterBubbleDownVisitor
     private static class FilterBubbleManager extends QueryModelVisitorBase<RuntimeException> {
 
-        private TupleExpr tuple;
-        private QueryModelNode indexQNode;
+        private final TupleExpr tuple;
+        private final QueryModelNode indexQNode;
         private Set<QueryModelNode> sSet = Sets.newHashSet();
-        private Set<QueryModelNode> bubbledFilters = Sets.newHashSet();
+        private final Set<QueryModelNode> bubbledFilters = Sets.newHashSet();
 
         public FilterBubbleManager(ExternalTupleSet index) {
             this.tuple = index.getTupleExpr();
@@ -454,10 +401,11 @@ public class ExternalProcessor {
 
         }
 
-        public void meet(Filter node) {
+        @Override
+		public void meet(Filter node) {
 
-            Set<QueryModelNode> eSet = getQNodes(node);
-            Set<QueryModelNode> compSet = Sets.difference(eSet, sSet);
+            final Set<QueryModelNode> eSet = getQNodes(node);
+            final Set<QueryModelNode> compSet = Sets.difference(eSet, sSet);
 
             // if index contains filter node and it hasn't already been moved,
             // move it down
@@ -466,17 +414,17 @@ public class ExternalProcessor {
             // and index (assuming that SPBubbleDownVisitor has already been
             // called)
             if (sSet.contains(node.getCondition()) && !bubbledFilters.contains(node.getCondition())) {
-                FilterBubbleDownVisitor fbdv = new FilterBubbleDownVisitor((Filter) node.clone(), compSet);
+                final FilterBubbleDownVisitor fbdv = new FilterBubbleDownVisitor(node.clone(), compSet);
                 node.visit(fbdv);
                 bubbledFilters.add(node.getCondition());
                 // checks if filter correctly placed, and if it has been,
                 // removes old copy of filter
                 if (fbdv.filterPlaced()) {
 
-                    QueryModelNode pNode = node.getParentNode();
-                    TupleExpr cNode = node.getArg();
+                    final QueryModelNode pNode = node.getParentNode();
+                    final TupleExpr cNode = node.getArg();
                     pNode.replaceChildNode(node, cNode);
-                   
+
 
                     super.meetNode(pNode);
                 }
@@ -497,9 +445,9 @@ public class ExternalProcessor {
     // to position the StatementPatterns and Filters.
     private static class SubsetEqualsVisitor extends QueryModelVisitorBase<RuntimeException> {
 
-        private TupleExpr tuple;
-        private QueryModelNode indexQNode;
-        private ExternalTupleSet set;
+        private final TupleExpr tuple;
+        private final QueryModelNode indexQNode;
+        private final ExternalTupleSet set;
         private Set<QueryModelNode> sSet = Sets.newHashSet();
 
         public SubsetEqualsVisitor(ExternalTupleSet index) {
@@ -510,14 +458,15 @@ public class ExternalProcessor {
 
         }
 
-        public void meet(Join node) {
+        @Override
+		public void meet(Join node) {
 
-            Set<QueryModelNode> eSet = getQNodes(node);
+            final Set<QueryModelNode> eSet = getQNodes(node);
 
             if (eSet.containsAll(sSet) && !(node.getRightArg() instanceof BindingSetAssignment)) {
 
 //                System.out.println("Eset is " + eSet + " and sSet is " + sSet);
-                
+
                 if (eSet.equals(sSet)) {
                     node.replaceWith(set);
                     return;
@@ -544,9 +493,10 @@ public class ExternalProcessor {
         }
       //TODO might need to include BindingSetAssignment Condition here
       //to account for index consisting of only filter and BindingSetAssignment nodes
-        public void meet(Filter node) {
+        @Override
+		public void meet(Filter node) {
 
-            Set<QueryModelNode> eSet = getQNodes(node);
+            final Set<QueryModelNode> eSet = getQNodes(node);
 
             if (eSet.containsAll(sSet)) {
 
@@ -571,24 +521,27 @@ public class ExternalProcessor {
             return isValid;
         }
 
-        public void meet(Projection node) {
+        @Override
+		public void meet(Projection node) {
             node.getArg().visit(this);
         }
 
-        public void meet(Filter node) {
+        @Override
+		public void meet(Filter node) {
             node.getArg().visit(this);
         }
-        
-      
-       
-        
-       
-        public void meetNode(QueryModelNode node) {
 
-            if (!((node instanceof Join) || (node instanceof StatementPattern) || (node instanceof BindingSetAssignment) || (node instanceof Var))) {
+
+
+
+
+        @Override
+		public void meetNode(QueryModelNode node) {
+
+            if (!(node instanceof Join || node instanceof StatementPattern || node instanceof BindingSetAssignment || node instanceof Var)) {
                 isValid = false;
                 return;
-           
+
             } else{
                 super.meetNode(node);
             }
@@ -599,20 +552,21 @@ public class ExternalProcessor {
     // repositions ExternalTuples above StatementPatterns within query tree
     private static class ExtTupleExchangeVisitor extends QueryModelVisitorBase<RuntimeException> {
 
-        private Set<QueryModelNode> extTuples;
+        private final Set<QueryModelNode> extTuples;
 
         public ExtTupleExchangeVisitor(Set<QueryModelNode> extTuples) {
             this.extTuples = extTuples;
         }
 
-        public void meet(Join queryNode) {
+        @Override
+		public void meet(Join queryNode) {
 
             // if query tree contains external tuples and they are not
             // positioned above statement pattern node
             // reposition
             if (this.extTuples.size() > 0 && !(queryNode.getRightArg() instanceof ExternalTupleSet)
                     && !(queryNode.getRightArg() instanceof BindingSetAssignment)) {
-                QNodeExchanger qnev = new QNodeExchanger((QueryModelNode) queryNode.getRightArg(), this.extTuples);
+                final QNodeExchanger qnev = new QNodeExchanger(queryNode.getRightArg(), this.extTuples);
                 queryNode.visit(qnev);
                 queryNode.setRightArg((TupleExpr)qnev.getReplaced());
                 super.meet(queryNode);
@@ -626,7 +580,7 @@ public class ExternalProcessor {
 
     private static class ExternalTupleCollector extends QueryModelVisitorBase<RuntimeException> {
 
-        private Set<QueryModelNode> eSet = new HashSet<QueryModelNode>();
+        private final Set<QueryModelNode> eSet = new HashSet<QueryModelNode>();
 
         @Override
         public void meetNode(QueryModelNode node) throws RuntimeException {
@@ -644,7 +598,7 @@ public class ExternalProcessor {
 
     private static class FilterCollector extends QueryModelVisitorBase<RuntimeException> {
 
-        private List<QueryModelNode> filterList = Lists.newArrayList();
+        private final List<QueryModelNode> filterList = Lists.newArrayList();
 
         public List<QueryModelNode> getFilters() {
             return filterList;
@@ -660,12 +614,12 @@ public class ExternalProcessor {
 
     private static void organizeBSAs(QueryModelNode node) {
 
-        BindingSetAssignmentCollector bsac = new BindingSetAssignmentCollector();
+        final BindingSetAssignmentCollector bsac = new BindingSetAssignmentCollector();
         node.visit(bsac);
 
         if (bsac.containsBSAs()) {
-            Set<QueryModelNode> bsaSet = bsac.getBindingSetAssignments();
-            BindingSetAssignmentExchangeVisitor bsaev = new BindingSetAssignmentExchangeVisitor(bsaSet);
+            final Set<QueryModelNode> bsaSet = bsac.getBindingSetAssignments();
+            final BindingSetAssignmentExchangeVisitor bsaev = new BindingSetAssignmentExchangeVisitor(bsaSet);
             node.visit(bsaev);
         }
     }
@@ -673,19 +627,20 @@ public class ExternalProcessor {
     // repositions ExternalTuples above StatementPatterns within query tree
     private static class BindingSetAssignmentExchangeVisitor extends QueryModelVisitorBase<RuntimeException> {
 
-        private Set<QueryModelNode> bsas;
+        private final Set<QueryModelNode> bsas;
 
         public BindingSetAssignmentExchangeVisitor(Set<QueryModelNode> bsas) {
             this.bsas = bsas;
         }
 
-        public void meet(Join queryNode) {
+        @Override
+		public void meet(Join queryNode) {
 
             // if query tree contains external tuples and they are not
             // positioned above statement pattern node
             // reposition
             if (this.bsas.size() > 0 && !(queryNode.getRightArg() instanceof BindingSetAssignment)) {
-                QNodeExchanger qnev = new QNodeExchanger((QueryModelNode) queryNode.getRightArg(), bsas);
+                final QNodeExchanger qnev = new QNodeExchanger(queryNode.getRightArg(), bsas);
                 queryNode.visit(qnev);
                 queryNode.replaceChildNode(queryNode.getRightArg(), qnev.getReplaced());
                 super.meet(queryNode);
@@ -696,18 +651,18 @@ public class ExternalProcessor {
         }
 
     }
-        
-        
+
+
     public static class BindingSetAssignmentCollector extends QueryModelVisitorBase<RuntimeException> {
 
-        private Set<QueryModelNode> bindingSetList = Sets.newHashSet();
+        private final Set<QueryModelNode> bindingSetList = Sets.newHashSet();
 
         public Set<QueryModelNode> getBindingSetAssignments() {
             return bindingSetList;
         }
 
         public boolean containsBSAs() {
-            return (bindingSetList.size() > 0);
+            return bindingSetList.size() > 0;
         }
 
         @Override
@@ -722,5 +677,5 @@ public class ExternalProcessor {
     // BindingSetAssignments always removed during creation of ExternalTupleSets within
     // query. There may be cases where this precondition does not hold (all BindingSetAssignments
     // not removed). For now assuming it always holds.
-   
+
 }

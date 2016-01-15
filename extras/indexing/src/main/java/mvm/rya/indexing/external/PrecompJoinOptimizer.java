@@ -8,9 +8,9 @@ package mvm.rya.indexing.external;
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- * 
+ *
  *   http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -18,7 +18,6 @@ package mvm.rya.indexing.external;
  * specific language governing permissions and limitations
  * under the License.
  */
-
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -91,683 +90,704 @@ import com.google.common.collect.Sets;
 //to delegate that portion of the query to the pre-computed query index
 public class PrecompJoinOptimizer implements QueryOptimizer, Configurable {
 
-    private List<ExternalTupleSet> indexSet;
-    private Configuration conf;
-    private boolean init = false;
-    
-    public PrecompJoinOptimizer() {
-    }
-    
-    public PrecompJoinOptimizer(Configuration conf) {
-        this.conf = conf;
-        try {
-            indexSet = getAccIndices(conf);
-            init = true;
-        } catch (MalformedQueryException e) {
-            e.printStackTrace();
-        } catch (SailException e) {
-            e.printStackTrace();
-        } catch (QueryEvaluationException e) {
-            e.printStackTrace();
-        } catch (TableNotFoundException e) {
-            e.printStackTrace();
-        } catch (AccumuloException e) {
-            e.printStackTrace();
-        } catch (AccumuloSecurityException e) {
-            e.printStackTrace();
-        }
-    }
-    
-    public PrecompJoinOptimizer(List<ExternalTupleSet> indices, boolean useOptimalPcj) {
-        this.indexSet = indices;
-        conf = new Configuration();
-        conf.setBoolean(ConfigUtils.USE_OPTIMAL_PCJ, useOptimalPcj);
-    }
-    
-    public void setConf(Configuration conf) {
-        this.conf = conf;
-        if (!init) {
-            try {
-                indexSet = getAccIndices(conf);
-                init = true;
-            } catch (MalformedQueryException e) {
-                e.printStackTrace();
-            } catch (SailException e) {
-                e.printStackTrace();
-            } catch (QueryEvaluationException e) {
-                e.printStackTrace();
-            } catch (TableNotFoundException e) {
-                e.printStackTrace();
-            } catch (AccumuloException e) {
-                e.printStackTrace();
-            } catch (AccumuloSecurityException e) {
-                e.printStackTrace();
-            }
-        }
-    }
-    
-    @Override
-    public Configuration getConf() {
-        return conf;
-    }
-    
+	private List<ExternalTupleSet> indexSet;
+	private Configuration conf;
+	private boolean init = false;
 
-    @Override
-    public void optimize(TupleExpr tupleExpr, Dataset dataset, BindingSet bindings) {
+	public PrecompJoinOptimizer() {
+	}
 
-        IndexedExecutionPlanGenerator iep = new IndexedExecutionPlanGenerator(tupleExpr, indexSet);
-        JoinVisitor jv = new JoinVisitor();
-        
-        if (ConfigUtils.getUseOptimalPCJ(conf) && indexSet.size() > 0) {
-            
-            //get potential relevant index combinations
-            ValidIndexCombinationGenerator vic = new ValidIndexCombinationGenerator(tupleExpr);
-            Iterator<List<ExternalTupleSet>> iter = vic.getValidIndexCombos(iep.getNormalizedIndices());
-            TupleExpr bestTup = null;
-            TupleExpr tempTup = null;
-            double tempCost = 0;
-            double minCost = Double.MAX_VALUE;
-            
-            while (iter.hasNext()) {
-                //apply join visitor to place external index nodes in query
-                TupleExpr clone = tupleExpr.clone();
-                jv.setExternalTupList(iter.next());
-                jv.setSegmentFilters(new ArrayList<Filter>());
-                clone.visit(jv);
-                
-                //get all valid execution plans for given external index combination by considering all 
-                //permutations of nodes in TupleExpr
-                IndexPlanValidator ipv = new IndexPlanValidator(false);
-                Iterator<TupleExpr> validTups = ipv.getValidTuples(TupleReArranger.getTupleReOrderings(clone).iterator());
-                
-                //set valid plan according to a specified cost threshold, where cost depends on specified weights
-                //for number of external index nodes, common variables among joins in execution plan, and number of
-                //external products in execution plan
-                ThreshholdPlanSelector tps = new ThreshholdPlanSelector(tupleExpr);
-                tempTup = tps.getThreshholdQueryPlan(validTups, .4, .5, .2, .3);
-                
-                //choose best threshhold TupleExpr among all index node combinations
-                tempCost = tps.getCost(tempTup, .5, .2, .3);
-                if(tempCost < minCost ) {
-                    minCost = tempCost;
-                    bestTup = tempTup;
-                }    
-            }
-            if (bestTup != null) {
-                ((UnaryTupleOperator) tupleExpr).setArg(((UnaryTupleOperator) bestTup).getArg());
-            }
-            return;
-        } else {
-            if (indexSet.size() > 0) {
-                jv.setExternalTupList(iep.getNormalizedIndices());
-                tupleExpr.visit(jv);
-            }
-            return;
-        }
-    }
+	public PrecompJoinOptimizer(Configuration conf) {
+		this.conf = conf;
+		try {
+			indexSet = getAccIndices(conf);
+		} catch (MalformedQueryException | SailException
+				| QueryEvaluationException | TableNotFoundException
+				| AccumuloException | AccumuloSecurityException e) {
+			e.printStackTrace();
+		}
+		init = true;
+	}
 
-    protected class JoinVisitor extends QueryModelVisitorBase<RuntimeException> {
+	public PrecompJoinOptimizer(List<ExternalTupleSet> indices,
+			boolean useOptimalPcj) {
+		this.indexSet = indices;
+		conf = new Configuration();
+		conf.setBoolean(ConfigUtils.USE_OPTIMAL_PCJ, useOptimalPcj);
+	}
 
-        private List<ExternalTupleSet> tupList;
-        private List<Filter> segmentFilters = Lists.newArrayList();
-        
-        public void setExternalTupList(List<ExternalTupleSet> tupList) {
-            this.tupList = tupList;
-        }
-        
-        public void setSegmentFilters(List<Filter> segmentFilters) {
-            this.segmentFilters = segmentFilters;
-        }
-        
-        @Override
-        public void meet(Join node) {
+	@Override
+	public void setConf(Configuration conf) {
+		this.conf = conf;
+		if (!init) {
+			try {
+				indexSet = getAccIndices(conf);
+			} catch (MalformedQueryException | SailException
+					| QueryEvaluationException | TableNotFoundException
+					| AccumuloException | AccumuloSecurityException e) {
+				e.printStackTrace();
+			}
+			init = true;
+		}
+	}
 
-            //get all filters with bindings in this segment
-            updateFilters(segmentFilters, true);
-            
-            try {
-                if (node.getLeftArg() instanceof FixedStatementPattern && node.getRightArg() instanceof DoNotExpandSP) {
-                    return;
-                }
+	@Override
+	public Configuration getConf() {
+		return conf;
+	}
 
-                //get nodes in this join segment
-                TupleExpr newJoin = null;
-                List<QueryModelNode> args = getJoinArgs(node, new ArrayList<QueryModelNode>(), false);
-                List<TupleExpr> joinArgs = Lists.newArrayList();
-                
-                for (QueryModelNode qNode : args) {
-                    assert (qNode instanceof TupleExpr);
-                    joinArgs.add((TupleExpr) qNode);
-                }
-                
-                //insert all matching ExternalTupleSets in tupList into this segment
-                joinArgs = matchExternalTupleSets(joinArgs, tupList);
+	@Override
+	public void optimize(TupleExpr tupleExpr, Dataset dataset,
+			BindingSet bindings) {
 
-                //push down any filters that have bindings in lower segments
-                //and update the filters in this segment
-                updateFilters(segmentFilters, false);
-                
-                //form join from matching ExternalTupleSets, remaining nodes, and filters
-                //that can't be pushed down any further
-                newJoin = getNewJoin(joinArgs, getFilterChain(segmentFilters));
+		final IndexedExecutionPlanGenerator iep = new IndexedExecutionPlanGenerator(
+				tupleExpr, indexSet);
+		final JoinVisitor jv = new JoinVisitor();
 
-                // Replace old join hierarchy
-                node.replaceWith(newJoin);
+		if (ConfigUtils.getUseOptimalPCJ(conf) && indexSet.size() > 0) {
 
-                //visit remaining nodes to match ExternalTupleSets with nodes further down
-                for (TupleExpr te : joinArgs) {
-                    if (!(te instanceof StatementPattern) && !(te instanceof ExternalTupleSet)) {
-                        segmentFilters = Lists.newArrayList();
-                        te.visit(this);
-                    }
-                }
+			// get potential relevant index combinations
+			final ValidIndexCombinationGenerator vic = new ValidIndexCombinationGenerator(
+					tupleExpr);
+			final Iterator<List<ExternalTupleSet>> iter = vic
+					.getValidIndexCombos(iep.getNormalizedIndices());
+			TupleExpr bestTup = null;
+			TupleExpr tempTup = null;
+			double tempCost = 0;
+			double minCost = Double.MAX_VALUE;
 
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
-        
-        
-        @Override
-        public void meet(Filter node) {
-            segmentFilters.add(node);
-            node.getArg().visit(this);
-        }
+			while (iter.hasNext()) {
+				// apply join visitor to place external index nodes in query
+				final TupleExpr clone = tupleExpr.clone();
+				jv.setExternalTupList(iter.next());
+				jv.setSegmentFilters(new ArrayList<Filter>());
+				clone.visit(jv);
 
-        //chain filters together and return front and back of chain
-        private List<TupleExpr> getFilterChain(List<Filter> filters) {
-            List<TupleExpr> filterTopBottom = Lists.newArrayList();
-            Filter filterChainTop = null;
-            Filter filterChainBottom = null;
-            
-            for (Filter filter: filters) {
-                if (filterChainTop == null) {
-                    filterChainTop = filter;
-                } else if (filterChainBottom == null) {
-                    filterChainBottom = filter;
-                    filterChainTop.setArg(filterChainBottom);
-                } else {
-                    filterChainBottom.setArg(filter);
-                    filterChainBottom = filter;
-                }
-            }
-            if(filterChainTop != null) {
-                filterTopBottom.add(filterChainTop);
-            }
-            if(filterChainBottom != null) {
-                filterTopBottom.add(filterChainBottom);
-            }
-            return filterTopBottom;
-        }
-        
-        //build newJoin node given remaining joinArgs and chain of filters
-        private TupleExpr getNewJoin(List<TupleExpr> args, List<TupleExpr> filterChain) {
-            TupleExpr newJoin;
-            List<TupleExpr> joinArgs = Lists.newArrayList(args);
+				// get all valid execution plans for given external index
+				// combination by considering all
+				// permutations of nodes in TupleExpr
+				final IndexPlanValidator ipv = new IndexPlanValidator(false);
+				final Iterator<TupleExpr> validTups = ipv
+						.getValidTuples(TupleReArranger.getTupleReOrderings(
+								clone).iterator());
 
-            if (joinArgs.size() > 1) {
-                if (filterChain.size() > 0) {
-                    TupleExpr finalJoinArg = joinArgs.remove(0);
-                    TupleExpr tempJoin;
-                    TupleExpr temp = filterChain.get(0);
+				// set valid plan according to a specified cost threshold, where
+				// cost depends on specified weights
+				// for number of external index nodes, common variables among
+				// joins in execution plan, and number of
+				// external products in execution plan
+				final ThreshholdPlanSelector tps = new ThreshholdPlanSelector(
+						tupleExpr);
+				tempTup = tps.getThreshholdQueryPlan(validTups, .4, .5, .2, .3);
 
-                    if (joinArgs.size() > 1) {
-                        tempJoin = new Join(joinArgs.remove(0), joinArgs.remove(0));
-                        for (TupleExpr te : joinArgs) {
-                            tempJoin = new Join(tempJoin, te);
-                        }
-                    } else {
-                        tempJoin = joinArgs.remove(0);
-                    }
+				// choose best threshhold TupleExpr among all index node
+				// combinations
+				tempCost = tps.getCost(tempTup, .5, .2, .3);
+				if (tempCost < minCost) {
+					minCost = tempCost;
+					bestTup = tempTup;
+				}
+			}
+			if (bestTup != null) {
+				((UnaryTupleOperator) tupleExpr)
+						.setArg(((UnaryTupleOperator) bestTup).getArg());
+			}
+			return;
+		} else {
+			if (indexSet.size() > 0) {
+				jv.setExternalTupList(iep.getNormalizedIndices());
+				tupleExpr.visit(jv);
+			}
+			return;
+		}
+	}
 
-                    if (filterChain.size() == 1) {
-                        ((Filter) temp).setArg(tempJoin);
-                    } else {
-                        ((Filter) filterChain.get(1)).setArg(tempJoin);
-                    }
-                    newJoin = new Join(temp, finalJoinArg);
-                } else {
-                    newJoin = new Join(joinArgs.get(0), joinArgs.get(1));
-                    joinArgs.remove(0);
-                    joinArgs.remove(0);
+	protected class JoinVisitor extends QueryModelVisitorBase<RuntimeException> {
 
-                    for (TupleExpr te : joinArgs) {
-                        newJoin = new Join(newJoin, te);
-                    }
-                }
-            } else if (joinArgs.size() == 1) {
-                if (filterChain.size() > 0) {
-                    newJoin = filterChain.get(0);
-                    if (filterChain.size() == 1) {
-                        ((Filter) newJoin).setArg(joinArgs.get(0));
-                    } else {
-                        ((Filter) filterChain.get(1)).setArg(joinArgs.get(0));
-                    }
-                } else {
-                    newJoin = joinArgs.get(0);
-                }
-            } else {
-                throw new IllegalStateException("JoinArgs size cannot be zero.");
-            }
-            return newJoin;
-        }
+		private List<ExternalTupleSet> tupList;
+		private List<Filter> segmentFilters = Lists.newArrayList();
 
-      
-       private List<TupleExpr> matchExternalTupleSets(List<TupleExpr> joinArgs, List<ExternalTupleSet> tupList) {
-           
-           Set<QueryModelNode> argSet = Sets.newHashSet();
-           argSet.addAll(joinArgs);
-           
-           if(argSet.size() < joinArgs.size()) {
-               throw new IllegalArgumentException("Query has duplicate nodes in segment!");
-           }
-           
-           Set<QueryModelNode> firstJoinFilterCond = Sets.newHashSet();
-           
-           for(Filter filter: segmentFilters) {
-               firstJoinFilterCond.add(filter.getCondition());
-           }
-           
-           argSet.addAll(firstJoinFilterCond);
-             
-           //see if ExternalTupleSet nodes are a subset of joinArgs, and if so, replacing matching nodes
-           //with ExternalTupleSet
-            for (ExternalTupleSet tup : tupList) {
-                TupleExpr tupleArg = tup.getTupleExpr();
-                if (isTupleValid(tupleArg)) {
-                    List<QueryModelNode> tupJoinArgs = getJoinArgs(tupleArg, 
-                            new ArrayList<QueryModelNode>(), true);
-                    Set<QueryModelNode> tupJoinArgSet = Sets.newHashSet(tupJoinArgs);
-                    if(tupJoinArgSet.size() < tupJoinArgs.size()) {
-                        throw new IllegalArgumentException("ExternalTuple contains duplicate nodes!");
-                    }
-                    if (argSet.containsAll(tupJoinArgSet)) {
-                        argSet = Sets.newHashSet(Sets.difference(argSet, tupJoinArgSet));
-                        argSet.add((ExternalTupleSet) tup.clone());
-                    }
-                }
-            }
-          
-            //update segment filters by removing those use in ExternalTupleSet
-            Iterator<Filter> iter = segmentFilters.iterator();
-            
-            while(iter.hasNext()) {
-                Filter filt = iter.next();
-                if(!argSet.contains(filt.getCondition())) {
-                    filt.replaceWith(filt.getArg());
-                    iter.remove();
-                }    
-            }
-            
-            //update joinArgs
-            joinArgs = Lists.newArrayList();
-            for(QueryModelNode node: argSet) {
-                if(!(node instanceof ValueExpr)) {
-                    joinArgs.add((TupleExpr)node);
-                }
-            }
-           
-           return joinArgs;
-       }
+		public void setExternalTupList(List<ExternalTupleSet> tupList) {
+			this.tupList = tupList;
+		}
 
-       
-        private void updateFilters(List<Filter> filters, boolean firstJoin) {
+		public void setSegmentFilters(List<Filter> segmentFilters) {
+			this.segmentFilters = segmentFilters;
+		}
 
-            Iterator<Filter> iter = segmentFilters.iterator();
+		@Override
+		public void meet(Join node) {
 
-            while (iter.hasNext()) {
-                if (!FilterRelocator.relocate(iter.next(), firstJoin)) {
-                    iter.remove();
-                }
-            }
-        }
-       
-        protected List<QueryModelNode> getJoinArgs(TupleExpr tupleExpr, List<QueryModelNode> joinArgs, boolean getFilters) {
-            if (tupleExpr instanceof Join) {
-                if (!(((Join) tupleExpr).getLeftArg() instanceof FixedStatementPattern)
-                        && !(((Join) tupleExpr).getRightArg() instanceof DoNotExpandSP)) {
-                    Join join = (Join) tupleExpr;
-                    getJoinArgs(join.getLeftArg(), joinArgs, getFilters);
-                    getJoinArgs(join.getRightArg(), joinArgs, getFilters);
-                } 
-            } else if(tupleExpr instanceof Filter) {
-                if (getFilters) {
-                    joinArgs.add(((Filter) tupleExpr).getCondition());
-                }
-                getJoinArgs(((Filter)tupleExpr).getArg(), joinArgs, getFilters);
-            } else if(tupleExpr instanceof Projection) {
-                getJoinArgs(((Projection)tupleExpr).getArg(), joinArgs, getFilters);
-            } else {
-                joinArgs.add(tupleExpr);
-            }
+			// get all filters with bindings in this segment
+			updateFilters(segmentFilters, true);
 
-            return joinArgs;
-        }
-    }
-    
-    protected static class FilterRelocator extends QueryModelVisitorBase<RuntimeException> {
+			try {
+				if (node.getLeftArg() instanceof FixedStatementPattern
+						&& node.getRightArg() instanceof DoNotExpandSP) {
+					return;
+				}
 
-   
-        protected final Filter filter;
+				// get nodes in this join segment
+				TupleExpr newJoin = null;
+				final List<QueryModelNode> args = getJoinArgs(node,
+						new ArrayList<QueryModelNode>(), false);
+				List<TupleExpr> joinArgs = Lists.newArrayList();
 
-        protected final Set<String> filterVars;
-        private boolean stopAtFirstJoin = false;
-        private boolean isFirstJoinFilter = false;
-        private boolean inSegment = true;
-        
-        
-        public FilterRelocator(Filter filter) {
-            this.filter = filter;
-            filterVars = VarNameCollector.process(filter.getCondition());
-        }
-        
-        public FilterRelocator(Filter filter, boolean stopAtFirstJoin) {
-            this.filter = filter;
-            filterVars = VarNameCollector.process(filter.getCondition());
-            this.stopAtFirstJoin = stopAtFirstJoin;
-        }
-        
-        public static boolean relocate(Filter filter) {
-            FilterRelocator fr = new FilterRelocator(filter);
-            filter.visit(fr);
-            return fr.inSegment;
-        }
-        
-        public static boolean relocate(Filter filter, boolean stopAtFirstJoin) {
-            if (stopAtFirstJoin) {
-                FilterRelocator fr = new FilterRelocator(filter, stopAtFirstJoin);
-                filter.visit(fr);
-                return fr.isFirstJoinFilter;
-            } else {
-                FilterRelocator fr = new FilterRelocator(filter);
-                filter.visit(fr);
-                return fr.inSegment;
-            }
-        }
+				for (final QueryModelNode qNode : args) {
+					assert qNode instanceof TupleExpr;
+					joinArgs.add((TupleExpr) qNode);
+				}
 
-     
-        @Override
-        protected void meetNode(QueryModelNode node) {
-            // By default, do not traverse
-            assert node instanceof TupleExpr;
-            
-            if(node instanceof UnaryTupleOperator) {
-                if (((UnaryTupleOperator)node).getArg().getBindingNames().containsAll(filterVars)) {
-                    if (stopAtFirstJoin) {
-                        ((UnaryTupleOperator) node).getArg().visit(this);
-                    } else {
-                        inSegment = false;
-                        relocate(filter, ((UnaryTupleOperator) node).getArg());
-                    }
-                }
-            }
-            
-            relocate(filter, (TupleExpr) node);
-        }
-       
+				// insert all matching ExternalTupleSets in tupList into this
+				// segment
+				joinArgs = matchExternalTupleSets(joinArgs, tupList);
 
-        @Override
-        public void meet(Join join) {
+				// push down any filters that have bindings in lower segments
+				// and update the filters in this segment
+				updateFilters(segmentFilters, false);
 
-            if (stopAtFirstJoin) {
-                isFirstJoinFilter = true;
-                relocate(filter, join);
-            } else {
+				// form join from matching ExternalTupleSets, remaining nodes,
+				// and filters
+				// that can't be pushed down any further
+				newJoin = getNewJoin(joinArgs, getFilterChain(segmentFilters));
 
-                if (join.getLeftArg().getBindingNames().containsAll(filterVars)) {
-                    // All required vars are bound by the left expr
-                    join.getLeftArg().visit(this);
-                } else if (join.getRightArg().getBindingNames().containsAll(filterVars)) {
-                    // All required vars are bound by the right expr
-                    join.getRightArg().visit(this);
-                } else {
-                    relocate(filter, join);
-                }
-            }
-        }
+				// Replace old join hierarchy
+				node.replaceWith(newJoin);
 
-        @Override
-        public void meet(LeftJoin leftJoin) {
-            
-            if (leftJoin.getLeftArg().getBindingNames().containsAll(filterVars)) {
-                inSegment = false;
-                if (stopAtFirstJoin) {
-                    leftJoin.getLeftArg().visit(this);
-                } else {
-                    relocate(filter, leftJoin.getLeftArg());
-                }
-            }
-            else {
-                relocate(filter, leftJoin);
-            }
-        }
+				// visit remaining nodes to match ExternalTupleSets with nodes
+				// further down
+				for (final TupleExpr te : joinArgs) {
+					if (!(te instanceof StatementPattern)
+							&& !(te instanceof ExternalTupleSet)) {
+						segmentFilters = Lists.newArrayList();
+						te.visit(this);
+					}
+				}
 
-        @Override
-        public void meet(Union union) {
-            Filter clone = new Filter();
-            clone.setCondition(filter.getCondition().clone());
+			} catch (final Exception e) {
+				e.printStackTrace();
+			}
+		}
 
-            relocate(filter, union.getLeftArg());
-            relocate(clone, union.getRightArg());
-            
-            inSegment = false;
+		@Override
+		public void meet(Filter node) {
+			segmentFilters.add(node);
+			node.getArg().visit(this);
+		}
 
-        }
+		// chain filters together and return front and back of chain
+		private List<TupleExpr> getFilterChain(List<Filter> filters) {
+			final List<TupleExpr> filterTopBottom = Lists.newArrayList();
+			Filter filterChainTop = null;
+			Filter filterChainBottom = null;
 
-        @Override
-        public void meet(Difference node) {
-            Filter clone = new Filter();
-            clone.setCondition(filter.getCondition().clone());
-        
-            relocate(filter, node.getLeftArg());
-            relocate(clone, node.getRightArg());
-            
-            inSegment = false;
-        
-        }
+			for (final Filter filter : filters) {
+				filter.replaceWith(filter.getArg());
+				if (filterChainTop == null) {
+					filterChainTop = filter;
+				} else if (filterChainBottom == null) {
+					filterChainBottom = filter;
+					filterChainTop.setArg(filterChainBottom);
+				} else {
+					filterChainBottom.setArg(filter);
+					filterChainBottom = filter;
+				}
+			}
+			if (filterChainTop != null) {
+				filterTopBottom.add(filterChainTop);
+			}
+			if (filterChainBottom != null) {
+				filterTopBottom.add(filterChainBottom);
+			}
+			return filterTopBottom;
+		}
 
-        @Override
-        public void meet(Intersection node) {
-            Filter clone = new Filter();
-            clone.setCondition(filter.getCondition().clone());
-        
-            relocate(filter, node.getLeftArg());
-            relocate(clone, node.getRightArg());
-            
-            inSegment = false;
-        
-        }
+		// build newJoin node given remaining joinArgs and chain of filters
+		private TupleExpr getNewJoin(List<TupleExpr> args,
+				List<TupleExpr> filterChain) {
+			TupleExpr newJoin;
+			final List<TupleExpr> joinArgs = Lists.newArrayList(args);
 
-        @Override
-        public void meet(Extension node) {
-            if (node.getArg().getBindingNames().containsAll(filterVars)) {
-                if (stopAtFirstJoin) {
-                    node.getArg().visit(this);
-                } else {
-                    relocate(filter, node.getArg());
-                    inSegment = false;
-                }
-            }
-            else {
-                relocate(filter, node);
-            }
-        }
+			if (joinArgs.size() > 1) {
+				if (filterChain.size() > 0) {
+					final TupleExpr finalJoinArg = joinArgs.remove(0);
+					TupleExpr tempJoin;
+					final TupleExpr temp = filterChain.get(0);
 
-        @Override
-        public void meet(EmptySet node) {
-            if (filter.getParentNode() != null) {
-                // Remove filter from its original location
-                filter.replaceWith(filter.getArg());
-            }
-        }
+					if (joinArgs.size() > 1) {
+						tempJoin = new Join(joinArgs.remove(0),
+								joinArgs.remove(0));
+						for (final TupleExpr te : joinArgs) {
+							tempJoin = new Join(tempJoin, te);
+						}
+					} else {
+						tempJoin = joinArgs.remove(0);
+					}
 
-        @Override
-        public void meet(Filter filter) {
-            // Filters are commutative
-            filter.getArg().visit(this);
-        }
+					if (filterChain.size() == 1) {
+						((Filter) temp).setArg(tempJoin);
+					} else {
+						((Filter) filterChain.get(1)).setArg(tempJoin);
+					}
+					newJoin = new Join(temp, finalJoinArg);
+				} else {
+					newJoin = new Join(joinArgs.get(0), joinArgs.get(1));
+					joinArgs.remove(0);
+					joinArgs.remove(0);
 
-        @Override
-        public void meet(Distinct node) {
-            node.getArg().visit(this);
-        }
+					for (final TupleExpr te : joinArgs) {
+						newJoin = new Join(newJoin, te);
+					}
+				}
+			} else if (joinArgs.size() == 1) {
+				if (filterChain.size() > 0) {
+					newJoin = filterChain.get(0);
+					if (filterChain.size() == 1) {
+						((Filter) newJoin).setArg(joinArgs.get(0));
+					} else {
+						((Filter) filterChain.get(1)).setArg(joinArgs.get(0));
+					}
+				} else {
+					newJoin = joinArgs.get(0);
+				}
+			} else {
+				throw new IllegalStateException("JoinArgs size cannot be zero.");
+			}
+			return newJoin;
+		}
 
-        @Override
-        public void meet(Order node) {
-            node.getArg().visit(this);
-        }
+		private List<TupleExpr> matchExternalTupleSets(
+				List<TupleExpr> joinArgs, List<ExternalTupleSet> tupList) {
 
-        @Override
-        public void meet(QueryRoot node) {
-            node.getArg().visit(this);
-        }
+			List<TupleExpr> bsaList = new ArrayList<>();
+			Set<QueryModelNode> argSet = Sets.newHashSet();
+			for(TupleExpr te: joinArgs) {
+				if(te instanceof BindingSetAssignment) {
+					bsaList.add(te);
+				} else {
+					argSet.add(te);
+				}
+			}
 
-        @Override
-        public void meet(Reduced node) {
-            node.getArg().visit(this);
-        }
+			if (argSet.size() + bsaList.size() < joinArgs.size()) {
+				throw new IllegalArgumentException(
+						"Query has duplicate nodes in segment!");
+			}
 
-        protected void relocate(Filter filter, TupleExpr newFilterArg) {
-            if (filter.getArg() != newFilterArg) {
-                if (filter.getParentNode() != null) {
-                    // Remove filter from its original location
-                    filter.replaceWith(filter.getArg());
-                }
+			final Set<QueryModelNode> firstJoinFilterCond = Sets.newHashSet();
 
-                // Insert filter at the new location
-                newFilterArg.replaceWith(filter);
-                filter.setArg(newFilterArg);
-            }
-        }
-    }
-    
-    
-    private static boolean isTupleValid(QueryModelNode node) {
+			for (final Filter filter : segmentFilters) {
+				firstJoinFilterCond.add(filter.getCondition());
+			}
 
-        ValidQueryVisitor vqv = new ValidQueryVisitor();
-        node.visit(vqv);
+			argSet.addAll(firstJoinFilterCond);
 
-        if (vqv.isValid() && vqv.getSPs().size() > 1) {   
-            if(vqv.getFilters().size() > 0) {
-                Set<String> spVars = getVarNames(vqv.getSPs());
-                Set<String> fVarNames = getVarNames(vqv.getFilters());
-                //check that all vars contained in filters also occur in SPs
-                return Sets.intersection(fVarNames,spVars).equals(fVarNames);
-            } else {
-                return true;
-            }
-        } else {
-            return false;
-        }
-    }
-    
-    
-    private static Set<String> getVarNames(Collection<QueryModelNode> nodes) {
+			// see if ExternalTupleSet nodes are a subset of joinArgs, and if
+			// so, replacing matching nodes
+			// with ExternalTupleSet
+			for (final ExternalTupleSet tup : tupList) {
+				final TupleExpr tupleArg = tup.getTupleExpr();
+				if (isTupleValid(tupleArg)) {
+					final List<QueryModelNode> tupJoinArgs = getJoinArgs(
+							tupleArg, new ArrayList<QueryModelNode>(), true);
+					final Set<QueryModelNode> tupJoinArgSet = Sets
+							.newHashSet(tupJoinArgs);
+					if (tupJoinArgSet.size() < tupJoinArgs.size()) {
+						throw new IllegalArgumentException(
+								"ExternalTuple contains duplicate nodes!");
+					}
+					if (argSet.containsAll(tupJoinArgSet)) {
+						argSet = Sets.newHashSet(Sets.difference(argSet,
+								tupJoinArgSet));
+						argSet.add(tup.clone());
+					}
+				}
+			}
 
-        List<String> tempVars;
-        Set<String> nodeVarNames = Sets.newHashSet();
+			// update segment filters by removing those use in ExternalTupleSet
+			final Iterator<Filter> iter = segmentFilters.iterator();
 
-        for (QueryModelNode s : nodes) {
-            tempVars = VarCollector.process(s);
-            for (String t : tempVars)
-                nodeVarNames.add(t);
-        }
-        return nodeVarNames;
-    }
-    
-    
-    private static class ValidQueryVisitor extends QueryModelVisitorBase<RuntimeException> {
+			while (iter.hasNext()) {
+				final Filter filt = iter.next();
+				if (!argSet.contains(filt.getCondition())) {
+					filt.replaceWith(filt.getArg());
+					iter.remove();
+				}
+			}
 
-        private boolean isValid = true;
-        private Set<QueryModelNode> filterSet = Sets.newHashSet();
-        private Set<QueryModelNode> spSet = Sets.newHashSet();
-        
-        public Set<QueryModelNode> getFilters() {
-            return filterSet;
-        }
-        
-        public Set<QueryModelNode> getSPs() {
-            return spSet;
-        }
+			// update joinArgs
+			joinArgs = Lists.newArrayList();
+			for (final QueryModelNode node : argSet) {
+				if (!(node instanceof ValueExpr)) {
+					joinArgs.add((TupleExpr) node);
+				}
+			}
+			joinArgs.addAll(bsaList);
 
-        public boolean isValid() {
-            return isValid;
-        }
+			return joinArgs;
+		}
 
-        public void meet(Projection node) {
-            node.getArg().visit(this);
-        }
+		private void updateFilters(List<Filter> filters, boolean firstJoin) {
 
-        @Override
-        public void meet(Filter node) {
-            filterSet.add(node.getCondition());
-            node.getArg().visit(this);
-        }
-        
-        @Override
-        public void meet(StatementPattern node) {
-            spSet.add(node);
-        }
-     
-        public void meetNode(QueryModelNode node) {
+			final Iterator<Filter> iter = segmentFilters.iterator();
 
-            if (!((node instanceof Join) || (node instanceof StatementPattern) || (node instanceof BindingSetAssignment) || 
-                    (node instanceof Var) || (node instanceof Union) || (node instanceof LeftJoin))) {
-                isValid = false;
-                return;
-           
-            } else{
-                super.meetNode(node);
-            }
-        }
+			while (iter.hasNext()) {
+				if (!FilterRelocator.relocate(iter.next(), firstJoin)) {
+					iter.remove();
+				}
+			}
+		}
 
-    }
-    
-    
-    private static List<ExternalTupleSet> getAccIndices(Configuration conf) throws MalformedQueryException,
-            SailException, QueryEvaluationException, TableNotFoundException, AccumuloException,
-            AccumuloSecurityException {
+		protected List<QueryModelNode> getJoinArgs(TupleExpr tupleExpr,
+				List<QueryModelNode> joinArgs, boolean getFilters) {
+			if (tupleExpr instanceof Join) {
+				if (!(((Join) tupleExpr).getLeftArg() instanceof FixedStatementPattern)
+						&& !(((Join) tupleExpr).getRightArg() instanceof DoNotExpandSP)) {
+					final Join join = (Join) tupleExpr;
+					getJoinArgs(join.getLeftArg(), joinArgs, getFilters);
+					getJoinArgs(join.getRightArg(), joinArgs, getFilters);
+				}
+			} else if (tupleExpr instanceof Filter) {
+				if (getFilters) {
+					joinArgs.add(((Filter) tupleExpr).getCondition());
+				}
+				getJoinArgs(((Filter) tupleExpr).getArg(), joinArgs, getFilters);
+			} else if (tupleExpr instanceof Projection) {
+				getJoinArgs(((Projection) tupleExpr).getArg(), joinArgs,
+						getFilters);
+			} else {
+				joinArgs.add(tupleExpr);
+			}
 
-        List<String> tables = null;
+			return joinArgs;
+		}
+	}
 
-        if (conf instanceof RdfCloudTripleStoreConfiguration) {
-            tables = ((RdfCloudTripleStoreConfiguration) conf).getPcjTables();
-        }
+	protected static class FilterRelocator extends
+			QueryModelVisitorBase<RuntimeException> {
 
-        String tablePrefix = conf.get(RdfCloudTripleStoreConfiguration.CONF_TBL_PREFIX);
-        Connector c = ConfigUtils.getConnector(conf);
-        Map<String, String> indexTables = Maps.newLinkedHashMap();
+		protected final Filter filter;
 
-        if (tables != null && !tables.isEmpty()) {
-            for (String table : tables) {
-                Scanner s = c.createScanner(table, new Authorizations());
-                s.setRange(Range.exact(new Text("~SPARQL")));
-                for (Entry<Key, Value> e : s) {
-                    indexTables.put(table, e.getValue().toString());
-                }
-            }
-        } else {
-            for (String table : c.tableOperations().list()) {
-                if (table.startsWith(tablePrefix + "INDEX")) {
-                    Scanner s = c.createScanner(table, new Authorizations());
-                    s.setRange(Range.exact(new Text("~SPARQL")));
-                    for (Entry<Key, Value> e : s) {
-                        indexTables.put(table, e.getValue().toString());
-                    }
-                }
-            }
+		protected final Set<String> filterVars;
+		private boolean stopAtFirstJoin = false;
+		private boolean isFirstJoinFilter = false;
+		private boolean inSegment = true;
 
-        }
-        List<ExternalTupleSet> index = Lists.newArrayList();
+		public FilterRelocator(Filter filter) {
+			this.filter = filter;
+			filterVars = VarNameCollector.process(filter.getCondition());
+		}
 
-        if (indexTables.isEmpty()) {
-            System.out.println("No Index found");
-        } else {
-            for (String table : indexTables.keySet()) {
-                String indexSparqlString = indexTables.get(table);
-                index.add(new AccumuloIndexSet(indexSparqlString, c, table));
-            }
-        }
-        return index;
-    }
+		public FilterRelocator(Filter filter, boolean stopAtFirstJoin) {
+			this.filter = filter;
+			filterVars = VarNameCollector.process(filter.getCondition());
+			this.stopAtFirstJoin = stopAtFirstJoin;
+		}
+
+		public static boolean relocate(Filter filter) {
+			final FilterRelocator fr = new FilterRelocator(filter);
+			filter.visit(fr);
+			return fr.inSegment;
+		}
+
+		public static boolean relocate(Filter filter, boolean stopAtFirstJoin) {
+			if (stopAtFirstJoin) {
+				final FilterRelocator fr = new FilterRelocator(filter,
+						stopAtFirstJoin);
+				filter.visit(fr);
+				return fr.isFirstJoinFilter;
+			} else {
+				final FilterRelocator fr = new FilterRelocator(filter);
+				filter.visit(fr);
+				return fr.inSegment;
+			}
+		}
+
+		@Override
+		protected void meetNode(QueryModelNode node) {
+			// By default, do not traverse
+			assert node instanceof TupleExpr;
+
+			if (node instanceof UnaryTupleOperator) {
+				if (((UnaryTupleOperator) node).getArg().getBindingNames()
+						.containsAll(filterVars)) {
+					if (stopAtFirstJoin) {
+						((UnaryTupleOperator) node).getArg().visit(this);
+					} else {
+						inSegment = false;
+						relocate(filter, ((UnaryTupleOperator) node).getArg());
+					}
+				}
+			}
+
+			relocate(filter, (TupleExpr) node);
+		}
+
+		@Override
+		public void meet(Join join) {
+
+			if (stopAtFirstJoin) {
+				isFirstJoinFilter = true;
+				relocate(filter, join);
+			} else {
+
+				if (join.getLeftArg().getBindingNames().containsAll(filterVars)) {
+					// All required vars are bound by the left expr
+					join.getLeftArg().visit(this);
+				} else if (join.getRightArg().getBindingNames()
+						.containsAll(filterVars)) {
+					// All required vars are bound by the right expr
+					join.getRightArg().visit(this);
+				} else {
+					relocate(filter, join);
+				}
+			}
+		}
+
+		@Override
+		public void meet(LeftJoin leftJoin) {
+
+			if (leftJoin.getLeftArg().getBindingNames().containsAll(filterVars)) {
+				inSegment = false;
+				if (stopAtFirstJoin) {
+					leftJoin.getLeftArg().visit(this);
+				} else {
+					relocate(filter, leftJoin.getLeftArg());
+				}
+			} else {
+				relocate(filter, leftJoin);
+			}
+		}
+
+		@Override
+		public void meet(Union union) {
+			final Filter clone = new Filter();
+			clone.setCondition(filter.getCondition().clone());
+
+			relocate(filter, union.getLeftArg());
+			relocate(clone, union.getRightArg());
+
+			inSegment = false;
+
+		}
+
+		@Override
+		public void meet(Difference node) {
+			final Filter clone = new Filter();
+			clone.setCondition(filter.getCondition().clone());
+
+			relocate(filter, node.getLeftArg());
+			relocate(clone, node.getRightArg());
+
+			inSegment = false;
+
+		}
+
+		@Override
+		public void meet(Intersection node) {
+			final Filter clone = new Filter();
+			clone.setCondition(filter.getCondition().clone());
+
+			relocate(filter, node.getLeftArg());
+			relocate(clone, node.getRightArg());
+
+			inSegment = false;
+
+		}
+
+		@Override
+		public void meet(Extension node) {
+			if (node.getArg().getBindingNames().containsAll(filterVars)) {
+				if (stopAtFirstJoin) {
+					node.getArg().visit(this);
+				} else {
+					relocate(filter, node.getArg());
+					inSegment = false;
+				}
+			} else {
+				relocate(filter, node);
+			}
+		}
+
+		@Override
+		public void meet(EmptySet node) {
+			if (filter.getParentNode() != null) {
+				// Remove filter from its original location
+				filter.replaceWith(filter.getArg());
+			}
+		}
+
+		@Override
+		public void meet(Filter filter) {
+			// Filters are commutative
+			filter.getArg().visit(this);
+		}
+
+		@Override
+		public void meet(Distinct node) {
+			node.getArg().visit(this);
+		}
+
+		@Override
+		public void meet(Order node) {
+			node.getArg().visit(this);
+		}
+
+		@Override
+		public void meet(QueryRoot node) {
+			node.getArg().visit(this);
+		}
+
+		@Override
+		public void meet(Reduced node) {
+			node.getArg().visit(this);
+		}
+
+		protected void relocate(Filter filter, TupleExpr newFilterArg) {
+			if (filter.getArg() != newFilterArg) {
+				if (filter.getParentNode() != null) {
+					// Remove filter from its original location
+					filter.replaceWith(filter.getArg());
+				}
+
+				// Insert filter at the new location
+				newFilterArg.replaceWith(filter);
+				filter.setArg(newFilterArg);
+			}
+		}
+	}
+
+	private static boolean isTupleValid(QueryModelNode node) {
+
+		final ValidQueryVisitor vqv = new ValidQueryVisitor();
+		node.visit(vqv);
+
+		if (vqv.isValid() && vqv.getSPs().size() + vqv.getFilters().size() > 1) {
+			if (vqv.getFilters().size() > 0) {
+				final Set<String> spVars = getVarNames(vqv.getSPs());
+				final Set<String> fVarNames = getVarNames(vqv.getFilters());
+				// check that all vars contained in filters also occur in SPs
+				return Sets.intersection(fVarNames, spVars).equals(fVarNames);
+			} else {
+				return true;
+			}
+		} else {
+			return false;
+		}
+	}
+
+	private static Set<String> getVarNames(Collection<QueryModelNode> nodes) {
+
+		List<String> tempVars;
+		final Set<String> nodeVarNames = Sets.newHashSet();
+
+		for (final QueryModelNode s : nodes) {
+			tempVars = VarCollector.process(s);
+			for (final String t : tempVars) {
+				nodeVarNames.add(t);
+			}
+		}
+		return nodeVarNames;
+	}
+
+	private static class ValidQueryVisitor extends
+			QueryModelVisitorBase<RuntimeException> {
+
+		private boolean isValid = true;
+		private final Set<QueryModelNode> filterSet = Sets.newHashSet();
+		private final Set<QueryModelNode> spSet = Sets.newHashSet();
+
+		public Set<QueryModelNode> getFilters() {
+			return filterSet;
+		}
+
+		public Set<QueryModelNode> getSPs() {
+			return spSet;
+		}
+
+		public boolean isValid() {
+			return isValid;
+		}
+
+		@Override
+		public void meet(Projection node) {
+			node.getArg().visit(this);
+		}
+
+		@Override
+		public void meet(Filter node) {
+			filterSet.add(node.getCondition());
+			node.getArg().visit(this);
+		}
+
+		@Override
+		public void meet(StatementPattern node) {
+			spSet.add(node);
+		}
+
+		@Override
+		public void meetNode(QueryModelNode node) {
+
+			if (!(node instanceof Join || node instanceof StatementPattern
+					|| node instanceof BindingSetAssignment
+					|| node instanceof Var || node instanceof Union || node instanceof LeftJoin)) {
+				isValid = false;
+				return;
+
+			} else {
+				super.meetNode(node);
+			}
+		}
+
+	}
+
+	private static List<ExternalTupleSet> getAccIndices(Configuration conf)
+			throws MalformedQueryException, SailException,
+			QueryEvaluationException, TableNotFoundException,
+			AccumuloException, AccumuloSecurityException {
+
+		List<String> tables = null;
+
+		if (conf instanceof RdfCloudTripleStoreConfiguration) {
+			tables = ((RdfCloudTripleStoreConfiguration) conf).getPcjTables();
+		}
+
+		final String tablePrefix = conf
+				.get(RdfCloudTripleStoreConfiguration.CONF_TBL_PREFIX);
+		final Connector c = ConfigUtils.getConnector(conf);
+		final Map<String, String> indexTables = Maps.newLinkedHashMap();
+
+		if (tables != null && !tables.isEmpty()) {
+			for (final String table : tables) {
+				final Scanner s = c.createScanner(table, new Authorizations());
+				s.setRange(Range.exact(new Text("~SPARQL")));
+				for (final Entry<Key, Value> e : s) {
+					indexTables.put(table, e.getValue().toString());
+				}
+			}
+		} else {
+			for (final String table : c.tableOperations().list()) {
+				if (table.startsWith(tablePrefix + "INDEX")) {
+					final Scanner s = c.createScanner(table,
+							new Authorizations());
+					s.setRange(Range.exact(new Text("~SPARQL")));
+					for (final Entry<Key, Value> e : s) {
+						indexTables.put(table, e.getValue().toString());
+					}
+				}
+			}
+
+		}
+		final List<ExternalTupleSet> index = Lists.newArrayList();
+
+		if (indexTables.isEmpty()) {
+			System.out.println("No Index found");
+		} else {
+			for (final String table : indexTables.keySet()) {
+				final String indexSparqlString = indexTables.get(table);
+				index.add(new AccumuloIndexSet(indexSparqlString, c, table));
+			}
+		}
+		return index;
+	}
 }

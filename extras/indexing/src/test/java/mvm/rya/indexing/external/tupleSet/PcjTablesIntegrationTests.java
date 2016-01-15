@@ -104,12 +104,12 @@ public class PcjTablesIntegrationTests {
         PcjTables pcjs = new PcjTables();
         pcjs.createPcjTable(accumuloConn, pcjTableName, varOrders, sparql);
 
-        // Fetch the PCJMetadata and ensure it has the correct values.
-        final Optional<PcjMetadata> pcjMetadata = pcjs.getPcjMetadata(accumuloConn, pcjTableName);
+        // Fetch the PcjMetadata and ensure it has the correct values.
+        final PcjMetadata pcjMetadata = pcjs.getPcjMetadata(accumuloConn, pcjTableName);
 
         // Ensure the metadata matches the expected value.
-        final PcjMetadata expected = new PcjMetadata(sparql, 10L, varOrders);
-        assertEquals(expected, pcjMetadata.get());
+        final PcjMetadata expected = new PcjMetadata(sparql, 0L, varOrders);
+        assertEquals(expected, pcjMetadata);
     }
 
     /**
@@ -149,6 +149,10 @@ public class PcjTablesIntegrationTests {
         Set<BindingSet> results = Sets.<BindingSet>newHashSet(alice, bob, charlie);
         pcjs.addResults(accumuloConn, pcjTableName, results);
 
+        // Make sure the cardinality was updated.
+        PcjMetadata metadata = pcjs.getPcjMetadata(accumuloConn, pcjTableName);
+        assertEquals(3, metadata.getCardinality());
+
         // Scan Accumulo for the stored results.
         Multimap<String, BindingSet> fetchedResults = loadPcjResults(accumuloConn, pcjTableName);
 
@@ -156,7 +160,6 @@ public class PcjTablesIntegrationTests {
         Multimap<String, BindingSet> expectedResults = HashMultimap.create();
         expectedResults.putAll("name;age", results);
         expectedResults.putAll("age;name", results);
-
         assertEquals(expectedResults, fetchedResults);
     }
 
@@ -203,6 +206,10 @@ public class PcjTablesIntegrationTests {
         // Scan Accumulo for the stored results.
         Multimap<String, BindingSet> fetchedResults = loadPcjResults(accumuloConn, pcjTableName);
 
+        // Make sure the cardinality was updated.
+        PcjMetadata metadata = pcjs.getPcjMetadata(accumuloConn, pcjTableName);
+        assertEquals(3, metadata.getCardinality());
+
         // Ensure the expected results match those that were stored.
         MapBindingSet alice = new MapBindingSet();
         alice.addBinding("name", new URIImpl("http://Alice"));
@@ -221,7 +228,6 @@ public class PcjTablesIntegrationTests {
         Multimap<String, BindingSet> expectedResults = HashMultimap.create();
         expectedResults.putAll("name;age", results);
         expectedResults.putAll("age;name", results);
-
         assertEquals(expectedResults, fetchedResults);
     }
 
@@ -263,6 +269,10 @@ public class PcjTablesIntegrationTests {
         PcjTables pcjs = new PcjTables();
         pcjs.createAndPopulatePcj(ryaConn, accumuloConn, pcjTableName, sparql, new String[]{"name", "age"}, Optional.<PcjVarOrderFactory>absent());
 
+        // Make sure the cardinality was updated.
+        PcjMetadata metadata = pcjs.getPcjMetadata(accumuloConn, pcjTableName);
+        assertEquals(3, metadata.getCardinality());
+
         // Scan Accumulo for the stored results.
         Multimap<String, BindingSet> fetchedResults = loadPcjResults(accumuloConn, pcjTableName);
 
@@ -298,7 +308,7 @@ public class PcjTablesIntegrationTests {
 
         // Get the variable orders the data was written to.
         PcjTables pcjs = new PcjTables();
-        PcjMetadata pcjMetadata = pcjs.getPcjMetadata(accumuloConn, pcjTableName).get();
+        PcjMetadata pcjMetadata = pcjs.getPcjMetadata(accumuloConn, pcjTableName);
 
         // Scan Accumulo for the stored results.
         for(VariableOrder varOrder : pcjMetadata.getVarOrders()) {
@@ -314,7 +324,6 @@ public class PcjTablesIntegrationTests {
 
         return fetchedResults;
     }
-
 
     @After
     public void shutdownMiniResources() {

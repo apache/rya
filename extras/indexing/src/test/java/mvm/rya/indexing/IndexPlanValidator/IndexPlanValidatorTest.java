@@ -23,7 +23,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-import mvm.rya.indexing.external.ExternalProcessor;
+import mvm.rya.indexing.external.PrecompJoinOptimizer;
 import mvm.rya.indexing.external.tupleSet.ExternalTupleSet;
 import mvm.rya.indexing.external.tupleSet.SimpleExternalTupleSet;
 
@@ -86,12 +86,10 @@ public class IndexPlanValidatorTest {
 		index.add(ais1);
 		index.add(ais2);
 
-		ParsedQuery pq = null;
-
-		pq = sp.parseQuery(queryString, null);
-
-		ExternalProcessor processor = new ExternalProcessor(index);
-		TupleExpr tup = processor.process(pq.getTupleExpr());
+		ParsedQuery pq = sp.parseQuery(queryString, null);
+		TupleExpr tup = pq.getTupleExpr().clone();
+		PrecompJoinOptimizer pcj = new PrecompJoinOptimizer(index, false);
+		pcj.optimize(tup, null, null);
 
 		System.out.println("TupleExpr is " + tup);
 
@@ -147,12 +145,10 @@ public class IndexPlanValidatorTest {
 		index.add(ais1);
 		index.add(ais2);
 
-		ParsedQuery pq = null;
-
-		pq = sp.parseQuery(queryString, null);
-
-		ExternalProcessor processor = new ExternalProcessor(index);
-		TupleExpr tup = processor.process(pq.getTupleExpr());
+		ParsedQuery pq = sp.parseQuery(queryString, null);
+		TupleExpr tup = pq.getTupleExpr().clone();
+		PrecompJoinOptimizer pcj = new PrecompJoinOptimizer(index, false);
+		pcj.optimize(tup, null, null);
 
 		System.out.println("TupleExpr is " + tup);
 
@@ -208,12 +204,10 @@ public class IndexPlanValidatorTest {
 		index.add(ais1);
 		index.add(ais2);
 
-		ParsedQuery pq = null;
-
-		pq = sp.parseQuery(queryString, null);
-
-		ExternalProcessor processor = new ExternalProcessor(index);
-		TupleExpr tup = processor.process(pq.getTupleExpr());
+		ParsedQuery pq = sp.parseQuery(queryString, null);
+		TupleExpr tup = pq.getTupleExpr().clone();
+		PrecompJoinOptimizer pcj = new PrecompJoinOptimizer(index, false);
+		pcj.optimize(tup, null, null);
 
 		System.out.println("TupleExpr is " + tup);
 
@@ -269,12 +263,10 @@ public class IndexPlanValidatorTest {
 		index.add(ais1);
 		index.add(ais2);
 
-		ParsedQuery pq = null;
-
-		pq = sp.parseQuery(queryString, null);
-
-		ExternalProcessor processor = new ExternalProcessor(index);
-		TupleExpr tup = processor.process(pq.getTupleExpr());
+		ParsedQuery pq = sp.parseQuery(queryString, null);
+		TupleExpr tup = pq.getTupleExpr().clone();
+		PrecompJoinOptimizer pcj = new PrecompJoinOptimizer(index, false);
+		pcj.optimize(tup, null, null);
 
 		System.out.println("TupleExpr is " + tup);
 
@@ -333,15 +325,10 @@ public class IndexPlanValidatorTest {
 		index.add(ais2);
 		index.add(ais1);
 
-		ParsedQuery pq = null;
-
-		pq = sp.parseQuery(queryString, null);
-
-		System.out.println("query assured binding names are "
-				+ pq.getTupleExpr().getAssuredBindingNames());
-
-		ExternalProcessor processor = new ExternalProcessor(index);
-		TupleExpr tup = processor.process(pq.getTupleExpr());
+		ParsedQuery pq = sp.parseQuery(queryString, null);
+		TupleExpr tup = pq.getTupleExpr().clone();
+		PrecompJoinOptimizer pcj = new PrecompJoinOptimizer(index, false);
+		pcj.optimize(tup, null, null);
 
 		System.out.println("TupleExpr is " + tup);
 
@@ -397,12 +384,10 @@ public class IndexPlanValidatorTest {
 		index.add(ais2);
 		index.add(ais1);
 
-		ParsedQuery pq = null;
-
-		pq = sp.parseQuery(queryString, null);
-
-		ExternalProcessor processor = new ExternalProcessor(index);
-		TupleExpr tup = processor.process(pq.getTupleExpr());
+		ParsedQuery pq = sp.parseQuery(queryString, null);
+		TupleExpr tup = pq.getTupleExpr().clone();
+		PrecompJoinOptimizer pcj = new PrecompJoinOptimizer(index, false);
+		pcj.optimize(tup, null, null);
 
 		System.out.println("TupleExpr is " + tup);
 
@@ -459,14 +444,10 @@ public class IndexPlanValidatorTest {
 		index.add(ais2);
 		index.add(ais1);
 
-		ParsedQuery pq = null;
-
-		pq = sp.parseQuery(queryString, null);
-
-		ExternalProcessor processor = new ExternalProcessor(index);
-		TupleExpr tup = processor.process(pq.getTupleExpr());
-
-		System.out.println("TupleExpr is " + tup);
+		ParsedQuery pq = sp.parseQuery(queryString, null);
+		TupleExpr tup = pq.getTupleExpr().clone();
+		PrecompJoinOptimizer pcj = new PrecompJoinOptimizer(index, false);
+		pcj.optimize(tup, null, null);
 
 		IndexPlanValidator ipv = new IndexPlanValidator(true);
 		Assert.assertEquals(false, ipv.isValid(tup));
@@ -521,14 +502,10 @@ public class IndexPlanValidatorTest {
 		index.add(ais1);
 		index.add(ais2);
 
-		ParsedQuery pq = null;
-
-		pq = sp.parseQuery(queryString, null);
-
-		ExternalProcessor processor = new ExternalProcessor(index);
-		TupleExpr tup = processor.process(pq.getTupleExpr());
-
-		System.out.println("TupleExpr is " + tup);
+		ParsedQuery pq = sp.parseQuery(queryString, null);
+		TupleExpr tup = pq.getTupleExpr().clone();
+		PrecompJoinOptimizer pcj = new PrecompJoinOptimizer(index, false);
+		pcj.optimize(tup, null, null);
 
 		IndexPlanValidator ipv = new IndexPlanValidator(true);
 		Assert.assertEquals(false, ipv.isValid(tup));
@@ -583,14 +560,10 @@ public class IndexPlanValidatorTest {
 		index.add(ais1);
 		index.add(ais2);
 
-		ParsedQuery pq = null;
-
-		pq = sp.parseQuery(queryString, null);
-
-		ExternalProcessor processor = new ExternalProcessor(index);
-		TupleExpr tup = processor.process(pq.getTupleExpr());
-
-		System.out.println("TupleExpr is " + tup);
+		ParsedQuery pq = sp.parseQuery(queryString, null);
+		TupleExpr tup = pq.getTupleExpr().clone();
+		PrecompJoinOptimizer pcj = new PrecompJoinOptimizer(index, false);
+		pcj.optimize(tup, null, null);
 
 		IndexPlanValidator ipv = new IndexPlanValidator(false);
 		Assert.assertEquals(true, ipv.isValid(tup));
@@ -644,14 +617,10 @@ public class IndexPlanValidatorTest {
 		index.add(ais1);
 		index.add(ais2);
 
-		ParsedQuery pq = null;
-
-		pq = sp.parseQuery(queryString, null);
-
-		ExternalProcessor processor = new ExternalProcessor(index);
-		TupleExpr tup = processor.process(pq.getTupleExpr());
-
-		System.out.println("TupleExpr is " + tup);
+		ParsedQuery pq = sp.parseQuery(queryString, null);
+		TupleExpr tup = pq.getTupleExpr().clone();
+		PrecompJoinOptimizer pcj = new PrecompJoinOptimizer(index, false);
+		pcj.optimize(tup, null, null);
 
 		IndexPlanValidator ipv = new IndexPlanValidator(false);
 		Assert.assertEquals(false, ipv.isValid(tup));
@@ -705,14 +674,10 @@ public class IndexPlanValidatorTest {
 		index.add(ais1);
 		index.add(ais2);
 
-		ParsedQuery pq = null;
-
-		pq = sp.parseQuery(queryString, null);
-
-		ExternalProcessor processor = new ExternalProcessor(index);
-		TupleExpr tup = processor.process(pq.getTupleExpr());
-
-		System.out.println("TupleExpr is " + tup);
+		ParsedQuery pq = sp.parseQuery(queryString, null);
+		TupleExpr tup = pq.getTupleExpr().clone();
+		PrecompJoinOptimizer pcj = new PrecompJoinOptimizer(index, false);
+		pcj.optimize(tup, null, null);
 
 		IndexPlanValidator ipv = new IndexPlanValidator(false);
 		Assert.assertEquals(true, ipv.isValid(tup));
@@ -766,14 +731,10 @@ public class IndexPlanValidatorTest {
 		index.add(ais1);
 		index.add(ais2);
 
-		ParsedQuery pq = null;
-
-		pq = sp.parseQuery(queryString, null);
-
-		ExternalProcessor processor = new ExternalProcessor(index);
-		TupleExpr tup = processor.process(pq.getTupleExpr());
-
-		System.out.println("TupleExpr is " + tup);
+		ParsedQuery pq = sp.parseQuery(queryString, null);
+		TupleExpr tup = pq.getTupleExpr().clone();
+		PrecompJoinOptimizer pcj = new PrecompJoinOptimizer(index, false);
+		pcj.optimize(tup, null, null);
 
 		IndexPlanValidator ipv = new IndexPlanValidator(false);
 		Assert.assertEquals(true, ipv.isValid(tup));
@@ -828,14 +789,10 @@ public class IndexPlanValidatorTest {
 		index.add(ais1);
 		index.add(ais2);
 
-		ParsedQuery pq = null;
-
-		pq = sp.parseQuery(queryString, null);
-
-		ExternalProcessor processor = new ExternalProcessor(index);
-		TupleExpr tup = processor.process(pq.getTupleExpr());
-
-		System.out.println("TupleExpr is " + tup);
+		ParsedQuery pq = sp.parseQuery(queryString, null);
+		TupleExpr tup = pq.getTupleExpr().clone();
+		PrecompJoinOptimizer pcj = new PrecompJoinOptimizer(index, false);
+		pcj.optimize(tup, null, null);
 
 		IndexPlanValidator ipv = new IndexPlanValidator(true);
 		Assert.assertEquals(false, ipv.isValid(tup));

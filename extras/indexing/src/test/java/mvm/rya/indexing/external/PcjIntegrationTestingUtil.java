@@ -14,6 +14,7 @@ import org.apache.accumulo.core.client.AccumuloSecurityException;
 import org.apache.accumulo.core.client.Connector;
 import org.apache.accumulo.core.client.TableNotFoundException;
 import org.apache.accumulo.core.client.admin.TableOperations;
+import org.openrdf.query.algebra.BindingSetAssignment;
 import org.openrdf.query.algebra.QueryModelNode;
 import org.openrdf.query.algebra.TupleExpr;
 import org.openrdf.query.algebra.helpers.QueryModelVisitorBase;
@@ -21,6 +22,8 @@ import org.openrdf.repository.RepositoryException;
 import org.openrdf.repository.sail.SailRepository;
 import org.openrdf.repository.sail.SailRepositoryConnection;
 import org.openrdf.sail.Sail;
+
+import com.google.common.collect.Sets;
 
 public class PcjIntegrationTestingUtil {
 
@@ -43,25 +46,6 @@ public class PcjIntegrationTestingUtil {
 		if (ops.exists(prefix + "osp")) {
 			ops.delete(prefix + "osp");
 		}
-	}
-
-	public static class ExternalTupleVisitor extends
-			QueryModelVisitorBase<RuntimeException> {
-
-		private final Set<QueryModelNode> eSet = new HashSet<>();
-
-		@Override
-		public void meetNode(QueryModelNode node) throws RuntimeException {
-			if (node instanceof ExternalTupleSet) {
-				eSet.add(node);
-			}
-			super.meetNode(node);
-		}
-
-		public Set<QueryModelNode> getExtTup() {
-			return eSet;
-		}
-
 	}
 
 	public static SailRepository getPcjRepo(String tablePrefix, String instance)
@@ -101,7 +85,9 @@ public class PcjIntegrationTestingUtil {
 		repo.shutDown();
 	}
 
-	public static void deleteIndexTables(Connector accCon, int tableNum, String prefix) throws AccumuloException, AccumuloSecurityException, TableNotFoundException {
+	public static void deleteIndexTables(Connector accCon, int tableNum,
+			String prefix) throws AccumuloException, AccumuloSecurityException,
+			TableNotFoundException {
 		final TableOperations ops = accCon.tableOperations();
 		final String tablename = prefix + "INDEX_";
 		for (int i = 1; i < tableNum + 1; i++) {
@@ -109,6 +95,46 @@ public class PcjIntegrationTestingUtil {
 				ops.delete(tablename + i);
 			}
 		}
+	}
+
+	public static class BindingSetAssignmentCollector extends
+			QueryModelVisitorBase<RuntimeException> {
+
+		private final Set<QueryModelNode> bindingSetList = Sets.newHashSet();
+
+		public Set<QueryModelNode> getBindingSetAssignments() {
+			return bindingSetList;
+		}
+
+		public boolean containsBSAs() {
+			return bindingSetList.size() > 0;
+		}
+
+		@Override
+		public void meet(BindingSetAssignment node) {
+			bindingSetList.add(node);
+			super.meet(node);
+		}
+
+	}
+
+	public static class ExternalTupleVisitor extends
+			QueryModelVisitorBase<RuntimeException> {
+
+		private final Set<QueryModelNode> eSet = new HashSet<>();
+
+		@Override
+		public void meetNode(QueryModelNode node) throws RuntimeException {
+			if (node instanceof ExternalTupleSet) {
+				eSet.add(node);
+			}
+			super.meetNode(node);
+		}
+
+		public Set<QueryModelNode> getExtTup() {
+			return eSet;
+		}
+
 	}
 
 }

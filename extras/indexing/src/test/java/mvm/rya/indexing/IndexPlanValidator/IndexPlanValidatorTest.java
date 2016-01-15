@@ -70,18 +70,14 @@ public class IndexPlanValidatorTest {
 				+ "}";//
 
 		SPARQLParser sp = new SPARQLParser();
-		ParsedQuery index1 = null;
-		ParsedQuery index2 = null;
-		index1 = sp.parseQuery(indexSparqlString, null);
-		index2 = sp.parseQuery(indexSparqlString2, null);
-
+		ParsedQuery index1 = sp.parseQuery(indexSparqlString, null);
+		ParsedQuery index2 = sp.parseQuery(indexSparqlString2, null);
 		List<ExternalTupleSet> index = Lists.newArrayList();
 
 		SimpleExternalTupleSet ais1 = new SimpleExternalTupleSet(
 				(Projection) index1.getTupleExpr());
 		SimpleExternalTupleSet ais2 = new SimpleExternalTupleSet(
 				(Projection) index2.getTupleExpr());
-		;
 
 		index.add(ais1);
 		index.add(ais2);
@@ -129,10 +125,8 @@ public class IndexPlanValidatorTest {
 				+ "}";//
 
 		SPARQLParser sp = new SPARQLParser();
-		ParsedQuery index1 = null;
-		ParsedQuery index2 = null;
-		index1 = sp.parseQuery(indexSparqlString, null);
-		index2 = sp.parseQuery(indexSparqlString2, null);
+		ParsedQuery index1 = sp.parseQuery(indexSparqlString, null);
+		ParsedQuery index2 = sp.parseQuery(indexSparqlString2, null);
 
 		List<ExternalTupleSet> index = Lists.newArrayList();
 
@@ -140,7 +134,6 @@ public class IndexPlanValidatorTest {
 				(Projection) index1.getTupleExpr());
 		SimpleExternalTupleSet ais2 = new SimpleExternalTupleSet(
 				(Projection) index2.getTupleExpr());
-		;
 
 		index.add(ais1);
 		index.add(ais2);
@@ -188,10 +181,8 @@ public class IndexPlanValidatorTest {
 				+ "}";//
 
 		SPARQLParser sp = new SPARQLParser();
-		ParsedQuery index1 = null;
-		ParsedQuery index2 = null;
-		index1 = sp.parseQuery(indexSparqlString, null);
-		index2 = sp.parseQuery(indexSparqlString2, null);
+		ParsedQuery index1 = sp.parseQuery(indexSparqlString, null);
+		ParsedQuery index2 = sp.parseQuery(indexSparqlString2, null);
 
 		List<ExternalTupleSet> index = Lists.newArrayList();
 
@@ -199,7 +190,6 @@ public class IndexPlanValidatorTest {
 				(Projection) index1.getTupleExpr());
 		SimpleExternalTupleSet ais2 = new SimpleExternalTupleSet(
 				(Projection) index2.getTupleExpr());
-		;
 
 		index.add(ais1);
 		index.add(ais2);
@@ -247,10 +237,8 @@ public class IndexPlanValidatorTest {
 				+ "}";//
 
 		SPARQLParser sp = new SPARQLParser();
-		ParsedQuery index1 = null;
-		ParsedQuery index2 = null;
-		index1 = sp.parseQuery(indexSparqlString, null);
-		index2 = sp.parseQuery(indexSparqlString2, null);
+		ParsedQuery index1 = sp.parseQuery(indexSparqlString, null);
+		ParsedQuery index2 = sp.parseQuery(indexSparqlString2, null);
 
 		List<ExternalTupleSet> index = Lists.newArrayList();
 
@@ -258,7 +246,6 @@ public class IndexPlanValidatorTest {
 				(Projection) index1.getTupleExpr());
 		SimpleExternalTupleSet ais2 = new SimpleExternalTupleSet(
 				(Projection) index2.getTupleExpr());
-		;
 
 		index.add(ais1);
 		index.add(ais2);
@@ -275,67 +262,6 @@ public class IndexPlanValidatorTest {
 
 	}
 
-	@Test
-	public void testEvaluateTwoIndexTwoVarOrder5()
-			throws MalformedQueryException {
-
-		System.out
-				.println("********************Test number 5***************************");
-
-		String indexSparqlString = ""//
-				+ "SELECT ?e ?l ?c  " //
-				+ "{" //
-				+ "  ?e a ?c . "//
-				+ "  ?e <http://www.w3.org/2000/01/rdf-schema#label> ?l "//
-				+ "}";//
-
-		String indexSparqlString2 = ""//
-				+ "SELECT ?l ?o ?e " //
-				+ "{" //
-				+ "  ?o <http://www.w3.org/2000/01/rdf-schema#label> ?l ."//
-				+ "  ?e <uri:talksTo> ?o . "//
-				+ "}";//
-
-		String queryString = ""//
-				+ "SELECT ?e ?c ?l ?o " //
-				+ "{" //
-				+ "  ?e a ?c . "//
-				+ "  ?e <http://www.w3.org/2000/01/rdf-schema#label> ?l . "//
-				+ "  ?e <uri:talksTo> ?o . "//
-				+ "  ?o <http://www.w3.org/2000/01/rdf-schema#label> ?l "//
-				+ "}";//
-
-		SPARQLParser sp = new SPARQLParser();
-		ParsedQuery index1 = null;
-		ParsedQuery index2 = null;
-		index1 = sp.parseQuery(indexSparqlString, null);
-		index2 = sp.parseQuery(indexSparqlString2, null);
-
-		List<ExternalTupleSet> index = Lists.newArrayList();
-
-		SimpleExternalTupleSet ais1 = new SimpleExternalTupleSet(
-				(Projection) index1.getTupleExpr());
-		SimpleExternalTupleSet ais2 = new SimpleExternalTupleSet(
-				(Projection) index2.getTupleExpr());
-
-		System.out.println("Supported variable orders are "
-				+ ais1.getSupportedVariableOrders() + ", "
-				+ ais2.getSupportedVariableOrders());
-
-		index.add(ais2);
-		index.add(ais1);
-
-		ParsedQuery pq = sp.parseQuery(queryString, null);
-		TupleExpr tup = pq.getTupleExpr().clone();
-		PrecompJoinOptimizer pcj = new PrecompJoinOptimizer(index, false);
-		pcj.optimize(tup, null, null);
-
-		System.out.println("TupleExpr is " + tup);
-
-		IndexPlanValidator ipv = new IndexPlanValidator(false);
-		Assert.assertEquals(false, ipv.isValid(tup));
-
-	}
 
 	@Test
 	public void testEvaluateTwoIndexTwoVarOrder6()
@@ -368,10 +294,8 @@ public class IndexPlanValidatorTest {
 				+ "}";//
 
 		SPARQLParser sp = new SPARQLParser();
-		ParsedQuery index1 = null;
-		ParsedQuery index2 = null;
-		index1 = sp.parseQuery(indexSparqlString, null);
-		index2 = sp.parseQuery(indexSparqlString2, null);
+		ParsedQuery index1 = sp.parseQuery(indexSparqlString, null);
+		ParsedQuery index2 = sp.parseQuery(indexSparqlString2, null);
 
 		List<ExternalTupleSet> index = Lists.newArrayList();
 
@@ -379,7 +303,6 @@ public class IndexPlanValidatorTest {
 				(Projection) index1.getTupleExpr());
 		SimpleExternalTupleSet ais2 = new SimpleExternalTupleSet(
 				(Projection) index2.getTupleExpr());
-		;
 
 		index.add(ais2);
 		index.add(ais1);
@@ -428,18 +351,14 @@ public class IndexPlanValidatorTest {
 				+ "}";//
 
 		SPARQLParser sp = new SPARQLParser();
-		ParsedQuery index1 = null;
-		ParsedQuery index2 = null;
-		index1 = sp.parseQuery(indexSparqlString, null);
-		index2 = sp.parseQuery(indexSparqlString2, null);
-
+		ParsedQuery index1 = sp.parseQuery(indexSparqlString, null);
+		ParsedQuery index2 = sp.parseQuery(indexSparqlString2, null);
 		List<ExternalTupleSet> index = Lists.newArrayList();
 
 		SimpleExternalTupleSet ais1 = new SimpleExternalTupleSet(
 				(Projection) index1.getTupleExpr());
 		SimpleExternalTupleSet ais2 = new SimpleExternalTupleSet(
 				(Projection) index2.getTupleExpr());
-		;
 
 		index.add(ais2);
 		index.add(ais1);
@@ -486,10 +405,8 @@ public class IndexPlanValidatorTest {
 				+ "}";//
 
 		SPARQLParser sp = new SPARQLParser();
-		ParsedQuery index1 = null;
-		ParsedQuery index2 = null;
-		index1 = sp.parseQuery(indexSparqlString, null);
-		index2 = sp.parseQuery(indexSparqlString2, null);
+		ParsedQuery index1 = sp.parseQuery(indexSparqlString, null);
+		ParsedQuery index2 = sp.parseQuery(indexSparqlString2, null);
 
 		List<ExternalTupleSet> index = Lists.newArrayList();
 
@@ -497,7 +414,6 @@ public class IndexPlanValidatorTest {
 				(Projection) index1.getTupleExpr());
 		SimpleExternalTupleSet ais2 = new SimpleExternalTupleSet(
 				(Projection) index2.getTupleExpr());
-		;
 
 		index.add(ais1);
 		index.add(ais2);
@@ -544,10 +460,8 @@ public class IndexPlanValidatorTest {
 				+ "}";//
 
 		SPARQLParser sp = new SPARQLParser();
-		ParsedQuery index1 = null;
-		ParsedQuery index2 = null;
-		index1 = sp.parseQuery(indexSparqlString, null);
-		index2 = sp.parseQuery(indexSparqlString2, null);
+		ParsedQuery index1 = sp.parseQuery(indexSparqlString, null);
+		ParsedQuery index2 = sp.parseQuery(indexSparqlString2, null);
 
 		List<ExternalTupleSet> index = Lists.newArrayList();
 
@@ -555,7 +469,6 @@ public class IndexPlanValidatorTest {
 				(Projection) index1.getTupleExpr());
 		SimpleExternalTupleSet ais2 = new SimpleExternalTupleSet(
 				(Projection) index2.getTupleExpr());
-		;
 
 		index.add(ais1);
 		index.add(ais2);
@@ -601,10 +514,8 @@ public class IndexPlanValidatorTest {
 				+ "}";//
 
 		SPARQLParser sp = new SPARQLParser();
-		ParsedQuery index1 = null;
-		ParsedQuery index2 = null;
-		index1 = sp.parseQuery(indexSparqlString, null);
-		index2 = sp.parseQuery(indexSparqlString2, null);
+		ParsedQuery index1 = sp.parseQuery(indexSparqlString, null);
+		ParsedQuery index2 = sp.parseQuery(indexSparqlString2, null);
 
 		List<ExternalTupleSet> index = Lists.newArrayList();
 
@@ -612,7 +523,6 @@ public class IndexPlanValidatorTest {
 				(Projection) index1.getTupleExpr());
 		SimpleExternalTupleSet ais2 = new SimpleExternalTupleSet(
 				(Projection) index2.getTupleExpr());
-		;
 
 		index.add(ais1);
 		index.add(ais2);
@@ -658,10 +568,8 @@ public class IndexPlanValidatorTest {
 				+ "}";//
 
 		SPARQLParser sp = new SPARQLParser();
-		ParsedQuery index1 = null;
-		ParsedQuery index2 = null;
-		index1 = sp.parseQuery(indexSparqlString, null);
-		index2 = sp.parseQuery(indexSparqlString2, null);
+		ParsedQuery index1 = sp.parseQuery(indexSparqlString, null);
+		ParsedQuery index2 = sp.parseQuery(indexSparqlString2, null);
 
 		List<ExternalTupleSet> index = Lists.newArrayList();
 
@@ -669,7 +577,6 @@ public class IndexPlanValidatorTest {
 				(Projection) index1.getTupleExpr());
 		SimpleExternalTupleSet ais2 = new SimpleExternalTupleSet(
 				(Projection) index2.getTupleExpr());
-		;
 
 		index.add(ais1);
 		index.add(ais2);
@@ -715,10 +622,8 @@ public class IndexPlanValidatorTest {
 				+ "}";//
 
 		SPARQLParser sp = new SPARQLParser();
-		ParsedQuery index1 = null;
-		ParsedQuery index2 = null;
-		index1 = sp.parseQuery(indexSparqlString, null);
-		index2 = sp.parseQuery(indexSparqlString2, null);
+		ParsedQuery index1 = sp.parseQuery(indexSparqlString, null);
+		ParsedQuery index2 = sp.parseQuery(indexSparqlString2, null);
 
 		List<ExternalTupleSet> index = Lists.newArrayList();
 
@@ -726,7 +631,6 @@ public class IndexPlanValidatorTest {
 				(Projection) index1.getTupleExpr());
 		SimpleExternalTupleSet ais2 = new SimpleExternalTupleSet(
 				(Projection) index2.getTupleExpr());
-		;
 
 		index.add(ais1);
 		index.add(ais2);
@@ -773,10 +677,8 @@ public class IndexPlanValidatorTest {
 				+ "}";//
 
 		SPARQLParser sp = new SPARQLParser();
-		ParsedQuery index1 = null;
-		ParsedQuery index2 = null;
-		index1 = sp.parseQuery(indexSparqlString, null);
-		index2 = sp.parseQuery(indexSparqlString2, null);
+		ParsedQuery index1 = sp.parseQuery(indexSparqlString, null);
+		ParsedQuery index2 = sp.parseQuery(indexSparqlString2, null);
 
 		List<ExternalTupleSet> index = Lists.newArrayList();
 
@@ -784,7 +686,6 @@ public class IndexPlanValidatorTest {
 				(Projection) index1.getTupleExpr());
 		SimpleExternalTupleSet ais2 = new SimpleExternalTupleSet(
 				(Projection) index2.getTupleExpr());
-		;
 
 		index.add(ais1);
 		index.add(ais2);

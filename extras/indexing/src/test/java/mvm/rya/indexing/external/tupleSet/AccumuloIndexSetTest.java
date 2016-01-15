@@ -566,22 +566,6 @@ public class AccumuloIndexSetTest {
         // Create and populate the PCJ table.
         PcjIntegrationTestingUtil.createAndPopulatePcj(ryaConn, accumuloConn, pcjTableName, sparql, new String[]{"name", "age"}, Optional.<PcjVarOrderFactory>absent());
 
-//        final byte[] rowPrefix = new byte[]{104, 116, 116, 112, 58, 47, 47, 65, 108, 105, 99, 101, 1, 2, 0, 56, 48, 48, 48, 48, 48, 49, 48, 1, 5, 0};
-//
-//        final org.apache.accumulo.core.client.Scanner scanner = accumuloConn.createScanner(pcjTableName, new Authorizations());
-//        scanner.fetchColumnFamily(new Text("name;age"));
-//        scanner.setRange(Range.prefix(new Text("")));
-//
-//        for(final Entry<Key, Value> entry : scanner) {
-//            final byte[] serializedResult = entry.getKey().getRow().getBytes();
-//			if (!entry.getKey().getRow().toString().equals("~SPARQL")) {
-//				final BindingSet result = AccumuloPcjSerializer.deSerialize(
-//						serializedResult, entry.getKey().getColumnFamily()
-//								.toString().split(";"));
-//				System.out.println(entry.getKey().getColumnFamily().toString());
-//				System.out.println(entry.getKey().getRow());
-//			}
-//        }
         final String sparql2 =
                 "SELECT ?x " +
                 "{" +
@@ -616,6 +600,60 @@ public class AccumuloIndexSetTest {
 
         Assert.assertEquals(Sets.<BindingSet>newHashSet(bs2), fetchedResults);
     }
+
+
+
+    @Test
+    public void accumuloIndexSetTestAttemptJoinAccrossTypes() throws Exception {
+        // Load some Triples into Rya.
+        final Set<Statement> triples = new HashSet<>();
+        triples.add( new StatementImpl(new URIImpl("http://Alice"), new URIImpl("http://hasAge"), new NumericLiteralImpl(14, XMLSchema.INTEGER)) );
+        triples.add( new StatementImpl(new URIImpl("http://Alice"), new URIImpl("http://playsSport"), new LiteralImpl("Soccer")) );
+        triples.add( new StatementImpl(new URIImpl("http://Bob"), new URIImpl("http://hasAge"), new NumericLiteralImpl(16, XMLSchema.INTEGER)) );
+        triples.add( new StatementImpl(new URIImpl("http://Bob"), new URIImpl("http://playsSport"), new LiteralImpl("Soccer")) );
+
+        for(final Statement triple : triples) {
+            ryaConn.add(triple);
+        }
+
+        // Create a PCJ table will include those triples in its results.
+        final String sparql =
+                "SELECT ?name ?age " +
+                "{" +
+                  "?name <http://hasAge> ?age." +
+                  "?name <http://playsSport> \"Soccer\" " +
+                "}";
+
+        final String pcjTableName = new PcjTableNameFactory().makeTableName(prefix, "testPcj");
+
+        // Create and populate the PCJ table.
+        PcjIntegrationTestingUtil.createAndPopulatePcj(ryaConn, accumuloConn, pcjTableName, sparql, new String[]{"name", "age"}, Optional.<PcjVarOrderFactory>absent());
+        AccumuloIndexSet ais = new AccumuloIndexSet(accumuloConn,pcjTableName);
+
+        final QueryBindingSet bs1 = new QueryBindingSet();
+        bs1.addBinding("age",new LiteralImpl("16"));
+        final QueryBindingSet bs2 = new QueryBindingSet();
+        bs2.addBinding("age",new NumericLiteralImpl(14, XMLSchema.INTEGER));
+
+        final Set<BindingSet> bSets = Sets.<BindingSet>newHashSet(bs1,bs2);
+
+        final CloseableIteration<BindingSet, QueryEvaluationException> results = ais.evaluate(bSets);
+
+        final Set<BindingSet> fetchedResults = new HashSet<>();
+        while(results.hasNext()) {
+        	final BindingSet next = results.next();
+        	fetchedResults.add(next);
+        }
+
+        bs2.addBinding("name", new URIImpl("http://Alice"));
+        Assert.assertEquals(Sets.<BindingSet>newHashSet(bs2), fetchedResults);
+    }
+
+
+
+
+
+
 
     @After
     public void close() throws RepositoryException {

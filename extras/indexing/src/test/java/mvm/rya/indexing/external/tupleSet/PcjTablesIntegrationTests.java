@@ -57,6 +57,10 @@ import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
 import com.google.common.io.Files;
 
+/**
+ * Performs integration test using {@link MiniAccumuloCluster} to ensure the
+ * functions of {@link PcjTables} work within a cluster setting.
+ */
 public class PcjTablesIntegrationTests {
     private static final Logger log = Logger.getLogger(PcjTablesIntegrationTests.class);
 
@@ -96,16 +100,16 @@ public class PcjTablesIntegrationTests {
 
         // Create a PCJ table in the Mini Accumulo.
         final String pcjTableName = new PcjTableNameFactory().makeTableName(RYA_TABLE_PREFIX, "testPcj");
-        final Set<VariableOrder> varOrders = new ShiftVarOrderFactory().makeVarOrders(new VariableOrder("name;age"));
-        final PcjTables pcjs = new PcjTables();
+        Set<VariableOrder> varOrders = new ShiftVarOrderFactory().makeVarOrders(new VariableOrder("name;age"));
+        PcjTables pcjs = new PcjTables();
         pcjs.createPcjTable(accumuloConn, pcjTableName, varOrders, sparql);
 
-        // Fetch the PCJMetadata and ensure it has the correct values.
-        final Optional<PcjMetadata> pcjMetadata = pcjs.getPcjMetadata(accumuloConn, pcjTableName);
+        // Fetch the PcjMetadata and ensure it has the correct values.
+        final PcjMetadata pcjMetadata = pcjs.getPcjMetadata(accumuloConn, pcjTableName);
 
         // Ensure the metadata matches the expected value.
-        final PcjMetadata expected = new PcjMetadata(sparql, 10L, varOrders);
-        assertEquals(expected, pcjMetadata.get());
+        final PcjMetadata expected = new PcjMetadata(sparql, 0L, varOrders);
+        assertEquals(expected, pcjMetadata);
     }
 
     /**
@@ -125,34 +129,37 @@ public class PcjTablesIntegrationTests {
 
         // Create a PCJ table in the Mini Accumulo.
         final String pcjTableName = new PcjTableNameFactory().makeTableName(RYA_TABLE_PREFIX, "testPcj");
-        final Set<VariableOrder> varOrders = new ShiftVarOrderFactory().makeVarOrders(new VariableOrder("name;age"));
-        final PcjTables pcjs = new PcjTables();
+        Set<VariableOrder> varOrders = new ShiftVarOrderFactory().makeVarOrders(new VariableOrder("name;age"));
+        PcjTables pcjs = new PcjTables();
         pcjs.createPcjTable(accumuloConn, pcjTableName, varOrders, sparql);
 
         // Add a few results to the PCJ table.
-        final MapBindingSet alice = new MapBindingSet();
+        MapBindingSet alice = new MapBindingSet();
         alice.addBinding("name", new URIImpl("http://Alice"));
         alice.addBinding("age", new NumericLiteralImpl(14, XMLSchema.INTEGER));
 
-        final MapBindingSet bob = new MapBindingSet();
+        MapBindingSet bob = new MapBindingSet();
         bob.addBinding("name", new URIImpl("http://Bob"));
         bob.addBinding("age", new NumericLiteralImpl(16, XMLSchema.INTEGER));
 
-        final MapBindingSet charlie = new MapBindingSet();
+        MapBindingSet charlie = new MapBindingSet();
         charlie.addBinding("name", new URIImpl("http://Charlie"));
         charlie.addBinding("age", new NumericLiteralImpl(12, XMLSchema.INTEGER));
 
-        final Set<BindingSet> results = Sets.<BindingSet>newHashSet(alice, bob, charlie);
+        Set<BindingSet> results = Sets.<BindingSet>newHashSet(alice, bob, charlie);
         pcjs.addResults(accumuloConn, pcjTableName, results);
 
+        // Make sure the cardinality was updated.
+        PcjMetadata metadata = pcjs.getPcjMetadata(accumuloConn, pcjTableName);
+        assertEquals(3, metadata.getCardinality());
+
         // Scan Accumulo for the stored results.
-        final Multimap<String, BindingSet> fetchedResults = loadPcjResults(accumuloConn, pcjTableName);
+        Multimap<String, BindingSet> fetchedResults = loadPcjResults(accumuloConn, pcjTableName);
 
         // Ensure the expected results match those that were stored.
-        final Multimap<String, BindingSet> expectedResults = HashMultimap.create();
+        Multimap<String, BindingSet> expectedResults = HashMultimap.create();
         expectedResults.putAll("name;age", results);
         expectedResults.putAll("age;name", results);
-
         assertEquals(expectedResults, fetchedResults);
     }
 
@@ -165,7 +172,7 @@ public class PcjTablesIntegrationTests {
     @Test
     public void populatePcj() throws RepositoryException, PcjException, TableNotFoundException, RyaTypeResolverException {
         // Load some Triples into Rya.
-        final Set<Statement> triples = new HashSet<>();
+        Set<Statement> triples = new HashSet<>();
         triples.add( new StatementImpl(new URIImpl("http://Alice"), new URIImpl("http://hasAge"), new NumericLiteralImpl(14, XMLSchema.INTEGER)) );
         triples.add( new StatementImpl(new URIImpl("http://Alice"), new URIImpl("http://playsSport"), new LiteralImpl("Soccer")) );
         triples.add( new StatementImpl(new URIImpl("http://Bob"), new URIImpl("http://hasAge"), new NumericLiteralImpl(16, XMLSchema.INTEGER)) );
@@ -175,7 +182,7 @@ public class PcjTablesIntegrationTests {
         triples.add( new StatementImpl(new URIImpl("http://Eve"), new URIImpl("http://hasAge"), new NumericLiteralImpl(43, XMLSchema.INTEGER)) );
         triples.add( new StatementImpl(new URIImpl("http://Eve"), new URIImpl("http://playsSport"), new LiteralImpl("Soccer")) );
 
-        for(final Statement triple : triples) {
+        for(Statement triple : triples) {
             ryaConn.add(triple);
         }
 
@@ -189,35 +196,38 @@ public class PcjTablesIntegrationTests {
                 "}";
 
         final String pcjTableName = new PcjTableNameFactory().makeTableName(RYA_TABLE_PREFIX, "testPcj");
-        final Set<VariableOrder> varOrders = new ShiftVarOrderFactory().makeVarOrders(new VariableOrder("name;age"));
-        final PcjTables pcjs = new PcjTables();
+        Set<VariableOrder> varOrders = new ShiftVarOrderFactory().makeVarOrders(new VariableOrder("name;age"));
+        PcjTables pcjs = new PcjTables();
         pcjs.createPcjTable(accumuloConn, pcjTableName, varOrders, sparql);
 
         // Populate the PCJ table using a Rya connection.
         pcjs.populatePcj(accumuloConn, pcjTableName, ryaConn);
 
         // Scan Accumulo for the stored results.
-        final Multimap<String, BindingSet> fetchedResults = loadPcjResults(accumuloConn, pcjTableName);
+        Multimap<String, BindingSet> fetchedResults = loadPcjResults(accumuloConn, pcjTableName);
+
+        // Make sure the cardinality was updated.
+        PcjMetadata metadata = pcjs.getPcjMetadata(accumuloConn, pcjTableName);
+        assertEquals(3, metadata.getCardinality());
 
         // Ensure the expected results match those that were stored.
-        final MapBindingSet alice = new MapBindingSet();
+        MapBindingSet alice = new MapBindingSet();
         alice.addBinding("name", new URIImpl("http://Alice"));
         alice.addBinding("age", new NumericLiteralImpl(14, XMLSchema.INTEGER));
 
-        final MapBindingSet bob = new MapBindingSet();
+        MapBindingSet bob = new MapBindingSet();
         bob.addBinding("name", new URIImpl("http://Bob"));
         bob.addBinding("age", new NumericLiteralImpl(16, XMLSchema.INTEGER));
 
-        final MapBindingSet charlie = new MapBindingSet();
+        MapBindingSet charlie = new MapBindingSet();
         charlie.addBinding("name", new URIImpl("http://Charlie"));
         charlie.addBinding("age", new NumericLiteralImpl(12, XMLSchema.INTEGER));
 
-        final Set<BindingSet> results = Sets.<BindingSet>newHashSet(alice, bob, charlie);
+        Set<BindingSet> results = Sets.<BindingSet>newHashSet(alice, bob, charlie);
 
-        final Multimap<String, BindingSet> expectedResults = HashMultimap.create();
+        Multimap<String, BindingSet> expectedResults = HashMultimap.create();
         expectedResults.putAll("name;age", results);
         expectedResults.putAll("age;name", results);
-
         assertEquals(expectedResults, fetchedResults);
     }
 
@@ -230,7 +240,7 @@ public class PcjTablesIntegrationTests {
     @Test
     public void createAndPopulatePcj() throws RepositoryException, PcjException, TableNotFoundException, RyaTypeResolverException {
         // Load some Triples into Rya.
-        final Set<Statement> triples = new HashSet<>();
+        Set<Statement> triples = new HashSet<>();
         triples.add( new StatementImpl(new URIImpl("http://Alice"), new URIImpl("http://hasAge"), new NumericLiteralImpl(14, XMLSchema.INTEGER)) );
         triples.add( new StatementImpl(new URIImpl("http://Alice"), new URIImpl("http://playsSport"), new LiteralImpl("Soccer")) );
         triples.add( new StatementImpl(new URIImpl("http://Bob"), new URIImpl("http://hasAge"), new NumericLiteralImpl(16, XMLSchema.INTEGER)) );
@@ -240,7 +250,7 @@ public class PcjTablesIntegrationTests {
         triples.add( new StatementImpl(new URIImpl("http://Eve"), new URIImpl("http://hasAge"), new NumericLiteralImpl(43, XMLSchema.INTEGER)) );
         triples.add( new StatementImpl(new URIImpl("http://Eve"), new URIImpl("http://playsSport"), new LiteralImpl("Soccer")) );
 
-        for(final Statement triple : triples) {
+        for(Statement triple : triples) {
             ryaConn.add(triple);
         }
 
@@ -256,28 +266,32 @@ public class PcjTablesIntegrationTests {
         final String pcjTableName = new PcjTableNameFactory().makeTableName(RYA_TABLE_PREFIX, "testPcj");
 
         // Create and populate the PCJ table.
-        final PcjTables pcjs = new PcjTables();
+        PcjTables pcjs = new PcjTables();
         pcjs.createAndPopulatePcj(ryaConn, accumuloConn, pcjTableName, sparql, new String[]{"name", "age"}, Optional.<PcjVarOrderFactory>absent());
 
+        // Make sure the cardinality was updated.
+        PcjMetadata metadata = pcjs.getPcjMetadata(accumuloConn, pcjTableName);
+        assertEquals(3, metadata.getCardinality());
+
         // Scan Accumulo for the stored results.
-        final Multimap<String, BindingSet> fetchedResults = loadPcjResults(accumuloConn, pcjTableName);
+        Multimap<String, BindingSet> fetchedResults = loadPcjResults(accumuloConn, pcjTableName);
 
         // Ensure the expected results match those that were stored.
-        final MapBindingSet alice = new MapBindingSet();
+        MapBindingSet alice = new MapBindingSet();
         alice.addBinding("name", new URIImpl("http://Alice"));
         alice.addBinding("age", new NumericLiteralImpl(14, XMLSchema.INTEGER));
 
-        final MapBindingSet bob = new MapBindingSet();
+        MapBindingSet bob = new MapBindingSet();
         bob.addBinding("name", new URIImpl("http://Bob"));
         bob.addBinding("age", new NumericLiteralImpl(16, XMLSchema.INTEGER));
 
-        final MapBindingSet charlie = new MapBindingSet();
+        MapBindingSet charlie = new MapBindingSet();
         charlie.addBinding("name", new URIImpl("http://Charlie"));
         charlie.addBinding("age", new NumericLiteralImpl(12, XMLSchema.INTEGER));
 
-        final Set<BindingSet> results = Sets.<BindingSet>newHashSet(alice, bob, charlie);
+        Set<BindingSet> results = Sets.<BindingSet>newHashSet(alice, bob, charlie);
 
-        final Multimap<String, BindingSet> expectedResults = HashMultimap.create();
+        Multimap<String, BindingSet> expectedResults = HashMultimap.create();
         expectedResults.putAll("name;age", results);
         expectedResults.putAll("age;name", results);
 
@@ -290,27 +304,26 @@ public class PcjTablesIntegrationTests {
      * table for every variable order that is found in the PCJ metadata.
      */
     private static Multimap<String, BindingSet> loadPcjResults(Connector accumuloConn, String pcjTableName) throws PcjException, TableNotFoundException, RyaTypeResolverException {
-        final Multimap<String, BindingSet> fetchedResults = HashMultimap.create();
+        Multimap<String, BindingSet> fetchedResults = HashMultimap.create();
 
         // Get the variable orders the data was written to.
-        final PcjTables pcjs = new PcjTables();
-        final PcjMetadata pcjMetadata = pcjs.getPcjMetadata(accumuloConn, pcjTableName).get();
+        PcjTables pcjs = new PcjTables();
+        PcjMetadata pcjMetadata = pcjs.getPcjMetadata(accumuloConn, pcjTableName);
 
         // Scan Accumulo for the stored results.
-        for(final VariableOrder varOrder : pcjMetadata.getVarOrders()) {
-            final Scanner scanner = accumuloConn.createScanner(pcjTableName, new Authorizations());
+        for(VariableOrder varOrder : pcjMetadata.getVarOrders()) {
+            Scanner scanner = accumuloConn.createScanner(pcjTableName, new Authorizations());
             scanner.fetchColumnFamily( new Text(varOrder.toString()) );
 
-            for(final Entry<Key, Value> entry : scanner) {
-                final byte[] serializedResult = entry.getKey().getRow().getBytes();
-                final BindingSet result = AccumuloPcjSerializer.deSerialize(serializedResult, varOrder.toArray());
+            for(Entry<Key, Value> entry : scanner) {
+                byte[] serializedResult = entry.getKey().getRow().getBytes();
+                BindingSet result = AccumuloPcjSerializer.deSerialize(serializedResult, varOrder.toArray());
                 fetchedResults.put(varOrder.toString(), result);
             }
         }
 
         return fetchedResults;
     }
-
 
     @After
     public void shutdownMiniResources() {

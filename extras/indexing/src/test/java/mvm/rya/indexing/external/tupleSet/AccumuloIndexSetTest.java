@@ -15,7 +15,6 @@ import mvm.rya.indexing.RyaSailFactory;
 import mvm.rya.indexing.accumulo.ConfigUtils;
 import mvm.rya.indexing.external.QueryVariableNormalizer;
 import mvm.rya.indexing.external.tupleSet.PcjTables.PcjException;
-import mvm.rya.indexing.external.tupleSet.PcjTables.PcjMetadata;
 import mvm.rya.indexing.external.tupleSet.PcjTables.PcjTableNameFactory;
 import mvm.rya.indexing.external.tupleSet.PcjTables.PcjVarOrderFactory;
 import mvm.rya.rdftriplestore.RyaSailRepository;
@@ -111,9 +110,6 @@ public class AccumuloIndexSetTest {
         final PcjTables pcj = new PcjTables();
         // Create and populate the PCJ table.
         pcj.createAndPopulatePcj(ryaConn, accumuloConn, pcjTableName, sparql, new String[]{"name", "age"}, Optional.<PcjVarOrderFactory>absent());
-
-        // Get the variable orders the data was written to.
-        final PcjMetadata pcjMetadata = pcj.getPcjMetadata(accumuloConn, pcjTableName).get();
 
         final AccumuloIndexSet ais = new AccumuloIndexSet(accumuloConn, pcjTableName);
 

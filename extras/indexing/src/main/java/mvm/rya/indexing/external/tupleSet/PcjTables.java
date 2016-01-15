@@ -3,6 +3,7 @@ package mvm.rya.indexing.external.tupleSet;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -19,15 +20,21 @@ import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
 import org.apache.accumulo.core.client.BatchWriter;
 import org.apache.accumulo.core.client.BatchWriterConfig;
+import org.apache.accumulo.core.client.ConditionalWriter;
+import org.apache.accumulo.core.client.ConditionalWriterConfig;
 import org.apache.accumulo.core.client.Connector;
 import org.apache.accumulo.core.client.MutationsRejectedException;
 import org.apache.accumulo.core.client.Scanner;
 import org.apache.accumulo.core.client.TableExistsException;
 import org.apache.accumulo.core.client.TableNotFoundException;
 import org.apache.accumulo.core.client.admin.TableOperations;
+import org.apache.accumulo.core.client.lexicoder.ListLexicoder;
+import org.apache.accumulo.core.client.lexicoder.LongLexicoder;
+import org.apache.accumulo.core.client.lexicoder.StringLexicoder;
+import org.apache.accumulo.core.data.Condition;
+import org.apache.accumulo.core.data.ConditionalMutation;
 import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Mutation;
-import org.apache.accumulo.core.data.Range;
 import org.apache.accumulo.core.data.Value;
 import org.apache.accumulo.core.security.Authorizations;
 import org.apache.commons.lang3.builder.EqualsBuilder;
@@ -42,7 +49,6 @@ import org.openrdf.query.TupleQueryResult;
 import org.openrdf.repository.RepositoryConnection;
 import org.openrdf.repository.RepositoryException;
 
-import com.google.common.base.Charsets;
 import com.google.common.base.Joiner;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
@@ -61,14 +67,32 @@ public class PcjTables {
     /**
      * The Row ID of all {@link PcjMetadata} entries that are stored in Accumulo.
      */
-    private static final Text PCJ_METADATA_ROW_ID = new Text("~SPARQL");
+    private static final Text PCJ_METADATA_ROW_ID = new Text("pcjMetadata");
 
     /**
-     * The Cardinality that is used for all PCJ tables right now.
-     * <p>
-     * TODO This may be removed once cardinality updates have been implemented.
+     * The Column Family for all PCJ metadata entries.
      */
-    private static final long DEFAULT_CARDINALITY = 10;
+    private static final Text PCJ_METADATA_FAMILY = new Text("metadata");
+
+    /**
+     * The Column Qualifier for the SPARQL query a PCJ is built from.
+     */
+    private static final Text PCJ_METADATA_SPARQL_QUERY = new Text("sparql");
+
+    /**
+     * The Column Qualifier for the cardinality of a PCJ.
+     */
+    private static final Text PCJ_METADATA_CARDINALITY = new Text("cardinality");
+
+    /**
+     * The Column Qualifier for the various variable orders a PCJ's results are written to.
+     */
+    private static final Text PCJ_METADATA_VARIABLE_ORDERS = new Text("variableOrders");
+
+    // Lexicoders used to read/write PcjMetadata to/from Accumulo.
+    private static final LongLexicoder longLexicoder = new LongLexicoder();
+    private static final StringLexicoder stringLexicoder = new StringLexicoder();
+    private static final ListLexicoder<String> listLexicoder = new ListLexicoder<>(stringLexicoder);
 
     /**
      * An ordered list of {@link BindingSet} variable names. These are used to
@@ -106,7 +130,7 @@ public class PcjTables {
         /**
          * @return And ordered list of Binding Set variables.
          */
-        public ImmutableList<String> getVariableOrder() {
+        public ImmutableList<String> getVariableOrders() {
             return variableOrder;
         }
 
@@ -163,7 +187,7 @@ public class PcjTables {
          * @param varOrders - Strings that describe each of the variable orders
          *   the results are stored in. (not null)
          */
-        public PcjMetadata(final String sparql, final long cardinality, final Set<VariableOrder> varOrders) {
+        public PcjMetadata(final String sparql, final long cardinality, final Collection<VariableOrder> varOrders) {
             this.sparql = checkNotNull(sparql);
             this.varOrders = ImmutableSet.copyOf( checkNotNull(varOrders) );
 
@@ -290,7 +314,7 @@ public class PcjTables {
         public Set<VariableOrder> makeVarOrders(final VariableOrder varOrder) {
             Set<VariableOrder> varOrders = new HashSet<>();
 
-            final List<String> cyclicBuff = Lists.newArrayList( varOrder.getVariableOrder() );
+            final List<String> cyclicBuff = Lists.newArrayList( varOrder.getVariableOrders() );
             final String[] varOrderBuff = new String[ cyclicBuff.size() ];
 
             for(int shift = 0; shift < cyclicBuff.size(); shift++) {
@@ -358,9 +382,9 @@ public class PcjTables {
      * Will result in an Accumulo table named "foo_INDEX_query1234" with the following entries:
      * <table border="1" style="width:100%">
      *   <tr> <th>Row ID</td>  <th>Column</td>  <th>Value</td> </tr>
-     *   <tr> <td>~SPARQL</td> <td>10:city;worker;customer</td> <td> ... UTF-8 bytes encoding the query string ... </td> </tr>
-     *   <tr> <td>~SPARQL</td> <td>10:worker;customer;city</td> <td> ... UTF-8 bytes encoding the query string ... </td> </tr>
-     *   <tr> <td>~SPARQL</td> <td>10:customer;city;worker</td> <td> ... UTF-8 bytes encoding the query string ... </td> </tr>
+     *   <tr> <td>pcjMetadata</td> <td>metadata:sparql</td> <td> ... UTF-8 bytes encoding the query string ... </td> </tr>
+     *   <tr> <td>pcjMetadata</td> <td>metadata:cardinality</td> <td> The query's cardinality </td> </tr>
+     *   <tr> <td>pcjMetadata</td> <td>metadata:variableOrders</td> <td> The variable orders the results are written to </td> </tr>
      * </table>
      *
      * @param accumuloConn - A connection to the Accumulo that hosts the PCJ table. (not null)
@@ -387,8 +411,7 @@ public class PcjTables {
                 tableOps.create(pcjTableName);
 
                 // Write the PCJ Metadata to the newly created table.
-                // TODO When cardinality updates are implemented, it will begin at 0.
-                final PcjMetadata pcjMetadata = new PcjMetadata(sparql, DEFAULT_CARDINALITY, varOrders);
+                final PcjMetadata pcjMetadata = new PcjMetadata(sparql, 0L, varOrders);
                 final List<Mutation> mutations = makeWriteMetadataMutations(pcjMetadata);
 
                 final BatchWriter writer = accumuloConn.createBatchWriter(pcjTableName, new BatchWriterConfig());
@@ -404,6 +427,44 @@ public class PcjTables {
     }
 
     /**
+     * Create the {@link Mutation}s required to write a {@link PCJMetadata} object
+     * to an Accumulo table.
+     *
+     * @param metadata - The metadata to write. (not null)
+     * @return An ordered list of mutations that write the metadata to an Accumulo table.
+     */
+    private static List<Mutation> makeWriteMetadataMutations(final PcjMetadata metadata) {
+        checkNotNull(metadata);
+
+        final List<Mutation> mutations = new LinkedList<>();
+
+        // SPARQL Query
+        Mutation mutation = new Mutation(PCJ_METADATA_ROW_ID);
+        Value query = new Value( stringLexicoder.encode(metadata.getSparql()) );
+        mutation.put(PCJ_METADATA_FAMILY, PCJ_METADATA_SPARQL_QUERY, query);
+        mutations.add(mutation);
+
+        // Cardinality
+        mutation = new Mutation(PCJ_METADATA_ROW_ID);
+        Value cardinality = new Value( longLexicoder.encode(new Long(metadata.getCardinality())) );
+        mutation.put(PCJ_METADATA_FAMILY, PCJ_METADATA_CARDINALITY, cardinality);
+        mutations.add(mutation);
+
+        //  Variable Orders
+        List<String> varOrderStrings = new ArrayList<>();
+        for(VariableOrder varOrder : metadata.getVarOrders()) {
+            varOrderStrings.add( varOrder.toString() );
+        }
+
+        mutation = new Mutation(PCJ_METADATA_ROW_ID);
+        Value variableOrders = new Value( listLexicoder.encode(varOrderStrings) );
+        mutation.put(PCJ_METADATA_FAMILY, PCJ_METADATA_VARIABLE_ORDERS, variableOrders);
+        mutations.add(mutation);
+
+        return mutations;
+    }
+
+    /**
      * Fetch the {@link PCJMetadata} from an Accumulo table.
      * <p>
      * This method assumes the PCJ table has already been created.
@@ -413,7 +474,7 @@ public class PcjTables {
      * @return The PCJ Metadata that has been stolred in the in the PCJ Table.
      * @throws PcjException The PCJ Table does not exist.
      */
-    public Optional<PcjMetadata> getPcjMetadata(
+    public PcjMetadata getPcjMetadata(
             final Connector accumuloConn,
             final String pcjTableName) throws PcjException {
         checkNotNull(accumuloConn);
@@ -422,12 +483,11 @@ public class PcjTables {
         try {
             // Create an Accumulo scanner that iterates through the metadata entries.
             Scanner scanner = accumuloConn.createScanner(pcjTableName, new Authorizations());
-            scanner.setRange(Range.exact(PCJ_METADATA_ROW_ID));
             final Iterator<Entry<Key, Value>> entries = scanner.iterator();
 
             // No metadata has been stored in the table yet.
             if(!entries.hasNext()) {
-                return Optional.absent();
+                throw new PcjException("Could not find any PCJ metadata in the table named: " + pcjTableName);
             }
 
             // Fetch the metadata from the entries. Assuming they all have the same cardinality and sparql query.
@@ -437,20 +497,21 @@ public class PcjTables {
 
             while(entries.hasNext()) {
                 final Entry<Key, Value> entry = entries.next();
+                Text columnQualifier = entry.getKey().getColumnQualifier();
+                byte[] value = entry.getValue().get();
 
-                if(sparql == null) {
-                    sparql = new String(entry.getValue().get(), Charsets.UTF_8);
+                if(columnQualifier.equals(PCJ_METADATA_SPARQL_QUERY)) {
+                    sparql = stringLexicoder.decode(value);
+                } else if(columnQualifier.equals(PCJ_METADATA_CARDINALITY)) {
+                    cardinality = longLexicoder.decode(value);
+                } else if(columnQualifier.equals(PCJ_METADATA_VARIABLE_ORDERS)) {
+                    for(String varOrderStr : listLexicoder.decode(value)) {
+                        varOrders.add( new VariableOrder(varOrderStr) );
+                    }
                 }
-
-                if(cardinality == null) {
-                    cardinality = Long.parseLong( entry.getKey().getColumnFamily().toString() );
-                }
-
-                final String varOrder = entry.getKey().getColumnQualifier().toString();
-                varOrders.add( new VariableOrder(varOrder) );
             }
 
-            return Optional.of( new PcjMetadata(sparql, cardinality, varOrders) );
+            return new PcjMetadata(sparql, cardinality, varOrders);
 
         } catch (TableNotFoundException e) {
             throw new PcjException("Could not add results to a PCJ because the PCJ table does not exist.", e);
@@ -458,7 +519,8 @@ public class PcjTables {
     }
 
     /**
-     * Add a collection of results to a specific PCJ table.
+     * Add a collection of results to a PCJ table. The table's cardinality will
+     * be updated to include the new results.
      * <p>
      * This method assumes the PCJ table has already been created.
      *
@@ -476,39 +538,170 @@ public class PcjTables {
         checkNotNull(pcjTableName);
         checkNotNull(results);
 
-        // Fetch the variable orders from the PCJ table.
-        final Optional<PcjMetadata> pcjMetadata = getPcjMetadata(accumuloConn, pcjTableName);
-        if(!pcjMetadata.isPresent()) {
-            throw new PcjException("Could not add a result to the PCJ table because it is missing PCJ metadata.");
-        }
-        final Set<VariableOrder> varOrders = pcjMetadata.get().getVarOrders();
-
-        // TODO When cardinanlity updates are implemented, this method must increment the
-        //      cardinality by the number of new results that are being written to the table.
-
         // Write a result to each of the variable orders that are in the table.
+        writeResults(accumuloConn, pcjTableName, results);
+
+        // Increment the cardinality of the query by the number of new results.
+        updateCardinality(accumuloConn, pcjTableName, results.size());
+    }
+
+    /**
+     * Add a collection of results to a specific PCJ table.
+     *
+     * @param accumuloConn - A connection to the Accumulo that hosts the PCJ table. (not null)
+     * @param pcjTableName - The name of the PCJ table that will receive the results. (not null)
+     * @param results - Binding sets that will be written to the PCJ table. (not null)
+     * @throws PcjException The provided PCJ table doesn't exist, is missing the
+     *   PCJ metadata, or the result could not be written to it.
+     */
+    private void writeResults(
+            final Connector accumuloConn,
+            final String pcjTableName,
+            final Collection<BindingSet> results) throws PcjException {
+        checkNotNull(accumuloConn);
+        checkNotNull(pcjTableName);
+        checkNotNull(results);
+
+        // Fetch the variable orders from the PCJ table.
+        PcjMetadata metadata = getPcjMetadata(accumuloConn, pcjTableName);
+
+        // Write each result formatted using each of the variable orders.
         BatchWriter writer = null;
         try {
             writer = accumuloConn.createBatchWriter(pcjTableName, new BatchWriterConfig());
-            for(final VariableOrder varOrder : varOrders) {
-                for(BindingSet result : results) {
-                    byte[] serializedResult = AccumuloPcjSerializer.serialize(result, varOrder.toArray());
-
-                    // Row ID = binding set values, Column Family = variable order of the binding set.
-                    Mutation addResult = new Mutation(serializedResult);
-                    addResult.put(varOrder.toString(), "", "");
-                    writer.addMutation(addResult);
+            for(BindingSet result : results) {
+                Set<Mutation> addResultMutations = makeWriteResultMutations(metadata.getVarOrders(), result);
+                writer.addMutations( addResultMutations );
+            }
+        } catch (TableNotFoundException | MutationsRejectedException e) {
+            throw new PcjException("Could not add results to the PCJ table named: " + pcjTableName, e);
+        } finally {
+            if(writer != null) {
+                try {
+                    writer.close();
+                } catch (MutationsRejectedException e) {
+                    throw new PcjException("Could not add results to a PCJ table because some of the mutations were rejected.", e);
                 }
             }
-        } catch (TableNotFoundException | RyaTypeResolverException | MutationsRejectedException e) {
-            throw new PcjException("Could not add new results to the PCJ table named: " + pcjTableName, e);
-        } finally {
+        }
+    }
+
+    /**
+     * Create the {@link Mutations} required to write a new {@link BindingSet}
+     * to a PCJ table for each {@link VariableOrder} that is provided.
+     *
+     * @param varOrders - The variables orders the result will be written to. (not null)
+     * @param result - A new PCJ result. (not null)
+     * @return Mutation that will write the result to a PCJ table.
+     * @throws PcjException The binding set could not be encoded.
+     */
+    private static Set<Mutation> makeWriteResultMutations(
+            final Set<VariableOrder> varOrders,
+            final BindingSet result) throws PcjException {
+        checkNotNull(varOrders);
+        checkNotNull(result);
+
+        Set<Mutation> mutations = new HashSet<>();
+
+        for(final VariableOrder varOrder : varOrders) {
             try {
-                writer.close();
-            } catch (MutationsRejectedException e) {
-                throw new PcjException("Could not add results to a PCJ table because some of the mutations were rejected.", e);
+                // Serialize the result to the variable order.
+                byte[] serializedResult = AccumuloPcjSerializer.serialize(result, varOrder.toArray());
+
+                // Row ID = binding set values, Column Family = variable order of the binding set.
+                Mutation addResult = new Mutation(serializedResult);
+                addResult.put(varOrder.toString(), "", "");
+                mutations.add(addResult);
+            } catch(RyaTypeResolverException e) {
+                throw new PcjException("Could not serialize a result.", e);
             }
         }
+
+        return mutations;
+    }
+
+    /**
+     * Update the cardinality of a PCJ by a {@code delta}.
+     *
+     * @param accumuloConn - A connection to the Accumulo that hosts the PCJ table. (not null)
+     * @param pcjTableName - The name of the PCJ table that will have its cardinality updated. (not null)
+     * @param delta - How much the cardinality will change.
+     * @throws PcjException The cardinality could not be updated.
+     */
+    private void updateCardinality(
+            final Connector accumuloConn,
+            final String pcjTableName,
+            final long delta) throws PcjException {
+        checkNotNull(accumuloConn);
+        checkNotNull(pcjTableName);
+
+        ConditionalWriter conditionalWriter = null;
+        try {
+            conditionalWriter = accumuloConn.createConditionalWriter(pcjTableName, new ConditionalWriterConfig());
+
+            boolean updated = false;
+            while(!updated) {
+                // Write the conditional update request to Accumulo.
+                long cardinality = getPcjMetadata(accumuloConn, pcjTableName).getCardinality();
+                ConditionalMutation mutation = makeUpdateCardinalityMutation(cardinality, delta);
+                ConditionalWriter.Result result = conditionalWriter.write(mutation);
+
+                // Interpret the result.
+                switch(result.getStatus()) {
+                    case ACCEPTED:
+                        updated = true;
+                        break;
+                    case REJECTED:
+                        break;
+                    case UNKNOWN:
+                        // We do not know if the mutation succeeded. At best, we can hope the metadata hasn't been updated
+                        // since we originally fetched it and try again. Otherwise, continue forwards as if it worked. It's
+                        // okay if this number is slightly off.
+                        long newCardinality = getPcjMetadata(accumuloConn, pcjTableName).getCardinality();
+                        if(newCardinality != cardinality) {
+                            updated = true;
+                        }
+                        break;
+                    case VIOLATED:
+                        throw new PcjException("The cardinality could not be updated because the commit violated a table constraint.");
+                    case INVISIBLE_VISIBILITY:
+                        throw new PcjException("The condition contains a visibility the updater can not satisfy.");
+                }
+            }
+        } catch (AccumuloException | AccumuloSecurityException | TableNotFoundException e) {
+            throw new PcjException("Could not update the cardinality value of the PCJ Table named: " + pcjTableName, e);
+        } finally {
+            if(conditionalWriter != null) {
+                conditionalWriter.close();
+            }
+        }
+    }
+
+    /**
+     * Creates a {@link ConditionalMutation} that only updates the cardinality
+     * of the PCJ table if the old value has not changed by the time this mutation
+     * is committed to Accumulo.
+     *
+     * @param current - The current cardinality value.
+     * @param delta - How much the cardinality will change.
+     * @return The mutation that will perform the conditional update.
+     */
+    private static ConditionalMutation makeUpdateCardinalityMutation(long current, long delta) {
+        // Try to update the cardinality by the delta.
+        ConditionalMutation mutation = new ConditionalMutation(PCJ_METADATA_ROW_ID);
+        Condition lastCardinalityStillCurrent = new Condition(
+                PCJ_METADATA_FAMILY,
+                PCJ_METADATA_CARDINALITY);
+
+        // Require the old cardinality to be the value we just read.
+        byte[] currentCardinalityBytes = longLexicoder.encode( current );
+        lastCardinalityStillCurrent.setValue( currentCardinalityBytes );
+        mutation.addCondition(lastCardinalityStillCurrent);
+
+        // If that is the case, then update to the new value.
+        Value newCardinality = new Value( longLexicoder.encode(current + delta) );
+        mutation.put(PCJ_METADATA_FAMILY, PCJ_METADATA_CARDINALITY, newCardinality);
+        return mutation;
     }
 
     /**
@@ -533,11 +726,8 @@ public class PcjTables {
 
         try {
             // Fetch the query that needs to be executed from the PCJ table.
-            Optional<PcjMetadata> pcjMetadata = getPcjMetadata(accumuloConn, pcjTableName);
-            if(!pcjMetadata.isPresent()) {
-                throw new PcjException("Could not populate the PCJ table with results from Rya because it is missing PCJ metadata.");
-            }
-            String sparql = pcjMetadata.get().getSparql();
+            PcjMetadata pcjMetadata = getPcjMetadata(accumuloConn, pcjTableName);
+            String sparql = pcjMetadata.getSparql();
 
             // Query Rya for results to the SPARQL query.
             TupleQuery query = ryaConn.prepareTupleQuery(QueryLanguage.SPARQL, sparql);
@@ -606,34 +796,5 @@ public class PcjTables {
 
         // Load historic matches from Rya into the PCJ table.
         populatePcj(accumuloConn, pcjTableName, ryaConn);
-    }
-
-    /**
-     * Create the {@link Mutation}s required to write a {@link PCJMetadata} object
-     * to an Accumulo table.
-     *
-     * @param metadata - The metadata to write. (not null)
-     * @return An ordered list of mutations that write the metadata to an Accumulo table.
-     */
-    private static List<Mutation> makeWriteMetadataMutations(final PcjMetadata metadata) {
-        checkNotNull(metadata);
-
-        final List<Mutation> mutations = new LinkedList<>();
-
-        // The rowId, columnFamily, and value are the same for each entry in the PCJ table.
-        final Text rowId = PCJ_METADATA_ROW_ID;
-        final Text columnFamily = new Text( Long.toString( metadata.getCardinality() ) );
-        final Value value = new Value( metadata.getSparql().getBytes(Charsets.UTF_8) );
-
-        // There is an entry for each variable order in the PCJ table.
-        for(final VariableOrder varOrder : metadata.getVarOrders()) {
-            final Text columnQualifier = new Text( varOrder.toString() );
-
-            final Mutation mutation = new Mutation(rowId);
-            mutation.put(columnFamily, columnQualifier, value);
-            mutations.add(mutation);
-        }
-
-        return mutations;
     }
 }

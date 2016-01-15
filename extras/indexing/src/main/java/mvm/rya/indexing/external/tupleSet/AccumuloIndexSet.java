@@ -93,8 +93,8 @@ public class AccumuloIndexSet extends ExternalTupleSet implements ExternalBatchi
 
     private final Connector accCon;  //connector to Accumulo table where results are stored
     private final String tablename;  //name of Accumulo table
-    private final long tableSize = 0;
     private List<String> varOrder = null; // orders in which results are written to table
+    private PcjTables pcj = new PcjTables();
 
     @Override
     public Map<String, Set<String>> getSupportedVariableOrders() {
@@ -124,13 +124,12 @@ public class AccumuloIndexSet extends ExternalTupleSet implements ExternalBatchi
         final SPARQLParser sp = new SPARQLParser();
         final ParsedTupleQuery pq = (ParsedTupleQuery) sp.parseQuery(sparql, null);
         setProjectionExpr((Projection) pq.getTupleExpr());
-        PcjMetadata meta = null;
+        Set<VariableOrder> orders = null;
         try {
-			meta = new PcjTables().getPcjMetadata(accCon, tablename).get();
+			orders = pcj.getPcjMetadata(accCon, tablename).getVarOrders();
 		} catch (final PcjException e) {
 			e.printStackTrace();
 		}
-        final Set<VariableOrder> orders = meta.getVarOrders();
 
         varOrder = Lists.newArrayList();
         for(final VariableOrder var: orders) {
@@ -156,7 +155,7 @@ public class AccumuloIndexSet extends ExternalTupleSet implements ExternalBatchi
 			TableNotFoundException {
 		PcjMetadata meta = null;
 		try {
-			meta = new PcjTables().getPcjMetadata(accCon, tablename).get();
+			meta = pcj.getPcjMetadata(accCon, tablename);
 		} catch (final PcjException e) {
 			e.printStackTrace();
 		}
@@ -182,7 +181,13 @@ public class AccumuloIndexSet extends ExternalTupleSet implements ExternalBatchi
 	 */
     @Override
     public double cardinality() {
-        return tableSize;
+    	double cardinality = 0;
+        try {
+			cardinality = pcj.getPcjMetadata(accCon, tablename).getCardinality();
+		} catch (PcjException e) {
+			e.printStackTrace();
+		}
+        return cardinality;
     }
 
 

@@ -8,9 +8,9 @@ package mvm.rya.indexing.IndexPlanValidator;
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- * 
+ *
  *   http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -53,29 +53,26 @@ public class GeneralizedExternalProcessor {
 
     /**
      * Iterates through list of normalized indexes and replaces all subtrees of query which match index with index.
-     * 
+     *
      * @param query
      * @return TupleExpr
      */
     public static TupleExpr process(TupleExpr query, List<ExternalTupleSet> indexSet) {
-        
+
         boolean indexPlaced = false;
         TupleExpr rtn = query.clone();
-                
-        
-        //TODO optimization: turn on when testing done
         QueryNodeCount qnc = new QueryNodeCount();
         rtn.visit(qnc);
-        
+
         if(qnc.getNodeCount()/2 < indexSet.size()) {
             return null;
         }
 
-        
+
         //move BindingSetAssignment Nodes out of the way
         organizeBSAs(rtn);
-        
-        
+
+
         // test to see if query contains no other nodes
         // than filter, join, projection, and statement pattern and
         // test whether query contains duplicate StatementPatterns and filters
@@ -105,26 +102,18 @@ public class GeneralizedExternalProcessor {
 
             }
             if(indexPlaced) {
-//                if(indexSet.size() == 3) {
-//                    System.out.println("IndexSet is " + indexSet);
-//                    System.out.println("Tuple is " + rtn);
-//                }
                 return rtn;
             } else {
-//                if(indexSet.size() == 3) {
-//                    System.out.println("IndexSet is " + indexSet);
-//                }
-//               
                 return null;
             }
-            
+
         } else {
             throw new IllegalArgumentException("Invalid Query.");
         }
     }
-    
-    
-    
+
+
+
 
 
     // determines whether query is valid, which requires that a
@@ -139,12 +128,12 @@ public class GeneralizedExternalProcessor {
 
         Set<String> spVars = getVarNames(getQNodes("sp", node));
 
-        if (vqv.isValid() && (spVars.size() > 0)) {
+        if (vqv.isValid() && spVars.size() > 0) {
 
             FilterCollector fvis = new FilterCollector();
             node.visit(fvis);
             List<QueryModelNode> fList = fvis.getFilters();
-            return (fList.size() == Sets.newHashSet(fList).size() && getVarNames(fList).size() <= spVars.size());
+            return fList.size() == Sets.newHashSet(fList).size() && getVarNames(fList).size() <= spVars.size();
 
         } else {
             return false;
@@ -211,16 +200,17 @@ public class GeneralizedExternalProcessor {
 
         }
 
-        public void meet(Projection node) {
+        @Override
+		public void meet(Projection node) {
             // moves external tuples above statement patterns before attempting
             // to bubble down index statement patterns found in query tree
-            
+
             organizeExtTuples(node);
-            
             super.meet(node);
         }
 
-        public void meet(Join node) {
+        @Override
+		public void meet(Join node) {
             // if right node contained in index, move it to bottom of query tree
             if (sSet.contains(node.getRightArg())) {
 
@@ -228,7 +218,6 @@ public class GeneralizedExternalProcessor {
                 Set<QueryModelNode> compSet = Sets.difference(eSet, sSet);
 
                 if (eSet.containsAll(sSet)) {
-
                     QNodeExchanger qne = new QNodeExchanger(node.getRightArg(), compSet);
                     node.visit(qne);
                     node.replaceChildNode(node.getRightArg(), qne.getReplaced());
@@ -293,7 +282,8 @@ public class GeneralizedExternalProcessor {
             return toBeReplaced;
         }
 
-        public void meet(Join node) {
+        @Override
+		public void meet(Join node) {
 
             if (compSet.contains(node.getRightArg())) {
                 this.toBeReplaced = node.getRightArg();
@@ -317,7 +307,6 @@ public class GeneralizedExternalProcessor {
     // this method is that
     // SPBubbleDownVisitor has been called to position index StatementPatterns
     // within query tree.
-    //TODO this visitor assumes that all filters are positioned at top of query tree
     //could lead to problems if filter optimizer called before external processor
     private static class FilterBubbleDownVisitor extends QueryModelVisitorBase<RuntimeException> {
 
@@ -335,7 +324,8 @@ public class GeneralizedExternalProcessor {
             return filterPlaced;
         }
 
-        public void meet(Join node) {
+        @Override
+		public void meet(Join node) {
 
             if (!compSet.contains(node.getRightArg())) {
                 // looks for placed to position filter node. if right node is
@@ -343,13 +333,13 @@ public class GeneralizedExternalProcessor {
                 // and left node is statement pattern node contained in index or
                 // is a join, place
                 // filter above join.
-                if (node.getLeftArg() instanceof Join || !(compSet.contains(node.getLeftArg()))) {
-                    
+                if (node.getLeftArg() instanceof Join || !compSet.contains(node.getLeftArg())) {
+
                     QueryModelNode pNode = node.getParentNode();
                     ((Filter) filter).setArg(node);
                     pNode.replaceChildNode(node, filter);
                     filterPlaced = true;
-                    
+
                     return;
                 } // otherwise place filter below join and above right arg
                 else {
@@ -359,12 +349,12 @@ public class GeneralizedExternalProcessor {
                     return;
 
                 }
-            } else if ((node.getLeftArg() instanceof StatementPattern) && !compSet.contains(node.getLeftArg())) {
-                
+            } else if (node.getLeftArg() instanceof StatementPattern && !compSet.contains(node.getLeftArg())) {
+
                 ((Filter) filter).setArg(node.getLeftArg());
                 node.replaceChildNode(node.getLeftArg(), filter);
                 filterPlaced = true;
-                
+
                 return;
             } else {
                 super.meet(node);
@@ -380,8 +370,9 @@ public class GeneralizedExternalProcessor {
 
         for (QueryModelNode s : nodes) {
             tempVars = VarCollector.process(s);
-            for (String t : tempVars)
-                nodeVarNames.add(t);
+            for (String t : tempVars) {
+				nodeVarNames.add(t);
+			}
         }
         return nodeVarNames;
 
@@ -403,7 +394,8 @@ public class GeneralizedExternalProcessor {
 
         }
 
-        public void meet(Filter node) {
+        @Override
+		public void meet(Filter node) {
 
             Set<QueryModelNode> eSet = getQNodes(node);
             Set<QueryModelNode> compSet = Sets.difference(eSet, sSet);
@@ -415,7 +407,7 @@ public class GeneralizedExternalProcessor {
             // and index (assuming that SPBubbleDownVisitor has already been
             // called)
             if (sSet.contains(node.getCondition()) && !bubbledFilters.contains(node.getCondition())) {
-                FilterBubbleDownVisitor fbdv = new FilterBubbleDownVisitor((Filter) node.clone(), compSet);
+                FilterBubbleDownVisitor fbdv = new FilterBubbleDownVisitor(node.clone(), compSet);
                 node.visit(fbdv);
                 bubbledFilters.add(node.getCondition());
                 // checks if filter correctly placed, and if it has been,
@@ -425,7 +417,7 @@ public class GeneralizedExternalProcessor {
                     QueryModelNode pNode = node.getParentNode();
                     TupleExpr cNode = node.getArg();
                     pNode.replaceChildNode(node, cNode);
-                   
+
 
                     super.meetNode(pNode);
                 }
@@ -446,37 +438,35 @@ public class GeneralizedExternalProcessor {
     // to position the StatementPatterns and Filters.
     private static class SubsetEqualsVisitor extends QueryModelVisitorBase<RuntimeException> {
 
-        private TupleExpr query;
         private TupleExpr tuple;
         private QueryModelNode indexQNode;
         private ExternalTupleSet set;
         private Set<QueryModelNode> sSet = Sets.newHashSet();
-        private TupleExpr temp;
         private boolean indexPlaced = false;
-        
+
 
         public SubsetEqualsVisitor(ExternalTupleSet index, TupleExpr query) {
-            this.query = query;
             this.tuple = index.getTupleExpr();
             this.set = index;
             indexQNode = ((Projection) tuple).getArg();
             sSet = getQNodes(indexQNode);
 
         }
-        
+
         public boolean indexPlaced() {
             return indexPlaced;
         }
-        
 
-        public void meet(Join node) {
+
+        @Override
+		public void meet(Join node) {
 
             Set<QueryModelNode> eSet = getQNodes(node);
 
             if (eSet.containsAll(sSet) && !(node.getRightArg() instanceof BindingSetAssignment)) {
 
 //                System.out.println("Eset is " + eSet + " and sSet is " + sSet);
-                
+
                 if (eSet.equals(sSet)) {
                     node.replaceWith(set);
                     indexPlaced = true;
@@ -506,9 +496,9 @@ public class GeneralizedExternalProcessor {
             }
 
         }
-      //TODO might need to include BindingSetAssignment Condition here
       //to account for index consisting of only filter and BindingSetAssignment nodes
-        public void meet(Filter node) {
+        @Override
+		public void meet(Filter node) {
 
             Set<QueryModelNode> eSet = getQNodes(node);
 
@@ -523,9 +513,10 @@ public class GeneralizedExternalProcessor {
                 }
             }
         }
-        
-        
-        public void meet(StatementPattern node) {
+
+
+        @Override
+		public void meet(StatementPattern node) {
             return;
         }
     }
@@ -541,24 +532,27 @@ public class GeneralizedExternalProcessor {
             return isValid;
         }
 
-        public void meet(Projection node) {
+        @Override
+		public void meet(Projection node) {
             node.getArg().visit(this);
         }
 
-        public void meet(Filter node) {
+        @Override
+		public void meet(Filter node) {
             node.getArg().visit(this);
         }
-        
-      
-       
-        
-       
-        public void meetNode(QueryModelNode node) {
 
-            if (!((node instanceof Join) || (node instanceof StatementPattern) || (node instanceof BindingSetAssignment) || (node instanceof Var))) {
+
+
+
+
+        @Override
+		public void meetNode(QueryModelNode node) {
+
+            if (!(node instanceof Join || node instanceof StatementPattern || node instanceof BindingSetAssignment || node instanceof Var)) {
                 isValid = false;
                 return;
-           
+
             } else{
                 super.meetNode(node);
             }
@@ -575,21 +569,22 @@ public class GeneralizedExternalProcessor {
             this.extTuples = extTuples;
         }
 
-        public void meet(Join queryNode) {
+        @Override
+		public void meet(Join queryNode) {
 
             // if query tree contains external tuples and they are not
             // positioned above statement pattern node
             // reposition
             if (this.extTuples.size() > 0 && !(queryNode.getRightArg() instanceof ExternalTupleSet)
                     && !(queryNode.getRightArg() instanceof BindingSetAssignment)) {
-                
+
                 if (queryNode.getLeftArg() instanceof ExternalTupleSet) {
                     QueryModelNode temp = queryNode.getLeftArg();
                     queryNode.setLeftArg(queryNode.getRightArg());
                     queryNode.setRightArg((TupleExpr)temp);
                 } else {
 
-                    QNodeExchanger qnev = new QNodeExchanger((QueryModelNode) queryNode.getRightArg(), this.extTuples);
+                    QNodeExchanger qnev = new QNodeExchanger(queryNode.getRightArg(), this.extTuples);
                     queryNode.visit(qnev);
                     queryNode.replaceChildNode(queryNode.getRightArg(), qnev.getReplaced());
                     super.meet(queryNode);
@@ -657,13 +652,14 @@ public class GeneralizedExternalProcessor {
             this.bsas = bsas;
         }
 
-        public void meet(Join queryNode) {
+        @Override
+		public void meet(Join queryNode) {
 
             // if query tree contains external tuples and they are not
             // positioned above statement pattern node
             // reposition
             if (this.bsas.size() > 0 && !(queryNode.getRightArg() instanceof BindingSetAssignment)) {
-                QNodeExchanger qnev = new QNodeExchanger((QueryModelNode) queryNode.getRightArg(), bsas);
+                QNodeExchanger qnev = new QNodeExchanger(queryNode.getRightArg(), bsas);
                 queryNode.visit(qnev);
                 queryNode.replaceChildNode(queryNode.getRightArg(), qnev.getReplaced());
                 super.meet(queryNode);
@@ -674,8 +670,8 @@ public class GeneralizedExternalProcessor {
         }
 
     }
-        
-        
+
+
     public static class BindingSetAssignmentCollector extends QueryModelVisitorBase<RuntimeException> {
 
         private Set<QueryModelNode> bindingSetList = Sets.newHashSet();
@@ -685,7 +681,7 @@ public class GeneralizedExternalProcessor {
         }
 
         public boolean containsBSAs() {
-            return (bindingSetList.size() > 0);
+            return bindingSetList.size() > 0;
         }
 
         @Override
@@ -695,9 +691,9 @@ public class GeneralizedExternalProcessor {
         }
 
     }
-    
-    
-    
+
+
+
     public static class QueryNodeCount extends QueryModelVisitorBase<RuntimeException> {
 
         private int nodeCount;
@@ -725,6 +721,6 @@ public class GeneralizedExternalProcessor {
 
     }
 
-   
-   
+
+
 }

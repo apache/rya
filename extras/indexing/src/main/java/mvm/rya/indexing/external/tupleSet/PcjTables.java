@@ -16,8 +16,6 @@ import java.util.Set;
 import javax.annotation.ParametersAreNonnullByDefault;
 import javax.annotation.concurrent.Immutable;
 
-import mvm.rya.api.resolver.RyaTypeResolverException;
-
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
 import org.apache.accumulo.core.client.BatchWriter;
@@ -56,6 +54,8 @@ import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
+
+import mvm.rya.api.resolver.RyaTypeResolverException;
 
 /**
  * Functions that create and maintain the PCJ tables that are used by Rya.
@@ -106,6 +106,16 @@ public class PcjTables {
         public static final String VAR_ORDER_DELIM = ";";
 
         private final ImmutableList<String> variableOrder;
+
+        /**
+         * Constructs an instance of {@link VariableOrder}.
+         *
+         * @param varOrder - An ordered collection of Binding Set variables. (not null)
+         */
+        public VariableOrder(Collection<String> varOrder) {
+            checkNotNull(varOrder);
+            this.variableOrder = ImmutableList.copyOf(varOrder);
+        }
 
         /**
          * Constructs an instance of {@link VariableOrder}.
@@ -595,7 +605,7 @@ public class PcjTables {
      * @return Mutation that will write the result to a PCJ table.
      * @throws PcjException The binding set could not be encoded.
      */
-    private static Set<Mutation> makeWriteResultMutations(
+    public Set<Mutation> makeWriteResultMutations(
             final Set<VariableOrder> varOrders,
             final BindingSet result) throws PcjException {
         checkNotNull(varOrders);
@@ -606,7 +616,7 @@ public class PcjTables {
         for(final VariableOrder varOrder : varOrders) {
             try {
                 // Serialize the result to the variable order.
-                byte[] serializedResult = AccumuloPcjSerializer.serialize(result, varOrder.toArray());
+                byte[] serializedResult = BindingSetSerializer.serialize(result, varOrder.toArray());
 
                 // Row ID = binding set values, Column Family = variable order of the binding set.
                 Mutation addResult = new Mutation(serializedResult);

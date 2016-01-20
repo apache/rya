@@ -1,7 +1,5 @@
 package mvm.rya.indexing.external.tupleSet;
 
-import mvm.rya.api.resolver.RyaTypeResolverException;
-
 import org.junit.Test;
 import org.openrdf.model.impl.LiteralImpl;
 import org.openrdf.model.impl.URIImpl;
@@ -9,6 +7,8 @@ import org.openrdf.query.BindingSet;
 import org.openrdf.query.algebra.evaluation.QueryBindingSet;
 
 import com.vividsolutions.jts.util.Assert;
+
+import mvm.rya.api.resolver.RyaTypeResolverException;
 
 public class AccumuloPcjSerialzerTest {
 
@@ -19,8 +19,8 @@ public class AccumuloPcjSerialzerTest {
 		bs.addBinding("Y",new URIImpl("http://uri2"));
 		final String[] varOrder = new String[]{"X","Y"};
 		try {
-			final byte[] byteVal = AccumuloPcjSerializer.serialize(bs, varOrder);
-			final BindingSet newBs = AccumuloPcjSerializer.deSerialize(byteVal, varOrder);
+			final byte[] byteVal = BindingSetSerializer.serialize(bs, varOrder);
+			final BindingSet newBs = BindingSetSerializer.deSerialize(byteVal, varOrder);
 			Assert.equals(bs, newBs);
 		} catch (final RyaTypeResolverException e) {
 			e.printStackTrace();
@@ -37,8 +37,8 @@ public class AccumuloPcjSerialzerTest {
 		bs.addBinding("B",new URIImpl("http://uri5"));
 		final String[] varOrder = new String[]{"X","Y","Z","A","B"};
 		try {
-			final byte[] byteVal = AccumuloPcjSerializer.serialize(bs, varOrder);
-			final BindingSet newBs = AccumuloPcjSerializer.deSerialize(byteVal, varOrder);
+			final byte[] byteVal = BindingSetSerializer.serialize(bs, varOrder);
+			final BindingSet newBs = BindingSetSerializer.deSerialize(byteVal, varOrder);
 			Assert.equals(bs, newBs);
 		} catch (final RyaTypeResolverException e) {
 			e.printStackTrace();
@@ -52,8 +52,8 @@ public class AccumuloPcjSerialzerTest {
 		bs.addBinding("Y",new LiteralImpl("literal2"));
 		final String[] varOrder = new String[]{"X","Y"};
 		try {
-			final byte[] byteVal = AccumuloPcjSerializer.serialize(bs, varOrder);
-			final BindingSet newBs = AccumuloPcjSerializer.deSerialize(byteVal, varOrder);
+			final byte[] byteVal = BindingSetSerializer.serialize(bs, varOrder);
+			final BindingSet newBs = BindingSetSerializer.deSerialize(byteVal, varOrder);
 			Assert.equals(bs, newBs);
 		} catch (final RyaTypeResolverException e) {
 			e.printStackTrace();
@@ -67,8 +67,8 @@ public class AccumuloPcjSerialzerTest {
 		bs.addBinding("Y",new LiteralImpl("5", new URIImpl("http://www.w3.org/2001/XMLSchema#integer")));
 		final String[] varOrder = new String[]{"X","Y"};
 		try {
-			final byte[] byteVal = AccumuloPcjSerializer.serialize(bs, varOrder);
-			final BindingSet newBs = AccumuloPcjSerializer.deSerialize(byteVal, varOrder);
+			final byte[] byteVal = BindingSetSerializer.serialize(bs, varOrder);
+			final BindingSet newBs = BindingSetSerializer.deSerialize(byteVal, varOrder);
 			Assert.equals(bs, newBs);
 		} catch (final RyaTypeResolverException e) {
 			e.printStackTrace();
@@ -84,8 +84,8 @@ public class AccumuloPcjSerialzerTest {
 		bs.addBinding("W",new LiteralImpl("1000", new URIImpl("http://www.w3.org/2001/XMLSchema#long")));
 		final String[] varOrder = new String[]{"W","X","Y","Z"};
 		try {
-			final byte[] byteVal = AccumuloPcjSerializer.serialize(bs, varOrder);
-			final BindingSet newBs = AccumuloPcjSerializer.deSerialize(byteVal, varOrder);
+			final byte[] byteVal = BindingSetSerializer.serialize(bs, varOrder);
+			final BindingSet newBs = BindingSetSerializer.deSerialize(byteVal, varOrder);
 			Assert.equals(bs, newBs);
 		} catch (final RyaTypeResolverException e) {
 			e.printStackTrace();
@@ -104,8 +104,8 @@ public class AccumuloPcjSerialzerTest {
 		bs.addBinding("C",new URIImpl("http://uri3"));
 		final String[] varOrder = new String[]{"A","W","X","Y","Z","B","C"};
 		try {
-			final byte[] byteVal = AccumuloPcjSerializer.serialize(bs, varOrder);
-			final BindingSet newBs = AccumuloPcjSerializer.deSerialize(byteVal, varOrder);
+			final byte[] byteVal = BindingSetSerializer.serialize(bs, varOrder);
+			final BindingSet newBs = BindingSetSerializer.deSerialize(byteVal, varOrder);
 			Assert.equals(bs, newBs);
 		} catch (final RyaTypeResolverException e) {
 			e.printStackTrace();

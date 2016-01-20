@@ -8,12 +8,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import mvm.rya.api.domain.RyaType;
-import mvm.rya.api.resolver.RdfToRyaConversions;
-import mvm.rya.api.resolver.RyaContext;
-import mvm.rya.api.resolver.RyaToRdfConversions;
-import mvm.rya.api.resolver.RyaTypeResolverException;
-
 import org.openrdf.model.Value;
 import org.openrdf.query.BindingSet;
 import org.openrdf.query.algebra.evaluation.QueryBindingSet;
@@ -21,13 +15,19 @@ import org.openrdf.query.algebra.evaluation.QueryBindingSet;
 import com.google.common.base.Preconditions;
 import com.google.common.primitives.Bytes;
 
+import mvm.rya.api.domain.RyaType;
+import mvm.rya.api.resolver.RdfToRyaConversions;
+import mvm.rya.api.resolver.RyaContext;
+import mvm.rya.api.resolver.RyaToRdfConversions;
+import mvm.rya.api.resolver.RyaTypeResolverException;
+
 /**
  * AccumuloPcjSerializer provides two methods, serialize and deserialize, which
  * are used for writing BindingSets to PCJ tables and reading serialized byte
  * representations of BindingSets from PCJ tables.
  *
  */
-public class AccumuloPcjSerializer {
+public class BindingSetSerializer {
 
 	/**
 	 *

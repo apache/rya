@@ -1,5 +1,29 @@
 package mvm.rya.accumulo.precompQuery;
 
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.NoSuchElementException;
+import java.util.Set;
+
+import org.apache.accumulo.core.client.BatchScanner;
+import org.apache.accumulo.core.client.Connector;
+import org.apache.accumulo.core.client.TableNotFoundException;
+import org.apache.accumulo.core.data.Key;
+import org.apache.accumulo.core.data.Range;
+import org.apache.accumulo.core.data.Value;
+import org.apache.accumulo.core.security.Authorizations;
+import org.apache.hadoop.io.Text;
+import org.openrdf.query.BindingSet;
+import org.openrdf.query.QueryEvaluationException;
+import org.openrdf.query.algebra.evaluation.QueryBindingSet;
+
+import com.google.common.collect.HashMultimap;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
+
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -24,36 +48,11 @@ package mvm.rya.accumulo.precompQuery;
  */
 import info.aduna.iteration.CloseableIteration;
 import info.aduna.iteration.Iteration;
-
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.NoSuchElementException;
-import java.util.Set;
-
 import mvm.rya.api.resolver.RyaTypeResolverException;
 import mvm.rya.indexing.PcjQuery;
 import mvm.rya.indexing.external.tupleSet.AccumuloIndexSet;
-import mvm.rya.indexing.external.tupleSet.AccumuloPcjSerializer;
+import mvm.rya.indexing.external.tupleSet.BindingSetSerializer;
 import mvm.rya.indexing.external.tupleSet.ExternalTupleSet;
-
-import org.apache.accumulo.core.client.BatchScanner;
-import org.apache.accumulo.core.client.Connector;
-import org.apache.accumulo.core.client.TableNotFoundException;
-import org.apache.accumulo.core.data.Key;
-import org.apache.accumulo.core.data.Range;
-import org.apache.accumulo.core.data.Value;
-import org.apache.accumulo.core.security.Authorizations;
-import org.apache.hadoop.io.Text;
-import org.openrdf.query.BindingSet;
-import org.openrdf.query.QueryEvaluationException;
-import org.openrdf.query.algebra.evaluation.QueryBindingSet;
-
-import com.google.common.collect.HashMultimap;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 
 /**
  * This class encapsulates how pre-computed join tables are used during query
@@ -119,7 +118,7 @@ public class AccumuloPcjQuery implements PcjQuery {
 					}
 				}
 				try {
-					rangePrefix = AccumuloPcjSerializer.serialize(rangeBs,
+					rangePrefix = BindingSetSerializer.serialize(rangeBs,
 							commonVars.toArray(new String[commonVars.size()]));
 				} catch (final RyaTypeResolverException e) {
 					e.printStackTrace();
@@ -149,7 +148,7 @@ public class AccumuloPcjQuery implements PcjQuery {
 					}
 				}
 				try {
-					rangePrefix = AccumuloPcjSerializer.serialize(rangeBs,
+					rangePrefix = BindingSetSerializer.serialize(rangeBs,
 							commonVars.toArray(new String[commonVars.size()]));
 				} catch (final RyaTypeResolverException e) {
 					e.printStackTrace();
@@ -322,7 +321,7 @@ public class AccumuloPcjQuery implements PcjQuery {
 				bSet.addBinding(var, bs.getBinding(var).getValue());
 			}
 		}
-		return AccumuloPcjSerializer.serialize(bSet,
+		return BindingSetSerializer.serialize(bSet,
 				prefixVars.toArray(new String[prefixVars.size()]));
 	}
 
@@ -339,7 +338,7 @@ public class AccumuloPcjQuery implements PcjQuery {
 		final String[] varOrder = key.getColumnFamily().toString()
 				.split(ExternalTupleSet.VAR_ORDER_DELIM);
 		final QueryBindingSet temp = new QueryBindingSet(
-				AccumuloPcjSerializer.deSerialize(row, varOrder));
+		        BindingSetSerializer.deSerialize(row, varOrder));
 		final QueryBindingSet bs = new QueryBindingSet();
 		for (final String var : temp.getBindingNames()) {
 			if (!tableVarMap.get(var).startsWith(ExternalTupleSet.CONST_PREFIX)) {

@@ -6,20 +6,6 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 
-import mvm.rya.accumulo.AccumuloRdfConfiguration;
-import mvm.rya.api.persist.RyaDAOException;
-import mvm.rya.api.resolver.RyaTypeResolverException;
-import mvm.rya.indexing.RyaSailFactory;
-import mvm.rya.indexing.accumulo.ConfigUtils;
-import mvm.rya.indexing.external.tupleSet.AccumuloPcjSerializer;
-import mvm.rya.indexing.external.tupleSet.ExternalTupleSet;
-import mvm.rya.indexing.external.tupleSet.PcjTables;
-import mvm.rya.indexing.external.tupleSet.PcjTables.PcjException;
-import mvm.rya.indexing.external.tupleSet.PcjTables.PcjMetadata;
-import mvm.rya.indexing.external.tupleSet.PcjTables.PcjVarOrderFactory;
-import mvm.rya.indexing.external.tupleSet.PcjTables.ShiftVarOrderFactory;
-import mvm.rya.indexing.external.tupleSet.PcjTables.VariableOrder;
-
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
 import org.apache.accumulo.core.client.BatchWriter;
@@ -47,6 +33,20 @@ import org.openrdf.sail.Sail;
 
 import com.google.common.base.Optional;
 import com.google.common.collect.Sets;
+
+import mvm.rya.accumulo.AccumuloRdfConfiguration;
+import mvm.rya.api.persist.RyaDAOException;
+import mvm.rya.api.resolver.RyaTypeResolverException;
+import mvm.rya.indexing.RyaSailFactory;
+import mvm.rya.indexing.accumulo.ConfigUtils;
+import mvm.rya.indexing.external.tupleSet.BindingSetSerializer;
+import mvm.rya.indexing.external.tupleSet.ExternalTupleSet;
+import mvm.rya.indexing.external.tupleSet.PcjTables;
+import mvm.rya.indexing.external.tupleSet.PcjTables.PcjException;
+import mvm.rya.indexing.external.tupleSet.PcjTables.PcjMetadata;
+import mvm.rya.indexing.external.tupleSet.PcjTables.PcjVarOrderFactory;
+import mvm.rya.indexing.external.tupleSet.PcjTables.ShiftVarOrderFactory;
+import mvm.rya.indexing.external.tupleSet.PcjTables.VariableOrder;
 
 public class PcjIntegrationTestingUtil {
 
@@ -366,7 +366,7 @@ public class PcjIntegrationTestingUtil {
 		for (final VariableOrder varOrder : varOrders) {
 			try {
 				// Serialize the result to the variable order.
-				byte[] serializedResult = AccumuloPcjSerializer.serialize(
+				byte[] serializedResult = BindingSetSerializer.serialize(
 						result, varOrder.toArray());
 
 				// Row ID = binding set values, Column Family = variable order

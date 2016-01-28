@@ -8,9 +8,9 @@ package mvm.rya.indexing.accumulo.entity;
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- * 
+ *
  *   http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -24,7 +24,6 @@ import info.aduna.iteration.CloseableIteration;
 
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
@@ -56,7 +55,7 @@ import com.google.common.base.Joiner;
 
 public class EntityTupleSet extends ExternalSet implements ExternalBatchingIterator {
 
-    
+
     private StarQuery starQuery;
     private RdfCloudTripleStoreConfiguration conf;
     private Set<String> variables;
@@ -65,30 +64,30 @@ public class EntityTupleSet extends ExternalSet implements ExternalBatchingItera
     private double minCard;
     private Connector accCon = null;
     private boolean evalOptUsed = false;
-    
+
     public EntityTupleSet() {
-        
+
     }
-    
+
     public EntityTupleSet(StarQuery sq, RdfCloudTripleStoreConfiguration conf) {
         this.starQuery = sq;
         this.conf = conf;
-        
+
         variables = Sets.newHashSet();
         if(!starQuery.commonVarConstant()) {
             variables.add(starQuery.getCommonVarName());
         }
         variables.addAll(starQuery.getUnCommonVars());
-        
+
         init();
-        
+
     }
-    
+
     public EntityTupleSet(StarQuery sq, RdfCloudTripleStoreConfiguration conf, boolean evalOptUsed) {
         this(sq,conf);
         this.evalOptUsed = evalOptUsed;
     }
-    
+
     private void init() {
 
         try {
@@ -129,11 +128,11 @@ public class EntityTupleSet extends ExternalSet implements ExternalBatchingItera
     public Set<String> getAssuredBindingNames() {
         return starQuery.getAssuredBindingNames();
     }
-    
+
     public Set<String> getVariables() {
         return variables;
     }
-    
+
 
     @Override
     public String getSignature() {
@@ -147,29 +146,29 @@ public class EntityTupleSet extends ExternalSet implements ExternalBatchingItera
     public void setStarQuery(StarQuery sq) {
         this.starQuery = sq;
     }
-    
+
 
     @Override
     public EntityTupleSet clone() {
         StarQuery sq = new StarQuery(starQuery);
         return new EntityTupleSet(sq, conf);
     }
-    
-    
+
+
     @Override
     public double cardinality() {
         return cardinality;
     }
-        
-        
+
+
     public double getMinSpCard() {
         return minCard;
     }
-    
-    
+
+
     @Override
     public CloseableIteration<BindingSet, QueryEvaluationException> evaluate(BindingSet bindings) throws QueryEvaluationException {
-        
+
         // if starQuery contains node with cardinality less than 1000 and node
         // only has one variable, and number of SPs in starQuery is greater than 2, it is
         // more efficient to first evaluate this node and then pass the bindings
@@ -180,7 +179,7 @@ public class EntityTupleSet extends ExternalSet implements ExternalBatchingItera
                 RdfCloudTripleStoreConnection conn = getRyaSailConnection();
                 CloseableIteration<BindingSet, QueryEvaluationException> sol = (CloseableIteration<BindingSet, QueryEvaluationException>) conn
                         .evaluate(minSp, null, bindings, false);
-                
+
                 Set<BindingSet> bSet = Sets.newHashSet();
                 while (sol.hasNext()) {
                     //TODO this is not optimal - should check if bindings variables intersect minSp variables
@@ -196,8 +195,8 @@ public class EntityTupleSet extends ExternalSet implements ExternalBatchingItera
 
                 StarQuery sq = new StarQuery(spList);
                 conn.close();
-                
-                return (new EntityTupleSet(sq, conf, true)).evaluate(bSet);
+
+                return new EntityTupleSet(sq, conf, true).evaluate(bSet);
 
             } catch (Exception e) {
                 throw new QueryEvaluationException(e);
@@ -206,27 +205,27 @@ public class EntityTupleSet extends ExternalSet implements ExternalBatchingItera
             this.evalOptUsed = true;
             return this.evaluate(Collections.singleton(bindings));
         }
-        
+
     }
-   
-        
+
+
     private int numberOfSpVars(StatementPattern sp) {
         List<Var> varList = sp.getVarList();
         int varCount = 0;
-        
+
         for(int i = 0; i < 3; i++) {
            if(!varList.get(i).isConstant()) {
                varCount++;
            }
         }
-        
+
         return varCount;
     }
-        
-    
+
+
     @Override
     public CloseableIteration<BindingSet,QueryEvaluationException> evaluate(final Collection<BindingSet> bindingset) throws QueryEvaluationException {
-        
+
         if(bindingset.size() < 2 && !this.evalOptUsed) {
             BindingSet bs = new QueryBindingSet();
             if (bindingset.size() == 1) {
@@ -245,8 +244,8 @@ public class EntityTupleSet extends ExternalSet implements ExternalBatchingItera
             IOUtils.closeQuietly(adi);
         }
     }
-    
-    
+
+
     private RdfCloudTripleStoreConnection getRyaSailConnection() throws AccumuloException,
             AccumuloSecurityException, SailException {
         final RdfCloudTripleStore store = new RdfCloudTripleStore();
@@ -259,6 +258,6 @@ public class EntityTupleSet extends ExternalSet implements ExternalBatchingItera
 
         return (RdfCloudTripleStoreConnection) store.getConnection();
     }
-    
-    
+
+
 }

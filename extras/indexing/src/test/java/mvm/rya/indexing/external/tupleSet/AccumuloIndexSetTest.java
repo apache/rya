@@ -30,7 +30,7 @@ import mvm.rya.accumulo.AccumuloRdfConfiguration;
 import mvm.rya.api.RdfCloudTripleStoreConfiguration;
 import mvm.rya.api.persist.RyaDAOException;
 import mvm.rya.api.resolver.RyaTypeResolverException;
-import mvm.rya.indexing.RyaSailFactory;
+import mvm.rya.sail.config.RyaSailFactory;
 import mvm.rya.indexing.accumulo.ConfigUtils;
 import mvm.rya.indexing.external.PcjIntegrationTestingUtil;
 import mvm.rya.indexing.external.QueryVariableNormalizer;

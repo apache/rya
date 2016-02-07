@@ -22,7 +22,7 @@ import java.util.List;
 import mvm.rya.accumulo.AccumuloRdfConfiguration;
 import mvm.rya.api.RdfCloudTripleStoreConfiguration;
 import mvm.rya.api.persist.RyaDAOException;
-import mvm.rya.indexing.RyaSailFactory;
+import mvm.rya.sail.config.RyaSailFactory;
 import mvm.rya.indexing.accumulo.ConfigUtils;
 import mvm.rya.indexing.accumulo.geo.GeoConstants;
 import mvm.rya.indexing.external.tupleSet.PcjTables;

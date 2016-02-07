@@ -28,7 +28,7 @@ import java.util.Set;
 import mvm.rya.accumulo.AccumuloRdfConfiguration;
 import mvm.rya.api.persist.RyaDAOException;
 import mvm.rya.api.resolver.RyaTypeResolverException;
-import mvm.rya.indexing.RyaSailFactory;
+import mvm.rya.sail.config.RyaSailFactory;
 import mvm.rya.indexing.accumulo.ConfigUtils;
 import mvm.rya.indexing.external.tupleSet.AccumuloPcjSerializer;
 import mvm.rya.indexing.external.tupleSet.ExternalTupleSet;

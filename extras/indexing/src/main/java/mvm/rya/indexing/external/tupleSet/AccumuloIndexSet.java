@@ -58,6 +58,7 @@ import org.openrdf.query.parser.sparql.SPARQLParser;
 import org.openrdf.sail.SailException;
 
 import com.google.common.base.Joiner;
+import com.google.common.base.Optional;
 import com.google.common.collect.HashBiMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -123,7 +124,13 @@ public class AccumuloIndexSet extends ExternalTupleSet implements ExternalBatchi
         this.accCon = accCon;
         final SPARQLParser sp = new SPARQLParser();
         final ParsedTupleQuery pq = (ParsedTupleQuery) sp.parseQuery(sparql, null);
-        setProjectionExpr((Projection) pq.getTupleExpr());
+
+        Optional<Projection> projection = new ParsedQueryUtil().findProjection(pq);
+        if(!projection.isPresent()) {
+            throw new MalformedQueryException("SPARQL query '" + sparql + "' does not contain a Projection.");
+        }
+        setProjectionExpr(projection.get());
+        
         Set<VariableOrder> orders = null;
         try {
 			orders = pcj.getPcjMetadata(accCon, tablename).getVarOrders();

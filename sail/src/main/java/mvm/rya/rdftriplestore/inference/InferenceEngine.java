@@ -79,6 +79,7 @@ public class InferenceEngine {
             checkArgument(ryaDAO.isInitialized(), "RdfDao is not initialized");
 
             if (schedule) {
+            	refreshGraph();
                 timer = new Timer(InferenceEngine.class.getName());
                 timer.scheduleAtFixedRate(new TimerTask() {
 

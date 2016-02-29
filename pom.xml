@@ -661,6 +661,7 @@ under the License.
                             <exclude>**/*.ttl</exclude>
                             <exclude>**/*.owl</exclude>
                             <exclude>**/*.nt</exclude>
+                            <exclude>**/*.MF</exclude>
 
                             <!-- Services Files -->
                             <exclude>**/resources/META-INF/services/**</exclude>

@@ -29,6 +29,7 @@ import mvm.rya.api.persist.RyaDAOException;
 import mvm.rya.indexing.RyaSailFactory;
 import mvm.rya.indexing.accumulo.ConfigUtils;
 import mvm.rya.indexing.external.tupleSet.AccumuloIndexSet;
+import mvm.rya.rdftriplestore.inference.InferenceEngineException;
 
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
@@ -71,7 +72,7 @@ public class AccumuloIndexSetTest2 {
     @Before
     public void init() throws RepositoryException, TupleQueryResultHandlerException, QueryEvaluationException,
             MalformedQueryException, AccumuloException, AccumuloSecurityException, TableExistsException,
-            RyaDAOException {
+            RyaDAOException, InferenceEngineException {
 
         conf = new AccumuloRdfConfiguration();
         conf.set(ConfigUtils.USE_PCJ, "true");

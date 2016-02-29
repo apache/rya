@@ -24,6 +24,8 @@ import mvm.rya.indexing.RyaSailFactory;
 import mvm.rya.indexing.accumulo.ConfigUtils;
 import mvm.rya.indexing.accumulo.geo.GeoConstants;
 import mvm.rya.mongodb.MongoDBRdfConfiguration;
+import mvm.rya.rdftriplestore.RdfCloudTripleStore;
+import mvm.rya.rdftriplestore.inference.InferenceEngineException;
 
 import org.apache.commons.lang.Validate;
 import org.apache.hadoop.conf.Configuration;
@@ -75,11 +77,12 @@ public class MongoRyaDirectExample {
 
             long start = System.currentTimeMillis();
             log.info("Running SPARQL Example: Add and Delete");
-//            testAddAndDelete(conn);
-//            testAddAndDeleteNoContext(conn);
-//            testAddNamespaces(conn);
-//            testAddPointAndWithinSearch(conn);
+            testAddAndDelete(conn);
+            testAddAndDeleteNoContext(conn);
+            testAddNamespaces(conn);
+            testAddPointAndWithinSearch(conn);
             testAddAndFreeTextSearchWithPCJ(conn);
+            testInfer(conn, sail);
 
             log.info("TIME: " + (System.currentTimeMillis() - start) / 1000.);
         } finally {
@@ -304,6 +307,34 @@ public class MongoRyaDirectExample {
          Validate.isTrue(resultHandler.getCount() == 0);
     }
 
+    
+    public static void testInfer(SailRepositoryConnection conn, Sail sail) throws MalformedQueryException, RepositoryException, 
+    UpdateExecutionException, QueryEvaluationException, TupleQueryResultHandlerException, InferenceEngineException {
+
+    	// Add data
+    	String query = "INSERT DATA\n"//
+    			+ "{ \n"//
+    			+ " <http://acme.com/people/Mike> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <urn:type1>.  "
+    			+ " <urn:type1> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <urn:superclass>.  }";
+
+    	log.info("Performing Query");
+
+    	Update update = conn.prepareUpdate(QueryLanguage.SPARQL, query);
+    	update.execute();
+    	
+    	// refresh the graph for inferencing (otherwise there is a five minute wait)
+    	((RdfCloudTripleStore) sail).getInferenceEngine().refreshGraph();
+
+    	query = "select ?s { ?s <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <urn:superclass> . }";
+    	CountingResultHandler resultHandler = new CountingResultHandler();
+    	TupleQuery tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, query);
+    	tupleQuery.evaluate(resultHandler);
+    	log.info("Result count : " + resultHandler.getCount());
+
+    	Validate.isTrue(resultHandler.getCount() == 1);
+
+    	resultHandler.resetCount();
+    }
     public static void testAddNamespaces(SailRepositoryConnection conn) throws MalformedQueryException, RepositoryException,
     UpdateExecutionException, QueryEvaluationException, TupleQueryResultHandlerException {
 

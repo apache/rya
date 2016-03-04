@@ -651,19 +651,6 @@ under the License.
                         <goals>
                             <goal>check</goal>
                         </goals>
-                    <configuration>
-                        <excludes>
-                            <!-- RDF data Files -->
-                            <exclude>**/*.ntriples</exclude>
-                            <exclude>**/*.trig</exclude>
-                            <exclude>**/*.ttl</exclude>
-                            <exclude>**/*.owl</exclude>
-                            <exclude>**/*.nt</exclude>
-
-                            <!-- Services Files -->
-                            <exclude>**/resources/META-INF/services/**</exclude>
-                        </excludes>
-                    </configuration>
                     </execution>
                 </executions>
             </plugin>

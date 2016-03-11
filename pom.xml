@@ -74,7 +74,7 @@ under the License.
 
         <pig.version>0.9.2</pig.version> <!-- Newest: 0.15.0 -->
 
-        <geomesa.version>1.1.0-rc.6</geomesa.version> <!-- Newest: 1.1.0-rc.6 -->
+        <geomesa.version>1.2.0</geomesa.version> <!-- Newest: 1.2.0 -->
         <lucene.version>3.6.2</lucene.version> <!-- Newest: 5.3.1 -->
         <joda-time.version>2.1</joda-time.version> <!-- Newest: 2.9.1 -->
 
@@ -168,13 +168,11 @@ under the License.
                 <classifier>map-reduce</classifier>
                 <version>${project.version}</version>
             </dependency>
-
             <dependency>
                 <groupId>org.apache.accumulo</groupId>
                 <artifactId>accumulo-core</artifactId>
                 <version>${accumulo.version}</version>
             </dependency>
-
             <dependency>
                 <groupId>org.apache.rya</groupId>
                 <artifactId>sesame-runtime-osgi</artifactId>
@@ -436,7 +434,7 @@ under the License.
             </dependency>
             <dependency>
                 <groupId>org.locationtech.geomesa</groupId>
-                <artifactId>geomesa-distributed-runtime</artifactId>
+                <artifactId>geomesa-accumulo-distributed-runtime</artifactId>
                 <version>${geomesa.version}</version>
             </dependency>
 
@@ -653,20 +651,6 @@ under the License.
                         <goals>
                             <goal>check</goal>
                         </goals>
-                    <configuration>
-                        <excludes>
-                            <!-- RDF data Files -->
-                            <exclude>**/*.ntriples</exclude>
-                            <exclude>**/*.trig</exclude>
-                            <exclude>**/*.ttl</exclude>
-                            <exclude>**/*.owl</exclude>
-                            <exclude>**/*.nt</exclude>
-                            <exclude>**/*.MF</exclude>
-
-                            <!-- Services Files -->
-                            <exclude>**/resources/META-INF/services/**</exclude>
-                        </excludes>
-                    </configuration>
                     </execution>
                 </executions>
             </plugin>

@@ -44,20 +44,19 @@ under the License.
         <!--   <module>sesame-runtime-osgi</module> -->
     </modules>
     <build>
-        <plugins>
-            <!-- Move to subproject when resolving RYA-8 -->
-            <plugin>
-                <groupId>org.apache.rat</groupId>
-                <artifactId>apache-rat-plugin</artifactId>
-                <configuration>
-                    <excludes combine.children="append">
-                        <exclude>sesame-runtime-osgi/openrdf-sesame-osgi.bnd</exclude>
-                    </excludes>
-                </configuration>
-            </plugin>
-        </plugins>
         <pluginManagement>
             <plugins>
+                <plugin>
+                    <groupId>org.apache.rat</groupId>
+                    <artifactId>apache-rat-plugin</artifactId>
+                    <configuration>
+                        <excludes>
+                            <!-- Services Files -->
+                            <exclude>**/resources/META-INF/services/**</exclude>
+                            <exclude>sesame-runtime-osgi/openrdf-sesame-osgi.bnd</exclude>
+                        </excludes>
+                    </configuration>
+                </plugin>
                 <plugin>
                     <groupId>org.apache.felix</groupId>
                     <artifactId>maven-bundle-plugin</artifactId>

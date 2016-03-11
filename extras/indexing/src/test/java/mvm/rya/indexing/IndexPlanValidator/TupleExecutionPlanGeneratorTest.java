@@ -8,9 +8,9 @@ package mvm.rya.indexing.IndexPlanValidator;
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- * 
+ *
  *   http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -20,14 +20,12 @@ package mvm.rya.indexing.IndexPlanValidator;
  */
 
 
-import static org.junit.Assert.*;
 
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
-import junit.framework.Assert;
-
+import org.junit.Assert;
 import org.junit.Test;
 import org.openrdf.query.MalformedQueryException;
 import org.openrdf.query.algebra.TupleExpr;
@@ -39,8 +37,8 @@ import com.beust.jcommander.internal.Sets;
 
 public class TupleExecutionPlanGeneratorTest {
 
-    
-    
+
+
     private String q1 = ""//
             + "SELECT ?s ?t ?u " //
             + "{" //
@@ -48,8 +46,8 @@ public class TupleExecutionPlanGeneratorTest {
             + "  ?t <http://www.w3.org/2000/01/rdf-schema#label> ?u ."//
             + "  ?u <uri:talksTo> ?s . "//
             + "}";//
-    
-    
+
+
     private String q2 = ""//
             + "SELECT ?s ?t ?u " //
             + "{" //
@@ -57,8 +55,8 @@ public class TupleExecutionPlanGeneratorTest {
             + "  ?s a ?t ."//
             + "  ?u <uri:talksTo> ?s . "//
             + "}";//
-    
-    
+
+
     private String q3 = ""//
             + "SELECT ?s ?t ?u " //
             + "{" //
@@ -66,8 +64,8 @@ public class TupleExecutionPlanGeneratorTest {
             + "  ?t <http://www.w3.org/2000/01/rdf-schema#label> ?u ."//
             + "  ?s a ?t ."//
             + "}";//
-    
-    
+
+
     private String q4 = ""//
             + "SELECT ?s ?t ?u " //
             + "{" //
@@ -75,8 +73,8 @@ public class TupleExecutionPlanGeneratorTest {
             + "  ?u <uri:talksTo> ?s . "//
              + "  ?t <http://www.w3.org/2000/01/rdf-schema#label> ?u ."//
             + "}";//
-    
-    
+
+
     private String q5 = ""//
             + "SELECT ?s ?t ?u " //
             + "{" //
@@ -84,8 +82,8 @@ public class TupleExecutionPlanGeneratorTest {
             + "  ?u <uri:talksTo> ?s . "//
             + "  ?s a ?t ."//
             + "}";//
-    
-    
+
+
     private String q6 = ""//
             + "SELECT ?s ?t ?u " //
             + "{" //
@@ -93,30 +91,30 @@ public class TupleExecutionPlanGeneratorTest {
             + "  ?s a ?t ."//
             + "  ?t <http://www.w3.org/2000/01/rdf-schema#label> ?u ."//
             + "}";//
-    
-    
-    
-    
+
+
+
+
     private String q7 = ""//
             + "SELECT ?s ?t ?u " //
             + "{" //
             + "  ?s a ?t ."//
             + "  ?t <http://www.w3.org/2000/01/rdf-schema#label> ?u ."//
             + "}";//
-    
-    
+
+
     private String q8 = ""//
             + "SELECT ?s ?t ?u " //
             + "{" //
             + "  ?t <http://www.w3.org/2000/01/rdf-schema#label> ?u ."//
             + "  ?s a ?t ."//
             + "}";//
-    
-    
-    
-    
-    
-    
+
+
+
+
+
+
     private String q9 = ""//
             + "SELECT ?s ?t ?u " //
             + "{" //
@@ -126,8 +124,8 @@ public class TupleExecutionPlanGeneratorTest {
             + "  ?t <http://www.w3.org/2000/01/rdf-schema#label> ?u ."//
             + "  ?u <uri:talksTo> ?s . "//
             + "}";//
-    
-    
+
+
     private String q10 = ""//
             + "SELECT ?s ?t ?u " //
             + "{" //
@@ -137,8 +135,8 @@ public class TupleExecutionPlanGeneratorTest {
             + "  ?s a ?t ."//
             + "  ?u <uri:talksTo> ?s . "//
             + "}";//
-    
-    
+
+
     private String q11 = ""//
             + "SELECT ?s ?t ?u " //
             + "{" //
@@ -148,8 +146,8 @@ public class TupleExecutionPlanGeneratorTest {
             + "  ?t <http://www.w3.org/2000/01/rdf-schema#label> ?u ."//
             + "  ?s a ?t ."//
             + "}";//
-    
-    
+
+
     private String q12 = ""//
             + "SELECT ?s ?t ?u " //
             + "{" //
@@ -159,8 +157,8 @@ public class TupleExecutionPlanGeneratorTest {
             + "  ?u <uri:talksTo> ?s . "//
             + "  ?t <http://www.w3.org/2000/01/rdf-schema#label> ?u ."//
             + "}";//
-    
-    
+
+
     private String q13 = ""//
             + "SELECT ?s ?t ?u " //
             + "{" //
@@ -170,8 +168,8 @@ public class TupleExecutionPlanGeneratorTest {
             + "  ?u <uri:talksTo> ?s . "//
             + "  ?s a ?t ."//
             + "}";//
-    
-    
+
+
     private String q14 = ""//
             + "SELECT ?s ?t ?u " //
             + "{" //
@@ -181,8 +179,8 @@ public class TupleExecutionPlanGeneratorTest {
             + "  ?s a ?t ."//
             + "  ?t <http://www.w3.org/2000/01/rdf-schema#label> ?u ."//
             + "}";//
-    
-    
+
+
     private String q15 = ""//
             + "SELECT ?s ?t ?u " //
             + "{" //
@@ -192,10 +190,10 @@ public class TupleExecutionPlanGeneratorTest {
             + "  ?t <http://www.w3.org/2000/01/rdf-schema#label> ?u ."//
             + "  ?u <uri:talksTo> ?s . "//
             + "}";//
-    
-    
-    
-    
+
+
+
+
     @Test
     public void testTwoNodeOrder() {
 
@@ -217,11 +215,11 @@ public class TupleExecutionPlanGeneratorTest {
 
         TupleExecutionPlanGenerator tep = new TupleExecutionPlanGenerator();
         Iterator<TupleExpr> processedTups = tep.getPlans(tupSet.iterator());
-        
+
         List<TupleExpr> processedTupList = Lists.newArrayList();
-        
+
         int size = 0;
-        
+
         while(processedTups.hasNext()) {
             Assert.assertTrue(processedTups.hasNext());
             processedTupList.add(processedTups.next());
@@ -234,11 +232,11 @@ public class TupleExecutionPlanGeneratorTest {
         Assert.assertTrue(processedTupList.get(1).equals(pq1.getTupleExpr()));
 
     }
-    
-    
-    
-    
-    
+
+
+
+
+
     @Test
     public void testThreeNodeOrder() {
 
@@ -270,9 +268,9 @@ public class TupleExecutionPlanGeneratorTest {
         Iterator<TupleExpr> processedTups= tep.getPlans(tupSet.iterator());
 
         List<TupleExpr> processedTupList = Lists.newArrayList();
-        
+
         int size = 0;
-        
+
         while(processedTups.hasNext()) {
             Assert.assertTrue(processedTups.hasNext());
             processedTupList.add(processedTups.next());
@@ -290,8 +288,8 @@ public class TupleExecutionPlanGeneratorTest {
         Assert.assertTrue(processedTupList.get(3).equals(pq6.getTupleExpr()));
 
     }
-    
-    
+
+
 
     @Test
     public void testThreeNodeOrderFilter() {
@@ -318,7 +316,7 @@ public class TupleExecutionPlanGeneratorTest {
             // TODO Auto-generated catch block
             e.printStackTrace();
         }
-        
+
         System.out.println(pq1.getTupleExpr());
 
         Set<TupleExpr> tupSet = Sets.newHashSet();
@@ -328,11 +326,11 @@ public class TupleExecutionPlanGeneratorTest {
         Iterator<TupleExpr> processedTups= tep.getPlans(tupSet.iterator());
 
         List<TupleExpr> processedTupList = Lists.newArrayList();
-        
+
         int size = 0;
-        
+
         while(processedTups.hasNext()) {
-            
+
             Assert.assertTrue(processedTups.hasNext());
             TupleExpr te = processedTups.next();
             processedTupList.add(te);
@@ -351,14 +349,14 @@ public class TupleExecutionPlanGeneratorTest {
         Assert.assertTrue(processedTupList.get(3).equals(pq6.getTupleExpr()));
 
     }
-    
-    
 
-    
-    
-    
-    
-    
-    
+
+
+
+
+
+
+
+
 
 }

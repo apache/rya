@@ -1,4 +1,4 @@
-package mvm.rya.indexing;
+package mvm.rya.sail.config;
 
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;

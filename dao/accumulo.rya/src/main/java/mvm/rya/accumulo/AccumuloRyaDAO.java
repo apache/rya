@@ -152,7 +152,9 @@ public class AccumuloRyaDAO implements RyaDAO<AccumuloRdfConfiguration>, RyaName
             bw_ns = mt_bw.getBatchWriter(tableLayoutStrategy.getNs());
             
             for (AccumuloIndexer index : secondaryIndexers) {
-                index.setMultiTableBatchWriter(mt_bw);
+               index.setConnector(connector);
+               index.setMultiTableBatchWriter(mt_bw);
+               index.init();
             }
 
             queryEngine = new AccumuloRyaQueryEngine(connector, conf);
@@ -314,6 +316,13 @@ public class AccumuloRyaDAO implements RyaDAO<AccumuloRdfConfiguration>, RyaName
         } catch (Exception e) {
             throw new RyaDAOException(e);
         }
+        for(AccumuloIndexer indexer : this.secondaryIndexers) {
+            try {
+                indexer.destroy();
+            } catch(Exception e) {
+                logger.warn("Failed to destroy indexer", e);
+            }
+        }
     }
 
     @Override
@@ -390,6 +399,13 @@ public class AccumuloRyaDAO implements RyaDAO<AccumuloRdfConfiguration>, RyaName
                 logger.error(e.getMessage());
             }
         }
+        for(AccumuloIndexer indexer : this.secondaryIndexers) {
+            try {
+                indexer.purge(configuration);
+            } catch(Exception e) {
+                logger.error("Failed to purge indexer", e);
+            }
+        }
     }
 
     @Override
@@ -408,6 +424,13 @@ public class AccumuloRyaDAO implements RyaDAO<AccumuloRdfConfiguration>, RyaName
             }
         }
         destroy();
+        for(AccumuloIndexer indexer : this.secondaryIndexers) {
+            try {
+                indexer.dropAndDestroy();
+            } catch(Exception e) {
+                logger.error("Failed to drop and destroy indexer", e);
+            }
+        }
     }
 
     public Connector getConnector() {

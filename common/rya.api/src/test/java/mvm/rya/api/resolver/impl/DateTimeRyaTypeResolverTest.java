@@ -110,7 +110,7 @@ public class DateTimeRyaTypeResolverTest {
     @Test
 	public void testMilliSecondsNoZone() throws Exception {
     	String beforeDate="2002-02-02T02:02:02.222";
-    	String afterDate="2002-02-02T\\d\\d:\\d\\d:02\\.222.*";
+	String afterDate="2002-02-0(1|2|3)T\\d\\d:\\d\\d:02\\.222.*";
 		RyaType deserialize = serializeAndDeserialize(beforeDate, XMLSchema.DATETIME);
 	    final String afterActual = deserialize.getData();
 		assertTrue("Before='"+beforeDate+"'; Expected should match actual regex after='"+afterDate+"' deserialized:"+afterActual, afterActual.matches(afterDate));

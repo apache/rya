@@ -8,9 +8,9 @@ package mvm.rya.indexing.IndexPlanValidator;
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- * 
+ *
  *   http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -19,405 +19,350 @@ package mvm.rya.indexing.IndexPlanValidator;
  * under the License.
  */
 
-
-
-
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.NoSuchElementException;
-import java.util.Set;
-import junit.framework.Assert;
-import mvm.rya.indexing.external.ExternalProcessor;
+
 import mvm.rya.indexing.external.tupleSet.ExternalTupleSet;
 import mvm.rya.indexing.external.tupleSet.SimpleExternalTupleSet;
 
+import org.junit.Assert;
 import org.junit.Test;
 import org.openrdf.query.algebra.Projection;
 import org.openrdf.query.algebra.TupleExpr;
 import org.openrdf.query.parser.ParsedQuery;
 import org.openrdf.query.parser.sparql.SPARQLParser;
 
-import com.google.common.collect.Lists;
-
 public class IndexedExecutionPlanGeneratorTest {
 
-    private String q7 = ""//
-            + "SELECT ?s ?t ?u " //
-            + "{" //
-            + "  ?s a ?t ."//
-            + "  ?t <http://www.w3.org/2000/01/rdf-schema#label> ?u ."//
-            + "  ?u <uri:talksTo> ?s . "//
-            + "}";//
-     
-    
-    
-    private String q12 = ""//
-            + "SELECT ?b ?p ?dog ?cat " //
-            + "{" //
-            + "  ?b a ?p ."//
-            + "  ?dog a ?cat. "//
-            + "}";//
-    
-    private String q15 = ""//
-            + "SELECT ?f ?m ?d ?e ?l ?c " //
-            + "{" //
-            + "  ?f a ?m ."//
-            + "  ?e a ?l ."//
-            + "  ?d <uri:talksTo> ?f . "//
-            + "  ?c <uri:talksTo> ?e . "//
-            + "  ?m <http://www.w3.org/2000/01/rdf-schema#label> ?d ."//
-            + "  ?l <http://www.w3.org/2000/01/rdf-schema#label> ?c ."//
-            + "}";//
-    
-    private String q16 = ""//
-            + "SELECT ?f ?m ?d ?e ?l ?c " //
-            + "{" //
-            + "  ?l <uri:talksTo> ?c . "//
-            + "  ?d <uri:talksTo> ?f . "//
-            + "  ?c <uri:talksTo> ?e . "//
-            + "  ?m <http://www.w3.org/2000/01/rdf-schema#label> ?d ."//
-            + "  ?l <http://www.w3.org/2000/01/rdf-schema#label> ?c ."//
-            + "}";//
-    
-    private String q17 = ""//
-            + "SELECT ?dog ?cat ?chicken " //
-            + "{" //
-            + "  ?chicken <uri:talksTo> ?dog . "//
-            + "  ?cat <http://www.w3.org/2000/01/rdf-schema#label> ?chicken ."//
-            + "}";//
-    
-    private String q18 = ""//
-            + "SELECT ?cat ?chicken ?pig ?duck " //
-            + "{" //
-            + "  ?cat <uri:talksTo> ?chicken. "//
-            + "  ?pig <uri:talksTo> ?duck . "//
-            + "}";//
-    
-   
-    
-    private String q19 = ""//
-            + "SELECT ?f ?m ?d ?e ?l ?c " //
-            + "{" //
-            + "  ?f <uri:talksTo> ?m . "//
-            + "  ?d <uri:talksTo> ?e . "//
-            + "  ?l <uri:talksTo> ?c . "//
-            + "}";//
-    
-    private String q20 = ""//
-            + "SELECT ?f ?m " //
-            + "{" //
-            + "  ?f <uri:talksTo> ?m . "//
-            + "}";//
-    
-    
-    private String q21 = ""//
-            + "SELECT ?s ?t ?u " //
-            + "{" //
-            + " Filter(?s > 3). " //
-            + "  ?s a ?t ."//
-            + "  ?t <http://www.w3.org/2000/01/rdf-schema#label> ?u ."//
-            + "  ?u <uri:talksTo> ?s . "//
-            + "}";//
-     
-    
-    
-    private String q22 = ""//
-            + "SELECT ?f ?m ?d ?e ?l ?c " //
-            + "{" //
-            + " Filter(?f > 3) ."//
-            + " Filter(?e > 3) ."//
-            + "  ?e a ?f ." //
-            + "  ?f a ?m ."//
-            + "  ?e a ?l ."//
-            + "  ?d <uri:talksTo> ?f . "//
-            + "  ?c <uri:talksTo> ?e . "//
-            + "  ?m <http://www.w3.org/2000/01/rdf-schema#label> ?d ."//
-            + "  ?l <http://www.w3.org/2000/01/rdf-schema#label> ?c ."//
-            + "}";//
-    
-    
-    private String q23 = ""//
-            + "SELECT ?h ?i ?j " //
-            + "{" //
-            + " Filter(?h > 3) ."//
-            + " Filter(?i > 3) ."//
-            + "  ?h a ?i ." //
-            + "  ?h a ?j ."//
-            + "}";//
-    
-    
-    
-    
-    
-    
-    @Test
-    public void testTwoIndexLargeQuery() throws Exception {
+	private String q7 = ""//
+			+ "SELECT ?s ?t ?u " //
+			+ "{" //
+			+ "  ?s a ?t ."//
+			+ "  ?t <http://www.w3.org/2000/01/rdf-schema#label> ?u ."//
+			+ "  ?u <uri:talksTo> ?s . "//
+			+ "}";//
 
-        SPARQLParser parser = new SPARQLParser();
+	private String q12 = ""//
+			+ "SELECT ?b ?p ?dog ?cat " //
+			+ "{" //
+			+ "  ?b a ?p ."//
+			+ "  ?dog a ?cat. "//
+			+ "}";//
 
-        ParsedQuery pq1 = parser.parseQuery(q15, null);
-        ParsedQuery pq2 = parser.parseQuery(q7, null);
-        ParsedQuery pq3 = parser.parseQuery(q12, null);
+	private String q15 = ""//
+			+ "SELECT ?f ?m ?d ?e ?l ?c " //
+			+ "{" //
+			+ "  ?f a ?m ."//
+			+ "  ?e a ?l ."//
+			+ "  ?d <uri:talksTo> ?f . "//
+			+ "  ?c <uri:talksTo> ?e . "//
+			+ "  ?m <http://www.w3.org/2000/01/rdf-schema#label> ?d ."//
+			+ "  ?l <http://www.w3.org/2000/01/rdf-schema#label> ?c ."//
+			+ "}";//
 
-        SimpleExternalTupleSet extTup1 = new SimpleExternalTupleSet((Projection) pq2.getTupleExpr());
-        SimpleExternalTupleSet extTup2 = new SimpleExternalTupleSet((Projection) pq3.getTupleExpr());
+	private String q16 = ""//
+			+ "SELECT ?f ?m ?d ?e ?l ?c " //
+			+ "{" //
+			+ "  ?l <uri:talksTo> ?c . "//
+			+ "  ?d <uri:talksTo> ?f . "//
+			+ "  ?c <uri:talksTo> ?e . "//
+			+ "  ?m <http://www.w3.org/2000/01/rdf-schema#label> ?d ."//
+			+ "  ?l <http://www.w3.org/2000/01/rdf-schema#label> ?c ."//
+			+ "}";//
 
-        List<ExternalTupleSet> list = new ArrayList<ExternalTupleSet>();
+	private String q17 = ""//
+			+ "SELECT ?dog ?cat ?chicken " //
+			+ "{" //
+			+ "  ?chicken <uri:talksTo> ?dog . "//
+			+ "  ?cat <http://www.w3.org/2000/01/rdf-schema#label> ?chicken ."//
+			+ "}";//
 
-        list.add(extTup2);
-        list.add(extTup1);
+	private String q18 = ""//
+			+ "SELECT ?cat ?chicken ?pig ?duck " //
+			+ "{" //
+			+ "  ?cat <uri:talksTo> ?chicken. "//
+			+ "  ?pig <uri:talksTo> ?duck . "//
+			+ "}";//
 
-        IndexedExecutionPlanGenerator iep = new IndexedExecutionPlanGenerator(pq1.getTupleExpr(), list);
-        List<ExternalTupleSet> indexSet = iep.getNormalizedIndices();
-        Assert.assertEquals(4, indexSet.size());
+	private String q19 = ""//
+			+ "SELECT ?f ?m ?d ?e ?l ?c " //
+			+ "{" //
+			+ "  ?f <uri:talksTo> ?m . "//
+			+ "  ?d <uri:talksTo> ?e . "//
+			+ "  ?l <uri:talksTo> ?c . "//
+			+ "}";//
 
-        Iterator<TupleExpr> processedTups = iep.getIndexedTuples();
+	private String q20 = ""//
+			+ "SELECT ?f ?m " //
+			+ "{" //
+			+ "  ?f <uri:talksTo> ?m . "//
+			+ "}";//
 
-        int size = 0;
+	private String q21 = ""//
+			+ "SELECT ?s ?t ?u " //
+			+ "{" //
+			+ " Filter(?s > 3). " //
+			+ "  ?s a ?t ."//
+			+ "  ?t <http://www.w3.org/2000/01/rdf-schema#label> ?u ."//
+			+ "  ?u <uri:talksTo> ?s . "//
+			+ "}";//
 
-        while (processedTups.hasNext()) {
-            Assert.assertTrue(processedTups.hasNext());
-            processedTups.next();
-            size++;
-        }
-        
-        Assert.assertTrue(!processedTups.hasNext());
+	private String q22 = ""//
+			+ "SELECT ?f ?m ?d ?e ?l ?c " //
+			+ "{" //
+			+ " Filter(?f > 3) ."//
+			+ " Filter(?e > 3) ."//
+			+ "  ?e a ?f ." //
+			+ "  ?f a ?m ."//
+			+ "  ?e a ?l ."//
+			+ "  ?d <uri:talksTo> ?f . "//
+			+ "  ?c <uri:talksTo> ?e . "//
+			+ "  ?m <http://www.w3.org/2000/01/rdf-schema#label> ?d ."//
+			+ "  ?l <http://www.w3.org/2000/01/rdf-schema#label> ?c ."//
+			+ "}";//
 
-        Assert.assertEquals(5, size);
+	private String q23 = ""//
+			+ "SELECT ?h ?i ?j " //
+			+ "{" //
+			+ " Filter(?h > 3) ."//
+			+ " Filter(?i > 3) ."//
+			+ "  ?h a ?i ." //
+			+ "  ?h a ?j ."//
+			+ "}";//
 
-    }
-    
-    
-    
-    
-    
-    @Test
-    public void testThreeSingleNodeIndex() throws Exception {
+	@Test
+	public void testTwoIndexLargeQuery() throws Exception {
 
-        SPARQLParser parser = new SPARQLParser();
+		SPARQLParser parser = new SPARQLParser();
 
-        ParsedQuery pq1 = parser.parseQuery(q19, null);
-        ParsedQuery pq2 = parser.parseQuery(q20, null);
+		ParsedQuery pq1 = parser.parseQuery(q15, null);
+		ParsedQuery pq2 = parser.parseQuery(q7, null);
+		ParsedQuery pq3 = parser.parseQuery(q12, null);
 
-        SimpleExternalTupleSet extTup1 = new SimpleExternalTupleSet((Projection) pq2.getTupleExpr());
+		SimpleExternalTupleSet extTup1 = new SimpleExternalTupleSet(
+				(Projection) pq2.getTupleExpr());
+		SimpleExternalTupleSet extTup2 = new SimpleExternalTupleSet(
+				(Projection) pq3.getTupleExpr());
 
-        List<ExternalTupleSet> list = new ArrayList<ExternalTupleSet>();
+		List<ExternalTupleSet> list = new ArrayList<ExternalTupleSet>();
 
-        list.add(extTup1);
+		list.add(extTup2);
+		list.add(extTup1);
 
-        IndexedExecutionPlanGenerator iep = new IndexedExecutionPlanGenerator(pq1.getTupleExpr(), list);
-        List<ExternalTupleSet> indexSet = iep.getNormalizedIndices();
-        Assert.assertEquals(3, indexSet.size());
+		IndexedExecutionPlanGenerator iep = new IndexedExecutionPlanGenerator(
+				pq1.getTupleExpr(), list);
+		List<ExternalTupleSet> indexSet = iep.getNormalizedIndices();
+		Assert.assertEquals(4, indexSet.size());
 
-        Iterator<TupleExpr> processedTups = iep.getIndexedTuples();
+		Iterator<TupleExpr> processedTups = iep.getIndexedTuples();
 
-        int size = 0;
+		int size = 0;
 
-        while(processedTups.hasNext()) {
-            Assert.assertTrue(processedTups.hasNext());
-            processedTups.next();
-            size++;
-        }
-        Assert.assertTrue(!processedTups.hasNext());
+		while (processedTups.hasNext()) {
+			Assert.assertTrue(processedTups.hasNext());
+			processedTups.next();
+			size++;
+		}
 
-        Assert.assertEquals(3, size);
+		Assert.assertTrue(!processedTups.hasNext());
 
-    }
-    
-    
-    
-    @Test
-    public void testThreeIndexQuery() throws Exception {
+		Assert.assertEquals(5, size);
 
-        SPARQLParser parser = new SPARQLParser();
-        
+	}
 
-        ParsedQuery pq1 = parser.parseQuery(q16, null);
-        ParsedQuery pq2 = parser.parseQuery(q17, null);
-        ParsedQuery pq3 = parser.parseQuery(q18, null);
+	@Test
+	public void testThreeSingleNodeIndex() throws Exception {
 
-        
-        SimpleExternalTupleSet extTup1 = new SimpleExternalTupleSet((Projection) pq2.getTupleExpr());
-        SimpleExternalTupleSet extTup2 = new SimpleExternalTupleSet((Projection) pq3.getTupleExpr());
-      
-        List<ExternalTupleSet> list = new ArrayList<ExternalTupleSet>();
-       
-        list.add(extTup2);
-        list.add(extTup1);
-        
+		SPARQLParser parser = new SPARQLParser();
 
-        IndexedExecutionPlanGenerator iep = new IndexedExecutionPlanGenerator(pq1.getTupleExpr(),list);
-        List<ExternalTupleSet> indexSet = iep.getNormalizedIndices();
-        Assert.assertEquals(6, indexSet.size());
+		ParsedQuery pq1 = parser.parseQuery(q19, null);
+		ParsedQuery pq2 = parser.parseQuery(q20, null);
 
-        Iterator<TupleExpr> processedTups = iep.getIndexedTuples();
-        
-        int size = 0;
-        
-        while(processedTups.hasNext()) {
-            Assert.assertTrue(processedTups.hasNext());
-            processedTups.next();
-            size++;
-        }
-        
-        Assert.assertTrue(!processedTups.hasNext());
-        Assert.assertEquals(9, size);
-        
+		SimpleExternalTupleSet extTup1 = new SimpleExternalTupleSet(
+				(Projection) pq2.getTupleExpr());
 
-    }
-    
-    
-    
-    
-    @Test
-    public void testThrowsException1() throws Exception {
+		List<ExternalTupleSet> list = new ArrayList<ExternalTupleSet>();
 
-        SPARQLParser parser = new SPARQLParser();
-        
+		list.add(extTup1);
 
-        ParsedQuery pq1 = parser.parseQuery(q16, null);
-        ParsedQuery pq2 = parser.parseQuery(q17, null);
-        ParsedQuery pq3 = parser.parseQuery(q18, null);
+		IndexedExecutionPlanGenerator iep = new IndexedExecutionPlanGenerator(
+				pq1.getTupleExpr(), list);
+		List<ExternalTupleSet> indexSet = iep.getNormalizedIndices();
+		Assert.assertEquals(3, indexSet.size());
 
-        
-        SimpleExternalTupleSet extTup1 = new SimpleExternalTupleSet((Projection) pq2.getTupleExpr());
-        SimpleExternalTupleSet extTup2 = new SimpleExternalTupleSet((Projection) pq3.getTupleExpr());
-      
-        List<ExternalTupleSet> list = new ArrayList<ExternalTupleSet>();
-       
-        list.add(extTup2);
-        list.add(extTup1);
-        
+		Iterator<TupleExpr> processedTups = iep.getIndexedTuples();
 
-        IndexedExecutionPlanGenerator iep = new IndexedExecutionPlanGenerator(pq1.getTupleExpr(),list);
-        List<ExternalTupleSet> indexSet = iep.getNormalizedIndices();
-        Assert.assertEquals(6, indexSet.size());
+		int size = 0;
 
-        Iterator<TupleExpr> processedTups = iep.getIndexedTuples();
-        
-     
-        boolean exceptionThrown = false;
-        
-        try{
-            processedTups.remove();
-        } catch(UnsupportedOperationException e) {
-            exceptionThrown = true;
-        }
-        
-        Assert.assertTrue(exceptionThrown);
-        
-        
-    }
-    
-    
-    @Test
-    public void testThrowsException2() throws Exception {
+		while (processedTups.hasNext()) {
+			Assert.assertTrue(processedTups.hasNext());
+			processedTups.next();
+			size++;
+		}
+		Assert.assertTrue(!processedTups.hasNext());
 
-        SPARQLParser parser = new SPARQLParser();
+		Assert.assertEquals(3, size);
 
-        ParsedQuery pq1 = parser.parseQuery(q19, null);
-        ParsedQuery pq2 = parser.parseQuery(q20, null);
+	}
 
-        SimpleExternalTupleSet extTup1 = new SimpleExternalTupleSet((Projection) pq2.getTupleExpr());
+	@Test
+	public void testThreeIndexQuery() throws Exception {
 
-        List<ExternalTupleSet> list = new ArrayList<ExternalTupleSet>();
+		SPARQLParser parser = new SPARQLParser();
 
-        list.add(extTup1);
+		ParsedQuery pq1 = parser.parseQuery(q16, null);
+		ParsedQuery pq2 = parser.parseQuery(q17, null);
+		ParsedQuery pq3 = parser.parseQuery(q18, null);
 
-        IndexedExecutionPlanGenerator iep = new IndexedExecutionPlanGenerator(pq1.getTupleExpr(), list);
-        List<ExternalTupleSet> indexSet = iep.getNormalizedIndices();
-        Assert.assertEquals(3, indexSet.size());
+		SimpleExternalTupleSet extTup1 = new SimpleExternalTupleSet(
+				(Projection) pq2.getTupleExpr());
+		SimpleExternalTupleSet extTup2 = new SimpleExternalTupleSet(
+				(Projection) pq3.getTupleExpr());
 
-        Iterator<TupleExpr> processedTups = iep.getIndexedTuples();
+		List<ExternalTupleSet> list = new ArrayList<ExternalTupleSet>();
 
-        int size = 0;
+		list.add(extTup2);
+		list.add(extTup1);
 
-       processedTups.next();
-       processedTups.next();
-       processedTups.next();
+		IndexedExecutionPlanGenerator iep = new IndexedExecutionPlanGenerator(
+				pq1.getTupleExpr(), list);
+		List<ExternalTupleSet> indexSet = iep.getNormalizedIndices();
+		Assert.assertEquals(6, indexSet.size());
 
-        boolean exceptionThrown = false;
-        try {
-            processedTups.next();
-        } catch (NoSuchElementException e) {
-            exceptionThrown = true;
-        }
+		Iterator<TupleExpr> processedTups = iep.getIndexedTuples();
 
-        Assert.assertTrue(exceptionThrown);
+		int size = 0;
 
-    }
+		while (processedTups.hasNext()) {
+			Assert.assertTrue(processedTups.hasNext());
+			processedTups.next();
+			size++;
+		}
 
-    
-    
-    
-    
-    @Test
-    public void testThreeIndexQueryFilter() throws Exception {
+		Assert.assertTrue(!processedTups.hasNext());
+		Assert.assertEquals(9, size);
 
-        SPARQLParser parser = new SPARQLParser();
-        
+	}
 
-        ParsedQuery pq1 = parser.parseQuery(q22, null);
-        ParsedQuery pq2 = parser.parseQuery(q7, null);
-        ParsedQuery pq3 = parser.parseQuery(q21, null);
-        ParsedQuery pq4 = parser.parseQuery(q23, null);
-        
-        
-        SimpleExternalTupleSet extTup1 = new SimpleExternalTupleSet((Projection) pq2.getTupleExpr());
-        SimpleExternalTupleSet extTup2 = new SimpleExternalTupleSet((Projection) pq3.getTupleExpr());
-        SimpleExternalTupleSet extTup3 = new SimpleExternalTupleSet((Projection) pq4.getTupleExpr());
-      
-        List<ExternalTupleSet> list = new ArrayList<ExternalTupleSet>();
-       
-        list.add(extTup2);
-        list.add(extTup1);
-        list.add(extTup3);
-        
+	@Test
+	public void testThrowsException1() throws Exception {
 
-        IndexedExecutionPlanGenerator iep = new IndexedExecutionPlanGenerator(pq1.getTupleExpr(),list);
-        List<ExternalTupleSet> indexSet = iep.getNormalizedIndices();
-        Assert.assertEquals(5, indexSet.size());
+		SPARQLParser parser = new SPARQLParser();
 
-        Iterator<TupleExpr> processedTups = iep.getIndexedTuples();
-        
-        
-        int size = 0;
-        
-        while(processedTups.hasNext()) {
-            Assert.assertTrue(processedTups.hasNext());
-            TupleExpr te = processedTups.next();
-            System.out.println(te);
-            size++;
-        }
-        
-        Assert.assertTrue(!processedTups.hasNext());
-        Assert.assertEquals(10, size);
-        
+		ParsedQuery pq1 = parser.parseQuery(q16, null);
+		ParsedQuery pq2 = parser.parseQuery(q17, null);
+		ParsedQuery pq3 = parser.parseQuery(q18, null);
 
-    }
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
+		SimpleExternalTupleSet extTup1 = new SimpleExternalTupleSet(
+				(Projection) pq2.getTupleExpr());
+		SimpleExternalTupleSet extTup2 = new SimpleExternalTupleSet(
+				(Projection) pq3.getTupleExpr());
 
+		List<ExternalTupleSet> list = new ArrayList<ExternalTupleSet>();
+
+		list.add(extTup2);
+		list.add(extTup1);
+
+		IndexedExecutionPlanGenerator iep = new IndexedExecutionPlanGenerator(
+				pq1.getTupleExpr(), list);
+		List<ExternalTupleSet> indexSet = iep.getNormalizedIndices();
+		Assert.assertEquals(6, indexSet.size());
+
+		Iterator<TupleExpr> processedTups = iep.getIndexedTuples();
+
+		boolean exceptionThrown = false;
+
+		try {
+			processedTups.remove();
+		} catch (UnsupportedOperationException e) {
+			exceptionThrown = true;
+		}
+
+		Assert.assertTrue(exceptionThrown);
+
+	}
+
+	@Test
+	public void testThrowsException2() throws Exception {
+
+		SPARQLParser parser = new SPARQLParser();
+
+		ParsedQuery pq1 = parser.parseQuery(q19, null);
+		ParsedQuery pq2 = parser.parseQuery(q20, null);
+
+		SimpleExternalTupleSet extTup1 = new SimpleExternalTupleSet(
+				(Projection) pq2.getTupleExpr());
+
+		List<ExternalTupleSet> list = new ArrayList<ExternalTupleSet>();
+
+		list.add(extTup1);
+
+		IndexedExecutionPlanGenerator iep = new IndexedExecutionPlanGenerator(
+				pq1.getTupleExpr(), list);
+		List<ExternalTupleSet> indexSet = iep.getNormalizedIndices();
+		Assert.assertEquals(3, indexSet.size());
+
+		Iterator<TupleExpr> processedTups = iep.getIndexedTuples();
+
+		processedTups.next();
+		processedTups.next();
+		processedTups.next();
+
+		boolean exceptionThrown = false;
+		try {
+			processedTups.next();
+		} catch (NoSuchElementException e) {
+			exceptionThrown = true;
+		}
+
+		Assert.assertTrue(exceptionThrown);
+
+	}
+
+	@Test
+	public void testThreeIndexQueryFilter() throws Exception {
+
+		SPARQLParser parser = new SPARQLParser();
+
+		ParsedQuery pq1 = parser.parseQuery(q22, null);
+		ParsedQuery pq2 = parser.parseQuery(q7, null);
+		ParsedQuery pq3 = parser.parseQuery(q21, null);
+		ParsedQuery pq4 = parser.parseQuery(q23, null);
+
+		SimpleExternalTupleSet extTup1 = new SimpleExternalTupleSet(
+				(Projection) pq2.getTupleExpr());
+		SimpleExternalTupleSet extTup2 = new SimpleExternalTupleSet(
+				(Projection) pq3.getTupleExpr());
+		SimpleExternalTupleSet extTup3 = new SimpleExternalTupleSet(
+				(Projection) pq4.getTupleExpr());
+
+		List<ExternalTupleSet> list = new ArrayList<ExternalTupleSet>();
+
+		list.add(extTup2);
+		list.add(extTup1);
+		list.add(extTup3);
+
+		IndexedExecutionPlanGenerator iep = new IndexedExecutionPlanGenerator(
+				pq1.getTupleExpr(), list);
+		List<ExternalTupleSet> indexSet = iep.getNormalizedIndices();
+		Assert.assertEquals(5, indexSet.size());
+
+		Iterator<TupleExpr> processedTups = iep.getIndexedTuples();
+
+		int size = 0;
+
+		while (processedTups.hasNext()) {
+			Assert.assertTrue(processedTups.hasNext());
+			TupleExpr te = processedTups.next();
+			System.out.println(te);
+			size++;
+		}
+
+		Assert.assertTrue(!processedTups.hasNext());
+		Assert.assertEquals(10, size);
+
+	}
 
 }

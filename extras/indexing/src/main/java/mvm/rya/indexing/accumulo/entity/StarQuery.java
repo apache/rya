@@ -8,9 +8,9 @@ package mvm.rya.indexing.accumulo.entity;
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- * 
+ *
  *   http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -28,7 +28,6 @@ import java.util.Set;
 import mvm.rya.accumulo.documentIndex.TextColumn;
 import mvm.rya.api.domain.RyaType;
 import mvm.rya.api.domain.RyaURI;
-import mvm.rya.api.persist.joinselect.SelectivityEvalDAO;
 import mvm.rya.api.resolver.RdfToRyaConversions;
 import mvm.rya.api.resolver.RyaContext;
 import mvm.rya.api.resolver.RyaTypeResolverException;
@@ -47,7 +46,7 @@ import com.google.common.collect.Sets;
 import com.google.common.primitives.Bytes;
 
 public class StarQuery {
-    
+
     private List<StatementPattern> nodes;
     private TextColumn[] nodeColumnCond;
     private String commonVarName;
@@ -56,17 +55,17 @@ public class StarQuery {
     private String contextURI ="";
     private Map<String,Integer> varPos = Maps.newHashMap();
     private boolean isCommonVarURI = false;
-   
-    
+
+
     public StarQuery(List<StatementPattern> nodes) {
         this.nodes = nodes;
         if(nodes.size() == 0) {
             throw new IllegalArgumentException("Nodes cannot be empty!");
         }
         nodeColumnCond = new TextColumn[nodes.size()];
-        Var tempContext = (Var) nodes.get(0).getContextVar();
+        Var tempContext = nodes.get(0).getContextVar();
         if(tempContext != null) {
-            context = (Var)tempContext.clone();
+            context = tempContext.clone();
         } else {
             context = new Var();
         }
@@ -76,51 +75,51 @@ public class StarQuery {
             e.printStackTrace();
         }
     }
-    
-    
+
+
     public StarQuery(Set<StatementPattern> nodes) {
         this(Lists.newArrayList(nodes));
     }
-    
+
     public int size() {
         return nodes.size();
     }
-    
+
     public StarQuery(StarQuery other) {
        this(other.nodes);
     }
-    
-    
+
+
     public List<StatementPattern> getNodes() {
         return nodes;
     }
-    
-    
+
+
     public TextColumn[] getColumnCond() {
         return nodeColumnCond;
     }
-    
-    
+
+
     public boolean isCommonVarURI() {
         return isCommonVarURI;
     }
-    
+
     public String getCommonVarName() {
         return commonVarName;
     }
-    
+
     public Var getCommonVar() {
         return commonVar;
     }
-    
+
     public boolean commonVarHasValue() {
         return commonVar.getValue() != null;
     }
-    
+
     public boolean commonVarConstant() {
         return commonVar.isConstant();
     }
-    
+
     public String getCommonVarValue() {
         if(commonVarHasValue()) {
             return commonVar.getValue().stringValue();
@@ -128,75 +127,75 @@ public class StarQuery {
             return null;
         }
     }
-    
-    
+
+
     public Set<String> getUnCommonVars() {
         return varPos.keySet();
     }
-    
-    
+
+
     public Map<String,Integer> getVarPos() {
         return varPos;
     }
-    
+
     public boolean hasContext() {
         return context.getValue() != null;
     }
-    
+
     public String getContextURI() {
         return contextURI;
     }
-    
-    
-    
-    
+
+
+
+
     public Set<String> getBindingNames() {
-        
+
         Set<String> bindingNames = Sets.newHashSet();
-        
+
         for(StatementPattern sp: nodes) {
-            
+
             if(bindingNames.size() == 0) {
                 bindingNames = sp.getBindingNames();
             } else {
                 bindingNames = Sets.union(bindingNames, sp.getBindingNames());
             }
-            
+
         }
-        
+
         return bindingNames;
-        
+
     }
-    
-    
-    
-    
+
+
+
+
     public Set<String> getAssuredBindingNames() {
-        
+
         Set<String> bindingNames = Sets.newHashSet();
-        
+
         for(StatementPattern sp: nodes) {
-            
+
             if(bindingNames.size() == 0) {
                 bindingNames = sp.getAssuredBindingNames();
             } else {
                 bindingNames = Sets.union(bindingNames, sp.getAssuredBindingNames());
             }
-            
+
         }
-        
+
         return bindingNames;
-        
+
     }
-    
-    
-    
-    
-    
-    
-    
+
+
+
+
+
+
+
     public CardinalityStatementPattern getMinCardSp(AccumuloSelectivityEvalDAO ase) {
-        
+
         StatementPattern minSp = null;
         double cardinality = Double.MAX_VALUE;
         double tempCard = -1;
@@ -213,43 +212,43 @@ public class StarQuery {
             } catch (TableNotFoundException e) {
                 e.printStackTrace();
             }
-            
+
 
         }
 
         return new CardinalityStatementPattern(minSp, cardinality) ;
     }
-    
-    
-    
+
+
+
     public class CardinalityStatementPattern {
-        
+
         private StatementPattern sp;
         private double cardinality;
-        
+
         public CardinalityStatementPattern(StatementPattern sp, double cardinality) {
             this.sp = sp;
             this.cardinality = cardinality;
         }
-        
+
         public StatementPattern getSp() {
             return sp;
         }
-        
+
         public double getCardinality() {
             return cardinality;
         }
-        
+
     }
-    
-    
+
+
    public double getCardinality( AccumuloSelectivityEvalDAO ase) {
-       
+
         double cardinality = Double.MAX_VALUE;
         double tempCard = -1;
 
         ase.setDenormalized(true);
-        
+
         try {
 
             for (int i = 0; i < nodes.size(); i++) {
@@ -267,50 +266,50 @@ public class StarQuery {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        
+
         ase.setDenormalized(false);
 
         return cardinality/(nodes.size() + 1);
 
     }
-    
-    
-    
+
+
+
     public static Set<String> getCommonVars(StarQuery query, BindingSet bs) {
-        
+
         Set<String> starQueryVarNames = Sets.newHashSet();
-        
+
         if(bs == null || bs.size() == 0) {
             return Sets.newHashSet();
         }
-        
+
         Set<String> bindingNames = bs.getBindingNames();
         starQueryVarNames.addAll(query.getUnCommonVars());
         if(!query.commonVarConstant()) {
             starQueryVarNames.add(query.getCommonVarName());
         }
-        
+
         return Sets.intersection(bindingNames, starQueryVarNames);
-        
-        
+
+
     }
-    
-    
-    
-    
-    
-    
+
+
+
+
+
+
     public static StarQuery getConstrainedStarQuery(StarQuery query, BindingSet bs) {
-        
+
         if(bs.size() == 0) {
             return query;
         }
-        
+
         Set<String> bindingNames = bs.getBindingNames();
         Set<String> unCommonVarNames = query.getUnCommonVars();
         Set<String> intersectVar = Sets.intersection(bindingNames, unCommonVarNames);
-        
-        
+
+
         if (!query.commonVarConstant()) {
 
             Value v = bs.getValue(query.getCommonVarName());
@@ -319,7 +318,7 @@ public class StarQuery {
                 query.commonVar.setValue(v);
             }
         }
-        
+
         for(String s: intersectVar) {
             try {
                 query.nodeColumnCond[query.varPos.get(s)] = query.setValue(query.nodeColumnCond[query.varPos.get(s)], bs.getValue(s));
@@ -327,11 +326,11 @@ public class StarQuery {
                 e.printStackTrace();
             }
         }
-        
+
         return query;
     }
-    
-    
+
+
     private TextColumn setValue(TextColumn tc, Value v) throws RyaTypeResolverException {
 
         String cq = tc.getColumnQualifier().toString();
@@ -355,22 +354,22 @@ public class StarQuery {
         return tc;
 
     }
-    
-    
-    
+
+
+
     //assumes nodes forms valid star query with only one common variable
     //assumes nodes and commonVar has been set
     private TextColumn nodeToTextColumn(StatementPattern node, int i) throws RyaTypeResolverException {
-        
+
         RyaContext rc = RyaContext.getInstance();
-        
+
         Var subjVar = node.getSubjectVar();
         Var predVar = node.getPredicateVar();
         Var objVar = node.getObjectVar();
-        
+
         RyaURI predURI = (RyaURI) RdfToRyaConversions.convertValue(node.getPredicateVar().getValue());
-        
-        
+
+
         //assumes StatementPattern contains at least on variable
         if (subjVar.isConstant()) {
             if (commonVarConstant()) {
@@ -415,46 +414,46 @@ public class StarQuery {
                 return tc;
 
             }
-            
-            
+
+
         }
-        
-      
+
+
     }
-    
-    
-    
-    
+
+
+
+
     //called in constructor after nodes set
     //assumes nodes and nodeColumnCond are same size
     private void init() throws RyaTypeResolverException {
-        
-        
+
+
         commonVar = this.getCommonVar(nodes);
         if(!commonVar.isConstant()) {
             commonVarName = commonVar.getName();
         } else {
             commonVarName = commonVar.getName().substring(7);
         }
-        
+
         if(hasContext()) {
             RyaURI ctxtURI = (RyaURI) RdfToRyaConversions.convertValue(context.getValue());
             contextURI = ctxtURI.getData();
         }
-        
+
         for(int i = 0; i < nodes.size(); i++){
             nodeColumnCond[i] = nodeToTextColumn(nodes.get(i), i);
         }
-          
+
     }
-    
-    
-    
-    
-   
-    
-    
-    
+
+
+
+
+
+
+
+
     // called after nodes set
     // assumes nodes forms valid query with single, common variable
     private Var getCommonVar(List<StatementPattern> nodes) {
@@ -505,8 +504,8 @@ public class StarQuery {
         }
 
     }
-    
-    
+
+
     //assumes bindings is not of size 0
     private static boolean isBindingsetValid(Set<String> bindings) {
 
@@ -531,46 +530,46 @@ public class StarQuery {
         }
 
     }
-    
-    
-    
-    
-    
+
+
+
+
+
     public static boolean isValidStarQuery(Collection<StatementPattern> nodes) {
-        
+
         Set<String> bindings = null;
         boolean contextSet = false;
         Var context = null;
-        
+
         if(nodes.size() < 2) {
             return false;
         }
-        
+
         for(StatementPattern sp: nodes) {
-            
+
             Var tempContext = sp.getContextVar();
             Var predVar = sp.getPredicateVar();
-            
+
             //does not support variable context
             if(tempContext != null && !tempContext.isConstant()) {
-               return false; 
+               return false;
             }
             if(!contextSet) {
                 context = tempContext;
                 contextSet = true;
             } else {
-                
+
                 if(context == null && tempContext != null) {
                     return false;
                 } else if (context != null && !context.equals(tempContext)) {
                     return false;
                 }
             }
-            
+
             if(!predVar.isConstant()) {
                 return false;
             }
-            
+
             if(bindings == null ) {
                 bindings = sp.getBindingNames();
                 if(bindings.size() == 0) {
@@ -582,55 +581,56 @@ public class StarQuery {
                     return false;
                 }
             }
-            
+
         }
-        
-        
+
+
         return isBindingsetValid(bindings);
     }
-    
-    
-    
-    
-    
+
+
+
+
+
 //    private static Set<String> getSpVariables(StatementPattern sp) {
-//        
+//
 //        Set<String> variables = Sets.newHashSet();
 //        List<Var> varList = sp.getVarList();
-//        
+//
 //        for(Var v: varList) {
 //            if(!v.isConstant()) {
 //                variables.add(v.getName());
 //            }
 //        }
-//        
+//
 //        return variables;
-//        
+//
 //    }
-//    
-    
-    
-    
-    
-    
-    public String toString() {
-        
+//
+
+
+
+
+
+    @Override
+	public String toString() {
+
         String s = "Term conditions: " + "\n";
-        
-        for(int i = 0; i < this.nodeColumnCond.length; i++) {
-            s = s + nodeColumnCond[i].toString() + "\n";
+
+        for (TextColumn element : this.nodeColumnCond) {
+            s = s + element.toString() + "\n";
         }
-        
-        s = s + "Common Var: " + this.commonVar.toString() + "\n"; 
+
+        s = s + "Common Var: " + this.commonVar.toString() + "\n";
         s = s + "Context: " + this.contextURI;
-        
+
         return s;
-        
+
     }
-    
-    
-    
-    
-    
+
+
+
+
+
 
 }

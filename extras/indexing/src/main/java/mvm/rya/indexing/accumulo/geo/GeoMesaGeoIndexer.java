@@ -33,6 +33,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.accumulo.core.client.Connector;
 import org.apache.accumulo.core.client.Instance;
 import org.apache.accumulo.core.client.mock.MockInstance;
 import org.apache.commons.lang.StringUtils;
@@ -71,6 +72,7 @@ import com.vividsolutions.jts.io.WKTReader;
 
 import info.aduna.iteration.CloseableIteration;
 import mvm.rya.accumulo.experimental.AbstractAccumuloIndexer;
+import mvm.rya.api.RdfCloudTripleStoreConfiguration;
 import mvm.rya.api.domain.RyaStatement;
 import mvm.rya.api.resolver.RyaToRdfConversions;
 import mvm.rya.indexing.GeoIndexer;
@@ -144,7 +146,7 @@ public class GeoMesaGeoIndexer extends AbstractAccumuloIndexer implements GeoInd
         this.conf = conf;
         if (!isInit) {
             try {
-                init();
+            	initInternal();
                 isInit = true;
             } catch (IOException e) {
                 logger.warn("Unable to initialize index.  Throwing Runtime Exception. ", e);
@@ -159,7 +161,7 @@ public class GeoMesaGeoIndexer extends AbstractAccumuloIndexer implements GeoInd
     }
 
 
-    private void init() throws IOException {
+    private void initInternal() throws IOException {
         validPredicates = ConfigUtils.getGeoPredicates(conf);
 
         DataStore dataStore = createDataStore(conf);
@@ -474,4 +476,34 @@ public class GeoMesaGeoIndexer extends AbstractAccumuloIndexer implements GeoInd
     public void deleteStatement(RyaStatement statement) throws IOException {
         deleteStatements(Collections.singleton(statement));
     }
+
+	@Override
+	public void init() {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void setConnector(Connector connector) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void destroy() {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void purge(RdfCloudTripleStoreConfiguration configuration) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void dropAndDestroy() {
+		// TODO Auto-generated method stub
+		
+	}
 }

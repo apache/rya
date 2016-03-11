@@ -32,7 +32,7 @@ under the License.
             <outputDirectory>accumulo/lib/ext</outputDirectory>
             <includes>
                 <include>org.apache.rya:rya.indexing:*:accumulo-server</include>
-                <include>org.locationtech.geomesa:geomesa-distributed-runtime:*</include>
+                <include>org.locationtech.geomesa:geomesa-accumulo-distributed-runtime:*</include>
             </includes>
         </dependencySet>
         <dependencySet>

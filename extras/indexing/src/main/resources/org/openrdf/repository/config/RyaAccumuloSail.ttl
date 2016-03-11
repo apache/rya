@@ -1,0 +1,20 @@
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#>.
+@prefix rep: <http://www.openrdf.org/config/repository#>.
+@prefix sr: <http://www.openrdf.org/config/repository/sail#>.
+@prefix sail: <http://www.openrdf.org/config/sail#>.
+@prefix rac: <http://rya.apache.org/RyaAccumuloSail/Config#>.
+
+[] a rep:Repository ;
+   rep:repositoryID "{%Repository ID|RyaAccumuloSail%}" ;
+   rdfs:label "{%Repository title|RyaAccumuloSail Store%}" ;
+   rep:repositoryImpl [
+      rep:repositoryType "openrdf:SailRepository" ;
+      sr:sailImpl [
+         sail:sailType "rya:RyaAccumuloSail" ;
+         rac:user "{%Rya Accumulo user|root%}" ;
+         rac:password "{%Rya Accumulo password|root%}" ;
+         rac:instance "{%Rya Accumulo instance|dev%}" ;
+         rac:zookeepers "{%Rya Accumulo zookeepers|zoo1,zoo2,zoo3%}" ;
+         rac:isMock "{%Rya Accumulo is mock|false|true%}" ;
+      ]
+   ].

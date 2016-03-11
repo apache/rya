@@ -39,5 +39,6 @@ under the License.
         <module>rya.console</module>
         <module>indexing</module>
         <module>indexingExample</module>
+        <module>vagrantExample</module>
     </modules>
 </project>

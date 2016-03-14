@@ -24,6 +24,7 @@ import java.util.List;
 import mvm.rya.api.persist.RyaDAOException;
 import mvm.rya.indexing.external.tupleSet.PcjTables.PcjException;
 import mvm.rya.indexing.external.tupleSet.PcjTables.PcjVarOrderFactory;
+import mvm.rya.rdftriplestore.inference.InferenceEngineException;
 
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
@@ -69,7 +70,7 @@ public class AccumuloConstantPcjIntegrationTest {
 			TupleQueryResultHandlerException, QueryEvaluationException,
 			MalformedQueryException, AccumuloException,
 			AccumuloSecurityException, TableExistsException,
-			TableNotFoundException, RyaDAOException {
+			TableNotFoundException, RyaDAOException, InferenceEngineException {
 
 		repo = PcjIntegrationTestingUtil.getNonPcjRepo(prefix, "instance");
 		conn = repo.getConnection();

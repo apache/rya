@@ -38,6 +38,7 @@ import mvm.rya.indexing.external.tupleSet.PcjTables.PcjMetadata;
 import mvm.rya.indexing.external.tupleSet.PcjTables.PcjVarOrderFactory;
 import mvm.rya.indexing.external.tupleSet.PcjTables.ShiftVarOrderFactory;
 import mvm.rya.indexing.external.tupleSet.PcjTables.VariableOrder;
+import mvm.rya.rdftriplestore.inference.InferenceEngineException;
 
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
@@ -92,7 +93,7 @@ public class PcjIntegrationTestingUtil {
 
 	public static SailRepository getPcjRepo(String tablePrefix, String instance)
 			throws AccumuloException, AccumuloSecurityException,
-			RyaDAOException, RepositoryException {
+			RyaDAOException, RepositoryException, InferenceEngineException {
 
 		final AccumuloRdfConfiguration pcjConf = new AccumuloRdfConfiguration();
 		pcjConf.set(ConfigUtils.USE_PCJ, "true");
@@ -108,7 +109,7 @@ public class PcjIntegrationTestingUtil {
 
 	public static SailRepository getNonPcjRepo(String tablePrefix,
 			String instance) throws AccumuloException,
-			AccumuloSecurityException, RyaDAOException, RepositoryException {
+			AccumuloSecurityException, RyaDAOException, RepositoryException, InferenceEngineException {
 
 		final AccumuloRdfConfiguration nonPcjConf = new AccumuloRdfConfiguration();
 		nonPcjConf.set(ConfigUtils.USE_MOCK_INSTANCE, "true");

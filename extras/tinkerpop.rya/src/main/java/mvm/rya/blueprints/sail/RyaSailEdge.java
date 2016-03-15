@@ -1,5 +1,3 @@
-package mvm.rya.blueprints.sail;
-
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -19,7 +17,7 @@ package mvm.rya.blueprints.sail;
  * under the License.
  */
 
-
+package mvm.rya.blueprints.sail;
 
 import com.tinkerpop.blueprints.impls.sail.SailEdge;
 import org.openrdf.model.Resource;

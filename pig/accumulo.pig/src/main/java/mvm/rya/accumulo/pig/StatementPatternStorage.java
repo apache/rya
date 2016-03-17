@@ -289,11 +289,14 @@ public class StatementPatternStorage extends AccumuloStorage {
                 RyaStatement ryaStatement = ryaContext.deserializeTriple(layout, new TripleRow(key.getRow().getBytes(),
                         key.getColumnFamily().getBytes(), key.getColumnQualifier().getBytes()));
 
-                Tuple tuple = TupleFactory.getInstance().newTuple(4);
+                Tuple tuple = TupleFactory.getInstance().newTuple(7);
                 tuple.set(0, ryaStatement.getSubject().getData());
                 tuple.set(1, ryaStatement.getPredicate().getData());
                 tuple.set(2, ryaStatement.getObject().getData());
                 tuple.set(3, (ryaStatement.getContext() != null) ? (ryaStatement.getContext().getData()) : (null));
+                tuple.set(4, ryaStatement.getSubject().getDataType());
+                tuple.set(5, ryaStatement.getPredicate().getDataType());
+                tuple.set(6, ryaStatement.getObject().getDataType());
                 return tuple;
             }
         } catch (Exception e) {

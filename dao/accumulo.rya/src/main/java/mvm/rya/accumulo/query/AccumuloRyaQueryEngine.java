@@ -241,21 +241,23 @@ public class AccumuloRyaQueryEngine implements RyaQueryEngine<AccumuloRdfConfigu
                 ByteRange byteRange = entry.getValue();
                 range = new Range(new Text(byteRange.getStart()), new Text(byteRange.getEnd()));
 
-                byte[] objectTypeInfo = null;
-                if (object != null) {
-                    //TODO: Not good to serialize this twice
-                    if (object instanceof RyaRange) {
-                        objectTypeInfo = RyaContext.getInstance().serializeType(((RyaRange) object).getStart())[1];
-                    } else {
-                        objectTypeInfo = RyaContext.getInstance().serializeType(object)[1];
-                    }
-                }
-
-                tripleRowRegex = strategy.buildRegex(regexSubject, regexPredicate, regexObject, null, objectTypeInfo);
             } else {
                 range = new Range();
                 layout = TABLE_LAYOUT.SPO;
+                strategy = ryaContext.retrieveStrategy(layout);
             }
+
+            byte[] objectTypeInfo = null;
+            if (object != null) {
+                //TODO: Not good to serialize this twice
+                if (object instanceof RyaRange) {
+                    objectTypeInfo = RyaContext.getInstance().serializeType(((RyaRange) object).getStart())[1];
+                } else {
+                    objectTypeInfo = RyaContext.getInstance().serializeType(object)[1];
+                }
+            }
+
+            tripleRowRegex = strategy.buildRegex(regexSubject, regexPredicate, regexObject, null, objectTypeInfo);
 
             //use range to set scanner
             //populate scanner based on authorizations, ttl

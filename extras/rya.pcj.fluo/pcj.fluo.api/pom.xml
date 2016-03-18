@@ -1,5 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
-
 <!--
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
@@ -18,28 +17,32 @@ KIND, either express or implied.  See the License for the
 specific language governing permissions and limitations
 under the License.
 -->
+<project 
+    xmlns="http://maven.apache.org/POM/4.0.0" 
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-    <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>org.apache.rya</groupId>
-        <artifactId>rya-project</artifactId>
+        <artifactId>rya.pcj.fluo.parent</artifactId>
         <version>3.2.10-SNAPSHOT</version>
     </parent>
-
-    <artifactId>rya.extras</artifactId>
-    <name>Apache Rya Extra Projects</name>
-
-    <packaging>pom</packaging>
-
-    <modules>
-        <module>rya.prospector</module>
-        <module>rya.manual</module>
-        <module>tinkerpop.rya</module>
-        <module>rya.console</module>
-        <module>indexing</module>
-        <module>indexingExample</module>
-        <module>vagrantExample</module>
-        <module>rya.pcj.fluo</module>
-    </modules>
+    
+    <modelVersion>4.0.0</modelVersion>
+    <artifactId>rya.pcj.fluo.api</artifactId>
+    
+    <name>Apache Rya PCJ Fluo API</name>
+    <description>
+        This module contains the Rya PCJ Fluo API. It consists of classes 
+        that allow other applications to interact with the Rya PCJ Fluo 
+        application while it is running on a cluster.
+    </description>
+    
+    <dependencies>
+    	<!-- Rya Runtime Dependencies. --> 
+        <dependency> 
+            <groupId>org.apache.rya</groupId>
+            <artifactId>rya.pcj.fluo.app</artifactId>
+        </dependency>
+    </dependencies>
 </project>

@@ -27,8 +27,9 @@ import org.apache.rya.indexing.pcj.fluo.app.query.JoinMetadata;
 import org.openrdf.query.BindingSet;
 
 import io.fluo.api.client.TransactionBase;
-import mvm.rya.indexing.external.tupleSet.BindingSetStringConverter;
+import mvm.rya.indexing.accumulo.VisibilityBindingSet;
 import mvm.rya.indexing.external.tupleSet.PcjTables.VariableOrder;
+import mvm.rya.indexing.external.tupleSet.VisibilityBindingSetStringConverter;
 
 /**
  * Notified when the results of a Join have been updated to include a new
@@ -37,7 +38,7 @@ import mvm.rya.indexing.external.tupleSet.PcjTables.VariableOrder;
  */
 public class JoinObserver extends BindingSetUpdater {
 
-    private final BindingSetStringConverter converter = new BindingSetStringConverter();
+    private final VisibilityBindingSetStringConverter converter = new VisibilityBindingSetStringConverter();
 
     private final FluoQueryMetadataDAO queryDao = new FluoQueryMetadataDAO();
 
@@ -56,7 +57,7 @@ public class JoinObserver extends BindingSetUpdater {
 
         // Read the Binding Set that was just emmitted by the Join.
         final VariableOrder joinVarOrder = joinMetadata.getVariableOrder();
-        final BindingSet joinBindingSet = converter.convert(parsedRow.getBindingSetString(), joinVarOrder);
+        final VisibilityBindingSet joinBindingSet = (VisibilityBindingSet) converter.convert(parsedRow.getBindingSetString(), joinVarOrder);
 
         // Figure out which node needs to handle the new metadata.
         final String parentNodeId = joinMetadata.getParentNodeId();

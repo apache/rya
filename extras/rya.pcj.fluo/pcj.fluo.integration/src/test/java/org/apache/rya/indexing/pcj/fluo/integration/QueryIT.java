@@ -33,6 +33,7 @@ import org.openrdf.model.vocabulary.XMLSchema;
 import org.openrdf.query.BindingSet;
 import org.openrdf.query.impl.BindingImpl;
 
+import com.google.common.base.Optional;
 import com.google.common.collect.Sets;
 
 import mvm.rya.api.domain.RyaStatement;
@@ -81,7 +82,7 @@ public class QueryIT extends ITBase {
         new CreatePcj().withRyaIntegration(fluoClient, RYA_TABLE_PREFIX, ryaRepo, accumuloConn, new HashSet<VariableOrder>(), sparql);
 
         // Stream the data into Fluo.
-        new InsertTriples().insert(fluoClient, streamedTriples);
+        new InsertTriples().insert(fluoClient, streamedTriples, Optional.<String>absent());
 
         // Verify the end results of the query match the expected results.
         fluo.waitForObservers();
@@ -163,7 +164,7 @@ public class QueryIT extends ITBase {
         new CreatePcj().withRyaIntegration(fluoClient, RYA_TABLE_PREFIX, ryaRepo, accumuloConn, new HashSet<VariableOrder>(), sparql);
 
         // Stream the data into Fluo.
-        new InsertTriples().insert(fluoClient, streamedTriples);
+        new InsertTriples().insert(fluoClient, streamedTriples, Optional.<String>absent());
 
         // Verify the end results of the query match the expected results.
         fluo.waitForObservers();
@@ -224,7 +225,7 @@ public class QueryIT extends ITBase {
         new CreatePcj().withRyaIntegration(fluoClient, RYA_TABLE_PREFIX, ryaRepo, accumuloConn, new HashSet<VariableOrder>(), sparql);
 
         // Stream the data into Fluo.
-        new InsertTriples().insert(fluoClient, streamedTriples);
+        new InsertTriples().insert(fluoClient, streamedTriples, Optional.<String>absent());
 
         // Verify the end results of the query match the expected results.
         fluo.waitForObservers();
@@ -268,7 +269,7 @@ public class QueryIT extends ITBase {
         new CreatePcj().withRyaIntegration(fluoClient, RYA_TABLE_PREFIX, ryaRepo, accumuloConn, new HashSet<VariableOrder>(), sparql);
 
         // Stream the data into Fluo.
-        new InsertTriples().insert(fluoClient, streamedTriples);
+        new InsertTriples().insert(fluoClient, streamedTriples, Optional.<String>absent());
 
         // Verify the end results of the query match the expected results.
         fluo.waitForObservers();

@@ -20,9 +20,8 @@ package org.apache.rya.indexing.pcj.fluo.app.export;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 
-import org.openrdf.query.BindingSet;
-
 import io.fluo.api.types.TypedTransactionBase;
+import mvm.rya.indexing.accumulo.VisibilityBindingSet;
 
 /**
  * Exports a single Binding Set that is a new result for a SPARQL query to some
@@ -40,7 +39,7 @@ public interface IncrementalResultExporter {
      *   Fluo application. (not null)
      * @throws ResultExportException The result could not be exported.
      */
-    public void export(TypedTransactionBase tx, String queryId, BindingSet result) throws ResultExportException;
+    public void export(TypedTransactionBase tx, String queryId, VisibilityBindingSet result) throws ResultExportException;
 
     /**
      * A result could not be exported.

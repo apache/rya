@@ -56,6 +56,7 @@ import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Mutation;
 import org.apache.accumulo.core.data.Value;
 import org.apache.accumulo.core.security.Authorizations;
+import org.apache.accumulo.core.security.ColumnVisibility;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.hadoop.io.Text;
 import org.apache.log4j.Logger;
@@ -74,7 +75,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 
-import mvm.rya.api.resolver.RyaTypeResolverException;
+import mvm.rya.indexing.accumulo.VisibilityBindingSet;
 import mvm.rya.indexing.external.tupleSet.BindingSetConverter.BindingSetConversionException;
 
 /**
@@ -132,9 +133,9 @@ public class PcjTables {
          *
          * @param varOrder - An ordered array of Binding Set variables. (not null)
          */
-        public VariableOrder(String... varOrder) {
+        public VariableOrder(final String... varOrder) {
             checkNotNull(varOrder);
-            this.variableOrder = ImmutableList.copyOf(varOrder);
+            variableOrder = ImmutableList.copyOf(varOrder);
         }
 
         /**
@@ -142,9 +143,9 @@ public class PcjTables {
          *
          * @param varOrder - An ordered collection of Binding Set variables. (not null)
          */
-        public VariableOrder(Collection<String> varOrder) {
+        public VariableOrder(final Collection<String> varOrder) {
             checkNotNull(varOrder);
-            this.variableOrder = ImmutableList.copyOf(varOrder);
+            variableOrder = ImmutableList.copyOf(varOrder);
         }
 
         /**
@@ -152,9 +153,9 @@ public class PcjTables {
          *
          * @param varOrderString - The String representation of a VariableOrder. (not null)
          */
-        public VariableOrder(String varOrderString) {
+        public VariableOrder(final String varOrderString) {
             checkNotNull(varOrderString);
-            this.variableOrder = ImmutableList.copyOf( varOrderString.split(VAR_ORDER_DELIM) );
+            variableOrder = ImmutableList.copyOf( varOrderString.split(VAR_ORDER_DELIM) );
         }
 
         /**
@@ -168,7 +169,7 @@ public class PcjTables {
          * @return The variable order as an ordered array of Strings. This array is mutable.
          */
         public String[] toArray() {
-            String[] array = new String[ variableOrder.size() ];
+            final String[] array = new String[ variableOrder.size() ];
             return variableOrder.toArray( array );
         }
 
@@ -183,11 +184,11 @@ public class PcjTables {
         }
 
         @Override
-        public boolean equals(Object o) {
+        public boolean equals(final Object o) {
             if(this == o) {
                 return true;
             } else if(o instanceof VariableOrder) {
-                VariableOrder varOrder = (VariableOrder) o;
+                final VariableOrder varOrder = (VariableOrder) o;
                 return variableOrder.equals( varOrder.variableOrder );
             }
             return false;
@@ -342,7 +343,7 @@ public class PcjTables {
     public static class ShiftVarOrderFactory implements PcjVarOrderFactory {
         @Override
         public Set<VariableOrder> makeVarOrders(final VariableOrder varOrder) {
-            Set<VariableOrder> varOrders = new HashSet<>();
+            final Set<VariableOrder> varOrders = new HashSet<>();
 
             final List<String> cyclicBuff = Lists.newArrayList( varOrder.getVariableOrders() );
             final String[] varOrderBuff = new String[ cyclicBuff.size() ];
@@ -373,7 +374,7 @@ public class PcjTables {
          *
          * @param message - Describes why the exception is being thrown.
          */
-        public PcjException(String message) {
+        public PcjException(final String message) {
             super(message);
         }
 
@@ -383,7 +384,7 @@ public class PcjTables {
          * @param message - Describes why the exception is being thrown.
          * @param cause - The exception that caused this one to be thrown.
          */
-        public PcjException(String message, Throwable cause) {
+        public PcjException(final String message, final Throwable cause) {
             super(message, cause);
         }
     }
@@ -470,24 +471,24 @@ public class PcjTables {
 
         // SPARQL Query
         Mutation mutation = new Mutation(PCJ_METADATA_ROW_ID);
-        Value query = new Value( stringLexicoder.encode(metadata.getSparql()) );
+        final Value query = new Value( stringLexicoder.encode(metadata.getSparql()) );
         mutation.put(PCJ_METADATA_FAMILY, PCJ_METADATA_SPARQL_QUERY, query);
         mutations.add(mutation);
 
         // Cardinality
         mutation = new Mutation(PCJ_METADATA_ROW_ID);
-        Value cardinality = new Value( longLexicoder.encode(new Long(metadata.getCardinality())) );
+        final Value cardinality = new Value( longLexicoder.encode(new Long(metadata.getCardinality())) );
         mutation.put(PCJ_METADATA_FAMILY, PCJ_METADATA_CARDINALITY, cardinality);
         mutations.add(mutation);
 
         //  Variable Orders
-        List<String> varOrderStrings = new ArrayList<>();
-        for(VariableOrder varOrder : metadata.getVarOrders()) {
+        final List<String> varOrderStrings = new ArrayList<>();
+        for(final VariableOrder varOrder : metadata.getVarOrders()) {
             varOrderStrings.add( varOrder.toString() );
         }
 
         mutation = new Mutation(PCJ_METADATA_ROW_ID);
-        Value variableOrders = new Value( listLexicoder.encode(varOrderStrings) );
+        final Value variableOrders = new Value( listLexicoder.encode(varOrderStrings) );
         mutation.put(PCJ_METADATA_FAMILY, PCJ_METADATA_VARIABLE_ORDERS, variableOrders);
         mutations.add(mutation);
 
@@ -512,7 +513,7 @@ public class PcjTables {
 
         try {
             // Create an Accumulo scanner that iterates through the metadata entries.
-            Scanner scanner = accumuloConn.createScanner(pcjTableName, new Authorizations());
+            final Scanner scanner = accumuloConn.createScanner(pcjTableName, new Authorizations());
             final Iterator<Entry<Key, Value>> entries = scanner.iterator();
 
             // No metadata has been stored in the table yet.
@@ -527,15 +528,15 @@ public class PcjTables {
 
             while(entries.hasNext()) {
                 final Entry<Key, Value> entry = entries.next();
-                Text columnQualifier = entry.getKey().getColumnQualifier();
-                byte[] value = entry.getValue().get();
+                final Text columnQualifier = entry.getKey().getColumnQualifier();
+                final byte[] value = entry.getValue().get();
 
                 if(columnQualifier.equals(PCJ_METADATA_SPARQL_QUERY)) {
                     sparql = stringLexicoder.decode(value);
                 } else if(columnQualifier.equals(PCJ_METADATA_CARDINALITY)) {
                     cardinality = longLexicoder.decode(value);
                 } else if(columnQualifier.equals(PCJ_METADATA_VARIABLE_ORDERS)) {
-                    for(String varOrderStr : listLexicoder.decode(value)) {
+                    for(final String varOrderStr : listLexicoder.decode(value)) {
                         varOrders.add( new VariableOrder(varOrderStr) );
                     }
                 }
@@ -543,7 +544,7 @@ public class PcjTables {
 
             return new PcjMetadata(sparql, cardinality, varOrders);
 
-        } catch (TableNotFoundException e) {
+        } catch (final TableNotFoundException e) {
             throw new PcjException("Could not add results to a PCJ because the PCJ table does not exist.", e);
         }
     }
@@ -563,7 +564,7 @@ public class PcjTables {
     public void addResults(
             final Connector accumuloConn,
             final String pcjTableName,
-            final Collection<BindingSet> results) throws PcjException {
+            final Collection<VisibilityBindingSet> results) throws PcjException {
         checkNotNull(accumuloConn);
         checkNotNull(pcjTableName);
         checkNotNull(results);
@@ -587,20 +588,20 @@ public class PcjTables {
     private void writeResults(
             final Connector accumuloConn,
             final String pcjTableName,
-            final Collection<BindingSet> results) throws PcjException {
+            final Collection<VisibilityBindingSet> results) throws PcjException {
         checkNotNull(accumuloConn);
         checkNotNull(pcjTableName);
         checkNotNull(results);
 
         // Fetch the variable orders from the PCJ table.
-        PcjMetadata metadata = getPcjMetadata(accumuloConn, pcjTableName);
+        final PcjMetadata metadata = getPcjMetadata(accumuloConn, pcjTableName);
 
         // Write each result formatted using each of the variable orders.
         BatchWriter writer = null;
         try {
             writer = accumuloConn.createBatchWriter(pcjTableName, new BatchWriterConfig());
-            for(BindingSet result : results) {
-                Set<Mutation> addResultMutations = makeWriteResultMutations(metadata.getVarOrders(), result);
+            for(final VisibilityBindingSet result : results) {
+                final Set<Mutation> addResultMutations = makeWriteResultMutations(metadata.getVarOrders(), result);
                 writer.addMutations( addResultMutations );
             }
         } catch (TableNotFoundException | MutationsRejectedException e) {
@@ -609,7 +610,7 @@ public class PcjTables {
             if(writer != null) {
                 try {
                     writer.close();
-                } catch (MutationsRejectedException e) {
+                } catch (final MutationsRejectedException e) {
                     throw new PcjException("Could not add results to a PCJ table because some of the mutations were rejected.", e);
                 }
             }
@@ -627,23 +628,24 @@ public class PcjTables {
      */
     private static Set<Mutation> makeWriteResultMutations(
             final Set<VariableOrder> varOrders,
-            final BindingSet result) throws PcjException {
+            final VisibilityBindingSet result) throws PcjException {
         checkNotNull(varOrders);
         checkNotNull(result);
 
-        Set<Mutation> mutations = new HashSet<>();
-        AccumuloPcjSerializer converter = new AccumuloPcjSerializer();
-        
+        final Set<Mutation> mutations = new HashSet<>();
+        final AccumuloPcjSerializer converter = new AccumuloPcjSerializer();
+
         for(final VariableOrder varOrder : varOrders) {
             try {
                 // Serialize the result to the variable order.
-                byte[] serializedResult = converter.convert(result, varOrder);
+                final byte[] serializedResult = converter.convert(result, varOrder);
 
                 // Row ID = binding set values, Column Family = variable order of the binding set.
-                Mutation addResult = new Mutation(serializedResult);
-                addResult.put(varOrder.toString(), "", "");
+                final Mutation addResult = new Mutation(serializedResult);
+                final String visibility = result.getVisibility();
+                addResult.put(varOrder.toString(), "", new ColumnVisibility(visibility), "");
                 mutations.add(addResult);
-            } catch(BindingSetConversionException e) {
+            } catch(final BindingSetConversionException e) {
                 throw new PcjException("Could not serialize a result.", e);
             }
         }
@@ -673,9 +675,9 @@ public class PcjTables {
             boolean updated = false;
             while(!updated) {
                 // Write the conditional update request to Accumulo.
-                long cardinality = getPcjMetadata(accumuloConn, pcjTableName).getCardinality();
-                ConditionalMutation mutation = makeUpdateCardinalityMutation(cardinality, delta);
-                ConditionalWriter.Result result = conditionalWriter.write(mutation);
+                final long cardinality = getPcjMetadata(accumuloConn, pcjTableName).getCardinality();
+                final ConditionalMutation mutation = makeUpdateCardinalityMutation(cardinality, delta);
+                final ConditionalWriter.Result result = conditionalWriter.write(mutation);
 
                 // Interpret the result.
                 switch(result.getStatus()) {
@@ -688,7 +690,7 @@ public class PcjTables {
                         // We do not know if the mutation succeeded. At best, we can hope the metadata hasn't been updated
                         // since we originally fetched it and try again. Otherwise, continue forwards as if it worked. It's
                         // okay if this number is slightly off.
-                        long newCardinality = getPcjMetadata(accumuloConn, pcjTableName).getCardinality();
+                        final long newCardinality = getPcjMetadata(accumuloConn, pcjTableName).getCardinality();
                         if(newCardinality != cardinality) {
                             updated = true;
                         }
@@ -717,20 +719,20 @@ public class PcjTables {
      * @param delta - How much the cardinality will change.
      * @return The mutation that will perform the conditional update.
      */
-    private static ConditionalMutation makeUpdateCardinalityMutation(long current, long delta) {
+    private static ConditionalMutation makeUpdateCardinalityMutation(final long current, final long delta) {
         // Try to update the cardinality by the delta.
-        ConditionalMutation mutation = new ConditionalMutation(PCJ_METADATA_ROW_ID);
-        Condition lastCardinalityStillCurrent = new Condition(
+        final ConditionalMutation mutation = new ConditionalMutation(PCJ_METADATA_ROW_ID);
+        final Condition lastCardinalityStillCurrent = new Condition(
                 PCJ_METADATA_FAMILY,
                 PCJ_METADATA_CARDINALITY);
 
         // Require the old cardinality to be the value we just read.
-        byte[] currentCardinalityBytes = longLexicoder.encode( current );
+        final byte[] currentCardinalityBytes = longLexicoder.encode( current );
         lastCardinalityStillCurrent.setValue( currentCardinalityBytes );
         mutation.addCondition(lastCardinalityStillCurrent);
 
         // If that is the case, then update to the new value.
-        Value newCardinality = new Value( longLexicoder.encode(current + delta) );
+        final Value newCardinality = new Value( longLexicoder.encode(current + delta) );
         mutation.put(PCJ_METADATA_FAMILY, PCJ_METADATA_CARDINALITY, newCardinality);
         return mutation;
     }
@@ -757,17 +759,17 @@ public class PcjTables {
 
         try {
             // Fetch the query that needs to be executed from the PCJ table.
-            PcjMetadata pcjMetadata = getPcjMetadata(accumuloConn, pcjTableName);
-            String sparql = pcjMetadata.getSparql();
+            final PcjMetadata pcjMetadata = getPcjMetadata(accumuloConn, pcjTableName);
+            final String sparql = pcjMetadata.getSparql();
 
             // Query Rya for results to the SPARQL query.
-            TupleQuery query = ryaConn.prepareTupleQuery(QueryLanguage.SPARQL, sparql);
-            TupleQueryResult results = query.evaluate();
+            final TupleQuery query = ryaConn.prepareTupleQuery(QueryLanguage.SPARQL, sparql);
+            final TupleQueryResult results = query.evaluate();
 
             // Load batches of 1000 of them at a time into the PCJ table
-            Set<BindingSet> batch = new HashSet<>(1000);
+            final Set<VisibilityBindingSet> batch = new HashSet<>(1000);
             while(results.hasNext()) {
-                batch.add( results.next() );
+                batch.add( new VisibilityBindingSet(results.next()) );
 
                 if(batch.size() == 1000) {
                     addResults(accumuloConn, pcjTableName, batch);
@@ -819,8 +821,8 @@ public class PcjTables {
         checkNotNull(pcjVarOrderFactory);
 
         // Create the PCJ's variable orders.
-        PcjVarOrderFactory varOrderFactory = pcjVarOrderFactory.or(DEFAULT_VAR_ORDER_FACTORY);
-        Set<VariableOrder> varOrders = varOrderFactory.makeVarOrders( new VariableOrder(resultVariables) );
+        final PcjVarOrderFactory varOrderFactory = pcjVarOrderFactory.or(DEFAULT_VAR_ORDER_FACTORY);
+        final Set<VariableOrder> varOrders = varOrderFactory.makeVarOrders( new VariableOrder(resultVariables) );
 
         // Create the PCJ table in Accumulo.
         createPcjTable(accumuloConn, pcjTableName, varOrders, sparql);

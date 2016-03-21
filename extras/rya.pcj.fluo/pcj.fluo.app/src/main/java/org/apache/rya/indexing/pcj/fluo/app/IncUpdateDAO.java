@@ -44,7 +44,7 @@ public class IncUpdateDAO {
     private static final StringTypeLayer stl = new StringTypeLayer();
     private static final WholeRowTripleResolver tr = new WholeRowTripleResolver();
 
-    private static RyaStatement deserializeTriple(final Bytes row) {
+    public static RyaStatement deserializeTriple(final Bytes row) {
         final byte[] rowArray = row.toArray();
 
         RyaStatement rs = null;

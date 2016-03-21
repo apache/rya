@@ -27,8 +27,9 @@ import org.apache.rya.indexing.pcj.fluo.app.query.StatementPatternMetadata;
 import org.openrdf.query.BindingSet;
 
 import io.fluo.api.client.TransactionBase;
-import mvm.rya.indexing.external.tupleSet.BindingSetStringConverter;
+import mvm.rya.indexing.accumulo.VisibilityBindingSet;
 import mvm.rya.indexing.external.tupleSet.PcjTables.VariableOrder;
+import mvm.rya.indexing.external.tupleSet.VisibilityBindingSetStringConverter;
 
 /**
  * Notified when the results of a Statement Pattern have been updated to include
@@ -37,7 +38,7 @@ import mvm.rya.indexing.external.tupleSet.PcjTables.VariableOrder;
  */
 public class StatementPatternObserver extends BindingSetUpdater {
 
-    private final BindingSetStringConverter converter = new BindingSetStringConverter();
+    private static final VisibilityBindingSetStringConverter CONVERTER = new VisibilityBindingSetStringConverter();
 
     // DAO
     private final FluoQueryMetadataDAO queryDao = new FluoQueryMetadataDAO();
@@ -54,10 +55,11 @@ public class StatementPatternObserver extends BindingSetUpdater {
         // Read the Statement Pattern metadata.
         final String spNodeId = parsedRow.getNodeId();
         final StatementPatternMetadata spMetadata = queryDao.readStatementPatternMetadata(tx, spNodeId);
+        final String bindingSetValue = parsedRow.getBindingSetString();
 
         // Read the Binding Set that was just emmitted by the Statement Pattern.
         final VariableOrder spVarOrder = spMetadata.getVariableOrder();
-        final BindingSet spBindingSet = converter.convert(parsedRow.getBindingSetString(), spVarOrder);
+        final VisibilityBindingSet spBindingSet = (VisibilityBindingSet) CONVERTER.convert(bindingSetValue, spVarOrder);
 
         // Figure out which node needs to handle the new metadata.
         final String parentNodeId = spMetadata.getParentNodeId();

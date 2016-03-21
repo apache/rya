@@ -232,7 +232,7 @@ public class CreatePcj {
         checkNotNull(spMetadata);
         checkNotNull(batch);
 
-        BindingSetStringConverter converter = new BindingSetStringConverter();
+        final BindingSetStringConverter converter = new BindingSetStringConverter();
 
         try(TypedTransaction tx = STRING_TYPED_LAYER.wrap(fluo.newTransaction())) {
             // Get the node's variable order.
@@ -240,13 +240,13 @@ public class CreatePcj {
             final VariableOrder varOrder = spMetadata.getVariableOrder();
 
             for(final BindingSet bindingSet : batch) {
-                MapBindingSet spBindingSet = new MapBindingSet();
-                for(String var : varOrder) {
-                    Binding binding = bindingSet.getBinding(var);
+                final MapBindingSet spBindingSet = new MapBindingSet();
+                for(final String var : varOrder) {
+                    final Binding binding = bindingSet.getBinding(var);
                     spBindingSet.addBinding(binding);
                 }
 
-                String bindingSetStr = converter.convert(spBindingSet, varOrder);
+                final String bindingSetStr = converter.convert(spBindingSet, varOrder);
 
                 // Write the binding set entry to Fluo for the statement pattern.
                 tx.mutate().row(spNodeId + NODEID_BS_DELIM + bindingSetStr)

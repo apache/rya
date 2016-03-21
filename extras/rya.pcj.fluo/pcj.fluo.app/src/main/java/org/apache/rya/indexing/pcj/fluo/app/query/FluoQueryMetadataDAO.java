@@ -205,8 +205,8 @@ public class FluoQueryMetadataDAO {
         final String varOrderString = encoder.decodeString( values.get(FluoQueryColumns.JOIN_VARIABLE_ORDER));
         final VariableOrder varOrder = new VariableOrder(varOrderString);
 
-        String joinTypeString = encoder.decodeString( values.get(FluoQueryColumns.JOIN_TYPE) );
-        JoinType joinType = JoinType.valueOf(joinTypeString);
+        final String joinTypeString = encoder.decodeString( values.get(FluoQueryColumns.JOIN_TYPE) );
+        final JoinType joinType = JoinType.valueOf(joinTypeString);
 
         final String parentNodeId = encoder.decodeString( values.get(FluoQueryColumns.JOIN_PARENT_NODE_ID) );
         final String leftChildNodeId = encoder.decodeString( values.get(FluoQueryColumns.JOIN_LEFT_CHILD_NODE_ID) );

@@ -33,6 +33,7 @@ import org.apache.rya.indexing.pcj.fluo.app.query.FluoQuery;
 import org.apache.rya.indexing.pcj.fluo.app.query.StatementPatternMetadata;
 import org.junit.Test;
 
+import com.google.common.base.Optional;
 import com.google.common.collect.Sets;
 
 import mvm.rya.api.domain.RyaStatement;
@@ -77,7 +78,7 @@ public class GetQueryReportIT extends ITBase {
         new CreatePcj().withRyaIntegration(fluoClient, RYA_TABLE_PREFIX, ryaRepo, accumuloConn, new HashSet<VariableOrder>(), sparql);
 
         // Stream the data into Fluo.
-        new InsertTriples().insert(fluoClient, streamedTriples);
+        new InsertTriples().insert(fluoClient, streamedTriples, Optional.<String>absent());
 
         // Wait for the results to finish processing.
         fluo.waitForObservers();

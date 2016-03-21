@@ -28,6 +28,7 @@ import java.util.List;
 import org.apache.rya.indexing.pcj.fluo.ITBase;
 import org.junit.Test;
 
+import com.google.common.base.Optional;
 import com.google.common.io.Files;
 
 import io.fluo.api.client.FluoFactory;
@@ -75,7 +76,7 @@ public class CountStatementsIT extends ITBase {
         triples.add( RyaStatement.builder().setSubject(new RyaURI("http://David")).setPredicate(new RyaURI("http://talksTo")).setObject(new RyaURI("http://Bob")).build() );
         triples.add( RyaStatement.builder().setSubject(new RyaURI("http://Eve")).setPredicate(new RyaURI("http://talksTo")).setObject(new RyaURI("http://Bob")).build() );
 
-        new InsertTriples().insert(fluoClient, triples);
+        new InsertTriples().insert(fluoClient, triples, Optional.<String>absent());
 
         // Load some statements into the Fluo app.
         final BigInteger count = new CountStatements().countStatements(fluoClient);

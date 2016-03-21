@@ -88,7 +88,7 @@ public class FluoQueryColumns {
     * <p>
     * <table border="1" style="width:100%">
     *   <tr> <th>Fluo Row</td>  <th>Fluo Column</td>  <th>Fluo Value</td> </tr>
-    *   <tr> <td>Core Rya SPO formatted triple</td> <td>triples:SPO</td> <td>empty</td> </tr>
+    *   <tr> <td>Core Rya SPO formatted triple</td> <td>triples:SPO</td> <td>visibility</td> </tr>
     * </table>
     */
    public static final Column TRIPLES = new Column("triples", "SPO");

@@ -91,7 +91,7 @@ public interface BindingSetConverter<T> {
         *
         * @param message - Describes why this exception was thrown.
         */
-       public BindingSetConversionException(String message) {
+       public BindingSetConversionException(final String message) {
            super(message);
        }
 
@@ -101,7 +101,7 @@ public interface BindingSetConverter<T> {
         * @param message - Describes why this exception was thrown.
         * @param cause - The exception that caused this one to be thrown.
         */
-       public BindingSetConversionException(String message, Throwable cause) {
+       public BindingSetConversionException(final String message, final Throwable cause) {
            super(message, cause);
        }
    }

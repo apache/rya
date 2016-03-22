@@ -174,6 +174,8 @@ public class PrecompJoinOptimizerTest {
     }
 
 
+
+
     @Test
     public void testSingleIndex2() throws Exception {
 

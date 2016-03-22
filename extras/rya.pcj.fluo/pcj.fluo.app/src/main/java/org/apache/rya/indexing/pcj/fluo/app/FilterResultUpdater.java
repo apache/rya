@@ -62,6 +62,8 @@ public class FilterResultUpdater {
 
     private final Encoder encoder = new StringEncoder();
 
+    private final BindingSetStringConverter converter = new BindingSetStringConverter();
+
     /**
      * A utility class used to search SPARQL queries for Filters.
      */
@@ -119,10 +121,12 @@ public class FilterResultUpdater {
 
             final MapBindingSet filterBindingSet = new MapBindingSet();
             for(final String bindingName : filterVarOrder) {
-                final Binding binding = childBindingSet.getBinding(bindingName);
-                filterBindingSet.addBinding(binding);
+                if(childBindingSet.hasBinding(bindingName)) {
+                    final Binding binding = childBindingSet.getBinding(bindingName);
+                    filterBindingSet.addBinding(binding);
+                }
             }
-            final String filterBindingSetString = BindingSetStringConverter.toString(filterBindingSet, filterVarOrder);
+            final String filterBindingSetString = converter.convert(filterBindingSet, filterVarOrder);
 
             final Bytes row = encoder.encode( filterMetadata.getNodeId() + NODEID_BS_DELIM + filterBindingSetString );
             final Column col = FluoQueryColumns.FILTER_BINDING_SET;

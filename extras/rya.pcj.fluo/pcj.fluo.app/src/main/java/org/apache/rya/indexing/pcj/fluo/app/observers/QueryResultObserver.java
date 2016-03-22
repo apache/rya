@@ -21,7 +21,6 @@ package org.apache.rya.indexing.pcj.fluo.app.observers;
 import static org.apache.rya.indexing.pcj.fluo.app.IncrementalUpdateConstants.NODEID_BS_DELIM;
 
 import org.apache.log4j.Logger;
-import org.apache.rya.indexing.pcj.fluo.app.FluoStringConverter;
 import org.apache.rya.indexing.pcj.fluo.app.export.IncrementalResultExporter;
 import org.apache.rya.indexing.pcj.fluo.app.export.IncrementalResultExporter.ResultExportException;
 import org.apache.rya.indexing.pcj.fluo.app.export.IncrementalResultExporterFactory;
@@ -39,6 +38,8 @@ import io.fluo.api.data.Bytes;
 import io.fluo.api.data.Column;
 import io.fluo.api.types.TypedObserver;
 import io.fluo.api.types.TypedTransactionBase;
+import mvm.rya.indexing.external.tupleSet.BindingSetStringConverter;
+import mvm.rya.indexing.external.tupleSet.PcjTables.VariableOrder;
 
 /**
  * Performs incremental result exporting to the configured destinations.
@@ -47,6 +48,8 @@ public class QueryResultObserver extends TypedObserver {
     private static final Logger log = Logger.getLogger(QueryResultObserver.class);
 
     private final FluoQueryMetadataDAO queryDao = new FluoQueryMetadataDAO();
+
+    private final BindingSetStringConverter converter = new BindingSetStringConverter();
 
     /**
      * Builders for each type of result exporter we support.
@@ -96,10 +99,10 @@ public class QueryResultObserver extends TypedObserver {
 
         // Fetch the query's Variable Order from the Fluo table.
         final QueryMetadata queryMetadata = queryDao.readQueryMetadata(tx, queryId);
-        final String[] varOrder = queryMetadata.getVariableOrder().toArray();
+        final VariableOrder varOrder = queryMetadata.getVariableOrder();
 
         // Export the result using each of the provided exporters.
-        final BindingSet result = FluoStringConverter.toBindingSet(bindingSetString, varOrder);
+        BindingSet result = converter.convert(bindingSetString, varOrder);
         for(final IncrementalResultExporter exporter : exporters) {
             try {
                 exporter.export(tx, queryId, result);

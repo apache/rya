@@ -37,7 +37,9 @@ import mvm.rya.api.resolver.RyaTypeResolverException;
 import mvm.rya.indexing.PcjQuery;
 import mvm.rya.indexing.external.tupleSet.AccumuloIndexSet;
 import mvm.rya.indexing.external.tupleSet.AccumuloPcjSerializer;
+import mvm.rya.indexing.external.tupleSet.BindingSetConverter.BindingSetConversionException;
 import mvm.rya.indexing.external.tupleSet.ExternalTupleSet;
+import mvm.rya.indexing.external.tupleSet.PcjTables.VariableOrder;
 
 import org.apache.accumulo.core.client.BatchScanner;
 import org.apache.accumulo.core.client.Connector;
@@ -68,9 +70,11 @@ import com.google.common.collect.Sets;
  *
  */
 public class AccumuloPcjQuery implements PcjQuery {
+	private static final AccumuloPcjSerializer converter = new AccumuloPcjSerializer();
+	
 	private final Connector accCon;
 	private final String tableName;
-
+	
 	public AccumuloPcjQuery(Connector accCon, String tableName) {
 		this.accCon = accCon;
 		this.tableName = tableName;
@@ -119,10 +123,9 @@ public class AccumuloPcjQuery implements PcjQuery {
 					}
 				}
 				try {
-					rangePrefix = AccumuloPcjSerializer.serialize(rangeBs,
-							commonVars.toArray(new String[commonVars.size()]));
-				} catch (final RyaTypeResolverException e) {
-					e.printStackTrace();
+					rangePrefix = converter.convert(rangeBs, new VariableOrder(commonVars));
+				} catch (final BindingSetConversionException e) {
+					throw new QueryEvaluationException(e);
 				}
 				final Range r = Range.prefix(new Text(rangePrefix));
 				map.put(r, bSet);
@@ -149,10 +152,9 @@ public class AccumuloPcjQuery implements PcjQuery {
 					}
 				}
 				try {
-					rangePrefix = AccumuloPcjSerializer.serialize(rangeBs,
-							commonVars.toArray(new String[commonVars.size()]));
-				} catch (final RyaTypeResolverException e) {
-					e.printStackTrace();
+					rangePrefix = converter.convert(rangeBs, new VariableOrder(commonVars));
+				} catch (final BindingSetConversionException e) {
+					throw new QueryEvaluationException(e);
 				}
 				final Range r = Range.prefix(new Text(rangePrefix));
 				ranges.add(r);
@@ -224,7 +226,7 @@ public class AccumuloPcjQuery implements PcjQuery {
 						BindingSet bs;
 						try {
 							bs = getBindingSetWithoutConstants(k, tableVarMap);
-						} catch (final RyaTypeResolverException e) {
+						} catch (final BindingSetConversionException e) {
 							throw new QueryEvaluationException(e);
 						}
 						currentSolutionBs = new QueryBindingSet();
@@ -239,7 +241,7 @@ public class AccumuloPcjQuery implements PcjQuery {
 							try {
 								rangePrefix = getPrefixByte(bs, constValMap,
 										prefixVars);
-							} catch (final RyaTypeResolverException e) {
+							} catch (final BindingSetConversionException e) {
 								throw new QueryEvaluationException(e);
 							}
 							final Range r = Range.prefix(new Text(rangePrefix));
@@ -312,7 +314,7 @@ public class AccumuloPcjQuery implements PcjQuery {
 	 */
 	private static byte[] getPrefixByte(BindingSet bs,
 			Map<String, org.openrdf.model.Value> valMap, List<String> prefixVars)
-			throws RyaTypeResolverException {
+			throws BindingSetConversionException {
 		final QueryBindingSet bSet = new QueryBindingSet();
 		for (final String var : prefixVars) {
 			if (var.startsWith(ExternalTupleSet.CONST_PREFIX)) {
@@ -322,8 +324,8 @@ public class AccumuloPcjQuery implements PcjQuery {
 				bSet.addBinding(var, bs.getBinding(var).getValue());
 			}
 		}
-		return AccumuloPcjSerializer.serialize(bSet,
-				prefixVars.toArray(new String[prefixVars.size()]));
+		
+		return converter.convert(bSet, new VariableOrder(prefixVars));
 	}
 
 	/**
@@ -331,15 +333,17 @@ public class AccumuloPcjQuery implements PcjQuery {
 	 * @param key - Accumulo key obtained from scan
 	 * @param tableVarMap - map that associated query variables and table variables
 	 * @return - BindingSet without values associated with constant constraints
-	 * @throws RyaTypeResolverException
+	 * @throws BindingSetConversionException 
 	 */
 	private static BindingSet getBindingSetWithoutConstants(Key key,
-			Map<String, String> tableVarMap) throws RyaTypeResolverException {
+			Map<String, String> tableVarMap) throws BindingSetConversionException {
 		final byte[] row = key.getRow().getBytes();
 		final String[] varOrder = key.getColumnFamily().toString()
 				.split(ExternalTupleSet.VAR_ORDER_DELIM);
-		final QueryBindingSet temp = new QueryBindingSet(
-				AccumuloPcjSerializer.deSerialize(row, varOrder));
+		
+		BindingSet bindingSet = converter.convert(row, new VariableOrder(varOrder));
+		final QueryBindingSet temp = new QueryBindingSet(bindingSet);
+		
 		final QueryBindingSet bs = new QueryBindingSet();
 		for (final String var : temp.getBindingNames()) {
 			if (!tableVarMap.get(var).startsWith(ExternalTupleSet.CONST_PREFIX)) {

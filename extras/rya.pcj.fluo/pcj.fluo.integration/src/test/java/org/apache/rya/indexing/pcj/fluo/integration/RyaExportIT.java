@@ -52,6 +52,7 @@ import io.fluo.api.data.Bytes;
 import mvm.rya.api.domain.RyaStatement;
 import mvm.rya.api.resolver.RyaTypeResolverException;
 import mvm.rya.indexing.external.tupleSet.AccumuloPcjSerializer;
+import mvm.rya.indexing.external.tupleSet.BindingSetConverter.BindingSetConversionException;
 import mvm.rya.indexing.external.tupleSet.PcjTables;
 import mvm.rya.indexing.external.tupleSet.PcjTables.PcjException;
 import mvm.rya.indexing.external.tupleSet.PcjTables.PcjMetadata;
@@ -64,6 +65,8 @@ import mvm.rya.indexing.external.tupleSet.PcjTables.VariableOrder;
  */
 public class RyaExportIT extends ITBase {
 
+	private static final AccumuloPcjSerializer converter = new AccumuloPcjSerializer();
+	
     /**
      * Configure the export observer to use the Mini Accumulo instance as the
      * export destination for new PCJ results.
@@ -163,7 +166,7 @@ public class RyaExportIT extends ITBase {
      * multimap stores a set of deserialized binding sets that were in the PCJ
      * table for every variable order that is found in the PCJ metadata.
      */
-    private static Multimap<String, BindingSet> loadPcjResults(final Connector accumuloConn, final String pcjTableName) throws PcjException, TableNotFoundException, RyaTypeResolverException {
+    private static Multimap<String, BindingSet> loadPcjResults(final Connector accumuloConn, final String pcjTableName) throws PcjException, TableNotFoundException, BindingSetConversionException {
         final Multimap<String, BindingSet> fetchedResults = HashMultimap.create();
 
         // Get the variable orders the data was written to.
@@ -177,7 +180,7 @@ public class RyaExportIT extends ITBase {
 
             for(final Entry<Key, Value> entry : scanner) {
                 final byte[] serializedResult = entry.getKey().getRow().getBytes();
-                final BindingSet result = AccumuloPcjSerializer.deSerialize(serializedResult, varOrder.toArray());
+                final BindingSet result = converter.convert(serializedResult, varOrder);
                 fetchedResults.put(varOrder.toString(), result);
             }
         }

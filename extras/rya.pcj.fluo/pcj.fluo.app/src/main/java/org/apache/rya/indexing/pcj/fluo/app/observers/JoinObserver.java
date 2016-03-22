@@ -21,13 +21,14 @@ package org.apache.rya.indexing.pcj.fluo.app.observers;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import org.apache.rya.indexing.pcj.fluo.app.BindingSetRow;
-import org.apache.rya.indexing.pcj.fluo.app.FluoStringConverter;
 import org.apache.rya.indexing.pcj.fluo.app.query.FluoQueryColumns;
 import org.apache.rya.indexing.pcj.fluo.app.query.FluoQueryMetadataDAO;
 import org.apache.rya.indexing.pcj.fluo.app.query.JoinMetadata;
 import org.openrdf.query.BindingSet;
 
 import io.fluo.api.client.TransactionBase;
+import mvm.rya.indexing.external.tupleSet.BindingSetStringConverter;
+import mvm.rya.indexing.external.tupleSet.PcjTables.VariableOrder;
 
 /**
  * Notified when the results of a Join have been updated to include a new
@@ -35,6 +36,8 @@ import io.fluo.api.client.TransactionBase;
  * effects the parent's results.
  */
 public class JoinObserver extends BindingSetUpdater {
+
+    private final BindingSetStringConverter converter = new BindingSetStringConverter();
 
     private final FluoQueryMetadataDAO queryDao = new FluoQueryMetadataDAO();
 
@@ -52,9 +55,8 @@ public class JoinObserver extends BindingSetUpdater {
         final JoinMetadata joinMetadata = queryDao.readJoinMetadata(tx, joinNodeId);
 
         // Read the Binding Set that was just emmitted by the Join.
-        final String[] joinBindingStrings = parsedRow.getBindingStrings();
-        final String[] joinVarOrder = joinMetadata.getVariableOrder().toArray();
-        final BindingSet joinBindingSet = FluoStringConverter.toBindingSet(joinBindingStrings, joinVarOrder);
+        final VariableOrder joinVarOrder = joinMetadata.getVariableOrder();
+        final BindingSet joinBindingSet = converter.convert(parsedRow.getBindingSetString(), joinVarOrder);
 
         // Figure out which node needs to handle the new metadata.
         final String parentNodeId = joinMetadata.getParentNodeId();

@@ -21,6 +21,7 @@ package org.apache.rya.indexing.pcj.fluo.app.query;
 import static org.junit.Assert.assertEquals;
 
 import org.apache.rya.indexing.pcj.fluo.ITBase;
+import org.apache.rya.indexing.pcj.fluo.app.query.JoinMetadata.JoinType;
 import org.apache.rya.indexing.pcj.fluo.app.query.SparqlFluoQueryBuilder.NodeIds;
 import org.junit.Test;
 import org.openrdf.query.MalformedQueryException;
@@ -99,6 +100,7 @@ public class FluoQueryMetadataDAOIT extends ITBase {
         // Create the object that will be serialized.
         final JoinMetadata.Builder builder = JoinMetadata.builder("nodeId");
         builder.setVariableOrder(new VariableOrder("g;y;s"));
+        builder.setJoinType(JoinType.NATURAL_JOIN);
         builder.setParentNodeId("parentNodeId");
         builder.setLeftChildNodeId("leftChildNodeId");
         builder.setRightChildNodeId("rightChildNodeId");

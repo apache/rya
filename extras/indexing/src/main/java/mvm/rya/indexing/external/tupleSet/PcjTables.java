@@ -8,9 +8,9 @@ package mvm.rya.indexing.external.tupleSet;
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- * 
+ *
  *   http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -34,8 +34,6 @@ import java.util.Set;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 import javax.annotation.concurrent.Immutable;
-
-import mvm.rya.api.resolver.RyaTypeResolverException;
 
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
@@ -75,6 +73,9 @@ import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
+
+import mvm.rya.api.resolver.RyaTypeResolverException;
+import mvm.rya.indexing.external.tupleSet.BindingSetConverter.BindingSetConversionException;
 
 /**
  * Functions that create and maintain the PCJ tables that are used by Rya.
@@ -132,6 +133,16 @@ public class PcjTables {
          * @param varOrder - An ordered array of Binding Set variables. (not null)
          */
         public VariableOrder(String... varOrder) {
+            checkNotNull(varOrder);
+            this.variableOrder = ImmutableList.copyOf(varOrder);
+        }
+
+        /**
+         * Constructs an instance of {@link VariableOrdeR{.
+         *
+         * @param varOrder - An ordered collection of Binding Set variables. (not null)
+         */
+        public VariableOrder(Collection<String> varOrder) {
             checkNotNull(varOrder);
             this.variableOrder = ImmutableList.copyOf(varOrder);
         }
@@ -621,17 +632,18 @@ public class PcjTables {
         checkNotNull(result);
 
         Set<Mutation> mutations = new HashSet<>();
-
+        AccumuloPcjSerializer converter = new AccumuloPcjSerializer();
+        
         for(final VariableOrder varOrder : varOrders) {
             try {
                 // Serialize the result to the variable order.
-                byte[] serializedResult = AccumuloPcjSerializer.serialize(result, varOrder.toArray());
+                byte[] serializedResult = converter.convert(result, varOrder);
 
                 // Row ID = binding set values, Column Family = variable order of the binding set.
                 Mutation addResult = new Mutation(serializedResult);
                 addResult.put(varOrder.toString(), "", "");
                 mutations.add(addResult);
-            } catch(RyaTypeResolverException e) {
+            } catch(BindingSetConversionException e) {
                 throw new PcjException("Could not serialize a result.", e);
             }
         }

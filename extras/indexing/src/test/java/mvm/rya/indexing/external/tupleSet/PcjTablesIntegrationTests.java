@@ -33,6 +33,7 @@ import mvm.rya.accumulo.AccumuloRyaDAO;
 import mvm.rya.api.RdfCloudTripleStoreConfiguration;
 import mvm.rya.api.resolver.RyaTypeResolverException;
 import mvm.rya.indexing.accumulo.ConfigUtils;
+import mvm.rya.indexing.external.tupleSet.BindingSetConverter.BindingSetConversionException;
 import mvm.rya.indexing.external.tupleSet.PcjTables.PcjException;
 import mvm.rya.indexing.external.tupleSet.PcjTables.PcjMetadata;
 import mvm.rya.indexing.external.tupleSet.PcjTables.PcjTableNameFactory;
@@ -83,6 +84,8 @@ import com.google.common.io.Files;
 public class PcjTablesIntegrationTests {
     private static final Logger log = Logger.getLogger(PcjTablesIntegrationTests.class);
 
+    private static final AccumuloPcjSerializer converter = new AccumuloPcjSerializer();
+    
     protected static final String RYA_TABLE_PREFIX = "demo_";
 
     // Rya data store and connections.
@@ -137,7 +140,7 @@ public class PcjTablesIntegrationTests {
      * The method being tested is {@link PcjTables#addResults(Connector, String, java.util.Collection)}
      */
     @Test
-    public void addResults() throws PcjException, TableNotFoundException, RyaTypeResolverException {
+    public void addResults() throws PcjException, TableNotFoundException, BindingSetConversionException {
         final String sparql =
                 "SELECT ?name ?age " +
                 "{" +
@@ -189,7 +192,7 @@ public class PcjTablesIntegrationTests {
      * The method being tested is: {@link PcjTables#populatePcj(Connector, String, RepositoryConnection, String)}
      */
     @Test
-    public void populatePcj() throws RepositoryException, PcjException, TableNotFoundException, RyaTypeResolverException {
+    public void populatePcj() throws RepositoryException, PcjException, TableNotFoundException, BindingSetConversionException {
         // Load some Triples into Rya.
         Set<Statement> triples = new HashSet<>();
         triples.add( new StatementImpl(new URIImpl("http://Alice"), new URIImpl("http://hasAge"), new NumericLiteralImpl(14, XMLSchema.INTEGER)) );
@@ -257,7 +260,7 @@ public class PcjTablesIntegrationTests {
      * The method being tested is: {@link PcjTables#createAndPopulatePcj(RepositoryConnection, Connector, String, String, String[], Optional)}
      */
     @Test
-    public void createAndPopulatePcj() throws RepositoryException, PcjException, TableNotFoundException, RyaTypeResolverException {
+    public void createAndPopulatePcj() throws RepositoryException, PcjException, TableNotFoundException, BindingSetConversionException {
         // Load some Triples into Rya.
         Set<Statement> triples = new HashSet<>();
         triples.add( new StatementImpl(new URIImpl("http://Alice"), new URIImpl("http://hasAge"), new NumericLiteralImpl(14, XMLSchema.INTEGER)) );
@@ -322,7 +325,7 @@ public class PcjTablesIntegrationTests {
      * multimap stores a set of deserialized binding sets that were in the PCJ
      * table for every variable order that is found in the PCJ metadata.
      */
-    private static Multimap<String, BindingSet> loadPcjResults(Connector accumuloConn, String pcjTableName) throws PcjException, TableNotFoundException, RyaTypeResolverException {
+    private static Multimap<String, BindingSet> loadPcjResults(Connector accumuloConn, String pcjTableName) throws PcjException, TableNotFoundException, BindingSetConversionException {
         Multimap<String, BindingSet> fetchedResults = HashMultimap.create();
 
         // Get the variable orders the data was written to.
@@ -336,7 +339,7 @@ public class PcjTablesIntegrationTests {
 
             for(Entry<Key, Value> entry : scanner) {
                 byte[] serializedResult = entry.getKey().getRow().getBytes();
-                BindingSet result = AccumuloPcjSerializer.deSerialize(serializedResult, varOrder.toArray());
+                BindingSet result = converter.convert(serializedResult, varOrder);
                 fetchedResults.put(varOrder.toString(), result);
             }
         }

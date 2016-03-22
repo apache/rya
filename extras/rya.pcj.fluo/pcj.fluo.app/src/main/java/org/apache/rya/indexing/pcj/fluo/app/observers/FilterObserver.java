@@ -21,13 +21,14 @@ package org.apache.rya.indexing.pcj.fluo.app.observers;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import org.apache.rya.indexing.pcj.fluo.app.BindingSetRow;
-import org.apache.rya.indexing.pcj.fluo.app.FluoStringConverter;
 import org.apache.rya.indexing.pcj.fluo.app.query.FilterMetadata;
 import org.apache.rya.indexing.pcj.fluo.app.query.FluoQueryColumns;
 import org.apache.rya.indexing.pcj.fluo.app.query.FluoQueryMetadataDAO;
 import org.openrdf.query.BindingSet;
 
 import io.fluo.api.client.TransactionBase;
+import mvm.rya.indexing.external.tupleSet.BindingSetStringConverter;
+import mvm.rya.indexing.external.tupleSet.PcjTables.VariableOrder;
 
 /**
  * Notified when the results of a Filter have been updated to include a new
@@ -35,6 +36,8 @@ import io.fluo.api.client.TransactionBase;
  * effects the parent's results.
  */
 public class FilterObserver extends BindingSetUpdater {
+
+    private final BindingSetStringConverter converter = new BindingSetStringConverter();
 
     private final FluoQueryMetadataDAO queryDao = new FluoQueryMetadataDAO();
 
@@ -53,9 +56,8 @@ public class FilterObserver extends BindingSetUpdater {
         final FilterMetadata filterMetadata = queryDao.readFilterMetadata(tx, filterNodeId);
 
         // Read the Binding Set that was just emmitted by the Filter.
-        final String[] filterBindingStrings = parsedRow.getBindingStrings();
-        final String[] filterVarOrder = filterMetadata.getVariableOrder().toArray();
-        final BindingSet filterBindingSet = FluoStringConverter.toBindingSet(filterBindingStrings, filterVarOrder);
+        final VariableOrder filterVarOrder = filterMetadata.getVariableOrder();
+        final BindingSet filterBindingSet = converter.convert(parsedRow.getBindingSetString(), filterVarOrder);
 
         // Figure out which node needs to handle the new metadata.
         final String parentNodeId = filterMetadata.getParentNodeId();

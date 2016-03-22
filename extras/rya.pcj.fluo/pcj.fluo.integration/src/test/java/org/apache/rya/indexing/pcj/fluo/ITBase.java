@@ -38,7 +38,6 @@ import org.apache.accumulo.core.client.ZooKeeperInstance;
 import org.apache.accumulo.core.client.security.tokens.PasswordToken;
 import org.apache.accumulo.minicluster.MiniAccumuloCluster;
 import org.apache.log4j.Logger;
-import org.apache.rya.indexing.pcj.fluo.app.FluoStringConverter;
 import org.apache.rya.indexing.pcj.fluo.app.observers.FilterObserver;
 import org.apache.rya.indexing.pcj.fluo.app.observers.JoinObserver;
 import org.apache.rya.indexing.pcj.fluo.app.observers.QueryResultObserver;
@@ -78,6 +77,8 @@ import mvm.rya.api.domain.RyaType;
 import mvm.rya.api.domain.RyaURI;
 import mvm.rya.api.resolver.RyaToRdfConversions;
 import mvm.rya.indexing.accumulo.ConfigUtils;
+import mvm.rya.indexing.external.tupleSet.BindingSetStringConverter;
+import mvm.rya.indexing.external.tupleSet.PcjTables.VariableOrder;
 import mvm.rya.rdftriplestore.RdfCloudTripleStore;
 import mvm.rya.rdftriplestore.RyaSailRepository;
 
@@ -260,17 +261,19 @@ public abstract class ITBase {
 
             // Fetch the query's variable order.
             final QueryMetadata queryMetadata = new FluoQueryMetadataDAO().readQueryMetadata(snapshot, queryId);
-            final String[] varOrder = queryMetadata.getVariableOrder().toArray();
+            final VariableOrder varOrder = queryMetadata.getVariableOrder();
 
             // Fetch the Binding Sets for the query.
             final ScannerConfiguration scanConfig = new ScannerConfiguration();
             scanConfig.fetchColumn(FluoQueryColumns.QUERY_BINDING_SET.getFamily(), FluoQueryColumns.QUERY_BINDING_SET.getQualifier());
 
+            BindingSetStringConverter converter = new BindingSetStringConverter();
+
             final RowIterator rowIter = snapshot.get(scanConfig);
             while(rowIter.hasNext()) {
                 final Entry<Bytes, ColumnIterator> row = rowIter.next();
                 final String bindingSetString = row.getValue().next().getValue().toString();
-                final BindingSet bindingSet = FluoStringConverter.toBindingSet(bindingSetString, varOrder);
+                final BindingSet bindingSet = converter.convert(bindingSetString, varOrder);
                 bindingSets.add(bindingSet);
             }
         }

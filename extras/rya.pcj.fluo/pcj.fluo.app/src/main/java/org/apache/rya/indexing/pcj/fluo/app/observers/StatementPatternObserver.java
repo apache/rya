@@ -21,13 +21,14 @@ package org.apache.rya.indexing.pcj.fluo.app.observers;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import org.apache.rya.indexing.pcj.fluo.app.BindingSetRow;
-import org.apache.rya.indexing.pcj.fluo.app.FluoStringConverter;
 import org.apache.rya.indexing.pcj.fluo.app.query.FluoQueryColumns;
 import org.apache.rya.indexing.pcj.fluo.app.query.FluoQueryMetadataDAO;
 import org.apache.rya.indexing.pcj.fluo.app.query.StatementPatternMetadata;
 import org.openrdf.query.BindingSet;
 
 import io.fluo.api.client.TransactionBase;
+import mvm.rya.indexing.external.tupleSet.BindingSetStringConverter;
+import mvm.rya.indexing.external.tupleSet.PcjTables.VariableOrder;
 
 /**
  * Notified when the results of a Statement Pattern have been updated to include
@@ -35,6 +36,8 @@ import io.fluo.api.client.TransactionBase;
  * Binding Set effects the parent's results.
  */
 public class StatementPatternObserver extends BindingSetUpdater {
+
+    private final BindingSetStringConverter converter = new BindingSetStringConverter();
 
     // DAO
     private final FluoQueryMetadataDAO queryDao = new FluoQueryMetadataDAO();
@@ -53,9 +56,8 @@ public class StatementPatternObserver extends BindingSetUpdater {
         final StatementPatternMetadata spMetadata = queryDao.readStatementPatternMetadata(tx, spNodeId);
 
         // Read the Binding Set that was just emmitted by the Statement Pattern.
-        final String[] spBindingStrings = parsedRow.getBindingStrings();
-        final String[] spVarOrder = spMetadata.getVariableOrder().toArray();
-        final BindingSet spBindingSet = FluoStringConverter.toBindingSet(spBindingStrings, spVarOrder);
+        final VariableOrder spVarOrder = spMetadata.getVariableOrder();
+        final BindingSet spBindingSet = converter.convert(parsedRow.getBindingSetString(), spVarOrder);
 
         // Figure out which node needs to handle the new metadata.
         final String parentNodeId = spMetadata.getParentNodeId();

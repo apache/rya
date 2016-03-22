@@ -19,93 +19,19 @@
 package org.apache.rya.indexing.pcj.fluo.app;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-
-import java.util.Arrays;
-import java.util.Collection;
 
 import org.junit.Test;
 import org.openrdf.model.impl.LiteralImpl;
 import org.openrdf.model.impl.URIImpl;
 import org.openrdf.model.vocabulary.XMLSchema;
-import org.openrdf.query.BindingSet;
 import org.openrdf.query.MalformedQueryException;
 import org.openrdf.query.algebra.StatementPattern;
 import org.openrdf.query.algebra.Var;
-import org.openrdf.query.impl.MapBindingSet;
-
-import com.beust.jcommander.internal.Lists;
 
 /**
  * Tests the methods of {@link FluoStringConverterTest}.
  */
 public class FluoStringConverterTest {
-
-    @Test
-    public void varOrderToString() {
-        // Setup the variable order that will be converted.
-        final Collection<String> varOrder = Lists.newArrayList("x", "y", "z");
-
-        // Convert it to a String.
-        final String varOrderString = FluoStringConverter.toVarOrderString(varOrder);
-
-        // Ensure it converted to the expected result.
-        final String expected = "x;y;z";
-        assertEquals(expected, varOrderString);
-    }
-
-    @Test
-    public void stringToVarOrder() {
-        // Setup the String that will be converted.
-        final String varOrderString = "x;y;z";
-
-        // Convert it to an array in variable order.
-        final String[] varOrder = FluoStringConverter.toVarOrder(varOrderString);
-
-        // Ensure it converted to the expected result.
-        final String[] expected = {"x", "y", "z"};
-        assertTrue( Arrays.equals(expected, varOrder) );
-    }
-
-	@Test
-	public void bindingSetToString() {
-		// Setup the binding set that will be converted.
-		final MapBindingSet originalBindingSet = new MapBindingSet();
-        originalBindingSet.addBinding("x", new URIImpl("http://a"));
-        originalBindingSet.addBinding("y", new URIImpl("http://b"));
-        originalBindingSet.addBinding("z", new URIImpl("http://c"));
-
-        // Convert it to a String.
-        final String[] varOrder = new String[] {"y", "z", "x" };
-        final String bindingSetString = FluoStringConverter.toBindingSetString(originalBindingSet, varOrder);
-
-        // Ensure it converted to the expected result.
-        final String expected = "http://b<<~>>http://www.w3.org/2001/XMLSchema#anyURI:::" +
-                "http://c<<~>>http://www.w3.org/2001/XMLSchema#anyURI:::" +
-                "http://a<<~>>http://www.w3.org/2001/XMLSchema#anyURI";
-
-        assertEquals(expected, bindingSetString);
-	}
-
-	@Test
-	public void stringToBindingSet() {
-	    // Setup the String that will be converted.
-	    final String bindingSetString = "http://b<<~>>http://www.w3.org/2001/XMLSchema#anyURI:::" +
-                "http://c<<~>>http://www.w3.org/2001/XMLSchema#anyURI:::" +
-                "http://a<<~>>http://www.w3.org/2001/XMLSchema#anyURI";
-
-	    // Convert it to a BindingSet
-	    final String[] varOrder = new String[] {"y", "z", "x" };
-        final BindingSet bindingSet = FluoStringConverter.toBindingSet(bindingSetString, varOrder);
-
-        // Ensure it converted to the expected result.
-        final MapBindingSet expected = new MapBindingSet();
-        expected.addBinding("x", new URIImpl("http://a"));
-        expected.addBinding("y", new URIImpl("http://b"));
-        expected.addBinding("z", new URIImpl("http://c"));
-
-        assertEquals(expected, bindingSet);
-	}
 
 	@Test
 	public void statementPatternToString() throws MalformedQueryException {

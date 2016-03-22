@@ -18,32 +18,20 @@
  */
 package org.apache.rya.indexing.pcj.fluo.app;
 
-import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.apache.rya.indexing.pcj.fluo.app.IncrementalUpdateConstants.DELIM;
 import static org.apache.rya.indexing.pcj.fluo.app.IncrementalUpdateConstants.TYPE_DELIM;
 import static org.apache.rya.indexing.pcj.fluo.app.IncrementalUpdateConstants.URI_TYPE;
-import static org.apache.rya.indexing.pcj.fluo.app.IncrementalUpdateConstants.VAR_DELIM;
-
-import java.util.Collection;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 
 import org.openrdf.model.Literal;
 import org.openrdf.model.URI;
-import org.openrdf.model.Value;
-import org.openrdf.model.ValueFactory;
 import org.openrdf.model.impl.LiteralImpl;
 import org.openrdf.model.impl.URIImpl;
-import org.openrdf.model.impl.ValueFactoryImpl;
-import org.openrdf.model.vocabulary.XMLSchema;
-import org.openrdf.query.Binding;
 import org.openrdf.query.BindingSet;
 import org.openrdf.query.algebra.StatementPattern;
 import org.openrdf.query.algebra.Var;
-import org.openrdf.query.algebra.evaluation.QueryBindingSet;
-
-import com.google.common.base.Joiner;
 
 import mvm.rya.api.domain.RyaType;
 import mvm.rya.api.resolver.RdfToRyaConversions;
@@ -55,117 +43,6 @@ import mvm.rya.api.resolver.RdfToRyaConversions;
 @ParametersAreNonnullByDefault
 public class FluoStringConverter {
 
-    private static final ValueFactory valueFactory = new ValueFactoryImpl();
-
-    /**
-     * Converts an ordered collection of variables into the Variable Order
-     * String that is stored in the {@link IncrementalUpdateConstants#NODE_VARS}
-     * column of the Fluo application.
-     *
-     * @param varOrder - An ordered collection of variables. (not null)
-     * @return The string representation of the variable order.
-     */
-    public static String toVarOrderString(final Collection<String> varOrder) {
-        checkNotNull(varOrder);
-        return Joiner.on(VAR_DELIM).join(varOrder);
-    }
-
-    /**
-     * Converts an ordered array of variables into the Variable Order
-     * String that is stored in the {@link IncrementalUpdateConstants#NODE_VARS}
-     * column of the Fluo application.
-     *
-     * @param varOrder - An ordered array of variables. (not null)
-     * @return The string representation of the variable order.
-     */
-    public static String toVarOrderString(final String... varOrder) {
-        return Joiner.on(VAR_DELIM).join(varOrder);
-    }
-
-    /**
-     * Converts a String into an array holding the Variable Order of a Binding Set.
-     *
-     * @param varOrderString - The string representation of the variable order. (not null)
-     * @return An ordered array holding the variable order of a binding set.
-     */
-    public static String[] toVarOrder(final String varOrderString) {
-        checkNotNull(varOrderString);
-        return varOrderString.split(VAR_DELIM);
-    }
-
-    /**
-     * Converts a {@link BindingSet} to the String representation that the Fluo
-     * application serializes to the Binding Set columns.
-     *
-     * @param bindingSet - The binding set values. (not null)
-     * @param varOrder - The order the variables must appear in. (not null)
-     * @return A {@code String} version of {@code bindingSet} suitable for
-     *   serialization to one of the Fluo application's binding set columns.
-     */
-    public static String toBindingSetString(final BindingSet bindingSet, final String[] varOrder) {
-        checkNotNull(bindingSet);
-        checkNotNull(varOrder);
-
-        final StringBuilder bindingSetString = new StringBuilder();
-
-        for(int i = 0; i < varOrder.length; i++) {
-            // Add a value to the binding set.
-            final String varName = varOrder[i];
-            final Value value = bindingSet.getBinding(varName).getValue();
-            final RyaType ryaValue = RdfToRyaConversions.convertValue(value);
-            bindingSetString.append( ryaValue.getData() ).append(TYPE_DELIM).append( ryaValue.getDataType() );
-
-            // If there are more values to add, include a delimiter between them.
-            if(i != varOrder.length-1) {
-                bindingSetString.append(DELIM);
-            }
-        }
-
-        return bindingSetString.toString();
-    }
-
-    /**
-     * Converts the String representation of a {@link BindingSet} as is created
-     * by {@link #toBindingSetString(BindingSet, String[])} back into a
-     * BindingSet.
-     *
-     * @param bindingSetString - The binding set values as a String. (not null)
-     * @param varOrder - The order the variables appear in the String version of
-     *   the BindingSet. (not null)
-     * @return A {@link BindingSet} representation of the String.
-     */
-    public static BindingSet toBindingSet(final String bindingSetString, final String[] varOrder) {
-        checkNotNull(bindingSetString);
-        checkNotNull(varOrder);
-
-        final String[] bindingStrings = toBindingStrings(bindingSetString);
-        return toBindingSet(bindingStrings, varOrder);
-    }
-
-    /**
-     * Creates a {@link BindingSet} from an ordered array of Strings that represent
-     * {@link Binding}s and their variable names.
-     *
-     * @param bindingStrings - An ordered array of Strings representing {@link Binding}s. (not null)
-     * @param varOrder - An ordered array of variable names for the binding strings. (not null)
-     * @return The parameters converted into a {@link BindingSet}.
-     */
-    public static BindingSet toBindingSet(final String[] bindingStrings, final String[] varOrder) {
-        checkNotNull(varOrder);
-        checkNotNull(bindingStrings);
-        checkArgument(varOrder.length == bindingStrings.length);
-
-        final QueryBindingSet bindingSet = new QueryBindingSet();
-
-        for(int i = 0; i < bindingStrings.length; i++) {
-            final String name = varOrder[i];
-            final Value value = FluoStringConverter.toValue(bindingStrings[i]);
-            bindingSet.addBinding(name, value);
-        }
-
-        return bindingSet;
-    }
-
     /**
      * Extract the {@link Binding} strings from a {@link BindingSet}'s string form.
      *
@@ -175,35 +52,6 @@ public class FluoStringConverter {
     public static String[] toBindingStrings(final String bindingSetString) {
         checkNotNull(bindingSetString);
         return bindingSetString.split(DELIM);
-    }
-
-    /**
-     * Creates a {@link Value} from a String representation of it.
-     *
-     * @param valueString - The String representation of the value. (not null)
-     * @return The {@link Value} representation of the String.
-     */
-    public static Value toValue(final String valueString) {
-        checkNotNull(valueString);
-
-        // Split the String that was stored in Fluo into its Value and Type parts.
-        final String[] valueAndType = valueString.split(TYPE_DELIM);
-        if(valueAndType.length != 2) {
-            throw new IllegalArgumentException("Array must contain data and type info!");
-        }
-
-        final String dataString = valueAndType[0];
-        final String typeString = valueAndType[1];
-
-        // Convert the String Type into a URI that describes the type.
-        final URI typeURI = valueFactory.createURI(typeString);
-
-        // Convert the String Value into a Value.
-        final Value value = typeURI.equals(XMLSchema.ANYURI) ?
-                valueFactory.createURI(dataString) :
-                valueFactory.createLiteral(dataString, new URIImpl(typeString));
-
-        return value;
     }
 
     /**

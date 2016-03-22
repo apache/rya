@@ -46,6 +46,8 @@ public class QueryResultUpdater {
 
     private final Encoder encoder = new StringEncoder();
 
+    private final BindingSetStringConverter converter = new BindingSetStringConverter();
+
     /**
      * Updates the results of a Query node when one of its children has added a
      * new Binding Set to its results.
@@ -67,10 +69,12 @@ public class QueryResultUpdater {
 
         final MapBindingSet queryBindingSet = new MapBindingSet();
         for(final String bindingName : queryVarOrder) {
-            final Binding binding = childBindingSet.getBinding(bindingName);
-            queryBindingSet.addBinding(binding);
+            if(childBindingSet.hasBinding(bindingName)) {
+                final Binding binding = childBindingSet.getBinding(bindingName);
+                queryBindingSet.addBinding(binding);
+            }
         }
-        final String queryBindingSetString = BindingSetStringConverter.toString(queryBindingSet, queryVarOrder);
+        final String queryBindingSetString = converter.convert(queryBindingSet, queryVarOrder);
 
         // Commit it to the Fluo table for the SPARQL query. This isn't guaranteed to be a new entry.
         final Bytes row = encoder.encode(queryMetadata.getNodeId() + NODEID_BS_DELIM + queryBindingSetString);

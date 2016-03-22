@@ -20,6 +20,7 @@ package mvm.rya.indexing.external;
  */
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
@@ -240,6 +241,25 @@ public class PrecompJoinOptimizer implements QueryOptimizer, Configurable {
 		public void setSegmentFilters(List<Filter> segmentFilters) {
 			this.segmentFilters = segmentFilters;
 		}
+
+
+		// this handles the case when the optional/LeftJoin is the first node
+		// below the Projection node.  Checks to see if any of the ExternalTupleSets
+		// match the LeftJoin exactly.
+		//TODO ExteranlTupleSet won't match this LeftJoin if query contains Filters and order of
+		//filters does not match order of filters in ExternalTupleSet after filters are pushed down
+		@Override
+		public void meet(LeftJoin node) {
+
+			updateFilters(segmentFilters, true);
+
+			List<TupleExpr> joinArgs = matchExternalTupleSets(Arrays.asList((TupleExpr) node), tupList);
+			if(joinArgs.size() == 1 && joinArgs.get(0) instanceof ExternalTupleSet) {
+				node.replaceWith(joinArgs.get(0));
+			}
+			return;
+		}
+
 
 		@Override
 		public void meet(Join node) {

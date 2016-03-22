@@ -37,6 +37,15 @@ import mvm.rya.indexing.external.tupleSet.PcjTables.VariableOrder;
 @ParametersAreNonnullByDefault
 public class JoinMetadata extends CommonNodeMetadata {
 
+    /**
+     * The different types of Join algorithms that this join may perform.
+     */
+    public static enum JoinType {
+        NATURAL_JOIN,
+        LEFT_OUTER_JOIN;
+    }
+
+    private final JoinType joinType;
     private final String parentNodeId;
     private final String leftChildNodeId;
     private final String rightChildNodeId;
@@ -46,6 +55,7 @@ public class JoinMetadata extends CommonNodeMetadata {
      *
      * @param nodeId - The ID the Fluo app uses to reference this node. (not null)
      * @param varOrder - The variable order of binding sets that are emitted by this node. (not null)
+     * @param joinType - Defines which join algorithm the join will use.
      * @param parentNodeId - The node id of this node's parent. (not null)
      * @param leftChildNodeId - One of the nodes whose results are being joined. (not null)
      * @param rightChildNodeId - The other node whose results are being joined. (not null)
@@ -53,13 +63,22 @@ public class JoinMetadata extends CommonNodeMetadata {
     public JoinMetadata(
             final String nodeId,
             final VariableOrder varOrder,
+            final JoinType joinType,
             final String parentNodeId,
             final String leftChildNodeId,
             final String rightChildNodeId) {
         super(nodeId, varOrder);
+        this.joinType = checkNotNull(joinType);
         this.parentNodeId = checkNotNull(parentNodeId);
         this.leftChildNodeId = checkNotNull(leftChildNodeId);
         this.rightChildNodeId = checkNotNull(rightChildNodeId);
+    }
+
+    /**
+     * @return Defines which join algorithm the join will use.
+     */
+    public JoinType getJoinType() {
+        return joinType;
     }
 
     /**
@@ -88,6 +107,7 @@ public class JoinMetadata extends CommonNodeMetadata {
         return Objects.hashCode(
                 super.getNodeId(),
                 super.getVariableOrder(),
+                joinType,
                 parentNodeId,
                 leftChildNodeId,
                 rightChildNodeId);
@@ -103,6 +123,7 @@ public class JoinMetadata extends CommonNodeMetadata {
             if(super.equals(o)) {
                 final JoinMetadata joinMetadata = (JoinMetadata)o;
                 return new EqualsBuilder()
+                        .append(joinType, joinMetadata.joinType)
                         .append(parentNodeId, joinMetadata.parentNodeId)
                         .append(leftChildNodeId, joinMetadata.leftChildNodeId)
                         .append(rightChildNodeId, joinMetadata.rightChildNodeId)
@@ -120,6 +141,7 @@ public class JoinMetadata extends CommonNodeMetadata {
                 .append("Join Metadata {\n")
                 .append("    Node ID: " + super.getNodeId() + "\n")
                 .append("    Variable Order: " + super.getVariableOrder() + "\n")
+                .append("    Join Type: " + joinType + "\n")
                 .append("    Parent Node ID: " + parentNodeId + "\n")
                 .append("    Left Child Node ID: " + leftChildNodeId + "\n")
                 .append("    Right Child Node ID: " + rightChildNodeId + "\n")
@@ -145,6 +167,7 @@ public class JoinMetadata extends CommonNodeMetadata {
 
         private final String nodeId;
         private VariableOrder varOrder;
+        private JoinType joinType;
         private String parentNodeId;
         private String leftChildNodeId;
         private String rightChildNodeId;
@@ -188,6 +211,17 @@ public class JoinMetadata extends CommonNodeMetadata {
         }
 
         /**
+         * Sets the type of join algorithm that will be used by this join.
+         *
+         * @param joinType - Defines which join algorithm the join will use.
+         * @return This builder so that method invocation could be chained.
+         */
+        public Builder setJoinType(@Nullable final JoinType joinType) {
+            this.joinType = joinType;
+            return this;
+        }
+
+        /**
          * Set one of the nodes whose results are being joined.
          *
          * @param leftChildNodeId - One of the nodes whose results are being joined.
@@ -216,6 +250,7 @@ public class JoinMetadata extends CommonNodeMetadata {
             return new JoinMetadata(
                     nodeId,
                     varOrder,
+                    joinType,
                     parentNodeId,
                     leftChildNodeId,
                     rightChildNodeId);

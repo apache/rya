@@ -25,6 +25,7 @@ import java.util.Map;
 import javax.annotation.ParametersAreNonnullByDefault;
 
 import org.apache.rya.indexing.pcj.fluo.app.NodeType;
+import org.apache.rya.indexing.pcj.fluo.app.query.JoinMetadata.JoinType;
 
 import com.google.common.collect.Sets;
 
@@ -170,6 +171,7 @@ public class FluoQueryMetadataDAO {
         final Bytes rowId = encoder.encode(metadata.getNodeId());
         tx.set(rowId, FluoQueryColumns.JOIN_NODE_ID, rowId);
         tx.set(rowId, FluoQueryColumns.JOIN_VARIABLE_ORDER, encoder.encode( metadata.getVariableOrder().toString() ));
+        tx.set(rowId, FluoQueryColumns.JOIN_TYPE, encoder.encode(metadata.getJoinType().toString()) );
         tx.set(rowId, FluoQueryColumns.JOIN_PARENT_NODE_ID, encoder.encode( metadata.getParentNodeId() ));
         tx.set(rowId, FluoQueryColumns.JOIN_LEFT_CHILD_NODE_ID, encoder.encode( metadata.getLeftChildNodeId() ));
         tx.set(rowId, FluoQueryColumns.JOIN_RIGHT_CHILD_NODE_ID, encoder.encode( metadata.getRightChildNodeId() ));
@@ -194,6 +196,7 @@ public class FluoQueryMetadataDAO {
         final Bytes rowId = encoder.encode(nodeId);
         final Map<Column, Bytes> values = sx.get(rowId, Sets.newHashSet(
                 FluoQueryColumns.JOIN_VARIABLE_ORDER,
+                FluoQueryColumns.JOIN_TYPE,
                 FluoQueryColumns.JOIN_PARENT_NODE_ID,
                 FluoQueryColumns.JOIN_LEFT_CHILD_NODE_ID,
                 FluoQueryColumns.JOIN_RIGHT_CHILD_NODE_ID));
@@ -202,12 +205,16 @@ public class FluoQueryMetadataDAO {
         final String varOrderString = encoder.decodeString( values.get(FluoQueryColumns.JOIN_VARIABLE_ORDER));
         final VariableOrder varOrder = new VariableOrder(varOrderString);
 
+        String joinTypeString = encoder.decodeString( values.get(FluoQueryColumns.JOIN_TYPE) );
+        JoinType joinType = JoinType.valueOf(joinTypeString);
+
         final String parentNodeId = encoder.decodeString( values.get(FluoQueryColumns.JOIN_PARENT_NODE_ID) );
         final String leftChildNodeId = encoder.decodeString( values.get(FluoQueryColumns.JOIN_LEFT_CHILD_NODE_ID) );
         final String rightChildNodeId = encoder.decodeString( values.get(FluoQueryColumns.JOIN_RIGHT_CHILD_NODE_ID) );
 
         return JoinMetadata.builder(nodeId)
                 .setVariableOrder(varOrder)
+                .setJoinType(joinType)
                 .setParentNodeId(parentNodeId)
                 .setLeftChildNodeId(leftChildNodeId)
                 .setRightChildNodeId(rightChildNodeId);

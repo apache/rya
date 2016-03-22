@@ -38,6 +38,7 @@ import io.fluo.api.data.Bytes;
 import io.fluo.api.data.Column;
 import io.fluo.api.types.TypedObserver;
 import io.fluo.api.types.TypedTransactionBase;
+import mvm.rya.indexing.external.tupleSet.BindingSetConverter.BindingSetConversionException;
 
 /**
  * Notified when the results of a node have been updated to include a new Binding
@@ -97,7 +98,11 @@ public abstract class BindingSetUpdater extends TypedObserver {
 
             case JOIN:
                 final JoinMetadata parentJoin = queryDao.readJoinMetadata(tx, parentNodeId);
-                joinUpdater.updateJoinResults(tx, observedNodeId, observedBindingSet, parentJoin);
+                try {
+                    joinUpdater.updateJoinResults(tx, observedNodeId, observedBindingSet, parentJoin);
+                } catch (BindingSetConversionException e) {
+                    throw new RuntimeException("Could not process a Join node.", e);
+                }
                 break;
 
             default:

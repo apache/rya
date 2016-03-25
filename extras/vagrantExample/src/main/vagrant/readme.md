@@ -63,6 +63,13 @@ By default, the VM should be assigned the IP address of `192.168.33.10`.  This v
 
 Most of the time, the Vagrant script works perfectly and passes all of the verification.  However, below are a list of the common issues that we've seen and how to mitigate those issues
 
+#### URLs for dependencies no longer valid
+
+As dependencies such as Hadoop and Accumulo are updated, URLs for downloads of old versions can be come stale.
+If this happens, the vagrant provisioning script should fail.  Scrolling back through the output should reveal
+an error message indicating which download did not work.  To fix, try updating the version number specified in
+the Vagrantfile.
+
 #### Rya libraries are not installed
 Run these two commands and see if you have any Rya files in the two lib directories:
 

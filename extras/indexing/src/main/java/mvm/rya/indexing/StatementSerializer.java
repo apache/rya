@@ -1,4 +1,4 @@
-package mvm.rya.indexing.accumulo;
+package mvm.rya.indexing;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -23,8 +23,6 @@ package mvm.rya.indexing.accumulo;
 
 import java.io.IOException;
 import java.util.Set;
-
-import mvm.rya.indexing.StatementContraints;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
@@ -196,7 +194,7 @@ public class StatementSerializer {
      * @return a regular expression that can be used to match serialized statements. A <code>null</code> return value implies no
      *         constraints.
      */
-    public static String createStatementRegex(StatementContraints contraints) {
+    public static String createStatementRegex(StatementConstraints contraints) {
         Resource context = contraints.getContext();
         Resource subject = contraints.getSubject();
         Set<URI> predicates = contraints.getPredicates();

@@ -23,6 +23,7 @@ package mvm.rya.indexing.accumulo.temporal;
 import java.util.Arrays;
 
 import mvm.rya.indexing.TemporalInstant;
+import mvm.rya.indexing.TemporalInstantRfc3339;
 import mvm.rya.indexing.TemporalInterval;
 
 import org.joda.time.DateTime;

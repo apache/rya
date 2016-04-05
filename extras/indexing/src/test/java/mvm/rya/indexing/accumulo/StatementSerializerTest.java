@@ -22,7 +22,7 @@ package mvm.rya.indexing.accumulo;
 
 
 import junit.framework.Assert;
-import mvm.rya.indexing.accumulo.StatementSerializer;
+import mvm.rya.indexing.StatementSerializer;
 
 import org.junit.Test;
 import org.openrdf.model.Statement;

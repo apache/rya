@@ -30,7 +30,7 @@ import mvm.rya.accumulo.experimental.AbstractAccumuloIndexer;
 import mvm.rya.api.RdfCloudTripleStoreConfiguration;
 import mvm.rya.api.domain.RyaStatement;
 import mvm.rya.indexing.FreeTextIndexer;
-import mvm.rya.indexing.StatementContraints;
+import mvm.rya.indexing.StatementConstraints;
 
 import org.apache.accumulo.core.client.Connector;
 import org.apache.hadoop.conf.Configuration;
@@ -59,7 +59,7 @@ public class NullFreeTextIndexer extends AbstractAccumuloIndexer implements Free
     }
 
     @Override
-    public CloseableIteration<Statement, QueryEvaluationException> queryText(String query, StatementContraints contraints)
+    public CloseableIteration<Statement, QueryEvaluationException> queryText(String query, StatementConstraints contraints)
             throws IOException {
         return null;
     }

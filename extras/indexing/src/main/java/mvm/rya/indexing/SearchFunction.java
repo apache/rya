@@ -30,7 +30,7 @@ import org.openrdf.query.QueryEvaluationException;
 public interface SearchFunction {
 
     /**
-     * Search the indices for the given terms and return {@link Statement}s that meet the {@link StatementContraints}
+     * Search the indices for the given terms and return {@link Statement}s that meet the {@link StatementConstraints}
      * 
      * @param searchTerms
      *            the search terms
@@ -39,7 +39,7 @@ public interface SearchFunction {
      * @return
      * @throws QueryEvaluationException
      */
-    public abstract CloseableIteration<Statement, QueryEvaluationException> performSearch(String searchTerms, StatementContraints contraints)
+    public abstract CloseableIteration<Statement, QueryEvaluationException> performSearch(String searchTerms, StatementConstraints contraints)
             throws QueryEvaluationException;
 
 }

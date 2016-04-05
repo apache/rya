@@ -29,7 +29,7 @@ import mvm.rya.indexing.FreeTextIndexer;
 import mvm.rya.indexing.IndexingExpr;
 import mvm.rya.indexing.IteratorFactory;
 import mvm.rya.indexing.SearchFunction;
-import mvm.rya.indexing.StatementContraints;
+import mvm.rya.indexing.StatementConstraints;
 import mvm.rya.indexing.external.tupleSet.ExternalTupleSet;
 
 import org.apache.hadoop.conf.Configuration;
@@ -132,7 +132,7 @@ public class FreeTextTupleSet extends ExternalTupleSet {
 
             @Override
             public CloseableIteration<Statement, QueryEvaluationException> performSearch(String queryText,
-                    StatementContraints contraints) throws QueryEvaluationException {
+                    StatementConstraints contraints) throws QueryEvaluationException {
                 try {
                     CloseableIteration<Statement, QueryEvaluationException> statements = freeTextIndexer.queryText(
                             queryText, contraints);

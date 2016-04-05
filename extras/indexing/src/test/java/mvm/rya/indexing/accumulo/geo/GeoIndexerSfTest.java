@@ -33,7 +33,7 @@ import mvm.rya.api.domain.RyaStatement;
 import mvm.rya.api.resolver.RdfToRyaConversions;
 import mvm.rya.api.resolver.RyaToRdfConversions;
 import mvm.rya.indexing.GeoIndexer;
-import mvm.rya.indexing.StatementContraints;
+import mvm.rya.indexing.StatementConstraints;
 import mvm.rya.indexing.accumulo.ConfigUtils;
 import mvm.rya.indexing.accumulo.geo.GeoConstants;
 import mvm.rya.indexing.accumulo.geo.GeoMesaGeoIndexer;
@@ -71,7 +71,7 @@ public class GeoIndexerSfTest {
     private static GeometryFactory gf = new GeometryFactory(new PrecisionModel(), 4326);
     private static GeoMesaGeoIndexer g;
 
-    private static final StatementContraints EMPTY_CONSTRAINTS = new StatementContraints();
+    private static final StatementConstraints EMPTY_CONSTRAINTS = new StatementConstraints();
 
     // Here is the landscape:
     /**

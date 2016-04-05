@@ -17,6 +17,7 @@
  * under the License.
  */
 
+import java.net.UnknownHostException;
 import java.util.List;
 
 import org.apache.accumulo.core.client.AccumuloException;
@@ -77,7 +78,7 @@ public class RyaDirectExample {
 	private static final String RYA_TABLE_PREFIX = "x_test_triplestore_";
 	private static final String AUTHS = "";
 
-	public static void main(String[] args) throws Exception {
+	public static void main(final String[] args) throws Exception {
 		final Configuration conf = getConf();
 		conf.setBoolean(ConfigUtils.DISPLAY_QUERY_PLAN, PRINT_QUERIES);
 
@@ -129,7 +130,7 @@ public class RyaDirectExample {
 		}
 	}
 
-	private static void closeQuietly(SailRepository repository) {
+	private static void closeQuietly(final SailRepository repository) {
 		if (repository != null) {
 			try {
 				repository.shutDown();
@@ -139,7 +140,7 @@ public class RyaDirectExample {
 		}
 	}
 
-	private static void closeQuietly(SailRepositoryConnection conn) {
+	private static void closeQuietly(final SailRepositoryConnection conn) {
 		if (conn != null) {
 			try {
 				conn.close();
@@ -172,7 +173,7 @@ public class RyaDirectExample {
 		return conf;
 	}
 
-	public static void testAddAndDelete(SailRepositoryConnection conn)
+	public static void testAddAndDelete(final SailRepositoryConnection conn)
 			throws MalformedQueryException, RepositoryException,
 			UpdateExecutionException, QueryEvaluationException,
 			TupleQueryResultHandlerException, AccumuloException,
@@ -218,78 +219,7 @@ public class RyaDirectExample {
 		Validate.isTrue(resultHandler.getCount() == 0);
 	}
 
-	private static void testAddAndQueryWithAuths(Configuration conf) throws Exception {
-        Sail s;
-        SailRepository r;
-        SailRepositoryConnection conn;
-
-        // Create a connection that writes data with "A&B" visibilities
-	    ValueFactory vf = new ValueFactoryImpl();
-	    
-	    Configuration confAB = new Configuration(conf);
-        confAB.set(RdfCloudTripleStoreConfiguration.CONF_CV, "A&B");
-
-        s = RyaSailFactory.getInstance(confAB);
-        r = new SailRepository(s);
-        r.initialize();
-        conn = r.getConnection();
-
-        conn.add(vf.createStatement(vf.createURI("u:S_AB"), vf.createURI("u:pred"), vf.createURI("u:O_AB")));
-
-        closeQuietly(r);
-
-        // Create a connection that writes data with "B&C" visibilities
-        Configuration confBC = new Configuration(conf);
-        confBC.set(RdfCloudTripleStoreConfiguration.CONF_CV, "B&C");
-
-        s = RyaSailFactory.getInstance(confBC);
-        r = new SailRepository(s);
-        r.initialize();
-        conn = r.getConnection();
-
-        conn.add(vf.createStatement(vf.createURI("u:S_BC"), vf.createURI("u:pred"), vf.createURI("u:O_BC")));
-
-        closeQuietly(r);
-
-        //Query
-        s = RyaSailFactory.getInstance(conf);
-        r = new SailRepository(s);
-        r.initialize();
-        conn = r.getConnection();
-
-        String query;
-        
-        // Query with No Auths
-        query = "select ?s ?o { ?s <u:pred> ?o . }";
-        final CountingResultHandler resultHandler = new CountingResultHandler();
-        TupleQuery tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, query);
-        tupleQuery.evaluate(resultHandler);
-        log.info("Result count : " + resultHandler.getCount());
-
-        Validate.isTrue(resultHandler.getCount() == 0);
-        resultHandler.resetCount();
-        
-        // Query with A B Auths
-        // Note: Alternatively, you can set this value on the conf used to create the conn
-        tupleQuery.setBinding(RdfCloudTripleStoreConfiguration.CONF_QUERY_AUTH, vf.createLiteral("A,B"));
-        tupleQuery.evaluate(resultHandler);
-        log.info("Result count : " + resultHandler.getCount());
-
-        Validate.isTrue(resultHandler.getCount() == 1);
-        resultHandler.resetCount();
-
-        // Query with A B C Auths
-        tupleQuery.setBinding(RdfCloudTripleStoreConfiguration.CONF_QUERY_AUTH, vf.createLiteral("A,B,C"));
-        tupleQuery.evaluate(resultHandler);
-        log.info("Result count : " + resultHandler.getCount());
-
-        Validate.isTrue(resultHandler.getCount() == 2);
-        resultHandler.resetCount();
-
-        closeQuietly(r);
-	}
-	
-	private static void testPCJSearch(SailRepositoryConnection conn)
+	private static void testPCJSearch(final SailRepositoryConnection conn)
 			throws Exception {
 
 		String queryString;
@@ -328,7 +258,7 @@ public class RyaDirectExample {
 	}
 
 	private static void testAddAndTemporalSearchWithPCJ(
-			SailRepositoryConnection conn) throws Exception {
+			final SailRepositoryConnection conn) throws Exception {
 
 		// create some resources and literals to make statements out of
 
@@ -410,7 +340,7 @@ public class RyaDirectExample {
 	}
 
 	private static void testAddAndFreeTextSearchWithPCJ(
-			SailRepositoryConnection conn) throws Exception {
+			final SailRepositoryConnection conn) throws Exception {
 		// add data to the repository using the SailRepository add methods
 		final ValueFactory f = conn.getValueFactory();
 		final URI person = f.createURI("http://example.org/ontology/Person");
@@ -493,7 +423,7 @@ public class RyaDirectExample {
 	}
 
 	private static void testAddPointAndWithinSearchWithPCJ(
-			SailRepositoryConnection conn) throws Exception {
+			final SailRepositoryConnection conn) throws Exception {
 
 		final String update = "PREFIX geo: <http://www.opengis.net/ont/geosparql#>  "//
 				+ "INSERT DATA { " //
@@ -612,7 +542,7 @@ public class RyaDirectExample {
 		Validate.isTrue(tupleHandler.getCount() == 1);
 	}
 
-	private static void testTemporalFreeGeoSearch(SailRepositoryConnection conn)
+	private static void testTemporalFreeGeoSearch(final SailRepositoryConnection conn)
 			throws MalformedQueryException, RepositoryException,
 			UpdateExecutionException, TupleQueryResultHandlerException,
 			QueryEvaluationException {
@@ -654,7 +584,7 @@ public class RyaDirectExample {
 	}
 
 	private static void testGeoFreetextWithPCJSearch(
-			SailRepositoryConnection conn) throws MalformedQueryException,
+			final SailRepositoryConnection conn) throws MalformedQueryException,
 			RepositoryException, TupleQueryResultHandlerException,
 			QueryEvaluationException {
 		// ring outside point
@@ -683,7 +613,7 @@ public class RyaDirectExample {
 		Validate.isTrue(tupleHandler.getCount() == 1);
 	}
 
-	private static void testDeleteTemporalData(SailRepositoryConnection conn)
+	private static void testDeleteTemporalData(final SailRepositoryConnection conn)
 			throws Exception {
 		// Delete all stored dates
 		final String sparqlDelete = "PREFIX time: <http://www.w3.org/2006/time#>\n"
@@ -716,7 +646,7 @@ public class RyaDirectExample {
 		Validate.isTrue(tupleHandler.getCount() == 0);
 	}
 
-	private static void testDeleteFreeTextData(SailRepositoryConnection conn)
+	private static void testDeleteFreeTextData(final SailRepositoryConnection conn)
 			throws Exception {
 		// Delete data from the repository using the SailRepository remove
 		// methods
@@ -755,7 +685,7 @@ public class RyaDirectExample {
 		Validate.isTrue(tupleHandler.getCount() == 0);
 	}
 
-	private static void testDeleteGeoData(SailRepositoryConnection conn)
+	private static void testDeleteGeoData(final SailRepositoryConnection conn)
 			throws Exception {
 		// Delete all stored points
 		final String sparqlDelete = "PREFIX geo: <http://www.opengis.net/ont/geosparql#>  "//
@@ -796,9 +726,10 @@ public class RyaDirectExample {
 		Validate.isTrue(tupleHandler.getCount() == 0);
 	}
 
-	private static void createPCJ(Configuration conf)
+	private static void createPCJ(final Configuration conf)
 			throws RepositoryException, AccumuloException,
-			AccumuloSecurityException, TableExistsException, PcjException, InferenceEngineException {
+			AccumuloSecurityException, TableExistsException, PcjException, InferenceEngineException,
+			NumberFormatException, UnknownHostException {
 
 
 		final Configuration config = new AccumuloRdfConfiguration(conf);
@@ -869,16 +800,16 @@ public class RyaDirectExample {
 		}
 
 		public void resetCount() {
-			this.count = 0;
+			count = 0;
 		}
 
 		@Override
-		public void startQueryResult(List<String> arg0)
+		public void startQueryResult(final List<String> arg0)
 				throws TupleQueryResultHandlerException {
 		}
 
 		@Override
-		public void handleSolution(BindingSet arg0)
+		public void handleSolution(final BindingSet arg0)
 				throws TupleQueryResultHandlerException {
 			count++;
 			System.out.println(arg0);
@@ -889,12 +820,12 @@ public class RyaDirectExample {
 		}
 
 		@Override
-		public void handleBoolean(boolean arg0)
+		public void handleBoolean(final boolean arg0)
 				throws QueryResultHandlerException {
 		}
 
 		@Override
-		public void handleLinks(List<String> arg0)
+		public void handleLinks(final List<String> arg0)
 				throws QueryResultHandlerException {
 		}
 	}

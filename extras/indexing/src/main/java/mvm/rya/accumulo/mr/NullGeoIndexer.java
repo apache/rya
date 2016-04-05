@@ -30,7 +30,7 @@ import mvm.rya.accumulo.experimental.AbstractAccumuloIndexer;
 import mvm.rya.api.RdfCloudTripleStoreConfiguration;
 import mvm.rya.api.domain.RyaStatement;
 import mvm.rya.indexing.GeoIndexer;
-import mvm.rya.indexing.StatementContraints;
+import mvm.rya.indexing.StatementConstraints;
 
 import org.apache.accumulo.core.client.Connector;
 import org.apache.hadoop.conf.Configuration;
@@ -67,49 +67,49 @@ public class NullGeoIndexer extends AbstractAccumuloIndexer implements GeoIndexe
     }
 
     @Override
-    public CloseableIteration<Statement, QueryEvaluationException> queryEquals(Geometry query, StatementContraints contraints) {
+    public CloseableIteration<Statement, QueryEvaluationException> queryEquals(Geometry query, StatementConstraints contraints) {
 
         return null;
     }
 
     @Override
-    public CloseableIteration<Statement, QueryEvaluationException> queryDisjoint(Geometry query, StatementContraints contraints) {
+    public CloseableIteration<Statement, QueryEvaluationException> queryDisjoint(Geometry query, StatementConstraints contraints) {
 
         return null;
     }
 
     @Override
-    public CloseableIteration<Statement, QueryEvaluationException> queryIntersects(Geometry query, StatementContraints contraints) {
+    public CloseableIteration<Statement, QueryEvaluationException> queryIntersects(Geometry query, StatementConstraints contraints) {
 
         return null;
     }
 
     @Override
-    public CloseableIteration<Statement, QueryEvaluationException> queryTouches(Geometry query, StatementContraints contraints) {
+    public CloseableIteration<Statement, QueryEvaluationException> queryTouches(Geometry query, StatementConstraints contraints) {
 
         return null;
     }
 
     @Override
-    public CloseableIteration<Statement, QueryEvaluationException> queryCrosses(Geometry query, StatementContraints contraints) {
+    public CloseableIteration<Statement, QueryEvaluationException> queryCrosses(Geometry query, StatementConstraints contraints) {
 
         return null;
     }
 
     @Override
-    public CloseableIteration<Statement, QueryEvaluationException> queryWithin(Geometry query, StatementContraints contraints) {
+    public CloseableIteration<Statement, QueryEvaluationException> queryWithin(Geometry query, StatementConstraints contraints) {
 
         return null;
     }
 
     @Override
-    public CloseableIteration<Statement, QueryEvaluationException> queryContains(Geometry query, StatementContraints contraints) {
+    public CloseableIteration<Statement, QueryEvaluationException> queryContains(Geometry query, StatementConstraints contraints) {
 
         return null;
     }
 
     @Override
-    public CloseableIteration<Statement, QueryEvaluationException> queryOverlaps(Geometry query, StatementContraints contraints) {
+    public CloseableIteration<Statement, QueryEvaluationException> queryOverlaps(Geometry query, StatementConstraints contraints) {
 
         return null;
     }

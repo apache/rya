@@ -69,10 +69,10 @@ import mvm.rya.api.RdfCloudTripleStoreConfiguration;
 import mvm.rya.api.domain.RyaStatement;
 import mvm.rya.api.resolver.RyaToRdfConversions;
 import mvm.rya.indexing.FreeTextIndexer;
-import mvm.rya.indexing.StatementContraints;
+import mvm.rya.indexing.Md5Hash;
+import mvm.rya.indexing.StatementConstraints;
+import mvm.rya.indexing.StatementSerializer;
 import mvm.rya.indexing.accumulo.ConfigUtils;
-import mvm.rya.indexing.accumulo.Md5Hash;
-import mvm.rya.indexing.accumulo.StatementSerializer;
 import mvm.rya.indexing.accumulo.freetext.iterators.BooleanTreeIterator;
 import mvm.rya.indexing.accumulo.freetext.query.ASTExpression;
 import mvm.rya.indexing.accumulo.freetext.query.ASTNodeUtils;
@@ -480,7 +480,7 @@ public class AccumuloFreeTextIndexer extends AbstractAccumuloIndexer implements 
 
     /** {@inheritDoc} */
     @Override
-    public CloseableIteration<Statement, QueryEvaluationException> queryText(String query, StatementContraints contraints)
+    public CloseableIteration<Statement, QueryEvaluationException> queryText(String query, StatementConstraints contraints)
             throws IOException {
         Scanner docTableScan = getScanner(ConfigUtils.getFreeTextDocTablename(conf));
 

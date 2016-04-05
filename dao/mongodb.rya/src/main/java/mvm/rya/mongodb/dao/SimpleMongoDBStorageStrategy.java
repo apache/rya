@@ -1,7 +1,5 @@
 package mvm.rya.mongodb.dao;
 
-import static org.openrdf.model.vocabulary.XMLSchema.ANYURI;
-
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -21,6 +19,7 @@ import static org.openrdf.model.vocabulary.XMLSchema.ANYURI;
  * under the License.
  */
 
+import static org.openrdf.model.vocabulary.XMLSchema.ANYURI;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;

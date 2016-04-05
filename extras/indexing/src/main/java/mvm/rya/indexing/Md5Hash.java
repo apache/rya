@@ -1,4 +1,6 @@
-package mvm.rya.indexing.accumulo;
+package mvm.rya.indexing;
+
+import org.apache.accumulo.core.data.Value;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -8,9 +10,9 @@ package mvm.rya.indexing.accumulo;
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- * 
+ *
  *   http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -19,9 +21,6 @@ package mvm.rya.indexing.accumulo;
  * under the License.
  */
 
-
-
-import org.apache.accumulo.core.data.Value;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.codec.binary.StringUtils;
 import org.apache.commons.codec.digest.DigestUtils;
@@ -31,15 +30,15 @@ import org.apache.commons.codec.digest.DigestUtils;
  * Base64 encodes those 16 bytes into 22 chars.
  */
 public class Md5Hash {
-    public static String md5Base64(byte[] data) {
+    public static String md5Base64(final byte[] data) {
         return Base64.encodeBase64URLSafeString(DigestUtils.md5(data));
     }
 
-    public static String md5Base64(String string) {
+    public static String md5Base64(final String string) {
         return md5Base64(StringUtils.getBytesUtf8(string));
     }
 
-	public static byte[] md5Binary(Value value) {
+    public static byte[] md5Binary(final Value value) {
         return DigestUtils.md5(value.get());
-	}
+    }
 }

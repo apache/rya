@@ -1,5 +1,7 @@
 package mvm.rya.indexing.external;
 
+import java.net.UnknownHostException;
+
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -70,7 +72,8 @@ public class AccumuloConstantPcjIntegrationTest {
 			TupleQueryResultHandlerException, QueryEvaluationException,
 			MalformedQueryException, AccumuloException,
 			AccumuloSecurityException, TableExistsException,
-			TableNotFoundException, RyaDAOException, InferenceEngineException {
+			TableNotFoundException, RyaDAOException, InferenceEngineException,
+			NumberFormatException, UnknownHostException {
 
 		repo = PcjIntegrationTestingUtil.getNonPcjRepo(prefix, "instance");
 		conn = repo.getConnection();
@@ -379,16 +382,16 @@ public class AccumuloConstantPcjIntegrationTest {
 		}
 
 		public void resetCount() {
-			this.count = 0;
+			count = 0;
 		}
 
 		@Override
-		public void startQueryResult(List<String> arg0)
+		public void startQueryResult(final List<String> arg0)
 				throws TupleQueryResultHandlerException {
 		}
 
 		@Override
-		public void handleSolution(BindingSet arg0)
+		public void handleSolution(final BindingSet arg0)
 				throws TupleQueryResultHandlerException {
 			count++;
 		}
@@ -398,12 +401,12 @@ public class AccumuloConstantPcjIntegrationTest {
 		}
 
 		@Override
-		public void handleBoolean(boolean arg0)
+		public void handleBoolean(final boolean arg0)
 				throws QueryResultHandlerException {
 		}
 
 		@Override
-		public void handleLinks(List<String> arg0)
+		public void handleLinks(final List<String> arg0)
 				throws QueryResultHandlerException {
 		}
 	}

@@ -25,6 +25,7 @@ import java.util.Date;
 import java.util.TimeZone;
 
 import mvm.rya.indexing.TemporalInstant;
+import mvm.rya.indexing.TemporalInstantRfc3339;
 
 import org.apache.commons.codec.binary.StringUtils;
 import org.joda.time.DateTime;

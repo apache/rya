@@ -7,9 +7,9 @@ package mvm.rya.indexing.mongo;
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- * 
+ *
  *   http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -18,21 +18,8 @@ package mvm.rya.indexing.mongo;
  * under the License.
  */
 
-import info.aduna.iteration.CloseableIteration;
-
 import java.util.HashSet;
 import java.util.Set;
-
-import junit.framework.Assert;
-import mvm.rya.api.domain.RyaStatement;
-import mvm.rya.api.domain.RyaType;
-import mvm.rya.api.domain.RyaURI;
-import mvm.rya.api.resolver.RdfToRyaConversions;
-import mvm.rya.api.resolver.RyaToRdfConversions;
-import mvm.rya.indexing.StatementContraints;
-import mvm.rya.indexing.accumulo.ConfigUtils;
-import mvm.rya.indexing.mongodb.MongoFreeTextIndexer;
-import mvm.rya.mongodb.MongoDBRdfConfiguration;
 
 import org.apache.hadoop.conf.Configuration;
 import org.junit.Before;
@@ -46,11 +33,27 @@ import org.openrdf.model.impl.ValueFactoryImpl;
 import org.openrdf.model.vocabulary.RDFS;
 
 import com.google.common.collect.Sets;
+import com.mongodb.MongoClient;
+
+import de.flapdoodle.embed.mongo.distribution.Version;
+import de.flapdoodle.embed.mongo.tests.MongodForTestsFactory;
+import info.aduna.iteration.CloseableIteration;
+import junit.framework.Assert;
+import mvm.rya.api.domain.RyaStatement;
+import mvm.rya.api.domain.RyaType;
+import mvm.rya.api.domain.RyaURI;
+import mvm.rya.api.resolver.RdfToRyaConversions;
+import mvm.rya.api.resolver.RyaToRdfConversions;
+import mvm.rya.indexing.StatementConstraints;
+import mvm.rya.indexing.accumulo.ConfigUtils;
+import mvm.rya.indexing.mongodb.freetext.MongoFreeTextIndexer;
+import mvm.rya.mongodb.MongoDBRdfConfiguration;
 
 public class MongoFreeTextIndexerTest {
-    private static final StatementContraints EMPTY_CONSTRAINTS = new StatementContraints();
+    private static final StatementConstraints EMPTY_CONSTRAINTS = new StatementConstraints();
 
     Configuration conf;
+    MongoClient mongoClient;
 
     @Before
     public void before() throws Exception {
@@ -59,22 +62,25 @@ public class MongoFreeTextIndexerTest {
         conf.set(MongoDBRdfConfiguration.USE_TEST_MONGO, "true");
         conf.set(MongoDBRdfConfiguration.MONGO_DB_NAME, "test");
         conf.set(MongoDBRdfConfiguration.MONGO_COLLECTION_PREFIX, "rya_");
+        conf.set(ConfigUtils.FREE_TEXT_DOC_TABLENAME, "freetext");
+        final MongodForTestsFactory testsFactory = MongodForTestsFactory.with(Version.Main.PRODUCTION);
+        mongoClient = testsFactory.newMongo();
    }
 
      @Test
     public void testSearch() throws Exception {
-        try (MongoFreeTextIndexer f = new MongoFreeTextIndexer()) {
+        try (MongoFreeTextIndexer f = new MongoFreeTextIndexer(mongoClient)) {
             f.setConf(conf);
 
-            ValueFactory vf = new ValueFactoryImpl();
+            final ValueFactory vf = new ValueFactoryImpl();
 
-            URI subject = new URIImpl("foo:subj");
-            URI predicate = RDFS.LABEL;
-            Value object = vf.createLiteral("this is a new hat");
+            final URI subject = new URIImpl("foo:subj");
+            final URI predicate = RDFS.LABEL;
+            final Value object = vf.createLiteral("this is a new hat");
 
-            URI context = new URIImpl("foo:context");
+            final URI context = new URIImpl("foo:context");
 
-            Statement statement = vf.createStatement(subject, predicate, object, context);
+            final Statement statement = vf.createStatement(subject, predicate, object, context);
             f.storeStatement(RdfToRyaConversions.convertStatement(statement));
             f.flush();
 
@@ -87,27 +93,27 @@ public class MongoFreeTextIndexerTest {
 
     @Test
     public void testDelete() throws Exception {
-        try (MongoFreeTextIndexer f = new MongoFreeTextIndexer()) {
+        try (MongoFreeTextIndexer f = new MongoFreeTextIndexer(mongoClient)) {
             f.setConf(conf);
 
-            ValueFactory vf = new ValueFactoryImpl();
+            final ValueFactory vf = new ValueFactoryImpl();
 
-            URI subject1 = new URIImpl("foo:subj");
-            URI predicate1 = RDFS.LABEL;
-            Value object1 = vf.createLiteral("this is a new hat");
+            final URI subject1 = new URIImpl("foo:subj");
+            final URI predicate1 = RDFS.LABEL;
+            final Value object1 = vf.createLiteral("this is a new hat");
 
-            URI context1 = new URIImpl("foo:context");
+            final URI context1 = new URIImpl("foo:context");
 
-            Statement statement1 = vf.createStatement(subject1, predicate1, object1, context1);
+            final Statement statement1 = vf.createStatement(subject1, predicate1, object1, context1);
             f.storeStatement(RdfToRyaConversions.convertStatement(statement1));
 
-            URI subject2 = new URIImpl("foo:subject");
-            URI predicate2 = RDFS.LABEL;
-            Value object2 = vf.createLiteral("Do you like my new hat?");
+            final URI subject2 = new URIImpl("foo:subject");
+            final URI predicate2 = RDFS.LABEL;
+            final Value object2 = vf.createLiteral("Do you like my new hat?");
 
-            URI context2 = new URIImpl("foo:context");
+            final URI context2 = new URIImpl("foo:context");
 
-            Statement statement2 = vf.createStatement(subject2, predicate2, object2, context2);
+            final Statement statement2 = vf.createStatement(subject2, predicate2, object2, context2);
             f.storeStatement(RdfToRyaConversions.convertStatement(statement2));
 
             f.flush();
@@ -137,19 +143,19 @@ public class MongoFreeTextIndexerTest {
     public void testRestrictPredicatesSearch() throws Exception {
         conf.setStrings(ConfigUtils.FREETEXT_PREDICATES_LIST, "pred:1,pred:2");
 
-        try (MongoFreeTextIndexer f = new MongoFreeTextIndexer()) {
+        try (MongoFreeTextIndexer f = new MongoFreeTextIndexer(mongoClient)) {
             f.setConf(conf);
 
             // These should not be stored because they are not in the predicate list
             f.storeStatement(new RyaStatement(new RyaURI("foo:subj1"), new RyaURI(RDFS.LABEL.toString()), new RyaType("invalid")));
             f.storeStatement(new RyaStatement(new RyaURI("foo:subj2"), new RyaURI(RDFS.COMMENT.toString()), new RyaType("invalid")));
 
-            RyaURI pred1 = new RyaURI("pred:1");
-            RyaURI pred2 = new RyaURI("pred:2");
+            final RyaURI pred1 = new RyaURI("pred:1");
+            final RyaURI pred2 = new RyaURI("pred:2");
 
             // These should be stored because they are in the predicate list
-            RyaStatement s3 = new RyaStatement(new RyaURI("foo:subj3"), pred1, new RyaType("valid"));
-            RyaStatement s4 = new RyaStatement(new RyaURI("foo:subj4"), pred2, new RyaType("valid"));
+            final RyaStatement s3 = new RyaStatement(new RyaURI("foo:subj3"), pred1, new RyaType("valid"));
+            final RyaStatement s4 = new RyaStatement(new RyaURI("foo:subj4"), pred2, new RyaType("valid"));
             f.storeStatement(s3);
             f.storeStatement(s4);
 
@@ -161,7 +167,7 @@ public class MongoFreeTextIndexerTest {
             Assert.assertEquals(Sets.newHashSet(), getSet(f.queryText("invalid", EMPTY_CONSTRAINTS)));
             Assert.assertEquals(Sets.newHashSet(), getSet(f.queryText("in:validURI", EMPTY_CONSTRAINTS)));
 
-            Set<Statement> actual = getSet(f.queryText("valid", EMPTY_CONSTRAINTS));
+            final Set<Statement> actual = getSet(f.queryText("valid", EMPTY_CONSTRAINTS));
             Assert.assertEquals(2, actual.size());
             Assert.assertTrue(actual.contains(RyaToRdfConversions.convertStatement(s3)));
             Assert.assertTrue(actual.contains(RyaToRdfConversions.convertStatement(s4)));
@@ -170,29 +176,29 @@ public class MongoFreeTextIndexerTest {
 
     @Test
     public void testContextSearch() throws Exception {
-        try (MongoFreeTextIndexer f = new MongoFreeTextIndexer()) {
+        try (MongoFreeTextIndexer f = new MongoFreeTextIndexer(mongoClient)) {
             f.setConf(conf);
 
-            ValueFactory vf = new ValueFactoryImpl();
-            URI subject = new URIImpl("foo:subj");
-            URI predicate = new URIImpl(RDFS.COMMENT.toString());
-            Value object = vf.createLiteral("this is a new hat");
-            URI context = new URIImpl("foo:context");
+            final ValueFactory vf = new ValueFactoryImpl();
+            final URI subject = new URIImpl("foo:subj");
+            final URI predicate = new URIImpl(RDFS.COMMENT.toString());
+            final Value object = vf.createLiteral("this is a new hat");
+            final URI context = new URIImpl("foo:context");
 
-            Statement statement = vf.createStatement(subject, predicate, object, context);
+            final Statement statement = vf.createStatement(subject, predicate, object, context);
             f.storeStatement(RdfToRyaConversions.convertStatement(statement));
             f.flush();
 
             Assert.assertEquals(Sets.newHashSet(statement), getSet(f.queryText("hat", EMPTY_CONSTRAINTS)));
-            Assert.assertEquals(Sets.newHashSet(statement), getSet(f.queryText("hat", new StatementContraints().setContext(context))));
+            Assert.assertEquals(Sets.newHashSet(statement), getSet(f.queryText("hat", new StatementConstraints().setContext(context))));
             Assert.assertEquals(Sets.newHashSet(),
-                    getSet(f.queryText("hat", new StatementContraints().setContext(vf.createURI("foo:context2")))));
+                    getSet(f.queryText("hat", new StatementConstraints().setContext(vf.createURI("foo:context2")))));
         }
     }
 
- 
-    private static <X> Set<X> getSet(CloseableIteration<X, ?> iter) throws Exception {
-        Set<X> set = new HashSet<X>();
+
+    private static <X> Set<X> getSet(final CloseableIteration<X, ?> iter) throws Exception {
+        final Set<X> set = new HashSet<X>();
         while (iter.hasNext()) {
             set.add(iter.next());
         }

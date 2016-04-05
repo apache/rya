@@ -26,22 +26,22 @@ import java.util.Set;
 import org.openrdf.model.Resource;
 import org.openrdf.model.URI;
 
-public class StatementContraints {
+public class StatementConstraints {
 	private Resource context = null;
 	private Resource subject = null;
 	private Set<URI> predicates = null;
 
-	public StatementContraints setContext(Resource context) {
+	public StatementConstraints setContext(Resource context) {
 		this.context = context;
 		return this;
 	}
 
-	public StatementContraints setPredicates(Set<URI> predicates) {
+	public StatementConstraints setPredicates(Set<URI> predicates) {
 		this.predicates = predicates;
 		return this;
 	}
 
-	public StatementContraints setSubject(Resource subject) {
+	public StatementConstraints setSubject(Resource subject) {
 		this.subject = subject;
 		return this;
 	}

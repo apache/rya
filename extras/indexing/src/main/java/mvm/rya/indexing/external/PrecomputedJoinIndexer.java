@@ -23,6 +23,8 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 
@@ -34,6 +36,7 @@ import org.apache.rya.indexing.pcj.storage.PrecomputedJoinStorage;
 import org.apache.rya.indexing.pcj.storage.PrecomputedJoinStorage.PCJStorageException;
 import org.apache.rya.indexing.pcj.update.PrecomputedJoinUpdater;
 import org.apache.rya.indexing.pcj.update.PrecomputedJoinUpdater.PcjUpdateException;
+import org.openrdf.model.URI;
 
 import com.google.common.base.Optional;
 import com.google.common.base.Supplier;
@@ -114,7 +117,7 @@ public class PrecomputedJoinIndexer implements AccumuloIndexer {
 
     @Override
     public Configuration getConf() {
-        return this.conf.get();
+        return conf.get();
     }
 
     /**
@@ -251,5 +254,10 @@ public class PrecomputedJoinIndexer implements AccumuloIndexer {
         // a purge() method.
         log.warn("PCJ indicies are not stored within a single table, so this method can not be implemented.");
         return null;
+    }
+
+    @Override
+    public Set<URI> getIndexablePredicates() {
+        return new HashSet<>();
     }
 }

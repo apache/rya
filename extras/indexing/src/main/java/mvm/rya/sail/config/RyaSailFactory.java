@@ -1,5 +1,7 @@
 package mvm.rya.sail.config;
 
+import java.net.UnknownHostException;
+
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
 import org.apache.accumulo.core.client.Connector;
@@ -14,9 +16,9 @@ import org.openrdf.sail.Sail;
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- * 
+ *
  *   http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -40,33 +42,33 @@ import mvm.rya.rdftriplestore.inference.InferenceEngineException;
 
 public class RyaSailFactory {
 
-    
-    
-    public static Sail getInstance(Configuration conf) throws AccumuloException, 
-    AccumuloSecurityException, RyaDAOException, InferenceEngineException {
-        
+
+
+    public static Sail getInstance(final Configuration conf) throws AccumuloException,
+    AccumuloSecurityException, RyaDAOException, InferenceEngineException, NumberFormatException, UnknownHostException {
+
         return getRyaSail(conf);
     }
-    
-   
-    
-    private static Sail getRyaSail(Configuration config) throws AccumuloException, AccumuloSecurityException, RyaDAOException, InferenceEngineException {
-        
-        RdfCloudTripleStore store = new RdfCloudTripleStore();
+
+
+
+    private static Sail getRyaSail(final Configuration config) throws AccumuloException, AccumuloSecurityException, RyaDAOException, InferenceEngineException, NumberFormatException, UnknownHostException {
+
+        final RdfCloudTripleStore store = new RdfCloudTripleStore();
         RyaDAO crdfdao = null;
         RdfCloudTripleStoreConfiguration conf;
         if (ConfigUtils.getUseMongo(config)) {
             conf = new MongoDBRdfConfiguration(config);
             conf.setTablePrefix(config.get(RdfCloudTripleStoreConfiguration.CONF_TBL_PREFIX));
             ConfigUtils.setIndexers(conf);
-            
+
             crdfdao = new MongoDBRyaDAO((MongoDBRdfConfiguration)conf);
             crdfdao.init();
-            
+
             conf.setDisplayQueryPlan(true);
             store.setRyaDAO(crdfdao);
         } else {
-            Connector connector = ConfigUtils.getConnector(config);
+            final Connector connector = ConfigUtils.getConnector(config);
             crdfdao = new AccumuloRyaDAO();
             ((AccumuloRyaDAO)crdfdao).setConnector(connector);
 
@@ -80,18 +82,18 @@ public class RyaSailFactory {
             crdfdao.init();
             store.setRyaDAO(crdfdao);
         }
-        
+
         if (conf.isInfer()){
-            InferenceEngine inferenceEngine = new InferenceEngine();
+            final InferenceEngine inferenceEngine = new InferenceEngine();
             inferenceEngine.setConf(conf);
             inferenceEngine.setRyaDAO(crdfdao);
             inferenceEngine.init();
-            store.setInferenceEngine(inferenceEngine);            	
+            store.setInferenceEngine(inferenceEngine);
         }
 
         return store;
     }
 
-    
-    
+
+
 }

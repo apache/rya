@@ -25,13 +25,13 @@ import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
 
-import mvm.rya.indexing.accumulo.StatementSerializer;
-
 import org.apache.hadoop.io.Writable;
 import org.openrdf.model.Resource;
 import org.openrdf.model.Statement;
 import org.openrdf.model.URI;
 import org.openrdf.model.Value;
+
+import mvm.rya.indexing.StatementSerializer;
 
 /**
  * A {@link Writable} wrapper for {@link Statement} objects.

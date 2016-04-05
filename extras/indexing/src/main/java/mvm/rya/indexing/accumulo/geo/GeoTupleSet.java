@@ -1,5 +1,20 @@
 package mvm.rya.indexing.accumulo.geo;
 
+import java.util.Map;
+import java.util.Set;
+
+import org.apache.hadoop.conf.Configuration;
+import org.openrdf.model.Statement;
+import org.openrdf.model.URI;
+import org.openrdf.query.BindingSet;
+import org.openrdf.query.QueryEvaluationException;
+
+import com.google.common.base.Joiner;
+import com.google.common.collect.Maps;
+import com.vividsolutions.jts.geom.Geometry;
+import com.vividsolutions.jts.io.ParseException;
+import com.vividsolutions.jts.io.WKTReader;
+
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -21,42 +36,26 @@ package mvm.rya.indexing.accumulo.geo;
 
 
 import info.aduna.iteration.CloseableIteration;
-
-import java.util.Map;
-import java.util.Set;
-
 import mvm.rya.indexing.GeoIndexer;
 import mvm.rya.indexing.IndexingExpr;
 import mvm.rya.indexing.IteratorFactory;
 import mvm.rya.indexing.SearchFunction;
-import mvm.rya.indexing.StatementContraints;
+import mvm.rya.indexing.StatementConstraints;
 import mvm.rya.indexing.external.tupleSet.ExternalTupleSet;
-
-import org.apache.hadoop.conf.Configuration;
-import org.openrdf.model.Statement;
-import org.openrdf.model.URI;
-import org.openrdf.query.BindingSet;
-import org.openrdf.query.QueryEvaluationException;
-
-import com.google.common.base.Joiner;
-import com.google.common.collect.Maps;
-import com.vividsolutions.jts.geom.Geometry;
-import com.vividsolutions.jts.io.ParseException;
-import com.vividsolutions.jts.io.WKTReader;
 
 //Indexing Node for geo expressions to be inserted into execution plan
 //to delegate geo portion of query to geo index
 public class GeoTupleSet extends ExternalTupleSet {
 
-    private Configuration conf;
-    private GeoIndexer geoIndexer;
-    private IndexingExpr filterInfo;
+    private final Configuration conf;
+    private final GeoIndexer geoIndexer;
+    private final IndexingExpr filterInfo;
 
 
-    public GeoTupleSet(IndexingExpr filterInfo, GeoIndexer geoIndexer) {
+    public GeoTupleSet(final IndexingExpr filterInfo, final GeoIndexer geoIndexer) {
         this.filterInfo = filterInfo;
         this.geoIndexer = geoIndexer;
-        this.conf = geoIndexer.getConf();
+        conf = geoIndexer.getConf();
     }
 
     @Override
@@ -77,21 +76,21 @@ public class GeoTupleSet extends ExternalTupleSet {
 
     @Override
     public String getSignature() {
-        return "(GeoTuple Projection) " + "variables: " + Joiner.on(", ").join(this.getBindingNames()).replaceAll("\\s+", " ");
+        return "(GeoTuple Projection) " + "variables: " + Joiner.on(", ").join(getBindingNames()).replaceAll("\\s+", " ");
     }
 
 
 
     @Override
-    public boolean equals(Object other) {
+    public boolean equals(final Object other) {
         if (other == this) {
             return true;
         }
         if (!(other instanceof GeoTupleSet)) {
             return false;
         }
-        GeoTupleSet arg = (GeoTupleSet) other;
-        return this.filterInfo.equals(arg.filterInfo);
+        final GeoTupleSet arg = (GeoTupleSet) other;
+        return filterInfo.equals(arg.filterInfo);
     }
 
     @Override
@@ -111,17 +110,17 @@ public class GeoTupleSet extends ExternalTupleSet {
      * method can be expected with some query evaluators.
      */
     @Override
-    public CloseableIteration<BindingSet, QueryEvaluationException> evaluate(BindingSet bindings)
+    public CloseableIteration<BindingSet, QueryEvaluationException> evaluate(final BindingSet bindings)
             throws QueryEvaluationException {
 
 
-        URI funcURI = filterInfo.getFunction();
-        SearchFunction searchFunction = new GeoSearchFunctionFactory(conf).getSearchFunction(funcURI);
+        final URI funcURI = filterInfo.getFunction();
+        final SearchFunction searchFunction = new GeoSearchFunctionFactory(conf).getSearchFunction(funcURI);
         if(filterInfo.getArguments().length > 1) {
             throw new IllegalArgumentException("Index functions do not support more than two arguments.");
         }
 
-        String queryText = filterInfo.getArguments()[0].stringValue();
+        final String queryText = filterInfo.getArguments()[0].stringValue();
 
         return IteratorFactory.getIterator(filterInfo.getSpConstraint(), bindings, queryText, searchFunction);
     }
@@ -136,7 +135,7 @@ public class GeoTupleSet extends ExternalTupleSet {
 
         private final Map<URI, SearchFunction> SEARCH_FUNCTION_MAP = Maps.newHashMap();
 
-        public GeoSearchFunctionFactory(Configuration conf) {
+        public GeoSearchFunctionFactory(final Configuration conf) {
             this.conf = conf;
         }
 
@@ -153,7 +152,7 @@ public class GeoTupleSet extends ExternalTupleSet {
 
             try {
                 geoFunc = getSearchFunctionInternal(searchFunction);
-            } catch (QueryEvaluationException e) {
+            } catch (final QueryEvaluationException e) {
                 e.printStackTrace();
             }
 
@@ -161,7 +160,7 @@ public class GeoTupleSet extends ExternalTupleSet {
         }
 
         private SearchFunction getSearchFunctionInternal(final URI searchFunction) throws QueryEvaluationException {
-            SearchFunction sf = SEARCH_FUNCTION_MAP.get(searchFunction);
+            final SearchFunction sf = SEARCH_FUNCTION_MAP.get(searchFunction);
 
             if (sf != null) {
                 return sf;
@@ -173,15 +172,15 @@ public class GeoTupleSet extends ExternalTupleSet {
         private final SearchFunction GEO_EQUALS = new SearchFunction() {
 
             @Override
-            public CloseableIteration<Statement, QueryEvaluationException> performSearch(String queryText,
-                    StatementContraints contraints) throws QueryEvaluationException {
+            public CloseableIteration<Statement, QueryEvaluationException> performSearch(final String queryText,
+                    final StatementConstraints contraints) throws QueryEvaluationException {
                 try {
-                    WKTReader reader = new WKTReader();
-                    Geometry geometry = reader.read(queryText);
-                    CloseableIteration<Statement, QueryEvaluationException> statements = geoIndexer.queryWithin(
+                    final WKTReader reader = new WKTReader();
+                    final Geometry geometry = reader.read(queryText);
+                    final CloseableIteration<Statement, QueryEvaluationException> statements = geoIndexer.queryWithin(
                             geometry, contraints);
                     return statements;
-                } catch (ParseException e) {
+                } catch (final ParseException e) {
                     throw new QueryEvaluationException(e);
                 }
             }
@@ -195,15 +194,15 @@ public class GeoTupleSet extends ExternalTupleSet {
         private final SearchFunction GEO_DISJOINT = new SearchFunction() {
 
             @Override
-            public CloseableIteration<Statement, QueryEvaluationException> performSearch(String queryText,
-                    StatementContraints contraints) throws QueryEvaluationException {
+            public CloseableIteration<Statement, QueryEvaluationException> performSearch(final String queryText,
+                    final StatementConstraints contraints) throws QueryEvaluationException {
                 try {
-                    WKTReader reader = new WKTReader();
-                    Geometry geometry = reader.read(queryText);
-                    CloseableIteration<Statement, QueryEvaluationException> statements = geoIndexer.queryWithin(
+                    final WKTReader reader = new WKTReader();
+                    final Geometry geometry = reader.read(queryText);
+                    final CloseableIteration<Statement, QueryEvaluationException> statements = geoIndexer.queryWithin(
                             geometry, contraints);
                     return statements;
-                } catch (ParseException e) {
+                } catch (final ParseException e) {
                     throw new QueryEvaluationException(e);
                 }
             }
@@ -217,15 +216,15 @@ public class GeoTupleSet extends ExternalTupleSet {
         private final SearchFunction GEO_INTERSECTS = new SearchFunction() {
 
             @Override
-            public CloseableIteration<Statement, QueryEvaluationException> performSearch(String queryText,
-                    StatementContraints contraints) throws QueryEvaluationException {
+            public CloseableIteration<Statement, QueryEvaluationException> performSearch(final String queryText,
+                    final StatementConstraints contraints) throws QueryEvaluationException {
                 try {
-                    WKTReader reader = new WKTReader();
-                    Geometry geometry = reader.read(queryText);
-                    CloseableIteration<Statement, QueryEvaluationException> statements = geoIndexer.queryWithin(
+                    final WKTReader reader = new WKTReader();
+                    final Geometry geometry = reader.read(queryText);
+                    final CloseableIteration<Statement, QueryEvaluationException> statements = geoIndexer.queryWithin(
                             geometry, contraints);
                     return statements;
-                } catch (ParseException e) {
+                } catch (final ParseException e) {
                     throw new QueryEvaluationException(e);
                 }
             }
@@ -239,15 +238,15 @@ public class GeoTupleSet extends ExternalTupleSet {
         private final SearchFunction GEO_TOUCHES = new SearchFunction() {
 
             @Override
-            public CloseableIteration<Statement, QueryEvaluationException> performSearch(String queryText,
-                    StatementContraints contraints) throws QueryEvaluationException {
+            public CloseableIteration<Statement, QueryEvaluationException> performSearch(final String queryText,
+                    final StatementConstraints contraints) throws QueryEvaluationException {
                 try {
-                    WKTReader reader = new WKTReader();
-                    Geometry geometry = reader.read(queryText);
-                    CloseableIteration<Statement, QueryEvaluationException> statements = geoIndexer.queryWithin(
+                    final WKTReader reader = new WKTReader();
+                    final Geometry geometry = reader.read(queryText);
+                    final CloseableIteration<Statement, QueryEvaluationException> statements = geoIndexer.queryWithin(
                             geometry, contraints);
                     return statements;
-                } catch (ParseException e) {
+                } catch (final ParseException e) {
                     throw new QueryEvaluationException(e);
                 }
             }
@@ -261,15 +260,15 @@ public class GeoTupleSet extends ExternalTupleSet {
         private final SearchFunction GEO_CONTAINS = new SearchFunction() {
 
             @Override
-            public CloseableIteration<Statement, QueryEvaluationException> performSearch(String queryText,
-                    StatementContraints contraints) throws QueryEvaluationException {
+            public CloseableIteration<Statement, QueryEvaluationException> performSearch(final String queryText,
+                    final StatementConstraints contraints) throws QueryEvaluationException {
                 try {
-                    WKTReader reader = new WKTReader();
-                    Geometry geometry = reader.read(queryText);
-                    CloseableIteration<Statement, QueryEvaluationException> statements = geoIndexer.queryWithin(
+                    final WKTReader reader = new WKTReader();
+                    final Geometry geometry = reader.read(queryText);
+                    final CloseableIteration<Statement, QueryEvaluationException> statements = geoIndexer.queryWithin(
                             geometry, contraints);
                     return statements;
-                } catch (ParseException e) {
+                } catch (final ParseException e) {
                     throw new QueryEvaluationException(e);
                 }
             }
@@ -283,15 +282,15 @@ public class GeoTupleSet extends ExternalTupleSet {
         private final SearchFunction GEO_OVERLAPS = new SearchFunction() {
 
             @Override
-            public CloseableIteration<Statement, QueryEvaluationException> performSearch(String queryText,
-                    StatementContraints contraints) throws QueryEvaluationException {
+            public CloseableIteration<Statement, QueryEvaluationException> performSearch(final String queryText,
+                    final StatementConstraints contraints) throws QueryEvaluationException {
                 try {
-                    WKTReader reader = new WKTReader();
-                    Geometry geometry = reader.read(queryText);
-                    CloseableIteration<Statement, QueryEvaluationException> statements = geoIndexer.queryWithin(
+                    final WKTReader reader = new WKTReader();
+                    final Geometry geometry = reader.read(queryText);
+                    final CloseableIteration<Statement, QueryEvaluationException> statements = geoIndexer.queryWithin(
                             geometry, contraints);
                     return statements;
-                } catch (ParseException e) {
+                } catch (final ParseException e) {
                     throw new QueryEvaluationException(e);
                 }
             }
@@ -305,15 +304,15 @@ public class GeoTupleSet extends ExternalTupleSet {
         private final SearchFunction GEO_CROSSES = new SearchFunction() {
 
             @Override
-            public CloseableIteration<Statement, QueryEvaluationException> performSearch(String queryText,
-                    StatementContraints contraints) throws QueryEvaluationException {
+            public CloseableIteration<Statement, QueryEvaluationException> performSearch(final String queryText,
+                    final StatementConstraints contraints) throws QueryEvaluationException {
                 try {
-                    WKTReader reader = new WKTReader();
-                    Geometry geometry = reader.read(queryText);
-                    CloseableIteration<Statement, QueryEvaluationException> statements = geoIndexer.queryWithin(
+                    final WKTReader reader = new WKTReader();
+                    final Geometry geometry = reader.read(queryText);
+                    final CloseableIteration<Statement, QueryEvaluationException> statements = geoIndexer.queryWithin(
                             geometry, contraints);
                     return statements;
-                } catch (ParseException e) {
+                } catch (final ParseException e) {
                     throw new QueryEvaluationException(e);
                 }
             }
@@ -327,15 +326,15 @@ public class GeoTupleSet extends ExternalTupleSet {
         private final SearchFunction GEO_WITHIN = new SearchFunction() {
 
             @Override
-            public CloseableIteration<Statement, QueryEvaluationException> performSearch(String queryText,
-                    StatementContraints contraints) throws QueryEvaluationException {
+            public CloseableIteration<Statement, QueryEvaluationException> performSearch(final String queryText,
+                    final StatementConstraints contraints) throws QueryEvaluationException {
                 try {
-                    WKTReader reader = new WKTReader();
-                    Geometry geometry = reader.read(queryText);
-                    CloseableIteration<Statement, QueryEvaluationException> statements = geoIndexer.queryWithin(
+                    final WKTReader reader = new WKTReader();
+                    final Geometry geometry = reader.read(queryText);
+                    final CloseableIteration<Statement, QueryEvaluationException> statements = geoIndexer.queryWithin(
                             geometry, contraints);
                     return statements;
-                } catch (ParseException e) {
+                } catch (final ParseException e) {
                     throw new QueryEvaluationException(e);
                 }
             }

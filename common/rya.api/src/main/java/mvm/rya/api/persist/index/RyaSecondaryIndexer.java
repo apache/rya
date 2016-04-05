@@ -8,9 +8,9 @@ package mvm.rya.api.persist.index;
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- * 
+ *
  *   http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -24,11 +24,13 @@ import java.io.Closeable;
 import java.io.Flushable;
 import java.io.IOException;
 import java.util.Collection;
+import java.util.Set;
+
+import org.apache.hadoop.conf.Configurable;
+import org.openrdf.model.URI;
 
 import mvm.rya.api.domain.RyaStatement;
 import mvm.rya.api.domain.RyaURI;
-
-import org.apache.hadoop.conf.Configurable;
 
 public interface RyaSecondaryIndexer extends Closeable, Flushable, Configurable {
 
@@ -42,4 +44,14 @@ public interface RyaSecondaryIndexer extends Closeable, Flushable, Configurable 
 
     public void dropGraph(RyaURI... graphs);
 
+    /**
+     * @return the set of predicates indexed by the indexer.
+     */
+    public abstract Set<URI> getIndexablePredicates();
+
+    @Override
+    public abstract void flush() throws IOException;
+
+    @Override
+    public abstract void close() throws IOException;
 }

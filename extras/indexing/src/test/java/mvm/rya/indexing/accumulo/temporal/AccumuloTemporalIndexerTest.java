@@ -69,11 +69,12 @@ import com.beust.jcommander.internal.Lists;
 import info.aduna.iteration.CloseableIteration;
 import junit.framework.Assert;
 import mvm.rya.api.domain.RyaStatement;
-import mvm.rya.indexing.StatementContraints;
+import mvm.rya.indexing.StatementConstraints;
+import mvm.rya.indexing.StatementSerializer;
 import mvm.rya.indexing.TemporalInstant;
+import mvm.rya.indexing.TemporalInstantRfc3339;
 import mvm.rya.indexing.TemporalInterval;
 import mvm.rya.indexing.accumulo.ConfigUtils;
-import mvm.rya.indexing.accumulo.StatementSerializer;
 
 /**
  * JUnit tests for TemporalIndexer and it's implementation AccumuloTemporalIndexer
@@ -108,7 +109,7 @@ public final class AccumuloTemporalIndexerTest {
     private static final String STAT_KEYHASH = "keyhash";
     private static final String STAT_VALUEHASH = "valuehash";
     private static final String TEST_TEMPORAL_INDEX_TABLE_NAME = "testTemporalIndex";
-    private static final StatementContraints EMPTY_CONSTRAINTS = new StatementContraints();
+    private static final StatementConstraints EMPTY_CONSTRAINTS = new StatementConstraints();
 
     // Recreate table name for each test instance in this JVM.
     String uniquePerTestTemporalIndexTableName = TEST_TEMPORAL_INDEX_TABLE_NAME + String.format("%05d", nextTableSuffixAtomic.getAndIncrement());
@@ -791,7 +792,7 @@ public final class AccumuloTemporalIndexerTest {
 
     /**
      * Test method for
-     * {@link mvm.rya.indexing.accumulo.temporal.AccumuloTemporalIndexer#queryIntervalEquals(TemporalInterval, StatementContraints)}
+     * {@link mvm.rya.indexing.accumulo.temporal.AccumuloTemporalIndexer#queryIntervalEquals(TemporalInterval, StatementConstraints)}
      * .
      * @throws IOException
      * @throws QueryEvaluationException
@@ -818,7 +819,7 @@ public final class AccumuloTemporalIndexerTest {
 
     /**
      * Test interval before a given interval, for method:
-     * {@link AccumuloTemporalIndexer#queryIntervalBefore(TemporalInterval, StatementContraints)}.
+     * {@link AccumuloTemporalIndexer#queryIntervalBefore(TemporalInterval, StatementConstraints)}.
      *
      * @throws IOException
      * @throws QueryEvaluationException
@@ -920,7 +921,7 @@ public final class AccumuloTemporalIndexerTest {
         }
         tIndexer.flush();
         CloseableIteration<Statement, QueryEvaluationException> iter;
-        StatementContraints constraints = new StatementContraints();
+        StatementConstraints constraints = new StatementConstraints();
         constraints.setPredicates(new HashSet<URI>(Arrays.asList( pred2_eventTime,  pred1_atTime )));
 
         iter = tIndexer.queryInstantAfterInstant(seriesTs[searchForSeconds], constraints); // EMPTY_CONSTRAINTS);//

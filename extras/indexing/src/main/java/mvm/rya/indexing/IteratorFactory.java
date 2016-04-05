@@ -59,7 +59,7 @@ public class IteratorFactory {
 
             private void performQuery() throws QueryEvaluationException {
 
-                StatementContraints contraints = new StatementContraints();
+                StatementConstraints contraints = new StatementConstraints();
 
                 // get the context (i.e. named graph) of the statement and use that in the query
                 QueryModelNode parentNode = match.getSubjectVar().getParentNode();

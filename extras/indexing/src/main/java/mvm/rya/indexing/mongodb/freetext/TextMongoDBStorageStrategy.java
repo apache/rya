@@ -1,7 +1,4 @@
-package mvm.rya.mongodb.dao;
-
-import com.mongodb.DBCollection;
-import com.mongodb.DBObject;
+package mvm.rya.indexing.mongodb.freetext;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -22,24 +19,27 @@ import com.mongodb.DBObject;
  * under the License.
  */
 
+import com.mongodb.BasicDBObject;
+import com.mongodb.DBCollection;
+import com.mongodb.DBObject;
 
 import mvm.rya.api.domain.RyaStatement;
-import mvm.rya.api.persist.query.RyaQuery;
+import mvm.rya.indexing.mongodb.IndexingMongoDBStorageStrategy;
 
-/**
- * Defines how objects are stored in MongoDB.
- * <T> - The object to store in MongoDB
- */
-public interface MongoDBStorageStrategy<T> {
+public class TextMongoDBStorageStrategy extends IndexingMongoDBStorageStrategy {
+	private static final String text = "text";
 
-	public DBObject getQuery(T statement);
+	@Override
+    public void createIndices(final DBCollection coll){
+		final BasicDBObject basicDBObject = new BasicDBObject();
+		basicDBObject.append(text, "text");
+		coll.createIndex(basicDBObject);
+	}
 
-	public RyaStatement deserializeDBObject(DBObject queryResult);
-
-	public DBObject serialize(T statement);
-
-	public DBObject getQuery(RyaQuery ryaQuery);
-
-	public void createIndices(DBCollection coll);
-
+	@Override
+    public DBObject serialize(final RyaStatement ryaStatement) {
+ 		final BasicDBObject base = (BasicDBObject) super.serialize(ryaStatement);
+ 		base.append(text, ryaStatement.getObject().getData());
+     	return base;
+	}
 }

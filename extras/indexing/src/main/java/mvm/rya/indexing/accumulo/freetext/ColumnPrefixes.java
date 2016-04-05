@@ -24,11 +24,11 @@ package mvm.rya.indexing.accumulo.freetext;
 import java.nio.ByteBuffer;
 import java.nio.charset.CharacterCodingException;
 
-import mvm.rya.indexing.accumulo.StatementSerializer;
-
 import org.apache.commons.lang.StringUtils;
 import org.apache.hadoop.io.Text;
 import org.openrdf.model.Statement;
+
+import mvm.rya.indexing.StatementSerializer;
 
 /**
  * Row ID: shardId

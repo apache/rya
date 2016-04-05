@@ -1,4 +1,4 @@
-package mvm.rya.indexing.mongodb;
+package mvm.rya.indexing.mongodb.geo;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -29,7 +29,7 @@ import mvm.rya.indexing.GeoIndexer;
 import mvm.rya.indexing.IndexingExpr;
 import mvm.rya.indexing.IteratorFactory;
 import mvm.rya.indexing.SearchFunction;
-import mvm.rya.indexing.StatementContraints;
+import mvm.rya.indexing.StatementConstraints;
 import mvm.rya.indexing.accumulo.geo.GeoConstants;
 import mvm.rya.indexing.accumulo.geo.GeoTupleSet;
 import mvm.rya.indexing.external.tupleSet.ExternalTupleSet;
@@ -173,7 +173,7 @@ public class MongoGeoTupleSet extends ExternalTupleSet {
 
             @Override
             public CloseableIteration<Statement, QueryEvaluationException> performSearch(String queryText,
-                    StatementContraints contraints) throws QueryEvaluationException {
+                    StatementConstraints contraints) throws QueryEvaluationException {
                 try {
                     WKTReader reader = new WKTReader();
                     Geometry geometry = reader.read(queryText);
@@ -195,7 +195,7 @@ public class MongoGeoTupleSet extends ExternalTupleSet {
 
             @Override
             public CloseableIteration<Statement, QueryEvaluationException> performSearch(String queryText,
-                    StatementContraints contraints) throws QueryEvaluationException {
+                    StatementConstraints contraints) throws QueryEvaluationException {
                 try {
                     WKTReader reader = new WKTReader();
                     Geometry geometry = reader.read(queryText);
@@ -217,7 +217,7 @@ public class MongoGeoTupleSet extends ExternalTupleSet {
 
             @Override
             public CloseableIteration<Statement, QueryEvaluationException> performSearch(String queryText,
-                    StatementContraints contraints) throws QueryEvaluationException {
+                    StatementConstraints contraints) throws QueryEvaluationException {
                 try {
                     WKTReader reader = new WKTReader();
                     Geometry geometry = reader.read(queryText);
@@ -239,7 +239,7 @@ public class MongoGeoTupleSet extends ExternalTupleSet {
 
             @Override
             public CloseableIteration<Statement, QueryEvaluationException> performSearch(String queryText,
-                    StatementContraints contraints) throws QueryEvaluationException {
+                    StatementConstraints contraints) throws QueryEvaluationException {
                 try {
                     WKTReader reader = new WKTReader();
                     Geometry geometry = reader.read(queryText);
@@ -261,7 +261,7 @@ public class MongoGeoTupleSet extends ExternalTupleSet {
 
             @Override
             public CloseableIteration<Statement, QueryEvaluationException> performSearch(String queryText,
-                    StatementContraints contraints) throws QueryEvaluationException {
+                    StatementConstraints contraints) throws QueryEvaluationException {
                 try {
                     WKTReader reader = new WKTReader();
                     Geometry geometry = reader.read(queryText);
@@ -283,7 +283,7 @@ public class MongoGeoTupleSet extends ExternalTupleSet {
 
             @Override
             public CloseableIteration<Statement, QueryEvaluationException> performSearch(String queryText,
-                    StatementContraints contraints) throws QueryEvaluationException {
+                    StatementConstraints contraints) throws QueryEvaluationException {
                 try {
                     WKTReader reader = new WKTReader();
                     Geometry geometry = reader.read(queryText);
@@ -305,7 +305,7 @@ public class MongoGeoTupleSet extends ExternalTupleSet {
 
             @Override
             public CloseableIteration<Statement, QueryEvaluationException> performSearch(String queryText,
-                    StatementContraints contraints) throws QueryEvaluationException {
+                    StatementConstraints contraints) throws QueryEvaluationException {
                 try {
                     WKTReader reader = new WKTReader();
                     Geometry geometry = reader.read(queryText);
@@ -327,7 +327,7 @@ public class MongoGeoTupleSet extends ExternalTupleSet {
 
             @Override
             public CloseableIteration<Statement, QueryEvaluationException> performSearch(String queryText,
-                    StatementContraints contraints) throws QueryEvaluationException {
+                    StatementConstraints contraints) throws QueryEvaluationException {
                 try {
                     WKTReader reader = new WKTReader();
                     Geometry geometry = reader.read(queryText);

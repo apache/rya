@@ -35,9 +35,9 @@ import mvm.rya.indexing.accumulo.freetext.LuceneTokenizer;
 import mvm.rya.indexing.accumulo.freetext.Tokenizer;
 import mvm.rya.indexing.accumulo.geo.GeoMesaGeoIndexer;
 import mvm.rya.indexing.accumulo.temporal.AccumuloTemporalIndexer;
-import mvm.rya.indexing.mongodb.MongoFreeTextIndexer;
-import mvm.rya.indexing.mongodb.MongoGeoIndexer;
-import mvm.rya.indexing.pcj.matching.PCJOptimizer;
+import mvm.rya.indexing.external.PrecompJoinOptimizer;
+import mvm.rya.indexing.mongodb.freetext.MongoFreeTextIndexer;
+import mvm.rya.indexing.mongodb.geo.MongoGeoIndexer;
 
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
@@ -157,7 +157,7 @@ public class ConfigUtils {
         return false;
     }
 
-    private static String getIndexTableName(Configuration conf, String indexTableNameConf, String altSuffix){
+    private static String getIndexTableName(final Configuration conf, final String indexTableNameConf, final String altSuffix){
         String value = conf.get(indexTableNameConf);
         if (value == null){
             final String defaultTableName = conf.get(RdfCloudTripleStoreConfiguration.CONF_TBL_PREFIX);
@@ -183,12 +183,12 @@ public class ConfigUtils {
         return getIndexTableName(conf, GEO_TABLENAME, "geo");
     }
 
-    public static String getTemporalTableName(Configuration conf) {
+    public static String getTemporalTableName(final Configuration conf) {
         return getIndexTableName(conf, TEMPORAL_TABLENAME, "temporal");
     }
 
 
-    public static String getEntityTableName(Configuration conf) {
+    public static String getEntityTableName(final Configuration conf) {
         return getIndexTableName(conf, ENTITY_TABLENAME, "entity");
     }
 
@@ -342,39 +342,39 @@ public class ConfigUtils {
         return conf.getInt(GEO_NUM_PARTITIONS, getNumPartitions(conf));
     }
 
-    public static boolean getUseGeo(Configuration conf) {
+    public static boolean getUseGeo(final Configuration conf) {
         return conf.getBoolean(USE_GEO, false);
     }
 
-    public static boolean getUseFreeText(Configuration conf) {
+    public static boolean getUseFreeText(final Configuration conf) {
         return conf.getBoolean(USE_FREETEXT, false);
     }
 
-    public static boolean getUseTemporal(Configuration conf) {
+    public static boolean getUseTemporal(final Configuration conf) {
         return conf.getBoolean(USE_TEMPORAL, false);
     }
 
-    public static boolean getUseEntity(Configuration conf) {
+    public static boolean getUseEntity(final Configuration conf) {
         return conf.getBoolean(USE_ENTITY, false);
     }
 
-    public static boolean getUsePCJ(Configuration conf) {
+    public static boolean getUsePCJ(final Configuration conf) {
         return conf.getBoolean(USE_PCJ, false);
     }
 
-    public static boolean getUseOptimalPCJ(Configuration conf) {
+    public static boolean getUseOptimalPCJ(final Configuration conf) {
         return conf.getBoolean(USE_OPTIMAL_PCJ, false);
     }
 
-    public static boolean getUseMongo(Configuration conf) {
+    public static boolean getUseMongo(final Configuration conf) {
         return conf.getBoolean(USE_MONGO, false);
     }
 
 
-    public static void setIndexers(RdfCloudTripleStoreConfiguration conf) {
+    public static void setIndexers(final RdfCloudTripleStoreConfiguration conf) {
 
-        List<String> indexList = Lists.newArrayList();
-        List<String> optimizers = Lists.newArrayList();
+        final List<String> indexList = Lists.newArrayList();
+        final List<String> optimizers = Lists.newArrayList();
 
         boolean useFilterIndex = false;
 
@@ -390,7 +390,7 @@ public class ConfigUtils {
         } else {
 
             if (getUsePCJ(conf) || getUseOptimalPCJ(conf)) {
-                conf.setPcjOptimizer(PCJOptimizer.class);
+                conf.setPcjOptimizer(PrecompJoinOptimizer.class);
             }
 
             if (getUseGeo(conf)) {

@@ -53,11 +53,11 @@ import mvm.rya.api.domain.RyaType;
 import mvm.rya.api.domain.RyaURI;
 import mvm.rya.api.resolver.RdfToRyaConversions;
 import mvm.rya.api.resolver.RyaToRdfConversions;
-import mvm.rya.indexing.StatementContraints;
+import mvm.rya.indexing.StatementConstraints;
 import mvm.rya.indexing.accumulo.ConfigUtils;
 
 public class AccumuloFreeTextIndexerTest {
-    private static final StatementContraints EMPTY_CONSTRAINTS = new StatementContraints();
+    private static final StatementConstraints EMPTY_CONSTRAINTS = new StatementConstraints();
 
     Configuration conf;
 
@@ -232,9 +232,9 @@ public class AccumuloFreeTextIndexerTest {
             f.flush();
 
             Assert.assertEquals(Sets.newHashSet(statement), getSet(f.queryText("hat", EMPTY_CONSTRAINTS)));
-            Assert.assertEquals(Sets.newHashSet(statement), getSet(f.queryText("hat", new StatementContraints().setContext(context))));
+            Assert.assertEquals(Sets.newHashSet(statement), getSet(f.queryText("hat", new StatementConstraints().setContext(context))));
             Assert.assertEquals(Sets.newHashSet(),
-                    getSet(f.queryText("hat", new StatementContraints().setContext(vf.createURI("foo:context2")))));
+                    getSet(f.queryText("hat", new StatementConstraints().setContext(vf.createURI("foo:context2")))));
         }
     }
 

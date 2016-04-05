@@ -8,9 +8,9 @@ package mvm.rya.indexing.accumulo.entity;
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- * 
+ *
  *   http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -27,9 +27,9 @@ import static mvm.rya.api.RdfCloudTripleStoreConstants.EMPTY_BYTES;
 import static mvm.rya.api.RdfCloudTripleStoreConstants.EMPTY_TEXT;
 
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
@@ -39,13 +39,13 @@ import org.apache.accumulo.core.client.MultiTableBatchWriter;
 import org.apache.accumulo.core.client.MutationsRejectedException;
 import org.apache.accumulo.core.client.TableExistsException;
 import org.apache.accumulo.core.client.TableNotFoundException;
-import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Mutation;
 import org.apache.accumulo.core.data.Value;
 import org.apache.accumulo.core.security.ColumnVisibility;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.Text;
 import org.apache.log4j.Logger;
+import org.openrdf.model.URI;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
@@ -73,21 +73,19 @@ public class EntityCentricIndex extends AbstractAccumuloIndexer {
 
     public static final String CONF_TABLE_SUFFIX = "ac.indexer.eci.tablename";
 
-
     private void initInternal() throws AccumuloException, AccumuloSecurityException, TableNotFoundException, IOException,
             TableExistsException {
         ConfigUtils.createTableIfNotExists(conf, ConfigUtils.getEntityTableName(conf));
     }
 
-
     @Override
     public Configuration getConf() {
-        return this.conf;
+        return conf;
     }
 
   //initialization occurs in setConf because index is created using reflection
     @Override
-    public void setConf(Configuration conf) {
+    public void setConf(final Configuration conf) {
         if (conf instanceof AccumuloRdfConfiguration) {
             this.conf = (AccumuloRdfConfiguration) conf;
         } else {
@@ -97,25 +95,24 @@ public class EntityCentricIndex extends AbstractAccumuloIndexer {
             try {
                 initInternal();
                 isInit = true;
-            } catch (AccumuloException e) {
+            } catch (final AccumuloException e) {
                 logger.warn("Unable to initialize index.  Throwing Runtime Exception. ", e);
                 throw new RuntimeException(e);
-            } catch (AccumuloSecurityException e) {
+            } catch (final AccumuloSecurityException e) {
                 logger.warn("Unable to initialize index.  Throwing Runtime Exception. ", e);
                 throw new RuntimeException(e);
-            } catch (TableNotFoundException e) {
+            } catch (final TableNotFoundException e) {
                 logger.warn("Unable to initialize index.  Throwing Runtime Exception. ", e);
                 throw new RuntimeException(e);
-            } catch (TableExistsException e) {
+            } catch (final TableExistsException e) {
                 logger.warn("Unable to initialize index.  Throwing Runtime Exception. ", e);
                 throw new RuntimeException(e);
-            } catch (IOException e) {
+            } catch (final IOException e) {
                 logger.warn("Unable to initialize index.  Throwing Runtime Exception. ", e);
                 throw new RuntimeException(e);
             }
         }
     }
-
 
     @Override
     public String getTableName() {
@@ -123,123 +120,116 @@ public class EntityCentricIndex extends AbstractAccumuloIndexer {
     }
 
     @Override
-    public void setMultiTableBatchWriter(MultiTableBatchWriter writer) throws IOException {
+    public void setMultiTableBatchWriter(final MultiTableBatchWriter writer) throws IOException {
         try {
             this.writer = writer.getBatchWriter(getTableName());
-        } catch (AccumuloException e) {
+        } catch (final AccumuloException e) {
             throw new IOException(e);
-        } catch (AccumuloSecurityException e) {
+        } catch (final AccumuloSecurityException e) {
             throw new IOException(e);
-        } catch (TableNotFoundException e) {
+        } catch (final TableNotFoundException e) {
             throw new IOException(e);
         }
-
     }
 
-
     @Override
-    public void storeStatement(RyaStatement stmt) throws IOException {
+    public void storeStatement(final RyaStatement stmt) throws IOException {
         Preconditions.checkNotNull(writer, "BatchWriter not Set");
         try {
-            for (TripleRow row : serializeStatement(stmt)) {
+            for (final TripleRow row : serializeStatement(stmt)) {
                 writer.addMutation(createMutation(row));
             }
-        } catch (MutationsRejectedException e) {
+        } catch (final MutationsRejectedException e) {
             throw new IOException(e);
-        } catch (RyaTypeResolverException e) {
+        } catch (final RyaTypeResolverException e) {
             throw new IOException(e);
         }
     }
-
 
     @Override
-    public void deleteStatement(RyaStatement stmt) throws IOException {
+    public void deleteStatement(final RyaStatement stmt) throws IOException {
         Preconditions.checkNotNull(writer, "BatchWriter not Set");
         try {
-            for (TripleRow row : serializeStatement(stmt)) {
+            for (final TripleRow row : serializeStatement(stmt)) {
                 writer.addMutation(deleteMutation(row));
             }
-        } catch (MutationsRejectedException e) {
+        } catch (final MutationsRejectedException e) {
             throw new IOException(e);
-        } catch (RyaTypeResolverException e) {
+        } catch (final RyaTypeResolverException e) {
             throw new IOException(e);
         }
     }
 
+    protected Mutation deleteMutation(final TripleRow tripleRow) {
+        final Mutation m = new Mutation(new Text(tripleRow.getRow()));
 
-    protected Mutation deleteMutation(TripleRow tripleRow) {
-        Mutation m = new Mutation(new Text(tripleRow.getRow()));
+        final byte[] columnFamily = tripleRow.getColumnFamily();
+        final Text cfText = columnFamily == null ? EMPTY_TEXT : new Text(columnFamily);
 
-        byte[] columnFamily = tripleRow.getColumnFamily();
-        Text cfText = columnFamily == null ? EMPTY_TEXT : new Text(columnFamily);
+        final byte[] columnQualifier = tripleRow.getColumnQualifier();
+        final Text cqText = columnQualifier == null ? EMPTY_TEXT : new Text(columnQualifier);
 
-        byte[] columnQualifier = tripleRow.getColumnQualifier();
-        Text cqText = columnQualifier == null ? EMPTY_TEXT : new Text(columnQualifier);
-
-        byte[] columnVisibility = tripleRow.getColumnVisibility();
-        ColumnVisibility cv = columnVisibility == null ? EMPTY_CV : new ColumnVisibility(columnVisibility);
+        final byte[] columnVisibility = tripleRow.getColumnVisibility();
+        final ColumnVisibility cv = columnVisibility == null ? EMPTY_CV : new ColumnVisibility(columnVisibility);
 
         m.putDelete(cfText, cqText, cv, tripleRow.getTimestamp());
         return m;
     }
 
-    public static Collection<Mutation> createMutations(RyaStatement stmt) throws RyaTypeResolverException{
-        Collection<Mutation> m = Lists.newArrayList();
-        for (TripleRow tr : serializeStatement(stmt)){
+    public static Collection<Mutation> createMutations(final RyaStatement stmt) throws RyaTypeResolverException{
+        final Collection<Mutation> m = Lists.newArrayList();
+        for (final TripleRow tr : serializeStatement(stmt)){
             m.add(createMutation(tr));
         }
         return m;
     }
 
-    private static Mutation createMutation(TripleRow tripleRow) {
-        Mutation mutation = new Mutation(new Text(tripleRow.getRow()));
-        byte[] columnVisibility = tripleRow.getColumnVisibility();
-        ColumnVisibility cv = columnVisibility == null ? EMPTY_CV : new ColumnVisibility(columnVisibility);
-        Long timestamp = tripleRow.getTimestamp();
-        byte[] value = tripleRow.getValue();
-        Value v = value == null ? EMPTY_VALUE : new Value(value);
-        byte[] columnQualifier = tripleRow.getColumnQualifier();
-        Text cqText = columnQualifier == null ? EMPTY_TEXT : new Text(columnQualifier);
-        byte[] columnFamily = tripleRow.getColumnFamily();
-        Text cfText = columnFamily == null ? EMPTY_TEXT : new Text(columnFamily);
+    private static Mutation createMutation(final TripleRow tripleRow) {
+        final Mutation mutation = new Mutation(new Text(tripleRow.getRow()));
+        final byte[] columnVisibility = tripleRow.getColumnVisibility();
+        final ColumnVisibility cv = columnVisibility == null ? EMPTY_CV : new ColumnVisibility(columnVisibility);
+        final Long timestamp = tripleRow.getTimestamp();
+        final byte[] value = tripleRow.getValue();
+        final Value v = value == null ? EMPTY_VALUE : new Value(value);
+        final byte[] columnQualifier = tripleRow.getColumnQualifier();
+        final Text cqText = columnQualifier == null ? EMPTY_TEXT : new Text(columnQualifier);
+        final byte[] columnFamily = tripleRow.getColumnFamily();
+        final Text cfText = columnFamily == null ? EMPTY_TEXT : new Text(columnFamily);
 
         mutation.put(cfText, cqText, cv, timestamp, v);
         return mutation;
     }
 
-    private static List<TripleRow> serializeStatement(RyaStatement stmt) throws RyaTypeResolverException {
-        RyaURI subject = stmt.getSubject();
-        RyaURI predicate = stmt.getPredicate();
-        RyaType object = stmt.getObject();
-        RyaURI context = stmt.getContext();
-        Long timestamp = stmt.getTimestamp();
-        byte[] columnVisibility = stmt.getColumnVisibility();
-        byte[] value = stmt.getValue();
+    private static List<TripleRow> serializeStatement(final RyaStatement stmt) throws RyaTypeResolverException {
+        final RyaURI subject = stmt.getSubject();
+        final RyaURI predicate = stmt.getPredicate();
+        final RyaType object = stmt.getObject();
+        final RyaURI context = stmt.getContext();
+        final Long timestamp = stmt.getTimestamp();
+        final byte[] columnVisibility = stmt.getColumnVisibility();
+        final byte[] value = stmt.getValue();
         assert subject != null && predicate != null && object != null;
-        byte[] cf = (context == null) ? EMPTY_BYTES : context.getData().getBytes();
-        byte[] subjBytes = subject.getData().getBytes();
-        byte[] predBytes = predicate.getData().getBytes();
-        byte[][] objBytes = RyaContext.getInstance().serializeType(object);
+        final byte[] cf = (context == null) ? EMPTY_BYTES : context.getData().getBytes();
+        final byte[] subjBytes = subject.getData().getBytes();
+        final byte[] predBytes = predicate.getData().getBytes();
+        final byte[][] objBytes = RyaContext.getInstance().serializeType(object);
 
-        return Lists.newArrayList(new TripleRow(subjBytes, //
-                predBytes, //
-                Bytes.concat(cf, DELIM_BYTES, //
-                        "object".getBytes(), DELIM_BYTES, //
-                        objBytes[0], objBytes[1]), //
-                timestamp, //
-                columnVisibility, //
-                value//
-                ),
-
-                new TripleRow(objBytes[0], //
-                        predBytes, //
-                        Bytes.concat(cf, DELIM_BYTES, //
-                                "subject".getBytes(), DELIM_BYTES, //
-                                subjBytes, objBytes[1]), //
-                        timestamp, //
-                        columnVisibility, //
-                        value//
-                ));
+        return Lists.newArrayList(new TripleRow(subjBytes,
+            predBytes,
+            Bytes.concat(cf, DELIM_BYTES,
+                "object".getBytes(), DELIM_BYTES,
+                objBytes[0], objBytes[1]),
+            timestamp,
+            columnVisibility,
+            value),
+            new TripleRow(objBytes[0],
+                predBytes,
+                Bytes.concat(cf, DELIM_BYTES,
+                    "subject".getBytes(), DELIM_BYTES,
+                    subjBytes, objBytes[1]),
+                timestamp,
+                columnVisibility,
+                value));
     }
 
     /**
@@ -297,39 +287,28 @@ public class EntityCentricIndex extends AbstractAccumuloIndexer {
                 null, columnVisibility, valueBytes, timestamp);
     }
 
-	@Override
-	public void init() {
-		// TODO Auto-generated method stub
-		
-	}
+    @Override
+    public void init() {
+    }
 
+    @Override
+    public void setConnector(final Connector connector) {
+    }
 
-	@Override
-	public void setConnector(Connector connector) {
-		// TODO Auto-generated method stub
-		
-	}
+    @Override
+    public void destroy() {
+    }
 
+    @Override
+    public void purge(final RdfCloudTripleStoreConfiguration configuration) {
+    }
 
-	@Override
-	public void destroy() {
-		// TODO Auto-generated method stub
-		
-	}
+    @Override
+    public void dropAndDestroy() {
+    }
 
-
-	@Override
-	public void purge(RdfCloudTripleStoreConfiguration configuration) {
-		// TODO Auto-generated method stub
-		
-	}
-
-
-	@Override
-	public void dropAndDestroy() {
-		// TODO Auto-generated method stub
-		
-	}
-
-
+    @Override
+    public Set<URI> getIndexablePredicates() {
+        return null;
+    }
 }

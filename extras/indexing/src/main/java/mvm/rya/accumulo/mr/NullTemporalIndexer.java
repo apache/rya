@@ -30,7 +30,7 @@ import mvm.rya.accumulo.experimental.AbstractAccumuloIndexer;
 import mvm.rya.api.RdfCloudTripleStoreConfiguration;
 import mvm.rya.api.domain.RyaStatement;
 import mvm.rya.api.domain.RyaURI;
-import mvm.rya.indexing.StatementContraints;
+import mvm.rya.indexing.StatementConstraints;
 import mvm.rya.indexing.TemporalIndexer;
 import mvm.rya.indexing.TemporalInstant;
 import mvm.rya.indexing.TemporalInterval;
@@ -73,76 +73,76 @@ public class NullTemporalIndexer extends AbstractAccumuloIndexer implements Temp
 
     @Override
     public CloseableIteration<Statement, QueryEvaluationException> queryInstantEqualsInstant(TemporalInstant queryInstant,
-            StatementContraints contraints) throws QueryEvaluationException {
+            StatementConstraints contraints) throws QueryEvaluationException {
 
         return null;
     }
 
     @Override
     public CloseableIteration<Statement, QueryEvaluationException> queryInstantBeforeInstant(TemporalInstant queryInstant,
-            StatementContraints contraints) throws QueryEvaluationException {
+            StatementConstraints contraints) throws QueryEvaluationException {
 
         return null;
     }
 
     @Override
     public CloseableIteration<Statement, QueryEvaluationException> queryInstantAfterInstant(TemporalInstant queryInstant,
-            StatementContraints contraints) throws QueryEvaluationException {
+            StatementConstraints contraints) throws QueryEvaluationException {
 
         return null;
     }
 
     @Override
     public CloseableIteration<Statement, QueryEvaluationException> queryInstantBeforeInterval(TemporalInterval givenInterval,
-            StatementContraints contraints) throws QueryEvaluationException {
+            StatementConstraints contraints) throws QueryEvaluationException {
 
         return null;
     }
 
     @Override
     public CloseableIteration<Statement, QueryEvaluationException> queryInstantAfterInterval(TemporalInterval givenInterval,
-            StatementContraints contraints) throws QueryEvaluationException {
+            StatementConstraints contraints) throws QueryEvaluationException {
 
         return null;
     }
 
     @Override
     public CloseableIteration<Statement, QueryEvaluationException> queryInstantInsideInterval(TemporalInterval givenInterval,
-            StatementContraints contraints) throws QueryEvaluationException {
+            StatementConstraints contraints) throws QueryEvaluationException {
 
         return null;
     }
 
     @Override
     public CloseableIteration<Statement, QueryEvaluationException> queryInstantHasBeginningInterval(TemporalInterval queryInterval,
-            StatementContraints contraints) throws QueryEvaluationException {
+            StatementConstraints contraints) throws QueryEvaluationException {
 
         return null;
     }
 
     @Override
     public CloseableIteration<Statement, QueryEvaluationException> queryInstantHasEndInterval(TemporalInterval queryInterval,
-            StatementContraints contraints) throws QueryEvaluationException {
+            StatementConstraints contraints) throws QueryEvaluationException {
 
         return null;
     }
 
     @Override
     public CloseableIteration<Statement, QueryEvaluationException> queryIntervalEquals(TemporalInterval query,
-            StatementContraints contraints) throws QueryEvaluationException {
+            StatementConstraints contraints) throws QueryEvaluationException {
 
         return null;
     }
 
     @Override
     public CloseableIteration<Statement, QueryEvaluationException> queryIntervalBefore(TemporalInterval query,
-            StatementContraints contraints) throws QueryEvaluationException {
+            StatementConstraints contraints) throws QueryEvaluationException {
 
         return null;
     }
 
     @Override
-    public CloseableIteration<Statement, QueryEvaluationException> queryIntervalAfter(TemporalInterval query, StatementContraints contraints)
+    public CloseableIteration<Statement, QueryEvaluationException> queryIntervalAfter(TemporalInterval query, StatementConstraints contraints)
             throws QueryEvaluationException {
 
         return null;

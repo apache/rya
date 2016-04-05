@@ -52,12 +52,12 @@ import com.vividsolutions.jts.geom.PrecisionModel;
 import com.vividsolutions.jts.geom.impl.PackedCoordinateSequence;
 
 import info.aduna.iteration.CloseableIteration;
-import mvm.rya.indexing.StatementContraints;
+import mvm.rya.indexing.StatementConstraints;
 import mvm.rya.indexing.accumulo.ConfigUtils;
 
 public class GeoIndexerTest {
 
-    private static final StatementContraints EMPTY_CONSTRAINTS = new StatementContraints();
+    private static final StatementConstraints EMPTY_CONSTRAINTS = new StatementConstraints();
 
     Configuration conf;
     GeometryFactory gf = new GeometryFactory(new PrecisionModel(), 4326);
@@ -266,11 +266,11 @@ public class GeoIndexerTest {
             Polygon p1 = gf.createPolygon(r1, new LinearRing[] {});
 
             // query with correct context
-            Assert.assertEquals(Sets.newHashSet(statement), getSet(f.queryWithin(p1, new StatementContraints().setContext(context))));
+            Assert.assertEquals(Sets.newHashSet(statement), getSet(f.queryWithin(p1, new StatementConstraints().setContext(context))));
 
             // query with wrong context
             Assert.assertEquals(Sets.newHashSet(),
-                    getSet(f.queryWithin(p1, new StatementContraints().setContext(vf.createURI("foo:context2")))));
+                    getSet(f.queryWithin(p1, new StatementConstraints().setContext(vf.createURI("foo:context2")))));
         }
     }
 
@@ -295,10 +295,10 @@ public class GeoIndexerTest {
             Polygon p1 = gf.createPolygon(r1, new LinearRing[] {});
 
             // query with correct subject
-            Assert.assertEquals(Sets.newHashSet(statement), getSet(f.queryWithin(p1, new StatementContraints().setSubject(subject))));
+            Assert.assertEquals(Sets.newHashSet(statement), getSet(f.queryWithin(p1, new StatementConstraints().setSubject(subject))));
 
             // query with wrong subject
-            Assert.assertEquals(Sets.newHashSet(), getSet(f.queryWithin(p1, new StatementContraints().setSubject(vf.createURI("foo:subj2")))));
+            Assert.assertEquals(Sets.newHashSet(), getSet(f.queryWithin(p1, new StatementConstraints().setSubject(vf.createURI("foo:subj2")))));
         }
     }
 
@@ -324,14 +324,14 @@ public class GeoIndexerTest {
 
             // query with correct context subject
             Assert.assertEquals(Sets.newHashSet(statement),
-                    getSet(f.queryWithin(p1, new StatementContraints().setContext(context).setSubject(subject))));
+                    getSet(f.queryWithin(p1, new StatementConstraints().setContext(context).setSubject(subject))));
 
             // query with wrong context
             Assert.assertEquals(Sets.newHashSet(),
-                    getSet(f.queryWithin(p1, new StatementContraints().setContext(vf.createURI("foo:context2")))));
+                    getSet(f.queryWithin(p1, new StatementConstraints().setContext(vf.createURI("foo:context2")))));
 
             // query with wrong subject
-            Assert.assertEquals(Sets.newHashSet(), getSet(f.queryWithin(p1, new StatementContraints().setSubject(vf.createURI("foo:subj2")))));
+            Assert.assertEquals(Sets.newHashSet(), getSet(f.queryWithin(p1, new StatementConstraints().setSubject(vf.createURI("foo:subj2")))));
         }
     }
 
@@ -357,11 +357,11 @@ public class GeoIndexerTest {
 
             // query with correct Predicate
             Assert.assertEquals(Sets.newHashSet(statement),
-                    getSet(f.queryWithin(p1, new StatementContraints().setPredicates(Collections.singleton(predicate)))));
+                    getSet(f.queryWithin(p1, new StatementConstraints().setPredicates(Collections.singleton(predicate)))));
 
             // query with wrong predicate
             Assert.assertEquals(Sets.newHashSet(),
-                    getSet(f.queryWithin(p1, new StatementContraints().setPredicates(Collections.singleton(vf.createURI("other:pred"))))));
+                    getSet(f.queryWithin(p1, new StatementConstraints().setPredicates(Collections.singleton(vf.createURI("other:pred"))))));
         }
     }
 

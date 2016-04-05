@@ -8,9 +8,9 @@ package mvm.rya.indexing.accumulo.geo;
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- * 
+ *
  *   http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -76,10 +76,10 @@ import mvm.rya.api.RdfCloudTripleStoreConfiguration;
 import mvm.rya.api.domain.RyaStatement;
 import mvm.rya.api.resolver.RyaToRdfConversions;
 import mvm.rya.indexing.GeoIndexer;
-import mvm.rya.indexing.StatementContraints;
+import mvm.rya.indexing.Md5Hash;
+import mvm.rya.indexing.StatementConstraints;
+import mvm.rya.indexing.StatementSerializer;
 import mvm.rya.indexing.accumulo.ConfigUtils;
-import mvm.rya.indexing.accumulo.Md5Hash;
-import mvm.rya.indexing.accumulo.StatementSerializer;
 
 /**
  * A {@link GeoIndexer} wrapper around a GeoMesa {@link AccumuloDataStore}. This class configures and connects to the Datastore, creates the
@@ -142,13 +142,13 @@ public class GeoMesaGeoIndexer extends AbstractAccumuloIndexer implements GeoInd
 
     //initialization occurs in setConf because index is created using reflection
     @Override
-    public void setConf(Configuration conf) {
+    public void setConf(final Configuration conf) {
         this.conf = conf;
         if (!isInit) {
             try {
             	initInternal();
                 isInit = true;
-            } catch (IOException e) {
+            } catch (final IOException e) {
                 logger.warn("Unable to initialize index.  Throwing Runtime Exception. ", e);
                 throw new RuntimeException(e);
             }
@@ -157,20 +157,20 @@ public class GeoMesaGeoIndexer extends AbstractAccumuloIndexer implements GeoInd
 
     @Override
     public Configuration getConf() {
-        return this.conf;
+        return conf;
     }
 
 
     private void initInternal() throws IOException {
         validPredicates = ConfigUtils.getGeoPredicates(conf);
 
-        DataStore dataStore = createDataStore(conf);
+        final DataStore dataStore = createDataStore(conf);
 
         try {
             featureType = getStatementFeatureType(dataStore);
-        } catch (IOException e) {
+        } catch (final IOException e) {
             throw new IOException(e);
-        } catch (SchemaException e) {
+        } catch (final SchemaException e) {
             throw new IOException(e);
         }
 
@@ -181,22 +181,22 @@ public class GeoMesaGeoIndexer extends AbstractAccumuloIndexer implements GeoInd
         featureStore = (FeatureStore<SimpleFeatureType, SimpleFeature>) featureSource;
     }
 
-    private static DataStore createDataStore(Configuration conf) throws IOException {
+    private static DataStore createDataStore(final Configuration conf) throws IOException {
         // get the configuration parameters
-        Instance instance = ConfigUtils.getInstance(conf);
-        boolean useMock = instance instanceof MockInstance;
-        String instanceId = instance.getInstanceName();
-        String zookeepers = instance.getZooKeepers();
-        String user = ConfigUtils.getUsername(conf);
-        String password = ConfigUtils.getPassword(conf);
-        String auths = ConfigUtils.getAuthorizations(conf).toString();
-        String tableName = ConfigUtils.getGeoTablename(conf);
-        int numParitions = ConfigUtils.getGeoNumPartitions(conf);
+        final Instance instance = ConfigUtils.getInstance(conf);
+        final boolean useMock = instance instanceof MockInstance;
+        final String instanceId = instance.getInstanceName();
+        final String zookeepers = instance.getZooKeepers();
+        final String user = ConfigUtils.getUsername(conf);
+        final String password = ConfigUtils.getPassword(conf);
+        final String auths = ConfigUtils.getAuthorizations(conf).toString();
+        final String tableName = ConfigUtils.getGeoTablename(conf);
+        final int numParitions = ConfigUtils.getGeoNumPartitions(conf);
 
-        String featureSchemaFormat = "%~#s%" + numParitions + "#r%" + FEATURE_NAME
+        final String featureSchemaFormat = "%~#s%" + numParitions + "#r%" + FEATURE_NAME
                 + "#cstr%0,3#gh%yyyyMMdd#d::%~#s%3,2#gh::%~#s%#id";
         // build the map of parameters
-        Map<String, Serializable> params = new HashMap<String, Serializable>();
+        final Map<String, Serializable> params = new HashMap<String, Serializable>();
         params.put("instanceId", instanceId);
         params.put("zookeepers", zookeepers);
         params.put("user", user);
@@ -210,14 +210,14 @@ public class GeoMesaGeoIndexer extends AbstractAccumuloIndexer implements GeoInd
         return DataStoreFinder.getDataStore(params);
     }
 
-    private static SimpleFeatureType getStatementFeatureType(DataStore dataStore) throws IOException, SchemaException {
+    private static SimpleFeatureType getStatementFeatureType(final DataStore dataStore) throws IOException, SchemaException {
         SimpleFeatureType featureType;
 
-        String[] datastoreFeatures = dataStore.getTypeNames();
+        final String[] datastoreFeatures = dataStore.getTypeNames();
         if (Arrays.asList(datastoreFeatures).contains(FEATURE_NAME)) {
             featureType = dataStore.getSchema(FEATURE_NAME);
         } else {
-            String featureSchema = SUBJECT_ATTRIBUTE + ":String," //
+            final String featureSchema = SUBJECT_ATTRIBUTE + ":String," //
                     + PREDICATE_ATTRIBUTE + ":String," //
                     + OBJECT_ATTRIBUTE + ":String," //
                     + CONTEXT_ATTRIBUTE + ":String," //
@@ -229,23 +229,23 @@ public class GeoMesaGeoIndexer extends AbstractAccumuloIndexer implements GeoInd
     }
 
     @Override
-    public void storeStatements(Collection<RyaStatement> ryaStatements) throws IOException {
+    public void storeStatements(final Collection<RyaStatement> ryaStatements) throws IOException {
         // create a feature collection
-        DefaultFeatureCollection featureCollection = new DefaultFeatureCollection();
+        final DefaultFeatureCollection featureCollection = new DefaultFeatureCollection();
 
 
-        for (RyaStatement ryaStatement : ryaStatements) {
+        for (final RyaStatement ryaStatement : ryaStatements) {
 
-            Statement statement = RyaToRdfConversions.convertStatement(ryaStatement);
+            final Statement statement = RyaToRdfConversions.convertStatement(ryaStatement);
             // if the predicate list is empty, accept all predicates.
             // Otherwise, make sure the predicate is on the "valid" list
-            boolean isValidPredicate = validPredicates.isEmpty() || validPredicates.contains(statement.getPredicate());
+            final boolean isValidPredicate = validPredicates.isEmpty() || validPredicates.contains(statement.getPredicate());
 
             if (isValidPredicate && (statement.getObject() instanceof Literal)) {
                 try {
-                    SimpleFeature feature = createFeature(featureType, statement);
+                    final SimpleFeature feature = createFeature(featureType, statement);
                     featureCollection.add(feature);
-                } catch (ParseException e) {
+                } catch (final ParseException e) {
                     logger.warn("Error getting geo from statement: " + statement.toString(), e);
                 }
             }
@@ -259,25 +259,25 @@ public class GeoMesaGeoIndexer extends AbstractAccumuloIndexer implements GeoInd
 
 
     @Override
-    public void storeStatement(RyaStatement statement) throws IOException {
+    public void storeStatement(final RyaStatement statement) throws IOException {
         storeStatements(Collections.singleton(statement));
     }
 
-    private static SimpleFeature createFeature(SimpleFeatureType featureType, Statement statement) throws ParseException {
-        String subject = StatementSerializer.writeSubject(statement);
-        String predicate = StatementSerializer.writePredicate(statement);
-        String object = StatementSerializer.writeObject(statement);
-        String context = StatementSerializer.writeContext(statement);
+    private static SimpleFeature createFeature(final SimpleFeatureType featureType, final Statement statement) throws ParseException {
+        final String subject = StatementSerializer.writeSubject(statement);
+        final String predicate = StatementSerializer.writePredicate(statement);
+        final String object = StatementSerializer.writeObject(statement);
+        final String context = StatementSerializer.writeContext(statement);
 
         // create the feature
-        Object[] noValues = {};
+        final Object[] noValues = {};
 
         // create the hash
-        String statementId = Md5Hash.md5Base64(StatementSerializer.writeStatement(statement));
-        SimpleFeature newFeature = SimpleFeatureBuilder.build(featureType, noValues, statementId);
+        final String statementId = Md5Hash.md5Base64(StatementSerializer.writeStatement(statement));
+        final SimpleFeature newFeature = SimpleFeatureBuilder.build(featureType, noValues, statementId);
 
         // write the statement data to the fields
-        Geometry geom = (new WKTReader()).read(GeoParseUtils.getWellKnownText(statement));
+        final Geometry geom = (new WKTReader()).read(GeoParseUtils.getWellKnownText(statement));
         if(geom == null || geom.isEmpty() || !geom.isValid()) {
             throw new ParseException("Could not create geometry for statement " + statement);
         }
@@ -295,9 +295,9 @@ public class GeoMesaGeoIndexer extends AbstractAccumuloIndexer implements GeoInd
         return newFeature;
     }
 
-    private CloseableIteration<Statement, QueryEvaluationException> performQuery(String type, Geometry geometry,
-            StatementContraints contraints) {
-        List<String> filterParms = new ArrayList<String>();
+    private CloseableIteration<Statement, QueryEvaluationException> performQuery(final String type, final Geometry geometry,
+            final StatementConstraints contraints) {
+        final List<String> filterParms = new ArrayList<String>();
 
         filterParms.add(type + "(" + Constants.SF_PROPERTY_GEOMETRY + ", " + geometry + " )");
 
@@ -308,14 +308,14 @@ public class GeoMesaGeoIndexer extends AbstractAccumuloIndexer implements GeoInd
             filterParms.add("( " + CONTEXT_ATTRIBUTE + "= '" + contraints.getContext() + "') ");
         }
         if (contraints.hasPredicates()) {
-            List<String> predicates = new ArrayList<String>();
-            for (URI u : contraints.getPredicates()) {
+            final List<String> predicates = new ArrayList<String>();
+            for (final URI u : contraints.getPredicates()) {
                 predicates.add("( " + PREDICATE_ATTRIBUTE + "= '" + u.stringValue() + "') ");
             }
             filterParms.add("(" + StringUtils.join(predicates, " OR ") + ")");
         }
 
-        String filterString = StringUtils.join(filterParms, " AND ");
+        final String filterString = StringUtils.join(filterParms, " AND ");
         logger.info("Performing geomesa query : " + filterString);
 
         return getIteratorWrapper(filterString);
@@ -332,15 +332,15 @@ public class GeoMesaGeoIndexer extends AbstractAccumuloIndexer implements GeoInd
                     Filter cqlFilter;
                     try {
                         cqlFilter = ECQL.toFilter(filterString);
-                    } catch (CQLException e) {
+                    } catch (final CQLException e) {
                         logger.error("Error parsing query: " + filterString, e);
                         throw new QueryEvaluationException(e);
                     }
 
-                    Query query = new Query(featureType.getTypeName(), cqlFilter);
+                    final Query query = new Query(featureType.getTypeName(), cqlFilter);
                     try {
                         featureIterator = featureSource.getFeatures(query).features();
-                    } catch (IOException e) {
+                    } catch (final IOException e) {
                         logger.error("Error performing query: " + filterString, e);
                         throw new QueryEvaluationException(e);
                     }
@@ -356,12 +356,12 @@ public class GeoMesaGeoIndexer extends AbstractAccumuloIndexer implements GeoInd
 
             @Override
             public Statement next() throws QueryEvaluationException {
-                SimpleFeature feature = getIterator().next();
-                String subjectString = feature.getAttribute(SUBJECT_ATTRIBUTE).toString();
-                String predicateString = feature.getAttribute(PREDICATE_ATTRIBUTE).toString();
-                String objectString = feature.getAttribute(OBJECT_ATTRIBUTE).toString();
-                String contextString = feature.getAttribute(CONTEXT_ATTRIBUTE).toString();
-                Statement statement = StatementSerializer.readStatement(subjectString, predicateString, objectString, contextString);
+                final SimpleFeature feature = getIterator().next();
+                final String subjectString = feature.getAttribute(SUBJECT_ATTRIBUTE).toString();
+                final String predicateString = feature.getAttribute(PREDICATE_ATTRIBUTE).toString();
+                final String objectString = feature.getAttribute(OBJECT_ATTRIBUTE).toString();
+                final String contextString = feature.getAttribute(CONTEXT_ATTRIBUTE).toString();
+                final Statement statement = StatementSerializer.readStatement(subjectString, predicateString, objectString, contextString);
                 return statement;
             }
 
@@ -378,42 +378,42 @@ public class GeoMesaGeoIndexer extends AbstractAccumuloIndexer implements GeoInd
     }
 
     @Override
-    public CloseableIteration<Statement, QueryEvaluationException> queryEquals(Geometry query, StatementContraints contraints) {
+    public CloseableIteration<Statement, QueryEvaluationException> queryEquals(final Geometry query, final StatementConstraints contraints) {
         return performQuery("EQUALS", query, contraints);
     }
 
     @Override
-    public CloseableIteration<Statement, QueryEvaluationException> queryDisjoint(Geometry query, StatementContraints contraints) {
+    public CloseableIteration<Statement, QueryEvaluationException> queryDisjoint(final Geometry query, final StatementConstraints contraints) {
         return performQuery("DISJOINT", query, contraints);
     }
 
     @Override
-    public CloseableIteration<Statement, QueryEvaluationException> queryIntersects(Geometry query, StatementContraints contraints) {
+    public CloseableIteration<Statement, QueryEvaluationException> queryIntersects(final Geometry query, final StatementConstraints contraints) {
         return performQuery("INTERSECTS", query, contraints);
     }
 
     @Override
-    public CloseableIteration<Statement, QueryEvaluationException> queryTouches(Geometry query, StatementContraints contraints) {
+    public CloseableIteration<Statement, QueryEvaluationException> queryTouches(final Geometry query, final StatementConstraints contraints) {
         return performQuery("TOUCHES", query, contraints);
     }
 
     @Override
-    public CloseableIteration<Statement, QueryEvaluationException> queryCrosses(Geometry query, StatementContraints contraints) {
+    public CloseableIteration<Statement, QueryEvaluationException> queryCrosses(final Geometry query, final StatementConstraints contraints) {
         return performQuery("CROSSES", query, contraints);
     }
 
     @Override
-    public CloseableIteration<Statement, QueryEvaluationException> queryWithin(Geometry query, StatementContraints contraints) {
+    public CloseableIteration<Statement, QueryEvaluationException> queryWithin(final Geometry query, final StatementConstraints contraints) {
         return performQuery("WITHIN", query, contraints);
     }
 
     @Override
-    public CloseableIteration<Statement, QueryEvaluationException> queryContains(Geometry query, StatementContraints contraints) {
+    public CloseableIteration<Statement, QueryEvaluationException> queryContains(final Geometry query, final StatementConstraints contraints) {
         return performQuery("CONTAINS", query, contraints);
     }
 
     @Override
-    public CloseableIteration<Statement, QueryEvaluationException> queryOverlaps(Geometry query, StatementContraints contraints) {
+    public CloseableIteration<Statement, QueryEvaluationException> queryOverlaps(final Geometry query, final StatementConstraints contraints) {
         return performQuery("OVERLAPS", query, contraints);
     }
 
@@ -438,21 +438,21 @@ public class GeoMesaGeoIndexer extends AbstractAccumuloIndexer implements GeoInd
        return ConfigUtils.getGeoTablename(conf);
     }
 
-    private void deleteStatements(Collection<RyaStatement> ryaStatements) throws IOException {
+    private void deleteStatements(final Collection<RyaStatement> ryaStatements) throws IOException {
         // create a feature collection
-        DefaultFeatureCollection featureCollection = new DefaultFeatureCollection();
+        final DefaultFeatureCollection featureCollection = new DefaultFeatureCollection();
 
-        for (RyaStatement ryaStatement : ryaStatements) {
-            Statement statement = RyaToRdfConversions.convertStatement(ryaStatement);
+        for (final RyaStatement ryaStatement : ryaStatements) {
+            final Statement statement = RyaToRdfConversions.convertStatement(ryaStatement);
             // if the predicate list is empty, accept all predicates.
             // Otherwise, make sure the predicate is on the "valid" list
-            boolean isValidPredicate = validPredicates.isEmpty() || validPredicates.contains(statement.getPredicate());
+            final boolean isValidPredicate = validPredicates.isEmpty() || validPredicates.contains(statement.getPredicate());
 
             if (isValidPredicate && (statement.getObject() instanceof Literal)) {
                 try {
-                    SimpleFeature feature = createFeature(featureType, statement);
+                    final SimpleFeature feature = createFeature(featureType, statement);
                     featureCollection.add(feature);
-                } catch (ParseException e) {
+                } catch (final ParseException e) {
                     logger.warn("Error getting geo from statement: " + statement.toString(), e);
                 }
             }
@@ -460,50 +460,50 @@ public class GeoMesaGeoIndexer extends AbstractAccumuloIndexer implements GeoInd
 
         // remove this feature collection from the store
         if (!featureCollection.isEmpty()) {
-            Set<Identifier> featureIds = new HashSet<Identifier>();
-            FilterFactory filterFactory = CommonFactoryFinder.getFilterFactory(null);
-            Set<String> stringIds = DataUtilities.fidSet(featureCollection);
-            for (String id : stringIds) {
+            final Set<Identifier> featureIds = new HashSet<Identifier>();
+            final FilterFactory filterFactory = CommonFactoryFinder.getFilterFactory(null);
+            final Set<String> stringIds = DataUtilities.fidSet(featureCollection);
+            for (final String id : stringIds) {
                 featureIds.add(filterFactory.featureId(id));
             }
-            Filter filter = filterFactory.id(featureIds);
+            final Filter filter = filterFactory.id(featureIds);
             featureStore.removeFeatures(filter);
         }
     }
 
 
     @Override
-    public void deleteStatement(RyaStatement statement) throws IOException {
+    public void deleteStatement(final RyaStatement statement) throws IOException {
         deleteStatements(Collections.singleton(statement));
     }
 
 	@Override
 	public void init() {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	@Override
-	public void setConnector(Connector connector) {
+	public void setConnector(final Connector connector) {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	@Override
 	public void destroy() {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	@Override
-	public void purge(RdfCloudTripleStoreConfiguration configuration) {
+	public void purge(final RdfCloudTripleStoreConfiguration configuration) {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	@Override
 	public void dropAndDestroy() {
 		// TODO Auto-generated method stub
-		
+
 	}
 }

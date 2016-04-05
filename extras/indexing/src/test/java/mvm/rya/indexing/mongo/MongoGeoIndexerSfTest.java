@@ -1,5 +1,4 @@
 package mvm.rya.indexing.mongo;
-
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -8,9 +7,9 @@ package mvm.rya.indexing.mongo;
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- * 
+ *
  *   http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -19,27 +18,11 @@ package mvm.rya.indexing.mongo;
  * under the License.
  */
 
-
-
-import info.aduna.iteration.CloseableIteration;
-
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
-import mvm.rya.api.RdfCloudTripleStoreConfiguration;
-import mvm.rya.api.domain.RyaStatement;
-import mvm.rya.api.resolver.RdfToRyaConversions;
-import mvm.rya.api.resolver.RyaToRdfConversions;
-import mvm.rya.indexing.StatementContraints;
-import mvm.rya.indexing.accumulo.ConfigUtils;
-import mvm.rya.indexing.accumulo.geo.GeoConstants;
-import mvm.rya.indexing.accumulo.geo.GeoMesaGeoIndexer;
-import mvm.rya.indexing.mongodb.MongoGeoIndexer;
-import mvm.rya.mongodb.MongoDBRdfConfiguration;
-
-import org.apache.accumulo.core.client.admin.TableOperations;
 import org.apache.hadoop.conf.Configuration;
 import org.junit.Assert;
 import org.junit.Before;
@@ -54,6 +37,7 @@ import org.openrdf.model.impl.ValueFactoryImpl;
 
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
+import com.mongodb.MongoClient;
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.GeometryFactory;
@@ -64,6 +48,19 @@ import com.vividsolutions.jts.geom.Polygon;
 import com.vividsolutions.jts.geom.PrecisionModel;
 import com.vividsolutions.jts.geom.impl.PackedCoordinateSequence;
 
+import de.flapdoodle.embed.mongo.distribution.Version;
+import de.flapdoodle.embed.mongo.tests.MongodForTestsFactory;
+import info.aduna.iteration.CloseableIteration;
+import mvm.rya.api.RdfCloudTripleStoreConfiguration;
+import mvm.rya.api.domain.RyaStatement;
+import mvm.rya.api.resolver.RdfToRyaConversions;
+import mvm.rya.api.resolver.RyaToRdfConversions;
+import mvm.rya.indexing.StatementConstraints;
+import mvm.rya.indexing.accumulo.ConfigUtils;
+import mvm.rya.indexing.accumulo.geo.GeoConstants;
+import mvm.rya.indexing.mongodb.geo.MongoGeoIndexer;
+import mvm.rya.mongodb.MongoDBRdfConfiguration;
+
 /**
  * Tests all of the "simple functions" of the geoindexer.
  */
@@ -72,7 +69,7 @@ public class MongoGeoIndexerSfTest {
     private static GeometryFactory gf = new GeometryFactory(new PrecisionModel(), 4326);
     private static MongoGeoIndexer g;
 
-    private static final StatementContraints EMPTY_CONSTRAINTS = new StatementContraints();
+    private static final StatementConstraints EMPTY_CONSTRAINTS = new StatementConstraints();
 
     // Here is the landscape:
     /**
@@ -122,7 +119,9 @@ public class MongoGeoIndexerSfTest {
         conf.set(ConfigUtils.USE_GEO, "true");
         conf.set(RdfCloudTripleStoreConfiguration.CONF_TBL_PREFIX, "rya_");
 
-        g = new MongoGeoIndexer();
+        final MongodForTestsFactory testsFactory = MongodForTestsFactory.with(Version.Main.PRODUCTION);
+        final MongoClient mongoClient = testsFactory.newMongo();
+        g = new MongoGeoIndexer(mongoClient);
         g.setConf(conf);
         g.storeStatement(statement(A));
         g.storeStatement(statement(B));
@@ -132,44 +131,44 @@ public class MongoGeoIndexerSfTest {
         g.storeStatement(statement(E));
     }
 
-    private static RyaStatement statement(Geometry geo) {
-        ValueFactory vf = new ValueFactoryImpl();
-        Resource subject = vf.createURI("uri:" + names.get(geo));
-        URI predicate = GeoConstants.GEO_AS_WKT;
-        Value object = vf.createLiteral(geo.toString(), GeoConstants.XMLSCHEMA_OGC_WKT);
+    private static RyaStatement statement(final Geometry geo) {
+        final ValueFactory vf = new ValueFactoryImpl();
+        final Resource subject = vf.createURI("uri:" + names.get(geo));
+        final URI predicate = GeoConstants.GEO_AS_WKT;
+        final Value object = vf.createLiteral(geo.toString(), GeoConstants.XMLSCHEMA_OGC_WKT);
         return RdfToRyaConversions.convertStatement(new StatementImpl(subject, predicate, object));
 
     }
 
-    private static Point point(double x, double y) {
+    private static Point point(final double x, final double y) {
         return gf.createPoint(new Coordinate(x, y));
     }
 
-    private static LineString line(double x1, double y1, double x2, double y2) {
+    private static LineString line(final double x1, final double y1, final double x2, final double y2) {
         return new LineString(new PackedCoordinateSequence.Double(new double[] { x1, y1, x2, y2 }, 2), gf);
     }
 
-    private static Polygon poly(double[] arr) {
-        LinearRing r1 = gf.createLinearRing(new PackedCoordinateSequence.Double(arr, 2));
-        Polygon p1 = gf.createPolygon(r1, new LinearRing[] {});
+    private static Polygon poly(final double[] arr) {
+        final LinearRing r1 = gf.createLinearRing(new PackedCoordinateSequence.Double(arr, 2));
+        final Polygon p1 = gf.createPolygon(r1, new LinearRing[] {});
         return p1;
     }
 
-    private static double[] bbox(double x1, double y1, double x2, double y2) {
+    private static double[] bbox(final double x1, final double y1, final double x2, final double y2) {
         return new double[] { x1, y1, x1, y2, x2, y2, x2, y1, x1, y1 };
     }
 
-    public void compare(CloseableIteration<Statement, ?> actual, Geometry... expected) throws Exception {
-        Set<Statement> expectedSet = Sets.newHashSet();
-        for (Geometry geo : expected) {
+    public void compare(final CloseableIteration<Statement, ?> actual, final Geometry... expected) throws Exception {
+        final Set<Statement> expectedSet = Sets.newHashSet();
+        for (final Geometry geo : expected) {
             expectedSet.add(RyaToRdfConversions.convertStatement(statement(geo)));
         }
 
         Assert.assertEquals(expectedSet, getSet(actual));
     }
 
-    private static <X> Set<X> getSet(CloseableIteration<X, ?> iter) throws Exception {
-        Set<X> set = new HashSet<X>();
+    private static <X> Set<X> getSet(final CloseableIteration<X, ?> iter) throws Exception {
+        final Set<X> set = new HashSet<X>();
         while (iter.hasNext()) {
             set.add(iter.next());
         }

@@ -20,6 +20,12 @@ package mvm.rya.indexing.external.fluo;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
+import static mvm.rya.indexing.external.fluo.FluoPcjUpdaterConfig.ACCUMULO_INSTANCE;
+import static mvm.rya.indexing.external.fluo.FluoPcjUpdaterConfig.ACCUMULO_PASSWORD;
+import static mvm.rya.indexing.external.fluo.FluoPcjUpdaterConfig.ACCUMULO_USERNAME;
+import static mvm.rya.indexing.external.fluo.FluoPcjUpdaterConfig.ACCUMULO_ZOOKEEPERS;
+import static mvm.rya.indexing.external.fluo.FluoPcjUpdaterConfig.FLUO_APP_NAME;
+import static mvm.rya.indexing.external.fluo.FluoPcjUpdaterConfig.STATEMENT_VISIBILITY;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 
@@ -67,13 +73,13 @@ public class FluoPcjUpdaterSupplier implements Supplier<FluoPcjUpdater> {
         final FluoPcjUpdaterConfig fluoUpdaterConfig = new FluoPcjUpdaterConfig( indexerConfig.getConfig() );
 
         // Make sure the required values are present.
-        checkArgument(fluoUpdaterConfig.getFluoAppName().isPresent(), "Missing configuration: " + FluoPcjUpdaterConfig.FLUO_APP_NAME);
-        checkArgument(fluoUpdaterConfig.getFluoZookeepers().isPresent(), "Missing configuration: " + FluoPcjUpdaterConfig.ACCUMULO_ZOOKEEPERS);
-        checkArgument(fluoUpdaterConfig.getAccumuloZookeepers().isPresent(), "Missing configuration: " + FluoPcjUpdaterConfig.ACCUMULO_ZOOKEEPERS);
-        checkArgument(fluoUpdaterConfig.getAccumuloInstance().isPresent(), "Missing configuration: " + FluoPcjUpdaterConfig.ACCUMULO_INSTANCE);
-        checkArgument(fluoUpdaterConfig.getAccumuloUsername().isPresent(), "Missing configuration: " + FluoPcjUpdaterConfig.ACCUMULO_USERNAME);
-        checkArgument(fluoUpdaterConfig.getAccumuloPassword().isPresent(), "Missing configuration: " + FluoPcjUpdaterConfig.ACCUMULO_PASSWORD);
-        checkArgument(fluoUpdaterConfig.getStatementVisibility().isPresent(), "Missing configuration: " + FluoPcjUpdaterConfig.STATEMENT_VISIBILITY);
+        checkArgument(fluoUpdaterConfig.getFluoAppName().isPresent(), "Missing configuration: " + FLUO_APP_NAME);
+        checkArgument(fluoUpdaterConfig.getFluoZookeepers().isPresent(), "Missing configuration: " + ACCUMULO_ZOOKEEPERS);
+        checkArgument(fluoUpdaterConfig.getAccumuloZookeepers().isPresent(), "Missing configuration: " + ACCUMULO_ZOOKEEPERS);
+        checkArgument(fluoUpdaterConfig.getAccumuloInstance().isPresent(), "Missing configuration: " + ACCUMULO_INSTANCE);
+        checkArgument(fluoUpdaterConfig.getAccumuloUsername().isPresent(), "Missing configuration: " + ACCUMULO_USERNAME);
+        checkArgument(fluoUpdaterConfig.getAccumuloPassword().isPresent(), "Missing configuration: " + ACCUMULO_PASSWORD);
+        checkArgument(fluoUpdaterConfig.getStatementVisibility().isPresent(), "Missing configuration: " + STATEMENT_VISIBILITY);
 
         // Fluo configuration values.
         final FluoConfiguration fluoClientConfig = new FluoConfiguration();

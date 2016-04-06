@@ -62,6 +62,7 @@ import mvm.rya.api.domain.RyaURI;
 import mvm.rya.api.resolver.RyaToRdfConversions;
 import mvm.rya.api.resolver.RyaTypeResolverException;
 import mvm.rya.indexing.external.tupleSet.AccumuloPcjSerializer;
+import mvm.rya.indexing.external.tupleSet.BindingSetConverter.BindingSetConversionException;
 import mvm.rya.indexing.external.tupleSet.PcjTables;
 import mvm.rya.indexing.external.tupleSet.PcjTables.PcjException;
 import mvm.rya.indexing.external.tupleSet.PcjTables.PcjMetadata;
@@ -75,6 +76,8 @@ import mvm.rya.rdftriplestore.RyaSailRepository;
 public class FluoAndHistoricPcjsDemo implements Demo {
     private static final Logger log = Logger.getLogger(FluoAndHistoricPcjsDemo.class);
 
+    private static final AccumuloPcjSerializer converter = new AccumuloPcjSerializer();
+    
     // Employees
     private static final RyaURI alice = new RyaURI("http://Alice");
     private static final RyaURI bob = new RyaURI("http://Bob");
@@ -350,11 +353,11 @@ public class FluoAndHistoricPcjsDemo implements Demo {
 
                 for(final Entry<Key, Value> entry : scanner) {
                     final byte[] serializedResult = entry.getKey().getRow().getBytes();
-                    final BindingSet result = AccumuloPcjSerializer.deSerialize(serializedResult, varOrder.toArray());
+                    final BindingSet result = converter.convert(serializedResult, varOrder);
                     fetchedResults.put(varOrder.toString(), result);
                 }
             }
-        } catch(PcjException | TableNotFoundException | RyaTypeResolverException e) {
+        } catch(PcjException | TableNotFoundException | BindingSetConversionException e) {
             throw new DemoExecutionException("Couldn't fetch the binding sets that were exported to the PCJ table, so the demo can not continue. Exiting.", e);
         }
 

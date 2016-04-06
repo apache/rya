@@ -19,7 +19,6 @@
 package org.apache.rya.indexing.pcj.fluo.app;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static org.apache.rya.indexing.pcj.fluo.app.IncrementalUpdateConstants.DELIM;
 import static org.apache.rya.indexing.pcj.fluo.app.IncrementalUpdateConstants.NODEID_BS_DELIM;
 
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -35,17 +34,17 @@ import io.fluo.api.data.Bytes;
 @ParametersAreNonnullByDefault
 public class BindingSetRow {
     private final String nodeId;
-    private final String[] bindingStrings;
+    private final String bindingSetString;
 
     /**
      * Constructs an instance of {@link BindingSetRow}.
      *
      * @param nodeId - The Node ID of a query node. (not null)
-     * @param bindingStrings - A Binding Set that is part of the node's results. (not null)
+     * @param bindingSetString - A Binding Set that is part of the node's results. (not null)
      */
-    public BindingSetRow(final String nodeId, final String[] bindingStrings) {
+    public BindingSetRow(final String nodeId, final String bindingSetString) {
         this.nodeId = checkNotNull(nodeId);
-        this.bindingStrings = checkNotNull(bindingStrings);
+        this.bindingSetString = checkNotNull(bindingSetString);
     }
 
     /**
@@ -56,11 +55,10 @@ public class BindingSetRow {
     }
 
     /**
-     * @return A Binding Set that is part of the node's results. It is formatted
-     *   in SPO order and each String requires further interpretation.
+     * @return A Binding Set that is part of the node's results.
      */
-    public String[] getBindingStrings() {
-        return bindingStrings;
+    public String getBindingSetString() {
+        return bindingSetString;
     }
 
     /**
@@ -77,11 +75,10 @@ public class BindingSetRow {
         if(rowArray.length != 2) {
             throw new IllegalArgumentException("A row must contain a single NODEID_BS_DELIM.");
         }
+
         final String nodeId = rowArray[0];
+        String bindingSetString = rowArray[1];
 
-        // Read the row's Binding Set from the bytes.
-        final String[] bindingStrings = rowArray[1].split(DELIM);
-
-        return new BindingSetRow(nodeId, bindingStrings);
+        return new BindingSetRow(nodeId, bindingSetString);
     }
 }

@@ -45,6 +45,50 @@ import mvm.rya.indexing.external.tupleSet.PcjTables.VariableOrder;
  */
 public class QueryIT extends ITBase {
 
+    @Test
+    public void optionalStatements() throws Exception {
+        // A query that has optional statement patterns. This query is looking for all
+        // people who have Law degrees and any BAR exams they have passed (though they
+        // do not have to have passed any).
+        final String sparql =
+                "SELECT ?person ?exam " +
+                "WHERE {" +
+                    "?person <http://hasDegreeIn> <http://Law> . " +
+                    "OPTIONAL {?person <http://passedExam> ?exam } . " +
+                "}";
+
+        // Triples that will be streamed into Fluo after the PCJ has been created.
+        final Set<RyaStatement> streamedTriples = Sets.newHashSet(
+                makeRyaStatement("http://Alice", "http://hasDegreeIn", "http://Computer Science"),
+                makeRyaStatement("http://Alice", "http://passedExam", "http://Certified Ethical Hacker"),
+                makeRyaStatement("http://Bob", "http://hasDegreeIn", "http://Law"),
+                makeRyaStatement("http://Bob", "http://passedExam", "http://MBE"),
+                makeRyaStatement("http://Bob", "http://passedExam", "http://BAR-Kansas"),
+                makeRyaStatement("http://Charlie", "http://hasDegreeIn", "http://Law"));
+
+        // The expected results of the SPARQL query once the PCJ has been computed.
+        final Set<BindingSet> expected = new HashSet<>();
+        expected.add( makeBindingSet(
+                new BindingImpl("person", new URIImpl("http://Bob")),
+                new BindingImpl("exam", new URIImpl("http://MBE"))));
+        expected.add( makeBindingSet(
+                new BindingImpl("person", new URIImpl("http://Bob")),
+                new BindingImpl("exam", new URIImpl("http://BAR-Kansas"))));
+        expected.add( makeBindingSet(
+                new BindingImpl("person", new URIImpl("http://Charlie"))));
+
+        // Create the PCJ in Fluo.
+        new CreatePcj().withRyaIntegration(fluoClient, RYA_TABLE_PREFIX, ryaRepo, accumuloConn, new HashSet<VariableOrder>(), sparql);
+
+        // Stream the data into Fluo.
+        new InsertTriples().insert(fluoClient, streamedTriples);
+
+        // Verify the end results of the query match the expected results.
+        fluo.waitForObservers();
+        final Set<BindingSet> results = getQueryBindingSetValues(fluoClient, sparql);
+        assertEquals(expected,  results);
+    }
+
     /**
      * Tests when there are a bunch of variables across a bunch of joins.
      */

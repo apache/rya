@@ -19,7 +19,6 @@
 package org.apache.rya.indexing.pcj.fluo.app.query;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static org.apache.rya.indexing.pcj.fluo.app.FluoStringConverter.toVarOrderString;
 import static org.apache.rya.indexing.pcj.fluo.app.IncrementalUpdateConstants.FILTER_PREFIX;
 import static org.apache.rya.indexing.pcj.fluo.app.IncrementalUpdateConstants.JOIN_PREFIX;
 import static org.apache.rya.indexing.pcj.fluo.app.IncrementalUpdateConstants.QUERY_PREFIX;
@@ -39,8 +38,10 @@ import javax.annotation.concurrent.Immutable;
 import org.apache.rya.indexing.pcj.fluo.app.FilterResultUpdater;
 import org.apache.rya.indexing.pcj.fluo.app.FluoStringConverter;
 import org.apache.rya.indexing.pcj.fluo.app.NodeType;
+import org.apache.rya.indexing.pcj.fluo.app.query.JoinMetadata.JoinType;
 import org.openrdf.query.algebra.Filter;
 import org.openrdf.query.algebra.Join;
+import org.openrdf.query.algebra.LeftJoin;
 import org.openrdf.query.algebra.Projection;
 import org.openrdf.query.algebra.QueryModelNode;
 import org.openrdf.query.algebra.StatementPattern;
@@ -152,7 +153,7 @@ public class SparqlFluoQueryBuilder {
                 prefix = SP_PREFIX;
             } else if(node instanceof Filter) {
                 prefix = FILTER_PREFIX;
-            } else if(node instanceof Join) {
+            } else if(node instanceof Join || node instanceof LeftJoin) {
                 prefix = JOIN_PREFIX;
             } else if(node instanceof Projection) {
                 prefix = QUERY_PREFIX;
@@ -218,18 +219,36 @@ public class SparqlFluoQueryBuilder {
         }
 
         @Override
+        public void meet(LeftJoin node) {
+            // Extract the metadata that will be stored for the node.
+            String leftJoinNodeId = nodeIds.getOrMakeId(node);
+            final QueryModelNode left = node.getLeftArg();
+            final QueryModelNode right = node.getRightArg();
+
+            // Update the metadata for the JoinMetadata.Builder.
+            makeJoinMetadata(leftJoinNodeId, JoinType.LEFT_OUTER_JOIN, left, right);
+
+            // Walk to the next node.
+            super.meet(node);
+        }
+
+        @Override
         public void meet(final Join node) {
             // Extract the metadata that will be stored from the node.
             final String joinNodeId = nodeIds.getOrMakeId(node);
             final QueryModelNode left = node.getLeftArg();
             final QueryModelNode right = node.getRightArg();
 
-            if(left == null || right == null) {
-                throw new IllegalArgumentException("Join args connot be null.");
-            }
+            // Update the metadata for the JoinMetadata.Builder.
+            makeJoinMetadata(joinNodeId, JoinType.NATURAL_JOIN, left, right);
 
+            // Walk to the next node.
+            super.meet(node);
+        }
+
+        private void makeJoinMetadata(String joinNodeId, JoinType joinType, QueryModelNode left, QueryModelNode right) {
             final String leftChildNodeId = nodeIds.getOrMakeId(left);
-            final String rightChildNodeId = nodeIds.getOrMakeId( right );
+            final String rightChildNodeId = nodeIds.getOrMakeId(right);
 
             // Get or create a builder for this node populated with the known metadata.
             JoinMetadata.Builder joinBuilder = fluoQueryBuilder.getJoinBuilder(joinNodeId).orNull();
@@ -237,6 +256,7 @@ public class SparqlFluoQueryBuilder {
                 joinBuilder = JoinMetadata.builder(joinNodeId);
                 fluoQueryBuilder.addJoinMetadata(joinBuilder);
             }
+            joinBuilder.setJoinType(joinType);
             joinBuilder.setLeftChildNodeId( leftChildNodeId );
             joinBuilder.setRightChildNodeId( rightChildNodeId );
 
@@ -247,15 +267,12 @@ public class SparqlFluoQueryBuilder {
             final JoinVarOrders varOrders = getJoinArgVarOrders(leftVars, rightVars);
 
             // Create or update the left child's variable order and parent node id.
-            final VariableOrder leftVarOrder = new VariableOrder( varOrders.getLeftVarOrder() );
+            final VariableOrder leftVarOrder = varOrders.getLeftVarOrder();
             setChildMetadata(leftChildNodeId, leftVarOrder, joinNodeId);
 
             // Create or update the right child's variable order and parent node id.
-            final VariableOrder rightVarOrder = new VariableOrder( varOrders.getRightVarOrder() );
+            final VariableOrder rightVarOrder = varOrders.getRightVarOrder();
             setChildMetadata(rightChildNodeId, rightVarOrder, joinNodeId);
-
-            // Walk to the next node.
-            super.meet(node);
         }
 
         @Override
@@ -282,7 +299,7 @@ public class SparqlFluoQueryBuilder {
 
             // Update the child node's metadata.
             final Set<String> childVars = getVars((TupleExpr)child);
-            final VariableOrder childVarOrder = new VariableOrder( toVarOrderString(childVars) );
+            final VariableOrder childVarOrder = new VariableOrder(childVars);
             setChildMetadata(childNodeId, childVarOrder, filterId);
 
             // Walk to the next node.
@@ -293,7 +310,7 @@ public class SparqlFluoQueryBuilder {
         public void meet(final Projection node) {
             // Create a builder for this node populated with the metadata.
             final String queryId = nodeIds.getOrMakeId(node);
-            final VariableOrder queryVarOrder = new VariableOrder( toVarOrderString( node.getAssuredBindingNames() ) );
+            final VariableOrder queryVarOrder = new VariableOrder(node.getBindingNames());
 
             final QueryMetadata.Builder queryBuilder = QueryMetadata.builder(queryId);
             fluoQueryBuilder.setQueryMetadata(queryBuilder);
@@ -311,7 +328,7 @@ public class SparqlFluoQueryBuilder {
 
             // Update the child node's metadata.
             final Set<String> childVars = getVars((TupleExpr)child);
-            final VariableOrder childVarOrder = new VariableOrder( toVarOrderString(childVars) );
+            final VariableOrder childVarOrder = new VariableOrder(childVars);
 
             setChildMetadata(childNodeId, childVarOrder, queryId);
 
@@ -386,10 +403,9 @@ public class SparqlFluoQueryBuilder {
 
             final Set<String> vars = Sets.newHashSet();
 
-            final Set<String> abn = node.getAssuredBindingNames();
-            for(final String s: abn) {
-                if(!s.startsWith("-const-")) {
-                    vars.add(s);
+            for(final String bindingName : node.getBindingNames()) {
+                if(!bindingName.startsWith("-const-")) {
+                    vars.add(bindingName);
                 }
             }
 
@@ -402,8 +418,8 @@ public class SparqlFluoQueryBuilder {
         @Immutable
         @ParametersAreNonnullByDefault
         private static final class JoinVarOrders {
-            private final String leftVarOrder;
-            private final String rightVarOrder;
+            private final VariableOrder leftVarOrder;
+            private final VariableOrder rightVarOrder;
 
             /**
              * Constructs an instance of {@link }.
@@ -411,7 +427,7 @@ public class SparqlFluoQueryBuilder {
              * @param leftVarOrder - The left child's Variable Order. (not null)
              * @param rightVarOrder - The right child's Variable Order. (not null)
              */
-            public JoinVarOrders(final String leftVarOrder, final String rightVarOrder) {
+            public JoinVarOrders(final VariableOrder leftVarOrder, final VariableOrder rightVarOrder) {
                 this.leftVarOrder = checkNotNull(leftVarOrder);
                 this.rightVarOrder = checkNotNull(rightVarOrder);
             }
@@ -419,14 +435,14 @@ public class SparqlFluoQueryBuilder {
             /**
              * @return The left child's Variable Order.
              */
-            public String getLeftVarOrder() {
+            public VariableOrder getLeftVarOrder() {
                 return leftVarOrder;
             }
 
             /**
              * @return The right child's Variable Order.
              */
-            public String getRightVarOrder() {
+            public VariableOrder getRightVarOrder() {
                 return rightVarOrder;
             }
         }
@@ -450,7 +466,7 @@ public class SparqlFluoQueryBuilder {
             // Push all of the common variables to the left for each child's vars.
             final List<String> leftVarOrder = leftShiftCommonVars(commonVars, leftVars);
             final List<String> rightVarOrder = leftShiftCommonVars(commonVars, rightVars);
-            return new JoinVarOrders(toVarOrderString(leftVarOrder), toVarOrderString(rightVarOrder));
+            return new JoinVarOrders(new VariableOrder(leftVarOrder), new VariableOrder(rightVarOrder));
         }
 
         /**

@@ -31,6 +31,7 @@ import mvm.rya.api.resolver.RyaTypeResolverException;
 import mvm.rya.sail.config.RyaSailFactory;
 import mvm.rya.indexing.accumulo.ConfigUtils;
 import mvm.rya.indexing.external.tupleSet.AccumuloPcjSerializer;
+import mvm.rya.indexing.external.tupleSet.BindingSetConverter.BindingSetConversionException;
 import mvm.rya.indexing.external.tupleSet.ExternalTupleSet;
 import mvm.rya.indexing.external.tupleSet.PcjTables;
 import mvm.rya.indexing.external.tupleSet.PcjTables.PcjException;
@@ -70,6 +71,8 @@ import com.google.common.collect.Sets;
 
 public class PcjIntegrationTestingUtil {
 
+	private static final AccumuloPcjSerializer converter = new AccumuloPcjSerializer();
+	
 	public static Set<QueryModelNode> getTupleSets(TupleExpr te) {
 		final ExternalTupleVisitor etv = new ExternalTupleVisitor();
 		te.visit(etv);
@@ -386,20 +389,18 @@ public class PcjIntegrationTestingUtil {
 		for (final VariableOrder varOrder : varOrders) {
 			try {
 				// Serialize the result to the variable order.
-				byte[] serializedResult = AccumuloPcjSerializer.serialize(
-						result, varOrder.toArray());
+				byte[] serializedResult = converter.convert(result, varOrder);
 
 				// Row ID = binding set values, Column Family = variable order
 				// of the binding set.
 				Mutation addResult = new Mutation(serializedResult);
 				addResult.put(varOrder.toString(), "", "");
 				mutations.add(addResult);
-			} catch (RyaTypeResolverException e) {
+			} catch (BindingSetConversionException e) {
 				throw new PcjException("Could not serialize a result.", e);
 			}
 		}
 
 		return mutations;
 	}
-
 }

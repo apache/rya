@@ -104,7 +104,7 @@ public class AccumuloIndexSet extends ExternalTupleSet implements ExternalBatchi
 
     @Override
     public String getSignature() {
-        return "AccumuloIndexSet(" + tablename + ") : " + Joiner.on(", ").join(this.getTupleExpr().getAssuredBindingNames());
+        return "AccumuloIndexSet(" + tablename + ") : " + Joiner.on(", ").join(this.getTupleExpr().getBindingNames());
     }
 
     /**
@@ -130,7 +130,7 @@ public class AccumuloIndexSet extends ExternalTupleSet implements ExternalBatchi
             throw new MalformedQueryException("SPARQL query '" + sparql + "' does not contain a Projection.");
         }
         setProjectionExpr(projection.get());
-        
+
         Set<VariableOrder> orders = null;
         try {
 			orders = pcj.getPcjMetadata(accCon, tablename).getVarOrders();

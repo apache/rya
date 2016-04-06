@@ -25,18 +25,21 @@ import static org.apache.rya.indexing.pcj.fluo.app.IncrementalUpdateConstants.NO
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 
-import org.apache.log4j.Logger;
 import org.apache.rya.indexing.pcj.fluo.app.query.FluoQueryColumns;
 import org.apache.rya.indexing.pcj.fluo.app.query.FluoQueryMetadataDAO;
 import org.apache.rya.indexing.pcj.fluo.app.query.JoinMetadata;
+import org.openrdf.query.Binding;
 import org.openrdf.query.BindingSet;
+import org.openrdf.query.impl.MapBindingSet;
 
 import com.google.common.base.Optional;
-import com.google.common.collect.Maps;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 
 import io.fluo.api.client.TransactionBase;
 import io.fluo.api.config.ScannerConfiguration;
@@ -47,6 +50,9 @@ import io.fluo.api.iterator.ColumnIterator;
 import io.fluo.api.iterator.RowIterator;
 import io.fluo.api.types.Encoder;
 import io.fluo.api.types.StringEncoder;
+import mvm.rya.indexing.external.tupleSet.BindingSetConverter;
+import mvm.rya.indexing.external.tupleSet.BindingSetConverter.BindingSetConversionException;
+import mvm.rya.indexing.external.tupleSet.BindingSetStringConverter;
 import mvm.rya.indexing.external.tupleSet.PcjTables.VariableOrder;
 
 /**
@@ -55,7 +61,8 @@ import mvm.rya.indexing.external.tupleSet.PcjTables.VariableOrder;
  */
 @ParametersAreNonnullByDefault
 public class JoinResultUpdater {
-    private static final Logger log = Logger.getLogger(JoinResultUpdater.class);
+
+    private static final BindingSetConverter<String> converter = new BindingSetStringConverter();
 
     private final FluoQueryMetadataDAO queryDao = new FluoQueryMetadataDAO();
     private final Encoder encoder = new StringEncoder();
@@ -67,92 +74,111 @@ public class JoinResultUpdater {
      * @param tx - The transaction all Fluo queries will use. (not null)
      * @param childId - The Node ID of the child whose results received a new Binding Set. (not null)
      * @param childBindingSet - The Binding Set that was just emitted by child node. (not null)
-     * @param joinMetadata - The metadatat for the Join that has been notified. (not null)
+     * @param joinMetadata - The metadata for the Join that has been notified. (not null)
+     * @throws BindingSetConversionException
      */
     public void updateJoinResults(
             final TransactionBase tx,
             final String childId,
             final BindingSet childBindingSet,
-            final JoinMetadata joinMetadata) {
+            final JoinMetadata joinMetadata) throws BindingSetConversionException {
         checkNotNull(tx);
         checkNotNull(childId);
+        checkNotNull(childBindingSet);
         checkNotNull(joinMetadata);
 
-        // Read the Join metadata from the Fluo table.
-        final String[] joinVarOrder = joinMetadata.getVariableOrder().toArray();
-
-        // Transform the Child binding set and varaible order values to be easier to work with.
-        final VariableOrder childVarOrder = getVarOrder(tx, childId);
-        final String[] childVarOrderArray = childVarOrder.toArray();
-        final String childBindingSetString = FluoStringConverter.toBindingSetString(childBindingSet, childVarOrder.toArray());
-        final String[] childBindingStrings = FluoStringConverter.toBindingStrings(childBindingSetString);
-
-        // Transform the Sibling binding set and varaible order values to be easier to work with.
-        final String leftChildId = joinMetadata.getLeftChildNodeId();
-        final String rightChildId = joinMetadata.getRightChildNodeId();
-        final String siblingId = leftChildId.equals(childId) ? rightChildId : leftChildId;
-
-        final VariableOrder siblingVarOrder = getVarOrder(tx, siblingId);
-        final String[] siblingVarOrderArray = siblingVarOrder.toArray();
-
-        // Create a map that will be used later in this algorithm to create new Join result
-        // Binding Sets. It is initialized with all of the values that are in childBindingSet.
-        // The common values and any that are added on by the sibling will be overwritten
-        // for each sibling scan result.
-        final List<String> commonVars = getCommonVars(childVarOrder, siblingVarOrder);
-        final Map<String, String> joinBindingSet = Maps.newHashMap();
-        for(int i = 0; i < childVarOrderArray.length; i++) {
-            joinBindingSet.put(childVarOrderArray[i], childBindingStrings[i]);
+        // Figure out which join algorithm we are going to use.
+        final IterativeJoin joinAlgorithm;
+        switch(joinMetadata.getJoinType()) {
+            case NATURAL_JOIN:
+                joinAlgorithm = new NaturalJoin();
+                break;
+            case LEFT_OUTER_JOIN:
+                joinAlgorithm = new LeftOuterJoin();
+                break;
+            default:
+                throw new RuntimeException("Unsupported JoinType: " + joinMetadata.getJoinType());
         }
+
+        // Figure out which side of the join the new binding set appeared on.
+        final Side emittingSide;
+        final String siblingId;
+
+        if(childId.equals(joinMetadata.getLeftChildNodeId())) {
+            emittingSide = Side.LEFT;
+            siblingId = joinMetadata.getRightChildNodeId();
+        } else {
+            emittingSide = Side.RIGHT;
+            siblingId = joinMetadata.getLeftChildNodeId();
+        }
+
+        // Iterates over the sibling node's BindingSets that join with the new binding set.
+        FluoTableIterator siblingBindingSets = makeSiblingScanIterator(childId, childBindingSet, siblingId, tx);
+
+        // Iterates over the resulting BindingSets from the join.
+        final Iterator<BindingSet> newJoinResults;
+        if(emittingSide == Side.LEFT) {
+            newJoinResults = joinAlgorithm.newLeftResult(childBindingSet, siblingBindingSets);
+        } else {
+            newJoinResults = joinAlgorithm.newRightResult(siblingBindingSets, childBindingSet);
+        }
+
+        // Insert the new join binding sets to the Fluo table.
+        VariableOrder joinVarOrder = joinMetadata.getVariableOrder();
+        while(newJoinResults.hasNext()) {
+            BindingSet newJoinResult = newJoinResults.next();
+            String joinBindingSetString = converter.convert(newJoinResult, joinVarOrder);
+
+            final Bytes row = encoder.encode(joinMetadata.getNodeId() + NODEID_BS_DELIM + joinBindingSetString);
+            final Column col = FluoQueryColumns.JOIN_BINDING_SET;
+            final Bytes value = encoder.encode(joinBindingSetString);
+            tx.set(row, col, value);
+        }
+    }
+
+    /**
+     * The different sides a new binding set may appear on.
+     */
+    public static enum Side {
+        LEFT, RIGHT;
+    }
+
+    private FluoTableIterator makeSiblingScanIterator(String childId, BindingSet childBindingSet, String siblingId, TransactionBase tx) throws BindingSetConversionException {
+        // Get the common variable orders. These are used to build the prefix.
+        final VariableOrder childVarOrder = getVarOrder(tx, childId);
+        final VariableOrder siblingVarOrder = getVarOrder(tx, siblingId);
+        List<String> commonVars = getCommonVars(childVarOrder, siblingVarOrder);
+
+        // Get the Binding strings
+        final String childBindingSetString = converter.convert(childBindingSet, childVarOrder);
+        final String[] childBindingStrings = FluoStringConverter.toBindingStrings(childBindingSetString);
 
         // Create the prefix that will be used to scan for binding sets of the sibling node.
         // This prefix includes the sibling Node ID and the common variable values from
         // childBindingSet.
-        String bsPrefix = "";
+        String siblingScanPrefix = "";
         for(int i = 0; i < commonVars.size(); i++) {
-            if(bsPrefix.length() == 0) {
-                bsPrefix = childBindingStrings[i];
+            if(siblingScanPrefix.length() == 0) {
+                siblingScanPrefix = childBindingStrings[i];
             } else {
-                bsPrefix += DELIM + childBindingStrings[i];
+                siblingScanPrefix += DELIM + childBindingStrings[i];
             }
         }
-        bsPrefix = siblingId + NODEID_BS_DELIM + bsPrefix;
+        siblingScanPrefix = siblingId + NODEID_BS_DELIM + siblingScanPrefix;
 
         // Scan the sibling node's binding sets for those that have the same
         // common variable values as childBindingSet. These needs to be joined
         // and inserted into the Join's results. It's possible that none of these
         // results will be new Join results if they have already been created in
         // earlier iterations of this algorithm.
-        final ScannerConfiguration sc1 = new ScannerConfiguration();
-        sc1.setSpan(Span.prefix(bsPrefix));
-        setScanColumnFamily(sc1, siblingId);
+        final ScannerConfiguration scanConfig = new ScannerConfiguration();
+        scanConfig.setSpan(Span.prefix(siblingScanPrefix));
+        setScanColumnFamily(scanConfig, siblingId);
 
-        try {
-            final RowIterator ri = tx.get(sc1);
-            while(ri.hasNext()) {
-                final ColumnIterator ci = ri.next().getValue();
-                while(ci.hasNext()){
-                    // Get a sibling binding set.
-                    final String siblingBindingSetString = ci.next().getValue().toString();
-                    final String[] siblingBindingStrings = FluoStringConverter.toBindingStrings(siblingBindingSetString);
-
-                    // Overwrite the previous sibling's values to create a new join binding set.
-                    for (int i = 0; i < siblingBindingStrings.length; i++) {
-                        joinBindingSet.put(siblingVarOrderArray[i], siblingBindingStrings[i]);
-                    }
-                    final String joinBindingSetString = makeBindingSetString(joinVarOrder, joinBindingSet);
-
-                    // Write the join binding set to Fluo.
-                    final Bytes row = encoder.encode(joinMetadata.getNodeId() + NODEID_BS_DELIM + joinBindingSetString);
-                    final Column col = FluoQueryColumns.JOIN_BINDING_SET;
-                    final Bytes value = encoder.encode(joinBindingSetString);
-                    tx.set(row, col, value);
-                }
-            }
-        } catch (final Exception e) {
-            log.error("Error while scanning sibling binding sets to create new join results.", e);
-        }
+        final RowIterator ri = tx.get(scanConfig);
+        return new FluoTableIterator(ri, siblingVarOrder);
     }
+
 
     /**
      * Fetch the {@link VariableOrder} of a query node.
@@ -216,40 +242,6 @@ public class JoinResultUpdater {
         return commonVars;
     }
 
-//    /**
-//     * Assuming that the common variables between two children are already
-//     * shifted to the left, find the common variables between them.
-//     * <p>
-//     * Refer to {@link FluoQueryInitializer} to see why this assumption is being made.
-//     *
-//     * @param vars1 - The first child's variable order. (not null)
-//     * @param vars2 - The second child's variable order. (not null)
-//     * @return An ordered List of the common variables between the two children.
-//     */
-//    private List<String> getCommonVars(final String[] vars1, final String[] vars2) {
-//        checkNotNull(vars1);
-//        checkNotNull(vars2);
-//
-//        final List<String> commonVars = new ArrayList<>();
-//
-//        // Only need to iteratre through the shorted order's length.
-//        final int shortestLen = Math.min(vars1.length, vars2.length);
-//        for(int i = 0; i < shortestLen; i++) {
-//            final String var1 = vars1[i];
-//            final String var2 = vars2[i];
-//
-//            if(var1.equals(var2)) {
-//                commonVars.add(var1);
-//            } else {
-//                // Because the common variables are left shifted, we can break once
-//                // we encounter a pair that does not match.
-//                break;
-//            }
-//        }
-//
-//        return commonVars;
-//    }
-
     /**
      * Update a {@link ScannerConfiguration} to use the sibling node's binding
      * set column for its scan. The column that will be used is determined by the
@@ -281,34 +273,211 @@ public class JoinResultUpdater {
                 column = FluoQueryColumns.JOIN_BINDING_SET;
                 break;
             default:
-                throw new IllegalArgumentException("The child node's sibling is not of type StatementPattern, Join, or Filter.");
+                throw new IllegalArgumentException("The child node's sibling is not of type StatementPattern, Join, Left Join, or Filter.");
         }
         sc.fetchColumn(column.getFamily(), column.getQualifier());
     }
 
     /**
-     * Create a Binding Set String from a variable order and a map of bindings.
-     *
-     * @param varOrder - The resulting binding set's variable order. (not null)
-     * @param bindingSetValues - A map holding the variables and their values that will be
-     *   included in the resulting binding set.
-     * @return A binding set string build from the map using the prescribed variable order.
+     * Defines each of the cases that may generate new join results when
+     * iteratively computing a query's join node.
      */
-    private static String makeBindingSetString(final String[] varOrder, final Map<String, String> bindingSetValues) {
-        checkNotNull(varOrder);
-        checkNotNull(bindingSetValues);
+    public static interface IterativeJoin {
 
-        String bindingSetString = "";
+        /**
+         * Invoked when a new {@link BindingSet} is emitted from the left child
+         * node of the join. The Fluo table is scanned for results on the right
+         * side that will be joined with the new result.
+         *
+         * @param newLeftResult - A new BindingSet that has been emitted from
+         *   the left child node.
+         * @param rightResults - The right child node's binding sets that will
+         *   be joined with the new left result. (not null)
+         * @return The new BindingSet results for the join.
+         */
+        public Iterator<BindingSet> newLeftResult(BindingSet newLeftResult, Iterator<BindingSet> rightResults);
 
-        for (final String joinVar : varOrder) {
-            if (bindingSetString.length() == 0) {
-                bindingSetString = bindingSetValues.get(joinVar);
-            } else {
-                bindingSetString = bindingSetString + DELIM + bindingSetValues.get(joinVar);
-            }
+        /**
+         * Invoked when a new {@link BindingSet} is emitted from the right child
+         * node of the join. The Fluo table is scanned for results on the left
+         * side that will be joined with the new result.
+         *
+         * @param leftResults - The left child node's binding sets that will be
+         *   joined with the new right result.
+         * @param newRightResult - A new BindingSet that has been emitted from
+         *   the right child node.
+         * @return The new BindingSet results for the join.
+         */
+        public Iterator<BindingSet> newRightResult(Iterator<BindingSet> leftResults, BindingSet newRightResult);
+    }
+
+    /**
+     * Implements an {@link IterativeJoin} that uses the Natural Join algorithm
+     * defined by Relational Algebra.
+     * <p>
+     * This is how you combine {@code BindnigSet}s that may have common Binding
+     * names. When two Binding Sets are joined, any bindings that appear in both
+     * binding sets are only included once.
+     */
+    public static final class NaturalJoin implements IterativeJoin {
+        @Override
+        public Iterator<BindingSet> newLeftResult(BindingSet newLeftResult, Iterator<BindingSet> rightResults) {
+            checkNotNull(newLeftResult);
+            checkNotNull(rightResults);
+
+            // Both sides are required, so if there are no right results, then do not emit anything.
+            return new LazyJoiningIterator(newLeftResult, rightResults);
         }
 
-        return bindingSetString;
+        @Override
+        public Iterator<BindingSet> newRightResult(Iterator<BindingSet> leftResults, BindingSet newRightResult) {
+            checkNotNull(leftResults);
+            checkNotNull(newRightResult);
+
+            // Both sides are required, so if there are no left reuslts, then do not emit anything.
+            return new LazyJoiningIterator(newRightResult, leftResults);
+        }
+    }
+
+    /**
+     * Implements an {@link IterativeJoin} that uses the Left Outer Join
+     * algorithm defined by Relational Algebra.
+     * <p>
+     * This is how you add optional information to a {@link BindingSet}. Left
+     * binding sets are emitted even if they do not join with anything on the right.
+     * However, right binding sets must be joined with a left binding set.
+     */
+    public static final class LeftOuterJoin implements IterativeJoin {
+        @Override
+        public Iterator<BindingSet> newLeftResult(BindingSet newLeftResult, Iterator<BindingSet> rightResults) {
+            checkNotNull(newLeftResult);
+            checkNotNull(rightResults);
+
+            // If the required portion does not join with any optional portions,
+            // then emit a BindingSet that matches the new left result.
+            if(!rightResults.hasNext()) {
+                return Lists.<BindingSet>newArrayList(newLeftResult).iterator();
+            }
+
+            // Otherwise, return an iterator that holds the new required result
+            // joined with the right results.
+            return new LazyJoiningIterator(newLeftResult, rightResults);
+        }
+
+        @Override
+        public Iterator<BindingSet> newRightResult(final Iterator<BindingSet> leftResults, final BindingSet newRightResult) {
+            checkNotNull(leftResults);
+            checkNotNull(newRightResult);
+
+            // The right result is optional, so if it does not join with anything
+            // on the left, then do not emit anything.
+            return new LazyJoiningIterator(newRightResult, leftResults);
+        }
+    }
+
+    /**
+     * Joins a {@link BindingSet} (which is new to the left or right side of a join)
+     * to all binding sets on the other side that join with it.
+     * <p>
+     * This is done lazily so that you don't have to load all of the BindingSets
+     * into memory at once.
+     */
+    private static final class LazyJoiningIterator implements Iterator<BindingSet> {
+
+        private final BindingSet newResult;
+        private final Iterator<BindingSet> joinedResults;
+
+        /**
+         * Constructs an instance of {@link LazyJoiningIterator}.
+         *
+         * @param newResult - A binding set that will be joined with some other binding sets. (not null)
+         * @param joinResults - The binding sets that will be joined with {@code newResult}. (not null)
+         */
+        public LazyJoiningIterator(BindingSet newResult, Iterator<BindingSet> joinResults) {
+            this.newResult = checkNotNull(newResult);
+            this.joinedResults = checkNotNull(joinResults);
+        }
+
+        @Override
+        public boolean hasNext() {
+            return joinedResults.hasNext();
+        }
+
+        @Override
+        public BindingSet next() {
+            final MapBindingSet bs = new MapBindingSet();
+
+            for(Binding binding : newResult) {
+                bs.addBinding(binding);
+            }
+
+            for(Binding binding : joinedResults.next()) {
+                bs.addBinding(binding);
+            }
+
+            return bs;
+        }
+
+        @Override
+        public void remove() {
+            throw new UnsupportedOperationException("remove() is unsupported.");
+        }
+    }
+
+    /**
+     * Iterates over rows that have a Binding Set column and returns the unmarshalled
+     * {@link BindingSet}s.
+     */
+    private static final class FluoTableIterator implements Iterator<BindingSet> {
+
+        private static final Set<Column> BINDING_SET_COLUMNS = Sets.newHashSet(
+                FluoQueryColumns.STATEMENT_PATTERN_BINDING_SET,
+                FluoQueryColumns.JOIN_BINDING_SET,
+                FluoQueryColumns.FILTER_BINDING_SET);
+
+        private final RowIterator rows;
+        private final VariableOrder varOrder;
+
+        /**
+         * Constructs an instance of {@link FluoTableIterator}.
+         *
+         * @param rows - Iterates over RowId values in a Fluo Table. (not null)
+         * @param varOrder - The Variable Order of binding sets that will be
+         *   read from the Fluo Table. (not null)
+         */
+        public FluoTableIterator(RowIterator rows, VariableOrder varOrder) {
+            this.rows = checkNotNull(rows);
+            this.varOrder = checkNotNull(varOrder);
+        }
+
+        @Override
+        public boolean hasNext() {
+            return rows.hasNext();
+        }
+
+        @Override
+        public BindingSet next() {
+            final ColumnIterator columns = rows.next().getValue();
+
+            while(columns.hasNext()) {
+                // If this is one of the BindingSet columns, handle it and return the BindingSet.
+                final Entry<Column, Bytes> entry = columns.next();
+                if(BINDING_SET_COLUMNS.contains(entry.getKey())) {
+                    final String bindingSetString = entry.getValue().toString();
+                    try {
+                        return converter.convert(bindingSetString, varOrder);
+                    } catch (BindingSetConversionException e) {
+                        throw new RuntimeException("Could not convert one of the stored BindingSets from a String: " + bindingSetString, e);
+                    }
+                }
+            }
+
+            throw new RuntimeException("Row did not containing a Binding Set.");
+        }
+
+        @Override
+        public void remove() {
+            throw new UnsupportedOperationException("remove() is unsupported.");
+        }
     }
 }
-

@@ -20,14 +20,21 @@ package mvm.rya.indexing.external;
  */
 
 import java.util.List;
+import java.util.Map;
+
+import mvm.rya.api.persist.RyaDAOException;
+import mvm.rya.rdftriplestore.inference.InferenceEngineException;
 
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
 import org.apache.accumulo.core.client.Connector;
+import org.apache.accumulo.core.client.Scanner;
 import org.apache.accumulo.core.client.TableExistsException;
 import org.apache.accumulo.core.client.TableNotFoundException;
 import org.apache.accumulo.core.client.mock.MockInstance;
 import org.apache.accumulo.core.client.security.tokens.PasswordToken;
+import org.apache.accumulo.core.data.Key;
+import org.apache.accumulo.core.security.Authorizations;
 import org.apache.rya.indexing.pcj.storage.PcjException;
 import org.apache.rya.indexing.pcj.storage.accumulo.PcjVarOrderFactory;
 import org.junit.After;
@@ -52,9 +59,6 @@ import org.openrdf.repository.sail.SailRepositoryConnection;
 import org.openrdf.sail.SailException;
 
 import com.google.common.base.Optional;
-
-import mvm.rya.api.persist.RyaDAOException;
-import mvm.rya.rdftriplestore.inference.InferenceEngineException;
 
 public class PrecompJoinOptimizerIntegrationTest {
 
@@ -115,7 +119,8 @@ public class PrecompJoinOptimizerIntegrationTest {
 			throws TupleQueryResultHandlerException, QueryEvaluationException,
 			MalformedQueryException, RepositoryException, AccumuloException,
 			AccumuloSecurityException, TableExistsException, RyaDAOException,
-			SailException, TableNotFoundException, PcjException, InferenceEngineException {
+			SailException, TableNotFoundException, PcjException,
+			InferenceEngineException {
 
 		final String indexSparqlString = ""//
 				+ "SELECT ?e ?l ?c " //
@@ -124,9 +129,9 @@ public class PrecompJoinOptimizerIntegrationTest {
 				+ "  ?e <http://www.w3.org/2000/01/rdf-schema#label> ?l "//
 				+ "}";//
 
-		PcjIntegrationTestingUtil.createAndPopulatePcj(conn, accCon, tablePrefix
-				+ "INDEX_1", indexSparqlString, new String[] { "e", "l", "c" },
-				Optional.<PcjVarOrderFactory> absent());
+		PcjIntegrationTestingUtil.createAndPopulatePcj(conn, accCon,
+				tablePrefix + "INDEX_1", indexSparqlString, new String[] { "e",
+						"l", "c" }, Optional.<PcjVarOrderFactory> absent());
 		final String queryString = ""//
 				+ "SELECT ?e ?c ?l ?o " //
 				+ "{" //
@@ -142,7 +147,8 @@ public class PrecompJoinOptimizerIntegrationTest {
 		conn = repo.getConnection();
 		conn.add(sub, talksTo, obj);
 		conn.add(sub2, talksTo, obj2);
-		pcjConn.prepareTupleQuery(QueryLanguage.SPARQL, queryString).evaluate(crh);
+		pcjConn.prepareTupleQuery(QueryLanguage.SPARQL, queryString).evaluate(
+				crh);
 
 		Assert.assertEquals(2, crh.getCount());
 
@@ -181,12 +187,13 @@ public class PrecompJoinOptimizerIntegrationTest {
 				+ "  ?o <http://www.w3.org/2000/01/rdf-schema#label> ?l "//
 				+ "}";//
 
-		PcjIntegrationTestingUtil.createAndPopulatePcj(conn, accCon, tablePrefix
-				+ "INDEX_1", indexSparqlString, new String[] { "e", "l", "c" },
-				Optional.<PcjVarOrderFactory> absent());
-		PcjIntegrationTestingUtil.createAndPopulatePcj(conn, accCon, tablePrefix
-				+ "INDEX_2", indexSparqlString2, new String[] { "e", "l", "o" },
-				Optional.<PcjVarOrderFactory> absent());
+		PcjIntegrationTestingUtil.createAndPopulatePcj(conn, accCon,
+				tablePrefix + "INDEX_1", indexSparqlString, new String[] { "e",
+						"l", "c" }, Optional.<PcjVarOrderFactory> absent());
+		PcjIntegrationTestingUtil
+				.createAndPopulatePcj(conn, accCon, tablePrefix + "INDEX_2",
+						indexSparqlString2, new String[] { "e", "l", "o" },
+						Optional.<PcjVarOrderFactory> absent());
 		final CountingResultHandler crh = new CountingResultHandler();
 		PcjIntegrationTestingUtil.deleteCoreRyaTables(accCon, tablePrefix);
 		pcjConn.prepareTupleQuery(QueryLanguage.SPARQL, queryString).evaluate(
@@ -201,7 +208,8 @@ public class PrecompJoinOptimizerIntegrationTest {
 			throws TupleQueryResultHandlerException, QueryEvaluationException,
 			MalformedQueryException, RepositoryException, AccumuloException,
 			AccumuloSecurityException, TableExistsException, RyaDAOException,
-			SailException, TableNotFoundException, PcjException, InferenceEngineException {
+			SailException, TableNotFoundException, PcjException,
+			InferenceEngineException {
 
 		final String indexSparqlString = ""//
 				+ "SELECT ?e ?l ?c " //
@@ -211,9 +219,9 @@ public class PrecompJoinOptimizerIntegrationTest {
 				+ "  ?e <http://www.w3.org/2000/01/rdf-schema#label> ?l "//
 				+ "}";//
 
-		PcjIntegrationTestingUtil.createAndPopulatePcj(conn, accCon, tablePrefix
-				+ "INDEX_1", indexSparqlString, new String[] { "e", "l", "c" },
-				Optional.<PcjVarOrderFactory> absent());
+		PcjIntegrationTestingUtil.createAndPopulatePcj(conn, accCon,
+				tablePrefix + "INDEX_1", indexSparqlString, new String[] { "e",
+						"l", "c" }, Optional.<PcjVarOrderFactory> absent());
 		final String queryString = ""//
 				+ "SELECT ?e ?c ?l ?o " //
 				+ "{" //
@@ -242,7 +250,8 @@ public class PrecompJoinOptimizerIntegrationTest {
 			throws TupleQueryResultHandlerException, QueryEvaluationException,
 			MalformedQueryException, RepositoryException, AccumuloException,
 			AccumuloSecurityException, TableExistsException, RyaDAOException,
-			SailException, TableNotFoundException, PcjException, InferenceEngineException {
+			SailException, TableNotFoundException, PcjException,
+			InferenceEngineException {
 
 		final String indexSparqlString2 = ""//
 				+ "SELECT ?e ?l ?c " //
@@ -252,9 +261,10 @@ public class PrecompJoinOptimizerIntegrationTest {
 				+ "  ?e <http://www.w3.org/2000/01/rdf-schema#label> ?l "//
 				+ "}";//
 
-		PcjIntegrationTestingUtil.createAndPopulatePcj(conn, accCon, tablePrefix
-				+ "INDEX_2", indexSparqlString2, new String[] { "e", "l", "c" },
-				Optional.<PcjVarOrderFactory> absent());
+		PcjIntegrationTestingUtil
+				.createAndPopulatePcj(conn, accCon, tablePrefix + "INDEX_2",
+						indexSparqlString2, new String[] { "e", "l", "c" },
+						Optional.<PcjVarOrderFactory> absent());
 
 		final String queryString = ""//
 				+ "SELECT ?e ?c ?o ?m ?l" //
@@ -284,7 +294,8 @@ public class PrecompJoinOptimizerIntegrationTest {
 			throws TupleQueryResultHandlerException, QueryEvaluationException,
 			MalformedQueryException, RepositoryException, AccumuloException,
 			AccumuloSecurityException, TableExistsException, RyaDAOException,
-			SailException, TableNotFoundException, PcjException, InferenceEngineException {
+			SailException, TableNotFoundException, PcjException,
+			InferenceEngineException {
 
 		final String indexSparqlString1 = ""//
 				+ "SELECT ?e ?l ?c " //
@@ -299,9 +310,10 @@ public class PrecompJoinOptimizerIntegrationTest {
 		conn.add(sub3, RDF.TYPE, subclass3);
 		conn.add(sub3, RDFS.LABEL, new LiteralImpl("label3"));
 
-		PcjIntegrationTestingUtil.createAndPopulatePcj(conn, accCon, tablePrefix
-				+ "INDEX_1", indexSparqlString1, new String[] { "e", "l", "c" },
-				Optional.<PcjVarOrderFactory> absent());
+		PcjIntegrationTestingUtil
+				.createAndPopulatePcj(conn, accCon, tablePrefix + "INDEX_1",
+						indexSparqlString1, new String[] { "e", "l", "c" },
+						Optional.<PcjVarOrderFactory> absent());
 		final String queryString = ""//
 				+ "SELECT ?e ?c ?o ?m ?l" //
 				+ "{" //
@@ -325,129 +337,100 @@ public class PrecompJoinOptimizerIntegrationTest {
 
 	}
 
+
 	@Test
-	public void testEvaluateTwoIndexUnionFilter() throws AccumuloException,
+	public void testMultipleLeftJoin() throws AccumuloException,
 			AccumuloSecurityException, TableExistsException,
 			RepositoryException, MalformedQueryException, SailException,
 			QueryEvaluationException, TableNotFoundException,
-			TupleQueryResultHandlerException, RyaDAOException, PcjException, InferenceEngineException {
+			TupleQueryResultHandlerException, RyaDAOException, PcjException,
+			InferenceEngineException {
 
+		final URI sub3 = new URIImpl("uri:entity3");
+		final URI obj3 = new URIImpl("uri:obj3");
+		final URI subclass3 = new URIImpl("uri:class3");
+		conn.add(sub3, RDF.TYPE, subclass3);
+		conn.add(sub3, talksTo, obj3);
 		conn.add(obj, RDFS.LABEL, new LiteralImpl("label"));
-		conn.add(obj2, RDFS.LABEL, new LiteralImpl("label2"));
-		conn.add(sub, RDF.TYPE, obj);
-		conn.add(sub2, RDF.TYPE, obj2);
 
 		final String indexSparqlString = ""//
-				+ "SELECT ?e ?l ?o " //
+				+ "SELECT ?e ?l ?c " //
 				+ "{" //
-				+ "   Filter(?l = \"label2\") " //
-				+ "  ?e a ?o . "//
-				+ "  ?e <http://www.w3.org/2000/01/rdf-schema#label> ?l "//
-				+ "}";//
-
-		final String indexSparqlString2 = ""//
-				+ "SELECT ?e ?l ?o " //
-				+ "{" //
-				+ "   Filter(?l = \"label2\") " //
-				+ "  ?e <uri:talksTo> ?o . "//
-				+ "  ?o <http://www.w3.org/2000/01/rdf-schema#label> ?l "//
-				+ "}";//
-
-		final String queryString = ""//
-				+ "SELECT ?c ?e ?l ?o " //
-				+ "{" //
-				+ "   Filter(?l = \"label2\") " //
 				+ "  ?e a ?c . "//
-				+ " { ?e a ?o .  ?e <http://www.w3.org/2000/01/rdf-schema#label> ?l  }"//
-				+ " UNION { ?e <uri:talksTo> ?o .  ?o <http://www.w3.org/2000/01/rdf-schema#label> ?l  }"//
-				+ "}";//
-
-		PcjIntegrationTestingUtil.createAndPopulatePcj(conn, accCon, tablePrefix
-				+ "INDEX_1", indexSparqlString, new String[] { "e", "l", "o" },
-				Optional.<PcjVarOrderFactory> absent());
-		PcjIntegrationTestingUtil.createAndPopulatePcj(conn, accCon, tablePrefix
-				+ "INDEX_2", indexSparqlString2, new String[] { "e", "l", "o" },
-				Optional.<PcjVarOrderFactory> absent());
-
-		PcjIntegrationTestingUtil.deleteCoreRyaTables(accCon, tablePrefix);
-		PcjIntegrationTestingUtil.closeAndShutdown(conn, repo);
-		repo = PcjIntegrationTestingUtil.getPcjRepo(tablePrefix, "instance");
-		conn = repo.getConnection();
-		conn.add(sub2, RDF.TYPE, subclass2);
-		conn.add(sub2, RDF.TYPE, obj2);
-		final CountingResultHandler crh = new CountingResultHandler();
-		pcjConn.prepareTupleQuery(QueryLanguage.SPARQL, queryString).evaluate(
-				crh);
-
-		Assert.assertEquals(6, crh.getCount());
-
-	}
-
-	@Test
-	public void testEvaluateTwoIndexLeftJoinUnionFilter()
-			throws AccumuloException, AccumuloSecurityException,
-			TableExistsException, RepositoryException, MalformedQueryException,
-			SailException, QueryEvaluationException, TableNotFoundException,
-			TupleQueryResultHandlerException, RyaDAOException, PcjException, InferenceEngineException {
-
-		conn.add(obj, RDFS.LABEL, new LiteralImpl("label"));
-		conn.add(obj2, RDFS.LABEL, new LiteralImpl("label2"));
-		conn.add(sub, RDF.TYPE, obj);
-		conn.add(sub2, RDF.TYPE, obj2);
-
-		final URI livesIn = new URIImpl("uri:livesIn");
-		final URI city = new URIImpl("uri:city");
-		final URI city2 = new URIImpl("uri:city2");
-		final URI city3 = new URIImpl("uri:city3");
-		conn.add(sub, livesIn, city);
-		conn.add(sub2, livesIn, city2);
-		conn.add(sub2, livesIn, city3);
-		conn.add(sub, livesIn, city3);
-
-		final String indexSparqlString = ""//
-				+ "SELECT ?e ?l ?o " //
-				+ "{" //
-				+ "  ?e a ?o . "//
-				+ "  ?e <http://www.w3.org/2000/01/rdf-schema#label> ?l "//
+				+ "  OPTIONAL {?e <http://www.w3.org/2000/01/rdf-schema#label> ?l} "//
 				+ "}";//
 
 		final String indexSparqlString2 = ""//
 				+ "SELECT ?e ?l ?o " //
 				+ "{" //
 				+ "  ?e <uri:talksTo> ?o . "//
-				+ "  ?o <http://www.w3.org/2000/01/rdf-schema#label> ?l "//
+				+ "  OPTIONAL {?o <http://www.w3.org/2000/01/rdf-schema#label> ?l} "//
 				+ "}";//
 
 		final String queryString = ""//
-				+ "SELECT ?c ?e ?l ?o " //
+				+ "SELECT ?e ?l ?c ?o " //
 				+ "{" //
-				+ " Filter(?c = <uri:city3>) " //
-				+ " ?e <uri:livesIn> ?c . "//
-				+ " OPTIONAL{{ ?e a ?o .  ?e <http://www.w3.org/2000/01/rdf-schema#label> ?l  }"//
-				+ " UNION { ?e <uri:talksTo> ?o .  ?o <http://www.w3.org/2000/01/rdf-schema#label> ?l  }}"//
+				+ "  ?e a ?c . "//
+				+ "  OPTIONAL {?e <http://www.w3.org/2000/01/rdf-schema#label> ?l} "//
+				+ "  ?e <uri:talksTo> ?o . "//
+				+ "  OPTIONAL {?o <http://www.w3.org/2000/01/rdf-schema#label> ?l} "//
 				+ "}";//
 
-		PcjIntegrationTestingUtil.createAndPopulatePcj(conn, accCon, tablePrefix
-				+ "INDEX_1", indexSparqlString, new String[] { "e", "l", "o" },
-				Optional.<PcjVarOrderFactory> absent());
-		PcjIntegrationTestingUtil.createAndPopulatePcj(conn, accCon, tablePrefix
-				+ "INDEX_2", indexSparqlString2, new String[] { "e", "l", "o" },
-				Optional.<PcjVarOrderFactory> absent());
+		PcjIntegrationTestingUtil.createAndPopulatePcj(conn, accCon,
+				tablePrefix + "INDEX_1", indexSparqlString, new String[] { "e",
+						"l", "c" }, Optional.<PcjVarOrderFactory> absent());
+		PcjIntegrationTestingUtil
+				.createAndPopulatePcj(conn, accCon, tablePrefix + "INDEX_2",
+						indexSparqlString2, new String[] { "e", "l", "o" },
+						Optional.<PcjVarOrderFactory> absent());
 
 		PcjIntegrationTestingUtil.deleteCoreRyaTables(accCon, tablePrefix);
 		PcjIntegrationTestingUtil.closeAndShutdown(conn, repo);
 		repo = PcjIntegrationTestingUtil.getPcjRepo(tablePrefix, "instance");
 		conn = repo.getConnection();
-		conn.add(sub2, livesIn, city3);
-		conn.add(sub, livesIn, city3);
+
+		Scanner scanner = accCon.createScanner(tablePrefix + "INDEX_2",
+				new Authorizations());
+		for (Map.Entry<Key, org.apache.accumulo.core.data.Value> e : scanner) {
+			System.out.println(e.getKey().getRow());
+		}
 
 		final CountingResultHandler crh = new CountingResultHandler();
 		pcjConn.prepareTupleQuery(QueryLanguage.SPARQL, queryString).evaluate(
 				crh);
 
-		Assert.assertEquals(6, crh.getCount());
+		Assert.assertEquals(3, crh.getCount());
 
 	}
+
+	// @Test
+	// public void leftJoinExperiment() throws AccumuloException,
+	// AccumuloSecurityException, TableExistsException,
+	// RepositoryException, MalformedQueryException, SailException,
+	// QueryEvaluationException, TableNotFoundException,
+	// TupleQueryResultHandlerException, RyaDAOException, PcjException,
+	// InferenceEngineException {
+	//
+	// final String indexSparqlString = ""//
+	// + "SELECT ?e " //
+	// + "{" //
+	// + "  ?e a <uri:class> . "//
+	// +
+	// "  OPTIONAL {?e <http://www.w3.org/2000/01/rdf-schema#label> \"label2\"} "//
+	// + "}";//
+	//
+	//
+	// PcjIntegrationTestingUtil.createAndPopulatePcj(conn, accCon,
+	// tablePrefix + "INDEX_1", indexSparqlString, new String[] {"e"},
+	// Optional.<PcjVarOrderFactory> absent());
+	//
+	// Scanner scanner = accCon.createScanner(tablePrefix + "INDEX_1",
+	// new Authorizations());
+	// for (Map.Entry<Key, org.apache.accumulo.core.data.Value> e : scanner) {
+	// System.out.println(e.getKey().getRow());
+	// }
+	//
+	// }
 
 	public static class CountingResultHandler implements
 			TupleQueryResultHandler {

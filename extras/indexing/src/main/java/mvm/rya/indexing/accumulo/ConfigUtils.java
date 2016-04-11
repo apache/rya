@@ -25,6 +25,20 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import mvm.rya.accumulo.AccumuloRdfConfiguration;
+import mvm.rya.api.RdfCloudTripleStoreConfiguration;
+import mvm.rya.indexing.FilterFunctionOptimizer;
+import mvm.rya.indexing.accumulo.entity.EntityCentricIndex;
+import mvm.rya.indexing.accumulo.entity.EntityOptimizer;
+import mvm.rya.indexing.accumulo.freetext.AccumuloFreeTextIndexer;
+import mvm.rya.indexing.accumulo.freetext.LuceneTokenizer;
+import mvm.rya.indexing.accumulo.freetext.Tokenizer;
+import mvm.rya.indexing.accumulo.geo.GeoMesaGeoIndexer;
+import mvm.rya.indexing.accumulo.temporal.AccumuloTemporalIndexer;
+import mvm.rya.indexing.mongodb.MongoFreeTextIndexer;
+import mvm.rya.indexing.mongodb.MongoGeoIndexer;
+import mvm.rya.indexing.pcj.matching.PCJOptimizer;
+
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
 import org.apache.accumulo.core.client.BatchScanner;
@@ -48,20 +62,6 @@ import org.openrdf.model.URI;
 import org.openrdf.model.impl.URIImpl;
 
 import com.google.common.collect.Lists;
-
-import mvm.rya.accumulo.AccumuloRdfConfiguration;
-import mvm.rya.api.RdfCloudTripleStoreConfiguration;
-import mvm.rya.indexing.FilterFunctionOptimizer;
-import mvm.rya.indexing.accumulo.entity.EntityCentricIndex;
-import mvm.rya.indexing.accumulo.entity.EntityOptimizer;
-import mvm.rya.indexing.accumulo.freetext.AccumuloFreeTextIndexer;
-import mvm.rya.indexing.accumulo.freetext.LuceneTokenizer;
-import mvm.rya.indexing.accumulo.freetext.Tokenizer;
-import mvm.rya.indexing.accumulo.geo.GeoMesaGeoIndexer;
-import mvm.rya.indexing.accumulo.temporal.AccumuloTemporalIndexer;
-import mvm.rya.indexing.external.PrecompJoinOptimizer;
-import mvm.rya.indexing.mongodb.MongoFreeTextIndexer;
-import mvm.rya.indexing.mongodb.MongoGeoIndexer;
 
 /**
  * A set of configuration utils to read a Hadoop {@link Configuration} object and create Cloudbase/Accumulo objects.
@@ -157,7 +157,7 @@ public class ConfigUtils {
         return false;
     }
 
-    private static String getIndexTableName(final Configuration conf, final String indexTableNameConf, final String altSuffix){
+    private static String getIndexTableName(Configuration conf, String indexTableNameConf, String altSuffix){
         String value = conf.get(indexTableNameConf);
         if (value == null){
             final String defaultTableName = conf.get(RdfCloudTripleStoreConfiguration.CONF_TBL_PREFIX);
@@ -183,12 +183,12 @@ public class ConfigUtils {
         return getIndexTableName(conf, GEO_TABLENAME, "geo");
     }
 
-    public static String getTemporalTableName(final Configuration conf) {
+    public static String getTemporalTableName(Configuration conf) {
         return getIndexTableName(conf, TEMPORAL_TABLENAME, "temporal");
     }
 
 
-    public static String getEntityTableName(final Configuration conf) {
+    public static String getEntityTableName(Configuration conf) {
         return getIndexTableName(conf, ENTITY_TABLENAME, "entity");
     }
 
@@ -253,10 +253,11 @@ public class ConfigUtils {
 		final Connector connector = ConfigUtils.getConnector(conf);
 		final Authorizations auths = ConfigUtils.getAuthorizations(conf);
 		Integer numThreads = null;
-		if (conf instanceof RdfCloudTripleStoreConfiguration)
+		if (conf instanceof RdfCloudTripleStoreConfiguration) {
 			numThreads = ((RdfCloudTripleStoreConfiguration) conf).getNumThreads();
-		else
+		} else {
 			numThreads = conf.getInt(RdfCloudTripleStoreConfiguration.CONF_NUM_THREADS, 2);
+		}
 		return connector.createBatchScanner(tablename, auths, numThreads);
 	}
 
@@ -341,39 +342,39 @@ public class ConfigUtils {
         return conf.getInt(GEO_NUM_PARTITIONS, getNumPartitions(conf));
     }
 
-    public static boolean getUseGeo(final Configuration conf) {
+    public static boolean getUseGeo(Configuration conf) {
         return conf.getBoolean(USE_GEO, false);
     }
 
-    public static boolean getUseFreeText(final Configuration conf) {
+    public static boolean getUseFreeText(Configuration conf) {
         return conf.getBoolean(USE_FREETEXT, false);
     }
 
-    public static boolean getUseTemporal(final Configuration conf) {
+    public static boolean getUseTemporal(Configuration conf) {
         return conf.getBoolean(USE_TEMPORAL, false);
     }
 
-    public static boolean getUseEntity(final Configuration conf) {
+    public static boolean getUseEntity(Configuration conf) {
         return conf.getBoolean(USE_ENTITY, false);
     }
 
-    public static boolean getUsePCJ(final Configuration conf) {
+    public static boolean getUsePCJ(Configuration conf) {
         return conf.getBoolean(USE_PCJ, false);
     }
 
-    public static boolean getUseOptimalPCJ(final Configuration conf) {
+    public static boolean getUseOptimalPCJ(Configuration conf) {
         return conf.getBoolean(USE_OPTIMAL_PCJ, false);
     }
 
-    public static boolean getUseMongo(final Configuration conf) {
+    public static boolean getUseMongo(Configuration conf) {
         return conf.getBoolean(USE_MONGO, false);
     }
 
 
-    public static void setIndexers(final RdfCloudTripleStoreConfiguration conf) {
+    public static void setIndexers(RdfCloudTripleStoreConfiguration conf) {
 
-        final List<String> indexList = Lists.newArrayList();
-        final List<String> optimizers = Lists.newArrayList();
+        List<String> indexList = Lists.newArrayList();
+        List<String> optimizers = Lists.newArrayList();
 
         boolean useFilterIndex = false;
 
@@ -389,7 +390,7 @@ public class ConfigUtils {
         } else {
 
             if (getUsePCJ(conf) || getUseOptimalPCJ(conf)) {
-                conf.setPcjOptimizer(PrecompJoinOptimizer.class);
+                conf.setPcjOptimizer(PCJOptimizer.class);
             }
 
             if (getUseGeo(conf)) {
@@ -421,5 +422,9 @@ public class ConfigUtils {
 
         conf.setStrings(AccumuloRdfConfiguration.CONF_ADDITIONAL_INDEXERS, indexList.toArray(new String[]{}));
         conf.setStrings(AccumuloRdfConfiguration.CONF_OPTIMIZERS, optimizers.toArray(new String[]{}));
+
     }
+
+
+
 }

@@ -33,7 +33,9 @@ import org.openrdf.query.BindingSet;
 import org.openrdf.query.QueryEvaluationException;
 import org.openrdf.query.algebra.Projection;
 import org.openrdf.query.algebra.TupleExpr;
+import org.openrdf.query.algebra.Var;
 import org.openrdf.query.algebra.evaluation.impl.ExternalSet;
+import org.openrdf.query.algebra.helpers.QueryModelVisitorBase;
 
 import com.beust.jcommander.internal.Sets;
 import com.google.common.base.Joiner;
@@ -57,9 +59,11 @@ public abstract class ExternalTupleSet extends ExternalSet {
 
 	public static final String VAR_ORDER_DELIM = ";";
 	public static final String CONST_PREFIX = "-const-";
+	public static final String VALUE_DELIM = "\u0000";
 	private Projection tupleExpr;
     private Map<String, String> tableVarMap = Maps.newHashMap();  //maps vars in tupleExpr to var in stored binding sets
     private Map<String, Set<String>> supportedVarOrders = Maps.newHashMap(); //indicates supported var orders
+    private Map<String, org.openrdf.model.Value> valMap;
 
     public ExternalTupleSet() {
     }
@@ -67,6 +71,7 @@ public abstract class ExternalTupleSet extends ExternalSet {
     public ExternalTupleSet(Projection tupleExpr) {
     	Preconditions.checkNotNull(tupleExpr);
         this.tupleExpr = tupleExpr;
+        valMap = getValMap();
         updateTableVarMap(tupleExpr, tupleExpr);
     }
 
@@ -100,6 +105,7 @@ public abstract class ExternalTupleSet extends ExternalSet {
     		updateTableVarMap(tupleExpr, this.tupleExpr);
     	}
         this.tupleExpr = tupleExpr;
+        valMap = getValMap();
 		if (supportedVarOrders.size() != 0) {
 			updateSupportedVarOrderMap();
 		}
@@ -128,10 +134,14 @@ public abstract class ExternalTupleSet extends ExternalSet {
         return supportedVarOrders;
     }
 
+    public Map<String, org.openrdf.model.Value> getConstantValueMap() {
+    	return valMap;
+    }
+
     @Override
     public ExternalSet clone() {
         final ExternalTupleSet clone = (ExternalTupleSet) super.clone();
-        clone.tupleExpr = this.tupleExpr.clone();
+        clone.setProjectionExpr(this.tupleExpr.clone());
         clone.tableVarMap = Maps.newHashMap();
         for(final String s: this.tableVarMap.keySet()) {
             clone.tableVarMap.put(s,this.tableVarMap.get(s));
@@ -152,7 +162,7 @@ public abstract class ExternalTupleSet extends ExternalSet {
 		final Set<String> bNames = Sets.newHashSet();
 		final Set<String> bNamesWithConstants = Sets.newHashSet();
 
-		for (final String s : this.getTupleExpr().getAssuredBindingNames()) {
+		for (final String s : this.getTupleExpr().getBindingNames()) {
 			if (bindingNames.contains(s)) {
 				bNames.add(s);
 				bNamesWithConstants.add(s);
@@ -266,5 +276,34 @@ public abstract class ExternalTupleSet extends ExternalSet {
         result = 31*result + tupleExpr.hashCode();
         return result;
     }
+
+    private Map<String, org.openrdf.model.Value> getValMap() {
+		ValueMapVisitor valMapVis = new ValueMapVisitor();
+		tupleExpr.visit(valMapVis);
+		return valMapVis.getValMap();
+	}
+
+
+	/**
+	 *
+	 * Extracts the values associated with constant labels in the query Used to
+	 * create binding sets from range scan
+	 */
+	private class ValueMapVisitor extends
+			QueryModelVisitorBase<RuntimeException> {
+		Map<String, org.openrdf.model.Value> valMap = Maps.newHashMap();
+
+		public Map<String, org.openrdf.model.Value> getValMap() {
+			return valMap;
+		}
+
+		@Override
+		public void meet(Var node) {
+			if (node.getName().startsWith("-const-")) {
+				valMap.put(node.getName(), node.getValue());
+			}
+		}
+	}
+
 
 }

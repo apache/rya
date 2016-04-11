@@ -26,6 +26,7 @@ import java.util.Set;
 import mvm.rya.indexing.external.PcjIntegrationTestingUtil.BindingSetAssignmentCollector;
 import mvm.rya.indexing.external.tupleSet.ExternalTupleSet;
 import mvm.rya.indexing.external.tupleSet.SimpleExternalTupleSet;
+import mvm.rya.indexing.pcj.matching.PCJOptimizer;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -463,7 +464,7 @@ public class PrecompJoinOptimizerTest2 {
 		list.add(extTup);
 
 		final TupleExpr tup = pq1.getTupleExpr().clone();
-		final PrecompJoinOptimizer pcj = new PrecompJoinOptimizer(list, false);
+		final PCJOptimizer pcj = new PCJOptimizer(list, false);
 		pcj.optimize(tup, null, null);
 
 		final Set<StatementPattern> qSet = Sets
@@ -497,7 +498,7 @@ public class PrecompJoinOptimizerTest2 {
 		list.add(extTup);
 
 		final TupleExpr tup = pq1.getTupleExpr().clone();
-		final PrecompJoinOptimizer pcj = new PrecompJoinOptimizer(list, false);
+		final PCJOptimizer pcj = new PCJOptimizer(list, false);
 		pcj.optimize(tup, null, null);
 
 		final Set<StatementPattern> qSet = Sets
@@ -541,7 +542,7 @@ public class PrecompJoinOptimizerTest2 {
 		list.add(extTup2);
 
 		TupleExpr tup = pq1.getTupleExpr().clone();
-		PrecompJoinOptimizer pcj = new PrecompJoinOptimizer(list, false);
+		PCJOptimizer pcj = new PCJOptimizer(list, false);
 		pcj.optimize(tup, null, null);
 
 		Set<StatementPattern> qSet = Sets.newHashSet(StatementPatternCollector
@@ -589,7 +590,7 @@ public class PrecompJoinOptimizerTest2 {
 		list.add(extTup3);
 
 		TupleExpr tup = pq1.getTupleExpr().clone();
-		PrecompJoinOptimizer pcj = new PrecompJoinOptimizer(list, false);
+		PCJOptimizer pcj = new PCJOptimizer(list, false);
 		pcj.optimize(tup, null, null);
 
 		Set<StatementPattern> qSet = Sets.newHashSet(StatementPatternCollector
@@ -623,7 +624,7 @@ public class PrecompJoinOptimizerTest2 {
 		list.add(extTup);
 
 		TupleExpr tup = pq1.getTupleExpr().clone();
-		PrecompJoinOptimizer pcj = new PrecompJoinOptimizer(list, false);
+		PCJOptimizer pcj = new PCJOptimizer(list, false);
 		pcj.optimize(tup, null, null);
 
 		Set<StatementPattern> qSet = Sets.newHashSet(StatementPatternCollector
@@ -671,7 +672,7 @@ public class PrecompJoinOptimizerTest2 {
 		list.add(extTup3);
 
 		TupleExpr tup = pq1.getTupleExpr().clone();
-		PrecompJoinOptimizer pcj = new PrecompJoinOptimizer(list, false);
+		PCJOptimizer pcj = new PCJOptimizer(list, false);
 		pcj.optimize(tup, null, null);
 
 		Set<StatementPattern> qSet = Sets.newHashSet(StatementPatternCollector
@@ -721,7 +722,7 @@ public class PrecompJoinOptimizerTest2 {
 		list.add(extTup1);
 
 		TupleExpr tup = pq1.getTupleExpr().clone();
-		PrecompJoinOptimizer pcj = new PrecompJoinOptimizer(list, false);
+		PCJOptimizer pcj = new PCJOptimizer(list, false);
 		pcj.optimize(tup, null, null);
 
 		Set<StatementPattern> qSet = Sets.newHashSet(StatementPatternCollector
@@ -774,7 +775,7 @@ public class PrecompJoinOptimizerTest2 {
 		list.add(extTup1);
 
 		TupleExpr tup = pq1.getTupleExpr().clone();
-		PrecompJoinOptimizer pcj = new PrecompJoinOptimizer(list, false);
+		PCJOptimizer pcj = new PCJOptimizer(list, false);
 		pcj.optimize(tup, null, null);
 
 		Set<StatementPattern> qSet = Sets.newHashSet(StatementPatternCollector
@@ -810,7 +811,7 @@ public class PrecompJoinOptimizerTest2 {
 		list.add(extTup);
 
 		TupleExpr tup = pq1.getTupleExpr().clone();
-		PrecompJoinOptimizer pcj = new PrecompJoinOptimizer(list, false);
+		PCJOptimizer pcj = new PCJOptimizer(list, false);
 		pcj.optimize(tup, null, null);
 
 		Set<StatementPattern> qSet = Sets.newHashSet(StatementPatternCollector
@@ -847,7 +848,7 @@ public class PrecompJoinOptimizerTest2 {
 		list.add(extTup);
 
 		TupleExpr tup = pq1.getTupleExpr().clone();
-		PrecompJoinOptimizer pcj = new PrecompJoinOptimizer(list, false);
+		PCJOptimizer pcj = new PCJOptimizer(list, false);
 		pcj.optimize(tup, null, null);
 
 		Set<StatementPattern> qSet = Sets.newHashSet(StatementPatternCollector
@@ -886,7 +887,7 @@ public class PrecompJoinOptimizerTest2 {
 		list.add(extTup2);
 
 		TupleExpr tup = pq1.getTupleExpr().clone();
-		PrecompJoinOptimizer pcj = new PrecompJoinOptimizer(list, false);
+		PCJOptimizer pcj = new PCJOptimizer(list, false);
 		pcj.optimize(tup, null, null);
 
 		Set<StatementPattern> qSet = Sets.newHashSet(StatementPatternCollector
@@ -940,7 +941,7 @@ public class PrecompJoinOptimizerTest2 {
 		list.add(extTup3);
 
 		TupleExpr tup = pq1.getTupleExpr().clone();
-		PrecompJoinOptimizer pcj = new PrecompJoinOptimizer(list, false);
+		PCJOptimizer pcj = new PCJOptimizer(list, false);
 		pcj.optimize(tup, null, null);
 
 		Set<StatementPattern> qSet = Sets.newHashSet(StatementPatternCollector
@@ -985,7 +986,7 @@ public class PrecompJoinOptimizerTest2 {
 		list.add(extTup2);
 
 		TupleExpr tup = pq1.getTupleExpr().clone();
-		PrecompJoinOptimizer pcj = new PrecompJoinOptimizer(list, false);
+		PCJOptimizer pcj = new PCJOptimizer(list, false);
 		pcj.optimize(tup, null, null);
 
 		Set<StatementPattern> qSet = Sets.newHashSet(StatementPatternCollector
@@ -1019,7 +1020,7 @@ public class PrecompJoinOptimizerTest2 {
 		list.add(extTup);
 
 		TupleExpr tup = pq1.getTupleExpr().clone();
-		PrecompJoinOptimizer pcj = new PrecompJoinOptimizer(list, false);
+		PCJOptimizer pcj = new PCJOptimizer(list, false);
 		pcj.optimize(tup, null, null);
 
 		Set<StatementPattern> qSet = Sets.newHashSet(StatementPatternCollector
@@ -1062,7 +1063,7 @@ public class PrecompJoinOptimizerTest2 {
 		list.add(extTup2);
 
 		TupleExpr tup = pq1.getTupleExpr().clone();
-		PrecompJoinOptimizer pcj = new PrecompJoinOptimizer(list, false);
+		PCJOptimizer pcj = new PCJOptimizer(list, false);
 		pcj.optimize(tup, null, null);
 
 		Set<StatementPattern> qSet = Sets.newHashSet(StatementPatternCollector
@@ -1100,7 +1101,7 @@ public class PrecompJoinOptimizerTest2 {
 		list.add(extTup2);
 
 		TupleExpr tup = pq1.getTupleExpr().clone();
-		PrecompJoinOptimizer pcj = new PrecompJoinOptimizer(list, false);
+		PCJOptimizer pcj = new PCJOptimizer(list, false);
 		pcj.optimize(tup, null, null);
 
 		Set<StatementPattern> qSet = Sets.newHashSet(StatementPatternCollector

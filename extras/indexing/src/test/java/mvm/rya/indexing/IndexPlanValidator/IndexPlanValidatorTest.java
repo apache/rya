@@ -23,9 +23,9 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-import mvm.rya.indexing.external.PrecompJoinOptimizer;
 import mvm.rya.indexing.external.tupleSet.ExternalTupleSet;
 import mvm.rya.indexing.external.tupleSet.SimpleExternalTupleSet;
+import mvm.rya.indexing.pcj.matching.PCJOptimizer;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -43,8 +43,6 @@ public class IndexPlanValidatorTest {
 	public void testEvaluateTwoIndexTwoVarOrder1()
 			throws MalformedQueryException {
 
-		System.out
-				.println("********************Test number 1***************************");
 
 		String indexSparqlString = ""//
 				+ "SELECT ?c ?e ?l  " //
@@ -84,10 +82,9 @@ public class IndexPlanValidatorTest {
 
 		ParsedQuery pq = sp.parseQuery(queryString, null);
 		TupleExpr tup = pq.getTupleExpr().clone();
-		PrecompJoinOptimizer pcj = new PrecompJoinOptimizer(index, false);
+		PCJOptimizer pcj = new PCJOptimizer(index, false);
 		pcj.optimize(tup, null, null);
 
-		System.out.println("TupleExpr is " + tup);
 
 		IndexPlanValidator ipv = new IndexPlanValidator(false);
 		Assert.assertEquals(false, ipv.isValid(tup));
@@ -98,8 +95,6 @@ public class IndexPlanValidatorTest {
 	public void testEvaluateTwoIndexTwoVarOrder2()
 			throws MalformedQueryException {
 
-		System.out
-				.println("********************Test number 2***************************");
 
 		String indexSparqlString = ""//
 				+ "SELECT ?e ?l ?c  " //
@@ -140,10 +135,9 @@ public class IndexPlanValidatorTest {
 
 		ParsedQuery pq = sp.parseQuery(queryString, null);
 		TupleExpr tup = pq.getTupleExpr().clone();
-		PrecompJoinOptimizer pcj = new PrecompJoinOptimizer(index, false);
+		PCJOptimizer pcj = new PCJOptimizer(index, false);
 		pcj.optimize(tup, null, null);
 
-		System.out.println("TupleExpr is " + tup);
 
 		IndexPlanValidator ipv = new IndexPlanValidator(false);
 		Assert.assertEquals(true, ipv.isValid(tup));
@@ -154,8 +148,6 @@ public class IndexPlanValidatorTest {
 	public void testEvaluateTwoIndexTwoVarOrder3()
 			throws MalformedQueryException {
 
-		System.out
-				.println("********************Test number 3***************************");
 
 		String indexSparqlString = ""//
 				+ "SELECT ?l ?e ?c  " //
@@ -196,10 +188,9 @@ public class IndexPlanValidatorTest {
 
 		ParsedQuery pq = sp.parseQuery(queryString, null);
 		TupleExpr tup = pq.getTupleExpr().clone();
-		PrecompJoinOptimizer pcj = new PrecompJoinOptimizer(index, false);
+		PCJOptimizer pcj = new PCJOptimizer(index, false);
 		pcj.optimize(tup, null, null);
 
-		System.out.println("TupleExpr is " + tup);
 
 		IndexPlanValidator ipv = new IndexPlanValidator(false);
 		Assert.assertEquals(true, ipv.isValid(tup));
@@ -210,8 +201,6 @@ public class IndexPlanValidatorTest {
 	public void testEvaluateTwoIndexTwoVarOrder4()
 			throws MalformedQueryException {
 
-		System.out
-				.println("********************Test number 4***************************");
 
 		String indexSparqlString = ""//
 				+ "SELECT ?e ?c ?l  " //
@@ -252,10 +241,9 @@ public class IndexPlanValidatorTest {
 
 		ParsedQuery pq = sp.parseQuery(queryString, null);
 		TupleExpr tup = pq.getTupleExpr().clone();
-		PrecompJoinOptimizer pcj = new PrecompJoinOptimizer(index, false);
+		PCJOptimizer pcj = new PCJOptimizer(index, false);
 		pcj.optimize(tup, null, null);
 
-		System.out.println("TupleExpr is " + tup);
 
 		IndexPlanValidator ipv = new IndexPlanValidator(false);
 		Assert.assertEquals(false, ipv.isValid(tup));
@@ -267,8 +255,6 @@ public class IndexPlanValidatorTest {
 	public void testEvaluateTwoIndexTwoVarOrder6()
 			throws MalformedQueryException {
 
-		System.out
-				.println("********************Test number 6***************************");
 
 		String indexSparqlString = ""//
 				+ "SELECT ?e ?l ?c  " //
@@ -309,10 +295,9 @@ public class IndexPlanValidatorTest {
 
 		ParsedQuery pq = sp.parseQuery(queryString, null);
 		TupleExpr tup = pq.getTupleExpr().clone();
-		PrecompJoinOptimizer pcj = new PrecompJoinOptimizer(index, false);
+		PCJOptimizer pcj = new PCJOptimizer(index, false);
 		pcj.optimize(tup, null, null);
 
-		System.out.println("TupleExpr is " + tup);
 
 		IndexPlanValidator ipv = new IndexPlanValidator(false);
 		Assert.assertEquals(true, ipv.isValid(tup));
@@ -323,8 +308,6 @@ public class IndexPlanValidatorTest {
 	public void testEvaluateTwoIndexCrossProduct1()
 			throws MalformedQueryException {
 
-		System.out
-				.println("********************Test number 7***************************");
 
 		String indexSparqlString = ""//
 				+ "SELECT ?e ?l ?c  " //
@@ -365,7 +348,7 @@ public class IndexPlanValidatorTest {
 
 		ParsedQuery pq = sp.parseQuery(queryString, null);
 		TupleExpr tup = pq.getTupleExpr().clone();
-		PrecompJoinOptimizer pcj = new PrecompJoinOptimizer(index, false);
+		PCJOptimizer pcj = new PCJOptimizer(index, false);
 		pcj.optimize(tup, null, null);
 
 		IndexPlanValidator ipv = new IndexPlanValidator(true);
@@ -377,8 +360,6 @@ public class IndexPlanValidatorTest {
 	public void testEvaluateTwoIndexCrossProduct2()
 			throws MalformedQueryException {
 
-		System.out
-				.println("********************Test number 8***************************");
 
 		String indexSparqlString = ""//
 				+ "SELECT ?e ?l ?c  " //
@@ -420,7 +401,7 @@ public class IndexPlanValidatorTest {
 
 		ParsedQuery pq = sp.parseQuery(queryString, null);
 		TupleExpr tup = pq.getTupleExpr().clone();
-		PrecompJoinOptimizer pcj = new PrecompJoinOptimizer(index, false);
+		PCJOptimizer pcj = new PCJOptimizer(index, false);
 		pcj.optimize(tup, null, null);
 
 		IndexPlanValidator ipv = new IndexPlanValidator(true);
@@ -432,8 +413,6 @@ public class IndexPlanValidatorTest {
 	public void testEvaluateTwoIndexCrossProduct3()
 			throws MalformedQueryException {
 
-		System.out
-				.println("********************Test number 9***************************");
 
 		String indexSparqlString = ""//
 				+ "SELECT ?e ?l ?c  " //
@@ -475,7 +454,7 @@ public class IndexPlanValidatorTest {
 
 		ParsedQuery pq = sp.parseQuery(queryString, null);
 		TupleExpr tup = pq.getTupleExpr().clone();
-		PrecompJoinOptimizer pcj = new PrecompJoinOptimizer(index, false);
+		PCJOptimizer pcj = new PCJOptimizer(index, false);
 		pcj.optimize(tup, null, null);
 
 		IndexPlanValidator ipv = new IndexPlanValidator(false);
@@ -486,8 +465,6 @@ public class IndexPlanValidatorTest {
 	@Test
 	public void testEvaluateTwoIndexDiffVars() throws MalformedQueryException {
 
-		System.out
-				.println("********************Test number 10***************************");
 
 		String indexSparqlString = ""//
 				+ "SELECT ?chicken ?dog ?pig  " //
@@ -529,7 +506,7 @@ public class IndexPlanValidatorTest {
 
 		ParsedQuery pq = sp.parseQuery(queryString, null);
 		TupleExpr tup = pq.getTupleExpr().clone();
-		PrecompJoinOptimizer pcj = new PrecompJoinOptimizer(index, false);
+		PCJOptimizer pcj = new PCJOptimizer(index, false);
 		pcj.optimize(tup, null, null);
 
 		IndexPlanValidator ipv = new IndexPlanValidator(false);
@@ -540,8 +517,6 @@ public class IndexPlanValidatorTest {
 	@Test
 	public void testEvaluateTwoIndexDiffVars2() throws MalformedQueryException {
 
-		System.out
-				.println("********************Test number 11***************************");
 
 		String indexSparqlString = ""//
 				+ "SELECT ?dog ?pig ?chicken  " //
@@ -583,7 +558,7 @@ public class IndexPlanValidatorTest {
 
 		ParsedQuery pq = sp.parseQuery(queryString, null);
 		TupleExpr tup = pq.getTupleExpr().clone();
-		PrecompJoinOptimizer pcj = new PrecompJoinOptimizer(index, false);
+		PCJOptimizer pcj = new PCJOptimizer(index, false);
 		pcj.optimize(tup, null, null);
 
 		IndexPlanValidator ipv = new IndexPlanValidator(false);
@@ -594,8 +569,6 @@ public class IndexPlanValidatorTest {
 	@Test
 	public void testEvaluateTwoIndexDiffVars3() throws MalformedQueryException {
 
-		System.out
-				.println("********************Test number 11***************************");
 
 		String indexSparqlString = ""//
 				+ "SELECT ?pig ?dog ?chicken  " //
@@ -637,7 +610,7 @@ public class IndexPlanValidatorTest {
 
 		ParsedQuery pq = sp.parseQuery(queryString, null);
 		TupleExpr tup = pq.getTupleExpr().clone();
-		PrecompJoinOptimizer pcj = new PrecompJoinOptimizer(index, false);
+		PCJOptimizer pcj = new PCJOptimizer(index, false);
 		pcj.optimize(tup, null, null);
 
 		IndexPlanValidator ipv = new IndexPlanValidator(false);
@@ -649,8 +622,6 @@ public class IndexPlanValidatorTest {
 	public void testEvaluateTwoIndexDiffVarsDirProd()
 			throws MalformedQueryException {
 
-		System.out
-				.println("********************Test number 12***************************");
 
 		String indexSparqlString = ""//
 				+ "SELECT ?pig ?dog ?chicken  " //
@@ -692,7 +663,7 @@ public class IndexPlanValidatorTest {
 
 		ParsedQuery pq = sp.parseQuery(queryString, null);
 		TupleExpr tup = pq.getTupleExpr().clone();
-		PrecompJoinOptimizer pcj = new PrecompJoinOptimizer(index, false);
+		PCJOptimizer pcj = new PCJOptimizer(index, false);
 		pcj.optimize(tup, null, null);
 
 		IndexPlanValidator ipv = new IndexPlanValidator(true);
@@ -702,9 +673,6 @@ public class IndexPlanValidatorTest {
 
 	@Test
 	public void testValidTupleIterator() throws Exception {
-
-		System.out
-				.println("********************Test number 13***************************");
 
 		String q1 = ""//
 				+ "SELECT ?f ?m ?d ?h ?i " //

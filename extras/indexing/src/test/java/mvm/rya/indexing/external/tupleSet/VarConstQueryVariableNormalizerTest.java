@@ -23,7 +23,7 @@ package mvm.rya.indexing.external.tupleSet;
 import java.util.List;
 import java.util.Set;
 
-import mvm.rya.indexing.external.QueryVariableNormalizer;
+import mvm.rya.indexing.pcj.matching.QueryVariableNormalizer;
 
 import org.junit.Assert;
 import org.junit.Test;

@@ -21,6 +21,14 @@ package mvm.rya.indexing.external;
 import java.util.ArrayList;
 import java.util.List;
 
+import mvm.rya.api.persist.RyaDAOException;
+import mvm.rya.indexing.external.PrecompJoinOptimizerIntegrationTest.CountingResultHandler;
+import mvm.rya.indexing.external.PrecompJoinOptimizerTest.NodeCollector;
+import mvm.rya.indexing.external.tupleSet.ExternalTupleSet;
+import mvm.rya.indexing.external.tupleSet.SimpleExternalTupleSet;
+import mvm.rya.indexing.pcj.matching.PCJOptimizer;
+import mvm.rya.rdftriplestore.inference.InferenceEngineException;
+
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
 import org.apache.accumulo.core.client.Connector;
@@ -56,13 +64,6 @@ import org.openrdf.sail.SailException;
 
 import com.beust.jcommander.internal.Lists;
 import com.google.common.base.Optional;
-
-import mvm.rya.api.persist.RyaDAOException;
-import mvm.rya.indexing.external.PrecompJoinOptimizerIntegrationTest.CountingResultHandler;
-import mvm.rya.indexing.external.PrecompJoinOptimizerTest.NodeCollector;
-import mvm.rya.indexing.external.tupleSet.ExternalTupleSet;
-import mvm.rya.indexing.external.tupleSet.SimpleExternalTupleSet;
-import mvm.rya.rdftriplestore.inference.InferenceEngineException;
 
 public class PCJOptionalTestIT {
 
@@ -237,17 +238,15 @@ public class PCJOptionalTestIT {
 		final List<QueryModelNode> optTupNodes = Lists.newArrayList();
 		optTupNodes.add(extTup1);
 
-		final PrecompJoinOptimizer pcj = new PrecompJoinOptimizer(list, true);
+		final PCJOptimizer pcj = new PCJOptimizer(list, true);
 		final TupleExpr te = pq1.getTupleExpr();
 		pcj.optimize(te, null, null);
 
 		final NodeCollector nc = new NodeCollector();
 		te.visit(nc);
 
-		final List<QueryModelNode> qNodes = nc.getNodes();
-
-		Assert.assertEquals(qNodes.size(), optTupNodes.size());
-		for (final QueryModelNode node : qNodes) {
+		Assert.assertEquals(nc.qNodes.size(), optTupNodes.size());
+		for (final QueryModelNode node : nc.qNodes) {
 			Assert.assertTrue(optTupNodes.contains(node));
 		}
 
@@ -303,18 +302,16 @@ public class PCJOptionalTestIT {
 		final List<QueryModelNode> optTupNodes = Lists.newArrayList();
 		optTupNodes.add(extTup2);
 
-		final PrecompJoinOptimizer opt = new PrecompJoinOptimizer(list, true);
+		final PCJOptimizer opt = new PCJOptimizer(list, true);
 		final TupleExpr te = pq1.getTupleExpr();
 		opt.optimize(te, null, null);
 
 		final NodeCollector nc = new NodeCollector();
 		te.visit(nc);
 
-		final List<QueryModelNode> qNodes = nc.getNodes();
-
-		Assert.assertEquals(qNodes.size(), optTupNodes.size() + 1);
+		Assert.assertEquals(nc.qNodes.size(), optTupNodes.size() + 1);
 		for (QueryModelNode node : optTupNodes) {
-			Assert.assertTrue(qNodes.contains(node));
+			Assert.assertTrue(nc.qNodes.contains(node));
 		}
 
 	}

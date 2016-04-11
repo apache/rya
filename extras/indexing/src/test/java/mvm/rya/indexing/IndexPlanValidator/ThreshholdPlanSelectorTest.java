@@ -23,9 +23,9 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-import mvm.rya.indexing.external.PrecompJoinOptimizer;
 import mvm.rya.indexing.external.tupleSet.ExternalTupleSet;
 import mvm.rya.indexing.external.tupleSet.SimpleExternalTupleSet;
+import mvm.rya.indexing.pcj.matching.PCJOptimizer;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -679,7 +679,7 @@ public class ThreshholdPlanSelectorTest {
 		eList.add(sep);
 
 		final TupleExpr te = pq1.getTupleExpr().clone();
-		final PrecompJoinOptimizer pcj = new PrecompJoinOptimizer(eList, false);
+		final PCJOptimizer pcj = new PCJOptimizer(eList, false);
         pcj.optimize(te, null, null);
 
 		ThreshholdPlanSelector tps = new ThreshholdPlanSelector(

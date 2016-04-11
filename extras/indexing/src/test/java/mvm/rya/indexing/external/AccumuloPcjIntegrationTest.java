@@ -24,6 +24,13 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
+import mvm.rya.api.persist.RyaDAOException;
+import mvm.rya.indexing.IndexPlanValidator.IndexPlanValidator;
+import mvm.rya.indexing.external.tupleSet.AccumuloIndexSet;
+import mvm.rya.indexing.external.tupleSet.ExternalTupleSet;
+import mvm.rya.indexing.pcj.matching.PCJOptimizer;
+import mvm.rya.rdftriplestore.inference.InferenceEngineException;
+
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
 import org.apache.accumulo.core.client.Connector;
@@ -62,12 +69,6 @@ import org.openrdf.sail.SailException;
 import com.beust.jcommander.internal.Sets;
 import com.google.common.base.Optional;
 import com.google.common.collect.Lists;
-
-import mvm.rya.api.persist.RyaDAOException;
-import mvm.rya.indexing.IndexPlanValidator.IndexPlanValidator;
-import mvm.rya.indexing.external.tupleSet.AccumuloIndexSet;
-import mvm.rya.indexing.external.tupleSet.ExternalTupleSet;
-import mvm.rya.rdftriplestore.inference.InferenceEngineException;
 
 public class AccumuloPcjIntegrationTest {
 
@@ -1270,7 +1271,7 @@ public class AccumuloPcjIntegrationTest {
 		final List<TupleExpr> teList = Lists.newArrayList();
 		final TupleExpr te = pq.getTupleExpr();
 
-		final PrecompJoinOptimizer pcj = new PrecompJoinOptimizer(index, false);
+		final PCJOptimizer pcj = new PCJOptimizer(index, false);
         pcj.optimize(te, null, null);
 		teList.add(te);
 
@@ -1372,7 +1373,7 @@ public class AccumuloPcjIntegrationTest {
 		final List<TupleExpr> teList = Lists.newArrayList();
 		final TupleExpr te = pq.getTupleExpr();
 
-		final PrecompJoinOptimizer pcj = new PrecompJoinOptimizer(index, false);
+		final PCJOptimizer pcj = new PCJOptimizer(index, false);
         pcj.optimize(te, null, null);
 
 		teList.add(te);

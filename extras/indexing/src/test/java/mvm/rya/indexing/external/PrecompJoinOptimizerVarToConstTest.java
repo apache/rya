@@ -24,9 +24,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
-import mvm.rya.indexing.external.PrecompJoinOptimizer;
 import mvm.rya.indexing.external.tupleSet.ExternalTupleSet;
 import mvm.rya.indexing.external.tupleSet.SimpleExternalTupleSet;
+import mvm.rya.indexing.pcj.matching.PCJOptimizer;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -130,12 +130,12 @@ public class PrecompJoinOptimizerVarToConstTest {
 
      String q23 = "PREFIX geo: <http://www.opengis.net/ont/geosparql#>  "//
                 + "PREFIX geof: <http://www.opengis.net/def/function/geosparql/>  "//
-                + "SELECT ?a ?b ?c ?d " //
+                + "SELECT ?a ?b ?c " //
                 + "{" //
                 + "  ?a a geo:Feature . "//
                 + "  ?b a geo:Point . "//
                 + "  ?b geo:asWKT ?c . "//
-                + "  FILTER(geof:sfWithin(?c, ?d)) " //
+                + "  FILTER(geof:sfWithin(?c, \"Polygon\")) " //
                 + "}";//
 
 
@@ -224,7 +224,7 @@ public class PrecompJoinOptimizerVarToConstTest {
 
         final TupleExpr tup = pq1.getTupleExpr().clone();
 
-		final PrecompJoinOptimizer pcj = new PrecompJoinOptimizer(list, false);
+		final PCJOptimizer pcj = new PCJOptimizer(list, false);
         pcj.optimize(tup, null, null);
 
         System.out.println("Processed query is " + tup);
@@ -264,7 +264,7 @@ public class PrecompJoinOptimizerVarToConstTest {
         list.add(extTup);
 
         final TupleExpr tup = pq1.getTupleExpr().clone();
-		final PrecompJoinOptimizer pcj = new PrecompJoinOptimizer(list, false);
+		final PCJOptimizer pcj = new PCJOptimizer(list, false);
         pcj.optimize(tup, null, null);
 
         System.out.println("Processed query is " + tup);
@@ -305,7 +305,7 @@ public class PrecompJoinOptimizerVarToConstTest {
         list.add(extTup);
 
         final TupleExpr tup = pq1.getTupleExpr().clone();
-		final PrecompJoinOptimizer pcj = new PrecompJoinOptimizer(list, false);
+		final PCJOptimizer pcj = new PCJOptimizer(list, false);
         pcj.optimize(tup, null, null);
 
         System.out.println("Processed query is " + tup);
@@ -350,7 +350,7 @@ public class PrecompJoinOptimizerVarToConstTest {
         list.add(extTup2);
 
         final TupleExpr tup = pq1.getTupleExpr().clone();
-		final PrecompJoinOptimizer pcj = new PrecompJoinOptimizer(list, false);
+		final PCJOptimizer pcj = new PCJOptimizer(list, false);
         pcj.optimize(tup, null, null);
 
         System.out.println("Processed query is " + tup);
@@ -399,7 +399,7 @@ public class PrecompJoinOptimizerVarToConstTest {
         list.add(extTup3);
 
         final TupleExpr tup = pq1.getTupleExpr().clone();
-		final PrecompJoinOptimizer pcj = new PrecompJoinOptimizer(list, false);
+		final PCJOptimizer pcj = new PCJOptimizer(list, false);
         pcj.optimize(tup, null, null);
 
         System.out.println("Processed query is " + tup);

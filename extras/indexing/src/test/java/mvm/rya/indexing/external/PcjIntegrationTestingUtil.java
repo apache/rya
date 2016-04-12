@@ -31,6 +31,7 @@ import mvm.rya.api.resolver.RyaTypeResolverException;
 import mvm.rya.sail.config.RyaSailFactory;
 import mvm.rya.indexing.accumulo.ConfigUtils;
 import mvm.rya.indexing.external.tupleSet.AccumuloPcjSerializer;
+import mvm.rya.indexing.external.tupleSet.BindingSetConverter.BindingSetConversionException;
 import mvm.rya.indexing.external.tupleSet.ExternalTupleSet;
 import mvm.rya.indexing.external.tupleSet.PcjTables;
 import mvm.rya.indexing.external.tupleSet.PcjTables.PcjException;
@@ -38,6 +39,7 @@ import mvm.rya.indexing.external.tupleSet.PcjTables.PcjMetadata;
 import mvm.rya.indexing.external.tupleSet.PcjTables.PcjVarOrderFactory;
 import mvm.rya.indexing.external.tupleSet.PcjTables.ShiftVarOrderFactory;
 import mvm.rya.indexing.external.tupleSet.PcjTables.VariableOrder;
+import mvm.rya.rdftriplestore.inference.InferenceEngineException;
 
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
@@ -69,6 +71,8 @@ import com.google.common.collect.Sets;
 
 public class PcjIntegrationTestingUtil {
 
+	private static final AccumuloPcjSerializer converter = new AccumuloPcjSerializer();
+	
 	public static Set<QueryModelNode> getTupleSets(TupleExpr te) {
 		final ExternalTupleVisitor etv = new ExternalTupleVisitor();
 		te.visit(etv);
@@ -92,7 +96,7 @@ public class PcjIntegrationTestingUtil {
 
 	public static SailRepository getPcjRepo(String tablePrefix, String instance)
 			throws AccumuloException, AccumuloSecurityException,
-			RyaDAOException, RepositoryException {
+			RyaDAOException, RepositoryException, InferenceEngineException {
 
 		final AccumuloRdfConfiguration pcjConf = new AccumuloRdfConfiguration();
 		pcjConf.set(ConfigUtils.USE_PCJ, "true");
@@ -108,7 +112,7 @@ public class PcjIntegrationTestingUtil {
 
 	public static SailRepository getNonPcjRepo(String tablePrefix,
 			String instance) throws AccumuloException,
-			AccumuloSecurityException, RyaDAOException, RepositoryException {
+			AccumuloSecurityException, RyaDAOException, RepositoryException, InferenceEngineException {
 
 		final AccumuloRdfConfiguration nonPcjConf = new AccumuloRdfConfiguration();
 		nonPcjConf.set(ConfigUtils.USE_MOCK_INSTANCE, "true");
@@ -385,20 +389,18 @@ public class PcjIntegrationTestingUtil {
 		for (final VariableOrder varOrder : varOrders) {
 			try {
 				// Serialize the result to the variable order.
-				byte[] serializedResult = AccumuloPcjSerializer.serialize(
-						result, varOrder.toArray());
+				byte[] serializedResult = converter.convert(result, varOrder);
 
 				// Row ID = binding set values, Column Family = variable order
 				// of the binding set.
 				Mutation addResult = new Mutation(serializedResult);
 				addResult.put(varOrder.toString(), "", "");
 				mutations.add(addResult);
-			} catch (RyaTypeResolverException e) {
+			} catch (BindingSetConversionException e) {
 				throw new PcjException("Could not serialize a result.", e);
 			}
 		}
 
 		return mutations;
 	}
-
 }

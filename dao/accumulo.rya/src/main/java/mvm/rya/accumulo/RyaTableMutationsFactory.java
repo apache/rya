@@ -84,6 +84,52 @@ public class RyaTableMutationsFactory {
         return mutations;
     }
 
+    public Map<RdfCloudTripleStoreConstants.TABLE_LAYOUT, Collection<Mutation>> serializeDelete(
+            RyaStatement stmt) throws IOException {
+
+        Collection<Mutation> spo_muts = new ArrayList<Mutation>();
+        Collection<Mutation> po_muts = new ArrayList<Mutation>();
+        Collection<Mutation> osp_muts = new ArrayList<Mutation>();
+        /**
+         * TODO: If there are contexts, do we still replicate the information into the default graph as well
+         * as the named graphs?
+         */
+        try {
+            Map<TABLE_LAYOUT, TripleRow> rowMap = ryaContext.serializeTriple(stmt);
+            TripleRow tripleRow = rowMap.get(TABLE_LAYOUT.SPO);
+            spo_muts.add(deleteMutation(tripleRow));
+            tripleRow = rowMap.get(TABLE_LAYOUT.PO);
+            po_muts.add(deleteMutation(tripleRow));
+            tripleRow = rowMap.get(TABLE_LAYOUT.OSP);
+            osp_muts.add(deleteMutation(tripleRow));
+        } catch (TripleRowResolverException fe) {
+            throw new IOException(fe);
+        }
+
+        Map<RdfCloudTripleStoreConstants.TABLE_LAYOUT, Collection<Mutation>> mutations =
+                new HashMap<RdfCloudTripleStoreConstants.TABLE_LAYOUT, Collection<Mutation>>();
+        mutations.put(RdfCloudTripleStoreConstants.TABLE_LAYOUT.SPO, spo_muts);
+        mutations.put(RdfCloudTripleStoreConstants.TABLE_LAYOUT.PO, po_muts);
+        mutations.put(RdfCloudTripleStoreConstants.TABLE_LAYOUT.OSP, osp_muts);
+
+        return mutations;
+
+    }
+
+    protected Mutation deleteMutation(TripleRow tripleRow) {
+        Mutation m = new Mutation(new Text(tripleRow.getRow()));
+
+        byte[] columnFamily = tripleRow.getColumnFamily();
+        Text cfText = columnFamily == null ? EMPTY_TEXT : new Text(columnFamily);
+
+        byte[] columnQualifier = tripleRow.getColumnQualifier();
+        Text cqText = columnQualifier == null ? EMPTY_TEXT : new Text(columnQualifier);
+
+        m.putDelete(cfText, cqText, new ColumnVisibility(tripleRow.getColumnVisibility()),
+                tripleRow.getTimestamp());
+        return m;
+    }
+
     protected Mutation createMutation(TripleRow tripleRow) {
         Mutation mutation = new Mutation(new Text(tripleRow.getRow()));
         byte[] columnVisibility = tripleRow.getColumnVisibility();

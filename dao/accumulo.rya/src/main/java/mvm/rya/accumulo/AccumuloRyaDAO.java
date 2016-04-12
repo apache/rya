@@ -32,6 +32,7 @@ import static mvm.rya.api.RdfCloudTripleStoreConstants.RTS_SUBJECT_RYA;
 import static mvm.rya.api.RdfCloudTripleStoreConstants.RTS_VERSION_PREDICATE_RYA;
 import static mvm.rya.api.RdfCloudTripleStoreConstants.VERSION_RYA;
 
+import java.io.IOException;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
@@ -55,7 +56,6 @@ import org.apache.accumulo.core.data.Mutation;
 import org.apache.accumulo.core.data.Range;
 import org.apache.accumulo.core.data.Value;
 import org.apache.accumulo.core.security.Authorizations;
-import org.apache.accumulo.core.security.ColumnVisibility;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.io.Text;
@@ -255,26 +255,11 @@ public class AccumuloRyaDAO implements RyaDAO<AccumuloRdfConfiguration>, RyaName
 
     }
 
-    protected void deleteSingleRyaStatement(RyaStatement stmt) throws TripleRowResolverException, MutationsRejectedException {
-        Map<TABLE_LAYOUT, TripleRow> map = ryaContext.serializeTriple(stmt);
-        bw_spo.addMutation(deleteMutation(map.get(TABLE_LAYOUT.SPO)));
-        bw_po.addMutation(deleteMutation(map.get(TABLE_LAYOUT.PO)));
-        bw_osp.addMutation(deleteMutation(map.get(TABLE_LAYOUT.OSP)));
-
-    }
-
-    protected Mutation deleteMutation(TripleRow tripleRow) {
-        Mutation m = new Mutation(new Text(tripleRow.getRow()));
-
-        byte[] columnFamily = tripleRow.getColumnFamily();
-        Text cfText = columnFamily == null ? EMPTY_TEXT : new Text(columnFamily);
-
-        byte[] columnQualifier = tripleRow.getColumnQualifier();
-        Text cqText = columnQualifier == null ? EMPTY_TEXT : new Text(columnQualifier);
-
-        m.putDelete(cfText, cqText, new ColumnVisibility(tripleRow.getColumnVisibility()),
-                    tripleRow.getTimestamp());
-        return m;
+    protected void deleteSingleRyaStatement(RyaStatement stmt) throws IOException, MutationsRejectedException {
+        Map<TABLE_LAYOUT, Collection<Mutation>> map = ryaTableMutationsFactory.serializeDelete(stmt);
+        bw_spo.addMutations(map.get(TABLE_LAYOUT.SPO));
+        bw_po.addMutations(map.get(TABLE_LAYOUT.PO));
+        bw_osp.addMutations(map.get(TABLE_LAYOUT.OSP));
     }
 
     protected void commit(Iterator<RyaStatement> commitStatements) throws RyaDAOException {

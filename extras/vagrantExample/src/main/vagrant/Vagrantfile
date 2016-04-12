@@ -28,7 +28,11 @@
 
 Vagrant.configure(2) do |config|
 
-  config.vm.box = "ubuntu/trusty64"
+  config.vm.box = "ubuntu/trusty64"  
+  config.vm.box_url = "https://cloud-images.ubuntu.com/vagrant/trusty/current/trusty-server-cloudimg-amd64-vagrant-disk1.box"
+  
+  
+  
 
   config.vm.provider "virtualbox" do |vb|
     vb.name = "rya-example-box"
@@ -39,7 +43,14 @@ Vagrant.configure(2) do |config|
   config.vm.network :private_network, ip: "192.168.33.10"
   config.vm.hostname = "rya-example-box"
 
-  config.vm.provision "shell", inline: <<-SHELL
+  config.vm.provision "shell", inline: <<-SHELL  
+  
+    export ACCUMULO_VERSION=1.7.1
+    export HADOOP_VERSION=2.7.2
+    export RYA_EXAMPLE_VERSION=3.2.10-SNAPSHOT
+    export SESAME_VERSION=2.7.6
+    export ZOOKEEPER_VERSION=3.4.5-cdh4.5.0
+    
     echo "Updating host file with permanent ip"
 	sudo sed -i 's/127.0.1.1/192.168.33.10/' /etc/hosts
     cat >> /etc/hosts <<EOF
@@ -56,7 +67,7 @@ EOF
     echo debconf shared/accepted-oracle-license-v1-1 seen true | \
       sudo /usr/bin/debconf-set-selections
     sudo apt-get install -y oracle-java8-installer
-    sudo ln --force -s /usr/lib/jvm/java-8-oracle/ /usr/lib/jvm/default-java
+    sudo ln -s /usr/lib/jvm/java-8-oracle/ /usr/lib/jvm/default-java
     
     echo "Installing Tomcat..."
     sudo apt-get install -y tomcat7
@@ -64,14 +75,11 @@ EOF
     echo "Installing Unzip..."
     apt-get install unzip
 
-    # List of dependency versions
-    ACCUMULO_VERSION=1.6.5
-
     echo "Setting up environment..."
     export JAVA_HOME=/usr/lib/jvm/java-8-oracle
-    export HADOOP_HOME=/home/vagrant/${hadoopFolder}
-    export ZOOKEEPER_HOME=/home/vagrant/${zookeeperFolder}
-    export ACCUMULO_HOME=/home/vagrant/accumulo-$ACCUMULO_VERSION
+    export HADOOP_HOME=/home/vagrant/hadoop-${HADOOP_VERSION}
+    export ZOOKEEPER_HOME=/home/vagrant/zookeeper-${ZOOKEEPER_VERSION}
+    export ACCUMULO_HOME=/home/vagrant/accumulo-${ACCUMULO_VERSION}
     export PATH=$PATH:$JAVA_HOME/bin:$ZOOKEEPER_HOME/bin:$ACCUMULO_HOME/bin
 
     export HADOOP_PREFIX="$HADOOP_HOME"
@@ -87,9 +95,9 @@ EOF
 
     cat >> /home/vagrant/.bashrc <<EOF
         export JAVA_HOME=/usr/lib/jvm/java-8-oracle
-        export HADOOP_HOME=/home/vagrant/${hadoopFolder}
-        export ZOOKEEPER_HOME=/home/vagrant/${zookeeperFolder}
-        export ACCUMULO_HOME=/home/vagrant/accumulo-$ACCUMULO_VERSION
+        export HADOOP_HOME=/home/vagrant/hadoop-${HADOOP_VERSION}
+        export ZOOKEEPER_HOME=/home/vagrant/zookeeper-${ZOOKEEPER_VERSION}
+        export ACCUMULO_HOME=/home/vagrant/accumulo-${ACCUMULO_VERSION}
         export PATH=$PATH:$JAVA_HOME/bin:$ZOOKEEPER_HOME/bin:$ACCUMULO_HOME/bin
 
         export HADOOP_PREFIX="$HADOOP_HOME"
@@ -105,46 +113,46 @@ EOF
 EOF
 
     
-    echo "Acquiring and Extracting ..."
-    ### curl --fail causes curl to treat http status >= 400 as an error. -L follow redirects status>=300
+    echo "Acquiring and Extracting ..."    
+    
+    function download {
+      curl -f "$@"
+      if [ $? -ne 0 ]; then
+        echo "--------------------------"
+        echo "-"
+        echo "- download failed" "$@"
+        echo "-"
+        echo "-"   exiting ...
+        echo "-"
+        echo "--------------------------"
+        exit 1
+      fi
+    }
+    
     echo "- Hadoop"
-	hadoopFolder=hadoop-1.2.1
-	hadoopUrl=http://apache.mirrors.tds.net/hadoop/common/hadoop-1.2.1/hadoop-1.2.1.tar.gz
-	if [[ ! -d $hadoopFolder ]] ; then 
-		echo "Downloading $hadoopUrl"
-		curl --silent --show-error --fail -L $hadoopUrl \
-		| tar -zxC /home/vagrant || exit 101
-	fi
+    download -SLO http://apache.mirrors.tds.net/hadoop/common/hadoop-${HADOOP_VERSION}/hadoop-${HADOOP_VERSION}.tar.gz 
+    tar -zxf hadoop-${HADOOP_VERSION}.tar.gz
 
     echo "- Zookeeper"
-	zookeeperFolder=zookeeper-3.4.5-cdh4.5.0
-	zookeeperUrl=http://archive-primary.cloudera.com/cdh4/cdh/4/zookeeper-3.4.5-cdh4.5.0.tar.gz
-	if [[ ! -d $zookeeperFolder ]] ; then
-		echo "Downloading $zookeeperUrl"
-		curl --silent --show-error --fail -L $zookeeperUrl \
-		| tar -zxC /home/vagrant || exit 102
-    fi
-	
+    download -SLO http://archive-primary.cloudera.com/cdh4/cdh/4/zookeeper-${ZOOKEEPER_VERSION}.tar.gz
+    tar -zxf zookeeper-${ZOOKEEPER_VERSION}.tar.gz
+    
     echo "- Accumulo"
-	accumuloUrl=http://apache.mirrors.pair.com/accumulo/$ACCUMULO_VERSION/accumulo-$ACCUMULO_VERSION-bin.tar.gz
-	if [[ ! -d ${ACCUMULO_HOME} ]] ; then
-		echo "Downloading $accumuloUrl"
-		curl --silent --show-error --fail -L $accumuloUrl \
-		| tar -zxC /home/vagrant || exit 103
-	fi
+    download -SLO http://apache.mirrors.pair.com/accumulo/${ACCUMULO_VERSION}/accumulo-${ACCUMULO_VERSION}-bin.tar.gz
+    tar -zxf accumulo-${ACCUMULO_VERSION}-bin.tar.gz
     
     echo "Configuring Zookeeper..."
-    sudo mkdir --parents /var/zookeeper
+    sudo mkdir /var/zookeeper
     sudo chown vagrant:vagrant /var/zookeeper
 
     echo "Running Zookeeper..."
-    cp ${zookeeperFolder}/conf/zoo_sample.cfg ${zookeeperFolder}/conf/zoo.cfg
-    sudo ${zookeeperFolder}/bin/zkServer.sh start
+    cp zookeeper-${ZOOKEEPER_VERSION}/conf/zoo_sample.cfg zookeeper-${ZOOKEEPER_VERSION}/conf/zoo.cfg
+    sudo zookeeper-${ZOOKEEPER_VERSION}/bin/zkServer.sh start
     
     echo "Configuring Accumulo..."
-    cp accumulo-$ACCUMULO_VERSION/conf/examples/1GB/standalone/* accumulo-$ACCUMULO_VERSION/conf/
-    rm --force accumulo-$ACCUMULO_VERSION/conf/accumulo-site.xml
-    cat >> accumulo-$ACCUMULO_VERSION/conf/accumulo-site.xml <<EOF
+    cp accumulo-${ACCUMULO_VERSION}/conf/examples/1GB/standalone/* accumulo-${ACCUMULO_VERSION}/conf/
+    rm accumulo-${ACCUMULO_VERSION}/conf/accumulo-site.xml
+    cat >> accumulo-${ACCUMULO_VERSION}/conf/accumulo-site.xml <<EOF
         <configuration>
             <property><name>instance.dfs.uri</name><value>file:///</value></property>
             <property><name>instance.dfs.dir</name><value>/data/accumulo</value></property>
@@ -163,26 +171,26 @@ EOF
             <property><name>tserver.compaction.major.delay</name><value>3</value></property>
             <property><name>general.classpaths</name><value>
             /data/accumulo/lib/[^.].*.jar,
-            /home/vagrant/${hadoopFolder}/share/hadoop/common/.*.jar,
-            /home/vagrant/${hadoopFolder}/share/hadoop/common/lib/.*.jar,
-            /home/vagrant/${hadoopFolder}/share/hadoop/hdfs/.*.jar,
-            /home/vagrant/${hadoopFolder}/share/hadoop/mapreduce/.*.jar,
-            /home/vagrant/${hadoopFolder}/share/hadoop/yarn/.*.jar,
-            /home/vagrant/accumulo-$ACCUMULO_VERSION/server/target/classes/,
-            /home/vagrant/accumulo-$ACCUMULO_VERSION/lib/accumulo-server.jar,
-            /home/vagrant/accumulo-$ACCUMULO_VERSION/core/target/classes/,
-            /home/vagrant/accumulo-$ACCUMULO_VERSION/lib/accumulo-core.jar,
-            /home/vagrant/accumulo-$ACCUMULO_VERSION/start/target/classes/,
-            /home/vagrant/accumulo-$ACCUMULO_VERSION/lib/accumulo-start.jar,
-            /home/vagrant/accumulo-$ACCUMULO_VERSION/fate/target/classes/,
-            /home/vagrant/accumulo-$ACCUMULO_VERSION/lib/accumulo-fate.jar,
-            /home/vagrant/accumulo-$ACCUMULO_VERSION/proxy/target/classes/,
-            /home/vagrant/accumulo-$ACCUMULO_VERSION/lib/accumulo-proxy.jar,
-            /home/vagrant/accumulo-$ACCUMULO_VERSION/lib/[^.].*.jar,
-            /home/vagrant/${zookeeperFolder}/zookeeper[^.].*.jar,
+            /home/vagrant/hadoop-${HADOOP_VERSION}/share/hadoop/common/.*.jar,
+            /home/vagrant/hadoop-${HADOOP_VERSION}/share/hadoop/common/lib/.*.jar,
+            /home/vagrant/hadoop-${HADOOP_VERSION}/share/hadoop/hdfs/.*.jar,
+            /home/vagrant/hadoop-${HADOOP_VERSION}/share/hadoop/mapreduce/.*.jar,
+            /home/vagrant/hadoop-${HADOOP_VERSION}/share/hadoop/yarn/.*.jar,
+            /home/vagrant/accumulo-${ACCUMULO_VERSION}/server/target/classes/,
+            /home/vagrant/accumulo-${ACCUMULO_VERSION}/lib/accumulo-server.jar,
+            /home/vagrant/accumulo-${ACCUMULO_VERSION}/core/target/classes/,
+            /home/vagrant/accumulo-${ACCUMULO_VERSION}/lib/accumulo-core.jar,
+            /home/vagrant/accumulo-${ACCUMULO_VERSION}/start/target/classes/,
+            /home/vagrant/accumulo-${ACCUMULO_VERSION}/lib/accumulo-start.jar,
+            /home/vagrant/accumulo-${ACCUMULO_VERSION}/fate/target/classes/,
+            /home/vagrant/accumulo-${ACCUMULO_VERSION}/lib/accumulo-fate.jar,
+            /home/vagrant/accumulo-${ACCUMULO_VERSION}/proxy/target/classes/,
+            /home/vagrant/accumulo-${ACCUMULO_VERSION}/lib/accumulo-proxy.jar,
+            /home/vagrant/accumulo-${ACCUMULO_VERSION}/lib/[^.].*.jar,
+            /home/vagrant/zookeeper-${ZOOKEEPER_VERSION}/zookeeper[^.].*.jar,
             $HADOOP_CONF_DIR,
-            /home/vagrant/${hadoopFolder}/[^.].*.jar,
-            /home/vagrant/${hadoopFolder}/lib/[^.].*.jar,
+            /home/vagrant/hadoop-${HADOOP_VERSION}/[^.].*.jar,
+            /home/vagrant/hadoop-${HADOOP_VERSION}/lib/[^.].*.jar,
             </value></property>
             <property><name>general.dynamic.classpaths</name><value>/data/accumulo/lib/ext/[^.].*.jar</value></property>
             <property><name>trace.port.client</name><value>0</value></property>
@@ -192,88 +200,74 @@ EOF
             <property><name>gc.port.client</name><value>0</value></property>
         </configuration>
 EOF
-    cat > accumulo-$ACCUMULO_VERSION/conf/masters <<EOF
+    cat > accumulo-${ACCUMULO_VERSION}/conf/masters <<EOF
 rya-example-box
 EOF
 
-	cat > accumulo-$ACCUMULO_VERSION/conf/slaves <<EOF
+	cat > accumulo-${ACCUMULO_VERSION}/conf/slaves <<EOF
 rya-example-box
 EOF
-    sudo mkdir --parents /data
+    sudo mkdir /data
     sudo chown vagrant:vagrant /data
-    mkdir --parents /data/accumulo/lib/ext
+    mkdir /data/accumulo
+    mkdir /data/accumulo/lib
+    mkdir /data/accumulo/lib/ext
 
     echo "Starting Accumulo..."
-    accumulo-$ACCUMULO_VERSION/bin/accumulo init --instance-name dev --password root
-    accumulo-$ACCUMULO_VERSION/bin/start-all.sh
+    accumulo-${ACCUMULO_VERSION}/bin/accumulo init --instance-name dev --password root
+    accumulo-${ACCUMULO_VERSION}/bin/start-all.sh
 
     echo 'Done!'
 
 	echo "Installing Sesame Server"
-	# creating log dir sesame-http-server-2.7.6
-	sudo mkdir --parents /usr/share/tomcat7/.aduna 
+	# creating log dir sesame-http-server-${SESAME_VERSION}
+	sudo mkdir -p /usr/share/tomcat7/.aduna 
 	sudo chown -R tomcat7:tomcat7 /usr/share/tomcat7  
-    sudo ln --force -s /usr/share/tomcat7/.aduna/openrdf-sesame/logs /var/log/tomcat7/openrdf-sesame
-	sesamewar=/var/lib/tomcat7/webapps/openrdf-sesame.war
-	if [[ ! -s $sesamewar ]] ; then 
-		echo "Downloading"
-		sudo curl --silent --show-error --fail -L --output $sesamewar http://repo1.maven.org/maven2/org/openrdf/sesame/sesame-http-server/2.7.6/sesame-http-server-2.7.6.war || exit 110
-	fi
+    sudo ln -s /usr/share/tomcat7/.aduna/openrdf-sesame/logs /var/log/tomcat7/openrdf-sesame
+	
+	download -O http://repo1.maven.org/maven2/org/openrdf/sesame/sesame-http-server/${SESAME_VERSION}/sesame-http-server-${SESAME_VERSION}.war
+	sudo mv sesame-http-server-${SESAME_VERSION}.war /var/lib/tomcat7/webapps/openrdf-sesame.war
 	echo "Sesame http server deployed at http://rya-example-box:8080/openrdf-sesame"
 	
 	echo "Installing Sesame Workbench"
-	workbench=/var/lib/tomcat7/webapps/openrdf-workbench.war
-	if [[ ! -s $workbench ]] ; then 
-		echo "Downloading"
-		sudo curl --silent --show-error --fail -L --output $workbench http://repo1.maven.org/maven2/org/openrdf/sesame/sesame-http-workbench/2.7.6/sesame-http-workbench-2.7.6.war || exit 111
-	fi
+	download -O http://repo1.maven.org/maven2/org/openrdf/sesame/sesame-http-workbench/${SESAME_VERSION}/sesame-http-workbench-${SESAME_VERSION}.war
+	sudo mv sesame-http-workbench-${SESAME_VERSION}.war /var/lib/tomcat7/webapps/openrdf-workbench.war
 	echo "Sesame workbench deployed at http://rya-example-box:8080/openrdf-workbench"
 
-	echo "Installing Rya"
-	ryaIndexing=rya.indexing.example-3.2.10-SNAPSHOT-distribution
-	if [[ ! -s ${ryaIndexing}.zip ]] ; then
-		# Right now it's on dropbox, but eventually it'll be on maven...
-		echo "Downloading quietly..."
-		sudo curl --silent --show-error --fail -L --output ${ryaIndexing}.zip https://www.dropbox.com/s/7e74yiuq4jmu0od/${ryaIndexing}.zip?dl=0  || exit 112
-	fi
-	sudo mkdir --parents ${ryaIndexing}
-	sudo unzip -o ${ryaIndexing}.zip -d ${ryaIndexing}
+	echo "Downloading Rya"
+	# Right now it's on dropbox, but eventually it'll be on maven...
+
+	download -L https://www.dropbox.com/s/7e74yiuq4jmu0od/rya.indexing.example-${RYA_EXAMPLE_VERSION}-distribution.zip?dl=0 -o rya.indexing.example-${RYA_EXAMPLE_VERSION}-distribution.zip
+	sudo mkdir rya.indexing.example-${RYA_EXAMPLE_VERSION}-distribution
+	sudo unzip rya.indexing.example-${RYA_EXAMPLE_VERSION}-distribution.zip -d rya.indexing.example-${RYA_EXAMPLE_VERSION}-distribution
 	
 	# soft linking the files doesn't seem to work in tomcat, so we copy them instead :(
-	sudo cp ${ryaIndexing}/dist/lib/* /var/lib/tomcat7/webapps/openrdf-workbench/WEB-INF/lib/
-	sudo cp ${ryaIndexing}/dist/lib/* /var/lib/tomcat7/webapps/openrdf-sesame/WEB-INF/lib/
+	sudo cp rya.indexing.example-${RYA_EXAMPLE_VERSION}-distribution/dist/lib/* /var/lib/tomcat7/webapps/openrdf-workbench/WEB-INF/lib/
+	sudo cp rya.indexing.example-${RYA_EXAMPLE_VERSION}-distribution/dist/lib/* /var/lib/tomcat7/webapps/openrdf-sesame/WEB-INF/lib/
 
 	# These are older libs that breaks tomcat 7
-	sudo rm --force /var/lib/tomcat7/webapps/openrdf-workbench/WEB-INF/lib/servlet-api-2.5.jar
-	sudo rm --force /var/lib/tomcat7/webapps/openrdf-workbench/WEB-INF/lib/jsp-api-2.1.jar
-	sudo rm --force /var/lib/tomcat7/webapps/openrdf-sesame/WEB-INF/lib/servlet-api-2.5.jar
-	sudo rm --force /var/lib/tomcat7/webapps/openrdf-sesame/WEB-INF/lib/jsp-api-2.1.jar
+	sudo rm /var/lib/tomcat7/webapps/openrdf-workbench/WEB-INF/lib/servlet-api-2.5.jar
+	sudo rm /var/lib/tomcat7/webapps/openrdf-workbench/WEB-INF/lib/jsp-api-2.1.jar
+	sudo rm /var/lib/tomcat7/webapps/openrdf-sesame/WEB-INF/lib/servlet-api-2.5.jar
+	sudo rm /var/lib/tomcat7/webapps/openrdf-sesame/WEB-INF/lib/jsp-api-2.1.jar
 	
 	sudo chown -R tomcat7:tomcat7 /var/lib/tomcat7/webapps/openrdf-workbench/WEB-INF/lib/
 	sudo chown -R tomcat7:tomcat7 /var/lib/tomcat7/webapps/openrdf-sesame/WEB-INF/lib/
 
-	echo "Downloading and installing new templates for OpenRdf WorkBench"
-	ryaVagrant=rya.vagrant.example-3.2.10-SNAPSHOT
-	if [[ ! -s ${ryaVagrant}.jar ]] ; then
-		echo "Downloading"
-		sudo curl --silent --show-error --fail -L -O https://www.dropbox.com/s/dgw63m66nubyy4z/${ryaVagrant}.jar || exit 120
-	fi
-	sudo mkdir --parents ${ryaVagrant}
-	sudo unzip -o ${ryaVagrant}.jar -d ${ryaVagrant}
-	sudo cp ${ryaVagrant}/*.xsl /var/lib/tomcat7/webapps/openrdf-workbench/transformations/
+	# Download and install new templates for OpenRdf WorkBench
+	download -L -O https://www.dropbox.com/s/dgw63m66nubyy4z/rya.vagrant.example-${RYA_EXAMPLE_VERSION}.jar
+	sudo mkdir rya.vagrant.example-${RYA_EXAMPLE_VERSION}
+	sudo unzip rya.vagrant.example-${RYA_EXAMPLE_VERSION}.jar -d rya.vagrant.example-${RYA_EXAMPLE_VERSION}
+	sudo cp rya.vagrant.example-${RYA_EXAMPLE_VERSION}/*.xsl /var/lib/tomcat7/webapps/openrdf-workbench/transformations/
 	
 	echo "Deploying Rya Web"
-	ryaWar=web.rya-3.2.10-SNAPSHOT.war
-	if [[ ! -s ${ryaWar} ]] ; then
-		echo "Downloading"
-		sudo curl --silent --show-error --fail -L https://www.dropbox.com/s/332wr4b2f34dp6e/${ryaWar}?dl=0 --output ${ryaWar} || exit 121
-	fi
-	sudo cp ${ryaWar} /var/lib/tomcat7/webapps/web.rya.war
+	download -L https://www.dropbox.com/s/332wr4b2f34dp6e/web.rya-${RYA_EXAMPLE_VERSION}.war?dl=0 -o web.rya.war
+	sudo cp web.rya.war /var/lib/tomcat7/webapps/web.rya.war
 	# Wait for the war to deploy
 	sudo sleep 10
 	# These are older libs that breaks tomcat 7
-	sudo rm --force /var/lib/tomcat7/webapps/web.rya/WEB-INF/lib/servlet-api-2.5*.jar
-	sudo rm --force /var/lib/tomcat7/webapps/web.rya/WEB-INF/lib/jsp-api-2.1.jar
+	sudo rm /var/lib/tomcat7/webapps/web.rya/WEB-INF/lib/servlet-api-2.5*.jar
+	sudo rm /var/lib/tomcat7/webapps/web.rya/WEB-INF/lib/jsp-api-2.1.jar
 
 	echo "Modify Rya Web Config"
 	cat > /var/lib/tomcat7/webapps/web.rya/WEB-INF/classes/environment.properties <<EOF
@@ -289,6 +283,9 @@ EOF
 	
 	# restart tomcat
 	sudo service tomcat7 restart
+	
+
+
 	
 	
   SHELL

@@ -24,6 +24,7 @@ import java.util.List;
 import mvm.rya.api.persist.RyaDAOException;
 import mvm.rya.indexing.external.tupleSet.PcjTables.PcjException;
 import mvm.rya.indexing.external.tupleSet.PcjTables.PcjVarOrderFactory;
+import mvm.rya.rdftriplestore.inference.InferenceEngineException;
 
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
@@ -68,7 +69,7 @@ public class PrecompJoinOptimizerIntegrationTest {
 			TupleQueryResultHandlerException, QueryEvaluationException,
 			MalformedQueryException, AccumuloException,
 			AccumuloSecurityException, TableExistsException, RyaDAOException,
-			TableNotFoundException {
+			TableNotFoundException, InferenceEngineException {
 
 		repo = PcjIntegrationTestingUtil.getNonPcjRepo(tablePrefix, "instance");
 		conn = repo.getConnection();
@@ -114,7 +115,7 @@ public class PrecompJoinOptimizerIntegrationTest {
 			throws TupleQueryResultHandlerException, QueryEvaluationException,
 			MalformedQueryException, RepositoryException, AccumuloException,
 			AccumuloSecurityException, TableExistsException, RyaDAOException,
-			SailException, TableNotFoundException, PcjException {
+			SailException, TableNotFoundException, PcjException, InferenceEngineException {
 
 		final String indexSparqlString = ""//
 				+ "SELECT ?e ?l ?c " //
@@ -200,7 +201,7 @@ public class PrecompJoinOptimizerIntegrationTest {
 			throws TupleQueryResultHandlerException, QueryEvaluationException,
 			MalformedQueryException, RepositoryException, AccumuloException,
 			AccumuloSecurityException, TableExistsException, RyaDAOException,
-			SailException, TableNotFoundException, PcjException {
+			SailException, TableNotFoundException, PcjException, InferenceEngineException {
 
 		final String indexSparqlString = ""//
 				+ "SELECT ?e ?l ?c " //
@@ -241,7 +242,7 @@ public class PrecompJoinOptimizerIntegrationTest {
 			throws TupleQueryResultHandlerException, QueryEvaluationException,
 			MalformedQueryException, RepositoryException, AccumuloException,
 			AccumuloSecurityException, TableExistsException, RyaDAOException,
-			SailException, TableNotFoundException, PcjException {
+			SailException, TableNotFoundException, PcjException, InferenceEngineException {
 
 		final String indexSparqlString2 = ""//
 				+ "SELECT ?e ?l ?c " //
@@ -283,7 +284,7 @@ public class PrecompJoinOptimizerIntegrationTest {
 			throws TupleQueryResultHandlerException, QueryEvaluationException,
 			MalformedQueryException, RepositoryException, AccumuloException,
 			AccumuloSecurityException, TableExistsException, RyaDAOException,
-			SailException, TableNotFoundException, PcjException {
+			SailException, TableNotFoundException, PcjException, InferenceEngineException {
 
 		final String indexSparqlString1 = ""//
 				+ "SELECT ?e ?l ?c " //
@@ -329,7 +330,7 @@ public class PrecompJoinOptimizerIntegrationTest {
 			AccumuloSecurityException, TableExistsException,
 			RepositoryException, MalformedQueryException, SailException,
 			QueryEvaluationException, TableNotFoundException,
-			TupleQueryResultHandlerException, RyaDAOException, PcjException {
+			TupleQueryResultHandlerException, RyaDAOException, PcjException, InferenceEngineException {
 
 		conn.add(obj, RDFS.LABEL, new LiteralImpl("label"));
 		conn.add(obj2, RDFS.LABEL, new LiteralImpl("label2"));
@@ -387,7 +388,7 @@ public class PrecompJoinOptimizerIntegrationTest {
 			throws AccumuloException, AccumuloSecurityException,
 			TableExistsException, RepositoryException, MalformedQueryException,
 			SailException, QueryEvaluationException, TableNotFoundException,
-			TupleQueryResultHandlerException, RyaDAOException, PcjException {
+			TupleQueryResultHandlerException, RyaDAOException, PcjException, InferenceEngineException {
 
 		conn.add(obj, RDFS.LABEL, new LiteralImpl("label"));
 		conn.add(obj2, RDFS.LABEL, new LiteralImpl("label2"));

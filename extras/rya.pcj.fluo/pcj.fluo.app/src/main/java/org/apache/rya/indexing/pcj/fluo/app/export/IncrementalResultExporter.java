@@ -20,8 +20,9 @@ package org.apache.rya.indexing.pcj.fluo.app.export;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 
+import org.apache.rya.indexing.pcj.storage.accumulo.VisibilityBindingSet;
+
 import io.fluo.api.types.TypedTransactionBase;
-import mvm.rya.indexing.accumulo.VisibilityBindingSet;
 
 /**
  * Exports a single Binding Set that is a new result for a SPARQL query to some

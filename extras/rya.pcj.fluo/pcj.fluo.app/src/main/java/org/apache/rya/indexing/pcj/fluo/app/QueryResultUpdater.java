@@ -25,6 +25,10 @@ import javax.annotation.ParametersAreNonnullByDefault;
 
 import org.apache.rya.indexing.pcj.fluo.app.query.FluoQueryColumns;
 import org.apache.rya.indexing.pcj.fluo.app.query.QueryMetadata;
+import org.apache.rya.indexing.pcj.storage.accumulo.BindingSetStringConverter;
+import org.apache.rya.indexing.pcj.storage.accumulo.VariableOrder;
+import org.apache.rya.indexing.pcj.storage.accumulo.VisibilityBindingSet;
+import org.apache.rya.indexing.pcj.storage.accumulo.VisibilityBindingSetStringConverter;
 import org.openrdf.query.Binding;
 import org.openrdf.query.impl.MapBindingSet;
 
@@ -33,10 +37,6 @@ import io.fluo.api.data.Bytes;
 import io.fluo.api.data.Column;
 import io.fluo.api.types.Encoder;
 import io.fluo.api.types.StringEncoder;
-import mvm.rya.indexing.accumulo.VisibilityBindingSet;
-import mvm.rya.indexing.external.tupleSet.BindingSetStringConverter;
-import mvm.rya.indexing.external.tupleSet.PcjTables.VariableOrder;
-import mvm.rya.indexing.external.tupleSet.VisibilityBindingSetStringConverter;
 
 /**
  * Updates the results of a Query node when one of its children has added a

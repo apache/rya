@@ -16,16 +16,13 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package mvm.rya.indexing.external.tupleSet;
+package org.apache.rya.indexing.pcj.storage.accumulo;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 
 import org.openrdf.query.BindingSet;
 
 import com.google.common.base.Strings;
-
-import mvm.rya.indexing.accumulo.VisibilityBindingSet;
-import mvm.rya.indexing.external.tupleSet.PcjTables.VariableOrder;
 
 /**
  * Converts {@link BindingSet}s to Strings and back again. The Strings do not

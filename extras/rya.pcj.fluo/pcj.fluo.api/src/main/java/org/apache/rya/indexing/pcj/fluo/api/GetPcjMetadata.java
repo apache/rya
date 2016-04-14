@@ -27,13 +27,13 @@ import java.util.Map;
 import org.apache.accumulo.core.client.Connector;
 import org.apache.rya.indexing.pcj.fluo.app.StringTypeLayer;
 import org.apache.rya.indexing.pcj.fluo.app.query.FluoQueryColumns;
+import org.apache.rya.indexing.pcj.storage.PcjException;
+import org.apache.rya.indexing.pcj.storage.PcjMetadata;
+import org.apache.rya.indexing.pcj.storage.accumulo.PcjTables;
 
 import io.fluo.api.client.FluoClient;
 import io.fluo.api.data.Bytes;
 import io.fluo.api.types.TypedSnapshot;
-import mvm.rya.indexing.external.tupleSet.PcjTables;
-import mvm.rya.indexing.external.tupleSet.PcjTables.PcjException;
-import mvm.rya.indexing.external.tupleSet.PcjTables.PcjMetadata;
 
 /**
  * Get {@link PcjMetadata} for queries that are managed by the Fluo app.

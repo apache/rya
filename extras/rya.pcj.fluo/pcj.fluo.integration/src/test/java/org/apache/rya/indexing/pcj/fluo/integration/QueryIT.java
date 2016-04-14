@@ -26,6 +26,7 @@ import java.util.Set;
 import org.apache.rya.indexing.pcj.fluo.ITBase;
 import org.apache.rya.indexing.pcj.fluo.api.CreatePcj;
 import org.apache.rya.indexing.pcj.fluo.api.InsertTriples;
+import org.apache.rya.indexing.pcj.storage.accumulo.VariableOrder;
 import org.junit.Test;
 import org.openrdf.model.impl.NumericLiteralImpl;
 import org.openrdf.model.impl.URIImpl;
@@ -37,7 +38,6 @@ import com.google.common.base.Optional;
 import com.google.common.collect.Sets;
 
 import mvm.rya.api.domain.RyaStatement;
-import mvm.rya.indexing.external.tupleSet.PcjTables.VariableOrder;
 
 /**
  * Performs integration tests over the Fluo application geared towards various query structures.

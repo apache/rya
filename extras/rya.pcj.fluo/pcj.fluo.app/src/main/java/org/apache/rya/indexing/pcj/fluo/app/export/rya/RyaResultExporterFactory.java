@@ -28,11 +28,11 @@ import org.apache.accumulo.core.client.ZooKeeperInstance;
 import org.apache.accumulo.core.client.security.tokens.PasswordToken;
 import org.apache.rya.indexing.pcj.fluo.app.export.IncrementalResultExporter;
 import org.apache.rya.indexing.pcj.fluo.app.export.IncrementalResultExporterFactory;
+import org.apache.rya.indexing.pcj.storage.accumulo.PcjTables;
 
 import com.google.common.base.Optional;
 
 import io.fluo.api.observer.Observer.Context;
-import mvm.rya.indexing.external.tupleSet.PcjTables;
 
 /**
  * Creates instances of {@link RyaResultExporter}.

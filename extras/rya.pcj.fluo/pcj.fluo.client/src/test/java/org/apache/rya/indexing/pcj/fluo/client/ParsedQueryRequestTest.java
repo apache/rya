@@ -24,11 +24,10 @@ import java.io.IOException;
 import java.util.HashSet;
 
 import org.apache.rya.indexing.pcj.fluo.client.util.ParsedQueryRequest;
+import org.apache.rya.indexing.pcj.storage.accumulo.VariableOrder;
 import org.junit.Test;
 
 import com.google.common.collect.Sets;
-
-import mvm.rya.indexing.external.tupleSet.PcjTables.VariableOrder;
 
 /**
  * Tests the methods of {@link ParsedQueryRequest}.

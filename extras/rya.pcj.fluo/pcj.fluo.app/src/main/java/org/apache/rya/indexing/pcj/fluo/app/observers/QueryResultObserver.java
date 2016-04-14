@@ -29,6 +29,9 @@ import org.apache.rya.indexing.pcj.fluo.app.export.rya.RyaResultExporterFactory;
 import org.apache.rya.indexing.pcj.fluo.app.query.FluoQueryColumns;
 import org.apache.rya.indexing.pcj.fluo.app.query.FluoQueryMetadataDAO;
 import org.apache.rya.indexing.pcj.fluo.app.query.QueryMetadata;
+import org.apache.rya.indexing.pcj.storage.accumulo.VariableOrder;
+import org.apache.rya.indexing.pcj.storage.accumulo.VisibilityBindingSet;
+import org.apache.rya.indexing.pcj.storage.accumulo.VisibilityBindingSetStringConverter;
 
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableSet;
@@ -39,9 +42,6 @@ import io.fluo.api.types.Encoder;
 import io.fluo.api.types.StringEncoder;
 import io.fluo.api.types.TypedObserver;
 import io.fluo.api.types.TypedTransactionBase;
-import mvm.rya.indexing.accumulo.VisibilityBindingSet;
-import mvm.rya.indexing.external.tupleSet.PcjTables.VariableOrder;
-import mvm.rya.indexing.external.tupleSet.VisibilityBindingSetStringConverter;
 
 /**
  * Performs incremental result exporting to the configured destinations.

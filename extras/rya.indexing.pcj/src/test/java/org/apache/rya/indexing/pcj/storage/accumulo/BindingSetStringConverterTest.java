@@ -16,13 +16,17 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package mvm.rya.indexing.external.tupleSet;
+package org.apache.rya.indexing.pcj.storage.accumulo;
 
 import static org.junit.Assert.assertEquals;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
 
+import org.apache.rya.indexing.pcj.storage.accumulo.BindingSetConverter;
+import org.apache.rya.indexing.pcj.storage.accumulo.BindingSetConverter.BindingSetConversionException;
+import org.apache.rya.indexing.pcj.storage.accumulo.BindingSetStringConverter;
+import org.apache.rya.indexing.pcj.storage.accumulo.VariableOrder;
 import org.junit.Test;
 import org.openrdf.model.impl.BooleanLiteralImpl;
 import org.openrdf.model.impl.DecimalLiteralImpl;
@@ -30,9 +34,6 @@ import org.openrdf.model.impl.IntegerLiteralImpl;
 import org.openrdf.model.impl.URIImpl;
 import org.openrdf.query.BindingSet;
 import org.openrdf.query.impl.MapBindingSet;
-
-import mvm.rya.indexing.external.tupleSet.BindingSetConverter.BindingSetConversionException;
-import mvm.rya.indexing.external.tupleSet.PcjTables.VariableOrder;
 
 /**
  * Tests the methods of {@link BindingSetStringConverter}.

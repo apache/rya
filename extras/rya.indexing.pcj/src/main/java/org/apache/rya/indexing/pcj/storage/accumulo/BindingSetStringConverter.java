@@ -16,7 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package mvm.rya.indexing.external.tupleSet;
+package org.apache.rya.indexing.pcj.storage.accumulo;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -41,7 +41,6 @@ import com.google.common.base.Joiner;
 
 import mvm.rya.api.domain.RyaType;
 import mvm.rya.api.resolver.RdfToRyaConversions;
-import mvm.rya.indexing.external.tupleSet.PcjTables.VariableOrder;
 
 /**
  * Converts {@link BindingSet}s to Strings and back again. The Strings do not

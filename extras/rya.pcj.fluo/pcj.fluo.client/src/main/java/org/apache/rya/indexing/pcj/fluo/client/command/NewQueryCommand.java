@@ -34,6 +34,7 @@ import org.apache.logging.log4j.Logger;
 import org.apache.rya.indexing.pcj.fluo.api.CreatePcj;
 import org.apache.rya.indexing.pcj.fluo.client.PcjAdminClientCommand;
 import org.apache.rya.indexing.pcj.fluo.client.util.ParsedQueryRequest;
+import org.apache.rya.indexing.pcj.storage.PcjException;
 import org.openrdf.query.MalformedQueryException;
 import org.openrdf.query.QueryEvaluationException;
 import org.openrdf.sail.SailException;
@@ -43,7 +44,6 @@ import com.beust.jcommander.Parameter;
 import com.beust.jcommander.ParameterException;
 
 import io.fluo.api.client.FluoClient;
-import mvm.rya.indexing.external.tupleSet.PcjTables.PcjException;
 import mvm.rya.rdftriplestore.RyaSailRepository;
 
 /**

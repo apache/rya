@@ -24,12 +24,12 @@ import org.apache.rya.indexing.pcj.fluo.app.BindingSetRow;
 import org.apache.rya.indexing.pcj.fluo.app.query.FilterMetadata;
 import org.apache.rya.indexing.pcj.fluo.app.query.FluoQueryColumns;
 import org.apache.rya.indexing.pcj.fluo.app.query.FluoQueryMetadataDAO;
+import org.apache.rya.indexing.pcj.storage.accumulo.VariableOrder;
+import org.apache.rya.indexing.pcj.storage.accumulo.VisibilityBindingSet;
+import org.apache.rya.indexing.pcj.storage.accumulo.VisibilityBindingSetStringConverter;
 import org.openrdf.query.BindingSet;
 
 import io.fluo.api.client.TransactionBase;
-import mvm.rya.indexing.accumulo.VisibilityBindingSet;
-import mvm.rya.indexing.external.tupleSet.PcjTables.VariableOrder;
-import mvm.rya.indexing.external.tupleSet.VisibilityBindingSetStringConverter;
 
 /**
  * Notified when the results of a Filter have been updated to include a new

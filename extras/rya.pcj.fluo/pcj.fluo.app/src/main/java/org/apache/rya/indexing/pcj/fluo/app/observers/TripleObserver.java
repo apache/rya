@@ -31,6 +31,9 @@ import org.apache.rya.indexing.pcj.fluo.app.StringTypeLayer;
 import org.apache.rya.indexing.pcj.fluo.app.query.FluoQueryColumns;
 import org.apache.rya.indexing.pcj.fluo.app.query.FluoQueryMetadataDAO;
 import org.apache.rya.indexing.pcj.fluo.app.query.StatementPatternMetadata;
+import org.apache.rya.indexing.pcj.storage.accumulo.VariableOrder;
+import org.apache.rya.indexing.pcj.storage.accumulo.VisibilityBindingSet;
+import org.apache.rya.indexing.pcj.storage.accumulo.VisibilityBindingSetStringConverter;
 
 import com.google.common.collect.Maps;
 
@@ -44,9 +47,6 @@ import io.fluo.api.types.Encoder;
 import io.fluo.api.types.StringEncoder;
 import io.fluo.api.types.TypedObserver;
 import io.fluo.api.types.TypedTransactionBase;
-import mvm.rya.indexing.accumulo.VisibilityBindingSet;
-import mvm.rya.indexing.external.tupleSet.PcjTables.VariableOrder;
-import mvm.rya.indexing.external.tupleSet.VisibilityBindingSetStringConverter;
 
 /**
  * An observer that matches new Triples to the Statement Patterns that are part

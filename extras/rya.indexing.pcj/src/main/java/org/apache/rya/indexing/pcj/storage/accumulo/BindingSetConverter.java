@@ -16,14 +16,12 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package mvm.rya.indexing.external.tupleSet;
+package org.apache.rya.indexing.pcj.storage.accumulo;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 
 import org.openrdf.query.Binding;
 import org.openrdf.query.BindingSet;
-
-import mvm.rya.indexing.external.tupleSet.PcjTables.VariableOrder;
 
 /**
  * Converts {@link BindingSet}s into other representations. This library is

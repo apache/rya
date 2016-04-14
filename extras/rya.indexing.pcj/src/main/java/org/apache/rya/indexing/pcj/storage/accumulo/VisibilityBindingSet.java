@@ -16,15 +16,13 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package mvm.rya.indexing.accumulo;
+package org.apache.rya.indexing.pcj.storage.accumulo;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 
 import org.openrdf.query.BindingSet;
-
-import mvm.rya.indexing.external.BindingSetDecorator;
 
 /**
  * Decorates a {@link BindingSet} with a collection of visibilities.

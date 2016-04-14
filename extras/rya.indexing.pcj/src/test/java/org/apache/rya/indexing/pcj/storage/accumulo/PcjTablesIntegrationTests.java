@@ -1,4 +1,4 @@
-package mvm.rya.indexing.external.tupleSet;
+package org.apache.rya.indexing.pcj.storage.accumulo;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -21,6 +21,7 @@ package mvm.rya.indexing.external.tupleSet;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 import java.io.File;
 import java.io.IOException;
@@ -42,6 +43,10 @@ import org.apache.accumulo.core.security.Authorizations;
 import org.apache.accumulo.minicluster.MiniAccumuloCluster;
 import org.apache.hadoop.io.Text;
 import org.apache.log4j.Logger;
+import org.apache.rya.indexing.pcj.storage.PcjException;
+import org.apache.rya.indexing.pcj.storage.PcjMetadata;
+import org.apache.rya.indexing.pcj.storage.PrecomputedJoinStorage.PCJStorageException;
+import org.apache.rya.indexing.pcj.storage.accumulo.BindingSetConverter.BindingSetConversionException;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -65,15 +70,6 @@ import com.google.common.io.Files;
 import mvm.rya.accumulo.AccumuloRdfConfiguration;
 import mvm.rya.accumulo.AccumuloRyaDAO;
 import mvm.rya.api.RdfCloudTripleStoreConfiguration;
-import mvm.rya.indexing.accumulo.ConfigUtils;
-import mvm.rya.indexing.accumulo.VisibilityBindingSet;
-import mvm.rya.indexing.external.tupleSet.BindingSetConverter.BindingSetConversionException;
-import mvm.rya.indexing.external.tupleSet.PcjTables.PcjException;
-import mvm.rya.indexing.external.tupleSet.PcjTables.PcjMetadata;
-import mvm.rya.indexing.external.tupleSet.PcjTables.PcjTableNameFactory;
-import mvm.rya.indexing.external.tupleSet.PcjTables.PcjVarOrderFactory;
-import mvm.rya.indexing.external.tupleSet.PcjTables.ShiftVarOrderFactory;
-import mvm.rya.indexing.external.tupleSet.PcjTables.VariableOrder;
 import mvm.rya.rdftriplestore.RdfCloudTripleStore;
 import mvm.rya.rdftriplestore.RyaSailRepository;
 
@@ -83,6 +79,11 @@ import mvm.rya.rdftriplestore.RyaSailRepository;
  */
 public class PcjTablesIntegrationTests {
     private static final Logger log = Logger.getLogger(PcjTablesIntegrationTests.class);
+
+    private static final String USE_MOCK_INSTANCE = ".useMockInstance";
+    private static final String CLOUDBASE_INSTANCE = "sc.cloudbase.instancename";
+    private static final String CLOUDBASE_USER = "sc.cloudbase.username";
+    private static final String CLOUDBASE_PASSWORD = "sc.cloudbase.password";
 
     private static final AccumuloPcjSerializer converter = new AccumuloPcjSerializer();
 
@@ -323,6 +324,113 @@ public class PcjTablesIntegrationTests {
         assertEquals(expectedResults, fetchedResults);
     }
 
+    @Test
+    public void listPcjs() throws PCJStorageException {
+        // Set up the table names that will be used.
+        final String instance1 = "instance1_";
+        final String instance2 = "instance2_";
+
+        final String instance1_table1 = new PcjTableNameFactory().makeTableName(instance1, "table1");
+        final String instance1_table2 = new PcjTableNameFactory().makeTableName(instance1, "table2");
+        final String instance1_table3 = new PcjTableNameFactory().makeTableName(instance1, "table3");
+
+        final String instance2_table1 = new PcjTableNameFactory().makeTableName(instance2, "table1");
+
+        // Create the PCJ Tables that are in instance 1 and instance 2.
+        final Set<VariableOrder> varOrders = Sets.<VariableOrder>newHashSet( new VariableOrder("x") );
+        final String sparql = "SELECT x WHERE ?x <http://isA> <http://Food>";
+
+        final PcjTables pcjs = new PcjTables();
+        pcjs.createPcjTable(accumuloConn, instance1_table1, varOrders, sparql);
+        pcjs.createPcjTable(accumuloConn, instance1_table2, varOrders, sparql);
+        pcjs.createPcjTable(accumuloConn, instance1_table3, varOrders, sparql);
+
+        pcjs.createPcjTable(accumuloConn, instance2_table1, varOrders, sparql);
+
+        // Ensure all of the names have been stored for instance 1 and 2.
+        final Set<String> expected1 = Sets.newHashSet(instance1_table1, instance1_table2, instance1_table3);
+        final Set<String> instance1Tables = Sets.newHashSet( pcjs.listPcjTables(accumuloConn, instance1) );
+        assertEquals(expected1, instance1Tables);
+
+        final Set<String> expected2 = Sets.newHashSet(instance2_table1);
+        final Set<String> instance2Tables = Sets.newHashSet( pcjs.listPcjTables(accumuloConn, instance2) );
+        assertEquals(expected2, instance2Tables);
+    }
+
+    @Test
+    public void purge() throws PCJStorageException {
+        final String sparql =
+                "SELECT ?name ?age " +
+                "{" +
+                  "FILTER(?age < 30) ." +
+                  "?name <http://hasAge> ?age." +
+                  "?name <http://playsSport> \"Soccer\" " +
+                "}";
+
+        // Create a PCJ table in the Mini Accumulo.
+        final String pcjTableName = new PcjTableNameFactory().makeTableName(RYA_TABLE_PREFIX, "testPcj");
+        final Set<VariableOrder> varOrders = new ShiftVarOrderFactory().makeVarOrders(new VariableOrder("name;age"));
+        final PcjTables pcjs = new PcjTables();
+        pcjs.createPcjTable(accumuloConn, pcjTableName, varOrders, sparql);
+
+        // Add a few results to the PCJ table.
+        final MapBindingSet alice = new MapBindingSet();
+        alice.addBinding("name", new URIImpl("http://Alice"));
+        alice.addBinding("age", new NumericLiteralImpl(14, XMLSchema.INTEGER));
+
+        final MapBindingSet bob = new MapBindingSet();
+        bob.addBinding("name", new URIImpl("http://Bob"));
+        bob.addBinding("age", new NumericLiteralImpl(16, XMLSchema.INTEGER));
+
+        final MapBindingSet charlie = new MapBindingSet();
+        charlie.addBinding("name", new URIImpl("http://Charlie"));
+        charlie.addBinding("age", new NumericLiteralImpl(12, XMLSchema.INTEGER));
+
+        pcjs.addResults(accumuloConn, pcjTableName, Sets.<VisibilityBindingSet>newHashSet(
+                new VisibilityBindingSet(alice),
+                new VisibilityBindingSet(bob),
+                new VisibilityBindingSet(charlie)));
+
+        // Make sure the cardinality was updated.
+        PcjMetadata metadata = pcjs.getPcjMetadata(accumuloConn, pcjTableName);
+        assertEquals(3, metadata.getCardinality());
+
+        // Purge the data.
+        pcjs.purgePcjTable(accumuloConn, pcjTableName);
+
+        // Make sure the cardinality was updated to 0.
+        metadata = pcjs.getPcjMetadata(accumuloConn, pcjTableName);
+        assertEquals(0, metadata.getCardinality());
+    }
+
+    @Test
+    public void dropPcj() throws PCJStorageException {
+        // Create a PCJ index.
+        final String tableName = new PcjTableNameFactory().makeTableName(RYA_TABLE_PREFIX, "thePcj");
+        final Set<VariableOrder> varOrders = Sets.<VariableOrder>newHashSet( new VariableOrder("x") );
+        final String sparql = "SELECT x WHERE ?x <http://isA> <http://Food>";
+
+        final PcjTables pcjs = new PcjTables();
+        pcjs.createPcjTable(accumuloConn, tableName, varOrders, sparql);
+
+        // Fetch its metadata to show that it has actually been created.
+        final PcjMetadata expectedMetadata = new PcjMetadata(sparql, 0L, varOrders);
+        PcjMetadata metadata = pcjs.getPcjMetadata(accumuloConn, tableName);
+        assertEquals(expectedMetadata, metadata);
+
+        // Drop it.
+        pcjs.dropPcjTable(accumuloConn, tableName);
+
+        // Show the metadata is no longer present.
+        PCJStorageException tableDoesNotExistException = null;
+        try {
+            metadata = pcjs.getPcjMetadata(accumuloConn, tableName);
+        } catch(final PCJStorageException e) {
+            tableDoesNotExistException = e;
+        }
+        assertNotNull(tableDoesNotExistException);
+    }
+
     /**
      * Scan accumulo for the results that are stored in a PCJ table. The
      * multimap stores a set of deserialized binding sets that were in the PCJ
@@ -421,11 +529,11 @@ public class PcjTablesIntegrationTests {
         conf.setTablePrefix("demo_");
         conf.setDisplayQueryPlan(true);
 
-        conf.setBoolean(ConfigUtils.USE_MOCK_INSTANCE, true);
+        conf.setBoolean(USE_MOCK_INSTANCE, true);
         conf.set(RdfCloudTripleStoreConfiguration.CONF_TBL_PREFIX, RYA_TABLE_PREFIX);
-        conf.set(ConfigUtils.CLOUDBASE_USER, "root");
-        conf.set(ConfigUtils.CLOUDBASE_PASSWORD, "password");
-        conf.set(ConfigUtils.CLOUDBASE_INSTANCE, accumulo.getInstanceName());
+        conf.set(CLOUDBASE_USER, "root");
+        conf.set(CLOUDBASE_PASSWORD, "password");
+        conf.set(CLOUDBASE_INSTANCE, accumulo.getInstanceName());
 
         crdfdao.setConf(conf);
         ryaStore.setRyaDAO(crdfdao);

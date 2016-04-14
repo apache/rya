@@ -28,6 +28,7 @@ import java.util.Set;
 
 import org.apache.rya.indexing.pcj.fluo.app.JoinResultUpdater.IterativeJoin;
 import org.apache.rya.indexing.pcj.fluo.app.JoinResultUpdater.NaturalJoin;
+import org.apache.rya.indexing.pcj.storage.accumulo.VisibilityBindingSet;
 import org.junit.Test;
 import org.openrdf.model.ValueFactory;
 import org.openrdf.model.impl.ValueFactoryImpl;
@@ -36,8 +37,6 @@ import org.openrdf.query.impl.MapBindingSet;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-
-import mvm.rya.indexing.accumulo.VisibilityBindingSet;
 
 /**
  * Tests the methods of {@link NaturalJoin}.

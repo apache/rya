@@ -45,7 +45,6 @@ under the License.
     </modules>
     
     <properties>
-        <fluo.version>1.0.0-beta-2</fluo.version>
         <jcommander.version>1.48</jcommander.version>
         <hadoop.version>2.5.0</hadoop.version>
     </properties>
@@ -82,21 +81,6 @@ under the License.
 				<artifactId>hadoop-minicluster</artifactId>
 				<version>${hadoop.version}</version>
 			</dependency>
-            <dependency>
-                <groupId>org.apache.rya</groupId>
-                <artifactId>rya.pcj.fluo.api</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.rya</groupId>
-                <artifactId>rya.pcj.fluo.app</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.rya</groupId>
-                <artifactId>rya.pcj.fluo.client</artifactId>
-                <version>${project.version}</version>
-            </dependency>
                     
             <dependency>
                 <groupId>org.openrdf.sesame</groupId>
@@ -104,22 +88,6 @@ under the License.
                 <version>${openrdf.sesame.version}</version>
             </dependency>
         
-            <dependency>
-                <groupId>io.fluo</groupId>
-                <artifactId>fluo-api</artifactId>
-                <version>${fluo.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>io.fluo</groupId>
-                <artifactId>fluo-core</artifactId>
-                <version>${fluo.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>io.fluo</groupId>
-                <artifactId>fluo-mini</artifactId>
-                <version>${fluo.version}</version>
-            </dependency>
-            
             <dependency>
                 <groupId>com.beust</groupId>
                 <artifactId>jcommander</artifactId>

@@ -76,16 +76,24 @@ under the License.
             <artifactId>geomesa-accumulo-datastore</artifactId>
         </dependency>
 
+        <!-- PCJ Indexing -->
+        <dependency>
+            <groupId>org.apache.rya</groupId>
+            <artifactId>rya.indexing.pcj</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.rya</groupId>
+            <artifactId>rya.pcj.fluo.api</artifactId>
+        </dependency>
+        
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
             <scope>test</scope>
         </dependency>
-        
         <dependency>
-            <groupId>org.apache.accumulo</groupId>
-            <artifactId>accumulo-minicluster</artifactId>
-            <version>${accumulo.version}</version>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-all</artifactId>
             <scope>test</scope>
         </dependency>
     </dependencies>

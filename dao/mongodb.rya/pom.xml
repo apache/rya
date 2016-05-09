@@ -29,6 +29,24 @@ under the License.
     <artifactId>mongodb.rya</artifactId>
     <name>Apache Rya MongoDB DAO</name>
 
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-failsafe-plugin</artifactId>
+                <version>2.19.1</version>
+                <executions>
+                    <execution>
+                        <goals>
+                          <goal>integration-test</goal>
+                          <goal>verify</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+
     <dependencies>
         <dependency>
             <groupId>org.apache.rya</groupId>
@@ -49,5 +67,4 @@ under the License.
             <scope>test</scope>
         </dependency>
     </dependencies>
-
 </project>

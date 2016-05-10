@@ -64,14 +64,11 @@ EOF
     echo "Installing Unzip..."
     apt-get install unzip
 
-    # List of dependency versions
-    ACCUMULO_VERSION=1.6.5
-
     echo "Setting up environment..."
     export JAVA_HOME=/usr/lib/jvm/java-8-oracle
     export HADOOP_HOME=/home/vagrant/hadoop-1.2.1
     export ZOOKEEPER_HOME=/home/vagrant/zookeeper-3.4.5-cdh4.5.0
-    export ACCUMULO_HOME=/home/vagrant/accumulo-$ACCUMULO_VERSION
+    export ACCUMULO_HOME=/home/vagrant/accumulo-1.6.4
     export PATH=$PATH:$JAVA_HOME/bin:$ZOOKEEPER_HOME/bin:$ACCUMULO_HOME/bin
 
     export HADOOP_PREFIX="$HADOOP_HOME"
@@ -89,7 +86,7 @@ EOF
         export JAVA_HOME=/usr/lib/jvm/java-8-oracle
         export HADOOP_HOME=/home/vagrant/hadoop-1.2.1
         export ZOOKEEPER_HOME=/home/vagrant/zookeeper-3.4.5-cdh4.5.0
-        export ACCUMULO_HOME=/home/vagrant/accumulo-$ACCUMULO_VERSION
+        export ACCUMULO_HOME=/home/vagrant/accumulo-1.6.4
         export PATH=$PATH:$JAVA_HOME/bin:$ZOOKEEPER_HOME/bin:$ACCUMULO_HOME/bin
 
         export HADOOP_PREFIX="$HADOOP_HOME"
@@ -116,7 +113,7 @@ EOF
       | tar -zxC /home/vagrant
     
     echo "- Accumulo"
-    curl -SL http://apache.mirrors.pair.com/accumulo/$ACCUMULO_VERSION/accumulo-$ACCUMULO_VERSION-bin.tar.gz \
+    curl -SL http://apache.mirrors.pair.com/accumulo/1.6.4/accumulo-1.6.4-bin.tar.gz \
       | tar -zxC /home/vagrant
     
     echo "Configuring Zookeeper..."
@@ -128,9 +125,9 @@ EOF
     sudo zookeeper-3.4.5-cdh4.5.0/bin/zkServer.sh start
     
     echo "Configuring Accumulo..."
-    cp accumulo-$ACCUMULO_VERSION/conf/examples/1GB/standalone/* accumulo-$ACCUMULO_VERSION/conf/
-    rm accumulo-$ACCUMULO_VERSION/conf/accumulo-site.xml
-    cat >> accumulo-$ACCUMULO_VERSION/conf/accumulo-site.xml <<EOF
+    cp accumulo-1.6.4/conf/examples/1GB/standalone/* accumulo-1.6.4/conf/
+    rm accumulo-1.6.4/conf/accumulo-site.xml
+    cat >> accumulo-1.6.4/conf/accumulo-site.xml <<EOF
         <configuration>
             <property><name>instance.dfs.uri</name><value>file:///</value></property>
             <property><name>instance.dfs.dir</name><value>/data/accumulo</value></property>
@@ -154,17 +151,17 @@ EOF
             /home/vagrant/hadoop-1.2.1/share/hadoop/hdfs/.*.jar,
             /home/vagrant/hadoop-1.2.1/share/hadoop/mapreduce/.*.jar,
             /home/vagrant/hadoop-1.2.1/share/hadoop/yarn/.*.jar,
-            /home/vagrant/accumulo-$ACCUMULO_VERSION/server/target/classes/,
-            /home/vagrant/accumulo-$ACCUMULO_VERSION/lib/accumulo-server.jar,
-            /home/vagrant/accumulo-$ACCUMULO_VERSION/core/target/classes/,
-            /home/vagrant/accumulo-$ACCUMULO_VERSION/lib/accumulo-core.jar,
-            /home/vagrant/accumulo-$ACCUMULO_VERSION/start/target/classes/,
-            /home/vagrant/accumulo-$ACCUMULO_VERSION/lib/accumulo-start.jar,
-            /home/vagrant/accumulo-$ACCUMULO_VERSION/fate/target/classes/,
-            /home/vagrant/accumulo-$ACCUMULO_VERSION/lib/accumulo-fate.jar,
-            /home/vagrant/accumulo-$ACCUMULO_VERSION/proxy/target/classes/,
-            /home/vagrant/accumulo-$ACCUMULO_VERSION/lib/accumulo-proxy.jar,
-            /home/vagrant/accumulo-$ACCUMULO_VERSION/lib/[^.].*.jar,
+            /home/vagrant/accumulo-1.6.4/server/target/classes/,
+            /home/vagrant/accumulo-1.6.4/lib/accumulo-server.jar,
+            /home/vagrant/accumulo-1.6.4/core/target/classes/,
+            /home/vagrant/accumulo-1.6.4/lib/accumulo-core.jar,
+            /home/vagrant/accumulo-1.6.4/start/target/classes/,
+            /home/vagrant/accumulo-1.6.4/lib/accumulo-start.jar,
+            /home/vagrant/accumulo-1.6.4/fate/target/classes/,
+            /home/vagrant/accumulo-1.6.4/lib/accumulo-fate.jar,
+            /home/vagrant/accumulo-1.6.4/proxy/target/classes/,
+            /home/vagrant/accumulo-1.6.4/lib/accumulo-proxy.jar,
+            /home/vagrant/accumulo-1.6.4/lib/[^.].*.jar,
             /home/vagrant/zookeeper-3.4.5-cdh4.5.0/zookeeper[^.].*.jar,
             $HADOOP_CONF_DIR,
             /home/vagrant/hadoop-1.2.1/[^.].*.jar,
@@ -178,11 +175,11 @@ EOF
             <property><name>gc.port.client</name><value>0</value></property>
         </configuration>
 EOF
-    cat > accumulo-$ACCUMULO_VERSION/conf/masters <<EOF
+    cat > accumulo-1.6.4/conf/masters <<EOF
 rya-example-box
 EOF
 
-	cat > accumulo-$ACCUMULO_VERSION/conf/slaves <<EOF
+	cat > accumulo-1.6.4/conf/slaves <<EOF
 rya-example-box
 EOF
     sudo mkdir /data
@@ -192,8 +189,8 @@ EOF
     mkdir /data/accumulo/lib/ext
 
     echo "Starting Accumulo..."
-    accumulo-$ACCUMULO_VERSION/bin/accumulo init --instance-name dev --password root
-    accumulo-$ACCUMULO_VERSION/bin/start-all.sh
+    accumulo-1.6.4/bin/accumulo init --instance-name dev --password root
+    accumulo-1.6.4/bin/start-all.sh
 
     echo 'Done!'
 

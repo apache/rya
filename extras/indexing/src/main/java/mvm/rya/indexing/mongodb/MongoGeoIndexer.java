@@ -68,16 +68,25 @@ public class MongoGeoIndexer extends AbstractMongoIndexer implements GeoIndexer 
 	private boolean isInit = false;
 	private String tableName = "";
 
-	private MongodForTestsFactory testsFactory;
-
 	private void init() throws NumberFormatException, IOException{
         boolean useMongoTest = conf.getBoolean(MongoDBRdfConfiguration.USE_TEST_MONGO, false);
         if (useMongoTest) {
-            testsFactory = MongodForTestsFactory.with(Version.Main.PRODUCTION);
-            mongoClient = testsFactory.newMongo();
-            int port = mongoClient.getServerAddressList().get(0).getPort();
-            conf.set(MongoDBRdfConfiguration.MONGO_INSTANCE_PORT, Integer.toString(port));
-        } else {
+        	boolean initializedClient = false;
+        	if (conf instanceof MongoDBRdfConfiguration){
+        		MongoDBRdfConfiguration castedConf = (MongoDBRdfConfiguration) conf;
+        		if (castedConf.getMongoClient() != null){
+        			this.mongoClient = castedConf.getMongoClient();
+        			initializedClient = true;
+        		}
+        	}
+        	if (!initializedClient){
+        		MongodForTestsFactory testsFactory = MongodForTestsFactory.with(Version.Main.PRODUCTION);
+        		mongoClient = testsFactory.newMongo();
+        		int port = mongoClient.getServerAddressList().get(0).getPort();
+        		conf.set(MongoDBRdfConfiguration.MONGO_INSTANCE_PORT, Integer.toString(port));
+        	}
+       		
+         } else {
             ServerAddress server = new ServerAddress(conf.get(MongoDBRdfConfiguration.MONGO_INSTANCE),
                     Integer.valueOf(conf.get(MongoDBRdfConfiguration.MONGO_INSTANCE_PORT)));
             if (conf.get(MongoDBRdfConfiguration.MONGO_USER) != null) {

@@ -70,6 +70,7 @@ public class MongoDBRyaDAO implements RyaDAO<MongoDBRdfConfiguration>{
 	public MongoDBRyaDAO(MongoDBRdfConfiguration conf) throws RyaDAOException{
 		this.conf = conf;
 		initConnection();
+		conf.setMongoClient(mongoClient);
 		init();
 	}
 
@@ -77,6 +78,7 @@ public class MongoDBRyaDAO implements RyaDAO<MongoDBRdfConfiguration>{
 	public MongoDBRyaDAO(MongoDBRdfConfiguration conf, MongoClient mongoClient) throws RyaDAOException{
 		this.conf = conf;
 		this.mongoClient = mongoClient;
+		conf.setMongoClient(mongoClient);
 		init();
 	}
 
@@ -86,6 +88,11 @@ public class MongoDBRyaDAO implements RyaDAO<MongoDBRdfConfiguration>{
 	
 	public void setMongoClient(MongoClient mongoClient) {
 		this.mongoClient = mongoClient;
+	}
+	
+	
+	public MongoClient getMongoClient(){
+		return mongoClient;
 	}
 
 	public void setDB(DB db) {

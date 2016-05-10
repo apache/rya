@@ -16,15 +16,16 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-
 package mvm.rya.indexing.external.tupleSet;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import java.util.Iterator;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+
+import javax.annotation.ParametersAreNonnullByDefault;
 
 import org.openrdf.model.URI;
 import org.openrdf.model.Value;
@@ -36,89 +37,68 @@ import org.openrdf.query.Binding;
 import org.openrdf.query.BindingSet;
 import org.openrdf.query.algebra.evaluation.QueryBindingSet;
 
+import com.google.common.base.Joiner;
+
 import mvm.rya.api.domain.RyaType;
 import mvm.rya.api.resolver.RdfToRyaConversions;
 import mvm.rya.indexing.external.tupleSet.PcjTables.VariableOrder;
 
 /**
- * Converts {@link BindingSet}s to Strings and back again.
+ * Converts {@link BindingSet}s to Strings and back again. The Strings do not
+ * include the binding names and are ordered with a {@link VariableOrder}.
  */
-public class BindingSetStringConverter {
+@ParametersAreNonnullByDefault
+public class BindingSetStringConverter implements BindingSetConverter<String> {
 
-    private static final String BINDING_DELIM = ":::";
-    private static final String TYPE_DELIM = "<<~>>";
+    public static final String BINDING_DELIM = ":::";
+    public static final String TYPE_DELIM = "<<~>>";
+    public static final String NULL_VALUE_STRING = Character.toString( '\0' );
 
     private static final ValueFactory valueFactory = new ValueFactoryImpl();
 
-    /**
-     * Converts a {@link BindingSet} to a String. You must provide the order the
-     * {@link Binding}s will be written to.
-     * </p>
-     * The resulting string does not include the binding names from the original
-     * object, so that must be kept with the resulting String if you want to
-     * convert it back to a BindingSet later.
-     * </p>
-     *
-     * @param bindingSet - The BindingSet that will be converted. (not null)
-     * @param varOrder - The order the bindings will appear in the resulting String. (not null)
-     * @return A {@code String} version of {@code bindingSet} whose binding are
-     *   ordered based on {@code varOrder}.
-     */
-    public static String toString(BindingSet bindingSet, VariableOrder varOrder) {
-        checkSameVariables(bindingSet, varOrder);
+    @Override
+    public String convert(BindingSet bindingSet, VariableOrder varOrder) {
+        checkBindingsSubsetOfVarOrder(bindingSet, varOrder);
 
-        final StringBuilder bindingSetString = new StringBuilder();
-
-        Iterator<String> it = varOrder.iterator();
-        while(it.hasNext()) {
-            // Add a value to the binding set.
-            String varName = it.next();
-            final Value value = bindingSet.getBinding(varName).getValue();
-            final RyaType ryaValue = RdfToRyaConversions.convertValue(value);
-            bindingSetString.append( ryaValue.getData() ).append(TYPE_DELIM).append( ryaValue.getDataType() );
-
-            // If there are more values to add, include a delimiter between them.
-            if(it.hasNext()) {
-                bindingSetString.append(BINDING_DELIM);
+        // Convert each Binding to a String.
+        List<String> bindingStrings = new ArrayList<>();
+        for(String varName : varOrder) {
+            if(bindingSet.hasBinding(varName)) {
+                // Add a value to the binding set.
+                final Value value = bindingSet.getBinding(varName).getValue();
+                final RyaType ryaValue = RdfToRyaConversions.convertValue(value);
+                String bindingString = ryaValue.getData() + TYPE_DELIM + ryaValue.getDataType();
+                bindingStrings.add(bindingString);
+            } else {
+                // Add a null value to the binding set.
+                bindingStrings.add(NULL_VALUE_STRING);                
             }
         }
-
-        return bindingSetString.toString();
+        
+        // Join the bindings using the binding delim.
+        return Joiner.on(BINDING_DELIM).join(bindingStrings);
     }
 
     /**
      * Checks to see if the names of all the {@link Binding}s in the {@link BindingSet}
-     * match the variable names in the {@link VariableOrder}.
-     *
+     * are a subset of the variables names in {@link VariableOrder}.
+     * 
      * @param bindingSet - The binding set whose Bindings will be inspected. (not null)
-     * @param varOrder - The names of the bindings that must appear in the BindingSet. (not null)
-     * @throws IllegalArgumentException Indicates the number of bindings did not match
-     *   the number of variables or that the binding names did not match the names
-     *   of the variables.
+     * @param varOrder - The names of the bindings that may appear in the BindingSet. (not null)
+     * @throws IllegalArgumentException Indicates the names of the bindings are
+     *   not a subset of the variable order. 
      */
-    private static void checkSameVariables(BindingSet bindingSet, VariableOrder varOrder) throws IllegalArgumentException {
+    private static void checkBindingsSubsetOfVarOrder(BindingSet bindingSet, VariableOrder varOrder) throws IllegalArgumentException {
         checkNotNull(bindingSet);
         checkNotNull(varOrder);
 
         Set<String> bindingNames = bindingSet.getBindingNames();
-        List<String> varOrderList = varOrder.getVariableOrders();
-        checkArgument(bindingNames.size() == varOrderList.size(), "The number of Bindings must match the length of the VariableOrder.");
-        checkArgument(bindingNames.containsAll(varOrderList), "The names of the Bindings must match the variable names in VariableOrder.");
+        List<String> varNames = varOrder.getVariableOrders();
+        checkArgument(varNames.containsAll(bindingNames), "The BindingSet contains a Binding whose name is not part of the VariableOrder.");
     }
 
-    /**
-     * Converts the String representation of a {@link BindingSet} as is created
-     * by {@link #toString(BindingSet, VariableOrder)} back into a BindingSet.
-     * <p>
-     * You must provide the Binding names in the order they were written to.
-     * </p>
-     *
-     * @param bindingSetString - The binding set values as a String. (not null)
-     * @param varOrder - The order the bindings appear in the String version of
-     *   the BindingSet. (not null)
-     * @return A {@link BindingSet} representation of the String.
-     */
-    public static BindingSet fromString(final String bindingSetString, final VariableOrder varOrder) {
+    @Override
+    public BindingSet convert(String bindingSetString, VariableOrder varOrder) {
         checkNotNull(bindingSetString);
         checkNotNull(varOrder);
 
@@ -128,9 +108,12 @@ public class BindingSetStringConverter {
 
         final QueryBindingSet bindingSet = new QueryBindingSet();
         for(int i = 0; i < bindingStrings.length; i++) {
-            final String name = varOrrderArr[i];
-            final Value value = toValue(bindingStrings[i]);
-            bindingSet.addBinding(name, value);
+            String bindingString = bindingStrings[i];
+            if(!NULL_VALUE_STRING.equals(bindingString)) {
+                final String name = varOrrderArr[i];
+                final Value value = toValue(bindingStrings[i]);
+                bindingSet.addBinding(name, value);
+            }
         }
         return bindingSet;
     }

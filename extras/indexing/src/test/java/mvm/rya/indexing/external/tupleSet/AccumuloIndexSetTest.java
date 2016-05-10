@@ -38,6 +38,7 @@ import mvm.rya.indexing.external.tupleSet.PcjTables.PcjException;
 import mvm.rya.indexing.external.tupleSet.PcjTables.PcjTableNameFactory;
 import mvm.rya.indexing.external.tupleSet.PcjTables.PcjVarOrderFactory;
 import mvm.rya.rdftriplestore.RyaSailRepository;
+import mvm.rya.rdftriplestore.inference.InferenceEngineException;
 
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
@@ -80,7 +81,7 @@ public class AccumuloIndexSetTest {
 	 protected String prefix = "rya_";
 
 	@Before
-	public void init() throws AccumuloException, AccumuloSecurityException, RyaDAOException, RepositoryException, TableNotFoundException {
+	public void init() throws AccumuloException, AccumuloSecurityException, RyaDAOException, RepositoryException, TableNotFoundException, InferenceEngineException {
 		accumuloConn = ConfigUtils.getConnector(conf);
 		final TableOperations ops = accumuloConn.tableOperations();
 		if(ops.exists(prefix+"INDEX_"+ "testPcj")) {

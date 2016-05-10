@@ -40,5 +40,6 @@ under the License.
         <module>indexing</module>
         <module>indexingExample</module>
         <module>vagrantExample</module>
+        <module>rya.pcj.fluo</module>
     </modules>
 </project>

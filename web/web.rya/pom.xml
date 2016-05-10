@@ -142,6 +142,8 @@ under the License.
                             <!-- RDF data Files -->
                             <exclude>**/*.trig</exclude>
                             <exclude>**/*.nt</exclude>
+                            <!-- data file -->
+                            <exclude>**/*.data</exclude>
                         </excludes>
                     </configuration>
                 </plugin>

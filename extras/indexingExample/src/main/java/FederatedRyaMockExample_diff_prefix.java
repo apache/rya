@@ -70,7 +70,7 @@ import mvm.rya.indexing.external.tupleSet.PcjTables.PcjVarOrderFactory;
 import mvm.rya.rdftriplestore.inference.InferenceEngineException;
 import mvm.rya.sail.config.RyaSailFactory;
 
-public class FederatedRyaExample_1 {
+public class FederatedRyaMockExample_diff_prefix {
 	private static final Logger log = Logger.getLogger(RyaDirectExample.class);
 
 	//

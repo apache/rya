@@ -1,4 +1,3 @@
-package mvm.rya.indexing;
 //package mvm.rya.indexing;
 
 import java.util.List;
@@ -47,7 +46,7 @@ import mvm.rya.indexing.external.tupleSet.PcjTables.PcjVarOrderFactory;
 import mvm.rya.rdftriplestore.inference.InferenceEngineException;
 import mvm.rya.sail.config.RyaSailFactory;
 
-public class AdminTablesClient {
+public class AdminTables {
 	
 	public static void main(String[] args) throws Exception {
 		final Configuration conf = getConf();
@@ -70,9 +69,8 @@ public class AdminTablesClient {
 			createPCJ(conf);
 
 			final long start = System.currentTimeMillis();
-			log.info("Running SPARQL Example: Add and Delete");
+			/*log.info("Running SPARQL Example: Add and Delete");
 			testAddAndDelete(conn);
-			/* support will be added later
 			log.info("Running SAIL/SPARQL Example: PCJ Search");
 			testPCJSearch(conn);
 			log.info("Running SAIL/SPARQL Example: Add and Temporal Search");

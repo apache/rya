@@ -27,6 +27,7 @@ import static mvm.rya.api.RdfCloudTripleStoreConstants.EMPTY_BYTES;
 import static mvm.rya.api.RdfCloudTripleStoreConstants.EMPTY_TEXT;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
@@ -38,6 +39,7 @@ import org.apache.accumulo.core.client.MultiTableBatchWriter;
 import org.apache.accumulo.core.client.MutationsRejectedException;
 import org.apache.accumulo.core.client.TableExistsException;
 import org.apache.accumulo.core.client.TableNotFoundException;
+import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Mutation;
 import org.apache.accumulo.core.data.Value;
 import org.apache.accumulo.core.security.ColumnVisibility;
@@ -240,6 +242,60 @@ public class EntityCentricIndex extends AbstractAccumuloIndexer {
                 ));
     }
 
+    /**
+     * Deserialize a row from the entity-centric index.
+     * @param key Row key, contains statement data
+     * @param value Row value
+     * @return The statement represented by the row
+     * @throws IOException if edge direction can't be extracted as expected.
+     * @throws RyaTypeResolverException if a type error occurs deserializing the statement's object.
+     */
+    public static RyaStatement deserializeStatement(Key key, Value value) throws RyaTypeResolverException, IOException {
+        assert key != null;
+        assert value != null;
+        byte[] entityBytes = key.getRowData().toArray();
+        byte[] predicateBytes = key.getColumnFamilyData().toArray();
+        byte[] data = key.getColumnQualifierData().toArray();
+        long timestamp = key.getTimestamp();
+        byte[] columnVisibility = key.getColumnVisibilityData().toArray();
+        byte[] valueBytes = value.get();
+
+        // main entity is either the subject or object
+        // data contains: column family , var name of other node , data of other node + datatype of object
+        int split = Bytes.indexOf(data, DELIM_BYTES);
+        byte[] columnFamily = Arrays.copyOf(data, split);
+        byte[] edgeBytes = Arrays.copyOfRange(data, split + DELIM_BYTES.length, data.length);
+        split = Bytes.indexOf(edgeBytes, DELIM_BYTES);
+        String otherNodeVar = new String(Arrays.copyOf(edgeBytes, split));
+        byte[] otherNodeBytes = Arrays.copyOfRange(edgeBytes,  split + DELIM_BYTES.length, edgeBytes.length - 2);
+        byte[] typeBytes = Arrays.copyOfRange(edgeBytes,  edgeBytes.length - 2, edgeBytes.length);
+        byte[] objectBytes;
+        RyaURI subject;
+        RyaURI predicate = new RyaURI(new String(predicateBytes));
+        RyaType object;
+        RyaURI context = null;
+        // Expect either: entity=subject.data, otherNodeVar="object", otherNodeBytes={object.data, object.datatype_marker}
+        //            or: entity=object.data, otherNodeVar="subject", otherNodeBytes={subject.data, object.datatype_marker}
+        switch (otherNodeVar) {
+            case "subject":
+                subject = new RyaURI(new String(otherNodeBytes));
+                objectBytes = Bytes.concat(entityBytes, typeBytes);
+                break;
+            case "object":
+                subject = new RyaURI(new String(entityBytes));
+                objectBytes = Bytes.concat(otherNodeBytes, typeBytes);
+                break;
+            default:
+                throw new IOException("Failed to deserialize entity-centric index row. "
+                        + "Expected 'subject' or 'object', encountered: '" + otherNodeVar + "'");
+        }
+        object = RyaContext.getInstance().deserialize(objectBytes);
+        if (columnFamily != null && columnFamily.length > 0) {
+            context = new RyaURI(new String(columnFamily));
+        }
+        return new RyaStatement(subject, predicate, object, context,
+                null, columnVisibility, valueBytes, timestamp);
+    }
 
 	@Override
 	public void init() {

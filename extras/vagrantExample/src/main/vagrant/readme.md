@@ -47,9 +47,9 @@ Once Vagrant is installed, starting up the Rya-Example-Box is fairly straightfor
 
 By default, the VM should be assigned the IP address of `192.168.33.10`.  This value is defined in the Vagrantfile and it is configurable.  All of the procedures in this in this document assume that the hostname `rya-example-box` resolves to the VM’s IP address `192.168.33.10`.  The easiest way to do this is to add the entry `192.168.33.10 rya-example-box` to your machine’s host file (e.g., for windows users modify `C:\Windows\System32\drivers\etc\hosts` or for Mac/Linux users modify `/etc/hosts`)
 
-1. **Verify the Tomcat instance**:  Open a browser to <http://rya-example-box:8080/>.  You should see a webpage that says “It works!  If you're seeing this page via a web browser, it means you've setup Tomcat successfully. Congratulations!”
+1. **Verify the Tomcat instance**:  Open a browser to <http://rya-example-box:8080/>.  You should see a webpage that says “It works!  If you're seeing this page via a web browser, it means you've setup Tomcat successfully. Congratulations!
 
-1. **Verify the deployed OpenRDF Sesame service**: Open your browser to <http://rya-example-box:8080/openrdf-sesame/protocol> and you should see a “6” (this is the OpenRDF Protocol Version).
+1. **Verify the deployed OpenRDF Sesame service**: Open your browser to <http://rya-example-box:8080/openrdf-sesame/protocol> and you should see a `6` (this is the OpenRDF Protocol Version).
 
 1. **Verify the deployed OpenRDF Workbench**: Open your browser to <http://rya-example-box:8080/openrdf-workbench>
 
@@ -57,7 +57,7 @@ By default, the VM should be assigned the IP address of `192.168.33.10`.  This v
  
 1. **Ssh into into the VM**: SSH from your host machine to `rya-example-box` with user/pass of vagrant/vagrant.
 
-1. **Test the Accumulo shell**: After ssh'ing into the VM, run the command: `/home/vagrant/accumulo-1.6.4/bin/accumulo shell -u root -p root`
+1. **Test the Accumulo shell**: After ssh'ing into the VM, run the command: `/home/vagrant/accumulo-1.6.5/bin/accumulo shell -u root -p root`
 
 ### Common Errors on the VM
 
@@ -94,28 +94,93 @@ If these files do note exists, open the vagrant file and look for the line `echo
 
 Below is a list of other useful commands on the VMs
 
-*Restart Tomcat*
+#####*Log into the VM*
 
+1. Go to the folder containing "vagrantfile", run: 
+        `cd extras/vagrantExample/src/main/vagrant/`
+2. Login -- no password required, uses crypto keys, run:
+        `vagrant ssh`
+Alternatively: 
 1. Log into the vm (run: `ssh vagrant@rya-example-box` with pass: `vagrant`)
+
+#####*Running as Root*
+
+Most start and stop scripts require running as root with variables, like %HADOOP_PREFIX% assigned.
+
+1. Run thecommand as root preserving environment variables, run:
+        `sudo -E thecommand theParameters`
+The `-E` preserves environment variables from the current session.
+
+Alternatively: 
+
 2. Switch to root (run: `su` with pass: `vagrant`)
-3. Restart tomcat (run: `service tomcat7 restart`)
+2. Load the environment variables.  (run: `source .accumulo_rc.sh`)
+2. Enter thecommand with parameters after the "#" prompt.
+2. Exit when done (run: `exit` )
+
+#####*Restart Tomcat*
+
+1. Login into the VM, see above.
+2. Restart tomcat, run: 
+        `sudo -E service tomcat7 restart`
  
-*Restart Accumulo*
+#####*Restart Accumulo*
 
-1. Log into the vm (run: `ssh vagrant@rya-example-box` with pass: `vagrant`)
-1. Switch to root (run: `su` with pass: `vagrant`)
-1. Stop Accumulo (run: `/home/vagrant/accumulo-1.6.4/bin/stop-all.sh`)
- * If `stop-all` doesn't complete, hit `ctrl-c` once and you should see `Initiating forced shutdown in 15 seconds`.  Wait 15 seconds
-1. Start Accumulo (run: `/home/vagrant/accumulo-1.6.4/bin/start-all.sh`)
+1. Login into the VM, see above.
+2. Stop Accumulo (run: `sudo -E /home/vagrant/accumulo-1.6.5/bin/stop-all.sh`)
+ * If `stop-all` doesn't complete, hit `ctrl-c` once and you should see `Initiating forced shutdown in 15 seconds`.  Wait 15 seconds.
+1. Start Accumulo (run: `sudo -E /home/vagrant/accumulo-1.6.5/bin/start-all.sh`)
 
-*Test and Restart Zookeeper*
+#####*Test and Restart Zookeeper*
 
-1. Log into the vm (run: `ssh vagrant@rya-example-box` with pass: `vagrant`)
-1. Switch to root (run: `su` with pass: `vagrant`)
-1. Ping Zookeeper (run: `echo ruok | nc 127.0.0.1 2181`).
-  * If Zookeeper is okay, you should see the response `imok`
-  * Otherwise, restart Zookeeper (run `/home/vagrant/zookeeper-3.4.5-cdh4.5.0/bin/zkServer.sh start`)
+1. Log into the vm, see above.
+2. Ping Zookeeper, run: 
+        `echo ruok | (nc 127.0.0.1 2181 ; echo)` 
+  * If Zookeeper is okay, you should immediately see the response 
+        `imok`
+  * Otherwise, restart Zookeeper, run: 
+        `sudo -E /home/vagrant/zookeeper-3.4.5-cdh4.5.0/bin/zkServer.sh start`
 
+##### *Rya Process list*
+
+List the processes specific to rya.
+
+From the VM, run:
+    `ryaps`
+Output should look like this:
+```
+org.apache.zookeeper.server.quorum.QuorumPeerMain
+org.apache.accumulo.start.Main monitor
+org.apache.accumulo.start.Main tserver
+org.apache.accumulo.start.Main master
+org.apache.accumulo.start.Main gc
+org.apache.accumulo.start.Main tracer
+org.apache.catalina.startup.Bootstrap
+```
+
+##### *Re-provision, reseting the configuration*
+
+If you are having issues, or modified the vagrantfile and want to put everything back as specified, then use the provision command. This will overwrite most settings.  It will not download nor unpack the libraries, unless you first remove there corresponding folders from the VM's vagrant home folder.
+
+1. Go to the folder containing "vagrantfile", on the host machine, (not the VM),   run: 
+        `cd extras/vagrantExample/src/main/vagrant/`
+2. Run the provision command:
+        `vagrant provision`
+To get the full factory-reset, do some of the following before you re-provision:
+
+###### Logs
+
+From within the VM, run:
+    `sudo rm -r  zookeeper-3.4.5-cdh4.5.0/logs`
+    `sudo rm -r accumulo-1.6.5/logs/`
+
+###### Delete all data in Rya and Accumulo!
+If you run into the issue where it repeatedly prints: `Waiting for accumulo to be initialized`
+This will allow Accumulo to start up.  Remove the data, then reprovision as above.
+From within the VM, run: 
+    `sudo rm -r /data`
+    `sudo rm -r /var/zookeeper/`
+    
 ## Interacting with Rya on the VM
 
 ### Connecting to Rya via OpenRDF Workbench
@@ -144,6 +209,7 @@ Once we've created a Rya repository and uploaded data, we can query Rya via the 
 1. Verify that OpenRDF Workbench is connected to Rya.  The OpenRDF Workbench screen should have `Current Selections: Repository:	Rya Accumulo ( RyaAccumulo )` at the top of the page.	
 1. Click on `Query` on the left side of the page.
 1. Use the example SPARQL query below to query for Currencies with a Short Name of "dollar"
+
     ```
     PREFIX money:<http://telegraphis.net/ontology/money/money#>
     
@@ -167,6 +233,7 @@ The Rya Web Client provides a user a web gui to query Rya.  Once data has been l
 
 1. Open your browser to the [Rya Web](http://rya-example-box:8080/web.rya/sparqlQuery.jsp) page.
 1. Use the example SPARQL query below to query for Currencies with a Short Name of "dollar"
+
     ```
     PREFIX money:<http://telegraphis.net/ontology/money/money#>
     

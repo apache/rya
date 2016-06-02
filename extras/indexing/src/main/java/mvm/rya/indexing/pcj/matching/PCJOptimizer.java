@@ -339,7 +339,7 @@ public class PCJOptimizer implements QueryOptimizer, Configurable {
 		} else {
 			for (final String table : indexTables.keySet()) {
 				final String indexSparqlString = indexTables.get(table);
-				index.add(new AccumuloIndexSet(indexSparqlString, c, table));
+				index.add(new AccumuloIndexSet(indexSparqlString, conf, table));
 			}
 		}
 		return index;

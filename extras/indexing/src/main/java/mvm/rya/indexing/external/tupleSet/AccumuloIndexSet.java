@@ -35,7 +35,9 @@ import mvm.rya.accumulo.pcj.iterators.BindingSetHashJoinIterator.HashJoinType;
 import mvm.rya.accumulo.pcj.iterators.IteratorCombiner;
 import mvm.rya.accumulo.pcj.iterators.PCJKeyToCrossProductBindingSetIterator;
 import mvm.rya.accumulo.pcj.iterators.PCJKeyToJoinBindingSetIterator;
+import mvm.rya.api.RdfCloudTripleStoreConfiguration;
 import mvm.rya.api.utils.IteratorWrapper;
+import mvm.rya.indexing.accumulo.ConfigUtils;
 import mvm.rya.indexing.pcj.matching.PCJOptimizerUtilities;
 import mvm.rya.rdftriplestore.evaluation.ExternalBatchingIterator;
 
@@ -43,11 +45,11 @@ import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
 import org.apache.accumulo.core.client.BatchScanner;
 import org.apache.accumulo.core.client.Connector;
-import org.apache.accumulo.core.client.MutationsRejectedException;
 import org.apache.accumulo.core.client.Scanner;
 import org.apache.accumulo.core.client.TableNotFoundException;
 import org.apache.accumulo.core.data.Range;
 import org.apache.accumulo.core.security.Authorizations;
+import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.Text;
 import org.apache.rya.indexing.pcj.storage.PcjException;
 import org.apache.rya.indexing.pcj.storage.PcjMetadata;
@@ -105,12 +107,14 @@ import com.google.common.collect.Sets;
 public class AccumuloIndexSet extends ExternalTupleSet implements
 		ExternalBatchingIterator {
 
-	private final Connector accCon; // connector to Accumulo table where results
+	private Connector accCon; // connector to Accumulo table where results
 									// are stored
-	private final String tablename; // name of Accumulo table
+	private String tablename; // name of Accumulo table
 	private List<String> varOrder = null; // orders in which results are written
 											// to table
 	private PcjTables pcj = new PcjTables();
+	private Authorizations auths;
+
 
 	@Override
 	public Map<String, Set<String>> getSupportedVariableOrders() {
@@ -135,15 +139,16 @@ public class AccumuloIndexSet extends ExternalTupleSet implements
 	 * @throws MalformedQueryException
 	 * @throws SailException
 	 * @throws QueryEvaluationException
-	 * @throws MutationsRejectedException
 	 * @throws TableNotFoundException
+	 * @throws AccumuloSecurityException
+	 * @throws AccumuloException
 	 */
-	public AccumuloIndexSet(String sparql, Connector accCon,
+	public AccumuloIndexSet(String sparql, Configuration conf,
 			String tablename) throws MalformedQueryException, SailException,
-			QueryEvaluationException, MutationsRejectedException,
-			TableNotFoundException {
+			QueryEvaluationException, TableNotFoundException, AccumuloException, AccumuloSecurityException {
 		this.tablename = tablename;
-		this.accCon = accCon;
+		this.accCon = ConfigUtils.getConnector(conf);
+		this.auths = getAuthorizations(conf);
 		SPARQLParser sp = new SPARQLParser();
 		ParsedTupleQuery pq = (ParsedTupleQuery) sp.parseQuery(sparql, null);
 		TupleExpr te = pq.getTupleExpr();
@@ -181,13 +186,15 @@ public class AccumuloIndexSet extends ExternalTupleSet implements
 	 * @throws MalformedQueryException
 	 * @throws SailException
 	 * @throws QueryEvaluationException
-	 * @throws MutationsRejectedException
 	 * @throws TableNotFoundException
+	 * @throws AccumuloSecurityException
+	 * @throws AccumuloException
 	 */
-	public AccumuloIndexSet(Connector accCon, String tablename)
+	public AccumuloIndexSet(Configuration conf, String tablename)
 			throws MalformedQueryException, SailException,
-			QueryEvaluationException, MutationsRejectedException,
-			TableNotFoundException {
+			QueryEvaluationException, TableNotFoundException, AccumuloException, AccumuloSecurityException {
+		this.accCon = ConfigUtils.getConnector(conf);
+		this.auths = getAuthorizations(conf);
 		PcjMetadata meta = null;
 		try {
 			meta = pcj.getPcjMetadata(accCon, tablename);
@@ -196,7 +203,6 @@ public class AccumuloIndexSet extends ExternalTupleSet implements
 		}
 
 		this.tablename = tablename;
-		this.accCon = accCon;
 		SPARQLParser sp = new SPARQLParser();
 		ParsedTupleQuery pq = (ParsedTupleQuery) sp.parseQuery(
 				meta.getSparql(), null);
@@ -210,6 +216,15 @@ public class AccumuloIndexSet extends ExternalTupleSet implements
 		}
 		setLocalityGroups(tablename, accCon, varOrder);
 		this.setSupportedVariableOrderMap(varOrder);
+	}
+
+
+	private Authorizations getAuthorizations(Configuration conf) {
+		final String authString = conf.get(RdfCloudTripleStoreConfiguration.CONF_QUERY_AUTH, "");
+        if (authString.isEmpty()) {
+            return new Authorizations();
+        }
+        return new Authorizations(authString.split(","));
 	}
 
 	/**
@@ -392,9 +407,7 @@ public class AccumuloIndexSet extends ExternalTupleSet implements
 			// BindingSets
 			if ((useColumnScan || crossProductBs.size() > 0)
 					&& bindingSetHashMap.size() == 0) {
-				// TODO doesn't use user specified Authorizations
-				Scanner scanner = accCon.createScanner(tablename,
-						new Authorizations());
+				Scanner scanner = accCon.createScanner(tablename, auths);
 				// cross product with no cross product constraints here
 				scanner.setRange(crossProductRange);
 				scanner.fetchColumnFamily(new Text(localityGroupOrder));
@@ -411,9 +424,7 @@ public class AccumuloIndexSet extends ExternalTupleSet implements
 				List<CloseableIteration<BindingSet, QueryEvaluationException>> iteratorList = new ArrayList<>();
 
 				// create cross product iterator
-				// TODO doesn't use user specified Authorizations
-				Scanner scanner1 = accCon.createScanner(tablename,
-						new Authorizations());
+				Scanner scanner1 = accCon.createScanner(tablename, auths);
 				scanner1.setRange(crossProductRange);
 				scanner1.fetchColumnFamily(new Text(localityGroupOrder));
 				iteratorList.add(new PCJKeyToCrossProductBindingSetIterator(
@@ -421,9 +432,7 @@ public class AccumuloIndexSet extends ExternalTupleSet implements
 						getTableVarMap()));
 
 				// create hash join iterator
-				// TODO doesn't use user specified Authorizations
-				BatchScanner scanner2 = accCon.createBatchScanner(tablename,
-						new Authorizations(), 10);
+				BatchScanner scanner2 = accCon.createBatchScanner(tablename, auths, 10);
 				scanner2.setRanges(hashJoinRanges);
 				PCJKeyToJoinBindingSetIterator iterator = new PCJKeyToJoinBindingSetIterator(
 						scanner2, getTableVarMap(), maxPrefixLen);
@@ -435,9 +444,7 @@ public class AccumuloIndexSet extends ExternalTupleSet implements
 
 			} else {
 				// only hash join BindingSets exist
-				// TODO doesn't use user specified auths
-				BatchScanner scanner = accCon.createBatchScanner(tablename,
-						new Authorizations(), 10);
+				BatchScanner scanner = accCon.createBatchScanner(tablename, auths, 10);
 				// only need to create hash join iterator
 				scanner.setRanges(hashJoinRanges);
 				PCJKeyToJoinBindingSetIterator iterator = new PCJKeyToJoinBindingSetIterator(

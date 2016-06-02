@@ -53,7 +53,7 @@ public class RdfCloudTripleStore extends SailBase {
 
     @Override
     protected SailConnection getConnectionInternal() throws SailException {
-        return new RdfCloudTripleStoreConnection(this, conf, vf);
+        return new RdfCloudTripleStoreConnection(this, conf.clone(), vf);
     }
 
     @Override

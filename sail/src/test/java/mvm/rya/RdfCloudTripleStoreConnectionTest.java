@@ -39,11 +39,12 @@ import mvm.rya.rdftriplestore.namespace.NamespaceManager;
 import org.apache.accumulo.core.client.Connector;
 import org.apache.accumulo.core.client.Instance;
 import org.apache.accumulo.core.client.mock.MockInstance;
-import org.junit.Ignore;
 import org.openrdf.model.Literal;
+import org.openrdf.model.Model;
 import org.openrdf.model.Resource;
 import org.openrdf.model.Statement;
 import org.openrdf.model.URI;
+import org.openrdf.model.Value;
 import org.openrdf.model.impl.StatementImpl;
 import org.openrdf.model.impl.URIImpl;
 import org.openrdf.model.impl.ValueFactoryImpl;
@@ -62,6 +63,7 @@ import org.openrdf.repository.RepositoryConnection;
 import org.openrdf.repository.RepositoryResult;
 import org.openrdf.repository.sail.SailRepository;
 import org.openrdf.rio.RDFFormat;
+import org.openrdf.rio.Rio;
 
 /**
  * Class RdfCloudTripleStoreConnectionTest
@@ -1012,6 +1014,91 @@ public class RdfCloudTripleStoreConnectionTest extends TestCase {
 //
 //        conn.close();
 //    }
+
+    private static String escape(Value r) {
+        if (r instanceof URI)
+            return "<" + r.toString() +">";
+        return r.toString();
+    }
+    
+    private static String getSparqlUpdate() throws Exception {
+        InputStream stream = Thread.currentThread().getContextClassLoader().getResourceAsStream("namedgraphs.trig");
+        assertNotNull(stream);
+
+        Model m = Rio.parse(stream, "", RDFFormat.TRIG);
+
+        StringBuffer updateStr = new StringBuffer();
+        updateStr.append("INSERT DATA {\n");
+        for (Statement s : m){
+            if (s.getContext() != null) {
+                updateStr.append("graph ");
+                updateStr.append(escape(s.getContext()));
+                updateStr.append("{ ");
+            }
+
+            updateStr.append(escape(s.getSubject()));
+            updateStr.append(" ");
+            updateStr.append(escape(s.getPredicate()));
+            updateStr.append(" ");
+            updateStr.append(escape(s.getObject()));
+            if (s.getContext() != null){
+                updateStr.append("}");
+            }
+            updateStr.append(" . \n");
+        }
+        updateStr.append("}");
+        return updateStr.toString();
+    }
+
+    // Set the persistence visibilites on the config
+    public void testUpdateWAuthOnConfig() throws Exception {
+        String sparqlUpdate = getSparqlUpdate();
+        
+        RdfCloudTripleStore tstore = new MockRdfCloudStore();
+        NamespaceManager nm = new NamespaceManager(tstore.getRyaDAO(), tstore.getConf());
+        tstore.setNamespaceManager(nm);
+        SailRepository repo = new SailRepository(tstore);
+        tstore.getRyaDAO().getConf().setCv("1|2");
+        repo.initialize();
+
+        RepositoryConnection conn = repo.getConnection();
+        Update u = conn.prepareUpdate(QueryLanguage.SPARQL, sparqlUpdate);
+        u.execute();
+        
+        String query = "PREFIX  ex:  <http://www.example.org/exampleDocument#>\n" +
+                "PREFIX  voc:  <http://www.example.org/vocabulary#>\n" +
+                "PREFIX  foaf:  <http://xmlns.com/foaf/0.1/>\n" +
+                "PREFIX  rdfs:  <http://www.w3.org/2000/01/rdf-schema#>\n" +
+                "\n" +
+                "SELECT * \n" +
+//                "FROM NAMED <http://www.example.org/exampleDocument#G1>\n" +
+                "WHERE\n" +
+                "{\n" +
+                "  GRAPH ex:G1\n" +
+                "  {\n" +
+                "    ?m voc:name ?name ;\n" +
+                "           voc:homepage ?hp .\n" +
+                "  } .\n" +
+                " GRAPH ex:G2\n" +
+                "  {\n" +
+                "    ?m voc:hasSkill ?skill .\n" +
+                "  } .\n" +
+                "}";
+        TupleQuery tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, query);
+        tupleQuery.setBinding(RdfCloudTripleStoreConfiguration.CONF_QUERY_AUTH, vf.createLiteral("2"));
+        CountTupleHandler tupleHandler = new CountTupleHandler();
+        tupleQuery.evaluate(tupleHandler);
+        assertEquals(1, tupleHandler.getCount());
+
+        tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, query); //no auth
+        tupleHandler = new CountTupleHandler();
+        tupleQuery.evaluate(tupleHandler);
+        assertEquals(0, tupleHandler.getCount());
+
+        conn.close();
+
+        repo.shutDown();
+    }
 
     public void testNamedGraphLoadWAuth() throws Exception {
         InputStream stream = Thread.currentThread().getContextClassLoader().getResourceAsStream("namedgraphs.trig");

@@ -23,12 +23,13 @@ under the License.
     String sparql=request.getParameter("sparql");
     String infer=request.getParameter("infer");
     String auth=request.getParameter("auth");
+    String vis=request.getParameter("vis");
 	String resultFormat = request.getParameter("emit");
     String padding = request.getParameter("padding");
 
     if(sparql != null){
         String sparqlEnc = URLEncoder.encode(sparql,"UTF-8");
-        String urlTo = "queryrdf?query.infer="+infer+"&query.auth="+auth+"&query.resultformat="+resultFormat+"&padding="+padding+"&query="+sparqlEnc;
+        String urlTo = "queryrdf?query.infer="+infer+"&query.auth="+auth+"&conf.cv="+vis+"&query.resultformat="+resultFormat+"&padding="+padding+"&query="+sparqlEnc;
         response.sendRedirect(urlTo);
     }
 %>
@@ -53,7 +54,11 @@ Enter Sparql query here
     <tr>
         <td>Authorization</td>
         <td><INPUT TYPE=TEXT NAME="auth" SIZE="20"></td>
-      </tr>
+    </tr>
+    <tr>
+        <td>visibility</td>
+        <td><INPUT TYPE=TEXT NAME="vis" SIZE="20"></td>
+    </tr>
 		<tr>
 			<td>Result Format</td>
 			<td><select name="emit">

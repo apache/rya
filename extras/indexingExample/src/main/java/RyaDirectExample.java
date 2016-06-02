@@ -36,6 +36,7 @@ import org.openrdf.model.URI;
 import org.openrdf.model.ValueFactory;
 import org.openrdf.model.impl.LiteralImpl;
 import org.openrdf.model.impl.URIImpl;
+import org.openrdf.model.impl.ValueFactoryImpl;
 import org.openrdf.model.vocabulary.RDF;
 import org.openrdf.model.vocabulary.RDFS;
 import org.openrdf.query.BindingSet;
@@ -99,6 +100,8 @@ public class RyaDirectExample {
 			final long start = System.currentTimeMillis();
 			log.info("Running SPARQL Example: Add and Delete");
 			testAddAndDelete(conn);
+            log.info("Running SPARQL Example: Add with Visibilities and Query with Authorizations");
+            testAddAndQueryWithAuths(conf);
 			log.info("Running SAIL/SPARQL Example: PCJ Search");
 			testPCJSearch(conn);
 			log.info("Running SAIL/SPARQL Example: Add and Temporal Search");
@@ -215,6 +218,77 @@ public class RyaDirectExample {
 		Validate.isTrue(resultHandler.getCount() == 0);
 	}
 
+	private static void testAddAndQueryWithAuths(Configuration conf) throws Exception {
+        Sail s;
+        SailRepository r;
+        SailRepositoryConnection conn;
+
+        // Create a connection that writes data with "A&B" visibilities
+	    ValueFactory vf = new ValueFactoryImpl();
+	    
+	    Configuration confAB = new Configuration(conf);
+        confAB.set(RdfCloudTripleStoreConfiguration.CONF_CV, "A&B");
+
+        s = RyaSailFactory.getInstance(confAB);
+        r = new SailRepository(s);
+        r.initialize();
+        conn = r.getConnection();
+
+        conn.add(vf.createStatement(vf.createURI("u:S_AB"), vf.createURI("u:pred"), vf.createURI("u:O_AB")));
+
+        closeQuietly(r);
+
+        // Create a connection that writes data with "B&C" visibilities
+        Configuration confBC = new Configuration(conf);
+        confBC.set(RdfCloudTripleStoreConfiguration.CONF_CV, "B&C");
+
+        s = RyaSailFactory.getInstance(confBC);
+        r = new SailRepository(s);
+        r.initialize();
+        conn = r.getConnection();
+
+        conn.add(vf.createStatement(vf.createURI("u:S_BC"), vf.createURI("u:pred"), vf.createURI("u:O_BC")));
+
+        closeQuietly(r);
+
+        //Query
+        s = RyaSailFactory.getInstance(conf);
+        r = new SailRepository(s);
+        r.initialize();
+        conn = r.getConnection();
+
+        String query;
+        
+        // Query with No Auths
+        query = "select ?s ?o { ?s <u:pred> ?o . }";
+        final CountingResultHandler resultHandler = new CountingResultHandler();
+        TupleQuery tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, query);
+        tupleQuery.evaluate(resultHandler);
+        log.info("Result count : " + resultHandler.getCount());
+
+        Validate.isTrue(resultHandler.getCount() == 0);
+        resultHandler.resetCount();
+        
+        // Query with A B Auths
+        // Note: Alternatively, you can set this value on the conf used to create the conn
+        tupleQuery.setBinding(RdfCloudTripleStoreConfiguration.CONF_QUERY_AUTH, vf.createLiteral("A,B"));
+        tupleQuery.evaluate(resultHandler);
+        log.info("Result count : " + resultHandler.getCount());
+
+        Validate.isTrue(resultHandler.getCount() == 1);
+        resultHandler.resetCount();
+
+        // Query with A B C Auths
+        tupleQuery.setBinding(RdfCloudTripleStoreConfiguration.CONF_QUERY_AUTH, vf.createLiteral("A,B,C"));
+        tupleQuery.evaluate(resultHandler);
+        log.info("Result count : " + resultHandler.getCount());
+
+        Validate.isTrue(resultHandler.getCount() == 2);
+        resultHandler.resetCount();
+
+        closeQuietly(r);
+	}
+	
 	private static void testPCJSearch(SailRepositoryConnection conn)
 			throws Exception {
 

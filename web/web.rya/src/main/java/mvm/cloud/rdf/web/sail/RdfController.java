@@ -21,7 +21,6 @@ package mvm.cloud.rdf.web.sail;
 
 
 
-import static mvm.rya.api.RdfCloudTripleStoreConstants.AUTH_NAMESPACE;
 import static mvm.rya.api.RdfCloudTripleStoreConstants.VALUE_FACTORY;
 
 import java.io.IOException;
@@ -37,6 +36,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import mvm.rya.api.security.SecurityProvider;
 import mvm.rya.api.RdfCloudTripleStoreConfiguration;
+import mvm.rya.rdftriplestore.RdfCloudTripleStoreConnection;
 
 import org.openrdf.model.Resource;
 import org.openrdf.model.Statement;
@@ -58,9 +58,10 @@ import org.openrdf.query.parser.ParsedUpdate;
 import org.openrdf.query.parser.QueryParserUtil;
 import org.openrdf.query.resultio.sparqljson.SPARQLResultsJSONWriter;
 import org.openrdf.query.resultio.sparqlxml.SPARQLResultsXMLWriter;
-import org.openrdf.repository.Repository;
 import org.openrdf.repository.RepositoryConnection;
 import org.openrdf.repository.RepositoryException;
+import org.openrdf.repository.sail.SailRepository;
+import org.openrdf.repository.sail.SailRepositoryConnection;
 import org.openrdf.rio.RDFFormat;
 import org.openrdf.rio.RDFHandler;
 import org.openrdf.rio.RDFHandlerException;
@@ -85,7 +86,7 @@ public class RdfController {
 	private static final int QUERY_TIME_OUT_SECONDS = 120;
 
     @Autowired
-    Repository repository;
+    SailRepository repository;
     
     @Autowired   
     SecurityProvider provider;
@@ -93,6 +94,7 @@ public class RdfController {
     @RequestMapping(value = "/queryrdf", method = {RequestMethod.GET, RequestMethod.POST})
     public void queryRdf(@RequestParam("query") String query,
                          @RequestParam(value = RdfCloudTripleStoreConfiguration.CONF_QUERY_AUTH, required = false) String auth,
+                         @RequestParam(value = RdfCloudTripleStoreConfiguration.CONF_CV, required = false) String vis,
                          @RequestParam(value = RdfCloudTripleStoreConfiguration.CONF_INFER, required = false) String infer,
                          @RequestParam(value = "nullout", required = false) String nullout,
                          @RequestParam(value = RdfCloudTripleStoreConfiguration.CONF_RESULT_FORMAT, required = false) String emit,
@@ -100,7 +102,7 @@ public class RdfController {
                          @RequestParam(value = "callback", required = false) String callback,
                          HttpServletRequest request,
                          HttpServletResponse response) {
-        RepositoryConnection conn = null;
+        SailRepositoryConnection conn = null;
 		final Thread queryThread = Thread.currentThread();
 		auth = StringUtils.arrayToCommaDelimitedString(provider.getUserAuths(request));
 		Timer timer = new Timer();
@@ -130,12 +132,12 @@ public class RdfController {
 
             if (!isBlankQuery) {
             	if (operation instanceof ParsedGraphQuery) {
-            		// Perform Tupple Query
+            		// Perform Graph Query
                     RDFHandler handler = new RDFXMLWriter(os);
                     response.setContentType("text/xml");
                     performGraphQuery(query, conn, auth, infer, nullout, handler);
                 } else if (operation instanceof ParsedTupleQuery) {
-                    // Perform Tupple Query
+                    // Perform Tuple Query
                     TupleQueryResultHandler handler;
 
                     if (requestedFormat && emit.equalsIgnoreCase("json")) {
@@ -149,7 +151,7 @@ public class RdfController {
                     performQuery(query, conn, auth, infer, nullout, handler);
                 } else if (operation instanceof ParsedUpdate) {
                     // Perform Update Query
-                    performUpdate(query, conn, os, auth, infer);
+                    performUpdate(query, conn, os, infer, vis);
                 } else {
                     throw new MalformedQueryException("Cannot process query. Query type not supported.");
                 }
@@ -253,12 +255,15 @@ public class RdfController {
         }
 
     }
-    private void performUpdate(String query, RepositoryConnection conn, ServletOutputStream os, String auth, String infer) throws RepositoryException, MalformedQueryException, IOException {
+    private void performUpdate(String query, SailRepositoryConnection conn, ServletOutputStream os, String infer, String vis) throws RepositoryException, MalformedQueryException, IOException {
         Update update = conn.prepareUpdate(QueryLanguage.SPARQL, query);
-        if (auth != null && auth.length() > 0)
-            update.setBinding(RdfCloudTripleStoreConfiguration.CONF_QUERY_AUTH, VALUE_FACTORY.createLiteral(auth));
         if (infer != null && infer.length() > 0)
             update.setBinding(RdfCloudTripleStoreConfiguration.CONF_INFER, VALUE_FACTORY.createLiteral(Boolean.parseBoolean(infer)));
+
+        if (conn.getSailConnection() instanceof RdfCloudTripleStoreConnection && vis != null) {
+            RdfCloudTripleStoreConnection sailConnection = (RdfCloudTripleStoreConnection) conn.getSailConnection();
+            sailConnection.getConf().set(RdfCloudTripleStoreConfiguration.CONF_CV, vis);
+        }
 
         long startTime = System.currentTimeMillis();
 
@@ -324,16 +329,16 @@ public class RdfController {
         if (graph != null) {
         	authList.add(VALUE_FACTORY.createURI(graph));
         }
-        RepositoryConnection conn = null;
+        SailRepositoryConnection conn = null;
         try {
             conn = repository.getConnection();
-            if (cv != null && cv.length() > 0) {
-                String[] auths = cv.split("\\|");
-                for (String auth : auths) {
-                    authList.add(VALUE_FACTORY.createURI(AUTH_NAMESPACE, auth));
-                }
-            } 
-            conn.add(new StringReader(body), "", format_r, authList.toArray(new Resource[authList.size()]));
+            
+            if (conn.getSailConnection() instanceof RdfCloudTripleStoreConnection && cv != null) {
+                RdfCloudTripleStoreConnection sailConnection = (RdfCloudTripleStoreConnection) conn.getSailConnection();
+                sailConnection.getConf().set(RdfCloudTripleStoreConfiguration.CONF_CV, cv);
+            }
+
+            conn.add(new StringReader(body), "", format_r);
             conn.commit();
         } finally {
             if (conn != null) {

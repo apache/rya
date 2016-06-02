@@ -29,6 +29,7 @@ under the License.
 	<context:component-scan base-package="mvm.cloud.rdf.web.sail" />
 	
 	<import resource="controllerIntegrationTest-accumulo.xml"/>
+    <import resource="controllerIntegrationTest-security.xml"/>
 
 	<bean id="inferenceEngine" class="mvm.rya.rdftriplestore.inference.InferenceEngine" init-method="init" destroy-method="destroy">
         <property name="ryaDAO" ref="ryaDAO"/>

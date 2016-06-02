@@ -31,8 +31,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
 import javax.annotation.concurrent.Immutable;
 
 import org.apache.commons.lang3.builder.EqualsBuilder;
-
-import mvm.rya.indexing.external.tupleSet.PcjTables.VariableOrder;
+import org.apache.rya.indexing.pcj.storage.accumulo.VariableOrder;
 
 /**
  * Represents a request to create a new PCJ in the Fluo app.

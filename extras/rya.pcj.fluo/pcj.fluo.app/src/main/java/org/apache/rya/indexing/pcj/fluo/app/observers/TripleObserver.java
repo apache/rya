@@ -31,6 +31,9 @@ import org.apache.rya.indexing.pcj.fluo.app.StringTypeLayer;
 import org.apache.rya.indexing.pcj.fluo.app.query.FluoQueryColumns;
 import org.apache.rya.indexing.pcj.fluo.app.query.FluoQueryMetadataDAO;
 import org.apache.rya.indexing.pcj.fluo.app.query.StatementPatternMetadata;
+import org.apache.rya.indexing.pcj.storage.accumulo.VariableOrder;
+import org.apache.rya.indexing.pcj.storage.accumulo.VisibilityBindingSet;
+import org.apache.rya.indexing.pcj.storage.accumulo.VisibilityBindingSetStringConverter;
 
 import com.google.common.collect.Maps;
 
@@ -40,6 +43,8 @@ import io.fluo.api.data.Column;
 import io.fluo.api.data.Span;
 import io.fluo.api.iterator.ColumnIterator;
 import io.fluo.api.iterator.RowIterator;
+import io.fluo.api.types.Encoder;
+import io.fluo.api.types.StringEncoder;
 import io.fluo.api.types.TypedObserver;
 import io.fluo.api.types.TypedTransactionBase;
 
@@ -50,7 +55,9 @@ import io.fluo.api.types.TypedTransactionBase;
  */
 public class TripleObserver extends TypedObserver {
 
-    private final FluoQueryMetadataDAO queryDao = new FluoQueryMetadataDAO();
+    private static final Encoder ENCODER = new StringEncoder();
+    private static final FluoQueryMetadataDAO QUERY_DAO = new FluoQueryMetadataDAO();
+    private static final VisibilityBindingSetStringConverter CONVERTER = new VisibilityBindingSetStringConverter();
 
     public TripleObserver() {
         super(new StringTypeLayer());
@@ -65,6 +72,11 @@ public class TripleObserver extends TypedObserver {
     public void process(final TypedTransactionBase tx, final Bytes row, final Column column) {
         //get string representation of triple
         final String triple = IncUpdateDAO.getTripleString(row);
+        final Bytes visiBytes = tx.get(row, FluoQueryColumns.TRIPLES);
+        String visibility = "";
+        if(visiBytes != null) {
+             visibility = ENCODER.decodeString(visiBytes);
+        }
 
         //get variable metadata for all SP in table
         final ScannerConfiguration sc1 = new ScannerConfiguration();
@@ -75,19 +87,25 @@ public class TripleObserver extends TypedObserver {
         final RowIterator ri = tx.get(sc1);
 
         while(ri.hasNext()) {
-
             final Entry<Bytes, ColumnIterator> next = ri.next();
             final ColumnIterator ci = next.getValue();
             final String spID = next.getKey().toString();
 
-            final StatementPatternMetadata spMetadata = queryDao.readStatementPatternMetadata(tx, spID);
+            final StatementPatternMetadata spMetadata = QUERY_DAO.readStatementPatternMetadata(tx, spID);
             final String pattern = spMetadata.getStatementPattern();
 
             while(ci.hasNext()) {
                 final String varOrders = ci.next().getValue().toString();
-                final String bindingSet = getBindingSet(triple, pattern, varOrders);
-                if(bindingSet.length() != 0) {
-                    tx.mutate().row(spID + NODEID_BS_DELIM + bindingSet).col(FluoQueryColumns.STATEMENT_PATTERN_BINDING_SET).set(bindingSet);
+                final VariableOrder varOrder = new VariableOrder(varOrders);
+                final String bindingSetString = getBindingSet(triple, pattern, varOrders);
+
+                //Statement matches to a binding set
+                if(bindingSetString.length() != 0) {
+                    final VisibilityBindingSet bindingSet = new VisibilityBindingSet(
+                        CONVERTER.convert(bindingSetString, varOrder),
+                        visibility);
+                    final String valueString = CONVERTER.convert(bindingSet, varOrder);
+                    tx.mutate().row(spID + NODEID_BS_DELIM + bindingSetString).col(FluoQueryColumns.STATEMENT_PATTERN_BINDING_SET).set(valueString);
                 }
             }
         }
@@ -96,8 +114,16 @@ public class TripleObserver extends TypedObserver {
         tx.delete(row, column);
     }
 
-    //determines whether triple matches SPID conditions and generates bindingset
-    //whose order is determined by varOrder
+    /**
+     * Determines whether triple matches Statement Pattern ID conditions if
+     * so, generates a string representation of a BindingSet whose order
+     * is determined by varOrder.
+     * @param triple - The triple to consider.
+     * @param spID - The statement pattern ID
+     * @param varOrder - The variable order
+     * @return The string representation of the BindingSet or an empty string,
+     * signifying the triple did not match the statement pattern ID.
+     */
     private static String getBindingSet(final String triple, final String spID, final String varOrder) {
         final String[] spIdArray = spID.split(DELIM);
         final String[] tripleArray = triple.split(DELIM);

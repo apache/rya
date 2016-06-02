@@ -24,10 +24,9 @@ import javax.annotation.ParametersAreNonnullByDefault;
 import javax.annotation.concurrent.Immutable;
 
 import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.rya.indexing.pcj.storage.accumulo.VariableOrder;
 
 import com.google.common.base.Objects;
-
-import mvm.rya.indexing.external.tupleSet.PcjTables.VariableOrder;
 
 /**
  * Metadata that is common to all nodes that are part of a query.

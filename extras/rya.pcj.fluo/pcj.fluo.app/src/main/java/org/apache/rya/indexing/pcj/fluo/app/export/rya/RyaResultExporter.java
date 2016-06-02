@@ -25,12 +25,12 @@ import java.util.Collections;
 import org.apache.accumulo.core.client.Connector;
 import org.apache.rya.indexing.pcj.fluo.app.export.IncrementalResultExporter;
 import org.apache.rya.indexing.pcj.fluo.app.query.FluoQueryColumns;
-import org.openrdf.query.BindingSet;
+import org.apache.rya.indexing.pcj.storage.PcjException;
+import org.apache.rya.indexing.pcj.storage.accumulo.PcjTables;
+import org.apache.rya.indexing.pcj.storage.accumulo.VisibilityBindingSet;
 
 import io.fluo.api.data.Bytes;
 import io.fluo.api.types.TypedTransactionBase;
-import mvm.rya.indexing.external.tupleSet.PcjTables;
-import mvm.rya.indexing.external.tupleSet.PcjTables.PcjException;
 
 /**
  * Incrementally exports SPARQL query results to Accumulo PCJ tables as they are defined by Rya.
@@ -55,7 +55,7 @@ public class RyaResultExporter implements IncrementalResultExporter {
     public void export(
             final TypedTransactionBase fluoTx,
             final String queryId,
-            final BindingSet result) throws ResultExportException {
+            final VisibilityBindingSet result) throws ResultExportException {
         checkNotNull(fluoTx);
         checkNotNull(queryId);
         checkNotNull(result);

@@ -33,13 +33,13 @@ import org.apache.rya.indexing.pcj.fluo.api.GetPcjMetadata.NotInAccumuloExceptio
 import org.apache.rya.indexing.pcj.fluo.api.GetPcjMetadata.NotInFluoException;
 import org.apache.rya.indexing.pcj.fluo.client.PcjAdminClientCommand;
 import org.apache.rya.indexing.pcj.fluo.client.util.PcjMetadataRenderer;
+import org.apache.rya.indexing.pcj.storage.PcjMetadata;
 
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.ParameterException;
 
 import io.fluo.api.client.FluoClient;
-import mvm.rya.indexing.external.tupleSet.PcjTables.PcjMetadata;
 import mvm.rya.rdftriplestore.RyaSailRepository;
 
 /**

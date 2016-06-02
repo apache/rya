@@ -41,13 +41,7 @@ under the License.
         <!-- Rya Runtime Dependencies. -->
         <dependency>
             <groupId>org.apache.rya</groupId>
-            <artifactId>rya.indexing</artifactId>
-            <exclusions>
-                <exclusion>
-                    <artifactId>slf4j-log4j12</artifactId>
-                    <groupId>org.slf4j</groupId>
-                </exclusion>
-            </exclusions>
+            <artifactId>rya.indexing.pcj</artifactId>
         </dependency>
     
         <!-- 3rd Party Runtime Dependencies. -->

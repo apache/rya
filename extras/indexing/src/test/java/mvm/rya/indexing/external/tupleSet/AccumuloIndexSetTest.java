@@ -1,5 +1,3 @@
-package mvm.rya.indexing.external.tupleSet;
-
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -8,9 +6,9 @@ package mvm.rya.indexing.external.tupleSet;
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- * 
+ *
  *   http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -18,27 +16,12 @@ package mvm.rya.indexing.external.tupleSet;
  * specific language governing permissions and limitations
  * under the License.
  */
-
-import info.aduna.iteration.CloseableIteration;
+package mvm.rya.indexing.external.tupleSet;
 
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-
-import mvm.rya.accumulo.AccumuloRdfConfiguration;
-import mvm.rya.api.RdfCloudTripleStoreConfiguration;
-import mvm.rya.api.persist.RyaDAOException;
-import mvm.rya.api.resolver.RyaTypeResolverException;
-import mvm.rya.sail.config.RyaSailFactory;
-import mvm.rya.indexing.accumulo.ConfigUtils;
-import mvm.rya.indexing.external.PcjIntegrationTestingUtil;
-import mvm.rya.indexing.external.QueryVariableNormalizer;
-import mvm.rya.indexing.external.tupleSet.PcjTables.PcjException;
-import mvm.rya.indexing.external.tupleSet.PcjTables.PcjTableNameFactory;
-import mvm.rya.indexing.external.tupleSet.PcjTables.PcjVarOrderFactory;
-import mvm.rya.rdftriplestore.RyaSailRepository;
-import mvm.rya.rdftriplestore.inference.InferenceEngineException;
 
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
@@ -47,6 +30,9 @@ import org.apache.accumulo.core.client.MutationsRejectedException;
 import org.apache.accumulo.core.client.TableNotFoundException;
 import org.apache.accumulo.core.client.admin.TableOperations;
 import org.apache.hadoop.conf.Configuration;
+import org.apache.rya.indexing.pcj.storage.PcjException;
+import org.apache.rya.indexing.pcj.storage.accumulo.PcjTableNameFactory;
+import org.apache.rya.indexing.pcj.storage.accumulo.PcjVarOrderFactory;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -71,6 +57,18 @@ import org.openrdf.sail.SailException;
 import com.google.common.base.Optional;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+
+import info.aduna.iteration.CloseableIteration;
+import mvm.rya.accumulo.AccumuloRdfConfiguration;
+import mvm.rya.api.RdfCloudTripleStoreConfiguration;
+import mvm.rya.api.persist.RyaDAOException;
+import mvm.rya.api.resolver.RyaTypeResolverException;
+import mvm.rya.indexing.accumulo.ConfigUtils;
+import mvm.rya.indexing.external.PcjIntegrationTestingUtil;
+import mvm.rya.indexing.external.QueryVariableNormalizer;
+import mvm.rya.rdftriplestore.RyaSailRepository;
+import mvm.rya.rdftriplestore.inference.InferenceEngineException;
+import mvm.rya.sail.config.RyaSailFactory;
 
 public class AccumuloIndexSetTest {
 
@@ -648,7 +646,7 @@ public class AccumuloIndexSetTest {
 
         // Create and populate the PCJ table.
         PcjIntegrationTestingUtil.createAndPopulatePcj(ryaConn, accumuloConn, pcjTableName, sparql, new String[]{"name", "age"}, Optional.<PcjVarOrderFactory>absent());
-        AccumuloIndexSet ais = new AccumuloIndexSet(accumuloConn,pcjTableName);
+        final AccumuloIndexSet ais = new AccumuloIndexSet(accumuloConn,pcjTableName);
 
         final QueryBindingSet bs1 = new QueryBindingSet();
         bs1.addBinding("age",new LiteralImpl("16"));

@@ -24,11 +24,12 @@ import org.apache.rya.indexing.pcj.fluo.app.BindingSetRow;
 import org.apache.rya.indexing.pcj.fluo.app.query.FilterMetadata;
 import org.apache.rya.indexing.pcj.fluo.app.query.FluoQueryColumns;
 import org.apache.rya.indexing.pcj.fluo.app.query.FluoQueryMetadataDAO;
+import org.apache.rya.indexing.pcj.storage.accumulo.VariableOrder;
+import org.apache.rya.indexing.pcj.storage.accumulo.VisibilityBindingSet;
+import org.apache.rya.indexing.pcj.storage.accumulo.VisibilityBindingSetStringConverter;
 import org.openrdf.query.BindingSet;
 
 import io.fluo.api.client.TransactionBase;
-import mvm.rya.indexing.external.tupleSet.BindingSetStringConverter;
-import mvm.rya.indexing.external.tupleSet.PcjTables.VariableOrder;
 
 /**
  * Notified when the results of a Filter have been updated to include a new
@@ -37,7 +38,7 @@ import mvm.rya.indexing.external.tupleSet.PcjTables.VariableOrder;
  */
 public class FilterObserver extends BindingSetUpdater {
 
-    private final BindingSetStringConverter converter = new BindingSetStringConverter();
+    private final VisibilityBindingSetStringConverter converter = new VisibilityBindingSetStringConverter();
 
     private final FluoQueryMetadataDAO queryDao = new FluoQueryMetadataDAO();
 
@@ -57,7 +58,7 @@ public class FilterObserver extends BindingSetUpdater {
 
         // Read the Binding Set that was just emmitted by the Filter.
         final VariableOrder filterVarOrder = filterMetadata.getVariableOrder();
-        final BindingSet filterBindingSet = converter.convert(parsedRow.getBindingSetString(), filterVarOrder);
+        final VisibilityBindingSet filterBindingSet = (VisibilityBindingSet) converter.convert(parsedRow.getBindingSetString(), filterVarOrder);
 
         // Figure out which node needs to handle the new metadata.
         final String parentNodeId = filterMetadata.getParentNodeId();

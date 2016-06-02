@@ -1,5 +1,3 @@
-package mvm.rya.indexing.external.tupleSet;
-
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -18,8 +16,7 @@ package mvm.rya.indexing.external.tupleSet;
  * specific language governing permissions and limitations
  * under the License.
  */
-
-import info.aduna.iteration.CloseableIteration;
+package mvm.rya.indexing.external.tupleSet;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -31,20 +28,16 @@ import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Set;
 
-import mvm.rya.accumulo.precompQuery.AccumuloPcjQuery;
-import mvm.rya.api.utils.IteratorWrapper;
-import mvm.rya.indexing.PcjQuery;
-import mvm.rya.indexing.external.tupleSet.PcjTables.PcjException;
-import mvm.rya.indexing.external.tupleSet.PcjTables.PcjMetadata;
-import mvm.rya.indexing.external.tupleSet.PcjTables.VariableOrder;
-import mvm.rya.rdftriplestore.evaluation.ExternalBatchingIterator;
-
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
 import org.apache.accumulo.core.client.Connector;
 import org.apache.accumulo.core.client.MutationsRejectedException;
 import org.apache.accumulo.core.client.TableNotFoundException;
 import org.apache.hadoop.io.Text;
+import org.apache.rya.indexing.pcj.storage.PcjException;
+import org.apache.rya.indexing.pcj.storage.PcjMetadata;
+import org.apache.rya.indexing.pcj.storage.accumulo.PcjTables;
+import org.apache.rya.indexing.pcj.storage.accumulo.VariableOrder;
 import org.openrdf.query.Binding;
 import org.openrdf.query.BindingSet;
 import org.openrdf.query.MalformedQueryException;
@@ -63,6 +56,12 @@ import com.google.common.collect.HashBiMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
+
+import info.aduna.iteration.CloseableIteration;
+import mvm.rya.accumulo.precompQuery.AccumuloPcjQuery;
+import mvm.rya.api.utils.IteratorWrapper;
+import mvm.rya.indexing.PcjQuery;
+import mvm.rya.rdftriplestore.evaluation.ExternalBatchingIterator;
 
 /**
  * During query planning, this node is inserted into the parsed query to
@@ -95,7 +94,7 @@ public class AccumuloIndexSet extends ExternalTupleSet implements ExternalBatchi
     private final Connector accCon;  //connector to Accumulo table where results are stored
     private final String tablename;  //name of Accumulo table
     private List<String> varOrder = null; // orders in which results are written to table
-    private PcjTables pcj = new PcjTables();
+    private final PcjTables pcj = new PcjTables();
 
     @Override
     public Map<String, Set<String>> getSupportedVariableOrders() {
@@ -118,14 +117,14 @@ public class AccumuloIndexSet extends ExternalTupleSet implements ExternalBatchi
      * @throws MutationsRejectedException
      * @throws TableNotFoundException
      */
-    public AccumuloIndexSet(String sparql, Connector accCon, String tablename) throws MalformedQueryException, SailException, QueryEvaluationException,
+    public AccumuloIndexSet(final String sparql, final Connector accCon, final String tablename) throws MalformedQueryException, SailException, QueryEvaluationException,
             MutationsRejectedException, TableNotFoundException {
         this.tablename = tablename;
         this.accCon = accCon;
         final SPARQLParser sp = new SPARQLParser();
         final ParsedTupleQuery pq = (ParsedTupleQuery) sp.parseQuery(sparql, null);
 
-        Optional<Projection> projection = new ParsedQueryUtil().findProjection(pq);
+        final Optional<Projection> projection = new ParsedQueryUtil().findProjection(pq);
         if(!projection.isPresent()) {
             throw new MalformedQueryException("SPARQL query '" + sparql + "' does not contain a Projection.");
         }
@@ -156,7 +155,7 @@ public class AccumuloIndexSet extends ExternalTupleSet implements ExternalBatchi
      * @throws MutationsRejectedException
      * @throws TableNotFoundException
      */
-	public AccumuloIndexSet(Connector accCon, String tablename)
+	public AccumuloIndexSet(final Connector accCon, final String tablename)
 			throws MalformedQueryException, SailException,
 			QueryEvaluationException, MutationsRejectedException,
 			TableNotFoundException {
@@ -191,7 +190,7 @@ public class AccumuloIndexSet extends ExternalTupleSet implements ExternalBatchi
     	double cardinality = 0;
         try {
 			cardinality = pcj.getPcjMetadata(accCon, tablename).getCardinality();
-		} catch (PcjException e) {
+		} catch (final PcjException e) {
 			e.printStackTrace();
 		}
         return cardinality;
@@ -207,7 +206,7 @@ public class AccumuloIndexSet extends ExternalTupleSet implements ExternalBatchi
      * Sets locality groups for more efficient scans - these are usually the variable
      * orders in the table so that scans for specific orders are more efficient
      */
-    private void setLocalityGroups(String tableName, Connector conn, List<String> groups) {
+    private void setLocalityGroups(final String tableName, final Connector conn, final List<String> groups) {
 
 		final HashMap<String, Set<Text>> localityGroups = new HashMap<String, Set<Text>>();
 		for (int i = 0; i < groups.size(); i++) {
@@ -229,7 +228,7 @@ public class AccumuloIndexSet extends ExternalTupleSet implements ExternalBatchi
 
 
     @Override
-    public CloseableIteration<BindingSet,QueryEvaluationException> evaluate(BindingSet bindingset) throws QueryEvaluationException {
+    public CloseableIteration<BindingSet,QueryEvaluationException> evaluate(final BindingSet bindingset) throws QueryEvaluationException {
         return this.evaluate(Collections.singleton(bindingset));
     }
 
@@ -298,7 +297,7 @@ public class AccumuloIndexSet extends ExternalTupleSet implements ExternalBatchi
      * is just the variable order expressed in terms of the variables stored
      * in the table
      */
-    private String orderToLocGroup(List<String> order) {
+    private String orderToLocGroup(final List<String> order) {
         String localityGroup = "";
         for (final String s : order) {
             if (localityGroup.length() == 0) {
@@ -347,7 +346,7 @@ public class AccumuloIndexSet extends ExternalTupleSet implements ExternalBatchi
      * @return - string representation of the Set variables, in an order that is in the
      * table
      */
-    private String getVarOrder(Set<String> variables) {
+    private String getVarOrder(final Set<String> variables) {
         final Map<String, Set<String>> varOrderMap = this.getSupportedVariableOrders();
         final Set<Map.Entry<String, Set<String>>> entries = varOrderMap.entrySet();
         for (final Map.Entry<String, Set<String>> e : entries) {
@@ -386,7 +385,7 @@ public class AccumuloIndexSet extends ExternalTupleSet implements ExternalBatchi
             return valMap;
         }
         @Override
-        public void meet(Var node) {
+        public void meet(final Var node) {
             if (node.getName().startsWith("-const-")) {
                 valMap.put(node.getName(), node.getValue());
             }

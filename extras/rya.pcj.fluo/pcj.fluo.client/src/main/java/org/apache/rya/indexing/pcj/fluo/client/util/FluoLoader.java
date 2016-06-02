@@ -30,6 +30,8 @@ import org.openrdf.rio.RDFHandlerException;
 import org.openrdf.rio.RDFParser;
 import org.openrdf.rio.helpers.RDFHandlerBase;
 
+import com.google.common.base.Optional;
+
 import io.fluo.api.client.FluoClient;
 import mvm.rya.api.domain.RyaStatement;
 import mvm.rya.api.resolver.RdfToRyaConversions;
@@ -68,7 +70,7 @@ public class FluoLoader extends RDFHandlerBase {
         // If the buffer is full, flush it to the Fluo table.
         if(buff.size() == FLUSH_SIZE) {
             log.trace("Flushing " + buff.size() + " Statements from the buffer to Fluo.");
-            insertTriples.insert(fluoClient, buff);
+            insertTriples.insert(fluoClient, buff, Optional.<String>absent());
             buff.clear();
         }
 
@@ -83,7 +85,7 @@ public class FluoLoader extends RDFHandlerBase {
 
         if(!buff.isEmpty()) {
             log.trace("Flushing the last " + buff.size() + " Statements from the buffer to Fluo.");
-            insertTriples.insert(fluoClient, buff);
+            insertTriples.insert(fluoClient, buff, Optional.<String>absent());
             buff.clear();
         }
     }

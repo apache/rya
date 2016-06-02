@@ -21,11 +21,6 @@ package mvm.rya.indexing.external;
 
 import java.util.List;
 
-import mvm.rya.api.persist.RyaDAOException;
-import mvm.rya.indexing.external.tupleSet.PcjTables.PcjException;
-import mvm.rya.indexing.external.tupleSet.PcjTables.PcjVarOrderFactory;
-import mvm.rya.rdftriplestore.inference.InferenceEngineException;
-
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
 import org.apache.accumulo.core.client.Connector;
@@ -33,6 +28,8 @@ import org.apache.accumulo.core.client.TableExistsException;
 import org.apache.accumulo.core.client.TableNotFoundException;
 import org.apache.accumulo.core.client.mock.MockInstance;
 import org.apache.accumulo.core.client.security.tokens.PasswordToken;
+import org.apache.rya.indexing.pcj.storage.PcjException;
+import org.apache.rya.indexing.pcj.storage.accumulo.PcjVarOrderFactory;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -55,6 +52,9 @@ import org.openrdf.repository.sail.SailRepositoryConnection;
 import org.openrdf.sail.SailException;
 
 import com.google.common.base.Optional;
+
+import mvm.rya.api.persist.RyaDAOException;
+import mvm.rya.rdftriplestore.inference.InferenceEngineException;
 
 public class AccumuloConstantPcjIntegrationTest {
 

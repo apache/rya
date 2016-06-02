@@ -79,7 +79,7 @@ public class RyaStatementInputFormat extends AbstractInputFormat<Text, RyaStatem
 
             try {
                 currentK = currentKey.getRow();
-                RyaStatement stmt = this.ryaContext.deserializeTriple(this.tableLayout, new TripleRow(entry.getKey().getRow().getBytes(), entry.getKey().getColumnFamily().getBytes(), entry.getKey().getColumnQualifier().getBytes()));
+                RyaStatement stmt = this.ryaContext.deserializeTriple(this.tableLayout, new TripleRow(entry.getKey().getRow().getBytes(), entry.getKey().getColumnFamily().getBytes(), entry.getKey().getColumnQualifier().getBytes(), entry.getKey().getTimestamp(), entry.getKey().getColumnVisibility().getBytes(), entry.getValue().get()));
                 RyaStatementWritable writable = new RyaStatementWritable();
                 writable.setRyaStatement(stmt);
                 currentV = writable;

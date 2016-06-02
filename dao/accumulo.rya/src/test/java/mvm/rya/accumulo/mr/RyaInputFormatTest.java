@@ -97,6 +97,8 @@ public class RyaInputFormatTest {
             .setSubject(new RyaURI("http://www.google.com"))
             .setPredicate(new RyaURI("http://some_other_uri"))
             .setObject(new RyaURI("http://www.yahoo.com"))
+            .setColumnVisibility(new byte[0])
+            .setValue(new byte[0])
             .build();
 
         apiImpl.add(input);

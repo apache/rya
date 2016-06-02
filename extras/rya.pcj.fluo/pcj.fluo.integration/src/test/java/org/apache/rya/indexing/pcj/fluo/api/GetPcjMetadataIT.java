@@ -30,16 +30,15 @@ import org.apache.accumulo.core.client.TableExistsException;
 import org.apache.rya.indexing.pcj.fluo.ITBase;
 import org.apache.rya.indexing.pcj.fluo.api.GetPcjMetadata.NotInAccumuloException;
 import org.apache.rya.indexing.pcj.fluo.api.GetPcjMetadata.NotInFluoException;
+import org.apache.rya.indexing.pcj.storage.PcjException;
+import org.apache.rya.indexing.pcj.storage.PcjMetadata;
+import org.apache.rya.indexing.pcj.storage.accumulo.VariableOrder;
 import org.junit.Test;
 import org.openrdf.query.MalformedQueryException;
 import org.openrdf.query.QueryEvaluationException;
 import org.openrdf.sail.SailException;
 
 import com.google.common.collect.Sets;
-
-import mvm.rya.indexing.external.tupleSet.PcjTables.PcjException;
-import mvm.rya.indexing.external.tupleSet.PcjTables.PcjMetadata;
-import mvm.rya.indexing.external.tupleSet.PcjTables.VariableOrder;
 
 /**
  * Integration tests the methods of {@link GetPcjMetadata}.

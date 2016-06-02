@@ -16,13 +16,17 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package mvm.rya.indexing.external.tupleSet;
+package org.apache.rya.indexing.pcj.storage.accumulo;
 
 import static org.junit.Assert.assertEquals;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
 
+import org.apache.rya.indexing.pcj.storage.accumulo.BindingSetConverter;
+import org.apache.rya.indexing.pcj.storage.accumulo.BindingSetConverter.BindingSetConversionException;
+import org.apache.rya.indexing.pcj.storage.accumulo.BindingSetStringConverter;
+import org.apache.rya.indexing.pcj.storage.accumulo.VariableOrder;
 import org.junit.Test;
 import org.openrdf.model.impl.BooleanLiteralImpl;
 import org.openrdf.model.impl.DecimalLiteralImpl;
@@ -30,9 +34,6 @@ import org.openrdf.model.impl.IntegerLiteralImpl;
 import org.openrdf.model.impl.URIImpl;
 import org.openrdf.query.BindingSet;
 import org.openrdf.query.impl.MapBindingSet;
-
-import mvm.rya.indexing.external.tupleSet.BindingSetConverter.BindingSetConversionException;
-import mvm.rya.indexing.external.tupleSet.PcjTables.VariableOrder;
 
 /**
  * Tests the methods of {@link BindingSetStringConverter}.
@@ -49,7 +50,7 @@ public class BindingSetStringConverterTest {
 
         // Convert it to a String.
         final VariableOrder varOrder = new VariableOrder("y", "z", "x");
-        BindingSetConverter<String> converter = new BindingSetStringConverter();
+        final BindingSetConverter<String> converter = new BindingSetStringConverter();
         final String bindingSetString = converter.convert(originalBindingSet, varOrder);
 
         // Ensure it converted to the expected result.l
@@ -69,7 +70,7 @@ public class BindingSetStringConverterTest {
 
         // Convert it to a String.
         final VariableOrder varOrder = new VariableOrder("x");
-        BindingSetConverter<String> converter = new BindingSetStringConverter();
+        final BindingSetConverter<String> converter = new BindingSetStringConverter();
         final String bindingSetString = converter.convert(originalBindingSet, varOrder);
 
         // Ensure it converted to the expected result.
@@ -85,7 +86,7 @@ public class BindingSetStringConverterTest {
 
         // Convert it to a String.
         final VariableOrder varOrder = new VariableOrder("x");
-        BindingSetConverter<String> converter = new BindingSetStringConverter();
+        final BindingSetConverter<String> converter = new BindingSetStringConverter();
         final String bindingSetString = converter.convert(originalBindingSet, varOrder);
 
         // Ensure it converted to the expected result.
@@ -101,7 +102,7 @@ public class BindingSetStringConverterTest {
 
         // Convert it to a String.
         final VariableOrder varOrder = new VariableOrder("x");
-        BindingSetConverter<String> converter = new BindingSetStringConverter();
+        final BindingSetConverter<String> converter = new BindingSetStringConverter();
         final String bindingSetString = converter.convert(originalBindingSet, varOrder);
 
         // Ensure it converted to the expected result.
@@ -124,11 +125,11 @@ public class BindingSetStringConverterTest {
         final VariableOrder varOrder = new VariableOrder("x", "y");
 
         // Create the String representation of the BindingSet.
-        BindingSetConverter<String> converter = new BindingSetStringConverter();
-        String bindingSetString = converter.convert(originalBindingSet, varOrder);
+        final BindingSetConverter<String> converter = new BindingSetStringConverter();
+        final String bindingSetString = converter.convert(originalBindingSet, varOrder);
 
         // Ensure the expected value was created.
-        String expected =
+        final String expected =
                 "http://a<<~>>http://www.w3.org/2001/XMLSchema#anyURI:::" +
                 "http://b<<~>>http://www.w3.org/2001/XMLSchema#anyURI";
         assertEquals(expected, bindingSetString);
@@ -150,11 +151,11 @@ public class BindingSetStringConverterTest {
         final VariableOrder varOrder = new VariableOrder("x", "a", "y", "b");
 
         // Create the String representation of the BindingSet.
-        BindingSetConverter<String> converter = new BindingSetStringConverter();
-        String bindingSetString = converter.convert(originalBindingSet, varOrder);
+        final BindingSetConverter<String> converter = new BindingSetStringConverter();
+        final String bindingSetString = converter.convert(originalBindingSet, varOrder);
 
         // Ensure the expected value was created.
-        String expected =
+        final String expected =
                 "http://a<<~>>http://www.w3.org/2001/XMLSchema#anyURI:::" +
                 BindingSetStringConverter.NULL_VALUE_STRING + ":::" +
                 "http://b<<~>>http://www.w3.org/2001/XMLSchema#anyURI:::" +
@@ -178,7 +179,7 @@ public class BindingSetStringConverterTest {
         final VariableOrder varOrder = new VariableOrder("x", "y");
 
         // Create the String representation of the BindingSet. This will throw an exception.
-        BindingSetConverter<String> converter = new BindingSetStringConverter();
+        final BindingSetConverter<String> converter = new BindingSetStringConverter();
         converter.convert(originalBindingSet, varOrder);
     }
 
@@ -192,7 +193,7 @@ public class BindingSetStringConverterTest {
 
         // Convert it to a BindingSet
         final VariableOrder varOrder = new VariableOrder("y", "z", "x");
-        BindingSetConverter<String> converter = new BindingSetStringConverter();
+        final BindingSetConverter<String> converter = new BindingSetStringConverter();
         final BindingSet bindingSet = converter.convert(bindingSetString, varOrder);
 
         // Ensure it converted to the expected result.
@@ -205,7 +206,7 @@ public class BindingSetStringConverterTest {
     }
 
     /**
-     * Ensures that when a binding set is converted from a String back to a 
+     * Ensures that when a binding set is converted from a String back to a
      * BindingSet, null values do not get converted into Bindings.
      */
     @Test
@@ -216,27 +217,27 @@ public class BindingSetStringConverterTest {
                 BindingSetStringConverter.NULL_VALUE_STRING + ":::" +
                 "http://value 2<<~>>http://www.w3.org/2001/XMLSchema#anyURI:::" +
                 BindingSetStringConverter.NULL_VALUE_STRING;
-        
+
         // Convert it to a BindingSet
-        VariableOrder varOrder = new VariableOrder("x", "a", "y", "b");
-        BindingSetConverter<String> converter = new BindingSetStringConverter();
-        BindingSet bindingSet = converter.convert(bindingSetString, varOrder);
-        
+        final VariableOrder varOrder = new VariableOrder("x", "a", "y", "b");
+        final BindingSetConverter<String> converter = new BindingSetStringConverter();
+        final BindingSet bindingSet = converter.convert(bindingSetString, varOrder);
+
         // Ensure it converted to the expected reuslt.
         final MapBindingSet expected = new MapBindingSet();
         expected.addBinding("x", new URIImpl("http://value 1"));
         expected.addBinding("y", new URIImpl("http://value 2"));
-        
+
         assertEquals(expected, bindingSet);
     }
-    
+
     @Test
     public void fromString_Decimal() throws BindingSetConversionException {
         // Setup the String that will be converted.
         final String bindingSetString = "2.5<<~>>http://www.w3.org/2001/XMLSchema#decimal";
 
         // Convert it to a BindingSet
-        BindingSetConverter<String> converter = new BindingSetStringConverter();
+        final BindingSetConverter<String> converter = new BindingSetStringConverter();
         final BindingSet bindingSet = converter.convert(bindingSetString, new VariableOrder("x"));
 
         // Ensure it converted to the expected result.
@@ -252,7 +253,7 @@ public class BindingSetStringConverterTest {
         final String bindingSetString = "true<<~>>http://www.w3.org/2001/XMLSchema#boolean";
 
         // Convert it to a BindingSet
-        BindingSetConverter<String> converter = new BindingSetStringConverter();
+        final BindingSetConverter<String> converter = new BindingSetStringConverter();
         final BindingSet bindingSet = converter.convert(bindingSetString, new VariableOrder("x"));
 
         // Ensure it converted to the expected result.
@@ -268,7 +269,7 @@ public class BindingSetStringConverterTest {
         final String bindingSetString = "5<<~>>http://www.w3.org/2001/XMLSchema#integer";
 
         // Convert it to a BindingSet
-        BindingSetConverter<String> converter = new BindingSetStringConverter();
+        final BindingSetConverter<String> converter = new BindingSetStringConverter();
         final BindingSet bindingSet = converter.convert(bindingSetString, new VariableOrder("x"));
 
         // Ensure it converted to the expected result.
@@ -286,10 +287,10 @@ public class BindingSetStringConverterTest {
                 "http://b<<~>>http://www.w3.org/2001/XMLSchema#anyURI";
 
         // This variable order is too short.
-        VariableOrder varOrder = new VariableOrder("x");
+        final VariableOrder varOrder = new VariableOrder("x");
 
         // The conversion should throw an exception.
-        BindingSetConverter<String> converter = new BindingSetStringConverter();
+        final BindingSetConverter<String> converter = new BindingSetStringConverter();
         converter.convert(bindingSetString, varOrder);
     }
 
@@ -301,10 +302,10 @@ public class BindingSetStringConverterTest {
                 "http://b<<~>>http://www.w3.org/2001/XMLSchema#anyURI";
 
         // This variable order is too long.
-        VariableOrder varOrder = new VariableOrder("x", "y", "z");
+        final VariableOrder varOrder = new VariableOrder("x", "y", "z");
 
         // The conversion should throw an exception.
-        BindingSetConverter<String> converter = new BindingSetStringConverter();
+        final BindingSetConverter<String> converter = new BindingSetStringConverter();
         converter.convert(bindingSetString, varOrder);
     }
 }

@@ -28,7 +28,11 @@ import org.apache.log4j.Logger;
 import org.apache.rya.indexing.pcj.fluo.app.StringTypeLayer;
 import org.apache.rya.indexing.pcj.fluo.app.query.FluoQueryColumns;
 
+import com.google.common.base.Optional;
+
 import io.fluo.api.client.FluoClient;
+import io.fluo.api.types.Encoder;
+import io.fluo.api.types.StringEncoder;
 import io.fluo.api.types.TypedTransaction;
 import mvm.rya.api.RdfCloudTripleStoreConstants.TABLE_LAYOUT;
 import mvm.rya.api.domain.RyaStatement;
@@ -53,14 +57,17 @@ public class InsertTriples {
      */
     private static final WholeRowTripleResolver TRIPLE_RESOLVER = new WholeRowTripleResolver();
 
+    private static final Encoder ENCODER = new StringEncoder();
+
     /**
      * Inserts a triple into Fluo.
      *
      * @param fluo - A connection to the Fluo table that will be updated. (not null)
      * @param triple - The triple to insert. (not null)
+     * @param visibility - The visibility/permissions required to view this triple once stored. (not null)
      */
-    public void insert(final FluoClient fluo, final RyaStatement triple) {
-        insert(fluo, Collections.singleton(triple));
+    public void insert(final FluoClient fluo, final RyaStatement triple, final Optional<String> visibility) {
+        insert(fluo, Collections.singleton(triple), visibility);
     }
 
     /**
@@ -68,15 +75,18 @@ public class InsertTriples {
      *
      * @param fluo - A connection to the Fluo table that will be updated. (not null)
      * @param triples - The triples to insert. (not null)
+     * @param visibility - The visibility/permissions required to view the triples once stored.
+     * Note: The same visibility will be applied to each triple.(not null)
      */
-    public void insert(final FluoClient fluo, final Collection<RyaStatement> triples) {
+    public void insert(final FluoClient fluo, final Collection<RyaStatement> triples, final Optional<String> visibility) {
         checkNotNull(fluo);
         checkNotNull(triples);
+        checkNotNull(visibility);
 
         try(TypedTransaction tx = STRING_TYPED_LAYER.wrap(fluo.newTransaction())) {
             for(final RyaStatement triple : triples) {
                 try {
-                    tx.mutate().row(spoFormat(triple)).col(FluoQueryColumns.TRIPLES).set();
+                    tx.mutate().row(spoFormat(triple)).col(FluoQueryColumns.TRIPLES).set(ENCODER.encode(visibility.or("")));
                 } catch (final TripleRowResolverException e) {
                     log.error("Could not convert a Triple into the SPO format: " + triple);
                 }

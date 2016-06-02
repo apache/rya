@@ -58,7 +58,6 @@ import io.fluo.api.mini.MiniFluo;
 import mvm.rya.accumulo.AccumuloRdfConfiguration;
 import mvm.rya.accumulo.AccumuloRyaDAO;
 import mvm.rya.api.RdfCloudTripleStoreConfiguration;
-import mvm.rya.indexing.accumulo.ConfigUtils;
 import mvm.rya.rdftriplestore.RdfCloudTripleStore;
 import mvm.rya.rdftriplestore.RyaSailRepository;
 
@@ -69,6 +68,11 @@ public class DemoDriver {
     private static final Logger log = Logger.getLogger(DemoDriver.class);
 
     private static final String RYA_TABLE_PREFIX = "demo_";
+
+    public static final String USE_MOCK_INSTANCE = ".useMockInstance";
+    public static final String CLOUDBASE_INSTANCE = "sc.cloudbase.instancename";
+    public static final String CLOUDBASE_USER = "sc.cloudbase.username";
+    public static final String CLOUDBASE_PASSWORD = "sc.cloudbase.password";
 
     // Rya data store and connections.
     private static MiniAccumuloCluster accumulo = null;
@@ -234,11 +238,11 @@ public class DemoDriver {
         conf.setTablePrefix("demo_");
         conf.setDisplayQueryPlan(true);
 
-        conf.setBoolean(ConfigUtils.USE_MOCK_INSTANCE, true);
+        conf.setBoolean(USE_MOCK_INSTANCE, true);
         conf.set(RdfCloudTripleStoreConfiguration.CONF_TBL_PREFIX, RYA_TABLE_PREFIX);
-        conf.set(ConfigUtils.CLOUDBASE_USER, "root");
-        conf.set(ConfigUtils.CLOUDBASE_PASSWORD, "password");
-        conf.set(ConfigUtils.CLOUDBASE_INSTANCE, accumulo.getInstanceName());
+        conf.set(CLOUDBASE_USER, "root");
+        conf.set(CLOUDBASE_PASSWORD, "password");
+        conf.set(CLOUDBASE_INSTANCE, accumulo.getInstanceName());
 
         crdfdao.setConf(conf);
         ryaStore.setRyaDAO(crdfdao);

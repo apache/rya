@@ -33,10 +33,16 @@ import javax.annotation.ParametersAreNonnullByDefault;
 import org.apache.rya.indexing.pcj.fluo.app.query.FluoQueryColumns;
 import org.apache.rya.indexing.pcj.fluo.app.query.FluoQueryMetadataDAO;
 import org.apache.rya.indexing.pcj.fluo.app.query.JoinMetadata;
+import org.apache.rya.indexing.pcj.storage.accumulo.BindingSetConverter.BindingSetConversionException;
+import org.apache.rya.indexing.pcj.storage.accumulo.BindingSetStringConverter;
+import org.apache.rya.indexing.pcj.storage.accumulo.VariableOrder;
+import org.apache.rya.indexing.pcj.storage.accumulo.VisibilityBindingSet;
+import org.apache.rya.indexing.pcj.storage.accumulo.VisibilityBindingSetStringConverter;
 import org.openrdf.query.Binding;
 import org.openrdf.query.BindingSet;
 import org.openrdf.query.impl.MapBindingSet;
 
+import com.google.common.base.Joiner;
 import com.google.common.base.Optional;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -50,10 +56,6 @@ import io.fluo.api.iterator.ColumnIterator;
 import io.fluo.api.iterator.RowIterator;
 import io.fluo.api.types.Encoder;
 import io.fluo.api.types.StringEncoder;
-import mvm.rya.indexing.external.tupleSet.BindingSetConverter;
-import mvm.rya.indexing.external.tupleSet.BindingSetConverter.BindingSetConversionException;
-import mvm.rya.indexing.external.tupleSet.BindingSetStringConverter;
-import mvm.rya.indexing.external.tupleSet.PcjTables.VariableOrder;
 
 /**
  * Updates the results of a Join node when one of its children has added a
@@ -62,7 +64,8 @@ import mvm.rya.indexing.external.tupleSet.PcjTables.VariableOrder;
 @ParametersAreNonnullByDefault
 public class JoinResultUpdater {
 
-    private static final BindingSetConverter<String> converter = new BindingSetStringConverter();
+    private static final BindingSetStringConverter idConverter = new BindingSetStringConverter();
+    private static final VisibilityBindingSetStringConverter valueConverter = new VisibilityBindingSetStringConverter();
 
     private final FluoQueryMetadataDAO queryDao = new FluoQueryMetadataDAO();
     private final Encoder encoder = new StringEncoder();
@@ -80,7 +83,7 @@ public class JoinResultUpdater {
     public void updateJoinResults(
             final TransactionBase tx,
             final String childId,
-            final BindingSet childBindingSet,
+            final VisibilityBindingSet childBindingSet,
             final JoinMetadata joinMetadata) throws BindingSetConversionException {
         checkNotNull(tx);
         checkNotNull(childId);
@@ -113,10 +116,10 @@ public class JoinResultUpdater {
         }
 
         // Iterates over the sibling node's BindingSets that join with the new binding set.
-        FluoTableIterator siblingBindingSets = makeSiblingScanIterator(childId, childBindingSet, siblingId, tx);
+        final FluoTableIterator siblingBindingSets = makeSiblingScanIterator(childId, childBindingSet, siblingId, tx);
 
         // Iterates over the resulting BindingSets from the join.
-        final Iterator<BindingSet> newJoinResults;
+        final Iterator<VisibilityBindingSet> newJoinResults;
         if(emittingSide == Side.LEFT) {
             newJoinResults = joinAlgorithm.newLeftResult(childBindingSet, siblingBindingSets);
         } else {
@@ -124,14 +127,15 @@ public class JoinResultUpdater {
         }
 
         // Insert the new join binding sets to the Fluo table.
-        VariableOrder joinVarOrder = joinMetadata.getVariableOrder();
+        final VariableOrder joinVarOrder = joinMetadata.getVariableOrder();
         while(newJoinResults.hasNext()) {
-            BindingSet newJoinResult = newJoinResults.next();
-            String joinBindingSetString = converter.convert(newJoinResult, joinVarOrder);
+            final BindingSet newJoinResult = newJoinResults.next();
+            final String joinBindingSetStringId = idConverter.convert(newJoinResult, joinVarOrder);
+            final String joinBindingSetStringValue = valueConverter.convert(newJoinResult, joinVarOrder);
 
-            final Bytes row = encoder.encode(joinMetadata.getNodeId() + NODEID_BS_DELIM + joinBindingSetString);
+            final Bytes row = encoder.encode(joinMetadata.getNodeId() + NODEID_BS_DELIM + joinBindingSetStringId);
             final Column col = FluoQueryColumns.JOIN_BINDING_SET;
-            final Bytes value = encoder.encode(joinBindingSetString);
+            final Bytes value = encoder.encode(joinBindingSetStringValue);
             tx.set(row, col, value);
         }
     }
@@ -143,14 +147,14 @@ public class JoinResultUpdater {
         LEFT, RIGHT;
     }
 
-    private FluoTableIterator makeSiblingScanIterator(String childId, BindingSet childBindingSet, String siblingId, TransactionBase tx) throws BindingSetConversionException {
+    private FluoTableIterator makeSiblingScanIterator(final String childId, final BindingSet childBindingSet, final String siblingId, final TransactionBase tx) throws BindingSetConversionException {
         // Get the common variable orders. These are used to build the prefix.
         final VariableOrder childVarOrder = getVarOrder(tx, childId);
         final VariableOrder siblingVarOrder = getVarOrder(tx, siblingId);
-        List<String> commonVars = getCommonVars(childVarOrder, siblingVarOrder);
+        final List<String> commonVars = getCommonVars(childVarOrder, siblingVarOrder);
 
         // Get the Binding strings
-        final String childBindingSetString = converter.convert(childBindingSet, childVarOrder);
+        final String childBindingSetString = valueConverter.convert(childBindingSet, childVarOrder);
         final String[] childBindingStrings = FluoStringConverter.toBindingStrings(childBindingSetString);
 
         // Create the prefix that will be used to scan for binding sets of the sibling node.
@@ -285,20 +289,20 @@ public class JoinResultUpdater {
     public static interface IterativeJoin {
 
         /**
-         * Invoked when a new {@link BindingSet} is emitted from the left child
+         * Invoked when a new {@link VisibilityBindingSet} is emitted from the left child
          * node of the join. The Fluo table is scanned for results on the right
          * side that will be joined with the new result.
          *
-         * @param newLeftResult - A new BindingSet that has been emitted from
+         * @param newLeftResult - A new VisibilityBindingSet that has been emitted from
          *   the left child node.
          * @param rightResults - The right child node's binding sets that will
          *   be joined with the new left result. (not null)
          * @return The new BindingSet results for the join.
          */
-        public Iterator<BindingSet> newLeftResult(BindingSet newLeftResult, Iterator<BindingSet> rightResults);
+        public Iterator<VisibilityBindingSet> newLeftResult(VisibilityBindingSet newLeftResult, Iterator<VisibilityBindingSet> rightResults);
 
         /**
-         * Invoked when a new {@link BindingSet} is emitted from the right child
+         * Invoked when a new {@link VisibilityBindingSet} is emitted from the right child
          * node of the join. The Fluo table is scanned for results on the left
          * side that will be joined with the new result.
          *
@@ -308,7 +312,7 @@ public class JoinResultUpdater {
          *   the right child node.
          * @return The new BindingSet results for the join.
          */
-        public Iterator<BindingSet> newRightResult(Iterator<BindingSet> leftResults, BindingSet newRightResult);
+        public Iterator<VisibilityBindingSet> newRightResult(Iterator<VisibilityBindingSet> leftResults, VisibilityBindingSet newRightResult);
     }
 
     /**
@@ -321,7 +325,7 @@ public class JoinResultUpdater {
      */
     public static final class NaturalJoin implements IterativeJoin {
         @Override
-        public Iterator<BindingSet> newLeftResult(BindingSet newLeftResult, Iterator<BindingSet> rightResults) {
+        public Iterator<VisibilityBindingSet> newLeftResult(final VisibilityBindingSet newLeftResult, final Iterator<VisibilityBindingSet> rightResults) {
             checkNotNull(newLeftResult);
             checkNotNull(rightResults);
 
@@ -330,7 +334,7 @@ public class JoinResultUpdater {
         }
 
         @Override
-        public Iterator<BindingSet> newRightResult(Iterator<BindingSet> leftResults, BindingSet newRightResult) {
+        public Iterator<VisibilityBindingSet> newRightResult(final Iterator<VisibilityBindingSet> leftResults, final VisibilityBindingSet newRightResult) {
             checkNotNull(leftResults);
             checkNotNull(newRightResult);
 
@@ -349,14 +353,14 @@ public class JoinResultUpdater {
      */
     public static final class LeftOuterJoin implements IterativeJoin {
         @Override
-        public Iterator<BindingSet> newLeftResult(BindingSet newLeftResult, Iterator<BindingSet> rightResults) {
+        public Iterator<VisibilityBindingSet> newLeftResult(final VisibilityBindingSet newLeftResult, final Iterator<VisibilityBindingSet> rightResults) {
             checkNotNull(newLeftResult);
             checkNotNull(rightResults);
 
             // If the required portion does not join with any optional portions,
             // then emit a BindingSet that matches the new left result.
             if(!rightResults.hasNext()) {
-                return Lists.<BindingSet>newArrayList(newLeftResult).iterator();
+                return Lists.<VisibilityBindingSet>newArrayList(newLeftResult).iterator();
             }
 
             // Otherwise, return an iterator that holds the new required result
@@ -365,7 +369,7 @@ public class JoinResultUpdater {
         }
 
         @Override
-        public Iterator<BindingSet> newRightResult(final Iterator<BindingSet> leftResults, final BindingSet newRightResult) {
+        public Iterator<VisibilityBindingSet> newRightResult(final Iterator<VisibilityBindingSet> leftResults, final VisibilityBindingSet newRightResult) {
             checkNotNull(leftResults);
             checkNotNull(newRightResult);
 
@@ -382,10 +386,10 @@ public class JoinResultUpdater {
      * This is done lazily so that you don't have to load all of the BindingSets
      * into memory at once.
      */
-    private static final class LazyJoiningIterator implements Iterator<BindingSet> {
+    private static final class LazyJoiningIterator implements Iterator<VisibilityBindingSet> {
 
-        private final BindingSet newResult;
-        private final Iterator<BindingSet> joinedResults;
+        private final VisibilityBindingSet newResult;
+        private final Iterator<VisibilityBindingSet> joinedResults;
 
         /**
          * Constructs an instance of {@link LazyJoiningIterator}.
@@ -393,9 +397,9 @@ public class JoinResultUpdater {
          * @param newResult - A binding set that will be joined with some other binding sets. (not null)
          * @param joinResults - The binding sets that will be joined with {@code newResult}. (not null)
          */
-        public LazyJoiningIterator(BindingSet newResult, Iterator<BindingSet> joinResults) {
+        public LazyJoiningIterator(final VisibilityBindingSet newResult, final Iterator<VisibilityBindingSet> joinResults) {
             this.newResult = checkNotNull(newResult);
-            this.joinedResults = checkNotNull(joinResults);
+            joinedResults = checkNotNull(joinResults);
         }
 
         @Override
@@ -404,18 +408,28 @@ public class JoinResultUpdater {
         }
 
         @Override
-        public BindingSet next() {
+        public VisibilityBindingSet next() {
             final MapBindingSet bs = new MapBindingSet();
 
-            for(Binding binding : newResult) {
+            for(final Binding binding : newResult) {
                 bs.addBinding(binding);
             }
 
-            for(Binding binding : joinedResults.next()) {
+            final VisibilityBindingSet joinResult = joinedResults.next();
+            for(final Binding binding : joinResult) {
                 bs.addBinding(binding);
             }
 
-            return bs;
+            String visibility = "";
+            final Joiner join = Joiner.on(")&(");
+            final String leftVisi = newResult.getVisibility();
+            final String rightVisi = joinResult.getVisibility();
+            if(leftVisi.isEmpty() || rightVisi.isEmpty()) {
+                visibility = (leftVisi + rightVisi).trim();
+            } else {
+                visibility = "(" + join.join(leftVisi, rightVisi) + ")";
+            }
+            return new VisibilityBindingSet(bs, visibility);
         }
 
         @Override
@@ -428,7 +442,7 @@ public class JoinResultUpdater {
      * Iterates over rows that have a Binding Set column and returns the unmarshalled
      * {@link BindingSet}s.
      */
-    private static final class FluoTableIterator implements Iterator<BindingSet> {
+    private static final class FluoTableIterator implements Iterator<VisibilityBindingSet> {
 
         private static final Set<Column> BINDING_SET_COLUMNS = Sets.newHashSet(
                 FluoQueryColumns.STATEMENT_PATTERN_BINDING_SET,
@@ -445,7 +459,7 @@ public class JoinResultUpdater {
          * @param varOrder - The Variable Order of binding sets that will be
          *   read from the Fluo Table. (not null)
          */
-        public FluoTableIterator(RowIterator rows, VariableOrder varOrder) {
+        public FluoTableIterator(final RowIterator rows, final VariableOrder varOrder) {
             this.rows = checkNotNull(rows);
             this.varOrder = checkNotNull(varOrder);
         }
@@ -456,7 +470,7 @@ public class JoinResultUpdater {
         }
 
         @Override
-        public BindingSet next() {
+        public VisibilityBindingSet next() {
             final ColumnIterator columns = rows.next().getValue();
 
             while(columns.hasNext()) {
@@ -464,11 +478,7 @@ public class JoinResultUpdater {
                 final Entry<Column, Bytes> entry = columns.next();
                 if(BINDING_SET_COLUMNS.contains(entry.getKey())) {
                     final String bindingSetString = entry.getValue().toString();
-                    try {
-                        return converter.convert(bindingSetString, varOrder);
-                    } catch (BindingSetConversionException e) {
-                        throw new RuntimeException("Could not convert one of the stored BindingSets from a String: " + bindingSetString, e);
-                    }
+                    return (VisibilityBindingSet) valueConverter.convert(bindingSetString, varOrder);
                 }
             }
 

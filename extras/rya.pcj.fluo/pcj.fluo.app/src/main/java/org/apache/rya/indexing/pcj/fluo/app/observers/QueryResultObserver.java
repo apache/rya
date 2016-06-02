@@ -29,17 +29,19 @@ import org.apache.rya.indexing.pcj.fluo.app.export.rya.RyaResultExporterFactory;
 import org.apache.rya.indexing.pcj.fluo.app.query.FluoQueryColumns;
 import org.apache.rya.indexing.pcj.fluo.app.query.FluoQueryMetadataDAO;
 import org.apache.rya.indexing.pcj.fluo.app.query.QueryMetadata;
-import org.openrdf.query.BindingSet;
+import org.apache.rya.indexing.pcj.storage.accumulo.VariableOrder;
+import org.apache.rya.indexing.pcj.storage.accumulo.VisibilityBindingSet;
+import org.apache.rya.indexing.pcj.storage.accumulo.VisibilityBindingSetStringConverter;
 
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableSet;
 
 import io.fluo.api.data.Bytes;
 import io.fluo.api.data.Column;
+import io.fluo.api.types.Encoder;
+import io.fluo.api.types.StringEncoder;
 import io.fluo.api.types.TypedObserver;
 import io.fluo.api.types.TypedTransactionBase;
-import mvm.rya.indexing.external.tupleSet.BindingSetStringConverter;
-import mvm.rya.indexing.external.tupleSet.PcjTables.VariableOrder;
 
 /**
  * Performs incremental result exporting to the configured destinations.
@@ -47,9 +49,9 @@ import mvm.rya.indexing.external.tupleSet.PcjTables.VariableOrder;
 public class QueryResultObserver extends TypedObserver {
     private static final Logger log = Logger.getLogger(QueryResultObserver.class);
 
-    private final FluoQueryMetadataDAO queryDao = new FluoQueryMetadataDAO();
-
-    private final BindingSetStringConverter converter = new BindingSetStringConverter();
+    private static final FluoQueryMetadataDAO QUERY_DAO = new FluoQueryMetadataDAO();
+    private static final Encoder ENCODER = new StringEncoder();
+    private static final VisibilityBindingSetStringConverter CONVERTER = new VisibilityBindingSetStringConverter();
 
     /**
      * Builders for each type of result exporter we support.
@@ -93,16 +95,16 @@ public class QueryResultObserver extends TypedObserver {
     @Override
     public void process(final TypedTransactionBase tx, final Bytes row, final Column col) {
         // Read the SPARQL query and it Binding Set from the row id.
-        final String[] queryAndBindingSet = row.toString().split(NODEID_BS_DELIM);
+        final String[] queryAndBindingSet = ENCODER.decodeString(row).split(NODEID_BS_DELIM);
         final String queryId = queryAndBindingSet[0];
-        final String bindingSetString = queryAndBindingSet[1];
+        final String bindingSetString = ENCODER.decodeString(tx.get(row, col));
 
         // Fetch the query's Variable Order from the Fluo table.
-        final QueryMetadata queryMetadata = queryDao.readQueryMetadata(tx, queryId);
+        final QueryMetadata queryMetadata = QUERY_DAO.readQueryMetadata(tx, queryId);
         final VariableOrder varOrder = queryMetadata.getVariableOrder();
 
         // Export the result using each of the provided exporters.
-        BindingSet result = converter.convert(bindingSetString, varOrder);
+        final VisibilityBindingSet result = (VisibilityBindingSet) CONVERTER.convert(bindingSetString, varOrder);
         for(final IncrementalResultExporter exporter : exporters) {
             try {
                 exporter.export(tx, queryId, result);

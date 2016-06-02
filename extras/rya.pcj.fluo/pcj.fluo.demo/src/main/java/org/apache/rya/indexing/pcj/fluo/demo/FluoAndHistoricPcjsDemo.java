@@ -37,6 +37,12 @@ import org.apache.log4j.Logger;
 import org.apache.rya.indexing.pcj.fluo.api.CreatePcj;
 import org.apache.rya.indexing.pcj.fluo.api.InsertTriples;
 import org.apache.rya.indexing.pcj.fluo.app.query.FluoQueryColumns;
+import org.apache.rya.indexing.pcj.storage.PcjException;
+import org.apache.rya.indexing.pcj.storage.PcjMetadata;
+import org.apache.rya.indexing.pcj.storage.accumulo.AccumuloPcjSerializer;
+import org.apache.rya.indexing.pcj.storage.accumulo.BindingSetConverter.BindingSetConversionException;
+import org.apache.rya.indexing.pcj.storage.accumulo.PcjTables;
+import org.apache.rya.indexing.pcj.storage.accumulo.VariableOrder;
 import org.openrdf.model.Statement;
 import org.openrdf.query.BindingSet;
 import org.openrdf.query.MalformedQueryException;
@@ -48,6 +54,7 @@ import org.openrdf.repository.RepositoryConnection;
 import org.openrdf.repository.RepositoryException;
 import org.openrdf.sail.SailException;
 
+import com.google.common.base.Optional;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
@@ -60,13 +67,6 @@ import mvm.rya.api.domain.RyaStatement;
 import mvm.rya.api.domain.RyaType;
 import mvm.rya.api.domain.RyaURI;
 import mvm.rya.api.resolver.RyaToRdfConversions;
-import mvm.rya.api.resolver.RyaTypeResolverException;
-import mvm.rya.indexing.external.tupleSet.AccumuloPcjSerializer;
-import mvm.rya.indexing.external.tupleSet.BindingSetConverter.BindingSetConversionException;
-import mvm.rya.indexing.external.tupleSet.PcjTables;
-import mvm.rya.indexing.external.tupleSet.PcjTables.PcjException;
-import mvm.rya.indexing.external.tupleSet.PcjTables.PcjMetadata;
-import mvm.rya.indexing.external.tupleSet.PcjTables.VariableOrder;
 import mvm.rya.rdftriplestore.RyaSailRepository;
 
 /**
@@ -77,7 +77,7 @@ public class FluoAndHistoricPcjsDemo implements Demo {
     private static final Logger log = Logger.getLogger(FluoAndHistoricPcjsDemo.class);
 
     private static final AccumuloPcjSerializer converter = new AccumuloPcjSerializer();
-    
+
     // Employees
     private static final RyaURI alice = new RyaURI("http://Alice");
     private static final RyaURI bob = new RyaURI("http://Bob");
@@ -290,7 +290,7 @@ public class FluoAndHistoricPcjsDemo implements Demo {
     private static void loadDataIntoFluo(final FluoClient fluoClient, final Set<RyaStatement> statements) {
         final InsertTriples insertTriples = new InsertTriples();
         for(final RyaStatement statement : statements) {
-            insertTriples.insert(fluoClient, statement);
+            insertTriples.insert(fluoClient, statement, Optional.<String>absent());
         }
     }
 

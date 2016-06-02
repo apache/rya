@@ -412,16 +412,18 @@ public class AccumuloRyaDAOTest {
 	public void testQueryDates() throws Exception {
 	    RyaURI cpu = new RyaURI(litdupsNS + "cpu");
 	    RyaURI loadPerc = new RyaURI(litdupsNS + "loadPerc");
-	    RyaType uri1 = new RyaType(XMLSchema.DATETIME, "2000-01-01");
-	    RyaType uri2 = new RyaType(XMLSchema.DATETIME, "2000-01-01TZ");
+	    RyaType uri0 = new RyaType(XMLSchema.DATETIME, "1960-01-01"); // How handles local time
+	    RyaType uri1 = new RyaType(XMLSchema.DATETIME, "1992-01-01T+10:00"); // See Magadan Time
+	    RyaType uri2 = new RyaType(XMLSchema.DATETIME, "2000-01-01TZ"); // How it handles UTC.
 	    RyaType uri3 = new RyaType(XMLSchema.DATETIME, "2000-01-01T00:00:01.111Z");
-	    RyaType uri4 = new RyaType(XMLSchema.DATETIME, "2000-01-01T00:00:01");
-	    RyaType uri5 = new RyaType(XMLSchema.DATETIME, "2000-01-01T00:00:01.111");
-	    RyaType uri6 = new RyaType(XMLSchema.DATETIME, "2000-01-01T00:00:01Z");
+	    RyaType uri4 = new RyaType(XMLSchema.DATETIME, "2000-01-01T00:00:01.111Z");  // duplicate
+	    RyaType uri5 = new RyaType(XMLSchema.DATETIME, "2000-01-01T00:00:01-00:00");
+	    RyaType uri6 = new RyaType(XMLSchema.DATETIME, "2000-01-01T00:00:01Z");  // duplicate
 	    RyaType uri7 = new RyaType(XMLSchema.DATETIME, "-2000-01-01T00:00:01Z");
 	    RyaType uri8 = new RyaType(XMLSchema.DATETIME, "111-01-01T00:00:01Z");
 	    RyaType uri9 = new RyaType(XMLSchema.DATETIME, "12345-01-01T00:00:01Z");
 
+	    dao.add(new RyaStatement(cpu, loadPerc, uri0));
 	    dao.add(new RyaStatement(cpu, loadPerc, uri1));
 	    dao.add(new RyaStatement(cpu, loadPerc, uri2));
 	    dao.add(new RyaStatement(cpu, loadPerc, uri3));
@@ -435,6 +437,7 @@ public class AccumuloRyaDAOTest {
 	    AccumuloRyaQueryEngine queryEngine = dao.getQueryEngine();
 	
 	    Collection<RyaStatement> coll = new ArrayList();
+	    coll.add(new RyaStatement(null, loadPerc, uri0));
 	    coll.add(new RyaStatement(null, loadPerc, uri1));
 	    coll.add(new RyaStatement(null, loadPerc, uri2));
 	    CloseableIteration<RyaStatement, RyaDAOException> iter = queryEngine.batchQuery(coll, conf);
@@ -444,13 +447,14 @@ public class AccumuloRyaDAOTest {
 	        iter.next();
 	    }
 	    iter.close();
-	    assertEquals(2, count);
+	    assertEquals("Three time zones should be normalized when stored, then normalized same when queried.",3, count);
 	
 	    //now use batchscanner
 	    AccumuloRdfConfiguration queryConf = new AccumuloRdfConfiguration(conf);
 	    queryConf.setMaxRangesForScanner(2);
 	
 	    coll = new ArrayList();
+	    coll.add(new RyaStatement(null, loadPerc, uri0));
 	    coll.add(new RyaStatement(null, loadPerc, uri1));
 	    coll.add(new RyaStatement(null, loadPerc, uri2));
 	    coll.add(new RyaStatement(null, loadPerc, uri3));
@@ -467,7 +471,7 @@ public class AccumuloRyaDAOTest {
 	        iter.next();
 	    }
 	    iter.close();
-	    assertEquals(9, count);
+	    assertEquals("Variety of time specs, including BC, pre-1970, duplicate pair ovewrite,future, 3 digit year.",8, count);
 	}
 
 	@Test

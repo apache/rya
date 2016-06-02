@@ -39,6 +39,7 @@ import org.apache.rya.indexing.pcj.fluo.app.FilterResultUpdater;
 import org.apache.rya.indexing.pcj.fluo.app.FluoStringConverter;
 import org.apache.rya.indexing.pcj.fluo.app.NodeType;
 import org.apache.rya.indexing.pcj.fluo.app.query.JoinMetadata.JoinType;
+import org.apache.rya.indexing.pcj.storage.accumulo.VariableOrder;
 import org.openrdf.query.algebra.Filter;
 import org.openrdf.query.algebra.Join;
 import org.openrdf.query.algebra.LeftJoin;
@@ -52,8 +53,6 @@ import org.openrdf.query.parser.ParsedQuery;
 import com.google.common.base.Optional;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-
-import mvm.rya.indexing.external.tupleSet.PcjTables.VariableOrder;
 
 /**
  * Creates the {@link FluoQuery} metadata that is required by the Fluo

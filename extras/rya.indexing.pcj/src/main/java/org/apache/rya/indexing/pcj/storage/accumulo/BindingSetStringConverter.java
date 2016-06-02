@@ -16,7 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package mvm.rya.indexing.external.tupleSet;
+package org.apache.rya.indexing.pcj.storage.accumulo;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -41,7 +41,6 @@ import com.google.common.base.Joiner;
 
 import mvm.rya.api.domain.RyaType;
 import mvm.rya.api.resolver.RdfToRyaConversions;
-import mvm.rya.indexing.external.tupleSet.PcjTables.VariableOrder;
 
 /**
  * Converts {@link BindingSet}s to Strings and back again. The Strings do not
@@ -57,24 +56,24 @@ public class BindingSetStringConverter implements BindingSetConverter<String> {
     private static final ValueFactory valueFactory = new ValueFactoryImpl();
 
     @Override
-    public String convert(BindingSet bindingSet, VariableOrder varOrder) {
+    public String convert(final BindingSet bindingSet, final VariableOrder varOrder) {
         checkBindingsSubsetOfVarOrder(bindingSet, varOrder);
 
         // Convert each Binding to a String.
-        List<String> bindingStrings = new ArrayList<>();
-        for(String varName : varOrder) {
+        final List<String> bindingStrings = new ArrayList<>();
+        for(final String varName : varOrder) {
             if(bindingSet.hasBinding(varName)) {
                 // Add a value to the binding set.
                 final Value value = bindingSet.getBinding(varName).getValue();
                 final RyaType ryaValue = RdfToRyaConversions.convertValue(value);
-                String bindingString = ryaValue.getData() + TYPE_DELIM + ryaValue.getDataType();
+                final String bindingString = ryaValue.getData() + TYPE_DELIM + ryaValue.getDataType();
                 bindingStrings.add(bindingString);
             } else {
                 // Add a null value to the binding set.
-                bindingStrings.add(NULL_VALUE_STRING);                
+                bindingStrings.add(NULL_VALUE_STRING);
             }
         }
-        
+
         // Join the bindings using the binding delim.
         return Joiner.on(BINDING_DELIM).join(bindingStrings);
     }
@@ -82,23 +81,23 @@ public class BindingSetStringConverter implements BindingSetConverter<String> {
     /**
      * Checks to see if the names of all the {@link Binding}s in the {@link BindingSet}
      * are a subset of the variables names in {@link VariableOrder}.
-     * 
+     *
      * @param bindingSet - The binding set whose Bindings will be inspected. (not null)
      * @param varOrder - The names of the bindings that may appear in the BindingSet. (not null)
      * @throws IllegalArgumentException Indicates the names of the bindings are
-     *   not a subset of the variable order. 
+     *   not a subset of the variable order.
      */
-    private static void checkBindingsSubsetOfVarOrder(BindingSet bindingSet, VariableOrder varOrder) throws IllegalArgumentException {
+    private static void checkBindingsSubsetOfVarOrder(final BindingSet bindingSet, final VariableOrder varOrder) throws IllegalArgumentException {
         checkNotNull(bindingSet);
         checkNotNull(varOrder);
 
-        Set<String> bindingNames = bindingSet.getBindingNames();
-        List<String> varNames = varOrder.getVariableOrders();
+        final Set<String> bindingNames = bindingSet.getBindingNames();
+        final List<String> varNames = varOrder.getVariableOrders();
         checkArgument(varNames.containsAll(bindingNames), "The BindingSet contains a Binding whose name is not part of the VariableOrder.");
     }
 
     @Override
-    public BindingSet convert(String bindingSetString, VariableOrder varOrder) {
+    public BindingSet convert(final String bindingSetString, final VariableOrder varOrder) {
         checkNotNull(bindingSetString);
         checkNotNull(varOrder);
 
@@ -108,7 +107,7 @@ public class BindingSetStringConverter implements BindingSetConverter<String> {
 
         final QueryBindingSet bindingSet = new QueryBindingSet();
         for(int i = 0; i < bindingStrings.length; i++) {
-            String bindingString = bindingStrings[i];
+            final String bindingString = bindingStrings[i];
             if(!NULL_VALUE_STRING.equals(bindingString)) {
                 final String name = varOrrderArr[i];
                 final Value value = toValue(bindingStrings[i]);
@@ -124,7 +123,7 @@ public class BindingSetStringConverter implements BindingSetConverter<String> {
      * @param valueString - The String representation of the value. (not null)
      * @return The {@link Value} representation of the String.
      */
-    private static Value toValue(final String valueString) {
+    protected static Value toValue(final String valueString) {
         checkNotNull(valueString);
 
         // Split the String that was stored in Fluo into its Value and Type parts.

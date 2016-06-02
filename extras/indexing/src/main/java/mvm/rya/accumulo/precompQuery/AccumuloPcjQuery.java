@@ -1,5 +1,32 @@
 package mvm.rya.accumulo.precompQuery;
 
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.NoSuchElementException;
+import java.util.Set;
+
+import org.apache.accumulo.core.client.BatchScanner;
+import org.apache.accumulo.core.client.Connector;
+import org.apache.accumulo.core.client.TableNotFoundException;
+import org.apache.accumulo.core.data.Key;
+import org.apache.accumulo.core.data.Range;
+import org.apache.accumulo.core.data.Value;
+import org.apache.accumulo.core.security.Authorizations;
+import org.apache.hadoop.io.Text;
+import org.apache.rya.indexing.pcj.storage.accumulo.AccumuloPcjSerializer;
+import org.apache.rya.indexing.pcj.storage.accumulo.BindingSetConverter.BindingSetConversionException;
+import org.apache.rya.indexing.pcj.storage.accumulo.VariableOrder;
+import org.openrdf.query.BindingSet;
+import org.openrdf.query.QueryEvaluationException;
+import org.openrdf.query.algebra.evaluation.QueryBindingSet;
+
+import com.google.common.collect.HashMultimap;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
+
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -24,38 +51,10 @@ package mvm.rya.accumulo.precompQuery;
  */
 import info.aduna.iteration.CloseableIteration;
 import info.aduna.iteration.Iteration;
-
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.NoSuchElementException;
-import java.util.Set;
-
 import mvm.rya.api.resolver.RyaTypeResolverException;
 import mvm.rya.indexing.PcjQuery;
 import mvm.rya.indexing.external.tupleSet.AccumuloIndexSet;
-import mvm.rya.indexing.external.tupleSet.AccumuloPcjSerializer;
-import mvm.rya.indexing.external.tupleSet.BindingSetConverter.BindingSetConversionException;
 import mvm.rya.indexing.external.tupleSet.ExternalTupleSet;
-import mvm.rya.indexing.external.tupleSet.PcjTables.VariableOrder;
-
-import org.apache.accumulo.core.client.BatchScanner;
-import org.apache.accumulo.core.client.Connector;
-import org.apache.accumulo.core.client.TableNotFoundException;
-import org.apache.accumulo.core.data.Key;
-import org.apache.accumulo.core.data.Range;
-import org.apache.accumulo.core.data.Value;
-import org.apache.accumulo.core.security.Authorizations;
-import org.apache.hadoop.io.Text;
-import org.openrdf.query.BindingSet;
-import org.openrdf.query.QueryEvaluationException;
-import org.openrdf.query.algebra.evaluation.QueryBindingSet;
-
-import com.google.common.collect.HashMultimap;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 
 /**
  * This class encapsulates how pre-computed join tables are used during query
@@ -71,10 +70,10 @@ import com.google.common.collect.Sets;
  */
 public class AccumuloPcjQuery implements PcjQuery {
 	private static final AccumuloPcjSerializer converter = new AccumuloPcjSerializer();
-	
+
 	private final Connector accCon;
 	private final String tableName;
-	
+
 	public AccumuloPcjQuery(Connector accCon, String tableName) {
 		this.accCon = accCon;
 		this.tableName = tableName;
@@ -324,7 +323,7 @@ public class AccumuloPcjQuery implements PcjQuery {
 				bSet.addBinding(var, bs.getBinding(var).getValue());
 			}
 		}
-		
+
 		return converter.convert(bSet, new VariableOrder(prefixVars));
 	}
 
@@ -333,17 +332,17 @@ public class AccumuloPcjQuery implements PcjQuery {
 	 * @param key - Accumulo key obtained from scan
 	 * @param tableVarMap - map that associated query variables and table variables
 	 * @return - BindingSet without values associated with constant constraints
-	 * @throws BindingSetConversionException 
+	 * @throws BindingSetConversionException
 	 */
 	private static BindingSet getBindingSetWithoutConstants(Key key,
 			Map<String, String> tableVarMap) throws BindingSetConversionException {
 		final byte[] row = key.getRow().getBytes();
 		final String[] varOrder = key.getColumnFamily().toString()
 				.split(ExternalTupleSet.VAR_ORDER_DELIM);
-		
+
 		BindingSet bindingSet = converter.convert(row, new VariableOrder(varOrder));
 		final QueryBindingSet temp = new QueryBindingSet(bindingSet);
-		
+
 		final QueryBindingSet bs = new QueryBindingSet();
 		for (final String var : temp.getBindingNames()) {
 			if (!tableVarMap.get(var).startsWith(ExternalTupleSet.CONST_PREFIX)) {

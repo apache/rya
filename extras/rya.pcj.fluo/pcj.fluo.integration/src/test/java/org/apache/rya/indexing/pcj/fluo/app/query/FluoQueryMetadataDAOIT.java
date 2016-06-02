@@ -23,6 +23,7 @@ import static org.junit.Assert.assertEquals;
 import org.apache.rya.indexing.pcj.fluo.ITBase;
 import org.apache.rya.indexing.pcj.fluo.app.query.JoinMetadata.JoinType;
 import org.apache.rya.indexing.pcj.fluo.app.query.SparqlFluoQueryBuilder.NodeIds;
+import org.apache.rya.indexing.pcj.storage.accumulo.VariableOrder;
 import org.junit.Test;
 import org.openrdf.query.MalformedQueryException;
 import org.openrdf.query.parser.ParsedQuery;
@@ -30,7 +31,6 @@ import org.openrdf.query.parser.sparql.SPARQLParser;
 
 import io.fluo.api.client.Snapshot;
 import io.fluo.api.client.Transaction;
-import mvm.rya.indexing.external.tupleSet.PcjTables.VariableOrder;
 
 /**
  * Integration tests the methods of {@link FluoQueryMetadataDAO}.

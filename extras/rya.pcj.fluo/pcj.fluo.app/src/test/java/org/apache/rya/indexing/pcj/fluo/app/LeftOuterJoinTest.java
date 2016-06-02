@@ -28,6 +28,7 @@ import java.util.Set;
 
 import org.apache.rya.indexing.pcj.fluo.app.JoinResultUpdater.IterativeJoin;
 import org.apache.rya.indexing.pcj.fluo.app.JoinResultUpdater.LeftOuterJoin;
+import org.apache.rya.indexing.pcj.storage.accumulo.VisibilityBindingSet;
 import org.junit.Test;
 import org.openrdf.model.ValueFactory;
 import org.openrdf.model.impl.ValueFactoryImpl;
@@ -46,128 +47,134 @@ public class LeftOuterJoinTest {
 
     @Test
     public void newLeftResult_noRightMatches() {
-        IterativeJoin leftOuterJoin = new LeftOuterJoin();
+        final IterativeJoin leftOuterJoin = new LeftOuterJoin();
 
         // There is a new left result.
-        MapBindingSet newLeftResult = new MapBindingSet();
-        newLeftResult.addBinding("name", vf.createLiteral("Bob"));
+        final MapBindingSet mapLeftResult = new MapBindingSet();
+        mapLeftResult.addBinding("name", vf.createLiteral("Bob"));
+        final VisibilityBindingSet newLeftResult = new VisibilityBindingSet(mapLeftResult);
 
         // There are no right results that join with the left result.
-        Iterator<BindingSet> rightResults= new ArrayList<BindingSet>().iterator();
+        final Iterator<VisibilityBindingSet> rightResults= new ArrayList<VisibilityBindingSet>().iterator();
 
         // Therefore, the left result is a new join result.
-        Iterator<BindingSet> newJoinResultsIt = leftOuterJoin.newLeftResult(newLeftResult, rightResults);
+        final Iterator<VisibilityBindingSet> newJoinResultsIt = leftOuterJoin.newLeftResult(newLeftResult, rightResults);
 
-        Set<BindingSet> newJoinResults = new HashSet<>();
+        final Set<BindingSet> newJoinResults = new HashSet<>();
         while(newJoinResultsIt.hasNext()) {
             newJoinResults.add( newJoinResultsIt.next() );
         }
 
-        Set<BindingSet> expected = Sets.<BindingSet>newHashSet( newLeftResult );
+        final Set<BindingSet> expected = Sets.<BindingSet>newHashSet( newLeftResult );
 
         assertEquals(expected, newJoinResults);
     }
 
     @Test
     public void newLeftResult_joinsWithRightResults() {
-        IterativeJoin leftOuterJoin = new LeftOuterJoin();
+        final IterativeJoin leftOuterJoin = new LeftOuterJoin();
 
         // There is a new left result.
-        MapBindingSet newLeftResult = new MapBindingSet();
-        newLeftResult.addBinding("name", vf.createLiteral("Bob"));
-        newLeftResult.addBinding("height", vf.createLiteral("5'9\""));
+        final MapBindingSet mapLeftResult = new MapBindingSet();
+        mapLeftResult.addBinding("name", vf.createLiteral("Bob"));
+        mapLeftResult.addBinding("height", vf.createLiteral("5'9\""));
+        final VisibilityBindingSet newLeftResult = new VisibilityBindingSet(mapLeftResult);
 
         // There are a few right results that join with the left result.
-        MapBindingSet nameAge = new MapBindingSet();
+        final MapBindingSet nameAge = new MapBindingSet();
         nameAge.addBinding("name", vf.createLiteral("Bob"));
         nameAge.addBinding("age", vf.createLiteral(56));
+        final VisibilityBindingSet visiAge = new VisibilityBindingSet(nameAge);
 
-        MapBindingSet nameHair = new MapBindingSet();
+        final MapBindingSet nameHair = new MapBindingSet();
         nameHair.addBinding("name", vf.createLiteral("Bob"));
         nameHair.addBinding("hairColor", vf.createLiteral("Brown"));
+        final VisibilityBindingSet visiHair = new VisibilityBindingSet(nameHair);
 
-        Iterator<BindingSet> rightResults = Lists.<BindingSet>newArrayList(nameAge, nameHair).iterator();
+        final Iterator<VisibilityBindingSet> rightResults = Lists.<VisibilityBindingSet>newArrayList(visiAge, visiHair).iterator();
 
         // Therefore, there are a few new join results that mix the two together.
-        Iterator<BindingSet> newJoinResultsIt = leftOuterJoin.newLeftResult(newLeftResult, rightResults);
+        final Iterator<VisibilityBindingSet> newJoinResultsIt = leftOuterJoin.newLeftResult(newLeftResult, rightResults);
 
-        Set<BindingSet> newJoinResults = new HashSet<>();
+        final Set<BindingSet> newJoinResults = new HashSet<>();
         while(newJoinResultsIt.hasNext()) {
             newJoinResults.add( newJoinResultsIt.next() );
         }
 
-        Set<BindingSet> expected = Sets.<BindingSet>newHashSet();
-        MapBindingSet nameHeightAge = new MapBindingSet();
+        final Set<BindingSet> expected = Sets.<BindingSet>newHashSet();
+        final MapBindingSet nameHeightAge = new MapBindingSet();
         nameHeightAge.addBinding("name", vf.createLiteral("Bob"));
         nameHeightAge.addBinding("height", vf.createLiteral("5'9\""));
         nameHeightAge.addBinding("age", vf.createLiteral(56));
-        expected.add(nameHeightAge);
+        expected.add(new VisibilityBindingSet(nameHeightAge));
 
-        MapBindingSet nameHeightHair = new MapBindingSet();
+        final MapBindingSet nameHeightHair = new MapBindingSet();
         nameHeightHair.addBinding("name", vf.createLiteral("Bob"));
         nameHeightHair.addBinding("height", vf.createLiteral("5'9\""));
         nameHeightHair.addBinding("hairColor", vf.createLiteral("Brown"));
-        expected.add(nameHeightHair);
+        expected.add(new VisibilityBindingSet(nameHeightHair));
 
         assertEquals(expected, newJoinResults);
     }
 
     @Test
     public void newRightResult_noLeftMatches() {
-        IterativeJoin leftOuterJoin = new LeftOuterJoin();
+        final IterativeJoin leftOuterJoin = new LeftOuterJoin();
 
         // There are no left results.
-        Iterator<BindingSet> leftResults= new ArrayList<BindingSet>().iterator();
+        final Iterator<VisibilityBindingSet> leftResults= new ArrayList<VisibilityBindingSet>().iterator();
 
         // There is a new right result.
-        MapBindingSet newRightResult = new MapBindingSet();
+        final MapBindingSet newRightResult = new MapBindingSet();
         newRightResult.addBinding("name", vf.createLiteral("Bob"));
 
         // Therefore, there are no new join results.
-        Iterator<BindingSet> newJoinResultsIt = leftOuterJoin.newRightResult(leftResults, newRightResult);
+        final Iterator<VisibilityBindingSet> newJoinResultsIt = leftOuterJoin.newRightResult(leftResults, new VisibilityBindingSet(newRightResult));
         assertFalse( newJoinResultsIt.hasNext() );
     }
 
     @Test
     public void newRightResult_joinsWithLeftResults() {
-        IterativeJoin leftOuterJoin = new LeftOuterJoin();
+        final IterativeJoin leftOuterJoin = new LeftOuterJoin();
 
         // There are a few left results that join with the new right result.
-        MapBindingSet nameAge = new MapBindingSet();
+        final MapBindingSet nameAge = new MapBindingSet();
         nameAge.addBinding("name", vf.createLiteral("Bob"));
         nameAge.addBinding("age", vf.createLiteral(56));
 
-        MapBindingSet nameHair = new MapBindingSet();
+        final MapBindingSet nameHair = new MapBindingSet();
         nameHair.addBinding("name", vf.createLiteral("Bob"));
         nameHair.addBinding("hairColor", vf.createLiteral("Brown"));
 
-        Iterator<BindingSet> leftResults = Lists.<BindingSet>newArrayList(nameAge, nameHair).iterator();
+        final Iterator<VisibilityBindingSet> leftResults = Lists.<VisibilityBindingSet>newArrayList(
+                new VisibilityBindingSet(nameAge),
+                new VisibilityBindingSet(nameHair)).iterator();
 
         // There is a new right result.
-        MapBindingSet newRightResult = new MapBindingSet();
+        final MapBindingSet newRightResult = new MapBindingSet();
         newRightResult.addBinding("name", vf.createLiteral("Bob"));
         newRightResult.addBinding("height", vf.createLiteral("5'9\""));
 
         // Therefore, there are a few new join results that mix the two together.
-        Iterator<BindingSet> newJoinResultsIt = leftOuterJoin.newRightResult(leftResults, newRightResult);
+        final Iterator<VisibilityBindingSet> newJoinResultsIt = leftOuterJoin.newRightResult(leftResults, new VisibilityBindingSet(newRightResult));
 
-        Set<BindingSet> newJoinResults = new HashSet<>();
+        final Set<BindingSet> newJoinResults = new HashSet<>();
         while(newJoinResultsIt.hasNext()) {
             newJoinResults.add( newJoinResultsIt.next() );
         }
 
-        Set<BindingSet> expected = Sets.<BindingSet>newHashSet();
-        MapBindingSet nameHeightAge = new MapBindingSet();
+        final Set<BindingSet> expected = Sets.<BindingSet>newHashSet();
+        final MapBindingSet nameHeightAge = new MapBindingSet();
         nameHeightAge.addBinding("name", vf.createLiteral("Bob"));
         nameHeightAge.addBinding("height", vf.createLiteral("5'9\""));
         nameHeightAge.addBinding("age", vf.createLiteral(56));
-        expected.add(nameHeightAge);
+        expected.add(new VisibilityBindingSet(nameHeightAge));
 
-        MapBindingSet nameHeightHair = new MapBindingSet();
+        final MapBindingSet nameHeightHair = new MapBindingSet();
         nameHeightHair.addBinding("name", vf.createLiteral("Bob"));
         nameHeightHair.addBinding("height", vf.createLiteral("5'9\""));
         nameHeightHair.addBinding("hairColor", vf.createLiteral("Brown"));
-        expected.add(nameHeightHair);
+        expected.add(new VisibilityBindingSet(nameHeightHair));
 
         assertEquals(expected, newJoinResults);
     }

@@ -113,6 +113,8 @@ under the License.
 
         <!-- the maven-release-plugin makes this recommendation, due to plugin bugs -->
         <maven.min-version>3.0.4</maven.min-version>
+        
+        <fluo.version>1.0.0-beta-2</fluo.version>
     </properties>
     <dependencyManagement>
         <dependencies>
@@ -166,6 +168,26 @@ under the License.
                 <groupId>org.apache.rya</groupId>
                 <artifactId>rya.indexing</artifactId>
                 <classifier>map-reduce</classifier>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.rya</groupId>
+                <artifactId>rya.indexing.pcj</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.rya</groupId>
+                <artifactId>rya.pcj.fluo.api</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.rya</groupId>
+                <artifactId>rya.pcj.fluo.app</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.rya</groupId>
+                <artifactId>rya.pcj.fluo.client</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
@@ -466,6 +488,22 @@ under the License.
                 <groupId>org.calrissian.mango</groupId>
                 <artifactId>mango-core</artifactId>
                 <version>${mango.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>io.fluo</groupId>
+                <artifactId>fluo-api</artifactId>
+                <version>${fluo.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.fluo</groupId>
+                <artifactId>fluo-core</artifactId>
+                <version>${fluo.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.fluo</groupId>
+                <artifactId>fluo-mini</artifactId>
+                <version>${fluo.version}</version>
             </dependency>
 
             <dependency>

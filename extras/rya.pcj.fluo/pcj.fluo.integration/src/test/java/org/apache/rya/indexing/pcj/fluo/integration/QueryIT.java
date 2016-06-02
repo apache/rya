@@ -26,6 +26,7 @@ import java.util.Set;
 import org.apache.rya.indexing.pcj.fluo.ITBase;
 import org.apache.rya.indexing.pcj.fluo.api.CreatePcj;
 import org.apache.rya.indexing.pcj.fluo.api.InsertTriples;
+import org.apache.rya.indexing.pcj.storage.accumulo.VariableOrder;
 import org.junit.Test;
 import org.openrdf.model.impl.NumericLiteralImpl;
 import org.openrdf.model.impl.URIImpl;
@@ -33,10 +34,10 @@ import org.openrdf.model.vocabulary.XMLSchema;
 import org.openrdf.query.BindingSet;
 import org.openrdf.query.impl.BindingImpl;
 
+import com.google.common.base.Optional;
 import com.google.common.collect.Sets;
 
 import mvm.rya.api.domain.RyaStatement;
-import mvm.rya.indexing.external.tupleSet.PcjTables.VariableOrder;
 
 /**
  * Performs integration tests over the Fluo application geared towards various query structures.
@@ -81,7 +82,7 @@ public class QueryIT extends ITBase {
         new CreatePcj().withRyaIntegration(fluoClient, RYA_TABLE_PREFIX, ryaRepo, accumuloConn, new HashSet<VariableOrder>(), sparql);
 
         // Stream the data into Fluo.
-        new InsertTriples().insert(fluoClient, streamedTriples);
+        new InsertTriples().insert(fluoClient, streamedTriples, Optional.<String>absent());
 
         // Verify the end results of the query match the expected results.
         fluo.waitForObservers();
@@ -163,7 +164,7 @@ public class QueryIT extends ITBase {
         new CreatePcj().withRyaIntegration(fluoClient, RYA_TABLE_PREFIX, ryaRepo, accumuloConn, new HashSet<VariableOrder>(), sparql);
 
         // Stream the data into Fluo.
-        new InsertTriples().insert(fluoClient, streamedTriples);
+        new InsertTriples().insert(fluoClient, streamedTriples, Optional.<String>absent());
 
         // Verify the end results of the query match the expected results.
         fluo.waitForObservers();
@@ -224,7 +225,7 @@ public class QueryIT extends ITBase {
         new CreatePcj().withRyaIntegration(fluoClient, RYA_TABLE_PREFIX, ryaRepo, accumuloConn, new HashSet<VariableOrder>(), sparql);
 
         // Stream the data into Fluo.
-        new InsertTriples().insert(fluoClient, streamedTriples);
+        new InsertTriples().insert(fluoClient, streamedTriples, Optional.<String>absent());
 
         // Verify the end results of the query match the expected results.
         fluo.waitForObservers();
@@ -268,7 +269,7 @@ public class QueryIT extends ITBase {
         new CreatePcj().withRyaIntegration(fluoClient, RYA_TABLE_PREFIX, ryaRepo, accumuloConn, new HashSet<VariableOrder>(), sparql);
 
         // Stream the data into Fluo.
-        new InsertTriples().insert(fluoClient, streamedTriples);
+        new InsertTriples().insert(fluoClient, streamedTriples, Optional.<String>absent());
 
         // Verify the end results of the query match the expected results.
         fluo.waitForObservers();

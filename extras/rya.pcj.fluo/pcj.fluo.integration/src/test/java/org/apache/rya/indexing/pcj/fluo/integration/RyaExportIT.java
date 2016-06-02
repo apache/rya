@@ -38,11 +38,18 @@ import org.apache.rya.indexing.pcj.fluo.api.CreatePcj;
 import org.apache.rya.indexing.pcj.fluo.api.InsertTriples;
 import org.apache.rya.indexing.pcj.fluo.app.export.rya.RyaExportParameters;
 import org.apache.rya.indexing.pcj.fluo.app.query.FluoQueryColumns;
+import org.apache.rya.indexing.pcj.storage.PcjException;
+import org.apache.rya.indexing.pcj.storage.PcjMetadata;
+import org.apache.rya.indexing.pcj.storage.accumulo.AccumuloPcjSerializer;
+import org.apache.rya.indexing.pcj.storage.accumulo.BindingSetConverter.BindingSetConversionException;
+import org.apache.rya.indexing.pcj.storage.accumulo.PcjTables;
+import org.apache.rya.indexing.pcj.storage.accumulo.VariableOrder;
 import org.junit.Test;
 import org.openrdf.model.impl.URIImpl;
 import org.openrdf.query.BindingSet;
 import org.openrdf.query.impl.BindingImpl;
 
+import com.google.common.base.Optional;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
@@ -50,13 +57,6 @@ import com.google.common.collect.Sets;
 import io.fluo.api.client.Snapshot;
 import io.fluo.api.data.Bytes;
 import mvm.rya.api.domain.RyaStatement;
-import mvm.rya.api.resolver.RyaTypeResolverException;
-import mvm.rya.indexing.external.tupleSet.AccumuloPcjSerializer;
-import mvm.rya.indexing.external.tupleSet.BindingSetConverter.BindingSetConversionException;
-import mvm.rya.indexing.external.tupleSet.PcjTables;
-import mvm.rya.indexing.external.tupleSet.PcjTables.PcjException;
-import mvm.rya.indexing.external.tupleSet.PcjTables.PcjMetadata;
-import mvm.rya.indexing.external.tupleSet.PcjTables.VariableOrder;
 
 /**
  * Performs integration tests over the Fluo application geared towards Rya PCJ exporting.
@@ -66,7 +66,7 @@ import mvm.rya.indexing.external.tupleSet.PcjTables.VariableOrder;
 public class RyaExportIT extends ITBase {
 
 	private static final AccumuloPcjSerializer converter = new AccumuloPcjSerializer();
-	
+
     /**
      * Configure the export observer to use the Mini Accumulo instance as the
      * export destination for new PCJ results.
@@ -138,7 +138,7 @@ public class RyaExportIT extends ITBase {
         new CreatePcj().withRyaIntegration(fluoClient, RYA_TABLE_PREFIX, ryaRepo, accumuloConn, new HashSet<VariableOrder>(), sparql);
 
         // Stream the data into Fluo.
-        new InsertTriples().insert(fluoClient, streamedTriples);
+        new InsertTriples().insert(fluoClient, streamedTriples, Optional.<String>absent());
 
         // Fetch the exported results from Accumulo once the observers finish working.
         fluo.waitForObservers();

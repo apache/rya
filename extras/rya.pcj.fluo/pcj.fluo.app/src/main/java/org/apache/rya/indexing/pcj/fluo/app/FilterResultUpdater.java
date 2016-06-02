@@ -25,6 +25,10 @@ import javax.annotation.ParametersAreNonnullByDefault;
 
 import org.apache.rya.indexing.pcj.fluo.app.query.FilterMetadata;
 import org.apache.rya.indexing.pcj.fluo.app.query.FluoQueryColumns;
+import org.apache.rya.indexing.pcj.storage.accumulo.BindingSetStringConverter;
+import org.apache.rya.indexing.pcj.storage.accumulo.VariableOrder;
+import org.apache.rya.indexing.pcj.storage.accumulo.VisibilityBindingSet;
+import org.apache.rya.indexing.pcj.storage.accumulo.VisibilityBindingSetStringConverter;
 import org.openrdf.model.Resource;
 import org.openrdf.model.Statement;
 import org.openrdf.model.URI;
@@ -50,8 +54,6 @@ import io.fluo.api.data.Bytes;
 import io.fluo.api.data.Column;
 import io.fluo.api.types.Encoder;
 import io.fluo.api.types.StringEncoder;
-import mvm.rya.indexing.external.tupleSet.BindingSetStringConverter;
-import mvm.rya.indexing.external.tupleSet.PcjTables.VariableOrder;
 
 /**
  * Updates the results of a Filter node when its child has added a new Binding
@@ -60,9 +62,10 @@ import mvm.rya.indexing.external.tupleSet.PcjTables.VariableOrder;
 @ParametersAreNonnullByDefault
 public class FilterResultUpdater {
 
-    private final Encoder encoder = new StringEncoder();
+    private static final Encoder ENCODER = new StringEncoder();
 
-    private final BindingSetStringConverter converter = new BindingSetStringConverter();
+    private static final BindingSetStringConverter ID_CONVERTER = new BindingSetStringConverter();
+    private static final VisibilityBindingSetStringConverter VALUE_CONVERTER = new VisibilityBindingSetStringConverter();
 
     /**
      * A utility class used to search SPARQL queries for Filters.
@@ -102,7 +105,7 @@ public class FilterResultUpdater {
      */
     public void updateFilterResults(
             final TransactionBase tx,
-            final BindingSet childBindingSet,
+            final VisibilityBindingSet childBindingSet,
             final FilterMetadata filterMetadata) throws Exception {
         checkNotNull(tx);
         checkNotNull(childBindingSet);
@@ -126,11 +129,14 @@ public class FilterResultUpdater {
                     filterBindingSet.addBinding(binding);
                 }
             }
-            final String filterBindingSetString = converter.convert(filterBindingSet, filterVarOrder);
 
-            final Bytes row = encoder.encode( filterMetadata.getNodeId() + NODEID_BS_DELIM + filterBindingSetString );
+            final String filterBindingSetIdString = ID_CONVERTER.convert(filterBindingSet, filterVarOrder);
+            String filterBindingSetValueString = "";
+            filterBindingSetValueString = VALUE_CONVERTER.convert(childBindingSet, filterVarOrder);
+
+            final Bytes row = ENCODER.encode( filterMetadata.getNodeId() + NODEID_BS_DELIM + filterBindingSetIdString );
             final Column col = FluoQueryColumns.FILTER_BINDING_SET;
-            final Bytes value = encoder.encode(filterBindingSetString);
+            final Bytes value = ENCODER.encode(filterBindingSetValueString);
             tx.set(row, col, value);
         }
     }

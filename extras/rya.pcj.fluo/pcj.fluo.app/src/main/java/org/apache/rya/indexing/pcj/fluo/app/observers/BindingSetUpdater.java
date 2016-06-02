@@ -31,14 +31,16 @@ import org.apache.rya.indexing.pcj.fluo.app.query.FilterMetadata;
 import org.apache.rya.indexing.pcj.fluo.app.query.FluoQueryMetadataDAO;
 import org.apache.rya.indexing.pcj.fluo.app.query.JoinMetadata;
 import org.apache.rya.indexing.pcj.fluo.app.query.QueryMetadata;
-import org.openrdf.query.BindingSet;
+import org.apache.rya.indexing.pcj.storage.accumulo.BindingSetConverter.BindingSetConversionException;
+import org.apache.rya.indexing.pcj.storage.accumulo.VisibilityBindingSet;
 
 import io.fluo.api.client.TransactionBase;
 import io.fluo.api.data.Bytes;
 import io.fluo.api.data.Column;
+import io.fluo.api.types.Encoder;
+import io.fluo.api.types.StringEncoder;
 import io.fluo.api.types.TypedObserver;
 import io.fluo.api.types.TypedTransactionBase;
-import mvm.rya.indexing.external.tupleSet.BindingSetConverter.BindingSetConversionException;
 
 /**
  * Notified when the results of a node have been updated to include a new Binding
@@ -48,6 +50,7 @@ import mvm.rya.indexing.external.tupleSet.BindingSetConverter.BindingSetConversi
 @ParametersAreNonnullByDefault
 public abstract class BindingSetUpdater extends TypedObserver {
 
+    private final Encoder encoder = new StringEncoder();
     // DAO
     private final FluoQueryMetadataDAO queryDao = new FluoQueryMetadataDAO();
 
@@ -74,9 +77,10 @@ public abstract class BindingSetUpdater extends TypedObserver {
         checkNotNull(row);
         checkNotNull(col);
 
-        final Observation observation = parseObservation( tx, BindingSetRow.make(row) );
+        final String bindingSetString = encoder.decodeString(tx.get(row, col));
+        final Observation observation = parseObservation( tx, new BindingSetRow(BindingSetRow.make(row).getNodeId(), bindingSetString) );
         final String observedNodeId = observation.getObservedNodeId();
-        final BindingSet observedBindingSet = observation.getObservedBindingSet();
+        final VisibilityBindingSet observedBindingSet = observation.getObservedBindingSet();
         final String parentNodeId = observation.getParentId();
 
         // Figure out which node needs to handle the new metadata.
@@ -100,7 +104,7 @@ public abstract class BindingSetUpdater extends TypedObserver {
                 final JoinMetadata parentJoin = queryDao.readJoinMetadata(tx, parentNodeId);
                 try {
                     joinUpdater.updateJoinResults(tx, observedNodeId, observedBindingSet, parentJoin);
-                } catch (BindingSetConversionException e) {
+                } catch (final BindingSetConversionException e) {
                     throw new RuntimeException("Could not process a Join node.", e);
                 }
                 break;
@@ -117,7 +121,7 @@ public abstract class BindingSetUpdater extends TypedObserver {
     public static final class Observation {
 
         private final String observedNodeId;
-        private final BindingSet observedBindingSet;
+        private final VisibilityBindingSet observedBindingSet;
         private final String parentNodeId;
 
         /**
@@ -129,7 +133,7 @@ public abstract class BindingSetUpdater extends TypedObserver {
          */
         public Observation(
                 final String observedNodeId,
-                final BindingSet observedBindingSet,
+                final VisibilityBindingSet observedBindingSet,
                 final String parentNodeId) {
             this.observedNodeId = checkNotNull(observedNodeId);
             this.observedBindingSet = checkNotNull(observedBindingSet);
@@ -146,7 +150,7 @@ public abstract class BindingSetUpdater extends TypedObserver {
         /**
          * @return A Binding Set that was just emitted.
          */
-        public BindingSet getObservedBindingSet() {
+        public VisibilityBindingSet getObservedBindingSet() {
             return observedBindingSet;
         }
 

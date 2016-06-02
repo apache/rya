@@ -26,6 +26,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
 
 import org.apache.rya.indexing.pcj.fluo.app.NodeType;
 import org.apache.rya.indexing.pcj.fluo.app.query.JoinMetadata.JoinType;
+import org.apache.rya.indexing.pcj.storage.accumulo.VariableOrder;
 
 import com.google.common.collect.Sets;
 
@@ -35,7 +36,6 @@ import io.fluo.api.data.Bytes;
 import io.fluo.api.data.Column;
 import io.fluo.api.types.Encoder;
 import io.fluo.api.types.StringEncoder;
-import mvm.rya.indexing.external.tupleSet.PcjTables.VariableOrder;
 
 /**
  * Reads and writes {@link FluoQuery} instances and their components to/from
@@ -205,8 +205,8 @@ public class FluoQueryMetadataDAO {
         final String varOrderString = encoder.decodeString( values.get(FluoQueryColumns.JOIN_VARIABLE_ORDER));
         final VariableOrder varOrder = new VariableOrder(varOrderString);
 
-        String joinTypeString = encoder.decodeString( values.get(FluoQueryColumns.JOIN_TYPE) );
-        JoinType joinType = JoinType.valueOf(joinTypeString);
+        final String joinTypeString = encoder.decodeString( values.get(FluoQueryColumns.JOIN_TYPE) );
+        final JoinType joinType = JoinType.valueOf(joinTypeString);
 
         final String parentNodeId = encoder.decodeString( values.get(FluoQueryColumns.JOIN_PARENT_NODE_ID) );
         final String leftChildNodeId = encoder.decodeString( values.get(FluoQueryColumns.JOIN_LEFT_CHILD_NODE_ID) );

@@ -38,6 +38,7 @@ under the License.
         <module>tinkerpop.rya</module>
         <module>rya.console</module>
         <module>indexing</module>
+        <module>rya.indexing.pcj</module>
         <module>indexingExample</module>
         <module>vagrantExample</module>
         <module>rya.pcj.fluo</module>

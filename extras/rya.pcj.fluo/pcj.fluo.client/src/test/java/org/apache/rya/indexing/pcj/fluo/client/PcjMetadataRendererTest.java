@@ -24,12 +24,11 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 import org.apache.rya.indexing.pcj.fluo.client.util.PcjMetadataRenderer;
+import org.apache.rya.indexing.pcj.storage.PcjMetadata;
+import org.apache.rya.indexing.pcj.storage.accumulo.VariableOrder;
 import org.junit.Test;
 
 import com.google.common.collect.Sets;
-
-import mvm.rya.indexing.external.tupleSet.PcjTables.PcjMetadata;
-import mvm.rya.indexing.external.tupleSet.PcjTables.VariableOrder;
 
 /**
  * Tests the methods of {@link PcjMetadataRenderer}.

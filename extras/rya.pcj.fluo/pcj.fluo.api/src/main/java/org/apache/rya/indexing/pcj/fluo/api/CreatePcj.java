@@ -36,6 +36,12 @@ import org.apache.rya.indexing.pcj.fluo.app.query.FluoQueryMetadataDAO;
 import org.apache.rya.indexing.pcj.fluo.app.query.SparqlFluoQueryBuilder;
 import org.apache.rya.indexing.pcj.fluo.app.query.SparqlFluoQueryBuilder.NodeIds;
 import org.apache.rya.indexing.pcj.fluo.app.query.StatementPatternMetadata;
+import org.apache.rya.indexing.pcj.storage.PcjException;
+import org.apache.rya.indexing.pcj.storage.accumulo.BindingSetStringConverter;
+import org.apache.rya.indexing.pcj.storage.accumulo.PcjTableNameFactory;
+import org.apache.rya.indexing.pcj.storage.accumulo.PcjTables;
+import org.apache.rya.indexing.pcj.storage.accumulo.ShiftVarOrderFactory;
+import org.apache.rya.indexing.pcj.storage.accumulo.VariableOrder;
 import org.openrdf.query.Binding;
 import org.openrdf.query.BindingSet;
 import org.openrdf.query.MalformedQueryException;
@@ -50,12 +56,6 @@ import org.openrdf.sail.SailException;
 import info.aduna.iteration.CloseableIteration;
 import io.fluo.api.client.FluoClient;
 import io.fluo.api.types.TypedTransaction;
-import mvm.rya.indexing.external.tupleSet.BindingSetStringConverter;
-import mvm.rya.indexing.external.tupleSet.PcjTables;
-import mvm.rya.indexing.external.tupleSet.PcjTables.PcjException;
-import mvm.rya.indexing.external.tupleSet.PcjTables.PcjTableNameFactory;
-import mvm.rya.indexing.external.tupleSet.PcjTables.ShiftVarOrderFactory;
-import mvm.rya.indexing.external.tupleSet.PcjTables.VariableOrder;
 import mvm.rya.rdftriplestore.RyaSailRepository;
 
 /**
@@ -232,7 +232,7 @@ public class CreatePcj {
         checkNotNull(spMetadata);
         checkNotNull(batch);
 
-        BindingSetStringConverter converter = new BindingSetStringConverter();
+        final BindingSetStringConverter converter = new BindingSetStringConverter();
 
         try(TypedTransaction tx = STRING_TYPED_LAYER.wrap(fluo.newTransaction())) {
             // Get the node's variable order.
@@ -240,13 +240,13 @@ public class CreatePcj {
             final VariableOrder varOrder = spMetadata.getVariableOrder();
 
             for(final BindingSet bindingSet : batch) {
-                MapBindingSet spBindingSet = new MapBindingSet();
-                for(String var : varOrder) {
-                    Binding binding = bindingSet.getBinding(var);
+                final MapBindingSet spBindingSet = new MapBindingSet();
+                for(final String var : varOrder) {
+                    final Binding binding = bindingSet.getBinding(var);
                     spBindingSet.addBinding(binding);
                 }
 
-                String bindingSetStr = converter.convert(spBindingSet, varOrder);
+                final String bindingSetStr = converter.convert(spBindingSet, varOrder);
 
                 // Write the binding set entry to Fluo for the statement pattern.
                 tx.mutate().row(spNodeId + NODEID_BS_DELIM + bindingSetStr)

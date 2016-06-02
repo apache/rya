@@ -28,12 +28,12 @@ import org.apache.accumulo.core.client.AccumuloSecurityException;
 import org.apache.accumulo.core.client.TableExistsException;
 import org.apache.rya.indexing.pcj.fluo.ITBase;
 import org.apache.rya.indexing.pcj.fluo.app.StringTypeLayer;
+import org.apache.rya.indexing.pcj.storage.accumulo.PcjTableNameFactory;
 import org.junit.Test;
 
 import com.beust.jcommander.internal.Lists;
 
 import io.fluo.api.types.TypedTransaction;
-import mvm.rya.indexing.external.tupleSet.PcjTables.PcjTableNameFactory;
 
 /**
  * Integration tests the methods of {@link ListQueryIds}.

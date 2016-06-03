@@ -34,7 +34,7 @@ import com.google.common.collect.Sets;
 /**
  * Tests the classes and methods of {@link PcjTables}.
  */
-public class PcjTablesTests {
+public class PcjTablesTest {
 
     @Test
     public void variableOrder_hashCode() {

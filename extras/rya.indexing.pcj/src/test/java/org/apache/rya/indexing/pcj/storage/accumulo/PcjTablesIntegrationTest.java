@@ -29,6 +29,12 @@ import java.util.HashSet;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import mvm.rya.accumulo.AccumuloRdfConfiguration;
+import mvm.rya.accumulo.AccumuloRyaDAO;
+import mvm.rya.api.RdfCloudTripleStoreConfiguration;
+import mvm.rya.rdftriplestore.RdfCloudTripleStore;
+import mvm.rya.rdftriplestore.RyaSailRepository;
+
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
 import org.apache.accumulo.core.client.Connector;
@@ -67,18 +73,12 @@ import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
 import com.google.common.io.Files;
 
-import mvm.rya.accumulo.AccumuloRdfConfiguration;
-import mvm.rya.accumulo.AccumuloRyaDAO;
-import mvm.rya.api.RdfCloudTripleStoreConfiguration;
-import mvm.rya.rdftriplestore.RdfCloudTripleStore;
-import mvm.rya.rdftriplestore.RyaSailRepository;
-
 /**
  * Performs integration test using {@link MiniAccumuloCluster} to ensure the
  * functions of {@link PcjTables} work within a cluster setting.
  */
-public class PcjTablesIntegrationTests {
-    private static final Logger log = Logger.getLogger(PcjTablesIntegrationTests.class);
+public class PcjTablesIntegrationTest {
+    private static final Logger log = Logger.getLogger(PcjTablesIntegrationTest.class);
 
     private static final String USE_MOCK_INSTANCE = ".useMockInstance";
     private static final String CLOUDBASE_INSTANCE = "sc.cloudbase.instancename";

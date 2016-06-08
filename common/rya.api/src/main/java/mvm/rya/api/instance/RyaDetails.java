@@ -220,15 +220,15 @@ public class RyaDetails implements Serializable {
         public Builder(final RyaDetails details) {
             requireNonNull(details);
 
-            this.instanceName = details.instanceName;
-            this.version = details.version;
-            this.entityCentricDetails = details.entityCentricDetails;
-            this.geoDetails = details.geoDetails;
-            this.pcjDetails = details.pcjDetails;
-            this.temporalDetails = details.temporalDetails;
-            this.freeTextDetails = details.freeTextDetails;
-            this.prospectorDetails = details.prospectorDetails;
-            this.joinSelectivityDetails = details.joinSelectivityDetails;
+            instanceName = details.instanceName;
+            version = details.version;
+            entityCentricDetails = details.entityCentricDetails;
+            geoDetails = details.geoDetails;
+            pcjDetails = details.pcjDetails;
+            temporalDetails = details.temporalDetails;
+            freeTextDetails = details.freeTextDetails;
+            prospectorDetails = details.prospectorDetails;
+            joinSelectivityDetails = details.joinSelectivityDetails;
         }
 
         /**
@@ -656,6 +656,13 @@ public class RyaDetails implements Serializable {
              */
             public FluoDetails(final String updateAppName) {
                 this.updateAppName = requireNonNull(updateAppName);
+            }
+
+            /**
+             * @return The name of the Fluo application.
+             */
+            public String getUpdateAppName() {
+                return updateAppName;
             }
 
             @Override

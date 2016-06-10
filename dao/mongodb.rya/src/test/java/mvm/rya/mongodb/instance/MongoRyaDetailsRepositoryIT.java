@@ -315,11 +315,15 @@ public class MongoRyaDetailsRepositoryIT {
         repo.initialize(details);
 
         // Create a new state for the details.
+        final RyaDetails wrongOriginal = new RyaDetails.Builder( details )
+            .setTemporalIndexDetails( new TemporalIndexDetails(false) )
+            .build();
+
         final RyaDetails updated = new RyaDetails.Builder( details )
-                .setGeoIndexDetails( new GeoIndexDetails(false) )
-                .build();
+            .setGeoIndexDetails( new GeoIndexDetails(false) )
+            .build();
 
         // Try to execute the update where the old state is not the currently stored state.
-        repo.update(updated, updated);
+        repo.update(wrongOriginal, updated);
     }
 }

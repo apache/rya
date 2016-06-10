@@ -101,9 +101,7 @@ public class PcjIntegrationTestingUtil {
 
         final AccumuloRdfConfiguration pcjConf = new AccumuloRdfConfiguration();
         pcjConf.set(ConfigUtils.USE_PCJ, "true");
-        pcjConf.set(ConfigUtils.USE_MOCK_INSTANCE, "true");
-        pcjConf.set(ConfigUtils.CLOUDBASE_INSTANCE, instance);
-        pcjConf.setTablePrefix(tablePrefix);
+        populateTestConfig(instance, tablePrefix, pcjConf);
 
         final Sail pcjSail = RyaSailFactory.getInstance(pcjConf);
         final SailRepository pcjRepo = new SailRepository(pcjSail);
@@ -117,14 +115,20 @@ public class PcjIntegrationTestingUtil {
             NumberFormatException, UnknownHostException {
 
         final AccumuloRdfConfiguration nonPcjConf = new AccumuloRdfConfiguration();
-        nonPcjConf.set(ConfigUtils.USE_MOCK_INSTANCE, "true");
-        nonPcjConf.set(ConfigUtils.CLOUDBASE_INSTANCE, instance);
-        nonPcjConf.setTablePrefix(tablePrefix);
-
+        populateTestConfig(instance, tablePrefix, nonPcjConf);
         final Sail nonPcjSail = RyaSailFactory.getInstance(nonPcjConf);
         final SailRepository nonPcjRepo = new SailRepository(nonPcjSail);
         nonPcjRepo.initialize();
         return nonPcjRepo;
+    }
+
+    private static void populateTestConfig(final String instance, final String tablePrefix, final AccumuloRdfConfiguration config) {
+        config.set(ConfigUtils.USE_MOCK_INSTANCE, "true");
+        config.set(ConfigUtils.CLOUDBASE_INSTANCE, instance);
+        config.set(ConfigUtils.CLOUDBASE_USER, "test_user");
+        config.set(ConfigUtils.CLOUDBASE_PASSWORD, "pswd");
+        config.set(ConfigUtils.CLOUDBASE_ZOOKEEPERS, "localhost");
+        config.setTablePrefix(tablePrefix);
     }
 
     public static void closeAndShutdown(final SailRepositoryConnection connection,

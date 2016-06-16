@@ -107,6 +107,7 @@ under the License.
         <mockito.version>1.10.19</mockito.version> <!-- Newest: 1.10.19 -->
         <mrunit.version>1.1.0</mrunit.version> <!-- Newest: 1.1.0 -->
         <slf4j.version>1.6.6</slf4j.version> <!-- Newest: 1.7.13 -->
+        <powermock.version>1.6.1</powermock.version>
 
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
@@ -523,6 +524,19 @@ under the License.
                 <artifactId>mrunit</artifactId>
                 <version>${mrunit.version}</version>
                 <classifier>hadoop2</classifier>
+                <scope>test</scope>
+                <!-- mrunit includes incompatible versions of powermock and junit by default -->
+                <exclusions>
+                    <exclusion>
+                        <groupId>org.powermock</groupId>
+                        <artifactId>powermock-module-junit4</artifactId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
+            <dependency>
+                <groupId>org.powermock</groupId>
+                <artifactId>powermock-module-junit4</artifactId>
+                <version>${powermock.version}</version>
                 <scope>test</scope>
             </dependency>
         </dependencies>

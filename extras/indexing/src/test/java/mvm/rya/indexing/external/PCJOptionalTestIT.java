@@ -63,6 +63,7 @@ import mvm.rya.indexing.external.PrecompJoinOptimizerIntegrationTest.CountingRes
 import mvm.rya.indexing.external.PrecompJoinOptimizerTest.NodeCollector;
 import mvm.rya.indexing.external.tupleSet.ExternalTupleSet;
 import mvm.rya.indexing.external.tupleSet.SimpleExternalTupleSet;
+import mvm.rya.indexing.pcj.matching.PCJOptimizer;
 import mvm.rya.rdftriplestore.inference.InferenceEngineException;
 
 public class PCJOptionalTestIT {
@@ -153,7 +154,6 @@ public class PCJOptionalTestIT {
                 + "  ?e <http://www.w3.org/2000/01/rdf-schema#label> ?l . "//
                 + "  OPTIONAL {?e <uri:talksTo> ?o } . "//
                 + "}";//
-
         final CountingResultHandler crh = new CountingResultHandler();
         PcjIntegrationTestingUtil.deleteCoreRyaTables(accCon, tablePrefix);
         PcjIntegrationTestingUtil.closeAndShutdown(conn, repo);
@@ -240,7 +240,7 @@ public class PCJOptionalTestIT {
         final List<QueryModelNode> optTupNodes = Lists.newArrayList();
         optTupNodes.add(extTup1);
 
-        final PrecompJoinOptimizer pcj = new PrecompJoinOptimizer(list, true);
+        final PCJOptimizer pcj = new PCJOptimizer(list, true);
         final TupleExpr te = pq1.getTupleExpr();
         pcj.optimize(te, null, null);
 
@@ -306,7 +306,7 @@ public class PCJOptionalTestIT {
         final List<QueryModelNode> optTupNodes = Lists.newArrayList();
         optTupNodes.add(extTup2);
 
-        final PrecompJoinOptimizer opt = new PrecompJoinOptimizer(list, true);
+        final PCJOptimizer opt = new PCJOptimizer(list, true);
         final TupleExpr te = pq1.getTupleExpr();
         opt.optimize(te, null, null);
 

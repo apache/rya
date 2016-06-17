@@ -27,7 +27,6 @@ import java.util.Set;
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
 import org.apache.accumulo.core.client.Connector;
-import org.apache.accumulo.core.client.MutationsRejectedException;
 import org.apache.accumulo.core.client.TableNotFoundException;
 import org.apache.accumulo.core.client.admin.TableOperations;
 import org.apache.hadoop.conf.Configuration;
@@ -66,7 +65,7 @@ import mvm.rya.api.persist.RyaDAOException;
 import mvm.rya.api.resolver.RyaTypeResolverException;
 import mvm.rya.indexing.accumulo.ConfigUtils;
 import mvm.rya.indexing.external.PcjIntegrationTestingUtil;
-import mvm.rya.indexing.external.QueryVariableNormalizer;
+import mvm.rya.indexing.pcj.matching.QueryVariableNormalizer;
 import mvm.rya.rdftriplestore.RyaSailRepository;
 import mvm.rya.rdftriplestore.inference.InferenceEngineException;
 import mvm.rya.sail.config.RyaSailFactory;
@@ -95,14 +94,15 @@ public class AccumuloIndexSetTest {
 
     /**
      * TODO doc
-     * @throws MutationsRejectedException
      * @throws QueryEvaluationException
      * @throws SailException
      * @throws MalformedQueryException
+     * @throws AccumuloSecurityException
+     * @throws AccumuloException
      */
     @Test
     public void accumuloIndexSetTestWithEmptyBindingSet() throws RepositoryException, PcjException, TableNotFoundException,
-    RyaTypeResolverException, MalformedQueryException, SailException, QueryEvaluationException, MutationsRejectedException {
+    RyaTypeResolverException, MalformedQueryException, SailException, QueryEvaluationException, AccumuloException, AccumuloSecurityException {
         // Load some Triples into Rya.
         final Set<Statement> triples = new HashSet<>();
         triples.add( new StatementImpl(new URIImpl("http://Alice"), new URIImpl("http://hasAge"), new NumericLiteralImpl(14, XMLSchema.INTEGER)) );
@@ -131,7 +131,7 @@ public class AccumuloIndexSetTest {
         // Create and populate the PCJ table.
         PcjIntegrationTestingUtil.createAndPopulatePcj(ryaConn, accumuloConn, pcjTableName, sparql, new String[]{"name", "age"}, Optional.<PcjVarOrderFactory>absent());
 
-        final AccumuloIndexSet ais = new AccumuloIndexSet(accumuloConn, pcjTableName);
+        final AccumuloIndexSet ais = new AccumuloIndexSet(conf, pcjTableName);
 
         final CloseableIteration<BindingSet, QueryEvaluationException> results = ais.evaluate(new QueryBindingSet());
         final Set<BindingSet> fetchedResults = new HashSet<BindingSet>();
@@ -157,14 +157,15 @@ public class AccumuloIndexSetTest {
 
     /**
      * TODO doc
-     * @throws MutationsRejectedException
      * @throws QueryEvaluationException
      * @throws SailException
      * @throws MalformedQueryException
+     * @throws AccumuloSecurityException
+     * @throws AccumuloException
      */
     @Test
     public void accumuloIndexSetTestWithBindingSet() throws RepositoryException, PcjException, TableNotFoundException,
-    RyaTypeResolverException, MalformedQueryException, SailException, QueryEvaluationException, MutationsRejectedException {
+    RyaTypeResolverException, MalformedQueryException, SailException, QueryEvaluationException, AccumuloException, AccumuloSecurityException {
         // Load some Triples into Rya.
         final Set<Statement> triples = new HashSet<>();
         triples.add( new StatementImpl(new URIImpl("http://Alice"), new URIImpl("http://hasAge"), new NumericLiteralImpl(14, XMLSchema.INTEGER)) );
@@ -194,7 +195,7 @@ public class AccumuloIndexSetTest {
         // Create and populate the PCJ table.
         PcjIntegrationTestingUtil.createAndPopulatePcj(ryaConn, accumuloConn, pcjTableName, sparql, new String[]{"name", "age"}, Optional.<PcjVarOrderFactory>absent());
 
-        final AccumuloIndexSet ais = new AccumuloIndexSet(accumuloConn, pcjTableName);
+        final AccumuloIndexSet ais = new AccumuloIndexSet(conf, pcjTableName);
 
         final QueryBindingSet bs = new QueryBindingSet();
         bs.addBinding("name",new URIImpl("http://Alice"));
@@ -208,7 +209,7 @@ public class AccumuloIndexSetTest {
 
     @Test
     public void accumuloIndexSetTestWithTwoBindingSets() throws RepositoryException, PcjException, TableNotFoundException,
-    RyaTypeResolverException, MalformedQueryException, SailException, QueryEvaluationException, MutationsRejectedException {
+    RyaTypeResolverException, MalformedQueryException, SailException, QueryEvaluationException, AccumuloException, AccumuloSecurityException {
         // Load some Triples into Rya.
         final Set<Statement> triples = new HashSet<>();
         triples.add( new StatementImpl(new URIImpl("http://Alice"), new URIImpl("http://hasAge"), new NumericLiteralImpl(14, XMLSchema.INTEGER)) );
@@ -238,7 +239,7 @@ public class AccumuloIndexSetTest {
         // Create and populate the PCJ table.
         PcjIntegrationTestingUtil.createAndPopulatePcj(ryaConn, accumuloConn, pcjTableName, sparql, new String[]{"name", "age"}, Optional.<PcjVarOrderFactory>absent());
 
-        final AccumuloIndexSet ais = new AccumuloIndexSet(accumuloConn, pcjTableName);
+        final AccumuloIndexSet ais = new AccumuloIndexSet(conf, pcjTableName);
 
         final QueryBindingSet bs = new QueryBindingSet();
         bs.addBinding("birthDate",new LiteralImpl("1983-03-17",new URIImpl("http://www.w3.org/2001/XMLSchema#date")));
@@ -274,7 +275,7 @@ public class AccumuloIndexSetTest {
 
     @Test
     public void accumuloIndexSetTestWithNoBindingSet() throws RepositoryException, PcjException, TableNotFoundException,
-    RyaTypeResolverException, MalformedQueryException, SailException, QueryEvaluationException, MutationsRejectedException {
+    RyaTypeResolverException, MalformedQueryException, SailException, QueryEvaluationException, AccumuloException, AccumuloSecurityException {
         // Load some Triples into Rya.
         final Set<Statement> triples = new HashSet<>();
         triples.add( new StatementImpl(new URIImpl("http://Alice"), new URIImpl("http://hasAge"), new NumericLiteralImpl(14, XMLSchema.INTEGER)) );
@@ -304,7 +305,7 @@ public class AccumuloIndexSetTest {
         // Create and populate the PCJ table.
         PcjIntegrationTestingUtil.createAndPopulatePcj(ryaConn, accumuloConn, pcjTableName, sparql, new String[]{"name", "age"}, Optional.<PcjVarOrderFactory>absent());
 
-        final AccumuloIndexSet ais = new AccumuloIndexSet(accumuloConn, pcjTableName);
+        final AccumuloIndexSet ais = new AccumuloIndexSet(conf, pcjTableName);
 
         final CloseableIteration<BindingSet, QueryEvaluationException> results = ais.evaluate(new HashSet<BindingSet>());
 
@@ -314,7 +315,7 @@ public class AccumuloIndexSetTest {
 
     @Test
     public void accumuloIndexSetTestWithDirectProductBindingSet() throws RepositoryException, PcjException, TableNotFoundException,
-    RyaTypeResolverException, MalformedQueryException, SailException, QueryEvaluationException, MutationsRejectedException {
+    RyaTypeResolverException, MalformedQueryException, SailException, QueryEvaluationException, AccumuloException, AccumuloSecurityException {
         // Load some Triples into Rya.
         final Set<Statement> triples = new HashSet<>();
         triples.add( new StatementImpl(new URIImpl("http://Alice"), new URIImpl("http://hasAge"), new NumericLiteralImpl(14, XMLSchema.INTEGER)) );
@@ -344,7 +345,7 @@ public class AccumuloIndexSetTest {
         // Create and populate the PCJ table.
         PcjIntegrationTestingUtil.createAndPopulatePcj(ryaConn, accumuloConn, pcjTableName, sparql, new String[]{"name", "age"}, Optional.<PcjVarOrderFactory>absent());
 
-        final AccumuloIndexSet ais = new AccumuloIndexSet(accumuloConn, pcjTableName);
+        final AccumuloIndexSet ais = new AccumuloIndexSet(conf, pcjTableName);
 
         final QueryBindingSet bs = new QueryBindingSet();
         bs.addBinding("birthDate",new LiteralImpl("1983-03-17",new URIImpl("http://www.w3.org/2001/XMLSchema#date")));
@@ -377,7 +378,7 @@ public class AccumuloIndexSetTest {
 
     @Test
     public void accumuloIndexSetTestWithTwoDirectProductBindingSet() throws RepositoryException, PcjException, TableNotFoundException,
-    RyaTypeResolverException, MalformedQueryException, SailException, QueryEvaluationException, MutationsRejectedException {
+    RyaTypeResolverException, MalformedQueryException, SailException, QueryEvaluationException, AccumuloException, AccumuloSecurityException {
         // Load some Triples into Rya.
         final Set<Statement> triples = new HashSet<>();
         triples.add( new StatementImpl(new URIImpl("http://Alice"), new URIImpl("http://hasAge"), new NumericLiteralImpl(14, XMLSchema.INTEGER)) );
@@ -407,7 +408,7 @@ public class AccumuloIndexSetTest {
         // Create and populate the PCJ table.
         PcjIntegrationTestingUtil.createAndPopulatePcj(ryaConn, accumuloConn, pcjTableName, sparql, new String[]{"name", "age"}, Optional.<PcjVarOrderFactory>absent());
 
-        final AccumuloIndexSet ais = new AccumuloIndexSet(accumuloConn, pcjTableName);
+        final AccumuloIndexSet ais = new AccumuloIndexSet(conf, pcjTableName);
 
         final QueryBindingSet bs = new QueryBindingSet();
         bs.addBinding("birthDate",new LiteralImpl("1983-03-17",new URIImpl("http://www.w3.org/2001/XMLSchema#date")));
@@ -463,7 +464,7 @@ public class AccumuloIndexSetTest {
 
     @Test
     public void accumuloIndexSetTestWithTwoDirectProductBindingSetsWithMapping() throws RepositoryException, PcjException, TableNotFoundException,
-    RyaTypeResolverException, MalformedQueryException, SailException, QueryEvaluationException, MutationsRejectedException {
+    RyaTypeResolverException, MalformedQueryException, SailException, QueryEvaluationException, AccumuloException, AccumuloSecurityException {
         // Load some Triples into Rya.
         final Set<Statement> triples = new HashSet<>();
         triples.add( new StatementImpl(new URIImpl("http://Alice"), new URIImpl("http://hasAge"), new NumericLiteralImpl(14, XMLSchema.INTEGER)) );
@@ -507,7 +508,7 @@ public class AccumuloIndexSetTest {
         final Map<String,String> map = new HashMap<>();
         map.put("x", "name");
         map.put("y", "age");
-        final AccumuloIndexSet ais = new AccumuloIndexSet(accumuloConn, pcjTableName);
+        final AccumuloIndexSet ais = new AccumuloIndexSet(conf, pcjTableName);
         ais.setProjectionExpr((Projection) pq.getTupleExpr());
         ais.setTableVarMap(map);
         ais.setSupportedVariableOrderMap(Lists.<String>newArrayList("x;y","y;x"));
@@ -586,7 +587,7 @@ public class AccumuloIndexSetTest {
         final ParsedQuery pq1 = p.parseQuery(sparql, null);
         final ParsedQuery pq2 = p.parseQuery(sparql2, null);
 
-        final AccumuloIndexSet ais = new AccumuloIndexSet(accumuloConn, pcjTableName);
+        final AccumuloIndexSet ais = new AccumuloIndexSet(conf, pcjTableName);
         ais.setProjectionExpr((Projection) QueryVariableNormalizer.getNormalizedIndex(pq2.getTupleExpr(), pq1.getTupleExpr()).get(0));
 
         final QueryBindingSet bs = new QueryBindingSet();
@@ -635,7 +636,7 @@ public class AccumuloIndexSetTest {
 
         // Create and populate the PCJ table.
         PcjIntegrationTestingUtil.createAndPopulatePcj(ryaConn, accumuloConn, pcjTableName, sparql, new String[]{"name", "age"}, Optional.<PcjVarOrderFactory>absent());
-        final AccumuloIndexSet ais = new AccumuloIndexSet(accumuloConn,pcjTableName);
+        final AccumuloIndexSet ais = new AccumuloIndexSet(conf,pcjTableName);
 
         final QueryBindingSet bs1 = new QueryBindingSet();
         bs1.addBinding("age",new LiteralImpl("16"));

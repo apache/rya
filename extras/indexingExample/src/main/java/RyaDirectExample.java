@@ -37,7 +37,6 @@ import org.openrdf.model.URI;
 import org.openrdf.model.ValueFactory;
 import org.openrdf.model.impl.LiteralImpl;
 import org.openrdf.model.impl.URIImpl;
-import org.openrdf.model.impl.ValueFactoryImpl;
 import org.openrdf.model.vocabulary.RDF;
 import org.openrdf.model.vocabulary.RDFS;
 import org.openrdf.query.BindingSet;
@@ -101,8 +100,6 @@ public class RyaDirectExample {
 			final long start = System.currentTimeMillis();
 			log.info("Running SPARQL Example: Add and Delete");
 			testAddAndDelete(conn);
-            log.info("Running SPARQL Example: Add with Visibilities and Query with Authorizations");
-            testAddAndQueryWithAuths(conf);
 			log.info("Running SAIL/SPARQL Example: PCJ Search");
 			testPCJSearch(conn);
 			log.info("Running SAIL/SPARQL Example: Add and Temporal Search");

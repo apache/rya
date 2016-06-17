@@ -1,24 +1,4 @@
 package mvm.rya.mongodb;
-
-import static com.google.common.base.Preconditions.checkNotNull;
-
-import java.io.Closeable;
-import java.io.IOException;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
-
-import org.calrissian.mango.collect.CloseableIterable;
-import org.openrdf.query.BindingSet;
-
-import com.mongodb.DB;
-import com.mongodb.DBCollection;
-import com.mongodb.DBObject;
-import com.mongodb.MongoClient;
-
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -38,6 +18,24 @@ import com.mongodb.MongoClient;
  * under the License.
  */
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
+import java.io.Closeable;
+import java.io.IOException;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
+
+import org.calrissian.mango.collect.CloseableIterable;
+import org.openrdf.query.BindingSet;
+
+import com.mongodb.DB;
+import com.mongodb.DBCollection;
+import com.mongodb.DBObject;
+import com.mongodb.MongoClient;
 
 import info.aduna.iteration.CloseableIteration;
 import mvm.rya.api.domain.RyaStatement;
@@ -59,32 +57,32 @@ import mvm.rya.mongodb.iter.RyaStatementCursorIterator;
 public class MongoDBQueryEngine implements RyaQueryEngine<MongoDBRdfConfiguration>, Closeable {
 
     private MongoDBRdfConfiguration configuration;
-	private final MongoClient mongoClient;
-	private final DBCollection coll;
-	private final MongoDBStorageStrategy strategy;
+    private final MongoClient mongoClient;
+    private final DBCollection coll;
+    private final MongoDBStorageStrategy strategy;
 
     public MongoDBQueryEngine(final MongoDBRdfConfiguration conf, final MongoClient mongoClient) {
-		this.mongoClient = checkNotNull(mongoClient);
-		final DB db = mongoClient.getDB( conf.get(MongoDBRdfConfiguration.MONGO_DB_NAME));
-		coll = db.getCollection(conf.getTriplesCollectionName());
-		strategy = new SimpleMongoDBStorageStrategy();
+        this.mongoClient = checkNotNull(mongoClient);
+        final DB db = mongoClient.getDB( conf.get(MongoDBRdfConfiguration.MONGO_DB_NAME));
+        coll = db.getCollection(conf.getTriplesCollectionName());
+        strategy = new SimpleMongoDBStorageStrategy();
     }
 
 
-	@Override
-	public void setConf(final MongoDBRdfConfiguration conf) {
-		configuration = conf;
-	}
+    @Override
+    public void setConf(final MongoDBRdfConfiguration conf) {
+        configuration = conf;
+    }
 
-	@Override
-	public MongoDBRdfConfiguration getConf() {
-		return configuration;
-	}
+    @Override
+    public MongoDBRdfConfiguration getConf() {
+        return configuration;
+    }
 
-	@Override
-	public CloseableIteration<RyaStatement, RyaDAOException> query(
-			final RyaStatement stmt, MongoDBRdfConfiguration conf)
-			throws RyaDAOException {
+    @Override
+    public CloseableIteration<RyaStatement, RyaDAOException> query(
+            final RyaStatement stmt, MongoDBRdfConfiguration conf)
+            throws RyaDAOException {
         if (conf == null) {
             conf = configuration;
         }
@@ -98,11 +96,11 @@ public class MongoDBQueryEngine implements RyaQueryEngine<MongoDBRdfConfiguratio
             iterator.setMaxResults(maxResults);
         }
         return iterator;
-	}
-	@Override
-	public CloseableIteration<? extends Entry<RyaStatement, BindingSet>, RyaDAOException> queryWithBindingSet(
-			final Collection<Entry<RyaStatement, BindingSet>> stmts,
-			MongoDBRdfConfiguration conf) throws RyaDAOException {
+    }
+    @Override
+    public CloseableIteration<? extends Entry<RyaStatement, BindingSet>, RyaDAOException> queryWithBindingSet(
+            final Collection<Entry<RyaStatement, BindingSet>> stmts,
+            MongoDBRdfConfiguration conf) throws RyaDAOException {
         if (conf == null) {
             conf = configuration;
         }
@@ -129,11 +127,11 @@ public class MongoDBQueryEngine implements RyaQueryEngine<MongoDBRdfConfiguratio
             throw new RyaDAOException(e);
         }
 
-	}
-	@Override
-	public CloseableIteration<RyaStatement, RyaDAOException> batchQuery(
-			final Collection<RyaStatement> stmts, MongoDBRdfConfiguration conf)
-			throws RyaDAOException {
+    }
+    @Override
+    public CloseableIteration<RyaStatement, RyaDAOException> batchQuery(
+            final Collection<RyaStatement> stmts, MongoDBRdfConfiguration conf)
+            throws RyaDAOException {
         if (conf == null) {
             conf = configuration;
         }
@@ -156,27 +154,27 @@ public class MongoDBQueryEngine implements RyaQueryEngine<MongoDBRdfConfiguratio
             throw new RyaDAOException(e);
         }
 
-	}
-	@Override
-	public CloseableIterable<RyaStatement> query(final RyaQuery ryaQuery)
-			throws RyaDAOException {
-	        final Set<DBObject> queries = new HashSet<DBObject>();
+    }
+    @Override
+    public CloseableIterable<RyaStatement> query(final RyaQuery ryaQuery)
+            throws RyaDAOException {
+            final Set<DBObject> queries = new HashSet<DBObject>();
 
-	        try {
+            try {
                 queries.add( strategy.getQuery(ryaQuery));
 
-	            // TODO not sure what to do about regex ranges?
+                // TODO not sure what to do about regex ranges?
                 // TODO this is gross
                 final RyaStatementCursorIterable iterator = new RyaStatementCursorIterable(new NonCloseableRyaStatementCursorIterator(new RyaStatementCursorIterator(coll, queries, strategy)));
 
-	            return iterator;
-	        } catch (final Exception e) {
-	            throw new RyaDAOException(e);
-	        }
-	}
-	@Override
-	public CloseableIterable<RyaStatement> query(final BatchRyaQuery batchRyaQuery)
-			throws RyaDAOException {
+                return iterator;
+            } catch (final Exception e) {
+                throw new RyaDAOException(e);
+            }
+    }
+    @Override
+    public CloseableIterable<RyaStatement> query(final BatchRyaQuery batchRyaQuery)
+            throws RyaDAOException {
          try {
              final Set<DBObject> queries = new HashSet<DBObject>();
             for (final RyaStatement statement : batchRyaQuery.getQueries()){
@@ -192,15 +190,10 @@ public class MongoDBQueryEngine implements RyaQueryEngine<MongoDBRdfConfiguratio
         } catch (final Exception e) {
             throw new RyaDAOException(e);
         }
- 	}
+    }
 
     @Override
     public void close() throws IOException {
         if (mongoClient != null){ mongoClient.close(); }
     }
-
-
-
-
-
 }

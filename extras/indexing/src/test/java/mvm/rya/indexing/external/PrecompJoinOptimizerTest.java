@@ -24,10 +24,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import mvm.rya.indexing.external.tupleSet.ExternalTupleSet;
-import mvm.rya.indexing.external.tupleSet.SimpleExternalTupleSet;
-import mvm.rya.indexing.pcj.matching.PCJOptimizer;
-
 import org.junit.Assert;
 import org.junit.Test;
 import org.openrdf.query.algebra.Projection;
@@ -42,12 +38,16 @@ import org.openrdf.query.parser.sparql.SPARQLParser;
 import com.beust.jcommander.internal.Lists;
 import com.google.common.collect.Sets;
 
+import mvm.rya.indexing.external.tupleSet.ExternalTupleSet;
+import mvm.rya.indexing.external.tupleSet.SimpleExternalTupleSet;
+import mvm.rya.indexing.pcj.matching.PCJOptimizer;
+
 public class PrecompJoinOptimizerTest {
 
 	@Test
 	public void testThreeIndex() throws Exception {
 
-		String q7 = ""//
+		final String q7 = ""//
 				+ "SELECT ?s ?t ?u " //
 				+ "{" //
 				+ "  ?s a ?t ."//
@@ -55,7 +55,7 @@ public class PrecompJoinOptimizerTest {
 				+ "  ?u <uri:talksTo> ?s . "//
 				+ "}";//
 
-		String q8 = ""//
+		final String q8 = ""//
 				+ "SELECT ?e ?l ?c " //
 				+ "{" //
 				+ "  ?e a ?l ."//
@@ -63,7 +63,7 @@ public class PrecompJoinOptimizerTest {
 				+ "  ?c <uri:talksTo> ?e . "//
 				+ "}";//
 
-		String q9 = ""//
+		final String q9 = ""//
 				+ "SELECT ?f ?m ?d " //
 				+ "{" //
 				+ "  ?f a ?m ."//
@@ -71,7 +71,7 @@ public class PrecompJoinOptimizerTest {
 				+ "  ?d <uri:talksTo> ?f . "//
 				+ "}";//
 
-		String q15 = ""//
+		final String q15 = ""//
 				+ "SELECT ?f ?m ?d ?e ?l ?c " //
 				+ "{" //
 				+ "  ?f a ?m ."//
@@ -411,7 +411,7 @@ public class PrecompJoinOptimizerTest {
 		Set<QueryModelNode> qNodes = new HashSet<>();
 
 		@Override
-		public void meetNode(QueryModelNode node) {
+		public void meetNode(final QueryModelNode node) {
 			if (node instanceof StatementPattern
 					|| node instanceof ExternalTupleSet) {
 				qNodes.add(node);
@@ -419,6 +419,10 @@ public class PrecompJoinOptimizerTest {
 			super.meetNode(node);
 
 		}
+
+        public List<QueryModelNode> getNodes() {
+            return Lists.newArrayList(qNodes);
+        }
 
 	}
 

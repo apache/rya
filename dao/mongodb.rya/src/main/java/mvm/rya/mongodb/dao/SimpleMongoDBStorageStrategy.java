@@ -42,7 +42,7 @@ import mvm.rya.api.persist.query.RyaQuery;
 /**
  * Defines how {@link RyaStatement}s are stored in MongoDB.
  */
-public class SimpleMongoDBStorageStrategy implements MongoDBStorageStrategy {
+public class SimpleMongoDBStorageStrategy implements MongoDBStorageStrategy<RyaStatement> {
     private static final Logger LOG = Logger.getLogger(SimpleMongoDBStorageStrategy.class);
     protected static final String ID = "_id";
     protected static final String OBJECT_TYPE = "objectType";

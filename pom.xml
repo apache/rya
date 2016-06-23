@@ -74,7 +74,7 @@ under the License.
 
         <pig.version>0.9.2</pig.version> <!-- Newest: 0.15.0 -->
 
-        <geomesa.version>1.2.0</geomesa.version> <!-- Newest: 1.2.0 -->
+        <geomesa.version>1.2.2</geomesa.version> <!-- Newest: 1.2.2 -->
         <lucene.version>3.6.2</lucene.version> <!-- Newest: 5.3.1 -->
         <joda-time.version>2.1</joda-time.version> <!-- Newest: 2.9.1 -->
 

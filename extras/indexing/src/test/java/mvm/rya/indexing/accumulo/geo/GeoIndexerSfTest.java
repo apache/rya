@@ -278,7 +278,7 @@ public class GeoIndexerSfTest {
         compare(g.queryWithin(A, EMPTY_CONSTRAINTS), A, B, F);
     }
 
-    @Ignore
+    @Test
     public void testContainsPoint() throws Exception {
         compare(g.queryContains(F, EMPTY_CONSTRAINTS), F);
     }

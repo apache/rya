@@ -1,5 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
-
+<?xml version='1.0'?>
 <!--
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
@@ -23,18 +22,42 @@ under the License.
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>org.apache.rya</groupId>
-        <artifactId>rya-project</artifactId>
+        <artifactId>rya.dao</artifactId>
         <version>3.2.10-SNAPSHOT</version>
     </parent>
 
-    <artifactId>rya.dao</artifactId>
-    <name>Apache Rya DAO Projects</name>
+    <artifactId>dynamodb.rya</artifactId>
+    <name>Apache Rya Dynamodb DAO</name>
 
-    <packaging>pom</packaging>
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-failsafe-plugin</artifactId>
+                <version>2.19.1</version>
+                <executions>
+                    <execution>
+                        <goals>
+                          <goal>integration-test</goal>
+                          <goal>verify</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
 
-    <modules>
-        <module>accumulo.rya</module>
-        <module>mongodb.rya</module>
-        <module>dynamodb.rya</module>
-    </modules>
+    <dependencies>
+        <dependency>
+            <groupId>org.apache.rya</groupId>
+            <artifactId>rya.api</artifactId>
+        </dependency>
+
+        
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
 </project>

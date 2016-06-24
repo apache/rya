@@ -74,7 +74,7 @@ under the License.
 
         <pig.version>0.9.2</pig.version> <!-- Newest: 0.15.0 -->
 
-        <geomesa.version>1.2.2</geomesa.version> <!-- Newest: 1.2.2 -->
+        <geomesa.version>1.2.3</geomesa.version> <!-- Newest: 1.2.3 -->
         <lucene.version>3.6.2</lucene.version> <!-- Newest: 5.3.1 -->
         <joda-time.version>2.1</joda-time.version> <!-- Newest: 2.9.1 -->
 
@@ -660,35 +660,32 @@ under the License.
                 </plugin>
                 <!--This plugin's configuration is used to store Eclipse m2e settings only. It has no influence on the Maven build itself.-->
                 <plugin>
-                    <groupId>org.eclipse.m2e</groupId>
-                    <artifactId>lifecycle-mapping</artifactId>
-                    <version>1.0.0</version>
+                <!-- Apache Release Audit Tool - reports missing license headers and other issues. -->
+                <groupId>org.apache.rat</groupId>
+                <artifactId>apache-rat-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>check-licenses</id>
+                        <goals>
+                            <goal>check</goal>
+                        </goals>
                     <configuration>
-                        <lifecycleMappingMetadata>
-                            <pluginExecutions>
-                                <pluginExecution>
-                                    <pluginExecutionFilter>
-                                        <groupId>
-                                            org.apache.rat
-                                        </groupId>
-                                        <artifactId>
-                                            apache-rat-plugin
-                                        </artifactId>
-                                        <versionRange>
-                                            [0.11,)
-                                        </versionRange>
-                                        <goals>
-                                            <goal>check</goal>
-                                        </goals>
-                                    </pluginExecutionFilter>
-                                    <action>
-                                        <ignore></ignore>
-                                    </action>
-                                </pluginExecution>
-                            </pluginExecutions>
-                        </lifecycleMappingMetadata>
+                        <excludes>
+                            <!-- RDF data Files -->
+                            <exclude>**/*.ntriples</exclude>
+                            <exclude>**/*.trig</exclude>
+                            <exclude>**/*.ttl</exclude>
+                            <exclude>**/*.owl</exclude>
+                           <exclude>**/*.nt</exclude>
+                           <exclude>**/*.MF</exclude>
+                           <exclude>**/*.log</exclude>
+                             <!-- Services Files -->
+                            <exclude>**/resources/META-INF/services/**</exclude>
+                        </excludes>
                     </configuration>
-                </plugin>
+                    </execution>
+                </executions>
+				</plugin>
             </plugins>
         </pluginManagement>
 

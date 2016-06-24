@@ -1,7 +1,26 @@
 package mvm.rya.dynamodb.dao;
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * 
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
 
 import java.util.Iterator;
 
+import info.aduna.iteration.CloseableIteration;
 import mvm.rya.api.RdfCloudTripleStoreConfiguration;
 import mvm.rya.api.domain.RyaStatement;
 import mvm.rya.api.domain.RyaURI;
@@ -15,6 +34,7 @@ public class DynamoDAO implements RyaDAO<DynamoRdfConfiguration> {
 	private DynamoStorageStrategy strategy;
 	private DynamoRdfConfiguration conf;
 	private boolean isInitialized = false;
+	private DynamoQueryEngine engine;
 
 	@Override
 	public void setConf(DynamoRdfConfiguration conf) {
@@ -29,6 +49,7 @@ public class DynamoDAO implements RyaDAO<DynamoRdfConfiguration> {
 	@Override
 	public void init() throws RyaDAOException {
 		this.strategy = new DynamoStorageStrategy(conf);
+		this.engine = new DynamoQueryEngine(conf, strategy);
 		this.isInitialized = true;
 	}
 
@@ -54,32 +75,27 @@ public class DynamoDAO implements RyaDAO<DynamoRdfConfiguration> {
 
 	@Override
 	public void delete(RyaStatement statement, DynamoRdfConfiguration conf) throws RyaDAOException {
-		// TODO Auto-generated method stub
-		
+		strategy.delete(statement);
 	}
 
 	@Override
 	public void dropGraph(DynamoRdfConfiguration conf, RyaURI... graphs) throws RyaDAOException {
-		// TODO Auto-generated method stub
-		
+		throw new RyaDAOException("Method not supported!");
 	}
 
 	@Override
 	public void delete(Iterator<RyaStatement> statements, DynamoRdfConfiguration conf) throws RyaDAOException {
-		// TODO Auto-generated method stub
-		
+		strategy.delete(statements);
 	}
 
 	@Override
 	public String getVersion() throws RyaDAOException {
-		// TODO Auto-generated method stub
-		return null;
+		return "1.0";
 	}
 
 	@Override
 	public RyaQueryEngine<DynamoRdfConfiguration> getQueryEngine() {
-		// TODO Auto-generated method stub
-		return null;
+		return this.engine;
 	}
 
 	@Override
@@ -108,7 +124,15 @@ public class DynamoDAO implements RyaDAO<DynamoRdfConfiguration> {
 		  DynamoDAO dao = new DynamoDAO();
 		  dao.setConf(conf);
 		  dao.init();
-
+		  RyaStatement statement = new RyaStatement(new RyaURI("urn:subj"), new RyaURI("urn:pred"), new RyaURI("urn:obj"));
+		  RyaStatement statement2 = new RyaStatement(new RyaURI("urn:subj"), new RyaURI("urn:pred2"), new RyaURI("urn:obj"));
+		  RyaStatement statement3 = new RyaStatement(new RyaURI("urn:subj"), null, new RyaURI("urn:obj"));
+		  dao.add(statement);
+		  dao.add(statement2);
+		  CloseableIteration<RyaStatement, RyaDAOException> queryResults = dao.getQueryEngine().query(statement3, conf);
+		  while(queryResults.hasNext()){
+			  System.out.println(queryResults.next());
+		  }
 	    }
 
 }

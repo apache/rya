@@ -33,16 +33,59 @@ under the License.
         <dependency>
             <groupId>org.apache.rya</groupId>
             <artifactId>rya.prospector</artifactId>
+            <exclusions>
+            	<exclusion>
+            		<artifactId>sesame-http-protocol</artifactId>
+            		<groupId>org.openrdf.sesame</groupId>
+            	</exclusion>
+            	<exclusion>
+            		<artifactId>commons-httpclient</artifactId>
+            		<groupId>commons-httpclient</groupId>
+            	</exclusion>
+            	<exclusion>
+            		<artifactId>httpclient</artifactId>
+            		<groupId>org.apache.httpcomponents</groupId>
+            	</exclusion>
+            	<exclusion>
+            		<artifactId>httpcore</artifactId>
+            		<groupId>org.apache.httpcomponents</groupId>
+            	</exclusion>
+            </exclusions>
         </dependency>
 
         <dependency>
             <groupId>org.apache.rya</groupId>
             <artifactId>mongodb.rya</artifactId>
         </dependency>
+         <dependency>
+            <groupId>org.apache.rya</groupId>
+            <artifactId>dynamodb.rya</artifactId>
+          </dependency>
         <dependency>
             <groupId>org.apache.rya</groupId>
             <artifactId>rya.indexing</artifactId>
-        </dependency>
+ 				<exclusions>
+            	<exclusion>
+            		<artifactId>sesame-http-client</artifactId>
+            		<groupId>org.openrdf.sesame</groupId>
+            	</exclusion>
+            	<exclusion>
+            		<artifactId>commons-httpclient</artifactId>
+            		<groupId>commons-httpclient</groupId>
+            	</exclusion>
+            	<exclusion>
+            		<artifactId>httpcore</artifactId>
+            		<groupId>org.apache.httpcomponents</groupId>
+            	</exclusion>
+            	<exclusion>
+            		<artifactId>sesame-http-protocol</artifactId>
+            		<groupId>org.openrdf.sesame</groupId>
+            	</exclusion>
+            	<exclusion>
+            		<artifactId>sesame-repository-http</artifactId>
+            		<groupId>org.openrdf.sesame</groupId>
+            	</exclusion>
+ 				</exclusions>       </dependency>
         <dependency>
             <groupId>org.apache.rya</groupId>
             <artifactId>rya.indexing</artifactId>

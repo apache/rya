@@ -136,6 +136,11 @@ under the License.
             </dependency>
             <dependency>
                 <groupId>org.apache.rya</groupId>
+                <artifactId>dynamodb.rya</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.rya</groupId>
                 <artifactId>mongodb.rya</artifactId>
                 <version>${project.version}</version>
             </dependency>
@@ -703,9 +708,24 @@ under the License.
                         <goals>
                             <goal>check</goal>
                         </goals>
+                    <configuration>
+                        <excludes>
+                            <!-- RDF data Files -->
+                            <exclude>**/*.ntriples</exclude>
+                            <exclude>**/*.trig</exclude>
+                            <exclude>**/*.ttl</exclude>
+                            <exclude>**/*.owl</exclude>
+                            <exclude>**/*.nt</exclude>
+                            <exclude>**/*.MF</exclude>
+                            <exclude>**/*.log</exclude>
+
+                            <!-- Services Files -->
+                            <exclude>**/resources/META-INF/services/**</exclude>
+                        </excludes>
+                    </configuration>
                     </execution>
                 </executions>
-            </plugin>
+			</plugin>
             <plugin>
                 <artifactId>maven-source-plugin</artifactId>
                 <executions>

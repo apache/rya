@@ -1,10 +1,33 @@
 package mvm.rya.dynamodb.dao;
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * 
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+
+import org.openrdf.model.ValueFactory;
+import org.openrdf.model.impl.ValueFactoryImpl;
 
 import com.amazonaws.auth.AWSCredentials;
 import com.amazonaws.auth.BasicAWSCredentials;
@@ -17,11 +40,14 @@ import com.amazonaws.services.dynamodbv2.document.KeyAttribute;
 import com.amazonaws.services.dynamodbv2.document.QueryOutcome;
 import com.amazonaws.services.dynamodbv2.document.Table;
 import com.amazonaws.services.dynamodbv2.document.TableWriteItems;
+import com.amazonaws.services.dynamodbv2.document.internal.IteratorSupport;
+import com.amazonaws.services.dynamodbv2.document.spec.DeleteItemSpec;
 import com.amazonaws.services.dynamodbv2.document.spec.QuerySpec;
 import com.amazonaws.services.dynamodbv2.document.utils.ValueMap;
 import com.amazonaws.services.dynamodbv2.model.AttributeDefinition;
 import com.amazonaws.services.dynamodbv2.model.AttributeValue;
 import com.amazonaws.services.dynamodbv2.model.CreateTableRequest;
+import com.amazonaws.services.dynamodbv2.model.DeleteItemRequest;
 import com.amazonaws.services.dynamodbv2.model.GlobalSecondaryIndex;
 import com.amazonaws.services.dynamodbv2.model.KeySchemaElement;
 import com.amazonaws.services.dynamodbv2.model.KeyType;
@@ -31,6 +57,7 @@ import com.amazonaws.services.dynamodbv2.model.ProvisionedThroughput;
 import com.amazonaws.services.dynamodbv2.model.PutItemRequest;
 import com.amazonaws.services.dynamodbv2.model.ResourceInUseException;
 import com.amazonaws.services.dynamodbv2.model.ScalarAttributeType;
+import com.amazonaws.services.dynamodbv2.xspec.DeleteItemExpressionSpec;
 
 import mvm.rya.api.domain.RyaStatement;
 import mvm.rya.api.domain.RyaType;
@@ -39,11 +66,16 @@ import mvm.rya.api.persist.RdfDAOException;
 
 public class DynamoStorageStrategy {
 	
+	private static final String POC = "POC";
+	private static final String CONTEXT = "context";
+	private static final String OBJECT = "object";
+	private static final String PREDICATE = "predicate";
+	private static final String SUBJECT = "subject";
 	private AmazonDynamoDBClient client;
 	private DynamoRdfConfiguration conf;
 	private DynamoDB dynamoDB;
     public static final String NULL = "\u0000";
-	private static final String tableName = "rya";
+	private String tableName = "rya";
 	
 	public DynamoStorageStrategy(DynamoRdfConfiguration conf) throws RdfDAOException{
 		this.conf = conf;
@@ -52,9 +84,10 @@ public class DynamoStorageStrategy {
 	
 	private void init() {
 		AWSCredentials credentials = new BasicAWSCredentials(conf.getAWSUserName(), conf.getAWSSecretKey());
-		client = client = new AmazonDynamoDBClient(credentials);
+		client = new AmazonDynamoDBClient(credentials);
         client.setEndpoint(conf.getAWSEndPoint());
         dynamoDB = new DynamoDB(client);
+        this.tableName = conf.getTableName();
         initDBTables();
 	}
 
@@ -72,17 +105,17 @@ public class DynamoStorageStrategy {
 	}
 
 	 
-	 private static void createDynamoTables(DynamoDB dynamoDB) throws InterruptedException{
+	 private void createDynamoTables(DynamoDB dynamoDB) throws InterruptedException{
          System.out.println("Attempting to create table; please wait...");
          CreateTableRequest request = new CreateTableRequest().withTableName(tableName)
          		.withKeySchema(Arrays.asList(
-         				new KeySchemaElement("subject", KeyType.HASH),  //Partition key
-         				new KeySchemaElement("POC", KeyType.RANGE)))
+         				new KeySchemaElement(SUBJECT, KeyType.HASH),  //Partition key
+         				new KeySchemaElement(POC, KeyType.RANGE)))
          		.withAttributeDefinitions( Arrays.asList(
-                     new AttributeDefinition("subject", ScalarAttributeType.S),
-                     new AttributeDefinition("POC", ScalarAttributeType.S),
-                     new AttributeDefinition("predicate", ScalarAttributeType.S),
-                     new AttributeDefinition("object", ScalarAttributeType.S)
+                     new AttributeDefinition(SUBJECT, ScalarAttributeType.S),
+                     new AttributeDefinition(POC, ScalarAttributeType.S),
+                     new AttributeDefinition(PREDICATE, ScalarAttributeType.S),
+                     new AttributeDefinition(OBJECT, ScalarAttributeType.S)
 //                     new AttributeDefinition("context", ScalarAttributeType.S)
                      )).withProvisionedThroughput(new ProvisionedThroughput()
      				        .withReadCapacityUnits((long) 10)
@@ -91,21 +124,21 @@ public class DynamoStorageStrategy {
          Table table = dynamoDB.createTable(request);
 
          table.waitForActive();
-         System.out.println("Attempting to create table; please wait...");
+         System.out.println("Done creating table..");
 	 }
 
 	private static List<GlobalSecondaryIndex> getSecondaryIndexes() {
 		GlobalSecondaryIndex predicate = new GlobalSecondaryIndex()
-				.withIndexName("predicate").withKeySchema(Arrays.asList(
-				new KeySchemaElement("predicate", KeyType.HASH)))
+				.withIndexName(PREDICATE).withKeySchema(Arrays.asList(
+				new KeySchemaElement(PREDICATE, KeyType.HASH)))
 				.withProvisionedThroughput(new ProvisionedThroughput()
 				        .withReadCapacityUnits((long) 10)
 				        .withWriteCapacityUnits((long) 1))
 				.withProjection(new Projection().withProjectionType(ProjectionType.ALL));
 		GlobalSecondaryIndex object = new GlobalSecondaryIndex().
-				withIndexName("object")
+				withIndexName(OBJECT)
 				.withKeySchema(Arrays.asList(
-				new KeySchemaElement("object", KeyType.HASH)))
+				new KeySchemaElement(OBJECT, KeyType.HASH)))
 				.withProvisionedThroughput(new ProvisionedThroughput()
 				        .withReadCapacityUnits((long) 10)
 				        .withWriteCapacityUnits((long) 1))
@@ -130,12 +163,12 @@ public class DynamoStorageStrategy {
 			contextValue = statement.getContext().getData();
 		}
 		Map<String, AttributeValue> values = new HashMap<String, AttributeValue>();
-		values.put("subject", new AttributeValue( statement.getSubject().getData()));
-		values.put("predicate", new AttributeValue( statement.getPredicate().getData()));
-		values.put("POC", new AttributeValue( statement.getPredicate().getData() + NULL + statement.getObject().getData()
+		values.put(SUBJECT, new AttributeValue( statement.getSubject().getData()));
+		values.put(PREDICATE, new AttributeValue( statement.getPredicate().getData()));
+		values.put(POC, new AttributeValue( statement.getPredicate().getData() + NULL + statement.getObject().getData()
 				+ NULL + statement.getObject().getDataType().toString() + NULL + contextValue));
-		values.put("context", new AttributeValue(contextValue));
-		values.put("object", new AttributeValue( statement.getObject().getData()
+//		values.put("context", new AttributeValue(contextValue));
+		values.put(OBJECT, new AttributeValue( statement.getObject().getData()
 				+ NULL + statement.getObject().getDataType().toString()));
 		return values;
 	}
@@ -146,12 +179,12 @@ public class DynamoStorageStrategy {
 			contextValue = statement.getContext().getData();
 		}
 		Map<String, Object> values = new HashMap<String, Object>();
-		values.put("subject", statement.getSubject().getData());
-		values.put("predicate",statement.getPredicate().getData());
-		values.put("POC", statement.getPredicate().getData() + NULL + statement.getObject().getData()
+		values.put(SUBJECT, statement.getSubject().getData());
+		values.put(PREDICATE,statement.getPredicate().getData());
+		values.put(POC, statement.getPredicate().getData() + NULL + statement.getObject().getData()
 				+ NULL + statement.getObject().getDataType().stringValue() + NULL + contextValue);
-		values.put("context", contextValue);
-		values.put("object", statement.getObject().getData()
+		values.put(CONTEXT, contextValue);
+		values.put(OBJECT, statement.getObject().getData()
 				+ NULL + statement.getObject().getDataType().toString());
 		return values;
 	}
@@ -165,6 +198,17 @@ public class DynamoStorageStrategy {
 		
 	}
 
+	public Collection<ItemCollection<QueryOutcome>> getBatchQuery(Iterable<RyaStatement> query){
+		//  TODO could do this more efficiently with a batch get?
+		// also ignoring most of the constraints of the query (max size, timeout, etc.)
+		Collection<ItemCollection<QueryOutcome>> returnVal = 
+				new ArrayList<ItemCollection<QueryOutcome>>();
+		Iterator<RyaStatement> queries = query.iterator();
+		while (queries.hasNext()){
+			returnVal.add(getQuery(queries.next()));
+		}
+		return returnVal;
+	}
 	
 	public ItemCollection<QueryOutcome> getQuery(RyaStatement stmt){
         final RyaURI subject = stmt.getSubject();
@@ -174,42 +218,74 @@ public class DynamoStorageStrategy {
         Table table = dynamoDB.getTable(tableName);
         
         if (subject != null){
-        	QuerySpec spec = new QuerySpec().withHashKey(new KeyAttribute("subject", subject.getData()));
+        	QuerySpec spec = new QuerySpec().withHashKey(new KeyAttribute(SUBJECT, subject.getData()));
             ValueMap map = new ValueMap();
             if (object != null){
-            	map.put("object", object.getData() + NULL + object.getDataType().stringValue());
+            	map.put(OBJECT, object.getData() + NULL + object.getDataType().stringValue());
             }
             if (predicate != null){
-            	map.put("predicate", predicate.getData());
+            	map.put(PREDICATE, predicate.getData());
             }
             if (context != null){
-            	map.put("context", context.getData());
+            	map.put(CONTEXT, context.getData());
             }
             return table.query(spec);
         }
         else if (predicate != null) {
-    		QuerySpec spec = new QuerySpec().withHashKey(new KeyAttribute("predicate", predicate.getData()));
+    		QuerySpec spec = new QuerySpec().withHashKey(new KeyAttribute(PREDICATE, predicate.getData()));
             ValueMap map = new ValueMap();
             if (object != null){
-            	map.put("object", object.getData() + NULL + object.getDataType().stringValue());
+            	map.put(OBJECT, object.getData() + NULL + object.getDataType().stringValue());
             }
             if (context != null){
-            	map.put("context", context.getData());
+            	map.put(CONTEXT, context.getData());
             }
-            Index index = table.getIndex("predicate");
+            Index index = table.getIndex(PREDICATE);
             return index.query(spec);
         }
         else if (object != null) {
-    		QuerySpec spec = new QuerySpec().withHashKey(new KeyAttribute("object", object.getData() + NULL + object.getDataType().stringValue()));
+    		QuerySpec spec = new QuerySpec().withHashKey(new KeyAttribute(OBJECT, object.getData() + NULL + object.getDataType().stringValue()));
             ValueMap map = new ValueMap();
             if (context != null){
-            	map.put("context", context.getData());
+            	map.put(CONTEXT, context.getData());
             }
-            Index index = table.getIndex("object");
+            Index index = table.getIndex(OBJECT);
             return index.query(spec);
         }
  		return null;
 
+	}
+
+	public RyaStatement convertToStatement(Item item) {
+		String subject = item.getString(SUBJECT);
+		String predicate = item.getString(PREDICATE);
+		String compositeObject = item.getString(OBJECT);
+		String context = item.getString(CONTEXT);
+		String[] objectDelim = compositeObject.split(NULL);
+		ValueFactory vf = new ValueFactoryImpl();
+		RyaType object = new RyaType(vf.createURI(objectDelim[1]), objectDelim[0]);
+		RyaStatement stmt = new RyaStatement(new RyaURI(subject), new RyaURI(predicate), object);
+		if (!(context == null)){
+			stmt.setContext(new RyaURI(context));
+		}
+		return stmt;
+	}
+
+	public void delete(RyaStatement stmt) {
+		Table table = dynamoDB.getTable(tableName);
+		IteratorSupport<Item, QueryOutcome> queryResult = getQuery(stmt).iterator();
+		while(queryResult.hasNext()) {
+			Item item = queryResult.next();
+			DeleteItemSpec delete = new DeleteItemSpec().withPrimaryKey(new KeyAttribute(SUBJECT, item.get(SUBJECT)), 
+					new KeyAttribute(POC, item.get(POC)));
+			table.deleteItem(delete);
+		}
+	}
+
+	public void delete(Iterator<RyaStatement> statements) {
+		while(statements.hasNext()){
+			delete(statements.next());
+		}
 	}
 
 }

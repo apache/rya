@@ -74,7 +74,10 @@ public class RyaDirectExample {
 	private static final boolean USE_MOCK_INSTANCE = true;
 	private static final boolean PRINT_QUERIES = true;
 	private static final String INSTANCE = "instance";
-	private static final String RYA_TABLE_PREFIX = "x_test_triplestore_";
+	private static final String ZOOKEEPERS = "";
+	private static final String USERNAME = "root";
+	private static final String PASSWORD = "";
+	private static final String RYA_TABLE_PREFIX = "test_triplestore_";
 	private static final String AUTHS = "";
 
 	public static void main(final String[] args) throws Exception {
@@ -158,9 +161,10 @@ public class RyaDirectExample {
 		conf.set(ConfigUtils.USE_TEMPORAL, "true");
 		conf.set(RdfCloudTripleStoreConfiguration.CONF_TBL_PREFIX,
 				RYA_TABLE_PREFIX);
-		conf.set(ConfigUtils.CLOUDBASE_USER, "root");
-		conf.set(ConfigUtils.CLOUDBASE_PASSWORD, "");
+		conf.set(ConfigUtils.CLOUDBASE_USER, USERNAME);
+		conf.set(ConfigUtils.CLOUDBASE_PASSWORD, PASSWORD);
 		conf.set(ConfigUtils.CLOUDBASE_INSTANCE, INSTANCE);
+		conf.set(ConfigUtils.CLOUDBASE_ZOOKEEPERS, ZOOKEEPERS);
 		conf.setInt(ConfigUtils.NUM_PARTITIONS, 3);
 		conf.set(ConfigUtils.CLOUDBASE_AUTHS, AUTHS);
 

@@ -3,6 +3,7 @@ package mvm.rya.mongodb.instance;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Map.Entry;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 
@@ -104,7 +105,8 @@ public class MongoDetailsAdapter {
             pcjBuilder.add(PCJ_FLUO_KEY, pcjDetails.getFluoDetails().get().getUpdateAppName());
         }
         final List<DBObject> pcjDetailList = new ArrayList<>();
-        for(final PCJDetails pcjDetail : pcjDetails.getPCJDetails()) {
+        for(final Entry<String, PCJDetails> entry : pcjDetails.getPCJDetails().entrySet()) {
+            final PCJDetails pcjDetail = entry.getValue();
             final BasicDBObjectBuilder indBuilbder = BasicDBObjectBuilder.start()
                 .add(PCJ_ID_KEY, pcjDetail.getId())
                 .add(PCJ_UPDATE_STRAT_KEY, pcjDetail.getUpdateStrategy().name());

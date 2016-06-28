@@ -30,7 +30,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
 import javax.annotation.concurrent.Immutable;
 
 import com.google.common.base.Optional;
-import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 
 /**
  * Details about how a Rya instance's state.
@@ -518,7 +518,7 @@ public class RyaDetails implements Serializable {
 
         public final boolean enabled;
         private final Optional<FluoDetails> fluoDetails;
-        private final ImmutableList<PCJDetails> pcjDetails;
+        private final ImmutableMap<String, PCJDetails> pcjDetails;
 
         /**
          * Private to prevent initialization through the constructor. To build
@@ -534,7 +534,7 @@ public class RyaDetails implements Serializable {
         private PCJIndexDetails(
                 final boolean enabled,
                 final Optional<FluoDetails> fluoDetails,
-                final ImmutableList<PCJDetails> pcjDetails) {
+                final ImmutableMap<String, PCJDetails> pcjDetails) {
             this.enabled = enabled;
             this.fluoDetails = requireNonNull(fluoDetails);
             this.pcjDetails = requireNonNull(pcjDetails);
@@ -557,8 +557,9 @@ public class RyaDetails implements Serializable {
 
         /**
          * @return Details about the PCJs that have been created for this Rya instance.
+         *   The key is the PCJ ID and the value are the details for the ID.
          */
-        public ImmutableList<PCJDetails> getPCJDetails() {
+        public ImmutableMap<String, PCJDetails> getPCJDetails() {
             return pcjDetails;
         }
 
@@ -596,7 +597,7 @@ public class RyaDetails implements Serializable {
 
             private Boolean enabled = null;
             private FluoDetails fluoDetails = null;
-            private final ImmutableList.Builder<PCJDetails> pcjDetails = ImmutableList.builder();
+            private final ImmutableMap.Builder<String, PCJDetails> pcjDetails = ImmutableMap.builder();
 
             /**
              * @param enabled - Whether or not a Precomputed Join Index will be maintained by the Rya instance.
@@ -622,7 +623,9 @@ public class RyaDetails implements Serializable {
              * @return This {@link Builder} so that method invocations may be chained.
              */
             public Builder addPCJDetails(@Nullable final PCJDetails pcjDetails) {
-                this.pcjDetails.add( pcjDetails );
+                if(pcjDetails != null) {
+                    this.pcjDetails.put(pcjDetails.getId(), pcjDetails);
+                }
                 return this;
             }
 

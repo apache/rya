@@ -20,6 +20,14 @@
 import java.net.UnknownHostException;
 import java.util.List;
 
+import mvm.rya.accumulo.AccumuloRdfConfiguration;
+import mvm.rya.api.RdfCloudTripleStoreConfiguration;
+import mvm.rya.api.persist.RyaDAOException;
+import mvm.rya.indexing.accumulo.ConfigUtils;
+import mvm.rya.indexing.accumulo.geo.GeoConstants;
+import mvm.rya.rdftriplestore.inference.InferenceEngineException;
+import mvm.rya.sail.config.RyaSailFactory;
+
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
 import org.apache.accumulo.core.client.Connector;
@@ -55,14 +63,6 @@ import org.openrdf.repository.sail.SailRepositoryConnection;
 import org.openrdf.sail.Sail;
 
 import com.google.common.base.Optional;
-
-import mvm.rya.accumulo.AccumuloRdfConfiguration;
-import mvm.rya.api.RdfCloudTripleStoreConfiguration;
-import mvm.rya.api.persist.RyaDAOException;
-import mvm.rya.indexing.accumulo.ConfigUtils;
-import mvm.rya.indexing.accumulo.geo.GeoConstants;
-import mvm.rya.rdftriplestore.inference.InferenceEngineException;
-import mvm.rya.sail.config.RyaSailFactory;
 
 public class RyaDirectExample {
 	private static final Logger log = Logger.getLogger(RyaDirectExample.class);
@@ -275,7 +275,8 @@ public class RyaDirectExample {
 				+ "     time:inXSDDateTime '2007-01-01' ;\n"
 				+ "     time:inXSDDateTime '2008-01-01' ; .\n" + "}";
 
-		final Update update = conn.prepareUpdate(QueryLanguage.SPARQL, sparqlInsert);
+		final Update update = conn.prepareUpdate(QueryLanguage.SPARQL,
+				sparqlInsert);
 		update.execute();
 
 		// Find all stored dates.
@@ -539,7 +540,8 @@ public class RyaDirectExample {
 		Validate.isTrue(tupleHandler.getCount() == 1);
 	}
 
-	private static void testTemporalFreeGeoSearch(final SailRepositoryConnection conn)
+	private static void testTemporalFreeGeoSearch(
+			final SailRepositoryConnection conn)
 			throws MalformedQueryException, RepositoryException,
 			UpdateExecutionException, TupleQueryResultHandlerException,
 			QueryEvaluationException {
@@ -581,9 +583,9 @@ public class RyaDirectExample {
 	}
 
 	private static void testGeoFreetextWithPCJSearch(
-			final SailRepositoryConnection conn) throws MalformedQueryException,
-			RepositoryException, TupleQueryResultHandlerException,
-			QueryEvaluationException {
+			final SailRepositoryConnection conn)
+			throws MalformedQueryException, RepositoryException,
+			TupleQueryResultHandlerException, QueryEvaluationException {
 		// ring outside point
 		final String queryString = "PREFIX geo: <http://www.opengis.net/ont/geosparql#>  "//
 				+ "PREFIX fts: <http://rdf.useekm.com/fts#>  "//
@@ -602,21 +604,22 @@ public class RyaDirectExample {
 				+ "  ?point geo:asWKT ?wkt . "//
 				+ "  FILTER(geof:sfWithin(?wkt, \"POLYGON((-78 39, -77 39, -77 38, -78 38, -78 39))\"^^geo:wktLiteral)) " //
 				+ "}";//
-		final TupleQuery tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL,
-				queryString);
+		final TupleQuery tupleQuery = conn.prepareTupleQuery(
+				QueryLanguage.SPARQL, queryString);
 		final CountingResultHandler tupleHandler = new CountingResultHandler();
 		tupleQuery.evaluate(tupleHandler);
 		log.info("Result count : " + tupleHandler.getCount());
 		Validate.isTrue(tupleHandler.getCount() == 1);
 	}
 
-	private static void testDeleteTemporalData(final SailRepositoryConnection conn)
-			throws Exception {
+	private static void testDeleteTemporalData(
+			final SailRepositoryConnection conn) throws Exception {
 		// Delete all stored dates
 		final String sparqlDelete = "PREFIX time: <http://www.w3.org/2006/time#>\n"
 				+ "PREFIX tempo: <tag:rya-rdf.org,2015:temporal#> \n"//
 				+ "DELETE {\n" //
-				+ "  ?event time:inXSDDateTime ?time . \n" + "}\n"
+				+ "  ?event time:inXSDDateTime ?time . \n"
+				+ "}\n"
 				+ "WHERE { \n" + "  ?event time:inXSDDateTime ?time . \n"//
 				+ "}";//
 
@@ -636,15 +639,15 @@ public class RyaDirectExample {
 				+ "}";//
 
 		final CountingResultHandler tupleHandler = new CountingResultHandler();
-		final TupleQuery tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL,
-				queryString);
+		final TupleQuery tupleQuery = conn.prepareTupleQuery(
+				QueryLanguage.SPARQL, queryString);
 		tupleQuery.evaluate(tupleHandler);
 		log.info("Result count : " + tupleHandler.getCount());
 		Validate.isTrue(tupleHandler.getCount() == 0);
 	}
 
-	private static void testDeleteFreeTextData(final SailRepositoryConnection conn)
-			throws Exception {
+	private static void testDeleteFreeTextData(
+			final SailRepositoryConnection conn) throws Exception {
 		// Delete data from the repository using the SailRepository remove
 		// methods
 		final ValueFactory f = conn.getValueFactory();
@@ -725,66 +728,71 @@ public class RyaDirectExample {
 
 	private static void createPCJ(final Configuration conf)
 			throws RepositoryException, AccumuloException,
-			AccumuloSecurityException, TableExistsException, PcjException, InferenceEngineException,
-			NumberFormatException, UnknownHostException {
-
+			AccumuloSecurityException, TableExistsException, PcjException,
+			InferenceEngineException, NumberFormatException,
+			UnknownHostException {
 
 		final Configuration config = new AccumuloRdfConfiguration(conf);
 		config.set(ConfigUtils.USE_PCJ, "false");
-		Sail extSail = null;
+		SailRepository repository = null;
+		SailRepositoryConnection conn = null;
+
 		try {
-			extSail = RyaSailFactory.getInstance(config);
+			Sail extSail = RyaSailFactory.getInstance(config);
+
+			repository = new SailRepository(extSail);
+			repository.initialize();
+			conn = repository.getConnection();
+
+			final String queryString1 = ""//
+					+ "SELECT ?e ?c ?l ?o " //
+					+ "{" //
+					+ "  ?c a ?e . "//
+					+ "  ?e <http://www.w3.org/2000/01/rdf-schema#label> ?l . "//
+					+ "  ?e <uri:talksTo> ?o . "//
+					+ "}";//
+
+			final String queryString2 = ""//
+					+ "SELECT ?e ?c ?l ?o " //
+					+ "{" //
+					+ "  ?e a ?c . "//
+					+ "  ?e <http://www.w3.org/2000/01/rdf-schema#label> ?l . "//
+					+ "  ?e <uri:talksTo> ?o . "//
+					+ "}";//
+
+			URI obj, subclass, talksTo;
+			final URI person = new URIImpl("urn:people:alice");
+			final URI feature = new URIImpl("urn:feature");
+			final URI sub = new URIImpl("uri:entity");
+			subclass = new URIImpl("uri:class");
+			obj = new URIImpl("uri:obj");
+			talksTo = new URIImpl("uri:talksTo");
+
+			conn.add(person, RDF.TYPE, sub);
+			conn.add(feature, RDF.TYPE, sub);
+			conn.add(sub, RDF.TYPE, subclass);
+			conn.add(sub, RDFS.LABEL, new LiteralImpl("label"));
+			conn.add(sub, talksTo, obj);
+
+			final String tablename1 = RYA_TABLE_PREFIX + "INDEX_1";
+			final String tablename2 = RYA_TABLE_PREFIX + "INDEX_2";
+
+			final Connector accCon = new MockInstance(INSTANCE).getConnector(
+					"root", new PasswordToken("".getBytes()));
+
+			new PcjTables().createAndPopulatePcj(conn, accCon, tablename1,
+					queryString1, new String[] { "e", "c", "l", "o" },
+					Optional.<PcjVarOrderFactory> absent());
+
+			new PcjTables().createAndPopulatePcj(conn, accCon, tablename2,
+					queryString2, new String[] { "e", "c", "l", "o" },
+					Optional.<PcjVarOrderFactory> absent());
 		} catch (final RyaDAOException e) {
 			e.printStackTrace();
+		} finally {
+			closeQuietly(conn);
+			closeQuietly(repository);
 		}
-		final SailRepository repository = new SailRepository(extSail);
-		repository.initialize();
-		final SailRepositoryConnection conn = repository.getConnection();
-
-
-		final String queryString1 = ""//
-				+ "SELECT ?e ?c ?l ?o " //
-				+ "{" //
-				+ "  ?c a ?e . "//
-				+ "  ?e <http://www.w3.org/2000/01/rdf-schema#label> ?l . "//
-				+ "  ?e <uri:talksTo> ?o . "//
-				+ "}";//
-
-		final String queryString2 = ""//
-				+ "SELECT ?e ?c ?l ?o " //
-				+ "{" //
-				+ "  ?e a ?c . "//
-				+ "  ?e <http://www.w3.org/2000/01/rdf-schema#label> ?l . "//
-				+ "  ?e <uri:talksTo> ?o . "//
-				+ "}";//
-
-		URI obj, subclass, talksTo;
-		final URI person = new URIImpl("urn:people:alice");
-		final URI feature = new URIImpl("urn:feature");
-		final URI sub = new URIImpl("uri:entity");
-		subclass = new URIImpl("uri:class");
-		obj = new URIImpl("uri:obj");
-		talksTo = new URIImpl("uri:talksTo");
-
-		conn.add(person, RDF.TYPE, sub);
-		conn.add(feature, RDF.TYPE, sub);
-		conn.add(sub, RDF.TYPE, subclass);
-		conn.add(sub, RDFS.LABEL, new LiteralImpl("label"));
-		conn.add(sub, talksTo, obj);
-
-		final String tablename1 = RYA_TABLE_PREFIX + "INDEX_1";
-		final String tablename2 = RYA_TABLE_PREFIX + "INDEX_2";
-
-		final Connector accCon = new MockInstance(INSTANCE).getConnector("root",
-				new PasswordToken("".getBytes()));
-
-		new PcjTables().createAndPopulatePcj(conn, accCon, tablename1,
-				queryString1, new String[] { "e", "c", "l", "o" },
-				Optional.<PcjVarOrderFactory> absent());
-
-		new PcjTables().createAndPopulatePcj(conn, accCon, tablename2,
-				queryString2, new String[] { "e", "c", "l", "o" },
-				Optional.<PcjVarOrderFactory> absent());
 
 	}
 

@@ -8,9 +8,9 @@ package mvm.rya;
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- * 
+ *
  *   http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -79,7 +79,8 @@ public class RdfCloudTripleStoreConnectionTest extends TestCase {
     URI cpu = vf.createURI(litdupsNS, "cpu");
     protected RdfCloudTripleStore store;
 
-    public void setUp() throws Exception {
+    @Override
+	public void setUp() throws Exception {
         super.setUp();
         store = new MockRdfCloudStore();
 //        store.setDisplayQueryPlan(true);
@@ -90,7 +91,8 @@ public class RdfCloudTripleStoreConnectionTest extends TestCase {
         repository.initialize();
     }
 
-    public void tearDown() throws Exception {
+    @Override
+	public void tearDown() throws Exception {
         super.tearDown();
         repository.shutDown();
     }
@@ -349,7 +351,7 @@ public class RdfCloudTripleStoreConnectionTest extends TestCase {
         conn.close();
         assertEquals(cth.getCount(), 2);
     }
-    
+
     public void testRegexFilter() throws Exception {
         RepositoryConnection conn = repository.getConnection();
         URI loadPerc = vf.createURI(litdupsNS, "loadPerc");
@@ -488,7 +490,10 @@ public class RdfCloudTripleStoreConnectionTest extends TestCase {
     }
 
     public void testSubPropertyOf() throws Exception {
-        if(internalInferenceEngine == null) return; //infer not supported;
+        if(internalInferenceEngine == null)
+		 {
+			return; //infer not supported;
+		}
 
         RepositoryConnection conn = repository.getConnection();
         conn.add(new StatementImpl(vf.createURI(litdupsNS, "undergradDegreeFrom"), RDFS.SUBPROPERTYOF, vf.createURI(litdupsNS, "degreeFrom")));
@@ -549,7 +554,10 @@ public class RdfCloudTripleStoreConnectionTest extends TestCase {
     }
 
     public void testEquivPropOf() throws Exception {
-        if(internalInferenceEngine == null) return; //infer not supported;
+        if(internalInferenceEngine == null)
+		 {
+			return; //infer not supported;
+		}
 
         RepositoryConnection conn = repository.getConnection();
         conn.add(new StatementImpl(vf.createURI(litdupsNS, "undergradDegreeFrom"), OWL.EQUIVALENTPROPERTY, vf.createURI(litdupsNS, "ugradDegreeFrom")));
@@ -577,7 +585,10 @@ public class RdfCloudTripleStoreConnectionTest extends TestCase {
     }
 
     public void testSymmPropOf() throws Exception {
-        if(internalInferenceEngine == null) return; //infer not supported;
+        if(internalInferenceEngine == null)
+		 {
+			return; //infer not supported;
+		}
 
         RepositoryConnection conn = repository.getConnection();
         conn.add(new StatementImpl(vf.createURI(litdupsNS, "friendOf"), RDF.TYPE, OWL.SYMMETRICPROPERTY));
@@ -624,7 +635,10 @@ public class RdfCloudTripleStoreConnectionTest extends TestCase {
     }
 
     public void testTransitiveProp() throws Exception {
-        if(internalInferenceEngine == null) return; //infer not supported;
+        if(internalInferenceEngine == null)
+		 {
+			return; //infer not supported;
+		}
 
         RepositoryConnection conn = repository.getConnection();
         conn.add(new StatementImpl(vf.createURI(litdupsNS, "subRegionOf"), RDF.TYPE, OWL.TRANSITIVEPROPERTY));
@@ -684,7 +698,10 @@ public class RdfCloudTripleStoreConnectionTest extends TestCase {
     }
 
     public void testInverseOf() throws Exception {
-        if(internalInferenceEngine == null) return; //infer not supported;
+        if(internalInferenceEngine == null)
+		 {
+			return; //infer not supported;
+		}
 
         RepositoryConnection conn = repository.getConnection();
         conn.add(new StatementImpl(vf.createURI(litdupsNS, "degreeFrom"), OWL.INVERSEOF, vf.createURI(litdupsNS, "hasAlumnus")));
@@ -722,7 +739,10 @@ public class RdfCloudTripleStoreConnectionTest extends TestCase {
     }
 
     public void testSubClassOf() throws Exception {
-        if(internalInferenceEngine == null) return; //infer not supported;
+        if(internalInferenceEngine == null)
+		 {
+			return; //infer not supported;
+		}
 
         RepositoryConnection conn = repository.getConnection();
         conn.add(new StatementImpl(vf.createURI(litdupsNS, "UndergraduateStudent"), RDFS.SUBCLASSOF, vf.createURI(litdupsNS, "Student")));
@@ -781,7 +801,10 @@ public class RdfCloudTripleStoreConnectionTest extends TestCase {
     }
 
     public void testSameAs() throws Exception {
-        if(internalInferenceEngine == null) return; //infer not supported;
+        if(internalInferenceEngine == null)
+		 {
+			return; //infer not supported;
+		}
 
         RepositoryConnection conn = repository.getConnection();
         conn.add(new StatementImpl(vf.createURI(litdupsNS, "StudentA1"), OWL.SAMEAS, vf.createURI(litdupsNS, "StudentA2")));
@@ -850,7 +873,7 @@ public class RdfCloudTripleStoreConnectionTest extends TestCase {
         tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, query);
         tupleHandler = new CountTupleHandler();
         tupleQuery.evaluate(tupleHandler);
-        assertEquals(1, tupleHandler.getCount()); 
+        assertEquals(1, tupleHandler.getCount());
 
         conn.close();
     }
@@ -1016,11 +1039,12 @@ public class RdfCloudTripleStoreConnectionTest extends TestCase {
 //    }
 
     private static String escape(Value r) {
-        if (r instanceof URI)
-            return "<" + r.toString() +">";
+        if (r instanceof URI) {
+			return "<" + r.toString() +">";
+		}
         return r.toString();
     }
-    
+
     private static String getSparqlUpdate() throws Exception {
         InputStream stream = Thread.currentThread().getContextClassLoader().getResourceAsStream("namedgraphs.trig");
         assertNotNull(stream);
@@ -1053,7 +1077,7 @@ public class RdfCloudTripleStoreConnectionTest extends TestCase {
     // Set the persistence visibilites on the config
     public void testUpdateWAuthOnConfig() throws Exception {
         String sparqlUpdate = getSparqlUpdate();
-        
+
         RdfCloudTripleStore tstore = new MockRdfCloudStore();
         NamespaceManager nm = new NamespaceManager(tstore.getRyaDAO(), tstore.getConf());
         tstore.setNamespaceManager(nm);
@@ -1064,7 +1088,7 @@ public class RdfCloudTripleStoreConnectionTest extends TestCase {
         RepositoryConnection conn = repo.getConnection();
         Update u = conn.prepareUpdate(QueryLanguage.SPARQL, sparqlUpdate);
         u.execute();
-        
+
         String query = "PREFIX  ex:  <http://www.example.org/exampleDocument#>\n" +
                 "PREFIX  voc:  <http://www.example.org/vocabulary#>\n" +
                 "PREFIX  foaf:  <http://xmlns.com/foaf/0.1/>\n" +
@@ -1231,7 +1255,7 @@ public class RdfCloudTripleStoreConnectionTest extends TestCase {
 
         conn.close();
     }
-    
+
     public void testClearGraph() throws Exception {
         RepositoryConnection conn = repository.getConnection();
 
@@ -1263,7 +1287,7 @@ public class RdfCloudTripleStoreConnectionTest extends TestCase {
         CountTupleHandler tupleHandler = new CountTupleHandler();
         tupleQuery.evaluate(tupleHandler);
         assertEquals(4, tupleHandler.getCount());
-        
+
         tupleHandler = new CountTupleHandler();
         conn.clear(new URIImpl("http://example/addresses#G2"));
         tupleQuery.evaluate(tupleHandler);
@@ -1276,7 +1300,7 @@ public class RdfCloudTripleStoreConnectionTest extends TestCase {
 
         conn.close();
     }
-    
+
     public void testClearAllGraph() throws Exception {
         RepositoryConnection conn = repository.getConnection();
 
@@ -1308,7 +1332,7 @@ public class RdfCloudTripleStoreConnectionTest extends TestCase {
         CountTupleHandler tupleHandler = new CountTupleHandler();
         tupleQuery.evaluate(tupleHandler);
         assertEquals(4, tupleHandler.getCount());
-        
+
         tupleHandler = new CountTupleHandler();
         conn.clear();
         tupleQuery.evaluate(tupleHandler);
@@ -1316,7 +1340,7 @@ public class RdfCloudTripleStoreConnectionTest extends TestCase {
 
         conn.close();
     }
-    
+
     public void testDropGraph() throws Exception {
         RepositoryConnection conn = repository.getConnection();
 
@@ -1348,7 +1372,7 @@ public class RdfCloudTripleStoreConnectionTest extends TestCase {
         CountTupleHandler tupleHandler = new CountTupleHandler();
         tupleQuery.evaluate(tupleHandler);
         assertEquals(4, tupleHandler.getCount());
-        
+
         tupleHandler = new CountTupleHandler();
         String drop = "PREFIX ex: <http://example/addresses#>\n" +
                 "DROP GRAPH ex:G2 ";
@@ -1399,7 +1423,7 @@ public class RdfCloudTripleStoreConnectionTest extends TestCase {
     }
 
     private static class PrintTupleHandler implements TupleQueryResultHandler {
-        
+
 
         @Override
         public void startQueryResult(List<String> strings) throws TupleQueryResultHandlerException {
@@ -1430,6 +1454,7 @@ public class RdfCloudTripleStoreConnectionTest extends TestCase {
             Instance instance = new MockInstance();
             try {
                 AccumuloRdfConfiguration conf = new AccumuloRdfConfiguration();
+                conf.setInfer(true);
                 setConf(conf);
                 Connector connector = instance.getConnector("", "");
                 AccumuloRyaDAO cdao = new AccumuloRyaDAO();

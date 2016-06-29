@@ -568,6 +568,29 @@ under the License.
                         <target>1.7</target>
                     </configuration>
                 </plugin>
+
+                <!-- Fail a build if it uses any Java features introduced after 1.7. -->
+                <plugin>
+                    <groupId>org.codehaus.mojo</groupId>
+                    <artifactId>animal-sniffer-maven-plugin</artifactId>
+                    <version>1.15</version>
+                    <configuration>
+                        <signature>
+                            <groupId>org.codehaus.mojo.signature</groupId>
+                            <artifactId>java18</artifactId>
+                            <version>1.0</version>
+                        </signature>
+                    </configuration>
+                    <executions>
+                        <execution>
+                            <phase>test</phase>
+                            <goals>
+                                <goal>check</goal>
+                            </goals>
+                        </execution>
+                    </executions>
+                </plugin>
+
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-resources-plugin</artifactId>
@@ -707,7 +730,12 @@ under the License.
         </pluginManagement>
 
         <plugins>
-            <plugin>
+           <!-- Fail any build that doesn't use the project's Java version. -->
+           <plugin>
+               <groupId>org.codehaus.mojo</groupId>
+               <artifactId>animal-sniffer-maven-plugin</artifactId>
+           </plugin>
+           <plugin>
                 <!-- Apache Release Audit Tool - reports missing license headers and other issues. -->
                 <groupId>org.apache.rat</groupId>
                 <artifactId>apache-rat-plugin</artifactId>

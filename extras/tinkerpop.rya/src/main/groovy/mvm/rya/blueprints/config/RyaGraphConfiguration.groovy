@@ -29,7 +29,7 @@ import mvm.rya.blueprints.sail.RyaSailGraph
 import mvm.rya.rdftriplestore.RdfCloudTripleStore
 import mvm.rya.rdftriplestore.inference.InferenceEngine
 import org.apache.commons.configuration.Configuration
-import static mvm.rya.accumulo.mr.utils.MRUtils.*
+import static mvm.rya.accumulo.mr.MRUtils.*
 import org.apache.commons.configuration.MapConfiguration
 import mvm.rya.blueprints.sail.RyaSailEdge
 import mvm.rya.blueprints.sail.RyaSailVertex

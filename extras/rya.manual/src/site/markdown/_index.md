@@ -28,6 +28,7 @@
 - [Evaluation Table](eval.md)
 - [Pre-computed Joins](loadPrecomputedJoin.md)
 - [Inferencing](infer.md)
+- [MapReduce Interface](mapreduce.md)
 
 # Samples
 - [Typical First Steps](sm-firststeps.md)

@@ -60,6 +60,7 @@ under the License.
         <module>common</module>
         <module>dao</module>
         <module>extras</module>
+        <module>mapreduce</module>
         <module>osgi</module>
         <module>pig</module>
         <module>sail</module>
@@ -145,6 +146,11 @@ under the License.
             <dependency>
                 <groupId>org.apache.rya</groupId>
                 <artifactId>accumulo.utils</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.rya</groupId>
+                <artifactId>rya.mapreduce</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>

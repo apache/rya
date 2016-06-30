@@ -23,7 +23,7 @@ import mvm.rya.api.utils.IteratorWrapper
 import junit.framework.TestCase
 import mvm.rya.blueprints.config.RyaGraphConfiguration
 import org.openrdf.model.Statement
-import static mvm.rya.accumulo.mr.utils.MRUtils.*
+import static mvm.rya.accumulo.mr.MRUtils.*
 import static mvm.rya.api.RdfCloudTripleStoreConstants.VALUE_FACTORY
 
 /**

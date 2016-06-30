@@ -80,19 +80,25 @@ public class RyaType implements Comparable {
         return sb.toString();
     }
 
+    /**
+     * Determine equality based on string representations of data and datatype.
+     * @param o The object to compare with
+     * @return true if the other object is also a RyaType and both data and datatype match.
+     */
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-
+        if (o == null || !(o instanceof RyaType)) return false;
         RyaType ryaType = (RyaType) o;
-
         if (data != null ? !data.equals(ryaType.data) : ryaType.data != null) return false;
         if (dataType != null ? !dataType.equals(ryaType.dataType) : ryaType.dataType != null) return false;
-
         return true;
     }
 
+    /**
+     * Generate a hash based on the string representations of both data and datatype.
+     * @return A hash consistent with equals.
+     */
     @Override
     public int hashCode() {
         int result = dataType != null ? dataType.hashCode() : 0;
@@ -100,12 +106,30 @@ public class RyaType implements Comparable {
         return result;
     }
 
+    /**
+     * Define a natural ordering based on data and datatype.
+     * @param o The object to compare with
+     * @return 0 if both the data string and the datatype string representation match between the objects,
+     *          where matching is defined by string comparison or both being null;
+     *          Otherwise, an integer whose sign yields a consistent ordering.
+     */
     @Override
     public int compareTo(Object o) {
-        if (o != null && this.getClass().isInstance(o)) {
+        int result = -1;
+        if (o != null && o instanceof RyaType) {
+            result = 0;
             RyaType other = (RyaType) o;
-            return this.getData().compareTo(other.getData());
+            if (this.data != other.data) {
+                if (this.data == null) return 1;
+                if (other.data == null) return -1;
+                result = this.data.compareTo(other.data);
+            }
+            if (result == 0 && this.dataType != other.dataType) {
+                if (this.dataType == null) return 1;
+                if (other.dataType == null) return -1;
+                result = this.dataType.toString().compareTo(other.dataType.toString());
+            }
         }
-        return -1;
+        return result;
     }
 }

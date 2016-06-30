@@ -30,7 +30,7 @@
 //import mvm.rya.rdftriplestore.RdfCloudTripleStore
 //import mvm.rya.rdftriplestore.inference.InferenceEngine
 //import org.apache.accumulo.core.client.ZooKeeperInstance
-//import static mvm.rya.accumulo.mr.utils.MRUtils.*
+//import static mvm.rya.accumulo.mr.MRUtils.*
 //import static mvm.rya.api.RdfCloudTripleStoreConfiguration.CONF_QUERYPLAN_FLAG
 //import static mvm.rya.api.RdfCloudTripleStoreConfiguration.CONF_TBL_PREFIX
 //

@@ -25,7 +25,7 @@ import java.io.IOException;
 import mvm.rya.accumulo.AccumuloRdfConfiguration;
 import mvm.rya.accumulo.AccumuloRdfConstants;
 import mvm.rya.accumulo.AccumuloRyaDAO;
-import mvm.rya.accumulo.mr.utils.MRUtils;
+import mvm.rya.accumulo.mr.MRUtils;
 import mvm.rya.api.RdfCloudTripleStoreConstants;
 import mvm.rya.api.RdfCloudTripleStoreUtils;
 import mvm.rya.api.domain.RyaStatement;

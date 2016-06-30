@@ -45,6 +45,7 @@ under the License.
         <item name="Evaluation Table" href="eval.html"/>
         <item name="Pre-computed Joins" href="loadPrecomputedJoin.html"/>
         <item name="Inferencing" href="infer.html"/>
+        <item name="MapReduce Interface" href="mapreduce.html"/>
     </menu>
 
     <menu name="Samples">

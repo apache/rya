@@ -48,6 +48,7 @@ out/
 *.iws
 *.ipr
 .clover
+hs_err_pid*.log
 
 stagingDir
 JRatOutput

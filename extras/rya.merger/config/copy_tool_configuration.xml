@@ -1,0 +1,175 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<configuration>
+    <!--
+        Parent Settings
+    -->
+    <property>
+        <name>ac.instance</name>
+        <value>parent_instance</value>
+    </property>
+    <property>
+        <name>ac.username</name>
+        <value>root</value>
+    </property>
+    <property>
+        <name>ac.pwd</name>
+        <value>parent_pwd</value>
+    </property>
+    <property>
+        <name>rdf.tablePrefix</name>
+        <value>pt_</value>
+    </property>
+    <property>
+        <name>ac.auth</name>
+        <value>parent_auth</value>
+    </property>
+    <property>
+        <name>ac.zk</name>
+        <value>localhost:1111</value>
+    </property>
+    <property>
+        <name>tomcat.url</name>
+        <value>http://localhost:8080</value>
+    </property>
+    <!--
+        Child Settings
+    -->
+    <property>
+        <name>ac.instance.child</name>
+        <value>child_instance</value>
+    </property>
+    <property>
+        <name>ac.username.child</name>
+        <value>root</value>
+    </property>
+    <property>
+        <name>ac.pwd.child</name>
+        <value>child_pwd</value>
+    </property>
+    <property>
+        <name>rdf.tablePrefix.child</name>
+        <value>ct_</value>
+    </property>
+    <property>
+        <name>ac.auth.child</name>
+        <value>child_auth</value>
+    </property>
+    <property>
+        <name>ac.zk.child</name>
+        <value>localhost:2222</value>
+    </property>
+    <property>
+        <name>tomcat.url.child</name>
+        <value>http://localhost:8080</value>
+    </property>
+    <!--
+        Tool Settings
+    -->
+    <property>
+        <name>ntp.server.host</name>
+        <value>time.nist.gov</value>
+    </property>
+    <property>
+        <name>use.ntp.server</name>
+        <value>true</value>
+    </property>
+    <property>
+        <name>use.copy.file.output</name>
+        <value>false</value>
+    </property>
+    <property>
+        <name>copy.file.output.path</name>
+        <value>/tmp/copy_tool_file_output/</value>
+    </property>
+    <property>
+        <name>copy.file.output.compression.type</name>
+        <value>gz</value>
+    </property>
+    <property>
+        <name>use.copy.file.output.directory.clear</name>
+        <value>true</value>
+    </property>
+    <property>
+        <name>copy.file.import.directory</name>
+        <value>/tmp/copy_tool_file_output</value>
+    </property>
+    <property>
+        <name>use.copy.file.import</name>
+        <value>false</value>
+    </property>
+    <!--
+        Specify "dialog" to bring up a calendar/time window to pick the date and time.
+        If the exact time/date is known and the dialog is not desired then the value must
+        be formatted like "yyyyMMddHHmmssSSSz" so "February 4th, 2016 1:45:23 PM EST" would
+        be "20160204134523000EST" without the quotes
+    -->
+    <property>
+        <name>tool.start.time</name>
+        <value>dialog</value>
+    </property>
+    <!--
+         Query settings: To use a SPARQL query to define what to copy (instead of or in addition to timestamp),
+         set "use.copy.query.sparql" to "true" and fill in "ac.copy.queryfile" with the path to the file
+         containing the query.
+
+         Secondary indexing tables will not be directly copied in this mode. Enable secondary indexers here in order
+         to have any copied statements indexed in the child as they are copied.
+
+         Optionally, control inference using general Rya query options: Use "query.infer" to turn inference on or
+         off (on by default); and "infer.include.inverseof", etc. to enable or disable individual types of
+         inference (all enabled by default).
+    -->
+    <property>
+        <name>use.copy.query.sparql</name>
+        <value>false</value>
+    </property>
+    <property>
+        <name>ac.copy.queryfile</name>
+        <value></value>
+    </property>
+    <property>
+    <!-- Enable/disable secondary indexers for rule-based copy:
+        <name>sc.use_entity</name>
+        <value>true</value>
+    </property>
+    <property>
+        <name>sc.use_freetext</name>
+        <value>true</value>
+    </property>
+    <property>
+        <name>sc.use_geo</name>
+        <value>true</value>
+    </property>
+    <property>
+        <name>sc.use_temporal</name>
+        <value>true</value>
+    </property>
+    -->
+    <property>
+        <name>query.infer</name>
+        <value>true</value>
+    </property>
+    <!--
+        General Map Reduce Settings
+    -->
+    <property>
+        <name>mapreduce.map.log.level</name>
+        <value>INFO</value>
+    </property>
+    <property>
+        <name>mapreduce.reduce.log.level</name>
+        <value>INFO</value>
+    </property>
+    <property>
+        <name>mapred.child.java.opts</name>
+        <value>-Xmx4096m</value>
+    </property>
+    <property>
+        <name>mapreduce.map.memory.mb</name>
+        <value>8192</value>
+    </property>
+    <property>
+        <name>mapreduce.reduce.memory.mb</name>
+        <value>8192</value>
+    </property>
+</configuration>

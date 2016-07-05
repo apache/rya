@@ -1,28 +1,38 @@
 package mvm.rya.accumulo;
 
 /*
- * #%L
- * mvm.rya.accumulo.rya
- * %%
- * Copyright (C) 2014 Rya
- * %%
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
  * 
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *   http://www.apache.org/licenses/LICENSE-2.0
  * 
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- * #L%
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
  */
 
+
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 import info.aduna.iteration.CloseableIteration;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.UUID;
+
 import mvm.rya.accumulo.query.AccumuloRyaQueryEngine;
-import mvm.rya.api.RdfCloudTripleStoreUtils;
 import mvm.rya.api.domain.RyaStatement;
 import mvm.rya.api.domain.RyaType;
 import mvm.rya.api.domain.RyaURI;
@@ -32,10 +42,11 @@ import mvm.rya.api.resolver.RdfToRyaConversions;
 import mvm.rya.api.resolver.RyaContext;
 
 import org.apache.accumulo.core.client.Connector;
+import org.apache.accumulo.core.client.IteratorSetting;
 import org.apache.accumulo.core.client.Scanner;
 import org.apache.accumulo.core.client.TableNotFoundException;
 import org.apache.accumulo.core.client.mock.MockInstance;
-import org.calrissian.mango.collect.CloseableIterable;
+import org.apache.accumulo.core.iterators.FirstEntryInRowIterator;
 import org.calrissian.mango.collect.FluentCloseableIterable;
 import org.junit.After;
 import org.junit.Before;
@@ -43,11 +54,6 @@ import org.junit.Test;
 import org.openrdf.model.ValueFactory;
 import org.openrdf.model.impl.ValueFactoryImpl;
 import org.openrdf.model.vocabulary.XMLSchema;
-import org.openrdf.query.BindingSet;
-
-import java.util.*;
-
-import static org.junit.Assert.*;
 
 /**
  * Class AccumuloRdfDAOTest
@@ -406,16 +412,18 @@ public class AccumuloRyaDAOTest {
 	public void testQueryDates() throws Exception {
 	    RyaURI cpu = new RyaURI(litdupsNS + "cpu");
 	    RyaURI loadPerc = new RyaURI(litdupsNS + "loadPerc");
-	    RyaType uri1 = new RyaType(XMLSchema.DATETIME, "2000-01-01");
-	    RyaType uri2 = new RyaType(XMLSchema.DATETIME, "2000-01-01TZ");
+	    RyaType uri0 = new RyaType(XMLSchema.DATETIME, "1960-01-01"); // How handles local time
+	    RyaType uri1 = new RyaType(XMLSchema.DATETIME, "1992-01-01T+10:00"); // See Magadan Time
+	    RyaType uri2 = new RyaType(XMLSchema.DATETIME, "2000-01-01TZ"); // How it handles UTC.
 	    RyaType uri3 = new RyaType(XMLSchema.DATETIME, "2000-01-01T00:00:01.111Z");
-	    RyaType uri4 = new RyaType(XMLSchema.DATETIME, "2000-01-01T00:00:01");
-	    RyaType uri5 = new RyaType(XMLSchema.DATETIME, "2000-01-01T00:00:01.111");
-	    RyaType uri6 = new RyaType(XMLSchema.DATETIME, "2000-01-01T00:00:01Z");
+	    RyaType uri4 = new RyaType(XMLSchema.DATETIME, "2000-01-01T00:00:01.111Z");  // duplicate
+	    RyaType uri5 = new RyaType(XMLSchema.DATETIME, "2000-01-01T00:00:01-00:00");
+	    RyaType uri6 = new RyaType(XMLSchema.DATETIME, "2000-01-01T00:00:01Z");  // duplicate
 	    RyaType uri7 = new RyaType(XMLSchema.DATETIME, "-2000-01-01T00:00:01Z");
 	    RyaType uri8 = new RyaType(XMLSchema.DATETIME, "111-01-01T00:00:01Z");
 	    RyaType uri9 = new RyaType(XMLSchema.DATETIME, "12345-01-01T00:00:01Z");
 
+	    dao.add(new RyaStatement(cpu, loadPerc, uri0));
 	    dao.add(new RyaStatement(cpu, loadPerc, uri1));
 	    dao.add(new RyaStatement(cpu, loadPerc, uri2));
 	    dao.add(new RyaStatement(cpu, loadPerc, uri3));
@@ -429,6 +437,7 @@ public class AccumuloRyaDAOTest {
 	    AccumuloRyaQueryEngine queryEngine = dao.getQueryEngine();
 	
 	    Collection<RyaStatement> coll = new ArrayList();
+	    coll.add(new RyaStatement(null, loadPerc, uri0));
 	    coll.add(new RyaStatement(null, loadPerc, uri1));
 	    coll.add(new RyaStatement(null, loadPerc, uri2));
 	    CloseableIteration<RyaStatement, RyaDAOException> iter = queryEngine.batchQuery(coll, conf);
@@ -438,13 +447,14 @@ public class AccumuloRyaDAOTest {
 	        iter.next();
 	    }
 	    iter.close();
-	    assertEquals(2, count);
+	    assertEquals("Three time zones should be normalized when stored, then normalized same when queried.",3, count);
 	
 	    //now use batchscanner
 	    AccumuloRdfConfiguration queryConf = new AccumuloRdfConfiguration(conf);
 	    queryConf.setMaxRangesForScanner(2);
 	
 	    coll = new ArrayList();
+	    coll.add(new RyaStatement(null, loadPerc, uri0));
 	    coll.add(new RyaStatement(null, loadPerc, uri1));
 	    coll.add(new RyaStatement(null, loadPerc, uri2));
 	    coll.add(new RyaStatement(null, loadPerc, uri3));
@@ -461,7 +471,7 @@ public class AccumuloRyaDAOTest {
 	        iter.next();
 	    }
 	    iter.close();
-	    assertEquals(9, count);
+	    assertEquals("Variety of time specs, including BC, pre-1970, duplicate pair ovewrite,future, 3 digit year.",8, count);
 	}
 
 	@Test
@@ -628,6 +638,45 @@ public class AccumuloRyaDAOTest {
             assertFalse(tableExists(tableName));
         }
         assertFalse(dao.isInitialized());
+    }
+
+    @Test
+    public void testQueryWithIterators() throws Exception {
+        RyaURI cpu = new RyaURI(litdupsNS + "cpu");
+        RyaURI loadPerc = new RyaURI(litdupsNS + "loadPerc");
+        RyaURI uri1 = new RyaURI(litdupsNS + "uri1");
+        dao.add(new RyaStatement(cpu, loadPerc, uri1, null, "qual1"));
+        dao.add(new RyaStatement(cpu, loadPerc, uri1, null, "qual2"));
+
+        AccumuloRyaQueryEngine queryEngine = dao.getQueryEngine();
+
+        AccumuloRdfConfiguration queryConf = new AccumuloRdfConfiguration(conf);
+        IteratorSetting firstEntryInRow = new IteratorSetting(3 /* correct value?? */, FirstEntryInRowIterator.class);
+        queryConf.setAdditionalIterators(firstEntryInRow);
+
+        Collection<RyaStatement> coll = new ArrayList<>();
+        coll.add(new RyaStatement(null, loadPerc, uri1));
+        CloseableIteration<RyaStatement, RyaDAOException> iter = queryEngine.batchQuery(coll, queryConf);
+        int count = 0;
+        while (iter.hasNext()) {
+            count++;
+            iter.next();
+        }
+        iter.close();
+        assertEquals(1, count);
+
+        //Assert that without the iterator we get 2
+        coll = new ArrayList<>();
+        coll.add(new RyaStatement(null, loadPerc, uri1));
+        iter = queryEngine.batchQuery(coll, conf);
+        count = 0;
+        while (iter.hasNext()) {
+            count++;
+            iter.next();
+        }
+        iter.close();
+        assertEquals(2, count);
+
     }
 
     private boolean areTablesEmpty() throws TableNotFoundException {

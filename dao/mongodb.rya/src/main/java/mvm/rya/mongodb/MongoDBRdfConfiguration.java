@@ -1,5 +1,25 @@
 package mvm.rya.mongodb;
 
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * 
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
+
+
 
 import java.util.List;
 
@@ -9,6 +29,7 @@ import mvm.rya.api.persist.index.RyaSecondaryIndexer;
 import org.apache.hadoop.conf.Configuration;
 
 import com.google.common.collect.Lists;
+import com.mongodb.MongoClient;
 
 public class MongoDBRdfConfiguration extends RdfCloudTripleStoreConfiguration {
     public static final String MONGO_INSTANCE = "mongo.db.instance";
@@ -20,6 +41,7 @@ public class MongoDBRdfConfiguration extends RdfCloudTripleStoreConfiguration {
     public static final String  MONGO_USER_PASSWORD = "mongo.db.userpassword";
     public static final String USE_TEST_MONGO = "mongo.db.test";
     public static final String CONF_ADDITIONAL_INDEXERS = "ac.additional.indexers";
+	private MongoClient mongoClient;
 
     public MongoDBRdfConfiguration() {
         super();
@@ -84,7 +106,7 @@ public class MongoDBRdfConfiguration extends RdfCloudTripleStoreConfiguration {
     
     public void setAdditionalIndexers(Class<? extends RyaSecondaryIndexer>... indexers) {
         List<String> strs = Lists.newArrayList();
-        for (Class ai : indexers){
+        for (Class<?> ai : indexers){
             strs.add(ai.getName());
         }
         
@@ -93,9 +115,14 @@ public class MongoDBRdfConfiguration extends RdfCloudTripleStoreConfiguration {
 
     public List<RyaSecondaryIndexer> getAdditionalIndexers() {
         return getInstances(CONF_ADDITIONAL_INDEXERS, RyaSecondaryIndexer.class);
+    }    
+    
+    public void setMongoClient(MongoClient client){
+    	this.mongoClient = client;
     }
     
-    
-    
+    public MongoClient getMongoClient() {
+    	return mongoClient;
+    }
 
 }

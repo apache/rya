@@ -1,38 +1,48 @@
 package mvm.rya.api.query.strategy.wholerow;
 
-/*
- * #%L
- * mvm.rya.rya.api
- * %%
- * Copyright (C) 2014 Rya
- * %%
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- * 
- *      http://www.apache.org/licenses/LICENSE-2.0
- * 
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- * #L%
- */
-
-import junit.framework.TestCase;
-import mvm.rya.api.RdfCloudTripleStoreConstants;
-import mvm.rya.api.domain.*;
-import mvm.rya.api.query.strategy.ByteRange;
-import mvm.rya.api.resolver.RyaContext;
-import mvm.rya.api.resolver.RyaTripleContext;
-import mvm.rya.api.resolver.triple.TripleRow;
+import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.apache.hadoop.io.Text;
 import org.junit.Before;
 import org.openrdf.model.impl.URIImpl;
 
-import java.util.Map;
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * 
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
+
+
+
+import junit.framework.TestCase;
+import mvm.rya.api.RdfCloudTripleStoreConstants;
+import mvm.rya.api.domain.RyaStatement;
+import mvm.rya.api.domain.RyaType;
+import mvm.rya.api.domain.RyaTypeRange;
+import mvm.rya.api.domain.RyaURI;
+import mvm.rya.api.domain.RyaURIRange;
+import mvm.rya.api.query.strategy.ByteRange;
+import mvm.rya.api.query.strategy.TriplePatternStrategy;
+import mvm.rya.api.resolver.RyaContext;
+import mvm.rya.api.resolver.RyaTripleContext;
+import mvm.rya.api.resolver.triple.TripleRow;
+import mvm.rya.api.resolver.triple.TripleRowRegex;
+import mvm.rya.api.resolver.triple.impl.WholeRowHashedTripleResolver;
 
 /**
  * Date: 7/14/12
@@ -61,6 +71,66 @@ public class HashedPoWholeRowTriplePatternStrategyTest extends TestCase {
     	ryaTripleContext = RyaTripleContext.getInstance(config);
     }
 
+    
+    public void testRegex() throws Exception {
+        RyaURI subj = new RyaURI("urn:test#1234");
+        RyaURI pred = new RyaURI("urn:test#pred");
+        RyaURI obj = new RyaURI("urn:test#obj");
+        RyaStatement ryaStatement = new RyaStatement(subj, pred, obj);
+        Map<RdfCloudTripleStoreConstants.TABLE_LAYOUT, TripleRow> serialize = new WholeRowHashedTripleResolver().serialize(ryaStatement);
+        TripleRow tripleRow = serialize.get(RdfCloudTripleStoreConstants.TABLE_LAYOUT.SPO);
+
+        String row = new String(tripleRow.getRow());
+        TriplePatternStrategy spoStrategy = new HashedSpoWholeRowTriplePatternStrategy();
+        TriplePatternStrategy poStrategy = new HashedPoWholeRowTriplePatternStrategy();
+        TriplePatternStrategy ospStrategy = new OspWholeRowTriplePatternStrategy();
+        //pred
+        TripleRowRegex tripleRowRegex = spoStrategy.buildRegex(null, pred.getData(), null, null, null);
+        Pattern p = Pattern.compile(tripleRowRegex.getRow());
+        Matcher matcher = p.matcher(row);
+        assertTrue(matcher.matches());
+        //subj
+        tripleRowRegex = spoStrategy.buildRegex(subj.getData(), null, null, null, null);
+        p = Pattern.compile(tripleRowRegex.getRow());
+        matcher = p.matcher(row);
+        assertTrue(matcher.matches());
+        //obj
+        tripleRowRegex = spoStrategy.buildRegex(null, null, obj.getData(), null, null);
+        p = Pattern.compile(tripleRowRegex.getRow());
+        matcher = p.matcher(row);
+        assertTrue(matcher.matches());
+
+        //po table
+        row = new String(serialize.get(RdfCloudTripleStoreConstants.TABLE_LAYOUT.PO).getRow());
+        tripleRowRegex = poStrategy.buildRegex(null, pred.getData(), null, null, null);
+        p = Pattern.compile(tripleRowRegex.getRow());
+        matcher = p.matcher(row);
+        assertTrue(matcher.matches());
+
+        tripleRowRegex = poStrategy.buildRegex(null, pred.getData(), obj.getData(), null, null);
+        p = Pattern.compile(tripleRowRegex.getRow());
+        matcher = p.matcher(row);
+        assertTrue(matcher.matches());
+
+        tripleRowRegex = poStrategy.buildRegex(subj.getData(), pred.getData(), obj.getData(), null, null);
+        p = Pattern.compile(tripleRowRegex.getRow());
+        matcher = p.matcher(row);
+        assertTrue(matcher.matches());
+
+        //various regex
+        tripleRowRegex = poStrategy.buildRegex(null, "urn:test#pr[e|d]{2}", null, null, null);
+        p = Pattern.compile(tripleRowRegex.getRow());
+        matcher = p.matcher(row);
+        assertTrue(matcher.matches());
+
+        //does not match
+        tripleRowRegex = poStrategy.buildRegex(null, "hello", null, null, null);
+        p = Pattern.compile(tripleRowRegex.getRow());
+        matcher = p.matcher(row);
+        assertFalse(matcher.matches());
+    }
+    
+    
     public void testPoRange() throws Exception {
         Map<RdfCloudTripleStoreConstants.TABLE_LAYOUT, TripleRow> serialize = ryaTripleContext.serializeTriple(
                 new RyaStatement(uri, uri, uri, null));

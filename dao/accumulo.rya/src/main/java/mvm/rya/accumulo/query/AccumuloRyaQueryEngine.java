@@ -1,24 +1,25 @@
 package mvm.rya.accumulo.query;
 
 /*
- * #%L
- * mvm.rya.accumulo.rya
- * %%
- * Copyright (C) 2014 Rya
- * %%
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
  * 
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- * #L%
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
  */
+
+
 
 import static mvm.rya.api.RdfCloudTripleStoreUtils.layoutToTable;
 import info.aduna.iteration.CloseableIteration;
@@ -50,7 +51,6 @@ import mvm.rya.api.resolver.RyaContext;
 import mvm.rya.api.resolver.RyaTripleContext;
 import mvm.rya.api.resolver.triple.TripleRowRegex;
 import mvm.rya.api.utils.CloseableIterableIteration;
-import mvm.rya.iterators.LimitingAgeOffFilter;
 
 import org.apache.accumulo.core.client.BatchScanner;
 import org.apache.accumulo.core.client.Connector;
@@ -61,6 +61,7 @@ import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Range;
 import org.apache.accumulo.core.data.Value;
 import org.apache.accumulo.core.iterators.user.RegExFilter;
+import org.apache.accumulo.core.iterators.user.TimestampFilter;
 import org.apache.accumulo.core.security.Authorizations;
 import org.apache.hadoop.io.Text;
 import org.calrissian.mango.collect.CloseableIterable;
@@ -240,21 +241,23 @@ public class AccumuloRyaQueryEngine implements RyaQueryEngine<AccumuloRdfConfigu
                 ByteRange byteRange = entry.getValue();
                 range = new Range(new Text(byteRange.getStart()), new Text(byteRange.getEnd()));
 
-                byte[] objectTypeInfo = null;
-                if (object != null) {
-                    //TODO: Not good to serialize this twice
-                    if (object instanceof RyaRange) {
-                        objectTypeInfo = RyaContext.getInstance().serializeType(((RyaRange) object).getStart())[1];
-                    } else {
-                        objectTypeInfo = RyaContext.getInstance().serializeType(object)[1];
-                    }
-                }
-
-                tripleRowRegex = strategy.buildRegex(regexSubject, regexPredicate, regexObject, null, objectTypeInfo);
             } else {
                 range = new Range();
                 layout = TABLE_LAYOUT.SPO;
+                strategy = ryaContext.retrieveStrategy(layout);
             }
+
+            byte[] objectTypeInfo = null;
+            if (object != null) {
+                //TODO: Not good to serialize this twice
+                if (object instanceof RyaRange) {
+                    objectTypeInfo = RyaContext.getInstance().serializeType(((RyaRange) object).getStart())[1];
+                } else {
+                    objectTypeInfo = RyaContext.getInstance().serializeType(object)[1];
+                }
+            }
+
+            tripleRowRegex = strategy.buildRegex(regexSubject, regexPredicate, regexObject, null, objectTypeInfo);
 
             //use range to set scanner
             //populate scanner based on authorizations, ttl
@@ -373,10 +376,11 @@ public class AccumuloRyaQueryEngine implements RyaQueryEngine<AccumuloRdfConfigu
             scanner.addScanIterator(setting);
         }
         if (ttl != null) {
-            IteratorSetting setting = new IteratorSetting(9, "fi", LimitingAgeOffFilter.class.getName());
-            setting.addOption(LimitingAgeOffFilter.TTL, Long.toString(ttl));
+            IteratorSetting setting = new IteratorSetting(9, "fi", TimestampFilter.class.getName());
+            TimestampFilter.setStart(setting,  System.currentTimeMillis() - ttl, true);
             if(currentTime != null){
-                setting.addOption(LimitingAgeOffFilter.CURRENT_TIME, Long.toString(currentTime));
+                TimestampFilter.setStart(setting, currentTime - ttl, true);
+                TimestampFilter.setEnd(setting, currentTime, true);
             }
             scanner.addScanIterator(setting);
         }
@@ -385,6 +389,12 @@ public class AccumuloRyaQueryEngine implements RyaQueryEngine<AccumuloRdfConfigu
             String regex = tripleRowRegex.getRow();
             RegExFilter.setRegexs(setting, regex, null, null, null, false);
             scanner.addScanIterator(setting);
+        }
+        if (conf instanceof AccumuloRdfConfiguration) {
+            //TODO should we take the iterator settings as is or should we adjust the priority based on the above?
+            for (IteratorSetting itr : ((AccumuloRdfConfiguration)conf).getAdditionalIterators()) {
+                scanner.addScanIterator(itr);
+            }
         }
     }
 

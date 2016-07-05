@@ -1,5 +1,25 @@
 package mvm.rya.indexing.accumulo.entity;
 
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
+
+
 import static mvm.rya.api.RdfCloudTripleStoreConstants.DELIM_BYTE;
 import static mvm.rya.api.RdfCloudTripleStoreConstants.TYPE_DELIM_BYTE;
 import info.aduna.iteration.CloseableIteration;
@@ -36,7 +56,6 @@ import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Range;
 import org.apache.accumulo.core.data.Value;
 import org.apache.accumulo.core.security.Authorizations;
-import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.Text;
 import org.openrdf.query.BindingSet;
 import org.openrdf.query.MalformedQueryException;
@@ -55,23 +74,23 @@ import com.google.common.primitives.Bytes;
 
 public class AccumuloDocIdIndexer implements DocIdIndexer {
 
-    
-    
+
+
     private BatchScanner bs;
     private AccumuloRdfConfiguration conf;
- 
+
     public AccumuloDocIdIndexer(RdfCloudTripleStoreConfiguration conf) throws AccumuloException, AccumuloSecurityException {
         Preconditions.checkArgument(conf instanceof RdfCloudTripleStoreConfiguration, "conf must be isntance of RdfCloudTripleStoreConfiguration");
         this.conf = (AccumuloRdfConfiguration) conf;
-        //Connector conn = ConfigUtils.getConnector(conf);  
+        //Connector conn = ConfigUtils.getConnector(conf);
     }
-    
-    
-    
-    
+
+
+
+
     public CloseableIteration<BindingSet, QueryEvaluationException> queryDocIndex(String sparqlQuery,
             Collection<BindingSet> constraints) throws TableNotFoundException, QueryEvaluationException {
-    
+
         SPARQLParser parser = new SPARQLParser();
         ParsedQuery pq1 = null;
         try {
@@ -79,22 +98,22 @@ public class AccumuloDocIdIndexer implements DocIdIndexer {
         } catch (MalformedQueryException e) {
             e.printStackTrace();
         }
-        
+
         TupleExpr te1 = pq1.getTupleExpr();
         List<StatementPattern> spList1 = StatementPatternCollector.process(te1);
-        
+
         if(StarQuery.isValidStarQuery(spList1)) {
             StarQuery sq1 = new StarQuery(spList1);
             return queryDocIndex(sq1, constraints);
         } else {
             throw new IllegalArgumentException("Invalid star query!");
         }
-   
+
     }
-    
-    
-    
-    
+
+
+
+
     @Override
     public CloseableIteration<BindingSet, QueryEvaluationException> queryDocIndex(StarQuery query,
             Collection<BindingSet> constraints) throws TableNotFoundException, QueryEvaluationException {
@@ -112,50 +131,50 @@ public class AccumuloDocIdIndexer implements DocIdIndexer {
             commonVarNames = Sets.newHashSet();
             unCommonVarNames = Sets.newHashSet();
         }
-        
+
         if( commonVarNames.size() == 1 && !query.commonVarConstant() && commonVarNames.contains(query.getCommonVarName())) {
-            
+
             final HashMultimap<String, BindingSet> map = HashMultimap.create();
             final String commonVar = starQ.getCommonVarName();
             final Iterator<Entry<Key, Value>> intersections;
             final BatchScanner scan;
             Set<Range> ranges = Sets.newHashSet();
-            
+
             while(bs.hasNext()) {
-                
+
                 BindingSet currentBs = bs.next();
-                
+
                 if(currentBs.getBinding(commonVar) == null) {
                     continue;
                 }
-                
+
                 String row = currentBs.getBinding(commonVar).getValue().stringValue();
-                ranges.add(new Range(row)); 
+                ranges.add(new Range(row));
                 map.put(row, currentBs);
-                              
+
             }
             scan = runQuery(starQ, ranges);
             intersections = scan.iterator();
-            
-            
+
+
             return new CloseableIteration<BindingSet, QueryEvaluationException>() {
 
-                
+
                 private QueryBindingSet currentSolutionBs = null;
                 private boolean hasNextCalled = false;
                 private boolean isEmpty = false;
-                private Iterator<BindingSet> inputSet = (new ArrayList<BindingSet>()).iterator();
+                private Iterator<BindingSet> inputSet = new ArrayList<BindingSet>().iterator();
                 private BindingSet currentBs;
                 private Key key;
-                
-                
-                
+
+
+
                 @Override
                 public boolean hasNext() throws QueryEvaluationException {
                     if (!hasNextCalled && !isEmpty) {
                         while (inputSet.hasNext() || intersections.hasNext()) {
                             if (!inputSet.hasNext()) {
-                                key = intersections.next().getKey();   
+                                key = intersections.next().getKey();
                                 inputSet = map.get(key.getRow().toString()).iterator();
                             }
                             currentBs = inputSet.next();
@@ -179,7 +198,7 @@ public class AccumuloDocIdIndexer implements DocIdIndexer {
 
                 }
 
-             
+
                 @Override
                 public BindingSet next() throws QueryEvaluationException {
 
@@ -207,10 +226,10 @@ public class AccumuloDocIdIndexer implements DocIdIndexer {
                 public void close() throws QueryEvaluationException {
                     scan.close();
                 }
-                
+
             };
-            
-            
+
+
         } else {
 
             return new CloseableIteration<BindingSet, QueryEvaluationException>() {
@@ -229,7 +248,7 @@ public class AccumuloDocIdIndexer implements DocIdIndexer {
                 private StarQuery sq = new StarQuery(starQ);
                 private Set<Range> emptyRangeSet = Sets.newHashSet();
                 private BatchScanner scan;
-                
+
                 @Override
                 public BindingSet next() throws QueryEvaluationException {
                     if (hasNextCalled) {
@@ -248,7 +267,7 @@ public class AccumuloDocIdIndexer implements DocIdIndexer {
 
                 @Override
                 public boolean hasNext() throws QueryEvaluationException {
-                    
+
                     if (!init) {
                         if (intersections == null && bs.hasNext()) {
                             currentBs = bs.next();
@@ -280,7 +299,7 @@ public class AccumuloDocIdIndexer implements DocIdIndexer {
                             } else {
                                 continue;
                             }
-                           
+
                             if (sq.commonVarConstant() && currentSolutionBs.size() == unCommonVarNames.size() + sq.getUnCommonVars().size()) {
                                 hasNextCalled = true;
                                 return true;
@@ -307,21 +326,21 @@ public class AccumuloDocIdIndexer implements DocIdIndexer {
             };
         }
     }
-    
+
     private QueryBindingSet deserializeKey(Key key, StarQuery sq, BindingSet currentBs, Set<String> unCommonVar) {
-        
-        
+
+
         QueryBindingSet currentSolutionBs = new QueryBindingSet();
-        
+
         Text row = key.getRow();
         Text cq = key.getColumnQualifier();
-        
-        
+
+
         String[] cqArray = cq.toString().split(DocIndexIteratorUtil.DOC_ID_INDEX_DELIM);
 
         boolean commonVarSet = false;
-        
-        //if common Var is constant there is no common variable to assign a value to 
+
+        //if common Var is constant there is no common variable to assign a value to
         if(sq.commonVarConstant()) {
             commonVarSet = true;
         }
@@ -343,7 +362,7 @@ public class AccumuloDocIdIndexer implements DocIdIndexer {
             byte[] cqContent = Arrays.copyOfRange(cqBytes, secondIndex + 1, typeIndex);
             byte[] objType = Arrays.copyOfRange(cqBytes, typeIndex, cqBytes.length);
 
-            if ((new String(tripleComponent)).equals("object")) {
+            if (new String(tripleComponent).equals("object")) {
                 byte[] object = Bytes.concat(cqContent, objType);
                 org.openrdf.model.Value v = null;
                 try {
@@ -354,7 +373,7 @@ public class AccumuloDocIdIndexer implements DocIdIndexer {
                 }
                 currentSolutionBs.addBinding(s, v);
 
-            } else if ((new String(tripleComponent)).equals("subject")) {
+            } else if (new String(tripleComponent).equals("subject")) {
                 if (!commonVarSet) {
                     byte[] object = Bytes.concat(row.getBytes(), objType);
                     org.openrdf.model.Value v = null;
@@ -378,9 +397,9 @@ public class AccumuloDocIdIndexer implements DocIdIndexer {
         }
         return currentSolutionBs;
     }
-    
+
    private BatchScanner runQuery(StarQuery query, Collection<Range> ranges) throws QueryEvaluationException {
-       
+
     try {
             if (ranges.size() == 0) {
                 String rangeText = query.getCommonVarValue();
@@ -391,13 +410,13 @@ public class AccumuloDocIdIndexer implements DocIdIndexer {
                     r = new Range();
                 }
                 ranges = Collections.singleton(r);
-            } 
-        
+            }
+
         Connector accCon = ConfigUtils.getConnector(conf);
         IteratorSetting is = new IteratorSetting(30, "fii", DocumentIndexIntersectingIterator.class);
 
         DocumentIndexIntersectingIterator.setColumnFamilies(is, query.getColumnCond());
-        
+
         if(query.hasContext()) {
             DocumentIndexIntersectingIterator.setContext(is, query.getContextURI());
         }
@@ -405,9 +424,9 @@ public class AccumuloDocIdIndexer implements DocIdIndexer {
                 new Authorizations(conf.get(ConfigUtils.CLOUDBASE_AUTHS)), 15);
         bs.addScanIterator(is);
         bs.setRanges(ranges);
-        
+
         return bs;
-    
+
     } catch (TableNotFoundException e) {
         e.printStackTrace();
     } catch (AccumuloException e) {
@@ -417,7 +436,7 @@ public class AccumuloDocIdIndexer implements DocIdIndexer {
     }
         throw new QueryEvaluationException();
    }
-    
+
 
     @Override
     public void close() throws IOException {

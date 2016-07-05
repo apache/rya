@@ -58,3 +58,5 @@ shiftone-jrat.jar
 blueprints.log
 MANIFEST.MF
 delme*
+
+**/.vagrant/

@@ -1,5 +1,25 @@
 package mvm.rya.indexing.accumulo.entity;
 
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
+
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -7,7 +27,6 @@ import java.util.Set;
 
 import mvm.rya.accumulo.AccumuloRdfConfiguration;
 import mvm.rya.api.RdfCloudTripleStoreConfiguration;
-import mvm.rya.api.persist.RdfEvalStatsDAO;
 import mvm.rya.api.persist.joinselect.SelectivityEvalDAO;
 import mvm.rya.indexing.accumulo.ConfigUtils;
 import mvm.rya.joinselect.AccumuloSelectivityEvalDAO;
@@ -26,7 +45,6 @@ import org.openrdf.query.algebra.Join;
 import org.openrdf.query.algebra.QueryModelNode;
 import org.openrdf.query.algebra.StatementPattern;
 import org.openrdf.query.algebra.TupleExpr;
-import org.openrdf.query.algebra.Var;
 import org.openrdf.query.algebra.evaluation.QueryOptimizer;
 import org.openrdf.query.algebra.helpers.QueryModelVisitorBase;
 
@@ -40,12 +58,12 @@ public class EntityOptimizer implements QueryOptimizer, Configurable {
     private RdfCloudTripleStoreConfiguration conf;
     private boolean isEvalDaoSet = false;
 
-    
+
     public EntityOptimizer() {
-        
+
     }
-    
-    public EntityOptimizer(RdfCloudTripleStoreConfiguration conf) { 
+
+    public EntityOptimizer(RdfCloudTripleStoreConfiguration conf) {
         if(conf.isUseStats() && conf.isUseSelectivity()) {
             try {
                 eval = new AccumuloSelectivityEvalDAO(conf, ConfigUtils.getConnector(conf));
@@ -56,7 +74,7 @@ public class EntityOptimizer implements QueryOptimizer, Configurable {
             } catch (AccumuloSecurityException e) {
                 e.printStackTrace();
             }
-            
+
             isEvalDaoSet = true;
         } else {
             eval = null;
@@ -64,13 +82,13 @@ public class EntityOptimizer implements QueryOptimizer, Configurable {
         }
         this.conf = conf;
     }
-    
+
     public EntityOptimizer(SelectivityEvalDAO<RdfCloudTripleStoreConfiguration> eval) {
         this.eval = eval;
         this.conf = eval.getConf();
         isEvalDaoSet = true;
     }
-    
+
     @Override
     public void setConf(Configuration conf) {
         if(conf instanceof RdfCloudTripleStoreConfiguration) {
@@ -78,7 +96,7 @@ public class EntityOptimizer implements QueryOptimizer, Configurable {
         } else {
             this.conf = new AccumuloRdfConfiguration(conf);
         }
-        
+
         if (!isEvalDaoSet) {
             if(this.conf.isUseStats() && this.conf.isUseSelectivity()) {
                 try {
@@ -90,16 +108,16 @@ public class EntityOptimizer implements QueryOptimizer, Configurable {
                 } catch (AccumuloSecurityException e) {
                     e.printStackTrace();
                 }
-                
+
                 isEvalDaoSet = true;
             } else {
                 eval = null;
                 isEvalDaoSet = true;
             }
         }
-        
+
     }
-    
+
     @Override
     public Configuration getConf() {
         return conf;
@@ -131,7 +149,7 @@ public class EntityOptimizer implements QueryOptimizer, Configurable {
                     constructTuple(varMap, joinArgs, s);
                 }
                 List<TupleExpr> filterChain = getFilterChain(joinArgs);
-                
+
                 for (TupleExpr te : joinArgs) {
                     if (!(te instanceof StatementPattern) || !(te instanceof EntityTupleSet)) {
                         te.visit(this);
@@ -144,12 +162,12 @@ public class EntityOptimizer implements QueryOptimizer, Configurable {
                 e.printStackTrace();
             }
         }
-        
+
         private List<TupleExpr> getFilterChain(List<TupleExpr> joinArgs) {
             List<TupleExpr> filterTopBottom = Lists.newArrayList();
             TupleExpr filterChainTop = null;
             TupleExpr filterChainBottom = null;
-            
+
             for(int i = 0; i < joinArgs.size(); i++) {
                 if(joinArgs.get(i) instanceof Filter) {
                     if(filterChainTop == null) {
@@ -174,7 +192,7 @@ public class EntityOptimizer implements QueryOptimizer, Configurable {
             }
             return filterTopBottom;
         }
-        
+
         private TupleExpr getNewJoin(List<TupleExpr> joinArgs, List<TupleExpr> filterChain) {
             TupleExpr newJoin;
 
@@ -258,7 +276,7 @@ public class EntityOptimizer implements QueryOptimizer, Configurable {
         private void removeInvalidBins(HashMultimap<String, StatementPattern> varMap, boolean newMap) {
 
             Set<String> keys = Sets.newHashSet(varMap.keySet());
-            
+
             if (newMap) {
                 for (String s : keys) {
                     Set<StatementPattern> spSet = Sets.newHashSet(varMap.get(s));
@@ -313,7 +331,7 @@ public class EntityOptimizer implements QueryOptimizer, Configurable {
                 tempPriority = bin.size();
                 tempPriority *= getCardinality(bin);
                 tempPriority *= getMinCardSp(bin);
-                
+
                 // weight starQuery where common Var is constant slightly more -- this factor is subject
                 // to change
                 if(s.startsWith("-const-")) {
@@ -360,11 +378,11 @@ public class EntityOptimizer implements QueryOptimizer, Configurable {
             double cardinality = Double.MAX_VALUE;
             double tempCard = -1;
 
-            
+
             if(eval == null) {
                 return 1;
             }
-            
+
             List<StatementPattern> nodes = Lists.newArrayList(spNodes);
 
             AccumuloSelectivityEvalDAO ase = (AccumuloSelectivityEvalDAO) eval;
@@ -398,7 +416,7 @@ public class EntityOptimizer implements QueryOptimizer, Configurable {
                     Join join = (Join) tupleExpr;
                     getJoinArgs(join.getLeftArg(), joinArgs);
                     getJoinArgs(join.getRightArg(), joinArgs);
-                } 
+                }
             } else if(tupleExpr instanceof Filter) {
                 joinArgs.add(tupleExpr);
                 getJoinArgs(((Filter)tupleExpr).getArg(), joinArgs);
@@ -411,6 +429,6 @@ public class EntityOptimizer implements QueryOptimizer, Configurable {
 
     }
 
-    
+
 
 }

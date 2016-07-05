@@ -1,4 +1,0 @@
-createtable rdfShardIndex
-createtable rdfPartition
-config -t rdfPartition -s table.split.threshold=3G
-config -t rdfPartition -s table.compaction.major.ratio=1

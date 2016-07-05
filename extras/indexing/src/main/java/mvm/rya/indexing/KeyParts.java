@@ -1,11 +1,28 @@
 package mvm.rya.indexing;
 
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
+
+
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
-
-import mvm.rya.indexing.accumulo.Md5Hash;
-import mvm.rya.indexing.accumulo.StatementSerializer;
 
 import org.apache.accumulo.core.data.Value;
 import org.apache.commons.codec.binary.StringUtils;
@@ -17,8 +34,6 @@ import org.openrdf.model.impl.ContextStatementImpl;
 import org.openrdf.model.impl.StatementImpl;
 import org.openrdf.model.impl.URIImpl;
 
-import com.google.common.collect.Constraints;
-
 /**
  * Store and format the various temporal index keys.
  * Row Keys are in these two forms, where [x] denotes x is optional:
@@ -26,25 +41,25 @@ import com.google.common.collect.Constraints;
  * 		rowkey = datetime 0x/00 uniquesuffix
  * 		contraintPrefix = 0x/00 hash([subject][predicate])
  * 		uniquesuffix = some bytes to make it unique, like hash(statement).
- * 
+ *
  * The instance is in one of two modes depending on the constructor:
- * 		storage mode  -- construct with a triple statement, get an iterator of keys to store.  
+ * 		storage mode  -- construct with a triple statement, get an iterator of keys to store.
  * 		query mode	  -- construct with a statement and query constraints, get the key prefix to search.
- * 
+ *
  * this has the flavor of an immutable object
  * This is independent of the underlying database engine
- * 
+ *
  * @author David.Lotts
  *
  */
-public class KeyParts implements Iterable<KeyParts> { 
+public class KeyParts implements Iterable<KeyParts> {
     	private static final String CQ_S_P_AT = "spo";
     	private static final String CQ_P_AT = "po";
     	private static final String CQ_S_AT = "so";
     	private static final String CQ_O_AT = "o";
     	public static final String CQ_BEGIN = "begin";
     	public static final String CQ_END = "end";
-        
+
         public static final byte[] HASH_PREFIX = new byte[] {0};
         public static final byte[] HASH_PREFIX_FOLLOWING = new byte[] {1};
 
@@ -55,16 +70,16 @@ public class KeyParts implements Iterable<KeyParts> {
 		final private TemporalInstant instant;
 		final private Statement statement;
 		final private boolean queryMode;
-		KeyParts(Text constraintPrefix, TemporalInstant instant, String cf, String cq) {
-			this.queryMode = true; // query mode
-			this.storeKey = null;
-			this.statement = null;
+		KeyParts(final Text constraintPrefix, final TemporalInstant instant, final String cf, final String cq) {
+			queryMode = true; // query mode
+			storeKey = null;
+			statement = null;
 			this.constraintPrefix = constraintPrefix;
 			this.instant = instant;
 			this.cf = new Text(cf);
 			this.cq = new Text(cq);
 		}
-		
+
 		/**
 		 * this is the value to index.
 		 * @return
@@ -74,34 +89,35 @@ public class KeyParts implements Iterable<KeyParts> {
 			return new Value(StringUtils.getBytesUtf8(StatementSerializer.writeStatement(statement)));
 		}
 
-		public KeyParts(Statement statement, TemporalInstant instant2) {
-			this.queryMode = false; // store mode
-			this.storeKey = null;
-			this.constraintPrefix = null;
+		public KeyParts(final Statement statement, final TemporalInstant instant2) {
+			queryMode = false; // store mode
+			storeKey = null;
+			constraintPrefix = null;
 			this.statement = statement;
-			this.instant = instant2;
-			this.cf = null;
-			this.cq = null;
+			instant = instant2;
+			cf = null;
+			cq = null;
 		}
 
-		private KeyParts(Text keyText, Text cf, Text cq, Statement statement) {
-			this.queryMode = false; // store mode
-			this.constraintPrefix = null;
+		private KeyParts(final Text keyText, final Text cf, final Text cq, final Statement statement) {
+			queryMode = false; // store mode
+			constraintPrefix = null;
 			this.statement = statement;
-			this.instant = null;
-			this.storeKey = keyText;
+			instant = null;
+			storeKey = keyText;
 			this.cf = cf;
 			this.cq = cq;
 		}
-		
+
 		@Override
 		public Iterator<KeyParts> iterator() {
-			final String[] strategies = new String[] {    
+			final String[] strategies = new String[] {
 					CQ_O_AT, CQ_S_P_AT, CQ_P_AT, CQ_S_AT
 				} ;  // CQ_END?
-			assert !queryMode : "iterator for queryMode is not immplemented" ;  
-			if (queryMode)
-				return null;
+			assert !queryMode : "iterator for queryMode is not immplemented" ;
+			if (queryMode) {
+                return null;
+            }
 
 			// if (!queryMode)
 			return new Iterator<KeyParts>() {
@@ -152,10 +168,10 @@ public class KeyParts implements Iterable<KeyParts> {
 				}
 			};
 		}
-		
+
 		public byte[] getStoreKey() {
 			assert !queryMode : "must be in store Mode, store keys are not initialized.";
-			return this.storeKey.copyBytes();
+			return storeKey.copyBytes();
 		}
 
 		/**
@@ -163,19 +179,20 @@ public class KeyParts implements Iterable<KeyParts> {
 		 * @return the row key for range queries.
 		 */
 	public Text getQueryKey() {
-		return getQueryKey(this.instant);
+		return getQueryKey(instant);
 	};
 
 	/**
 	 * Query key is the prefix plus the datetime, but no uniqueness at the end.
-	 * 
+	 *
 	 * @return the row key for range queries.
 	 */
-	public Text getQueryKey(TemporalInstant theInstant) {
+	public Text getQueryKey(final TemporalInstant theInstant) {
 		assert queryMode : "must be in query Mode, query keys are not initialized.";
-		Text keyText = new Text();
-		if (constraintPrefix != null)
-			appendBytes(constraintPrefix.copyBytes(), keyText);
+		final Text keyText = new Text();
+		if (constraintPrefix != null) {
+            appendBytes(constraintPrefix.copyBytes(), keyText);
+        }
 		appendInstant(theInstant, keyText);
 		return keyText;
 	};
@@ -184,29 +201,29 @@ public class KeyParts implements Iterable<KeyParts> {
 		public String toString() {
 			return "KeyParts [contraintPrefix=" + toHumanString(constraintPrefix) + ", instant=" + toHumanString(instant.getAsKeyBytes()) + ", cf=" + cf + ", cq=" + cq + "]";
 		}
-	    private static void appendSubject(Statement statement, Text keyText) {
-	        Value statementValue = new Value(StatementSerializer.writeSubject(statement).getBytes());
-	        byte[] hashOfValue = uniqueFromValueForKey(statementValue);
-	        appendBytes(HASH_PREFIX, keyText); // prefix the hash with a zero byte. 
+	    private static void appendSubject(final Statement statement, final Text keyText) {
+	        final Value statementValue = new Value(StatementSerializer.writeSubject(statement).getBytes());
+	        final byte[] hashOfValue = uniqueFromValueForKey(statementValue);
+	        appendBytes(HASH_PREFIX, keyText); // prefix the hash with a zero byte.
 	        appendBytes(hashOfValue, keyText);
 		}
 
-		private static void appendPredicate(Statement statement, Text keyText) {
-	        Value statementValue = new Value(StringUtils.getBytesUtf8(StatementSerializer.writePredicate(statement)));
-	        byte[] hashOfValue = uniqueFromValueForKey(statementValue);
-	        appendBytes(HASH_PREFIX, keyText); // prefix the hash with a zero byte. 
+		private static void appendPredicate(final Statement statement, final Text keyText) {
+	        final Value statementValue = new Value(StringUtils.getBytesUtf8(StatementSerializer.writePredicate(statement)));
+	        final byte[] hashOfValue = uniqueFromValueForKey(statementValue);
+	        appendBytes(HASH_PREFIX, keyText); // prefix the hash with a zero byte.
 	        appendBytes(hashOfValue, keyText);
 		}
 
-		private static void appendInstant(TemporalInstant instant, Text keyText) {
-			byte[] bytes = instant.getAsKeyBytes();
+		private static void appendInstant(final TemporalInstant instant, final Text keyText) {
+			final byte[] bytes = instant.getAsKeyBytes();
 	        appendBytes(bytes, keyText);
 		}
 
-		private static void appendSubjectPredicate(Statement statement, Text keyText) {
-	        Value statementValue = new Value(StringUtils.getBytesUtf8(StatementSerializer.writeSubjectPredicate(statement)));
-	        byte[] hashOfValue = uniqueFromValueForKey(statementValue);
-	        appendBytes(HASH_PREFIX, keyText); // prefix the hash with a zero byte. 
+		private static void appendSubjectPredicate(final Statement statement, final Text keyText) {
+	        final Value statementValue = new Value(StringUtils.getBytesUtf8(StatementSerializer.writeSubjectPredicate(statement)));
+	        final byte[] hashOfValue = uniqueFromValueForKey(statementValue);
+	        appendBytes(HASH_PREFIX, keyText); // prefix the hash with a zero byte.
 	        appendBytes(hashOfValue, keyText);
 		}
 
@@ -215,12 +232,12 @@ public class KeyParts implements Iterable<KeyParts> {
 		 * @param bytes append this
 		 * @param keyText text to append to
 		 */
-		private static void appendBytes(byte[] bytes, Text keyText) {
+		private static void appendBytes(final byte[] bytes, final Text keyText) {
 			keyText.append(bytes, 0, bytes.length);
 		}
 
 		/**
-	     * Get a collision unlikely hash string and append to the key, 
+	     * Get a collision unlikely hash string and append to the key,
 	     * so that if two keys have the same value, then they will be the same,
 	     * if two different values that occur at the same time there keys are different.
 	     * If the application uses a very large number of statements at the exact same time,
@@ -228,20 +245,20 @@ public class KeyParts implements Iterable<KeyParts> {
 	     * @param statement
 	     * @param keyText
 	     */
-	    public static void appendUniqueness(Statement statement, Text keyText) {
+	    public static void appendUniqueness(final Statement statement, final Text keyText) {
 	        keyText.append(HASH_PREFIX, 0, 1);   // delimiter
-	        Value statementValue = new Value(StringUtils.getBytesUtf8(StatementSerializer.writeStatement(statement)));
-	        byte[] hashOfValue = Md5Hash.md5Binary(statementValue);
+	        final Value statementValue = new Value(StringUtils.getBytesUtf8(StatementSerializer.writeStatement(statement)));
+	        final byte[] hashOfValue = Md5Hash.md5Binary(statementValue);
 	        keyText.append(hashOfValue, 0, hashOfValue.length);
 	    }
 	    /**
-	     * Get a collision unlikely hash string to append to the key, 
+	     * Get a collision unlikely hash string to append to the key,
 	     * so that if two keys have the same value, then they will be the same,
 	     * if two different values that occur at the same time there keys are different.
 	     * @param value
 	     * @return
 	     */
-	    private static byte[] uniqueFromValueForKey(Value value) {
+	    private static byte[] uniqueFromValueForKey(final Value value) {
 	        return Md5Hash.md5Binary(value);
 	    }
 
@@ -252,25 +269,26 @@ public class KeyParts implements Iterable<KeyParts> {
 		 * @param contraints
 		 * @return
 		 */
-		static public List<KeyParts> keyPartsForQuery(TemporalInstant queryInstant, StatementContraints contraints) {
-			List<KeyParts> keys = new LinkedList<KeyParts>();
-			URI urlNull = new URIImpl("urn:null");
-			Resource currentContext = contraints.getContext();
-			boolean hasSubj = contraints.hasSubject();
+		static public List<KeyParts> keyPartsForQuery(final TemporalInstant queryInstant, final StatementConstraints contraints) {
+			final List<KeyParts> keys = new LinkedList<KeyParts>();
+			final URI urlNull = new URIImpl("urn:null");
+			final Resource currentContext = contraints.getContext();
+			final boolean hasSubj = contraints.hasSubject();
 			if (contraints.hasPredicates()) {
-				for (URI nextPredicate : contraints.getPredicates()) {
-					Text contraintPrefix  = new Text();
-					Statement statement = new ContextStatementImpl(hasSubj ? contraints.getSubject() : urlNull, nextPredicate, urlNull, contraints.getContext());
-					if (hasSubj)
-						appendSubjectPredicate(statement, contraintPrefix);
-					else
-						appendPredicate(statement, contraintPrefix);
+				for (final URI nextPredicate : contraints.getPredicates()) {
+					final Text contraintPrefix  = new Text();
+					final Statement statement = new ContextStatementImpl(hasSubj ? contraints.getSubject() : urlNull, nextPredicate, urlNull, contraints.getContext());
+					if (hasSubj) {
+                        appendSubjectPredicate(statement, contraintPrefix);
+                    } else {
+                        appendPredicate(statement, contraintPrefix);
+                    }
 					keys.add(new KeyParts(contraintPrefix, queryInstant, (currentContext==null)?"":currentContext.toString(), hasSubj?CQ_S_P_AT:CQ_P_AT  ));
 				}
 			}
 			else if (contraints.hasSubject()) { // and no predicates
-				Text contraintPrefix = new Text();
-				Statement statement = new StatementImpl(contraints.getSubject(), urlNull, urlNull);
+				final Text contraintPrefix = new Text();
+				final Statement statement = new StatementImpl(contraints.getSubject(), urlNull, urlNull);
 				appendSubject(statement, contraintPrefix);
 				keys.add( new KeyParts(contraintPrefix, queryInstant, (currentContext==null)?"":currentContext.toString(), CQ_S_AT) );
 			}
@@ -285,17 +303,18 @@ public class KeyParts implements Iterable<KeyParts> {
 	     * @param value
 	     * @return Human readable representation.
 	     */
-		public static String toHumanString(Value value) {
+		public static String toHumanString(final Value value) {
 			return toHumanString(value==null?null:value.get());
 		}
-		public static String toHumanString(Text text) {
+		public static String toHumanString(final Text text) {
 			return toHumanString(text==null?null:text.copyBytes());
 		}
-		public static String toHumanString(byte[] bytes) {
-			if (bytes==null) 
-				return "{null}";
-			StringBuilder sb = new StringBuilder();
-			for (byte b : bytes) {
+		public static String toHumanString(final byte[] bytes) {
+			if (bytes==null) {
+                return "{null}";
+            }
+			final StringBuilder sb = new StringBuilder();
+			for (final byte b : bytes) {
 				if ((b > 0x7e) || (b < 32)) {
 					sb.append("{");
 					sb.append(Integer.toHexString( b & 0xff )); // Lop off the sign extended ones.
@@ -304,10 +323,11 @@ public class KeyParts implements Iterable<KeyParts> {
 					sb.append("{");
 					sb.append((char)b);
 					sb.append("}");
-				} else
-					sb.append((char)b);
+				} else {
+                    sb.append((char)b);
+                }
 			}
 			return sb.toString();
 		}
-		
+
 	}

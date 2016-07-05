@@ -1,0 +1,293 @@
+# Licensed to the Apache Software Foundation (ASF) under one
+# or more contributor license agreements.  See the NOTICE file
+# distributed with this work for additional information
+# regarding copyright ownership.  The ASF licenses this file
+# to you under the Apache License, Version 2.0 (the
+# "License"); you may not use this file except in compliance
+# with the License.  You may obtain a copy of the License at
+# 
+#   http://www.apache.org/licenses/LICENSE-2.0
+# 
+# Unless required by applicable law or agreed to in writing,
+# software distributed under the License is distributed on an
+# "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+# KIND, either express or implied.  See the License for the
+# specific language governing permissions and limitations
+# under the License.
+
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+# Note: Machine's ip is 192.168.33.10
+# username : vagrant
+# password : vagrant
+#
+# accumulo instance : dev
+# accumulo username : root
+# accumulo password : root
+
+Vagrant.configure(2) do |config|
+
+  config.vm.box = "ubuntu/trusty64"  
+  config.vm.box_url = "https://cloud-images.ubuntu.com/vagrant/trusty/current/trusty-server-cloudimg-amd64-vagrant-disk1.box"
+  
+  
+  
+
+  config.vm.provider "virtualbox" do |vb|
+    vb.name = "rya-example-box"
+    vb.memory = "4096"
+	vb.cpus = 4
+  end
+
+  config.vm.network :private_network, ip: "192.168.33.10"
+  config.vm.hostname = "rya-example-box"
+
+  config.vm.provision "shell", inline: <<-SHELL  
+  
+    export ACCUMULO_VERSION=1.7.1
+    export HADOOP_VERSION=2.7.2
+    export RYA_EXAMPLE_VERSION=3.2.10-SNAPSHOT
+    export SESAME_VERSION=2.7.6
+    export ZOOKEEPER_VERSION=3.4.5-cdh4.5.0
+    
+    echo "Updating host file with permanent ip"
+	sudo sed -i 's/127.0.1.1/192.168.33.10/' /etc/hosts
+    cat >> /etc/hosts <<EOF
+192.168.33.10 zoo1 zoo2 zoo3
+EOF
+
+    sudo apt-get update
+    
+    echo "Installing Sun Java..."
+    sudo add-apt-repository ppa:webupd8team/java
+    sudo apt-get update
+    echo debconf shared/accepted-oracle-license-v1-1 select true | \
+      sudo /usr/bin/debconf-set-selections
+    echo debconf shared/accepted-oracle-license-v1-1 seen true | \
+      sudo /usr/bin/debconf-set-selections
+    sudo apt-get install -y oracle-java8-installer
+    sudo ln -s /usr/lib/jvm/java-8-oracle/ /usr/lib/jvm/default-java
+    
+    echo "Installing Tomcat..."
+    sudo apt-get install -y tomcat7
+    
+    echo "Installing Unzip..."
+    apt-get install unzip
+
+    echo "Setting up environment..."
+    export JAVA_HOME=/usr/lib/jvm/java-8-oracle
+    export HADOOP_HOME=/home/vagrant/hadoop-${HADOOP_VERSION}
+    export ZOOKEEPER_HOME=/home/vagrant/zookeeper-${ZOOKEEPER_VERSION}
+    export ACCUMULO_HOME=/home/vagrant/accumulo-${ACCUMULO_VERSION}
+    export PATH=$PATH:$JAVA_HOME/bin:$ZOOKEEPER_HOME/bin:$ACCUMULO_HOME/bin
+
+    export HADOOP_PREFIX="$HADOOP_HOME"
+    export HADOOP_CONF_DIR="$HADOOP_PREFIX/conf"
+    export ACCUMULO_LOG_DIR=$ACCUMULO_HOME/logs
+    export ACCUMULO_TSERVER_OPTS="-Xmx384m -Xms384m "
+    export ACCUMULO_MASTER_OPTS="-Xmx128m -Xms128m"
+    export ACCUMULO_MONITOR_OPTS="-Xmx64m -Xms64m"
+    export ACCUMULO_GC_OPTS="-Xmx64m -Xms64m"
+    export ACCUMULO_GENERAL_OPTS="-XX:+UseConcMarkSweepGC -XX:CMSInitiatingOccupancyFraction=75 -Djava.net.preferIPv4Stack=true"
+    export ACCUMULO_OTHER_OPTS="-Xmx128m -Xms64m"
+    export ACCUMULO_KILL_CMD='kill -9 %p'
+
+    cat >> /home/vagrant/.bashrc <<EOF
+        export JAVA_HOME=/usr/lib/jvm/java-8-oracle
+        export HADOOP_HOME=/home/vagrant/hadoop-${HADOOP_VERSION}
+        export ZOOKEEPER_HOME=/home/vagrant/zookeeper-${ZOOKEEPER_VERSION}
+        export ACCUMULO_HOME=/home/vagrant/accumulo-${ACCUMULO_VERSION}
+        export PATH=$PATH:$JAVA_HOME/bin:$ZOOKEEPER_HOME/bin:$ACCUMULO_HOME/bin
+
+        export HADOOP_PREFIX="$HADOOP_HOME"
+        export HADOOP_CONF_DIR="$HADOOP_PREFIX/conf"
+        export ACCUMULO_LOG_DIR=$ACCUMULO_HOME/logs
+        export ACCUMULO_TSERVER_OPTS="-Xmx384m -Xms384m "
+        export ACCUMULO_MASTER_OPTS="-Xmx128m -Xms128m"
+        export ACCUMULO_MONITOR_OPTS="-Xmx64m -Xms64m"
+        export ACCUMULO_GC_OPTS="-Xmx64m -Xms64m"
+        export ACCUMULO_GENERAL_OPTS="-XX:+UseConcMarkSweepGC -XX:CMSInitiatingOccupancyFraction=75 -Djava.net.preferIPv4Stack=true"
+        export ACCUMULO_OTHER_OPTS="-Xmx128m -Xms64m"
+        export ACCUMULO_KILL_CMD='kill -9 %p'
+EOF
+
+    
+    echo "Acquiring and Extracting ..."    
+    
+    function download {
+      curl -f "$@"
+      if [ $? -ne 0 ]; then
+        echo "--------------------------"
+        echo "-"
+        echo "- download failed" "$@"
+        echo "-"
+        echo "-"   exiting ...
+        echo "-"
+        echo "--------------------------"
+        exit 1
+      fi
+    }
+    
+    echo "- Hadoop"
+    download -SLO http://apache.mirrors.tds.net/hadoop/common/hadoop-${HADOOP_VERSION}/hadoop-${HADOOP_VERSION}.tar.gz 
+    tar -zxf hadoop-${HADOOP_VERSION}.tar.gz
+
+    echo "- Zookeeper"
+    download -SLO http://archive-primary.cloudera.com/cdh4/cdh/4/zookeeper-${ZOOKEEPER_VERSION}.tar.gz
+    tar -zxf zookeeper-${ZOOKEEPER_VERSION}.tar.gz
+    
+    echo "- Accumulo"
+    download -SLO http://apache.mirrors.pair.com/accumulo/${ACCUMULO_VERSION}/accumulo-${ACCUMULO_VERSION}-bin.tar.gz
+    tar -zxf accumulo-${ACCUMULO_VERSION}-bin.tar.gz
+    
+    echo "Configuring Zookeeper..."
+    sudo mkdir /var/zookeeper
+    sudo chown vagrant:vagrant /var/zookeeper
+
+    echo "Running Zookeeper..."
+    cp zookeeper-${ZOOKEEPER_VERSION}/conf/zoo_sample.cfg zookeeper-${ZOOKEEPER_VERSION}/conf/zoo.cfg
+    sudo zookeeper-${ZOOKEEPER_VERSION}/bin/zkServer.sh start
+    
+    echo "Configuring Accumulo..."
+    cp accumulo-${ACCUMULO_VERSION}/conf/examples/1GB/standalone/* accumulo-${ACCUMULO_VERSION}/conf/
+    rm accumulo-${ACCUMULO_VERSION}/conf/accumulo-site.xml
+    cat >> accumulo-${ACCUMULO_VERSION}/conf/accumulo-site.xml <<EOF
+        <configuration>
+            <property><name>instance.dfs.uri</name><value>file:///</value></property>
+            <property><name>instance.dfs.dir</name><value>/data/accumulo</value></property>
+            <property><name>instance.zookeeper.host</name><value>localhost:2181</value></property>
+            <property><name>instance.secret</name><value>DONTTELL</value></property>
+            <property><name>tserver.port.search</name><value>true</value></property>
+            <property><name>logger.dir.walog</name><value>/data/accumulo/walogs</value></property>
+            <property><name>tserver.cache.data.size</name><value>15M</value></property>
+            <property><name>tserver.cache.index.size</name><value>15M</value></property>
+            <property><name>tserver.memory.maps.max</name><value>256M</value></property>
+            <property><name>tserver.walog.max.size</name><value>256M</value></property>
+            <property><name>tserver.memory.maps.native.enabled</name><value>false</value></property>
+            <property><name>trace.token.property.password</name><value>root</value></property>
+            <property><name>gc.cycle.delay</name><value>4s</value></property>
+            <property><name>gc.cycle.start</name><value>0s</value></property>
+            <property><name>tserver.compaction.major.delay</name><value>3</value></property>
+            <property><name>general.classpaths</name><value>
+            /data/accumulo/lib/[^.].*.jar,
+            /home/vagrant/hadoop-${HADOOP_VERSION}/share/hadoop/common/.*.jar,
+            /home/vagrant/hadoop-${HADOOP_VERSION}/share/hadoop/common/lib/.*.jar,
+            /home/vagrant/hadoop-${HADOOP_VERSION}/share/hadoop/hdfs/.*.jar,
+            /home/vagrant/hadoop-${HADOOP_VERSION}/share/hadoop/mapreduce/.*.jar,
+            /home/vagrant/hadoop-${HADOOP_VERSION}/share/hadoop/yarn/.*.jar,
+            /home/vagrant/accumulo-${ACCUMULO_VERSION}/server/target/classes/,
+            /home/vagrant/accumulo-${ACCUMULO_VERSION}/lib/accumulo-server.jar,
+            /home/vagrant/accumulo-${ACCUMULO_VERSION}/core/target/classes/,
+            /home/vagrant/accumulo-${ACCUMULO_VERSION}/lib/accumulo-core.jar,
+            /home/vagrant/accumulo-${ACCUMULO_VERSION}/start/target/classes/,
+            /home/vagrant/accumulo-${ACCUMULO_VERSION}/lib/accumulo-start.jar,
+            /home/vagrant/accumulo-${ACCUMULO_VERSION}/fate/target/classes/,
+            /home/vagrant/accumulo-${ACCUMULO_VERSION}/lib/accumulo-fate.jar,
+            /home/vagrant/accumulo-${ACCUMULO_VERSION}/proxy/target/classes/,
+            /home/vagrant/accumulo-${ACCUMULO_VERSION}/lib/accumulo-proxy.jar,
+            /home/vagrant/accumulo-${ACCUMULO_VERSION}/lib/[^.].*.jar,
+            /home/vagrant/zookeeper-${ZOOKEEPER_VERSION}/zookeeper[^.].*.jar,
+            $HADOOP_CONF_DIR,
+            /home/vagrant/hadoop-${HADOOP_VERSION}/[^.].*.jar,
+            /home/vagrant/hadoop-${HADOOP_VERSION}/lib/[^.].*.jar,
+            </value></property>
+            <property><name>general.dynamic.classpaths</name><value>/data/accumulo/lib/ext/[^.].*.jar</value></property>
+            <property><name>trace.port.client</name><value>0</value></property>
+            <property><name>monitor.port.client</name><value>0</value></property>
+            <property><name>master.port.client</name><value>0</value></property>
+            <property><name>tserver.port.client</name><value>0</value></property>
+            <property><name>gc.port.client</name><value>0</value></property>
+        </configuration>
+EOF
+    cat > accumulo-${ACCUMULO_VERSION}/conf/masters <<EOF
+rya-example-box
+EOF
+
+	cat > accumulo-${ACCUMULO_VERSION}/conf/slaves <<EOF
+rya-example-box
+EOF
+    sudo mkdir /data
+    sudo chown vagrant:vagrant /data
+    mkdir /data/accumulo
+    mkdir /data/accumulo/lib
+    mkdir /data/accumulo/lib/ext
+
+    echo "Starting Accumulo..."
+    accumulo-${ACCUMULO_VERSION}/bin/accumulo init --instance-name dev --password root
+    accumulo-${ACCUMULO_VERSION}/bin/start-all.sh
+
+    echo 'Done!'
+
+	echo "Installing Sesame Server"
+	# creating log dir sesame-http-server-${SESAME_VERSION}
+	sudo mkdir -p /usr/share/tomcat7/.aduna 
+	sudo chown -R tomcat7:tomcat7 /usr/share/tomcat7  
+    sudo ln -s /usr/share/tomcat7/.aduna/openrdf-sesame/logs /var/log/tomcat7/openrdf-sesame
+	
+	download -O http://repo1.maven.org/maven2/org/openrdf/sesame/sesame-http-server/${SESAME_VERSION}/sesame-http-server-${SESAME_VERSION}.war
+	sudo mv sesame-http-server-${SESAME_VERSION}.war /var/lib/tomcat7/webapps/openrdf-sesame.war
+	echo "Sesame http server deployed at http://rya-example-box:8080/openrdf-sesame"
+	
+	echo "Installing Sesame Workbench"
+	download -O http://repo1.maven.org/maven2/org/openrdf/sesame/sesame-http-workbench/${SESAME_VERSION}/sesame-http-workbench-${SESAME_VERSION}.war
+	sudo mv sesame-http-workbench-${SESAME_VERSION}.war /var/lib/tomcat7/webapps/openrdf-workbench.war
+	echo "Sesame workbench deployed at http://rya-example-box:8080/openrdf-workbench"
+
+	echo "Downloading Rya"
+	# Right now it's on dropbox, but eventually it'll be on maven...
+
+	download -L https://www.dropbox.com/s/7e74yiuq4jmu0od/rya.indexing.example-${RYA_EXAMPLE_VERSION}-distribution.zip?dl=0 -o rya.indexing.example-${RYA_EXAMPLE_VERSION}-distribution.zip
+	sudo mkdir rya.indexing.example-${RYA_EXAMPLE_VERSION}-distribution
+	sudo unzip rya.indexing.example-${RYA_EXAMPLE_VERSION}-distribution.zip -d rya.indexing.example-${RYA_EXAMPLE_VERSION}-distribution
+	
+	# soft linking the files doesn't seem to work in tomcat, so we copy them instead :(
+	sudo cp rya.indexing.example-${RYA_EXAMPLE_VERSION}-distribution/dist/lib/* /var/lib/tomcat7/webapps/openrdf-workbench/WEB-INF/lib/
+	sudo cp rya.indexing.example-${RYA_EXAMPLE_VERSION}-distribution/dist/lib/* /var/lib/tomcat7/webapps/openrdf-sesame/WEB-INF/lib/
+
+	# These are older libs that breaks tomcat 7
+	sudo rm /var/lib/tomcat7/webapps/openrdf-workbench/WEB-INF/lib/servlet-api-2.5.jar
+	sudo rm /var/lib/tomcat7/webapps/openrdf-workbench/WEB-INF/lib/jsp-api-2.1.jar
+	sudo rm /var/lib/tomcat7/webapps/openrdf-sesame/WEB-INF/lib/servlet-api-2.5.jar
+	sudo rm /var/lib/tomcat7/webapps/openrdf-sesame/WEB-INF/lib/jsp-api-2.1.jar
+	
+	sudo chown -R tomcat7:tomcat7 /var/lib/tomcat7/webapps/openrdf-workbench/WEB-INF/lib/
+	sudo chown -R tomcat7:tomcat7 /var/lib/tomcat7/webapps/openrdf-sesame/WEB-INF/lib/
+
+	# Download and install new templates for OpenRdf WorkBench
+	download -L -O https://www.dropbox.com/s/dgw63m66nubyy4z/rya.vagrant.example-${RYA_EXAMPLE_VERSION}.jar
+	sudo mkdir rya.vagrant.example-${RYA_EXAMPLE_VERSION}
+	sudo unzip rya.vagrant.example-${RYA_EXAMPLE_VERSION}.jar -d rya.vagrant.example-${RYA_EXAMPLE_VERSION}
+	sudo cp rya.vagrant.example-${RYA_EXAMPLE_VERSION}/*.xsl /var/lib/tomcat7/webapps/openrdf-workbench/transformations/
+	
+	echo "Deploying Rya Web"
+	download -L https://www.dropbox.com/s/332wr4b2f34dp6e/web.rya-${RYA_EXAMPLE_VERSION}.war?dl=0 -o web.rya.war
+	sudo cp web.rya.war /var/lib/tomcat7/webapps/web.rya.war
+	# Wait for the war to deploy
+	sudo sleep 10
+	# These are older libs that breaks tomcat 7
+	sudo rm /var/lib/tomcat7/webapps/web.rya/WEB-INF/lib/servlet-api-2.5*.jar
+	sudo rm /var/lib/tomcat7/webapps/web.rya/WEB-INF/lib/jsp-api-2.1.jar
+
+	echo "Modify Rya Web Config"
+	cat > /var/lib/tomcat7/webapps/web.rya/WEB-INF/classes/environment.properties <<EOF
+instance.name=dev
+instance.zk=localhost:2181
+instance.username=root
+instance.password=root
+rya.tableprefix=rya_
+rya.displayqueryplan=true
+EOF
+
+	echo "Rya web deployed at http://rya-example-box:8080/web.rya/sparqlQuery.jsp"
+	
+	# restart tomcat
+	sudo service tomcat7 restart
+	
+
+
+	
+	
+  SHELL
+
+end

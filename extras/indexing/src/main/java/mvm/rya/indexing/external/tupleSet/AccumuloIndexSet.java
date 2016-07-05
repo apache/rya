@@ -1,625 +1,608 @@
-package mvm.rya.indexing.external.tupleSet;
-
 /*
- * #%L
- * mvm.rya.indexing.accumulo
- * %%
- * Copyright (C) 2014 Rya
- * %%
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- * 
- *      http://www.apache.org/licenses/LICENSE-2.0
- * 
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- * #L%
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
  */
+package mvm.rya.indexing.external.tupleSet;
 
 import info.aduna.iteration.CloseableIteration;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.NoSuchElementException;
 import java.util.Set;
 
-import mvm.rya.accumulo.precompQuery.AccumuloPrecompQueryIndexer;
+import mvm.rya.accumulo.pcj.iterators.BindingSetHashJoinIterator;
+import mvm.rya.accumulo.pcj.iterators.BindingSetHashJoinIterator.HashJoinType;
+import mvm.rya.accumulo.pcj.iterators.IteratorCombiner;
+import mvm.rya.accumulo.pcj.iterators.PCJKeyToCrossProductBindingSetIterator;
+import mvm.rya.accumulo.pcj.iterators.PCJKeyToJoinBindingSetIterator;
+import mvm.rya.api.RdfCloudTripleStoreConfiguration;
+import mvm.rya.api.utils.IteratorWrapper;
+import mvm.rya.indexing.accumulo.ConfigUtils;
+import mvm.rya.indexing.pcj.matching.PCJOptimizerUtilities;
 import mvm.rya.rdftriplestore.evaluation.ExternalBatchingIterator;
 
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
-import org.apache.accumulo.core.client.BatchWriter;
+import org.apache.accumulo.core.client.BatchScanner;
 import org.apache.accumulo.core.client.Connector;
-import org.apache.accumulo.core.client.MutationsRejectedException;
 import org.apache.accumulo.core.client.Scanner;
 import org.apache.accumulo.core.client.TableNotFoundException;
-import org.apache.accumulo.core.data.Key;
-import org.apache.accumulo.core.data.Mutation;
 import org.apache.accumulo.core.data.Range;
-import org.apache.accumulo.core.data.Value;
 import org.apache.accumulo.core.security.Authorizations;
-import org.apache.commons.io.IOUtils;
+import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.Text;
-import org.openrdf.model.Literal;
-import org.openrdf.model.URI;
-import org.openrdf.model.impl.LiteralImpl;
-import org.openrdf.model.impl.URIImpl;
+import org.apache.rya.indexing.pcj.storage.PcjException;
+import org.apache.rya.indexing.pcj.storage.PcjMetadata;
+import org.apache.rya.indexing.pcj.storage.accumulo.AccumuloPcjSerializer;
+import org.apache.rya.indexing.pcj.storage.accumulo.BindingSetConverter.BindingSetConversionException;
+import org.apache.rya.indexing.pcj.storage.accumulo.PcjTables;
+import org.apache.rya.indexing.pcj.storage.accumulo.VariableOrder;
+import org.openrdf.model.Value;
 import org.openrdf.query.Binding;
 import org.openrdf.query.BindingSet;
 import org.openrdf.query.MalformedQueryException;
 import org.openrdf.query.QueryEvaluationException;
 import org.openrdf.query.algebra.Projection;
-import org.openrdf.query.algebra.QueryModelNode;
-import org.openrdf.query.algebra.StatementPattern;
-import org.openrdf.query.algebra.ValueExpr;
-import org.openrdf.query.algebra.Var;
-import org.openrdf.query.algebra.helpers.QueryModelVisitorBase;
-import org.openrdf.query.impl.EmptyBindingSet;
+import org.openrdf.query.algebra.TupleExpr;
+import org.openrdf.query.algebra.evaluation.QueryBindingSet;
+import org.openrdf.query.impl.BindingImpl;
 import org.openrdf.query.parser.ParsedTupleQuery;
 import org.openrdf.query.parser.sparql.SPARQLParser;
-import org.openrdf.repository.sail.SailRepositoryConnection;
 import org.openrdf.sail.SailException;
 
-import com.beust.jcommander.internal.Sets;
 import com.google.common.base.Joiner;
-import com.google.common.collect.BiMap;
+import com.google.common.base.Optional;
+import com.google.common.base.Preconditions;
 import com.google.common.collect.HashBiMap;
+import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
+import com.google.common.collect.Multimap;
+import com.google.common.collect.Sets;
 
-public class AccumuloIndexSet extends ExternalTupleSet implements ExternalBatchingIterator {
+/**
+ * During query planning, this node is inserted into the parsed query to
+ * represent part of the original query (a sub-query). This sub-query is the
+ * value returned by {@link ExternalTupleSet#getTupleExpr()}. The results
+ * associated with this sub-query are stored in an external Accumulo table,
+ * where accCon and tablename are the associated {@link Connector} and table
+ * name. During evaluation, the portion of the query in {@link AccumuloIndexSet}
+ * is evaluated by scanning the external Accumulo table. This class is extremely
+ * useful for caching queries and reusing results from previous SPARQL queries.
+ * <p>
+ *
+ * The the {@link TupleExpr} returned by {@link ExternalTupleSet#getTupleExpr()}
+ * may have different variables than the query and variables stored in the
+ * external Accumulo table. The mapping of variables from the TupleExpr to the
+ * table variables are given by {@link ExternalTupleSet#getTableVarMap()}. In
+ * addition to allowing the variables to differ, it is possible for TupleExpr to
+ * have fewer variables than the table query--that is, some of the variables in
+ * the table query may appear as constants in the TupleExpr. Theses expression
+ * are extracted from TupleExpr by the methods
+ * {@link AccumuloIndexSet#getConstantConstraints()} and by the Visitor
+ * {@link ValueMapVisitor} to be used as constraints when scanning the Accumulo
+ * table. This allows for the pre-computed results to be used for a larger class
+ * of sub-queries.
+ *
+ */
+public class AccumuloIndexSet extends ExternalTupleSet implements
+		ExternalBatchingIterator {
 
-    private static final int WRITER_MAX_WRITE_THREADS = 30;
-    private static final long WRITER_MAX_LATNECY = Long.MAX_VALUE;
-    private static final long WRITER_MAX_MEMORY = 500L * 1024L * 1024L;
-    private Map<String,AccValueFactory> bindings;
-    private List<String> bindingslist;
-    private final Connector accCon;
-    private final String tablename;
-    private long tableSize = 0;
-    private List<String> varOrder = null; 
-    
-    
-    public static interface AccValueFactory {
-        public org.openrdf.model.Value create(String str);
+	private Connector accCon; // connector to Accumulo table where results
+									// are stored
+	private String tablename; // name of Accumulo table
+	private List<String> varOrder = null; // orders in which results are written
+											// to table
+	private PcjTables pcj = new PcjTables();
+	private Authorizations auths;
 
-        public String create(org.openrdf.model.Value val);
-    }
 
-    public static class AccUrlFactory implements AccValueFactory {
-        @Override
-        public org.openrdf.model.Value create(final String str) {
-            return new URIImpl(str);
+	@Override
+	public Map<String, Set<String>> getSupportedVariableOrders() {
+		return this.getSupportedVariableOrderMap();
+	}
+
+	@Override
+	public String getSignature() {
+		return "AccumuloIndexSet(" + tablename + ") : "
+				+ Joiner.on(", ").join(this.getTupleExpr().getBindingNames());
+	}
+
+	/**
+	 *
+	 * @param sparql
+	 *            - name of sparql query whose results will be stored in PCJ
+	 *            table
+	 * @param accCon
+	 *            - connection to a valid Accumulo instance
+	 * @param tablename
+	 *            - name of an existing PCJ table
+	 * @throws MalformedQueryException
+	 * @throws SailException
+	 * @throws QueryEvaluationException
+	 * @throws TableNotFoundException
+	 * @throws AccumuloSecurityException
+	 * @throws AccumuloException
+	 */
+	public AccumuloIndexSet(String sparql, Configuration conf,
+			String tablename) throws MalformedQueryException, SailException,
+			QueryEvaluationException, TableNotFoundException, AccumuloException, AccumuloSecurityException {
+		this.tablename = tablename;
+		this.accCon = ConfigUtils.getConnector(conf);
+		this.auths = getAuthorizations(conf);
+		SPARQLParser sp = new SPARQLParser();
+		ParsedTupleQuery pq = (ParsedTupleQuery) sp.parseQuery(sparql, null);
+		TupleExpr te = pq.getTupleExpr();
+		Preconditions.checkArgument(PCJOptimizerUtilities.isPCJValid(te),
+				"TupleExpr is an invalid PCJ.");
+
+		Optional<Projection> projection = new ParsedQueryUtil()
+				.findProjection(pq);
+		if (!projection.isPresent()) {
+			throw new MalformedQueryException("SPARQL query '" + sparql
+					+ "' does not contain a Projection.");
+		}
+		setProjectionExpr(projection.get());
+		Set<VariableOrder> orders = null;
+		try {
+			orders = pcj.getPcjMetadata(accCon, tablename).getVarOrders();
+		} catch (final PcjException e) {
+			e.printStackTrace();
+		}
+
+		varOrder = Lists.newArrayList();
+		for (final VariableOrder var : orders) {
+			varOrder.add(var.toString());
+		}
+		setLocalityGroups(tablename, accCon, varOrder);
+		this.setSupportedVariableOrderMap(varOrder);
+	}
+
+	/**
+	 *
+	 * @param accCon
+	 *            - connection to a valid Accumulo instance
+	 * @param tablename
+	 *            - name of an existing PCJ table
+	 * @throws MalformedQueryException
+	 * @throws SailException
+	 * @throws QueryEvaluationException
+	 * @throws TableNotFoundException
+	 * @throws AccumuloSecurityException
+	 * @throws AccumuloException
+	 */
+	public AccumuloIndexSet(Configuration conf, String tablename)
+			throws MalformedQueryException, SailException,
+			QueryEvaluationException, TableNotFoundException, AccumuloException, AccumuloSecurityException {
+		this.accCon = ConfigUtils.getConnector(conf);
+		this.auths = getAuthorizations(conf);
+		PcjMetadata meta = null;
+		try {
+			meta = pcj.getPcjMetadata(accCon, tablename);
+		} catch (final PcjException e) {
+			e.printStackTrace();
+		}
+
+		this.tablename = tablename;
+		SPARQLParser sp = new SPARQLParser();
+		ParsedTupleQuery pq = (ParsedTupleQuery) sp.parseQuery(
+				meta.getSparql(), null);
+
+		setProjectionExpr((Projection) pq.getTupleExpr());
+		Set<VariableOrder> orders = meta.getVarOrders();
+
+		varOrder = Lists.newArrayList();
+		for (final VariableOrder var : orders) {
+			varOrder.add(var.toString());
+		}
+		setLocalityGroups(tablename, accCon, varOrder);
+		this.setSupportedVariableOrderMap(varOrder);
+	}
+
+
+	private Authorizations getAuthorizations(Configuration conf) {
+		final String authString = conf.get(RdfCloudTripleStoreConfiguration.CONF_QUERY_AUTH, "");
+        if (authString.isEmpty()) {
+            return new Authorizations();
         }
+        return new Authorizations(authString.split(","));
+	}
 
-        @Override
-        public String create(org.openrdf.model.Value val) {
-            return val.stringValue();
-        }
-    }
-    
-    public static class AccValueFactoryImpl implements AccValueFactory {
-        @Override
-        public org.openrdf.model.Value create(final String str) {
-            String[] split = str.split("\u0001");
-            if (split.length > 1 && split[1].equals("1")) {
-                return new URIImpl(split[0]);
-            }
-            if (split[0].contains(":")) {
-                return new URIImpl(split[0]);
-            }
-            return new LiteralImpl(split[0]);
-        }
+	/**
+	 * returns size of table for query planning
+	 */
+	@Override
+	public double cardinality() {
+		double cardinality = 0;
+		try {
+			cardinality = pcj.getPcjMetadata(accCon, tablename)
+					.getCardinality();
+		} catch (PcjException e) {
+			e.printStackTrace();
+		}
+		return cardinality;
+	}
 
-        @Override
-        public String create(org.openrdf.model.Value val) {
-            if (val instanceof URI) {
-                return val.stringValue() + "\u0001" + 1;
-            }
-            if (val instanceof Literal) {
-                Literal v = (Literal) val;
-                return v.getLabel() + "\u0001" + 2;
-            }
-            return null;
-        }
-    }
+	/**
+	 *
+	 * @param tableName
+	 * @param conn
+	 * @param groups
+	 *            - locality groups to be created
+	 *
+	 *            Sets locality groups for more efficient scans - these are
+	 *            usually the variable orders in the table so that scans for
+	 *            specific orders are more efficient
+	 */
+	private void setLocalityGroups(String tableName, Connector conn,
+			List<String> groups) {
 
-    
-    //TODO set supportedVarOrderMap 
-    public AccumuloIndexSet(String sparql, SailRepositoryConnection conn, Connector accCon, String tablename) throws MalformedQueryException, SailException,
-            QueryEvaluationException, MutationsRejectedException, TableNotFoundException {
-        super(null);
-        this.tablename = tablename;
-        this.accCon = accCon;
-        SPARQLParser sp = new SPARQLParser();
-        ParsedTupleQuery pq = (ParsedTupleQuery) sp.parseQuery(sparql, null);
+		final HashMap<String, Set<Text>> localityGroups = new HashMap<String, Set<Text>>();
+		for (int i = 0; i < groups.size(); i++) {
+			final HashSet<Text> tempColumn = new HashSet<Text>();
+			tempColumn.add(new Text(groups.get(i)));
+			final String groupName = groups.get(i).replace(VALUE_DELIM, "");
+			localityGroups.put(groupName, tempColumn);
+		}
 
-        setProjectionExpr((Projection) pq.getTupleExpr());
-        CloseableIteration<BindingSet,QueryEvaluationException> iter = (CloseableIteration<BindingSet,QueryEvaluationException>) conn.getSailConnection()
-                .evaluate(getTupleExpr(), null, new EmptyBindingSet(), false);
+		try {
+			conn.tableOperations().setLocalityGroups(tableName, localityGroups);
+		} catch (AccumuloException | AccumuloSecurityException
+				| TableNotFoundException e) {
+			e.printStackTrace();
+		}
 
-        BatchWriter w = accCon.createBatchWriter(tablename, WRITER_MAX_MEMORY, WRITER_MAX_LATNECY, WRITER_MAX_WRITE_THREADS);
-        this.bindingslist = Lists.newArrayList(pq.getTupleExpr().getAssuredBindingNames());
+	}
 
-        this.bindings = Maps.newHashMap();
+	@Override
+	public CloseableIteration<BindingSet, QueryEvaluationException> evaluate(
+			BindingSet bindingset) throws QueryEvaluationException {
+		return this.evaluate(Collections.singleton(bindingset));
+	}
 
-        pq.getTupleExpr().visit(new QueryModelVisitorBase<RuntimeException>() {
-            @Override
-            public void meet(Var node) {
-                QueryModelNode parent = node.getParentNode();
-                if (parent instanceof StatementPattern) {
-                    StatementPattern statement = (StatementPattern) parent;
-                    if (node.equals(statement.getSubjectVar())) {
-                        bindings.put(node.getName(), new AccUrlFactory());
-                    }
-                    if (node.equals(statement.getPredicateVar())) {
-                        bindings.put(node.getName(), new AccUrlFactory());
-                    }
-                    if (node.equals(statement.getObjectVar())) {
-                        bindings.put(node.getName(), new AccValueFactoryImpl());
-                    }
-                    if (node.equals(statement.getContextVar())) {
-                        // TODO is this correct?
-                        bindings.put(node.getName(), new AccUrlFactory());
-                    }
-                } else if(parent instanceof ValueExpr) {
-                    bindings.put(node.getName(), new AccValueFactoryImpl());
-                } 
-            };
-        });
-        
-        
-        
-        
-       
-        varOrder = new ArrayList<String>(bindingslist.size());
- 
-        while (iter.hasNext()) {
-            
-            BindingSet bs = iter.next();
-            List<String> shiftBindingList = null;
-            for (int j = 0; j < bindingslist.size(); j++) {
-                StringBuffer sb = new StringBuffer();
-                shiftBindingList = listShift(bindingslist, j);  //TODO calling this each time not efficient
-                String order = "";
-                for (String b : shiftBindingList) {
-                    String val = bindings.get(b).create(bs.getValue(b));
-                    sb.append(val).append("\u0000");
-                    if (order.length() == 0) {
-                        order = b;
-                    } else {
-                        order = order + "\u0000" + b;
-                    }
-                }
-                
-                if (varOrder.size() < bindingslist.size()) {
-                    varOrder.add(order);
-                }
-                
-                //System.out.println("String buffer is " + sb);
-                Mutation m = new Mutation(sb.deleteCharAt(sb.length() - 1).toString());
-                m.put(new Text(varOrder.get(j)), new Text(""), new org.apache.accumulo.core.data.Value(new byte[]{}));
-                w.addMutation(m);
-            }
-            tableSize += 1;
-        }
-        
-        setLocalityGroups(tablename, accCon, varOrder);
-        this.setSupportedVariableOrderMap(createSupportedVarOrderMap(varOrder));
-         
-        
-        String orders = "";
-        
-        for(String s : varOrder) {
-            s = s.replace("\u0000", ";");
-            if(orders.length() == 0) {
-                orders = s;
-            } else {
-                orders = orders + "\u0000" + s;
-            }
-        }
-        
-        
-        Mutation m = new Mutation("~SPARQL");
-        Value v = new Value(sparql.getBytes());
-        m.put(new Text("" + tableSize), new Text(orders), v);
-        w.addMutation(m);
-     
-        w.close();
-        iter.close();
-    }
+	/**
+	 * Core evaluation method used during query evaluation - given a collection
+	 * of binding set constraints, this method finds common binding labels
+	 * between the constraints and table, uses those to build a prefix scan of
+	 * the Accumulo table, and creates a solution binding set by iterating of
+	 * the scan results.
+	 * @param bindingset - collection of {@link BindingSet}s to be joined with PCJ
+	 * @return - CloseableIteration over joined results
+	 */
+	@Override
+	public CloseableIteration<BindingSet, QueryEvaluationException> evaluate(
+			final Collection<BindingSet> bindingset)
+			throws QueryEvaluationException {
 
-    
-    
-    
-    @Override
-    public Map<String, Set<String>> getSupportedVariableOrders() {
-   
-        return this.getSupportedVariableOrderMap();
+		if (bindingset.isEmpty()) {
+			return new IteratorWrapper<BindingSet, QueryEvaluationException>(
+					new HashSet<BindingSet>().iterator());
+		}
 
-    }
-    
-    
-    @Override
-    public boolean supportsBindingSet(Set<String> bindingNames) {
+		List<BindingSet> crossProductBs = new ArrayList<>();
+		Map<String, org.openrdf.model.Value> constantConstraints = new HashMap<>();
+		Set<Range> hashJoinRanges = new HashSet<>();
+		final Range EMPTY_RANGE = new Range("", true, "~", false);
+		Range crossProductRange = EMPTY_RANGE;
+		String localityGroupOrder = varOrder.get(0);
+		int maxPrefixLen = Integer.MIN_VALUE;
+		int prefixLen = 0;
+		int oldPrefixLen = 0;
+		Multimap<String, BindingSet> bindingSetHashMap = HashMultimap.create();
+		HashJoinType joinType = HashJoinType.CONSTANT_JOIN_VAR;
+		Set<String> unAssuredVariables = Sets.difference(getTupleExpr().getBindingNames(), getTupleExpr().getAssuredBindingNames());
+		boolean useColumnScan = false;
+		boolean isCrossProd = false;
+		boolean containsConstantConstraints = false;
+		BindingSet constants = getConstantConstraints();
+		containsConstantConstraints = constants.size() > 0;
 
-        Map<String, Set<String>> varOrderMap = this.getSupportedVariableOrders();
-        Collection<Set<String>> values = varOrderMap.values();
-        Set<String> bNames = Sets.newHashSet();
+		try {
+			for (BindingSet bs : bindingset) {
+				if (bindingset.size() == 1 && bs.size() == 0) {
+					// in this case, only single, empty bindingset, pcj node is
+					// first node in query plan - use full Range scan with
+					// column
+					// family set
+					useColumnScan = true;
+				}
+				// get common vars for PCJ - only use variables associated
+				// with assured Bindings
+				QueryBindingSet commonVars = new QueryBindingSet();
+				for (String b : getTupleExpr().getAssuredBindingNames()) {
+					Binding v = bs.getBinding(b);
+					if (v != null) {
+						commonVars.addBinding(v);
+					}
+				}
+				// no common vars implies cross product
+				if (commonVars.size() == 0 && bs.size() != 0) {
+					crossProductBs.add(bs);
+					isCrossProd = true;
+				}
+				//get a varOrder from orders in PCJ table - use at least
+				//one common variable
+				BindingSetVariableOrder varOrder = getVarOrder(
+						commonVars.getBindingNames(),
+						constants.getBindingNames());
 
-        for (String s : this.getTupleExpr().getAssuredBindingNames()) {
-            if (bindingNames.contains(s)) {
-                bNames.add(s);
-            }
-        }
+				// update constant constraints not used in varOrder and
+				// update Bindings used to form range by removing unused
+				// variables
+				commonVars.addAll(constants);
+				if (commonVars.size() > varOrder.varOrderLen) {
+					Map<String, Value> valMap = getConstantValueMap();
+					for (String s : new HashSet<String>(varOrder.unusedVars)) {
+						if (valMap.containsKey(s)
+								&& !constantConstraints.containsKey(s)) {
+							constantConstraints.put(s, valMap.get(s));
+						}
+						commonVars.removeBinding(s);
+					}
+				}
 
-        return values.contains(bNames);
-    }
-        
-    
-    private String getVarOrder(Set<String> variables) {
+				if (containsConstantConstraints
+						&& (useColumnScan || isCrossProd)) {
+					// only one range required in event of a cross product or
+					// empty BindingSet
+					// Range will either be full table Range or determined by
+					// constant constraints
+					if (crossProductRange == EMPTY_RANGE) {
+						crossProductRange = getRange(varOrder.varOrder,
+								commonVars);
+						localityGroupOrder = prefixToOrder(varOrder.varOrder);
+					}
+				} else if (!useColumnScan && !isCrossProd) {
+					// update ranges and add BindingSet to HashJoinMap if not a
+					// cross product
+					hashJoinRanges.add(getRange(varOrder.varOrder, commonVars));
 
-        Map<String, Set<String>> varOrderMap = this.getSupportedVariableOrders();
+					prefixLen = varOrder.varOrderLen;
+					// check if common Variable Orders are changing between
+					// BindingSets (happens in case
+					// of Optional). If common variable set length changes from
+					// BindingSet to BindingSet
+					// update the HashJoinType to be VARIABLE_JOIN_VAR.
+					if (oldPrefixLen == 0) {
+						oldPrefixLen = prefixLen;
+					} else {
+						if (oldPrefixLen != prefixLen
+								&& joinType == HashJoinType.CONSTANT_JOIN_VAR) {
+							joinType = HashJoinType.VARIABLE_JOIN_VAR;
+						}
+						oldPrefixLen = prefixLen;
+					}
+					// update max prefix len
+					if (prefixLen > maxPrefixLen) {
+						maxPrefixLen = prefixLen;
+					}
+					String key = getHashJoinKey(varOrder.varOrder, commonVars);
+					bindingSetHashMap.put(key, bs);
+				}
 
-        Set<Map.Entry<String, Set<String>>> entries = varOrderMap.entrySet();
+				isCrossProd = false;
+			}
 
-        for (Map.Entry<String, Set<String>> e : entries) {
+			// create full Range scan iterator and set column family if empty
+			// collection or if cross product BindingSet exists and no hash join
+			// BindingSets
+			if ((useColumnScan || crossProductBs.size() > 0)
+					&& bindingSetHashMap.size() == 0) {
+				Scanner scanner = accCon.createScanner(tablename, auths);
+				// cross product with no cross product constraints here
+				scanner.setRange(crossProductRange);
+				scanner.fetchColumnFamily(new Text(localityGroupOrder));
+				return new PCJKeyToCrossProductBindingSetIterator(scanner,
+						crossProductBs, constantConstraints, unAssuredVariables, getTableVarMap());
+			} else if ((useColumnScan || crossProductBs.size() > 0)
+					&& bindingSetHashMap.size() > 0) {
 
-            if (e.getValue().equals(variables)) {
-                return e.getKey();
-            }
+				// in this case, both hash join BindingSets and cross product
+				// BindingSets exist
+				// create an iterator to evaluate cross product and an iterator
+				// for hash join, then combine
 
-        }
+				List<CloseableIteration<BindingSet, QueryEvaluationException>> iteratorList = new ArrayList<>();
 
-        return null;
+				// create cross product iterator
+				Scanner scanner1 = accCon.createScanner(tablename, auths);
+				scanner1.setRange(crossProductRange);
+				scanner1.fetchColumnFamily(new Text(localityGroupOrder));
+				iteratorList.add(new PCJKeyToCrossProductBindingSetIterator(
+						scanner1, crossProductBs, constantConstraints, unAssuredVariables,
+						getTableVarMap()));
 
-    }
+				// create hash join iterator
+				BatchScanner scanner2 = accCon.createBatchScanner(tablename, auths, 10);
+				scanner2.setRanges(hashJoinRanges);
+				PCJKeyToJoinBindingSetIterator iterator = new PCJKeyToJoinBindingSetIterator(
+						scanner2, getTableVarMap(), maxPrefixLen);
+				iteratorList.add(new BindingSetHashJoinIterator(
+						bindingSetHashMap, iterator, unAssuredVariables, joinType));
 
-    private String prefixToOrder(String order) {
+				// combine iterators
+				return new IteratorCombiner(iteratorList);
 
-        Map<String, String> invMap = HashBiMap.create(this.getTableVarMap()).inverse();
-        String[] temp = order.split("\u0000");
+			} else {
+				// only hash join BindingSets exist
+				BatchScanner scanner = accCon.createBatchScanner(tablename, auths, 10);
+				// only need to create hash join iterator
+				scanner.setRanges(hashJoinRanges);
+				PCJKeyToJoinBindingSetIterator iterator = new PCJKeyToJoinBindingSetIterator(
+						scanner, getTableVarMap(), maxPrefixLen);
+				return new BindingSetHashJoinIterator(bindingSetHashMap,
+						iterator, unAssuredVariables, joinType);
+			}
+		} catch (Exception e) {
+			throw new QueryEvaluationException(e);
+		}
+	}
 
-        for (int i = 0; i < temp.length; i++) {
-            temp[i] = this.getTableVarMap().get(temp[i]);
-        }
+	private String getHashJoinKey(String commonVarOrder, BindingSet bs) {
+		String[] commonVarArray = commonVarOrder.split(VAR_ORDER_DELIM);
+		String key = bs.getValue(commonVarArray[0]).toString();
+		for (int i = 1; i < commonVarArray.length; i++) {
+			key = key + VALUE_DELIM + bs.getValue(commonVarArray[i]).toString();
+		}
+		return key;
+	}
 
-        order = Joiner.on("\u0000").join(temp);
+	private Range getRange(String commonVarOrder, BindingSet bs)
+			throws BindingSetConversionException {
+		AccumuloPcjSerializer converter = new AccumuloPcjSerializer();
+		byte[] rangePrefix = new byte[0];
+		rangePrefix = converter.convert(bs, new VariableOrder(commonVarOrder));
+		return Range.prefix(new Text(rangePrefix));
+	}
 
-        for (String s : varOrder) {
-            if (s.startsWith(order)) {
+	/**
+	 *
+	 * @param variableBindingNames
+	 *            - names corresponding to variables
+	 * @param constantBindingNames
+	 *            - names corresponding to constant constraints
+	 * @return - {@link BindingSetVariableOrder} object containing largest
+	 *         possible supported variable order built from variableBindingNames
+	 *         and constantBindingNames
+	 */
+	private BindingSetVariableOrder getVarOrder(
+			Set<String> variableBindingNames, Set<String> constantBindingNames) {
+		Map<String, Set<String>> varOrderMap = this
+				.getSupportedVariableOrders();
+		Set<Map.Entry<String, Set<String>>> entries = varOrderMap.entrySet();
 
-                temp = s.split("\u0000");
+		Set<String> variables;
+		if (variableBindingNames.size() == 0
+				&& constantBindingNames.size() == 0) {
+			return new BindingSetVariableOrder("", 0, new HashSet<String>());
+		} else if (variableBindingNames.size() > 0
+				&& constantBindingNames.size() == 0) {
+			variables = variableBindingNames;
+		} else if (variableBindingNames.size() == 0
+				&& constantBindingNames.size() > 0) {
+			variables = constantBindingNames;
+		} else {
+			variables = Sets.union(variableBindingNames, constantBindingNames);
 
-                for (int i = 0; i < temp.length; i++) {
-                    temp[i] = invMap.get(temp[i]);
-                }
-                return Joiner.on("\u0000").join(temp);
-            }
-        }
-        throw new NoSuchElementException("Order is not a prefix of any locality group value!");
-    }
+			String maxPrefix = null;
+			int maxPrefixLen = 0;
+			Set<String> minUnusedVariables = null;
 
-    private String orderToLocGroup(List<String> order) {
-        String localityGroup = "";
-        for (String s : order) {
-            if (localityGroup.length() == 0) {
-                localityGroup = this.getTableVarMap().get(s);
-            } else {
-                localityGroup = localityGroup + "\u0000" + this.getTableVarMap().get(s);
-            }
-        }
-        return localityGroup;
+			for (Map.Entry<String, Set<String>> e : entries) {
+				Set<String> value = e.getValue();
+				if (maxPrefixLen < value.size()
+						&& variables.containsAll(value)
+						&& Sets.intersection(value, variableBindingNames)
+								.size() > 0) {
+					maxPrefixLen = value.size();
+					maxPrefix = e.getKey();
+					minUnusedVariables = Sets.difference(variables, value);
+					if (maxPrefixLen == variables.size()) {
+						break;
+					}
+				}
+			}
+			return new BindingSetVariableOrder(maxPrefix, maxPrefixLen,
+					minUnusedVariables);
+		}
 
-    }
-    
-    
-    private void setLocalityGroups(String tableName, Connector conn, List<String> groups) {
-        
-        HashMap<String, Set<Text>> localityGroups = new HashMap<String, Set<Text>>();
+		String maxPrefix = null;
+		int maxPrefixLen = 0;
+		Set<String> minUnusedVariables = null;
 
-        
-        
-        for (int i = 0; i < groups.size(); i++) {
-            HashSet<Text> tempColumn = new HashSet<Text>();
-            tempColumn.add(new Text(groups.get(i)));
-            String groupName = groups.get(i).replace("\u0000","");
-            localityGroups.put(groupName, tempColumn);
-        }
-        
+		for (Map.Entry<String, Set<String>> e : entries) {
+			Set<String> value = e.getValue();
+			if (maxPrefixLen < value.size() && variables.containsAll(value)) {
+				maxPrefixLen = value.size();
+				maxPrefix = e.getKey();
+				minUnusedVariables = Sets.difference(variables, value);
+				if (maxPrefixLen == variables.size()) {
+					break;
+				}
+			}
+		}
+		return new BindingSetVariableOrder(maxPrefix, maxPrefixLen,
+				minUnusedVariables);
+	}
 
-        try {
-            conn.tableOperations().setLocalityGroups(tableName, localityGroups);
-        } catch (AccumuloException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        } catch (AccumuloSecurityException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        } catch (TableNotFoundException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
+	/**
+	 * @return - all constraints which correspond to variables in
+	 *         {@link AccumuloIndexSet#getTupleExpr()} which are set equal to a
+	 *         constant, but are non-constant in Accumulo table
+	 */
+	private BindingSet getConstantConstraints() {
+		Map<String, String> tableMap = this.getTableVarMap();
+		Set<String> keys = tableMap.keySet();
 
-        
-        
-    }
-    
-    
-    
-    
-    
-    
-    
-    private List<String> listShift(List<String> list, int j) {
-        
-        if(j >= list.size()) {
-            throw new IllegalArgumentException();
-        }
-        
-        List<String> shiftList = Lists.newArrayList();
-        for(int i=0; i<list.size(); i++) {
-            shiftList.add(list.get((i+j)%list.size()));
-        }
+		QueryBindingSet constants = new QueryBindingSet();
+		for (String s : keys) {
+			if (s.startsWith("-const-")) {
+				constants.addBinding(new BindingImpl(s, getConstantValueMap()
+						.get(s)));
+			}
+		}
+		return constants;
+	}
 
-        return shiftList;
-    }
-    
-    
-    
-    private Set<String> getConstantConstraints() {
+	/**
+    *
+    * @param order - prefix of a full variable order
+    * @return - full variable order that includes all variables whose values
+    * are stored in the table - used to obtain the locality group
+    */
+   //given partial order of query vars, convert to PCJ vars and determine
+   //if converted partial order is a substring of a full var order of PCJ variables.
+   //if converted partial order is a prefix, convert corresponding full PCJ var order to query vars
+   private String prefixToOrder(String order) {
+       final Map<String, String> invMap = HashBiMap.create(this.getTableVarMap()).inverse();
+       String[] temp = order.split(VAR_ORDER_DELIM);
+       //get order in terms of PCJ variables
+       for (int i = 0; i < temp.length; i++) {
+           temp[i] = this.getTableVarMap().get(temp[i]);
+       }
+       order = Joiner.on(VAR_ORDER_DELIM).join(temp);
+       for (final String s : varOrder) {
+       	//verify that partial order is prefix of a PCJ varOrder
+           if (s.startsWith(order)) {
+               return s;
+           }
+       }
+       throw new NoSuchElementException("Order is not a prefix of any locality group value!");
+   }
 
-        Map<String, String> tableMap = this.getTableVarMap();
-        Set<String> keys = tableMap.keySet();
-        Set<String> constants = Sets.newHashSet();
 
-        for (String s : keys) {
-            if (s.startsWith("-const-")) {
-                constants.add(s);
-            }
+	private class BindingSetVariableOrder {
 
-        }
+		Set<String> unusedVars;
+		int varOrderLen = 0;
+		String varOrder;
 
-        return constants;
+		public BindingSetVariableOrder(String varOrder, int len,
+				Set<String> unused) {
+			this.varOrder = varOrder;
+			this.varOrderLen = len;
+			this.unusedVars = unused;
+		}
 
-    }
-    
-    
-    
-    
-    public AccumuloIndexSet(String sparql, Connector accCon, String tablename) throws MalformedQueryException, SailException, QueryEvaluationException,
-            MutationsRejectedException, TableNotFoundException {
-        super(null);
-        this.tablename = tablename;
-        this.accCon = accCon;
-        SPARQLParser sp = new SPARQLParser();
-        ParsedTupleQuery pq = (ParsedTupleQuery) sp.parseQuery(sparql, null);
+	}
 
-        setProjectionExpr((Projection) pq.getTupleExpr());
-
-        this.bindingslist = Lists.newArrayList(pq.getTupleExpr().getAssuredBindingNames());
-
-        this.bindings = Maps.newHashMap();
-        pq.getTupleExpr().visit(new QueryModelVisitorBase<RuntimeException>() {
-            @Override
-            public void meet(Var node) {
-                QueryModelNode parent = node.getParentNode();
-                if (parent instanceof StatementPattern) {
-                    StatementPattern statement = (StatementPattern) parent;
-                    if (node.equals(statement.getSubjectVar())) {
-                        bindings.put(node.getName(), new AccUrlFactory());
-                    }
-                    if (node.equals(statement.getPredicateVar())) {
-                        bindings.put(node.getName(), new AccUrlFactory());
-                    }
-                    if (node.equals(statement.getObjectVar())) {
-                        bindings.put(node.getName(), new AccValueFactoryImpl());
-                    }
-                    if (node.equals(statement.getContextVar())) {
-                        // TODO is this correct?
-                        bindings.put(node.getName(), new AccUrlFactory());
-                    }
-                } else if(parent instanceof ValueExpr) {
-                    bindings.put(node.getName(), new AccValueFactoryImpl());
-                } 
-            };
-        });
-        
-        
-        
-        
-        Scanner s = accCon.createScanner(tablename, new Authorizations()); 
-        s.setRange(Range.exact(new Text("~SPARQL")));       
-        Iterator<Entry<Key,Value>> i = s.iterator();
-        
-        String[] tempVarOrders = null;
-        
-        if (i.hasNext()) {
-            Entry<Key, Value> entry = i.next();
-            Text ts = entry.getKey().getColumnFamily();
-            tempVarOrders = entry.getKey().getColumnQualifier().toString().split("\u0000");
-            tableSize = Long.parseLong(ts.toString());
-
-        } else {
-            throw new IllegalStateException("Index table contains no metadata!");
-        }      
-
-        
-        varOrder = Lists.newArrayList();
-        
-        for(String t: tempVarOrders) {
-            t = t.replace(";","\u0000");
-            varOrder.add(t);
-        }
-        
-        setLocalityGroups(tablename, accCon, varOrder);
-        this.setSupportedVariableOrderMap(createSupportedVarOrderMap(varOrder));
-        
-    }
-
-    
-    
-    
-    private Map<String, Set<String>> createSupportedVarOrderMap(List<String> orders) {
-        
-        Map<String, Set<String>> supportedVars = Maps.newHashMap();
-        
-        for (String t : orders) {
-            
-            String[] tempOrder = t.split("\u0000");
-            Set<String> varSet = Sets.newHashSet();
-            String u = "";
-            
-            for (String s : tempOrder) {
-                if(u.length() == 0) {
-                    u = s;
-                } else{
-                    u = u+ "\u0000" + s;
-                }
-                varSet.add(s);
-                supportedVars.put(u, new HashSet<String>(varSet));
-
-            }
-
-        }
-        
-        return supportedVars;
-    }
-    
-    
-    
-    @Override
-    public void setProjectionExpr(Projection tupleExpr) {
-        super.setProjectionExpr(tupleExpr);
-        this.bindingslist = Lists.newArrayList(tupleExpr.getAssuredBindingNames());
-
-        this.bindings = Maps.newHashMap();
-        tupleExpr.visit(new QueryModelVisitorBase<RuntimeException>() {
-            @Override
-            public void meet(Var node) {
-                QueryModelNode parent = node.getParentNode();
-                if (parent instanceof StatementPattern) {
-                    StatementPattern statement = (StatementPattern) parent;
-                    if (node.equals(statement.getSubjectVar())) {
-                        bindings.put(node.getName(), new AccUrlFactory());
-                    }
-                    if (node.equals(statement.getPredicateVar())) {
-                        bindings.put(node.getName(), new AccUrlFactory());
-                    }
-                    if (node.equals(statement.getObjectVar())) {
-                        bindings.put(node.getName(), new AccValueFactoryImpl());
-                    }
-                    if (node.equals(statement.getContextVar())) {
-                        // TODO is this correct?
-                        bindings.put(node.getName(), new AccUrlFactory());
-                    }
-                } else if (parent instanceof ValueExpr) {  //Add bindings associated with Filters
-                    bindings.put(node.getName(), new AccValueFactoryImpl());
-                } 
-            };
-        });
-
-    }
-
-    @Override
-    public String getSignature() {
-        return "AccumuloIndexSet(" + tablename + ") : " + Joiner.on(", ").join(bindingslist);
-    }
-
-    @Override
-    public CloseableIteration<BindingSet,QueryEvaluationException> evaluate(BindingSet bindingset) throws QueryEvaluationException {
-        return this.evaluate(Collections.singleton(bindingset));
-    }
-    
-    @Override
-    public double cardinality() {
-        return tableSize;
-    }
-
-    @Override
-    public CloseableIteration<BindingSet,QueryEvaluationException> evaluate(final Collection<BindingSet> bindingset) throws QueryEvaluationException {
-        
-        String localityGroup = "";
-        Set<String> commonVars = Sets.newHashSet();
-
-        if (!bindingset.isEmpty()) {
-
-            BindingSet bs = bindingset.iterator().next();
-            for (String b : bindingslist) {
-                Binding v = bs.getBinding(b);
-                if (v != null) {
-                    commonVars.add(b);
-                }
-
-            }
-        }
-        
-        commonVars.addAll(getConstantConstraints());
-        AccumuloPrecompQueryIndexer apq = null;
-        List<String> fullVarOrder =  null;
-        try {
-       
-            if (commonVars.size() > 0) {
-                String commonVarOrder = getVarOrder(commonVars);
-                if(commonVarOrder == null) {
-                    throw new IllegalStateException("Index does not support binding set!");
-                }
-                fullVarOrder = Lists.newArrayList(prefixToOrder(commonVarOrder).split("\u0000"));
-                localityGroup = orderToLocGroup(fullVarOrder);
-                fullVarOrder.add("" + commonVars.size());
-                
-            } else {
-                fullVarOrder = bindingslist;
-                localityGroup = orderToLocGroup(fullVarOrder);
-                fullVarOrder.add("" + 0);
-            }
-
-            
-            apq = new AccumuloPrecompQueryIndexer(accCon, tablename);
-            ValueMapVisitor vmv = new ValueMapVisitor();
-            this.getTupleExpr().visit(vmv);
-            
-            return apq.queryPrecompJoin(fullVarOrder, localityGroup, this.bindings, vmv.getValMap(), bindingset);
-            
-        } catch(TableNotFoundException e) {
-            throw new QueryEvaluationException(e);
-        } finally {
-            IOUtils.closeQuietly(apq);
-        }
-    }
-    
-    
-    public class ValueMapVisitor extends QueryModelVisitorBase<RuntimeException> {
-
-        Map<String, org.openrdf.model.Value> valMap = Maps.newHashMap();
-
-        
-        public Map<String, org.openrdf.model.Value> getValMap() {
-            return valMap;
-        }
-        
-        @Override
-        public void meet(Var node) {
-            if (node.getName().startsWith("-const-")) {
-                valMap.put(node.getName(), node.getValue());
-            }
-
-        }
-
-    }
-    
-    
 }
-    

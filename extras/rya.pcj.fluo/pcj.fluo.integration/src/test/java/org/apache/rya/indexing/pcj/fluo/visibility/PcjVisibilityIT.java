@@ -20,12 +20,17 @@ package org.apache.rya.indexing.pcj.fluo.visibility;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+import io.fluo.api.client.Snapshot;
+import io.fluo.api.data.Bytes;
 
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+
+import mvm.rya.api.domain.RyaStatement;
+import mvm.rya.api.resolver.RyaTypeResolverException;
 
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
@@ -68,11 +73,6 @@ import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
 
-import io.fluo.api.client.Snapshot;
-import io.fluo.api.data.Bytes;
-import mvm.rya.api.domain.RyaStatement;
-import mvm.rya.api.resolver.RyaTypeResolverException;
-
 public class PcjVisibilityIT extends ITBase {
 
     private static final AccumuloPcjSerializer converter = new AccumuloPcjSerializer();
@@ -86,10 +86,10 @@ public class PcjVisibilityIT extends ITBase {
 
         final RyaExportParameters ryaParams = new RyaExportParameters(params);
         ryaParams.setExportToRya(true);
-        ryaParams.setAccumuloInstanceName(accumulo.getInstanceName());
-        ryaParams.setZookeeperServers(accumulo.getZooKeepers());
-        ryaParams.setExporterUsername("root");
-        ryaParams.setExporterPassword("password");
+        ryaParams.setAccumuloInstanceName(instanceName);
+        ryaParams.setZookeeperServers(zookeepers);
+        ryaParams.setExporterUsername(ITBase.ACCUMULO_USER);
+        ryaParams.setExporterPassword(ITBase.ACCUMULO_PASSWORD);
 
         return params;
     }

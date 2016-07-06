@@ -8,9 +8,9 @@ package mvm.rya.accumulo;
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- * 
+ *
  *   http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -31,6 +31,7 @@ import static mvm.rya.api.RdfCloudTripleStoreConstants.NUM_THREADS;
 import static mvm.rya.api.RdfCloudTripleStoreConstants.RTS_SUBJECT_RYA;
 import static mvm.rya.api.RdfCloudTripleStoreConstants.RTS_VERSION_PREDICATE_RYA;
 import static mvm.rya.api.RdfCloudTripleStoreConstants.VERSION_RYA;
+import info.aduna.iteration.CloseableIteration;
 
 import java.io.IOException;
 import java.util.Collection;
@@ -39,6 +40,18 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
+
+import mvm.rya.accumulo.experimental.AccumuloIndexer;
+import mvm.rya.accumulo.query.AccumuloRyaQueryEngine;
+import mvm.rya.api.RdfCloudTripleStoreConfiguration;
+import mvm.rya.api.RdfCloudTripleStoreConstants.TABLE_LAYOUT;
+import mvm.rya.api.domain.RyaStatement;
+import mvm.rya.api.domain.RyaURI;
+import mvm.rya.api.layout.TableLayoutStrategy;
+import mvm.rya.api.persist.RyaDAO;
+import mvm.rya.api.persist.RyaDAOException;
+import mvm.rya.api.persist.RyaNamespaceManager;
+import mvm.rya.api.resolver.RyaTripleContext;
 
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
@@ -63,21 +76,6 @@ import org.openrdf.model.Namespace;
 
 import com.google.common.collect.Iterators;
 import com.google.common.collect.Lists;
-
-import info.aduna.iteration.CloseableIteration;
-import mvm.rya.accumulo.experimental.AccumuloIndexer;
-import mvm.rya.accumulo.query.AccumuloRyaQueryEngine;
-import mvm.rya.api.RdfCloudTripleStoreConfiguration;
-import mvm.rya.api.RdfCloudTripleStoreConstants.TABLE_LAYOUT;
-import mvm.rya.api.domain.RyaStatement;
-import mvm.rya.api.domain.RyaURI;
-import mvm.rya.api.layout.TableLayoutStrategy;
-import mvm.rya.api.persist.RyaDAO;
-import mvm.rya.api.persist.RyaDAOException;
-import mvm.rya.api.persist.RyaNamespaceManager;
-import mvm.rya.api.resolver.RyaTripleContext;
-import mvm.rya.api.resolver.triple.TripleRow;
-import mvm.rya.api.resolver.triple.TripleRowResolverException;
 
 public class AccumuloRyaDAO implements RyaDAO<AccumuloRdfConfiguration>, RyaNamespaceManager<AccumuloRdfConfiguration> {
     private static final Log logger = LogFactory.getLog(AccumuloRyaDAO.class);
@@ -111,8 +109,9 @@ public class AccumuloRyaDAO implements RyaDAO<AccumuloRdfConfiguration>, RyaName
 
     @Override
     public void init() throws RyaDAOException {
-        if (initialized)
+        if (initialized) {
             return;
+        }
         try {
             checkNotNull(conf);
             checkNotNull(connector);
@@ -131,7 +130,7 @@ public class AccumuloRyaDAO implements RyaDAO<AccumuloRdfConfiguration>, RyaName
             secondaryIndexers = conf.getAdditionalIndexers();
 
             flushEachUpdate = conf.flushEachUpdate();
-            
+
             TableOperations tableOperations = connector.tableOperations();
             AccumuloRdfUtils.createTableIfNotExist(tableOperations, tableLayoutStrategy.getSpo());
             AccumuloRdfUtils.createTableIfNotExist(tableOperations, tableLayoutStrategy.getPo());
@@ -150,7 +149,7 @@ public class AccumuloRyaDAO implements RyaDAO<AccumuloRdfConfiguration>, RyaName
             bw_osp = mt_bw.getBatchWriter(tableLayoutStrategy.getOsp());
 
             bw_ns = mt_bw.getBatchWriter(tableLayoutStrategy.getNs());
-            
+
             for (AccumuloIndexer index : secondaryIndexers) {
                index.setConnector(connector);
                index.setMultiTableBatchWriter(mt_bw);
@@ -248,9 +247,15 @@ public class AccumuloRyaDAO implements RyaDAO<AccumuloRdfConfiguration>, RyaName
         } catch (Exception e) {
             throw new RyaDAOException(e);
         } finally {
-            if (bd_spo != null) bd_spo.close();
-            if (bd_po != null) bd_po.close();
-            if (bd_osp != null) bd_osp.close();
+            if (bd_spo != null) {
+                bd_spo.close();
+            }
+            if (bd_po != null) {
+                bd_po.close();
+            }
+            if (bd_osp != null) {
+                bd_osp.close();
+            }
         }
 
     }
@@ -520,10 +525,17 @@ public class AccumuloRyaDAO implements RyaDAO<AccumuloRdfConfiguration>, RyaName
         return connector.createBatchDeleter(tableName, authorizations, NUM_THREADS, MAX_MEMORY, MAX_TIME, NUM_THREADS);
     }
 
-    private void checkVersion() throws RyaDAOException {
+    private void checkVersion() throws RyaDAOException, IOException, MutationsRejectedException {
         String version = getVersion();
         if (version == null) {
-            this.add(getVersionRyaStatement());
+            //adding to core Rya tables but not Indexes
+            Map<TABLE_LAYOUT, Collection<Mutation>> mutationMap = ryaTableMutationsFactory.serialize(getVersionRyaStatement());
+            Collection<Mutation> spo = mutationMap.get(TABLE_LAYOUT.SPO);
+            Collection<Mutation> po = mutationMap.get(TABLE_LAYOUT.PO);
+            Collection<Mutation> osp = mutationMap.get(TABLE_LAYOUT.OSP);
+            bw_spo.addMutations(spo);
+            bw_po.addMutations(po);
+            bw_osp.addMutations(osp);
         }
         //TODO: Do a version check here
     }

@@ -28,6 +28,15 @@ import java.util.Set;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 
+import mvm.rya.accumulo.experimental.AbstractAccumuloIndexer;
+import mvm.rya.api.RdfCloudTripleStoreConfiguration;
+import mvm.rya.api.domain.RyaStatement;
+import mvm.rya.api.domain.RyaURI;
+import mvm.rya.api.persist.RyaDAO;
+import mvm.rya.indexing.external.accumulo.AccumuloPcjStorage;
+import mvm.rya.indexing.external.accumulo.AccumuloPcjStorageSupplier;
+import mvm.rya.indexing.external.fluo.PcjUpdaterSupplierFactory;
+
 import org.apache.accumulo.core.client.Connector;
 import org.apache.accumulo.core.client.MultiTableBatchWriter;
 import org.apache.hadoop.conf.Configuration;
@@ -41,21 +50,13 @@ import org.openrdf.model.URI;
 import com.google.common.base.Optional;
 import com.google.common.base.Supplier;
 
-import mvm.rya.accumulo.experimental.AccumuloIndexer;
-import mvm.rya.api.RdfCloudTripleStoreConfiguration;
-import mvm.rya.api.domain.RyaStatement;
-import mvm.rya.api.domain.RyaURI;
-import mvm.rya.api.persist.RyaDAO;
-import mvm.rya.indexing.external.accumulo.AccumuloPcjStorage;
-import mvm.rya.indexing.external.accumulo.AccumuloPcjStorageSupplier;
-import mvm.rya.indexing.external.fluo.FluoPcjUpdaterSupplier;
-
 /**
  * Updates the state of the Precomputed Join indices that are used by Rya.
  */
 @ParametersAreNonnullByDefault
-public class PrecomputedJoinIndexer implements AccumuloIndexer {
-    private static final Logger log = Logger.getLogger(PrecomputedJoinIndexer.class);
+public class PrecomputedJoinIndexer extends AbstractAccumuloIndexer {
+    private static final Logger log = Logger
+            .getLogger(PrecomputedJoinIndexer.class);
 
     /**
      * This configuration object must be set before {@link #init()} is invoked.
@@ -64,14 +65,14 @@ public class PrecomputedJoinIndexer implements AccumuloIndexer {
     private Optional<Configuration> conf = Optional.absent();
 
     /**
-     * The Accumulo Connector that must be used when accessing an Accumulo storage.
-     * This value is provided by {@link #setConnector(Connector)}.
+     * The Accumulo Connector that must be used when accessing an Accumulo
+     * storage. This value is provided by {@link #setConnector(Connector)}.
      */
     private Optional<Connector> accumuloConn = Optional.absent();
 
     /**
-     * Provides access to the {@link Configuration} that was provided to this class
-     * using {@link #setConf(Configuration)}.
+     * Provides access to the {@link Configuration} that was provided to this
+     * class using {@link #setConf(Configuration)}.
      */
     private final Supplier<Configuration> configSupplier = new Supplier<Configuration>() {
         @Override
@@ -92,23 +93,22 @@ public class PrecomputedJoinIndexer implements AccumuloIndexer {
     };
 
     /**
-     * Creates and grants access to the {@link PrecomputedJoinStorage} that will be used
-     * to interact with the PCJ results that are stored and used by Rya.
+     * Creates and grants access to the {@link PrecomputedJoinStorage} that will
+     * be used to interact with the PCJ results that are stored and used by Rya.
      */
-    private final PrecomputedJoinStorageSupplier pcjStorageSupplier =
-            new PrecomputedJoinStorageSupplier(
-                    configSupplier,
-                    new AccumuloPcjStorageSupplier(configSupplier, accumuloSupplier));
+    private final PrecomputedJoinStorageSupplier pcjStorageSupplier = new PrecomputedJoinStorageSupplier(
+            configSupplier, new AccumuloPcjStorageSupplier(configSupplier,
+                    accumuloSupplier));
+
+    private PrecomputedJoinStorage pcjStorage;
 
     /**
-     * Creates and grants access to the {@link PrecomputedJoinUpdater} that will
+     * Creates and grants access to the {@link PrecomputedJoinUpdater}s that will
      * be used to update the state stored within the PCJ tables that are stored
      * in Accumulo.
      */
-    private final PrecomputedJoinUpdaterSupplier pcjUpdaterSupplier =
-            new PrecomputedJoinUpdaterSupplier(
-                    configSupplier,
-                    new FluoPcjUpdaterSupplier(configSupplier));
+    private Supplier<PrecomputedJoinUpdater> updaterSupplier;
+
 
     @Override
     public void setConf(final Configuration conf) {
@@ -127,7 +127,7 @@ public class PrecomputedJoinIndexer implements AccumuloIndexer {
     @Override
     public void setConnector(final Connector connector) {
         checkNotNull(connector);
-        accumuloConn = Optional.of( connector );
+        accumuloConn = Optional.of(connector);
     }
 
     /**
@@ -135,40 +135,48 @@ public class PrecomputedJoinIndexer implements AccumuloIndexer {
      */
     @Override
     public void init() {
-        pcjStorageSupplier.get();
-        pcjUpdaterSupplier.get();
+        pcjStorage = pcjStorageSupplier.get();
+        updaterSupplier = new PcjUpdaterSupplierFactory(configSupplier).getSupplier();
+        updaterSupplier.get();
     }
 
     @Override
     public void storeStatement(final RyaStatement statement) throws IOException {
         checkNotNull(statement);
-        storeStatements( Collections.singleton(statement) );
+        storeStatements(Collections.singleton(statement));
     }
 
     @Override
-    public void storeStatements(final Collection<RyaStatement> statements) throws IOException {
+    public void storeStatements(final Collection<RyaStatement> statements)
+            throws IOException {
         checkNotNull(statements);
         try {
-            pcjUpdaterSupplier.get().addStatements(statements);
+          updaterSupplier.get().addStatements(statements);
         } catch (final PcjUpdateException e) {
-            throw new IOException("Could not update the PCJs by adding the provided statements.", e);
+            throw new IOException(
+                    "Could not update the PCJs by adding the provided statements.",
+                    e);
         }
     }
 
     @Override
-    public void deleteStatement(final RyaStatement statement) throws IOException {
+    public void deleteStatement(final RyaStatement statement)
+            throws IOException {
         checkNotNull(statement);
         try {
-            pcjUpdaterSupplier.get().deleteStatements( Collections.singleton(statement) );
+            Collection<RyaStatement> statements = Collections.singleton(statement);
+            updaterSupplier.get().deleteStatements(statements);
         } catch (final PcjUpdateException e) {
-            throw new IOException("Could not update the PCJs by removing the provided statement.", e);
+            throw new IOException(
+                    "Could not update the PCJs by removing the provided statement.",
+                    e);
         }
     }
 
     @Override
     public void flush() throws IOException {
         try {
-            pcjUpdaterSupplier.get().flush();
+            updaterSupplier.get().flush();
         } catch (final PcjUpdateException e) {
             throw new IOException("Could not flush the PCJ Updater.", e);
         }
@@ -177,13 +185,13 @@ public class PrecomputedJoinIndexer implements AccumuloIndexer {
     @Override
     public void close() {
         try {
-            pcjStorageSupplier.get().close();
+            pcjStorage.close();
         } catch (final PCJStorageException e) {
             log.error("Could not close the PCJ Storage instance.", e);
         }
 
         try {
-            pcjUpdaterSupplier.get().close();
+            updaterSupplier.get().close();
         } catch (final PcjUpdateException e) {
             log.error("Could not close the PCJ Updater instance.", e);
         }
@@ -198,48 +206,56 @@ public class PrecomputedJoinIndexer implements AccumuloIndexer {
     }
 
     /**
-     * Deletes all data from the PCJ indices that are managed by a {@link PrecomputedJoinStorage}.
+     * Deletes all data from the PCJ indices that are managed by a
+     * {@link PrecomputedJoinStorage}.
      */
     @Override
     public void purge(final RdfCloudTripleStoreConfiguration configuration) {
-        final PrecomputedJoinStorage storage = pcjStorageSupplier.get();
 
         try {
-            for(final String pcjId : storage.listPcjs()) {
+            for (final String pcjId : pcjStorage.listPcjs()) {
                 try {
-                    storage.purge(pcjId);
-                } catch(final PCJStorageException e) {
-                    log.error("Could not purge the PCJ index with id: " + pcjId, e);
+                    pcjStorage.purge(pcjId);
+                } catch (final PCJStorageException e) {
+                    log.error(
+                            "Could not purge the PCJ index with id: " + pcjId,
+                            e);
                 }
             }
         } catch (final PCJStorageException e) {
-            log.error("Could not purge the PCJ indicies because they could not be listed.", e);
+            log.error(
+                    "Could not purge the PCJ indicies because they could not be listed.",
+                    e);
         }
     }
 
     /**
-     * Deletes all of the PCJ indices that are managed by {@link PrecomputedJoinStorage}.
+     * Deletes all of the PCJ indices that are managed by
+     * {@link PrecomputedJoinStorage}.
      */
     @Override
     public void dropAndDestroy() {
-        final PrecomputedJoinStorage storage = pcjStorageSupplier.get();
-
         try {
-            for(final String pcjId : storage.listPcjs()) {
+            for (final String pcjId : pcjStorage.listPcjs()) {
                 try {
-                    storage.dropPcj(pcjId);
-                } catch(final PCJStorageException e) {
-                    log.error("Could not delete the PCJ index with id: " + pcjId, e);
+                    pcjStorage.dropPcj(pcjId);
+                } catch (final PCJStorageException e) {
+                    log.error("Could not delete the PCJ index with id: "
+                            + pcjId, e);
                 }
             }
-        } catch(final PCJStorageException e) {
-            log.error("Could not delete the PCJ indicies because they could not be listed.", e);
+        } catch (final PCJStorageException e) {
+            log.error(
+                    "Could not delete the PCJ indicies because they could not be listed.",
+                    e);
         }
     }
 
     @Override
-    public void setMultiTableBatchWriter(final MultiTableBatchWriter writer) throws IOException {
-        // We do not need to use the writer that also writes to the core RYA tables.
+    public void setMultiTableBatchWriter(final MultiTableBatchWriter writer)
+            throws IOException {
+        // We do not need to use the writer that also writes to the core RYA
+        // tables.
     }
 
     @Override

@@ -22,13 +22,14 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 
+import mvm.rya.api.persist.index.RyaSecondaryIndexer;
+import mvm.rya.indexing.accumulo.ConfigUtils;
+
 import org.apache.hadoop.conf.Configuration;
 import org.apache.rya.indexing.pcj.storage.PrecomputedJoinStorage;
 import org.apache.rya.indexing.pcj.update.PrecomputedJoinUpdater;
 
 import com.google.common.base.Optional;
-
-import mvm.rya.api.persist.index.RyaSecondaryIndexer;
 
 /**
  * Inspects the {@link Configuration} object that is provided to all instances
@@ -55,7 +56,7 @@ public class PrecomputedJoinIndexerConfig {
         /**
          * Incrementally updates the PCJs is pseudo-realtime new adds/deletes are encountered.
          */
-        FLUO;
+        FLUO, NO_UPDATE;
     }
 
     // Indicates which implementation of PrecomputedJoinStorage to use.
@@ -63,6 +64,7 @@ public class PrecomputedJoinIndexerConfig {
 
     // Indicates which implementation of PrecomputedJoinUpdater to use.
     public static final String PCJ_UPDATER_TYPE = "rya.indexing.pcj.updaterType";
+    public static final String USE_PCJ_FLUO_UPDATER = ConfigUtils.USE_PCJ_FLUO_UPDATER;
 
     // The configuration object that is provided to Secondary Indexing implementations.
     private final Configuration config;
@@ -103,6 +105,13 @@ public class PrecomputedJoinIndexerConfig {
         final PrecomputedJoinUpdaterType updaterType = PrecomputedJoinUpdaterType.valueOf(updaterTypeString);
         return Optional.fromNullable(updaterType);
     }
+
+
+
+    public boolean getUseFluoUpdater() {
+    	return config.getBoolean(USE_PCJ_FLUO_UPDATER, false);
+    }
+
 
     /**
      * @return The configuration object that has been wrapped.

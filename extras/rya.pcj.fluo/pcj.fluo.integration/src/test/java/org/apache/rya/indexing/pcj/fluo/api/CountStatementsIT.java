@@ -31,6 +31,9 @@ import org.junit.Test;
 import com.google.common.base.Optional;
 import com.google.common.io.Files;
 
+import io.fluo.api.client.FluoAdmin;
+import io.fluo.api.client.FluoAdmin.AlreadyInitializedException;
+import io.fluo.api.client.FluoAdmin.TableExistsException;
 import io.fluo.api.client.FluoFactory;
 import io.fluo.api.config.FluoConfiguration;
 import io.fluo.api.config.ObserverConfiguration;
@@ -48,23 +51,33 @@ public class CountStatementsIT extends ITBase {
      * statements are inserted as part of the test will not be consumed.
      *
      * @return A Mini Fluo cluster.
+     * @throws TableExistsException 
      */
     @Override
-    protected MiniFluo startMiniFluo() {
-        final File miniDataDir = Files.createTempDir();
-
+    protected MiniFluo startMiniFluo() throws AlreadyInitializedException, TableExistsException {
         // Setup the observers that will be used by the Fluo PCJ Application.
         final List<ObserverConfiguration> observers = new ArrayList<>();
 
         // Configure how the mini fluo will run.
         final FluoConfiguration config = new FluoConfiguration();
-        config.setApplicationName("IntegrationTests");
-        config.setMiniDataDir(miniDataDir.getAbsolutePath());
+        config.setMiniStartAccumulo(false);
+        config.setAccumuloInstance(instanceName);
+        config.setAccumuloUser(ACCUMULO_USER);
+        config.setAccumuloPassword(ACCUMULO_PASSWORD);
+        config.setInstanceZookeepers(zookeepers + "/fluo");
+        config.setAccumuloZookeepers(zookeepers);
+        
+        config.setApplicationName(appName);
+        config.setAccumuloTable("fluo" + appName);
+        
         config.addObservers(observers);
 
+        FluoFactory.newAdmin(config).initialize( 
+                              new FluoAdmin.InitOpts().setClearTable(true).setClearZookeeper(true) );
         final MiniFluo miniFluo = FluoFactory.newMiniFluo(config);
         return miniFluo;
     }
+
 
     @Test
     public void test() {

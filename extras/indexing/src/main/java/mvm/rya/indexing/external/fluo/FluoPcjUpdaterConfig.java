@@ -19,12 +19,11 @@
 package mvm.rya.indexing.external.fluo;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import mvm.rya.indexing.accumulo.ConfigUtils;
 
 import org.apache.hadoop.conf.Configuration;
 
 import com.google.common.base.Optional;
-
-import mvm.rya.indexing.accumulo.ConfigUtils;
 
 /**
  * Configuration values required to initialize a {@link FluoPcjUpdater}.
@@ -32,7 +31,7 @@ import mvm.rya.indexing.accumulo.ConfigUtils;
 public final class FluoPcjUpdaterConfig {
 
     // Defines which Fluo application is running for this instance of Rya.
-    public static final String FLUO_APP_NAME = "rya.indexing.pcj.fluo.fluoAppName";
+    public static final String FLUO_APP_NAME = ConfigUtils.FLUO_APP_NAME;
 
     // Values that define which Accumulo instance hosts the Fluo application's table.
     public static final String ACCUMULO_ZOOKEEPERS = ConfigUtils.CLOUDBASE_ZOOKEEPERS;

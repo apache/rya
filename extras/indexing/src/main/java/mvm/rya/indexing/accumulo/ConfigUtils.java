@@ -25,6 +25,21 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import mvm.rya.accumulo.AccumuloRdfConfiguration;
+import mvm.rya.api.RdfCloudTripleStoreConfiguration;
+import mvm.rya.indexing.FilterFunctionOptimizer;
+import mvm.rya.indexing.accumulo.entity.EntityCentricIndex;
+import mvm.rya.indexing.accumulo.entity.EntityOptimizer;
+import mvm.rya.indexing.accumulo.freetext.AccumuloFreeTextIndexer;
+import mvm.rya.indexing.accumulo.freetext.LuceneTokenizer;
+import mvm.rya.indexing.accumulo.freetext.Tokenizer;
+import mvm.rya.indexing.accumulo.geo.GeoMesaGeoIndexer;
+import mvm.rya.indexing.accumulo.temporal.AccumuloTemporalIndexer;
+import mvm.rya.indexing.external.PrecomputedJoinIndexer;
+import mvm.rya.indexing.mongodb.freetext.MongoFreeTextIndexer;
+import mvm.rya.indexing.mongodb.geo.MongoGeoIndexer;
+import mvm.rya.indexing.pcj.matching.PCJOptimizer;
+
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
 import org.apache.accumulo.core.client.BatchScanner;
@@ -47,21 +62,8 @@ import org.apache.log4j.Logger;
 import org.openrdf.model.URI;
 import org.openrdf.model.impl.URIImpl;
 
+import com.google.common.base.Optional;
 import com.google.common.collect.Lists;
-
-import mvm.rya.accumulo.AccumuloRdfConfiguration;
-import mvm.rya.api.RdfCloudTripleStoreConfiguration;
-import mvm.rya.indexing.FilterFunctionOptimizer;
-import mvm.rya.indexing.accumulo.entity.EntityCentricIndex;
-import mvm.rya.indexing.accumulo.entity.EntityOptimizer;
-import mvm.rya.indexing.accumulo.freetext.AccumuloFreeTextIndexer;
-import mvm.rya.indexing.accumulo.freetext.LuceneTokenizer;
-import mvm.rya.indexing.accumulo.freetext.Tokenizer;
-import mvm.rya.indexing.accumulo.geo.GeoMesaGeoIndexer;
-import mvm.rya.indexing.accumulo.temporal.AccumuloTemporalIndexer;
-import mvm.rya.indexing.mongodb.freetext.MongoFreeTextIndexer;
-import mvm.rya.indexing.mongodb.geo.MongoGeoIndexer;
-import mvm.rya.indexing.pcj.matching.PCJOptimizer;
 
 /**
  * A set of configuration utils to read a Hadoop {@link Configuration} object and create Cloudbase/Accumulo objects.
@@ -95,6 +97,12 @@ public class ConfigUtils {
     public static final String USE_ENTITY = "sc.use_entity";
     public static final String USE_PCJ = "sc.use_pcj";
     public static final String USE_OPTIMAL_PCJ = "sc.use.optimal.pcj";
+
+    public static final String FLUO_APP_NAME = "rya.indexing.pcj.fluo.fluoAppName";
+    public static final String USE_PCJ_FLUO_UPDATER = "rya.indexing.pcj.updater.fluo";
+    public static final String PCJ_STORAGE_TYPE = "rya.indexing.pcj.storageType";
+    public static final String PCJ_UPDATER_TYPE = "rya.indexing.pcj.updaterType";
+
 
     public static final String USE_INDEXING_SAIL = "sc.use.indexing.sail";
     public static final String USE_EXTERNAL_SAIL = "sc.use.external.sail";
@@ -366,6 +374,17 @@ public class ConfigUtils {
         return conf.getBoolean(USE_OPTIMAL_PCJ, false);
     }
 
+
+    /**
+     * @return The name of the Fluo Application this instance of RYA is
+     *   using to incrementally update PCJs.
+     */
+    //TODO delete this eventually and use Details table
+    public Optional<String> getFluoAppName(Configuration conf) {
+        return Optional.fromNullable(conf.get(FLUO_APP_NAME));
+    }
+
+
     public static boolean getUseMongo(final Configuration conf) {
         return conf.getBoolean(USE_MONGO, false);
     }
@@ -391,6 +410,7 @@ public class ConfigUtils {
 
             if (getUsePCJ(conf) || getUseOptimalPCJ(conf)) {
                 conf.setPcjOptimizer(PCJOptimizer.class);
+                indexList.add(PrecomputedJoinIndexer.class.getName());
             }
 
             if (getUseGeo(conf)) {

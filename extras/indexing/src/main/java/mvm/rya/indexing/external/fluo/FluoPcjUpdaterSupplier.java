@@ -26,25 +26,26 @@ import static mvm.rya.indexing.external.fluo.FluoPcjUpdaterConfig.ACCUMULO_USERN
 import static mvm.rya.indexing.external.fluo.FluoPcjUpdaterConfig.ACCUMULO_ZOOKEEPERS;
 import static mvm.rya.indexing.external.fluo.FluoPcjUpdaterConfig.FLUO_APP_NAME;
 import static mvm.rya.indexing.external.fluo.FluoPcjUpdaterConfig.STATEMENT_VISIBILITY;
-
-import javax.annotation.ParametersAreNonnullByDefault;
-
-import org.apache.hadoop.conf.Configuration;
-
-import com.google.common.base.Optional;
-import com.google.common.base.Supplier;
-
 import io.fluo.api.client.FluoClient;
 import io.fluo.api.client.FluoFactory;
 import io.fluo.api.config.FluoConfiguration;
+
+import javax.annotation.ParametersAreNonnullByDefault;
+
 import mvm.rya.indexing.external.PrecomputedJoinIndexerConfig;
 import mvm.rya.indexing.external.PrecomputedJoinIndexerConfig.PrecomputedJoinUpdaterType;
+
+import org.apache.hadoop.conf.Configuration;
+import org.apache.rya.indexing.pcj.update.PrecomputedJoinUpdater;
+
+import com.google.common.base.Optional;
+import com.google.common.base.Supplier;
 
 /**
  * Creates instances of {@link FluoPcjUpdater} using the values found in a {@link Configuration}.
  */
 @ParametersAreNonnullByDefault
-public class FluoPcjUpdaterSupplier implements Supplier<FluoPcjUpdater> {
+public class FluoPcjUpdaterSupplier implements Supplier<PrecomputedJoinUpdater> {
 
     private final Supplier<Configuration> configSupplier;
 
@@ -66,7 +67,7 @@ public class FluoPcjUpdaterSupplier implements Supplier<FluoPcjUpdater> {
         final PrecomputedJoinIndexerConfig indexerConfig = new PrecomputedJoinIndexerConfig(config);
 
         final Optional<PrecomputedJoinUpdaterType> updaterType = indexerConfig.getPcjUpdaterType();
-        checkArgument(updaterType.isPresent() && (updaterType.get() == PrecomputedJoinUpdaterType.FLUO),
+        checkArgument(updaterType.isPresent() && updaterType.get() == PrecomputedJoinUpdaterType.FLUO,
                 "This supplier requires the '" + PrecomputedJoinIndexerConfig.PCJ_UPDATER_TYPE +
                 "' value be set to '" + PrecomputedJoinUpdaterType.FLUO + "'.");
 

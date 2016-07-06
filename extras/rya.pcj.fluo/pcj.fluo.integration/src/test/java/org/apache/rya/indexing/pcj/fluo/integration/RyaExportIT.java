@@ -19,12 +19,16 @@
 package org.apache.rya.indexing.pcj.fluo.integration;
 
 import static org.junit.Assert.assertEquals;
+import io.fluo.api.client.Snapshot;
+import io.fluo.api.data.Bytes;
 
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+
+import mvm.rya.api.domain.RyaStatement;
 
 import org.apache.accumulo.core.client.Connector;
 import org.apache.accumulo.core.client.Scanner;
@@ -54,10 +58,6 @@ import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
 
-import io.fluo.api.client.Snapshot;
-import io.fluo.api.data.Bytes;
-import mvm.rya.api.domain.RyaStatement;
-
 /**
  * Performs integration tests over the Fluo application geared towards Rya PCJ exporting.
  * <p>
@@ -77,10 +77,10 @@ public class RyaExportIT extends ITBase {
 
         final RyaExportParameters ryaParams = new RyaExportParameters(params);
         ryaParams.setExportToRya(true);
-        ryaParams.setAccumuloInstanceName(accumulo.getInstanceName());
-        ryaParams.setZookeeperServers(accumulo.getZooKeepers());
-        ryaParams.setExporterUsername("root");
-        ryaParams.setExporterPassword("password");
+        ryaParams.setAccumuloInstanceName(instanceName);
+        ryaParams.setZookeeperServers(zookeepers);
+        ryaParams.setExporterUsername(ITBase.ACCUMULO_USER);
+        ryaParams.setExporterPassword(ITBase.ACCUMULO_PASSWORD);
 
         return params;
     }

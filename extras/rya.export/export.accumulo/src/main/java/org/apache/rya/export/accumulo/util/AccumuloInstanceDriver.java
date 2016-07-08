@@ -52,7 +52,7 @@ import com.google.common.io.Files;
 
 import mvm.rya.accumulo.AccumuloRdfConfiguration;
 import mvm.rya.accumulo.AccumuloRyaDAO;
-import mvm.rya.accumulo.mr.utils.MRUtils;
+import mvm.rya.accumulo.mr.MRUtils;
 import mvm.rya.api.RdfCloudTripleStoreConstants;
 import mvm.rya.api.persist.RyaDAOException;
 import mvm.rya.indexing.accumulo.ConfigUtils;

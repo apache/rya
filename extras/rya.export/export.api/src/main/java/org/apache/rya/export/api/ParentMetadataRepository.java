@@ -52,7 +52,7 @@ public interface ParentMetadataRepository {
         private Date copyToolInputTime;
         private Date copyToolRunTime;
 
-        private Long parentTimeOffset = 0L;
+        private final Long parentTimeOffset = 0L;
 
         /**
          * Creates a new {@link MergeParentMetadata}.

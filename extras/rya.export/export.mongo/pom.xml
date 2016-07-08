@@ -29,10 +29,10 @@ under the License.
     </parent>
     
     <modelVersion>4.0.0</modelVersion>
-    <artifactId>rya.export.accumulo</artifactId>
+    <artifactId>rya.export.mongo</artifactId>
     
-    <name>Apache Rya Export Accumulo</name>
-    <description>Contains the accumulo implementation of the export tool.</description>
+    <name>Apache Rya Export Mongo</name>
+    <description>Contains the mongo implementation of the export tool.</description>
     
     <dependencies>
         <!-- Rya Runtime Dependencies. -->
@@ -41,16 +41,7 @@ under the License.
             <artifactId>rya.export.api</artifactId>
             <version>3.2.10-SNAPSHOT</version>
         </dependency>
-        <dependency>
-            <groupId>org.apache.rya</groupId>
-            <artifactId>rya.indexing</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.rya</groupId>
-            <artifactId>rya.mapreduce</artifactId>
-        </dependency>
-
+        
         <!-- Log4j 2 bridge, api, and core. -->        
         <dependency>
             <groupId>org.apache.logging.log4j</groupId>
@@ -68,29 +59,6 @@ under the License.
             <version>2.5</version>
         </dependency> 
         
-        <!--  Accumulo -->
-        <dependency>
-            <groupId>org.apache.accumulo</groupId>
-            <artifactId>accumulo-core</artifactId>
-            <version>1.6.4</version>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.accumulo</groupId>
-            <artifactId>accumulo-start</artifactId>
-            <version>1.6.4</version>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.accumulo</groupId>
-            <artifactId>accumulo</artifactId>
-            <version>1.6.4</version>
-            <type>pom</type>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.thrift</groupId>
-            <artifactId>libthrift</artifactId>
-            <version>0.9.1</version>
-        </dependency>
-
         <!-- Testing dependencies. -->
         <dependency>
             <groupId>junit</groupId>

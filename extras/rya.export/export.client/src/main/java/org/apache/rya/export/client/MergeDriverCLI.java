@@ -22,9 +22,9 @@ import static org.apache.rya.export.DBType.ACCUMULO;
 
 import java.io.File;
 import java.io.IOException;
+import java.text.ParseException;
 import java.util.Date;
 
-import org.apache.commons.cli.ParseException;
 import org.apache.commons.lang.StringUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.log4j.BasicConfigurator;
@@ -73,7 +73,7 @@ public class MergeDriverCLI {
         }
 
 
-        Configuration parentConfig = new Configuration();
+        final Configuration parentConfig = new Configuration();
         parentConfig.setBoolean(ConfigUtils.USE_MOCK_INSTANCE, InstanceType.fromName(configuration.getParentInstanceType()).isMock());
         parentConfig.set(AccumuloExportConstants.ACCUMULO_INSTANCE_TYPE_PROP, configuration.getParentInstanceType());
         parentConfig.set(ConfigUtils.CLOUDBASE_INSTANCE, configuration.getParentRyaInstanceName());
@@ -84,7 +84,7 @@ public class MergeDriverCLI {
         parentConfig.set(ConfigUtils.CLOUDBASE_TBL_PREFIX, configuration.getParentTablePrefix());
         parentConfig.set(AccumuloExportConstants.PARENT_TOMCAT_URL_PROP, configuration.getParentTomcatUrl());
 
-        Configuration childConfig = new Configuration();
+        final Configuration childConfig = new Configuration();
         childConfig.setBoolean(ConfigUtils.USE_MOCK_INSTANCE + AccumuloExportConstants.CHILD_SUFFIX, InstanceType.fromName(configuration.getChildInstanceType()).isMock());
         childConfig.set(AccumuloExportConstants.ACCUMULO_INSTANCE_TYPE_PROP + AccumuloExportConstants.CHILD_SUFFIX, configuration.getChildInstanceType());
         childConfig.set(ConfigUtils.CLOUDBASE_INSTANCE + AccumuloExportConstants.CHILD_SUFFIX, configuration.getChildRyaInstanceName());
@@ -102,25 +102,25 @@ public class MergeDriverCLI {
         if (AccumuloExportConstants.USE_START_TIME_DIALOG.equals(startTime)) {
             LOG.info("Select start time from dialog...");
 
-            DateTimePickerDialog dateTimePickerDialog = new DateTimePickerDialog(DIALOG_TITLE, DIALOG_MESSAGE);
+            final DateTimePickerDialog dateTimePickerDialog = new DateTimePickerDialog(DIALOG_TITLE, DIALOG_MESSAGE);
             dateTimePickerDialog.setVisible(true);
 
-            Date date = dateTimePickerDialog.getSelectedDateTime();
+            final Date date = dateTimePickerDialog.getSelectedDateTime();
             startTime = AccumuloExportConstants.START_TIME_FORMATTER.format(date);
             LOG.info("Will merge all data after " + date);
         } else if (startTime != null) {
             try {
-                Date date = AccumuloExportConstants.START_TIME_FORMATTER.parse(startTime);
+                final Date date = AccumuloExportConstants.START_TIME_FORMATTER.parse(startTime);
                 LOG.info("Will merge all data after " + date);
             } catch (final java.text.ParseException e) {
                 LOG.error("Unable to parse the provided start time: " + startTime, e);
             }
         }
 
-        boolean useTimeSync = configuration.getUseNtpServer();
+        final boolean useTimeSync = configuration.getUseNtpServer();
         if (useTimeSync) {
-            String tomcatUrl = configuration.getChildTomcatUrl();
-            String ntpServerHost = configuration.getNtpServerHost();
+            final String tomcatUrl = configuration.getChildTomcatUrl();
+            final String ntpServerHost = configuration.getNtpServerHost();
             Long timeOffset = null;
             try {
                 LOG.info("Comparing child machine's time to NTP server time...");
@@ -140,11 +140,11 @@ public class MergeDriverCLI {
             try {
                 parentAccumuloRyaStatementStore = new AccumuloRyaStatementStore(parentConfig);
                 childAccumuloRyaStatementStore = new AccumuloRyaStatementStore(childConfig);
-            } catch (MergerException e) {
+            } catch (final MergerException e) {
                 LOG.error("Failed to create statement stores", e);
             }
 
-            AccumuloMerger accumuloMerger = new AccumuloMerger(parentAccumuloRyaStatementStore, childAccumuloRyaStatementStore);
+            final AccumuloMerger accumuloMerger = new AccumuloMerger(parentAccumuloRyaStatementStore, childAccumuloRyaStatementStore);
             accumuloMerger.runJob();
         } else {
 

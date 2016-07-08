@@ -28,7 +28,7 @@ import org.apache.rya.export.accumulo.common.InstanceType;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 
-import mvm.rya.accumulo.mr.utils.MRUtils;
+import mvm.rya.accumulo.mr.MRUtils;
 import mvm.rya.api.RdfCloudTripleStoreConfiguration;
 import mvm.rya.indexing.accumulo.ConfigUtils;
 
@@ -199,13 +199,13 @@ public class AccumuloExportConstants {
      * Sets duplicate keys in the config.
      * @param config the {@link Configuration}.
      */
-    public static void setDuplicateKeys(Configuration config) {
-        for (Entry<String, List<String>> entry : DUPLICATE_KEY_MAP.entrySet()) {
-            String key = entry.getKey();
-            List<String> duplicateKeys = entry.getValue();
-            String value = config.get(key);
+    public static void setDuplicateKeys(final Configuration config) {
+        for (final Entry<String, List<String>> entry : DUPLICATE_KEY_MAP.entrySet()) {
+            final String key = entry.getKey();
+            final List<String> duplicateKeys = entry.getValue();
+            final String value = config.get(key);
             if (value != null) {
-                for (String duplicateKey : duplicateKeys) {
+                for (final String duplicateKey : duplicateKeys) {
                     config.set(duplicateKey, value);
                 }
             }
@@ -218,11 +218,11 @@ public class AccumuloExportConstants {
      * @param property the property to set and all its duplicates.
      * @param value the value to set the property to.
      */
-    public static void setDuplicateKeysForProperty(Configuration config, String property, String value) {
-        List<String> duplicateKeys = DUPLICATE_KEY_MAP.get(property);
+    public static void setDuplicateKeysForProperty(final Configuration config, final String property, final String value) {
+        final List<String> duplicateKeys = DUPLICATE_KEY_MAP.get(property);
         config.set(property, value);
         if (duplicateKeys != null) {
-            for (String key : duplicateKeys) {
+            for (final String key : duplicateKeys) {
                 config.set(key, value);
             }
         }

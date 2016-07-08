@@ -40,6 +40,7 @@ under the License.
         <module>rya.reasoning</module>
         <module>vagrantExample</module>
         <module>rya.pcj.fluo</module>
+        <module>rya.export</module>
         <module>rya.merger</module>
         <module>rya.benchmark</module>
     </modules>

@@ -72,6 +72,7 @@ public final class MongoDBRyaDAO implements RyaDAO<MongoDBRdfConfiguration>{
      * @throws RyaDAOException
      */
     public MongoDBRyaDAO(final MongoDBRdfConfiguration conf) throws RyaDAOException, NumberFormatException, UnknownHostException {
+        this.conf = conf;
         try {
             mongoClient = MongoConnectorFactory.getMongoClient(conf);
             conf.setMongoClient(mongoClient);

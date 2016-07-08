@@ -27,7 +27,6 @@ import org.openrdf.query.BindingSet;
 import com.amazonaws.services.dynamodbv2.document.Item;
 import com.amazonaws.services.dynamodbv2.document.ItemCollection;
 import com.amazonaws.services.dynamodbv2.document.QueryOutcome;
-import com.amazonaws.services.dynamodbv2.document.internal.IteratorSupport;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -59,7 +58,7 @@ public class RyaStatementBSItemIterator implements CloseableIteration<Entry<RyaS
 
 	private Map<ItemCollection<QueryOutcome>, BindingSet> rangeMap;
 	private Iterator<ItemCollection<QueryOutcome>> queryIterator;
-	private IteratorSupport<Item, QueryOutcome> currentCursor;
+	private Iterator<Item> currentCursor;
 	private BindingSet currentBindingSet;
 	private DynamoStorageStrategy strategy;
 

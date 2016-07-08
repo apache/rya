@@ -24,7 +24,6 @@ import java.util.Iterator;
 import com.amazonaws.services.dynamodbv2.document.Item;
 import com.amazonaws.services.dynamodbv2.document.ItemCollection;
 import com.amazonaws.services.dynamodbv2.document.QueryOutcome;
-import com.amazonaws.services.dynamodbv2.document.internal.IteratorSupport;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -54,7 +53,7 @@ import mvm.rya.dynamodb.dao.DynamoStorageStrategy;
 public class RyaItemCollectionIterator implements CloseableIteration<RyaStatement, RyaDAOException> {
 
 	private Iterator<ItemCollection<QueryOutcome>> queryIterator;
-	private IteratorSupport<Item, QueryOutcome> currentCursor;
+	private Iterator<Item> currentCursor;
 	private DynamoStorageStrategy strategy;
 
 	public RyaItemCollectionIterator(Collection<ItemCollection<QueryOutcome>> queries, DynamoStorageStrategy strategy) {

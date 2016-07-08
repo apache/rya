@@ -29,9 +29,6 @@ import java.util.Map;
 import org.openrdf.model.ValueFactory;
 import org.openrdf.model.impl.ValueFactoryImpl;
 
-import com.amazonaws.auth.AWSCredentials;
-import com.amazonaws.auth.BasicAWSCredentials;
-import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClient;
 import com.amazonaws.services.dynamodbv2.document.DynamoDB;
 import com.amazonaws.services.dynamodbv2.document.Index;
 import com.amazonaws.services.dynamodbv2.document.Item;
@@ -40,24 +37,21 @@ import com.amazonaws.services.dynamodbv2.document.KeyAttribute;
 import com.amazonaws.services.dynamodbv2.document.QueryOutcome;
 import com.amazonaws.services.dynamodbv2.document.Table;
 import com.amazonaws.services.dynamodbv2.document.TableWriteItems;
-import com.amazonaws.services.dynamodbv2.document.internal.IteratorSupport;
+import com.amazonaws.services.dynamodbv2.document.spec.BatchWriteItemSpec;
 import com.amazonaws.services.dynamodbv2.document.spec.DeleteItemSpec;
 import com.amazonaws.services.dynamodbv2.document.spec.QuerySpec;
 import com.amazonaws.services.dynamodbv2.document.utils.ValueMap;
 import com.amazonaws.services.dynamodbv2.model.AttributeDefinition;
-import com.amazonaws.services.dynamodbv2.model.AttributeValue;
 import com.amazonaws.services.dynamodbv2.model.CreateTableRequest;
-import com.amazonaws.services.dynamodbv2.model.DeleteItemRequest;
 import com.amazonaws.services.dynamodbv2.model.GlobalSecondaryIndex;
 import com.amazonaws.services.dynamodbv2.model.KeySchemaElement;
 import com.amazonaws.services.dynamodbv2.model.KeyType;
 import com.amazonaws.services.dynamodbv2.model.Projection;
 import com.amazonaws.services.dynamodbv2.model.ProjectionType;
 import com.amazonaws.services.dynamodbv2.model.ProvisionedThroughput;
-import com.amazonaws.services.dynamodbv2.model.PutItemRequest;
 import com.amazonaws.services.dynamodbv2.model.ResourceInUseException;
 import com.amazonaws.services.dynamodbv2.model.ScalarAttributeType;
-import com.amazonaws.services.dynamodbv2.xspec.DeleteItemExpressionSpec;
+import com.amazonaws.services.dynamodbv2.xspec.QueryExpressionSpec;
 
 import mvm.rya.api.domain.RyaStatement;
 import mvm.rya.api.domain.RyaType;
@@ -68,25 +62,21 @@ public class DynamoStorageStrategy {
 	
 	private static final String POC = "POC";
 	private static final String CONTEXT = "context";
-	private static final String OBJECT = "object";
+	private static final String OBJECT = "obj";
 	private static final String PREDICATE = "predicate";
 	private static final String SUBJECT = "subject";
-	private AmazonDynamoDBClient client;
 	private DynamoRdfConfiguration conf;
 	private DynamoDB dynamoDB;
     public static final String NULL = "\u0000";
 	private String tableName = "rya";
 	
-	public DynamoStorageStrategy(DynamoRdfConfiguration conf) throws RdfDAOException{
+	public DynamoStorageStrategy(DynamoRdfConfiguration conf, DynamoDB dynamoDB) throws RdfDAOException{
 		this.conf = conf;
+		this.dynamoDB = dynamoDB;
 		init();
 	}
 	
 	private void init() {
-		AWSCredentials credentials = new BasicAWSCredentials(conf.getAWSUserName(), conf.getAWSSecretKey());
-		client = new AmazonDynamoDBClient(credentials);
-        client.setEndpoint(conf.getAWSEndPoint());
-        dynamoDB = new DynamoDB(client);
         this.tableName = conf.getTableName();
         initDBTables();
 	}
@@ -147,34 +137,21 @@ public class DynamoStorageStrategy {
 	}
 
 	public void close() {
-		// not sure what to do here
+		
 	}
 
 	public void add(RyaStatement statement) {
-		Map<String, AttributeValue> values = getItem(statement);
-		PutItemRequest request = new PutItemRequest()
-				.withTableName(tableName).withItem(values);
-		client.putItem(request);
-	}
-
-	private Map<String, AttributeValue> getItem(RyaStatement statement) {
-		String contextValue = "";
-		if (statement.getContext() != null){
-			contextValue = statement.getContext().getData();
-		}
-		Map<String, AttributeValue> values = new HashMap<String, AttributeValue>();
-		values.put(SUBJECT, new AttributeValue( statement.getSubject().getData()));
-		values.put(PREDICATE, new AttributeValue( statement.getPredicate().getData()));
-		values.put(POC, new AttributeValue( statement.getPredicate().getData() + NULL + statement.getObject().getData()
-				+ NULL + statement.getObject().getDataType().toString() + NULL + contextValue));
-//		values.put("context", new AttributeValue(contextValue));
-		values.put(OBJECT, new AttributeValue( statement.getObject().getData()
-				+ NULL + statement.getObject().getDataType().toString()));
-		return values;
+		Map<String, Object> values = getItemMap(statement);
+		BatchWriteItemSpec request  = new BatchWriteItemSpec();
+		TableWriteItems tableWriteItem = new TableWriteItems(tableName);
+		Item item = Item.fromMap(values);
+		tableWriteItem.withItemsToPut(item);
+		request.withTableWriteItems(tableWriteItem);
+		dynamoDB.batchWriteItem(request);
 	}
 
 	private Map<String, Object> getItemMap(RyaStatement statement) {
-		String contextValue = "";
+		String contextValue = NULL;
 		if (statement.getContext() != null){
 			contextValue = statement.getContext().getData();
 		}
@@ -218,38 +195,51 @@ public class DynamoStorageStrategy {
         Table table = dynamoDB.getTable(tableName);
         
         if (subject != null){
-        	QuerySpec spec = new QuerySpec().withHashKey(new KeyAttribute(SUBJECT, subject.getData()));
+        	QuerySpec spec = new QuerySpec()
+        	.withKeyConditionExpression(SUBJECT + " = :v_subj");
             ValueMap map = new ValueMap();
+        	map = map.withString(":v_subj", subject.getData());
             if (object != null){
-            	map.put(OBJECT, object.getData() + NULL + object.getDataType().stringValue());
+            	spec = spec.withFilterExpression(OBJECT + " = :v_obj");
+            	map.put(":v_obj", object.getData() + NULL + object.getDataType().stringValue());
             }
             if (predicate != null){
-            	map.put(PREDICATE, predicate.getData());
+            	spec = spec.withFilterExpression(PREDICATE + " = :v_pred");
+            	map.put(":v_pred", predicate.getData());
             }
             if (context != null){
-            	map.put(CONTEXT, context.getData());
+               	spec = spec.withFilterExpression(CONTEXT + " = :v_context");
+               	map.put(CONTEXT, context.getData());
             }
+            spec  = spec.withValueMap(map);
             return table.query(spec);
         }
         else if (predicate != null) {
-    		QuerySpec spec = new QuerySpec().withHashKey(new KeyAttribute(PREDICATE, predicate.getData()));
+    		QuerySpec spec = new QuerySpec().withKeyConditionExpression(PREDICATE + " = :v_pred");
             ValueMap map = new ValueMap();
-            if (object != null){
-            	map.put(OBJECT, object.getData() + NULL + object.getDataType().stringValue());
+        	map.put(":v_pred", predicate.getData());
+           if (object != null){
+              	spec = spec.withFilterExpression(OBJECT + " = :v_obj");
+            	map.put(":v_obj", object.getData() + NULL + object.getDataType().stringValue());
             }
             if (context != null){
-            	map.put(CONTEXT, context.getData());
+               	spec = spec.withFilterExpression(CONTEXT + " = :v_context");
+               	map.put(CONTEXT, context.getData());
             }
-            Index index = table.getIndex(PREDICATE);
+            spec  = spec.withValueMap(map);
+           Index index = table.getIndex(PREDICATE);
             return index.query(spec);
         }
         else if (object != null) {
-    		QuerySpec spec = new QuerySpec().withHashKey(new KeyAttribute(OBJECT, object.getData() + NULL + object.getDataType().stringValue()));
+    		QuerySpec spec = new QuerySpec().withKeyConditionExpression(OBJECT + " = :v_obj");
             ValueMap map = new ValueMap();
+            map.put(":v_obj", object.getData() + NULL + object.getDataType().stringValue());
             if (context != null){
-            	map.put(CONTEXT, context.getData());
+              	spec = spec.withFilterExpression(CONTEXT + " = :v_context");
+               	map.put(CONTEXT, context.getData());
             }
-            Index index = table.getIndex(OBJECT);
+            spec  = spec.withValueMap(map);
+           Index index = table.getIndex(OBJECT);
             return index.query(spec);
         }
  		return null;
@@ -265,7 +255,7 @@ public class DynamoStorageStrategy {
 		ValueFactory vf = new ValueFactoryImpl();
 		RyaType object = new RyaType(vf.createURI(objectDelim[1]), objectDelim[0]);
 		RyaStatement stmt = new RyaStatement(new RyaURI(subject), new RyaURI(predicate), object);
-		if (!(context == null)){
+		if (!(context == null) && !context.equalsIgnoreCase(NULL)){
 			stmt.setContext(new RyaURI(context));
 		}
 		return stmt;
@@ -273,7 +263,7 @@ public class DynamoStorageStrategy {
 
 	public void delete(RyaStatement stmt) {
 		Table table = dynamoDB.getTable(tableName);
-		IteratorSupport<Item, QueryOutcome> queryResult = getQuery(stmt).iterator();
+		Iterator<Item> queryResult = getQuery(stmt).iterator();
 		while(queryResult.hasNext()) {
 			Item item = queryResult.next();
 			DeleteItemSpec delete = new DeleteItemSpec().withPrimaryKey(new KeyAttribute(SUBJECT, item.get(SUBJECT)), 
@@ -286,6 +276,10 @@ public class DynamoStorageStrategy {
 		while(statements.hasNext()){
 			delete(statements.next());
 		}
+	}
+
+	public void dropTables() {
+		dynamoDB.getTable(tableName).delete(); // DANGEROUS!
 	}
 
 }

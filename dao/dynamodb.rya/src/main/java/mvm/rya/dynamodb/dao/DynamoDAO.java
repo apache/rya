@@ -20,7 +20,9 @@ package mvm.rya.dynamodb.dao;
 
 import java.util.Iterator;
 
-import info.aduna.iteration.CloseableIteration;
+import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
+import com.amazonaws.services.dynamodbv2.document.DynamoDB;
+
 import mvm.rya.api.RdfCloudTripleStoreConfiguration;
 import mvm.rya.api.domain.RyaStatement;
 import mvm.rya.api.domain.RyaURI;
@@ -35,10 +37,22 @@ public class DynamoDAO implements RyaDAO<DynamoRdfConfiguration> {
 	private DynamoRdfConfiguration conf;
 	private boolean isInitialized = false;
 	private DynamoQueryEngine engine;
+	private DynamoNamespaceManager nsManager;
+	private DynamoDB dynamoDB;
+	private AmazonDynamoDB client;
 
 	@Override
 	public void setConf(DynamoRdfConfiguration conf) {
 		this.conf = conf;
+	}
+	
+	public void setDynamoDB(AmazonDynamoDB dynamoDB){
+		this.client = dynamoDB;
+		this.dynamoDB = new DynamoDB(dynamoDB);
+	}
+	
+	public AmazonDynamoDB getDynamoDB() {
+		return client;
 	}
 
 	@Override
@@ -48,8 +62,9 @@ public class DynamoDAO implements RyaDAO<DynamoRdfConfiguration> {
 
 	@Override
 	public void init() throws RyaDAOException {
-		this.strategy = new DynamoStorageStrategy(conf);
+		this.strategy = new DynamoStorageStrategy(conf, dynamoDB);
 		this.engine = new DynamoQueryEngine(conf, strategy);
+		this.nsManager = new DynamoNamespaceManager(conf, client);
 		this.isInitialized = true;
 	}
 
@@ -60,6 +75,7 @@ public class DynamoDAO implements RyaDAO<DynamoRdfConfiguration> {
 
 	@Override
 	public void destroy() throws RyaDAOException {
+		client.shutdown();
 		strategy.close();
 	}
 
@@ -112,27 +128,9 @@ public class DynamoDAO implements RyaDAO<DynamoRdfConfiguration> {
 
 	@Override
 	public void dropAndDestroy() throws RyaDAOException {
-		// TODO Auto-generated method stub
-		
+		strategy.dropTables();
+		destroy();
 	}
 
-	public static void main(String[] args) throws Exception {
-		  DynamoRdfConfiguration conf = new DynamoRdfConfiguration();
-		  conf.setAWSUserName("FakeID");
-		  conf.setAWSSecretKey("FakeKey");
-		  conf.setAWSEndPoint("http://localhost:8000");
-		  DynamoDAO dao = new DynamoDAO();
-		  dao.setConf(conf);
-		  dao.init();
-		  RyaStatement statement = new RyaStatement(new RyaURI("urn:subj"), new RyaURI("urn:pred"), new RyaURI("urn:obj"));
-		  RyaStatement statement2 = new RyaStatement(new RyaURI("urn:subj"), new RyaURI("urn:pred2"), new RyaURI("urn:obj"));
-		  RyaStatement statement3 = new RyaStatement(new RyaURI("urn:subj"), null, new RyaURI("urn:obj"));
-		  dao.add(statement);
-		  dao.add(statement2);
-		  CloseableIteration<RyaStatement, RyaDAOException> queryResults = dao.getQueryEngine().query(statement3, conf);
-		  while(queryResults.hasNext()){
-			  System.out.println(queryResults.next());
-		  }
-	    }
 
 }

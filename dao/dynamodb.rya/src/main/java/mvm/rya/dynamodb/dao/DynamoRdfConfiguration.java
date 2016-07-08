@@ -24,6 +24,7 @@ import mvm.rya.api.RdfCloudTripleStoreConfiguration;
 
 public class DynamoRdfConfiguration extends RdfCloudTripleStoreConfiguration{
 	
+	public static final String USE_MOCK = ".useMockInstance";
 	public static final String AWS_USER = "rya.aws.user";
 	public static final String AWS_SECRET_KEY = "rya.aws.secret.key";
 	public static final String AWS_ENDPOINT = "rya.aws.endpoint";
@@ -32,6 +33,11 @@ public class DynamoRdfConfiguration extends RdfCloudTripleStoreConfiguration{
 	public DynamoRdfConfiguration(Configuration dynamoRdfConfiguration) {
 		super(dynamoRdfConfiguration);
 	}
+	
+	public boolean useMockInstance() {
+		return getBoolean(USE_MOCK, false);
+	}
+	
 	
 	public DynamoRdfConfiguration(){
 		super();

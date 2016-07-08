@@ -70,20 +70,20 @@ public class DynamoDBRyaDirectExample {
         SailRepository repository = null;
         SailRepositoryConnection conn = null;
         try {
-            log.info("Connecting to Indexing Sail Repository.");
+            System.out.println("Connecting to Indexing Sail Repository.");
             Sail sail = RyaSailFactory.getInstance(conf);
             repository = new SailRepository(sail);
             repository.initialize();
             conn = repository.getConnection();
 
             long start = System.currentTimeMillis();
-            log.info("Running SPARQL Example: Add and Delete");
+            System.out.println("Running SPARQL Example: Add and Delete");
             testAddAndDelete(conn);
             testAddAndDeleteNoContext(conn);
 //            testAddNamespaces(conn);
             testInfer(conn, sail);
 
-            log.info("TIME: " + (System.currentTimeMillis() - start) / 1000.);
+            System.out.println("TIME: " + (System.currentTimeMillis() - start) / 1000.);
         } finally {
             log.info("Shutting down");
             closeQuietly(conn);

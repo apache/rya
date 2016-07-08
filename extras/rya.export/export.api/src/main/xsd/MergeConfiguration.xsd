@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schema xmlns="http://www.w3.org/2001/XMLSchema"
+    xmlns:xs="http://www.w3.org/2001/XMLSchema"
+    xmlns:mc="http://mergeconfig"
+    targetNamespace="http://mergeconfig"
+    elementFormDefault="qualified">
+
+    <xs:element name="configuration" type="mc:JAXBMergeConfiguration"/>
+
+    <xs:complexType name="JAXBMergeConfiguration">
+        <xs:sequence>
+            <xs:element name="parentHostname" type="xs:string"/>
+            <xs:element name="parentRyaInstanceName" type="xs:string"/>
+            <xs:element name="parentDBType" type="mc:DBType"/>
+            <xs:element name="parentPort" type="mc:Port"/>
+
+            <xs:element name="childHostname" type="xs:string"/>
+            <xs:element name="childRyaInstanceName" type="xs:string"/>
+            <xs:element name="childDBType" type="mc:DBType"/>
+            <xs:element name="childPort" type="mc:Port"/>
+
+            <xs:element name="mergePolicy" type="mc:MergePolicy"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:simpleType name="MergePolicy">
+      <xs:restriction base="xs:string">
+        <xs:enumeration value="timestamp"/>
+      </xs:restriction>
+    </xs:simpleType>
+    
+    <xs:simpleType name="DBType">
+      <xs:restriction base="xs:string">
+        <xs:enumeration value="accumulo"/>
+        <xs:enumeration value="mongo"/>
+      </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="Port">
+      <xs:annotation>
+        <xs:documentation>
+          Port number in the range [1, 65536].
+        </xs:documentation>
+      </xs:annotation>
+      
+      <xs:restriction base="xs:unsignedShort">
+        <xs:minInclusive value="1"/>
+      </xs:restriction>
+    </xs:simpleType>
+</schema>

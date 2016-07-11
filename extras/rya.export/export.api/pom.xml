@@ -124,6 +124,25 @@ under the License.
                     </execution>
                 </executions>
             </plugin>
+            
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>jaxb2-maven-plugin</artifactId>
+                <version>2.2</version>
+                <executions>
+                    <execution>
+                        <id>xjc</id>
+	                    <goals>
+	                        <goal>xjc</goal>
+	                    </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <sources>src/main/xsd/MergeConfiguration.xsd</sources>
+                    <packageName>org.apache.rya.export</packageName>
+                    <outputDirectory>src/gen/java</outputDirectory>
+                </configuration>
+            </plugin>
 
             <!--
                 Create shaded jar with all the dependencies

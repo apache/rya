@@ -1,5 +1,7 @@
 package org.apache.rya.export.api.conf;
 
+import static org.apache.rya.export.api.conf.MergeConfiguration.Builder;
+import org.apache.rya.export.JAXBMergeConfiguration;
 /**
  * Helper for creating the immutable application configuration.
  */

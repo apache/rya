@@ -1,5 +1,7 @@
 package org.apache.rya.export.client;
 
+import static org.apache.rya.export.DBType.ACCUMULO;
+
 import java.io.File;
 
 import org.apache.commons.cli.ParseException;

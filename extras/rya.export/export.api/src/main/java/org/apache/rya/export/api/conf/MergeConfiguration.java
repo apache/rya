@@ -3,7 +3,8 @@ package org.apache.rya.export.api.conf;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import org.apache.http.annotation.Immutable;
-import org.apache.lucene.index.MergePolicy;
+import org.apache.rya.export.DBType;
+import org.apache.rya.export.MergePolicy;
 
 /**
  * Immutable configuration object to allow the MergeTool to connect to the parent and child

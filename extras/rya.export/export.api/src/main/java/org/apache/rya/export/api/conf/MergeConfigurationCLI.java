@@ -12,7 +12,9 @@ import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
-import org.apache.lucene.index.MergePolicy;
+import org.apache.rya.export.DBType;
+import org.apache.rya.export.JAXBMergeConfiguration;
+import org.apache.rya.export.MergePolicy;
 
 import com.google.common.annotations.VisibleForTesting;
 

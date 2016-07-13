@@ -19,8 +19,6 @@ package mvm.rya.indexing.accumulo.geo;
  * under the License.
  */
 
-
-
 import static mvm.rya.api.resolver.RdfToRyaConversions.convertStatement;
 
 import java.util.Collections;
@@ -55,6 +53,10 @@ import info.aduna.iteration.CloseableIteration;
 import mvm.rya.indexing.StatementConstraints;
 import mvm.rya.indexing.accumulo.ConfigUtils;
 
+/**
+ * Tests  higher level functioning of the geoindexer parse WKT, predicate list, 
+ * prime and anti meridian, delete, search, context, search with Statement Constraints.
+ */
 public class GeoIndexerTest {
 
     private static final StatementConstraints EMPTY_CONSTRAINTS = new StatementConstraints();

@@ -234,10 +234,7 @@ public class GeoMesaGeoIndexer extends AbstractAccumuloIndexer implements GeoInd
     public void storeStatements(final Collection<RyaStatement> ryaStatements) throws IOException {
         // create a feature collection
         final DefaultFeatureCollection featureCollection = new DefaultFeatureCollection();
-
-
         for (final RyaStatement ryaStatement : ryaStatements) {
-
             final Statement statement = RyaToRdfConversions.convertStatement(ryaStatement);
             // if the predicate list is empty, accept all predicates.
             // Otherwise, make sure the predicate is on the "valid" list
@@ -279,7 +276,7 @@ public class GeoMesaGeoIndexer extends AbstractAccumuloIndexer implements GeoInd
         final SimpleFeature newFeature = SimpleFeatureBuilder.build(featureType, noValues, statementId);
 
         // write the statement data to the fields
-        final Geometry geom = (new WKTReader()).read(GeoParseUtils.getWellKnownText(statement));
+        final Geometry geom = GeoParseUtils.getGeometry(statement); 
         if(geom == null || geom.isEmpty() || !geom.isValid()) {
             throw new ParseException("Could not create geometry for statement " + statement);
         }

@@ -21,6 +21,7 @@ package mvm.rya.indexing.external.accumulo;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import org.apache.hadoop.conf.Configuration;
+import org.apache.rya.indexing.pcj.storage.accumulo.AccumuloPcjStorage;
 
 import mvm.rya.api.RdfCloudTripleStoreConfiguration;
 

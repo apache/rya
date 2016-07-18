@@ -1,6 +1,4 @@
-package mvm.rya.mongodb.instance;
-
-/*
+/**
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -9,7 +7,7 @@ package mvm.rya.mongodb.instance;
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
@@ -18,6 +16,9 @@ package mvm.rya.mongodb.instance;
  * specific language governing permissions and limitations
  * under the License.
  */
+package mvm.rya.mongodb.instance;
+
+import static java.util.Objects.requireNonNull;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -104,7 +105,7 @@ public class MongoDetailsAdapter {
             .add(VERSION_KEY, details.getRyaVersion())
             .add(ENTITY_DETAILS_KEY, details.getEntityCentricIndexDetails().isEnabled())
             .add(GEO_DETAILS_KEY, details.getGeoIndexDetails().isEnabled())
-            .add(PCJ_DETAILS_KEY, getPCJDetailsDBObject(details))
+            .add(PCJ_DETAILS_KEY, toDBObject(details.getPCJIndexDetails()))
             .add(TEMPORAL_DETAILS_KEY, details.getTemporalIndexDetails().isEnabled())
             .add(FREETEXT_DETAILS_KEY, details.getFreeTextIndexDetails().isEnabled());
         if(details.getProspectorDetails().getLastUpdated().isPresent()) {
@@ -116,26 +117,48 @@ public class MongoDetailsAdapter {
         return (BasicDBObject) builder.get();
     }
 
-    private static DBObject getPCJDetailsDBObject(final RyaDetails details) {
-        final PCJIndexDetails pcjDetails = details.getPCJIndexDetails();
-        final BasicDBObjectBuilder pcjBuilder = BasicDBObjectBuilder.start()
-            .add(PCJ_ENABLED_KEY, pcjDetails.isEnabled());
-        if(pcjDetails.getFluoDetails().isPresent()) {
-            pcjBuilder.add(PCJ_FLUO_KEY, pcjDetails.getFluoDetails().get().getUpdateAppName());
+    private static DBObject toDBObject(final PCJIndexDetails pcjIndexDetails) {
+        requireNonNull(pcjIndexDetails);
+
+        final BasicDBObjectBuilder builder = BasicDBObjectBuilder.start();
+
+        // Is Enabled
+        builder.add(PCJ_ENABLED_KEY, pcjIndexDetails.isEnabled());
+
+        // Fluo Details if present.
+        if(pcjIndexDetails.getFluoDetails().isPresent()) {
+            builder.add(PCJ_FLUO_KEY, pcjIndexDetails.getFluoDetails().get().getUpdateAppName());
         }
-        final List<DBObject> pcjDetailList = new ArrayList<>();
-        for(final Entry<String, PCJDetails> entry : pcjDetails.getPCJDetails().entrySet()) {
-            final PCJDetails pcjDetail = entry.getValue();
-            final BasicDBObjectBuilder indBuilbder = BasicDBObjectBuilder.start()
-                .add(PCJ_ID_KEY, pcjDetail.getId())
-                .add(PCJ_UPDATE_STRAT_KEY, pcjDetail.getUpdateStrategy().name());
-            if(pcjDetail.getLastUpdateTime().isPresent()) {
-                indBuilbder.add(PCJ_LAST_UPDATE_KEY, pcjDetail.getLastUpdateTime().get());
-            }
-            pcjDetailList.add(indBuilbder.get());
+
+        // Add the PCJDetail objects.
+        final List<DBObject> pcjDetailsList = new ArrayList<>();
+        for(final PCJDetails pcjDetails : pcjIndexDetails.getPCJDetails().values()) {
+            pcjDetailsList.add( toDBObject( pcjDetails ) );
         }
-        pcjBuilder.add(PCJ_PCJS_KEY, pcjDetailList.toArray());
-        return pcjBuilder.get();
+        builder.add(PCJ_PCJS_KEY, pcjDetailsList.toArray());
+
+        return builder.get();
+    }
+
+    static DBObject toDBObject(final PCJDetails pcjDetails) {
+        requireNonNull(pcjDetails);
+
+        final BasicDBObjectBuilder builder = BasicDBObjectBuilder.start();
+
+        // PCJ ID
+        builder.add(PCJ_ID_KEY, pcjDetails.getId());
+
+        // PCJ Update Strategy if present.
+        if(pcjDetails.getUpdateStrategy().isPresent()) {
+            builder.add(PCJ_UPDATE_STRAT_KEY, pcjDetails.getUpdateStrategy().get().name());
+        }
+
+        // Last Update Time if present.
+        if(pcjDetails.getLastUpdateTime().isPresent()) {
+            builder.add(PCJ_LAST_UPDATE_KEY, pcjDetails.getLastUpdateTime().get());
+        }
+
+        return builder.get();
     }
 
     public static RyaDetails toRyaDetails(final DBObject mongoObj) throws MalformedRyaDetailsException {
@@ -146,7 +169,7 @@ public class MongoDetailsAdapter {
             .setRyaVersion(basicObj.getString(VERSION_KEY))
             .setEntityCentricIndexDetails(new EntityCentricIndexDetails(basicObj.getBoolean(ENTITY_DETAILS_KEY)))
             .setGeoIndexDetails(new GeoIndexDetails(basicObj.getBoolean(GEO_DETAILS_KEY)))
-            .setPCJIndexDetails(getPCJDetails(basicObj))
+            .setPCJIndexDetails(getPCJIndexDetails(basicObj))
             .setTemporalIndexDetails(new TemporalIndexDetails(basicObj.getBoolean(TEMPORAL_DETAILS_KEY)))
             .setFreeTextDetails(new FreeTextIndexDetails(basicObj.getBoolean(FREETEXT_DETAILS_KEY)))
             .setProspectorDetails(new ProspectorDetails(Optional.<Date>fromNullable(basicObj.getDate(PROSPECTOR_DETAILS_KEY))))
@@ -157,24 +180,41 @@ public class MongoDetailsAdapter {
         }
     }
 
-    private static PCJIndexDetails getPCJDetails(final BasicDBObject basicObj) {
-        final BasicDBObject pcjObj = (BasicDBObject) basicObj.get(PCJ_DETAILS_KEY);
+    private static PCJIndexDetails.Builder getPCJIndexDetails(final BasicDBObject basicObj) {
+        final BasicDBObject pcjIndexDBO = (BasicDBObject) basicObj.get(PCJ_DETAILS_KEY);
+
         final PCJIndexDetails.Builder pcjBuilder = PCJIndexDetails.builder()
-            .setEnabled(pcjObj.getBoolean(PCJ_ENABLED_KEY))
-            .setFluoDetails(new FluoDetails(pcjObj.getString(PCJ_FLUO_KEY)));
-        final BasicDBList pcjs = (BasicDBList) pcjObj.get(PCJ_PCJS_KEY);
+            .setEnabled(pcjIndexDBO.getBoolean(PCJ_ENABLED_KEY))
+            .setFluoDetails(new FluoDetails(pcjIndexDBO.getString(PCJ_FLUO_KEY)));
+
+        final BasicDBList pcjs = (BasicDBList) pcjIndexDBO.get(PCJ_PCJS_KEY);
         if(pcjs != null) {
             for(int ii = 0; ii < pcjs.size(); ii++) {
                 final BasicDBObject pcj = (BasicDBObject) pcjs.get(ii);
-                pcjBuilder.addPCJDetails(
-                PCJDetails.builder()
-                    .setId(pcj.getString(PCJ_ID_KEY))
-                    .setUpdateStrategy(PCJUpdateStrategy.valueOf((String)pcj.get(PCJ_UPDATE_STRAT_KEY)))
-                    .setLastUpdateTime(pcj.getDate(PCJ_LAST_UPDATE_KEY))
-                    .build());
+                pcjBuilder.addPCJDetails( toPCJDetails(pcj) );
             }
         }
-        return pcjBuilder.build();
+        return pcjBuilder;
+    }
+
+    static PCJDetails.Builder toPCJDetails(final BasicDBObject dbo) {
+        requireNonNull(dbo);
+
+        // PCJ ID.
+        final PCJDetails.Builder builder = PCJDetails.builder()
+                .setId( dbo.getString(PCJ_ID_KEY) );
+
+        // PCJ Update Strategy if present.
+        if(dbo.containsField(PCJ_UPDATE_STRAT_KEY)) {
+            builder.setUpdateStrategy( PCJUpdateStrategy.valueOf( dbo.getString(PCJ_UPDATE_STRAT_KEY) ) );
+        }
+
+        // Last Update Time if present.
+        if(dbo.containsField(PCJ_LAST_UPDATE_KEY)) {
+            builder.setLastUpdateTime( dbo.getDate(PCJ_LAST_UPDATE_KEY) );
+        }
+
+        return builder;
     }
 
     /**

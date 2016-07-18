@@ -24,6 +24,7 @@ import java.io.File;
 import java.io.IOException;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -63,7 +64,9 @@ import org.openrdf.query.impl.MapBindingSet;
 import org.openrdf.repository.RepositoryConnection;
 import org.openrdf.repository.RepositoryException;
 import org.openrdf.sail.Sail;
+import org.openrdf.sail.SailException;
 
+import com.google.common.base.Optional;
 import com.google.common.io.Files;
 
 import io.fluo.api.client.FluoAdmin;
@@ -80,10 +83,21 @@ import io.fluo.api.iterator.ColumnIterator;
 import io.fluo.api.iterator.RowIterator;
 import io.fluo.api.mini.MiniFluo;
 import mvm.rya.accumulo.AccumuloRdfConfiguration;
+import mvm.rya.accumulo.instance.AccumuloRyaInstanceDetailsRepository;
 import mvm.rya.api.domain.RyaStatement;
 import mvm.rya.api.domain.RyaStatement.RyaStatementBuilder;
 import mvm.rya.api.domain.RyaType;
 import mvm.rya.api.domain.RyaURI;
+import mvm.rya.api.instance.RyaDetails;
+import mvm.rya.api.instance.RyaDetails.EntityCentricIndexDetails;
+import mvm.rya.api.instance.RyaDetails.FreeTextIndexDetails;
+import mvm.rya.api.instance.RyaDetails.GeoIndexDetails;
+import mvm.rya.api.instance.RyaDetails.JoinSelectivityDetails;
+import mvm.rya.api.instance.RyaDetails.PCJIndexDetails;
+import mvm.rya.api.instance.RyaDetails.ProspectorDetails;
+import mvm.rya.api.instance.RyaDetails.TemporalIndexDetails;
+import mvm.rya.api.instance.RyaDetailsRepository;
+import mvm.rya.api.instance.RyaDetailsRepository.RyaDetailsRepositoryException;
 import mvm.rya.api.persist.RyaDAOException;
 import mvm.rya.api.resolver.RyaToRdfConversions;
 import mvm.rya.indexing.accumulo.ConfigUtils;
@@ -101,7 +115,7 @@ import mvm.rya.sail.config.RyaSailFactory;
 public abstract class ITBase {
     private static final Logger log = Logger.getLogger(ITBase.class);
 
-    protected static final String RYA_TABLE_PREFIX = "demo_";
+    protected static final String RYA_INSTANCE_NAME = "demo_";
 
     protected static final String ACCUMULO_USER = "root";
     protected static final String ACCUMULO_PASSWORD = "password";
@@ -130,7 +144,7 @@ public abstract class ITBase {
     @Before
     public void setupMiniResources()
             throws IOException, InterruptedException, AccumuloException, AccumuloSecurityException, RepositoryException,
-            RyaDAOException, NumberFormatException, InferenceEngineException, AlreadyInitializedException, TableExistsException {
+            RyaDAOException, NumberFormatException, InferenceEngineException, AlreadyInitializedException, TableExistsException, AlreadyInitializedException, RyaDetailsRepositoryException, SailException {
     	// Initialize the Mini Accumulo that will be used to host Rya and Fluo.
     	setupMiniAccumulo();
 
@@ -339,25 +353,12 @@ public abstract class ITBase {
     }
 
      /**
-      * Sets up a Rya instance
-      *
-      * @param user
-      * @param password
-      * @param instanceName
-      * @param zookeepers
-      * @param appName
-      * @return
-      * @throws AccumuloException
-      * @throws AccumuloSecurityException
-      * @throws RepositoryException
-      * @throws RyaDAOException
-      * @throws NumberFormatException
-      * @throws UnknownHostException
-      * @throws InferenceEngineException
+      * Sets up a Rya instance.
+     * @throws SailException
       */
     protected static RyaSailRepository setupRya(final String user, final String password, final String instanceName, final String zookeepers, final String appName)
             throws AccumuloException, AccumuloSecurityException, RepositoryException, RyaDAOException,
-            NumberFormatException, UnknownHostException, InferenceEngineException {
+            NumberFormatException, UnknownHostException, InferenceEngineException, mvm.rya.api.instance.RyaDetailsRepository.AlreadyInitializedException, RyaDetailsRepositoryException, SailException {
 
         checkNotNull(user);
         checkNotNull(password);
@@ -367,7 +368,7 @@ public abstract class ITBase {
 
         // Setup Rya configuration values.
         final AccumuloRdfConfiguration conf = new AccumuloRdfConfiguration();
-        conf.setTablePrefix(RYA_TABLE_PREFIX);
+        conf.setTablePrefix(RYA_INSTANCE_NAME);
         conf.setDisplayQueryPlan(true);
         conf.setBoolean(ConfigUtils.USE_MOCK_INSTANCE, false);
         conf.set(ConfigUtils.CLOUDBASE_USER, user);
@@ -384,7 +385,25 @@ public abstract class ITBase {
 
         final Sail sail = RyaSailFactory.getInstance(conf);
         final RyaSailRepository ryaRepo = new RyaSailRepository(sail);
-        ryaRepo.initialize();
+
+        // Initialize the Rya Details.
+        final RyaDetailsRepository detailsRepo = new AccumuloRyaInstanceDetailsRepository(accumuloConn, RYA_INSTANCE_NAME);
+
+        final RyaDetails details = RyaDetails.builder()
+                .setRyaInstanceName(RYA_INSTANCE_NAME)
+                .setRyaVersion("0.0.0.0")
+                .setFreeTextDetails( new FreeTextIndexDetails(true) )
+                .setEntityCentricIndexDetails( new EntityCentricIndexDetails(true) )
+                .setGeoIndexDetails( new GeoIndexDetails(true) )
+                .setTemporalIndexDetails( new TemporalIndexDetails(true) )
+                .setPCJIndexDetails(
+                        PCJIndexDetails.builder()
+                            .setEnabled(true) )
+                .setJoinSelectivityDetails( new JoinSelectivityDetails( Optional.<Date>absent() ) )
+                .setProspectorDetails( new ProspectorDetails( Optional.<Date>absent() ))
+                .build();
+
+        detailsRepo.initialize(details);
 
         return ryaRepo;
     }
@@ -404,13 +423,11 @@ public abstract class ITBase {
 
     /**
      * Setup a Mini Fluo cluster that uses a temporary directory to store its
-     * data.ll
+     * data.
      *
      * @return A Mini Fluo cluster.
      */
     protected MiniFluo startMiniFluo() throws AlreadyInitializedException, TableExistsException {
-//        final File miniDataDir = Files.createTempDir();
-
         // Setup the observers that will be used by the Fluo PCJ Application.
         final List<ObserverConfiguration> observers = new ArrayList<>();
         observers.add(new ObserverConfiguration(TripleObserver.class.getName()));

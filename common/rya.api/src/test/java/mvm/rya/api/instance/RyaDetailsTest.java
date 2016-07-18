@@ -61,14 +61,11 @@ public class RyaDetailsTest {
                                 PCJDetails.builder()
                                     .setId("pcj 1")
                                     .setUpdateStrategy(PCJUpdateStrategy.BATCH)
-                                    .setLastUpdateTime( new Date() )
-                                    .build())
+                                    .setLastUpdateTime( new Date() ))
                         .addPCJDetails(
                                 PCJDetails.builder()
                                     .setId("pcj 2")
-                                    .setUpdateStrategy(PCJUpdateStrategy.INCREMENTAL)
-                                    .build())
-                        .build())
+                                    .setUpdateStrategy(PCJUpdateStrategy.INCREMENTAL)))
             .setProspectorDetails( new ProspectorDetails(Optional.of(new Date())) )
             .setJoinSelectivityDetails( new JoinSelectivityDetails(Optional.of(new Date())) );
 
@@ -95,14 +92,11 @@ public class RyaDetailsTest {
                                 PCJDetails.builder()
                                     .setId("pcj 1")
                                     .setUpdateStrategy(PCJUpdateStrategy.BATCH)
-                                    .setLastUpdateTime( new Date() )
-                                    .build())
+                                    .setLastUpdateTime( new Date() ))
                         .addPCJDetails(
                                 PCJDetails.builder()
                                     .setId("pcj 2")
-                                    .setUpdateStrategy(PCJUpdateStrategy.INCREMENTAL)
-                                    .build())
-                        .build())
+                                    .setUpdateStrategy(PCJUpdateStrategy.INCREMENTAL)))
             .setProspectorDetails( new ProspectorDetails(Optional.of(new Date())) )
             .setJoinSelectivityDetails( new JoinSelectivityDetails(Optional.of(new Date())) );
 
@@ -128,14 +122,11 @@ public class RyaDetailsTest {
                                 PCJDetails.builder()
                                     .setId("pcj 1")
                                     .setUpdateStrategy(PCJUpdateStrategy.BATCH)
-                                    .setLastUpdateTime( new Date() )
-                                    .build())
+                                    .setLastUpdateTime( new Date() ))
                         .addPCJDetails(
                                 PCJDetails.builder()
                                     .setId("pcj 2")
-                                    .setUpdateStrategy(PCJUpdateStrategy.INCREMENTAL)
-                                    .build())
-                        .build())
+                                    .setUpdateStrategy(PCJUpdateStrategy.INCREMENTAL)))
             .setProspectorDetails( new ProspectorDetails(Optional.of(new Date())) )
             .setJoinSelectivityDetails( new JoinSelectivityDetails(Optional.of(new Date())) )
             .build();

@@ -163,6 +163,7 @@ public class SparqlFluoQueryBuilder {
             // Create the unique portion of the id.
             final String unique = UUID.randomUUID().toString().replaceAll("-", "");
 
+
             // Put them together to create the Node ID.
             return prefix + "_" + unique;
         }
@@ -218,9 +219,9 @@ public class SparqlFluoQueryBuilder {
         }
 
         @Override
-        public void meet(LeftJoin node) {
+        public void meet(final LeftJoin node) {
             // Extract the metadata that will be stored for the node.
-            String leftJoinNodeId = nodeIds.getOrMakeId(node);
+            final String leftJoinNodeId = nodeIds.getOrMakeId(node);
             final QueryModelNode left = node.getLeftArg();
             final QueryModelNode right = node.getRightArg();
 
@@ -245,7 +246,7 @@ public class SparqlFluoQueryBuilder {
             super.meet(node);
         }
 
-        private void makeJoinMetadata(String joinNodeId, JoinType joinType, QueryModelNode left, QueryModelNode right) {
+        private void makeJoinMetadata(final String joinNodeId, final JoinType joinType, final QueryModelNode left, final QueryModelNode right) {
             final String leftChildNodeId = nodeIds.getOrMakeId(left);
             final String rightChildNodeId = nodeIds.getOrMakeId(right);
 

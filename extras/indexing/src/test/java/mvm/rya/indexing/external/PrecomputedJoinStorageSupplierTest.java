@@ -24,12 +24,12 @@ import static org.mockito.Mockito.when;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.rya.indexing.pcj.storage.PrecomputedJoinStorage;
+import org.apache.rya.indexing.pcj.storage.accumulo.AccumuloPcjStorage;
 import org.junit.Test;
 
 import com.google.common.base.Supplier;
 
 import mvm.rya.indexing.external.PrecomputedJoinIndexerConfig.PrecomputedJoinStorageType;
-import mvm.rya.indexing.external.accumulo.AccumuloPcjStorage;
 import mvm.rya.indexing.external.accumulo.AccumuloPcjStorageSupplier;
 
 /**

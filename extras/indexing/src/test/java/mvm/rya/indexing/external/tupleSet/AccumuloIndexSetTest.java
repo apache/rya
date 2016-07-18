@@ -81,14 +81,13 @@ public class AccumuloIndexSetTest {
     @Before
     public void init() throws AccumuloException, AccumuloSecurityException,
         RyaDAOException, RepositoryException, TableNotFoundException,
-        InferenceEngineException, NumberFormatException, UnknownHostException {
+        InferenceEngineException, NumberFormatException, UnknownHostException, SailException {
         accumuloConn = ConfigUtils.getConnector(conf);
         final TableOperations ops = accumuloConn.tableOperations();
         if(ops.exists(prefix+"INDEX_"+ "testPcj")) {
             ops.delete(prefix+"INDEX_"+ "testPcj");
         }
         ryaRepo = new RyaSailRepository(RyaSailFactory.getInstance(conf));
-        ryaRepo.initialize();
         ryaConn = ryaRepo.getConnection();
     }
 

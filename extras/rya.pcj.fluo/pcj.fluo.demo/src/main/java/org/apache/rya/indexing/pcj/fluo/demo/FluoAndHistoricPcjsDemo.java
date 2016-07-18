@@ -18,31 +18,19 @@
  */
 package org.apache.rya.indexing.pcj.fluo.demo;
 
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Map.Entry;
 import java.util.Set;
 
 import org.apache.accumulo.core.client.Connector;
-import org.apache.accumulo.core.client.Scanner;
-import org.apache.accumulo.core.client.TableNotFoundException;
-import org.apache.accumulo.core.data.Key;
-import org.apache.accumulo.core.data.Value;
-import org.apache.accumulo.core.security.Authorizations;
 import org.apache.accumulo.minicluster.MiniAccumuloCluster;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.hadoop.io.Text;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.apache.rya.indexing.pcj.fluo.api.CreatePcj;
 import org.apache.rya.indexing.pcj.fluo.api.InsertTriples;
-import org.apache.rya.indexing.pcj.fluo.app.query.FluoQueryColumns;
 import org.apache.rya.indexing.pcj.storage.PcjException;
-import org.apache.rya.indexing.pcj.storage.PcjMetadata;
-import org.apache.rya.indexing.pcj.storage.accumulo.AccumuloPcjSerializer;
-import org.apache.rya.indexing.pcj.storage.accumulo.BindingSetConverter.BindingSetConversionException;
-import org.apache.rya.indexing.pcj.storage.accumulo.PcjTables;
-import org.apache.rya.indexing.pcj.storage.accumulo.VariableOrder;
+import org.apache.rya.indexing.pcj.storage.PrecomputedJoinStorage;
+import org.apache.rya.indexing.pcj.storage.PrecomputedJoinStorage.PCJStorageException;
+import org.apache.rya.indexing.pcj.storage.accumulo.AccumuloPcjStorage;
 import org.openrdf.model.Statement;
 import org.openrdf.query.BindingSet;
 import org.openrdf.query.MalformedQueryException;
@@ -55,13 +43,9 @@ import org.openrdf.repository.RepositoryException;
 import org.openrdf.sail.SailException;
 
 import com.google.common.base.Optional;
-import com.google.common.collect.HashMultimap;
-import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
 
 import io.fluo.api.client.FluoClient;
-import io.fluo.api.client.Snapshot;
-import io.fluo.api.data.Bytes;
 import io.fluo.api.mini.MiniFluo;
 import mvm.rya.api.domain.RyaStatement;
 import mvm.rya.api.domain.RyaType;
@@ -75,8 +59,6 @@ import mvm.rya.rdftriplestore.RyaSailRepository;
  */
 public class FluoAndHistoricPcjsDemo implements Demo {
     private static final Logger log = Logger.getLogger(FluoAndHistoricPcjsDemo.class);
-
-    private static final AccumuloPcjSerializer converter = new AccumuloPcjSerializer();
 
     // Employees
     private static final RyaURI alice = new RyaURI("http://Alice");
@@ -188,8 +170,15 @@ public class FluoAndHistoricPcjsDemo implements Demo {
 
         // 4. Write the query to Fluo and import the historic matches. Wait for the app to finish exporting results.
         log.info("Telling Fluo to maintain the query and import the historic Statement Pattern matches.");
+        final PrecomputedJoinStorage pcjStorage = new AccumuloPcjStorage(accumuloConn, ryaTablePrefix);
+        final String pcjId;
         try {
-            new CreatePcj().withRyaIntegration(fluoClient, ryaTablePrefix, ryaRepo, accumuloConn, new HashSet<VariableOrder>(), sparql);
+            // Create the PCJ Index in Rya.
+            pcjId = pcjStorage.createPcj(sparql);
+
+            // Tell the Fluo app to maintain it.
+            new CreatePcj().withRyaIntegration(pcjId, pcjStorage, fluoClient, ryaRepo);
+
         } catch (MalformedQueryException | SailException | QueryEvaluationException | PcjException e) {
             throw new DemoExecutionException("Error while using Fluo to compute and export historic matches, so the demo can not continue. Exiting.", e);
         }
@@ -200,11 +189,14 @@ public class FluoAndHistoricPcjsDemo implements Demo {
         log.info("");
 
         // 5. Show that the Fluo app exported the results to the PCJ table in Accumulo.
-        final String pcjTableName = getPcjTableName(fluoClient, sparql);
-
-        log.info("The following Binding Sets were exported to the '" + pcjTableName+ "' table in Accumulo:");
-        Multimap<String, BindingSet> pcjResults = loadPcjResults(accumuloConn, pcjTableName);
-        prettyLogPcjResults(pcjResults);
+        log.info("The following Binding Sets were exported to the PCJ with ID '" + pcjId + "' in Rya:");
+        try {
+            for(final BindingSet result : pcjStorage.listResults(pcjId)) {
+                log.info("    " + result);
+            }
+        } catch (final PCJStorageException e) {
+            throw new DemoExecutionException("Could not fetch the PCJ's reuslts from Accumulo. Exiting.", e);
+        }
         waitForEnter();
 
         // 6. Introduce some new Statements that we will stream into the Fluo app.
@@ -262,9 +254,14 @@ public class FluoAndHistoricPcjsDemo implements Demo {
         log.info("");
 
         // 8. Show the new results have been exported to the PCJ table in Accumulo.
-        log.info("The following Binding Sets were expolrted to the '" + pcjTableName+ "' table in Accumulo:");
-        pcjResults = loadPcjResults(accumuloConn, pcjTableName);
-        prettyLogPcjResults(pcjResults);
+        log.info("The following Binding Sets were exported to the PCJ with ID '" + pcjId + "' in Rya:");
+        try {
+            for(final BindingSet result : pcjStorage.listResults(pcjId)) {
+                log.info("    " + result);
+            }
+        } catch (final PCJStorageException e) {
+            throw new DemoExecutionException("Could not fetch the PCJ's reuslts from Accumulo. Exiting.", e);
+        }
         log.info("");
     }
 
@@ -323,52 +320,6 @@ public class FluoAndHistoricPcjsDemo implements Demo {
             } catch (final RepositoryException e) {
                 throw new DemoExecutionException("Could not load one of the historic statements into Rya, so the demo can not continue. Exiting.", e);
             }
-        }
-    }
-
-    private static String getPcjTableName(final FluoClient fluoClient, final String sparql) {
-        try(Snapshot snap = fluoClient.newSnapshot()) {
-            final Bytes queryId = snap.get(Bytes.of(sparql), FluoQueryColumns.QUERY_ID);
-            return snap.get(queryId, FluoQueryColumns.QUERY_RYA_EXPORT_TABLE_NAME).toString();
-        }
-    }
-
-    /**
-     * Scan accumulo for the results that are stored in a PCJ tablle. The
-     * multimap stores a set of deserialized binding sets that were in the PCJ
-     * table for every variable order that is found in the PCJ metadata.
-     */
-    private static Multimap<String, BindingSet> loadPcjResults(final Connector accumuloConn, final String pcjTableName) throws DemoExecutionException {
-        final Multimap<String, BindingSet> fetchedResults = HashMultimap.create();
-
-        try {
-            // Get the variable orders the data was written to.
-            final PcjTables pcjs = new PcjTables();
-            final PcjMetadata pcjMetadata = pcjs.getPcjMetadata(accumuloConn, pcjTableName);
-
-            // Scan Accumulo for the stored results.
-            for(final VariableOrder varOrder : pcjMetadata.getVarOrders()) {
-                final Scanner scanner = accumuloConn.createScanner(pcjTableName, new Authorizations());
-                scanner.fetchColumnFamily( new Text(varOrder.toString()) );
-
-                for(final Entry<Key, Value> entry : scanner) {
-                    final byte[] serializedResult = entry.getKey().getRow().getBytes();
-                    final BindingSet result = converter.convert(serializedResult, varOrder);
-                    fetchedResults.put(varOrder.toString(), result);
-                }
-            }
-        } catch(PcjException | TableNotFoundException | BindingSetConversionException e) {
-            throw new DemoExecutionException("Couldn't fetch the binding sets that were exported to the PCJ table, so the demo can not continue. Exiting.", e);
-        }
-
-        return fetchedResults;
-    }
-
-    private static void prettyLogPcjResults(final Multimap<String, BindingSet> pcjResults) throws DemoExecutionException {
-        final String varOrderString = pcjResults.keySet().iterator().next();
-        final Collection<BindingSet> reuslts = pcjResults.get(varOrderString);
-        for(final BindingSet result : reuslts) {
-            log.info("    " + result);
         }
     }
 }

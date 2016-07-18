@@ -20,12 +20,13 @@ package org.apache.rya.indexing.pcj.storage.accumulo;
 
 import static java.util.Objects.requireNonNull;
 
-import java.util.UUID;
+import javax.annotation.ParametersAreNonnullByDefault;
 
 /**
  * Creates Accumulo table names that may be recognized by Rya as a table that
  * holds the results of a Precomputed Join.
  */
+@ParametersAreNonnullByDefault
 public class PcjTableNameFactory {
 
     /**
@@ -46,30 +47,20 @@ public class PcjTableNameFactory {
      * query that is being precomputed. Here's an example of what a table name
      * may look like:
      * <pre>
-     *     demo_INDEX_QUERY:c8f5367c-1660-4210-a7cb-681ed004d2d9
+     *     demo_INDEX_c8f5367c16604210a7cb681ed004d2d9
      * </pre>
      * The "demo_INDEX" portion indicates this table is a PCJ table for the "demo_"
-     * instance of Rya. The "_QUERY:c8f5367c-1660-4210-a7cb-681ed004d2d9" portion
-     * could be anything at all that uniquely identifies the query that is being updated.
+     * instance of Rya. The "c8f5367c16604210a7cb681ed004d2d9" portion could be
+     * anything at all that uniquely identifies the query that is being updated.
      *
-     * @param tablePrefix - The Rya instance's table prefix. (not null)
-     * @param uniqueId - The unique portion of the Rya PCJ table name. (not null)
+     * @param ryaInstance - The Rya instance's table prefix. (not null)
+     * @param pcjId - The ID of the PCJ the table is for. (not null)
      * @return A Rya PCJ table name built using the provided values.
      */
-    public String makeTableName(final String tablePrefix, final String uniqueId) {
-        return tablePrefix + "INDEX_" + uniqueId;
-    }
-
-    /**
-     * Invokes {@link #makeTableName(String, String)} with a randomly generated
-     * UUID as the {@code uniqueId}.
-     *
-     * @param tablePrefix - The Rya instance's table prefix. (not null)
-     * @return A Rya PCJ table name built using the provided values.
-     */
-    public String makeTableName(final String tablePrefix) {
-        final String uniqueId = UUID.randomUUID().toString().replaceAll("-", "");
-        return makeTableName(tablePrefix, uniqueId);
+    public String makeTableName(final String ryaInstance, final String pcjId) {
+        requireNonNull(ryaInstance);
+        requireNonNull(pcjId);
+        return ryaInstance + "INDEX_" + pcjId.toString().replaceAll("-", "");
     }
 
     /**

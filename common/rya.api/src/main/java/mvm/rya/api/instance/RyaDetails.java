@@ -23,6 +23,9 @@ import static java.util.Objects.requireNonNull;
 
 import java.io.Serializable;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Objects;
 
 import javax.annotation.Nullable;
@@ -186,6 +189,14 @@ public class RyaDetails implements Serializable {
     }
 
     /**
+     * @param detials - The builder will be initialized with this object's values. (not null)
+     * @return An instance of {@link Builder} that is initialized with a {@link RyaDetails}'s values.
+     */
+    public static Builder builder(final RyaDetails details) {
+        return new Builder(details);
+    }
+
+    /**
      * Builds instances of {@link RyaDetails}.
      */
     @ParametersAreNonnullByDefault
@@ -198,7 +209,7 @@ public class RyaDetails implements Serializable {
         // Secondary Index Details.
         private EntityCentricIndexDetails entityCentricDetails;
         private GeoIndexDetails geoDetails;
-        private PCJIndexDetails pcjDetails;
+        private PCJIndexDetails.Builder pcjIndexDetailsBuilder;
         private TemporalIndexDetails temporalDetails;
         private FreeTextIndexDetails freeTextDetails;
 
@@ -219,12 +230,11 @@ public class RyaDetails implements Serializable {
          */
         public Builder(final RyaDetails details) {
             requireNonNull(details);
-
             instanceName = details.instanceName;
             version = details.version;
             entityCentricDetails = details.entityCentricDetails;
             geoDetails = details.geoDetails;
-            pcjDetails = details.pcjDetails;
+            pcjIndexDetailsBuilder = PCJIndexDetails.builder( details.pcjDetails );
             temporalDetails = details.temporalDetails;
             freeTextDetails = details.freeTextDetails;
             prospectorDetails = details.prospectorDetails;
@@ -291,9 +301,17 @@ public class RyaDetails implements Serializable {
          * @param pcjDetails - Information about the instance's Precomputed Join Index.
          * @return This {@link Builder} so that method invocations may be chained.
          */
-        public Builder setPCJIndexDetails(@Nullable final PCJIndexDetails pcjDetails) {
-            this.pcjDetails = pcjDetails;
+        public Builder setPCJIndexDetails(@Nullable final PCJIndexDetails.Builder pcjDetailsBuilder) {
+            this.pcjIndexDetailsBuilder = pcjDetailsBuilder;
             return this;
+        }
+
+        /**
+         * @return Get the {@link PCJIndexDetails.Builder} used to build the
+         *   PCJ Index's details.
+         */
+        public @Nullable PCJIndexDetails.Builder getPCJIndexDetails() {
+            return pcjIndexDetailsBuilder;
         }
 
         /**
@@ -324,7 +342,7 @@ public class RyaDetails implements Serializable {
                     version,
                     entityCentricDetails,
                     geoDetails,
-                    pcjDetails,
+                    pcjIndexDetailsBuilder.build(),
                     temporalDetails,
                     freeTextDetails,
                     prospectorDetails,
@@ -590,6 +608,14 @@ public class RyaDetails implements Serializable {
         }
 
         /**
+         * @param detials - The builder will be initialized with this object's values. (not null)
+         * @return An instance of {@link Builder} that is initialized with a {@link PCJIndexDetails}'s values.
+         */
+        public static Builder builder(final PCJIndexDetails pcjIndexDetails) {
+            return new Builder(pcjIndexDetails);
+        }
+
+        /**
          * Builds instance of {@link PCJIndexDetails).
          */
         @ParametersAreNonnullByDefault
@@ -597,7 +623,29 @@ public class RyaDetails implements Serializable {
 
             private Boolean enabled = null;
             private FluoDetails fluoDetails = null;
-            private final ImmutableMap.Builder<String, PCJDetails> pcjDetails = ImmutableMap.builder();
+            private final Map<String, PCJDetails.Builder> pcjDetailsBuilders = new HashMap<>();
+
+            /**
+             * Constructs an empty instance of {@link Builder}.
+             */
+            public Builder() { }
+
+            /**
+             * Constructs an instance of {@link Builder} that is initialized with
+             * the values of a {@link PCJIndexDetails}.
+             *
+             * @param pcjIndexDetails - This objects values will be used to initialize
+             *   the builder. (not null)
+             */
+            public Builder(final PCJIndexDetails pcjIndexDetails) {
+                requireNonNull(pcjIndexDetails);
+                this.enabled = pcjIndexDetails.enabled;
+                this.fluoDetails = pcjIndexDetails.fluoDetails.orNull();
+
+                for(final PCJDetails pcjDetails : pcjIndexDetails.pcjDetails.values()) {
+                    pcjDetailsBuilders.put(pcjDetails.getId(), PCJDetails.builder(pcjDetails));
+                }
+            }
 
             /**
              * @param enabled - Whether or not a Precomputed Join Index will be maintained by the Rya instance.
@@ -622,10 +670,20 @@ public class RyaDetails implements Serializable {
              * @param pcjDetails - Details about the PCJs that have been created for this Rya instance.
              * @return This {@link Builder} so that method invocations may be chained.
              */
-            public Builder addPCJDetails(@Nullable final PCJDetails pcjDetails) {
-                if(pcjDetails != null) {
-                    this.pcjDetails.put(pcjDetails.getId(), pcjDetails);
+            public Builder addPCJDetails(@Nullable final PCJDetails.Builder pcjDetailsBuilder) {
+                if(pcjDetailsBuilder != null) {
+                    this.pcjDetailsBuilders.put(pcjDetailsBuilder.getId(), pcjDetailsBuilder);
                 }
+                return this;
+            }
+
+            /**
+             * @param pcjId - The PCJ ID of the {@link PCJDetails.Builder} to remove. (not null)
+             * @return This {@link Builder} so that method invocations may be chained.
+             */
+            public Builder removePCJDetails(@Nullable final String pcjId) {
+                requireNonNull(pcjId);
+                this.pcjDetailsBuilders.remove(pcjId);
                 return this;
             }
 
@@ -633,6 +691,11 @@ public class RyaDetails implements Serializable {
              * @return Builds an instance of {@link PCJIndexDetails} using this builder's values.
              */
             public PCJIndexDetails build() {
+                final ImmutableMap.Builder<String, PCJDetails> pcjDetails = ImmutableMap.builder();
+                for(final Entry<String, PCJDetails.Builder> entry : pcjDetailsBuilders.entrySet()) {
+                    pcjDetails.put(entry.getKey(), entry.getValue().build());
+                }
+
                 return new PCJIndexDetails(
                         enabled,
                         Optional.fromNullable( fluoDetails ),
@@ -695,7 +758,7 @@ public class RyaDetails implements Serializable {
             private static final long serialVersionUID = 1L;
 
             private final String id;
-            private final PCJUpdateStrategy updateStrategy;
+            private final Optional<PCJUpdateStrategy> updateStrategy;
             private final Optional<Date> lastUpdateTime;
 
             /**
@@ -709,7 +772,7 @@ public class RyaDetails implements Serializable {
              */
             private PCJDetails(
                     final String id,
-                    final PCJUpdateStrategy updateStrategy,
+                    final Optional<PCJUpdateStrategy> updateStrategy,
                     final Optional<Date> lastUpdateTime) {
                 this.id = requireNonNull(id);
                 this.updateStrategy = requireNonNull(updateStrategy);
@@ -726,7 +789,7 @@ public class RyaDetails implements Serializable {
             /**
              * @return Describes how the PCJ is being updated.
              */
-            public PCJUpdateStrategy getUpdateStrategy() {
+            public Optional<PCJUpdateStrategy> getUpdateStrategy() {
                 return updateStrategy;
             }
 
@@ -765,6 +828,14 @@ public class RyaDetails implements Serializable {
             }
 
             /**
+             * @param detials - The builder will be initialized with this object's values. (not null)
+             * @return An instance of {@link Builder} that is initialized with a {@link PCJDetails}' values.
+             */
+            public static Builder builder(final PCJDetails details) {
+                return new Builder(details);
+            }
+
+            /**
              * Builds instance of {@link PCJDetails}.
              */
             @ParametersAreNonnullByDefault
@@ -773,6 +844,31 @@ public class RyaDetails implements Serializable {
                 private String id;
                 private PCJUpdateStrategy updateStrategy;
                 private Date lastUpdateTime;
+
+                /**
+                 * Constructs an instance of {@link Builder}.
+                 */
+                public Builder() { }
+
+                /**
+                 * Constructs an instance of {@link Builder} that is initialized with
+                 * the values of a {@link PCJDetails}.
+                 *
+                 * @param details - This object's values will be used to initialize the builder. (not null)
+                 */
+                public Builder(final PCJDetails details) {
+                    requireNonNull(details);
+                    this.id = details.id;
+                    this.updateStrategy = details.updateStrategy.orNull();
+                    this.lastUpdateTime = details.lastUpdateTime.orNull();
+                }
+
+                /**
+                 * @return Uniquely identifies the PCJ within this instance of Rya.
+                 */
+                public @Nullable String getId() {
+                    return id;
+                }
 
                 /**
                  * @param id - Uniquely identifies the PCJ within this instance of Rya.
@@ -784,12 +880,26 @@ public class RyaDetails implements Serializable {
                 }
 
                 /**
+                 * @return Describes how the PCJ is being updated.
+                 */
+                public PCJUpdateStrategy getUpdateStrategy() {
+                    return updateStrategy;
+                }
+
+                /**
                  * @param updateStrategy - Describes how the PCJ is being updated.
                  * @return This {@link Builder} so that method invocations may be chained.
                  */
                 public Builder setUpdateStrategy(@Nullable final PCJUpdateStrategy updateStrategy) {
                     this.updateStrategy = updateStrategy;
                     return this;
+                }
+
+                /**
+                 * @return The last time the PCJ was updated. This information may not be provided.
+                 */
+                public @Nullable Date getLastUpdateTime() {
+                    return lastUpdateTime;
                 }
 
                 /**
@@ -806,7 +916,10 @@ public class RyaDetails implements Serializable {
                  * @return An instance of {@link PCJDetails} built using this builder's values.
                  */
                 public PCJDetails build() {
-                    return new PCJDetails(id, updateStrategy, Optional.fromNullable(lastUpdateTime));
+                    return new PCJDetails(
+                            id,
+                            Optional.fromNullable(updateStrategy),
+                            Optional.fromNullable(lastUpdateTime));
                 }
             }
 

@@ -20,6 +20,7 @@ package org.apache.rya.indexing.pcj.fluo.api;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
+import static java.util.Objects.requireNonNull;
 import static org.apache.rya.indexing.pcj.fluo.app.IncrementalUpdateConstants.NODEID_BS_DELIM;
 
 import java.util.HashSet;
@@ -27,7 +28,6 @@ import java.util.Set;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 
-import org.apache.accumulo.core.client.Connector;
 import org.apache.rya.indexing.pcj.fluo.app.FluoStringConverter;
 import org.apache.rya.indexing.pcj.fluo.app.StringTypeLayer;
 import org.apache.rya.indexing.pcj.fluo.app.query.FluoQuery;
@@ -37,10 +37,9 @@ import org.apache.rya.indexing.pcj.fluo.app.query.SparqlFluoQueryBuilder;
 import org.apache.rya.indexing.pcj.fluo.app.query.SparqlFluoQueryBuilder.NodeIds;
 import org.apache.rya.indexing.pcj.fluo.app.query.StatementPatternMetadata;
 import org.apache.rya.indexing.pcj.storage.PcjException;
+import org.apache.rya.indexing.pcj.storage.PcjMetadata;
+import org.apache.rya.indexing.pcj.storage.PrecomputedJoinStorage;
 import org.apache.rya.indexing.pcj.storage.accumulo.BindingSetStringConverter;
-import org.apache.rya.indexing.pcj.storage.accumulo.PcjTableNameFactory;
-import org.apache.rya.indexing.pcj.storage.accumulo.PcjTables;
-import org.apache.rya.indexing.pcj.storage.accumulo.ShiftVarOrderFactory;
 import org.apache.rya.indexing.pcj.storage.accumulo.VariableOrder;
 import org.openrdf.query.Binding;
 import org.openrdf.query.BindingSet;
@@ -50,13 +49,13 @@ import org.openrdf.query.algebra.StatementPattern;
 import org.openrdf.query.impl.MapBindingSet;
 import org.openrdf.query.parser.ParsedQuery;
 import org.openrdf.query.parser.sparql.SPARQLParser;
+import org.openrdf.repository.sail.SailRepository;
 import org.openrdf.sail.SailConnection;
 import org.openrdf.sail.SailException;
 
 import info.aduna.iteration.CloseableIteration;
 import io.fluo.api.client.FluoClient;
 import io.fluo.api.types.TypedTransaction;
-import mvm.rya.rdftriplestore.RyaSailRepository;
 
 /**
  * Sets up a new Pre Computed Join (PCJ) in Fluo from a SPARQL query.
@@ -87,11 +86,6 @@ public class CreatePcj {
     private static final int DEFAULT_SP_INSERT_BATCH_SIZE = 1000;
 
     /**
-     * A utility used to interact with Rya's PCJ tables.
-     */
-    private static final PcjTables PCJ_TABLES = new PcjTables();
-
-    /**
      * The maximum number of binding sets that will be inserted into each Statement
      * Pattern's result set per Fluo transaction.
      */
@@ -117,79 +111,57 @@ public class CreatePcj {
     }
 
     /**
-     * Sets up a new Pre Computed Join (PCJ) in Fluo from a SPARQL query. Historic
-     * triples will be scanned and matched using the rya connection that was
-     * provided. The PCJ will also automatically export to a table in Accumulo
-     * named using the {@code ryaTablePrefix} and the query's ID from the Fluo table.
+     * Tells the Fluo PCJ Updater application to maintain a new PCJ.
+     * <p>
+     * This call scans Rya for Statement Pattern matches and inserts them into
+     * the Fluo application. The Fluo application will then maintain the intermediate
+     * results as new triples are inserted and export any new query results to the
+     * {@code pcjId} within the provided {@code pcjStorage}.
      *
-     * @param fluo - A connection to the Fluo table that will be updated. (not null)
-     * @param ryaTablePrefix - The prefix that will be prepended to the Accumulo table
-     *   the PCJ's results will be exported to. (not null)
-     * @param rya - A connection to the Rya repository that will be scanned. (not null)
-     * @param accumuloConn - A connectino to the Accumulo instance the incremental
-     *   results will be exported to as a Rya PCJ table. (not null)
-     * @param varOrders - The variable orders the query's results will be exported to
-     *   within the export table. If this set is empty, then a default will be
-     *   used instead.(not null)
-     * @param sparql - The SPARQL query whose results will be incrementally updated by Fluo. (not null)
-     * @throws MalformedQueryException The PCJ could not be initialized because the SPARQL query was malformed.
-     * @throws PcjException The PCJ could not be initialized because of a problem setting up the export location.
-     * @throws SailException Historic results could not be added to the initialized PCJ because of
-     *   a problem with the Rya connection.
-     * @throws QueryEvaluationException Historic results could not be added to the initialized PCJ because of
-     *   a problem with the Rya connection.
+     * @param pcjId - Identifies the PCJ that will be updated by the Fluo app. (not null)
+     * @param pcjStorage - Provides access to the PCJ index. (not null)
+     * @param fluo - A connection to the Fluo application that updates the PCJ index. (not null)
+     * @param rya - A connection to the Rya instance hosting the PCJ, (not null)
+     *
+     * @throws MalformedQueryException The SPARQL query stored for the {@code pcjId} is malformed.
+     * @throws PcjException The PCJ Metadata for {@code pcjId} could not be read from {@code pcjStorage}.
+     * @throws SailException Historic PCJ results could not be loaded because of a problem with {@code rya}.
+     * @throws QueryEvaluationException Historic PCJ results could not be loaded because of a problem with {@code rya}.
      */
     public void withRyaIntegration(
+            final String pcjId,
+            final PrecomputedJoinStorage pcjStorage,
             final FluoClient fluo,
-            final String ryaTablePrefix,
-            final RyaSailRepository rya,
-            final Connector accumuloConn,
-            final Set<VariableOrder> varOrders,
-            final String sparql) throws MalformedQueryException, PcjException, SailException, QueryEvaluationException {
-        checkNotNull(fluo);
-        checkNotNull(ryaTablePrefix);
-        checkNotNull(rya);
-        checkNotNull(accumuloConn);
-        checkNotNull(varOrders);
-        checkNotNull(sparql);
-
-        // Parse the SPARQL into a POJO.
-        final SPARQLParser parser = new SPARQLParser();
-        final ParsedQuery parsedQuery = parser.parseQuery(sparql, null);
+            final SailRepository rya)
+                    throws MalformedQueryException, PcjException, SailException, QueryEvaluationException {
+        requireNonNull(pcjId);
+        requireNonNull(pcjStorage);
+        requireNonNull(fluo);
+        requireNonNull(rya);
 
         // Keeps track of the IDs that are assigned to each of the query's nodes in Fluo.
         // We use these IDs later when scanning Rya for historic Statement Pattern matches
         // as well as setting up automatic exports.
         final NodeIds nodeIds = new NodeIds();
-        final String exportTableName;
-        final String queryId;
 
         // Parse the query's structure for the metadata that will be written to fluo.
+        final PcjMetadata pcjMetadata = pcjStorage.getPcjMetadata(pcjId);
+        final String sparql = pcjMetadata.getSparql();
+        final ParsedQuery parsedQuery = new SPARQLParser().parseQuery(sparql, null);
         final FluoQuery fluoQuery = new SparqlFluoQueryBuilder().make(parsedQuery, nodeIds);
 
         try(TypedTransaction tx = STRING_TYPED_LAYER.wrap( fluo.newTransaction() )) {
             // Write the query's structure to Fluo.
             new FluoQueryMetadataDAO().write(tx, fluoQuery);
 
-            // Since we are exporting the query's results to a table in Accumulo, store that location in the fluo table.
-            queryId = fluoQuery.getQueryMetadata().getNodeId();
-
-            exportTableName = new PcjTableNameFactory().makeTableName(ryaTablePrefix, queryId);
-            tx.mutate().row(queryId).col(FluoQueryColumns.QUERY_RYA_EXPORT_TABLE_NAME).set(exportTableName);
+            // The results of the query are eventually exported to an instance of Rya, so store the Rya ID for the PCJ.
+            final String queryId = fluoQuery.getQueryMetadata().getNodeId();
+            tx.mutate().row(queryId).col(FluoQueryColumns.RYA_PCJ_ID).set(pcjId);
+            tx.mutate().row(pcjId).col(FluoQueryColumns.PCJ_ID_QUERY_ID).set(queryId);
 
             // Flush the changes to Fluo.
             tx.commit();
         }
-
-        // Initialize the export destination in Accumulo. If triples are being written to Fluo
-        // while this query is being created, then the export observer may throw errors for a while
-        // until this step is completed.
-        final VariableOrder queryVarOrder = fluoQuery.getQueryMetadata().getVariableOrder();
-        if(varOrders.isEmpty()) {
-            final Set<VariableOrder> shiftVarOrders = new ShiftVarOrderFactory().makeVarOrders( queryVarOrder );
-            varOrders.addAll(shiftVarOrders);
-        }
-        PCJ_TABLES.createPcjTable(accumuloConn, exportTableName, varOrders, sparql);
 
         // Get a connection to Rya. It's used to scan for Statement Pattern results.
         final SailConnection ryaConn = rya.getSail().getConnection();

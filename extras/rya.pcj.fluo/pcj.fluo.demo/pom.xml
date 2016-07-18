@@ -42,6 +42,10 @@ under the License.
             <groupId>org.apache.rya</groupId>
             <artifactId>rya.pcj.fluo.api</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.apache.rya</groupId>
+            <artifactId>rya.indexing</artifactId>
+        </dependency>
         
         <!-- 3rd Party Runtime Dependencies. -->
         <dependency>

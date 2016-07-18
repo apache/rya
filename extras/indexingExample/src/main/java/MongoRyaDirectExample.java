@@ -71,7 +71,6 @@ public class MongoRyaDirectExample {
             log.info("Connecting to Indexing Sail Repository.");
             Sail sail = RyaSailFactory.getInstance(conf);
             repository = new SailRepository(sail);
-            repository.initialize();
             conn = repository.getConnection();
 
             long start = System.currentTimeMillis();

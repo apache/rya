@@ -1,41 +1,3 @@
-package mvm.rya.indexing.external.tupleSet;
-import java.io.File;
-import java.io.IOException;
-import java.util.HashSet;
-import java.util.Set;
-
-import org.apache.accumulo.core.client.AccumuloException;
-import org.apache.accumulo.core.client.AccumuloSecurityException;
-import org.apache.accumulo.core.client.Connector;
-import org.apache.accumulo.core.client.Instance;
-import org.apache.accumulo.core.client.TableNotFoundException;
-import org.apache.accumulo.core.client.ZooKeeperInstance;
-import org.apache.accumulo.core.client.security.tokens.PasswordToken;
-import org.apache.accumulo.core.security.Authorizations;
-import org.apache.accumulo.minicluster.MiniAccumuloCluster;
-import org.apache.hadoop.conf.Configuration;
-import org.apache.log4j.Logger;
-import org.apache.rya.indexing.pcj.storage.PrecomputedJoinStorage.PCJStorageException;
-import org.apache.rya.indexing.pcj.storage.accumulo.VariableOrder;
-import org.apache.rya.indexing.pcj.storage.accumulo.VisibilityBindingSet;
-import org.junit.AfterClass;
-import org.junit.Assert;
-import org.junit.BeforeClass;
-import org.junit.Ignore;
-import org.junit.Test;
-import org.openrdf.model.impl.NumericLiteralImpl;
-import org.openrdf.model.impl.URIImpl;
-import org.openrdf.model.vocabulary.XMLSchema;
-import org.openrdf.query.Binding;
-import org.openrdf.query.BindingSet;
-import org.openrdf.query.QueryEvaluationException;
-import org.openrdf.query.algebra.evaluation.QueryBindingSet;
-import org.openrdf.query.impl.BindingImpl;
-import org.openrdf.repository.RepositoryException;
-
-import com.google.common.collect.Sets;
-import com.google.common.io.Files;
-
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -54,186 +16,236 @@ import com.google.common.io.Files;
  * specific language governing permissions and limitations
  * under the License.
  */
+
+package mvm.rya.indexing.external.tupleSet;
+
+import static org.junit.Assert.assertEquals;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.Set;
+
+import org.apache.accumulo.core.client.AccumuloException;
+import org.apache.accumulo.core.client.AccumuloSecurityException;
+import org.apache.accumulo.core.client.Connector;
+import org.apache.accumulo.core.client.Instance;
+import org.apache.accumulo.core.client.TableNotFoundException;
+import org.apache.accumulo.core.client.ZooKeeperInstance;
+import org.apache.accumulo.core.client.security.tokens.PasswordToken;
+import org.apache.accumulo.core.security.Authorizations;
+import org.apache.accumulo.minicluster.MiniAccumuloCluster;
+import org.apache.hadoop.conf.Configuration;
+import org.apache.log4j.Logger;
+import org.apache.rya.indexing.pcj.storage.PrecomputedJoinStorage.PCJStorageException;
+import org.apache.rya.indexing.pcj.storage.accumulo.AccumuloPcjStorage;
+import org.apache.rya.indexing.pcj.storage.accumulo.PcjTableNameFactory;
+import org.apache.rya.indexing.pcj.storage.accumulo.VisibilityBindingSet;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
+import org.junit.Ignore;
+import org.junit.Test;
+import org.openrdf.model.impl.NumericLiteralImpl;
+import org.openrdf.model.impl.URIImpl;
+import org.openrdf.model.vocabulary.XMLSchema;
+import org.openrdf.query.BindingSet;
+import org.openrdf.query.QueryEvaluationException;
+import org.openrdf.query.algebra.evaluation.QueryBindingSet;
+import org.openrdf.repository.RepositoryException;
+
+import com.google.common.base.Optional;
+import com.google.common.collect.Sets;
+import com.google.common.io.Files;
+
 import info.aduna.iteration.CloseableIteration;
 import mvm.rya.accumulo.AccumuloRdfConfiguration;
+import mvm.rya.accumulo.instance.AccumuloRyaInstanceDetailsRepository;
 import mvm.rya.api.RdfCloudTripleStoreConfiguration;
+import mvm.rya.api.instance.RyaDetails;
+import mvm.rya.api.instance.RyaDetails.EntityCentricIndexDetails;
+import mvm.rya.api.instance.RyaDetails.FreeTextIndexDetails;
+import mvm.rya.api.instance.RyaDetails.GeoIndexDetails;
+import mvm.rya.api.instance.RyaDetails.JoinSelectivityDetails;
+import mvm.rya.api.instance.RyaDetails.PCJIndexDetails;
+import mvm.rya.api.instance.RyaDetails.ProspectorDetails;
+import mvm.rya.api.instance.RyaDetails.TemporalIndexDetails;
+import mvm.rya.api.instance.RyaDetailsRepository;
+import mvm.rya.api.instance.RyaDetailsRepository.AlreadyInitializedException;
+import mvm.rya.api.instance.RyaDetailsRepository.RyaDetailsRepositoryException;
 import mvm.rya.indexing.accumulo.ConfigUtils;
-import mvm.rya.indexing.external.accumulo.AccumuloPcjStorage;
 
 /**
- * XXX Fixed in RYA-82
+ * Tests the evaluation of {@link AccumuloIndexSet}.
  */
-@Ignore
 public class AccumuloIndexSetColumnVisibilityTest {
+    private static final Logger log = Logger.getLogger(AccumuloIndexSetColumnVisibilityTest.class);
 
-	private static final Logger log = Logger
-			.getLogger(AccumuloIndexSetColumnVisibilityTest.class);
+    // Accumulo cluster resources.
+    private static MiniAccumuloCluster accumulo;
+    private static String instance;
+    private static String zooKeepers;
+    private static Connector accCon;
 
-	private static Connector accCon;
-	private static String pcjTableName;
-	private static AccumuloPcjStorage storage;
-	private static Configuration conf;
-	private static final String sparql = "SELECT ?name ?age " + "{"
-			+ "?name <http://hasAge> ?age ."
-			+ "?name <http://playsSport> \"Soccer\" " + "}";
-	private static QueryBindingSet pcjBs1, pcjBs2, pcjBs3;
-	private static MiniAccumuloCluster accumulo;
-	private static String instance;
-	private static String zooKeepers;
+    // Rya resources.
+    private static String ryaInstanceName = "rya_";
+    private static Configuration conf;
+    private static AccumuloPcjStorage storage;
 
-	@BeforeClass
-	public static void init() throws AccumuloException,
-			AccumuloSecurityException, PCJStorageException, IOException,
-			InterruptedException, TableNotFoundException {
-		accumulo = startMiniAccumulo();
-		accumulo.getZooKeepers();
-		instance = accumulo.getInstanceName();
-		zooKeepers = accumulo.getZooKeepers();
-		conf = getConf();
-		accCon.securityOperations().changeUserAuthorizations("root", new Authorizations("U","USA"));
-		storage = new AccumuloPcjStorage(accCon, "rya_");
-		final Set<VariableOrder> varOrders = new HashSet<>();
-		varOrders.add(new VariableOrder("age;name"));
-		varOrders.add(new VariableOrder("name;age"));
-		pcjTableName = storage.createPcj(sparql, varOrders);
+    // PCJ values used when testing.
+    private static String pcjId;
+    private static QueryBindingSet pcjBs1;
+    private static QueryBindingSet pcjBs2;
 
-		final Binding exBinding1 = new BindingImpl("age", new NumericLiteralImpl(14,
-				XMLSchema.INTEGER));
-		final Binding exBinding2 = new BindingImpl("name",
-				new URIImpl("http://Alice"));
-		final Binding exBinding3 = new BindingImpl("age", new NumericLiteralImpl(16,
-				XMLSchema.INTEGER));
-		final Binding exBinding4 = new BindingImpl("name", new URIImpl("http://Bob"));
-		final Binding exBinding5 = new BindingImpl("age", new NumericLiteralImpl(34,
-				XMLSchema.INTEGER));
-		final Binding exBinding6 = new BindingImpl("name", new URIImpl("http://Joe"));
+    @BeforeClass
+    public static void init() throws AccumuloException, AccumuloSecurityException, PCJStorageException, IOException, InterruptedException, TableNotFoundException, AlreadyInitializedException, RyaDetailsRepositoryException {
+        // Setup the mini accumulo instance used by the test.
+        accumulo = startMiniAccumulo();
+        accumulo.getZooKeepers();
+        instance = accumulo.getInstanceName();
+        zooKeepers = accumulo.getZooKeepers();
+        conf = getConf();
+        accCon.securityOperations().changeUserAuthorizations("root", new Authorizations("U","USA"));
 
-		pcjBs1 = new QueryBindingSet();
-		pcjBs1.addBinding(exBinding1);
-		pcjBs1.addBinding(exBinding2);
+        // Initialize the Rya Details for the Rya instance.
+        initRyaDetails();
 
-		pcjBs2 = new QueryBindingSet();
-		pcjBs2.addBinding(exBinding3);
-		pcjBs2.addBinding(exBinding4);
+        // Initialize a PCJ.
+        storage = new AccumuloPcjStorage(accCon, ryaInstanceName);
 
-		pcjBs3 = new QueryBindingSet();
-		pcjBs3.addBinding(exBinding5);
-		pcjBs3.addBinding(exBinding6);
+        pcjId = storage.createPcj(
+                "SELECT ?name ?age " + "{" +
+                    "?name <http://hasAge> ?age ." +
+                    "?name <http://playsSport> \"Soccer\" " +
+                "}");
 
-		final Set<BindingSet> bindingSets = new HashSet<>();
-		bindingSets.add(pcjBs1);
-		bindingSets.add(pcjBs2);
-		bindingSets.add(pcjBs3);
+        // Store the PCJ's results.
+        pcjBs1 = new QueryBindingSet();
+        pcjBs1.addBinding("age", new NumericLiteralImpl(14, XMLSchema.INTEGER));
+        pcjBs1.addBinding("name", new URIImpl("http://Alice"));
 
-		final Set<VisibilityBindingSet> visBs = new HashSet<>();
-		for (final BindingSet bs : bindingSets) {
-			visBs.add(new VisibilityBindingSet(bs, "U|USA"));
-		}
+        pcjBs2 = new QueryBindingSet();
+        pcjBs2.addBinding("age", new NumericLiteralImpl(16, XMLSchema.INTEGER));
+        pcjBs2.addBinding("name", new URIImpl("http://Bob"));
 
-		storage.addResults(pcjTableName, visBs);
+        final Set<VisibilityBindingSet> visBs = new HashSet<>();
+        for (final BindingSet bs : Sets.<BindingSet>newHashSet(pcjBs1, pcjBs2)) {
+            visBs.add(new VisibilityBindingSet(bs, "U|USA"));
+        }
 
-//		Scanner scanner = accCon.createScanner(pcjTableName, new Authorizations("U","USA"));
-//		for(Entry<Key, Value> entry : scanner) {
-//			System.out.println(entry.getKey());
-//		}
+        storage.addResults(pcjId, visBs);
+    }
 
+    @AfterClass
+    public static void close() throws RepositoryException, PCJStorageException {
+        storage.close();
 
-	}
+        if (accumulo != null) {
+            try {
+                log.info("Shutting down the Mini Accumulo being used as a Rya store.");
+                accumulo.stop();
+                log.info("Mini Accumulo being used as a Rya store shut down.");
+            } catch (final Exception e) {
+                log.error("Could not shut down the Mini Accumulo.", e);
+            }
+        }
+    }
 
-	@AfterClass
-	public static void close() throws RepositoryException, PCJStorageException {
-		storage.close();
+    private static MiniAccumuloCluster startMiniAccumulo() throws IOException, InterruptedException, AccumuloException, AccumuloSecurityException {
+        final File miniDataDir = Files.createTempDir();
 
-		if (accumulo != null) {
-			try {
-				log.info("Shutting down the Mini Accumulo being used as a Rya store.");
-				accumulo.stop();
-				log.info("Mini Accumulo being used as a Rya store shut down.");
-			} catch (final Exception e) {
-				log.error("Could not shut down the Mini Accumulo.", e);
-			}
-		}
-	}
+        // Setup and start the Mini Accumulo.
+        final MiniAccumuloCluster accumulo = new MiniAccumuloCluster(
+                miniDataDir, "password");
+        accumulo.start();
 
-	@Test
-	public void variableInstantiationTest() throws Exception {
+        // Store a connector to the Mini Accumulo.
+        final Instance instance = new ZooKeeperInstance(
+                accumulo.getInstanceName(), accumulo.getZooKeepers());
+        accCon = instance.getConnector("root", new PasswordToken("password"));
 
-		final AccumuloIndexSet ais = new AccumuloIndexSet(conf, pcjTableName);
-		final QueryBindingSet bs = new QueryBindingSet();
-		bs.addBinding("name", new URIImpl("http://Alice"));
+        return accumulo;
+    }
 
-		final QueryBindingSet bs2 = new QueryBindingSet();
-		bs2.addBinding("name", new URIImpl("http://Bob"));
+    private static void initRyaDetails() throws AlreadyInitializedException, RyaDetailsRepositoryException {
+        // Initialize the Rya Details for the instance.
+        final RyaDetailsRepository detailsRepo = new AccumuloRyaInstanceDetailsRepository(accCon, ryaInstanceName);
 
-		final Set<BindingSet> bSets = Sets.<BindingSet> newHashSet(bs, bs2);
+        final RyaDetails details = RyaDetails.builder()
+                .setRyaInstanceName(ryaInstanceName)
+                .setRyaVersion("0.0.0.0")
+                .setFreeTextDetails( new FreeTextIndexDetails(true) )
+                .setEntityCentricIndexDetails( new EntityCentricIndexDetails(true) )
+                .setGeoIndexDetails( new GeoIndexDetails(true) )
+                .setTemporalIndexDetails( new TemporalIndexDetails(true) )
+                .setPCJIndexDetails(
+                        PCJIndexDetails.builder()
+                            .setEnabled(true) )
+                .setJoinSelectivityDetails( new JoinSelectivityDetails( Optional.<Date>absent() ) )
+                .setProspectorDetails( new ProspectorDetails( Optional.<Date>absent() ))
+                .build();
 
-		final CloseableIteration<BindingSet, QueryEvaluationException> results = ais
-				.evaluate(bSets);
+        detailsRepo.initialize(details);
+    }
 
-		final Set<BindingSet> expected = new HashSet<>();
-		expected.add(pcjBs1);
-		expected.add(pcjBs2);
-		final Set<BindingSet> fetchedResults = new HashSet<>();
-		while (results.hasNext()) {
-			final BindingSet next = results.next();
-			fetchedResults.add(next);
-		}
+    private static Configuration getConf() {
+        final AccumuloRdfConfiguration conf = new AccumuloRdfConfiguration();
+        conf.set(RdfCloudTripleStoreConfiguration.CONF_TBL_PREFIX, ryaInstanceName);
+        conf.set(ConfigUtils.CLOUDBASE_USER, "root");
+        conf.set(ConfigUtils.CLOUDBASE_PASSWORD, "password");
+        conf.set(ConfigUtils.CLOUDBASE_INSTANCE, instance);
+        conf.set(ConfigUtils.CLOUDBASE_ZOOKEEPERS, zooKeepers);
+        conf.set(RdfCloudTripleStoreConfiguration.CONF_QUERY_AUTH, "U,USA");
+        return conf;
+    }
 
-		Assert.assertEquals(expected, fetchedResults);
-	}
+    @Test
+    public void variableInstantiationTest() throws Exception {
+        // Setup the object that will be tested.
+        final String pcjTableName = new PcjTableNameFactory().makeTableName(ryaInstanceName, pcjId);
+        final AccumuloIndexSet ais = new AccumuloIndexSet(conf, pcjTableName);
 
-	@Test
-	public void accumuloIndexSetTestAttemptJoinAccrossTypes() throws Exception {
-		// Load some Triples into Rya.
-		final AccumuloIndexSet ais = new AccumuloIndexSet(conf, pcjTableName);
+        // Setup the binding sets that will be evaluated.
+        final QueryBindingSet bs = new QueryBindingSet();
+        bs.addBinding("name", new URIImpl("http://Alice"));
+        final QueryBindingSet bs2 = new QueryBindingSet();
+        bs2.addBinding("name", new URIImpl("http://Bob"));
 
-		final QueryBindingSet bs1 = new QueryBindingSet();
-		bs1.addBinding("age", new NumericLiteralImpl(16, XMLSchema.INTEGER));
-		final QueryBindingSet bs2 = new QueryBindingSet();
-		bs2.addBinding("age", new NumericLiteralImpl(14, XMLSchema.INTEGER));
+        final Set<BindingSet> bSets = Sets.<BindingSet> newHashSet(bs, bs2);
+        final CloseableIteration<BindingSet, QueryEvaluationException> results = ais.evaluate(bSets);
 
-		final Set<BindingSet> bSets = Sets.<BindingSet> newHashSet(bs1, bs2);
+        final Set<BindingSet> fetchedResults = new HashSet<>();
+        while (results.hasNext()) {
+            final BindingSet next = results.next();
+            fetchedResults.add(next);
+        }
 
-		final CloseableIteration<BindingSet, QueryEvaluationException> results = ais
-				.evaluate(bSets);
-		final Set<BindingSet> expected = new HashSet<>();
-		expected.add(pcjBs1);
-		expected.add(pcjBs2);
-		final Set<BindingSet> fetchedResults = new HashSet<>();
-		while (results.hasNext()) {
-			final BindingSet next = results.next();
-			fetchedResults.add(next);
-		}
+        final Set<BindingSet> expected = Sets.<BindingSet>newHashSet(pcjBs1, pcjBs2);
+        assertEquals(expected, fetchedResults);
+    }
 
-		Assert.assertEquals(expected, fetchedResults);
-	}
+    @Test
+    public void accumuloIndexSetTestAttemptJoinAccrossTypes() throws Exception {
+        // Setup the object that will be tested.
+        final String pcjTableName = new PcjTableNameFactory().makeTableName(ryaInstanceName, pcjId);
+        final AccumuloIndexSet ais = new AccumuloIndexSet(conf, pcjTableName);
 
-	private static MiniAccumuloCluster startMiniAccumulo() throws IOException,
-			InterruptedException, AccumuloException, AccumuloSecurityException {
-		final File miniDataDir = Files.createTempDir();
+        // Setup the binding sets that will be evaluated.
+        final QueryBindingSet bs1 = new QueryBindingSet();
+        bs1.addBinding("age", new NumericLiteralImpl(16, XMLSchema.INTEGER));
+        final QueryBindingSet bs2 = new QueryBindingSet();
+        bs2.addBinding("age", new NumericLiteralImpl(14, XMLSchema.INTEGER));
 
-		// Setup and start the Mini Accumulo.
-		final MiniAccumuloCluster accumulo = new MiniAccumuloCluster(
-				miniDataDir, "password");
-		accumulo.start();
+        final Set<BindingSet> bSets = Sets.<BindingSet> newHashSet(bs1, bs2);
+        final CloseableIteration<BindingSet, QueryEvaluationException> results = ais.evaluate(bSets);
 
-		// Store a connector to the Mini Accumulo.
-		final Instance instance = new ZooKeeperInstance(
-				accumulo.getInstanceName(), accumulo.getZooKeepers());
-		accCon = instance.getConnector("root", new PasswordToken("password"));
+        final Set<BindingSet> fetchedResults = new HashSet<>();
+        while (results.hasNext()) {
+            final BindingSet next = results.next();
+            fetchedResults.add(next);
+        }
 
-		return accumulo;
-	}
-
-	private static Configuration getConf() {
-		final AccumuloRdfConfiguration conf = new AccumuloRdfConfiguration();
-		conf.setTablePrefix("rya_");
-		conf.set(ConfigUtils.CLOUDBASE_USER, "root");
-		conf.set(ConfigUtils.CLOUDBASE_PASSWORD, "password");
-		conf.set(ConfigUtils.CLOUDBASE_INSTANCE, instance);
-		conf.set(ConfigUtils.CLOUDBASE_ZOOKEEPERS, zooKeepers);
-		conf.set(RdfCloudTripleStoreConfiguration.CONF_QUERY_AUTH, "U,USA");
-		return conf;
-	}
-
+        final Set<BindingSet> expected = Sets.<BindingSet>newHashSet(pcjBs1, pcjBs2);
+        assertEquals(expected, fetchedResults);
+    }
 }

@@ -28,7 +28,6 @@ import org.apache.accumulo.core.client.AccumuloSecurityException;
 import org.apache.accumulo.core.client.TableExistsException;
 import org.apache.rya.indexing.pcj.fluo.ITBase;
 import org.apache.rya.indexing.pcj.fluo.app.StringTypeLayer;
-import org.apache.rya.indexing.pcj.storage.accumulo.PcjTableNameFactory;
 import org.junit.Test;
 
 import com.beust.jcommander.internal.Lists;
@@ -39,8 +38,6 @@ import io.fluo.api.types.TypedTransaction;
  * Integration tests the methods of {@link ListQueryIds}.
  */
 public class ListQueryIdsIT extends ITBase {
-
-    private static final PcjTableNameFactory tableNameFactory = new PcjTableNameFactory();
 
     /**
      * This test ensures that when there are PCJ tables in Accumulo as well as

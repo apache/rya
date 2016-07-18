@@ -35,6 +35,8 @@ import org.apache.rya.indexing.pcj.fluo.api.CreatePcj;
 import org.apache.rya.indexing.pcj.fluo.client.PcjAdminClientCommand;
 import org.apache.rya.indexing.pcj.fluo.client.util.ParsedQueryRequest;
 import org.apache.rya.indexing.pcj.storage.PcjException;
+import org.apache.rya.indexing.pcj.storage.PrecomputedJoinStorage;
+import org.apache.rya.indexing.pcj.storage.accumulo.AccumuloPcjStorage;
 import org.openrdf.query.MalformedQueryException;
 import org.openrdf.query.QueryEvaluationException;
 import org.openrdf.sail.SailException;
@@ -114,7 +116,15 @@ public class NewQueryCommand implements PcjAdminClientCommand {
         log.trace("Loading these values into the Fluo app.");
         final CreatePcj createPcj = new CreatePcj();
         try {
-            createPcj.withRyaIntegration(fluo, ryaTablePrefix, rya, accumulo, request.getVarOrders(), request.getQuery());
+            // Create the PCJ in Rya.
+            final String sparql = request.getQuery();
+
+            final PrecomputedJoinStorage pcjStorage = new AccumuloPcjStorage(accumulo, ryaTablePrefix);
+            final String pcjId = pcjStorage.createPcj(sparql);
+
+            // Tell the Fluo PCJ Updater app to maintain the PCJ.
+            createPcj.withRyaIntegration(pcjId, pcjStorage, fluo, rya);
+
         } catch (MalformedQueryException | SailException | QueryEvaluationException | PcjException e) {
             throw new ExecutionException("Could not create and load historic matches into the the Fluo app for the query.", e);
         }

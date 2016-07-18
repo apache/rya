@@ -1,5 +1,3 @@
-package mvm.rya.sail.config;
-
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -9,7 +7,7 @@ package mvm.rya.sail.config;
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
@@ -18,6 +16,9 @@ package mvm.rya.sail.config;
  * specific language governing permissions and limitations
  * under the License.
  */
+package mvm.rya.sail.config;
+
+import static java.util.Objects.requireNonNull;
 
 import java.net.UnknownHostException;
 import java.util.Objects;
@@ -29,6 +30,7 @@ import org.apache.accumulo.core.client.Instance;
 import org.apache.accumulo.core.client.security.tokens.PasswordToken;
 import org.apache.hadoop.conf.Configuration;
 import org.openrdf.sail.Sail;
+import org.openrdf.sail.SailException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -56,12 +58,20 @@ import mvm.rya.rdftriplestore.inference.InferenceEngineException;
 public class RyaSailFactory {
     private static final Logger LOG = LoggerFactory.getLogger(RyaSailFactory.class);
 
+    /**
+     * Creates an instance of {@link Sail} that is attached to a Rya instance.
+     *
+     * @param conf - Configures how the Sail object will be constructed. (not null)
+     * @return A {@link Sail} object that is backed by a Rya datastore.
+     * @throws SailException The object could not be created.
+     */
     public static Sail getInstance(final Configuration conf) throws AccumuloException,
-        AccumuloSecurityException, RyaDAOException, InferenceEngineException {
+        AccumuloSecurityException, RyaDAOException, InferenceEngineException, SailException {
+        requireNonNull(conf);
         return getRyaSail(conf);
     }
 
-    private static Sail getRyaSail(final Configuration config) throws InferenceEngineException, RyaDAOException, AccumuloException, AccumuloSecurityException {
+    private static Sail getRyaSail(final Configuration config) throws InferenceEngineException, RyaDAOException, AccumuloException, AccumuloSecurityException, SailException {
         final RdfCloudTripleStore store = new RdfCloudTripleStore();
         final RyaDAO<?> dao;
         final RdfCloudTripleStoreConfiguration rdfConfig;
@@ -100,6 +110,8 @@ public class RyaSailFactory {
             inferenceEngine.init();
             store.setInferenceEngine(inferenceEngine);
         }
+
+        store.initialize();
 
         return store;
     }

@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- * 
+ *
  *   http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -20,11 +20,6 @@
 
 
 import java.util.List;
-
-import mvm.rya.accumulo.AccumuloRdfConfiguration;
-import mvm.rya.api.RdfCloudTripleStoreConfiguration;
-import mvm.rya.indexing.accumulo.ConfigUtils;
-import mvm.rya.sail.config.RyaSailFactory;
 
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
@@ -47,6 +42,10 @@ import org.openrdf.repository.sail.SailRepository;
 import org.openrdf.repository.sail.SailRepositoryConnection;
 import org.openrdf.sail.Sail;
 
+import mvm.rya.accumulo.AccumuloRdfConfiguration;
+import mvm.rya.indexing.accumulo.ConfigUtils;
+import mvm.rya.sail.config.RyaSailFactory;
+
 public class EntityDirectExample {
     private static final Logger log = Logger.getLogger(EntityDirectExample.class);
 
@@ -60,8 +59,8 @@ public class EntityDirectExample {
     private static final String RYA_TABLE_PREFIX = "x_test_triplestore_";
     private static final String AUTHS = "U";
 
-    public static void main(String[] args) throws Exception {
-        Configuration conf = getConf();
+    public static void main(final String[] args) throws Exception {
+        final Configuration conf = getConf();
         conf.setBoolean(ConfigUtils.DISPLAY_QUERY_PLAN, PRINT_QUERIES);
 
         log.info("Creating the tables as root.");
@@ -71,9 +70,8 @@ public class EntityDirectExample {
         try {
             log.info("Connecting to Indexing Sail Repository.");
 
-            Sail extSail = RyaSailFactory.getInstance(conf);
+            final Sail extSail = RyaSailFactory.getInstance(conf);
             repository = new SailRepository(extSail);
-            repository.initialize();
             conn = repository.getConnection();
 
             log.info("Running SPARQL Example: Add and Delete");
@@ -88,21 +86,21 @@ public class EntityDirectExample {
         }
     }
 
-    private static void closeQuietly(SailRepository repository) {
+    private static void closeQuietly(final SailRepository repository) {
         if (repository != null) {
             try {
                 repository.shutDown();
-            } catch (RepositoryException e) {
+            } catch (final RepositoryException e) {
                 // quietly absorb this exception
             }
         }
     }
 
-    private static void closeQuietly(SailRepositoryConnection conn) {
+    private static void closeQuietly(final SailRepositoryConnection conn) {
         if (conn != null) {
             try {
                 conn.close();
-            } catch (RepositoryException e) {
+            } catch (final RepositoryException e) {
                 // quietly absorb this exception
             }
         }
@@ -112,7 +110,7 @@ public class EntityDirectExample {
 
 
 
-    public static void testAddAndDelete(SailRepositoryConnection conn) throws MalformedQueryException,
+    public static void testAddAndDelete(final SailRepositoryConnection conn) throws MalformedQueryException,
             RepositoryException, UpdateExecutionException, QueryEvaluationException, TupleQueryResultHandlerException,
             AccumuloException, AccumuloSecurityException, TableNotFoundException {
 
@@ -130,7 +128,7 @@ public class EntityDirectExample {
 
         query = "select ?x {GRAPH <http://updated/test> {?x <http://acme.com/actions/likes> \"A new book\" . "//
                 + " ?x <http://acme.com/actions/likes> \"Avocados\" }}";
-        CountingResultHandler resultHandler = new CountingResultHandler();
+        final CountingResultHandler resultHandler = new CountingResultHandler();
         TupleQuery tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, query);
         tupleQuery.evaluate(resultHandler);
         log.info("Result count : " + resultHandler.getCount());
@@ -160,11 +158,11 @@ public class EntityDirectExample {
 
 
 
-    private static void testAddAndTemporalSearchWithPCJ(SailRepositoryConnection conn) throws Exception {
+    private static void testAddAndTemporalSearchWithPCJ(final SailRepositoryConnection conn) throws Exception {
 
         // create some resources and literals to make statements out of
 
-        String sparqlInsert = "PREFIX pref: <http://www.model/pref#> \n"
+        final String sparqlInsert = "PREFIX pref: <http://www.model/pref#> \n"
                 + "INSERT DATA {\n" //
                 + "<urn:Bob>       a       pref:Person ;\n" //
                 + "     pref:hasProperty1 'property1' ;\n" //  one second
@@ -175,7 +173,7 @@ public class EntityDirectExample {
                 + "     pref:hasProperty5 'property5' ; \n" //
                 + "}";
 
-        Update update = conn.prepareUpdate(QueryLanguage.SPARQL, sparqlInsert);
+        final Update update = conn.prepareUpdate(QueryLanguage.SPARQL, sparqlInsert);
         update.execute();
 
         String queryString = "PREFIX pref: <http://www.model/pref#> \n" //
@@ -239,7 +237,7 @@ public class EntityDirectExample {
 
     private static Configuration getConf() {
 
-        AccumuloRdfConfiguration conf = new AccumuloRdfConfiguration();
+        final AccumuloRdfConfiguration conf = new AccumuloRdfConfiguration();
 
         conf.setBoolean(ConfigUtils.USE_MOCK_INSTANCE, USE_MOCK_INSTANCE);
         conf.set(ConfigUtils.USE_ENTITY, "true");
@@ -277,11 +275,11 @@ public class EntityDirectExample {
         }
 
         @Override
-        public void startQueryResult(List<String> arg0) throws TupleQueryResultHandlerException {
+        public void startQueryResult(final List<String> arg0) throws TupleQueryResultHandlerException {
         }
 
         @Override
-        public void handleSolution(BindingSet arg0) throws TupleQueryResultHandlerException {
+        public void handleSolution(final BindingSet arg0) throws TupleQueryResultHandlerException {
             count++;
             if(!bsSizeSet) {
                 bindingSize = arg0.size();
@@ -295,11 +293,11 @@ public class EntityDirectExample {
         }
 
         @Override
-        public void handleBoolean(boolean arg0) throws QueryResultHandlerException {
+        public void handleBoolean(final boolean arg0) throws QueryResultHandlerException {
         }
 
         @Override
-        public void handleLinks(List<String> arg0) throws QueryResultHandlerException {
+        public void handleLinks(final List<String> arg0) throws QueryResultHandlerException {
         }
     }
 }

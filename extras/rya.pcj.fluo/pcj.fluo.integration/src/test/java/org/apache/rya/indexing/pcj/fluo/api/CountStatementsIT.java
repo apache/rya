@@ -20,7 +20,6 @@ package org.apache.rya.indexing.pcj.fluo.api;
 
 import static org.junit.Assert.assertEquals;
 
-import java.io.File;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
@@ -29,7 +28,6 @@ import org.apache.rya.indexing.pcj.fluo.ITBase;
 import org.junit.Test;
 
 import com.google.common.base.Optional;
-import com.google.common.io.Files;
 
 import io.fluo.api.client.FluoAdmin;
 import io.fluo.api.client.FluoAdmin.AlreadyInitializedException;
@@ -51,7 +49,6 @@ public class CountStatementsIT extends ITBase {
      * statements are inserted as part of the test will not be consumed.
      *
      * @return A Mini Fluo cluster.
-     * @throws TableExistsException 
      */
     @Override
     protected MiniFluo startMiniFluo() throws AlreadyInitializedException, TableExistsException {
@@ -66,21 +63,21 @@ public class CountStatementsIT extends ITBase {
         config.setAccumuloPassword(ACCUMULO_PASSWORD);
         config.setInstanceZookeepers(zookeepers + "/fluo");
         config.setAccumuloZookeepers(zookeepers);
-        
+
         config.setApplicationName(appName);
         config.setAccumuloTable("fluo" + appName);
-        
+
         config.addObservers(observers);
 
-        FluoFactory.newAdmin(config).initialize( 
-                              new FluoAdmin.InitOpts().setClearTable(true).setClearZookeeper(true) );
+        FluoFactory.newAdmin(config).initialize(
+                new FluoAdmin.InitOpts().setClearTable(true).setClearZookeeper(true) );
         final MiniFluo miniFluo = FluoFactory.newMiniFluo(config);
         return miniFluo;
     }
 
 
     @Test
-    public void test() {
+    public void countStatements() {
         // Insert some Triples into the Fluo app.
         final List<RyaStatement> triples = new ArrayList<>();
         triples.add( RyaStatement.builder().setSubject(new RyaURI("http://Alice")).setPredicate(new RyaURI("http://talksTo")).setObject(new RyaURI("http://Bob")).build() );

@@ -31,7 +31,6 @@ import static mvm.rya.api.RdfCloudTripleStoreConstants.NUM_THREADS;
 import static mvm.rya.api.RdfCloudTripleStoreConstants.RTS_SUBJECT_RYA;
 import static mvm.rya.api.RdfCloudTripleStoreConstants.RTS_VERSION_PREDICATE_RYA;
 import static mvm.rya.api.RdfCloudTripleStoreConstants.VERSION_RYA;
-import info.aduna.iteration.CloseableIteration;
 
 import java.io.IOException;
 import java.util.Collection;
@@ -40,18 +39,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
-
-import mvm.rya.accumulo.experimental.AccumuloIndexer;
-import mvm.rya.accumulo.query.AccumuloRyaQueryEngine;
-import mvm.rya.api.RdfCloudTripleStoreConfiguration;
-import mvm.rya.api.RdfCloudTripleStoreConstants.TABLE_LAYOUT;
-import mvm.rya.api.domain.RyaStatement;
-import mvm.rya.api.domain.RyaURI;
-import mvm.rya.api.layout.TableLayoutStrategy;
-import mvm.rya.api.persist.RyaDAO;
-import mvm.rya.api.persist.RyaDAOException;
-import mvm.rya.api.persist.RyaNamespaceManager;
-import mvm.rya.api.resolver.RyaTripleContext;
 
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
@@ -76,6 +63,19 @@ import org.openrdf.model.Namespace;
 
 import com.google.common.collect.Iterators;
 import com.google.common.collect.Lists;
+
+import info.aduna.iteration.CloseableIteration;
+import mvm.rya.accumulo.experimental.AccumuloIndexer;
+import mvm.rya.accumulo.query.AccumuloRyaQueryEngine;
+import mvm.rya.api.RdfCloudTripleStoreConfiguration;
+import mvm.rya.api.RdfCloudTripleStoreConstants.TABLE_LAYOUT;
+import mvm.rya.api.domain.RyaStatement;
+import mvm.rya.api.domain.RyaURI;
+import mvm.rya.api.layout.TableLayoutStrategy;
+import mvm.rya.api.persist.RyaDAO;
+import mvm.rya.api.persist.RyaDAOException;
+import mvm.rya.api.persist.RyaNamespaceManager;
+import mvm.rya.api.resolver.RyaTripleContext;
 
 public class AccumuloRyaDAO implements RyaDAO<AccumuloRdfConfiguration>, RyaNamespaceManager<AccumuloRdfConfiguration> {
     private static final Log logger = LogFactory.getLog(AccumuloRyaDAO.class);

@@ -26,17 +26,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import mvm.rya.api.RdfCloudTripleStoreConfiguration;
-import mvm.rya.indexing.IndexPlanValidator.IndexPlanValidator;
-import mvm.rya.indexing.IndexPlanValidator.IndexedExecutionPlanGenerator;
-import mvm.rya.indexing.IndexPlanValidator.ThreshholdPlanSelector;
-import mvm.rya.indexing.IndexPlanValidator.TupleReArranger;
-import mvm.rya.indexing.IndexPlanValidator.ValidIndexCombinationGenerator;
-import mvm.rya.indexing.accumulo.ConfigUtils;
-import mvm.rya.indexing.external.accumulo.AccumuloPcjStorage;
-import mvm.rya.indexing.external.tupleSet.AccumuloIndexSet;
-import mvm.rya.indexing.external.tupleSet.ExternalTupleSet;
-
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
 import org.apache.accumulo.core.client.Connector;
@@ -46,7 +35,9 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.log4j.Logger;
 import org.apache.rya.indexing.pcj.storage.PcjException;
 import org.apache.rya.indexing.pcj.storage.PrecomputedJoinStorage;
+import org.apache.rya.indexing.pcj.storage.accumulo.AccumuloPcjStorage;
 import org.apache.rya.indexing.pcj.storage.accumulo.PcjTableNameFactory;
+import org.apache.rya.indexing.pcj.storage.accumulo.PcjTables;
 import org.openrdf.query.BindingSet;
 import org.openrdf.query.Dataset;
 import org.openrdf.query.MalformedQueryException;
@@ -63,6 +54,19 @@ import org.openrdf.sail.SailException;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+
+import mvm.rya.accumulo.instance.AccumuloRyaInstanceDetailsRepository;
+import mvm.rya.api.RdfCloudTripleStoreConfiguration;
+import mvm.rya.api.instance.RyaDetailsRepository;
+import mvm.rya.api.instance.RyaDetailsRepository.RyaDetailsRepositoryException;
+import mvm.rya.indexing.IndexPlanValidator.IndexPlanValidator;
+import mvm.rya.indexing.IndexPlanValidator.IndexedExecutionPlanGenerator;
+import mvm.rya.indexing.IndexPlanValidator.ThreshholdPlanSelector;
+import mvm.rya.indexing.IndexPlanValidator.TupleReArranger;
+import mvm.rya.indexing.IndexPlanValidator.ValidIndexCombinationGenerator;
+import mvm.rya.indexing.accumulo.ConfigUtils;
+import mvm.rya.indexing.external.tupleSet.AccumuloIndexSet;
+import mvm.rya.indexing.external.tupleSet.ExternalTupleSet;
 
 /**
  * {@link QueryOptimizer} which matches {@link TupleExpr}s associated with
@@ -88,7 +92,7 @@ public class PCJOptimizer implements QueryOptimizer, Configurable {
     public PCJOptimizer() {
     }
 
-    public PCJOptimizer(Configuration conf) {
+    public PCJOptimizer(final Configuration conf) {
         this.conf = conf;
         try {
             indexSet = PCJOptimizerUtilities.getValidPCJs(getAccIndices(conf)); // TODO
@@ -105,19 +109,18 @@ public class PCJOptimizer implements QueryOptimizer, Configurable {
         init = true;
     }
 
-    public PCJOptimizer(List<ExternalTupleSet> indices, boolean useOptimalPcj) {
+    public PCJOptimizer(final List<ExternalTupleSet> indices, final boolean useOptimalPcj) {
         this.indexSet = PCJOptimizerUtilities.getValidPCJs(indices);
         conf = new Configuration();
         conf.setBoolean(ConfigUtils.USE_OPTIMAL_PCJ, useOptimalPcj);
     }
 
     @Override
-    public void setConf(Configuration conf) {
+    public void setConf(final Configuration conf) {
         this.conf = conf;
         if (!init) {
             try {
-                indexSet = PCJOptimizerUtilities
-                        .getValidPCJs(getAccIndices(conf));
+                indexSet = PCJOptimizerUtilities.getValidPCJs(getAccIndices(conf));
             } catch (MalformedQueryException | SailException
                     | QueryEvaluationException | TableNotFoundException
                     | AccumuloException | AccumuloSecurityException
@@ -141,17 +144,17 @@ public class PCJOptimizer implements QueryOptimizer, Configurable {
      *            - the query to be optimized
      */
     @Override
-    public void optimize(TupleExpr tupleExpr, Dataset dataset,
-            BindingSet bindings) {
+    public void optimize(TupleExpr tupleExpr, final Dataset dataset,
+            final BindingSet bindings) {
 
-        Projection projection = PCJOptimizerUtilities.getProjection(tupleExpr);
+        final Projection projection = PCJOptimizerUtilities.getProjection(tupleExpr);
         if (projection == null) {
             log.debug("TupleExpr has no Projection.  Invalid TupleExpr.");
             return;
         }
-        IndexedExecutionPlanGenerator iep = new IndexedExecutionPlanGenerator(
+        final IndexedExecutionPlanGenerator iep = new IndexedExecutionPlanGenerator(
                 tupleExpr, indexSet);
-        List<ExternalTupleSet> pcjs = iep.getNormalizedIndices();
+        final List<ExternalTupleSet> pcjs = iep.getNormalizedIndices();
         // first standardize query by pulling all filters to top of query if
         // they exist
         // using TopOfQueryFilterRelocator
@@ -160,9 +163,9 @@ public class PCJOptimizer implements QueryOptimizer, Configurable {
         if (ConfigUtils.getUseOptimalPCJ(conf) && pcjs.size() > 0) {
 
             // get potential relevant index combinations
-            ValidIndexCombinationGenerator vic = new ValidIndexCombinationGenerator(
+            final ValidIndexCombinationGenerator vic = new ValidIndexCombinationGenerator(
                     tupleExpr);
-            Iterator<List<ExternalTupleSet>> iter = vic
+            final Iterator<List<ExternalTupleSet>> iter = vic
                     .getValidIndexCombos(pcjs);
             TupleExpr bestTup = null;
             TupleExpr tempTup = null;
@@ -171,14 +174,14 @@ public class PCJOptimizer implements QueryOptimizer, Configurable {
 
             while (iter.hasNext()) {
                 // apply join visitor to place external index nodes in query
-                TupleExpr clone = tupleExpr.clone();
+                final TupleExpr clone = tupleExpr.clone();
                 QuerySegmentPCJMatchVisitor.matchPCJs(clone, iter.next());
 
                 // get all valid execution plans for given external index
                 // combination by considering all
                 // permutations of nodes in TupleExpr
-                IndexPlanValidator ipv = new IndexPlanValidator(false);
-                Iterator<TupleExpr> validTups = ipv
+                final IndexPlanValidator ipv = new IndexPlanValidator(false);
+                final Iterator<TupleExpr> validTups = ipv
                         .getValidTuples(TupleReArranger.getTupleReOrderings(
                                 clone).iterator());
 
@@ -187,7 +190,7 @@ public class PCJOptimizer implements QueryOptimizer, Configurable {
                 // for number of external index nodes, common variables among
                 // joins in execution plan, and number of
                 // external products in execution plan
-                ThreshholdPlanSelector tps = new ThreshholdPlanSelector(
+                final ThreshholdPlanSelector tps = new ThreshholdPlanSelector(
                         tupleExpr);
                 tempTup = tps.getThreshholdQueryPlan(validTups, .4, .5, .2, .3);
 
@@ -200,7 +203,7 @@ public class PCJOptimizer implements QueryOptimizer, Configurable {
                 }
             }
             if (bestTup != null) {
-                Projection bestTupProject = PCJOptimizerUtilities
+                final Projection bestTupProject = PCJOptimizerUtilities
                         .getProjection(bestTup);
                 projection.setArg(bestTupProject.getArg());
             }
@@ -232,56 +235,56 @@ public class PCJOptimizer implements QueryOptimizer, Configurable {
         private QuerySegmentPCJMatchVisitor() {
         };
 
-        public static void matchPCJs(TupleExpr te,
-                List<ExternalTupleSet> indexSet) {
+        public static void matchPCJs(final TupleExpr te,
+                final List<ExternalTupleSet> indexSet) {
             pcjs = indexSet;
             te.visit(INSTANCE);
         }
 
         @Override
-        public void meet(Join node) {
-            PCJMatcher matcher = PCJMatcherFactory.getPCJMatcher(node);
-            for (ExternalTupleSet pcj : pcjs) {
+        public void meet(final Join node) {
+            final PCJMatcher matcher = PCJMatcherFactory.getPCJMatcher(node);
+            for (final ExternalTupleSet pcj : pcjs) {
                 matcher.matchPCJ(pcj);
             }
 
             node.replaceWith(matcher.getQuery());
-            Set<TupleExpr> unmatched = matcher.getUnmatchedArgs();
+            final Set<TupleExpr> unmatched = matcher.getUnmatchedArgs();
             PCJOptimizerUtilities.relocateFilters(matcher.getFilters());
 
-            for (TupleExpr tupleExpr : unmatched) {
+            for (final TupleExpr tupleExpr : unmatched) {
                 tupleExpr.visit(this);
             }
         }
 
         @Override
-        public void meet(LeftJoin node) {
-            PCJMatcher matcher = PCJMatcherFactory.getPCJMatcher(node);
-            for (ExternalTupleSet pcj : pcjs) {
+        public void meet(final LeftJoin node) {
+            final PCJMatcher matcher = PCJMatcherFactory.getPCJMatcher(node);
+            for (final ExternalTupleSet pcj : pcjs) {
                 matcher.matchPCJ(pcj);
             }
 
             node.replaceWith(matcher.getQuery());
-            Set<TupleExpr> unmatched = matcher.getUnmatchedArgs();
+            final Set<TupleExpr> unmatched = matcher.getUnmatchedArgs();
             PCJOptimizerUtilities.relocateFilters(matcher.getFilters());
 
-            for (TupleExpr tupleExpr : unmatched) {
+            for (final TupleExpr tupleExpr : unmatched) {
                 tupleExpr.visit(this);
             }
         }
 
         @Override
-        public void meet(Filter node) {
-            PCJMatcher matcher = PCJMatcherFactory.getPCJMatcher(node);
-            for (ExternalTupleSet pcj : pcjs) {
+        public void meet(final Filter node) {
+            final PCJMatcher matcher = PCJMatcherFactory.getPCJMatcher(node);
+            for (final ExternalTupleSet pcj : pcjs) {
                 matcher.matchPCJ(pcj);
             }
 
             node.replaceWith(matcher.getQuery());
-            Set<TupleExpr> unmatched = matcher.getUnmatchedArgs();
+            final Set<TupleExpr> unmatched = matcher.getUnmatchedArgs();
             PCJOptimizerUtilities.relocateFilters(matcher.getFilters());
 
-            for (TupleExpr tupleExpr : unmatched) {
+            for (final TupleExpr tupleExpr : unmatched) {
                 tupleExpr.visit(this);
             }
         }
@@ -305,40 +308,44 @@ public class PCJOptimizer implements QueryOptimizer, Configurable {
      * @throws AccumuloSecurityException
      * @throws PcjException
      */
-    private static List<ExternalTupleSet> getAccIndices(Configuration conf)
+    private static List<ExternalTupleSet> getAccIndices(final Configuration conf)
             throws MalformedQueryException, SailException,
             QueryEvaluationException, TableNotFoundException,
             AccumuloException, AccumuloSecurityException, PcjException {
 
         requireNonNull(conf);
-        String tablePrefix = requireNonNull(conf
-                .get(RdfCloudTripleStoreConfiguration.CONF_TBL_PREFIX));
-        Connector conn = requireNonNull(ConfigUtils.getConnector(conf));
+        final String tablePrefix = requireNonNull(conf.get(RdfCloudTripleStoreConfiguration.CONF_TBL_PREFIX));
+        final Connector conn = requireNonNull(ConfigUtils.getConnector(conf));
         List<String> tables = null;
 
         if (conf instanceof RdfCloudTripleStoreConfiguration) {
             tables = ((RdfCloudTripleStoreConfiguration) conf).getPcjTables();
         }
         // this maps associates pcj table name with pcj sparql query
-        Map<String, String> indexTables = Maps.newLinkedHashMap();
-        PrecomputedJoinStorage storage = new AccumuloPcjStorage(conn, tablePrefix);
-        PcjTableNameFactory pcjFactory = new PcjTableNameFactory();
+        final Map<String, String> indexTables = Maps.newLinkedHashMap();
+        final PrecomputedJoinStorage storage = new AccumuloPcjStorage(conn, tablePrefix);
+        final PcjTableNameFactory pcjFactory = new PcjTableNameFactory();
 
-        boolean tablesProvided = tables != null && !tables.isEmpty();
+        final boolean tablesProvided = tables != null && !tables.isEmpty();
 
         if (tablesProvided) {
             //if tables provided, associate table name with sparql
             for (final String table : tables) {
                 indexTables.put(table, storage.getPcjMetadata(pcjFactory.getPcjId(table)).getSparql());
             }
+        } else if(hasRyaDetails(tablePrefix, conn)) {
+            // If this is a newer install of Rya, and it has PCJ Details, then use those.
+            final List<String> ids = storage.listPcjs();
+            for(final String id: ids) {
+                indexTables.put(pcjFactory.makeTableName(tablePrefix, id), storage.getPcjMetadata(id).getSparql());
+            }
         } else {
-            //if no tables are provided by user, get ids for rya instance id, create table name,
-            //and associate table name with sparql
-            // TODO: storage.listPcjs() returns tablenames, not PCJ-IDs.  
-            //     See mvm.rya.indexing.external.accumulo.AccumuloPcjStorage.dropPcj(String)
-            List<String> ids = storage.listPcjs();
-            for(String id: ids) {
-                indexTables.put(id, storage.getPcjMetadata(id).getSparql());
+            // Otherwise figure it out by scanning tables.
+            final PcjTables pcjTables = new PcjTables();
+            for(final String table : conn.tableOperations().list()) {
+                if(table.startsWith(tablePrefix + "INDEX")) {
+                    indexTables.put(table, pcjTables.getPcjMetadata(conn, table).getSparql());
+                }
             }
         }
 
@@ -355,4 +362,13 @@ public class PCJOptimizer implements QueryOptimizer, Configurable {
         return index;
     }
 
+    private static boolean hasRyaDetails(final String ryaInstanceName, final Connector conn) {
+        final RyaDetailsRepository detailsRepo = new AccumuloRyaInstanceDetailsRepository(conn, ryaInstanceName);
+        try {
+            detailsRepo.getRyaInstanceDetails();
+            return true;
+        } catch(final RyaDetailsRepositoryException e) {
+            return false;
+        }
+    }
 }

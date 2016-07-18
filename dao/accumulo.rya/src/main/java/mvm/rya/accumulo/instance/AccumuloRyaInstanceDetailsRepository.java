@@ -63,7 +63,7 @@ import mvm.rya.api.instance.RyaDetailsRepository;
 @ParametersAreNonnullByDefault
 public class AccumuloRyaInstanceDetailsRepository implements RyaDetailsRepository {
 
-    private static final String INSTANCE_DETAILS_TABLE_NAME = "instance_details";
+    public static final String INSTANCE_DETAILS_TABLE_NAME = "instance_details";
 
     private static final Text ROW_ID = new Text("instance metadata");
     private static final Text COL_FAMILY = new Text("instance");
@@ -143,7 +143,7 @@ public class AccumuloRyaInstanceDetailsRepository implements RyaDetailsRepositor
                 try {
                     writer.close();
                 } catch (final MutationsRejectedException e) {
-                    throw new RyaDetailsRepositoryException("", e);
+                    throw new RyaDetailsRepositoryException("Could not initialize the Rya instance details for the instance named '" + instanceName + "'.", e);
                 }
             }
         }

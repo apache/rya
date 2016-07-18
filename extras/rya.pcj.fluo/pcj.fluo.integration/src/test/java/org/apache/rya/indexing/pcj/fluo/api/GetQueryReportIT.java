@@ -22,7 +22,6 @@ import static org.junit.Assert.assertEquals;
 
 import java.math.BigInteger;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
@@ -32,7 +31,8 @@ import org.apache.rya.indexing.pcj.fluo.api.GetQueryReport.QueryReport;
 import org.apache.rya.indexing.pcj.fluo.app.query.FluoQuery;
 import org.apache.rya.indexing.pcj.fluo.app.query.StatementPatternMetadata;
 import org.apache.rya.indexing.pcj.storage.PcjMetadata;
-import org.apache.rya.indexing.pcj.storage.accumulo.VariableOrder;
+import org.apache.rya.indexing.pcj.storage.PrecomputedJoinStorage;
+import org.apache.rya.indexing.pcj.storage.accumulo.AccumuloPcjStorage;
 import org.junit.Test;
 
 import com.google.common.base.Optional;
@@ -74,8 +74,12 @@ public class GetQueryReportIT extends ITBase {
                 makeRyaStatement("http://Frank", "http://worksAt", "http://Burrito Place"),
                 makeRyaStatement("http://Frank", "http://livesIn", "http://Lost County"));
 
-        // Create the PCJ in Fluo.
-        new CreatePcj().withRyaIntegration(fluoClient, RYA_TABLE_PREFIX, ryaRepo, accumuloConn, new HashSet<VariableOrder>(), sparql);
+        // Create the PCJ table.
+        final PrecomputedJoinStorage pcjStorage = new AccumuloPcjStorage(accumuloConn, RYA_INSTANCE_NAME);
+        final String pcjId = pcjStorage.createPcj(sparql);
+
+        // Tell the Fluo app to maintain the PCJ.
+        new CreatePcj().withRyaIntegration(pcjId, pcjStorage, fluoClient, ryaRepo);
 
         // Stream the data into Fluo.
         new InsertTriples().insert(fluoClient, streamedTriples, Optional.<String>absent());
@@ -84,7 +88,7 @@ public class GetQueryReportIT extends ITBase {
         fluo.waitForObservers();
 
         // Fetch the report.
-        final Map<String, PcjMetadata> metadata = new GetPcjMetadata().getMetadata(accumuloConn, fluoClient);
+        final Map<String, PcjMetadata> metadata = new GetPcjMetadata().getMetadata(pcjStorage, fluoClient);
         final Set<String> queryIds = metadata.keySet();
         assertEquals(1, queryIds.size());
         final String queryId = queryIds.iterator().next();

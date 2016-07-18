@@ -18,11 +18,16 @@
  */
 package org.apache.rya.indexing.pcj.storage.accumulo;
 
+import static java.util.Objects.requireNonNull;
+
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
 import javax.annotation.ParametersAreNonnullByDefault;
+
+import org.openrdf.query.MalformedQueryException;
+import org.openrdf.query.parser.sparql.SPARQLParser;
 
 import com.google.common.collect.Lists;
 
@@ -32,6 +37,18 @@ import com.google.common.collect.Lists;
  */
 @ParametersAreNonnullByDefault
 public class ShiftVarOrderFactory implements PcjVarOrderFactory {
+
+    @Override
+    public Set<VariableOrder> makeVarOrders(final String sparql) throws MalformedQueryException {
+        requireNonNull(sparql);
+
+        final Set<String> bindingNames = new SPARQLParser().parseQuery(sparql, null)
+                .getTupleExpr()
+                .getBindingNames();
+
+        return makeVarOrders( new VariableOrder(bindingNames) );
+    }
+
     @Override
     public Set<VariableOrder> makeVarOrders(final VariableOrder varOrder) {
         final Set<VariableOrder> varOrders = new HashSet<>();

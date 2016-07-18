@@ -58,6 +58,7 @@ import org.openrdf.repository.RepositoryException;
 import org.openrdf.repository.sail.SailRepository;
 import org.openrdf.repository.sail.SailRepositoryConnection;
 import org.openrdf.sail.Sail;
+import org.openrdf.sail.SailException;
 
 import com.google.common.base.Optional;
 import com.google.common.collect.Sets;
@@ -98,7 +99,7 @@ public class PcjIntegrationTestingUtil {
     public static SailRepository getPcjRepo(final String tablePrefix, final String instance)
             throws AccumuloException, AccumuloSecurityException,
             RyaDAOException, RepositoryException, InferenceEngineException,
-            NumberFormatException, UnknownHostException {
+            NumberFormatException, UnknownHostException, SailException {
 
         final AccumuloRdfConfiguration pcjConf = new AccumuloRdfConfiguration();
         pcjConf.set(ConfigUtils.USE_PCJ, "true");
@@ -107,20 +108,18 @@ public class PcjIntegrationTestingUtil {
 
         final Sail pcjSail = RyaSailFactory.getInstance(pcjConf);
         final SailRepository pcjRepo = new SailRepository(pcjSail);
-        pcjRepo.initialize();
         return pcjRepo;
     }
 
     public static SailRepository getNonPcjRepo(final String tablePrefix,
             final String instance) throws AccumuloException,
             AccumuloSecurityException, RyaDAOException, RepositoryException, InferenceEngineException,
-            NumberFormatException, UnknownHostException {
+            NumberFormatException, UnknownHostException, SailException {
 
         final AccumuloRdfConfiguration nonPcjConf = new AccumuloRdfConfiguration();
         populateTestConfig(instance, tablePrefix, nonPcjConf);
         final Sail nonPcjSail = RyaSailFactory.getInstance(nonPcjConf);
         final SailRepository nonPcjRepo = new SailRepository(nonPcjSail);
-        nonPcjRepo.initialize();
         return nonPcjRepo;
     }
 

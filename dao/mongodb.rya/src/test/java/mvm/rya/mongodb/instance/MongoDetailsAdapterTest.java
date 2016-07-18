@@ -43,33 +43,42 @@ import mvm.rya.api.instance.RyaDetails.ProspectorDetails;
 import mvm.rya.api.instance.RyaDetails.TemporalIndexDetails;
 import mvm.rya.mongodb.instance.MongoDetailsAdapter.MalformedRyaDetailsException;
 
+/**
+ * Tests the methods of {@link MongoDetailsAdapter}.
+ */
 public class MongoDetailsAdapterTest {
+
     @Test
     public void ryaDetailsToMongoTest() {
-        final PCJIndexDetails.Builder pcjBuilder = PCJIndexDetails.builder()
-        .setEnabled(true)
-        .setFluoDetails(new FluoDetails("fluo"));
-        for(int ii = 0; ii < 2; ii++) {
-            pcjBuilder.addPCJDetails(
-            PCJDetails.builder()
-            .setId("pcj_"+ii)
-            .setUpdateStrategy(PCJUpdateStrategy.BATCH)
-            .setLastUpdateTime(new Date(ii))
-            .build());
-        }
-
+        // Convert the Details into a Mongo DB OBject.
         final RyaDetails details = RyaDetails.builder()
-        .setRyaInstanceName("test")
-        .setRyaVersion("1")
-        .setEntityCentricIndexDetails(new EntityCentricIndexDetails(true))
-        .setGeoIndexDetails(new GeoIndexDetails(true))
-        .setPCJIndexDetails(pcjBuilder.build())
-        .setTemporalIndexDetails(new TemporalIndexDetails(true))
-        .setFreeTextDetails(new FreeTextIndexDetails(true))
-        .setProspectorDetails(new ProspectorDetails(Optional.<Date>fromNullable(new Date(0L))))
-        .setJoinSelectivityDetails(new JoinSelectivityDetails(Optional.<Date>fromNullable(new Date(1L))))
-        .build();
+            .setRyaInstanceName("test")
+            .setRyaVersion("1")
+            .setEntityCentricIndexDetails(new EntityCentricIndexDetails(true))
+            .setGeoIndexDetails(new GeoIndexDetails(true))
+            .setPCJIndexDetails(
+                PCJIndexDetails.builder()
+                .setEnabled(true)
+                .setFluoDetails(new FluoDetails("fluo"))
+                .addPCJDetails(
+                        PCJDetails.builder()
+                        .setId("pcj_0")
+                        .setUpdateStrategy(PCJUpdateStrategy.BATCH)
+                        .setLastUpdateTime(new Date(0L)))
+                .addPCJDetails(
+                        PCJDetails.builder()
+                        .setId("pcj_1")
+                        .setUpdateStrategy(PCJUpdateStrategy.BATCH)
+                        .setLastUpdateTime(new Date(1L))))
+            .setTemporalIndexDetails(new TemporalIndexDetails(true))
+            .setFreeTextDetails(new FreeTextIndexDetails(true))
+            .setProspectorDetails(new ProspectorDetails(Optional.fromNullable(new Date(0L))))
+            .setJoinSelectivityDetails(new JoinSelectivityDetails(Optional.fromNullable(new Date(1L))))
+            .build();
 
+        final BasicDBObject actual = MongoDetailsAdapter.toDBObject(details);
+
+        // Ensure it matches the expected object.
         final DBObject expected = (DBObject) JSON.parse(
             "{ "
             + "instanceName : \"test\","
@@ -97,15 +106,13 @@ public class MongoDetailsAdapterTest {
             + "joinSelectivitiyDetails : { $date : \"1970-01-01T00:00:00.001Z\"}"
           + "}"
         );
-        final BasicDBObject actual = MongoDetailsAdapter.toDBObject(details);
-        System.out.println(expected.toString());
-        System.out.println("***");
-        System.out.println(actual.toString());
+
         assertEquals(expected.toString(), actual.toString());
     }
 
     @Test
     public void mongoToRyaDetailsTest() throws MalformedRyaDetailsException {
+        // Convert the Mongo object into a RyaDetails.
         final BasicDBObject mongo = (BasicDBObject) JSON.parse(
             "{ "
             + "instanceName : \"test\","
@@ -133,36 +140,41 @@ public class MongoDetailsAdapterTest {
             + "joinSelectivitiyDetails : { $date : \"1970-01-01T00:00:00.001Z\"}"
           + "}"
         );
-        final PCJIndexDetails.Builder pcjBuilder = PCJIndexDetails.builder()
-        .setEnabled(true)
-        .setFluoDetails(new FluoDetails("fluo"));
-        for(int ii = 0; ii < 2; ii++) {
-            pcjBuilder.addPCJDetails(
-            PCJDetails.builder()
-            .setId("pcj_"+ii)
-            .setUpdateStrategy(PCJUpdateStrategy.BATCH)
-            .setLastUpdateTime(new Date(ii))
-            .build());
-        }
-
-        final RyaDetails expected = RyaDetails.builder()
-        .setRyaInstanceName("test")
-        .setRyaVersion("1")
-        .setEntityCentricIndexDetails(new EntityCentricIndexDetails(true))
-        .setGeoIndexDetails(new GeoIndexDetails(true))
-        .setPCJIndexDetails(pcjBuilder.build())
-        .setTemporalIndexDetails(new TemporalIndexDetails(true))
-        .setFreeTextDetails(new FreeTextIndexDetails(true))
-        .setProspectorDetails(new ProspectorDetails(Optional.<Date>fromNullable(new Date(0L))))
-        .setJoinSelectivityDetails(new JoinSelectivityDetails(Optional.<Date>fromNullable(new Date(1L))))
-        .build();
 
         final RyaDetails actual = MongoDetailsAdapter.toRyaDetails(mongo);
+
+        // Ensure it matches the expected object.
+        final RyaDetails expected = RyaDetails.builder()
+            .setRyaInstanceName("test")
+            .setRyaVersion("1")
+            .setEntityCentricIndexDetails(new EntityCentricIndexDetails(true))
+            .setGeoIndexDetails(new GeoIndexDetails(true))
+            .setPCJIndexDetails(
+                PCJIndexDetails.builder()
+                    .setEnabled(true)
+                    .setFluoDetails(new FluoDetails("fluo"))
+                    .addPCJDetails(
+                        PCJDetails.builder()
+                            .setId("pcj_0")
+                            .setUpdateStrategy(PCJUpdateStrategy.BATCH)
+                            .setLastUpdateTime(new Date(0L)))
+                    .addPCJDetails(
+                            PCJDetails.builder()
+                                .setId("pcj_1")
+                                .setUpdateStrategy(PCJUpdateStrategy.BATCH)
+                                .setLastUpdateTime(new Date(1L))))
+            .setTemporalIndexDetails(new TemporalIndexDetails(true))
+            .setFreeTextDetails(new FreeTextIndexDetails(true))
+            .setProspectorDetails(new ProspectorDetails(Optional.<Date>fromNullable(new Date(0L))))
+            .setJoinSelectivityDetails(new JoinSelectivityDetails(Optional.<Date>fromNullable(new Date(1L))))
+            .build();
+
         assertEquals(expected, actual);
     }
 
     @Test
     public void absentOptionalToRyaDetailsTest() throws MalformedRyaDetailsException {
+        // Convert the Mongo object into a RyaDetails.
         final BasicDBObject mongo = (BasicDBObject) JSON.parse(
                 "{ "
                 + "instanceName : \"test\","
@@ -175,7 +187,6 @@ public class MongoDetailsAdapterTest {
                 +    "pcjs : [ "
                 +       "{"
                 +          "id : \"pcj_1\","
-                +          "updateStrategy : \"INCREMENTAL\""
                 +       "}"
                 +    "]"
                 + "},"
@@ -185,33 +196,52 @@ public class MongoDetailsAdapterTest {
                 + "joinSelectivitiyDetails : null"
               + "}"
             );
-        final PCJIndexDetails.Builder pcjBuilder = PCJIndexDetails.builder()
-        .setEnabled(false)
-        .setFluoDetails(new FluoDetails("fluo"))
-        .addPCJDetails(
-            PCJDetails.builder()
-            .setId("pcj_1")
-            .setUpdateStrategy(PCJUpdateStrategy.INCREMENTAL)
-            .setLastUpdateTime(null).build());
-
-        final RyaDetails expected = RyaDetails.builder()
-        .setRyaInstanceName("test")
-        .setRyaVersion("1")
-        .setEntityCentricIndexDetails(new EntityCentricIndexDetails(true))
-        .setGeoIndexDetails(new GeoIndexDetails(false))
-        .setPCJIndexDetails(pcjBuilder.build())
-        .setTemporalIndexDetails(new TemporalIndexDetails(false))
-        .setFreeTextDetails(new FreeTextIndexDetails(true))
-        .setProspectorDetails(new ProspectorDetails(Optional.<Date>absent()))
-        .setJoinSelectivityDetails(new JoinSelectivityDetails(Optional.<Date>absent()))
-        .build();
-
         final RyaDetails actual = MongoDetailsAdapter.toRyaDetails(mongo);
+
+        // Ensure it matches the expected object.
+        final RyaDetails expected = RyaDetails.builder()
+            .setRyaInstanceName("test")
+            .setRyaVersion("1")
+            .setEntityCentricIndexDetails(new EntityCentricIndexDetails(true))
+            .setGeoIndexDetails(new GeoIndexDetails(false))
+            .setPCJIndexDetails(
+                    PCJIndexDetails.builder()
+                    .setEnabled(false)
+                    .setFluoDetails(new FluoDetails("fluo"))
+                    .addPCJDetails(
+                        PCJDetails.builder()
+                            .setId("pcj_1")
+                            .setLastUpdateTime(null)))
+            .setTemporalIndexDetails(new TemporalIndexDetails(false))
+            .setFreeTextDetails(new FreeTextIndexDetails(true))
+            .setProspectorDetails(new ProspectorDetails(Optional.<Date>absent()))
+            .setJoinSelectivityDetails(new JoinSelectivityDetails(Optional.<Date>absent()))
+            .build();
+
         assertEquals(expected, actual);
     }
 
     @Test
     public void absentOptionalToMongoTest() {
+        // Convert the Details into a Mongo DB OBject.
+        final RyaDetails details = RyaDetails.builder()
+            .setRyaInstanceName("test")
+            .setRyaVersion("1")
+            .setEntityCentricIndexDetails(new EntityCentricIndexDetails(true))
+            .setGeoIndexDetails(new GeoIndexDetails(false))
+            .setPCJIndexDetails(
+                PCJIndexDetails.builder()
+                    .setEnabled(true)
+                    .setFluoDetails(new FluoDetails("fluo")))
+            .setTemporalIndexDetails(new TemporalIndexDetails(false))
+            .setFreeTextDetails(new FreeTextIndexDetails(true))
+            .setProspectorDetails(new ProspectorDetails(Optional.<Date>absent()))
+            .setJoinSelectivityDetails(new JoinSelectivityDetails(Optional.<Date>absent()))
+            .build();
+
+        final DBObject actual = MongoDetailsAdapter.toDBObject(details);
+
+        // Ensure it matches the expected object.
         final BasicDBObject expected = (BasicDBObject) JSON.parse(
                 "{ "
                 + "instanceName : \"test\","
@@ -227,23 +257,40 @@ public class MongoDetailsAdapterTest {
                 + "freeTextDetails : true"
               + "}"
             );
-        final PCJIndexDetails.Builder pcjBuilder = PCJIndexDetails.builder()
-        .setEnabled(true)
-        .setFluoDetails(new FluoDetails("fluo"));
-
-        final RyaDetails details = RyaDetails.builder()
-        .setRyaInstanceName("test")
-        .setRyaVersion("1")
-        .setEntityCentricIndexDetails(new EntityCentricIndexDetails(true))
-        .setGeoIndexDetails(new GeoIndexDetails(false))
-        .setPCJIndexDetails(pcjBuilder.build())
-        .setTemporalIndexDetails(new TemporalIndexDetails(false))
-        .setFreeTextDetails(new FreeTextIndexDetails(true))
-        .setProspectorDetails(new ProspectorDetails(Optional.<Date>absent()))
-        .setJoinSelectivityDetails(new JoinSelectivityDetails(Optional.<Date>absent()))
-        .build();
-
-        final DBObject actual = MongoDetailsAdapter.toDBObject(details);
         assertEquals(expected, actual);
+    }
+
+    @Test
+    public void toDBObject_pcjDetails() {
+        final PCJDetails details = PCJDetails.builder()
+                .setId("pcjId")
+                .setLastUpdateTime( new Date() )
+                .setUpdateStrategy( PCJUpdateStrategy.INCREMENTAL )
+                .build();
+
+        // Convert it into a Mongo DB Object.
+        final BasicDBObject dbo = (BasicDBObject) MongoDetailsAdapter.toDBObject(details);
+
+        // Convert the dbo back into the original object.
+        final PCJDetails restored = MongoDetailsAdapter.toPCJDetails(dbo).build();
+
+        // Ensure the restored value matches the original.
+        assertEquals(details, restored);
+    }
+
+    @Test
+    public void toDBObject_pcjDetails_missing_optionals() {
+        final PCJDetails details = PCJDetails.builder()
+                .setId("pcjId")
+                .build();
+
+        // Convert it into a Mongo DB Object.
+        final BasicDBObject dbo = (BasicDBObject) MongoDetailsAdapter.toDBObject(details);
+
+        // Convert the dbo back into the original object.
+        final PCJDetails restored = MongoDetailsAdapter.toPCJDetails(dbo).build();
+
+        // Ensure the restored value matches the original.
+        assertEquals(details, restored);
     }
 }

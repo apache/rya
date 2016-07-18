@@ -73,7 +73,7 @@ public class AccumuloConstantPcjIntegrationTest {
 			MalformedQueryException, AccumuloException,
 			AccumuloSecurityException, TableExistsException,
 			TableNotFoundException, RyaDAOException, InferenceEngineException,
-			NumberFormatException, UnknownHostException {
+			NumberFormatException, UnknownHostException, SailException {
 
 		repo = PcjIntegrationTestingUtil.getNonPcjRepo(prefix, "instance");
 		conn = repo.getConnection();

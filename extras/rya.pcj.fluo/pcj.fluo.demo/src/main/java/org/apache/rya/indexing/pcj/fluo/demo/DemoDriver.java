@@ -23,6 +23,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 
@@ -48,6 +49,7 @@ import org.apache.rya.indexing.pcj.fluo.demo.Demo.DemoExecutionException;
 import org.openrdf.repository.RepositoryConnection;
 import org.openrdf.repository.RepositoryException;
 
+import com.google.common.base.Optional;
 import com.google.common.io.Files;
 
 import io.fluo.api.client.FluoClient;
@@ -57,7 +59,19 @@ import io.fluo.api.config.ObserverConfiguration;
 import io.fluo.api.mini.MiniFluo;
 import mvm.rya.accumulo.AccumuloRdfConfiguration;
 import mvm.rya.accumulo.AccumuloRyaDAO;
+import mvm.rya.accumulo.instance.AccumuloRyaInstanceDetailsRepository;
 import mvm.rya.api.RdfCloudTripleStoreConfiguration;
+import mvm.rya.api.instance.RyaDetails;
+import mvm.rya.api.instance.RyaDetails.EntityCentricIndexDetails;
+import mvm.rya.api.instance.RyaDetails.FreeTextIndexDetails;
+import mvm.rya.api.instance.RyaDetails.GeoIndexDetails;
+import mvm.rya.api.instance.RyaDetails.JoinSelectivityDetails;
+import mvm.rya.api.instance.RyaDetails.PCJIndexDetails;
+import mvm.rya.api.instance.RyaDetails.ProspectorDetails;
+import mvm.rya.api.instance.RyaDetails.TemporalIndexDetails;
+import mvm.rya.api.instance.RyaDetailsRepository;
+import mvm.rya.api.instance.RyaDetailsRepository.AlreadyInitializedException;
+import mvm.rya.api.instance.RyaDetailsRepository.RyaDetailsRepositoryException;
 import mvm.rya.rdftriplestore.RdfCloudTripleStore;
 import mvm.rya.rdftriplestore.RyaSailRepository;
 
@@ -225,7 +239,7 @@ public class DemoDriver {
      * @param accumulo - The Mini Accumulo cluster Rya will sit on top of. (not null)
      * @return The Rya repository sitting on top of the Mini Accumulo.
      */
-    private static RyaSailRepository setupRya(final MiniAccumuloCluster accumulo) throws AccumuloException, AccumuloSecurityException, RepositoryException {
+    private static RyaSailRepository setupRya(final MiniAccumuloCluster accumulo) throws AccumuloException, AccumuloSecurityException, RepositoryException, AlreadyInitializedException, RyaDetailsRepositoryException {
         checkNotNull(accumulo);
 
         // Setup the Rya Repository that will be used to create Repository Connections.
@@ -234,6 +248,8 @@ public class DemoDriver {
         crdfdao.setConnector(accumuloConn);
 
         // Setup Rya configuration values.
+        final String ryaInstanceName = "demo_";
+
         final AccumuloRdfConfiguration conf = new AccumuloRdfConfiguration();
         conf.setTablePrefix("demo_");
         conf.setDisplayQueryPlan(true);
@@ -249,6 +265,25 @@ public class DemoDriver {
 
         final RyaSailRepository ryaRepo = new RyaSailRepository(ryaStore);
         ryaRepo.initialize();
+
+        // Create Rya Details for the instance name.
+        final RyaDetailsRepository detailsRepo = new AccumuloRyaInstanceDetailsRepository(accumuloConn, ryaInstanceName);
+
+        final RyaDetails details = RyaDetails.builder()
+                .setRyaInstanceName(ryaInstanceName)
+                .setRyaVersion("0.0.0.0")
+                .setFreeTextDetails( new FreeTextIndexDetails(true) )
+                .setEntityCentricIndexDetails( new EntityCentricIndexDetails(true) )
+                .setGeoIndexDetails( new GeoIndexDetails(true) )
+                .setTemporalIndexDetails( new TemporalIndexDetails(true) )
+                .setPCJIndexDetails(
+                        PCJIndexDetails.builder()
+                            .setEnabled(true) )
+                .setJoinSelectivityDetails( new JoinSelectivityDetails( Optional.<Date>absent() ) )
+                .setProspectorDetails( new ProspectorDetails( Optional.<Date>absent() ))
+                .build();
+
+        detailsRepo.initialize(details);
 
         return ryaRepo;
     }
@@ -276,6 +311,7 @@ public class DemoDriver {
         ryaParams.setZookeeperServers(accumulo.getZooKeepers());
         ryaParams.setExporterUsername("root");
         ryaParams.setExporterPassword("password");
+        ryaParams.setRyaInstanceName("demo_");
 
         final ObserverConfiguration exportObserverConfig = new ObserverConfiguration(QueryResultObserver.class.getName());
         exportObserverConfig.setParameters( exportParams );

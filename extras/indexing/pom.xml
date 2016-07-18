@@ -96,6 +96,17 @@
 			<artifactId>mockito-all</artifactId>
 			<scope>test</scope>
 		</dependency>
+        <dependency>
+            <groupId>io.fluo</groupId>
+            <artifactId>fluo-mini</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.rya</groupId>
+            <artifactId>accumulo.rya</artifactId>
+            <version>${project.version}</version>
+            <type>test-jar</type>
+        </dependency>
 	</dependencies>
 	<build>
 		<pluginManagement>

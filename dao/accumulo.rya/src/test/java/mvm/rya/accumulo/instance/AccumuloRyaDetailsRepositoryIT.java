@@ -1,5 +1,3 @@
-package mvm.rya.accumulo.instance;
-
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -18,6 +16,7 @@ package mvm.rya.accumulo.instance;
  * specific language governing permissions and limitations
  * under the License.
  */
+package mvm.rya.accumulo.instance;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -46,6 +45,8 @@ import org.junit.Test;
 
 import com.google.common.base.Optional;
 
+import mvm.rya.accumulo.AccumuloITBase;
+import mvm.rya.accumulo.MiniAccumuloClusterInstance;
 import mvm.rya.api.instance.RyaDetails;
 import mvm.rya.api.instance.RyaDetails.EntityCentricIndexDetails;
 import mvm.rya.api.instance.RyaDetails.FreeTextIndexDetails;
@@ -66,27 +67,7 @@ import mvm.rya.api.instance.RyaDetailsRepository.RyaDetailsRepositoryException;
 /**
  * Tests the methods of {@link AccumuloRyaDetailsRepository} by using a {@link MiniAccumuloCluster}.
  */
-public class AccumuloRyaDetailsRepositoryIT {
-
-    private static MiniAccumuloCluster cluster = null;
-
-    @BeforeClass
-    public static void killLoudLogs() {
-        Logger.getLogger(ClientCnxn.class).setLevel(Level.ERROR);
-    }
-
-    @Before
-    public void startMiniAccumulo() throws IOException, InterruptedException, AccumuloException, AccumuloSecurityException {
-        // Setup the mini cluster.
-        final File tempDirectory = Files.createTempDirectory("testDir").toFile();
-        cluster = new MiniAccumuloCluster(tempDirectory, "password");
-        cluster.start();
-    }
-
-    @After
-    public void stopMiniAccumulo() throws IOException, InterruptedException {
-        cluster.stop();
-    }
+public class AccumuloRyaDetailsRepositoryIT extends AccumuloITBase {
 
     @Test
     public void initializeAndGet() throws AccumuloException, AccumuloSecurityException, AlreadyInitializedException, RyaDetailsRepositoryException {
@@ -108,21 +89,16 @@ public class AccumuloRyaDetailsRepositoryIT {
                                 PCJDetails.builder()
                                     .setId("pcj 1")
                                     .setUpdateStrategy(PCJUpdateStrategy.BATCH)
-                                    .setLastUpdateTime( new Date() )
-                                    .build())
+                                    .setLastUpdateTime( new Date() ))
                         .addPCJDetails(
                                 PCJDetails.builder()
-                                    .setId("pcj 2")
-                                    .setUpdateStrategy(PCJUpdateStrategy.INCREMENTAL)
-                                    .build())
-                        .build())
+                                    .setId("pcj 2")))
             .setProspectorDetails( new ProspectorDetails(Optional.of(new Date())) )
             .setJoinSelectivityDetails( new JoinSelectivityDetails(Optional.of(new Date())) )
             .build();
 
-        // Setup the repository that will be tested using a mock instance of Accumulo.
-        final Instance instance = new ZooKeeperInstance(cluster.getInstanceName(), cluster.getZooKeepers());
-        final Connector connector = instance.getConnector("root", new PasswordToken("password"));
+        // Setup the repository that will be tested using a mini instance of Accumulo.
+        final Connector connector = getClusterInstance().getConnector();
         final RyaDetailsRepository repo = new AccumuloRyaInstanceDetailsRepository(connector, instanceName);
 
         // Initialize the repository
@@ -155,21 +131,16 @@ public class AccumuloRyaDetailsRepositoryIT {
                                 PCJDetails.builder()
                                     .setId("pcj 1")
                                     .setUpdateStrategy(PCJUpdateStrategy.BATCH)
-                                    .setLastUpdateTime( new Date() )
-                                    .build())
+                                    .setLastUpdateTime( new Date() ))
                         .addPCJDetails(
                                 PCJDetails.builder()
-                                    .setId("pcj 2")
-                                    .setUpdateStrategy(PCJUpdateStrategy.INCREMENTAL)
-                                    .build())
-                        .build())
+                                    .setId("pcj 2")))
             .setProspectorDetails( new ProspectorDetails(Optional.of(new Date())) )
             .setJoinSelectivityDetails( new JoinSelectivityDetails(Optional.of(new Date())) )
             .build();
 
-        // Setup the repository that will be tested using a mock instance of Accumulo.
-        final Instance instance = new ZooKeeperInstance(cluster.getInstanceName(), cluster.getZooKeepers());
-        final Connector connector = instance.getConnector("root", new PasswordToken("password"));
+        // Setup the repository that will be tested using a mini instance of Accumulo.
+        final Connector connector = getClusterInstance().getConnector();
         final RyaDetailsRepository repo = new AccumuloRyaInstanceDetailsRepository(connector, instanceName);
 
         // Initialize the repository
@@ -181,9 +152,8 @@ public class AccumuloRyaDetailsRepositoryIT {
 
     @Test(expected = NotInitializedException.class)
     public void getRyaInstance_notInitialized() throws AccumuloException, AccumuloSecurityException, NotInitializedException, RyaDetailsRepositoryException {
-        // Setup the repository that will be tested using a mock instance of Accumulo.
-        final Instance instance = new MockInstance();
-        final Connector connector = instance.getConnector("username", new PasswordToken("password"));
+        // Setup the repository that will be tested using a mini instance of Accumulo.
+        final Connector connector = getClusterInstance().getConnector();
         final RyaDetailsRepository repo = new AccumuloRyaInstanceDetailsRepository(connector, "testInstance");
 
         // Try to fetch the details from the uninitialized repository.
@@ -210,21 +180,17 @@ public class AccumuloRyaDetailsRepositoryIT {
                                 PCJDetails.builder()
                                     .setId("pcj 1")
                                     .setUpdateStrategy(PCJUpdateStrategy.BATCH)
-                                    .setLastUpdateTime( new Date() )
-                                    .build())
+                                    .setLastUpdateTime( new Date() ))
                         .addPCJDetails(
                                 PCJDetails.builder()
-                                    .setId("pcj 2")
-                                    .setUpdateStrategy(PCJUpdateStrategy.INCREMENTAL)
-                                    .build())
-                        .build())
+                                    .setId("pcj 2")))
             .setProspectorDetails( new ProspectorDetails(Optional.of(new Date())) )
             .setJoinSelectivityDetails( new JoinSelectivityDetails(Optional.of(new Date())) )
             .build();
 
-        // Setup the repository that will be tested using a mock instance of Accumulo.
-        final Instance instance = new ZooKeeperInstance(cluster.getInstanceName(), cluster.getZooKeepers());
-        final Connector connector = instance.getConnector("root", new PasswordToken("password"));
+        // Setup the repository that will be tested using a mini instance of Accumulo.
+        final MiniAccumuloClusterInstance clusterInstance = getClusterInstance();
+        final Connector connector = clusterInstance.getConnector();
         final RyaDetailsRepository repo = new AccumuloRyaInstanceDetailsRepository(connector, "testInstance");
 
         // Initialize the repository
@@ -237,8 +203,7 @@ public class AccumuloRyaDetailsRepositoryIT {
     @Test
     public void isInitialized_false() throws AccumuloException, AccumuloSecurityException, RyaDetailsRepositoryException {
         // Setup the repository that will be tested using a mock instance of Accumulo.
-        final Instance instance = new ZooKeeperInstance(cluster.getInstanceName(), cluster.getZooKeepers());
-        final Connector connector = instance.getConnector("root", new PasswordToken("password"));
+        final Connector connector = getClusterInstance().getConnector();
         final RyaDetailsRepository repo = new AccumuloRyaInstanceDetailsRepository(connector, "testInstance");
 
         // Ensure the repository reports that is has not been initialized.
@@ -265,21 +230,16 @@ public class AccumuloRyaDetailsRepositoryIT {
                                 PCJDetails.builder()
                                     .setId("pcj 1")
                                     .setUpdateStrategy(PCJUpdateStrategy.BATCH)
-                                    .setLastUpdateTime( new Date() )
-                                    .build())
+                                    .setLastUpdateTime( new Date() ))
                         .addPCJDetails(
                                 PCJDetails.builder()
-                                    .setId("pcj 2")
-                                    .setUpdateStrategy(PCJUpdateStrategy.INCREMENTAL)
-                                    .build())
-                        .build())
+                                    .setId("pcj 2")))
             .setProspectorDetails( new ProspectorDetails(Optional.of(new Date())) )
             .setJoinSelectivityDetails( new JoinSelectivityDetails(Optional.of(new Date())) )
             .build();
 
-        // Setup the repository that will be tested using a mock instance of Accumulo.
-        final Instance instance = new ZooKeeperInstance(cluster.getInstanceName(), cluster.getZooKeepers());
-        final Connector connector = instance.getConnector("root", new PasswordToken("password"));
+        // Setup the repository that will be tested using a mini instance of Accumulo.
+        final Connector connector = getClusterInstance().getConnector();
         final RyaDetailsRepository repo = new AccumuloRyaInstanceDetailsRepository(connector, "testInstance");
 
         // Initialize the repository
@@ -318,21 +278,16 @@ public class AccumuloRyaDetailsRepositoryIT {
                                 PCJDetails.builder()
                                     .setId("pcj 1")
                                     .setUpdateStrategy(PCJUpdateStrategy.BATCH)
-                                    .setLastUpdateTime( new Date() )
-                                    .build())
+                                    .setLastUpdateTime( new Date() ))
                         .addPCJDetails(
                                 PCJDetails.builder()
-                                    .setId("pcj 2")
-                                    .setUpdateStrategy(PCJUpdateStrategy.INCREMENTAL)
-                                    .build())
-                        .build())
+                                    .setId("pcj 2")))
             .setProspectorDetails( new ProspectorDetails(Optional.of(new Date())) )
             .setJoinSelectivityDetails( new JoinSelectivityDetails(Optional.of(new Date())) )
             .build();
 
-        // Setup the repository that will be tested using a mock instance of Accumulo.
-        final Instance instance = new ZooKeeperInstance(cluster.getInstanceName(), cluster.getZooKeepers());
-        final Connector connector = instance.getConnector("root", new PasswordToken("password"));
+        // Setup the repository that will be tested using a mini instance of Accumulo.
+        final Connector connector = getClusterInstance().getConnector();
         final RyaDetailsRepository repo = new AccumuloRyaInstanceDetailsRepository(connector, "testInstance");
 
         // Initialize the repository

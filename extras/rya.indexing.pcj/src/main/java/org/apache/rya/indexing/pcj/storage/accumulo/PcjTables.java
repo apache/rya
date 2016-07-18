@@ -19,6 +19,7 @@
 package org.apache.rya.indexing.pcj.storage.accumulo;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static java.util.Objects.requireNonNull;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -299,6 +300,42 @@ public class PcjTables {
     }
 
     /**
+     * Get an {@link Iterator} over the {@link BindingSet}s that are stored in the PCJ table.
+     *
+     * @param accumuloConn - A connection to the Accumulo that hsots the PCJ table. (not null)
+     * @param pcjTableName - The name of the PCJ table that will be scanned. (not null)
+     * @param auths - the user's authorizations that will be used to scan the table. (not null)
+     * @return An iterator over all of the {@link BindingSet}s that are stored as
+     *   results for the PCJ.
+     * @throws PCJStorageException The binding sets could not be fetched.
+     */
+    public Iterable<BindingSet> listResults(final Connector accumuloConn, final String pcjTableName, final Authorizations auths) throws PCJStorageException {
+        requireNonNull(pcjTableName);
+
+        // Fetch the Variable Orders for the binding sets and choose one of them. It
+        // doesn't matter which one we choose because they all result in the same output.
+        final PcjMetadata metadata = getPcjMetadata(accumuloConn, pcjTableName);
+        final VariableOrder varOrder = metadata.getVarOrders().iterator().next();
+
+        try {
+            // Fetch only the Binding Sets whose Variable Order matches the selected one.
+            final Scanner scanner = accumuloConn.createScanner(pcjTableName, auths);
+            scanner.fetchColumnFamily( new Text(varOrder.toString()) );
+
+            // Return an Iterator that uses that scanner.
+            return new Iterable<BindingSet>() {
+                @Override
+                public Iterator<BindingSet> iterator() {
+                    return new ScannerBindingSetIterator(scanner, varOrder);
+                }
+            };
+
+        } catch (final TableNotFoundException e) {
+            throw new PCJStorageException(String.format("PCJ Table does not exist for name '%s'.", pcjTableName), e);
+        }
+    }
+
+    /**
      * Add a collection of results to a specific PCJ table.
      *
      * @param accumuloConn - A connection to the Accumulo that hosts the PCJ table. (not null)
@@ -383,119 +420,91 @@ public class PcjTables {
      * @param delta - How much the cardinality will change.
      * @throws PCJStorageException The cardinality could not be updated.
      */
-	private void updateCardinality(final Connector accumuloConn,
-			final String pcjTableName, final long delta)
-			throws PCJStorageException {
-		checkNotNull(accumuloConn);
-		checkNotNull(pcjTableName);
+    private void updateCardinality(final Connector accumuloConn, final String pcjTableName, final long delta) throws PCJStorageException {
+        checkNotNull(accumuloConn);
+        checkNotNull(pcjTableName);
 
-		ConditionalWriter conditionalWriter = null;
-		try {
-			conditionalWriter = accumuloConn.createConditionalWriter(
-					pcjTableName, new ConditionalWriterConfig());
+        ConditionalWriter conditionalWriter = null;
+        try {
+            conditionalWriter = accumuloConn.createConditionalWriter(pcjTableName, new ConditionalWriterConfig());
 
-			boolean updated = false;
-			while (!updated) {
-				// Write the conditional update request to Accumulo.
-				final long cardinality = getPcjMetadata(accumuloConn,
-						pcjTableName).getCardinality();
-				final ConditionalMutation mutation = makeUpdateCardinalityMutation(
-						cardinality, delta);
-				final ConditionalWriter.Result result = conditionalWriter
-						.write(mutation);
+            boolean updated = false;
+            while (!updated) {
+                // Write the conditional update request to Accumulo.
+                final long cardinality = getPcjMetadata(accumuloConn,pcjTableName).getCardinality();
+                final ConditionalMutation mutation = makeUpdateCardinalityMutation(cardinality, delta);
+                final ConditionalWriter.Result result = conditionalWriter.write(mutation);
 
-				// Interpret the result.
-				switch (result.getStatus()) {
-				case ACCEPTED:
-					updated = true;
-					break;
-				case REJECTED:
-					break;
-				case UNKNOWN:
-					// We do not know if the mutation succeeded. At best, we
-					// can hope the metadata hasn't been updated
-					// since we originally fetched it and try again.
-					// Otherwise, continue forwards as if it worked. It's
-					// okay if this number is slightly off.
-					final long newCardinality = getPcjMetadata(accumuloConn,
-							pcjTableName).getCardinality();
-					if (newCardinality != cardinality) {
-						updated = true;
-					}
-					break;
-				case VIOLATED:
-					throw new PCJStorageException(
-							"The cardinality could not be updated because the commit violated a table constraint.");
-				case INVISIBLE_VISIBILITY:
-					throw new PCJStorageException(
-							"The condition contains a visibility the updater can not satisfy.");
-				}
-			}
-		} catch (AccumuloException | AccumuloSecurityException
-				| TableNotFoundException e) {
-			throw new PCJStorageException(
-					"Could not update the cardinality value of the PCJ Table named: "
-							+ pcjTableName, e);
-		} finally {
-			if (conditionalWriter != null) {
-				conditionalWriter.close();
-			}
-		}
-
-	}
-
-
+                // Interpret the result.
+                switch (result.getStatus()) {
+                case ACCEPTED:
+                    updated = true;
+                    break;
+                case REJECTED:
+                    break;
+                case UNKNOWN:
+                    // We do not know if the mutation succeeded. At best, we
+                    // can hope the metadata hasn't been updated
+                    // since we originally fetched it and try again.
+                    // Otherwise, continue forwards as if it worked. It's
+                    // okay if this number is slightly off.
+                    final long newCardinality = getPcjMetadata(accumuloConn,pcjTableName).getCardinality();
+                    if (newCardinality != cardinality) {
+                        updated = true;
+                    }
+                    break;
+                case VIOLATED:
+                    throw new PCJStorageException("The cardinality could not be updated because the commit violated a table constraint.");
+                case INVISIBLE_VISIBILITY:
+                    throw new PCJStorageException("The condition contains a visibility the updater can not satisfy.");
+                }
+            }
+        } catch (AccumuloException | AccumuloSecurityException | TableNotFoundException e) {
+            throw new PCJStorageException("Could not update the cardinality value of the PCJ Table named: " + pcjTableName, e);
+        } finally {
+            if (conditionalWriter != null) {
+                conditionalWriter.close();
+            }
+        }
+    }
 
     /**
      * Update the cardinality of a PCJ by a {@code delta}.
      *
-     *This method updates the PCJ table cardinality using a BatchWriter in the event that
-     *the Accumulo Connector is for a MockInstance.  In the event that the cardinality is
-     *being updated asynchronously, there are no guarantees that the resulting cardinality
-     *will be correct.
+     * This method updates the PCJ table cardinality using a BatchWriter in the event that
+     * the Accumulo Connector is for a MockInstance.  In the event that the cardinality is
+     * being updated asynchronously, there are no guarantees that the resulting cardinality
+     * will be correct.
      *
      * @param accumuloConn - A connection to a Mock Accumulo Instance that hosts the PCJ table. (not null)
      * @param pcjTableName - The name of the PCJ table that will have its cardinality updated. (not null)
      * @param delta - How much the cardinality will change.
      * @throws PCJStorageException The cardinality could not be updated.
      */
-	private void updateMockCardinality(final Connector accumuloConn,
-			final String pcjTableName, final long delta)
-			throws PCJStorageException {
-		checkNotNull(accumuloConn);
-		checkNotNull(pcjTableName);
+    private void updateMockCardinality(final Connector accumuloConn, final String pcjTableName, final long delta) throws PCJStorageException {
+        checkNotNull(accumuloConn);
+        checkNotNull(pcjTableName);
 
-		BatchWriter batchWriter = null;
-		try {
-			batchWriter = accumuloConn.createBatchWriter(pcjTableName,
-					new BatchWriterConfig());
-			final long cardinality = getPcjMetadata(accumuloConn, pcjTableName)
-					.getCardinality();
-			final Mutation mutation = new Mutation(PCJ_METADATA_ROW_ID);
-			final Value newCardinality = new Value(
-					longLexicoder.encode(cardinality + delta));
-			mutation.put(PCJ_METADATA_FAMILY, PCJ_METADATA_CARDINALITY,
-					newCardinality);
-			batchWriter.addMutation(mutation);
-		} catch (TableNotFoundException | MutationsRejectedException e) {
-			throw new PCJStorageException(
-					"Could not update the cardinality value of the PCJ Table named: "
-							+ pcjTableName, e);
-		} finally {
-			if (batchWriter != null) {
-				try {
-					batchWriter.close();
-				} catch (MutationsRejectedException e) {
-					throw new PCJStorageException(
-							"Could not update the cardinality value of the PCJ Table named: "
-									+ pcjTableName, e);
-				}
-			}
-		}
-	}
-
-
-
+        BatchWriter batchWriter = null;
+        try {
+            batchWriter = accumuloConn.createBatchWriter(pcjTableName, new BatchWriterConfig());
+            final long cardinality = getPcjMetadata(accumuloConn, pcjTableName).getCardinality();
+            final Mutation mutation = new Mutation(PCJ_METADATA_ROW_ID);
+            final Value newCardinality = new Value(longLexicoder.encode(cardinality + delta));
+            mutation.put(PCJ_METADATA_FAMILY, PCJ_METADATA_CARDINALITY, newCardinality);
+            batchWriter.addMutation(mutation);
+        } catch (TableNotFoundException | MutationsRejectedException e) {
+            throw new PCJStorageException("Could not update the cardinality value of the PCJ Table named: " + pcjTableName, e);
+        } finally {
+            if (batchWriter != null) {
+                try {
+                    batchWriter.close();
+                } catch (final MutationsRejectedException e) {
+                    throw new PCJStorageException("Could not update the cardinality value of the PCJ Table named: " + pcjTableName, e);
+                }
+            }
+        }
+    }
 
     /**
      * Creates a {@link ConditionalMutation} that only updates the cardinality

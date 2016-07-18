@@ -34,6 +34,8 @@ import org.apache.rya.indexing.pcj.fluo.api.GetPcjMetadata.NotInFluoException;
 import org.apache.rya.indexing.pcj.fluo.client.PcjAdminClientCommand;
 import org.apache.rya.indexing.pcj.fluo.client.util.PcjMetadataRenderer;
 import org.apache.rya.indexing.pcj.storage.PcjMetadata;
+import org.apache.rya.indexing.pcj.storage.PrecomputedJoinStorage;
+import org.apache.rya.indexing.pcj.storage.accumulo.AccumuloPcjStorage;
 
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
@@ -96,12 +98,13 @@ public class ListQueriesCommand implements PcjAdminClientCommand {
         final GetPcjMetadata getPcjMetadata = new GetPcjMetadata();
         final Map<String, PcjMetadata> metadata = new HashMap<String, PcjMetadata>();
         try {
+            final PrecomputedJoinStorage pcjStorage = new AccumuloPcjStorage(accumulo, ryaTablePrefix);
             if(params.queryId != null) {
                 log.trace("Fetch the PCJ Metadata from Accumulo for Query ID '" + params.queryId + "'.");
-                metadata.put(params.queryId, getPcjMetadata.getMetadata(accumulo, fluo, params.queryId));
+                metadata.put(params.queryId, getPcjMetadata.getMetadata(pcjStorage, fluo, params.queryId));
             } else {
                 log.trace("Fetch the PCJ Metadata from Accumulo for all queries that are being updated by Fluo.");
-                metadata.putAll( getPcjMetadata.getMetadata(accumulo, fluo) );
+                metadata.putAll( getPcjMetadata.getMetadata(pcjStorage, fluo) );
             }
         } catch (NotInFluoException | NotInAccumuloException e) {
             throw new ExecutionException("Could not fetch some of the metadata required to build the report.", e);

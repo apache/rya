@@ -26,7 +26,8 @@ import java.util.Set;
 import org.apache.rya.indexing.pcj.fluo.ITBase;
 import org.apache.rya.indexing.pcj.fluo.api.CreatePcj;
 import org.apache.rya.indexing.pcj.fluo.api.InsertTriples;
-import org.apache.rya.indexing.pcj.storage.accumulo.VariableOrder;
+import org.apache.rya.indexing.pcj.storage.PrecomputedJoinStorage;
+import org.apache.rya.indexing.pcj.storage.accumulo.AccumuloPcjStorage;
 import org.junit.Test;
 import org.openrdf.model.impl.NumericLiteralImpl;
 import org.openrdf.model.impl.URIImpl;
@@ -78,8 +79,12 @@ public class QueryIT extends ITBase {
         expected.add( makeBindingSet(
                 new BindingImpl("person", new URIImpl("http://Charlie"))));
 
-        // Create the PCJ in Fluo.
-        new CreatePcj().withRyaIntegration(fluoClient, RYA_TABLE_PREFIX, ryaRepo, accumuloConn, new HashSet<VariableOrder>(), sparql);
+        // Create the PCJ table.
+        final PrecomputedJoinStorage pcjStorage = new AccumuloPcjStorage(accumuloConn, RYA_INSTANCE_NAME);
+        final String pcjId = pcjStorage.createPcj(sparql);
+
+        // Tell the Fluo app to maintain the PCJ.
+        new CreatePcj().withRyaIntegration(pcjId, pcjStorage, fluoClient, ryaRepo);
 
         // Stream the data into Fluo.
         new InsertTriples().insert(fluoClient, streamedTriples, Optional.<String>absent());
@@ -160,8 +165,12 @@ public class QueryIT extends ITBase {
                 new BindingImpl("candidate", new URIImpl("http://Ivan")),
                 new BindingImpl("leader", new URIImpl("http://Bob"))));
 
-        // Create the PCJ in Fluo.
-        new CreatePcj().withRyaIntegration(fluoClient, RYA_TABLE_PREFIX, ryaRepo, accumuloConn, new HashSet<VariableOrder>(), sparql);
+        // Create the PCJ table.
+        final PrecomputedJoinStorage pcjStorage = new AccumuloPcjStorage(accumuloConn, RYA_INSTANCE_NAME);
+        final String pcjId = pcjStorage.createPcj(sparql);
+
+        // Tell the Fluo app to maintain the PCJ.
+        new CreatePcj().withRyaIntegration(pcjId, pcjStorage, fluoClient, ryaRepo);
 
         // Stream the data into Fluo.
         new InsertTriples().insert(fluoClient, streamedTriples, Optional.<String>absent());
@@ -221,8 +230,12 @@ public class QueryIT extends ITBase {
                 new BindingImpl("worker", new URIImpl("http://David")),
                 new BindingImpl("city", new URIImpl("http://London"))));
 
-        // Create the PCJ in Fluo.
-        new CreatePcj().withRyaIntegration(fluoClient, RYA_TABLE_PREFIX, ryaRepo, accumuloConn, new HashSet<VariableOrder>(), sparql);
+        // Create the PCJ table.
+        final PrecomputedJoinStorage pcjStorage = new AccumuloPcjStorage(accumuloConn, RYA_INSTANCE_NAME);
+        final String pcjId = pcjStorage.createPcj(sparql);
+
+        // Tell the Fluo app to maintain the PCJ.
+        new CreatePcj().withRyaIntegration(pcjId, pcjStorage, fluoClient, ryaRepo);
 
         // Stream the data into Fluo.
         new InsertTriples().insert(fluoClient, streamedTriples, Optional.<String>absent());
@@ -265,8 +278,12 @@ public class QueryIT extends ITBase {
                 new BindingImpl("name", new URIImpl("http://Charlie")),
                 new BindingImpl("age", new NumericLiteralImpl(14, XMLSchema.INTEGER))));
 
-        // Create the PCJ in Fluo.
-        new CreatePcj().withRyaIntegration(fluoClient, RYA_TABLE_PREFIX, ryaRepo, accumuloConn, new HashSet<VariableOrder>(), sparql);
+        // Create the PCJ table.
+        final PrecomputedJoinStorage pcjStorage = new AccumuloPcjStorage(accumuloConn, RYA_INSTANCE_NAME);
+        final String pcjId = pcjStorage.createPcj(sparql);
+
+        // Tell the Fluo app to maintain the PCJ.
+        new CreatePcj().withRyaIntegration(pcjId, pcjStorage, fluoClient, ryaRepo);
 
         // Stream the data into Fluo.
         new InsertTriples().insert(fluoClient, streamedTriples, Optional.<String>absent());

@@ -84,6 +84,20 @@ under the License.
     <build>
         <plugins>
             <plugin>
+                <!--  generate the test jar as well so it can be reused by dependent tools.
+                TODO this is messy.  in the future, classes that provide this functionality 
+                should be decoupled into reusable frameworks. -->
+                <artifactId>maven-jar-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>test-jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        
+            <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-failsafe-plugin</artifactId>
                 <executions>

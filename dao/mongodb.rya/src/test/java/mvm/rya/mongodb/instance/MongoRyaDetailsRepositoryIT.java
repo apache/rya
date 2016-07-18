@@ -32,7 +32,6 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import com.google.common.base.Optional;
-import com.mongodb.DB;
 import com.mongodb.MongoClient;
 import com.mongodb.MongoException;
 
@@ -60,7 +59,7 @@ import mvm.rya.api.instance.RyaDetailsRepository.RyaDetailsRepositoryException;
 public class MongoRyaDetailsRepositoryIT {
 
     private static MongoClient client = null;
-    private static DB testDB = null;
+
     @BeforeClass
     public static void startMiniAccumulo() throws MongoException, IOException {
         final MongodForTestsFactory mongoFactory = new MongodForTestsFactory();
@@ -70,7 +69,6 @@ public class MongoRyaDetailsRepositoryIT {
     @Before
     public void clearLastTest() {
         client.dropDatabase("testInstance");
-        testDB = client.getDB("testInstance");
     }
 
     @AfterClass
@@ -98,14 +96,10 @@ public class MongoRyaDetailsRepositoryIT {
                                 PCJDetails.builder()
                                     .setId("pcj 1")
                                     .setUpdateStrategy(PCJUpdateStrategy.BATCH)
-                                    .setLastUpdateTime( new Date() )
-                                    .build())
+                                    .setLastUpdateTime( new Date() ))
                         .addPCJDetails(
                                 PCJDetails.builder()
-                                    .setId("pcj 2")
-                                    .setUpdateStrategy(PCJUpdateStrategy.INCREMENTAL)
-                                    .build())
-                        .build())
+                                    .setId("pcj 2")))
             .setProspectorDetails( new ProspectorDetails(Optional.of(new Date())) )
             .setJoinSelectivityDetails( new JoinSelectivityDetails(Optional.of(new Date())) )
             .build();
@@ -143,14 +137,10 @@ public class MongoRyaDetailsRepositoryIT {
                                 PCJDetails.builder()
                                     .setId("pcj 1")
                                     .setUpdateStrategy(PCJUpdateStrategy.BATCH)
-                                    .setLastUpdateTime( new Date() )
-                                    .build())
+                                    .setLastUpdateTime( new Date() ))
                         .addPCJDetails(
                                 PCJDetails.builder()
-                                    .setId("pcj 2")
-                                    .setUpdateStrategy(PCJUpdateStrategy.INCREMENTAL)
-                                    .build())
-                        .build())
+                                    .setId("pcj 2")))
             .setProspectorDetails( new ProspectorDetails(Optional.of(new Date())) )
             .setJoinSelectivityDetails( new JoinSelectivityDetails(Optional.of(new Date())) )
             .build();
@@ -194,14 +184,10 @@ public class MongoRyaDetailsRepositoryIT {
                                 PCJDetails.builder()
                                     .setId("pcj 1")
                                     .setUpdateStrategy(PCJUpdateStrategy.BATCH)
-                                    .setLastUpdateTime( new Date() )
-                                    .build())
+                                    .setLastUpdateTime( new Date() ))
                         .addPCJDetails(
                                 PCJDetails.builder()
-                                    .setId("pcj 2")
-                                    .setUpdateStrategy(PCJUpdateStrategy.INCREMENTAL)
-                                    .build())
-                        .build())
+                                    .setId("pcj 2")))
             .setProspectorDetails( new ProspectorDetails(Optional.of(new Date())) )
             .setJoinSelectivityDetails( new JoinSelectivityDetails(Optional.of(new Date())) )
             .build();
@@ -245,14 +231,10 @@ public class MongoRyaDetailsRepositoryIT {
                                 PCJDetails.builder()
                                     .setId("pcj 1")
                                     .setUpdateStrategy(PCJUpdateStrategy.BATCH)
-                                    .setLastUpdateTime( new Date() )
-                                    .build())
+                                    .setLastUpdateTime( new Date() ))
                         .addPCJDetails(
                                 PCJDetails.builder()
-                                    .setId("pcj 2")
-                                    .setUpdateStrategy(PCJUpdateStrategy.INCREMENTAL)
-                                    .build())
-                        .build())
+                                    .setId("pcj 2")))
             .setProspectorDetails( new ProspectorDetails(Optional.of(new Date())) )
             .setJoinSelectivityDetails( new JoinSelectivityDetails(Optional.of(new Date())) )
             .build();
@@ -296,14 +278,10 @@ public class MongoRyaDetailsRepositoryIT {
                                 PCJDetails.builder()
                                     .setId("pcj 1")
                                     .setUpdateStrategy(PCJUpdateStrategy.BATCH)
-                                    .setLastUpdateTime( new Date() )
-                                    .build())
+                                    .setLastUpdateTime( new Date() ))
                         .addPCJDetails(
                                 PCJDetails.builder()
-                                    .setId("pcj 2")
-                                    .setUpdateStrategy(PCJUpdateStrategy.INCREMENTAL)
-                                    .build())
-                        .build())
+                                    .setId("pcj 2")))
             .setProspectorDetails( new ProspectorDetails(Optional.of(new Date())) )
             .setJoinSelectivityDetails( new JoinSelectivityDetails(Optional.of(new Date())) )
             .build();
@@ -316,12 +294,12 @@ public class MongoRyaDetailsRepositoryIT {
 
         // Create a new state for the details.
         final RyaDetails wrongOriginal = new RyaDetails.Builder( details )
-            .setTemporalIndexDetails( new TemporalIndexDetails(false) )
-            .build();
+                .setTemporalIndexDetails( new TemporalIndexDetails(false) )
+                .build();
 
         final RyaDetails updated = new RyaDetails.Builder( details )
-            .setGeoIndexDetails( new GeoIndexDetails(false) )
-            .build();
+                .setGeoIndexDetails( new GeoIndexDetails(false) )
+                .build();
 
         // Try to execute the update where the old state is not the currently stored state.
         repo.update(wrongOriginal, updated);

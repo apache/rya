@@ -23,6 +23,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import org.apache.accumulo.core.client.Connector;
 import org.apache.hadoop.conf.Configuration;
+import org.apache.rya.indexing.pcj.storage.accumulo.AccumuloPcjStorage;
 
 import com.google.common.base.Optional;
 import com.google.common.base.Supplier;

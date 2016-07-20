@@ -42,6 +42,7 @@ import mvm.rya.accumulo.instance.AccumuloRyaInstanceDetailsRepository;
 import mvm.rya.api.RdfCloudTripleStoreConfiguration;
 import mvm.rya.api.instance.RyaDetailsRepository.RyaDetailsRepositoryException;
 import mvm.rya.api.instance.RyaDetailsToConfiguration;
+import mvm.rya.api.layout.TablePrefixLayoutStrategy;
 import mvm.rya.api.persist.RyaDAO;
 import mvm.rya.api.persist.RyaDAOException;
 import mvm.rya.indexing.accumulo.ConfigUtils;
@@ -62,22 +63,25 @@ public class RyaSailFactory {
 
     private static Sail getRyaSail(final Configuration config) throws InferenceEngineException, RyaDAOException, AccumuloException, AccumuloSecurityException {
         final RdfCloudTripleStore store = new RdfCloudTripleStore();
-        final RyaDAO dao;
+        final RyaDAO<?> dao;
         final RdfCloudTripleStoreConfiguration rdfConfig;
 
         final String user = config.get(ConfigUtils.CLOUDBASE_USER);
         final String pswd = config.get(ConfigUtils.CLOUDBASE_PASSWORD);
-        final String instance = config.get(RdfCloudTripleStoreConfiguration.CONF_TBL_PREFIX);
+        final String ryaInstance = config.get(RdfCloudTripleStoreConfiguration.CONF_TBL_PREFIX);
+
         if(ConfigUtils.getUseMongo(config)) {
             rdfConfig = new MongoDBRdfConfiguration(config);
-            final MongoClient client = updateMongoConfig((MongoDBRdfConfiguration) rdfConfig, user, pswd, instance);
+            final MongoClient client = updateMongoConfig((MongoDBRdfConfiguration) rdfConfig, user, pswd, ryaInstance);
             dao = getMongoDAO((MongoDBRdfConfiguration)rdfConfig, client);
         } else {
             rdfConfig = new AccumuloRdfConfiguration(config);
-            updateAccumuloConfig((AccumuloRdfConfiguration) rdfConfig, user, pswd, instance);
+            rdfConfig.setTableLayoutStrategy( new TablePrefixLayoutStrategy(ryaInstance) );
+            updateAccumuloConfig((AccumuloRdfConfiguration) rdfConfig, user, pswd, ryaInstance);
             dao = getAccumuloDAO((AccumuloRdfConfiguration)rdfConfig);
         }
-        rdfConfig.setTablePrefix(instance);
+        store.setRyaDAO(dao);
+        rdfConfig.setTablePrefix(ryaInstance);
 
         if (rdfConfig.isInfer()){
             final InferenceEngine inferenceEngine = new InferenceEngine();
@@ -90,7 +94,7 @@ public class RyaSailFactory {
         return store;
     }
 
-    private static RyaDAO getMongoDAO(final MongoDBRdfConfiguration config, final MongoClient client) throws RyaDAOException {
+    private static MongoDBRyaDAO getMongoDAO(final MongoDBRdfConfiguration config, final MongoClient client) throws RyaDAOException {
         MongoDBRyaDAO dao = null;
         ConfigUtils.setIndexers(config);
         if(client != null) {
@@ -106,7 +110,7 @@ public class RyaSailFactory {
         return dao;
     }
 
-    private static RyaDAO getAccumuloDAO(final AccumuloRdfConfiguration config) throws AccumuloException, AccumuloSecurityException, RyaDAOException {
+    private static AccumuloRyaDAO getAccumuloDAO(final AccumuloRdfConfiguration config) throws AccumuloException, AccumuloSecurityException, RyaDAOException {
         final Connector connector = ConfigUtils.getConnector(config);
         final AccumuloRyaDAO dao = new AccumuloRyaDAO();
         dao.setConnector(connector);
@@ -119,8 +123,8 @@ public class RyaSailFactory {
         return dao;
     }
 
-    private static MongoClient updateMongoConfig(final MongoDBRdfConfiguration config, final String user, final String pswd, final String instance) throws RyaDAOException {
-        final MongoCredential creds = MongoCredential.createCredential(user, instance, pswd.toCharArray());
+    private static MongoClient updateMongoConfig(final MongoDBRdfConfiguration config, final String user, final String pswd, final String ryaInstance) throws RyaDAOException {
+        final MongoCredential creds = MongoCredential.createCredential(user, ryaInstance, pswd.toCharArray());
         final String hostname = config.getMongoInstance();
         final int port = Integer.parseInt(config.getMongoPort());
 
@@ -130,21 +134,21 @@ public class RyaSailFactory {
             final MongoRyaInstanceDetailsRepository ryaDetailsRepo = new MongoRyaInstanceDetailsRepository(client, config.getCollectionName());
             RyaDetailsToConfiguration.addRyaDetailsToConfiguration(ryaDetailsRepo.getRyaInstanceDetails(), config);
         } catch(final RyaDetailsRepositoryException e) {
-            LOG.info("Instance does not have a rya details collection, skipping.", e);
+            LOG.info("Instance does not have a rya details collection, skipping.");
         } catch (final UnknownHostException ue) {
             throw new RyaDAOException("Unable to connect to mongo at the configured location.", ue);
         }
         return client;
     }
 
-    private static void updateAccumuloConfig(final AccumuloRdfConfiguration config, final String user, final String pswd, final String instance) throws AccumuloException, AccumuloSecurityException {
+    private static void updateAccumuloConfig(final AccumuloRdfConfiguration config, final String user, final String pswd, final String ryaInstance) throws AccumuloException, AccumuloSecurityException {
         try {
             final PasswordToken pswdToken = new PasswordToken(pswd);
             final Instance accInst = ConfigUtils.getInstance(config);
-            final AccumuloRyaInstanceDetailsRepository ryaDetailsRepo = new AccumuloRyaInstanceDetailsRepository(accInst.getConnector(user, pswdToken), instance);
+            final AccumuloRyaInstanceDetailsRepository ryaDetailsRepo = new AccumuloRyaInstanceDetailsRepository(accInst.getConnector(user, pswdToken), ryaInstance);
             RyaDetailsToConfiguration.addRyaDetailsToConfiguration(ryaDetailsRepo.getRyaInstanceDetails(), config);
         } catch(final RyaDetailsRepositoryException e) {
-            LOG.info("Instance does not have a rya details collection, skipping.", e);
+            LOG.info("Instance does not have a rya details collection, skipping.");
         }
     }
 }

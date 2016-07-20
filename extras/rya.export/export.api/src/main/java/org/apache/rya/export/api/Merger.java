@@ -18,12 +18,17 @@
  */
 package org.apache.rya.export.api;
 
+import mvm.rya.api.domain.RyaStatement;
+
 /**
- *
+ * Performs the merging of {@link RyaStatement}s.
+ * <p>
+ * When merging statements, both the parent and child
+ * databases may have changed since the initial export.
  */
 public interface Merger {
     /**
-     *
+     *  Performs the merging of {@link RyaStatement}s.
      */
     public void runJob();
 }

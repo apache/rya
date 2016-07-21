@@ -50,6 +50,9 @@ import mvm.rya.mongodb.iter.RyaStatementBindingSetCursorIterator;
 import mvm.rya.mongodb.iter.RyaStatementCursorIterable;
 import mvm.rya.mongodb.iter.RyaStatementCursorIterator;
 
+import com.google.common.collect.HashMultimap;
+import com.google.common.collect.Multimap;
+
 /**
  * Date: 7/17/12
  * Time: 9:28 AM
@@ -105,7 +108,7 @@ public class MongoDBQueryEngine implements RyaQueryEngine<MongoDBRdfConfiguratio
             conf = configuration;
         }
         final Long maxResults = conf.getLimit();
-        final Map<DBObject, BindingSet> rangeMap = new HashMap<DBObject, BindingSet>();
+        final Multimap<DBObject, BindingSet> rangeMap = HashMultimap.create();
 
         //TODO: cannot span multiple tables here
         try {

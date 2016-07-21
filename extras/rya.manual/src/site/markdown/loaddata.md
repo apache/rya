@@ -96,10 +96,10 @@ Bulk loading data is done through Map Reduce jobs
 
 ### Bulk Load RDF data
 
-This Map Reduce job will read a full file into memory and parse it into statements. The statements are saved into the store. Here is an example for storing in Accumulo:
+This Map Reduce job will read files into memory and parse them into statements. The statements are saved into the store. Here is an example for storing in Accumulo:
 
 ```
-hadoop jar target/accumulo.rya-3.0.4-SNAPSHOT-shaded.jar mvm.rya.accumulo.mr.fileinput.BulkNtripsInputTool -Dac.zk=localhost:2181 -Dac.instance=accumulo -Dac.username=root -Dac.pwd=secret -Drdf.tablePrefix=triplestore_ -Dio.sort.mb=64 /tmp/temp.ntrips
+hadoop jar target/rya.mapreduce-3.2.10-SNAPSHOT-shaded.jar mvm.rya.accumulo.mr.RdfFileInputTool -Dac.zk=localhost:2181 -Dac.instance=accumulo -Dac.username=root -Dac.pwd=secret -Drdf.tablePrefix=triplestore_ -Drdf.format=N-Triples /tmp/temp.ntrips
 ```
 
 Options:
@@ -107,9 +107,14 @@ Options:
 - rdf.tablePrefix : The tables (spo, po, osp) are prefixed with this qualifier. The tables become: (rdf.tablePrefix)spo,(rdf.tablePrefix)po,(rdf.tablePrefix)osp
 - ac.* : Accumulo connection parameters
 - rdf.format : See RDFFormat from openrdf, samples include (Trig, N-Triples, RDF/XML)
-- io.sort.mb : Higher the value, the faster the job goes. Just remember that you will need this much ram at least per mapper
+- sc.use_freetext, sc.use_geo, sc.use_temporal, sc.use_entity : If any of these are set to true, statements will also be
+    added to the enabled secondary indices.
+- sc.freetext.predicates, sc.geo.predicates, sc.temporal.predicates: If the associated indexer is enabled, these options specify
+    which statements should be sent to that indexer (based on the predicate). If not given, all indexers will attempt to index
+    all statements.
 
-The argument is the directory/file to load. This file needs to be loaded into HDFS before running.
+The argument is the directory/file to load. This file needs to be loaded into HDFS before running. If loading a directory, all files should have the same RDF
+format.
 
 ## Direct OpenRDF API
 

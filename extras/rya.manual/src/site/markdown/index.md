@@ -30,6 +30,7 @@ This project contains documentation about the Rya, a scalable RDF triple store o
 - [Evaluation Table](eval.md)
 - [Pre-computed Joins](loadPrecomputedJoin.md)
 - [Inferencing](infer.md)
+- [MapReduce Interface](mapreduce.md)
 
 # Samples
 - [Typical First Steps](sm-firststeps.md)

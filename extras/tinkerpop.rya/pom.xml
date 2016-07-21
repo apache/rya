@@ -39,6 +39,10 @@ under the License.
             <groupId>org.apache.rya</groupId>
             <artifactId>accumulo.rya</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.apache.rya</groupId>
+            <artifactId>rya.mapreduce</artifactId>
+        </dependency>
         
         <dependency>
             <groupId>com.tinkerpop.gremlin</groupId>

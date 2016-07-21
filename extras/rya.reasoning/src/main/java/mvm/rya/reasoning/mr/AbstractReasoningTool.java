@@ -22,8 +22,8 @@ package mvm.rya.reasoning.mr;
 import java.io.IOException;
 
 import mvm.rya.accumulo.mr.RyaStatementWritable;
-import mvm.rya.accumulo.mr.fileinput.RdfFileInputFormat;
-import mvm.rya.accumulo.mr.utils.MRUtils;
+import mvm.rya.accumulo.mr.RdfFileInputFormat;
+import mvm.rya.accumulo.mr.MRUtils;
 import mvm.rya.reasoning.Derivation;
 import mvm.rya.reasoning.Fact;
 import mvm.rya.reasoning.Schema;

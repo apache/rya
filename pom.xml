@@ -60,6 +60,7 @@ under the License.
         <module>common</module>
         <module>dao</module>
         <module>extras</module>
+        <module>mapreduce</module>
         <module>osgi</module>
         <module>pig</module>
         <module>sail</module>
@@ -71,6 +72,9 @@ under the License.
 
         <accumulo.version>1.6.4</accumulo.version> <!-- Newest: 1.7.0 -->
         <hadoop.version>2.5.2</hadoop.version> <!-- Newest: 2.7.1 -->
+        
+        <!-- Required for GeoMesa 1.2.* -->
+        <zookeeper.version>3.4.6</zookeeper.version>
 
         <pig.version>0.9.2</pig.version> <!-- Newest: 0.15.0 -->
 
@@ -147,6 +151,11 @@ under the License.
             <dependency>
                 <groupId>org.apache.rya</groupId>
                 <artifactId>accumulo.utils</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.rya</groupId>
+                <artifactId>rya.mapreduce</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
@@ -465,6 +474,11 @@ under the License.
                 <artifactId>geomesa-accumulo-distributed-runtime</artifactId>
                 <version>${geomesa.version}</version>
             </dependency>
+            <dependency>
+                <groupId>org.apache.zookeeper</groupId>
+                <artifactId>zookeeper</artifactId>
+                <version>${zookeeper.version}</version>
+            </dependency>
 
             <dependency>
                 <groupId>joda-time</groupId>
@@ -777,7 +791,10 @@ under the License.
             <url>http://dynamodb-local.s3-website-us-west-2.amazonaws.com/release</url>
         </repository>
     </repositories>
-
+            <id>LocationTech - Third Party</id>
+            <url>https://repo.locationtech.org/content/repositories/thirdparty/</url>
+        </repository>
+   </repositories>
     <scm>
         <connection>scm:git:git://git.apache.org/incubator-rya.git</connection>
         <developerConnection>scm:git:https://git-wip-us.apache.org/repos/asf/incubator-rya.git</developerConnection>

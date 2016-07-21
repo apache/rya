@@ -30,7 +30,7 @@ import org.openrdf.model.impl.StatementImpl
 import org.openrdf.model.impl.ValueFactoryImpl
 
 import static mvm.rya.api.RdfCloudTripleStoreConfiguration.CONF_TBL_PREFIX
-import static mvm.rya.accumulo.mr.utils.MRUtils.*
+import static mvm.rya.accumulo.mr.MRUtils.*
 import org.apache.accumulo.core.security.Authorizations
 import org.apache.accumulo.core.client.Connector
 import mvm.rya.accumulo.AccumuloRyaDAO

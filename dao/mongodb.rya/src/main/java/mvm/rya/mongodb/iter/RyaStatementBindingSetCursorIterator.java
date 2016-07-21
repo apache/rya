@@ -22,8 +22,8 @@ package mvm.rya.mongodb.iter;
 
 import info.aduna.iteration.CloseableIteration;
 
+import java.util.Collection;
 import java.util.Iterator;
-import java.util.Map;
 import java.util.Map.Entry;
 
 import mvm.rya.api.RdfCloudTripleStoreUtils;
@@ -33,6 +33,7 @@ import mvm.rya.mongodb.dao.MongoDBStorageStrategy;
 
 import org.openrdf.query.BindingSet;
 
+import com.google.common.collect.Multimap;
 import com.mongodb.DBCollection;
 import com.mongodb.DBCursor;
 import com.mongodb.DBObject;
@@ -40,15 +41,17 @@ import com.mongodb.DBObject;
 public class RyaStatementBindingSetCursorIterator implements CloseableIteration<Entry<RyaStatement, BindingSet>, RyaDAOException> {
 
 	private DBCollection coll;
-	private Map<DBObject, BindingSet> rangeMap;
+	private Multimap<DBObject, BindingSet> rangeMap;
 	private Iterator<DBObject> queryIterator;
 	private Long maxResults;
-	private DBCursor currentCursor;
-	private BindingSet currentBindingSet;
+	private DBCursor resultCursor;
+	private RyaStatement currentStatement;
+	private Collection<BindingSet> currentBindingSetCollection;
+	private Iterator<BindingSet> currentBindingSetIterator;
 	private MongoDBStorageStrategy strategy;
 
 	public RyaStatementBindingSetCursorIterator(DBCollection coll,
-			Map<DBObject, BindingSet> rangeMap, MongoDBStorageStrategy strategy) {
+			Multimap<DBObject, BindingSet> rangeMap, MongoDBStorageStrategy strategy) {
 		this.coll = coll;
 		this.rangeMap = rangeMap;
 		this.queryIterator = rangeMap.keySet().iterator();
@@ -57,37 +60,51 @@ public class RyaStatementBindingSetCursorIterator implements CloseableIteration<
 
 	@Override
 	public boolean hasNext() {
-		if (!currentCursorIsValid()) {
-			findNextValidCursor();
+		if (!currentBindingSetIteratorIsValid()) {
+			findNextResult();
 		}
-		return currentCursorIsValid();
+		return currentBindingSetIteratorIsValid();
 	}
 
 	@Override
 	public Entry<RyaStatement, BindingSet> next() {
-		if (!currentCursorIsValid()) {
-			findNextValidCursor();
+		if (!currentBindingSetIteratorIsValid()) {
+			findNextResult();
 		}
-		if (currentCursorIsValid()) {
-			// convert to Rya Statement
-			DBObject queryResult = currentCursor.next();
-			RyaStatement statement = strategy.deserializeDBObject(queryResult);
-			return new RdfCloudTripleStoreUtils.CustomEntry<RyaStatement, BindingSet>(statement, currentBindingSet);
+		if (currentBindingSetIteratorIsValid()) {
+			BindingSet currentBindingSet = currentBindingSetIterator.next();
+			return new RdfCloudTripleStoreUtils.CustomEntry<RyaStatement, BindingSet>(currentStatement, currentBindingSet);
 		}
 		return null;
 	}
 	
-	private void findNextValidCursor() {
+	private boolean currentBindingSetIteratorIsValid() {
+		return (currentBindingSetIterator != null) && currentBindingSetIterator.hasNext();
+	}
+
+	private void findNextResult() {
+		if (!currentResultCursorIsValid()) {
+			findNextValidResultCursor();
+		}
+		if (currentResultCursorIsValid()) {
+			// convert to Rya Statement
+			DBObject queryResult = resultCursor.next();
+			currentStatement = strategy.deserializeDBObject(queryResult);
+			currentBindingSetIterator = currentBindingSetCollection.iterator();
+		}
+	}
+
+	private void findNextValidResultCursor() {
 		while (queryIterator.hasNext()){
 			DBObject currentQuery = queryIterator.next();
-			currentCursor = coll.find(currentQuery);
-			currentBindingSet = rangeMap.get(currentQuery);
-			if (currentCursor.hasNext()) break;
+			resultCursor = coll.find(currentQuery);
+			currentBindingSetCollection = rangeMap.get(currentQuery);
+			if (resultCursor.hasNext()) return;
 		}
 	}
 	
-	private boolean currentCursorIsValid() {
-		return (currentCursor != null) && currentCursor.hasNext();
+	private boolean currentResultCursorIsValid() {
+		return (resultCursor != null) && resultCursor.hasNext();
 	}
 
 

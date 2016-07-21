@@ -8,9 +8,9 @@ package mvm.rya.api;
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- * 
+ *
  *   http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -66,48 +66,58 @@ public abstract class RdfCloudTripleStoreConfiguration extends Configuration {
     public static final String CONF_OPTIMIZERS = "query.optimizers";
     public static final String CONF_PCJ_OPTIMIZER = "pcj.query.optimizer";
     public static final String CONF_PCJ_TABLES = "pcj.index.tables";
-  
+
 
     /**
      * @deprecated use CONF_*
      */
-    public static final String BINDING_DISP_QUERYPLAN = CONF_QUERYPLAN_FLAG;
+    @Deprecated
+	public static final String BINDING_DISP_QUERYPLAN = CONF_QUERYPLAN_FLAG;
     /**
      * @deprecated use CONF_*
      */
-    public static final String BINDING_AUTH = CONF_QUERY_AUTH;
+    @Deprecated
+	public static final String BINDING_AUTH = CONF_QUERY_AUTH;
     /**
      * @deprecated use CONF_*
      */
-    public static final String BINDING_CV = CONF_CV;
+    @Deprecated
+	public static final String BINDING_CV = CONF_CV;
     /**
      * @deprecated use CONF_*
      */
-    public static final String BINDING_TTL = CONF_TTL;
+    @Deprecated
+	public static final String BINDING_TTL = CONF_TTL;
     /**
      * @deprecated use CONF_*
      */
-    public static final String BINDING_STARTTIME = CONF_STARTTIME;
+    @Deprecated
+	public static final String BINDING_STARTTIME = CONF_STARTTIME;
     /**
      * @deprecated use CONF_*
      */
-    public static final String BINDING_PERFORMANT = CONF_PERFORMANT;
+    @Deprecated
+	public static final String BINDING_PERFORMANT = CONF_PERFORMANT;
     /**
      * @deprecated use CONF_*
      */
-    public static final String BINDING_INFER = CONF_INFER;
+    @Deprecated
+	public static final String BINDING_INFER = CONF_INFER;
     /**
      * @deprecated use CONF_*
      */
-    public static final String BINDING_USESTATS = CONF_USE_STATS;
+    @Deprecated
+	public static final String BINDING_USESTATS = CONF_USE_STATS;
     /**
      * @deprecated use CONF_*
      */
-    public static final String BINDING_OFFSET = CONF_OFFSET;
+    @Deprecated
+	public static final String BINDING_OFFSET = CONF_OFFSET;
     /**
      * @deprecated use CONF_*
      */
-    public static final String BINDING_LIMIT = CONF_LIMIT;
+    @Deprecated
+	public static final String BINDING_LIMIT = CONF_LIMIT;
 
     public static final String STATS_PUSH_EMPTY_RDFTYPE_DOWN = "conf.stats.rdftype.down";
     public static final String INFER_INCLUDE_INVERSEOF = "infer.include.inverseof";
@@ -136,7 +146,8 @@ public abstract class RdfCloudTripleStoreConfiguration extends Configuration {
         }
     }
 
-    public abstract RdfCloudTripleStoreConfiguration clone();
+    @Override
+	public abstract RdfCloudTripleStoreConfiguration clone();
 
     public TableLayoutStrategy getTableLayoutStrategy() {
         return tableLayoutStrategy;
@@ -203,7 +214,7 @@ public abstract class RdfCloudTripleStoreConfiguration extends Configuration {
     }
 
     public Boolean isInfer() {
-        return getBoolean(CONF_INFER, true);
+        return getBoolean(CONF_INFER, false);
     }
 
     public void setInfer(Boolean val) {
@@ -223,7 +234,7 @@ public abstract class RdfCloudTripleStoreConfiguration extends Configuration {
     public Boolean isUseSelectivity() {
         return getBoolean(CONF_USE_SELECTIVITY, false);
     }
-    
+
     public void setUseSelectivity(Boolean val) {
         Preconditions.checkNotNull(val);
         setBoolean(CONF_USE_SELECTIVITY, val);
@@ -232,7 +243,7 @@ public abstract class RdfCloudTripleStoreConfiguration extends Configuration {
     public Boolean isPrefixRowsWithHash() {
         return getBoolean(CONF_PREFIX_ROW_WITH_HASH, false);
     }
-    
+
     public void setPrefixRowsWithHash(Boolean val) {
         Preconditions.checkNotNull(val);
         setBoolean(CONF_PREFIX_ROW_WITH_HASH, val);
@@ -304,7 +315,8 @@ public abstract class RdfCloudTripleStoreConfiguration extends Configuration {
      * @return
      * @deprecated
      */
-    public String getAuth() {
+    @Deprecated
+	public String getAuth() {
         return Joiner.on(",").join(getAuths());
     }
 
@@ -312,7 +324,8 @@ public abstract class RdfCloudTripleStoreConfiguration extends Configuration {
      * @param auth
      * @deprecated
      */
-    public void setAuth(String auth) {
+    @Deprecated
+	public void setAuth(String auth) {
         Preconditions.checkNotNull(auth);
         setStrings(CONF_QUERY_AUTH, auth);
     }
@@ -324,7 +337,7 @@ public abstract class RdfCloudTripleStoreConfiguration extends Configuration {
     public void setAuths(String... auths) {
         setStrings(CONF_QUERY_AUTH, auths);
     }
-	
+
 	public String getEmit() {
 		return get(CONF_RESULT_FORMAT);
     }
@@ -343,17 +356,17 @@ public abstract class RdfCloudTripleStoreConfiguration extends Configuration {
         set(CONF_CV, cv);
     }
 
-    
+
     public Boolean isUseCompositeCardinality() {
         return getBoolean(CONF_USE_COMPOSITE, true);
     }
-    
+
     public void setCompositeCardinality(Boolean val) {
         Preconditions.checkNotNull(val);
         setBoolean(CONF_USE_COMPOSITE, val);
     }
-    
-    
+
+
     public Boolean isStatsPushEmptyRdftypeDown() {
         return getBoolean(STATS_PUSH_EMPTY_RDFTYPE_DOWN, true);
     }
@@ -416,14 +429,14 @@ public abstract class RdfCloudTripleStoreConfiguration extends Configuration {
     public Class<? extends RdfEvalStatsDAO> getRdfEvalStatsDaoClass() {
         return getClass(RDF_EVAL_STATS_DAO_CLASS, null, RdfEvalStatsDAO.class);
     }
-    
-    
+
+
     public void setPcjTables(List<String> indexTables) {
         Preconditions.checkNotNull(indexTables);
         setStrings(CONF_PCJ_TABLES, indexTables.toArray(new String[]{}));
     }
-    
-    
+
+
     public List<String> getPcjTables() {
         List<String> pcjTables = Lists.newArrayList();
         String[] tables = getStrings(CONF_PCJ_TABLES);
@@ -436,13 +449,13 @@ public abstract class RdfCloudTripleStoreConfiguration extends Configuration {
         }
         return pcjTables;
     }
-    
-    
+
+
     public void setPcjOptimizer(Class<? extends QueryOptimizer> optimizer) {
         Preconditions.checkNotNull(optimizer);
         setClass(CONF_PCJ_OPTIMIZER, optimizer, QueryOptimizer.class);
     }
-    
+
     public Class<QueryOptimizer> getPcjOptimizer() {
         Class<? extends QueryOptimizer> opt = getClass(CONF_PCJ_OPTIMIZER, null, QueryOptimizer.class);
         if (opt != null) {
@@ -451,9 +464,9 @@ public abstract class RdfCloudTripleStoreConfiguration extends Configuration {
         } else {
             return null;
         }
-        
+
     }
-    
+
 
     public void setOptimizers(List<Class<? extends QueryOptimizer>> optimizers) {
         Preconditions.checkNotNull(optimizers);
@@ -462,21 +475,21 @@ public abstract class RdfCloudTripleStoreConfiguration extends Configuration {
             Preconditions.checkNotNull(ai);
             strs.add(ai.getName());
         }
-        
+
         setStrings(CONF_OPTIMIZERS, strs.toArray(new String[]{}));
     }
 
     public List<Class<QueryOptimizer>> getOptimizers() {
         List<Class<QueryOptimizer>> opts = Lists.newArrayList();
-        for (Class<?> clazz : getClasses(CONF_OPTIMIZERS)){ 
+        for (Class<?> clazz : getClasses(CONF_OPTIMIZERS)){
             Preconditions.checkArgument(QueryOptimizer.class.isAssignableFrom(clazz));
             opts.add((Class<QueryOptimizer>) clazz);
         }
-        
+
         return opts;
     }
-    
-    
+
+
 
     public String getRegexSubject() {
         return get(REGEX_SUBJECT);

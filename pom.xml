@@ -760,7 +760,11 @@ under the License.
             <id>LocationTech - RELEASE</id>
             <url>https://repo.locationtech.org/content/repositories/releases/</url>
         </repository>
-    </repositories>
+        <repository>
+            <id>LocationTech - Third Party</id>
+            <url>https://repo.locationtech.org/content/repositories/thirdparty/</url>
+        </repository>
+   </repositories>
 
     <scm>
         <connection>scm:git:git://git.apache.org/incubator-rya.git</connection>

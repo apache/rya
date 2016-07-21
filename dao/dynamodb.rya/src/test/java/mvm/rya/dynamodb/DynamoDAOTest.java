@@ -1,4 +1,5 @@
 package mvm.rya.dynamodb;
+<<<<<<< HEAD
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -17,6 +18,8 @@ package mvm.rya.dynamodb;
  * specific language governing permissions and limitations
  * under the License.
  */
+=======
+>>>>>>> cfeeac91907f2ebc60e0b04a7cb70d84b585af5b
 
 import static org.junit.Assert.assertEquals;
 

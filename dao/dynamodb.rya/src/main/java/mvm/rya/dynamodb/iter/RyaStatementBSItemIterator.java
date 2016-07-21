@@ -20,6 +20,8 @@ package mvm.rya.dynamodb.iter;
 
 import java.util.Collection;
 import java.util.Iterator;
+import java.util.Map;
+
 import java.util.Map.Entry;
 
 import org.openrdf.query.BindingSet;
@@ -27,6 +29,7 @@ import org.openrdf.query.BindingSet;
 import com.amazonaws.services.dynamodbv2.document.Item;
 import com.amazonaws.services.dynamodbv2.document.ItemCollection;
 import com.amazonaws.services.dynamodbv2.document.QueryOutcome;
+
 import com.google.common.collect.Multimap;
 
 /*

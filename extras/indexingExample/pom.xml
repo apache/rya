@@ -62,6 +62,7 @@ under the License.
             <groupId>org.apache.rya</groupId>
             <artifactId>dynamodb.rya</artifactId>
           </dependency>
+
         <dependency>
             <groupId>org.apache.rya</groupId>
             <artifactId>rya.indexing</artifactId>

@@ -31,6 +31,7 @@ import mvm.rya.api.RdfCloudTripleStoreConfiguration;
 import mvm.rya.api.persist.RyaDAOException;
 import mvm.rya.indexing.IndexPlanValidator.IndexPlanValidator;
 import mvm.rya.indexing.accumulo.ConfigUtils;
+import mvm.rya.indexing.external.PrecomputedJoinIndexerConfig.PrecomputedJoinStorageType;
 import mvm.rya.indexing.external.tupleSet.AccumuloIndexSet;
 import mvm.rya.indexing.external.tupleSet.ExternalTupleSet;
 import mvm.rya.indexing.pcj.matching.PCJOptimizer;
@@ -1435,11 +1436,12 @@ public class AccumuloPcjIntegrationTest {
 	private static Configuration getConf() {
 		final AccumuloRdfConfiguration conf = new AccumuloRdfConfiguration();
 		conf.setBoolean(ConfigUtils.USE_MOCK_INSTANCE, true);
-		conf.set(RdfCloudTripleStoreConfiguration.CONF_TBL_PREFIX, "rya_");
+		conf.setTablePrefix("rya_");
 		conf.set(ConfigUtils.CLOUDBASE_USER, "root");
 		conf.set(ConfigUtils.CLOUDBASE_PASSWORD, "");
 		conf.set(ConfigUtils.CLOUDBASE_INSTANCE, "instance");
 		conf.set(ConfigUtils.CLOUDBASE_AUTHS, "");
+		conf.set(PrecomputedJoinIndexerConfig.PCJ_STORAGE_TYPE,PrecomputedJoinStorageType.ACCUMULO.name());
 		return conf;
 	}
 

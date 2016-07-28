@@ -122,7 +122,7 @@ public class PCJOptimizer implements QueryOptimizer, Configurable {
                     | QueryEvaluationException | TableNotFoundException
                     | AccumuloException | AccumuloSecurityException
                     | PcjException e) {
-                e.printStackTrace();
+                throw new Error(e);
             }
             init = true;
         }
@@ -334,9 +334,11 @@ public class PCJOptimizer implements QueryOptimizer, Configurable {
         } else {
             //if no tables are provided by user, get ids for rya instance id, create table name,
             //and associate table name with sparql
+            // TODO: storage.listPcjs() returns tablenames, not PCJ-IDs.  
+            //     See mvm.rya.indexing.external.accumulo.AccumuloPcjStorage.dropPcj(String)
             List<String> ids = storage.listPcjs();
             for(String id: ids) {
-                indexTables.put(pcjFactory.makeTableName(tablePrefix, id), storage.getPcjMetadata(id).getSparql());
+                indexTables.put(id, storage.getPcjMetadata(id).getSparql());
             }
         }
 

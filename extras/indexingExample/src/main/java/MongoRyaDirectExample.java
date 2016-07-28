@@ -43,7 +43,6 @@ import org.openrdf.repository.sail.SailRepository;
 import org.openrdf.repository.sail.SailRepositoryConnection;
 import org.openrdf.sail.Sail;
 
-import mvm.rya.api.RdfCloudTripleStoreConfiguration;
 import mvm.rya.indexing.accumulo.ConfigUtils;
 import mvm.rya.indexing.accumulo.geo.GeoConstants;
 import mvm.rya.mongodb.MongoDBRdfConfiguration;
@@ -249,15 +248,18 @@ public class MongoRyaDirectExample {
 
     private static Configuration getConf() {
 
-        Configuration conf = new Configuration();
+        MongoDBRdfConfiguration conf = new MongoDBRdfConfiguration();
         conf.set(ConfigUtils.USE_MONGO, "true");
+        // User name and password must be filled in:
+        conf.set(MongoDBRdfConfiguration.MONGO_USER, "fill this in");
+        conf.set(MongoDBRdfConfiguration.MONGO_USER_PASSWORD, "fill this in");
         conf.set(MongoDBRdfConfiguration.USE_TEST_MONGO, "true");
         conf.set(MongoDBRdfConfiguration.MONGO_DB_NAME, MONGO_DB);
         conf.set(MongoDBRdfConfiguration.MONGO_COLLECTION_PREFIX, MONGO_COLL_PREFIX);
         conf.set(ConfigUtils.GEO_PREDICATES_LIST, "http://www.opengis.net/ont/geosparql#asWKT");
         conf.set(ConfigUtils.USE_GEO, "true");
         conf.set(ConfigUtils.USE_FREETEXT, "true");
-        conf.set(RdfCloudTripleStoreConfiguration.CONF_TBL_PREFIX, MONGO_COLL_PREFIX);
+        conf.setTablePrefix(MONGO_COLL_PREFIX);
         conf.set(ConfigUtils.GEO_PREDICATES_LIST, GeoConstants.GEO_AS_WKT.stringValue());
         conf.set(ConfigUtils.FREETEXT_PREDICATES_LIST, RDFS.LABEL.stringValue());
         return conf;

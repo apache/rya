@@ -65,7 +65,7 @@ import mvm.rya.mongodb.MongoDBRdfConfiguration;
  * Tests all of the "simple functions" of the geoindexer.
  */
 public class MongoGeoIndexerSfTest {
-    private static Configuration conf;
+    private MongoDBRdfConfiguration conf;
     private static GeometryFactory gf = new GeometryFactory(new PrecisionModel(), 4326);
     private static MongoGeoIndexer g;
 
@@ -110,14 +110,14 @@ public class MongoGeoIndexerSfTest {
     @Before
     public void before() throws Exception {
         System.out.println(UUID.randomUUID().toString());
-        conf = new Configuration();
+        conf = new MongoDBRdfConfiguration();
         conf.set(ConfigUtils.USE_MONGO, "true");
         conf.set(MongoDBRdfConfiguration.USE_TEST_MONGO, "true");
         conf.set(MongoDBRdfConfiguration.MONGO_DB_NAME, "test");
         conf.set(MongoDBRdfConfiguration.MONGO_COLLECTION_PREFIX, "rya_");
         conf.set(ConfigUtils.GEO_PREDICATES_LIST, "http://www.opengis.net/ont/geosparql#asWKT");
         conf.set(ConfigUtils.USE_GEO, "true");
-        conf.set(RdfCloudTripleStoreConfiguration.CONF_TBL_PREFIX, "rya_");
+        conf.setTablePrefix("rya_");
 
         final MongodForTestsFactory testsFactory = MongodForTestsFactory.with(Version.Main.PRODUCTION);
         final MongoClient mongoClient = testsFactory.newMongo();

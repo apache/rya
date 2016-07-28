@@ -38,9 +38,13 @@ import mvm.rya.indexing.accumulo.ConfigUtils;
 
 import org.apache.accumulo.core.client.BatchWriter;
 import org.apache.accumulo.core.client.Connector;
+import org.apache.accumulo.core.client.admin.TableOperations;
 import org.apache.accumulo.core.client.mock.MockInstance;
+import org.apache.accumulo.core.client.security.tokens.AuthenticationToken;
+import org.apache.accumulo.core.client.security.tokens.PasswordToken;
 import org.apache.accumulo.core.data.Mutation;
 import org.apache.hadoop.conf.Configuration;
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -61,48 +65,51 @@ import com.google.common.collect.Lists;
 
 public class AccumuloDocIndexerTest {
 
-    
+    private MockInstance mockInstance;
     private Connector accCon;
     AccumuloRdfConfiguration conf = new AccumuloRdfConfiguration();
     ValueFactory vf = new ValueFactoryImpl();
     
-    private static final String tableName = "EntityCentric_entity";
+    private String tableName;
     
     
     @Before
     public void init() throws Exception {
-        
-        accCon = new MockInstance("instance").getConnector("root", "".getBytes());
-        
-        if(accCon.tableOperations().exists(tableName)) {
-                accCon.tableOperations().delete(tableName);
-        } 
-        
-        accCon.tableOperations().create(tableName);
-        
-        
+        final String INSTANCE = "instance";
         Configuration config = new Configuration();
         config.set(ConfigUtils.CLOUDBASE_AUTHS, "U");
-        config.set(ConfigUtils.CLOUDBASE_INSTANCE, "instance");
+        config.set(ConfigUtils.CLOUDBASE_INSTANCE, INSTANCE);
         config.set(ConfigUtils.CLOUDBASE_USER, "root");
         config.set(ConfigUtils.CLOUDBASE_PASSWORD, "");
        
         conf = new AccumuloRdfConfiguration(config);
         conf.set(ConfigUtils.USE_MOCK_INSTANCE, "true");
         conf.setAdditionalIndexers(EntityCentricIndex.class);
+        conf.setTablePrefix("EntityCentric_");
+        tableName =  EntityCentricIndex.getTableName(conf);
 
+        // Access the accumulo instance.  If you assign a name, it persists statically, but otherwise, can't get it by name.
+        accCon = new MockInstance(INSTANCE).getConnector("root", new PasswordToken(""));
+        if(accCon.tableOperations().exists(tableName)) {
+                throw new Exception("New mock accumulo already has a table!  Should be deleted in AfterTest.");
+        } 
+        // This should happen in the index initialization, but some tests need it before: 
+        accCon.tableOperations().create(tableName);
     }
-    
-    
-    
-    
+
+    @After
+    public void afterTest() throws Exception {
+        if (accCon.tableOperations().exists(tableName)) {
+            accCon.tableOperations().delete(tableName);
+        }
+    }
+
     @Test
     public void testNoContext1()  throws Exception {
 
       BatchWriter bw = null;
       RyaTableMutationsFactory rtm = new RyaTableMutationsFactory(RyaTripleContext.getInstance(conf));
-      conf.setTablePrefix("EntityCentric_");
-      
+
           bw = accCon.createBatchWriter(tableName, 500L * 1024L * 1024L, Long.MAX_VALUE, 30);
          
           
@@ -240,8 +247,6 @@ public class AccumuloDocIndexerTest {
 
 
           bw = accCon.createBatchWriter(tableName, 500L * 1024L * 1024L, Long.MAX_VALUE, 30);
-          conf.setTablePrefix("EntityCentric_");
-         
           
           for (int i = 0; i < 30; i++) {
                       
@@ -360,8 +365,6 @@ public class AccumuloDocIndexerTest {
     public void testNoContextCommonVarBs() throws Exception {
 
       BatchWriter bw = null;
-      conf.setTablePrefix("EntityCentric_");
-
       RyaTableMutationsFactory rtm = new RyaTableMutationsFactory(RyaTripleContext.getInstance(conf));
 
 
@@ -476,8 +479,6 @@ public class AccumuloDocIndexerTest {
     public void testNoContextUnCommonVarBs() throws Exception {
 
       BatchWriter bw = null;
-      conf.setTablePrefix("EntityCentric_");
-
       RyaTableMutationsFactory rtm = new RyaTableMutationsFactory(RyaTripleContext.getInstance(conf));
 
 
@@ -590,7 +591,6 @@ public class AccumuloDocIndexerTest {
     public void testNoContextCommonVarBs2() throws Exception {
 
       BatchWriter bw = null;
-      conf.setTablePrefix("EntityCentric_");
       RyaTableMutationsFactory rtm = new RyaTableMutationsFactory(RyaTripleContext.getInstance(conf));
 
 
@@ -705,8 +705,6 @@ public class AccumuloDocIndexerTest {
     public void testNoContextUnCommonVarBs2() throws Exception {
 
       BatchWriter bw = null;
-      conf.setTablePrefix("EntityCentric_");
-
       RyaTableMutationsFactory rtm = new RyaTableMutationsFactory(RyaTripleContext.getInstance(conf));
 
 
@@ -822,7 +820,6 @@ public class AccumuloDocIndexerTest {
     public void testContext2() throws Exception {
 
       BatchWriter bw = null;
-      conf.setTablePrefix("EntityCentric_");
       RyaTableMutationsFactory rtm = new RyaTableMutationsFactory(RyaTripleContext.getInstance(conf));
 
 
@@ -1000,7 +997,6 @@ public class AccumuloDocIndexerTest {
     public void testContextUnCommonVarBs2() throws Exception {
 
       BatchWriter bw = null;
-      conf.setTablePrefix("EntityCentric_");
       RyaTableMutationsFactory rtm = new RyaTableMutationsFactory(RyaTripleContext.getInstance(conf));
 
 
@@ -1175,7 +1171,6 @@ public class AccumuloDocIndexerTest {
     public void testContext1() throws Exception {
 
       BatchWriter bw = null;
-      conf.setTablePrefix("EntityCentric_");
       RyaTableMutationsFactory rtm = new RyaTableMutationsFactory(RyaTripleContext.getInstance(conf));
 
 
@@ -1356,8 +1351,6 @@ public class AccumuloDocIndexerTest {
     public void testContextUnCommonVarBs1() throws Exception {
 
       BatchWriter bw = null;
-      conf.setTablePrefix("EntityCentric_");
-
       RyaTableMutationsFactory rtm = new RyaTableMutationsFactory(RyaTripleContext.getInstance(conf));
 
 
@@ -1540,7 +1533,6 @@ public class AccumuloDocIndexerTest {
     public void testContextCommonVarBs1() throws Exception {
 
       BatchWriter bw = null;
-      conf.setTablePrefix("EntityCentric_");
       RyaTableMutationsFactory rtm = new RyaTableMutationsFactory(RyaTripleContext.getInstance(conf));
 
 
@@ -1720,7 +1712,6 @@ public class AccumuloDocIndexerTest {
     public void testContextCommonAndUnCommonVarBs1() throws Exception {
 
       BatchWriter bw = null;
-      conf.setTablePrefix("EntityCentric_");
       RyaTableMutationsFactory rtm = new RyaTableMutationsFactory(RyaTripleContext.getInstance(conf));
 
 
@@ -1927,7 +1918,6 @@ public class AccumuloDocIndexerTest {
     public void testContextConstantCommonVar() throws Exception {
 
       BatchWriter bw = null;
-      conf.setTablePrefix("EntityCentric_");
       RyaTableMutationsFactory rtm = new RyaTableMutationsFactory(RyaTripleContext.getInstance(conf));
       
 

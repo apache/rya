@@ -29,8 +29,6 @@ import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 import java.util.HashSet;
-import java.util.concurrent.atomic.AtomicLong;
-
 import org.apache.accumulo.core.client.TableExistsException;
 import org.apache.accumulo.core.client.TableNotFoundException;
 import org.apache.hadoop.conf.Configuration;
@@ -85,7 +83,7 @@ import mvm.rya.mongodb.MongoDBRdfConfiguration;
  *
  */
 public final class MongoTemporalIndexerTest {
-    Configuration conf;
+    MongoDBRdfConfiguration conf;
     MongoTemporalIndexer tIndexer;
     DBCollection collection;
 
@@ -93,13 +91,7 @@ public final class MongoTemporalIndexerTest {
     private static final String URI_PROPERTY_CIRCA = "Property:circa";
     private static final String URI_PROPERTY_AT_TIME = "Property:atTime";
     private static final String STAT_VALUEHASH = "valuehash";
-    private static final String TEST_TEMPORAL_INDEX_TABLE_NAME = "testTemporalIndex";
     private static final StatementConstraints EMPTY_CONSTRAINTS = new StatementConstraints();
-
-    // Recreate table name for each test instance in this JVM.
-    String uniquePerTestTemporalIndexTableName = TEST_TEMPORAL_INDEX_TABLE_NAME + String.format("%05d", nextTableSuffixAtomic.getAndIncrement());
-    // start at 0, for uniqueness between jvm's consider AtomicLong(new Random().nextLong())
-    private static final AtomicLong nextTableSuffixAtomic = new AtomicLong();
 
     // Assign this in setUpBeforeClass, store them in each test.
     // setup() deletes table before each test.
@@ -184,12 +176,13 @@ public final class MongoTemporalIndexerTest {
 
     @Before
     public void before() throws Exception {
-        conf = new Configuration();
+        conf = new MongoDBRdfConfiguration();
         conf.set(ConfigUtils.USE_MONGO, "true");
         conf.set(MongoDBRdfConfiguration.USE_TEST_MONGO, "true");
         conf.set(MongoDBRdfConfiguration.MONGO_DB_NAME, "test");
         conf.set(MongoDBRdfConfiguration.MONGO_COLLECTION_PREFIX, "rya_");
-        conf.set(ConfigUtils.TEMPORAL_TABLENAME, uniquePerTestTemporalIndexTableName);
+        conf.setTablePrefix("isthisused_");
+        
         // This is from http://linkedevents.org/ontology
         // and http://motools.sourceforge.net/event/event.html
         conf.setStrings(ConfigUtils.TEMPORAL_PREDICATES_LIST, ""

@@ -21,7 +21,7 @@ package mvm.rya.indexing.mongo;
 import java.util.HashSet;
 import java.util.Set;
 
-import org.apache.hadoop.conf.Configuration;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.openrdf.model.Statement;
@@ -38,7 +38,7 @@ import com.mongodb.MongoClient;
 import de.flapdoodle.embed.mongo.distribution.Version;
 import de.flapdoodle.embed.mongo.tests.MongodForTestsFactory;
 import info.aduna.iteration.CloseableIteration;
-import junit.framework.Assert;
+import mvm.rya.accumulo.AccumuloRdfConfiguration;
 import mvm.rya.api.domain.RyaStatement;
 import mvm.rya.api.domain.RyaType;
 import mvm.rya.api.domain.RyaURI;
@@ -52,17 +52,17 @@ import mvm.rya.mongodb.MongoDBRdfConfiguration;
 public class MongoFreeTextIndexerTest {
     private static final StatementConstraints EMPTY_CONSTRAINTS = new StatementConstraints();
 
-    Configuration conf;
+    AccumuloRdfConfiguration conf;
     MongoClient mongoClient;
 
     @Before
     public void before() throws Exception {
-        conf = new Configuration();
+        conf = new AccumuloRdfConfiguration();
         conf.set(ConfigUtils.USE_MONGO, "true");
         conf.set(MongoDBRdfConfiguration.USE_TEST_MONGO, "true");
         conf.set(MongoDBRdfConfiguration.MONGO_DB_NAME, "test");
         conf.set(MongoDBRdfConfiguration.MONGO_COLLECTION_PREFIX, "rya_");
-        conf.set(ConfigUtils.FREE_TEXT_DOC_TABLENAME, "freetext");
+        conf.setTablePrefix("another_");
         final MongodForTestsFactory testsFactory = MongodForTestsFactory.with(Version.Main.PRODUCTION);
         mongoClient = testsFactory.newMongo();
    }

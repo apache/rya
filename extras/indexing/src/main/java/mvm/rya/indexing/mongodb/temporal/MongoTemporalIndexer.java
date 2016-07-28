@@ -30,7 +30,6 @@ import org.openrdf.query.QueryEvaluationException;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.mongodb.DBCollection;
-import com.mongodb.MongoClient;
 import com.mongodb.QueryBuilder;
 
 import info.aduna.iteration.CloseableIteration;
@@ -46,14 +45,6 @@ import mvm.rya.indexing.mongodb.AbstractMongoIndexer;
  */
 public class MongoTemporalIndexer extends AbstractMongoIndexer<TemporalMongoDBStorageStrategy> implements TemporalIndexer {
     private static final Logger LOG = Logger.getLogger(MongoTemporalIndexer.class);
-
-    /**
-     * Creates a new {@link MongoTemporalIndexer}
-     * @param mongoClient - The {@link MongoClient} used to interact with MongoDB.
-     */
-    public MongoTemporalIndexer(final MongoClient mongoClient) {
-        super(mongoClient);
-    }
 
     @Override
     protected void init() throws IOException{

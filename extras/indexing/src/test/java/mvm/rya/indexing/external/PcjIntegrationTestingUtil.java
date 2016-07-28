@@ -65,6 +65,7 @@ import com.google.common.collect.Sets;
 import mvm.rya.accumulo.AccumuloRdfConfiguration;
 import mvm.rya.api.persist.RyaDAOException;
 import mvm.rya.indexing.accumulo.ConfigUtils;
+import mvm.rya.indexing.external.PrecomputedJoinIndexerConfig.PrecomputedJoinStorageType;
 import mvm.rya.indexing.external.tupleSet.ExternalTupleSet;
 import mvm.rya.rdftriplestore.inference.InferenceEngineException;
 import mvm.rya.sail.config.RyaSailFactory;
@@ -101,6 +102,7 @@ public class PcjIntegrationTestingUtil {
 
         final AccumuloRdfConfiguration pcjConf = new AccumuloRdfConfiguration();
         pcjConf.set(ConfigUtils.USE_PCJ, "true");
+        pcjConf.set(PrecomputedJoinIndexerConfig.PCJ_STORAGE_TYPE,PrecomputedJoinStorageType.ACCUMULO.name());
         populateTestConfig(instance, tablePrefix, pcjConf);
 
         final Sail pcjSail = RyaSailFactory.getInstance(pcjConf);

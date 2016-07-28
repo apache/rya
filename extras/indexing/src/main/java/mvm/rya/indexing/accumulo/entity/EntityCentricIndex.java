@@ -73,11 +73,9 @@ public class EntityCentricIndex extends AbstractAccumuloIndexer {
     private BatchWriter writer;
     private boolean isInit = false;
 
-    public static final String CONF_TABLE_SUFFIX = "ac.indexer.eci.tablename";
-
     private void initInternal() throws AccumuloException, AccumuloSecurityException, TableNotFoundException, IOException,
             TableExistsException {
-        ConfigUtils.createTableIfNotExists(conf, ConfigUtils.getEntityTableName(conf));
+        ConfigUtils.createTableIfNotExists(conf, getTableName());
     }
 
     @Override
@@ -116,9 +114,22 @@ public class EntityCentricIndex extends AbstractAccumuloIndexer {
         }
     }
 
+    /**
+     * Get the Accumulo table used by this index.  
+     * @return table used by instances of this index
+     */
     @Override
     public String getTableName() {
-        return ConfigUtils.getEntityTableName(conf);
+        return getTableName(conf);
+    }
+    
+    /**
+     * Get the Accumulo table that will be used by this index.  
+     * @param conf
+     * @return table name guaranteed to be used by instances of this index
+     */
+    public static String getTableName(Configuration conf) {
+        return ConfigUtils.getTablePrefix(conf)  + TABLE_SUFFIX;
     }
 
     @Override

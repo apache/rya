@@ -223,7 +223,7 @@ public class AccumuloIndexSetColumnVisibilityTest {
 
 	private static Configuration getConf() {
 		final AccumuloRdfConfiguration conf = new AccumuloRdfConfiguration();
-		conf.set(RdfCloudTripleStoreConfiguration.CONF_TBL_PREFIX, "rya_");
+		conf.setTablePrefix("rya_");
 		conf.set(ConfigUtils.CLOUDBASE_USER, "root");
 		conf.set(ConfigUtils.CLOUDBASE_PASSWORD, "password");
 		conf.set(ConfigUtils.CLOUDBASE_INSTANCE, instance);

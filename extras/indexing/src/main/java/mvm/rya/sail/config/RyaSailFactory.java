@@ -20,6 +20,7 @@ package mvm.rya.sail.config;
  */
 
 import java.net.UnknownHostException;
+import java.util.Objects;
 
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
@@ -35,7 +36,6 @@ import com.google.common.collect.Lists;
 import com.mongodb.MongoClient;
 import com.mongodb.MongoCredential;
 import com.mongodb.ServerAddress;
-
 import mvm.rya.accumulo.AccumuloRdfConfiguration;
 import mvm.rya.accumulo.AccumuloRyaDAO;
 import mvm.rya.accumulo.instance.AccumuloRyaInstanceDetailsRepository;
@@ -66,16 +66,26 @@ public class RyaSailFactory {
         final RyaDAO<?> dao;
         final RdfCloudTripleStoreConfiguration rdfConfig;
 
-        final String user = config.get(ConfigUtils.CLOUDBASE_USER);
-        final String pswd = config.get(ConfigUtils.CLOUDBASE_PASSWORD);
+        final String user;
+        final String pswd;
+        // XXX Should(?) be MongoDBRdfConfiguration.MONGO_COLLECTION_PREFIX inside the if below. RYA-135
         final String ryaInstance = config.get(RdfCloudTripleStoreConfiguration.CONF_TBL_PREFIX);
+        Objects.requireNonNull(ryaInstance, "RyaInstance or table prefix is missing from configuration."+RdfCloudTripleStoreConfiguration.CONF_TBL_PREFIX);
 
         if(ConfigUtils.getUseMongo(config)) {
             rdfConfig = new MongoDBRdfConfiguration(config);
+            user = rdfConfig.get(MongoDBRdfConfiguration.MONGO_USER);
+            pswd = rdfConfig.get(MongoDBRdfConfiguration.MONGO_USER_PASSWORD);
+            Objects.requireNonNull(user, "MongoDB user name is missing from configuration."+MongoDBRdfConfiguration.MONGO_USER);
+            Objects.requireNonNull(pswd, "MongoDB user password is missing from configuration."+MongoDBRdfConfiguration.MONGO_USER_PASSWORD);
             final MongoClient client = updateMongoConfig((MongoDBRdfConfiguration) rdfConfig, user, pswd, ryaInstance);
             dao = getMongoDAO((MongoDBRdfConfiguration)rdfConfig, client);
         } else {
             rdfConfig = new AccumuloRdfConfiguration(config);
+            user = rdfConfig.get(ConfigUtils.CLOUDBASE_USER);
+            pswd = rdfConfig.get(ConfigUtils.CLOUDBASE_PASSWORD);
+            Objects.requireNonNull(user, "Accumulo user name is missing from configuration."+ConfigUtils.CLOUDBASE_USER);
+            Objects.requireNonNull(pswd, "Accumulo user password is missing from configuration."+ConfigUtils.CLOUDBASE_PASSWORD);
             rdfConfig.setTableLayoutStrategy( new TablePrefixLayoutStrategy(ryaInstance) );
             updateAccumuloConfig((AccumuloRdfConfiguration) rdfConfig, user, pswd, ryaInstance);
             dao = getAccumuloDAO((AccumuloRdfConfiguration)rdfConfig);

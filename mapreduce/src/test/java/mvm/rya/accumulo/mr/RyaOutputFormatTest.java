@@ -110,11 +110,11 @@ public class RyaOutputFormatTest {
         RyaOutputFormat.setTablePrefix(job, PREFIX);
     }
 
-    private void write(RyaStatement... input) throws IOException, InterruptedException {
-        RecordWriter<Writable, RyaStatementWritable> writer =
+    private void write(final RyaStatement... input) throws IOException, InterruptedException {
+        final RecordWriter<Writable, RyaStatementWritable> writer =
                 new RyaOutputFormat.RyaRecordWriter(job.getConfiguration());
-        for (RyaStatement rstmt : input) {
-            RyaStatementWritable rsw = new RyaStatementWritable(rstmt, ryaContext);
+        for (final RyaStatement rstmt : input) {
+            final RyaStatementWritable rsw = new RyaStatementWritable(rstmt, ryaContext);
             writer.write(new Text("unused"), rsw);
         }
         writer.close(null);
@@ -122,7 +122,7 @@ public class RyaOutputFormatTest {
 
     @Test
     public void testOutputFormat() throws Exception {
-        RyaStatement input = RyaStatement.builder()
+        final RyaStatement input = RyaStatement.builder()
             .setSubject(new RyaURI("http://www.google.com"))
             .setPredicate(new RyaURI("http://some_other_uri"))
             .setObject(new RyaURI("http://www.yahoo.com"))
@@ -141,14 +141,14 @@ public class RyaOutputFormatTest {
 
     @Test
     public void testDefaultCV() throws Exception {
-        RyaStatement input = RyaStatement.builder()
+        final RyaStatement input = RyaStatement.builder()
             .setSubject(new RyaURI("http://www.google.com"))
             .setPredicate(new RyaURI("http://some_other_uri"))
             .setObject(new RyaURI("http://www.yahoo.com"))
             .setValue(new byte[0])
             .setContext(new RyaURI(GRAPH))
             .build();
-        RyaStatement expected = RyaStatement.builder()
+        final RyaStatement expected = RyaStatement.builder()
             .setSubject(new RyaURI("http://www.google.com"))
             .setPredicate(new RyaURI("http://some_other_uri"))
             .setObject(new RyaURI("http://www.yahoo.com"))
@@ -168,14 +168,14 @@ public class RyaOutputFormatTest {
 
     @Test
     public void testDefaultGraph() throws Exception {
-        RyaStatement input = RyaStatement.builder()
+        final RyaStatement input = RyaStatement.builder()
             .setSubject(new RyaURI("http://www.google.com"))
             .setPredicate(new RyaURI("http://some_other_uri"))
             .setObject(new RyaURI("http://www.yahoo.com"))
             .setValue(new byte[0])
             .setColumnVisibility(CV.getBytes())
             .build();
-        RyaStatement expected = RyaStatement.builder()
+        final RyaStatement expected = RyaStatement.builder()
             .setSubject(new RyaURI("http://www.google.com"))
             .setPredicate(new RyaURI("http://some_other_uri"))
             .setObject(new RyaURI("http://www.yahoo.com"))
@@ -195,9 +195,9 @@ public class RyaOutputFormatTest {
 
     @Test
     public void testFreeTextIndexing() throws Exception {
-        AccumuloFreeTextIndexer ft = new AccumuloFreeTextIndexer();
+        final AccumuloFreeTextIndexer ft = new AccumuloFreeTextIndexer();
         ft.setConf(conf);
-        RyaStatement input = RyaStatement.builder()
+        final RyaStatement input = RyaStatement.builder()
                 .setSubject(new RyaURI(GRAPH + ":s"))
                 .setPredicate(new RyaURI(GRAPH + ":p"))
                 .setObject(new RyaType(XMLSchema.STRING, "one two three four five"))
@@ -208,8 +208,8 @@ public class RyaOutputFormatTest {
         RyaOutputFormat.setGeoEnabled(job, false);
         RyaOutputFormat.setEntityEnabled(job, false);
         write(input);
-        Set<Statement> empty = new HashSet<>();
-        Set<Statement> expected = new HashSet<>();
+        final Set<Statement> empty = new HashSet<>();
+        final Set<Statement> expected = new HashSet<>();
         expected.add(RyaToRdfConversions.convertStatement(input));
         Assert.assertEquals(expected, getSet(ft.queryText("one", new StatementConstraints())));
         Assert.assertEquals(empty, getSet(ft.queryText("!two", new StatementConstraints())));
@@ -222,22 +222,22 @@ public class RyaOutputFormatTest {
 
     @Test
     public void testTemporalIndexing() throws Exception {
-        TemporalInstant[] instants = {
+        final TemporalInstant[] instants = {
                 new TemporalInstantRfc3339(2015, 12, 30, 12, 00, 01),
                 new TemporalInstantRfc3339(2015, 12, 30, 12, 00, 02),
                 new TemporalInstantRfc3339(2015, 12, 30, 12, 00, 03),
                 new TemporalInstantRfc3339(2015, 12, 30, 12, 00, 03)
         };
-        Statement[] statements = new Statement[instants.length];
+        final Statement[] statements = new Statement[instants.length];
         RyaOutputFormat.setCoreTablesEnabled(job, false);
         RyaOutputFormat.setFreeTextEnabled(job, false);
         RyaOutputFormat.setTemporalEnabled(job, true);
         RyaOutputFormat.setGeoEnabled(job, false);
         RyaOutputFormat.setEntityEnabled(job, false);
-        ValueFactory vf = new ValueFactoryImpl();
+        final ValueFactory vf = new ValueFactoryImpl();
         for (int i = 0; i < instants.length; i++) {
-            RyaType time = RdfToRyaConversions.convertLiteral(vf.createLiteral(instants[i].toString()));
-            RyaStatement input = RyaStatement.builder()
+            final RyaType time = RdfToRyaConversions.convertLiteral(vf.createLiteral(instants[i].toString()));
+            final RyaStatement input = RyaStatement.builder()
                     .setSubject(new RyaURI(GRAPH + ":s"))
                     .setPredicate(new RyaURI(GRAPH + ":p"))
                     .setObject(time)
@@ -245,11 +245,11 @@ public class RyaOutputFormatTest {
             write(input);
             statements[i] = RyaToRdfConversions.convertStatement(input);
         }
-        AccumuloTemporalIndexer temporal = new AccumuloTemporalIndexer();
+        final AccumuloTemporalIndexer temporal = new AccumuloTemporalIndexer();
         temporal.setConf(conf);
-        Set<Statement> empty = new HashSet<>();
-        Set<Statement> head = new HashSet<>();
-        Set<Statement> tail = new HashSet<>();
+        final Set<Statement> empty = new HashSet<>();
+        final Set<Statement> head = new HashSet<>();
+        final Set<Statement> tail = new HashSet<>();
         head.add(statements[0]);
         tail.add(statements[2]);
         tail.add(statements[3]);
@@ -262,12 +262,12 @@ public class RyaOutputFormatTest {
 
     @Test
     public void testGeoIndexing() throws Exception {
-        GeometryFactory gf = new GeometryFactory(new PrecisionModel(), 4326);
-        Point p1 = gf.createPoint(new Coordinate(1, 1));
-        Point p2 = gf.createPoint(new Coordinate(2, 2));
-        GeoMesaGeoIndexer geo = new GeoMesaGeoIndexer();
+        final GeometryFactory gf = new GeometryFactory(new PrecisionModel(), 4326);
+        final Point p1 = gf.createPoint(new Coordinate(1, 1));
+        final Point p2 = gf.createPoint(new Coordinate(2, 2));
+        final GeoMesaGeoIndexer geo = new GeoMesaGeoIndexer();
         geo.setConf(conf);
-        RyaStatement input = RyaStatement.builder()
+        final RyaStatement input = RyaStatement.builder()
                 .setSubject(new RyaURI(GRAPH + ":s"))
                 .setPredicate(new RyaURI(GRAPH + ":p"))
                 .setObject(new RyaType(GeoConstants.XMLSCHEMA_OGC_WKT, "Point(2 2)"))
@@ -278,7 +278,7 @@ public class RyaOutputFormatTest {
         RyaOutputFormat.setGeoEnabled(job, true);
         RyaOutputFormat.setEntityEnabled(job, false);
         write(input);
-        Set<Statement> expected = new HashSet<>();
+        final Set<Statement> expected = new HashSet<>();
         Assert.assertEquals(expected, getSet(geo.queryContains(p1, new StatementConstraints())));
         expected.add(RyaToRdfConversions.convertStatement(input));
         Assert.assertEquals(expected, getSet(geo.queryEquals(p2, new StatementConstraints())));
@@ -287,9 +287,9 @@ public class RyaOutputFormatTest {
 
     @Test
     public void testEntityIndexing() throws Exception {
-        EntityCentricIndex entity = new EntityCentricIndex();
+        final EntityCentricIndex entity = new EntityCentricIndex();
         entity.setConf(conf);
-        RyaStatement input = RyaStatement.builder()
+        final RyaStatement input = RyaStatement.builder()
                 .setSubject(new RyaURI(GRAPH + ":s"))
                 .setPredicate(new RyaURI(GRAPH + ":p"))
                 .setObject(new RyaURI(GRAPH + ":o"))
@@ -301,12 +301,13 @@ public class RyaOutputFormatTest {
         RyaOutputFormat.setEntityEnabled(job, true);
         write(input);
         entity.close();
-        Set<Statement> expected = new HashSet<>();
-        Set<Statement> inserted = new HashSet<>();
+        final Set<Statement> expected = new HashSet<>();
+        final Set<Statement> inserted = new HashSet<>();
         expected.add(RyaToRdfConversions.convertStatement(input));
-        String table = ConfigUtils.getEntityTableName(conf);
-        Scanner scanner = connector.createScanner(table, new Authorizations(CV));
-        for (Map.Entry<Key, Value> row : scanner) {
+
+        final String table = EntityCentricIndex.getTableName(conf);
+        final Scanner scanner = connector.createScanner(table, new Authorizations(CV));
+        for (final Map.Entry<Key, Value> row : scanner) {
             System.out.println(row);
             inserted.add(RyaToRdfConversions.convertStatement(
                     EntityCentricIndex.deserializeStatement(row.getKey(), row.getValue())));
@@ -314,8 +315,8 @@ public class RyaOutputFormatTest {
         Assert.assertEquals(expected, inserted);
     }
 
-    private static <X> Set<X> getSet(CloseableIteration<X, ?> iter) throws Exception {
-        Set<X> set = new HashSet<X>();
+    private static <X> Set<X> getSet(final CloseableIteration<X, ?> iter) throws Exception {
+        final Set<X> set = new HashSet<X>();
         while (iter.hasNext()) {
             set.add(iter.next());
         }

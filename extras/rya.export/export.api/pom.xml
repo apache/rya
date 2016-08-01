@@ -138,7 +138,9 @@ under the License.
                     </execution>
                 </executions>
                 <configuration>
-                    <sources>src/main/xsd/MergeConfiguration.xsd</sources>
+                    <sources>
+                        <source>src/main/xsd/</source>
+                    </sources>
                     <packageName>org.apache.rya.export</packageName>
                     <outputDirectory>src/gen/java</outputDirectory>
                 </configuration>
@@ -328,6 +330,7 @@ under the License.
             </plugin>
 
             <!-- Creates a single zip file with all files needed to run the merge tool -->
+            <!--
             <plugin>
                 <artifactId>maven-assembly-plugin</artifactId>
                 <version>2.5.3</version>
@@ -346,6 +349,7 @@ under the License.
                     </execution>
                 </executions>
             </plugin>
+            -->
         </plugins>
     </build>
 </project>

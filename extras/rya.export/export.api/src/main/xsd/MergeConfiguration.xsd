@@ -10,16 +10,34 @@
     <xs:complexType name="JAXBMergeConfiguration">
         <xs:sequence>
             <xs:element name="parentHostname" type="xs:string"/>
+            <xs:element name="parentUsername" type="xs:string"/>
+            <xs:element name="parentPassword" type="xs:string"/>
+            <xs:element name="parentZookeepers" type="xs:string"/>
             <xs:element name="parentRyaInstanceName" type="xs:string"/>
+            <xs:element name="parentTablePrefix" type="xs:string"/>
+            <xs:element name="parentAuths" type="xs:string"/>
+            <xs:element name="parentInstanceType" type="xs:string"/>
+            <xs:element name="parentTomcalUrl" type="xs:string"/>
             <xs:element name="parentDBType" type="mc:DBType"/>
             <xs:element name="parentPort" type="mc:Port"/>
 
             <xs:element name="childHostname" type="xs:string"/>
+            <xs:element name="childUsername" type="xs:string"/>
+            <xs:element name="childPassword" type="xs:string"/>
+            <xs:element name="childZookeepers" type="xs:string"/>
             <xs:element name="childRyaInstanceName" type="xs:string"/>
+            <xs:element name="childTablePrefix" type="xs:string"/>
+            <xs:element name="childAuths" type="xs:string"/>
+            <xs:element name="childInstanceType" type="xs:string"/>
+            <xs:element name="childTomcalUrl" type="xs:string"/>
             <xs:element name="childDBType" type="mc:DBType"/>
             <xs:element name="childPort" type="mc:Port"/>
 
             <xs:element name="mergePolicy" type="mc:MergePolicy"/>
+
+            <xs:element name="useNtpServer" type="xs:boolean"/>
+            <xs:element name="ntpServerHost" type="xs:string"/>
+            <xs:element name="toolStartTime" type="xs:string"/>
         </xs:sequence>
     </xs:complexType>
 

@@ -24,10 +24,7 @@ under the License. -->
     </Console>
   </Appenders>
   <Loggers>
-    <Logger name="org.apache.rya.indexing.pcj.fluo.command.ListQueriesCommand" level="trace" />
-    <Logger name="org.apache.rya.indexing.pcj.fluo.command.NewQueryCommand" level="trace" />
-    <Logger name="org.apache.rya.indexing.pcj.fluo.command.LoadTriplesCommand" level="trace"/>
-    <Logger name="org.apache.rya.indexing.pcj.fluo.util.FluoLoader" level="trace"/>
+    <Logger name="org.apache.rya.export.accumulo" level="trace" />
 
     <Root level="warn">
       <AppenderRef ref="Console"/>

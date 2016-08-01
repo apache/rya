@@ -19,7 +19,7 @@ import org.apache.rya.export.MergePolicy;
 import com.google.common.annotations.VisibleForTesting;
 
 /**
- * Helper class for processing command line arguemnts for the Merge Tool.
+ * Helper class for processing command line arguments for the Merge Tool.
  */
 public class MergeConfigurationCLI {
     public static final Option CONFIG_OPTION = new Option("c", true, "Defines the configuration file for the Merge Tool to use.");

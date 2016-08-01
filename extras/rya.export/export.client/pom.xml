@@ -41,13 +41,24 @@ under the License.
             <artifactId>rya.export.api</artifactId>
             <version>3.2.10-SNAPSHOT</version>
         </dependency>
+        <dependency>
+            <groupId>org.apache.rya</groupId>
+            <artifactId>rya.export.accumulo</artifactId>
+            <version>3.2.10-SNAPSHOT</version>
+        </dependency>
         
         <!-- 3rd Party Runtime Dependencies. -->
         <dependency>
             <groupId>com.beust</groupId>
             <artifactId>jcommander</artifactId>
         </dependency>
-        
+
+        <dependency>
+            <groupId>com.toedter</groupId>
+            <artifactId>jcalendar</artifactId>
+            <version>1.1.4</version>
+        </dependency>
+
         <dependency> 
             <groupId>io.fluo</groupId>
             <artifactId>fluo-core</artifactId>

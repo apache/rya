@@ -14,7 +14,7 @@ import java.util.Date;
  */
 public interface ParentMetadataRepository {
     /**
-     * @return The metadata for itentifying the parent.
+     * @return The metadata for identifying the parent.
      */
     public MergeParentMetadata get();
 
@@ -30,6 +30,16 @@ public interface ParentMetadataRepository {
     public class MergeParentMetadata {
         private final String ryaInstanceName;
         private final Date timestamp;
+
+        private Date copyToolInputTime;
+        private Date copyToolRunTime;
+
+        private Long parentTimeOffset = 0L;
+        private Long childTimeOffset = 0L;
+
+        private boolean useTimeSync = false;
+        private boolean useMergeFileInput = false;
+        private boolean usesStartTime = false;
 
         /**
          * Creates a new {@link MergeParentMetadata}.
@@ -53,6 +63,34 @@ public interface ParentMetadataRepository {
          */
         public Date getTimestamp() {
             return timestamp;
+        }
+
+        public Date getCopyToolInputTime() {
+            return copyToolInputTime;
+        }
+
+        public Date getCopyToolRunTime() {
+            return copyToolRunTime;
+        }
+
+        public Long getParentTimeOffset() {
+            return parentTimeOffset;
+        }
+
+        public Long getChildTimeOffset() {
+            return childTimeOffset;
+        }
+
+        public boolean isUseTimeSync() {
+            return useTimeSync;
+        }
+
+        public boolean isUseMergeFileInput() {
+            return useMergeFileInput;
+        }
+
+        public boolean isUsesStartTime() {
+            return usesStartTime;
         }
     }
 }

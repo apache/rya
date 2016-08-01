@@ -41,7 +41,12 @@ under the License.
             <artifactId>rya.export.api</artifactId>
             <version>3.2.10-SNAPSHOT</version>
         </dependency>
-        
+        <dependency>
+            <groupId>org.apache.rya</groupId>
+            <artifactId>rya.indexing</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
         <!-- Log4j 2 bridge, api, and core. -->        
         <dependency>
             <groupId>org.apache.logging.log4j</groupId>
@@ -59,6 +64,29 @@ under the License.
             <version>2.5</version>
         </dependency> 
         
+        <!--  Accumulo -->
+        <dependency>
+            <groupId>org.apache.accumulo</groupId>
+            <artifactId>accumulo-core</artifactId>
+            <version>1.6.4</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.accumulo</groupId>
+            <artifactId>accumulo-start</artifactId>
+            <version>1.6.4</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.accumulo</groupId>
+            <artifactId>accumulo</artifactId>
+            <version>1.6.4</version>
+            <type>pom</type>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.thrift</groupId>
+            <artifactId>libthrift</artifactId>
+            <version>0.9.1</version>
+        </dependency>
+
         <!-- Testing dependencies. -->
         <dependency>
             <groupId>junit</groupId>

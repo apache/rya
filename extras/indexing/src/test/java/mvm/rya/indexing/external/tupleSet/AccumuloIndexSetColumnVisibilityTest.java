@@ -1,33 +1,8 @@
 package mvm.rya.indexing.external.tupleSet;
-/*
- * Licensed to the Apache Software Foundation (ASF) under one
- * or more contributor license agreements.  See the NOTICE file
- * distributed with this work for additional information
- * regarding copyright ownership.  The ASF licenses this file
- * to you under the Apache License, Version 2.0 (the
- * "License"); you may not use this file except in compliance
- * with the License.  You may obtain a copy of the License at
- * 
- *   http://www.apache.org/licenses/LICENSE-2.0
- * 
- * Unless required by applicable law or agreed to in writing,
- * software distributed under the License is distributed on an
- * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
- * KIND, either express or implied.  See the License for the
- * specific language governing permissions and limitations
- * under the License.
- */
-import info.aduna.iteration.CloseableIteration;
-
 import java.io.File;
 import java.io.IOException;
 import java.util.HashSet;
 import java.util.Set;
-
-import mvm.rya.accumulo.AccumuloRdfConfiguration;
-import mvm.rya.api.RdfCloudTripleStoreConfiguration;
-import mvm.rya.indexing.accumulo.ConfigUtils;
-import mvm.rya.indexing.external.accumulo.AccumuloPcjStorage;
 
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
@@ -46,6 +21,7 @@ import org.apache.rya.indexing.pcj.storage.accumulo.VisibilityBindingSet;
 import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.openrdf.model.impl.NumericLiteralImpl;
 import org.openrdf.model.impl.URIImpl;
@@ -60,6 +36,34 @@ import org.openrdf.repository.RepositoryException;
 import com.google.common.collect.Sets;
 import com.google.common.io.Files;
 
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
+import info.aduna.iteration.CloseableIteration;
+import mvm.rya.accumulo.AccumuloRdfConfiguration;
+import mvm.rya.api.RdfCloudTripleStoreConfiguration;
+import mvm.rya.indexing.accumulo.ConfigUtils;
+import mvm.rya.indexing.external.accumulo.AccumuloPcjStorage;
+
+/**
+ * XXX Fixed in RYA-82
+ */
+@Ignore
 public class AccumuloIndexSetColumnVisibilityTest {
 
 	private static final Logger log = Logger
@@ -88,21 +92,21 @@ public class AccumuloIndexSetColumnVisibilityTest {
 		conf = getConf();
 		accCon.securityOperations().changeUserAuthorizations("root", new Authorizations("U","USA"));
 		storage = new AccumuloPcjStorage(accCon, "rya_");
-		Set<VariableOrder> varOrders = new HashSet<>();
+		final Set<VariableOrder> varOrders = new HashSet<>();
 		varOrders.add(new VariableOrder("age;name"));
 		varOrders.add(new VariableOrder("name;age"));
 		pcjTableName = storage.createPcj(sparql, varOrders);
 
-		Binding exBinding1 = new BindingImpl("age", new NumericLiteralImpl(14,
+		final Binding exBinding1 = new BindingImpl("age", new NumericLiteralImpl(14,
 				XMLSchema.INTEGER));
-		Binding exBinding2 = new BindingImpl("name",
+		final Binding exBinding2 = new BindingImpl("name",
 				new URIImpl("http://Alice"));
-		Binding exBinding3 = new BindingImpl("age", new NumericLiteralImpl(16,
+		final Binding exBinding3 = new BindingImpl("age", new NumericLiteralImpl(16,
 				XMLSchema.INTEGER));
-		Binding exBinding4 = new BindingImpl("name", new URIImpl("http://Bob"));
-		Binding exBinding5 = new BindingImpl("age", new NumericLiteralImpl(34,
+		final Binding exBinding4 = new BindingImpl("name", new URIImpl("http://Bob"));
+		final Binding exBinding5 = new BindingImpl("age", new NumericLiteralImpl(34,
 				XMLSchema.INTEGER));
-		Binding exBinding6 = new BindingImpl("name", new URIImpl("http://Joe"));
+		final Binding exBinding6 = new BindingImpl("name", new URIImpl("http://Joe"));
 
 		pcjBs1 = new QueryBindingSet();
 		pcjBs1.addBinding(exBinding1);
@@ -116,13 +120,13 @@ public class AccumuloIndexSetColumnVisibilityTest {
 		pcjBs3.addBinding(exBinding5);
 		pcjBs3.addBinding(exBinding6);
 
-		Set<BindingSet> bindingSets = new HashSet<>();
+		final Set<BindingSet> bindingSets = new HashSet<>();
 		bindingSets.add(pcjBs1);
 		bindingSets.add(pcjBs2);
 		bindingSets.add(pcjBs3);
 
-		Set<VisibilityBindingSet> visBs = new HashSet<>();
-		for (BindingSet bs : bindingSets) {
+		final Set<VisibilityBindingSet> visBs = new HashSet<>();
+		for (final BindingSet bs : bindingSets) {
 			visBs.add(new VisibilityBindingSet(bs, "U|USA"));
 		}
 
@@ -166,7 +170,7 @@ public class AccumuloIndexSetColumnVisibilityTest {
 		final CloseableIteration<BindingSet, QueryEvaluationException> results = ais
 				.evaluate(bSets);
 
-		Set<BindingSet> expected = new HashSet<>();
+		final Set<BindingSet> expected = new HashSet<>();
 		expected.add(pcjBs1);
 		expected.add(pcjBs2);
 		final Set<BindingSet> fetchedResults = new HashSet<>();
@@ -181,7 +185,7 @@ public class AccumuloIndexSetColumnVisibilityTest {
 	@Test
 	public void accumuloIndexSetTestAttemptJoinAccrossTypes() throws Exception {
 		// Load some Triples into Rya.
-		AccumuloIndexSet ais = new AccumuloIndexSet(conf, pcjTableName);
+		final AccumuloIndexSet ais = new AccumuloIndexSet(conf, pcjTableName);
 
 		final QueryBindingSet bs1 = new QueryBindingSet();
 		bs1.addBinding("age", new NumericLiteralImpl(16, XMLSchema.INTEGER));
@@ -192,7 +196,7 @@ public class AccumuloIndexSetColumnVisibilityTest {
 
 		final CloseableIteration<BindingSet, QueryEvaluationException> results = ais
 				.evaluate(bSets);
-		Set<BindingSet> expected = new HashSet<>();
+		final Set<BindingSet> expected = new HashSet<>();
 		expected.add(pcjBs1);
 		expected.add(pcjBs2);
 		final Set<BindingSet> fetchedResults = new HashSet<>();

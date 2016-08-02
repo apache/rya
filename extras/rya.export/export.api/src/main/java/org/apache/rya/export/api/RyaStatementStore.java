@@ -62,19 +62,6 @@ public interface RyaStatementStore {
     public void updateStatement(final RyaStatement original, final RyaStatement update) throws MergerException;
 
     /**
-     * Initializes the {@link RyaStatementStore} which should only be done once.
-     * throw an exception.
-     * @throws MergerException
-     */
-    public void init() throws MergerException;
-
-    /**
-     * @return {@code true} if the {@link RyaStatementStore} has already been
-     * initialized.
-     */
-    public boolean isInitialized();
-
-    /**
      * @return the {@link RyaTripleContext}.
      */
     public RyaTripleContext getRyaTripleContext();

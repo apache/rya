@@ -37,7 +37,7 @@ public class AccumuloParentMetadataRepository implements ParentMetadataRepositor
     }
 
     @Override
-    public void set(MergeParentMetadata metadata) {
+    public void set(final MergeParentMetadata metadata) {
         this.metadata = metadata;
     }
 }

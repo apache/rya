@@ -47,7 +47,7 @@ import mvm.rya.indexing.accumulo.ConfigUtils;
  */
 public class AccumuloRyaStatementStoreTest {
     private static final Logger log = LogManager.getLogger(AccumuloRyaStatementStoreTest.class);
-    private static final InstanceType INSTANCE_TYPE = InstanceType.MINI;
+    private static final InstanceType INSTANCE_TYPE = InstanceType.MOCK;
 
     private static final boolean IS_MOCK = INSTANCE_TYPE.isMock();
     private static final String USER_NAME = IS_MOCK ? "test_user" : AccumuloInstanceDriver.ROOT_USER_NAME;
@@ -58,10 +58,6 @@ public class AccumuloRyaStatementStoreTest {
 
     // Rya data store and connections.
     private static AccumuloInstanceDriver accumuloInstanceDriver = null;
-//    protected Connector accumuloConn = null;
-//    protected RyaSailRepository ryaRepo = null;
-//    protected RepositoryConnection ryaConn = null;
-//    protected AccumuloRyaDAO accumuloRyaDao = null;
     private static AccumuloRdfConfiguration accumuloRdfConfiguration = null;
 
     private static final Date DATE = new Date();
@@ -76,17 +72,8 @@ public class AccumuloRyaStatementStoreTest {
 
     @BeforeClass
     public static void setupResources() throws Exception {
-    	//TestUtils.setupLogging();
-    	//log.info("STARTING");
         // Initialize the Accumulo instance that will be used to store Triples and get a connection to it.
         accumuloInstanceDriver = startAccumuloInstanceDriver();
-
-        // Setup the Rya library to use the Accumulo instance.
-//        ryaRepo = setupRya();
-//        ryaConn = ryaRepo.getConnection();
-//        RdfCloudTripleStore rdfCloudTripleStore = (RdfCloudTripleStore) ryaRepo.getSail();
-//        accumuloRyaDao = (AccumuloRyaDAO) rdfCloudTripleStore.getRyaDAO();
-//        accumuloRdfConfiguration = accumuloRyaDao.getConf();
 
         accumuloRdfConfiguration = accumuloInstanceDriver.getDao().getConf();
     }
@@ -112,26 +99,10 @@ public class AccumuloRyaStatementStoreTest {
     }
 
     @Test
-    public void testInit() throws MergerException {
-        AccumuloRyaStatementStore accumuloRyaStatementStore = new AccumuloRyaStatementStore(accumuloRdfConfiguration);
-        accumuloRyaStatementStore.init();
-        assertTrue(accumuloRyaStatementStore.isInitialized());
-    }
-
-    @Test(expected = MergerException.class)
-    public void testInitAlreadyInitialized() throws MergerException {
-        AccumuloRyaStatementStore accumuloRyaStatementStore = new AccumuloRyaStatementStore(accumuloRdfConfiguration);
-        accumuloRyaStatementStore.init();
-        assertTrue(accumuloRyaStatementStore.isInitialized());
-        accumuloRyaStatementStore.init();
-    }
-
-    @Test
     public void testFetchStatements() throws MergerException {
-        AccumuloRyaStatementStore accumuloRyaStatementStore = new AccumuloRyaStatementStore(accumuloRdfConfiguration);
-        accumuloRyaStatementStore.init();
+        final AccumuloRyaStatementStore accumuloRyaStatementStore = new AccumuloRyaStatementStore(accumuloRdfConfiguration);
 
-        for (RyaStatement ryaStatement : RYA_STATEMENTS) {
+        for (final RyaStatement ryaStatement : RYA_STATEMENTS) {
             accumuloRyaStatementStore.addStatement(ryaStatement);
         }
 
@@ -140,14 +111,13 @@ public class AccumuloRyaStatementStoreTest {
 
     @Test (expected = MergerException.class)
     public void testFetchStatements_FetchWrongInstance() throws MergerException {
-        AccumuloRyaStatementStore accumuloRyaStatementStore = new AccumuloRyaStatementStore(accumuloRdfConfiguration);
-        accumuloRyaStatementStore.init();
+        final AccumuloRyaStatementStore accumuloRyaStatementStore = new AccumuloRyaStatementStore(accumuloRdfConfiguration);
 
-        for (RyaStatement ryaStatement : RYA_STATEMENTS) {
+        for (final RyaStatement ryaStatement : RYA_STATEMENTS) {
             accumuloRyaStatementStore.addStatement(ryaStatement);
         }
 
-        Configuration config = accumuloRyaStatementStore.getConfiguration();
+        final Configuration config = accumuloRyaStatementStore.getConfiguration();
 
         config.set(ConfigUtils.CLOUDBASE_INSTANCE, "wrong instance");
 
@@ -156,62 +126,59 @@ public class AccumuloRyaStatementStoreTest {
 
     @Test
     public void testAddStatement() throws MergerException {
-        AccumuloRyaStatementStore accumuloRyaStatementStore = new AccumuloRyaStatementStore(accumuloRdfConfiguration);
-        accumuloRyaStatementStore.init();
+        final AccumuloRyaStatementStore accumuloRyaStatementStore = new AccumuloRyaStatementStore(accumuloRdfConfiguration);
 
-        for (RyaStatement ryaStatement : RYA_STATEMENTS) {
+        for (final RyaStatement ryaStatement : RYA_STATEMENTS) {
             accumuloRyaStatementStore.addStatement(ryaStatement);
         }
     }
 
     @Test (expected = MergerException.class)
     public void testAddStatement_AddNull() throws Exception {
-        AccumuloRyaStatementStore accumuloRyaStatementStore = new AccumuloRyaStatementStore(accumuloRdfConfiguration);
-        accumuloRyaStatementStore.init();
+        final AccumuloRyaStatementStore accumuloRyaStatementStore = new AccumuloRyaStatementStore(accumuloRdfConfiguration);
 
         accumuloRyaStatementStore.addStatement(null);
     }
 
     @Test
     public void testRemoveStatement() throws MergerException {
-        AccumuloRyaStatementStore accumuloRyaStatementStore = new AccumuloRyaStatementStore(accumuloRdfConfiguration);
-        accumuloRyaStatementStore.init();
+        final AccumuloRyaStatementStore accumuloRyaStatementStore = new AccumuloRyaStatementStore(accumuloRdfConfiguration);
 
         // Add one then remove it right away
-        for (RyaStatement ryaStatement : RYA_STATEMENTS) {
+        for (final RyaStatement ryaStatement : RYA_STATEMENTS) {
             accumuloRyaStatementStore.addStatement(ryaStatement);
             accumuloRyaStatementStore.removeStatement(ryaStatement);
             assertTrue(isStatementStoreEmpty(accumuloRyaStatementStore));
         }
 
         // Add all then remove all
-        for (RyaStatement ryaStatement : RYA_STATEMENTS) {
+        for (final RyaStatement ryaStatement : RYA_STATEMENTS) {
             accumuloRyaStatementStore.addStatement(ryaStatement);
         }
-        for (RyaStatement ryaStatement : RYA_STATEMENTS) {
+        for (final RyaStatement ryaStatement : RYA_STATEMENTS) {
             accumuloRyaStatementStore.removeStatement(ryaStatement);
         }
         assertTrue(isStatementStoreEmpty(accumuloRyaStatementStore));
 
         // Add all then remove all in reverse order
-        for (RyaStatement ryaStatement : RYA_STATEMENTS) {
+        for (final RyaStatement ryaStatement : RYA_STATEMENTS) {
             accumuloRyaStatementStore.addStatement(ryaStatement);
         }
-        ImmutableList<RyaStatement> reverseList = RYA_STATEMENTS.reverse();
-        for (RyaStatement ryaStatement : reverseList) {
+        final ImmutableList<RyaStatement> reverseList = RYA_STATEMENTS.reverse();
+        for (final RyaStatement ryaStatement : reverseList) {
             accumuloRyaStatementStore.removeStatement(ryaStatement);
         }
         assertTrue(isStatementStoreEmpty(accumuloRyaStatementStore));
 
         // Add all then remove one from middle follow by another before and
         // after the first removed one
-        for (RyaStatement ryaStatement : RYA_STATEMENTS) {
+        for (final RyaStatement ryaStatement : RYA_STATEMENTS) {
             accumuloRyaStatementStore.addStatement(ryaStatement);
         }
 
-        RyaStatement firstToRemove = RYA_STATEMENTS.get(2);
-        RyaStatement before = RYA_STATEMENTS.get(1);
-        RyaStatement after = RYA_STATEMENTS.get(3);
+        final RyaStatement firstToRemove = RYA_STATEMENTS.get(2);
+        final RyaStatement before = RYA_STATEMENTS.get(1);
+        final RyaStatement after = RYA_STATEMENTS.get(3);
 
         accumuloRyaStatementStore.removeStatement(firstToRemove);
         accumuloRyaStatementStore.removeStatement(before);
@@ -220,10 +187,9 @@ public class AccumuloRyaStatementStoreTest {
 
     @Test (expected = MergerException.class)
     public void testRemoveStatement_RemoveNull() throws MergerException {
-        AccumuloRyaStatementStore accumuloRyaStatementStore = new AccumuloRyaStatementStore(accumuloRdfConfiguration);
-        accumuloRyaStatementStore.init();
+        final AccumuloRyaStatementStore accumuloRyaStatementStore = new AccumuloRyaStatementStore(accumuloRdfConfiguration);
 
-        for (RyaStatement ryaStatement : RYA_STATEMENTS) {
+        for (final RyaStatement ryaStatement : RYA_STATEMENTS) {
             accumuloRyaStatementStore.addStatement(ryaStatement);
         }
 
@@ -232,44 +198,42 @@ public class AccumuloRyaStatementStoreTest {
 
     @Test
     public void testRemoveStatement_RemoveStatementNotFound() throws MergerException {
-        AccumuloRyaStatementStore accumuloRyaStatementStore = new AccumuloRyaStatementStore(accumuloRdfConfiguration);
-        accumuloRyaStatementStore.init();
+        final AccumuloRyaStatementStore accumuloRyaStatementStore = new AccumuloRyaStatementStore(accumuloRdfConfiguration);
 
-        for (RyaStatement ryaStatement : RYA_STATEMENTS) {
+        for (final RyaStatement ryaStatement : RYA_STATEMENTS) {
             accumuloRyaStatementStore.addStatement(ryaStatement);
         }
 
-        RyaStatement notFoundStatement = TestUtils.createRyaStatement("Statement", "not found", "here", DATE);
+        final RyaStatement notFoundStatement = TestUtils.createRyaStatement("Statement", "not found", "here", DATE);
         accumuloRyaStatementStore.removeStatement(notFoundStatement);
     }
 
     @Test
     public void testUpdateStatement() throws MergerException {
-        AccumuloRyaStatementStore accumuloRyaStatementStore = new AccumuloRyaStatementStore(accumuloRdfConfiguration);
-        accumuloRyaStatementStore.init();
+        final AccumuloRyaStatementStore accumuloRyaStatementStore = new AccumuloRyaStatementStore(accumuloRdfConfiguration);
 
-        for (RyaStatement ryaStatement : RYA_STATEMENTS) {
+        for (final RyaStatement ryaStatement : RYA_STATEMENTS) {
             accumuloRyaStatementStore.addStatement(ryaStatement);
         }
 
-        RyaStatement firstRyaStatement = RYA_STATEMENTS.get(0);
-        RyaStatement updatedRyaStatement = TestUtils.copyRyaStatement(firstRyaStatement);
+        final RyaStatement firstRyaStatement = RYA_STATEMENTS.get(0);
+        final RyaStatement updatedRyaStatement = TestUtils.copyRyaStatement(firstRyaStatement);
 
         assertEquals(firstRyaStatement, updatedRyaStatement);
 
-        String subject = TestUtils.convertRyaUriToString(updatedRyaStatement.getSubject());
-        String predicate = TestUtils.convertRyaUriToString(updatedRyaStatement.getPredicate());
+        final String subject = TestUtils.convertRyaUriToString(updatedRyaStatement.getSubject());
+        final String predicate = TestUtils.convertRyaUriToString(updatedRyaStatement.getPredicate());
         updatedRyaStatement.setSubject(TestUtils.createRyaUri(subject + "_UPDATED"));
         updatedRyaStatement.setPredicate(TestUtils.createRyaUri(predicate + "_UPDATED"));
 
         accumuloRyaStatementStore.updateStatement(firstRyaStatement, updatedRyaStatement);
 
-        Iterator<RyaStatement> ryaStatementsIterator = accumuloRyaStatementStore.fetchStatements();
+        final Iterator<RyaStatement> ryaStatementsIterator = accumuloRyaStatementStore.fetchStatements();
         int originalCount = 0;
         int updatedCount = 0;
         int totalCount = 0;
         while (ryaStatementsIterator.hasNext()) {
-            RyaStatement ryaStatement = ryaStatementsIterator.next();
+            final RyaStatement ryaStatement = ryaStatementsIterator.next();
             if (ryaStatement.equals(firstRyaStatement)) {
                 originalCount++;
             }
@@ -286,20 +250,19 @@ public class AccumuloRyaStatementStoreTest {
 
     @Test (expected = MergerException.class)
     public void testUpdateStatement_UpdateNull() throws MergerException {
-        AccumuloRyaStatementStore accumuloRyaStatementStore = new AccumuloRyaStatementStore(accumuloRdfConfiguration);
-        accumuloRyaStatementStore.init();
+        final AccumuloRyaStatementStore accumuloRyaStatementStore = new AccumuloRyaStatementStore(accumuloRdfConfiguration);
 
-        for (RyaStatement ryaStatement : RYA_STATEMENTS) {
+        for (final RyaStatement ryaStatement : RYA_STATEMENTS) {
             accumuloRyaStatementStore.addStatement(ryaStatement);
         }
 
-        RyaStatement firstRyaStatement = RYA_STATEMENTS.get(0);
-        RyaStatement updatedRyaStatement = TestUtils.copyRyaStatement(firstRyaStatement);
+        final RyaStatement firstRyaStatement = RYA_STATEMENTS.get(0);
+        final RyaStatement updatedRyaStatement = TestUtils.copyRyaStatement(firstRyaStatement);
 
         assertEquals(firstRyaStatement, updatedRyaStatement);
 
-        String subject = TestUtils.convertRyaUriToString(updatedRyaStatement.getSubject());
-        String predicate = TestUtils.convertRyaUriToString(updatedRyaStatement.getPredicate());
+        final String subject = TestUtils.convertRyaUriToString(updatedRyaStatement.getSubject());
+        final String predicate = TestUtils.convertRyaUriToString(updatedRyaStatement.getPredicate());
         updatedRyaStatement.setSubject(TestUtils.createRyaUri(subject + "_UPDATED"));
         updatedRyaStatement.setPredicate(TestUtils.createRyaUri(predicate + "_UPDATED"));
 
@@ -308,31 +271,30 @@ public class AccumuloRyaStatementStoreTest {
 
     @Test
     public void testUpdateStatement_OriginalNotFound() throws MergerException {
-        AccumuloRyaStatementStore accumuloRyaStatementStore = new AccumuloRyaStatementStore(accumuloRdfConfiguration);
-        accumuloRyaStatementStore.init();
+        final AccumuloRyaStatementStore accumuloRyaStatementStore = new AccumuloRyaStatementStore(accumuloRdfConfiguration);
 
-        for (RyaStatement ryaStatement : RYA_STATEMENTS) {
+        for (final RyaStatement ryaStatement : RYA_STATEMENTS) {
             accumuloRyaStatementStore.addStatement(ryaStatement);
         }
 
-        RyaStatement notFoundStatement = TestUtils.createRyaStatement("Statement", "not found", "here", DATE);
-        RyaStatement updatedRyaStatement = TestUtils.copyRyaStatement(notFoundStatement);
+        final RyaStatement notFoundStatement = TestUtils.createRyaStatement("Statement", "not found", "here", DATE);
+        final RyaStatement updatedRyaStatement = TestUtils.copyRyaStatement(notFoundStatement);
 
         assertEquals(notFoundStatement, updatedRyaStatement);
 
-        String subject = TestUtils.convertRyaUriToString(updatedRyaStatement.getSubject());
-        String predicate = TestUtils.convertRyaUriToString(updatedRyaStatement.getPredicate());
+        final String subject = TestUtils.convertRyaUriToString(updatedRyaStatement.getSubject());
+        final String predicate = TestUtils.convertRyaUriToString(updatedRyaStatement.getPredicate());
         updatedRyaStatement.setSubject(TestUtils.createRyaUri(subject + "_UPDATED"));
         updatedRyaStatement.setPredicate(TestUtils.createRyaUri(predicate + "_UPDATED"));
 
         accumuloRyaStatementStore.updateStatement(notFoundStatement, updatedRyaStatement);
 
-        Iterator<RyaStatement> ryaStatementsIterator = accumuloRyaStatementStore.fetchStatements();
+        final Iterator<RyaStatement> ryaStatementsIterator = accumuloRyaStatementStore.fetchStatements();
         int originalCount = 0;
         int updatedCount = 0;
         int totalCount = 0;
         while (ryaStatementsIterator.hasNext()) {
-            RyaStatement ryaStatement = ryaStatementsIterator.next();
+            final RyaStatement ryaStatement = ryaStatementsIterator.next();
             if (ryaStatement.equals(notFoundStatement)) {
                 originalCount++;
             }
@@ -351,26 +313,6 @@ public class AccumuloRyaStatementStoreTest {
 
     @After
     public void shutdownMiniResources() {
-//        if(ryaConn != null) {
-//            try {
-//                log.info("Shutting down Rya Connection.");
-//                ryaConn.close();
-//                log.info("Rya Connection shut down.");
-//            } catch(final Exception e) {
-//                log.error("Could not shut down the Rya Connection.", e);
-//            }
-//        }
-//
-//        if(ryaRepo != null) {
-//            try {
-//                log.info("Shutting down Rya Repo.");
-//                ryaRepo.shutDown();
-//                log.info("Rya Repo shut down.");
-//            } catch(final Exception e) {
-//                log.error("Could not shut down the Rya Repo.", e);
-//            }
-//        }
-
         if(accumuloInstanceDriver != null) {
             try {
                 log.info("Shutting down the Mini Accumulo being used as a Rya store.");
@@ -382,8 +324,8 @@ public class AccumuloRyaStatementStoreTest {
         }
     }
 
-    private static boolean isStatementStoreEmpty(AccumuloRyaStatementStore accumuloRyaStatementStore) throws MergerException {
-        Iterator<RyaStatement> iterator = accumuloRyaStatementStore.fetchStatements();
+    private static boolean isStatementStoreEmpty(final AccumuloRyaStatementStore accumuloRyaStatementStore) throws MergerException {
+        final Iterator<RyaStatement> iterator = accumuloRyaStatementStore.fetchStatements();
         return !iterator.hasNext();
     }
 
@@ -394,42 +336,9 @@ public class AccumuloRyaStatementStoreTest {
      * @throws Exception
      */
     private static AccumuloInstanceDriver startAccumuloInstanceDriver() throws Exception {
-        AccumuloInstanceDriver accumuloInstanceDriver = new AccumuloInstanceDriver("Test Driver", INSTANCE_TYPE, true, false, true, USER_NAME, PASSWORD, INSTANCE_NAME, RYA_TABLE_PREFIX, AUTHS);
+        final AccumuloInstanceDriver accumuloInstanceDriver = new AccumuloInstanceDriver("Test Driver", INSTANCE_TYPE, true, false, true, USER_NAME, PASSWORD, INSTANCE_NAME, RYA_TABLE_PREFIX, AUTHS);
         accumuloInstanceDriver.setUp();
-
-        //accumuloConn = accumuloInstanceDriver.getConnector();
 
         return accumuloInstanceDriver;
     }
-
-    /**
-     * Format an Accumulo instance to be a Rya repository.
-     *
-     * @return The Rya repository sitting on top of the Accumulo instance.
-     */
-//    private RyaSailRepository setupRya() throws AccumuloException, AccumuloSecurityException, RepositoryException {
-//        // Setup the Rya Repository that will be used to create Repository Connections.
-//        final RdfCloudTripleStore ryaStore = new RdfCloudTripleStore();
-//        final AccumuloRyaDAO accumuloRyaDao = new AccumuloRyaDAO();
-//        accumuloRyaDao.setConnector(accumuloConn);
-//
-//        // Setup Rya configuration values.
-//        final AccumuloRdfConfiguration conf = new AccumuloRdfConfiguration();
-//        conf.setTablePrefix(RYA_TABLE_PREFIX);
-//        conf.setDisplayQueryPlan(true);
-//
-//        conf.setBoolean(USE_MOCK_INSTANCE, IS_MOCK);
-//        conf.set(RdfCloudTripleStoreConfiguration.CONF_TBL_PREFIX, RYA_TABLE_PREFIX);
-//        conf.set(CLOUDBASE_USER, USER_NAME);
-//        conf.set(CLOUDBASE_PASSWORD, PASSWORD);
-//        conf.set(CLOUDBASE_INSTANCE, INSTANCE_NAME);
-//
-//        accumuloRyaDao.setConf(conf);
-//        ryaStore.setRyaDAO(accumuloRyaDao);
-//
-//        final RyaSailRepository ryaRepo = new RyaSailRepository(ryaStore);
-//        ryaRepo.initialize();
-//
-//        return ryaRepo;
-//    }
 }

@@ -23,7 +23,6 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import java.io.IOException;
 import java.util.Iterator;
 import java.util.Map.Entry;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.apache.accumulo.core.client.Scanner;
 import org.apache.accumulo.core.data.Key;
@@ -72,14 +71,36 @@ public class AccumuloRyaStatementStore implements RyaStatementStore {
     private AccumuloRdfConfiguration accumuloRdfConfiguration;
     private RyaTripleContext ryaTripleContext;
     private String tablePrefix;
-    private AtomicBoolean isInitialized = new AtomicBoolean();
 
     /**
      * Creates a new instance of {@link AccumuloRyaStatementStore}.
      * @param config the {@link Configuration}.
+     * @throws MergerException
      */
-    public AccumuloRyaStatementStore(final Configuration config) {
+    public AccumuloRyaStatementStore(final Configuration config) throws MergerException {
         this.config = checkNotNull(config);
+
+        String instance = config.get(ConfigUtils.CLOUDBASE_INSTANCE, "instance");
+        String userName = config.get(ConfigUtils.CLOUDBASE_USER, "root");
+        String pwd = config.get(ConfigUtils.CLOUDBASE_PASSWORD, "password");
+        InstanceType instanceType = InstanceType.fromName(config.get(AccumuloExportConstants.ACCUMULO_INSTANCE_TYPE_PROP, InstanceType.DISTRIBUTION.toString()));
+        tablePrefix = config.get(RdfCloudTripleStoreConfiguration.CONF_TBL_PREFIX);
+        if (tablePrefix != null) {
+            RdfCloudTripleStoreConstants.prefixTables(tablePrefix);
+        }
+        String auth = config.get(ConfigUtils.CLOUDBASE_AUTHS);
+
+        accumuloRdfConfiguration = new AccumuloRdfConfiguration(config);
+        accumuloRdfConfiguration.setTablePrefix(tablePrefix);
+        ryaTripleContext = RyaTripleContext.getInstance(accumuloRdfConfiguration);
+
+        AccumuloInstanceDriver accumuloInstanceDriver = new AccumuloInstanceDriver(AccumuloRyaStatementStore.class.getSimpleName(), instanceType, true, false, true, userName, pwd, instance, tablePrefix, auth);
+        try {
+            accumuloInstanceDriver.setUp();
+        } catch (Exception e) {
+            throw new MergerException(e);
+        }
+        accumuloRyaDAO = accumuloInstanceDriver.getDao();
     }
 
     /**
@@ -102,41 +123,6 @@ public class AccumuloRyaStatementStore implements RyaStatementStore {
     @Override
     public RyaTripleContext getRyaTripleContext() {
         return ryaTripleContext;
-    }
-
-    @Override
-    public void init() throws MergerException {
-        if (isInitialized.get()) {
-            throw new MergerException("AccumuloRyaStatementStore already initialized");
-        } else {
-            String instance = config.get(ConfigUtils.CLOUDBASE_INSTANCE, "instance");
-            String userName = config.get(ConfigUtils.CLOUDBASE_USER, "root");
-            String pwd = config.get(ConfigUtils.CLOUDBASE_PASSWORD, "password");
-            InstanceType instanceType = InstanceType.fromName(config.get(AccumuloExportConstants.ACCUMULO_INSTANCE_TYPE_PROP, InstanceType.DISTRIBUTION.toString()));
-            tablePrefix = config.get(RdfCloudTripleStoreConfiguration.CONF_TBL_PREFIX);
-            if (tablePrefix != null) {
-                RdfCloudTripleStoreConstants.prefixTables(tablePrefix);
-            }
-            String auth = config.get(ConfigUtils.CLOUDBASE_AUTHS);
-
-            accumuloRdfConfiguration = new AccumuloRdfConfiguration(config);
-            accumuloRdfConfiguration.setTablePrefix(tablePrefix);
-            ryaTripleContext = RyaTripleContext.getInstance(accumuloRdfConfiguration);
-
-            AccumuloInstanceDriver accumuloInstanceDriver = new AccumuloInstanceDriver(AccumuloRyaStatementStore.class.getSimpleName(), instanceType, true, false, true, userName, pwd, instance, tablePrefix, auth);
-            try {
-                accumuloInstanceDriver.setUp();
-            } catch (Exception e) {
-                throw new MergerException(e);
-            }
-            accumuloRyaDAO = accumuloInstanceDriver.getDao();
-            isInitialized.set(true);
-        }
-    }
-
-    @Override
-    public boolean isInitialized() {
-        return isInitialized.get();
     }
 
     @Override

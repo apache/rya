@@ -31,6 +31,7 @@ public interface StatementManager {
      * @param parent - The parent {@link RyaStatement}.
      * @param child - The child {@link RyaStatement}
      * @return The merged {@link RyaStatement}.
+     * @throws MergerException
      */
-    public Optional<RyaStatement> merge(final Optional<RyaStatement> parent, Optional<RyaStatement> child);
+    public Optional<RyaStatement> merge(final Optional<RyaStatement> parent, Optional<RyaStatement> child) throws MergerException;
 }

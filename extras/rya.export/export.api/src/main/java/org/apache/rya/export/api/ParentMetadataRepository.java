@@ -53,11 +53,6 @@ public interface ParentMetadataRepository {
         private Date copyToolRunTime;
 
         private Long parentTimeOffset = 0L;
-        private Long childTimeOffset = 0L;
-
-        private boolean useTimeSync = false;
-        private boolean useMergeFileInput = false;
-        private boolean usesStartTime = false;
 
         /**
          * Creates a new {@link MergeParentMetadata}.
@@ -93,22 +88,6 @@ public interface ParentMetadataRepository {
 
         public Long getParentTimeOffset() {
             return parentTimeOffset;
-        }
-
-        public Long getChildTimeOffset() {
-            return childTimeOffset;
-        }
-
-        public boolean isUseTimeSync() {
-            return useTimeSync;
-        }
-
-        public boolean isUseMergeFileInput() {
-            return useMergeFileInput;
-        }
-
-        public boolean isUsesStartTime() {
-            return usesStartTime;
         }
     }
 }

@@ -35,6 +35,7 @@ import org.apache.rya.export.accumulo.AccumuloRyaStatementStore;
 import org.apache.rya.export.accumulo.common.InstanceType;
 import org.apache.rya.export.accumulo.conf.AccumuloExportConstants;
 import org.apache.rya.export.accumulo.util.TimeUtils;
+import org.apache.rya.export.api.MergerException;
 import org.apache.rya.export.api.conf.MergeConfiguration;
 import org.apache.rya.export.api.conf.MergeConfigurationCLI;
 import org.apache.rya.export.api.conf.MergeConfigurationException;
@@ -134,8 +135,14 @@ public class MergeDriverCLI {
 
         if(configuration.getParentDBType() == ACCUMULO && configuration.getChildDBType() == ACCUMULO) {
             //do traditional Mergetool shenanigans
-            AccumuloRyaStatementStore parentAccumuloRyaStatementStore = new AccumuloRyaStatementStore(parentConfig);
-            AccumuloRyaStatementStore childAccumuloRyaStatementStore = new AccumuloRyaStatementStore(childConfig);
+            AccumuloRyaStatementStore parentAccumuloRyaStatementStore = null;
+            AccumuloRyaStatementStore childAccumuloRyaStatementStore = null;
+            try {
+                parentAccumuloRyaStatementStore = new AccumuloRyaStatementStore(parentConfig);
+                childAccumuloRyaStatementStore = new AccumuloRyaStatementStore(childConfig);
+            } catch (MergerException e) {
+                LOG.error("Failed to create statement stores", e);
+            }
 
             AccumuloMerger accumuloMerger = new AccumuloMerger(parentAccumuloRyaStatementStore, childAccumuloRyaStatementStore);
             accumuloMerger.runJob();

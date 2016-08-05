@@ -82,8 +82,8 @@ under the License.
         <lucene.version>3.6.2</lucene.version> <!-- Newest: 5.3.1 -->
         <joda-time.version>2.1</joda-time.version> <!-- Newest: 2.9.1 -->
 
-        <mongodb.version>2.13.3</mongodb.version> <!-- Newest: 3.1.1 -->
-        <embed.mongo.version>1.50.0</embed.mongo.version> <!-- Newest: 1.50.0 -->
+        <mongodb.version>3.3.0</mongodb.version>
+        <embed.mongo.version>1.50.5</embed.mongo.version>
 
         <blueprints.version>2.5.0</blueprints.version> <!-- Newest: Apache 3.1.0-incubating -->
 

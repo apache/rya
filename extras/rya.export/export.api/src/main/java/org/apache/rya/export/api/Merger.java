@@ -21,8 +21,7 @@ package org.apache.rya.export.api;
 import mvm.rya.api.domain.RyaStatement;
 
 /**
- * Performs the merging of {@link RyaStatement}s based on the type of parent DB
- * instance and child DB instance involved.
+ * Performs the merging of {@link RyaStatement}s.
  * <p>
  * When merging statements, both the parent and child
  * databases may have changed since the initial export.

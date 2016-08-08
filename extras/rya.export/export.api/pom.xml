@@ -328,28 +328,6 @@ under the License.
                     </execution>
                 </executions>
             </plugin>
-
-            <!-- Creates a single zip file with all files needed to run the merge tool -->
-            <!--
-            <plugin>
-                <artifactId>maven-assembly-plugin</artifactId>
-                <version>2.5.3</version>
-                <configuration>
-                    <descriptors>
-                        <descriptor>${basedir}/assembly.xml</descriptor>
-                    </descriptors>
-                </configuration>
-                <executions>
-                    <execution>
-                        <id>build-zip</id>
-                        <phase>install</phase>
-                        <goals>
-                            <goal>single</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-            -->
         </plugins>
     </build>
 </project>

@@ -46,13 +46,13 @@ public interface RyaStatementStore {
 
     /**
      * @param statement - The {@link RyaStatement} to add to this {@link RyaStatementStore}.
-     * @throws AddStatementException - Thrown when adding a statement fails.
+     * @throws AddStatementException Thrown when adding a statement fails.
      */
     public void addStatement(final RyaStatement statement) throws AddStatementException;
 
     /**
      * @param statement - The {@link RyaStatement} to remove from this {@link RyaStatementStore}.
-     * @throws RemoveStatementException - Thrown when the statement is not removed.
+     * @throws RemoveStatementException - Thrown when the statement is not removed
      */
     public void removeStatement(final RyaStatement statement) throws RemoveStatementException;
 

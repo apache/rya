@@ -36,12 +36,7 @@ public class MergeConfiguration {
     private final String parentHostname;
     private final String parentUsername;
     private final String parentPassword;
-    private final String parentZookeepers;
     private final String parentRyaInstanceName;
-    private final String parentTablePrefix;
-    private final String parentAuths;
-    private final String parentInstanceType;
-    private final String parentTomcatUrl;
     private final DBType parentDBType;
     private final int parentPort;
 
@@ -51,12 +46,7 @@ public class MergeConfiguration {
     private final String childHostname;
     private final String childUsername;
     private final String childPassword;
-    private final String childZookeepers;
     private final String childRyaInstanceName;
-    private final String childTablePrefix;
-    private final String childAuths;
-    private final String childInstanceType;
-    private final String childTomcatUrl;
     private final DBType childDBType;
     private final int childPort;
 
@@ -64,70 +54,47 @@ public class MergeConfiguration {
 
     private final boolean useNtpServer;
     private final String ntpServerHost;
-    private final String toolStartTime;
 
     /**
      * Constructs a MergeConfiguration.  All fields are required.
      * @param parentHostname
      * @param parentUsername
      * @param parentPassword
-     * @param parentZookeepers
      * @param parentPort
      * @param parentRyaInstanceName
-     * @param parentTablePrefix
-     * @param parentAuths
-     * @param parentInstanceType
-     * @param parentTomcatUrl
      * @param parentDBType
      * @param childHostname
      * @param childUsername
      * @param childPassword
-     * @param childZookeepers
      * @param childPort
      * @param childRyaInstanceName
-     * @param childTablePrefix
-     * @param childAuths
-     * @param childInstanceType
-     * @param childTomcatUrl
      * @param childDBType
      * @param mergePolicy
      * @param useNtpServer
      * @param ntpServerHost
-     * @param toolStartTime
      * @throws MergeConfigurationException
      */
-    private MergeConfiguration(final String parentHostname, final String parentUsername, final String parentPassword, final String parentZookeepers,
-            final int parentPort, final String parentRyaInstanceName, final String parentTablePrefix, final String parentAuths, final String parentInstanceType, final String parentTomcatUrl, final DBType parentDBType,
-            final String childHostname, final String childUsername, final String childPassword, final String childZookeepers,
-            final int childPort, final String childRyaInstanceName, final String childTablePrefix, final String childAuths, final String childInstanceType, final String childTomcatUrl, final DBType childDBType,
-            final MergePolicy mergePolicy, final boolean useNtpServer, final String ntpServerHost, final String toolStartTime) throws MergeConfigurationException {
+    private MergeConfiguration(final String parentHostname, final String parentUsername, final String parentPassword,
+            final int parentPort, final String parentRyaInstanceName, final DBType parentDBType,
+            final String childHostname, final String childUsername, final String childPassword,
+            final int childPort, final String childRyaInstanceName, final DBType childDBType,
+            final MergePolicy mergePolicy, final boolean useNtpServer, final String ntpServerHost) throws MergeConfigurationException {
         try {
             this.parentHostname = checkNotNull(parentHostname);
             this.parentUsername = checkNotNull(parentUsername);
             this.parentPassword = checkNotNull(parentPassword);
-            this.parentZookeepers = checkNotNull(parentZookeepers);
             this.parentRyaInstanceName = checkNotNull(parentRyaInstanceName);
-            this.parentTablePrefix = checkNotNull(parentTablePrefix);
-            this.parentAuths = checkNotNull(parentAuths);
-            this.parentInstanceType = checkNotNull(parentInstanceType);
-            this.parentTomcatUrl = checkNotNull(parentTomcatUrl);
             this.parentDBType = checkNotNull(parentDBType);
             this.parentPort = checkNotNull(parentPort);
             this.childHostname = checkNotNull(childHostname);
             this.childUsername = checkNotNull(childUsername);
             this.childPassword = checkNotNull(childPassword);
-            this.childZookeepers = checkNotNull(childZookeepers);
             this.childRyaInstanceName = checkNotNull(childRyaInstanceName);
-            this.childTablePrefix = checkNotNull(childTablePrefix);
-            this.childAuths = checkNotNull(childAuths);
-            this.childInstanceType = checkNotNull(childInstanceType);
-            this.childTomcatUrl = checkNotNull(childTomcatUrl);
             this.childDBType = checkNotNull(childDBType);
             this.childPort = checkNotNull(childPort);
             this.mergePolicy = checkNotNull(mergePolicy);
             this.useNtpServer = checkNotNull(useNtpServer);
             this.ntpServerHost = checkNotNull(ntpServerHost);
-            this.toolStartTime = checkNotNull(toolStartTime);
         } catch(final NullPointerException npe) {
             throw new MergeConfigurationException("The configuration was missing required field(s)", npe);
         }
@@ -155,45 +122,10 @@ public class MergeConfiguration {
     }
 
     /**
-     * @return the Zookeeper host names of the parent.
-     */
-    public String getParentZookeepers() {
-        return parentZookeepers;
-    }
-
-    /**
      * @return the Rya Instance Name of the parent.
      */
     public String getParentRyaInstanceName() {
         return parentRyaInstanceName;
-    }
-
-    /**
-     * @return the Rya table prefix of the parent.
-     */
-    public String getParentTablePrefix() {
-        return parentTablePrefix;
-    }
-
-    /**
-     * @return the Accumulo user authorizations of the parent.
-     */
-    public String getParentAuths() {
-        return parentAuths;
-    }
-
-    /**
-     * @return the Accumulo instance type of the parent.
-     */
-    public String getParentInstanceType() {
-        return parentInstanceType;
-    }
-
-    /**
-     * @return The URL of the Apache Tomcat server web page running on the parent machine.
-     */
-    public String getParentTomcatUrl() {
-        return parentTomcatUrl;
     }
 
     /**
@@ -232,45 +164,10 @@ public class MergeConfiguration {
     }
 
     /**
-     * @return the Zookeeper host names of the child.
-     */
-    public String getChildZookeepers() {
-        return childZookeepers;
-    }
-
-    /**
      * @return the Rya Instance Name of the child.
      */
     public String getChildRyaInstanceName() {
         return childRyaInstanceName;
-    }
-
-    /**
-     * @return the Rya table prefix of the child.
-     */
-    public String getChildTablePrefix() {
-        return childTablePrefix;
-    }
-
-    /**
-     * @return the Accumulo user authorizations of the child.
-     */
-    public String getChildAuths() {
-        return childAuths;
-    }
-
-    /**
-     * @return the Accumulo instance type of the child.
-     */
-    public String getChildInstanceType() {
-        return childInstanceType;
-    }
-
-    /**
-     * @return The URL of the Apache Tomcat server web page running on the child machine.
-     */
-    public String getChildTomcatUrl() {
-        return childTomcatUrl;
     }
 
     /**
@@ -310,37 +207,20 @@ public class MergeConfiguration {
     }
 
     /**
-     * @return The time of the data to be included in the copy/merge process.
-     */
-    public String getToolStartTime() {
-        return toolStartTime;
-    }
-
-    /**
      * Builder to help create {@link MergeConfiguration}s.
      */
     public static class Builder {
         private String parentHostname;
         private String parentUsername;
         private String parentPassword;
-        private String parentZookeepers;
         private String parentRyaInstanceName;
-        private String parentTablePrefix;
-        private String parentAuths;
-        private String parentInstanceType;
-        private String parentTomcatUrl;
         private DBType parentDBType;
         private int parentPort;
 
         private String childHostname;
         private String childUsername;
         private String childPassword;
-        private String childZookeepers;
         private String childRyaInstanceName;
-        private String childTablePrefix;
-        private String childAuths;
-        private String childInstanceType;
-        private String childTomcatUrl;
         private DBType childDBType;
         private int childPort;
 
@@ -348,7 +228,6 @@ public class MergeConfiguration {
 
         private boolean useNtpServer;
         private String ntpServerHost;
-        private String toolStartTime;
 
         public Builder setParentHostname(final String hostname) {
             parentHostname = hostname;
@@ -365,33 +244,8 @@ public class MergeConfiguration {
             return this;
         }
 
-        public Builder setParentZookeepers(final String zookeepers) {
-            parentZookeepers = zookeepers;
-            return this;
-        }
-
         public Builder setParentRyaInstanceName(final String ryaInstanceName) {
             parentRyaInstanceName = ryaInstanceName;
-            return this;
-        }
-
-        public Builder setParentTablePrefix(final String tablePrefix) {
-            parentTablePrefix = tablePrefix;
-            return this;
-        }
-
-        public Builder setParentAuths(final String auths) {
-            parentAuths = auths;
-            return this;
-        }
-
-        public Builder setParentInstanceType(final String instanceType) {
-            parentInstanceType = instanceType;
-            return this;
-        }
-
-        public Builder setParentTomcatUrl(final String tomcatUrl) {
-            parentTomcatUrl = tomcatUrl;
             return this;
         }
 
@@ -420,33 +274,8 @@ public class MergeConfiguration {
             return this;
         }
 
-        public Builder setChildZookeepers(final String zookeepers) {
-            childZookeepers = zookeepers;
-            return this;
-        }
-
         public Builder setChildRyaInstanceName(final String ryaInstanceName) {
             childRyaInstanceName = ryaInstanceName;
-            return this;
-        }
-
-        public Builder setChildTablePrefix(final String tablePrefix) {
-            childTablePrefix = tablePrefix;
-            return this;
-        }
-
-        public Builder setChildAuths(final String auths) {
-            childAuths = auths;
-            return this;
-        }
-
-        public Builder setChildInstanceType(final String instanceType) {
-            childInstanceType = instanceType;
-            return this;
-        }
-
-        public Builder setChildTomcatUrl(final String tomcatUrl) {
-            childTomcatUrl = tomcatUrl;
             return this;
         }
 
@@ -475,22 +304,15 @@ public class MergeConfiguration {
             return this;
         }
 
-        public Builder setToolStartTime(final String toolStartTime) {
-            this.toolStartTime = toolStartTime;
-            return this;
-        }
-
         /**
          * @return The {@link MergeConfiguration} based on this builder.
          * @throws MergeConfigurationException
          * @throws NullPointerException if any field as not been provided
          */
         public MergeConfiguration build() throws MergeConfigurationException {
-            return new MergeConfiguration(parentHostname, parentUsername, parentPassword, parentZookeepers,
-                    parentPort, parentRyaInstanceName, parentTablePrefix, parentAuths, parentInstanceType, parentTomcatUrl, parentDBType,
-                    childHostname, childUsername, childPassword, childZookeepers,
-                    childPort, childRyaInstanceName, childTablePrefix, childAuths, childInstanceType, childTomcatUrl, childDBType,
-                    mergePolicy, useNtpServer, ntpServerHost, toolStartTime);
+            return new MergeConfiguration(parentHostname, parentUsername, parentPassword, parentPort, parentRyaInstanceName, parentDBType,
+                childHostname, childUsername, childPassword, childPort, childRyaInstanceName, childDBType,
+                mergePolicy, useNtpServer, ntpServerHost);
         }
     }
 }

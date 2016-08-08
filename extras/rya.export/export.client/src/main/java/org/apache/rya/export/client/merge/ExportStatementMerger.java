@@ -16,22 +16,23 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.apache.rya.export.api;
+package org.apache.rya.export.client.merge;
+
+import org.apache.rya.export.api.StatementMerger;
+import org.apache.rya.export.api.store.RyaStatementStore;
 
 import com.google.common.base.Optional;
 
 import mvm.rya.api.domain.RyaStatement;
 
 /**
- * Defines how 2 {@link RyaStatement}s will merge.
+ * Merges {@link RyaStatement}s from one {@link RyaStatementStore}, a parent,
+ * to another {@link RyaStatementStore}, a child.
  */
-public interface StatementManager {
-    /**
-     * Merges the child statement into the parent statement.
-     * @param parent - The parent {@link RyaStatement}.
-     * @param child - The child {@link RyaStatement}
-     * @return The merged {@link RyaStatement}.
-     * @throws MergerException
-     */
-    public Optional<RyaStatement> merge(final Optional<RyaStatement> parent, Optional<RyaStatement> child) throws MergerException;
+public class ExportStatementMerger implements StatementMerger {
+    @Override
+    public Optional<RyaStatement> merge(final Optional<RyaStatement> parent, final Optional<RyaStatement> child) {
+        // TODO Auto-generated method stub
+        return null;
+    }
 }

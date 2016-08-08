@@ -18,7 +18,12 @@
  */
 package org.apache.rya.export.api.conf;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import java.io.File;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
@@ -33,6 +38,10 @@ import org.apache.commons.cli.ParseException;
 import org.apache.rya.export.DBType;
 import org.apache.rya.export.JAXBMergeConfiguration;
 import org.apache.rya.export.MergePolicy;
+import org.apache.rya.export.api.conf.ConfigurationAdapter;
+import org.apache.rya.export.api.conf.MergeConfiguration;
+import org.apache.rya.export.api.conf.MergeConfigurationException;
+import org.apache.rya.export.client.gui.DateTimePickerDialog;
 
 import com.google.common.annotations.VisibleForTesting;
 
@@ -41,6 +50,25 @@ import com.google.common.annotations.VisibleForTesting;
  */
 public class MergeConfigurationCLI {
     public static final Option CONFIG_OPTION = new Option("c", true, "Defines the configuration file for the Merge Tool to use.");
+    public static final Option TIME_OPTION = new Option("t", true, "Defines the timestamp from which to filter RyaStatements when merging.");
+    private static final DateFormat DATE_FORMAT = new SimpleDateFormat("MMM ddd yyy HH:mm:ss");
+    private final CommandLine cmd;
+    /**
+     *
+     * @param args
+     * @throws MergeConfigurationException
+     */
+    public MergeConfigurationCLI(final String[] args) throws MergeConfigurationException {
+        checkNotNull(args);
+
+        final Options cliOptions = getOptions();
+        final CommandLineParser parser = new BasicParser();
+        try {
+            cmd = parser.parse(cliOptions, args);
+        } catch (final ParseException pe) {
+            throw new MergeConfigurationException("Improperly formatted options.", pe);
+        }
+    }
 
     /**
      * @return The valid {@link Options}
@@ -48,6 +76,7 @@ public class MergeConfigurationCLI {
     @VisibleForTesting
     public static Options getOptions() {
         final Options cliOptions = new Options()
+        .addOption(TIME_OPTION)
         .addOption(CONFIG_OPTION);
         return cliOptions;
     }
@@ -63,20 +92,36 @@ public class MergeConfigurationCLI {
         }
     }
 
-    public static MergeConfiguration createConfiguration(final String[] args) throws MergeConfigurationException {
-        final Options cliOptions = getOptions();
-        final CommandLineParser parser = new BasicParser();
-        try {
-            final CommandLine cmd = parser.parse(cliOptions, args);
-            //If the config option is present, ignore all other options.
-            if(cmd.hasOption(CONFIG_OPTION.getOpt())) {
-                final File xml = new File(cmd.getOptionValue(CONFIG_OPTION.getOpt()));
-                return ConfigurationAdapter.createConfig(createConfigurationFromFile(xml));
-            } else {
-                throw new MergeConfigurationException("No configuration was provided.");
+    public Date getRyaStatementMergeTime() throws MergeConfigurationException {
+        final Date time;
+        if(cmd.hasOption(TIME_OPTION.getOpt())) {
+            final String dateStr = cmd.getOptionValue(TIME_OPTION.getOpt());
+            try {
+                time = DATE_FORMAT.parse(dateStr);
+            } catch (final java.text.ParseException e) {
+                throw new MergeConfigurationException("The provided timestamp was not formatted correctly.", e);
             }
-        } catch (final ParseException pe) {
-            throw new MergeConfigurationException("Improperly formatted options.", pe);
+        } else {
+            //clean up this message.
+            final DateTimePickerDialog dialog = new DateTimePickerDialog("Merge Time Selection", "Select the timestamp in which merging will occur.");
+            dialog.setVisible(true);
+            time = dialog.getSelectedDateTime();
+        }
+        return time;
+    }
+
+    /**
+     *
+     * @return
+     * @throws MergeConfigurationException
+     */
+    public MergeConfiguration createConfiguration() throws MergeConfigurationException {
+        //If the config option is present, ignore all other options.
+        if(cmd.hasOption(CONFIG_OPTION.getOpt())) {
+            final File xml = new File(cmd.getOptionValue(CONFIG_OPTION.getOpt()));
+            return ConfigurationAdapter.createConfig(createConfigurationFromFile(xml));
+        } else {
+            throw new MergeConfigurationException("No configuration was provided.");
         }
     }
 }

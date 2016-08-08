@@ -21,10 +21,11 @@ package org.apache.rya.export.client;
 import static org.apache.rya.export.DBType.ACCUMULO;
 
 import java.io.File;
+import java.net.UnknownHostException;
 import java.io.IOException;
-import java.text.ParseException;
 import java.util.Date;
 
+import org.apache.commons.cli.ParseException;
 import org.apache.commons.lang.StringUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.log4j.BasicConfigurator;
@@ -36,12 +37,19 @@ import org.apache.rya.export.accumulo.AccumuloRyaStatementStore;
 import org.apache.rya.export.accumulo.common.InstanceType;
 import org.apache.rya.export.accumulo.conf.AccumuloExportConstants;
 import org.apache.rya.export.accumulo.util.TimeUtils;
+import org.apache.rya.export.api.parent.ParentMetadataRepository;
+import org.apache.rya.export.api.store.RyaStatementStore;
+import org.apache.rya.export.client.merge.ExportStatementMerger;
+import org.apache.rya.export.client.merge.MemoryTimeMerger;
+import org.apache.rya.export.mongo.MongoRyaStatementStore;
+import org.apache.rya.export.mongo.parent.MongoParentMetadataRepository;
 import org.apache.rya.export.api.MergerException;
 import org.apache.rya.export.api.conf.MergeConfiguration;
 import org.apache.rya.export.api.conf.MergeConfigurationCLI;
 import org.apache.rya.export.api.conf.MergeConfigurationException;
 import org.apache.rya.export.client.gui.DateTimePickerDialog;
 
+import com.mongodb.MongoClient;
 import mvm.rya.indexing.accumulo.ConfigUtils;
 
 /**
@@ -56,7 +64,7 @@ public class MergeDriverCLI {
 
     private static MergeConfiguration configuration;
 
-    public static void main(final String [] args) throws ParseException {
+    public static void main(final String [] args) throws ParseException, MergeConfigurationException, UnknownHostException {
         final String log4jConfiguration = System.getProperties().getProperty("log4j.configuration");
         if (StringUtils.isNotBlank(log4jConfiguration)) {
             final String parsedConfiguration = StringUtils.removeStart(log4jConfiguration, "file:");
@@ -67,11 +75,25 @@ public class MergeDriverCLI {
                 BasicConfigurator.configure();
             }
         }
+
+        final MergeConfigurationCLI config = new MergeConfigurationCLI(args);
+
         try {
-            configuration = MergeConfigurationCLI.createConfiguration(args);
+            configuration = config.createConfiguration();
         } catch (final MergeConfigurationException e) {
             LOG.error("Configuration failed.", e);
         }
+
+        final Date startTime = config.getRyaStatementMergeTime();
+        final MongoClient client = new MongoClient(configuration.getParentHostname(), configuration.getParentPort());
+        final RyaStatementStore parentStore = new MongoRyaStatementStore(client, configuration.getParentRyaInstanceName());
+        final ParentMetadataRepository parentMetadataRepo = new MongoParentMetadataRepository(client, configuration.getParentRyaInstanceName());
+
+        final RyaStatementStore childStore = new MongoRyaStatementStore(client, configuration.getChildRyaInstanceName());
+        final ParentMetadataRepository childMetadataRepo = new MongoParentMetadataRepository(client, configuration.getChildRyaInstanceName());
+
+
+
 
 
         final Configuration parentConfig = new Configuration();
@@ -162,7 +184,10 @@ public class MergeDriverCLI {
             }
         });
 
-        //final int returnCode = setupAndRun(args);
+        final MemoryTimeMerger merger = new MemoryTimeMerger(parentStore, childStore,
+                parentMetadataRepo, childMetadataRepo, new ExportStatementMerger(),
+                startTime, configuration.getParentRyaInstanceName());
+        merger.runJob();
 
         LOG.info("Finished running Merge Tool");
         System.exit(1);

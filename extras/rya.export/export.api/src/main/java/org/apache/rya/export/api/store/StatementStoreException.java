@@ -1,9 +1,11 @@
 package org.apache.rya.export.api.store;
 
+import org.apache.rya.export.api.MergerException;
+
 /**
  * Thrown when an exception occurs in the {@link RyaStatementStore}.
  */
-class StatementStoreException extends Exception {
+class StatementStoreException extends MergerException {
     private static final long serialVersionUID = 1L;
 
     /**

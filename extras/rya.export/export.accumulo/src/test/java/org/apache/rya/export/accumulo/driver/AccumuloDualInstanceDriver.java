@@ -86,7 +86,7 @@ public class AccumuloDualInstanceDriver {
      * {@code false} otherwise.
      */
     public AccumuloDualInstanceDriver(final InstanceType instanceType, final boolean shouldCreateIndices, final boolean isParentReadOnly, final boolean isChildReadOnly, final boolean doesChildInitiallyExist) {
-    	this.instanceType = instanceType;
+        this.instanceType = instanceType;
         this.isMock = instanceType.isMock();
         this.shouldCreateIndices = shouldCreateIndices;
         this.isParentReadOnly = isParentReadOnly;

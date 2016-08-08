@@ -46,6 +46,7 @@ import org.apache.rya.export.accumulo.util.AccumuloInstanceDriver;
 import org.apache.rya.export.accumulo.util.AccumuloRyaUtils;
 import org.apache.rya.export.accumulo.util.TimeUtils;
 import org.apache.rya.export.api.MergerException;
+import org.apache.rya.export.api.parent.MergeParentMetadata;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -103,7 +104,12 @@ public class AccumuloMergerTest {
     public void testRunJob() throws Exception {
         final AccumuloRyaStatementStore accumuloParentRyaStatementStore = new AccumuloRyaStatementStore(parentConfig);
         final AccumuloRyaStatementStore childAccumuloRyaStatementStore = new AccumuloRyaStatementStore(childConfig);
-        final AccumuloMerger accumuloMerger = new AccumuloMerger(accumuloParentRyaStatementStore, childAccumuloRyaStatementStore);
+
+        final MergeParentMetadata mergeParentMetadata = new MergeParentMetadata(PARENT_INSTANCE, new Date(), null, 0L);
+        final AccumuloParentMetadataRepository accumuloParentMetadataRepository = new AccumuloParentMetadataRepository(accumuloParentRyaStatementStore.getRyaDAO());
+        accumuloParentMetadataRepository.set(mergeParentMetadata);
+
+        final AccumuloMerger accumuloMerger = new AccumuloMerger(accumuloParentRyaStatementStore, childAccumuloRyaStatementStore, accumuloParentMetadataRepository);
         accumuloMerger.runJob();
     }
 
@@ -152,10 +158,16 @@ public class AccumuloMergerTest {
         parentConfig.set(AccumuloExportConstants.CHILD_TOMCAT_URL_PROP, CHILD_TOMCAT_URL);
         parentConfig.set(AccumuloExportConstants.NTP_SERVER_HOST_PROP, TimeUtils.DEFAULT_TIME_SERVER_HOST);
         parentConfig.set(AccumuloExportConstants.USE_NTP_SERVER_PROP, Boolean.toString(USE_TIME_SYNC));
+        parentConfig.set(AccumuloExportConstants.START_TIME_PROP, AccumuloExportConstants.getStartTimeString(startDate, IS_START_TIME_DIALOG_ENABLED));
 
         final AccumuloRyaStatementStore accumuloParentRyaStatementStore = new AccumuloRyaStatementStore(parentConfig);
         final AccumuloRyaStatementStore childAccumuloRyaStatementStore = new AccumuloRyaStatementStore(childConfig);
-        final AccumuloMerger accumuloMerger = new AccumuloMerger(accumuloParentRyaStatementStore, childAccumuloRyaStatementStore);
+
+        final MergeParentMetadata mergeParentMetadata = new MergeParentMetadata(PARENT_INSTANCE, startDate, null, 0L);
+        final AccumuloParentMetadataRepository accumuloParentMetadataRepository = new AccumuloParentMetadataRepository(accumuloParentRyaStatementStore.getRyaDAO());
+        accumuloParentMetadataRepository.set(mergeParentMetadata);
+
+        final AccumuloMerger accumuloMerger = new AccumuloMerger(accumuloParentRyaStatementStore, childAccumuloRyaStatementStore, accumuloParentMetadataRepository);
         accumuloMerger.runJob();
 
         log.info("Finished running tool.");

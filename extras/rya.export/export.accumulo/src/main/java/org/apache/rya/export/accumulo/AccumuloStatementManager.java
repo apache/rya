@@ -24,14 +24,15 @@ import java.util.Date;
 import java.util.Map;
 
 import org.apache.accumulo.core.security.ColumnVisibility;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.hadoop.io.Text;
 import org.apache.log4j.Logger;
 import org.apache.rya.export.accumulo.conf.AccumuloExportConstants;
 import org.apache.rya.export.accumulo.util.TimeUtils;
 import org.apache.rya.export.api.MergerException;
-import org.apache.rya.export.api.ParentMetadataRepository.MergeParentMetadata;
-import org.apache.rya.export.api.RyaStatementStore;
 import org.apache.rya.export.api.StatementManager;
+import org.apache.rya.export.api.parent.MergeParentMetadata;
+import org.apache.rya.export.api.store.RyaStatementStore;
 
 import com.google.common.base.Charsets;
 import com.google.common.base.Optional;
@@ -50,7 +51,6 @@ public class AccumuloStatementManager implements StatementManager {
     private static final Logger log = Logger.getLogger(AccumuloStatementManager.class);
 
     private final AccumuloRyaStatementStore parentAccumuloRyaStatementStore;
-    private final AccumuloParentMetadataRepository accumuloParentMetadataRepository;
     private final MergeParentMetadata mergeParentMetadata;
     private final RyaTripleContext parentRyaTripleContext;
     private final RyaTripleContext childRyaTripleContext;
@@ -58,7 +58,7 @@ public class AccumuloStatementManager implements StatementManager {
     private boolean usesStartTime = false;
     private boolean useTimeSync = false;
     private boolean useMergeFileInput = false;
-    private Long childTimeOffset = null;
+    private Long childTimeOffset = 0L;
 
     /**
      * Creates a new instance of {@link AccumuloStatementManager}.
@@ -66,25 +66,28 @@ public class AccumuloStatementManager implements StatementManager {
      * {@link AccumuloRyaStatementStore}. (not {@code null})
      * @param parentAccumuloRyaStatementStore the child
      * {@link RyaStatementStore}. (not {@code null})
-     * @param accumuloParentMetadataRepository the
-     * {@link AccumuloParentMetadataRepository}. (not {@code null})
+     * @param mergeParentMetadata the {@link MergeParentMetadata}.
+     * (not {@code null})
      */
-    public AccumuloStatementManager(final AccumuloRyaStatementStore parentAccumuloRyaStatementStore, final RyaStatementStore childRyaStatementStore, final AccumuloParentMetadataRepository accumuloParentMetadataRepository) {
+    public AccumuloStatementManager(final AccumuloRyaStatementStore parentAccumuloRyaStatementStore, final RyaStatementStore childRyaStatementStore, final MergeParentMetadata mergeParentMetadata) {
         this.parentAccumuloRyaStatementStore = checkNotNull(parentAccumuloRyaStatementStore);
-        this.accumuloParentMetadataRepository = checkNotNull(accumuloParentMetadataRepository);
-        mergeParentMetadata = accumuloParentMetadataRepository.get();
-        parentRyaTripleContext = parentAccumuloRyaStatementStore.getRyaTripleContext();
-        childRyaTripleContext = checkNotNull(childRyaStatementStore).getRyaTripleContext();
+        this.mergeParentMetadata = checkNotNull(mergeParentMetadata);
+
+        parentRyaTripleContext = RyaTripleContext.getInstance(parentAccumuloRyaStatementStore.getRyaDAO().getConf());
+        childRyaTripleContext = RyaTripleContext.getInstance(checkNotNull(childRyaStatementStore).getRyaDAO().getConf());
 
         usesStartTime = mergeParentMetadata.getTimestamp() != null;
-        useTimeSync = parentAccumuloRyaStatementStore.getConfiguration().getBoolean(AccumuloExportConstants.USE_NTP_SERVER_PROP, false);
-        useMergeFileInput = parentAccumuloRyaStatementStore.getConfiguration().getBoolean(AccumuloExportConstants.USE_MERGE_FILE_INPUT, false);
-        childTimeOffset = Long.valueOf(parentAccumuloRyaStatementStore.getConfiguration().get(AccumuloExportConstants.CHILD_TIME_OFFSET_PROP, null));
+        useTimeSync = parentAccumuloRyaStatementStore.getRyaDAO().getConf().getBoolean(AccumuloExportConstants.USE_NTP_SERVER_PROP, false);
+        useMergeFileInput = parentAccumuloRyaStatementStore.getRyaDAO().getConf().getBoolean(AccumuloExportConstants.USE_MERGE_FILE_INPUT, false);
+        final String childTimeOffsetString = parentAccumuloRyaStatementStore.getRyaDAO().getConf().get(AccumuloExportConstants.CHILD_TIME_OFFSET_PROP, null);
+        if (StringUtils.isNotBlank(childTimeOffsetString)) {
+            childTimeOffset = Long.valueOf(childTimeOffsetString);
+        }
     }
 
     @Override
     public Optional<RyaStatement> merge(final Optional<RyaStatement> parent, final Optional<RyaStatement> child) throws MergerException {
-        final Date copyToolInputTime = mergeParentMetadata.getCopyToolInputTime();
+        final Date filterTimestamp = mergeParentMetadata.getFilterTimestamp();
         final Date startTime = mergeParentMetadata.getTimestamp();
 
         log.trace("parent = " + parent);
@@ -105,7 +108,7 @@ public class AccumuloStatementManager implements StatementManager {
             // Reached the end of the child table so delete the remaining parent keys if they meet the time criteria.
             final Date t1 = normalizeDate(new Date(parent.get().getTimestamp()), true);
             // Move on to next comparison (do nothing) or delete this key from parent
-            final boolean doNothing = usesStartTime && (copyToolInputTime != null && (t1.before(copyToolInputTime) || (t1.after(copyToolInputTime) && t1.after(startTime))) || (copyToolInputTime == null && t1.after(startTime)));
+            final boolean doNothing = usesStartTime && (filterTimestamp != null && (t1.before(filterTimestamp) || (t1.after(filterTimestamp) && t1.after(startTime))) || (filterTimestamp == null && t1.after(startTime)));
             if (!doNothing) {
                 parentAccumuloRyaStatementStore.removeStatement(parent.get());
             }
@@ -121,7 +124,7 @@ public class AccumuloStatementManager implements StatementManager {
                 // so it doesn't exist in the child table.
                 // What does this mean?  Was it added by the parent after the child was cloned? (Meaning we should leave it)
                 // Or did the child delete it after it was cloned? (Meaning we should delete it)
-                final boolean doNothing = usesStartTime && (copyToolInputTime != null && (t1.before(copyToolInputTime) || (t1.after(copyToolInputTime) && t1.after(startTime))) || (copyToolInputTime == null && t1.after(startTime)));
+                final boolean doNothing = usesStartTime && (filterTimestamp != null && (t1.before(filterTimestamp) || (t1.after(filterTimestamp) && t1.after(startTime))) || (filterTimestamp == null && t1.after(startTime)));
                 if (!doNothing) {
                     parentAccumuloRyaStatementStore.removeStatement(parent.get());
                 }
@@ -212,7 +215,7 @@ public class AccumuloStatementManager implements StatementManager {
             } else {
                 // If the timestamp is before the time the child table was copied from
                 // the parent then the timestamp originated from the parent machine
-                if (TimeUtils.dateBeforeInclusive(date, mergeParentMetadata.getCopyToolInputTime())) {
+                if (TimeUtils.dateBeforeInclusive(date, mergeParentMetadata.getFilterTimestamp())) {
                     normalizedDate = new Date(date.getTime() - mergeParentMetadata.getParentTimeOffset());
                 } else {
                     // Timestamps after the copy time originated from the child machine.

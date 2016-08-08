@@ -18,11 +18,14 @@
  */
 package org.apache.rya.export.accumulo.conf;
 
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
 import java.util.Map.Entry;
 
 import org.apache.hadoop.conf.Configuration;
+import org.apache.log4j.Logger;
 import org.apache.rya.export.accumulo.common.InstanceType;
 
 import com.google.common.collect.ImmutableList;
@@ -33,9 +36,11 @@ import mvm.rya.api.RdfCloudTripleStoreConfiguration;
 import mvm.rya.indexing.accumulo.ConfigUtils;
 
 /**
- *
+ * Constant used for Accumulo merger exports.
  */
 public class AccumuloExportConstants {
+    private static final Logger log = Logger.getLogger(AccumuloExportConstants.class);
+
     /**
      * Appended to certain config property names to indicate that the property is for the child instance.
      */
@@ -226,5 +231,48 @@ public class AccumuloExportConstants {
                 config.set(key, value);
             }
         }
+    }
+
+    /**
+     * Creates a formatted string for the start time based on the specified date and whether the dialog is to be displayed.
+     * @param startDate the start {@link Date} to format.
+     * @param isStartTimeDialogEnabled {@code true} to display the time dialog instead of using the date. {@code false}
+     * to use the provided {@code startDate}.
+     * @return the formatted start time string or {@code "dialog"}.
+     */
+    public static String getStartTimeString(final Date startDate, final boolean isStartTimeDialogEnabled) {
+        String startTimeString;
+        if (isStartTimeDialogEnabled) {
+            startTimeString = USE_START_TIME_DIALOG; // set start date from dialog box
+        } else {
+            startTimeString = convertDateToStartTimeString(startDate);
+        }
+        return startTimeString;
+    }
+
+    /**
+     * Converts the specified date into a string to use as the start time for the timestamp filter.
+     * @param date the start {@link Date} of the filter that will be formatted as a string.
+     * @return the formatted start time string.
+     */
+    public static String convertDateToStartTimeString(final Date date) {
+        final String startTimeString = START_TIME_FORMATTER.format(date);
+        return startTimeString;
+    }
+
+    /**
+     * Converts the specified string into a date to use as the start time for the timestamp filter.
+     * @param startTimeString the formatted time string.
+     * @return the start {@link Date}.
+     */
+    public static Date convertStartTimeStringToDate(final String startTimeString) {
+        Date date;
+        try {
+            date = START_TIME_FORMATTER.parse(startTimeString);
+        } catch (final ParseException e) {
+            log.error("Could not parse date", e);
+            return null;
+        }
+        return date;
     }
 }

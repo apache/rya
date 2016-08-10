@@ -330,7 +330,7 @@ public class JoinResultUpdater {
             checkNotNull(rightResults);
 
             // Both sides are required, so if there are no right results, then do not emit anything.
-            return new LazyJoiningIterator(newLeftResult, rightResults);
+            return new LazyJoiningIterator(Side.LEFT, newLeftResult, rightResults);
         }
 
         @Override
@@ -339,7 +339,7 @@ public class JoinResultUpdater {
             checkNotNull(newRightResult);
 
             // Both sides are required, so if there are no left reuslts, then do not emit anything.
-            return new LazyJoiningIterator(newRightResult, leftResults);
+            return new LazyJoiningIterator(Side.RIGHT, newRightResult, leftResults);
         }
     }
 
@@ -365,7 +365,7 @@ public class JoinResultUpdater {
 
             // Otherwise, return an iterator that holds the new required result
             // joined with the right results.
-            return new LazyJoiningIterator(newLeftResult, rightResults);
+            return new LazyJoiningIterator(Side.LEFT, newLeftResult, rightResults);
         }
 
         @Override
@@ -375,7 +375,7 @@ public class JoinResultUpdater {
 
             // The right result is optional, so if it does not join with anything
             // on the left, then do not emit anything.
-            return new LazyJoiningIterator(newRightResult, leftResults);
+            return new LazyJoiningIterator(Side.RIGHT, newRightResult, leftResults);
         }
     }
 
@@ -388,18 +388,21 @@ public class JoinResultUpdater {
      */
     private static final class LazyJoiningIterator implements Iterator<VisibilityBindingSet> {
 
+        private final Side newResultSide;
         private final VisibilityBindingSet newResult;
         private final Iterator<VisibilityBindingSet> joinedResults;
 
         /**
          * Constructs an instance of {@link LazyJoiningIterator}.
          *
+         * @param newResultSide - Indicates which side of the join the {@code newResult} arrived on. (not null)
          * @param newResult - A binding set that will be joined with some other binding sets. (not null)
-         * @param joinResults - The binding sets that will be joined with {@code newResult}. (not null)
+         * @param joinedResults - The binding sets that will be joined with {@code newResult}. (not null)
          */
-        public LazyJoiningIterator(final VisibilityBindingSet newResult, final Iterator<VisibilityBindingSet> joinResults) {
+        public LazyJoiningIterator(final Side newResultSide, final VisibilityBindingSet newResult, final Iterator<VisibilityBindingSet> joinedResults) {
+            this.newResultSide = checkNotNull(newResultSide);
             this.newResult = checkNotNull(newResult);
-            joinedResults = checkNotNull(joinResults);
+            this.joinedResults = checkNotNull(joinedResults);
         }
 
         @Override
@@ -420,10 +423,20 @@ public class JoinResultUpdater {
                 bs.addBinding(binding);
             }
 
+            // We want to make sure the visibilities are always written the same way,
+            // so figure out which are on the left side and which are on the right side.
+            final String leftVisi;
+            final String rightVisi;
+            if(newResultSide == Side.LEFT) {
+                leftVisi = newResult.getVisibility();
+                rightVisi = joinResult.getVisibility();
+            } else {
+                leftVisi = joinResult.getVisibility();
+                rightVisi = newResult.getVisibility();
+            }
+
             String visibility = "";
             final Joiner join = Joiner.on(")&(");
-            final String leftVisi = newResult.getVisibility();
-            final String rightVisi = joinResult.getVisibility();
             if(leftVisi.isEmpty() || rightVisi.isEmpty()) {
                 visibility = (leftVisi + rightVisi).trim();
             } else {

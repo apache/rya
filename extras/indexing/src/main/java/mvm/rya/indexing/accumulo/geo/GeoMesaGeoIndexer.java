@@ -221,7 +221,7 @@ public class GeoMesaGeoIndexer extends AbstractAccumuloIndexer implements GeoInd
                     + PREDICATE_ATTRIBUTE + ":String," //
                     + OBJECT_ATTRIBUTE + ":String," //
                     + CONTEXT_ATTRIBUTE + ":String," //
-                    + Constants.SF_PROPERTY_GEOMETRY + ":Geometry:srid=4326";
+                    + Constants.SF_PROPERTY_GEOMETRY + ":Geometry:srid=4326;geomesa.mixed.geometries='true'";
             featureType = SimpleFeatureTypes.createType(FEATURE_NAME, featureSchema);
             dataStore.createSchema(featureType);
         }
@@ -291,6 +291,7 @@ public class GeoMesaGeoIndexer extends AbstractAccumuloIndexer implements GeoInd
         // preserve the ID that we created for this feature
         // (set the hint to FALSE to have GeoTools generate IDs)
         newFeature.getUserData().put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE);
+        newFeature.getUserData().put("geomesa.mixed.geometries", java.lang.Boolean.TRUE);
 
         return newFeature;
     }

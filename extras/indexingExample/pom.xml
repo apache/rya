@@ -58,6 +58,12 @@ under the License.
         <dependency>
             <groupId>org.apache.accumulo</groupId>
             <artifactId>accumulo-core</artifactId>
+            <exclusions>
+            	<exclusion>
+            		<artifactId>zookeeper</artifactId>
+            		<groupId>org.apache.zookeeper</groupId>
+            	</exclusion>
+            </exclusions>
         </dependency>
 
         <dependency>

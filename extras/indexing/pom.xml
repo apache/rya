@@ -30,6 +30,12 @@
             <artifactId>accumulo-minicluster</artifactId>
             <version>${accumulo.version}</version>
             <scope>test</scope>
+            <exclusions>
+            	<exclusion>
+            		<artifactId>zookeeper</artifactId>
+            		<groupId>org.apache.zookeeper</groupId>
+            	</exclusion>
+            </exclusions>
 		</dependency>
 
 		<dependency>

@@ -201,12 +201,18 @@ public class AccumuloRyaDAO implements RyaDAO<AccumuloRdfConfiguration>, RyaName
                 //query first
                 CloseableIteration<RyaStatement, RyaDAOException> query = this.queryEngine.query(stmt, conf);
                 while (query.hasNext()) {
-                    deleteSingleRyaStatement(query.next());
+                	RyaStatement resolved = query.next();
+                    deleteSingleRyaStatement(resolved);
+                    try {
+                        for (AccumuloIndexer index : secondaryIndexers) {
+                            index.deleteStatement(resolved);
+                        }
+                    } catch (Exception indexerException) {
+                        //eat this, we don't want it to impact the rest of the delete operation.
+                        logger.warn("Failed to execute delete on AccumuloIndexer", indexerException);
+                    }
                 }
 
-                for (AccumuloIndexer index : secondaryIndexers) {
-                    index.deleteStatement(stmt);
-                }
             }
             if (flushEachUpdate) { mt_bw.flush(); }
         } catch (Exception e) {

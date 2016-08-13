@@ -280,7 +280,7 @@ public class GeoIndexerSfTest {
 
     @Test
     public void testContainsPoint() throws Exception {
-        compare(g.queryContains(F, EMPTY_CONSTRAINTS), A, F);
+        compare(g.queryContains(F, EMPTY_CONSTRAINTS), F);
     }
 
     @Test

@@ -296,7 +296,7 @@ public class InferenceEngine {
 			CloseableIteration<Statement, QueryEvaluationException> subjIter = RyaDAOHelper.query(ryaDAO, subj, OWL.SAMEAS, null, conf, contxts);
 			while (subjIter.hasNext()){
 				Statement st = subjIter.next();
-				if (!currentSameAs.contains(st.getObject())){
+				if (!currentSameAs.contains(st.getObject()) && (st.getObject() instanceof Resource) ){
 					Resource castedObj = (Resource) st.getObject();
 					currentSameAs.add(castedObj);
 					findSameAsChaining(castedObj, currentSameAs, contxts);

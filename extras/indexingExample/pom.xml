@@ -1,3 +1,4 @@
+
 <?xml version='1.0'?>
 <!--
 Licensed to the Apache Software Foundation (ASF) under one
@@ -33,27 +34,64 @@ under the License.
         <dependency>
             <groupId>org.apache.rya</groupId>
             <artifactId>rya.prospector</artifactId>
+            <exclusions>
+            	<exclusion>
+            		<artifactId>sesame-http-protocol</artifactId>
+            		<groupId>org.openrdf.sesame</groupId>
+            	</exclusion>
+            	<exclusion>
+            		<artifactId>commons-httpclient</artifactId>
+            		<groupId>commons-httpclient</groupId>
+            	</exclusion>
+            	<exclusion>
+            		<artifactId>httpclient</artifactId>
+            		<groupId>org.apache.httpcomponents</groupId>
+            	</exclusion>
+            	<exclusion>
+            		<artifactId>httpcore</artifactId>
+            		<groupId>org.apache.httpcomponents</groupId>
+            	</exclusion>
+            </exclusions>
         </dependency>
 
         <dependency>
             <groupId>org.apache.rya</groupId>
             <artifactId>mongodb.rya</artifactId>
         </dependency>
-        <dependency>
+         <dependency>
             <groupId>org.apache.rya</groupId>
-            <artifactId>rya.indexing</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.rya</groupId>
-            <artifactId>rya.indexing</artifactId>
-            <classifier>accumulo-server</classifier>
-        </dependency>
+            <artifactId>dynamodb.rya</artifactId>
+          </dependency>
 
         <dependency>
             <groupId>org.apache.rya</groupId>
             <artifactId>rya.indexing</artifactId>
-            <classifier>map-reduce</classifier>
-        </dependency>
+ 				<exclusions>
+            	<exclusion>
+            		<artifactId>sesame-http-client</artifactId>
+            		<groupId>org.openrdf.sesame</groupId>
+            	</exclusion>
+            	<exclusion>
+            		<artifactId>commons-httpclient</artifactId>
+            		<groupId>commons-httpclient</groupId>
+            	</exclusion>
+            	<exclusion>
+            		<artifactId>httpcore</artifactId>
+            		<groupId>org.apache.httpcomponents</groupId>
+            	</exclusion>
+            	<exclusion>
+            		<artifactId>sesame-http-protocol</artifactId>
+            		<groupId>org.openrdf.sesame</groupId>
+            	</exclusion>
+            	<exclusion>
+            		<artifactId>sesame-repository-http</artifactId>
+            		<groupId>org.openrdf.sesame</groupId>
+            	</exclusion>
+ 				</exclusions>       </dependency>
+        <dependency>
+            <groupId>org.apache.rya</groupId>
+            <artifactId>rya.indexing</artifactId>
+         </dependency>
 
         <dependency>
             <groupId>org.apache.accumulo</groupId>
@@ -84,6 +122,47 @@ under the License.
                     </execution>
                 </executions>
             </plugin>
-        </plugins>
+ <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-dependency-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>copy</id>
+            <phase>compile</phase>
+            <goals>
+              <goal>copy</goal>
+            </goals>
+            <configuration>
+              <artifactItems>
+                <artifactItem>
+                  <groupId>com.almworks.sqlite4java</groupId>
+                  <artifactId>sqlite4java-win32-x86</artifactId>
+                  <version>1.0.392</version>
+                  <type>dll</type>
+                  <overWrite>true</overWrite>
+                  <outputDirectory>${project.build.directory}/lib</outputDirectory>
+                </artifactItem>
+               <artifactItem>
+                  <groupId>com.almworks.sqlite4java</groupId>
+                  <artifactId>sqlite4java-win32-x64</artifactId>
+                  <version>1.0.392</version>
+                  <type>dll</type>
+                  <overWrite>true</overWrite>
+                  <outputDirectory>${project.build.directory}/lib</outputDirectory>
+                </artifactItem>
+              </artifactItems>
+            </configuration>
+          </execution>
+        </executions> 
+		</plugin>
+		</plugins>
     </build>
+        <repositories>
+        <repository>
+            <id>dynamodblocal</id>
+            <name>AWS DynamoDB Local Release Repository</name>
+            <url>http://dynamodb-local.s3-website-us-west-2.amazonaws.com/release</url>
+        </repository>
+</repositories>
+    
 </project>

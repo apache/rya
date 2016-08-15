@@ -52,6 +52,7 @@ under the License.
 
                 <!-- Do not include the MR or Accumulo Server builds -->
                 <exclude>org.apache.rya:rya.indexing:*:accumulo-server</exclude>
+                <exclude>*.so</exclude>
                 <exclude>org.apache.rya:rya.indexing:*:map-reduce</exclude>
             </excludes>
             <scope>test</scope>

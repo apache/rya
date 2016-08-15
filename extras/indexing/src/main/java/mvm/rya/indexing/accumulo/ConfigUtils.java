@@ -128,6 +128,7 @@ public class ConfigUtils {
     public static final String TEMPORAL_PREDICATES_LIST = "sc.temporal.predicates";
 
     public static final String USE_MONGO = "sc.useMongo";
+    public static final String USE_DYNAMO = "sc.useDynamo";
 
     public static boolean isDisplayQueryPlan(final Configuration conf){
         return conf.getBoolean(DISPLAY_QUERY_PLAN, false);
@@ -387,6 +388,10 @@ public class ConfigUtils {
 
     public static boolean getUseMongo(final Configuration conf) {
         return conf.getBoolean(USE_MONGO, false);
+    }
+
+    public static boolean getUseDynamo(final Configuration conf) {
+        return conf.getBoolean(USE_DYNAMO, false);
     }
 
 

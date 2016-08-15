@@ -8,6 +8,8 @@ import org.apache.accumulo.core.client.Connector;
 import org.apache.hadoop.conf.Configuration;
 import org.openrdf.sail.Sail;
 
+import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
+
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -33,6 +35,9 @@ import mvm.rya.accumulo.AccumuloRyaDAO;
 import mvm.rya.api.RdfCloudTripleStoreConfiguration;
 import mvm.rya.api.persist.RyaDAO;
 import mvm.rya.api.persist.RyaDAOException;
+import mvm.rya.dynamodb.DynamoDBUtils;
+import mvm.rya.dynamodb.dao.DynamoDAO;
+import mvm.rya.dynamodb.dao.DynamoRdfConfiguration;
 import mvm.rya.indexing.accumulo.ConfigUtils;
 import mvm.rya.mongodb.MongoDBRdfConfiguration;
 import mvm.rya.mongodb.MongoDBRyaDAO;
@@ -67,7 +72,18 @@ public class RyaSailFactory {
 
             conf.setDisplayQueryPlan(true);
             store.setRyaDAO(crdfdao);
-        } else {
+        }else if (ConfigUtils.getUseDynamo(config)){
+        	conf = new DynamoRdfConfiguration(config);
+        	crdfdao = new DynamoDAO();
+        	AmazonDynamoDB dbConn = DynamoDBUtils.getDynamoDBClientFromConf((DynamoRdfConfiguration)conf);
+        	((DynamoDAO)crdfdao).setDynamoDB(dbConn);
+        	crdfdao.setConf((DynamoRdfConfiguration)conf);
+        	crdfdao.init();
+            conf.setDisplayQueryPlan(true);
+            store.setRyaDAO(crdfdao);
+      	
+        }
+        else {
             final Connector connector = ConfigUtils.getConnector(config);
             crdfdao = new AccumuloRyaDAO();
             ((AccumuloRyaDAO)crdfdao).setConnector(connector);

@@ -95,6 +95,7 @@ public class ConfigUtils {
     public static final String USE_ENTITY = "sc.use_entity";
     public static final String USE_PCJ = "sc.use_pcj";
     public static final String USE_OPTIMAL_PCJ = "sc.use.optimal.pcj";
+    public static final String USE_PCJ_UPDATER_INDEX = "sc.use.updater";
 
     public static final String FLUO_APP_NAME = "rya.indexing.pcj.fluo.fluoAppName";
     public static final String USE_PCJ_FLUO_UPDATER = "rya.indexing.pcj.updater.fluo";
@@ -354,6 +355,10 @@ public class ConfigUtils {
     public static boolean getUseOptimalPCJ(final Configuration conf) {
         return conf.getBoolean(USE_OPTIMAL_PCJ, false);
     }
+    
+    public static boolean getUsePcjUpdaterIndex(final Configuration conf) {
+        return conf.getBoolean(USE_PCJ_UPDATER_INDEX, false);
+    }
 
 
     /**
@@ -389,10 +394,13 @@ public class ConfigUtils {
             }
         } else {
 
-            if (getUsePCJ(conf) || getUseOptimalPCJ(conf)) {
-                conf.setPcjOptimizer(PCJOptimizer.class);
-                indexList.add(PrecomputedJoinIndexer.class.getName());
-            }
+        	 if (getUsePCJ(conf) || getUseOptimalPCJ(conf)) {
+                 conf.setPcjOptimizer(PCJOptimizer.class);
+             }
+             
+             if(getUsePcjUpdaterIndex(conf)) {
+             	indexList.add(PrecomputedJoinIndexer.class.getName());
+             }
 
             if (getUseGeo(conf)) {
                 indexList.add(GeoMesaGeoIndexer.class.getName());

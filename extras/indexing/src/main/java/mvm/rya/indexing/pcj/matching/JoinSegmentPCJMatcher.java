@@ -60,6 +60,11 @@ public class JoinSegmentPCJMatcher extends AbstractPCJMatcher {
 	 */
 	@Override
 	public boolean matchPCJ(QuerySegment pcjNodes, ExternalTupleSet pcj) {
+
+        if(PCJOptimizerUtilities.pcjContainsLeftJoins(pcj)) {
+            return false;
+        }
+
 		boolean nodesReplaced = segment.replaceWithPcj(pcjNodes, pcj);
 		if (nodesReplaced) {
 			tupleAndNodesUpToDate = false;

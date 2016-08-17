@@ -24,7 +24,6 @@ import org.apache.log4j.Logger;
 import org.openrdf.model.Statement;
 import org.openrdf.query.QueryEvaluationException;
 
-import com.mongodb.MongoClient;
 import com.mongodb.QueryBuilder;
 
 import info.aduna.iteration.CloseableIteration;
@@ -36,13 +35,9 @@ import mvm.rya.indexing.mongodb.AbstractMongoIndexer;
 public class MongoFreeTextIndexer extends AbstractMongoIndexer<TextMongoDBStorageStrategy> implements FreeTextIndexer {
     private static final Logger logger = Logger.getLogger(MongoFreeTextIndexer.class);
 
-    public MongoFreeTextIndexer(final MongoClient mongoClient) {
-        super(mongoClient);
-    }
-
     @Override
-    protected void init() throws IOException{
-        super.init();
+    public void init() {
+        initCore();
         predicates = ConfigUtils.getFreeTextPredicates(conf);
         storageStrategy = new TextMongoDBStorageStrategy();
         storageStrategy.createIndices(collection);

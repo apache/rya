@@ -22,14 +22,11 @@ import static mvm.rya.indexing.mongodb.geo.GeoMongoDBStorageStrategy.GeoQueryTyp
 import static mvm.rya.indexing.mongodb.geo.GeoMongoDBStorageStrategy.GeoQueryType.INTERSECTS;
 import static mvm.rya.indexing.mongodb.geo.GeoMongoDBStorageStrategy.GeoQueryType.WITHIN;
 
-import java.io.IOException;
-
 import org.apache.log4j.Logger;
 import org.openrdf.model.Statement;
 import org.openrdf.query.QueryEvaluationException;
 
 import com.mongodb.DBObject;
-import com.mongodb.MongoClient;
 import com.vividsolutions.jts.geom.Geometry;
 
 import info.aduna.iteration.CloseableIteration;
@@ -43,13 +40,9 @@ import mvm.rya.mongodb.MongoDBRdfConfiguration;
 public class MongoGeoIndexer extends AbstractMongoIndexer<GeoMongoDBStorageStrategy> implements GeoIndexer {
     private static final Logger logger = Logger.getLogger(MongoGeoIndexer.class);
 
-    public MongoGeoIndexer(final MongoClient mongoClient) {
-        super(mongoClient);
-    }
-
     @Override
-    protected void init() throws NumberFormatException, IOException{
-        super.init();
+	public void init() {
+        initCore();
         predicates = ConfigUtils.getGeoPredicates(conf);
         storageStrategy = new GeoMongoDBStorageStrategy(Double.valueOf(conf.get(MongoDBRdfConfiguration.MONGO_GEO_MAXDISTANCE, "1e-10")));
         storageStrategy.createIndices(collection);

@@ -69,8 +69,8 @@ public class MongoFreeTextIndexerTest {
 
      @Test
     public void testSearch() throws Exception {
-        try (MongoFreeTextIndexer f = new MongoFreeTextIndexer(mongoClient)) {
-            f.setConf(conf);
+        try (MongoFreeTextIndexer f = new MongoFreeTextIndexer()) {
+            f.initIndexer(conf, mongoClient);
 
             final ValueFactory vf = new ValueFactoryImpl();
 
@@ -93,8 +93,8 @@ public class MongoFreeTextIndexerTest {
 
     @Test
     public void testDelete() throws Exception {
-        try (MongoFreeTextIndexer f = new MongoFreeTextIndexer(mongoClient)) {
-            f.setConf(conf);
+        try (MongoFreeTextIndexer f = new MongoFreeTextIndexer()) {
+            f.initIndexer(conf, mongoClient);
 
             final ValueFactory vf = new ValueFactoryImpl();
 
@@ -143,8 +143,8 @@ public class MongoFreeTextIndexerTest {
     public void testRestrictPredicatesSearch() throws Exception {
         conf.setStrings(ConfigUtils.FREETEXT_PREDICATES_LIST, "pred:1,pred:2");
 
-        try (MongoFreeTextIndexer f = new MongoFreeTextIndexer(mongoClient)) {
-            f.setConf(conf);
+        try (MongoFreeTextIndexer f = new MongoFreeTextIndexer()) {
+            f.initIndexer(conf, mongoClient);
 
             // These should not be stored because they are not in the predicate list
             f.storeStatement(new RyaStatement(new RyaURI("foo:subj1"), new RyaURI(RDFS.LABEL.toString()), new RyaType("invalid")));
@@ -176,8 +176,8 @@ public class MongoFreeTextIndexerTest {
 
     @Test
     public void testContextSearch() throws Exception {
-        try (MongoFreeTextIndexer f = new MongoFreeTextIndexer(mongoClient)) {
-            f.setConf(conf);
+        try (MongoFreeTextIndexer f = new MongoFreeTextIndexer()) {
+            f.initIndexer(conf, mongoClient);
 
             final ValueFactory vf = new ValueFactoryImpl();
             final URI subject = new URIImpl("foo:subj");

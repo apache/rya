@@ -22,15 +22,12 @@ import static mvm.rya.indexing.mongodb.temporal.TemporalMongoDBStorageStrategy.I
 import static mvm.rya.indexing.mongodb.temporal.TemporalMongoDBStorageStrategy.INTERVAL_END;
 import static mvm.rya.indexing.mongodb.temporal.TemporalMongoDBStorageStrategy.INTERVAL_START;
 
-import java.io.IOException;
-
 import org.apache.log4j.Logger;
 import org.openrdf.model.Statement;
 import org.openrdf.query.QueryEvaluationException;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.mongodb.DBCollection;
-import com.mongodb.MongoClient;
 import com.mongodb.QueryBuilder;
 
 import info.aduna.iteration.CloseableIteration;
@@ -48,17 +45,9 @@ public class MongoTemporalIndexer extends AbstractMongoIndexer<TemporalMongoDBSt
     private static final String COLLECTION_SUFFIX = "temporal";
     private static final Logger LOG = Logger.getLogger(MongoTemporalIndexer.class);
 
-    /**
-     * Creates a new {@link MongoTemporalIndexer}
-     * @param mongoClient - The {@link MongoClient} used to interact with MongoDB.
-     */
-    public MongoTemporalIndexer(final MongoClient mongoClient) {
-        super(mongoClient);
-    }
-
     @Override
-    protected void init() throws IOException{
-        super.init();
+    public void init() {
+        initCore();
         predicates = ConfigUtils.getTemporalPredicates(conf);
         storageStrategy = new TemporalMongoDBStorageStrategy();
         storageStrategy.createIndices(collection);

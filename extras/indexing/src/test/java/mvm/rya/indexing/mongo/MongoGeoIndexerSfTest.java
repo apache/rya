@@ -121,8 +121,8 @@ public class MongoGeoIndexerSfTest {
 
         final MongodForTestsFactory testsFactory = MongodForTestsFactory.with(Version.Main.PRODUCTION);
         final MongoClient mongoClient = testsFactory.newMongo();
-        g = new MongoGeoIndexer(mongoClient);
-        g.setConf(conf);
+        g = new MongoGeoIndexer();
+        g.initIndexer(conf, mongoClient);
         g.storeStatement(statement(A));
         g.storeStatement(statement(B));
         g.storeStatement(statement(C));

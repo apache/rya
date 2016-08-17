@@ -192,8 +192,8 @@ public final class MongoTemporalIndexerTest {
 
         final MongodForTestsFactory testsFactory = MongodForTestsFactory.with(Version.Main.PRODUCTION);
         final MongoClient mongoClient = testsFactory.newMongo();
-        tIndexer = new MongoTemporalIndexer(mongoClient);
-        tIndexer.setConf(conf);
+        tIndexer = new MongoTemporalIndexer();
+        tIndexer.initIndexer(conf, mongoClient);
 
 
         final String dbName = conf.get(MongoDBRdfConfiguration.MONGO_DB_NAME);

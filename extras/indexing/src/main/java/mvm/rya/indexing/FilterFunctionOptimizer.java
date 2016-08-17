@@ -68,6 +68,7 @@ import mvm.rya.indexing.accumulo.freetext.FreeTextTupleSet;
 import mvm.rya.indexing.accumulo.geo.GeoMesaGeoIndexer;
 import mvm.rya.indexing.accumulo.geo.GeoTupleSet;
 import mvm.rya.indexing.accumulo.temporal.AccumuloTemporalIndexer;
+import mvm.rya.indexing.mongodb.AbstractMongoIndexer;
 import mvm.rya.indexing.mongodb.freetext.MongoFreeTextIndexer;
 import mvm.rya.indexing.mongodb.geo.MongoGeoIndexer;
 import mvm.rya.indexing.mongodb.temporal.MongoTemporalIndexer;
@@ -99,29 +100,18 @@ public class FilterFunctionOptimizer implements QueryOptimizer, Configurable {
         this.conf = conf;
         //reset the init.
         init = false;
-        try {
             init();
-        } catch (final NumberFormatException | UnknownHostException e) {
-            LOG.error("Unable to update to use new config, falling back to the old config.", e);
-            init = true;
-        }
     }
 
-    private synchronized void init() throws NumberFormatException, UnknownHostException {
+    private synchronized void init() {
         if (!init) {
             if (ConfigUtils.getUseMongo(conf)) {
-                try {
-                    final MongoClient mongoClient = MongoConnectorFactory.getMongoClient(conf);
-                    geoIndexer = new MongoGeoIndexer(mongoClient);
+                    geoIndexer = new MongoGeoIndexer();
                     geoIndexer.setConf(conf);
-                    freeTextIndexer = new MongoFreeTextIndexer(mongoClient);
+                    freeTextIndexer = new MongoFreeTextIndexer();
                     freeTextIndexer.setConf(conf);
-                    temporalIndexer = new MongoTemporalIndexer(mongoClient);
+                    temporalIndexer = new MongoTemporalIndexer();
                     temporalIndexer.setConf(conf);
-                } catch (NumberFormatException | UnknownHostException e) {
-                    LOG.error("Unable to connect to mongo.", e);
-                    throw e;
-                }
             } else {
                 geoIndexer = new GeoMesaGeoIndexer();
                 geoIndexer.setConf(conf);

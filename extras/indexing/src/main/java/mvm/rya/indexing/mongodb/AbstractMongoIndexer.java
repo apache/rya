@@ -1,7 +1,5 @@
 package mvm.rya.indexing.mongodb;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -42,20 +40,23 @@ import com.mongodb.QueryBuilder;
 import info.aduna.iteration.CloseableIteration;
 import mvm.rya.api.domain.RyaStatement;
 import mvm.rya.api.domain.RyaURI;
-import mvm.rya.api.persist.index.RyaSecondaryIndexer;
 import mvm.rya.api.resolver.RyaToRdfConversions;
 import mvm.rya.indexing.StatementConstraints;
+import mvm.rya.mongodb.MongoConnectorFactory;
 import mvm.rya.mongodb.MongoDBRdfConfiguration;
+import mvm.rya.mongodb.MongoDBRyaDAO;
+import mvm.rya.mongodb.MongoSecondaryIndex;
 
 /**
  * Secondary Indexer using MondoDB
  * @param <T> - The {@link AbstractMongoIndexingStorageStrategy} this indexer uses.
  */
-public abstract class AbstractMongoIndexer<T extends IndexingMongoDBStorageStrategy> implements RyaSecondaryIndexer {
+public abstract class AbstractMongoIndexer<T extends IndexingMongoDBStorageStrategy> implements MongoSecondaryIndex {
     private static final Logger LOG = Logger.getLogger(AbstractMongoIndexer.class);
 
     private boolean isInit = false;
     protected Configuration conf;
+    protected MongoDBRyaDAO dao;
     protected MongoClient mongoClient;
     protected String dbName;
     protected DB db;
@@ -64,31 +65,32 @@ public abstract class AbstractMongoIndexer<T extends IndexingMongoDBStorageStrat
 
     protected T storageStrategy;
 
-    /**
-     * Creates a new {@link AbstractMongoIndexer} with the provided mongo client.
-     * @param mongoClient The {@link MongoClient} to use with this indexer.
-     */
-    public AbstractMongoIndexer(final MongoClient mongoClient) {
-        this.mongoClient = checkNotNull(mongoClient);
-    }
-
-    protected void init() throws NumberFormatException, IOException{
+    protected void initCore() {
         dbName = conf.get(MongoDBRdfConfiguration.MONGO_DB_NAME);
         db = this.mongoClient.getDB(dbName);
         collection = db.getCollection(conf.get(MongoDBRdfConfiguration.MONGO_COLLECTION_PREFIX, "rya") + getCollectionName());
+    }
+    
+    public void setClient(MongoClient client){
+    	this.mongoClient = client;
+    }
+
+    // TODO this method is only intended to be used in testing
+    public void initIndexer(final Configuration conf, final MongoClient client) {
+        setConf(conf);
+        setClient(client);
+        if (!isInit) {
+            init();
+            isInit = true;
+        }
     }
 
     @Override
     public void setConf(final Configuration conf) {
         this.conf = conf;
-        if (!isInit) {
-            try {
-                init();
-                isInit = true;
-            } catch (final NumberFormatException | IOException e) {
-                LOG.warn("Unable to initialize index.  Throwing Runtime Exception. ", e);
-                throw new RuntimeException(e);
-            }
+        if (!isInit){
+        	setClient(MongoConnectorFactory.getMongoClient(conf));
+        	init();
         }
     }
 

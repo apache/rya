@@ -60,6 +60,10 @@ public class MongoRyaDirectExample {
     private static final boolean PRINT_QUERIES = true;
     private static final String MONGO_DB = "rya";
     private static final String MONGO_COLL_PREFIX = "rya_";
+    private static final boolean USE_MOCK = true;
+    private static final boolean USE_INFER = true;
+    private static final String MONGO_INSTANCE_URL = "localhost";
+    private static final String MONGO_INSTANCE_PORT = "27017";
 
     public static void main(String[] args) throws Exception {
         Configuration conf = getConf();
@@ -80,7 +84,10 @@ public class MongoRyaDirectExample {
             testAddNamespaces(conn);
             testAddPointAndWithinSearch(conn);
             testAddAndFreeTextSearchWithPCJ(conn);
-            testInfer(conn, sail);
+            // to test out inference, set inference to true in the conf
+            if (USE_INFER){
+            	testInfer(conn, sail);
+            }
 
             log.info("TIME: " + (System.currentTimeMillis() - start) / 1000.);
         } finally {
@@ -249,10 +256,16 @@ public class MongoRyaDirectExample {
 
         MongoDBRdfConfiguration conf = new MongoDBRdfConfiguration();
         conf.set(ConfigUtils.USE_MONGO, "true");
+
         // User name and password must be filled in:
         conf.set(MongoDBRdfConfiguration.MONGO_USER, "fill this in");
         conf.set(MongoDBRdfConfiguration.MONGO_USER_PASSWORD, "fill this in");
-        conf.set(MongoDBRdfConfiguration.USE_TEST_MONGO, "true");
+        conf.set(MongoDBRdfConfiguration.USE_TEST_MONGO, Boolean.toString(USE_MOCK));
+        if (!USE_MOCK){
+            conf.set(MongoDBRdfConfiguration.MONGO_INSTANCE, MONGO_INSTANCE_URL);
+            conf.set(MongoDBRdfConfiguration.MONGO_INSTANCE_PORT, MONGO_INSTANCE_PORT);
+        	
+        }
         conf.set(MongoDBRdfConfiguration.MONGO_DB_NAME, MONGO_DB);
         conf.set(MongoDBRdfConfiguration.MONGO_COLLECTION_PREFIX, MONGO_COLL_PREFIX);
         conf.set(ConfigUtils.GEO_PREDICATES_LIST, "http://www.opengis.net/ont/geosparql#asWKT");
@@ -261,6 +274,8 @@ public class MongoRyaDirectExample {
         conf.setTablePrefix(MONGO_COLL_PREFIX);
         conf.set(ConfigUtils.GEO_PREDICATES_LIST, GeoConstants.GEO_AS_WKT.stringValue());
         conf.set(ConfigUtils.FREETEXT_PREDICATES_LIST, RDFS.LABEL.stringValue());
+        conf.set(ConfigUtils.FREETEXT_PREDICATES_LIST, RDFS.LABEL.stringValue());
+        conf.set(RdfCloudTripleStoreConfiguration.CONF_INFER, Boolean.toString(USE_INFER));
         return conf;
     }
 

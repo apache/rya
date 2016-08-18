@@ -34,16 +34,18 @@ import org.junit.Test;
 import com.google.common.base.Optional;
 import com.google.common.collect.Lists;
 
-import mvm.rya.api.client.RyaClientException;
-import mvm.rya.api.client.RyaClient;
+import mvm.rya.api.client.BatchUpdatePCJ;
 import mvm.rya.api.client.CreatePCJ;
 import mvm.rya.api.client.DeletePCJ;
 import mvm.rya.api.client.GetInstanceDetails;
 import mvm.rya.api.client.Install;
-import mvm.rya.api.client.InstanceDoesNotExistException;
-import mvm.rya.api.client.ListInstances;
 import mvm.rya.api.client.Install.DuplicateInstanceNameException;
 import mvm.rya.api.client.Install.InstallConfiguration;
+import mvm.rya.api.client.InstanceDoesNotExistException;
+import mvm.rya.api.client.ListInstances;
+import mvm.rya.api.client.PCJDoesNotExistException;
+import mvm.rya.api.client.RyaClient;
+import mvm.rya.api.client.RyaClientException;
 import mvm.rya.api.client.accumulo.AccumuloConnectionDetails;
 import mvm.rya.api.instance.RyaDetails;
 import mvm.rya.api.instance.RyaDetails.EntityCentricIndexDetails;
@@ -120,6 +122,33 @@ public class RyaAdminCommandsTest {
         // Verify a message is returned that explains what was deleted.
         final String expected = "The PCJ has been deleted.";
         assertEquals(expected, message);
+    }
+
+    @Test
+    public void batchUpdatePCJ() throws InstanceDoesNotExistException, PCJDoesNotExistException, RyaClientException {
+        // Mock the object that performs the update PCJ operation.
+        final BatchUpdatePCJ mockBatchUpdatePCJ = mock(BatchUpdatePCJ.class);
+
+        final RyaClient mockRyaClient = mock(RyaClient.class);
+        when(mockRyaClient.getBatchUpdatePCJ()).thenReturn( mockBatchUpdatePCJ );
+
+        final SharedShellState state = new SharedShellState();
+        state.connectedToAccumulo(mock(AccumuloConnectionDetails.class), mockRyaClient);
+        final String instanceName = "unitTests";
+        state.connectedToInstance(instanceName);
+
+        // Execute the command.
+        final String pcjId = "12343214312";
+
+        final RyaAdminCommands commands = new RyaAdminCommands(state, mock(InstallPrompt.class), mock(SparqlPrompt.class));
+        final String message = commands.batchUpdatePcj(pcjId);
+
+        // Verify the values that were provided to the command were passed through to the BatchUpdatePCJ.
+        verify(mockBatchUpdatePCJ).batchUpdate(eq(instanceName), eq(pcjId));
+
+        // Verify a message is returned that explains what was updated.
+        final String expected = "The PCJ's results have been updated.";
+        assertEquals(message, expected);
     }
 
     @Test

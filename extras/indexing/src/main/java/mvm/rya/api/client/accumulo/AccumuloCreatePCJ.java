@@ -92,13 +92,6 @@ public class AccumuloCreatePCJ extends AccumuloCommand implements CreatePCJ {
             throw new RyaClientException(String.format("The '%s' instance of Rya does not have PCJ Indexing enabled.", instanceName));
         }
 
-        final Optional<FluoDetails> fluoDetailsHolder = pcjIndexDetails.getFluoDetails();
-        final boolean usingFluo = fluoDetailsHolder.isPresent();
-        if(!usingFluo) {
-            throw new RyaClientException( String.format("Can not create a PCJ for the '%s' instance of Rya because it does" +
-                    "not have a Fluo application associated with it. Update the instance's PCJ Index Details to fix this problem.", instanceName) );
-        }
-
         // Create the PCJ table that will receive the index results.
         final String pcjId;
         final PrecomputedJoinStorage pcjStorage = new AccumuloPcjStorage(getConnector(), instanceName);
@@ -108,33 +101,36 @@ public class AccumuloCreatePCJ extends AccumuloCommand implements CreatePCJ {
             throw new RyaClientException("Problem while initializing the PCJ table.", e);
         }
 
-        // Task the Fluo application with updating the PCJ.
-        final String fluoAppName = fluoDetailsHolder.get().getUpdateAppName();
-        try {
-            updateFluoApp(instanceName, fluoAppName, pcjStorage, pcjId);
-        } catch (RepositoryException | MalformedQueryException | SailException | QueryEvaluationException | PcjException e) {
-            throw new RyaClientException("Problem while initializing the Fluo application with the new PCJ.", e);
-        }
+        // If a Fluo application is being used, task it with updating the PCJ.
+        final Optional<FluoDetails> fluoDetailsHolder = pcjIndexDetails.getFluoDetails();
+        if(fluoDetailsHolder.isPresent()) {
+            final String fluoAppName = fluoDetailsHolder.get().getUpdateAppName();
+            try {
+                updateFluoApp(instanceName, fluoAppName, pcjStorage, pcjId);
+            } catch (RepositoryException | MalformedQueryException | SailException | QueryEvaluationException | PcjException e) {
+                throw new RyaClientException("Problem while initializing the Fluo application with the new PCJ.", e);
+            }
 
-        // Update the Rya Details to indicate the PCJ is being updated incrementally.
-        final RyaDetailsRepository detailsRepo = new AccumuloRyaInstanceDetailsRepository(getConnector(), instanceName);
-        try {
-            new RyaDetailsUpdater(detailsRepo).update(new RyaDetailsMutator() {
-                @Override
-                public RyaDetails mutate(final RyaDetails originalDetails) throws CouldNotApplyMutationException {
-                    // Update the original PCJ Details to indicate they are incrementally updated.
-                    final PCJDetails originalPCJDetails = originalDetails.getPCJIndexDetails().getPCJDetails().get(pcjId);
-                    final PCJDetails.Builder mutatedPCJDetails = PCJDetails.builder( originalPCJDetails )
-                        .setUpdateStrategy( PCJUpdateStrategy.INCREMENTAL );
+            // Update the Rya Details to indicate the PCJ is being updated incrementally.
+            final RyaDetailsRepository detailsRepo = new AccumuloRyaInstanceDetailsRepository(getConnector(), instanceName);
+            try {
+                new RyaDetailsUpdater(detailsRepo).update(new RyaDetailsMutator() {
+                    @Override
+                    public RyaDetails mutate(final RyaDetails originalDetails) throws CouldNotApplyMutationException {
+                        // Update the original PCJ Details to indicate they are incrementally updated.
+                        final PCJDetails originalPCJDetails = originalDetails.getPCJIndexDetails().getPCJDetails().get(pcjId);
+                        final PCJDetails.Builder mutatedPCJDetails = PCJDetails.builder( originalPCJDetails )
+                            .setUpdateStrategy( PCJUpdateStrategy.INCREMENTAL );
 
-                    // Replace the old PCJ Details with the updated ones.
-                    final RyaDetails.Builder builder = RyaDetails.builder(originalDetails);
-                    builder.getPCJIndexDetails().addPCJDetails( mutatedPCJDetails );
-                    return builder.build();
-                }
-            });
-        } catch (RyaDetailsRepositoryException | CouldNotApplyMutationException e) {
-            throw new RyaClientException("Problem while updating the Rya instance's Details to indicate the PCJ is being incrementally updated.", e);
+                        // Replace the old PCJ Details with the updated ones.
+                        final RyaDetails.Builder builder = RyaDetails.builder(originalDetails);
+                        builder.getPCJIndexDetails().addPCJDetails( mutatedPCJDetails );
+                        return builder.build();
+                    }
+                });
+            } catch (RyaDetailsRepositoryException | CouldNotApplyMutationException e) {
+                throw new RyaClientException("Problem while updating the Rya instance's Details to indicate the PCJ is being incrementally updated.", e);
+            }
         }
 
         // Return the ID that was assigned to the PCJ.

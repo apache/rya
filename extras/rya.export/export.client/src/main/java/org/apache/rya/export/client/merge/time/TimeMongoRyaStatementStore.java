@@ -10,18 +10,17 @@ import java.util.List;
 
 import org.apache.commons.lang.builder.EqualsBuilder;
 import org.apache.commons.lang.builder.HashCodeBuilder;
-import org.apache.rya.export.api.store.RyaStatementStoreDecorator;
 import org.apache.rya.export.mongo.MongoRyaStatementStore;
+import org.apache.rya.export.mongo.MongoRyaStatementStoreDecorator;
 
 import com.mongodb.BasicDBObject;
 import com.mongodb.Cursor;
 import com.mongodb.DB;
-import com.mongodb.MongoClient;
 
 import mvm.rya.api.domain.RyaStatement;
 import mvm.rya.mongodb.dao.SimpleMongoDBStorageStrategy;
 
-public class TimeMongoRyaStatementStore extends RyaStatementStoreDecorator {
+public class TimeMongoRyaStatementStore extends MongoRyaStatementStoreDecorator {
     private final Date time;
     private final DB db;
 
@@ -32,10 +31,10 @@ public class TimeMongoRyaStatementStore extends RyaStatementStoreDecorator {
      * @param ryaInstance
      * @param time
      */
-    public TimeMongoRyaStatementStore(final MongoRyaStatementStore store, final MongoClient client, final Date time, final String ryaInstanceName) {
+    public TimeMongoRyaStatementStore(final MongoRyaStatementStore store, final Date time, final String ryaInstanceName) {
         super(store);
         this.time = checkNotNull(time);
-        db = client.getDB(ryaInstanceName);
+        db = getClient().getDB(ryaInstanceName);
         adapter = new SimpleMongoDBStorageStrategy();
     }
 
@@ -45,8 +44,9 @@ public class TimeMongoRyaStatementStore extends RyaStatementStoreDecorator {
      */
     @Override
     public Iterator<RyaStatement> fetchStatements() {
-        final BasicDBObject dbo = new BasicDBObject(TIMESTAMP, time);
-        final Cursor cur = db.getCollection(MongoRyaStatementStore.TRIPLES_COLLECTION).find(dbo);
+        //RyaStatement timestamps are stored as longs, not dates.
+        final BasicDBObject dbo = new BasicDBObject(TIMESTAMP, new BasicDBObject("$gte", time.getTime()));
+        final Cursor cur = db.getCollection(MongoRyaStatementStore.TRIPLES_COLLECTION).find(dbo).sort(new BasicDBObject(TIMESTAMP, 1));
         final List<RyaStatement> statements = new ArrayList<>();
         while(cur.hasNext()) {
             final RyaStatement statement = adapter.deserializeDBObject(cur.next());
@@ -60,8 +60,8 @@ public class TimeMongoRyaStatementStore extends RyaStatementStoreDecorator {
         if(obj instanceof TimeMongoRyaStatementStore) {
             final TimeMongoRyaStatementStore other = (TimeMongoRyaStatementStore) obj;
             final EqualsBuilder builder = new EqualsBuilder()
-                    .appendSuper(super.equals(obj))
-                    .append(time, other.time);
+                .appendSuper(super.equals(obj))
+                .append(time, other.time);
             return builder.isEquals();
         }
         return false;

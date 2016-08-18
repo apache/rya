@@ -23,6 +23,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import java.io.IOException;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -31,8 +32,7 @@ import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
 import org.apache.log4j.Logger;
 import org.apache.rya.indexing.pcj.fluo.app.observers.QueryResultObserver;
-import org.junit.After;
-import org.junit.Before;
+import org.junit.AfterClass;
 import org.openrdf.model.Statement;
 import org.openrdf.model.vocabulary.XMLSchema;
 import org.openrdf.query.Binding;
@@ -73,35 +73,52 @@ public abstract class ITBase {
     protected static final String PASSWORD = "password";
 
     // Rya data store and connections.
-    protected RyaSailRepository ryaRepo = null;
-    protected RepositoryConnection ryaConn = null;
+    protected static List<RyaSailRepository> ryaRepos = new ArrayList<>();
+    protected static List<RepositoryConnection> ryaConns = new ArrayList<>();
+
+    // Rya mongo configs
+    protected static Map<MongoClient, MongoDBRdfConfiguration> configs = new HashMap<>();
 
     // Test Mongos
-    private MongodForTestsFactory mongodTestFactory;
-    protected List<MongoClient> clients = new ArrayList<>();
-
-    @Before
-    public void setup() throws IOException {
-        mongodTestFactory = new MongodForTestsFactory();
-    }
+    protected static List<MongoClient> clients = new ArrayList<>();
 
     /**
      * @return A new {@link MongoClient}.  Note: This does not have RYA installed.
      * @throws MongoException
-     * @throws UnknownHostException
+     * @throws InferenceEngineException
+     * @throws RyaDAOException
+     * @throws AccumuloSecurityException
+     * @throws AccumuloException
+     * @throws RepositoryException
+     * @throws NumberFormatException
+     * @throws IOException
      */
-    public MongoClient getnewMongoResources() throws UnknownHostException, MongoException {
+    public MongoClient getnewMongoResources(final String ryaInstanceName) throws MongoException, NumberFormatException, RepositoryException, AccumuloException, AccumuloSecurityException, RyaDAOException, InferenceEngineException, IOException {
         // Initialize the test mongo that will be used to host rya.
+        final MongodForTestsFactory mongodTestFactory = new MongodForTestsFactory();
         final MongoClient newClient = mongodTestFactory.newMongo();
+        System.out.println(newClient.getConnectPoint());
         clients.add(newClient);
+        final String host = newClient.getAddress().getHost();
+        final int port = newClient.getAddress().getPort();
+        final RyaSailRepository newRepo = setupRya(ryaInstanceName, host, port, newClient);
+        ryaRepos.add(newRepo);
         return newClient;
     }
 
-    @After
-    public void shutdownMiniResources() {
+    @AfterClass
+    public static void shutdownMiniResources() throws RepositoryException {
+        for(final RyaSailRepository repo : ryaRepos) {
+            repo.shutDown();
+        }
+        for(final RepositoryConnection conn : ryaConns) {
+            conn.close();
+        }
         for(final MongoClient client : clients) {
             client.close();
         }
+        ryaRepos.clear();
+        ryaConns.clear();
         clients.clear();
     }
 
@@ -146,6 +163,7 @@ public abstract class ITBase {
         } else {
             builder.setObject(new RyaType(object));
         }
+        builder.setTimestamp(new Date().getTime());
 
         return builder.build();
     }
@@ -208,30 +226,44 @@ public abstract class ITBase {
       * @throws UnknownHostException
       * @throws InferenceEngineException
       */
-    protected static RyaSailRepository setupRya(final String user, final String password, final String ryaInstanceName)
+    protected static RyaSailRepository setupRya(final String ryaInstanceName,
+            final String hostname, final int port, final MongoClient client)
             throws AccumuloException, AccumuloSecurityException, RepositoryException, RyaDAOException,
             NumberFormatException, UnknownHostException, InferenceEngineException {
-        checkNotNull(user);
-        checkNotNull(password);
         checkNotNull(ryaInstanceName);
 
         // Setup Rya configuration values.
-        final MongoDBRdfConfiguration conf = new MongoDBRdfConfiguration();
-        conf.setTablePrefix(RYA_TABLE_PREFIX);
-        conf.setDisplayQueryPlan(true);
-        conf.setBoolean(ConfigUtils.USE_MOCK_INSTANCE, false);
-        conf.set(ConfigUtils.CLOUDBASE_USER, user);
-        conf.set(ConfigUtils.CLOUDBASE_PASSWORD, password);
-        conf.set(MongoDBRdfConfiguration.USE_TEST_MONGO, "false");
-        conf.set(MongoDBRdfConfiguration.MONGO_DB_NAME, "test");
-        conf.set(MongoDBRdfConfiguration.MONGO_COLLECTION_PREFIX, "rya_");
-        conf.set(RdfCloudTripleStoreConfiguration.CONF_TBL_PREFIX, "rya_");
+        final MongoDBRdfConfiguration conf = getConf(ryaInstanceName, hostname, port);
+        configs.put(client, conf);
 
         final Sail sail = RyaSailFactory.getInstance(conf);
         final RyaSailRepository ryaRepo = new RyaSailRepository(sail);
         ryaRepo.initialize();
 
         return ryaRepo;
+    }
+
+    protected static MongoDBRdfConfiguration getConf(final String ryaInstanceName,
+            final String hostname, final int port) {
+        final MongoDBRdfConfiguration conf = new MongoDBRdfConfiguration();
+        conf.setBoolean(ConfigUtils.USE_MONGO, true);
+        conf.setTablePrefix(RYA_TABLE_PREFIX);
+        conf.setDisplayQueryPlan(true);
+        conf.setBoolean(ConfigUtils.USE_MOCK_INSTANCE, false);
+        conf.set(ConfigUtils.CLOUDBASE_USER, USER);
+        conf.set(ConfigUtils.CLOUDBASE_PASSWORD, PASSWORD);
+        conf.set(MongoDBRdfConfiguration.USE_TEST_MONGO, "false");
+        conf.set(MongoDBRdfConfiguration.MONGO_DB_NAME, "test");
+        conf.set(MongoDBRdfConfiguration.MONGO_COLLECTION_PREFIX, "rya_");
+        conf.set(RdfCloudTripleStoreConfiguration.CONF_TBL_PREFIX, "rya_");
+        conf.setMongoPort(""+port);
+        conf.setMongoInstance(hostname);
+        conf.setMongoDBName(ryaInstanceName);
+        return conf;
+    }
+
+    protected MongoDBRdfConfiguration getConf(final MongoClient client) {
+        return configs.get(client);
     }
 
     /**

@@ -19,6 +19,7 @@
 package org.apache.rya.export.mongo;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static mvm.rya.mongodb.dao.SimpleMongoDBStorageStrategy.TIMESTAMP;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -29,6 +30,7 @@ import org.apache.rya.export.api.store.ContainsStatementException;
 import org.apache.rya.export.api.store.RemoveStatementException;
 import org.apache.rya.export.api.store.RyaStatementStore;
 
+import com.mongodb.BasicDBObject;
 import com.mongodb.Cursor;
 import com.mongodb.DB;
 import com.mongodb.DBObject;
@@ -44,35 +46,30 @@ import mvm.rya.mongodb.dao.SimpleMongoDBStorageStrategy;
  * importing rya statements from MongoDB.
  */
 public class MongoRyaStatementStore implements RyaStatementStore{
-    public static final String TRIPLES_COLLECTION = "triples";
+    public static final String TRIPLES_COLLECTION = "rya__triples";
     private final SimpleMongoDBStorageStrategy adapter;
     private final DB db;
 
     private final String ryaInstanceName;
     private final MongoClient client;
-    private MongoDBRyaDAO dao;
+    private final MongoDBRyaDAO dao;
 
     /**
      * Creates a new {@link MongoRyaStatementStore}.
      * @param client - The client to connect to Mongo.
      * @param ryaInstance - The rya instance to connect to.
      */
-    public MongoRyaStatementStore(final MongoClient client, final String ryaInstance) {
+    public MongoRyaStatementStore(final MongoClient client, final String ryaInstance, final MongoDBRyaDAO dao) {
         this.client = checkNotNull(client);
         ryaInstanceName = checkNotNull(ryaInstance);
+        this.dao = checkNotNull(dao);
         db = this.client.getDB(ryaInstanceName);
         adapter = new SimpleMongoDBStorageStrategy();
-        try {
-            dao = new MongoDBRyaDAO(null, client);
-        } catch (final RyaDAOException e) {
-            dao = null;
-            e.printStackTrace();
-        }
     }
 
     @Override
     public Iterator<RyaStatement> fetchStatements() {
-        final Cursor cur = db.getCollection(TRIPLES_COLLECTION).find();
+        final Cursor cur = db.getCollection(TRIPLES_COLLECTION).find().sort(new BasicDBObject(TIMESTAMP, 1));
         final List<RyaStatement> statements = new ArrayList<>();
         while(cur.hasNext()) {
             final RyaStatement statement = adapter.deserializeDBObject(cur.next());
@@ -103,6 +100,10 @@ public class MongoRyaStatementStore implements RyaStatementStore{
     @Override
     public boolean containsStatement(final RyaStatement statement) throws ContainsStatementException {
         final DBObject dbo = adapter.serialize(statement);
-        return db.getCollection("triples").find(dbo).count() > 0;
+        return db.getCollection(TRIPLES_COLLECTION).find(dbo).count() > 0;
+    }
+
+    protected MongoClient getClient() {
+        return client;
     }
 }

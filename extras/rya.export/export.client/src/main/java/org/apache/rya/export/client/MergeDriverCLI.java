@@ -38,10 +38,6 @@ import org.apache.rya.export.accumulo.common.InstanceType;
 import org.apache.rya.export.accumulo.conf.AccumuloExportConstants;
 import org.apache.rya.export.accumulo.util.TimeUtils;
 import org.apache.rya.export.api.parent.ParentMetadataRepository;
-import org.apache.rya.export.api.store.RyaStatementStore;
-import org.apache.rya.export.client.merge.ExportStatementMerger;
-import org.apache.rya.export.client.merge.MemoryTimeMerger;
-import org.apache.rya.export.mongo.MongoRyaStatementStore;
 import org.apache.rya.export.mongo.parent.MongoParentMetadataRepository;
 import org.apache.rya.export.api.MergerException;
 import org.apache.rya.export.api.conf.MergeConfiguration;
@@ -86,10 +82,10 @@ public class MergeDriverCLI {
 
         final Date startTime = config.getRyaStatementMergeTime();
         final MongoClient client = new MongoClient(configuration.getParentHostname(), configuration.getParentPort());
-        final RyaStatementStore parentStore = new MongoRyaStatementStore(client, configuration.getParentRyaInstanceName());
+        //final RyaStatementStore parentStore = new MongoRyaStatementStore(client, configuration.getParentRyaInstanceName());
         final ParentMetadataRepository parentMetadataRepo = new MongoParentMetadataRepository(client, configuration.getParentRyaInstanceName());
 
-        final RyaStatementStore childStore = new MongoRyaStatementStore(client, configuration.getChildRyaInstanceName());
+        //final RyaStatementStore childStore = new MongoRyaStatementStore(client, configuration.getChildRyaInstanceName());
         final ParentMetadataRepository childMetadataRepo = new MongoParentMetadataRepository(client, configuration.getChildRyaInstanceName());
 
 
@@ -184,10 +180,10 @@ public class MergeDriverCLI {
             }
         });
 
-        final MemoryTimeMerger merger = new MemoryTimeMerger(parentStore, childStore,
+        /*final MemoryTimeMerger merger = new MemoryTimeMerger(parentStore, childStore,
                 parentMetadataRepo, childMetadataRepo, new ExportStatementMerger(),
                 startTime, configuration.getParentRyaInstanceName());
-        merger.runJob();
+        merger.runJob();*/
 
         LOG.info("Finished running Merge Tool");
         System.exit(1);

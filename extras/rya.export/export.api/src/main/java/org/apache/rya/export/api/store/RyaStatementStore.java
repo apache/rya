@@ -39,7 +39,8 @@ import mvm.rya.api.persist.RyaDAO;
 public interface RyaStatementStore {
     /**
      * @return an {@link Iterator} containing all {@link RyaStatement}s found
-     * in this {@link RyaStatementStore}.
+     * in this {@link RyaStatementStore}.  The statements will be sorted by
+     * timestamp.
      * @throws FetchStatementException - Thrown when fetching a statement fails.
      */
     public Iterator<RyaStatement> fetchStatements() throws FetchStatementException;
@@ -69,7 +70,7 @@ public interface RyaStatementStore {
      * @param ryaStatement the {@link RyaStatement} to search for.
      * @return {@code true} if the statement store contains the statement.
      * {@code false} otherwise.
-     * @throws ContainsStatementException
+     * @throws ContainsStatementException - Thrown when an exception occurs trying to check for the statement.
      */
     public boolean containsStatement(final RyaStatement ryaStatement) throws ContainsStatementException;
 

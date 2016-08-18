@@ -365,6 +365,7 @@ public class ConfigUtils {
 
     public static void setIndexers(final RdfCloudTripleStoreConfiguration conf) {
 
+    	System.out.println("Testuing");
         final List<String> indexList = Lists.newArrayList();
         final List<String> optimizers = Lists.newArrayList();
 

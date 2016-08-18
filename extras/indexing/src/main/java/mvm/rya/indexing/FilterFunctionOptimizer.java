@@ -68,6 +68,7 @@ import mvm.rya.indexing.accumulo.freetext.FreeTextTupleSet;
 import mvm.rya.indexing.accumulo.geo.GeoMesaGeoIndexer;
 import mvm.rya.indexing.accumulo.geo.GeoTupleSet;
 import mvm.rya.indexing.accumulo.temporal.AccumuloTemporalIndexer;
+import mvm.rya.indexing.mongodb.AbstractMongoIndexer;
 import mvm.rya.indexing.mongodb.freetext.MongoFreeTextIndexer;
 import mvm.rya.indexing.mongodb.geo.MongoGeoIndexer;
 import mvm.rya.indexing.mongodb.temporal.MongoTemporalIndexer;
@@ -101,23 +102,23 @@ public class FilterFunctionOptimizer implements QueryOptimizer, Configurable {
         init = false;
         try {
             init();
-        } catch (final NumberFormatException | UnknownHostException e) {
+        } catch (final NumberFormatException | IOException e) {
             LOG.error("Unable to update to use new config, falling back to the old config.", e);
             init = true;
         }
     }
 
-    private synchronized void init() throws NumberFormatException, UnknownHostException {
+    private synchronized void init() throws NumberFormatException, IOException {
         if (!init) {
             if (ConfigUtils.getUseMongo(conf)) {
                 try {
                     final MongoClient mongoClient = MongoConnectorFactory.getMongoClient(conf);
-                    geoIndexer = new MongoGeoIndexer(mongoClient);
-                    geoIndexer.setConf(conf);
-                    freeTextIndexer = new MongoFreeTextIndexer(mongoClient);
-                    freeTextIndexer.setConf(conf);
-                    temporalIndexer = new MongoTemporalIndexer(mongoClient);
-                    temporalIndexer.setConf(conf);
+                    geoIndexer = new MongoGeoIndexer();
+                    ((AbstractMongoIndexer) geoIndexer).initIndexer(conf, mongoClient);
+                    freeTextIndexer = new MongoFreeTextIndexer();
+                    ((AbstractMongoIndexer)freeTextIndexer).initIndexer(conf, mongoClient);
+                    temporalIndexer = new MongoTemporalIndexer();
+                    ((AbstractMongoIndexer)temporalIndexer).initIndexer(conf, mongoClient);
                 } catch (NumberFormatException | UnknownHostException e) {
                     LOG.error("Unable to connect to mongo.", e);
                     throw e;

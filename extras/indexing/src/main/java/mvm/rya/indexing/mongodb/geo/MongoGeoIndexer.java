@@ -29,7 +29,6 @@ import org.openrdf.model.Statement;
 import org.openrdf.query.QueryEvaluationException;
 
 import com.mongodb.DBObject;
-import com.mongodb.MongoClient;
 import com.vividsolutions.jts.geom.Geometry;
 
 import info.aduna.iteration.CloseableIteration;
@@ -42,10 +41,6 @@ import mvm.rya.mongodb.MongoDBRdfConfiguration;
 
 public class MongoGeoIndexer extends AbstractMongoIndexer<GeoMongoDBStorageStrategy> implements GeoIndexer {
     private static final Logger logger = Logger.getLogger(MongoGeoIndexer.class);
-
-    public MongoGeoIndexer(final MongoClient mongoClient) {
-        super(mongoClient);
-    }
 
     @Override
     protected void init() throws NumberFormatException, IOException{

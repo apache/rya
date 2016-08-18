@@ -22,17 +22,14 @@ import java.util.List;
 
 import mvm.rya.accumulo.AccumuloRdfConfiguration;
 import mvm.rya.accumulo.AccumuloRyaDAO;
-import mvm.rya.accumulo.mr.RyaInputFormat.RyaStatementRecordReader;
 import mvm.rya.api.RdfCloudTripleStoreConstants.TABLE_LAYOUT;
 import mvm.rya.api.domain.RyaStatement;
 import mvm.rya.api.domain.RyaURI;
 
 import org.apache.accumulo.core.client.Connector;
 import org.apache.accumulo.core.client.Instance;
-import org.apache.accumulo.core.client.mapreduce.AccumuloInputFormat;
 import org.apache.accumulo.core.client.mock.MockInstance;
 import org.apache.accumulo.core.client.security.tokens.PasswordToken;
-import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.InputSplit;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.JobContext;
@@ -42,13 +39,13 @@ import org.apache.hadoop.mapreduce.TaskAttemptID;
 import org.apache.hadoop.mapreduce.TaskID;
 import org.apache.hadoop.mapreduce.task.JobContextImpl;
 import org.apache.hadoop.mapreduce.task.TaskAttemptContextImpl;
+import org.apache.spark.graphx.Edge;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 
-public class RyaInputFormatTest {
+public class GraphXEdgeInputFormatTest {
 
     static String username = "root", table = "rya_spo";
     static PasswordToken password = new PasswordToken("");
@@ -56,9 +53,9 @@ public class RyaInputFormatTest {
     static Instance instance;
     static AccumuloRyaDAO apiImpl;
 
-    @BeforeClass
-    public static void init() throws Exception {
-        instance = new MockInstance(RyaInputFormatTest.class.getName() + ".mock_instance");
+    @Before
+    public void init() throws Exception {
+        instance = new MockInstance(GraphXEdgeInputFormatTest.class.getName() + ".mock_instance");
         Connector connector = instance.getConnector(username, password);
         connector.tableOperations().create(table);
 
@@ -69,10 +66,6 @@ public class RyaInputFormatTest {
         apiImpl = new AccumuloRyaDAO();
         apiImpl.setConf(conf);
         apiImpl.setConnector(connector);
-    }
-
-    @Before
-    public void before() throws Exception {
         apiImpl.init();
     }
 
@@ -81,11 +74,10 @@ public class RyaInputFormatTest {
         apiImpl.dropAndDestroy();
     }
 
-    @Test
+    @SuppressWarnings("rawtypes")
+	@Test
     public void testInputFormat() throws Exception {
-
-
-        RyaStatement input = RyaStatement.builder()
+    	RyaStatement input = RyaStatement.builder()
             .setSubject(new RyaURI("http://www.google.com"))
             .setPredicate(new RyaURI("http://some_other_uri"))
             .setObject(new RyaURI("http://www.yahoo.com"))
@@ -97,17 +89,17 @@ public class RyaInputFormatTest {
 
         Job jobConf = Job.getInstance();
 
-        RyaInputFormat.setMockInstance(jobConf, instance.getInstanceName());
-        RyaInputFormat.setConnectorInfo(jobConf, username, password);
-        RyaInputFormat.setTableLayout(jobConf, TABLE_LAYOUT.SPO);
+        GraphXEdgeInputFormat.setMockInstance(jobConf, instance.getInstanceName());
+        GraphXEdgeInputFormat.setConnectorInfo(jobConf, username, password);
+        GraphXEdgeInputFormat.setTableLayout(jobConf, TABLE_LAYOUT.SPO);
+        GraphXEdgeInputFormat.setInputTableName(jobConf, table);
+        GraphXEdgeInputFormat.setInputTableName(jobConf, table);
 
-        AccumuloInputFormat.setInputTableName(jobConf, table);
-        AccumuloInputFormat.setInputTableName(jobConf, table);
-        AccumuloInputFormat.setScanIsolation(jobConf, false);
-        AccumuloInputFormat.setLocalIterators(jobConf, false);
-        AccumuloInputFormat.setOfflineTableScan(jobConf, false);
+        GraphXEdgeInputFormat.setScanIsolation(jobConf, false);
+        GraphXEdgeInputFormat.setLocalIterators(jobConf, false);
+        GraphXEdgeInputFormat.setOfflineTableScan(jobConf, false);
 
-        RyaInputFormat inputFormat = new RyaInputFormat();
+        GraphXEdgeInputFormat inputFormat = new GraphXEdgeInputFormat();
 
         JobContext context = new JobContextImpl(jobConf.getConfiguration(), jobConf.getJobID());
 
@@ -117,32 +109,26 @@ public class RyaInputFormatTest {
 
         TaskAttemptContext taskAttemptContext = new TaskAttemptContextImpl(context.getConfiguration(), new TaskAttemptID(new TaskID(), 1));
 
-        RecordReader<Text, RyaStatementWritable> reader = inputFormat.createRecordReader(splits.get(0), taskAttemptContext);
+        RecordReader reader = inputFormat.createRecordReader(splits.get(0), taskAttemptContext);
 
-        RyaStatementRecordReader ryaStatementRecordReader = (RyaStatementRecordReader)reader;
+        RecordReader ryaStatementRecordReader = (RecordReader) reader;
         ryaStatementRecordReader.initialize(splits.get(0), taskAttemptContext);
 
-        List<RyaStatement> results = new ArrayList<RyaStatement>();
+        List<Edge> results = new ArrayList<Edge>();
         while(ryaStatementRecordReader.nextKeyValue()) {
-            RyaStatementWritable writable = ryaStatementRecordReader.getCurrentValue();
-            RyaStatement value = writable.getRyaStatement();
-            Text text = ryaStatementRecordReader.getCurrentKey();
-            RyaStatement stmt = RyaStatement.builder()
-                .setSubject(value.getSubject())
-                .setPredicate(value.getPredicate())
-                .setObject(value.getObject())
-                .setContext(value.getContext())
-                .setQualifier(value.getQualifer())
-                .setColumnVisibility(value.getColumnVisibility())
-                .setValue(value.getValue())
-                .build();
-            results.add(stmt);
+            Edge writable = (Edge) ryaStatementRecordReader.getCurrentValue();
+            long srcId = writable.srcId();
+            long destId = writable.dstId();
+			RyaTypeWritable rtw = null;
+            Object text = ryaStatementRecordReader.getCurrentKey();
+            Edge<RyaTypeWritable> edge = new Edge<RyaTypeWritable>(srcId, destId, rtw);
+            results.add(edge);
 
             System.out.println(text);
-            System.out.println(value);
         }
 
+        System.out.println(results.size());
+        System.out.println(results);
         Assert.assertTrue(results.size() == 2);
-        Assert.assertTrue(results.contains(input));
     }
 }

@@ -27,14 +27,19 @@ under the License.
         <version>3.2.10-SNAPSHOT</version>
     </parent>
 
-    <artifactId>rya.mapreduce</artifactId>
+    <artifactId>rya.spark</artifactId>
     <name>Apache Rya MapReduce Tools</name>
 
     <dependencies>
-    	<dependency>
+	    <dependency>
 		    <groupId>org.apache.spark</groupId>
 		    <artifactId>spark-graphx_2.11</artifactId>
 		    <version>1.6.2</version>
+		</dependency>
+	    <dependency>
+		    <groupId>org.apache.spark</groupId>
+		    <artifactId>spark-core_2.11</artifactId>
+		    <version>1.2.2</version>
 		</dependency>
         <dependency>
             <groupId>org.apache.rya</groupId>
@@ -47,6 +52,10 @@ under the License.
         <dependency>
             <groupId>org.apache.rya</groupId>
             <artifactId>rya.indexing</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.rya</groupId>
+            <artifactId>rya.mapreduce</artifactId>
         </dependency>
 
         <dependency>

@@ -1,26 +1,5 @@
 package mvm.rya.sail.config;
 
-/*
- * Licensed to the Apache Software Foundation (ASF) under one
- * or more contributor license agreements.  See the NOTICE file
- * distributed with this work for additional information
- * regarding copyright ownership.  The ASF licenses this file
- * to you under the Apache License, Version 2.0 (the
- * "License"); you may not use this file except in compliance
- * with the License.  You may obtain a copy of the License at
- * 
- *   http://www.apache.org/licenses/LICENSE-2.0
- * 
- * Unless required by applicable law or agreed to in writing,
- * software distributed under the License is distributed on an
- * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
- * KIND, either express or implied.  See the License for the
- * specific language governing permissions and limitations
- * under the License.
- */
-
-import mvm.rya.accumulo.AccumuloRdfConfiguration;
-
 import org.openrdf.model.Graph;
 import org.openrdf.model.Literal;
 import org.openrdf.model.Resource;
@@ -32,6 +11,31 @@ import org.openrdf.model.util.GraphUtilException;
 import org.openrdf.sail.config.SailConfigException;
 import org.openrdf.sail.config.SailImplConfigBase;
 
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
+
+import mvm.rya.accumulo.AccumuloRdfConfiguration;
+
+/**
+ * @deprecated Use {@link AccumuloRdfConfiguration} instead.
+ */
+@Deprecated
 public class RyaAccumuloSailConfig extends SailImplConfigBase {
 
     public static final String NAMESPACE = "http://rya.apache.org/RyaAccumuloSail/Config#";
@@ -43,7 +47,7 @@ public class RyaAccumuloSailConfig extends SailImplConfigBase {
     public static final URI IS_MOCK;
 
     static {
-        ValueFactory factory = ValueFactoryImpl.getInstance();
+        final ValueFactory factory = ValueFactoryImpl.getInstance();
         USER = factory.createURI(NAMESPACE, "user");
         PASSWORD = factory.createURI(NAMESPACE, "password");
         INSTANCE = factory.createURI(NAMESPACE, "instance");
@@ -56,7 +60,7 @@ public class RyaAccumuloSailConfig extends SailImplConfigBase {
     private String instance = "dev";
     private String zookeepers = "zoo1,zoo2,zoo3";
     private boolean isMock = false;
-    
+
     public RyaAccumuloSailConfig() {
         super(RyaAccumuloSailFactory.SAIL_TYPE);
     }
@@ -65,7 +69,7 @@ public class RyaAccumuloSailConfig extends SailImplConfigBase {
         return user;
     }
 
-    public void setUser(String user) {
+    public void setUser(final String user) {
         this.user = user;
     }
 
@@ -73,7 +77,7 @@ public class RyaAccumuloSailConfig extends SailImplConfigBase {
         return password;
     }
 
-    public void setPassword(String password) {
+    public void setPassword(final String password) {
         this.password = password;
     }
 
@@ -81,7 +85,7 @@ public class RyaAccumuloSailConfig extends SailImplConfigBase {
         return instance;
     }
 
-    public void setInstance(String instance) {
+    public void setInstance(final String instance) {
         this.instance = instance;
     }
 
@@ -89,7 +93,7 @@ public class RyaAccumuloSailConfig extends SailImplConfigBase {
         return zookeepers;
     }
 
-    public void setZookeepers(String zookeepers) {
+    public void setZookeepers(final String zookeepers) {
         this.zookeepers = zookeepers;
     }
 
@@ -97,12 +101,12 @@ public class RyaAccumuloSailConfig extends SailImplConfigBase {
         return isMock;
     }
 
-    public void setMock(boolean isMock) {
+    public void setMock(final boolean isMock) {
         this.isMock = isMock;
     }
 
     public AccumuloRdfConfiguration toRdfConfiguation() {
-        AccumuloRdfConfiguration conf = new AccumuloRdfConfiguration();
+        final AccumuloRdfConfiguration conf = new AccumuloRdfConfiguration();
         return conf;
     }
 
@@ -112,10 +116,11 @@ public class RyaAccumuloSailConfig extends SailImplConfigBase {
     }
 
     @Override
-    public Resource export(Graph graph) {
-        Resource implNode = super.export(graph);
+    public Resource export(final Graph graph) {
+        final Resource implNode = super.export(graph);
 
         @SuppressWarnings("deprecation")
+        final
         ValueFactory v = graph.getValueFactory();
 
         graph.add(implNode, USER, v.createLiteral(user));
@@ -128,32 +133,32 @@ public class RyaAccumuloSailConfig extends SailImplConfigBase {
     }
 
     @Override
-    public void parse(Graph graph, Resource implNode) throws SailConfigException {
+    public void parse(final Graph graph, final Resource implNode) throws SailConfigException {
         super.parse(graph, implNode);
         System.out.println("parsing");
 
         try {
-            Literal userLit = GraphUtil.getOptionalObjectLiteral(graph, implNode, USER);
+            final Literal userLit = GraphUtil.getOptionalObjectLiteral(graph, implNode, USER);
             if (userLit != null) {
                 setUser(userLit.getLabel());
             }
-            Literal pwdLit = GraphUtil.getOptionalObjectLiteral(graph, implNode, PASSWORD);
+            final Literal pwdLit = GraphUtil.getOptionalObjectLiteral(graph, implNode, PASSWORD);
             if (pwdLit != null) {
                 setPassword(pwdLit.getLabel());
             }
-            Literal instLit = GraphUtil.getOptionalObjectLiteral(graph, implNode, INSTANCE);
+            final Literal instLit = GraphUtil.getOptionalObjectLiteral(graph, implNode, INSTANCE);
             if (instLit != null) {
                 setInstance(instLit.getLabel());
             }
-            Literal zooLit = GraphUtil.getOptionalObjectLiteral(graph, implNode, ZOOKEEPERS);
+            final Literal zooLit = GraphUtil.getOptionalObjectLiteral(graph, implNode, ZOOKEEPERS);
             if (zooLit != null) {
                 setZookeepers(zooLit.getLabel());
             }
-            Literal mockLit = GraphUtil.getOptionalObjectLiteral(graph, implNode, IS_MOCK);
+            final Literal mockLit = GraphUtil.getOptionalObjectLiteral(graph, implNode, IS_MOCK);
             if (mockLit != null) {
                 setMock(Boolean.parseBoolean(mockLit.getLabel()));
             }
-        } catch (GraphUtilException e) {
+        } catch (final GraphUtilException e) {
             throw new SailConfigException(e.getMessage(), e);
         }
     }

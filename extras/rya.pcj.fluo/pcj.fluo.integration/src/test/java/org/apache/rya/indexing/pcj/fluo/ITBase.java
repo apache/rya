@@ -20,6 +20,55 @@ package org.apache.rya.indexing.pcj.fluo;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
+import java.io.File;
+import java.io.IOException;
+import java.net.UnknownHostException;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
+
+import org.apache.accumulo.core.client.AccumuloException;
+import org.apache.accumulo.core.client.AccumuloSecurityException;
+import org.apache.accumulo.core.client.Connector;
+import org.apache.accumulo.core.client.Instance;
+import org.apache.accumulo.core.client.ZooKeeperInstance;
+import org.apache.accumulo.core.client.security.tokens.PasswordToken;
+import org.apache.accumulo.minicluster.MiniAccumuloCluster;
+import org.apache.accumulo.minicluster.MiniAccumuloConfig;
+import org.apache.log4j.Level;
+import org.apache.log4j.Logger;
+import org.apache.rya.indexing.pcj.fluo.app.observers.FilterObserver;
+import org.apache.rya.indexing.pcj.fluo.app.observers.JoinObserver;
+import org.apache.rya.indexing.pcj.fluo.app.observers.QueryResultObserver;
+import org.apache.rya.indexing.pcj.fluo.app.observers.StatementPatternObserver;
+import org.apache.rya.indexing.pcj.fluo.app.observers.TripleObserver;
+import org.apache.rya.indexing.pcj.fluo.app.query.FluoQueryColumns;
+import org.apache.rya.indexing.pcj.fluo.app.query.FluoQueryMetadataDAO;
+import org.apache.rya.indexing.pcj.fluo.app.query.QueryMetadata;
+import org.apache.rya.indexing.pcj.storage.accumulo.BindingSetStringConverter;
+import org.apache.rya.indexing.pcj.storage.accumulo.VariableOrder;
+import org.apache.zookeeper.ClientCnxn;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.openrdf.model.Statement;
+import org.openrdf.model.vocabulary.XMLSchema;
+import org.openrdf.query.Binding;
+import org.openrdf.query.BindingSet;
+import org.openrdf.query.impl.MapBindingSet;
+import org.openrdf.repository.RepositoryConnection;
+import org.openrdf.repository.RepositoryException;
+import org.openrdf.sail.Sail;
+import org.openrdf.sail.SailException;
+
+import com.google.common.base.Optional;
+import com.google.common.io.Files;
+
 import io.fluo.api.client.FluoAdmin;
 import io.fluo.api.client.FluoAdmin.AlreadyInitializedException;
 import io.fluo.api.client.FluoAdmin.TableExistsException;
@@ -33,24 +82,22 @@ import io.fluo.api.data.Bytes;
 import io.fluo.api.iterator.ColumnIterator;
 import io.fluo.api.iterator.RowIterator;
 import io.fluo.api.mini.MiniFluo;
-
-import java.io.File;
-import java.io.IOException;
-import java.net.UnknownHostException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
-import java.util.UUID;
-
 import mvm.rya.accumulo.AccumuloRdfConfiguration;
+import mvm.rya.accumulo.instance.AccumuloRyaInstanceDetailsRepository;
 import mvm.rya.api.domain.RyaStatement;
 import mvm.rya.api.domain.RyaStatement.RyaStatementBuilder;
 import mvm.rya.api.domain.RyaType;
 import mvm.rya.api.domain.RyaURI;
+import mvm.rya.api.instance.RyaDetails;
+import mvm.rya.api.instance.RyaDetails.EntityCentricIndexDetails;
+import mvm.rya.api.instance.RyaDetails.FreeTextIndexDetails;
+import mvm.rya.api.instance.RyaDetails.GeoIndexDetails;
+import mvm.rya.api.instance.RyaDetails.JoinSelectivityDetails;
+import mvm.rya.api.instance.RyaDetails.PCJIndexDetails;
+import mvm.rya.api.instance.RyaDetails.ProspectorDetails;
+import mvm.rya.api.instance.RyaDetails.TemporalIndexDetails;
+import mvm.rya.api.instance.RyaDetailsRepository;
+import mvm.rya.api.instance.RyaDetailsRepository.RyaDetailsRepositoryException;
 import mvm.rya.api.persist.RyaDAOException;
 import mvm.rya.api.resolver.RyaToRdfConversions;
 import mvm.rya.indexing.accumulo.ConfigUtils;
@@ -58,38 +105,6 @@ import mvm.rya.indexing.external.PrecomputedJoinIndexerConfig;
 import mvm.rya.rdftriplestore.RyaSailRepository;
 import mvm.rya.rdftriplestore.inference.InferenceEngineException;
 import mvm.rya.sail.config.RyaSailFactory;
-
-import org.apache.accumulo.core.client.AccumuloException;
-import org.apache.accumulo.core.client.AccumuloSecurityException;
-import org.apache.accumulo.core.client.Connector;
-import org.apache.accumulo.core.client.Instance;
-import org.apache.accumulo.core.client.ZooKeeperInstance;
-import org.apache.accumulo.core.client.security.tokens.PasswordToken;
-import org.apache.accumulo.minicluster.MiniAccumuloCluster;
-import org.apache.accumulo.minicluster.MiniAccumuloConfig;
-import org.apache.log4j.Logger;
-import org.apache.rya.indexing.pcj.fluo.app.observers.FilterObserver;
-import org.apache.rya.indexing.pcj.fluo.app.observers.JoinObserver;
-import org.apache.rya.indexing.pcj.fluo.app.observers.QueryResultObserver;
-import org.apache.rya.indexing.pcj.fluo.app.observers.StatementPatternObserver;
-import org.apache.rya.indexing.pcj.fluo.app.observers.TripleObserver;
-import org.apache.rya.indexing.pcj.fluo.app.query.FluoQueryColumns;
-import org.apache.rya.indexing.pcj.fluo.app.query.FluoQueryMetadataDAO;
-import org.apache.rya.indexing.pcj.fluo.app.query.QueryMetadata;
-import org.apache.rya.indexing.pcj.storage.accumulo.BindingSetStringConverter;
-import org.apache.rya.indexing.pcj.storage.accumulo.VariableOrder;
-import org.junit.After;
-import org.junit.Before;
-import org.openrdf.model.Statement;
-import org.openrdf.model.vocabulary.XMLSchema;
-import org.openrdf.query.Binding;
-import org.openrdf.query.BindingSet;
-import org.openrdf.query.impl.MapBindingSet;
-import org.openrdf.repository.RepositoryConnection;
-import org.openrdf.repository.RepositoryException;
-import org.openrdf.sail.Sail;
-
-import com.google.common.io.Files;
 
 /**
  * Integration tests that ensure the Fluo application processes PCJs results
@@ -100,34 +115,39 @@ import com.google.common.io.Files;
 public abstract class ITBase {
     private static final Logger log = Logger.getLogger(ITBase.class);
 
-    protected static final String RYA_TABLE_PREFIX = "demo_";
-    
+    protected static final String RYA_INSTANCE_NAME = "demo_";
+
     protected static final String ACCUMULO_USER = "root";
     protected static final String ACCUMULO_PASSWORD = "password";
 
     // Rya data store and connections.
     protected RyaSailRepository ryaRepo = null;
     protected RepositoryConnection ryaConn = null;
-    
+
 
     // Mini Accumulo Cluster
     protected MiniAccumuloCluster cluster;
     protected static Connector accumuloConn = null;
     protected String instanceName = null;
     protected String zookeepers = null;
-    
+
     // Fluo data store and connections.
     protected MiniFluo fluo = null;
     protected FluoClient fluoClient = null;
     protected final String appName = "IntegrationTests";
 
+    @BeforeClass
+    public static void killLoudLogs() {
+        Logger.getLogger(ClientCnxn.class).setLevel(Level.ERROR);
+    }
+
     @Before
     public void setupMiniResources()
             throws IOException, InterruptedException, AccumuloException, AccumuloSecurityException, RepositoryException,
-            RyaDAOException, NumberFormatException, InferenceEngineException, AlreadyInitializedException, TableExistsException {
+            RyaDAOException, NumberFormatException, InferenceEngineException, AlreadyInitializedException, TableExistsException, AlreadyInitializedException, RyaDetailsRepositoryException, SailException {
     	// Initialize the Mini Accumulo that will be used to host Rya and Fluo.
     	setupMiniAccumulo();
-    	
+
         // Initialize the Mini Fluo that will be used to store created queries.
         fluo = startMiniFluo();
         fluoClient = FluoFactory.newClient(fluo.getClientConfiguration());
@@ -136,11 +156,9 @@ public abstract class ITBase {
         ryaRepo = setupRya(ACCUMULO_USER, ACCUMULO_PASSWORD, instanceName, zookeepers, appName);
         ryaConn = ryaRepo.getConnection();
     }
-    
+
     @After
     public void shutdownMiniResources() {
-    	// TODO shutdown the cluster
-    	
         if (ryaConn != null) {
             try {
                 log.info("Shutting down Rya Connection.");
@@ -160,7 +178,7 @@ public abstract class ITBase {
                 log.error("Could not shut down the Rya Repo.", e);
             }
         }
-        
+
         if (fluoClient != null) {
             try {
                 log.info("Shutting down Fluo Client.");
@@ -180,7 +198,7 @@ public abstract class ITBase {
                 log.error("Could not shut down the Mini Fluo.", e);
             }
         }
-        
+
         if(cluster != null) {
             try {
                 log.info("Shutting down the Mini Accumulo being used as a Rya store.");
@@ -304,7 +322,7 @@ public abstract class ITBase {
             scanConfig.fetchColumn(FluoQueryColumns.QUERY_BINDING_SET.getFamily(),
                     FluoQueryColumns.QUERY_BINDING_SET.getQualifier());
 
-            BindingSetStringConverter converter = new BindingSetStringConverter();
+            final BindingSetStringConverter converter = new BindingSetStringConverter();
 
             final RowIterator rowIter = snapshot.get(scanConfig);
             while (rowIter.hasNext()) {
@@ -319,41 +337,28 @@ public abstract class ITBase {
     }
 
     private void setupMiniAccumulo() throws IOException, InterruptedException, AccumuloException, AccumuloSecurityException {
-    	File miniDataDir = Files.createTempDir();
-    	
+    	final File miniDataDir = Files.createTempDir();
+
     	// Setup and start the Mini Accumulo.
-    	MiniAccumuloConfig cfg = new MiniAccumuloConfig(miniDataDir, ACCUMULO_PASSWORD);
+    	final MiniAccumuloConfig cfg = new MiniAccumuloConfig(miniDataDir, ACCUMULO_PASSWORD);
     	cluster = new MiniAccumuloCluster(cfg);
     	cluster.start();
-    	
+
     	// Store a connector to the Mini Accumulo.
     	instanceName = cluster.getInstanceName();
     	zookeepers = cluster.getZooKeepers();
-    	
-    	Instance instance = new ZooKeeperInstance(instanceName, zookeepers);
+
+    	final Instance instance = new ZooKeeperInstance(instanceName, zookeepers);
     	accumuloConn = instance.getConnector(ACCUMULO_USER, new PasswordToken(ACCUMULO_PASSWORD));
     }
 
      /**
-      * Sets up a Rya instance
-      *
-      * @param user
-      * @param password
-      * @param instanceName
-      * @param zookeepers
-      * @param appName
-      * @return
-      * @throws AccumuloException
-      * @throws AccumuloSecurityException
-      * @throws RepositoryException
-      * @throws RyaDAOException
-      * @throws NumberFormatException
-      * @throws UnknownHostException
-      * @throws InferenceEngineException
+      * Sets up a Rya instance.
+     * @throws SailException
       */
-    protected static RyaSailRepository setupRya(String user, String password, String instanceName, String zookeepers, String appName)
+    protected static RyaSailRepository setupRya(final String user, final String password, final String instanceName, final String zookeepers, final String appName)
             throws AccumuloException, AccumuloSecurityException, RepositoryException, RyaDAOException,
-            NumberFormatException, UnknownHostException, InferenceEngineException {
+            NumberFormatException, UnknownHostException, InferenceEngineException, mvm.rya.api.instance.RyaDetailsRepository.AlreadyInitializedException, RyaDetailsRepositoryException, SailException {
 
         checkNotNull(user);
         checkNotNull(password);
@@ -363,7 +368,7 @@ public abstract class ITBase {
 
         // Setup Rya configuration values.
         final AccumuloRdfConfiguration conf = new AccumuloRdfConfiguration();
-        conf.setTablePrefix(RYA_TABLE_PREFIX);
+        conf.setTablePrefix(RYA_INSTANCE_NAME);
         conf.setDisplayQueryPlan(true);
         conf.setBoolean(ConfigUtils.USE_MOCK_INSTANCE, false);
         conf.set(ConfigUtils.CLOUDBASE_USER, user);
@@ -378,9 +383,27 @@ public abstract class ITBase {
         conf.set(ConfigUtils.PCJ_UPDATER_TYPE, PrecomputedJoinIndexerConfig.PrecomputedJoinUpdaterType.FLUO.toString());
         conf.set(ConfigUtils.CLOUDBASE_AUTHS, "");
 
-        Sail sail = RyaSailFactory.getInstance(conf);
+        final Sail sail = RyaSailFactory.getInstance(conf);
         final RyaSailRepository ryaRepo = new RyaSailRepository(sail);
-        ryaRepo.initialize();
+
+        // Initialize the Rya Details.
+        final RyaDetailsRepository detailsRepo = new AccumuloRyaInstanceDetailsRepository(accumuloConn, RYA_INSTANCE_NAME);
+
+        final RyaDetails details = RyaDetails.builder()
+                .setRyaInstanceName(RYA_INSTANCE_NAME)
+                .setRyaVersion("0.0.0.0")
+                .setFreeTextDetails( new FreeTextIndexDetails(true) )
+                .setEntityCentricIndexDetails( new EntityCentricIndexDetails(true) )
+                .setGeoIndexDetails( new GeoIndexDetails(true) )
+                .setTemporalIndexDetails( new TemporalIndexDetails(true) )
+                .setPCJIndexDetails(
+                        PCJIndexDetails.builder()
+                            .setEnabled(true) )
+                .setJoinSelectivityDetails( new JoinSelectivityDetails( Optional.<Date>absent() ) )
+                .setProspectorDetails( new ProspectorDetails( Optional.<Date>absent() ))
+                .build();
+
+        detailsRepo.initialize(details);
 
         return ryaRepo;
     }
@@ -400,13 +423,11 @@ public abstract class ITBase {
 
     /**
      * Setup a Mini Fluo cluster that uses a temporary directory to store its
-     * data.ll
+     * data.
      *
      * @return A Mini Fluo cluster.
      */
     protected MiniFluo startMiniFluo() throws AlreadyInitializedException, TableExistsException {
-//        final File miniDataDir = Files.createTempDir();
-
         // Setup the observers that will be used by the Fluo PCJ Application.
         final List<ObserverConfiguration> observers = new ArrayList<>();
         observers.add(new ObserverConfiguration(TripleObserver.class.getName()));
@@ -429,13 +450,13 @@ public abstract class ITBase {
         config.setAccumuloPassword(ACCUMULO_PASSWORD);
         config.setInstanceZookeepers(zookeepers + "/fluo");
         config.setAccumuloZookeepers(zookeepers);
-        
+
         config.setApplicationName(appName);
         config.setAccumuloTable("fluo" + appName);
-        
+
         config.addObservers(observers);
 
-        FluoFactory.newAdmin(config).initialize( 
+        FluoFactory.newAdmin(config).initialize(
         		new FluoAdmin.InitOpts().setClearTable(true).setClearZookeeper(true) );
         return FluoFactory.newMiniFluo(config);
     }

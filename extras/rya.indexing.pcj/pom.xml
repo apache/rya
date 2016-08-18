@@ -43,6 +43,10 @@ under the License.
             <groupId>org.apache.rya</groupId>
             <artifactId>rya.api</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.apache.rya</groupId>
+            <artifactId>accumulo.rya</artifactId>
+        </dependency>
         
         <!-- Accumulo support dependencies. -->
         <dependency>
@@ -79,6 +83,12 @@ under the License.
             <groupId>org.apache.rya</groupId>
             <artifactId>rya.sail</artifactId>
             <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.rya</groupId>
+            <artifactId>accumulo.rya</artifactId>
+            <version>${project.version}</version>
+            <type>test-jar</type>
         </dependency>
     </dependencies>
 </project>

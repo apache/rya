@@ -45,6 +45,7 @@ import mvm.rya.indexing.mongodb.AbstractMongoIndexer;
  * Indexes MongoDB based on time instants or intervals.
  */
 public class MongoTemporalIndexer extends AbstractMongoIndexer<TemporalMongoDBStorageStrategy> implements TemporalIndexer {
+    private static final String COLLECTION_SUFFIX = "temporal";
     private static final Logger LOG = Logger.getLogger(MongoTemporalIndexer.class);
 
     /**
@@ -150,7 +151,7 @@ public class MongoTemporalIndexer extends AbstractMongoIndexer<TemporalMongoDBSt
 
     @Override
     public String getCollectionName() {
-        return ConfigUtils.getTemporalTableName(conf);
+        return ConfigUtils.getTablePrefix(conf)  + COLLECTION_SUFFIX;
     }
 
     @VisibleForTesting

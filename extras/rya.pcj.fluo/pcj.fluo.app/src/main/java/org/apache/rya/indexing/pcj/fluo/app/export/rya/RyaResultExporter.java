@@ -22,11 +22,10 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.Collections;
 
-import org.apache.accumulo.core.client.Connector;
 import org.apache.rya.indexing.pcj.fluo.app.export.IncrementalResultExporter;
 import org.apache.rya.indexing.pcj.fluo.app.query.FluoQueryColumns;
-import org.apache.rya.indexing.pcj.storage.PcjException;
-import org.apache.rya.indexing.pcj.storage.accumulo.PcjTables;
+import org.apache.rya.indexing.pcj.storage.PrecomputedJoinStorage;
+import org.apache.rya.indexing.pcj.storage.PrecomputedJoinStorage.PCJStorageException;
 import org.apache.rya.indexing.pcj.storage.accumulo.VisibilityBindingSet;
 
 import io.fluo.api.data.Bytes;
@@ -37,18 +36,15 @@ import io.fluo.api.types.TypedTransactionBase;
  */
 public class RyaResultExporter implements IncrementalResultExporter {
 
-    private final Connector accumuloConn;
-    private final PcjTables pcjTables;
+    private final PrecomputedJoinStorage pcjStorage;
 
     /**
      * Constructs an instance of {@link RyaResultExporter}.
      *
-     * @param accumuloConn - A connection to the Accumulo instance that hosts Rya PCJ tables. (not null)
-     * @param pcjTables - A utility used to interact with Rya's PCJ tables. (not null)
+     * @param pcjStorage - The PCJ storage the new results will be exported to. (not null)
      */
-    public RyaResultExporter(final Connector accumuloConn, final PcjTables pcjTables) {
-        this.accumuloConn = checkNotNull(accumuloConn);
-        this.pcjTables = checkNotNull(pcjTables);
+    public RyaResultExporter(final PrecomputedJoinStorage pcjStorage) {
+        this.pcjStorage = checkNotNull(pcjStorage);
     }
 
     @Override
@@ -60,14 +56,12 @@ public class RyaResultExporter implements IncrementalResultExporter {
         checkNotNull(queryId);
         checkNotNull(result);
 
-        // Get the name of the table the PCJ results will be written to.
-        final String pcjTableName = fluoTx.get(Bytes.of(queryId), FluoQueryColumns.QUERY_RYA_EXPORT_TABLE_NAME).toString();
+        final String pcjId = fluoTx.get(Bytes.of(queryId), FluoQueryColumns.RYA_PCJ_ID).toString();
 
-        // Write the result to the PCJ table.
         try {
-            pcjTables.addResults(accumuloConn, pcjTableName, Collections.singleton(result));
-        } catch (final PcjException e) {
-            throw new ResultExportException("A result could not be exported to the PCJ table in Accumulo.", e);
+            pcjStorage.addResults(pcjId, Collections.singleton(result));
+        } catch (final PCJStorageException e) {
+            throw new ResultExportException("A result could not be exported to Rya.", e);
         }
     }
 }

@@ -398,9 +398,9 @@ public class AccumuloDocIdIndexer implements DocIdIndexer {
         return currentSolutionBs;
     }
 
-   private BatchScanner runQuery(StarQuery query, Collection<Range> ranges) throws QueryEvaluationException {
+    private BatchScanner runQuery(StarQuery query, Collection<Range> ranges) throws QueryEvaluationException {
 
-    try {
+        try {
             if (ranges.size() == 0) {
                 String rangeText = query.getCommonVarValue();
                 Range r;
@@ -412,31 +412,25 @@ public class AccumuloDocIdIndexer implements DocIdIndexer {
                 ranges = Collections.singleton(r);
             }
 
-        Connector accCon = ConfigUtils.getConnector(conf);
-        IteratorSetting is = new IteratorSetting(30, "fii", DocumentIndexIntersectingIterator.class);
+            Connector accCon = ConfigUtils.getConnector(conf);
+            IteratorSetting is = new IteratorSetting(30, "fii", DocumentIndexIntersectingIterator.class);
 
-        DocumentIndexIntersectingIterator.setColumnFamilies(is, query.getColumnCond());
+            DocumentIndexIntersectingIterator.setColumnFamilies(is, query.getColumnCond());
 
-        if(query.hasContext()) {
-            DocumentIndexIntersectingIterator.setContext(is, query.getContextURI());
+            if (query.hasContext()) {
+                DocumentIndexIntersectingIterator.setContext(is, query.getContextURI());
+            }
+            bs = accCon.createBatchScanner(EntityCentricIndex.getTableName(conf),
+                    new Authorizations(conf.get(ConfigUtils.CLOUDBASE_AUTHS)), 15);
+            bs.addScanIterator(is);
+            bs.setRanges(ranges);
+
+            return bs;
+
+        } catch (TableNotFoundException | AccumuloException | AccumuloSecurityException e) {
+            throw new QueryEvaluationException(e);
         }
-        bs = accCon.createBatchScanner(ConfigUtils.getEntityTableName(conf),
-                new Authorizations(conf.get(ConfigUtils.CLOUDBASE_AUTHS)), 15);
-        bs.addScanIterator(is);
-        bs.setRanges(ranges);
-
-        return bs;
-
-    } catch (TableNotFoundException e) {
-        e.printStackTrace();
-    } catch (AccumuloException e) {
-        e.printStackTrace();
-    } catch (AccumuloSecurityException e) {
-        e.printStackTrace();
     }
-        throw new QueryEvaluationException();
-   }
-
 
     @Override
     public void close() throws IOException {

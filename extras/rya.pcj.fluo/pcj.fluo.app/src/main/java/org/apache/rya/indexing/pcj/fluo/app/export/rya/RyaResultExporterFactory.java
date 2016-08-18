@@ -28,7 +28,8 @@ import org.apache.accumulo.core.client.ZooKeeperInstance;
 import org.apache.accumulo.core.client.security.tokens.PasswordToken;
 import org.apache.rya.indexing.pcj.fluo.app.export.IncrementalResultExporter;
 import org.apache.rya.indexing.pcj.fluo.app.export.IncrementalResultExporterFactory;
-import org.apache.rya.indexing.pcj.storage.accumulo.PcjTables;
+import org.apache.rya.indexing.pcj.storage.PrecomputedJoinStorage;
+import org.apache.rya.indexing.pcj.storage.accumulo.AccumuloPcjStorage;
 
 import com.google.common.base.Optional;
 
@@ -47,16 +48,23 @@ public class RyaResultExporterFactory implements IncrementalResultExporterFactor
         final RyaExportParameters params = new RyaExportParameters( context.getParameters() );
 
         if(params.isExportToRya()) {
+            // Setup Zookeeper connection info.
             final String accumuloInstance = params.getAccumuloInstanceName().get();
             final String zookeeperServers =  params.getZookeeperServers().get().replaceAll(";", ",");
             final Instance inst = new ZooKeeperInstance(accumuloInstance, zookeeperServers);
 
             try {
+                // Setup Accumulo connection info.
                 final String exporterUsername = params.getExporterUsername().get();
                 final String exporterPassword = params.getExporterPassword().get();
                 final Connector accumuloConn = inst.getConnector(exporterUsername, new PasswordToken(exporterPassword));
 
-                final IncrementalResultExporter exporter = new RyaResultExporter(accumuloConn, new PcjTables());
+                // Setup Rya PCJ Storage.
+                final String ryaInstanceName = params.getRyaInstanceName().get();
+                final PrecomputedJoinStorage pcjStorage = new AccumuloPcjStorage(accumuloConn, ryaInstanceName);
+
+                // Make the exporter.
+                final IncrementalResultExporter exporter = new RyaResultExporter(pcjStorage);
                 return Optional.of(exporter);
 
             } catch (final AccumuloException | AccumuloSecurityException e) {

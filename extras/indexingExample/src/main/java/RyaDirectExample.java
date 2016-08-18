@@ -20,14 +20,6 @@
 import java.net.UnknownHostException;
 import java.util.List;
 
-import mvm.rya.accumulo.AccumuloRdfConfiguration;
-import mvm.rya.api.RdfCloudTripleStoreConfiguration;
-import mvm.rya.api.persist.RyaDAOException;
-import mvm.rya.indexing.accumulo.ConfigUtils;
-import mvm.rya.indexing.accumulo.geo.GeoConstants;
-import mvm.rya.rdftriplestore.inference.InferenceEngineException;
-import mvm.rya.sail.config.RyaSailFactory;
-
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
 import org.apache.accumulo.core.client.Connector;
@@ -61,8 +53,19 @@ import org.openrdf.repository.RepositoryException;
 import org.openrdf.repository.sail.SailRepository;
 import org.openrdf.repository.sail.SailRepositoryConnection;
 import org.openrdf.sail.Sail;
+import org.openrdf.sail.SailException;
 
 import com.google.common.base.Optional;
+
+import mvm.rya.accumulo.AccumuloRdfConfiguration;
+import mvm.rya.api.RdfCloudTripleStoreConfiguration;
+import mvm.rya.api.persist.RyaDAOException;
+import mvm.rya.indexing.accumulo.ConfigUtils;
+import mvm.rya.indexing.accumulo.geo.GeoConstants;
+import mvm.rya.indexing.external.PrecomputedJoinIndexerConfig;
+import mvm.rya.indexing.external.PrecomputedJoinIndexerConfig.PrecomputedJoinStorageType;
+import mvm.rya.rdftriplestore.inference.InferenceEngineException;
+import mvm.rya.sail.config.RyaSailFactory;
 
 public class RyaDirectExample {
 	private static final Logger log = Logger.getLogger(RyaDirectExample.class);
@@ -75,24 +78,21 @@ public class RyaDirectExample {
 	private static final boolean PRINT_QUERIES = true;
 	private static final String INSTANCE = "instance";
 	private static final String RYA_TABLE_PREFIX = "x_test_triplestore_";
-	private static final String AUTHS = "";
+	private static final String AUTHS = "U";
 
 	public static void main(final String[] args) throws Exception {
 		final Configuration conf = getConf();
 		conf.setBoolean(ConfigUtils.DISPLAY_QUERY_PLAN, PRINT_QUERIES);
 
 		log.info("Creating the tables as root.");
-		// createTables(addRootConf(conf), conf);
 
 		SailRepository repository = null;
 		SailRepositoryConnection conn = null;
 
 		try {
 			log.info("Connecting to Indexing Sail Repository.");
-
 			final Sail extSail = RyaSailFactory.getInstance(conf);
 			repository = new SailRepository(extSail);
-			repository.initialize();
 			conn = repository.getConnection();
 
 			createPCJ(conf);
@@ -156,8 +156,8 @@ public class RyaDirectExample {
 		conf.set(ConfigUtils.USE_GEO, "true");
 		conf.set(ConfigUtils.USE_FREETEXT, "true");
 		conf.set(ConfigUtils.USE_TEMPORAL, "true");
-		conf.set(RdfCloudTripleStoreConfiguration.CONF_TBL_PREFIX,
-				RYA_TABLE_PREFIX);
+		conf.set(PrecomputedJoinIndexerConfig.PCJ_STORAGE_TYPE, PrecomputedJoinStorageType.ACCUMULO.name());
+		conf.set(RdfCloudTripleStoreConfiguration.CONF_TBL_PREFIX, RYA_TABLE_PREFIX);
 		conf.set(ConfigUtils.CLOUDBASE_USER, "root");
 		conf.set(ConfigUtils.CLOUDBASE_PASSWORD, "");
 		conf.set(ConfigUtils.CLOUDBASE_INSTANCE, INSTANCE);
@@ -730,7 +730,7 @@ public class RyaDirectExample {
 			throws RepositoryException, AccumuloException,
 			AccumuloSecurityException, TableExistsException, PcjException,
 			InferenceEngineException, NumberFormatException,
-			UnknownHostException {
+			UnknownHostException, SailException {
 
 		final Configuration config = new AccumuloRdfConfiguration(conf);
 		config.set(ConfigUtils.USE_PCJ, "false");
@@ -738,10 +738,9 @@ public class RyaDirectExample {
 		SailRepositoryConnection conn = null;
 
 		try {
-			Sail extSail = RyaSailFactory.getInstance(config);
+			final Sail extSail = RyaSailFactory.getInstance(config);
 
 			repository = new SailRepository(extSail);
-			repository.initialize();
 			conn = repository.getConnection();
 
 			final String queryString1 = ""//

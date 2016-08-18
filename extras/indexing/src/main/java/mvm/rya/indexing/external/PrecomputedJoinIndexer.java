@@ -28,27 +28,27 @@ import java.util.Set;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 
-import mvm.rya.accumulo.experimental.AbstractAccumuloIndexer;
-import mvm.rya.api.RdfCloudTripleStoreConfiguration;
-import mvm.rya.api.domain.RyaStatement;
-import mvm.rya.api.domain.RyaURI;
-import mvm.rya.api.persist.RyaDAO;
-import mvm.rya.indexing.external.accumulo.AccumuloPcjStorage;
-import mvm.rya.indexing.external.accumulo.AccumuloPcjStorageSupplier;
-import mvm.rya.indexing.external.fluo.PcjUpdaterSupplierFactory;
-
 import org.apache.accumulo.core.client.Connector;
 import org.apache.accumulo.core.client.MultiTableBatchWriter;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.log4j.Logger;
 import org.apache.rya.indexing.pcj.storage.PrecomputedJoinStorage;
 import org.apache.rya.indexing.pcj.storage.PrecomputedJoinStorage.PCJStorageException;
+import org.apache.rya.indexing.pcj.storage.accumulo.AccumuloPcjStorage;
 import org.apache.rya.indexing.pcj.update.PrecomputedJoinUpdater;
 import org.apache.rya.indexing.pcj.update.PrecomputedJoinUpdater.PcjUpdateException;
 import org.openrdf.model.URI;
 
 import com.google.common.base.Optional;
 import com.google.common.base.Supplier;
+
+import mvm.rya.accumulo.experimental.AbstractAccumuloIndexer;
+import mvm.rya.api.RdfCloudTripleStoreConfiguration;
+import mvm.rya.api.domain.RyaStatement;
+import mvm.rya.api.domain.RyaURI;
+import mvm.rya.api.persist.RyaDAO;
+import mvm.rya.indexing.external.accumulo.AccumuloPcjStorageSupplier;
+import mvm.rya.indexing.external.fluo.PcjUpdaterSupplierFactory;
 
 /**
  * Updates the state of the Precomputed Join indices that are used by Rya.

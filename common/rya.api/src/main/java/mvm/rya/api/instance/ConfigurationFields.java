@@ -1,4 +1,4 @@
-package mvm.rya.console;
+package mvm.rya.api.instance;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -8,9 +8,9 @@ package mvm.rya.console;
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- * 
+ *
  *   http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -19,29 +19,17 @@ package mvm.rya.console;
  * under the License.
  */
 
-
-import org.springframework.core.Ordered;
-import org.springframework.core.annotation.Order;
-import org.springframework.shell.plugin.support.DefaultPromptProvider;
-import org.springframework.stereotype.Component;
-
 /**
- * @author Jarred Li
+ * The possible configuration fields used in a Rya application.
  *
+ * Note: The fields used here are from ConfigUtils.java, but this project
+ * doesn't have scope.
+ * TODO: Refactor ConfigUtils so this class is not needed.
  */
-@Component
-@Order(Ordered.HIGHEST_PRECEDENCE)
-public class RyaPromptProvider extends DefaultPromptProvider {
-
-	@Override
-	public String getPrompt() {
-		return "rya>";
-	}
-
-	
-	@Override
-	public String getProviderName() {
-		return "Rya Console Prompt";
-	}
-
+class ConfigurationFields {
+    static final String USE_GEO = "sc.use_geo";
+    static final String USE_FREETEXT = "sc.use_freetext";
+    static final String USE_TEMPORAL = "sc.use_temporal";
+    static final String USE_ENTITY = "sc.use_entity";
+    static final String USE_PCJ = "sc.use_pcj";
 }

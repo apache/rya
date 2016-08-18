@@ -26,16 +26,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
-import mvm.rya.accumulo.AccumuloRdfConfiguration;
-import mvm.rya.api.RdfCloudTripleStoreConfiguration;
-import mvm.rya.api.persist.RyaDAOException;
-import mvm.rya.indexing.IndexPlanValidator.IndexPlanValidator;
-import mvm.rya.indexing.accumulo.ConfigUtils;
-import mvm.rya.indexing.external.tupleSet.AccumuloIndexSet;
-import mvm.rya.indexing.external.tupleSet.ExternalTupleSet;
-import mvm.rya.indexing.pcj.matching.PCJOptimizer;
-import mvm.rya.rdftriplestore.inference.InferenceEngineException;
-
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
 import org.apache.accumulo.core.client.Connector;
@@ -74,12 +64,23 @@ import com.beust.jcommander.internal.Sets;
 import com.google.common.base.Optional;
 import com.google.common.collect.Lists;
 
+import mvm.rya.accumulo.AccumuloRdfConfiguration;
+import mvm.rya.api.RdfCloudTripleStoreConfiguration;
+import mvm.rya.api.persist.RyaDAOException;
+import mvm.rya.indexing.IndexPlanValidator.IndexPlanValidator;
+import mvm.rya.indexing.accumulo.ConfigUtils;
+import mvm.rya.indexing.external.PrecomputedJoinIndexerConfig.PrecomputedJoinStorageType;
+import mvm.rya.indexing.external.tupleSet.AccumuloIndexSet;
+import mvm.rya.indexing.external.tupleSet.ExternalTupleSet;
+import mvm.rya.indexing.pcj.matching.PCJOptimizer;
+import mvm.rya.rdftriplestore.inference.InferenceEngineException;
+
 public class AccumuloPcjIntegrationTest {
 
 	private SailRepositoryConnection conn, pcjConn;
 	private SailRepository repo, pcjRepo;
 	private Connector accCon;
-	private Configuration conf = getConf();
+	private final Configuration conf = getConf();
 	private final String prefix = "table_";
 	private final String tablename = "table_INDEX_";
 	private URI obj, obj2, subclass, subclass2, talksTo;
@@ -90,7 +91,7 @@ public class AccumuloPcjIntegrationTest {
 			MalformedQueryException, AccumuloException,
 			AccumuloSecurityException, TableExistsException, RyaDAOException,
 			TableNotFoundException, InferenceEngineException,
-			NumberFormatException, UnknownHostException {
+			NumberFormatException, UnknownHostException, SailException {
 
 		repo = PcjIntegrationTestingUtil.getNonPcjRepo(prefix, "instance");
 		conn = repo.getConnection();
@@ -1440,6 +1441,7 @@ public class AccumuloPcjIntegrationTest {
 		conf.set(ConfigUtils.CLOUDBASE_PASSWORD, "");
 		conf.set(ConfigUtils.CLOUDBASE_INSTANCE, "instance");
 		conf.set(ConfigUtils.CLOUDBASE_AUTHS, "");
+		conf.set(PrecomputedJoinIndexerConfig.PCJ_STORAGE_TYPE,PrecomputedJoinStorageType.ACCUMULO.name());
 		return conf;
 	}
 

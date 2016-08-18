@@ -19,17 +19,14 @@
 package org.apache.rya.indexing.pcj.fluo.integration;
 
 import static org.junit.Assert.assertEquals;
-import io.fluo.api.client.FluoClient;
 
 import java.util.HashSet;
 import java.util.Set;
 
-import mvm.rya.accumulo.AccumuloRyaDAO;
-import mvm.rya.indexing.external.PrecomputedJoinIndexer;
-
 import org.apache.rya.indexing.pcj.fluo.ITBase;
 import org.apache.rya.indexing.pcj.fluo.api.CreatePcj;
-import org.apache.rya.indexing.pcj.storage.accumulo.VariableOrder;
+import org.apache.rya.indexing.pcj.storage.PrecomputedJoinStorage;
+import org.apache.rya.indexing.pcj.storage.accumulo.AccumuloPcjStorage;
 import org.apache.rya.indexing.pcj.update.PrecomputedJoinUpdater;
 import org.junit.Test;
 import org.openrdf.model.Statement;
@@ -39,6 +36,10 @@ import org.openrdf.query.impl.BindingImpl;
 import org.openrdf.repository.RepositoryConnection;
 
 import com.google.common.collect.Sets;
+
+import io.fluo.api.client.FluoClient;
+import mvm.rya.accumulo.AccumuloRyaDAO;
+import mvm.rya.indexing.external.PrecomputedJoinIndexer;
 
 
 /**
@@ -84,9 +85,12 @@ public class RyaInputIncrementalUpdateIT extends ITBase {
         expected.add(makeBindingSet(new BindingImpl("x", new URIImpl("http://Bob"))));
         expected.add(makeBindingSet(new BindingImpl("x", new URIImpl("http://Charlie"))));
 
-        // Create the PCJ in Fluo.
-        new CreatePcj().withRyaIntegration(fluoClient, RYA_TABLE_PREFIX, ryaRepo, accumuloConn,
-                new HashSet<VariableOrder>(), sparql);
+        // Create the PCJ table.
+        final PrecomputedJoinStorage pcjStorage = new AccumuloPcjStorage(accumuloConn, RYA_INSTANCE_NAME);
+        final String pcjId = pcjStorage.createPcj(sparql);
+
+        // Tell the Fluo app to maintain the PCJ.
+        new CreatePcj().withRyaIntegration(pcjId, pcjStorage, fluoClient, ryaRepo);
 
         // Verify the end results of the query match the expected results.
         fluo.waitForObservers();
@@ -132,9 +136,13 @@ public class RyaInputIncrementalUpdateIT extends ITBase {
             ryaConn.add(triple);
         }
 
-        // Create the PCJ in Fluo.
-        new CreatePcj().withRyaIntegration(fluoClient, RYA_TABLE_PREFIX, ryaRepo, accumuloConn,
-                new HashSet<VariableOrder>(), sparql);
+        // Create the PCJ table.
+        final PrecomputedJoinStorage pcjStorage = new AccumuloPcjStorage(accumuloConn, RYA_INSTANCE_NAME);
+        final String pcjId = pcjStorage.createPcj(sparql);
+
+        // Tell the Fluo app to maintain the PCJ.
+        new CreatePcj().withRyaIntegration(pcjId, pcjStorage, fluoClient, ryaRepo);
+
         fluo.waitForObservers();
 
         // Load the streaming data into Rya.
@@ -177,9 +185,13 @@ public class RyaInputIncrementalUpdateIT extends ITBase {
             ryaConn.add(triple);
         }
 
-        // Create the PCJ in Fluo.
-        new CreatePcj().withRyaIntegration(fluoClient, RYA_TABLE_PREFIX, ryaRepo, accumuloConn,
-                new HashSet<VariableOrder>(), sparql);
+        // Create the PCJ table.
+        final PrecomputedJoinStorage pcjStorage = new AccumuloPcjStorage(accumuloConn, RYA_INSTANCE_NAME);
+        final String pcjId = pcjStorage.createPcj(sparql);
+
+        // Tell the Fluo app to maintain the PCJ.
+        new CreatePcj().withRyaIntegration(pcjId, pcjStorage, fluoClient, ryaRepo);
+
         fluo.waitForObservers();
 
         // Load the streaming data into Rya.

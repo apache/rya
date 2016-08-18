@@ -20,11 +20,25 @@ package org.apache.rya.indexing.pcj.storage.accumulo;
 
 import java.util.Set;
 
+import javax.annotation.ParametersAreNonnullByDefault;
+
+import org.openrdf.query.MalformedQueryException;
+
 /**
  * Create alternative variable orders for a SPARQL query based on
  * the original ordering of its results.
  */
+@ParametersAreNonnullByDefault
 public interface PcjVarOrderFactory {
+
+    /**
+     * Create a set of variable orders for a SPARQL query.
+     *
+     * @param sparql - The SPARQL query the variable orders will be derived from. (not null)
+     * @return @return A set of variable orders for the SPARQL query.
+     * @throws MalformedQueryException The SPARQL query was malformed and could not be parsed.
+     */
+    public Set<VariableOrder> makeVarOrders(String sparql) throws MalformedQueryException;
 
     /**
      * Create alternative variable orders for a SPARQL query based on

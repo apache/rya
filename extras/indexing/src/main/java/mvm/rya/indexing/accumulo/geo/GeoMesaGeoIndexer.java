@@ -124,6 +124,8 @@ import mvm.rya.indexing.accumulo.ConfigUtils;
  */
 public class GeoMesaGeoIndexer extends AbstractAccumuloIndexer implements GeoIndexer  {
 
+    private static final String TABLE_SUFFIX = "geo";
+
     private static final Logger logger = Logger.getLogger(GeoMesaGeoIndexer.class);
 
     private static final String FEATURE_NAME = "RDF";
@@ -190,7 +192,7 @@ public class GeoMesaGeoIndexer extends AbstractAccumuloIndexer implements GeoInd
         final String user = ConfigUtils.getUsername(conf);
         final String password = ConfigUtils.getPassword(conf);
         final String auths = ConfigUtils.getAuthorizations(conf).toString();
-        final String tableName = ConfigUtils.getGeoTablename(conf);
+        final String tableName = getTableName(conf);
         final int numParitions = ConfigUtils.getGeoNumPartitions(conf);
 
         final String featureSchemaFormat = "%~#s%" + numParitions + "#r%" + FEATURE_NAME
@@ -435,7 +437,16 @@ public class GeoMesaGeoIndexer extends AbstractAccumuloIndexer implements GeoInd
 
     @Override
     public String getTableName() {
-       return ConfigUtils.getGeoTablename(conf);
+            return getTableName(conf);
+    }
+
+    /**
+     * Get the Accumulo table that will be used by this index.  
+     * @param conf
+     * @return table name guaranteed to be used by instances of this index
+     */
+    public static String getTableName(Configuration conf) {
+        return ConfigUtils.getTablePrefix(conf)  + TABLE_SUFFIX;
     }
 
     private void deleteStatements(final Collection<RyaStatement> ryaStatements) throws IOException {

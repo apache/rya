@@ -1,6 +1,7 @@
 package mvm.rya.indexing.accumulo.freetext;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map.Entry;
 import java.util.Set;
 
@@ -13,6 +14,7 @@ import org.apache.accumulo.core.client.admin.TableOperations;
 import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.security.Authorizations;
 import org.apache.hadoop.conf.Configuration;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.openrdf.model.Statement;
@@ -47,7 +49,7 @@ import com.google.common.collect.Sets;
 
 
 import info.aduna.iteration.CloseableIteration;
-import junit.framework.Assert;
+import mvm.rya.accumulo.AccumuloRdfConfiguration;
 import mvm.rya.api.domain.RyaStatement;
 import mvm.rya.api.domain.RyaType;
 import mvm.rya.api.domain.RyaURI;
@@ -59,32 +61,32 @@ import mvm.rya.indexing.accumulo.ConfigUtils;
 public class AccumuloFreeTextIndexerTest {
     private static final StatementConstraints EMPTY_CONSTRAINTS = new StatementConstraints();
 
-    Configuration conf;
+    private AccumuloRdfConfiguration conf;
 
     @Before
     public void before() throws Exception {
-        String tableName = "triplestore_freetext";
-        String termTableName = "triplestore_freetext_term";
-        conf = new Configuration();
+        conf = new AccumuloRdfConfiguration();
         conf.setBoolean(ConfigUtils.USE_MOCK_INSTANCE, true);
         conf.set(ConfigUtils.CLOUDBASE_USER, "USERNAME");
         conf.set(ConfigUtils.CLOUDBASE_PASSWORD, "PASS");
-        conf.set(ConfigUtils.FREE_TEXT_DOC_TABLENAME, tableName);
-        conf.set(ConfigUtils.FREE_TEXT_TERM_TABLENAME, termTableName);
         conf.set(ConfigUtils.CLOUDBASE_AUTHS, "U");
         conf.setClass(ConfigUtils.TOKENIZER_CLASS, SimpleTokenizer.class, Tokenizer.class);
-
-        createTable(conf, tableName);
-        createTable(conf, termTableName);
+        conf.setTablePrefix("triplestore_");
+        
+        // If a table exists from last time, delete it.
+        List<String> tableNames = AccumuloFreeTextIndexer.getTableNames(conf);
+        for (String name : tableNames) {
+            destroyTable(conf, name);
+        }
+        // Tables are created in each test with setConf(conf)
     }
 
-    private static void createTable(Configuration conf, String tablename) throws AccumuloException, AccumuloSecurityException,
+    private static void destroyTable(Configuration conf, String tablename) throws AccumuloException, AccumuloSecurityException,
             TableNotFoundException, TableExistsException {
         TableOperations tableOps = ConfigUtils.getConnector(conf).tableOperations();
         if (tableOps.exists(tablename)) {
             tableOps.delete(tablename);
         }
-        tableOps.create(tablename);
     }
 
     @Test

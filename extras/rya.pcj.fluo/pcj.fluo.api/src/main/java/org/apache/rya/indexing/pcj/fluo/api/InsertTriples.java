@@ -59,6 +59,8 @@ public class InsertTriples {
 
     private static final Encoder ENCODER = new StringEncoder();
 
+    // TODO visiblity is part of RyaStatement. Put it there instead.
+
     /**
      * Inserts a triple into Fluo.
      *

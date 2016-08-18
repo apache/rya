@@ -43,6 +43,8 @@ public class RyaExportParameters extends ParametersBase {
     public static final String CONF_EXPORTER_USERNAME = "pcj.fluo.export.rya.exporterUsername";
     public static final String CONF_EXPORTER_PASSWORD = "pcj.fluo.export.rya.exporterPassword";
 
+    public static final String CONF_RYA_INSTANCE_NAME = "pcj.fluo.export.rya.ryaInstanceName";
+
     /**
      * Constructs an instance of {@link RyaExportParameters}.
      *
@@ -121,6 +123,20 @@ public class RyaExportParameters extends ParametersBase {
      */
     public void setExporterPassword(@Nullable final String exporterPassword) {
         params.put(CONF_EXPORTER_PASSWORD, exporterPassword);
+    }
+
+    /**
+     * @return The name of the Rya instance this application is updating.
+     */
+    public Optional<String> getRyaInstanceName() {
+        return Optional.fromNullable( params.get(CONF_RYA_INSTANCE_NAME) );
+    }
+
+    /**
+     * @param ryaInstanceName - The name of the Rya instance this application is updating.
+     */
+    public void setRyaInstanceName(@Nullable final String ryaInstanceName) {
+        params.put(CONF_RYA_INSTANCE_NAME, ryaInstanceName);
     }
 
     /**

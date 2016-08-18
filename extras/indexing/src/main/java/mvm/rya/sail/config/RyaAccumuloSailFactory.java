@@ -1,5 +1,17 @@
 package mvm.rya.sail.config;
 
+import org.apache.accumulo.core.client.AccumuloException;
+import org.apache.accumulo.core.client.AccumuloSecurityException;
+import org.apache.accumulo.core.client.Connector;
+import org.apache.accumulo.core.client.Instance;
+import org.apache.accumulo.core.client.ZooKeeperInstance;
+import org.apache.accumulo.core.client.mock.MockInstance;
+import org.apache.accumulo.core.client.security.tokens.PasswordToken;
+import org.openrdf.sail.Sail;
+import org.openrdf.sail.config.SailConfigException;
+import org.openrdf.sail.config.SailFactory;
+import org.openrdf.sail.config.SailImplConfig;
+
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -8,9 +20,9 @@ package mvm.rya.sail.config;
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- * 
+ *
  *   http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -25,18 +37,10 @@ import mvm.rya.api.persist.RyaDAOException;
 import mvm.rya.indexing.accumulo.ConfigUtils;
 import mvm.rya.rdftriplestore.RdfCloudTripleStore;
 
-import org.apache.accumulo.core.client.AccumuloException;
-import org.apache.accumulo.core.client.AccumuloSecurityException;
-import org.apache.accumulo.core.client.Connector;
-import org.apache.accumulo.core.client.Instance;
-import org.apache.accumulo.core.client.ZooKeeperInstance;
-import org.apache.accumulo.core.client.mock.MockInstance;
-import org.apache.accumulo.core.client.security.tokens.PasswordToken;
-import org.openrdf.sail.Sail;
-import org.openrdf.sail.config.SailConfigException;
-import org.openrdf.sail.config.SailFactory;
-import org.openrdf.sail.config.SailImplConfig;
-
+/**
+ * @deprecated Use {@link RyaSailFactory} instead.
+ */
+@Deprecated
 public class RyaAccumuloSailFactory implements SailFactory {
 
     public static final String SAIL_TYPE = "rya:RyaAccumuloSail";
@@ -47,13 +51,13 @@ public class RyaAccumuloSailFactory implements SailFactory {
     }
 
     @Override
-    public Sail getSail(SailImplConfig config) throws SailConfigException {
+    public Sail getSail(final SailImplConfig config) throws SailConfigException {
         try {
-            RdfCloudTripleStore store = new RdfCloudTripleStore();
-            RyaAccumuloSailConfig cbconfig = (RyaAccumuloSailConfig) config;
+            final RdfCloudTripleStore store = new RdfCloudTripleStore();
+            final RyaAccumuloSailConfig cbconfig = (RyaAccumuloSailConfig) config;
 
-            String instanceName = cbconfig.getInstance();
-            String zooKeepers = cbconfig.getZookeepers();
+            final String instanceName = cbconfig.getInstance();
+            final String zooKeepers = cbconfig.getZookeepers();
 
             Instance i;
             if (cbconfig.isMock()) {
@@ -62,14 +66,14 @@ public class RyaAccumuloSailFactory implements SailFactory {
                 i = new ZooKeeperInstance(instanceName, zooKeepers);
             }
 
-            String user = cbconfig.getUser();
-            String pass = cbconfig.getPassword();
+            final String user = cbconfig.getUser();
+            final String pass = cbconfig.getPassword();
 
-            Connector connector = i.getConnector(user, new PasswordToken(pass));
-            AccumuloRyaDAO crdfdao = new AccumuloRyaDAO();
+            final Connector connector = i.getConnector(user, new PasswordToken(pass));
+            final AccumuloRyaDAO crdfdao = new AccumuloRyaDAO();
             crdfdao.setConnector(connector);
 
-            AccumuloRdfConfiguration conf = cbconfig.toRdfConfiguation();
+            final AccumuloRdfConfiguration conf = cbconfig.toRdfConfiguation();
             ConfigUtils.setIndexers(conf);
             conf.setDisplayQueryPlan(true);
 

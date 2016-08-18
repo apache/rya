@@ -34,7 +34,13 @@ import mvm.rya.api.domain.RyaURI;
 
 public interface RyaSecondaryIndexer extends Closeable, Flushable, Configurable {
 
-    public String getTableName();
+    /**
+     * Returns the table name if the implementation supports it.
+     * Note that some indexers use multiple tables, this only returns one.
+     * TODO recommend that we deprecate this method because it's a leaky interface. 
+     * @return table name as a string.
+     */
+    public String getTableName(); 
 
     public void storeStatements(Collection<RyaStatement> statements) throws IOException;
 

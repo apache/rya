@@ -34,6 +34,7 @@ import mvm.rya.indexing.accumulo.ConfigUtils;
 import mvm.rya.indexing.mongodb.AbstractMongoIndexer;
 
 public class MongoFreeTextIndexer extends AbstractMongoIndexer<TextMongoDBStorageStrategy> implements FreeTextIndexer {
+    private static final String COLLECTION_SUFFIX = "freetext";
     private static final Logger logger = Logger.getLogger(MongoFreeTextIndexer.class);
 
     public MongoFreeTextIndexer(final MongoClient mongoClient) {
@@ -57,6 +58,6 @@ public class MongoFreeTextIndexer extends AbstractMongoIndexer<TextMongoDBStorag
 
     @Override
     public String getCollectionName() {
-        return ConfigUtils.getFreeTextDocTablename(conf);
+    	return ConfigUtils.getTablePrefix(conf)  + COLLECTION_SUFFIX;
     }
 }

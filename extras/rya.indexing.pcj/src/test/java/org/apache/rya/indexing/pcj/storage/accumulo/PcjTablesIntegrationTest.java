@@ -1,6 +1,4 @@
-package org.apache.rya.indexing.pcj.storage.accumulo;
-
-/*
+/**
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -9,7 +7,7 @@ package org.apache.rya.indexing.pcj.storage.accumulo;
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
@@ -18,43 +16,36 @@ package org.apache.rya.indexing.pcj.storage.accumulo;
  * specific language governing permissions and limitations
  * under the License.
  */
+package org.apache.rya.indexing.pcj.storage.accumulo;
 
-import static com.google.common.base.Preconditions.checkNotNull;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.HashSet;
 import java.util.Map.Entry;
 import java.util.Set;
 
-import mvm.rya.accumulo.AccumuloRdfConfiguration;
-import mvm.rya.accumulo.AccumuloRyaDAO;
-import mvm.rya.api.RdfCloudTripleStoreConfiguration;
-import mvm.rya.rdftriplestore.RdfCloudTripleStore;
-import mvm.rya.rdftriplestore.RyaSailRepository;
-
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
 import org.apache.accumulo.core.client.Connector;
-import org.apache.accumulo.core.client.Instance;
 import org.apache.accumulo.core.client.Scanner;
 import org.apache.accumulo.core.client.TableNotFoundException;
-import org.apache.accumulo.core.client.ZooKeeperInstance;
-import org.apache.accumulo.core.client.security.tokens.PasswordToken;
 import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Value;
 import org.apache.accumulo.core.security.Authorizations;
 import org.apache.accumulo.minicluster.MiniAccumuloCluster;
 import org.apache.hadoop.io.Text;
+import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.apache.rya.indexing.pcj.storage.PcjException;
 import org.apache.rya.indexing.pcj.storage.PcjMetadata;
 import org.apache.rya.indexing.pcj.storage.PrecomputedJoinStorage.PCJStorageException;
 import org.apache.rya.indexing.pcj.storage.accumulo.BindingSetConverter.BindingSetConversionException;
+import org.apache.zookeeper.ClientCnxn;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.openrdf.model.Statement;
 import org.openrdf.model.impl.LiteralImpl;
@@ -71,14 +62,19 @@ import com.google.common.base.Optional;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
-import com.google.common.io.Files;
+
+import mvm.rya.accumulo.AccumuloRdfConfiguration;
+import mvm.rya.accumulo.AccumuloRyaDAO;
+import mvm.rya.accumulo.MiniAccumuloClusterInstance;
+import mvm.rya.api.RdfCloudTripleStoreConfiguration;
+import mvm.rya.rdftriplestore.RdfCloudTripleStore;
+import mvm.rya.rdftriplestore.RyaSailRepository;
 
 /**
  * Performs integration test using {@link MiniAccumuloCluster} to ensure the
  * functions of {@link PcjTables} work within a cluster setting.
  */
 public class PcjTablesIntegrationTest {
-    private static final Logger log = Logger.getLogger(PcjTablesIntegrationTest.class);
 
     private static final String USE_MOCK_INSTANCE = ".useMockInstance";
     private static final String CLOUDBASE_INSTANCE = "sc.cloudbase.instancename";
@@ -89,20 +85,67 @@ public class PcjTablesIntegrationTest {
 
     protected static final String RYA_TABLE_PREFIX = "demo_";
 
+    // The MiniAccumuloCluster is re-used between tests.
+    private MiniAccumuloClusterInstance cluster;
+
     // Rya data store and connections.
-    protected MiniAccumuloCluster accumulo = null;
-    protected static Connector accumuloConn = null;
     protected RyaSailRepository ryaRepo = null;
     protected RepositoryConnection ryaConn = null;
 
+    @BeforeClass
+    public static void killLoudLogs() {
+        Logger.getLogger(ClientCnxn.class).setLevel(Level.ERROR);
+    }
+
     @Before
-    public void setupMiniResources() throws IOException, InterruptedException, AccumuloException, AccumuloSecurityException, RepositoryException {
-        // Initialize the Mini Accumulo that will be used to store Triples and get a connection to it.
-        accumulo = startMiniAccumulo();
+    public void resetTestEnvironmanet() throws AccumuloException, AccumuloSecurityException, TableNotFoundException, RepositoryException, IOException, InterruptedException {
+        // Start the cluster.
+        cluster = new MiniAccumuloClusterInstance();
+        cluster.startMiniAccumulo();
 
         // Setup the Rya library to use the Mini Accumulo.
-        ryaRepo = setupRya(accumulo);
+        ryaRepo = setupRya();
         ryaConn = ryaRepo.getConnection();
+    }
+
+    @After
+    public void shutdownMiniCluster() throws IOException, InterruptedException, RepositoryException {
+        // Stop Rya.
+        ryaRepo.shutDown();
+
+        // Stop the cluster.
+        cluster.stopMiniAccumulo();
+    }
+
+    /**
+     * Format a Mini Accumulo to be a Rya repository.
+     *
+     * @return The Rya repository sitting on top of the Mini Accumulo.
+     */
+    private RyaSailRepository setupRya() throws AccumuloException, AccumuloSecurityException, RepositoryException {
+        // Setup the Rya Repository that will be used to create Repository Connections.
+        final RdfCloudTripleStore ryaStore = new RdfCloudTripleStore();
+        final AccumuloRyaDAO crdfdao = new AccumuloRyaDAO();
+        crdfdao.setConnector( cluster.getConnector() );
+
+        // Setup Rya configuration values.
+        final AccumuloRdfConfiguration conf = new AccumuloRdfConfiguration();
+        conf.setTablePrefix(RYA_TABLE_PREFIX);
+        conf.setDisplayQueryPlan(true);
+
+        conf.setBoolean(USE_MOCK_INSTANCE, false);
+        conf.set(RdfCloudTripleStoreConfiguration.CONF_TBL_PREFIX, RYA_TABLE_PREFIX);
+        conf.set(CLOUDBASE_USER, cluster.getUsername());
+        conf.set(CLOUDBASE_PASSWORD, cluster.getPassword());
+        conf.set(CLOUDBASE_INSTANCE, cluster.getInstanceName());
+
+        crdfdao.setConf(conf);
+        ryaStore.setRyaDAO(crdfdao);
+
+        final RyaSailRepository ryaRepo = new RyaSailRepository(ryaStore);
+        ryaRepo.initialize();
+
+        return ryaRepo;
     }
 
     /**
@@ -112,7 +155,7 @@ public class PcjTablesIntegrationTest {
      * The method being tested is {@link PcjTables#createPcjTable(Connector, String, Set, String)}
      */
     @Test
-    public void createPcjTable() throws PcjException {
+    public void createPcjTable() throws PcjException, AccumuloException, AccumuloSecurityException {
         final String sparql =
                 "SELECT ?name ?age " +
                 "{" +
@@ -120,6 +163,8 @@ public class PcjTablesIntegrationTest {
                   "?name <http://hasAge> ?age." +
                   "?name <http://playsSport> \"Soccer\" " +
                 "}";
+
+        final Connector accumuloConn = cluster.getConnector();
 
         // Create a PCJ table in the Mini Accumulo.
         final String pcjTableName = new PcjTableNameFactory().makeTableName(RYA_TABLE_PREFIX, "testPcj");
@@ -141,7 +186,7 @@ public class PcjTablesIntegrationTest {
      * The method being tested is {@link PcjTables#addResults(Connector, String, java.util.Collection)}
      */
     @Test
-    public void addResults() throws PcjException, TableNotFoundException, BindingSetConversionException {
+    public void addResults() throws PcjException, TableNotFoundException, BindingSetConversionException, AccumuloException, AccumuloSecurityException {
         final String sparql =
                 "SELECT ?name ?age " +
                 "{" +
@@ -149,6 +194,8 @@ public class PcjTablesIntegrationTest {
                   "?name <http://hasAge> ?age." +
                   "?name <http://playsSport> \"Soccer\" " +
                 "}";
+
+        final Connector accumuloConn = cluster.getConnector();
 
         // Create a PCJ table in the Mini Accumulo.
         final String pcjTableName = new PcjTableNameFactory().makeTableName(RYA_TABLE_PREFIX, "testPcj");
@@ -189,6 +236,53 @@ public class PcjTablesIntegrationTest {
         assertEquals(expectedResults, fetchedResults);
     }
 
+    @Test
+    public void listResults() throws PCJStorageException, AccumuloException, AccumuloSecurityException {
+        final String sparql =
+                "SELECT ?name ?age " +
+                "{" +
+                  "FILTER(?age < 30) ." +
+                  "?name <http://hasAge> ?age." +
+                  "?name <http://playsSport> \"Soccer\" " +
+                "}";
+
+        final Connector accumuloConn = cluster.getConnector();
+
+        // Create a PCJ table in the Mini Accumulo.
+        final String pcjTableName = new PcjTableNameFactory().makeTableName(RYA_TABLE_PREFIX, "testPcj");
+        final Set<VariableOrder> varOrders = new ShiftVarOrderFactory().makeVarOrders(new VariableOrder("name;age"));
+        final PcjTables pcjs = new PcjTables();
+        pcjs.createPcjTable(accumuloConn, pcjTableName, varOrders, sparql);
+
+        // Add a few results to the PCJ table.
+        final MapBindingSet alice = new MapBindingSet();
+        alice.addBinding("name", new URIImpl("http://Alice"));
+        alice.addBinding("age", new NumericLiteralImpl(14, XMLSchema.INTEGER));
+
+        final MapBindingSet bob = new MapBindingSet();
+        bob.addBinding("name", new URIImpl("http://Bob"));
+        bob.addBinding("age", new NumericLiteralImpl(16, XMLSchema.INTEGER));
+
+        final MapBindingSet charlie = new MapBindingSet();
+        charlie.addBinding("name", new URIImpl("http://Charlie"));
+        charlie.addBinding("age", new NumericLiteralImpl(12, XMLSchema.INTEGER));
+
+        pcjs.addResults(accumuloConn, pcjTableName, Sets.<VisibilityBindingSet>newHashSet(
+                new VisibilityBindingSet(alice),
+                new VisibilityBindingSet(bob),
+                new VisibilityBindingSet(charlie)));
+
+        // Fetch the Binding Sets that have been stored in the PCJ table.
+        final Set<BindingSet> results = new HashSet<>();
+        for(final BindingSet result : pcjs.listResults(accumuloConn, pcjTableName, new Authorizations())) {
+            results.add( result );
+        }
+
+        // Verify the fetched results match the expected ones.
+        final Set<BindingSet> expected = Sets.<BindingSet>newHashSet(alice, bob, charlie);
+        assertEquals(expected, results);
+    }
+
     /**
      * Ensure when results are already stored in Rya, that we are able to populate
      * the PCJ table for a new SPARQL query using those results.
@@ -196,7 +290,7 @@ public class PcjTablesIntegrationTest {
      * The method being tested is: {@link PcjTables#populatePcj(Connector, String, RepositoryConnection, String)}
      */
     @Test
-    public void populatePcj() throws RepositoryException, PcjException, TableNotFoundException, BindingSetConversionException {
+    public void populatePcj() throws RepositoryException, PcjException, TableNotFoundException, BindingSetConversionException, AccumuloException, AccumuloSecurityException {
         // Load some Triples into Rya.
         final Set<Statement> triples = new HashSet<>();
         triples.add( new StatementImpl(new URIImpl("http://Alice"), new URIImpl("http://hasAge"), new NumericLiteralImpl(14, XMLSchema.INTEGER)) );
@@ -220,6 +314,8 @@ public class PcjTablesIntegrationTest {
                   "?name <http://hasAge> ?age." +
                   "?name <http://playsSport> \"Soccer\" " +
                 "}";
+
+        final Connector accumuloConn = cluster.getConnector();
 
         final String pcjTableName = new PcjTableNameFactory().makeTableName(RYA_TABLE_PREFIX, "testPcj");
         final Set<VariableOrder> varOrders = new ShiftVarOrderFactory().makeVarOrders(new VariableOrder("name;age"));
@@ -264,7 +360,7 @@ public class PcjTablesIntegrationTest {
      * The method being tested is: {@link PcjTables#createAndPopulatePcj(RepositoryConnection, Connector, String, String, String[], Optional)}
      */
     @Test
-    public void createAndPopulatePcj() throws RepositoryException, PcjException, TableNotFoundException, BindingSetConversionException {
+    public void createAndPopulatePcj() throws RepositoryException, PcjException, TableNotFoundException, BindingSetConversionException, AccumuloException, AccumuloSecurityException {
         // Load some Triples into Rya.
         final Set<Statement> triples = new HashSet<>();
         triples.add( new StatementImpl(new URIImpl("http://Alice"), new URIImpl("http://hasAge"), new NumericLiteralImpl(14, XMLSchema.INTEGER)) );
@@ -288,6 +384,8 @@ public class PcjTablesIntegrationTest {
                   "?name <http://hasAge> ?age." +
                   "?name <http://playsSport> \"Soccer\" " +
                 "}";
+
+        final Connector accumuloConn = cluster.getConnector();
 
         final String pcjTableName = new PcjTableNameFactory().makeTableName(RYA_TABLE_PREFIX, "testPcj");
 
@@ -325,7 +423,9 @@ public class PcjTablesIntegrationTest {
     }
 
     @Test
-    public void listPcjs() throws PCJStorageException {
+    public void listPcjs() throws PCJStorageException, AccumuloException, AccumuloSecurityException {
+        final Connector accumuloConn = cluster.getConnector();
+
         // Set up the table names that will be used.
         final String instance1 = "instance1_";
         final String instance2 = "instance2_";
@@ -358,7 +458,7 @@ public class PcjTablesIntegrationTest {
     }
 
     @Test
-    public void purge() throws PCJStorageException {
+    public void purge() throws PCJStorageException, AccumuloException, AccumuloSecurityException {
         final String sparql =
                 "SELECT ?name ?age " +
                 "{" +
@@ -366,6 +466,8 @@ public class PcjTablesIntegrationTest {
                   "?name <http://hasAge> ?age." +
                   "?name <http://playsSport> \"Soccer\" " +
                 "}";
+
+        final Connector accumuloConn = cluster.getConnector();
 
         // Create a PCJ table in the Mini Accumulo.
         final String pcjTableName = new PcjTableNameFactory().makeTableName(RYA_TABLE_PREFIX, "testPcj");
@@ -404,7 +506,9 @@ public class PcjTablesIntegrationTest {
     }
 
     @Test
-    public void dropPcj() throws PCJStorageException {
+    public void dropPcj() throws PCJStorageException, AccumuloException, AccumuloSecurityException {
+        final Connector accumuloConn = cluster.getConnector();
+
         // Create a PCJ index.
         final String tableName = new PcjTableNameFactory().makeTableName(RYA_TABLE_PREFIX, "thePcj");
         final Set<VariableOrder> varOrders = Sets.<VariableOrder>newHashSet( new VariableOrder("x") );
@@ -456,91 +560,5 @@ public class PcjTablesIntegrationTest {
         }
 
         return fetchedResults;
-    }
-
-    @After
-    public void shutdownMiniResources() {
-        if(ryaConn != null) {
-            try {
-                log.info("Shutting down Rya Connection.");
-                ryaConn.close();
-                log.info("Rya Connection shut down.");
-            } catch(final Exception e) {
-                log.error("Could not shut down the Rya Connection.", e);
-            }
-        }
-
-        if(ryaRepo != null) {
-            try {
-                log.info("Shutting down Rya Repo.");
-                ryaRepo.shutDown();
-                log.info("Rya Repo shut down.");
-            } catch(final Exception e) {
-                log.error("Could not shut down the Rya Repo.", e);
-            }
-        }
-
-        if(accumulo != null) {
-            try {
-                log.info("Shutting down the Mini Accumulo being used as a Rya store.");
-                accumulo.stop();
-                log.info("Mini Accumulo being used as a Rya store shut down.");
-            } catch(final Exception e) {
-                log.error("Could not shut down the Mini Accumulo.", e);
-            }
-        }
-    }
-
-    /**
-     * Setup a Mini Accumulo cluster that uses a temporary directory to store its data.
-     *
-     * @return A Mini Accumulo cluster.
-     */
-    private static MiniAccumuloCluster startMiniAccumulo() throws IOException, InterruptedException, AccumuloException, AccumuloSecurityException {
-        final File miniDataDir = Files.createTempDir();
-
-        // Setup and start the Mini Accumulo.
-        final MiniAccumuloCluster accumulo = new MiniAccumuloCluster(miniDataDir, "password");
-        accumulo.start();
-
-        // Store a connector to the Mini Accumulo.
-        final Instance instance = new ZooKeeperInstance(accumulo.getInstanceName(), accumulo.getZooKeepers());
-        accumuloConn = instance.getConnector("root", new PasswordToken("password"));
-
-        return accumulo;
-    }
-
-    /**
-     * Format a Mini Accumulo to be a Rya repository.
-     *
-     * @param accumulo - The Mini Accumulo cluster Rya will sit on top of. (not null)
-     * @return The Rya repository sitting on top of the Mini Accumulo.
-     */
-    private static RyaSailRepository setupRya(final MiniAccumuloCluster accumulo) throws AccumuloException, AccumuloSecurityException, RepositoryException {
-        checkNotNull(accumulo);
-
-        // Setup the Rya Repository that will be used to create Repository Connections.
-        final RdfCloudTripleStore ryaStore = new RdfCloudTripleStore();
-        final AccumuloRyaDAO crdfdao = new AccumuloRyaDAO();
-        crdfdao.setConnector(accumuloConn);
-
-        // Setup Rya configuration values.
-        final AccumuloRdfConfiguration conf = new AccumuloRdfConfiguration();
-        conf.setTablePrefix("demo_");
-        conf.setDisplayQueryPlan(true);
-
-        conf.setBoolean(USE_MOCK_INSTANCE, true);
-        conf.set(RdfCloudTripleStoreConfiguration.CONF_TBL_PREFIX, RYA_TABLE_PREFIX);
-        conf.set(CLOUDBASE_USER, "root");
-        conf.set(CLOUDBASE_PASSWORD, "password");
-        conf.set(CLOUDBASE_INSTANCE, accumulo.getInstanceName());
-
-        crdfdao.setConf(conf);
-        ryaStore.setRyaDAO(crdfdao);
-
-        final RyaSailRepository ryaRepo = new RyaSailRepository(ryaStore);
-        ryaRepo.initialize();
-
-        return ryaRepo;
     }
 }

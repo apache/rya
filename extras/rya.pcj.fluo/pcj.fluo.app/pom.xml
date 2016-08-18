@@ -42,12 +42,28 @@ under the License.
         <dependency>
             <groupId>org.apache.rya</groupId>
             <artifactId>rya.indexing.pcj</artifactId>
+            <exclusions>
+            	<exclusion>
+            		<artifactId>slf4j-log4j12</artifactId>
+            		<groupId>org.slf4j</groupId>
+            	</exclusion>
+            </exclusions>
         </dependency>
     
         <!-- 3rd Party Runtime Dependencies. -->
         <dependency>
             <groupId>io.fluo</groupId>
             <artifactId>fluo-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.fluo</groupId>
+            <artifactId>fluo-core</artifactId>
+            <exclusions>
+            	<exclusion>
+            		<artifactId>slf4j-log4j12</artifactId>
+            		<groupId>org.slf4j</groupId>
+            	</exclusion>
+            </exclusions>
         </dependency>
         
         <!-- Testing dependencies. -->

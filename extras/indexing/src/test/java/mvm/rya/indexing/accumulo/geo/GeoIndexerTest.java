@@ -26,10 +26,7 @@ import static mvm.rya.api.resolver.RdfToRyaConversions.convertStatement;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.UUID;
-
 import org.apache.accumulo.core.client.admin.TableOperations;
-import org.apache.hadoop.conf.Configuration;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -52,6 +49,8 @@ import com.vividsolutions.jts.geom.PrecisionModel;
 import com.vividsolutions.jts.geom.impl.PackedCoordinateSequence;
 
 import info.aduna.iteration.CloseableIteration;
+import mvm.rya.accumulo.AccumuloRdfConfiguration;
+import mvm.rya.api.RdfCloudTripleStoreConfiguration;
 import mvm.rya.indexing.StatementConstraints;
 import mvm.rya.indexing.accumulo.ConfigUtils;
 
@@ -59,18 +58,17 @@ public class GeoIndexerTest {
 
     private static final StatementConstraints EMPTY_CONSTRAINTS = new StatementConstraints();
 
-    Configuration conf;
+    private AccumuloRdfConfiguration conf;
     GeometryFactory gf = new GeometryFactory(new PrecisionModel(), 4326);
 
     @Before
     public void before() throws Exception {
-        System.out.println(UUID.randomUUID().toString());
-        String tableName = "triplestore_geospacial";
-        conf = new Configuration();
+        conf = new AccumuloRdfConfiguration();
+        conf.setTablePrefix("triplestore_");
+        String tableName = GeoMesaGeoIndexer.getTableName(conf);
         conf.setBoolean(ConfigUtils.USE_MOCK_INSTANCE, true);
         conf.set(ConfigUtils.CLOUDBASE_USER, "USERNAME");
         conf.set(ConfigUtils.CLOUDBASE_PASSWORD, "PASS");
-        conf.set(ConfigUtils.GEO_TABLENAME, tableName);
         conf.set(ConfigUtils.CLOUDBASE_AUTHS, "U");
 
         TableOperations tops = ConfigUtils.getConnector(conf).tableOperations();

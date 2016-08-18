@@ -18,22 +18,62 @@
  */
 package org.apache.rya.indexing.pcj.fluo.app;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import static java.util.Objects.requireNonNull;
 import static org.apache.rya.indexing.pcj.fluo.app.IncrementalUpdateConstants.FILTER_PREFIX;
 import static org.apache.rya.indexing.pcj.fluo.app.IncrementalUpdateConstants.JOIN_PREFIX;
 import static org.apache.rya.indexing.pcj.fluo.app.IncrementalUpdateConstants.QUERY_PREFIX;
 import static org.apache.rya.indexing.pcj.fluo.app.IncrementalUpdateConstants.SP_PREFIX;
 
+import java.util.List;
+
+import org.apache.rya.indexing.pcj.fluo.app.query.FluoQueryColumns;
+import org.apache.rya.indexing.pcj.fluo.app.query.FluoQueryColumns.QueryNodeMetadataColumns;
+import org.openrdf.query.BindingSet;
+
 import com.google.common.base.Optional;
+
+import io.fluo.api.data.Column;
 
 /**
  * Represents the different types of nodes that a Query may have.
  */
 public enum NodeType {
-    FILTER,
-    JOIN,
-    STATEMENT_PATTERN,
-    QUERY;
+    FILTER (QueryNodeMetadataColumns.FILTER_COLUMNS, FluoQueryColumns.FILTER_BINDING_SET),
+    JOIN(QueryNodeMetadataColumns.JOIN_COLUMNS, FluoQueryColumns.JOIN_BINDING_SET),
+    STATEMENT_PATTERN(QueryNodeMetadataColumns.STATEMENTPATTERN_COLUMNS, FluoQueryColumns.STATEMENT_PATTERN_BINDING_SET),
+    QUERY(QueryNodeMetadataColumns.QUERY_COLUMNS, FluoQueryColumns.QUERY_BINDING_SET);
+
+    //Metadata Columns associated with given NodeType
+    private QueryNodeMetadataColumns metadataColumns;
+
+    //Column where BindingSet results are stored for given NodeType
+    private Column bindingSetColumn;
+
+    /**
+     * Constructs an instance of {@link NodeType}.
+     *
+     * @param metadataColumns - Metadata {@link Column}s associated with this {@link NodeType}. (not null)
+     * @param bindingSetColumn - The {@link Column} used to store this {@link NodeType|'s {@link BindingSet}s. (not null)
+     */
+    private NodeType(QueryNodeMetadataColumns metadataColumns, Column bindingSetColumn) {
+    	this.metadataColumns = requireNonNull(metadataColumns);
+    	this.bindingSetColumn = requireNonNull(bindingSetColumn);
+    }
+
+    /**
+     * @return Metadata {@link Column}s associated with this {@link NodeType}.
+     */
+    public List<Column> getMetaDataColumns() {
+    	return metadataColumns.columns();
+    }
+
+
+    /**
+     * @return The {@link Column} used to store this {@link NodeType|'s {@link BindingSet}s.
+     */
+    public Column getBsColumn() {
+    	return bindingSetColumn;
+    }
 
     /**
      * Get the {@link NodeType} of a node based on its Node ID.
@@ -43,7 +83,7 @@ public enum NodeType {
      *   node's ID, otherwise absent.
      */
     public static Optional<NodeType> fromNodeId(final String nodeId) {
-        checkNotNull(nodeId);
+        requireNonNull(nodeId);
 
         NodeType type = null;
 

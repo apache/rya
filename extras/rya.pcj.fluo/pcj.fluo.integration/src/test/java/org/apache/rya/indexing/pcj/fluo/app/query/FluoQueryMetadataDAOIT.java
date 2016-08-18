@@ -28,6 +28,7 @@ import org.junit.Test;
 import org.openrdf.query.MalformedQueryException;
 import org.openrdf.query.parser.ParsedQuery;
 import org.openrdf.query.parser.sparql.SPARQLParser;
+import org.openrdf.repository.RepositoryException;
 
 import io.fluo.api.client.Snapshot;
 import io.fluo.api.client.Transaction;
@@ -38,7 +39,7 @@ import io.fluo.api.client.Transaction;
 public class FluoQueryMetadataDAOIT extends ITBase {
 
     @Test
-    public void statementPatternMetadataTest() {
+    public void statementPatternMetadataTest() throws RepositoryException {
         final FluoQueryMetadataDAO dao = new FluoQueryMetadataDAO();
 
         // Create the object that will be serialized.

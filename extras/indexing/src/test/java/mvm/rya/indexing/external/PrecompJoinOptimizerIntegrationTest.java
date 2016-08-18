@@ -72,7 +72,7 @@ public class PrecompJoinOptimizerIntegrationTest {
 			MalformedQueryException, AccumuloException,
 			AccumuloSecurityException, TableExistsException, RyaDAOException,
 			TableNotFoundException, InferenceEngineException, NumberFormatException,
-			UnknownHostException {
+			UnknownHostException, SailException {
 
 		repo = PcjIntegrationTestingUtil.getNonPcjRepo(tablePrefix, "instance");
 		conn = repo.getConnection();

@@ -19,13 +19,13 @@
 package org.apache.rya.indexing.pcj.storage;
 
 import java.util.Collection;
+import java.util.Iterator;
 import java.util.List;
-import java.util.Set;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 
-import org.apache.rya.indexing.pcj.storage.accumulo.VariableOrder;
 import org.apache.rya.indexing.pcj.storage.accumulo.VisibilityBindingSet;
+import org.openrdf.query.BindingSet;
 
 /**
  * Functions that create and maintain the PCJ tables that are used by Rya.
@@ -36,7 +36,7 @@ public interface PrecomputedJoinStorage {
     /**
      * Get a list of all Precomputed Join indices that are being maintained.
      *
-     * @return The lkist of managed Precomputed Join indices.
+     * @return The list of managed Precomputed Join IDs.
      */
     public List<String> listPcjs() throws PCJStorageException;
 
@@ -47,7 +47,7 @@ public interface PrecomputedJoinStorage {
      * @param varOrders - The variable orders the results within the table will be written to. (not null)
      * @return A unique identifier for the index.
      */
-    public String createPcj(final String sparql, final Set<VariableOrder> varOrders) throws PCJStorageException;
+    public String createPcj(final String sparql) throws PCJStorageException;
 
     /**
      * Get metadata about the Precomputed Join index.
@@ -65,6 +65,16 @@ public interface PrecomputedJoinStorage {
      * @throws PCJStorageException Indicates the results could not be added to the index.
      */
     public void addResults(final String pcjId, final Collection<VisibilityBindingSet> results) throws PCJStorageException;
+
+    /**
+     * Get an {@link Iterator} over the {@link BindingSet}s that are stored in the PCJ table.
+     *
+     * @param pcjId - Identifies the index the results will be read from. (not null)
+     * @return An iterator over all of the {@link BindingSet}s that are stored as
+     *   results for the PCJ.
+     * @throws PCJStorageException The scan couldn't be performed.
+     */
+    public Iterable<BindingSet> listResults(String pcjId) throws PCJStorageException;
 
     /**
      * Clears all values from a Precomputed Join index. The index will remain,

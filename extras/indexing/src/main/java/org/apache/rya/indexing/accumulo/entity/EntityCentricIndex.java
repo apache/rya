@@ -311,6 +311,48 @@ public class EntityCentricIndex extends AbstractAccumuloIndexer {
         return new RyaStatement(subject, predicate, object, context,
                 null, columnVisibility, valueBytes, timestamp);
     }
+    
+    /**
+     * Return the RyaType of the Entity Centric Index row.
+     * @param key Row key, contains statement data
+     * @param value Row value
+     * @return The statement represented by the row
+     * @throws IOException if edge direction can't be extracted as expected.
+     * @throws RyaTypeResolverException if a type error occurs deserializing the statement's object.
+     */
+    public static RyaType getRyaType(Key key, Value value) throws RyaTypeResolverException, IOException {
+        assert key != null;
+        assert value != null;
+        byte[] entityBytes = key.getRowData().toArray();
+        byte[] data = key.getColumnQualifierData().toArray();
+
+        // main entity is either the subject or object
+        // data contains: column family , var name of other node , data of other node + datatype of object
+        int split = Bytes.indexOf(data, DELIM_BYTES);
+        byte[] edgeBytes = Arrays.copyOfRange(data, split + DELIM_BYTES.length, data.length);
+        split = Bytes.indexOf(edgeBytes, DELIM_BYTES);
+        String otherNodeVar = new String(Arrays.copyOf(edgeBytes, split));
+        byte[] typeBytes = Arrays.copyOfRange(edgeBytes,  edgeBytes.length - 2, edgeBytes.length);
+        byte[] objectBytes;
+        RyaURI subject;
+        RyaType object;
+        RyaType type = null;
+        switch (otherNodeVar) {
+            case "subject":
+                objectBytes = Bytes.concat(entityBytes, typeBytes);
+                object = RyaContext.getInstance().deserialize(objectBytes); //return this
+                type = object;
+                break;
+            case "object":
+                subject = new RyaURI(new String(entityBytes));//return this
+                type = subject;
+                break;
+            default:
+                throw new IOException("Failed to deserialize entity-centric index row. "
+                        + "Expected 'subject' or 'object', encountered: '" + otherNodeVar + "'");
+        }
+        return type;
+    }
 
     @Override
     public void init() {

@@ -52,6 +52,7 @@ public class AccumuloRyaClientFactory {
                 new AccumuloInstall(connectionDetails, connector),
                 new AccumuloCreatePCJ(connectionDetails, connector),
                 new AccumuloDeletePCJ(connectionDetails, connector),
+                new AccumuloBatchUpdatePCJ(connectionDetails, connector),
                 new AccumuloGetInstanceDetails(connectionDetails, connector),
                 new AccumuloInstanceExists(connectionDetails, connector),
                 new AccumuloListInstances(connectionDetails, connector));

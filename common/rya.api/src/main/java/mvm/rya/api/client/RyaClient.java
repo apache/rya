@@ -33,23 +33,26 @@ public class RyaClient {
     private final Install install;
     private final CreatePCJ createPcj;
     private final DeletePCJ deletePcj;
+    private final BatchUpdatePCJ batchUpdatePcj;
     private final GetInstanceDetails getInstanceDetails;
     private final InstanceExists instanceExists;
     private final ListInstances listInstances;
 
     /**
-     * Constructs an isntance of {@link RyaClient}.
+     * Constructs an instance of {@link RyaClient}.
      */
     public RyaClient(
             final Install install,
             final CreatePCJ createPcj,
             final DeletePCJ deletePcj,
+            final BatchUpdatePCJ batchUpdatePcj,
             final GetInstanceDetails getInstanceDetails,
             final InstanceExists instanceExists,
             final ListInstances listInstances) {
         this.install = requireNonNull(install);
         this.createPcj = requireNonNull(createPcj);
         this.deletePcj = requireNonNull(deletePcj);
+        this.batchUpdatePcj = requireNonNull(batchUpdatePcj);
         this.getInstanceDetails = requireNonNull(getInstanceDetails);
         this.instanceExists = requireNonNull(instanceExists);
         this.listInstances = requireNonNull(listInstances);
@@ -76,6 +79,14 @@ public class RyaClient {
      */
     public DeletePCJ getDeletePCJ() {
         return deletePcj;
+    }
+
+    /**
+     * @return An instnace of {@link BatchUpdatePCJ} that is connected to a Rya storage
+     *   if the Rya instance supports PCJ indexing.
+     */
+    public BatchUpdatePCJ getBatchUpdatePCJ() {
+        return batchUpdatePcj;
     }
 
     /**

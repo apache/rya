@@ -22,7 +22,17 @@ import static org.apache.rya.indexing.mongodb.temporal.TemporalMongoDBStorageStr
 import static org.apache.rya.indexing.mongodb.temporal.TemporalMongoDBStorageStrategy.INTERVAL_END;
 import static org.apache.rya.indexing.mongodb.temporal.TemporalMongoDBStorageStrategy.INTERVAL_START;
 
+import java.io.IOException;
+
 import org.apache.log4j.Logger;
+import org.apache.rya.api.domain.RyaStatement;
+import org.apache.rya.api.resolver.RyaToRdfConversions;
+import org.apache.rya.indexing.StatementConstraints;
+import org.apache.rya.indexing.TemporalIndexer;
+import org.apache.rya.indexing.TemporalInstant;
+import org.apache.rya.indexing.TemporalInterval;
+import org.apache.rya.indexing.accumulo.ConfigUtils;
+import org.apache.rya.indexing.mongodb.AbstractMongoIndexer;
 import org.openrdf.model.Statement;
 import org.openrdf.query.QueryEvaluationException;
 
@@ -31,12 +41,6 @@ import com.mongodb.DBCollection;
 import com.mongodb.QueryBuilder;
 
 import info.aduna.iteration.CloseableIteration;
-import org.apache.rya.indexing.StatementConstraints;
-import org.apache.rya.indexing.TemporalIndexer;
-import org.apache.rya.indexing.TemporalInstant;
-import org.apache.rya.indexing.TemporalInterval;
-import org.apache.rya.indexing.accumulo.ConfigUtils;
-import org.apache.rya.indexing.mongodb.AbstractMongoIndexer;
 
 /**
  * Indexes MongoDB based on time instants or intervals.
@@ -147,4 +151,14 @@ public class MongoTemporalIndexer extends AbstractMongoIndexer<TemporalMongoDBSt
     public DBCollection getCollection() {
         return collection;
     }
+    
+    private void deleteStatement(final Statement statement) throws IOException, IllegalArgumentException {
+        //TODO for Rya-94
+    }
+
+    @Override
+    public void deleteStatement(final RyaStatement statement) throws IllegalArgumentException, IOException {
+        deleteStatement(RyaToRdfConversions.convertStatement(statement));
+    }
+
 }

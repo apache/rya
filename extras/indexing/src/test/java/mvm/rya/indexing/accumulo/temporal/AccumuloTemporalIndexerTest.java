@@ -21,9 +21,8 @@ package mvm.rya.indexing.accumulo.temporal;
 
 
 import static mvm.rya.api.resolver.RdfToRyaConversions.convertStatement;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-
+import static org.junit.Assert.*; 
+import org.junit.Assert; 
 import java.io.IOException;
 import java.io.PrintStream;
 import java.security.NoSuchAlgorithmException;
@@ -36,8 +35,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
-import java.util.concurrent.atomic.AtomicLong;
-
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
 import org.apache.accumulo.core.client.Scanner;
@@ -67,7 +64,7 @@ import org.openrdf.query.QueryEvaluationException;
 import com.beust.jcommander.internal.Lists;
 
 import info.aduna.iteration.CloseableIteration;
-import junit.framework.Assert;
+import mvm.rya.api.RdfCloudTripleStoreConfiguration;
 import mvm.rya.api.domain.RyaStatement;
 import mvm.rya.indexing.StatementConstraints;
 import mvm.rya.indexing.StatementSerializer;
@@ -95,6 +92,9 @@ import mvm.rya.indexing.accumulo.ConfigUtils;
  *   Instance {hasBeginning, hasEnd} given Interval
  * And a few more.
  *
+ *  The temporal predicates are from these ontologies: 
+ *      http://linkedevents.org/ontology
+ *      http://motools.sourceforge.net/event/event.html
  */
 public final class AccumuloTemporalIndexerTest {
     // Configuration properties, this is reset per test in setup.
@@ -108,13 +108,7 @@ public final class AccumuloTemporalIndexerTest {
     private static final String STAT_COUNT = "count";
     private static final String STAT_KEYHASH = "keyhash";
     private static final String STAT_VALUEHASH = "valuehash";
-    private static final String TEST_TEMPORAL_INDEX_TABLE_NAME = "testTemporalIndex";
     private static final StatementConstraints EMPTY_CONSTRAINTS = new StatementConstraints();
-
-    // Recreate table name for each test instance in this JVM.
-    String uniquePerTestTemporalIndexTableName = TEST_TEMPORAL_INDEX_TABLE_NAME + String.format("%05d", nextTableSuffixAtomic.getAndIncrement());
-    // start at 0, for uniqueness between jvm's consider AtomicLong(new Random().nextLong())
-    private static final AtomicLong nextTableSuffixAtomic = new AtomicLong();
 
     // Assign this in setUpBeforeClass, store them in each test.
     // setup() deletes table before each test.
@@ -213,18 +207,6 @@ public final class AccumuloTemporalIndexerTest {
     }
 
     /**
-     * Create a table for test after deleting it.
-     */
-    private static void createTable(Configuration conf, String tablename)
-            throws AccumuloException, AccumuloSecurityException, TableNotFoundException, TableExistsException {
-        TableOperations tableOps = ConfigUtils.getConnector(conf).tableOperations();
-        if (tableOps.exists(tablename)) {
-            tableOps.delete(tablename);
-        }
-        tableOps.create(tablename);
-    }
-
-    /**
      * @throws java.lang.Exception
      */
     @AfterClass
@@ -237,17 +219,15 @@ public final class AccumuloTemporalIndexerTest {
     @Before
     public void setUp() throws Exception {
         conf = new Configuration();
+        conf.set(RdfCloudTripleStoreConfiguration.CONF_TBL_PREFIX, "triplestore_");
         conf.setBoolean(ConfigUtils.USE_MOCK_INSTANCE, true);
-        conf.set(ConfigUtils.TEMPORAL_TABLENAME, uniquePerTestTemporalIndexTableName);
-        // This is from http://linkedevents.org/ontology
+        // The temporal predicates are from http://linkedevents.org/ontology
         // and http://motools.sourceforge.net/event/event.html
         conf.setStrings(ConfigUtils.TEMPORAL_PREDICATES_LIST, ""
                 + URI_PROPERTY_AT_TIME + ","
                 + URI_PROPERTY_CIRCA + ","
                 + URI_PROPERTY_EVENT_TIME);
 
-        // delete and create table
-        createTable(conf, uniquePerTestTemporalIndexTableName);
         tIndexer = new AccumuloTemporalIndexer();
         tIndexer.setConf(conf);
     }
@@ -257,11 +237,12 @@ public final class AccumuloTemporalIndexerTest {
      */
     @After
     public void tearDown() throws Exception {
+    	String indexTableName = tIndexer.getTableName();
         tIndexer.close();
         TableOperations tableOps = ConfigUtils.getConnector(conf).tableOperations();
 
-        if (tableOps.exists(uniquePerTestTemporalIndexTableName))
-            tableOps.delete(uniquePerTestTemporalIndexTableName);
+        if (tableOps.exists(indexTableName))
+            tableOps.delete(indexTableName);
     }
 
     /**
@@ -334,7 +315,7 @@ public final class AccumuloTemporalIndexerTest {
         tIndexer.flush();
 
         int rowsStoredActual = printTables("junit testing: Temporal entities stored in testStoreStatement", null, null);
-        Assert.assertEquals("Number of rows stored.", rowsStoredExpected*4, rowsStoredActual); // 4 index entries per statement
+        assertEquals("Number of rows stored.", rowsStoredExpected*4, rowsStoredActual); // 4 index entries per statement
 
     }
 
@@ -995,10 +976,11 @@ public final class AccumuloTemporalIndexerTest {
         int rowsPrinted = 0;
         long keyHasher = 0;
         long valueHasher = 0;
-        out.println("Reading : " + this.uniquePerTestTemporalIndexTableName);
+        final String indexTableName = tIndexer.getTableName();
+        out.println("Reading : " + indexTableName);
         out.format(FORMAT, "--Row--", "--ColumnFamily--", "--ColumnQualifier--", "--Value--");
 
-        Scanner s = ConfigUtils.getConnector(conf).createScanner(this.uniquePerTestTemporalIndexTableName, Authorizations.EMPTY);
+        Scanner s = ConfigUtils.getConnector(conf).createScanner(indexTableName, Authorizations.EMPTY);
         for (Entry<Key, org.apache.accumulo.core.data.Value> entry : s) {
             rowsPrinted++;
             Key k = entry.getKey();

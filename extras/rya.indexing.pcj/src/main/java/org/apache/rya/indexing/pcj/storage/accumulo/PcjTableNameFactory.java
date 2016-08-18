@@ -18,6 +18,8 @@
  */
 package org.apache.rya.indexing.pcj.storage.accumulo;
 
+import static java.util.Objects.requireNonNull;
+
 import java.util.UUID;
 
 /**
@@ -70,4 +72,14 @@ public class PcjTableNameFactory {
         return makeTableName(tablePrefix, uniqueId);
     }
 
+    /**
+     * Get the PCJ ID portion of a PCJ table name.
+     *
+     * @param pcjTableName - The PCJ table name. (not null)
+     * @return The PCJ ID that was in the table name.
+     */
+    public String getPcjId(final String pcjTableName) {
+        requireNonNull(pcjTableName);
+        return pcjTableName.split("INDEX_")[1];
+    }
 }

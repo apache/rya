@@ -41,6 +41,7 @@ import mvm.rya.indexing.mongodb.geo.GeoMongoDBStorageStrategy.GeoQuery;
 import mvm.rya.mongodb.MongoDBRdfConfiguration;
 
 public class MongoGeoIndexer extends AbstractMongoIndexer<GeoMongoDBStorageStrategy> implements GeoIndexer {
+    private static final String COLLECTION_SUFFIX = "geo";
     private static final Logger logger = Logger.getLogger(MongoGeoIndexer.class);
 
     public MongoGeoIndexer(final MongoClient mongoClient) {
@@ -113,6 +114,6 @@ public class MongoGeoIndexer extends AbstractMongoIndexer<GeoMongoDBStorageStrat
 
     @Override
     public String getCollectionName() {
-        return ConfigUtils.getGeoTablename(conf);
+        return ConfigUtils.getTablePrefix(conf)  + COLLECTION_SUFFIX;
     }
 }

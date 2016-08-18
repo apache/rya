@@ -53,7 +53,6 @@ import com.vividsolutions.jts.geom.impl.PackedCoordinateSequence;
 import de.flapdoodle.embed.mongo.distribution.Version;
 import de.flapdoodle.embed.mongo.tests.MongodForTestsFactory;
 import info.aduna.iteration.CloseableIteration;
-import mvm.rya.api.RdfCloudTripleStoreConfiguration;
 import mvm.rya.indexing.StatementConstraints;
 import mvm.rya.indexing.accumulo.ConfigUtils;
 import mvm.rya.indexing.accumulo.geo.GeoConstants;
@@ -64,21 +63,20 @@ public class MongoGeoIndexerTest {
 
     private static final StatementConstraints EMPTY_CONSTRAINTS = new StatementConstraints();
 
-    Configuration conf;
+    MongoDBRdfConfiguration conf;
     MongoClient mongoClient;
     GeometryFactory gf = new GeometryFactory(new PrecisionModel(), 4326);
 
     @Before
     public void before() throws Exception {
-        conf = new Configuration();
+        conf = new MongoDBRdfConfiguration();
         conf.set(ConfigUtils.USE_MONGO, "true");
         conf.set(MongoDBRdfConfiguration.USE_TEST_MONGO, "true");
         conf.set(MongoDBRdfConfiguration.MONGO_DB_NAME, "test");
         conf.set(MongoDBRdfConfiguration.MONGO_COLLECTION_PREFIX, "rya_");
         conf.set(ConfigUtils.GEO_PREDICATES_LIST, "http://www.opengis.net/ont/geosparql#asWKT");
         conf.set(ConfigUtils.USE_GEO, "true");
-        conf.set(RdfCloudTripleStoreConfiguration.CONF_TBL_PREFIX, "rya_");
-        conf.set(ConfigUtils.GEO_TABLENAME, "geospacial");
+        conf.setTablePrefix("rya_");
 
         final MongodForTestsFactory testsFactory = MongodForTestsFactory.with(Version.Main.PRODUCTION);
         mongoClient = testsFactory.newMongo();

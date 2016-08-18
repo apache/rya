@@ -53,6 +53,7 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.Text;
 import org.apache.rya.indexing.pcj.storage.PcjException;
 import org.apache.rya.indexing.pcj.storage.PcjMetadata;
+import org.apache.rya.indexing.pcj.storage.PrecomputedJoinStorage.PCJStorageException;
 import org.apache.rya.indexing.pcj.storage.accumulo.AccumuloPcjSerializer;
 import org.apache.rya.indexing.pcj.storage.accumulo.BindingSetConverter.BindingSetConversionException;
 import org.apache.rya.indexing.pcj.storage.accumulo.PcjTables;
@@ -142,10 +143,11 @@ public class AccumuloIndexSet extends ExternalTupleSet implements
 	 * @throws TableNotFoundException
 	 * @throws AccumuloSecurityException
 	 * @throws AccumuloException
+	 * @throws PCJStorageException 
 	 */
 	public AccumuloIndexSet(String sparql, Configuration conf,
 			String tablename) throws MalformedQueryException, SailException,
-			QueryEvaluationException, TableNotFoundException, AccumuloException, AccumuloSecurityException {
+			QueryEvaluationException, TableNotFoundException, AccumuloException, AccumuloSecurityException, PCJStorageException {
 		this.tablename = tablename;
 		this.accCon = ConfigUtils.getConnector(conf);
 		this.auths = getAuthorizations(conf);
@@ -163,11 +165,7 @@ public class AccumuloIndexSet extends ExternalTupleSet implements
 		}
 		setProjectionExpr(projection.get());
 		Set<VariableOrder> orders = null;
-		try {
-			orders = pcj.getPcjMetadata(accCon, tablename).getVarOrders();
-		} catch (final PcjException e) {
-			e.printStackTrace();
-		}
+		orders = pcj.getPcjMetadata(accCon, tablename).getVarOrders();
 
 		varOrder = Lists.newArrayList();
 		for (final VariableOrder var : orders) {

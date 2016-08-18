@@ -31,6 +31,7 @@ import org.apache.log4j.BasicConfigurator;
 import org.apache.log4j.Logger;
 import org.apache.log4j.xml.DOMConfigurator;
 import org.apache.rya.export.accumulo.AccumuloMerger;
+import org.apache.rya.export.accumulo.AccumuloParentMetadataRepository;
 import org.apache.rya.export.accumulo.AccumuloRyaStatementStore;
 import org.apache.rya.export.accumulo.common.InstanceType;
 import org.apache.rya.export.accumulo.conf.AccumuloExportConstants;
@@ -144,7 +145,9 @@ public class MergeDriverCLI {
                 LOG.error("Failed to create statement stores", e);
             }
 
-            final AccumuloMerger accumuloMerger = new AccumuloMerger(parentAccumuloRyaStatementStore, childAccumuloRyaStatementStore);
+            final AccumuloParentMetadataRepository accumuloParentMetadataRepository = new AccumuloParentMetadataRepository(parentAccumuloRyaStatementStore.getRyaDAO());
+
+            final AccumuloMerger accumuloMerger = new AccumuloMerger(parentAccumuloRyaStatementStore, childAccumuloRyaStatementStore, accumuloParentMetadataRepository);
             accumuloMerger.runJob();
         } else {
 

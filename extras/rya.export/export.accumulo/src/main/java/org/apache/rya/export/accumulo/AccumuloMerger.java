@@ -20,22 +20,20 @@ package org.apache.rya.export.accumulo;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import java.util.Date;
 import java.util.Iterator;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.log4j.Logger;
 import org.apache.rya.export.api.Merger;
 import org.apache.rya.export.api.MergerException;
-import org.apache.rya.export.api.ParentMetadataRepository.MergeParentMetadata;
-import org.apache.rya.export.api.RyaStatementStore;
+import org.apache.rya.export.api.parent.MergeParentMetadata;
+import org.apache.rya.export.api.parent.ParentMetadataDoesNotExistException;
+import org.apache.rya.export.api.store.RyaStatementStore;
 
 import com.google.common.base.Optional;
 
-import info.aduna.iteration.CloseableIteration;
 import mvm.rya.api.domain.RyaStatement;
 import mvm.rya.api.persist.RyaDAOException;
-import mvm.rya.indexing.accumulo.ConfigUtils;
 
 /**
  * Handles Merging a parent Accumulo instance with another DB child instance.
@@ -53,22 +51,28 @@ public class AccumuloMerger implements Merger {
      * {@link RyaStatementStore}. (not {@code null})
      * @param childRyaStatementStore the child {@link RyaStatementStore}.
      * (not {@code null})
+     * @param accumuloParentMetadataRepository the
+     * {@link AccumuloParentMetadataRepository}. (not {@code null})
      */
-    public AccumuloMerger(final AccumuloRyaStatementStore accumuloParentRyaStatementStore, final RyaStatementStore childRyaStatementStore) {
+    public AccumuloMerger(final AccumuloRyaStatementStore accumuloParentRyaStatementStore, final RyaStatementStore childRyaStatementStore, final AccumuloParentMetadataRepository accumuloParentMetadataRepository) {
         this.accumuloParentRyaStatementStore = checkNotNull(accumuloParentRyaStatementStore);
         this.childRyaStatementStore = checkNotNull(childRyaStatementStore);
-        final AccumuloParentMetadataRepository accumuloParentMetadataRepository = new AccumuloParentMetadataRepository();
-        final String instanceName = getConfig().get(ConfigUtils.CLOUDBASE_INSTANCE);
-        final MergeParentMetadata mergeParentMetadata = new MergeParentMetadata(instanceName, new Date());
-        accumuloParentMetadataRepository.set(mergeParentMetadata);
-        accumuloStatementManager = new AccumuloStatementManager(accumuloParentRyaStatementStore, childRyaStatementStore, accumuloParentMetadataRepository);
+
+        MergeParentMetadata mergeParentMetadata = null;
+        try {
+            mergeParentMetadata = accumuloParentMetadataRepository.get();
+        } catch (final ParentMetadataDoesNotExistException e) {
+            log.error("Error getting merge parent metadata from the repository.", e);
+        }
+
+        accumuloStatementManager = new AccumuloStatementManager(accumuloParentRyaStatementStore, childRyaStatementStore, mergeParentMetadata);
     }
 
     /**
      * @return the parent {@link Configuration}.
      */
     public Configuration getConfig() {
-        return accumuloParentRyaStatementStore.getConfiguration();
+        return accumuloParentRyaStatementStore.getRyaDAO().getConf();
     }
 
     /**
@@ -100,36 +104,31 @@ public class AccumuloMerger implements Merger {
 
             RyaStatement childRyaStatement = nextRyaStatement(childRyaStatementIterator);
             while (childRyaStatement != null) {
-                final CloseableIteration<RyaStatement, RyaDAOException> parentIter = accumuloParentRyaStatementStore.findStatement(childRyaStatement);
+                final RyaStatement parentRyaStatementResult = accumuloParentRyaStatementStore.findStatement(childRyaStatement);
 
-                RyaStatement parentRyaStatementResult = null;
-                if (parentIter.hasNext()) {
-                    parentRyaStatementResult = parentIter.next();
-                }
-
-                final Optional<RyaStatement> result = accumuloStatementManager.merge(Optional.fromNullable(parentRyaStatementResult), Optional.fromNullable(childRyaStatement));
-                if (result.isPresent()) {
-                    //accumuloParentRyaStatementStore.addStatement(result.get());
-                }
+                accumuloStatementManager.merge(Optional.fromNullable(parentRyaStatementResult), Optional.fromNullable(childRyaStatement));
 
                 childRyaStatement = nextRyaStatement(childRyaStatementIterator);
             }
 
             // Now go through the parent statements.
+            // But, now since we covered all the child statements above, we only
+            // care about the statements that are in the parent and don't exist
+            // in the child (which the above loop would miss).
+            // We need to determine if the statement is only in the parent
+            // because the child deleted it after being copied from the parent
+            // (meaning the parent should delete it too) or that the parent
+            // added it after the copy (meaning the parent should still keep
+            // that statement)
             final Iterator<RyaStatement> parentRyaStatementIterator = accumuloParentRyaStatementStore.fetchStatements();
 
             RyaStatement parentRyaStatement = nextRyaStatement(parentRyaStatementIterator);
             while (parentRyaStatement != null) {
-                final CloseableIteration<RyaStatement, RyaDAOException> childIter = childRyaStatementStore.findStatement(parentRyaStatement);
+                final boolean doesChildRyaStatementExist = childRyaStatementStore.containsStatement(parentRyaStatement);
 
-                RyaStatement childRyaStatementResult = null;
-                if (childIter.hasNext()) {
-                    childRyaStatementResult = childIter.next();
-                }
-
-                final Optional<RyaStatement> result = accumuloStatementManager.merge(Optional.fromNullable(parentRyaStatement), Optional.fromNullable(childRyaStatementResult));
-                if (result.isPresent()) {
-                    //accumuloParentRyaStatementStore.addStatement(result.get());
+                // Only care about the parent statements not found in the child.
+                if (!doesChildRyaStatementExist) {
+                    accumuloStatementManager.merge(Optional.fromNullable(parentRyaStatement), Optional.absent());
                 }
 
                 parentRyaStatement = nextRyaStatement(parentRyaStatementIterator);

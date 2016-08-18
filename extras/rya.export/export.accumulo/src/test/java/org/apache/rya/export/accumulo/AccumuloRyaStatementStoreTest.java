@@ -30,6 +30,10 @@ import org.apache.logging.log4j.Logger;
 import org.apache.rya.export.accumulo.common.InstanceType;
 import org.apache.rya.export.accumulo.util.AccumuloInstanceDriver;
 import org.apache.rya.export.api.MergerException;
+import org.apache.rya.export.api.store.AddStatementException;
+import org.apache.rya.export.api.store.FetchStatementException;
+import org.apache.rya.export.api.store.RemoveStatementException;
+import org.apache.rya.export.api.store.UpdateStatementException;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -109,7 +113,7 @@ public class AccumuloRyaStatementStoreTest {
         accumuloRyaStatementStore.fetchStatements();
     }
 
-    @Test (expected = MergerException.class)
+    @Test (expected = FetchStatementException.class)
     public void testFetchStatements_FetchWrongInstance() throws MergerException {
         final AccumuloRyaStatementStore accumuloRyaStatementStore = new AccumuloRyaStatementStore(accumuloRdfConfiguration);
 
@@ -117,7 +121,7 @@ public class AccumuloRyaStatementStoreTest {
             accumuloRyaStatementStore.addStatement(ryaStatement);
         }
 
-        final Configuration config = accumuloRyaStatementStore.getConfiguration();
+        final Configuration config = accumuloRyaStatementStore.getRyaDAO().getConf();
 
         config.set(ConfigUtils.CLOUDBASE_INSTANCE, "wrong instance");
 
@@ -133,7 +137,7 @@ public class AccumuloRyaStatementStoreTest {
         }
     }
 
-    @Test (expected = MergerException.class)
+    @Test (expected = AddStatementException.class)
     public void testAddStatement_AddNull() throws Exception {
         final AccumuloRyaStatementStore accumuloRyaStatementStore = new AccumuloRyaStatementStore(accumuloRdfConfiguration);
 
@@ -185,7 +189,7 @@ public class AccumuloRyaStatementStoreTest {
         accumuloRyaStatementStore.removeStatement(after);
     }
 
-    @Test (expected = MergerException.class)
+    @Test (expected = RemoveStatementException.class)
     public void testRemoveStatement_RemoveNull() throws MergerException {
         final AccumuloRyaStatementStore accumuloRyaStatementStore = new AccumuloRyaStatementStore(accumuloRdfConfiguration);
 
@@ -248,7 +252,7 @@ public class AccumuloRyaStatementStoreTest {
         assertEquals(RYA_STATEMENTS.size(), totalCount);
     }
 
-    @Test (expected = MergerException.class)
+    @Test (expected = UpdateStatementException.class)
     public void testUpdateStatement_UpdateNull() throws MergerException {
         final AccumuloRyaStatementStore accumuloRyaStatementStore = new AccumuloRyaStatementStore(accumuloRdfConfiguration);
 

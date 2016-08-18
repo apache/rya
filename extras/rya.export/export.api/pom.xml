@@ -38,7 +38,7 @@ under the License.
     </description>
     
     <dependencies>
-    	<!-- Rya Runtime Dependencies. --> 
+        <!-- Rya Runtime Dependencies. -->
         <dependency>
             <groupId>org.apache.rya</groupId>
             <artifactId>rya.sail</artifactId>
@@ -132,14 +132,14 @@ under the License.
                 <executions>
                     <execution>
                         <id>xjc</id>
-	                    <goals>
-	                        <goal>xjc</goal>
-	                    </goals>
+                        <goals>
+                            <goal>xjc</goal>
+                        </goals>
                     </execution>
                 </executions>
                 <configuration>
                     <sources>
-                        <source>src/main/xsd/</source>
+                        <source>src/main/xsd/MergeConfiguration.xsd</source>
                     </sources>
                     <packageName>org.apache.rya.export</packageName>
                     <outputDirectory>src/gen/java</outputDirectory>

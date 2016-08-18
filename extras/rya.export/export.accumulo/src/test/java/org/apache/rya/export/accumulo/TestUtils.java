@@ -41,7 +41,7 @@ import mvm.rya.api.persist.RyaDAOException;
  * Utility methods for testing merging/copying.
  */
 public final class TestUtils {
-	private static final Logger log = Logger.getLogger(TestUtils.class);
+    private static final Logger log = Logger.getLogger(TestUtils.class);
     private static final String NAMESPACE = "#:";
 
     /**

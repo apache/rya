@@ -28,7 +28,7 @@ package org.apache.rya.export.api.parent;
  */
 public interface ParentMetadataRepository {
     /**
-     * @return The metadata for itentifying the parent.
+     * @return The metadata for identifying the parent.
      * @throws ParentMetadataDoesNotExistException - The {@link MergeParentMetadata}
      * has not been set.
      */

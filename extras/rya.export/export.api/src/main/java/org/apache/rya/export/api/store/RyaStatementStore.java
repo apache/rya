@@ -20,7 +20,9 @@ package org.apache.rya.export.api.store;
 
 import java.util.Iterator;
 
+import mvm.rya.api.RdfCloudTripleStoreConfiguration;
 import mvm.rya.api.domain.RyaStatement;
+import mvm.rya.api.persist.RyaDAO;
 
 /**
  * Allows specific CRUD operations on {@link RyaStatement} storage systems.
@@ -36,27 +38,43 @@ import mvm.rya.api.domain.RyaStatement;
  */
 public interface RyaStatementStore {
     /**
-     * @return an {@link Iterator} contianing all {@link RyaStatement}s found
+     * @return an {@link Iterator} containing all {@link RyaStatement}s found
      * in this {@link RyaStatementStore}.
+     * @throws FetchStatementException - Thrown when fetching a statement fails.
      */
-    public Iterator<RyaStatement> fetchStatements();
+    public Iterator<RyaStatement> fetchStatements() throws FetchStatementException;
 
     /**
      * @param statement - The {@link RyaStatement} to add to this {@link RyaStatementStore}.
-     * @throws AddStatementException Thrown when adding a statement fails.
+     * @throws AddStatementException - Thrown when adding a statement fails.
      */
     public void addStatement(final RyaStatement statement) throws AddStatementException;
 
     /**
      * @param statement - The {@link RyaStatement} to remove from this {@link RyaStatementStore}.
-     * @throws RemoveStatementException - Thrown when the statement is not removed
+     * @throws RemoveStatementException - Thrown when the statement is not removed.
      */
     public void removeStatement(final RyaStatement statement) throws RemoveStatementException;
 
     /**
      * Updates the original {@link RyaStatement} with a new one.
-     * @param originial - The {@link RyaStatement} to update.
+     * @param original - The {@link RyaStatement} to update.
      * @param update - The new {@link RyaStatement} to replace the original one.
+     * @throws UpdateStatementException - Thrown when updating a statement fails.
      */
-    public void updateStatement(final RyaStatement originial, final RyaStatement update);
+    public void updateStatement(final RyaStatement original, final RyaStatement update) throws UpdateStatementException;
+
+    /**
+     * Queries to see if the statement is contained in the statement store.
+     * @param ryaStatement the {@link RyaStatement} to search for.
+     * @return {@code true} if the statement store contains the statement.
+     * {@code false} otherwise.
+     * @throws ContainsStatementException
+     */
+    public boolean containsStatement(final RyaStatement ryaStatement) throws ContainsStatementException;
+
+    /**
+     * Returns the {@link RyaDAO} associated with the {@link RyaStatementStore}.
+     */
+    public RyaDAO<? extends RdfCloudTripleStoreConfiguration> getRyaDAO();
 }

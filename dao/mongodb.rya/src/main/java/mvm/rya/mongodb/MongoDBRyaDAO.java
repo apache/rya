@@ -32,8 +32,10 @@ import org.apache.log4j.Logger;
 import com.mongodb.DB;
 import com.mongodb.DBCollection;
 import com.mongodb.DBObject;
+import com.mongodb.DuplicateKeyException;
 import com.mongodb.InsertOptions;
 import com.mongodb.MongoClient;
+import com.mongodb.MongoException.DuplicateKey;
 
 import de.flapdoodle.embed.mongo.tests.MongodForTestsFactory;
 import mvm.rya.api.RdfCloudTripleStoreConfiguration;
@@ -64,7 +66,7 @@ public final class MongoDBRyaDAO implements RyaDAO<MongoDBRdfConfiguration>{
     private MongoDBNamespaceManager nameSpaceManager;
     private MongodForTestsFactory testsFactory;
 
-    private List<RyaSecondaryIndexer> secondaryIndexers;
+    private List<MongoSecondaryIndex> secondaryIndexers;
 
     /**
      * Creates a new {@link MongoDBRyaDAO}
@@ -73,14 +75,9 @@ public final class MongoDBRyaDAO implements RyaDAO<MongoDBRdfConfiguration>{
      */
     public MongoDBRyaDAO(final MongoDBRdfConfiguration conf) throws RyaDAOException, NumberFormatException, UnknownHostException {
         this.conf = conf;
-        try {
-            mongoClient = MongoConnectorFactory.getMongoClient(conf);
-            conf.setMongoClient(mongoClient);
-            init();
-        } catch (NumberFormatException | UnknownHostException e) {
-            log.error("Unable to create a connection to mongo.", e);
-            throw e;
-        }
+        mongoClient = MongoConnectorFactory.getMongoClient(conf);
+        conf.setMongoClient(mongoClient);
+        init();
     }
 
 
@@ -117,8 +114,9 @@ public final class MongoDBRyaDAO implements RyaDAO<MongoDBRdfConfiguration>{
     @Override
     public void init() throws RyaDAOException {
             secondaryIndexers = conf.getAdditionalIndexers();
-            for(final RyaSecondaryIndexer index: secondaryIndexers) {
+            for(final MongoSecondaryIndex index: secondaryIndexers) {
                 index.setConf(conf);
+                index.setClient(mongoClient);
             }
 
             db = mongoClient.getDB(conf.get(MongoDBRdfConfiguration.MONGO_DB_NAME));
@@ -127,6 +125,9 @@ public final class MongoDBRyaDAO implements RyaDAO<MongoDBRdfConfiguration>{
             queryEngine = new MongoDBQueryEngine(conf, mongoClient);
             storageStrategy = new SimpleMongoDBStorageStrategy();
             storageStrategy.createIndices(coll);
+            for(final MongoSecondaryIndex index: secondaryIndexers) {
+                index.init();
+            }
     }
 
     @Override
@@ -154,9 +155,12 @@ public final class MongoDBRyaDAO implements RyaDAO<MongoDBRdfConfiguration>{
             for(final RyaSecondaryIndexer index: secondaryIndexers) {
                 index.storeStatement(statement);
             }
-        } catch (final IOException e) {
+        } catch (IOException e) {
             log.error("Unable to add: " + statement.toString());
             throw new RyaDAOException(e);
+        }
+        catch (DuplicateKeyException e){
+            log.error("Attempting to load duplicate triple: " + statement.toString());
         }
     }
 

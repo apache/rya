@@ -104,7 +104,7 @@ public class MongoDBRdfConfiguration extends RdfCloudTripleStoreConfiguration {
         return this.get(MONGO_COLLECTION_PREFIX, "rya") + "_ns";
     }
     
-    public void setAdditionalIndexers(Class<? extends RyaSecondaryIndexer>... indexers) {
+    public void setAdditionalIndexers(Class<? extends MongoSecondaryIndex>... indexers) {
         List<String> strs = Lists.newArrayList();
         for (Class<?> ai : indexers){
             strs.add(ai.getName());
@@ -113,8 +113,8 @@ public class MongoDBRdfConfiguration extends RdfCloudTripleStoreConfiguration {
         setStrings(CONF_ADDITIONAL_INDEXERS, strs.toArray(new String[]{}));
     }
 
-    public List<RyaSecondaryIndexer> getAdditionalIndexers() {
-        return getInstances(CONF_ADDITIONAL_INDEXERS, RyaSecondaryIndexer.class);
+    public List<MongoSecondaryIndex> getAdditionalIndexers() {
+        return getInstances(CONF_ADDITIONAL_INDEXERS, MongoSecondaryIndex.class);
     }    
     
     public void setMongoClient(MongoClient client){

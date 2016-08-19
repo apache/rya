@@ -87,8 +87,8 @@ public class MongoGeoIndexerTest {
     @Test
     public void testRestrictPredicatesSearch() throws Exception {
         conf.setStrings(ConfigUtils.GEO_PREDICATES_LIST, "pred:1,pred:2");
-        try (MongoGeoIndexer f = new MongoGeoIndexer(mongoClient)) {
-            f.setConf(conf);
+        try (MongoGeoIndexer f = new MongoGeoIndexer()) {
+            f.initIndexer(conf, mongoClient);
 
             final ValueFactory vf = new ValueFactoryImpl();
 
@@ -134,8 +134,8 @@ public class MongoGeoIndexerTest {
 
     @Test
     public void testPrimeMeridianSearch() throws Exception {
-        try (MongoGeoIndexer f = new MongoGeoIndexer(mongoClient)) {
-            f.setConf(conf);
+        try (MongoGeoIndexer f = new MongoGeoIndexer()) {
+            f.initIndexer(conf, mongoClient);
 
             final ValueFactory vf = new ValueFactoryImpl();
             final Resource subject = vf.createURI("foo:subj");
@@ -178,8 +178,8 @@ public class MongoGeoIndexerTest {
     @Test
     public void testDcSearch() throws Exception {
         // test a ring around dc
-        try (MongoGeoIndexer f = new MongoGeoIndexer(mongoClient)) {
-            f.setConf(conf);
+        try (MongoGeoIndexer f = new MongoGeoIndexer()) {
+            f.initIndexer(conf, mongoClient);
 
             final ValueFactory vf = new ValueFactoryImpl();
             final Resource subject = vf.createURI("foo:subj");
@@ -207,8 +207,8 @@ public class MongoGeoIndexerTest {
     @Test
     public void testDeleteSearch() throws Exception {
         // test a ring around dc
-        try (MongoGeoIndexer f = new MongoGeoIndexer(mongoClient)) {
-            f.setConf(conf);
+        try (MongoGeoIndexer f = new MongoGeoIndexer()) {
+            f.initIndexer(conf, mongoClient);
 
             final ValueFactory vf = new ValueFactoryImpl();
             final Resource subject = vf.createURI("foo:subj");
@@ -246,8 +246,8 @@ public class MongoGeoIndexerTest {
     @Test
     public void testDcSearchWithContext() throws Exception {
         // test a ring around dc
-        try (MongoGeoIndexer f = new MongoGeoIndexer(mongoClient)) {
-            f.setConf(conf);
+        try (MongoGeoIndexer f = new MongoGeoIndexer()) {
+            f.initIndexer(conf, mongoClient);
 
             final ValueFactory vf = new ValueFactoryImpl();
             final Resource subject = vf.createURI("foo:subj");
@@ -275,8 +275,8 @@ public class MongoGeoIndexerTest {
     @Test
     public void testDcSearchWithSubject() throws Exception {
         // test a ring around dc
-        try (MongoGeoIndexer f = new MongoGeoIndexer(mongoClient)) {
-            f.setConf(conf);
+        try (MongoGeoIndexer f = new MongoGeoIndexer()) {
+            f.initIndexer(conf, mongoClient);
 
             final ValueFactory vf = new ValueFactoryImpl();
             final Resource subject = vf.createURI("foo:subj");
@@ -303,8 +303,8 @@ public class MongoGeoIndexerTest {
     @Test
     public void testDcSearchWithSubjectAndContext() throws Exception {
         // test a ring around dc
-        try (MongoGeoIndexer f = new MongoGeoIndexer(mongoClient)) {
-            f.setConf(conf);
+        try (MongoGeoIndexer f = new MongoGeoIndexer()) {
+            f.initIndexer(conf, mongoClient);
 
             final ValueFactory vf = new ValueFactoryImpl();
             final Resource subject = vf.createURI("foo:subj");
@@ -336,8 +336,8 @@ public class MongoGeoIndexerTest {
     @Test
     public void testDcSearchWithPredicate() throws Exception {
         // test a ring around dc
-        try (MongoGeoIndexer f = new MongoGeoIndexer(mongoClient)) {
-            f.setConf(conf);
+        try (MongoGeoIndexer f = new MongoGeoIndexer()) {
+            f.initIndexer(conf, mongoClient);
 
             final ValueFactory vf = new ValueFactoryImpl();
             final Resource subject = vf.createURI("foo:subj");
@@ -366,8 +366,8 @@ public class MongoGeoIndexerTest {
     // @Test
     public void testAntiMeridianSearch() throws Exception {
         // verify that a search works if the bounding box crosses the anti meridian
-        try (MongoGeoIndexer f = new MongoGeoIndexer(mongoClient)) {
-            f.setConf(conf);
+        try (MongoGeoIndexer f = new MongoGeoIndexer()) {
+            f.initIndexer(conf, mongoClient);
 
             final ValueFactory vf = new ValueFactoryImpl();
             final Resource context = vf.createURI("foo:context");

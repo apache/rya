@@ -25,6 +25,8 @@ import mvm.rya.api.RdfCloudTripleStoreConfiguration;
 import mvm.rya.api.persist.RyaDAOException;
 import mvm.rya.indexing.accumulo.ConfigUtils;
 import mvm.rya.indexing.accumulo.geo.GeoConstants;
+import mvm.rya.indexing.external.PrecomputedJoinIndexerConfig;
+import mvm.rya.indexing.external.PrecomputedJoinIndexerConfig.PrecomputedJoinStorageType;
 import mvm.rya.rdftriplestore.inference.InferenceEngineException;
 import mvm.rya.sail.config.RyaSailFactory;
 
@@ -156,8 +158,8 @@ public class RyaDirectExample {
 		conf.set(ConfigUtils.USE_GEO, "true");
 		conf.set(ConfigUtils.USE_FREETEXT, "true");
 		conf.set(ConfigUtils.USE_TEMPORAL, "true");
-		conf.set(RdfCloudTripleStoreConfiguration.CONF_TBL_PREFIX,
-				RYA_TABLE_PREFIX);
+		conf.set(PrecomputedJoinIndexerConfig.PCJ_STORAGE_TYPE, PrecomputedJoinStorageType.ACCUMULO.name());
+		conf.set(RdfCloudTripleStoreConfiguration.CONF_TBL_PREFIX, RYA_TABLE_PREFIX);
 		conf.set(ConfigUtils.CLOUDBASE_USER, "root");
 		conf.set(ConfigUtils.CLOUDBASE_PASSWORD, "");
 		conf.set(ConfigUtils.CLOUDBASE_INSTANCE, INSTANCE);

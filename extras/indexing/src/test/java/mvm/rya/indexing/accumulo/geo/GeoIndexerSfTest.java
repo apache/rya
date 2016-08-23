@@ -28,7 +28,6 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.accumulo.core.client.admin.TableOperations;
-import org.apache.hadoop.conf.Configuration;
 import org.geotools.geometry.jts.Geometries;
 import org.junit.Assert;
 import org.junit.Before;
@@ -61,6 +60,7 @@ import com.vividsolutions.jts.io.ParseException;
 import com.vividsolutions.jts.io.gml2.GMLWriter;
 
 import info.aduna.iteration.CloseableIteration;
+import mvm.rya.accumulo.AccumuloRdfConfiguration;
 import mvm.rya.api.domain.RyaStatement;
 import mvm.rya.api.resolver.RdfToRyaConversions;
 import mvm.rya.api.resolver.RyaToRdfConversions;

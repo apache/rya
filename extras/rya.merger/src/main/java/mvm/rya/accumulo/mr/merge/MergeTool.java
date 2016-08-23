@@ -63,13 +63,13 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 
 import mvm.rya.accumulo.AccumuloRdfConfiguration;
+import mvm.rya.accumulo.mr.AccumuloHDFSFileInputFormat;
+import mvm.rya.accumulo.mr.MRUtils;
 import mvm.rya.accumulo.mr.merge.gui.DateTimePickerDialog;
 import mvm.rya.accumulo.mr.merge.mappers.MergeToolMapper;
 import mvm.rya.accumulo.mr.merge.util.AccumuloRyaUtils;
 import mvm.rya.accumulo.mr.merge.util.TimeUtils;
 import mvm.rya.accumulo.mr.merge.util.ToolConfigUtils;
-import mvm.rya.accumulo.mr.utils.AccumuloHDFSFileInputFormat;
-import mvm.rya.accumulo.mr.utils.MRUtils;
 import mvm.rya.api.RdfCloudTripleStoreConfiguration;
 import mvm.rya.api.RdfCloudTripleStoreConstants;
 import mvm.rya.api.RdfCloudTripleStoreUtils;
@@ -277,7 +277,7 @@ public class MergeTool extends AbstractDualInstanceAccumuloMRTool {
                 importChildFilesToTempParentTable(childTable);
             }
 
-            setupInputFormat(job);
+            setupAccumuloInput(job);
 
             AccumuloInputFormat.setInputTableName(job, table);
 
@@ -287,7 +287,7 @@ public class MergeTool extends AbstractDualInstanceAccumuloMRTool {
             job.setOutputKeyClass(Text.class);
             job.setOutputValueClass(Mutation.class);
 
-            setupOutputFormat(job, table);
+            setupAccumuloOutput(job, table);
 
             // Set mapper and reducer classes
             job.setMapperClass(MergeToolMapper.class);
@@ -435,7 +435,7 @@ public class MergeTool extends AbstractDualInstanceAccumuloMRTool {
     }
 
     @Override
-    protected void setupInputFormat(Job job) throws AccumuloSecurityException {
+    protected void setupAccumuloInput(Job job) throws AccumuloSecurityException {
         // set up accumulo input
         if (!hdfsInput) {
             job.setInputFormatClass(AccumuloInputFormat.class);

@@ -25,7 +25,7 @@ import org.apache.hadoop.util.Tool;
 
 import mvm.rya.accumulo.AccumuloRdfConstants;
 import mvm.rya.accumulo.mr.AbstractAccumuloMRTool;
-import mvm.rya.accumulo.mr.utils.MRUtils;
+import mvm.rya.accumulo.mr.MRUtils;
 import mvm.rya.api.RdfCloudTripleStoreConstants;
 
 /**

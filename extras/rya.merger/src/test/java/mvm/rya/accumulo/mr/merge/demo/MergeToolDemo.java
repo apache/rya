@@ -36,6 +36,7 @@ import org.apache.log4j.Logger;
 
 import mvm.rya.accumulo.AccumuloRdfConfiguration;
 import mvm.rya.accumulo.AccumuloRyaDAO;
+import mvm.rya.accumulo.mr.MRUtils;
 import mvm.rya.accumulo.mr.merge.CopyTool;
 import mvm.rya.accumulo.mr.merge.MergeTool;
 import mvm.rya.accumulo.mr.merge.demo.util.DemoUtilities;
@@ -44,7 +45,6 @@ import mvm.rya.accumulo.mr.merge.driver.AccumuloDualInstanceDriver;
 import mvm.rya.accumulo.mr.merge.util.AccumuloRyaUtils;
 import mvm.rya.accumulo.mr.merge.util.TestUtils;
 import mvm.rya.accumulo.mr.merge.util.TimeUtils;
-import mvm.rya.accumulo.mr.utils.MRUtils;
 import mvm.rya.api.RdfCloudTripleStoreConstants;
 import mvm.rya.api.domain.RyaStatement;
 

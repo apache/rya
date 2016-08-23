@@ -157,8 +157,6 @@ public class RyaSailFactory {
             RyaDetailsToConfiguration.addRyaDetailsToConfiguration(ryaDetailsRepo.getRyaInstanceDetails(), config);
         } catch(final RyaDetailsRepositoryException e) {
             LOG.info("Instance does not have a rya details collection, skipping.");
-        } catch (final UnknownHostException ue) {
-            throw new RyaDAOException("Unable to connect to mongo at the configured location.", ue);
         }
         return client;
     }

@@ -43,6 +43,7 @@ import org.openrdf.repository.sail.SailRepository;
 import org.openrdf.repository.sail.SailRepositoryConnection;
 import org.openrdf.sail.Sail;
 
+import mvm.rya.api.RdfCloudTripleStoreConfiguration;
 import mvm.rya.indexing.accumulo.ConfigUtils;
 import mvm.rya.indexing.accumulo.geo.GeoConstants;
 import mvm.rya.mongodb.MongoDBRdfConfiguration;

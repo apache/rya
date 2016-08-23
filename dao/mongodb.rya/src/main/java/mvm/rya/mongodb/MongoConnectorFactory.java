@@ -91,12 +91,7 @@ public class MongoConnectorFactory {
         // Connect to a running Mongo server
         final String host = requireNonNull(conf.get(MongoDBRdfConfiguration.MONGO_INSTANCE), MSG_INTRO+"host name is required");
         final int port = requireNonNullInt(conf.get(MongoDBRdfConfiguration.MONGO_INSTANCE_PORT), MSG_INTRO+"Port number is required.");
-        ServerAddress server;
-        try {
-            server = new ServerAddress(host, port);
-        } catch (UnknownHostException e) {
-            throw new MongoException(MSG_INTRO + "cannot find host="+host,e);
-        }
+        ServerAddress server = new ServerAddress(host, port);
         // check for authentication credentials
         if (conf.get(MongoDBRdfConfiguration.MONGO_USER) != null) {
             final String username = conf.get(MongoDBRdfConfiguration.MONGO_USER);

@@ -34,10 +34,10 @@ import org.apache.accumulo.core.data.Value;
 import org.apache.accumulo.core.security.Authorizations;
 import org.apache.log4j.Logger;
 
+import mvm.rya.accumulo.mr.MRUtils;
 import mvm.rya.accumulo.mr.merge.MergeTool;
 import mvm.rya.accumulo.mr.merge.util.AccumuloRyaUtils;
 import mvm.rya.accumulo.mr.merge.util.GroupedRow;
-import mvm.rya.accumulo.mr.utils.MRUtils;
 import mvm.rya.api.domain.RyaStatement;
 import mvm.rya.api.persist.RyaDAOException;
 

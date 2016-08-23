@@ -51,8 +51,8 @@ import com.google.common.io.Files;
 
 import mvm.rya.accumulo.AccumuloRdfConfiguration;
 import mvm.rya.accumulo.AccumuloRyaDAO;
+import mvm.rya.accumulo.mr.MRUtils;
 import mvm.rya.accumulo.mr.merge.MergeTool;
-import mvm.rya.accumulo.mr.utils.MRUtils;
 import mvm.rya.api.RdfCloudTripleStoreConstants;
 import mvm.rya.api.persist.RyaDAOException;
 import mvm.rya.indexing.accumulo.ConfigUtils;
@@ -236,11 +236,13 @@ public class AccumuloInstanceDriver {
 
         if (shouldCreateIndices) {
             indices = Arrays.asList(
+                    /* TODO: SEE RYA-160
                 ConfigUtils.getFreeTextDocTablename(config),
                 ConfigUtils.getFreeTextTermTablename(config),
                 ConfigUtils.getGeoTablename(config),
                 ConfigUtils.getTemporalTableName(config),
                 ConfigUtils.getEntityTableName(config)
+                */
             );
 
             tableList.addAll(indices);

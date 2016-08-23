@@ -34,11 +34,11 @@ import org.openrdf.query.algebra.Or;
 import org.openrdf.query.algebra.ValueExpr;
 
 import mvm.rya.accumulo.AccumuloRdfConfiguration;
+import mvm.rya.accumulo.mr.MRUtils;
 import mvm.rya.accumulo.mr.merge.MergeTool;
 import mvm.rya.accumulo.mr.merge.util.AccumuloQueryRuleset;
 import mvm.rya.accumulo.mr.merge.util.CopyRule;
 import mvm.rya.accumulo.mr.merge.util.QueryRuleset.QueryRulesetException;
-import mvm.rya.accumulo.mr.utils.MRUtils;
 import mvm.rya.api.RdfCloudTripleStoreConstants.TABLE_LAYOUT;
 import mvm.rya.api.RdfCloudTripleStoreUtils;
 import mvm.rya.api.domain.RyaStatement;

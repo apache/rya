@@ -46,10 +46,10 @@ import com.google.common.collect.Lists;
 
 import mvm.rya.accumulo.AccumuloRdfConfiguration;
 import mvm.rya.accumulo.AccumuloRyaDAO;
+import mvm.rya.accumulo.mr.MRUtils;
 import mvm.rya.accumulo.mr.merge.CopyTool;
 import mvm.rya.accumulo.mr.merge.MergeTool;
 import mvm.rya.accumulo.mr.merge.util.AccumuloRyaUtils;
-import mvm.rya.accumulo.mr.utils.MRUtils;
 import mvm.rya.api.persist.RyaDAOException;
 import mvm.rya.api.resolver.RyaTripleContext;
 import twitter4j.Logger;

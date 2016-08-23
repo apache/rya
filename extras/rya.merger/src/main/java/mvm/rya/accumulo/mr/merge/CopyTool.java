@@ -83,13 +83,15 @@ import org.apache.log4j.xml.DOMConfigurator;
 import com.google.common.base.Joiner;
 
 import mvm.rya.accumulo.AccumuloRdfConfiguration;
+import mvm.rya.accumulo.mr.AccumuloHDFSFileInputFormat;
+import mvm.rya.accumulo.mr.MRUtils;
 import mvm.rya.accumulo.mr.merge.common.InstanceType;
 import mvm.rya.accumulo.mr.merge.gui.DateTimePickerDialog;
 import mvm.rya.accumulo.mr.merge.mappers.AccumuloCopyToolMapper;
 import mvm.rya.accumulo.mr.merge.mappers.AccumuloRyaRuleMapper;
 import mvm.rya.accumulo.mr.merge.mappers.FileCopyToolMapper;
-import mvm.rya.accumulo.mr.merge.mappers.RowRuleMapper;
 import mvm.rya.accumulo.mr.merge.mappers.MergeToolMapper;
+import mvm.rya.accumulo.mr.merge.mappers.RowRuleMapper;
 import mvm.rya.accumulo.mr.merge.reducers.MultipleFileReducer;
 import mvm.rya.accumulo.mr.merge.util.AccumuloInstanceDriver;
 import mvm.rya.accumulo.mr.merge.util.AccumuloQueryRuleset;
@@ -97,8 +99,6 @@ import mvm.rya.accumulo.mr.merge.util.AccumuloRyaUtils;
 import mvm.rya.accumulo.mr.merge.util.GroupedRow;
 import mvm.rya.accumulo.mr.merge.util.TimeUtils;
 import mvm.rya.accumulo.mr.merge.util.ToolConfigUtils;
-import mvm.rya.accumulo.mr.utils.AccumuloHDFSFileInputFormat;
-import mvm.rya.accumulo.mr.utils.MRUtils;
 import mvm.rya.api.RdfCloudTripleStoreConstants;
 import mvm.rya.api.RdfCloudTripleStoreUtils;
 import mvm.rya.api.layout.TablePrefixLayoutStrategy;
@@ -314,11 +314,13 @@ public class CopyTool extends AbstractDualInstanceAccumuloMRTool {
             tables.add(tablePrefix + RdfCloudTripleStoreConstants.TBL_EVAL_SUFFIX);
             tables.add(tablePrefix + RdfCloudTripleStoreConstants.TBL_STATS_SUFFIX);
             tables.add(tablePrefix + RdfCloudTripleStoreConstants.TBL_SEL_SUFFIX);
+            /* TODO: SEE RYA-160
             tables.add(ConfigUtils.getFreeTextDocTablename(conf));
             tables.add(ConfigUtils.getFreeTextTermTablename(conf));
             tables.add(ConfigUtils.getGeoTablename(conf));
             tables.add(ConfigUtils.getTemporalTableName(conf));
             tables.add(ConfigUtils.getEntityTableName(conf));
+            */
         }
         if (tables.isEmpty()) {
             log.warn("No list of tables to copy was provided.");
@@ -368,7 +370,7 @@ public class CopyTool extends AbstractDualInstanceAccumuloMRTool {
                 Job job = Job.getInstance(conf);
                 job.setJarByClass(CopyTool.class);
 
-                setupInputFormat(job);
+                setupAccumuloInput(job);
 
                 AccumuloInputFormat.setInputTableName(job, table);
 
@@ -385,7 +387,7 @@ public class CopyTool extends AbstractDualInstanceAccumuloMRTool {
                     job.setOutputValueClass(Mutation.class);
                 }
 
-                setupOutputFormat(job, childTable);
+                setupAccumuloOutput(job, childTable);
 
                 // Set mapper and reducer classes
                 if (useCopyFileOutput) {
@@ -478,6 +480,7 @@ public class CopyTool extends AbstractDualInstanceAccumuloMRTool {
         // Copy namespaces if they exist
         tables.add(prefixStrategy.getNs());
         // Add tables associated with any configured indexers
+        /* TODO: SEE RYA-160
         if (aconf.getBoolean(ConfigUtils.USE_FREETEXT, false)) {
             tables.add(ConfigUtils.getFreeTextDocTablename(conf));
             tables.add(ConfigUtils.getFreeTextTermTablename(conf));
@@ -491,6 +494,7 @@ public class CopyTool extends AbstractDualInstanceAccumuloMRTool {
         if (aconf.getBoolean(ConfigUtils.USE_ENTITY, false)) {
             tables.add(ConfigUtils.getEntityTableName(conf));
         }
+        */
         // Ignore anything else, e.g. statistics -- must be recalculated for the child if desired
 
         // Extract the ruleset, and copy the namespace table directly
@@ -504,7 +508,7 @@ public class CopyTool extends AbstractDualInstanceAccumuloMRTool {
         Job job = Job.getInstance(aconf);
         job.setJarByClass(this.getClass());
         setupMultiTableInputFormat(job, ruleset);
-        setupOutputFormat(job, "");
+        setupAccumuloOutput(job, "");
 
         if (useCopyFileOutput) {
             // Configure job for file output
@@ -703,7 +707,7 @@ public class CopyTool extends AbstractDualInstanceAccumuloMRTool {
     }
 
     @Override
-    protected void setupInputFormat(Job job) throws AccumuloSecurityException {
+    protected void setupAccumuloInput(Job job) throws AccumuloSecurityException {
         if (useCopyFileImport) {
             try {
                 AccumuloHDFSFileInputFormat.setInputPaths(job, localCopyFileImportDir);
@@ -776,7 +780,7 @@ public class CopyTool extends AbstractDualInstanceAccumuloMRTool {
     }
 
     @Override
-    protected void setupOutputFormat(Job job, String outputTable) throws AccumuloSecurityException {
+    protected void setupAccumuloOutput(Job job, String outputTable) throws AccumuloSecurityException {
         AccumuloOutputFormat.setConnectorInfo(job, childUserName, new PasswordToken(childPwd));
         AccumuloOutputFormat.setCreateTables(job, true);
         AccumuloOutputFormat.setDefaultTableName(job, outputTable);

@@ -59,7 +59,7 @@ import com.google.common.collect.ImmutableSet;
 import info.aduna.iteration.CloseableIteration;
 import mvm.rya.accumulo.AccumuloRdfConfiguration;
 import mvm.rya.accumulo.AccumuloRyaDAO;
-import mvm.rya.accumulo.mr.utils.MRUtils;
+import mvm.rya.accumulo.mr.MRUtils;
 import mvm.rya.api.RdfCloudTripleStoreConstants;
 import mvm.rya.api.domain.RyaStatement;
 import mvm.rya.api.domain.RyaType;

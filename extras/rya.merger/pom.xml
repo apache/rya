@@ -169,6 +169,20 @@ under the License.
     </dependencies>
 
     <build>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>org.apache.rat</groupId>
+                    <artifactId>apache-rat-plugin</artifactId>
+                    <configuration>
+                        <excludes>
+                            Accumulo data Files
+                            <exclude>**/*.rf</exclude>
+                        </excludes>
+                    </configuration>
+                </plugin>
+            </plugins>
+        </pluginManagement>
         <plugins>
             <plugin>
                 <artifactId>maven-compiler-plugin</artifactId>
@@ -281,7 +295,7 @@ under the License.
             </plugin>
 
             <!--
-                Copies all needed files into target/distribution/rya.merger-${version}
+                Copies all needed files into target/distribution/rya.merger-${project.version}
             -->
             <plugin>
                 <artifactId>maven-resources-plugin</artifactId>
@@ -294,7 +308,7 @@ under the License.
                             <goal>copy-resources</goal>
                         </goals>
                         <configuration>
-                            <outputDirectory>${project.build.directory}/distribution/${artifactId}-${version}/bin</outputDirectory>
+                            <outputDirectory>${project.build.directory}/distribution/${project.artifactId}-${project.version}/bin</outputDirectory>
                             <resources>
                                 <resource>
                                     <directory>${basedir}/startup_scripts</directory>
@@ -309,7 +323,7 @@ under the License.
                             <goal>copy-resources</goal>
                         </goals>
                         <configuration>
-                            <outputDirectory>${project.build.directory}/distribution/${artifactId}-${version}/config</outputDirectory>
+                            <outputDirectory>${project.build.directory}/distribution/${project.artifactId}-${project.version}/config</outputDirectory>
                             <resources>
                                 <resource>
                                     <directory>${basedir}/config</directory>
@@ -324,7 +338,7 @@ under the License.
                             <goal>copy-resources</goal>
                         </goals>
                         <configuration>
-                            <outputDirectory>${project.build.directory}/distribution/${artifactId}-${version}/lib</outputDirectory>
+                            <outputDirectory>${project.build.directory}/distribution/${project.artifactId}-${project.version}/lib</outputDirectory>
                             <resources>
                                 <resource>
                                     <directory>${project.build.directory}/lib</directory>
@@ -342,7 +356,7 @@ under the License.
                             <goal>copy-resources</goal>
                         </goals>
                         <configuration>
-                            <outputDirectory>${project.build.directory}/distribution/${artifactId}-${version}/</outputDirectory>
+                            <outputDirectory>${project.build.directory}/distribution/${project.artifactId}-${project.version}/</outputDirectory>
                             <resources>
                                 <resource>
                                     <directory>${project.build.directory}</directory>
@@ -365,7 +379,7 @@ under the License.
                             <goal>copy-resources</goal>
                         </goals>
                         <configuration>
-                            <outputDirectory>${project.build.directory}/distribution/${artifactId}-${version}/</outputDirectory>
+                            <outputDirectory>${project.build.directory}/distribution/${project.artifactId}-${project.version}/</outputDirectory>
                             <resources>
                                 <resource>
                                     <directory>${basedir}</directory>

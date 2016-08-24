@@ -152,13 +152,4 @@ public class MongoTemporalIndexer extends AbstractMongoIndexer<TemporalMongoDBSt
         return collection;
     }
     
-    private void deleteStatement(final Statement statement) throws IOException, IllegalArgumentException {
-        //TODO for Rya-94
-    }
-
-    @Override
-    public void deleteStatement(final RyaStatement statement) throws IllegalArgumentException, IOException {
-        deleteStatement(RyaToRdfConversions.convertStatement(statement));
-    }
-
 }

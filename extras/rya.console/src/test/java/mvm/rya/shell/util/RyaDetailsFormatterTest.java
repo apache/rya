@@ -21,6 +21,7 @@ package mvm.rya.shell.util;
 import static org.junit.Assert.assertEquals;
 
 import java.util.Date;
+import java.util.TimeZone;
 
 import org.junit.Test;
 
@@ -45,6 +46,8 @@ public class RyaDetailsFormatterTest {
 
     @Test
     public void format() {
+        // This test failed if the default timezone was not EST, so now it's fixed at EST.
+        TimeZone.setDefault(TimeZone.getTimeZone("America/New_York"));
         // Create the object that will be formatted.
         final RyaDetails details = RyaDetails.builder().setRyaInstanceName("test_instance")
             .setRyaVersion("1.2.3.4")

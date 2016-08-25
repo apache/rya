@@ -27,6 +27,7 @@ import static org.mockito.Mockito.when;
 import java.io.IOException;
 import java.util.Date;
 import java.util.List;
+import java.util.TimeZone;
 
 import org.junit.Test;
 
@@ -123,6 +124,9 @@ public class RyaAdminCommandsTest {
 
     @Test
     public void getInstanceDetails() throws InstanceDoesNotExistException, RyaClientException {
+        // This test is failed if the default timezone was not EST, so now it's fixed at EST.
+        // If you get assert mismatch of EST!=EDT, try the deprecated getTimeZone("EST") instead.
+        TimeZone.setDefault(TimeZone.getTimeZone("America/New_York"));
         // Mock the object that performs the get operation.
         final GetInstanceDetails mockGetInstanceDetails = mock(GetInstanceDetails.class);
         final String instanceName = "test_instance";

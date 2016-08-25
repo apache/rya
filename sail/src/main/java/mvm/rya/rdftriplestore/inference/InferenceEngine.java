@@ -1,5 +1,30 @@
 package mvm.rya.rdftriplestore.inference;
 
+import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkNotNull;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.Timer;
+import java.util.TimerTask;
+import java.util.TreeMap;
+
+import org.openrdf.model.Resource;
+import org.openrdf.model.Statement;
+import org.openrdf.model.URI;
+import org.openrdf.model.Value;
+import org.openrdf.model.ValueFactory;
+import org.openrdf.model.impl.StatementImpl;
+import org.openrdf.model.impl.ValueFactoryImpl;
+import org.openrdf.model.vocabulary.OWL;
+import org.openrdf.model.vocabulary.RDF;
+import org.openrdf.model.vocabulary.RDFS;
+import org.openrdf.query.QueryEvaluationException;
+
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -26,25 +51,12 @@ import com.tinkerpop.blueprints.Edge;
 import com.tinkerpop.blueprints.Graph;
 import com.tinkerpop.blueprints.Vertex;
 import com.tinkerpop.blueprints.impls.tg.TinkerGraphFactory;
+
 import info.aduna.iteration.CloseableIteration;
 import mvm.rya.api.RdfCloudTripleStoreConfiguration;
 import mvm.rya.api.persist.RyaDAO;
 import mvm.rya.api.persist.RyaDAOException;
 import mvm.rya.api.persist.utils.RyaDAOHelper;
-import org.openrdf.model.Resource;
-import org.openrdf.model.Statement;
-import org.openrdf.model.URI;
-import org.openrdf.model.Value;
-import org.openrdf.model.impl.StatementImpl;
-import org.openrdf.model.vocabulary.OWL;
-import org.openrdf.model.vocabulary.RDF;
-import org.openrdf.model.vocabulary.RDFS;
-import org.openrdf.query.QueryEvaluationException;
-
-import java.util.*;
-
-import static com.google.common.base.Preconditions.checkArgument;
-import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * Will pull down inference relationships from dao every x seconds. <br>
@@ -66,6 +78,7 @@ public class InferenceEngine {
 
     private long refreshGraphSchedule = 5 * 60 * 1000; //5 min
     private Timer timer;
+	private HashMap<URI, List<URI>> propertyChainPropertyToChain = new HashMap<URI, List<URI>>();
     public static final String URI_PROP = "uri";
 
     public void init() throws InferenceEngineException {
@@ -204,6 +217,92 @@ public class InferenceEngine {
                 }
             }
             inverseOfMap = invProp;
+            
+            ValueFactory vf = ValueFactoryImpl.getInstance();
+            iter = RyaDAOHelper.query(ryaDAO, null, 
+            		vf.createURI("http://www.w3.org/2002/07/owl#propertyChainAxiom"),
+            		null, conf);
+            Map<URI,URI> propertyChainPropertiesToBNodes = new HashMap<URI, URI>();
+            propertyChainPropertyToChain = new HashMap<URI, List<URI>>();
+            try {
+            	while (iter.hasNext()){
+            		Statement st = iter.next();
+            		propertyChainPropertiesToBNodes.put((URI)st.getSubject(), (URI)st.getObject());
+            	}
+            } finally {
+                if (iter != null) {
+                    iter.close();
+                }
+            }
+            // now for each property chain bNode, get the indexed list of properties associated with that chain
+            for (URI propertyChainProperty : propertyChainPropertiesToBNodes.keySet()){
+            	URI bNode = propertyChainPropertiesToBNodes.get(propertyChainProperty);
+            	// query for the list of indexed properties
+            	iter = RyaDAOHelper.query(ryaDAO, bNode, vf.createURI("http://www.w3.org/2000/10/swap/list#index"),
+            			null, conf);
+            	TreeMap<Integer, URI> orderedProperties = new TreeMap<Integer, URI>();
+            	// TODO refactor this.  Wish I could execute sparql
+            	try {
+            		while (iter.hasNext()){
+            		  Statement st = iter.next();
+            		  String indexedElement = st.getObject().stringValue();
+            		  System.out.println(indexedElement);
+            		  CloseableIteration<Statement, QueryEvaluationException>  iter2 = RyaDAOHelper.query(ryaDAO, vf.createURI(st.getObject().stringValue()), RDF.FIRST,
+                    			null, conf);
+            		  String integerValue = "";
+            		  Value anonPropNode = null;
+            		  Value propURI = null;
+            		  if (iter2 != null){
+            			  while (iter2.hasNext()){
+            				  Statement iter2Statement = iter2.next();
+            				  integerValue = iter2Statement.getObject().stringValue();
+            				  break;
+            			  }
+            			  iter2.close();
+            		  }
+            		  iter2 = RyaDAOHelper.query(ryaDAO, vf.createURI(st.getObject().stringValue()), RDF.REST,
+                  			null, conf);
+            		  if (iter2 != null){
+            			  while (iter2.hasNext()){
+            				  Statement iter2Statement = iter2.next();
+            				  anonPropNode = iter2Statement.getObject();
+            				  break;
+            			  }
+            			  iter2.close();
+            			  if (anonPropNode != null){
+            				  iter2 = RyaDAOHelper.query(ryaDAO, vf.createURI(anonPropNode.stringValue()), RDF.FIRST,
+                            			null, conf);
+            				  while (iter2.hasNext()){
+                				  Statement iter2Statement = iter2.next();
+                				  propURI = iter2Statement.getObject();
+                				  break;
+                			  }
+                			  iter2.close();
+            			  }
+            		  }
+            		  if (!integerValue.isEmpty() && propURI!=null) {
+            			  try {
+                			  int indexValue = Integer.parseInt(integerValue);
+                			  URI chainPropURI = vf.createURI(propURI.stringValue());
+                			  orderedProperties.put(indexValue, chainPropURI);
+            			  }
+            			  catch (Exception ex){
+            				  // TODO log an error here
+            				  
+            			  }
+            		  }
+            		}
+            	} finally{
+            		if (iter != null){
+            			iter.close();
+            		}
+            	}
+            	List<URI> properties = new ArrayList<URI>();
+            	for (Map.Entry<Integer, URI> entry : orderedProperties.entrySet()){
+            		properties.add(entry.getValue());
+            	}
+            	propertyChainPropertyToChain.put(propertyChainProperty, properties);
+            }
         } catch (QueryEvaluationException e) {
             throw new InferenceEngineException(e);
         }
@@ -363,6 +462,17 @@ public class InferenceEngine {
 
     public Graph getSubClassOfGraph() {
         return subClassOfGraph;
+    }
+
+    public Map<URI, List<URI>> getPropertyChainMap() {
+        return propertyChainPropertyToChain;
+    }
+
+    public List<URI> getPropertyChain(URI chainProp) {
+    	if (propertyChainPropertyToChain.containsKey(chainProp)){
+    		return propertyChainPropertyToChain.get(chainProp);
+    	}
+        return new ArrayList<URI>();
     }
 
     public Graph getSubPropertyOfGraph() {

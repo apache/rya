@@ -85,9 +85,10 @@ public class MongoRyaDirectExample {
             testAddNamespaces(conn);
             testAddPointAndWithinSearch(conn);
             testAddAndFreeTextSearchWithPCJ(conn);
-            // to test out inference, set inference to true in the conf
+           //  to test out inference, set inference to true in the conf
             if (USE_INFER){
             	testInfer(conn, sail);
+            	testPropertyChainInference(conn, sail);
             }
 
             log.info("TIME: " + (System.currentTimeMillis() - start) / 1000.);
@@ -281,49 +282,106 @@ public class MongoRyaDirectExample {
     }
 
 
-
     public static void testAddAndDelete(SailRepositoryConnection conn) throws MalformedQueryException, RepositoryException,
-            UpdateExecutionException, QueryEvaluationException, TupleQueryResultHandlerException {
+    UpdateExecutionException, QueryEvaluationException, TupleQueryResultHandlerException {
 
-        // Add data
-        String query = "INSERT DATA\n"//
-                + "{ GRAPH <http://updated/test> {\n"//
-                + "  <http://acme.com/people/Mike> " //
-                + "       <http://acme.com/actions/likes> \"A new book\" ;\n"//
-                + "       <http://acme.com/actions/likes> \"Avocados\" .\n" + "} }";
+    	// Add data
+    	String query = "INSERT DATA\n"//
+    			+ "{ GRAPH <http://updated/test> {\n"//
+    			+ "  <http://acme.com/people/Mike> " //
+    			+ "       <http://acme.com/actions/likes> \"A new book\" ;\n"//
+    			+ "       <http://acme.com/actions/likes> \"Avocados\" .\n" + "} }";
 
-        log.info("Performing Query");
+    	log.info("Performing Query");
 
-        Update update = conn.prepareUpdate(QueryLanguage.SPARQL, query);
-        update.execute();
+    	Update update = conn.prepareUpdate(QueryLanguage.SPARQL, query);
+    	update.execute();
 
-         query = "select ?p ?o { GRAPH <http://updated/test> {<http://acme.com/people/Mike> ?p ?o . }}";
-         CountingResultHandler resultHandler = new CountingResultHandler();
-         TupleQuery tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, query);
-         tupleQuery.evaluate(resultHandler);
-         log.info("Result count : " + resultHandler.getCount());
-        
-         Validate.isTrue(resultHandler.getCount() == 2);
-        
-         resultHandler.resetCount();
-        
-         // Delete Data
-         query = "DELETE DATA\n" //
-         + "{ GRAPH <http://updated/test> {\n"
-         + "  <http://acme.com/people/Mike> <http://acme.com/actions/likes> \"A new book\" ;\n"
-         + "   <http://acme.com/actions/likes> \"Avocados\" .\n" + "}}";
-        
-         update = conn.prepareUpdate(QueryLanguage.SPARQL, query);
-         update.execute();
-        
-         query = "select ?p ?o { GRAPH <http://updated/test> {<http://acme.com/people/Mike> ?p ?o . }}";
-         tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, query);
-         tupleQuery.evaluate(resultHandler);
-         log.info("Result count : " + resultHandler.getCount());
-        
-         Validate.isTrue(resultHandler.getCount() == 0);
+    	query = "select ?p ?o { GRAPH <http://updated/test> {<http://acme.com/people/Mike> ?p ?o . }}";
+    	CountingResultHandler resultHandler = new CountingResultHandler();
+    	TupleQuery tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, query);
+    	tupleQuery.evaluate(resultHandler);
+    	log.info("Result count : " + resultHandler.getCount());
+
+    	Validate.isTrue(resultHandler.getCount() == 2);
+
+    	resultHandler.resetCount();
+
+    	// Delete Data
+    	query = "DELETE DATA\n" //
+    			+ "{ GRAPH <http://updated/test> {\n"
+    			+ "  <http://acme.com/people/Mike> <http://acme.com/actions/likes> \"A new book\" ;\n"
+    			+ "   <http://acme.com/actions/likes> \"Avocados\" .\n" + "}}";
+
+    	update = conn.prepareUpdate(QueryLanguage.SPARQL, query);
+    	update.execute();
+
+    	query = "select ?p ?o { GRAPH <http://updated/test> {<http://acme.com/people/Mike> ?p ?o . }}";
+    	tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, query);
+    	tupleQuery.evaluate(resultHandler);
+    	log.info("Result count : " + resultHandler.getCount());
+
+    	Validate.isTrue(resultHandler.getCount() == 0);
     }
 
+    public static void testPropertyChainInference(SailRepositoryConnection conn, Sail sail) throws MalformedQueryException, RepositoryException,
+    UpdateExecutionException, QueryEvaluationException, TupleQueryResultHandlerException, InferenceEngineException {
+
+    	// Add data
+    	String query = "INSERT DATA\n"//
+    			+ "{ GRAPH <http://updated/test> {\n"//
+    			+ "  <urn:paulGreatGrandfather> <urn:father> <urn:paulGrandfather> . "
+    			+ "  <urn:paulGrandfather> <urn:father> <urn:paulFather> . " + 
+    			" <urn:paulFather> <urn:father> <urn:paul> . " + 
+    			" <urn:paul> <urn:father> <urn:paulSon> .  }}";
+
+    	log.info("Performing Query");
+
+    	Update update = conn.prepareUpdate(QueryLanguage.SPARQL, query);
+    	update.execute();
+
+    	query = "select ?p { GRAPH <http://updated/test> {<urn:paulGreatGrandfather> <urn:father>/<urn:father> ?p}}";
+    	CountingResultHandler resultHandler = new CountingResultHandler();
+    	TupleQuery tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, query);
+    	tupleQuery.evaluate(resultHandler);
+    	log.info("Result count : " + resultHandler.getCount());
+
+
+    	// try adding a property chain and querying for it
+    	query = "INSERT DATA\n"//
+    			+ "{ GRAPH <http://updated/test> {\n"//
+    			+ "  <urn:greatGrandfather> owl:propertyChainAxiom <urn:1234>  . " + 
+    			" <urn:1234> <http://www.w3.org/2000/10/swap/list#length> 3 . " + 
+    			" <urn:1234> <http://www.w3.org/2000/10/swap/list#index> (0 <urn:father>) . " + 
+    			" <urn:1234> <http://www.w3.org/2000/10/swap/list#index> (1 <urn:father>) . " + 
+    			" <urn:1234> <http://www.w3.org/2000/10/swap/list#index> (2 <urn:father>) .  }}";
+    	update = conn.prepareUpdate(QueryLanguage.SPARQL, query);
+    	update.execute();
+    	query = "INSERT DATA\n"//
+    			+ "{ GRAPH <http://updated/test> {\n"//
+    			+ "  <urn:grandfather> owl:propertyChainAxiom <urn:12344>  . " + 
+    			" <urn:12344> <http://www.w3.org/2000/10/swap/list#length> 2 . " + 
+    			" <urn:12344> <http://www.w3.org/2000/10/swap/list#index> (0 <urn:father>) . " + 
+    			" <urn:12344> <http://www.w3.org/2000/10/swap/list#index> (1 <urn:father>) .  }}";
+    	update = conn.prepareUpdate(QueryLanguage.SPARQL, query);
+    	update.execute();
+    	((RdfCloudTripleStore) sail).getInferenceEngine().refreshGraph();
+
+    	resultHandler.resetCount();
+    	query = "select ?p { GRAPH <http://updated/test> {<urn:paulGreatGrandfather> <urn:greatGrandfather> ?p}}";
+    	resultHandler = new CountingResultHandler();
+    	tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, query);
+    	tupleQuery.evaluate(resultHandler);
+    	log.info("Result count : " + resultHandler.getCount());
+
+    	resultHandler.resetCount();
+    	query = "select ?s ?p { GRAPH <http://updated/test> {?s <urn:grandfather> ?p}}";
+    	resultHandler = new CountingResultHandler();
+    	tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, query);
+    	tupleQuery.evaluate(resultHandler);
+    	log.info("Result count : " + resultHandler.getCount());
+
+    }
     
     public static void testInfer(SailRepositoryConnection conn, Sail sail) throws MalformedQueryException, RepositoryException, 
     UpdateExecutionException, QueryEvaluationException, TupleQueryResultHandlerException, InferenceEngineException {

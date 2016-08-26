@@ -343,4 +343,35 @@ public class PCJOptimizerUtilities {
 		}
 	}
 
+
+
+	public static boolean pcjContainsLeftJoins(ExternalTupleSet pcj) {
+	    LeftJoinVisitor lj = new LeftJoinVisitor();
+	    pcj.getTupleExpr().visit(lj);
+        return lj.containsLeftJoin;
+    }
+
+    protected static class LeftJoinVisitor extends QueryModelVisitorBase<RuntimeException> {
+
+        boolean containsLeftJoin = false;
+
+        public boolean containsLeftJoin() {
+            return containsLeftJoin;
+        }
+
+        @Override
+        public void meet(LeftJoin node) {
+            containsLeftJoin = true;
+        }
+    }
+
+
+
+
+
+
+
+
+
+
 }

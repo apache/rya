@@ -36,7 +36,8 @@ under the License.
     
     <packaging>pom</packaging>
    
-    <modules> 
+    <modules>
+        <module>export.api</module>
     </modules>
     
     <properties>

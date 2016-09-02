@@ -95,11 +95,9 @@ public class AccumuloITBase {
     }
 
     /**
-     * TODO doc
-     *
-     * @return
-     * @throws AccumuloSecurityException
-     * @throws AccumuloException
+     * @return A {@link Connector} that creates connections to the mini accumulo cluster.
+     * @throws AccumuloException Could not connect to the cluster.
+     * @throws AccumuloSecurityException Could not connect to the cluster because of a security violation.
      */
     public Connector getConnector() throws AccumuloException, AccumuloSecurityException {
         return cluster.getConnector();

@@ -27,6 +27,7 @@ import org.apache.rya.indexing.pcj.storage.PrecomputedJoinStorage;
 import com.google.common.base.Optional;
 import com.google.common.base.Supplier;
 
+import cern.colt.Arrays;
 import mvm.rya.indexing.external.PrecomputedJoinIndexerConfig.PrecomputedJoinStorageType;
 import mvm.rya.indexing.external.accumulo.AccumuloPcjStorageSupplier;
 
@@ -64,7 +65,7 @@ public class PrecomputedJoinStorageSupplier implements Supplier<PrecomputedJoinS
         // Ensure the storage type has been set.
         final Optional<PrecomputedJoinStorageType> storageType = indexerConfig.getPcjStorageType();
         checkArgument(storageType.isPresent(), "The '" + PrecomputedJoinIndexerConfig.PCJ_STORAGE_TYPE +
-                "' property must have one of the following values: " + PrecomputedJoinStorageType.values());
+                "' property must have one of the following values: " + Arrays.toString(PrecomputedJoinStorageType.values()));
 
         // Create and return the configured storage.
         switch(storageType.get()) {

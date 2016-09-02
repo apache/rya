@@ -33,12 +33,13 @@ import org.springframework.stereotype.Component;
 
 import com.google.common.base.Optional;
 
-import mvm.rya.api.client.RyaClientException;
-import mvm.rya.api.client.RyaClient;
 import mvm.rya.api.client.GetInstanceDetails;
-import mvm.rya.api.client.InstanceDoesNotExistException;
 import mvm.rya.api.client.Install.DuplicateInstanceNameException;
 import mvm.rya.api.client.Install.InstallConfiguration;
+import mvm.rya.api.client.InstanceDoesNotExistException;
+import mvm.rya.api.client.PCJDoesNotExistException;
+import mvm.rya.api.client.RyaClient;
+import mvm.rya.api.client.RyaClientException;
 import mvm.rya.api.instance.RyaDetails;
 import mvm.rya.shell.SharedShellState.ConnectionState;
 import mvm.rya.shell.SharedShellState.ShellState;
@@ -55,6 +56,7 @@ public class RyaAdminCommands implements CommandMarker {
 
     public static final String CREATE_PCJ_CMD = "create-pcj";
     public static final String DELETE_PCJ_CMD = "delete-pcj";
+    public static final String BATCH_UPDATE_PCJ_CMD = "batch-update-pcj";
     public static final String GET_INSTANCE_DETAILS_CMD = "get-instance-details";
     public static final String INSTALL_CMD = "install";
     public static final String LIST_INSTANCES_CMD = "list-instances";
@@ -69,7 +71,7 @@ public class RyaAdminCommands implements CommandMarker {
      *
      * @param state - Holds shared state between all of the command classes. (not null)
      * @param installPrompt - Prompts a user for installation details. (not null)
-     * @param sparqlPrompt - TODO doc
+     * @param sparqlPrompt - Prompts a user for create PCJ details. (not null)
      */
     @Autowired
     public RyaAdminCommands(final SharedShellState state, final InstallPrompt installPrompt, final SparqlPrompt sparqlPrompt) {
@@ -114,7 +116,8 @@ public class RyaAdminCommands implements CommandMarker {
      */
     @CliAvailabilityIndicator({
         CREATE_PCJ_CMD,
-        DELETE_PCJ_CMD })
+        DELETE_PCJ_CMD,
+        BATCH_UPDATE_PCJ_CMD})
     public boolean arePCJCommandsAvailable() {
         // The PCJ commands are only available if the Shell is connected to an instance of Rya
         // that is new enough to use the RyaDetailsRepository and is configured to maintain PCJs.
@@ -138,18 +141,18 @@ public class RyaAdminCommands implements CommandMarker {
     public String listInstances() {
         // Fetch the command that is connected to the store.
         final ShellState shellState = state.getShellState();
-        final RyaClient commands = shellState.getConnectedCommands().get();
-        final Optional<String> ryaInstance = shellState.getRyaInstanceName();
+        final RyaClient ryaClient = shellState.getConnectedCommands().get();
+        final Optional<String> ryaInstanceName = shellState.getRyaInstanceName();
 
         try {
             // Sort the names alphabetically.
-            final List<String> instanceNames = commands.getListInstances().listInstances();
+            final List<String> instanceNames = ryaClient.getListInstances().listInstances();
             Collections.sort( instanceNames );
 
             final String report;
             final InstanceNamesFormatter formatter = new InstanceNamesFormatter();
-            if(ryaInstance.isPresent()) {
-                report = formatter.format(instanceNames, ryaInstance.get());
+            if(ryaInstanceName.isPresent()) {
+                report = formatter.format(instanceNames, ryaInstanceName.get());
             } else {
                 report = formatter.format(instanceNames);
             }
@@ -163,7 +166,7 @@ public class RyaAdminCommands implements CommandMarker {
     @CliCommand(value = INSTALL_CMD, help = "Create a new instance of Rya.")
     public String install() {
         // Fetch the commands that are connected to the store.
-        final RyaClient commands = state.getShellState().getConnectedCommands().get();
+        final RyaClient ryaClient = state.getShellState().getConnectedCommands().get();
 
         String instanceName = null;
         InstallConfiguration installConfig = null;
@@ -179,7 +182,7 @@ public class RyaAdminCommands implements CommandMarker {
             }
 
             // Execute the command.
-            commands.getInstall().install(instanceName, installConfig);
+            ryaClient.getInstall().install(instanceName, installConfig);
             return String.format("The Rya instance named '%s' has been installed.", instanceName);
 
         } catch(final DuplicateInstanceNameException e) {
@@ -193,18 +196,18 @@ public class RyaAdminCommands implements CommandMarker {
     public String getInstanceDetails() {
         // Fetch the command that is connected to the store.
         final ShellState shellState = state.getShellState();
-        final RyaClient commands = shellState.getConnectedCommands().get();
-        final String ryaInstance = shellState.getRyaInstanceName().get();
+        final RyaClient ryaClient = shellState.getConnectedCommands().get();
+        final String ryaInstanceName = shellState.getRyaInstanceName().get();
 
         try {
-            final Optional<RyaDetails> details = commands.getGetInstanceDetails().getDetails(ryaInstance);
+            final Optional<RyaDetails> details = ryaClient.getGetInstanceDetails().getDetails(ryaInstanceName);
             if(details.isPresent()) {
                 return new RyaDetailsFormatter().format(details.get());
             } else {
                 return "This instance of Rya does not have a Rya Details table. Consider migrating to a newer version of Rya.";
             }
         } catch(final InstanceDoesNotExistException e) {
-            throw new RuntimeException(String.format("A Rya instance named '%s' does not exist.", ryaInstance), e);
+            throw new RuntimeException(String.format("A Rya instance named '%s' does not exist.", ryaInstanceName), e);
         } catch (final RyaClientException e) {
             throw new RuntimeException("Could not get the instance details. Reason: " + e.getMessage(), e);
         }
@@ -214,18 +217,18 @@ public class RyaAdminCommands implements CommandMarker {
     public String createPcj() {
         // Fetch the command that is connected to the store.
         final ShellState shellState = state.getShellState();
-        final RyaClient commands = shellState.getConnectedCommands().get();
-        final String ryaInstance = shellState.getRyaInstanceName().get();
+        final RyaClient ryaClient = shellState.getConnectedCommands().get();
+        final String ryaInstanceName = shellState.getRyaInstanceName().get();
 
         try {
             // Prompt the user for the SPARQL.
             final String sparql = sparqlPrompt.getSparql();
             // Execute the command.
-            final String pcjId = commands.getCreatePCJ().createPCJ(ryaInstance, sparql);
+            final String pcjId = ryaClient.getCreatePCJ().createPCJ(ryaInstanceName, sparql);
             // Return a message that indicates the ID of the newly created ID.
             return String.format("The PCJ has been created. Its ID is '%s'.", pcjId);
         } catch (final InstanceDoesNotExistException e) {
-            throw new RuntimeException(String.format("A Rya instance named '%s' does not exist.", ryaInstance), e);
+            throw new RuntimeException(String.format("A Rya instance named '%s' does not exist.", ryaInstanceName), e);
         } catch (final IOException | RyaClientException e) {
             throw new RuntimeException("Could not create the PCJ. Provided reasons: " + e.getMessage(), e);
         }
@@ -237,17 +240,38 @@ public class RyaAdminCommands implements CommandMarker {
             final String pcjId) {
         // Fetch the command that is connected to the store.
         final ShellState shellState = state.getShellState();
-        final RyaClient commands = shellState.getConnectedCommands().get();
-        final String ryaInstance = shellState.getRyaInstanceName().get();
+        final RyaClient ryaClient = shellState.getConnectedCommands().get();
+        final String ryaInstanceName = shellState.getRyaInstanceName().get();
 
         try {
             // Execute the command.
-            commands.getDeletePCJ().deletePCJ(ryaInstance, pcjId);
+            ryaClient.getDeletePCJ().deletePCJ(ryaInstanceName, pcjId);
             return "The PCJ has been deleted.";
 
         } catch (final InstanceDoesNotExistException e) {
-            throw new RuntimeException(String.format("A Rya instance named '%s' does not exist.", ryaInstance), e);
+            throw new RuntimeException(String.format("A Rya instance named '%s' does not exist.", ryaInstanceName), e);
         } catch (final RyaClientException e) {
+            throw new RuntimeException("The PCJ could not be deleted. Provided reason: " + e.getMessage(), e);
+        }
+    }
+
+    @CliCommand(value = BATCH_UPDATE_PCJ_CMD, help = "Batch update a PCJ index using this client. This operation may take a long time.")
+    public String batchUpdatePcj(
+            @CliOption(key={"pcjId"}, mandatory = true, help = "The ID of the PCJ that will be updated.")
+            final String pcjId) {
+        // Fetch the command that is connected to the store.
+        final ShellState shellState = state.getShellState();
+        final RyaClient ryaClient = shellState.getConnectedCommands().get();
+        final String ryaInstanceName = shellState.getRyaInstanceName().get();
+
+        try {
+            ryaClient.getBatchUpdatePCJ().batchUpdate(ryaInstanceName, pcjId);
+            return "The PCJ's results have been updated.";
+        } catch(final InstanceDoesNotExistException e) {
+            throw new RuntimeException(String.format("A Rya instance named '%s' does not exist.", ryaInstanceName), e);
+        } catch(final PCJDoesNotExistException e) {
+            throw new RuntimeException(String.format("A PCJ with ID '%s' does not exist.", pcjId), e);
+        } catch(final RyaClientException e) {
             throw new RuntimeException("The PCJ could not be deleted. Provided reason: " + e.getMessage(), e);
         }
     }

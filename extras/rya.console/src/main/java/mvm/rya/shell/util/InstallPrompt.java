@@ -94,9 +94,13 @@ public interface InstallPrompt {
             builder.setEnablePcjIndex( enablePCJIndexing );
 
             if(enablePCJIndexing) {
-                prompt = "PCJ Updater Fluo Application Name: ";
-                final String fluoAppName = promptString(prompt, Optional.<String>absent());
-                builder.setFluoPcjAppName(fluoAppName);
+                final boolean useFluoApp = promptBoolean("Use a Fluo application to update the PCJ? ", Optional.absent());
+
+                if(useFluoApp) {
+                    prompt = "PCJ Updater Fluo Application Name: ";
+                    final String fluoAppName = promptString(prompt, Optional.<String>absent());
+                    builder.setFluoPcjAppName(fluoAppName);
+                }
             }
 
             prompt = makeFieldPrompt("Use Temporal Indexing", true);
@@ -119,7 +123,11 @@ public interface InstallPrompt {
 
             reader.println("   Use Precomputed Join Indexing: " + installConfig.isPcjIndexEnabled());
             if(installConfig.isPcjIndexEnabled()) {
-                reader.println("   PCJ Updater Fluo Application Name: " + installConfig.getFluoPcjAppName().get());
+                if(installConfig.getFluoPcjAppName().isPresent()) {
+                    reader.println("   PCJ Updater Fluo Application Name: " + installConfig.getFluoPcjAppName().get());
+                } else {
+                    reader.println("   Not using a PCJ Updater Fluo Application");
+                }
             }
 
             reader.println("   Use Temporal Indexing: " + installConfig.isTemporalIndexEnabled());

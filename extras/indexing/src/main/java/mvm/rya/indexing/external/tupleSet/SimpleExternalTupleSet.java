@@ -1,5 +1,3 @@
-package mvm.rya.indexing.external.tupleSet;
-
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -18,13 +16,10 @@ package mvm.rya.indexing.external.tupleSet;
  * specific language governing permissions and limitations
  * under the License.
  */
+package mvm.rya.indexing.external.tupleSet;
 
-import info.aduna.iteration.CloseableIteration;
-
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.openrdf.query.BindingSet;
 import org.openrdf.query.QueryEvaluationException;
@@ -32,51 +27,46 @@ import org.openrdf.query.algebra.Projection;
 import org.openrdf.query.algebra.QueryModelVisitor;
 
 import com.google.common.base.Joiner;
-import com.google.common.collect.Sets;
+
+import info.aduna.iteration.CloseableIteration;
 
 /**
  *  This a testing class to create mock pre-computed join nodes in order to
  *  test the {@link PrecompJoinOptimizer} for query planning.
- *
  */
-
 public class SimpleExternalTupleSet extends ExternalTupleSet {
 
-	public SimpleExternalTupleSet(Projection tuple) {
+    /**
+     * Constructs an instance of {@link SimpleExternalTupleSet}.
+     *
+     * @param tuple - An expression that represents the PCJ. (not null)
+     */
+	public SimpleExternalTupleSet(final Projection tuple) {
 		this.setProjectionExpr(tuple);
 		setSupportedVarOrders();
 	}
 
 	private void setSupportedVarOrders() {
+	    final List<String> varOrders = new ArrayList<>();
 
-		final Set<String> varSet = Sets.newHashSet();
-		final Map<String, Set<String>> supportedVarOrders = new HashMap<>();
-		String t = "";
+	    String varOrder = "";
+	    for(final String var : this.getTupleExpr().getAssuredBindingNames()) {
+	        varOrder = varOrder.isEmpty() ? var : varOrder + VAR_ORDER_DELIM + var;
+	        varOrders.add( varOrder );
+	    }
 
-		for (final String s : this.getTupleExpr().getAssuredBindingNames()) {
-			if (t.length() == 0) {
-				t = s;
-			} else {
-				t = t + VAR_ORDER_DELIM + s;
-			}
-
-			varSet.add(s);
-			supportedVarOrders.put(t, new HashSet<String>(varSet));
-
-		}
-		this.setSupportedVariableOrderMap(supportedVarOrders);
+	    this.setSupportedVariableOrderMap(varOrders);
 	}
 
 	@Override
-	public <X extends Exception> void visit(QueryModelVisitor<X> visitor)
+	public <X extends Exception> void visit(final QueryModelVisitor<X> visitor)
 			throws X {
 		visitor.meetOther(this);
 	}
 
 	@Override
-	public CloseableIteration<BindingSet, QueryEvaluationException> evaluate(
-			BindingSet bindings) throws QueryEvaluationException {
-		// TODO Auto-generated method stub
+	public CloseableIteration<BindingSet, QueryEvaluationException> evaluate( final BindingSet bindings) throws QueryEvaluationException {
+		// Intentionally does nothing.
 		return null;
 	}
 
@@ -88,23 +78,4 @@ public class SimpleExternalTupleSet extends ExternalTupleSet {
 								.getElements()).replaceAll("\\s+", " ");
 
 	}
-
-	@Override
-	public boolean equals(Object other) {
-
-		if (!(other instanceof SimpleExternalTupleSet)) {
-			return false;
-		} else {
-
-			final SimpleExternalTupleSet arg = (SimpleExternalTupleSet) other;
-			if (this.getTupleExpr().equals(arg.getTupleExpr())) {
-				return true;
-			} else {
-				return false;
-			}
-
-		}
-
-	}
-
 }

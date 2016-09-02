@@ -83,8 +83,8 @@ import mvm.rya.indexing.external.tupleSet.ExternalTupleSet;
  *
  */
 public class PCJOptimizer implements QueryOptimizer, Configurable {
-
     private static final Logger log = Logger.getLogger(PCJOptimizer.class);
+
     private List<ExternalTupleSet> indexSet;
     private Configuration conf;
     private boolean init = false;
@@ -104,7 +104,7 @@ public class PCJOptimizer implements QueryOptimizer, Configurable {
         } catch (MalformedQueryException | SailException
                 | QueryEvaluationException | TableNotFoundException
                 | AccumuloException | AccumuloSecurityException | PcjException e) {
-            e.printStackTrace();
+            log.error(e.getMessage(), e);
         }
         init = true;
     }
@@ -352,7 +352,7 @@ public class PCJOptimizer implements QueryOptimizer, Configurable {
         //use table name sparql map (indexTables) to create {@link AccumuloIndexSet}
         final List<ExternalTupleSet> index = Lists.newArrayList();
         if (indexTables.isEmpty()) {
-            System.out.println("No Index found");
+            log.info("No Index found");
         } else {
             for (final String table : indexTables.keySet()) {
                 final String indexSparqlString = indexTables.get(table);

@@ -40,6 +40,7 @@ under the License.
         <module>export.accumulo</module>
         <module>export.api</module>
         <module>export.mongo</module>
+        <module>export.integration</module>
     </modules>
     
     <properties>

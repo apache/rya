@@ -34,10 +34,8 @@ import org.openrdf.sail.SailException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.collect.Lists;
 import com.mongodb.MongoClient;
-import com.mongodb.MongoCredential;
-import com.mongodb.ServerAddress;
+
 import mvm.rya.accumulo.AccumuloRdfConfiguration;
 import mvm.rya.accumulo.AccumuloRyaDAO;
 import mvm.rya.accumulo.instance.AccumuloRyaInstanceDetailsRepository;
@@ -48,6 +46,7 @@ import mvm.rya.api.layout.TablePrefixLayoutStrategy;
 import mvm.rya.api.persist.RyaDAO;
 import mvm.rya.api.persist.RyaDAOException;
 import mvm.rya.indexing.accumulo.ConfigUtils;
+import mvm.rya.mongodb.MongoConnectorFactory;
 import mvm.rya.mongodb.MongoDBRdfConfiguration;
 import mvm.rya.mongodb.MongoDBRyaDAO;
 import mvm.rya.mongodb.instance.MongoRyaInstanceDetailsRepository;
@@ -83,12 +82,15 @@ public class RyaSailFactory {
         Objects.requireNonNull(ryaInstance, "RyaInstance or table prefix is missing from configuration."+RdfCloudTripleStoreConfiguration.CONF_TBL_PREFIX);
 
         if(ConfigUtils.getUseMongo(config)) {
-            rdfConfig = new MongoDBRdfConfiguration(config);
-            user = rdfConfig.get(MongoDBRdfConfiguration.MONGO_USER);
-            pswd = rdfConfig.get(MongoDBRdfConfiguration.MONGO_USER_PASSWORD);
-            Objects.requireNonNull(user, "MongoDB user name is missing from configuration."+MongoDBRdfConfiguration.MONGO_USER);
-            Objects.requireNonNull(pswd, "MongoDB user password is missing from configuration."+MongoDBRdfConfiguration.MONGO_USER_PASSWORD);
-            final MongoClient client = updateMongoConfig((MongoDBRdfConfiguration) rdfConfig, user, pswd, ryaInstance);
+            final MongoDBRdfConfiguration mongoConfig = new MongoDBRdfConfiguration(config);
+            rdfConfig = mongoConfig;
+            final MongoClient client = MongoConnectorFactory.getMongoClient(config);
+            try {
+                final MongoRyaInstanceDetailsRepository ryaDetailsRepo = new MongoRyaInstanceDetailsRepository(client, mongoConfig.getCollectionName());
+                RyaDetailsToConfiguration.addRyaDetailsToConfiguration(ryaDetailsRepo.getRyaInstanceDetails(), mongoConfig);
+            } catch (final RyaDetailsRepositoryException e) {
+                LOG.info("Instance does not have a rya details collection, skipping.");
+            }
             dao = getMongoDAO((MongoDBRdfConfiguration)rdfConfig, client);
         } else {
             rdfConfig = new AccumuloRdfConfiguration(config);
@@ -143,22 +145,6 @@ public class RyaSailFactory {
         dao.setConf(config);
         dao.init();
         return dao;
-    }
-
-    private static MongoClient updateMongoConfig(final MongoDBRdfConfiguration config, final String user, final String pswd, final String ryaInstance) throws RyaDAOException {
-        final MongoCredential creds = MongoCredential.createCredential(user, ryaInstance, pswd.toCharArray());
-        final String hostname = config.getMongoInstance();
-        final int port = Integer.parseInt(config.getMongoPort());
-
-        MongoClient client = null;
-        try {
-            client = new MongoClient(new ServerAddress(hostname, port), Lists.newArrayList(creds));
-            final MongoRyaInstanceDetailsRepository ryaDetailsRepo = new MongoRyaInstanceDetailsRepository(client, config.getCollectionName());
-            RyaDetailsToConfiguration.addRyaDetailsToConfiguration(ryaDetailsRepo.getRyaInstanceDetails(), config);
-        } catch(final RyaDetailsRepositoryException e) {
-            LOG.info("Instance does not have a rya details collection, skipping.");
-        }
-        return client;
     }
 
     private static void updateAccumuloConfig(final AccumuloRdfConfiguration config, final String user, final String pswd, final String ryaInstance) throws AccumuloException, AccumuloSecurityException {

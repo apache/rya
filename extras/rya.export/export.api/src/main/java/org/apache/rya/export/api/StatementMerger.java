@@ -18,9 +18,9 @@
  */
 package org.apache.rya.export.api;
 
-import com.google.common.base.Optional;
+import org.apache.rya.api.domain.RyaStatement;
 
-import mvm.rya.api.domain.RyaStatement;
+import com.google.common.base.Optional;
 
 /**
  * Defines how 2 {@link RyaStatement}s will merge.

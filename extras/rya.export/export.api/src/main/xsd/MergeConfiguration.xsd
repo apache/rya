@@ -17,64 +17,73 @@ KIND, either express or implied.  See the License for the
 specific language governing permissions and limitations
 under the License.
 -->
-<schema xmlns="http://www.w3.org/2001/XMLSchema"
-    xmlns:xs="http://www.w3.org/2001/XMLSchema"
-    xmlns:mc="http://mergeconfig"
-    targetNamespace="http://mergeconfig"
-    elementFormDefault="qualified">
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+            xmlns:jaxb="http://java.sun.com/xml/ns/jaxb"
+            jaxb:version="2.0"
+            xmlns:xjc="http://java.sun.com/xml/ns/jaxb/xjc"
+            jaxb:extensionBindingPrefixes="xjc"
+            xmlns:mc="http://mergeconfig"
+            targetNamespace="http://mergeconfig">
+    <xsd:annotation>
+        <xsd:appinfo>
+            <jaxb:globalBindings>
+                <xjc:simple />
+            </jaxb:globalBindings>
+        </xsd:appinfo>
+    </xsd:annotation>
+    <xsd:element name="MergeToolConfiguration" type="mc:MergeToolConfiguration"/>
 
-    <xs:element name="configuration" type="mc:JAXBMergeConfiguration"/>
+    <xsd:complexType name="MergeToolConfiguration">
+        <xsd:sequence>
+            <xsd:element name="parentHostname" type="xsd:string"/>
+            <xsd:element name="parentUsername" type="xsd:string" minOccurs="0"/>
+            <xsd:element name="parentPassword" type="xsd:string" minOccurs="0"/>
+            <xsd:element name="parentRyaInstanceName" type="xsd:string"/>
+            <xsd:element name="parentTablePrefix" type="xsd:string"/>
+            <xsd:element name="parentTomcatUrl" type="xsd:string"/>
+            <xsd:element name="parentDBType" type="mc:DBType"/>
+            <xsd:element name="parentPort" type="mc:Port"/>
 
-    <xs:complexType name="JAXBMergeConfiguration">
-        <xs:sequence>
-            <xs:element name="parentHostname" type="xs:string"/>
-            <xs:element name="parentUsername" type="xs:string"/>
-            <xs:element name="parentPassword" type="xs:string"/>
-            <xs:element name="parentRyaInstanceName" type="xs:string"/>
-            <xs:element name="parentTablePrefix" type="xs:string"/>
-            <xs:element name="parentTomcatUrl" type="xs:string"/>
-            <xs:element name="parentDBType" type="mc:DBType"/>
-            <xs:element name="parentPort" type="mc:Port"/>
+            <xsd:element name="childHostname" type="xsd:string"/>
+            <xsd:element name="childUsername" type="xsd:string" minOccurs="0"/>
+            <xsd:element name="childPassword" type="xsd:string" minOccurs="0"/>
+            <xsd:element name="childRyaInstanceName" type="xsd:string"/>
+            <xsd:element name="childTablePrefix" type="xsd:string"/>
+            <xsd:element name="childTomcatUrl" type="xsd:string"/>
+            <xsd:element name="childDBType" type="mc:DBType"/>
+            <xsd:element name="childPort" type="mc:Port"/>
 
-            <xs:element name="childHostname" type="xs:string"/>
-            <xs:element name="childUsername" type="xs:string"/>
-            <xs:element name="childPassword" type="xs:string"/>
-            <xs:element name="childRyaInstanceName" type="xs:string"/>
-            <xs:element name="childTablePrefix" type="xs:string"/>
-            <xs:element name="childTomcatUrl" type="xs:string"/>
-            <xs:element name="childDBType" type="mc:DBType"/>
-            <xs:element name="childPort" type="mc:Port"/>
+            <xsd:element name="mergePolicy" type="mc:MergePolicy"/>
 
-            <xs:element name="mergePolicy" type="mc:MergePolicy"/>
+            <xsd:element name="useNtpServer" type="xsd:boolean"/>
+            <xsd:element name="ntpServerHost" type="xsd:string" minOccurs="0"/>
+        </xsd:sequence>
+    </xsd:complexType>
 
-            <xs:element name="useNtpServer" type="xs:boolean"/>
-            <xs:element name="ntpServerHost" type="xs:string"/>
-            <xs:element name="toolStartTime" type="xs:string"/>
-        </xs:sequence>
-    </xs:complexType>
-
-    <xs:simpleType name="MergePolicy">
-      <xs:restriction base="xs:string">
-        <xs:enumeration value="timestamp"/>
-      </xs:restriction>
-    </xs:simpleType>
+    <xsd:simpleType name="MergePolicy">
+      <xsd:restriction base="xsd:string">
+        <xsd:enumeration value="timestamp"/>
+        <xsd:enumeration value="query"/>
+      </xsd:restriction>
+    </xsd:simpleType>
     
-    <xs:simpleType name="DBType">
-      <xs:restriction base="xs:string">
-        <xs:enumeration value="accumulo"/>
-        <xs:enumeration value="mongo"/>
-      </xs:restriction>
-    </xs:simpleType>
+    <xsd:simpleType name="DBType">
+      <xsd:restriction base="xsd:string">
+        <xsd:enumeration value="accumulo"/>
+        <xsd:enumeration value="mongo"/>
+      </xsd:restriction>
+    </xsd:simpleType>
 
-    <xs:simpleType name="Port">
-      <xs:annotation>
-        <xs:documentation>
-          Port number in the range [1, 65536].
-        </xs:documentation>
-      </xs:annotation>
-      
-      <xs:restriction base="xs:unsignedShort">
-        <xs:minInclusive value="1"/>
-      </xs:restriction>
-    </xs:simpleType>
-</schema>
+    <xsd:simpleType name="Port">
+      <xsd:annotation>
+        <xsd:documentation>
+          Port number in the range [1, 65536).
+        </xsd:documentation>
+      </xsd:annotation>
+
+      <xsd:restriction base="xsd:unsignedShort">
+        <xsd:minInclusive value="1"/>
+        <xsd:maxInclusive value="65535"/>
+      </xsd:restriction>
+    </xsd:simpleType>
+</xsd:schema>

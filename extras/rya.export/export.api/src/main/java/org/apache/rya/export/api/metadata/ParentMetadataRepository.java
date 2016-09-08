@@ -16,7 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.apache.rya.export.api.parent;
+package org.apache.rya.export.api.metadata;
 
 /**
  * Repository for metadata pertaining to the parent database.  This will contain

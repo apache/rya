@@ -18,7 +18,7 @@
  */
 package org.apache.rya.export.api.store;
 
-import mvm.rya.api.domain.RyaStatement;
+import org.apache.rya.api.domain.RyaStatement;
 
 /**
  * Exception thrown when failing to add a {@link RyaStatement} to a

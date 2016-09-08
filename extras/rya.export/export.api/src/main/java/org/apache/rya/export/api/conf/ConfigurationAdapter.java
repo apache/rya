@@ -18,7 +18,7 @@
  */
 package org.apache.rya.export.api.conf;
 
-import org.apache.rya.export.JAXBMergeConfiguration;
+import org.apache.rya.export.MergeToolConfiguration;
 import org.apache.rya.export.api.conf.MergeConfiguration.Builder;
 
 /**
@@ -30,17 +30,32 @@ public class ConfigurationAdapter {
      * @return The {@link MergeConfiguration} used in the application
      * @throws MergeConfigurationException
      */
-    public static MergeConfiguration createConfig(final JAXBMergeConfiguration jConfig) throws MergeConfigurationException {
-        final Builder configBuilder = new Builder()
-        .setParentHostname(jConfig.getParentHostname())
-        .setParentRyaInstanceName(jConfig.getParentRyaInstanceName())
-        .setParentDBType(jConfig.getParentDBType())
-        .setParentPort(jConfig.getParentPort())
-        .setChildHostname(jConfig.getChildHostname())
-        .setChildRyaInstanceName(jConfig.getChildRyaInstanceName())
-        .setChildDBType(jConfig.getChildDBType())
-        .setChildPort(jConfig.getChildPort())
-        .setMergePolicy(jConfig.getMergePolicy());
+    public MergeConfiguration createConfig(final MergeToolConfiguration jConfig) throws MergeConfigurationException {
+        final Builder configBuilder = getBuilder(jConfig);
         return configBuilder.build();
+    }
+
+    protected Builder getBuilder(final MergeToolConfiguration jConfig) {
+        final Builder configBuilder = new Builder()
+            .setParentHostname(jConfig.getParentHostname())
+            .setParentUsername(jConfig.getParentUsername())
+            .setParentPassword(jConfig.getParentPassword())
+            .setParentTablePrefix(jConfig.getParentTablePrefix())
+            .setParentRyaInstanceName(jConfig.getParentRyaInstanceName())
+            .setParentTomcatUrl(jConfig.getParentTomcatUrl())
+            .setParentDBType(jConfig.getParentDBType())
+            .setParentPort(jConfig.getParentPort())
+            .setChildHostname(jConfig.getChildHostname())
+            .setChildUsername(jConfig.getChildUsername())
+            .setChildPassword(jConfig.getChildPassword())
+            .setChildTablePrefix(jConfig.getChildTablePrefix())
+            .setChildRyaInstanceName(jConfig.getChildRyaInstanceName())
+            .setChildTomcatUrl(jConfig.getChildTomcatUrl())
+            .setChildDBType(jConfig.getChildDBType())
+            .setChildPort(jConfig.getChildPort())
+            .setMergePolicy(jConfig.getMergePolicy())
+            .setUseNtpServer(jConfig.isUseNtpServer())
+            .setNtpServerHost(jConfig.getNtpServerHost());
+        return configBuilder;
     }
 }

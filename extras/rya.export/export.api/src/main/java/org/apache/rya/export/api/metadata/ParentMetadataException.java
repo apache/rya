@@ -16,7 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.apache.rya.export.api.parent;
+package org.apache.rya.export.api.metadata;
 
 /**
  * Thrown when the {@link ParentMetadataRepository} attempts to fetch
@@ -25,10 +25,19 @@ package org.apache.rya.export.api.parent;
 class ParentMetadataException extends Exception {
     private static final long serialVersionUID = 1L;
 
+    /**
+     * Creates a new {@link ParentMetadataException}
+     * @param message - The error message.
+     */
     public ParentMetadataException(final String message) {
         super(message);
     }
 
+    /**
+     * Creates a new {@link ParentMetadataException}
+     * @param message - The error message.
+     * @param cause - The cause of the error.
+     */
     public ParentMetadataException(final String message, final Throwable cause) {
         super(message, cause);
     }

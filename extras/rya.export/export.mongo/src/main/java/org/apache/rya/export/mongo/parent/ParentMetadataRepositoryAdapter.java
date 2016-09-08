@@ -20,7 +20,7 @@ package org.apache.rya.export.mongo.parent;
 
 import java.util.Date;
 
-import org.apache.rya.export.api.parent.MergeParentMetadata;
+import org.apache.rya.export.api.metadata.MergeParentMetadata;
 
 import com.mongodb.BasicDBObjectBuilder;
 import com.mongodb.DBObject;
@@ -34,6 +34,7 @@ public class ParentMetadataRepositoryAdapter {
     public static final String TIMESTAMP_KEY = "timestamp";
     public static final String FILTER_TIMESTAMP_KEY = "filterTimestamp";
     public static final String PARENT_TIME_OFFSET_KEY = "parentTimeOffset";
+
     /**
      * Serializes the {@link MergeParentMetadata} into a mongoDB object.
      * @param metadata - The {@link MergeParentMetadata} to serialize.

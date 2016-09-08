@@ -46,14 +46,13 @@ import org.apache.accumulo.core.security.Authorizations;
 import org.apache.accumulo.core.security.TablePermission;
 import org.apache.hadoop.io.Text;
 import org.apache.log4j.Logger;
+import org.apache.rya.accumulo.AccumuloRyaDAO;
+import org.apache.rya.accumulo.mr.MRUtils;
 import org.apache.rya.export.api.MergerException;
-import org.apache.rya.export.api.parent.MergeParentMetadata;
-import org.apache.rya.export.api.parent.ParentMetadataDoesNotExistException;
-import org.apache.rya.export.api.parent.ParentMetadataExistsException;
-import org.apache.rya.export.api.parent.ParentMetadataRepository;
-
-import mvm.rya.accumulo.AccumuloRyaDAO;
-import mvm.rya.accumulo.mr.MRUtils;
+import org.apache.rya.export.api.metadata.MergeParentMetadata;
+import org.apache.rya.export.api.metadata.ParentMetadataDoesNotExistException;
+import org.apache.rya.export.api.metadata.ParentMetadataExistsException;
+import org.apache.rya.export.api.metadata.ParentMetadataRepository;
 
 /**
  * Accumulo repository for metadata pertaining to the parent database.  This

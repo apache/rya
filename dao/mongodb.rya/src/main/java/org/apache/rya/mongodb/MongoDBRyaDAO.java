@@ -57,7 +57,7 @@ public final class MongoDBRyaDAO implements RyaDAO<MongoDBRdfConfiguration>{
     private static final Logger log = Logger.getLogger(MongoDBRyaDAO.class);
 
     private MongoDBRdfConfiguration conf;
-    private MongoClient mongoClient;
+    private final MongoClient mongoClient;
     private DB db;
     private DBCollection coll;
     private MongoDBQueryEngine queryEngine;
@@ -150,11 +150,11 @@ public final class MongoDBRyaDAO implements RyaDAO<MongoDBRdfConfiguration>{
             for(final RyaSecondaryIndexer index: secondaryIndexers) {
                 index.storeStatement(statement);
             }
-        } catch (IOException e) {
+        } catch (final IOException e) {
             log.error("Unable to add: " + statement.toString());
             throw new RyaDAOException(e);
         }
-        catch (DuplicateKeyException e){
+        catch (final DuplicateKeyException e){
             log.error("Attempting to load duplicate triple: " + statement.toString());
         }
     }

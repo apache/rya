@@ -1,4 +1,4 @@
-package mvm.rya.accumulo.mr;
+package org.apache.rya.accumulo.mr;
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -20,11 +20,11 @@ package mvm.rya.accumulo.mr;
 import java.util.ArrayList;
 import java.util.List;
 
-import mvm.rya.accumulo.AccumuloRdfConfiguration;
-import mvm.rya.accumulo.AccumuloRyaDAO;
-import mvm.rya.api.RdfCloudTripleStoreConstants.TABLE_LAYOUT;
-import mvm.rya.api.domain.RyaStatement;
-import mvm.rya.api.domain.RyaURI;
+import org.apache.rya.accumulo.AccumuloRdfConfiguration;
+import org.apache.rya.accumulo.AccumuloRyaDAO;
+import org.apache.rya.api.RdfCloudTripleStoreConstants.TABLE_LAYOUT;
+import org.apache.rya.api.domain.RyaStatement;
+import org.apache.rya.api.domain.RyaURI;
 
 import org.apache.accumulo.core.client.Connector;
 import org.apache.accumulo.core.client.Instance;
@@ -75,9 +75,9 @@ public class GraphXEdgeInputFormatTest {
     }
 
     @SuppressWarnings("rawtypes")
-	@Test
+    @Test
     public void testInputFormat() throws Exception {
-    	RyaStatement input = RyaStatement.builder()
+        RyaStatement input = RyaStatement.builder()
             .setSubject(new RyaURI("http://www.google.com"))
             .setPredicate(new RyaURI("http://some_other_uri"))
             .setObject(new RyaURI("http://www.yahoo.com"))
@@ -119,7 +119,7 @@ public class GraphXEdgeInputFormatTest {
             Edge writable = (Edge) ryaStatementRecordReader.getCurrentValue();
             long srcId = writable.srcId();
             long destId = writable.dstId();
-			RyaTypeWritable rtw = null;
+            RyaTypeWritable rtw = null;
             Object text = ryaStatementRecordReader.getCurrentKey();
             Edge<RyaTypeWritable> edge = new Edge<RyaTypeWritable>(srcId, destId, rtw);
             results.add(edge);

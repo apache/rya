@@ -31,11 +31,11 @@ under the License.
     <name>Apache Rya MapReduce Tools</name>
 
     <dependencies>
-    	<dependency>
-		    <groupId>org.apache.spark</groupId>
-		    <artifactId>spark-graphx_2.11</artifactId>
-		    <version>1.6.2</version>
-		</dependency>
+        <dependency>
+            <groupId>org.apache.spark</groupId>
+            <artifactId>spark-graphx_2.11</artifactId>
+            <version>1.6.2</version>
+        </dependency>
         <dependency>
             <groupId>org.apache.rya</groupId>
             <artifactId>rya.api</artifactId>
@@ -116,6 +116,16 @@ under the License.
                         <executions>
                             <execution>
                                 <configuration>
+                                    <filters>
+                                        <filter>
+                                            <artifact>*:*</artifact>
+                                            <excludes>
+                                                <exclude>META-INF/*.SF</exclude>
+                                                <exclude>META-INF/*.DSA</exclude>
+                                                <exclude>META-INF/*.RSA</exclude>
+                                            </excludes>
+                                        </filter>
+                                    </filters>
                                     <transformers>
                                         <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer" />
                                     </transformers>

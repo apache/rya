@@ -33,5 +33,14 @@ under the License.
             <directory>${project.build.directory}/distribution</directory>
             <outputDirectory></outputDirectory>
         </fileSet>
+        <!-- Add Apache licenses to the distribution zip -->
+        <fileSet>
+            <directory>${project.basedir}/../../</directory>
+            <outputDirectory></outputDirectory>
+            <includes>
+                <include>LICENSE*</include>
+                <include>NOTICE*</include>
+            </includes>
+        </fileSet>
     </fileSets>
 </assembly>

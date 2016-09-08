@@ -303,7 +303,7 @@ under the License.
                 <executions>
                     <execution>
                         <id>copy-resource-bin</id>
-                        <phase>install</phase>
+                        <phase>package</phase>
                         <goals>
                             <goal>copy-resources</goal>
                         </goals>
@@ -318,7 +318,7 @@ under the License.
                     </execution>
                     <execution>
                         <id>copy-resource-config</id>
-                        <phase>install</phase>
+                        <phase>package</phase>
                         <goals>
                             <goal>copy-resources</goal>
                         </goals>
@@ -333,7 +333,7 @@ under the License.
                     </execution>
                     <execution>
                         <id>copy-resource-lib</id>
-                        <phase>install</phase>
+                        <phase>package</phase>
                         <goals>
                             <goal>copy-resources</goal>
                         </goals>
@@ -351,7 +351,7 @@ under the License.
                     </execution>
                     <execution>
                         <id>copy-resource-jar</id>
-                        <phase>install</phase>
+                        <phase>package</phase>
                         <goals>
                             <goal>copy-resources</goal>
                         </goals>
@@ -374,7 +374,7 @@ under the License.
                     </execution>
                     <execution>
                         <id>copy-resource-readme</id>
-                        <phase>install</phase>
+                        <phase>package</phase>
                         <goals>
                             <goal>copy-resources</goal>
                         </goals>
@@ -405,7 +405,7 @@ under the License.
                 <executions>
                     <execution>
                         <id>build-zip</id>
-                        <phase>install</phase>
+                        <phase>package</phase>
                         <goals>
                             <goal>single</goal>
                         </goals>

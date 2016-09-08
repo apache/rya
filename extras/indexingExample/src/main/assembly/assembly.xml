@@ -67,4 +67,15 @@ under the License.
             <outputDirectory>dist</outputDirectory>
         </file>
     </files>
+    <!-- Add Apache licenses to the distribution zip -->
+    <fileSets>
+        <fileSet>
+            <directory>${project.basedir}/../../</directory>
+            <outputDirectory></outputDirectory>
+            <includes>
+                <include>LICENSE*</include>
+                <include>NOTICE*</include>
+            </includes>
+        </fileSet>
+    </fileSets>
 </assembly>

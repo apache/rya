@@ -24,7 +24,7 @@ under the License.
     <parent>
         <groupId>org.apache.rya</groupId>
         <artifactId>rya-project</artifactId>
-        <version>3.2.10</version>
+        <version>3.2.11-SNAPSHOT</version>
     </parent>
 
     <artifactId>rya.common</artifactId>

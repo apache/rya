@@ -18,7 +18,7 @@
  */
 package org.apache.rya.export.api;
 
-import mvm.rya.api.domain.RyaStatement;
+import org.apache.rya.api.domain.RyaStatement;
 
 /**
  * Performs the merging of {@link RyaStatement}s.

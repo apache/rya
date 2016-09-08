@@ -24,10 +24,19 @@ package org.apache.rya.export.api.conf;
 public class MergeConfigurationException extends Exception {
     private static final long serialVersionUID = 1L;
 
+    /**
+     * Creates a new {@link MergeConfigurationException}
+     * @param message - The error message.
+     */
     public MergeConfigurationException(final String message) {
         super(message);
     }
 
+    /**
+     * Creates a new {@link MergeConfigurationException}
+     * @param message - The error message.
+     * @param source - The source of the error.
+     */
     public MergeConfigurationException(final String message, final Throwable source) {
         super(message, source);
     }

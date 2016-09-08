@@ -20,10 +20,9 @@ package org.apache.rya.export.accumulo;
 
 import java.util.Date;
 
+import org.apache.rya.api.domain.RyaStatement;
+import org.apache.rya.api.domain.RyaURI;
 import org.apache.rya.export.accumulo.util.AccumuloRyaUtils;
-
-import mvm.rya.api.domain.RyaStatement;
-import mvm.rya.api.domain.RyaURI;
 
 /**
  * Utility methods for testing merging/copying.

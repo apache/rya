@@ -26,21 +26,31 @@ under the License.
     <!-- Reference to External Module containing JAXBMergeConfiguration definition --> 
     <xs:include schemaLocation="../../../../export.api/src/main/xsd/MergeConfiguration.xsd"/>
 
-    <xs:complexType name="JAXBAccumuloMergeConfiguration">
+    <xs:complexType name="AccumuloMergeToolConfiguration">
         <xs:complexContent>
-            <xs:extension base="mc:JAXBMergeConfiguration">
+            <xs:extension base="mc:MergeToolConfiguration">
                 <xs:sequence>
-                    <!-- Parent Properties -->
-                    <xs:element name="parentZookeepers" type="xs:string"/>
-                    <xs:element name="parentAuths" type="xs:string"/>
-                    <xs:element name="parentInstanceType" type="xs:string"/>
+                    <!-- Parent Properties zookeepers and auths are not required 
+                    if the instance type is not distribution-->
+                    <xs:element name="parentZookeepers" type="xs:string" minOccurs="0"/>
+                    <xs:element name="parentAuths" type="xs:string" minOccurs="0"/>
+                    <xs:element name="parentInstanceType" type="mc:InstanceType"/>
 
-                    <!-- Child Properties -->
-                    <xs:element name="childZookeepers" type="xs:string"/>
-                    <xs:element name="childAuths" type="xs:string"/>
-                    <xs:element name="childInstanceType" type="xs:string"/>
+                    <!-- Child Properties zookeepers and auths are not required 
+                    if the instance type is not distribution-->
+                    <xs:element name="childZookeepers" type="xs:string" minOccurs="0"/>
+                    <xs:element name="childAuths" type="xs:string" minOccurs="0"/>
+                    <xs:element name="childInstanceType" type="mc:InstanceType"/>
                 </xs:sequence>
             </xs:extension>
         </xs:complexContent>
     </xs:complexType>
+    
+    <xs:simpleType name="InstanceType">
+      <xs:restriction base="xs:string">
+        <xs:enumeration value="mock"/>
+        <xs:enumeration value="mini"/>
+        <xs:enumeration value="distribution"/>
+      </xs:restriction>
+    </xs:simpleType>
 </schema>

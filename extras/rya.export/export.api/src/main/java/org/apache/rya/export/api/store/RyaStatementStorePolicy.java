@@ -21,22 +21,25 @@ package org.apache.rya.export.api.store;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.Iterator;
+import java.util.Optional;
 
-import mvm.rya.api.domain.RyaStatement;
+import org.apache.rya.api.domain.RyaStatement;
+import org.apache.rya.export.api.metadata.MergeParentMetadata;
+import org.apache.rya.export.api.metadata.ParentMetadataExistsException;
 
 /**
  * Decorates a {@link RyaStatementStore}.  This is to be used when the default
  * actions for {@link RyaStatement}s in the {@link RyaStatementStore} need to
  * do something more specific.
  */
-public abstract class RyaStatementStoreDecorator implements RyaStatementStore {
-    final RyaStatementStore store;
+public abstract class RyaStatementStorePolicy implements RyaStatementStore {
+    protected final RyaStatementStore store;
 
     /**
-     * Creates a new {@link RyaStatementStoreDecorator} around the provided {@link RyaStatementStore}.
+     * Creates a new {@link RyaStatementStorePolicy} around the provided {@link RyaStatementStore}.
      * @param store - The {@link RyaStatementStore} to decorate.
      */
-    public RyaStatementStoreDecorator(final RyaStatementStore store) {
+    public RyaStatementStorePolicy(final RyaStatementStore store) {
         this.store = checkNotNull(store);
     }
 
@@ -63,5 +66,15 @@ public abstract class RyaStatementStoreDecorator implements RyaStatementStore {
     @Override
     public boolean containsStatement(final RyaStatement statement) throws ContainsStatementException {
         return store.containsStatement(statement);
+    }
+
+    @Override
+    public Optional<MergeParentMetadata> getParentMetadata() {
+        return store.getParentMetadata();
+    }
+
+    @Override
+    public void setParentMetadata(final MergeParentMetadata metadata) throws ParentMetadataExistsException {
+        store.setParentMetadata(metadata);
     }
 }

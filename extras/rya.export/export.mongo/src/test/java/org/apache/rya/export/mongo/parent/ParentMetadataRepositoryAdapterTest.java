@@ -26,7 +26,7 @@ import static org.junit.Assert.assertEquals;
 
 import java.util.Date;
 
-import org.apache.rya.export.api.parent.MergeParentMetadata;
+import org.apache.rya.export.api.metadata.MergeParentMetadata;
 import org.junit.Test;
 
 import com.mongodb.BasicDBObjectBuilder;

@@ -16,20 +16,29 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.apache.rya.export.api.parent;
+package org.apache.rya.export.api.metadata;
 
 /**
- * Thrown when the {@link ParentMetadataRepository} attempts to set the
- * {@link MergeParentMetadata} and it already exists.
+ * Thrown when the {@link ParentMetadataRepository} attempts to fetch
+ * the {@link MergeParentMetadata} and it does not exist.
  */
-public class ParentMetadataExistsException extends ParentMetadataException {
+public class ParentMetadataDoesNotExistException extends ParentMetadataException {
     private static final long serialVersionUID = 1L;
 
-    public ParentMetadataExistsException(final String message) {
+    /**
+     * Creates a new {@link ParentMetadataDoesNotExistException}
+     * @param message - The error message.
+     */
+    public ParentMetadataDoesNotExistException(final String message) {
         super(message);
     }
 
-    public ParentMetadataExistsException(final String message, final Throwable cause) {
+    /**
+     * Creates a new {@link ParentMetadataDoesNotExistException}
+     * @param message - The error message.
+     * @param cause - The source of the error.
+     */
+    public ParentMetadataDoesNotExistException(final String message, final Throwable cause) {
         super(message, cause);
     }
 }

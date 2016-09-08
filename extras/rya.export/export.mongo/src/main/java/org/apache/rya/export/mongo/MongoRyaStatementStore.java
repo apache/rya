@@ -19,17 +19,25 @@
 package org.apache.rya.export.mongo;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static mvm.rya.mongodb.dao.SimpleMongoDBStorageStrategy.TIMESTAMP;
+import static org.apache.rya.mongodb.dao.SimpleMongoDBStorageStrategy.TIMESTAMP;
 
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Optional;
 
+import org.apache.rya.api.domain.RyaStatement;
+import org.apache.rya.api.persist.RyaDAOException;
+import org.apache.rya.export.api.metadata.MergeParentMetadata;
+import org.apache.rya.export.api.metadata.ParentMetadataExistsException;
 import org.apache.rya.export.api.store.AddStatementException;
 import org.apache.rya.export.api.store.ContainsStatementException;
 import org.apache.rya.export.api.store.RemoveStatementException;
 import org.apache.rya.export.api.store.RyaStatementStore;
 import org.apache.rya.export.api.store.UpdateStatementException;
+import org.apache.rya.export.mongo.parent.MongoParentMetadataRepository;
+import org.apache.rya.mongodb.MongoDBRyaDAO;
+import org.apache.rya.mongodb.dao.SimpleMongoDBStorageStrategy;
 
 import com.mongodb.BasicDBObject;
 import com.mongodb.Cursor;
@@ -37,23 +45,20 @@ import com.mongodb.DB;
 import com.mongodb.DBObject;
 import com.mongodb.MongoClient;
 
-import mvm.rya.api.domain.RyaStatement;
-import mvm.rya.api.persist.RyaDAOException;
-import mvm.rya.mongodb.MongoDBRyaDAO;
-import mvm.rya.mongodb.dao.SimpleMongoDBStorageStrategy;
-
 /**
  * Mongo implementation of {@link RyaStatementStore}.  Allows for exporting and
  * importing rya statements from MongoDB.
  */
-public class MongoRyaStatementStore implements RyaStatementStore{
+public class MongoRyaStatementStore implements RyaStatementStore {
     public static final String TRIPLES_COLLECTION = "rya__triples";
-    private final SimpleMongoDBStorageStrategy adapter;
-    private final DB db;
+    public static final String METADATA_COLLECTION = "parent_metadata";
+    protected final SimpleMongoDBStorageStrategy adapter;
+    protected final DB db;
 
     private final String ryaInstanceName;
     private final MongoClient client;
     private final MongoDBRyaDAO dao;
+    private final MongoParentMetadataRepository parentMetadataRepo;
 
     /**
      * Creates a new {@link MongoRyaStatementStore}.
@@ -67,6 +72,7 @@ public class MongoRyaStatementStore implements RyaStatementStore{
         this.dao = checkNotNull(dao);
         db = this.client.getDB(ryaInstanceName);
         adapter = new SimpleMongoDBStorageStrategy();
+        parentMetadataRepo = new MongoParentMetadataRepository(client, ryaInstance);
     }
 
     @Override
@@ -105,7 +111,10 @@ public class MongoRyaStatementStore implements RyaStatementStore{
         return db.getCollection(TRIPLES_COLLECTION).find(dbo).count() > 0;
     }
 
-    protected MongoClient getClient() {
+    /**
+     * @return The {@link MongoClient} to connect to mongo.
+     */
+    public MongoClient getClient() {
         return client;
     }
 
@@ -114,5 +123,20 @@ public class MongoRyaStatementStore implements RyaStatementStore{
         //Since mongo does not support visibility, this does nothing for mongo.
         //Do not want a throw a not-implemented exception since that could potentially
         //break stuff.
+    }
+
+    @Override
+    public Optional<MergeParentMetadata> getParentMetadata() {
+        MergeParentMetadata metadata = null;
+        try {
+            metadata = parentMetadataRepo.get();
+        } finally {
+            return Optional.ofNullable(metadata);
+        }
+    }
+
+    @Override
+    public void setParentMetadata(final MergeParentMetadata metadata) throws ParentMetadataExistsException {
+        parentMetadataRepo.set(metadata);
     }
 }

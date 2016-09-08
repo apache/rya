@@ -87,8 +87,9 @@ public class GeoRyaSailFactory {
                 final MongoRyaInstanceDetailsRepository ryaDetailsRepo = new MongoRyaInstanceDetailsRepository(client, mongoConfig.getCollectionName());
                 RyaDetailsToConfiguration.addRyaDetailsToConfiguration(ryaDetailsRepo.getRyaInstanceDetails(), mongoConfig);
             } catch (final RyaDetailsRepositoryException e) {
-               LOG.info("Instance does not have a rya details collection, skipping.");
-           }            dao = getMongoDAO((MongoDBRdfConfiguration)rdfConfig, client);
+                LOG.info("Instance does not have a rya details collection, skipping.");
+            }
+            dao = getMongoDAO((MongoDBRdfConfiguration)rdfConfig, client);
         } else {
             rdfConfig = new AccumuloRdfConfiguration(config);
             user = rdfConfig.get(ConfigUtils.CLOUDBASE_USER);
@@ -143,4 +144,18 @@ public class GeoRyaSailFactory {
         dao.init();
         return dao;
     }
+<<<<<<< HEAD:extras/rya.geoindexing/src/main/java/org/apache/rya/indexing/GeoRyaSailFactory.java
+=======
+
+    private static void updateAccumuloConfig(final AccumuloRdfConfiguration config, final String user, final String pswd, final String ryaInstance) throws AccumuloException, AccumuloSecurityException {
+        try {
+            final PasswordToken pswdToken = new PasswordToken(pswd);
+            final Instance accInst = ConfigUtils.getInstance(config);
+            final AccumuloRyaInstanceDetailsRepository ryaDetailsRepo = new AccumuloRyaInstanceDetailsRepository(accInst.getConnector(user, pswdToken), ryaInstance);
+            RyaDetailsToConfiguration.addRyaDetailsToConfiguration(ryaDetailsRepo.getRyaInstanceDetails(), config);
+        } catch(final RyaDetailsRepositoryException e) {
+            LOG.info("Instance does not have a rya details collection, skipping.");
+        }
+    }
+>>>>>>> RYA-161 Merge Tool with client:extras/indexing/src/main/java/mvm/rya/sail/config/RyaSailFactory.java
 }

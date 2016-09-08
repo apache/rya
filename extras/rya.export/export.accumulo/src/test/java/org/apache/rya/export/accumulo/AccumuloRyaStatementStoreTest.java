@@ -19,6 +19,7 @@
 package org.apache.rya.export.accumulo;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -27,18 +28,20 @@ import java.util.Date;
 import java.util.Iterator;
 
 import org.apache.hadoop.conf.Configuration;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.apache.log4j.LogManager;
+import org.apache.log4j.Logger;
+import org.apache.rya.api.domain.RyaStatement;
+import org.apache.rya.export.InstanceType;
 import org.apache.rya.export.MergePolicy;
-import org.apache.rya.export.accumulo.common.InstanceType;
-import org.apache.rya.export.accumulo.conf.AccumuloExportConstants;
 import org.apache.rya.export.accumulo.util.AccumuloInstanceDriver;
 import org.apache.rya.export.api.MergerException;
 import org.apache.rya.export.api.conf.AccumuloMergeConfiguration;
 import org.apache.rya.export.api.store.AddStatementException;
 import org.apache.rya.export.api.store.FetchStatementException;
 import org.apache.rya.export.api.store.RemoveStatementException;
+import org.apache.rya.export.api.store.RyaStatementStore;
 import org.apache.rya.export.api.store.UpdateStatementException;
+import org.apache.rya.indexing.accumulo.ConfigUtils;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -47,9 +50,6 @@ import org.junit.Test;
 
 import com.google.common.collect.ImmutableList;
 
-import mvm.rya.api.domain.RyaStatement;
-import mvm.rya.indexing.accumulo.ConfigUtils;
-
 /**
  * Tests the methods of {@link AccumuloRyaStatementStore}.
  */
@@ -57,7 +57,7 @@ public class AccumuloRyaStatementStoreTest {
     private static final Logger log = LogManager.getLogger(AccumuloRyaStatementStoreTest.class);
     private static final InstanceType INSTANCE_TYPE = InstanceType.MOCK;
 
-    private static final boolean IS_MOCK = INSTANCE_TYPE.isMock();
+    private static final boolean IS_MOCK = INSTANCE_TYPE == InstanceType.MOCK;
     private static final String USER_NAME = IS_MOCK ? "test_user" : AccumuloInstanceDriver.ROOT_USER_NAME;
     private static final String PASSWORD = "password";
     private static final String INSTANCE_NAME = "test_instance";
@@ -115,6 +115,23 @@ public class AccumuloRyaStatementStoreTest {
         accumuloRyaStatementStore.fetchStatements();
     }
 
+    @Test
+    public void testRemoveAddStatements() throws MergerException {
+        final AccumuloRyaStatementStore accumuloRyaStatementStore = createAccumuloRyaStatementStore();
+
+        for (final RyaStatement ryaStatement : RYA_STATEMENTS) {
+            accumuloRyaStatementStore.addStatement(ryaStatement);
+        }
+        final RyaStatement stmnt = RYA_STATEMENTS.get(0);
+
+        assertTrue(accumuloRyaStatementStore.containsStatement(stmnt));
+        accumuloRyaStatementStore.removeStatement(stmnt);
+        assertFalse(accumuloRyaStatementStore.containsStatement(stmnt));
+
+        accumuloRyaStatementStore.addStatement(stmnt);
+        assertTrue(accumuloRyaStatementStore.containsStatement(stmnt));
+    }
+
     @Test (expected = FetchStatementException.class)
     public void testFetchStatements_FetchWrongInstance() throws MergerException {
         final AccumuloRyaStatementStore accumuloRyaStatementStore = createAccumuloRyaStatementStore();
@@ -123,7 +140,7 @@ public class AccumuloRyaStatementStoreTest {
             accumuloRyaStatementStore.addStatement(ryaStatement);
         }
 
-        final Configuration config = accumuloRyaStatementStore.getRyaDAO().getConf();
+        final Configuration config = accumuloInstanceDriver.getDao().getConf();
 
         config.set(ConfigUtils.CLOUDBASE_INSTANCE, "wrong instance");
 
@@ -144,6 +161,34 @@ public class AccumuloRyaStatementStoreTest {
         final AccumuloRyaStatementStore accumuloRyaStatementStore = createAccumuloRyaStatementStore();
 
         accumuloRyaStatementStore.addStatement(null);
+    }
+
+    @Test
+    public void testAddRemoveAddStatement() throws Exception {
+        final AccumuloRyaStatementStore accumuloRyaStatementStore = createAccumuloRyaStatementStore();
+        final RyaStatement stmnt = RYA_STATEMENTS.get(0);
+        accumuloRyaStatementStore.addStatement(stmnt);
+        assertTrue(accumuloRyaStatementStore.containsStatement(stmnt));
+        assertEquals(1, count(accumuloRyaStatementStore));
+
+        accumuloRyaStatementStore.removeStatement(stmnt);
+        assertFalse(accumuloRyaStatementStore.containsStatement(stmnt));
+        assertEquals(0, count(accumuloRyaStatementStore));
+
+        accumuloRyaStatementStore.addStatement(stmnt);
+        assertTrue(accumuloRyaStatementStore.containsStatement(stmnt));
+        assertEquals(1, count(accumuloRyaStatementStore));
+    }
+
+    private int count(final RyaStatementStore store) throws FetchStatementException {
+        final Iterator<RyaStatement> statements = store.fetchStatements();
+        int count = 0;
+        while(statements.hasNext()) {
+            final RyaStatement statement = statements.next();
+            System.out.println(statement.getObject().getData() + "     " + statement.getTimestamp());
+            count++;
+        }
+        return count;
     }
 
     @Test
@@ -360,7 +405,6 @@ public class AccumuloRyaStatementStoreTest {
 
         // Other
         when(accumuloMergeConfiguration.getMergePolicy()).thenReturn(MergePolicy.TIMESTAMP);
-        when(accumuloMergeConfiguration.getToolStartTime()).thenReturn(AccumuloExportConstants.convertDateToStartTimeString(new Date()));
 
         return accumuloMergeConfiguration;
     }
@@ -372,13 +416,8 @@ public class AccumuloRyaStatementStoreTest {
 
     private static AccumuloRyaStatementStore createAccumuloRyaStatementStore(final AccumuloMergeConfiguration accumuloMergeConfiguration) throws MergerException {
         final String instance = accumuloMergeConfiguration.getParentRyaInstanceName();
-        final String username = accumuloMergeConfiguration.getParentUsername();
-        final String password = accumuloMergeConfiguration.getParentPassword();
-        final InstanceType instanceType = accumuloMergeConfiguration.getParentInstanceType();
         final String tablePrefix = accumuloMergeConfiguration.getParentTablePrefix();
-        final String auths = accumuloMergeConfiguration.getParentAuths();
-        final String zooKeepers = accumuloMergeConfiguration.getParentZookeepers();
 
-        return new AccumuloRyaStatementStore(instance, username, password, instanceType, tablePrefix, auths, zooKeepers);
+        return new AccumuloRyaStatementStore(accumuloInstanceDriver.getDao(), tablePrefix, instance);
     }
 }

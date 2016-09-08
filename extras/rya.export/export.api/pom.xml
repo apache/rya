@@ -25,7 +25,7 @@ under the License.
     <parent>
         <groupId>org.apache.rya</groupId>
         <artifactId>rya.export.parent</artifactId>
-        <version>3.2.10-SNAPSHOT</version>
+        <version>3.2.11-incubating-SNAPSHOT</version>
     </parent>
     
     <modelVersion>4.0.0</modelVersion>
@@ -69,12 +69,12 @@ under the License.
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
-            <version>1.4.3</version>
+            <version>${slf4j.version}</version>
         </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-log4j12</artifactId>
-            <version>1.4.3</version>
+            <version>${slf4j.version}</version>
         </dependency>
         <dependency>
             <groupId>org.glassfish.jaxb</groupId>
@@ -87,7 +87,7 @@ under the License.
         <pluginManagement>
             <plugins>
                 <!--
-                                         If we e.g. execute on JDK 1.7, we should compile for Java 7 to get
+                    If we e.g. execute on JDK 1.7, we should compile for Java 7 to get
                     the same (or higher) JAXB API version as used during the xjc execution.
                 -->
                 <plugin>
@@ -128,7 +128,6 @@ under the License.
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>jaxb2-maven-plugin</artifactId>
-                <version>2.2</version>
                 <executions>
                     <execution>
                         <id>xjc</id>
@@ -138,17 +137,12 @@ under the License.
                     </execution>
                 </executions>
                 <configuration>
-                    <sources>
-                        <source>src/main/xsd/MergeConfiguration.xsd</source>
-                    </sources>
                     <packageName>org.apache.rya.export</packageName>
                     <outputDirectory>src/gen/java</outputDirectory>
                 </configuration>
             </plugin>
 
-            <!--
-                                 Create shaded jar with all the dependencies
-            -->
+            <!--Create shaded jar with all the dependencies-->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>

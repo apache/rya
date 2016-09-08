@@ -1,4 +1,4 @@
-package mvm.rya.accumulo.mr;
+package org.apache.rya.accumulo.mr;
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -20,14 +20,12 @@ package mvm.rya.accumulo.mr;
 import java.util.ArrayList;
 import java.util.List;
 
-import mvm.rya.accumulo.AccumuloRdfConfiguration;
-import mvm.rya.accumulo.AccumuloRyaDAO;
-import mvm.rya.accumulo.mr.GraphXInputFormat.RyaStatementRecordReader;
-import mvm.rya.api.domain.RyaStatement;
-import mvm.rya.api.domain.RyaType;
-import mvm.rya.api.domain.RyaURI;
-import mvm.rya.indexing.accumulo.ConfigUtils;
-import mvm.rya.indexing.accumulo.entity.EntityCentricIndex;
+import org.apache.rya.accumulo.AccumuloRdfConfiguration;
+import org.apache.rya.accumulo.AccumuloRyaDAO;
+import org.apache.rya.accumulo.mr.GraphXInputFormat.RyaStatementRecordReader;
+import org.apache.rya.api.domain.RyaStatement;
+import org.apache.rya.api.domain.RyaType;
+import org.apache.rya.api.domain.RyaURI;
 
 import org.apache.accumulo.core.client.Connector;
 import org.apache.accumulo.core.client.Instance;
@@ -49,7 +47,7 @@ import org.junit.Test;
 
 public class GraphXInputFormatTest {
 
-	private String username = "root", table = "rya_eci";
+    private String username = "root", table = "rya_eci";
     private PasswordToken password = new PasswordToken("");
 
     private Instance instance;
@@ -79,7 +77,7 @@ public class GraphXInputFormatTest {
 
     @Test
     public void testInputFormat() throws Exception {
-    	RyaStatement input = RyaStatement.builder()
+        RyaStatement input = RyaStatement.builder()
             .setSubject(new RyaURI("http://www.google.com"))
             .setPredicate(new RyaURI("http://some_other_uri"))
             .setObject(new RyaURI("http://www.yahoo.com"))
@@ -118,7 +116,7 @@ public class GraphXInputFormatTest {
         List<RyaType> results = new ArrayList<RyaType>();
         System.out.println("before while");
         while(ryaStatementRecordReader.nextKeyValue()) {
-        	System.out.println("in while");
+            System.out.println("in while");
             RyaTypeWritable writable = ryaStatementRecordReader.getCurrentValue();
             RyaType value = writable.getRyaType();
             Object text = ryaStatementRecordReader.getCurrentKey();
@@ -126,7 +124,7 @@ public class GraphXInputFormatTest {
             type.setData(value.getData());
             type.setDataType(value.getDataType());
             results.add(type);
-            
+
             System.out.println(value.getData());
             System.out.println(value.getDataType());
             System.out.println(results);

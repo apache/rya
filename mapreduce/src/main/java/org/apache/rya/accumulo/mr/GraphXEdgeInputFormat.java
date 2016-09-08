@@ -1,4 +1,4 @@
-package mvm.rya.accumulo.mr;
+package org.apache.rya.accumulo.mr;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -25,18 +25,18 @@ import java.security.NoSuchAlgorithmException;
 import java.util.List;
 import java.util.Map.Entry;
 
-import mvm.rya.accumulo.AccumuloRdfConfiguration;
-import mvm.rya.api.RdfCloudTripleStoreConstants.TABLE_LAYOUT;
-import mvm.rya.api.domain.RyaStatement;
-import mvm.rya.api.resolver.RyaTripleContext;
-import mvm.rya.api.resolver.triple.TripleRow;
-import mvm.rya.api.resolver.triple.TripleRowResolverException;
+import org.apache.rya.accumulo.AccumuloRdfConfiguration;
+import org.apache.rya.api.RdfCloudTripleStoreConstants.TABLE_LAYOUT;
+import org.apache.rya.api.domain.RyaStatement;
+import org.apache.rya.api.domain.RyaType;
+import org.apache.rya.api.resolver.RyaTripleContext;
+import org.apache.rya.api.resolver.triple.TripleRow;
+import org.apache.rya.api.resolver.triple.TripleRowResolverException;
 
 import org.apache.accumulo.core.client.IteratorSetting;
 import org.apache.accumulo.core.client.Scanner;
 import org.apache.accumulo.core.client.mapreduce.AbstractInputFormat;
 import org.apache.accumulo.core.client.mapreduce.InputFormatBase;
-import org.apache.accumulo.core.client.mapreduce.RangeInputSplit;
 import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Value;
 import org.apache.hadoop.mapreduce.InputSplit;
@@ -54,7 +54,7 @@ public class GraphXEdgeInputFormat extends InputFormatBase<Object, Edge> {
 	/**
 	 * Instantiates a RecordReader for this InputFormat and a given task and
 	 * input split.
-	 * 
+	 *
 	 * @param split
 	 *            Defines the portion of the input this RecordReader is
 	 *            responsible for.
@@ -70,7 +70,7 @@ public class GraphXEdgeInputFormat extends InputFormatBase<Object, Edge> {
 
 	/**
 	 * Sets the table layout to use.
-	 * 
+	 *
 	 * @param conf
 	 *            Configuration to set the layout in.
 	 * @param layout
@@ -95,7 +95,7 @@ public class GraphXEdgeInputFormat extends InputFormatBase<Object, Edge> {
 
 		/**
 		 * Initializes the RecordReader.
-		 * 
+		 *
 		 * @param inSplit
 		 *            Defines the portion of data to read.
 		 * @param attempt
@@ -118,7 +118,7 @@ public class GraphXEdgeInputFormat extends InputFormatBase<Object, Edge> {
 		/**
 		 * Load the next statement by converting the next Accumulo row to a
 		 * statement, and make the new (key,value) pair available for retrieval.
-		 * 
+		 *
 		 * @return true if another (key,value) pair was fetched and is ready to
 		 *         be retrieved, false if there was none.
 		 * @throws IOException
@@ -134,7 +134,7 @@ public class GraphXEdgeInputFormat extends InputFormatBase<Object, Edge> {
 			currentKey = entry.getKey();
 			try {
 				currentK = currentKey.getRow();
-				RyaTypeWritable rtw = null;
+				RyaTypeWritable rtw = new RyaTypeWritable();
 				RyaStatement stmt = this.ryaContext.deserializeTriple(
 						this.tableLayout, new TripleRow(entry.getKey().getRow()
 								.getBytes(), entry.getKey().getColumnFamily()
@@ -144,28 +144,14 @@ public class GraphXEdgeInputFormat extends InputFormatBase<Object, Edge> {
 								.getColumnVisibility().getBytes(), entry
 								.getValue().get()));
 
-				String subjURI = stmt.getSubject().getDataType().toString();
-				String objURI = stmt.getObject().getDataType().toString();
-
-				// SHA-256 the string value and then generate a hashcode from
-				// the digested string, the collision ratio is less than 0.0001%
-				// using custom hash function should significantly reduce the
-				// collision ratio
-				MessageDigest messageDigest = MessageDigest
-						.getInstance("SHA-256");
-
-				messageDigest.update(subjURI.getBytes());
-				String encryptedString = new String(messageDigest.digest());
-				long subHash = hash(encryptedString);
-
-				messageDigest.update(objURI.getBytes());
-				encryptedString = new String(messageDigest.digest());
-				long objHash = hash(encryptedString);
+				long subHash = getVertexId(stmt.getSubject());
+				long objHash = getVertexId(stmt.getObject());
+				rtw.setRyaType(stmt.getPredicate());
 
 				Edge<RyaTypeWritable> writable = new Edge<RyaTypeWritable>(
 						subHash, objHash, rtw);
 				currentV = writable;
-			} catch (TripleRowResolverException | NoSuchAlgorithmException e) {
+			} catch (TripleRowResolverException e) {
 				throw new IOException(e);
 			}
 			return true;
@@ -195,6 +181,27 @@ public class GraphXEdgeInputFormat extends InputFormatBase<Object, Edge> {
 				scanner.addScanIterator(iterator);
 		}
 
+	}
+
+	public static long getVertexId(RyaType resource) throws IOException {
+		String uri = "";
+		if (resource != null) {
+			uri = resource.getData().toString();
+		}
+		try {
+			// SHA-256 the string value and then generate a hashcode from
+			// the digested string, the collision ratio is less than 0.0001%
+			// using custom hash function should significantly reduce the
+			// collision ratio
+			MessageDigest messageDigest = MessageDigest
+					.getInstance("SHA-256");
+			messageDigest.update(uri.getBytes());
+			String encryptedString = new String(messageDigest.digest());
+			return hash(encryptedString);
+		}
+		catch (NoSuchAlgorithmException e) {
+			throw new IOException(e);
+		}
 	}
 
 	public static long hash(String string) {

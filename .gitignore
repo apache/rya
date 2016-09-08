@@ -61,3 +61,4 @@ MANIFEST.MF
 delme*
 
 **/.vagrant/
+**/src/gen/**

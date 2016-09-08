@@ -38,6 +38,7 @@ under the License.
    
     <modules>
         <module>export.api</module>
+        <module>export.mongo</module>
     </modules>
     
     <properties>

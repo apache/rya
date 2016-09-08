@@ -37,6 +37,7 @@ under the License.
     <packaging>pom</packaging>
    
     <modules>
+        <module>export.accumulo</module>
         <module>export.api</module>
         <module>export.mongo</module>
     </modules>

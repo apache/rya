@@ -90,7 +90,6 @@ public class SimpleMongoDBStorageStrategy implements MongoDBStorageStrategy<RyaS
         if (context != null){
             query.append(CONTEXT, context.getData());
         }
-
         return query;
     }
 

@@ -20,10 +20,10 @@ package org.apache.rya.export.mongo.parent;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import org.apache.rya.export.api.parent.MergeParentMetadata;
-import org.apache.rya.export.api.parent.ParentMetadataDoesNotExistException;
-import org.apache.rya.export.api.parent.ParentMetadataExistsException;
-import org.apache.rya.export.api.parent.ParentMetadataRepository;
+import org.apache.rya.export.api.metadata.MergeParentMetadata;
+import org.apache.rya.export.api.metadata.ParentMetadataDoesNotExistException;
+import org.apache.rya.export.api.metadata.ParentMetadataExistsException;
+import org.apache.rya.export.api.metadata.ParentMetadataRepository;
 
 import com.mongodb.DBCollection;
 import com.mongodb.DBObject;
@@ -38,8 +38,9 @@ public class MongoParentMetadataRepository implements ParentMetadataRepository {
     private final DBCollection collection;
 
     /**
-     * @param client
-     * @param dbName
+     * Creates a new {@link MongoParentMetadataRepository}
+     * @param client - The client connection to mongo.
+     * @param dbName - The database to connect to, usually the RyaInstanceName
      */
     public MongoParentMetadataRepository(final MongoClient client, final String dbName) {
         checkNotNull(client);
@@ -65,5 +66,4 @@ public class MongoParentMetadataRepository implements ParentMetadataRepository {
         final DBObject dbo = adapter.serialize(metadata);
         collection.insert(dbo);
     }
-
 }

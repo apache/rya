@@ -18,24 +18,19 @@
  */
 package org.apache.rya.export.accumulo.conf;
 
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 import java.util.Map.Entry;
 
-import org.apache.accumulo.core.client.IteratorSetting;
-import org.apache.accumulo.core.iterators.user.TimestampFilter;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.log4j.Logger;
-import org.apache.rya.export.accumulo.common.InstanceType;
+import org.apache.rya.accumulo.mr.MRUtils;
+import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
+import org.apache.rya.indexing.accumulo.ConfigUtils;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-
-import mvm.rya.accumulo.mr.MRUtils;
-import mvm.rya.api.RdfCloudTripleStoreConfiguration;
-import mvm.rya.indexing.accumulo.ConfigUtils;
 
 /**
  * Constant used for Accumulo merger exports.
@@ -52,12 +47,6 @@ public class AccumuloExportConstants {
      * The {@link InstanceType} to use for Accumulo.
      */
     public static final String ACCUMULO_INSTANCE_TYPE_PROP = "ac.instance.type";
-
-    /**
-     * A value used for the {@link #START_TIME_PROP} property to indicate that a dialog
-     * should be displayed to select the time.
-     */
-    public static final String USE_START_TIME_DIALOG = "dialog";
 
     public static final SimpleDateFormat START_TIME_FORMATTER = new SimpleDateFormat("yyyyMMddHHmmssSSSz");
 
@@ -115,23 +104,6 @@ public class AccumuloExportConstants {
     }
 
     /**
-     * Creates a formatted string for the start time based on the specified date and whether the dialog is to be displayed.
-     * @param startDate the start {@link Date} to format.
-     * @param isStartTimeDialogEnabled {@code true} to display the time dialog instead of using the date. {@code false}
-     * to use the provided {@code startDate}.
-     * @return the formatted start time string or {@code "dialog"}.
-     */
-    public static String getStartTimeString(final Date startDate, final boolean isStartTimeDialogEnabled) {
-        String startTimeString;
-        if (isStartTimeDialogEnabled) {
-            startTimeString = USE_START_TIME_DIALOG; // set start date from dialog box
-        } else {
-            startTimeString = convertDateToStartTimeString(startDate);
-        }
-        return startTimeString;
-    }
-
-    /**
      * Converts the specified date into a string to use as the start time for the timestamp filter.
      * @param date the start {@link Date} of the filter that will be formatted as a string.
      * @return the formatted start time string.
@@ -139,57 +111,5 @@ public class AccumuloExportConstants {
     public static String convertDateToStartTimeString(final Date date) {
         final String startTimeString = START_TIME_FORMATTER.format(date);
         return startTimeString;
-    }
-
-    /**
-     * Converts the specified string into a date to use as the start time for the timestamp filter.
-     * @param startTimeString the formatted time string.
-     * @return the start {@link Date}.
-     */
-    public static Date convertStartTimeStringToDate(final String startTimeString) {
-        Date date;
-        try {
-            date = START_TIME_FORMATTER.parse(startTimeString);
-        } catch (final ParseException e) {
-            log.error("Could not parse date", e);
-            return null;
-        }
-        return date;
-    }
-
-    /**
-     * Creates an {@link IteratorSetting} with a time stamp filter that starts with the specified data.
-     * @param startTimeString the start time of the filter.
-     * @return the {@link IteratorSetting}.
-     */
-    public static IteratorSetting getStartTimeSetting(final String startTimeString) {
-        Date date = null;
-        try {
-            date = START_TIME_FORMATTER.parse(startTimeString);
-        } catch (final ParseException e) {
-            throw new IllegalArgumentException("Couldn't parse " + startTimeString, e);
-        }
-        return getStartTimeSetting(date);
-    }
-
-    /**
-     * Creates an {@link IteratorSetting} with a time stamp filter that starts with the specified data.
-     * @param date the start {@link Date} of the filter.
-     * @return the {@link IteratorSetting}.
-     */
-    public static IteratorSetting getStartTimeSetting(final Date date) {
-        return getStartTimeSetting(date.getTime());
-    }
-
-    /**
-     * Creates an {@link IteratorSetting} with a time stamp filter that starts with the specified data.
-     * @param time the start time of the filter.
-     * @return the {@link IteratorSetting}.
-     */
-    public static IteratorSetting getStartTimeSetting(final long time) {
-        final IteratorSetting setting = new IteratorSetting(1, "startTimeIterator", TimestampFilter.class);
-        TimestampFilter.setStart(setting, time, true);
-        TimestampFilter.setEnd(setting, Long.MAX_VALUE, true);
-        return setting;
     }
 }

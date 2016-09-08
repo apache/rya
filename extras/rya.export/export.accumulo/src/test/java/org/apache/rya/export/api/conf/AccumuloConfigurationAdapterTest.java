@@ -18,19 +18,22 @@
  */
 package org.apache.rya.export.api.conf;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import java.util.Date;
 
+import org.apache.rya.export.AccumuloMergeToolConfiguration;
 import org.apache.rya.export.DBType;
-import org.apache.rya.export.JAXBAccumuloMergeConfiguration;
+import org.apache.rya.export.InstanceType;
 import org.apache.rya.export.MergePolicy;
-import org.apache.rya.export.accumulo.common.InstanceType;
 import org.apache.rya.export.accumulo.conf.AccumuloExportConstants;
 import org.apache.rya.export.accumulo.driver.AccumuloDualInstanceDriver;
 import org.apache.rya.export.accumulo.util.AccumuloInstanceDriver;
-import org.junit.Assert;
 import org.junit.Test;
 
 /**
@@ -39,8 +42,8 @@ import org.junit.Test;
 public class AccumuloConfigurationAdapterTest {
     private static final InstanceType INSTANCE_TYPE = InstanceType.MOCK;
 
-    private static final boolean IS_MOCK = INSTANCE_TYPE.isMock();
-    private static final boolean USE_TIME_SYNC = false;
+    private static final boolean IS_MOCK = INSTANCE_TYPE == InstanceType.MOCK;
+    private static final boolean USE_TIME_SYNC = true;
 
     private static final String PARENT_HOST_NAME = "localhost:1234";
     private static final int PARENT_PORT = 1111;
@@ -68,7 +71,7 @@ public class AccumuloConfigurationAdapterTest {
 
     @Test
     public void testCreateConfig() throws MergeConfigurationException {
-        final JAXBAccumuloMergeConfiguration jConfig = mock(JAXBAccumuloMergeConfiguration.class);
+        final AccumuloMergeToolConfiguration jConfig = mock(AccumuloMergeToolConfiguration.class);
         // Parent Properties
         when(jConfig.getParentHostname()).thenReturn(PARENT_HOST_NAME);
         when(jConfig.getParentPort()).thenReturn(PARENT_PORT);
@@ -79,7 +82,7 @@ public class AccumuloConfigurationAdapterTest {
         when(jConfig.getParentDBType()).thenReturn(DBType.ACCUMULO);
         when(jConfig.getParentTomcatUrl()).thenReturn(PARENT_TOMCAT_URL);
         // Parent Accumulo Properties
-        when(jConfig.getParentInstanceType()).thenReturn(INSTANCE_TYPE.toString());
+        when(jConfig.getParentInstanceType()).thenReturn(INSTANCE_TYPE);
         when(jConfig.getParentAuths()).thenReturn(PARENT_AUTH);
         when(jConfig.getParentZookeepers()).thenReturn(PARENT_ZOOKEEPERS);
 
@@ -90,56 +93,51 @@ public class AccumuloConfigurationAdapterTest {
         when(jConfig.getChildUsername()).thenReturn(CHILD_USER_NAME);
         when(jConfig.getChildPassword()).thenReturn(CHILD_PASSWORD);
         when(jConfig.getChildTablePrefix()).thenReturn(CHILD_TABLE_PREFIX);
-        when(jConfig.getChildDBType()).thenReturn(DBType.ACCUMULO);
+        when(jConfig.getChildDBType()).thenReturn(DBType.MONGO);
         when(jConfig.getChildTomcatUrl()).thenReturn(CHILD_TOMCAT_URL);
-        // Child Accumulo Properties
-        when(jConfig.getChildInstanceType()).thenReturn(INSTANCE_TYPE.toString());
-        when(jConfig.getChildAuths()).thenReturn(CHILD_AUTH);
-        when(jConfig.getChildZookeepers()).thenReturn(CHILD_ZOOKEEPERS);
         // Other Properties
         when(jConfig.getMergePolicy()).thenReturn(MergePolicy.TIMESTAMP);
         when(jConfig.getNtpServerHost()).thenReturn(TIME_SERVER);
         when(jConfig.isUseNtpServer()).thenReturn(USE_TIME_SYNC);
-        when(jConfig.getToolStartTime()).thenReturn(TOOL_START_TIME);
 
 
-        final AccumuloMergeConfiguration accumuloMergeConfiguration = AccumuloConfigurationAdapter.createConfig(jConfig);
+        final AccumuloConfigurationAdapter adapter = new AccumuloConfigurationAdapter();
+        final AccumuloMergeConfiguration accumuloMergeConfiguration = (AccumuloMergeConfiguration) adapter.createConfig(jConfig);
 
-        Assert.assertNotNull(accumuloMergeConfiguration);
-        Assert.assertEquals(AccumuloMergeConfiguration.class, accumuloMergeConfiguration.getClass());
+        assertNotNull(accumuloMergeConfiguration);
+        assertEquals(AccumuloMergeConfiguration.class, accumuloMergeConfiguration.getClass());
 
         // Parent Properties
-        Assert.assertEquals(PARENT_HOST_NAME, accumuloMergeConfiguration.getParentHostname());
-        Assert.assertEquals(PARENT_USER_NAME, accumuloMergeConfiguration.getParentUsername());
-        Assert.assertEquals(PARENT_PASSWORD, accumuloMergeConfiguration.getParentPassword());
-        Assert.assertEquals(PARENT_INSTANCE, accumuloMergeConfiguration.getParentRyaInstanceName());
-        Assert.assertEquals(PARENT_TABLE_PREFIX, accumuloMergeConfiguration.getParentTablePrefix());
-        Assert.assertEquals(PARENT_TOMCAT_URL, accumuloMergeConfiguration.getParentTomcatUrl());
-        Assert.assertEquals(DBType.ACCUMULO, accumuloMergeConfiguration.getParentDBType());
-        Assert.assertEquals(PARENT_PORT, accumuloMergeConfiguration.getParentPort());
+        assertEquals(PARENT_HOST_NAME, accumuloMergeConfiguration.getParentHostname());
+        assertEquals(PARENT_USER_NAME, accumuloMergeConfiguration.getParentUsername());
+        assertEquals(PARENT_PASSWORD, accumuloMergeConfiguration.getParentPassword());
+        assertEquals(PARENT_INSTANCE, accumuloMergeConfiguration.getParentRyaInstanceName());
+        assertEquals(PARENT_TABLE_PREFIX, accumuloMergeConfiguration.getParentTablePrefix());
+        assertEquals(PARENT_TOMCAT_URL, accumuloMergeConfiguration.getParentTomcatUrl());
+        assertEquals(DBType.ACCUMULO, accumuloMergeConfiguration.getParentDBType());
+        assertEquals(PARENT_PORT, accumuloMergeConfiguration.getParentPort());
         // Parent Accumulo Properties
-        Assert.assertEquals(PARENT_ZOOKEEPERS, accumuloMergeConfiguration.getParentZookeepers());
-        Assert.assertEquals(PARENT_AUTH, accumuloMergeConfiguration.getParentAuths());
-        Assert.assertEquals(InstanceType.MOCK, accumuloMergeConfiguration.getParentInstanceType());
+        assertEquals(PARENT_ZOOKEEPERS, accumuloMergeConfiguration.getParentZookeepers());
+        assertEquals(PARENT_AUTH, accumuloMergeConfiguration.getParentAuths());
+        assertEquals(InstanceType.MOCK, accumuloMergeConfiguration.getParentInstanceType());
 
         // Child Properties
-        Assert.assertEquals(CHILD_HOST_NAME, accumuloMergeConfiguration.getChildHostname());
-        Assert.assertEquals(CHILD_USER_NAME, accumuloMergeConfiguration.getChildUsername());
-        Assert.assertEquals(CHILD_PASSWORD, accumuloMergeConfiguration.getChildPassword());
-        Assert.assertEquals(CHILD_INSTANCE, accumuloMergeConfiguration.getChildRyaInstanceName());
-        Assert.assertEquals(CHILD_TABLE_PREFIX, accumuloMergeConfiguration.getChildTablePrefix());
-        Assert.assertEquals(CHILD_TOMCAT_URL, accumuloMergeConfiguration.getChildTomcatUrl());
-        Assert.assertEquals(DBType.ACCUMULO, accumuloMergeConfiguration.getChildDBType());
-        Assert.assertEquals(CHILD_PORT, accumuloMergeConfiguration.getChildPort());
+        assertEquals(CHILD_HOST_NAME, accumuloMergeConfiguration.getChildHostname());
+        assertEquals(CHILD_USER_NAME, accumuloMergeConfiguration.getChildUsername());
+        assertEquals(CHILD_PASSWORD, accumuloMergeConfiguration.getChildPassword());
+        assertEquals(CHILD_INSTANCE, accumuloMergeConfiguration.getChildRyaInstanceName());
+        assertEquals(CHILD_TABLE_PREFIX, accumuloMergeConfiguration.getChildTablePrefix());
+        assertEquals(CHILD_TOMCAT_URL, accumuloMergeConfiguration.getChildTomcatUrl());
+        assertEquals(DBType.MONGO, accumuloMergeConfiguration.getChildDBType());
+        assertEquals(CHILD_PORT, accumuloMergeConfiguration.getChildPort());
         // Child Properties
-        Assert.assertEquals(CHILD_ZOOKEEPERS, accumuloMergeConfiguration.getChildZookeepers());
-        Assert.assertEquals(CHILD_AUTH, accumuloMergeConfiguration.getChildAuths());
-        Assert.assertEquals(InstanceType.MOCK, accumuloMergeConfiguration.getChildInstanceType());
+        assertNull(accumuloMergeConfiguration.getChildZookeepers());
+        assertNull(accumuloMergeConfiguration.getChildAuths());
+        assertNull(accumuloMergeConfiguration.getChildInstanceType());
 
         // Other Properties
-        Assert.assertEquals(MergePolicy.TIMESTAMP, accumuloMergeConfiguration.getMergePolicy());
-        Assert.assertEquals(Boolean.FALSE, accumuloMergeConfiguration.getUseNtpServer());
-        Assert.assertEquals(TIME_SERVER, accumuloMergeConfiguration.getNtpServerHost());
-        Assert.assertEquals(TOOL_START_TIME, accumuloMergeConfiguration.getToolStartTime());
+        assertEquals(MergePolicy.TIMESTAMP, accumuloMergeConfiguration.getMergePolicy());
+        assertTrue(accumuloMergeConfiguration.getUseNtpServer());
+        assertEquals(TIME_SERVER, accumuloMergeConfiguration.getNtpServerHost());
     }
 }

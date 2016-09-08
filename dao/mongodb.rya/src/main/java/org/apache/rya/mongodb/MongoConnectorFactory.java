@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- * 
+ *
  *   http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -66,7 +66,7 @@ public class MongoConnectorFactory {
     }
 
     /**
-     * Create a MongoDB client object and assign it to this class's static mongoClient 
+     * Create a MongoDB client object and assign it to this class's static mongoClient
      * @param conf configuration containing connection parameters
      * @throws ConfigurationRuntimeException - Thrown if the configured server, port, user, or others are missing.
      * @throws MongoException  if can't connect despite conf parameters are given
@@ -76,7 +76,7 @@ public class MongoConnectorFactory {
         // Connect to a running Mongo server
         final String host = requireNonNull(conf.get(MongoDBRdfConfiguration.MONGO_INSTANCE), MSG_INTRO+"host name is required");
         final int port = requireNonNullInt(conf.get(MongoDBRdfConfiguration.MONGO_INSTANCE_PORT), MSG_INTRO+"Port number is required.");
-        ServerAddress server = new ServerAddress(host, port);
+        final ServerAddress server = new ServerAddress(host, port);
         // check for authentication credentials
         if (conf.get(MongoDBRdfConfiguration.MONGO_USER) != null) {
             final String username = conf.get(MongoDBRdfConfiguration.MONGO_USER);
@@ -96,27 +96,29 @@ public class MongoConnectorFactory {
 
     /**
      * Throw exception for un-configured required values.
-     * 
+     *
      * @param required  String to check
      * @param message  throw configuration exception with this description
      * @return unaltered required string
      * @throws ConfigurationRuntimeException  if required is null
      */
-    private static String requireNonNull(String required, String message) throws ConfigurationRuntimeException {
-        if (required == null)
+    private static String requireNonNull(final String required, final String message) throws ConfigurationRuntimeException {
+        if (required == null) {
             throw new ConfigurationRuntimeException(message);
+        }
         return required;
     }
 
     /*
      * Same as above, check that it is a integer and return the parsed integer.
      */
-    private static int requireNonNullInt(String required, String message) throws ConfigurationRuntimeException {
-        if (required == null)
+    private static int requireNonNullInt(final String required, final String message) throws ConfigurationRuntimeException {
+        if (required == null) {
             throw new ConfigurationRuntimeException(message);
+        }
         try {
             return Integer.parseInt(required);
-        } catch (NumberFormatException e) {
+        } catch (final NumberFormatException e) {
             throw new ConfigurationRuntimeException(message);
         }
     }

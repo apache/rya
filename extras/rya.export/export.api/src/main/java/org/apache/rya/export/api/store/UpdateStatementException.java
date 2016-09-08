@@ -18,7 +18,7 @@
  */
 package org.apache.rya.export.api.store;
 
-import mvm.rya.api.domain.RyaStatement;
+import org.apache.rya.api.domain.RyaStatement;
 
 /**
  * Exception thrown when failing to update a {@link RyaStatement} in a
@@ -43,5 +43,4 @@ public class UpdateStatementException extends StatementStoreException {
     public UpdateStatementException(final String message, final Throwable cause) {
         super(message, cause);
     }
-
 }

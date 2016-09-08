@@ -24,7 +24,7 @@ under the License.
     <parent>
         <groupId>org.apache.rya</groupId>
         <artifactId>rya.extras</artifactId>
-        <version>3.2.10-SNAPSHOT</version>
+        <version>3.2.10</version>
     </parent>
 
     <artifactId>rya.merger</artifactId>
@@ -287,7 +287,7 @@ under the License.
                             <!--<mainClass>mvm.rya.accumulo.mr.merge.MergeTool</mainClass>-->
                         </manifest>
                         <manifestEntries>
-                            <Built-By></Built-By>
+                            <Built-By />
                             <Class-Path>lib/</Class-Path>
                         </manifestEntries>
                     </archive>

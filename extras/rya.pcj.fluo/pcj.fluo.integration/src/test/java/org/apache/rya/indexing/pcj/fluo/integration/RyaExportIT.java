@@ -20,15 +20,12 @@ package org.apache.rya.indexing.pcj.fluo.integration;
 
 import static org.junit.Assert.assertEquals;
 
-import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
 
 import org.apache.rya.indexing.pcj.fluo.ITBase;
 import org.apache.rya.indexing.pcj.fluo.api.CreatePcj;
 import org.apache.rya.indexing.pcj.fluo.api.InsertTriples;
-import org.apache.rya.indexing.pcj.fluo.app.export.rya.RyaExportParameters;
 import org.apache.rya.indexing.pcj.storage.PrecomputedJoinStorage;
 import org.apache.rya.indexing.pcj.storage.accumulo.AccumuloPcjStorage;
 import org.junit.Test;
@@ -47,24 +44,6 @@ import mvm.rya.api.domain.RyaStatement;
  * These tests are being ignore so that they will not run as unit tests while building the application.
  */
 public class RyaExportIT extends ITBase {
-
-    /**
-     * Configure the export observer to use the Mini Accumulo instance as the
-     * export destination for new PCJ results.
-     */
-    @Override
-    protected Map<String, String> makeExportParams() {
-        final HashMap<String, String> params = new HashMap<>();
-
-        final RyaExportParameters ryaParams = new RyaExportParameters(params);
-        ryaParams.setExportToRya(true);
-        ryaParams.setAccumuloInstanceName(instanceName);
-        ryaParams.setZookeeperServers(zookeepers);
-        ryaParams.setExporterUsername(ITBase.ACCUMULO_USER);
-        ryaParams.setExporterPassword(ITBase.ACCUMULO_PASSWORD);
-        ryaParams.setRyaInstanceName(RYA_INSTANCE_NAME);
-        return params;
-    }
 
     @Test
     public void resultsExported() throws Exception {

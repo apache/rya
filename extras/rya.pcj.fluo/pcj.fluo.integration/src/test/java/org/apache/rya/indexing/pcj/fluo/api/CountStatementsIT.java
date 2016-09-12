@@ -64,8 +64,8 @@ public class CountStatementsIT extends ITBase {
         config.setInstanceZookeepers(zookeepers + "/fluo");
         config.setAccumuloZookeepers(zookeepers);
 
-        config.setApplicationName(appName);
-        config.setAccumuloTable("fluo" + appName);
+        config.setApplicationName(FLUO_APP_NAME);
+        config.setAccumuloTable("fluo" + FLUO_APP_NAME);
 
         config.addObservers(observers);
 

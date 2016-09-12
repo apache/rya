@@ -18,7 +18,7 @@
  */
 package org.apache.rya.indexing.pcj.storage.accumulo;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import static java.util.Objects.requireNonNull;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 
@@ -30,28 +30,40 @@ import org.openrdf.query.BindingSet;
 @ParametersAreNonnullByDefault
 public class VisibilityBindingSet extends BindingSetDecorator {
     private static final long serialVersionUID = 1L;
-    private final String visibility;
+    private String visibility;
     private volatile int hashCode;
 
     /**
-     * @param set - Decorates the {@link BindingSet} with no visibilities.
+     * Creates a new {@link VisibilityBindingSet} that does not have any visibilities
+     * associated with it.
+     *
+     * @param set - Decorates the {@link BindingSet} with no visibilities. (not null)
      */
     public VisibilityBindingSet(final BindingSet set) {
         this(set, "");
     }
 
     /**
-     * Creates a new {@link VisibilityBindingSet}
-     * @param set - The {@link BindingSet} to decorate
-     * @param visibility - The visibilities on the {@link BindingSet} (not null)
+     * Creates a new {@link VisibilityBindingSet}.
+     *
+     * @param set - The {@link BindingSet} to decorate. (not null)
+     * @param visibility - The Visibilities on the {@link BindingSet}. (not null)
      */
     public VisibilityBindingSet(final BindingSet set, final String visibility) {
         super(set);
-        this.visibility = checkNotNull(visibility);
+        this.visibility = requireNonNull(visibility);
     }
 
     /**
-     * @return - The Visibilities on the {@link BindingSet}
+     * @param visibility - The Visibilities on the {@link BindingSet}. (not null)
+     */
+    public void setVisibility(final String visibility) {
+        requireNonNull(visibility);
+        this.visibility = visibility;
+    }
+
+    /**
+     * @return The Visibilities on the {@link BindingSet}.
      */
     public String getVisibility() {
         return visibility;

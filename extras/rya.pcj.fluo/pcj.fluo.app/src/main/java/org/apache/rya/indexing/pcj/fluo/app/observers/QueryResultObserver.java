@@ -20,6 +20,9 @@ package org.apache.rya.indexing.pcj.fluo.app.observers;
 
 import static org.apache.rya.indexing.pcj.fluo.app.IncrementalUpdateConstants.NODEID_BS_DELIM;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import org.apache.log4j.Logger;
 import org.apache.rya.indexing.pcj.fluo.app.export.IncrementalResultExporter;
 import org.apache.rya.indexing.pcj.fluo.app.export.IncrementalResultExporter.ResultExportException;
@@ -42,6 +45,7 @@ import io.fluo.api.types.Encoder;
 import io.fluo.api.types.StringEncoder;
 import io.fluo.api.types.TypedObserver;
 import io.fluo.api.types.TypedTransactionBase;
+import mvm.rya.accumulo.utils.VisibilitySimplifier;
 
 /**
  * Performs incremental result exporting to the configured destinations.
@@ -52,6 +56,16 @@ public class QueryResultObserver extends TypedObserver {
     private static final FluoQueryMetadataDAO QUERY_DAO = new FluoQueryMetadataDAO();
     private static final Encoder ENCODER = new StringEncoder();
     private static final VisibilityBindingSetStringConverter CONVERTER = new VisibilityBindingSetStringConverter();
+
+    /**
+     * Simplifies Visibility expressions prior to exporting PCJ results.
+     */
+    private static final VisibilitySimplifier SIMPLIFIER = new VisibilitySimplifier();
+
+    /**
+     * We expect to see the same expressions a lot, so we cache the simplified forms.
+     */
+    private final Map<String, String> simplifiedVisibilities = new HashMap<>();
 
     /**
      * Builders for each type of result exporter we support.
@@ -103,8 +117,19 @@ public class QueryResultObserver extends TypedObserver {
         final QueryMetadata queryMetadata = QUERY_DAO.readQueryMetadata(tx, queryId);
         final VariableOrder varOrder = queryMetadata.getVariableOrder();
 
+        // Create the result that will be exported.
+        final VisibilityBindingSet result = CONVERTER.convert(bindingSetString, varOrder);
+
+        // Simplify the result's visibilities.
+        final String visibility = result.getVisibility();
+        if(!simplifiedVisibilities.containsKey(visibility)) {
+            final String simplified = SIMPLIFIER.simplify( visibility );
+            simplifiedVisibilities.put(visibility, simplified);
+        }
+
+        result.setVisibility( simplifiedVisibilities.get(visibility) );
+
         // Export the result using each of the provided exporters.
-        final VisibilityBindingSet result = (VisibilityBindingSet) CONVERTER.convert(bindingSetString, varOrder);
         for(final IncrementalResultExporter exporter : exporters) {
             try {
                 exporter.export(tx, queryId, result);

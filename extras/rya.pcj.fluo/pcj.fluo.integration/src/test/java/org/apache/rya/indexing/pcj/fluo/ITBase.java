@@ -22,13 +22,10 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.UnknownHostException;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
@@ -42,6 +39,7 @@ import org.apache.accumulo.minicluster.MiniAccumuloCluster;
 import org.apache.accumulo.minicluster.MiniAccumuloConfig;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
+import org.apache.rya.indexing.pcj.fluo.app.export.rya.RyaExportParameters;
 import org.apache.rya.indexing.pcj.fluo.app.observers.FilterObserver;
 import org.apache.rya.indexing.pcj.fluo.app.observers.JoinObserver;
 import org.apache.rya.indexing.pcj.fluo.app.observers.QueryResultObserver;
@@ -62,11 +60,8 @@ import org.openrdf.query.Binding;
 import org.openrdf.query.BindingSet;
 import org.openrdf.query.impl.MapBindingSet;
 import org.openrdf.repository.RepositoryConnection;
-import org.openrdf.repository.RepositoryException;
 import org.openrdf.sail.Sail;
-import org.openrdf.sail.SailException;
 
-import com.google.common.base.Optional;
 import com.google.common.io.Files;
 
 import io.fluo.api.client.FluoAdmin;
@@ -83,27 +78,18 @@ import io.fluo.api.iterator.ColumnIterator;
 import io.fluo.api.iterator.RowIterator;
 import io.fluo.api.mini.MiniFluo;
 import mvm.rya.accumulo.AccumuloRdfConfiguration;
-import mvm.rya.accumulo.instance.AccumuloRyaInstanceDetailsRepository;
+import mvm.rya.api.client.Install.InstallConfiguration;
+import mvm.rya.api.client.RyaClient;
+import mvm.rya.api.client.accumulo.AccumuloConnectionDetails;
+import mvm.rya.api.client.accumulo.AccumuloRyaClientFactory;
 import mvm.rya.api.domain.RyaStatement;
 import mvm.rya.api.domain.RyaStatement.RyaStatementBuilder;
 import mvm.rya.api.domain.RyaType;
 import mvm.rya.api.domain.RyaURI;
-import mvm.rya.api.instance.RyaDetails;
-import mvm.rya.api.instance.RyaDetails.EntityCentricIndexDetails;
-import mvm.rya.api.instance.RyaDetails.FreeTextIndexDetails;
-import mvm.rya.api.instance.RyaDetails.GeoIndexDetails;
-import mvm.rya.api.instance.RyaDetails.JoinSelectivityDetails;
-import mvm.rya.api.instance.RyaDetails.PCJIndexDetails;
-import mvm.rya.api.instance.RyaDetails.ProspectorDetails;
-import mvm.rya.api.instance.RyaDetails.TemporalIndexDetails;
-import mvm.rya.api.instance.RyaDetailsRepository;
-import mvm.rya.api.instance.RyaDetailsRepository.RyaDetailsRepositoryException;
-import mvm.rya.api.persist.RyaDAOException;
 import mvm.rya.api.resolver.RyaToRdfConversions;
 import mvm.rya.indexing.accumulo.ConfigUtils;
 import mvm.rya.indexing.external.PrecomputedJoinIndexerConfig;
 import mvm.rya.rdftriplestore.RyaSailRepository;
-import mvm.rya.rdftriplestore.inference.InferenceEngineException;
 import mvm.rya.sail.config.RyaSailFactory;
 
 /**
@@ -115,26 +101,23 @@ import mvm.rya.sail.config.RyaSailFactory;
 public abstract class ITBase {
     private static final Logger log = Logger.getLogger(ITBase.class);
 
-    protected static final String RYA_INSTANCE_NAME = "demo_";
-
-    protected static final String ACCUMULO_USER = "root";
-    protected static final String ACCUMULO_PASSWORD = "password";
-
     // Rya data store and connections.
+    protected static final String RYA_INSTANCE_NAME = "demo_";
     protected RyaSailRepository ryaRepo = null;
     protected RepositoryConnection ryaConn = null;
 
-
     // Mini Accumulo Cluster
+    protected static final String ACCUMULO_USER = "root";
+    protected static final String ACCUMULO_PASSWORD = "password";
     protected MiniAccumuloCluster cluster;
     protected static Connector accumuloConn = null;
     protected String instanceName = null;
     protected String zookeepers = null;
 
     // Fluo data store and connections.
+    protected static final String FLUO_APP_NAME = "IntegrationTests";
     protected MiniFluo fluo = null;
     protected FluoClient fluoClient = null;
-    protected final String appName = "IntegrationTests";
 
     @BeforeClass
     public static void killLoudLogs() {
@@ -142,9 +125,7 @@ public abstract class ITBase {
     }
 
     @Before
-    public void setupMiniResources()
-            throws IOException, InterruptedException, AccumuloException, AccumuloSecurityException, RepositoryException,
-            RyaDAOException, NumberFormatException, InferenceEngineException, AlreadyInitializedException, TableExistsException, AlreadyInitializedException, RyaDetailsRepositoryException, SailException {
+    public void setupMiniResources() throws Exception {
     	// Initialize the Mini Accumulo that will be used to host Rya and Fluo.
     	setupMiniAccumulo();
 
@@ -153,7 +134,7 @@ public abstract class ITBase {
         fluoClient = FluoFactory.newClient(fluo.getClientConfiguration());
 
         // Initialize the Rya that will be used by the tests.
-        ryaRepo = setupRya(ACCUMULO_USER, ACCUMULO_PASSWORD, instanceName, zookeepers, appName);
+        ryaRepo = setupRya(instanceName, zookeepers);
         ryaConn = ryaRepo.getConnection();
     }
 
@@ -214,8 +195,7 @@ public abstract class ITBase {
      * A helper fuction for creating a {@link BindingSet} from an array of
      * {@link Binding}s.
      *
-     * @param bindings
-     *            - The bindings to include in the set. (not null)
+     * @param bindings - The bindings to include in the set. (not null)
      * @return A {@link BindingSet} holding the bindings.
      */
     protected static BindingSet makeBindingSet(final Binding... bindings) {
@@ -230,12 +210,9 @@ public abstract class ITBase {
      * A helper function for creating a {@link RyaStatement} that represents a
      * Triple.
      *
-     * @param subject
-     *            - The Subject of the Triple. (not null)
-     * @param predicate
-     *            - The Predicate of the Triple. (not null)
-     * @param object
-     *            - The Object of the Triple. (not null)
+     * @param subject - The Subject of the Triple. (not null)
+     * @param predicate - The Predicate of the Triple. (not null)
+     * @param object - The Object of the Triple. (not null)
      * @return A Triple as a {@link RyaStatement}.
      */
     protected static RyaStatement makeRyaStatement(final String subject, final String predicate, final String object) {
@@ -259,12 +236,9 @@ public abstract class ITBase {
      * A helper function for creating a {@link RyaStatement} that represents a
      * Triple.
      *
-     * @param subject
-     *            - The Subject of the Triple. (not null)
-     * @param predicate
-     *            - The Predicate of the Triple. (not null)
-     * @param object
-     *            - The Object of the Triple. (not null)
+     * @param subject - The Subject of the Triple. (not null)
+     * @param predicate - The Predicate of the Triple. (not null)
+     * @param object - The Object of the Triple. (not null)
      * @return A Triple as a {@link RyaStatement}.
      */
     protected static RyaStatement makeRyaStatement(final String subject, final String predicate, final int object) {
@@ -279,12 +253,9 @@ public abstract class ITBase {
      * A helper function for creating a Sesame {@link Statement} that represents
      * a Triple..
      *
-     * @param subject
-     *            - The Subject of the Triple. (not null)
-     * @param predicate
-     *            - The Predicate of the Triple. (not null)
-     * @param object
-     *            - The Object of the Triple. (not null)
+     * @param subject - The Subject of the Triple. (not null)
+     * @param predicate - The Predicate of the Triple. (not null)
+     * @param object - The Object of the Triple. (not null)
      * @return A Triple as a {@link Statement}.
      */
     protected static Statement makeStatement(final String subject, final String predicate, final String object) {
@@ -297,14 +268,10 @@ public abstract class ITBase {
     }
 
     /**
-     * Fetches the binding sets that are the results of a specific SPARQL query
-     * from the Fluo table.
+     * Fetches the binding sets that are the results of a specific SPARQL query from the Fluo table.
      *
-     * @param fluoClient-
-     *            A connection to the Fluo table where the results reside. (not
-     *            null)
-     * @param sparql
-     *            - This query's results will be fetched. (not null)
+     * @param fluoClient- A connection to the Fluo table where the results reside. (not null)
+     * @param sparql - This query's results will be fetched. (not null)
      * @return The binding sets for the query's results.
      */
     protected static Set<BindingSet> getQueryBindingSetValues(final FluoClient fluoClient, final String sparql) {
@@ -354,77 +321,59 @@ public abstract class ITBase {
 
      /**
       * Sets up a Rya instance.
-     * @throws SailException
       */
-    protected static RyaSailRepository setupRya(final String user, final String password, final String instanceName, final String zookeepers, final String appName)
-            throws AccumuloException, AccumuloSecurityException, RepositoryException, RyaDAOException,
-            NumberFormatException, UnknownHostException, InferenceEngineException, mvm.rya.api.instance.RyaDetailsRepository.AlreadyInitializedException, RyaDetailsRepositoryException, SailException {
-
-        checkNotNull(user);
-        checkNotNull(password);
+    protected static RyaSailRepository setupRya(final String instanceName, final String zookeepers) throws Exception {
         checkNotNull(instanceName);
         checkNotNull(zookeepers);
-        checkNotNull(appName);
 
-        // Setup Rya configuration values.
-        final AccumuloRdfConfiguration conf = new AccumuloRdfConfiguration();
-        conf.setTablePrefix(RYA_INSTANCE_NAME);
-        conf.setDisplayQueryPlan(true);
-        conf.setBoolean(ConfigUtils.USE_MOCK_INSTANCE, false);
-        conf.set(ConfigUtils.CLOUDBASE_USER, user);
-        conf.set(ConfigUtils.CLOUDBASE_PASSWORD, password);
-        conf.set(ConfigUtils.CLOUDBASE_INSTANCE, instanceName);
-        conf.set(ConfigUtils.CLOUDBASE_ZOOKEEPERS, zookeepers);
-        conf.set(ConfigUtils.USE_PCJ, "true");
-        conf.set(ConfigUtils.USE_PCJ_UPDATER_INDEX, "true");
-        conf.set(ConfigUtils.USE_PCJ_FLUO_UPDATER, "true");
-        conf.set(ConfigUtils.FLUO_APP_NAME, appName);
-        conf.set(ConfigUtils.PCJ_STORAGE_TYPE,
-                PrecomputedJoinIndexerConfig.PrecomputedJoinStorageType.ACCUMULO.toString());
-        conf.set(ConfigUtils.PCJ_UPDATER_TYPE, PrecomputedJoinIndexerConfig.PrecomputedJoinUpdaterType.FLUO.toString());
-        conf.set(ConfigUtils.CLOUDBASE_AUTHS, "");
+        // Install the Rya instance to the mini accumulo cluster.
+        final RyaClient ryaClient = AccumuloRyaClientFactory.build(new AccumuloConnectionDetails(
+                ACCUMULO_USER,
+                ACCUMULO_PASSWORD.toCharArray(),
+                instanceName,
+                zookeepers), accumuloConn);
 
+        ryaClient.getInstall().install(RYA_INSTANCE_NAME, InstallConfiguration.builder()
+                .setEnableTableHashPrefix(false)
+                .setEnableFreeTextIndex(true)
+                .setEnableEntityCentricIndex(true)
+                .setEnableGeoIndex(true)
+                .setEnableTemporalIndex(true)
+                .setEnablePcjIndex(true)
+                .setFluoPcjAppName(FLUO_APP_NAME)
+                .build());
+
+        // Connect to the Rya instance that was just installed.
+        final AccumuloRdfConfiguration conf = makeConfig(instanceName, zookeepers);
         final Sail sail = RyaSailFactory.getInstance(conf);
         final RyaSailRepository ryaRepo = new RyaSailRepository(sail);
-
-        // Initialize the Rya Details.
-        final RyaDetailsRepository detailsRepo = new AccumuloRyaInstanceDetailsRepository(accumuloConn, RYA_INSTANCE_NAME);
-
-        final RyaDetails details = RyaDetails.builder()
-                .setRyaInstanceName(RYA_INSTANCE_NAME)
-                .setRyaVersion("0.0.0.0")
-                .setFreeTextDetails( new FreeTextIndexDetails(true) )
-                .setEntityCentricIndexDetails( new EntityCentricIndexDetails(true) )
-                .setGeoIndexDetails( new GeoIndexDetails(true) )
-                .setTemporalIndexDetails( new TemporalIndexDetails(true) )
-                .setPCJIndexDetails(
-                        PCJIndexDetails.builder()
-                            .setEnabled(true) )
-                .setJoinSelectivityDetails( new JoinSelectivityDetails( Optional.<Date>absent() ) )
-                .setProspectorDetails( new ProspectorDetails( Optional.<Date>absent() ))
-                .build();
-
-        detailsRepo.initialize(details);
-
         return ryaRepo;
     }
 
-    /**
-     * Override this method to provide an output configuration to the Fluo
-     * application.
-     * <p>
-     * Returns an empty map by default.
-     *
-     * @return The parameters that will be passed to {@link QueryResultObserver}
-     *         at startup.
-     */
-    protected Map<String, String> makeExportParams() {
-        return new HashMap<>();
+    protected static AccumuloRdfConfiguration makeConfig(final String instanceName, final String zookeepers) {
+        final AccumuloRdfConfiguration conf = new AccumuloRdfConfiguration();
+        conf.setTablePrefix(RYA_INSTANCE_NAME);
+        // Accumulo connection information.
+        conf.set(ConfigUtils.CLOUDBASE_USER, ACCUMULO_USER);
+        conf.set(ConfigUtils.CLOUDBASE_PASSWORD, ACCUMULO_PASSWORD);
+        conf.set(ConfigUtils.CLOUDBASE_INSTANCE, instanceName);
+        conf.set(ConfigUtils.CLOUDBASE_ZOOKEEPERS, zookeepers);
+        conf.set(ConfigUtils.CLOUDBASE_AUTHS, "");
+        // PCJ configuration information.
+        conf.set(ConfigUtils.USE_PCJ, "true");
+        conf.set(ConfigUtils.USE_PCJ_UPDATER_INDEX, "true");
+        conf.set(ConfigUtils.USE_PCJ_FLUO_UPDATER, "true");
+        conf.set(ConfigUtils.FLUO_APP_NAME, FLUO_APP_NAME);
+        conf.set(ConfigUtils.PCJ_STORAGE_TYPE,
+                PrecomputedJoinIndexerConfig.PrecomputedJoinStorageType.ACCUMULO.toString());
+        conf.set(ConfigUtils.PCJ_UPDATER_TYPE,
+                PrecomputedJoinIndexerConfig.PrecomputedJoinUpdaterType.FLUO.toString());
+
+        return conf;
     }
 
     /**
-     * Setup a Mini Fluo cluster that uses a temporary directory to store its
-     * data.
+     * Setup a Mini Fluo cluster that uses a temporary directory to store its data.
      *
      * @return A Mini Fluo cluster.
      */
@@ -436,11 +385,19 @@ public abstract class ITBase {
         observers.add(new ObserverConfiguration(JoinObserver.class.getName()));
         observers.add(new ObserverConfiguration(FilterObserver.class.getName()));
 
-        // Provide export parameters child test classes may provide to the
-        // export observer.
-        final ObserverConfiguration exportObserverConfig = new ObserverConfiguration(
-                QueryResultObserver.class.getName());
-        exportObserverConfig.setParameters(makeExportParams());
+        // Configure the export observer to export new PCJ results to the mini accumulo cluster.
+        final ObserverConfiguration exportObserverConfig = new ObserverConfiguration(QueryResultObserver.class.getName());
+
+        final HashMap<String, String> exportParams = new HashMap<>();
+        final RyaExportParameters ryaParams = new RyaExportParameters(exportParams);
+        ryaParams.setExportToRya(true);
+        ryaParams.setRyaInstanceName(RYA_INSTANCE_NAME);
+        ryaParams.setAccumuloInstanceName(instanceName);
+        ryaParams.setZookeeperServers(zookeepers);
+        ryaParams.setExporterUsername(ITBase.ACCUMULO_USER);
+        ryaParams.setExporterPassword(ITBase.ACCUMULO_PASSWORD);
+
+        exportObserverConfig.setParameters(exportParams);
         observers.add(exportObserverConfig);
 
         // Configure how the mini fluo will run.
@@ -452,8 +409,8 @@ public abstract class ITBase {
         config.setInstanceZookeepers(zookeepers + "/fluo");
         config.setAccumuloZookeepers(zookeepers);
 
-        config.setApplicationName(appName);
-        config.setAccumuloTable("fluo" + appName);
+        config.setApplicationName(FLUO_APP_NAME);
+        config.setAccumuloTable("fluo" + FLUO_APP_NAME);
 
         config.addObservers(observers);
 

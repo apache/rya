@@ -24,50 +24,138 @@ import static org.junit.Assert.assertTrue;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
 import org.apache.accumulo.core.client.Connector;
+import org.apache.accumulo.core.client.Scanner;
 import org.apache.accumulo.core.client.admin.SecurityOperations;
 import org.apache.accumulo.core.client.security.tokens.PasswordToken;
+import org.apache.accumulo.core.data.Key;
+import org.apache.accumulo.core.data.Value;
 import org.apache.accumulo.core.security.Authorizations;
 import org.apache.accumulo.core.security.TablePermission;
+import org.apache.hadoop.io.Text;
 import org.apache.rya.indexing.pcj.fluo.ITBase;
 import org.apache.rya.indexing.pcj.fluo.api.CreatePcj;
 import org.apache.rya.indexing.pcj.fluo.api.InsertTriples;
-import org.apache.rya.indexing.pcj.fluo.app.export.rya.RyaExportParameters;
 import org.apache.rya.indexing.pcj.storage.PrecomputedJoinStorage;
 import org.apache.rya.indexing.pcj.storage.accumulo.AccumuloPcjStorage;
 import org.apache.rya.indexing.pcj.storage.accumulo.PcjTableNameFactory;
 import org.junit.Test;
+import org.openrdf.model.URI;
+import org.openrdf.model.ValueFactory;
 import org.openrdf.model.impl.URIImpl;
+import org.openrdf.model.impl.ValueFactoryImpl;
 import org.openrdf.query.BindingSet;
 import org.openrdf.query.impl.BindingImpl;
+import org.openrdf.repository.RepositoryConnection;
+import org.openrdf.sail.Sail;
 
 import com.beust.jcommander.internal.Sets;
 import com.google.common.base.Optional;
 
+import mvm.rya.accumulo.AccumuloRdfConfiguration;
+import mvm.rya.api.client.RyaClient;
+import mvm.rya.api.client.accumulo.AccumuloConnectionDetails;
+import mvm.rya.api.client.accumulo.AccumuloRyaClientFactory;
 import mvm.rya.api.domain.RyaStatement;
+import mvm.rya.indexing.accumulo.ConfigUtils;
+import mvm.rya.rdftriplestore.RyaSailRepository;
+import mvm.rya.sail.config.RyaSailFactory;
 
+/**
+ * Integration tests that ensure the Fluo Application properly exports PCJ
+ * results with the correct Visibility values.
+ */
 public class PcjVisibilityIT extends ITBase {
 
-    /**
-     * Configure the export observer to use the Mini Accumulo instance as the
-     * export destination for new PCJ results.
-     */
-    @Override
-    protected Map<String, String> makeExportParams() {
-        final HashMap<String, String> params = new HashMap<>();
+    private static final ValueFactory VF = new ValueFactoryImpl();
 
-        final RyaExportParameters ryaParams = new RyaExportParameters(params);
-        ryaParams.setExportToRya(true);
-        ryaParams.setAccumuloInstanceName(instanceName);
-        ryaParams.setZookeeperServers(zookeepers);
-        ryaParams.setExporterUsername(ITBase.ACCUMULO_USER);
-        ryaParams.setExporterPassword(ITBase.ACCUMULO_PASSWORD);
-        ryaParams.setRyaInstanceName(RYA_INSTANCE_NAME);
-        return params;
+    // Constants used within the test.
+    private static final URI ALICE = VF.createURI("urn:Alice");
+    private static final URI BOB = VF.createURI("urn:Bob");
+    private static final URI TALKS_TO = VF.createURI("urn:talksTo");
+    private static final URI LIVES_IN = VF.createURI("urn:livesIn");
+    private static final URI WORKS_AT = VF.createURI("urn:worksAt");
+    private static final URI HAPPYVILLE = VF.createURI("urn:Happyville");
+    private static final URI BURGER_JOINT = VF.createURI("urn:BurgerJoint");
+
+    @Test
+    public void visibilitySimplified() throws Exception {
+        // Create a PCJ index within Rya.
+        final String sparql =
+                "SELECT ?customer ?worker ?city " +
+                "{ " +
+                  "?customer <" + TALKS_TO + "> ?worker. " +
+                  "?worker <" + LIVES_IN + "> ?city. " +
+                  "?worker <" + WORKS_AT + "> <" + BURGER_JOINT + ">. " +
+                "}";
+
+        final RyaClient ryaClient = AccumuloRyaClientFactory.build(new AccumuloConnectionDetails(
+                ACCUMULO_USER,
+                ACCUMULO_PASSWORD.toCharArray(),
+                instanceName,
+                zookeepers), accumuloConn);
+
+        final String pcjId = ryaClient.getCreatePCJ().createPCJ(RYA_INSTANCE_NAME, sparql);
+
+        // Grant the root user the "u" authorization.
+        accumuloConn.securityOperations().changeUserAuthorizations(ACCUMULO_USER, new Authorizations("u"));
+
+        // Setup a connection to the Rya instance that uses the "u" authorizations. This ensures
+        // any statements that are inserted will have the "u" authorization on them and that the
+        // PCJ updating application will have to maintain visibilities.
+        final AccumuloRdfConfiguration ryaConf = super.makeConfig(instanceName, zookeepers);
+        ryaConf.set(ConfigUtils.CLOUDBASE_AUTHS, "u");
+
+        Sail sail = null;
+        RyaSailRepository ryaRepo = null;
+        RepositoryConnection ryaConn = null;
+
+        try {
+            sail = RyaSailFactory.getInstance(ryaConf);
+            ryaRepo = new RyaSailRepository(sail);
+            ryaConn = ryaRepo.getConnection();
+
+            // Load a few Statements into Rya.
+            ryaConn.add(VF.createStatement(ALICE, TALKS_TO, BOB));
+            ryaConn.add(VF.createStatement(BOB, LIVES_IN, HAPPYVILLE));
+            ryaConn.add(VF.createStatement(BOB, WORKS_AT, BURGER_JOINT));
+
+            // Wait for Fluo to finish processing.
+            fluo.waitForObservers();
+
+            // Fetch the exported result and show that its column visibility has been simplified.
+            final String pcjTableName = new PcjTableNameFactory().makeTableName(RYA_INSTANCE_NAME, pcjId);
+            final Scanner scan = accumuloConn.createScanner(pcjTableName, new Authorizations("u"));
+            scan.fetchColumnFamily(new Text("customer;worker;city"));
+
+            final Entry<Key, Value> result = scan.iterator().next();
+            final Key key = result.getKey();
+            assertEquals(new Text("u"), key.getColumnVisibility());
+
+        } finally {
+            if(ryaConn != null) {
+                try {
+                    ryaConn.close();
+                } finally { }
+            }
+
+            if(ryaRepo != null) {
+                try {
+                    ryaRepo.shutDown();
+                } finally { }
+            }
+
+            if(sail != null) {
+                try {
+                    sail.shutDown();
+                } finally { }
+            }
+        }
     }
 
     @Test
@@ -111,7 +199,8 @@ public class PcjVisibilityIT extends ITBase {
 
         // Stream the data into Fluo.
         for(final RyaStatement statement : streamedTriples.keySet()) {
-            new InsertTriples().insert(fluoClient, statement, Optional.of(streamedTriples.get(statement)));
+            final Optional<String> visibility = Optional.of(streamedTriples.get(statement));
+            new InsertTriples().insert(fluoClient, statement, visibility);
         }
 
         // Fetch the exported results from Accumulo once the observers finish working.

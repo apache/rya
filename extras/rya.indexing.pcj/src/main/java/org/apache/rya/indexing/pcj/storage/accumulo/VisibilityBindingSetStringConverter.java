@@ -22,8 +22,6 @@ import javax.annotation.ParametersAreNonnullByDefault;
 
 import org.openrdf.query.BindingSet;
 
-import com.google.common.base.Strings;
-
 /**
  * Converts {@link BindingSet}s to Strings and back again. The Strings do not
  * include the binding names and are ordered with a {@link VariableOrder}.
@@ -32,28 +30,36 @@ import com.google.common.base.Strings;
 public class VisibilityBindingSetStringConverter extends BindingSetStringConverter {
     public static final char VISIBILITY_DELIM = 1;
 
+    private static final int BINDING_SET_STRING_INDEX = 0;
+    private static final int VISIBILITY_EXPRESSION_INDEX = 1;
+
     @Override
     public String convert(final BindingSet bindingSet, final VariableOrder varOrder) {
-        String visibility = "";
+        // Convert the BindingSet into its String format.
+        String bindingSetString = super.convert(bindingSet, varOrder);
+
+        // Append the visibilities if they are present.
         if(bindingSet instanceof VisibilityBindingSet) {
-            final VisibilityBindingSet visiSet = (VisibilityBindingSet) bindingSet;
-            if(!Strings.isNullOrEmpty(visiSet.getVisibility())) {
-                visibility = VISIBILITY_DELIM + visiSet.getVisibility();
+            final String visibility = ((VisibilityBindingSet) bindingSet).getVisibility();
+            if(!visibility.isEmpty()) {
+                bindingSetString += VISIBILITY_DELIM + visibility;
             }
         }
-        return super.convert(bindingSet, varOrder) + visibility;
+
+        return bindingSetString;
     }
 
     @Override
-    public BindingSet convert(final String bindingSetString, final VariableOrder varOrder) {
-        final String[] visiStrings = bindingSetString.split("" + VISIBILITY_DELIM);
-        BindingSet bindingSet = super.convert(visiStrings[0], varOrder);
+    public VisibilityBindingSet convert(final String bindingSetString, final VariableOrder varOrder) {
+        // Try to split the binding set string over the visibility delimiter.
+        final String[] strings = bindingSetString.split("" + VISIBILITY_DELIM);
 
-        if(visiStrings.length > 1) {
-            bindingSet = new VisibilityBindingSet(bindingSet, visiStrings[1]);
-        } else {
-            bindingSet = new VisibilityBindingSet(bindingSet);
-        }
-        return bindingSet;
+        // Convert the binding set string into a BindingSet.
+        final BindingSet bindingSet = super.convert(strings[BINDING_SET_STRING_INDEX], varOrder);
+
+        // If a visibility expression is present, then also include it.
+        return (strings.length > 1) ?
+                new VisibilityBindingSet(bindingSet, strings[VISIBILITY_EXPRESSION_INDEX]) :
+                new VisibilityBindingSet(bindingSet);
     }
 }

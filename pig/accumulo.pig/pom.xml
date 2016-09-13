@@ -63,18 +63,22 @@ under the License.
         </dependency>
     </dependencies>
     <build>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>org.apache.rat</groupId>
+                    <artifactId>apache-rat-plugin</artifactId>
+                    <configuration>
+                        <excludes>
+                            <exclude>src/test/resources/ResultsFile1.txt</exclude>
+                            <exclude>src/test/resources/testQuery.txt</exclude>
+                            <exclude>src/test/resources/testQuery2.txt</exclude>
+                        </excludes>
+                    </configuration>
+                </plugin>
+            </plugins>
+        </pluginManagement>
         <plugins>
-            <plugin>
-                <groupId>org.apache.rat</groupId>
-                <artifactId>apache-rat-plugin</artifactId>
-                <configuration>
-                    <excludes combine.children="append">
-                        <exclude>src/test/resources/ResultsFile1.txt</exclude>
-                        <exclude>src/test/resources/testQuery.txt</exclude>
-                        <exclude>src/test/resources/testQuery2.txt</exclude>
-                    </excludes>
-                </configuration>
-            </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>

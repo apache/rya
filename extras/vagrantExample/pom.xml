@@ -30,17 +30,19 @@ under the License.
     <name>Apache Rya Vagrant VM</name>
 
     <build>
-        <plugins>
-            <plugin>
-                <groupId>org.apache.rat</groupId>
-                <artifactId>apache-rat-plugin</artifactId>
-                <configuration>
-                    <excludes combine.children="append">
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>org.apache.rat</groupId>
+                    <artifactId>apache-rat-plugin</artifactId>
+                    <configuration>
+                    <excludes>
                         <!--  Vagrant may leave around some files.  These are not checked in -->
                         <exclude>**/src/main/vagrant/.vagrant/**</exclude>
                     </excludes>
-                </configuration>
-            </plugin>
-        </plugins>
+                    </configuration>
+                </plugin>
+            </plugins>
+        </pluginManagement>
     </build>
 </project>

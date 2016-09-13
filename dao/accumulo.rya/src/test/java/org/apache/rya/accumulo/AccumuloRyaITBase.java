@@ -76,7 +76,7 @@ public class AccumuloRyaITBase {
                 .setRyaVersion("0.0.0.0")
                 .setFreeTextDetails( new FreeTextIndexDetails(true) )
                 .setEntityCentricIndexDetails( new EntityCentricIndexDetails(true) )
-                .setGeoIndexDetails( new GeoIndexDetails(true) )
+              //RYA-215                .setGeoIndexDetails( new GeoIndexDetails(true) )
                 .setTemporalIndexDetails( new TemporalIndexDetails(true) )
                 .setPCJIndexDetails(
                         PCJIndexDetails.builder()

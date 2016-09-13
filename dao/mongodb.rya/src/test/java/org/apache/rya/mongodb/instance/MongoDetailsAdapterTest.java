@@ -23,17 +23,9 @@ import static org.junit.Assert.assertEquals;
 
 import java.util.Date;
 
-import org.junit.Test;
-
-import com.google.common.base.Optional;
-import com.mongodb.BasicDBObject;
-import com.mongodb.DBObject;
-import com.mongodb.util.JSON;
-
 import org.apache.rya.api.instance.RyaDetails;
 import org.apache.rya.api.instance.RyaDetails.EntityCentricIndexDetails;
 import org.apache.rya.api.instance.RyaDetails.FreeTextIndexDetails;
-import org.apache.rya.api.instance.RyaDetails.GeoIndexDetails;
 import org.apache.rya.api.instance.RyaDetails.JoinSelectivityDetails;
 import org.apache.rya.api.instance.RyaDetails.PCJIndexDetails;
 import org.apache.rya.api.instance.RyaDetails.PCJIndexDetails.FluoDetails;
@@ -42,6 +34,12 @@ import org.apache.rya.api.instance.RyaDetails.PCJIndexDetails.PCJDetails.PCJUpda
 import org.apache.rya.api.instance.RyaDetails.ProspectorDetails;
 import org.apache.rya.api.instance.RyaDetails.TemporalIndexDetails;
 import org.apache.rya.mongodb.instance.MongoDetailsAdapter.MalformedRyaDetailsException;
+import org.junit.Test;
+
+import com.google.common.base.Optional;
+import com.mongodb.BasicDBObject;
+import com.mongodb.DBObject;
+import com.mongodb.util.JSON;
 
 /**
  * Tests the methods of {@link MongoDetailsAdapter}.
@@ -55,7 +53,7 @@ public class MongoDetailsAdapterTest {
             .setRyaInstanceName("test")
             .setRyaVersion("1")
             .setEntityCentricIndexDetails(new EntityCentricIndexDetails(true))
-            .setGeoIndexDetails(new GeoIndexDetails(true))
+          //RYA-215            .setGeoIndexDetails(new GeoIndexDetails(true))
             .setPCJIndexDetails(
                 PCJIndexDetails.builder()
                 .setEnabled(true)
@@ -84,7 +82,7 @@ public class MongoDetailsAdapterTest {
             + "instanceName : \"test\","
             + "version : \"1\","
             + "entityCentricDetails : true,"
-            + "geoDetails : true,"
+          //RYA-215            + "geoDetails : true,"
             + "pcjDetails : {"
             +    "enabled : true ,"
             +    "fluoName : \"fluo\","
@@ -118,7 +116,7 @@ public class MongoDetailsAdapterTest {
             + "instanceName : \"test\","
             + "version : \"1\","
             + "entityCentricDetails : true,"
-            + "geoDetails : true,"
+          //RYA-215            + "geoDetails : true,"
             + "pcjDetails : {"
             +    "enabled : true ,"
             +    "fluoName : \"fluo\","
@@ -148,7 +146,7 @@ public class MongoDetailsAdapterTest {
             .setRyaInstanceName("test")
             .setRyaVersion("1")
             .setEntityCentricIndexDetails(new EntityCentricIndexDetails(true))
-            .setGeoIndexDetails(new GeoIndexDetails(true))
+          //RYA-215            .setGeoIndexDetails(new GeoIndexDetails(true))
             .setPCJIndexDetails(
                 PCJIndexDetails.builder()
                     .setEnabled(true)
@@ -180,7 +178,7 @@ public class MongoDetailsAdapterTest {
                 + "instanceName : \"test\","
                 + "version : \"1\","
                 + "entityCentricDetails : true,"
-                + "geoDetails : false,"
+              //RYA-215                + "geoDetails : false,"
                 + "pcjDetails : {"
                 +    "enabled : false,"
                 +    "fluoName : \"fluo\","
@@ -203,7 +201,7 @@ public class MongoDetailsAdapterTest {
             .setRyaInstanceName("test")
             .setRyaVersion("1")
             .setEntityCentricIndexDetails(new EntityCentricIndexDetails(true))
-            .setGeoIndexDetails(new GeoIndexDetails(false))
+          //RYA-215            .setGeoIndexDetails(new GeoIndexDetails(false))
             .setPCJIndexDetails(
                     PCJIndexDetails.builder()
                     .setEnabled(false)
@@ -228,7 +226,7 @@ public class MongoDetailsAdapterTest {
             .setRyaInstanceName("test")
             .setRyaVersion("1")
             .setEntityCentricIndexDetails(new EntityCentricIndexDetails(true))
-            .setGeoIndexDetails(new GeoIndexDetails(false))
+          //RYA-215            .setGeoIndexDetails(new GeoIndexDetails(false))
             .setPCJIndexDetails(
                 PCJIndexDetails.builder()
                     .setEnabled(true)
@@ -247,7 +245,7 @@ public class MongoDetailsAdapterTest {
                 + "instanceName : \"test\","
                 + "version : \"1\","
                 + "entityCentricDetails : true,"
-                + "geoDetails : false,"
+              //RYA-215                + "geoDetails : false,"
                 + "pcjDetails : {"
                 +    "enabled : true,"
                 +    "fluoName : \"fluo\","

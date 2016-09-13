@@ -29,12 +29,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.TimeZone;
 
-import org.junit.Test;
-
-import com.google.common.base.Optional;
-import com.google.common.collect.Lists;
-
-import org.apache.rya.api.client.BatchUpdatePCJ;
+import org.apache.rya.api.client.AddUser;
 import org.apache.rya.api.client.CreatePCJ;
 import org.apache.rya.api.client.DeletePCJ;
 import org.apache.rya.api.client.GetInstanceDetails;
@@ -43,14 +38,13 @@ import org.apache.rya.api.client.Install.DuplicateInstanceNameException;
 import org.apache.rya.api.client.Install.InstallConfiguration;
 import org.apache.rya.api.client.InstanceDoesNotExistException;
 import org.apache.rya.api.client.ListInstances;
-import org.apache.rya.api.client.PCJDoesNotExistException;
+import org.apache.rya.api.client.RemoveUser;
 import org.apache.rya.api.client.RyaClient;
 import org.apache.rya.api.client.RyaClientException;
 import org.apache.rya.api.client.accumulo.AccumuloConnectionDetails;
 import org.apache.rya.api.instance.RyaDetails;
 import org.apache.rya.api.instance.RyaDetails.EntityCentricIndexDetails;
 import org.apache.rya.api.instance.RyaDetails.FreeTextIndexDetails;
-import org.apache.rya.api.instance.RyaDetails.GeoIndexDetails;
 import org.apache.rya.api.instance.RyaDetails.JoinSelectivityDetails;
 import org.apache.rya.api.instance.RyaDetails.PCJIndexDetails;
 import org.apache.rya.api.instance.RyaDetails.PCJIndexDetails.FluoDetails;
@@ -60,6 +54,10 @@ import org.apache.rya.api.instance.RyaDetails.ProspectorDetails;
 import org.apache.rya.api.instance.RyaDetails.TemporalIndexDetails;
 import org.apache.rya.shell.util.InstallPrompt;
 import org.apache.rya.shell.util.SparqlPrompt;
+import org.junit.Test;
+
+import com.google.common.base.Optional;
+import com.google.common.collect.Lists;
 
 /**
  * Unit tests the methods of {@link RyaAdminCommands}.
@@ -125,33 +123,6 @@ public class RyaAdminCommandsTest {
     }
 
     @Test
-    public void batchUpdatePCJ() throws InstanceDoesNotExistException, PCJDoesNotExistException, RyaClientException {
-        // Mock the object that performs the update PCJ operation.
-        final BatchUpdatePCJ mockBatchUpdatePCJ = mock(BatchUpdatePCJ.class);
-
-        final RyaClient mockRyaClient = mock(RyaClient.class);
-        when(mockRyaClient.getBatchUpdatePCJ()).thenReturn( mockBatchUpdatePCJ );
-
-        final SharedShellState state = new SharedShellState();
-        state.connectedToAccumulo(mock(AccumuloConnectionDetails.class), mockRyaClient);
-        final String instanceName = "unitTests";
-        state.connectedToInstance(instanceName);
-
-        // Execute the command.
-        final String pcjId = "12343214312";
-
-        final RyaAdminCommands commands = new RyaAdminCommands(state, mock(InstallPrompt.class), mock(SparqlPrompt.class));
-        final String message = commands.batchUpdatePcj(pcjId);
-
-        // Verify the values that were provided to the command were passed through to the BatchUpdatePCJ.
-        verify(mockBatchUpdatePCJ).batchUpdate(eq(instanceName), eq(pcjId));
-
-        // Verify a message is returned that explains what was updated.
-        final String expected = "The PCJ's results have been updated.";
-        assertEquals(message, expected);
-    }
-
-    @Test
     public void getInstanceDetails() throws InstanceDoesNotExistException, RyaClientException {
         // This test is failed if the default timezone was not EST, so now it's fixed at EST.
         // If you get assert mismatch of EST!=EDT, try the deprecated getTimeZone("EST") instead.
@@ -161,8 +132,11 @@ public class RyaAdminCommandsTest {
         final String instanceName = "test_instance";
         final RyaDetails details = RyaDetails.builder().setRyaInstanceName(instanceName)
                 .setRyaVersion("1.2.3.4")
+                .addUser("alice")
+                .addUser("bob")
+                .addUser("charlie")
                 .setEntityCentricIndexDetails( new EntityCentricIndexDetails(true) )
-                .setGeoIndexDetails( new GeoIndexDetails(true) )
+              //RYA-215.setGeoIndexDetails( new GeoIndexDetails(true) )
                 .setTemporalIndexDetails( new TemporalIndexDetails(true) )
                 .setFreeTextDetails( new FreeTextIndexDetails(true) )
                 .setPCJIndexDetails(
@@ -203,11 +177,12 @@ public class RyaAdminCommandsTest {
                 "General Metadata:\n" +
                 "  Instance Name: test_instance\n" +
                 "  RYA Version: 1.2.3.4\n" +
+                "  Users: alice, bob, charlie\n" +
                 "Secondary Indicies:\n" +
                 "  Entity Centric Index:\n" +
                 "    Enabled: true\n" +
-                "  Geospatial Index:\n" +
-                "    Enabled: true\n" +
+              //RYA-215"  Geospatial Index:\n" +
+            //RYA-215"    Enabled: true\n" +
                 "  Free Text Index:\n" +
                 "    Enabled: true\n" +
                 "  Temporal Index:\n" +
@@ -290,5 +265,45 @@ public class RyaAdminCommandsTest {
                 "   c\n" +
                 "   d\n";
         assertEquals(expected, message);
+    }
+
+    @Test
+    public void addUser() throws Exception {
+        // Mock the object that performs the Add User command.
+        final AddUser mockAddUser = mock(AddUser.class);
+
+        final RyaClient mockClient = mock(RyaClient.class);
+        when(mockClient.getAddUser()).thenReturn( mockAddUser );
+
+        final SharedShellState state = new SharedShellState();
+        state.connectedToAccumulo(mock(AccumuloConnectionDetails.class), mockClient);
+        state.connectedToInstance("test_instance");
+
+        // Execute the command.
+        final RyaAdminCommands commands = new RyaAdminCommands(state, mock(InstallPrompt.class), mock(SparqlPrompt.class));
+        commands.addUser("alice");
+
+        // Verify the add request was forwarded to the client.
+        verify(mockAddUser).addUser(eq("test_instance"), eq("alice"));
+    }
+
+    @Test
+    public void removeUser() throws Exception {
+        // Mock the object that performs the Add User command.
+        final RemoveUser mockRemoveUser = mock(RemoveUser.class);
+
+        final RyaClient mockClient = mock(RyaClient.class);
+        when(mockClient.getRemoveUser()).thenReturn( mockRemoveUser );
+
+        final SharedShellState state = new SharedShellState();
+        state.connectedToAccumulo(mock(AccumuloConnectionDetails.class), mockClient);
+        state.connectedToInstance("test_instance");
+
+        // Execute the command.
+        final RyaAdminCommands commands = new RyaAdminCommands(state, mock(InstallPrompt.class), mock(SparqlPrompt.class));
+        commands.removeUser("alice");
+
+        // Verify the add request was forwarded to the client.
+        verify(mockRemoveUser).removeUser(eq("test_instance"), eq("alice"));
     }
 }

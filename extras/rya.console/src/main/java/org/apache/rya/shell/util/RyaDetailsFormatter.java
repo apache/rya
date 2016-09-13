@@ -23,12 +23,13 @@ import static java.util.Objects.requireNonNull;
 import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
 import edu.umd.cs.findbugs.annotations.NonNull;
 
-import com.google.common.base.Optional;
-import com.google.common.collect.ImmutableMap;
-
 import org.apache.rya.api.instance.RyaDetails;
 import org.apache.rya.api.instance.RyaDetails.PCJIndexDetails;
 import org.apache.rya.api.instance.RyaDetails.PCJIndexDetails.PCJDetails;
+
+import com.google.common.base.Joiner;
+import com.google.common.base.Optional;
+import com.google.common.collect.ImmutableMap;
 
 /**
  * Formats an instance of {@link RyaDetails}.
@@ -50,12 +51,13 @@ public class RyaDetailsFormatter {
         report.append("General Metadata:\n");
         report.append("  Instance Name: ").append(details.getRyaInstanceName()).append("\n");
         report.append("  RYA Version: ").append( details.getRyaVersion() ).append("\n");
+        report.append("  Users: ").append( Joiner.on(", ").join(details.getUsers()) ).append("\n");
 
         report.append("Secondary Indicies:\n");
         report.append("  Entity Centric Index:\n");
         report.append("    Enabled: ").append( details.getEntityCentricIndexDetails().isEnabled() ).append("\n");
-        report.append("  Geospatial Index:\n");
-        report.append("    Enabled: ").append( details.getGeoIndexDetails().isEnabled() ).append("\n");
+      //RYA-215        report.append("  Geospatial Index:\n");
+      //RYA-215        report.append("    Enabled: ").append( details.getGeoIndexDetails().isEnabled() ).append("\n");
         report.append("  Free Text Index:\n");
         report.append("    Enabled: ").append( details.getFreeTextIndexDetails().isEnabled() ).append("\n");
         report.append("  Temporal Index:\n");

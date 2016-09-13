@@ -23,15 +23,6 @@ import static org.junit.Assert.assertEquals;
 import java.util.HashSet;
 import java.util.Set;
 
-import org.apache.rya.indexing.pcj.storage.PrecomputedJoinStorage;
-import org.apache.rya.indexing.pcj.storage.accumulo.AccumuloPcjStorage;
-import org.junit.Test;
-import org.openrdf.model.ValueFactory;
-import org.openrdf.query.BindingSet;
-import org.openrdf.query.impl.MapBindingSet;
-import org.openrdf.sail.Sail;
-import org.openrdf.sail.SailConnection;
-
 import org.apache.rya.accumulo.AccumuloITBase;
 import org.apache.rya.accumulo.AccumuloRdfConfiguration;
 import org.apache.rya.api.client.Install.InstallConfiguration;
@@ -39,7 +30,15 @@ import org.apache.rya.api.client.RyaClient;
 import org.apache.rya.indexing.accumulo.ConfigUtils;
 import org.apache.rya.indexing.external.PrecomputedJoinIndexerConfig.PrecomputedJoinStorageType;
 import org.apache.rya.indexing.external.PrecomputedJoinIndexerConfig.PrecomputedJoinUpdaterType;
+import org.apache.rya.indexing.pcj.storage.PrecomputedJoinStorage;
+import org.apache.rya.indexing.pcj.storage.accumulo.AccumuloPcjStorage;
 import org.apache.rya.sail.config.RyaSailFactory;
+import org.junit.Test;
+import org.openrdf.model.ValueFactory;
+import org.openrdf.query.BindingSet;
+import org.openrdf.query.impl.MapBindingSet;
+import org.openrdf.sail.Sail;
+import org.openrdf.sail.SailConnection;
 
 /**
  * Integration tests the methods of {@link AccumuloBatchUpdatePCJ}.

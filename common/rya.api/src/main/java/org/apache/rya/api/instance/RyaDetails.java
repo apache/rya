@@ -1,6 +1,4 @@
-package org.apache.rya.api.instance;
-
-/*
+/**
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -9,7 +7,7 @@ package org.apache.rya.api.instance;
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
@@ -18,12 +16,15 @@ package org.apache.rya.api.instance;
  * specific language governing permissions and limitations
  * under the License.
  */
+package org.apache.rya.api.instance;
 
 import static java.util.Objects.requireNonNull;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
@@ -33,7 +34,11 @@ import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
 import edu.umd.cs.findbugs.annotations.NonNull;
 import net.jcip.annotations.Immutable;
 
+import org.apache.rya.api.instance.RyaDetails.PCJIndexDetails;
+import org.apache.rya.api.instance.RyaDetails.PCJIndexDetails.PCJDetails;
+
 import com.google.common.base.Optional;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 
 /**
@@ -47,10 +52,14 @@ public class RyaDetails implements Serializable {
     // General metadata about the instance.
     private final String instanceName;
     private final String version;
+    private final ImmutableList<String> users;
 
     // Secondary Index Details.
     private final EntityCentricIndexDetails entityCentricDetails;
-    private final GeoIndexDetails geoDetails;
+    /**
+     * RYA- 215
+     * private final GeoIndexDetails geoDetails;
+     */
     private final PCJIndexDetails pcjDetails;
     private final TemporalIndexDetails temporalDetails;
     private final FreeTextIndexDetails freeTextDetails;
@@ -66,8 +75,9 @@ public class RyaDetails implements Serializable {
     private RyaDetails(
             final String instanceName,
             final String version,
+            final ImmutableList<String> users,
             final EntityCentricIndexDetails entityCentricDetails,
-            final GeoIndexDetails geoDetails,
+//RYA-215            final GeoIndexDetails geoDetails,
             final PCJIndexDetails pcjDetails,
             final TemporalIndexDetails temporalDetails,
             final FreeTextIndexDetails freeTextDetails,
@@ -75,8 +85,9 @@ public class RyaDetails implements Serializable {
             final JoinSelectivityDetails joinSelectivityDetails) {
         this.instanceName = requireNonNull(instanceName);
         this.version = requireNonNull(version);
+        this.users = requireNonNull(users);
         this.entityCentricDetails = requireNonNull(entityCentricDetails);
-        this.geoDetails = requireNonNull(geoDetails);
+      //RYA-215        this.geoDetails = requireNonNull(geoDetails);
         this.pcjDetails = requireNonNull(pcjDetails);
         this.temporalDetails = requireNonNull(temporalDetails);
         this.freeTextDetails = requireNonNull(freeTextDetails);
@@ -100,6 +111,13 @@ public class RyaDetails implements Serializable {
     }
 
     /**
+     * @return The users who have been granted access to the Rya instance.
+     */
+    public ImmutableList<String> getUsers() {
+        return users;
+    }
+
+    /**
      * @return Information about the instance's Entity Centric Index.
      */
     public EntityCentricIndexDetails getEntityCentricIndexDetails() {
@@ -108,10 +126,12 @@ public class RyaDetails implements Serializable {
 
     /**
      * @return Information about the instance's Geospatial Index.
+     *
+     * RYA-215
      */
-    public GeoIndexDetails getGeoIndexDetails() {
+/*    public GeoIndexDetails getGeoIndexDetails() {
         return geoDetails;
-    }
+    }*/
 
     /**
      * @return Information about the instance's Precomputed Join Index.
@@ -154,7 +174,7 @@ public class RyaDetails implements Serializable {
                 instanceName,
                 version,
                 entityCentricDetails,
-                geoDetails,
+              //RYA-215                geoDetails,
                 pcjDetails,
                 temporalDetails,
                 freeTextDetails,
@@ -172,7 +192,7 @@ public class RyaDetails implements Serializable {
             return Objects.equals(instanceName, details.instanceName) &&
                     Objects.equals(version, details.version) &&
                     Objects.equals(entityCentricDetails, details.entityCentricDetails) &&
-                    Objects.equals(geoDetails, details.geoDetails) &&
+                  //RYA-215                    Objects.equals(geoDetails, details.geoDetails) &&
                     Objects.equals(pcjDetails, details.pcjDetails) &&
                     Objects.equals(temporalDetails, details.temporalDetails) &&
                     Objects.equals(freeTextDetails, details.freeTextDetails) &&
@@ -206,6 +226,7 @@ public class RyaDetails implements Serializable {
         // General metadata about the instance.
         private String instanceName;
         private String version;
+        private final List<String> users = new ArrayList<>();
 
         // Secondary Index Details.
         private EntityCentricIndexDetails entityCentricDetails;
@@ -233,8 +254,9 @@ public class RyaDetails implements Serializable {
             requireNonNull(details);
             instanceName = details.instanceName;
             version = details.version;
+            users.addAll( details.users );
             entityCentricDetails = details.entityCentricDetails;
-            geoDetails = details.geoDetails;
+          //RYA-215            geoDetails = details.geoDetails;
             pcjIndexDetailsBuilder = PCJIndexDetails.builder( details.pcjDetails );
             temporalDetails = details.temporalDetails;
             freeTextDetails = details.freeTextDetails;
@@ -262,6 +284,24 @@ public class RyaDetails implements Serializable {
         }
 
         /**
+         * @param user - A user who is granted access to the Rya instance.
+         * @return This {@link Builder} so that method invocations may be chained.
+         */
+        public Builder addUser(final String user) {
+            users.add( user );
+            return this;
+        }
+
+        /**
+         * @param user - A user who is revoked access to the Rya isntance.
+         * @return This {@link Builder} so that method invocations may be chained.
+         */
+        public Builder removeUser(final String user) {
+            users.remove( user );
+            return this;
+        }
+
+        /**
          * @param entityCentricDetails - Information about the instance's Entity Centric Index.
          * @return This {@link Builder} so that method invocations may be chained.
          */
@@ -275,10 +315,11 @@ public class RyaDetails implements Serializable {
          * @param geoDetails - Information about the instance's Geospatial Index.
          * @return This {@link Builder} so that method invocations may be chained.
          */
-        public Builder setGeoIndexDetails(@Nullable final GeoIndexDetails geoDetails) {
+        /*//RYA-215
+         * public Builder setGeoIndexDetails(@Nullable final GeoIndexDetails geoDetails) {
             this.geoDetails = geoDetails;
             return this;
-        }
+        }*/
 
         /**
          * @param temporalDetails - Information about the instance's Temporal Index.
@@ -303,7 +344,7 @@ public class RyaDetails implements Serializable {
          * @return This {@link Builder} so that method invocations may be chained.
          */
         public Builder setPCJIndexDetails(@Nullable final PCJIndexDetails.Builder pcjDetailsBuilder) {
-            this.pcjIndexDetailsBuilder = pcjDetailsBuilder;
+            pcjIndexDetailsBuilder = pcjDetailsBuilder;
             return this;
         }
 
@@ -341,8 +382,9 @@ public class RyaDetails implements Serializable {
             return new RyaDetails(
                     instanceName,
                     version,
+                    ImmutableList.copyOf( users ),
                     entityCentricDetails,
-                    geoDetails,
+                  //RYA-215                    geoDetails,
                     pcjIndexDetailsBuilder.build(),
                     temporalDetails,
                     freeTextDetails,
@@ -640,8 +682,8 @@ public class RyaDetails implements Serializable {
              */
             public Builder(final PCJIndexDetails pcjIndexDetails) {
                 requireNonNull(pcjIndexDetails);
-                this.enabled = pcjIndexDetails.enabled;
-                this.fluoDetails = pcjIndexDetails.fluoDetails.orNull();
+                enabled = pcjIndexDetails.enabled;
+                fluoDetails = pcjIndexDetails.fluoDetails.orNull();
 
                 for(final PCJDetails pcjDetails : pcjIndexDetails.pcjDetails.values()) {
                     pcjDetailsBuilders.put(pcjDetails.getId(), PCJDetails.builder(pcjDetails));
@@ -673,7 +715,7 @@ public class RyaDetails implements Serializable {
              */
             public Builder addPCJDetails(@Nullable final PCJDetails.Builder pcjDetailsBuilder) {
                 if(pcjDetailsBuilder != null) {
-                    this.pcjDetailsBuilders.put(pcjDetailsBuilder.getId(), pcjDetailsBuilder);
+                    pcjDetailsBuilders.put(pcjDetailsBuilder.getId(), pcjDetailsBuilder);
                 }
                 return this;
             }
@@ -684,7 +726,7 @@ public class RyaDetails implements Serializable {
              */
             public Builder removePCJDetails(@Nullable final String pcjId) {
                 requireNonNull(pcjId);
-                this.pcjDetailsBuilders.remove(pcjId);
+                pcjDetailsBuilders.remove(pcjId);
                 return this;
             }
 
@@ -859,9 +901,9 @@ public class RyaDetails implements Serializable {
                  */
                 public Builder(final PCJDetails details) {
                     requireNonNull(details);
-                    this.id = details.id;
-                    this.updateStrategy = details.updateStrategy.orNull();
-                    this.lastUpdateTime = details.lastUpdateTime.orNull();
+                    id = details.id;
+                    updateStrategy = details.updateStrategy.orNull();
+                    lastUpdateTime = details.lastUpdateTime.orNull();
                 }
 
                 /**

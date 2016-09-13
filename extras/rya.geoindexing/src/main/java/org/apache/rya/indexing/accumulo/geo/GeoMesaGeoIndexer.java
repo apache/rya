@@ -1,5 +1,3 @@
-package org.apache.rya.indexing.accumulo.geo;
-
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -18,8 +16,9 @@ package org.apache.rya.indexing.accumulo.geo;
  * specific language governing permissions and limitations
  * under the License.
  */
+package org.apache.rya.indexing.accumulo.geo;
 
-
+import static java.util.Objects.requireNonNull;
 
 import java.io.IOException;
 import java.io.Serializable;
@@ -39,6 +38,16 @@ import org.apache.accumulo.core.client.mock.MockInstance;
 import org.apache.commons.lang.StringUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.log4j.Logger;
+import org.apache.rya.accumulo.experimental.AbstractAccumuloIndexer;
+import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
+import org.apache.rya.api.domain.RyaStatement;
+import org.apache.rya.api.resolver.RyaToRdfConversions;
+import org.apache.rya.indexing.GeoIndexer;
+import org.apache.rya.indexing.Md5Hash;
+import org.apache.rya.indexing.OptionalConfigUtils;
+import org.apache.rya.indexing.StatementConstraints;
+import org.apache.rya.indexing.StatementSerializer;
+import org.apache.rya.indexing.accumulo.ConfigUtils;
 import org.geotools.data.DataStore;
 import org.geotools.data.DataStoreFinder;
 import org.geotools.data.DataUtilities;
@@ -68,19 +77,8 @@ import org.openrdf.query.QueryEvaluationException;
 
 import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.io.ParseException;
-import com.vividsolutions.jts.io.WKTReader;
 
 import info.aduna.iteration.CloseableIteration;
-import org.apache.rya.accumulo.experimental.AbstractAccumuloIndexer;
-import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
-import org.apache.rya.api.domain.RyaStatement;
-import org.apache.rya.api.resolver.RyaToRdfConversions;
-import org.apache.rya.indexing.GeoIndexer;
-import org.apache.rya.indexing.Md5Hash;
-import org.apache.rya.indexing.OptionalConfigUtils;
-import org.apache.rya.indexing.StatementConstraints;
-import org.apache.rya.indexing.StatementSerializer;
-import org.apache.rya.indexing.accumulo.ConfigUtils;
 
 /**
  * A {@link GeoIndexer} wrapper around a GeoMesa {@link AccumuloDataStore}. This class configures and connects to the Datastore, creates the
@@ -277,7 +275,7 @@ public class GeoMesaGeoIndexer extends AbstractAccumuloIndexer implements GeoInd
         final SimpleFeature newFeature = SimpleFeatureBuilder.build(featureType, noValues, statementId);
 
         // write the statement data to the fields
-        final Geometry geom = GeoParseUtils.getGeometry(statement); 
+        final Geometry geom = GeoParseUtils.getGeometry(statement);
         if(geom == null || geom.isEmpty() || !geom.isValid()) {
             throw new ParseException("Could not create geometry for statement " + statement);
         }
@@ -435,16 +433,27 @@ public class GeoMesaGeoIndexer extends AbstractAccumuloIndexer implements GeoInd
 
     @Override
     public String getTableName() {
-            return getTableName(conf);
+        return getTableName(conf);
     }
 
     /**
-     * Get the Accumulo table that will be used by this index.  
+     * Get the Accumulo table that will be used by this index.
      * @param conf
      * @return table name guaranteed to be used by instances of this index
      */
-    public static String getTableName(Configuration conf) {
-        return ConfigUtils.getTablePrefix(conf)  + TABLE_SUFFIX;
+    public static String getTableName(final Configuration conf) {
+        return makeTableName( ConfigUtils.getTablePrefix(conf) );
+    }
+
+    /**
+     * Make the Accumulo table name used by this indexer for a specific instance of Rya.
+     *
+     * @param ryaInstanceName - The name of the Rya instance the table name is for. (not null)
+     * @return The Accumulo table name used by this indexer for a specific instance of Rya.
+     */
+    public static String makeTableName(final String ryaInstanceName) {
+        requireNonNull(ryaInstanceName);
+        return ryaInstanceName + TABLE_SUFFIX;
     }
 
     private void deleteStatements(final Collection<RyaStatement> ryaStatements) throws IOException {

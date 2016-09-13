@@ -22,35 +22,17 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
 import java.util.Date;
 
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
 import org.apache.accumulo.core.client.Connector;
-import org.apache.accumulo.core.client.Instance;
-import org.apache.accumulo.core.client.ZooKeeperInstance;
-import org.apache.accumulo.core.client.mock.MockInstance;
-import org.apache.accumulo.core.client.security.tokens.PasswordToken;
 import org.apache.accumulo.minicluster.MiniAccumuloCluster;
-import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
-import org.apache.zookeeper.ClientCnxn;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
-
-import com.google.common.base.Optional;
-
 import org.apache.rya.accumulo.AccumuloITBase;
 import org.apache.rya.accumulo.MiniAccumuloClusterInstance;
 import org.apache.rya.api.instance.RyaDetails;
 import org.apache.rya.api.instance.RyaDetails.EntityCentricIndexDetails;
 import org.apache.rya.api.instance.RyaDetails.FreeTextIndexDetails;
-import org.apache.rya.api.instance.RyaDetails.GeoIndexDetails;
 import org.apache.rya.api.instance.RyaDetails.JoinSelectivityDetails;
 import org.apache.rya.api.instance.RyaDetails.PCJIndexDetails;
 import org.apache.rya.api.instance.RyaDetails.PCJIndexDetails.FluoDetails;
@@ -63,6 +45,9 @@ import org.apache.rya.api.instance.RyaDetailsRepository.AlreadyInitializedExcept
 import org.apache.rya.api.instance.RyaDetailsRepository.ConcurrentUpdateException;
 import org.apache.rya.api.instance.RyaDetailsRepository.NotInitializedException;
 import org.apache.rya.api.instance.RyaDetailsRepository.RyaDetailsRepositoryException;
+import org.junit.Test;
+
+import com.google.common.base.Optional;
 
 /**
  * Tests the methods of {@link AccumuloRyaDetailsRepository} by using a {@link MiniAccumuloCluster}.
@@ -78,7 +63,7 @@ public class AccumuloRyaDetailsRepositoryIT extends AccumuloITBase {
             .setRyaInstanceName(instanceName)
             .setRyaVersion("1.2.3.4")
             .setEntityCentricIndexDetails( new EntityCentricIndexDetails(true) )
-            .setGeoIndexDetails( new GeoIndexDetails(true) )
+          //RYA-215            .setGeoIndexDetails( new GeoIndexDetails(true) )
             .setTemporalIndexDetails( new TemporalIndexDetails(true) )
             .setFreeTextDetails( new FreeTextIndexDetails(true) )
             .setPCJIndexDetails(
@@ -120,7 +105,7 @@ public class AccumuloRyaDetailsRepositoryIT extends AccumuloITBase {
             .setRyaInstanceName(instanceName)
             .setRyaVersion("1.2.3.4")
             .setEntityCentricIndexDetails( new EntityCentricIndexDetails(true) )
-            .setGeoIndexDetails( new GeoIndexDetails(true) )
+          //RYA-215            .setGeoIndexDetails( new GeoIndexDetails(true) )
             .setTemporalIndexDetails( new TemporalIndexDetails(true) )
             .setFreeTextDetails( new FreeTextIndexDetails(true) )
             .setPCJIndexDetails(
@@ -169,7 +154,7 @@ public class AccumuloRyaDetailsRepositoryIT extends AccumuloITBase {
             .setRyaInstanceName(instanceName)
             .setRyaVersion("1.2.3.4")
             .setEntityCentricIndexDetails( new EntityCentricIndexDetails(true) )
-            .setGeoIndexDetails( new GeoIndexDetails(true) )
+          //RYA-215            .setGeoIndexDetails( new GeoIndexDetails(true) )
             .setTemporalIndexDetails( new TemporalIndexDetails(true) )
             .setFreeTextDetails( new FreeTextIndexDetails(true) )
             .setPCJIndexDetails(
@@ -219,7 +204,7 @@ public class AccumuloRyaDetailsRepositoryIT extends AccumuloITBase {
             .setRyaInstanceName(instanceName)
             .setRyaVersion("1.2.3.4")
             .setEntityCentricIndexDetails( new EntityCentricIndexDetails(true) )
-            .setGeoIndexDetails( new GeoIndexDetails(true) )
+          //RYA-215            .setGeoIndexDetails( new GeoIndexDetails(true) )
             .setTemporalIndexDetails( new TemporalIndexDetails(true) )
             .setFreeTextDetails( new FreeTextIndexDetails(true) )
             .setPCJIndexDetails(
@@ -247,7 +232,7 @@ public class AccumuloRyaDetailsRepositoryIT extends AccumuloITBase {
 
         // Create a new state for the details.
         final RyaDetails updated = new RyaDetails.Builder( details )
-                .setGeoIndexDetails( new GeoIndexDetails(false) )
+                .setEntityCentricIndexDetails(new EntityCentricIndexDetails(false) )
                 .build();
 
         // Execute the update.
@@ -267,7 +252,7 @@ public class AccumuloRyaDetailsRepositoryIT extends AccumuloITBase {
             .setRyaInstanceName(instanceName)
             .setRyaVersion("1.2.3.4")
             .setEntityCentricIndexDetails( new EntityCentricIndexDetails(true) )
-            .setGeoIndexDetails( new GeoIndexDetails(true) )
+          //RYA-215            .setGeoIndexDetails( new GeoIndexDetails(true) )
             .setTemporalIndexDetails( new TemporalIndexDetails(true) )
             .setFreeTextDetails( new FreeTextIndexDetails(true) )
             .setPCJIndexDetails(
@@ -295,7 +280,7 @@ public class AccumuloRyaDetailsRepositoryIT extends AccumuloITBase {
 
         // Create a new state for the details.
         final RyaDetails updated = new RyaDetails.Builder( details )
-                .setGeoIndexDetails( new GeoIndexDetails(false) )
+                .setEntityCentricIndexDetails(new EntityCentricIndexDetails(false) )
                 .build();
 
         // Try to execute the update where the old state is not the currently stored state.

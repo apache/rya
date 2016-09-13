@@ -83,7 +83,7 @@ public class MiniAccumuloClusterInstance {
     }
 
     /**
-     * @return An accumulo connector that is connected to the mini cluster.
+     * @return An Accumulo connector that is connected to the mini cluster's root account.
      */
     public Connector getConnector() throws AccumuloException, AccumuloSecurityException {
         return cluster.getConnector(USERNAME, PASSWORD);

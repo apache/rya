@@ -1,5 +1,3 @@
-package org.apache.rya.indexing.accumulo.freetext;
-
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -8,9 +6,9 @@ package org.apache.rya.indexing.accumulo.freetext;
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- * 
+ *
  *   http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -18,15 +16,14 @@ package org.apache.rya.indexing.accumulo.freetext;
  * specific language governing permissions and limitations
  * under the License.
  */
+package org.apache.rya.indexing.accumulo.freetext;
 
-
-
+import static java.util.Objects.requireNonNull;
 import static org.apache.rya.indexing.accumulo.freetext.query.ASTNodeUtils.getNodeIterator;
 
 import java.io.IOException;
 import java.nio.charset.CharacterCodingException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -58,14 +55,6 @@ import org.apache.commons.lang.Validate;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.Text;
 import org.apache.log4j.Logger;
-import org.openrdf.model.Literal;
-import org.openrdf.model.Statement;
-import org.openrdf.model.URI;
-import org.openrdf.query.QueryEvaluationException;
-
-import com.google.common.base.Charsets;
-
-import info.aduna.iteration.CloseableIteration;
 import org.apache.rya.accumulo.experimental.AbstractAccumuloIndexer;
 import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
 import org.apache.rya.api.domain.RyaStatement;
@@ -85,6 +74,15 @@ import org.apache.rya.indexing.accumulo.freetext.query.QueryParser;
 import org.apache.rya.indexing.accumulo.freetext.query.QueryParserTreeConstants;
 import org.apache.rya.indexing.accumulo.freetext.query.SimpleNode;
 import org.apache.rya.indexing.accumulo.freetext.query.TokenMgrError;
+import org.openrdf.model.Literal;
+import org.openrdf.model.Statement;
+import org.openrdf.model.URI;
+import org.openrdf.query.QueryEvaluationException;
+
+import com.google.common.base.Charsets;
+import com.google.common.collect.Lists;
+
+import info.aduna.iteration.CloseableIteration;
 
 /**
  * The {@link AccumuloFreeTextIndexer} stores and queries "free text" data from statements into tables in Accumulo. Specifically, this class
@@ -218,28 +216,28 @@ public class AccumuloFreeTextIndexer extends AbstractAccumuloIndexer implements 
 
     private void initInternal() throws AccumuloException, AccumuloSecurityException, TableNotFoundException,
             TableExistsException {
-        String doctable = getFreeTextDocTablename(conf);
-        String termtable = getFreeTextTermTablename(conf);
+        final String doctable = getFreeTextDocTablename(conf);
+        final String termtable = getFreeTextTermTablename(conf);
 
         docTableNumPartitions = ConfigUtils.getFreeTextDocNumPartitions(conf);
-        int termTableNumPartitions = ConfigUtils.getFreeTextTermNumPartitions(conf);
+        final int termTableNumPartitions = ConfigUtils.getFreeTextTermNumPartitions(conf);
 
-        TableOperations tableOps = ConfigUtils.getConnector(conf).tableOperations();
+        final TableOperations tableOps = ConfigUtils.getConnector(conf).tableOperations();
 
         // Create term table partitions
-        boolean createdTermTable = ConfigUtils.createTableIfNotExists(conf, termtable);
+        final boolean createdTermTable = ConfigUtils.createTableIfNotExists(conf, termtable);
         if (createdTermTable && !ConfigUtils.useMockInstance(conf) && termTableNumPartitions > 0) {
-            TreeSet<Text> splits = new TreeSet<Text>();
+            final TreeSet<Text> splits = new TreeSet<Text>();
 
             // split on the "Term List" and "Reverse Term list" boundary
             splits.add(new Text(ColumnPrefixes.getRevTermListColFam("")));
 
             // Symmetrically split the "Term List" and "Reverse Term list"
-            int numSubpartitions = ((termTableNumPartitions - 1) / 2);
+            final int numSubpartitions = ((termTableNumPartitions - 1) / 2);
             if (numSubpartitions > 0) {
-                int step = (26 / numSubpartitions);
+                final int step = (26 / numSubpartitions);
                 for (int i = 0; i < numSubpartitions; i++) {
-                    String nextChar = String.valueOf((char) ('a' + (step * i)));
+                    final String nextChar = String.valueOf((char) ('a' + (step * i)));
                     splits.add(new Text(ColumnPrefixes.getTermListColFam(nextChar)));
                     splits.add(new Text(ColumnPrefixes.getRevTermListColFam(nextChar)));
                 }
@@ -248,9 +246,9 @@ public class AccumuloFreeTextIndexer extends AbstractAccumuloIndexer implements 
         }
 
         // Create document (text) table partitions
-        boolean createdDocTable = ConfigUtils.createTableIfNotExists(conf, doctable);
+        final boolean createdDocTable = ConfigUtils.createTableIfNotExists(conf, doctable);
         if (createdDocTable && !ConfigUtils.useMockInstance(conf)) {
-            TreeSet<Text> splits = new TreeSet<Text>();
+            final TreeSet<Text> splits = new TreeSet<Text>();
             for (int i = 0; i < docTableNumPartitions; i++) {
                 splits.add(genPartition(i, docTableNumPartitions));
             }
@@ -276,7 +274,7 @@ public class AccumuloFreeTextIndexer extends AbstractAccumuloIndexer implements 
 
   //initialization occurs in setConf because index is created using reflection
     @Override
-    public void setConf(Configuration conf) {
+    public void setConf(final Configuration conf) {
         this.conf = conf;
         if (!isInit) {
             try {
@@ -291,34 +289,34 @@ public class AccumuloFreeTextIndexer extends AbstractAccumuloIndexer implements 
 
     @Override
     public Configuration getConf() {
-        return this.conf;
+        return conf;
     }
 
 
-    private void storeStatement(Statement statement) throws IOException {
+    private void storeStatement(final Statement statement) throws IOException {
         // if the predicate list is empty, accept all predicates.
         // Otherwise, make sure the predicate is on the "valid" list
-        boolean isValidPredicate = validPredicates.isEmpty() || validPredicates.contains(statement.getPredicate());
+        final boolean isValidPredicate = validPredicates.isEmpty() || validPredicates.contains(statement.getPredicate());
 
         if (isValidPredicate && (statement.getObject() instanceof Literal)) {
 
             // Get the tokens
-            String text = statement.getObject().stringValue().toLowerCase();
-            SortedSet<String> tokens = tokenizer.tokenize(text);
+            final String text = statement.getObject().stringValue().toLowerCase();
+            final SortedSet<String> tokens = tokenizer.tokenize(text);
 
             if (!tokens.isEmpty()) {
                 // Get Document Data
-                String docContent = StatementSerializer.writeStatement(statement);
+                final String docContent = StatementSerializer.writeStatement(statement);
 
-                String docId = Md5Hash.md5Base64(docContent);
+                final String docId = Md5Hash.md5Base64(docContent);
 
                 // Setup partition
-                Text partition = genPartition(docContent.hashCode(), docTableNumPartitions);
+                final Text partition = genPartition(docContent.hashCode(), docTableNumPartitions);
 
-                Mutation docTableMut = new Mutation(partition);
-                List<Mutation> termTableMutations = new ArrayList<Mutation>();
+                final Mutation docTableMut = new Mutation(partition);
+                final List<Mutation> termTableMutations = new ArrayList<Mutation>();
 
-                Text docIdText = new Text(docId);
+                final Text docIdText = new Text(docId);
 
                 // Store the Document Data
                 docTableMut.put(ColumnPrefixes.DOCS_CF_PREFIX, docIdText, new Value(docContent.getBytes(Charsets.UTF_8)));
@@ -330,7 +328,7 @@ public class AccumuloFreeTextIndexer extends AbstractAccumuloIndexer implements 
                 docTableMut.put(ColumnPrefixes.getContextColFam(statement), docIdText, EMPTY_VALUE);
 
                 // index the statement terms
-                for (String token : tokens) {
+                for (final String token : tokens) {
                     // tie the token to the document
                     docTableMut.put(ColumnPrefixes.getTermColFam(token), docIdText, EMPTY_VALUE);
 
@@ -343,7 +341,7 @@ public class AccumuloFreeTextIndexer extends AbstractAccumuloIndexer implements 
                 try {
                     docTableBw.addMutation(docTableMut);
                     termTableBw.addMutations(termTableMutations);
-                } catch (MutationsRejectedException e) {
+                } catch (final MutationsRejectedException e) {
                     logger.error("error adding mutation", e);
                     throw new IOException(e);
                 }
@@ -354,24 +352,24 @@ public class AccumuloFreeTextIndexer extends AbstractAccumuloIndexer implements 
     }
 
     @Override
-    public void storeStatement(RyaStatement statement) throws IOException {
+    public void storeStatement(final RyaStatement statement) throws IOException {
         storeStatement(RyaToRdfConversions.convertStatement(statement));
     }
 
-    private static Mutation createEmptyPutMutation(Text row) {
-        Mutation m = new Mutation(row);
+    private static Mutation createEmptyPutMutation(final Text row) {
+        final Mutation m = new Mutation(row);
         m.put(EMPTY_TEXT, EMPTY_TEXT, EMPTY_VALUE);
         return m;
     }
 
-    private static Mutation createEmptyPutDeleteMutation(Text row) {
-        Mutation m = new Mutation(row);
+    private static Mutation createEmptyPutDeleteMutation(final Text row) {
+        final Mutation m = new Mutation(row);
         m.putDelete(EMPTY_TEXT, EMPTY_TEXT);
         return m;
     }
 
-    private static Text genPartition(int partition, int numParitions) {
-        int length = Integer.toString(numParitions).length();
+    private static Text genPartition(final int partition, final int numParitions) {
+        final int length = Integer.toString(numParitions).length();
         return new Text(String.format("%0" + length + "d", Math.abs(partition % numParitions)));
     }
 
@@ -385,7 +383,7 @@ public class AccumuloFreeTextIndexer extends AbstractAccumuloIndexer implements 
     public void flush() throws IOException {
         try {
             mtbw.flush();
-        } catch (MutationsRejectedException e) {
+        } catch (final MutationsRejectedException e) {
             logger.error("error flushing the batch writer", e);
             throw new IOException(e);
         }
@@ -396,31 +394,31 @@ public class AccumuloFreeTextIndexer extends AbstractAccumuloIndexer implements 
     public void close() throws IOException {
         try {
             mtbw.close();
-        } catch (MutationsRejectedException e) {
+        } catch (final MutationsRejectedException e) {
             logger.error("error closing the batch writer", e);
             throw new IOException(e);
         }
     }
 
-    private Set<String> unrollWildcard(String string, boolean reverse) throws IOException {
-        Scanner termTableScan = getScanner(getFreeTextTermTablename(conf));
+    private Set<String> unrollWildcard(final String string, final boolean reverse) throws IOException {
+        final Scanner termTableScan = getScanner(getFreeTextTermTablename(conf));
 
-        Set<String> unrolledTerms = new HashSet<String>();
+        final Set<String> unrolledTerms = new HashSet<String>();
 
         Text queryTerm;
         if (reverse) {
-            String t = StringUtils.removeStart(string, "*").toLowerCase();
+            final String t = StringUtils.removeStart(string, "*").toLowerCase();
             queryTerm = ColumnPrefixes.getRevTermListColFam(t);
         } else {
-            String t = StringUtils.removeEnd(string, "*").toLowerCase();
+            final String t = StringUtils.removeEnd(string, "*").toLowerCase();
             queryTerm = ColumnPrefixes.getTermListColFam(t);
         }
 
         // perform query and read results
         termTableScan.setRange(Range.prefix(queryTerm));
 
-        for (Entry<Key, Value> e : termTableScan) {
-            String term = ColumnPrefixes.removePrefix(e.getKey().getRow()).toString();
+        for (final Entry<Key, Value> e : termTableScan) {
+            final String term = ColumnPrefixes.removePrefix(e.getKey().getRow()).toString();
             if (reverse) {
                 unrolledTerms.add(StringUtils.reverse(term));
             } else {
@@ -436,25 +434,25 @@ public class AccumuloFreeTextIndexer extends AbstractAccumuloIndexer implements 
         return unrolledTerms;
     }
 
-    private void unrollWildcards(SimpleNode node) throws IOException {
+    private void unrollWildcards(final SimpleNode node) throws IOException {
         if (node instanceof ASTExpression || node instanceof ASTSimpleNode) {
-            for (SimpleNode n : getNodeIterator(node)) {
+            for (final SimpleNode n : getNodeIterator(node)) {
                 unrollWildcards(n);
             }
         } else if (node instanceof ASTTerm) {
-            ASTTerm term = (ASTTerm) node;
-            boolean isWildTerm = term.getType().equals(ASTTerm.WILDTERM);
-            boolean isPreWildTerm = term.getType().equals(ASTTerm.PREFIXTERM);
+            final ASTTerm term = (ASTTerm) node;
+            final boolean isWildTerm = term.getType().equals(ASTTerm.WILDTERM);
+            final boolean isPreWildTerm = term.getType().equals(ASTTerm.PREFIXTERM);
             if (isWildTerm || isPreWildTerm) {
-                Set<String> unrolledTerms = unrollWildcard(term.getTerm(), isPreWildTerm);
+                final Set<String> unrolledTerms = unrollWildcard(term.getTerm(), isPreWildTerm);
 
                 // create a new expression
-                ASTExpression newExpression = new ASTExpression(QueryParserTreeConstants.JJTEXPRESSION);
+                final ASTExpression newExpression = new ASTExpression(QueryParserTreeConstants.JJTEXPRESSION);
                 newExpression.setType(ASTExpression.OR);
                 newExpression.setNotFlag(term.isNotFlag());
 
-                for (String unrolledTerm : unrolledTerms) {
-                    ASTTerm t = new ASTTerm(QueryParserTreeConstants.JJTTERM);
+                for (final String unrolledTerm : unrolledTerms) {
+                    final ASTTerm t = new ASTTerm(QueryParserTreeConstants.JJTTERM);
                     t.setNotFlag(false);
                     t.setTerm(unrolledTerm);
                     t.setType(ASTTerm.TERM);
@@ -462,8 +460,8 @@ public class AccumuloFreeTextIndexer extends AbstractAccumuloIndexer implements 
                 }
 
                 // replace "term" node with "expression" node in "term" node parent
-                SimpleNode parent = (SimpleNode) term.jjtGetParent();
-                int index = ASTNodeUtils.getChildIndex(parent, term);
+                final SimpleNode parent = (SimpleNode) term.jjtGetParent();
+                final int index = ASTNodeUtils.getChildIndex(parent, term);
 
                 Validate.isTrue(index >= 0, "child not found in parent");
 
@@ -475,7 +473,7 @@ public class AccumuloFreeTextIndexer extends AbstractAccumuloIndexer implements 
         }
     }
 
-    private Scanner getScanner(String tablename) throws IOException {
+    private Scanner getScanner(final String tablename) throws IOException {
         try {
             return ConfigUtils.createScanner(tablename, conf);
         } catch (AccumuloException | AccumuloSecurityException | TableNotFoundException e) {
@@ -486,9 +484,9 @@ public class AccumuloFreeTextIndexer extends AbstractAccumuloIndexer implements 
 
     /** {@inheritDoc} */
     @Override
-    public CloseableIteration<Statement, QueryEvaluationException> queryText(String query, StatementConstraints contraints)
+    public CloseableIteration<Statement, QueryEvaluationException> queryText(final String query, final StatementConstraints contraints)
             throws IOException {
-        Scanner docTableScan = getScanner(getFreeTextDocTablename(conf));
+        final Scanner docTableScan = getScanner(getFreeTextDocTablename(conf));
 
         // test the query to see if it's parses correctly.
         SimpleNode root = parseQuery(query);
@@ -496,10 +494,10 @@ public class AccumuloFreeTextIndexer extends AbstractAccumuloIndexer implements 
         // unroll any wildcard nodes before it goes to the server
         unrollWildcards(root);
 
-        String unrolledQuery = ASTNodeUtils.serializeExpression(root);
+        final String unrolledQuery = ASTNodeUtils.serializeExpression(root);
 
         // Add S P O C constraints to query
-        StringBuilder constrainedQuery = new StringBuilder("(" + unrolledQuery + ")");
+        final StringBuilder constrainedQuery = new StringBuilder("(" + unrolledQuery + ")");
 
         if (contraints.hasSubject()) {
             constrainedQuery.append(" AND ");
@@ -511,8 +509,8 @@ public class AccumuloFreeTextIndexer extends AbstractAccumuloIndexer implements 
         }
         if (contraints.hasPredicates()) {
             constrainedQuery.append(" AND (");
-            List<String> predicates = new ArrayList<String>();
-            for (URI u : contraints.getPredicates()) {
+            final List<String> predicates = new ArrayList<String>();
+            for (final URI u : contraints.getPredicates()) {
                 predicates.add(ColumnPrefixes.getPredColFam(u.stringValue()).toString());
             }
             constrainedQuery.append(StringUtils.join(predicates, " OR "));
@@ -521,7 +519,7 @@ public class AccumuloFreeTextIndexer extends AbstractAccumuloIndexer implements 
 
         // Verify that the query is a reasonable size
         root = parseQuery(constrainedQuery.toString());
-        int termCount = ASTNodeUtils.termCount(root);
+        final int termCount = ASTNodeUtils.termCount(root);
 
         if (termCount > queryTermLimit) {
             throw new IOException("Query contains too many terms.  Term limit: " + queryTermLimit + ".  Term Count: " + termCount);
@@ -531,9 +529,9 @@ public class AccumuloFreeTextIndexer extends AbstractAccumuloIndexer implements 
         docTableScan.clearScanIterators();
         docTableScan.clearColumns();
 
-        int iteratorPriority = 20;
-        String iteratorName = "booleanTree";
-        IteratorSetting ii = new IteratorSetting(iteratorPriority, iteratorName, BooleanTreeIterator.class);
+        final int iteratorPriority = 20;
+        final String iteratorName = "booleanTree";
+        final IteratorSetting ii = new IteratorSetting(iteratorPriority, iteratorName, BooleanTreeIterator.class);
         BooleanTreeIterator.setQuery(ii, constrainedQuery.toString());
         docTableScan.addScanIterator(ii);
         docTableScan.setRange(new Range());
@@ -553,16 +551,16 @@ public class AccumuloFreeTextIndexer extends AbstractAccumuloIndexer implements 
 
             @Override
             public Statement next() throws QueryEvaluationException {
-                Entry<Key, Value> entry = i.next();
-                Value v = entry.getValue();
+                final Entry<Key, Value> entry = i.next();
+                final Value v = entry.getValue();
                 try {
-                    String dataString = Text.decode(v.get(), 0, v.getSize());
-                    Statement s = StatementSerializer.readStatement(dataString);
+                    final String dataString = Text.decode(v.get(), 0, v.getSize());
+                    final Statement s = StatementSerializer.readStatement(dataString);
                     return s;
-                } catch (CharacterCodingException e) {
+                } catch (final CharacterCodingException e) {
                     logger.error("Error decoding value", e);
                     throw new QueryEvaluationException(e);
-                } catch (IOException e) {
+                } catch (final IOException e) {
                     logger.error("Error deserializing statement", e);
                     throw new QueryEvaluationException(e);
                 }
@@ -590,14 +588,14 @@ public class AccumuloFreeTextIndexer extends AbstractAccumuloIndexer implements 
      * @return
      * @throws IOException
      */
-    private static SimpleNode parseQuery(String query) throws IOException {
+    private static SimpleNode parseQuery(final String query) throws IOException {
         SimpleNode root = null;
         try {
             root = QueryParser.parse(query);
-        } catch (ParseException e) {
+        } catch (final ParseException e) {
             logger.error("Parser Exception on Client Side. Query: " + query, e);
             throw new IOException(e);
-        } catch (TokenMgrError e) {
+        } catch (final TokenMgrError e) {
             logger.error("Token Manager Exception on Client Side. Query: " + query, e);
             throw new IOException(e);
         }
@@ -605,67 +603,110 @@ public class AccumuloFreeTextIndexer extends AbstractAccumuloIndexer implements 
     }
 
     /**
-     * Get Free Text Document index table's name 
-     * Use the two table version of this below. This one is required by base class. 
+     * Get Free Text Document index table's name
+     * Use the two table version of this below. This one is required by base class.
      */
     @Override
     public String getTableName() {
        return getFreeTextDocTablename(conf);
     }
-    
+
     /**
-     * Get all the tables used by this index.
-     * @param conf configuration map
-     * @return an unmodifiable list of all the table names.
+     * Make the Accumulo table names used by this indexer for a specific instance of Rya.
+     *
+     * @param conf - The Rya configuration that specifies which instance of Rya
+     *   the table names will be built for. (not null)
+     * @return The Accumulo table names used by this indexer for a specific instance of Rya.
      */
-    public static List<String> getTableNames(Configuration conf) {
-        return Collections.unmodifiableList( Arrays.asList( 
-                getFreeTextDocTablename(conf),
-                getFreeTextTermTablename(conf) ));
+    public static List<String> getTableNames(final Configuration conf) {
+        requireNonNull(conf);
+        return Collections.unmodifiableList(
+                makeTableNames(ConfigUtils.getTablePrefix(conf) ) );
     }
-    
+
     /**
      * Get the Document index's table name.
-     * @param conf
-     * @return the Free Text Document index table's name
+     *
+     * @param conf - The Rya configuration that specifies which instance of Rya
+     *   the table names will be built for. (not null)
+     * @return The Free Text Document index's Accumulo table name for the Rya instance.
      */
-    public static String getFreeTextDocTablename(Configuration conf) {
-        return org.apache.rya.indexing.accumulo.ConfigUtils.getTablePrefix(conf)  + TABLE_SUFFFIX_DOC;
+    public static String getFreeTextDocTablename(final Configuration conf) {
+        requireNonNull(conf);
+        return makeFreeTextDocTablename( ConfigUtils.getTablePrefix(conf) );
     }
 
     /**
      * Get the Term index's table name.
-     * @param conf
-     * @return the Free Text Term index table's name
+     *
+     * @param conf - The Rya configuration that specifies which instance of Rya
+     *   the table names will be built for. (not null)
+     * @return The Free Text Term index's Accumulo table name for the Rya instance.
      */
-    public static String getFreeTextTermTablename(Configuration conf) {
-        return org.apache.rya.indexing.accumulo.ConfigUtils.getTablePrefix(conf)  + TABLE_SUFFIX_TERM;
+    public static String getFreeTextTermTablename(final Configuration conf) {
+        requireNonNull(conf);
+        return makeFreeTextTermTablename( ConfigUtils.getTablePrefix(conf) );
     }
 
-    private void deleteStatement(Statement statement) throws IOException {
+    /**
+     * Make the Accumulo table names used by this indexer for a specific instance of Rya.
+     *
+     * @param ryaInstanceName - The name of the Rya instance the table names are for. (not null)
+     * @return The Accumulo table names used by this indexer for a specific instance of Rya.
+     */
+    public static List<String> makeTableNames(final String ryaInstanceName) {
+        requireNonNull(ryaInstanceName);
+        return Lists.newArrayList(
+                makeFreeTextDocTablename(ryaInstanceName),
+                makeFreeTextTermTablename(ryaInstanceName));
+    }
+
+    /**
+     * Make the Document index's table name.
+     *
+     * @param ryaInstanceName - The name of the Rya instance the table names are for. (not null)
+     * @return The Free Text Document index's Accumulo table name for the Rya instance.
+     */
+    public static String makeFreeTextDocTablename(final String ryaInstanceName) {
+        requireNonNull(ryaInstanceName);
+        return ryaInstanceName + TABLE_SUFFFIX_DOC;
+    }
+
+    /**
+     * Make the Term index's table name.
+     *
+     * @param ryaInstanceName - The name of the Rya instance the table names are for. (not null)
+     * @return The Free Text Term index's Accumulo table name for the Rya instance.
+     */
+    public static String makeFreeTextTermTablename(final String ryaInstanceName) {
+        requireNonNull(ryaInstanceName);
+        return ryaInstanceName + TABLE_SUFFIX_TERM;
+    }
+
+    private void deleteStatement(final Statement statement) throws IOException {
         // if the predicate list is empty, accept all predicates.
         // Otherwise, make sure the predicate is on the "valid" list
-        boolean isValidPredicate = validPredicates.isEmpty() || validPredicates.contains(statement.getPredicate());
+        final boolean isValidPredicate = validPredicates.isEmpty() || validPredicates.contains(statement.getPredicate());
 
         if (isValidPredicate && (statement.getObject() instanceof Literal)) {
 
             // Get the tokens
-            String text = statement.getObject().stringValue().toLowerCase();
-            SortedSet<String> tokens = tokenizer.tokenize(text);
+            final String text = statement.getObject().stringValue().toLowerCase();
+            final SortedSet<String> tokens = tokenizer.tokenize(text);
 
             if (!tokens.isEmpty()) {
                 // Get Document Data
-                String docContent = StatementSerializer.writeStatement(statement);
+                final String docContent = StatementSerializer.writeStatement(statement);
 
-                String docId = Md5Hash.md5Base64(docContent);
+                final String docId = Md5Hash.md5Base64(docContent);
 
                 // Setup partition
-                Text partition = genPartition(docContent.hashCode(), docTableNumPartitions);
+                final Text partition = genPartition(docContent.hashCode(), docTableNumPartitions);
 
-                Mutation docTableMut = new Mutation(partition);
-                List<Mutation> termTableMutations = new ArrayList<Mutation>();
+                final Mutation docTableMut = new Mutation(partition);
+                final List<Mutation> termTableMutations = new ArrayList<Mutation>();
 
-                Text docIdText = new Text(docId);
+                final Text docIdText = new Text(docId);
 
                 // Delete the Document Data
                 docTableMut.putDelete(ColumnPrefixes.DOCS_CF_PREFIX, docIdText);
@@ -678,10 +719,10 @@ public class AccumuloFreeTextIndexer extends AbstractAccumuloIndexer implements 
 
 
                 // Delete the statement terms in index
-                for (String token : tokens) {
+                for (final String token : tokens) {
                     if (IS_TERM_TABLE_TOKEN_DELETION_ENABLED) {
-                        int rowId = Integer.parseInt(partition.toString());
-                        boolean doesTermExistInOtherDocs = doesTermExistInOtherDocs(token, rowId, docIdText);
+                        final int rowId = Integer.parseInt(partition.toString());
+                        final boolean doesTermExistInOtherDocs = doesTermExistInOtherDocs(token, rowId, docIdText);
                         // Only delete the term from the term table if it doesn't appear in other docs
                         if (!doesTermExistInOtherDocs) {
                             // Delete the term in the term table
@@ -698,7 +739,7 @@ public class AccumuloFreeTextIndexer extends AbstractAccumuloIndexer implements 
                 try {
                     docTableBw.addMutation(docTableMut);
                     termTableBw.addMutations(termTableMutations);
-                } catch (MutationsRejectedException e) {
+                } catch (final MutationsRejectedException e) {
                     logger.error("error adding mutation", e);
                     throw new IOException(e);
                 }
@@ -708,7 +749,7 @@ public class AccumuloFreeTextIndexer extends AbstractAccumuloIndexer implements 
     }
 
     @Override
-    public void deleteStatement(RyaStatement statement) throws IOException {
+    public void deleteStatement(final RyaStatement statement) throws IOException {
         deleteStatement(RyaToRdfConversions.convertStatement(statement));
     }
 
@@ -718,36 +759,36 @@ public class AccumuloFreeTextIndexer extends AbstractAccumuloIndexer implements 
      * @param currentDocId the current document ID that the search term exists in.
      * @return {@code true} if the term was found in other documents. {@code false} otherwise.
      */
-    private boolean doesTermExistInOtherDocs(String term, int currentDocId, Text docIdText) {
+    private boolean doesTermExistInOtherDocs(final String term, final int currentDocId, final Text docIdText) {
         try {
-            String freeTextDocTableName = getFreeTextDocTablename(conf);
-            Scanner scanner = getScanner(freeTextDocTableName);
+            final String freeTextDocTableName = getFreeTextDocTablename(conf);
+            final Scanner scanner = getScanner(freeTextDocTableName);
 
-            String t = StringUtils.removeEnd(term, "*").toLowerCase();
-            Text queryTerm = ColumnPrefixes.getTermColFam(t);
+            final String t = StringUtils.removeEnd(term, "*").toLowerCase();
+            final Text queryTerm = ColumnPrefixes.getTermColFam(t);
 
             // perform query and read results
             scanner.fetchColumnFamily(queryTerm);
 
-            for (Entry<Key, Value> entry : scanner) {
-                Key key = entry.getKey();
-                Text row = key.getRow();
-                int rowId = Integer.parseInt(row.toString());
+            for (final Entry<Key, Value> entry : scanner) {
+                final Key key = entry.getKey();
+                final Text row = key.getRow();
+                final int rowId = Integer.parseInt(row.toString());
                 // We only want to check other documents from the one we're deleting
                 if (rowId != currentDocId) {
-                    Text columnFamily = key.getColumnFamily();
-                    String columnFamilyValue = columnFamily.toString();
+                    final Text columnFamily = key.getColumnFamily();
+                    final String columnFamilyValue = columnFamily.toString();
                     // Check that the value has the term prefix
                     if (columnFamilyValue.startsWith(ColumnPrefixes.TERM_CF_PREFIX.toString())) {
-                        Text text = ColumnPrefixes.removePrefix(columnFamily);
-                        String value = text.toString();
+                        final Text text = ColumnPrefixes.removePrefix(columnFamily);
+                        final String value = text.toString();
                         if (value.equals(term)) {
                             return true;
                         }
                     }
                 }
             }
-        } catch (IOException e) {
+        } catch (final IOException e) {
             logger.error("Error searching for the existance of the term in other documents", e);
         }
         return false;
@@ -757,34 +798,34 @@ public class AccumuloFreeTextIndexer extends AbstractAccumuloIndexer implements 
 	@Override
 	public void init() {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 
 	@Override
-	public void setConnector(Connector connector) {
+	public void setConnector(final Connector connector) {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 
 	@Override
 	public void destroy() {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 
 	@Override
-	public void purge(RdfCloudTripleStoreConfiguration configuration) {
+	public void purge(final RdfCloudTripleStoreConfiguration configuration) {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 
 	@Override
 	public void dropAndDestroy() {
 		// TODO Auto-generated method stub
-		
+
 	}
 }

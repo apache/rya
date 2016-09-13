@@ -23,22 +23,13 @@ import static java.util.Objects.requireNonNull;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.Map.Entry;
 
 import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
 import edu.umd.cs.findbugs.annotations.NonNull;
 
-import com.google.common.base.Optional;
-import com.google.common.base.Preconditions;
-import com.mongodb.BasicDBList;
-import com.mongodb.BasicDBObject;
-import com.mongodb.BasicDBObjectBuilder;
-import com.mongodb.DBObject;
-
 import org.apache.rya.api.instance.RyaDetails;
 import org.apache.rya.api.instance.RyaDetails.EntityCentricIndexDetails;
 import org.apache.rya.api.instance.RyaDetails.FreeTextIndexDetails;
-import org.apache.rya.api.instance.RyaDetails.GeoIndexDetails;
 import org.apache.rya.api.instance.RyaDetails.JoinSelectivityDetails;
 import org.apache.rya.api.instance.RyaDetails.PCJIndexDetails;
 import org.apache.rya.api.instance.RyaDetails.PCJIndexDetails.FluoDetails;
@@ -46,6 +37,13 @@ import org.apache.rya.api.instance.RyaDetails.PCJIndexDetails.PCJDetails;
 import org.apache.rya.api.instance.RyaDetails.PCJIndexDetails.PCJDetails.PCJUpdateStrategy;
 import org.apache.rya.api.instance.RyaDetails.ProspectorDetails;
 import org.apache.rya.api.instance.RyaDetails.TemporalIndexDetails;
+
+import com.google.common.base.Optional;
+import com.google.common.base.Preconditions;
+import com.mongodb.BasicDBList;
+import com.mongodb.BasicDBObject;
+import com.mongodb.BasicDBObjectBuilder;
+import com.mongodb.DBObject;
 
 /**
  * Serializes configuration details for use in Mongo.
@@ -105,7 +103,7 @@ public class MongoDetailsAdapter {
             .add(INSTANCE_KEY, details.getRyaInstanceName())
             .add(VERSION_KEY, details.getRyaVersion())
             .add(ENTITY_DETAILS_KEY, details.getEntityCentricIndexDetails().isEnabled())
-            .add(GEO_DETAILS_KEY, details.getGeoIndexDetails().isEnabled())
+          //RYA-215            .add(GEO_DETAILS_KEY, details.getGeoIndexDetails().isEnabled())
             .add(PCJ_DETAILS_KEY, toDBObject(details.getPCJIndexDetails()))
             .add(TEMPORAL_DETAILS_KEY, details.getTemporalIndexDetails().isEnabled())
             .add(FREETEXT_DETAILS_KEY, details.getFreeTextIndexDetails().isEnabled());
@@ -169,7 +167,7 @@ public class MongoDetailsAdapter {
             .setRyaInstanceName(basicObj.getString(INSTANCE_KEY))
             .setRyaVersion(basicObj.getString(VERSION_KEY))
             .setEntityCentricIndexDetails(new EntityCentricIndexDetails(basicObj.getBoolean(ENTITY_DETAILS_KEY)))
-            .setGeoIndexDetails(new GeoIndexDetails(basicObj.getBoolean(GEO_DETAILS_KEY)))
+          //RYA-215            .setGeoIndexDetails(new GeoIndexDetails(basicObj.getBoolean(GEO_DETAILS_KEY)))
             .setPCJIndexDetails(getPCJIndexDetails(basicObj))
             .setTemporalIndexDetails(new TemporalIndexDetails(basicObj.getBoolean(TEMPORAL_DETAILS_KEY)))
             .setFreeTextDetails(new FreeTextIndexDetails(basicObj.getBoolean(FREETEXT_DETAILS_KEY)))

@@ -18,8 +18,11 @@
  */
 package org.apache.rya.indexing.accumulo.temporal;
 
+import static java.util.Objects.requireNonNull;
+
 import java.io.IOException;
 import java.nio.charset.CharacterCodingException;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -51,15 +54,6 @@ import org.apache.commons.codec.binary.StringUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.Text;
 import org.apache.log4j.Logger;
-import org.joda.time.DateTime;
-import org.openrdf.model.Literal;
-import org.openrdf.model.Resource;
-import org.openrdf.model.Statement;
-import org.openrdf.model.URI;
-import org.openrdf.query.QueryEvaluationException;
-
-import java.util.Arrays;
-import info.aduna.iteration.CloseableIteration;
 import org.apache.rya.accumulo.experimental.AbstractAccumuloIndexer;
 import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
 import org.apache.rya.api.domain.RyaStatement;
@@ -72,6 +66,14 @@ import org.apache.rya.indexing.TemporalInstant;
 import org.apache.rya.indexing.TemporalInstantRfc3339;
 import org.apache.rya.indexing.TemporalInterval;
 import org.apache.rya.indexing.accumulo.ConfigUtils;
+import org.joda.time.DateTime;
+import org.openrdf.model.Literal;
+import org.openrdf.model.Resource;
+import org.openrdf.model.Statement;
+import org.openrdf.model.URI;
+import org.openrdf.query.QueryEvaluationException;
+
+import info.aduna.iteration.CloseableIteration;
 
 public class AccumuloTemporalIndexer extends AbstractAccumuloIndexer implements TemporalIndexer {
 
@@ -878,7 +880,18 @@ public class AccumuloTemporalIndexer extends AbstractAccumuloIndexer implements 
 
     @Override
     public String getTableName() {
-       return ConfigUtils.getTablePrefix(conf)  + TABLE_SUFFIX;
+       return makeTableName( ConfigUtils.getTablePrefix(conf) );
+    }
+
+    /**
+     * Make the Accumulo table name used by this indexer for a specific instance of Rya.
+     *
+     * @param ryaInstanceName -  The name of the Rya instance the table name is for. (not null)
+     * @return The Accumulo table name used by this indexer for a specific instance of Rya.
+     */
+    public static String makeTableName(final String ryaInstanceName) {
+        requireNonNull(ryaInstanceName);
+        return ryaInstanceName + TABLE_SUFFIX;
     }
 
     private void deleteStatement(final Statement statement) throws IOException, IllegalArgumentException {

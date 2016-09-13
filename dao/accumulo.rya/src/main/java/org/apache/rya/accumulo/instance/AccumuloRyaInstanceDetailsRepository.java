@@ -1,6 +1,4 @@
-package org.apache.rya.accumulo.instance;
-
-/*
+/**
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -9,7 +7,7 @@ package org.apache.rya.accumulo.instance;
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
@@ -18,6 +16,7 @@ package org.apache.rya.accumulo.instance;
  * specific language governing permissions and limitations
  * under the License.
  */
+package org.apache.rya.accumulo.instance;
 
 import static java.util.Objects.requireNonNull;
 
@@ -46,7 +45,6 @@ import org.apache.accumulo.core.data.Mutation;
 import org.apache.accumulo.core.data.Value;
 import org.apache.accumulo.core.security.Authorizations;
 import org.apache.hadoop.io.Text;
-
 import org.apache.rya.api.instance.RyaDetails;
 import org.apache.rya.api.instance.RyaDetailsRepository;
 
@@ -86,7 +84,7 @@ public class AccumuloRyaInstanceDetailsRepository implements RyaDetailsRepositor
     public AccumuloRyaInstanceDetailsRepository(final Connector connector, final String instanceName) {
         this.connector = requireNonNull( connector );
         this.instanceName = requireNonNull( instanceName );
-        this.detailsTableName = instanceName + INSTANCE_DETAILS_TABLE_NAME;
+        detailsTableName = instanceName + INSTANCE_DETAILS_TABLE_NAME;
     }
 
     @Override
@@ -226,5 +224,16 @@ public class AccumuloRyaInstanceDetailsRepository implements RyaDetailsRepositor
                 writer.close();
             }
         }
+    }
+
+    /**
+     * Make the Accumulo table name used by this repository for a specific instance of Rya.
+     *
+     * @param ryaInstanceName - The name of the Rya instance the table name is for. (not null)
+     * @return The Accumulo table name used by this repository for a specific instance of Rya.
+     */
+    public static String makeTableName(final String ryaInstanceName) {
+        requireNonNull(ryaInstanceName);
+        return ryaInstanceName + INSTANCE_DETAILS_TABLE_NAME;
     }
 }

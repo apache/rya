@@ -23,13 +23,8 @@ import static org.junit.Assert.assertEquals;
 
 import java.util.Date;
 
-import org.junit.Test;
-
-import com.google.common.base.Optional;
-
 import org.apache.rya.api.instance.RyaDetails.EntityCentricIndexDetails;
 import org.apache.rya.api.instance.RyaDetails.FreeTextIndexDetails;
-import org.apache.rya.api.instance.RyaDetails.GeoIndexDetails;
 import org.apache.rya.api.instance.RyaDetails.JoinSelectivityDetails;
 import org.apache.rya.api.instance.RyaDetails.PCJIndexDetails;
 import org.apache.rya.api.instance.RyaDetails.PCJIndexDetails.FluoDetails;
@@ -37,6 +32,9 @@ import org.apache.rya.api.instance.RyaDetails.PCJIndexDetails.PCJDetails;
 import org.apache.rya.api.instance.RyaDetails.PCJIndexDetails.PCJDetails.PCJUpdateStrategy;
 import org.apache.rya.api.instance.RyaDetails.ProspectorDetails;
 import org.apache.rya.api.instance.RyaDetails.TemporalIndexDetails;
+import org.junit.Test;
+
+import com.google.common.base.Optional;
 
 /**
  * Tests the methods of {@link RyaDetails}.
@@ -50,7 +48,7 @@ public class RyaDetailsTest {
         builder.setRyaInstanceName("test_instance")
             .setRyaVersion("1.2.3.4")
             .setEntityCentricIndexDetails( new EntityCentricIndexDetails(true) )
-            .setGeoIndexDetails( new GeoIndexDetails(true) )
+          //RYA-215            .setGeoIndexDetails( new GeoIndexDetails(true) )
             .setTemporalIndexDetails( new TemporalIndexDetails(true) )
             .setFreeTextDetails( new FreeTextIndexDetails(true) )
             .setPCJIndexDetails(
@@ -81,7 +79,7 @@ public class RyaDetailsTest {
         builder.setRyaInstanceName("test_instance")
             .setRyaVersion("1.2.3.4")
             .setEntityCentricIndexDetails( new EntityCentricIndexDetails(true) )
-            .setGeoIndexDetails( new GeoIndexDetails(true) )
+          //RYA-215            .setGeoIndexDetails( new GeoIndexDetails(true) )
             .setTemporalIndexDetails( new TemporalIndexDetails(true) )
             .setFreeTextDetails( new FreeTextIndexDetails(true) )
             .setPCJIndexDetails(
@@ -111,7 +109,7 @@ public class RyaDetailsTest {
             .setRyaInstanceName("test_instance")
             .setRyaVersion("1.2.3.4")
             .setEntityCentricIndexDetails( new EntityCentricIndexDetails(true) )
-            .setGeoIndexDetails( new GeoIndexDetails(true) )
+          //RYA-215            .setGeoIndexDetails( new GeoIndexDetails(true) )
             .setTemporalIndexDetails( new TemporalIndexDetails(true) )
             .setFreeTextDetails( new FreeTextIndexDetails(true) )
             .setPCJIndexDetails(

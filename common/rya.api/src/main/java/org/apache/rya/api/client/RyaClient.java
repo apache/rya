@@ -34,10 +34,12 @@ public class RyaClient {
     private final Install install;
     private final CreatePCJ createPcj;
     private final DeletePCJ deletePcj;
-    private final BatchUpdatePCJ batchUpdatePcj;
+    private final BatchUpdatePCJ bactchUpdatePCJ;
     private final GetInstanceDetails getInstanceDetails;
     private final InstanceExists instanceExists;
     private final ListInstances listInstances;
+    private final AddUser addUser;
+    private final RemoveUser removeUser;
 
     /**
      * Constructs an instance of {@link RyaClient}.
@@ -49,14 +51,18 @@ public class RyaClient {
             final BatchUpdatePCJ batchUpdatePcj,
             final GetInstanceDetails getInstanceDetails,
             final InstanceExists instanceExists,
-            final ListInstances listInstances) {
+            final ListInstances listInstances,
+            final AddUser addUser,
+            final RemoveUser removeUser) {
         this.install = requireNonNull(install);
         this.createPcj = requireNonNull(createPcj);
         this.deletePcj = requireNonNull(deletePcj);
-        this.batchUpdatePcj = requireNonNull(batchUpdatePcj);
+        bactchUpdatePCJ = requireNonNull(batchUpdatePcj);
         this.getInstanceDetails = requireNonNull(getInstanceDetails);
         this.instanceExists = requireNonNull(instanceExists);
         this.listInstances = requireNonNull(listInstances);
+        this.addUser = requireNonNull(addUser);
+        this.removeUser = requireNonNull(removeUser);
     }
 
     /**
@@ -83,11 +89,11 @@ public class RyaClient {
     }
 
     /**
-     * @return An instnace of {@link BatchUpdatePCJ} that is connected to a Rya storage
+     * @return An instance of {@link BatchUpdatePCJ} that is connect to a Rya storage
      *   if the Rya instance supports PCJ indexing.
      */
     public BatchUpdatePCJ getBatchUpdatePCJ() {
-        return batchUpdatePcj;
+        return bactchUpdatePCJ;
     }
 
     /**
@@ -109,5 +115,19 @@ public class RyaClient {
      */
     public InstanceExists getInstanceExists() {
         return instanceExists;
+    }
+
+    /**
+     * @return An instance of {@link AddUser} that is connected to a Rya storage.
+     */
+    public AddUser getAddUser() {
+        return addUser;
+    }
+
+    /**
+     * @return An instance of {@link DeleteUser} that is connected to a Rya storage.
+     */
+    public RemoveUser getRemoveUser() {
+        return removeUser;
     }
 }

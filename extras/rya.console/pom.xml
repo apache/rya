@@ -97,6 +97,19 @@
     </dependencies>
 
     <build>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>org.apache.rat</groupId>
+                    <artifactId>apache-rat-plugin</artifactId>
+                    <configuration>
+                        <excludes>
+                            <exclude>spring-shell.log</exclude>
+                        </excludes>
+                    </configuration>
+                </plugin>
+            </plugins>
+        </pluginManagement>
         <plugins>
             <!-- Automatically place Apache 2 license headers at the top of all of the project's Java files.
                  Rat runs during the 'validate' lifecycle step, so it will fail the build before this one 

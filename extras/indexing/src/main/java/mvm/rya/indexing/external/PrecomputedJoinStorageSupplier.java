@@ -21,13 +21,14 @@ package mvm.rya.indexing.external;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 
+import java.util.Arrays;
+
 import org.apache.hadoop.conf.Configuration;
 import org.apache.rya.indexing.pcj.storage.PrecomputedJoinStorage;
 
 import com.google.common.base.Optional;
 import com.google.common.base.Supplier;
 
-import cern.colt.Arrays;
 import mvm.rya.indexing.external.PrecomputedJoinIndexerConfig.PrecomputedJoinStorageType;
 import mvm.rya.indexing.external.accumulo.AccumuloPcjStorageSupplier;
 

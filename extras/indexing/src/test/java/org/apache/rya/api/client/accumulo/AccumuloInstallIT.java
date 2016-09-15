@@ -18,10 +18,10 @@
  */
 package org.apache.rya.api.client.accumulo;
 
+import static org.junit.Assert.assertTrue;
+
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
-import org.junit.Test;
-
 import org.apache.rya.accumulo.AccumuloITBase;
 import org.apache.rya.api.client.Install;
 import org.apache.rya.api.client.Install.DuplicateInstanceNameException;
@@ -30,6 +30,7 @@ import org.apache.rya.api.client.InstanceExists;
 import org.apache.rya.api.client.RyaClientException;
 import org.apache.rya.api.instance.RyaDetailsRepository.NotInitializedException;
 import org.apache.rya.api.instance.RyaDetailsRepository.RyaDetailsRepositoryException;
+import org.junit.Test;
 
 /**
  * Integration tests the methods of {@link AccumuloInstall}.
@@ -61,7 +62,7 @@ public class AccumuloInstallIT extends AccumuloITBase {
 
         // Check that the instance exists.
         final InstanceExists instanceExists = new AccumuloInstanceExists(connectionDetails, getConnector());
-        instanceExists.exists(instanceName);
+        assertTrue( instanceExists.exists(instanceName) );
     }
 
     @Test(expected = DuplicateInstanceNameException.class)

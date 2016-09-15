@@ -57,6 +57,7 @@ public class AccumuloRyaClientFactory {
                 new AccumuloInstanceExists(connectionDetails, connector),
                 new AccumuloListInstances(connectionDetails, connector),
                 new AccumuloAddUser(connectionDetails, connector),
-                new AccumuloRemoveUser(connectionDetails, connector));
+                new AccumuloRemoveUser(connectionDetails, connector),
+                new AccumuloUninstall(connectionDetails, connector));
     }
 }

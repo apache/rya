@@ -37,6 +37,7 @@ import org.apache.rya.shell.util.InstallPrompt;
 import org.apache.rya.shell.util.InstanceNamesFormatter;
 import org.apache.rya.shell.util.RyaDetailsFormatter;
 import org.apache.rya.shell.util.SparqlPrompt;
+import org.apache.rya.shell.util.UninstallPrompt;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.shell.core.CommandMarker;
 import org.springframework.shell.core.annotation.CliAvailabilityIndicator;
@@ -64,6 +65,7 @@ public class RyaAdminCommands implements CommandMarker {
     private final SharedShellState state;
     private final InstallPrompt installPrompt;
     private final SparqlPrompt sparqlPrompt;
+    private final UninstallPrompt uninstallPrompt;
 
     /**
      * Constructs an instance of {@link RyaAdminCommands}.
@@ -71,12 +73,18 @@ public class RyaAdminCommands implements CommandMarker {
      * @param state - Holds shared state between all of the command classes. (not null)
      * @param installPrompt - Prompts a user for installation details. (not null)
      * @param sparqlPrompt - Prompts a user for a SPARQL query. (not null)
+     * @param uninstallPrompt - Prompts a user when uninstalling. (not null)
      */
     @Autowired
-    public RyaAdminCommands(final SharedShellState state, final InstallPrompt installPrompt, final SparqlPrompt sparqlPrompt) {
+    public RyaAdminCommands(
+            final SharedShellState state,
+            final InstallPrompt installPrompt,
+            final SparqlPrompt sparqlPrompt,
+            final UninstallPrompt uninstallPrompt) {
         this.state = requireNonNull( state );
         this.installPrompt = requireNonNull(installPrompt);
         this.sparqlPrompt = requireNonNull(sparqlPrompt);
+        this.uninstallPrompt = requireNonNull(uninstallPrompt);
     }
 
     /**
@@ -289,5 +297,30 @@ public class RyaAdminCommands implements CommandMarker {
         } catch (final RyaClientException e) {
             throw new RuntimeException("The user's access could not be revoked. Provided reason: " + e.getMessage(), e);
         }
+    }
+
+    @CliCommand(value = UNINSTALL_CMD, help = "Uninstall an instance of Rya.")
+    public String uninstall() {
+        // Fetch the command that is connected to the store.
+        final ShellState shellState = state.getShellState();
+        final RyaClient commands = shellState.getConnectedCommands().get();
+        final String ryaInstanceName = shellState.getRyaInstanceName().get();
+
+        try {
+            // Make sure the user meant to uninstall the Rya instance.
+            if(!uninstallPrompt.promptAreYouSure(ryaInstanceName)) {
+                return "Cancelled.";
+            }
+
+            // Perform the uninstall.
+            commands.getUninstall().uninstall(ryaInstanceName);
+
+        } catch (final InstanceDoesNotExistException e) {
+            throw new RuntimeException(String.format("A Rya instance named '%s' does not exist.", ryaInstanceName), e);
+        } catch (final IOException | RyaClientException e) {
+            throw new RuntimeException("The Rya instance could not be uninstalled. Provided reason: " + e.getMessage(), e);
+        }
+
+        return "The Rya instance named '" + ryaInstanceName +"' has been uninstalled.";
     }
 }

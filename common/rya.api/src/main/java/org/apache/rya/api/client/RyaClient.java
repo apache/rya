@@ -40,6 +40,7 @@ public class RyaClient {
     private final ListInstances listInstances;
     private final AddUser addUser;
     private final RemoveUser removeUser;
+    private final Uninstall uninstall;
 
     /**
      * Constructs an instance of {@link RyaClient}.
@@ -53,16 +54,18 @@ public class RyaClient {
             final InstanceExists instanceExists,
             final ListInstances listInstances,
             final AddUser addUser,
-            final RemoveUser removeUser) {
+            final RemoveUser removeUser,
+            final Uninstall uninstall) {
         this.install = requireNonNull(install);
         this.createPcj = requireNonNull(createPcj);
         this.deletePcj = requireNonNull(deletePcj);
-        bactchUpdatePCJ = requireNonNull(batchUpdatePcj);
+        this.bactchUpdatePCJ = requireNonNull(batchUpdatePcj);
         this.getInstanceDetails = requireNonNull(getInstanceDetails);
         this.instanceExists = requireNonNull(instanceExists);
         this.listInstances = requireNonNull(listInstances);
         this.addUser = requireNonNull(addUser);
         this.removeUser = requireNonNull(removeUser);
+        this.uninstall = requireNonNull(uninstall);
     }
 
     /**
@@ -129,5 +132,12 @@ public class RyaClient {
      */
     public RemoveUser getRemoveUser() {
         return removeUser;
+    }
+
+    /**
+     * @return An instance of {@link Uninstall} that is connected to a Rya storage.
+     */
+    public Uninstall getUninstall() {
+        return uninstall;
     }
 }

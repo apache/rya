@@ -33,7 +33,7 @@ public class AccumuloConnectionDetails {
     private final String username;
     private final char[] password;
     private final String instanceName;
-    private final String zookeepers;
+    private final String zookeepers; 
 
     /**
      * Constructs an instance of {@link AccumuloConnectionDetails}.

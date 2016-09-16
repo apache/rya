@@ -1,0 +1,5 @@
+@prefix example: <http://example#> .
+
+example:alice example:talksTo example:bob . 
+example:bob example:talksTo example:charlie. 
+example:charlie example:likes example:icecream.

@@ -89,9 +89,8 @@ public class RyaSailFactory {
                 final MongoRyaInstanceDetailsRepository ryaDetailsRepo = new MongoRyaInstanceDetailsRepository(client, mongoConfig.getCollectionName());
                 RyaDetailsToConfiguration.addRyaDetailsToConfiguration(ryaDetailsRepo.getRyaInstanceDetails(), mongoConfig);
             } catch (final RyaDetailsRepositoryException e) {
-                LOG.info("Instance does not have a rya details collection, skipping.");
-            }
-            dao = getMongoDAO((MongoDBRdfConfiguration)rdfConfig, client);
+               LOG.info("Instance does not have a rya details collection, skipping.");
+           }            dao = getMongoDAO((MongoDBRdfConfiguration)rdfConfig, client);
         } else {
             rdfConfig = new AccumuloRdfConfiguration(config);
             user = rdfConfig.get(ConfigUtils.CLOUDBASE_USER);

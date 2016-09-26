@@ -82,10 +82,14 @@ public class PropertyChainVisitor extends AbstractInferVisitor {
             	for (URI chainElement : chain ){
             		String s = UUID.randomUUID().toString();
                     Var currentObj = new Var("c-" + s);
-            		StatementPattern statementPattern = new StatementPattern(nextSubj, new Var(chainElement.stringValue()), currentObj, sp.getContextVar());
+                    StatementPattern statementPattern = new StatementPattern(nextSubj, new Var(chainElement.stringValue()), currentObj, sp.getContextVar());
+                    if (chainElement instanceof InverseURI){
+                    	statementPattern = new StatementPattern(currentObj, new Var(chainElement.stringValue()), nextSubj, sp.getContextVar());
+                    }
             		expandedPatterns.add(statementPattern);
             		lastStatementPatternAdded = statementPattern;
-            		nextSubj = statementPattern.getObjectVar();
+                    nextSubj = currentObj;
+           		
             	}
             	lastStatementPatternAdded.setObjectVar(originalObj);
             	
@@ -99,7 +103,6 @@ public class PropertyChainVisitor extends AbstractInferVisitor {
             			Join newJoin = new Join(pattern, lastRight);
             			lastRight = newJoin;
             		}
-            		System.out.println(pattern);
             	}
             	if (lastRight != null){
                 	node.replaceWith(lastRight);  	

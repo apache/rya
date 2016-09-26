@@ -89,6 +89,7 @@ public class MongoRyaDirectExample {
             if (USE_INFER){
             	testInfer(conn, sail);
             	testPropertyChainInference(conn, sail);
+            	testPropertyChainInferenceAltRepresentation(conn, sail);
             }
 
             log.info("TIME: " + (System.currentTimeMillis() - start) / 1000.);
@@ -324,6 +325,55 @@ public class MongoRyaDirectExample {
     	Validate.isTrue(resultHandler.getCount() == 0);
     }
 
+    
+    public static void testPropertyChainInferenceAltRepresentation(SailRepositoryConnection conn, Sail sail) throws MalformedQueryException, RepositoryException,
+    UpdateExecutionException, QueryEvaluationException, TupleQueryResultHandlerException, InferenceEngineException {
+
+    	// Add data
+    	String query = "INSERT DATA\n"//
+    			+ "{ GRAPH <http://updated/test> {\n"//
+    			+ "  <urn:jenGreatGranMother> <urn:Motherof> <urn:jenGranMother> . "
+    			+ "  <urn:jenGranMother> <urn:isChildOf> <urn:jenGreatGranMother> . "
+    			+ "  <urn:jenGranMother> <urn:Motherof> <urn:jenMother> . " 
+    			+ "  <urn:jenMother> <urn:isChildOf> <urn:jenGranMother> . "
+    			+ " <urn:jenMother> <urn:Motherof> <urn:jen> . "
+    			+ "  <urn:jen> <urn:isChildOf> <urn:jenMother> . "
+    			+ " <urn:jen> <urn:Motherof> <urn:jenDaughter> .  }}";
+
+    	log.info("Performing Query");
+
+    	Update update = conn.prepareUpdate(QueryLanguage.SPARQL, query);
+    	update.execute();
+
+    	query = "select ?p { GRAPH <http://updated/test> {?s <urn:Motherof>/<urn:Motherof> ?p}}";
+    	CountingResultHandler resultHandler = new CountingResultHandler();
+    	TupleQuery tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, query);
+    	tupleQuery.evaluate(resultHandler);
+    	log.info("Result count : " + resultHandler.getCount());
+
+
+    	// try adding a property chain and querying for it
+    	query = "INSERT DATA\n"//
+    			+ "{ GRAPH <http://updated/test> {\n"//
+    			+ "  <urn:greatMother> owl:propertyChainAxiom <urn:12342>  . " + 
+    			" <urn:12342> <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> _:node1atjakcvbx15023 . " + 
+    			" _:node1atjakcvbx15023 <http://www.w3.org/2002/07/owl#inverseOf> <urn:isChildOf> . " + 
+    			" <urn:12342> <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> _:node1atjakcvbx15123 . " + 
+       			" _:node1atjakcvbx15123 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> <http://www.w3.org/1999/02/22-rdf-syntax-ns#nil> . " + 
+    			" _:node1atjakcvbx15123 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> <urn:MotherOf> .  }}";
+    	update = conn.prepareUpdate(QueryLanguage.SPARQL, query);
+    	update.execute();
+    	((RdfCloudTripleStore) sail).getInferenceEngine().refreshGraph();
+
+    	resultHandler.resetCount();
+    	query = "select ?x { GRAPH <http://updated/test> {<urn:jenGreatGranMother> <urn:greatMother> ?x}}";
+    	resultHandler = new CountingResultHandler();
+    	tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, query);
+    	tupleQuery.evaluate(resultHandler);
+    	log.info("Result count : " + resultHandler.getCount());
+
+    }
+    
     public static void testPropertyChainInference(SailRepositoryConnection conn, Sail sail) throws MalformedQueryException, RepositoryException,
     UpdateExecutionException, QueryEvaluationException, TupleQueryResultHandlerException, InferenceEngineException {
 
@@ -480,6 +530,7 @@ public class MongoRyaDirectExample {
         @Override
         public void handleSolution(BindingSet arg0) throws TupleQueryResultHandlerException {
             count++;
+            System.out.println(arg0);
         }
 
         @Override

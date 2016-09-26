@@ -303,6 +303,63 @@ public class InferenceEngine {
             	}
             	propertyChainPropertyToChain.put(propertyChainProperty, properties);
             }
+            
+            // could also be represented as a list of properties (some of which may be blank nodes)
+            for (URI propertyChainProperty : propertyChainPropertiesToBNodes.keySet()){
+            	List<URI> existingChain = propertyChainPropertyToChain.get(propertyChainProperty);
+            	// if we didn't get a chain, try to get it through following the collection
+            	if ((existingChain == null) || existingChain.isEmpty()) {
+            		
+          		  CloseableIteration<Statement, QueryEvaluationException>  iter2 = RyaDAOHelper.query(ryaDAO, propertyChainPropertiesToBNodes.get(propertyChainProperty), RDF.FIRST,
+              			null, conf);
+          		  List<URI> properties = new ArrayList<URI>();
+          		  URI previousBNode = propertyChainPropertiesToBNodes.get(propertyChainProperty);
+            	  if (iter2.hasNext()) {
+            		  Statement iter2Statement = iter2.next();
+            		  Value currentPropValue = iter2Statement.getObject();
+            		  while ((currentPropValue != null) && (!currentPropValue.stringValue().equalsIgnoreCase(RDF.NIL.stringValue()))){
+                		  if (currentPropValue instanceof URI){
+                    		  iter2 = RyaDAOHelper.query(ryaDAO, vf.createURI(currentPropValue.stringValue()), RDF.FIRST,
+                          			null, conf);
+                			  if (iter2.hasNext()){
+                				  iter2Statement = iter2.next();
+                				  if (iter2Statement.getObject() instanceof URI){
+                					  properties.add((URI)iter2Statement.getObject());
+                				  }
+                			  }
+                			  // otherwise see if there is an inverse declaration
+                			  else {
+                				  iter2 = RyaDAOHelper.query(ryaDAO, vf.createURI(currentPropValue.stringValue()), OWL.INVERSEOF,
+                                			null, conf);
+                				  if (iter2.hasNext()){
+                    				  iter2Statement = iter2.next();
+                    				  if (iter2Statement.getObject() instanceof URI){
+                    					  properties.add(new InverseURI((URI)iter2Statement.getObject()));
+                    				  }
+                    			  }
+                			  }
+            				  // get the next prop pointer
+            				  iter2 = RyaDAOHelper.query(ryaDAO, previousBNode, RDF.REST,
+                            			null, conf);
+            				  if (iter2.hasNext()){
+                				  iter2Statement = iter2.next();
+                				  previousBNode = (URI)currentPropValue;
+                				  currentPropValue = iter2Statement.getObject();
+                			  }
+            				  else {
+            					  currentPropValue = null;
+            				  }
+                		  }
+                		  else {
+                		    currentPropValue = null;
+                		  }
+            			  
+            		  }
+                  	propertyChainPropertyToChain.put(propertyChainProperty, properties);
+            	  }
+            	}
+            }
+            
         } catch (QueryEvaluationException e) {
             throw new InferenceEngineException(e);
         }

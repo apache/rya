@@ -48,6 +48,7 @@ import mvm.rya.api.layout.TablePrefixLayoutStrategy;
 import mvm.rya.api.persist.RyaDAO;
 import mvm.rya.api.persist.RyaDAOException;
 import mvm.rya.indexing.accumulo.ConfigUtils;
+import mvm.rya.mongodb.MongoConnectorFactory;
 import mvm.rya.mongodb.MongoDBRdfConfiguration;
 import mvm.rya.mongodb.MongoDBRyaDAO;
 import mvm.rya.mongodb.instance.MongoRyaInstanceDetailsRepository;
@@ -86,8 +87,6 @@ public class RyaSailFactory {
             rdfConfig = new MongoDBRdfConfiguration(config);
             user = rdfConfig.get(MongoDBRdfConfiguration.MONGO_USER);
             pswd = rdfConfig.get(MongoDBRdfConfiguration.MONGO_USER_PASSWORD);
-            Objects.requireNonNull(user, "MongoDB user name is missing from configuration."+MongoDBRdfConfiguration.MONGO_USER);
-            Objects.requireNonNull(pswd, "MongoDB user password is missing from configuration."+MongoDBRdfConfiguration.MONGO_USER_PASSWORD);
             final MongoClient client = updateMongoConfig((MongoDBRdfConfiguration) rdfConfig, user, pswd, ryaInstance);
             dao = getMongoDAO((MongoDBRdfConfiguration)rdfConfig, client);
         } else {
@@ -151,13 +150,18 @@ public class RyaSailFactory {
         final int port = Integer.parseInt(config.getMongoPort());
 
         MongoClient client = null;
-        try {
-            client = new MongoClient(new ServerAddress(hostname, port), Lists.newArrayList(creds));
-            final MongoRyaInstanceDetailsRepository ryaDetailsRepo = new MongoRyaInstanceDetailsRepository(client, config.getCollectionName());
-            RyaDetailsToConfiguration.addRyaDetailsToConfiguration(ryaDetailsRepo.getRyaInstanceDetails(), config);
-        } catch(final RyaDetailsRepositoryException e) {
-            LOG.info("Instance does not have a rya details collection, skipping.");
+       if (config.getUseTestMongo()){
+        	client = MongoConnectorFactory.getMongoClient(config);
         }
+       else {
+           try {
+               client = new MongoClient(new ServerAddress(hostname, port), Lists.newArrayList(creds));
+               final MongoRyaInstanceDetailsRepository ryaDetailsRepo = new MongoRyaInstanceDetailsRepository(client, config.getCollectionName());
+               RyaDetailsToConfiguration.addRyaDetailsToConfiguration(ryaDetailsRepo.getRyaInstanceDetails(), config);
+           } catch(final RyaDetailsRepositoryException e) {
+               LOG.info("Instance does not have a rya details collection, skipping.");
+           }
+       }
         return client;
     }
 

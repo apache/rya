@@ -17,7 +17,10 @@
  * under the License.
  */
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.net.UnknownHostException;
+import java.util.Collection;
 import java.util.List;
 
 import org.apache.accumulo.core.client.AccumuloException;
@@ -33,6 +36,7 @@ import org.apache.log4j.Logger;
 import org.apache.rya.indexing.pcj.storage.PcjException;
 import org.apache.rya.indexing.pcj.storage.accumulo.PcjTables;
 import org.apache.rya.indexing.pcj.storage.accumulo.PcjVarOrderFactory;
+import org.openrdf.model.Statement;
 import org.openrdf.model.URI;
 import org.openrdf.model.ValueFactory;
 import org.openrdf.model.impl.LiteralImpl;
@@ -52,6 +56,10 @@ import org.openrdf.query.UpdateExecutionException;
 import org.openrdf.repository.RepositoryException;
 import org.openrdf.repository.sail.SailRepository;
 import org.openrdf.repository.sail.SailRepositoryConnection;
+import org.openrdf.rio.RDFFormat;
+import org.openrdf.rio.RDFParser;
+import org.openrdf.rio.Rio;
+import org.openrdf.rio.helpers.StatementCollector;
 import org.openrdf.sail.Sail;
 import org.openrdf.sail.SailException;
 
@@ -81,6 +89,20 @@ public class RyaDirectExample {
 	private static final String AUTHS = "U";
 
 	public static void main(final String[] args) throws Exception {
+		
+		File inputFile = new File("C:\\SPARTADEV\\propChain.ttl");
+		RDFParser parser = Rio.createParser(RDFFormat.TURTLE);
+		StatementCollector coll = new StatementCollector();
+		parser.setRDFHandler(coll);
+		parser.parse(new FileInputStream(inputFile), "");
+		Collection<Statement> statements = coll.getStatements();
+		System.out.println("Start");
+		for (Statement statement : statements){
+			System.out.println(statement);
+		}
+		System.out.println("End");
+		System.exit(-1);
+		
 		final Configuration conf = getConf();
 		conf.setBoolean(ConfigUtils.DISPLAY_QUERY_PLAN, PRINT_QUERIES);
 

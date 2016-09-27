@@ -50,6 +50,7 @@ import mvm.rya.rdftriplestore.evaluation.RdfCloudTripleStoreSelectivityEvaluatio
 import mvm.rya.rdftriplestore.evaluation.SeparateFilterJoinsVisitor;
 import mvm.rya.rdftriplestore.inference.InferenceEngine;
 import mvm.rya.rdftriplestore.inference.InverseOfVisitor;
+import mvm.rya.rdftriplestore.inference.PropertyChainVisitor;
 import mvm.rya.rdftriplestore.inference.SameAsVisitor;
 import mvm.rya.rdftriplestore.inference.SubClassOfVisitor;
 import mvm.rya.rdftriplestore.inference.SubPropertyOfVisitor;
@@ -343,6 +344,7 @@ public class RdfCloudTripleStoreConnection extends SailConnectionBase {
                     && this.inferenceEngine != null
                     ) {
                 try {
+                    tupleExpr.visit(new PropertyChainVisitor(queryConf, inferenceEngine));
                     tupleExpr.visit(new TransitivePropertyVisitor(queryConf, inferenceEngine));
                     tupleExpr.visit(new SymmetricPropertyVisitor(queryConf, inferenceEngine));
                     tupleExpr.visit(new InverseOfVisitor(queryConf, inferenceEngine));

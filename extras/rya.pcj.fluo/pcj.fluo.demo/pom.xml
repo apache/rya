@@ -56,6 +56,13 @@ under the License.
             <groupId>io.fluo</groupId>
             <artifactId>fluo-mini</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.apache.accumulo</groupId>
+            <artifactId>accumulo-minicluster</artifactId>
+            <!-- Note: accumulo-minicluster is normally used for testing purposes
+                 But we are using it for an example in this project -->
+            <scope>compile</scope>
+        </dependency>
     </dependencies>
     
     <build>

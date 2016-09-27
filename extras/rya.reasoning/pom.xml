@@ -57,7 +57,8 @@ under the License.
         <dependency>
             <groupId>org.apache.accumulo</groupId>
             <artifactId>accumulo-minicluster</artifactId>
-            <version>${accumulo.version}</version>
+            <!-- TODO: RYA-193 -->
+            <scope>compile</scope>
         </dependency>
 
         <dependency>

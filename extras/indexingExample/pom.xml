@@ -68,7 +68,9 @@ under the License.
         <dependency>
             <groupId>org.apache.accumulo</groupId>
             <artifactId>accumulo-minicluster</artifactId>
-            <version>${accumulo.version}</version>
+            <!-- Note: accumulo-minicluster is normally used for testing purposes
+                 But we are using it for an example in this project -->
+            <scope>compile</scope>
         </dependency>
         
         <dependency>

@@ -89,20 +89,6 @@ public class RyaDirectExample {
 	private static final String AUTHS = "U";
 
 	public static void main(final String[] args) throws Exception {
-		
-		File inputFile = new File("C:\\SPARTADEV\\propChain.ttl");
-		RDFParser parser = Rio.createParser(RDFFormat.TURTLE);
-		StatementCollector coll = new StatementCollector();
-		parser.setRDFHandler(coll);
-		parser.parse(new FileInputStream(inputFile), "");
-		Collection<Statement> statements = coll.getStatements();
-		System.out.println("Start");
-		for (Statement statement : statements){
-			System.out.println(statement);
-		}
-		System.out.println("End");
-		System.exit(-1);
-		
 		final Configuration conf = getConf();
 		conf.setBoolean(ConfigUtils.DISPLAY_QUERY_PLAN, PRINT_QUERIES);
 

@@ -795,7 +795,7 @@ public class RyaDirectExample {
 					queryString2, new String[] { "e", "c", "l", "o" },
 					Optional.<PcjVarOrderFactory> absent());
 		} catch (final RyaDAOException e) {
-			e.printStackTrace();
+			throw new Error("While creating PCJ tables.",e);
 		} finally {
 			closeQuietly(conn);
 			closeQuietly(repository);

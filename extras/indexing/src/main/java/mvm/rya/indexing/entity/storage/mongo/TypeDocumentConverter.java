@@ -49,7 +49,7 @@ public class TypeDocumentConverter implements DocumentConverter<Type> {
         doc.append(ID, type.getId().getData());
 
         final List<String> propertyNames = new ArrayList<>();
-        type.getOptionalFieldNames().forEach(field -> propertyNames.add(field.getData()));
+        type.getPropertyNames().forEach(field -> propertyNames.add(field.getData()));
         doc.append(PROPERTY_NAMES, propertyNames);
 
         return doc;

@@ -78,7 +78,7 @@ public class Type {
     /**
      * @return The names of {@link Property}s that may be part of an {@link TypedEntity} of this type.
      */
-    public ImmutableSet<RyaURI> getOptionalFieldNames() {
+    public ImmutableSet<RyaURI> getPropertyNames() {
         return propertyNames;
     }
 

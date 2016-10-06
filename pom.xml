@@ -120,7 +120,6 @@ under the License.
         <maven.min-version>3.0.4</maven.min-version>
         
         <fluo.version>1.0.0-incubating</fluo.version>
-        <fluo-recipes.version>1.0.0-incubating-SNAPSHOT</fluo-recipes.version>
         
         <jmh.version>1.13</jmh.version>
         <jsr305.version>3.0.1</jsr305.version>
@@ -523,11 +522,6 @@ under the License.
                 <groupId>org.apache.fluo</groupId>
                 <artifactId>fluo-mini</artifactId>
                 <version>${fluo.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.fluo</groupId>
-                <artifactId>fluo-recipes-core</artifactId>
-                <version>${fluo-recipes.version}</version>
             </dependency>
 
             <dependency>

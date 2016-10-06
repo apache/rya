@@ -24,13 +24,12 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import org.apache.rya.indexing.pcj.fluo.app.StringTypeLayer;
 import org.apache.rya.indexing.pcj.fluo.app.query.FluoQueryColumns;
 
 import org.apache.fluo.api.client.FluoClient;
+import org.apache.fluo.api.client.Snapshot;
 import org.apache.fluo.api.client.scanner.CellScanner;
 import org.apache.fluo.api.data.RowColumnValue;
-import org.apache.fluo.recipes.core.types.TypedSnapshot;
 
 /**
  * Finds all queries that are being managed by this instance of Fluo that
@@ -51,7 +50,7 @@ public class ListQueryIds {
 
         final List<String> queryIds = new ArrayList<>();
 
-        try(TypedSnapshot snap = new StringTypeLayer().wrap( fluo.newSnapshot() )) {
+        try(Snapshot snap = fluo.newSnapshot() ) {
             // Create an iterator that iterates over the QUERY_ID column.
             final CellScanner cellScanner = snap.scanner().fetch( FluoQueryColumns.QUERY_ID).build();
 

@@ -26,7 +26,6 @@ import static org.apache.rya.indexing.pcj.fluo.app.IncrementalUpdateConstants.VA
 import java.util.Map;
 
 import org.apache.rya.indexing.pcj.fluo.app.IncUpdateDAO;
-import org.apache.rya.indexing.pcj.fluo.app.StringTypeLayer;
 import org.apache.rya.indexing.pcj.fluo.app.query.FluoQueryColumns;
 import org.apache.rya.indexing.pcj.fluo.app.query.FluoQueryMetadataDAO;
 import org.apache.rya.indexing.pcj.fluo.app.query.StatementPatternMetadata;
@@ -35,32 +34,26 @@ import org.apache.rya.indexing.pcj.storage.accumulo.VisibilityBindingSet;
 import org.apache.rya.indexing.pcj.storage.accumulo.VisibilityBindingSetStringConverter;
 
 import com.google.common.collect.Maps;
-
+import org.apache.fluo.api.client.TransactionBase;
 import org.apache.fluo.api.client.scanner.ColumnScanner;
 import org.apache.fluo.api.client.scanner.RowScanner;
 import org.apache.fluo.api.data.Bytes;
 import org.apache.fluo.api.data.Column;
 import org.apache.fluo.api.data.ColumnValue;
 import org.apache.fluo.api.data.Span;
-import org.apache.fluo.recipes.core.types.Encoder;
-import org.apache.fluo.recipes.core.types.StringEncoder;
-import org.apache.fluo.recipes.core.types.TypedObserver;
-import org.apache.fluo.recipes.core.types.TypedTransactionBase;
+import org.apache.fluo.api.observer.AbstractObserver;
 
 /**
  * An observer that matches new Triples to the Statement Patterns that are part
  * of any PCJ that is being maintained. If the triple matches a pattern, then
  * the new result is stored as a binding set for the pattern.
  */
-public class TripleObserver extends TypedObserver {
+public class TripleObserver extends AbstractObserver {
 
-    private static final Encoder ENCODER = new StringEncoder();
     private static final FluoQueryMetadataDAO QUERY_DAO = new FluoQueryMetadataDAO();
     private static final VisibilityBindingSetStringConverter CONVERTER = new VisibilityBindingSetStringConverter();
 
-    public TripleObserver() {
-        super(new StringTypeLayer());
-    }
+    public TripleObserver() {}
 
     @Override
     public ObservedColumn getObservedColumn() {
@@ -68,15 +61,12 @@ public class TripleObserver extends TypedObserver {
     }
 
     @Override
-    public void process(final TypedTransactionBase tx, final Bytes row, final Column column) {
+    public void process(final TransactionBase tx, final Bytes brow, final Column column) {
         //get string representation of triple
-        final String triple = IncUpdateDAO.getTripleString(row);
-        final Bytes visiBytes = tx.get(row, FluoQueryColumns.TRIPLES);
-        String visibility = "";
-        if(visiBytes != null) {
-             visibility = ENCODER.decodeString(visiBytes);
-        }
-
+        String row = brow.toString();
+        final String triple = IncUpdateDAO.getTripleString(brow);
+        String visibility = tx.gets(row, FluoQueryColumns.TRIPLES, "");
+       
         //get variable metadata for all SP in table
         RowScanner rscanner = tx.scanner().over(Span.prefix(SP_PREFIX)).fetch(FluoQueryColumns.STATEMENT_PATTERN_VARIABLE_ORDER).byRow().build();
        
@@ -100,7 +90,7 @@ public class TripleObserver extends TypedObserver {
                         CONVERTER.convert(bindingSetString, varOrder),
                         visibility);
                     final String valueString = CONVERTER.convert(bindingSet, varOrder);
-                    tx.mutate().row(spID + NODEID_BS_DELIM + bindingSetString).col(FluoQueryColumns.STATEMENT_PATTERN_BINDING_SET).set(valueString);
+                    tx.set(spID + NODEID_BS_DELIM + bindingSetString, FluoQueryColumns.STATEMENT_PATTERN_BINDING_SET, valueString);
                 }
 			}
 		}

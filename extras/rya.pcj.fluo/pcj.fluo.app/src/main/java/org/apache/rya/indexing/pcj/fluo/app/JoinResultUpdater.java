@@ -49,12 +49,9 @@ import com.google.common.collect.Sets;
 import org.apache.fluo.api.client.TransactionBase;
 import org.apache.fluo.api.client.scanner.ColumnScanner;
 import org.apache.fluo.api.client.scanner.RowScanner;
-import org.apache.fluo.api.data.Bytes;
 import org.apache.fluo.api.data.Column;
 import org.apache.fluo.api.data.ColumnValue;
 import org.apache.fluo.api.data.Span;
-import org.apache.fluo.recipes.core.types.Encoder;
-import org.apache.fluo.recipes.core.types.StringEncoder;
 
 /**
  * Updates the results of a Join node when one of its children has added a
@@ -67,8 +64,7 @@ public class JoinResultUpdater {
     private static final VisibilityBindingSetStringConverter valueConverter = new VisibilityBindingSetStringConverter();
 
     private final FluoQueryMetadataDAO queryDao = new FluoQueryMetadataDAO();
-    private final Encoder encoder = new StringEncoder();
-
+   
     /**
      * Updates the results of a Join node when one of its children has added a
      * new Binding Set to its results.
@@ -132,9 +128,9 @@ public class JoinResultUpdater {
             final String joinBindingSetStringId = idConverter.convert(newJoinResult, joinVarOrder);
             final String joinBindingSetStringValue = valueConverter.convert(newJoinResult, joinVarOrder);
 
-            final Bytes row = encoder.encode(joinMetadata.getNodeId() + NODEID_BS_DELIM + joinBindingSetStringId);
+            final String row = joinMetadata.getNodeId() + NODEID_BS_DELIM + joinBindingSetStringId;
             final Column col = FluoQueryColumns.JOIN_BINDING_SET;
-            final Bytes value = encoder.encode(joinBindingSetStringValue);
+            final String value = joinBindingSetStringValue;
             tx.set(row, col, value);
         }
     }

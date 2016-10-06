@@ -28,7 +28,6 @@ import java.util.List;
 import javax.annotation.ParametersAreNonnullByDefault;
 
 import org.apache.rya.indexing.pcj.fluo.app.NodeType;
-import org.apache.rya.indexing.pcj.fluo.app.StringTypeLayer;
 import org.apache.rya.indexing.pcj.fluo.app.query.FilterMetadata;
 import org.apache.rya.indexing.pcj.fluo.app.query.FluoQueryColumns;
 import org.apache.rya.indexing.pcj.fluo.app.query.FluoQueryMetadataDAO;
@@ -43,7 +42,6 @@ import org.apache.fluo.api.data.Bytes;
 import org.apache.fluo.api.data.Column;
 import org.apache.fluo.api.data.RowColumnValue;
 import org.apache.fluo.api.data.Span;
-import org.apache.fluo.recipes.core.types.TypedTransaction;
 
 /**
  * Deletes a Pre-computed Join (PCJ) from Fluo.
@@ -174,7 +172,7 @@ public class DeletePcj {
         requireNonNull(nodeIds);
         requireNonNull(pcjId);
 
-        try (final TypedTransaction typeTx = new StringTypeLayer().wrap(tx)) {
+        try (final Transaction typeTx = tx) {
             deletePcjIdAndSparqlMetadata(typeTx, pcjId);
 
             for (final String nodeId : nodeIds) {
@@ -192,7 +190,7 @@ public class DeletePcj {
      * @param nodeId - The Node ID of the query node to delete. (not null)
      * @param columns - The columns that will be deleted. (not null)
      */
-    private void deleteMetadataColumns(final TypedTransaction tx, final String nodeId, final List<Column> columns) {
+    private void deleteMetadataColumns(final Transaction tx, final String nodeId, final List<Column> columns) {
         requireNonNull(tx);
         requireNonNull(columns);
         requireNonNull(nodeId);
@@ -211,15 +209,15 @@ public class DeletePcj {
      * @param tx - Transaction the deletes will be performed with. (not null)
      * @param pcjId - The PCJ whose metadata will be deleted. (not null)
      */
-    private void deletePcjIdAndSparqlMetadata(final TypedTransaction tx, final String pcjId) {
+    private void deletePcjIdAndSparqlMetadata(final Transaction tx, final String pcjId) {
         requireNonNull(tx);
         requireNonNull(pcjId);
 
         final String queryId = getQueryIdFromPcjId(tx, pcjId);
         final String sparql = getSparqlFromQueryId(tx, queryId);
-        tx.delete(Bytes.of(queryId), FluoQueryColumns.RYA_PCJ_ID);
-        tx.delete(Bytes.of(sparql), FluoQueryColumns.QUERY_ID);
-        tx.delete(Bytes.of(pcjId), FluoQueryColumns.PCJ_ID_QUERY_ID);
+        tx.delete(queryId, FluoQueryColumns.RYA_PCJ_ID);
+        tx.delete(sparql, FluoQueryColumns.QUERY_ID);
+        tx.delete(pcjId, FluoQueryColumns.PCJ_ID_QUERY_ID);
     }
 
 
@@ -253,17 +251,19 @@ public class DeletePcj {
         requireNonNull(scanner);
         requireNonNull(column);
 
-        int count = 0;
-        Iterator<RowColumnValue> iter = scanner.iterator();
-        while (iter.hasNext() && count < batchSize) {
+        try(Transaction ntx = tx) {
+          int count = 0;
+          Iterator<RowColumnValue> iter = scanner.iterator();
+          while (iter.hasNext() && count < batchSize) {
             final Bytes row = iter.next().getRow();
             count++;
             tx.delete(row, column);
-        }
+          }
 
-        final boolean hasNext = iter.hasNext();
-        tx.commit();
-        return hasNext;
+          final boolean hasNext = iter.hasNext();
+          tx.commit();
+          return hasNext;
+        }
     }
 
     private String getQueryIdFromPcjId(final Transaction tx, final String pcjId) {

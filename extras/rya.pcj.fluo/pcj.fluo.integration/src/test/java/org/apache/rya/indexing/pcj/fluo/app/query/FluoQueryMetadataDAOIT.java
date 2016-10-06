@@ -30,8 +30,8 @@ import org.openrdf.query.parser.ParsedQuery;
 import org.openrdf.query.parser.sparql.SPARQLParser;
 import org.openrdf.repository.RepositoryException;
 
-import io.fluo.api.client.Snapshot;
-import io.fluo.api.client.Transaction;
+import org.apache.fluo.api.client.Snapshot;
+import org.apache.fluo.api.client.Transaction;
 
 /**
  * Integration tests the methods of {@link FluoQueryMetadataDAO}.

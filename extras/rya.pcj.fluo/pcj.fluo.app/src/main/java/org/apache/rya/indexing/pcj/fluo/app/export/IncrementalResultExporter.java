@@ -22,7 +22,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
 
 import org.apache.rya.indexing.pcj.storage.accumulo.VisibilityBindingSet;
 
-import io.fluo.api.types.TypedTransactionBase;
+import org.apache.fluo.recipes.core.types.TypedTransactionBase;
 
 /**
  * Exports a single Binding Set that is a new result for a SPARQL query to some

@@ -32,7 +32,7 @@ import org.openrdf.query.BindingSet;
 
 import com.google.common.base.Optional;
 
-import io.fluo.api.data.Column;
+import org.apache.fluo.api.data.Column;
 
 /**
  * Represents the different types of nodes that a Query may have.

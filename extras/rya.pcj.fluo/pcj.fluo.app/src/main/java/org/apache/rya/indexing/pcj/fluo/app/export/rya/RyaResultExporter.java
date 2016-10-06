@@ -28,8 +28,8 @@ import org.apache.rya.indexing.pcj.storage.PrecomputedJoinStorage;
 import org.apache.rya.indexing.pcj.storage.PrecomputedJoinStorage.PCJStorageException;
 import org.apache.rya.indexing.pcj.storage.accumulo.VisibilityBindingSet;
 
-import io.fluo.api.data.Bytes;
-import io.fluo.api.types.TypedTransactionBase;
+import org.apache.fluo.api.data.Bytes;
+import org.apache.fluo.recipes.core.types.TypedTransactionBase;
 
 /**
  * Incrementally exports SPARQL query results to Accumulo PCJ tables as they are defined by Rya.

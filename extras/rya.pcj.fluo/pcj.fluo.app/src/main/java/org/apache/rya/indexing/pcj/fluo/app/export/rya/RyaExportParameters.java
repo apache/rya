@@ -27,7 +27,7 @@ import org.apache.rya.indexing.pcj.fluo.app.export.ParametersBase;
 
 import com.google.common.base.Optional;
 
-import io.fluo.api.observer.Observer;
+import org.apache.fluo.api.observer.Observer;
 
 /**
  * Provides read/write functions to the parameters map that is passed into an

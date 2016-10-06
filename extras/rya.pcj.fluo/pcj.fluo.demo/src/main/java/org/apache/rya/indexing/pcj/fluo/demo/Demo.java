@@ -22,8 +22,8 @@ import org.apache.accumulo.core.client.Connector;
 import org.apache.accumulo.minicluster.MiniAccumuloCluster;
 import org.openrdf.repository.RepositoryConnection;
 
-import io.fluo.api.client.FluoClient;
-import io.fluo.api.mini.MiniFluo;
+import org.apache.fluo.api.client.FluoClient;
+import org.apache.fluo.api.mini.MiniFluo;
 import mvm.rya.rdftriplestore.RyaSailRepository;
 
 /**

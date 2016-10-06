@@ -39,12 +39,12 @@ import org.apache.rya.indexing.pcj.storage.accumulo.VisibilityBindingSetStringCo
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableSet;
 
-import io.fluo.api.data.Bytes;
-import io.fluo.api.data.Column;
-import io.fluo.api.types.Encoder;
-import io.fluo.api.types.StringEncoder;
-import io.fluo.api.types.TypedObserver;
-import io.fluo.api.types.TypedTransactionBase;
+import org.apache.fluo.api.data.Bytes;
+import org.apache.fluo.api.data.Column;
+import org.apache.fluo.recipes.core.types.Encoder;
+import org.apache.fluo.recipes.core.types.StringEncoder;
+import org.apache.fluo.recipes.core.types.TypedObserver;
+import org.apache.fluo.recipes.core.types.TypedTransactionBase;
 import mvm.rya.accumulo.utils.VisibilitySimplifier;
 
 /**

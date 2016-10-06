@@ -54,8 +54,8 @@ import org.openrdf.sail.SailConnection;
 import org.openrdf.sail.SailException;
 
 import info.aduna.iteration.CloseableIteration;
-import io.fluo.api.client.FluoClient;
-import io.fluo.api.types.TypedTransaction;
+import org.apache.fluo.api.client.FluoClient;
+import org.apache.fluo.recipes.core.types.TypedTransaction;
 
 /**
  * Sets up a new Pre Computed Join (PCJ) in Fluo from a SPARQL query.

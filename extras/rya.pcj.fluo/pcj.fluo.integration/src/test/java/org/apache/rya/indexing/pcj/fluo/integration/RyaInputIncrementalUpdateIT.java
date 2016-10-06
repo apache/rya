@@ -37,7 +37,7 @@ import org.openrdf.repository.RepositoryConnection;
 
 import com.google.common.collect.Sets;
 
-import io.fluo.api.client.FluoClient;
+import org.apache.fluo.api.client.FluoClient;
 import mvm.rya.accumulo.AccumuloRyaDAO;
 import mvm.rya.indexing.external.PrecomputedJoinIndexer;
 

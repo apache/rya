@@ -22,9 +22,9 @@ import static java.util.Objects.requireNonNull;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 
-import io.fluo.api.client.FluoClient;
-import io.fluo.api.client.FluoFactory;
-import io.fluo.api.config.FluoConfiguration;
+import org.apache.fluo.api.client.FluoClient;
+import org.apache.fluo.api.client.FluoFactory;
+import org.apache.fluo.api.config.FluoConfiguration;
 
 /**
  * Creates {@link FluoClient}s that are connected to a specific Fluo Application.

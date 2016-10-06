@@ -30,10 +30,10 @@ import org.apache.rya.indexing.pcj.fluo.app.query.FluoQueryColumns;
 
 import com.google.common.base.Optional;
 
-import io.fluo.api.client.FluoClient;
-import io.fluo.api.types.Encoder;
-import io.fluo.api.types.StringEncoder;
-import io.fluo.api.types.TypedTransaction;
+import org.apache.fluo.api.client.FluoClient;
+import org.apache.fluo.recipes.core.types.Encoder;
+import org.apache.fluo.recipes.core.types.StringEncoder;
+import org.apache.fluo.recipes.core.types.TypedTransaction;
 import mvm.rya.api.RdfCloudTripleStoreConstants.TABLE_LAYOUT;
 import mvm.rya.api.domain.RyaStatement;
 import mvm.rya.api.resolver.triple.TripleRow;

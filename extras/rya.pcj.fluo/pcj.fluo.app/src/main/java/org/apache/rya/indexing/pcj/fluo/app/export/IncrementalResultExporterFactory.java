@@ -22,7 +22,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
 
 import com.google.common.base.Optional;
 
-import io.fluo.api.observer.Observer.Context;
+import org.apache.fluo.api.observer.Observer.Context;
 
 /**
  * Builds instances of {@link IncrementalResultExporter} using the provided

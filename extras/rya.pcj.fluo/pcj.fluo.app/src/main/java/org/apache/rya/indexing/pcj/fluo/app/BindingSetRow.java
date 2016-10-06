@@ -24,7 +24,7 @@ import static org.apache.rya.indexing.pcj.fluo.app.IncrementalUpdateConstants.NO
 import javax.annotation.ParametersAreNonnullByDefault;
 import javax.annotation.concurrent.Immutable;
 
-import io.fluo.api.data.Bytes;
+import org.apache.fluo.api.data.Bytes;
 
 /**
  * The values of an Accumulo Row ID for a row that stores a Binding set for

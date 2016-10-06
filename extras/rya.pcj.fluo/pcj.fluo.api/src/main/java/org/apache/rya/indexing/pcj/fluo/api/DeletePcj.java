@@ -22,6 +22,7 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static java.util.Objects.requireNonNull;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -35,14 +36,14 @@ import org.apache.rya.indexing.pcj.fluo.app.query.JoinMetadata;
 import org.apache.rya.indexing.pcj.fluo.app.query.QueryMetadata;
 import org.openrdf.query.BindingSet;
 
-import io.fluo.api.client.FluoClient;
-import io.fluo.api.client.Transaction;
-import io.fluo.api.config.ScannerConfiguration;
-import io.fluo.api.data.Bytes;
-import io.fluo.api.data.Column;
-import io.fluo.api.data.Span;
-import io.fluo.api.iterator.RowIterator;
-import io.fluo.api.types.TypedTransaction;
+import org.apache.fluo.api.client.FluoClient;
+import org.apache.fluo.api.client.Transaction;
+import org.apache.fluo.api.client.scanner.CellScanner;
+import org.apache.fluo.api.data.Bytes;
+import org.apache.fluo.api.data.Column;
+import org.apache.fluo.api.data.RowColumnValue;
+import org.apache.fluo.api.data.Span;
+import org.apache.fluo.recipes.core.types.TypedTransaction;
 
 /**
  * Deletes a Pre-computed Join (PCJ) from Fluo.
@@ -239,34 +240,30 @@ public class DeletePcj {
         }
     }
 
-    private RowIterator getIterator(final Transaction tx, final String nodeId, final Column column) {
+    private CellScanner getIterator(final Transaction tx, final String nodeId, final Column column) {
         requireNonNull(tx);
         requireNonNull(nodeId);
         requireNonNull(column);
 
-        ScannerConfiguration sc1 = new ScannerConfiguration();
-        sc1.fetchColumn(column.getFamily(), column.getQualifier());
-        sc1.setSpan(Span.prefix(Bytes.of(nodeId)));
-        return tx.get(sc1);
+        return tx.scanner().fetch(column).over(Span.prefix(nodeId)).build();
     }
 
-    private boolean deleteDataBatch(final Transaction tx, final RowIterator iter, final Column column) {
+    private boolean deleteDataBatch(final Transaction tx, final CellScanner scanner, final Column column) {
         requireNonNull(tx);
-        requireNonNull(iter);
+        requireNonNull(scanner);
         requireNonNull(column);
 
-        try (final TypedTransaction typeTx = new StringTypeLayer().wrap(tx)) {
-            int count = 0;
-            while (iter.hasNext() && count < batchSize) {
-                final Bytes row = iter.next().getKey();
-                count++;
-                tx.delete(row, column);
-            }
-
-            final boolean hasNext = iter.hasNext();
-            tx.commit();
-            return hasNext;
+        int count = 0;
+        Iterator<RowColumnValue> iter = scanner.iterator();
+        while (iter.hasNext() && count < batchSize) {
+            final Bytes row = iter.next().getRow();
+            count++;
+            tx.delete(row, column);
         }
+
+        final boolean hasNext = iter.hasNext();
+        tx.commit();
+        return hasNext;
     }
 
     private String getQueryIdFromPcjId(final Transaction tx, final String pcjId) {

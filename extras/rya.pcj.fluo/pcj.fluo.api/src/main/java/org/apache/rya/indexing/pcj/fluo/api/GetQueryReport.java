@@ -38,13 +38,13 @@ import org.apache.rya.indexing.pcj.fluo.app.query.StatementPatternMetadata;
 
 import com.google.common.collect.ImmutableMap;
 
-import io.fluo.api.client.FluoClient;
-import io.fluo.api.client.Snapshot;
-import io.fluo.api.client.SnapshotBase;
-import io.fluo.api.config.ScannerConfiguration;
-import io.fluo.api.data.Column;
-import io.fluo.api.data.Span;
-import io.fluo.api.iterator.RowIterator;
+import org.apache.fluo.api.client.FluoClient;
+import org.apache.fluo.api.client.Snapshot;
+import org.apache.fluo.api.client.SnapshotBase;
+import org.apache.fluo.api.client.scanner.ColumnScanner;
+import org.apache.fluo.api.client.scanner.RowScanner;
+import org.apache.fluo.api.data.Column;
+import org.apache.fluo.api.data.Span;
 
 /**
  * Get a reports that indicates how many binding sets have been emitted for
@@ -130,17 +130,13 @@ public class GetQueryReport {
         checkNotNull(bindingSetColumn);
 
         // Limit the scan to the binding set column and node id.
-        final ScannerConfiguration scanConfig = new ScannerConfiguration();
-        scanConfig.fetchColumn(bindingSetColumn.getFamily(), bindingSetColumn.getQualifier());
-        scanConfig.setSpan( Span.prefix(nodeId) );
+        final RowScanner rows = sx.scanner().over(Span.prefix(nodeId)).fetch(bindingSetColumn).byRow().build();
 
-        final RowIterator rows = sx.get(scanConfig);
         BigInteger count = BigInteger.valueOf(0L);
-        while(rows.hasNext()) {
-            rows.next();
-            count = count.add( BigInteger.ONE );
-        }
-
+        for (ColumnScanner columns : rows) {
+        	 count = count.add( BigInteger.ONE );
+		}
+        
         return count;
     }
 

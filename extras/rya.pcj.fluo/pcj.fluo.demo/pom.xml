@@ -53,7 +53,7 @@ under the License.
             <artifactId>sesame-queryrender</artifactId>
         </dependency>
         <dependency>
-            <groupId>io.fluo</groupId>
+            <groupId>org.apache.fluo</groupId>
             <artifactId>fluo-mini</artifactId>
         </dependency>
         <dependency>

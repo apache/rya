@@ -29,7 +29,7 @@ import org.apache.rya.indexing.pcj.storage.accumulo.VisibilityBindingSet;
 import org.apache.rya.indexing.pcj.storage.accumulo.VisibilityBindingSetStringConverter;
 import org.openrdf.query.BindingSet;
 
-import io.fluo.api.client.TransactionBase;
+import org.apache.fluo.api.client.TransactionBase;
 
 /**
  * Notified when the results of a Statement Pattern have been updated to include

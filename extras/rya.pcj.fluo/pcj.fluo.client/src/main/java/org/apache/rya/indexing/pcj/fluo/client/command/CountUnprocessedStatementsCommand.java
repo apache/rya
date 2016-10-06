@@ -27,7 +27,7 @@ import org.apache.log4j.Logger;
 import org.apache.rya.indexing.pcj.fluo.api.CountStatements;
 import org.apache.rya.indexing.pcj.fluo.client.PcjAdminClientCommand;
 
-import io.fluo.api.client.FluoClient;
+import org.apache.fluo.api.client.FluoClient;
 import mvm.rya.rdftriplestore.RyaSailRepository;
 
 /**

@@ -74,7 +74,7 @@ under the License.
         </dependency>
         
         <dependency>
-            <groupId>io.fluo</groupId>
+            <groupId>org.apache.fluo</groupId>
             <artifactId>fluo-mini</artifactId>
         </dependency>
         

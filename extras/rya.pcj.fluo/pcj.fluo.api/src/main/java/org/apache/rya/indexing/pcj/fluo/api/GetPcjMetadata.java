@@ -30,9 +30,9 @@ import org.apache.rya.indexing.pcj.storage.PcjException;
 import org.apache.rya.indexing.pcj.storage.PcjMetadata;
 import org.apache.rya.indexing.pcj.storage.PrecomputedJoinStorage;
 
-import io.fluo.api.client.FluoClient;
-import io.fluo.api.data.Bytes;
-import io.fluo.api.types.TypedSnapshot;
+import org.apache.fluo.api.client.FluoClient;
+import org.apache.fluo.api.data.Bytes;
+import org.apache.fluo.recipes.core.types.TypedSnapshot;
 
 /**
  * Get {@link PcjMetadata} for queries that are managed by the Fluo app.

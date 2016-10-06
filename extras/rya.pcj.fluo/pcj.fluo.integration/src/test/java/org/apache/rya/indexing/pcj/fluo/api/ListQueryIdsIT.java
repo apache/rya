@@ -32,7 +32,7 @@ import org.junit.Test;
 
 import com.beust.jcommander.internal.Lists;
 
-import io.fluo.api.types.TypedTransaction;
+import org.apache.fluo.recipes.core.types.TypedTransaction;
 
 /**
  * Integration tests the methods of {@link ListQueryIds}.

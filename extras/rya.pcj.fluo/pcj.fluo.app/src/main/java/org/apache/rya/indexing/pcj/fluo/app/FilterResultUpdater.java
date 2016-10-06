@@ -49,11 +49,11 @@ import org.openrdf.query.impl.MapBindingSet;
 import com.google.common.base.Optional;
 
 import info.aduna.iteration.CloseableIteration;
-import io.fluo.api.client.TransactionBase;
-import io.fluo.api.data.Bytes;
-import io.fluo.api.data.Column;
-import io.fluo.api.types.Encoder;
-import io.fluo.api.types.StringEncoder;
+import org.apache.fluo.api.client.TransactionBase;
+import org.apache.fluo.api.data.Bytes;
+import org.apache.fluo.api.data.Column;
+import org.apache.fluo.recipes.core.types.Encoder;
+import org.apache.fluo.recipes.core.types.StringEncoder;
 
 /**
  * Updates the results of a Filter node when its child has added a new Binding

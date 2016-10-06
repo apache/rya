@@ -30,12 +30,12 @@ import org.apache.rya.indexing.pcj.storage.accumulo.VariableOrder;
 
 import com.google.common.collect.Sets;
 
-import io.fluo.api.client.SnapshotBase;
-import io.fluo.api.client.TransactionBase;
-import io.fluo.api.data.Bytes;
-import io.fluo.api.data.Column;
-import io.fluo.api.types.Encoder;
-import io.fluo.api.types.StringEncoder;
+import org.apache.fluo.api.client.SnapshotBase;
+import org.apache.fluo.api.client.TransactionBase;
+import org.apache.fluo.api.data.Bytes;
+import org.apache.fluo.api.data.Column;
+import org.apache.fluo.recipes.core.types.Encoder;
+import org.apache.fluo.recipes.core.types.StringEncoder;
 
 /**
  * Reads and writes {@link FluoQuery} instances and their components to/from

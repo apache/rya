@@ -22,7 +22,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
 
 import org.apache.accumulo.core.client.Connector;
 
-import io.fluo.api.client.FluoClient;
+import org.apache.fluo.api.client.FluoClient;
 import mvm.rya.rdftriplestore.RyaSailRepository;
 
 /**

@@ -23,16 +23,13 @@ import static org.apache.rya.indexing.pcj.fluo.app.IncrementalUpdateConstants.DE
 import static org.apache.rya.indexing.pcj.fluo.app.IncrementalUpdateConstants.TYPE_DELIM;
 import static org.apache.rya.indexing.pcj.fluo.app.IncrementalUpdateConstants.URI_TYPE;
 
-import java.util.Map.Entry;
-
-import io.fluo.api.client.FluoClient;
-import io.fluo.api.client.Snapshot;
-import io.fluo.api.config.ScannerConfiguration;
-import io.fluo.api.data.Bytes;
-import io.fluo.api.data.Column;
-import io.fluo.api.iterator.ColumnIterator;
-import io.fluo.api.iterator.RowIterator;
-import io.fluo.api.types.TypedTransaction;
+import org.apache.fluo.api.client.FluoClient;
+import org.apache.fluo.api.client.Snapshot;
+import org.apache.fluo.api.client.scanner.CellScanner;
+import org.apache.fluo.api.data.Bytes;
+import org.apache.fluo.api.data.Column;
+import org.apache.fluo.api.data.RowColumnValue;
+import org.apache.fluo.recipes.core.types.TypedTransaction;
 import mvm.rya.api.RdfCloudTripleStoreConstants.TABLE_LAYOUT;
 import mvm.rya.api.domain.RyaStatement;
 import mvm.rya.api.resolver.triple.TripleRow;
@@ -106,15 +103,10 @@ public class IncUpdateDAO {
      */
     public static void printTriples(final FluoClient fluoClient) throws Exception {
         try (Snapshot snapshot = fluoClient.newSnapshot()) {
-            final ScannerConfiguration scanConfig = new ScannerConfiguration();
-            scanConfig.fetchColumn(Bytes.of("triples"), Bytes.of("SPO"));
-
-            final RowIterator rowIter = snapshot.get(scanConfig);
-
-            while (rowIter.hasNext()) {
-                final Entry<Bytes, ColumnIterator> row = rowIter.next();
-                System.out.println("Triple: " + row.getKey().toString());
-            }
+        	CellScanner cscanner = snapshot.scanner().fetch(new Column("triples", "SPO")).build();
+        	for (RowColumnValue rcv : cscanner) {
+        		System.out.println("Triple: "+rcv.getsRow());
+			}
         }
     }
 
@@ -179,25 +171,13 @@ public class IncUpdateDAO {
                 "--Column Qual--", "--Value--");
         // Use try with resource to ensure snapshot is closed.
         try (Snapshot snapshot = fluoClient.newSnapshot()) {
-            final ScannerConfiguration scanConfig = new ScannerConfiguration();
-            // scanConfig.setSpan(Span.prefix("word:"));
-
-            final RowIterator rowIter = snapshot.get(scanConfig);
-
-            while (rowIter.hasNext()) {
-                final Entry<Bytes, ColumnIterator> row = rowIter.next();
-                final ColumnIterator colIter = row.getValue();
-                while (colIter.hasNext()) {
-                    final Entry<Column, Bytes> column = colIter.next();
-                    // System.out.println(row.getKey() + " " +
-                    // column.getKey().getFamily()+ " " +
-                    // column.getKey().getQualifier() );
-                    System.out.format(FORMAT, to_String(row.getKey()),
-                            to_String(column.getKey().getFamily()),
-                            to_String(column.getKey().getQualifier()),
-                            to_String(column.getValue()));
-                }
-            }
+        	CellScanner cscanner = snapshot.scanner().build();
+        	for (RowColumnValue rcv : cscanner) {
+        		System.out.format(FORMAT, to_String(rcv.getRow()),
+                        to_String(rcv.getColumn().getFamily()),
+                        to_String(rcv.getColumn().getQualifier()),
+                        to_String(rcv.getValue()));
+			}
         }
     }
 

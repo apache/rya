@@ -35,7 +35,7 @@ import org.openrdf.sail.SailException;
 
 import com.google.common.base.Optional;
 
-import io.fluo.api.client.FluoClient;
+import org.apache.fluo.api.client.FluoClient;
 import mvm.rya.accumulo.AccumuloRdfConfiguration;
 import mvm.rya.accumulo.AccumuloRyaDAO;
 import mvm.rya.accumulo.instance.AccumuloRyaInstanceDetailsRepository;

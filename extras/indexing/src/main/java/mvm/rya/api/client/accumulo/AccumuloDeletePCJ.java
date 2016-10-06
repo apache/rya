@@ -32,7 +32,7 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Optional;
 
-import io.fluo.api.client.FluoClient;
+import org.apache.fluo.api.client.FluoClient;
 import mvm.rya.api.client.DeletePCJ;
 import mvm.rya.api.client.GetInstanceDetails;
 import mvm.rya.api.client.InstanceDoesNotExistException;

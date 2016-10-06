@@ -26,6 +26,7 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <geotools.version>14.3</geotools.version>
+        <geomesa.version>1.2.0</geomesa.version> <!-- Newest: 1.2.0 -->
     </properties>
     <repositories>
         <repository>
@@ -87,6 +88,17 @@
 			<groupId>org.locationtech.geomesa</groupId>
 			<artifactId>geomesa-accumulo-datastore</artifactId>
 		</dependency>
+            <!-- Geo Indexing -->
+            <dependency>
+                <groupId>org.locationtech.geomesa</groupId>
+                <artifactId>geomesa-accumulo-datastore</artifactId>
+                <version>${geomesa.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.locationtech.geomesa</groupId>
+                <artifactId>geomesa-accumulo-distributed-runtime</artifactId>
+                <version>${geomesa.version}</version>
+            </dependency>
 
 		<!-- PCJ Indexing -->
 		<dependency>

@@ -27,12 +27,11 @@ import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
 import org.apache.accumulo.core.client.TableExistsException;
 import org.apache.rya.indexing.pcj.fluo.ITBase;
-import org.apache.rya.indexing.pcj.fluo.app.StringTypeLayer;
 import org.junit.Test;
 
 import com.beust.jcommander.internal.Lists;
 
-import org.apache.fluo.recipes.core.types.TypedTransaction;
+import org.apache.fluo.api.client.Transaction;
 
 /**
  * Integration tests the methods of {@link ListQueryIds}.
@@ -47,11 +46,11 @@ public class ListQueryIdsIT extends ITBase {
     @Test
     public void getQueryIds() throws AccumuloException, AccumuloSecurityException, TableExistsException {
         // Store a few SPARQL/Query ID pairs in the Fluo table.
-        try(TypedTransaction tx = new StringTypeLayer().wrap( fluoClient.newTransaction() )) {
-            tx.mutate().row("SPARQL_3").col(QUERY_ID).set("ID_3");
-            tx.mutate().row("SPARQL_1").col(QUERY_ID).set("ID_1");
-            tx.mutate().row("SPARQL_4").col(QUERY_ID).set("ID_4");
-            tx.mutate().row("SPARQL_2").col(QUERY_ID).set("ID_2");
+        try(Transaction tx = fluoClient.newTransaction()) {
+            tx.set("SPARQL_3", QUERY_ID, "ID_3");
+            tx.set("SPARQL_1", QUERY_ID, "ID_1");
+            tx.set("SPARQL_4", QUERY_ID, "ID_4");
+            tx.set("SPARQL_2", QUERY_ID, "ID_2");
             tx.commit();
         }
 

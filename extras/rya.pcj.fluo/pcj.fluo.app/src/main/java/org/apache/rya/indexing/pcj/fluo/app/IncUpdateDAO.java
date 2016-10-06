@@ -25,11 +25,11 @@ import static org.apache.rya.indexing.pcj.fluo.app.IncrementalUpdateConstants.UR
 
 import org.apache.fluo.api.client.FluoClient;
 import org.apache.fluo.api.client.Snapshot;
+import org.apache.fluo.api.client.Transaction;
 import org.apache.fluo.api.client.scanner.CellScanner;
 import org.apache.fluo.api.data.Bytes;
 import org.apache.fluo.api.data.Column;
 import org.apache.fluo.api.data.RowColumnValue;
-import org.apache.fluo.recipes.core.types.TypedTransaction;
 import mvm.rya.api.RdfCloudTripleStoreConstants.TABLE_LAYOUT;
 import mvm.rya.api.domain.RyaStatement;
 import mvm.rya.api.resolver.triple.TripleRow;
@@ -38,7 +38,6 @@ import mvm.rya.api.resolver.triple.impl.WholeRowTripleResolver;
 
 public class IncUpdateDAO {
 
-    private static final StringTypeLayer stl = new StringTypeLayer();
     private static final WholeRowTripleResolver tr = new WholeRowTripleResolver();
 
     public static RyaStatement deserializeTriple(final Bytes row) {
@@ -77,7 +76,7 @@ public class IncUpdateDAO {
      */
     public static void addRow(final FluoClient fluoClient, final String row, final Column col, final String val) {
         checkNotNull(fluoClient);
-        try (TypedTransaction tx = stl.wrap(fluoClient.newTransaction())) {
+        try (Transaction tx = fluoClient.newTransaction()) {
             addRow(tx, row, col, val);
             tx.commit();
         }
@@ -91,9 +90,9 @@ public class IncUpdateDAO {
      * @param col - The Column.
      * @param val - The value.
      */
-    public static void addRow(final TypedTransaction tx, final String row, final Column col, final String val) {
+    public static void addRow(final Transaction tx, final String row, final Column col, final String val) {
         checkNotNull(tx);
-        tx.mutate().row(row).col(col).set(val);
+        tx.set(row, col, val);
     }
 
     /**

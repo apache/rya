@@ -33,10 +33,7 @@ import org.openrdf.query.Binding;
 import org.openrdf.query.impl.MapBindingSet;
 
 import org.apache.fluo.api.client.TransactionBase;
-import org.apache.fluo.api.data.Bytes;
 import org.apache.fluo.api.data.Column;
-import org.apache.fluo.recipes.core.types.Encoder;
-import org.apache.fluo.recipes.core.types.StringEncoder;
 
 /**
  * Updates the results of a Query node when one of its children has added a
@@ -44,8 +41,7 @@ import org.apache.fluo.recipes.core.types.StringEncoder;
  */
 @ParametersAreNonnullByDefault
 public class QueryResultUpdater {
-    private final Encoder encoder = new StringEncoder();
-
+    
     private final BindingSetStringConverter converter = new BindingSetStringConverter();
     private final VisibilityBindingSetStringConverter valueConverter = new VisibilityBindingSetStringConverter();
 
@@ -79,9 +75,9 @@ public class QueryResultUpdater {
         final String queryBindingSetValueString = valueConverter.convert(new VisibilityBindingSet(queryBindingSet, childBindingSet.getVisibility()), queryVarOrder);
 
         // Commit it to the Fluo table for the SPARQL query. This isn't guaranteed to be a new entry.
-        final Bytes row = encoder.encode(queryMetadata.getNodeId() + NODEID_BS_DELIM + queryBindingSetString);
+        final String row = queryMetadata.getNodeId() + NODEID_BS_DELIM + queryBindingSetString;
         final Column col = FluoQueryColumns.QUERY_BINDING_SET;
-        final Bytes value = encoder.encode(queryBindingSetValueString);
+        final String value = queryBindingSetValueString;
         tx.set(row, col, value);
     }
 }

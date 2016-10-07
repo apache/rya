@@ -17,10 +17,7 @@
  * under the License.
  */
 
-import java.io.File;
-import java.io.FileInputStream;
 import java.net.UnknownHostException;
-import java.util.Collection;
 import java.util.List;
 
 import org.apache.accumulo.core.client.AccumuloException;
@@ -36,7 +33,6 @@ import org.apache.log4j.Logger;
 import org.apache.rya.indexing.pcj.storage.PcjException;
 import org.apache.rya.indexing.pcj.storage.accumulo.PcjTables;
 import org.apache.rya.indexing.pcj.storage.accumulo.PcjVarOrderFactory;
-import org.openrdf.model.Statement;
 import org.openrdf.model.URI;
 import org.openrdf.model.ValueFactory;
 import org.openrdf.model.impl.LiteralImpl;
@@ -56,10 +52,6 @@ import org.openrdf.query.UpdateExecutionException;
 import org.openrdf.repository.RepositoryException;
 import org.openrdf.repository.sail.SailRepository;
 import org.openrdf.repository.sail.SailRepositoryConnection;
-import org.openrdf.rio.RDFFormat;
-import org.openrdf.rio.RDFParser;
-import org.openrdf.rio.Rio;
-import org.openrdf.rio.helpers.StatementCollector;
 import org.openrdf.sail.Sail;
 import org.openrdf.sail.SailException;
 
@@ -68,8 +60,8 @@ import com.google.common.base.Optional;
 import mvm.rya.accumulo.AccumuloRdfConfiguration;
 import mvm.rya.api.RdfCloudTripleStoreConfiguration;
 import mvm.rya.api.persist.RyaDAOException;
+import mvm.rya.indexing.GeoConstants;
 import mvm.rya.indexing.accumulo.ConfigUtils;
-import mvm.rya.indexing.accumulo.geo.GeoConstants;
 import mvm.rya.indexing.external.PrecomputedJoinIndexerConfig;
 import mvm.rya.indexing.external.PrecomputedJoinIndexerConfig.PrecomputedJoinStorageType;
 import mvm.rya.rdftriplestore.inference.InferenceEngineException;
@@ -114,18 +106,18 @@ public class RyaDirectExample {
 			testAddAndTemporalSearchWithPCJ(conn);
 			log.info("Running SAIL/SPARQL Example: Add and Free Text Search with PCJ");
 			testAddAndFreeTextSearchWithPCJ(conn);
-			log.info("Running SPARQL Example: Add Point and Geo Search with PCJ");
-			testAddPointAndWithinSearchWithPCJ(conn);
-			log.info("Running SPARQL Example: Temporal, Freetext, and Geo Search");
-			testTemporalFreeGeoSearch(conn);
-			log.info("Running SPARQL Example: Geo, Freetext, and PCJ Search");
-			testGeoFreetextWithPCJSearch(conn);
+//			log.info("Running SPARQL Example: Add Point and Geo Search with PCJ");
+////			testAddPointAndWithinSearchWithPCJ(conn);
+//			log.info("Running SPARQL Example: Temporal, Freetext, and Geo Search");
+//			testTemporalFreeGeoSearch(conn);
+//			log.info("Running SPARQL Example: Geo, Freetext, and PCJ Search");
+//			testGeoFreetextWithPCJSearch(conn);
 			log.info("Running SPARQL Example: Delete Temporal Data");
 			testDeleteTemporalData(conn);
 			log.info("Running SPARQL Example: Delete Free Text Data");
 			testDeleteFreeTextData(conn);
-			log.info("Running SPARQL Example: Delete Geo Data");
-			testDeleteGeoData(conn);
+//			log.info("Running SPARQL Example: Delete Geo Data");
+//			testDeleteGeoData(conn);
 
 			log.info("TIME: " + (System.currentTimeMillis() - start) / 1000.);
 		} finally {
@@ -161,7 +153,6 @@ public class RyaDirectExample {
 
 		conf.setBoolean(ConfigUtils.USE_MOCK_INSTANCE, USE_MOCK_INSTANCE);
 		conf.set(ConfigUtils.USE_PCJ, "true");
-		conf.set(ConfigUtils.USE_GEO, "true");
 		conf.set(ConfigUtils.USE_FREETEXT, "true");
 		conf.set(ConfigUtils.USE_TEMPORAL, "true");
 		conf.set(PrecomputedJoinIndexerConfig.PCJ_STORAGE_TYPE, PrecomputedJoinStorageType.ACCUMULO.name());
@@ -428,197 +419,197 @@ public class RyaDirectExample {
 		Validate.isTrue(tupleHandler.getCount() == 1);
 	}
 
-	private static void testAddPointAndWithinSearchWithPCJ(
-			final SailRepositoryConnection conn) throws Exception {
-
-		final String update = "PREFIX geo: <http://www.opengis.net/ont/geosparql#>  "//
-				+ "INSERT DATA { " //
-				+ "  <urn:feature> a geo:Feature ; " //
-				+ "    geo:hasGeometry [ " //
-				+ "      a geo:Point ; " //
-				+ "      geo:asWKT \"Point(-77.03524 38.889468)\"^^geo:wktLiteral "//
-				+ "    ] . " //
-				+ "}";
-
-		final Update u = conn.prepareUpdate(QueryLanguage.SPARQL, update);
-		u.execute();
-
-		String queryString;
-		TupleQuery tupleQuery;
-		CountingResultHandler tupleHandler;
-
-		// point outside search ring
-		queryString = "PREFIX geo: <http://www.opengis.net/ont/geosparql#>  "//
-				+ "PREFIX geof: <http://www.opengis.net/def/function/geosparql/>  "//
-				+ "SELECT ?feature ?point ?wkt " //
-				+ "{" //
-				+ "  ?feature a geo:Feature . "//
-				+ "  ?feature geo:hasGeometry ?point . "//
-				+ "  ?point a geo:Point . "//
-				+ "  ?point geo:asWKT ?wkt . "//
-				+ "  FILTER(geof:sfWithin(?wkt, \"POLYGON((-77 39, -76 39, -76 38, -77 38, -77 39))\"^^geo:wktLiteral)) " //
-				+ "}";//
-		tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, queryString);
-		tupleHandler = new CountingResultHandler();
-		tupleQuery.evaluate(tupleHandler);
-		log.info("Result count : " + tupleHandler.getCount());
-		Validate.isTrue(tupleHandler.getCount() == 0);
-
-		// point inside search ring
-		queryString = "PREFIX geo: <http://www.opengis.net/ont/geosparql#>  "//
-				+ "PREFIX geof: <http://www.opengis.net/def/function/geosparql/>  "//
-				+ "SELECT ?feature ?point ?wkt ?e ?l ?o" //
-				+ "{" //
-				+ "  ?feature a ?e . "//
-				+ "  ?e <http://www.w3.org/2000/01/rdf-schema#label> ?l . "//
-				+ "  ?e <uri:talksTo> ?o . "//
-				+ "  ?feature a geo:Feature . "//
-				+ "  ?feature geo:hasGeometry ?point . "//
-				+ "  ?point a geo:Point . "//
-				+ "  ?point geo:asWKT ?wkt . "//
-				+ "  FILTER(geof:sfWithin(?wkt, \"POLYGON((-78 39, -77 39, -77 38, -78 38, -78 39))\"^^geo:wktLiteral)) " //
-				+ "}";//
-
-		tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, queryString);
-		tupleHandler = new CountingResultHandler();
-		tupleQuery.evaluate(tupleHandler);
-		log.info("Result count : " + tupleHandler.getCount());
-		Validate.isTrue(tupleHandler.getCount() == 1);
-
-		// point inside search ring with Pre-Computed Join
-		queryString = "PREFIX geo: <http://www.opengis.net/ont/geosparql#>  "//
-				+ "PREFIX geof: <http://www.opengis.net/def/function/geosparql/>  "//
-				+ "SELECT ?feature ?point ?wkt ?e ?l ?o" //
-				+ "{" //
-				+ "  ?feature a ?e . "//
-				+ "  ?e <http://www.w3.org/2000/01/rdf-schema#label> ?l . "//
-				+ "  ?e <uri:talksTo> ?o . "//
-				+ "  ?feature a geo:Feature . "//
-				+ "  ?feature geo:hasGeometry ?point . "//
-				+ "  ?point a geo:Point . "//
-				+ "  ?point geo:asWKT ?wkt . "//
-				+ "  FILTER(geof:sfWithin(?wkt, \"POLYGON((-78 39, -77 39, -77 38, -78 38, -78 39))\"^^geo:wktLiteral)) " //
-				+ "}";//
-
-		tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, queryString);
-		tupleHandler = new CountingResultHandler();
-		tupleQuery.evaluate(tupleHandler);
-		log.info("Result count : " + tupleHandler.getCount());
-		Validate.isTrue(tupleHandler.getCount() >= 1); // may see points from
-														// during previous runs
-
-		// point outside search ring with PCJ
-		queryString = "PREFIX geo: <http://www.opengis.net/ont/geosparql#>  "//
-				+ "PREFIX geof: <http://www.opengis.net/def/function/geosparql/>  "//
-				+ "SELECT ?feature ?point ?wkt ?e ?l ?o " //
-				+ "{" //
-				+ "  ?feature a ?e . "//
-				+ "  ?e <http://www.w3.org/2000/01/rdf-schema#label> ?l . "//
-				+ "  ?e <uri:talksTo> ?o . "//
-				+ "  ?feature a geo:Feature . "//
-				+ "  ?feature geo:hasGeometry ?point . "//
-				+ "  ?point a geo:Point . "//
-				+ "  ?point geo:asWKT ?wkt . "//
-				+ "  FILTER(geof:sfWithin(?wkt, \"POLYGON((-77 39, -76 39, -76 38, -77 38, -77 39))\"^^geo:wktLiteral)) " //
-				+ "}";//
-		tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, queryString);
-		tupleHandler = new CountingResultHandler();
-		tupleQuery.evaluate(tupleHandler);
-		log.info("Result count : " + tupleHandler.getCount());
-		Validate.isTrue(tupleHandler.getCount() == 0);
-
-		// point inside search ring with different Pre-Computed Join
-		queryString = "PREFIX geo: <http://www.opengis.net/ont/geosparql#>  "//
-				+ "PREFIX geof: <http://www.opengis.net/def/function/geosparql/>  "//
-				+ "SELECT ?feature ?point ?wkt ?e ?c ?l ?o " //
-				+ "{" //
-				+ "  ?e a ?c . "//
-				+ "  ?e <http://www.w3.org/2000/01/rdf-schema#label> ?l . "//
-				+ "  ?e <uri:talksTo> ?o . "//
-				+ "  ?feature a geo:Feature . "//
-				+ "  ?feature geo:hasGeometry ?point . "//
-				+ "  ?point a geo:Point . "//
-				+ "  ?point geo:asWKT ?wkt . "//
-				+ "  FILTER(geof:sfWithin(?wkt, \"POLYGON((-78 39, -77 39, -77 38, -78 38, -78 39))\"^^geo:wktLiteral)) " //
-				+ "}";//
-		tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, queryString);
-		tupleHandler = new CountingResultHandler();
-		tupleQuery.evaluate(tupleHandler);
-		log.info("Result count : " + tupleHandler.getCount());
-		Validate.isTrue(tupleHandler.getCount() == 1);
-	}
-
-	private static void testTemporalFreeGeoSearch(
-			final SailRepositoryConnection conn)
-			throws MalformedQueryException, RepositoryException,
-			UpdateExecutionException, TupleQueryResultHandlerException,
-			QueryEvaluationException {
-
-		String queryString;
-		TupleQuery tupleQuery;
-		CountingResultHandler tupleHandler;
-
-		// ring containing point
-		queryString = "PREFIX geo: <http://www.opengis.net/ont/geosparql#>  "//
-				+ "PREFIX geof: <http://www.opengis.net/def/function/geosparql/>  "//
-				+ "PREFIX time: <http://www.w3.org/2006/time#> "//
-				+ "PREFIX tempo: <tag:rya-rdf.org,2015:temporal#> "//
-				+ "PREFIX fts: <http://rdf.useekm.com/fts#>  "//
-				+ "SELECT ?feature ?point ?wkt ?event ?time ?person ?match" //
-				+ "{" //
-				+ "  ?event a  time:Instant . \n"//
-				+ "  ?event time:inXSDDateTime ?time . \n"//
-				+ "  FILTER(tempo:after(?time, '2001-01-01T01:01:03-08:00') ) \n"// after
-																					// 3
-																					// seconds
-				+ "  ?feature a geo:Feature . "//
-				+ "  ?feature geo:hasGeometry ?point . "//
-				+ "  ?point a geo:Point . "//
-				+ "  ?point geo:asWKT ?wkt . "//
-				+ "  FILTER(geof:sfWithin(?wkt, \"POLYGON((-78 39, -77 39, -77 38, -78 38, -78 39))\"^^geo:wktLiteral)). " //
-				+ "  ?person a <http://example.org/ontology/Person> . "//
-				+ "  ?person <http://www.w3.org/2000/01/rdf-schema#label> ?match . "//
-				+ "  FILTER(fts:text(?match, \"pal*\")) " //
-				+ "}";//
-
-		tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, queryString);
-
-		tupleHandler = new CountingResultHandler();
-		tupleQuery.evaluate(tupleHandler);
-		log.info("Result count : " + tupleHandler.getCount());
-		Validate.isTrue(tupleHandler.getCount() == 5);
-
-	}
-
-	private static void testGeoFreetextWithPCJSearch(
-			final SailRepositoryConnection conn)
-			throws MalformedQueryException, RepositoryException,
-			TupleQueryResultHandlerException, QueryEvaluationException {
-		// ring outside point
-		final String queryString = "PREFIX geo: <http://www.opengis.net/ont/geosparql#>  "//
-				+ "PREFIX fts: <http://rdf.useekm.com/fts#>  "//
-				+ "PREFIX geof: <http://www.opengis.net/def/function/geosparql/>  "//
-				+ "SELECT ?feature ?point ?wkt ?e ?c ?l ?o ?person ?match " //
-				+ "{" //
-				+ "  ?person a <http://example.org/ontology/Person> . "//
-				+ "  ?person <http://www.w3.org/2000/01/rdf-schema#label> ?match . "//
-				+ "  FILTER(fts:text(?match, \"!alice & hose\")) " //
-				+ "  ?e a ?c . "//
-				+ "  ?e <http://www.w3.org/2000/01/rdf-schema#label> ?l . "//
-				+ "  ?e <uri:talksTo> ?o . "//
-				+ "  ?feature a geo:Feature . "//
-				+ "  ?feature geo:hasGeometry ?point . "//
-				+ "  ?point a geo:Point . "//
-				+ "  ?point geo:asWKT ?wkt . "//
-				+ "  FILTER(geof:sfWithin(?wkt, \"POLYGON((-78 39, -77 39, -77 38, -78 38, -78 39))\"^^geo:wktLiteral)) " //
-				+ "}";//
-		final TupleQuery tupleQuery = conn.prepareTupleQuery(
-				QueryLanguage.SPARQL, queryString);
-		final CountingResultHandler tupleHandler = new CountingResultHandler();
-		tupleQuery.evaluate(tupleHandler);
-		log.info("Result count : " + tupleHandler.getCount());
-		Validate.isTrue(tupleHandler.getCount() == 1);
-	}
+//	private static void testAddPointAndWithinSearchWithPCJ(
+//			final SailRepositoryConnection conn) throws Exception {
+//
+//		final String update = "PREFIX geo: <http://www.opengis.net/ont/geosparql#>  "//
+//				+ "INSERT DATA { " //
+//				+ "  <urn:feature> a geo:Feature ; " //
+//				+ "    geo:hasGeometry [ " //
+//				+ "      a geo:Point ; " //
+//				+ "      geo:asWKT \"Point(-77.03524 38.889468)\"^^geo:wktLiteral "//
+//				+ "    ] . " //
+//				+ "}";
+//
+//		final Update u = conn.prepareUpdate(QueryLanguage.SPARQL, update);
+//		u.execute();
+//
+//		String queryString;
+//		TupleQuery tupleQuery;
+//		CountingResultHandler tupleHandler;
+//
+//		// point outside search ring
+//		queryString = "PREFIX geo: <http://www.opengis.net/ont/geosparql#>  "//
+//				+ "PREFIX geof: <http://www.opengis.net/def/function/geosparql/>  "//
+//				+ "SELECT ?feature ?point ?wkt " //
+//				+ "{" //
+//				+ "  ?feature a geo:Feature . "//
+//				+ "  ?feature geo:hasGeometry ?point . "//
+//				+ "  ?point a geo:Point . "//
+//				+ "  ?point geo:asWKT ?wkt . "//
+//				+ "  FILTER(geof:sfWithin(?wkt, \"POLYGON((-77 39, -76 39, -76 38, -77 38, -77 39))\"^^geo:wktLiteral)) " //
+//				+ "}";//
+//		tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, queryString);
+//		tupleHandler = new CountingResultHandler();
+//		tupleQuery.evaluate(tupleHandler);
+//		log.info("Result count : " + tupleHandler.getCount());
+//		Validate.isTrue(tupleHandler.getCount() == 0);
+//
+//		// point inside search ring
+//		queryString = "PREFIX geo: <http://www.opengis.net/ont/geosparql#>  "//
+//				+ "PREFIX geof: <http://www.opengis.net/def/function/geosparql/>  "//
+//				+ "SELECT ?feature ?point ?wkt ?e ?l ?o" //
+//				+ "{" //
+//				+ "  ?feature a ?e . "//
+//				+ "  ?e <http://www.w3.org/2000/01/rdf-schema#label> ?l . "//
+//				+ "  ?e <uri:talksTo> ?o . "//
+//				+ "  ?feature a geo:Feature . "//
+//				+ "  ?feature geo:hasGeometry ?point . "//
+//				+ "  ?point a geo:Point . "//
+//				+ "  ?point geo:asWKT ?wkt . "//
+//				+ "  FILTER(geof:sfWithin(?wkt, \"POLYGON((-78 39, -77 39, -77 38, -78 38, -78 39))\"^^geo:wktLiteral)) " //
+//				+ "}";//
+//
+//		tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, queryString);
+//		tupleHandler = new CountingResultHandler();
+//		tupleQuery.evaluate(tupleHandler);
+//		log.info("Result count : " + tupleHandler.getCount());
+//		Validate.isTrue(tupleHandler.getCount() == 1);
+//
+//		// point inside search ring with Pre-Computed Join
+//		queryString = "PREFIX geo: <http://www.opengis.net/ont/geosparql#>  "//
+//				+ "PREFIX geof: <http://www.opengis.net/def/function/geosparql/>  "//
+//				+ "SELECT ?feature ?point ?wkt ?e ?l ?o" //
+//				+ "{" //
+//				+ "  ?feature a ?e . "//
+//				+ "  ?e <http://www.w3.org/2000/01/rdf-schema#label> ?l . "//
+//				+ "  ?e <uri:talksTo> ?o . "//
+//				+ "  ?feature a geo:Feature . "//
+//				+ "  ?feature geo:hasGeometry ?point . "//
+//				+ "  ?point a geo:Point . "//
+//				+ "  ?point geo:asWKT ?wkt . "//
+//				+ "  FILTER(geof:sfWithin(?wkt, \"POLYGON((-78 39, -77 39, -77 38, -78 38, -78 39))\"^^geo:wktLiteral)) " //
+//				+ "}";//
+//
+//		tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, queryString);
+//		tupleHandler = new CountingResultHandler();
+//		tupleQuery.evaluate(tupleHandler);
+//		log.info("Result count : " + tupleHandler.getCount());
+//		Validate.isTrue(tupleHandler.getCount() >= 1); // may see points from
+//														// during previous runs
+//
+//		// point outside search ring with PCJ
+//		queryString = "PREFIX geo: <http://www.opengis.net/ont/geosparql#>  "//
+//				+ "PREFIX geof: <http://www.opengis.net/def/function/geosparql/>  "//
+//				+ "SELECT ?feature ?point ?wkt ?e ?l ?o " //
+//				+ "{" //
+//				+ "  ?feature a ?e . "//
+//				+ "  ?e <http://www.w3.org/2000/01/rdf-schema#label> ?l . "//
+//				+ "  ?e <uri:talksTo> ?o . "//
+//				+ "  ?feature a geo:Feature . "//
+//				+ "  ?feature geo:hasGeometry ?point . "//
+//				+ "  ?point a geo:Point . "//
+//				+ "  ?point geo:asWKT ?wkt . "//
+//				+ "  FILTER(geof:sfWithin(?wkt, \"POLYGON((-77 39, -76 39, -76 38, -77 38, -77 39))\"^^geo:wktLiteral)) " //
+//				+ "}";//
+//		tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, queryString);
+//		tupleHandler = new CountingResultHandler();
+//		tupleQuery.evaluate(tupleHandler);
+//		log.info("Result count : " + tupleHandler.getCount());
+//		Validate.isTrue(tupleHandler.getCount() == 0);
+//
+//		// point inside search ring with different Pre-Computed Join
+//		queryString = "PREFIX geo: <http://www.opengis.net/ont/geosparql#>  "//
+//				+ "PREFIX geof: <http://www.opengis.net/def/function/geosparql/>  "//
+//				+ "SELECT ?feature ?point ?wkt ?e ?c ?l ?o " //
+//				+ "{" //
+//				+ "  ?e a ?c . "//
+//				+ "  ?e <http://www.w3.org/2000/01/rdf-schema#label> ?l . "//
+//				+ "  ?e <uri:talksTo> ?o . "//
+//				+ "  ?feature a geo:Feature . "//
+//				+ "  ?feature geo:hasGeometry ?point . "//
+//				+ "  ?point a geo:Point . "//
+//				+ "  ?point geo:asWKT ?wkt . "//
+//				+ "  FILTER(geof:sfWithin(?wkt, \"POLYGON((-78 39, -77 39, -77 38, -78 38, -78 39))\"^^geo:wktLiteral)) " //
+//				+ "}";//
+//		tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, queryString);
+//		tupleHandler = new CountingResultHandler();
+//		tupleQuery.evaluate(tupleHandler);
+//		log.info("Result count : " + tupleHandler.getCount());
+//		Validate.isTrue(tupleHandler.getCount() == 1);
+//	}
+//
+//	private static void testTemporalFreeGeoSearch(
+//			final SailRepositoryConnection conn)
+//			throws MalformedQueryException, RepositoryException,
+//			UpdateExecutionException, TupleQueryResultHandlerException,
+//			QueryEvaluationException {
+//
+//		String queryString;
+//		TupleQuery tupleQuery;
+//		CountingResultHandler tupleHandler;
+//
+//		// ring containing point
+//		queryString = "PREFIX geo: <http://www.opengis.net/ont/geosparql#>  "//
+//				+ "PREFIX geof: <http://www.opengis.net/def/function/geosparql/>  "//
+//				+ "PREFIX time: <http://www.w3.org/2006/time#> "//
+//				+ "PREFIX tempo: <tag:rya-rdf.org,2015:temporal#> "//
+//				+ "PREFIX fts: <http://rdf.useekm.com/fts#>  "//
+//				+ "SELECT ?feature ?point ?wkt ?event ?time ?person ?match" //
+//				+ "{" //
+//				+ "  ?event a  time:Instant . \n"//
+//				+ "  ?event time:inXSDDateTime ?time . \n"//
+//				+ "  FILTER(tempo:after(?time, '2001-01-01T01:01:03-08:00') ) \n"// after
+//																					// 3
+//																					// seconds
+//				+ "  ?feature a geo:Feature . "//
+//				+ "  ?feature geo:hasGeometry ?point . "//
+//				+ "  ?point a geo:Point . "//
+//				+ "  ?point geo:asWKT ?wkt . "//
+//				+ "  FILTER(geof:sfWithin(?wkt, \"POLYGON((-78 39, -77 39, -77 38, -78 38, -78 39))\"^^geo:wktLiteral)). " //
+//				+ "  ?person a <http://example.org/ontology/Person> . "//
+//				+ "  ?person <http://www.w3.org/2000/01/rdf-schema#label> ?match . "//
+//				+ "  FILTER(fts:text(?match, \"pal*\")) " //
+//				+ "}";//
+//
+//		tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, queryString);
+//
+//		tupleHandler = new CountingResultHandler();
+//		tupleQuery.evaluate(tupleHandler);
+//		log.info("Result count : " + tupleHandler.getCount());
+//		Validate.isTrue(tupleHandler.getCount() == 5);
+//
+//	}
+//
+//	private static void testGeoFreetextWithPCJSearch(
+//			final SailRepositoryConnection conn)
+//			throws MalformedQueryException, RepositoryException,
+//			TupleQueryResultHandlerException, QueryEvaluationException {
+//		// ring outside point
+//		final String queryString = "PREFIX geo: <http://www.opengis.net/ont/geosparql#>  "//
+//				+ "PREFIX fts: <http://rdf.useekm.com/fts#>  "//
+//				+ "PREFIX geof: <http://www.opengis.net/def/function/geosparql/>  "//
+//				+ "SELECT ?feature ?point ?wkt ?e ?c ?l ?o ?person ?match " //
+//				+ "{" //
+//				+ "  ?person a <http://example.org/ontology/Person> . "//
+//				+ "  ?person <http://www.w3.org/2000/01/rdf-schema#label> ?match . "//
+//				+ "  FILTER(fts:text(?match, \"!alice & hose\")) " //
+//				+ "  ?e a ?c . "//
+//				+ "  ?e <http://www.w3.org/2000/01/rdf-schema#label> ?l . "//
+//				+ "  ?e <uri:talksTo> ?o . "//
+//				+ "  ?feature a geo:Feature . "//
+//				+ "  ?feature geo:hasGeometry ?point . "//
+//				+ "  ?point a geo:Point . "//
+//				+ "  ?point geo:asWKT ?wkt . "//
+//				+ "  FILTER(geof:sfWithin(?wkt, \"POLYGON((-78 39, -77 39, -77 38, -78 38, -78 39))\"^^geo:wktLiteral)) " //
+//				+ "}";//
+//		final TupleQuery tupleQuery = conn.prepareTupleQuery(
+//				QueryLanguage.SPARQL, queryString);
+//		final CountingResultHandler tupleHandler = new CountingResultHandler();
+//		tupleQuery.evaluate(tupleHandler);
+//		log.info("Result count : " + tupleHandler.getCount());
+//		Validate.isTrue(tupleHandler.getCount() == 1);
+//	}
 
 	private static void testDeleteTemporalData(
 			final SailRepositoryConnection conn) throws Exception {
@@ -693,46 +684,46 @@ public class RyaDirectExample {
 		Validate.isTrue(tupleHandler.getCount() == 0);
 	}
 
-	private static void testDeleteGeoData(final SailRepositoryConnection conn)
-			throws Exception {
-		// Delete all stored points
-		final String sparqlDelete = "PREFIX geo: <http://www.opengis.net/ont/geosparql#>  "//
-				+ "PREFIX geof: <http://www.opengis.net/def/function/geosparql/>  "//
-				+ "DELETE {\n" //
-				+ "  ?feature a geo:Feature . "//
-				+ "  ?feature geo:hasGeometry ?point . "//
-				+ "  ?point a geo:Point . "//
-				+ "  ?point geo:asWKT ?wkt . "//
-				+ "}\n" + "WHERE { \n" + "  ?feature a geo:Feature . "//
-				+ "  ?feature geo:hasGeometry ?point . "//
-				+ "  ?point a geo:Point . "//
-				+ "  ?point geo:asWKT ?wkt . "//
-				+ "}";//
-
-		final Update deleteUpdate = conn.prepareUpdate(QueryLanguage.SPARQL,
-				sparqlDelete);
-		deleteUpdate.execute();
-
-		String queryString;
-		TupleQuery tupleQuery;
-		CountingResultHandler tupleHandler;
-
-		// Find all stored points
-		queryString = "PREFIX geo: <http://www.opengis.net/ont/geosparql#>  "//
-				+ "PREFIX geof: <http://www.opengis.net/def/function/geosparql/>  "//
-				+ "SELECT ?feature ?point ?wkt " //
-				+ "{" //
-				+ "  ?feature a geo:Feature . "//
-				+ "  ?feature geo:hasGeometry ?point . "//
-				+ "  ?point a geo:Point . "//
-				+ "  ?point geo:asWKT ?wkt . "//
-				+ "}";//
-		tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, queryString);
-		tupleHandler = new CountingResultHandler();
-		tupleQuery.evaluate(tupleHandler);
-		log.info("Result count : " + tupleHandler.getCount());
-		Validate.isTrue(tupleHandler.getCount() == 0);
-	}
+//	private static void testDeleteGeoData(final SailRepositoryConnection conn)
+//			throws Exception {
+//		// Delete all stored points
+//		final String sparqlDelete = "PREFIX geo: <http://www.opengis.net/ont/geosparql#>  "//
+//				+ "PREFIX geof: <http://www.opengis.net/def/function/geosparql/>  "//
+//				+ "DELETE {\n" //
+//				+ "  ?feature a geo:Feature . "//
+//				+ "  ?feature geo:hasGeometry ?point . "//
+//				+ "  ?point a geo:Point . "//
+//				+ "  ?point geo:asWKT ?wkt . "//
+//				+ "}\n" + "WHERE { \n" + "  ?feature a geo:Feature . "//
+//				+ "  ?feature geo:hasGeometry ?point . "//
+//				+ "  ?point a geo:Point . "//
+//				+ "  ?point geo:asWKT ?wkt . "//
+//				+ "}";//
+//
+//		final Update deleteUpdate = conn.prepareUpdate(QueryLanguage.SPARQL,
+//				sparqlDelete);
+//		deleteUpdate.execute();
+//
+//		String queryString;
+//		TupleQuery tupleQuery;
+//		CountingResultHandler tupleHandler;
+//
+//		// Find all stored points
+//		queryString = "PREFIX geo: <http://www.opengis.net/ont/geosparql#>  "//
+//				+ "PREFIX geof: <http://www.opengis.net/def/function/geosparql/>  "//
+//				+ "SELECT ?feature ?point ?wkt " //
+//				+ "{" //
+//				+ "  ?feature a geo:Feature . "//
+//				+ "  ?feature geo:hasGeometry ?point . "//
+//				+ "  ?point a geo:Point . "//
+//				+ "  ?point geo:asWKT ?wkt . "//
+//				+ "}";//
+//		tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, queryString);
+//		tupleHandler = new CountingResultHandler();
+//		tupleQuery.evaluate(tupleHandler);
+//		log.info("Result count : " + tupleHandler.getCount());
+//		Validate.isTrue(tupleHandler.getCount() == 0);
+//	}
 
 	private static void createPCJ(final Configuration conf)
 			throws RepositoryException, AccumuloException,

@@ -20,12 +20,20 @@
 		<version>3.2.10-SNAPSHOT</version>
 	</parent>
 
-	<artifactId>rya.indexing</artifactId>
+	<artifactId>rya.geoindexing</artifactId>
 	<name>Apache Rya Secondary Indexing</name>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-     </properties>
+        <geotools.version>14.3</geotools.version>
+    </properties>
+    <repositories>
+        <repository>
+            <id>osgeo</id>
+            <name>Open Source Geospatial Foundation Repository</name>
+            <url>http://download.osgeo.org/webdav/geotools/</url>
+        </repository>
+    </repositories>
 
 	<dependencies>
 
@@ -45,6 +53,10 @@
 					<groupId>hsqldb</groupId>
 				</exclusion>
 			</exclusions>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.rya</groupId>
+			<artifactId>rya.indexing</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.rya</groupId>
@@ -74,6 +86,11 @@
 			<artifactId>commons-codec</artifactId>
 		</dependency>
 
+		<!-- Geo Indexing -->
+		<dependency>
+			<groupId>org.locationtech.geomesa</groupId>
+			<artifactId>geomesa-accumulo-datastore</artifactId>
+		</dependency>
 
 		<!-- PCJ Indexing -->
 		<dependency>
@@ -106,7 +123,17 @@
             <version>${project.version}</version>
             <type>test-jar</type>
         </dependency>
-         <dependency>
+        <dependency>
+            <groupId>org.geotools.xsd</groupId>
+            <artifactId>gt-xsd-gml3</artifactId>
+            <version>${geotools.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.geotools</groupId>
+            <artifactId>gt-api</artifactId>
+            <version>${geotools.version}</version>
+        </dependency>
+        <dependency>
             <groupId>com.vividsolutions</groupId>
             <artifactId>jts</artifactId>
             <version>1.13</version>

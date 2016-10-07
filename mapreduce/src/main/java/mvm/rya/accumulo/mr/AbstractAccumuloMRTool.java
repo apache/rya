@@ -269,7 +269,6 @@ public abstract class AbstractAccumuloMRTool implements Tool {
         RyaOutputFormat.setTablePrefix(job, tablePrefix);
         // Determine which indexers to use based on the config
         RyaOutputFormat.setFreeTextEnabled(job,  ConfigUtils.getUseFreeText(conf));
-        RyaOutputFormat.setGeoEnabled(job,  ConfigUtils.getUseGeo(conf));
         RyaOutputFormat.setTemporalEnabled(job,  ConfigUtils.getUseTemporal(conf));
         RyaOutputFormat.setEntityEnabled(job,  ConfigUtils.getUseEntity(conf));
         // Configure the Accumulo connection

@@ -18,8 +18,7 @@ package mvm.rya.indexing.accumulo.geo;
  * specific language governing permissions and limitations
  * under the License.
  */
-
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertTrue;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -64,6 +63,7 @@ import mvm.rya.accumulo.AccumuloRdfConfiguration;
 import mvm.rya.api.domain.RyaStatement;
 import mvm.rya.api.resolver.RdfToRyaConversions;
 import mvm.rya.api.resolver.RyaToRdfConversions;
+import mvm.rya.indexing.GeoConstants;
 import mvm.rya.indexing.StatementConstraints;
 import mvm.rya.indexing.accumulo.ConfigUtils;
 

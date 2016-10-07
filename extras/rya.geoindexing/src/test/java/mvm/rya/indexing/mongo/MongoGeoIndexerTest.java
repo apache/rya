@@ -27,7 +27,6 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
-import org.apache.hadoop.conf.Configuration;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -53,9 +52,10 @@ import com.vividsolutions.jts.geom.impl.PackedCoordinateSequence;
 import de.flapdoodle.embed.mongo.distribution.Version;
 import de.flapdoodle.embed.mongo.tests.MongodForTestsFactory;
 import info.aduna.iteration.CloseableIteration;
+import mvm.rya.indexing.GeoConstants;
+import mvm.rya.indexing.OptionalConfigUtils;
 import mvm.rya.indexing.StatementConstraints;
 import mvm.rya.indexing.accumulo.ConfigUtils;
-import mvm.rya.indexing.accumulo.geo.GeoConstants;
 import mvm.rya.indexing.mongodb.geo.MongoGeoIndexer;
 import mvm.rya.mongodb.MongoDBRdfConfiguration;
 
@@ -75,7 +75,7 @@ public class MongoGeoIndexerTest {
         conf.set(MongoDBRdfConfiguration.MONGO_DB_NAME, "test");
         conf.set(MongoDBRdfConfiguration.MONGO_COLLECTION_PREFIX, "rya_");
         conf.set(ConfigUtils.GEO_PREDICATES_LIST, "http://www.opengis.net/ont/geosparql#asWKT");
-        conf.set(ConfigUtils.USE_GEO, "true");
+        conf.set(OptionalConfigUtils.USE_GEO, "true");
         conf.setTablePrefix("rya_");
 
         final MongodForTestsFactory testsFactory = MongodForTestsFactory.with(Version.Main.PRODUCTION);

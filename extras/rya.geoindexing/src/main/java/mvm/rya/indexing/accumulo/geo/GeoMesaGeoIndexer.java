@@ -77,6 +77,7 @@ import mvm.rya.api.domain.RyaStatement;
 import mvm.rya.api.resolver.RyaToRdfConversions;
 import mvm.rya.indexing.GeoIndexer;
 import mvm.rya.indexing.Md5Hash;
+import mvm.rya.indexing.OptionalConfigUtils;
 import mvm.rya.indexing.StatementConstraints;
 import mvm.rya.indexing.StatementSerializer;
 import mvm.rya.indexing.accumulo.ConfigUtils;
@@ -193,7 +194,7 @@ public class GeoMesaGeoIndexer extends AbstractAccumuloIndexer implements GeoInd
         final String password = ConfigUtils.getPassword(conf);
         final String auths = ConfigUtils.getAuthorizations(conf).toString();
         final String tableName = getTableName(conf);
-        final int numParitions = ConfigUtils.getGeoNumPartitions(conf);
+        final int numParitions = OptionalConfigUtils.getGeoNumPartitions(conf);
 
         final String featureSchemaFormat = "%~#s%" + numParitions + "#r%" + FEATURE_NAME
                 + "#cstr%0,3#gh%yyyyMMdd#d::%~#s%3,2#gh::%~#s%#id";

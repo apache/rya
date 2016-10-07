@@ -186,7 +186,8 @@ public class AccumuloInstall extends AccumuloCommand implements Install {
         conf.setTablePrefix( details.getRyaInstanceName() );
 
         // Enable the indexers that the instance is configured to use.
-        conf.set(ConfigUtils.USE_GEO, "" + details.getGeoIndexDetails().isEnabled() );
+        // TODO fix me, not sure why the install command is here.
+//        conf.set(ConfigUtils.USE_GEO, "" + details.getGeoIndexDetails().isEnabled() );
         conf.set(ConfigUtils.USE_FREETEXT, "" + details.getFreeTextIndexDetails().isEnabled() );
         conf.set(ConfigUtils.USE_TEMPORAL, "" + details.getTemporalIndexDetails().isEnabled() );
         conf.set(ConfigUtils.USE_ENTITY, "" + details.getEntityCentricIndexDetails().isEnabled());

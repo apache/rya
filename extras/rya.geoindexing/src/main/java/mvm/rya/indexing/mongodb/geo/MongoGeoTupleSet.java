@@ -1,5 +1,20 @@
 package mvm.rya.indexing.mongodb.geo;
 
+import java.util.Map;
+import java.util.Set;
+
+import org.apache.hadoop.conf.Configuration;
+import org.openrdf.model.Statement;
+import org.openrdf.model.URI;
+import org.openrdf.query.BindingSet;
+import org.openrdf.query.QueryEvaluationException;
+
+import com.google.common.base.Joiner;
+import com.google.common.collect.Maps;
+import com.vividsolutions.jts.geom.Geometry;
+import com.vividsolutions.jts.io.ParseException;
+import com.vividsolutions.jts.io.WKTReader;
+
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -21,30 +36,14 @@ package mvm.rya.indexing.mongodb.geo;
 
 
 import info.aduna.iteration.CloseableIteration;
-
-import java.util.Map;
-import java.util.Set;
-
+import mvm.rya.indexing.GeoConstants;
 import mvm.rya.indexing.GeoIndexer;
 import mvm.rya.indexing.IndexingExpr;
 import mvm.rya.indexing.IteratorFactory;
 import mvm.rya.indexing.SearchFunction;
 import mvm.rya.indexing.StatementConstraints;
-import mvm.rya.indexing.accumulo.geo.GeoConstants;
 import mvm.rya.indexing.accumulo.geo.GeoTupleSet;
 import mvm.rya.indexing.external.tupleSet.ExternalTupleSet;
-
-import org.apache.hadoop.conf.Configuration;
-import org.openrdf.model.Statement;
-import org.openrdf.model.URI;
-import org.openrdf.query.BindingSet;
-import org.openrdf.query.QueryEvaluationException;
-
-import com.google.common.base.Joiner;
-import com.google.common.collect.Maps;
-import com.vividsolutions.jts.geom.Geometry;
-import com.vividsolutions.jts.io.ParseException;
-import com.vividsolutions.jts.io.WKTReader;
 
 public class MongoGeoTupleSet extends ExternalTupleSet {
 

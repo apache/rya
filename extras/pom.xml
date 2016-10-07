@@ -44,4 +44,13 @@ under the License.
         <module>rya.merger</module>
         <module>rya.benchmark</module>
     </modules>
+	
+	<profiles>
+        <profile>
+            <id>geoindexing</id>
+            <modules>
+                <module>rya.geoindexing</module>
+           </modules>
+        </profile>
+	</profiles>
 </project>

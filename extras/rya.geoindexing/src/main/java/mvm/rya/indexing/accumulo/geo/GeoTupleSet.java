@@ -36,6 +36,7 @@ import com.vividsolutions.jts.io.WKTReader;
 
 
 import info.aduna.iteration.CloseableIteration;
+import mvm.rya.indexing.GeoConstants;
 import mvm.rya.indexing.GeoIndexer;
 import mvm.rya.indexing.IndexingExpr;
 import mvm.rya.indexing.IteratorFactory;

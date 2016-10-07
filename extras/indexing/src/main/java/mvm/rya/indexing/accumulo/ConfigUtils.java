@@ -58,11 +58,9 @@ import mvm.rya.indexing.accumulo.entity.EntityOptimizer;
 import mvm.rya.indexing.accumulo.freetext.AccumuloFreeTextIndexer;
 import mvm.rya.indexing.accumulo.freetext.LuceneTokenizer;
 import mvm.rya.indexing.accumulo.freetext.Tokenizer;
-import mvm.rya.indexing.accumulo.geo.GeoMesaGeoIndexer;
 import mvm.rya.indexing.accumulo.temporal.AccumuloTemporalIndexer;
 import mvm.rya.indexing.external.PrecomputedJoinIndexer;
 import mvm.rya.indexing.mongodb.freetext.MongoFreeTextIndexer;
-import mvm.rya.indexing.mongodb.geo.MongoGeoIndexer;
 import mvm.rya.indexing.pcj.matching.PCJOptimizer;
 
 /**
@@ -87,9 +85,6 @@ public class ConfigUtils {
 
     public static final String FREE_TEXT_QUERY_TERM_LIMIT = "sc.freetext.querytermlimit";
 
-    public static final String GEO_NUM_PARTITIONS = "sc.geo.numPartitions";
-
-    public static final String USE_GEO = "sc.use_geo";
     public static final String USE_FREETEXT = "sc.use_freetext";
     public static final String USE_TEMPORAL = "sc.use_temporal";
     public static final String USE_ENTITY = "sc.use_entity";
@@ -199,7 +194,7 @@ public class ConfigUtils {
         return getPredicates(conf, TEMPORAL_PREDICATES_LIST);
     }
 
-    private static Set<URI> getPredicates(final Configuration conf, final String confName) {
+    protected static Set<URI> getPredicates(final Configuration conf, final String confName) {
         final String[] validPredicateStrings = conf.getStrings(confName, new String[] {});
         final Set<URI> predicates = new HashSet<URI>();
         for (final String prediateString : validPredicateStrings) {
@@ -316,7 +311,7 @@ public class ConfigUtils {
         return conf.getBoolean(USE_MOCK_INSTANCE, false);
     }
 
-    private static int getNumPartitions(final Configuration conf) {
+    protected static int getNumPartitions(final Configuration conf) {
         return conf.getInt(NUM_PARTITIONS, 25);
     }
 
@@ -328,15 +323,7 @@ public class ConfigUtils {
         return conf.getInt(FREETEXT_TERM_NUM_PARTITIONS, getNumPartitions(conf));
     }
 
-    public static int getGeoNumPartitions(final Configuration conf) {
-        return conf.getInt(GEO_NUM_PARTITIONS, getNumPartitions(conf));
-    }
-
-    public static boolean getUseGeo(final Configuration conf) {
-        return conf.getBoolean(USE_GEO, false);
-    }
-
-    public static boolean getUseFreeText(final Configuration conf) {
+     public static boolean getUseFreeText(final Configuration conf) {
         return conf.getBoolean(USE_FREETEXT, false);
     }
 
@@ -384,11 +371,7 @@ public class ConfigUtils {
         boolean useFilterIndex = false;
 
         if (ConfigUtils.getUseMongo(conf)) {
-            if (getUseGeo(conf)) {
-                indexList.add(MongoGeoIndexer.class.getName());
-                useFilterIndex = true;
-            }
-            if (getUseFreeText(conf)) {
+             if (getUseFreeText(conf)) {
                 indexList.add(MongoFreeTextIndexer.class.getName());
                 useFilterIndex = true;
             }
@@ -402,10 +385,6 @@ public class ConfigUtils {
              	indexList.add(PrecomputedJoinIndexer.class.getName());
              }
 
-            if (getUseGeo(conf)) {
-                indexList.add(GeoMesaGeoIndexer.class.getName());
-                useFilterIndex = true;
-            }
 
             if (getUseFreeText(conf)) {
                 indexList.add(AccumuloFreeTextIndexer.class.getName());

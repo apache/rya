@@ -25,11 +25,6 @@ import org.openrdf.model.ValueFactory;
 import org.openrdf.model.impl.ValueFactoryImpl;
 import org.openrdf.model.vocabulary.XMLSchema;
 
-import com.vividsolutions.jts.geom.Coordinate;
-import com.vividsolutions.jts.geom.GeometryFactory;
-import com.vividsolutions.jts.geom.Point;
-import com.vividsolutions.jts.geom.PrecisionModel;
-
 import info.aduna.iteration.CloseableIteration;
 import mvm.rya.accumulo.AccumuloRdfConfiguration;
 import mvm.rya.accumulo.AccumuloRyaDAO;
@@ -47,8 +42,6 @@ import mvm.rya.indexing.accumulo.entity.EntityCentricIndex;
 import mvm.rya.indexing.accumulo.freetext.AccumuloFreeTextIndexer;
 import mvm.rya.indexing.accumulo.freetext.SimpleTokenizer;
 import mvm.rya.indexing.accumulo.freetext.Tokenizer;
-import mvm.rya.indexing.accumulo.geo.GeoConstants;
-import mvm.rya.indexing.accumulo.geo.GeoMesaGeoIndexer;
 import mvm.rya.indexing.accumulo.temporal.AccumuloTemporalIndexer;
 
 /*
@@ -133,7 +126,6 @@ public class RyaOutputFormatTest {
         RyaOutputFormat.setCoreTablesEnabled(job, true);
         RyaOutputFormat.setFreeTextEnabled(job, false);
         RyaOutputFormat.setTemporalEnabled(job, false);
-        RyaOutputFormat.setGeoEnabled(job, false);
         RyaOutputFormat.setEntityEnabled(job, false);
         write(input);
         TestUtils.verify(connector, conf, input);
@@ -159,7 +151,6 @@ public class RyaOutputFormatTest {
         RyaOutputFormat.setCoreTablesEnabled(job, true);
         RyaOutputFormat.setFreeTextEnabled(job, false);
         RyaOutputFormat.setTemporalEnabled(job, false);
-        RyaOutputFormat.setGeoEnabled(job, false);
         RyaOutputFormat.setEntityEnabled(job, false);
         RyaOutputFormat.setDefaultVisibility(job, CV);
         write(input);
@@ -186,7 +177,6 @@ public class RyaOutputFormatTest {
         RyaOutputFormat.setCoreTablesEnabled(job, true);
         RyaOutputFormat.setFreeTextEnabled(job, false);
         RyaOutputFormat.setTemporalEnabled(job, false);
-        RyaOutputFormat.setGeoEnabled(job, false);
         RyaOutputFormat.setEntityEnabled(job, false);
         RyaOutputFormat.setDefaultContext(job, GRAPH);
         write(input);
@@ -205,7 +195,6 @@ public class RyaOutputFormatTest {
         RyaOutputFormat.setCoreTablesEnabled(job, false);
         RyaOutputFormat.setFreeTextEnabled(job, true);
         RyaOutputFormat.setTemporalEnabled(job, false);
-        RyaOutputFormat.setGeoEnabled(job, false);
         RyaOutputFormat.setEntityEnabled(job, false);
         write(input);
         final Set<Statement> empty = new HashSet<>();
@@ -232,7 +221,6 @@ public class RyaOutputFormatTest {
         RyaOutputFormat.setCoreTablesEnabled(job, false);
         RyaOutputFormat.setFreeTextEnabled(job, false);
         RyaOutputFormat.setTemporalEnabled(job, true);
-        RyaOutputFormat.setGeoEnabled(job, false);
         RyaOutputFormat.setEntityEnabled(job, false);
         final ValueFactory vf = new ValueFactoryImpl();
         for (int i = 0; i < instants.length; i++) {
@@ -260,30 +248,6 @@ public class RyaOutputFormatTest {
         temporal.close();
     }
 
-    @Test
-    public void testGeoIndexing() throws Exception {
-        final GeometryFactory gf = new GeometryFactory(new PrecisionModel(), 4326);
-        final Point p1 = gf.createPoint(new Coordinate(1, 1));
-        final Point p2 = gf.createPoint(new Coordinate(2, 2));
-        final GeoMesaGeoIndexer geo = new GeoMesaGeoIndexer();
-        geo.setConf(conf);
-        final RyaStatement input = RyaStatement.builder()
-                .setSubject(new RyaURI(GRAPH + ":s"))
-                .setPredicate(new RyaURI(GRAPH + ":p"))
-                .setObject(new RyaType(GeoConstants.XMLSCHEMA_OGC_WKT, "Point(2 2)"))
-                .build();
-        RyaOutputFormat.setCoreTablesEnabled(job, false);
-        RyaOutputFormat.setFreeTextEnabled(job, false);
-        RyaOutputFormat.setTemporalEnabled(job, false);
-        RyaOutputFormat.setGeoEnabled(job, true);
-        RyaOutputFormat.setEntityEnabled(job, false);
-        write(input);
-        final Set<Statement> expected = new HashSet<>();
-        Assert.assertEquals(expected, getSet(geo.queryContains(p1, new StatementConstraints())));
-        expected.add(RyaToRdfConversions.convertStatement(input));
-        Assert.assertEquals(expected, getSet(geo.queryEquals(p2, new StatementConstraints())));
-        geo.close();
-    }
 
     @Test
     public void testEntityIndexing() throws Exception {
@@ -297,7 +261,6 @@ public class RyaOutputFormatTest {
         RyaOutputFormat.setCoreTablesEnabled(job, false);
         RyaOutputFormat.setFreeTextEnabled(job, false);
         RyaOutputFormat.setTemporalEnabled(job, false);
-        RyaOutputFormat.setGeoEnabled(job, false);
         RyaOutputFormat.setEntityEnabled(job, true);
         write(input);
         entity.close();

@@ -44,8 +44,8 @@ import org.openrdf.repository.sail.SailRepositoryConnection;
 import org.openrdf.sail.Sail;
 
 import mvm.rya.api.RdfCloudTripleStoreConfiguration;
+import mvm.rya.indexing.GeoConstants;
 import mvm.rya.indexing.accumulo.ConfigUtils;
-import mvm.rya.indexing.accumulo.geo.GeoConstants;
 import mvm.rya.mongodb.MongoDBRdfConfiguration;
 import mvm.rya.rdftriplestore.RdfCloudTripleStore;
 import mvm.rya.rdftriplestore.inference.InferenceEngineException;
@@ -83,7 +83,7 @@ public class MongoRyaDirectExample {
             testAddAndDelete(conn);
             testAddAndDeleteNoContext(conn);
             testAddNamespaces(conn);
-            testAddPointAndWithinSearch(conn);
+//            testAddPointAndWithinSearch(conn);
             testAddAndFreeTextSearchWithPCJ(conn);
            //  to test out inference, set inference to true in the conf
             if (USE_INFER){
@@ -100,60 +100,60 @@ public class MongoRyaDirectExample {
         }
     }
 
-    private static void testAddPointAndWithinSearch(SailRepositoryConnection conn) throws Exception {
-
-        String update = "PREFIX geo: <http://www.opengis.net/ont/geosparql#>  "//
-                + "INSERT DATA { " //
-                + "  <urn:feature> a geo:Feature ; " //
-                + "    geo:hasGeometry [ " //
-                + "      a geo:Point ; " //
-                + "      geo:asWKT \"Point(-77.03524 38.889468)\"^^geo:wktLiteral "//
-                + "    ] . " //
-                + "}";
-
-        Update u = conn.prepareUpdate(QueryLanguage.SPARQL, update);
-        u.execute();
-
-        String queryString;
-        TupleQuery tupleQuery;
-        CountingResultHandler tupleHandler;
-
-        // ring containing point
-        queryString = "PREFIX geo: <http://www.opengis.net/ont/geosparql#>  "//
-                + "PREFIX geof: <http://www.opengis.net/def/function/geosparql/>  "//
-                + "SELECT ?feature ?point ?wkt " //
-                + "{" //
-                + "  ?feature a geo:Feature . "//
-                + "  ?feature geo:hasGeometry ?point . "//
-                + "  ?point a geo:Point . "//
-                + "  ?point geo:asWKT ?wkt . "//
-                + "  FILTER(geof:sfWithin(?wkt, \"POLYGON((-78 39, -77 39, -77 38, -78 38, -78 39))\"^^geo:wktLiteral)) " //
-                + "}";//
-        tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, queryString);
-
-        tupleHandler = new CountingResultHandler();
-        tupleQuery.evaluate(tupleHandler);
-        log.info("Result count : " + tupleHandler.getCount());
-        Validate.isTrue(tupleHandler.getCount() >= 1); // may see points from during previous runs
-
-        // ring outside point
-        queryString = "PREFIX geo: <http://www.opengis.net/ont/geosparql#>  "//
-                + "PREFIX geof: <http://www.opengis.net/def/function/geosparql/>  "//
-                + "SELECT ?feature ?point ?wkt " //
-                + "{" //
-                + "  ?feature a geo:Feature . "//
-                + "  ?feature geo:hasGeometry ?point . "//
-                + "  ?point a geo:Point . "//
-                + "  ?point geo:asWKT ?wkt . "//
-                + "  FILTER(geof:sfWithin(?wkt, \"POLYGON((-77 39, -76 39, -76 38, -77 38, -77 39))\"^^geo:wktLiteral)) " //
-                + "}";//
-        tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, queryString);
-
-        tupleHandler = new CountingResultHandler();
-        tupleQuery.evaluate(tupleHandler);
-        log.info("Result count : " + tupleHandler.getCount());
-        Validate.isTrue(tupleHandler.getCount() == 0);
-    }
+//    private static void testAddPointAndWithinSearch(SailRepositoryConnection conn) throws Exception {
+//
+//        String update = "PREFIX geo: <http://www.opengis.net/ont/geosparql#>  "//
+//                + "INSERT DATA { " //
+//                + "  <urn:feature> a geo:Feature ; " //
+//                + "    geo:hasGeometry [ " //
+//                + "      a geo:Point ; " //
+//                + "      geo:asWKT \"Point(-77.03524 38.889468)\"^^geo:wktLiteral "//
+//                + "    ] . " //
+//                + "}";
+//
+//        Update u = conn.prepareUpdate(QueryLanguage.SPARQL, update);
+//        u.execute();
+//
+//        String queryString;
+//        TupleQuery tupleQuery;
+//        CountingResultHandler tupleHandler;
+//
+//        // ring containing point
+//        queryString = "PREFIX geo: <http://www.opengis.net/ont/geosparql#>  "//
+//                + "PREFIX geof: <http://www.opengis.net/def/function/geosparql/>  "//
+//                + "SELECT ?feature ?point ?wkt " //
+//                + "{" //
+//                + "  ?feature a geo:Feature . "//
+//                + "  ?feature geo:hasGeometry ?point . "//
+//                + "  ?point a geo:Point . "//
+//                + "  ?point geo:asWKT ?wkt . "//
+//                + "  FILTER(geof:sfWithin(?wkt, \"POLYGON((-78 39, -77 39, -77 38, -78 38, -78 39))\"^^geo:wktLiteral)) " //
+//                + "}";//
+//        tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, queryString);
+//
+//        tupleHandler = new CountingResultHandler();
+//        tupleQuery.evaluate(tupleHandler);
+//        log.info("Result count : " + tupleHandler.getCount());
+//        Validate.isTrue(tupleHandler.getCount() >= 1); // may see points from during previous runs
+//
+//        // ring outside point
+//        queryString = "PREFIX geo: <http://www.opengis.net/ont/geosparql#>  "//
+//                + "PREFIX geof: <http://www.opengis.net/def/function/geosparql/>  "//
+//                + "SELECT ?feature ?point ?wkt " //
+//                + "{" //
+//                + "  ?feature a geo:Feature . "//
+//                + "  ?feature geo:hasGeometry ?point . "//
+//                + "  ?point a geo:Point . "//
+//                + "  ?point geo:asWKT ?wkt . "//
+//                + "  FILTER(geof:sfWithin(?wkt, \"POLYGON((-77 39, -76 39, -76 38, -77 38, -77 39))\"^^geo:wktLiteral)) " //
+//                + "}";//
+//        tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, queryString);
+//
+//        tupleHandler = new CountingResultHandler();
+//        tupleQuery.evaluate(tupleHandler);
+//        log.info("Result count : " + tupleHandler.getCount());
+//        Validate.isTrue(tupleHandler.getCount() == 0);
+//    }
 
     private static void closeQuietly(SailRepository repository) {
         if (repository != null) {
@@ -272,7 +272,7 @@ public class MongoRyaDirectExample {
         conf.set(MongoDBRdfConfiguration.MONGO_DB_NAME, MONGO_DB);
         conf.set(MongoDBRdfConfiguration.MONGO_COLLECTION_PREFIX, MONGO_COLL_PREFIX);
         conf.set(ConfigUtils.GEO_PREDICATES_LIST, "http://www.opengis.net/ont/geosparql#asWKT");
-        conf.set(ConfigUtils.USE_GEO, "true");
+//        conf.set(ConfigUtils.USE_GEO, "true");
         conf.set(ConfigUtils.USE_FREETEXT, "true");
         conf.setTablePrefix(MONGO_COLL_PREFIX);
         conf.set(ConfigUtils.GEO_PREDICATES_LIST, GeoConstants.GEO_AS_WKT.stringValue());

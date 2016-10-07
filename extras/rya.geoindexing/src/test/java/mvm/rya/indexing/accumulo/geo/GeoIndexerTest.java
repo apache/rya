@@ -24,6 +24,7 @@ import static mvm.rya.api.resolver.RdfToRyaConversions.convertStatement;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
+
 import org.apache.accumulo.core.client.admin.TableOperations;
 import org.junit.Assert;
 import org.junit.Before;
@@ -48,7 +49,7 @@ import com.vividsolutions.jts.geom.impl.PackedCoordinateSequence;
 
 import info.aduna.iteration.CloseableIteration;
 import mvm.rya.accumulo.AccumuloRdfConfiguration;
-import mvm.rya.api.RdfCloudTripleStoreConfiguration;
+import mvm.rya.indexing.GeoConstants;
 import mvm.rya.indexing.StatementConstraints;
 import mvm.rya.indexing.accumulo.ConfigUtils;
 

@@ -59,12 +59,10 @@ import mvm.rya.api.persist.RyaDAOException;
 import mvm.rya.api.resolver.RdfToRyaConversions;
 import mvm.rya.api.resolver.RyaTripleContext;
 import mvm.rya.indexing.FreeTextIndexer;
-import mvm.rya.indexing.GeoIndexer;
 import mvm.rya.indexing.TemporalIndexer;
 import mvm.rya.indexing.accumulo.ConfigUtils;
 import mvm.rya.indexing.accumulo.entity.EntityCentricIndex;
 import mvm.rya.indexing.accumulo.freetext.AccumuloFreeTextIndexer;
-import mvm.rya.indexing.accumulo.geo.GeoMesaGeoIndexer;
 import mvm.rya.indexing.accumulo.temporal.AccumuloTemporalIndexer;
 
 /**
@@ -83,7 +81,6 @@ public class RyaOutputFormat extends OutputFormat<Writable, RyaStatementWritable
     private static final String PREFIX = RyaOutputFormat.class.getSimpleName();
     private static final String MAX_MUTATION_BUFFER_SIZE = PREFIX + ".maxmemory";
     private static final String ENABLE_FREETEXT = PREFIX + ".freetext.enable";
-    private static final String ENABLE_GEO = PREFIX + ".geo.enable";
     private static final String ENABLE_TEMPORAL = PREFIX + ".temporal.enable";
     private static final String ENABLE_ENTITY = PREFIX + ".entity.enable";
     private static final String ENABLE_CORE = PREFIX + ".coretables.enable";
@@ -135,16 +132,7 @@ public class RyaOutputFormat extends OutputFormat<Writable, RyaStatementWritable
         job.getConfiguration().setBoolean(ENABLE_FREETEXT, enable);
     }
 
-    /**
-     * Set whether the geo index is enabled. Defaults to true.
-     * @param job Job to apply the setting to.
-     * @param enable Whether this job should add its output statements to the geo index.
-     */
-    public static void setGeoEnabled(Job job, boolean enable) {
-        job.getConfiguration().setBoolean(ENABLE_GEO, enable);
-    }
-
-    /**
+     /**
      * Set whether the temporal index is enabled. Defaults to true.
      * @param job Job to apply the setting to.
      * @param enable Whether this job should add its output statements to the temporal index.
@@ -191,7 +179,6 @@ public class RyaOutputFormat extends OutputFormat<Writable, RyaStatementWritable
     public void checkOutputSpecs(JobContext jobContext) throws IOException {
         Configuration conf = jobContext.getConfiguration();
         // make sure that all of the indexers can connect
-        getGeoIndexer(conf);
         getFreeTextIndexer(conf);
         getTemporalIndexer(conf);
         getRyaIndexer(conf);
@@ -219,14 +206,6 @@ public class RyaOutputFormat extends OutputFormat<Writable, RyaStatementWritable
         return new RyaRecordWriter(context);
     }
 
-    private static GeoIndexer getGeoIndexer(Configuration conf) {
-        if (!conf.getBoolean(ENABLE_GEO, true)) {
-            return null;
-        }
-        GeoMesaGeoIndexer geo = new GeoMesaGeoIndexer();
-        geo.setConf(conf);
-        return geo;
-    }
 
     private static FreeTextIndexer getFreeTextIndexer(Configuration conf) {
         if (!conf.getBoolean(ENABLE_FREETEXT, true)) {
@@ -295,7 +274,6 @@ public class RyaOutputFormat extends OutputFormat<Writable, RyaStatementWritable
         private static final Logger logger = Logger.getLogger(RyaRecordWriter.class);
 
         private FreeTextIndexer freeTextIndexer;
-        private GeoIndexer geoIndexer;
         private TemporalIndexer temporalIndexer;
         private EntityCentricIndex entityIndexer;
         private AccumuloRyaDAO ryaIndexer;
@@ -347,7 +325,6 @@ public class RyaOutputFormat extends OutputFormat<Writable, RyaStatementWritable
 
             // set up the indexers
             freeTextIndexer = getFreeTextIndexer(conf);
-            geoIndexer = getGeoIndexer(conf);
             temporalIndexer = getTemporalIndexer(conf);
             entityIndexer = getEntityIndexer(conf);
             ryaIndexer = getRyaIndexer(conf);
@@ -405,12 +382,6 @@ public class RyaOutputFormat extends OutputFormat<Writable, RyaStatementWritable
                 flush();
             } catch (IOException e) {
                 logger.error("Error flushing the buffer on RyaOutputFormat Close", e);
-            }
-            try {
-                if (geoIndexer != null)
-                    geoIndexer.close();
-            } catch (IOException e) {
-                logger.error("Error closing the geoIndexer on RyaOutputFormat Close", e);
             }
             try {
                 if (freeTextIndexer != null)
@@ -530,12 +501,6 @@ public class RyaOutputFormat extends OutputFormat<Writable, RyaStatementWritable
             // Print "reading" metrics
             logger.info(String.format("(C-%d) (Reading) Duration, Current Rate, Total Rate: %.2f %.2f %.2f ", commitCount, readingDuration,
                     currentReadRate, totalReadRate));
-
-            // write to geo
-            if (geoIndexer != null) {
-                geoIndexer.storeStatements(buffer);
-                geoIndexer.flush();
-            }
 
             // write to free text
             if (freeTextIndexer != null) {

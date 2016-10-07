@@ -71,6 +71,7 @@ under the License.
                         <excludes>
                             <!-- Services Files -->
                             <exclude>**/resources/META-INF/services/**</exclude>
+                            <exclude>**/META-INF/**</exclude>
                         </excludes>
                     </configuration>
                 </plugin>

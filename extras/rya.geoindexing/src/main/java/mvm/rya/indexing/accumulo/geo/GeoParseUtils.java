@@ -1,11 +1,8 @@
 package mvm.rya.indexing.accumulo.geo;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.io.Reader;
 import java.io.StringReader;
-import java.nio.charset.StandardCharsets;
 
 import javax.xml.parsers.ParserConfigurationException;
 
@@ -30,7 +27,6 @@ import javax.xml.parsers.ParserConfigurationException;
 
 
 import org.apache.log4j.Logger;
-import org.geotools.data.collection.ListFeatureCollection;
 import org.geotools.gml3.GMLConfiguration;
 import org.geotools.xml.Parser;
 import org.openrdf.model.Literal;
@@ -41,7 +37,7 @@ import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.io.ParseException;
 import com.vividsolutions.jts.io.WKTReader;
 
-import mvm.rya.api.domain.RyaStatement;
+import mvm.rya.indexing.GeoConstants;
 
 public class GeoParseUtils {
     static final Logger logger = Logger.getLogger(GeoParseUtils.class);

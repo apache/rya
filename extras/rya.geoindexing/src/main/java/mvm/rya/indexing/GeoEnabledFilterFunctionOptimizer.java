@@ -34,6 +34,7 @@ import org.apache.commons.lang.Validate;
 import org.apache.hadoop.conf.Configurable;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.log4j.Logger;
+import org.geotools.feature.SchemaException;
 import org.openrdf.model.Resource;
 import org.openrdf.model.URI;
 import org.openrdf.model.Value;
@@ -63,24 +64,28 @@ import mvm.rya.indexing.IndexingFunctionRegistry.FUNCTION_TYPE;
 import mvm.rya.indexing.accumulo.ConfigUtils;
 import mvm.rya.indexing.accumulo.freetext.AccumuloFreeTextIndexer;
 import mvm.rya.indexing.accumulo.freetext.FreeTextTupleSet;
+import mvm.rya.indexing.accumulo.geo.GeoMesaGeoIndexer;
+import mvm.rya.indexing.accumulo.geo.GeoTupleSet;
 import mvm.rya.indexing.accumulo.temporal.AccumuloTemporalIndexer;
 import mvm.rya.indexing.mongodb.freetext.MongoFreeTextIndexer;
+import mvm.rya.indexing.mongodb.geo.MongoGeoIndexer;
 import mvm.rya.indexing.mongodb.temporal.MongoTemporalIndexer;
 
-public class FilterFunctionOptimizer implements QueryOptimizer, Configurable {
-    private static final Logger LOG = Logger.getLogger(FilterFunctionOptimizer.class);
+public class GeoEnabledFilterFunctionOptimizer implements QueryOptimizer, Configurable {
+    private static final Logger LOG = Logger.getLogger(GeoEnabledFilterFunctionOptimizer.class);
     private final ValueFactory valueFactory = new ValueFactoryImpl();
 
     private Configuration conf;
+    private GeoIndexer geoIndexer;
     private FreeTextIndexer freeTextIndexer;
     private TemporalIndexer temporalIndexer;
     private boolean init = false;
 
-    public FilterFunctionOptimizer() {
+    public GeoEnabledFilterFunctionOptimizer() {
     }
 
-    public FilterFunctionOptimizer(final AccumuloRdfConfiguration conf) throws AccumuloException, AccumuloSecurityException,
-    TableNotFoundException, IOException, TableExistsException, NumberFormatException, UnknownHostException {
+    public GeoEnabledFilterFunctionOptimizer(final AccumuloRdfConfiguration conf) throws AccumuloException, AccumuloSecurityException,
+    TableNotFoundException, IOException, SchemaException, TableExistsException, NumberFormatException, UnknownHostException {
         this.conf = conf;
         init();
     }
@@ -98,12 +103,16 @@ public class FilterFunctionOptimizer implements QueryOptimizer, Configurable {
     private synchronized void init() {
         if (!init) {
             if (ConfigUtils.getUseMongo(conf)) {
+                    geoIndexer = new MongoGeoIndexer();
+                    geoIndexer.setConf(conf);
                     freeTextIndexer = new MongoFreeTextIndexer();
                     freeTextIndexer.setConf(conf);
                     temporalIndexer = new MongoTemporalIndexer();
                     temporalIndexer.setConf(conf);
             } else {
-                 freeTextIndexer = new AccumuloFreeTextIndexer();
+                geoIndexer = new GeoMesaGeoIndexer();
+                geoIndexer.setConf(conf);
+                freeTextIndexer = new AccumuloFreeTextIndexer();
                 freeTextIndexer.setConf(conf);
                 temporalIndexer = new AccumuloTemporalIndexer();
                 temporalIndexer.setConf(conf);
@@ -297,6 +306,11 @@ public class FilterFunctionOptimizer implements QueryOptimizer, Configurable {
         public List<TupleExpr> createReplacement(final TupleExpr org) {
             final List<TupleExpr> indexTuples = Lists.newArrayList();
             switch (type) {
+            case GEO:
+                for (final IndexingExpr indx : indxExpr) {
+                    indexTuples.add(new GeoTupleSet(indx, geoIndexer));
+                }
+                break;
             case FREETEXT:
                 for (final IndexingExpr indx : indxExpr) {
                     indexTuples.add(new FreeTextTupleSet(indx, freeTextIndexer));

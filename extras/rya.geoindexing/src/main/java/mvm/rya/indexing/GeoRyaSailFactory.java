@@ -16,7 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package mvm.rya.sail.config;
+package mvm.rya.indexing;
 
 import static java.util.Objects.requireNonNull;
 
@@ -26,8 +26,6 @@ import java.util.Objects;
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
 import org.apache.accumulo.core.client.Connector;
-import org.apache.accumulo.core.client.Instance;
-import org.apache.accumulo.core.client.security.tokens.PasswordToken;
 import org.apache.hadoop.conf.Configuration;
 import org.openrdf.sail.Sail;
 import org.openrdf.sail.SailException;
@@ -38,7 +36,6 @@ import com.mongodb.MongoClient;
 
 import mvm.rya.accumulo.AccumuloRdfConfiguration;
 import mvm.rya.accumulo.AccumuloRyaDAO;
-import mvm.rya.accumulo.instance.AccumuloRyaInstanceDetailsRepository;
 import mvm.rya.api.RdfCloudTripleStoreConfiguration;
 import mvm.rya.api.instance.RyaDetailsRepository.RyaDetailsRepositoryException;
 import mvm.rya.api.instance.RyaDetailsToConfiguration;
@@ -53,9 +50,10 @@ import mvm.rya.mongodb.instance.MongoRyaInstanceDetailsRepository;
 import mvm.rya.rdftriplestore.RdfCloudTripleStore;
 import mvm.rya.rdftriplestore.inference.InferenceEngine;
 import mvm.rya.rdftriplestore.inference.InferenceEngineException;
+import mvm.rya.sail.config.RyaSailFactory;
 
-public class RyaSailFactory {
-    private static final Logger LOG = LoggerFactory.getLogger(RyaSailFactory.class);
+public class GeoRyaSailFactory {
+    private static final Logger LOG = LoggerFactory.getLogger(GeoRyaSailFactory.class);
 
     /**
      * Creates an instance of {@link Sail} that is attached to a Rya instance.
@@ -98,7 +96,7 @@ public class RyaSailFactory {
             Objects.requireNonNull(user, "Accumulo user name is missing from configuration."+ConfigUtils.CLOUDBASE_USER);
             Objects.requireNonNull(pswd, "Accumulo user password is missing from configuration."+ConfigUtils.CLOUDBASE_PASSWORD);
             rdfConfig.setTableLayoutStrategy( new TablePrefixLayoutStrategy(ryaInstance) );
-            updateAccumuloConfig((AccumuloRdfConfiguration) rdfConfig, user, pswd, ryaInstance);
+            RyaSailFactory.updateAccumuloConfig((AccumuloRdfConfiguration) rdfConfig, user, pswd, ryaInstance);
             dao = getAccumuloDAO((AccumuloRdfConfiguration)rdfConfig);
         }
         store.setRyaDAO(dao);
@@ -119,7 +117,7 @@ public class RyaSailFactory {
 
     private static MongoDBRyaDAO getMongoDAO(final MongoDBRdfConfiguration config, final MongoClient client) throws RyaDAOException {
         MongoDBRyaDAO dao = null;
-        ConfigUtils.setIndexers(config);
+        OptionalConfigUtils.setIndexers(config);
         if(client != null) {
             dao = new MongoDBRyaDAO(config, client);
         } else {
@@ -138,22 +136,11 @@ public class RyaSailFactory {
         final AccumuloRyaDAO dao = new AccumuloRyaDAO();
         dao.setConnector(connector);
 
-        ConfigUtils.setIndexers(config);
+        OptionalConfigUtils.setIndexers(config);
         config.setDisplayQueryPlan(true);
 
         dao.setConf(config);
         dao.init();
         return dao;
-    }
-
-    public static void updateAccumuloConfig(final AccumuloRdfConfiguration config, final String user, final String pswd, final String ryaInstance) throws AccumuloException, AccumuloSecurityException {
-        try {
-            final PasswordToken pswdToken = new PasswordToken(pswd);
-            final Instance accInst = ConfigUtils.getInstance(config);
-            final AccumuloRyaInstanceDetailsRepository ryaDetailsRepo = new AccumuloRyaInstanceDetailsRepository(accInst.getConnector(user, pswdToken), ryaInstance);
-            RyaDetailsToConfiguration.addRyaDetailsToConfiguration(ryaDetailsRepo.getRyaInstanceDetails(), config);
-        } catch(final RyaDetailsRepositoryException e) {
-            LOG.info("Instance does not have a rya details collection, skipping.");
-        }
     }
 }

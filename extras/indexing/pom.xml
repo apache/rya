@@ -106,11 +106,6 @@
             <version>${project.version}</version>
             <type>test-jar</type>
         </dependency>
-         <dependency>
-            <groupId>com.vividsolutions</groupId>
-            <artifactId>jts</artifactId>
-            <version>1.13</version>
-        </dependency>
 	</dependencies>
 	<build>
 		<pluginManagement>

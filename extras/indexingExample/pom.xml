@@ -59,11 +59,6 @@ under the License.
             <groupId>org.apache.accumulo</groupId>
             <artifactId>accumulo-core</artifactId>
         </dependency>
-
-        <dependency>
-            <groupId>org.locationtech.geomesa</groupId>
-            <artifactId>geomesa-accumulo-distributed-runtime</artifactId>
-        </dependency>
         
         <dependency>
             <groupId>org.apache.accumulo</groupId>

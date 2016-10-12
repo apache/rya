@@ -44,6 +44,29 @@ under the License.
                     </execution>
                 </executions>
             </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-enforcer-plugin</artifactId>
+                <configuration>
+                    <rules>
+                        <!-- Flapdoodle (for testing MongoDB) was failing for 32 bit architecture -->
+                        <requireOS>
+                            <message>Flapdoodle (for testing MongoDB) was failing for 32 bit architecture </message>
+                            <!--  <arch>!x86</arch>  -->
+                            <arch>amd64</arch>
+                        </requireOS>
+                        <requireOS>
+                            <message>Flapdoodle (for testing MongoDB) was failing for 32 bit architecture </message>
+                            <arch>i686_64</arch>
+                        </requireOS>
+                        <requireOS>
+                            <message>Flapdoodle (for testing MongoDB) was failing for 32 bit architecture </message>
+                            <arch>x86_64</arch>
+                        </requireOS>
+                    </rules>
+                    <fail>true</fail>
+                </configuration>
+            </plugin>
         </plugins>
     </build>
 

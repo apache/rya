@@ -45,8 +45,8 @@ import org.openrdf.sail.SailException;
 import com.google.common.base.Optional;
 import com.google.common.collect.Sets;
 
-import io.fluo.api.client.FluoClient;
-import io.fluo.api.mini.MiniFluo;
+import org.apache.fluo.api.client.FluoClient;
+import org.apache.fluo.api.mini.MiniFluo;
 import mvm.rya.api.domain.RyaStatement;
 import mvm.rya.api.domain.RyaType;
 import mvm.rya.api.domain.RyaURI;

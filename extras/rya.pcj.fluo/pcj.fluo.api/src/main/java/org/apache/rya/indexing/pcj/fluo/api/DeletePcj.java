@@ -22,12 +22,12 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static java.util.Objects.requireNonNull;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 
 import org.apache.rya.indexing.pcj.fluo.app.NodeType;
-import org.apache.rya.indexing.pcj.fluo.app.StringTypeLayer;
 import org.apache.rya.indexing.pcj.fluo.app.query.FilterMetadata;
 import org.apache.rya.indexing.pcj.fluo.app.query.FluoQueryColumns;
 import org.apache.rya.indexing.pcj.fluo.app.query.FluoQueryMetadataDAO;
@@ -35,14 +35,13 @@ import org.apache.rya.indexing.pcj.fluo.app.query.JoinMetadata;
 import org.apache.rya.indexing.pcj.fluo.app.query.QueryMetadata;
 import org.openrdf.query.BindingSet;
 
-import io.fluo.api.client.FluoClient;
-import io.fluo.api.client.Transaction;
-import io.fluo.api.config.ScannerConfiguration;
-import io.fluo.api.data.Bytes;
-import io.fluo.api.data.Column;
-import io.fluo.api.data.Span;
-import io.fluo.api.iterator.RowIterator;
-import io.fluo.api.types.TypedTransaction;
+import org.apache.fluo.api.client.FluoClient;
+import org.apache.fluo.api.client.Transaction;
+import org.apache.fluo.api.client.scanner.CellScanner;
+import org.apache.fluo.api.data.Bytes;
+import org.apache.fluo.api.data.Column;
+import org.apache.fluo.api.data.RowColumnValue;
+import org.apache.fluo.api.data.Span;
 
 /**
  * Deletes a Pre-computed Join (PCJ) from Fluo.
@@ -173,7 +172,7 @@ public class DeletePcj {
         requireNonNull(nodeIds);
         requireNonNull(pcjId);
 
-        try (final TypedTransaction typeTx = new StringTypeLayer().wrap(tx)) {
+        try (final Transaction typeTx = tx) {
             deletePcjIdAndSparqlMetadata(typeTx, pcjId);
 
             for (final String nodeId : nodeIds) {
@@ -191,7 +190,7 @@ public class DeletePcj {
      * @param nodeId - The Node ID of the query node to delete. (not null)
      * @param columns - The columns that will be deleted. (not null)
      */
-    private void deleteMetadataColumns(final TypedTransaction tx, final String nodeId, final List<Column> columns) {
+    private void deleteMetadataColumns(final Transaction tx, final String nodeId, final List<Column> columns) {
         requireNonNull(tx);
         requireNonNull(columns);
         requireNonNull(nodeId);
@@ -210,15 +209,15 @@ public class DeletePcj {
      * @param tx - Transaction the deletes will be performed with. (not null)
      * @param pcjId - The PCJ whose metadata will be deleted. (not null)
      */
-    private void deletePcjIdAndSparqlMetadata(final TypedTransaction tx, final String pcjId) {
+    private void deletePcjIdAndSparqlMetadata(final Transaction tx, final String pcjId) {
         requireNonNull(tx);
         requireNonNull(pcjId);
 
         final String queryId = getQueryIdFromPcjId(tx, pcjId);
         final String sparql = getSparqlFromQueryId(tx, queryId);
-        tx.delete(Bytes.of(queryId), FluoQueryColumns.RYA_PCJ_ID);
-        tx.delete(Bytes.of(sparql), FluoQueryColumns.QUERY_ID);
-        tx.delete(Bytes.of(pcjId), FluoQueryColumns.PCJ_ID_QUERY_ID);
+        tx.delete(queryId, FluoQueryColumns.RYA_PCJ_ID);
+        tx.delete(sparql, FluoQueryColumns.QUERY_ID);
+        tx.delete(pcjId, FluoQueryColumns.PCJ_ID_QUERY_ID);
     }
 
 
@@ -239,33 +238,31 @@ public class DeletePcj {
         }
     }
 
-    private RowIterator getIterator(final Transaction tx, final String nodeId, final Column column) {
+    private CellScanner getIterator(final Transaction tx, final String nodeId, final Column column) {
         requireNonNull(tx);
         requireNonNull(nodeId);
         requireNonNull(column);
 
-        ScannerConfiguration sc1 = new ScannerConfiguration();
-        sc1.fetchColumn(column.getFamily(), column.getQualifier());
-        sc1.setSpan(Span.prefix(Bytes.of(nodeId)));
-        return tx.get(sc1);
+        return tx.scanner().fetch(column).over(Span.prefix(nodeId)).build();
     }
 
-    private boolean deleteDataBatch(final Transaction tx, final RowIterator iter, final Column column) {
+    private boolean deleteDataBatch(final Transaction tx, final CellScanner scanner, final Column column) {
         requireNonNull(tx);
-        requireNonNull(iter);
+        requireNonNull(scanner);
         requireNonNull(column);
 
-        try (final TypedTransaction typeTx = new StringTypeLayer().wrap(tx)) {
-            int count = 0;
-            while (iter.hasNext() && count < batchSize) {
-                final Bytes row = iter.next().getKey();
-                count++;
-                tx.delete(row, column);
-            }
+        try(Transaction ntx = tx) {
+          int count = 0;
+          Iterator<RowColumnValue> iter = scanner.iterator();
+          while (iter.hasNext() && count < batchSize) {
+            final Bytes row = iter.next().getRow();
+            count++;
+            tx.delete(row, column);
+          }
 
-            final boolean hasNext = iter.hasNext();
-            tx.commit();
-            return hasNext;
+          final boolean hasNext = iter.hasNext();
+          tx.commit();
+          return hasNext;
         }
     }
 

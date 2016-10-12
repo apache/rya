@@ -21,13 +21,13 @@ package org.apache.rya.indexing.pcj.fluo.api;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.math.BigInteger;
+import java.util.Iterator;
 
 import org.apache.rya.indexing.pcj.fluo.app.query.FluoQueryColumns;
 
-import io.fluo.api.client.FluoClient;
-import io.fluo.api.client.Snapshot;
-import io.fluo.api.config.ScannerConfiguration;
-import io.fluo.api.iterator.RowIterator;
+import org.apache.fluo.api.client.FluoClient;
+import org.apache.fluo.api.client.Snapshot;
+import org.apache.fluo.api.client.scanner.ColumnScanner;
 
 /**
  * Counts the number of RDF Statements that have been loaded into the Fluo app
@@ -48,10 +48,8 @@ public class CountStatements {
 
         try(Snapshot sx = fluo.newSnapshot()) {
             // Limit the scan to the Triples binding set column.
-            final ScannerConfiguration scanConfig = new ScannerConfiguration();
-            scanConfig.fetchColumn(FluoQueryColumns.TRIPLES.getFamily(), FluoQueryColumns.TRIPLES.getQualifier());
-
-            final RowIterator rows = sx.get(scanConfig);
+            final Iterator<ColumnScanner> rows = sx.scanner().fetch(FluoQueryColumns.TRIPLES).byRow().build().iterator();
+ 
             BigInteger count = BigInteger.valueOf(0L);
             while(rows.hasNext()) {
                 rows.next();

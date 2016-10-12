@@ -29,7 +29,6 @@ import java.util.Set;
 import javax.annotation.ParametersAreNonnullByDefault;
 
 import org.apache.rya.indexing.pcj.fluo.app.FluoStringConverter;
-import org.apache.rya.indexing.pcj.fluo.app.StringTypeLayer;
 import org.apache.rya.indexing.pcj.fluo.app.query.FluoQuery;
 import org.apache.rya.indexing.pcj.fluo.app.query.FluoQueryColumns;
 import org.apache.rya.indexing.pcj.fluo.app.query.FluoQueryMetadataDAO;
@@ -54,8 +53,8 @@ import org.openrdf.sail.SailConnection;
 import org.openrdf.sail.SailException;
 
 import info.aduna.iteration.CloseableIteration;
-import io.fluo.api.client.FluoClient;
-import io.fluo.api.types.TypedTransaction;
+import org.apache.fluo.api.client.FluoClient;
+import org.apache.fluo.api.client.Transaction;
 
 /**
  * Sets up a new Pre Computed Join (PCJ) in Fluo from a SPARQL query.
@@ -74,11 +73,6 @@ import io.fluo.api.types.TypedTransaction;
  */
 @ParametersAreNonnullByDefault
 public class CreatePcj {
-
-    /**
-     * Wraps Fluo {@link Transaction}s so that we can write String values to them.
-     */
-    private static final StringTypeLayer STRING_TYPED_LAYER = new StringTypeLayer();
 
     /**
      * The default Statement Pattern batch insert size is 1000.
@@ -150,15 +144,15 @@ public class CreatePcj {
         final ParsedQuery parsedQuery = new SPARQLParser().parseQuery(sparql, null);
         final FluoQuery fluoQuery = new SparqlFluoQueryBuilder().make(parsedQuery, nodeIds);
 
-        try(TypedTransaction tx = STRING_TYPED_LAYER.wrap( fluo.newTransaction() )) {
+        try(Transaction tx = fluo.newTransaction()) {
             // Write the query's structure to Fluo.
             new FluoQueryMetadataDAO().write(tx, fluoQuery);
 
             // The results of the query are eventually exported to an instance of Rya, so store the Rya ID for the PCJ.
             final String queryId = fluoQuery.getQueryMetadata().getNodeId();
-            tx.mutate().row(queryId).col(FluoQueryColumns.RYA_PCJ_ID).set(pcjId);
-            tx.mutate().row(pcjId).col(FluoQueryColumns.PCJ_ID_QUERY_ID).set(queryId);
-
+            tx.set(queryId, FluoQueryColumns.RYA_PCJ_ID, pcjId);
+            tx.set(pcjId, FluoQueryColumns.PCJ_ID_QUERY_ID, queryId);
+            
             // Flush the changes to Fluo.
             tx.commit();
         }
@@ -206,7 +200,7 @@ public class CreatePcj {
 
         final BindingSetStringConverter converter = new BindingSetStringConverter();
 
-        try(TypedTransaction tx = STRING_TYPED_LAYER.wrap(fluo.newTransaction())) {
+        try(Transaction tx = fluo.newTransaction()) {
             // Get the node's variable order.
             final String spNodeId = spMetadata.getNodeId();
             final VariableOrder varOrder = spMetadata.getVariableOrder();
@@ -221,9 +215,7 @@ public class CreatePcj {
                 final String bindingSetStr = converter.convert(spBindingSet, varOrder);
 
                 // Write the binding set entry to Fluo for the statement pattern.
-                tx.mutate().row(spNodeId + NODEID_BS_DELIM + bindingSetStr)
-                    .col(FluoQueryColumns.STATEMENT_PATTERN_BINDING_SET)
-                    .set(bindingSetStr);
+                tx.set(spNodeId + NODEID_BS_DELIM + bindingSetStr, FluoQueryColumns.STATEMENT_PATTERN_BINDING_SET, bindingSetStr);
             }
 
             tx.commit();

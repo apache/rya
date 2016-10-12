@@ -33,7 +33,7 @@ import org.apache.rya.indexing.pcj.storage.accumulo.AccumuloPcjStorage;
 
 import com.google.common.base.Optional;
 
-import io.fluo.api.observer.Observer.Context;
+import org.apache.fluo.api.observer.Observer.Context;
 
 /**
  * Creates instances of {@link RyaResultExporter}.
@@ -45,7 +45,7 @@ public class RyaResultExporterFactory implements IncrementalResultExporterFactor
         checkNotNull(context);
 
         // Wrap the context's parameters for parsing.
-        final RyaExportParameters params = new RyaExportParameters( context.getParameters() );
+        final RyaExportParameters params = new RyaExportParameters( context.getObserverConfiguration().toMap() );
 
         if(params.isExportToRya()) {
             // Setup Zookeeper connection info.

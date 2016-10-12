@@ -25,7 +25,7 @@ import java.util.List;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 
-import io.fluo.api.data.Column;
+import org.apache.fluo.api.data.Column;
 
 /**
  * Holds {@link Column} objects that represent where each piece of metadata is stored.

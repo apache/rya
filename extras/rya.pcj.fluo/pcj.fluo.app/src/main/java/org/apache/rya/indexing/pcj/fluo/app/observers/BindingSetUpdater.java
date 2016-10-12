@@ -34,13 +34,10 @@ import org.apache.rya.indexing.pcj.fluo.app.query.QueryMetadata;
 import org.apache.rya.indexing.pcj.storage.accumulo.BindingSetConverter.BindingSetConversionException;
 import org.apache.rya.indexing.pcj.storage.accumulo.VisibilityBindingSet;
 
-import io.fluo.api.client.TransactionBase;
-import io.fluo.api.data.Bytes;
-import io.fluo.api.data.Column;
-import io.fluo.api.types.Encoder;
-import io.fluo.api.types.StringEncoder;
-import io.fluo.api.types.TypedObserver;
-import io.fluo.api.types.TypedTransactionBase;
+import org.apache.fluo.api.client.TransactionBase;
+import org.apache.fluo.api.data.Bytes;
+import org.apache.fluo.api.data.Column;
+import org.apache.fluo.api.observer.AbstractObserver;
 
 /**
  * Notified when the results of a node have been updated to include a new Binding
@@ -48,9 +45,8 @@ import io.fluo.api.types.TypedTransactionBase;
  * results.
  */
 @ParametersAreNonnullByDefault
-public abstract class BindingSetUpdater extends TypedObserver {
+public abstract class BindingSetUpdater extends AbstractObserver {
 
-    private final Encoder encoder = new StringEncoder();
     // DAO
     private final FluoQueryMetadataDAO queryDao = new FluoQueryMetadataDAO();
 
@@ -72,12 +68,12 @@ public abstract class BindingSetUpdater extends TypedObserver {
     public abstract Observation parseObservation(TransactionBase tx, final BindingSetRow parsedRow);
 
     @Override
-    public final void process(final TypedTransactionBase tx, final Bytes row, final Column col) {
+    public final void process(final TransactionBase tx, final Bytes row, final Column col) {
         checkNotNull(tx);
         checkNotNull(row);
         checkNotNull(col);
 
-        final String bindingSetString = encoder.decodeString(tx.get(row, col));
+        final String bindingSetString = tx.get(row, col).toString();
         final Observation observation = parseObservation( tx, new BindingSetRow(BindingSetRow.make(row).getNodeId(), bindingSetString) );
         final String observedNodeId = observation.getObservedNodeId();
         final VisibilityBindingSet observedBindingSet = observation.getObservedBindingSet();

@@ -23,17 +23,13 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map.Entry;
 
-import org.apache.rya.indexing.pcj.fluo.app.StringTypeLayer;
 import org.apache.rya.indexing.pcj.fluo.app.query.FluoQueryColumns;
 
-import io.fluo.api.client.FluoClient;
-import io.fluo.api.config.ScannerConfiguration;
-import io.fluo.api.data.Bytes;
-import io.fluo.api.iterator.ColumnIterator;
-import io.fluo.api.iterator.RowIterator;
-import io.fluo.api.types.TypedSnapshot;
+import org.apache.fluo.api.client.FluoClient;
+import org.apache.fluo.api.client.Snapshot;
+import org.apache.fluo.api.client.scanner.CellScanner;
+import org.apache.fluo.api.data.RowColumnValue;
 
 /**
  * Finds all queries that are being managed by this instance of Fluo that
@@ -54,19 +50,14 @@ public class ListQueryIds {
 
         final List<String> queryIds = new ArrayList<>();
 
-        try(TypedSnapshot snap = new StringTypeLayer().wrap( fluo.newSnapshot() )) {
+        try(Snapshot snap = fluo.newSnapshot() ) {
             // Create an iterator that iterates over the QUERY_ID column.
-            final ScannerConfiguration scanConfig = new ScannerConfiguration();
-            scanConfig.fetchColumn(FluoQueryColumns.QUERY_ID.getFamily(), FluoQueryColumns.QUERY_ID.getQualifier());
-            final RowIterator rows = snap.get(scanConfig);
+            final CellScanner cellScanner = snap.scanner().fetch( FluoQueryColumns.QUERY_ID).build();
 
-            // Fetch the Query IDs that is stored in the Fluo table.
-            while(rows.hasNext()) {
-                final Entry<Bytes, ColumnIterator> entry = rows.next();
-                final Bytes sparql = entry.getKey();
-                final String queryId = snap.get(sparql, FluoQueryColumns.QUERY_ID).toString();
-                queryIds.add(queryId);
-            }
+            for (RowColumnValue rcv : cellScanner) {
+            	queryIds.add(rcv.getsValue());
+            	//TODO this was doing a snap.get that seemed unnecessary 
+			}
         }
 
         // Sort them alphabetically.

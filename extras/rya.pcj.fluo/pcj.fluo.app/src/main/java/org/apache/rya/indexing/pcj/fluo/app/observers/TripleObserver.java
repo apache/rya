@@ -24,10 +24,8 @@ import static org.apache.rya.indexing.pcj.fluo.app.IncrementalUpdateConstants.SP
 import static org.apache.rya.indexing.pcj.fluo.app.IncrementalUpdateConstants.VAR_DELIM;
 
 import java.util.Map;
-import java.util.Map.Entry;
 
 import org.apache.rya.indexing.pcj.fluo.app.IncUpdateDAO;
-import org.apache.rya.indexing.pcj.fluo.app.StringTypeLayer;
 import org.apache.rya.indexing.pcj.fluo.app.query.FluoQueryColumns;
 import org.apache.rya.indexing.pcj.fluo.app.query.FluoQueryMetadataDAO;
 import org.apache.rya.indexing.pcj.fluo.app.query.StatementPatternMetadata;
@@ -36,32 +34,26 @@ import org.apache.rya.indexing.pcj.storage.accumulo.VisibilityBindingSet;
 import org.apache.rya.indexing.pcj.storage.accumulo.VisibilityBindingSetStringConverter;
 
 import com.google.common.collect.Maps;
-
-import io.fluo.api.config.ScannerConfiguration;
-import io.fluo.api.data.Bytes;
-import io.fluo.api.data.Column;
-import io.fluo.api.data.Span;
-import io.fluo.api.iterator.ColumnIterator;
-import io.fluo.api.iterator.RowIterator;
-import io.fluo.api.types.Encoder;
-import io.fluo.api.types.StringEncoder;
-import io.fluo.api.types.TypedObserver;
-import io.fluo.api.types.TypedTransactionBase;
+import org.apache.fluo.api.client.TransactionBase;
+import org.apache.fluo.api.client.scanner.ColumnScanner;
+import org.apache.fluo.api.client.scanner.RowScanner;
+import org.apache.fluo.api.data.Bytes;
+import org.apache.fluo.api.data.Column;
+import org.apache.fluo.api.data.ColumnValue;
+import org.apache.fluo.api.data.Span;
+import org.apache.fluo.api.observer.AbstractObserver;
 
 /**
  * An observer that matches new Triples to the Statement Patterns that are part
  * of any PCJ that is being maintained. If the triple matches a pattern, then
  * the new result is stored as a binding set for the pattern.
  */
-public class TripleObserver extends TypedObserver {
+public class TripleObserver extends AbstractObserver {
 
-    private static final Encoder ENCODER = new StringEncoder();
     private static final FluoQueryMetadataDAO QUERY_DAO = new FluoQueryMetadataDAO();
     private static final VisibilityBindingSetStringConverter CONVERTER = new VisibilityBindingSetStringConverter();
 
-    public TripleObserver() {
-        super(new StringTypeLayer());
-    }
+    public TripleObserver() {}
 
     @Override
     public ObservedColumn getObservedColumn() {
@@ -69,33 +61,26 @@ public class TripleObserver extends TypedObserver {
     }
 
     @Override
-    public void process(final TypedTransactionBase tx, final Bytes row, final Column column) {
+    public void process(final TransactionBase tx, final Bytes brow, final Column column) {
         //get string representation of triple
-        final String triple = IncUpdateDAO.getTripleString(row);
-        final Bytes visiBytes = tx.get(row, FluoQueryColumns.TRIPLES);
-        String visibility = "";
-        if(visiBytes != null) {
-             visibility = ENCODER.decodeString(visiBytes);
-        }
-
+        String row = brow.toString();
+        final String triple = IncUpdateDAO.getTripleString(brow);
+        String visibility = tx.gets(row, FluoQueryColumns.TRIPLES, "");
+       
         //get variable metadata for all SP in table
-        final ScannerConfiguration sc1 = new ScannerConfiguration();
-        sc1.fetchColumn(FluoQueryColumns.STATEMENT_PATTERN_VARIABLE_ORDER.getFamily(), FluoQueryColumns.STATEMENT_PATTERN_VARIABLE_ORDER.getQualifier());
-        sc1.setSpan(Span.prefix(SP_PREFIX));
+        RowScanner rscanner = tx.scanner().over(Span.prefix(SP_PREFIX)).fetch(FluoQueryColumns.STATEMENT_PATTERN_VARIABLE_ORDER).byRow().build();
+       
 
         //see if triple matches conditions of any of the SP
-        final RowIterator ri = tx.get(sc1);
 
-        while(ri.hasNext()) {
-            final Entry<Bytes, ColumnIterator> next = ri.next();
-            final ColumnIterator ci = next.getValue();
-            final String spID = next.getKey().toString();
+        for (ColumnScanner colScanner : rscanner) {
+            final String spID = colScanner.getsRow();
 
             final StatementPatternMetadata spMetadata = QUERY_DAO.readStatementPatternMetadata(tx, spID);
             final String pattern = spMetadata.getStatementPattern();
-
-            while(ci.hasNext()) {
-                final String varOrders = ci.next().getValue().toString();
+            
+            for (ColumnValue cv : colScanner) {
+                final String varOrders = cv.getsValue();
                 final VariableOrder varOrder = new VariableOrder(varOrders);
                 final String bindingSetString = getBindingSet(triple, pattern, varOrders);
 
@@ -105,10 +90,10 @@ public class TripleObserver extends TypedObserver {
                         CONVERTER.convert(bindingSetString, varOrder),
                         visibility);
                     final String valueString = CONVERTER.convert(bindingSet, varOrder);
-                    tx.mutate().row(spID + NODEID_BS_DELIM + bindingSetString).col(FluoQueryColumns.STATEMENT_PATTERN_BINDING_SET).set(valueString);
+                    tx.set(spID + NODEID_BS_DELIM + bindingSetString, FluoQueryColumns.STATEMENT_PATTERN_BINDING_SET, valueString);
                 }
-            }
-        }
+			}
+		}
 
         // Once the triple has been handled, it may be deleted.
         tx.delete(row, column);

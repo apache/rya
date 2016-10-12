@@ -56,7 +56,7 @@ under the License.
         
         <!-- Fluo support dependencies. -->
         <dependency>
-            <groupId>io.fluo</groupId>
+            <groupId>org.apache.fluo</groupId>
             <artifactId>fluo-api</artifactId>
         </dependency>
         

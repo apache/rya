@@ -52,11 +52,11 @@ under the License.
     
         <!-- 3rd Party Runtime Dependencies. -->
         <dependency>
-            <groupId>io.fluo</groupId>
+            <groupId>org.apache.fluo</groupId>
             <artifactId>fluo-api</artifactId>
         </dependency>
         <dependency>
-            <groupId>io.fluo</groupId>
+            <groupId>org.apache.fluo</groupId>
             <artifactId>fluo-core</artifactId>
             <exclusions>
             	<exclusion>
@@ -65,7 +65,6 @@ under the License.
             	</exclusion>
             </exclusions>
         </dependency>
-        
         <!-- Testing dependencies. -->
         <dependency>
             <groupId>junit</groupId>

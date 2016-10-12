@@ -30,12 +30,10 @@ import org.apache.rya.indexing.pcj.storage.accumulo.VariableOrder;
 
 import com.google.common.collect.Sets;
 
-import io.fluo.api.client.SnapshotBase;
-import io.fluo.api.client.TransactionBase;
-import io.fluo.api.data.Bytes;
-import io.fluo.api.data.Column;
-import io.fluo.api.types.Encoder;
-import io.fluo.api.types.StringEncoder;
+import org.apache.fluo.api.client.SnapshotBase;
+import org.apache.fluo.api.client.TransactionBase;
+import org.apache.fluo.api.data.Bytes;
+import org.apache.fluo.api.data.Column;
 
 /**
  * Reads and writes {@link FluoQuery} instances and their components to/from
@@ -43,8 +41,6 @@ import io.fluo.api.types.StringEncoder;
  */
 @ParametersAreNonnullByDefault
 public class FluoQueryMetadataDAO {
-
-    private static final Encoder encoder = new StringEncoder();
 
     /**
      * Write an instance of {@link QueryMetadata} to the Fluo table.
@@ -56,11 +52,11 @@ public class FluoQueryMetadataDAO {
         checkNotNull(tx);
         checkNotNull(metadata);
 
-        final Bytes rowId = encoder.encode(metadata.getNodeId());
+        final String rowId = metadata.getNodeId();
         tx.set(rowId, FluoQueryColumns.QUERY_NODE_ID, rowId);
-        tx.set(rowId, FluoQueryColumns.QUERY_VARIABLE_ORDER, encoder.encode( metadata.getVariableOrder().toString() ));
-        tx.set(rowId, FluoQueryColumns.QUERY_SPARQL, encoder.encode( metadata.getSparql() ));
-        tx.set(rowId, FluoQueryColumns.QUERY_CHILD_NODE_ID, encoder.encode( metadata.getChildNodeId() ));
+        tx.set(rowId, FluoQueryColumns.QUERY_VARIABLE_ORDER, metadata.getVariableOrder().toString());
+        tx.set(rowId, FluoQueryColumns.QUERY_SPARQL, metadata.getSparql() );
+        tx.set(rowId, FluoQueryColumns.QUERY_CHILD_NODE_ID, metadata.getChildNodeId() );
     }
 
     /**
@@ -79,18 +75,18 @@ public class FluoQueryMetadataDAO {
         checkNotNull(nodeId);
 
         // Fetch the values from the Fluo table.
-        final Bytes rowId = encoder.encode(nodeId);
-        final Map<Column, Bytes> values = sx.get(rowId, Sets.newHashSet(
+        final String rowId = nodeId;
+        final Map<Column, String> values = sx.gets(rowId, 
                 FluoQueryColumns.QUERY_VARIABLE_ORDER,
                 FluoQueryColumns.QUERY_SPARQL,
-                FluoQueryColumns.QUERY_CHILD_NODE_ID));
+                FluoQueryColumns.QUERY_CHILD_NODE_ID);
 
         // Return an object holding them.
-        final String varOrderString = encoder.decodeString( values.get(FluoQueryColumns.QUERY_VARIABLE_ORDER));
+        final String varOrderString = values.get(FluoQueryColumns.QUERY_VARIABLE_ORDER);
         final VariableOrder varOrder = new VariableOrder(varOrderString);
 
-        final String sparql = encoder.decodeString( values.get(FluoQueryColumns.QUERY_SPARQL) );
-        final String childNodeId = encoder.decodeString( values.get(FluoQueryColumns.QUERY_CHILD_NODE_ID) );
+        final String sparql = values.get(FluoQueryColumns.QUERY_SPARQL);
+        final String childNodeId = values.get(FluoQueryColumns.QUERY_CHILD_NODE_ID);
 
         return QueryMetadata.builder(nodeId)
                 .setVariableOrder( varOrder )
@@ -108,13 +104,13 @@ public class FluoQueryMetadataDAO {
         checkNotNull(tx);
         checkNotNull(metadata);
 
-        final Bytes rowId = encoder.encode(metadata.getNodeId());
+        final String rowId = metadata.getNodeId();
         tx.set(rowId, FluoQueryColumns.FILTER_NODE_ID, rowId);
-        tx.set(rowId, FluoQueryColumns.FILTER_VARIABLE_ORDER, encoder.encode( metadata.getVariableOrder().toString() ));
-        tx.set(rowId, FluoQueryColumns.FILTER_ORIGINAL_SPARQL, encoder.encode( metadata.getOriginalSparql() ));
-        tx.set(rowId, FluoQueryColumns.FILTER_INDEX_WITHIN_SPARQL, encoder.encode( metadata.getFilterIndexWithinSparql() ));
-        tx.set(rowId, FluoQueryColumns.FILTER_PARENT_NODE_ID, encoder.encode( metadata.getParentNodeId() ));
-        tx.set(rowId, FluoQueryColumns.FILTER_CHILD_NODE_ID, encoder.encode( metadata.getChildNodeId() ));
+        tx.set(rowId, FluoQueryColumns.FILTER_VARIABLE_ORDER, metadata.getVariableOrder().toString());
+        tx.set(rowId, FluoQueryColumns.FILTER_ORIGINAL_SPARQL, metadata.getOriginalSparql() );
+        tx.set(rowId, FluoQueryColumns.FILTER_INDEX_WITHIN_SPARQL, metadata.getFilterIndexWithinSparql()+"" );
+        tx.set(rowId, FluoQueryColumns.FILTER_PARENT_NODE_ID, metadata.getParentNodeId() );
+        tx.set(rowId, FluoQueryColumns.FILTER_CHILD_NODE_ID, metadata.getChildNodeId() );
     }
 
     /**
@@ -133,22 +129,22 @@ public class FluoQueryMetadataDAO {
         checkNotNull(nodeId);
 
         // Fetch the values from the Fluo table.
-        final Bytes rowId = encoder.encode(nodeId);
-        final Map<Column, Bytes> values = sx.get(rowId, Sets.newHashSet(
+        final String rowId = nodeId;
+        final Map<Column, String> values = sx.gets(rowId, 
                 FluoQueryColumns.FILTER_VARIABLE_ORDER,
                 FluoQueryColumns.FILTER_ORIGINAL_SPARQL,
                 FluoQueryColumns.FILTER_INDEX_WITHIN_SPARQL,
                 FluoQueryColumns.FILTER_PARENT_NODE_ID,
-                FluoQueryColumns.FILTER_CHILD_NODE_ID));
+                FluoQueryColumns.FILTER_CHILD_NODE_ID);
 
         // Return an object holding them.
-        final String varOrderString = encoder.decodeString( values.get(FluoQueryColumns.FILTER_VARIABLE_ORDER));
+        final String varOrderString = values.get(FluoQueryColumns.FILTER_VARIABLE_ORDER);
         final VariableOrder varOrder = new VariableOrder(varOrderString);
 
-        final String originalSparql = encoder.decodeString( values.get(FluoQueryColumns.FILTER_ORIGINAL_SPARQL) );
-        final int filterIndexWithinSparql = encoder.decodeInteger( values.get(FluoQueryColumns.FILTER_INDEX_WITHIN_SPARQL) );
-        final String parentNodeId = encoder.decodeString( values.get(FluoQueryColumns.FILTER_PARENT_NODE_ID) );
-        final String childNodeId = encoder.decodeString( values.get(FluoQueryColumns.FILTER_CHILD_NODE_ID) );
+        final String originalSparql = values.get(FluoQueryColumns.FILTER_ORIGINAL_SPARQL);
+        final int filterIndexWithinSparql = Integer.parseInt(values.get(FluoQueryColumns.FILTER_INDEX_WITHIN_SPARQL));
+        final String parentNodeId = values.get(FluoQueryColumns.FILTER_PARENT_NODE_ID);
+        final String childNodeId = values.get(FluoQueryColumns.FILTER_CHILD_NODE_ID);
 
         return FilterMetadata.builder(nodeId)
                 .setVarOrder(varOrder)
@@ -168,13 +164,13 @@ public class FluoQueryMetadataDAO {
         checkNotNull(tx);
         checkNotNull(metadata);
 
-        final Bytes rowId = encoder.encode(metadata.getNodeId());
+        final String rowId = metadata.getNodeId();
         tx.set(rowId, FluoQueryColumns.JOIN_NODE_ID, rowId);
-        tx.set(rowId, FluoQueryColumns.JOIN_VARIABLE_ORDER, encoder.encode( metadata.getVariableOrder().toString() ));
-        tx.set(rowId, FluoQueryColumns.JOIN_TYPE, encoder.encode(metadata.getJoinType().toString()) );
-        tx.set(rowId, FluoQueryColumns.JOIN_PARENT_NODE_ID, encoder.encode( metadata.getParentNodeId() ));
-        tx.set(rowId, FluoQueryColumns.JOIN_LEFT_CHILD_NODE_ID, encoder.encode( metadata.getLeftChildNodeId() ));
-        tx.set(rowId, FluoQueryColumns.JOIN_RIGHT_CHILD_NODE_ID, encoder.encode( metadata.getRightChildNodeId() ));
+        tx.set(rowId, FluoQueryColumns.JOIN_VARIABLE_ORDER, metadata.getVariableOrder().toString());
+        tx.set(rowId, FluoQueryColumns.JOIN_TYPE, metadata.getJoinType().toString() );
+        tx.set(rowId, FluoQueryColumns.JOIN_PARENT_NODE_ID, metadata.getParentNodeId() );
+        tx.set(rowId, FluoQueryColumns.JOIN_LEFT_CHILD_NODE_ID, metadata.getLeftChildNodeId() );
+        tx.set(rowId, FluoQueryColumns.JOIN_RIGHT_CHILD_NODE_ID, metadata.getRightChildNodeId() );
     }
 
     /**
@@ -193,24 +189,24 @@ public class FluoQueryMetadataDAO {
         checkNotNull(nodeId);
 
         // Fetch the values from the Fluo table.
-        final Bytes rowId = encoder.encode(nodeId);
-        final Map<Column, Bytes> values = sx.get(rowId, Sets.newHashSet(
+        final String rowId = nodeId;
+        final Map<Column, String> values = sx.gets(rowId,
                 FluoQueryColumns.JOIN_VARIABLE_ORDER,
                 FluoQueryColumns.JOIN_TYPE,
                 FluoQueryColumns.JOIN_PARENT_NODE_ID,
                 FluoQueryColumns.JOIN_LEFT_CHILD_NODE_ID,
-                FluoQueryColumns.JOIN_RIGHT_CHILD_NODE_ID));
+                FluoQueryColumns.JOIN_RIGHT_CHILD_NODE_ID);
 
         // Return an object holding them.
-        final String varOrderString = encoder.decodeString( values.get(FluoQueryColumns.JOIN_VARIABLE_ORDER));
+        final String varOrderString = values.get(FluoQueryColumns.JOIN_VARIABLE_ORDER);
         final VariableOrder varOrder = new VariableOrder(varOrderString);
 
-        final String joinTypeString = encoder.decodeString( values.get(FluoQueryColumns.JOIN_TYPE) );
+        final String joinTypeString = values.get(FluoQueryColumns.JOIN_TYPE);
         final JoinType joinType = JoinType.valueOf(joinTypeString);
 
-        final String parentNodeId = encoder.decodeString( values.get(FluoQueryColumns.JOIN_PARENT_NODE_ID) );
-        final String leftChildNodeId = encoder.decodeString( values.get(FluoQueryColumns.JOIN_LEFT_CHILD_NODE_ID) );
-        final String rightChildNodeId = encoder.decodeString( values.get(FluoQueryColumns.JOIN_RIGHT_CHILD_NODE_ID) );
+        final String parentNodeId = values.get(FluoQueryColumns.JOIN_PARENT_NODE_ID);
+        final String leftChildNodeId = values.get(FluoQueryColumns.JOIN_LEFT_CHILD_NODE_ID);
+        final String rightChildNodeId = values.get(FluoQueryColumns.JOIN_RIGHT_CHILD_NODE_ID);
 
         return JoinMetadata.builder(nodeId)
                 .setVariableOrder(varOrder)
@@ -230,11 +226,11 @@ public class FluoQueryMetadataDAO {
         checkNotNull(tx);
         checkNotNull(metadata);
 
-        final Bytes rowId = encoder.encode(metadata.getNodeId());
+        final String rowId = metadata.getNodeId();
         tx.set(rowId, FluoQueryColumns.STATEMENT_PATTERN_NODE_ID, rowId);
-        tx.set(rowId, FluoQueryColumns.STATEMENT_PATTERN_VARIABLE_ORDER, encoder.encode( metadata.getVariableOrder().toString() ));
-        tx.set(rowId, FluoQueryColumns.STATEMENT_PATTERN_PATTERN, encoder.encode( metadata.getStatementPattern() ));
-        tx.set(rowId, FluoQueryColumns.STATEMENT_PATTERN_PARENT_NODE_ID, encoder.encode( metadata.getParentNodeId() ));
+        tx.set(rowId, FluoQueryColumns.STATEMENT_PATTERN_VARIABLE_ORDER, metadata.getVariableOrder().toString());
+        tx.set(rowId, FluoQueryColumns.STATEMENT_PATTERN_PATTERN, metadata.getStatementPattern() );
+        tx.set(rowId, FluoQueryColumns.STATEMENT_PATTERN_PARENT_NODE_ID, metadata.getParentNodeId());
     }
 
     /**
@@ -253,18 +249,18 @@ public class FluoQueryMetadataDAO {
         checkNotNull(nodeId);
 
         // Fetch the values from the Fluo table.
-        final Bytes rowId = encoder.encode(nodeId);
-        final Map<Column, Bytes> values = sx.get(rowId, Sets.newHashSet(
+        final String rowId = nodeId;
+        final Map<Column, String> values = sx.gets(rowId,
                 FluoQueryColumns.STATEMENT_PATTERN_VARIABLE_ORDER,
                 FluoQueryColumns.STATEMENT_PATTERN_PATTERN,
-                FluoQueryColumns.STATEMENT_PATTERN_PARENT_NODE_ID));
+                FluoQueryColumns.STATEMENT_PATTERN_PARENT_NODE_ID);
 
         // Return an object holding them.
-        final String varOrderString = encoder.decodeString( values.get(FluoQueryColumns.STATEMENT_PATTERN_VARIABLE_ORDER));
+        final String varOrderString = values.get(FluoQueryColumns.STATEMENT_PATTERN_VARIABLE_ORDER);
         final VariableOrder varOrder = new VariableOrder(varOrderString);
 
-        final String pattern = encoder.decodeString( values.get(FluoQueryColumns.STATEMENT_PATTERN_PATTERN) );
-        final String parentNodeId = encoder.decodeString( values.get(FluoQueryColumns.STATEMENT_PATTERN_PARENT_NODE_ID) );
+        final String pattern = values.get(FluoQueryColumns.STATEMENT_PATTERN_PATTERN);
+        final String parentNodeId = values.get(FluoQueryColumns.STATEMENT_PATTERN_PARENT_NODE_ID);
 
         return StatementPatternMetadata.builder(nodeId)
                 .setVarOrder(varOrder)

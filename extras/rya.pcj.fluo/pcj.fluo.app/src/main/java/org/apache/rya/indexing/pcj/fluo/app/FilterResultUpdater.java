@@ -49,11 +49,9 @@ import org.openrdf.query.impl.MapBindingSet;
 import com.google.common.base.Optional;
 
 import info.aduna.iteration.CloseableIteration;
-import io.fluo.api.client.TransactionBase;
-import io.fluo.api.data.Bytes;
-import io.fluo.api.data.Column;
-import io.fluo.api.types.Encoder;
-import io.fluo.api.types.StringEncoder;
+import org.apache.fluo.api.client.TransactionBase;
+import org.apache.fluo.api.data.Bytes;
+import org.apache.fluo.api.data.Column;
 
 /**
  * Updates the results of a Filter node when its child has added a new Binding
@@ -61,8 +59,6 @@ import io.fluo.api.types.StringEncoder;
  */
 @ParametersAreNonnullByDefault
 public class FilterResultUpdater {
-
-    private static final Encoder ENCODER = new StringEncoder();
 
     private static final BindingSetStringConverter ID_CONVERTER = new BindingSetStringConverter();
     private static final VisibilityBindingSetStringConverter VALUE_CONVERTER = new VisibilityBindingSetStringConverter();
@@ -134,9 +130,9 @@ public class FilterResultUpdater {
             String filterBindingSetValueString = "";
             filterBindingSetValueString = VALUE_CONVERTER.convert(childBindingSet, filterVarOrder);
 
-            final Bytes row = ENCODER.encode( filterMetadata.getNodeId() + NODEID_BS_DELIM + filterBindingSetIdString );
+            final String row = filterMetadata.getNodeId() + NODEID_BS_DELIM + filterBindingSetIdString;
             final Column col = FluoQueryColumns.FILTER_BINDING_SET;
-            final Bytes value = ENCODER.encode(filterBindingSetValueString);
+            final String value = filterBindingSetValueString;
             tx.set(row, col, value);
         }
     }

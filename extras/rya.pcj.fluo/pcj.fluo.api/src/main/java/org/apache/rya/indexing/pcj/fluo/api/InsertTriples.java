@@ -25,15 +25,13 @@ import java.util.Collections;
 import java.util.Map;
 
 import org.apache.log4j.Logger;
-import org.apache.rya.indexing.pcj.fluo.app.StringTypeLayer;
 import org.apache.rya.indexing.pcj.fluo.app.query.FluoQueryColumns;
 
 import com.google.common.base.Optional;
 
-import io.fluo.api.client.FluoClient;
-import io.fluo.api.types.Encoder;
-import io.fluo.api.types.StringEncoder;
-import io.fluo.api.types.TypedTransaction;
+import org.apache.fluo.api.client.FluoClient;
+import org.apache.fluo.api.client.Transaction;
+import org.apache.fluo.api.data.Bytes;
 import mvm.rya.api.RdfCloudTripleStoreConstants.TABLE_LAYOUT;
 import mvm.rya.api.domain.RyaStatement;
 import mvm.rya.api.resolver.triple.TripleRow;
@@ -48,16 +46,9 @@ public class InsertTriples {
     private static final Logger log = Logger.getLogger(InsertTriples.class);
 
     /**
-     * Wraps Fluo {@link Transaction}s so that we can write String values to them.
-     */
-    private static final StringTypeLayer STRING_TYPED_LAYER = new StringTypeLayer();
-
-    /**
      * Converts triples into the byte[] used as the row ID in Accumulo.
      */
     private static final WholeRowTripleResolver TRIPLE_RESOLVER = new WholeRowTripleResolver();
-
-    private static final Encoder ENCODER = new StringEncoder();
 
     // TODO visiblity is part of RyaStatement. Put it there instead.
 
@@ -85,10 +76,10 @@ public class InsertTriples {
         checkNotNull(triples);
         checkNotNull(visibility);
 
-        try(TypedTransaction tx = STRING_TYPED_LAYER.wrap(fluo.newTransaction())) {
+        try(Transaction tx = fluo.newTransaction()) {
             for(final RyaStatement triple : triples) {
                 try {
-                    tx.mutate().row(spoFormat(triple)).col(FluoQueryColumns.TRIPLES).set(ENCODER.encode(visibility.or("")));
+                    tx.set(Bytes.of(spoFormat(triple)), FluoQueryColumns.TRIPLES, Bytes.of(visibility.or("")));
                 } catch (final TripleRowResolverException e) {
                     log.error("Could not convert a Triple into the SPO format: " + triple);
                 }

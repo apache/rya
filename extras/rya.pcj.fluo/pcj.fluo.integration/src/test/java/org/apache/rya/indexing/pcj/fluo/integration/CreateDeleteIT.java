@@ -23,9 +23,14 @@ import static org.junit.Assert.assertEquals;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map.Entry;
 import java.util.Set;
 
+import org.apache.fluo.api.client.FluoClient;
+import org.apache.fluo.api.client.Snapshot;
+import org.apache.fluo.api.client.scanner.ColumnScanner;
+import org.apache.fluo.api.client.scanner.RowScanner;
+import org.apache.fluo.api.data.Bytes;
+import org.apache.fluo.api.data.Span;
 import org.apache.rya.indexing.pcj.fluo.ITBase;
 import org.apache.rya.indexing.pcj.fluo.api.CreatePcj;
 import org.apache.rya.indexing.pcj.fluo.api.DeletePcj;
@@ -38,14 +43,6 @@ import org.openrdf.query.BindingSet;
 import org.openrdf.query.impl.BindingImpl;
 
 import com.google.common.collect.Sets;
-
-import io.fluo.api.client.FluoClient;
-import io.fluo.api.client.Snapshot;
-import io.fluo.api.config.ScannerConfiguration;
-import io.fluo.api.data.Bytes;
-import io.fluo.api.data.Span;
-import io.fluo.api.iterator.ColumnIterator;
-import io.fluo.api.iterator.RowIterator;
 
 public class CreateDeleteIT extends ITBase {
 
@@ -109,15 +106,12 @@ public class CreateDeleteIT extends ITBase {
     private List<Bytes> getFluoTableEntries(FluoClient fluoClient) {
         try (Snapshot snapshot = fluoClient.newSnapshot()) {
             List<Bytes> rows = new ArrayList<>();
+            RowScanner rscanner = snapshot.scanner().over(Span.prefix("")).byRow().build();
 
-            ScannerConfiguration sc1 = new ScannerConfiguration();
-            sc1.setSpan(Span.prefix(""));
-            RowIterator iterator = snapshot.get(sc1);
-
-            while (iterator.hasNext()) {
-                Entry<Bytes, ColumnIterator> row = iterator.next();
-                rows.add(row.getKey());
+            for(ColumnScanner cscanner: rscanner) {
+            	rows.add(cscanner.getRow());
             }
+            
             return rows;
         }
     }

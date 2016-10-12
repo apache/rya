@@ -34,7 +34,7 @@ import org.apache.fluo.api.client.FluoAdmin.AlreadyInitializedException;
 import org.apache.fluo.api.client.FluoAdmin.TableExistsException;
 import org.apache.fluo.api.client.FluoFactory;
 import org.apache.fluo.api.config.FluoConfiguration;
-import org.apache.fluo.api.config.ObserverConfiguration;
+import org.apache.fluo.api.config.ObserverSpecification;
 import org.apache.fluo.api.mini.MiniFluo;
 import mvm.rya.api.domain.RyaStatement;
 import mvm.rya.api.domain.RyaURI;
@@ -53,7 +53,7 @@ public class CountStatementsIT extends ITBase {
     @Override
     protected MiniFluo startMiniFluo() throws AlreadyInitializedException, TableExistsException {
         // Setup the observers that will be used by the Fluo PCJ Application.
-        final List<ObserverConfiguration> observers = new ArrayList<>();
+        final List<ObserverSpecification> observers = new ArrayList<>();
 
         // Configure how the mini fluo will run.
         final FluoConfiguration config = new FluoConfiguration();
@@ -70,7 +70,7 @@ public class CountStatementsIT extends ITBase {
         config.addObservers(observers);
 
         FluoFactory.newAdmin(config).initialize(
-                new FluoAdmin.InitOpts().setClearTable(true).setClearZookeeper(true) );
+                new FluoAdmin.InitializationOptions().setClearTable(true).setClearZookeeper(true) );
         final MiniFluo miniFluo = FluoFactory.newMiniFluo(config);
         return miniFluo;
     }

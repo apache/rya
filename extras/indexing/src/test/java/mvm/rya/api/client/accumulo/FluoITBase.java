@@ -55,14 +55,14 @@ import org.openrdf.sail.SailException;
 
 import com.google.common.io.Files;
 
-import io.fluo.api.client.FluoAdmin;
-import io.fluo.api.client.FluoAdmin.AlreadyInitializedException;
-import io.fluo.api.client.FluoAdmin.TableExistsException;
-import io.fluo.api.client.FluoClient;
-import io.fluo.api.client.FluoFactory;
-import io.fluo.api.config.FluoConfiguration;
-import io.fluo.api.config.ObserverConfiguration;
-import io.fluo.api.mini.MiniFluo;
+import org.apache.fluo.api.client.FluoAdmin;
+import org.apache.fluo.api.client.FluoAdmin.AlreadyInitializedException;
+import org.apache.fluo.api.client.FluoAdmin.TableExistsException;
+import org.apache.fluo.api.client.FluoClient;
+import org.apache.fluo.api.client.FluoFactory;
+import org.apache.fluo.api.config.FluoConfiguration;
+import org.apache.fluo.api.config.ObserverSpecification;
+import org.apache.fluo.api.mini.MiniFluo;
 import mvm.rya.accumulo.AccumuloRdfConfiguration;
 import mvm.rya.api.client.RyaClientException;
 import mvm.rya.api.client.Install;
@@ -224,17 +224,16 @@ public abstract class FluoITBase {
      */
     protected MiniFluo startMiniFluo() throws AlreadyInitializedException, TableExistsException {
         // Setup the observers that will be used by the Fluo PCJ Application.
-        final List<ObserverConfiguration> observers = new ArrayList<>();
-        observers.add(new ObserverConfiguration(TripleObserver.class.getName()));
-        observers.add(new ObserverConfiguration(StatementPatternObserver.class.getName()));
-        observers.add(new ObserverConfiguration(JoinObserver.class.getName()));
-        observers.add(new ObserverConfiguration(FilterObserver.class.getName()));
+        final List<ObserverSpecification> observers = new ArrayList<>();
+        observers.add(new ObserverSpecification(TripleObserver.class.getName()));
+        observers.add(new ObserverSpecification(StatementPatternObserver.class.getName()));
+        observers.add(new ObserverSpecification(JoinObserver.class.getName()));
+        observers.add(new ObserverSpecification(FilterObserver.class.getName()));
 
         // Provide export parameters child test classes may provide to the
         // export observer.
-        final ObserverConfiguration exportObserverConfig = new ObserverConfiguration(
-                QueryResultObserver.class.getName());
-        exportObserverConfig.setParameters(makeExportParams());
+        final ObserverSpecification exportObserverConfig = new ObserverSpecification(
+                QueryResultObserver.class.getName(), makeExportParams());
         observers.add(exportObserverConfig);
 
         // Configure how the mini fluo will run.
@@ -252,7 +251,7 @@ public abstract class FluoITBase {
         config.addObservers(observers);
 
         FluoFactory.newAdmin(config).initialize(
-                new FluoAdmin.InitOpts().setClearTable(true).setClearZookeeper(true) );
+                new FluoAdmin.InitializationOptions().setClearTable(true).setClearZookeeper(true) );
         return FluoFactory.newMiniFluo(config);
     }
 

@@ -25,8 +25,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
-import java.util.Map.Entry;
 import java.util.Set;
 
 import org.apache.accumulo.core.client.AccumuloException;
@@ -37,6 +37,20 @@ import org.apache.accumulo.core.client.ZooKeeperInstance;
 import org.apache.accumulo.core.client.security.tokens.PasswordToken;
 import org.apache.accumulo.minicluster.MiniAccumuloCluster;
 import org.apache.accumulo.minicluster.MiniAccumuloConfig;
+import org.apache.fluo.api.client.FluoAdmin;
+import org.apache.fluo.api.client.FluoAdmin.AlreadyInitializedException;
+import org.apache.fluo.api.client.FluoAdmin.TableExistsException;
+import org.apache.fluo.api.client.FluoClient;
+import org.apache.fluo.api.client.FluoFactory;
+import org.apache.fluo.api.client.Snapshot;
+import org.apache.fluo.api.client.scanner.CellScanner;
+import org.apache.fluo.api.client.scanner.ColumnScanner;
+import org.apache.fluo.api.client.scanner.RowScanner;
+import org.apache.fluo.api.config.FluoConfiguration;
+import org.apache.fluo.api.config.ObserverSpecification;
+import org.apache.fluo.api.data.Bytes;
+import org.apache.fluo.api.data.RowColumnValue;
+import org.apache.fluo.api.mini.MiniFluo;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.apache.rya.indexing.pcj.fluo.app.export.rya.RyaExportParameters;
@@ -63,19 +77,7 @@ import org.openrdf.repository.RepositoryConnection;
 import org.openrdf.sail.Sail;
 
 import com.google.common.io.Files;
-import org.apache.fluo.api.client.FluoAdmin;
-import org.apache.fluo.api.client.FluoAdmin.AlreadyInitializedException;
-import org.apache.fluo.api.client.FluoAdmin.TableExistsException;
-import org.apache.fluo.api.client.FluoClient;
-import org.apache.fluo.api.client.FluoFactory;
-import org.apache.fluo.api.client.Snapshot;
-import org.apache.fluo.api.config.FluoConfiguration;
-import org.apache.fluo.api.config.ObserverConfiguration;
-import org.apache.fluo.api.config.ScannerConfiguration;
-import org.apache.fluo.api.data.Bytes;
-import org.apache.fluo.api.iterator.ColumnIterator;
-import org.apache.fluo.api.iterator.RowIterator;
-import org.apache.fluo.api.mini.MiniFluo;
+
 import mvm.rya.accumulo.AccumuloRdfConfiguration;
 import mvm.rya.api.client.Install.InstallConfiguration;
 import mvm.rya.api.client.RyaClient;
@@ -283,17 +285,13 @@ public abstract class ITBase {
             final QueryMetadata queryMetadata = new FluoQueryMetadataDAO().readQueryMetadata(snapshot, queryId);
             final VariableOrder varOrder = queryMetadata.getVariableOrder();
 
-            // Fetch the Binding Sets for the query.
-            final ScannerConfiguration scanConfig = new ScannerConfiguration();
-            scanConfig.fetchColumn(FluoQueryColumns.QUERY_BINDING_SET.getFamily(),
-                    FluoQueryColumns.QUERY_BINDING_SET.getQualifier());
-
+            CellScanner cellScanner = snapshot.scanner().fetch(FluoQueryColumns.QUERY_BINDING_SET).build();
             final BindingSetStringConverter converter = new BindingSetStringConverter();
 
-            final RowIterator rowIter = snapshot.get(scanConfig);
-            while (rowIter.hasNext()) {
-                final Entry<Bytes, ColumnIterator> row = rowIter.next();
-                final String bindingSetString = row.getValue().next().getValue().toString();
+           Iterator<RowColumnValue> iter = cellScanner.iterator();
+            
+            while (iter.hasNext()) {
+            	final String bindingSetString = iter.next().getsValue();
                 final BindingSet bindingSet = converter.convert(bindingSetString, varOrder);
                 bindingSets.add(bindingSet);
             }
@@ -378,14 +376,11 @@ public abstract class ITBase {
      */
     protected MiniFluo startMiniFluo() throws AlreadyInitializedException, TableExistsException {
         // Setup the observers that will be used by the Fluo PCJ Application.
-        final List<ObserverConfiguration> observers = new ArrayList<>();
-        observers.add(new ObserverConfiguration(TripleObserver.class.getName()));
-        observers.add(new ObserverConfiguration(StatementPatternObserver.class.getName()));
-        observers.add(new ObserverConfiguration(JoinObserver.class.getName()));
-        observers.add(new ObserverConfiguration(FilterObserver.class.getName()));
-
-        // Configure the export observer to export new PCJ results to the mini accumulo cluster.
-        final ObserverConfiguration exportObserverConfig = new ObserverConfiguration(QueryResultObserver.class.getName());
+        final List<ObserverSpecification> observers = new ArrayList<>();
+        observers.add(new ObserverSpecification(TripleObserver.class.getName()));
+        observers.add(new ObserverSpecification(StatementPatternObserver.class.getName()));
+        observers.add(new ObserverSpecification(JoinObserver.class.getName()));
+        observers.add(new ObserverSpecification(FilterObserver.class.getName()));
 
         final HashMap<String, String> exportParams = new HashMap<>();
         final RyaExportParameters ryaParams = new RyaExportParameters(exportParams);
@@ -395,8 +390,9 @@ public abstract class ITBase {
         ryaParams.setZookeeperServers(zookeepers);
         ryaParams.setExporterUsername(ITBase.ACCUMULO_USER);
         ryaParams.setExporterPassword(ITBase.ACCUMULO_PASSWORD);
-
-        exportObserverConfig.setParameters(exportParams);
+        
+        // Configure the export observer to export new PCJ results to the mini accumulo cluster.
+        final ObserverSpecification exportObserverConfig = new ObserverSpecification(QueryResultObserver.class.getName(), exportParams);
         observers.add(exportObserverConfig);
 
         // Configure how the mini fluo will run.
@@ -414,7 +410,7 @@ public abstract class ITBase {
         config.addObservers(observers);
 
         FluoFactory.newAdmin(config).initialize(
-        		new FluoAdmin.InitOpts().setClearTable(true).setClearZookeeper(true) );
+        		new FluoAdmin.InitializationOptions().setClearTable(true).setClearZookeeper(true) );
         return FluoFactory.newMiniFluo(config);
     }
 }

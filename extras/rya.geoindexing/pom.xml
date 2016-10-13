@@ -92,15 +92,6 @@
 			<artifactId>geomesa-accumulo-datastore</artifactId>
 		</dependency>
 
-		<!-- PCJ Indexing -->
-		<dependency>
-			<groupId>org.apache.rya</groupId>
-			<artifactId>rya.indexing.pcj</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.apache.rya</groupId>
-			<artifactId>rya.pcj.fluo.api</artifactId>
-		</dependency>
 
 		<dependency>
 			<groupId>junit</groupId>
@@ -112,11 +103,6 @@
 			<artifactId>mockito-all</artifactId>
 			<scope>test</scope>
 		</dependency>
-        <dependency>
-            <groupId>io.fluo</groupId>
-            <artifactId>fluo-mini</artifactId>
-            <scope>test</scope>
-        </dependency>
         <dependency>
             <groupId>org.apache.rya</groupId>
             <artifactId>accumulo.rya</artifactId>

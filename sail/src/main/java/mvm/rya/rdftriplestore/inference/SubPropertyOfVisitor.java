@@ -1,5 +1,3 @@
-package mvm.rya.rdftriplestore.inference;
-
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -18,8 +16,7 @@ package mvm.rya.rdftriplestore.inference;
  * specific language governing permissions and limitations
  * under the License.
  */
-
-
+package mvm.rya.rdftriplestore.inference;
 
 import mvm.rya.api.RdfCloudTripleStoreConfiguration;
 import mvm.rya.api.utils.NullableStatementImpl;

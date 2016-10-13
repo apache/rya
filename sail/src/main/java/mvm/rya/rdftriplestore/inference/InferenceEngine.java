@@ -1,30 +1,3 @@
-package mvm.rya.rdftriplestore.inference;
-
-import static com.google.common.base.Preconditions.checkArgument;
-import static com.google.common.base.Preconditions.checkNotNull;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.Timer;
-import java.util.TimerTask;
-import java.util.TreeMap;
-
-import org.openrdf.model.Resource;
-import org.openrdf.model.Statement;
-import org.openrdf.model.URI;
-import org.openrdf.model.Value;
-import org.openrdf.model.ValueFactory;
-import org.openrdf.model.impl.StatementImpl;
-import org.openrdf.model.impl.ValueFactoryImpl;
-import org.openrdf.model.vocabulary.OWL;
-import org.openrdf.model.vocabulary.RDF;
-import org.openrdf.model.vocabulary.RDFS;
-import org.openrdf.query.QueryEvaluationException;
-
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -43,14 +16,42 @@ import org.openrdf.query.QueryEvaluationException;
  * specific language governing permissions and limitations
  * under the License.
  */
+package mvm.rya.rdftriplestore.inference;
 
+import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkNotNull;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.Timer;
+import java.util.TimerTask;
+import java.util.TreeMap;
 
-import com.tinkerpop.blueprints.Direction;
-import com.tinkerpop.blueprints.Edge;
-import com.tinkerpop.blueprints.Graph;
-import com.tinkerpop.blueprints.Vertex;
-import com.tinkerpop.blueprints.impls.tg.TinkerGraphFactory;
+import org.openrdf.model.Resource;
+import org.openrdf.model.Statement;
+import org.openrdf.model.URI;
+import org.openrdf.model.Value;
+import org.openrdf.model.ValueFactory;
+import org.openrdf.model.impl.StatementImpl;
+import org.openrdf.model.impl.ValueFactoryImpl;
+import org.openrdf.model.vocabulary.OWL;
+import org.openrdf.model.vocabulary.RDF;
+import org.openrdf.model.vocabulary.RDFS;
+import org.openrdf.query.QueryEvaluationException;
+import org.apache.tinkerpop.gremlin.structure.Direction;
+import org.apache.tinkerpop.gremlin.structure.Edge;
+import org.apache.tinkerpop.gremlin.structure.Graph;
+import org.apache.tinkerpop.gremlin.structure.T;
+import org.apache.tinkerpop.gremlin.structure.VertexProperty;
+import org.apache.tinkerpop.gremlin.tinkergraph.structure.TinkerGraph;
+import org.apache.tinkerpop.gremlin.structure.Vertex;
+
+import com.google.common.collect.Iterators;
 
 import info.aduna.iteration.CloseableIteration;
 import mvm.rya.api.RdfCloudTripleStoreConfiguration;
@@ -124,7 +125,7 @@ public class InferenceEngine {
     public void refreshGraph() throws InferenceEngineException {
         try {
             //get all subclassof
-            Graph graph = TinkerGraphFactory.createTinkerGraph();
+            Graph graph = TinkerGraph.open();
             CloseableIteration<Statement, QueryEvaluationException> iter = RyaDAOHelper.query(ryaDAO, null,
                     RDFS.SUBCLASSOF, null, conf);
             try {
@@ -141,7 +142,7 @@ public class InferenceEngine {
 
             subClassOfGraph = graph; //TODO: Should this be synchronized?
 
-            graph = TinkerGraphFactory.createTinkerGraph();
+            graph = TinkerGraph.open();
 
             iter = RyaDAOHelper.query(ryaDAO, null,
                     RDFS.SUBPROPERTYOF, null, conf);
@@ -364,29 +365,37 @@ public class InferenceEngine {
             throw new InferenceEngineException(e);
         }
     }
-
-    protected void addStatementEdge(Graph graph, String edgeName, Statement st) {
-        Resource subj = st.getSubject();
-        Vertex a = graph.getVertex(subj);
-        if (a == null) {
-            a = graph.addVertex(subj);
-            a.setProperty(URI_PROP, subj);
+    
+    private static Vertex getVertex(Graph graph, Object id) {
+        Iterator<Vertex> it = graph.vertices(id.toString());
+        if (it.hasNext()) {
+            return it.next();
         }
-        Value obj = st.getObject();
-        Vertex b = graph.getVertex(obj);
-        if (b == null) {
-            b = graph.addVertex(obj);
-            b.setProperty(URI_PROP, obj);
-        }
-        graph.addEdge(null, a, b, edgeName);
+        return null;
     }
 
+    private void addStatementEdge(Graph graph, String edgeName, Statement st) {
+        Resource subj = st.getSubject();
+        Vertex a = getVertex(graph, subj);
+        if (a == null) {
+            a = graph.addVertex(T.id, subj.toString());
+            a.property(URI_PROP, subj);
+        }
+        Value obj = st.getObject();
+        Vertex b = getVertex(graph, obj);
+        if (b == null) {
+            b = graph.addVertex(T.id, obj.toString());
+            b.property(URI_PROP, obj);
+        }
+        a.addEdge(edgeName, b);
+   }
+
     public Set<URI> findParents(Graph graph, URI vertexId) {
-        Set<URI> parents = new HashSet();
+        Set<URI> parents = new HashSet<>();
         if (graph == null) {
             return parents;
         }
-        Vertex v = graph.getVertex(vertexId);
+        Vertex v = getVertex(graph, vertexId);
         if (v == null) {
             return parents;
         }
@@ -395,9 +404,9 @@ public class InferenceEngine {
     }
 
     private static void addParents(Vertex v, Set<URI> parents) {
-        for (Edge edge : v.getEdges(Direction.IN)) {
-            Vertex ov = edge.getVertex(Direction.OUT);
-            Object o = ov.getProperty(URI_PROP);
+        v.edges(Direction.IN).forEachRemaining(edge -> {
+            Vertex ov = edge.vertices(Direction.OUT).next();
+            Object o = ov.property(URI_PROP).value();
             if (o != null && o instanceof URI) {
                 boolean contains = parents.contains(o);
                 if (!contains) {
@@ -405,8 +414,7 @@ public class InferenceEngine {
                     addParents(ov, parents);
                 }
             }
-
-        }
+        });
     }
 
     public boolean isSymmetricProperty(URI prop) {

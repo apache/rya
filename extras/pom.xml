@@ -33,7 +33,6 @@ under the License.
     <modules>
         <module>rya.prospector</module>
         <module>rya.manual</module>
-        <module>tinkerpop.rya</module>
         <module>rya.console</module>
         <module>indexing</module>
         <module>rya.indexing.pcj</module>

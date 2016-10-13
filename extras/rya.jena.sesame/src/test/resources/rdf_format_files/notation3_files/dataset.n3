@@ -1,0 +1,4 @@
+@prefix : <http://tutorialacademy.com/2015/jena#> .
+
+:John :hasClass :Math .
+:Bill :teaches :Math .

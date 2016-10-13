@@ -1,0 +1,42 @@
+@prefix sf: <http://storeFront.com#>.
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>.
+
+[AddingJim: 
+ -> 
+(sf:Jim rdf:type sf:Person)
+(sf:Jim sf:hasMembership sf:True)
+ ]
+
+[MembershipsRaffle:
+(?x sf:hasMembership sf:True)
+->
+(?x sf:eligibleForRaffle sf:True)
+]
+
+[GoodBuyerSellerRaffle:
+(?x rdf:type sf:Customer)
+(?x rdf:type sf:Seller)
+->
+(?x sf:eligibleForRaffle sf:True)
+]
+
+[DeleteSomeone:
+(sf:command sf:deletePerson ?x)
+(?x ?p ?y)
+->
+remove(1)
+]
+
+[ItemSold:
+(sf:command sf:wasBought ?item)
+(sf:command sf:boughtBy ?buyer)
+(?seller sf:hasForSale ?item)
+makeTemp(?purchase)
+->
+(?purchase sf:seller ?seller)
+(?purchase sf:buyer ?buyer)
+(?purchase sf:purchase ?item)
+remove(0)
+remove(1)
+remove(2)
+]

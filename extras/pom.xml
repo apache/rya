@@ -42,6 +42,7 @@ under the License.
         <module>rya.pcj.fluo</module>
         <module>rya.merger</module>
         <module>rya.benchmark</module>
+        <module>rya.jena.sesame</module>
     </modules>
 	
 	<profiles>

@@ -96,6 +96,9 @@ under the License.
 
         <guava.version>18.0</guava.version> <!-- Newest: 18.0 -->
 
+        <jena.core.version>3.1.0</jena.core.version> <!-- Newest: 3.1.0 -->
+        <jena.arq.version>3.1.0</jena.arq.version> <!-- Newest: 3.1.0 -->
+
         <karaf.version>2.2.11</karaf.version> <!-- Newest: 4.0.3 -->
         <mango.version>1.2.0</mango.version> <!-- Newest: 1.4.0 -->
         <antlr-runtime.version>3.4</antlr-runtime.version> <!-- Newest: 3.5.2 -->
@@ -210,6 +213,16 @@ under the License.
                 <groupId>org.apache.accumulo</groupId>
                 <artifactId>accumulo-core</artifactId>
                 <version>${accumulo.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.jena</groupId>
+                <artifactId>jena-core</artifactId>
+                <version>${jena.core.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.jena</groupId>
+                <artifactId>jena-arq</artifactId>
+                <version>${jena.arq.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.apache.rya</groupId>

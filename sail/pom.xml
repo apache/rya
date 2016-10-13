@@ -92,9 +92,7 @@ under the License.
                         <excludes>
                             <!-- RDF data Files -->
                             <exclude>**/*.trig</exclude>
-                            <exclude>**/*.owl</exclude>
                             <exclude>**/*.nt</exclude>
-
                             <!-- Services Files -->
                             <exclude>**/resources/META-INF/services/**</exclude>
                         </excludes>

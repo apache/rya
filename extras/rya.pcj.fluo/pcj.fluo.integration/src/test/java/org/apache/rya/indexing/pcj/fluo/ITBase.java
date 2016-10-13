@@ -43,11 +43,13 @@ import org.apache.fluo.api.client.FluoAdmin.TableExistsException;
 import org.apache.fluo.api.client.FluoClient;
 import org.apache.fluo.api.client.FluoFactory;
 import org.apache.fluo.api.client.Snapshot;
+import org.apache.fluo.api.client.scanner.CellScanner;
 import org.apache.fluo.api.client.scanner.ColumnScanner;
 import org.apache.fluo.api.client.scanner.RowScanner;
 import org.apache.fluo.api.config.FluoConfiguration;
 import org.apache.fluo.api.config.ObserverSpecification;
 import org.apache.fluo.api.data.Bytes;
+import org.apache.fluo.api.data.RowColumnValue;
 import org.apache.fluo.api.mini.MiniFluo;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
@@ -283,13 +285,13 @@ public abstract class ITBase {
             final QueryMetadata queryMetadata = new FluoQueryMetadataDAO().readQueryMetadata(snapshot, queryId);
             final VariableOrder varOrder = queryMetadata.getVariableOrder();
 
-            RowScanner rscanner = snapshot.scanner().fetch(FluoQueryColumns.QUERY_BINDING_SET).byRow().build();
+            CellScanner cellScanner = snapshot.scanner().fetch(FluoQueryColumns.QUERY_BINDING_SET).build();
             final BindingSetStringConverter converter = new BindingSetStringConverter();
 
-            Iterator<ColumnScanner> iter = rscanner.iterator();
+           Iterator<RowColumnValue> iter = cellScanner.iterator();
+            
             while (iter.hasNext()) {
-                ColumnScanner scanner = iter.next();
-                final String bindingSetString = scanner.getsRow();
+            	final String bindingSetString = iter.next().getsValue();
                 final BindingSet bindingSet = converter.convert(bindingSetString, varOrder);
                 bindingSets.add(bindingSet);
             }

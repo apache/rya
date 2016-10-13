@@ -25,6 +25,7 @@ import java.util.Set;
 
 import org.apache.rya.indexing.pcj.fluo.ITBase;
 import org.apache.rya.indexing.pcj.fluo.api.CreatePcj;
+import org.apache.rya.indexing.pcj.fluo.app.IncUpdateDAO;
 import org.apache.rya.indexing.pcj.storage.PrecomputedJoinStorage;
 import org.apache.rya.indexing.pcj.storage.accumulo.AccumuloPcjStorage;
 import org.apache.rya.indexing.pcj.update.PrecomputedJoinUpdater;
@@ -101,7 +102,7 @@ public class RyaInputIncrementalUpdateIT extends ITBase {
         }
 
         fluo.waitForObservers();
-
+        
         final Set<BindingSet> results = getQueryBindingSetValues(fluoClient, sparql);
         assertEquals(expected, results);
     }

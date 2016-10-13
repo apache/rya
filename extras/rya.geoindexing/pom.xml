@@ -21,7 +21,7 @@
 	</parent>
 
 	<artifactId>rya.geoindexing</artifactId>
-	<name>Apache Rya Secondary Indexing</name>
+	<name>Apache Rya Geospatial Secondary Indexing (Optional)</name>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>

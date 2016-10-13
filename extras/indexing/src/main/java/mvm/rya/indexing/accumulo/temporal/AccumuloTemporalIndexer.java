@@ -1,5 +1,3 @@
-package mvm.rya.indexing.accumulo.temporal;
-
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -18,7 +16,7 @@ package mvm.rya.indexing.accumulo.temporal;
  * specific language governing permissions and limitations
  * under the License.
  */
-
+package mvm.rya.indexing.accumulo.temporal;
 
 import java.io.IOException;
 import java.nio.charset.CharacterCodingException;
@@ -60,7 +58,7 @@ import org.openrdf.model.Statement;
 import org.openrdf.model.URI;
 import org.openrdf.query.QueryEvaluationException;
 
-import cern.colt.Arrays;
+import java.util.Arrays;
 import info.aduna.iteration.CloseableIteration;
 import mvm.rya.accumulo.experimental.AbstractAccumuloIndexer;
 import mvm.rya.api.RdfCloudTripleStoreConfiguration;

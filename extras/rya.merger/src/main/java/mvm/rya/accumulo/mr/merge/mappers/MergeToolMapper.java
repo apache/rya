@@ -1,24 +1,22 @@
-package mvm.rya.accumulo.mr.merge.mappers;
-
 /*
- * #%L
- * mvm.rya.accumulo.mr.merge
- * %%
- * Copyright (C) 2014 Rya
- * %%
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- * #L%
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
  */
+package mvm.rya.accumulo.mr.merge.mappers;
 
 import java.io.IOException;
 import java.util.Collection;
@@ -160,7 +158,7 @@ public class MergeToolMapper extends Mapper<Key, Value, Text, Mutation> {
      * @throws IOException
      */
     @Override
-    public void run(Context context) throws IOException, InterruptedException {
+    public void run(final Context context) throws IOException, InterruptedException {
         setup(context);
         this.context = context;
 
@@ -182,23 +180,23 @@ public class MergeToolMapper extends Mapper<Key, Value, Text, Mutation> {
                         parentRyaStatement = nextParentRyaStatement();
                         break;
                     case ADVANCE_CHILD_AND_ADD:
-                        RyaStatement tempChildRyaStatement = childRyaStatement;
+                        final RyaStatement tempChildRyaStatement = childRyaStatement;
                         childRyaStatement = nextChildRyaStatement();
                         addKey(tempChildRyaStatement, context);
                         break;
                     case ADVANCE_PARENT_AND_DELETE:
-                        RyaStatement tempParentRyaStatement = parentRyaStatement;
+                        final RyaStatement tempParentRyaStatement = parentRyaStatement;
                         parentRyaStatement = nextParentRyaStatement();
                         deleteKey(tempParentRyaStatement, context);
                         break;
                     case ADVANCE_BOTH:
-                        ColumnVisibility cv1 = new ColumnVisibility(parentRyaStatement.getColumnVisibility());
-                        ColumnVisibility cv2 = new ColumnVisibility(childRyaStatement.getColumnVisibility());
+                        final ColumnVisibility cv1 = new ColumnVisibility(parentRyaStatement.getColumnVisibility());
+                        final ColumnVisibility cv2 = new ColumnVisibility(childRyaStatement.getColumnVisibility());
 
                         // Update new column visibility now if necessary
                         if (!cv1.equals(cv2) && !cv2.equals(AccumuloRdfConstants.EMPTY_CV)) {
-                            ColumnVisibility newCv = combineColumnVisibilities(cv1, cv2);
-                            RyaStatement newCvRyaStatement = updateRyaStatementColumnVisibility(parentRyaStatement, newCv);
+                            final ColumnVisibility newCv = combineColumnVisibilities(cv1, cv2);
+                            final RyaStatement newCvRyaStatement = updateRyaStatementColumnVisibility(parentRyaStatement, newCv);
 
                             deleteKey(parentRyaStatement, context);
                             addKey(newCvRyaStatement, context);
@@ -230,50 +228,50 @@ public class MergeToolMapper extends Mapper<Key, Value, Text, Mutation> {
         return nextRyaStatement(childIterator, childRyaContext);
     }
 
-    private static RyaStatement nextRyaStatement(Iterator<Entry<Key, Value>> iterator, RyaTripleContext ryaContext) {
+    private static RyaStatement nextRyaStatement(final Iterator<Entry<Key, Value>> iterator, final RyaTripleContext ryaContext) {
         RyaStatement ryaStatement = null;
         if (iterator.hasNext()) {
-            Entry<Key, Value> entry = iterator.next();
-            Key key = entry.getKey();
-            Value value = entry.getValue();
+            final Entry<Key, Value> entry = iterator.next();
+            final Key key = entry.getKey();
+            final Value value = entry.getValue();
             try {
                 ryaStatement = createRyaStatement(key, value, ryaContext);
-            } catch (TripleRowResolverException e) {
+            } catch (final TripleRowResolverException e) {
                 log.error("TripleRowResolverException encountered while creating statement", e);
             }
         }
         return ryaStatement;
     }
 
-    private static RyaStatement nextRyaStatement(Context context, RyaTripleContext ryaContext) throws IOException, InterruptedException {
+    private static RyaStatement nextRyaStatement(final Context context, final RyaTripleContext ryaContext) throws IOException, InterruptedException {
         RyaStatement ryaStatement = null;
         if (context.nextKeyValue()) {
-            Key key = context.getCurrentKey();
-            Value value = context.getCurrentValue();
+            final Key key = context.getCurrentKey();
+            final Value value = context.getCurrentValue();
             try {
                 ryaStatement = createRyaStatement(key, value, ryaContext);
-            } catch (TripleRowResolverException e) {
+            } catch (final TripleRowResolverException e) {
                 log.error("TripleRowResolverException encountered while creating statement", e);
             }
         }
         return ryaStatement;
     }
 
-    private static RyaStatement createRyaStatement(Key key, Value value, RyaTripleContext ryaTripleContext) throws TripleRowResolverException {
-        byte[] row = key.getRowData() != null  && key.getRowData().toArray().length > 0 ? key.getRowData().toArray() : null;
-        byte[] columnFamily = key.getColumnFamilyData() != null  && key.getColumnFamilyData().toArray().length > 0 ? key.getColumnFamilyData().toArray() : null;
-        byte[] columnQualifier = key.getColumnQualifierData() != null  && key.getColumnQualifierData().toArray().length > 0 ? key.getColumnQualifierData().toArray() : null;
-        Long timestamp = key.getTimestamp();
-        byte[] columnVisibility = key.getColumnVisibilityData() != null && key.getColumnVisibilityData().toArray().length > 0 ? key.getColumnVisibilityData().toArray() : null;
-        byte[] valueBytes = value != null && value.get().length > 0 ? value.get() : null;
-        TripleRow tripleRow = new TripleRow(row, columnFamily, columnQualifier, timestamp, columnVisibility, valueBytes);
-        RyaStatement ryaStatement = ryaTripleContext.deserializeTriple(TABLE_LAYOUT.SPO, tripleRow);
+    private static RyaStatement createRyaStatement(final Key key, final Value value, final RyaTripleContext ryaTripleContext) throws TripleRowResolverException {
+        final byte[] row = key.getRowData() != null  && key.getRowData().toArray().length > 0 ? key.getRowData().toArray() : null;
+        final byte[] columnFamily = key.getColumnFamilyData() != null  && key.getColumnFamilyData().toArray().length > 0 ? key.getColumnFamilyData().toArray() : null;
+        final byte[] columnQualifier = key.getColumnQualifierData() != null  && key.getColumnQualifierData().toArray().length > 0 ? key.getColumnQualifierData().toArray() : null;
+        final Long timestamp = key.getTimestamp();
+        final byte[] columnVisibility = key.getColumnVisibilityData() != null && key.getColumnVisibilityData().toArray().length > 0 ? key.getColumnVisibilityData().toArray() : null;
+        final byte[] valueBytes = value != null && value.get().length > 0 ? value.get() : null;
+        final TripleRow tripleRow = new TripleRow(row, columnFamily, columnQualifier, timestamp, columnVisibility, valueBytes);
+        final RyaStatement ryaStatement = ryaTripleContext.deserializeTriple(TABLE_LAYOUT.SPO, tripleRow);
 
         return ryaStatement;
     }
 
     @Override
-    protected void setup(Context context) throws IOException, InterruptedException {
+    protected void setup(final Context context) throws IOException, InterruptedException {
         super.setup(context);
 
         log.info("Setting up mapper");
@@ -323,14 +321,14 @@ public class MergeToolMapper extends Mapper<Key, Value, Text, Mutation> {
 
                 // Find the parent's time offset that was stored when the child was copied.
                 parentTimeOffset = AccumuloRyaUtils.getTimeOffset(childDao);
-                String durationBreakdown = TimeUtils.getDurationBreakdown(parentTimeOffset);
+                final String durationBreakdown = TimeUtils.getDurationBreakdown(parentTimeOffset);
                 log.info("The table " + parentTableName + " has a time offset of: " + durationBreakdown);
                 childTimeOffset = Long.valueOf(childConfig.get(CopyTool.CHILD_TIME_OFFSET_PROP, null));
-                Date adjustedParentStartTime = new Date(startTime.getTime() - parentTimeOffset);
-                Date adjustedChildStartTime = new Date(startTime.getTime() - childTimeOffset);
+                final Date adjustedParentStartTime = new Date(startTime.getTime() - parentTimeOffset);
+                final Date adjustedChildStartTime = new Date(startTime.getTime() - childTimeOffset);
                 log.info("Adjusted parent start time: " + adjustedParentStartTime);
                 log.info("Adjusted child start time: " + adjustedChildStartTime);
-            } catch (RyaDAOException e) {
+            } catch (final RyaDAOException e) {
                 log.error("Error getting time offset", e);
             }
         }
@@ -345,8 +343,8 @@ public class MergeToolMapper extends Mapper<Key, Value, Text, Mutation> {
      * @return the new {@link Configuration} where the parent connection values are replaced with
      * the child connection values.
      */
-    public static Configuration getChildConfig(Configuration parentConfig) {
-        Configuration childConfig = new Configuration(parentConfig);
+    public static Configuration getChildConfig(final Configuration parentConfig) {
+        final Configuration childConfig = new Configuration(parentConfig);
 
         // Switch the temp child properties to be the main ones
         convertChildPropToParentProp(childConfig, parentConfig, MRUtils.AC_MOCK_PROP);
@@ -370,8 +368,8 @@ public class MergeToolMapper extends Mapper<Key, Value, Text, Mutation> {
      * @param parentConfig the parent/main {@link Configuration}.
      * @param parentPropertyName the parent property name.
      */
-    public static void convertChildPropToParentProp(Configuration childConfig, Configuration parentConfig, String parentPropertyName) {
-        String childValue = parentConfig.get(parentPropertyName + MergeTool.CHILD_SUFFIX, "");
+    public static void convertChildPropToParentProp(final Configuration childConfig, final Configuration parentConfig, final String parentPropertyName) {
+        final String childValue = parentConfig.get(parentPropertyName + MergeTool.CHILD_SUFFIX, "");
         childConfig.set(parentPropertyName, childValue);
     }
 
@@ -381,7 +379,7 @@ public class MergeToolMapper extends Mapper<Key, Value, Text, Mutation> {
      * @param cv2 the second (child) {@link ColumnVisibility}.
      * @return the newly combined {@link ColumnVisibility}.
      */
-    public static ColumnVisibility combineColumnVisibilities(ColumnVisibility cv1, ColumnVisibility cv2) {
+    public static ColumnVisibility combineColumnVisibilities(final ColumnVisibility cv1, final ColumnVisibility cv2) {
         // OR the 2 column visibilities together if they're different
         String columnVisibilityExpression;
         if (cv1.equals(AccumuloRdfConstants.EMPTY_CV)) {
@@ -395,45 +393,45 @@ public class MergeToolMapper extends Mapper<Key, Value, Text, Mutation> {
         return newCv;
     }
 
-    private Scanner setupChildScanner(Context context) throws IOException {
+    private Scanner setupChildScanner(final Context context) throws IOException {
         return setupScanner(context, childTableName, childConfig);
     }
 
-    private static Scanner setupScanner(Context context, String tableName, Configuration config) throws IOException {
-        RangeInputSplit split = (RangeInputSplit) context.getInputSplit();
-        Range splitRange = split.getRange();
-        Scanner scanner = AccumuloRyaUtils.getScanner(tableName, config);
+    private static Scanner setupScanner(final Context context, final String tableName, final Configuration config) throws IOException {
+        final RangeInputSplit split = (RangeInputSplit) context.getInputSplit();
+        final Range splitRange = split.getRange();
+        final Scanner scanner = AccumuloRyaUtils.getScanner(tableName, config);
         scanner.setRange(splitRange);
 
         return scanner;
     }
 
-    private void writeRyaMutations(RyaStatement ryaStatement, Context context, boolean isDelete) throws IOException, InterruptedException {
+    private void writeRyaMutations(final RyaStatement ryaStatement, final Context context, final boolean isDelete) throws IOException, InterruptedException {
         if (ryaStatement.getColumnVisibility() == null) {
             ryaStatement.setColumnVisibility(AccumuloRdfConstants.EMPTY_CV.getExpression());
         }
 
-        Map<TABLE_LAYOUT, Collection<Mutation>> mutationMap = ryaTableMutationFactory.serialize(ryaStatement);
-        Collection<Mutation> spoMutations = mutationMap.get(TABLE_LAYOUT.SPO);
-        Collection<Mutation> poMutations = mutationMap.get(TABLE_LAYOUT.PO);
-        Collection<Mutation> ospMutations = mutationMap.get(TABLE_LAYOUT.OSP);
+        final Map<TABLE_LAYOUT, Collection<Mutation>> mutationMap = ryaTableMutationFactory.serialize(ryaStatement);
+        final Collection<Mutation> spoMutations = mutationMap.get(TABLE_LAYOUT.SPO);
+        final Collection<Mutation> poMutations = mutationMap.get(TABLE_LAYOUT.PO);
+        final Collection<Mutation> ospMutations = mutationMap.get(TABLE_LAYOUT.OSP);
 
-        for (Mutation mutation : spoMutations) {
+        for (final Mutation mutation : spoMutations) {
             writeMutation(spoTable, mutation, context, isDelete);
         }
-        for (Mutation mutation : poMutations) {
+        for (final Mutation mutation : poMutations) {
             writeMutation(poTable, mutation, context, isDelete);
         }
-        for (Mutation mutation : ospMutations) {
+        for (final Mutation mutation : ospMutations) {
             writeMutation(ospTable, mutation, context, isDelete);
         }
     }
 
-    private void addKey(RyaStatement ryaStatement, Context context) throws IOException, InterruptedException {
+    private void addKey(final RyaStatement ryaStatement, final Context context) throws IOException, InterruptedException {
         writeRyaMutations(ryaStatement, context, false);
     }
 
-    private void deleteKey(RyaStatement ryaStatement, Context context) throws IOException, InterruptedException {
+    private void deleteKey(final RyaStatement ryaStatement, final Context context) throws IOException, InterruptedException {
         writeRyaMutations(ryaStatement, context, true);
     }
 
@@ -447,12 +445,12 @@ public class MergeToolMapper extends Mapper<Key, Value, Text, Mutation> {
      * @throws IOException
      * @throws InterruptedException
      */
-    private static void writeMutation(Text table, Mutation mutation, Context context, boolean isDelete) throws IOException, InterruptedException {
+    private static void writeMutation(final Text table, final Mutation mutation, final Context context, final boolean isDelete) throws IOException, InterruptedException {
         if (isDelete) {
-            List<ColumnUpdate> updates = mutation.getUpdates();
-            ColumnUpdate columnUpdate = updates.get(0);
-            ColumnVisibility cv = columnUpdate.getColumnVisibility() != null ? new ColumnVisibility(columnUpdate.getColumnVisibility()) : null;
-            Mutation deleteMutation = new Mutation(new Text(mutation.getRow()));
+            final List<ColumnUpdate> updates = mutation.getUpdates();
+            final ColumnUpdate columnUpdate = updates.get(0);
+            final ColumnVisibility cv = columnUpdate.getColumnVisibility() != null ? new ColumnVisibility(columnUpdate.getColumnVisibility()) : null;
+            final Mutation deleteMutation = new Mutation(new Text(mutation.getRow()));
             deleteMutation.putDelete(columnUpdate.getColumnFamily(), columnUpdate.getColumnQualifier(), cv, columnUpdate.getTimestamp());
             context.write(table, deleteMutation);
         } else {
@@ -467,7 +465,7 @@ public class MergeToolMapper extends Mapper<Key, Value, Text, Mutation> {
      * {@code false} if it's from the child instance.
      * @return the normalized {@link Date} or the same date if nothing needed to be adjusted.
      */
-    private Date normalizeDate(Date date, boolean isParentTable) {
+    private Date normalizeDate(final Date date, final boolean isParentTable) {
         Date normalizedDate = date;
         if (useTimeSync) {
             if (isParentTable) {
@@ -502,7 +500,7 @@ public class MergeToolMapper extends Mapper<Key, Value, Text, Mutation> {
      * @throws InterruptedException
      * @throws TripleRowResolverException
      */
-    private CompareKeysResult compareKeys(RyaStatement key1, RyaStatement key2) throws MutationsRejectedException, IOException, InterruptedException, TripleRowResolverException {
+    private CompareKeysResult compareKeys(final RyaStatement key1, final RyaStatement key2) throws MutationsRejectedException, IOException, InterruptedException, TripleRowResolverException {
         log.trace("key1 = " + key1);
         log.trace("key2 = " + key2);
         if (key1 == null && key2 == null) {
@@ -510,38 +508,38 @@ public class MergeToolMapper extends Mapper<Key, Value, Text, Mutation> {
             return CompareKeysResult.FINISHED;
         } else if (key1 == null) {
             // Reached the end of the parent table so add the remaining child keys if they meet the time criteria.
-            Date t2 = normalizeDate(new Date(key2.getTimestamp()), false);
+            final Date t2 = normalizeDate(new Date(key2.getTimestamp()), false);
             // Move on to next comparison (do nothing) or add this child key to parent
-            boolean doNothing = usesStartTime && t2.before(startTime);
+            final boolean doNothing = usesStartTime && t2.before(startTime);
             return doNothing ? CompareKeysResult.ADVANCE_CHILD : CompareKeysResult.ADVANCE_CHILD_AND_ADD;
         } else if (key2 == null) {
             // Reached the end of the child table so delete the remaining parent keys if they meet the time criteria.
-            Date t1 = normalizeDate(new Date(key1.getTimestamp()), true);
+            final Date t1 = normalizeDate(new Date(key1.getTimestamp()), true);
             // Move on to next comparison (do nothing) or delete this key from parent
-            boolean doNothing = usesStartTime && (copyToolInputTime != null && (t1.before(copyToolInputTime) || (t1.after(copyToolInputTime) && t1.after(startTime))) || (copyToolInputTime == null && t1.after(startTime)));
+            final boolean doNothing = usesStartTime && (copyToolInputTime != null && (t1.before(copyToolInputTime) || (t1.after(copyToolInputTime) && t1.after(startTime))) || (copyToolInputTime == null && t1.after(startTime)));
             return doNothing ? CompareKeysResult.ADVANCE_PARENT : CompareKeysResult.ADVANCE_PARENT_AND_DELETE;
         } else {
             // There are 2 keys to compare
-            Map<TABLE_LAYOUT, TripleRow> map1 = parentRyaContext.serializeTriple(key1);
-            Text row1 = new Text(map1.get(TABLE_LAYOUT.SPO).getRow());
-            Map<TABLE_LAYOUT, TripleRow> map2 = childRyaContext.serializeTriple(key2);
-            Text row2 = new Text(map2.get(TABLE_LAYOUT.SPO).getRow());
-            Date t1 = normalizeDate(new Date(key1.getTimestamp()), true);
-            Date t2 = normalizeDate(new Date(key2.getTimestamp()), false);
+            final Map<TABLE_LAYOUT, TripleRow> map1 = parentRyaContext.serializeTriple(key1);
+            final Text row1 = new Text(map1.get(TABLE_LAYOUT.SPO).getRow());
+            final Map<TABLE_LAYOUT, TripleRow> map2 = childRyaContext.serializeTriple(key2);
+            final Text row2 = new Text(map2.get(TABLE_LAYOUT.SPO).getRow());
+            final Date t1 = normalizeDate(new Date(key1.getTimestamp()), true);
+            final Date t2 = normalizeDate(new Date(key2.getTimestamp()), false);
 
             if (row1.compareTo(row2) < 0) {
                 // Parent key sort order was before the child key sort order
                 // so it doesn't exist in the child table.
                 // What does this mean?  Was it added by the parent after the child was cloned? (Meaning we should leave it)
                 // Or did the child delete it after it was cloned? (Meaning we should delete it)
-                boolean doNothing = usesStartTime && (copyToolInputTime != null && (t1.before(copyToolInputTime) || (t1.after(copyToolInputTime) && t1.after(startTime))) || (copyToolInputTime == null && t1.after(startTime)));
+                final boolean doNothing = usesStartTime && (copyToolInputTime != null && (t1.before(copyToolInputTime) || (t1.after(copyToolInputTime) && t1.after(startTime))) || (copyToolInputTime == null && t1.after(startTime)));
                 return doNothing ? CompareKeysResult.ADVANCE_PARENT : CompareKeysResult.ADVANCE_PARENT_AND_DELETE;
             } else if (row1.compareTo(row2) > 0) {
                 // Parent key sort order was after the child key sort order
                 // so it doesn't exist in the parent table.
                 // What does this mean?  Was it deleted by the parent after the child was cloned? (Meaning we should leave it)
                 // Or did the child add it after it was cloned? (Meaning we should add it)
-                boolean doNothing = usesStartTime && t2.before(startTime);
+                final boolean doNothing = usesStartTime && t2.before(startTime);
                 return doNothing ? CompareKeysResult.ADVANCE_CHILD : CompareKeysResult.ADVANCE_CHILD_AND_ADD;
             } else {
                 // Rows are the same. So just check if column visibility needs to be updated and
@@ -551,13 +549,13 @@ public class MergeToolMapper extends Mapper<Key, Value, Text, Mutation> {
         }
     }
 
-    private static RyaStatement updateRyaStatementColumnVisibility(RyaStatement ryaStatement, ColumnVisibility newCv) {
-        RyaStatement newCvRyaStatement = new RyaStatement(ryaStatement.getSubject(), ryaStatement.getPredicate(), ryaStatement.getObject(), ryaStatement.getContext(), ryaStatement.getQualifer(), newCv.getExpression(), ryaStatement.getValue(), ryaStatement.getTimestamp());
+    private static RyaStatement updateRyaStatementColumnVisibility(final RyaStatement ryaStatement, final ColumnVisibility newCv) {
+        final RyaStatement newCvRyaStatement = new RyaStatement(ryaStatement.getSubject(), ryaStatement.getPredicate(), ryaStatement.getObject(), ryaStatement.getContext(), ryaStatement.getQualifer(), newCv.getExpression(), ryaStatement.getValue(), ryaStatement.getTimestamp());
         return newCvRyaStatement;
     }
 
     @Override
-    protected void cleanup(Context context) throws IOException, InterruptedException {
+    protected void cleanup(final Context context) throws IOException, InterruptedException {
         super.cleanup(context);
         log.info("Cleaning up mapper...");
         if (childScanner != null) {
@@ -567,7 +565,7 @@ public class MergeToolMapper extends Mapper<Key, Value, Text, Mutation> {
             if (childDao != null) {
                 childDao.destroy();
             }
-        } catch (RyaDAOException e) {
+        } catch (final RyaDAOException e) {
             log.error("Error destroying child DAO", e);
         }
         log.info("Cleaned up mapper");

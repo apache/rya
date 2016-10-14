@@ -1,24 +1,22 @@
-package mvm.rya.accumulo.mr.merge.mappers;
-
 /*
- * #%L
- * mvm.rya.accumulo.mr.merge
- * %%
- * Copyright (C) 2014 Rya
- * %%
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- * #L%
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
  */
+package mvm.rya.accumulo.mr.merge.mappers;
 
 import java.io.IOException;
 import java.util.Map;
@@ -62,13 +60,13 @@ public class RowRuleMapper extends BaseRuleMapper<GroupedRow, GroupedRow> {
     public static final int MAX_STATEMENTS_DEFAULT = 10000;
 
     private static final Logger log = Logger.getLogger(RowRuleMapper.class);
-    private GroupedRow compositeKey = new GroupedRow();
-    private GroupedRow compositeVal = new GroupedRow();
+    private final GroupedRow compositeKey = new GroupedRow();
+    private final GroupedRow compositeVal = new GroupedRow();
     private int cachedStatements = 0;
     private int maxStatements;
 
     @Override
-    protected void setup(Context context) throws IOException, InterruptedException {
+    protected void setup(final Context context) throws IOException, InterruptedException {
         super.setup(context);
         // Set up a mock child DAO for caching serialized statements
         childAccumuloRdfConfiguration.setBoolean(MRUtils.AC_MOCK_PROP, true);
@@ -85,7 +83,7 @@ public class RowRuleMapper extends BaseRuleMapper<GroupedRow, GroupedRow> {
     }
 
     @Override
-    protected void cleanup(Context context) throws IOException, InterruptedException {
+    protected void cleanup(final Context context) throws IOException, InterruptedException {
         flush(context);
         super.cleanup(context);
     }
@@ -100,11 +98,11 @@ public class RowRuleMapper extends BaseRuleMapper<GroupedRow, GroupedRow> {
      *      if Hadoop reports an error writing the in-memory tables to the output.
      */
     @Override
-    protected void copyStatement(RyaStatement rstmt, Context context) throws IOException, InterruptedException {
+    protected void copyStatement(final RyaStatement rstmt, final Context context) throws IOException, InterruptedException {
         try {
             childDao.add(rstmt);
             cachedStatements++;
-        } catch (RyaDAOException e) {
+        } catch (final RyaDAOException e) {
             throw new IOException("Error serializing RyaStatement", e);
         }
         if (cachedStatements >= maxStatements) {
@@ -121,7 +119,7 @@ public class RowRuleMapper extends BaseRuleMapper<GroupedRow, GroupedRow> {
      * @throws IOException If Hadoop reports an error writing the output
      */
     @Override
-    protected void copyRow(Key key, Value value, Context context) throws IOException, InterruptedException {
+    protected void copyRow(final Key key, final Value value, final Context context) throws IOException, InterruptedException {
         compositeKey.setGroup(childTableName);
         compositeKey.setKey(key);
         compositeVal.setKey(key);
@@ -133,19 +131,19 @@ public class RowRuleMapper extends BaseRuleMapper<GroupedRow, GroupedRow> {
      * Insert copy tool metadata, if the in-memory instance has been configured.
      */
     @Override
-    protected void addMetadataKeys(Context context) throws IOException {
+    protected void addMetadataKeys(final Context context) throws IOException {
         try {
             if (childDao != null && childDao.isInitialized()) {
                 if (runTime != null) {
-                    RyaStatement ryaStatement = AccumuloRyaUtils.createCopyToolRunTimeRyaStatement(runTime);
+                    final RyaStatement ryaStatement = AccumuloRyaUtils.createCopyToolRunTimeRyaStatement(runTime);
                     copyStatement(ryaStatement, context);
                 }
                 if (startTime != null) {
-                    RyaStatement ryaStatement = AccumuloRyaUtils.createCopyToolSplitTimeRyaStatement(startTime);
+                    final RyaStatement ryaStatement = AccumuloRyaUtils.createCopyToolSplitTimeRyaStatement(startTime);
                     copyStatement(ryaStatement, context);
                 }
                 if (timeOffset != null) {
-                    RyaStatement ryaStatement = AccumuloRyaUtils.createTimeOffsetRyaStatement(timeOffset);
+                    final RyaStatement ryaStatement = AccumuloRyaUtils.createTimeOffsetRyaStatement(timeOffset);
                     copyStatement(ryaStatement, context);
                 }
             }
@@ -154,21 +152,21 @@ public class RowRuleMapper extends BaseRuleMapper<GroupedRow, GroupedRow> {
         }
     }
 
-    private void flush(Context context) throws IOException, InterruptedException {
+    private void flush(final Context context) throws IOException, InterruptedException {
         try {
             childDao.flush();
-        } catch (RyaDAOException e) {
+        } catch (final RyaDAOException e) {
             throw new IOException("Error writing to in-memory table", e);
         }
-        TableOperations ops = childConnector.tableOperations();
-        SecurityOperations secOps = childConnector.securityOperations();
+        final TableOperations ops = childConnector.tableOperations();
+        final SecurityOperations secOps = childConnector.securityOperations();
         Authorizations childAuths;
         try {
             childAuths = secOps.getUserAuthorizations(childUser);
         } catch (AccumuloException | AccumuloSecurityException e) {
             throw new IOException("Error connecting to mock instance", e);
         }
-        for (String table : ops.list()) {
+        for (final String table : ops.list()) {
             // Only copy Rya tables (skip system tables)
             if (!table.startsWith(childTablePrefix)) {
                 continue;
@@ -177,8 +175,8 @@ public class RowRuleMapper extends BaseRuleMapper<GroupedRow, GroupedRow> {
             try {
                 // Output every row in this mock table
                 int rows = 0;
-                Scanner scanner = childDao.getConnector().createScanner(table, childAuths);
-                for (Map.Entry<Key, Value> row : scanner) {
+                final Scanner scanner = childDao.getConnector().createScanner(table, childAuths);
+                for (final Map.Entry<Key, Value> row : scanner) {
                     compositeKey.setKey(row.getKey());
                     compositeVal.setKey(row.getKey());
                     compositeVal.setValue(row.getValue());

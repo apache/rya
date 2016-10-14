@@ -1,24 +1,22 @@
-package mvm.rya.accumulo.mr.merge.util;
-
 /*
- * #%L
- * mvm.rya.accumulo.mr.merge
- * %%
- * Copyright (C) 2014 Rya
- * %%
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- * #L%
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
  */
+package mvm.rya.accumulo.mr.merge.util;
 
 import java.io.DataInput;
 import java.io.DataOutput;
@@ -40,7 +38,7 @@ import org.apache.hadoop.io.WritableComparator;
  * GroupComparator sorts only based on group.
  */
 public class GroupedRow implements WritableComparable<GroupedRow> {
-    private Text group = new Text();
+    private final Text group = new Text();
     private Key key = new Key();
     private Value value = new Value();
 
@@ -48,7 +46,7 @@ public class GroupedRow implements WritableComparable<GroupedRow> {
      * Set the group that this row belongs to.
      * @param name A common label
      */
-    public void setGroup(String name) {
+    public void setGroup(final String name) {
         group.set(name);
     }
 
@@ -56,7 +54,7 @@ public class GroupedRow implements WritableComparable<GroupedRow> {
      * Set the Key
      * @param key Key associated with an Accumulo row
      */
-    public void setKey(Key key) {
+    public void setKey(final Key key) {
         this.key = key;
     }
 
@@ -64,7 +62,7 @@ public class GroupedRow implements WritableComparable<GroupedRow> {
      * Set the Value
      * @param value Value associated with an Accumulo row
      */
-    public void setValue(Value value) {
+    public void setValue(final Value value) {
         this.value = value;
     }
 
@@ -96,7 +94,7 @@ public class GroupedRow implements WritableComparable<GroupedRow> {
      * Serialize the group, key, and value
      */
     @Override
-    public void write(DataOutput out) throws IOException {
+    public void write(final DataOutput out) throws IOException {
         group.write(out);
         key.write(out);
         value.write(out);
@@ -106,7 +104,7 @@ public class GroupedRow implements WritableComparable<GroupedRow> {
      * Deserialize the group, key, and value
      */
     @Override
-    public void readFields(DataInput in) throws IOException {
+    public void readFields(final DataInput in) throws IOException {
         group.readFields(in);
         key.readFields(in);
         value.readFields(in);
@@ -116,11 +114,11 @@ public class GroupedRow implements WritableComparable<GroupedRow> {
      * Natural ordering; compares based on group and then key.
      */
     @Override
-    public int compareTo(GroupedRow o) {
+    public int compareTo(final GroupedRow o) {
         if (o == null) {
             return 1;
         }
-        return new CompareToBuilder().append(this.group, o.group).append(this.key, o.key).append(this.value, o.value).toComparison();
+        return new CompareToBuilder().append(group, o.group).append(key, o.key).append(value, o.value).toComparison();
     }
 
     /**
@@ -135,11 +133,11 @@ public class GroupedRow implements WritableComparable<GroupedRow> {
      * Test equality (group, key, value).
      */
     @Override
-    public boolean equals(Object o) {
+    public boolean equals(final Object o) {
         if (o == this) { return true; }
         if (o != null && o instanceof GroupedRow) {
-            GroupedRow other = (GroupedRow) o;
-            return new EqualsBuilder().append(this.group, other.group).append(this.key, other.key).append(this.value, other.value).isEquals();
+            final GroupedRow other = (GroupedRow) o;
+            return new EqualsBuilder().append(group, other.group).append(key, other.key).append(value, other.value).isEquals();
         }
         return false;
     }
@@ -155,9 +153,9 @@ public class GroupedRow implements WritableComparable<GroupedRow> {
          * Compares the groups of two GroupedRow instances, and the keys if they share a group.
          */
         @Override
-        public int compare(WritableComparable wc1, WritableComparable wc2) {
-            GroupedRow gk1 = (GroupedRow) wc1;
-            GroupedRow gk2 = (GroupedRow) wc2;
+        public int compare(final WritableComparable wc1, final WritableComparable wc2) {
+            final GroupedRow gk1 = (GroupedRow) wc1;
+            final GroupedRow gk2 = (GroupedRow) wc2;
             return gk1.compareTo(gk2);
         }
     }
@@ -173,9 +171,9 @@ public class GroupedRow implements WritableComparable<GroupedRow> {
          * Compares the groups of two GroupedRow instances.
          */
         @Override
-        public int compare(WritableComparable wc1, WritableComparable wc2) {
-            GroupedRow gk1 = (GroupedRow) wc1;
-            GroupedRow gk2 = (GroupedRow) wc2;
+        public int compare(final WritableComparable wc1, final WritableComparable wc2) {
+            final GroupedRow gk1 = (GroupedRow) wc1;
+            final GroupedRow gk2 = (GroupedRow) wc2;
             return gk1.group.compareTo(gk2.group);
         }
     }

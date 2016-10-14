@@ -1,24 +1,22 @@
-package mvm.rya.accumulo.mr.merge.util;
-
 /*
- * #%L
- * mvm.rya.accumulo.mr.merge
- * %%
- * Copyright (C) 2014 Rya
- * %%
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- * #L%
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
  */
+package mvm.rya.accumulo.mr.merge.util;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -66,7 +64,7 @@ public final class TestUtils {
          * Creates a new {@link Occurrence}.
          * @param sign the sign value: positive or negative.
          */
-        private Occurrence(int sign) {
+        private Occurrence(final int sign) {
             this.sign = sign;
         }
 
@@ -100,7 +98,7 @@ public final class TestUtils {
          * Creates a new {@link CalendarUnit}.
          * @param milliseconds the milliseconds value of this unit.
          */
-        private CalendarUnit(long milliseconds) {
+        private CalendarUnit(final long milliseconds) {
             this.milliseconds = milliseconds;
         }
 
@@ -125,7 +123,7 @@ public final class TestUtils {
      * @param time the time to find the new time occurrence from. (in milliseconds)
      * @return the value of one day before the specified {@code time}. (in milliseconds)
      */
-    public static long dayBefore(long time) {
+    public static long dayBefore(final long time) {
         return timeFrom(time, 1, CalendarUnit.DAY, Occurrence.BEFORE);
     }
 
@@ -134,7 +132,7 @@ public final class TestUtils {
      * @param date the {@link Date} to find the new time occurrence from.
      * @return the {@link Date} value of one day before the specified {@code date}.
      */
-    public static Date dayBefore(Date date) {
+    public static Date dayBefore(final Date date) {
         return dateFrom(date, 1, CalendarUnit.DAY, Occurrence.BEFORE);
     }
 
@@ -143,7 +141,7 @@ public final class TestUtils {
      * @param time the time to find the new time occurrence from. (in milliseconds)
      * @return the value of one month before the specified {@code time}. (in milliseconds)
      */
-    public static long monthBefore(long time) {
+    public static long monthBefore(final long time) {
         return timeFrom(time, 1, CalendarUnit.MONTH, Occurrence.BEFORE);
     }
 
@@ -152,7 +150,7 @@ public final class TestUtils {
      * @param date the {@link Date} to find the new time occurrence from.
      * @return the {@link Date} value of one month before the specified {@code date}.
      */
-    public static Date monthBefore(Date date) {
+    public static Date monthBefore(final Date date) {
         return dateFrom(date, 1, CalendarUnit.MONTH, Occurrence.BEFORE);
     }
 
@@ -166,9 +164,9 @@ public final class TestUtils {
      * @param occurrence when the new time takes place, before or after.
      * @return the value of the new time. (in milliseconds)
      */
-    public static long timeFrom(long time, long duration, CalendarUnit unit, Occurrence occurrence) {
-        long durationInMillis = occurrence.getSign() * duration * unit.getMilliseconds();
-        long newTime = time + durationInMillis;
+    public static long timeFrom(final long time, final long duration, final CalendarUnit unit, final Occurrence occurrence) {
+        final long durationInMillis = occurrence.getSign() * duration * unit.getMilliseconds();
+        final long newTime = time + durationInMillis;
         return newTime;
     }
 
@@ -182,9 +180,9 @@ public final class TestUtils {
      * @param occurrence when the new time takes place, before or after.
      * @return the value of the new {@link Date}.
      */
-    public static Date dateFrom(Date date, long duration, CalendarUnit unit, Occurrence occurrence) {
-        long time = timeFrom(date.getTime(), duration, unit, occurrence);
-        Date newDate = new Date(time);
+    public static Date dateFrom(final Date date, final long duration, final CalendarUnit unit, final Occurrence occurrence) {
+        final long time = timeFrom(date.getTime(), duration, unit, occurrence);
+        final Date newDate = new Date(time);
         return newDate;
     }
 
@@ -197,11 +195,11 @@ public final class TestUtils {
      * @param config the {@link AccumuloRdfConfiguration} for the instance.
      * @throws RyaDAOException
      */
-    public static void assertStatementInInstance(String description, int verifyResultCount, RyaStatement matchStatement, AccumuloRyaDAO dao, AccumuloRdfConfiguration config) throws RyaDAOException {
-        CloseableIteration<RyaStatement, RyaDAOException> iter = dao.getQueryEngine().query(matchStatement, config);
+    public static void assertStatementInInstance(final String description, final int verifyResultCount, final RyaStatement matchStatement, final AccumuloRyaDAO dao, final AccumuloRdfConfiguration config) throws RyaDAOException {
+        final CloseableIteration<RyaStatement, RyaDAOException> iter = dao.getQueryEngine().query(matchStatement, config);
         int count = 0;
         while (iter.hasNext()) {
-            RyaStatement statement = iter.next();
+            final RyaStatement statement = iter.next();
             assertTrue(description + " - match subject: " + matchStatement,      matchStatement.getSubject().equals(statement.getSubject()));
             assertTrue(description + " - match predicate: " + matchStatement,    matchStatement.getPredicate().equals(statement.getPredicate()));
             assertTrue(description + " - match object match: " + matchStatement, matchStatement.getObject().equals(statement.getObject()));
@@ -216,7 +214,7 @@ public final class TestUtils {
      * @param localName the URI's local name.
      * @return the {@link RyraURI}.
      */
-    public static RyaURI createRyaUri(String localName) {
+    public static RyaURI createRyaUri(final String localName) {
         return AccumuloRyaUtils.createRyaUri(NAMESPACE, localName);
     }
 
@@ -228,11 +226,11 @@ public final class TestUtils {
      * @param date the {@link Date} to use for the key's timestamp.
      * @return the {@link RyaStatement}.
      */
-    public static RyaStatement createRyaStatement(String subject, String predicate, String object, Date date) {
-        RyaURI subjectUri = createRyaUri(subject);
-        RyaURI predicateUri = createRyaUri(predicate);
-        RyaURI objectUri = createRyaUri(object);
-        RyaStatement ryaStatement = new RyaStatement(subjectUri, predicateUri, objectUri);
+    public static RyaStatement createRyaStatement(final String subject, final String predicate, final String object, final Date date) {
+        final RyaURI subjectUri = createRyaUri(subject);
+        final RyaURI predicateUri = createRyaUri(predicate);
+        final RyaURI objectUri = createRyaUri(object);
+        final RyaStatement ryaStatement = new RyaStatement(subjectUri, predicateUri, objectUri);
         if (date != null) {
             ryaStatement.setTimestamp(date.getTime());
         }
@@ -244,7 +242,7 @@ public final class TestUtils {
      * @param s the {@link RyaStatement} to copy.
      * @return the newly copied {@link RyaStatement}.
      */
-    public static RyaStatement copyRyaStatement(RyaStatement s) {
+    public static RyaStatement copyRyaStatement(final RyaStatement s) {
         return new RyaStatement(s.getSubject(), s.getPredicate(), s.getObject(), s.getContext(), s.getQualifer(), s.getColumnVisibility(), s.getValue(), s.getTimestamp());
     }
 }

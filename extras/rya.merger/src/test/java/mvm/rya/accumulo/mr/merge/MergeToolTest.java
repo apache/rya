@@ -1,24 +1,22 @@
-package mvm.rya.accumulo.mr.merge;
-
 /*
- * #%L
- * mvm.rya.accumulo.mr.merge
- * %%
- * Copyright (C) 2014 Rya
- * %%
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- * #L%
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
  */
+package mvm.rya.accumulo.mr.merge;
 
 import static mvm.rya.accumulo.mr.merge.util.TestUtils.LAST_MONTH;
 import static mvm.rya.accumulo.mr.merge.util.TestUtils.TODAY;
@@ -135,11 +133,11 @@ public class MergeToolTest {
         accumuloDualInstanceDriver.tearDown();
     }
 
-    private void assertStatementInParent(String description, int verifyResultCount, RyaStatement matchStatement) throws RyaDAOException {
+    private void assertStatementInParent(final String description, final int verifyResultCount, final RyaStatement matchStatement) throws RyaDAOException {
         TestUtils.assertStatementInInstance(description, verifyResultCount, matchStatement, parentDao, parentConfig);
     }
 
-    private void mergeToolRun(Date startDate) {
+    private void mergeToolRun(final Date startDate) {
         MergeTool.setupAndRun(new String[] {
                 makeArgument(MRUtils.AC_MOCK_PROP, Boolean.toString(IS_MOCK)),
                 makeArgument(MRUtils.AC_INSTANCE_PROP, PARENT_INSTANCE),
@@ -169,37 +167,37 @@ public class MergeToolTest {
     public void testMergeTool() throws Exception {
         // This statement was in both parent/child instances a month ago and is before the start time of yesterday
         // but it was left alone.  It should remain in the parent after merging.
-        RyaStatement ryaStatementOutOfTimeRange = createRyaStatement("coach", "called", "timeout", LAST_MONTH);
+        final RyaStatement ryaStatementOutOfTimeRange = createRyaStatement("coach", "called", "timeout", LAST_MONTH);
 
         // This statement was in both parent/child instances a month ago but after the start time of yesterday
         // the parent deleted it and the child still has it.  It should stay deleted in the parent after merging.
-        RyaStatement ryaStatementParentDeletedAfter = createRyaStatement("parent", "deleted", "after", LAST_MONTH);
+        final RyaStatement ryaStatementParentDeletedAfter = createRyaStatement("parent", "deleted", "after", LAST_MONTH);
 
         // This statement was added by the parent after the start time of yesterday and doesn't exist in the child.
         // It should stay in the parent after merging.
-        RyaStatement ryaStatementParentAddedAfter = createRyaStatement("parent", "added", "after", TODAY);
+        final RyaStatement ryaStatementParentAddedAfter = createRyaStatement("parent", "added", "after", TODAY);
 
         // This statement was in both parent/child instances a month ago but after the start time of yesterday
         // the child deleted it and the parent still has it.  It should be deleted from the parent after merging.
-        RyaStatement ryaStatementChildDeletedAfter = createRyaStatement("child", "deleted", "after", LAST_MONTH);
+        final RyaStatement ryaStatementChildDeletedAfter = createRyaStatement("child", "deleted", "after", LAST_MONTH);
 
         // This statement was added by the child after the start time of yesterday and doesn't exist in the parent.
         // It should be added to the parent after merging.
-        RyaStatement ryaStatementChildAddedAfter = createRyaStatement("child", "added", "after", TODAY);
+        final RyaStatement ryaStatementChildAddedAfter = createRyaStatement("child", "added", "after", TODAY);
 
         // This statement was modified by the child after the start of yesterday (The timestamp changes after updating)
         // It should be updated in the parent to match the child.
-        RyaStatement ryaStatementUpdatedByChild = createRyaStatement("bob", "catches", "ball", LAST_MONTH);
+        final RyaStatement ryaStatementUpdatedByChild = createRyaStatement("bob", "catches", "ball", LAST_MONTH);
 
-        RyaStatement ryaStatementUntouchedByChild = createRyaStatement("bill", "talks to", "john", LAST_MONTH);
+        final RyaStatement ryaStatementUntouchedByChild = createRyaStatement("bill", "talks to", "john", LAST_MONTH);
 
-        RyaStatement ryaStatementDeletedByChild = createRyaStatement("susan", "eats", "burgers", LAST_MONTH);
+        final RyaStatement ryaStatementDeletedByChild = createRyaStatement("susan", "eats", "burgers", LAST_MONTH);
 
-        RyaStatement ryaStatementAddedByChild = createRyaStatement("ronnie", "plays", "guitar", TODAY);
+        final RyaStatement ryaStatementAddedByChild = createRyaStatement("ronnie", "plays", "guitar", TODAY);
 
         // This statement was modified by the child to change the column visibility.
         // The parent should combine the child's visibility with its visibility.
-        RyaStatement ryaStatementVisibilityDifferent = createRyaStatement("I", "see", "you", LAST_MONTH);
+        final RyaStatement ryaStatementVisibilityDifferent = createRyaStatement("I", "see", "you", LAST_MONTH);
         ryaStatementVisibilityDifferent.setColumnVisibility(PARENT_COLUMN_VISIBILITY.getExpression());
 
         // Setup initial parent instance with 7 rows
@@ -235,12 +233,12 @@ public class MergeToolTest {
         mergeToolRun(YESTERDAY);
 
 
-        for (String tableSuffix : AccumuloInstanceDriver.TABLE_NAME_SUFFIXES) {
+        for (final String tableSuffix : AccumuloInstanceDriver.TABLE_NAME_SUFFIXES) {
             AccumuloRyaUtils.printTable(PARENT_TABLE_PREFIX + tableSuffix, parentConfig);
         }
 
-        Scanner scanner = AccumuloRyaUtils.getScanner(PARENT_TABLE_PREFIX + RdfCloudTripleStoreConstants.TBL_SPO_SUFFIX, parentConfig);
-        Iterator<Entry<Key, Value>> iterator = scanner.iterator();
+        final Scanner scanner = AccumuloRyaUtils.getScanner(PARENT_TABLE_PREFIX + RdfCloudTripleStoreConstants.TBL_SPO_SUFFIX, parentConfig);
+        final Iterator<Entry<Key, Value>> iterator = scanner.iterator();
         int count = 0;
         while (iterator.hasNext()) {
             iterator.next();
@@ -265,20 +263,20 @@ public class MergeToolTest {
 
         // Check that it can be queried with child's visibility
         parentConfig.set(RdfCloudTripleStoreConfiguration.CONF_QUERY_AUTH, CHILD_AUTH);
-        Authorizations newParentAuths = AccumuloRyaUtils.addUserAuths(accumuloDualInstanceDriver.getParentUser(), accumuloDualInstanceDriver.getParentSecOps(), CHILD_AUTH);
+        final Authorizations newParentAuths = AccumuloRyaUtils.addUserAuths(accumuloDualInstanceDriver.getParentUser(), accumuloDualInstanceDriver.getParentSecOps(), CHILD_AUTH);
         accumuloDualInstanceDriver.getParentSecOps().changeUserAuthorizations(accumuloDualInstanceDriver.getParentUser(), newParentAuths);
         assertStatementInParent("Parent missing statement with child visibility", 1, ryaStatementVisibilityDifferent);
 
         // Check that it can NOT be queried with some other visibility
         parentConfig.set(RdfCloudTripleStoreConfiguration.CONF_QUERY_AUTH, "bad_auth");
-        CloseableIteration<RyaStatement, RyaDAOException> iter = parentDao.getQueryEngine().query(ryaStatementVisibilityDifferent, parentConfig);
+        final CloseableIteration<RyaStatement, RyaDAOException> iter = parentDao.getQueryEngine().query(ryaStatementVisibilityDifferent, parentConfig);
         count = 0;
         try {
             while (iter.hasNext()) {
                 iter.next();
                 count++;
             }
-        } catch (Exception e) {
+        } catch (final Exception e) {
             // Expected
             if (!(e.getCause() instanceof AccumuloSecurityException)) {
                 fail();
@@ -302,14 +300,14 @@ public class MergeToolTest {
         log.info("DONE");
     }
 
-    private static RyaStatement createRyaStatementUnique(String s, String p, String o, Date date) throws Exception {
-        String uniquePart = Long.toString(System.currentTimeMillis() & 0xffffff, 64);
+    private static RyaStatement createRyaStatementUnique(final String s, final String p, final String o, final Date date) throws Exception {
+        final String uniquePart = Long.toString(System.currentTimeMillis() & 0xffffff, 64);
         return createRyaStatement(s+uniquePart, p+uniquePart, o+uniquePart, date);
     }
 
-    private static RyaStatement createRyaStatementUniqueAdd(String s, String p, String o, Date date, AccumuloRyaDAO dao1, AccumuloRyaDAO dao2) throws Exception {
-        String uniquePart = Long.toString(System.currentTimeMillis() & 0xffffff, 64);
-        RyaStatement rs = createRyaStatement(s + uniquePart, p + uniquePart, o + uniquePart, date);
+    private static RyaStatement createRyaStatementUniqueAdd(final String s, final String p, final String o, final Date date, final AccumuloRyaDAO dao1, final AccumuloRyaDAO dao2) throws Exception {
+        final String uniquePart = Long.toString(System.currentTimeMillis() & 0xffffff, 64);
+        final RyaStatement rs = createRyaStatement(s + uniquePart, p + uniquePart, o + uniquePart, date);
         if (dao1 != null) {
             dao1.add(rs);
         }
@@ -321,8 +319,8 @@ public class MergeToolTest {
 
     @Test
     public void testMissingParentNewChild() throws Exception {
-        RyaStatement stmtNewInChild = createRyaStatementUnique("s_newInChild", "p_newInChild", "o_newInChild", null);
-        RyaStatement stmtSameInBoth = createRyaStatementUnique("s_same", "p_same", "o_same", LAST_MONTH);
+        final RyaStatement stmtNewInChild = createRyaStatementUnique("s_newInChild", "p_newInChild", "o_newInChild", null);
+        final RyaStatement stmtSameInBoth = createRyaStatementUnique("s_same", "p_same", "o_same", LAST_MONTH);
         childDao.add(stmtNewInChild);      // Merging should add statement to parent
         childDao.add(stmtSameInBoth);      // Merging should ignore statement
         parentDao.add(stmtSameInBoth);     // Merging should ignore statement
@@ -333,14 +331,14 @@ public class MergeToolTest {
 
     @Test
     public void testOldParentMissingChild() throws Exception {
-        RyaStatement stmtMissingInChildOld = createRyaStatementUniqueAdd("s_notInChild", "p_notInChild", "o_notInChild", LAST_MONTH, parentDao, null);
+        final RyaStatement stmtMissingInChildOld = createRyaStatementUniqueAdd("s_notInChild", "p_notInChild", "o_notInChild", LAST_MONTH, parentDao, null);
         mergeToolRun(YESTERDAY);
         assertStatementInParent("Missing in child statement deleted old in parent ", 0, stmtMissingInChildOld);
     }
 
     @Test
     public void testNewParentEmptyChild() throws Exception {
-        RyaStatement stmtNewP_MisC = createRyaStatementUniqueAdd("s_NewP_MisC", "p_NewP_MisC", "o_NewP_MisC", null, parentDao, null);
+        final RyaStatement stmtNewP_MisC = createRyaStatementUniqueAdd("s_NewP_MisC", "p_NewP_MisC", "o_NewP_MisC", null, parentDao, null);
         AccumuloRyaUtils.printTable(PARENT_TABLE_PREFIX + RdfCloudTripleStoreConstants.TBL_SPO_SUFFIX, parentConfig);
         AccumuloRyaUtils.printTable(CHILD_TABLE_PREFIX + RdfCloudTripleStoreConstants.TBL_SPO_SUFFIX, childConfig);
         mergeToolRun(YESTERDAY);
@@ -350,8 +348,8 @@ public class MergeToolTest {
 
     @Test
     public void testNewParentMissingChild() throws Exception {
-        RyaStatement stmtNewP_MisC = createRyaStatementUniqueAdd("s_NewP_MisC", "p_NewP_MisC", "o_NewP_MisC", null, parentDao, null);
-        RyaStatement stmtOldP_OldC = createRyaStatementUniqueAdd("s_OldP_OldC", "p_OldP_OldC", "o_OldP_OldC", LAST_MONTH, parentDao, childDao);
+        final RyaStatement stmtNewP_MisC = createRyaStatementUniqueAdd("s_NewP_MisC", "p_NewP_MisC", "o_NewP_MisC", null, parentDao, null);
+        final RyaStatement stmtOldP_OldC = createRyaStatementUniqueAdd("s_OldP_OldC", "p_OldP_OldC", "o_OldP_OldC", LAST_MONTH, parentDao, childDao);
 
         AccumuloRyaUtils.printTable(PARENT_TABLE_PREFIX + RdfCloudTripleStoreConstants.TBL_SPO_SUFFIX, parentConfig);
         AccumuloRyaUtils.printTable(CHILD_TABLE_PREFIX + RdfCloudTripleStoreConstants.TBL_SPO_SUFFIX, childConfig);
@@ -362,7 +360,7 @@ public class MergeToolTest {
 
     @Test
     public void testEmptyParentNewChild() throws Exception {
-        RyaStatement stmtMisP_NewC_addP_z = createRyaStatementUniqueAdd("zs_MisP_NewC", "zp_MisP_NewC", "zo_MisP_NewC", null     , null     , childDao);
+        final RyaStatement stmtMisP_NewC_addP_z = createRyaStatementUniqueAdd("zs_MisP_NewC", "zp_MisP_NewC", "zo_MisP_NewC", null     , null     , childDao);
 
         AccumuloRyaUtils.printTable(PARENT_TABLE_PREFIX + RdfCloudTripleStoreConstants.TBL_SPO_SUFFIX, parentConfig);
         AccumuloRyaUtils.printTable(CHILD_TABLE_PREFIX + RdfCloudTripleStoreConstants.TBL_SPO_SUFFIX, childConfig);
@@ -388,11 +386,11 @@ public class MergeToolTest {
     @Test
     public void testWithParentSplits() throws Exception {
         // set splits, 4 tablets created: <b b*-g g*-v >v
-        TreeSet<Text> splits = new TreeSet<Text>();
+        final TreeSet<Text> splits = new TreeSet<Text>();
         splits.add(new Text("b"));
         splits.add(new Text("g"));
         splits.add(new Text("v"));
-        for (String tableSuffix : AccumuloInstanceDriver.TABLE_NAME_SUFFIXES) {
+        for (final String tableSuffix : AccumuloInstanceDriver.TABLE_NAME_SUFFIXES) {
             parentConnector.tableOperations().addSplits(PARENT_TABLE_PREFIX + tableSuffix, splits);
         }
         addAndVerifySplitableStatements();
@@ -401,11 +399,11 @@ public class MergeToolTest {
     @Test
     public void testWithChildSplits() throws Exception {
         // set splits, 4 tablets created: <b b*-g g*-v >v
-        TreeSet<Text> splits = new TreeSet<Text>();
+        final TreeSet<Text> splits = new TreeSet<Text>();
         splits.add(new Text("b"));
         splits.add(new Text("g"));
         splits.add(new Text("v"));
-        for (String tableSuffix : AccumuloInstanceDriver.TABLE_NAME_SUFFIXES) {
+        for (final String tableSuffix : AccumuloInstanceDriver.TABLE_NAME_SUFFIXES) {
             childConnector.tableOperations().addSplits(CHILD_TABLE_PREFIX + tableSuffix, splits);
         }
         addAndVerifySplitableStatements();
@@ -414,14 +412,14 @@ public class MergeToolTest {
     @Test
     public void testWithParentAndChildSplits() throws Exception {
         // set splits, 4 tablets created: <b b*-g g*-v >v
-        TreeSet<Text> splits = new TreeSet<Text>();
+        final TreeSet<Text> splits = new TreeSet<Text>();
         splits.add(new Text("b"));
         splits.add(new Text("g"));
         splits.add(new Text("v"));
-        for (String tableSuffix : AccumuloInstanceDriver.TABLE_NAME_SUFFIXES) {
+        for (final String tableSuffix : AccumuloInstanceDriver.TABLE_NAME_SUFFIXES) {
             parentConnector.tableOperations().addSplits(PARENT_TABLE_PREFIX + tableSuffix, splits);
         }
-        for (String tableSuffix : AccumuloInstanceDriver.TABLE_NAME_SUFFIXES) {
+        for (final String tableSuffix : AccumuloInstanceDriver.TABLE_NAME_SUFFIXES) {
             childConnector.tableOperations().addSplits(CHILD_TABLE_PREFIX + tableSuffix, splits);
         }
         addAndVerifySplitableStatements();
@@ -440,22 +438,22 @@ public class MergeToolTest {
      */
     private void addAndVerifySplitableStatements() throws Exception {
         // Old=older, New=newer, Mis=missing, P=parent, C=child, delP=del from parent, addP=add to parent, Noth=do nothing
-        RyaStatement stmtOldP_MisC_delP_a = createRyaStatementUniqueAdd("as_OldP_MisC", "ap_OldP_MisC", "ao_OldP_MisC", LAST_MONTH, parentDao, null);
-        RyaStatement stmtOldP_MisC_delP_f = createRyaStatementUniqueAdd("fs_OldP_MisC", "fp_OldP_MisC", "fo_OldP_MisC", LAST_MONTH, parentDao, null);
-        RyaStatement stmtOldP_MisC_delP_u = createRyaStatementUniqueAdd("us_OldP_MisC", "up_OldP_MisC", "uo_OldP_MisC", LAST_MONTH, parentDao, null);
-        RyaStatement stmtOldP_MisC_delP_z = createRyaStatementUniqueAdd("zs_OldP_MisC", "zp_OldP_MisC", "zo_OldP_MisC", LAST_MONTH, parentDao, null);
-        RyaStatement stmtNewP_MisC_Noth_a = createRyaStatementUniqueAdd("as_NewP_MisC", "ap_NewP_MisC", "ao_NewP_MisC", null      , parentDao, null);
-        RyaStatement stmtNewP_MisC_Noth_f = createRyaStatementUniqueAdd("fs_NewP_MisC", "fp_NewP_MisC", "fo_NewP_MisC", null      , parentDao, null);
-        RyaStatement stmtNewP_MisC_Noth_u = createRyaStatementUniqueAdd("us_NewP_MisC", "up_NewP_MisC", "uo_NewP_MisC", null      , parentDao, null);
-        RyaStatement stmtNewP_MisC_Noth_z = createRyaStatementUniqueAdd("zs_NewP_MisC", "zp_NewP_MisC", "zo_NewP_MisC", null      , parentDao, null);
-        RyaStatement stmtMisP_OldC_Noth_a = createRyaStatementUniqueAdd("as_MisP_OldC", "ap_MisP_OldC", "ao_MisP_OldC", LAST_MONTH, null     , childDao);
-        RyaStatement stmtMisP_OldC_Noth_f = createRyaStatementUniqueAdd("fs_MisP_OldC", "fp_MisP_OldC", "fo_MisP_OldC", LAST_MONTH, null     , childDao);
-        RyaStatement stmtMisP_OldC_Noth_u = createRyaStatementUniqueAdd("us_MisP_OldC", "up_MisP_OldC", "uo_MisP_OldC", LAST_MONTH, null     , childDao);
-        RyaStatement stmtMisP_OldC_addP_z = createRyaStatementUniqueAdd("zs_MisP_OldC", "zp_MisP_OldC", "zo_MisP_OldC", LAST_MONTH, null     , childDao);
-        RyaStatement stmtMisP_NewC_addP_a = createRyaStatementUniqueAdd("as_MisP_NewC", "ap_MisP_NewC", "ao_MisP_NewC", null      , null     , childDao);
-        RyaStatement stmtMisP_NewC_addP_f = createRyaStatementUniqueAdd("fs_MisP_NewC", "fp_MisP_NewC", "fo_MisP_NewC", null      , null     , childDao);
-        RyaStatement stmtMisP_NewC_addP_u = createRyaStatementUniqueAdd("us_MisP_NewC", "up_MisP_NewC", "uo_MisP_NewC", null      , null     , childDao);
-        RyaStatement stmtMisP_NewC_addP_z = createRyaStatementUniqueAdd("zs_MisP_NewC", "zp_MisP_NewC", "zo_MisP_NewC", null      , null     , childDao);
+        final RyaStatement stmtOldP_MisC_delP_a = createRyaStatementUniqueAdd("as_OldP_MisC", "ap_OldP_MisC", "ao_OldP_MisC", LAST_MONTH, parentDao, null);
+        final RyaStatement stmtOldP_MisC_delP_f = createRyaStatementUniqueAdd("fs_OldP_MisC", "fp_OldP_MisC", "fo_OldP_MisC", LAST_MONTH, parentDao, null);
+        final RyaStatement stmtOldP_MisC_delP_u = createRyaStatementUniqueAdd("us_OldP_MisC", "up_OldP_MisC", "uo_OldP_MisC", LAST_MONTH, parentDao, null);
+        final RyaStatement stmtOldP_MisC_delP_z = createRyaStatementUniqueAdd("zs_OldP_MisC", "zp_OldP_MisC", "zo_OldP_MisC", LAST_MONTH, parentDao, null);
+        final RyaStatement stmtNewP_MisC_Noth_a = createRyaStatementUniqueAdd("as_NewP_MisC", "ap_NewP_MisC", "ao_NewP_MisC", null      , parentDao, null);
+        final RyaStatement stmtNewP_MisC_Noth_f = createRyaStatementUniqueAdd("fs_NewP_MisC", "fp_NewP_MisC", "fo_NewP_MisC", null      , parentDao, null);
+        final RyaStatement stmtNewP_MisC_Noth_u = createRyaStatementUniqueAdd("us_NewP_MisC", "up_NewP_MisC", "uo_NewP_MisC", null      , parentDao, null);
+        final RyaStatement stmtNewP_MisC_Noth_z = createRyaStatementUniqueAdd("zs_NewP_MisC", "zp_NewP_MisC", "zo_NewP_MisC", null      , parentDao, null);
+        final RyaStatement stmtMisP_OldC_Noth_a = createRyaStatementUniqueAdd("as_MisP_OldC", "ap_MisP_OldC", "ao_MisP_OldC", LAST_MONTH, null     , childDao);
+        final RyaStatement stmtMisP_OldC_Noth_f = createRyaStatementUniqueAdd("fs_MisP_OldC", "fp_MisP_OldC", "fo_MisP_OldC", LAST_MONTH, null     , childDao);
+        final RyaStatement stmtMisP_OldC_Noth_u = createRyaStatementUniqueAdd("us_MisP_OldC", "up_MisP_OldC", "uo_MisP_OldC", LAST_MONTH, null     , childDao);
+        final RyaStatement stmtMisP_OldC_addP_z = createRyaStatementUniqueAdd("zs_MisP_OldC", "zp_MisP_OldC", "zo_MisP_OldC", LAST_MONTH, null     , childDao);
+        final RyaStatement stmtMisP_NewC_addP_a = createRyaStatementUniqueAdd("as_MisP_NewC", "ap_MisP_NewC", "ao_MisP_NewC", null      , null     , childDao);
+        final RyaStatement stmtMisP_NewC_addP_f = createRyaStatementUniqueAdd("fs_MisP_NewC", "fp_MisP_NewC", "fo_MisP_NewC", null      , null     , childDao);
+        final RyaStatement stmtMisP_NewC_addP_u = createRyaStatementUniqueAdd("us_MisP_NewC", "up_MisP_NewC", "uo_MisP_NewC", null      , null     , childDao);
+        final RyaStatement stmtMisP_NewC_addP_z = createRyaStatementUniqueAdd("zs_MisP_NewC", "zp_MisP_NewC", "zo_MisP_NewC", null      , null     , childDao);
 
         AccumuloRyaUtils.printTable(PARENT_TABLE_PREFIX + RdfCloudTripleStoreConstants.TBL_SPO_SUFFIX, parentConfig);
         AccumuloRyaUtils.printTable(CHILD_TABLE_PREFIX + RdfCloudTripleStoreConstants.TBL_SPO_SUFFIX, childConfig);

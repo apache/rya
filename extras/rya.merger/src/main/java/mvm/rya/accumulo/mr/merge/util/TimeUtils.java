@@ -1,24 +1,22 @@
-package mvm.rya.accumulo.mr.merge.util;
-
 /*
- * #%L
- * mvm.rya.accumulo.mr.merge
- * %%
- * Copyright (C) 2014 Rya
- * %%
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- * #L%
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
  */
+package mvm.rya.accumulo.mr.merge.util;
 
 import java.io.IOException;
 import java.net.HttpURLConnection;
@@ -74,23 +72,23 @@ public final class TimeUtils {
      * @return the NTP server {@link Date} or {@code null}.
      * @throws IOException
      */
-    public static Date getNtpServerDate(String timeServerHost) throws IOException {
+    public static Date getNtpServerDate(final String timeServerHost) throws IOException {
         try {
             TimeInfo timeInfo = null;
-            NTPUDPClient timeClient = new NTPUDPClient();
+            final NTPUDPClient timeClient = new NTPUDPClient();
             timeClient.setDefaultTimeout(NTP_SERVER_TIMEOUT_MS);
-            InetAddress inetAddress = InetAddress.getByName(timeServerHost);
+            final InetAddress inetAddress = InetAddress.getByName(timeServerHost);
             if (inetAddress != null) {
                 timeInfo = timeClient.getTime(inetAddress);
                 if (timeInfo != null) {
                     // TODO: which time to use?
-                    long serverTime = timeInfo.getMessage().getTransmitTimeStamp().getTime();
+                    final long serverTime = timeInfo.getMessage().getTransmitTimeStamp().getTime();
                     //long serverTime = timeInfo.getReturnTime();
-                    Date ntpDate = new Date(serverTime);
+                    final Date ntpDate = new Date(serverTime);
                     return ntpDate;
                 }
             }
-        } catch (IOException e) {
+        } catch (final IOException e) {
             throw new IOException("Unable to get NTP server time.", e);
         }
         return null;
@@ -104,11 +102,11 @@ public final class TimeUtils {
      * @throws IOException
      * @throws ParseException
      */
-    public static Date getRemoteMachineDate(String urlString) throws IOException, ParseException {
+    public static Date getRemoteMachineDate(final String urlString) throws IOException, ParseException {
         Date remoteDate = null;
         HttpURLConnection conn = null;
         try {
-            URL url = new URL(urlString);
+            final URL url = new URL(urlString);
 
             // Set up the initial connection
             conn = (HttpURLConnection)url.openConnection();
@@ -119,12 +117,12 @@ public final class TimeUtils {
 
             conn.connect();
 
-            Map<String, List<String>> header = conn.getHeaderFields();
-            for (String key : header.keySet()) {
+            final Map<String, List<String>> header = conn.getHeaderFields();
+            for (final String key : header.keySet()) {
                 if (key != null && HttpHeaders.DATE.equals(key)) {
-                    List<String> data = header.get(key);
-                    String dateString = data.get(0);
-                    SimpleDateFormat sdf = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss Z");
+                    final List<String> data = header.get(key);
+                    final String dateString = data.get(0);
+                    final SimpleDateFormat sdf = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss Z");
                     remoteDate = sdf.parse(dateString);
                     break;
                 }
@@ -147,16 +145,16 @@ public final class TimeUtils {
      * indicates that the machine's system time is ahead of the time server.  A negative value indicates that
      * the machine's system time is behind of the time server.
      */
-    public static Long getTimeDifference(Date ntpDate, Date machineDate, boolean isMachineLocal) {
+    public static Long getTimeDifference(final Date ntpDate, final Date machineDate, final boolean isMachineLocal) {
         Long diff = null;
         if (ntpDate != null && machineDate != null) {
             log.info("NTP Server Time: " + ntpDate);
-            String machineLabel = isMachineLocal ? "Local" : "Remote";
+            final String machineLabel = isMachineLocal ? "Local" : "Remote";
             log.info(machineLabel + " Machine Time: " + machineDate);
             diff = machineDate.getTime() - ntpDate.getTime();
 
-            boolean isAhead = diff > 0;
-            String durationBreakdown = TimeUtils.getDurationBreakdown(diff, false);
+            final boolean isAhead = diff > 0;
+            final String durationBreakdown = TimeUtils.getDurationBreakdown(diff, false);
             log.info(machineLabel + " Machine time is " + (isAhead ? "ahead of" : "behind") + " NTP server time by " + durationBreakdown + ".");
         }
 
@@ -171,13 +169,13 @@ public final class TimeUtils {
      * the local machine's system time is behind of the time server.
      * @throws IOException
      */
-    public static Long getNtpServerAndLocalMachineTimeDifference(String timeServerHost) throws IOException {
+    public static Long getNtpServerAndLocalMachineTimeDifference(final String timeServerHost) throws IOException {
         log.info("Getting NTP Server time from " + timeServerHost + "...");
-        Date ntpDate = getNtpServerDate(timeServerHost);
+        final Date ntpDate = getNtpServerDate(timeServerHost);
         Long diff = null;
         if (ntpDate != null) {
             log.info("Getting Local Machine time...");
-            Date machineDate = new Date();
+            final Date machineDate = new Date();
 
             diff = getTimeDifference(ntpDate, machineDate, true);
         }
@@ -195,13 +193,13 @@ public final class TimeUtils {
      * @throws ParseException
      * @throws IOException
      */
-    public static Long getNtpServerAndRemoteMachineTimeDifference(String timeServerHost, String remoteMachineUrlString) throws IOException, ParseException {
+    public static Long getNtpServerAndRemoteMachineTimeDifference(final String timeServerHost, final String remoteMachineUrlString) throws IOException, ParseException {
         log.info("Getting NTP Server time from " + timeServerHost + "...");
-        Date ntpDate = getNtpServerDate(timeServerHost);
+        final Date ntpDate = getNtpServerDate(timeServerHost);
         Long diff = null;
         if (ntpDate != null) {
             log.info("Getting Remote Machine time from " + remoteMachineUrlString + "...");
-            Date machineDate = getRemoteMachineDate(remoteMachineUrlString);
+            final Date machineDate = getRemoteMachineDate(remoteMachineUrlString);
 
             diff = getTimeDifference(ntpDate, machineDate, false);
         }
@@ -220,8 +218,8 @@ public final class TimeUtils {
      * @throws ParseException
      * @throws IOException
      */
-    public static Long getNtpServerAndMachineTimeDifference(String timeServerHost, String machineUrlString) throws IOException, ParseException {
-        boolean isUrlLocalMachine = isUrlLocalMachine(machineUrlString);
+    public static Long getNtpServerAndMachineTimeDifference(final String timeServerHost, final String machineUrlString) throws IOException, ParseException {
+        final boolean isUrlLocalMachine = isUrlLocalMachine(machineUrlString);
 
         Long machineTimeOffset;
         if (isUrlLocalMachine) {
@@ -240,8 +238,8 @@ public final class TimeUtils {
      * @throws IOException
      * @throws ParseException
      */
-    public static Date getMachineDate(String urlString) throws IOException, ParseException {
-        boolean isMachineLocal = isUrlLocalMachine(urlString);
+    public static Date getMachineDate(final String urlString) throws IOException, ParseException {
+        final boolean isMachineLocal = isUrlLocalMachine(urlString);
 
         Date machineDate;
         if (isMachineLocal) {
@@ -263,9 +261,9 @@ public final class TimeUtils {
      * @throws UnknownHostException
      * @throws MalformedURLException
      */
-    public static boolean isUrlLocalMachine(String urlString) throws UnknownHostException, MalformedURLException {
-        String localAddress = InetAddress.getLocalHost().getHostAddress();
-        String requestAddress = InetAddress.getByName(new URL(urlString).getHost()).getHostAddress();
+    public static boolean isUrlLocalMachine(final String urlString) throws UnknownHostException, MalformedURLException {
+        final String localAddress = InetAddress.getLocalHost().getHostAddress();
+        final String requestAddress = InetAddress.getByName(new URL(urlString).getHost()).getHostAddress();
         return localAddress != null && requestAddress != null && localAddress.equals(requestAddress);
     }
 
@@ -285,20 +283,20 @@ public final class TimeUtils {
      * to not display the sign.
      * @return A string of the form "X Days Y Hours Z Minutes A Seconds B Milliseconds".
      */
-    public static String getDurationBreakdown(final long durationMs, boolean showSign) {
+    public static String getDurationBreakdown(final long durationMs, final boolean showSign) {
         long tempDurationMs = Math.abs(durationMs);
 
-        long days = TimeUnit.MILLISECONDS.toDays(tempDurationMs);
+        final long days = TimeUnit.MILLISECONDS.toDays(tempDurationMs);
         tempDurationMs -= TimeUnit.DAYS.toMillis(days);
-        long hours = TimeUnit.MILLISECONDS.toHours(tempDurationMs);
+        final long hours = TimeUnit.MILLISECONDS.toHours(tempDurationMs);
         tempDurationMs -= TimeUnit.HOURS.toMillis(hours);
-        long minutes = TimeUnit.MILLISECONDS.toMinutes(tempDurationMs);
+        final long minutes = TimeUnit.MILLISECONDS.toMinutes(tempDurationMs);
         tempDurationMs -= TimeUnit.MINUTES.toMillis(minutes);
-        long seconds = TimeUnit.MILLISECONDS.toSeconds(tempDurationMs);
+        final long seconds = TimeUnit.MILLISECONDS.toSeconds(tempDurationMs);
         tempDurationMs -= TimeUnit.SECONDS.toMillis(seconds);
-        long milliseconds = TimeUnit.MILLISECONDS.toMillis(tempDurationMs);
+        final long milliseconds = TimeUnit.MILLISECONDS.toMillis(tempDurationMs);
 
-        StringBuilder sb = new StringBuilder();
+        final StringBuilder sb = new StringBuilder();
         if (tempDurationMs != 0 && showSign) {
             sb.append(tempDurationMs > 0 ? "+" : "-");
         }
@@ -333,7 +331,7 @@ public final class TimeUtils {
      * @param date2 the second {@link Date}.
      * @return {@code true} if {@code date1} is before or equal to {@code date2}.  {@code false} otherwise.
      */
-    public static boolean dateBeforeInclusive(Date date1, Date date2) {
+    public static boolean dateBeforeInclusive(final Date date1, final Date date2) {
         return !date1.after(date2);
     }
 
@@ -343,7 +341,7 @@ public final class TimeUtils {
      * @param date2 the second {@link Date}.
      * @return {@code true} if {@code date1} is after or equal to {@code date2}.  {@code false} otherwise.
      */
-    public static boolean dateAfterInclusive(Date date1, Date date2) {
+    public static boolean dateAfterInclusive(final Date date1, final Date date2) {
         return !date1.before(date2);
     }
 }

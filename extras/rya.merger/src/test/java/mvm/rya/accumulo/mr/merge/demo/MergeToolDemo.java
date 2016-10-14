@@ -1,24 +1,22 @@
-package mvm.rya.accumulo.mr.merge.demo;
-
 /*
- * #%L
- * mvm.rya.accumulo.mr.merge
- * %%
- * Copyright (C) 2014 Rya
- * %%
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- * #L%
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
  */
+package mvm.rya.accumulo.mr.merge.demo;
 
 import static mvm.rya.accumulo.mr.merge.util.TestUtils.createRyaStatement;
 import static mvm.rya.accumulo.mr.merge.util.ToolConfigUtils.makeArgument;
@@ -91,13 +89,13 @@ public class MergeToolDemo {
 
     private AccumuloDualInstanceDriver accumuloDualInstanceDriver;
 
-    public static void main(String args[]) {
+    public static void main(final String args[]) {
         DemoUtilities.setupLogging(LOGGING_DETAIL);
         log.info("Setting up Merge Tool Demo");
 
         Thread.setDefaultUncaughtExceptionHandler(new Thread.UncaughtExceptionHandler() {
             @Override
-            public void uncaughtException(Thread thread, Throwable throwable) {
+            public void uncaughtException(final Thread thread, final Throwable throwable) {
                 log.fatal("Uncaught exception in " + thread.getName(), throwable);
             }
         });
@@ -109,7 +107,7 @@ public class MergeToolDemo {
                 log.info("Shutting down...");
                 try {
                     mergeToolDemo.tearDown();
-                } catch (Exception e) {
+                } catch (final Exception e) {
                     log.error("Error while shutting down", e);
                 } finally {
                     log.info("Done shutting down");
@@ -120,12 +118,12 @@ public class MergeToolDemo {
         try {
             mergeToolDemo.setUp();
             mergeToolDemo.testMergeTool();
-        } catch (Exception e) {
+        } catch (final Exception e) {
             log.error("Error while testing merge tool", e);
         } finally {
             try {
                 mergeToolDemo.tearDown();
-            } catch (Exception e) {
+            } catch (final Exception e) {
                 log.error("Error shutting down merge tool.", e);
             }
         }
@@ -154,7 +152,7 @@ public class MergeToolDemo {
         accumuloDualInstanceDriver.tearDown();
     }
 
-    private void mergeToolRun(Date startDate) {
+    private void mergeToolRun(final Date startDate) {
         MergeTool.setupAndRun(new String[] {
                 makeArgument(MRUtils.AC_MOCK_PROP, Boolean.toString(IS_MOCK)),
                 makeArgument(MRUtils.AC_INSTANCE_PROP, PARENT_INSTANCE),
@@ -184,7 +182,7 @@ public class MergeToolDemo {
 
     public void testMergeTool() throws Exception {
         log.info("");
-        StringBuilder sb = new StringBuilder();
+        final StringBuilder sb = new StringBuilder();
         sb.append("Cases to check\n");
         sb.append("\n");
         sb.append("| **case** | **Parent** | **Child** | **assume that** | **merge modification** | **in parent after** |\n");
@@ -211,51 +209,51 @@ public class MergeToolDemo {
 
         // This statement was in both parent/child instances a month ago but after the start time of yesterday
         // the child deleted it and the parent still has it.  It should be deleted from the parent after merging.
-        RyaStatement ryaStatementCase1 = createRyaStatement("c1", "parent older", "child missing", LAST_MONTH);
+        final RyaStatement ryaStatementCase1 = createRyaStatement("c1", "parent older", "child missing", LAST_MONTH);
 
         // This statement was added by the parent after the start time of yesterday and doesn't exist in the child.
         // It should stay in the parent after merging.
-        RyaStatement ryaStatementCase2 = createRyaStatement("c2", "parent newer", "child missing", TODAY);
+        final RyaStatement ryaStatementCase2 = createRyaStatement("c2", "parent newer", "child missing", TODAY);
 
         // This statement was in both parent/child instances a month ago but after the start time of yesterday
         // the parent deleted it and the child still has it.  It should stay deleted in the parent after merging.
-        RyaStatement ryaStatementCase3 = createRyaStatement("c3", "parent missing", "child older", LAST_MONTH);
+        final RyaStatement ryaStatementCase3 = createRyaStatement("c3", "parent missing", "child older", LAST_MONTH);
 
         // This statement was added by the child after the start time of yesterday and doesn't exist in the parent.
         // It should be added to the parent after merging.
-        RyaStatement ryaStatementCase4 = createRyaStatement("c4", "parent missing", "child newer", TODAY);
+        final RyaStatement ryaStatementCase4 = createRyaStatement("c4", "parent missing", "child newer", TODAY);
 
         // This statement was in both parent/child instances a month ago and is before the start time of yesterday
         // but it was left alone.  It should remain in the parent after merging.
-        RyaStatement ryaStatementCase5 = createRyaStatement("c5", "parent older", "child older", LAST_MONTH);
+        final RyaStatement ryaStatementCase5 = createRyaStatement("c5", "parent older", "child older", LAST_MONTH);
 
         // This statement was added by the parent and child after the start time of yesterday.
         // It should remain in the parent after merging.
-        RyaStatement ryaStatementCase6 = createRyaStatement("c6", "parent newer", "child newer", TODAY);
+        final RyaStatement ryaStatementCase6 = createRyaStatement("c6", "parent newer", "child newer", TODAY);
 
         // This statement was modified by the child after the start time of yesterday.
         // It should deleted and then re-added to the parent with the new child data after merging.
-        RyaStatement ryaStatementCase7 = createRyaStatement("c7", "parent older", "child newer", LAST_MONTH);
+        final RyaStatement ryaStatementCase7 = createRyaStatement("c7", "parent older", "child newer", LAST_MONTH);
 
         // This statement was modified by the parent after the start time of yesterday.
         // It should deleted and then re-added to the parent with the new child data after merging.
-        RyaStatement ryaStatementCase8 = createRyaStatement("c8", "parent newer", "child older", LAST_MONTH);
+        final RyaStatement ryaStatementCase8 = createRyaStatement("c8", "parent newer", "child older", LAST_MONTH);
 
         // This statement was modified by the child to change the column visibility.
         // The parent should combine the child's visibility with its visibility.
-        RyaStatement ryaStatementVisibilityDifferent = createRyaStatement("c9", "I see", "you", LAST_MONTH);
+        final RyaStatement ryaStatementVisibilityDifferent = createRyaStatement("c9", "I see", "you", LAST_MONTH);
         ryaStatementVisibilityDifferent.setColumnVisibility(PARENT_COLUMN_VISIBILITY.getExpression());
 
         // Change statements that were updated by the parent or child after the start time.
-        RyaStatement ryaStatementCase7Updated = TestUtils.copyRyaStatement(ryaStatementCase7);
+        final RyaStatement ryaStatementCase7Updated = TestUtils.copyRyaStatement(ryaStatementCase7);
         ryaStatementCase7Updated.setSubject(TestUtils.createRyaUri("c7 BOB"));
         ryaStatementCase7Updated.setTimestamp(TODAY.getTime());
 
-        RyaStatement ryaStatementCase8Updated = TestUtils.copyRyaStatement(ryaStatementCase8);
+        final RyaStatement ryaStatementCase8Updated = TestUtils.copyRyaStatement(ryaStatementCase8);
         ryaStatementCase8Updated.setSubject(TestUtils.createRyaUri("c8 SUSAN"));
         ryaStatementCase8Updated.setTimestamp(TODAY.getTime());
 
-        RyaStatement ryaStatementVisibilityDifferentUpdated = TestUtils.copyRyaStatement(ryaStatementVisibilityDifferent);
+        final RyaStatement ryaStatementVisibilityDifferentUpdated = TestUtils.copyRyaStatement(ryaStatementVisibilityDifferent);
         ryaStatementVisibilityDifferentUpdated.setColumnVisibility(CHILD_COLUMN_VISIBILITY.getExpression());
 
         // Setup initial parent instance with 7 rows
@@ -282,7 +280,7 @@ public class MergeToolDemo {
             childDao.add(ryaStatementCase8);         // Merging should add statement
 
             // Create 5 hour 5 minute  5 second and 5 millisecond offset metadata key
-            Long timeOffset = TimeUnit.HOURS.toMillis(5) + TimeUnit.MINUTES.toMillis(5) + TimeUnit.SECONDS.toMillis(5) + TimeUnit.MILLISECONDS.toMillis(5);
+            final Long timeOffset = TimeUnit.HOURS.toMillis(5) + TimeUnit.MINUTES.toMillis(5) + TimeUnit.SECONDS.toMillis(5) + TimeUnit.MILLISECONDS.toMillis(5);
             log.info("Creating parent time offset of: " + TimeUtils.getDurationBreakdown(timeOffset));
             AccumuloRyaUtils.setTimeOffset(timeOffset, childDao);
         }
@@ -308,8 +306,8 @@ public class MergeToolDemo {
         AccumuloRyaUtils.printTablePretty(PARENT_TABLE_PREFIX + RdfCloudTripleStoreConstants.TBL_SPO_SUFFIX, parentConfig);
 
 
-        Scanner scanner = AccumuloRyaUtils.getScanner(PARENT_TABLE_PREFIX + RdfCloudTripleStoreConstants.TBL_SPO_SUFFIX, parentConfig);
-        Iterator<Entry<Key, Value>> iterator = scanner.iterator();
+        final Scanner scanner = AccumuloRyaUtils.getScanner(PARENT_TABLE_PREFIX + RdfCloudTripleStoreConstants.TBL_SPO_SUFFIX, parentConfig);
+        final Iterator<Entry<Key, Value>> iterator = scanner.iterator();
         int count = 0;
         while (iterator.hasNext()) {
             iterator.next();

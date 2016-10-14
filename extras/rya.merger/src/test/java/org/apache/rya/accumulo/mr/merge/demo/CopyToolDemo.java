@@ -1,24 +1,22 @@
-package org.apache.rya.accumulo.mr.merge.demo;
-
 /*
- * #%L
- * org.apache.rya.accumulo.mr.merge
- * %%
- * Copyright (C) 2014 Rya
- * %%
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- * #L%
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
  */
+package org.apache.rya.accumulo.mr.merge.demo;
 
 import static org.apache.rya.accumulo.mr.merge.util.TestUtils.LAST_MONTH;
 import static org.apache.rya.accumulo.mr.merge.util.TestUtils.TODAY;
@@ -97,13 +95,13 @@ public class CopyToolDemo {
     private AccumuloDualInstanceDriver accumuloDualInstanceDriver;
     private CopyTool copyTool = null;
 
-    public static void main(String args[]) {
+    public static void main(final String args[]) {
         DemoUtilities.setupLogging(LOGGING_DETAIL);
         log.info("Setting up Copy Tool Demo");
 
         Thread.setDefaultUncaughtExceptionHandler(new Thread.UncaughtExceptionHandler() {
             @Override
-            public void uncaughtException(Thread thread, Throwable throwable) {
+            public void uncaughtException(final Thread thread, final Throwable throwable) {
                 log.fatal("Uncaught exception in " + thread.getName(), throwable);
             }
         });
@@ -115,7 +113,7 @@ public class CopyToolDemo {
                 log.info("Shutting down...");
                 try {
                     copyToolDemo.tearDown();
-                } catch (Exception e) {
+                } catch (final Exception e) {
                     log.error("Error while shutting down", e);
                 } finally {
                     log.info("Done shutting down");
@@ -126,12 +124,12 @@ public class CopyToolDemo {
         try {
             copyToolDemo.setUp();
             copyToolDemo.testCopyTool();
-        } catch (Exception e) {
+        } catch (final Exception e) {
             log.error("Error while testing copy tool", e);
         } finally {
             try {
                 copyToolDemo.tearDown();
-            } catch (Exception e) {
+            } catch (final Exception e) {
                 log.error("Error shutting down copy tool", e);
             }
         }
@@ -162,7 +160,7 @@ public class CopyToolDemo {
         }
     }
 
-    private void copyToolRun(Date startDate) throws AccumuloException, AccumuloSecurityException {
+    private void copyToolRun(final Date startDate) throws AccumuloException, AccumuloSecurityException {
         copyTool = new CopyTool();
         copyTool.setupAndRun(new String[] {
                 makeArgument(MRUtils.AC_MOCK_PROP, Boolean.toString(IS_MOCK)),
@@ -195,17 +193,17 @@ public class CopyToolDemo {
                 makeArgument(MergeTool.START_TIME_PROP, MergeTool.getStartTimeString(startDate, IS_START_TIME_DIALOG_ENABLED))
         });
 
-        Configuration toolConfig = copyTool.getConf();
-        String zooKeepers = toolConfig.get(MRUtils.AC_ZK_PROP + CHILD_SUFFIX);
+        final Configuration toolConfig = copyTool.getConf();
+        final String zooKeepers = toolConfig.get(MRUtils.AC_ZK_PROP + CHILD_SUFFIX);
         MergeTool.setDuplicateKeysForProperty(childConfig, MRUtils.AC_ZK_PROP, zooKeepers);
 
         if (USE_COPY_FILE_OUTPUT) {
             // Set up the child tables now to test importing the files back into the child instance
-            String childTableName = CHILD_TABLE_PREFIX + RdfCloudTripleStoreConstants.TBL_SPO_SUFFIX;
+            final String childTableName = CHILD_TABLE_PREFIX + RdfCloudTripleStoreConstants.TBL_SPO_SUFFIX;
             try {
                 copyTool.createTableIfNeeded(childTableName);
                 copyTool.importFilesToChildTable(childTableName);
-            } catch (Exception e) {
+            } catch (final Exception e) {
                 log.error("Failed to import files into child instance.", e);
             }
         }
@@ -218,33 +216,33 @@ public class CopyToolDemo {
         log.info("Setting up initial state of parent before copying to child...");
         log.info("Adding data to parent...");
 
-        int numRowsNotToCopy = 80;
-        int numRowsToCopy = 20;
+        final int numRowsNotToCopy = 80;
+        final int numRowsToCopy = 20;
 
         // Create Rya Statement before last month which won't be copied
-        Random random = new Random();
+        final Random random = new Random();
 
         for (int i = 1; i <= numRowsNotToCopy; i++) {
-            long randTimeBeforeLastMonth = DemoUtilities.randLong(0, LAST_MONTH.getTime());
-            String randVis = random.nextBoolean() ? PARENT_AUTH : "";
-            RyaStatement ryaStatementOutOfTimeRange = createRyaStatement("Nobody", "sees", "me " + i, new Date(randTimeBeforeLastMonth));
+            final long randTimeBeforeLastMonth = DemoUtilities.randLong(0, LAST_MONTH.getTime());
+            final String randVis = random.nextBoolean() ? PARENT_AUTH : "";
+            final RyaStatement ryaStatementOutOfTimeRange = createRyaStatement("Nobody", "sees", "me " + i, new Date(randTimeBeforeLastMonth));
             ryaStatementOutOfTimeRange.setColumnVisibility(randVis.getBytes());
             parentDao.add(ryaStatementOutOfTimeRange);
         }
 
         for (int i = 1; i <= numRowsToCopy; i++) {
-            long randTimeAfterYesterdayAndBeforeToday = DemoUtilities.randLong(YESTERDAY.getTime(), TODAY.getTime());
-            String randVis = random.nextBoolean() ? PARENT_AUTH : "";
-            RyaStatement ryaStatementShouldCopy = createRyaStatement("bob", "copies", "susan " + i, new Date(randTimeAfterYesterdayAndBeforeToday));
+            final long randTimeAfterYesterdayAndBeforeToday = DemoUtilities.randLong(YESTERDAY.getTime(), TODAY.getTime());
+            final String randVis = random.nextBoolean() ? PARENT_AUTH : "";
+            final RyaStatement ryaStatementShouldCopy = createRyaStatement("bob", "copies", "susan " + i, new Date(randTimeAfterYesterdayAndBeforeToday));
             ryaStatementShouldCopy.setColumnVisibility(randVis.getBytes());
             parentDao.add(ryaStatementShouldCopy);
         }
 
         if (USE_COPY_FILE_OUTPUT) {
             // Set up table splits
-            SortedSet<Text> splits = new TreeSet<>();
+            final SortedSet<Text> splits = new TreeSet<>();
             for (char alphabet = 'a'; alphabet <= 'e'; alphabet++) {
-                Text letter = new Text(alphabet + "");
+                final Text letter = new Text(alphabet + "");
                 splits.add(letter);
             }
             parentDao.getConnector().tableOperations().addSplits(PARENT_TABLE_PREFIX + RdfCloudTripleStoreConstants.TBL_SPO_SUFFIX, splits);
@@ -273,8 +271,8 @@ public class CopyToolDemo {
 
 
         // Copy Tool made child instance so hook the tables and dao into the driver.
-        String childUser = accumuloDualInstanceDriver.getChildUser();
-        Connector childConnector = ConfigUtils.getConnector(childConfig);
+        final String childUser = accumuloDualInstanceDriver.getChildUser();
+        final Connector childConnector = ConfigUtils.getConnector(childConfig);
         accumuloDualInstanceDriver.getChildAccumuloInstanceDriver().setConnector(childConnector);
 
         accumuloDualInstanceDriver.getChildAccumuloInstanceDriver().setUpTables();
@@ -283,13 +281,13 @@ public class CopyToolDemo {
 
 
         // Update child config to include changes made from copy process
-        SecurityOperations childSecOps = accumuloDualInstanceDriver.getChildSecOps();
-        Authorizations newChildAuths = AccumuloRyaUtils.addUserAuths(childUser, childSecOps, PARENT_AUTH);
+        final SecurityOperations childSecOps = accumuloDualInstanceDriver.getChildSecOps();
+        final Authorizations newChildAuths = AccumuloRyaUtils.addUserAuths(childUser, childSecOps, PARENT_AUTH);
         childSecOps.changeUserAuthorizations(childUser, newChildAuths);
-        String childAuthString = newChildAuths.toString();
-        List<String> duplicateKeys = MergeTool.DUPLICATE_KEY_MAP.get(MRUtils.AC_AUTH_PROP);
+        final String childAuthString = newChildAuths.toString();
+        final List<String> duplicateKeys = MergeTool.DUPLICATE_KEY_MAP.get(MRUtils.AC_AUTH_PROP);
         childConfig.set(MRUtils.AC_AUTH_PROP, childAuthString);
-        for (String key : duplicateKeys) {
+        for (final String key : duplicateKeys) {
             childConfig.set(key, childAuthString);
         }
 
@@ -298,8 +296,8 @@ public class CopyToolDemo {
         //AccumuloRyaUtils.printTablePretty(CHILD_TABLE_PREFIX + RdfCloudTripleStoreConstants.TBL_OSP_SUFFIX, childConfig);
         AccumuloRyaUtils.printTablePretty(CHILD_TABLE_PREFIX + RdfCloudTripleStoreConstants.TBL_SPO_SUFFIX, childConfig);
 
-        Scanner scanner = AccumuloRyaUtils.getScanner(CHILD_TABLE_PREFIX + RdfCloudTripleStoreConstants.TBL_SPO_SUFFIX, childConfig);
-        Iterator<Entry<Key, Value>> iterator = scanner.iterator();
+        final Scanner scanner = AccumuloRyaUtils.getScanner(CHILD_TABLE_PREFIX + RdfCloudTripleStoreConstants.TBL_SPO_SUFFIX, childConfig);
+        final Iterator<Entry<Key, Value>> iterator = scanner.iterator();
         int count = 0;
         while (iterator.hasNext()) {
             iterator.next();

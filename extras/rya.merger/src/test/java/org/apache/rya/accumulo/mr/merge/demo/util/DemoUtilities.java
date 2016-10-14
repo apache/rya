@@ -1,24 +1,22 @@
-package org.apache.rya.accumulo.mr.merge.demo.util;
-
 /*
- * #%L
- * org.apache.rya.accumulo.mr.merge
- * %%
- * Copyright (C) 2014 Rya
- * %%
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- * #L%
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
  */
+package org.apache.rya.accumulo.mr.merge.demo.util;
 
 import java.util.Scanner;
 
@@ -54,7 +52,7 @@ public final class DemoUtilities {
          * Create a new {@link LoggingDetail}.
          * @param patternLayout the {@link PatternLayout}.
          */
-        private LoggingDetail(PatternLayout patternLayout) {
+        private LoggingDetail(final PatternLayout patternLayout) {
             this.patternLayout = patternLayout;
         }
 
@@ -95,7 +93,7 @@ public final class DemoUtilities {
      * Sets up log4j logging to fit the demo's needs.
      * @param loggingDetail the {@link LoggingDetail} to use.
      */
-    public static void setupLogging(LoggingDetail loggingDetail) {
+    public static void setupLogging(final LoggingDetail loggingDetail) {
         // Turn off all the loggers and customize how they write to the console.
         final Logger rootLogger = LogManager.getRootLogger();
         rootLogger.setLevel(Level.OFF);
@@ -119,7 +117,7 @@ public final class DemoUtilities {
      * @param isPromptEnabled {@code true} if prompt display is enabled. {@code false}
      * otherwise.
      */
-    public static void promptEnterKey(boolean isPromptEnabled) {
+    public static void promptEnterKey(final boolean isPromptEnabled) {
         if (isPromptEnabled) {
             log.info("Press \"ENTER\" to continue...");
             KEYBOARD_SCANNER.nextLine();

@@ -1,24 +1,22 @@
-package org.apache.rya.accumulo.mr.merge;
-
 /*
- * #%L
- * org.apache.rya.accumulo.mr.merge
- * %%
- * Copyright (C) 2014 Rya
- * %%
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- * #L%
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
  */
+package org.apache.rya.accumulo.mr.merge;
 
 import java.io.File;
 import java.io.IOException;
@@ -38,7 +36,9 @@ import org.apache.accumulo.core.client.IteratorSetting;
 import org.apache.accumulo.core.client.TableExistsException;
 import org.apache.accumulo.core.client.admin.SecurityOperations;
 import org.apache.accumulo.core.client.admin.TableOperations;
+import org.apache.accumulo.core.client.mapreduce.AbstractInputFormat;
 import org.apache.accumulo.core.client.mapreduce.AccumuloInputFormat;
+import org.apache.accumulo.core.client.mapreduce.InputFormatBase;
 import org.apache.accumulo.core.client.security.tokens.PasswordToken;
 import org.apache.accumulo.core.data.Mutation;
 import org.apache.accumulo.core.iterators.user.AgeOffFilter;
@@ -160,13 +160,13 @@ public class MergeTool extends AbstractDualInstanceAccumuloMRTool {
      * Sets duplicate keys in the config.
      * @param config the {@link Configuration}.
      */
-    public static void setDuplicateKeys(Configuration config) {
-        for (Entry<String, List<String>> entry : DUPLICATE_KEY_MAP.entrySet()) {
-            String key = entry.getKey();
-            List<String> duplicateKeys = entry.getValue();
-            String value = config.get(key);
+    public static void setDuplicateKeys(final Configuration config) {
+        for (final Entry<String, List<String>> entry : DUPLICATE_KEY_MAP.entrySet()) {
+            final String key = entry.getKey();
+            final List<String> duplicateKeys = entry.getValue();
+            final String value = config.get(key);
             if (value != null) {
-                for (String duplicateKey : duplicateKeys) {
+                for (final String duplicateKey : duplicateKeys) {
                     config.set(duplicateKey, value);
                 }
             }
@@ -179,11 +179,11 @@ public class MergeTool extends AbstractDualInstanceAccumuloMRTool {
      * @param property the property to set and all its duplicates.
      * @param value the value to set the property to.
      */
-    public static void setDuplicateKeysForProperty(Configuration config, String property, String value) {
-        List<String> duplicateKeys = DUPLICATE_KEY_MAP.get(property);
+    public static void setDuplicateKeysForProperty(final Configuration config, final String property, final String value) {
+        final List<String> duplicateKeys = DUPLICATE_KEY_MAP.get(property);
         config.set(property, value);
         if (duplicateKeys != null) {
-            for (String key : duplicateKeys) {
+            for (final String key : duplicateKeys) {
                 config.set(key, value);
             }
         }
@@ -212,26 +212,26 @@ public class MergeTool extends AbstractDualInstanceAccumuloMRTool {
             if (USE_START_TIME_DIALOG.equals(startTime)) {
                 log.info("Select start time from dialog...");
 
-                DateTimePickerDialog dateTimePickerDialog = new DateTimePickerDialog(DIALOG_TITLE, DIALOG_MESSAGE);
+                final DateTimePickerDialog dateTimePickerDialog = new DateTimePickerDialog(DIALOG_TITLE, DIALOG_MESSAGE);
                 dateTimePickerDialog.setVisible(true);
 
-                Date date = dateTimePickerDialog.getSelectedDateTime();
+                final Date date = dateTimePickerDialog.getSelectedDateTime();
                 startTime = START_TIME_FORMATTER.format(date);
                 conf.set(START_TIME_PROP, startTime);
                 log.info("Will merge all data after " + date);
             } else if (startTime != null) {
                 try {
-                    Date date = START_TIME_FORMATTER.parse(startTime);
+                    final Date date = START_TIME_FORMATTER.parse(startTime);
                     log.info("Will merge all data after " + date);
-                } catch (ParseException e) {
+                } catch (final ParseException e) {
                     throw new Exception("Unable to parse the provided start time: " + startTime, e);
                 }
             }
 
-            boolean useTimeSync = conf.getBoolean(CopyTool.USE_NTP_SERVER_PROP, false);
+            final boolean useTimeSync = conf.getBoolean(CopyTool.USE_NTP_SERVER_PROP, false);
             if (useTimeSync) {
-                String tomcatUrl = conf.get(CopyTool.CHILD_TOMCAT_URL_PROP, null);
-                String ntpServerHost = conf.get(CopyTool.NTP_SERVER_HOST_PROP, null);
+                final String tomcatUrl = conf.get(CopyTool.CHILD_TOMCAT_URL_PROP, null);
+                final String ntpServerHost = conf.get(CopyTool.NTP_SERVER_HOST_PROP, null);
                 Long timeOffset = null;
                 try {
                     log.info("Comparing child machine's time to NTP server time...");
@@ -251,7 +251,7 @@ public class MergeTool extends AbstractDualInstanceAccumuloMRTool {
     }
 
     @Override
-    public int run(String[] strings) throws Exception {
+    public int run(final String[] strings) throws Exception {
         useMergeFileInput = conf.getBoolean(USE_MERGE_FILE_INPUT, false);
 
         log.info("Setting up Merge Tool...");
@@ -263,14 +263,14 @@ public class MergeTool extends AbstractDualInstanceAccumuloMRTool {
             copyParentPropertiesToChild(conf);
         }
 
-        for (String table : tables) {
-            String childTable = table.replaceFirst(tablePrefix, childTablePrefix);
-            String jobName = "Merge Tool, merging Child Table: " + childTable + ", into Parent Table: " + table + ", " + System.currentTimeMillis();
+        for (final String table : tables) {
+            final String childTable = table.replaceFirst(tablePrefix, childTablePrefix);
+            final String jobName = "Merge Tool, merging Child Table: " + childTable + ", into Parent Table: " + table + ", " + System.currentTimeMillis();
             log.info("Initializing job: " + jobName);
             conf.set(MRUtils.JOB_NAME_PROP, jobName);
             conf.set(TABLE_NAME_PROP, table);
 
-            Job job = Job.getInstance(conf);
+            final Job job = Job.getInstance(conf);
             job.setJarByClass(MergeTool.class);
 
             if (useMergeFileInput) {
@@ -279,7 +279,7 @@ public class MergeTool extends AbstractDualInstanceAccumuloMRTool {
 
             setupAccumuloInput(job);
 
-            AccumuloInputFormat.setInputTableName(job, table);
+            InputFormatBase.setInputTableName(job, table);
 
             // Set input output of the particular job
             job.setMapOutputKeyClass(Text.class);
@@ -294,22 +294,22 @@ public class MergeTool extends AbstractDualInstanceAccumuloMRTool {
             job.setReducerClass(Reducer.class);
 
             // Submit the job
-            Date beginTime = new Date();
+            final Date beginTime = new Date();
             log.info("Job for table \"" + table + "\" started: " + beginTime);
-            int exitCode = job.waitForCompletion(true) ? 0 : 1;
+            final int exitCode = job.waitForCompletion(true) ? 0 : 1;
 
             if (useMergeFileInput && StringUtils.isNotBlank(tempChildAuths)) {
                 // Clear any of the temporary child auths given to the parent
-                AccumuloRdfConfiguration parentAccumuloRdfConfiguration = new AccumuloRdfConfiguration(conf);
+                final AccumuloRdfConfiguration parentAccumuloRdfConfiguration = new AccumuloRdfConfiguration(conf);
                 parentAccumuloRdfConfiguration.setTablePrefix(tablePrefix);
-                Connector parentConnector = AccumuloRyaUtils.setupConnector(parentAccumuloRdfConfiguration);
-                SecurityOperations secOps = parentConnector.securityOperations();
+                final Connector parentConnector = AccumuloRyaUtils.setupConnector(parentAccumuloRdfConfiguration);
+                final SecurityOperations secOps = parentConnector.securityOperations();
 
                 AccumuloRyaUtils.removeUserAuths(userName, secOps, tempChildAuths);
             }
 
             if (exitCode == 0) {
-                Date endTime = new Date();
+                final Date endTime = new Date();
                 log.info("Job for table \"" + table + "\" finished: " + endTime);
                 log.info("The job took " + (endTime.getTime() - beginTime.getTime()) / 1000 + " seconds.");
             } else {
@@ -326,27 +326,27 @@ public class MergeTool extends AbstractDualInstanceAccumuloMRTool {
      * @param childTableName the name of the child table.
      * @throws IOException
      */
-    public void createTempTableIfNeeded(String childTableName) throws IOException {
+    public void createTempTableIfNeeded(final String childTableName) throws IOException {
         try {
-            AccumuloRdfConfiguration accumuloRdfConfiguration = new AccumuloRdfConfiguration(conf);
+            final AccumuloRdfConfiguration accumuloRdfConfiguration = new AccumuloRdfConfiguration(conf);
             accumuloRdfConfiguration.setTablePrefix(childTablePrefix);
-            Connector connector = AccumuloRyaUtils.setupConnector(accumuloRdfConfiguration);
+            final Connector connector = AccumuloRyaUtils.setupConnector(accumuloRdfConfiguration);
             if (!connector.tableOperations().exists(childTableName)) {
                 log.info("Creating table: " + childTableName);
                 connector.tableOperations().create(childTableName);
                 log.info("Created table: " + childTableName);
                 log.info("Granting authorizations to table: " + childTableName);
-                SecurityOperations secOps = connector.securityOperations();
+                final SecurityOperations secOps = connector.securityOperations();
                 secOps.grantTablePermission(userName, childTableName, TablePermission.WRITE);
                 log.info("Granted authorizations to table: " + childTableName);
 
-                Authorizations parentAuths = secOps.getUserAuthorizations(userName);
+                final Authorizations parentAuths = secOps.getUserAuthorizations(userName);
                 // Add child authorizations so the temp parent table can be accessed.
                 if (!parentAuths.equals(childAuthorizations)) {
-                    List<String> childAuthList = findUniqueAuthsFromChild(parentAuths.toString(), childAuthorizations.toString());
+                    final List<String> childAuthList = findUniqueAuthsFromChild(parentAuths.toString(), childAuthorizations.toString());
                     tempChildAuths = Joiner.on(",").join(childAuthList);
                     log.info("Adding the authorization, \"" + tempChildAuths + "\", to the parent user, \"" + userName + "\"");
-                    Authorizations newAuths = AccumuloRyaUtils.addUserAuths(userName, secOps, new Authorizations(tempChildAuths));
+                    final Authorizations newAuths = AccumuloRyaUtils.addUserAuths(userName, secOps, new Authorizations(tempChildAuths));
                     secOps.changeUserAuthorizations(userName, newAuths);
                 }
             }
@@ -361,9 +361,9 @@ public class MergeTool extends AbstractDualInstanceAccumuloMRTool {
      * @param childAuths the comma-separated string of parent authorizations.
      * @return the unique child authorizations that are not in the parent.
      */
-    private static List<String> findUniqueAuthsFromChild(String parentAuths, String childAuths) {
-        List<String> parentAuthList = AccumuloRyaUtils.convertAuthStringToList(parentAuths);
-        List<String> childAuthList = AccumuloRyaUtils.convertAuthStringToList(childAuths);
+    private static List<String> findUniqueAuthsFromChild(final String parentAuths, final String childAuths) {
+        final List<String> parentAuthList = AccumuloRyaUtils.convertAuthStringToList(parentAuths);
+        final List<String> childAuthList = AccumuloRyaUtils.convertAuthStringToList(childAuths);
 
         childAuthList.removeAll(parentAuthList);
 
@@ -375,25 +375,25 @@ public class MergeTool extends AbstractDualInstanceAccumuloMRTool {
      * @param childTableName the name of the child table to import into a temporary parent table.
      * @throws Exception
      */
-    public void importChildFilesToTempParentTable(String childTableName) throws Exception {
+    public void importChildFilesToTempParentTable(final String childTableName) throws Exception {
         // Create a temporary table in the parent instance to import the child files to.  Then run the merge process on the parent table and temp child table.
-        String tempChildTable = childTableName + TEMP_SUFFIX;
+        final String tempChildTable = childTableName + TEMP_SUFFIX;
 
         createTempTableIfNeeded(tempChildTable);
 
-        AccumuloRdfConfiguration parentAccumuloRdfConfiguration = new AccumuloRdfConfiguration(conf);
+        final AccumuloRdfConfiguration parentAccumuloRdfConfiguration = new AccumuloRdfConfiguration(conf);
         parentAccumuloRdfConfiguration.setTablePrefix(childTablePrefix);
-        Connector parentConnector = AccumuloRyaUtils.setupConnector(parentAccumuloRdfConfiguration);
-        TableOperations parentTableOperations = parentConnector.tableOperations();
+        final Connector parentConnector = AccumuloRyaUtils.setupConnector(parentAccumuloRdfConfiguration);
+        final TableOperations parentTableOperations = parentConnector.tableOperations();
 
-        Path localWorkDir = CopyTool.getPath(localMergeFileImportDir, childTableName);
-        Path hdfsBaseWorkDir = CopyTool.getPath(baseImportDir, childTableName);
+        final Path localWorkDir = CopyTool.getPath(localMergeFileImportDir, childTableName);
+        final Path hdfsBaseWorkDir = CopyTool.getPath(baseImportDir, childTableName);
 
         CopyTool.copyLocalToHdfs(localWorkDir, hdfsBaseWorkDir, conf);
 
-        Path files = CopyTool.getPath(hdfsBaseWorkDir.toString(), "files");
-        Path failures = CopyTool.getPath(hdfsBaseWorkDir.toString(), "failures");
-        FileSystem fs = FileSystem.get(conf);
+        final Path files = CopyTool.getPath(hdfsBaseWorkDir.toString(), "files");
+        final Path failures = CopyTool.getPath(hdfsBaseWorkDir.toString(), "failures");
+        final FileSystem fs = FileSystem.get(conf);
         // With HDFS permissions on, we need to make sure the Accumulo user can read/move the files
         fs.setPermission(hdfsBaseWorkDir, new FsPermission(FsAction.ALL, FsAction.ALL, FsAction.ALL));
         if (fs.exists(failures)) {
@@ -410,7 +410,7 @@ public class MergeTool extends AbstractDualInstanceAccumuloMRTool {
      * Copies all the relevant parent instance config properties to the corresponding child properties.
      * @param config the {@link Configuration} to use.
      */
-    public static void copyParentPropertiesToChild(Configuration config) {
+    public static void copyParentPropertiesToChild(final Configuration config) {
         // Copy the parent properties for the child to use.
         copyParentPropToChild(config, MRUtils.AC_MOCK_PROP);
         copyParentPropToChild(config, MRUtils.AC_INSTANCE_PROP);
@@ -429,34 +429,34 @@ public class MergeTool extends AbstractDualInstanceAccumuloMRTool {
      * @param config the {@link Configuration} to use.
      * @param parentPropertyName the parent property name to use.
      */
-    public static void copyParentPropToChild(Configuration config, String parentPropertyName) {
-        String parentValue = config.get(parentPropertyName, "");
+    public static void copyParentPropToChild(final Configuration config, final String parentPropertyName) {
+        final String parentValue = config.get(parentPropertyName, "");
         config.set(parentPropertyName + MergeTool.CHILD_SUFFIX, parentValue);
     }
 
     @Override
-    protected void setupAccumuloInput(Job job) throws AccumuloSecurityException {
+    protected void setupAccumuloInput(final Job job) throws AccumuloSecurityException {
         // set up accumulo input
         if (!hdfsInput) {
             job.setInputFormatClass(AccumuloInputFormat.class);
         } else {
             job.setInputFormatClass(AccumuloHDFSFileInputFormat.class);
         }
-        AccumuloInputFormat.setConnectorInfo(job, userName, new PasswordToken(pwd));
-        AccumuloInputFormat.setInputTableName(job, RdfCloudTripleStoreUtils.layoutPrefixToTable(rdfTableLayout, tablePrefix));
-        AccumuloInputFormat.setScanAuthorizations(job, authorizations);
+        AbstractInputFormat.setConnectorInfo(job, userName, new PasswordToken(pwd));
+        InputFormatBase.setInputTableName(job, RdfCloudTripleStoreUtils.layoutPrefixToTable(rdfTableLayout, tablePrefix));
+        AbstractInputFormat.setScanAuthorizations(job, authorizations);
         if (!mock) {
-            AccumuloInputFormat.setZooKeeperInstance(job, new ClientConfiguration().withInstance(instance).withZkHosts(zk));
+            AbstractInputFormat.setZooKeeperInstance(job, new ClientConfiguration().withInstance(instance).withZkHosts(zk));
         } else {
-            AccumuloInputFormat.setMockInstance(job, instance);
+            AbstractInputFormat.setMockInstance(job, instance);
         }
         if (ttl != null) {
-            IteratorSetting setting = new IteratorSetting(1, "fi", AgeOffFilter.class);
+            final IteratorSetting setting = new IteratorSetting(1, "fi", AgeOffFilter.class);
             AgeOffFilter.setTTL(setting, Long.valueOf(ttl));
-            AccumuloInputFormat.addIterator(job, setting);
+            InputFormatBase.addIterator(job, setting);
         }
-        for (IteratorSetting iteratorSetting : AccumuloRyaUtils.COMMON_REG_EX_FILTER_SETTINGS) {
-            AccumuloInputFormat.addIterator(job, iteratorSetting);
+        for (final IteratorSetting iteratorSetting : AccumuloRyaUtils.COMMON_REG_EX_FILTER_SETTINGS) {
+            InputFormatBase.addIterator(job, iteratorSetting);
         }
     }
 
@@ -465,28 +465,28 @@ public class MergeTool extends AbstractDualInstanceAccumuloMRTool {
      * @param args the arguments list.
      * @return the execution result.
      */
-    public static int setupAndRun(String[] args) {
+    public static int setupAndRun(final String[] args) {
         int returnCode = -1;
         try {
-            Configuration conf = new Configuration();
-            Set<String> toolArgs = ToolConfigUtils.getUserArguments(conf, args);
+            final Configuration conf = new Configuration();
+            final Set<String> toolArgs = ToolConfigUtils.getUserArguments(conf, args);
             if (!toolArgs.isEmpty()) {
-                String parameters = Joiner.on("\r\n\t").join(toolArgs);
+                final String parameters = Joiner.on("\r\n\t").join(toolArgs);
                 log.info("Running Merge Tool with the following parameters...\r\n\t" + parameters);
             }
 
             returnCode = ToolRunner.run(conf, new MergeTool(), args);
-        } catch (Exception e) {
+        } catch (final Exception e) {
             log.error("Error running merge tool", e);
         }
         return returnCode;
     }
 
-    public static void main(String[] args) {
-        String log4jConfiguration = System.getProperties().getProperty("log4j.configuration");
+    public static void main(final String[] args) {
+        final String log4jConfiguration = System.getProperties().getProperty("log4j.configuration");
         if (StringUtils.isNotBlank(log4jConfiguration)) {
-            String parsedConfiguration = StringUtils.removeStart(log4jConfiguration, "file:");
-            File configFile = new File(parsedConfiguration);
+            final String parsedConfiguration = StringUtils.removeStart(log4jConfiguration, "file:");
+            final File configFile = new File(parsedConfiguration);
             if (configFile.exists()) {
                 DOMConfigurator.configure(parsedConfiguration);
             } else {
@@ -497,12 +497,12 @@ public class MergeTool extends AbstractDualInstanceAccumuloMRTool {
 
         Thread.setDefaultUncaughtExceptionHandler(new Thread.UncaughtExceptionHandler() {
             @Override
-            public void uncaughtException(Thread thread, Throwable throwable) {
+            public void uncaughtException(final Thread thread, final Throwable throwable) {
                 log.error("Uncaught exception in " + thread.getName(), throwable);
             }
         });
 
-        int returnCode = setupAndRun(args);
+        final int returnCode = setupAndRun(args);
 
         log.info("Finished running Merge Tool");
 
@@ -516,7 +516,7 @@ public class MergeTool extends AbstractDualInstanceAccumuloMRTool {
      * to use the provided {@code startDate}.
      * @return the formatted start time string or {@code "dialog"}.
      */
-    public static String getStartTimeString(Date startDate, boolean isStartTimeDialogEnabled) {
+    public static String getStartTimeString(final Date startDate, final boolean isStartTimeDialogEnabled) {
         String startTimeString;
         if (isStartTimeDialogEnabled) {
             startTimeString = USE_START_TIME_DIALOG; // set start date from dialog box
@@ -531,8 +531,8 @@ public class MergeTool extends AbstractDualInstanceAccumuloMRTool {
      * @param date the start {@link Date} of the filter that will be formatted as a string.
      * @return the formatted start time string.
      */
-    public static String convertDateToStartTimeString(Date date) {
-        String startTimeString = START_TIME_FORMATTER.format(date);
+    public static String convertDateToStartTimeString(final Date date) {
+        final String startTimeString = START_TIME_FORMATTER.format(date);
         return startTimeString;
     }
 
@@ -541,11 +541,11 @@ public class MergeTool extends AbstractDualInstanceAccumuloMRTool {
      * @param startTimeString the formatted time string.
      * @return the start {@link Date}.
      */
-    public static Date convertStartTimeStringToDate(String startTimeString) {
+    public static Date convertStartTimeStringToDate(final String startTimeString) {
         Date date;
         try {
             date = START_TIME_FORMATTER.parse(startTimeString);
-        } catch (ParseException e) {
+        } catch (final ParseException e) {
             log.error("Could not parse date", e);
             return null;
         }

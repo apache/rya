@@ -1,24 +1,22 @@
-package org.apache.rya.accumulo.mr.merge;
-
 /*
- * #%L
- * org.apache.rya.accumulo.mr.merge
- * %%
- * Copyright (C) 2014 Rya
- * %%
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- * #L%
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
  */
+package org.apache.rya.accumulo.mr.merge;
 
 import static org.apache.rya.accumulo.mr.merge.util.TestUtils.YESTERDAY;
 import static org.apache.rya.accumulo.mr.merge.util.ToolConfigUtils.makeArgument;
@@ -110,15 +108,15 @@ public class RulesetCopyIT {
         prefixes.put("rdf:", RDF.NAMESPACE);
         prefixes.put("rdfs:", RDFS.NAMESPACE);
         prefixes.put("owl:", OWL.NAMESPACE);
-        StringBuilder sb = new StringBuilder();
-        for (String prefix : prefixes.keySet()) {
+        final StringBuilder sb = new StringBuilder();
+        for (final String prefix : prefixes.keySet()) {
             sb.append("PREFIX " + prefix + " <" + prefixes.get(prefix) + ">\n");
         }
         QUERY_PREFIXES = sb.toString();
     }
 
-    private static RyaURI substitute(String uri) {
-        for (String prefix : prefixes.keySet()) {
+    private static RyaURI substitute(final String uri) {
+        for (final String prefix : prefixes.keySet()) {
             if (uri.startsWith(prefix)) {
                 return new RyaURI(uri.replace(prefix, prefixes.get(prefix)));
             }
@@ -126,21 +124,21 @@ public class RulesetCopyIT {
         return new RyaURI(uri);
     }
 
-    private static RyaStatement statement(String s, String p, RyaType o) {
-        RyaStatement ryaStatement = new RyaStatement(substitute(s), substitute(p), o);
+    private static RyaStatement statement(final String s, final String p, final RyaType o) {
+        final RyaStatement ryaStatement = new RyaStatement(substitute(s), substitute(p), o);
         ryaStatement.setTimestamp(YESTERDAY.getTime());
         return ryaStatement;
     }
 
-    private static RyaStatement statement(String s, String p, String o) {
+    private static RyaStatement statement(final String s, final String p, final String o) {
         return statement(s, p, substitute(o));
     }
 
-    private static RyaType literal(String lit) {
+    private static RyaType literal(final String lit) {
         return new RyaType(lit);
     }
 
-    private static RyaType literal(String lit, URI type) {
+    private static RyaType literal(final String lit, final URI type) {
         return new RyaType(type, lit);
     }
 
@@ -175,15 +173,15 @@ public class RulesetCopyIT {
         accumuloDualInstanceDriver.tearDown();
     }
 
-    private AccumuloRyaDAO runRulesetCopyTest(RyaStatement[] solutionStatements, RyaStatement[] copyStatements,
-            RyaStatement[] irrelevantStatements, String query, int numSolutions, boolean infer) throws Exception {
+    private AccumuloRyaDAO runRulesetCopyTest(final RyaStatement[] solutionStatements, final RyaStatement[] copyStatements,
+            final RyaStatement[] irrelevantStatements, final String query, final int numSolutions, final boolean infer) throws Exception {
         log.info("Adding data to parent...");
         parentDao.add(Arrays.asList(solutionStatements).iterator());
         parentDao.add(Arrays.asList(copyStatements).iterator());
         parentDao.add(Arrays.asList(irrelevantStatements).iterator());
 
         log.info("Copying from parent tables:");
-        for (String table : accumuloDualInstanceDriver.getParentTableList()) {
+        for (final String table : accumuloDualInstanceDriver.getParentTableList()) {
             AccumuloRyaUtils.printTablePretty(table, parentConfig, false);
         }
 
@@ -211,55 +209,55 @@ public class RulesetCopyIT {
                 makeArgument(RdfCloudTripleStoreConfiguration.CONF_INFER, Boolean.toString(infer))
         });
 
-        Configuration toolConfig = rulesetTool.getConf();
+        final Configuration toolConfig = rulesetTool.getConf();
         childConfig.set(MRUtils.AC_ZK_PROP, toolConfig.get(MRUtils.AC_ZK_PROP + CHILD_SUFFIX));
         MergeTool.setDuplicateKeys(childConfig);
 
         log.info("Finished running tool.");
 
         // Child instance has now been created
-        Connector childConnector = ConfigUtils.getConnector(childConfig);
+        final Connector childConnector = ConfigUtils.getConnector(childConfig);
         accumuloDualInstanceDriver.getChildAccumuloInstanceDriver().setConnector(childConnector);
         accumuloDualInstanceDriver.getChildAccumuloInstanceDriver().setUpTables();
         accumuloDualInstanceDriver.getChildAccumuloInstanceDriver().setUpDao();
-        AccumuloRyaDAO childDao = accumuloDualInstanceDriver.getChildDao();
+        final AccumuloRyaDAO childDao = accumuloDualInstanceDriver.getChildDao();
 
         log.info("Resulting child tables:");
-        for (String table : accumuloDualInstanceDriver.getChildTableList()) {
+        for (final String table : accumuloDualInstanceDriver.getChildTableList()) {
             AccumuloRyaUtils.printTablePretty(table, childConfig, false);
         }
 
-        for (RyaStatement solution : solutionStatements) {
-            Statement stmt = RyaToRdfConversions.convertStatement(solution);
+        for (final RyaStatement solution : solutionStatements) {
+            final Statement stmt = RyaToRdfConversions.convertStatement(solution);
             TestUtils.assertStatementInInstance("Child missing solution statement " + stmt,
                     1, solution, childDao, childConfig);
         }
-        for (RyaStatement copied : copyStatements) {
-            Statement stmt = RyaToRdfConversions.convertStatement(copied);
+        for (final RyaStatement copied : copyStatements) {
+            final Statement stmt = RyaToRdfConversions.convertStatement(copied);
             TestUtils.assertStatementInInstance("Child missing relevant statement " + stmt,
                     1, copied, childDao, childConfig);
         }
-        for (RyaStatement irrelevant : irrelevantStatements) {
-            Statement stmt = RyaToRdfConversions.convertStatement(irrelevant);
+        for (final RyaStatement irrelevant : irrelevantStatements) {
+            final Statement stmt = RyaToRdfConversions.convertStatement(irrelevant);
             TestUtils.assertStatementInInstance("Should not have copied irrelevant statement " + stmt,
                     0, irrelevant, childDao, childConfig);
         }
 
-        Set<BindingSet> parentSolutions = runQuery(query, parentConfig);
+        final Set<BindingSet> parentSolutions = runQuery(query, parentConfig);
         if (parentSolutions.isEmpty()) {
             log.info("No solutions to query in parent");
         }
         else {
-            for (BindingSet bs : parentSolutions) {
+            for (final BindingSet bs : parentSolutions) {
                 log.info("Parent yields query solution: " + bs);
             }
         }
-        Set<BindingSet> childSolutions = runQuery(query, childConfig);
+        final Set<BindingSet> childSolutions = runQuery(query, childConfig);
         if (childSolutions.isEmpty()) {
             log.info("No solutions to query in child");
         }
         else {
-            for (BindingSet bs : childSolutions) {
+            for (final BindingSet bs : childSolutions) {
                 log.info("Child yields query solution: " + bs);
             }
         }
@@ -268,16 +266,16 @@ public class RulesetCopyIT {
         return childDao;
     }
 
-    private Set<BindingSet> runQuery(String query, Configuration conf) throws Exception {
+    private Set<BindingSet> runQuery(final String query, final Configuration conf) throws Exception {
         SailRepository repository = null;
         SailRepositoryConnection conn = null;
         try {
-            Sail extSail = RyaSailFactory.getInstance(conf);
+            final Sail extSail = RyaSailFactory.getInstance(conf);
             repository = new SailRepository(extSail);
             repository.initialize();
             conn = repository.getConnection();
-            ResultHandler handler = new ResultHandler();
-            TupleQuery tq = conn.prepareTupleQuery(QueryLanguage.SPARQL, query);
+            final ResultHandler handler = new ResultHandler();
+            final TupleQuery tq = conn.prepareTupleQuery(QueryLanguage.SPARQL, query);
             tq.evaluate(handler);
             return handler.getSolutions();
         }
@@ -292,32 +290,32 @@ public class RulesetCopyIT {
     }
 
     private static class ResultHandler implements TupleQueryResultHandler {
-        private Set<BindingSet> solutions = new HashSet<>();
+        private final Set<BindingSet> solutions = new HashSet<>();
         public Set<BindingSet> getSolutions() {
             return solutions;
         }
         @Override
-        public void startQueryResult(List<String> arg0) throws TupleQueryResultHandlerException {
+        public void startQueryResult(final List<String> arg0) throws TupleQueryResultHandlerException {
         }
         @Override
-        public void handleSolution(BindingSet arg0) throws TupleQueryResultHandlerException {
+        public void handleSolution(final BindingSet arg0) throws TupleQueryResultHandlerException {
             solutions.add(arg0);
         }
         @Override
         public void endQueryResult() throws TupleQueryResultHandlerException {
         }
         @Override
-        public void handleBoolean(boolean arg0) throws QueryResultHandlerException {
+        public void handleBoolean(final boolean arg0) throws QueryResultHandlerException {
         }
         @Override
-        public void handleLinks(List<String> arg0) throws QueryResultHandlerException {
+        public void handleLinks(final List<String> arg0) throws QueryResultHandlerException {
         }
     }
 
     @Test
     public void testRulesetCopyTool() throws Exception {
         // Should be copied and are involved in the solution:
-        RyaStatement[] solutionStatements = {
+        final RyaStatement[] solutionStatements = {
             statement("test:FullProfessor1", "rdf:type", "test:FullProfessor"),
             statement("test:GraduateStudent1", "test:advisor", "test:FullProfessor1"),
             statement("test:FullProfessor1", "test:telephone", literal("123-456-7890")),
@@ -327,7 +325,7 @@ public class RulesetCopyIT {
             statement("test:University1", "geo:asWKT", literal("Point(-77.03524 38.889468)", new URIImpl("http://www.opengis.net/ont/geosparql#wktLiteral")))
         };
         // These aren't solutions but should be copied:
-        RyaStatement[] copyStatements = {
+        final RyaStatement[] copyStatements = {
             statement("test:FullProfessor2", "rdf:type", "test:FullProfessor"),
             statement("test:GraduateStudent1", "test:advisor", "test:AssistantProfessor1"),
             statement("test:GraduateStudent1", "test:telephone", literal("555-123-4567")),
@@ -335,7 +333,7 @@ public class RulesetCopyIT {
             statement("test:University1", "test:telephone", literal("800-123-4567"))
         };
         // Should not be copied:
-        RyaStatement[] irrelevantStatements = {
+        final RyaStatement[] irrelevantStatements = {
             statement("test:GraduateStudent2", "test:advisor", "test:FullProfessor1"),
             statement("test:UndergraduateStudent1", "rdf:type", "test:UndergraduateStudent"),
             statement("test:UndergraduateStudent2", "rdf:type", "test:UndergraduateStudent"),
@@ -354,7 +352,7 @@ public class RulesetCopyIT {
             statement("test:University1", "test:employs", "test:FullProfessor2")
         };
 
-        String query = QUERY_PREFIXES + "SELECT * {\n"
+        final String query = QUERY_PREFIXES + "SELECT * {\n"
             + "    test:GraduateStudent1 test:advisor ?person .\n"
             + "    ?person rdf:type test:FullProfessor .\n"
             + "    ?person test:telephone ?number .\n"
@@ -369,14 +367,14 @@ public class RulesetCopyIT {
 //            + "    FILTER(tempo:after(?time, '2000-01-01T01:01:03-08:00'))\n"
             + "}";
 
-        int parentNamespaceCount = 2;
+        final int parentNamespaceCount = 2;
         int childNamespaceCount = 0;
         parentDao.addNamespace("ns1", "http://www.example.com/ns1#");
         parentDao.addNamespace("ns2", "http://www.example.com/ns2#");
         // Run the test
-        AccumuloRyaDAO childDao = runRulesetCopyTest(solutionStatements, copyStatements, irrelevantStatements, query, 1, false);
+        final AccumuloRyaDAO childDao = runRulesetCopyTest(solutionStatements, copyStatements, irrelevantStatements, query, 1, false);
         // Verify namespaces were copied
-        CloseableIteration<Namespace, RyaDAOException> nsIter = childDao.iterateNamespace();
+        final CloseableIteration<Namespace, RyaDAOException> nsIter = childDao.iterateNamespace();
         while (nsIter.hasNext()) {
             childNamespaceCount++;
             nsIter.next();
@@ -390,13 +388,13 @@ public class RulesetCopyIT {
      */
     @Test
     public void testRulesetCopyHierarchy() throws Exception {
-        RyaStatement[] solutionStatements = {
+        final RyaStatement[] solutionStatements = {
                 statement("test:p1", "rdf:type", "test:Professor"),
                 statement("test:p1", "test:worksFor", "test:Department0"),
                 statement("test:p2", "rdf:type", "test:FullProfessor"),
                 statement("test:p2", "test:headOf", "test:Department0"),
         };
-        RyaStatement[] copyStatements = {
+        final RyaStatement[] copyStatements = {
                 // schema:
                 statement("test:Professor", "rdfs:subClassOf", "test:Person"),
                 statement("test:Student", "rdfs:subClassOf", "test:Person"),
@@ -410,7 +408,7 @@ public class RulesetCopyIT {
                 statement("test:ap1", "rdf:type", "test:AssistantProfessor"),
                 statement("test:gs1", "rdf:type", "test:GraduateStudent"),
         };
-        RyaStatement[] otherStatements = {
+        final RyaStatement[] otherStatements = {
                 // schema:
                 statement("test:worksFor", "rdfs:subPropertyOf", "test:affiliatedWith"),
                 statement("test:Person", "rdfs:subClassOf", "test:Animal"),
@@ -418,7 +416,7 @@ public class RulesetCopyIT {
                 statement("test:University0", "test:hasSubOrganizationOf", "test:Department0"),
                 statement("test:a1", "rdf:type", "test:Animal")
         };
-        String query = QUERY_PREFIXES + "SELECT * {\n"
+        final String query = QUERY_PREFIXES + "SELECT * {\n"
                 + "    ?X rdf:type test:Person .\n"
                 + "    ?X test:memberOf test:Department0 .\n"
                 + "}";
@@ -431,7 +429,7 @@ public class RulesetCopyIT {
      */
     @Test
     public void testRulesetCopySameAs() throws Exception {
-        String query = QUERY_PREFIXES + "SELECT * {\n"
+        final String query = QUERY_PREFIXES + "SELECT * {\n"
                 + "    {\n"
                 + "        ?X test:worksFor test:Department0 .\n"
                 + "        ?X rdf:type test:Student\n"
@@ -440,7 +438,7 @@ public class RulesetCopyIT {
                 + "        test:p1 test:worksFor test:CSDept .\n"
                 + "    }\n"
                 + "}";
-        RyaStatement[] solutionStatements = {
+        final RyaStatement[] solutionStatements = {
             statement("test:s1", "test:worksFor", "test:CSDept"),
             statement("test:s1", "rdf:type", "test:Student"),
             statement("test:p1", "rdf:type", "test:Professor"),
@@ -449,12 +447,12 @@ public class RulesetCopyIT {
             statement("test:p1", "owl:sameAs", "alt:p1"),
             statement("test:JohnDoe", "owl:sameAs", "alt:p1")
         };
-        RyaStatement[] copyStatements = {
+        final RyaStatement[] copyStatements = {
             statement("test:s2", "rdf:type", "test:Student"),
             statement("alt:s2", "test:worksFor", "test:CSDept"),
             statement("test:s3", "test:worksFor", "test:CSDept")
         };
-        RyaStatement[] otherStatements = {
+        final RyaStatement[] otherStatements = {
             // sameAs inference only expands constants:
             statement("test:s2", "owl:sameAs", "alt:s2"),
             // sameAs inference not applied to rdf:type statements:
@@ -472,12 +470,12 @@ public class RulesetCopyIT {
      */
     @Test
     public void testRulesetCopyTransitive() throws Exception {
-        String query = QUERY_PREFIXES + "SELECT * {\n"
+        final String query = QUERY_PREFIXES + "SELECT * {\n"
                 // Note: we get spurious results if the order of these are switched (see RYA-71):
                 + "    ?X test:subOrganizationOf test:University0 .\n"
                 + "    ?X rdf:type test:ResearchGroup .\n"
                 + "}";
-        RyaStatement[] solutionStatements = {
+        final RyaStatement[] solutionStatements = {
                 statement("test:subOrganizationOf", "rdf:type", "owl:TransitiveProperty"),
                 statement("test:ResearchGroup0", "rdf:type", "test:ResearchGroup"),
                 statement("test:ResearchGroup0", "test:subOrganizationOf", "test:Department0"),
@@ -485,14 +483,14 @@ public class RulesetCopyIT {
                 statement("test:Subgroup0", "rdf:type", "test:ResearchGroup"),
                 statement("test:Subgroup0", "test:subOrganizationOf", "test:ResearchGroup0")
         };
-        RyaStatement[] copyStatements = {
+        final RyaStatement[] copyStatements = {
                 statement("test:ResearchGroupA", "rdf:type", "test:ResearchGroup"),
                 statement("test:ResearchGroupA", "test:subOrganizationOf", "test:DepartmentA"),
                 statement("test:DepartmentA", "test:subOrganizationOf", "test:UniversityA"),
                 statement("test:OtherGroup0", "test:subOrganizationOf", "test:Department0"),
                 statement("test:Department1", "test:subOrganizationOf", "test:University0")
         };
-        RyaStatement[] otherStatements = {
+        final RyaStatement[] otherStatements = {
                 statement("test:University0", "rdf:type", "test:University"),
                 statement("test:Department0", "test:affiliatedWith", "test:University0")
         };
@@ -506,11 +504,11 @@ public class RulesetCopyIT {
      */
     @Test
     public void testRulesetCopyInverse() throws Exception {
-        String query = QUERY_PREFIXES + "SELECT * {\n"
+        final String query = QUERY_PREFIXES + "SELECT * {\n"
                 + "    ?X rdf:type test:Person .\n"
                 + "    test:University0 test:hasAlumnus ?X .\n"
                 + "}";
-        RyaStatement[] solutionStatements = {
+        final RyaStatement[] solutionStatements = {
             statement("test:s1", "rdf:type", "test:Person"),
             statement("test:p1", "rdf:type", "test:Person"),
             statement("test:s1", "test:undergraduateDegreeFrom", "test:University0"),
@@ -519,11 +517,11 @@ public class RulesetCopyIT {
             statement("test:doctoralDegreeFrom", "rdfs:subPropertyOf", "test:degreeFrom"),
             statement("test:hasAlumnus", "owl:inverseOf", "test:degreeFrom")
         };
-        RyaStatement[] copyStatements = {
+        final RyaStatement[] copyStatements = {
             statement("test:mastersDegreeFrom", "rdfs:subPropertyOf", "test:degreeFrom"),
             statement("test:s2", "test:mastersDegreeFrom", "test:University0"),
         };
-        RyaStatement[] otherStatements = {
+        final RyaStatement[] otherStatements = {
             statement("test:p1", "test:mastersDegreeFrom", "test:University1"),
         };
         runRulesetCopyTest(solutionStatements, copyStatements, otherStatements, query, 2, true);
@@ -535,11 +533,11 @@ public class RulesetCopyIT {
      */
     @Test
     public void testRulesetCopySymmetry() throws Exception {
-        String query = QUERY_PREFIXES + "SELECT * {\n"
+        final String query = QUERY_PREFIXES + "SELECT * {\n"
                 + "    ?X rdf:type test:Person .\n"
                 + "    ?X test:knows test:Alice .\n"
                 + "}";
-        RyaStatement[] solutionStatements = {
+        final RyaStatement[] solutionStatements = {
             statement("test:Alice", "test:knows", "test:Bob"),
             statement("test:Alice", "test:friendsWith", "test:Carol"),
             statement("test:Bob", "rdf:type", "test:Person"),
@@ -547,11 +545,11 @@ public class RulesetCopyIT {
             statement("test:friendsWith", "rdfs:subPropertyOf", "test:knows"),
             statement("test:knows", "rdf:type", "owl:SymmetricProperty")
         };
-        RyaStatement[] copyStatements = {
+        final RyaStatement[] copyStatements = {
             statement("test:Alice", "rdf:type", "test:Person"),
             statement("test:Eve", "rdf:type", "test:Person")
         };
-        RyaStatement[] otherStatements = {
+        final RyaStatement[] otherStatements = {
             statement("test:Carol", "test:knows", "test:Eve"),
             statement("test:Bob", "test:friendsWith", "test:Carol")
         };

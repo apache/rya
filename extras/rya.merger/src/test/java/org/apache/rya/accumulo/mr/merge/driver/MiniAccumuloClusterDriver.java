@@ -1,24 +1,22 @@
-package org.apache.rya.accumulo.mr.merge.driver;
-
 /*
- * #%L
- * org.apache.rya.accumulo.mr.merge
- * %%
- * Copyright (C) 2014 Rya
- * %%
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- * #L%
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
  */
+package org.apache.rya.accumulo.mr.merge.driver;
 
 import static org.apache.rya.accumulo.mr.merge.util.TestUtils.LAST_MONTH;
 import static org.apache.rya.accumulo.mr.merge.util.TestUtils.TODAY;
@@ -61,41 +59,41 @@ public class MiniAccumuloClusterDriver extends AccumuloDualInstanceDriver {
     private void writeStatements() throws RyaDAOException, IOException {
         // This statement was in both parent/child instances a month ago and is before the start time of yesterday
         // but it was left alone.  It should remain in the parent after merging.
-        RyaStatement ryaStatementOutOfTimeRange = createRyaStatement("coach", "called", "timeout", LAST_MONTH);
+        final RyaStatement ryaStatementOutOfTimeRange = createRyaStatement("coach", "called", "timeout", LAST_MONTH);
 
         // This statement was in both parent/child instances a month ago but after the start time of yesterday
         // the parent deleted it and the child still has it.  It should stay deleted in the parent after merging.
-        RyaStatement ryaStatementParentDeletedAfter = createRyaStatement("parent", "deleted", "after", LAST_MONTH);
+        final RyaStatement ryaStatementParentDeletedAfter = createRyaStatement("parent", "deleted", "after", LAST_MONTH);
 
         // This statement was added by the parent after the start time of yesterday and doesn't exist in the child.
         // It should stay in the parent after merging.
-        RyaStatement ryaStatementParentAddedAfter = createRyaStatement("parent", "added", "after", TODAY);
+        final RyaStatement ryaStatementParentAddedAfter = createRyaStatement("parent", "added", "after", TODAY);
 
         // This statement was in both parent/child instances a month ago but after the start time of yesterday
         // the child deleted it and the parent still has it.  It should be deleted from the parent after merging.
-        RyaStatement ryaStatementChildDeletedAfter = createRyaStatement("child", "deleted", "after", LAST_MONTH);
+        final RyaStatement ryaStatementChildDeletedAfter = createRyaStatement("child", "deleted", "after", LAST_MONTH);
 
         // This statement was added by the child after the start time of yesterday and doesn't exist in the parent.
         // It should be added to the parent after merging.
-        RyaStatement ryaStatementChildAddedAfter = createRyaStatement("child", "added", "after", TODAY);
+        final RyaStatement ryaStatementChildAddedAfter = createRyaStatement("child", "added", "after", TODAY);
 
         // This statement was modified by the child after the start of yesterday (The timestamp changes after updating)
         // It should be updated in the parent to match the child.
-        RyaStatement ryaStatementUpdatedByChild = createRyaStatement("bob", "catches", "ball", LAST_MONTH);
+        final RyaStatement ryaStatementUpdatedByChild = createRyaStatement("bob", "catches", "ball", LAST_MONTH);
 
-        RyaStatement ryaStatementUntouchedByChild = createRyaStatement("bill", "talks to", "john", LAST_MONTH);
+        final RyaStatement ryaStatementUntouchedByChild = createRyaStatement("bill", "talks to", "john", LAST_MONTH);
 
-        RyaStatement ryaStatementDeletedByChild = createRyaStatement("susan", "eats", "burgers", LAST_MONTH);
+        final RyaStatement ryaStatementDeletedByChild = createRyaStatement("susan", "eats", "burgers", LAST_MONTH);
 
-        RyaStatement ryaStatementAddedByChild = createRyaStatement("ronnie", "plays", "guitar", TODAY);
+        final RyaStatement ryaStatementAddedByChild = createRyaStatement("ronnie", "plays", "guitar", TODAY);
 
         // This statement was modified by the child to change the column visibility.
         // The parent should combine the child's visibility with its visibility.
-        RyaStatement ryaStatementVisibilityDifferent = createRyaStatement("I", "see", "you", LAST_MONTH);
+        final RyaStatement ryaStatementVisibilityDifferent = createRyaStatement("I", "see", "you", LAST_MONTH);
         ryaStatementVisibilityDifferent.setColumnVisibility(PARENT_COLUMN_VISIBILITY.getExpression());
 
-        List<RyaStatement> parentStatements = new ArrayList<>();
-        List<RyaStatement> childStatements = new ArrayList<>();
+        final List<RyaStatement> parentStatements = new ArrayList<>();
+        final List<RyaStatement> childStatements = new ArrayList<>();
 
         // Setup initial parent instance with 7 rows
         // This is the state of the parent data (as it is today) before merging occurs which will use the specified start time of yesterday.
@@ -133,12 +131,12 @@ public class MiniAccumuloClusterDriver extends AccumuloDualInstanceDriver {
         AccumuloRyaUtils.printTable(CHILD_TABLE_PREFIX + RdfCloudTripleStoreConstants.TBL_SPO_SUFFIX, getChildConfig());
     }
 
-    public static void main(String args[]) {
+    public static void main(final String args[]) {
         log.info("Setting up MiniAccumulo Cluster");
 
         Thread.setDefaultUncaughtExceptionHandler(new Thread.UncaughtExceptionHandler() {
             @Override
-            public void uncaughtException(Thread thread, Throwable throwable) {
+            public void uncaughtException(final Thread thread, final Throwable throwable) {
                 log.fatal("Uncaught exception in " + thread.getName(), throwable);
             }
         });
@@ -149,7 +147,7 @@ public class MiniAccumuloClusterDriver extends AccumuloDualInstanceDriver {
             log.info("Populating clusters");
             macDriver.writeStatements();
             log.info("MiniAccumuloClusters running and populated");
-        } catch (Exception e) {
+        } catch (final Exception e) {
             log.error("Error setting up and writing statements", e);
             keepRunning = false;
         }
@@ -160,7 +158,7 @@ public class MiniAccumuloClusterDriver extends AccumuloDualInstanceDriver {
                 log.info("Shutting down...");
                 try {
                     macDriver.tearDown();
-                } catch (Exception e) {
+                } catch (final Exception e) {
                     log.error("Error while shutting down", e);
                 } finally {
                     keepRunning = false;
@@ -172,7 +170,7 @@ public class MiniAccumuloClusterDriver extends AccumuloDualInstanceDriver {
         while(keepRunning) {
             try {
                 Thread.sleep(2000);
-            } catch (InterruptedException e) {
+            } catch (final InterruptedException e) {
                 log.error("Interrupted exception while running MiniAccumuloClusterDriver", e);
                 keepRunning = false;
             }

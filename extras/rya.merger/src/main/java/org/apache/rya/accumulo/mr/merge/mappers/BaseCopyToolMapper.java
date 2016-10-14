@@ -1,24 +1,22 @@
-package org.apache.rya.accumulo.mr.merge.mappers;
-
 /*
- * #%L
- * org.apache.rya.accumulo.mr.merge
- * %%
- * Copyright (C) 2014 Rya
- * %%
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- * #L%
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
  */
+package org.apache.rya.accumulo.mr.merge.mappers;
 
 import java.io.IOException;
 import java.net.URI;
@@ -96,7 +94,7 @@ public class BaseCopyToolMapper<KEYIN, VALUEIN, KEYOUT, VALUEOUT> extends Mapper
     }
 
     @Override
-    protected void setup(Context context) throws IOException, InterruptedException {
+    protected void setup(final Context context) throws IOException, InterruptedException {
         super.setup(context);
 
         log.info("Setting up mapper");
@@ -109,12 +107,12 @@ public class BaseCopyToolMapper<KEYIN, VALUEIN, KEYOUT, VALUEOUT> extends Mapper
             startTime = MergeTool.convertStartTimeStringToDate(startTimeString);
         }
 
-        String runTimeString = parentConfig.get(CopyTool.COPY_RUN_TIME_PROP, null);
+        final String runTimeString = parentConfig.get(CopyTool.COPY_RUN_TIME_PROP, null);
         if (runTimeString != null) {
             runTime = MergeTool.convertStartTimeStringToDate(runTimeString);
         }
 
-        String offsetString = parentConfig.get(CopyTool.PARENT_TIME_OFFSET_PROP, null);
+        final String offsetString = parentConfig.get(CopyTool.PARENT_TIME_OFFSET_PROP, null);
         if (offsetString != null) {
             timeOffset = Long.valueOf(offsetString);
         }
@@ -166,24 +164,24 @@ public class BaseCopyToolMapper<KEYIN, VALUEIN, KEYOUT, VALUEOUT> extends Mapper
         if (useCopyFileOutput) {
             // The "mapreduce.job.cache.local.files" property contains a comma-separated
             // list of cached local file paths.
-            String cachedLocalFiles = parentConfig.get(MRJobConfig.CACHE_LOCALFILES);
+            final String cachedLocalFiles = parentConfig.get(MRJobConfig.CACHE_LOCALFILES);
             if (cachedLocalFiles != null) {
-                List<String> cachedLocalFilesList = Lists.newArrayList(Splitter.on(',').split(cachedLocalFiles));
-                List<String> formattedCachedLocalFilesList = new ArrayList<>();
-                for (String cachedLocalFile : cachedLocalFilesList) {
+                final List<String> cachedLocalFilesList = Lists.newArrayList(Splitter.on(',').split(cachedLocalFiles));
+                final List<String> formattedCachedLocalFilesList = new ArrayList<>();
+                for (final String cachedLocalFile : cachedLocalFilesList) {
                     String pathToAdd = cachedLocalFile;
                     if (cachedLocalFile.endsWith("splits.txt")) {
                         URI uri = null;
                         try {
                             uri = new URI(cachedLocalFiles);
                             pathToAdd = uri.getPath();
-                        } catch (URISyntaxException e) {
+                        } catch (final URISyntaxException e) {
                             log.error("Invalid syntax in local cache file path", e);
                         }
                     }
                     formattedCachedLocalFilesList.add(pathToAdd);
                 }
-                String formattedCachedLocalFiles = Joiner.on(',').join(formattedCachedLocalFilesList);
+                final String formattedCachedLocalFiles = Joiner.on(',').join(formattedCachedLocalFilesList);
                 if (!cachedLocalFiles.equals(formattedCachedLocalFiles)) {
                     parentConfig.set(MRJobConfig.CACHE_LOCALFILES, formattedCachedLocalFiles);
                 }
@@ -191,7 +189,7 @@ public class BaseCopyToolMapper<KEYIN, VALUEIN, KEYOUT, VALUEOUT> extends Mapper
         }
     }
 
-    protected void addMetadataKeys(Context context) throws IOException {
+    protected void addMetadataKeys(final Context context) throws IOException {
         try {
             if (AccumuloRyaUtils.getCopyToolRunDate(childDao) == null) {
                 log.info("Writing copy tool run time metadata to child table: " + runTime);
@@ -206,7 +204,7 @@ public class BaseCopyToolMapper<KEYIN, VALUEIN, KEYOUT, VALUEOUT> extends Mapper
                 log.info("Writing copy tool time offset metadata to child table: " + timeOffset);
                 AccumuloRyaUtils.setTimeOffset(timeOffset, childDao);
             }
-        } catch (RyaDAOException e) {
+        } catch (final RyaDAOException e) {
             throw new IOException("Failed to set time metadata key for table: " + childTableName, e);
         }
     }
@@ -228,15 +226,15 @@ public class BaseCopyToolMapper<KEYIN, VALUEIN, KEYOUT, VALUEOUT> extends Mapper
 
     protected void copyAuthorizations() throws IOException {
         try {
-            SecurityOperations parentSecOps = parentConnector.securityOperations();
-            SecurityOperations childSecOps = childConnector.securityOperations();
+            final SecurityOperations parentSecOps = parentConnector.securityOperations();
+            final SecurityOperations childSecOps = childConnector.securityOperations();
 
-            Authorizations parentAuths = parentSecOps.getUserAuthorizations(parentUser);
-            Authorizations childAuths = childSecOps.getUserAuthorizations(childUser);
+            final Authorizations parentAuths = parentSecOps.getUserAuthorizations(parentUser);
+            final Authorizations childAuths = childSecOps.getUserAuthorizations(childUser);
             // Add any parent authorizations that the child doesn't have.
             if (!childAuths.equals(parentAuths)) {
                 log.info("Adding the authorization, \"" + parentAuths.toString() + "\", to the child user, \"" + childUser + "\"");
-                Authorizations newChildAuths = AccumuloRyaUtils.addUserAuths(childUser, childSecOps, parentAuths);
+                final Authorizations newChildAuths = AccumuloRyaUtils.addUserAuths(childUser, childSecOps, parentAuths);
                 childSecOps.changeUserAuthorizations(childUser, newChildAuths);
             }
         } catch (AccumuloException | AccumuloSecurityException e) {
@@ -245,14 +243,14 @@ public class BaseCopyToolMapper<KEYIN, VALUEIN, KEYOUT, VALUEOUT> extends Mapper
     }
 
     @Override
-    protected void cleanup(Context context) throws IOException, InterruptedException {
+    protected void cleanup(final Context context) throws IOException, InterruptedException {
         super.cleanup(context);
         log.info("Cleaning up mapper...");
         try {
             if (childDao != null) {
                 childDao.destroy();
             }
-        } catch (RyaDAOException e) {
+        } catch (final RyaDAOException e) {
             log.error("Error destroying child DAO", e);
         }
         log.info("Cleaned up mapper");

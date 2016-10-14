@@ -1,24 +1,22 @@
-package org.apache.rya.accumulo.mr.merge;
-
 /*
- * #%L
- * org.apache.rya.accumulo.mr.merge
- * %%
- * Copyright (C) 2014 Rya
- * %%
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- * #L%
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
  */
+package org.apache.rya.accumulo.mr.merge;
 
 import java.io.BufferedOutputStream;
 import java.io.File;
@@ -49,6 +47,7 @@ import org.apache.accumulo.core.client.mapreduce.AccumuloFileOutputFormat;
 import org.apache.accumulo.core.client.mapreduce.AccumuloInputFormat;
 import org.apache.accumulo.core.client.mapreduce.AccumuloMultiTableInputFormat;
 import org.apache.accumulo.core.client.mapreduce.AccumuloOutputFormat;
+import org.apache.accumulo.core.client.mapreduce.InputFormatBase;
 import org.apache.accumulo.core.client.mapreduce.InputTableConfig;
 import org.apache.accumulo.core.client.mapreduce.lib.partition.KeyRangePartitioner;
 import org.apache.accumulo.core.client.mock.MockInstance;
@@ -74,6 +73,8 @@ import org.apache.hadoop.fs.permission.FsPermission;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.Reducer;
+import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
+import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.mapreduce.lib.output.LazyOutputFormat;
 import org.apache.hadoop.mapreduce.lib.output.MultipleOutputs;
 import org.apache.hadoop.util.ToolRunner;
@@ -373,7 +374,7 @@ public class CopyTool extends AbstractDualInstanceAccumuloMRTool {
 
                 setupAccumuloInput(job);
 
-                AccumuloInputFormat.setInputTableName(job, table);
+                InputFormatBase.setInputTableName(job, table);
 
                 // Set input output of the particular job
                 if (useCopyFileOutput) {
@@ -719,7 +720,7 @@ public class CopyTool extends AbstractDualInstanceAccumuloMRTool {
     protected void setupAccumuloInput(final Job job) throws AccumuloSecurityException {
         if (useCopyFileImport) {
             try {
-                AccumuloHDFSFileInputFormat.setInputPaths(job, localCopyFileImportDir);
+                FileInputFormat.setInputPaths(job, localCopyFileImportDir);
             } catch (final IOException e) {
                 log.error("Failed to set copy file import directory", e);
             }
@@ -730,25 +731,25 @@ public class CopyTool extends AbstractDualInstanceAccumuloMRTool {
             } else {
                 job.setInputFormatClass(AccumuloHDFSFileInputFormat.class);
             }
-            AccumuloInputFormat.setConnectorInfo(job, userName, new PasswordToken(pwd));
-            AccumuloInputFormat.setInputTableName(job, RdfCloudTripleStoreUtils.layoutPrefixToTable(rdfTableLayout, tablePrefix));
-            AccumuloInputFormat.setScanAuthorizations(job, authorizations);
+            AbstractInputFormat.setConnectorInfo(job, userName, new PasswordToken(pwd));
+            InputFormatBase.setInputTableName(job, RdfCloudTripleStoreUtils.layoutPrefixToTable(rdfTableLayout, tablePrefix));
+            AbstractInputFormat.setScanAuthorizations(job, authorizations);
             if (!mock) {
-                AccumuloInputFormat.setZooKeeperInstance(job, new ClientConfiguration().withInstance(instance).withZkHosts(zk));
+                AbstractInputFormat.setZooKeeperInstance(job, new ClientConfiguration().withInstance(instance).withZkHosts(zk));
             } else {
-                AccumuloInputFormat.setMockInstance(job, instance);
+                AbstractInputFormat.setMockInstance(job, instance);
             }
             if (ttl != null) {
                 final IteratorSetting setting = new IteratorSetting(1, "fi", AgeOffFilter.class);
                 AgeOffFilter.setTTL(setting, Long.valueOf(ttl));
-                AccumuloInputFormat.addIterator(job, setting);
+                InputFormatBase.addIterator(job, setting);
             }
             if (startTime != null) {
                 final IteratorSetting setting = getStartTimeSetting(startTime);
-                AccumuloInputFormat.addIterator(job, setting);
+                InputFormatBase.addIterator(job, setting);
             }
             for (final IteratorSetting iteratorSetting : AccumuloRyaUtils.COMMON_REG_EX_FILTER_SETTINGS) {
-                AccumuloInputFormat.addIterator(job, iteratorSetting);
+                InputFormatBase.addIterator(job, iteratorSetting);
             }
         }
     }
@@ -832,7 +833,7 @@ public class CopyTool extends AbstractDualInstanceAccumuloMRTool {
                 } catch (final IOException e) {
                     log.error("Failed to set permission for output path.", e);
                 }
-                AccumuloFileOutputFormat.setOutputPath(job, filesOutputPath);
+                FileOutputFormat.setOutputPath(job, filesOutputPath);
 
                 if (StringUtils.isNotBlank(compressionType)) {
                     if (isValidCompressionType(compressionType)) {

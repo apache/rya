@@ -1,24 +1,22 @@
-package org.apache.rya.accumulo.mr.merge.util;
-
 /*
- * #%L
- * org.apache.rya.accumulo.mr.merge
- * %%
- * Copyright (C) 2014 Rya
- * %%
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- * #L%
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
  */
+package org.apache.rya.accumulo.mr.merge.util;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -66,9 +64,9 @@ public class CopyRule extends QueryModelNodeBase {
      * @throws ValueExprEvaluationException
      * @throws QueryEvaluationException
      */
-    public static boolean accept(Statement stmt, ValueExpr condition, EvaluationStrategy strategy)
+    public static boolean accept(final Statement stmt, final ValueExpr condition, final EvaluationStrategy strategy)
             throws ValueExprEvaluationException, QueryEvaluationException {
-        QueryBindingSet bindings = new QueryBindingSet();
+        final QueryBindingSet bindings = new QueryBindingSet();
         bindings.addBinding(SUBJ_VAR.getName(), stmt.getSubject());
         bindings.addBinding(PRED_VAR.getName(), stmt.getPredicate());
         bindings.addBinding(OBJ_VAR.getName(), stmt.getObject());
@@ -85,13 +83,13 @@ public class CopyRule extends QueryModelNodeBase {
      * @param expr Condition to be evaluated
      * @return true if the condition is trivial
      */
-    private static boolean trivialCondition(ValueExpr expr) {
+    private static boolean trivialCondition(final ValueExpr expr) {
         // If the expression is null or the constant "true":
         if (expr == null || expr.equals(TRUE)) {
             return true;
         }
         // If the expression contains undefined variables:
-        VarSearchVisitor visitor = new VarSearchVisitor(UNDEFINED_VAR.getName());
+        final VarSearchVisitor visitor = new VarSearchVisitor(UNDEFINED_VAR.getName());
         expr.visit(visitor);
         if (visitor.found) {
             return true;
@@ -105,18 +103,18 @@ public class CopyRule extends QueryModelNodeBase {
      */
     private static class VarSearchVisitor extends QueryModelVisitorBase<RuntimeException> {
         boolean found = false;
-        private String queryVar;
-        public VarSearchVisitor(String queryVar) {
+        private final String queryVar;
+        public VarSearchVisitor(final String queryVar) {
             this.queryVar = queryVar;
         }
         @Override
-        public void meet(Var var) {
+        public void meet(final Var var) {
             if (queryVar.equals(var.getName())) {
                 found = true;
             }
         }
         @Override
-        public void meetNode(QueryModelNode node) {
+        public void meetNode(final QueryModelNode node) {
             if (!found) {
                 node.visitChildren(this);
             }
@@ -129,13 +127,13 @@ public class CopyRule extends QueryModelNodeBase {
      * conditions.
      */
     private static class RuleVisitor extends QueryModelVisitorBase<RuntimeException> {
-        private CopyRule rule;
-        RuleVisitor(CopyRule rule) {
+        private final CopyRule rule;
+        RuleVisitor(final CopyRule rule) {
             this.rule = rule;
         }
         @Override
-        public void meet(Var node) {
-            String oldName = node.getName();
+        public void meet(final Var node) {
+            final String oldName = node.getName();
             if (rule.varMap.containsKey(oldName)) {
                 node.setName(rule.varMap.get(oldName).getName());
             }
@@ -153,12 +151,12 @@ public class CopyRule extends QueryModelNodeBase {
          * we must assume the statement is relevant. Otherwise, keep both sides.
          */
         @Override
-        public void meet(And expr) {
-            ValueExpr left = expr.getLeftArg();
-            ValueExpr right = expr.getRightArg();
+        public void meet(final And expr) {
+            final ValueExpr left = expr.getLeftArg();
+            final ValueExpr right = expr.getRightArg();
             left.visit(this);
             right.visit(this);
-            QueryModelNode parent = expr.getParentNode();
+            final QueryModelNode parent = expr.getParentNode();
             if (trivialCondition(left)) {
                 if (trivialCondition(right)) {
                     // Both sides are trivial; replace whole node
@@ -177,22 +175,22 @@ public class CopyRule extends QueryModelNodeBase {
         }
     }
 
-    private StatementPattern statement;
+    private final StatementPattern statement;
     private ValueExpr condition;
-    private Map<String, Var> varMap = new HashMap<>();
-    private RuleVisitor visitor = new RuleVisitor(this);
+    private final Map<String, Var> varMap = new HashMap<>();
+    private final RuleVisitor visitor = new RuleVisitor(this);
 
     /**
      * Instantiate a rule containing a StatementPattern, renaming any variables to canonical
      * subject/predicate/object forms and saving the mappings from the original variable names.
      * @param sp StatementPattern defining a set of triples to match
      */
-    public CopyRule(StatementPattern sp) throws QueryRulesetException {
+    public CopyRule(final StatementPattern sp) throws QueryRulesetException {
         statement = sp;
-        Var subjVar = statement.getSubjectVar();
-        Var predVar = statement.getPredicateVar();
-        Var objVar = statement.getObjectVar();
-        Var conVar = statement.getContextVar();
+        final Var subjVar = statement.getSubjectVar();
+        final Var predVar = statement.getPredicateVar();
+        final Var objVar = statement.getObjectVar();
+        final Var conVar = statement.getContextVar();
         int variables = 0;
         if (subjVar == null || !subjVar.hasValue()) {
             sp.setSubjectVar(SUBJ_VAR);
@@ -227,9 +225,9 @@ public class CopyRule extends QueryModelNodeBase {
     /**
      * Set the complete condition.
      */
-    private void setCondition(ValueExpr newCondition) {
-        this.condition = newCondition;
-        this.condition.setParentNode(this);
+    private void setCondition(final ValueExpr newCondition) {
+        condition = newCondition;
+        condition.setParentNode(this);
     }
 
     /**
@@ -239,13 +237,13 @@ public class CopyRule extends QueryModelNodeBase {
      * so that we are guaranteed to include all relevant statements.
      * @param condition A boolean filter expression
      */
-    public void addCondition(ValueExpr condition) {
-        ValueExpr newCondition = condition.clone();
+    public void addCondition(final ValueExpr condition) {
+        final ValueExpr newCondition = condition.clone();
         if (this.condition == null) {
             setCondition(newCondition);
         }
         else {
-            this.setCondition(new And(this.condition, newCondition));
+            setCondition(new And(this.condition, newCondition));
         }
         this.condition.visit(visitor);
         // If, after rewriting, the condition still contains undefined variables, we can't
@@ -292,7 +290,7 @@ public class CopyRule extends QueryModelNodeBase {
      *      must be a ValueExpr or null.
      */
     @Override
-    public void replaceChildNode(QueryModelNode current, QueryModelNode replacement) {
+    public void replaceChildNode(final QueryModelNode current, final QueryModelNode replacement) {
         if (current.equals(condition) && replacement instanceof ValueExpr) {
             setCondition(((ValueExpr) replacement).clone());
         }
@@ -308,7 +306,7 @@ public class CopyRule extends QueryModelNodeBase {
      * Apply a visitor to both the statement and any conditions.
      */
     @Override
-    public <X extends Exception> void visit(QueryModelVisitor<X> visitor) throws X {
+    public <X extends Exception> void visit(final QueryModelVisitor<X> visitor) throws X {
         if (statement != null) {
             statement.visit(visitor);
         }
@@ -319,7 +317,7 @@ public class CopyRule extends QueryModelNodeBase {
 
     @Override
     public String toString() {
-        StringBuilder sb = new StringBuilder(statement.toString().trim());
+        final StringBuilder sb = new StringBuilder(statement.toString().trim());
         if (condition != null) {
             sb.append("\n   Condition:\n   \t");
             sb.append(condition.toString().trim().replace("\n", "\n   \t"));
@@ -328,17 +326,17 @@ public class CopyRule extends QueryModelNodeBase {
     }
 
     @Override
-    public boolean equals(Object obj) {
+    public boolean equals(final Object obj) {
         if (!obj.getClass().equals(CopyRule.class)) {
             return false;
         }
-        CopyRule other = (CopyRule) obj;
-        if ((this.statement != null && !this.statement.equals(other.statement))
-                || (this.statement == null && other.statement != null)) {
+        final CopyRule other = (CopyRule) obj;
+        if ((statement != null && !statement.equals(other.statement))
+                || (statement == null && other.statement != null)) {
             return false;
         }
-        if ((this.condition != null && !this.condition.equals(other.condition))
-                || (this.condition == null && other.condition != null)) {
+        if ((condition != null && !condition.equals(other.condition))
+                || (condition == null && other.condition != null)) {
             return false;
         }
         return true;
@@ -356,23 +354,23 @@ public class CopyRule extends QueryModelNodeBase {
      * @param other Rule to compare against
      * @return true if this rule will necessarily match everything the other rule would.
      */
-    public boolean isGeneralizationOf(CopyRule other) {
-        if (this.statement == null || other.statement == null) {
+    public boolean isGeneralizationOf(final CopyRule other) {
+        if (statement == null || other.statement == null) {
             return false;
         }
         // If each component of the statement and the condition are at least as general
         // as the other rule's, then this rule is at least as general.
-        return varIsGeneralization(this.statement.getSubjectVar(), other.statement.getSubjectVar())
-                && varIsGeneralization(this.statement.getPredicateVar(), other.statement.getPredicateVar())
-                && varIsGeneralization(this.statement.getObjectVar(), other.statement.getObjectVar())
-                && varIsGeneralization(this.statement.getContextVar(), other.statement.getContextVar())
-                && (this.condition == null || this.condition.equals(other.condition));
+        return varIsGeneralization(statement.getSubjectVar(), other.statement.getSubjectVar())
+                && varIsGeneralization(statement.getPredicateVar(), other.statement.getPredicateVar())
+                && varIsGeneralization(statement.getObjectVar(), other.statement.getObjectVar())
+                && varIsGeneralization(statement.getContextVar(), other.statement.getContextVar())
+                && (condition == null || condition.equals(other.condition));
     }
 
     /**
      * Determine whether the first variable is at least as general as the second.
      */
-    private static boolean varIsGeneralization(Var first, Var second) {
+    private static boolean varIsGeneralization(final Var first, final Var second) {
         if (first == null || !first.hasValue()) {
             // if first is a variable, it is at least as general
             return true;

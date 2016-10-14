@@ -1,24 +1,22 @@
-package org.apache.rya.accumulo.mr.merge;
-
 /*
- * #%L
- * org.apache.rya.accumulo.mr.merge
- * %%
- * Copyright (C) 2014 Rya
- * %%
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- * #L%
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
  */
+package org.apache.rya.accumulo.mr.merge;
 
 import static org.apache.rya.accumulo.mr.merge.util.TestUtils.LAST_MONTH;
 import static org.apache.rya.accumulo.mr.merge.util.TestUtils.TODAY;
@@ -137,11 +135,11 @@ public class CopyToolTest {
         accumuloDualInstanceDriver.tearDown();
     }
 
-    private void assertStatementInChild(String description, int verifyResultCount, RyaStatement matchStatement) throws RyaDAOException {
+    private void assertStatementInChild(final String description, final int verifyResultCount, final RyaStatement matchStatement) throws RyaDAOException {
         TestUtils.assertStatementInInstance(description, verifyResultCount, matchStatement, childDao, childConfig);
     }
 
-    private void copyToolRun(Date startDate) throws AccumuloException, AccumuloSecurityException {
+    private void copyToolRun(final Date startDate) throws AccumuloException, AccumuloSecurityException {
         copyTool = new CopyTool();
         copyTool.setupAndRun(new String[] {
                 makeArgument(MRUtils.AC_MOCK_PROP, Boolean.toString(IS_MOCK)),
@@ -172,8 +170,8 @@ public class CopyToolTest {
                 makeArgument(MergeTool.START_TIME_PROP, MergeTool.getStartTimeString(startDate, IS_START_TIME_DIALOG_ENABLED))
         });
 
-        Configuration toolConfig = copyTool.getConf();
-        String zooKeepers = toolConfig.get(MRUtils.AC_ZK_PROP + CHILD_SUFFIX);
+        final Configuration toolConfig = copyTool.getConf();
+        final String zooKeepers = toolConfig.get(MRUtils.AC_ZK_PROP + CHILD_SUFFIX);
         MergeTool.setDuplicateKeysForProperty(childConfig, MRUtils.AC_ZK_PROP, zooKeepers);
 
         log.info("Finished running tool.");
@@ -181,20 +179,20 @@ public class CopyToolTest {
 
     @Test
     public void testCopyTool() throws Exception {
-        RyaStatement ryaStatementOutOfTimeRange = createRyaStatement("coach", "called", "timeout", LAST_MONTH);
+        final RyaStatement ryaStatementOutOfTimeRange = createRyaStatement("coach", "called", "timeout", LAST_MONTH);
 
-        RyaStatement ryaStatementShouldCopy1 = createRyaStatement("bob", "catches", "ball", YESTERDAY);
-        RyaStatement ryaStatementShouldCopy2 = createRyaStatement("bill", "talks to", "john", YESTERDAY);
-        RyaStatement ryaStatementShouldCopy3 = createRyaStatement("susan", "eats", "burgers", TODAY);
-        RyaStatement ryaStatementShouldCopy4 = createRyaStatement("ronnie", "plays", "guitar", TODAY);
+        final RyaStatement ryaStatementShouldCopy1 = createRyaStatement("bob", "catches", "ball", YESTERDAY);
+        final RyaStatement ryaStatementShouldCopy2 = createRyaStatement("bill", "talks to", "john", YESTERDAY);
+        final RyaStatement ryaStatementShouldCopy3 = createRyaStatement("susan", "eats", "burgers", TODAY);
+        final RyaStatement ryaStatementShouldCopy4 = createRyaStatement("ronnie", "plays", "guitar", TODAY);
 
-        RyaStatement ryaStatementDoesNotExist1 = createRyaStatement("nobody", "was", "here", LAST_MONTH);
-        RyaStatement ryaStatementDoesNotExist2 = createRyaStatement("statement", "not", "found", YESTERDAY);
-        RyaStatement ryaStatementDoesNotExist3 = createRyaStatement("key", "does not", "exist", TODAY);
+        final RyaStatement ryaStatementDoesNotExist1 = createRyaStatement("nobody", "was", "here", LAST_MONTH);
+        final RyaStatement ryaStatementDoesNotExist2 = createRyaStatement("statement", "not", "found", YESTERDAY);
+        final RyaStatement ryaStatementDoesNotExist3 = createRyaStatement("key", "does not", "exist", TODAY);
 
         // This statement was modified by the child to change the column visibility.
         // The parent should combine the child's visibility with its visibility.
-        RyaStatement ryaStatementVisibilityDifferent = createRyaStatement("I", "see", "you", YESTERDAY);
+        final RyaStatement ryaStatementVisibilityDifferent = createRyaStatement("I", "see", "you", YESTERDAY);
         ryaStatementVisibilityDifferent.setColumnVisibility(PARENT_COLUMN_VISIBILITY.getExpression());
 
         // Setup initial parent instance with 7 rows
@@ -217,8 +215,8 @@ public class CopyToolTest {
 
 
         // Copy Tool made child instance so hook the tables and dao into the driver.
-        String childUser = accumuloDualInstanceDriver.getChildUser();
-        Connector childConnector = ConfigUtils.getConnector(childConfig);
+        final String childUser = accumuloDualInstanceDriver.getChildUser();
+        final Connector childConnector = ConfigUtils.getConnector(childConfig);
         accumuloDualInstanceDriver.getChildAccumuloInstanceDriver().setConnector(childConnector);
 
         accumuloDualInstanceDriver.getChildAccumuloInstanceDriver().setUpTables();
@@ -228,21 +226,21 @@ public class CopyToolTest {
 
 
         // Update child config to include changes made from copy process
-        SecurityOperations childSecOps = accumuloDualInstanceDriver.getChildSecOps();
+        final SecurityOperations childSecOps = accumuloDualInstanceDriver.getChildSecOps();
         Authorizations newChildAuths = AccumuloRyaUtils.addUserAuths(childUser, childSecOps, PARENT_AUTH);
         childSecOps.changeUserAuthorizations(childUser, newChildAuths);
-        String childAuthString = newChildAuths.toString();
-        List<String> duplicateKeys = MergeTool.DUPLICATE_KEY_MAP.get(MRUtils.AC_AUTH_PROP);
+        final String childAuthString = newChildAuths.toString();
+        final List<String> duplicateKeys = MergeTool.DUPLICATE_KEY_MAP.get(MRUtils.AC_AUTH_PROP);
         childConfig.set(MRUtils.AC_AUTH_PROP, childAuthString);
-        for (String key : duplicateKeys) {
+        for (final String key : duplicateKeys) {
             childConfig.set(key, childAuthString);
         }
         AccumuloRyaUtils.printTablePretty(CHILD_TABLE_PREFIX + RdfCloudTripleStoreConstants.TBL_PO_SUFFIX, childConfig);
         AccumuloRyaUtils.printTablePretty(CHILD_TABLE_PREFIX + RdfCloudTripleStoreConstants.TBL_OSP_SUFFIX, childConfig);
         AccumuloRyaUtils.printTablePretty(CHILD_TABLE_PREFIX + RdfCloudTripleStoreConstants.TBL_SPO_SUFFIX, childConfig);
 
-        Scanner scanner = AccumuloRyaUtils.getScanner(CHILD_TABLE_PREFIX + RdfCloudTripleStoreConstants.TBL_SPO_SUFFIX, childConfig);
-        Iterator<Entry<Key, Value>> iterator = scanner.iterator();
+        final Scanner scanner = AccumuloRyaUtils.getScanner(CHILD_TABLE_PREFIX + RdfCloudTripleStoreConstants.TBL_SPO_SUFFIX, childConfig);
+        final Iterator<Entry<Key, Value>> iterator = scanner.iterator();
         int count = 0;
         while (iterator.hasNext()) {
             iterator.next();
@@ -273,21 +271,21 @@ public class CopyToolTest {
 
         // Check that it can be queried with parent's visibility
         childConfig.set(RdfCloudTripleStoreConfiguration.CONF_QUERY_AUTH, PARENT_AUTH);
-        SecurityOperations secOps = IS_MOCK ? accumuloDualInstanceDriver.getChildSecOps() : childSecOps;
+        final SecurityOperations secOps = IS_MOCK ? accumuloDualInstanceDriver.getChildSecOps() : childSecOps;
         newChildAuths = AccumuloRyaUtils.addUserAuths(accumuloDualInstanceDriver.getChildUser(), secOps, PARENT_AUTH);
         secOps.changeUserAuthorizations(accumuloDualInstanceDriver.getChildUser(), newChildAuths);
         assertStatementInChild("Child missing statement with parent visibility", 1, ryaStatementVisibilityDifferent);
 
         // Check that it can NOT be queried with some other visibility
         childConfig.set(RdfCloudTripleStoreConfiguration.CONF_QUERY_AUTH, "bad_auth");
-        CloseableIteration<RyaStatement, RyaDAOException> iter = childDao.getQueryEngine().query(ryaStatementVisibilityDifferent, childConfig);
+        final CloseableIteration<RyaStatement, RyaDAOException> iter = childDao.getQueryEngine().query(ryaStatementVisibilityDifferent, childConfig);
         count = 0;
         try {
             while (iter.hasNext()) {
                 iter.next();
                 count++;
             }
-        } catch (Exception e) {
+        } catch (final Exception e) {
             // Expected
             if (!(e.getCause() instanceof AccumuloSecurityException)) {
                 fail();
@@ -316,8 +314,8 @@ public class CopyToolTest {
 
 
         // Import Directory Tool made child instance so hook the tables and dao into the driver.
-        String childUser = accumuloDualInstanceDriver.getChildUser();
-        Connector childConnector = ConfigUtils.getConnector(childConfig);
+        final String childUser = accumuloDualInstanceDriver.getChildUser();
+        final Connector childConnector = ConfigUtils.getConnector(childConfig);
         accumuloDualInstanceDriver.getChildAccumuloInstanceDriver().setConnector(childConnector);
 
         accumuloDualInstanceDriver.getChildAccumuloInstanceDriver().setUpTables();
@@ -326,13 +324,13 @@ public class CopyToolTest {
 
 
         // Update child config to include changes made from import directory process
-        SecurityOperations childSecOps = accumuloDualInstanceDriver.getChildSecOps();
-        Authorizations newChildAuths = AccumuloRyaUtils.addUserAuths(childUser, childSecOps, PARENT_AUTH);
+        final SecurityOperations childSecOps = accumuloDualInstanceDriver.getChildSecOps();
+        final Authorizations newChildAuths = AccumuloRyaUtils.addUserAuths(childUser, childSecOps, PARENT_AUTH);
         childSecOps.changeUserAuthorizations(childUser, newChildAuths);
-        String childAuthString = newChildAuths.toString();
-        List<String> duplicateKeys = MergeTool.DUPLICATE_KEY_MAP.get(MRUtils.AC_AUTH_PROP);
+        final String childAuthString = newChildAuths.toString();
+        final List<String> duplicateKeys = MergeTool.DUPLICATE_KEY_MAP.get(MRUtils.AC_AUTH_PROP);
         childConfig.set(MRUtils.AC_AUTH_PROP, childAuthString);
-        for (String key : duplicateKeys) {
+        for (final String key : duplicateKeys) {
             childConfig.set(key, childAuthString);
         }
 
@@ -341,8 +339,8 @@ public class CopyToolTest {
         //AccumuloRyaUtils.printTablePretty(CHILD_TABLE_PREFIX + RdfCloudTripleStoreConstants.TBL_OSP_SUFFIX, childConfig);
         AccumuloRyaUtils.printTablePretty(CHILD_TABLE_PREFIX + RdfCloudTripleStoreConstants.TBL_SPO_SUFFIX, childConfig);
 
-        Scanner scanner = AccumuloRyaUtils.getScanner(CHILD_TABLE_PREFIX + RdfCloudTripleStoreConstants.TBL_SPO_SUFFIX, childConfig);
-        Iterator<Entry<Key, Value>> iterator = scanner.iterator();
+        final Scanner scanner = AccumuloRyaUtils.getScanner(CHILD_TABLE_PREFIX + RdfCloudTripleStoreConstants.TBL_SPO_SUFFIX, childConfig);
+        final Iterator<Entry<Key, Value>> iterator = scanner.iterator();
         int count = 0;
         while (iterator.hasNext()) {
             iterator.next();

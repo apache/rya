@@ -1,24 +1,22 @@
-package org.apache.rya.accumulo.mr.merge.util;
-
 /*
- * #%L
- * org.apache.rya.accumulo.mr.merge
- * %%
- * Copyright (C) 2014 Rya
- * %%
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- * #L%
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
  */
+package org.apache.rya.accumulo.mr.merge.util;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
@@ -83,10 +81,10 @@ public class QueryRuleset {
      */
     public static class QueryRulesetException extends Exception {
         private static final long serialVersionUID = 1L;
-        public QueryRulesetException(String s) {
+        public QueryRulesetException(final String s) {
             super(s);
         }
-        public QueryRulesetException(String s, Throwable throwable) {
+        public QueryRulesetException(final String s, final Throwable throwable) {
             super(s, throwable);
         }
     }
@@ -96,15 +94,15 @@ public class QueryRuleset {
      */
     private static class RulesetVisitor extends QueryModelVisitorBase<QueryRulesetException> {
         List<CopyRule> rules = new LinkedList<>();
-        private Set<Value> superclasses = new HashSet<>();
-        private Set<Value> superproperties = new HashSet<>();
-        private Set<Value> sameAs = new HashSet<>();
-        private Set<Value> transitive = new HashSet<>();
-        private Set<Value> schemaProperties = new HashSet<>();
+        private final Set<Value> superclasses = new HashSet<>();
+        private final Set<Value> superproperties = new HashSet<>();
+        private final Set<Value> sameAs = new HashSet<>();
+        private final Set<Value> transitive = new HashSet<>();
+        private final Set<Value> schemaProperties = new HashSet<>();
 
         @Override
         public void meet(StatementPattern node) throws QueryRulesetException {
-            Var predVar = node.getPredicateVar();
+            final Var predVar = node.getPredicateVar();
             // If this is a transitive property node, just match all statements with that property
             if (node instanceof TransitivePropertySP && predVar.hasValue()) {
                 node = new StatementPattern(new Var("transitiveSubject"), predVar,
@@ -116,11 +114,11 @@ public class QueryRuleset {
         }
 
         @Override
-        public void meet(Filter node) throws QueryRulesetException {
-            ValueExpr condition = node.getCondition();
+        public void meet(final Filter node) throws QueryRulesetException {
+            final ValueExpr condition = node.getCondition();
             // If the condition is a function call, and we don't know about the function, don't try to test for it.
             if (condition instanceof FunctionCall) {
-                String uri = ((FunctionCall) condition).getURI();
+                final String uri = ((FunctionCall) condition).getURI();
                 if (FunctionRegistry.getInstance().get(uri) == null) {
                     // Just extract statement patterns from the child as if there were no filter.
                     node.getArg().visit(this);
@@ -128,35 +126,35 @@ public class QueryRuleset {
             }
             // Otherwise, assume we can test for it: extract rules from below this node, and add the condition to each one.
             else {
-                RulesetVisitor childVisitor = new RulesetVisitor();
+                final RulesetVisitor childVisitor = new RulesetVisitor();
                 node.getArg().visit(childVisitor);
-                for (CopyRule rule : childVisitor.rules) {
+                for (final CopyRule rule : childVisitor.rules) {
                     rule.addCondition(condition);
-                    this.rules.add(rule);
+                    rules.add(rule);
                 }
-                this.superclasses.addAll(childVisitor.superclasses);
-                this.superproperties.addAll(childVisitor.superproperties);
+                superclasses.addAll(childVisitor.superclasses);
+                superproperties.addAll(childVisitor.superproperties);
             }
         }
 
         @Override
-        public void meet(Join node) throws QueryRulesetException {
-            TupleExpr left = node.getLeftArg();
-            TupleExpr right = node.getRightArg();
+        public void meet(final Join node) throws QueryRulesetException {
+            final TupleExpr left = node.getLeftArg();
+            final TupleExpr right = node.getRightArg();
             // If this join represents the application of inference logic, use its children to add the
             // appropriate rules.
             if (node instanceof InferJoin && left instanceof FixedStatementPattern) {
                 FixedStatementPattern fsp = (FixedStatementPattern) left;
-                Value predValue = fsp.getPredicateVar().getValue();
+                final Value predValue = fsp.getPredicateVar().getValue();
                 // If this is a subClassOf relation, fetch all subClassOf and equivalentClass
                 // relations involving the relevant classes.
                 if (RDFS.SUBCLASSOF.equals(predValue) && right instanceof StatementPattern) {
-                    StatementPattern dne = (StatementPattern) right;
+                    final StatementPattern dne = (StatementPattern) right;
                     // If a subClassOf b equivalentClass c subClassOf d, then fsp will contain a statement
                     // for each class in the hierarchy. If we match every subClassOf and equivalentClass
                     // relation to any of {a,b,c,d}, then the hierarchy can be reconstructed.
-                    for (Statement st : fsp.statements) {
-                        Value superclassVal = st.getSubject();
+                    for (final Statement st : fsp.statements) {
+                        final Value superclassVal = st.getSubject();
                         // Rule to match the type assignment:
                         rules.add(new CopyRule(new StatementPattern(dne.getSubjectVar(),
                                 dne.getPredicateVar(),
@@ -169,12 +167,12 @@ public class QueryRuleset {
                 // If this is a subPropertyOf relation, fetch all subPropertyOf and equivalentProperty
                 // relations involving the relevant properties.
                 else if (RDFS.SUBPROPERTYOF.equals(predValue) && right instanceof StatementPattern) {
-                    StatementPattern dne = (StatementPattern) right;
+                    final StatementPattern dne = (StatementPattern) right;
                     // If p subPropertyOf q subPropertyOf r subPropertyOf s, then fsp will contain a statement
                     // for each property in the hierarchy. If we match every subPropertyOf and equivalentProperty
                     // relation to any of {p,q,r,s}, then the hierarchy can be reconstructed.
-                    for (Statement st : fsp.statements) {
-                        Value superpropVal = st.getSubject();
+                    for (final Statement st : fsp.statements) {
+                        final Value superpropVal = st.getSubject();
                         // Rule to add the property:
                         rules.add(new CopyRule(new StatementPattern(dne.getSubjectVar(),
                                 new Var(superpropVal.toString(), superpropVal),
@@ -187,11 +185,11 @@ public class QueryRuleset {
                 // If this is a sameAs expansion, it may have one or two levels
                 if (OWL.SAMEAS.equals(predValue)) {
                     StatementPattern stmt = null;
-                    String replaceVar = fsp.getSubjectVar().getName();
+                    final String replaceVar = fsp.getSubjectVar().getName();
                     String replaceVarInner = null;
-                    List<Value> replacements = new LinkedList<>();
-                    List<Value> replacementsInner = new LinkedList<>();
-                    for (Statement st : fsp.statements) {
+                    final List<Value> replacements = new LinkedList<>();
+                    final List<Value> replacementsInner = new LinkedList<>();
+                    for (final Statement st : fsp.statements) {
                         replacements.add(st.getSubject());
                     }
                     if (right instanceof StatementPattern) {
@@ -199,22 +197,22 @@ public class QueryRuleset {
                     }
                     else if (right instanceof InferJoin) {
                         // Add the second set of replacements if given
-                        InferJoin inner = (InferJoin) right;
+                        final InferJoin inner = (InferJoin) right;
                         if (inner.getLeftArg() instanceof FixedStatementPattern
                                 && inner.getRightArg() instanceof StatementPattern) {
                             stmt = (StatementPattern) inner.getRightArg();
                             fsp = (FixedStatementPattern) inner.getLeftArg();
                             replaceVarInner = fsp.getSubjectVar().getName();
-                            for (Statement st : fsp.statements) {
+                            for (final Statement st : fsp.statements) {
                                 replacementsInner.add(st.getSubject());
                             }
                         }
                     }
                     // Add different versions of the original statement:
                     if (stmt != null) {
-                        for (Value replacementVal : replacements) {
+                        for (final Value replacementVal : replacements) {
                             if (replacementsInner.isEmpty()) {
-                                StatementPattern transformed = stmt.clone();
+                                final StatementPattern transformed = stmt.clone();
                                 if (transformed.getSubjectVar().equals(replaceVar)) {
                                     transformed.setSubjectVar(new Var(replaceVar, replacementVal));
                                 }
@@ -223,8 +221,8 @@ public class QueryRuleset {
                                 }
                                 rules.add(new CopyRule(transformed));
                             }
-                            for (Value replacementValInner : replacementsInner) {
-                                StatementPattern transformed = stmt.clone();
+                            for (final Value replacementValInner : replacementsInner) {
+                                final StatementPattern transformed = stmt.clone();
                                 if (transformed.getSubjectVar().equals(replaceVar)) {
                                     transformed.setSubjectVar(new Var(replaceVar, replacementVal));
                                 }
@@ -253,22 +251,22 @@ public class QueryRuleset {
         }
 
         @Override
-        public void meet(Union node) throws QueryRulesetException {
+        public void meet(final Union node) throws QueryRulesetException {
             node.visitChildren(this);
             if (node instanceof InferUnion) {
                 // If this is the result of inference, search each tree for (non-standard) properties and add them
                 // to the set of properties for which to include schema information.
-                QueryModelVisitorBase<QueryRulesetException> propertyVisitor = new QueryModelVisitorBase<QueryRulesetException>() {
+                final QueryModelVisitorBase<QueryRulesetException> propertyVisitor = new QueryModelVisitorBase<QueryRulesetException>() {
                     @Override
-                    public void meet(StatementPattern node) {
+                    public void meet(final StatementPattern node) {
                         if (node.getPredicateVar().hasValue()) {
-                            URI predValue = (URI) node.getPredicateVar().getValue();
-                            String ns = predValue.getNamespace();
+                            final URI predValue = (URI) node.getPredicateVar().getValue();
+                            final String ns = predValue.getNamespace();
                             if (node instanceof FixedStatementPattern
                                     && (RDFS.SUBPROPERTYOF.equals(predValue) || OWL.EQUIVALENTPROPERTY.equals(predValue))) {
                                 // This FSP replaced a property, so find all the properties it entails
-                                FixedStatementPattern fsp = (FixedStatementPattern) node;
-                                for (Statement stmt : fsp.statements) {
+                                final FixedStatementPattern fsp = (FixedStatementPattern) node;
+                                for (final Statement stmt : fsp.statements) {
                                     schemaProperties.add(stmt.getSubject());
                                 }
                             }
@@ -291,7 +289,7 @@ public class QueryRuleset {
         public void addSchema() throws QueryRulesetException {
             // Combine the relevant portions of the class hierarchy into one subclass rule and one equivalent class rule:
             if (!superclasses.isEmpty()) {
-                Var superClassVar = new Var("superClassVar");
+                final Var superClassVar = new Var("superClassVar");
                 // Subclasses of the given classes:
                 addListRule(new Var("subClassVar"), null, RDFS.SUBCLASSOF, superClassVar, superclasses);
                 // Equivalent classes to the given classes (this might be stated in either direction):
@@ -300,7 +298,7 @@ public class QueryRuleset {
 
             // Combine the relevant portions of the property hierarchy into one subproperty rule and one equivalent property rule:
             if (!superproperties.isEmpty()) {
-                Var superPropertyVar = new Var("superPropertyVar");
+                final Var superPropertyVar = new Var("superPropertyVar");
                 // Subproperties of the given properties:
                 addListRule(new Var("subPropertyVar"), null, RDFS.SUBPROPERTYOF, superPropertyVar, superproperties);
                 // Equivalent properties to the given properties (this might be stated in either direction):
@@ -309,20 +307,20 @@ public class QueryRuleset {
 
             // Get the relevant portions of the owl:sameAs graph
             if (!sameAs.isEmpty()) {
-                Var sameAsSubj = new Var("sameAsSubject");
-                Var sameAsObj = new Var("sameAsObject");
+                final Var sameAsSubj = new Var("sameAsSubject");
+                final Var sameAsObj = new Var("sameAsObject");
                 addListRule(sameAsSubj, sameAs, OWL.SAMEAS, sameAsObj, sameAs);
             }
 
             // Get the potentially relevant owl:TransitiveProperty statements
             if (!transitive.isEmpty()) {
-                Var transitiveVar = new Var(OWL.TRANSITIVEPROPERTY.toString(), OWL.TRANSITIVEPROPERTY);
+                final Var transitiveVar = new Var(OWL.TRANSITIVEPROPERTY.toString(), OWL.TRANSITIVEPROPERTY);
                 addListRule(new Var("transitiveProp"), transitive, RDF.TYPE, transitiveVar, null);
             }
 
             // Get any owl:SymmetricProperty and owl:inverseOf statements for relevant properties
             if (!schemaProperties.isEmpty()) {
-                Var symmetricVar = new Var(OWL.SYMMETRICPROPERTY.toString(), OWL.SYMMETRICPROPERTY);
+                final Var symmetricVar = new Var(OWL.SYMMETRICPROPERTY.toString(), OWL.SYMMETRICPROPERTY);
                 addListRule(new Var("symmetricProp"), schemaProperties, RDF.TYPE, symmetricVar, null);
                 addListRule(new Var("inverseSubject"), schemaProperties, OWL.INVERSEOF, new Var("inverseObject"), schemaProperties);
             }
@@ -342,26 +340,26 @@ public class QueryRuleset {
          * @param objValues Either null or a Set of Values that the object variable can have, tested using a filter
          * @throws QueryRulesetException if the rule can't be created
          */
-        private void addListRule(Var subjVar, Set<Value> subjValues, URI predicate,
-                Var objVar, Set<Value> objValues) throws QueryRulesetException {
+        private void addListRule(final Var subjVar, final Set<Value> subjValues, final URI predicate,
+                final Var objVar, final Set<Value> objValues) throws QueryRulesetException {
             ListMemberOperator subjCondition = null;
             ListMemberOperator objCondition = null;
             if (subjValues != null) {
                 subjCondition = new ListMemberOperator();
                 subjCondition.addArgument(subjVar);
-                for (Value constant : subjValues) {
+                for (final Value constant : subjValues) {
                     subjCondition.addArgument(new Var(constant.toString(), constant));
                 }
             }
             if (objValues != null) {
                 objCondition = new ListMemberOperator();
                 objCondition.addArgument(objVar);
-                for (Value constant : objValues) {
+                for (final Value constant : objValues) {
                     objCondition.addArgument(new Var(constant.toString(), constant));
                 }
             }
-            Var predVar = new Var(predicate.toString(), predicate);
-            CopyRule listRule = new CopyRule(new StatementPattern(subjVar, predVar, objVar));
+            final Var predVar = new Var(predicate.toString(), predicate);
+            final CopyRule listRule = new CopyRule(new StatementPattern(subjVar, predVar, objVar));
             if (subjCondition != null && objCondition != null) {
                 listRule.addCondition(new Or(subjCondition, objCondition));
             }
@@ -395,7 +393,7 @@ public class QueryRuleset {
      * @param conf Configuration containing either the query string, or name of a file containing the query, plus inference parameters.
      * @throws QueryRulesetException if the query can't be read, parsed, and resolved to valid rules
      */
-    public QueryRuleset(RdfCloudTripleStoreConfiguration conf) throws QueryRulesetException {
+    public QueryRuleset(final RdfCloudTripleStoreConfiguration conf) throws QueryRulesetException {
         this.conf = conf;
         setQuery();
         setRules();
@@ -406,7 +404,7 @@ public class QueryRuleset {
      * @param query A SPARQL query string
      * @throws QueryRulesetException if the query can't be parsed and resolved to valid rules
      */
-    public QueryRuleset(String query) throws QueryRulesetException {
+    public QueryRuleset(final String query) throws QueryRulesetException {
         this.query = query;
         setRules();
     }
@@ -431,12 +429,12 @@ public class QueryRuleset {
             throw new QueryRulesetException("No Configuration given");
         }
         query = conf.get(CopyTool.QUERY_STRING_PROP);
-        String queryFile = conf.get(CopyTool.QUERY_FILE_PROP);
+        final String queryFile = conf.get(CopyTool.QUERY_FILE_PROP);
         if (query == null && queryFile != null) {
             try {
-                FileReader fileReader = new FileReader(queryFile);
-                BufferedReader reader = new BufferedReader(fileReader);
-                StringBuilder builder = new StringBuilder();
+                final FileReader fileReader = new FileReader(queryFile);
+                final BufferedReader reader = new BufferedReader(fileReader);
+                final StringBuilder builder = new StringBuilder();
                 String line = reader.readLine();
                 while (line != null) {
                     builder.append(line).append("\n");
@@ -446,7 +444,7 @@ public class QueryRuleset {
                 reader.close();
                 conf.set(CopyTool.QUERY_STRING_PROP, query);
             }
-            catch (IOException e) {
+            catch (final IOException e) {
                 throw new QueryRulesetException("Error loading query from file: " + queryFile, e);
             }
         }
@@ -475,7 +473,7 @@ public class QueryRuleset {
         // that are OK because they won'd be converted to rules directly.
         te.visit(new QueryModelVisitorBase<QueryRulesetException>() {
             @Override
-            public void meet(StatementPattern node) throws QueryRulesetException {
+            public void meet(final StatementPattern node) throws QueryRulesetException {
                 if (!(node.getSubjectVar().hasValue() || node.getPredicateVar().hasValue() || node.getObjectVar().hasValue())) {
                     throw new QueryRulesetException("Statement pattern with no constants would match every statement:\n"
                             + node + "\nFrom parsed query:\n" + te);
@@ -488,7 +486,7 @@ public class QueryRuleset {
             try {
                 log.info("Applying inference rules");
                 store = (RdfCloudTripleStore) RyaSailFactory.getInstance(conf);
-                InferenceEngine inferenceEngine = store.getInferenceEngine();
+                final InferenceEngine inferenceEngine = store.getInferenceEngine();
                 // Apply in same order as query evaluation:
                 te.visit(new TransitivePropertyVisitor(conf, inferenceEngine));
                 te.visit(new SymmetricPropertyVisitor(conf, inferenceEngine));
@@ -497,51 +495,51 @@ public class QueryRuleset {
                 te.visit(new SubClassOfVisitor(conf, inferenceEngine));
                 te.visit(new SameAsVisitor(conf, inferenceEngine));
                 log.info("Query after inference:\n");
-                for (String line : te.toString().split("\n")) {
+                for (final String line : te.toString().split("\n")) {
                     log.info("\t" + line);
                 }
             }
-            catch (Exception e) {
+            catch (final Exception e) {
                 throw new QueryRulesetException("Error applying inference to parsed query:\n" + te, e);
             }
             finally {
                 if (store != null) {
                     try {
                         store.shutDown();
-                    } catch (SailException e) {
+                    } catch (final SailException e) {
                         log.error("Error shutting down Sail after applying inference", e);
                     }
                 }
             }
         }
         // Extract the StatementPatterns and Filters and turn them into rules:
-        RulesetVisitor rv = new RulesetVisitor();
+        final RulesetVisitor rv = new RulesetVisitor();
         try {
             te.visit(rv);
             rv.addSchema();
         }
-        catch (QueryRulesetException e) {
+        catch (final QueryRulesetException e) {
             throw new QueryRulesetException("Error extracting rules from parsed query:\n" + te, e);
         }
-        for (CopyRule candidateRule : rv.rules) {
+        for (final CopyRule candidateRule : rv.rules) {
             boolean unique = true;
-            for (CopyRule otherRule : rv.rules) {
+            for (final CopyRule otherRule : rv.rules) {
                 if (!candidateRule.equals(otherRule) && otherRule.isGeneralizationOf(candidateRule)) {
                     unique = false;
                     break;
                 }
             }
             if (unique) {
-                this.rules.add(candidateRule);
+                rules.add(candidateRule);
             }
         }
     }
 
     @Override
     public String toString() {
-        StringBuilder sb = new StringBuilder("Original Query:\n\n\t");
+        final StringBuilder sb = new StringBuilder("Original Query:\n\n\t");
         sb.append(query.replace("\n", "\n\t")).append("\n\nRuleset:\n");
-        for (CopyRule rule : rules) {
+        for (final CopyRule rule : rules) {
             sb.append("\n\t").append(rule.toString().replace("\n", "\n\t")).append("\n");
         }
         return sb.toString();

@@ -1,24 +1,22 @@
-package org.apache.rya.accumulo.mr.merge.util;
-
 /*
- * #%L
- * org.apache.rya.accumulo.mr.merge
- * %%
- * Copyright (C) 2014 Rya
- * %%
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- * #L%
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
  */
+package org.apache.rya.accumulo.mr.merge.util;
 
 import java.io.File;
 import java.io.IOException;
@@ -59,14 +57,14 @@ public final class ToolConfigUtils {
      * @return a {@link Set} of argument strings.
      * @throws IOException
      */
-    public static Set<String> getUserArguments(Configuration conf, String[] args) throws IOException {
+    public static Set<String> getUserArguments(final Configuration conf, final String[] args) throws IOException {
         String[] filteredArgs = new String[] {};
         if (Arrays.asList(args).contains("-conf")) {
             // parse args
             new GenericOptionsParser(conf, args);
 
-            List<String> commandLineArgs = new ArrayList<>();
-            for (String arg : args) {
+            final List<String> commandLineArgs = new ArrayList<>();
+            for (final String arg : args) {
                 if (arg.startsWith("-D")) {
                     commandLineArgs.add(arg);
                 }
@@ -80,13 +78,13 @@ public final class ToolConfigUtils {
         // No real easy way of getting the name.
         // So, pulling it off the list of resource names in the Configuration's toString() method
         // where it should be the last one.
-        String confString = conf.toString();
-        String resourceString = StringUtils.removeStart(confString, "Configuration: ");
-        List<String> resourceNames = Arrays.asList(StringUtils.split(resourceString, ", "));
-        String configFilename = resourceNames.get(resourceNames.size() - 1);
+        final String confString = conf.toString();
+        final String resourceString = StringUtils.removeStart(confString, "Configuration: ");
+        final List<String> resourceNames = Arrays.asList(StringUtils.split(resourceString, ", "));
+        final String configFilename = resourceNames.get(resourceNames.size() - 1);
 
-        Set<String> toolArgsSet = new HashSet<>();
-        File file = new File(configFilename);
+        final Set<String> toolArgsSet = new HashSet<>();
+        final File file = new File(configFilename);
         // Check that the last resource name is the actual user's config by seeing if it's a file
         // on the system, the other resources seem to be contained in jars and so should fail here which
         // should happen if no config is supplied.
@@ -95,7 +93,7 @@ public final class ToolConfigUtils {
             try {
                 configuration = new XMLConfiguration(configFilename);
                 toolArgsSet.addAll(getConfigArguments(configuration));
-            } catch (ConfigurationException e) {
+            } catch (final ConfigurationException e) {
                 log.error("Unable to load configuration file.", e);
             }
         }
@@ -110,13 +108,13 @@ public final class ToolConfigUtils {
      * @param configuration the {@link XMLConfiguration}.
      * @return the set of argument strings.
      */
-    public static Set<String> getConfigArguments(XMLConfiguration configuration) {
-        int size = configuration.getList("property.name").size();
-        TreeSet<String> configArgs = new TreeSet<>();
+    public static Set<String> getConfigArguments(final XMLConfiguration configuration) {
+        final int size = configuration.getList("property.name").size();
+        final TreeSet<String> configArgs = new TreeSet<>();
         for (int i = 0; i < size; i++) {
-            String propertyName = configuration.getString("property(" + i + ").name");
-            String propertyValue = configuration.getString("property(" + i + ").value");
-            String argument = makeArgument(propertyName, propertyValue);
+            final String propertyName = configuration.getString("property(" + i + ").name");
+            final String propertyValue = configuration.getString("property(" + i + ").value");
+            final String argument = makeArgument(propertyName, propertyValue);
             configArgs.add(argument);
         }
         return configArgs;
@@ -130,7 +128,7 @@ public final class ToolConfigUtils {
      * @param value the value.
      * @return the argument string.
      */
-    public static String makeArgument(String propertyName, String value) {
+    public static String makeArgument(final String propertyName, final String value) {
         return "-D" + propertyName + "=" + value;
     }
 }

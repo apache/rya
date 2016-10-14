@@ -1,24 +1,22 @@
-package org.apache.rya.accumulo.mr.merge.util;
-
 /*
- * #%L
- * org.apache.rya.accumulo.mr.merge
- * %%
- * Copyright (C) 2014 Rya
- * %%
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- * #L%
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
  */
+package org.apache.rya.accumulo.mr.merge.util;
 
 import java.io.File;
 import java.io.IOException;
@@ -55,7 +53,6 @@ import org.apache.rya.accumulo.mr.MRUtils;
 import org.apache.rya.accumulo.mr.merge.MergeTool;
 import org.apache.rya.api.RdfCloudTripleStoreConstants;
 import org.apache.rya.api.persist.RyaDAOException;
-import org.apache.rya.indexing.accumulo.ConfigUtils;
 import twitter4j.Logger;
 
 /**
@@ -68,17 +65,17 @@ public class AccumuloInstanceDriver {
 
     public static final String ROOT_USER_NAME = "root";
 
-    private String driverName;
-    private boolean isMock;
-    private boolean shouldCreateIndices;
-    private boolean isReadOnly;
-    private boolean isParent;
+    private final String driverName;
+    private final boolean isMock;
+    private final boolean shouldCreateIndices;
+    private final boolean isReadOnly;
+    private final boolean isParent;
 
-    private String user;
-    private String password;
-    private String instanceName;
-    private String tablePrefix;
-    private String auth;
+    private final String user;
+    private final String password;
+    private final String instanceName;
+    private final String tablePrefix;
+    private final String auth;
 
     private Connector connector;
 
@@ -86,7 +83,7 @@ public class AccumuloInstanceDriver {
 
     private SecurityOperations secOps;
 
-    private AccumuloRdfConfiguration config = new AccumuloRdfConfiguration();
+    private final AccumuloRdfConfiguration config = new AccumuloRdfConfiguration();
 
     private MiniAccumuloCluster miniAccumuloCluster = null;
 
@@ -98,11 +95,11 @@ public class AccumuloInstanceDriver {
 
     private String zooKeepers;
 
-    private Map<String, String> configMap = new LinkedHashMap<>();
+    private final Map<String, String> configMap = new LinkedHashMap<>();
 
     private List<String> indices = null;
 
-    private List<String> tableList = new ArrayList<>();
+    private final List<String> tableList = new ArrayList<>();
 
     private File tempDir = null;
 
@@ -134,7 +131,7 @@ public class AccumuloInstanceDriver {
      * @param tablePrefix the table prefix.
      * @param auth the comma-separated authorization list.
      */
-    public AccumuloInstanceDriver(String driverName, boolean isMock, boolean shouldCreateIndices, boolean isReadOnly, boolean isParent, String user, String password, String instanceName, String tablePrefix, String auth) {
+    public AccumuloInstanceDriver(final String driverName, final boolean isMock, final boolean shouldCreateIndices, final boolean isReadOnly, final boolean isParent, final String user, final String password, final String instanceName, final String tablePrefix, final String auth) {
         this.driverName = Preconditions.checkNotNull(driverName);
         this.isMock = isMock;
         this.shouldCreateIndices = shouldCreateIndices;
@@ -200,11 +197,11 @@ public class AccumuloInstanceDriver {
      */
     private void copyHadoopHomeToTemp() throws IOException {
         if (IS_COPY_HADOOP_HOME_ENABLED && SystemUtils.IS_OS_WINDOWS) {
-            String hadoopHomeEnv = System.getenv("HADOOP_HOME");
+            final String hadoopHomeEnv = System.getenv("HADOOP_HOME");
             if (hadoopHomeEnv != null) {
-                File hadoopHomeDir = new File(hadoopHomeEnv);
+                final File hadoopHomeDir = new File(hadoopHomeEnv);
                 if (hadoopHomeDir.exists()) {
-                    File binDir = Paths.get(hadoopHomeDir.getAbsolutePath(), "/bin").toFile();
+                    final File binDir = Paths.get(hadoopHomeDir.getAbsolutePath(), "/bin").toFile();
                     if (binDir.exists()) {
                         FileUtils.copyDirectoryToDirectory(binDir, tempDir);
                     } else {
@@ -226,8 +223,8 @@ public class AccumuloInstanceDriver {
     public void setUpTables() throws Exception {
         // Setup tables and permissions
         log.info("Setting up " + driverName + " tables and permissions");
-        for (String tableSuffix : TABLE_NAME_SUFFIXES) {
-            String tableName = tablePrefix + tableSuffix;
+        for (final String tableSuffix : TABLE_NAME_SUFFIXES) {
+            final String tableName = tablePrefix + tableSuffix;
             tableList.add(tableName);
             if (!connector.tableOperations().exists(tableName)) {
                 connector.tableOperations().create(tableName);
@@ -248,7 +245,7 @@ public class AccumuloInstanceDriver {
             tableList.addAll(indices);
 
             log.info("Setting up " + driverName + " indices");
-            for (String index : indices) {
+            for (final String index : indices) {
                 if (!connector.tableOperations().exists(index)) {
                     connector.tableOperations().create(index);
                 }
@@ -262,12 +259,12 @@ public class AccumuloInstanceDriver {
             secOps.createLocalUser(user, new PasswordToken(password));
         }
         addAuths(auth);
-        TablePermission tablePermission = isReadOnly ? TablePermission.READ : TablePermission.WRITE;
-        for (String tableSuffix : TABLE_NAME_SUFFIXES) {
+        final TablePermission tablePermission = isReadOnly ? TablePermission.READ : TablePermission.WRITE;
+        for (final String tableSuffix : TABLE_NAME_SUFFIXES) {
             secOps.grantTablePermission(user, tablePrefix + tableSuffix, tablePermission);
         }
         if (shouldCreateIndices) {
-            for (String index : indices) {
+            for (final String index : indices) {
                 secOps.grantTablePermission(user, index, tablePermission);
             }
         }
@@ -285,7 +282,7 @@ public class AccumuloInstanceDriver {
         dao.setConf(config);
 
         // Flush the tables before initializing the DAO
-        for (String tableName : tableList) {
+        for (final String tableName : tableList) {
             connector.tableOperations().flush(tableName, null, null, false);
         }
 
@@ -311,10 +308,10 @@ public class AccumuloInstanceDriver {
 
         log.info(driverName + " config properties");
         config.setTablePrefix(tablePrefix);
-        for (Entry<String, String> entry : configMap.entrySet()) {
-            String key = entry.getKey();
-            String value = entry.getValue();
-            String argument = ToolConfigUtils.makeArgument(isParent ? key : key + MergeTool.CHILD_SUFFIX, value);
+        for (final Entry<String, String> entry : configMap.entrySet()) {
+            final String key = entry.getKey();
+            final String value = entry.getValue();
+            final String argument = ToolConfigUtils.makeArgument(isParent ? key : key + MergeTool.CHILD_SUFFIX, value);
             log.info(argument);
             config.set(key, value);
         }
@@ -329,7 +326,7 @@ public class AccumuloInstanceDriver {
     public void tearDownTables() throws Exception {
         // delete all tables.
         if (connector != null) {
-            for (String tableName : tableList) {
+            for (final String tableName : tableList) {
                 if (connector.tableOperations().exists(tableName)) {
                     connector.tableOperations().delete(tableName);
                 }
@@ -346,7 +343,7 @@ public class AccumuloInstanceDriver {
             log.info("Stopping " + driverName + " DAO");
             try {
                 dao.destroy();
-            } catch (RyaDAOException e) {
+            } catch (final RyaDAOException e) {
                 log.error("Error stopping " + driverName + " DAO", e);
             }
             dao = null;
@@ -390,7 +387,7 @@ public class AccumuloInstanceDriver {
         if (tempDir != null) {
             try {
                 FileUtils.deleteDirectory(tempDir);
-            } catch (IOException e) {
+            } catch (final IOException e) {
                 log.error("Error deleting " + driverName + " temp directory", e);
             }
             tempDir = null;
@@ -403,8 +400,8 @@ public class AccumuloInstanceDriver {
      * @throws AccumuloException
      * @throws AccumuloSecurityException
      */
-    public void addAuths(String... auths) throws AccumuloException, AccumuloSecurityException {
-        Authorizations newAuths = AccumuloRyaUtils.addUserAuths(user, secOps, auths);
+    public void addAuths(final String... auths) throws AccumuloException, AccumuloSecurityException {
+        final Authorizations newAuths = AccumuloRyaUtils.addUserAuths(user, secOps, auths);
         secOps.changeUserAuthorizations(user, newAuths);
     }
 
@@ -490,7 +487,7 @@ public class AccumuloInstanceDriver {
      * Sets the {@link Connector} to this instance.
      * @param connector the {@link Connector}.
      */
-    public void setConnector(Connector connector) {
+    public void setConnector(final Connector connector) {
         this.connector = connector;
     }
 

@@ -85,7 +85,7 @@ under the License.
         <mongodb.version>3.3.0</mongodb.version>
         <embed.mongo.version>1.50.5</embed.mongo.version>
 
-        <blueprints.version>2.5.0</blueprints.version> <!-- Newest: Apache 3.1.0-incubating -->
+        <tinkerpop.version>3.2.2</tinkerpop.version> <!-- Newest: Apache 3.2.2 -->
 
         <commons.lang.version>2.6</commons.lang.version> <!-- Newest: 2.6 -->
         <commons.codec.version>1.10</commons.codec.version> <!-- Newest: 1.10 -->
@@ -334,24 +334,9 @@ under the License.
             </dependency>
 
             <dependency>
-                <groupId>com.tinkerpop.blueprints</groupId>
-                <artifactId>blueprints-core</artifactId>
-                <version>${blueprints.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.tinkerpop.blueprints</groupId>
-                <artifactId>blueprints-sail-graph</artifactId>
-                <version>${blueprints.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.tinkerpop.gremlin</groupId>
-                <artifactId>gremlin-groovy</artifactId>
-                <version>${blueprints.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.tinkerpop.rexster</groupId>
-                <artifactId>rexster-server</artifactId>
-                <version>${blueprints.version}</version>
+                <groupId>org.apache.tinkerpop</groupId>
+                <artifactId>tinkergraph-gremlin</artifactId>
+                <version>${tinkerpop.version}</version>
             </dependency>
 
             <dependency>

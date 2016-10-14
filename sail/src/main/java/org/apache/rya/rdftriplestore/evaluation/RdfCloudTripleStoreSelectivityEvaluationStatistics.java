@@ -1,4 +1,4 @@
-package mvm.rya.rdftriplestore.evaluation;
+package org.apache.rya.rdftriplestore.evaluation;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -22,11 +22,11 @@ package mvm.rya.rdftriplestore.evaluation;
 
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import mvm.rya.api.RdfCloudTripleStoreConfiguration;
-import mvm.rya.api.persist.RdfEvalStatsDAO;
-import mvm.rya.api.persist.joinselect.SelectivityEvalDAO;
-import mvm.rya.rdftriplestore.inference.DoNotExpandSP;
-import mvm.rya.rdftriplestore.utils.FixedStatementPattern;
+import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
+import org.apache.rya.api.persist.RdfEvalStatsDAO;
+import org.apache.rya.api.persist.joinselect.SelectivityEvalDAO;
+import org.apache.rya.rdftriplestore.inference.DoNotExpandSP;
+import org.apache.rya.rdftriplestore.utils.FixedStatementPattern;
 
 import org.openrdf.query.algebra.Join;
 import org.openrdf.query.algebra.StatementPattern;

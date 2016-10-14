@@ -1,4 +1,4 @@
-package mvm.rya.indexing.accumulo.freetext;
+package org.apache.rya.indexing.accumulo.freetext;
 
 import java.util.HashSet;
 import java.util.List;
@@ -49,14 +49,14 @@ import com.google.common.collect.Sets;
 
 
 import info.aduna.iteration.CloseableIteration;
-import mvm.rya.accumulo.AccumuloRdfConfiguration;
-import mvm.rya.api.domain.RyaStatement;
-import mvm.rya.api.domain.RyaType;
-import mvm.rya.api.domain.RyaURI;
-import mvm.rya.api.resolver.RdfToRyaConversions;
-import mvm.rya.api.resolver.RyaToRdfConversions;
-import mvm.rya.indexing.StatementConstraints;
-import mvm.rya.indexing.accumulo.ConfigUtils;
+import org.apache.rya.accumulo.AccumuloRdfConfiguration;
+import org.apache.rya.api.domain.RyaStatement;
+import org.apache.rya.api.domain.RyaType;
+import org.apache.rya.api.domain.RyaURI;
+import org.apache.rya.api.resolver.RdfToRyaConversions;
+import org.apache.rya.api.resolver.RyaToRdfConversions;
+import org.apache.rya.indexing.StatementConstraints;
+import org.apache.rya.indexing.accumulo.ConfigUtils;
 
 public class AccumuloFreeTextIndexerTest {
     private static final StatementConstraints EMPTY_CONSTRAINTS = new StatementConstraints();

@@ -17,17 +17,17 @@
  * under the License.
  */
 
-//package mvm.rya.accumulo;
+//package org.apache.rya.accumulo;
 
 //
 //import com.google.common.collect.Iterators;
 //import com.google.common.io.ByteArrayDataInput;
 //import com.google.common.io.ByteStreams;
 //import info.aduna.iteration.CloseableIteration;
-//import mvm.rya.api.RdfCloudTripleStoreConstants;
-//import mvm.rya.api.RdfCloudTripleStoreUtils;
-//import mvm.rya.api.persist.RdfDAOException;
-//import mvm.rya.api.utils.NullableStatementImpl;
+//import org.apache.rya.api.RdfCloudTripleStoreConstants;
+//import org.apache.rya.api.RdfCloudTripleStoreUtils;
+//import org.apache.rya.api.persist.RdfDAOException;
+//import org.apache.rya.api.utils.NullableStatementImpl;
 //import org.apache.accumulo.core.client.*;
 //import org.apache.accumulo.core.data.Key;
 //import org.apache.accumulo.core.data.Range;
@@ -50,9 +50,9 @@
 //import java.util.Iterator;
 //import java.util.Map.Entry;
 //
-//import static mvm.rya.accumulo.AccumuloRdfConstants.ALL_AUTHORIZATIONS;
-//import static mvm.rya.api.RdfCloudTripleStoreConstants.TABLE_LAYOUT;
-//import static mvm.rya.api.RdfCloudTripleStoreUtils.writeValue;
+//import static org.apache.rya.accumulo.AccumuloRdfConstants.ALL_AUTHORIZATIONS;
+//import static org.apache.rya.api.RdfCloudTripleStoreConstants.TABLE_LAYOUT;
+//import static org.apache.rya.api.RdfCloudTripleStoreUtils.writeValue;
 //
 //public class AccumuloRdfQueryIterator implements
 //        CloseableIteration<Entry<Statement, BindingSet>, RdfDAOException> {

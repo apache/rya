@@ -24,7 +24,7 @@ import org.openrdf.repository.RepositoryConnection;
 
 import org.apache.fluo.api.client.FluoClient;
 import org.apache.fluo.api.mini.MiniFluo;
-import mvm.rya.rdftriplestore.RyaSailRepository;
+import org.apache.rya.rdftriplestore.RyaSailRepository;
 
 /**
  * Represents a demonstration that uses Rya and Fluo on top of Accumulo.

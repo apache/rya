@@ -1,4 +1,4 @@
-package mvm.rya.accumulo;
+package org.apache.rya.accumulo;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -21,8 +21,8 @@ package mvm.rya.accumulo;
 
 
 
-import mvm.rya.api.RdfCloudTripleStoreConstants;
-import mvm.rya.api.resolver.triple.TripleRow;
+import org.apache.rya.api.RdfCloudTripleStoreConstants;
+import org.apache.rya.api.resolver.triple.TripleRow;
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
 import org.apache.accumulo.core.client.TableExistsException;
@@ -32,7 +32,7 @@ import org.apache.accumulo.core.data.Value;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import static mvm.rya.api.RdfCloudTripleStoreConstants.EMPTY_BYTES;
+import static org.apache.rya.api.RdfCloudTripleStoreConstants.EMPTY_BYTES;
 
 /**
  * Class AccumuloRdfUtils

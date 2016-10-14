@@ -1,4 +1,4 @@
-package mvm.rya.accumulo.mr.tools;
+package org.apache.rya.accumulo.mr.tools;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -29,13 +29,13 @@ import org.junit.Test;
 import org.openrdf.rio.RDFFormat;
 
 import junit.framework.TestCase;
-import mvm.rya.accumulo.AccumuloRdfConfiguration;
-import mvm.rya.accumulo.mr.TestUtils;
-import mvm.rya.accumulo.mr.tools.RdfFileInputTool;
-import mvm.rya.api.RdfCloudTripleStoreConstants;
-import mvm.rya.api.domain.RyaStatement;
-import mvm.rya.api.domain.RyaType;
-import mvm.rya.api.domain.RyaURI;
+import org.apache.rya.accumulo.AccumuloRdfConfiguration;
+import org.apache.rya.accumulo.mr.TestUtils;
+import org.apache.rya.accumulo.mr.tools.RdfFileInputTool;
+import org.apache.rya.api.RdfCloudTripleStoreConstants;
+import org.apache.rya.api.domain.RyaStatement;
+import org.apache.rya.api.domain.RyaType;
+import org.apache.rya.api.domain.RyaURI;
 
 /**
  * Created by IntelliJ IDEA.

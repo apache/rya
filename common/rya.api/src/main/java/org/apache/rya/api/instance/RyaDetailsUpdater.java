@@ -16,7 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package mvm.rya.api.instance;
+package org.apache.rya.api.instance;
 
 import static java.util.Objects.requireNonNull;
 
@@ -25,9 +25,9 @@ import javax.annotation.ParametersAreNonnullByDefault;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import mvm.rya.api.instance.RyaDetailsRepository.ConcurrentUpdateException;
-import mvm.rya.api.instance.RyaDetailsRepository.RyaDetailsRepositoryException;
-import mvm.rya.api.instance.RyaDetailsUpdater.RyaDetailsMutator.CouldNotApplyMutationException;
+import org.apache.rya.api.instance.RyaDetailsRepository.ConcurrentUpdateException;
+import org.apache.rya.api.instance.RyaDetailsRepository.RyaDetailsRepositoryException;
+import org.apache.rya.api.instance.RyaDetailsUpdater.RyaDetailsMutator.CouldNotApplyMutationException;
 
 /**
  * A utility that will attempt to commit a change to a Rya instance's details

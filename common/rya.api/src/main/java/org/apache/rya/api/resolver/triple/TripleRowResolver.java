@@ -1,4 +1,4 @@
-package mvm.rya.api.resolver.triple;
+package org.apache.rya.api.resolver.triple;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -21,14 +21,14 @@ package mvm.rya.api.resolver.triple;
 
 
 
-import mvm.rya.api.RdfCloudTripleStoreConstants;
-import mvm.rya.api.domain.RyaStatement;
-import mvm.rya.api.domain.RyaType;
-import mvm.rya.api.domain.RyaURI;
+import org.apache.rya.api.RdfCloudTripleStoreConstants;
+import org.apache.rya.api.domain.RyaStatement;
+import org.apache.rya.api.domain.RyaType;
+import org.apache.rya.api.domain.RyaURI;
 
 import java.util.Map;
 
-import static mvm.rya.api.RdfCloudTripleStoreConstants.TABLE_LAYOUT;
+import static org.apache.rya.api.RdfCloudTripleStoreConstants.TABLE_LAYOUT;
 
 /**
  * Date: 7/17/12

@@ -1,8 +1,8 @@
-package mvm.rya.accumulo.mr.merge.gui;
+package org.apache.rya.accumulo.mr.merge.gui;
 
 /*
  * #%L
- * mvm.rya.accumulo.mr.merge
+ * org.apache.rya.accumulo.mr.merge
  * %%
  * Copyright (C) 2014 Rya
  * %%

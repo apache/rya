@@ -1,4 +1,4 @@
-package mvm.rya.indexing;
+package org.apache.rya.indexing;
 
 import java.io.IOException;
 
@@ -27,7 +27,7 @@ import org.openrdf.query.QueryEvaluationException;
 
 
 import info.aduna.iteration.CloseableIteration;
-import mvm.rya.api.persist.index.RyaSecondaryIndexer;
+import org.apache.rya.api.persist.index.RyaSecondaryIndexer;
 
 /**
  * A repository to store, index, and retrieve {@link Statement}s based on freetext features.

@@ -16,7 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package mvm.rya.api.client.accumulo;
+package org.apache.rya.api.client.accumulo;
 
 import static java.util.Objects.requireNonNull;
 
@@ -32,29 +32,29 @@ import org.openrdf.sail.SailException;
 
 import com.google.common.base.Optional;
 
-import mvm.rya.accumulo.AccumuloRdfConfiguration;
-import mvm.rya.accumulo.instance.AccumuloRyaInstanceDetailsRepository;
-import mvm.rya.api.client.Install;
-import mvm.rya.api.client.InstanceExists;
-import mvm.rya.api.client.RyaClientException;
-import mvm.rya.api.instance.RyaDetails;
-import mvm.rya.api.instance.RyaDetails.EntityCentricIndexDetails;
-import mvm.rya.api.instance.RyaDetails.FreeTextIndexDetails;
-import mvm.rya.api.instance.RyaDetails.GeoIndexDetails;
-import mvm.rya.api.instance.RyaDetails.JoinSelectivityDetails;
-import mvm.rya.api.instance.RyaDetails.PCJIndexDetails;
-import mvm.rya.api.instance.RyaDetails.PCJIndexDetails.FluoDetails;
-import mvm.rya.api.instance.RyaDetails.ProspectorDetails;
-import mvm.rya.api.instance.RyaDetails.TemporalIndexDetails;
-import mvm.rya.api.instance.RyaDetailsRepository;
-import mvm.rya.api.instance.RyaDetailsRepository.AlreadyInitializedException;
-import mvm.rya.api.instance.RyaDetailsRepository.RyaDetailsRepositoryException;
-import mvm.rya.api.persist.RyaDAOException;
-import mvm.rya.indexing.accumulo.ConfigUtils;
-import mvm.rya.indexing.external.PrecomputedJoinIndexerConfig.PrecomputedJoinStorageType;
-import mvm.rya.indexing.external.PrecomputedJoinIndexerConfig.PrecomputedJoinUpdaterType;
-import mvm.rya.rdftriplestore.inference.InferenceEngineException;
-import mvm.rya.sail.config.RyaSailFactory;
+import org.apache.rya.accumulo.AccumuloRdfConfiguration;
+import org.apache.rya.accumulo.instance.AccumuloRyaInstanceDetailsRepository;
+import org.apache.rya.api.client.Install;
+import org.apache.rya.api.client.InstanceExists;
+import org.apache.rya.api.client.RyaClientException;
+import org.apache.rya.api.instance.RyaDetails;
+import org.apache.rya.api.instance.RyaDetails.EntityCentricIndexDetails;
+import org.apache.rya.api.instance.RyaDetails.FreeTextIndexDetails;
+import org.apache.rya.api.instance.RyaDetails.GeoIndexDetails;
+import org.apache.rya.api.instance.RyaDetails.JoinSelectivityDetails;
+import org.apache.rya.api.instance.RyaDetails.PCJIndexDetails;
+import org.apache.rya.api.instance.RyaDetails.PCJIndexDetails.FluoDetails;
+import org.apache.rya.api.instance.RyaDetails.ProspectorDetails;
+import org.apache.rya.api.instance.RyaDetails.TemporalIndexDetails;
+import org.apache.rya.api.instance.RyaDetailsRepository;
+import org.apache.rya.api.instance.RyaDetailsRepository.AlreadyInitializedException;
+import org.apache.rya.api.instance.RyaDetailsRepository.RyaDetailsRepositoryException;
+import org.apache.rya.api.persist.RyaDAOException;
+import org.apache.rya.indexing.accumulo.ConfigUtils;
+import org.apache.rya.indexing.external.PrecomputedJoinIndexerConfig.PrecomputedJoinStorageType;
+import org.apache.rya.indexing.external.PrecomputedJoinIndexerConfig.PrecomputedJoinUpdaterType;
+import org.apache.rya.rdftriplestore.inference.InferenceEngineException;
+import org.apache.rya.sail.config.RyaSailFactory;
 
 /**
  * An Accumulo implementation of the {@link Install} command.

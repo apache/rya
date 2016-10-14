@@ -1,4 +1,4 @@
-package mvm.rya.joinselect.mr;
+package org.apache.rya.joinselect.mr;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -21,22 +21,22 @@ package mvm.rya.joinselect.mr;
 
 
 
-import static mvm.rya.joinselect.mr.utils.JoinSelectConstants.AUTHS;
-import static mvm.rya.joinselect.mr.utils.JoinSelectConstants.SPO_OUTPUTPATH;
-import static mvm.rya.joinselect.mr.utils.JoinSelectConstants.SPO_TABLE;
+import static org.apache.rya.joinselect.mr.utils.JoinSelectConstants.AUTHS;
+import static org.apache.rya.joinselect.mr.utils.JoinSelectConstants.SPO_OUTPUTPATH;
+import static org.apache.rya.joinselect.mr.utils.JoinSelectConstants.SPO_TABLE;
 
 import java.io.IOException;
 
-import mvm.rya.accumulo.AccumuloRdfConfiguration;
-import mvm.rya.api.RdfCloudTripleStoreConstants;
-import mvm.rya.api.domain.RyaStatement;
-import mvm.rya.api.resolver.RyaTripleContext;
-import mvm.rya.api.resolver.triple.TripleRow;
-import mvm.rya.api.resolver.triple.TripleRowResolverException;
-import mvm.rya.joinselect.mr.utils.CompositeType;
-import mvm.rya.joinselect.mr.utils.JoinSelectStatsUtil;
-import mvm.rya.joinselect.mr.utils.TripleCard;
-import mvm.rya.joinselect.mr.utils.TripleEntry;
+import org.apache.rya.accumulo.AccumuloRdfConfiguration;
+import org.apache.rya.api.RdfCloudTripleStoreConstants;
+import org.apache.rya.api.domain.RyaStatement;
+import org.apache.rya.api.resolver.RyaTripleContext;
+import org.apache.rya.api.resolver.triple.TripleRow;
+import org.apache.rya.api.resolver.triple.TripleRowResolverException;
+import org.apache.rya.joinselect.mr.utils.CompositeType;
+import org.apache.rya.joinselect.mr.utils.JoinSelectStatsUtil;
+import org.apache.rya.joinselect.mr.utils.TripleCard;
+import org.apache.rya.joinselect.mr.utils.TripleEntry;
 
 import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Value;

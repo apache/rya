@@ -1,4 +1,4 @@
-package mvm.rya.api.resolver.impl;
+package org.apache.rya.api.resolver.impl;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -22,17 +22,17 @@ package mvm.rya.api.resolver.impl;
 
 
 import com.google.common.primitives.Bytes;
-import mvm.rya.api.domain.RyaRange;
-import mvm.rya.api.domain.RyaType;
-import mvm.rya.api.resolver.RyaTypeResolver;
-import mvm.rya.api.resolver.RyaTypeResolverException;
+import org.apache.rya.api.domain.RyaRange;
+import org.apache.rya.api.domain.RyaType;
+import org.apache.rya.api.resolver.RyaTypeResolver;
+import org.apache.rya.api.resolver.RyaTypeResolverException;
 import org.calrissian.mango.types.LexiTypeEncoders;
 import org.calrissian.mango.types.TypeEncoder;
 import org.openrdf.model.URI;
 import org.openrdf.model.vocabulary.XMLSchema;
 
-import static mvm.rya.api.RdfCloudTripleStoreConstants.TYPE_DELIM_BYTE;
-import static mvm.rya.api.RdfCloudTripleStoreConstants.TYPE_DELIM_BYTES;
+import static org.apache.rya.api.RdfCloudTripleStoreConstants.TYPE_DELIM_BYTE;
+import static org.apache.rya.api.RdfCloudTripleStoreConstants.TYPE_DELIM_BYTES;
 
 /**
  * Date: 7/16/12

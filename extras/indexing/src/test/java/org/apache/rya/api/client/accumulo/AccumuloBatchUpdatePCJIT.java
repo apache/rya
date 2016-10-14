@@ -16,7 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package mvm.rya.api.client.accumulo;
+package org.apache.rya.api.client.accumulo;
 
 import static org.junit.Assert.assertEquals;
 
@@ -32,14 +32,14 @@ import org.openrdf.query.impl.MapBindingSet;
 import org.openrdf.sail.Sail;
 import org.openrdf.sail.SailConnection;
 
-import mvm.rya.accumulo.AccumuloITBase;
-import mvm.rya.accumulo.AccumuloRdfConfiguration;
-import mvm.rya.api.client.Install.InstallConfiguration;
-import mvm.rya.api.client.RyaClient;
-import mvm.rya.indexing.accumulo.ConfigUtils;
-import mvm.rya.indexing.external.PrecomputedJoinIndexerConfig.PrecomputedJoinStorageType;
-import mvm.rya.indexing.external.PrecomputedJoinIndexerConfig.PrecomputedJoinUpdaterType;
-import mvm.rya.sail.config.RyaSailFactory;
+import org.apache.rya.accumulo.AccumuloITBase;
+import org.apache.rya.accumulo.AccumuloRdfConfiguration;
+import org.apache.rya.api.client.Install.InstallConfiguration;
+import org.apache.rya.api.client.RyaClient;
+import org.apache.rya.indexing.accumulo.ConfigUtils;
+import org.apache.rya.indexing.external.PrecomputedJoinIndexerConfig.PrecomputedJoinStorageType;
+import org.apache.rya.indexing.external.PrecomputedJoinIndexerConfig.PrecomputedJoinUpdaterType;
+import org.apache.rya.sail.config.RyaSailFactory;
 
 /**
  * Integration tests the methods of {@link AccumuloBatchUpdatePCJ}.

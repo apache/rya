@@ -1,4 +1,4 @@
-package mvm.rya.indexing.accumulo.geo;
+package org.apache.rya.indexing.accumulo.geo;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -19,7 +19,7 @@ package mvm.rya.indexing.accumulo.geo;
  * under the License.
  */
 
-import static mvm.rya.api.resolver.RdfToRyaConversions.convertStatement;
+import static org.apache.rya.api.resolver.RdfToRyaConversions.convertStatement;
 
 import java.util.Collections;
 import java.util.HashSet;
@@ -48,10 +48,10 @@ import com.vividsolutions.jts.geom.PrecisionModel;
 import com.vividsolutions.jts.geom.impl.PackedCoordinateSequence;
 
 import info.aduna.iteration.CloseableIteration;
-import mvm.rya.accumulo.AccumuloRdfConfiguration;
-import mvm.rya.indexing.GeoConstants;
-import mvm.rya.indexing.StatementConstraints;
-import mvm.rya.indexing.accumulo.ConfigUtils;
+import org.apache.rya.accumulo.AccumuloRdfConfiguration;
+import org.apache.rya.indexing.GeoConstants;
+import org.apache.rya.indexing.StatementConstraints;
+import org.apache.rya.indexing.accumulo.ConfigUtils;
 
 /**
  * Tests  higher level functioning of the geoindexer parse WKT, predicate list, 

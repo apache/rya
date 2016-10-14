@@ -1,4 +1,4 @@
-package mvm.rya.accumulo.pig;
+package org.apache.rya.accumulo.pig;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -22,7 +22,7 @@ package mvm.rya.accumulo.pig;
 
 
 import junit.framework.TestCase;
-import mvm.rya.accumulo.pig.optimizer.SimilarVarJoinOptimizer;
+import org.apache.rya.accumulo.pig.optimizer.SimilarVarJoinOptimizer;
 import org.openrdf.query.algebra.QueryRoot;
 import org.openrdf.query.algebra.TupleExpr;
 import org.openrdf.query.parser.ParsedQuery;

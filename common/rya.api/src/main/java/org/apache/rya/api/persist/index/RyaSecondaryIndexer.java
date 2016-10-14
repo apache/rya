@@ -1,4 +1,4 @@
-package mvm.rya.api.persist.index;
+package org.apache.rya.api.persist.index;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -29,8 +29,8 @@ import java.util.Set;
 import org.apache.hadoop.conf.Configurable;
 import org.openrdf.model.URI;
 
-import mvm.rya.api.domain.RyaStatement;
-import mvm.rya.api.domain.RyaURI;
+import org.apache.rya.api.domain.RyaStatement;
+import org.apache.rya.api.domain.RyaURI;
 
 public interface RyaSecondaryIndexer extends Closeable, Flushable, Configurable {
 

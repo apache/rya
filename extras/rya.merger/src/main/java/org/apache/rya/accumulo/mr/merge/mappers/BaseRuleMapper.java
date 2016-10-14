@@ -1,8 +1,8 @@
-package mvm.rya.accumulo.mr.merge.mappers;
+package org.apache.rya.accumulo.mr.merge.mappers;
 
 /*
  * #%L
- * mvm.rya.accumulo.mr.merge
+ * org.apache.rya.accumulo.mr.merge
  * %%
  * Copyright (C) 2014 Rya
  * %%
@@ -33,21 +33,21 @@ import org.openrdf.query.QueryEvaluationException;
 import org.openrdf.query.algebra.Or;
 import org.openrdf.query.algebra.ValueExpr;
 
-import mvm.rya.accumulo.AccumuloRdfConfiguration;
-import mvm.rya.accumulo.mr.MRUtils;
-import mvm.rya.accumulo.mr.merge.MergeTool;
-import mvm.rya.accumulo.mr.merge.util.AccumuloQueryRuleset;
-import mvm.rya.accumulo.mr.merge.util.CopyRule;
-import mvm.rya.accumulo.mr.merge.util.QueryRuleset.QueryRulesetException;
-import mvm.rya.api.RdfCloudTripleStoreConstants.TABLE_LAYOUT;
-import mvm.rya.api.RdfCloudTripleStoreUtils;
-import mvm.rya.api.domain.RyaStatement;
-import mvm.rya.api.resolver.RyaToRdfConversions;
-import mvm.rya.api.resolver.triple.TripleRow;
-import mvm.rya.api.resolver.triple.TripleRowResolver;
-import mvm.rya.api.resolver.triple.TripleRowResolverException;
-import mvm.rya.api.resolver.triple.impl.WholeRowTripleResolver;
-import mvm.rya.rdftriplestore.evaluation.ParallelEvaluationStrategyImpl;
+import org.apache.rya.accumulo.AccumuloRdfConfiguration;
+import org.apache.rya.accumulo.mr.MRUtils;
+import org.apache.rya.accumulo.mr.merge.MergeTool;
+import org.apache.rya.accumulo.mr.merge.util.AccumuloQueryRuleset;
+import org.apache.rya.accumulo.mr.merge.util.CopyRule;
+import org.apache.rya.accumulo.mr.merge.util.QueryRuleset.QueryRulesetException;
+import org.apache.rya.api.RdfCloudTripleStoreConstants.TABLE_LAYOUT;
+import org.apache.rya.api.RdfCloudTripleStoreUtils;
+import org.apache.rya.api.domain.RyaStatement;
+import org.apache.rya.api.resolver.RyaToRdfConversions;
+import org.apache.rya.api.resolver.triple.TripleRow;
+import org.apache.rya.api.resolver.triple.TripleRowResolver;
+import org.apache.rya.api.resolver.triple.TripleRowResolverException;
+import org.apache.rya.api.resolver.triple.impl.WholeRowTripleResolver;
+import org.apache.rya.rdftriplestore.evaluation.ParallelEvaluationStrategyImpl;
 
 /**
  * Take in rows from a table and range defined by query-based rules, convert the rows to

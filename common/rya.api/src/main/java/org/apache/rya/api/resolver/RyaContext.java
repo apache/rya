@@ -1,4 +1,4 @@
-package mvm.rya.api.resolver;
+package org.apache.rya.api.resolver;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -25,20 +25,20 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import mvm.rya.api.domain.RyaRange;
-import mvm.rya.api.domain.RyaType;
-import mvm.rya.api.resolver.impl.BooleanRyaTypeResolver;
-import mvm.rya.api.resolver.impl.ByteRyaTypeResolver;
-import mvm.rya.api.resolver.impl.CustomDatatypeResolver;
-import mvm.rya.api.resolver.impl.DateTimeRyaTypeResolver;
-import mvm.rya.api.resolver.impl.DoubleRyaTypeResolver;
-import mvm.rya.api.resolver.impl.FloatRyaTypeResolver;
-import mvm.rya.api.resolver.impl.IntegerRyaTypeResolver;
-import mvm.rya.api.resolver.impl.LongRyaTypeResolver;
-import mvm.rya.api.resolver.impl.RyaTypeResolverImpl;
-import mvm.rya.api.resolver.impl.RyaURIResolver;
-import mvm.rya.api.resolver.impl.ServiceBackedRyaTypeResolverMappings;
-import mvm.rya.api.resolver.impl.ShortRyaTypeResolver;
+import org.apache.rya.api.domain.RyaRange;
+import org.apache.rya.api.domain.RyaType;
+import org.apache.rya.api.resolver.impl.BooleanRyaTypeResolver;
+import org.apache.rya.api.resolver.impl.ByteRyaTypeResolver;
+import org.apache.rya.api.resolver.impl.CustomDatatypeResolver;
+import org.apache.rya.api.resolver.impl.DateTimeRyaTypeResolver;
+import org.apache.rya.api.resolver.impl.DoubleRyaTypeResolver;
+import org.apache.rya.api.resolver.impl.FloatRyaTypeResolver;
+import org.apache.rya.api.resolver.impl.IntegerRyaTypeResolver;
+import org.apache.rya.api.resolver.impl.LongRyaTypeResolver;
+import org.apache.rya.api.resolver.impl.RyaTypeResolverImpl;
+import org.apache.rya.api.resolver.impl.RyaURIResolver;
+import org.apache.rya.api.resolver.impl.ServiceBackedRyaTypeResolverMappings;
+import org.apache.rya.api.resolver.impl.ShortRyaTypeResolver;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;

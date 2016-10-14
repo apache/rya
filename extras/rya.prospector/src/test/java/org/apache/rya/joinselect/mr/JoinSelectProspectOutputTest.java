@@ -1,4 +1,4 @@
-package mvm.rya.joinselect.mr;
+package org.apache.rya.joinselect.mr;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -26,10 +26,10 @@ import org.junit.Test;
 
 import java.io.IOException;
 
-import mvm.rya.joinselect.mr.JoinSelectProspectOutput;
-import mvm.rya.joinselect.mr.utils.CardinalityType;
-import mvm.rya.joinselect.mr.utils.CompositeType;
-import mvm.rya.joinselect.mr.utils.TripleCard;
+import org.apache.rya.joinselect.mr.JoinSelectProspectOutput;
+import org.apache.rya.joinselect.mr.utils.CardinalityType;
+import org.apache.rya.joinselect.mr.utils.CompositeType;
+import org.apache.rya.joinselect.mr.utils.TripleCard;
 
 import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Value;

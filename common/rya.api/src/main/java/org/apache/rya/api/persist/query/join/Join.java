@@ -1,4 +1,4 @@
-package mvm.rya.api.persist.query.join;
+package org.apache.rya.api.persist.query.join;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -22,11 +22,11 @@ package mvm.rya.api.persist.query.join;
 
 
 import info.aduna.iteration.CloseableIteration;
-import mvm.rya.api.RdfCloudTripleStoreConfiguration;
-import mvm.rya.api.domain.RyaStatement;
-import mvm.rya.api.domain.RyaType;
-import mvm.rya.api.domain.RyaURI;
-import mvm.rya.api.persist.RyaDAOException;
+import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
+import org.apache.rya.api.domain.RyaStatement;
+import org.apache.rya.api.domain.RyaType;
+import org.apache.rya.api.domain.RyaURI;
+import org.apache.rya.api.persist.RyaDAOException;
 
 import java.util.Map;
 

@@ -1,4 +1,4 @@
-package mvm.rya.mongodb.iter;
+package org.apache.rya.mongodb.iter;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -22,8 +22,8 @@ package mvm.rya.mongodb.iter;
 
 import java.util.Iterator;
 
-import mvm.rya.api.domain.RyaStatement;
-import mvm.rya.api.persist.RyaDAOException;
+import org.apache.rya.api.domain.RyaStatement;
+import org.apache.rya.api.persist.RyaDAOException;
 
 public class NonCloseableRyaStatementCursorIterator implements Iterator<RyaStatement> {
 

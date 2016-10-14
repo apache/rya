@@ -1,4 +1,4 @@
-package mvm.rya.reasoning.mr;
+package org.apache.rya.reasoning.mr;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -33,9 +33,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import mvm.rya.accumulo.mr.MRUtils;
-import mvm.rya.reasoning.Fact;
-import mvm.rya.reasoning.Schema;
+import org.apache.rya.accumulo.mr.MRUtils;
+import org.apache.rya.reasoning.Fact;
+import org.apache.rya.reasoning.Schema;
 
 import org.apache.accumulo.minicluster.MiniAccumuloCluster;
 import org.apache.hadoop.conf.Configuration;

@@ -1,4 +1,4 @@
-package mvm.rya.indexing;
+package org.apache.rya.indexing;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -26,7 +26,7 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.util.Collection;
 
-import mvm.rya.indexing.accumulo.entity.StarQuery;
+import org.apache.rya.indexing.accumulo.entity.StarQuery;
 
 import org.apache.accumulo.core.client.TableNotFoundException;
 import org.openrdf.query.BindingSet;

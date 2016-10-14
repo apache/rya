@@ -78,20 +78,20 @@ import org.openrdf.sail.Sail;
 
 import com.google.common.io.Files;
 
-import mvm.rya.accumulo.AccumuloRdfConfiguration;
-import mvm.rya.api.client.Install.InstallConfiguration;
-import mvm.rya.api.client.RyaClient;
-import mvm.rya.api.client.accumulo.AccumuloConnectionDetails;
-import mvm.rya.api.client.accumulo.AccumuloRyaClientFactory;
-import mvm.rya.api.domain.RyaStatement;
-import mvm.rya.api.domain.RyaStatement.RyaStatementBuilder;
-import mvm.rya.api.domain.RyaType;
-import mvm.rya.api.domain.RyaURI;
-import mvm.rya.api.resolver.RyaToRdfConversions;
-import mvm.rya.indexing.accumulo.ConfigUtils;
-import mvm.rya.indexing.external.PrecomputedJoinIndexerConfig;
-import mvm.rya.rdftriplestore.RyaSailRepository;
-import mvm.rya.sail.config.RyaSailFactory;
+import org.apache.rya.accumulo.AccumuloRdfConfiguration;
+import org.apache.rya.api.client.Install.InstallConfiguration;
+import org.apache.rya.api.client.RyaClient;
+import org.apache.rya.api.client.accumulo.AccumuloConnectionDetails;
+import org.apache.rya.api.client.accumulo.AccumuloRyaClientFactory;
+import org.apache.rya.api.domain.RyaStatement;
+import org.apache.rya.api.domain.RyaStatement.RyaStatementBuilder;
+import org.apache.rya.api.domain.RyaType;
+import org.apache.rya.api.domain.RyaURI;
+import org.apache.rya.api.resolver.RyaToRdfConversions;
+import org.apache.rya.indexing.accumulo.ConfigUtils;
+import org.apache.rya.indexing.external.PrecomputedJoinIndexerConfig;
+import org.apache.rya.rdftriplestore.RyaSailRepository;
+import org.apache.rya.sail.config.RyaSailFactory;
 
 /**
  * Integration tests that ensure the Fluo application processes PCJs results

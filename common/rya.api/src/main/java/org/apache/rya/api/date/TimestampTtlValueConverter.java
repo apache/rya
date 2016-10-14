@@ -1,4 +1,4 @@
-package mvm.rya.api.date;
+package org.apache.rya.api.date;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one

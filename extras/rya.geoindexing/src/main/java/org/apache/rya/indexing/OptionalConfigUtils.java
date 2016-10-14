@@ -1,4 +1,4 @@
-package mvm.rya.indexing;
+package org.apache.rya.indexing;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -49,22 +49,22 @@ import org.openrdf.model.impl.URIImpl;
 import com.google.common.base.Optional;
 import com.google.common.collect.Lists;
 
-import mvm.rya.accumulo.AccumuloRdfConfiguration;
-import mvm.rya.api.RdfCloudTripleStoreConfiguration;
-import mvm.rya.api.instance.RyaDetails;
-import mvm.rya.indexing.GeoEnabledFilterFunctionOptimizer;
-import mvm.rya.indexing.accumulo.ConfigUtils;
-import mvm.rya.indexing.accumulo.entity.EntityCentricIndex;
-import mvm.rya.indexing.accumulo.entity.EntityOptimizer;
-import mvm.rya.indexing.accumulo.freetext.AccumuloFreeTextIndexer;
-import mvm.rya.indexing.accumulo.freetext.LuceneTokenizer;
-import mvm.rya.indexing.accumulo.freetext.Tokenizer;
-import mvm.rya.indexing.accumulo.geo.GeoMesaGeoIndexer;
-import mvm.rya.indexing.accumulo.temporal.AccumuloTemporalIndexer;
-import mvm.rya.indexing.external.PrecomputedJoinIndexer;
-import mvm.rya.indexing.mongodb.freetext.MongoFreeTextIndexer;
-import mvm.rya.indexing.mongodb.geo.MongoGeoIndexer;
-import mvm.rya.indexing.pcj.matching.PCJOptimizer;
+import org.apache.rya.accumulo.AccumuloRdfConfiguration;
+import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
+import org.apache.rya.api.instance.RyaDetails;
+import org.apache.rya.indexing.GeoEnabledFilterFunctionOptimizer;
+import org.apache.rya.indexing.accumulo.ConfigUtils;
+import org.apache.rya.indexing.accumulo.entity.EntityCentricIndex;
+import org.apache.rya.indexing.accumulo.entity.EntityOptimizer;
+import org.apache.rya.indexing.accumulo.freetext.AccumuloFreeTextIndexer;
+import org.apache.rya.indexing.accumulo.freetext.LuceneTokenizer;
+import org.apache.rya.indexing.accumulo.freetext.Tokenizer;
+import org.apache.rya.indexing.accumulo.geo.GeoMesaGeoIndexer;
+import org.apache.rya.indexing.accumulo.temporal.AccumuloTemporalIndexer;
+import org.apache.rya.indexing.external.PrecomputedJoinIndexer;
+import org.apache.rya.indexing.mongodb.freetext.MongoFreeTextIndexer;
+import org.apache.rya.indexing.mongodb.geo.MongoGeoIndexer;
+import org.apache.rya.indexing.pcj.matching.PCJOptimizer;
 
 /**
  * A set of configuration utils to read a Hadoop {@link Configuration} object and create Cloudbase/Accumulo objects.

@@ -16,7 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package mvm.rya.shell;
+package org.apache.rya.shell;
 
 import static java.util.Objects.requireNonNull;
 
@@ -33,20 +33,20 @@ import org.springframework.stereotype.Component;
 
 import com.google.common.base.Optional;
 
-import mvm.rya.api.client.GetInstanceDetails;
-import mvm.rya.api.client.Install.DuplicateInstanceNameException;
-import mvm.rya.api.client.Install.InstallConfiguration;
-import mvm.rya.api.client.InstanceDoesNotExistException;
-import mvm.rya.api.client.PCJDoesNotExistException;
-import mvm.rya.api.client.RyaClient;
-import mvm.rya.api.client.RyaClientException;
-import mvm.rya.api.instance.RyaDetails;
-import mvm.rya.shell.SharedShellState.ConnectionState;
-import mvm.rya.shell.SharedShellState.ShellState;
-import mvm.rya.shell.util.InstallPrompt;
-import mvm.rya.shell.util.InstanceNamesFormatter;
-import mvm.rya.shell.util.RyaDetailsFormatter;
-import mvm.rya.shell.util.SparqlPrompt;
+import org.apache.rya.api.client.GetInstanceDetails;
+import org.apache.rya.api.client.Install.DuplicateInstanceNameException;
+import org.apache.rya.api.client.Install.InstallConfiguration;
+import org.apache.rya.api.client.InstanceDoesNotExistException;
+import org.apache.rya.api.client.PCJDoesNotExistException;
+import org.apache.rya.api.client.RyaClient;
+import org.apache.rya.api.client.RyaClientException;
+import org.apache.rya.api.instance.RyaDetails;
+import org.apache.rya.shell.SharedShellState.ConnectionState;
+import org.apache.rya.shell.SharedShellState.ShellState;
+import org.apache.rya.shell.util.InstallPrompt;
+import org.apache.rya.shell.util.InstanceNamesFormatter;
+import org.apache.rya.shell.util.RyaDetailsFormatter;
+import org.apache.rya.shell.util.SparqlPrompt;
 
 /**
  * Rya Shell commands that have to do with administrative tasks.

@@ -1,4 +1,4 @@
-package mvm.rya.mongodb;
+package org.apache.rya.mongodb;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one

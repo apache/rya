@@ -1,4 +1,4 @@
-package mvm.rya.api.query.strategy;
+package org.apache.rya.api.query.strategy;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -21,28 +21,28 @@ package mvm.rya.api.query.strategy;
 
 
 
-import static mvm.rya.api.RdfCloudTripleStoreConstants.TABLE_LAYOUT.OSP;
-import static mvm.rya.api.RdfCloudTripleStoreConstants.TABLE_LAYOUT.PO;
-import static mvm.rya.api.RdfCloudTripleStoreConstants.TABLE_LAYOUT.SPO;
+import static org.apache.rya.api.RdfCloudTripleStoreConstants.TABLE_LAYOUT.OSP;
+import static org.apache.rya.api.RdfCloudTripleStoreConstants.TABLE_LAYOUT.PO;
+import static org.apache.rya.api.RdfCloudTripleStoreConstants.TABLE_LAYOUT.SPO;
 
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import junit.framework.TestCase;
-import mvm.rya.api.RdfCloudTripleStoreConfiguration;
-import mvm.rya.api.RdfCloudTripleStoreConstants;
-import mvm.rya.api.domain.RyaStatement;
-import mvm.rya.api.domain.RyaType;
-import mvm.rya.api.domain.RyaURI;
-import mvm.rya.api.query.strategy.wholerow.OspWholeRowTriplePatternStrategy;
-import mvm.rya.api.query.strategy.wholerow.PoWholeRowTriplePatternStrategy;
-import mvm.rya.api.query.strategy.wholerow.SpoWholeRowTriplePatternStrategy;
-import mvm.rya.api.resolver.RyaContext;
-import mvm.rya.api.resolver.RyaTripleContext;
-import mvm.rya.api.resolver.triple.TripleRow;
-import mvm.rya.api.resolver.triple.TripleRowRegex;
-import mvm.rya.api.resolver.triple.impl.WholeRowTripleResolver;
+import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
+import org.apache.rya.api.RdfCloudTripleStoreConstants;
+import org.apache.rya.api.domain.RyaStatement;
+import org.apache.rya.api.domain.RyaType;
+import org.apache.rya.api.domain.RyaURI;
+import org.apache.rya.api.query.strategy.wholerow.OspWholeRowTriplePatternStrategy;
+import org.apache.rya.api.query.strategy.wholerow.PoWholeRowTriplePatternStrategy;
+import org.apache.rya.api.query.strategy.wholerow.SpoWholeRowTriplePatternStrategy;
+import org.apache.rya.api.resolver.RyaContext;
+import org.apache.rya.api.resolver.RyaTripleContext;
+import org.apache.rya.api.resolver.triple.TripleRow;
+import org.apache.rya.api.resolver.triple.TripleRowRegex;
+import org.apache.rya.api.resolver.triple.impl.WholeRowTripleResolver;
 
 import org.openrdf.model.vocabulary.XMLSchema;
 

@@ -16,7 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package mvm.rya.api.client.accumulo;
+package org.apache.rya.api.client.accumulo;
 
 import static java.util.Objects.requireNonNull;
 
@@ -45,25 +45,25 @@ import org.openrdf.sail.SailException;
 import com.google.common.base.Optional;
 
 import info.aduna.iteration.CloseableIteration;
-import mvm.rya.accumulo.AccumuloRdfConfiguration;
-import mvm.rya.accumulo.instance.AccumuloRyaInstanceDetailsRepository;
-import mvm.rya.api.client.BatchUpdatePCJ;
-import mvm.rya.api.client.InstanceDoesNotExistException;
-import mvm.rya.api.client.PCJDoesNotExistException;
-import mvm.rya.api.client.RyaClientException;
-import mvm.rya.api.instance.RyaDetails;
-import mvm.rya.api.instance.RyaDetails.PCJIndexDetails.PCJDetails;
-import mvm.rya.api.instance.RyaDetails.PCJIndexDetails.PCJDetails.PCJUpdateStrategy;
-import mvm.rya.api.instance.RyaDetailsRepository;
-import mvm.rya.api.instance.RyaDetailsRepository.NotInitializedException;
-import mvm.rya.api.instance.RyaDetailsRepository.RyaDetailsRepositoryException;
-import mvm.rya.api.instance.RyaDetailsUpdater;
-import mvm.rya.api.instance.RyaDetailsUpdater.RyaDetailsMutator;
-import mvm.rya.api.instance.RyaDetailsUpdater.RyaDetailsMutator.CouldNotApplyMutationException;
-import mvm.rya.api.persist.RyaDAOException;
-import mvm.rya.indexing.accumulo.ConfigUtils;
-import mvm.rya.rdftriplestore.inference.InferenceEngineException;
-import mvm.rya.sail.config.RyaSailFactory;
+import org.apache.rya.accumulo.AccumuloRdfConfiguration;
+import org.apache.rya.accumulo.instance.AccumuloRyaInstanceDetailsRepository;
+import org.apache.rya.api.client.BatchUpdatePCJ;
+import org.apache.rya.api.client.InstanceDoesNotExistException;
+import org.apache.rya.api.client.PCJDoesNotExistException;
+import org.apache.rya.api.client.RyaClientException;
+import org.apache.rya.api.instance.RyaDetails;
+import org.apache.rya.api.instance.RyaDetails.PCJIndexDetails.PCJDetails;
+import org.apache.rya.api.instance.RyaDetails.PCJIndexDetails.PCJDetails.PCJUpdateStrategy;
+import org.apache.rya.api.instance.RyaDetailsRepository;
+import org.apache.rya.api.instance.RyaDetailsRepository.NotInitializedException;
+import org.apache.rya.api.instance.RyaDetailsRepository.RyaDetailsRepositoryException;
+import org.apache.rya.api.instance.RyaDetailsUpdater;
+import org.apache.rya.api.instance.RyaDetailsUpdater.RyaDetailsMutator;
+import org.apache.rya.api.instance.RyaDetailsUpdater.RyaDetailsMutator.CouldNotApplyMutationException;
+import org.apache.rya.api.persist.RyaDAOException;
+import org.apache.rya.indexing.accumulo.ConfigUtils;
+import org.apache.rya.rdftriplestore.inference.InferenceEngineException;
+import org.apache.rya.sail.config.RyaSailFactory;
 
 /**
  * Uses an in memory Rya Client to batch update a PCJ index.

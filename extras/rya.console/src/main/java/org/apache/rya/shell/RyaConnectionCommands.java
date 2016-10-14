@@ -16,7 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package mvm.rya.shell;
+package org.apache.rya.shell;
 
 import static java.util.Objects.requireNonNull;
 
@@ -35,14 +35,14 @@ import org.springframework.stereotype.Component;
 
 import com.google.common.base.Optional;
 
-import mvm.rya.api.client.InstanceExists;
-import mvm.rya.api.client.RyaClientException;
-import mvm.rya.api.client.RyaClient;
-import mvm.rya.api.client.accumulo.AccumuloConnectionDetails;
-import mvm.rya.api.client.accumulo.AccumuloRyaClientFactory;
-import mvm.rya.shell.SharedShellState.ConnectionState;
-import mvm.rya.shell.util.ConnectorFactory;
-import mvm.rya.shell.util.PasswordPrompt;
+import org.apache.rya.api.client.InstanceExists;
+import org.apache.rya.api.client.RyaClientException;
+import org.apache.rya.api.client.RyaClient;
+import org.apache.rya.api.client.accumulo.AccumuloConnectionDetails;
+import org.apache.rya.api.client.accumulo.AccumuloRyaClientFactory;
+import org.apache.rya.shell.SharedShellState.ConnectionState;
+import org.apache.rya.shell.util.ConnectorFactory;
+import org.apache.rya.shell.util.PasswordPrompt;
 
 /**
  * Spring Shell commands that manage the connection that is used by the shell.

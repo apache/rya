@@ -1,4 +1,4 @@
-package mvm.rya.accumulo.mr;
+package org.apache.rya.accumulo.mr;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -19,12 +19,12 @@ package mvm.rya.accumulo.mr;
  * under the License.
  */
 
-import mvm.rya.accumulo.AccumuloRdfConstants;
-import mvm.rya.api.RdfCloudTripleStoreConfiguration;
-import mvm.rya.api.RdfCloudTripleStoreConstants;
-import mvm.rya.api.RdfCloudTripleStoreConstants.TABLE_LAYOUT;
-import mvm.rya.api.RdfCloudTripleStoreUtils;
-import mvm.rya.indexing.accumulo.ConfigUtils;
+import org.apache.rya.accumulo.AccumuloRdfConstants;
+import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
+import org.apache.rya.api.RdfCloudTripleStoreConstants;
+import org.apache.rya.api.RdfCloudTripleStoreConstants.TABLE_LAYOUT;
+import org.apache.rya.api.RdfCloudTripleStoreUtils;
+import org.apache.rya.indexing.accumulo.ConfigUtils;
 
 import java.io.IOException;
 

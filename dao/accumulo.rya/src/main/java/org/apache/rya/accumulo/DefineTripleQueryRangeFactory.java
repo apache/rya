@@ -17,13 +17,13 @@
  * under the License.
  */
 
-//package mvm.rya.accumulo;
+//package org.apache.rya.accumulo;
 
 //
 //import com.google.common.io.ByteArrayDataOutput;
 //import com.google.common.io.ByteStreams;
-//import mvm.rya.api.RdfCloudTripleStoreUtils;
-//import mvm.rya.api.domain.RangeValue;
+//import org.apache.rya.api.RdfCloudTripleStoreUtils;
+//import org.apache.rya.api.domain.RangeValue;
 //import org.apache.accumulo.core.data.Range;
 //import org.apache.hadoop.io.Text;
 //import org.openrdf.model.Value;
@@ -33,8 +33,8 @@
 //import java.io.IOException;
 //import java.util.Map;
 //
-//import static mvm.rya.api.RdfCloudTripleStoreConstants.*;
-//import static mvm.rya.api.RdfCloudTripleStoreUtils.CustomEntry;
+//import static org.apache.rya.api.RdfCloudTripleStoreConstants.*;
+//import static org.apache.rya.api.RdfCloudTripleStoreUtils.CustomEntry;
 //
 ///**
 // * Class DefineTripleQueryRangeFactory

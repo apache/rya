@@ -1,8 +1,8 @@
-package mvm.rya.accumulo.mr.merge.util;
+package org.apache.rya.accumulo.mr.merge.util;
 
 /*
  * #%L
- * mvm.rya.accumulo.mr.merge
+ * org.apache.rya.accumulo.mr.merge
  * %%
  * Copyright (C) 2014 Rya
  * %%
@@ -26,11 +26,11 @@ import static org.junit.Assert.assertTrue;
 import java.util.Date;
 
 import info.aduna.iteration.CloseableIteration;
-import mvm.rya.accumulo.AccumuloRdfConfiguration;
-import mvm.rya.accumulo.AccumuloRyaDAO;
-import mvm.rya.api.domain.RyaStatement;
-import mvm.rya.api.domain.RyaURI;
-import mvm.rya.api.persist.RyaDAOException;
+import org.apache.rya.accumulo.AccumuloRdfConfiguration;
+import org.apache.rya.accumulo.AccumuloRyaDAO;
+import org.apache.rya.api.domain.RyaStatement;
+import org.apache.rya.api.domain.RyaURI;
+import org.apache.rya.api.persist.RyaDAOException;
 
 /**
  * Utility methods for testing merging/copying.

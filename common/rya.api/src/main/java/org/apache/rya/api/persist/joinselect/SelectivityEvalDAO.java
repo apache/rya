@@ -1,4 +1,4 @@
-package mvm.rya.api.persist.joinselect;
+package org.apache.rya.api.persist.joinselect;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -21,8 +21,8 @@ package mvm.rya.api.persist.joinselect;
 
 
 
-import mvm.rya.api.RdfCloudTripleStoreConfiguration;
-import mvm.rya.api.persist.RdfEvalStatsDAO;
+import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
+import org.apache.rya.api.persist.RdfEvalStatsDAO;
 import org.openrdf.query.algebra.StatementPattern;
 import org.openrdf.query.algebra.TupleExpr;
 

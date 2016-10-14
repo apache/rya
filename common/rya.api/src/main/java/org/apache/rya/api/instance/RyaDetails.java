@@ -1,4 +1,4 @@
-package mvm.rya.api.instance;
+package org.apache.rya.api.instance;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one

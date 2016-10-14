@@ -1,4 +1,4 @@
-package mvm.rya.indexing.accumulo.freetext.iterators;
+package org.apache.rya.indexing.accumulo.freetext.iterators;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -21,12 +21,12 @@ package mvm.rya.indexing.accumulo.freetext.iterators;
 
 
 
-import static mvm.rya.indexing.accumulo.freetext.query.ASTNodeUtils.allChildrenAreNot;
-import static mvm.rya.indexing.accumulo.freetext.query.ASTNodeUtils.findFirstNonNotChild;
-import static mvm.rya.indexing.accumulo.freetext.query.ASTNodeUtils.getNodeIterator;
-import static mvm.rya.indexing.accumulo.freetext.query.ASTNodeUtils.isNotFlag;
-import static mvm.rya.indexing.accumulo.freetext.query.ASTNodeUtils.pushChild;
-import static mvm.rya.indexing.accumulo.freetext.query.ASTNodeUtils.swapChildren;
+import static org.apache.rya.indexing.accumulo.freetext.query.ASTNodeUtils.allChildrenAreNot;
+import static org.apache.rya.indexing.accumulo.freetext.query.ASTNodeUtils.findFirstNonNotChild;
+import static org.apache.rya.indexing.accumulo.freetext.query.ASTNodeUtils.getNodeIterator;
+import static org.apache.rya.indexing.accumulo.freetext.query.ASTNodeUtils.isNotFlag;
+import static org.apache.rya.indexing.accumulo.freetext.query.ASTNodeUtils.pushChild;
+import static org.apache.rya.indexing.accumulo.freetext.query.ASTNodeUtils.swapChildren;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -36,14 +36,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
 
-import mvm.rya.indexing.accumulo.freetext.ColumnPrefixes;
-import mvm.rya.indexing.accumulo.freetext.query.ASTExpression;
-import mvm.rya.indexing.accumulo.freetext.query.ASTTerm;
-import mvm.rya.indexing.accumulo.freetext.query.ParseException;
-import mvm.rya.indexing.accumulo.freetext.query.QueryParser;
-import mvm.rya.indexing.accumulo.freetext.query.QueryParserTreeConstants;
-import mvm.rya.indexing.accumulo.freetext.query.SimpleNode;
-import mvm.rya.indexing.accumulo.freetext.query.TokenMgrError;
+import org.apache.rya.indexing.accumulo.freetext.ColumnPrefixes;
+import org.apache.rya.indexing.accumulo.freetext.query.ASTExpression;
+import org.apache.rya.indexing.accumulo.freetext.query.ASTTerm;
+import org.apache.rya.indexing.accumulo.freetext.query.ParseException;
+import org.apache.rya.indexing.accumulo.freetext.query.QueryParser;
+import org.apache.rya.indexing.accumulo.freetext.query.QueryParserTreeConstants;
+import org.apache.rya.indexing.accumulo.freetext.query.SimpleNode;
+import org.apache.rya.indexing.accumulo.freetext.query.TokenMgrError;
 
 import org.apache.accumulo.core.client.IteratorSetting;
 import org.apache.accumulo.core.data.ByteSequence;

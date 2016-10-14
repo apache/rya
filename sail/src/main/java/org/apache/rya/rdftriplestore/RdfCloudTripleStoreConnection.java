@@ -1,4 +1,4 @@
-package mvm.rya.rdftriplestore;
+package org.apache.rya.rdftriplestore;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -32,34 +32,34 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.NoSuchElementException;
 
-import mvm.rya.api.RdfCloudTripleStoreConfiguration;
-import mvm.rya.api.RdfCloudTripleStoreConstants;
-import mvm.rya.api.domain.RyaStatement;
-import mvm.rya.api.domain.RyaURI;
-import mvm.rya.api.persist.RdfEvalStatsDAO;
-import mvm.rya.api.persist.RyaDAO;
-import mvm.rya.api.persist.RyaDAOException;
-import mvm.rya.api.persist.joinselect.SelectivityEvalDAO;
-import mvm.rya.api.persist.utils.RyaDAOHelper;
-import mvm.rya.api.resolver.RdfToRyaConversions;
-import mvm.rya.rdftriplestore.evaluation.FilterRangeVisitor;
-import mvm.rya.rdftriplestore.evaluation.ParallelEvaluationStrategyImpl;
-import mvm.rya.rdftriplestore.evaluation.QueryJoinSelectOptimizer;
-import mvm.rya.rdftriplestore.evaluation.RdfCloudTripleStoreEvaluationStatistics;
-import mvm.rya.rdftriplestore.evaluation.RdfCloudTripleStoreSelectivityEvaluationStatistics;
-import mvm.rya.rdftriplestore.evaluation.SeparateFilterJoinsVisitor;
-import mvm.rya.rdftriplestore.inference.InferenceEngine;
-import mvm.rya.rdftriplestore.inference.InverseOfVisitor;
-import mvm.rya.rdftriplestore.inference.PropertyChainVisitor;
-import mvm.rya.rdftriplestore.inference.SameAsVisitor;
-import mvm.rya.rdftriplestore.inference.SubClassOfVisitor;
-import mvm.rya.rdftriplestore.inference.SubPropertyOfVisitor;
-import mvm.rya.rdftriplestore.inference.SymmetricPropertyVisitor;
-import mvm.rya.rdftriplestore.inference.TransitivePropertyVisitor;
-import mvm.rya.rdftriplestore.namespace.NamespaceManager;
-import mvm.rya.rdftriplestore.provenance.ProvenanceCollectionException;
-import mvm.rya.rdftriplestore.provenance.ProvenanceCollector;
-import mvm.rya.rdftriplestore.utils.DefaultStatistics;
+import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
+import org.apache.rya.api.RdfCloudTripleStoreConstants;
+import org.apache.rya.api.domain.RyaStatement;
+import org.apache.rya.api.domain.RyaURI;
+import org.apache.rya.api.persist.RdfEvalStatsDAO;
+import org.apache.rya.api.persist.RyaDAO;
+import org.apache.rya.api.persist.RyaDAOException;
+import org.apache.rya.api.persist.joinselect.SelectivityEvalDAO;
+import org.apache.rya.api.persist.utils.RyaDAOHelper;
+import org.apache.rya.api.resolver.RdfToRyaConversions;
+import org.apache.rya.rdftriplestore.evaluation.FilterRangeVisitor;
+import org.apache.rya.rdftriplestore.evaluation.ParallelEvaluationStrategyImpl;
+import org.apache.rya.rdftriplestore.evaluation.QueryJoinSelectOptimizer;
+import org.apache.rya.rdftriplestore.evaluation.RdfCloudTripleStoreEvaluationStatistics;
+import org.apache.rya.rdftriplestore.evaluation.RdfCloudTripleStoreSelectivityEvaluationStatistics;
+import org.apache.rya.rdftriplestore.evaluation.SeparateFilterJoinsVisitor;
+import org.apache.rya.rdftriplestore.inference.InferenceEngine;
+import org.apache.rya.rdftriplestore.inference.InverseOfVisitor;
+import org.apache.rya.rdftriplestore.inference.PropertyChainVisitor;
+import org.apache.rya.rdftriplestore.inference.SameAsVisitor;
+import org.apache.rya.rdftriplestore.inference.SubClassOfVisitor;
+import org.apache.rya.rdftriplestore.inference.SubPropertyOfVisitor;
+import org.apache.rya.rdftriplestore.inference.SymmetricPropertyVisitor;
+import org.apache.rya.rdftriplestore.inference.TransitivePropertyVisitor;
+import org.apache.rya.rdftriplestore.namespace.NamespaceManager;
+import org.apache.rya.rdftriplestore.provenance.ProvenanceCollectionException;
+import org.apache.rya.rdftriplestore.provenance.ProvenanceCollector;
+import org.apache.rya.rdftriplestore.utils.DefaultStatistics;
 
 import org.apache.hadoop.conf.Configurable;
 import org.openrdf.model.Namespace;
@@ -383,7 +383,7 @@ public class RdfCloudTripleStoreConnection extends SailConnectionBase {
                             selectEvalDAO)).optimize(tupleExpr, dataset, bindings);
                 } else {
 
-                    (new mvm.rya.rdftriplestore.evaluation.QueryJoinOptimizer(stats)).optimize(tupleExpr, dataset,
+                    (new org.apache.rya.rdftriplestore.evaluation.QueryJoinOptimizer(stats)).optimize(tupleExpr, dataset,
                             bindings); // TODO: Make pluggable
                 }
             }

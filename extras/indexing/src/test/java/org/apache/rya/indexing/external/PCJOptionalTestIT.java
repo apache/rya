@@ -16,7 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package mvm.rya.indexing.external;
+package org.apache.rya.indexing.external;
 
 import java.net.UnknownHostException;
 import java.util.ArrayList;
@@ -58,13 +58,13 @@ import org.openrdf.sail.SailException;
 import com.beust.jcommander.internal.Lists;
 import com.google.common.base.Optional;
 
-import mvm.rya.api.persist.RyaDAOException;
-import mvm.rya.indexing.external.PrecompJoinOptimizerIntegrationTest.CountingResultHandler;
-import mvm.rya.indexing.external.PrecompJoinOptimizerTest.NodeCollector;
-import mvm.rya.indexing.external.tupleSet.ExternalTupleSet;
-import mvm.rya.indexing.external.tupleSet.SimpleExternalTupleSet;
-import mvm.rya.indexing.pcj.matching.PCJOptimizer;
-import mvm.rya.rdftriplestore.inference.InferenceEngineException;
+import org.apache.rya.api.persist.RyaDAOException;
+import org.apache.rya.indexing.external.PrecompJoinOptimizerIntegrationTest.CountingResultHandler;
+import org.apache.rya.indexing.external.PrecompJoinOptimizerTest.NodeCollector;
+import org.apache.rya.indexing.external.tupleSet.ExternalTupleSet;
+import org.apache.rya.indexing.external.tupleSet.SimpleExternalTupleSet;
+import org.apache.rya.indexing.pcj.matching.PCJOptimizer;
+import org.apache.rya.rdftriplestore.inference.InferenceEngineException;
 
 public class PCJOptionalTestIT {
 

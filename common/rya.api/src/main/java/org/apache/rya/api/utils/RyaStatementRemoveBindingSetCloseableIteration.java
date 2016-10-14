@@ -1,4 +1,4 @@
-package mvm.rya.api.utils;
+package org.apache.rya.api.utils;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -22,8 +22,8 @@ package mvm.rya.api.utils;
 
 
 import info.aduna.iteration.CloseableIteration;
-import mvm.rya.api.domain.RyaStatement;
-import mvm.rya.api.persist.RyaDAOException;
+import org.apache.rya.api.domain.RyaStatement;
+import org.apache.rya.api.persist.RyaDAOException;
 import org.openrdf.query.BindingSet;
 
 import java.util.Map;

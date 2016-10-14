@@ -1,4 +1,4 @@
-package mvm.rya.api.domain;
+package org.apache.rya.api.domain;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -21,7 +21,7 @@ package mvm.rya.api.domain;
 
 
 
-import mvm.rya.api.RdfCloudTripleStoreConstants;
+import org.apache.rya.api.RdfCloudTripleStoreConstants;
 import org.openrdf.model.URI;
 
 /**
@@ -30,9 +30,9 @@ import org.openrdf.model.URI;
  */
 public class RyaSchema {
 
-    public static final String NAMESPACE = "urn:mvm.rya/2012/05#";
-    public static final String AUTH_NAMESPACE = "urn:mvm.rya/auth/2012/05#";
-    public static final String BNODE_NAMESPACE = "urn:mvm.rya/bnode/2012/07#";
+    public static final String NAMESPACE = "urn:org.apache.rya/2012/05#";
+    public static final String AUTH_NAMESPACE = "urn:org.apache.rya/auth/2012/05#";
+    public static final String BNODE_NAMESPACE = "urn:org.apache.rya/bnode/2012/07#";
 
     //datatypes
     public static final URI NODE = RdfCloudTripleStoreConstants.VALUE_FACTORY.createURI(NAMESPACE, "node");

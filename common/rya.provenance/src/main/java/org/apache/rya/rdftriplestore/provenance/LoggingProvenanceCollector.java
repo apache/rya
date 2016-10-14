@@ -1,4 +1,4 @@
-package mvm.rya.rdftriplestore.provenance;
+package org.apache.rya.rdftriplestore.provenance;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -31,7 +31,7 @@ public class LoggingProvenanceCollector implements ProvenanceCollector {
     private static final Logger log = Logger.getLogger(LoggingProvenanceCollector.class);
 
 	/* (non-Javadoc)
-	 * @see mvm.rya.rdftriplestore.provenance.ProvenanceCollector#recordQuery(java.lang.String)
+	 * @see org.apache.rya.rdftriplestore.provenance.ProvenanceCollector#recordQuery(java.lang.String)
 	 */
 	public void recordQuery(String query) {
 		log.debug("User entered query: " + query);

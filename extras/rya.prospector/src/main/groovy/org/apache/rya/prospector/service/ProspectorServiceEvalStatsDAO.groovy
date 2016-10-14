@@ -17,20 +17,20 @@
  * under the License.
  */
 
-package mvm.rya.prospector.service
+package org.apache.rya.prospector.service
 
-import mvm.rya.api.RdfCloudTripleStoreConfiguration
-import mvm.rya.api.persist.RdfEvalStatsDAO
-import mvm.rya.prospector.domain.TripleValueType
-import mvm.rya.prospector.utils.ProspectorConstants
+import org.apache.rya.api.RdfCloudTripleStoreConfiguration
+import org.apache.rya.api.persist.RdfEvalStatsDAO
+import org.apache.rya.prospector.domain.TripleValueType
+import org.apache.rya.prospector.utils.ProspectorConstants
 import org.apache.hadoop.conf.Configuration
 import org.openrdf.model.Resource
 import org.openrdf.model.Value
 
-import mvm.rya.api.persist.RdfEvalStatsDAO.CARDINALITY_OF
+import org.apache.rya.api.persist.RdfEvalStatsDAO.CARDINALITY_OF
 
 /**
- * An ${@link mvm.rya.api.persist.RdfEvalStatsDAO} that uses the Prospector Service underneath return counts.
+ * An ${@link org.apache.rya.api.persist.RdfEvalStatsDAO} that uses the Prospector Service underneath return counts.
  */
 class ProspectorServiceEvalStatsDAO implements RdfEvalStatsDAO<RdfCloudTripleStoreConfiguration> {
 

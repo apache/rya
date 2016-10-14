@@ -20,9 +20,9 @@ package org.apache.rya.indexing.pcj.storage.accumulo;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
-import static mvm.rya.api.RdfCloudTripleStoreConstants.DELIM_BYTE;
-import static mvm.rya.api.RdfCloudTripleStoreConstants.DELIM_BYTES;
-import static mvm.rya.api.RdfCloudTripleStoreConstants.TYPE_DELIM_BYTE;
+import static org.apache.rya.api.RdfCloudTripleStoreConstants.DELIM_BYTE;
+import static org.apache.rya.api.RdfCloudTripleStoreConstants.DELIM_BYTES;
+import static org.apache.rya.api.RdfCloudTripleStoreConstants.TYPE_DELIM_BYTE;
 
 import java.nio.ByteBuffer;
 import java.util.Arrays;
@@ -39,11 +39,11 @@ import org.openrdf.query.algebra.evaluation.QueryBindingSet;
 
 import com.google.common.primitives.Bytes;
 
-import mvm.rya.api.domain.RyaType;
-import mvm.rya.api.resolver.RdfToRyaConversions;
-import mvm.rya.api.resolver.RyaContext;
-import mvm.rya.api.resolver.RyaToRdfConversions;
-import mvm.rya.api.resolver.RyaTypeResolverException;
+import org.apache.rya.api.domain.RyaType;
+import org.apache.rya.api.resolver.RdfToRyaConversions;
+import org.apache.rya.api.resolver.RyaContext;
+import org.apache.rya.api.resolver.RyaToRdfConversions;
+import org.apache.rya.api.resolver.RyaTypeResolverException;
 
 /**
  * Converts {@link BindingSet}s to byte[]s and back again. The bytes do not

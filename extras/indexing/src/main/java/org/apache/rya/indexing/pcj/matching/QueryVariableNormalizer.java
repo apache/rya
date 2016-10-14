@@ -1,4 +1,4 @@
-package mvm.rya.indexing.pcj.matching;
+package org.apache.rya.indexing.pcj.matching;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one

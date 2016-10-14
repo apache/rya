@@ -1,4 +1,4 @@
-package mvm.rya.mongodb;
+package org.apache.rya.mongodb;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -37,18 +37,18 @@ import com.mongodb.InsertOptions;
 import com.mongodb.MongoClient;
 
 import de.flapdoodle.embed.mongo.tests.MongodForTestsFactory;
-import mvm.rya.api.RdfCloudTripleStoreConfiguration;
-import mvm.rya.api.domain.RyaStatement;
-import mvm.rya.api.domain.RyaURI;
-import mvm.rya.api.persist.RyaDAO;
-import mvm.rya.api.persist.RyaDAOException;
-import mvm.rya.api.persist.RyaNamespaceManager;
-import mvm.rya.api.persist.index.RyaSecondaryIndexer;
-import mvm.rya.api.persist.query.RyaQueryEngine;
-import mvm.rya.mongodb.dao.MongoDBNamespaceManager;
-import mvm.rya.mongodb.dao.MongoDBStorageStrategy;
-import mvm.rya.mongodb.dao.SimpleMongoDBNamespaceManager;
-import mvm.rya.mongodb.dao.SimpleMongoDBStorageStrategy;
+import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
+import org.apache.rya.api.domain.RyaStatement;
+import org.apache.rya.api.domain.RyaURI;
+import org.apache.rya.api.persist.RyaDAO;
+import org.apache.rya.api.persist.RyaDAOException;
+import org.apache.rya.api.persist.RyaNamespaceManager;
+import org.apache.rya.api.persist.index.RyaSecondaryIndexer;
+import org.apache.rya.api.persist.query.RyaQueryEngine;
+import org.apache.rya.mongodb.dao.MongoDBNamespaceManager;
+import org.apache.rya.mongodb.dao.MongoDBStorageStrategy;
+import org.apache.rya.mongodb.dao.SimpleMongoDBNamespaceManager;
+import org.apache.rya.mongodb.dao.SimpleMongoDBStorageStrategy;
 
 /**
  * Default DAO for mongo backed RYA allowing for CRUD operations.

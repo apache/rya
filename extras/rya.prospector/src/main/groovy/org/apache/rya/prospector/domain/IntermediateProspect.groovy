@@ -17,11 +17,11 @@
  * under the License.
  */
 
-package mvm.rya.prospector.domain
+package org.apache.rya.prospector.domain
 
 import org.apache.hadoop.io.WritableComparable
 
-import static mvm.rya.prospector.domain.TripleValueType.*
+import static org.apache.rya.prospector.domain.TripleValueType.*
 
 /**
  * Date: 12/3/12

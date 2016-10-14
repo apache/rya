@@ -1,4 +1,4 @@
-package mvm.rya.accumulo;
+package org.apache.rya.accumulo;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -22,15 +22,15 @@ package mvm.rya.accumulo;
 
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static mvm.rya.accumulo.AccumuloRdfConstants.ALL_AUTHORIZATIONS;
-import static mvm.rya.api.RdfCloudTripleStoreConstants.EMPTY_TEXT;
-import static mvm.rya.api.RdfCloudTripleStoreConstants.INFO_NAMESPACE_TXT;
-import static mvm.rya.api.RdfCloudTripleStoreConstants.MAX_MEMORY;
-import static mvm.rya.api.RdfCloudTripleStoreConstants.MAX_TIME;
-import static mvm.rya.api.RdfCloudTripleStoreConstants.NUM_THREADS;
-import static mvm.rya.api.RdfCloudTripleStoreConstants.RTS_SUBJECT_RYA;
-import static mvm.rya.api.RdfCloudTripleStoreConstants.RTS_VERSION_PREDICATE_RYA;
-import static mvm.rya.api.RdfCloudTripleStoreConstants.VERSION_RYA;
+import static org.apache.rya.accumulo.AccumuloRdfConstants.ALL_AUTHORIZATIONS;
+import static org.apache.rya.api.RdfCloudTripleStoreConstants.EMPTY_TEXT;
+import static org.apache.rya.api.RdfCloudTripleStoreConstants.INFO_NAMESPACE_TXT;
+import static org.apache.rya.api.RdfCloudTripleStoreConstants.MAX_MEMORY;
+import static org.apache.rya.api.RdfCloudTripleStoreConstants.MAX_TIME;
+import static org.apache.rya.api.RdfCloudTripleStoreConstants.NUM_THREADS;
+import static org.apache.rya.api.RdfCloudTripleStoreConstants.RTS_SUBJECT_RYA;
+import static org.apache.rya.api.RdfCloudTripleStoreConstants.RTS_VERSION_PREDICATE_RYA;
+import static org.apache.rya.api.RdfCloudTripleStoreConstants.VERSION_RYA;
 
 import java.io.IOException;
 import java.util.Collection;
@@ -65,17 +65,17 @@ import com.google.common.collect.Iterators;
 import com.google.common.collect.Lists;
 
 import info.aduna.iteration.CloseableIteration;
-import mvm.rya.accumulo.experimental.AccumuloIndexer;
-import mvm.rya.accumulo.query.AccumuloRyaQueryEngine;
-import mvm.rya.api.RdfCloudTripleStoreConfiguration;
-import mvm.rya.api.RdfCloudTripleStoreConstants.TABLE_LAYOUT;
-import mvm.rya.api.domain.RyaStatement;
-import mvm.rya.api.domain.RyaURI;
-import mvm.rya.api.layout.TableLayoutStrategy;
-import mvm.rya.api.persist.RyaDAO;
-import mvm.rya.api.persist.RyaDAOException;
-import mvm.rya.api.persist.RyaNamespaceManager;
-import mvm.rya.api.resolver.RyaTripleContext;
+import org.apache.rya.accumulo.experimental.AccumuloIndexer;
+import org.apache.rya.accumulo.query.AccumuloRyaQueryEngine;
+import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
+import org.apache.rya.api.RdfCloudTripleStoreConstants.TABLE_LAYOUT;
+import org.apache.rya.api.domain.RyaStatement;
+import org.apache.rya.api.domain.RyaURI;
+import org.apache.rya.api.layout.TableLayoutStrategy;
+import org.apache.rya.api.persist.RyaDAO;
+import org.apache.rya.api.persist.RyaDAOException;
+import org.apache.rya.api.persist.RyaNamespaceManager;
+import org.apache.rya.api.resolver.RyaTripleContext;
 
 public class AccumuloRyaDAO implements RyaDAO<AccumuloRdfConfiguration>, RyaNamespaceManager<AccumuloRdfConfiguration> {
     private static final Log logger = LogFactory.getLog(AccumuloRyaDAO.class);

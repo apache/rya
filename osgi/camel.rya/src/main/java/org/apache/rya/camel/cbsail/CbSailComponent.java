@@ -1,4 +1,4 @@
-package mvm.rya.camel.cbsail;
+package org.apache.rya.camel.cbsail;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one

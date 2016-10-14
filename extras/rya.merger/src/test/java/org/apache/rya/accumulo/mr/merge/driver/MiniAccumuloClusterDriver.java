@@ -1,8 +1,8 @@
-package mvm.rya.accumulo.mr.merge.driver;
+package org.apache.rya.accumulo.mr.merge.driver;
 
 /*
  * #%L
- * mvm.rya.accumulo.mr.merge
+ * org.apache.rya.accumulo.mr.merge
  * %%
  * Copyright (C) 2014 Rya
  * %%
@@ -20,9 +20,9 @@ package mvm.rya.accumulo.mr.merge.driver;
  * #L%
  */
 
-import static mvm.rya.accumulo.mr.merge.util.TestUtils.LAST_MONTH;
-import static mvm.rya.accumulo.mr.merge.util.TestUtils.TODAY;
-import static mvm.rya.accumulo.mr.merge.util.TestUtils.createRyaStatement;
+import static org.apache.rya.accumulo.mr.merge.util.TestUtils.LAST_MONTH;
+import static org.apache.rya.accumulo.mr.merge.util.TestUtils.TODAY;
+import static org.apache.rya.accumulo.mr.merge.util.TestUtils.createRyaStatement;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -31,11 +31,11 @@ import java.util.List;
 import org.apache.accumulo.minicluster.MiniAccumuloCluster;
 import org.apache.log4j.Logger;
 
-import mvm.rya.accumulo.mr.merge.util.AccumuloRyaUtils;
-import mvm.rya.accumulo.mr.merge.util.TestUtils;
-import mvm.rya.api.RdfCloudTripleStoreConstants;
-import mvm.rya.api.domain.RyaStatement;
-import mvm.rya.api.persist.RyaDAOException;
+import org.apache.rya.accumulo.mr.merge.util.AccumuloRyaUtils;
+import org.apache.rya.accumulo.mr.merge.util.TestUtils;
+import org.apache.rya.api.RdfCloudTripleStoreConstants;
+import org.apache.rya.api.domain.RyaStatement;
+import org.apache.rya.api.persist.RyaDAOException;
 
 /**
  * Runs a {@link MiniAccumuloCluster}.

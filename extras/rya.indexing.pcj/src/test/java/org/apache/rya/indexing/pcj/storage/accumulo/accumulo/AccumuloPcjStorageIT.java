@@ -46,12 +46,12 @@ import org.openrdf.query.impl.MapBindingSet;
 
 import com.google.common.collect.ImmutableMap;
 
-import mvm.rya.accumulo.AccumuloRyaITBase;
-import mvm.rya.accumulo.instance.AccumuloRyaInstanceDetailsRepository;
-import mvm.rya.api.instance.RyaDetails.PCJIndexDetails.PCJDetails;
-import mvm.rya.api.instance.RyaDetailsRepository;
-import mvm.rya.api.instance.RyaDetailsRepository.NotInitializedException;
-import mvm.rya.api.instance.RyaDetailsRepository.RyaDetailsRepositoryException;
+import org.apache.rya.accumulo.AccumuloRyaITBase;
+import org.apache.rya.accumulo.instance.AccumuloRyaInstanceDetailsRepository;
+import org.apache.rya.api.instance.RyaDetails.PCJIndexDetails.PCJDetails;
+import org.apache.rya.api.instance.RyaDetailsRepository;
+import org.apache.rya.api.instance.RyaDetailsRepository.NotInitializedException;
+import org.apache.rya.api.instance.RyaDetailsRepository.RyaDetailsRepositoryException;
 
 /**
  * Integration tests the methods of {@link AccumuloPcjStorage}.

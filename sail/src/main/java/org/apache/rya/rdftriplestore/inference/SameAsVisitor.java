@@ -1,4 +1,4 @@
-package mvm.rya.rdftriplestore.inference;
+package org.apache.rya.rdftriplestore.inference;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -21,10 +21,10 @@ package mvm.rya.rdftriplestore.inference;
 
 
 
-import mvm.rya.api.RdfCloudTripleStoreConfiguration;
-import mvm.rya.api.utils.NullableStatementImpl;
-import mvm.rya.rdftriplestore.utils.FixedStatementPattern;
-import mvm.rya.rdftriplestore.utils.TransitivePropertySP;
+import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
+import org.apache.rya.api.utils.NullableStatementImpl;
+import org.apache.rya.rdftriplestore.utils.FixedStatementPattern;
+import org.apache.rya.rdftriplestore.utils.TransitivePropertySP;
 import org.openrdf.model.Resource;
 import org.openrdf.model.URI;
 import org.openrdf.model.Value;

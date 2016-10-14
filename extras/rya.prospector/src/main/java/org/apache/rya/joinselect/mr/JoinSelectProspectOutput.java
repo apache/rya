@@ -1,4 +1,4 @@
-package mvm.rya.joinselect.mr;
+package org.apache.rya.joinselect.mr;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -21,17 +21,17 @@ package mvm.rya.joinselect.mr;
 
 
 
-import static mvm.rya.joinselect.mr.utils.JoinSelectConstants.AUTHS;
-import static mvm.rya.joinselect.mr.utils.JoinSelectConstants.PROSPECTS_OUTPUTPATH;
-import static mvm.rya.joinselect.mr.utils.JoinSelectConstants.PROSPECTS_TABLE;
+import static org.apache.rya.joinselect.mr.utils.JoinSelectConstants.AUTHS;
+import static org.apache.rya.joinselect.mr.utils.JoinSelectConstants.PROSPECTS_OUTPUTPATH;
+import static org.apache.rya.joinselect.mr.utils.JoinSelectConstants.PROSPECTS_TABLE;
 
 import java.io.IOException;
 import java.util.regex.Pattern;
 
-import mvm.rya.joinselect.mr.utils.CardinalityType;
-import mvm.rya.joinselect.mr.utils.CompositeType;
-import mvm.rya.joinselect.mr.utils.JoinSelectStatsUtil;
-import mvm.rya.joinselect.mr.utils.TripleCard;
+import org.apache.rya.joinselect.mr.utils.CardinalityType;
+import org.apache.rya.joinselect.mr.utils.CompositeType;
+import org.apache.rya.joinselect.mr.utils.JoinSelectStatsUtil;
+import org.apache.rya.joinselect.mr.utils.TripleCard;
 
 import org.apache.accumulo.core.client.AccumuloSecurityException;
 import org.apache.accumulo.core.data.Key;

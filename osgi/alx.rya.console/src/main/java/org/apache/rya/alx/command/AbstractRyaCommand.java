@@ -1,4 +1,4 @@
-package mvm.rya.alx.command;
+package org.apache.rya.alx.command;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -21,7 +21,7 @@ package mvm.rya.alx.command;
 
 
 
-import mvm.rya.api.persist.RyaDAO;
+import org.apache.rya.api.persist.RyaDAO;
 import org.apache.karaf.shell.console.OsgiCommandSupport;
 import org.openrdf.repository.Repository;
 import org.osgi.util.tracker.ServiceTracker;

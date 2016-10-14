@@ -1,4 +1,4 @@
-package mvm.rya.mongodb;
+package org.apache.rya.mongodb;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -24,11 +24,11 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import info.aduna.iteration.CloseableIteration;
-import mvm.rya.api.RdfCloudTripleStoreConfiguration;
-import mvm.rya.api.RdfCloudTripleStoreUtils;
-import mvm.rya.api.domain.RyaStatement;
-import mvm.rya.api.domain.RyaStatement.RyaStatementBuilder;
-import mvm.rya.api.domain.RyaURI;
+import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
+import org.apache.rya.api.RdfCloudTripleStoreUtils;
+import org.apache.rya.api.domain.RyaStatement;
+import org.apache.rya.api.domain.RyaStatement.RyaStatementBuilder;
+import org.apache.rya.api.domain.RyaURI;
 
 import org.apache.hadoop.conf.Configuration;
 import org.junit.Assert;

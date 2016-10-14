@@ -1,8 +1,8 @@
-package mvm.rya.accumulo.mr.merge.mappers;
+package org.apache.rya.accumulo.mr.merge.mappers;
 
 /*
  * #%L
- * mvm.rya.accumulo.mr.merge
+ * org.apache.rya.accumulo.mr.merge
  * %%
  * Copyright (C) 2014 Rya
  * %%
@@ -27,12 +27,12 @@ import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Value;
 import org.apache.log4j.Logger;
 
-import mvm.rya.accumulo.AccumuloRdfUtils;
-import mvm.rya.accumulo.mr.merge.util.AccumuloRyaUtils;
-import mvm.rya.api.RdfCloudTripleStoreConstants.TABLE_LAYOUT;
-import mvm.rya.api.domain.RyaStatement;
-import mvm.rya.api.resolver.triple.TripleRow;
-import mvm.rya.api.resolver.triple.TripleRowResolverException;
+import org.apache.rya.accumulo.AccumuloRdfUtils;
+import org.apache.rya.accumulo.mr.merge.util.AccumuloRyaUtils;
+import org.apache.rya.api.RdfCloudTripleStoreConstants.TABLE_LAYOUT;
+import org.apache.rya.api.domain.RyaStatement;
+import org.apache.rya.api.resolver.triple.TripleRow;
+import org.apache.rya.api.resolver.triple.TripleRowResolverException;
 
 /**
  * Extended {@link BaseCopyToolMapper} that handles the {@code AccumuloFileOutputFormat} for the copy tool.

@@ -1,4 +1,4 @@
-package mvm.rya.indexing.accumulo.freetext;
+package org.apache.rya.indexing.accumulo.freetext;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -28,7 +28,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.hadoop.io.Text;
 import org.openrdf.model.Statement;
 
-import mvm.rya.indexing.StatementSerializer;
+import org.apache.rya.indexing.StatementSerializer;
 
 /**
  * Row ID: shardId

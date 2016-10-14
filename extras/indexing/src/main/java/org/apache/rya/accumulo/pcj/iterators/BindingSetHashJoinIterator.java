@@ -1,4 +1,4 @@
-package mvm.rya.accumulo.pcj.iterators;
+package org.apache.rya.accumulo.pcj.iterators;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -31,7 +31,7 @@ import java.util.Map.Entry;
 import java.util.NoSuchElementException;
 import java.util.Set;
 
-import mvm.rya.indexing.external.tupleSet.ExternalTupleSet;
+import org.apache.rya.indexing.external.tupleSet.ExternalTupleSet;
 
 import org.openrdf.query.BindingSet;
 import org.openrdf.query.QueryEvaluationException;

@@ -1,4 +1,4 @@
-package mvm.rya.rdftriplestore.inference;
+package org.apache.rya.rdftriplestore.inference;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -35,10 +35,10 @@ import org.openrdf.query.algebra.Var;
 
 
 
-import mvm.rya.api.RdfCloudTripleStoreConfiguration;
-import mvm.rya.api.utils.NullableStatementImpl;
-import mvm.rya.rdftriplestore.utils.FixedStatementPattern;
-import mvm.rya.rdftriplestore.utils.FixedStatementPattern;
+import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
+import org.apache.rya.api.utils.NullableStatementImpl;
+import org.apache.rya.rdftriplestore.utils.FixedStatementPattern;
+import org.apache.rya.rdftriplestore.utils.FixedStatementPattern;
 
 /**
  * All predicates are changed

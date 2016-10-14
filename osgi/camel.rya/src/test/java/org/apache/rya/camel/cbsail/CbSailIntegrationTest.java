@@ -1,4 +1,4 @@
-package mvm.rya.camel.cbsail;
+package org.apache.rya.camel.cbsail;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -21,7 +21,7 @@ package mvm.rya.camel.cbsail;
 
 
 
-import mvm.rya.camel.cbsail.CbSailComponent;
+import org.apache.rya.camel.cbsail.CbSailComponent;
 import org.apache.camel.EndpointInject;
 import org.apache.camel.Exchange;
 import org.apache.camel.Processor;
@@ -67,7 +67,7 @@ public class CbSailIntegrationTest extends CamelTestSupport {
                         " {" +
                         "       <http://www.Department0.University0.edu/UndergraduateStudent60> ?pred ?obj ." +
                         " }";
-                String rawEvents = "PREFIX nh: <http://mvm.com/2011/02/nh#>\n" +
+                String rawEvents = "PREFIX nh: <http://org.apache.com/2011/02/nh#>\n" +
                         " SELECT * WHERE\n" +
                         " {\n" +
                         "     ?uuid nh:timestamp ?timestamp.\n" +
@@ -75,9 +75,9 @@ public class CbSailIntegrationTest extends CamelTestSupport {
                         "          nh:system ?system;\n" +
                         "          nh:dataSupplier ?dataSupplier;\n" +
                         "          nh:dataType ?dataType;\n" +
-                        "          <http://mvm.com/2011/02/nh#count> ?data.\n" +
+                        "          <http://org.apache.com/2011/02/nh#count> ?data.\n" +
                         " } LIMIT 100";
-                String latestModels = "PREFIX nh: <http://mvm.com/rdf/2011/02/model#>" +
+                String latestModels = "PREFIX nh: <http://org.apache.com/rdf/2011/02/model#>" +
                         " PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>" +
                         " SELECT * WHERE" +
                         " {" +
@@ -86,7 +86,7 @@ public class CbSailIntegrationTest extends CamelTestSupport {
                         "          nh:timestamp ?timestamp;" +
 //                        "     FILTER (xsd:integer(?timestamp) > 1297652964633)." +
                         "          nh:dataProperty \"count\";" +
-                        "          nh:modelType \"mvm.learning.tpami.SimpleGaussianMMModel\";" +
+                        "          nh:modelType \"org.apache.learning.tpami.SimpleGaussianMMModel\";" +
                         "          nh:site ?site;" +
                         "          nh:dataSupplier ?dataSupplier;" +
                         "          nh:system ?system;" +

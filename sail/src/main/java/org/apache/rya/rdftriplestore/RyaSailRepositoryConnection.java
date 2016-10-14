@@ -1,4 +1,4 @@
-package mvm.rya.rdftriplestore;
+package org.apache.rya.rdftriplestore;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -25,7 +25,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
 
-import mvm.rya.rdftriplestore.utils.CombineContextsRdfInserter;
+import org.apache.rya.rdftriplestore.utils.CombineContextsRdfInserter;
 
 import org.openrdf.OpenRDFUtil;
 import org.openrdf.model.Resource;

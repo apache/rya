@@ -1,4 +1,4 @@
-package mvm.rya.indexing.accumulo;
+package org.apache.rya.indexing.accumulo;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -22,7 +22,7 @@ package mvm.rya.indexing.accumulo;
 
 
 import junit.framework.Assert;
-import mvm.rya.indexing.StatementSerializer;
+import org.apache.rya.indexing.StatementSerializer;
 
 import org.junit.Test;
 import org.openrdf.model.Statement;

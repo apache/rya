@@ -1,4 +1,4 @@
-package mvm.rya.indexing.IndexPlanValidator;
+package org.apache.rya.indexing.IndexPlanValidator;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -28,8 +28,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import mvm.rya.indexing.external.tupleSet.ExternalTupleSet;
-import mvm.rya.indexing.pcj.matching.QueryVariableNormalizer.VarCollector;
+import org.apache.rya.indexing.external.tupleSet.ExternalTupleSet;
+import org.apache.rya.indexing.pcj.matching.QueryVariableNormalizer.VarCollector;
 
 import org.openrdf.query.algebra.BindingSetAssignment;
 import org.openrdf.query.algebra.Filter;

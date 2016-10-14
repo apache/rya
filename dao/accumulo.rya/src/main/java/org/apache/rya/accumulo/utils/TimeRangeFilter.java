@@ -1,4 +1,4 @@
-package mvm.rya.accumulo.utils;
+package org.apache.rya.accumulo.utils;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one

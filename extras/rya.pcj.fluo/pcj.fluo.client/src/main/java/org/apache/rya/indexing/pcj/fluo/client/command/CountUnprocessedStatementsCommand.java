@@ -28,7 +28,7 @@ import org.apache.rya.indexing.pcj.fluo.api.CountStatements;
 import org.apache.rya.indexing.pcj.fluo.client.PcjAdminClientCommand;
 
 import org.apache.fluo.api.client.FluoClient;
-import mvm.rya.rdftriplestore.RyaSailRepository;
+import org.apache.rya.rdftriplestore.RyaSailRepository;
 
 /**
  * A command that prints the number of RDF Statements that are loaded into the

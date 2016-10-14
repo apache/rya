@@ -1,4 +1,4 @@
-package mvm.rya.indexing.accumulo.entity;
+package org.apache.rya.indexing.accumulo.entity;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -19,7 +19,7 @@ package mvm.rya.indexing.accumulo.entity;
  * under the License.
  */
 
-import static mvm.rya.api.RdfCloudTripleStoreConstants.DELIM_BYTES;
+import static org.apache.rya.api.RdfCloudTripleStoreConstants.DELIM_BYTES;
 
 import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Mutation;
@@ -35,11 +35,11 @@ import org.openrdf.model.vocabulary.XMLSchema;
 
 import com.google.common.primitives.Bytes;
 
-import mvm.rya.api.domain.RyaStatement;
-import mvm.rya.api.domain.RyaType;
-import mvm.rya.api.domain.RyaURI;
-import mvm.rya.api.resolver.RyaContext;
-import mvm.rya.api.resolver.RyaTypeResolverException;
+import org.apache.rya.api.domain.RyaStatement;
+import org.apache.rya.api.domain.RyaType;
+import org.apache.rya.api.domain.RyaURI;
+import org.apache.rya.api.resolver.RyaContext;
+import org.apache.rya.api.resolver.RyaTypeResolverException;
 
 public class EntityCentricIndexTest {
     private static RyaStatement ryaStatement;

@@ -1,4 +1,4 @@
-package mvm.rya.mongodb.instance;
+package org.apache.rya.mongodb.instance;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -31,9 +31,9 @@ import com.mongodb.DBObject;
 import com.mongodb.MongoClient;
 import com.mongodb.WriteResult;
 
-import mvm.rya.api.instance.RyaDetails;
-import mvm.rya.api.instance.RyaDetailsRepository;
-import mvm.rya.mongodb.instance.MongoDetailsAdapter.MalformedRyaDetailsException;
+import org.apache.rya.api.instance.RyaDetails;
+import org.apache.rya.api.instance.RyaDetailsRepository;
+import org.apache.rya.mongodb.instance.MongoDetailsAdapter.MalformedRyaDetailsException;
 
 /**
  * An implementation of {@link RyaDetailsRepository} that stores a Rya

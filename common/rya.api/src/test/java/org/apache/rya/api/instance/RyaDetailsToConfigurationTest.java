@@ -1,4 +1,4 @@
-package mvm.rya.api.instance;
+package org.apache.rya.api.instance;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -19,11 +19,11 @@ package mvm.rya.api.instance;
  * under the License.
  */
 
-import static mvm.rya.api.instance.ConfigurationFields.USE_ENTITY;
-import static mvm.rya.api.instance.ConfigurationFields.USE_FREETEXT;
-import static mvm.rya.api.instance.ConfigurationFields.USE_GEO;
-import static mvm.rya.api.instance.ConfigurationFields.USE_PCJ;
-import static mvm.rya.api.instance.ConfigurationFields.USE_TEMPORAL;
+import static org.apache.rya.api.instance.ConfigurationFields.USE_ENTITY;
+import static org.apache.rya.api.instance.ConfigurationFields.USE_FREETEXT;
+import static org.apache.rya.api.instance.ConfigurationFields.USE_GEO;
+import static org.apache.rya.api.instance.ConfigurationFields.USE_PCJ;
+import static org.apache.rya.api.instance.ConfigurationFields.USE_TEMPORAL;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
@@ -34,16 +34,16 @@ import org.junit.Test;
 
 import com.google.common.base.Optional;
 
-import mvm.rya.api.instance.RyaDetails.EntityCentricIndexDetails;
-import mvm.rya.api.instance.RyaDetails.FreeTextIndexDetails;
-import mvm.rya.api.instance.RyaDetails.GeoIndexDetails;
-import mvm.rya.api.instance.RyaDetails.JoinSelectivityDetails;
-import mvm.rya.api.instance.RyaDetails.PCJIndexDetails;
-import mvm.rya.api.instance.RyaDetails.PCJIndexDetails.FluoDetails;
-import mvm.rya.api.instance.RyaDetails.PCJIndexDetails.PCJDetails;
-import mvm.rya.api.instance.RyaDetails.PCJIndexDetails.PCJDetails.PCJUpdateStrategy;
-import mvm.rya.api.instance.RyaDetails.ProspectorDetails;
-import mvm.rya.api.instance.RyaDetails.TemporalIndexDetails;
+import org.apache.rya.api.instance.RyaDetails.EntityCentricIndexDetails;
+import org.apache.rya.api.instance.RyaDetails.FreeTextIndexDetails;
+import org.apache.rya.api.instance.RyaDetails.GeoIndexDetails;
+import org.apache.rya.api.instance.RyaDetails.JoinSelectivityDetails;
+import org.apache.rya.api.instance.RyaDetails.PCJIndexDetails;
+import org.apache.rya.api.instance.RyaDetails.PCJIndexDetails.FluoDetails;
+import org.apache.rya.api.instance.RyaDetails.PCJIndexDetails.PCJDetails;
+import org.apache.rya.api.instance.RyaDetails.PCJIndexDetails.PCJDetails.PCJUpdateStrategy;
+import org.apache.rya.api.instance.RyaDetails.ProspectorDetails;
+import org.apache.rya.api.instance.RyaDetails.TemporalIndexDetails;
 
 public class RyaDetailsToConfigurationTest {
     @Test

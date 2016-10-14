@@ -16,7 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package mvm.rya.api.instance;
+package org.apache.rya.api.instance;
 
 import static java.util.Objects.requireNonNull;
 

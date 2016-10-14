@@ -16,7 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package mvm.rya.shell;
+package org.apache.rya.shell;
 
 import java.io.IOException;
 
@@ -32,7 +32,7 @@ import org.junit.BeforeClass;
 import org.springframework.shell.Bootstrap;
 import org.springframework.shell.core.JLineShellComponent;
 
-import mvm.rya.accumulo.MiniAccumuloClusterInstance;
+import org.apache.rya.accumulo.MiniAccumuloClusterInstance;
 
 /**
  * All Rya Shell integration tests should extend this one. It provides startup

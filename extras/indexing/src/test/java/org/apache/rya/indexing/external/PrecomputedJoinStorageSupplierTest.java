@@ -16,7 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package mvm.rya.indexing.external;
+package org.apache.rya.indexing.external;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.mock;
@@ -29,8 +29,8 @@ import org.junit.Test;
 
 import com.google.common.base.Supplier;
 
-import mvm.rya.indexing.external.PrecomputedJoinIndexerConfig.PrecomputedJoinStorageType;
-import mvm.rya.indexing.external.accumulo.AccumuloPcjStorageSupplier;
+import org.apache.rya.indexing.external.PrecomputedJoinIndexerConfig.PrecomputedJoinStorageType;
+import org.apache.rya.indexing.external.accumulo.AccumuloPcjStorageSupplier;
 
 /**
  * Tests the methods of {@link PrecomputedJoinStorageSupplier}.

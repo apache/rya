@@ -1,4 +1,4 @@
-package mvm.rya.api.query.strategy.wholerow;
+package org.apache.rya.api.query.strategy.wholerow;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -20,7 +20,7 @@ package mvm.rya.api.query.strategy.wholerow;
  */
 
 
-import mvm.rya.api.RdfCloudTripleStoreConfiguration;
+import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
 
 public class MockRdfCloudConfiguration extends RdfCloudTripleStoreConfiguration {
 

@@ -1,4 +1,4 @@
-package mvm.rya.api.resolver;
+package org.apache.rya.api.resolver;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one

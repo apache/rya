@@ -1,4 +1,4 @@
-package mvm.rya.api.resolver.impl;
+package org.apache.rya.api.resolver.impl;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -22,8 +22,8 @@ package mvm.rya.api.resolver.impl;
 
 
 import junit.framework.TestCase;
-import mvm.rya.api.domain.RyaType;
-import mvm.rya.api.domain.RyaURI;
+import org.apache.rya.api.domain.RyaType;
+import org.apache.rya.api.domain.RyaURI;
 
 /**
  * Date: 7/16/12

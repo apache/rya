@@ -17,9 +17,9 @@
  * under the License.
  */
 
-package mvm.rya.prospector.mr
+package org.apache.rya.prospector.mr
 
-import mvm.rya.prospector.utils.ProspectorUtils
+import org.apache.rya.prospector.utils.ProspectorUtils
 import org.apache.accumulo.core.data.Mutation
 import org.apache.accumulo.core.data.Value
 import org.apache.accumulo.core.security.ColumnVisibility
@@ -33,12 +33,12 @@ import org.apache.hadoop.mapreduce.Job
 import org.apache.hadoop.io.LongWritable
 import org.apache.commons.lang.time.DateUtils
 
-import mvm.rya.prospector.domain.IntermediateProspect
+import org.apache.rya.prospector.domain.IntermediateProspect
 
 import com.google.common.collect.Lists
 
-import static mvm.rya.prospector.utils.ProspectorConstants.*
-import static mvm.rya.prospector.utils.ProspectorUtils.*
+import static org.apache.rya.prospector.utils.ProspectorConstants.*
+import static org.apache.rya.prospector.utils.ProspectorUtils.*
 
 /**
  * Date: 12/3/12

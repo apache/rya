@@ -1,4 +1,4 @@
-package mvm.rya.indexing.mongodb.temporal;
+package org.apache.rya.indexing.mongodb.temporal;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -25,10 +25,10 @@ import com.mongodb.BasicDBObject;
 import com.mongodb.DBCollection;
 import com.mongodb.DBObject;
 
-import mvm.rya.api.domain.RyaStatement;
-import mvm.rya.indexing.TemporalInstantRfc3339;
-import mvm.rya.indexing.TemporalInterval;
-import mvm.rya.indexing.mongodb.IndexingMongoDBStorageStrategy;
+import org.apache.rya.api.domain.RyaStatement;
+import org.apache.rya.indexing.TemporalInstantRfc3339;
+import org.apache.rya.indexing.TemporalInterval;
+import org.apache.rya.indexing.mongodb.IndexingMongoDBStorageStrategy;
 
 /**
  * Defines how time based intervals/instants are stored in MongoDB.

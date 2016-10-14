@@ -1,4 +1,4 @@
-package mvm.rya.api.domain;
+package org.apache.rya.api.domain;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one

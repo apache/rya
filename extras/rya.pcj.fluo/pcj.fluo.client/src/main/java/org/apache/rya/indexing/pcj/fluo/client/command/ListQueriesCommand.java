@@ -42,7 +42,7 @@ import com.beust.jcommander.Parameter;
 import com.beust.jcommander.ParameterException;
 
 import org.apache.fluo.api.client.FluoClient;
-import mvm.rya.rdftriplestore.RyaSailRepository;
+import org.apache.rya.rdftriplestore.RyaSailRepository;
 
 /**
  * A command that lists information about the queries that are being managed by the Fluo app.

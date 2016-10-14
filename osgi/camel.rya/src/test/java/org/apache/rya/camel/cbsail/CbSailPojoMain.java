@@ -1,4 +1,4 @@
-package mvm.rya.camel.cbsail;
+package org.apache.rya.camel.cbsail;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -21,7 +21,7 @@ package mvm.rya.camel.cbsail;
 
 
 
-import mvm.rya.camel.cbsail.CbSailComponent;
+import org.apache.rya.camel.cbsail.CbSailComponent;
 import org.apache.camel.EndpointInject;
 import org.apache.camel.ProducerTemplate;
 

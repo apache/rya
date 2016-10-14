@@ -1,4 +1,4 @@
-package mvm.rya.reasoning;
+package org.apache.rya.reasoning;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -27,7 +27,7 @@ import java.util.Iterator;
 import java.util.Set;
 import java.util.TreeSet;
 
-import mvm.rya.reasoning.mr.ResourceWritable;
+import org.apache.rya.reasoning.mr.ResourceWritable;
 
 import org.apache.hadoop.io.WritableComparable;
 import org.apache.hadoop.io.WritableUtils;

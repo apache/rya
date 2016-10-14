@@ -39,8 +39,8 @@ import org.openrdf.query.algebra.evaluation.QueryBindingSet;
 
 import com.google.common.base.Joiner;
 
-import mvm.rya.api.domain.RyaType;
-import mvm.rya.api.resolver.RdfToRyaConversions;
+import org.apache.rya.api.domain.RyaType;
+import org.apache.rya.api.resolver.RdfToRyaConversions;
 
 /**
  * Converts {@link BindingSet}s to Strings and back again. The Strings do not

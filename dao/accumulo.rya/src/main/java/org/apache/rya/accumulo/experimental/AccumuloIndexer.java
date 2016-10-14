@@ -1,4 +1,4 @@
-package mvm.rya.accumulo.experimental;
+package org.apache.rya.accumulo.experimental;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -25,8 +25,8 @@ import java.io.IOException;
 import org.apache.accumulo.core.client.Connector;
 import org.apache.accumulo.core.client.MultiTableBatchWriter;
 
-import mvm.rya.api.RdfCloudTripleStoreConfiguration;
-import mvm.rya.api.persist.index.RyaSecondaryIndexer;
+import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
+import org.apache.rya.api.persist.index.RyaSecondaryIndexer;
 
 public interface AccumuloIndexer extends RyaSecondaryIndexer {
     public void init();    

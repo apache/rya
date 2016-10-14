@@ -17,15 +17,15 @@
  * under the License.
  */
 
-//package mvm.rya.accumulo;
+//package org.apache.rya.accumulo;
 
 //
 //import junit.framework.TestCase;
-//import mvm.rya.accumulo.AccumuloRdfConfiguration;
-//import mvm.rya.accumulo.DefineTripleQueryRangeFactory;
-//import mvm.rya.accumulo.AccumuloRdfConfiguration;
-//import mvm.rya.accumulo.DefineTripleQueryRangeFactory;
-//import mvm.rya.api.domain.RangeValue;
+//import org.apache.rya.accumulo.AccumuloRdfConfiguration;
+//import org.apache.rya.accumulo.DefineTripleQueryRangeFactory;
+//import org.apache.rya.accumulo.AccumuloRdfConfiguration;
+//import org.apache.rya.accumulo.DefineTripleQueryRangeFactory;
+//import org.apache.rya.api.domain.RangeValue;
 //import org.apache.accumulo.core.data.Range;
 //import org.openrdf.model.URI;
 //import org.openrdf.model.Value;
@@ -34,7 +34,7 @@
 //
 //import java.util.Map;
 //
-//import static mvm.rya.api.RdfCloudTripleStoreConstants.*;
+//import static org.apache.rya.api.RdfCloudTripleStoreConstants.*;
 //
 ///**
 // */

@@ -16,14 +16,14 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package mvm.rya.shell.util;
+package org.apache.rya.shell.util;
 
 import java.io.IOException;
 
 import com.google.common.base.Optional;
 
 import jline.console.ConsoleReader;
-import mvm.rya.api.client.Install.InstallConfiguration;
+import org.apache.rya.api.client.Install.InstallConfiguration;
 
 /**
  * A mechanism for prompting a user of the application for a the parameters

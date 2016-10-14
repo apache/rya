@@ -1,4 +1,4 @@
-package mvm.rya.reasoning.mr;
+package org.apache.rya.reasoning.mr;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -28,9 +28,9 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 
-import mvm.rya.reasoning.OwlClass;
-import mvm.rya.reasoning.OwlProperty;
-import mvm.rya.reasoning.Schema;
+import org.apache.rya.reasoning.OwlClass;
+import org.apache.rya.reasoning.OwlProperty;
+import org.apache.rya.reasoning.Schema;
 
 import org.apache.hadoop.io.Writable;
 

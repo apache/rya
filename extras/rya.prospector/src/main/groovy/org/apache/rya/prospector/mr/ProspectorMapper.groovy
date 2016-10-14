@@ -17,16 +17,16 @@
  * under the License.
  */
 
-package mvm.rya.prospector.mr
+package org.apache.rya.prospector.mr
 
-import mvm.rya.accumulo.AccumuloRdfConfiguration
-import mvm.rya.api.RdfCloudTripleStoreConstants
-import mvm.rya.api.domain.RyaStatement
-import mvm.rya.api.resolver.RyaTripleContext
-import mvm.rya.api.resolver.triple.TripleRow
-import mvm.rya.prospector.plans.IndexWorkPlan
-import mvm.rya.prospector.plans.IndexWorkPlanManager
-import mvm.rya.prospector.plans.impl.ServicesBackedIndexWorkPlanManager
+import org.apache.rya.accumulo.AccumuloRdfConfiguration
+import org.apache.rya.api.RdfCloudTripleStoreConstants
+import org.apache.rya.api.domain.RyaStatement
+import org.apache.rya.api.resolver.RyaTripleContext
+import org.apache.rya.api.resolver.triple.TripleRow
+import org.apache.rya.prospector.plans.IndexWorkPlan
+import org.apache.rya.prospector.plans.IndexWorkPlanManager
+import org.apache.rya.prospector.plans.impl.ServicesBackedIndexWorkPlanManager
 
 import org.apache.commons.lang.time.DateUtils
 import org.apache.hadoop.mapreduce.Mapper

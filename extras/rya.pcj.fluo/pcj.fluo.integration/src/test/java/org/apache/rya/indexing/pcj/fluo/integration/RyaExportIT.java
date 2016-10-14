@@ -36,7 +36,7 @@ import org.openrdf.query.impl.BindingImpl;
 import com.google.common.base.Optional;
 import com.google.common.collect.Sets;
 
-import mvm.rya.api.domain.RyaStatement;
+import org.apache.rya.api.domain.RyaStatement;
 
 /**
  * Performs integration tests over the Fluo application geared towards Rya PCJ exporting.

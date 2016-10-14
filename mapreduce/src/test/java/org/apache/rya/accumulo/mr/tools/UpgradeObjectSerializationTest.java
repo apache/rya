@@ -1,4 +1,4 @@
-package mvm.rya.accumulo.mr.tools;
+package org.apache.rya.accumulo.mr.tools;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -21,10 +21,10 @@ package mvm.rya.accumulo.mr.tools;
 
 
 
-import mvm.rya.api.resolver.impl.*;
+import org.apache.rya.api.resolver.impl.*;
 import org.junit.Test;
 
-import static mvm.rya.accumulo.mr.tools.Upgrade322Tool.UpgradeObjectSerialization;
+import static org.apache.rya.accumulo.mr.tools.Upgrade322Tool.UpgradeObjectSerialization;
 import static org.junit.Assert.*;
 
 public class UpgradeObjectSerializationTest {

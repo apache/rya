@@ -1,4 +1,4 @@
-package mvm.rya.api.persist.query;
+package org.apache.rya.api.persist.query;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -21,7 +21,7 @@ package mvm.rya.api.persist.query;
 
 
 
-import mvm.rya.api.RdfCloudTripleStoreConfiguration;
+import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

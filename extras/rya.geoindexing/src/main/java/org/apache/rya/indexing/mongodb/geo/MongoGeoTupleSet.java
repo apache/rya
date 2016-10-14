@@ -1,4 +1,4 @@
-package mvm.rya.indexing.mongodb.geo;
+package org.apache.rya.indexing.mongodb.geo;
 
 import java.util.Map;
 import java.util.Set;
@@ -36,14 +36,14 @@ import com.vividsolutions.jts.io.WKTReader;
 
 
 import info.aduna.iteration.CloseableIteration;
-import mvm.rya.indexing.GeoConstants;
-import mvm.rya.indexing.GeoIndexer;
-import mvm.rya.indexing.IndexingExpr;
-import mvm.rya.indexing.IteratorFactory;
-import mvm.rya.indexing.SearchFunction;
-import mvm.rya.indexing.StatementConstraints;
-import mvm.rya.indexing.accumulo.geo.GeoTupleSet;
-import mvm.rya.indexing.external.tupleSet.ExternalTupleSet;
+import org.apache.rya.indexing.GeoConstants;
+import org.apache.rya.indexing.GeoIndexer;
+import org.apache.rya.indexing.IndexingExpr;
+import org.apache.rya.indexing.IteratorFactory;
+import org.apache.rya.indexing.SearchFunction;
+import org.apache.rya.indexing.StatementConstraints;
+import org.apache.rya.indexing.accumulo.geo.GeoTupleSet;
+import org.apache.rya.indexing.external.tupleSet.ExternalTupleSet;
 
 public class MongoGeoTupleSet extends ExternalTupleSet {
 

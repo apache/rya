@@ -1,4 +1,4 @@
-package mvm.rya.indexing.accumulo.entity;
+package org.apache.rya.indexing.accumulo.entity;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -26,15 +26,15 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
-import mvm.rya.accumulo.AccumuloRdfConfiguration;
-import mvm.rya.accumulo.RyaTableMutationsFactory;
-import mvm.rya.api.RdfCloudTripleStoreConstants;
-import mvm.rya.api.domain.RyaStatement;
-import mvm.rya.api.domain.RyaType;
-import mvm.rya.api.domain.RyaURI;
-import mvm.rya.api.resolver.RyaToRdfConversions;
-import mvm.rya.api.resolver.RyaTripleContext;
-import mvm.rya.indexing.accumulo.ConfigUtils;
+import org.apache.rya.accumulo.AccumuloRdfConfiguration;
+import org.apache.rya.accumulo.RyaTableMutationsFactory;
+import org.apache.rya.api.RdfCloudTripleStoreConstants;
+import org.apache.rya.api.domain.RyaStatement;
+import org.apache.rya.api.domain.RyaType;
+import org.apache.rya.api.domain.RyaURI;
+import org.apache.rya.api.resolver.RyaToRdfConversions;
+import org.apache.rya.api.resolver.RyaTripleContext;
+import org.apache.rya.indexing.accumulo.ConfigUtils;
 
 import org.apache.accumulo.core.client.BatchWriter;
 import org.apache.accumulo.core.client.Connector;

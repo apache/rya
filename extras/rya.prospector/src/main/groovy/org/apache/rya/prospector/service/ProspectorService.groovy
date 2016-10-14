@@ -17,20 +17,20 @@
  * under the License.
  */
 
-package mvm.rya.prospector.service
+package org.apache.rya.prospector.service
 
-import mvm.rya.prospector.utils.ProspectorUtils
+import org.apache.rya.prospector.utils.ProspectorUtils
 import org.apache.accumulo.core.data.Key
 import org.apache.accumulo.core.data.Range
 import org.apache.accumulo.core.security.Authorizations
 import org.apache.hadoop.io.Text
 
-import static mvm.rya.prospector.utils.ProspectorConstants.METADATA
-import static mvm.rya.prospector.utils.ProspectorConstants.PROSPECT_TIME
-import mvm.rya.prospector.plans.IndexWorkPlanManager
-import mvm.rya.prospector.plans.impl.ServicesBackedIndexWorkPlanManager
-import mvm.rya.prospector.plans.IndexWorkPlan
-import mvm.rya.prospector.domain.IndexEntry
+import static org.apache.rya.prospector.utils.ProspectorConstants.METADATA
+import static org.apache.rya.prospector.utils.ProspectorConstants.PROSPECT_TIME
+import org.apache.rya.prospector.plans.IndexWorkPlanManager
+import org.apache.rya.prospector.plans.impl.ServicesBackedIndexWorkPlanManager
+import org.apache.rya.prospector.plans.IndexWorkPlan
+import org.apache.rya.prospector.domain.IndexEntry
 
 /**
  * Date: 12/5/12

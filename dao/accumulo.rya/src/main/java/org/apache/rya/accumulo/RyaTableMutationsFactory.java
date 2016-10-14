@@ -1,4 +1,4 @@
-package mvm.rya.accumulo;
+package org.apache.rya.accumulo;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -21,9 +21,9 @@ package mvm.rya.accumulo;
 
 
 
-import static mvm.rya.accumulo.AccumuloRdfConstants.EMPTY_CV;
-import static mvm.rya.accumulo.AccumuloRdfConstants.EMPTY_VALUE;
-import static mvm.rya.api.RdfCloudTripleStoreConstants.EMPTY_TEXT;
+import static org.apache.rya.accumulo.AccumuloRdfConstants.EMPTY_CV;
+import static org.apache.rya.accumulo.AccumuloRdfConstants.EMPTY_VALUE;
+import static org.apache.rya.api.RdfCloudTripleStoreConstants.EMPTY_TEXT;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -31,13 +31,13 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
-import mvm.rya.api.RdfCloudTripleStoreConfiguration;
-import mvm.rya.api.RdfCloudTripleStoreConstants;
-import mvm.rya.api.RdfCloudTripleStoreConstants.TABLE_LAYOUT;
-import mvm.rya.api.domain.RyaStatement;
-import mvm.rya.api.resolver.RyaTripleContext;
-import mvm.rya.api.resolver.triple.TripleRow;
-import mvm.rya.api.resolver.triple.TripleRowResolverException;
+import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
+import org.apache.rya.api.RdfCloudTripleStoreConstants;
+import org.apache.rya.api.RdfCloudTripleStoreConstants.TABLE_LAYOUT;
+import org.apache.rya.api.domain.RyaStatement;
+import org.apache.rya.api.resolver.RyaTripleContext;
+import org.apache.rya.api.resolver.triple.TripleRow;
+import org.apache.rya.api.resolver.triple.TripleRowResolverException;
 
 import org.apache.accumulo.core.data.Mutation;
 import org.apache.accumulo.core.data.Value;

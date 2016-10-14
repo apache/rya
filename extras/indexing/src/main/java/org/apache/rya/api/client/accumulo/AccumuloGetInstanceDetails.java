@@ -16,7 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package mvm.rya.api.client.accumulo;
+package org.apache.rya.api.client.accumulo;
 
 import static java.util.Objects.requireNonNull;
 
@@ -26,15 +26,15 @@ import org.apache.accumulo.core.client.Connector;
 
 import com.google.common.base.Optional;
 
-import mvm.rya.accumulo.instance.AccumuloRyaInstanceDetailsRepository;
-import mvm.rya.api.client.GetInstanceDetails;
-import mvm.rya.api.client.InstanceDoesNotExistException;
-import mvm.rya.api.client.InstanceExists;
-import mvm.rya.api.client.RyaClientException;
-import mvm.rya.api.instance.RyaDetails;
-import mvm.rya.api.instance.RyaDetailsRepository;
-import mvm.rya.api.instance.RyaDetailsRepository.NotInitializedException;
-import mvm.rya.api.instance.RyaDetailsRepository.RyaDetailsRepositoryException;
+import org.apache.rya.accumulo.instance.AccumuloRyaInstanceDetailsRepository;
+import org.apache.rya.api.client.GetInstanceDetails;
+import org.apache.rya.api.client.InstanceDoesNotExistException;
+import org.apache.rya.api.client.InstanceExists;
+import org.apache.rya.api.client.RyaClientException;
+import org.apache.rya.api.instance.RyaDetails;
+import org.apache.rya.api.instance.RyaDetailsRepository;
+import org.apache.rya.api.instance.RyaDetailsRepository.NotInitializedException;
+import org.apache.rya.api.instance.RyaDetailsRepository.RyaDetailsRepositoryException;
 
 /**
  * An Accumulo implementation of the {@link GetInstanceDetails} command.

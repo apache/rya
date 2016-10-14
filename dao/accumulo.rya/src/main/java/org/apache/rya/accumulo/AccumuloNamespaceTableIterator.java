@@ -1,4 +1,4 @@
-package mvm.rya.accumulo;
+package org.apache.rya.accumulo;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -23,7 +23,7 @@ package mvm.rya.accumulo;
 
 import com.google.common.base.Preconditions;
 import info.aduna.iteration.CloseableIteration;
-import mvm.rya.api.persist.RdfDAOException;
+import org.apache.rya.api.persist.RdfDAOException;
 import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Value;
 import org.openrdf.model.Namespace;

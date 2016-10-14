@@ -1,4 +1,4 @@
-package mvm.rya.indexing.mongo;
+package org.apache.rya.indexing.mongo;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -20,7 +20,7 @@ package mvm.rya.indexing.mongo;
  */
 
 
-import static mvm.rya.api.resolver.RdfToRyaConversions.convertStatement;
+import static org.apache.rya.api.resolver.RdfToRyaConversions.convertStatement;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -54,13 +54,13 @@ import com.mongodb.MongoException;
 import de.flapdoodle.embed.mongo.distribution.Version;
 import de.flapdoodle.embed.mongo.tests.MongodForTestsFactory;
 import info.aduna.iteration.CloseableIteration;
-import mvm.rya.indexing.StatementConstraints;
-import mvm.rya.indexing.TemporalInstant;
-import mvm.rya.indexing.TemporalInstantRfc3339;
-import mvm.rya.indexing.TemporalInterval;
-import mvm.rya.indexing.accumulo.ConfigUtils;
-import mvm.rya.indexing.mongodb.temporal.MongoTemporalIndexer;
-import mvm.rya.mongodb.MongoDBRdfConfiguration;
+import org.apache.rya.indexing.StatementConstraints;
+import org.apache.rya.indexing.TemporalInstant;
+import org.apache.rya.indexing.TemporalInstantRfc3339;
+import org.apache.rya.indexing.TemporalInterval;
+import org.apache.rya.indexing.accumulo.ConfigUtils;
+import org.apache.rya.indexing.mongodb.temporal.MongoTemporalIndexer;
+import org.apache.rya.mongodb.MongoDBRdfConfiguration;
 
 /**
  * JUnit tests for TemporalIndexer and it's implementation MongoTemporalIndexer
@@ -68,9 +68,9 @@ import mvm.rya.mongodb.MongoDBRdfConfiguration;
  * If you enjoy this test, please read RyaTemporalIndexerTest and YagoKBTest, which contain
  * many example SPARQL queries and updates and attempts to test independently of Mongo:
  *
- *     extras/indexingSail/src/test/java/mvm/rya/indexing/Mongo/RyaTemporalIndexerTest.java
- *     {@link mvm.rya.indexing.Mongo.RyaTemporalIndexerTest}
- *     {@link mvm.rya.indexing.Mongo.YagoKBTest.java}
+ *     extras/indexingSail/src/test/java/org.apache/rya/indexing/Mongo/RyaTemporalIndexerTest.java
+ *     {@link org.apache.rya.indexing.Mongo.RyaTemporalIndexerTest}
+ *     {@link org.apache.rya.indexing.Mongo.YagoKBTest.java}
  *
  * Remember, this class in instantiated fresh for each @test method.
  * so fields are reset, unless they are static.
@@ -513,7 +513,7 @@ public final class MongoTemporalIndexerTest {
 
     /**
      * Test method for
-     * {@link mvm.rya.indexing.Mongo.temporal.MongoTemporalIndexer#queryIntervalEquals(TemporalInterval, StatementConstraints)}
+     * {@link org.apache.rya.indexing.Mongo.temporal.MongoTemporalIndexer#queryIntervalEquals(TemporalInterval, StatementConstraints)}
      * .
      * @throws IOException
      * @throws QueryEvaluationException

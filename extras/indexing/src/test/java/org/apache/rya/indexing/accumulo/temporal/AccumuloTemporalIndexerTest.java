@@ -1,4 +1,4 @@
-package mvm.rya.indexing.accumulo.temporal;
+package org.apache.rya.indexing.accumulo.temporal;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -20,7 +20,7 @@ package mvm.rya.indexing.accumulo.temporal;
  */
 
 
-import static mvm.rya.api.resolver.RdfToRyaConversions.convertStatement;
+import static org.apache.rya.api.resolver.RdfToRyaConversions.convertStatement;
 import static org.junit.Assert.*; 
 import org.junit.Assert; 
 import java.io.IOException;
@@ -64,14 +64,14 @@ import org.openrdf.query.QueryEvaluationException;
 import com.beust.jcommander.internal.Lists;
 
 import info.aduna.iteration.CloseableIteration;
-import mvm.rya.api.RdfCloudTripleStoreConfiguration;
-import mvm.rya.api.domain.RyaStatement;
-import mvm.rya.indexing.StatementConstraints;
-import mvm.rya.indexing.StatementSerializer;
-import mvm.rya.indexing.TemporalInstant;
-import mvm.rya.indexing.TemporalInstantRfc3339;
-import mvm.rya.indexing.TemporalInterval;
-import mvm.rya.indexing.accumulo.ConfigUtils;
+import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
+import org.apache.rya.api.domain.RyaStatement;
+import org.apache.rya.indexing.StatementConstraints;
+import org.apache.rya.indexing.StatementSerializer;
+import org.apache.rya.indexing.TemporalInstant;
+import org.apache.rya.indexing.TemporalInstantRfc3339;
+import org.apache.rya.indexing.TemporalInterval;
+import org.apache.rya.indexing.accumulo.ConfigUtils;
 
 /**
  * JUnit tests for TemporalIndexer and it's implementation AccumuloTemporalIndexer
@@ -79,9 +79,9 @@ import mvm.rya.indexing.accumulo.ConfigUtils;
  * If you enjoy this test, please read RyaTemporalIndexerTest and YagoKBTest, which contain
  * many example SPARQL queries and updates and attempts to test independently of Accumulo:
  *
- *     extras/indexingSail/src/test/java/mvm/rya/indexing/accumulo/RyaTemporalIndexerTest.java
- *     {@link mvm.rya.indexing.accumulo.RyaTemporalIndexerTest}
- *     {@link mvm.rya.indexing.accumulo.YagoKBTest.java}
+ *     extras/indexingSail/src/test/java/org.apache/rya/indexing/accumulo/RyaTemporalIndexerTest.java
+ *     {@link org.apache.rya.indexing.accumulo.RyaTemporalIndexerTest}
+ *     {@link org.apache.rya.indexing.accumulo.YagoKBTest.java}
  *
  * Remember, this class in instantiated fresh for each @test method.
  * so fields are reset, unless they are static.
@@ -773,7 +773,7 @@ public final class AccumuloTemporalIndexerTest {
 
     /**
      * Test method for
-     * {@link mvm.rya.indexing.accumulo.temporal.AccumuloTemporalIndexer#queryIntervalEquals(TemporalInterval, StatementConstraints)}
+     * {@link org.apache.rya.indexing.accumulo.temporal.AccumuloTemporalIndexer#queryIntervalEquals(TemporalInterval, StatementConstraints)}
      * .
      * @throws IOException
      * @throws QueryEvaluationException

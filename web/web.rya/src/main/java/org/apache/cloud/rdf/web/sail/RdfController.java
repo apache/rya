@@ -1,4 +1,4 @@
-package mvm.cloud.rdf.web.sail;
+package org.apache.cloud.rdf.web.sail;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -21,7 +21,7 @@ package mvm.cloud.rdf.web.sail;
 
 
 
-import static mvm.rya.api.RdfCloudTripleStoreConstants.VALUE_FACTORY;
+import static org.apache.rya.api.RdfCloudTripleStoreConstants.VALUE_FACTORY;
 
 import java.io.IOException;
 import java.io.StringReader;
@@ -34,9 +34,9 @@ import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import mvm.rya.api.security.SecurityProvider;
-import mvm.rya.api.RdfCloudTripleStoreConfiguration;
-import mvm.rya.rdftriplestore.RdfCloudTripleStoreConnection;
+import org.apache.rya.api.security.SecurityProvider;
+import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
+import org.apache.rya.rdftriplestore.RdfCloudTripleStoreConnection;
 
 import org.openrdf.model.Resource;
 import org.openrdf.model.Statement;

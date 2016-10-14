@@ -33,7 +33,7 @@ import com.beust.jcommander.Parameter;
 import com.beust.jcommander.ParameterException;
 
 import org.apache.fluo.api.client.FluoClient;
-import mvm.rya.rdftriplestore.RyaSailRepository;
+import org.apache.rya.rdftriplestore.RyaSailRepository;
 
 /**
  * TODO implement this.

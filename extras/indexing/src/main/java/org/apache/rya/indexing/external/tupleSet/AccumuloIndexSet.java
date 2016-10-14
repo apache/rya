@@ -16,7 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package mvm.rya.indexing.external.tupleSet;
+package org.apache.rya.indexing.external.tupleSet;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -68,16 +68,16 @@ import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
 
 import info.aduna.iteration.CloseableIteration;
-import mvm.rya.accumulo.pcj.iterators.BindingSetHashJoinIterator;
-import mvm.rya.accumulo.pcj.iterators.BindingSetHashJoinIterator.HashJoinType;
-import mvm.rya.accumulo.pcj.iterators.IteratorCombiner;
-import mvm.rya.accumulo.pcj.iterators.PCJKeyToCrossProductBindingSetIterator;
-import mvm.rya.accumulo.pcj.iterators.PCJKeyToJoinBindingSetIterator;
-import mvm.rya.api.RdfCloudTripleStoreConfiguration;
-import mvm.rya.api.utils.IteratorWrapper;
-import mvm.rya.indexing.accumulo.ConfigUtils;
-import mvm.rya.indexing.pcj.matching.PCJOptimizerUtilities;
-import mvm.rya.rdftriplestore.evaluation.ExternalBatchingIterator;
+import org.apache.rya.accumulo.pcj.iterators.BindingSetHashJoinIterator;
+import org.apache.rya.accumulo.pcj.iterators.BindingSetHashJoinIterator.HashJoinType;
+import org.apache.rya.accumulo.pcj.iterators.IteratorCombiner;
+import org.apache.rya.accumulo.pcj.iterators.PCJKeyToCrossProductBindingSetIterator;
+import org.apache.rya.accumulo.pcj.iterators.PCJKeyToJoinBindingSetIterator;
+import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
+import org.apache.rya.api.utils.IteratorWrapper;
+import org.apache.rya.indexing.accumulo.ConfigUtils;
+import org.apache.rya.indexing.pcj.matching.PCJOptimizerUtilities;
+import org.apache.rya.rdftriplestore.evaluation.ExternalBatchingIterator;
 
 /**
  * During query planning, this node is inserted into the parsed query to

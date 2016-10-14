@@ -1,4 +1,4 @@
-package mvm.rya.api.persist.query;
+package org.apache.rya.api.persist.query;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -26,10 +26,10 @@ import info.aduna.iteration.CloseableIteration;
 import java.util.Collection;
 import java.util.Map;
 
-import mvm.rya.api.RdfCloudTripleStoreConfiguration;
-import mvm.rya.api.domain.RyaStatement;
-import mvm.rya.api.persist.RyaConfigured;
-import mvm.rya.api.persist.RyaDAOException;
+import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
+import org.apache.rya.api.domain.RyaStatement;
+import org.apache.rya.api.persist.RyaConfigured;
+import org.apache.rya.api.persist.RyaDAOException;
 
 import org.calrissian.mango.collect.CloseableIterable;
 import org.openrdf.query.BindingSet;

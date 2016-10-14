@@ -1,8 +1,8 @@
-package mvm.rya.accumulo.mr.merge.mappers;
+package org.apache.rya.accumulo.mr.merge.mappers;
 
 /*
  * #%L
- * mvm.rya.accumulo.mr.merge
+ * org.apache.rya.accumulo.mr.merge
  * %%
  * Copyright (C) 2014 Rya
  * %%
@@ -45,23 +45,23 @@ import org.apache.log4j.Logger;
 
 import com.google.common.base.Charsets;
 
-import mvm.rya.accumulo.AccumuloRdfConfiguration;
-import mvm.rya.accumulo.AccumuloRdfConstants;
-import mvm.rya.accumulo.AccumuloRyaDAO;
-import mvm.rya.accumulo.RyaTableMutationsFactory;
-import mvm.rya.accumulo.mr.MRUtils;
-import mvm.rya.accumulo.mr.merge.CopyTool;
-import mvm.rya.accumulo.mr.merge.MergeTool;
-import mvm.rya.accumulo.mr.merge.util.AccumuloRyaUtils;
-import mvm.rya.accumulo.mr.merge.util.TimeUtils;
-import mvm.rya.api.RdfCloudTripleStoreConfiguration;
-import mvm.rya.api.RdfCloudTripleStoreConstants;
-import mvm.rya.api.RdfCloudTripleStoreConstants.TABLE_LAYOUT;
-import mvm.rya.api.domain.RyaStatement;
-import mvm.rya.api.persist.RyaDAOException;
-import mvm.rya.api.resolver.RyaTripleContext;
-import mvm.rya.api.resolver.triple.TripleRow;
-import mvm.rya.api.resolver.triple.TripleRowResolverException;
+import org.apache.rya.accumulo.AccumuloRdfConfiguration;
+import org.apache.rya.accumulo.AccumuloRdfConstants;
+import org.apache.rya.accumulo.AccumuloRyaDAO;
+import org.apache.rya.accumulo.RyaTableMutationsFactory;
+import org.apache.rya.accumulo.mr.MRUtils;
+import org.apache.rya.accumulo.mr.merge.CopyTool;
+import org.apache.rya.accumulo.mr.merge.MergeTool;
+import org.apache.rya.accumulo.mr.merge.util.AccumuloRyaUtils;
+import org.apache.rya.accumulo.mr.merge.util.TimeUtils;
+import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
+import org.apache.rya.api.RdfCloudTripleStoreConstants;
+import org.apache.rya.api.RdfCloudTripleStoreConstants.TABLE_LAYOUT;
+import org.apache.rya.api.domain.RyaStatement;
+import org.apache.rya.api.persist.RyaDAOException;
+import org.apache.rya.api.resolver.RyaTripleContext;
+import org.apache.rya.api.resolver.triple.TripleRow;
+import org.apache.rya.api.resolver.triple.TripleRowResolverException;
 
 /**
  * Reads from the Parent and Child tables comparing their the keys and adds or deletes the keys

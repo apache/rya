@@ -1,4 +1,4 @@
-package mvm.rya.joinselect.mr.utils;
+package org.apache.rya.joinselect.mr.utils;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -21,17 +21,17 @@ package mvm.rya.joinselect.mr.utils;
 
 
 
-import static mvm.rya.accumulo.AccumuloRdfConstants.EMPTY_CV;
-import static mvm.rya.accumulo.AccumuloRdfConstants.EMPTY_VALUE;
-import static mvm.rya.api.RdfCloudTripleStoreConstants.EMPTY_TEXT;
-import static mvm.rya.joinselect.mr.utils.JoinSelectConstants.INSTANCE;
-import static mvm.rya.joinselect.mr.utils.JoinSelectConstants.PASSWORD;
-import static mvm.rya.joinselect.mr.utils.JoinSelectConstants.USERNAME;
-import static mvm.rya.joinselect.mr.utils.JoinSelectConstants.ZOOKEEPERS;
+import static org.apache.rya.accumulo.AccumuloRdfConstants.EMPTY_CV;
+import static org.apache.rya.accumulo.AccumuloRdfConstants.EMPTY_VALUE;
+import static org.apache.rya.api.RdfCloudTripleStoreConstants.EMPTY_TEXT;
+import static org.apache.rya.joinselect.mr.utils.JoinSelectConstants.INSTANCE;
+import static org.apache.rya.joinselect.mr.utils.JoinSelectConstants.PASSWORD;
+import static org.apache.rya.joinselect.mr.utils.JoinSelectConstants.USERNAME;
+import static org.apache.rya.joinselect.mr.utils.JoinSelectConstants.ZOOKEEPERS;
 
 import java.io.IOException;
 
-import mvm.rya.api.resolver.triple.TripleRow;
+import org.apache.rya.api.resolver.triple.TripleRow;
 
 import org.apache.accumulo.core.client.AccumuloSecurityException;
 import org.apache.accumulo.core.client.mapreduce.AccumuloInputFormat;

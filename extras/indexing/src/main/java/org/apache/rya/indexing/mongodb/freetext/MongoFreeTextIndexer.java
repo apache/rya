@@ -1,4 +1,4 @@
-package mvm.rya.indexing.mongodb.freetext;
+package org.apache.rya.indexing.mongodb.freetext;
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -27,10 +27,10 @@ import org.openrdf.query.QueryEvaluationException;
 import com.mongodb.QueryBuilder;
 
 import info.aduna.iteration.CloseableIteration;
-import mvm.rya.indexing.FreeTextIndexer;
-import mvm.rya.indexing.StatementConstraints;
-import mvm.rya.indexing.accumulo.ConfigUtils;
-import mvm.rya.indexing.mongodb.AbstractMongoIndexer;
+import org.apache.rya.indexing.FreeTextIndexer;
+import org.apache.rya.indexing.StatementConstraints;
+import org.apache.rya.indexing.accumulo.ConfigUtils;
+import org.apache.rya.indexing.mongodb.AbstractMongoIndexer;
 
 public class MongoFreeTextIndexer extends AbstractMongoIndexer<TextMongoDBStorageStrategy> implements FreeTextIndexer {
     private static final String COLLECTION_SUFFIX = "freetext";

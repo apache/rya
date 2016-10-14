@@ -1,4 +1,4 @@
-package mvm.rya.accumulo.pig;
+package org.apache.rya.accumulo.pig;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one

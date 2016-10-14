@@ -1,8 +1,8 @@
-package mvm.rya.accumulo.mr.merge;
+package org.apache.rya.accumulo.mr.merge;
 
 /*
  * #%L
- * mvm.rya.accumulo.mr.merge
+ * org.apache.rya.accumulo.mr.merge
  * %%
  * Copyright (C) 2014 Rya
  * %%
@@ -83,27 +83,27 @@ import org.apache.log4j.xml.DOMConfigurator;
 
 import com.google.common.base.Joiner;
 
-import mvm.rya.accumulo.AccumuloRdfConfiguration;
-import mvm.rya.accumulo.mr.AccumuloHDFSFileInputFormat;
-import mvm.rya.accumulo.mr.MRUtils;
-import mvm.rya.accumulo.mr.merge.common.InstanceType;
-import mvm.rya.accumulo.mr.merge.gui.DateTimePickerDialog;
-import mvm.rya.accumulo.mr.merge.mappers.AccumuloCopyToolMapper;
-import mvm.rya.accumulo.mr.merge.mappers.AccumuloRyaRuleMapper;
-import mvm.rya.accumulo.mr.merge.mappers.FileCopyToolMapper;
-import mvm.rya.accumulo.mr.merge.mappers.MergeToolMapper;
-import mvm.rya.accumulo.mr.merge.mappers.RowRuleMapper;
-import mvm.rya.accumulo.mr.merge.reducers.MultipleFileReducer;
-import mvm.rya.accumulo.mr.merge.util.AccumuloInstanceDriver;
-import mvm.rya.accumulo.mr.merge.util.AccumuloQueryRuleset;
-import mvm.rya.accumulo.mr.merge.util.AccumuloRyaUtils;
-import mvm.rya.accumulo.mr.merge.util.GroupedRow;
-import mvm.rya.accumulo.mr.merge.util.TimeUtils;
-import mvm.rya.accumulo.mr.merge.util.ToolConfigUtils;
-import mvm.rya.api.RdfCloudTripleStoreConstants;
-import mvm.rya.api.RdfCloudTripleStoreUtils;
-import mvm.rya.api.layout.TablePrefixLayoutStrategy;
-import mvm.rya.indexing.accumulo.ConfigUtils;
+import org.apache.rya.accumulo.AccumuloRdfConfiguration;
+import org.apache.rya.accumulo.mr.AccumuloHDFSFileInputFormat;
+import org.apache.rya.accumulo.mr.MRUtils;
+import org.apache.rya.accumulo.mr.merge.common.InstanceType;
+import org.apache.rya.accumulo.mr.merge.gui.DateTimePickerDialog;
+import org.apache.rya.accumulo.mr.merge.mappers.AccumuloCopyToolMapper;
+import org.apache.rya.accumulo.mr.merge.mappers.AccumuloRyaRuleMapper;
+import org.apache.rya.accumulo.mr.merge.mappers.FileCopyToolMapper;
+import org.apache.rya.accumulo.mr.merge.mappers.MergeToolMapper;
+import org.apache.rya.accumulo.mr.merge.mappers.RowRuleMapper;
+import org.apache.rya.accumulo.mr.merge.reducers.MultipleFileReducer;
+import org.apache.rya.accumulo.mr.merge.util.AccumuloInstanceDriver;
+import org.apache.rya.accumulo.mr.merge.util.AccumuloQueryRuleset;
+import org.apache.rya.accumulo.mr.merge.util.AccumuloRyaUtils;
+import org.apache.rya.accumulo.mr.merge.util.GroupedRow;
+import org.apache.rya.accumulo.mr.merge.util.TimeUtils;
+import org.apache.rya.accumulo.mr.merge.util.ToolConfigUtils;
+import org.apache.rya.api.RdfCloudTripleStoreConstants;
+import org.apache.rya.api.RdfCloudTripleStoreUtils;
+import org.apache.rya.api.layout.TablePrefixLayoutStrategy;
+import org.apache.rya.indexing.accumulo.ConfigUtils;
 
 /**
  * Handles copying data from a parent instance into a child instance.

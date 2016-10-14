@@ -1,8 +1,8 @@
-package mvm.rya.accumulo.mr.merge;
+package org.apache.rya.accumulo.mr.merge;
 
 /*
  * #%L
- * mvm.rya.accumulo.mr.merge
+ * org.apache.rya.accumulo.mr.merge
  * %%
  * Copyright (C) 2014 Rya
  * %%
@@ -20,11 +20,11 @@ package mvm.rya.accumulo.mr.merge;
  * #L%
  */
 
-import static mvm.rya.accumulo.mr.merge.util.TestUtils.LAST_MONTH;
-import static mvm.rya.accumulo.mr.merge.util.TestUtils.TODAY;
-import static mvm.rya.accumulo.mr.merge.util.TestUtils.YESTERDAY;
-import static mvm.rya.accumulo.mr.merge.util.TestUtils.createRyaStatement;
-import static mvm.rya.accumulo.mr.merge.util.ToolConfigUtils.makeArgument;
+import static org.apache.rya.accumulo.mr.merge.util.TestUtils.LAST_MONTH;
+import static org.apache.rya.accumulo.mr.merge.util.TestUtils.TODAY;
+import static org.apache.rya.accumulo.mr.merge.util.TestUtils.YESTERDAY;
+import static org.apache.rya.accumulo.mr.merge.util.TestUtils.createRyaStatement;
+import static org.apache.rya.accumulo.mr.merge.util.ToolConfigUtils.makeArgument;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
@@ -52,19 +52,19 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import info.aduna.iteration.CloseableIteration;
-import mvm.rya.accumulo.AccumuloRdfConfiguration;
-import mvm.rya.accumulo.AccumuloRyaDAO;
-import mvm.rya.accumulo.mr.MRUtils;
-import mvm.rya.accumulo.mr.merge.common.InstanceType;
-import mvm.rya.accumulo.mr.merge.driver.AccumuloDualInstanceDriver;
-import mvm.rya.accumulo.mr.merge.util.AccumuloRyaUtils;
-import mvm.rya.accumulo.mr.merge.util.TestUtils;
-import mvm.rya.accumulo.mr.merge.util.TimeUtils;
-import mvm.rya.api.RdfCloudTripleStoreConfiguration;
-import mvm.rya.api.RdfCloudTripleStoreConstants;
-import mvm.rya.api.domain.RyaStatement;
-import mvm.rya.api.persist.RyaDAOException;
-import mvm.rya.indexing.accumulo.ConfigUtils;
+import org.apache.rya.accumulo.AccumuloRdfConfiguration;
+import org.apache.rya.accumulo.AccumuloRyaDAO;
+import org.apache.rya.accumulo.mr.MRUtils;
+import org.apache.rya.accumulo.mr.merge.common.InstanceType;
+import org.apache.rya.accumulo.mr.merge.driver.AccumuloDualInstanceDriver;
+import org.apache.rya.accumulo.mr.merge.util.AccumuloRyaUtils;
+import org.apache.rya.accumulo.mr.merge.util.TestUtils;
+import org.apache.rya.accumulo.mr.merge.util.TimeUtils;
+import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
+import org.apache.rya.api.RdfCloudTripleStoreConstants;
+import org.apache.rya.api.domain.RyaStatement;
+import org.apache.rya.api.persist.RyaDAOException;
+import org.apache.rya.indexing.accumulo.ConfigUtils;
 
 /**
  * Tests for {@link CopyTool}.

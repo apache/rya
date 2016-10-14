@@ -24,7 +24,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
 
 import org.apache.rya.indexing.pcj.storage.PcjException;
 
-import mvm.rya.api.domain.RyaStatement;
+import org.apache.rya.api.domain.RyaStatement;
 
 /**
  * Updates the state of all PCJ indices whenever {@link RyaStatement}s are

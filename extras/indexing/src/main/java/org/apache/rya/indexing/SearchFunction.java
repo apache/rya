@@ -1,4 +1,4 @@
-package mvm.rya.indexing;
+package org.apache.rya.indexing;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one

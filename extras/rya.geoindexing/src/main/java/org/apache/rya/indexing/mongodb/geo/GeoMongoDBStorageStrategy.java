@@ -1,4 +1,4 @@
-package mvm.rya.indexing.mongodb.geo;
+package org.apache.rya.indexing.mongodb.geo;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -33,10 +33,10 @@ import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.io.ParseException;
 import com.vividsolutions.jts.io.WKTReader;
 
-import mvm.rya.api.domain.RyaStatement;
-import mvm.rya.api.resolver.RyaToRdfConversions;
-import mvm.rya.indexing.accumulo.geo.GeoParseUtils;
-import mvm.rya.indexing.mongodb.IndexingMongoDBStorageStrategy;
+import org.apache.rya.api.domain.RyaStatement;
+import org.apache.rya.api.resolver.RyaToRdfConversions;
+import org.apache.rya.indexing.accumulo.geo.GeoParseUtils;
+import org.apache.rya.indexing.mongodb.IndexingMongoDBStorageStrategy;
 
 public class GeoMongoDBStorageStrategy extends IndexingMongoDBStorageStrategy {
     private static final Logger LOG = Logger.getLogger(GeoMongoDBStorageStrategy.class);

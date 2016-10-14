@@ -1,4 +1,4 @@
-package mvm.rya.api.domain;
+package org.apache.rya.api.domain;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -21,7 +21,7 @@ package mvm.rya.api.domain;
 
 
 
-import mvm.rya.api.RdfCloudTripleStoreConstants;
+import org.apache.rya.api.RdfCloudTripleStoreConstants;
 
 /**
  * Date: 7/24/12

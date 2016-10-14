@@ -17,14 +17,14 @@
  * under the License.
  */
 
-//package mvm.rya.api.query.strategy.wholerow;
+//package org.apache.rya.api.query.strategy.wholerow;
 
 //
 //import junit.framework.TestCase;
-//import mvm.rya.api.RdfCloudTripleStoreConstants;
-//import mvm.rya.api.domain.*;
-//import mvm.rya.api.resolver.RyaContext;
-//import mvm.rya.api.resolver.triple.TripleRow;
+//import org.apache.rya.api.RdfCloudTripleStoreConstants;
+//import org.apache.rya.api.domain.*;
+//import org.apache.rya.api.resolver.RyaContext;
+//import org.apache.rya.api.resolver.triple.TripleRow;
 //import org.apache.accumulo.core.data.Key;
 //import org.apache.accumulo.core.data.Range;
 //import org.apache.hadoop.io.Text;

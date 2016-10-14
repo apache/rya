@@ -16,7 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package mvm.rya.api.client.accumulo;
+package org.apache.rya.api.client.accumulo;
 
 import static java.util.Objects.requireNonNull;
 
@@ -25,10 +25,10 @@ import javax.annotation.ParametersAreNonnullByDefault;
 import org.apache.accumulo.core.client.Connector;
 import org.apache.accumulo.core.client.admin.TableOperations;
 
-import mvm.rya.accumulo.instance.AccumuloRyaInstanceDetailsRepository;
-import mvm.rya.api.RdfCloudTripleStoreConstants;
-import mvm.rya.api.client.InstanceExists;
-import mvm.rya.api.client.RyaClientException;
+import org.apache.rya.accumulo.instance.AccumuloRyaInstanceDetailsRepository;
+import org.apache.rya.api.RdfCloudTripleStoreConstants;
+import org.apache.rya.api.client.InstanceExists;
+import org.apache.rya.api.client.RyaClientException;
 
 /**
  * An Accumulo implementation of the {@link InstanceExists} command.

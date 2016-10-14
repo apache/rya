@@ -16,20 +16,20 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package mvm.rya.api.client.accumulo;
+package org.apache.rya.api.client.accumulo;
 
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
 import org.junit.Test;
 
-import mvm.rya.accumulo.AccumuloITBase;
-import mvm.rya.api.client.Install;
-import mvm.rya.api.client.Install.DuplicateInstanceNameException;
-import mvm.rya.api.client.Install.InstallConfiguration;
-import mvm.rya.api.client.InstanceExists;
-import mvm.rya.api.client.RyaClientException;
-import mvm.rya.api.instance.RyaDetailsRepository.NotInitializedException;
-import mvm.rya.api.instance.RyaDetailsRepository.RyaDetailsRepositoryException;
+import org.apache.rya.accumulo.AccumuloITBase;
+import org.apache.rya.api.client.Install;
+import org.apache.rya.api.client.Install.DuplicateInstanceNameException;
+import org.apache.rya.api.client.Install.InstallConfiguration;
+import org.apache.rya.api.client.InstanceExists;
+import org.apache.rya.api.client.RyaClientException;
+import org.apache.rya.api.instance.RyaDetailsRepository.NotInitializedException;
+import org.apache.rya.api.instance.RyaDetailsRepository.RyaDetailsRepositoryException;
 
 /**
  * Integration tests the methods of {@link AccumuloInstall}.

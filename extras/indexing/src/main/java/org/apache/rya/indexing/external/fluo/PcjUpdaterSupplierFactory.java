@@ -16,10 +16,10 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package mvm.rya.indexing.external.fluo;
+package org.apache.rya.indexing.external.fluo;
 
-import mvm.rya.indexing.external.PrecomputedJoinIndexer;
-import mvm.rya.indexing.external.PrecomputedJoinIndexerConfig;
+import org.apache.rya.indexing.external.PrecomputedJoinIndexer;
+import org.apache.rya.indexing.external.PrecomputedJoinIndexerConfig;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.rya.indexing.pcj.update.PrecomputedJoinUpdater;

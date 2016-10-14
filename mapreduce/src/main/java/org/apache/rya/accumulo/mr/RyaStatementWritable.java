@@ -1,4 +1,4 @@
-package mvm.rya.accumulo.mr;
+package org.apache.rya.accumulo.mr;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -28,18 +28,18 @@ import org.apache.commons.lang.builder.CompareToBuilder;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.WritableComparable;
 
-import mvm.rya.accumulo.AccumuloRdfConfiguration;
-import mvm.rya.api.RdfCloudTripleStoreConstants;
-import mvm.rya.api.domain.RyaStatement;
-import mvm.rya.api.resolver.RyaTripleContext;
-import mvm.rya.api.resolver.triple.TripleRow;
-import mvm.rya.api.resolver.triple.TripleRowResolverException;
+import org.apache.rya.accumulo.AccumuloRdfConfiguration;
+import org.apache.rya.api.RdfCloudTripleStoreConstants;
+import org.apache.rya.api.domain.RyaStatement;
+import org.apache.rya.api.resolver.RyaTripleContext;
+import org.apache.rya.api.resolver.triple.TripleRow;
+import org.apache.rya.api.resolver.triple.TripleRowResolverException;
 
 /**
  * Basic {@link WritableComparable} for using Rya data with Hadoop.
  * RyaStatementWritable wraps a {@link RyaStatement}, which in turn represents a
- * statement as  a collection of {@link mvm.rya.api.domain.RyaURI} and
- * {@link mvm.rya.api.domain.RyaType} objects.
+ * statement as  a collection of {@link org.apache.rya.api.domain.RyaURI} and
+ * {@link org.apache.rya.api.domain.RyaType} objects.
  * <p>
  * This class is mutable, like all {@link org.apache.hadoop.io.Writable}s. When
  * used as Mapper or Reducer input, the Hadoop framework will typically reuse

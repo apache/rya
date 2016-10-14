@@ -1,8 +1,8 @@
-package mvm.rya.accumulo.mr.merge.mappers;
+package org.apache.rya.accumulo.mr.merge.mappers;
 
 /*
  * #%L
- * mvm.rya.accumulo.mr.merge
+ * org.apache.rya.accumulo.mr.merge
  * %%
  * Copyright (C) 2014 Rya
  * %%
@@ -34,12 +34,12 @@ import org.apache.accumulo.core.data.Value;
 import org.apache.accumulo.core.security.Authorizations;
 import org.apache.log4j.Logger;
 
-import mvm.rya.accumulo.mr.MRUtils;
-import mvm.rya.accumulo.mr.merge.MergeTool;
-import mvm.rya.accumulo.mr.merge.util.AccumuloRyaUtils;
-import mvm.rya.accumulo.mr.merge.util.GroupedRow;
-import mvm.rya.api.domain.RyaStatement;
-import mvm.rya.api.persist.RyaDAOException;
+import org.apache.rya.accumulo.mr.MRUtils;
+import org.apache.rya.accumulo.mr.merge.MergeTool;
+import org.apache.rya.accumulo.mr.merge.util.AccumuloRyaUtils;
+import org.apache.rya.accumulo.mr.merge.util.GroupedRow;
+import org.apache.rya.api.domain.RyaStatement;
+import org.apache.rya.api.persist.RyaDAOException;
 
 /**
  * Rule mapper that outputs statements as serialized Accumulo rows along with their destination

@@ -48,9 +48,9 @@ import org.openrdf.query.parser.sparql.SPARQLParser;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 
-import mvm.rya.indexing.external.tupleSet.ExternalTupleSet;
-import mvm.rya.indexing.external.tupleSet.SimpleExternalTupleSet;
-import mvm.rya.indexing.pcj.matching.PCJOptimizer;
+import org.apache.rya.indexing.external.tupleSet.ExternalTupleSet;
+import org.apache.rya.indexing.external.tupleSet.SimpleExternalTupleSet;
+import org.apache.rya.indexing.pcj.matching.PCJOptimizer;
 
 /**
  * A benchmark that may be used to evaluate the performance of {@link PCJOptimizer}.

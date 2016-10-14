@@ -17,13 +17,13 @@
  * under the License.
  */
 
-//package mvm.cloud.rdf.web.cloudbase.sail;
+//package org.apache.cloud.rdf.web.cloudbase.sail;
 
 //
 //import cloudbase.core.client.Connector;
 //import cloudbase.core.client.ZooKeeperInstance;
-//import mvm.rya.cloudbase.CloudbaseRdfDAO;
-//import mvm.rya.cloudbase.CloudbaseRdfEvalStatsDAO;
+//import org.apache.rya.cloudbase.CloudbaseRdfDAO;
+//import org.apache.rya.cloudbase.CloudbaseRdfEvalStatsDAO;
 //import RdfCloudTripleStore;
 //import org.openrdf.repository.Repository;
 //import org.openrdf.repository.RepositoryException;

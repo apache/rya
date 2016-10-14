@@ -1,4 +1,4 @@
-package mvm.rya.indexing;
+package org.apache.rya.indexing;
 
 import java.util.Map;
 import java.util.Set;
@@ -35,7 +35,7 @@ import com.google.common.collect.Maps;
  */
 
 import info.aduna.iteration.CloseableIteration;
-import mvm.rya.indexing.external.tupleSet.ExternalTupleSet;
+import org.apache.rya.indexing.external.tupleSet.ExternalTupleSet;
 
 //Indexing Node for temporal expressions to be inserted into execution plan
 //to delegate temporal portion of query to temporal index

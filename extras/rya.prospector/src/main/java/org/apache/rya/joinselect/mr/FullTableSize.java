@@ -1,4 +1,4 @@
-package mvm.rya.joinselect.mr;
+package org.apache.rya.joinselect.mr;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -21,13 +21,13 @@ package mvm.rya.joinselect.mr;
 
 
 
-import static mvm.rya.joinselect.mr.utils.JoinSelectConstants.AUTHS;
-import static mvm.rya.joinselect.mr.utils.JoinSelectConstants.SELECTIVITY_TABLE;
-import static mvm.rya.joinselect.mr.utils.JoinSelectConstants.SPO_TABLE;
+import static org.apache.rya.joinselect.mr.utils.JoinSelectConstants.AUTHS;
+import static org.apache.rya.joinselect.mr.utils.JoinSelectConstants.SELECTIVITY_TABLE;
+import static org.apache.rya.joinselect.mr.utils.JoinSelectConstants.SPO_TABLE;
 
 import java.io.IOException;
 
-import mvm.rya.joinselect.mr.utils.JoinSelectStatsUtil;
+import org.apache.rya.joinselect.mr.utils.JoinSelectStatsUtil;
 
 import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Mutation;

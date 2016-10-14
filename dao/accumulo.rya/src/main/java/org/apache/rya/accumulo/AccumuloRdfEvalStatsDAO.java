@@ -1,4 +1,4 @@
-package mvm.rya.accumulo;
+package org.apache.rya.accumulo;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -22,13 +22,13 @@ package mvm.rya.accumulo;
 
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static mvm.rya.api.RdfCloudTripleStoreConstants.DELIM;
-import static mvm.rya.api.RdfCloudTripleStoreConstants.EMPTY_TEXT;
-import static mvm.rya.api.RdfCloudTripleStoreConstants.PRED_CF_TXT;
-import static mvm.rya.api.RdfCloudTripleStoreConstants.SUBJECT_CF_TXT;
-import static mvm.rya.api.RdfCloudTripleStoreConstants.SUBJECTPRED_CF_TXT;
-import static mvm.rya.api.RdfCloudTripleStoreConstants.PREDOBJECT_CF_TXT;
-import static mvm.rya.api.RdfCloudTripleStoreConstants.SUBJECTOBJECT_CF_TXT;
+import static org.apache.rya.api.RdfCloudTripleStoreConstants.DELIM;
+import static org.apache.rya.api.RdfCloudTripleStoreConstants.EMPTY_TEXT;
+import static org.apache.rya.api.RdfCloudTripleStoreConstants.PRED_CF_TXT;
+import static org.apache.rya.api.RdfCloudTripleStoreConstants.SUBJECT_CF_TXT;
+import static org.apache.rya.api.RdfCloudTripleStoreConstants.SUBJECTPRED_CF_TXT;
+import static org.apache.rya.api.RdfCloudTripleStoreConstants.PREDOBJECT_CF_TXT;
+import static org.apache.rya.api.RdfCloudTripleStoreConstants.SUBJECTOBJECT_CF_TXT;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -36,10 +36,10 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-import mvm.rya.api.RdfCloudTripleStoreStatement;
-import mvm.rya.api.layout.TableLayoutStrategy;
-import mvm.rya.api.persist.RdfDAOException;
-import mvm.rya.api.persist.RdfEvalStatsDAO;
+import org.apache.rya.api.RdfCloudTripleStoreStatement;
+import org.apache.rya.api.layout.TableLayoutStrategy;
+import org.apache.rya.api.persist.RdfDAOException;
+import org.apache.rya.api.persist.RdfEvalStatsDAO;
 
 import org.apache.accumulo.core.client.Connector;
 import org.apache.accumulo.core.client.Scanner;
@@ -121,7 +121,7 @@ public class AccumuloRdfEvalStatsDAO implements RdfEvalStatsDAO<AccumuloRdfConfi
 
 	@Override
 	public double getCardinality(AccumuloRdfConfiguration conf,
-			mvm.rya.api.persist.RdfEvalStatsDAO.CARDINALITY_OF card,
+			org.apache.rya.api.persist.RdfEvalStatsDAO.CARDINALITY_OF card,
 			List<Value> val, Resource context) throws RdfDAOException {
         try {
             Authorizations authorizations = conf.getAuthorizations();
@@ -166,7 +166,7 @@ public class AccumuloRdfEvalStatsDAO implements RdfEvalStatsDAO<AccumuloRdfConfi
 
 	@Override
 	public double getCardinality(AccumuloRdfConfiguration conf,
-			mvm.rya.api.persist.RdfEvalStatsDAO.CARDINALITY_OF card,
+			org.apache.rya.api.persist.RdfEvalStatsDAO.CARDINALITY_OF card,
 			List<Value> val) throws RdfDAOException {
 		return getCardinality(conf, card, val, null);
 	}

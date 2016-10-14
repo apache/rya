@@ -1,4 +1,4 @@
-package mvm.rya.api.security;
+package org.apache.rya.api.security;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one

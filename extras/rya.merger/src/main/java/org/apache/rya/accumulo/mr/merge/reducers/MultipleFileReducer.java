@@ -1,8 +1,8 @@
-package mvm.rya.accumulo.mr.merge.reducers;
+package org.apache.rya.accumulo.mr.merge.reducers;
 
 /*
  * #%L
- * mvm.rya.accumulo.mr.merge
+ * org.apache.rya.accumulo.mr.merge
  * %%
  * Copyright (C) 2014 Rya
  * %%
@@ -27,7 +27,7 @@ import org.apache.accumulo.core.data.Value;
 import org.apache.hadoop.mapreduce.Reducer;
 import org.apache.hadoop.mapreduce.lib.output.MultipleOutputs;
 
-import mvm.rya.accumulo.mr.merge.util.GroupedRow;
+import org.apache.rya.accumulo.mr.merge.util.GroupedRow;
 
 /**
  * Outputs rows to different files according to their associated group names, for use with {@link AccumuloFileOutputFormat}.

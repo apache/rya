@@ -1,4 +1,4 @@
-package mvm.rya.triplestore.inference;
+package org.apache.rya.triplestore.inference;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -23,12 +23,12 @@ package mvm.rya.triplestore.inference;
 
 import info.aduna.iteration.Iterations;
 import junit.framework.TestCase;
-import mvm.rya.accumulo.AccumuloRdfConfiguration;
-import mvm.rya.accumulo.AccumuloRyaDAO;
-import mvm.rya.api.RdfCloudTripleStoreConstants;
-import mvm.rya.api.resolver.RdfToRyaConversions;
-import mvm.rya.rdftriplestore.RdfCloudTripleStore;
-import mvm.rya.rdftriplestore.inference.InferenceEngine;
+import org.apache.rya.accumulo.AccumuloRdfConfiguration;
+import org.apache.rya.accumulo.AccumuloRyaDAO;
+import org.apache.rya.api.RdfCloudTripleStoreConstants;
+import org.apache.rya.api.resolver.RdfToRyaConversions;
+import org.apache.rya.rdftriplestore.RdfCloudTripleStore;
+import org.apache.rya.rdftriplestore.inference.InferenceEngine;
 
 import org.apache.accumulo.core.Constants;
 import org.apache.accumulo.core.client.Connector;

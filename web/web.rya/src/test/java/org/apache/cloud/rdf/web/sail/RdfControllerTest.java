@@ -1,4 +1,4 @@
-package mvm.cloud.rdf.web.sail;
+package org.apache.cloud.rdf.web.sail;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one

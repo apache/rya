@@ -16,7 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package mvm.rya.indexing.external;
+package org.apache.rya.indexing.external;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -29,8 +29,8 @@ import org.apache.rya.indexing.pcj.storage.PrecomputedJoinStorage;
 import com.google.common.base.Optional;
 import com.google.common.base.Supplier;
 
-import mvm.rya.indexing.external.PrecomputedJoinIndexerConfig.PrecomputedJoinStorageType;
-import mvm.rya.indexing.external.accumulo.AccumuloPcjStorageSupplier;
+import org.apache.rya.indexing.external.PrecomputedJoinIndexerConfig.PrecomputedJoinStorageType;
+import org.apache.rya.indexing.external.accumulo.AccumuloPcjStorageSupplier;
 
 /**
  * Creates an instance of {@link PrecomputedJoinStorage} based on the application's configuration.

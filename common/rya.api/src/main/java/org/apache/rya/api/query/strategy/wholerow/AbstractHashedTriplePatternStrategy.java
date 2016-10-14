@@ -1,4 +1,4 @@
-package mvm.rya.api.query.strategy.wholerow;
+package org.apache.rya.api.query.strategy.wholerow;
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -19,13 +19,13 @@ package mvm.rya.api.query.strategy.wholerow;
  */
 
 import com.google.common.base.Preconditions;
-import mvm.rya.api.RdfCloudTripleStoreConstants;
-import mvm.rya.api.query.strategy.AbstractTriplePatternStrategy;
-import mvm.rya.api.query.strategy.TriplePatternStrategy;
-import mvm.rya.api.resolver.triple.TripleRowRegex;
+import org.apache.rya.api.RdfCloudTripleStoreConstants;
+import org.apache.rya.api.query.strategy.AbstractTriplePatternStrategy;
+import org.apache.rya.api.query.strategy.TriplePatternStrategy;
+import org.apache.rya.api.resolver.triple.TripleRowRegex;
 
-import static mvm.rya.api.RdfCloudTripleStoreConstants.DELIM;
-import static mvm.rya.api.RdfCloudTripleStoreConstants.TYPE_DELIM;
+import static org.apache.rya.api.RdfCloudTripleStoreConstants.DELIM;
+import static org.apache.rya.api.RdfCloudTripleStoreConstants.TYPE_DELIM;
 
 public abstract class AbstractHashedTriplePatternStrategy extends AbstractTriplePatternStrategy implements TriplePatternStrategy {
     public static final String HASHED_ALL_REGEX = "([0-9a-f]{32})\u0000";

@@ -16,7 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package mvm.rya.api.client.accumulo;
+package org.apache.rya.api.client.accumulo;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -36,15 +36,15 @@ import org.openrdf.query.impl.MapBindingSet;
 import com.google.common.base.Optional;
 import com.google.common.collect.Sets;
 
-import mvm.rya.api.client.CreatePCJ;
-import mvm.rya.api.client.Install;
-import mvm.rya.api.client.Install.DuplicateInstanceNameException;
-import mvm.rya.api.client.Install.InstallConfiguration;
-import mvm.rya.api.client.InstanceDoesNotExistException;
-import mvm.rya.api.client.RyaClientException;
-import mvm.rya.api.instance.RyaDetails;
-import mvm.rya.api.instance.RyaDetails.PCJIndexDetails.PCJDetails;
-import mvm.rya.api.instance.RyaDetails.PCJIndexDetails.PCJDetails.PCJUpdateStrategy;
+import org.apache.rya.api.client.CreatePCJ;
+import org.apache.rya.api.client.Install;
+import org.apache.rya.api.client.Install.DuplicateInstanceNameException;
+import org.apache.rya.api.client.Install.InstallConfiguration;
+import org.apache.rya.api.client.InstanceDoesNotExistException;
+import org.apache.rya.api.client.RyaClientException;
+import org.apache.rya.api.instance.RyaDetails;
+import org.apache.rya.api.instance.RyaDetails.PCJIndexDetails.PCJDetails;
+import org.apache.rya.api.instance.RyaDetails.PCJIndexDetails.PCJDetails.PCJUpdateStrategy;
 
 /**
  * Integration tests the methods of {@link AccumuloCreatePCJ}.

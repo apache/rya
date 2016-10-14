@@ -1,4 +1,4 @@
-package mvm.rya.indexing.accumulo.entity;
+package org.apache.rya.indexing.accumulo.entity;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -20,11 +20,11 @@ package mvm.rya.indexing.accumulo.entity;
  */
 
 
-import static mvm.rya.accumulo.AccumuloRdfConstants.EMPTY_CV;
-import static mvm.rya.accumulo.AccumuloRdfConstants.EMPTY_VALUE;
-import static mvm.rya.api.RdfCloudTripleStoreConstants.DELIM_BYTES;
-import static mvm.rya.api.RdfCloudTripleStoreConstants.EMPTY_BYTES;
-import static mvm.rya.api.RdfCloudTripleStoreConstants.EMPTY_TEXT;
+import static org.apache.rya.accumulo.AccumuloRdfConstants.EMPTY_CV;
+import static org.apache.rya.accumulo.AccumuloRdfConstants.EMPTY_VALUE;
+import static org.apache.rya.api.RdfCloudTripleStoreConstants.DELIM_BYTES;
+import static org.apache.rya.api.RdfCloudTripleStoreConstants.EMPTY_BYTES;
+import static org.apache.rya.api.RdfCloudTripleStoreConstants.EMPTY_TEXT;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -53,16 +53,16 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 import com.google.common.primitives.Bytes;
 
-import mvm.rya.accumulo.AccumuloRdfConfiguration;
-import mvm.rya.accumulo.experimental.AbstractAccumuloIndexer;
-import mvm.rya.api.RdfCloudTripleStoreConfiguration;
-import mvm.rya.api.domain.RyaStatement;
-import mvm.rya.api.domain.RyaType;
-import mvm.rya.api.domain.RyaURI;
-import mvm.rya.api.resolver.RyaContext;
-import mvm.rya.api.resolver.RyaTypeResolverException;
-import mvm.rya.api.resolver.triple.TripleRow;
-import mvm.rya.indexing.accumulo.ConfigUtils;
+import org.apache.rya.accumulo.AccumuloRdfConfiguration;
+import org.apache.rya.accumulo.experimental.AbstractAccumuloIndexer;
+import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
+import org.apache.rya.api.domain.RyaStatement;
+import org.apache.rya.api.domain.RyaType;
+import org.apache.rya.api.domain.RyaURI;
+import org.apache.rya.api.resolver.RyaContext;
+import org.apache.rya.api.resolver.RyaTypeResolverException;
+import org.apache.rya.api.resolver.triple.TripleRow;
+import org.apache.rya.indexing.accumulo.ConfigUtils;
 
 public class EntityCentricIndex extends AbstractAccumuloIndexer {
 

@@ -16,7 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package mvm.rya.api.client;
+package org.apache.rya.api.client;
 
 import java.util.List;
 

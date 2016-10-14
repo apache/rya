@@ -16,7 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package mvm.rya.shell;
+package org.apache.rya.shell;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.eq;
@@ -34,32 +34,32 @@ import org.junit.Test;
 import com.google.common.base.Optional;
 import com.google.common.collect.Lists;
 
-import mvm.rya.api.client.BatchUpdatePCJ;
-import mvm.rya.api.client.CreatePCJ;
-import mvm.rya.api.client.DeletePCJ;
-import mvm.rya.api.client.GetInstanceDetails;
-import mvm.rya.api.client.Install;
-import mvm.rya.api.client.Install.DuplicateInstanceNameException;
-import mvm.rya.api.client.Install.InstallConfiguration;
-import mvm.rya.api.client.InstanceDoesNotExistException;
-import mvm.rya.api.client.ListInstances;
-import mvm.rya.api.client.PCJDoesNotExistException;
-import mvm.rya.api.client.RyaClient;
-import mvm.rya.api.client.RyaClientException;
-import mvm.rya.api.client.accumulo.AccumuloConnectionDetails;
-import mvm.rya.api.instance.RyaDetails;
-import mvm.rya.api.instance.RyaDetails.EntityCentricIndexDetails;
-import mvm.rya.api.instance.RyaDetails.FreeTextIndexDetails;
-import mvm.rya.api.instance.RyaDetails.GeoIndexDetails;
-import mvm.rya.api.instance.RyaDetails.JoinSelectivityDetails;
-import mvm.rya.api.instance.RyaDetails.PCJIndexDetails;
-import mvm.rya.api.instance.RyaDetails.PCJIndexDetails.FluoDetails;
-import mvm.rya.api.instance.RyaDetails.PCJIndexDetails.PCJDetails;
-import mvm.rya.api.instance.RyaDetails.PCJIndexDetails.PCJDetails.PCJUpdateStrategy;
-import mvm.rya.api.instance.RyaDetails.ProspectorDetails;
-import mvm.rya.api.instance.RyaDetails.TemporalIndexDetails;
-import mvm.rya.shell.util.InstallPrompt;
-import mvm.rya.shell.util.SparqlPrompt;
+import org.apache.rya.api.client.BatchUpdatePCJ;
+import org.apache.rya.api.client.CreatePCJ;
+import org.apache.rya.api.client.DeletePCJ;
+import org.apache.rya.api.client.GetInstanceDetails;
+import org.apache.rya.api.client.Install;
+import org.apache.rya.api.client.Install.DuplicateInstanceNameException;
+import org.apache.rya.api.client.Install.InstallConfiguration;
+import org.apache.rya.api.client.InstanceDoesNotExistException;
+import org.apache.rya.api.client.ListInstances;
+import org.apache.rya.api.client.PCJDoesNotExistException;
+import org.apache.rya.api.client.RyaClient;
+import org.apache.rya.api.client.RyaClientException;
+import org.apache.rya.api.client.accumulo.AccumuloConnectionDetails;
+import org.apache.rya.api.instance.RyaDetails;
+import org.apache.rya.api.instance.RyaDetails.EntityCentricIndexDetails;
+import org.apache.rya.api.instance.RyaDetails.FreeTextIndexDetails;
+import org.apache.rya.api.instance.RyaDetails.GeoIndexDetails;
+import org.apache.rya.api.instance.RyaDetails.JoinSelectivityDetails;
+import org.apache.rya.api.instance.RyaDetails.PCJIndexDetails;
+import org.apache.rya.api.instance.RyaDetails.PCJIndexDetails.FluoDetails;
+import org.apache.rya.api.instance.RyaDetails.PCJIndexDetails.PCJDetails;
+import org.apache.rya.api.instance.RyaDetails.PCJIndexDetails.PCJDetails.PCJUpdateStrategy;
+import org.apache.rya.api.instance.RyaDetails.ProspectorDetails;
+import org.apache.rya.api.instance.RyaDetails.TemporalIndexDetails;
+import org.apache.rya.shell.util.InstallPrompt;
+import org.apache.rya.shell.util.SparqlPrompt;
 
 /**
  * Unit tests the methods of {@link RyaAdminCommands}.

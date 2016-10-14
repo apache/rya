@@ -1,4 +1,4 @@
-package mvm.rya.rdftriplestore.utils;
+package org.apache.rya.rdftriplestore.utils;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one

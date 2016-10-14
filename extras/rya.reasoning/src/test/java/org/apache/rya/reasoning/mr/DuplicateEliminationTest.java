@@ -1,4 +1,4 @@
-package mvm.rya.reasoning.mr;
+package org.apache.rya.reasoning.mr;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -23,16 +23,16 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
-import mvm.rya.accumulo.mr.RyaStatementWritable;
-import mvm.rya.api.RdfCloudTripleStoreConstants.TABLE_LAYOUT;
-import mvm.rya.api.domain.RyaStatement;
-import mvm.rya.api.resolver.triple.TripleRow;
-import mvm.rya.api.resolver.triple.TripleRowResolver;
-import mvm.rya.api.resolver.triple.impl.WholeRowTripleResolver;
-import mvm.rya.reasoning.Derivation;
-import mvm.rya.reasoning.OwlRule;
-import mvm.rya.reasoning.Fact;
-import mvm.rya.reasoning.TestUtils;
+import org.apache.rya.accumulo.mr.RyaStatementWritable;
+import org.apache.rya.api.RdfCloudTripleStoreConstants.TABLE_LAYOUT;
+import org.apache.rya.api.domain.RyaStatement;
+import org.apache.rya.api.resolver.triple.TripleRow;
+import org.apache.rya.api.resolver.triple.TripleRowResolver;
+import org.apache.rya.api.resolver.triple.impl.WholeRowTripleResolver;
+import org.apache.rya.reasoning.Derivation;
+import org.apache.rya.reasoning.OwlRule;
+import org.apache.rya.reasoning.Fact;
+import org.apache.rya.reasoning.TestUtils;
 
 import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Value;

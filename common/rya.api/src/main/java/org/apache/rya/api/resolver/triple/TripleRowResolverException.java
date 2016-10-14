@@ -1,4 +1,4 @@
-package mvm.rya.api.resolver.triple;
+package org.apache.rya.api.resolver.triple;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one

@@ -1,4 +1,4 @@
-package mvm.rya.indexing.external;
+package org.apache.rya.indexing.external;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -24,9 +24,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
-import mvm.rya.indexing.external.tupleSet.ExternalTupleSet;
-import mvm.rya.indexing.external.tupleSet.SimpleExternalTupleSet;
-import mvm.rya.indexing.pcj.matching.PCJOptimizer;
+import org.apache.rya.indexing.external.tupleSet.ExternalTupleSet;
+import org.apache.rya.indexing.external.tupleSet.SimpleExternalTupleSet;
+import org.apache.rya.indexing.pcj.matching.PCJOptimizer;
 
 import org.junit.Assert;
 import org.junit.Test;

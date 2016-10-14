@@ -1,4 +1,4 @@
-package mvm.rya.alx.command;
+package org.apache.rya.alx.command;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -29,7 +29,7 @@ import org.openrdf.model.URI;
 import org.openrdf.repository.RepositoryConnection;
 import org.openrdf.repository.RepositoryResult;
 
-import static mvm.rya.api.RdfCloudTripleStoreUtils.*;
+import static org.apache.rya.api.RdfCloudTripleStoreUtils.*;
 
 /**
  * Date: 5/16/12

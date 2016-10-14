@@ -1,4 +1,4 @@
-package mvm.rya.accumulo.instance;
+package org.apache.rya.accumulo.instance;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -46,8 +46,8 @@ import org.apache.accumulo.core.data.Value;
 import org.apache.accumulo.core.security.Authorizations;
 import org.apache.hadoop.io.Text;
 
-import mvm.rya.api.instance.RyaDetails;
-import mvm.rya.api.instance.RyaDetailsRepository;
+import org.apache.rya.api.instance.RyaDetails;
+import org.apache.rya.api.instance.RyaDetailsRepository;
 
 /**
  * An implementation of {@link RyaDetailsRepository} that stores a Rya

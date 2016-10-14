@@ -1,4 +1,4 @@
-package mvm.rya.accumulo.mr.tools;
+package org.apache.rya.accumulo.mr.tools;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -27,13 +27,13 @@ import org.apache.hadoop.util.Tool;
 import org.apache.hadoop.util.ToolRunner;
 import org.openrdf.rio.RDFFormat;
 
-import mvm.rya.accumulo.mr.AbstractAccumuloMRTool;
-import mvm.rya.accumulo.mr.MRUtils;
+import org.apache.rya.accumulo.mr.AbstractAccumuloMRTool;
+import org.apache.rya.accumulo.mr.MRUtils;
 
 /**
  * Reads RDF data from one or more file(s) and inserts statements into Rya.
  * <p>
- * Uses {@link mvm.rya.accumulo.mr.RdfFileInputFormat} to read data.
+ * Uses {@link org.apache.rya.accumulo.mr.RdfFileInputFormat} to read data.
  * <p>
  * Takes one argument: the file or directory to read (from HDFS).
  * <p>
@@ -46,7 +46,7 @@ import mvm.rya.accumulo.mr.MRUtils;
  *   (username, password, instance name, zookeepers, and Rya prefix)
  * <p>
  * - Indexing configuration parameters as named in
- *   {@link mvm.rya.indexing.accumulo.ConfigUtils} (enable or disable freetext,
+ *   {@link org.apache.rya.indexing.accumulo.ConfigUtils} (enable or disable freetext,
  *   geo, temporal, and entity indexing, and specify predicates for each
  *   indexer). If not given, no secondary indexing is done.
  */

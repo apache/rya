@@ -42,7 +42,7 @@ import org.apache.fluo.api.client.TransactionBase;
 import org.apache.fluo.api.data.Bytes;
 import org.apache.fluo.api.data.Column;
 import org.apache.fluo.api.observer.AbstractObserver;
-import mvm.rya.accumulo.utils.VisibilitySimplifier;
+import org.apache.rya.accumulo.utils.VisibilitySimplifier;
 
 /**
  * Performs incremental result exporting to the configured destinations.

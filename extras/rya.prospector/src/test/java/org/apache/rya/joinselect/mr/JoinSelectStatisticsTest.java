@@ -1,4 +1,4 @@
-package mvm.rya.joinselect.mr;
+package org.apache.rya.joinselect.mr;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -21,16 +21,16 @@ package mvm.rya.joinselect.mr;
 
 
 
-import static mvm.rya.joinselect.mr.utils.JoinSelectConstants.INPUTPATH;
-import static mvm.rya.joinselect.mr.utils.JoinSelectConstants.INSTANCE;
-import static mvm.rya.joinselect.mr.utils.JoinSelectConstants.OUTPUTPATH;
-import static mvm.rya.joinselect.mr.utils.JoinSelectConstants.PASSWORD;
-import static mvm.rya.joinselect.mr.utils.JoinSelectConstants.PROSPECTS_OUTPUTPATH;
-import static mvm.rya.joinselect.mr.utils.JoinSelectConstants.PROSPECTS_TABLE;
-import static mvm.rya.joinselect.mr.utils.JoinSelectConstants.SELECTIVITY_TABLE;
-import static mvm.rya.joinselect.mr.utils.JoinSelectConstants.SPO_OUTPUTPATH;
-import static mvm.rya.joinselect.mr.utils.JoinSelectConstants.SPO_TABLE;
-import static mvm.rya.joinselect.mr.utils.JoinSelectConstants.USERNAME;
+import static org.apache.rya.joinselect.mr.utils.JoinSelectConstants.INPUTPATH;
+import static org.apache.rya.joinselect.mr.utils.JoinSelectConstants.INSTANCE;
+import static org.apache.rya.joinselect.mr.utils.JoinSelectConstants.OUTPUTPATH;
+import static org.apache.rya.joinselect.mr.utils.JoinSelectConstants.PASSWORD;
+import static org.apache.rya.joinselect.mr.utils.JoinSelectConstants.PROSPECTS_OUTPUTPATH;
+import static org.apache.rya.joinselect.mr.utils.JoinSelectConstants.PROSPECTS_TABLE;
+import static org.apache.rya.joinselect.mr.utils.JoinSelectConstants.SELECTIVITY_TABLE;
+import static org.apache.rya.joinselect.mr.utils.JoinSelectConstants.SPO_OUTPUTPATH;
+import static org.apache.rya.joinselect.mr.utils.JoinSelectConstants.SPO_TABLE;
+import static org.apache.rya.joinselect.mr.utils.JoinSelectConstants.USERNAME;
 
 import java.io.File;
 import java.io.IOException;
@@ -38,28 +38,28 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
-import mvm.rya.accumulo.AccumuloRdfConfiguration;
-import mvm.rya.api.RdfCloudTripleStoreConstants.TABLE_LAYOUT;
-import mvm.rya.api.domain.RyaStatement;
-import mvm.rya.api.domain.RyaType;
-import mvm.rya.api.domain.RyaURI;
-import mvm.rya.api.resolver.RyaTripleContext;
-import mvm.rya.api.resolver.triple.TripleRow;
-import mvm.rya.joinselect.mr.JoinSelectAggregate.JoinReducer;
-import mvm.rya.joinselect.mr.JoinSelectAggregate.JoinSelectAggregateMapper;
-import mvm.rya.joinselect.mr.JoinSelectAggregate.JoinSelectGroupComparator;
-import mvm.rya.joinselect.mr.JoinSelectAggregate.JoinSelectPartitioner;
-import mvm.rya.joinselect.mr.JoinSelectAggregate.JoinSelectSortComparator;
-import mvm.rya.joinselect.mr.JoinSelectProspectOutput.CardinalityMapper;
-import mvm.rya.joinselect.mr.JoinSelectSpoTableOutput.JoinSelectMapper;
-import mvm.rya.joinselect.mr.JoinSelectStatisticsSum.CardinalityIdentityCombiner;
-import mvm.rya.joinselect.mr.JoinSelectStatisticsSum.CardinalityIdentityMapper;
-import mvm.rya.joinselect.mr.JoinSelectStatisticsSum.CardinalityIdentityReducer;
-import mvm.rya.joinselect.mr.utils.CardList;
-import mvm.rya.joinselect.mr.utils.CompositeType;
-import mvm.rya.joinselect.mr.utils.JoinSelectStatsUtil;
-import mvm.rya.joinselect.mr.utils.TripleCard;
-import mvm.rya.joinselect.mr.utils.TripleEntry;
+import org.apache.rya.accumulo.AccumuloRdfConfiguration;
+import org.apache.rya.api.RdfCloudTripleStoreConstants.TABLE_LAYOUT;
+import org.apache.rya.api.domain.RyaStatement;
+import org.apache.rya.api.domain.RyaType;
+import org.apache.rya.api.domain.RyaURI;
+import org.apache.rya.api.resolver.RyaTripleContext;
+import org.apache.rya.api.resolver.triple.TripleRow;
+import org.apache.rya.joinselect.mr.JoinSelectAggregate.JoinReducer;
+import org.apache.rya.joinselect.mr.JoinSelectAggregate.JoinSelectAggregateMapper;
+import org.apache.rya.joinselect.mr.JoinSelectAggregate.JoinSelectGroupComparator;
+import org.apache.rya.joinselect.mr.JoinSelectAggregate.JoinSelectPartitioner;
+import org.apache.rya.joinselect.mr.JoinSelectAggregate.JoinSelectSortComparator;
+import org.apache.rya.joinselect.mr.JoinSelectProspectOutput.CardinalityMapper;
+import org.apache.rya.joinselect.mr.JoinSelectSpoTableOutput.JoinSelectMapper;
+import org.apache.rya.joinselect.mr.JoinSelectStatisticsSum.CardinalityIdentityCombiner;
+import org.apache.rya.joinselect.mr.JoinSelectStatisticsSum.CardinalityIdentityMapper;
+import org.apache.rya.joinselect.mr.JoinSelectStatisticsSum.CardinalityIdentityReducer;
+import org.apache.rya.joinselect.mr.utils.CardList;
+import org.apache.rya.joinselect.mr.utils.CompositeType;
+import org.apache.rya.joinselect.mr.utils.JoinSelectStatsUtil;
+import org.apache.rya.joinselect.mr.utils.TripleCard;
+import org.apache.rya.joinselect.mr.utils.TripleEntry;
 
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;

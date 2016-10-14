@@ -38,7 +38,7 @@ import org.junit.Test;
 import com.google.common.base.Optional;
 import com.google.common.collect.Sets;
 
-import mvm.rya.api.domain.RyaStatement;
+import org.apache.rya.api.domain.RyaStatement;
 
 /**
  * Integration tests the methods of {@link GetQueryReportl}.

@@ -1,4 +1,4 @@
-package mvm.cloud.rdf.web.sail;
+package org.apache.cloud.rdf.web.sail;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -22,7 +22,7 @@ package mvm.cloud.rdf.web.sail;
 
 import javax.servlet.http.HttpServletRequest;
 
-import mvm.rya.api.security.SecurityProvider;
+import org.apache.rya.api.security.SecurityProvider;
 
 public class SecurityProviderImpl implements SecurityProvider{
 	

@@ -16,7 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package mvm.rya.api.client.accumulo;
+package org.apache.rya.api.client.accumulo;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -36,10 +36,10 @@ import org.openrdf.repository.RepositoryException;
 
 import com.google.common.collect.Sets;
 
-import mvm.rya.api.client.CreatePCJ;
-import mvm.rya.api.client.DeletePCJ;
-import mvm.rya.api.client.InstanceDoesNotExistException;
-import mvm.rya.api.client.RyaClientException;
+import org.apache.rya.api.client.CreatePCJ;
+import org.apache.rya.api.client.DeletePCJ;
+import org.apache.rya.api.client.InstanceDoesNotExistException;
+import org.apache.rya.api.client.RyaClientException;
 
 /**
  * Integration tests the methods of {@link AccumuloCreatePCJ}.

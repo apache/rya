@@ -16,13 +16,13 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package mvm.rya.api.client;
+package org.apache.rya.api.client;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 
 import com.google.common.base.Optional;
 
-import mvm.rya.api.instance.RyaDetails;
+import org.apache.rya.api.instance.RyaDetails;
 
 /**
  * Get configuration and maintenance information about a specific instance of Rya.

@@ -1,4 +1,4 @@
-package mvm.rya.accumulo.query;
+package org.apache.rya.accumulo.query;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one

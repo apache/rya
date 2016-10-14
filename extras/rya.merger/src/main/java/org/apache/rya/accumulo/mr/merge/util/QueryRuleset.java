@@ -1,8 +1,8 @@
-package mvm.rya.accumulo.mr.merge.util;
+package org.apache.rya.accumulo.mr.merge.util;
 
 /*
  * #%L
- * mvm.rya.accumulo.mr.merge
+ * org.apache.rya.accumulo.mr.merge
  * %%
  * Copyright (C) 2014 Rya
  * %%
@@ -54,21 +54,21 @@ import org.openrdf.query.parser.ParsedTupleQuery;
 import org.openrdf.query.parser.QueryParserUtil;
 import org.openrdf.sail.SailException;
 
-import mvm.rya.accumulo.mr.merge.CopyTool;
-import mvm.rya.api.RdfCloudTripleStoreConfiguration;
-import mvm.rya.rdftriplestore.RdfCloudTripleStore;
-import mvm.rya.rdftriplestore.inference.InferJoin;
-import mvm.rya.rdftriplestore.inference.InferUnion;
-import mvm.rya.rdftriplestore.inference.InferenceEngine;
-import mvm.rya.rdftriplestore.inference.InverseOfVisitor;
-import mvm.rya.rdftriplestore.inference.SameAsVisitor;
-import mvm.rya.rdftriplestore.inference.SubClassOfVisitor;
-import mvm.rya.rdftriplestore.inference.SubPropertyOfVisitor;
-import mvm.rya.rdftriplestore.inference.SymmetricPropertyVisitor;
-import mvm.rya.rdftriplestore.inference.TransitivePropertyVisitor;
-import mvm.rya.rdftriplestore.utils.FixedStatementPattern;
-import mvm.rya.rdftriplestore.utils.TransitivePropertySP;
-import mvm.rya.sail.config.RyaSailFactory;
+import org.apache.rya.accumulo.mr.merge.CopyTool;
+import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
+import org.apache.rya.rdftriplestore.RdfCloudTripleStore;
+import org.apache.rya.rdftriplestore.inference.InferJoin;
+import org.apache.rya.rdftriplestore.inference.InferUnion;
+import org.apache.rya.rdftriplestore.inference.InferenceEngine;
+import org.apache.rya.rdftriplestore.inference.InverseOfVisitor;
+import org.apache.rya.rdftriplestore.inference.SameAsVisitor;
+import org.apache.rya.rdftriplestore.inference.SubClassOfVisitor;
+import org.apache.rya.rdftriplestore.inference.SubPropertyOfVisitor;
+import org.apache.rya.rdftriplestore.inference.SymmetricPropertyVisitor;
+import org.apache.rya.rdftriplestore.inference.TransitivePropertyVisitor;
+import org.apache.rya.rdftriplestore.utils.FixedStatementPattern;
+import org.apache.rya.rdftriplestore.utils.TransitivePropertySP;
+import org.apache.rya.sail.config.RyaSailFactory;
 
 /**
  * Represents a set of {@link CopyRule} instances derived from a query. The ruleset determines a logical

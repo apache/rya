@@ -1,4 +1,4 @@
-package mvm.rya.api.persist;
+package org.apache.rya.api.persist;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -22,7 +22,7 @@ package mvm.rya.api.persist;
 
 
 import info.aduna.iteration.CloseableIteration;
-import mvm.rya.api.RdfCloudTripleStoreConfiguration;
+import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
 import org.openrdf.model.Namespace;
 
 /**

@@ -1,4 +1,4 @@
-package mvm.cloud.rdf.web.cloudbase.sail;
+package org.apache.cloud.rdf.web.cloudbase.sail;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one

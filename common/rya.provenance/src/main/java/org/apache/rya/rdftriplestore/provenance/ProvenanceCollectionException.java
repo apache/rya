@@ -1,4 +1,4 @@
-package mvm.rya.rdftriplestore.provenance;
+package org.apache.rya.rdftriplestore.provenance;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one

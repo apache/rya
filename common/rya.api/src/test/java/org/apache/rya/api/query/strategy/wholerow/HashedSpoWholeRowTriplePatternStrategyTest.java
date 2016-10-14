@@ -1,4 +1,4 @@
-package mvm.rya.api.query.strategy.wholerow;
+package org.apache.rya.api.query.strategy.wholerow;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -24,16 +24,16 @@ package mvm.rya.api.query.strategy.wholerow;
 import java.util.Map;
 
 import junit.framework.TestCase;
-import mvm.rya.api.RdfCloudTripleStoreConstants;
-import mvm.rya.api.domain.RyaStatement;
-import mvm.rya.api.domain.RyaType;
-import mvm.rya.api.domain.RyaTypeRange;
-import mvm.rya.api.domain.RyaURI;
-import mvm.rya.api.domain.RyaURIRange;
-import mvm.rya.api.query.strategy.ByteRange;
-import mvm.rya.api.resolver.RyaContext;
-import mvm.rya.api.resolver.RyaTripleContext;
-import mvm.rya.api.resolver.triple.TripleRow;
+import org.apache.rya.api.RdfCloudTripleStoreConstants;
+import org.apache.rya.api.domain.RyaStatement;
+import org.apache.rya.api.domain.RyaType;
+import org.apache.rya.api.domain.RyaTypeRange;
+import org.apache.rya.api.domain.RyaURI;
+import org.apache.rya.api.domain.RyaURIRange;
+import org.apache.rya.api.query.strategy.ByteRange;
+import org.apache.rya.api.resolver.RyaContext;
+import org.apache.rya.api.resolver.RyaTripleContext;
+import org.apache.rya.api.resolver.triple.TripleRow;
 
 import org.apache.hadoop.io.Text;
 import org.junit.Before;

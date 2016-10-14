@@ -1,4 +1,4 @@
-package mvm.rya.alx.util;
+package org.apache.rya.alx.util;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -21,8 +21,8 @@ package mvm.rya.alx.util;
 
 
 
-import mvm.rya.accumulo.AccumuloRdfConfiguration;
-import mvm.rya.api.RdfCloudTripleStoreConfiguration;
+import org.apache.rya.accumulo.AccumuloRdfConfiguration;
+import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
 import org.apache.hadoop.conf.Configuration;
 
 import java.util.Map;

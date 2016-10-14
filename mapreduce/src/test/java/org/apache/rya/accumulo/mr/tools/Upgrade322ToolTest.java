@@ -1,4 +1,4 @@
-package mvm.rya.accumulo.mr.tools;
+package org.apache.rya.accumulo.mr.tools;
 
 import java.util.Map;
 
@@ -40,15 +40,15 @@ import org.openrdf.model.vocabulary.XMLSchema;
 
 
 import junit.framework.TestCase;
-import mvm.rya.accumulo.AccumuloRdfConfiguration;
-import mvm.rya.accumulo.AccumuloRyaDAO;
-import mvm.rya.accumulo.mr.TestUtils;
-import mvm.rya.accumulo.mr.tools.Upgrade322Tool;
-import mvm.rya.accumulo.query.AccumuloRyaQueryEngine;
-import mvm.rya.api.RdfCloudTripleStoreConstants;
-import mvm.rya.api.domain.RyaStatement;
-import mvm.rya.api.domain.RyaType;
-import mvm.rya.api.domain.RyaURI;
+import org.apache.rya.accumulo.AccumuloRdfConfiguration;
+import org.apache.rya.accumulo.AccumuloRyaDAO;
+import org.apache.rya.accumulo.mr.TestUtils;
+import org.apache.rya.accumulo.mr.tools.Upgrade322Tool;
+import org.apache.rya.accumulo.query.AccumuloRyaQueryEngine;
+import org.apache.rya.api.RdfCloudTripleStoreConstants;
+import org.apache.rya.api.domain.RyaStatement;
+import org.apache.rya.api.domain.RyaType;
+import org.apache.rya.api.domain.RyaURI;
 
 /**
  * Created by IntelliJ IDEA.
@@ -108,7 +108,7 @@ public class Upgrade322ToolTest extends TestCase {
         ospWriter.addMutation(getMutation("10.0\u0000http://here/2010/tracked-data-provenance/ns#uuid10" +
         "\u0000http://here/2010/tracked-data-provenance/ns#floatLit\u0001http" +
         "://www.w3.org/2001/XMLSchema#float\u0001\b"));
-        ospWriter.addMutation(getMutation("3.0.0\u0000urn:mvm.rya/2012/05#rts\u0000urn:mvm" +
+        ospWriter.addMutation(getMutation("3.0.0\u0000urn:org.apache.rya/2012/05#rts\u0000urn:org.apache" +
         ".rya/2012/05#version\u0001\u0003"));
         ospWriter.addMutation(getMutation("9223370726404375807\u0000http://here/2010/tracked-data-provenance/ns" +
         "#uuid10\u0000http://here/2010/tracked-data-provenance/ns#dateLit" +
@@ -142,7 +142,7 @@ public class Upgrade322ToolTest extends TestCase {
         spoWriter.addMutation(getMutation("http://here/2010/tracked-data-provenance/ns#uuid10" +
                                           "\u0000http://here/2010/tracked-data-provenance/ns#floatLit\u0001http" +
                                           "://www.w3.org/2001/XMLSchema#float\u000010.0\u0001\b"));
-        spoWriter.addMutation(getMutation("urn:mvm.rya/2012/05#rts\u0000urn:mvm" +
+        spoWriter.addMutation(getMutation("urn:org.apache.rya/2012/05#rts\u0000urn:org.apache" +
                                           ".rya/2012/05#version\u00003.0.0\u0001\u0003"));
         spoWriter.addMutation(getMutation("http://here/2010/tracked-data-provenance/ns" +
                                           "#uuid10\u0000http://here/2010/tracked-data-provenance/ns#dateLit" +
@@ -171,8 +171,8 @@ public class Upgrade322ToolTest extends TestCase {
                                           ".org/2001/XMLSchema#short\u0001\b"));
         poWriter.addMutation(getMutation("http://here/2010/tracked-data-provenance/ns#floatLit\u0000http://here/2010/tracked-data-provenance/ns#uuid10\u0001http" +
                                           "://www.w3.org/2001/XMLSchema#float\u000010.0\u0001\b"));
-        poWriter.addMutation(getMutation("urn:mvm" +
-                                          ".rya/2012/05#version\u00003.0.0\u0000urn:mvm.rya/2012/05#rts\u0001\u0003"));
+        poWriter.addMutation(getMutation("urn:org.apache" +
+                                          ".rya/2012/05#version\u00003.0.0\u0000urn:org.apache.rya/2012/05#rts\u0001\u0003"));
         poWriter.addMutation(getMutation("http://here/2010/tracked-data-provenance/ns#dateLit" +
                                           "\u00009223370726404375807\u0000http://here/2010/tracked-data-provenance/ns#uuid10\u0001\u0007"));
         poWriter.addMutation(getMutation("http://www.w3" +
@@ -256,8 +256,8 @@ public class Upgrade322ToolTest extends TestCase {
           new RyaURI("http://here/2010/tracked-data-provenance/ns" +
                      "#objectuuid1")), queryEngine);
         TestUtils.verify(new RyaStatement(
-          new RyaURI("urn:mvm.rya/2012/05#rts"),
-          new RyaURI("urn:mvm.rya/2012/05#version"),
+          new RyaURI("urn:org.apache.rya/2012/05#rts"),
+          new RyaURI("urn:org.apache.rya/2012/05#version"),
           new RyaType("3.0.0")), queryEngine);
     }
 

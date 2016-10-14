@@ -1,4 +1,4 @@
-package mvm.rya.api.utils;
+package org.apache.rya.api.utils;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -22,8 +22,8 @@ package mvm.rya.api.utils;
 
 
 import com.google.common.base.Function;
-import mvm.rya.api.RdfCloudTripleStoreUtils;
-import mvm.rya.api.domain.RyaStatement;
+import org.apache.rya.api.RdfCloudTripleStoreUtils;
+import org.apache.rya.api.domain.RyaStatement;
 import org.openrdf.query.BindingSet;
 
 import java.util.Map;
@@ -35,6 +35,6 @@ import java.util.Map;
 public class RyaStatementAddBindingSetFunction implements Function<RyaStatement, Map.Entry<RyaStatement, BindingSet>> {
     @Override
     public Map.Entry<RyaStatement, BindingSet> apply(RyaStatement ryaStatement) {
-        return new RdfCloudTripleStoreUtils.CustomEntry<mvm.rya.api.domain.RyaStatement, org.openrdf.query.BindingSet>(ryaStatement, null);
+        return new RdfCloudTripleStoreUtils.CustomEntry<org.apache.rya.api.domain.RyaStatement, org.openrdf.query.BindingSet>(ryaStatement, null);
     }
 }

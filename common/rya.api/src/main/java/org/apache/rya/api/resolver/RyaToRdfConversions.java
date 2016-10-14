@@ -1,4 +1,4 @@
-package mvm.rya.api.resolver;
+package org.apache.rya.api.resolver;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -21,9 +21,9 @@ package mvm.rya.api.resolver;
 
 
 
-import mvm.rya.api.domain.RyaStatement;
-import mvm.rya.api.domain.RyaType;
-import mvm.rya.api.domain.RyaURI;
+import org.apache.rya.api.domain.RyaStatement;
+import org.apache.rya.api.domain.RyaType;
+import org.apache.rya.api.domain.RyaURI;
 import org.openrdf.model.Literal;
 import org.openrdf.model.Statement;
 import org.openrdf.model.URI;

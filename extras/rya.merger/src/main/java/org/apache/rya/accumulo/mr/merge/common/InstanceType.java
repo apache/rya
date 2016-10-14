@@ -1,8 +1,8 @@
-package mvm.rya.accumulo.mr.merge.common;
+package org.apache.rya.accumulo.mr.merge.common;
 
 /*
  * #%L
- * mvm.rya.accumulo.mr.merge
+ * org.apache.rya.accumulo.mr.merge
  * %%
  * Copyright (C) 2014 Rya
  * %%

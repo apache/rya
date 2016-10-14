@@ -1,8 +1,8 @@
-package mvm.rya.accumulo.mr.merge;
+package org.apache.rya.accumulo.mr.merge;
 
 /*
  * #%L
- * mvm.rya.accumulo.mr.merge
+ * org.apache.rya.accumulo.mr.merge
  * %%
  * Copyright (C) 2014 Rya
  * %%
@@ -23,10 +23,10 @@ package mvm.rya.accumulo.mr.merge;
 import org.apache.accumulo.core.security.Authorizations;
 import org.apache.hadoop.util.Tool;
 
-import mvm.rya.accumulo.AccumuloRdfConstants;
-import mvm.rya.accumulo.mr.AbstractAccumuloMRTool;
-import mvm.rya.accumulo.mr.MRUtils;
-import mvm.rya.api.RdfCloudTripleStoreConstants;
+import org.apache.rya.accumulo.AccumuloRdfConstants;
+import org.apache.rya.accumulo.mr.AbstractAccumuloMRTool;
+import org.apache.rya.accumulo.mr.MRUtils;
+import org.apache.rya.api.RdfCloudTripleStoreConstants;
 
 /**
  * Handles setting up a map reduce {@link Tool} with a parent and child instance.

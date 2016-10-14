@@ -1,4 +1,4 @@
-package mvm.rya.camel.cbsail;
+package org.apache.rya.camel.cbsail;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -33,9 +33,9 @@ import org.openrdf.rio.RDFHandlerException;
 import java.io.ByteArrayOutputStream;
 import java.util.*;
 
-import static mvm.rya.api.RdfCloudTripleStoreConfiguration.*;
-import static mvm.rya.camel.cbsail.CbSailComponent.SPARQL_QUERY_PROP;
-import static mvm.rya.camel.cbsail.CbSailComponent.valueFactory;
+import static org.apache.rya.api.RdfCloudTripleStoreConfiguration.*;
+import static org.apache.rya.camel.cbsail.CbSailComponent.SPARQL_QUERY_PROP;
+import static org.apache.rya.camel.cbsail.CbSailComponent.valueFactory;
 
 /**
  */

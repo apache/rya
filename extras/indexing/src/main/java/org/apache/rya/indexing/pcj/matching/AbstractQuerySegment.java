@@ -1,4 +1,4 @@
-package mvm.rya.indexing.pcj.matching;
+package org.apache.rya.indexing.pcj.matching;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -27,7 +27,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import mvm.rya.indexing.pcj.matching.QueryNodesToTupleExpr.TupleExprAndNodes;
+import org.apache.rya.indexing.pcj.matching.QueryNodesToTupleExpr.TupleExprAndNodes;
 
 import org.openrdf.query.algebra.Filter;
 import org.openrdf.query.algebra.QueryModelNode;

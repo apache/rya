@@ -1,4 +1,4 @@
-package mvm.rya.mongodb.dao;
+package org.apache.rya.mongodb.dao;
 
 import com.mongodb.DBCollection;
 import com.mongodb.DBObject;
@@ -23,8 +23,8 @@ import com.mongodb.DBObject;
  */
 
 
-import mvm.rya.api.domain.RyaStatement;
-import mvm.rya.api.persist.query.RyaQuery;
+import org.apache.rya.api.domain.RyaStatement;
+import org.apache.rya.api.persist.query.RyaQuery;
 
 /**
  * Defines how objects are stored in MongoDB.

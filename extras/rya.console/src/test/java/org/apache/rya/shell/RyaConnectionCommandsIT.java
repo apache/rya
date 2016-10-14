@@ -34,7 +34,7 @@
 // * specific language governing permissions and limitations
 // * under the License.
 // */
-package mvm.rya.shell;
+package org.apache.rya.shell;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -50,11 +50,11 @@ import org.springframework.shell.Bootstrap;
 import org.springframework.shell.core.CommandResult;
 import org.springframework.shell.core.JLineShellComponent;
 
-import mvm.rya.api.client.Install.InstallConfiguration;
-import mvm.rya.shell.SharedShellState.ConnectionState;
-import mvm.rya.shell.SharedShellState.ShellState;
-import mvm.rya.shell.util.InstallPrompt;
-import mvm.rya.shell.util.PasswordPrompt;
+import org.apache.rya.api.client.Install.InstallConfiguration;
+import org.apache.rya.shell.SharedShellState.ConnectionState;
+import org.apache.rya.shell.SharedShellState.ShellState;
+import org.apache.rya.shell.util.InstallPrompt;
+import org.apache.rya.shell.util.PasswordPrompt;
 
 /**
  * Integration tests the methods of {@link RyaConnectionCommands}.

@@ -16,7 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package mvm.rya.shell;
+package org.apache.rya.shell;
 
 import static java.util.Objects.requireNonNull;
 
@@ -26,7 +26,7 @@ import org.springframework.core.annotation.Order;
 import org.springframework.shell.plugin.support.DefaultPromptProvider;
 import org.springframework.stereotype.Component;
 
-import mvm.rya.shell.SharedShellState.ShellState;
+import org.apache.rya.shell.SharedShellState.ShellState;
 
 /**
  * Customizes the Rya Shell's prompt.

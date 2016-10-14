@@ -57,14 +57,14 @@ import org.openrdf.sail.Sail;
 import com.beust.jcommander.internal.Sets;
 import com.google.common.base.Optional;
 
-import mvm.rya.accumulo.AccumuloRdfConfiguration;
-import mvm.rya.api.client.RyaClient;
-import mvm.rya.api.client.accumulo.AccumuloConnectionDetails;
-import mvm.rya.api.client.accumulo.AccumuloRyaClientFactory;
-import mvm.rya.api.domain.RyaStatement;
-import mvm.rya.indexing.accumulo.ConfigUtils;
-import mvm.rya.rdftriplestore.RyaSailRepository;
-import mvm.rya.sail.config.RyaSailFactory;
+import org.apache.rya.accumulo.AccumuloRdfConfiguration;
+import org.apache.rya.api.client.RyaClient;
+import org.apache.rya.api.client.accumulo.AccumuloConnectionDetails;
+import org.apache.rya.api.client.accumulo.AccumuloRyaClientFactory;
+import org.apache.rya.api.domain.RyaStatement;
+import org.apache.rya.indexing.accumulo.ConfigUtils;
+import org.apache.rya.rdftriplestore.RyaSailRepository;
+import org.apache.rya.sail.config.RyaSailFactory;
 
 /**
  * Integration tests that ensure the Fluo Application properly exports PCJ

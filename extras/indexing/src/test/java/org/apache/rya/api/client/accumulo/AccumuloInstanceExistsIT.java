@@ -16,7 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package mvm.rya.api.client.accumulo;
+package org.apache.rya.api.client.accumulo;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -28,10 +28,10 @@ import org.apache.accumulo.core.client.TableExistsException;
 import org.apache.accumulo.core.client.admin.TableOperations;
 import org.junit.Test;
 
-import mvm.rya.accumulo.AccumuloITBase;
-import mvm.rya.accumulo.instance.AccumuloRyaInstanceDetailsRepository;
-import mvm.rya.api.RdfCloudTripleStoreConstants;
-import mvm.rya.api.client.RyaClientException;
+import org.apache.rya.accumulo.AccumuloITBase;
+import org.apache.rya.accumulo.instance.AccumuloRyaInstanceDetailsRepository;
+import org.apache.rya.api.RdfCloudTripleStoreConstants;
+import org.apache.rya.api.client.RyaClientException;
 
 /**
  * Integration tests the methods of {@link AccumuloInstanceExists}.

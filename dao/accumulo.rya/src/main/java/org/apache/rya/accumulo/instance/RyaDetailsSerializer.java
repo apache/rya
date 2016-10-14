@@ -1,4 +1,4 @@
-package mvm.rya.accumulo.instance;
+package org.apache.rya.accumulo.instance;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -29,8 +29,8 @@ import java.io.ObjectOutputStream;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 
-import mvm.rya.api.instance.RyaDetails;
-import mvm.rya.api.instance.RyaDetailsRepository.RyaDetailsRepositoryException;
+import org.apache.rya.api.instance.RyaDetails;
+import org.apache.rya.api.instance.RyaDetailsRepository.RyaDetailsRepositoryException;
 
 /**
  * Serializes {@link RyaDetails} instances.

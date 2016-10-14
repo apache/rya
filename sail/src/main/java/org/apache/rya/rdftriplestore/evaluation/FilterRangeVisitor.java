@@ -1,4 +1,4 @@
-package mvm.rya.rdftriplestore.evaluation;
+package org.apache.rya.rdftriplestore.evaluation;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -21,9 +21,9 @@ package mvm.rya.rdftriplestore.evaluation;
 
 
 
-import mvm.rya.api.RdfCloudTripleStoreConfiguration;
-import mvm.rya.api.domain.RangeURI;
-import mvm.rya.api.domain.RangeValue;
+import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
+import org.apache.rya.api.domain.RangeURI;
+import org.apache.rya.api.domain.RangeValue;
 import org.openrdf.model.Value;
 import org.openrdf.model.impl.BooleanLiteralImpl;
 import org.openrdf.query.QueryEvaluationException;
@@ -34,7 +34,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static mvm.rya.api.RdfCloudTripleStoreConstants.RANGE;
+import static org.apache.rya.api.RdfCloudTripleStoreConstants.RANGE;
 
 /**
  * Class FilterTimeIndexVisitor
@@ -61,7 +61,7 @@ public class FilterRangeVisitor extends QueryModelVisitorBase {
                 //range(?var, start, end)
                 List<ValueExpr> valueExprs = fc.getArgs();
                 if (valueExprs.size() != 3) {
-                    throw new QueryEvaluationException("mvm:range must have 3 parameters: variable, start, end");
+                    throw new QueryEvaluationException("org.apache:range must have 3 parameters: variable, start, end");
                 }
                 Var var = (Var) valueExprs.get(0);
                 ValueConstant startVc = (ValueConstant) valueExprs.get(1);

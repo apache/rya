@@ -1,4 +1,4 @@
-package mvm.rya.accumulo.mr;
+package org.apache.rya.accumulo.mr;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -46,9 +46,9 @@ import org.openrdf.rio.RDFParseException;
 import org.openrdf.rio.RDFParser;
 import org.openrdf.rio.Rio;
 
-import mvm.rya.accumulo.AccumuloRdfConfiguration;
-import mvm.rya.api.resolver.RdfToRyaConversions;
-import mvm.rya.api.resolver.RyaTripleContext;
+import org.apache.rya.accumulo.AccumuloRdfConfiguration;
+import org.apache.rya.api.resolver.RdfToRyaConversions;
+import org.apache.rya.api.resolver.RyaTripleContext;
 
 /**
  * {@link FileInputFormat} that can read multiple RDF files and convert into

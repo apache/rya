@@ -16,7 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package mvm.rya.indexing.external;
+package org.apache.rya.indexing.external;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.mock;
@@ -28,9 +28,9 @@ import org.junit.Test;
 
 import com.google.common.base.Supplier;
 
-import mvm.rya.indexing.external.PrecomputedJoinIndexerConfig.PrecomputedJoinUpdaterType;
-import mvm.rya.indexing.external.fluo.FluoPcjUpdater;
-import mvm.rya.indexing.external.fluo.FluoPcjUpdaterSupplier;
+import org.apache.rya.indexing.external.PrecomputedJoinIndexerConfig.PrecomputedJoinUpdaterType;
+import org.apache.rya.indexing.external.fluo.FluoPcjUpdater;
+import org.apache.rya.indexing.external.fluo.FluoPcjUpdaterSupplier;
 
 /**
  * Tests the methods of {@link PrecomputedJoinUpdaterSupplier}.

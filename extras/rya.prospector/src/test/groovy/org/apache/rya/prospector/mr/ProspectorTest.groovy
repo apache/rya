@@ -17,21 +17,21 @@
  * under the License.
  */
 
-package mvm.rya.prospector.mr
+package org.apache.rya.prospector.mr
 
 import com.google.common.collect.Iterators
 import com.google.common.collect.Lists
-import mvm.rya.accumulo.AccumuloRyaDAO
-import mvm.rya.accumulo.AccumuloRdfConfiguration
-import mvm.rya.api.persist.RdfEvalStatsDAO
-import mvm.rya.api.domain.RyaStatement
-import mvm.rya.api.domain.RyaType
-import mvm.rya.api.domain.RyaURI
-import mvm.rya.prospector.domain.IndexEntry
-import mvm.rya.prospector.domain.TripleValueType
-import mvm.rya.prospector.service.ProspectorService
-import mvm.rya.prospector.service.ProspectorServiceEvalStatsDAO
-import mvm.rya.prospector.utils.ProspectorConstants
+import org.apache.rya.accumulo.AccumuloRyaDAO
+import org.apache.rya.accumulo.AccumuloRdfConfiguration
+import org.apache.rya.api.persist.RdfEvalStatsDAO
+import org.apache.rya.api.domain.RyaStatement
+import org.apache.rya.api.domain.RyaType
+import org.apache.rya.api.domain.RyaURI
+import org.apache.rya.prospector.domain.IndexEntry
+import org.apache.rya.prospector.domain.TripleValueType
+import org.apache.rya.prospector.service.ProspectorService
+import org.apache.rya.prospector.service.ProspectorServiceEvalStatsDAO
+import org.apache.rya.prospector.utils.ProspectorConstants
 import org.apache.accumulo.core.client.Instance
 import org.apache.accumulo.core.client.mock.MockInstance
 import org.apache.accumulo.core.security.Authorizations

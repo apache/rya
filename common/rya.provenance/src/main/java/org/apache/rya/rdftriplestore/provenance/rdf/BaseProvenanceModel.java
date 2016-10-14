@@ -1,4 +1,4 @@
-package mvm.rya.rdftriplestore.provenance.rdf;
+package org.apache.rya.rdftriplestore.provenance.rdf;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -46,7 +46,7 @@ public class BaseProvenanceModel implements RDFProvenanceModel {
 	private static final String queryNameSpace = "http://rya.com/provenance#queryEvent";
 
 	/* (non-Javadoc)
-	 * @see mvm.rya.rdftriplestore.provenance.rdf.RDFProvenanceModel#getStatementsForQuery(java.lang.String, java.lang.String, java.lang.String)
+	 * @see org.apache.rya.rdftriplestore.provenance.rdf.RDFProvenanceModel#getStatementsForQuery(java.lang.String, java.lang.String, java.lang.String)
 	 */
 	public List<Statement> getStatementsForQuery(String query, String user, String queryType) {
 		List<Statement> statements = new ArrayList<Statement>();

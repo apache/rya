@@ -42,9 +42,9 @@ import org.openrdf.repository.sail.SailRepository;
 import org.openrdf.repository.sail.SailRepositoryConnection;
 import org.openrdf.sail.Sail;
 
-import mvm.rya.accumulo.AccumuloRdfConfiguration;
-import mvm.rya.indexing.accumulo.ConfigUtils;
-import mvm.rya.sail.config.RyaSailFactory;
+import org.apache.rya.accumulo.AccumuloRdfConfiguration;
+import org.apache.rya.indexing.accumulo.ConfigUtils;
+import org.apache.rya.sail.config.RyaSailFactory;
 
 public class EntityDirectExample {
     private static final Logger log = Logger.getLogger(EntityDirectExample.class);

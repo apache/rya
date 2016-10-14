@@ -1,4 +1,4 @@
-package mvm.rya.indexing.mongodb;
+package org.apache.rya.indexing.mongodb;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -38,14 +38,14 @@ import com.mongodb.MongoClient;
 import com.mongodb.QueryBuilder;
 
 import info.aduna.iteration.CloseableIteration;
-import mvm.rya.api.domain.RyaStatement;
-import mvm.rya.api.domain.RyaURI;
-import mvm.rya.api.resolver.RyaToRdfConversions;
-import mvm.rya.indexing.StatementConstraints;
-import mvm.rya.mongodb.MongoConnectorFactory;
-import mvm.rya.mongodb.MongoDBRdfConfiguration;
-import mvm.rya.mongodb.MongoDBRyaDAO;
-import mvm.rya.mongodb.MongoSecondaryIndex;
+import org.apache.rya.api.domain.RyaStatement;
+import org.apache.rya.api.domain.RyaURI;
+import org.apache.rya.api.resolver.RyaToRdfConversions;
+import org.apache.rya.indexing.StatementConstraints;
+import org.apache.rya.mongodb.MongoConnectorFactory;
+import org.apache.rya.mongodb.MongoDBRdfConfiguration;
+import org.apache.rya.mongodb.MongoDBRyaDAO;
+import org.apache.rya.mongodb.MongoSecondaryIndex;
 
 /**
  * Secondary Indexer using MondoDB

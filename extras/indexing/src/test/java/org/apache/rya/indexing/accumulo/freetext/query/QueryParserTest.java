@@ -1,4 +1,4 @@
-package mvm.rya.indexing.accumulo.freetext.query;
+package org.apache.rya.indexing.accumulo.freetext.query;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -24,12 +24,12 @@ package mvm.rya.indexing.accumulo.freetext.query;
 import java.util.ArrayList;
 import java.util.List;
 
-import mvm.rya.indexing.accumulo.freetext.query.ASTExpression;
-import mvm.rya.indexing.accumulo.freetext.query.ASTTerm;
-import mvm.rya.indexing.accumulo.freetext.query.Node;
-import mvm.rya.indexing.accumulo.freetext.query.ParseException;
-import mvm.rya.indexing.accumulo.freetext.query.QueryParser;
-import mvm.rya.indexing.accumulo.freetext.query.TokenMgrError;
+import org.apache.rya.indexing.accumulo.freetext.query.ASTExpression;
+import org.apache.rya.indexing.accumulo.freetext.query.ASTTerm;
+import org.apache.rya.indexing.accumulo.freetext.query.Node;
+import org.apache.rya.indexing.accumulo.freetext.query.ParseException;
+import org.apache.rya.indexing.accumulo.freetext.query.QueryParser;
+import org.apache.rya.indexing.accumulo.freetext.query.TokenMgrError;
 
 import org.apache.commons.lang.StringUtils;
 import org.junit.Assert;

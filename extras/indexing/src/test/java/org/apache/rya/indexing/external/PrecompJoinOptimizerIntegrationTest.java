@@ -1,4 +1,4 @@
-package mvm.rya.indexing.external;
+package org.apache.rya.indexing.external;
 
 import java.net.UnknownHostException;
 
@@ -55,8 +55,8 @@ import org.openrdf.sail.SailException;
 
 import com.google.common.base.Optional;
 
-import mvm.rya.api.persist.RyaDAOException;
-import mvm.rya.rdftriplestore.inference.InferenceEngineException;
+import org.apache.rya.api.persist.RyaDAOException;
+import org.apache.rya.rdftriplestore.inference.InferenceEngineException;
 
 public class PrecompJoinOptimizerIntegrationTest {
 

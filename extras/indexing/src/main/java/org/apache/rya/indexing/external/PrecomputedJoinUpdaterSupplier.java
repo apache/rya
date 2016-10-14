@@ -16,7 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package mvm.rya.indexing.external;
+package org.apache.rya.indexing.external;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -27,8 +27,8 @@ import org.apache.rya.indexing.pcj.update.PrecomputedJoinUpdater;
 import com.google.common.base.Optional;
 import com.google.common.base.Supplier;
 
-import mvm.rya.indexing.external.PrecomputedJoinIndexerConfig.PrecomputedJoinUpdaterType;
-import mvm.rya.indexing.external.fluo.FluoPcjUpdaterSupplier;
+import org.apache.rya.indexing.external.PrecomputedJoinIndexerConfig.PrecomputedJoinUpdaterType;
+import org.apache.rya.indexing.external.fluo.FluoPcjUpdaterSupplier;
 
 /**
  * Creates instance of {@link PrecomputedJoinUpdater} based on the application's configuration.

@@ -1,4 +1,4 @@
-package mvm.rya.indexing.pcj.matching;
+package org.apache.rya.indexing.pcj.matching;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -24,8 +24,8 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import mvm.rya.rdftriplestore.inference.DoNotExpandSP;
-import mvm.rya.rdftriplestore.utils.FixedStatementPattern;
+import org.apache.rya.rdftriplestore.inference.DoNotExpandSP;
+import org.apache.rya.rdftriplestore.utils.FixedStatementPattern;
 
 import org.openrdf.query.algebra.Filter;
 import org.openrdf.query.algebra.Join;

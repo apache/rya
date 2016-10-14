@@ -1,4 +1,4 @@
-package mvm.rya.accumulo;
+package org.apache.rya.accumulo;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -21,7 +21,7 @@ package mvm.rya.accumulo;
 
 
 
-import static mvm.rya.accumulo.AccumuloRdfConstants.EMPTY_VALUE;
+import static org.apache.rya.accumulo.AccumuloRdfConstants.EMPTY_VALUE;
 
 import java.io.IOException;
 import java.util.AbstractMap.SimpleEntry;
@@ -29,12 +29,12 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Map;
 
-import mvm.rya.api.RdfCloudTripleStoreConfiguration;
-import mvm.rya.api.RdfCloudTripleStoreConstants;
-import mvm.rya.api.domain.RyaStatement;
-import mvm.rya.api.resolver.RyaTripleContext;
-import mvm.rya.api.resolver.triple.TripleRow;
-import mvm.rya.api.resolver.triple.TripleRowResolverException;
+import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
+import org.apache.rya.api.RdfCloudTripleStoreConstants;
+import org.apache.rya.api.domain.RyaStatement;
+import org.apache.rya.api.resolver.RyaTripleContext;
+import org.apache.rya.api.resolver.triple.TripleRow;
+import org.apache.rya.api.resolver.triple.TripleRowResolverException;
 
 import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Value;
@@ -75,7 +75,7 @@ public class RyaTableKeyValues {
          * TODO: If there are contexts, do we still replicate the information into the default graph as well
          * as the named graphs?
          */try {
-            Map<RdfCloudTripleStoreConstants.TABLE_LAYOUT, mvm.rya.api.resolver.triple.TripleRow> rowMap = instance.serializeTriple(stmt);
+            Map<RdfCloudTripleStoreConstants.TABLE_LAYOUT, org.apache.rya.api.resolver.triple.TripleRow> rowMap = instance.serializeTriple(stmt);
             TripleRow tripleRow = rowMap.get(RdfCloudTripleStoreConstants.TABLE_LAYOUT.SPO);
             byte[] columnVisibility = tripleRow.getColumnVisibility();
             Text cv = columnVisibility == null ? EMPTY_CV_TEXT : new Text(columnVisibility);

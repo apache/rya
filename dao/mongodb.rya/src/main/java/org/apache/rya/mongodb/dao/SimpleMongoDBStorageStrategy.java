@@ -1,4 +1,4 @@
-package mvm.rya.mongodb.dao;
+package org.apache.rya.mongodb.dao;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -34,10 +34,10 @@ import com.mongodb.BasicDBObject;
 import com.mongodb.DBCollection;
 import com.mongodb.DBObject;
 
-import mvm.rya.api.domain.RyaStatement;
-import mvm.rya.api.domain.RyaType;
-import mvm.rya.api.domain.RyaURI;
-import mvm.rya.api.persist.query.RyaQuery;
+import org.apache.rya.api.domain.RyaStatement;
+import org.apache.rya.api.domain.RyaType;
+import org.apache.rya.api.domain.RyaURI;
+import org.apache.rya.api.persist.query.RyaQuery;
 
 /**
  * Defines how {@link RyaStatement}s are stored in MongoDB.

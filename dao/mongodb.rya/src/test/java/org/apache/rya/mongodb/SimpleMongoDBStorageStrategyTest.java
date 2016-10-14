@@ -1,4 +1,4 @@
-package mvm.rya.mongodb;
+package org.apache.rya.mongodb;
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -29,11 +29,11 @@ import com.mongodb.BasicDBObject;
 import com.mongodb.DBObject;
 import com.mongodb.MongoException;
 
-import mvm.rya.api.domain.RyaStatement;
-import mvm.rya.api.domain.RyaStatement.RyaStatementBuilder;
-import mvm.rya.api.domain.RyaURI;
-import mvm.rya.api.persist.RyaDAOException;
-import mvm.rya.mongodb.dao.SimpleMongoDBStorageStrategy;
+import org.apache.rya.api.domain.RyaStatement;
+import org.apache.rya.api.domain.RyaStatement.RyaStatementBuilder;
+import org.apache.rya.api.domain.RyaURI;
+import org.apache.rya.api.persist.RyaDAOException;
+import org.apache.rya.mongodb.dao.SimpleMongoDBStorageStrategy;
 
 public class SimpleMongoDBStorageStrategyTest {
     private static final String SUBJECT = "http://subject.com";

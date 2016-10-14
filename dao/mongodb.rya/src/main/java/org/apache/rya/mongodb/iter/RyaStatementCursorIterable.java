@@ -1,4 +1,4 @@
-package mvm.rya.mongodb.iter;
+package org.apache.rya.mongodb.iter;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -27,9 +27,9 @@ import java.util.Iterator;
 import java.util.Map.Entry;
 import java.util.Set;
 
-import mvm.rya.api.RdfCloudTripleStoreUtils;
-import mvm.rya.api.domain.RyaStatement;
-import mvm.rya.api.persist.RyaDAOException;
+import org.apache.rya.api.RdfCloudTripleStoreUtils;
+import org.apache.rya.api.domain.RyaStatement;
+import org.apache.rya.api.persist.RyaDAOException;
 
 import org.calrissian.mango.collect.CloseableIterable;
 import org.calrissian.mango.collect.CloseableIterator;

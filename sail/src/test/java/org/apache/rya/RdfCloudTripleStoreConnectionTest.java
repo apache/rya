@@ -16,22 +16,22 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package mvm.rya;
+package org.apache.rya;
 
-import static mvm.rya.api.RdfCloudTripleStoreConstants.NAMESPACE;
+import static org.apache.rya.api.RdfCloudTripleStoreConstants.NAMESPACE;
 
 import java.io.InputStream;
 import java.util.List;
 
 import junit.framework.TestCase;
-import mvm.rya.accumulo.AccumuloRdfConfiguration;
-import mvm.rya.accumulo.AccumuloRyaDAO;
-import mvm.rya.api.RdfCloudTripleStoreConfiguration;
-import mvm.rya.api.RdfCloudTripleStoreConstants;
-import mvm.rya.rdftriplestore.RdfCloudTripleStore;
-import mvm.rya.rdftriplestore.RyaSailRepository;
-import mvm.rya.rdftriplestore.inference.InferenceEngine;
-import mvm.rya.rdftriplestore.namespace.NamespaceManager;
+import org.apache.rya.accumulo.AccumuloRdfConfiguration;
+import org.apache.rya.accumulo.AccumuloRyaDAO;
+import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
+import org.apache.rya.api.RdfCloudTripleStoreConstants;
+import org.apache.rya.rdftriplestore.RdfCloudTripleStore;
+import org.apache.rya.rdftriplestore.RyaSailRepository;
+import org.apache.rya.rdftriplestore.inference.InferenceEngine;
+import org.apache.rya.rdftriplestore.namespace.NamespaceManager;
 
 import org.apache.accumulo.core.client.Connector;
 import org.apache.accumulo.core.client.Instance;
@@ -214,10 +214,10 @@ public class RdfCloudTripleStoreConnectionTest extends TestCase {
         conn.add(cpu, loadPerc, ten);
         conn.commit();
 
-        String query = "PREFIX mvm: <" + NAMESPACE + ">\n" +
+        String query = "PREFIX org.apache: <" + NAMESPACE + ">\n" +
                 "select * where {" +
                 "?x <" + loadPerc.stringValue() + "> ?o.\n" +
-                "FILTER(mvm:range(?o, '6', '8'))." +
+                "FILTER(org.apache:range(?o, '6', '8'))." +
                 "}";
         TupleQuery tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, query);
         CountTupleHandler cth = new CountTupleHandler();
@@ -240,10 +240,10 @@ public class RdfCloudTripleStoreConnectionTest extends TestCase {
         conn.add(cpu, loadPerc4, ten);
         conn.commit();
 
-        String query = "PREFIX mvm: <" + NAMESPACE + ">\n" +
+        String query = "PREFIX org.apache: <" + NAMESPACE + ">\n" +
                 "select * where {" +
                 "?x ?p ?o.\n" +
-                "FILTER(mvm:range(?p, <" + loadPerc.stringValue() + ">, <" + loadPerc3.stringValue() + ">))." +
+                "FILTER(org.apache:range(?p, <" + loadPerc.stringValue() + ">, <" + loadPerc3.stringValue() + ">))." +
                 "}";
         TupleQuery tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, query);
         CountTupleHandler cth = new CountTupleHandler();
@@ -266,10 +266,10 @@ public class RdfCloudTripleStoreConnectionTest extends TestCase {
         conn.add(cpu, loadPerc4, ten);
         conn.commit();
 
-        String query = "PREFIX mvm: <" + NAMESPACE + ">\n" +
+        String query = "PREFIX org.apache: <" + NAMESPACE + ">\n" +
                 "select * where {" +
                 "<" + cpu.stringValue() + "> ?p ?o.\n" +
-                "FILTER(mvm:range(?p, <" + loadPerc.stringValue() + ">, <" + loadPerc3.stringValue() + ">))." +
+                "FILTER(org.apache:range(?p, <" + loadPerc.stringValue() + ">, <" + loadPerc3.stringValue() + ">))." +
                 "}";
         TupleQuery tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, query);
         CountTupleHandler cth = new CountTupleHandler();
@@ -291,10 +291,10 @@ public class RdfCloudTripleStoreConnectionTest extends TestCase {
         conn.add(cpu3, loadPerc, ten);
         conn.commit();
 
-        String query = "PREFIX mvm: <" + NAMESPACE + ">\n" +
+        String query = "PREFIX org.apache: <" + NAMESPACE + ">\n" +
                 "select * where {" +
                 "?s ?p ?o.\n" +
-                "FILTER(mvm:range(?s, <" + cpu.stringValue() + ">, <" + cpu2.stringValue() + ">))." +
+                "FILTER(org.apache:range(?s, <" + cpu.stringValue() + ">, <" + cpu2.stringValue() + ">))." +
                 "}";
         TupleQuery tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, query);
         CountTupleHandler cth = new CountTupleHandler();
@@ -314,10 +314,10 @@ public class RdfCloudTripleStoreConnectionTest extends TestCase {
         conn.add(cpu, loadPerc, ten);
         conn.commit();
 
-        String query = "PREFIX mvm: <" + NAMESPACE + ">\n" +
+        String query = "PREFIX org.apache: <" + NAMESPACE + ">\n" +
                 "select * where {" +
                 "<" + cpu.stringValue() + "> <" + loadPerc.stringValue() + "> ?o.\n" +
-                "FILTER(mvm:range(?o, '6', '8'))." +
+                "FILTER(org.apache:range(?o, '6', '8'))." +
                 "}";
         TupleQuery tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, query);
         CountTupleHandler cth = new CountTupleHandler();
@@ -337,10 +337,10 @@ public class RdfCloudTripleStoreConnectionTest extends TestCase {
         conn.add(cpu, loadPerc, ten);
         conn.commit();
 
-        String query = "PREFIX mvm: <" + NAMESPACE + ">\n" +
+        String query = "PREFIX org.apache: <" + NAMESPACE + ">\n" +
                 "select * where {" +
                 "?s ?p ?o.\n" +
-                "FILTER(mvm:range(?o, '6', '8'))." +
+                "FILTER(org.apache:range(?o, '6', '8'))." +
                 "}";
         TupleQuery tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, query);
         CountTupleHandler cth = new CountTupleHandler();
@@ -362,7 +362,7 @@ public class RdfCloudTripleStoreConnectionTest extends TestCase {
         conn.add(cpu, RDF.TYPE, testClass);
         conn.commit();
 
-        String query = "PREFIX mvm: <" + NAMESPACE + ">\n" +
+        String query = "PREFIX org.apache: <" + NAMESPACE + ">\n" +
                 "select * where {" +
                 String.format("<%s> ?p ?o.\n", cpu.stringValue()) +
                 "FILTER(regex(?o, '^1'))." +

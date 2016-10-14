@@ -1,4 +1,4 @@
-package mvm.rya.api.query.strategy;
+package org.apache.rya.api.query.strategy;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -22,12 +22,12 @@ package mvm.rya.api.query.strategy;
 
 
 import com.google.common.base.Preconditions;
-import mvm.rya.api.RdfCloudTripleStoreConstants;
-import mvm.rya.api.resolver.RyaContext;
-import mvm.rya.api.resolver.triple.TripleRowRegex;
+import org.apache.rya.api.RdfCloudTripleStoreConstants;
+import org.apache.rya.api.resolver.RyaContext;
+import org.apache.rya.api.resolver.triple.TripleRowRegex;
 
-import static mvm.rya.api.RdfCloudTripleStoreConstants.DELIM;
-import static mvm.rya.api.RdfCloudTripleStoreConstants.TYPE_DELIM;
+import static org.apache.rya.api.RdfCloudTripleStoreConstants.DELIM;
+import static org.apache.rya.api.RdfCloudTripleStoreConstants.TYPE_DELIM;
 
 /**
  * Date: 7/14/12

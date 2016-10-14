@@ -1,4 +1,4 @@
-package mvm.rya.indexing.accumulo.temporal;
+package org.apache.rya.indexing.accumulo.temporal;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -24,8 +24,8 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.TimeZone;
 
-import mvm.rya.indexing.TemporalInstant;
-import mvm.rya.indexing.TemporalInstantRfc3339;
+import org.apache.rya.indexing.TemporalInstant;
+import org.apache.rya.indexing.TemporalInstantRfc3339;
 
 import org.apache.commons.codec.binary.StringUtils;
 import org.joda.time.DateTime;

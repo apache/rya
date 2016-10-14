@@ -1,4 +1,4 @@
-package mvm.rya.mongodb;
+package org.apache.rya.mongodb;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -23,8 +23,8 @@ package mvm.rya.mongodb;
 
 import java.util.List;
 
-import mvm.rya.api.RdfCloudTripleStoreConfiguration;
-import mvm.rya.api.persist.index.RyaSecondaryIndexer;
+import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
+import org.apache.rya.api.persist.index.RyaSecondaryIndexer;
 
 import org.apache.hadoop.conf.Configuration;
 

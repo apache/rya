@@ -1,4 +1,4 @@
-package mvm.rya.indexing.external;
+package org.apache.rya.indexing.external;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -38,9 +38,9 @@ import org.openrdf.query.parser.sparql.SPARQLParser;
 import com.beust.jcommander.internal.Lists;
 import com.google.common.collect.Sets;
 
-import mvm.rya.indexing.external.tupleSet.ExternalTupleSet;
-import mvm.rya.indexing.external.tupleSet.SimpleExternalTupleSet;
-import mvm.rya.indexing.pcj.matching.PCJOptimizer;
+import org.apache.rya.indexing.external.tupleSet.ExternalTupleSet;
+import org.apache.rya.indexing.external.tupleSet.SimpleExternalTupleSet;
+import org.apache.rya.indexing.pcj.matching.PCJOptimizer;
 
 public class PrecompJoinOptimizerTest {
 

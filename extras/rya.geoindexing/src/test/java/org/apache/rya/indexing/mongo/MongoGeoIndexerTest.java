@@ -1,4 +1,4 @@
-package mvm.rya.indexing.mongo;
+package org.apache.rya.indexing.mongo;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -21,7 +21,7 @@ package mvm.rya.indexing.mongo;
 
 
 
-import static mvm.rya.api.resolver.RdfToRyaConversions.convertStatement;
+import static org.apache.rya.api.resolver.RdfToRyaConversions.convertStatement;
 
 import java.util.Collections;
 import java.util.HashSet;
@@ -52,12 +52,12 @@ import com.vividsolutions.jts.geom.impl.PackedCoordinateSequence;
 import de.flapdoodle.embed.mongo.distribution.Version;
 import de.flapdoodle.embed.mongo.tests.MongodForTestsFactory;
 import info.aduna.iteration.CloseableIteration;
-import mvm.rya.indexing.GeoConstants;
-import mvm.rya.indexing.OptionalConfigUtils;
-import mvm.rya.indexing.StatementConstraints;
-import mvm.rya.indexing.accumulo.ConfigUtils;
-import mvm.rya.indexing.mongodb.geo.MongoGeoIndexer;
-import mvm.rya.mongodb.MongoDBRdfConfiguration;
+import org.apache.rya.indexing.GeoConstants;
+import org.apache.rya.indexing.OptionalConfigUtils;
+import org.apache.rya.indexing.StatementConstraints;
+import org.apache.rya.indexing.accumulo.ConfigUtils;
+import org.apache.rya.indexing.mongodb.geo.MongoGeoIndexer;
+import org.apache.rya.mongodb.MongoDBRdfConfiguration;
 
 public class MongoGeoIndexerTest {
 

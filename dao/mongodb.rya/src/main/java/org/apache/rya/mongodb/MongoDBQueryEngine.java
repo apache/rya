@@ -1,4 +1,4 @@
-package mvm.rya.mongodb;
+package org.apache.rya.mongodb;
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -38,17 +38,17 @@ import com.mongodb.DBObject;
 import com.mongodb.MongoClient;
 
 import info.aduna.iteration.CloseableIteration;
-import mvm.rya.api.domain.RyaStatement;
-import mvm.rya.api.persist.RyaDAOException;
-import mvm.rya.api.persist.query.BatchRyaQuery;
-import mvm.rya.api.persist.query.RyaQuery;
-import mvm.rya.api.persist.query.RyaQueryEngine;
-import mvm.rya.mongodb.dao.MongoDBStorageStrategy;
-import mvm.rya.mongodb.dao.SimpleMongoDBStorageStrategy;
-import mvm.rya.mongodb.iter.NonCloseableRyaStatementCursorIterator;
-import mvm.rya.mongodb.iter.RyaStatementBindingSetCursorIterator;
-import mvm.rya.mongodb.iter.RyaStatementCursorIterable;
-import mvm.rya.mongodb.iter.RyaStatementCursorIterator;
+import org.apache.rya.api.domain.RyaStatement;
+import org.apache.rya.api.persist.RyaDAOException;
+import org.apache.rya.api.persist.query.BatchRyaQuery;
+import org.apache.rya.api.persist.query.RyaQuery;
+import org.apache.rya.api.persist.query.RyaQueryEngine;
+import org.apache.rya.mongodb.dao.MongoDBStorageStrategy;
+import org.apache.rya.mongodb.dao.SimpleMongoDBStorageStrategy;
+import org.apache.rya.mongodb.iter.NonCloseableRyaStatementCursorIterator;
+import org.apache.rya.mongodb.iter.RyaStatementBindingSetCursorIterator;
+import org.apache.rya.mongodb.iter.RyaStatementCursorIterable;
+import org.apache.rya.mongodb.iter.RyaStatementCursorIterator;
 
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;

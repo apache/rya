@@ -16,7 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package mvm.rya.api.client.accumulo;
+package org.apache.rya.api.client.accumulo;
 
 import static java.util.Objects.requireNonNull;
 
@@ -33,15 +33,15 @@ import org.slf4j.LoggerFactory;
 import com.google.common.base.Optional;
 
 import org.apache.fluo.api.client.FluoClient;
-import mvm.rya.api.client.DeletePCJ;
-import mvm.rya.api.client.GetInstanceDetails;
-import mvm.rya.api.client.InstanceDoesNotExistException;
-import mvm.rya.api.client.RyaClientException;
-import mvm.rya.api.instance.RyaDetails;
-import mvm.rya.api.instance.RyaDetails.PCJIndexDetails;
-import mvm.rya.api.instance.RyaDetails.PCJIndexDetails.FluoDetails;
-import mvm.rya.api.instance.RyaDetails.PCJIndexDetails.PCJDetails;
-import mvm.rya.api.instance.RyaDetails.PCJIndexDetails.PCJDetails.PCJUpdateStrategy;
+import org.apache.rya.api.client.DeletePCJ;
+import org.apache.rya.api.client.GetInstanceDetails;
+import org.apache.rya.api.client.InstanceDoesNotExistException;
+import org.apache.rya.api.client.RyaClientException;
+import org.apache.rya.api.instance.RyaDetails;
+import org.apache.rya.api.instance.RyaDetails.PCJIndexDetails;
+import org.apache.rya.api.instance.RyaDetails.PCJIndexDetails.FluoDetails;
+import org.apache.rya.api.instance.RyaDetails.PCJIndexDetails.PCJDetails;
+import org.apache.rya.api.instance.RyaDetails.PCJIndexDetails.PCJDetails.PCJUpdateStrategy;
 
 /**
  * An Accumulo implementation of the {@link DeletePCJ} command.

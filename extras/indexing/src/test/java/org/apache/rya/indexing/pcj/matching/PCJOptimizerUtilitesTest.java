@@ -1,4 +1,4 @@
-package mvm.rya.indexing.pcj.matching;
+package org.apache.rya.indexing.pcj.matching;
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -17,7 +17,7 @@ package mvm.rya.indexing.pcj.matching;
  * specific language governing permissions and limitations
  * under the License.
  */
-import mvm.rya.indexing.external.tupleSet.SimpleExternalTupleSet;
+import org.apache.rya.indexing.external.tupleSet.SimpleExternalTupleSet;
 
 import org.junit.Assert;
 import org.junit.Test;

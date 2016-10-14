@@ -33,8 +33,8 @@ import org.openrdf.rio.helpers.RDFHandlerBase;
 import com.google.common.base.Optional;
 
 import org.apache.fluo.api.client.FluoClient;
-import mvm.rya.api.domain.RyaStatement;
-import mvm.rya.api.resolver.RdfToRyaConversions;
+import org.apache.rya.api.domain.RyaStatement;
+import org.apache.rya.api.resolver.RdfToRyaConversions;
 
 /**
  * When used as the handler of an {@link RDFParser}, instances of this class

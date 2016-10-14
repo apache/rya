@@ -1,4 +1,4 @@
-package mvm.rya.joinselect.mr;
+package org.apache.rya.joinselect.mr;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -23,7 +23,7 @@ package mvm.rya.joinselect.mr;
 
 import java.io.IOException;
 
-import mvm.rya.joinselect.mr.FullTableSize;
+import org.apache.rya.joinselect.mr.FullTableSize;
 
 import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Mutation;

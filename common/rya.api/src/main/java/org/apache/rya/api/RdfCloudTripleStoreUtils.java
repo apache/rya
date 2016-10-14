@@ -1,4 +1,4 @@
-package mvm.rya.api;
+package org.apache.rya.api;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -21,8 +21,8 @@ package mvm.rya.api;
 
 
 
-import mvm.rya.api.layout.TableLayoutStrategy;
-import mvm.rya.api.layout.TablePrefixLayoutStrategy;
+import org.apache.rya.api.layout.TableLayoutStrategy;
+import org.apache.rya.api.layout.TablePrefixLayoutStrategy;
 import org.openrdf.model.Literal;
 import org.openrdf.model.URI;
 import org.openrdf.model.Value;
@@ -36,7 +36,7 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static mvm.rya.api.RdfCloudTripleStoreConstants.TABLE_LAYOUT;
+import static org.apache.rya.api.RdfCloudTripleStoreConstants.TABLE_LAYOUT;
 
 public class RdfCloudTripleStoreUtils {
 

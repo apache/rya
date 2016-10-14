@@ -1,4 +1,4 @@
-package mvm.rya.prospector.domain;
+package org.apache.rya.prospector.domain;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one

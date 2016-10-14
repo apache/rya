@@ -1,4 +1,4 @@
-package mvm.rya.api.resolver.impl;
+package org.apache.rya.api.resolver.impl;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -21,8 +21,8 @@ package mvm.rya.api.resolver.impl;
 
 
 
-import mvm.rya.api.resolver.RyaTypeResolver;
-import mvm.rya.api.resolver.RyaTypeResolverMapping;
+import org.apache.rya.api.resolver.RyaTypeResolver;
+import org.apache.rya.api.resolver.RyaTypeResolverMapping;
 
 import java.util.ArrayList;
 import java.util.List;

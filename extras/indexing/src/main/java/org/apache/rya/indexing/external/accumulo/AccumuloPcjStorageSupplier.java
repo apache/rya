@@ -16,7 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package mvm.rya.indexing.external.accumulo;
+package org.apache.rya.indexing.external.accumulo;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -28,8 +28,8 @@ import org.apache.rya.indexing.pcj.storage.accumulo.AccumuloPcjStorage;
 import com.google.common.base.Optional;
 import com.google.common.base.Supplier;
 
-import mvm.rya.indexing.external.PrecomputedJoinIndexerConfig;
-import mvm.rya.indexing.external.PrecomputedJoinIndexerConfig.PrecomputedJoinStorageType;
+import org.apache.rya.indexing.external.PrecomputedJoinIndexerConfig;
+import org.apache.rya.indexing.external.PrecomputedJoinIndexerConfig.PrecomputedJoinStorageType;
 
 /**
  * Creates instances of {@link AccumuloPcjStorage} using the values found in a {@link Configuration}.

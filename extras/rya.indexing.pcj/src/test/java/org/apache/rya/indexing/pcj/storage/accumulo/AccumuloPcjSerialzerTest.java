@@ -32,7 +32,7 @@ import org.openrdf.query.impl.MapBindingSet;
  * under the License.
  */
 
-import mvm.rya.api.resolver.RyaTypeResolverException;
+import org.apache.rya.api.resolver.RyaTypeResolverException;
 
 /**
  * Tests the methods of {@link AccumuloPcjSerialzer}.

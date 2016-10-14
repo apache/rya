@@ -1,4 +1,4 @@
-package mvm.rya.accumulo.pig;
+package org.apache.rya.accumulo.pig;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -69,7 +69,7 @@ public class SparqlQueryPigEngineTest extends TestCase {
                 "";
 
 //        engine.runQuery(query, "/temp/testSP");
-        assertTrue(engine.generatePigScript(query).contains("A = load 'accumulo://l_?instance=stratus&user=root&password=password&zookeepers=stratus13:2181&subject=<http://www.Department0.University0.edu>' using mvm.rya.accumulo.pig.StatementPatternStorage() AS (A_s:chararray, p:chararray, o:chararray);\n" +
+        assertTrue(engine.generatePigScript(query).contains("A = load 'accumulo://l_?instance=stratus&user=root&password=password&zookeepers=stratus13:2181&subject=<http://www.Department0.University0.edu>' using org.apache.rya.accumulo.pig.StatementPatternStorage() AS (A_s:chararray, p:chararray, o:chararray);\n" +
                 "PROJ = FOREACH A GENERATE p,o;"));
 
     }

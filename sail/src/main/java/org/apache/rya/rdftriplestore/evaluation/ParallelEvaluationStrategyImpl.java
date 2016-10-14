@@ -1,4 +1,4 @@
-package mvm.rya.rdftriplestore.evaluation;
+package org.apache.rya.rdftriplestore.evaluation;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -38,14 +38,14 @@ import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import mvm.rya.api.RdfCloudTripleStoreConfiguration;
-import mvm.rya.api.RdfCloudTripleStoreUtils;
-import mvm.rya.api.utils.NullableStatementImpl;
-import mvm.rya.rdftriplestore.RdfCloudTripleStoreConnection;
-import mvm.rya.rdftriplestore.inference.InferenceEngine;
-import mvm.rya.rdftriplestore.inference.InferenceEngineException;
-import mvm.rya.rdftriplestore.utils.FixedStatementPattern;
-import mvm.rya.rdftriplestore.utils.TransitivePropertySP;
+import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
+import org.apache.rya.api.RdfCloudTripleStoreUtils;
+import org.apache.rya.api.utils.NullableStatementImpl;
+import org.apache.rya.rdftriplestore.RdfCloudTripleStoreConnection;
+import org.apache.rya.rdftriplestore.inference.InferenceEngine;
+import org.apache.rya.rdftriplestore.inference.InferenceEngineException;
+import org.apache.rya.rdftriplestore.utils.FixedStatementPattern;
+import org.apache.rya.rdftriplestore.utils.TransitivePropertySP;
 
 import org.apache.log4j.Logger;
 import org.openrdf.model.Resource;

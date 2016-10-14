@@ -1,4 +1,4 @@
-package mvm.rya.accumulo.documentIndex;
+package org.apache.rya.accumulo.documentIndex;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -24,16 +24,16 @@ import java.util.List;
 import java.util.Map;
 
 import junit.framework.Assert;
-import mvm.rya.accumulo.AccumuloRdfConfiguration;
-import mvm.rya.accumulo.RyaTableMutationsFactory;
-import mvm.rya.api.domain.RyaStatement;
-import mvm.rya.api.domain.RyaType;
-import mvm.rya.api.domain.RyaURI;
-import mvm.rya.api.resolver.RdfToRyaConversions;
-import mvm.rya.api.resolver.RyaContext;
-import mvm.rya.api.resolver.RyaToRdfConversions;
-import mvm.rya.api.resolver.RyaTripleContext;
-import mvm.rya.indexing.accumulo.entity.EntityCentricIndex;
+import org.apache.rya.accumulo.AccumuloRdfConfiguration;
+import org.apache.rya.accumulo.RyaTableMutationsFactory;
+import org.apache.rya.api.domain.RyaStatement;
+import org.apache.rya.api.domain.RyaType;
+import org.apache.rya.api.domain.RyaURI;
+import org.apache.rya.api.resolver.RdfToRyaConversions;
+import org.apache.rya.api.resolver.RyaContext;
+import org.apache.rya.api.resolver.RyaToRdfConversions;
+import org.apache.rya.api.resolver.RyaTripleContext;
+import org.apache.rya.indexing.accumulo.entity.EntityCentricIndex;
 
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;

@@ -1,4 +1,4 @@
-package mvm.rya.api;
+package org.apache.rya.api;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -23,9 +23,9 @@ package mvm.rya.api;
 
 import java.util.List;
 
-import mvm.rya.api.layout.TableLayoutStrategy;
-import mvm.rya.api.layout.TablePrefixLayoutStrategy;
-import mvm.rya.api.persist.RdfEvalStatsDAO;
+import org.apache.rya.api.layout.TableLayoutStrategy;
+import org.apache.rya.api.layout.TablePrefixLayoutStrategy;
+import org.apache.rya.api.persist.RdfEvalStatsDAO;
 
 import org.apache.hadoop.conf.Configuration;
 import org.openrdf.query.algebra.evaluation.QueryOptimizer;

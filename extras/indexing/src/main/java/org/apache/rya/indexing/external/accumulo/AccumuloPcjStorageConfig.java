@@ -16,14 +16,14 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package mvm.rya.indexing.external.accumulo;
+package org.apache.rya.indexing.external.accumulo;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.rya.indexing.pcj.storage.accumulo.AccumuloPcjStorage;
 
-import mvm.rya.api.RdfCloudTripleStoreConfiguration;
+import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
 
 /**
  * Configuration values required to initialize a {@link AccumuloPcjStorage}.

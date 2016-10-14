@@ -1,4 +1,4 @@
-package mvm.rya.indexing.accumulo.entity;
+package org.apache.rya.indexing.accumulo.entity;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -27,7 +27,7 @@ import java.util.Iterator;
 import java.util.Map.Entry;
 import java.util.NoSuchElementException;
 import java.util.Set;
-import mvm.rya.indexing.accumulo.ConfigUtils;
+import org.apache.rya.indexing.accumulo.ConfigUtils;
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
 import org.apache.accumulo.core.client.BatchScanner;

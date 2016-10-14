@@ -1,4 +1,4 @@
-package mvm.rya.mongodb.dao;
+package org.apache.rya.mongodb.dao;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -20,10 +20,10 @@ package mvm.rya.mongodb.dao;
  */
 
 
-import mvm.rya.api.domain.RyaStatement;
-import mvm.rya.api.persist.RyaNamespaceManager;
-import mvm.rya.api.persist.query.RyaQuery;
-import mvm.rya.mongodb.MongoDBRdfConfiguration;
+import org.apache.rya.api.domain.RyaStatement;
+import org.apache.rya.api.persist.RyaNamespaceManager;
+import org.apache.rya.api.persist.query.RyaQuery;
+import org.apache.rya.mongodb.MongoDBRdfConfiguration;
 
 import com.mongodb.DBCollection;
 import com.mongodb.DBObject;

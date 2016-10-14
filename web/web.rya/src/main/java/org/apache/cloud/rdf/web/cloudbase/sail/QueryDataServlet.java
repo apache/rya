@@ -17,7 +17,7 @@
  * under the License.
  */
 
-//package mvm.cloud.rdf.web.cloudbase.sail;
+//package org.apache.cloud.rdf.web.cloudbase.sail;
 
 //
 //import RdfCloudTripleStoreConstants;

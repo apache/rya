@@ -17,7 +17,7 @@
  * under the License.
  */
 
-//package mvm.rya;
+//package org.apache.rya;
 
 //
 //import java.util.List;
@@ -32,7 +32,7 @@
 //
 //import com.google.common.io.ByteStreams;
 //
-//import static mvm.rya.api.RdfCloudTripleStoreUtils.*;
+//import static org.apache.rya.api.RdfCloudTripleStoreUtils.*;
 //
 //public class RdfCloudTripleStoreUtilsTest extends TestCase {
 //

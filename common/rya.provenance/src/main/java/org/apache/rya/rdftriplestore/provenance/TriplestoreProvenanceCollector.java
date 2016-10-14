@@ -1,4 +1,4 @@
-package mvm.rya.rdftriplestore.provenance;
+package org.apache.rya.rdftriplestore.provenance;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -22,8 +22,8 @@ package mvm.rya.rdftriplestore.provenance;
 
 import java.util.List;
 
-import mvm.rya.rdftriplestore.provenance.rdf.BaseProvenanceModel;
-import mvm.rya.rdftriplestore.provenance.rdf.RDFProvenanceModel;
+import org.apache.rya.rdftriplestore.provenance.rdf.BaseProvenanceModel;
+import org.apache.rya.rdftriplestore.provenance.rdf.RDFProvenanceModel;
 
 import org.openrdf.model.Statement;
 import org.openrdf.repository.RepositoryException;
@@ -52,7 +52,7 @@ public class TriplestoreProvenanceCollector implements ProvenanceCollector {
 	}
 	
 	/* (non-Javadoc)
-	 * @see mvm.rya.rdftriplestore.provenance.ProvenanceCollector#recordQuery(java.lang.String)
+	 * @see org.apache.rya.rdftriplestore.provenance.ProvenanceCollector#recordQuery(java.lang.String)
 	 */
 	public void recordQuery(String query) throws ProvenanceCollectionException {
 		List<Statement> provenanceTriples = provenanceModel.getStatementsForQuery(query, user, queryType);

@@ -1,4 +1,4 @@
-package mvm.rya.api.resolver.triple.impl;
+package org.apache.rya.api.resolver.triple.impl;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -22,20 +22,20 @@ package mvm.rya.api.resolver.triple.impl;
 
 
 import com.google.common.primitives.Bytes;
-import mvm.rya.api.domain.RyaStatement;
-import mvm.rya.api.domain.RyaType;
-import mvm.rya.api.domain.RyaURI;
-import mvm.rya.api.resolver.RyaContext;
-import mvm.rya.api.resolver.RyaTypeResolverException;
-import mvm.rya.api.resolver.triple.TripleRow;
-import mvm.rya.api.resolver.triple.TripleRowResolver;
-import mvm.rya.api.resolver.triple.TripleRowResolverException;
+import org.apache.rya.api.domain.RyaStatement;
+import org.apache.rya.api.domain.RyaType;
+import org.apache.rya.api.domain.RyaURI;
+import org.apache.rya.api.resolver.RyaContext;
+import org.apache.rya.api.resolver.RyaTypeResolverException;
+import org.apache.rya.api.resolver.triple.TripleRow;
+import org.apache.rya.api.resolver.triple.TripleRowResolver;
+import org.apache.rya.api.resolver.triple.TripleRowResolverException;
 
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
-import static mvm.rya.api.RdfCloudTripleStoreConstants.*;
+import static org.apache.rya.api.RdfCloudTripleStoreConstants.*;
 
 /**
  * Will store triple in spo, po, osp. Storing everything in the whole row.

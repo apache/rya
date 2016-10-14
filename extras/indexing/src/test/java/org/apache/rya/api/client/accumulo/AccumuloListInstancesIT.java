@@ -16,7 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package mvm.rya.api.client.accumulo;
+package org.apache.rya.api.client.accumulo;
 
 import static org.junit.Assert.assertEquals;
 
@@ -29,11 +29,11 @@ import org.junit.Test;
 
 import com.beust.jcommander.internal.Lists;
 
-import mvm.rya.accumulo.AccumuloITBase;
-import mvm.rya.api.client.Install;
-import mvm.rya.api.client.Install.InstallConfiguration;
-import mvm.rya.api.client.ListInstances;
-import mvm.rya.api.client.RyaClientException;
+import org.apache.rya.accumulo.AccumuloITBase;
+import org.apache.rya.api.client.Install;
+import org.apache.rya.api.client.Install.InstallConfiguration;
+import org.apache.rya.api.client.ListInstances;
+import org.apache.rya.api.client.RyaClientException;
 
 /**
  * Integration tests the methods of {@link AccumuloListInstances}.

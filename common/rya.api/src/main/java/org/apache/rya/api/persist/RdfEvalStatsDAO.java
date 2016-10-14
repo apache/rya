@@ -1,4 +1,4 @@
-package mvm.rya.api.persist;
+package org.apache.rya.api.persist;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -23,7 +23,7 @@ package mvm.rya.api.persist;
 
 import java.util.List;
 
-import mvm.rya.api.RdfCloudTripleStoreConfiguration;
+import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
 
 import org.openrdf.model.Resource;
 import org.openrdf.model.Value;

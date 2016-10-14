@@ -1,4 +1,4 @@
-package mvm.rya.sail.config;
+package org.apache.rya.sail.config;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -27,8 +27,8 @@ import java.io.StringReader;
 import java.util.HashMap;
 import java.util.Map;
 
-import mvm.rya.sail.config.RyaAccumuloSailConfig;
-import mvm.rya.sail.config.RyaAccumuloSailFactory;
+import org.apache.rya.sail.config.RyaAccumuloSailConfig;
+import org.apache.rya.sail.config.RyaAccumuloSailFactory;
 
 import org.apache.commons.io.IOUtils;
 import org.junit.Assert;

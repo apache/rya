@@ -17,16 +17,16 @@
  * under the License.
  */
 
-package mvm.rya.prospector.service
+package org.apache.rya.prospector.service
 
 import com.google.common.collect.Iterators
-import mvm.rya.accumulo.AccumuloRdfConfiguration
-import mvm.rya.accumulo.AccumuloRyaDAO
-import mvm.rya.api.domain.RyaStatement
-import mvm.rya.api.domain.RyaType
-import mvm.rya.api.domain.RyaURI
-import mvm.rya.api.persist.RdfEvalStatsDAO
-import mvm.rya.prospector.mr.Prospector
+import org.apache.rya.accumulo.AccumuloRdfConfiguration
+import org.apache.rya.accumulo.AccumuloRyaDAO
+import org.apache.rya.api.domain.RyaStatement
+import org.apache.rya.api.domain.RyaType
+import org.apache.rya.api.domain.RyaURI
+import org.apache.rya.api.persist.RdfEvalStatsDAO
+import org.apache.rya.prospector.mr.Prospector
 import org.apache.accumulo.core.client.Instance
 import org.apache.accumulo.core.client.mock.MockInstance
 import org.apache.accumulo.core.security.Authorizations

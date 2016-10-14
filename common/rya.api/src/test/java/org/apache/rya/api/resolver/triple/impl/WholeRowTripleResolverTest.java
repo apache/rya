@@ -1,4 +1,4 @@
-package mvm.rya.api.resolver.triple.impl;
+package org.apache.rya.api.resolver.triple.impl;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -22,11 +22,11 @@ package mvm.rya.api.resolver.triple.impl;
 
 
 import junit.framework.TestCase;
-import mvm.rya.api.RdfCloudTripleStoreConstants;
-import mvm.rya.api.domain.RyaStatement;
-import mvm.rya.api.domain.RyaURI;
-import mvm.rya.api.resolver.triple.TripleRow;
-import mvm.rya.api.resolver.triple.TripleRowRegex;
+import org.apache.rya.api.RdfCloudTripleStoreConstants;
+import org.apache.rya.api.domain.RyaStatement;
+import org.apache.rya.api.domain.RyaURI;
+import org.apache.rya.api.resolver.triple.TripleRow;
+import org.apache.rya.api.resolver.triple.TripleRowRegex;
 
 import java.util.Map;
 import java.util.regex.Matcher;

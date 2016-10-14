@@ -1,4 +1,4 @@
-package mvm.rya.api.persist.query;
+package org.apache.rya.api.persist.query;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -21,8 +21,8 @@ package mvm.rya.api.persist.query;
 
 
 
-import mvm.rya.api.domain.RyaStatement;
-import mvm.rya.api.domain.RyaURI;
+import org.apache.rya.api.domain.RyaStatement;
+import org.apache.rya.api.domain.RyaURI;
 import org.junit.Test;
 
 import java.util.Arrays;

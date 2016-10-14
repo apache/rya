@@ -1,4 +1,4 @@
-package mvm.rya;
+package org.apache.rya;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -22,10 +22,10 @@ package mvm.rya;
 
 
 import junit.framework.TestCase;
-import mvm.rya.accumulo.AccumuloRdfConfiguration;
-import mvm.rya.accumulo.AccumuloRyaDAO;
-import mvm.rya.api.RdfCloudTripleStoreConstants;
-import mvm.rya.rdftriplestore.RdfCloudTripleStore;
+import org.apache.rya.accumulo.AccumuloRdfConfiguration;
+import org.apache.rya.accumulo.AccumuloRyaDAO;
+import org.apache.rya.api.RdfCloudTripleStoreConstants;
+import org.apache.rya.rdftriplestore.RdfCloudTripleStore;
 import org.apache.accumulo.core.client.Connector;
 import org.apache.accumulo.core.client.mock.MockInstance;
 import org.openrdf.model.Namespace;
@@ -347,8 +347,8 @@ public class RdfCloudTripleStoreTest extends TestCase {
     public void testEventsForUri() throws Exception {
         String query = "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\n" +
                 "PREFIX ns:<" + NAMESPACE + ">\n" +
-                "PREFIX mvmpart: <urn:mvm.mmrts.partition.rdf/08/2011#>\n" +
-                "PREFIX mvm: <" + RdfCloudTripleStoreConstants.NAMESPACE + ">\n" +
+                "PREFIX org.apachepart: <urn:org.apache.mmrts.partition.rdf/08/2011#>\n" +
+                "PREFIX org.apache: <" + RdfCloudTripleStoreConstants.NAMESPACE + ">\n" +
                 "PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>\n" +
                 "select * where {\n" +
                 "{" +
@@ -356,49 +356,49 @@ public class RdfCloudTripleStoreTest extends TestCase {
                 "   ?s ns:createdItem ns:objectuuid1.\n" +
                 "   ?s ns:performedBy ?pb.\n" +
                 "   ?s ns:performedAt ?pa.\n" +
-                "   FILTER(mvm:range(?pa, " + getXmlDate(START) + ", " + getXmlDate(END) + "))\n" +
+                "   FILTER(org.apache:range(?pa, " + getXmlDate(START) + ", " + getXmlDate(END) + "))\n" +
                 "}\n" +
                 "UNION {" +
                 "   ?s rdf:type ns:Clicked.\n" +
                 "   ?s ns:clickedItem ns:objectuuid1.\n" +
                 "   ?s ns:performedBy ?pb.\n" +
                 "   ?s ns:performedAt ?pa.\n" +
-                "   FILTER(mvm:range(?pa, " + getXmlDate(START) + ", " + getXmlDate(END) + "))\n" +
+                "   FILTER(org.apache:range(?pa, " + getXmlDate(START) + ", " + getXmlDate(END) + "))\n" +
                 "}\n" +
                 "UNION {" +
                 "   ?s rdf:type ns:Deleted.\n" +
                 "   ?s ns:deletedItem ns:objectuuid1.\n" +
                 "   ?s ns:performedBy ?pb.\n" +
                 "   ?s ns:performedAt ?pa.\n" +
-                "   FILTER(mvm:range(?pa, " + getXmlDate(START) + ", " + getXmlDate(END) + "))\n" +
+                "   FILTER(org.apache:range(?pa, " + getXmlDate(START) + ", " + getXmlDate(END) + "))\n" +
                 "}\n" +
                 "UNION {" +
                 "   ?s rdf:type ns:Dropped.\n" +
                 "   ?s ns:droppedItem ns:objectuuid1.\n" +
                 "   ?s ns:performedBy ?pb.\n" +
                 "   ?s ns:performedAt ?pa.\n" +
-                "   FILTER(mvm:range(?pa, " + getXmlDate(START) + ", " + getXmlDate(END) + "))\n" +
+                "   FILTER(org.apache:range(?pa, " + getXmlDate(START) + ", " + getXmlDate(END) + "))\n" +
                 "}\n" +
                 "UNION {" +
                 "   ?s rdf:type ns:Received.\n" +
                 "   ?s ns:receivedItem ns:objectuuid1.\n" +
                 "   ?s ns:performedBy ?pb.\n" +
                 "   ?s ns:performedAt ?pa.\n" +
-                "   FILTER(mvm:range(?pa, " + getXmlDate(START) + ", " + getXmlDate(END) + "))\n" +
+                "   FILTER(org.apache:range(?pa, " + getXmlDate(START) + ", " + getXmlDate(END) + "))\n" +
                 "}\n" +
                 "UNION {" +
                 "   ?s rdf:type ns:Stored.\n" +
                 "   ?s ns:storedItem ns:objectuuid1.\n" +
                 "   ?s ns:performedBy ?pb.\n" +
                 "   ?s ns:performedAt ?pa.\n" +
-                "   FILTER(mvm:range(?pa, " + getXmlDate(START) + ", " + getXmlDate(END) + "))\n" +
+                "   FILTER(org.apache:range(?pa, " + getXmlDate(START) + ", " + getXmlDate(END) + "))\n" +
                 "}\n" +
                 "UNION {" +
                 "   ?s rdf:type ns:Sent.\n" +
                 "   ?s ns:sentItem ns:objectuuid1.\n" +
                 "   ?s ns:performedBy ?pb.\n" +
                 "   ?s ns:performedAt ?pa.\n" +
-                "   FILTER(mvm:range(?pa, " + getXmlDate(START) + ", " + getXmlDate(END) + "))\n" +
+                "   FILTER(org.apache:range(?pa, " + getXmlDate(START) + ", " + getXmlDate(END) + "))\n" +
                 "}\n" +
                 "}\n";
         TupleQuery tupleQuery = connection.prepareTupleQuery(QueryLanguage.SPARQL, query);
@@ -414,51 +414,51 @@ public class RdfCloudTripleStoreTest extends TestCase {
     public void testAllEvents() throws Exception {
         String query = "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\n" +
                 "PREFIX ns:<" + NAMESPACE + ">\n" +
-                "PREFIX mvmpart: <urn:mvm.mmrts.partition.rdf/08/2011#>\n" +
-                "PREFIX mvm: <" + RdfCloudTripleStoreConstants.NAMESPACE + ">\n" +
+                "PREFIX org.apachepart: <urn:org.apache.mmrts.partition.rdf/08/2011#>\n" +
+                "PREFIX org.apache: <" + RdfCloudTripleStoreConstants.NAMESPACE + ">\n" +
                 "PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>\n" +
                 "select * where {\n" +
                 "{" +
                 "   ?s rdf:type ns:Created.\n" +
                 "   ?s ns:performedBy ?pb.\n" +
                 "   ?s ns:performedAt ?pa.\n" +
-                "   FILTER(mvm:range(?pa, " + getXmlDate(START) + ", " + getXmlDate(END) + "))\n" +
+                "   FILTER(org.apache:range(?pa, " + getXmlDate(START) + ", " + getXmlDate(END) + "))\n" +
                 "}\n" +
                 "UNION {" +
                 "   ?s rdf:type ns:Clicked.\n" +
                 "   ?s ns:performedBy ?pb.\n" +
                 "   ?s ns:performedAt ?pa.\n" +
-                "   FILTER(mvm:range(?pa, " + getXmlDate(START) + ", " + getXmlDate(END) + "))\n" +
+                "   FILTER(org.apache:range(?pa, " + getXmlDate(START) + ", " + getXmlDate(END) + "))\n" +
                 "}\n" +
                 "UNION {" +
                 "   ?s rdf:type ns:Deleted.\n" +
                 "   ?s ns:performedBy ?pb.\n" +
                 "   ?s ns:performedAt ?pa.\n" +
-                "   FILTER(mvm:range(?pa, " + getXmlDate(START) + ", " + getXmlDate(END) + "))\n" +
+                "   FILTER(org.apache:range(?pa, " + getXmlDate(START) + ", " + getXmlDate(END) + "))\n" +
                 "}\n" +
                 "UNION {" +
                 "   ?s rdf:type ns:Dropped.\n" +
                 "   ?s ns:performedBy ?pb.\n" +
                 "   ?s ns:performedAt ?pa.\n" +
-                "   FILTER(mvm:range(?pa, " + getXmlDate(START) + ", " + getXmlDate(END) + "))\n" +
+                "   FILTER(org.apache:range(?pa, " + getXmlDate(START) + ", " + getXmlDate(END) + "))\n" +
                 "}\n" +
                 "UNION {" +
                 "   ?s rdf:type ns:Received.\n" +
                 "   ?s ns:performedBy ?pb.\n" +
                 "   ?s ns:performedAt ?pa.\n" +
-                "   FILTER(mvm:range(?pa, " + getXmlDate(START) + ", " + getXmlDate(END) + "))\n" +
+                "   FILTER(org.apache:range(?pa, " + getXmlDate(START) + ", " + getXmlDate(END) + "))\n" +
                 "}\n" +
                 "UNION {" +
                 "   ?s rdf:type ns:Stored.\n" +
                 "   ?s ns:performedBy ?pb.\n" +
                 "   ?s ns:performedAt ?pa.\n" +
-                "   FILTER(mvm:range(?pa, " + getXmlDate(START) + ", " + getXmlDate(END) + "))\n" +
+                "   FILTER(org.apache:range(?pa, " + getXmlDate(START) + ", " + getXmlDate(END) + "))\n" +
                 "}\n" +
                 "UNION {" +
                 "   ?s rdf:type ns:Sent.\n" +
                 "   ?s ns:performedBy ?pb.\n" +
                 "   ?s ns:performedAt ?pa.\n" +
-                "   FILTER(mvm:range(?pa, " + getXmlDate(START) + ", " + getXmlDate(END) + "))\n" +
+                "   FILTER(org.apache:range(?pa, " + getXmlDate(START) + ", " + getXmlDate(END) + "))\n" +
                 "}\n" +
                 "}\n";
         TupleQuery tupleQuery = connection.prepareTupleQuery(QueryLanguage.SPARQL, query);
@@ -475,8 +475,8 @@ public class RdfCloudTripleStoreTest extends TestCase {
     public void testEventsBtwnSystems() throws Exception {  //TODO: How to do XMLDateTime ranges
         String query = "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\n" +
                 "PREFIX ns:<" + NAMESPACE + ">\n" +
-                "PREFIX mvmpart: <urn:mvm.mmrts.partition.rdf/08/2011#>\n" +
-                "PREFIX mvm: <" + RdfCloudTripleStoreConstants.NAMESPACE + ">\n" +
+                "PREFIX org.apachepart: <urn:org.apache.mmrts.partition.rdf/08/2011#>\n" +
+                "PREFIX org.apache: <" + RdfCloudTripleStoreConstants.NAMESPACE + ">\n" +
                 "PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>\n" +
                 "select * where {\n" +
                 "   ?sendEvent rdf:type ns:Sent;\n" +
@@ -487,9 +487,9 @@ public class RdfCloudTripleStoreTest extends TestCase {
                 "              ns:receivedItem ?objUuid;\n" +
                 "              ns:performedBy <urn:system:E>;\n" +
                 "              ns:performedAt ?rpa.\n" +
-//                "   FILTER(mvm:range(?spa, \"2011-07-12T05:12:00.000Z\"^^xsd:dateTime, \"2011-07-12T07:12:00.000Z\"^^xsd:dateTime))\n" +
-                "   FILTER(mvm:range(?spa, " + getXmlDate(START) + ", " + getXmlDate(END) + "))\n" +
-                "   FILTER(mvm:range(?rpa, " + getXmlDate(START) + ", " + getXmlDate(END) + "))\n" +
+//                "   FILTER(org.apache:range(?spa, \"2011-07-12T05:12:00.000Z\"^^xsd:dateTime, \"2011-07-12T07:12:00.000Z\"^^xsd:dateTime))\n" +
+                "   FILTER(org.apache:range(?spa, " + getXmlDate(START) + ", " + getXmlDate(END) + "))\n" +
+                "   FILTER(org.apache:range(?rpa, " + getXmlDate(START) + ", " + getXmlDate(END) + "))\n" +
                 "}\n";
         TupleQuery tupleQuery = connection.prepareTupleQuery(QueryLanguage.SPARQL, query);
 //        tupleQuery.setBinding(START_BINDING, vf.createLiteral(START));
@@ -504,15 +504,15 @@ public class RdfCloudTripleStoreTest extends TestCase {
     public void testHeartbeatCounts() throws Exception {
         String query = "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\n" +
                 "PREFIX hns:<" + HBNAMESPACE + ">\n" +
-                "PREFIX mvmpart: <urn:mvm.mmrts.partition.rdf/08/2011#>\n" +
-                "PREFIX mvm: <" + RdfCloudTripleStoreConstants.NAMESPACE + ">\n" +
+                "PREFIX org.apachepart: <urn:org.apache.mmrts.partition.rdf/08/2011#>\n" +
+                "PREFIX org.apache: <" + RdfCloudTripleStoreConstants.NAMESPACE + ">\n" +
                 "PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>\n" +
                 "select * where {\n" +
                 "   ?hb rdf:type hns:HeartbeatMeasurement;\n" +
                 "              hns:count ?count;\n" +
                 "              hns:timestamp ?ts;\n" +
                 "              hns:systemName ?systemName.\n" +
-                "   FILTER(mvm:range(?ts, \"" + START + "\", \"" + (START + 3) + "\"))\n" +
+                "   FILTER(org.apache:range(?ts, \"" + START + "\", \"" + (START + 3) + "\"))\n" +
                 "}\n";
 //        System.out.println(query);
         TupleQuery tupleQuery = connection.prepareTupleQuery(QueryLanguage.SPARQL, query);
@@ -583,11 +583,11 @@ public class RdfCloudTripleStoreTest extends TestCase {
     public void testMultiShardLookupTimeRange() throws Exception {
         //MMRTS-113
         String query = "PREFIX hb: <http://here/2010/tracked-data-provenance/heartbeat/ns#>\n" +
-                "PREFIX mvmpart: <urn:mvm.mmrts.partition.rdf/08/2011#>\n" +
+                "PREFIX org.apachepart: <urn:org.apache.mmrts.partition.rdf/08/2011#>\n" +
                 "SELECT * WHERE\n" +
                 "{\n" +
                 "?id hb:timestamp ?timestamp.\n" +
-//                "FILTER(mvmpart:timeRange(?id, hb:timestamp, " + START + " , " + (START + 2) + " , 'TIMESTAMP'))\n" +
+//                "FILTER(org.apachepart:timeRange(?id, hb:timestamp, " + START + " , " + (START + 2) + " , 'TIMESTAMP'))\n" +
                 "?id hb:count ?count.\n" +
                 "?system hb:heartbeat ?id.\n" +
                 "}";
@@ -601,11 +601,11 @@ public class RdfCloudTripleStoreTest extends TestCase {
     public void testMultiShardLookupTimeRangeValueConst() throws Exception {
         //MMRTS-113
         String query = "PREFIX hb: <http://here/2010/tracked-data-provenance/heartbeat/ns#>\n" +
-                "PREFIX mvmpart: <urn:mvm.mmrts.partition.rdf/08/2011#>\n" +
+                "PREFIX org.apachepart: <urn:org.apache.mmrts.partition.rdf/08/2011#>\n" +
                 "SELECT * WHERE\n" +
                 "{\n" +
                 "<http://here/2010/tracked-data-provenance/heartbeat/ns#hbuuid2> hb:timestamp ?timestamp.\n" +
-//                "FILTER(mvmpart:timeRange(<http://here/2010/tracked-data-provenance/heartbeat/ns#hbuuid2>, hb:timestamp, " + START + " , " + END + " , 'TIMESTAMP'))\n" +
+//                "FILTER(org.apachepart:timeRange(<http://here/2010/tracked-data-provenance/heartbeat/ns#hbuuid2>, hb:timestamp, " + START + " , " + END + " , 'TIMESTAMP'))\n" +
                 "<http://here/2010/tracked-data-provenance/heartbeat/ns#hbuuid2> hb:count ?count.\n" +
                 "?system hb:heartbeat <http://here/2010/tracked-data-provenance/heartbeat/ns#hbuuid2>.\n" +
                 "}";

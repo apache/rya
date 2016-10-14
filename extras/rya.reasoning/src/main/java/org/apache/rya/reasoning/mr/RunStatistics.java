@@ -1,4 +1,4 @@
-package mvm.rya.reasoning.mr;
+package org.apache.rya.reasoning.mr;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one

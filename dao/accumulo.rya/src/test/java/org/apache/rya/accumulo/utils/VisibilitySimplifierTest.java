@@ -16,7 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package mvm.rya.accumulo.utils;
+package org.apache.rya.accumulo.utils;
 
 import static org.junit.Assert.assertEquals;
 

@@ -17,7 +17,7 @@
  * under the License.
  */
 
-//package mvm.cloud.rdf.web.cloudbase.sail;
+//package org.apache.cloud.rdf.web.cloudbase.sail;
 
 //
 //import org.openrdf.query.QueryLanguage;
@@ -47,7 +47,7 @@
 //            // query data
 //            TupleQuery tupleQuery = conn.prepareTupleQuery(
 //                    QueryLanguage.SPARQL, query_s);
-//            TupleQueryResultWriter deleter = new mvm.mmrts.rdftriplestore.QueryResultsDeleter(conn);
+//            TupleQueryResultWriter deleter = new org.apache.mmrts.rdftriplestore.QueryResultsDeleter(conn);
 //            tupleQuery.evaluate(deleter);
 //
 //        } catch (Exception e) {

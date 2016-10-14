@@ -1,4 +1,4 @@
-package mvm.rya.rdftriplestore.evaluation;
+package org.apache.rya.rdftriplestore.evaluation;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -26,10 +26,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import mvm.rya.api.RdfCloudTripleStoreConfiguration;
-import mvm.rya.api.persist.joinselect.SelectivityEvalDAO;
-import mvm.rya.rdftriplestore.inference.DoNotExpandSP;
-import mvm.rya.rdftriplestore.utils.FixedStatementPattern;
+import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
+import org.apache.rya.api.persist.joinselect.SelectivityEvalDAO;
+import org.apache.rya.rdftriplestore.inference.DoNotExpandSP;
+import org.apache.rya.rdftriplestore.utils.FixedStatementPattern;
 
 import org.openrdf.query.BindingSet;
 import org.openrdf.query.Dataset;

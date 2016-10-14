@@ -17,15 +17,15 @@
  * under the License.
  */
 
-package mvm.rya.prospector.plans.impl
+package org.apache.rya.prospector.plans.impl
 
-import mvm.rya.api.domain.RyaStatement
-import mvm.rya.prospector.domain.IndexEntry
-import mvm.rya.prospector.domain.IntermediateProspect
-import mvm.rya.prospector.domain.TripleValueType
-import mvm.rya.prospector.plans.IndexWorkPlan
-import mvm.rya.prospector.utils.CustomEntry
-import mvm.rya.prospector.utils.ProspectorUtils
+import org.apache.rya.api.domain.RyaStatement
+import org.apache.rya.prospector.domain.IndexEntry
+import org.apache.rya.prospector.domain.IntermediateProspect
+import org.apache.rya.prospector.domain.TripleValueType
+import org.apache.rya.prospector.plans.IndexWorkPlan
+import org.apache.rya.prospector.utils.CustomEntry
+import org.apache.rya.prospector.utils.ProspectorUtils
 
 import org.apache.accumulo.core.data.Mutation
 import org.apache.accumulo.core.data.Range
@@ -38,8 +38,8 @@ import org.apache.hadoop.mapreduce.Reducer
 import org.openrdf.model.util.URIUtil
 import org.openrdf.model.vocabulary.XMLSchema;
 
-import static mvm.rya.prospector.utils.ProspectorConstants.COUNT;
-import mvm.rya.api.RdfCloudTripleStoreConstants
+import static org.apache.rya.prospector.utils.ProspectorConstants.COUNT;
+import org.apache.rya.api.RdfCloudTripleStoreConstants
 
 /**
  * Date: 12/3/12

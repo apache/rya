@@ -1,4 +1,4 @@
-package mvm.rya.indexing.pcj.matching;
+package org.apache.rya.indexing.pcj.matching;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -55,18 +55,18 @@ import org.openrdf.sail.SailException;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
-import mvm.rya.accumulo.instance.AccumuloRyaInstanceDetailsRepository;
-import mvm.rya.api.RdfCloudTripleStoreConfiguration;
-import mvm.rya.api.instance.RyaDetailsRepository;
-import mvm.rya.api.instance.RyaDetailsRepository.RyaDetailsRepositoryException;
-import mvm.rya.indexing.IndexPlanValidator.IndexPlanValidator;
-import mvm.rya.indexing.IndexPlanValidator.IndexedExecutionPlanGenerator;
-import mvm.rya.indexing.IndexPlanValidator.ThreshholdPlanSelector;
-import mvm.rya.indexing.IndexPlanValidator.TupleReArranger;
-import mvm.rya.indexing.IndexPlanValidator.ValidIndexCombinationGenerator;
-import mvm.rya.indexing.accumulo.ConfigUtils;
-import mvm.rya.indexing.external.tupleSet.AccumuloIndexSet;
-import mvm.rya.indexing.external.tupleSet.ExternalTupleSet;
+import org.apache.rya.accumulo.instance.AccumuloRyaInstanceDetailsRepository;
+import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
+import org.apache.rya.api.instance.RyaDetailsRepository;
+import org.apache.rya.api.instance.RyaDetailsRepository.RyaDetailsRepositoryException;
+import org.apache.rya.indexing.IndexPlanValidator.IndexPlanValidator;
+import org.apache.rya.indexing.IndexPlanValidator.IndexedExecutionPlanGenerator;
+import org.apache.rya.indexing.IndexPlanValidator.ThreshholdPlanSelector;
+import org.apache.rya.indexing.IndexPlanValidator.TupleReArranger;
+import org.apache.rya.indexing.IndexPlanValidator.ValidIndexCombinationGenerator;
+import org.apache.rya.indexing.accumulo.ConfigUtils;
+import org.apache.rya.indexing.external.tupleSet.AccumuloIndexSet;
+import org.apache.rya.indexing.external.tupleSet.ExternalTupleSet;
 
 /**
  * {@link QueryOptimizer} which matches {@link TupleExpr}s associated with

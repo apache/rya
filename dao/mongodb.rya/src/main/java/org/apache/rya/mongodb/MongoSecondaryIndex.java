@@ -1,4 +1,4 @@
-package mvm.rya.mongodb;
+package org.apache.rya.mongodb;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -21,7 +21,7 @@ package mvm.rya.mongodb;
 
 import com.mongodb.MongoClient;
 
-import mvm.rya.api.persist.index.RyaSecondaryIndexer;
+import org.apache.rya.api.persist.index.RyaSecondaryIndexer;
 
 public interface MongoSecondaryIndex extends RyaSecondaryIndexer{
     public void init();    

@@ -16,7 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package mvm.rya.shell.util;
+package org.apache.rya.shell.util;
 
 import java.nio.CharBuffer;
 
@@ -24,7 +24,7 @@ import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
 import org.junit.Test;
 
-import mvm.rya.accumulo.AccumuloITBase;
+import org.apache.rya.accumulo.AccumuloITBase;
 
 /**
  * Tests the methods of {@link ConnectorFactory}.

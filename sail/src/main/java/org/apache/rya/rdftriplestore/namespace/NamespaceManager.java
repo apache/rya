@@ -1,4 +1,4 @@
-package mvm.rya.rdftriplestore.namespace;
+package org.apache.rya.rdftriplestore.namespace;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -22,10 +22,10 @@ package mvm.rya.rdftriplestore.namespace;
 
 
 import info.aduna.iteration.CloseableIteration;
-import mvm.rya.api.RdfCloudTripleStoreConfiguration;
-import mvm.rya.api.persist.RdfDAOException;
-import mvm.rya.api.persist.RyaDAO;
-import mvm.rya.api.persist.RyaNamespaceManager;
+import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
+import org.apache.rya.api.persist.RdfDAOException;
+import org.apache.rya.api.persist.RyaDAO;
+import org.apache.rya.api.persist.RyaNamespaceManager;
 import net.sf.ehcache.Cache;
 import net.sf.ehcache.CacheManager;
 import net.sf.ehcache.Element;

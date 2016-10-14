@@ -1,4 +1,4 @@
-package mvm.rya.accumulo.documentIndex;
+package org.apache.rya.accumulo.documentIndex;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one

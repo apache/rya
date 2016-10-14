@@ -1,4 +1,4 @@
-package mvm.rya.indexing.mongodb;
+package org.apache.rya.indexing.mongodb;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -27,8 +27,8 @@ import com.mongodb.BasicDBObject;
 import com.mongodb.DBObject;
 import com.mongodb.QueryBuilder;
 
-import mvm.rya.indexing.StatementConstraints;
-import mvm.rya.mongodb.dao.SimpleMongoDBStorageStrategy;
+import org.apache.rya.indexing.StatementConstraints;
+import org.apache.rya.mongodb.dao.SimpleMongoDBStorageStrategy;
 
 public class IndexingMongoDBStorageStrategy extends SimpleMongoDBStorageStrategy {
     public DBObject getQuery(final StatementConstraints contraints) {

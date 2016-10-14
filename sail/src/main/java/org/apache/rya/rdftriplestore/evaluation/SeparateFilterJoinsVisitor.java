@@ -1,4 +1,4 @@
-package mvm.rya.rdftriplestore.evaluation;
+package org.apache.rya.rdftriplestore.evaluation;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one

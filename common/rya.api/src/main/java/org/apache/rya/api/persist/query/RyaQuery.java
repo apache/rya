@@ -1,4 +1,4 @@
-package mvm.rya.api.persist.query;
+package org.apache.rya.api.persist.query;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -22,7 +22,7 @@ package mvm.rya.api.persist.query;
 
 
 import com.google.common.base.Preconditions;
-import mvm.rya.api.domain.RyaStatement;
+import org.apache.rya.api.domain.RyaStatement;
 
 /**
  * Query domain object contains the query to run as a {@link RyaStatement} and options for running the query

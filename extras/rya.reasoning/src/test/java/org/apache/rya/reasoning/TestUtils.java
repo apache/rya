@@ -1,4 +1,4 @@
-package mvm.rya.reasoning;
+package org.apache.rya.reasoning;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -19,8 +19,8 @@ package mvm.rya.reasoning;
  * under the License.
  */
 
-import mvm.rya.api.domain.RyaStatement;
-import mvm.rya.api.domain.RyaURI;
+import org.apache.rya.api.domain.RyaStatement;
+import org.apache.rya.api.domain.RyaURI;
 
 import org.openrdf.model.BNode;
 import org.openrdf.model.Literal;

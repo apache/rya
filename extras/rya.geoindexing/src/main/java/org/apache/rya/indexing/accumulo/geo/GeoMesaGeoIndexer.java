@@ -1,4 +1,4 @@
-package mvm.rya.indexing.accumulo.geo;
+package org.apache.rya.indexing.accumulo.geo;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -71,16 +71,16 @@ import com.vividsolutions.jts.io.ParseException;
 import com.vividsolutions.jts.io.WKTReader;
 
 import info.aduna.iteration.CloseableIteration;
-import mvm.rya.accumulo.experimental.AbstractAccumuloIndexer;
-import mvm.rya.api.RdfCloudTripleStoreConfiguration;
-import mvm.rya.api.domain.RyaStatement;
-import mvm.rya.api.resolver.RyaToRdfConversions;
-import mvm.rya.indexing.GeoIndexer;
-import mvm.rya.indexing.Md5Hash;
-import mvm.rya.indexing.OptionalConfigUtils;
-import mvm.rya.indexing.StatementConstraints;
-import mvm.rya.indexing.StatementSerializer;
-import mvm.rya.indexing.accumulo.ConfigUtils;
+import org.apache.rya.accumulo.experimental.AbstractAccumuloIndexer;
+import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
+import org.apache.rya.api.domain.RyaStatement;
+import org.apache.rya.api.resolver.RyaToRdfConversions;
+import org.apache.rya.indexing.GeoIndexer;
+import org.apache.rya.indexing.Md5Hash;
+import org.apache.rya.indexing.OptionalConfigUtils;
+import org.apache.rya.indexing.StatementConstraints;
+import org.apache.rya.indexing.StatementSerializer;
+import org.apache.rya.indexing.accumulo.ConfigUtils;
 
 /**
  * A {@link GeoIndexer} wrapper around a GeoMesa {@link AccumuloDataStore}. This class configures and connects to the Datastore, creates the

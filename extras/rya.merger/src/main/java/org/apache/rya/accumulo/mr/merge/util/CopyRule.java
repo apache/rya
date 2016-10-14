@@ -1,8 +1,8 @@
-package mvm.rya.accumulo.mr.merge.util;
+package org.apache.rya.accumulo.mr.merge.util;
 
 /*
  * #%L
- * mvm.rya.accumulo.mr.merge
+ * org.apache.rya.accumulo.mr.merge
  * %%
  * Copyright (C) 2014 Rya
  * %%
@@ -40,7 +40,7 @@ import org.openrdf.query.algebra.evaluation.QueryBindingSet;
 import org.openrdf.query.algebra.evaluation.ValueExprEvaluationException;
 import org.openrdf.query.algebra.helpers.QueryModelVisitorBase;
 
-import mvm.rya.accumulo.mr.merge.util.QueryRuleset.QueryRulesetException;
+import org.apache.rya.accumulo.mr.merge.util.QueryRuleset.QueryRulesetException;
 
 /**
  * A rule that defines a subset of statements to copy at the RDF level. Consists of a

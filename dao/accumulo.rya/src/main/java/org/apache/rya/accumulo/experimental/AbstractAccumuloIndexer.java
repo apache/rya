@@ -1,4 +1,4 @@
-package mvm.rya.accumulo.experimental;
+package org.apache.rya.accumulo.experimental;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -23,8 +23,8 @@ package mvm.rya.accumulo.experimental;
 import java.io.IOException;
 import java.util.Collection;
 
-import mvm.rya.api.domain.RyaStatement;
-import mvm.rya.api.domain.RyaURI;
+import org.apache.rya.api.domain.RyaStatement;
+import org.apache.rya.api.domain.RyaURI;
 
 import org.apache.accumulo.core.client.MultiTableBatchWriter;
 

@@ -17,7 +17,7 @@
  * under the License.
  */
 
-package mvm.rya.prospector.plans
+package org.apache.rya.prospector.plans
 
 /**
  * Date: 12/3/12

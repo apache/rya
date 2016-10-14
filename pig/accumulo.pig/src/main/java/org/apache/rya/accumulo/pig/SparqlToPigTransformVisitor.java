@@ -1,4 +1,4 @@
-package mvm.rya.accumulo.pig;
+package org.apache.rya.accumulo.pig;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -94,15 +94,15 @@ public class SparqlToPigTransformVisitor extends QueryModelVisitorBase<RuntimeEx
 
             addToExprToNames(node, cntxtName);
         }
-        //load 'l_' using mvm.rya.cloudbase.pig.dep.StatementPatternStorage('<http://www.Department0.University0.edu>', '', '',
+        //load 'l_' using org.apache.rya.cloudbase.pig.dep.StatementPatternStorage('<http://www.Department0.University0.edu>', '', '',
         // 'stratus', 'stratus13:2181', 'root', 'password') AS (dept:chararray, p:chararray, univ:chararray);
-//        pigScriptBuilder.append(i).append(" = load '").append(tablePrefix).append("' using mvm.rya.cloudbase.pig.dep.StatementPatternStorage('")
+//        pigScriptBuilder.append(i).append(" = load '").append(tablePrefix).append("' using org.apache.rya.cloudbase.pig.dep.StatementPatternStorage('")
 //                .append(subjValue).append("','").append(predValue).append("','").append(objValue).append("','").append(instance).append("','")
 //                .append(zk).append("','").append(user).append("','").append(password).append("') AS (").append(subj).append(":chararray, ")
 //                .append(pred).append(":chararray, ").append(obj).append(":chararray);\n");
 
         //load 'cloudbase://tablePrefix?instance=myinstance&user=root&password=secret&zookeepers=127.0.0.1:2181&auths=PRIVATE,PUBLIC&subject=a&predicate=b&object=c'
-        //using mvm.rya.accumulo.pig.StatementPatternStorage() AS (dept:chararray, p:chararray, univ:chararray);
+        //using org.apache.rya.accumulo.pig.StatementPatternStorage() AS (dept:chararray, p:chararray, univ:chararray);
         pigScriptBuilder.append(i).append(" = load 'accumulo://").append(tablePrefix).append("?instance=").append(instance).append("&user=").append(user)
                 .append("&password=").append(password).append("&zookeepers=").append(zk);
         if (subjValue != null && subjValue.length() > 0) {

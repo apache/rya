@@ -1,4 +1,4 @@
-package mvm.rya.indexing.accumulo.entity;
+package org.apache.rya.indexing.accumulo.entity;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -20,8 +20,8 @@ package mvm.rya.indexing.accumulo.entity;
  */
 
 
-import static mvm.rya.api.RdfCloudTripleStoreConstants.DELIM_BYTE;
-import static mvm.rya.api.RdfCloudTripleStoreConstants.TYPE_DELIM_BYTE;
+import static org.apache.rya.api.RdfCloudTripleStoreConstants.DELIM_BYTE;
+import static org.apache.rya.api.RdfCloudTripleStoreConstants.TYPE_DELIM_BYTE;
 import info.aduna.iteration.CloseableIteration;
 
 import java.io.IOException;
@@ -35,16 +35,16 @@ import java.util.Map.Entry;
 import java.util.NoSuchElementException;
 import java.util.Set;
 
-import mvm.rya.accumulo.AccumuloRdfConfiguration;
-import mvm.rya.accumulo.documentIndex.DocIndexIteratorUtil;
-import mvm.rya.accumulo.documentIndex.DocumentIndexIntersectingIterator;
-import mvm.rya.api.RdfCloudTripleStoreConfiguration;
-import mvm.rya.api.domain.RyaURI;
-import mvm.rya.api.resolver.RyaContext;
-import mvm.rya.api.resolver.RyaToRdfConversions;
-import mvm.rya.api.resolver.RyaTypeResolverException;
-import mvm.rya.indexing.DocIdIndexer;
-import mvm.rya.indexing.accumulo.ConfigUtils;
+import org.apache.rya.accumulo.AccumuloRdfConfiguration;
+import org.apache.rya.accumulo.documentIndex.DocIndexIteratorUtil;
+import org.apache.rya.accumulo.documentIndex.DocumentIndexIntersectingIterator;
+import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
+import org.apache.rya.api.domain.RyaURI;
+import org.apache.rya.api.resolver.RyaContext;
+import org.apache.rya.api.resolver.RyaToRdfConversions;
+import org.apache.rya.api.resolver.RyaTypeResolverException;
+import org.apache.rya.indexing.DocIdIndexer;
+import org.apache.rya.indexing.accumulo.ConfigUtils;
 
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;

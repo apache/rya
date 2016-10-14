@@ -1,4 +1,4 @@
-package mvm.rya.accumulo.mr.tools;
+package org.apache.rya.accumulo.mr.tools;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -21,8 +21,8 @@ package mvm.rya.accumulo.mr.tools;
 
 
 
-import mvm.rya.accumulo.mr.AbstractAccumuloMRTool;
-import mvm.rya.accumulo.mr.MRUtils;
+import org.apache.rya.accumulo.mr.AbstractAccumuloMRTool;
+import org.apache.rya.accumulo.mr.MRUtils;
 
 import org.apache.accumulo.core.client.IteratorSetting;
 import org.apache.accumulo.core.client.mapreduce.AccumuloInputFormat;
@@ -43,7 +43,7 @@ import org.calrissian.mango.types.TypeEncoder;
 import java.io.IOException;
 import java.util.Date;
 
-import static mvm.rya.api.RdfCloudTripleStoreConstants.*;
+import static org.apache.rya.api.RdfCloudTripleStoreConstants.*;
 
 /**
  */

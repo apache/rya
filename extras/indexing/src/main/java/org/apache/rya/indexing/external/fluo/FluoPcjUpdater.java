@@ -16,7 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package mvm.rya.indexing.external.fluo;
+package org.apache.rya.indexing.external.fluo;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -31,7 +31,7 @@ import org.apache.rya.indexing.pcj.update.PrecomputedJoinUpdater;
 import com.google.common.base.Optional;
 
 import org.apache.fluo.api.client.FluoClient;
-import mvm.rya.api.domain.RyaStatement;
+import org.apache.rya.api.domain.RyaStatement;
 
 /**
  * Updates the PCJ indices by forwarding the statement additions/removals to

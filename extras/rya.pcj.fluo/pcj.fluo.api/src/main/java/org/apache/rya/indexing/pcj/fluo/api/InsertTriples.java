@@ -32,11 +32,11 @@ import com.google.common.base.Optional;
 import org.apache.fluo.api.client.FluoClient;
 import org.apache.fluo.api.client.Transaction;
 import org.apache.fluo.api.data.Bytes;
-import mvm.rya.api.RdfCloudTripleStoreConstants.TABLE_LAYOUT;
-import mvm.rya.api.domain.RyaStatement;
-import mvm.rya.api.resolver.triple.TripleRow;
-import mvm.rya.api.resolver.triple.TripleRowResolverException;
-import mvm.rya.api.resolver.triple.impl.WholeRowTripleResolver;
+import org.apache.rya.api.RdfCloudTripleStoreConstants.TABLE_LAYOUT;
+import org.apache.rya.api.domain.RyaStatement;
+import org.apache.rya.api.resolver.triple.TripleRow;
+import org.apache.rya.api.resolver.triple.TripleRowResolverException;
+import org.apache.rya.api.resolver.triple.impl.WholeRowTripleResolver;
 
 /**
  * Insert a batch of Triples into. This will trigger observers that will update

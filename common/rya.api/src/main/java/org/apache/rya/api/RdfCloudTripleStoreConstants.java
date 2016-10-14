@@ -1,4 +1,4 @@
-package mvm.rya.api;
+package org.apache.rya.api;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -21,9 +21,9 @@ package mvm.rya.api;
 
 
 
-import mvm.rya.api.domain.RyaSchema;
-import mvm.rya.api.domain.RyaType;
-import mvm.rya.api.domain.RyaURI;
+import org.apache.rya.api.domain.RyaSchema;
+import org.apache.rya.api.domain.RyaType;
+import org.apache.rya.api.domain.RyaURI;
 import org.apache.hadoop.io.Text;
 import org.openrdf.model.Literal;
 import org.openrdf.model.URI;
@@ -37,7 +37,7 @@ public class RdfCloudTripleStoreConstants {
     public static final String AUTH_NAMESPACE = RyaSchema.AUTH_NAMESPACE;
     public static ValueFactory VALUE_FACTORY = ValueFactoryImpl.getInstance();
     public static URI RANGE = VALUE_FACTORY.createURI(NAMESPACE, "range");
-    public static URI PARTITION_TIMERANGE = VALUE_FACTORY.createURI("urn:mvm.mmrts.partition.rdf/08/2011#", "timeRange");
+    public static URI PARTITION_TIMERANGE = VALUE_FACTORY.createURI("urn:org.apache.mmrts.partition.rdf/08/2011#", "timeRange");
     public static Literal EMPTY_LITERAL = VALUE_FACTORY.createLiteral(0);
     public static final byte EMPTY_BYTES[] = new byte[0];
     public static final Text EMPTY_TEXT = new Text();

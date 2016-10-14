@@ -1,4 +1,4 @@
-package mvm.rya.accumulo.pcj.iterators;
+package org.apache.rya.accumulo.pcj.iterators;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -27,8 +27,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.NoSuchElementException;
 
-import mvm.rya.api.RdfCloudTripleStoreUtils;
-import mvm.rya.indexing.external.tupleSet.ExternalTupleSet;
+import org.apache.rya.api.RdfCloudTripleStoreUtils;
+import org.apache.rya.indexing.external.tupleSet.ExternalTupleSet;
 
 import org.apache.accumulo.core.client.BatchScanner;
 import org.apache.accumulo.core.client.Scanner;

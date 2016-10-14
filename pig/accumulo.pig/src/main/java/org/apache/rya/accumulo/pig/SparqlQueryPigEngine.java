@@ -1,4 +1,4 @@
-package mvm.rya.accumulo.pig;
+package org.apache.rya.accumulo.pig;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -23,16 +23,16 @@ package mvm.rya.accumulo.pig;
 
 import com.google.common.base.Preconditions;
 import com.google.common.io.ByteStreams;
-import mvm.rya.accumulo.AccumuloRdfConfiguration;
-import mvm.rya.accumulo.AccumuloRdfEvalStatsDAO;
-import mvm.rya.accumulo.AccumuloRyaDAO;
-import mvm.rya.accumulo.pig.optimizer.SimilarVarJoinOptimizer;
-import mvm.rya.rdftriplestore.evaluation.QueryJoinOptimizer;
-import mvm.rya.rdftriplestore.evaluation.RdfCloudTripleStoreEvaluationStatistics;
-import mvm.rya.rdftriplestore.inference.InferenceEngine;
-import mvm.rya.rdftriplestore.inference.InverseOfVisitor;
-import mvm.rya.rdftriplestore.inference.SymmetricPropertyVisitor;
-import mvm.rya.rdftriplestore.inference.TransitivePropertyVisitor;
+import org.apache.rya.accumulo.AccumuloRdfConfiguration;
+import org.apache.rya.accumulo.AccumuloRdfEvalStatsDAO;
+import org.apache.rya.accumulo.AccumuloRyaDAO;
+import org.apache.rya.accumulo.pig.optimizer.SimilarVarJoinOptimizer;
+import org.apache.rya.rdftriplestore.evaluation.QueryJoinOptimizer;
+import org.apache.rya.rdftriplestore.evaluation.RdfCloudTripleStoreEvaluationStatistics;
+import org.apache.rya.rdftriplestore.inference.InferenceEngine;
+import org.apache.rya.rdftriplestore.inference.InverseOfVisitor;
+import org.apache.rya.rdftriplestore.inference.SymmetricPropertyVisitor;
+import org.apache.rya.rdftriplestore.inference.TransitivePropertyVisitor;
 import org.apache.accumulo.core.client.Connector;
 import org.apache.accumulo.core.client.ZooKeeperInstance;
 import org.apache.commons.logging.Log;
@@ -192,7 +192,7 @@ public class SparqlQueryPigEngine {
     public static void main(String[] args) {
         try {
             Preconditions.checkArgument(args.length == 7, "Usage: java -cp <jar>:$PIG_LIB <class> sparqlFile hdfsSaveLocation cbinstance cbzk cbuser cbpassword rdfTablePrefix.\n " +
-                    "Sample command: java -cp java -cp cloudbase.pig-2.0.0-SNAPSHOT-shaded.jar:/usr/local/hadoop-etc/hadoop-0.20.2/hadoop-0.20.2-core.jar:/srv_old/hdfs-tmp/pig/pig-0.9.2/pig-0.9.2.jar:$HADOOP_HOME/conf mvm.rya.accumulo.pig.SparqlQueryPigEngine " +
+                    "Sample command: java -cp java -cp cloudbase.pig-2.0.0-SNAPSHOT-shaded.jar:/usr/local/hadoop-etc/hadoop-0.20.2/hadoop-0.20.2-core.jar:/srv_old/hdfs-tmp/pig/pig-0.9.2/pig-0.9.2.jar:$HADOOP_HOME/conf org.apache.rya.accumulo.pig.SparqlQueryPigEngine " +
                     "tstSpqrl.query temp/engineTest stratus stratus13:2181 root password l_");
             String sparql = new String(ByteStreams.toByteArray(new FileInputStream(args[0])));
             String hdfsSaveLocation = args[1];

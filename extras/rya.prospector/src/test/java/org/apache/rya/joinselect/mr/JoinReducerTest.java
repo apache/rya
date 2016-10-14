@@ -1,4 +1,4 @@
-package mvm.rya.joinselect.mr;
+package org.apache.rya.joinselect.mr;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -25,12 +25,12 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import mvm.rya.joinselect.mr.JoinSelectAggregate;
-import mvm.rya.joinselect.mr.utils.CardList;
-import mvm.rya.joinselect.mr.utils.CardinalityType;
-import mvm.rya.joinselect.mr.utils.CompositeType;
-import mvm.rya.joinselect.mr.utils.TripleCard;
-import mvm.rya.joinselect.mr.utils.TripleEntry;
+import org.apache.rya.joinselect.mr.JoinSelectAggregate;
+import org.apache.rya.joinselect.mr.utils.CardList;
+import org.apache.rya.joinselect.mr.utils.CardinalityType;
+import org.apache.rya.joinselect.mr.utils.CompositeType;
+import org.apache.rya.joinselect.mr.utils.TripleCard;
+import org.apache.rya.joinselect.mr.utils.TripleEntry;
 
 import org.apache.hadoop.mrunit.mapreduce.ReduceDriver;
 import org.junit.Test;

@@ -1,4 +1,4 @@
-package mvm.rya.api.resolver;
+package org.apache.rya.api.resolver;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -24,13 +24,13 @@ package mvm.rya.api.resolver;
 import java.util.Map;
 
 import junit.framework.TestCase;
-import mvm.rya.api.RdfCloudTripleStoreConstants.TABLE_LAYOUT;
-import mvm.rya.api.domain.RyaStatement;
-import mvm.rya.api.domain.RyaType;
-import mvm.rya.api.domain.RyaURI;
-import mvm.rya.api.query.strategy.AbstractTriplePatternStrategyTest.MockRdfConfiguration;
-import mvm.rya.api.query.strategy.wholerow.MockRdfCloudConfiguration;
-import mvm.rya.api.resolver.triple.TripleRow;
+import org.apache.rya.api.RdfCloudTripleStoreConstants.TABLE_LAYOUT;
+import org.apache.rya.api.domain.RyaStatement;
+import org.apache.rya.api.domain.RyaType;
+import org.apache.rya.api.domain.RyaURI;
+import org.apache.rya.api.query.strategy.AbstractTriplePatternStrategyTest.MockRdfConfiguration;
+import org.apache.rya.api.query.strategy.wholerow.MockRdfCloudConfiguration;
+import org.apache.rya.api.resolver.triple.TripleRow;
 
 import org.openrdf.model.impl.URIImpl;
 

@@ -17,14 +17,14 @@
  * under the License.
  */
 
-package mvm.rya.prospector.plans
+package org.apache.rya.prospector.plans
 
-import mvm.rya.api.domain.RyaStatement
-import mvm.rya.prospector.domain.IntermediateProspect
+import org.apache.rya.api.domain.RyaStatement
+import org.apache.rya.prospector.domain.IntermediateProspect
 import org.apache.hadoop.io.LongWritable
 import org.apache.hadoop.mapreduce.Reducer
 import org.openrdf.model.vocabulary.XMLSchema
-import mvm.rya.prospector.domain.IndexEntry
+import org.apache.rya.prospector.domain.IndexEntry
 
 /**
  * Date: 12/3/12

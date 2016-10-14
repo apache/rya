@@ -1,4 +1,4 @@
-package mvm.rya.indexing.accumulo.freetext;
+package org.apache.rya.indexing.accumulo.freetext;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -21,7 +21,7 @@ package mvm.rya.indexing.accumulo.freetext;
 
 
 
-import static mvm.rya.indexing.accumulo.freetext.query.ASTNodeUtils.getNodeIterator;
+import static org.apache.rya.indexing.accumulo.freetext.query.ASTNodeUtils.getNodeIterator;
 
 import java.io.IOException;
 import java.nio.charset.CharacterCodingException;
@@ -66,25 +66,25 @@ import org.openrdf.query.QueryEvaluationException;
 import com.google.common.base.Charsets;
 
 import info.aduna.iteration.CloseableIteration;
-import mvm.rya.accumulo.experimental.AbstractAccumuloIndexer;
-import mvm.rya.api.RdfCloudTripleStoreConfiguration;
-import mvm.rya.api.domain.RyaStatement;
-import mvm.rya.api.resolver.RyaToRdfConversions;
-import mvm.rya.indexing.FreeTextIndexer;
-import mvm.rya.indexing.Md5Hash;
-import mvm.rya.indexing.StatementConstraints;
-import mvm.rya.indexing.StatementSerializer;
-import mvm.rya.indexing.accumulo.ConfigUtils;
-import mvm.rya.indexing.accumulo.freetext.iterators.BooleanTreeIterator;
-import mvm.rya.indexing.accumulo.freetext.query.ASTExpression;
-import mvm.rya.indexing.accumulo.freetext.query.ASTNodeUtils;
-import mvm.rya.indexing.accumulo.freetext.query.ASTSimpleNode;
-import mvm.rya.indexing.accumulo.freetext.query.ASTTerm;
-import mvm.rya.indexing.accumulo.freetext.query.ParseException;
-import mvm.rya.indexing.accumulo.freetext.query.QueryParser;
-import mvm.rya.indexing.accumulo.freetext.query.QueryParserTreeConstants;
-import mvm.rya.indexing.accumulo.freetext.query.SimpleNode;
-import mvm.rya.indexing.accumulo.freetext.query.TokenMgrError;
+import org.apache.rya.accumulo.experimental.AbstractAccumuloIndexer;
+import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
+import org.apache.rya.api.domain.RyaStatement;
+import org.apache.rya.api.resolver.RyaToRdfConversions;
+import org.apache.rya.indexing.FreeTextIndexer;
+import org.apache.rya.indexing.Md5Hash;
+import org.apache.rya.indexing.StatementConstraints;
+import org.apache.rya.indexing.StatementSerializer;
+import org.apache.rya.indexing.accumulo.ConfigUtils;
+import org.apache.rya.indexing.accumulo.freetext.iterators.BooleanTreeIterator;
+import org.apache.rya.indexing.accumulo.freetext.query.ASTExpression;
+import org.apache.rya.indexing.accumulo.freetext.query.ASTNodeUtils;
+import org.apache.rya.indexing.accumulo.freetext.query.ASTSimpleNode;
+import org.apache.rya.indexing.accumulo.freetext.query.ASTTerm;
+import org.apache.rya.indexing.accumulo.freetext.query.ParseException;
+import org.apache.rya.indexing.accumulo.freetext.query.QueryParser;
+import org.apache.rya.indexing.accumulo.freetext.query.QueryParserTreeConstants;
+import org.apache.rya.indexing.accumulo.freetext.query.SimpleNode;
+import org.apache.rya.indexing.accumulo.freetext.query.TokenMgrError;
 
 /**
  * The {@link AccumuloFreeTextIndexer} stores and queries "free text" data from statements into tables in Accumulo. Specifically, this class
@@ -630,7 +630,7 @@ public class AccumuloFreeTextIndexer extends AbstractAccumuloIndexer implements 
      * @return the Free Text Document index table's name
      */
     public static String getFreeTextDocTablename(Configuration conf) {
-        return mvm.rya.indexing.accumulo.ConfigUtils.getTablePrefix(conf)  + TABLE_SUFFFIX_DOC;
+        return org.apache.rya.indexing.accumulo.ConfigUtils.getTablePrefix(conf)  + TABLE_SUFFFIX_DOC;
     }
 
     /**
@@ -639,7 +639,7 @@ public class AccumuloFreeTextIndexer extends AbstractAccumuloIndexer implements 
      * @return the Free Text Term index table's name
      */
     public static String getFreeTextTermTablename(Configuration conf) {
-        return mvm.rya.indexing.accumulo.ConfigUtils.getTablePrefix(conf)  + TABLE_SUFFIX_TERM;
+        return org.apache.rya.indexing.accumulo.ConfigUtils.getTablePrefix(conf)  + TABLE_SUFFIX_TERM;
     }
 
     private void deleteStatement(Statement statement) throws IOException {

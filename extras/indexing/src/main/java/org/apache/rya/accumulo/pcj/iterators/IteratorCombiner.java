@@ -1,4 +1,4 @@
-package mvm.rya.accumulo.pcj.iterators;
+package org.apache.rya.accumulo.pcj.iterators;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one

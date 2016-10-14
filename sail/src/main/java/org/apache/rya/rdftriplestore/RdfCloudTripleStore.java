@@ -1,4 +1,4 @@
-package mvm.rya.rdftriplestore;
+package org.apache.rya.rdftriplestore;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -29,14 +29,14 @@ import org.openrdf.sail.helpers.SailBase;
 
 
 
-import mvm.rya.api.RdfCloudTripleStoreConfiguration;
-import mvm.rya.api.persist.RdfEvalStatsDAO;
-import mvm.rya.api.persist.RyaDAO;
-import mvm.rya.api.persist.RyaDAOException;
-import mvm.rya.api.persist.joinselect.SelectivityEvalDAO;
-import mvm.rya.rdftriplestore.inference.InferenceEngine;
-import mvm.rya.rdftriplestore.namespace.NamespaceManager;
-import mvm.rya.rdftriplestore.provenance.ProvenanceCollector;
+import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
+import org.apache.rya.api.persist.RdfEvalStatsDAO;
+import org.apache.rya.api.persist.RyaDAO;
+import org.apache.rya.api.persist.RyaDAOException;
+import org.apache.rya.api.persist.joinselect.SelectivityEvalDAO;
+import org.apache.rya.rdftriplestore.inference.InferenceEngine;
+import org.apache.rya.rdftriplestore.namespace.NamespaceManager;
+import org.apache.rya.rdftriplestore.provenance.ProvenanceCollector;
 
 public class RdfCloudTripleStore extends SailBase {
 

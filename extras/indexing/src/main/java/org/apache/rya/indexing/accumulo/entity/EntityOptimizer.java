@@ -1,4 +1,4 @@
-package mvm.rya.indexing.accumulo.entity;
+package org.apache.rya.indexing.accumulo.entity;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -25,14 +25,14 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
-import mvm.rya.accumulo.AccumuloRdfConfiguration;
-import mvm.rya.api.RdfCloudTripleStoreConfiguration;
-import mvm.rya.api.persist.joinselect.SelectivityEvalDAO;
-import mvm.rya.indexing.accumulo.ConfigUtils;
-import mvm.rya.joinselect.AccumuloSelectivityEvalDAO;
-import mvm.rya.prospector.service.ProspectorServiceEvalStatsDAO;
-import mvm.rya.rdftriplestore.inference.DoNotExpandSP;
-import mvm.rya.rdftriplestore.utils.FixedStatementPattern;
+import org.apache.rya.accumulo.AccumuloRdfConfiguration;
+import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
+import org.apache.rya.api.persist.joinselect.SelectivityEvalDAO;
+import org.apache.rya.indexing.accumulo.ConfigUtils;
+import org.apache.rya.joinselect.AccumuloSelectivityEvalDAO;
+import org.apache.rya.prospector.service.ProspectorServiceEvalStatsDAO;
+import org.apache.rya.rdftriplestore.inference.DoNotExpandSP;
+import org.apache.rya.rdftriplestore.utils.FixedStatementPattern;
 
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;

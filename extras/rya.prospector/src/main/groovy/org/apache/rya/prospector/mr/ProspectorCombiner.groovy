@@ -17,14 +17,14 @@
  * under the License.
  */
 
-package mvm.rya.prospector.mr
+package org.apache.rya.prospector.mr
 
-import mvm.rya.prospector.plans.IndexWorkPlan
-import mvm.rya.prospector.plans.IndexWorkPlanManager
-import mvm.rya.prospector.plans.impl.ServicesBackedIndexWorkPlanManager
+import org.apache.rya.prospector.plans.IndexWorkPlan
+import org.apache.rya.prospector.plans.IndexWorkPlanManager
+import org.apache.rya.prospector.plans.impl.ServicesBackedIndexWorkPlanManager
 import org.apache.commons.lang.time.DateUtils
 import org.apache.hadoop.mapreduce.Reducer
-import mvm.rya.prospector.utils.ProspectorUtils
+import org.apache.rya.prospector.utils.ProspectorUtils
 
 /**
  * Date: 12/3/12

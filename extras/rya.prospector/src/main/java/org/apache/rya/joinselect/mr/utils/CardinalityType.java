@@ -1,4 +1,4 @@
-package mvm.rya.joinselect.mr.utils;
+package org.apache.rya.joinselect.mr.utils;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one

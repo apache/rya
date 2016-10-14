@@ -1,4 +1,4 @@
-package mvm.rya.indexing.mongodb.freetext;
+package org.apache.rya.indexing.mongodb.freetext;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -23,8 +23,8 @@ import com.mongodb.BasicDBObject;
 import com.mongodb.DBCollection;
 import com.mongodb.DBObject;
 
-import mvm.rya.api.domain.RyaStatement;
-import mvm.rya.indexing.mongodb.IndexingMongoDBStorageStrategy;
+import org.apache.rya.api.domain.RyaStatement;
+import org.apache.rya.indexing.mongodb.IndexingMongoDBStorageStrategy;
 
 public class TextMongoDBStorageStrategy extends IndexingMongoDBStorageStrategy {
 	private static final String text = "text";

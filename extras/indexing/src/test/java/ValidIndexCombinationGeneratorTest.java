@@ -25,10 +25,10 @@ import java.util.List;
 import java.util.Set;
 
 import junit.framework.Assert;
-import mvm.rya.indexing.IndexPlanValidator.IndexedExecutionPlanGenerator;
-import mvm.rya.indexing.IndexPlanValidator.ValidIndexCombinationGenerator;
-import mvm.rya.indexing.external.tupleSet.ExternalTupleSet;
-import mvm.rya.indexing.external.tupleSet.SimpleExternalTupleSet;
+import org.apache.rya.indexing.IndexPlanValidator.IndexedExecutionPlanGenerator;
+import org.apache.rya.indexing.IndexPlanValidator.ValidIndexCombinationGenerator;
+import org.apache.rya.indexing.external.tupleSet.ExternalTupleSet;
+import org.apache.rya.indexing.external.tupleSet.SimpleExternalTupleSet;
 
 import org.junit.Test;
 import org.openrdf.query.MalformedQueryException;

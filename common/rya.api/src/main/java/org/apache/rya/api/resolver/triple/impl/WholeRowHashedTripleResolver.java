@@ -1,9 +1,9 @@
-package mvm.rya.api.resolver.triple.impl;
+package org.apache.rya.api.resolver.triple.impl;
 
-import static mvm.rya.api.RdfCloudTripleStoreConstants.DELIM_BYTE;
-import static mvm.rya.api.RdfCloudTripleStoreConstants.DELIM_BYTES;
-import static mvm.rya.api.RdfCloudTripleStoreConstants.EMPTY_BYTES;
-import static mvm.rya.api.RdfCloudTripleStoreConstants.TYPE_DELIM_BYTE;
+import static org.apache.rya.api.RdfCloudTripleStoreConstants.DELIM_BYTE;
+import static org.apache.rya.api.RdfCloudTripleStoreConstants.DELIM_BYTES;
+import static org.apache.rya.api.RdfCloudTripleStoreConstants.EMPTY_BYTES;
+import static org.apache.rya.api.RdfCloudTripleStoreConstants.TYPE_DELIM_BYTE;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -36,15 +36,15 @@ import org.apache.commons.codec.binary.Hex;
 
 import com.google.common.primitives.Bytes;
 
-import mvm.rya.api.RdfCloudTripleStoreConstants.TABLE_LAYOUT;
-import mvm.rya.api.domain.RyaStatement;
-import mvm.rya.api.domain.RyaType;
-import mvm.rya.api.domain.RyaURI;
-import mvm.rya.api.resolver.RyaContext;
-import mvm.rya.api.resolver.RyaTypeResolverException;
-import mvm.rya.api.resolver.triple.TripleRow;
-import mvm.rya.api.resolver.triple.TripleRowResolver;
-import mvm.rya.api.resolver.triple.TripleRowResolverException;
+import org.apache.rya.api.RdfCloudTripleStoreConstants.TABLE_LAYOUT;
+import org.apache.rya.api.domain.RyaStatement;
+import org.apache.rya.api.domain.RyaType;
+import org.apache.rya.api.domain.RyaURI;
+import org.apache.rya.api.resolver.RyaContext;
+import org.apache.rya.api.resolver.RyaTypeResolverException;
+import org.apache.rya.api.resolver.triple.TripleRow;
+import org.apache.rya.api.resolver.triple.TripleRowResolver;
+import org.apache.rya.api.resolver.triple.TripleRowResolverException;
 
 /**
  * Will store triple in spo, po, osp. Storing everything in the whole row.

@@ -1,4 +1,4 @@
-package mvm.rya.api.layout;
+package org.apache.rya.api.layout;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one

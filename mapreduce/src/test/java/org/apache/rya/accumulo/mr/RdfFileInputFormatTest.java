@@ -1,4 +1,4 @@
-package mvm.rya.accumulo.mr;
+package org.apache.rya.accumulo.mr;
 
 import java.io.File;
 import java.io.IOException;
@@ -25,7 +25,7 @@ import org.openrdf.model.impl.StatementImpl;
 import org.openrdf.model.impl.URIImpl;
 import org.openrdf.rio.RDFFormat;
 
-import mvm.rya.api.resolver.RyaToRdfConversions;
+import org.apache.rya.api.resolver.RyaToRdfConversions;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one

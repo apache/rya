@@ -1,4 +1,4 @@
-package mvm.rya.reasoning.mr;
+package org.apache.rya.reasoning.mr;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -21,12 +21,12 @@ package mvm.rya.reasoning.mr;
 
 import java.io.IOException;
 
-import mvm.rya.accumulo.mr.RyaStatementWritable;
-import mvm.rya.accumulo.mr.RdfFileInputFormat;
-import mvm.rya.accumulo.mr.MRUtils;
-import mvm.rya.reasoning.Derivation;
-import mvm.rya.reasoning.Fact;
-import mvm.rya.reasoning.Schema;
+import org.apache.rya.accumulo.mr.RyaStatementWritable;
+import org.apache.rya.accumulo.mr.RdfFileInputFormat;
+import org.apache.rya.accumulo.mr.MRUtils;
+import org.apache.rya.reasoning.Derivation;
+import org.apache.rya.reasoning.Fact;
+import org.apache.rya.reasoning.Schema;
 
 import org.apache.accumulo.core.client.AccumuloSecurityException;
 import org.apache.accumulo.core.client.mapreduce.AccumuloInputFormat;

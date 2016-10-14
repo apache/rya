@@ -16,7 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package mvm.rya.api.client.accumulo;
+package org.apache.rya.api.client.accumulo;
 
 import static java.util.Objects.requireNonNull;
 
@@ -24,7 +24,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
 
 import org.apache.accumulo.core.client.Connector;
 
-import mvm.rya.api.client.RyaClient;
+import org.apache.rya.api.client.RyaClient;
 
 /**
  * Constructs instance of {@link RyaClient} that are connected to instance of

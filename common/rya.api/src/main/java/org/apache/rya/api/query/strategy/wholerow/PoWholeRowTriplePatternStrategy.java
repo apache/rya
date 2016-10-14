@@ -1,4 +1,4 @@
-package mvm.rya.api.query.strategy.wholerow;
+package org.apache.rya.api.query.strategy.wholerow;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -22,21 +22,21 @@ package mvm.rya.api.query.strategy.wholerow;
 
 
 import com.google.common.primitives.Bytes;
-import mvm.rya.api.RdfCloudTripleStoreConfiguration;
-import mvm.rya.api.RdfCloudTripleStoreConstants;
-import mvm.rya.api.RdfCloudTripleStoreUtils;
-import mvm.rya.api.domain.RyaRange;
-import mvm.rya.api.domain.RyaType;
-import mvm.rya.api.domain.RyaURI;
-import mvm.rya.api.query.strategy.AbstractTriplePatternStrategy;
-import mvm.rya.api.query.strategy.ByteRange;
-import mvm.rya.api.resolver.RyaContext;
-import mvm.rya.api.resolver.RyaTypeResolverException;
+import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
+import org.apache.rya.api.RdfCloudTripleStoreConstants;
+import org.apache.rya.api.RdfCloudTripleStoreUtils;
+import org.apache.rya.api.domain.RyaRange;
+import org.apache.rya.api.domain.RyaType;
+import org.apache.rya.api.domain.RyaURI;
+import org.apache.rya.api.query.strategy.AbstractTriplePatternStrategy;
+import org.apache.rya.api.query.strategy.ByteRange;
+import org.apache.rya.api.resolver.RyaContext;
+import org.apache.rya.api.resolver.RyaTypeResolverException;
 
 import java.io.IOException;
 import java.util.Map;
 
-import static mvm.rya.api.RdfCloudTripleStoreConstants.*;
+import static org.apache.rya.api.RdfCloudTripleStoreConstants.*;
 
 /**
  * Date: 7/14/12

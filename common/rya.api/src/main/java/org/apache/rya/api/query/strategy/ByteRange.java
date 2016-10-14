@@ -1,4 +1,4 @@
-package mvm.rya.api.query.strategy;
+package org.apache.rya.api.query.strategy;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one

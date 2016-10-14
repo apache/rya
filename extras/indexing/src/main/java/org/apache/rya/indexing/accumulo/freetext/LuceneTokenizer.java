@@ -1,4 +1,4 @@
-package mvm.rya.indexing.accumulo.freetext;
+package org.apache.rya.indexing.accumulo.freetext;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one

@@ -16,7 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package mvm.rya.shell.util;
+package org.apache.rya.shell.util;
 
 import static java.util.Objects.requireNonNull;
 
@@ -25,9 +25,9 @@ import javax.annotation.ParametersAreNonnullByDefault;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableMap;
 
-import mvm.rya.api.instance.RyaDetails;
-import mvm.rya.api.instance.RyaDetails.PCJIndexDetails;
-import mvm.rya.api.instance.RyaDetails.PCJIndexDetails.PCJDetails;
+import org.apache.rya.api.instance.RyaDetails;
+import org.apache.rya.api.instance.RyaDetails.PCJIndexDetails;
+import org.apache.rya.api.instance.RyaDetails.PCJIndexDetails.PCJDetails;
 
 /**
  * Formats an instance of {@link RyaDetails}.

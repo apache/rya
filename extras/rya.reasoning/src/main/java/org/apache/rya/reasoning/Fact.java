@@ -1,4 +1,4 @@
-package mvm.rya.reasoning;
+package org.apache.rya.reasoning;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -24,8 +24,8 @@ import java.io.DataOutput;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 
-import mvm.rya.api.domain.RyaStatement;
-import mvm.rya.api.resolver.RyaToRdfConversions;
+import org.apache.rya.api.domain.RyaStatement;
+import org.apache.rya.api.resolver.RyaToRdfConversions;
 
 import org.apache.hadoop.io.WritableComparable;
 import org.openrdf.model.Literal;

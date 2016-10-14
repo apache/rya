@@ -1,4 +1,4 @@
-package mvm.rya.indexing.accumulo.entity;
+package org.apache.rya.indexing.accumulo.entity;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -27,16 +27,16 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
-import mvm.rya.accumulo.AccumuloRdfConfiguration;
-import mvm.rya.accumulo.AccumuloRyaDAO;
-import mvm.rya.api.RdfCloudTripleStoreConfiguration;
-import mvm.rya.indexing.accumulo.ConfigUtils;
-import mvm.rya.indexing.accumulo.entity.StarQuery.CardinalityStatementPattern;
-import mvm.rya.joinselect.AccumuloSelectivityEvalDAO;
-import mvm.rya.prospector.service.ProspectorServiceEvalStatsDAO;
-import mvm.rya.rdftriplestore.RdfCloudTripleStore;
-import mvm.rya.rdftriplestore.RdfCloudTripleStoreConnection;
-import mvm.rya.rdftriplestore.evaluation.ExternalBatchingIterator;
+import org.apache.rya.accumulo.AccumuloRdfConfiguration;
+import org.apache.rya.accumulo.AccumuloRyaDAO;
+import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
+import org.apache.rya.indexing.accumulo.ConfigUtils;
+import org.apache.rya.indexing.accumulo.entity.StarQuery.CardinalityStatementPattern;
+import org.apache.rya.joinselect.AccumuloSelectivityEvalDAO;
+import org.apache.rya.prospector.service.ProspectorServiceEvalStatsDAO;
+import org.apache.rya.rdftriplestore.RdfCloudTripleStore;
+import org.apache.rya.rdftriplestore.RdfCloudTripleStoreConnection;
+import org.apache.rya.rdftriplestore.evaluation.ExternalBatchingIterator;
 
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;

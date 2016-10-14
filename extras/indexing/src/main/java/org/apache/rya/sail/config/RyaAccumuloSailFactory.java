@@ -1,4 +1,4 @@
-package mvm.rya.sail.config;
+package org.apache.rya.sail.config;
 
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
@@ -31,11 +31,11 @@ import org.openrdf.sail.config.SailImplConfig;
  * under the License.
  */
 
-import mvm.rya.accumulo.AccumuloRdfConfiguration;
-import mvm.rya.accumulo.AccumuloRyaDAO;
-import mvm.rya.api.persist.RyaDAOException;
-import mvm.rya.indexing.accumulo.ConfigUtils;
-import mvm.rya.rdftriplestore.RdfCloudTripleStore;
+import org.apache.rya.accumulo.AccumuloRdfConfiguration;
+import org.apache.rya.accumulo.AccumuloRyaDAO;
+import org.apache.rya.api.persist.RyaDAOException;
+import org.apache.rya.indexing.accumulo.ConfigUtils;
+import org.apache.rya.rdftriplestore.RdfCloudTripleStore;
 
 /**
  * @deprecated Use {@link RyaSailFactory} instead.

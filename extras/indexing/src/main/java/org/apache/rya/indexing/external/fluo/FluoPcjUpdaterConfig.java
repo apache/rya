@@ -16,10 +16,10 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package mvm.rya.indexing.external.fluo;
+package org.apache.rya.indexing.external.fluo;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import mvm.rya.indexing.accumulo.ConfigUtils;
+import org.apache.rya.indexing.accumulo.ConfigUtils;
 
 import org.apache.hadoop.conf.Configuration;
 

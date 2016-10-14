@@ -16,7 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package mvm.rya.api.client.accumulo;
+package org.apache.rya.api.client.accumulo;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -30,9 +30,9 @@ import javax.annotation.ParametersAreNonnullByDefault;
 
 import org.apache.accumulo.core.client.Connector;
 
-import mvm.rya.api.RdfCloudTripleStoreConstants;
-import mvm.rya.api.client.ListInstances;
-import mvm.rya.api.client.RyaClientException;
+import org.apache.rya.api.RdfCloudTripleStoreConstants;
+import org.apache.rya.api.client.ListInstances;
+import org.apache.rya.api.client.RyaClientException;
 
 /**
  * An Accumulo implementation of the {@link ListInstances} command.

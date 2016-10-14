@@ -1,4 +1,4 @@
-package mvm.cloud.rdf.web.cloudbase.sail;
+package org.apache.cloud.rdf.web.cloudbase.sail;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -42,45 +42,45 @@ public class DeleteDataServletRun {
 //				" ?obj <http://www.w3.org/2000/01/rdf-schema#label> ?label }";
             long dayBefore = System.currentTimeMillis() - 86400000;
             System.out.println(dayBefore);
-//        String query = "SELECT DISTINCT ?obj WHERE { ?serv <http://mvm.com/rdf/mm/relatesTo> <http://mvm.com/rdf/mm/LTS::stratus30> . " +
-//				" ?serv <http://mvm.com/rdf/mm/relatesTo> ?obj ." +
-//                " ?serv <http://mvm.com/rdf/mm/timestamp> ?ts ." +
+//        String query = "SELECT DISTINCT ?obj WHERE { ?serv <http://org.apache.com/rdf/mm/relatesTo> <http://org.apache.com/rdf/mm/LTS::stratus30> . " +
+//				" ?serv <http://org.apache.com/rdf/mm/relatesTo> ?obj ." +
+//                " ?serv <http://org.apache.com/rdf/mm/timestamp> ?ts ." +
 ////                " FILTER (?ts >= '"+dayBefore+"') " +
 //                " }" +
 //                " ORDER BY ?obj ";
 
-            String giveAllClusters = "SELECT DISTINCT ?uu WHERE { ?uu <http://mvm.com/rdf/mm/relatesTo> ?obj . " +
+            String giveAllClusters = "SELECT DISTINCT ?uu WHERE { ?uu <http://org.apache.com/rdf/mm/relatesTo> ?obj . " +
                     " }" +
                     " ORDER BY ?uu ";
 
-//        String query = "SELECT DISTINCT ?obj WHERE { <http://mvm.com/rdf/mm/1a4eaa7c-842c-456a-94c0-6547de6be841> <http://mvm.com/rdf/mm/relatesTo> ?obj . " +
+//        String query = "SELECT DISTINCT ?obj WHERE { <http://org.apache.com/rdf/mm/1a4eaa7c-842c-456a-94c0-6547de6be841> <http://org.apache.com/rdf/mm/relatesTo> ?obj . " +
 //                " }" +
 //                " ORDER BY ?obj ";
 
             //hasfunction query
-            String hasFunctionQuery = "SELECT DISTINCT ?obj WHERE { ?uu <http://mvm.com/rdf/mm/hasFunction> <http://mvm.com/rdf/mm/america> . " +
-                    " ?uu <http://mvm.com/rdf/mm/relatesTo> ?obj" +
+            String hasFunctionQuery = "SELECT DISTINCT ?obj WHERE { ?uu <http://org.apache.com/rdf/mm/hasFunction> <http://org.apache.com/rdf/mm/america> . " +
+                    " ?uu <http://org.apache.com/rdf/mm/relatesTo> ?obj" +
                     " }" +
                     " ORDER BY ?obj ";
 
-            String allFunctions = "SELECT DISTINCT ?func ?obj WHERE { ?uu <http://mvm.com/rdf/mm/hasFunction> ?func . " +
-                    " ?uu <http://mvm.com/rdf/mm/relatesTo> ?obj" +
+            String allFunctions = "SELECT DISTINCT ?func ?obj WHERE { ?uu <http://org.apache.com/rdf/mm/hasFunction> ?func . " +
+                    " ?uu <http://org.apache.com/rdf/mm/relatesTo> ?obj" +
                     " }" +
                     " ORDER BY ?func ";
 
-            String allFunctionsThresh = "SELECT DISTINCT ?func ?obj ?thresh WHERE { ?uu <http://mvm.com/rdf/mm/hasFunction> ?func . " +
-                    " ?uu <http://mvm.com/rdf/mm/relatesTo> ?obj ." +
-                    " ?uu <http://mvm.com/rdf/mm/threshold> ?thresh" +
+            String allFunctionsThresh = "SELECT DISTINCT ?func ?obj ?thresh WHERE { ?uu <http://org.apache.com/rdf/mm/hasFunction> ?func . " +
+                    " ?uu <http://org.apache.com/rdf/mm/relatesTo> ?obj ." +
+                    " ?uu <http://org.apache.com/rdf/mm/threshold> ?thresh" +
                     " }" +
                     " ORDER BY ?func ";
 
 
-            String cwdQuery = "SELECT DISTINCT ?obj ?packname WHERE { ?subj <urn:mvm.cwd/2.0/man/uuid> ?obj . " +
-                    " ?subj <urn:mvm.cwd/2.0/man/installedPackages> ?instPacks ." +
-                    " ?instPacks <urn:mvm.cwd/2.0/man/package> ?packid ." +
-                    " ?packid <urn:mvm.cwd/2.0/man/name> ?packname } ";
+            String cwdQuery = "SELECT DISTINCT ?obj ?packname WHERE { ?subj <urn:org.apache.cwd/2.0/man/uuid> ?obj . " +
+                    " ?subj <urn:org.apache.cwd/2.0/man/installedPackages> ?instPacks ." +
+                    " ?instPacks <urn:org.apache.cwd/2.0/man/package> ?packid ." +
+                    " ?packid <urn:org.apache.cwd/2.0/man/name> ?packname } ";
 
-            String cwdAllServersQuery = "SELECT DISTINCT ?obj WHERE { ?subj <urn:mvm.cwd/2.0/man/uuid> ?obj } ";
+            String cwdAllServersQuery = "SELECT DISTINCT ?obj WHERE { ?subj <urn:org.apache.cwd/2.0/man/uuid> ?obj } ";
 
             // rearrange for better filter
             // 0.124s
@@ -157,7 +157,7 @@ public class DeleteDataServletRun {
                     " }";
 
             String bongoAllCollections = "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\n" +
-                    " PREFIX bg: <http://mvm.com/rdf/bongo/bongo.owl#>\n" +
+                    " PREFIX bg: <http://org.apache.com/rdf/bongo/bongo.owl#>\n" +
                     " SELECT * WHERE\n" +
                     " {\n" +
                     "     ?x rdf:type bg:Collection .\n" +
@@ -168,7 +168,7 @@ public class DeleteDataServletRun {
                     " }";
 
             String bongoEntriesForCategory = "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\n" +
-                    " PREFIX bg: <http://mvm.com/rdf/bongo/bongo.owl#>\n" +
+                    " PREFIX bg: <http://org.apache.com/rdf/bongo/bongo.owl#>\n" +
                     " SELECT ?uniqueid WHERE\n" +
                     " {\n" +
                     "     ?entryid bg:inCollection bg:CollA .\n" +
@@ -179,7 +179,7 @@ public class DeleteDataServletRun {
                     " }";
 
             String bongoEntriesForAuthor = "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\n" +
-                    " PREFIX bg: <http://mvm.com/rdf/bongo/bongo.owl#>\n" +
+                    " PREFIX bg: <http://org.apache.com/rdf/bongo/bongo.owl#>\n" +
                     " SELECT ?uniqueid WHERE\n" +
                     " {\n" +
                     "     ?entryid bg:inCollection bg:CollA .\n" +
@@ -190,7 +190,7 @@ public class DeleteDataServletRun {
                     " }";
 
             String bongoEntriesForModifiedTime = "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\n" +
-                    " PREFIX bg: <http://mvm.com/rdf/bongo/bongo.owl#>\n" +
+                    " PREFIX bg: <http://org.apache.com/rdf/bongo/bongo.owl#>\n" +
                     " PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>\n" +
                     " SELECT DISTINCT ?entryid WHERE\n" +
                     " {\n" +
@@ -201,7 +201,7 @@ public class DeleteDataServletRun {
                     "     FILTER (xsd:dateTime(?modifiedTime) >= \"2011-10-21T13:18:30\"^^xsd:dateTime) \n" +
                     " }";
             String bongoEntriesSortTitle = "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\n" +
-                    " PREFIX bg: <http://mvm.com/rdf/bongo/bongo.owl#>\n" +
+                    " PREFIX bg: <http://org.apache.com/rdf/bongo/bongo.owl#>\n" +
                     " PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>\n" +
                     " SELECT DISTINCT ?uniqueid WHERE\n" +
                     " {\n" +
@@ -212,7 +212,7 @@ public class DeleteDataServletRun {
                     " } ORDER BY ?title";
 
             String bongoEntriesForTitle = "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\n" +
-                    " PREFIX bg: <http://mvm.com/rdf/bongo/bongo.owl#>\n" +
+                    " PREFIX bg: <http://org.apache.com/rdf/bongo/bongo.owl#>\n" +
                     " PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>\n" +
                     " SELECT DISTINCT ?uniqueid WHERE\n" +
                     " {\n" +
@@ -223,7 +223,7 @@ public class DeleteDataServletRun {
                     "     FILTER (regex(?title,\"Entry1Title\")) }";
 
             String bongoQuery = "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\n" +
-                    " PREFIX bg: <http://mvm.com/rdf/bongo/bongo.owl#>\n" +
+                    " PREFIX bg: <http://org.apache.com/rdf/bongo/bongo.owl#>\n" +
                     " SELECT * WHERE\n" +
                     " {\n" +
                     "     ?col rdf:type bg:Collection .\n" +
@@ -235,7 +235,7 @@ public class DeleteDataServletRun {
                     " }";
 
             String bongoAllEntriesInCollection = "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\n" +
-                    " PREFIX bg: <http://mvm.com/rdf/bongo/bongo.owl#>\n" +
+                    " PREFIX bg: <http://org.apache.com/rdf/bongo/bongo.owl#>\n" +
                     " SELECT * WHERE\n" +
                     " {\n" +
                     "     ?y bg:inCollection bg:CollA .\n" +
@@ -246,7 +246,7 @@ public class DeleteDataServletRun {
                     " }";
 
             String bongoAllForEntry1 = "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\n" +
-                    " PREFIX bg: <http://mvm.com/rdf/bongo/bongo.owl#>\n" +
+                    " PREFIX bg: <http://org.apache.com/rdf/bongo/bongo.owl#>\n" +
                     " SELECT * WHERE\n" +
                     " {\n" +
                     "     bg:EntryM rdf:type bg:Entry .\n" +
@@ -267,14 +267,14 @@ public class DeleteDataServletRun {
                     " }";
 
             String bongoEntryAllAuthors = "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\n" +
-                    " PREFIX bg: <http://mvm.com/rdf/bongo/bongo.owl#>\n" +
+                    " PREFIX bg: <http://org.apache.com/rdf/bongo/bongo.owl#>\n" +
                     " SELECT * WHERE\n" +
                     " {\n" +
                     "     bg:Entry1 bg:hasAuthor ?y .\n" +
                     " }";
 
             String bongoEntriesModAfter = "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\n" +
-                    " PREFIX bg: <http://mvm.com/rdf/bongo/bongo.owl#>\n" +
+                    " PREFIX bg: <http://org.apache.com/rdf/bongo/bongo.owl#>\n" +
                     " PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>\n" +
                     " SELECT * WHERE\n" +
                     " {\n" +
@@ -283,7 +283,7 @@ public class DeleteDataServletRun {
                     " }";
 
             String cimData = "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\n" +
-                    " PREFIX mm: <http://mvm.com/owl/mm.owl#>\n" +
+                    " PREFIX mm: <http://org.apache.com/owl/mm.owl#>\n" +
                     " PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>\n" +
                     " SELECT * WHERE\n" +
                     " {\n" +
@@ -293,30 +293,30 @@ public class DeleteDataServletRun {
                     " }";
 
             String cimData2 = "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\n" +
-                    "  PREFIX mm: <http://mvm.com/owl/mm.owl#>\n" +
-                    "  PREFIX mmcs: <http://mvm.com/owl/mm.owl#urn:uuid:some:>\n" +
+                    "  PREFIX mm: <http://org.apache.com/owl/mm.owl#>\n" +
+                    "  PREFIX mmcs: <http://org.apache.com/owl/mm.owl#urn:uuid:some:>\n" +
                     "  SELECT  ?pred ?obj WHERE {\n" +
                     "       mmcs:computersystem ?pred ?obj\n" +
                     "  }";
 
             String cimData3 = "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\n" +
                     "SELECT ?pred ?obj WHERE {\n" +
-                    "<http://mvm.com/owl/mm.owl#urn:mm:mvm:lts:root/cimv2:PG_OperatingSystem.CreationClassName=CIM_OperatingSystem,CSCreationClassName=CIM_UnitaryComputerSystem,CSName=nimbus02.bullpen.net,Name=Red_Hat_Enterprise_Linux_Server> ?pred ?obj\n" +
+                    "<http://org.apache.com/owl/mm.owl#urn:mm:org.apache:lts:root/cimv2:PG_OperatingSystem.CreationClassName=CIM_OperatingSystem,CSCreationClassName=CIM_UnitaryComputerSystem,CSName=nimbus02.bullpen.net,Name=Red_Hat_Enterprise_Linux_Server> ?pred ?obj\n" +
                     "}";
 
             String cimHasInstalledSoftware = "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\n" +
-                    "PREFIX mm: <http://mvm.com/owl/2010/10/mm.owl#>\n" +
+                    "PREFIX mm: <http://org.apache.com/owl/2010/10/mm.owl#>\n" +
                     "SELECT DISTINCT ?obj ?name ?caption WHERE {\n" +
-//                "     <http://mvm.com/owl/2010/10/mm.owl#urn:mm:mvm:LTS:root/cimv2:PG_OperatingSystem:CIM_ComputerSystem:stratus06.bullpen.net:Red_Hat_Enterprise_Linux_Server> mm:hasInstalledSoftware ?obj .\n" +
+//                "     <http://org.apache.com/owl/2010/10/mm.owl#urn:mm:org.apache:LTS:root/cimv2:PG_OperatingSystem:CIM_ComputerSystem:stratus06.bullpen.net:Red_Hat_Enterprise_Linux_Server> mm:hasInstalledSoftware ?obj .\n" +
                     "     ?serv mm:hasInstalledSoftware ?obj .\n" +
                     "      ?obj mm:name ?name ;\n" +
                     "           mm:caption ?caption .\n" +
                     "}";
 
             String cimHasRunningSoftware = "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\n" +
-                    "PREFIX mm: <http://mvm.com/owl/2010/10/mm.owl#>\n" +
+                    "PREFIX mm: <http://org.apache.com/owl/2010/10/mm.owl#>\n" +
                     "SELECT * WHERE {\n" +
-                    "     <http://mvm.com/owl/2010/10/mm.owl#urn:mm:mvm:LTS:root/cimv2:PG_OperatingSystem:CIM_ComputerSystem:stratus10:Red_Hat_Enterprise_Linux_Server> mm:hasRunningProcess ?obj .\n" +
+                    "     <http://org.apache.com/owl/2010/10/mm.owl#urn:mm:org.apache:LTS:root/cimv2:PG_OperatingSystem:CIM_ComputerSystem:stratus10:Red_Hat_Enterprise_Linux_Server> mm:hasRunningProcess ?obj .\n" +
                     "     ?obj mm:name ?name ; \n" +
                     "          mm:handle ?handle ; \n" +
                     "          mm:description ?description ; \n" +
@@ -325,28 +325,28 @@ public class DeleteDataServletRun {
                     "}";
 
             String cimCpu = "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\n" +
-                    "PREFIX mm: <http://mvm.com/owl/2010/10/mm.owl#>\n" +
+                    "PREFIX mm: <http://org.apache.com/owl/2010/10/mm.owl#>\n" +
                     "SELECT * \n" +
                     "WHERE {\n" +
-                    "     <http://mvm.com/owl/2010/10/mm.owl#urn:mm:mvm:LTS:root/cimv2:CIM_ComputerSystem:stratus10> mm:hasProcessor ?obj .\n" +
+                    "     <http://org.apache.com/owl/2010/10/mm.owl#urn:mm:org.apache:LTS:root/cimv2:CIM_ComputerSystem:stratus10> mm:hasProcessor ?obj .\n" +
                     "     ?obj mm:maxClockSpeed ?speed .\n" +
                     "     ?obj mm:loadPercentage ?load .\n" +
                     "     ?obj mm:elementName ?type ." +
                     "}";
 
             String cimCpuLoad = "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\n" +
-                    "PREFIX mm: <http://mvm.com/owl/2010/10/mm.owl#>\n" +
+                    "PREFIX mm: <http://org.apache.com/owl/2010/10/mm.owl#>\n" +
                     "SELECT * \n" +
                     "WHERE {\n" +
-                    "     <http://mvm.com/owl/2010/10/mm.owl#urn:mm:mvm:LTS:root/cimv2:CIM_ComputerSystem:stratus10> mm:hasProcessor ?obj .\n" +
+                    "     <http://org.apache.com/owl/2010/10/mm.owl#urn:mm:org.apache:LTS:root/cimv2:CIM_ComputerSystem:stratus10> mm:hasProcessor ?obj .\n" +
                     "     ?obj mm:loadPercentage ?load ." +
                     "}";
 
 
             String cimHasFileSystem = "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\n" +
-                    "PREFIX mm: <http://mvm.com/owl/2010/10/mm.owl#>\n" +
+                    "PREFIX mm: <http://org.apache.com/owl/2010/10/mm.owl#>\n" +
                     "SELECT * WHERE {\n" +
-//                "     <http://mvm.com/owl/2010/10/mm.owl#urn:mm:mvm:LTS:root/cimv2:PG_OperatingSystem:CIM_ComputerSystem:stratus10:Red_Hat_Enterprise_Linux_Server> mm:hasFileSystem ?obj ." +
+//                "     <http://org.apache.com/owl/2010/10/mm.owl#urn:mm:org.apache:LTS:root/cimv2:PG_OperatingSystem:CIM_ComputerSystem:stratus10:Red_Hat_Enterprise_Linux_Server> mm:hasFileSystem ?obj ." +
                     "     ?serv mm:hasFileSystem ?obj ." +
                     "     ?obj mm:availableSpace ?available .\n" +
                     "     ?obj mm:fileSystemSize ?size .\n" +
@@ -354,8 +354,8 @@ public class DeleteDataServletRun {
                     "}";
 
             String clusterKolm = "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\n" +
-                    "PREFIX mm: <http://mvm.com/owl/2010/10/mm.owl#>\n" +
-                    "PREFIX kolm: <http://mvm.com/lrn/2010/11/kolm#>\n" +
+                    "PREFIX mm: <http://org.apache.com/owl/2010/10/mm.owl#>\n" +
+                    "PREFIX kolm: <http://org.apache.com/lrn/2010/11/kolm#>\n" +
                     "SELECT ?name ?cluster ?srv ?ncd ?thresh ?ts WHERE {\n" +
                     "     ?cluster kolm:relatesTo ?pt ;\n" +
                     "              kolm:threshold ?thresh .\n" +
@@ -367,8 +367,8 @@ public class DeleteDataServletRun {
                     " ORDER BY ?cluster ?srv ?ncd";
 
             String clusterKolm2 = "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\n" +
-                    "PREFIX mm: <http://mvm.com/owl/2010/10/mm.owl#>\n" +
-                    "PREFIX kolm: <http://mvm.com/lrn/2010/11/kolm#>\n" +
+                    "PREFIX mm: <http://org.apache.com/owl/2010/10/mm.owl#>\n" +
+                    "PREFIX kolm: <http://org.apache.com/lrn/2010/11/kolm#>\n" +
                     "SELECT ?cserv ?srv ?ncd ?thresh ?ts WHERE {\n" +
                     "     ?cpt kolm:ncd \"0.0\" .\n" +
                     "     ?cpt kolm:serverRef ?cserv .\n" +
@@ -385,8 +385,8 @@ public class DeleteDataServletRun {
                     " ORDER BY ?cserv ?ncd ?srv";
 
             String clusterKolmOtherClusters = "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\n" +
-                    "PREFIX mm: <http://mvm.com/owl/2010/10/mm.owl#>\n" +
-                    "PREFIX kolm: <http://mvm.com/lrn/2010/11/kolm#>\n" +
+                    "PREFIX mm: <http://org.apache.com/owl/2010/10/mm.owl#>\n" +
+                    "PREFIX kolm: <http://org.apache.com/lrn/2010/11/kolm#>\n" +
                     "SELECT ?cserv ?srv ?ncd WHERE {\n" +
                     "     ?cpt kolm:ncd \"0.0\" .\n" +
                     "     ?cpt kolm:serverRef ?cserv .\n" +
@@ -403,24 +403,24 @@ public class DeleteDataServletRun {
                     " ORDER BY ?cserv ?srv ?ncd";
 
             String clusterKolmStratus13 = "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\n" +
-                    "PREFIX mm: <http://mvm.com/owl/2010/10/mm.owl#>\n" +
-                    "PREFIX kolm: <http://mvm.com/lrn/2010/11/kolm#>\n" +
+                    "PREFIX mm: <http://org.apache.com/owl/2010/10/mm.owl#>\n" +
+                    "PREFIX kolm: <http://org.apache.com/lrn/2010/11/kolm#>\n" +
                     "SELECT DISTINCT ?srv ?ncd WHERE {\n" +
-                    "     ?pt kolm:serverRef <http://mvm.com/owl/2010/10/mm.owl#urn:mm:mvm:LTS:root/cimv2:PG_OperatingSystem:CIM_ComputerSystem:stratus13:Red_Hat_Enterprise_Linux_Server> .\n" +
+                    "     ?pt kolm:serverRef <http://org.apache.com/owl/2010/10/mm.owl#urn:mm:org.apache:LTS:root/cimv2:PG_OperatingSystem:CIM_ComputerSystem:stratus13:Red_Hat_Enterprise_Linux_Server> .\n" +
                     "     ?cluster kolm:relatesTo ?pt .\n" +
                     "     ?cluster kolm:relatesTo ?pt2 .\n" +
                     "     ?pt2 kolm:serverRef ?srv .\n" +
 //                "     ?cluster kolm:relatesTo ?pt ;\n" +
 //                "              kolm:threshold ?thresh .\n" +
-//                "     ?pt kolm:serverRef <http://mvm.com/owl/2010/10/mm.owl#urn:mm:mvm:LTS:root/cimv2:PG_OperatingSystem:CIM_ComputerSystem:stratus10:Red_Hat_Enterprise_Linux_Server> ;\n" +
+//                "     ?pt kolm:serverRef <http://org.apache.com/owl/2010/10/mm.owl#urn:mm:org.apache:LTS:root/cimv2:PG_OperatingSystem:CIM_ComputerSystem:stratus10:Red_Hat_Enterprise_Linux_Server> ;\n" +
                     "       ?pt2  kolm:ncd ?ncd .\n" +
                     "       ?cluster kolm:timestamp ?ts .\n" +
-//                "     <http://mvm.com/owl/2010/10/mm.owl#urn:mm:mvm:LTS:root/cimv2:PG_OperatingSystem:CIM_ComputerSystem:stratus10:Red_Hat_Enterprise_Linux_Server> mm:CSName ?name .\n" +
+//                "     <http://org.apache.com/owl/2010/10/mm.owl#urn:mm:org.apache:LTS:root/cimv2:PG_OperatingSystem:CIM_ComputerSystem:stratus10:Red_Hat_Enterprise_Linux_Server> mm:CSName ?name .\n" +
                     "} \n" +
                     " ORDER BY ?ncd";
 
             String cimLatestMeasure = "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\n" +
-                    "PREFIX mm: <http://mvm.com/owl/2010/10/mm.owl#>\n" +
+                    "PREFIX mm: <http://org.apache.com/owl/2010/10/mm.owl#>\n" +
                     "SELECT ?proc ?val ?time WHERE {\n" +
                     "     ?proc mm:loadPercentage ?val .\n" +
                     "     ?subj rdf:subject ?proc .\n" +
@@ -431,8 +431,8 @@ public class DeleteDataServletRun {
                     "ORDER BY DESC(?time)\n" +
                     "LIMIT 250";
 
-            String deleteBlankNodesCim = "prefix Base: <http://mvm.com/base/2011/05/base.owl#>\n" +
-                    "prefix Core: <http://mvm.com/2011/05/core#>\n" +
+            String deleteBlankNodesCim = "prefix Base: <http://org.apache.com/base/2011/05/base.owl#>\n" +
+                    "prefix Core: <http://org.apache.com/2011/05/core#>\n" +
                     "\n" +
                     "select *\n" +
                     "{ \n" +
@@ -442,7 +442,7 @@ public class DeleteDataServletRun {
                     "FILTER isBlank(?server).\n" +
                     "}";
 
-//        String query = "DELETE {?subj <http://mvm.com/rdf/mm/relatesTo> <http://mvm.com/rdf/mm/LTS::stratus30>} WHERE { ?subj <http://mvm.com/rdf/mm/relatesTo> <http://mvm.com/rdf/mm/LTS::stratus30>}";
+//        String query = "DELETE {?subj <http://org.apache.com/rdf/mm/relatesTo> <http://org.apache.com/rdf/mm/LTS::stratus30>} WHERE { ?subj <http://org.apache.com/rdf/mm/relatesTo> <http://org.apache.com/rdf/mm/LTS::stratus30>}";
 //
             String query = deleteBlankNodesCim;
             System.out.println(query);

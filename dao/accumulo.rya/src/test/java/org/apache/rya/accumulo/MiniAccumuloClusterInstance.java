@@ -16,7 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package mvm.rya.accumulo;
+package org.apache.rya.accumulo;
 
 import java.io.File;
 import java.io.IOException;

@@ -1,4 +1,4 @@
-package mvm.rya.indexing.external.tupleSet;
+package org.apache.rya.indexing.external.tupleSet;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one

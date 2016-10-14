@@ -16,7 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package mvm.rya.shell;
+package org.apache.rya.shell;
 
 import static java.util.Objects.requireNonNull;
 
@@ -30,8 +30,8 @@ import javax.annotation.concurrent.ThreadSafe;
 
 import com.google.common.base.Optional;
 
-import mvm.rya.api.client.RyaClient;
-import mvm.rya.api.client.accumulo.AccumuloConnectionDetails;
+import org.apache.rya.api.client.RyaClient;
+import org.apache.rya.api.client.accumulo.AccumuloConnectionDetails;
 
 /**
  * Holds values that are shared between the various Rya command classes.

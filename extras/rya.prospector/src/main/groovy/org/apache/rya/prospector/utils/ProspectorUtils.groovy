@@ -17,7 +17,7 @@
  * under the License.
  */
 
-package mvm.rya.prospector.utils
+package org.apache.rya.prospector.utils
 
 import org.apache.accumulo.core.client.Connector
 import org.apache.accumulo.core.client.Instance
@@ -34,10 +34,10 @@ import org.apache.hadoop.io.compress.GzipCodec
 import org.apache.hadoop.mapreduce.Job
 
 import java.text.SimpleDateFormat
-import mvm.rya.prospector.plans.IndexWorkPlan
+import org.apache.rya.prospector.plans.IndexWorkPlan
 import org.apache.accumulo.core.client.security.tokens.PasswordToken
 
-import static mvm.rya.prospector.utils.ProspectorConstants.*
+import static org.apache.rya.prospector.utils.ProspectorConstants.*
 
 /**
  * Date: 12/4/12

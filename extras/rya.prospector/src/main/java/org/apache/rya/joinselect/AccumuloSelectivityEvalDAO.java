@@ -1,4 +1,4 @@
-package mvm.rya.joinselect;
+package org.apache.rya.joinselect;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -30,12 +30,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import mvm.rya.accumulo.AccumuloRdfUtils;
-import mvm.rya.api.RdfCloudTripleStoreConfiguration;
-import mvm.rya.api.layout.TableLayoutStrategy;
-import mvm.rya.api.persist.RdfDAOException;
-import mvm.rya.api.persist.RdfEvalStatsDAO;
-import mvm.rya.api.persist.joinselect.SelectivityEvalDAO;
+import org.apache.rya.accumulo.AccumuloRdfUtils;
+import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
+import org.apache.rya.api.layout.TableLayoutStrategy;
+import org.apache.rya.api.persist.RdfDAOException;
+import org.apache.rya.api.persist.RdfEvalStatsDAO;
+import org.apache.rya.api.persist.joinselect.SelectivityEvalDAO;
 
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;

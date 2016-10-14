@@ -17,15 +17,15 @@
  * under the License.
  */
 
-//package mvm.rya.api.utils;
+//package org.apache.rya.api.utils;
 
 //
 //import junit.framework.TestCase;
-//import mvm.rya.api.RdfCloudTripleStoreUtils;
+//import org.apache.rya.api.RdfCloudTripleStoreUtils;
 //import org.openrdf.model.Statement;
 //import org.openrdf.model.impl.StatementImpl;
 //
-//import static mvm.rya.api.RdfCloudTripleStoreConstants.*;
+//import static org.apache.rya.api.RdfCloudTripleStoreConstants.*;
 //
 ///**
 // * Class RdfIOTest

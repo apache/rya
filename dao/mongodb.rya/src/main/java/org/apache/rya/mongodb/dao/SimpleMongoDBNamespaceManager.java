@@ -1,4 +1,4 @@
-package mvm.rya.mongodb.dao;
+package org.apache.rya.mongodb.dao;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -26,8 +26,8 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Map;
 
-import mvm.rya.api.persist.RyaDAOException;
-import mvm.rya.mongodb.MongoDBRdfConfiguration;
+import org.apache.rya.api.persist.RyaDAOException;
+import org.apache.rya.mongodb.MongoDBRdfConfiguration;
 
 import org.apache.commons.codec.binary.Hex;
 import org.openrdf.model.Namespace;

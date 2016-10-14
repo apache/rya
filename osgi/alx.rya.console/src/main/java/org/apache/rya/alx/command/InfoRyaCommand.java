@@ -1,4 +1,4 @@
-package mvm.rya.alx.command;
+package org.apache.rya.alx.command;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -21,7 +21,7 @@ package mvm.rya.alx.command;
 
 
 
-import mvm.rya.api.RdfCloudTripleStoreConfiguration;
+import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
 import org.apache.felix.gogo.commands.Command;
 
 import java.util.Map;

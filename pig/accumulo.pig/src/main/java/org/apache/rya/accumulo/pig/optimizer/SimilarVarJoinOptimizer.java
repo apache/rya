@@ -1,4 +1,4 @@
-package mvm.rya.accumulo.pig.optimizer;
+package org.apache.rya.accumulo.pig.optimizer;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one

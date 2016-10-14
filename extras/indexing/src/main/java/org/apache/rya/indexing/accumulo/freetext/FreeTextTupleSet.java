@@ -1,4 +1,4 @@
-package mvm.rya.indexing.accumulo.freetext;
+package org.apache.rya.indexing.accumulo.freetext;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -25,12 +25,12 @@ import info.aduna.iteration.CloseableIteration;
 import java.io.IOException;
 import java.util.Set;
 
-import mvm.rya.indexing.FreeTextIndexer;
-import mvm.rya.indexing.IndexingExpr;
-import mvm.rya.indexing.IteratorFactory;
-import mvm.rya.indexing.SearchFunction;
-import mvm.rya.indexing.StatementConstraints;
-import mvm.rya.indexing.external.tupleSet.ExternalTupleSet;
+import org.apache.rya.indexing.FreeTextIndexer;
+import org.apache.rya.indexing.IndexingExpr;
+import org.apache.rya.indexing.IteratorFactory;
+import org.apache.rya.indexing.SearchFunction;
+import org.apache.rya.indexing.StatementConstraints;
+import org.apache.rya.indexing.external.tupleSet.ExternalTupleSet;
 
 import org.apache.hadoop.conf.Configuration;
 import org.openrdf.model.Statement;

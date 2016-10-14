@@ -1,4 +1,4 @@
-package mvm.rya.api.resolver.impl;
+package org.apache.rya.api.resolver.impl;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -21,7 +21,7 @@ package mvm.rya.api.resolver.impl;
 
 
 
-import mvm.rya.api.resolver.RyaTypeResolverException;
+import org.apache.rya.api.resolver.RyaTypeResolverException;
 import org.calrissian.mango.types.LexiTypeEncoders;
 import org.calrissian.mango.types.TypeEncoder;
 import org.calrissian.mango.types.exception.TypeDecodingException;

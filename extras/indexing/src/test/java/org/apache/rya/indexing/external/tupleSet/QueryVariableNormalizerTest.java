@@ -1,4 +1,4 @@
-package mvm.rya.indexing.external.tupleSet;
+package org.apache.rya.indexing.external.tupleSet;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -24,7 +24,7 @@ package mvm.rya.indexing.external.tupleSet;
 import java.util.List;
 import java.util.Set;
 
-import mvm.rya.indexing.pcj.matching.QueryVariableNormalizer;
+import org.apache.rya.indexing.pcj.matching.QueryVariableNormalizer;
 
 import org.junit.Assert;
 import org.junit.Test;

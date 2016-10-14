@@ -1,4 +1,4 @@
-package mvm.rya.api.persist;
+package org.apache.rya.api.persist;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one

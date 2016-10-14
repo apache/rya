@@ -1,4 +1,4 @@
-package mvm.rya.indexing.accumulo.temporal;
+package org.apache.rya.indexing.accumulo.temporal;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -22,9 +22,9 @@ package mvm.rya.indexing.accumulo.temporal;
 
 import java.util.Arrays;
 
-import mvm.rya.indexing.TemporalInstant;
-import mvm.rya.indexing.TemporalInstantRfc3339;
-import mvm.rya.indexing.TemporalInterval;
+import org.apache.rya.indexing.TemporalInstant;
+import org.apache.rya.indexing.TemporalInstantRfc3339;
+import org.apache.rya.indexing.TemporalInterval;
 
 import org.joda.time.DateTime;
 import org.junit.Assert;

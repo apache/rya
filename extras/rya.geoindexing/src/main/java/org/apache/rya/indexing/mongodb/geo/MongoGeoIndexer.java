@@ -1,4 +1,4 @@
-package mvm.rya.indexing.mongodb.geo;
+package org.apache.rya.indexing.mongodb.geo;
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -18,9 +18,9 @@ package mvm.rya.indexing.mongodb.geo;
  * under the License.
  */
 
-import static mvm.rya.indexing.mongodb.geo.GeoMongoDBStorageStrategy.GeoQueryType.EQUALS;
-import static mvm.rya.indexing.mongodb.geo.GeoMongoDBStorageStrategy.GeoQueryType.INTERSECTS;
-import static mvm.rya.indexing.mongodb.geo.GeoMongoDBStorageStrategy.GeoQueryType.WITHIN;
+import static org.apache.rya.indexing.mongodb.geo.GeoMongoDBStorageStrategy.GeoQueryType.EQUALS;
+import static org.apache.rya.indexing.mongodb.geo.GeoMongoDBStorageStrategy.GeoQueryType.INTERSECTS;
+import static org.apache.rya.indexing.mongodb.geo.GeoMongoDBStorageStrategy.GeoQueryType.WITHIN;
 
 import org.apache.log4j.Logger;
 import org.openrdf.model.Statement;
@@ -30,12 +30,12 @@ import com.mongodb.DBObject;
 import com.vividsolutions.jts.geom.Geometry;
 
 import info.aduna.iteration.CloseableIteration;
-import mvm.rya.indexing.GeoIndexer;
-import mvm.rya.indexing.StatementConstraints;
-import mvm.rya.indexing.accumulo.ConfigUtils;
-import mvm.rya.indexing.mongodb.AbstractMongoIndexer;
-import mvm.rya.indexing.mongodb.geo.GeoMongoDBStorageStrategy.GeoQuery;
-import mvm.rya.mongodb.MongoDBRdfConfiguration;
+import org.apache.rya.indexing.GeoIndexer;
+import org.apache.rya.indexing.StatementConstraints;
+import org.apache.rya.indexing.accumulo.ConfigUtils;
+import org.apache.rya.indexing.mongodb.AbstractMongoIndexer;
+import org.apache.rya.indexing.mongodb.geo.GeoMongoDBStorageStrategy.GeoQuery;
+import org.apache.rya.mongodb.MongoDBRdfConfiguration;
 
 public class MongoGeoIndexer extends AbstractMongoIndexer<GeoMongoDBStorageStrategy> implements GeoIndexer {
     private static final String COLLECTION_SUFFIX = "geo";

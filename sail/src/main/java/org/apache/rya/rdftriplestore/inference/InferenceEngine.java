@@ -16,7 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package mvm.rya.rdftriplestore.inference;
+package org.apache.rya.rdftriplestore.inference;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -54,10 +54,10 @@ import org.apache.tinkerpop.gremlin.structure.Vertex;
 import com.google.common.collect.Iterators;
 
 import info.aduna.iteration.CloseableIteration;
-import mvm.rya.api.RdfCloudTripleStoreConfiguration;
-import mvm.rya.api.persist.RyaDAO;
-import mvm.rya.api.persist.RyaDAOException;
-import mvm.rya.api.persist.utils.RyaDAOHelper;
+import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
+import org.apache.rya.api.persist.RyaDAO;
+import org.apache.rya.api.persist.RyaDAOException;
+import org.apache.rya.api.persist.utils.RyaDAOHelper;
 
 /**
  * Will pull down inference relationships from dao every x seconds. <br>

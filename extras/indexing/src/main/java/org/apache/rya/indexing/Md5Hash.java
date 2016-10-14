@@ -1,4 +1,4 @@
-package mvm.rya.indexing;
+package org.apache.rya.indexing;
 
 import org.apache.accumulo.core.data.Value;
 

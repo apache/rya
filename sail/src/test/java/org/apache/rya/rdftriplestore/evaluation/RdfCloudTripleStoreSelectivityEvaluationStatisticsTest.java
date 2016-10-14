@@ -1,4 +1,4 @@
-package mvm.rya.rdftriplestore.evaluation;
+package org.apache.rya.rdftriplestore.evaluation;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -27,12 +27,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
-import mvm.rya.accumulo.AccumuloRdfConfiguration;
-import mvm.rya.api.RdfCloudTripleStoreConfiguration;
-import mvm.rya.api.layout.TablePrefixLayoutStrategy;
-import mvm.rya.api.persist.RdfEvalStatsDAO;
-import mvm.rya.joinselect.AccumuloSelectivityEvalDAO;
-import mvm.rya.prospector.service.ProspectorServiceEvalStatsDAO;
+import org.apache.rya.accumulo.AccumuloRdfConfiguration;
+import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
+import org.apache.rya.api.layout.TablePrefixLayoutStrategy;
+import org.apache.rya.api.persist.RdfEvalStatsDAO;
+import org.apache.rya.joinselect.AccumuloSelectivityEvalDAO;
+import org.apache.rya.prospector.service.ProspectorServiceEvalStatsDAO;
 
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;

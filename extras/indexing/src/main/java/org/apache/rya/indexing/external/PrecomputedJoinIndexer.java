@@ -16,7 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package mvm.rya.indexing.external;
+package org.apache.rya.indexing.external;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -42,13 +42,13 @@ import org.openrdf.model.URI;
 import com.google.common.base.Optional;
 import com.google.common.base.Supplier;
 
-import mvm.rya.accumulo.experimental.AbstractAccumuloIndexer;
-import mvm.rya.api.RdfCloudTripleStoreConfiguration;
-import mvm.rya.api.domain.RyaStatement;
-import mvm.rya.api.domain.RyaURI;
-import mvm.rya.api.persist.RyaDAO;
-import mvm.rya.indexing.external.accumulo.AccumuloPcjStorageSupplier;
-import mvm.rya.indexing.external.fluo.PcjUpdaterSupplierFactory;
+import org.apache.rya.accumulo.experimental.AbstractAccumuloIndexer;
+import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
+import org.apache.rya.api.domain.RyaStatement;
+import org.apache.rya.api.domain.RyaURI;
+import org.apache.rya.api.persist.RyaDAO;
+import org.apache.rya.indexing.external.accumulo.AccumuloPcjStorageSupplier;
+import org.apache.rya.indexing.external.fluo.PcjUpdaterSupplierFactory;
 
 /**
  * Updates the state of the Precomputed Join indices that are used by Rya.

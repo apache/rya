@@ -1,4 +1,4 @@
-package mvm.rya.api.utils;
+package org.apache.rya.api.utils;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one

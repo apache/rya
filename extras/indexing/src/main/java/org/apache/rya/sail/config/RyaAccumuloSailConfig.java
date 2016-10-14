@@ -1,4 +1,4 @@
-package mvm.rya.sail.config;
+package org.apache.rya.sail.config;
 
 import org.openrdf.model.Graph;
 import org.openrdf.model.Literal;
@@ -30,7 +30,7 @@ import org.openrdf.sail.config.SailImplConfigBase;
  * under the License.
  */
 
-import mvm.rya.accumulo.AccumuloRdfConfiguration;
+import org.apache.rya.accumulo.AccumuloRdfConfiguration;
 
 /**
  * @deprecated Use {@link AccumuloRdfConfiguration} instead.

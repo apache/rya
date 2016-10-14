@@ -23,4 +23,4 @@ echo "Launching Merge Tool..."
 :: so use a hard-coded filename for the jar if necessary.
 SET JAR_NAME=rya.merger-*.jar
 
-java -Xms256m -Xmx1024M -Dlog4j.configuration="file:config/log4j.xml" -cp %JAR_NAME% mvm.rya.accumulo.mr.merge.MergeTool -conf config/configuration.xml
+java -Xms256m -Xmx1024M -Dlog4j.configuration="file:config/log4j.xml" -cp %JAR_NAME% org.apache.rya.accumulo.mr.merge.MergeTool -conf config/configuration.xml

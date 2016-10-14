@@ -36,7 +36,7 @@ Since the data encodings changed in the 3.2.2 release, you will need to run the 
 3. Run
     
 ```
-hadoop jar accumulo.rya-mr.jar mvm.rya.accumulo.mr.upgrade.Upgrade322Tool -Dac.instance={} -Dac.username={} -Dac.pwd={}
+hadoop jar accumulo.rya-mr.jar org.apache.rya.accumulo.mr.upgrade.Upgrade322Tool -Dac.instance={} -Dac.username={} -Dac.pwd={}
 ```
 
 ## Quick Start VM
@@ -167,7 +167,7 @@ Bulk loading data is done through Map Reduce jobs
   This Map Reduce job will read a full file into memory and parse it into statements. The statements are saved into the store. Here is an example for storing in Accumulo:
 
 ```
-hadoop jar target/accumulo.rya-3.0.4-SNAPSHOT-shaded.jar mvm.rya.accumulo.mr.fileinput.BulkNtripsInputTool -Dac.zk=localhost:2181 -Dac.instance=accumulo -Dac.username=root -Dac.pwd=secret -Drdf.tablePrefix=triplestore_ -Dio.sort.mb=64 /tmp/temp.ntrips
+hadoop jar target/accumulo.rya-3.0.4-SNAPSHOT-shaded.jar org.apache.rya.accumulo.mr.fileinput.BulkNtripsInputTool -Dac.zk=localhost:2181 -Dac.instance=accumulo -Dac.username=root -Dac.pwd=secret -Drdf.tablePrefix=triplestore_ -Dio.sort.mb=64 /tmp/temp.ntrips
 ```
 
 Options:

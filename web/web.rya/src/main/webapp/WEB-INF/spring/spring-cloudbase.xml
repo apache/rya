@@ -38,12 +38,12 @@ under the License.
         <constructor-arg value="${instance.password}"/>
     </bean>
 
-    <bean id="conf" class="mvm.rya.cloudbase.CloudbaseRdfConfiguration">
+    <bean id="conf" class="org.apache.rya.cloudbase.CloudbaseRdfConfiguration">
         <property name="tablePrefix" value="${rya.tableprefix}"/>
         <property name="displayQueryPlan" value="${rya.displayqueryplan}"/>
     </bean>
 
-    <bean id="ryaDAO" class="mvm.rya.cloudbase.CloudbaseRyaDAO" init-method="init" destroy-method="destroy">
+    <bean id="ryaDAO" class="org.apache.rya.cloudbase.CloudbaseRyaDAO" init-method="init" destroy-method="destroy">
         <property name="connector" ref="connector"/>
         <property name="conf" ref="conf"/>
     </bean>

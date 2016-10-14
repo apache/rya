@@ -1,1 +1,1 @@
-class=mvm.rya.camel.cbsail.CbSailComponent
+class=org.apache.rya.camel.cbsail.CbSailComponent

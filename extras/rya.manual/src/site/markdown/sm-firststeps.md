@@ -46,7 +46,7 @@ I find that the best way to load the data is through the Bulk Load Map Reduce jo
 * Bulk load the data. Here is a sample command line:
 
 ```
-hadoop jar ../rya.mapreduce-3.2.10-SNAPSHOT-job.jar mvm.rya.accumulo.mr.RdfFileInputTool -Drdf.tablePrefix=lubm_ -Dcb.username=user -Dcb.pwd=cbpwd -Dcb.instance=instance -Dcb.zk=zookeeperLocation -Drdf.format=N-Triples <RDF_HDFS_LOCATION>
+hadoop jar ../rya.mapreduce-3.2.10-SNAPSHOT-job.jar org.apache.rya.accumulo.mr.RdfFileInputTool -Drdf.tablePrefix=lubm_ -Dcb.username=user -Dcb.pwd=cbpwd -Dcb.instance=instance -Dcb.zk=zookeeperLocation -Drdf.format=N-Triples <RDF_HDFS_LOCATION>
 ```
 
 Once the data is loaded, it is actually a good practice to compact your tables. You can do this by opening the accumulo shell `shell` and running the `compact` command on the generated tables. Remember the generated tables will be prefixed by the `rdf.tablePrefix` property you assigned above. The default tablePrefix is `rts`.

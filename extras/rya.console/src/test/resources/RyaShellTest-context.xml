@@ -26,27 +26,27 @@
 		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.1.xsd">
 
     <!-- Tell Spring where it can find all of the Command components. -->
-    <context:component-scan base-package="mvm.rya.shell"/>
+    <context:component-scan base-package="org.apache.rya.shell"/>
 
     <!-- Define the shell state bean that will be shared across all of the commands. -->
-    <bean id="sharedShellState" class="mvm.rya.shell.SharedShellState" />
+    <bean id="sharedShellState" class="org.apache.rya.shell.SharedShellState" />
 
     <!-- We use a mock Password Prompt here to simulate a user entering a password. -->
     <bean id="passwordPrompt" class="org.mockito.Mockito" factory-method="mock">
-        <constructor-arg value="mvm.rya.shell.util.PasswordPrompt" />
+        <constructor-arg value="org.apache.rya.shell.util.PasswordPrompt" />
     </bean>
     
     <!-- We use a mock Install Prompt here to simulate a user entering the installation configuration. -->
     <bean id="installPrompt" class="org.mockito.Mockito" factory-method="mock">
-        <constructor-arg value="mvm.rya.shell.util.InstallPrompt"/>
+        <constructor-arg value="org.apache.rya.shell.util.InstallPrompt"/>
     </bean>
 
     <!-- We use a mock SPARQL Prompt here to simulate a user entering the installation configuration. -->
     <bean id="sparqlPrompt" class="org.mockito.Mockito" factory-method="mock">
-        <constructor-arg value="mvm.rya.shell.util.SparqlPrompt"/>
+        <constructor-arg value="org.apache.rya.shell.util.SparqlPrompt"/>
     </bean>
 
     <!-- Define each of the beans that hold onto commands used by the shell. -->
-    <bean id="ryaConnectionCommands" class="mvm.rya.shell.RyaConnectionCommands" />
-    <bean id="ryaAdminCommands" class="mvm.rya.shell.RyaAdminCommands" />
+    <bean id="ryaConnectionCommands" class="org.apache.rya.shell.RyaConnectionCommands" />
+    <bean id="ryaAdminCommands" class="org.apache.rya.shell.RyaAdminCommands" />
 </beans>

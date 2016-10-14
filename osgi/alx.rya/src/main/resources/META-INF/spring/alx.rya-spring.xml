@@ -33,37 +33,37 @@ under the License.
 	<!-- placeholder configurer -->
 	<ctx:property-placeholder properties-ref="alxProps" />
 
-    <bean id="configurationFactory" class="mvm.rya.alx.util.ConfigurationFactory">
-        <osgix:managed-properties persistent-id="mvm.rya.alx"
+    <bean id="configurationFactory" class="org.apache.rya.alx.util.ConfigurationFactory">
+        <osgix:managed-properties persistent-id="org.apache.rya.alx"
                                   update-strategy="bean-managed" update-method="setProperties" />
     </bean>
 
     <bean id="configuration" factory-bean="configurationFactory"
           factory-method="getConfiguration"/>
 
-    <bean id="rdfEval" class="mvm.rya.accumulo.AccumuloRdfEvalStatsDAO" init-method="init" destroy-method="destroy">
+    <bean id="rdfEval" class="org.apache.rya.accumulo.AccumuloRdfEvalStatsDAO" init-method="init" destroy-method="destroy">
         <property name="connector" ref="connectorServiceOsgi"/>
         <property name="conf" ref="configuration"/>
     </bean>
 
-    <bean id="ryaDAO" class="mvm.rya.accumulo.AccumuloRyaDAO">
+    <bean id="ryaDAO" class="org.apache.rya.accumulo.AccumuloRyaDAO">
         <property name="connector" ref="connectorServiceOsgi"/>
         <property name="conf" ref="configuration"/>
     </bean>
 
-    <bean id="inferenceEngine" class="mvm.rya.rdftriplestore.inference.InferenceEngine">
+    <bean id="inferenceEngine" class="org.apache.rya.rdftriplestore.inference.InferenceEngine">
         <property name="ryaDAO" ref="ryaDAO"/>
         <property name="conf" ref="configuration"/>
     </bean>
 
-    <bean id="rts" class="mvm.rya.rdftriplestore.RdfCloudTripleStore">
+    <bean id="rts" class="org.apache.rya.rdftriplestore.RdfCloudTripleStore">
         <property name="ryaDAO" ref="ryaDAO"/>
         <property name="rdfEvalStatsDAO" ref="rdfEval"/>
         <property name="inferenceEngine" ref="inferenceEngine"/>
         <property name="conf" ref="configuration"/>
     </bean>
 
-    <bean id="sailRepo" class="mvm.rya.rdftriplestore.RyaSailRepository" init-method="initialize" destroy-method="shutDown">
+    <bean id="sailRepo" class="org.apache.rya.rdftriplestore.RyaSailRepository" init-method="initialize" destroy-method="shutDown">
         <constructor-arg ref="rts"/>
     </bean>
 

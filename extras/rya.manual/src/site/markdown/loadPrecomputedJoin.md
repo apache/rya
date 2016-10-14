@@ -28,7 +28,7 @@ A tool has been created to load a pre-computed join.  This tool will generate an
 
 Generating a pre-computed join is done using Pig to execute a series of Map Reduce jobs.  The index (pre-computed join) is associated with a user defined SPARQL query.  
   
-To execute the indexing tool, compile and run `mvm.rya.accumulo.pig.IndexWritingTool` 
+To execute the indexing tool, compile and run `org.apache.rya.accumulo.pig.IndexWritingTool` 
 with the following seven input arguments: `[hdfsSaveLocation] [sparqlFile] [instance] [cbzk] [user] [password] [rdfTablePrefix]`
 
 
@@ -46,4 +46,4 @@ Options:
 # Using a Pre-computed Join
 
 An example of using a pre-computed join can be referenced in 
-`mvm.rya.indexing.external.ExternalSailExample`
+`org.apache.rya.indexing.external.ExternalSailExample`

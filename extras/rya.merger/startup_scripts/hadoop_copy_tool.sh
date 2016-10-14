@@ -19,7 +19,7 @@
 
 echo "Launching Copy Tool..."
 
-class=mvm.rya.accumulo.mr.merge.CopyTool
+class=org.apache.rya.accumulo.mr.merge.CopyTool
 
 command="${ACCUMULO_HOME}/bin/tool.sh"
 if [ ! -x $command ]; then
@@ -27,4 +27,4 @@ if [ ! -x $command ]; then
     command="hadoop jar"
 fi
 
-$command rya.merger-*-shaded.jar mvm.rya.accumulo.mr.merge.CopyTool -conf config/copy_tool_configuration.xml
+$command rya.merger-*-shaded.jar org.apache.rya.accumulo.mr.merge.CopyTool -conf config/copy_tool_configuration.xml

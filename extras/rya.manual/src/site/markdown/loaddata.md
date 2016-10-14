@@ -99,7 +99,7 @@ Bulk loading data is done through Map Reduce jobs
 This Map Reduce job will read files into memory and parse them into statements. The statements are saved into the store. Here is an example for storing in Accumulo:
 
 ```
-hadoop jar target/rya.mapreduce-3.2.10-SNAPSHOT-shaded.jar mvm.rya.accumulo.mr.RdfFileInputTool -Dac.zk=localhost:2181 -Dac.instance=accumulo -Dac.username=root -Dac.pwd=secret -Drdf.tablePrefix=triplestore_ -Drdf.format=N-Triples /tmp/temp.ntrips
+hadoop jar target/rya.mapreduce-3.2.10-SNAPSHOT-shaded.jar org.apache.rya.accumulo.mr.RdfFileInputTool -Dac.zk=localhost:2181 -Dac.instance=accumulo -Dac.username=root -Dac.pwd=secret -Drdf.tablePrefix=triplestore_ -Drdf.format=N-Triples /tmp/temp.ntrips
 ```
 
 Options:

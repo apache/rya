@@ -42,7 +42,7 @@ under the License.
     </servlet-mapping>
     <!--<servlet>-->
     <!--<servlet-name>LoadDataServlet</servlet-name>-->
-    <!--<servlet-class>mvm.cloud.rdf.web.cloudbase.sail.LoadDataServlet</servlet-class>-->
+    <!--<servlet-class>org.apache.cloud.rdf.web.cloudbase.sail.LoadDataServlet</servlet-class>-->
 
     <!--<init-param>-->
     <!--<param-name>rts.instance</param-name>-->
@@ -73,7 +73,7 @@ under the License.
 
     <!--<servlet>-->
     <!--<servlet-name>QueryDataServlet</servlet-name>-->
-    <!--<servlet-class>mvm.cloud.rdf.web.cloudbase.sail.QueryDataServlet</servlet-class>-->
+    <!--<servlet-class>org.apache.cloud.rdf.web.cloudbase.sail.QueryDataServlet</servlet-class>-->
 
     <!--<init-param>-->
     <!--<param-name>rts.instance</param-name>-->
@@ -104,7 +104,7 @@ under the License.
 
     <!--<servlet>-->
     <!--<servlet-name>QuerySerqlDataServlet</servlet-name>-->
-    <!--<servlet-class>mvm.cloud.rdf.web.cloudbase.sail.QuerySerqlDataServlet</servlet-class>-->
+    <!--<servlet-class>org.apache.cloud.rdf.web.cloudbase.sail.QuerySerqlDataServlet</servlet-class>-->
 
     <!--<init-param>-->
     <!--<param-name>rts.instance</param-name>-->
@@ -135,7 +135,7 @@ under the License.
 
     <!--<servlet>-->
     <!--<servlet-name>DeleteDataServlet</servlet-name>-->
-    <!--<servlet-class>mvm.cloud.rdf.web.cloudbase.sail.DeleteDataServlet</servlet-class>-->
+    <!--<servlet-class>org.apache.cloud.rdf.web.cloudbase.sail.DeleteDataServlet</servlet-class>-->
 
     <!--<init-param>-->
     <!--<param-name>rts.instance</param-name>-->

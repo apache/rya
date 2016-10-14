@@ -74,20 +74,20 @@ under the License.
         <!--<feature version="[2.6,3.0)">org.openrdf.sesame.runtime</feature>-->
         <feature version="1.2">tinkerpop.blueprints</feature>
         <feature version="[10,12)">google.guava</feature>
-        <bundle>mvn:mvm.rya/sesame-runtime-osgi/2.6.4</bundle>
-        <bundle>wrap:mvn:mvm.rya/rya.api/3.0.4-SNAPSHOT</bundle>
-        <bundle>wrap:mvn:mvm.rya/rya.sail.impl/3.0.4-SNAPSHOT</bundle>
+        <bundle>mvn:org.apache.rya/sesame-runtime-osgi/2.6.4</bundle>
+        <bundle>wrap:mvn:org.apache.rya/rya.api/3.0.4-SNAPSHOT</bundle>
+        <bundle>wrap:mvn:org.apache.rya/rya.sail.impl/3.0.4-SNAPSHOT</bundle>
     </feature>
     <feature name="cloudbase.rya" version="3.0.4">
-        <feature version="1.0.5">mvm.alx.connect.cloudbase.connect</feature>
+        <feature version="1.0.5">org.apache.alx.connect.cloudbase.connect</feature>
         <feature version="[10,12)">google.guava</feature>
-        <bundle>wrap:mvn:mvm.rya/cloudbase.rya/3.0.4-SNAPSHOT</bundle>
-        <bundle>wrap:mvn:mvm.rya/cloudbase.utils/1.0.1-SNAPSHOT</bundle>
+        <bundle>wrap:mvn:org.apache.rya/cloudbase.rya/3.0.4-SNAPSHOT</bundle>
+        <bundle>wrap:mvn:org.apache.rya/cloudbase.utils/1.0.1-SNAPSHOT</bundle>
     </feature>
     <feature name="accumulo.rya" version="3.0.4">
-        <feature version="1.0.5">mvm.alx.accumulo.connect</feature>
+        <feature version="1.0.5">org.apache.alx.accumulo.connect</feature>
         <feature version="[10,12)">google.guava</feature>
-        <bundle>wrap:mvn:mvm.rya/accumulo.rya/3.0.4-SNAPSHOT</bundle>
+        <bundle>wrap:mvn:org.apache.rya/accumulo.rya/3.0.4-SNAPSHOT</bundle>
     </feature>
     <feature name='alx.rya' version='3.0.4'>
         <feature version="0.7.1">pax-web</feature>
@@ -95,10 +95,10 @@ under the License.
         <feature version="3.0.4">rya.sail</feature>
         <feature version="3.0.4">accumulo.rya</feature>
         <!--Ehcache should already be part of alx: net.sf.ehcache:ehcache-core:jar:1.7.1:compile-->
-        <bundle>mvn:mvm.rya/alx.rya/3.0.4-SNAPSHOT</bundle>
+        <bundle>mvn:org.apache.rya/alx.rya/3.0.4-SNAPSHOT</bundle>
     </feature>
     <feature name='alx.rya.console' version='3.0.4'>
         <feature version="3.0.4">alx.rya</feature>
-        <bundle>mvn:mvm.rya/alx.rya.console/3.0.4-SNAPSHOT</bundle>
+        <bundle>mvn:org.apache.rya/alx.rya.console/3.0.4-SNAPSHOT</bundle>
     </feature>
 </features>

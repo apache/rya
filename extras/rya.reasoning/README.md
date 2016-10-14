@@ -128,7 +128,7 @@ triples, only the former need to be held in memory.
 # Usage
 
 The complete forward-chaining inference task is performed by the class
-**mvm.rya.reasoning.mr.ReasoningDriver**. This will run a series of MapReduce
+**org.apache.rya.reasoning.mr.ReasoningDriver**. This will run a series of MapReduce
 jobs on the input until no further inferences can be made. Input must be
 configured using properties given in a Hadoop configuration file and/or through
 command line parameters. Optional parameters control the output generated.
@@ -221,7 +221,7 @@ The following command will run the reasoner on the triples found in Rya table `r
 produce file output in HDFS under `example_output/final`:
 
 ```
-hadoop jar target/rya.reasoning-3.2.10-SNAPSHOT-shaded.jar mvm.rya.reasoning.mr.ReasoningDriver -conf conf.xml -Drdf.tablePrefix=rya_
+hadoop jar target/rya.reasoning-3.2.10-SNAPSHOT-shaded.jar org.apache.rya.reasoning.mr.ReasoningDriver -conf conf.xml -Drdf.tablePrefix=rya_
 ```
 
 ## Output
@@ -273,7 +273,7 @@ for intermediate storage and reasoner output (**reasoning.workingDir**).
 
 Example:
 ```
-hadoop jar rya.reasoning-3.2.10-SNAPSHOT-shaded.jar mvm.rya.reasoning.mr.ConformanceTest -conf conf.xml owl-test/profile-RL.rdf temp
+hadoop jar rya.reasoning-3.2.10-SNAPSHOT-shaded.jar org.apache.rya.reasoning.mr.ConformanceTest -conf conf.xml owl-test/profile-RL.rdf temp
 ```
 
 ----------
@@ -665,12 +665,12 @@ processType(fact):
 
 ## Classes
 
-The main reasoning logic is located in **mvm.rya.reasoning**, while MapReduce
+The main reasoning logic is located in **org.apache.rya.reasoning**, while MapReduce
 tools and utilities for interacting with Accumulo are located in
-**mvm.rya.reasoning.mr**. Reasoning logic makes use of RDF constructs in the
+**org.apache.rya.reasoning.mr**. Reasoning logic makes use of RDF constructs in the
 **org.openrdf.model** API, in particular: Statement, URI, Resource, and Value.
 
-### mvm.rya.reasoning
+### org.apache.rya.reasoning
 
 - **OWL2**:
     In general, the Sesame/openrdf API is used to represent RDF constructs and
@@ -813,7 +813,7 @@ tools and utilities for interacting with Accumulo are located in
     if the node turns out to be a particular type, and return that information
     if/when that happens. (Particularly useful for property restriction rules.)
 
-### mvm.rya.reasoning.mr
+### org.apache.rya.reasoning.mr
 
 Contains MapReduce tools and utilities for interacting with HDFS, Accumulo, and
 Rya tables in Accumulo.

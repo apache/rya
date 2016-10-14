@@ -38,13 +38,13 @@ under the License.
         <constructor-arg value="${instance.password}"/>
     </bean>
 
-    <bean id="conf" class="mvm.rya.accumulo.AccumuloRdfConfiguration">
+    <bean id="conf" class="org.apache.rya.accumulo.AccumuloRdfConfiguration">
         <property name="tablePrefix" value="${rya.tableprefix}"/>
         <property name="displayQueryPlan" value="${rya.displayqueryplan}"/>
         <property name="useStats" value="false"/>
     </bean>
 
-	<bean id="ryaDAO" class="mvm.rya.accumulo.AccumuloRyaDAO" init-method="init" destroy-method="destroy">
+	<bean id="ryaDAO" class="org.apache.rya.accumulo.AccumuloRyaDAO" init-method="init" destroy-method="destroy">
 	    <property name="connector" ref="connector"/>
         <property name="conf" ref="conf"/>
     </bean>

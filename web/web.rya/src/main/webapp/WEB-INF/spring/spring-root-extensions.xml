@@ -33,7 +33,7 @@ under the License.
         <property name="location" value="classpath:environment.properties"/>
     </bean>
 
-	<context:component-scan base-package="mvm.cloud.rdf.web.sail" />
+	<context:component-scan base-package="org.apache.cloud.rdf.web.sail" />
 	
 	<import resource="spring-accumulo.xml"/>
     <import resource="spring-security.xml"/>    
@@ -60,27 +60,27 @@ under the License.
 
 <!-- inference Engine is disabled -->  
 <!-- 
-	<bean id="inferenceEngine" class="mvm.rya.rdftriplestore.inference.InferenceEngine" init-method="init" destroy-method="destroy">
+	<bean id="inferenceEngine" class="org.apache.rya.rdftriplestore.inference.InferenceEngine" init-method="init" destroy-method="destroy">
         <property name="ryaDAO" ref="ryaDAO"/>
         <property name="conf" ref="conf"/>
 	</bean>
     
-    <bean id="prospectTableName" class="mvm.rya.prospector.service.ProspectorServiceEvalStatsDAO" factory-method="getProspectTableName">
+    <bean id="prospectTableName" class="org.apache.rya.prospector.service.ProspectorServiceEvalStatsDAO" factory-method="getProspectTableName">
         <constructor-arg ref="conf"/>
     </bean>
     
-    <bean id="prospectorService" class="mvm.rya.prospector.service.ProspectorService">
+    <bean id="prospectorService" class="org.apache.rya.prospector.service.ProspectorService">
         <constructor-arg ref="connector"/>
         <constructor-arg ref="prospectTableName"/>
     </bean>
     
-    <bean id="rdfEvalStatsDAO" class="mvm.rya.prospector.service.ProspectorServiceEvalStatsDAO">
+    <bean id="rdfEvalStatsDAO" class="org.apache.rya.prospector.service.ProspectorServiceEvalStatsDAO">
         <property name="prospectorService" ref="prospectorService"/>
         <property name="conf" ref="conf"/>
     </bean>
  -->
  
-	<bean id="ryaSail" class="mvm.rya.rdftriplestore.RdfCloudTripleStore">
+	<bean id="ryaSail" class="org.apache.rya.rdftriplestore.RdfCloudTripleStore">
         <property name="ryaDAO" ref="ryaDAO"/>
 <!-- 
         <property name="rdfEvalStatsDAO" ref="rdfEvalStatsDAO"/>
@@ -89,11 +89,11 @@ under the License.
          <property name="conf" ref="conf"/>
 	</bean>
 
-    <bean id="indexerSettings" class="mvm.rya.indexing.accumulo.AccumuloIndexerSettings">
+    <bean id="indexerSettings" class="org.apache.rya.indexing.accumulo.AccumuloIndexerSettings">
         <constructor-arg ref="hadoopConf"/>
     </bean>
 
-    <bean id="ryaIndexingSail" class="mvm.rya.indexing.accumulo.RyaIndexingSail">
+    <bean id="ryaIndexingSail" class="org.apache.rya.indexing.accumulo.RyaIndexingSail">
         <constructor-arg ref="hadoopConf"/>
         <constructor-arg ref="ryaSail"/>
         <constructor-arg ref="indexerSettings"/>

@@ -24,10 +24,10 @@ under the License.
 
     <command-bundle xmlns="http://karaf.apache.org/xmlns/shell/v1.0.0">
         <command name="rya/info">
-            <action class="mvm.rya.alx.command.InfoRyaCommand"/>
+            <action class="org.apache.rya.alx.command.InfoRyaCommand"/>
         </command>
         <command name="rya/getstatements">
-            <action class="mvm.rya.alx.command.GetStatementsRyaCommand"/>
+            <action class="org.apache.rya.alx.command.GetStatementsRyaCommand"/>
         </command>
     </command-bundle>
 

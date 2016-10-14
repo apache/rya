@@ -26,38 +26,38 @@ under the License.
        xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
 				http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-2.5.xsd">
 
-	<context:component-scan base-package="mvm.cloud.rdf.web.sail" />
+	<context:component-scan base-package="org.apache.cloud.rdf.web.sail" />
 	
 	<import resource="controllerIntegrationTest-accumulo.xml"/>
     <import resource="controllerIntegrationTest-security.xml"/>
 
-	<bean id="inferenceEngine" class="mvm.rya.rdftriplestore.inference.InferenceEngine" init-method="init" destroy-method="destroy">
+	<bean id="inferenceEngine" class="org.apache.rya.rdftriplestore.inference.InferenceEngine" init-method="init" destroy-method="destroy">
         <property name="ryaDAO" ref="ryaDAO"/>
         <property name="conf" ref="conf"/>
 	</bean>
     
-    <bean id="prospectTableName" class="mvm.rya.prospector.service.ProspectorServiceEvalStatsDAO" factory-method="getProspectTableName">
+    <bean id="prospectTableName" class="org.apache.rya.prospector.service.ProspectorServiceEvalStatsDAO" factory-method="getProspectTableName">
         <constructor-arg ref="conf"/>
     </bean>
     
-    <bean id="prospectorService" class="mvm.rya.prospector.service.ProspectorService">
+    <bean id="prospectorService" class="org.apache.rya.prospector.service.ProspectorService">
         <constructor-arg ref="connector"/>
         <constructor-arg ref="prospectTableName"/>
     </bean>
     
-    <bean id="rdfEvalStatsDAO" class="mvm.rya.prospector.service.ProspectorServiceEvalStatsDAO">
+    <bean id="rdfEvalStatsDAO" class="org.apache.rya.prospector.service.ProspectorServiceEvalStatsDAO">
         <property name="prospectorService" ref="prospectorService"/>
         <property name="conf" ref="conf"/>
     </bean>
 
-	<bean id="rts" class="mvm.rya.rdftriplestore.RdfCloudTripleStore">
+	<bean id="rts" class="org.apache.rya.rdftriplestore.RdfCloudTripleStore">
         <property name="ryaDAO" ref="ryaDAO"/>
         <property name="rdfEvalStatsDAO" ref="rdfEvalStatsDAO"/>
         <property name="inferenceEngine" ref="inferenceEngine"/>
         <property name="conf" ref="conf"/>
 	</bean>
 
-	<bean id="sailRepo" class="mvm.rya.rdftriplestore.RyaSailRepository" init-method="initialize" destroy-method="shutDown">
+	<bean id="sailRepo" class="org.apache.rya.rdftriplestore.RyaSailRepository" init-method="initialize" destroy-method="shutDown">
         <constructor-arg ref="rts"/>
 	</bean>
 </beans>

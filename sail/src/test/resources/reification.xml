@@ -22,12 +22,12 @@ under the License.
 
 <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
          xmlns:cd="http://www.recshop.fake/cd#"
-        xmlns:mm="http://mvm.com/owl/2010/10/mm.owl#">
+        xmlns:mm="http://org.apache.com/owl/2010/10/mm.owl#">
 
     <rdf:Description rdf:nodeID="A4">
         <rdf:subject
-                rdf:resource="http://mvm.com/owl/2010/10/mm.owl#urn:mm:mvm:root/cimv2:Linux_Processor:0:CIM_ComputerSystem:nimbus02.bullpen.net"/>
-        <rdf:predicate rdf:resource="http://mvm.com/owl/2010/10/mm.owl#loadPercentage"/>
+                rdf:resource="http://org.apache.com/owl/2010/10/mm.owl#urn:mm:org.apache:root/cimv2:Linux_Processor:0:CIM_ComputerSystem:nimbus02.bullpen.net"/>
+        <rdf:predicate rdf:resource="http://org.apache.com/owl/2010/10/mm.owl#loadPercentage"/>
         <rdf:object rdf:datatype="http://www.w3.org/2001/XMLSchema#int">1</rdf:object>
         <rdf:type rdf:resource="http://www.w3.org/1999/02/22-rdf-syntax-ns#Statement"/>
         <mm:reportedAt rdf:datatype="http://www.w3.org/2001/XMLSchema#dateTime">2011-01-07T21:29:45.545Z</mm:reportedAt>

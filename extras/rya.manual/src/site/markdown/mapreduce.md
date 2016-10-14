@@ -99,7 +99,7 @@ configure input and output for MapReduce jobs using the stored parameters.
 
 Expects parameters to be specified in the configuration using the names defined
 in MRUtils, or for secondary indexers, the names in
-`mvm.rya.indexing.accumulo.ConfigUtils`.
+`org.apache.rya.indexing.accumulo.ConfigUtils`.
 
 ## Examples
 

@@ -245,7 +245,7 @@ The Merge Tool (and Copy Tool) can be run or tested several ways. Either connect
 
 This is for testing and creates a MiniAccumuloCluster that the Merge Tool can connect to.
 
-In Eclipse, right-click on *“/rya.merger/src/test/java/mvm/rya/accumulo/mr/merge/driver/MiniAccumuloClusterDriver.java”* and choose *"Run -> Java Application"*. If it successfully starts, it will say `“MiniAccumuloClusters running and populated”` at the bottom of the console. With the MiniAccumuloClusterDriver running in Eclipse, edit the *"merge_tool.bat"* or *"merge_tool.sh"* script using the parent and child config values displayed in the *"MiniAccumuloClusterDriver"* console (scroll up in the console to find and copy the values you need). Save the script file and run it as described below.
+In Eclipse, right-click on *“/rya.merger/src/test/java/org.apache/rya/accumulo/mr/merge/driver/MiniAccumuloClusterDriver.java”* and choose *"Run -> Java Application"*. If it successfully starts, it will say `“MiniAccumuloClusters running and populated”` at the bottom of the console. With the MiniAccumuloClusterDriver running in Eclipse, edit the *"merge_tool.bat"* or *"merge_tool.sh"* script using the parent and child config values displayed in the *"MiniAccumuloClusterDriver"* console (scroll up in the console to find and copy the values you need). Save the script file and run it as described below.
 
 #### Running from the Script File
 
@@ -295,7 +295,7 @@ The first line (`-Dac.instance=parent_instance`) corresponds to the XML section:
     </property>
 ```
 
-Only modify the inside of a property's `<value>...</value>` tag when configuring. Once configured, right-click on *“/rya.merger/src/main/java/mvm/rya/accumulo/mr/merge/MergeTool.java”* and choose *“Run As -> Run Configurations...”*. Click on the *“Arguments”* tab and in the *“VM arguments”* box add the value:
+Only modify the inside of a property's `<value>...</value>` tag when configuring. Once configured, right-click on *“/rya.merger/src/main/java/org.apache/rya/accumulo/mr/merge/MergeTool.java”* and choose *“Run As -> Run Configurations...”*. Click on the *“Arguments”* tab and in the *“VM arguments”* box add the value:
 
 ```
     -Dlog4j.configuration="file:config/log4j.xml"
@@ -307,7 +307,7 @@ In the *"Program arguments"* box add the value:
     -conf config/configuration.xml
 ```
 
-For the Copy Tool, do the same thing for *“/rya.merger/src/main/java/mvm/rya/accumulo/mr/merge/CopyTool.java” but change the arguments to:
+For the Copy Tool, do the same thing for *“/rya.merger/src/main/java/org.apache/rya/accumulo/mr/merge/CopyTool.java” but change the arguments to:
 
 ```
     -Dlog4j.configuration="file:config/copy_tool_log4j.xml"
@@ -427,13 +427,13 @@ If the File Output option was used with the Copy Tool then the generated directo
 
 To run the Merge Tool on the cluster, use the `scp` command to copy the config file and uber jar onto the cluster machine. They can be found in *"MergeTool/config/configuration.xml"* and *“MergeTool/target/rya.merger-{version.number}-shaded.jar”* respectively.  Once copied run the following command:
 
-`hadoop jar rya.merger-{version.number}-shaded.jar mvm.rya.accumulo.mr.merge.MergeTool -conf configuration.xml`
+`hadoop jar rya.merger-{version.number}-shaded.jar org.apache.rya.accumulo.mr.merge.MergeTool -conf configuration.xml`
 
 ##### Running the Rule-based Copy
 
 The rule-based copy requires several Accumulo jars on the hadoop classpath. The easiest way to ensure this is to use Accumulo's `tool.sh` to launch the job:
 
-`tool.sh rya.merger-{version.number}-shaded.jar mvm.rya.accumulo.mr.merge.CopyTool -conf configuration.xml`
+`tool.sh rya.merger-{version.number}-shaded.jar org.apache.rya.accumulo.mr.merge.CopyTool -conf configuration.xml`
 
 Alternatively, use `hadoop jar` as above but make sure that `HADOOP_CLASSPATH` contains accumulo-core, accumulo-fate, accumulo-trace, and libthrift jars.
 

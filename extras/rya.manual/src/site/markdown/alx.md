@@ -28,7 +28,7 @@ Currently, the Alx Rya extension only allows interacting with an Accumulo store.
 ## Prerequisites
 
 - Alx 1.0.5+ (we will refer to it at the ALX_HOME directory from now on)
-- alx.rya features xml (can be found in maven at `mvn:mvm.rya/alx.rya/<version>/xml/features`)
+- alx.rya features xml (can be found in maven at `mvn:org.apache.rya/alx.rya/<version>/xml/features`)
 
 ## Steps
 
@@ -40,13 +40,13 @@ Currently, the Alx Rya extension only allows interacting with an Accumulo store.
 That's it. To make sure, run `ls <alx.rya bundle id>` and make sure something like this pops up:
 
 ```
-mvm.rya.alx.rya (99) provides:
+org.apache.rya.alx.rya (99) provides:
 ------------------------------
-Bundle-SymbolicName = mvm.rya.alx.rya
+Bundle-SymbolicName = org.apache.rya.alx.rya
 Bundle-Version = 3.0.4.SNAPSHOT
 objectClass = org.osgi.service.cm.ManagedService
 service.id = 226
-service.pid = mvm.rya.alx
+service.pid = org.apache.rya.alx
 ----
 ...
 ```
@@ -59,7 +59,7 @@ The bundle registers a Sail Repository, so you can interact with it directly as 
 import org.springframework.osgi.extensions.annotation.*;
 import org.openrdf.repository.*;
 import org.openrdf.model.ValueFactory;
-import static mvm.rya.api.RdfCloudTripleStoreConstants.*;
+import static org.apache.rya.api.RdfCloudTripleStoreConstants.*;
 
 class TstRepo {
 

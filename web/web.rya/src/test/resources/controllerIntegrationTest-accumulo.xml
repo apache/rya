@@ -24,7 +24,7 @@ under the License.
         http://www.springframework.org/schema/beans
         http://www.springframework.org/schema/beans/spring-beans-3.2.xsd">
 
-    <bean id="controller" class="mvm.cloud.rdf.web.sail.RdfController">
+    <bean id="controller" class="org.apache.cloud.rdf.web.sail.RdfController">
     </bean>
 
     <bean id="zkInstance" class="org.apache.accumulo.core.client.mock.MockInstance" >
@@ -37,13 +37,13 @@ under the License.
         <constructor-arg value=""/>
     </bean>
 
-    <bean id="conf" class="mvm.rya.accumulo.AccumuloRdfConfiguration">
+    <bean id="conf" class="org.apache.rya.accumulo.AccumuloRdfConfiguration">
         <property name="tablePrefix" value="test_"/>
         <property name="displayQueryPlan" value="false"/>
         <property name="useStats" value="false"/>
     </bean>
 
-    <bean id="ryaDAO" class="mvm.rya.accumulo.AccumuloRyaDAO" init-method="init" destroy-method="destroy">
+    <bean id="ryaDAO" class="org.apache.rya.accumulo.AccumuloRyaDAO" init-method="init" destroy-method="destroy">
         <property name="connector" ref="connector"/>
         <property name="conf" ref="conf"/>
     </bean>

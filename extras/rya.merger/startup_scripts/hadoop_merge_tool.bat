@@ -23,4 +23,4 @@ echo "Launching Merge Tool..."
 :: so use a hard-coded filename for the jar if necessary.
 SET JAR_NAME=rya.merger-*-shaded.jar
 
-hadoop jar %JAR_NAME% mvm.rya.accumulo.mr.merge.MergeTool -conf config/configuration.xml
+hadoop jar %JAR_NAME% org.apache.rya.accumulo.mr.merge.MergeTool -conf config/configuration.xml

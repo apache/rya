@@ -28,7 +28,7 @@ under the License.
 				http://www.springframework.org/schema/oxm http://www.springframework.org/schema/oxm/spring-oxm-3.0.xsd">
 
 
-    <bean id="conf" class="mvm.rya.mongodb.MongoDBRdfConfiguration">
+    <bean id="conf" class="org.apache.rya.mongodb.MongoDBRdfConfiguration">
         <property name="collectionName" value="${mongo.db.collectionprefix}"/>
         <property name="mongoInstance" value="${mongo.db.instance}"/>
         <property name="mongoPort" value="${mongo.db.port}"/>
@@ -37,7 +37,7 @@ under the License.
         <property name="useStats" value="false"/>
     </bean>
 
-	<bean id="ryaDAO" class="mvm.rya.mongodb.MongoDBRyaDAO" init-method="init" destroy-method="destroy">
+	<bean id="ryaDAO" class="org.apache.rya.mongodb.MongoDBRyaDAO" init-method="init" destroy-method="destroy">
         <property name="conf" ref="conf"/>
     </bean>
 </beans>

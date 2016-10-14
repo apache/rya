@@ -29,6 +29,6 @@ under the License.
 
 	<context:annotation-config/>
 
-	<bean id="provider" class="mvm.cloud.rdf.web.sail.SecurityProviderImpl"/>
+	<bean id="provider" class="org.apache.cloud.rdf.web.sail.SecurityProviderImpl"/>
 
 </beans>

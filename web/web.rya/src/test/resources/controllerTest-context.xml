@@ -24,7 +24,7 @@ under the License.
         http://www.springframework.org/schema/beans
         http://www.springframework.org/schema/beans/spring-beans-3.2.xsd">
 
-    <bean id="controller" class="mvm.cloud.rdf.web.sail.RdfController">
+    <bean id="controller" class="org.apache.cloud.rdf.web.sail.RdfController">
     </bean>
 
     <bean id="repository" class="org.openrdf.repository.sail.SailRepository" init-method="initialize">
@@ -35,6 +35,6 @@ under the License.
         <property name="persist" value="false"/>
     </bean>
     
-    <bean id="provider" class="mvm.cloud.rdf.web.sail.SecurityProviderImpl"/>
+    <bean id="provider" class="org.apache.cloud.rdf.web.sail.SecurityProviderImpl"/>
     
 </beans>

@@ -75,5 +75,5 @@ A sample configuration file might look like the following:
 Run the command, filling in the correct information.
 
 ```
-hadoop jar rya.prospector-3.0.4-SNAPSHOT-shade.jar mvm.rya.prospector.mr.Prospector /tmp/prospectorConf.xml
+hadoop jar rya.prospector-3.0.4-SNAPSHOT-shade.jar org.apache.rya.prospector.mr.Prospector /tmp/prospectorConf.xml
 ```

@@ -34,7 +34,7 @@ under the License.
 
     <!-- Configuration Admin entry -->
     <osgix:cm-properties id="alxProps"
-                         persistent-id="mvm.rya.alx">
+                         persistent-id="org.apache.rya.alx">
         <prop key="query.tblprefix">l_</prop>
         <prop key="query.printqueryplan">true</prop>
     </osgix:cm-properties>

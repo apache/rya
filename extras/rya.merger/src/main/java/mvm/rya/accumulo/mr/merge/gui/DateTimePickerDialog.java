@@ -1,24 +1,22 @@
-package mvm.rya.accumulo.mr.merge.gui;
-
 /*
- * #%L
- * mvm.rya.accumulo.mr.merge
- * %%
- * Copyright (C) 2014 Rya
- * %%
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- * #L%
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
  */
+package mvm.rya.accumulo.mr.merge.gui;
 
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -37,6 +35,7 @@ import javax.swing.JSpinner;
 import javax.swing.JSpinner.DateEditor;
 import javax.swing.SpinnerDateModel;
 import javax.swing.SpinnerModel;
+import javax.swing.WindowConstants;
 
 import com.toedter.calendar.JCalendar;
 
@@ -50,7 +49,7 @@ public class DateTimePickerDialog extends JDialog {
     private JSpinner timeSpinner;
 
     private Date selectedDateTime;
-    private JLabel label;
+    private final JLabel label;
 
 
     /**
@@ -58,7 +57,7 @@ public class DateTimePickerDialog extends JDialog {
      * @param title the title to display up top.
      * @param message the message to display.
      */
-    public DateTimePickerDialog(String title, String message) {
+    public DateTimePickerDialog(final String title, final String message) {
         this(null, title, message);
     }
 
@@ -68,7 +67,7 @@ public class DateTimePickerDialog extends JDialog {
      * @param title the title to display up top.
      * @param message the message to display.
      */
-    public DateTimePickerDialog(Date date, String title, String message) {
+    public DateTimePickerDialog(final Date date, final String title, final String message) {
         // Create a modal dialog
         super((JDialog) null);
         setTitle(title);
@@ -76,12 +75,12 @@ public class DateTimePickerDialog extends JDialog {
         setType(Type.NORMAL);
 
         setLayout(new GridBagLayout());
-        setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
+        setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
 
-        JButton okButton = new JButton("OK");
+        final JButton okButton = new JButton("OK");
         okButton.addActionListener (new ActionListener() {
             @Override
-            public void actionPerformed(ActionEvent event) {
+            public void actionPerformed(final ActionEvent event) {
                 selectedDateTime = findSelectedDateTime();
 
                 // Hide dialog
@@ -91,11 +90,11 @@ public class DateTimePickerDialog extends JDialog {
 
         getRootPane().setDefaultButton(okButton);
 
-        JPanel dateTimePanel = buildDateTimePanel(date);
+        final JPanel dateTimePanel = buildDateTimePanel(date);
         label = new JLabel (message);
         label.setBorder(BorderFactory.createEtchedBorder());
 
-        GridBagConstraints c = new GridBagConstraints();
+        final GridBagConstraints c = new GridBagConstraints();
         c.fill = GridBagConstraints.HORIZONTAL;
         c.insets = new Insets(5, 5, 5, 5);
         c.gridx = 0;
@@ -112,21 +111,21 @@ public class DateTimePickerDialog extends JDialog {
         pack();
     }
 
-    private JPanel buildDateTimePanel(Date date) {
-        JPanel datePanel = new JPanel();
+    private JPanel buildDateTimePanel(final Date date) {
+        final JPanel datePanel = new JPanel();
 
         dateChooser = new JCalendar();
         if (date != null) {
-            Calendar calendar = Calendar.getInstance();
+            final Calendar calendar = Calendar.getInstance();
             calendar.setTime(date);
             dateChooser.setCalendar(calendar);
         }
 
         datePanel.add(dateChooser);
 
-        SpinnerModel model = new SpinnerDateModel();
+        final SpinnerModel model = new SpinnerDateModel();
         timeSpinner = new JSpinner(model);
-        DateEditor editor = new DateEditor(timeSpinner, "HH:mm:ss");
+        final DateEditor editor = new DateEditor(timeSpinner, "HH:mm:ss");
         timeSpinner.setEditor(editor);
         if (date != null) {
             timeSpinner.setValue(date);
@@ -139,19 +138,19 @@ public class DateTimePickerDialog extends JDialog {
 
     private Date findSelectedDateTime() {
         // Get the values from the date chooser
-        int day = dateChooser.getDayChooser().getDay();
-        int month = dateChooser.getMonthChooser().getMonth();
-        int year = dateChooser.getYearChooser().getYear();
+        final int day = dateChooser.getDayChooser().getDay();
+        final int month = dateChooser.getMonthChooser().getMonth();
+        final int year = dateChooser.getYearChooser().getYear();
 
         // Get the values from the time chooser
-        Calendar timeCalendar = Calendar.getInstance();
+        final Calendar timeCalendar = Calendar.getInstance();
         timeCalendar.setTime((Date) timeSpinner.getValue());
-        int hour = timeCalendar.get(Calendar.HOUR_OF_DAY);
-        int minute = timeCalendar.get(Calendar.MINUTE);
-        int second = timeCalendar.get(Calendar.SECOND);
+        final int hour = timeCalendar.get(Calendar.HOUR_OF_DAY);
+        final int minute = timeCalendar.get(Calendar.MINUTE);
+        final int second = timeCalendar.get(Calendar.SECOND);
 
         // Combine these values into a single date object
-        Calendar newCalendar = Calendar.getInstance();
+        final Calendar newCalendar = Calendar.getInstance();
         newCalendar.set(Calendar.YEAR, year);
         newCalendar.set(Calendar.MONTH, month);
         newCalendar.set(Calendar.DATE, day);
@@ -159,7 +158,7 @@ public class DateTimePickerDialog extends JDialog {
         newCalendar.set(Calendar.MINUTE, minute);
         newCalendar.set(Calendar.SECOND, second);
 
-        Date newDate = newCalendar.getTime();
+        final Date newDate = newCalendar.getTime();
 
         return newDate;
     }

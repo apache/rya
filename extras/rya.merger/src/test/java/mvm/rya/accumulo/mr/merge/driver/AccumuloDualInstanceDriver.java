@@ -1,24 +1,22 @@
-package mvm.rya.accumulo.mr.merge.driver;
-
 /*
- * #%L
- * mvm.rya.accumulo.mr.merge
- * %%
- * Copyright (C) 2014 Rya
- * %%
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- * #L%
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
  */
+package mvm.rya.accumulo.mr.merge.driver;
 
 import java.io.File;
 import java.util.Collection;
@@ -50,11 +48,11 @@ import twitter4j.Logger;
 public class AccumuloDualInstanceDriver {
     private static final Logger log = Logger.getLogger(AccumuloDualInstanceDriver.class);
 
-    private boolean isMock;
-    private boolean shouldCreateIndices;
-    private boolean isParentReadOnly;
-    private boolean isChildReadOnly;
-    private boolean doesChildInitiallyExist;
+    private final boolean isMock;
+    private final boolean shouldCreateIndices;
+    private final boolean isParentReadOnly;
+    private final boolean isChildReadOnly;
+    private final boolean doesChildInitiallyExist;
 
     public static final String PARENT_USER_NAME = "parent_user";
     public static final String PARENT_PASSWORD = "parent_pwd";
@@ -70,8 +68,8 @@ public class AccumuloDualInstanceDriver {
     public static final String CHILD_AUTH = "child_auth";
     public static final ColumnVisibility CHILD_COLUMN_VISIBILITY = new ColumnVisibility(CHILD_AUTH);
 
-    private AccumuloInstanceDriver parentAccumuloInstanceDriver;
-    private AccumuloInstanceDriver childAccumuloInstanceDriver;
+    private final AccumuloInstanceDriver parentAccumuloInstanceDriver;
+    private final AccumuloInstanceDriver childAccumuloInstanceDriver;
 
     /**
      * Creates a new instance of {@link AccumuloDualInstanceDriver}.
@@ -86,14 +84,14 @@ public class AccumuloDualInstanceDriver {
      * @param doesChildInitiallyExist {@code true} if all the child instance exists initially.
      * {@code false} otherwise.
      */
-    public AccumuloDualInstanceDriver(boolean isMock, boolean shouldCreateIndices, boolean isParentReadOnly, boolean isChildReadOnly, boolean doesChildInitiallyExist) {
+    public AccumuloDualInstanceDriver(final boolean isMock, final boolean shouldCreateIndices, final boolean isParentReadOnly, final boolean isChildReadOnly, final boolean doesChildInitiallyExist) {
         this.isMock = isMock;
         this.shouldCreateIndices = shouldCreateIndices;
         this.isParentReadOnly = isParentReadOnly;
         this.isChildReadOnly = isChildReadOnly;
         this.doesChildInitiallyExist = doesChildInitiallyExist;
-        String parentUser =  isMock ? PARENT_USER_NAME : AccumuloInstanceDriver.ROOT_USER_NAME;
-        String childUser = isMock ? CHILD_USER_NAME : AccumuloInstanceDriver.ROOT_USER_NAME;
+        final String parentUser =  isMock ? PARENT_USER_NAME : AccumuloInstanceDriver.ROOT_USER_NAME;
+        final String childUser = isMock ? CHILD_USER_NAME : AccumuloInstanceDriver.ROOT_USER_NAME;
         parentAccumuloInstanceDriver = new AccumuloInstanceDriver("Parent", isMock, shouldCreateIndices, isParentReadOnly, true, parentUser, PARENT_PASSWORD, PARENT_INSTANCE, PARENT_TABLE_PREFIX, PARENT_AUTH);
         childAccumuloInstanceDriver = new AccumuloInstanceDriver("Child", isMock, shouldCreateIndices, isChildReadOnly, false, childUser, CHILD_PASSWORD, CHILD_INSTANCE, CHILD_TABLE_PREFIX, CHILD_AUTH);
     }
@@ -206,7 +204,7 @@ public class AccumuloDualInstanceDriver {
      * @throws AccumuloException
      * @throws AccumuloSecurityException
      */
-    public void addParentAuths(String... auths) throws AccumuloException, AccumuloSecurityException {
+    public void addParentAuths(final String... auths) throws AccumuloException, AccumuloSecurityException {
         parentAccumuloInstanceDriver.addAuths(auths);
     }
 
@@ -216,7 +214,7 @@ public class AccumuloDualInstanceDriver {
      * @throws AccumuloException
      * @throws AccumuloSecurityException
      */
-    public void addChildAuths(String... auths) throws AccumuloException, AccumuloSecurityException {
+    public void addChildAuths(final String... auths) throws AccumuloException, AccumuloSecurityException {
         childAccumuloInstanceDriver.addAuths(auths);
     }
 
@@ -243,7 +241,7 @@ public class AccumuloDualInstanceDriver {
      * @param ryaStatements the {@link Collection} of {@link RyaStatement}s.
      * @throws RyaDAOException
      */
-    public void addParentRyaStatements(Collection<RyaStatement> ryaStatements) throws RyaDAOException {
+    public void addParentRyaStatements(final Collection<RyaStatement> ryaStatements) throws RyaDAOException {
         addRyaStatements(ryaStatements.iterator(), parentAccumuloInstanceDriver.getDao());
     }
 
@@ -252,7 +250,7 @@ public class AccumuloDualInstanceDriver {
      * @param ryaStatements the {@link Collection} of {@link RyaStatement}s.
      * @throws RyaDAOException
      */
-    public void addChildRyaStatements(Collection<RyaStatement> ryaStatements) throws RyaDAOException {
+    public void addChildRyaStatements(final Collection<RyaStatement> ryaStatements) throws RyaDAOException {
         addRyaStatements(ryaStatements.iterator(), childAccumuloInstanceDriver.getDao());
     }
 
@@ -261,7 +259,7 @@ public class AccumuloDualInstanceDriver {
      * @param ryaStatementIterator the {@link RyaStatement} {@link Iterator}.
      * @throws RyaDAOException
      */
-    public void addParentRyaStatements(Iterator<RyaStatement> ryaStatementIterator) throws RyaDAOException {
+    public void addParentRyaStatements(final Iterator<RyaStatement> ryaStatementIterator) throws RyaDAOException {
         addRyaStatements(ryaStatementIterator, parentAccumuloInstanceDriver.getDao());
     }
 
@@ -270,7 +268,7 @@ public class AccumuloDualInstanceDriver {
      * @param ryaStatementIterator the {@link RyaStatement} {@link Iterator}.
      * @throws RyaDAOException
      */
-    public void addChildRyaStatements(Iterator<RyaStatement> ryaStatementIterator) throws RyaDAOException {
+    public void addChildRyaStatements(final Iterator<RyaStatement> ryaStatementIterator) throws RyaDAOException {
         addRyaStatements(ryaStatementIterator, childAccumuloInstanceDriver.getDao());
     }
 
@@ -279,7 +277,7 @@ public class AccumuloDualInstanceDriver {
      * @param ryaStatement the {@link RyaStatement}.
      * @throws RyaDAOException
      */
-    public void addParentRyaStatement(RyaStatement ryaStatement) throws RyaDAOException {
+    public void addParentRyaStatement(final RyaStatement ryaStatement) throws RyaDAOException {
         addRyaStatement(ryaStatement, parentAccumuloInstanceDriver.getDao());
     }
 
@@ -288,7 +286,7 @@ public class AccumuloDualInstanceDriver {
      * @param ryaStatement the {@link RyaStatement}.
      * @throws RyaDAOException
      */
-    public void addChildRyaStatement(RyaStatement ryaStatement) throws RyaDAOException {
+    public void addChildRyaStatement(final RyaStatement ryaStatement) throws RyaDAOException {
         addRyaStatement(ryaStatement, childAccumuloInstanceDriver.getDao());
     }
 
@@ -298,7 +296,7 @@ public class AccumuloDualInstanceDriver {
      * @param dao the {@link AccumuloRyaDAO}.
      * @throws RyaDAOException
      */
-    private static void addRyaStatements(Iterator<RyaStatement> ryaStatementIterator, AccumuloRyaDAO dao) throws RyaDAOException {
+    private static void addRyaStatements(final Iterator<RyaStatement> ryaStatementIterator, final AccumuloRyaDAO dao) throws RyaDAOException {
         dao.add(ryaStatementIterator);
     }
 
@@ -307,7 +305,7 @@ public class AccumuloDualInstanceDriver {
      * @param ryaStatement the {@link RyaStatement}.
      * @throws RyaDAOException
      */
-    private static void addRyaStatement(RyaStatement ryaStatement, AccumuloRyaDAO dao) throws RyaDAOException {
+    private static void addRyaStatement(final RyaStatement ryaStatement, final AccumuloRyaDAO dao) throws RyaDAOException {
         dao.add(ryaStatement);
     }
 

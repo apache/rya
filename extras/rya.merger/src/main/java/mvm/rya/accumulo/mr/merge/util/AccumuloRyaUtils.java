@@ -1,24 +1,22 @@
-package mvm.rya.accumulo.mr.merge.util;
-
 /*
- * #%L
- * mvm.rya.accumulo.mr.merge
- * %%
- * Copyright (C) 2014 Rya
- * %%
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- * #L%
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
  */
+package mvm.rya.accumulo.mr.merge.util;
 
 import java.io.IOException;
 import java.text.ParseException;
@@ -45,6 +43,7 @@ import org.apache.accumulo.core.client.mock.MockInstance;
 import org.apache.accumulo.core.client.security.tokens.PasswordToken;
 import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Value;
+import org.apache.accumulo.core.iterators.Filter;
 import org.apache.accumulo.core.iterators.user.RegExFilter;
 import org.apache.accumulo.core.security.Authorizations;
 import org.apache.commons.lang.StringUtils;
@@ -112,7 +111,7 @@ public final class AccumuloRyaUtils {
      * @param localName the URI's local name.
      * @return the {@link RyraURI}.
      */
-    public static RyaURI createRyaUri(String localName) {
+    public static RyaURI createRyaUri(final String localName) {
         return createRyaUri(NAMESPACE, localName);
     }
 
@@ -122,7 +121,7 @@ public final class AccumuloRyaUtils {
      * @param localName the URI's local name.
      * @return the {@link RyraURI}.
      */
-    public static RyaURI createRyaUri(String namespace, String localName) {
+    public static RyaURI createRyaUri(final String namespace, final String localName) {
         return RdfToRyaConversions.convertURI(VALUE_FACTORY.createURI(namespace, localName));
     }
 
@@ -131,9 +130,9 @@ public final class AccumuloRyaUtils {
      * @param date the copy tool run time {@link Date}.
      * @return the {@link RyaStatement} for the copy tool run time.
      */
-    public static RyaStatement createCopyToolRunTimeRyaStatement(Date date) {
-        Literal literal = VALUE_FACTORY.createLiteral(date != null ? date : DEFAULT_DATE);
-        RyaType timeObject = new RyaType(literal.getDatatype(), literal.stringValue());
+    public static RyaStatement createCopyToolRunTimeRyaStatement(final Date date) {
+        final Literal literal = VALUE_FACTORY.createLiteral(date != null ? date : DEFAULT_DATE);
+        final RyaType timeObject = new RyaType(literal.getDatatype(), literal.stringValue());
         return new RyaStatement(RTS_SUBJECT_RYA, RTS_COPY_TOOL_RUN_TIME_PREDICATE_RYA, timeObject);
     }
 
@@ -142,9 +141,9 @@ public final class AccumuloRyaUtils {
      * @param date the copy tool split time {@link Date}.
      * @return the {@link RyaStatement} for the copy tool split time.
      */
-    public static RyaStatement createCopyToolSplitTimeRyaStatement(Date date) {
-        Literal literal = VALUE_FACTORY.createLiteral(date != null ? date : DEFAULT_DATE);
-        RyaType timeObject = new RyaType(literal.getDatatype(), literal.stringValue());
+    public static RyaStatement createCopyToolSplitTimeRyaStatement(final Date date) {
+        final Literal literal = VALUE_FACTORY.createLiteral(date != null ? date : DEFAULT_DATE);
+        final RyaType timeObject = new RyaType(literal.getDatatype(), literal.stringValue());
         return new RyaStatement(RTS_SUBJECT_RYA, RTS_COPY_TOOL_SPLIT_TIME_PREDICATE_RYA, timeObject);
     }
 
@@ -154,13 +153,13 @@ public final class AccumuloRyaUtils {
      * @return the copy tool run {@link Date}.
      * @throws RyaDAOException
      */
-    public static Date getCopyToolRunDate(AccumuloRyaDAO dao) throws RyaDAOException {
-        String time = getCopyToolRunTime(dao);
+    public static Date getCopyToolRunDate(final AccumuloRyaDAO dao) throws RyaDAOException {
+        final String time = getCopyToolRunTime(dao);
         Date date = null;
         if (time != null) {
             try {
                 date = TIME_FORMATTER.parse(time);
-            } catch (ParseException e) {
+            } catch (final ParseException e) {
                 log.error("Unable to parse the copy tool run time found in table: " + time, e);
             }
         }
@@ -173,13 +172,13 @@ public final class AccumuloRyaUtils {
      * @return the copy tool split {@link Date}.
      * @throws RyaDAOException
      */
-    public static Date getCopyToolSplitDate(AccumuloRyaDAO dao) throws RyaDAOException {
-        String time = getCopyToolSplitTime(dao);
+    public static Date getCopyToolSplitDate(final AccumuloRyaDAO dao) throws RyaDAOException {
+        final String time = getCopyToolSplitTime(dao);
         Date date = null;
         if (time != null) {
             try {
                 date = TIME_FORMATTER.parse(time);
-            } catch (ParseException e) {
+            } catch (final ParseException e) {
                 log.error("Unable to parse the copy tool split time found in table: " + time, e);
             }
         }
@@ -192,7 +191,7 @@ public final class AccumuloRyaUtils {
      * @return the copy tool run time value.
      * @throws RyaDAOException
      */
-    public static String getCopyToolRunTime(AccumuloRyaDAO dao) throws RyaDAOException {
+    public static String getCopyToolRunTime(final AccumuloRyaDAO dao) throws RyaDAOException {
         return getMetadata(RTS_COPY_TOOL_RUN_TIME_PREDICATE_RYA, dao);
     }
 
@@ -202,7 +201,7 @@ public final class AccumuloRyaUtils {
      * @return the copy tool split time value.
      * @throws RyaDAOException
      */
-    public static String getCopyToolSplitTime(AccumuloRyaDAO dao) throws RyaDAOException {
+    public static String getCopyToolSplitTime(final AccumuloRyaDAO dao) throws RyaDAOException {
         return getMetadata(RTS_COPY_TOOL_SPLIT_TIME_PREDICATE_RYA, dao);
     }
 
@@ -213,8 +212,8 @@ public final class AccumuloRyaUtils {
      * @return the string value of the object from the metadata key.
      * @throws RyaDAOException
      */
-    private static String getMetadata(RyaURI predicateRyaUri, AccumuloRyaDAO dao) throws RyaDAOException {
-        RyaStatement ryaStatement = new RyaStatement(RTS_SUBJECT_RYA, predicateRyaUri, null);
+    private static String getMetadata(final RyaURI predicateRyaUri, final AccumuloRyaDAO dao) throws RyaDAOException {
+        final RyaStatement ryaStatement = new RyaStatement(RTS_SUBJECT_RYA, predicateRyaUri, null);
         return getMetadata(ryaStatement, dao);
     }
 
@@ -225,10 +224,10 @@ public final class AccumuloRyaUtils {
      * @return the string value of the object from the metadata key.
      * @throws RyaDAOException
      */
-    private static String getMetadata(RyaStatement ryaStatement, AccumuloRyaDAO dao) throws RyaDAOException {
+    private static String getMetadata(final RyaStatement ryaStatement, final AccumuloRyaDAO dao) throws RyaDAOException {
         String metadata = null;
-        AccumuloRdfConfiguration config = dao.getConf();
-        CloseableIteration<RyaStatement, RyaDAOException> iter = dao.getQueryEngine().query(ryaStatement, config);
+        final AccumuloRdfConfiguration config = dao.getConf();
+        final CloseableIteration<RyaStatement, RyaDAOException> iter = dao.getQueryEngine().query(ryaStatement, config);
         if (iter.hasNext()) {
             metadata = iter.next().getObject().getData();
         }
@@ -243,8 +242,8 @@ public final class AccumuloRyaUtils {
      * @param dao the {@link AccumuloRyaDAO}.
      * @throws RyaDAOException
      */
-    public static RyaStatement setCopyToolRunDate(Date date, AccumuloRyaDAO dao) throws RyaDAOException {
-        RyaStatement ryaStatement = createCopyToolRunTimeRyaStatement(date);
+    public static RyaStatement setCopyToolRunDate(final Date date, final AccumuloRyaDAO dao) throws RyaDAOException {
+        final RyaStatement ryaStatement = createCopyToolRunTimeRyaStatement(date);
         dao.add(ryaStatement);
         return ryaStatement;
     }
@@ -255,8 +254,8 @@ public final class AccumuloRyaUtils {
      * @param dao the {@link AccumuloRyaDAO}.
      * @throws RyaDAOException
      */
-    public static RyaStatement setCopyToolSplitDate(Date date, AccumuloRyaDAO dao) throws RyaDAOException {
-        RyaStatement ryaStatement = createCopyToolSplitTimeRyaStatement(date);
+    public static RyaStatement setCopyToolSplitDate(final Date date, final AccumuloRyaDAO dao) throws RyaDAOException {
+        final RyaStatement ryaStatement = createCopyToolSplitTimeRyaStatement(date);
         dao.add(ryaStatement);
         return ryaStatement;
     }
@@ -267,11 +266,11 @@ public final class AccumuloRyaUtils {
      * @param dao the {@link AccumuloRyaDAO}.
      * @throws RyaDAOException
      */
-    public static RyaStatement setCopyToolRunTime(String time, AccumuloRyaDAO dao) throws RyaDAOException {
+    public static RyaStatement setCopyToolRunTime(final String time, final AccumuloRyaDAO dao) throws RyaDAOException {
         Date date = null;
         try {
             date = TIME_FORMATTER.parse(time);
-        } catch (ParseException e) {
+        } catch (final ParseException e) {
             log.error("Unable to parse the copy tool run time: ", e);
         }
         return setCopyToolRunDate(date, dao);
@@ -283,11 +282,11 @@ public final class AccumuloRyaUtils {
      * @param dao the {@link AccumuloRyaDAO}.
      * @throws RyaDAOException
      */
-    public static RyaStatement setCopyToolSplitTime(String time, AccumuloRyaDAO dao) throws RyaDAOException {
+    public static RyaStatement setCopyToolSplitTime(final String time, final AccumuloRyaDAO dao) throws RyaDAOException {
         Date date = null;
         try {
             date = TIME_FORMATTER.parse(time);
-        } catch (ParseException e) {
+        } catch (final ParseException e) {
             log.error("Unable to parse the copy tool split time: ", e);
         }
         return setCopyToolSplitDate(date, dao);
@@ -298,9 +297,9 @@ public final class AccumuloRyaUtils {
      * @return the {@link RegExFilter} {@link IteratorSetting}.
      */
     public static IteratorSetting getVersionRegExFilterSetting() {
-        IteratorSetting regex = new IteratorSetting(30, "version_regex", RegExFilter.class);
+        final IteratorSetting regex = new IteratorSetting(30, "version_regex", RegExFilter.class);
         RegExFilter.setRegexs(regex, "(.*)urn:(.*)#version[\u0000|\u0001](.*)", null, null, null, false);
-        RegExFilter.setNegate(regex, true);
+        Filter.setNegate(regex, true);
         return regex;
     }
 
@@ -309,9 +308,9 @@ public final class AccumuloRyaUtils {
      * @return the {@link RegExFilter} {@link IteratorSetting}.
      */
     public static IteratorSetting getCopyToolRunTimeRegExFilterSetting() {
-        IteratorSetting regex = new IteratorSetting(31, COPY_TOOL_RUN_TIME_LOCAL_NAME + "_regex", RegExFilter.class);
+        final IteratorSetting regex = new IteratorSetting(31, COPY_TOOL_RUN_TIME_LOCAL_NAME + "_regex", RegExFilter.class);
         RegExFilter.setRegexs(regex, "(.*)urn:(.*)#" + COPY_TOOL_RUN_TIME_LOCAL_NAME + "[\u0000|\u0001](.*)", null, null, null, false);
-        RegExFilter.setNegate(regex, true);
+        Filter.setNegate(regex, true);
         return regex;
     }
 
@@ -320,9 +319,9 @@ public final class AccumuloRyaUtils {
      * @return the {@link RegExFilter} {@link IteratorSetting}.
      */
     public static IteratorSetting getCopyToolSplitTimeRegExFilterSetting() {
-        IteratorSetting regex = new IteratorSetting(32, COPY_TOOL_SPLIT_TIME_LOCAL_NAME + "_regex", RegExFilter.class);
+        final IteratorSetting regex = new IteratorSetting(32, COPY_TOOL_SPLIT_TIME_LOCAL_NAME + "_regex", RegExFilter.class);
         RegExFilter.setRegexs(regex, "(.*)urn:(.*)#" + COPY_TOOL_SPLIT_TIME_LOCAL_NAME + "[\u0000|\u0001](.*)", null, null, null, false);
-        RegExFilter.setNegate(regex, true);
+        Filter.setNegate(regex, true);
         return regex;
     }
 
@@ -331,9 +330,9 @@ public final class AccumuloRyaUtils {
      * @return the {@link RegExFilter} {@link IteratorSetting}.
      */
     public static IteratorSetting getCopyToolTimeOffsetRegExFilterSetting() {
-        IteratorSetting regex = new IteratorSetting(33, COPY_TOOL_TIME_OFFSET_LOCAL_NAME + "_regex", RegExFilter.class);
+        final IteratorSetting regex = new IteratorSetting(33, COPY_TOOL_TIME_OFFSET_LOCAL_NAME + "_regex", RegExFilter.class);
         RegExFilter.setRegexs(regex, "(.*)urn:(.*)#" + COPY_TOOL_TIME_OFFSET_LOCAL_NAME + "[\u0000|\u0001](.*)", null, null, null, false);
-        RegExFilter.setNegate(regex, true);
+        Filter.setNegate(regex, true);
         return regex;
     }
 
@@ -342,8 +341,8 @@ public final class AccumuloRyaUtils {
      * certain metadata keys in a table are ignored.
      * @param scanner the {@link Scanner} to add the regex filter {@link IteratorSetting}s to.
      */
-    public static void addCommonScannerIteratorsTo(Scanner scanner) {
-        for (IteratorSetting iteratorSetting : COMMON_REG_EX_FILTER_SETTINGS) {
+    public static void addCommonScannerIteratorsTo(final Scanner scanner) {
+        for (final IteratorSetting iteratorSetting : COMMON_REG_EX_FILTER_SETTINGS) {
             scanner.addScanIterator(iteratorSetting);
         }
     }
@@ -356,7 +355,7 @@ public final class AccumuloRyaUtils {
      * @return the {@link Scanner} for the table.
      * @throws IOException
      */
-    public static Scanner getScanner(String tableName, Configuration config) throws IOException {
+    public static Scanner getScanner(final String tableName, final Configuration config) throws IOException {
         return getScanner(tableName, config, true);
     }
 
@@ -369,22 +368,22 @@ public final class AccumuloRyaUtils {
      * @return the {@link Scanner} for the table.
      * @throws IOException
      */
-    public static Scanner getScanner(String tableName, Configuration config, boolean shouldAddCommonIterators) throws IOException {
+    public static Scanner getScanner(final String tableName, final Configuration config, final boolean shouldAddCommonIterators) throws IOException {
         try {
-            String instanceName = config.get(ConfigUtils.CLOUDBASE_INSTANCE);
-            String zooKeepers = config.get(ConfigUtils.CLOUDBASE_ZOOKEEPERS);
+            final String instanceName = config.get(ConfigUtils.CLOUDBASE_INSTANCE);
+            final String zooKeepers = config.get(ConfigUtils.CLOUDBASE_ZOOKEEPERS);
             Instance instance;
             if (ConfigUtils.useMockInstance(config)) {
                 instance = new MockInstance(config.get(ConfigUtils.CLOUDBASE_INSTANCE));
             } else {
                 instance = new ZooKeeperInstance(new ClientConfiguration().withInstance(instanceName).withZkHosts(zooKeepers));
             }
-            String username = ConfigUtils.getUsername(config);
-            String password = ConfigUtils.getPassword(config);
-            Connector connector = instance.getConnector(username, new PasswordToken(password));
-            Authorizations auths = ConfigUtils.getAuthorizations(config);
+            final String username = ConfigUtils.getUsername(config);
+            final String password = ConfigUtils.getPassword(config);
+            final Connector connector = instance.getConnector(username, new PasswordToken(password));
+            final Authorizations auths = ConfigUtils.getAuthorizations(config);
 
-            Scanner scanner = connector.createScanner(tableName, auths);
+            final Scanner scanner = connector.createScanner(tableName, auths);
             if (shouldAddCommonIterators) {
                 AccumuloRyaUtils.addCommonScannerIteratorsTo(scanner);
             }
@@ -403,7 +402,7 @@ public final class AccumuloRyaUtils {
      * @param settings the additional {@link IteratorSetting}s to add besides the common ones.
      * @throws IOException
      */
-    public static void printTable(String tableName, AccumuloRdfConfiguration config, IteratorSetting... settings) throws IOException {
+    public static void printTable(final String tableName, final AccumuloRdfConfiguration config, final IteratorSetting... settings) throws IOException {
         printTable(tableName, config, true, settings);
     }
 
@@ -416,35 +415,35 @@ public final class AccumuloRyaUtils {
      * @param settings the additional {@link IteratorSetting}s to add besides the common ones.
      * @throws IOException
      */
-    public static void printTable(String tableName, AccumuloRdfConfiguration config, boolean shouldAddCommonIterators, IteratorSetting... settings) throws IOException {
-        Scanner scanner = AccumuloRyaUtils.getScanner(tableName, config, shouldAddCommonIterators);
-        for (IteratorSetting setting : settings) {
+    public static void printTable(final String tableName, final AccumuloRdfConfiguration config, final boolean shouldAddCommonIterators, final IteratorSetting... settings) throws IOException {
+        final Scanner scanner = AccumuloRyaUtils.getScanner(tableName, config, shouldAddCommonIterators);
+        for (final IteratorSetting setting : settings) {
             scanner.addScanIterator(setting);
         }
 
-        Iterator<Entry<Key, Value>> iterator = scanner.iterator();
+        final Iterator<Entry<Key, Value>> iterator = scanner.iterator();
 
-        String instance = config.get(MRUtils.AC_INSTANCE_PROP);
+        final String instance = config.get(MRUtils.AC_INSTANCE_PROP);
         log.info("==================");
         log.info("TABLE: " + tableName + " INSTANCE: " + instance);
         log.info("------------------");
         while (iterator.hasNext()) {
-            Entry<Key, Value> entry = iterator.next();
-            Key key = entry.getKey();
-            Value value = entry.getValue();
-            String keyString = getFormattedKeyString(key);
+            final Entry<Key, Value> entry = iterator.next();
+            final Key key = entry.getKey();
+            final Value value = entry.getValue();
+            final String keyString = getFormattedKeyString(key);
             log.info(keyString + " - " + value);
         }
         log.info("==================");
     }
 
-    private static String getFormattedKeyString(Key key) {
-        StringBuilder sb = new StringBuilder();
-        byte[] row = key.getRow().getBytes();
-        byte[] colFamily = key.getColumnFamily().getBytes();
-        byte[] colQualifier = key.getColumnQualifier().getBytes();
-        byte[] colVisibility = key.getColumnVisibility().getBytes();
-        int maxRowDataToPrint = 256;
+    private static String getFormattedKeyString(final Key key) {
+        final StringBuilder sb = new StringBuilder();
+        final byte[] row = key.getRow().getBytes();
+        final byte[] colFamily = key.getColumnFamily().getBytes();
+        final byte[] colQualifier = key.getColumnQualifier().getBytes();
+        final byte[] colVisibility = key.getColumnVisibility().getBytes();
+        final int maxRowDataToPrint = 256;
         Key.appendPrintableString(row, 0, row.length, maxRowDataToPrint, sb);
         sb.append(" ");
         Key.appendPrintableString(colFamily, 0, colFamily.length, maxRowDataToPrint, sb);
@@ -469,7 +468,7 @@ public final class AccumuloRyaUtils {
      * @param settings the additional {@link IteratorSetting}s to add besides the common ones.
      * @throws IOException
      */
-    public static void printTablePretty(String tableName, Configuration config, IteratorSetting... settings) throws AccumuloException, AccumuloSecurityException, TableNotFoundException, IOException {
+    public static void printTablePretty(final String tableName, final Configuration config, final IteratorSetting... settings) throws AccumuloException, AccumuloSecurityException, TableNotFoundException, IOException {
         printTablePretty(tableName, config, true, settings);
     }
 
@@ -482,23 +481,23 @@ public final class AccumuloRyaUtils {
      * @param settings the additional {@link IteratorSetting}s to add besides the common ones.
      * @throws IOException
      */
-    public static void printTablePretty(String tableName, Configuration config, boolean shouldAddCommonIterators, IteratorSetting... settings) throws AccumuloException, AccumuloSecurityException, TableNotFoundException, IOException {
-        Scanner scanner = AccumuloRyaUtils.getScanner(tableName, config, shouldAddCommonIterators);
-        for (IteratorSetting setting : settings) {
+    public static void printTablePretty(final String tableName, final Configuration config, final boolean shouldAddCommonIterators, final IteratorSetting... settings) throws AccumuloException, AccumuloSecurityException, TableNotFoundException, IOException {
+        final Scanner scanner = AccumuloRyaUtils.getScanner(tableName, config, shouldAddCommonIterators);
+        for (final IteratorSetting setting : settings) {
             scanner.addScanIterator(setting);
         }
 
-        String format = "| %-64s | %-24s | %-28s | %-20s | %-20s | %-10s |";
-        int totalFormatLength = String.format(format, 1, 2, 3, 4, 5, 6).length();
-        String instance = config.get(MRUtils.AC_INSTANCE_PROP);
+        final String format = "| %-64s | %-24s | %-28s | %-20s | %-20s | %-10s |";
+        final int totalFormatLength = String.format(format, 1, 2, 3, 4, 5, 6).length();
+        final String instance = config.get(MRUtils.AC_INSTANCE_PROP);
         log.info(StringUtils.rightPad("==================", totalFormatLength, "="));
         log.info(StringUtils.rightPad("| TABLE: " + tableName + " INSTANCE: " + instance, totalFormatLength - 1) + "|");
         log.info(StringUtils.rightPad("------------------", totalFormatLength, "-"));
         log.info(String.format(format, "--Row--", "--ColumnVisibility--", "--Timestamp--", "--ColumnFamily--", "--ColumnQualifier--", "--Value--"));
         log.info(StringUtils.rightPad("|-----------------", totalFormatLength - 1, "-") + "|");
-        for (Entry<Key, Value> entry : scanner) {
-            Key k = entry.getKey();
-            String rowString = Key.appendPrintableString(k.getRow().getBytes(), 0, k.getRow().getLength(), Constants.MAX_DATA_TO_PRINT, new StringBuilder()).toString();
+        for (final Entry<Key, Value> entry : scanner) {
+            final Key k = entry.getKey();
+            final String rowString = Key.appendPrintableString(k.getRow().getBytes(), 0, k.getRow().getLength(), Constants.MAX_DATA_TO_PRINT, new StringBuilder()).toString();
             log.info(String.format(format, rowString, k.getColumnVisibility(), new Date(k.getTimestamp()), k.getColumnFamily(), k.getColumnQualifier(), entry.getValue()));
         }
         log.info(StringUtils.rightPad("==================", totalFormatLength, "="));
@@ -513,10 +512,10 @@ public final class AccumuloRyaUtils {
      * @throws AccumuloException
      * @throws AccumuloSecurityException
      */
-    public static Authorizations addUserAuths(String user, SecurityOperations secOps, Authorizations auths) throws AccumuloException, AccumuloSecurityException {
-        List<String> authList = new ArrayList<>();
-        for (byte[] authBytes : auths.getAuthorizations()) {
-            String auth = new String(authBytes);
+    public static Authorizations addUserAuths(final String user, final SecurityOperations secOps, final Authorizations auths) throws AccumuloException, AccumuloSecurityException {
+        final List<String> authList = new ArrayList<>();
+        for (final byte[] authBytes : auths.getAuthorizations()) {
+            final String auth = new String(authBytes);
             authList.add(auth);
         }
         return addUserAuths(user, secOps, authList.toArray(new String[0]));
@@ -531,16 +530,16 @@ public final class AccumuloRyaUtils {
      * @throws AccumuloException
      * @throws AccumuloSecurityException
      */
-    public static Authorizations addUserAuths(String user, SecurityOperations secOps, String... auths) throws AccumuloException, AccumuloSecurityException {
-        Authorizations currentUserAuths = secOps.getUserAuthorizations(user);
-        List<byte[]> authList = new ArrayList<>();
-        for (byte[] currentAuth : currentUserAuths.getAuthorizations()) {
+    public static Authorizations addUserAuths(final String user, final SecurityOperations secOps, final String... auths) throws AccumuloException, AccumuloSecurityException {
+        final Authorizations currentUserAuths = secOps.getUserAuthorizations(user);
+        final List<byte[]> authList = new ArrayList<>();
+        for (final byte[] currentAuth : currentUserAuths.getAuthorizations()) {
             authList.add(currentAuth);
         }
-        for (String newAuth : auths) {
+        for (final String newAuth : auths) {
             authList.add(newAuth.getBytes());
         }
-        Authorizations result = new Authorizations(authList);
+        final Authorizations result = new Authorizations(authList);
         return result;
     }
 
@@ -552,15 +551,15 @@ public final class AccumuloRyaUtils {
      * @throws AccumuloSecurityException
      * @throws AccumuloException
      */
-    public static void removeUserAuths(String userName, SecurityOperations secOps, String authsToRemove) throws AccumuloException, AccumuloSecurityException {
-        Authorizations currentUserAuths = secOps.getUserAuthorizations(userName);
-        List<String> authList = convertAuthStringToList(currentUserAuths.toString());
+    public static void removeUserAuths(final String userName, final SecurityOperations secOps, final String authsToRemove) throws AccumuloException, AccumuloSecurityException {
+        final Authorizations currentUserAuths = secOps.getUserAuthorizations(userName);
+        final List<String> authList = convertAuthStringToList(currentUserAuths.toString());
 
-        List<String> authsToRemoveList = convertAuthStringToList(authsToRemove);
+        final List<String> authsToRemoveList = convertAuthStringToList(authsToRemove);
         authList.removeAll(authsToRemoveList);
 
-        String authString = Joiner.on(",").join(authList);
-        Authorizations newAuths = new Authorizations(authString);
+        final String authString = Joiner.on(",").join(authList);
+        final Authorizations newAuths = new Authorizations(authString);
 
         secOps.changeUserAuthorizations(userName, newAuths);
     }
@@ -570,10 +569,10 @@ public final class AccumuloRyaUtils {
      * @param authString the comma-separated string of authorizations.
      * @return a {@link List} of authorization strings.
      */
-    public static List<String> convertAuthStringToList(String authString) {
-        List<String> authList = new ArrayList<>();
+    public static List<String> convertAuthStringToList(final String authString) {
+        final List<String> authList = new ArrayList<>();
         if (authString != null) {
-            String[] authSplit = authString.split(",");
+            final String[] authSplit = authString.split(",");
             authList.addAll(Arrays.asList(authSplit));
         }
         return authList;
@@ -584,7 +583,7 @@ public final class AccumuloRyaUtils {
      * @param accumuloRdfConfiguration the {@link AccumuloRdfConfiguration}.
      * @return the {@link Connector}.
      */
-    public static Connector setupConnector(AccumuloRdfConfiguration accumuloRdfConfiguration) {
+    public static Connector setupConnector(final AccumuloRdfConfiguration accumuloRdfConfiguration) {
         Connector connector = null;
         try {
             connector = ConfigUtils.getConnector(accumuloRdfConfiguration);
@@ -600,8 +599,8 @@ public final class AccumuloRyaUtils {
      * @param connector the {@link Connector}.
      * @return the {@link AccumuloRyaDAO}.
      */
-    public static AccumuloRyaDAO setupDao(AccumuloRdfConfiguration accumuloRdfConfiguration) {
-        Connector connector = setupConnector(accumuloRdfConfiguration);
+    public static AccumuloRyaDAO setupDao(final AccumuloRdfConfiguration accumuloRdfConfiguration) {
+        final Connector connector = setupConnector(accumuloRdfConfiguration);
         return setupDao(connector, accumuloRdfConfiguration);
     }
 
@@ -611,14 +610,14 @@ public final class AccumuloRyaUtils {
      * @param accumuloRdfConfiguration the {@link AccumuloRdfConfiguration}.
      * @return the {@link AccumuloRyaDAO}.
      */
-    public static AccumuloRyaDAO setupDao(Connector connector, AccumuloRdfConfiguration accumuloRdfConfiguration) {
-        AccumuloRyaDAO accumuloRyaDao = new AccumuloRyaDAO();
+    public static AccumuloRyaDAO setupDao(final Connector connector, final AccumuloRdfConfiguration accumuloRdfConfiguration) {
+        final AccumuloRyaDAO accumuloRyaDao = new AccumuloRyaDAO();
         accumuloRyaDao.setConnector(connector);
         accumuloRyaDao.setConf(accumuloRdfConfiguration);
 
         try {
             accumuloRyaDao.init();
-        } catch (RyaDAOException e) {
+        } catch (final RyaDAOException e) {
             log.error("Error initializing DAO", e);
         }
 
@@ -630,9 +629,9 @@ public final class AccumuloRyaUtils {
      * @param timeOffset the copy tool parent time offset. (in milliseconds).
      * @return the {@link RyaStatement} for the copy tool parent time offset.
      */
-    public static RyaStatement createTimeOffsetRyaStatement(long timeOffset) {
-        Literal literal = VALUE_FACTORY.createLiteral(timeOffset);
-        RyaType timeObject = new RyaType(literal.getDatatype(), literal.stringValue());
+    public static RyaStatement createTimeOffsetRyaStatement(final long timeOffset) {
+        final Literal literal = VALUE_FACTORY.createLiteral(timeOffset);
+        final RyaType timeObject = new RyaType(literal.getDatatype(), literal.stringValue());
         return new RyaStatement(RTS_SUBJECT_RYA, RTS_TIME_OFFSET_PREDICATE_RYA, timeObject);
     }
 
@@ -643,8 +642,8 @@ public final class AccumuloRyaUtils {
      * the NTP server's time or {@code null}.
      * @throws RyaDAOException
      */
-    public static Long getTimeOffset(AccumuloRyaDAO dao) throws RyaDAOException {
-        String timeOffsetString = getMetadata(RTS_TIME_OFFSET_PREDICATE_RYA, dao);
+    public static Long getTimeOffset(final AccumuloRyaDAO dao) throws RyaDAOException {
+        final String timeOffsetString = getMetadata(RTS_TIME_OFFSET_PREDICATE_RYA, dao);
         Long timeOffset = null;
         if (timeOffsetString != null) {
             timeOffset = Long.valueOf(timeOffsetString);
@@ -659,8 +658,8 @@ public final class AccumuloRyaUtils {
      * @param dao the {@link AccumuloRyaDAO}.
      * @throws RyaDAOException
      */
-    public static RyaStatement setTimeOffset(long timeOffset, AccumuloRyaDAO dao) throws RyaDAOException {
-        RyaStatement ryaStatement = createTimeOffsetRyaStatement(timeOffset);
+    public static RyaStatement setTimeOffset(final long timeOffset, final AccumuloRyaDAO dao) throws RyaDAOException {
+        final RyaStatement ryaStatement = createTimeOffsetRyaStatement(timeOffset);
         dao.add(ryaStatement);
         return ryaStatement;
     }

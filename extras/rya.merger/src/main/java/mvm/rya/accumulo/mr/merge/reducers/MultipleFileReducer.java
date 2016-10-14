@@ -1,24 +1,22 @@
-package mvm.rya.accumulo.mr.merge.reducers;
-
 /*
- * #%L
- * mvm.rya.accumulo.mr.merge
- * %%
- * Copyright (C) 2014 Rya
- * %%
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- * #L%
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
  */
+package mvm.rya.accumulo.mr.merge.reducers;
 
 import java.io.IOException;
 
@@ -36,12 +34,12 @@ public class MultipleFileReducer extends Reducer<GroupedRow, GroupedRow, Key, Va
     private MultipleOutputs<Key, Value> mos;
 
     @Override
-    protected void setup(Context context) {
+    protected void setup(final Context context) {
         mos = new MultipleOutputs<>(context);
     }
 
     @Override
-    protected void cleanup(Context context) throws IOException, InterruptedException {
+    protected void cleanup(final Context context) throws IOException, InterruptedException {
         if (mos != null) {
             mos.close();
         }
@@ -54,10 +52,10 @@ public class MultipleFileReducer extends Reducer<GroupedRow, GroupedRow, Key, Va
      * @param   context Context for writing
      */
     @Override
-    protected void reduce(GroupedRow group, Iterable<GroupedRow> rows, Context context) throws IOException, InterruptedException {
-        String groupName = group.getGroup().toString();
-        String destination = groupName + "/files/part";
-        for (GroupedRow row : rows) {
+    protected void reduce(final GroupedRow group, final Iterable<GroupedRow> rows, final Context context) throws IOException, InterruptedException {
+        final String groupName = group.getGroup().toString();
+        final String destination = groupName + "/files/part";
+        for (final GroupedRow row : rows) {
             mos.write(row.getKey(), row.getValue(), destination);
         }
     }

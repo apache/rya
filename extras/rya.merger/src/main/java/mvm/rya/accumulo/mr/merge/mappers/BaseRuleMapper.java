@@ -1,24 +1,22 @@
-package mvm.rya.accumulo.mr.merge.mappers;
-
 /*
- * #%L
- * mvm.rya.accumulo.mr.merge
- * %%
- * Copyright (C) 2014 Rya
- * %%
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- * #L%
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
  */
+package mvm.rya.accumulo.mr.merge.mappers;
 
 import java.io.IOException;
 import java.util.List;
@@ -61,23 +59,23 @@ public abstract class BaseRuleMapper<KEYOUT, VALUEOUT> extends BaseCopyToolMappe
 
     private static final Logger log = Logger.getLogger(BaseRuleMapper.class);
 
-    private TripleRowResolver resolver = new WholeRowTripleResolver();
+    private final TripleRowResolver resolver = new WholeRowTripleResolver();
     private TABLE_LAYOUT parentLayout = null;
     private ValueExpr condition;
     private ParallelEvaluationStrategyImpl strategy;
     private RangeInputSplit split;
 
     @Override
-    protected void setup(Context context) throws IOException, InterruptedException {
-        Configuration conf = context.getConfiguration();
+    protected void setup(final Context context) throws IOException, InterruptedException {
+        final Configuration conf = context.getConfiguration();
         split = (RangeInputSplit) context.getInputSplit();
-        Range range = split.getRange();
+        final Range range = split.getRange();
 
         // Determine the table and table layout we're scanning
         parentTableName = split.getTableName();
         parentTablePrefix = conf.get(MRUtils.TABLE_PREFIX_PROPERTY);
-        for (TABLE_LAYOUT layout : TABLE_LAYOUT.values()) {
-            String tableName = RdfCloudTripleStoreUtils.layoutPrefixToTable(layout, parentTablePrefix);
+        for (final TABLE_LAYOUT layout : TABLE_LAYOUT.values()) {
+            final String tableName = RdfCloudTripleStoreUtils.layoutPrefixToTable(layout, parentTablePrefix);
             if (tableName.equals(parentTableName)) {
                 parentLayout = layout;
             }
@@ -92,15 +90,15 @@ public abstract class BaseRuleMapper<KEYOUT, VALUEOUT> extends BaseCopyToolMappe
             AccumuloQueryRuleset ruleset;
             try {
                 ruleset = new AccumuloQueryRuleset(new AccumuloRdfConfiguration(conf));
-            } catch (QueryRulesetException e) {
+            } catch (final QueryRulesetException e) {
                 throw new IOException("Error parsing the input query", e);
             }
 
-            List<CopyRule> rules = ruleset.getRules(parentLayout, range);
+            final List<CopyRule> rules = ruleset.getRules(parentLayout, range);
 
-            for (CopyRule rule : rules) {
+            for (final CopyRule rule : rules) {
                 log.info("Mapper applies to rule:");
-                for (String line : rule.toString().split("\n")) {
+                for (final String line : rule.toString().split("\n")) {
                     log.info("\t" + line);
                 }
             }
@@ -108,7 +106,7 @@ public abstract class BaseRuleMapper<KEYOUT, VALUEOUT> extends BaseCopyToolMappe
             // Combine the rules' conditions so that if any of the individual conditions matches, the
             // composite condition will match as well. We know all the rules match all the statements
             // this input split will receive, so if any condition is true we'll want to copy the statement.
-            for (CopyRule rule : rules) {
+            for (final CopyRule rule : rules) {
                 // Attach any relevant filter conditions given by this rule.
                 // If there are no conditions, all statements read by this mapper should be accepted
                 // (even if there are redundant rules with conditions)
@@ -139,7 +137,7 @@ public abstract class BaseRuleMapper<KEYOUT, VALUEOUT> extends BaseCopyToolMappe
             }
             else {
                 log.info("Condition:");
-                for (String line : condition.toString().split("\n")) {
+                for (final String line : condition.toString().split("\n")) {
                     log.info("\t" + line);
                 }
             }
@@ -151,8 +149,8 @@ public abstract class BaseRuleMapper<KEYOUT, VALUEOUT> extends BaseCopyToolMappe
     }
 
     @Override
-    protected void map(Key key, Value value, Context context) throws IOException, InterruptedException {
-        TripleRow row = new TripleRow(key.getRowData().toArray(), key.getColumnFamilyData().toArray(),
+    protected void map(final Key key, final Value value, final Context context) throws IOException, InterruptedException {
+        final TripleRow row = new TripleRow(key.getRowData().toArray(), key.getColumnFamilyData().toArray(),
                 key.getColumnQualifierData().toArray(), key.getTimestamp(),
                 key.getColumnVisibilityData().toArray(), value == null ? null : value.get());
         try {
@@ -163,15 +161,15 @@ public abstract class BaseRuleMapper<KEYOUT, VALUEOUT> extends BaseCopyToolMappe
             }
             // If there is a layout, deserialize the statement and insert it if it meets the condition
             else {
-                RyaStatement rs = resolver.deserialize(parentLayout, row);
+                final RyaStatement rs = resolver.deserialize(parentLayout, row);
                 if (condition == null || CopyRule.accept(RyaToRdfConversions.convertStatement(rs), condition, strategy)) {
                     copyStatement(rs, context);
                     context.getCounter(Counters.STATEMENTS_COPIED).increment(1);
                 }
             }
-        } catch (TripleRowResolverException e) {
+        } catch (final TripleRowResolverException e) {
             throw new IOException("Error deserializing triple", e);
-        } catch (QueryEvaluationException e) {
+        } catch (final QueryEvaluationException e) {
             throw new IOException("Error evaluating the filter condition", e);
         }
     }
@@ -202,12 +200,12 @@ public abstract class BaseRuleMapper<KEYOUT, VALUEOUT> extends BaseCopyToolMappe
      * @param max The maximum printed length of each individual portion
      * @return A human-readable representation of the Key
      */
-    private static String keyToString(Key key, int max) {
-        StringBuilder sb = new StringBuilder();
-        byte[] row = key.getRow().copyBytes();
-        byte[] colFamily = key.getColumnFamily().copyBytes();
-        byte[] colQualifier = key.getColumnQualifier().copyBytes();
-        byte[] colVisibility = key.getColumnVisibility().copyBytes();
+    private static String keyToString(final Key key, final int max) {
+        final StringBuilder sb = new StringBuilder();
+        final byte[] row = key.getRow().copyBytes();
+        final byte[] colFamily = key.getColumnFamily().copyBytes();
+        final byte[] colQualifier = key.getColumnQualifier().copyBytes();
+        final byte[] colVisibility = key.getColumnVisibility().copyBytes();
         Key.appendPrintableString(row, 0, row.length, max, sb);
         sb.append(" ");
         Key.appendPrintableString(colFamily, 0, colFamily.length, max, sb);

@@ -18,13 +18,13 @@
  */
 package org.apache.rya.api.client;
 
-import javax.annotation.ParametersAreNonnullByDefault;
+// SEE RYA-211 import javax.annotation.ParametersAreNonnullByDefault;
 
 /**
  * One of the {@link RyaClient} commands could not execute because the connected
  * instance of Rya does not exist.
  */
-@ParametersAreNonnullByDefault
+// SEE RYA-211 @ParametersAreNonnullByDefault
 public class InstanceDoesNotExistException extends RyaClientException {
     private static final long serialVersionUID = 1L;
 

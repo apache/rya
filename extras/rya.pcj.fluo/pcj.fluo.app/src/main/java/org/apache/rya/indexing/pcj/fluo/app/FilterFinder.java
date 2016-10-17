@@ -23,7 +23,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.concurrent.atomic.AtomicReference;
 
-import javax.annotation.ParametersAreNonnullByDefault;
+// SEE RYA-211 import javax.annotation.ParametersAreNonnullByDefault;
 
 import org.openrdf.query.algebra.Filter;
 import org.openrdf.query.algebra.helpers.QueryModelVisitorBase;
@@ -35,7 +35,7 @@ import com.google.common.base.Optional;
 /**
  * Searches a SPARQL query for {@link Filter}s.
  */
-@ParametersAreNonnullByDefault
+// SEE RYA-211 @ParametersAreNonnullByDefault
 class FilterFinder {
 
     /**

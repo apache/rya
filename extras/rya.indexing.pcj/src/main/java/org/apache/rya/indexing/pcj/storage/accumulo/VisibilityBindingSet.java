@@ -20,14 +20,14 @@ package org.apache.rya.indexing.pcj.storage.accumulo;
 
 import static java.util.Objects.requireNonNull;
 
-import javax.annotation.ParametersAreNonnullByDefault;
+// SEE RYA-211 import javax.annotation.ParametersAreNonnullByDefault;
 
 import org.openrdf.query.BindingSet;
 
 /**
  * Decorates a {@link BindingSet} with a collection of visibilities.
  */
-@ParametersAreNonnullByDefault
+// SEE RYA-211 @ParametersAreNonnullByDefault
 public class VisibilityBindingSet extends BindingSetDecorator {
     private static final long serialVersionUID = 1L;
     private String visibility;

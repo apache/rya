@@ -25,7 +25,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-import javax.annotation.ParametersAreNonnullByDefault;
+// SEE RYA-211 import javax.annotation.ParametersAreNonnullByDefault;
 
 import org.apache.rya.indexing.pcj.fluo.app.NodeType;
 import org.apache.rya.indexing.pcj.fluo.app.query.FilterMetadata;
@@ -56,7 +56,7 @@ import org.apache.fluo.api.data.Span;
  *       into memory.</li>
  * </ol>
  */
-@ParametersAreNonnullByDefault
+// SEE RYA-211 @ParametersAreNonnullByDefault
 public class DeletePcj {
 
     private final FluoQueryMetadataDAO dao = new FluoQueryMetadataDAO();

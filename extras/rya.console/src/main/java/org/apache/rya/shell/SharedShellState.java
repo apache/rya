@@ -23,10 +23,10 @@ import static java.util.Objects.requireNonNull;
 import java.util.Objects;
 import java.util.concurrent.locks.ReentrantLock;
 
-import javax.annotation.Nullable;
-import javax.annotation.ParametersAreNonnullByDefault;
-import javax.annotation.concurrent.Immutable;
-import javax.annotation.concurrent.ThreadSafe;
+import edu.umd.cs.findbugs.annotations.Nullable;
+// SEE RYA-211 import javax.annotation.ParametersAreNonnullByDefault;
+// SEE RYA-211 import javax.annotation.concurrent.Immutable;
+// SEE RYA-211 import javax.annotation.concurrent.ThreadSafe;
 
 import com.google.common.base.Optional;
 
@@ -36,8 +36,8 @@ import org.apache.rya.api.client.accumulo.AccumuloConnectionDetails;
 /**
  * Holds values that are shared between the various Rya command classes.
  */
-@ThreadSafe
-@ParametersAreNonnullByDefault
+// SEE RYA-211 @ThreadSafe
+// SEE RYA-211 @ParametersAreNonnullByDefault
 public class SharedShellState {
     // The shared nature of this object means we shouldn't assume only a single thread is accessing it.
     private final ReentrantLock lock = new ReentrantLock();
@@ -161,8 +161,8 @@ public class SharedShellState {
     /**
      * Values that define the state of a Rya Shell.
      */
-    @Immutable
-    @ParametersAreNonnullByDefault
+// SEE RYA-211     @Immutable
+// SEE RYA-211     @ParametersAreNonnullByDefault
     public static final class ShellState {
         // Indicates the state of the shell.
         private final ConnectionState connectionState;
@@ -258,7 +258,7 @@ public class SharedShellState {
         /**
          * Builds instances of {@link ShellState}.
          */
-        @ParametersAreNonnullByDefault
+// SEE RYA-211         @ParametersAreNonnullByDefault
         public static class Builder {
             private ConnectionState connectionState;
 

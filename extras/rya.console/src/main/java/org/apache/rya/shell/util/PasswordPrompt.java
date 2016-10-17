@@ -20,14 +20,14 @@ package org.apache.rya.shell.util;
 
 import java.io.IOException;
 
-import javax.annotation.ParametersAreNonnullByDefault;
+// SEE RYA-211 import javax.annotation.ParametersAreNonnullByDefault;
 
 import jline.console.ConsoleReader;
 
 /**
  * A mechanism for prompting a user of the application for a password.
  */
-@ParametersAreNonnullByDefault
+// SEE RYA-211 @ParametersAreNonnullByDefault
 public interface PasswordPrompt {
 
     /**

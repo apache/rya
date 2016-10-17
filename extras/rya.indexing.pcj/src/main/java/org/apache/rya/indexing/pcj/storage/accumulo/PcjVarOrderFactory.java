@@ -20,7 +20,7 @@ package org.apache.rya.indexing.pcj.storage.accumulo;
 
 import java.util.Set;
 
-import javax.annotation.ParametersAreNonnullByDefault;
+// SEE RYA-211 import javax.annotation.ParametersAreNonnullByDefault;
 
 import org.openrdf.query.MalformedQueryException;
 
@@ -28,7 +28,7 @@ import org.openrdf.query.MalformedQueryException;
  * Create alternative variable orders for a SPARQL query based on
  * the original ordering of its results.
  */
-@ParametersAreNonnullByDefault
+// SEE RYA-211 @ParametersAreNonnullByDefault
 public interface PcjVarOrderFactory {
 
     /**

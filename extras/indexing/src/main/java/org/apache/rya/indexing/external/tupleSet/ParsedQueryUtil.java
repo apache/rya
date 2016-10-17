@@ -22,7 +22,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.concurrent.atomic.AtomicReference;
 
-import javax.annotation.ParametersAreNonnullByDefault;
+// SEE RYA-211 import javax.annotation.ParametersAreNonnullByDefault;
 
 import org.openrdf.query.algebra.Projection;
 import org.openrdf.query.algebra.helpers.QueryModelVisitorBase;
@@ -33,7 +33,7 @@ import com.google.common.base.Optional;
 /**
  * Utilities that help applications inspect {@link ParsedQuery} objects.
  */
-@ParametersAreNonnullByDefault
+// SEE RYA-211 @ParametersAreNonnullByDefault
 public class ParsedQueryUtil {
 
     /**

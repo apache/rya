@@ -32,8 +32,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
-import javax.annotation.ParametersAreNonnullByDefault;
-import javax.annotation.concurrent.Immutable;
+// SEE RYA-211 import javax.annotation.ParametersAreNonnullByDefault;
+// SEE RYA-211 import javax.annotation.concurrent.Immutable;
 
 import org.apache.rya.indexing.pcj.fluo.app.FilterResultUpdater;
 import org.apache.rya.indexing.pcj.fluo.app.FluoStringConverter;
@@ -89,7 +89,7 @@ public class SparqlFluoQueryBuilder {
      * of a {@link ParsedQuery}. This structure should only be used while creating
      * a new PCJ in Fluo and disposed of afterwards.
      */
-    @ParametersAreNonnullByDefault
+// SEE RYA-211     @ParametersAreNonnullByDefault
     public static final class NodeIds {
 
         /**
@@ -415,8 +415,8 @@ public class SparqlFluoQueryBuilder {
         /**
          * Holds the Variable Order of the binding sets for the children of a join node.
          */
-        @Immutable
-        @ParametersAreNonnullByDefault
+// SEE RYA-211         @Immutable
+// SEE RYA-211         @ParametersAreNonnullByDefault
         private static final class JoinVarOrders {
             private final VariableOrder leftVarOrder;
             private final VariableOrder rightVarOrder;

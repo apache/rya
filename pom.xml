@@ -122,7 +122,7 @@ under the License.
         <fluo.version>1.0.0-incubating</fluo.version>
         
         <jmh.version>1.13</jmh.version>
-        <jsr305.version>3.0.1</jsr305.version>
+        <jsr305.version>1.3.9-1</jsr305.version>
     </properties>
     <dependencyManagement>
         <dependencies>
@@ -331,6 +331,13 @@ under the License.
                 <groupId>org.apache.hadoop</groupId>
                 <artifactId>hadoop-common</artifactId>
                 <version>${hadoop.version}</version>
+                <exclusions>
+                    <!-- released under the LGPL license -->
+                    <exclusion>
+                        <groupId>com.google.code.findbugs</groupId>
+                        <artifactId>jsr305</artifactId>
+                    </exclusion>
+                </exclusions>
             </dependency>
 
             <dependency>
@@ -502,6 +509,13 @@ under the License.
                 <groupId>org.apache.fluo</groupId>
                 <artifactId>fluo-core</artifactId>
                 <version>${fluo.version}</version>
+                <exclusions>
+                    <!-- released under the LGPL license -->
+                    <exclusion>
+                        <groupId>com.google.code.findbugs</groupId>
+                        <artifactId>jsr305</artifactId>
+                    </exclusion>
+                </exclusions>
             </dependency>
             <dependency>
                 <groupId>org.apache.fluo</groupId>
@@ -556,8 +570,8 @@ under the License.
             </dependency>
             
             <dependency>
-                <groupId>com.google.code.findbugs</groupId>
-                <artifactId>jsr305</artifactId>
+                <groupId>com.github.stephenc.findbugs</groupId>
+                <artifactId>findbugs-annotations</artifactId>
                 <version>${jsr305.version}</version>
             </dependency>
             
@@ -566,6 +580,13 @@ under the License.
                 <artifactId>accumulo-minicluster</artifactId>
                 <version>${accumulo.version}</version>
                 <scope>test</scope>
+                <exclusions>
+                    <!-- released under the LGPL license -->
+                    <exclusion>
+                        <groupId>com.google.code.findbugs</groupId>
+                        <artifactId>jsr305</artifactId>
+                    </exclusion>
+                </exclusions>
             </dependency>
         </dependencies>
     </dependencyManagement>

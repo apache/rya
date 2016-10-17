@@ -20,12 +20,12 @@ package org.apache.rya.api.client;
 
 import java.util.List;
 
-import javax.annotation.ParametersAreNonnullByDefault;
+// SEE RYA-211 import javax.annotation.ParametersAreNonnullByDefault;
 
 /**
  * List the names of the installed Rya instances.
  */
-@ParametersAreNonnullByDefault
+// SEE RYA-211 @ParametersAreNonnullByDefault
 public interface ListInstances {
 
     /**

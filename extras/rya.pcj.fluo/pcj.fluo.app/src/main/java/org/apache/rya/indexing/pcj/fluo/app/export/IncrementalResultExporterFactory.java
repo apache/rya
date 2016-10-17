@@ -18,7 +18,7 @@
  */
 package org.apache.rya.indexing.pcj.fluo.app.export;
 
-import javax.annotation.ParametersAreNonnullByDefault;
+// SEE RYA-211 import javax.annotation.ParametersAreNonnullByDefault;
 
 import com.google.common.base.Optional;
 
@@ -28,7 +28,7 @@ import org.apache.fluo.api.observer.Observer.Context;
  * Builds instances of {@link IncrementalResultExporter} using the provided
  * configurations.
  */
-@ParametersAreNonnullByDefault
+// SEE RYA-211 @ParametersAreNonnullByDefault
 public interface IncrementalResultExporterFactory {
 
     /**

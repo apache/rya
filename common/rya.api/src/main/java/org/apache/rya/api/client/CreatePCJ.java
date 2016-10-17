@@ -18,12 +18,12 @@
  */
 package org.apache.rya.api.client;
 
-import javax.annotation.ParametersAreNonnullByDefault;
+// SEE RYA-211 import javax.annotation.ParametersAreNonnullByDefault;
 
 /**
  * Create a new PCJ within the target instance of Rya.
  */
-@ParametersAreNonnullByDefault
+// SEE RYA-211 @ParametersAreNonnullByDefault
 public interface CreatePCJ {
 
     /**

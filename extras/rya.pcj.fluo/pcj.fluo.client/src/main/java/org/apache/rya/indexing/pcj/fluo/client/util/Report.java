@@ -21,8 +21,8 @@ package org.apache.rya.indexing.pcj.fluo.client.util;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import javax.annotation.ParametersAreNonnullByDefault;
-import javax.annotation.concurrent.Immutable;
+// SEE RYA-211 import javax.annotation.ParametersAreNonnullByDefault;
+// SEE RYA-211 import javax.annotation.concurrent.Immutable;
 
 import org.apache.commons.lang3.StringUtils;
 
@@ -33,8 +33,8 @@ import com.google.common.collect.ImmutableList;
  * left hand side of the table and the value of the item on the right hand side.
  * If an item does not have any values, then it prints an empty line.
  */
-@Immutable
-@ParametersAreNonnullByDefault
+// SEE RYA-211 @Immutable
+// SEE RYA-211 @ParametersAreNonnullByDefault
 public class Report {
 
     private final ImmutableList<ReportItem> items;
@@ -111,8 +111,8 @@ public class Report {
      * An item that may appear within a {@link Report}. Each item has a title
      * that briefly describes the value it holds.
      */
-    @Immutable
-    @ParametersAreNonnullByDefault
+// SEE RYA-211     @Immutable
+// SEE RYA-211     @ParametersAreNonnullByDefault
     public static final class ReportItem {
         private final String title;
         private final String[] valueLines;
@@ -172,7 +172,7 @@ public class Report {
     /**
      * Builds instances of {@link Report}.
      */
-    @ParametersAreNonnullByDefault
+// SEE RYA-211     @ParametersAreNonnullByDefault
     public static final class Builder {
 
         private final ImmutableList.Builder<ReportItem> lines = ImmutableList.builder();

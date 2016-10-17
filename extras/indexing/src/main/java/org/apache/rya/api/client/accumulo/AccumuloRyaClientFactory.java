@@ -20,7 +20,7 @@ package org.apache.rya.api.client.accumulo;
 
 import static java.util.Objects.requireNonNull;
 
-import javax.annotation.ParametersAreNonnullByDefault;
+// SEE RYA-211 import javax.annotation.ParametersAreNonnullByDefault;
 
 import org.apache.accumulo.core.client.Connector;
 
@@ -30,7 +30,7 @@ import org.apache.rya.api.client.RyaClient;
  * Constructs instance of {@link RyaClient} that are connected to instance of
  * Rya hosted by Accumulo clusters.
  */
-@ParametersAreNonnullByDefault
+// SEE RYA-211 @ParametersAreNonnullByDefault
 public class AccumuloRyaClientFactory {
 
     /**

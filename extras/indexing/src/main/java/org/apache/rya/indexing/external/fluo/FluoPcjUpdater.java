@@ -22,7 +22,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.Collection;
 
-import javax.annotation.ParametersAreNonnullByDefault;
+// SEE RYA-211 import javax.annotation.ParametersAreNonnullByDefault;
 
 import org.apache.log4j.Logger;
 import org.apache.rya.indexing.pcj.fluo.api.InsertTriples;
@@ -37,7 +37,7 @@ import org.apache.rya.api.domain.RyaStatement;
  * Updates the PCJ indices by forwarding the statement additions/removals to
  * a Fluo application.
  */
-@ParametersAreNonnullByDefault
+// SEE RYA-211 @ParametersAreNonnullByDefault
 public class FluoPcjUpdater implements PrecomputedJoinUpdater {
     private static final Logger log = Logger.getLogger(FluoPcjUpdater.class);
 

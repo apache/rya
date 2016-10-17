@@ -18,7 +18,7 @@
  */
 package org.apache.rya.indexing.pcj.fluo.app.export;
 
-import javax.annotation.ParametersAreNonnullByDefault;
+// SEE RYA-211 import javax.annotation.ParametersAreNonnullByDefault;
 
 import org.apache.fluo.api.client.TransactionBase;
 import org.apache.rya.indexing.pcj.storage.accumulo.VisibilityBindingSet;
@@ -28,7 +28,7 @@ import org.apache.rya.indexing.pcj.storage.accumulo.VisibilityBindingSet;
  * Exports a single Binding Set that is a new result for a SPARQL query to some
  * other location.
  */
-@ParametersAreNonnullByDefault
+// SEE RYA-211 @ParametersAreNonnullByDefault
 public interface IncrementalResultExporter {
 
     /**

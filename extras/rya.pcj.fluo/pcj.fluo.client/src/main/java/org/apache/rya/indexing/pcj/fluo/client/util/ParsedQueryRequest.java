@@ -27,8 +27,8 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import javax.annotation.ParametersAreNonnullByDefault;
-import javax.annotation.concurrent.Immutable;
+// SEE RYA-211 import javax.annotation.ParametersAreNonnullByDefault;
+// SEE RYA-211 import javax.annotation.concurrent.Immutable;
 
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.rya.indexing.pcj.storage.accumulo.VariableOrder;
@@ -36,8 +36,8 @@ import org.apache.rya.indexing.pcj.storage.accumulo.VariableOrder;
 /**
  * Represents a request to create a new PCJ in the Fluo app.
  */
-@Immutable
-@ParametersAreNonnullByDefault
+// SEE RYA-211 @Immutable
+// SEE RYA-211 @ParametersAreNonnullByDefault
 public class ParsedQueryRequest {
 
     private final String sparql;

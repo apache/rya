@@ -23,7 +23,7 @@ import static java.util.Objects.requireNonNull;
 import java.io.IOException;
 import java.util.Set;
 
-import javax.annotation.ParametersAreNonnullByDefault;
+// SEE RYA-211 import javax.annotation.ParametersAreNonnullByDefault;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.util.FieldUtils;
@@ -38,7 +38,7 @@ import jline.console.ConsoleReader;
  * Provides access to the host {@link Shell}'s {@link ConsoleReader} and some
  * utility functions for using it.
  */
-@ParametersAreNonnullByDefault
+// SEE RYA-211 @ParametersAreNonnullByDefault
 public abstract class JLinePrompt {
 
     /**

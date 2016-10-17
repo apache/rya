@@ -25,9 +25,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import javax.annotation.Nullable;
-import javax.annotation.ParametersAreNonnullByDefault;
-import javax.annotation.concurrent.Immutable;
+import edu.umd.cs.findbugs.annotations.Nullable;
+// SEE RYA-211 import javax.annotation.ParametersAreNonnullByDefault;
+// SEE RYA-211 import javax.annotation.concurrent.Immutable;
 
 import org.apache.rya.indexing.pcj.fluo.app.query.FilterMetadata;
 import org.apache.rya.indexing.pcj.fluo.app.query.FluoQuery;
@@ -50,7 +50,7 @@ import org.apache.fluo.api.data.Span;
  * Get a reports that indicates how many binding sets have been emitted for
  * the queries that is being managed by the fluo application.
  */
-@ParametersAreNonnullByDefault
+// SEE RYA-211 @ParametersAreNonnullByDefault
 public class GetQueryReport {
 
     private final FluoQueryMetadataDAO metadataDao = new FluoQueryMetadataDAO();
@@ -145,8 +145,8 @@ public class GetQueryReport {
      * as well as the number of Binding Sets that have been emitted for each of
      * the query nodes.
      */
-    @Immutable
-    @ParametersAreNonnullByDefault
+// SEE RYA-211     @Immutable
+// SEE RYA-211     @ParametersAreNonnullByDefault
     public static final class QueryReport {
 
         /**
@@ -212,7 +212,7 @@ public class GetQueryReport {
         /**
          * Builds instances of {@link QueryReport}.
          */
-        @ParametersAreNonnullByDefault
+// SEE RYA-211         @ParametersAreNonnullByDefault
         public static final class Builder {
 
             private FluoQuery fluoQuery = null;

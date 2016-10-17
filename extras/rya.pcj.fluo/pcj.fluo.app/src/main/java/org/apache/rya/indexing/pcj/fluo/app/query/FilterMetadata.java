@@ -21,9 +21,9 @@ package org.apache.rya.indexing.pcj.fluo.app.query;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import javax.annotation.Nullable;
-import javax.annotation.ParametersAreNonnullByDefault;
-import javax.annotation.concurrent.Immutable;
+import edu.umd.cs.findbugs.annotations.Nullable;
+// SEE RYA-211 import javax.annotation.ParametersAreNonnullByDefault;
+// SEE RYA-211 import javax.annotation.concurrent.Immutable;
 
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.rya.indexing.pcj.storage.accumulo.VariableOrder;
@@ -33,8 +33,8 @@ import com.google.common.base.Objects;
 /**
  * Metadata that is specific to Filter nodes.
  */
-@Immutable
-@ParametersAreNonnullByDefault
+// SEE RYA-211 @Immutable
+// SEE RYA-211 @ParametersAreNonnullByDefault
 public class FilterMetadata extends CommonNodeMetadata {
 
     private final String originalSparql;
@@ -158,7 +158,7 @@ public class FilterMetadata extends CommonNodeMetadata {
     /**
      * Builds instances of {@link FilterMetadata}.
      */
-    @ParametersAreNonnullByDefault
+// SEE RYA-211     @ParametersAreNonnullByDefault
     public static final class Builder {
 
         private final String nodeId;

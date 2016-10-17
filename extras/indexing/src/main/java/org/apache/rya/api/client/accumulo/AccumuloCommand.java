@@ -20,7 +20,7 @@ package org.apache.rya.api.client.accumulo;
 
 import static java.util.Objects.requireNonNull;
 
-import javax.annotation.ParametersAreNonnullByDefault;
+// SEE RYA-211 import javax.annotation.ParametersAreNonnullByDefault;
 
 import org.apache.accumulo.core.client.Connector;
 
@@ -28,7 +28,7 @@ import org.apache.accumulo.core.client.Connector;
  * An abstract class that holds onto Accumulo access information. Extend this
  * when implementing a command that interacts with Accumulo.
  */
-@ParametersAreNonnullByDefault
+// SEE RYA-211 @ParametersAreNonnullByDefault
 public abstract class AccumuloCommand {
 
     private final AccumuloConnectionDetails connectionDetails;

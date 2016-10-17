@@ -20,7 +20,7 @@ package org.apache.rya.api.instance;
 
 import static java.util.Objects.requireNonNull;
 
-import javax.annotation.ParametersAreNonnullByDefault;
+// SEE RYA-211 import javax.annotation.ParametersAreNonnullByDefault;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,14 +35,14 @@ import org.apache.rya.api.instance.RyaDetailsUpdater.RyaDetailsMutator.CouldNotA
  * can be used in place of boilerplate code that handles the concurrent nature
  * of details updates.
  */
-@ParametersAreNonnullByDefault
+// SEE RYA-211 @ParametersAreNonnullByDefault
 public class RyaDetailsUpdater {
     private static final Logger log = LoggerFactory.getLogger(RyaDetailsUpdater.class);
 
     /**
      * Applies a mutation to a an instance of {@link RyaDetails}.
      */
-    @ParametersAreNonnullByDefault
+// SEE RYA-211     @ParametersAreNonnullByDefault
     public static interface RyaDetailsMutator {
 
         /**

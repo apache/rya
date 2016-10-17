@@ -19,13 +19,13 @@ package org.apache.rya.api.instance;
  * under the License.
  */
 
-import javax.annotation.ParametersAreNonnullByDefault;
+// SEE RYA-211 import javax.annotation.ParametersAreNonnullByDefault;
 
 /**
  * Provides access to the {@link RyaDetails} information that describes
  * an instance of Rya.
  */
-@ParametersAreNonnullByDefault
+// SEE RYA-211 @ParametersAreNonnullByDefault
 public interface RyaDetailsRepository {
 
     /**

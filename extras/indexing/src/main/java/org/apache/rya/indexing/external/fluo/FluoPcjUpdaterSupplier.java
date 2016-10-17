@@ -30,7 +30,7 @@ import org.apache.fluo.api.client.FluoClient;
 import org.apache.fluo.api.client.FluoFactory;
 import org.apache.fluo.api.config.FluoConfiguration;
 
-import javax.annotation.ParametersAreNonnullByDefault;
+// SEE RYA-211 import javax.annotation.ParametersAreNonnullByDefault;
 
 import org.apache.rya.indexing.external.PrecomputedJoinIndexerConfig;
 import org.apache.rya.indexing.external.PrecomputedJoinIndexerConfig.PrecomputedJoinUpdaterType;
@@ -44,7 +44,7 @@ import com.google.common.base.Supplier;
 /**
  * Creates instances of {@link FluoPcjUpdater} using the values found in a {@link Configuration}.
  */
-@ParametersAreNonnullByDefault
+// SEE RYA-211 @ParametersAreNonnullByDefault
 public class FluoPcjUpdaterSupplier implements Supplier<PrecomputedJoinUpdater> {
 
     private final Supplier<Configuration> configSupplier;

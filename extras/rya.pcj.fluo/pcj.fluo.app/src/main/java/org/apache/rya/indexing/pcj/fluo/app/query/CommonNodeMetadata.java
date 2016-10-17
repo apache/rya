@@ -20,8 +20,8 @@ package org.apache.rya.indexing.pcj.fluo.app.query;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import javax.annotation.ParametersAreNonnullByDefault;
-import javax.annotation.concurrent.Immutable;
+// SEE RYA-211 import javax.annotation.ParametersAreNonnullByDefault;
+// SEE RYA-211 import javax.annotation.concurrent.Immutable;
 
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.rya.indexing.pcj.storage.accumulo.VariableOrder;
@@ -31,8 +31,8 @@ import com.google.common.base.Objects;
 /**
  * Metadata that is common to all nodes that are part of a query.
  */
-@Immutable
-@ParametersAreNonnullByDefault
+// SEE RYA-211 @Immutable
+// SEE RYA-211 @ParametersAreNonnullByDefault
 public abstract class CommonNodeMetadata {
 
     private final String nodeId;

@@ -20,7 +20,7 @@ package org.apache.rya.indexing.external;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import javax.annotation.ParametersAreNonnullByDefault;
+// SEE RYA-211 import javax.annotation.ParametersAreNonnullByDefault;
 
 import org.apache.rya.api.persist.index.RyaSecondaryIndexer;
 import org.apache.rya.indexing.accumulo.ConfigUtils;
@@ -36,7 +36,7 @@ import com.google.common.base.Optional;
  * of {@link RyaSecondaryIndexer} to provide {@link PrecomputedJoinIndexer}
  * specific values.
  */
-@ParametersAreNonnullByDefault
+// SEE RYA-211 @ParametersAreNonnullByDefault
 public class PrecomputedJoinIndexerConfig {
 
     /**

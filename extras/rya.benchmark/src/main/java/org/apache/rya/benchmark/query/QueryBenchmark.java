@@ -28,7 +28,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
-import javax.annotation.ParametersAreNonnullByDefault;
+// SEE RYA-211 import javax.annotation.ParametersAreNonnullByDefault;
 
 import org.apache.log4j.ConsoleAppender;
 import org.apache.log4j.Level;
@@ -248,7 +248,7 @@ public class QueryBenchmark {
     /**
      * Executes an iteration of the benchmarked logic.
      */
-    @ParametersAreNonnullByDefault
+// SEE RYA-211     @ParametersAreNonnullByDefault
     public static final class QueryBenchmarkRun {
 
         private final SailConnection sailConn;

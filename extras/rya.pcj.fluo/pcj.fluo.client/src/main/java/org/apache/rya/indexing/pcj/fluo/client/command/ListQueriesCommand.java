@@ -23,7 +23,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import java.util.HashMap;
 import java.util.Map;
 
-import javax.annotation.ParametersAreNonnullByDefault;
+// SEE RYA-211 import javax.annotation.ParametersAreNonnullByDefault;
 
 import org.apache.accumulo.core.client.Connector;
 import org.apache.logging.log4j.LogManager;
@@ -47,7 +47,7 @@ import org.apache.rya.rdftriplestore.RyaSailRepository;
 /**
  * A command that lists information about the queries that are being managed by the Fluo app.
  */
-@ParametersAreNonnullByDefault
+// SEE RYA-211 @ParametersAreNonnullByDefault
 public class ListQueriesCommand implements PcjAdminClientCommand {
     private static final Logger log = LogManager.getLogger(ListQueriesCommand.class);
 

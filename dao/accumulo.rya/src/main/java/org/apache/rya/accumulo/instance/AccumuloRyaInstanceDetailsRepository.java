@@ -23,7 +23,7 @@ import static java.util.Objects.requireNonNull;
 
 import java.util.Map.Entry;
 
-import javax.annotation.ParametersAreNonnullByDefault;
+// SEE RYA-211 import javax.annotation.ParametersAreNonnullByDefault;
 
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
@@ -60,7 +60,7 @@ import org.apache.rya.api.instance.RyaDetailsRepository;
  * style operations to synchronize writes to the object. On the downside, only
  * Java clients will work.
  */
-@ParametersAreNonnullByDefault
+// SEE RYA-211 @ParametersAreNonnullByDefault
 public class AccumuloRyaInstanceDetailsRepository implements RyaDetailsRepository {
 
     public static final String INSTANCE_DETAILS_TABLE_NAME = "instance_details";

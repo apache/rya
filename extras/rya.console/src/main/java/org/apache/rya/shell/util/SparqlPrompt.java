@@ -20,14 +20,14 @@ package org.apache.rya.shell.util;
 
 import java.io.IOException;
 
-import javax.annotation.ParametersAreNonnullByDefault;
+// SEE RYA-211 import javax.annotation.ParametersAreNonnullByDefault;
 
 import jline.console.ConsoleReader;
 
 /**
  * A mechanism for prompting a user of the application for a SPARQL string.
  */
-@ParametersAreNonnullByDefault
+// SEE RYA-211 @ParametersAreNonnullByDefault
 public interface SparqlPrompt {
 
     /**
@@ -42,7 +42,7 @@ public interface SparqlPrompt {
     /**
      * Prompts a user for a SPARQL query using a JLine {@link ConsoleReader}.
      */
-    @ParametersAreNonnullByDefault
+// SEE RYA-211     @ParametersAreNonnullByDefault
     public static class JLineSparqlPrompt extends JLinePrompt implements SparqlPrompt {
 
         @Override

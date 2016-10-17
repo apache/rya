@@ -20,7 +20,7 @@ package org.apache.rya.shell.util;
 
 import static java.util.Objects.requireNonNull;
 
-import javax.annotation.ParametersAreNonnullByDefault;
+// SEE RYA-211 import javax.annotation.ParametersAreNonnullByDefault;
 
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableMap;
@@ -32,7 +32,7 @@ import org.apache.rya.api.instance.RyaDetails.PCJIndexDetails.PCJDetails;
 /**
  * Formats an instance of {@link RyaDetails}.
  */
-@ParametersAreNonnullByDefault
+// SEE RYA-211 @ParametersAreNonnullByDefault
 public class RyaDetailsFormatter {
 
     /**

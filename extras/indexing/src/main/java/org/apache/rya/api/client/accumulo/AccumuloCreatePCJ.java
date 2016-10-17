@@ -21,7 +21,7 @@ package org.apache.rya.api.client.accumulo;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static java.util.Objects.requireNonNull;
 
-import javax.annotation.ParametersAreNonnullByDefault;
+// SEE RYA-211 import javax.annotation.ParametersAreNonnullByDefault;
 
 import org.apache.accumulo.core.client.Connector;
 import org.apache.rya.indexing.pcj.storage.PcjException;
@@ -59,7 +59,7 @@ import org.apache.rya.rdftriplestore.RyaSailRepository;
 /**
  * An Accumulo implementation of the {@link CreatePCJ} command.
  */
-@ParametersAreNonnullByDefault
+// SEE RYA-211 @ParametersAreNonnullByDefault
 public class AccumuloCreatePCJ extends AccumuloCommand implements CreatePCJ {
 
     private final GetInstanceDetails getInstanceDetails;

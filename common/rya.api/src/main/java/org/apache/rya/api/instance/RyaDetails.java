@@ -28,9 +28,9 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
 
-import javax.annotation.Nullable;
-import javax.annotation.ParametersAreNonnullByDefault;
-import javax.annotation.concurrent.Immutable;
+import edu.umd.cs.findbugs.annotations.Nullable;
+// SEE RYA-211 import javax.annotation.ParametersAreNonnullByDefault;
+// SEE RYA-211 import javax.annotation.concurrent.Immutable;
 
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableMap;
@@ -38,8 +38,8 @@ import com.google.common.collect.ImmutableMap;
 /**
  * Details about how a Rya instance's state.
  */
-@Immutable
-@ParametersAreNonnullByDefault
+// SEE RYA-211 @Immutable
+// SEE RYA-211 @ParametersAreNonnullByDefault
 public class RyaDetails implements Serializable {
     private static final long serialVersionUID = 1L;
 
@@ -199,7 +199,7 @@ public class RyaDetails implements Serializable {
     /**
      * Builds instances of {@link RyaDetails}.
      */
-    @ParametersAreNonnullByDefault
+// SEE RYA-211     @ParametersAreNonnullByDefault
     public static class Builder {
 
         // General metadata about the instance.
@@ -353,8 +353,8 @@ public class RyaDetails implements Serializable {
     /**
      * Details about a Rya instance's Geospatial Index.
      */
-    @Immutable
-    @ParametersAreNonnullByDefault
+// SEE RYA-211     @Immutable
+// SEE RYA-211     @ParametersAreNonnullByDefault
     public static class GeoIndexDetails implements Serializable {
         private static final long serialVersionUID = 1L;
 
@@ -397,8 +397,8 @@ public class RyaDetails implements Serializable {
     /**
      * Details about a Rya instance's Temporal Index.
      */
-    @Immutable
-    @ParametersAreNonnullByDefault
+// SEE RYA-211     @Immutable
+// SEE RYA-211     @ParametersAreNonnullByDefault
     public static class TemporalIndexDetails implements Serializable {
         private static final long serialVersionUID = 1L;
 
@@ -441,8 +441,8 @@ public class RyaDetails implements Serializable {
     /**
      * Details about a Rya instance's Entity Centric Index.
      */
-    @Immutable
-    @ParametersAreNonnullByDefault
+// SEE RYA-211     @Immutable
+// SEE RYA-211     @ParametersAreNonnullByDefault
     public static class EntityCentricIndexDetails implements Serializable {
         private static final long serialVersionUID = 1L;
 
@@ -485,8 +485,8 @@ public class RyaDetails implements Serializable {
     /**
      * Details about a Rya instance's Free Text Index.
      */
-    @Immutable
-    @ParametersAreNonnullByDefault
+// SEE RYA-211     @Immutable
+// SEE RYA-211     @ParametersAreNonnullByDefault
     public static class FreeTextIndexDetails implements Serializable {
         private static final long serialVersionUID = 1L;
 
@@ -529,8 +529,8 @@ public class RyaDetails implements Serializable {
     /**
      * Details about a Rya instance's PCJ Index.
      */
-    @Immutable
-    @ParametersAreNonnullByDefault
+// SEE RYA-211     @Immutable
+// SEE RYA-211     @ParametersAreNonnullByDefault
     public static class PCJIndexDetails implements Serializable {
         private static final long serialVersionUID = 1L;
 
@@ -618,7 +618,7 @@ public class RyaDetails implements Serializable {
         /**
          * Builds instance of {@link PCJIndexDetails).
          */
-        @ParametersAreNonnullByDefault
+// SEE RYA-211         @ParametersAreNonnullByDefault
         public static class Builder {
 
             private Boolean enabled = null;
@@ -707,8 +707,8 @@ public class RyaDetails implements Serializable {
          * Details about a Fluo Incremental PCJ application that has been installed
          * as part of this Rya instance.
          */
-        @Immutable
-        @ParametersAreNonnullByDefault
+// SEE RYA-211         @Immutable
+// SEE RYA-211         @ParametersAreNonnullByDefault
         public static class FluoDetails implements Serializable {
             private static final long serialVersionUID = 1L;
 
@@ -752,8 +752,8 @@ public class RyaDetails implements Serializable {
         /**
          * Details about a specific PCJ that is being maintained within the Rya instance.
          */
-        @Immutable
-        @ParametersAreNonnullByDefault
+// SEE RYA-211         @Immutable
+// SEE RYA-211         @ParametersAreNonnullByDefault
         public static class PCJDetails implements Serializable {
             private static final long serialVersionUID = 1L;
 
@@ -838,7 +838,7 @@ public class RyaDetails implements Serializable {
             /**
              * Builds instance of {@link PCJDetails}.
              */
-            @ParametersAreNonnullByDefault
+// SEE RYA-211             @ParametersAreNonnullByDefault
             public static class Builder {
 
                 private String id;
@@ -944,8 +944,8 @@ public class RyaDetails implements Serializable {
     /**
      * Details about a Rya instance's Prospector statistics.
      */
-    @Immutable
-    @ParametersAreNonnullByDefault
+// SEE RYA-211     @Immutable
+// SEE RYA-211     @ParametersAreNonnullByDefault
     public static class ProspectorDetails implements Serializable {
         private static final long serialVersionUID = 1L;
 
@@ -988,8 +988,8 @@ public class RyaDetails implements Serializable {
     /**
      * Details about a Rya instance's Join Selectivity statistics.
      */
-    @Immutable
-    @ParametersAreNonnullByDefault
+// SEE RYA-211     @Immutable
+// SEE RYA-211     @ParametersAreNonnullByDefault
     public static class JoinSelectivityDetails implements Serializable {
         private static final long serialVersionUID = 1L;
 

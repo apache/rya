@@ -21,8 +21,8 @@ package org.apache.rya.indexing.pcj.fluo.app;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.apache.rya.indexing.pcj.fluo.app.IncrementalUpdateConstants.NODEID_BS_DELIM;
 
-import javax.annotation.ParametersAreNonnullByDefault;
-import javax.annotation.concurrent.Immutable;
+// SEE RYA-211 import javax.annotation.ParametersAreNonnullByDefault;
+// SEE RYA-211 import javax.annotation.concurrent.Immutable;
 
 import org.apache.fluo.api.data.Bytes;
 
@@ -30,8 +30,8 @@ import org.apache.fluo.api.data.Bytes;
  * The values of an Accumulo Row ID for a row that stores a Binding set for
  * a specific Node ID of a query.
  */
-@Immutable
-@ParametersAreNonnullByDefault
+// SEE RYA-211 @Immutable
+// SEE RYA-211 @ParametersAreNonnullByDefault
 public class BindingSetRow {
     private final String nodeId;
     private final String bindingSetString;

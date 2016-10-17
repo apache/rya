@@ -21,7 +21,7 @@ package org.apache.rya.indexing.pcj.fluo.app;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.apache.rya.indexing.pcj.fluo.app.IncrementalUpdateConstants.NODEID_BS_DELIM;
 
-import javax.annotation.ParametersAreNonnullByDefault;
+// SEE RYA-211 import javax.annotation.ParametersAreNonnullByDefault;
 
 import org.apache.rya.indexing.pcj.fluo.app.query.FluoQueryColumns;
 import org.apache.rya.indexing.pcj.fluo.app.query.QueryMetadata;
@@ -39,7 +39,7 @@ import org.apache.fluo.api.data.Column;
  * Updates the results of a Query node when one of its children has added a
  * new Binding Set to its results.
  */
-@ParametersAreNonnullByDefault
+// SEE RYA-211 @ParametersAreNonnullByDefault
 public class QueryResultUpdater {
     
     private final BindingSetStringConverter converter = new BindingSetStringConverter();

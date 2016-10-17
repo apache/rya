@@ -23,7 +23,7 @@ import static java.util.Objects.requireNonNull;
 import java.util.Arrays;
 import java.util.List;
 
-import javax.annotation.ParametersAreNonnullByDefault;
+// SEE RYA-211 import javax.annotation.ParametersAreNonnullByDefault;
 
 import org.apache.fluo.api.data.Column;
 
@@ -163,7 +163,7 @@ public class FluoQueryColumns {
      * Enumerates the {@link Column}s that hold all of the fields for each type
      * of node that can compose a query.
      */
-    @ParametersAreNonnullByDefault
+// SEE RYA-211     @ParametersAreNonnullByDefault
     public enum QueryNodeMetadataColumns {
         /**
          * The columns a {@link QueryMetadata} object's fields are stored within.

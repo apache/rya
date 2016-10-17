@@ -27,7 +27,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
-import javax.annotation.ParametersAreNonnullByDefault;
+// SEE RYA-211 import javax.annotation.ParametersAreNonnullByDefault;
 
 import org.apache.rya.indexing.pcj.fluo.app.query.FluoQueryColumns;
 import org.apache.rya.indexing.pcj.fluo.app.query.FluoQueryMetadataDAO;
@@ -57,7 +57,7 @@ import org.apache.fluo.api.data.Span;
  * Updates the results of a Join node when one of its children has added a
  * new Binding Set to its results.
  */
-@ParametersAreNonnullByDefault
+// SEE RYA-211 @ParametersAreNonnullByDefault
 public class JoinResultUpdater {
 
     private static final BindingSetStringConverter idConverter = new BindingSetStringConverter();

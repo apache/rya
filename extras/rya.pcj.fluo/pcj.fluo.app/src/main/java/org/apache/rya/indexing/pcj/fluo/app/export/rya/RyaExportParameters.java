@@ -20,8 +20,8 @@ package org.apache.rya.indexing.pcj.fluo.app.export.rya;
 
 import java.util.Map;
 
-import javax.annotation.Nullable;
-import javax.annotation.ParametersAreNonnullByDefault;
+import edu.umd.cs.findbugs.annotations.Nullable;
+// SEE RYA-211 import javax.annotation.ParametersAreNonnullByDefault;
 
 import org.apache.rya.indexing.pcj.fluo.app.export.ParametersBase;
 
@@ -34,7 +34,7 @@ import org.apache.fluo.api.observer.Observer;
  * {@link Observer#init(io.fluo.api.observer.Observer.Context)} method related
  * to Rya PCJ exporting.
  */
-@ParametersAreNonnullByDefault
+// SEE RYA-211 @ParametersAreNonnullByDefault
 public class RyaExportParameters extends ParametersBase {
 
     public static final String CONF_EXPORT_TO_RYA = "pcj.fluo.export.rya.enabled";

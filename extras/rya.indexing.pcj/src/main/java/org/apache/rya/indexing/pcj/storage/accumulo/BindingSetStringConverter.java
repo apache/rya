@@ -25,7 +25,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
-import javax.annotation.ParametersAreNonnullByDefault;
+// SEE RYA-211 import javax.annotation.ParametersAreNonnullByDefault;
 
 import org.openrdf.model.URI;
 import org.openrdf.model.Value;
@@ -46,7 +46,7 @@ import org.apache.rya.api.resolver.RdfToRyaConversions;
  * Converts {@link BindingSet}s to Strings and back again. The Strings do not
  * include the binding names and are ordered with a {@link VariableOrder}.
  */
-@ParametersAreNonnullByDefault
+// SEE RYA-211 @ParametersAreNonnullByDefault
 public class BindingSetStringConverter implements BindingSetConverter<String> {
 
     public static final String BINDING_DELIM = ":::";

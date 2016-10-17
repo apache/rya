@@ -20,14 +20,14 @@ package org.apache.rya.api.client.accumulo;
 
 import static java.util.Objects.requireNonNull;
 
-import javax.annotation.ParametersAreNonnullByDefault;
-import javax.annotation.concurrent.Immutable;
+// SEE RYA-211 import javax.annotation.ParametersAreNonnullByDefault;
+// SEE RYA-211 import javax.annotation.concurrent.Immutable;
 
 /**
  * The information that the shell used to connect to Accumulo.
  */
-@Immutable
-@ParametersAreNonnullByDefault
+// SEE RYA-211 @Immutable
+// SEE RYA-211 @ParametersAreNonnullByDefault
 public class AccumuloConnectionDetails {
     private final String username;
     private final char[] password;

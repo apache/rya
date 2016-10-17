@@ -20,14 +20,14 @@ package org.apache.rya.api.client;
 
 import static java.util.Objects.requireNonNull;
 
-import javax.annotation.ParametersAreNonnullByDefault;
-import javax.annotation.concurrent.Immutable;
+// SEE RYA-211 import javax.annotation.ParametersAreNonnullByDefault;
+// SEE RYA-211 import javax.annotation.concurrent.Immutable;
 
 /**
  * Provides access to a set of Rya functions.
  */
-@Immutable
-@ParametersAreNonnullByDefault
+// SEE RYA-211 @Immutable
+// SEE RYA-211 @ParametersAreNonnullByDefault
 public class RyaClient {
     // Administrative functions.
     private final Install install;

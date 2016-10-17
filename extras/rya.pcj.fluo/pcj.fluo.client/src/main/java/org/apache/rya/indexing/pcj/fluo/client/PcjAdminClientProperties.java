@@ -22,14 +22,14 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.Properties;
 
-import javax.annotation.Nullable;
-import javax.annotation.ParametersAreNonnullByDefault;
+import edu.umd.cs.findbugs.annotations.Nullable;
+// SEE RYA-211 import javax.annotation.ParametersAreNonnullByDefault;
 
 /**
  * Interprets a {@link Properties} object so that it is easier to access
  * configuration values used by {@link PcjAdminClient}.
  */
-@ParametersAreNonnullByDefault
+// SEE RYA-211 @ParametersAreNonnullByDefault
 public class PcjAdminClientProperties {
 
     // Properties that configure how Fluo will connect to Accumulo.

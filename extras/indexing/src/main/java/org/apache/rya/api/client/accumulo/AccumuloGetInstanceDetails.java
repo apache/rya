@@ -20,7 +20,7 @@ package org.apache.rya.api.client.accumulo;
 
 import static java.util.Objects.requireNonNull;
 
-import javax.annotation.ParametersAreNonnullByDefault;
+// SEE RYA-211 import javax.annotation.ParametersAreNonnullByDefault;
 
 import org.apache.accumulo.core.client.Connector;
 
@@ -39,7 +39,7 @@ import org.apache.rya.api.instance.RyaDetailsRepository.RyaDetailsRepositoryExce
 /**
  * An Accumulo implementation of the {@link GetInstanceDetails} command.
  */
-@ParametersAreNonnullByDefault
+// SEE RYA-211 @ParametersAreNonnullByDefault
 public class AccumuloGetInstanceDetails extends AccumuloCommand implements GetInstanceDetails {
 
     private final InstanceExists instanceExists;

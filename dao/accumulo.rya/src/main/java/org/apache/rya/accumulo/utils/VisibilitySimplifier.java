@@ -20,7 +20,7 @@ package org.apache.rya.accumulo.utils;
 
 import static java.util.Objects.requireNonNull;
 
-import javax.annotation.ParametersAreNonnullByDefault;
+// SEE RYA-211 import javax.annotation.ParametersAreNonnullByDefault;
 
 import org.apache.accumulo.core.security.ColumnVisibility;
 
@@ -29,7 +29,7 @@ import com.google.common.base.Charsets;
 /**
  * Simplifies Accumulo visibility expressions.
  */
-@ParametersAreNonnullByDefault
+// SEE RYA-211 @ParametersAreNonnullByDefault
 public class VisibilitySimplifier {
 
     /**

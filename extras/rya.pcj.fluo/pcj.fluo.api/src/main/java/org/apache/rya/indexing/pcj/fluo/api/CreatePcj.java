@@ -26,7 +26,7 @@ import static org.apache.rya.indexing.pcj.fluo.app.IncrementalUpdateConstants.NO
 import java.util.HashSet;
 import java.util.Set;
 
-import javax.annotation.ParametersAreNonnullByDefault;
+// SEE RYA-211 import javax.annotation.ParametersAreNonnullByDefault;
 
 import org.apache.rya.indexing.pcj.fluo.app.FluoStringConverter;
 import org.apache.rya.indexing.pcj.fluo.app.query.FluoQuery;
@@ -71,7 +71,7 @@ import org.apache.fluo.api.client.Transaction;
  * will percolate to the top of the query, and those results will be exported to
  * Rya's query system.
  */
-@ParametersAreNonnullByDefault
+// SEE RYA-211 @ParametersAreNonnullByDefault
 public class CreatePcj {
 
     /**

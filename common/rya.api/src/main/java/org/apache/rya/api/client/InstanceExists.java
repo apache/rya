@@ -18,12 +18,12 @@
  */
 package org.apache.rya.api.client;
 
-import javax.annotation.ParametersAreNonnullByDefault;
+// SEE RYA-211 import javax.annotation.ParametersAreNonnullByDefault;
 
 /**
  * Checks if an instance of Rya has been installed.
  */
-@ParametersAreNonnullByDefault
+// SEE RYA-211 @ParametersAreNonnullByDefault
 public interface InstanceExists {
 
     /**

@@ -25,7 +25,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map.Entry;
 
-import javax.annotation.ParametersAreNonnullByDefault;
+// SEE RYA-211 import javax.annotation.ParametersAreNonnullByDefault;
 
 import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
@@ -73,7 +73,7 @@ import org.apache.rya.api.instance.RyaDetails.TemporalIndexDetails;
  * }
  * </pre>
  */
-@ParametersAreNonnullByDefault
+// SEE RYA-211 @ParametersAreNonnullByDefault
 public class MongoDetailsAdapter {
     public static final String INSTANCE_KEY = "instanceName";
     public static final String VERSION_KEY = "version";

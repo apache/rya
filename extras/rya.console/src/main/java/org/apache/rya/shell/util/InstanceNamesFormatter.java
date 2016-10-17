@@ -22,12 +22,12 @@ import static java.util.Objects.requireNonNull;
 
 import java.util.List;
 
-import javax.annotation.ParametersAreNonnullByDefault;
+// SEE RYA-211 import javax.annotation.ParametersAreNonnullByDefault;
 
 /**
  * Pretty formats a list of Rya instance names.
  */
-@ParametersAreNonnullByDefault
+// SEE RYA-211 @ParametersAreNonnullByDefault
 public class InstanceNamesFormatter {
 
     /**

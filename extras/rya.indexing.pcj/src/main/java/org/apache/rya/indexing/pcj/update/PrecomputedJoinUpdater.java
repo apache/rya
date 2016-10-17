@@ -20,7 +20,7 @@ package org.apache.rya.indexing.pcj.update;
 
 import java.util.Collection;
 
-import javax.annotation.ParametersAreNonnullByDefault;
+// SEE RYA-211 import javax.annotation.ParametersAreNonnullByDefault;
 
 import org.apache.rya.indexing.pcj.storage.PcjException;
 
@@ -30,7 +30,7 @@ import org.apache.rya.api.domain.RyaStatement;
  * Updates the state of all PCJ indices whenever {@link RyaStatement}s are
  * added to or removed from the system.
  */
-@ParametersAreNonnullByDefault
+// SEE RYA-211 @ParametersAreNonnullByDefault
 public interface PrecomputedJoinUpdater {
 
     /**

@@ -30,7 +30,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
-import javax.annotation.ParametersAreNonnullByDefault;
+// SEE RYA-211 import javax.annotation.ParametersAreNonnullByDefault;
 
 import org.openrdf.model.Value;
 import org.openrdf.query.Binding;
@@ -49,7 +49,7 @@ import org.apache.rya.api.resolver.RyaTypeResolverException;
  * Converts {@link BindingSet}s to byte[]s and back again. The bytes do not
  * include the binding names and are ordered with a {@link VariableOrder}.
  */
-@ParametersAreNonnullByDefault
+// SEE RYA-211 @ParametersAreNonnullByDefault
 public class AccumuloPcjSerializer implements BindingSetConverter<byte[]> {
 
     @Override

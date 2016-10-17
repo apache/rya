@@ -26,7 +26,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
-import javax.annotation.ParametersAreNonnullByDefault;
+// SEE RYA-211 import javax.annotation.ParametersAreNonnullByDefault;
 
 import org.apache.accumulo.core.client.Connector;
 import org.apache.accumulo.core.client.MultiTableBatchWriter;
@@ -53,7 +53,7 @@ import org.apache.rya.indexing.external.fluo.PcjUpdaterSupplierFactory;
 /**
  * Updates the state of the Precomputed Join indices that are used by Rya.
  */
-@ParametersAreNonnullByDefault
+// SEE RYA-211 @ParametersAreNonnullByDefault
 public class PrecomputedJoinIndexer extends AbstractAccumuloIndexer {
     private static final Logger log = Logger
             .getLogger(PrecomputedJoinIndexer.class);

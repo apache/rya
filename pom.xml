@@ -24,7 +24,7 @@ under the License.
         <artifactId>apache</artifactId>
         <version>17</version>
     </parent>
-
+this should break the build
     <groupId>org.apache.rya</groupId>
     <artifactId>rya-project</artifactId>
     <version>3.2.10-incubating-SNAPSHOT</version>

@@ -29,9 +29,17 @@ import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 import java.util.HashSet;
+
 import org.apache.accumulo.core.client.TableExistsException;
 import org.apache.accumulo.core.client.TableNotFoundException;
-import org.apache.hadoop.conf.Configuration;
+import org.apache.rya.indexing.StatementConstraints;
+import org.apache.rya.indexing.TemporalInstant;
+import org.apache.rya.indexing.TemporalInstantRfc3339;
+import org.apache.rya.indexing.TemporalInterval;
+import org.apache.rya.indexing.accumulo.ConfigUtils;
+import org.apache.rya.indexing.mongodb.temporal.MongoTemporalIndexer;
+import org.apache.rya.mongodb.MongoDBRdfConfiguration;
+import org.apache.rya.mongodb.MongoRyaTestBase;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -48,19 +56,10 @@ import com.mongodb.DB;
 import com.mongodb.DBCollection;
 import com.mongodb.DBCursor;
 import com.mongodb.DBObject;
-import com.mongodb.MongoClient;
 import com.mongodb.MongoException;
+import com.mongodb.MongoSecurityException;
 
-import de.flapdoodle.embed.mongo.distribution.Version;
-import de.flapdoodle.embed.mongo.tests.MongodForTestsFactory;
 import info.aduna.iteration.CloseableIteration;
-import org.apache.rya.indexing.StatementConstraints;
-import org.apache.rya.indexing.TemporalInstant;
-import org.apache.rya.indexing.TemporalInstantRfc3339;
-import org.apache.rya.indexing.TemporalInterval;
-import org.apache.rya.indexing.accumulo.ConfigUtils;
-import org.apache.rya.indexing.mongodb.temporal.MongoTemporalIndexer;
-import org.apache.rya.mongodb.MongoDBRdfConfiguration;
 
 /**
  * JUnit tests for TemporalIndexer and it's implementation MongoTemporalIndexer
@@ -82,7 +81,7 @@ import org.apache.rya.mongodb.MongoDBRdfConfiguration;
  * And a few more.
  *
  */
-public final class MongoTemporalIndexerTest {
+public final class MongoTemporalIndexerTest extends MongoRyaTestBase {
     MongoDBRdfConfiguration conf;
     MongoTemporalIndexer tIndexer;
     DBCollection collection;
@@ -190,8 +189,6 @@ public final class MongoTemporalIndexerTest {
                 + URI_PROPERTY_CIRCA + ","
                 + URI_PROPERTY_EVENT_TIME);
 
-        final MongodForTestsFactory testsFactory = MongodForTestsFactory.with(Version.Main.PRODUCTION);
-        final MongoClient mongoClient = testsFactory.newMongo();
         tIndexer = new MongoTemporalIndexer();
         tIndexer.initIndexer(conf, mongoClient);
 

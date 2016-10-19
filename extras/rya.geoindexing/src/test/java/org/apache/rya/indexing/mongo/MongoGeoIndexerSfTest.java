@@ -23,6 +23,16 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
+import org.apache.rya.api.domain.RyaStatement;
+import org.apache.rya.api.resolver.RdfToRyaConversions;
+import org.apache.rya.api.resolver.RyaToRdfConversions;
+import org.apache.rya.indexing.GeoConstants;
+import org.apache.rya.indexing.OptionalConfigUtils;
+import org.apache.rya.indexing.StatementConstraints;
+import org.apache.rya.indexing.accumulo.ConfigUtils;
+import org.apache.rya.indexing.mongodb.geo.MongoGeoIndexer;
+import org.apache.rya.mongodb.MongoDBRdfConfiguration;
+import org.apache.rya.mongodb.MongoRyaTestBase;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -36,7 +46,6 @@ import org.openrdf.model.impl.ValueFactoryImpl;
 
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
-import com.mongodb.MongoClient;
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.GeometryFactory;
@@ -47,23 +56,12 @@ import com.vividsolutions.jts.geom.Polygon;
 import com.vividsolutions.jts.geom.PrecisionModel;
 import com.vividsolutions.jts.geom.impl.PackedCoordinateSequence;
 
-import de.flapdoodle.embed.mongo.distribution.Version;
-import de.flapdoodle.embed.mongo.tests.MongodForTestsFactory;
 import info.aduna.iteration.CloseableIteration;
-import org.apache.rya.api.domain.RyaStatement;
-import org.apache.rya.api.resolver.RdfToRyaConversions;
-import org.apache.rya.api.resolver.RyaToRdfConversions;
-import org.apache.rya.indexing.GeoConstants;
-import org.apache.rya.indexing.OptionalConfigUtils;
-import org.apache.rya.indexing.StatementConstraints;
-import org.apache.rya.indexing.accumulo.ConfigUtils;
-import org.apache.rya.indexing.mongodb.geo.MongoGeoIndexer;
-import org.apache.rya.mongodb.MongoDBRdfConfiguration;
 
 /**
  * Tests all of the "simple functions" of the geoindexer.
  */
-public class MongoGeoIndexerSfTest {
+public class MongoGeoIndexerSfTest extends MongoRyaTestBase {
     private MongoDBRdfConfiguration conf;
     private static GeometryFactory gf = new GeometryFactory(new PrecisionModel(), 4326);
     private static MongoGeoIndexer g;
@@ -118,8 +116,6 @@ public class MongoGeoIndexerSfTest {
         conf.set(OptionalConfigUtils.USE_GEO, "true");
         conf.setTablePrefix("rya_");
 
-        final MongodForTestsFactory testsFactory = MongodForTestsFactory.with(Version.Main.PRODUCTION);
-        final MongoClient mongoClient = testsFactory.newMongo();
         g = new MongoGeoIndexer();
         g.initIndexer(conf, mongoClient);
         g.storeStatement(statement(A));

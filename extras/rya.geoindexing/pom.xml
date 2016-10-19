@@ -40,7 +40,6 @@
 		<dependency>
 		   <groupId>org.apache.accumulo</groupId>
             <artifactId>accumulo-minicluster</artifactId>
-            <version>${accumulo.version}</version>
             <scope>test</scope>
 		</dependency>
 
@@ -107,6 +106,13 @@
             <groupId>org.apache.rya</groupId>
             <artifactId>accumulo.rya</artifactId>
             <version>${project.version}</version>
+            <type>test-jar</type>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.rya</groupId>
+            <artifactId>mongodb.rya</artifactId>
+            <version>${project.version}</version>
+            <scope>test</scope>
             <type>test-jar</type>
         </dependency>
         <dependency>

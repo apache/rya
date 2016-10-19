@@ -18,12 +18,13 @@
  */
 package org.apache.rya.api.client;
 
-// SEE RYA-211 import javax.annotation.ParametersAreNonnullByDefault;
+import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
+import edu.umd.cs.findbugs.annotations.NonNull;
 
 /**
  * One of the {@link RyaClient} functions failed.
  */
-// SEE RYA-211 @ParametersAreNonnullByDefault
+@DefaultAnnotation(NonNull.class)
 public class RyaClientException extends Exception {
     private static final long serialVersionUID = 1L;
 

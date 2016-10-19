@@ -27,7 +27,8 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 
-// SEE RYA-211 import javax.annotation.ParametersAreNonnullByDefault;
+import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
+import edu.umd.cs.findbugs.annotations.NonNull;
 
 import org.apache.rya.api.instance.RyaDetails;
 import org.apache.rya.api.instance.RyaDetailsRepository.RyaDetailsRepositoryException;
@@ -35,7 +36,7 @@ import org.apache.rya.api.instance.RyaDetailsRepository.RyaDetailsRepositoryExce
 /**
  * Serializes {@link RyaDetails} instances.
  */
-// SEE RYA-211 @ParametersAreNonnullByDefault
+@DefaultAnnotation(NonNull.class)
 public class RyaDetailsSerializer {
 
     /**

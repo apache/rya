@@ -20,7 +20,8 @@ package org.apache.rya.indexing.pcj.update;
 
 import java.util.Collection;
 
-// SEE RYA-211 import javax.annotation.ParametersAreNonnullByDefault;
+import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
+import edu.umd.cs.findbugs.annotations.NonNull;
 
 import org.apache.rya.indexing.pcj.storage.PcjException;
 
@@ -30,7 +31,7 @@ import org.apache.rya.api.domain.RyaStatement;
  * Updates the state of all PCJ indices whenever {@link RyaStatement}s are
  * added to or removed from the system.
  */
-// SEE RYA-211 @ParametersAreNonnullByDefault
+@DefaultAnnotation(NonNull.class)
 public interface PrecomputedJoinUpdater {
 
     /**

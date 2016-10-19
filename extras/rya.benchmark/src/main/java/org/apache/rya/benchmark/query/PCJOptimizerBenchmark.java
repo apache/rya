@@ -28,7 +28,8 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Queue;
 
-// SEE RYA-211 import javax.annotation.ParametersAreNonnullByDefault;
+import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
+import edu.umd.cs.findbugs.annotations.NonNull;
 
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.Param;
@@ -71,7 +72,7 @@ import org.apache.rya.indexing.pcj.matching.PCJOptimizer;
  * </pre>
  */
 @State(Scope.Thread)
-// SEE RYA-211 @ParametersAreNonnullByDefault
+@DefaultAnnotation(NonNull.class)
 public class PCJOptimizerBenchmark {
 
     /**
@@ -305,7 +306,7 @@ public class PCJOptimizerBenchmark {
     /**
      * The parameter values used by the benchmark. Used to lookup a benchmark' {@link BenchmarkValues}.
      */
-// SEE RYA-211     @ParametersAreNonnullByDefault
+    @DefaultAnnotation(NonNull.class)
     public static class BenchmarkParams {
         private final int numPCJs;
         private final int pcjSPCount;
@@ -369,7 +370,7 @@ public class PCJOptimizerBenchmark {
      * Holds onto the SPARQL query that will be optimized as well as the optimizers
      * that will be used to optimize the query.
      */
-// SEE RYA-211     @ParametersAreNonnullByDefault
+    @DefaultAnnotation(NonNull.class)
     public static class BenchmarkValues {
         private final TupleExpr query;
         private final PCJOptimizer optimizer;

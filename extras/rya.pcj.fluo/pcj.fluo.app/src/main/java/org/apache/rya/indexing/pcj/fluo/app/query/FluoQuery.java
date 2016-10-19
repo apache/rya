@@ -26,8 +26,9 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import edu.umd.cs.findbugs.annotations.Nullable;
-// SEE RYA-211 import javax.annotation.ParametersAreNonnullByDefault;
-// SEE RYA-211 import javax.annotation.concurrent.Immutable;
+import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
+import edu.umd.cs.findbugs.annotations.NonNull;
+import net.jcip.annotations.Immutable;
 
 import org.apache.commons.lang3.builder.EqualsBuilder;
 
@@ -38,8 +39,8 @@ import com.google.common.collect.ImmutableMap;
 /**
  * Metadata for every node of a query that is being updated by the Fluo application.
  */
-// SEE RYA-211 @Immutable
-// SEE RYA-211 @ParametersAreNonnullByDefault
+@Immutable
+@DefaultAnnotation(NonNull.class)
 public class FluoQuery {
 
     private final QueryMetadata queryMetadata;
@@ -196,7 +197,7 @@ public class FluoQuery {
     /**
      * Builds instances of {@link FluoQuery}.
      */
-// SEE RYA-211     @ParametersAreNonnullByDefault
+    @DefaultAnnotation(NonNull.class)
     public static final class Builder {
 
         private QueryMetadata.Builder queryBuilder = null;

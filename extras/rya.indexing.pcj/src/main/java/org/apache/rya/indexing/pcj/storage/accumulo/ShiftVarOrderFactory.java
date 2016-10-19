@@ -24,7 +24,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-// SEE RYA-211 import javax.annotation.ParametersAreNonnullByDefault;
+import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
+import edu.umd.cs.findbugs.annotations.NonNull;
 
 import org.openrdf.query.MalformedQueryException;
 import org.openrdf.query.parser.sparql.SPARQLParser;
@@ -35,7 +36,7 @@ import com.google.common.collect.Lists;
  * Shifts the variables to the left so that each variable will appear at
  * the head of the varOrder once.
  */
-// SEE RYA-211 @ParametersAreNonnullByDefault
+@DefaultAnnotation(NonNull.class)
 public class ShiftVarOrderFactory implements PcjVarOrderFactory {
 
     @Override

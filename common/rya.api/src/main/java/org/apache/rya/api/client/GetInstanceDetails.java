@@ -18,7 +18,8 @@
  */
 package org.apache.rya.api.client;
 
-// SEE RYA-211 import javax.annotation.ParametersAreNonnullByDefault;
+import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
+import edu.umd.cs.findbugs.annotations.NonNull;
 
 import com.google.common.base.Optional;
 
@@ -27,7 +28,7 @@ import org.apache.rya.api.instance.RyaDetails;
 /**
  * Get configuration and maintenance information about a specific instance of Rya.
  */
-// SEE RYA-211 @ParametersAreNonnullByDefault
+@DefaultAnnotation(NonNull.class)
 public interface GetInstanceDetails {
 
     /**

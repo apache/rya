@@ -20,7 +20,8 @@ package org.apache.rya.api.client.accumulo;
 
 import static java.util.Objects.requireNonNull;
 
-// SEE RYA-211 import javax.annotation.ParametersAreNonnullByDefault;
+import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
+import edu.umd.cs.findbugs.annotations.NonNull;
 
 import org.apache.accumulo.core.client.Connector;
 import org.apache.accumulo.core.client.admin.TableOperations;
@@ -33,7 +34,7 @@ import org.apache.rya.api.client.RyaClientException;
 /**
  * An Accumulo implementation of the {@link InstanceExists} command.
  */
-// SEE RYA-211 @ParametersAreNonnullByDefault
+@DefaultAnnotation(NonNull.class)
 public class AccumuloInstanceExists extends AccumuloCommand implements InstanceExists {
 
     /**

@@ -18,7 +18,8 @@
  */
 package org.apache.rya.indexing.pcj.fluo.client;
 
-// SEE RYA-211 import javax.annotation.ParametersAreNonnullByDefault;
+import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
+import edu.umd.cs.findbugs.annotations.NonNull;
 
 import org.apache.accumulo.core.client.Connector;
 
@@ -28,7 +29,7 @@ import org.apache.rya.rdftriplestore.RyaSailRepository;
 /**
  * A command that may be executed by the {@link PcjAdminClient}.
  */
-// SEE RYA-211 @ParametersAreNonnullByDefault
+@DefaultAnnotation(NonNull.class)
 public interface PcjAdminClientCommand {
 
     /**

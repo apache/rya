@@ -18,13 +18,14 @@
  */
 package org.apache.rya.api.client;
 
-// SEE RYA-211 import javax.annotation.ParametersAreNonnullByDefault;
+import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
+import edu.umd.cs.findbugs.annotations.NonNull;
 
 /**
  * One of the {@link RyaClient} commands could not execute because the connected
  * instance of Rya does not exist.
  */
-// SEE RYA-211 @ParametersAreNonnullByDefault
+@DefaultAnnotation(NonNull.class)
 public class InstanceDoesNotExistException extends RyaClientException {
     private static final long serialVersionUID = 1L;
 

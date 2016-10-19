@@ -22,7 +22,8 @@ import static java.util.Objects.requireNonNull;
 
 import java.io.InputStream;
 
-// SEE RYA-211 import javax.annotation.ParametersAreNonnullByDefault;
+import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
+import edu.umd.cs.findbugs.annotations.NonNull;
 import javax.xml.XMLConstants;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
@@ -39,7 +40,7 @@ import com.google.common.base.Suppliers;
 /**
  * Unmarshalls instances of {@link QueriesBenchmarkConf}.
  */
-// SEE RYA-211 @ParametersAreNonnullByDefault
+@DefaultAnnotation(NonNull.class)
 public final class QueriesBenchmarkConfReader {
 
     // It is assumed the schema file is held within the root directory of the packaged jar.

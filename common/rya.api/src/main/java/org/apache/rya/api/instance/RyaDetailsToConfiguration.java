@@ -20,7 +20,8 @@ package org.apache.rya.api.instance;
 
 import static java.util.Objects.requireNonNull;
 
-// SEE RYA-211 import javax.annotation.ParametersAreNonnullByDefault;
+import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
+import edu.umd.cs.findbugs.annotations.NonNull;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.log4j.Logger;
@@ -31,7 +32,7 @@ import com.google.common.base.Optional;
  * Used to fetch {@link RyaDetails} from a {@link RyaDetailsRepository} and
  * add them to the application's {@link Configuration}.
  */
-// SEE RYA-211 @ParametersAreNonnullByDefault
+@DefaultAnnotation(NonNull.class)
 public class RyaDetailsToConfiguration {
     private static final Logger log = Logger.getLogger(RyaDetailsToConfiguration.class);
 

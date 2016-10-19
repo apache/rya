@@ -24,8 +24,9 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import java.util.Collection;
 import java.util.Objects;
 
-// SEE RYA-211 import javax.annotation.ParametersAreNonnullByDefault;
-// SEE RYA-211 import javax.annotation.concurrent.Immutable;
+import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
+import edu.umd.cs.findbugs.annotations.NonNull;
+import net.jcip.annotations.Immutable;
 
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.rya.indexing.pcj.storage.accumulo.VariableOrder;
@@ -35,8 +36,8 @@ import com.google.common.collect.ImmutableSet;
 /**
  * Metadata that is stored in a PCJ table about the results that are stored within it.
  */
-// SEE RYA-211 @Immutable
-// SEE RYA-211 @ParametersAreNonnullByDefault
+@Immutable
+@DefaultAnnotation(NonNull.class)
 public final class PcjMetadata {
     private final String sparql;
     private final long cardinality;

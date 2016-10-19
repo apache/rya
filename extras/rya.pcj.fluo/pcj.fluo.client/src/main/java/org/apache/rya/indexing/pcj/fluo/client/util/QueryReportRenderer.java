@@ -20,7 +20,8 @@ package org.apache.rya.indexing.pcj.fluo.client.util;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-// SEE RYA-211 import javax.annotation.ParametersAreNonnullByDefault;
+import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
+import edu.umd.cs.findbugs.annotations.NonNull;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.rya.indexing.pcj.fluo.api.GetQueryReport.QueryReport;
@@ -37,7 +38,7 @@ import org.openrdf.queryrender.sparql.SPARQLQueryRenderer;
 /**
  * Pretty renders a {@link QueryReport}.
  */
-// SEE RYA-211 @ParametersAreNonnullByDefault
+@DefaultAnnotation(NonNull.class)
 public class QueryReportRenderer {
 
     /**

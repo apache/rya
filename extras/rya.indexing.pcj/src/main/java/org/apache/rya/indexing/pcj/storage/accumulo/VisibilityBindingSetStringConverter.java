@@ -18,7 +18,8 @@
  */
 package org.apache.rya.indexing.pcj.storage.accumulo;
 
-// SEE RYA-211 import javax.annotation.ParametersAreNonnullByDefault;
+import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
+import edu.umd.cs.findbugs.annotations.NonNull;
 
 import org.openrdf.query.BindingSet;
 
@@ -26,7 +27,7 @@ import org.openrdf.query.BindingSet;
  * Converts {@link BindingSet}s to Strings and back again. The Strings do not
  * include the binding names and are ordered with a {@link VariableOrder}.
  */
-// SEE RYA-211 @ParametersAreNonnullByDefault
+@DefaultAnnotation(NonNull.class)
 public class VisibilityBindingSetStringConverter extends BindingSetStringConverter {
     public static final char VISIBILITY_DELIM = 1;
 

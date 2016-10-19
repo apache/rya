@@ -23,7 +23,8 @@ import static java.util.Objects.requireNonNull;
 import java.io.IOException;
 import java.util.Set;
 
-// SEE RYA-211 import javax.annotation.ParametersAreNonnullByDefault;
+import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
+import edu.umd.cs.findbugs.annotations.NonNull;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.util.FieldUtils;
@@ -38,7 +39,7 @@ import jline.console.ConsoleReader;
  * Provides access to the host {@link Shell}'s {@link ConsoleReader} and some
  * utility functions for using it.
  */
-// SEE RYA-211 @ParametersAreNonnullByDefault
+@DefaultAnnotation(NonNull.class)
 public abstract class JLinePrompt {
 
     /**

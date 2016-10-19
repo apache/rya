@@ -19,13 +19,14 @@ package org.apache.rya.api.instance;
  * under the License.
  */
 
-// SEE RYA-211 import javax.annotation.ParametersAreNonnullByDefault;
+import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
+import edu.umd.cs.findbugs.annotations.NonNull;
 
 /**
  * Provides access to the {@link RyaDetails} information that describes
  * an instance of Rya.
  */
-// SEE RYA-211 @ParametersAreNonnullByDefault
+@DefaultAnnotation(NonNull.class)
 public interface RyaDetailsRepository {
 
     /**

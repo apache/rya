@@ -26,7 +26,8 @@ import java.util.Map.Entry;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-// SEE RYA-211 import javax.annotation.ParametersAreNonnullByDefault;
+import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
+import edu.umd.cs.findbugs.annotations.NonNull;
 
 import org.apache.accumulo.core.client.Connector;
 
@@ -37,7 +38,7 @@ import org.apache.rya.api.client.RyaClientException;
 /**
  * An Accumulo implementation of the {@link ListInstances} command.
  */
-// SEE RYA-211 @ParametersAreNonnullByDefault
+@DefaultAnnotation(NonNull.class)
 public class AccumuloListInstances extends AccumuloCommand implements ListInstances {
 
     private final Pattern spoPattern = Pattern.compile("(.*)" + RdfCloudTripleStoreConstants.TBL_SPO_SUFFIX);
@@ -104,7 +105,7 @@ public class AccumuloListInstances extends AccumuloCommand implements ListInstan
     /**
      * Flags that are used to determine if a String is a Rya Instance name.
      */
-// SEE RYA-211     @ParametersAreNonnullByDefault
+    @DefaultAnnotation(NonNull.class)
     private static class InstanceTablesFound {
         private boolean spoFound = false;
         private boolean ospFound = false;

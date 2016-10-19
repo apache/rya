@@ -21,8 +21,9 @@ package org.apache.rya.indexing.pcj.fluo.app.query;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import edu.umd.cs.findbugs.annotations.Nullable;
-// SEE RYA-211 import javax.annotation.ParametersAreNonnullByDefault;
-// SEE RYA-211 import javax.annotation.concurrent.Immutable;
+import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
+import edu.umd.cs.findbugs.annotations.NonNull;
+import net.jcip.annotations.Immutable;
 
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.rya.indexing.pcj.storage.accumulo.VariableOrder;
@@ -32,8 +33,8 @@ import com.google.common.base.Objects;
 /**
  * Metadata that is specific to a Projection.
  */
-// SEE RYA-211 @Immutable
-// SEE RYA-211 @ParametersAreNonnullByDefault
+@Immutable
+@DefaultAnnotation(NonNull.class)
 public class QueryMetadata extends CommonNodeMetadata {
 
     private final String sparql;
@@ -125,7 +126,7 @@ public class QueryMetadata extends CommonNodeMetadata {
     /**
      * Builds instances of {@link QueryMetadata}.
      */
-// SEE RYA-211     @ParametersAreNonnullByDefault
+    @DefaultAnnotation(NonNull.class)
     public static final class Builder {
 
         private final String nodeId;

@@ -21,6 +21,17 @@ package org.apache.rya.indexing.mongo;
 import java.util.HashSet;
 import java.util.Set;
 
+import org.apache.rya.accumulo.AccumuloRdfConfiguration;
+import org.apache.rya.api.domain.RyaStatement;
+import org.apache.rya.api.domain.RyaType;
+import org.apache.rya.api.domain.RyaURI;
+import org.apache.rya.api.resolver.RdfToRyaConversions;
+import org.apache.rya.api.resolver.RyaToRdfConversions;
+import org.apache.rya.indexing.StatementConstraints;
+import org.apache.rya.indexing.accumulo.ConfigUtils;
+import org.apache.rya.indexing.mongodb.freetext.MongoFreeTextIndexer;
+import org.apache.rya.mongodb.MongoDBRdfConfiguration;
+import org.apache.rya.mongodb.MongoRyaTestBase;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -33,27 +44,13 @@ import org.openrdf.model.impl.ValueFactoryImpl;
 import org.openrdf.model.vocabulary.RDFS;
 
 import com.google.common.collect.Sets;
-import com.mongodb.MongoClient;
 
-import de.flapdoodle.embed.mongo.distribution.Version;
-import de.flapdoodle.embed.mongo.tests.MongodForTestsFactory;
 import info.aduna.iteration.CloseableIteration;
-import org.apache.rya.accumulo.AccumuloRdfConfiguration;
-import org.apache.rya.api.domain.RyaStatement;
-import org.apache.rya.api.domain.RyaType;
-import org.apache.rya.api.domain.RyaURI;
-import org.apache.rya.api.resolver.RdfToRyaConversions;
-import org.apache.rya.api.resolver.RyaToRdfConversions;
-import org.apache.rya.indexing.StatementConstraints;
-import org.apache.rya.indexing.accumulo.ConfigUtils;
-import org.apache.rya.indexing.mongodb.freetext.MongoFreeTextIndexer;
-import org.apache.rya.mongodb.MongoDBRdfConfiguration;
 
-public class MongoFreeTextIndexerTest {
+public class MongoFreeTextIndexerTest extends MongoRyaTestBase {
     private static final StatementConstraints EMPTY_CONSTRAINTS = new StatementConstraints();
 
     AccumuloRdfConfiguration conf;
-    MongoClient mongoClient;
 
     @Before
     public void before() throws Exception {
@@ -63,11 +60,9 @@ public class MongoFreeTextIndexerTest {
         conf.set(MongoDBRdfConfiguration.MONGO_DB_NAME, "test");
         conf.set(MongoDBRdfConfiguration.MONGO_COLLECTION_PREFIX, "rya_");
         conf.setTablePrefix("another_");
-        final MongodForTestsFactory testsFactory = MongodForTestsFactory.with(Version.Main.PRODUCTION);
-        mongoClient = testsFactory.newMongo();
-   }
-
-     @Test
+    }
+    
+    @Test
     public void testSearch() throws Exception {
         try (MongoFreeTextIndexer f = new MongoFreeTextIndexer()) {
             f.initIndexer(conf, mongoClient);

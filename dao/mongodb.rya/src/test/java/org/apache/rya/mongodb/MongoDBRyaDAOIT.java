@@ -25,40 +25,32 @@ import static org.junit.Assert.assertTrue;
 import java.io.IOException;
 
 import org.apache.hadoop.conf.Configuration;
+import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
+import org.apache.rya.api.domain.RyaStatement;
+import org.apache.rya.api.domain.RyaStatement.RyaStatementBuilder;
+import org.apache.rya.api.domain.RyaURI;
+import org.apache.rya.api.persist.RyaDAOException;
 import org.junit.Before;
 import org.junit.Test;
 
 import com.mongodb.DB;
 import com.mongodb.DBCollection;
 import com.mongodb.DBObject;
-import com.mongodb.MongoClient;
 import com.mongodb.MongoException;
 
-import de.flapdoodle.embed.mongo.distribution.Version;
-import de.flapdoodle.embed.mongo.tests.MongodForTestsFactory;
-import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
-import org.apache.rya.api.domain.RyaStatement;
-import org.apache.rya.api.domain.RyaStatement.RyaStatementBuilder;
-import org.apache.rya.api.domain.RyaURI;
-import org.apache.rya.api.persist.RyaDAOException;
+public class MongoDBRyaDAOIT extends MongoRyaTestBase {
 
-public class MongoDBRyaDAOIT {
-
-    private MongodForTestsFactory testsFactory;
     private MongoDBRyaDAO dao;
     private MongoDBRdfConfiguration configuration;
-    private MongoClient mongoClient;
 
     @Before
     public void setUp() throws IOException, RyaDAOException{
-        testsFactory = MongodForTestsFactory.with(Version.Main.PRODUCTION);
            final Configuration conf = new Configuration();
             conf.set(MongoDBRdfConfiguration.USE_TEST_MONGO, "true");
             conf.set(MongoDBRdfConfiguration.MONGO_DB_NAME, "test");
             conf.set(MongoDBRdfConfiguration.MONGO_COLLECTION_PREFIX, "rya_");
             conf.set(RdfCloudTripleStoreConfiguration.CONF_TBL_PREFIX, "rya_");
             configuration = new MongoDBRdfConfiguration(conf);
-            mongoClient = testsFactory.newMongo();
             final int port = mongoClient.getServerAddressList().get(0).getPort();
             configuration.set(MongoDBRdfConfiguration.MONGO_INSTANCE_PORT, Integer.toString(port));
             dao = new MongoDBRyaDAO(configuration, mongoClient);

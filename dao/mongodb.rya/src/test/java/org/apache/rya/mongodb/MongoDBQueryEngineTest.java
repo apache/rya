@@ -23,14 +23,12 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import info.aduna.iteration.CloseableIteration;
+import org.apache.hadoop.conf.Configuration;
 import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
 import org.apache.rya.api.RdfCloudTripleStoreUtils;
 import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.domain.RyaStatement.RyaStatementBuilder;
 import org.apache.rya.api.domain.RyaURI;
-
-import org.apache.hadoop.conf.Configuration;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -39,12 +37,10 @@ import org.openrdf.query.BindingSet;
 import org.openrdf.query.impl.MapBindingSet;
 
 import com.google.common.collect.Lists;
-import com.mongodb.MongoClient;
 
-import de.flapdoodle.embed.mongo.distribution.Version;
-import de.flapdoodle.embed.mongo.tests.MongodForTestsFactory;
+import info.aduna.iteration.CloseableIteration;
 
-public class MongoDBQueryEngineTest {
+public class MongoDBQueryEngineTest extends MongoRyaTestBase {
 
     // private dao;
     // private configuration;
@@ -55,14 +51,12 @@ public class MongoDBQueryEngineTest {
     @Before
     public void setUp() throws Exception {
         // Set up Mongo/Rya
-        MongodForTestsFactory testsFactory = MongodForTestsFactory.with(Version.Main.PRODUCTION);
         Configuration conf = new Configuration();
         conf.set(MongoDBRdfConfiguration.USE_TEST_MONGO, "true");
         conf.set(MongoDBRdfConfiguration.MONGO_DB_NAME, "test");
         conf.set(MongoDBRdfConfiguration.MONGO_COLLECTION_PREFIX, "rya_");
         conf.set(RdfCloudTripleStoreConfiguration.CONF_TBL_PREFIX, "rya_");
         configuration = new MongoDBRdfConfiguration(conf);
-        MongoClient mongoClient = testsFactory.newMongo();
         int port = mongoClient.getServerAddressList().get(0).getPort();
         configuration.set(MongoDBRdfConfiguration.MONGO_INSTANCE_PORT, Integer.toString(port));
 

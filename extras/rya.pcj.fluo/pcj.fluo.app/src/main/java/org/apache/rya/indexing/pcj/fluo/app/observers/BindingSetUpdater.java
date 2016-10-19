@@ -20,7 +20,8 @@ package org.apache.rya.indexing.pcj.fluo.app.observers;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-// SEE RYA-211 import javax.annotation.ParametersAreNonnullByDefault;
+import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
+import edu.umd.cs.findbugs.annotations.NonNull;
 
 import org.apache.rya.indexing.pcj.fluo.app.BindingSetRow;
 import org.apache.rya.indexing.pcj.fluo.app.FilterResultUpdater;
@@ -44,7 +45,7 @@ import org.apache.fluo.api.observer.AbstractObserver;
  * Set. This observer updates its parent if the new Binding Set effects the parent's
  * results.
  */
-// SEE RYA-211 @ParametersAreNonnullByDefault
+@DefaultAnnotation(NonNull.class)
 public abstract class BindingSetUpdater extends AbstractObserver {
 
     // DAO

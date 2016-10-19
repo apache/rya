@@ -22,7 +22,8 @@ import static java.util.Objects.requireNonNull;
 
 import java.util.Date;
 
-// SEE RYA-211 import javax.annotation.ParametersAreNonnullByDefault;
+import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
+import edu.umd.cs.findbugs.annotations.NonNull;
 
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
@@ -60,7 +61,7 @@ import org.apache.rya.sail.config.RyaSailFactory;
  * An Accumulo implementation of the {@link Install} command.
  */
 
-// SEE RYA-211 @ParametersAreNonnullByDefault
+@DefaultAnnotation(NonNull.class)
 public class AccumuloInstall extends AccumuloCommand implements Install {
 
     private final InstanceExists instanceExists;

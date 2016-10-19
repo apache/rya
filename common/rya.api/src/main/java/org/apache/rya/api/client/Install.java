@@ -23,15 +23,16 @@ import static java.util.Objects.requireNonNull;
 import java.util.Objects;
 
 import edu.umd.cs.findbugs.annotations.Nullable;
-// SEE RYA-211 import javax.annotation.ParametersAreNonnullByDefault;
-// SEE RYA-211 import javax.annotation.concurrent.Immutable;
+import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
+import edu.umd.cs.findbugs.annotations.NonNull;
+import net.jcip.annotations.Immutable;
 
 import com.google.common.base.Optional;
 
 /**
  * Installs a new instance of Rya.
  */
-// SEE RYA-211 @ParametersAreNonnullByDefault
+@DefaultAnnotation(NonNull.class)
 public interface Install {
 
     /**
@@ -59,8 +60,8 @@ public interface Install {
     /**
      * Configures how an instance of Rya will be configured when it is installed.
      */
-// SEE RYA-211     @Immutable
-// SEE RYA-211     @ParametersAreNonnullByDefault
+    @Immutable
+    @DefaultAnnotation(NonNull.class)
     public static class InstallConfiguration {
 
         private final boolean enableTableHashPrefix;
@@ -181,7 +182,7 @@ public interface Install {
         /**
          * Builds instances of {@link InstallConfiguration}.
          */
-// SEE RYA-211         @ParametersAreNonnullByDefault
+        @DefaultAnnotation(NonNull.class)
         public static class Builder {
             private boolean enableTableHashPrefix = false;
             private boolean enableFreeTextIndex = false;

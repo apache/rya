@@ -20,7 +20,8 @@ package org.apache.rya.api.client.accumulo;
 
 import static java.util.Objects.requireNonNull;
 
-// SEE RYA-211 import javax.annotation.ParametersAreNonnullByDefault;
+import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
+import edu.umd.cs.findbugs.annotations.NonNull;
 
 import org.apache.accumulo.core.client.Connector;
 import org.apache.rya.indexing.pcj.fluo.api.DeletePcj;
@@ -46,7 +47,7 @@ import org.apache.rya.api.instance.RyaDetails.PCJIndexDetails.PCJDetails.PCJUpda
 /**
  * An Accumulo implementation of the {@link DeletePCJ} command.
  */
-// SEE RYA-211 @ParametersAreNonnullByDefault
+@DefaultAnnotation(NonNull.class)
 public class AccumuloDeletePCJ extends AccumuloCommand implements DeletePCJ {
 
     private static final Logger log = LoggerFactory.getLogger(AccumuloDeletePCJ.class);

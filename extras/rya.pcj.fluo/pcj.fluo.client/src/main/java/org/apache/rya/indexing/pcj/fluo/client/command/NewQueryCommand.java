@@ -25,7 +25,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
-// SEE RYA-211 import javax.annotation.ParametersAreNonnullByDefault;
+import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
+import edu.umd.cs.findbugs.annotations.NonNull;
 
 import org.apache.accumulo.core.client.Connector;
 import org.apache.commons.io.IOUtils;
@@ -52,7 +53,7 @@ import org.apache.rya.rdftriplestore.RyaSailRepository;
  * A command that creates a creates a new PCJ in the Fluo app and loads historic
  * statement pattern matches for it.
  */
-// SEE RYA-211 @ParametersAreNonnullByDefault
+@DefaultAnnotation(NonNull.class)
 public class NewQueryCommand implements PcjAdminClientCommand {
     private static final Logger log = LogManager.getLogger(NewQueryCommand.class);
 

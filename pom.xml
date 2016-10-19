@@ -122,7 +122,10 @@ under the License.
         <fluo.version>1.0.0-incubating</fluo.version>
         
         <jmh.version>1.13</jmh.version>
+
         <jsr305.version>1.3.9-1</jsr305.version>
+        <jcip.version>1.0-1</jcip.version>
+        <findbugs.plugin.version>3.0.4</findbugs.plugin.version>
     </properties>
     <dependencyManagement>
         <dependencies>
@@ -574,6 +577,11 @@ under the License.
                 <artifactId>findbugs-annotations</artifactId>
                 <version>${jsr305.version}</version>
             </dependency>
+            <dependency>
+                <groupId>com.github.stephenc.jcip</groupId>
+                <artifactId>jcip-annotations</artifactId>
+                <version>${jcip.version}</version>
+            </dependency>
             
             <dependency>
                 <groupId>org.apache.accumulo</groupId>
@@ -829,6 +837,16 @@ under the License.
             </plugin>
         </plugins>
     </build>
+
+    <reporting>
+        <plugins>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>findbugs-maven-plugin</artifactId>
+                <version>${findbugs.plugin.version}</version>
+            </plugin>
+        </plugins>
+    </reporting>
 
     <repositories>
         <repository>

@@ -22,12 +22,13 @@ import static java.util.Objects.requireNonNull;
 
 import java.util.List;
 
-// SEE RYA-211 import javax.annotation.ParametersAreNonnullByDefault;
+import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
+import edu.umd.cs.findbugs.annotations.NonNull;
 
 /**
  * Pretty formats a list of Rya instance names.
  */
-// SEE RYA-211 @ParametersAreNonnullByDefault
+@DefaultAnnotation(NonNull.class)
 public class InstanceNamesFormatter {
 
     /**

@@ -25,7 +25,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
-// SEE RYA-211 import javax.annotation.ParametersAreNonnullByDefault;
+import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
+import edu.umd.cs.findbugs.annotations.NonNull;
 
 import org.apache.accumulo.core.client.Connector;
 import org.apache.commons.io.FilenameUtils;
@@ -51,7 +52,7 @@ import org.apache.rya.rdftriplestore.RyaSailRepository;
 /**
  * A command that loads the contents of an NTriple file into the Fluo application.
  */
-// SEE RYA-211 @ParametersAreNonnullByDefault
+@DefaultAnnotation(NonNull.class)
 public class LoadTriplesCommand implements PcjAdminClientCommand {
     private static final Logger log = LogManager.getLogger(LoadTriplesCommand.class);
 

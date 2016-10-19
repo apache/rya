@@ -23,8 +23,9 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import java.util.Collection;
 import java.util.Iterator;
 
-// SEE RYA-211 import javax.annotation.ParametersAreNonnullByDefault;
-// SEE RYA-211 import javax.annotation.concurrent.Immutable;
+import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
+import edu.umd.cs.findbugs.annotations.NonNull;
+import net.jcip.annotations.Immutable;
 
 import org.openrdf.query.BindingSet;
 
@@ -36,8 +37,8 @@ import com.google.common.collect.ImmutableList;
  * specify the order {@link Binding}s within the set are serialized to Accumulo.
  * This order effects which rows a prefix scan will hit.
  */
-// SEE RYA-211 @Immutable
-// SEE RYA-211 @ParametersAreNonnullByDefault
+@Immutable
+@DefaultAnnotation(NonNull.class)
 public final class VariableOrder implements Iterable<String> {
 
     public static final String VAR_ORDER_DELIM = ";";

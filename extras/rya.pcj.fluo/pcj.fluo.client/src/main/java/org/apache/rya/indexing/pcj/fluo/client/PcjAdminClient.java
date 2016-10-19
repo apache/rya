@@ -32,7 +32,8 @@ import java.util.List;
 import java.util.Properties;
 import java.util.Set;
 
-// SEE RYA-211 import javax.annotation.ParametersAreNonnullByDefault;
+import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
+import edu.umd.cs.findbugs.annotations.NonNull;
 
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
@@ -65,7 +66,7 @@ import org.apache.rya.rdftriplestore.RyaSailRepository;
 /**
  * An application that helps Rya PCJ administrators interact with the cluster.
  */
-// SEE RYA-211 @ParametersAreNonnullByDefault
+@DefaultAnnotation(NonNull.class)
 public class PcjAdminClient {
 
     private static final Logger log = LogManager.getLogger(PcjAdminClient.class);

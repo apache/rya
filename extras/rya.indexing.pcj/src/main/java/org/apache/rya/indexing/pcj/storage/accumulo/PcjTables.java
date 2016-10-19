@@ -30,7 +30,8 @@ import java.util.List;
 import java.util.Map.Entry;
 import java.util.Set;
 
-// SEE RYA-211 import javax.annotation.ParametersAreNonnullByDefault;
+import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
+import edu.umd.cs.findbugs.annotations.NonNull;
 
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
@@ -74,7 +75,7 @@ import com.google.common.base.Optional;
 /**
  * Functions that create and maintain the PCJ tables that are used by Rya.
  */
-// SEE RYA-211 @ParametersAreNonnullByDefault
+@DefaultAnnotation(NonNull.class)
 public class PcjTables {
     private static final Logger log = Logger.getLogger(PcjTables.class);
 

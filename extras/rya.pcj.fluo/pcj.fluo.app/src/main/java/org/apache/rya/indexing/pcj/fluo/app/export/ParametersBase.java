@@ -22,14 +22,15 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.Map;
 
-// SEE RYA-211 import javax.annotation.ParametersAreNonnullByDefault;
+import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
+import edu.umd.cs.findbugs.annotations.NonNull;
 
 import com.google.common.base.Optional;
 
 /**
  * Contains common parsing functions that make it easier to interpret parameter maps.
  */
-// SEE RYA-211 @ParametersAreNonnullByDefault
+@DefaultAnnotation(NonNull.class)
 public abstract class ParametersBase {
 
     protected final Map<String, String> params;

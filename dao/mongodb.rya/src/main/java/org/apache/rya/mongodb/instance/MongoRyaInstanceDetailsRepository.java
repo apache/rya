@@ -22,7 +22,8 @@ package org.apache.rya.mongodb.instance;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static java.util.Objects.requireNonNull;
 
-// SEE RYA-211 import javax.annotation.ParametersAreNonnullByDefault;
+import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
+import edu.umd.cs.findbugs.annotations.NonNull;
 
 import com.mongodb.BasicDBObject;
 import com.mongodb.DB;
@@ -39,7 +40,7 @@ import org.apache.rya.mongodb.instance.MongoDetailsAdapter.MalformedRyaDetailsEx
  * An implementation of {@link RyaDetailsRepository} that stores a Rya
  * instance's {@link RyaDetails} in a Mongo document.
  */
-// SEE RYA-211 @ParametersAreNonnullByDefault
+@DefaultAnnotation(NonNull.class)
 public class MongoRyaInstanceDetailsRepository implements RyaDetailsRepository {
     private static final String INSTANCE_DETAILS_COLLECTION_NAME = "instance_details";
 

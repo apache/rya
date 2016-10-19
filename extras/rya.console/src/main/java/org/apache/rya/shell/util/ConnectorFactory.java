@@ -20,7 +20,8 @@ package org.apache.rya.shell.util;
 
 import static java.util.Objects.requireNonNull;
 
-// SEE RYA-211 import javax.annotation.ParametersAreNonnullByDefault;
+import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
+import edu.umd.cs.findbugs.annotations.NonNull;
 
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
@@ -32,7 +33,7 @@ import org.apache.accumulo.core.client.security.tokens.PasswordToken;
 /**
  * Creates {@link Connector}s that are linked to an instance of Accumulo.
  */
-// SEE RYA-211 @ParametersAreNonnullByDefault
+@DefaultAnnotation(NonNull.class)
 public class ConnectorFactory {
 
     /**

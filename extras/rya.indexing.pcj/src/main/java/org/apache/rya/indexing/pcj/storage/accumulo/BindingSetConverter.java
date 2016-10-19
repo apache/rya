@@ -18,7 +18,8 @@
  */
 package org.apache.rya.indexing.pcj.storage.accumulo;
 
-// SEE RYA-211 import javax.annotation.ParametersAreNonnullByDefault;
+import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
+import edu.umd.cs.findbugs.annotations.NonNull;
 
 import org.openrdf.query.Binding;
 import org.openrdf.query.BindingSet;
@@ -30,7 +31,7 @@ import org.openrdf.query.BindingSet;
  *
  * @param <T> Defines the type of model {@link BindingSet}s will be converted into/from.
  */
-// SEE RYA-211 @ParametersAreNonnullByDefault
+@DefaultAnnotation(NonNull.class)
 public interface BindingSetConverter<T> {
 
    /**

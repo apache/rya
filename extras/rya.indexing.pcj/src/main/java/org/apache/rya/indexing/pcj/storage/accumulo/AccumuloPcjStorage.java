@@ -25,7 +25,8 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
-// SEE RYA-211 import javax.annotation.ParametersAreNonnullByDefault;
+import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
+import edu.umd.cs.findbugs.annotations.NonNull;
 
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
@@ -50,7 +51,7 @@ import org.apache.rya.api.instance.RyaDetailsUpdater.RyaDetailsMutator.CouldNotA
 /**
  * An Accumulo backed implementation of {@link PrecomputedJoinStorage}.
  */
-// SEE RYA-211 @ParametersAreNonnullByDefault
+@DefaultAnnotation(NonNull.class)
 public class AccumuloPcjStorage implements PrecomputedJoinStorage {
 
     // Factories that are used to create new PCJs.

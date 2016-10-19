@@ -23,7 +23,8 @@ import static java.util.Objects.requireNonNull;
 import java.util.Iterator;
 import java.util.Map.Entry;
 
-// SEE RYA-211 import javax.annotation.ParametersAreNonnullByDefault;
+import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
+import edu.umd.cs.findbugs.annotations.NonNull;
 
 import org.apache.accumulo.core.client.Scanner;
 import org.apache.accumulo.core.data.Key;
@@ -35,7 +36,7 @@ import org.openrdf.query.BindingSet;
  * Iterates over the results of a {@link Scanner} assuming the results are
  * binding sets that can be converted using a {@link AccumuloPcjSerializer}.
  */
-// SEE RYA-211 @ParametersAreNonnullByDefault
+@DefaultAnnotation(NonNull.class)
 public class ScannerBindingSetIterator implements Iterator<BindingSet> {
 
     private static final AccumuloPcjSerializer converter = new AccumuloPcjSerializer();

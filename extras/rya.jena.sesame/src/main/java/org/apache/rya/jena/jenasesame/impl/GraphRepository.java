@@ -21,6 +21,7 @@ package org.apache.rya.jena.jenasesame.impl;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import org.apache.jena.graph.Node;
+import org.apache.jena.graph.NodeFactory;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.shared.JenaException;
 import org.apache.jena.shared.PrefixMapping;
@@ -32,6 +33,7 @@ import org.apache.rya.jena.legacy.graph.BulkUpdateHandler;
 import org.apache.rya.jena.legacy.graph.query.QueryHandler;
 import org.apache.rya.jena.legacy.graph.query.SimpleQueryHandler;
 import org.apache.rya.jena.legacy.sparql.graph.GraphBase2;
+import org.apache.rya.rdftriplestore.RdfCloudTripleStoreConnection;
 import org.openrdf.model.Resource;
 import org.openrdf.model.Statement;
 import org.openrdf.model.URI;
@@ -40,6 +42,7 @@ import org.openrdf.model.ValueFactory;
 import org.openrdf.repository.RepositoryConnection;
 import org.openrdf.repository.RepositoryException;
 import org.openrdf.repository.RepositoryResult;
+import org.openrdf.repository.sail.SailRepositoryConnection;
 
 /**
  * Graph Repository.
@@ -120,9 +123,15 @@ public class GraphRepository extends GraphBase2 {
 
     @Override
     protected ExtendedIterator<Triple> graphBaseFind(final Triple m) {
-        final Node s = m.getMatchSubject();
+        Node s = m.getMatchSubject();
         final Node p = m.getMatchPredicate();
         final Node o = m.getMatchObject();
+
+        if (connection instanceof SailRepositoryConnection && ((SailRepositoryConnection)connection).getSailConnection() instanceof RdfCloudTripleStoreConnection) {
+            if (s == null && p == null && o == null) {
+                s = NodeFactory.createBlankNode();
+            }
+        }
 
         final Resource subj   = s == null ? null : Convert.nodeToResource(valueFactory, s);
         final URI pred        = p == null ? null : Convert.nodeToURI(valueFactory, p);

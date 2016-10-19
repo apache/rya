@@ -45,7 +45,7 @@ public class Rewrite {
     public static PatternLiteral getPattern(final Expression E) {
         if (E instanceof PatternLiteral) {
             final PatternLiteral L = (PatternLiteral) E;
-            if (L.getPatternLanguage().equals(PatternLiteral.rdql)) {
+            if (L.getPatternLanguage().equals(PatternLiteral.RDQL)) {
                 return L;
             }
         }

@@ -44,8 +44,6 @@ import org.apache.rya.jena.legacy.graph.impl.SimpleBulkUpdateHandler;
 import org.apache.rya.jena.legacy.graph.query.QueryHandler;
 import org.apache.rya.jena.legacy.sparql.core.Reifier2;
 
-import com.hp.hpl.jena.graph.TripleMatch;
-
 /**
  * Like GraphBase but without any reificiation handling
  */
@@ -270,7 +268,7 @@ public abstract class GraphBase2 implements GraphWithPerform {
      * @return an (extended) iterator over all the triples in this Graph matching
      * {@code m}. Subclasses cannot over-ride this, because it implements
      * the appending of reification quadlets; instead they must implement
-     * graphBaseFind(TripleMatch).
+     * {@link #graphBaseFind(Triple)}.
      */
     @Override
     public final ExtendedIterator<Triple> find(final Triple m) {
@@ -282,7 +280,7 @@ public abstract class GraphBase2 implements GraphWithPerform {
     /**
      * @return an iterator over all the triples held in this graph's non-reified triple store
      * that match {@code m}. Subclasses <i>must</i> override; it is the core
-     * implementation for {@link #find(TripleMatch)}.
+     * implementation for {@link #find(Triple)}.
      */
     protected abstract ExtendedIterator<Triple> graphBaseFind(Triple m);
 

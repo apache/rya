@@ -22,7 +22,7 @@ package org.apache.rya.jena.legacy.graph.query;
  * Also contains the definitions for the pattern language names.
  */
 public interface PatternLiteral {
-    public static final String rdql = "http://jena.hpl.hp.com/2003/07/query/RDQL";
+    public static final String RDQL = "http://jena.rya.apache.org/2003/07/query/RDQL";
 
     /**
      * @return the pattern string, in whatever the pattern language is.

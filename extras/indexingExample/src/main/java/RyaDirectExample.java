@@ -17,25 +17,67 @@
  * under the License.
  */
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.net.UnknownHostException;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map.Entry;
 
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
 import org.apache.accumulo.core.client.Connector;
+import org.apache.accumulo.core.client.Scanner;
 import org.apache.accumulo.core.client.TableExistsException;
 import org.apache.accumulo.core.client.TableNotFoundException;
 import org.apache.accumulo.core.client.mock.MockInstance;
 import org.apache.accumulo.core.client.security.tokens.PasswordToken;
+import org.apache.accumulo.core.data.Key;
+import org.apache.accumulo.core.data.Value;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.Validate;
 import org.apache.hadoop.conf.Configuration;
+import org.apache.jena.query.Dataset;
+import org.apache.jena.rdf.model.InfModel;
+import org.apache.jena.rdf.model.Model;
+import org.apache.jena.rdf.model.ModelFactory;
+import org.apache.jena.rdf.model.Property;
+import org.apache.jena.rdf.model.RDFNode;
+import org.apache.jena.rdf.model.Resource;
+import org.apache.jena.rdf.model.StmtIterator;
+import org.apache.jena.reasoner.Reasoner;
+import org.apache.jena.reasoner.rulesys.GenericRuleReasoner;
+import org.apache.jena.reasoner.rulesys.Rule;
+import org.apache.jena.reasoner.rulesys.Rule.Parser;
 import org.apache.log4j.Logger;
+import org.apache.rya.accumulo.AccumuloRdfConfiguration;
+import org.apache.rya.accumulo.AccumuloRyaDAO;
+import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
+import org.apache.rya.api.domain.RyaStatement;
+import org.apache.rya.api.persist.RyaDAO;
+import org.apache.rya.api.persist.RyaDAOException;
+import org.apache.rya.api.persist.query.RyaQuery;
+import org.apache.rya.api.resolver.RdfToRyaConversions;
+import org.apache.rya.indexing.GeoConstants;
+import org.apache.rya.indexing.accumulo.ConfigUtils;
+import org.apache.rya.indexing.external.PrecomputedJoinIndexerConfig;
+import org.apache.rya.indexing.external.PrecomputedJoinIndexerConfig.PrecomputedJoinStorageType;
 import org.apache.rya.indexing.pcj.storage.PcjException;
 import org.apache.rya.indexing.pcj.storage.accumulo.PcjTables;
 import org.apache.rya.indexing.pcj.storage.accumulo.PcjVarOrderFactory;
+import org.apache.rya.jena.jenasesame.JenaSesame;
+import org.apache.rya.rdftriplestore.RdfCloudTripleStore;
+import org.apache.rya.rdftriplestore.inference.InferenceEngineException;
+import org.apache.rya.sail.config.RyaSailFactory;
+import org.calrissian.mango.collect.CloseableIterable;
+import org.glassfish.grizzly.http.util.Charsets;
+import org.openrdf.model.Statement;
 import org.openrdf.model.URI;
 import org.openrdf.model.ValueFactory;
 import org.openrdf.model.impl.LiteralImpl;
+import org.openrdf.model.impl.StatementImpl;
 import org.openrdf.model.impl.URIImpl;
 import org.openrdf.model.vocabulary.RDF;
 import org.openrdf.model.vocabulary.RDFS;
@@ -49,6 +91,8 @@ import org.openrdf.query.TupleQueryResultHandler;
 import org.openrdf.query.TupleQueryResultHandlerException;
 import org.openrdf.query.Update;
 import org.openrdf.query.UpdateExecutionException;
+import org.openrdf.repository.Repository;
+import org.openrdf.repository.RepositoryConnection;
 import org.openrdf.repository.RepositoryException;
 import org.openrdf.repository.sail.SailRepository;
 import org.openrdf.repository.sail.SailRepositoryConnection;
@@ -56,16 +100,6 @@ import org.openrdf.sail.Sail;
 import org.openrdf.sail.SailException;
 
 import com.google.common.base.Optional;
-
-import org.apache.rya.accumulo.AccumuloRdfConfiguration;
-import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
-import org.apache.rya.api.persist.RyaDAOException;
-import org.apache.rya.indexing.GeoConstants;
-import org.apache.rya.indexing.accumulo.ConfigUtils;
-import org.apache.rya.indexing.external.PrecomputedJoinIndexerConfig;
-import org.apache.rya.indexing.external.PrecomputedJoinIndexerConfig.PrecomputedJoinStorageType;
-import org.apache.rya.rdftriplestore.inference.InferenceEngineException;
-import org.apache.rya.sail.config.RyaSailFactory;
 
 public class RyaDirectExample {
 	private static final Logger log = Logger.getLogger(RyaDirectExample.class);
@@ -118,6 +152,9 @@ public class RyaDirectExample {
 			testDeleteFreeTextData(conn);
 //			log.info("Running SPARQL Example: Delete Geo Data");
 //			testDeleteGeoData(conn);
+
+			log.info("Running Jena Sesame Reasoning with Rules Example");
+			testJenaSesameReasoningWithRules(conn);
 
 			log.info("TIME: " + (System.currentTimeMillis() - start) / 1000.);
 		} finally {
@@ -683,6 +720,127 @@ public class RyaDirectExample {
 		log.info("Result count : " + tupleHandler.getCount());
 		Validate.isTrue(tupleHandler.getCount() == 0);
 	}
+
+    private static void testJenaSesameReasoningWithRules(final SailRepositoryConnection conn) throws Exception {
+        final Repository repo = conn.getRepository();
+        RepositoryConnection addConnection = null;
+        RepositoryConnection queryConnection = null;
+        try {
+            // Load some data.
+            addConnection = repo.getConnection();
+
+            final String namespace = "http://tutorialacademy.com/2015/jena#";
+            final Statement stmt1 = createStatement("John", "hasClass", "Math", namespace);
+            final Statement stmt2 = createStatement("Bill", "teaches", "Math", namespace);
+            final Statement inferredStmt = createStatement("Bill", "hasStudent", "John", namespace);
+
+            addConnection.add(stmt1);
+            addConnection.add(stmt2);
+            addConnection.close();
+
+            queryConnection = repo.getConnection();
+
+            final Dataset dataset = JenaSesame.createDataset(queryConnection);
+
+            final Model model = dataset.getDefaultModel();
+            log.info(model.getNsPrefixMap());
+
+            final String ruleSource =
+                "@prefix : <" + namespace + "> .\r\n" +
+                "\r\n" +
+                "[ruleHasStudent: (?s :hasClass ?c) (?p :teaches ?c) -> (?p :hasStudent ?s)]";
+
+            Reasoner reasoner = null;
+            try (
+                final InputStream in = IOUtils.toInputStream(ruleSource, Charsets.UTF8_CHARSET);
+                final BufferedReader br = new BufferedReader(new InputStreamReader(in));
+            ) {
+                final Parser parser = Rule.rulesParserFromReader(br);
+                reasoner = new GenericRuleReasoner(Rule.parseRules(parser));
+            }
+
+            final InfModel infModel = ModelFactory.createInfModel(reasoner, model);
+
+            final StmtIterator iterator = infModel.listStatements();
+
+            int count = 0;
+            while (iterator.hasNext()) {
+                final org.apache.jena.rdf.model.Statement stmt = iterator.nextStatement();
+
+                final Resource subject = stmt.getSubject();
+                final Property predicate = stmt.getPredicate();
+                final RDFNode object = stmt.getObject();
+
+                log.info(subject.toString() + " " + predicate.toString() + " " + object.toString());
+                // TODO: Should inferred statements be added automatically?
+                model.add(stmt);
+                count++;
+            }
+            log.info("Result count : " + count);
+
+            // Check that statements exist in AccumuloRyaDAO
+            final SailRepository sailRepository = ((SailRepository)repo);
+            final RdfCloudTripleStore rdfCloudTripleStore = ((RdfCloudTripleStore)sailRepository.getSail());
+            final AccumuloRyaDAO ryaDao = (AccumuloRyaDAO) rdfCloudTripleStore.getRyaDAO();
+
+            final RyaStatement ryaStmt1 = RdfToRyaConversions.convertStatement(stmt1);
+            final RyaStatement ryaStmt2 = RdfToRyaConversions.convertStatement(stmt2);
+            final RyaStatement inferredRyaStmt = RdfToRyaConversions.convertStatement(inferredStmt);
+
+            Validate.isTrue(containsStatement(ryaStmt1, ryaDao));
+            Validate.isTrue(containsStatement(ryaStmt2, ryaDao));
+            Validate.isTrue(containsStatement(inferredRyaStmt, ryaDao));
+
+            // Scan to see if the statements are stored in Accumulo
+            final AccumuloRdfConfiguration conf = (AccumuloRdfConfiguration) rdfCloudTripleStore.getConf();
+            final String spoTable = conf.getTableLayoutStrategy().getSpo();
+            final Scanner scanner = ConfigUtils.createScanner(spoTable, conf);
+            final Iterator<Entry<Key, Value>> iter = scanner.iterator();
+            int scanCount = 0;
+            while (iter.hasNext()) {
+                final Entry<Key, Value> entry = iter.next();
+                log.info(entry);
+                scanCount++;
+            }
+            log.info("Total rows : " + scanCount);
+        } catch (final Exception e) {
+            log.error("Encountered an exception while running reasoner.", e);
+        } finally {
+            if (addConnection != null) {
+                addConnection.close();
+            }
+            if (queryConnection != null) {
+                queryConnection.close();
+            }
+        }
+    }
+
+    protected static StatementImpl createStatement(final String subject, final String predicate, final String object) {
+        return new StatementImpl(new URIImpl(subject), new URIImpl(predicate), new URIImpl(object));
+    }
+
+    protected static StatementImpl createStatement(final String subject, final String predicate, final String object, final String namespace) {
+        return createStatement(namespace + subject, namespace + predicate, namespace + object);
+    }
+
+    protected static boolean containsStatement(final RyaStatement ryaStatement, final RyaDAO<? extends RdfCloudTripleStoreConfiguration> ryaDao) throws RyaDAOException, IOException {
+        final RyaQuery ryaQuery = new RyaQuery(ryaStatement);
+        final CloseableIterable<RyaStatement> closeableIter = ryaDao.getQueryEngine().query(ryaQuery);
+        int count = 0;
+        try {
+            final Iterator<RyaStatement> iterator = closeableIter.iterator();
+            while (iterator.hasNext()) {
+                iterator.next();
+                count++;
+            }
+        } catch (final Exception e) {
+            log.error("Error querying for statement", e);
+        } finally {
+            closeableIter.close();
+        }
+
+        return count > 0;
+    }
 
 //	private static void testDeleteGeoData(final SailRepositoryConnection conn)
 //			throws Exception {

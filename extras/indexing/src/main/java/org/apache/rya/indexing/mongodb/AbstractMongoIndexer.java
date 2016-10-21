@@ -36,6 +36,7 @@ import com.mongodb.DBCursor;
 import com.mongodb.DBObject;
 import com.mongodb.MongoClient;
 import com.mongodb.QueryBuilder;
+import com.mongodb.ServerAddress;
 
 import info.aduna.iteration.CloseableIteration;
 import org.apache.rya.api.domain.RyaStatement;
@@ -71,14 +72,17 @@ public abstract class AbstractMongoIndexer<T extends IndexingMongoDBStorageStrat
         collection = db.getCollection(conf.get(MongoDBRdfConfiguration.MONGO_COLLECTION_PREFIX, "rya") + getCollectionName());
     }
     
+    @Override
     public void setClient(MongoClient client){
     	this.mongoClient = client;
     }
 
     // TODO this method is only intended to be used in testing
     public void initIndexer(final Configuration conf, final MongoClient client) {
+        ServerAddress address = client.getAddress();
+        conf.set(MongoDBRdfConfiguration.MONGO_INSTANCE, address.getHost());
+        conf.set(MongoDBRdfConfiguration.MONGO_INSTANCE_PORT, Integer.toString(address.getPort()));
         setConf(conf);
-        setClient(client);
         if (!isInit) {
             init();
             isInit = true;

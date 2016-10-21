@@ -56,7 +56,6 @@ public class MongoFreeTextIndexerTest extends MongoRyaTestBase {
     public void before() throws Exception {
         conf = new AccumuloRdfConfiguration();
         conf.set(ConfigUtils.USE_MONGO, "true");
-        conf.set(MongoDBRdfConfiguration.USE_TEST_MONGO, "true");
         conf.set(MongoDBRdfConfiguration.MONGO_DB_NAME, "test");
         conf.set(MongoDBRdfConfiguration.MONGO_COLLECTION_PREFIX, "rya_");
         conf.setTablePrefix("another_");

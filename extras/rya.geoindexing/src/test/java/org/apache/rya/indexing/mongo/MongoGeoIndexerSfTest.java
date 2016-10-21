@@ -109,7 +109,6 @@ public class MongoGeoIndexerSfTest extends MongoRyaTestBase {
         System.out.println(UUID.randomUUID().toString());
         conf = new MongoDBRdfConfiguration();
         conf.set(ConfigUtils.USE_MONGO, "true");
-        conf.set(MongoDBRdfConfiguration.USE_TEST_MONGO, "true");
         conf.set(MongoDBRdfConfiguration.MONGO_DB_NAME, "test");
         conf.set(MongoDBRdfConfiguration.MONGO_COLLECTION_PREFIX, "rya_");
         conf.set(ConfigUtils.GEO_PREDICATES_LIST, "http://www.opengis.net/ont/geosparql#asWKT");

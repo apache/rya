@@ -19,39 +19,24 @@
 package org.apache.rya.mongodb;
 
 import java.io.IOException;
-import java.net.ServerSocket;
-import java.net.UnknownHostException;
 
 import org.apache.rya.api.persist.RyaDAOException;
 import org.junit.After;
 import org.junit.Before;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.mongodb.MongoClient;
-import com.mongodb.MongoException;
-import com.mongodb.ServerAddress;
 
-import de.flapdoodle.embed.mongo.Command;
-import de.flapdoodle.embed.mongo.MongodExecutable;
-import de.flapdoodle.embed.mongo.MongodProcess;
-import de.flapdoodle.embed.mongo.MongodStarter;
-import de.flapdoodle.embed.mongo.config.IMongodConfig;
-import de.flapdoodle.embed.mongo.config.MongodConfigBuilder;
-import de.flapdoodle.embed.mongo.config.Net;
-import de.flapdoodle.embed.mongo.config.RuntimeConfigBuilder;
-import de.flapdoodle.embed.mongo.distribution.IFeatureAwareVersion;
 import de.flapdoodle.embed.mongo.distribution.Version;
 
 public class MongoRyaTestBase {
 
-    protected RyaMongodForTestsFactory testsFactory;
+    protected MockMongoFactory testsFactory;
     protected MongoClient mongoClient;
 
     @Before
     public void MongoRyaTestBaseSetUp() throws IOException, RyaDAOException {
-        testsFactory = RyaMongodForTestsFactory.with(Version.Main.PRODUCTION);
-        mongoClient = testsFactory.newMongo();
+        testsFactory = MockMongoFactory.with(Version.Main.PRODUCTION);
+        mongoClient = testsFactory.newMongoClient();
     }
 
     @After
@@ -62,57 +47,7 @@ public class MongoRyaTestBase {
         if (testsFactory != null) {
             testsFactory.shutdown();
         }
+        MongoConnectorFactory.closeMongoClient();
     }
 
-    private static class RyaMongodForTestsFactory {
-        private static Logger logger = LoggerFactory.getLogger(RyaMongodForTestsFactory.class.getName());
-
-        public static RyaMongodForTestsFactory with(final IFeatureAwareVersion version) throws IOException {
-            return new RyaMongodForTestsFactory(version);
-        }
-
-        private final MongodExecutable mongodExecutable;
-        private final MongodProcess mongodProcess;
-
-        /**
-         * Create the testing utility using the specified version of MongoDB.
-         * 
-         * @param version
-         *            version of MongoDB.
-         */
-        private RyaMongodForTestsFactory(final IFeatureAwareVersion version) throws IOException {
-            final MongodStarter runtime = MongodStarter.getInstance(new RuntimeConfigBuilder().defaultsWithLogger(Command.MongoD, logger).build());
-            mongodExecutable = runtime.prepare(newMongodConfig(version));
-            mongodProcess = mongodExecutable.start();
-        }
-
-        private IMongodConfig newMongodConfig(final IFeatureAwareVersion version) throws UnknownHostException, IOException {
-            Net net = new Net(findRandomOpenPortOnAllLocalInterfaces(), false);
-            return new MongodConfigBuilder().version(version).net(net).build();
-        }
-
-        private int findRandomOpenPortOnAllLocalInterfaces() throws IOException {
-            try (ServerSocket socket = new ServerSocket(0);) {
-                return socket.getLocalPort();
-            }
-        }
-
-        /**
-         * Creates a new Mongo connection.
-         * 
-         * @throws MongoException
-         * @throws UnknownHostException
-         */
-        private MongoClient newMongo() throws UnknownHostException, MongoException {
-            return new MongoClient(new ServerAddress(mongodProcess.getConfig().net().getServerAddress(), mongodProcess.getConfig().net().getPort()));
-        }
-
-        /**
-         * Cleans up the resources created by the utility.
-         */
-        public void shutdown() {
-            mongodProcess.stop();
-            mongodExecutable.stop();
-        }
-    }
 }

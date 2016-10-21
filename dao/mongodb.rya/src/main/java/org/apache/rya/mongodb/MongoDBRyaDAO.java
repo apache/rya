@@ -63,7 +63,6 @@ public final class MongoDBRyaDAO implements RyaDAO<MongoDBRdfConfiguration>{
     private MongoDBQueryEngine queryEngine;
     private MongoDBStorageStrategy storageStrategy;
     private MongoDBNamespaceManager nameSpaceManager;
-    private MongodForTestsFactory testsFactory;
 
     private List<MongoSecondaryIndex> secondaryIndexers;
 
@@ -138,9 +137,6 @@ public final class MongoDBRyaDAO implements RyaDAO<MongoDBRdfConfiguration>{
     public void destroy() throws RyaDAOException {
         if (mongoClient != null) {
             mongoClient.close();
-        }
-        if (conf.getUseTestMongo()) {
-            testsFactory.shutdown();
         }
 
         IOUtils.closeQuietly(queryEngine);

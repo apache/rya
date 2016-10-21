@@ -17,6 +17,7 @@
  * under the License.
  */
 
+import java.io.IOException;
 import java.util.List;
 
 import org.apache.commons.lang.Validate;
@@ -43,9 +44,14 @@ import org.openrdf.repository.sail.SailRepository;
 import org.openrdf.repository.sail.SailRepositoryConnection;
 import org.openrdf.sail.Sail;
 
+import com.mongodb.MongoClient;
+import com.mongodb.ServerAddress;
+
 import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
 import org.apache.rya.indexing.GeoConstants;
 import org.apache.rya.indexing.accumulo.ConfigUtils;
+import org.apache.rya.mongodb.MockMongoFactory;
+import org.apache.rya.mongodb.MongoConnectorFactory;
 import org.apache.rya.mongodb.MongoDBRdfConfiguration;
 import org.apache.rya.rdftriplestore.RdfCloudTripleStore;
 import org.apache.rya.rdftriplestore.inference.InferenceEngineException;
@@ -97,6 +103,10 @@ public class MongoRyaDirectExample {
             log.info("Shutting down");
             closeQuietly(conn);
             closeQuietly(repository);
+            if (mock != null) {
+                mock.shutdown();
+            }
+            MongoConnectorFactory.closeMongoClient();
         }
     }
 
@@ -255,19 +265,29 @@ public class MongoRyaDirectExample {
         Validate.isTrue(tupleHandler.getCount() == 2);
     }
 
-    private static Configuration getConf() {
+    private static MockMongoFactory mock = null;
+    private static Configuration getConf() throws IOException {
 
         MongoDBRdfConfiguration conf = new MongoDBRdfConfiguration();
         conf.set(ConfigUtils.USE_MONGO, "true");
 
-        // User name and password must be filled in:
-        conf.set(MongoDBRdfConfiguration.MONGO_USER, "fill this in");
-        conf.set(MongoDBRdfConfiguration.MONGO_USER_PASSWORD, "fill this in");
-        conf.set(MongoDBRdfConfiguration.USE_TEST_MONGO, Boolean.toString(USE_MOCK));
-        if (!USE_MOCK){
+        if (USE_MOCK) {
+            mock = MockMongoFactory.newFactory();
+            MongoClient c = mock.newMongo();
+            ServerAddress address = c.getAddress();
+            String url = address.getHost();
+            String port = Integer.toString(address.getPort());
+            c.close();
+//            conf.set(MongoDBRdfConfiguration.MONGO_USER, "fill this in");
+//            conf.set(MongoDBRdfConfiguration.MONGO_USER_PASSWORD, "fill this in");
+            conf.set(MongoDBRdfConfiguration.MONGO_INSTANCE, url);
+            conf.set(MongoDBRdfConfiguration.MONGO_INSTANCE_PORT, port);
+        } else {
+            // User name and password must be filled in:
+            conf.set(MongoDBRdfConfiguration.MONGO_USER, "fill this in");
+            conf.set(MongoDBRdfConfiguration.MONGO_USER_PASSWORD, "fill this in");
             conf.set(MongoDBRdfConfiguration.MONGO_INSTANCE, MONGO_INSTANCE_URL);
             conf.set(MongoDBRdfConfiguration.MONGO_INSTANCE_PORT, MONGO_INSTANCE_PORT);
-        	
         }
         conf.set(MongoDBRdfConfiguration.MONGO_DB_NAME, MONGO_DB);
         conf.set(MongoDBRdfConfiguration.MONGO_COLLECTION_PREFIX, MONGO_COLL_PREFIX);

@@ -52,7 +52,6 @@ public class MongoDBQueryEngineTest extends MongoRyaTestBase {
     public void setUp() throws Exception {
         // Set up Mongo/Rya
         Configuration conf = new Configuration();
-        conf.set(MongoDBRdfConfiguration.USE_TEST_MONGO, "true");
         conf.set(MongoDBRdfConfiguration.MONGO_DB_NAME, "test");
         conf.set(MongoDBRdfConfiguration.MONGO_COLLECTION_PREFIX, "rya_");
         conf.set(RdfCloudTripleStoreConfiguration.CONF_TBL_PREFIX, "rya_");

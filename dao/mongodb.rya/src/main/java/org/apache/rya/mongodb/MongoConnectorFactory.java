@@ -1,5 +1,3 @@
-package org.apache.rya.mongodb;
-
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -8,9 +6,9 @@ package org.apache.rya.mongodb;
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
+ * 
  *   http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -18,21 +16,19 @@ package org.apache.rya.mongodb;
  * specific language governing permissions and limitations
  * under the License.
  */
+package org.apache.rya.mongodb;
 
-import java.net.UnknownHostException;
-import java.util.Arrays;
 import java.io.IOException;
+import java.util.Arrays;
 
 import org.apache.commons.configuration.ConfigurationRuntimeException;
+import org.apache.commons.io.IOUtils;
 import org.apache.hadoop.conf.Configuration;
 
 import com.mongodb.MongoClient;
 import com.mongodb.MongoCredential;
 import com.mongodb.MongoException;
 import com.mongodb.ServerAddress;
-
-import de.flapdoodle.embed.mongo.distribution.Version;
-import de.flapdoodle.embed.mongo.tests.MongodForTestsFactory;
 
 /**
  * Mongo convention generally allows for a single instance of a {@link MongoClient}
@@ -56,28 +52,14 @@ public class MongoConnectorFactory {
     public static synchronized MongoClient getMongoClient(final Configuration conf)
             throws ConfigurationRuntimeException, MongoException {
         if (mongoClient == null) {
-            // The static client has not yet created, is it a test/mock instance, or a service?
-            if (conf.getBoolean(MongoDBRdfConfiguration.USE_TEST_MONGO, false)) {
-                createMongoClientForTests();
-            } else {
-                createMongoClientForServer(conf);
-            }
+            createMongoClientForServer(conf);
         }
         return mongoClient;
     }
 
-    /**
-     * Create a local temporary MongoDB instance and client object and assign it to this class's static mongoClient 
-     * @throws MongoException  if can't connect
-     */
-    private static void createMongoClientForTests() throws MongoException {
-        try {
-            MongodForTestsFactory testsFactory = MongodForTestsFactory.with(Version.Main.PRODUCTION);
-            mongoClient = testsFactory.newMongo();
-        } catch (IOException e) {
-            // Rethrow as an unchecked error.  Since we are in a test mode here, just fail fast.
-            throw new MongoException(MSG_INTRO+"creating a factory for a test/mock MongoDB instance.",e);
-        }
+    public static synchronized void closeMongoClient() {
+        IOUtils.closeQuietly(mongoClient);
+        mongoClient = null;
     }
 
     /**

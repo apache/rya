@@ -39,7 +39,6 @@ public class MongoDBRdfConfiguration extends RdfCloudTripleStoreConfiguration {
     public static final String MONGO_COLLECTION_PREFIX = "mongo.db.collectionprefix";
     public static final String MONGO_USER = "mongo.db.user";
     public static final String  MONGO_USER_PASSWORD = "mongo.db.userpassword";
-    public static final String USE_TEST_MONGO = "mongo.db.test";
     public static final String CONF_ADDITIONAL_INDEXERS = "ac.additional.indexers";
 	private MongoClient mongoClient;
 
@@ -54,14 +53,6 @@ public class MongoDBRdfConfiguration extends RdfCloudTripleStoreConfiguration {
     @Override
     public MongoDBRdfConfiguration clone() {
         return new MongoDBRdfConfiguration(this);
-    }
-
-    public boolean getUseTestMongo() {
-        return this.getBoolean(USE_TEST_MONGO, false);
-    }
-
-    public void setUseTestMongo(boolean useTestMongo) {
-        this.setBoolean(USE_TEST_MONGO, useTestMongo);
     }
 
     public String getTriplesCollectionName() {

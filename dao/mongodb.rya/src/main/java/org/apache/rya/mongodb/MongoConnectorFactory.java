@@ -57,6 +57,9 @@ public class MongoConnectorFactory {
         return mongoClient;
     }
 
+    /**
+     * Silently closes the underlying Mongo client.
+     */
     public static synchronized void closeMongoClient() {
         IOUtils.closeQuietly(mongoClient);
         mongoClient = null;

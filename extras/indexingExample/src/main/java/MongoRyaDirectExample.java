@@ -273,13 +273,11 @@ public class MongoRyaDirectExample {
 
         if (USE_MOCK) {
             mock = MockMongoFactory.newFactory();
-            MongoClient c = mock.newMongo();
+            MongoClient c = mock.newMongoClient();
             ServerAddress address = c.getAddress();
             String url = address.getHost();
             String port = Integer.toString(address.getPort());
             c.close();
-//            conf.set(MongoDBRdfConfiguration.MONGO_USER, "fill this in");
-//            conf.set(MongoDBRdfConfiguration.MONGO_USER_PASSWORD, "fill this in");
             conf.set(MongoDBRdfConfiguration.MONGO_INSTANCE, url);
             conf.set(MongoDBRdfConfiguration.MONGO_INSTANCE_PORT, port);
         } else {

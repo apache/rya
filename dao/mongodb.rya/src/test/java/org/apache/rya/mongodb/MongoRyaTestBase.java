@@ -36,7 +36,7 @@ public class MongoRyaTestBase {
     @Before
     public void MongoRyaTestBaseSetUp() throws IOException, RyaDAOException {
         testsFactory = MockMongoFactory.with(Version.Main.PRODUCTION);
-        mongoClient = testsFactory.newMongo();
+        mongoClient = testsFactory.newMongoClient();
     }
 
     @After

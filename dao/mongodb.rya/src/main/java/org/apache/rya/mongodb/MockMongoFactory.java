@@ -83,7 +83,7 @@ public class MockMongoFactory {
      * @throws MongoException
      * @throws UnknownHostException
      */
-    public MongoClient newMongo() throws UnknownHostException, MongoException {
+    public MongoClient newMongoClient() throws UnknownHostException, MongoException {
         return new MongoClient(new ServerAddress(mongodProcess.getConfig().net().getServerAddress(), mongodProcess.getConfig().net().getPort()));
     }
 

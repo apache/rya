@@ -96,13 +96,6 @@ under the License.
             <groupId>org.openrdf.sesame</groupId>
             <artifactId>sesame-runtime</artifactId>
         </dependency>
-
-        <!-- Maven does not pull this in from sesame-runtime (but ivy does) -->
-        <dependency>
-            <groupId>org.openrdf.sesame</groupId>
-            <artifactId>sesame-sail-nativerdf</artifactId>
-            <version>${openrdf.sesame.version}</version>
-        </dependency>
     </dependencies>
 
     <build>

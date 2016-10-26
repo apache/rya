@@ -1,3 +1,0 @@
-@prefix : <http://tutorialacademy.com/2015/jena#> .
-
-[ruleHasStudent: (?s :hasClass ?c) (?p :teaches ?c) -> (?p :hasStudent ?s)]

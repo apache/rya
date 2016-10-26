@@ -314,6 +314,12 @@ under the License.
                 <artifactId>sesame-repository-api</artifactId>
                 <version>${openrdf.sesame.version}</version>
             </dependency>
+            <!-- Maven does not pull this in from sesame-runtime -->
+            <dependency>
+                <groupId>org.openrdf.sesame</groupId>
+                <artifactId>sesame-sail-nativerdf</artifactId>
+                <version>${openrdf.sesame.version}</version>
+            </dependency>
 
             <dependency>
                 <groupId>com.google.guava</groupId>

@@ -62,25 +62,30 @@ public class JenaReasoningWithRulesTest {
 
     @Test
     public void testReasonerWithNotation3File() throws Exception {
-        final String namespace = "http://tutorialacademy.com/2015/jena#";
+        final String namespace = "http://rya.apache.org/jena/ns/sports#";
 
         final List<Statement> expectedStatements = Lists.newArrayList(
-            createStatement("Bill", "hasStudent", "John", namespace)
+            createStatement("Susan", "hasPlayer", "Bob", namespace)
         );
 
-        testRdfFile("rdf_format_files/notation3_files/dataset.n3", "rdf_format_files/notation3_files/rule_files/rules.txt", expectedStatements);
+        testRdfFile("rdf_format_files/notation3_files/n3_data.n3", "rdf_format_files/notation3_files/rule_files/n3_rules.txt", expectedStatements);
     }
 
     @Test
     public void testReasonerWithOwlFile() throws Exception {
+        final String namespace = "http://rya.apache.org/jena/ns/restaurant#";
+
         final List<Statement> expectedStatements = Lists.newArrayList(
-            createStatement("http://storeFront.com#Bob", "http://storeFront.com#eligibleForRaffle", "http://storeFront.com#True"),
-            createStatement("http://storeFront.com#Jim", "http://www.w3.org/1999/02/22-rdf-syntax-ns#type", "http://storeFront.com#Person"),
-            createStatement("http://storeFront.com#Jim", "http://storeFront.com#hasMembership", "http://storeFront.com#True"),
-            createStatement("http://storeFront.com#Jim", "http://storeFront.com#eligibleForRaffle", "http://storeFront.com#True")
+            createStatement(namespace + "Bob", namespace + "waiterServesCustomer", namespace + "Alice"),
+            createStatement(namespace + "Susan", "http://www.w3.org/1999/02/22-rdf-syntax-ns#type", namespace + "Waiter"),
+            createStatement(namespace + "Susan", namespace + "servesTable", namespace + "Table2"),
+            createStatement(namespace + "Susan", namespace + "waiterServesCustomer", namespace + "Ron"),
+            createStatement(namespace + "Ron", "http://www.w3.org/1999/02/22-rdf-syntax-ns#type", namespace + "Customer"),
+            createStatement(namespace + "Ron", namespace + "sitsAtTable", namespace + "Table2"),
+            createStatement(namespace + "Ron", namespace + "hasOrdered", namespace + "True")
         );
 
-        testRdfFile("rdf_format_files/rdfxml_files/storeFront.owl", "rdf_format_files/rdfxml_files/rule_files/storeFront.rules", expectedStatements);
+        testRdfFile("rdf_format_files/rdfxml_files/rdfxml_data.owl", "rdf_format_files/rdfxml_files/rule_files/rdfxml_rules.rules", expectedStatements);
     }
 
     private static void testRdfFile(final String rdfRelativeFileName, final String rulesRelativeFileName, final List<Statement> expectedStatements) throws Exception {
@@ -115,6 +120,7 @@ public class JenaReasoningWithRulesTest {
             }
         } catch (final Exception e) {
             log.error("Encountered an exception while running reasoner.", e);
+            throw e;
         } finally {
             if (queryConnection != null && queryConnection.isOpen()) {
                 queryConnection.close();

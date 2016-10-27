@@ -571,10 +571,10 @@ public class MongoRyaDirectExample {
             // Load some data.
             addConnection = repo.getConnection();
 
-            final String namespace = "http://tutorialacademy.com/2015/jena#";
-            final Statement stmt1 = RyaDirectExample.createStatement("John", "hasClass", "Math", namespace);
-            final Statement stmt2 = RyaDirectExample.createStatement("Bill", "teaches", "Math", namespace);
-            final Statement inferredStmt = RyaDirectExample.createStatement("Bill", "hasStudent", "John", namespace);
+            final String namespace = "http://rya.apache.org/jena/ns/sports#";
+            final Statement stmt1 = RyaDirectExample.createStatement("Bob", "plays", "Football", namespace);
+            final Statement stmt2 = RyaDirectExample.createStatement("Susan", "coaches", "Football", namespace);
+            final Statement inferredStmt = RyaDirectExample.createStatement("Susan", "hasPlayer", "Bob", namespace);
 
             addConnection.add(stmt1);
             addConnection.add(stmt2);
@@ -590,7 +590,7 @@ public class MongoRyaDirectExample {
             final String ruleSource =
                 "@prefix : <" + namespace + "> .\r\n" +
                 "\r\n" +
-                "[ruleHasStudent: (?s :hasClass ?c) (?p :teaches ?c) -> (?p :hasStudent ?s)]";
+                "[ruleHasPlayer: (?s :plays ?c) (?p :coaches ?c) -> (?p :hasPlayer ?s)]";
 
             Reasoner reasoner = null;
             try (

@@ -87,7 +87,7 @@
 		<!-- Geo Indexing -->
 		<dependency>
 			<groupId>org.locationtech.geomesa</groupId>
-			<artifactId>geomesa-accumulo-datastore</artifactId>
+			<artifactId>geomesa-accumulo-datastore_2.11</artifactId>
 		</dependency>
 
 

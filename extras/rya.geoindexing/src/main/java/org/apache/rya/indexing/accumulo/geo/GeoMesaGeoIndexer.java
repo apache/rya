@@ -222,7 +222,7 @@ public class GeoMesaGeoIndexer extends AbstractAccumuloIndexer implements GeoInd
                     + PREDICATE_ATTRIBUTE + ":String," //
                     + OBJECT_ATTRIBUTE + ":String," //
                     + CONTEXT_ATTRIBUTE + ":String," //
-                    + Constants.SF_PROPERTY_GEOMETRY + ":Geometry:srid=4326";
+                    + Constants.SF_PROPERTY_GEOMETRY + ":Geometry:srid=4326;geomesa.mixed.geometries='true'";
             featureType = SimpleFeatureTypes.createType(FEATURE_NAME, featureSchema);
             dataStore.createSchema(featureType);
         }

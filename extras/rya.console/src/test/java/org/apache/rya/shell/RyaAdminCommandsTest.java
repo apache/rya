@@ -21,6 +21,7 @@ package org.apache.rya.shell;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -29,12 +30,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.TimeZone;
 
-import org.junit.Test;
-
-import com.google.common.base.Optional;
-import com.google.common.collect.Lists;
-
-import org.apache.rya.api.client.BatchUpdatePCJ;
+import org.apache.rya.api.client.AddUser;
 import org.apache.rya.api.client.CreatePCJ;
 import org.apache.rya.api.client.DeletePCJ;
 import org.apache.rya.api.client.GetInstanceDetails;
@@ -43,14 +39,14 @@ import org.apache.rya.api.client.Install.DuplicateInstanceNameException;
 import org.apache.rya.api.client.Install.InstallConfiguration;
 import org.apache.rya.api.client.InstanceDoesNotExistException;
 import org.apache.rya.api.client.ListInstances;
-import org.apache.rya.api.client.PCJDoesNotExistException;
+import org.apache.rya.api.client.RemoveUser;
 import org.apache.rya.api.client.RyaClient;
 import org.apache.rya.api.client.RyaClientException;
+import org.apache.rya.api.client.Uninstall;
 import org.apache.rya.api.client.accumulo.AccumuloConnectionDetails;
 import org.apache.rya.api.instance.RyaDetails;
 import org.apache.rya.api.instance.RyaDetails.EntityCentricIndexDetails;
 import org.apache.rya.api.instance.RyaDetails.FreeTextIndexDetails;
-import org.apache.rya.api.instance.RyaDetails.GeoIndexDetails;
 import org.apache.rya.api.instance.RyaDetails.JoinSelectivityDetails;
 import org.apache.rya.api.instance.RyaDetails.PCJIndexDetails;
 import org.apache.rya.api.instance.RyaDetails.PCJIndexDetails.FluoDetails;
@@ -60,6 +56,11 @@ import org.apache.rya.api.instance.RyaDetails.ProspectorDetails;
 import org.apache.rya.api.instance.RyaDetails.TemporalIndexDetails;
 import org.apache.rya.shell.util.InstallPrompt;
 import org.apache.rya.shell.util.SparqlPrompt;
+import org.apache.rya.shell.util.UninstallPrompt;
+import org.junit.Test;
+
+import com.google.common.base.Optional;
+import com.google.common.collect.Lists;
 
 /**
  * Unit tests the methods of {@link RyaAdminCommands}.
@@ -86,7 +87,7 @@ public class RyaAdminCommandsTest {
         when(mockSparqlPrompt.getSparql()).thenReturn(sparql);
 
         // Execute the command.
-        final RyaAdminCommands commands = new RyaAdminCommands(state, mock(InstallPrompt.class), mockSparqlPrompt);
+        final RyaAdminCommands commands = new RyaAdminCommands(state, mock(InstallPrompt.class), mockSparqlPrompt, mock(UninstallPrompt.class));
         final String message = commands.createPcj();
 
         // Verify the values that were provided to the command were passed through to CreatePCJ.
@@ -113,7 +114,7 @@ public class RyaAdminCommandsTest {
         // Execute the command.
         final String pcjId = "123412342";
 
-        final RyaAdminCommands commands = new RyaAdminCommands(state, mock(InstallPrompt.class), mock(SparqlPrompt.class));
+        final RyaAdminCommands commands = new RyaAdminCommands(state, mock(InstallPrompt.class), mock(SparqlPrompt.class), mock(UninstallPrompt.class));
         final String message = commands.deletePcj(pcjId);
 
         // Verify the values that were provided to the command were passed through to the DeletePCJ.
@@ -122,33 +123,6 @@ public class RyaAdminCommandsTest {
         // Verify a message is returned that explains what was deleted.
         final String expected = "The PCJ has been deleted.";
         assertEquals(expected, message);
-    }
-
-    @Test
-    public void batchUpdatePCJ() throws InstanceDoesNotExistException, PCJDoesNotExistException, RyaClientException {
-        // Mock the object that performs the update PCJ operation.
-        final BatchUpdatePCJ mockBatchUpdatePCJ = mock(BatchUpdatePCJ.class);
-
-        final RyaClient mockRyaClient = mock(RyaClient.class);
-        when(mockRyaClient.getBatchUpdatePCJ()).thenReturn( mockBatchUpdatePCJ );
-
-        final SharedShellState state = new SharedShellState();
-        state.connectedToAccumulo(mock(AccumuloConnectionDetails.class), mockRyaClient);
-        final String instanceName = "unitTests";
-        state.connectedToInstance(instanceName);
-
-        // Execute the command.
-        final String pcjId = "12343214312";
-
-        final RyaAdminCommands commands = new RyaAdminCommands(state, mock(InstallPrompt.class), mock(SparqlPrompt.class));
-        final String message = commands.batchUpdatePcj(pcjId);
-
-        // Verify the values that were provided to the command were passed through to the BatchUpdatePCJ.
-        verify(mockBatchUpdatePCJ).batchUpdate(eq(instanceName), eq(pcjId));
-
-        // Verify a message is returned that explains what was updated.
-        final String expected = "The PCJ's results have been updated.";
-        assertEquals(message, expected);
     }
 
     @Test
@@ -161,8 +135,11 @@ public class RyaAdminCommandsTest {
         final String instanceName = "test_instance";
         final RyaDetails details = RyaDetails.builder().setRyaInstanceName(instanceName)
                 .setRyaVersion("1.2.3.4")
+                .addUser("alice")
+                .addUser("bob")
+                .addUser("charlie")
                 .setEntityCentricIndexDetails( new EntityCentricIndexDetails(true) )
-                .setGeoIndexDetails( new GeoIndexDetails(true) )
+              //RYA-215.setGeoIndexDetails( new GeoIndexDetails(true) )
                 .setTemporalIndexDetails( new TemporalIndexDetails(true) )
                 .setFreeTextDetails( new FreeTextIndexDetails(true) )
                 .setPCJIndexDetails(
@@ -192,7 +169,7 @@ public class RyaAdminCommandsTest {
         state.connectedToInstance(instanceName);
 
         // Execute the command.
-        final RyaAdminCommands commands = new RyaAdminCommands(state, mock(InstallPrompt.class), mock(SparqlPrompt.class));
+        final RyaAdminCommands commands = new RyaAdminCommands(state, mock(InstallPrompt.class), mock(SparqlPrompt.class), mock(UninstallPrompt.class));
         final String message = commands.getInstanceDetails();
 
         // Verify the values that were provided to the command were passed through to the GetInstanceDetails.
@@ -203,11 +180,12 @@ public class RyaAdminCommandsTest {
                 "General Metadata:\n" +
                 "  Instance Name: test_instance\n" +
                 "  RYA Version: 1.2.3.4\n" +
+                "  Users: alice, bob, charlie\n" +
                 "Secondary Indicies:\n" +
                 "  Entity Centric Index:\n" +
                 "    Enabled: true\n" +
-                "  Geospatial Index:\n" +
-                "    Enabled: true\n" +
+              //RYA-215"  Geospatial Index:\n" +
+            //RYA-215"    Enabled: true\n" +
                 "  Free Text Index:\n" +
                 "    Enabled: true\n" +
                 "  Temporal Index:\n" +
@@ -253,7 +231,7 @@ public class RyaAdminCommandsTest {
         when(mockInstallPrompt.promptInstallConfiguration()).thenReturn( installConfig );
         when(mockInstallPrompt.promptVerified(eq(instanceName), eq(installConfig))).thenReturn(true);
 
-        final RyaAdminCommands commands = new RyaAdminCommands(state, mockInstallPrompt, mock(SparqlPrompt.class));
+        final RyaAdminCommands commands = new RyaAdminCommands(state, mockInstallPrompt, mock(SparqlPrompt.class), mock(UninstallPrompt.class));
         final String message = commands.install();
 
         // Verify the values that were provided to the command were passed through to the Install.
@@ -279,7 +257,7 @@ public class RyaAdminCommandsTest {
         state.connectedToInstance("b");
 
         // Execute the command.
-        final RyaAdminCommands commands = new RyaAdminCommands(state, mock(InstallPrompt.class), mock(SparqlPrompt.class));
+        final RyaAdminCommands commands = new RyaAdminCommands(state, mock(InstallPrompt.class), mock(SparqlPrompt.class), mock(UninstallPrompt.class));
         final String message = commands.listInstances();
 
         // Verify a message is returned that lists the the instances.
@@ -290,5 +268,93 @@ public class RyaAdminCommandsTest {
                 "   c\n" +
                 "   d\n";
         assertEquals(expected, message);
+    }
+
+    @Test
+    public void addUser() throws Exception {
+        // Mock the object that performs the Add User command.
+        final AddUser mockAddUser = mock(AddUser.class);
+
+        final RyaClient mockClient = mock(RyaClient.class);
+        when(mockClient.getAddUser()).thenReturn( mockAddUser );
+
+        final SharedShellState state = new SharedShellState();
+        state.connectedToAccumulo(mock(AccumuloConnectionDetails.class), mockClient);
+        state.connectedToInstance("test_instance");
+
+        // Execute the command.
+        final RyaAdminCommands commands = new RyaAdminCommands(state, mock(InstallPrompt.class), mock(SparqlPrompt.class), mock(UninstallPrompt.class));
+        commands.addUser("alice");
+
+        // Verify the add request was forwarded to the client.
+        verify(mockAddUser).addUser(eq("test_instance"), eq("alice"));
+    }
+
+    @Test
+    public void removeUser() throws Exception {
+        // Mock the object that performs the Add User command.
+        final RemoveUser mockRemoveUser = mock(RemoveUser.class);
+
+        final RyaClient mockClient = mock(RyaClient.class);
+        when(mockClient.getRemoveUser()).thenReturn( mockRemoveUser );
+
+        final SharedShellState state = new SharedShellState();
+        state.connectedToAccumulo(mock(AccumuloConnectionDetails.class), mockClient);
+        state.connectedToInstance("test_instance");
+
+        // Execute the command.
+        final RyaAdminCommands commands = new RyaAdminCommands(state, mock(InstallPrompt.class), mock(SparqlPrompt.class), mock(UninstallPrompt.class));
+        commands.removeUser("alice");
+
+        // Verify the add request was forwarded to the client.
+        verify(mockRemoveUser).removeUser(eq("test_instance"), eq("alice"));
+    }
+
+    @Test
+    public void uninstall_yes() throws Exception {
+        // Mock the object that performs the Uninstall command.
+        final Uninstall mockUninstall = mock(Uninstall.class);
+
+        // Mock a prompt that says the user does want to uninstall it.
+        final UninstallPrompt uninstallPrompt = mock(UninstallPrompt.class);
+        when(uninstallPrompt.promptAreYouSure( eq("test_instance") )).thenReturn(true);
+
+        final RyaClient mockClient = mock(RyaClient.class);
+        when(mockClient.getUninstall()).thenReturn( mockUninstall );
+
+        final SharedShellState state = new SharedShellState();
+        state.connectedToAccumulo(mock(AccumuloConnectionDetails.class), mockClient);
+        state.connectedToInstance("test_instance");
+
+        // Execute the command.
+        final RyaAdminCommands commands = new RyaAdminCommands(state, mock(InstallPrompt.class), mock(SparqlPrompt.class), uninstallPrompt);
+        commands.uninstall();
+
+        // Verify the request was forwarded to the client.
+        verify(mockUninstall).uninstall(eq("test_instance"));
+    }
+
+    @Test
+    public void uninstall_no() throws Exception {
+        // Mock the object that performs the Uninstall command.
+        final Uninstall mockUninstall = mock(Uninstall.class);
+
+        // Mock a prompt that says the user does want to uninstall it.
+        final UninstallPrompt uninstallPrompt = mock(UninstallPrompt.class);
+        when(uninstallPrompt.promptAreYouSure( eq("test_instance") )).thenReturn(false);
+
+        final RyaClient mockClient = mock(RyaClient.class);
+        when(mockClient.getUninstall()).thenReturn( mockUninstall );
+
+        final SharedShellState state = new SharedShellState();
+        state.connectedToAccumulo(mock(AccumuloConnectionDetails.class), mockClient);
+        state.connectedToInstance("test_instance");
+
+        // Execute the command.
+        final RyaAdminCommands commands = new RyaAdminCommands(state, mock(InstallPrompt.class), mock(SparqlPrompt.class), uninstallPrompt);
+        commands.uninstall();
+
+        // Verify the request was forwarded to the client.
+        verify(mockUninstall, never()).uninstall(eq("test_instance"));
     }
 }

@@ -45,6 +45,11 @@
     <bean id="sparqlPrompt" class="org.mockito.Mockito" factory-method="mock">
         <constructor-arg value="org.apache.rya.shell.util.SparqlPrompt"/>
     </bean>
+    
+    <!-- We use a mock Uninstall Prompt here to simulate a user entering the installation configuration. -->
+    <bean id="uninstallPrompt" class="org.mockito.Mockito" factory-method="mock">
+        <constructor-arg value="org.apache.rya.shell.util.UninstallPrompt"/>
+    </bean>
 
     <!-- Define each of the beans that hold onto commands used by the shell. -->
     <bean id="ryaConnectionCommands" class="org.apache.rya.shell.RyaConnectionCommands" />

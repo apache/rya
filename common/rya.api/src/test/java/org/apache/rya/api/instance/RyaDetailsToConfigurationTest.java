@@ -21,7 +21,6 @@ package org.apache.rya.api.instance;
 
 import static org.apache.rya.api.instance.ConfigurationFields.USE_ENTITY;
 import static org.apache.rya.api.instance.ConfigurationFields.USE_FREETEXT;
-import static org.apache.rya.api.instance.ConfigurationFields.USE_GEO;
 import static org.apache.rya.api.instance.ConfigurationFields.USE_PCJ;
 import static org.apache.rya.api.instance.ConfigurationFields.USE_TEMPORAL;
 import static org.junit.Assert.assertFalse;
@@ -30,13 +29,8 @@ import static org.junit.Assert.assertTrue;
 import java.util.Date;
 
 import org.apache.hadoop.conf.Configuration;
-import org.junit.Test;
-
-import com.google.common.base.Optional;
-
 import org.apache.rya.api.instance.RyaDetails.EntityCentricIndexDetails;
 import org.apache.rya.api.instance.RyaDetails.FreeTextIndexDetails;
-import org.apache.rya.api.instance.RyaDetails.GeoIndexDetails;
 import org.apache.rya.api.instance.RyaDetails.JoinSelectivityDetails;
 import org.apache.rya.api.instance.RyaDetails.PCJIndexDetails;
 import org.apache.rya.api.instance.RyaDetails.PCJIndexDetails.FluoDetails;
@@ -44,6 +38,9 @@ import org.apache.rya.api.instance.RyaDetails.PCJIndexDetails.PCJDetails;
 import org.apache.rya.api.instance.RyaDetails.PCJIndexDetails.PCJDetails.PCJUpdateStrategy;
 import org.apache.rya.api.instance.RyaDetails.ProspectorDetails;
 import org.apache.rya.api.instance.RyaDetails.TemporalIndexDetails;
+import org.junit.Test;
+
+import com.google.common.base.Optional;
 
 public class RyaDetailsToConfigurationTest {
     @Test
@@ -53,7 +50,7 @@ public class RyaDetailsToConfigurationTest {
         builder.setRyaInstanceName("test_instance")
             .setRyaVersion("1.2.3.4")
             .setEntityCentricIndexDetails( new EntityCentricIndexDetails(true) )
-            .setGeoIndexDetails( new GeoIndexDetails(true) )
+          //RYA-215            .setGeoIndexDetails( new GeoIndexDetails(true) )
             .setTemporalIndexDetails( new TemporalIndexDetails(true) )
             .setFreeTextDetails( new FreeTextIndexDetails(false) )
             .setPCJIndexDetails(
@@ -77,7 +74,7 @@ public class RyaDetailsToConfigurationTest {
         //defaults are set to cause the assert to fail
         assertTrue(conf.getBoolean(USE_ENTITY, false));
         assertFalse(conf.getBoolean(USE_FREETEXT, true));
-        assertTrue(conf.getBoolean(USE_GEO, false));
+      //RYA-215assertTrue(conf.getBoolean(USE_GEO, false));
         assertTrue(conf.getBoolean(USE_TEMPORAL, false));
         assertTrue(conf.getBoolean(USE_PCJ, false));
     }

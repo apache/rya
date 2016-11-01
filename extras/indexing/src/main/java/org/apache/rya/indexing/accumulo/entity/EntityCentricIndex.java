@@ -1,5 +1,3 @@
-package org.apache.rya.indexing.accumulo.entity;
-
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -18,8 +16,9 @@ package org.apache.rya.indexing.accumulo.entity;
  * specific language governing permissions and limitations
  * under the License.
  */
+package org.apache.rya.indexing.accumulo.entity;
 
-
+import static java.util.Objects.requireNonNull;
 import static org.apache.rya.accumulo.AccumuloRdfConstants.EMPTY_CV;
 import static org.apache.rya.accumulo.AccumuloRdfConstants.EMPTY_VALUE;
 import static org.apache.rya.api.RdfCloudTripleStoreConstants.DELIM_BYTES;
@@ -47,12 +46,6 @@ import org.apache.accumulo.core.security.ColumnVisibility;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.Text;
 import org.apache.log4j.Logger;
-import org.openrdf.model.URI;
-
-import com.google.common.base.Preconditions;
-import com.google.common.collect.Lists;
-import com.google.common.primitives.Bytes;
-
 import org.apache.rya.accumulo.AccumuloRdfConfiguration;
 import org.apache.rya.accumulo.experimental.AbstractAccumuloIndexer;
 import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
@@ -63,6 +56,11 @@ import org.apache.rya.api.resolver.RyaContext;
 import org.apache.rya.api.resolver.RyaTypeResolverException;
 import org.apache.rya.api.resolver.triple.TripleRow;
 import org.apache.rya.indexing.accumulo.ConfigUtils;
+import org.openrdf.model.URI;
+
+import com.google.common.base.Preconditions;
+import com.google.common.collect.Lists;
+import com.google.common.primitives.Bytes;
 
 public class EntityCentricIndex extends AbstractAccumuloIndexer {
 
@@ -83,7 +81,7 @@ public class EntityCentricIndex extends AbstractAccumuloIndexer {
         return conf;
     }
 
-  //initialization occurs in setConf because index is created using reflection
+    //initialization occurs in setConf because index is created using reflection
     @Override
     public void setConf(final Configuration conf) {
         if (conf instanceof AccumuloRdfConfiguration) {
@@ -115,21 +113,35 @@ public class EntityCentricIndex extends AbstractAccumuloIndexer {
     }
 
     /**
-     * Get the Accumulo table used by this index.  
+     * Get the Accumulo table used by this index.
      * @return table used by instances of this index
      */
     @Override
     public String getTableName() {
         return getTableName(conf);
     }
-    
+
     /**
-     * Get the Accumulo table that will be used by this index.  
-     * @param conf
+     * Get the Accumulo table that will be used by this index.
+     *
+     * @param conf - The Rya configuration that specifies which instance of Rya
+     *   the table name will be built for. (not null)
      * @return table name guaranteed to be used by instances of this index
      */
-    public static String getTableName(Configuration conf) {
+    public static String getTableName(final Configuration conf) {
+        requireNonNull(conf);
         return ConfigUtils.getTablePrefix(conf)  + TABLE_SUFFIX;
+    }
+
+    /**
+     * Make the Accumulo table name used by this indexer for a specific instance of Rya.
+     *
+     * @param ryaInstanceName - The name of the Rya instance the table name is for. (not null)
+     * @return The Accumulo table name used by this indexer for a specific instance of Rya.
+     */
+    public static String makeTableName(final String ryaInstanceName) {
+        requireNonNull(ryaInstanceName);
+        return ryaInstanceName + TABLE_SUFFIX;
     }
 
     @Override
@@ -253,28 +265,28 @@ public class EntityCentricIndex extends AbstractAccumuloIndexer {
      * @throws IOException if edge direction can't be extracted as expected.
      * @throws RyaTypeResolverException if a type error occurs deserializing the statement's object.
      */
-    public static RyaStatement deserializeStatement(Key key, Value value) throws RyaTypeResolverException, IOException {
+    public static RyaStatement deserializeStatement(final Key key, final Value value) throws RyaTypeResolverException, IOException {
         assert key != null;
         assert value != null;
-        byte[] entityBytes = key.getRowData().toArray();
-        byte[] predicateBytes = key.getColumnFamilyData().toArray();
-        byte[] data = key.getColumnQualifierData().toArray();
-        long timestamp = key.getTimestamp();
-        byte[] columnVisibility = key.getColumnVisibilityData().toArray();
-        byte[] valueBytes = value.get();
+        final byte[] entityBytes = key.getRowData().toArray();
+        final byte[] predicateBytes = key.getColumnFamilyData().toArray();
+        final byte[] data = key.getColumnQualifierData().toArray();
+        final long timestamp = key.getTimestamp();
+        final byte[] columnVisibility = key.getColumnVisibilityData().toArray();
+        final byte[] valueBytes = value.get();
 
         // main entity is either the subject or object
         // data contains: column family , var name of other node , data of other node + datatype of object
         int split = Bytes.indexOf(data, DELIM_BYTES);
-        byte[] columnFamily = Arrays.copyOf(data, split);
-        byte[] edgeBytes = Arrays.copyOfRange(data, split + DELIM_BYTES.length, data.length);
+        final byte[] columnFamily = Arrays.copyOf(data, split);
+        final byte[] edgeBytes = Arrays.copyOfRange(data, split + DELIM_BYTES.length, data.length);
         split = Bytes.indexOf(edgeBytes, DELIM_BYTES);
-        String otherNodeVar = new String(Arrays.copyOf(edgeBytes, split));
-        byte[] otherNodeBytes = Arrays.copyOfRange(edgeBytes,  split + DELIM_BYTES.length, edgeBytes.length - 2);
-        byte[] typeBytes = Arrays.copyOfRange(edgeBytes,  edgeBytes.length - 2, edgeBytes.length);
+        final String otherNodeVar = new String(Arrays.copyOf(edgeBytes, split));
+        final byte[] otherNodeBytes = Arrays.copyOfRange(edgeBytes,  split + DELIM_BYTES.length, edgeBytes.length - 2);
+        final byte[] typeBytes = Arrays.copyOfRange(edgeBytes,  edgeBytes.length - 2, edgeBytes.length);
         byte[] objectBytes;
         RyaURI subject;
-        RyaURI predicate = new RyaURI(new String(predicateBytes));
+        final RyaURI predicate = new RyaURI(new String(predicateBytes));
         RyaType object;
         RyaURI context = null;
         // Expect either: entity=subject.data, otherNodeVar="object", otherNodeBytes={object.data, object.datatype_marker}

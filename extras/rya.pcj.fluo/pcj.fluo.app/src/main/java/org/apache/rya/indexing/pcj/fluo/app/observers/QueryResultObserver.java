@@ -23,11 +23,17 @@ import static org.apache.rya.indexing.pcj.fluo.app.IncrementalUpdateConstants.NO
 import java.util.HashMap;
 import java.util.Map;
 
+import org.apache.fluo.api.client.TransactionBase;
+import org.apache.fluo.api.data.Bytes;
+import org.apache.fluo.api.data.Column;
+import org.apache.fluo.api.observer.AbstractObserver;
 import org.apache.log4j.Logger;
+import org.apache.rya.accumulo.utils.VisibilitySimplifier;
 import org.apache.rya.indexing.pcj.fluo.app.export.IncrementalResultExporter;
 import org.apache.rya.indexing.pcj.fluo.app.export.IncrementalResultExporter.ResultExportException;
 import org.apache.rya.indexing.pcj.fluo.app.export.IncrementalResultExporterFactory;
 import org.apache.rya.indexing.pcj.fluo.app.export.IncrementalResultExporterFactory.IncrementalExporterFactoryException;
+import org.apache.rya.indexing.pcj.fluo.app.export.rya.KafkaResultExporterFactory;
 import org.apache.rya.indexing.pcj.fluo.app.export.rya.RyaResultExporterFactory;
 import org.apache.rya.indexing.pcj.fluo.app.query.FluoQueryColumns;
 import org.apache.rya.indexing.pcj.fluo.app.query.FluoQueryMetadataDAO;
@@ -38,11 +44,6 @@ import org.apache.rya.indexing.pcj.storage.accumulo.VisibilityBindingSetStringCo
 
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableSet;
-import org.apache.fluo.api.client.TransactionBase;
-import org.apache.fluo.api.data.Bytes;
-import org.apache.fluo.api.data.Column;
-import org.apache.fluo.api.observer.AbstractObserver;
-import org.apache.rya.accumulo.utils.VisibilitySimplifier;
 
 /**
  * Performs incremental result exporting to the configured destinations.
@@ -69,6 +70,7 @@ public class QueryResultObserver extends AbstractObserver {
     private static final ImmutableSet<IncrementalResultExporterFactory> factories =
             ImmutableSet.<IncrementalResultExporterFactory>builder()
                 .add(new RyaResultExporterFactory())
+                .add(new KafkaResultExporterFactory())
                 .build();
 
     /**
@@ -90,6 +92,8 @@ public class QueryResultObserver extends AbstractObserver {
 
         for(final IncrementalResultExporterFactory builder : factories) {
             try {
+                log.debug("QueryResultObserver.init(): for each exportersBuilder=" + builder);
+
                 final Optional<IncrementalResultExporter> exporter = builder.build(context);
                 if(exporter.isPresent()) {
                     exportersBuilder.add(exporter.get());

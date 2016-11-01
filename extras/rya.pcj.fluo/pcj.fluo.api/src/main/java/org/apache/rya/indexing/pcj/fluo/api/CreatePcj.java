@@ -132,12 +132,12 @@ public class CreatePcj {
      * @throws SailException Historic PCJ results could not be loaded because of a problem with {@code rya}.
      * @throws QueryEvaluationException Historic PCJ results could not be loaded because of a problem with {@code rya}.
      */
-	public void withRyaIntegration(final String pcjId, final PrecomputedJoinStorage pcjStorage, final FluoClient fluo,
-			final Connector accumulo, String ryaInstance )
-					throws MalformedQueryException, PcjException, SailException, QueryEvaluationException, RyaDAOException {
-		requireNonNull(pcjId);
-		requireNonNull(pcjStorage);
-		requireNonNull(fluo);
+    public String  withRyaIntegration(final String pcjId, final PrecomputedJoinStorage pcjStorage, final FluoClient fluo,
+            final Connector accumulo, String ryaInstance )
+                    throws MalformedQueryException, PcjException, SailException, QueryEvaluationException, RyaDAOException {
+        requireNonNull(pcjId);
+        requireNonNull(pcjStorage);
+        requireNonNull(fluo);
 		requireNonNull(accumulo);
 		requireNonNull(ryaInstance);
 		
@@ -162,13 +162,16 @@ public class CreatePcj {
 		final ParsedQuery parsedQuery = new SPARQLParser().parseQuery(sparql, null);
 		final FluoQuery fluoQuery = new SparqlFluoQueryBuilder().make(parsedQuery, nodeIds);
 
+        // return queryId to the caller for later monitoring from the export.
+        String queryId = null;
+
 		try (Transaction tx = fluo.newTransaction()) {
 			// Write the query's structure to Fluo.
 			new FluoQueryMetadataDAO().write(tx, fluoQuery);
 
 			// The results of the query are eventually exported to an instance
 			// of Rya, so store the Rya ID for the PCJ.
-			final String queryId = fluoQuery.getQueryMetadata().getNodeId();
+            queryId = fluoQuery.getQueryMetadata().getNodeId();
 			tx.set(queryId, FluoQueryColumns.RYA_PCJ_ID, pcjId);
 			tx.set(pcjId, FluoQueryColumns.PCJ_ID_QUERY_ID, queryId);
 
@@ -206,6 +209,7 @@ public class CreatePcj {
 			writeBatch(fluo, triplesBatch);
 			triplesBatch.clear();
 		}
+        return queryId;
 	}
     
     

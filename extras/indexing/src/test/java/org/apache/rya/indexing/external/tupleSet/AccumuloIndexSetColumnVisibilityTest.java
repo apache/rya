@@ -38,13 +38,26 @@ import org.apache.accumulo.core.security.Authorizations;
 import org.apache.accumulo.minicluster.MiniAccumuloCluster;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.log4j.Logger;
+import org.apache.rya.accumulo.AccumuloRdfConfiguration;
+import org.apache.rya.accumulo.instance.AccumuloRyaInstanceDetailsRepository;
+import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
+import org.apache.rya.api.instance.RyaDetails;
+import org.apache.rya.api.instance.RyaDetails.EntityCentricIndexDetails;
+import org.apache.rya.api.instance.RyaDetails.FreeTextIndexDetails;
+import org.apache.rya.api.instance.RyaDetails.JoinSelectivityDetails;
+import org.apache.rya.api.instance.RyaDetails.PCJIndexDetails;
+import org.apache.rya.api.instance.RyaDetails.ProspectorDetails;
+import org.apache.rya.api.instance.RyaDetails.TemporalIndexDetails;
+import org.apache.rya.api.instance.RyaDetailsRepository;
+import org.apache.rya.api.instance.RyaDetailsRepository.AlreadyInitializedException;
+import org.apache.rya.api.instance.RyaDetailsRepository.RyaDetailsRepositoryException;
+import org.apache.rya.indexing.accumulo.ConfigUtils;
 import org.apache.rya.indexing.pcj.storage.PrecomputedJoinStorage.PCJStorageException;
 import org.apache.rya.indexing.pcj.storage.accumulo.AccumuloPcjStorage;
 import org.apache.rya.indexing.pcj.storage.accumulo.PcjTableNameFactory;
 import org.apache.rya.indexing.pcj.storage.accumulo.VisibilityBindingSet;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.openrdf.model.impl.NumericLiteralImpl;
 import org.openrdf.model.impl.URIImpl;
@@ -59,21 +72,6 @@ import com.google.common.collect.Sets;
 import com.google.common.io.Files;
 
 import info.aduna.iteration.CloseableIteration;
-import org.apache.rya.accumulo.AccumuloRdfConfiguration;
-import org.apache.rya.accumulo.instance.AccumuloRyaInstanceDetailsRepository;
-import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
-import org.apache.rya.api.instance.RyaDetails;
-import org.apache.rya.api.instance.RyaDetails.EntityCentricIndexDetails;
-import org.apache.rya.api.instance.RyaDetails.FreeTextIndexDetails;
-import org.apache.rya.api.instance.RyaDetails.GeoIndexDetails;
-import org.apache.rya.api.instance.RyaDetails.JoinSelectivityDetails;
-import org.apache.rya.api.instance.RyaDetails.PCJIndexDetails;
-import org.apache.rya.api.instance.RyaDetails.ProspectorDetails;
-import org.apache.rya.api.instance.RyaDetails.TemporalIndexDetails;
-import org.apache.rya.api.instance.RyaDetailsRepository;
-import org.apache.rya.api.instance.RyaDetailsRepository.AlreadyInitializedException;
-import org.apache.rya.api.instance.RyaDetailsRepository.RyaDetailsRepositoryException;
-import org.apache.rya.indexing.accumulo.ConfigUtils;
 
 /**
  * Tests the evaluation of {@link AccumuloIndexSet}.
@@ -176,7 +174,7 @@ public class AccumuloIndexSetColumnVisibilityTest {
                 .setRyaVersion("0.0.0.0")
                 .setFreeTextDetails( new FreeTextIndexDetails(true) )
                 .setEntityCentricIndexDetails( new EntityCentricIndexDetails(true) )
-                .setGeoIndexDetails( new GeoIndexDetails(true) )
+//RYA-215                .setGeoIndexDetails( new GeoIndexDetails(true) )
                 .setTemporalIndexDetails( new TemporalIndexDetails(true) )
                 .setPCJIndexDetails(
                         PCJIndexDetails.builder()

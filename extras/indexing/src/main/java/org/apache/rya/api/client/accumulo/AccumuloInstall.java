@@ -28,11 +28,6 @@ import edu.umd.cs.findbugs.annotations.NonNull;
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
 import org.apache.accumulo.core.client.Connector;
-import org.openrdf.sail.Sail;
-import org.openrdf.sail.SailException;
-
-import com.google.common.base.Optional;
-
 import org.apache.rya.accumulo.AccumuloRdfConfiguration;
 import org.apache.rya.accumulo.instance.AccumuloRyaInstanceDetailsRepository;
 import org.apache.rya.api.client.Install;
@@ -41,7 +36,6 @@ import org.apache.rya.api.client.RyaClientException;
 import org.apache.rya.api.instance.RyaDetails;
 import org.apache.rya.api.instance.RyaDetails.EntityCentricIndexDetails;
 import org.apache.rya.api.instance.RyaDetails.FreeTextIndexDetails;
-import org.apache.rya.api.instance.RyaDetails.GeoIndexDetails;
 import org.apache.rya.api.instance.RyaDetails.JoinSelectivityDetails;
 import org.apache.rya.api.instance.RyaDetails.PCJIndexDetails;
 import org.apache.rya.api.instance.RyaDetails.PCJIndexDetails.FluoDetails;
@@ -56,6 +50,10 @@ import org.apache.rya.indexing.external.PrecomputedJoinIndexerConfig.Precomputed
 import org.apache.rya.indexing.external.PrecomputedJoinIndexerConfig.PrecomputedJoinUpdaterType;
 import org.apache.rya.rdftriplestore.inference.InferenceEngineException;
 import org.apache.rya.sail.config.RyaSailFactory;
+import org.openrdf.sail.Sail;
+import org.openrdf.sail.SailException;
+
+import com.google.common.base.Optional;
 
 /**
  * An Accumulo implementation of the {@link Install} command.
@@ -91,7 +89,7 @@ public class AccumuloInstall extends AccumuloCommand implements Install {
         // Initialize the Rya Details table.
         RyaDetails details;
         try {
-            details = initializeRyaDetails(instanceName, installConfig);
+            details = initializeRyaDetails(instanceName, installConfig, getConnector().whoami());
         } catch (final AlreadyInitializedException e) {
             // This can only happen if somebody else installs an instance of Rya with the name between the check and now.
             throw new DuplicateInstanceNameException("An instance of Rya has already been installed to this Rya storage " +
@@ -125,14 +123,19 @@ public class AccumuloInstall extends AccumuloCommand implements Install {
      *
      * @param instanceName - The name of the instance that is being created. (not null)
      * @param installConfig - The instance's install configuration. (not null)
+     * @param installUser - The user who is installing the instance of Rya. (not null)
      * @return The {@link RyaDetails} that were stored.
      * @throws AlreadyInitializedException Could not be initialized because
      *   a table with this instance name has already exists and is holding the details.
      * @throws RyaDetailsRepositoryException Something caused the initialization
      *   operation to fail.
      */
-    private RyaDetails initializeRyaDetails(final String instanceName, final InstallConfiguration installConfig)
+    private RyaDetails initializeRyaDetails(final String instanceName, final InstallConfiguration installConfig, final String installUser)
             throws AlreadyInitializedException, RyaDetailsRepositoryException {
+        requireNonNull(instanceName);
+        requireNonNull(installConfig);
+        requireNonNull(installUser);
+
         final RyaDetailsRepository detailsRepo = new AccumuloRyaInstanceDetailsRepository(getConnector(), instanceName);
 
         // Build the PCJ Index details.
@@ -147,10 +150,10 @@ public class AccumuloInstall extends AccumuloCommand implements Install {
                 // General Metadata
                 .setRyaInstanceName(instanceName)
                 .setRyaVersion( getVersion() )
+                .addUser(installUser)
 
                 // Secondary Index Values
-                .setGeoIndexDetails(
-                        new GeoIndexDetails(installConfig.isGeoIndexEnabled()))
+              //RYA-215                .setGeoIndexDetails(new GeoIndexDetails(installConfig.isGeoIndexEnabled()))
                 .setTemporalIndexDetails(
                         new TemporalIndexDetails(installConfig.isTemporalIndexEnabled()))
                 .setFreeTextDetails(
@@ -187,8 +190,10 @@ public class AccumuloInstall extends AccumuloCommand implements Install {
         conf.setTablePrefix( details.getRyaInstanceName() );
 
         // Enable the indexers that the instance is configured to use.
-        // TODO fix me, not sure why the install command is here.
-//        conf.set(ConfigUtils.USE_GEO, "" + details.getGeoIndexDetails().isEnabled() );
+        /**
+         * RYA-215
+         * conf.set(ConfigUtils.USE_GEO, "" + details.getGeoIndexDetails().isEnabled() );
+         */
         conf.set(ConfigUtils.USE_FREETEXT, "" + details.getFreeTextIndexDetails().isEnabled() );
         conf.set(ConfigUtils.USE_TEMPORAL, "" + details.getTemporalIndexDetails().isEnabled() );
         conf.set(ConfigUtils.USE_ENTITY, "" + details.getEntityCentricIndexDetails().isEnabled());

@@ -28,13 +28,8 @@ import static org.mockito.Mockito.when;
 
 import java.util.Date;
 
-import org.junit.Test;
-
-import com.google.common.base.Optional;
-
 import org.apache.rya.api.instance.RyaDetails.EntityCentricIndexDetails;
 import org.apache.rya.api.instance.RyaDetails.FreeTextIndexDetails;
-import org.apache.rya.api.instance.RyaDetails.GeoIndexDetails;
 import org.apache.rya.api.instance.RyaDetails.JoinSelectivityDetails;
 import org.apache.rya.api.instance.RyaDetails.PCJIndexDetails;
 import org.apache.rya.api.instance.RyaDetails.ProspectorDetails;
@@ -44,6 +39,9 @@ import org.apache.rya.api.instance.RyaDetailsRepository.NotInitializedException;
 import org.apache.rya.api.instance.RyaDetailsRepository.RyaDetailsRepositoryException;
 import org.apache.rya.api.instance.RyaDetailsUpdater.RyaDetailsMutator;
 import org.apache.rya.api.instance.RyaDetailsUpdater.RyaDetailsMutator.CouldNotApplyMutationException;
+import org.junit.Test;
+
+import com.google.common.base.Optional;
 
 /**
  * Tests the methods of {@link RyaDetailsUpdater}.
@@ -58,7 +56,7 @@ public class RyaDetailsUpdaterTest {
                 .setRyaVersion("0.0.0.0")
                 .setFreeTextDetails( new FreeTextIndexDetails(true) )
                 .setEntityCentricIndexDetails( new EntityCentricIndexDetails(true) )
-                .setGeoIndexDetails( new GeoIndexDetails(true) )
+              //RYA-215                .setGeoIndexDetails( new GeoIndexDetails(true) )
                 .setTemporalIndexDetails( new TemporalIndexDetails(true) )
                 .setPCJIndexDetails(
                         PCJIndexDetails.builder()
@@ -95,7 +93,7 @@ public class RyaDetailsUpdaterTest {
                 .setRyaVersion("0.0.0.0")
                 .setFreeTextDetails( new FreeTextIndexDetails(true) )
                 .setEntityCentricIndexDetails( new EntityCentricIndexDetails(true) )
-                .setGeoIndexDetails( new GeoIndexDetails(true) )
+              //RYA-215                .setGeoIndexDetails( new GeoIndexDetails(true) )
                 .setTemporalIndexDetails( new TemporalIndexDetails(true) )
                 .setPCJIndexDetails(
                         PCJIndexDetails.builder()

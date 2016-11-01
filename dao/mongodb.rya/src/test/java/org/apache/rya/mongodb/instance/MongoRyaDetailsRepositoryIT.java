@@ -23,12 +23,12 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
+import java.io.IOException;
 import java.util.Date;
 
 import org.apache.rya.api.instance.RyaDetails;
 import org.apache.rya.api.instance.RyaDetails.EntityCentricIndexDetails;
 import org.apache.rya.api.instance.RyaDetails.FreeTextIndexDetails;
-import org.apache.rya.api.instance.RyaDetails.GeoIndexDetails;
 import org.apache.rya.api.instance.RyaDetails.JoinSelectivityDetails;
 import org.apache.rya.api.instance.RyaDetails.PCJIndexDetails;
 import org.apache.rya.api.instance.RyaDetails.PCJIndexDetails.FluoDetails;
@@ -41,16 +41,39 @@ import org.apache.rya.api.instance.RyaDetailsRepository.AlreadyInitializedExcept
 import org.apache.rya.api.instance.RyaDetailsRepository.ConcurrentUpdateException;
 import org.apache.rya.api.instance.RyaDetailsRepository.NotInitializedException;
 import org.apache.rya.api.instance.RyaDetailsRepository.RyaDetailsRepositoryException;
-import org.apache.rya.mongodb.MongoRyaTestBase;
+import org.junit.AfterClass;
+import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 import com.google.common.base.Optional;
+import com.mongodb.MongoClient;
+import com.mongodb.MongoException;
+
+import de.flapdoodle.embed.mongo.tests.MongodForTestsFactory;
 
 /**
  * Tests the methods of {@link AccumuloRyaDetailsRepository} by using a {@link MiniAccumuloCluster}.
  */
-public class MongoRyaDetailsRepositoryIT extends MongoRyaTestBase {
+public class MongoRyaDetailsRepositoryIT {
 
+    private static MongoClient client = null;
+
+    @BeforeClass
+    public static void startMiniAccumulo() throws MongoException, IOException {
+        final MongodForTestsFactory mongoFactory = new MongodForTestsFactory();
+        client = mongoFactory.newMongo();
+    }
+
+    @Before
+    public void clearLastTest() {
+        client.dropDatabase("testInstance");
+    }
+
+    @AfterClass
+    public static void stopMiniAccumulo() throws IOException, InterruptedException {
+        client.close();
+    }
 
     @Test
     public void initializeAndGet() throws AlreadyInitializedException, RyaDetailsRepositoryException {
@@ -61,7 +84,7 @@ public class MongoRyaDetailsRepositoryIT extends MongoRyaTestBase {
             .setRyaInstanceName(instanceName)
             .setRyaVersion("1.2.3.4")
             .setEntityCentricIndexDetails( new EntityCentricIndexDetails(true) )
-            .setGeoIndexDetails( new GeoIndexDetails(true) )
+          //RYA-215            .setGeoIndexDetails( new GeoIndexDetails(true) )
             .setTemporalIndexDetails( new TemporalIndexDetails(true) )
             .setFreeTextDetails( new FreeTextIndexDetails(true) )
             .setPCJIndexDetails(
@@ -81,7 +104,7 @@ public class MongoRyaDetailsRepositoryIT extends MongoRyaTestBase {
             .build();
 
         // Setup the repository that will be tested using a mock instance of MongoDB.
-        final RyaDetailsRepository repo = new MongoRyaInstanceDetailsRepository(mongoClient, instanceName);
+        final RyaDetailsRepository repo = new MongoRyaInstanceDetailsRepository(client, instanceName);
 
         // Initialize the repository
         repo.initialize(details);
@@ -102,7 +125,7 @@ public class MongoRyaDetailsRepositoryIT extends MongoRyaTestBase {
             .setRyaInstanceName(instanceName)
             .setRyaVersion("1.2.3.4")
             .setEntityCentricIndexDetails( new EntityCentricIndexDetails(true) )
-            .setGeoIndexDetails( new GeoIndexDetails(true) )
+          //RYA-215            .setGeoIndexDetails( new GeoIndexDetails(true) )
             .setTemporalIndexDetails( new TemporalIndexDetails(true) )
             .setFreeTextDetails( new FreeTextIndexDetails(true) )
             .setPCJIndexDetails(
@@ -122,7 +145,7 @@ public class MongoRyaDetailsRepositoryIT extends MongoRyaTestBase {
             .build();
 
         // Setup the repository that will be tested using a mock instance of MongoDB.
-        final RyaDetailsRepository repo = new MongoRyaInstanceDetailsRepository(mongoClient, instanceName);
+        final RyaDetailsRepository repo = new MongoRyaInstanceDetailsRepository(client, instanceName);
 
         // Initialize the repository
         repo.initialize(details);
@@ -134,7 +157,7 @@ public class MongoRyaDetailsRepositoryIT extends MongoRyaTestBase {
     @Test(expected = NotInitializedException.class)
     public void getRyaInstance_notInitialized() throws NotInitializedException, RyaDetailsRepositoryException {
         // Setup the repository that will be tested using a mock instance of Accumulo.
-        final RyaDetailsRepository repo = new MongoRyaInstanceDetailsRepository(mongoClient, "testInstance");
+        final RyaDetailsRepository repo = new MongoRyaInstanceDetailsRepository(client, "testInstance");
 
         // Try to fetch the details from the uninitialized repository.
         repo.getRyaInstanceDetails();
@@ -149,7 +172,7 @@ public class MongoRyaDetailsRepositoryIT extends MongoRyaTestBase {
             .setRyaInstanceName(instanceName)
             .setRyaVersion("1.2.3.4")
             .setEntityCentricIndexDetails( new EntityCentricIndexDetails(true) )
-            .setGeoIndexDetails( new GeoIndexDetails(true) )
+          //RYA-215            .setGeoIndexDetails( new GeoIndexDetails(true) )
             .setTemporalIndexDetails( new TemporalIndexDetails(true) )
             .setFreeTextDetails( new FreeTextIndexDetails(true) )
             .setPCJIndexDetails(
@@ -169,7 +192,7 @@ public class MongoRyaDetailsRepositoryIT extends MongoRyaTestBase {
             .build();
 
         // Setup the repository that will be tested using a mock instance of MongoDB.
-        final RyaDetailsRepository repo = new MongoRyaInstanceDetailsRepository(mongoClient, "testInstance");
+        final RyaDetailsRepository repo = new MongoRyaInstanceDetailsRepository(client, "testInstance");
 
         // Initialize the repository
         repo.initialize(details);
@@ -181,7 +204,7 @@ public class MongoRyaDetailsRepositoryIT extends MongoRyaTestBase {
     @Test
     public void isInitialized_false() throws RyaDetailsRepositoryException {
         // Setup the repository that will be tested using a mock instance of MongoDB.
-        final RyaDetailsRepository repo = new MongoRyaInstanceDetailsRepository(mongoClient, "testInstance");
+        final RyaDetailsRepository repo = new MongoRyaInstanceDetailsRepository(client, "testInstance");
 
         // Ensure the repository reports that is has not been initialized.
         assertFalse( repo.isInitialized() );
@@ -196,7 +219,7 @@ public class MongoRyaDetailsRepositoryIT extends MongoRyaTestBase {
             .setRyaInstanceName(instanceName)
             .setRyaVersion("1.2.3.4")
             .setEntityCentricIndexDetails( new EntityCentricIndexDetails(true) )
-            .setGeoIndexDetails( new GeoIndexDetails(true) )
+          //RYA-215            .setGeoIndexDetails( new GeoIndexDetails(true) )
             .setTemporalIndexDetails( new TemporalIndexDetails(true) )
             .setFreeTextDetails( new FreeTextIndexDetails(true) )
             .setPCJIndexDetails(
@@ -216,14 +239,14 @@ public class MongoRyaDetailsRepositoryIT extends MongoRyaTestBase {
             .build();
 
         // Setup the repository that will be tested using a mock instance of MongoDB.
-        final RyaDetailsRepository repo = new MongoRyaInstanceDetailsRepository(mongoClient, "testInstance");
+        final RyaDetailsRepository repo = new MongoRyaInstanceDetailsRepository(client, "testInstance");
 
         // Initialize the repository
         repo.initialize(details);
 
         // Create a new state for the details.
         final RyaDetails updated = new RyaDetails.Builder( details )
-                .setGeoIndexDetails( new GeoIndexDetails(false) )
+                .setEntityCentricIndexDetails(new EntityCentricIndexDetails(false) )
                 .build();
 
         // Execute the update.
@@ -243,7 +266,7 @@ public class MongoRyaDetailsRepositoryIT extends MongoRyaTestBase {
             .setRyaInstanceName(instanceName)
             .setRyaVersion("1.2.3.4")
             .setEntityCentricIndexDetails( new EntityCentricIndexDetails(true) )
-            .setGeoIndexDetails( new GeoIndexDetails(true) )
+          //RYA-215            .setGeoIndexDetails( new GeoIndexDetails(true) )
             .setTemporalIndexDetails( new TemporalIndexDetails(true) )
             .setFreeTextDetails( new FreeTextIndexDetails(true) )
             .setPCJIndexDetails(
@@ -263,7 +286,7 @@ public class MongoRyaDetailsRepositoryIT extends MongoRyaTestBase {
             .build();
 
         // Setup the repository that will be tested using a mock instance of MongoDB.
-        final RyaDetailsRepository repo = new MongoRyaInstanceDetailsRepository(mongoClient, "testInstance");
+        final RyaDetailsRepository repo = new MongoRyaInstanceDetailsRepository(client, "testInstance");
 
         // Initialize the repository
         repo.initialize(details);
@@ -274,7 +297,7 @@ public class MongoRyaDetailsRepositoryIT extends MongoRyaTestBase {
                 .build();
 
         final RyaDetails updated = new RyaDetails.Builder( details )
-                .setGeoIndexDetails( new GeoIndexDetails(false) )
+                .setEntityCentricIndexDetails(new EntityCentricIndexDetails(false) )
                 .build();
 
         // Try to execute the update where the old state is not the currently stored state.

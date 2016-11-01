@@ -32,27 +32,28 @@ import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
 import org.apache.accumulo.core.client.Connector;
 import org.apache.accumulo.core.security.Authorizations;
-import org.apache.rya.indexing.pcj.storage.PCJIdFactory;
-import org.apache.rya.indexing.pcj.storage.PcjMetadata;
-import org.apache.rya.indexing.pcj.storage.PrecomputedJoinStorage;
-import org.openrdf.query.BindingSet;
-import org.openrdf.query.MalformedQueryException;
-
 import org.apache.rya.accumulo.instance.AccumuloRyaInstanceDetailsRepository;
+import org.apache.rya.accumulo.utils.TablePermissions;
 import org.apache.rya.api.instance.RyaDetails;
 import org.apache.rya.api.instance.RyaDetails.PCJIndexDetails;
 import org.apache.rya.api.instance.RyaDetails.PCJIndexDetails.PCJDetails;
 import org.apache.rya.api.instance.RyaDetailsRepository;
 import org.apache.rya.api.instance.RyaDetailsRepository.RyaDetailsRepositoryException;
 import org.apache.rya.api.instance.RyaDetailsUpdater;
-import org.apache.rya.api.instance.RyaDetailsUpdater.RyaDetailsMutator;
 import org.apache.rya.api.instance.RyaDetailsUpdater.RyaDetailsMutator.CouldNotApplyMutationException;
+import org.apache.rya.indexing.pcj.storage.PCJIdFactory;
+import org.apache.rya.indexing.pcj.storage.PcjMetadata;
+import org.apache.rya.indexing.pcj.storage.PrecomputedJoinStorage;
+import org.openrdf.query.BindingSet;
+import org.openrdf.query.MalformedQueryException;
 
 /**
  * An Accumulo backed implementation of {@link PrecomputedJoinStorage}.
  */
 @DefaultAnnotation(NonNull.class)
 public class AccumuloPcjStorage implements PrecomputedJoinStorage {
+
+    private static final TablePermissions TABLE_PERMISSIONS = new TablePermissions();
 
     // Factories that are used to create new PCJs.
     private final PCJIdFactory pcjIdFactory = new PCJIdFactory();
@@ -107,17 +108,14 @@ public class AccumuloPcjStorage implements PrecomputedJoinStorage {
         final String pcjId = pcjIdFactory.nextId();
         try {
             new RyaDetailsUpdater(ryaDetailsRepo).update(
-                    new RyaDetailsMutator() {
-                        @Override
-                        public RyaDetails mutate(final RyaDetails originalDetails) {
-                            // Create the new PCJ's details.
-                            final PCJDetails.Builder newPcjDetails = PCJDetails.builder().setId( pcjId );
+                    originalDetails -> {
+                        // Create the new PCJ's details.
+                        final PCJDetails.Builder newPcjDetails = PCJDetails.builder().setId( pcjId );
 
-                            // Add them to the instance's details.
-                            final RyaDetails.Builder mutated = RyaDetails.builder(originalDetails);
-                            mutated.getPCJIndexDetails().addPCJDetails( newPcjDetails );
-                            return mutated.build();
-                        }
+                        // Add them to the instance's details.
+                        final RyaDetails.Builder mutated = RyaDetails.builder(originalDetails);
+                        mutated.getPCJIndexDetails().addPCJDetails( newPcjDetails );
+                        return mutated.build();
                     });
         } catch (final RyaDetailsRepositoryException | CouldNotApplyMutationException e) {
             throw new PCJStorageException(String.format("Could not create a new PCJ for Rya instance '%s' " +
@@ -127,6 +125,18 @@ public class AccumuloPcjStorage implements PrecomputedJoinStorage {
         // Create the table that will hold the PCJ's results.
         final String pcjTableName = pcjTableNameFactory.makeTableName(ryaInstanceName, pcjId);
         pcjTables.createPcjTable(accumuloConn, pcjTableName, varOrders, sparql);
+
+        // Add access to the PCJ table to all users who are authorized for this instance of Rya.
+        try {
+            for(final String user : ryaDetailsRepo.getRyaInstanceDetails().getUsers()) {
+                TABLE_PERMISSIONS.grantAllPermissions(user, pcjTableName, accumuloConn);
+            }
+        } catch (final RyaDetailsRepositoryException | AccumuloException | AccumuloSecurityException e) {
+            throw new PCJStorageException(String.format("Could not grant authorized users access to the " +
+                    "new PCJ index table '%s' for Rya instance '%s' because of a problem while granting " +
+                    "the permissions.", pcjTableName, ryaInstanceName), e);
+        }
+
         return pcjId;
     }
 
@@ -177,14 +187,11 @@ public class AccumuloPcjStorage implements PrecomputedJoinStorage {
         // Update the Rya Details for this instance to no longer include the PCJ.
         try {
             new RyaDetailsUpdater(ryaDetailsRepo).update(
-                    new RyaDetailsMutator() {
-                        @Override
-                        public RyaDetails mutate(final RyaDetails originalDetails) {
-                            // Drop the PCJ's metadata from the instance's metadata.
-                            final RyaDetails.Builder mutated = RyaDetails.builder(originalDetails);
-                            mutated.getPCJIndexDetails().removePCJDetails(pcjId);
-                            return mutated.build();
-                        }
+                    originalDetails -> {
+                        // Drop the PCJ's metadata from the instance's metadata.
+                        final RyaDetails.Builder mutated = RyaDetails.builder(originalDetails);
+                        mutated.getPCJIndexDetails().removePCJDetails(pcjId);
+                        return mutated.build();
                     });
         } catch (final RyaDetailsRepositoryException | CouldNotApplyMutationException e) {
             throw new PCJStorageException(String.format("Could not drop an existing PCJ for Rya instance '%s' " +

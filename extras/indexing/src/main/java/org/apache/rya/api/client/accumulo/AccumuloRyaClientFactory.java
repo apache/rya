@@ -24,7 +24,6 @@ import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
 import edu.umd.cs.findbugs.annotations.NonNull;
 
 import org.apache.accumulo.core.client.Connector;
-
 import org.apache.rya.api.client.RyaClient;
 
 /**
@@ -56,6 +55,8 @@ public class AccumuloRyaClientFactory {
                 new AccumuloBatchUpdatePCJ(connectionDetails, connector),
                 new AccumuloGetInstanceDetails(connectionDetails, connector),
                 new AccumuloInstanceExists(connectionDetails, connector),
-                new AccumuloListInstances(connectionDetails, connector));
+                new AccumuloListInstances(connectionDetails, connector),
+                new AccumuloAddUser(connectionDetails, connector),
+                new AccumuloRemoveUser(connectionDetails, connector));
     }
 }

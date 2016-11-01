@@ -27,10 +27,6 @@ import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
 import org.apache.accumulo.core.client.TableExistsException;
 import org.apache.accumulo.core.client.admin.TableOperations;
-import org.junit.Test;
-
-import com.google.common.base.Optional;
-
 import org.apache.rya.accumulo.AccumuloITBase;
 import org.apache.rya.api.RdfCloudTripleStoreConstants;
 import org.apache.rya.api.client.GetInstanceDetails;
@@ -42,12 +38,14 @@ import org.apache.rya.api.client.RyaClientException;
 import org.apache.rya.api.instance.RyaDetails;
 import org.apache.rya.api.instance.RyaDetails.EntityCentricIndexDetails;
 import org.apache.rya.api.instance.RyaDetails.FreeTextIndexDetails;
-import org.apache.rya.api.instance.RyaDetails.GeoIndexDetails;
 import org.apache.rya.api.instance.RyaDetails.JoinSelectivityDetails;
 import org.apache.rya.api.instance.RyaDetails.PCJIndexDetails;
 import org.apache.rya.api.instance.RyaDetails.PCJIndexDetails.FluoDetails;
 import org.apache.rya.api.instance.RyaDetails.ProspectorDetails;
 import org.apache.rya.api.instance.RyaDetails.TemporalIndexDetails;
+import org.junit.Test;
+
+import com.google.common.base.Optional;
 
 /**
  * Tests the methods of {@link AccumuloGetInstanceDetails}.
@@ -87,7 +85,7 @@ public class AccumuloGetInstanceDetailsIT extends AccumuloITBase {
                 // The version depends on how the test is packaged, so just grab whatever was stored.
                 .setRyaVersion( details.get().getRyaVersion() )
 
-                .setGeoIndexDetails( new GeoIndexDetails(true) )
+              //RYA-215                .setGeoIndexDetails( new GeoIndexDetails(true) )
                 .setTemporalIndexDetails(new TemporalIndexDetails(true) )
                 .setFreeTextDetails( new FreeTextIndexDetails(true) )
                 .setEntityCentricIndexDetails( new EntityCentricIndexDetails(true) )

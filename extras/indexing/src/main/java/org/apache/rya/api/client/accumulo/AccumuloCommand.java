@@ -38,8 +38,9 @@ public abstract class AccumuloCommand {
     /**
      * Constructs an instance of {@link AccumuloCommand}.
      *
-     * Details about the values that were used to create the connector to the cluster. (not null)
-     * @param connector - Provides programatic access to the instance of Accumulo
+     * @param connectionDetails - Details about the values that were used to create
+     *   the connector to the cluster. (not null)
+     * @param connector - Provides programmatic access to the instance of Accumulo
      *   that hosts Rya instance. (not null)
      */
     public AccumuloCommand(

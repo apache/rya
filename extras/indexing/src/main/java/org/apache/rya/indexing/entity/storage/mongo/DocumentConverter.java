@@ -18,16 +18,17 @@
  */
 package org.apache.rya.indexing.entity.storage.mongo;
 
-import javax.annotation.ParametersAreNonnullByDefault;
-
 import org.bson.Document;
+
+import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
+import edu.umd.cs.findbugs.annotations.NonNull;
 
 /**
  * Converts an object to/from a {@link Document}.
  *
  * @param <T> - The type of object that is converted to/from a {@link Document}.
  */
-@ParametersAreNonnullByDefault
+@DefaultAnnotation(NonNull.class)
 public interface DocumentConverter<T> {
 
     /**
@@ -54,11 +55,11 @@ public interface DocumentConverter<T> {
     public static class DocumentConverterException extends Exception {
         private static final long serialVersionUID = 1L;
 
-        public DocumentConverterException(String message) {
+        public DocumentConverterException(final String message) {
             super(message);
         }
 
-        public DocumentConverterException(String message, Throwable cause) {
+        public DocumentConverterException(final String message, final Throwable cause) {
             super(message, cause);
         }
     }

@@ -20,15 +20,13 @@ package org.apache.rya.indexing.entity.storage.mongo;
 
 import static org.junit.Assert.assertEquals;
 
-import org.apache.rya.indexing.entity.storage.mongo.RyaTypeDocumentConverter;
+import org.apache.rya.api.domain.RyaType;
+import org.apache.rya.api.resolver.RdfToRyaConversions;
 import org.apache.rya.indexing.entity.storage.mongo.DocumentConverter.DocumentConverterException;
 import org.bson.Document;
 import org.junit.Test;
 import org.openrdf.model.impl.ValueFactoryImpl;
 import org.openrdf.model.vocabulary.XMLSchema;
-
-import mvm.rya.api.domain.RyaType;
-import mvm.rya.api.resolver.RdfToRyaConversions;
 
 /**
  * Tests the methods of {@link RyaTypeDocumentConverter}.

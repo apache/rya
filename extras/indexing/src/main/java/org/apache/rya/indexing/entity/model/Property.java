@@ -22,17 +22,18 @@ import static java.util.Objects.requireNonNull;
 
 import java.util.Objects;
 
-import javax.annotation.ParametersAreNonnullByDefault;
-import javax.annotation.concurrent.Immutable;
+import org.apache.http.annotation.Immutable;
+import org.apache.rya.api.domain.RyaType;
+import org.apache.rya.api.domain.RyaURI;
 
-import mvm.rya.api.domain.RyaType;
-import mvm.rya.api.domain.RyaURI;
+import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
+import edu.umd.cs.findbugs.annotations.NonNull;
 
 /**
  * A value that has been set for an {@link TypedEntity}.
  */
 @Immutable
-@ParametersAreNonnullByDefault
+@DefaultAnnotation(NonNull.class)
 public class Property {
 
     private final RyaURI name;

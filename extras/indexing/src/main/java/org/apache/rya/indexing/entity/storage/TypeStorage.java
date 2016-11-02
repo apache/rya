@@ -18,19 +18,20 @@
  */
 package org.apache.rya.indexing.entity.storage;
 
-import javax.annotation.ParametersAreNonnullByDefault;
+import java.util.Optional;
 
+import org.apache.rya.api.domain.RyaURI;
 import org.apache.rya.indexing.entity.EntityIndexException;
 import org.apache.rya.indexing.entity.model.Type;
+import org.apache.rya.indexing.entity.storage.mongo.ConvertingCursor;
 
-import com.google.common.base.Optional;
-
-import mvm.rya.api.domain.RyaURI;
+import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
+import edu.umd.cs.findbugs.annotations.NonNull;
 
 /**
  * Stores and provides access to {@link Type}s.
  */
-@ParametersAreNonnullByDefault
+@DefaultAnnotation(NonNull.class)
 public interface TypeStorage {
 
     /**
@@ -58,7 +59,7 @@ public interface TypeStorage {
      * @throws TypeStorageException A problem occurred while searching for the Types
      *   that have the Property name.
      */
-    public CloseableIterator<Type> search(RyaURI propertyName) throws TypeStorageException;
+    public ConvertingCursor<Type> search(RyaURI propertyName) throws TypeStorageException;
 
     /**
      * Deletes a {@link Type} from the storage.
@@ -83,7 +84,7 @@ public interface TypeStorage {
          * @param   message   the detail message. The detail message is saved for
          *          later retrieval by the {@link #getMessage()} method.
          */
-        public TypeStorageException(String message) {
+        public TypeStorageException(final String message) {
             super(message);
         }
 
@@ -100,7 +101,7 @@ public interface TypeStorage {
          *         permitted, and indicates that the cause is nonexistent or
          *         unknown.)
          */
-        public TypeStorageException(String message, Throwable cause) {
+        public TypeStorageException(final String message, final Throwable cause) {
             super(message, cause);
         }
     }

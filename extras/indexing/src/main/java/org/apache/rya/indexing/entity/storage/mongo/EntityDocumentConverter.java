@@ -23,19 +23,19 @@ import static java.util.Objects.requireNonNull;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import javax.annotation.ParametersAreNonnullByDefault;
-
+import org.apache.rya.api.domain.RyaType;
+import org.apache.rya.api.domain.RyaURI;
 import org.apache.rya.indexing.entity.model.Entity;
 import org.apache.rya.indexing.entity.model.Property;
 import org.bson.Document;
 
-import mvm.rya.api.domain.RyaType;
-import mvm.rya.api.domain.RyaURI;
+import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
+import edu.umd.cs.findbugs.annotations.NonNull;
 
 /**
  * Converts between {@link Entity} and {@link Document}.
  */
-@ParametersAreNonnullByDefault
+@DefaultAnnotation(NonNull.class)
 public class EntityDocumentConverter implements DocumentConverter<Entity> {
 
     public static final String SUBJECT = "_id";
@@ -46,7 +46,7 @@ public class EntityDocumentConverter implements DocumentConverter<Entity> {
     private final RyaTypeDocumentConverter ryaTypeConverter = new RyaTypeDocumentConverter();
 
     @Override
-    public Document toDocument(Entity entity) {
+    public Document toDocument(final Entity entity) {
         requireNonNull(entity);
 
         final Document doc = new Document();
@@ -75,7 +75,7 @@ public class EntityDocumentConverter implements DocumentConverter<Entity> {
     }
 
     @Override
-    public Entity fromDocument(Document document) throws DocumentConverterException {
+    public Entity fromDocument(final Document document) throws DocumentConverterException {
         requireNonNull(document);
 
         // Preconditions.

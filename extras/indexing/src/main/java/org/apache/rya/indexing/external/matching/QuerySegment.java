@@ -28,11 +28,12 @@ import org.openrdf.query.algebra.QueryModelNode;
 import org.openrdf.query.algebra.evaluation.impl.ExternalSet;
 
 /**
- * A QuerySegment represents a subset of a query to be compared to PCJs for
+ * A QuerySegment represents a subset of a query to be compared to ExternalSets for
  * query matching. The QuerySegment is represented as a List, where the order of
  * the nodes in the list is determined by a Visitor as it traverses the Segment
  * from top down, visiting right children before left.
  *
+ * @param <T> - The type of ExternalSet that will replace a subset of nodes in this segment.
  */
 public interface QuerySegment<T extends ExternalSet> extends Cloneable{
 
@@ -62,14 +63,13 @@ public interface QuerySegment<T extends ExternalSet> extends Cloneable{
     /**
      * Sets List of {@link QueryModelNode}s representing this QuerySegment to
      * specified list
-     * 
+     *
      * @param nodes
      *            - nodes to set
      */
     public void setNodes(List<QueryModelNode> nodes);
 
     /**
-     *
      * @param nodeToReplace
      *            - QuerySegment representation of ExternalSet T to match with
      *            subset of this QuerySegment

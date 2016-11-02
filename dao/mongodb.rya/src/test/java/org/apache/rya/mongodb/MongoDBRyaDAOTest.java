@@ -28,67 +28,68 @@ import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.domain.RyaStatement.RyaStatementBuilder;
 import org.apache.rya.api.domain.RyaURI;
 import org.apache.rya.api.persist.RyaDAOException;
+import org.bson.Document;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.mongodb.DB;
-import com.mongodb.DBCollection;
 import com.mongodb.MongoException;
+import com.mongodb.client.MongoCollection;
+import com.mongodb.client.MongoDatabase;
 
 public class MongoDBRyaDAOTest extends MongoRyaTestBase {
 
-	private MongoDBRyaDAO dao;
-	private MongoDBRdfConfiguration configuration;
+    private MongoDBRyaDAO dao;
+    private MongoDBRdfConfiguration configuration;
 
-	@Before
-	public void setUp() throws IOException, RyaDAOException{
-		final Configuration conf = new Configuration();
+    @Before
+    public void setUp() throws IOException, RyaDAOException{
+        final Configuration conf = new Configuration();
         conf.set(MongoDBRdfConfiguration.MONGO_DB_NAME, "test");
         conf.set(MongoDBRdfConfiguration.MONGO_COLLECTION_PREFIX, "rya_");
         conf.set(RdfCloudTripleStoreConfiguration.CONF_TBL_PREFIX, "rya_");
         configuration = new MongoDBRdfConfiguration(conf);
         final int port = mongoClient.getServerAddressList().get(0).getPort();
         configuration.set(MongoDBRdfConfiguration.MONGO_INSTANCE_PORT, ""+port);
-		dao = new MongoDBRyaDAO(configuration, mongoClient);
-	}
+        dao = new MongoDBRyaDAO(configuration, mongoClient);
+    }
 
 
-	@Test
-	public void testDeleteWildcard() throws RyaDAOException {
-		final RyaStatementBuilder builder = new RyaStatementBuilder();
-		builder.setPredicate(new RyaURI("http://temp.com"));
-		dao.delete(builder.build(), configuration);
-	}
+    @Test
+    public void testDeleteWildcard() throws RyaDAOException {
+        final RyaStatementBuilder builder = new RyaStatementBuilder();
+        builder.setPredicate(new RyaURI("http://temp.com"));
+        dao.delete(builder.build(), configuration);
+    }
 
 
-	@Test
-	public void testAdd() throws RyaDAOException, MongoException, IOException {
-		final RyaStatementBuilder builder = new RyaStatementBuilder();
-		builder.setPredicate(new RyaURI("http://temp.com"));
-		builder.setSubject(new RyaURI("http://subject.com"));
-		builder.setObject(new RyaURI("http://object.com"));
+    @Test
+    public void testAdd() throws RyaDAOException, MongoException, IOException {
+        final RyaStatementBuilder builder = new RyaStatementBuilder();
+        builder.setPredicate(new RyaURI("http://temp.com"));
+        builder.setSubject(new RyaURI("http://subject.com"));
+        builder.setObject(new RyaURI("http://object.com"));
 
-		final DB db = mongoClient.getDB(configuration.get(MongoDBRdfConfiguration.MONGO_DB_NAME));
-        final DBCollection coll = db.getCollection(configuration.getTriplesCollectionName());
+        final MongoDatabase db = mongoClient.getDatabase(configuration.get(MongoDBRdfConfiguration.MONGO_DB_NAME));
+        final MongoCollection<Document> coll = db.getCollection(configuration.getTriplesCollectionName());
 
-		dao.add(builder.build());
+        dao.add(builder.build());
 
         assertEquals(coll.count(),1);
 
-	}
+    }
 
-	@Test
-	public void testDelete() throws RyaDAOException, MongoException, IOException {
-		final RyaStatementBuilder builder = new RyaStatementBuilder();
-		builder.setPredicate(new RyaURI("http://temp.com"));
-		builder.setSubject(new RyaURI("http://subject.com"));
-		builder.setObject(new RyaURI("http://object.com"));
-		final RyaStatement statement = builder.build();
+    @Test
+    public void testDelete() throws RyaDAOException, MongoException, IOException {
+        final RyaStatementBuilder builder = new RyaStatementBuilder();
+        builder.setPredicate(new RyaURI("http://temp.com"));
+        builder.setSubject(new RyaURI("http://subject.com"));
+        builder.setObject(new RyaURI("http://object.com"));
+        final RyaStatement statement = builder.build();
 
-		final DB db = mongoClient.getDB(configuration.get(MongoDBRdfConfiguration.MONGO_DB_NAME));
-        final DBCollection coll = db.getCollection(configuration.getTriplesCollectionName());
+        final MongoDatabase db = mongoClient.getDatabase(configuration.get(MongoDBRdfConfiguration.MONGO_DB_NAME));
+        final MongoCollection<Document> coll = db.getCollection(configuration.getTriplesCollectionName());
 
-		dao.add(statement);
+        dao.add(statement);
 
         assertEquals(coll.count(),1);
 
@@ -96,34 +97,32 @@ public class MongoDBRyaDAOTest extends MongoRyaTestBase {
 
         assertEquals(coll.count(),0);
 
-	}
+    }
 
-	@Test
-	public void testDeleteWildcardSubjectWithContext() throws RyaDAOException, MongoException, IOException {
-		final RyaStatementBuilder builder = new RyaStatementBuilder();
-		builder.setPredicate(new RyaURI("http://temp.com"));
-		builder.setSubject(new RyaURI("http://subject.com"));
-		builder.setObject(new RyaURI("http://object.com"));
-		builder.setContext(new RyaURI("http://context.com"));
-		final RyaStatement statement = builder.build();
+    @Test
+    public void testDeleteWildcardSubjectWithContext() throws RyaDAOException, MongoException, IOException {
+        final RyaStatementBuilder builder = new RyaStatementBuilder();
+        builder.setPredicate(new RyaURI("http://temp.com"));
+        builder.setSubject(new RyaURI("http://subject.com"));
+        builder.setObject(new RyaURI("http://object.com"));
+        builder.setContext(new RyaURI("http://context.com"));
+        final RyaStatement statement = builder.build();
 
-		final DB db = mongoClient.getDB(configuration.get(MongoDBRdfConfiguration.MONGO_DB_NAME));
-        final DBCollection coll = db.getCollection(configuration.getTriplesCollectionName());
+        final MongoDatabase db = mongoClient.getDatabase(configuration.get(MongoDBRdfConfiguration.MONGO_DB_NAME));
+        final MongoCollection<Document> coll = db.getCollection(configuration.getTriplesCollectionName());
 
-		dao.add(statement);
+        dao.add(statement);
 
         assertEquals(coll.count(),1);
 
-		final RyaStatementBuilder builder2 = new RyaStatementBuilder();
-		builder2.setPredicate(new RyaURI("http://temp.com"));
-		builder2.setObject(new RyaURI("http://object.com"));
-		builder2.setContext(new RyaURI("http://context3.com"));
-		final RyaStatement query = builder2.build();
+        final RyaStatementBuilder builder2 = new RyaStatementBuilder();
+        builder2.setPredicate(new RyaURI("http://temp.com"));
+        builder2.setObject(new RyaURI("http://object.com"));
+        builder2.setContext(new RyaURI("http://context3.com"));
+        final RyaStatement query = builder2.build();
 
         dao.delete(query, configuration);
 
         assertEquals(coll.count(),1);
-
-	}
-
+    }
 }

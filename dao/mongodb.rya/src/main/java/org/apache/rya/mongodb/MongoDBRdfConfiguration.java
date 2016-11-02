@@ -8,9 +8,9 @@ package org.apache.rya.mongodb;
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- * 
+ *
  *   http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -22,6 +22,7 @@ package org.apache.rya.mongodb;
 import java.util.List;
 import java.util.Properties;
 
+import org.apache.accumulo.core.security.Authorizations;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
 
@@ -45,7 +46,7 @@ public class MongoDBRdfConfiguration extends RdfCloudTripleStoreConfiguration {
         super();
     }
 
-    public MongoDBRdfConfiguration(Configuration other) {
+    public MongoDBRdfConfiguration(final Configuration other) {
         super(other);
     }
 
@@ -53,7 +54,7 @@ public class MongoDBRdfConfiguration extends RdfCloudTripleStoreConfiguration {
      * Creates a MongoRdfConfiguration object from a Properties file. This
      * method assumes that all values in the Properties file are Strings and
      * that the Properties file uses the keys below.
-     * 
+     *
      * <br>
      * <ul>
      * <li>"mongo.auths" - String of Mongo authorizations.  Empty auths used by default.
@@ -70,13 +71,13 @@ public class MongoDBRdfConfiguration extends RdfCloudTripleStoreConfiguration {
      * <li>"use.inference" - Use backward chaining inference during query.  False by default.
      * </ul>
      * <br>
-     * 
+     *
      * @param props
      *            - Properties file containing Mongo specific configuration
      *            parameters
      * @return MongoRdfConfiguration with properties set
      */
-    public static MongoDBRdfConfiguration fromProperties(Properties props) {
+    public static MongoDBRdfConfiguration fromProperties(final Properties props) {
         return MongoDBRdfConfigurationBuilder.fromProperties(props);
     }
 
@@ -88,15 +89,24 @@ public class MongoDBRdfConfiguration extends RdfCloudTripleStoreConfiguration {
     public MongoDBRdfConfiguration clone() {
         return new MongoDBRdfConfiguration(this);
     }
+
+    public Authorizations getAuthorizations() {
+        final String[] auths = getAuths();
+        if (auths == null || auths.length == 0) {
+            return MongoDbRdfConstants.ALL_AUTHORIZATIONS;
+        }
+        return new Authorizations(auths);
+    }
+
     /**
      * @return name of Mongo Collection containing Rya triples
      */
     public String getTriplesCollectionName() {
         return this.get(MONGO_COLLECTION_PREFIX, "rya") + "_triples";
     }
-    
+
     /**
-     * @return name of Mongo Collection 
+     * @return name of Mongo Collection
      */
     public String getCollectionName() {
         return this.get(MONGO_COLLECTION_PREFIX, "rya");
@@ -106,7 +116,7 @@ public class MongoDBRdfConfiguration extends RdfCloudTripleStoreConfiguration {
      * Sets Mongo Collection name
      * @param name - name of Mongo Collection to connect to
      */
-    public void setCollectionName(String name) {
+    public void setCollectionName(final String name) {
         Preconditions.checkNotNull(name);
         this.set(MONGO_COLLECTION_PREFIX, name);
     }
@@ -122,7 +132,7 @@ public class MongoDBRdfConfiguration extends RdfCloudTripleStoreConfiguration {
      * Sets name of Mongo Host
      * @param name - name of Mongo Host to connect to
      */
-    public void setMongoInstance(String name) {
+    public void setMongoInstance(final String name) {
         Preconditions.checkNotNull(name);
         this.set(MONGO_INSTANCE, name);
     }
@@ -138,7 +148,7 @@ public class MongoDBRdfConfiguration extends RdfCloudTripleStoreConfiguration {
      * Sets port that Mongo will run on
      * @param name - Mongo port to connect to
      */
-    public void setMongoPort(String name) {
+    public void setMongoPort(final String name) {
         Preconditions.checkNotNull(name);
         this.set(MONGO_INSTANCE_PORT, name);
     }
@@ -154,7 +164,7 @@ public class MongoDBRdfConfiguration extends RdfCloudTripleStoreConfiguration {
      * Sets name of MongoDB
      * @param name - name of MongoDB to connect to
      */
-    public void setMongoDBName(String name) {
+    public void setMongoDBName(final String name) {
         Preconditions.checkNotNull(name);
         this.set(MONGO_DB_NAME, name);
     }
@@ -164,10 +174,10 @@ public class MongoDBRdfConfiguration extends RdfCloudTripleStoreConfiguration {
      * if set to true.  By default this is set to false.
      * @param useMock
      */
-    public void setUseMock(boolean useMock) {
+    public void setUseMock(final boolean useMock) {
         this.setBoolean(USE_MOCK_MONGO, useMock);
     }
-    
+
     /**
      * Get whether an embedded Mongo is being used as the backing
      * for Rya.
@@ -188,7 +198,7 @@ public class MongoDBRdfConfiguration extends RdfCloudTripleStoreConfiguration {
      * Sets name of Mongo User
      * @param user - name of Mongo user to connect to
      */
-    public void setMongoUser(String user) {
+    public void setMongoUser(final String user) {
         Preconditions.checkNotNull(user);
         set(MONGO_USER, user);
     }
@@ -204,7 +214,7 @@ public class MongoDBRdfConfiguration extends RdfCloudTripleStoreConfiguration {
      * Sets Mongo password
      * @param password - password to connect to Mongo
      */
-    public void setMongoPassword(String password) {
+    public void setMongoPassword(final String password) {
         Preconditions.checkNotNull(password);
         set(MONGO_USER_PASSWORD, password);
     }
@@ -216,20 +226,20 @@ public class MongoDBRdfConfiguration extends RdfCloudTripleStoreConfiguration {
         return get(MONGO_USER_PASSWORD);
     }
 
-    public void setAdditionalIndexers(Class<? extends MongoSecondaryIndex>... indexers) {
-        List<String> strs = Lists.newArrayList();
-        for (Class<?> ai : indexers) {
+    public void setAdditionalIndexers(final Class<? extends MongoSecondaryIndex>... indexers) {
+        final List<String> strs = Lists.newArrayList();
+        for (final Class<?> ai : indexers){
             strs.add(ai.getName());
         }
 
-        setStrings(CONF_ADDITIONAL_INDEXERS, strs.toArray(new String[] {}));
+        setStrings(CONF_ADDITIONAL_INDEXERS, strs.toArray(new String[]{}));
     }
 
     public List<MongoSecondaryIndex> getAdditionalIndexers() {
         return getInstances(CONF_ADDITIONAL_INDEXERS, MongoSecondaryIndex.class);
     }
 
-    public void setMongoClient(MongoClient client) {
+    public void setMongoClient(final MongoClient client) {
         Preconditions.checkNotNull(client);
         this.mongoClient = client;
     }

@@ -120,6 +120,13 @@ under the License.
         <maven.min-version>3.0.4</maven.min-version>
         
         <fluo.version>1.0.0-incubating</fluo.version>
+
+        <plexus.version>3.0.8</plexus.version>
+        <thrift.version>0.9.1</thrift.version>
+        <commonscli.version>1.2</commonscli.version>
+		<commonshttp.version>3.0.1</commonshttp.version>
+		<jcommander.version>1.35</jcommander.version>
+ 		<twitter4jstream.version>4.0.1</twitter4jstream.version>
         
         <jmh.version>1.13</jmh.version>
 
@@ -201,6 +208,11 @@ under the License.
                 <artifactId>rya.pcj.fluo.app</artifactId>
                 <version>${project.version}</version>
             </dependency>
+        <dependency>
+            <groupId>org.apache.thrift</groupId>
+            <artifactId>libthrift</artifactId>
+            <version>${thrift.version}</version>
+        </dependency>
             <dependency>
                 <groupId>org.apache.rya</groupId>
                 <artifactId>rya.pcj.fluo.client</artifactId>
@@ -212,6 +224,17 @@ under the License.
                 <version>${accumulo.version}</version>
             </dependency>
             <dependency>
+				<groupId>org.apache.accumulo</groupId>
+				<artifactId>accumulo</artifactId>
+				<type>pom</type>
+                <version>${accumulo.version}</version>
+            </dependency>
+             <dependency>
+                <groupId>org.apache.accumulo</groupId>
+                <artifactId>accumulo-start</artifactId>
+                <version>${accumulo.version}</version>
+            </dependency>
+           <dependency>
                 <groupId>org.apache.rya</groupId>
                 <artifactId>sesame-runtime-osgi</artifactId>
                 <version>${openrdf.sesame.version}</version>
@@ -343,6 +366,11 @@ under the License.
                 </exclusions>
             </dependency>
 
+			<dependency>
+				<groupId>org.apache.hadoop</groupId>
+				<artifactId>hadoop-client</artifactId>
+                <version>${hadoop.version}</version>
+			</dependency>
             <dependency>
                 <groupId>org.apache.tinkerpop</groupId>
                 <artifactId>tinkergraph-gremlin</artifactId>
@@ -426,6 +454,21 @@ under the License.
                 <version>${karaf.version}</version>
                 <scope>provided</scope>
             </dependency>
+        <dependency>
+            <groupId>org.codehaus.plexus</groupId>
+            <artifactId>plexus-utils</artifactId>
+            <version>${plexus.version}</version>
+        </dependency>
+       <dependency>
+            <groupId>com.beust</groupId>
+            <artifactId>jcommander</artifactId>
+            <version>${jcommander.version}</version>
+        </dependency>
+         <dependency>
+            <groupId>org.twitter4j</groupId>
+            <artifactId>twitter4j-stream</artifactId>
+            <version>${twitter4jstream.version}</version>
+        </dependency>
 
             <!-- Commons -->
             <dependency>
@@ -443,6 +486,16 @@ under the License.
                 <artifactId>commons-pool</artifactId>
                 <version>${commons.pool.version}</version>
             </dependency>
+			<dependency>
+				<groupId>commons-cli</groupId>
+				<artifactId>commons-cli</artifactId>
+				<version>${commonscli.version}</version>
+			</dependency>
+        <dependency>
+            <groupId>commons-httpclient</groupId>
+            <artifactId>commons-httpclient</artifactId>
+            <version>${commonshttp.version}</version>
+        </dependency>
 
             <!-- Free Text Indexing -->
             <dependency>

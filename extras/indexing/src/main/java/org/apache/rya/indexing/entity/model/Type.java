@@ -22,14 +22,14 @@ import static java.util.Objects.requireNonNull;
 
 import java.util.Objects;
 
-import javax.annotation.ParametersAreNonnullByDefault;
-import javax.annotation.concurrent.Immutable;
-
+import org.apache.http.annotation.Immutable;
+import org.apache.rya.api.domain.RyaURI;
 import org.apache.rya.indexing.entity.storage.TypeStorage;
 
 import com.google.common.collect.ImmutableSet;
 
-import mvm.rya.api.domain.RyaURI;
+import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
+import edu.umd.cs.findbugs.annotations.NonNull;
 
 /**
  * Defines the structure of an {@link TypedEntity}.
@@ -45,7 +45,7 @@ import mvm.rya.api.domain.RyaURI;
  * </pre>
  */
 @Immutable
-@ParametersAreNonnullByDefault
+@DefaultAnnotation(NonNull.class)
 public class Type {
 
     /**

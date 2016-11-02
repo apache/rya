@@ -26,24 +26,21 @@ import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
 
+import org.apache.rya.api.domain.RyaType;
+import org.apache.rya.api.domain.RyaURI;
 import org.apache.rya.indexing.entity.model.Entity;
 import org.apache.rya.indexing.entity.model.Property;
 import org.apache.rya.indexing.entity.model.Type;
 import org.apache.rya.indexing.entity.model.TypedEntity;
-import org.apache.rya.indexing.entity.storage.CloseableIterator;
 import org.apache.rya.indexing.entity.storage.EntityStorage;
 import org.apache.rya.indexing.entity.storage.EntityStorage.EntityAlreadyExistsException;
 import org.apache.rya.indexing.entity.storage.EntityStorage.EntityStorageException;
 import org.apache.rya.indexing.entity.storage.EntityStorage.StaleUpdateException;
-import org.apache.rya.indexing.entity.storage.mongo.MongoEntityStorage;
 import org.junit.Test;
 import org.openrdf.model.vocabulary.XMLSchema;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
-
-import mvm.rya.api.domain.RyaType;
-import mvm.rya.api.domain.RyaURI;
 
 /**
  * Integration tests the methods of {@link MongoEntityStorage}.
@@ -198,7 +195,7 @@ public class MongoEntityStorageIT extends MongoITBase {
 
         // Search for all icecreams.
         final Set<TypedEntity> objects = new HashSet<>();
-        try(final CloseableIterator<TypedEntity> it = storage.search(icecreamType, new HashSet<>())) {
+        try(final ConvertingCursor<TypedEntity> it = storage.search(Optional.empty(), icecreamType, new HashSet<>())) {
             while(it.hasNext()) {
                 objects.add(it.next());
             }
@@ -295,7 +292,7 @@ public class MongoEntityStorageIT extends MongoITBase {
                 new Property(new RyaURI("urn:eye"), new RyaType(XMLSchema.STRING, "blue")),
                 new Property(new RyaURI("urn:age"), new RyaType(XMLSchema.INT, "30")));
 
-        try(final CloseableIterator<TypedEntity> it = storage.search(personType, searchValues)) {
+        try(final ConvertingCursor<TypedEntity> it = storage.search(Optional.empty(), personType, searchValues)) {
             while(it.hasNext()) {
                 objects.add(it.next());
             }

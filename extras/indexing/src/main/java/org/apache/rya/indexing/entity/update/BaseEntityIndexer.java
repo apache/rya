@@ -32,34 +32,34 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 
-import javax.annotation.Nullable;
-import javax.annotation.ParametersAreNonnullByDefault;
-
 import org.apache.hadoop.conf.Configuration;
+import org.apache.rya.api.domain.RyaStatement;
+import org.apache.rya.api.domain.RyaType;
+import org.apache.rya.api.domain.RyaURI;
 import org.apache.rya.indexing.entity.model.Entity;
 import org.apache.rya.indexing.entity.model.Property;
 import org.apache.rya.indexing.entity.model.Type;
-import org.apache.rya.indexing.entity.storage.CloseableIterator;
 import org.apache.rya.indexing.entity.storage.EntityStorage;
-import org.apache.rya.indexing.entity.storage.TypeStorage;
 import org.apache.rya.indexing.entity.storage.EntityStorage.EntityStorageException;
+import org.apache.rya.indexing.entity.storage.TypeStorage;
 import org.apache.rya.indexing.entity.storage.TypeStorage.TypeStorageException;
+import org.apache.rya.indexing.entity.storage.mongo.ConvertingCursor;
+import org.apache.rya.mongodb.MongoDBRdfConfiguration;
+import org.apache.rya.mongodb.MongoSecondaryIndex;
 import org.openrdf.model.URI;
 import org.openrdf.model.vocabulary.RDF;
 
 import com.google.common.base.Objects;
 
-import mvm.rya.api.domain.RyaStatement;
-import mvm.rya.api.domain.RyaType;
-import mvm.rya.api.domain.RyaURI;
-import mvm.rya.mongodb.MongoDBRdfConfiguration;
+import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
+import edu.umd.cs.findbugs.annotations.NonNull;
 
 /**
  * A base class that may be used to update an {@link EntityStorage} as new
  * {@link RyaStatement}s are added to/removed from the Rya instance.
  */
-@ParametersAreNonnullByDefault
-public abstract class BaseEntityIndexer implements EntityIndexer {
+@DefaultAnnotation(NonNull.class)
+public abstract class BaseEntityIndexer implements EntityIndexer, MongoSecondaryIndex {
 
     /**
      * When this URI is the Predicate of a Statement, it indicates a {@link Type} for an {@link Entity}.
@@ -70,24 +70,8 @@ public abstract class BaseEntityIndexer implements EntityIndexer {
     private final AtomicReference<EntityStorage> entities = new AtomicReference<>();
     private final AtomicReference<TypeStorage> types = new AtomicReference<>();
 
-    /**
-     * Creates the {@link EntityStorage} that will be used by the indexer.
-     *
-     * @param conf - Indicates how the {@link EntityStorage} is initialized. (not null)
-     * @return The {@link EntityStorage} that will be used by this indexer.
-     */
-    public abstract @Nullable EntityStorage getEntityStorage(Configuration conf);
-
-    /**
-     * Creates the {@link TypeStorage} that will be used by the indexer.
-     *
-     * @param conf - Indicates how the {@link TypeStorage} is initialized. (not null)
-     * @return The {@link TypeStorage} that will be used by this indexer.
-     */
-    public abstract @Nullable TypeStorage getTypeStorage(Configuration conf);
-
     @Override
-    public void setConf(Configuration conf) {
+    public void setConf(final Configuration conf) {
         requireNonNull(conf);
         entities.set( getEntityStorage(conf) );
         types.set( getTypeStorage(conf) );
@@ -99,13 +83,13 @@ public abstract class BaseEntityIndexer implements EntityIndexer {
     }
 
     @Override
-    public void storeStatement(RyaStatement statement) throws IOException {
+    public void storeStatement(final RyaStatement statement) throws IOException {
         requireNonNull(statement);
         storeStatements( singleton(statement) );
     }
 
     @Override
-    public void storeStatements(Collection<RyaStatement> statements) throws IOException {
+    public void storeStatements(final Collection<RyaStatement> statements) throws IOException {
         requireNonNull(statements);
 
         final Map<RyaURI,List<RyaStatement>> groupedBySubject = statements.stream()
@@ -162,7 +146,7 @@ public abstract class BaseEntityIndexer implements EntityIndexer {
                     final RyaURI propertyName = statement.getPredicate();
                     final RyaType propertyValue = statement.getObject();
 
-                    try(final CloseableIterator<Type> typesIt = types.search(propertyName)) {
+                    try(final ConvertingCursor<Type> typesIt = types.search(propertyName)) {
                         // Set the Property for each type that includes the Statement's predicate.
                         while(typesIt.hasNext()) {
                             final RyaURI typeId = typesIt.next().getId();
@@ -180,7 +164,7 @@ public abstract class BaseEntityIndexer implements EntityIndexer {
     }
 
     @Override
-    public void deleteStatement(RyaStatement statement) throws IOException {
+    public void deleteStatement(final RyaStatement statement) throws IOException {
         requireNonNull(statement);
 
         final EntityStorage entities = this.entities.get();
@@ -254,7 +238,7 @@ public abstract class BaseEntityIndexer implements EntityIndexer {
     }
 
     @Override
-    public void dropGraph(RyaURI... graphs) {
+    public void dropGraph(final RyaURI... graphs) {
         // We do not support graphs when performing entity centric indexing.
     }
 

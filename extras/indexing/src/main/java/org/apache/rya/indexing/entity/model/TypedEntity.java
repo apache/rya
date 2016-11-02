@@ -23,24 +23,25 @@ import static java.util.Objects.requireNonNull;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 
-import javax.annotation.Nullable;
-import javax.annotation.ParametersAreNonnullByDefault;
-import javax.annotation.concurrent.Immutable;
+import org.apache.http.annotation.Immutable;
+import org.apache.rya.api.domain.RyaType;
+import org.apache.rya.api.domain.RyaURI;
 
-import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableMap;
 
-import mvm.rya.api.domain.RyaType;
-import mvm.rya.api.domain.RyaURI;
+import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
+import edu.umd.cs.findbugs.annotations.NonNull;
+import edu.umd.cs.findbugs.annotations.Nullable;
 
 /**
  * A {@link TypedEntity} is a view of an {@link Entity} that has had a specific
  * {@link Type} applied to it.
  */
 @Immutable
-@ParametersAreNonnullByDefault
+@DefaultAnnotation(NonNull.class)
 public class TypedEntity {
 
     /**
@@ -79,10 +80,10 @@ public class TypedEntity {
      */
     private TypedEntity(final RyaURI subject,
             final RyaURI dataTypeId,
-            boolean explicitlyTyped,
+            final boolean explicitlyTyped,
             final ImmutableMap<RyaURI, Property> optionalFields) {
         this.subject = requireNonNull(subject);
-        this.typeId = requireNonNull(dataTypeId);
+        typeId = requireNonNull(dataTypeId);
         this.optionalFields = requireNonNull(optionalFields);
         this.explicitlyTyped = explicitlyTyped;
     }
@@ -129,7 +130,7 @@ public class TypedEntity {
 
         final Property field = optionalFields.get(propertyName);
         return field == null ?
-                Optional.absent() :
+                Optional.empty() :
                 Optional.of( field.getValue() );
     }
 
@@ -139,7 +140,7 @@ public class TypedEntity {
     }
 
     @Override
-    public boolean equals(Object o) {
+    public boolean equals(final Object o) {
         if(this == o) {
             return true;
         }
@@ -165,7 +166,7 @@ public class TypedEntity {
      * @param entity - The initial values of the builder. (not null)
      * @return An instance of {@link Builder} loaded with {@code entity}'s values.
      */
-    public static Builder builder(TypedEntity entity) {
+    public static Builder builder(final TypedEntity entity) {
         requireNonNull(entity);
 
         final Builder builder = builder()
@@ -180,7 +181,7 @@ public class TypedEntity {
     /**
      * Builds instances of {@link TypedEntity}.
      */
-    @ParametersAreNonnullByDefault
+    @DefaultAnnotation(NonNull.class)
     public static class Builder {
 
         private RyaURI subject;
@@ -212,7 +213,7 @@ public class TypedEntity {
          * only exists because it has properties that happen to match that type's properties).
          * @return This {@link Builder} so that method invocations may be chained.
          */
-        public Builder setExplicitelyTyped(boolean explicitlyTyped) {
+        public Builder setExplicitelyTyped(final boolean explicitlyTyped) {
             this.explicitlyTyped = explicitlyTyped;
             return this;
         }

@@ -20,27 +20,27 @@ package org.apache.rya.indexing.entity.storage.mongo;
 
 import static java.util.Objects.requireNonNull;
 
-import javax.annotation.ParametersAreNonnullByDefault;
+import java.util.Optional;
 
+import org.apache.rya.api.domain.RyaURI;
 import org.apache.rya.indexing.entity.model.Type;
-import org.apache.rya.indexing.entity.storage.CloseableIterator;
 import org.apache.rya.indexing.entity.storage.TypeStorage;
 import org.apache.rya.indexing.entity.storage.mongo.DocumentConverter.DocumentConverterException;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 
-import com.google.common.base.Optional;
 import com.mongodb.MongoClient;
 import com.mongodb.MongoException;
 import com.mongodb.client.MongoCursor;
 import com.mongodb.client.model.Filters;
 
-import mvm.rya.api.domain.RyaURI;
+import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
+import edu.umd.cs.findbugs.annotations.NonNull;
 
 /**
  * A Mongo DB implementation of {@link TypeStorage}.
  */
-@ParametersAreNonnullByDefault
+@DefaultAnnotation(NonNull.class)
 public class MongoTypeStorage implements TypeStorage {
 
     private static final String COLLECTION_NAME = "entity-types";
@@ -63,13 +63,13 @@ public class MongoTypeStorage implements TypeStorage {
      * @param mongo - A client connected to the Mongo instance that hosts the Rya instance. (not null)
      * @param ryaInstanceName - The name of the Rya instance the {@link Type}s are for. (not null)
      */
-    public MongoTypeStorage(MongoClient mongo, String ryaInstanceName) {
+    public MongoTypeStorage(final MongoClient mongo, final String ryaInstanceName) {
         this.mongo = requireNonNull(mongo);
         this.ryaInstanceName = requireNonNull(ryaInstanceName);
     }
 
     @Override
-    public void create(Type type) throws TypeStorageException {
+    public void create(final Type type) throws TypeStorageException {
         requireNonNull(type);
 
         try {
@@ -83,7 +83,7 @@ public class MongoTypeStorage implements TypeStorage {
     }
 
     @Override
-    public Optional<Type> get(RyaURI typeId) throws TypeStorageException {
+    public Optional<Type> get(final RyaURI typeId) throws TypeStorageException {
         requireNonNull(typeId);
 
         try {
@@ -93,7 +93,7 @@ public class MongoTypeStorage implements TypeStorage {
                 .first();
 
             return document == null ?
-                    Optional.absent() :
+                    Optional.empty() :
                     Optional.of( TYPE_CONVERTER.fromDocument(document) );
 
         } catch(final MongoException | DocumentConverterException e) {
@@ -102,7 +102,7 @@ public class MongoTypeStorage implements TypeStorage {
     }
 
     @Override
-    public CloseableIterator<Type> search(RyaURI propertyName) throws TypeStorageException {
+    public ConvertingCursor<Type> search(final RyaURI propertyName) throws TypeStorageException {
         requireNonNull(propertyName);
 
         try {
@@ -128,7 +128,7 @@ public class MongoTypeStorage implements TypeStorage {
     }
 
     @Override
-    public boolean delete(RyaURI typeId) throws TypeStorageException {
+    public boolean delete(final RyaURI typeId) throws TypeStorageException {
         requireNonNull(typeId);
 
         try {
@@ -143,7 +143,7 @@ public class MongoTypeStorage implements TypeStorage {
         }
     }
 
-    private static Bson makeIdFilter(RyaURI typeId) {
+    private static Bson makeIdFilter(final RyaURI typeId) {
         return Filters.eq(TypeDocumentConverter.ID, typeId.getData());
     }
 }

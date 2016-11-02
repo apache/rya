@@ -23,20 +23,20 @@ import static java.util.Objects.requireNonNull;
 import java.util.Optional;
 import java.util.function.Function;
 
-import javax.annotation.ParametersAreNonnullByDefault;
-
+import org.apache.rya.api.domain.RyaURI;
 import org.apache.rya.indexing.entity.model.Entity;
 import org.apache.rya.indexing.entity.storage.EntityStorage;
 import org.apache.rya.indexing.entity.storage.EntityStorage.EntityAlreadyExistsException;
 import org.apache.rya.indexing.entity.storage.EntityStorage.EntityStorageException;
 import org.apache.rya.indexing.entity.storage.EntityStorage.StaleUpdateException;
 
-import mvm.rya.api.domain.RyaURI;
+import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
+import edu.umd.cs.findbugs.annotations.NonNull;
 
 /**
  * Performs update operations over an {@link EntityStorage}.
  */
-@ParametersAreNonnullByDefault
+@DefaultAnnotation(NonNull.class)
 public class EntityUpdater {
 
     private final EntityStorage storage;
@@ -46,7 +46,7 @@ public class EntityUpdater {
      *
      * @param storage - The storage this updater operates over. (not null)
      */
-    public EntityUpdater(EntityStorage storage) {
+    public EntityUpdater(final EntityStorage storage) {
         this.storage = requireNonNull(storage);
     }
 
@@ -59,7 +59,7 @@ public class EntityUpdater {
      *   the new state of the Entity. (not null)
      * @throws EntityStorageException A non-recoverable error has caused the update to fail.
      */
-    public void update(RyaURI subject, EntityMutator mutator) throws EntityStorageException {
+    public void update(final RyaURI subject, final EntityMutator mutator) throws EntityStorageException {
         requireNonNull(subject);
         requireNonNull(mutator);
 

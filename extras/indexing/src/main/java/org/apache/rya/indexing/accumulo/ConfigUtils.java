@@ -43,12 +43,6 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.mapreduce.JobContext;
 import org.apache.hadoop.util.ReflectionUtils;
 import org.apache.log4j.Logger;
-import org.openrdf.model.URI;
-import org.openrdf.model.impl.URIImpl;
-
-import com.google.common.base.Optional;
-import com.google.common.collect.Lists;
-
 import org.apache.rya.accumulo.AccumuloRdfConfiguration;
 import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
 import org.apache.rya.api.instance.RyaDetails;
@@ -59,16 +53,23 @@ import org.apache.rya.indexing.accumulo.freetext.AccumuloFreeTextIndexer;
 import org.apache.rya.indexing.accumulo.freetext.LuceneTokenizer;
 import org.apache.rya.indexing.accumulo.freetext.Tokenizer;
 import org.apache.rya.indexing.accumulo.temporal.AccumuloTemporalIndexer;
+import org.apache.rya.indexing.entity.EntityIndexOptimizer;
+import org.apache.rya.indexing.entity.update.mongo.MongoEntityIndexer;
 import org.apache.rya.indexing.external.PrecomputedJoinIndexer;
 import org.apache.rya.indexing.mongodb.freetext.MongoFreeTextIndexer;
 import org.apache.rya.indexing.pcj.matching.PCJOptimizer;
 import org.apache.rya.indexing.statement.metadata.matching.StatementMetadataOptimizer;
+import org.openrdf.model.URI;
+import org.openrdf.model.impl.URIImpl;
+
+import com.google.common.base.Optional;
+import com.google.common.collect.Lists;
 
 /**
  * A set of configuration utils to read a Hadoop {@link Configuration} object and create Cloudbase/Accumulo objects.
- * Soon will deprecate this class.  Use installer for the set methods, use {@link RyaDetails} for the get methods. 
+ * Soon will deprecate this class.  Use installer for the set methods, use {@link RyaDetails} for the get methods.
  * New code must separate parameters that are set at Rya install time from that which is specific to the client.
- * Also Accumulo index tables are pushed down to the implementation and not configured in conf.   
+ * Also Accumulo index tables are pushed down to the implementation and not configured in conf.
  */
 public class ConfigUtils {
     private static final Logger logger = Logger.getLogger(ConfigUtils.class);
@@ -343,7 +344,7 @@ public class ConfigUtils {
     public static boolean getUseOptimalPCJ(final Configuration conf) {
         return conf.getBoolean(USE_OPTIMAL_PCJ, false);
     }
-    
+
     public static boolean getUsePcjUpdaterIndex(final Configuration conf) {
         return conf.getBoolean(USE_PCJ_UPDATER_INDEX, false);
     }
@@ -354,7 +355,7 @@ public class ConfigUtils {
      *   using to incrementally update PCJs.
      */
     //TODO delete this eventually and use Details table
-    public Optional<String> getFluoAppName(Configuration conf) {
+    public Optional<String> getFluoAppName(final Configuration conf) {
         return Optional.fromNullable(conf.get(FLUO_APP_NAME));
     }
 
@@ -376,12 +377,17 @@ public class ConfigUtils {
                 indexList.add(MongoFreeTextIndexer.class.getName());
                 useFilterIndex = true;
             }
+
+            if (getUseEntity(conf)) {
+                indexList.add(MongoEntityIndexer.class.getName());
+                optimizers.add(EntityIndexOptimizer.class.getName());
+            }
         } else {
 
         	 if (getUsePCJ(conf) || getUseOptimalPCJ(conf)) {
                  conf.setPcjOptimizer(PCJOptimizer.class);
              }
-             
+
              if(getUsePcjUpdaterIndex(conf)) {
              	indexList.add(PrecomputedJoinIndexer.class.getName());
              }
@@ -397,17 +403,16 @@ public class ConfigUtils {
                 useFilterIndex = true;
             }
 
+            if (getUseEntity(conf)) {
+                indexList.add(EntityCentricIndex.class.getName());
+                optimizers.add(EntityOptimizer.class.getName());
+            }
         }
 
         if (useFilterIndex) {
             optimizers.add(FilterFunctionOptimizer.class.getName());
         }
 
-        if (getUseEntity(conf)) {
-            indexList.add(EntityCentricIndex.class.getName());
-            optimizers.add(EntityOptimizer.class.getName());
-        }
-        
         if(conf.getUseStatementMetadata()) {
             optimizers.add(StatementMetadataOptimizer.class.getName());
         }

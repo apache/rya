@@ -20,18 +20,18 @@ package org.apache.rya.indexing.entity.storage.mongo;
 
 import static java.util.Objects.requireNonNull;
 
-import javax.annotation.ParametersAreNonnullByDefault;
-
+import org.apache.rya.api.domain.RyaType;
 import org.bson.Document;
 import org.openrdf.model.ValueFactory;
 import org.openrdf.model.impl.ValueFactoryImpl;
 
-import mvm.rya.api.domain.RyaType;
+import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
+import edu.umd.cs.findbugs.annotations.NonNull;
 
 /**
  * Converts between {@link RyaType} and {@link Document}.
  */
-@ParametersAreNonnullByDefault
+@DefaultAnnotation(NonNull.class)
 public class RyaTypeDocumentConverter implements DocumentConverter<RyaType> {
 
     private static final ValueFactory VF = new ValueFactoryImpl();
@@ -40,7 +40,7 @@ public class RyaTypeDocumentConverter implements DocumentConverter<RyaType> {
     public static final String VALUE = "value";
 
     @Override
-    public Document toDocument(RyaType ryaType) {
+    public Document toDocument(final RyaType ryaType) {
         requireNonNull(ryaType);
 
         return new Document()
@@ -49,7 +49,7 @@ public class RyaTypeDocumentConverter implements DocumentConverter<RyaType> {
     }
 
     @Override
-    public RyaType fromDocument(Document document) throws DocumentConverterException {
+    public RyaType fromDocument(final Document document) throws DocumentConverterException {
         requireNonNull(document);
 
         if(!document.containsKey(DATA_TYPE)) {

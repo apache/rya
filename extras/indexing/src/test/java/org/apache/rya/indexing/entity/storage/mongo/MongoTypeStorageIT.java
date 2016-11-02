@@ -23,20 +23,17 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import java.util.HashSet;
+import java.util.Optional;
 import java.util.Set;
 
+import org.apache.rya.api.domain.RyaURI;
 import org.apache.rya.indexing.entity.model.Type;
-import org.apache.rya.indexing.entity.storage.CloseableIterator;
 import org.apache.rya.indexing.entity.storage.TypeStorage;
 import org.apache.rya.indexing.entity.storage.TypeStorage.TypeStorageException;
-import org.apache.rya.indexing.entity.storage.mongo.MongoTypeStorage;
 import org.junit.Test;
 
-import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
-
-import mvm.rya.api.domain.RyaURI;
 
 /**
  * Integration tests the methods of {@link MongoTypeStorage}.
@@ -161,7 +158,7 @@ public class MongoTypeStorageIT extends MongoITBase {
         storage.create(icecream);
 
         // Search for all Types that have the 'urn:eye' property.
-        final CloseableIterator<Type> typeIt = storage.search(new RyaURI("urn:eye"));
+        final ConvertingCursor<Type> typeIt = storage.search(new RyaURI("urn:eye"));
 
         final Set<Type> types = new HashSet<>();
         while(typeIt.hasNext()) {

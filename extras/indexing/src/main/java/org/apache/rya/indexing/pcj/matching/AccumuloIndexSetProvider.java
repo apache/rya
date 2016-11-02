@@ -1,3 +1,21 @@
+/**
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
 package org.apache.rya.indexing.pcj.matching;
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -62,7 +80,7 @@ import jline.internal.Preconditions;
  * This provider uses either user specified Accumulo configuration information or user a specified
  * List of ExternalTupleSets to populate an internal cache of ExternalTupleSets.  If Accumulo configuration
  * is provided, the provider connects to an instance of RyaDetails and populates the cache with
- * PCJs registered in RyaDetails.  
+ * PCJs registered in RyaDetails.
  *
  */
 public class AccumuloIndexSetProvider implements ExternalSetProvider<ExternalTupleSet> {
@@ -70,25 +88,25 @@ public class AccumuloIndexSetProvider implements ExternalSetProvider<ExternalTup
     private static final Logger log = Logger.getLogger(ExternalSetProvider.class);
     private static final PCJToSegmentConverter converter = new PCJToSegmentConverter();
     private List<ExternalTupleSet> indexCache;
-    private Configuration conf;
+    private final Configuration conf;
     private boolean init = false;
 
-    public AccumuloIndexSetProvider(Configuration conf) {
+    public AccumuloIndexSetProvider(final Configuration conf) {
         Preconditions.checkNotNull(conf);
         this.conf = conf;
     }
-    
-    public AccumuloIndexSetProvider(Configuration conf, List<ExternalTupleSet> indices) {
+
+    public AccumuloIndexSetProvider(final Configuration conf, final List<ExternalTupleSet> indices) {
         Preconditions.checkNotNull(conf);
         this.conf = conf;
-        this.indexCache = indices;
+        indexCache = indices;
         init = true;
     }
-    
+
     /**
-     * 
+     *
      * @return - size of underlying PCJ cache
-     * @throws Exception 
+     * @throws Exception
      */
     public int size() throws Exception {
         if(!init) {
@@ -103,37 +121,37 @@ public class AccumuloIndexSetProvider implements ExternalSetProvider<ExternalTup
      * @return List of PCJs for matching
      */
     @Override
-    public List<ExternalTupleSet> getExternalSets(QuerySegment<ExternalTupleSet> segment) {
+    public List<ExternalTupleSet> getExternalSets(final QuerySegment<ExternalTupleSet> segment) {
         try {
             if(!init) {
                 indexCache = PCJOptimizerUtilities.getValidPCJs(getAccIndices());
                 init = true;
             }
-            TupleExpr query = segment.getQuery().getTupleExpr();
-            IndexedExecutionPlanGenerator iep = new IndexedExecutionPlanGenerator(query, indexCache);
-            List<ExternalTupleSet> pcjs = iep.getNormalizedIndices();
-            List<ExternalTupleSet> tuples = new ArrayList<>();
-            for (ExternalTupleSet tuple: pcjs) {
-                QuerySegment<ExternalTupleSet> pcj = converter.setToSegment(tuple);
+            final TupleExpr query = segment.getQuery().getTupleExpr();
+            final IndexedExecutionPlanGenerator iep = new IndexedExecutionPlanGenerator(query, indexCache);
+            final List<ExternalTupleSet> pcjs = iep.getNormalizedIndices();
+            final List<ExternalTupleSet> tuples = new ArrayList<>();
+            for (final ExternalTupleSet tuple: pcjs) {
+                final QuerySegment<ExternalTupleSet> pcj = converter.setToSegment(tuple);
                 if (segment.containsQuerySegment(pcj)) {
                     tuples.add(tuple);
                 }
             }
             return tuples;
 
-        } catch (Exception e) {
+        } catch (final Exception e) {
             throw new RuntimeException(e);
         }
     }
-    
+
     /**
-     * @param segment - QuerySegment used to get relevant queries form index cache for matching 
-     * 
+     * @param segment - QuerySegment used to get relevant queries form index cache for matching
+     *
      * @return Iterator of Lists (combos) of PCJs used to build an optimal query plan
      */
     @Override
-    public Iterator<List<ExternalTupleSet>> getExternalSetCombos(QuerySegment<ExternalTupleSet> segment) {
-        ValidIndexCombinationGenerator comboGen = new ValidIndexCombinationGenerator(segment.getOrderedNodes());
+    public Iterator<List<ExternalTupleSet>> getExternalSetCombos(final QuerySegment<ExternalTupleSet> segment) {
+        final ValidIndexCombinationGenerator comboGen = new ValidIndexCombinationGenerator(segment.getOrderedNodes());
         return comboGen.getValidIndexCombos(getExternalSets(segment));
     }
 
@@ -204,8 +222,8 @@ public class AccumuloIndexSetProvider implements ExternalSetProvider<ExternalTup
                 index.add(new AccumuloIndexSet(indexSparqlString, conf, table));
             }
         }
-        
-        
+
+
         return index;
     }
 

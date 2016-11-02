@@ -22,7 +22,9 @@ import static org.junit.Assert.assertEquals;
 
 import java.util.Set;
 
-import org.apache.hadoop.conf.Configuration;
+import org.apache.rya.api.domain.RyaStatement;
+import org.apache.rya.api.domain.RyaType;
+import org.apache.rya.api.domain.RyaURI;
 import org.apache.rya.indexing.entity.model.Entity;
 import org.apache.rya.indexing.entity.model.Property;
 import org.apache.rya.indexing.entity.model.Type;
@@ -31,8 +33,7 @@ import org.apache.rya.indexing.entity.storage.TypeStorage;
 import org.apache.rya.indexing.entity.storage.mongo.MongoEntityStorage;
 import org.apache.rya.indexing.entity.storage.mongo.MongoITBase;
 import org.apache.rya.indexing.entity.storage.mongo.MongoTypeStorage;
-import org.apache.rya.indexing.entity.update.EntityIndexer;
-import org.apache.rya.indexing.entity.update.mongo.MongoEntityIndexer;
+import org.junit.Before;
 import org.junit.Test;
 import org.openrdf.model.vocabulary.RDF;
 import org.openrdf.model.vocabulary.XMLSchema;
@@ -40,17 +41,12 @@ import org.openrdf.model.vocabulary.XMLSchema;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 
-import mvm.rya.api.domain.RyaStatement;
-import mvm.rya.api.domain.RyaType;
-import mvm.rya.api.domain.RyaURI;
-import mvm.rya.mongodb.MongoDBRdfConfiguration;
-
 /**
  * Integration tests the methods of {@link MongoEntityIndexer}.
  */
 public class MongoEntityIndexerIT extends MongoITBase {
 
-    private static final String RYA_INSTANCE_NAME = "testInstance";
+    private static final String RYA_INSTANCE_NAME = "testDB";
 
     private static final Type PERSON_TYPE =
             new Type(new RyaURI("urn:person"),
@@ -67,6 +63,16 @@ public class MongoEntityIndexerIT extends MongoITBase {
                     .add(new RyaURI("urn:hoursPerWeek"))
                     .build());
 
+    private MongoEntityIndexer indexer;
+
+    @Before
+    public void setup() {
+        indexer = new MongoEntityIndexer();
+        indexer.setClient(getMongoClient());
+        indexer.setConf(conf);
+        indexer.init();
+    }
+
     @Test
     public void addStatement_setsType() throws Exception {
         // Load a type into the TypeStorage.
@@ -74,7 +80,6 @@ public class MongoEntityIndexerIT extends MongoITBase {
         types.create(PERSON_TYPE);
 
         // Index a RyaStatement that will create an Entity with an explicit type.
-        final EntityIndexer indexer = makeTestIndexer();
         final RyaStatement statement = new RyaStatement(new RyaURI("urn:SSN/111-11-1111"), new RyaURI( RDF.TYPE.toString() ), new RyaType(XMLSchema.ANYURI, "urn:person"));
         indexer.storeStatement(statement);
 
@@ -98,7 +103,6 @@ public class MongoEntityIndexerIT extends MongoITBase {
         types.create(EMPLOYEE_TYPE);
 
         // Index a RyaStatement that will create an Entity with two implicit types.
-        final EntityIndexer indexer = makeTestIndexer();
         final RyaStatement statement = new RyaStatement(new RyaURI("urn:SSN/111-11-1111"), new RyaURI("urn:name"), new RyaType(XMLSchema.STRING, "Alice"));
         indexer.storeStatement(statement);
 
@@ -123,8 +127,6 @@ public class MongoEntityIndexerIT extends MongoITBase {
         types.create(EMPLOYEE_TYPE);
 
         // Index a bunch of RyaStatements.
-        final EntityIndexer indexer = makeTestIndexer();
-
         final RyaURI aliceSSN = new RyaURI("urn:SSN/111-11-1111");
         indexer.storeStatement(new RyaStatement(aliceSSN, new RyaURI( RDF.TYPE.toString() ), new RyaType(XMLSchema.ANYURI, "urn:person")));
         indexer.storeStatement(new RyaStatement(aliceSSN, new RyaURI("urn:name"), new RyaType(XMLSchema.STRING, "Alice")));
@@ -156,8 +158,6 @@ public class MongoEntityIndexerIT extends MongoITBase {
         types.create(EMPLOYEE_TYPE);
 
         // Index a bunch of RyaStatements.
-        final EntityIndexer indexer = makeTestIndexer();
-
         final RyaURI aliceSSN = new RyaURI("urn:SSN/111-11-1111");
         final RyaURI bobSSN = new RyaURI("urn:SSN/222-22-2222");
 
@@ -208,8 +208,6 @@ public class MongoEntityIndexerIT extends MongoITBase {
         types.create(EMPLOYEE_TYPE);
 
         // Index a bunch of RyaStatements.
-        final EntityIndexer indexer = makeTestIndexer();
-
         final RyaURI aliceSSN = new RyaURI("urn:SSN/111-11-1111");
 
         indexer.storeStatements(Sets.newHashSet(
@@ -245,8 +243,6 @@ public class MongoEntityIndexerIT extends MongoITBase {
         types.create(EMPLOYEE_TYPE);
 
         // Index a bunch of RyaStatements.
-        final EntityIndexer indexer = makeTestIndexer();
-
         final RyaURI aliceSSN = new RyaURI("urn:SSN/111-11-1111");
 
         indexer.storeStatements(Sets.newHashSet(
@@ -271,16 +267,5 @@ public class MongoEntityIndexerIT extends MongoITBase {
                 .build();
 
         assertEquals(expected, entity);
-    }
-
-    private static EntityIndexer makeTestIndexer() {
-        final EntityIndexer indexer = new MongoEntityIndexer();
-
-        final MongoDBRdfConfiguration conf = new MongoDBRdfConfiguration( new Configuration() );
-        conf.setUseTestMongo(true);
-        conf.setMongoDBName(RYA_INSTANCE_NAME);
-
-        indexer.setConf(conf);
-        return indexer;
     }
 }

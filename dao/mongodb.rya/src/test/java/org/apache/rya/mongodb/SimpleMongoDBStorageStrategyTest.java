@@ -23,17 +23,19 @@ import static org.openrdf.model.vocabulary.XMLSchema.ANYURI;
 
 import java.io.IOException;
 
-import org.junit.Test;
-
-import com.mongodb.BasicDBObject;
-import com.mongodb.DBObject;
-import com.mongodb.MongoException;
-
 import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.domain.RyaStatement.RyaStatementBuilder;
 import org.apache.rya.api.domain.RyaURI;
 import org.apache.rya.api.persist.RyaDAOException;
 import org.apache.rya.mongodb.dao.SimpleMongoDBStorageStrategy;
+import org.apache.rya.mongodb.document.util.DocumentVisibilityConversionException;
+import org.apache.rya.mongodb.document.util.DocumentVisibilityUtil;
+import org.apache.rya.mongodb.document.visibility.DocumentVisibility;
+import org.junit.Test;
+
+import com.mongodb.BasicDBObject;
+import com.mongodb.DBObject;
+import com.mongodb.MongoException;
 
 public class SimpleMongoDBStorageStrategyTest {
     private static final String SUBJECT = "http://subject.com";
@@ -41,6 +43,7 @@ public class SimpleMongoDBStorageStrategyTest {
     private static final String OBJECT = "http://object.com";
     private static final String CONTEXT = "http://context.com";
     private static final String STATEMENT_METADATA = "{}";
+    private static final DocumentVisibility DOCUMENT_VISIBILITY = new DocumentVisibility("A&B");
 
     private static final RyaStatement testStatement;
     private static final DBObject testDBO;
@@ -52,18 +55,24 @@ public class SimpleMongoDBStorageStrategyTest {
         builder.setSubject(new RyaURI(SUBJECT));
         builder.setObject(new RyaURI(OBJECT));
         builder.setContext(new RyaURI(CONTEXT));
+        builder.setColumnVisibility(DOCUMENT_VISIBILITY.flatten());
         builder.setTimestamp(null);
         testStatement = builder.build();
 
         testDBO = new BasicDBObject();
-        testDBO.put("_id", "d5f8fea0e85300478da2c9b4e132c69502e21221");
-        testDBO.put("subject", SUBJECT);
-        testDBO.put("predicate", PREDICATE);
-        testDBO.put("object", OBJECT);
-        testDBO.put("objectType", ANYURI.stringValue());
-        testDBO.put("context", CONTEXT);
-        testDBO.put("statementMetadata", STATEMENT_METADATA);
-        testDBO.put("insertTimestamp", null);
+        testDBO.put(SimpleMongoDBStorageStrategy.ID, "d5f8fea0e85300478da2c9b4e132c69502e21221");
+        testDBO.put(SimpleMongoDBStorageStrategy.SUBJECT, SUBJECT);
+        testDBO.put(SimpleMongoDBStorageStrategy.PREDICATE, PREDICATE);
+        testDBO.put(SimpleMongoDBStorageStrategy.OBJECT, OBJECT);
+        testDBO.put(SimpleMongoDBStorageStrategy.OBJECT_TYPE, ANYURI.stringValue());
+        testDBO.put(SimpleMongoDBStorageStrategy.CONTEXT, CONTEXT);
+        testDBO.put(SimpleMongoDBStorageStrategy.STATEMENT_METADATA, STATEMENT_METADATA);
+        try {
+            testDBO.put(SimpleMongoDBStorageStrategy.DOCUMENT_VISIBILITY, DocumentVisibilityUtil.toMultidimensionalArray(DOCUMENT_VISIBILITY));
+        } catch (final DocumentVisibilityConversionException e) {
+            e.printStackTrace();
+        }
+        testDBO.put(SimpleMongoDBStorageStrategy.TIMESTAMP, null);
     }
 
     @Test
@@ -76,7 +85,7 @@ public class SimpleMongoDBStorageStrategyTest {
     @Test
     public void testDeSerializeStatementToDBO() throws RyaDAOException, MongoException, IOException {
         final RyaStatement statement = storageStrategy.deserializeDBObject(testDBO);
-        /**
+        /*
          * Since RyaStatement creates a timestamp using JVM time if the timestamp is null, we want to re-null it
          * for this test.  Timestamp is created at insert time by the Server, this test
          * can be found in the RyaDAO.

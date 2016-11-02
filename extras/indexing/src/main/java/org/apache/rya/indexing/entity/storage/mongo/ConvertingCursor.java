@@ -20,10 +20,11 @@ package org.apache.rya.indexing.entity.storage.mongo;
 
 import static java.util.Objects.requireNonNull;
 
+import java.io.Closeable;
 import java.io.IOException;
+import java.util.Iterator;
 import java.util.function.Function;
 
-import org.apache.rya.indexing.entity.storage.CloseableIterator;
 import org.bson.Document;
 
 import com.mongodb.client.MongoCursor;
@@ -34,7 +35,7 @@ import com.mongodb.client.MongoCursor;
  *
  * @param <T> - The type of object the Documents are converted into.
  */
-public class ConvertingCursor<T> implements CloseableIterator<T> {
+public class ConvertingCursor<T> implements Iterator<T>, Closeable {
 
     private final Converter<T> converter;
     private final MongoCursor<Document> cursor;
@@ -45,7 +46,7 @@ public class ConvertingCursor<T> implements CloseableIterator<T> {
      * @param converter - Converts the {@link Document}s returned by {@code cursor}. (not null)
      * @param cursor - Retrieves the {@link Document}s from a Mongo DB instance. (not null)
      */
-    public ConvertingCursor(Converter<T> converter, MongoCursor<Document> cursor) {
+    public ConvertingCursor(final Converter<T> converter, final MongoCursor<Document> cursor) {
         this.converter = requireNonNull(converter);
         this.cursor = requireNonNull(cursor);
     }

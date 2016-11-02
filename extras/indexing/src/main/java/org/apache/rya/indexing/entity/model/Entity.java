@@ -18,6 +18,8 @@
  */
 package org.apache.rya.indexing.entity.model;
 
+import static java.util.Objects.requireNonNull;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -26,12 +28,17 @@ import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Optional;
 
+import org.apache.http.annotation.Immutable;
 import org.apache.rya.api.domain.RyaURI;
 import org.apache.rya.indexing.entity.storage.EntityStorage;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
+
+import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
+import edu.umd.cs.findbugs.annotations.NonNull;
+import edu.umd.cs.findbugs.annotations.Nullable;
 
 /**
  * An {@link Entity} is a named concept that has at least one defined structure
@@ -64,7 +71,7 @@ import com.google.common.collect.Maps;
  * Once something has done so, it is an explicitly typed Entity.
  */
 @Immutable
-
+@DefaultAnnotation(NonNull.class)
 public class Entity {
 
     private final RyaURI subject;
@@ -84,11 +91,11 @@ public class Entity {
             final RyaURI subject,
             final ImmutableList<RyaURI> explicitTypeIds,
             final ImmutableMap<RyaURI, ImmutableMap<RyaURI, Property>> typeProperties,
-            int version) {
-        subject = requireNonNull(subject);
-        explicitTypeIds = requireNonNull(explicitTypeIds);
+            final int version) {
+        this.subject = requireNonNull(subject);
+        this.explicitTypeIds = requireNonNull(explicitTypeIds);
         properties = requireNonNull(typeProperties);
-        version = version;
+        this.version = version;
     }
 
     /**
@@ -126,7 +133,7 @@ public class Entity {
     }
 
     @Override
-    public boolean equals(Object o) {
+    public boolean equals(final Object o) {
         if(this == o) {
             return true;
         }
@@ -147,7 +154,7 @@ public class Entity {
      * @return A TypedEntity using this object's values if any properties for the Type
      *    are present or if the Type was explicitly set. Otherwise an empty {@link Optional}.
      */
-    public Optional<TypedEntity> makeTypedEntity(RyaURI typeId) {
+    public Optional<TypedEntity> makeTypedEntity(final RyaURI typeId) {
         requireNonNull(typeId);
 
         final boolean explicitlyHasType = explicitTypeIds.contains(typeId);
@@ -186,14 +193,14 @@ public class Entity {
      * @param entity - The Entity the builder will be based on. (not null)
      * @return A {@link Builder} loaded with {@code entity}'s values.
      */
-    public static Builder builder(Entity entity) {
+    public static Builder builder(final Entity entity) {
         return new Builder(entity);
     }
 
     /**
      * Builds instances of {@link Entity}.
      */
-    @ParametersAreNonnullByDefault
+    @DefaultAnnotation(NonNull.class)
     public static class Builder {
 
         private RyaURI subject = null;
@@ -212,7 +219,7 @@ public class Entity {
          *
          * @param entity - The Entity the builder will be based on. (not null)
          */
-        public Builder(Entity entity) {
+        public Builder(final Entity entity) {
             requireNonNull(entity);
 
             subject = entity.getSubject();
@@ -230,7 +237,7 @@ public class Entity {
          * @return This {@link Builder} so that method invocations may be chained.
          */
         public Builder setSubject(@Nullable final RyaURI subject) {
-            subject = subject;
+            this.subject = subject;
             return this;
         }
 
@@ -300,8 +307,8 @@ public class Entity {
          * {@link EntityStorage} to prevent stale updates.
          * @return This {@link Builder} so that method invocations may be chained.
          */
-        public Builder setVersion(int version) {
-            version = version;
+        public Builder setVersion(final int version) {
+            this.version = version;
             return this;
         }
 

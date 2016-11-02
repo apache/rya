@@ -26,13 +26,11 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import javax.annotation.ParametersAreNonnullByDefault;
-
+import org.apache.rya.api.domain.RyaURI;
 import org.apache.rya.indexing.entity.model.Entity;
 import org.apache.rya.indexing.entity.model.Property;
 import org.apache.rya.indexing.entity.model.Type;
 import org.apache.rya.indexing.entity.model.TypedEntity;
-import org.apache.rya.indexing.entity.storage.CloseableIterator;
 import org.apache.rya.indexing.entity.storage.EntityStorage;
 import org.apache.rya.indexing.entity.storage.mongo.ConvertingCursor.Converter;
 import org.apache.rya.indexing.entity.storage.mongo.DocumentConverter.DocumentConverterException;
@@ -47,12 +45,13 @@ import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoCursor;
 import com.mongodb.client.model.Filters;
 
-import mvm.rya.api.domain.RyaURI;
+import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
+import edu.umd.cs.findbugs.annotations.NonNull;
 
 /**
  * A Mongo DB implementation of {@link EntityStorage}.
  */
-@ParametersAreNonnullByDefault
+@DefaultAnnotation(NonNull.class)
 public class MongoEntityStorage implements EntityStorage {
 
     private static final String COLLECTION_NAME = "entity-entities";
@@ -75,13 +74,13 @@ public class MongoEntityStorage implements EntityStorage {
      * @param mongo - A client connected to the Mongo instance that hosts the Rya instance. (not null)
      * @param ryaInstanceName - The name of the Rya instance the {@link TypedEntity}s are for. (not null)
      */
-    public MongoEntityStorage(MongoClient mongo, String ryaInstanceName) {
+    public MongoEntityStorage(final MongoClient mongo, final String ryaInstanceName) {
         this.mongo = requireNonNull(mongo);
         this.ryaInstanceName = requireNonNull(ryaInstanceName);
     }
 
     @Override
-    public void create(Entity entity) throws EntityStorageException {
+    public void create(final Entity entity) throws EntityStorageException {
         requireNonNull(entity);
 
         try {
@@ -99,7 +98,7 @@ public class MongoEntityStorage implements EntityStorage {
     }
 
     @Override
-    public void update(Entity old, Entity updated) throws StaleUpdateException, EntityStorageException {
+    public void update(final Entity old, final Entity updated) throws StaleUpdateException, EntityStorageException {
         requireNonNull(old);
         requireNonNull(updated);
 
@@ -134,7 +133,7 @@ public class MongoEntityStorage implements EntityStorage {
     }
 
     @Override
-    public Optional<Entity> get(RyaURI subject) throws EntityStorageException {
+    public Optional<Entity> get(final RyaURI subject) throws EntityStorageException {
         requireNonNull(subject);
 
         try {
@@ -153,7 +152,7 @@ public class MongoEntityStorage implements EntityStorage {
     }
 
     @Override
-    public CloseableIterator<TypedEntity> search(final Type type, final Set<Property> properties) throws EntityStorageException {
+    public ConvertingCursor<TypedEntity> search(final Optional<RyaURI> subject, final Type type, final Set<Property> properties) throws EntityStorageException {
         requireNonNull(type);
         requireNonNull(properties);
 
@@ -197,7 +196,7 @@ public class MongoEntityStorage implements EntityStorage {
     }
 
     @Override
-    public boolean delete(RyaURI subject) throws EntityStorageException {
+    public boolean delete(final RyaURI subject) throws EntityStorageException {
         requireNonNull(subject);
 
         try {
@@ -212,19 +211,19 @@ public class MongoEntityStorage implements EntityStorage {
         }
     }
 
-    private static Bson makeSubjectFilter(RyaURI subject) {
+    private static Bson makeSubjectFilter(final RyaURI subject) {
         return Filters.eq(EntityDocumentConverter.SUBJECT, subject.getData());
     }
 
-    private static Bson makeVersionFilter(int version) {
+    private static Bson makeVersionFilter(final int version) {
         return Filters.eq(EntityDocumentConverter.VERSION, version);
     }
 
-    private static Bson makeExplicitTypeFilter(RyaURI typeId) {
+    private static Bson makeExplicitTypeFilter(final RyaURI typeId) {
         return Filters.eq(EntityDocumentConverter.EXPLICIT_TYPE_IDS, typeId.getData());
     }
 
-    private static Stream<Bson> makePropertyFilters(RyaURI typeId, Property property) {
+    private static Stream<Bson> makePropertyFilters(final RyaURI typeId, final Property property) {
         final String propertyName = property.getName().getData();
 
         // Must match the property's data type.

@@ -18,23 +18,37 @@
  */
 package org.apache.rya.indexing.entity.query;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 
+import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.rya.api.domain.RyaURI;
+import org.apache.rya.api.resolver.RdfToRyaConversions;
+import org.apache.rya.indexing.entity.model.Entity;
+import org.apache.rya.indexing.entity.model.Property;
 import org.apache.rya.indexing.entity.model.Type;
-import org.apache.rya.indexing.entity.query.EntityQueryNode;
 import org.apache.rya.indexing.entity.storage.EntityStorage;
+import org.apache.rya.indexing.entity.storage.mongo.MongoEntityStorage;
+import org.apache.rya.mongodb.MockMongoFactory;
 import org.junit.Test;
+import org.openrdf.model.ValueFactory;
+import org.openrdf.model.impl.ValueFactoryImpl;
 import org.openrdf.model.vocabulary.RDF;
+import org.openrdf.query.BindingSet;
 import org.openrdf.query.MalformedQueryException;
+import org.openrdf.query.QueryEvaluationException;
 import org.openrdf.query.algebra.StatementPattern;
 import org.openrdf.query.algebra.helpers.StatementPatternCollector;
+import org.openrdf.query.impl.MapBindingSet;
 import org.openrdf.query.parser.sparql.SPARQLParser;
 
 import com.google.common.collect.ImmutableSet;
+import com.mongodb.MongoClient;
 
-import mvm.rya.api.domain.RyaURI;
+import info.aduna.iteration.CloseableIteration;
 
 /**
  * Unit tests the methods of {@link EntityQueryNode}.
@@ -136,16 +150,21 @@ public class EntityQueryNodeTest {
         new EntityQueryNode(EMPLOYEE_TYPE, patterns, mock(EntityStorage.class));
     }
 
-    // Happy path test.
-
-    // TODO test for all of the types of preconditions
-    //      test when a binding set can join
-    //      test when a binding set does not join
-    //      test when there are constants that are part of the query
-    //      test when there are variables that are part of the query.
-
     @Test
     public void evaluate_constantSubject() throws Exception {
+        final MongoClient client = MockMongoFactory.newFactory().newMongoClient();
+        final EntityStorage storage = new MongoEntityStorage(client, "testDB");
+        final ValueFactory vf = ValueFactoryImpl.getInstance();
+        final RyaURI subject = new RyaURI("urn:SSN:111-11-1111");
+        final Entity entity = Entity.builder()
+            .setSubject(subject)
+            .setExplicitType(PERSON_TYPE.getId())
+            .setProperty(PERSON_TYPE.getId(), new Property(new RyaURI("urn:age"), RdfToRyaConversions.convertLiteral(vf.createLiteral(20))))
+            .setProperty(PERSON_TYPE.getId(), new Property(new RyaURI("urn:eye"), RdfToRyaConversions.convertLiteral(vf.createLiteral("blue"))))
+            .setProperty(PERSON_TYPE.getId(), new Property(new RyaURI("urn:name"), RdfToRyaConversions.convertLiteral(vf.createLiteral("Bob"))))
+            .build();
+
+        storage.create(entity);
         // A set of patterns that match a sepecific Entity subject.
         final List<StatementPattern> patterns = getSPs(
                 "SELECT * WHERE { " +
@@ -155,30 +174,107 @@ public class EntityQueryNodeTest {
                     "<urn:SSN:111-11-1111> <urn:name> ?name . " +
                 "}");
 
-        new EntityQueryNode(PERSON_TYPE, patterns, mock(EntityStorage.class));
-
-
-        // TODO implement
+        final EntityQueryNode node = new EntityQueryNode(PERSON_TYPE, patterns, storage);
+        final CloseableIteration<BindingSet, QueryEvaluationException> rez = node.evaluate(new MapBindingSet());
+        final MapBindingSet expected = new MapBindingSet();
+        expected.addBinding("age", vf.createLiteral("20"));
+        expected.addBinding("eye", vf.createLiteral("blue"));
+        expected.addBinding("name", vf.createLiteral("Bob"));
+        while(rez.hasNext()) {
+            assertEquals(expected, rez.next());
+            break;
+        }
     }
 
     @Test
     public void evaluate_variableSubject() throws Exception {
-        // A set of patterns that matches a variable Entity subject.
+        final MongoClient client = MockMongoFactory.newFactory().newMongoClient();
+        final EntityStorage storage = new MongoEntityStorage(client, "testDB");
+        final ValueFactory vf = ValueFactoryImpl.getInstance();
+        RyaURI subject = new RyaURI("urn:SSN:111-11-1111");
+        final Entity bob = Entity.builder()
+                .setSubject(subject)
+                .setExplicitType(PERSON_TYPE.getId())
+                .setProperty(PERSON_TYPE.getId(), new Property(new RyaURI("urn:age"), RdfToRyaConversions.convertLiteral(vf.createLiteral(20))))
+                .setProperty(PERSON_TYPE.getId(), new Property(new RyaURI("urn:eye"), RdfToRyaConversions.convertLiteral(vf.createLiteral("blue"))))
+                .setProperty(PERSON_TYPE.getId(), new Property(new RyaURI("urn:name"), RdfToRyaConversions.convertLiteral(vf.createLiteral("Bob"))))
+                .build();
+
+        subject = new RyaURI("urn:SSN:222-22-2222");
+        final Entity fred = Entity.builder()
+                .setSubject(subject)
+                .setExplicitType(PERSON_TYPE.getId())
+                .setProperty(PERSON_TYPE.getId(), new Property(new RyaURI("urn:age"), RdfToRyaConversions.convertLiteral(vf.createLiteral(25))))
+                .setProperty(PERSON_TYPE.getId(), new Property(new RyaURI("urn:eye"), RdfToRyaConversions.convertLiteral(vf.createLiteral("brown"))))
+                .setProperty(PERSON_TYPE.getId(), new Property(new RyaURI("urn:name"), RdfToRyaConversions.convertLiteral(vf.createLiteral("Fred"))))
+                .build();
+
+        storage.create(bob);
+        storage.create(fred);
+        // A set of patterns that match a sepecific Entity subject.
         final List<StatementPattern> patterns = getSPs(
                 "SELECT * WHERE { " +
-                    "?subject <" + RDF.TYPE + "> <urn:person> ."+
-                    "?subject <urn:age> ?age . " +
-                    "?subject <urn:eye> ?eye . " +
-                    "?subject <urn:name> ?name . " +
+                    "?ssn <" + RDF.TYPE + "> <urn:person> ."+
+                    "?ssn <urn:age> ?age . " +
+                    "?ssn <urn:eye> ?eye . " +
+                    "?ssn <urn:name> ?name . " +
                 "}");
 
-        new EntityQueryNode(PERSON_TYPE, patterns, mock(EntityStorage.class));
+        final EntityQueryNode node = new EntityQueryNode(PERSON_TYPE, patterns, storage);
+        final CloseableIteration<BindingSet, QueryEvaluationException> rez = node.evaluate(new MapBindingSet());
+        final List<BindingSet> expectedBindings = new ArrayList<>();
+        final MapBindingSet expectedBob = new MapBindingSet();
+        expectedBob.addBinding("age", vf.createLiteral("20"));
+        expectedBob.addBinding("eye", vf.createLiteral("blue"));
+        expectedBob.addBinding("name", vf.createLiteral("Bob"));
 
-
-        // TODO implement
+        final MapBindingSet expectedFred = new MapBindingSet();
+        expectedFred.addBinding("age", vf.createLiteral("25"));
+        expectedFred.addBinding("eye", vf.createLiteral("brown"));
+        expectedFred.addBinding("name", vf.createLiteral("Fred"));
+        expectedBindings.add(expectedBob);
+        expectedBindings.add(expectedFred);
+        while(rez.hasNext()) {
+            final BindingSet bs = rez.next();
+            assertTrue(expectedBindings.contains(bs));
+        }
     }
 
+    @Test
+    public void evaluate_constantObject() throws Exception {
+        final MongoClient client = MockMongoFactory.newFactory().newMongoClient();
+        final EntityStorage storage = new MongoEntityStorage(client, "testDB");
+        final ValueFactory vf = ValueFactoryImpl.getInstance();
+        final RyaURI subject = new RyaURI("urn:SSN:111-11-1111");
+        final Entity entity = Entity.builder()
+            .setSubject(subject)
+            .setExplicitType(PERSON_TYPE.getId())
+            .setProperty(PERSON_TYPE.getId(), new Property(new RyaURI("urn:age"), RdfToRyaConversions.convertLiteral(vf.createLiteral(20))))
+            .setProperty(PERSON_TYPE.getId(), new Property(new RyaURI("urn:eye"), RdfToRyaConversions.convertLiteral(vf.createLiteral("blue"))))
+            .setProperty(PERSON_TYPE.getId(), new Property(new RyaURI("urn:name"), RdfToRyaConversions.convertLiteral(vf.createLiteral("Bob"))))
+            .build();
 
+        storage.create(entity);
+        // A set of patterns that match a sepecific Entity subject.
+        final List<StatementPattern> patterns = getSPs(
+                "SELECT * WHERE { " +
+                    "<urn:SSN:111-11-1111> <" + RDF.TYPE + "> <urn:person> ."+
+                    "<urn:SSN:111-11-1111> <urn:age> ?age . " +
+                    "<urn:SSN:111-11-1111> <urn:eye> \"blue\" . " +
+                    "<urn:SSN:111-11-1111> <urn:name> ?name . " +
+                "}");
+
+        final EntityQueryNode node = new EntityQueryNode(PERSON_TYPE, patterns, storage);
+        final CloseableIteration<BindingSet, QueryEvaluationException> rez = node.evaluate(new MapBindingSet());
+        final MapBindingSet expected = new MapBindingSet();
+        expected.addBinding("age", vf.createLiteral("20"));
+        expected.addBinding("-const-blue", vf.createLiteral("blue"));
+        expected.addBinding("name", vf.createLiteral("Bob"));
+        while(rez.hasNext()) {
+            assertEquals(expected, rez.next());
+            break;
+        }
+    }
 
     /**
      * TODO doc
@@ -187,7 +283,7 @@ public class EntityQueryNodeTest {
      * @return
      * @throws MalformedQueryException
      */
-    private static List<StatementPattern> getSPs(String sparql) throws MalformedQueryException {
+    private static List<StatementPattern> getSPs(final String sparql) throws MalformedQueryException {
         final StatementPatternCollector spCollector = new StatementPatternCollector();
         new SPARQLParser().parseQuery(sparql, null).getTupleExpr().visit(spCollector);
         return spCollector.getStatementPatterns();

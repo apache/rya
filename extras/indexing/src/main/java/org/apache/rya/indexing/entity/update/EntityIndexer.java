@@ -18,10 +18,13 @@
  */
 package org.apache.rya.indexing.entity.update;
 
+import org.apache.hadoop.conf.Configuration;
+import org.apache.rya.api.domain.RyaStatement;
+import org.apache.rya.api.persist.index.RyaSecondaryIndexer;
 import org.apache.rya.indexing.entity.storage.EntityStorage;
+import org.apache.rya.indexing.entity.storage.TypeStorage;
 
-import mvm.rya.api.domain.RyaStatement;
-import mvm.rya.api.persist.index.RyaSecondaryIndexer;
+import edu.umd.cs.findbugs.annotations.Nullable;
 
 /**
  * Updates the {@link Entity}s that are in a {@link EntityStorage} when new
@@ -29,4 +32,19 @@ import mvm.rya.api.persist.index.RyaSecondaryIndexer;
  */
 public interface EntityIndexer extends RyaSecondaryIndexer {
 
+    /**
+     * Creates the {@link EntityStorage} that will be used by the indexer.
+     *
+     * @param conf - Indicates how the {@link EntityStorage} is initialized. (not null)
+     * @return The {@link EntityStorage} that will be used by this indexer.
+     */
+    public @Nullable EntityStorage getEntityStorage(Configuration conf);
+
+    /**
+     * Creates the {@link TypeStorage} that will be used by the indexer.
+     *
+     * @param conf - Indicates how the {@link TypeStorage} is initialized. (not null)
+     * @return The {@link TypeStorage} that will be used by this indexer.
+     */
+    public @Nullable TypeStorage getTypeStorage(Configuration conf);
 }

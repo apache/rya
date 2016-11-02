@@ -23,19 +23,19 @@ import static java.util.Objects.requireNonNull;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.annotation.ParametersAreNonnullByDefault;
-
+import org.apache.rya.api.domain.RyaURI;
 import org.apache.rya.indexing.entity.model.Type;
 import org.bson.Document;
 
 import com.google.common.collect.ImmutableSet;
 
-import mvm.rya.api.domain.RyaURI;
+import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
+import edu.umd.cs.findbugs.annotations.NonNull;
 
 /**
  * Converts between {@link Type} and {@link Document}.
  */
-@ParametersAreNonnullByDefault
+@DefaultAnnotation(NonNull.class)
 public class TypeDocumentConverter implements DocumentConverter<Type> {
 
     public static final String ID = "_id";

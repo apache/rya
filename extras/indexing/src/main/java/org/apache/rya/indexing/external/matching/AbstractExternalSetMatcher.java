@@ -1,3 +1,21 @@
+/**
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
 package org.apache.rya.indexing.external.matching;
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -64,7 +82,7 @@ public abstract class AbstractExternalSetMatcher<T extends ExternalSet> implemen
     protected TupleExpr tuple;
     protected Set<TupleExpr> unmatched;
     protected Set<Filter> filters;
-    private QuerySegmentFactory<T> factory = new QuerySegmentFactory<T>();
+    private final QuerySegmentFactory<T> factory = new QuerySegmentFactory<T>();
 
     /**
      * Matches {@link QuerySegment} with underlying QuerySegment. If match
@@ -85,7 +103,7 @@ public abstract class AbstractExternalSetMatcher<T extends ExternalSet> implemen
     /**
      * In following method, order is determined by the order in which the node
      * appear in the query.
-     * 
+     *
      * @return - an ordered view of the QueryModelNodes appearing tuple
      *
      */
@@ -110,14 +128,14 @@ public abstract class AbstractExternalSetMatcher<T extends ExternalSet> implemen
     }
 
     @Override
-    public QuerySegment<T> nodeToQuerySegment(QueryModelNode node) {
+    public QuerySegment<T> nodeToQuerySegment(final QueryModelNode node) {
         return factory.getQuerySegment(node);
     }
 
     @Override
     public List<QueryModelNode> getAllUnmatchedNodes() {
-        List<QueryModelNode> unmatched = new ArrayList<>();
-        for (QueryModelNode node : segmentNodeList) {
+        final List<QueryModelNode> unmatched = new ArrayList<>();
+        for (final QueryModelNode node : segmentNodeList) {
             if (!(node instanceof ExternalSet)) {
                 unmatched.add(node);
             }
@@ -136,8 +154,8 @@ public abstract class AbstractExternalSetMatcher<T extends ExternalSet> implemen
             if (q instanceof UnaryTupleOperator || q instanceof BinaryTupleOperator) {
                 unmatched.add((TupleExpr) q);
             } else if (q instanceof FlattenedOptional) {
-                FlattenedOptional opt = (FlattenedOptional) q;
-                TupleExpr rightArg = opt.getRightArg();
+                final FlattenedOptional opt = (FlattenedOptional) q;
+                final TupleExpr rightArg = opt.getRightArg();
                 if (rightArg instanceof UnaryTupleOperator || rightArg instanceof BinaryTupleOperator) {
                     unmatched.add(rightArg);
                 }

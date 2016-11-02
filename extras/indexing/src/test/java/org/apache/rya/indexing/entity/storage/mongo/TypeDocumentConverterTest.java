@@ -20,16 +20,14 @@ package org.apache.rya.indexing.entity.storage.mongo;
 
 import static org.junit.Assert.assertEquals;
 
+import org.apache.rya.api.domain.RyaURI;
 import org.apache.rya.indexing.entity.model.Type;
-import org.apache.rya.indexing.entity.storage.mongo.TypeDocumentConverter;
 import org.apache.rya.indexing.entity.storage.mongo.DocumentConverter.DocumentConverterException;
 import org.bson.Document;
 import org.junit.Test;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
-
-import mvm.rya.api.domain.RyaURI;
 
 /**
  * Tests the methods of {@link TypeDocumentConverter}.

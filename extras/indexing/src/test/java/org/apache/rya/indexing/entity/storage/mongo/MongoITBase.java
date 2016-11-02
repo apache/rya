@@ -18,20 +18,18 @@
  */
 package org.apache.rya.indexing.entity.storage.mongo;
 
-import java.net.UnknownHostException;
 import java.util.HashSet;
 import java.util.Set;
 
 import org.apache.hadoop.conf.Configuration;
+import org.apache.rya.mongodb.MockMongoFactory;
+import org.apache.rya.mongodb.MongoConnectorFactory;
+import org.apache.rya.mongodb.MongoDBRdfConfiguration;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 
 import com.mongodb.MongoClient;
-import com.mongodb.MongoException;
-
-import mvm.rya.mongodb.MongoConnectorFactory;
-import mvm.rya.mongodb.MongoDBRdfConfiguration;
 
 /**
  * A base class that may be used when implementing Mongo DB integration tests that
@@ -41,14 +39,15 @@ public class MongoITBase {
 
     private MongoClient mongoClient = null;
     private Set<String> originalDbNames = null;
+    protected MongoDBRdfConfiguration conf;
 
     @Before
-    public void setupTest() throws UnknownHostException, MongoException {
-        final MongoDBRdfConfiguration conf = new MongoDBRdfConfiguration( new Configuration() );
-        conf.setUseTestMongo(true);
+    public void setupTest() throws Exception {
+        conf = new MongoDBRdfConfiguration( new Configuration() );
         conf.setMongoDBName("testDB");
+        mongoClient = MockMongoFactory.newFactory().newMongoClient();
+        conf.setMongoClient(mongoClient);
 
-        mongoClient = MongoConnectorFactory.getMongoClient(conf);
 
         // Store the names of the DBs that are present before running the test.
         originalDbNames = new HashSet<>();
@@ -69,7 +68,7 @@ public class MongoITBase {
 
     @AfterClass
     public static void shutdown() {
-        MongoConnectorFactory.shutdown();
+        MongoConnectorFactory.closeMongoClient();
     }
 
     /**

@@ -366,16 +366,7 @@ public abstract class ITBase {
         return conf;
     }
 
-    /**
-     * Setup a Mini Fluo cluster that uses a temporary directory to store its data.
-     *
-     * @return A Mini Fluo cluster.
-     */
     protected MiniFluo startMiniFluo() throws AlreadyInitializedException, TableExistsException {
-        startMiniFluo(false);
-    }
-
-    protected MiniFluo startMiniFluo(boolean isExportKafka) throws AlreadyInitializedException, TableExistsException {
         // Setup the observers that will be used by the Fluo PCJ Application.
         final List<ObserverSpecification> observers = new ArrayList<>();
         observers.add(new ObserverSpecification(TripleObserver.class.getName()));
@@ -383,12 +374,10 @@ public abstract class ITBase {
         observers.add(new ObserverSpecification(JoinObserver.class.getName()));
         observers.add(new ObserverSpecification(FilterObserver.class.getName()));
 
+        // Set export details for exporting from Fluo to a Rya repository and a subscriber queue.
         final HashMap<String, String> exportParams = new HashMap<>();
         setExportParameters(exportParams);
         
-        // if (kafka ) {
-        // //kafka
-        // }
         // Configure the export observer to export new PCJ results to the mini accumulo cluster.
         final ObserverSpecification exportObserverConfig = new ObserverSpecification(QueryResultObserver.class.getName(), exportParams);
         observers.add(exportObserverConfig);
@@ -408,11 +397,17 @@ public abstract class ITBase {
         config.addObservers(observers);
 
         FluoFactory.newAdmin(config).initialize(
-        		new FluoAdmin.InitializationOptions().setClearTable(true).setClearZookeeper(true) );
+                        new FluoAdmin.InitializationOptions().setClearTable(true).setClearZookeeper(true));
         return FluoFactory.newMiniFluo(config);
     }
 
-    private void setExportParameters(final HashMap<String, String> exportParams) {
+    /**
+     * Set export details for exporting from Fluo to a Rya repository and a subscriber queue.
+     * Override this if you have custom export destinations.
+     * 
+     * @param exportParams
+     */
+    protected void setExportParameters(final HashMap<String, String> exportParams) {
         final RyaExportParameters ryaParams = new RyaExportParameters(exportParams);
         ryaParams.setExportToRya(true);
         ryaParams.setRyaInstanceName(RYA_INSTANCE_NAME);

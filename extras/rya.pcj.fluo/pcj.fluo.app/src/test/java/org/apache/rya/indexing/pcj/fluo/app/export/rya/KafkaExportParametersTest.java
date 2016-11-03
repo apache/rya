@@ -50,7 +50,7 @@ public class KafkaExportParametersTest {
         expectedParams.put(KafkaExportParameters.CONF_EXPORT_TO_KAFKA, "false");
         kafkaParams.setExportToKafka(false);
         assertFalse(kafkaParams.isExportToKafka());
-        assertEquals(expectedParams, true);
+        assertEquals(expectedParams, params);
     }
 
     @Test

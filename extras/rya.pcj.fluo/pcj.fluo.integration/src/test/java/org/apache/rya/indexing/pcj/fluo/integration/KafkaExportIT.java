@@ -20,6 +20,7 @@ package org.apache.rya.indexing.pcj.fluo.integration;
 
 import static org.junit.Assert.assertEquals;
 
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -27,6 +28,7 @@ import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.indexing.pcj.fluo.ITBase;
 import org.apache.rya.indexing.pcj.fluo.api.CreatePcj;
 import org.apache.rya.indexing.pcj.fluo.api.InsertTriples;
+import org.apache.rya.indexing.pcj.fluo.app.export.rya.KafkaExportParameters;
 import org.apache.rya.indexing.pcj.storage.PrecomputedJoinStorage;
 import org.apache.rya.indexing.pcj.storage.accumulo.AccumuloPcjStorage;
 import org.junit.Test;
@@ -101,5 +103,19 @@ public class KafkaExportIT extends ITBase {
         // Verify the end results of the query match the expected results.
         assertEquals(expected, results);
     }
-}
 
+    /**
+     * Add info about the kafka queue/topic to receive the export.
+     * Call super to get the Rya parameters.
+     * 
+     * @see org.apache.rya.indexing.pcj.fluo.ITBase#setExportParameters(java.util.HashMap)
+     */
+    @Override
+    protected void setExportParameters(HashMap<String, String> exportParams) {
+        // Get the defaults
+        super.setExportParameters(exportParams);
+        // Add the kafka parameters
+        final KafkaExportParameters ryaParams = new KafkaExportParameters(exportParams);
+        ryaParams.setExportToKafka(true);
+    }
+}

@@ -19,6 +19,7 @@
 package org.apache.rya.indexing.pcj.fluo.app.export.rya;
 
 import org.apache.fluo.api.observer.Observer.Context;
+import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.rya.indexing.pcj.fluo.app.export.IncrementalResultExporter;
 import org.apache.rya.indexing.pcj.fluo.app.export.IncrementalResultExporterFactory;
 
@@ -39,8 +40,10 @@ public class KafkaResultExporterFactory implements IncrementalResultExporterFact
         final KafkaExportParameters params = new KafkaExportParameters(context.getObserverConfiguration().toMap());
         System.out.println("KafkaResultExporterFactory.build(): params.isExportToKafka()=" + params.isExportToKafka());
         if (params.isExportToKafka()) {
-            /* todo Setup Kafka connection */
-            final IncrementalResultExporter exporter = new KafkaResultExporter();
+            // Setup Kafka connection
+            KafkaProducer<String, String> producer = new KafkaProducer<String, String>(params)//TODO;
+            // Create the exporter
+            final IncrementalResultExporter exporter = new KafkaResultExporter(producer);
             return Optional.of(exporter);
         } else {
             return Optional.absent();

@@ -18,12 +18,18 @@
  */
 package org.apache.rya.indexing.pcj.fluo.integration;
 
-import static org.junit.Assert.assertEquals;
-
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Properties;
 import java.util.Set;
 
+import org.apache.kafka.clients.consumer.ConsumerConfig;
+import org.apache.kafka.clients.consumer.ConsumerRecord;
+import org.apache.kafka.clients.consumer.ConsumerRecords;
+import org.apache.kafka.clients.consumer.KafkaConsumer;
+import org.apache.kafka.clients.producer.ProducerConfig;
+import org.apache.kafka.common.errors.WakeupException;
 import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.indexing.pcj.fluo.ITBase;
 import org.apache.rya.indexing.pcj.fluo.api.CreatePcj;
@@ -89,7 +95,8 @@ public class KafkaExportIT extends ITBase {
         final String pcjId = pcjStorage.createPcj(sparql);
 
         // Tell the Fluo app to maintain the PCJ.
-        new CreatePcj().withRyaIntegration(pcjId, pcjStorage, fluoClient, ryaRepo);
+        CreatePcj createPcj = new CreatePcj();
+        String QueryIdIsTopicName = createPcj.withRyaIntegration(pcjId, pcjStorage, fluoClient, ryaRepo);
 
         // Stream the data into Fluo.
         new InsertTriples().insert(fluoClient, streamedTriples, Optional.<String> absent());
@@ -98,11 +105,15 @@ public class KafkaExportIT extends ITBase {
         fluo.waitForObservers();
 
         // Fetch expected results from the PCJ table that is in Accumulo.
-        final Set<BindingSet> results = Sets.newHashSet(pcjStorage.listResults(pcjId));
-
+        // final Set<BindingSet> results = Sets.newHashSet(pcjStorage.listResults(pcjId));
         // Verify the end results of the query match the expected results.
-        assertEquals(expected, results);
+        // assertEquals(expected, results);
+
+        // TODO Grab from Kafka topic instead of RYA
+        ITConsumer consumer = new ITConsumer();
+        consumer.consume(QueryIdIsTopicName, "theOnlyGroup"); // TODO what is this group thing and how to ignore/use it?
     }
+
 
     /**
      * Add info about the kafka queue/topic to receive the export.
@@ -115,7 +126,68 @@ public class KafkaExportIT extends ITBase {
         // Get the defaults
         super.setExportParameters(exportParams);
         // Add the kafka parameters
-        final KafkaExportParameters ryaParams = new KafkaExportParameters(exportParams);
-        ryaParams.setExportToKafka(true);
+        final KafkaExportParameters kafkaParams = new KafkaExportParameters(exportParams);
+        kafkaParams.setExportToKafka(true);
+        // Configure the Producer
+        Properties producerConfig = new Properties();
+        producerConfig.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092");
+        producerConfig.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, "org.apache.kafka.common.serialization.ByteArraySerializer");
+        producerConfig.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, "org.apache.kafka.common.serialization.StringSerializer");
+        kafkaParams.setProducerConfig(producerConfig);
+    }
+}
+
+final class ITConsumer {
+    private static boolean stop = false;
+
+    public static void consume(String topicName, String groupId) throws Exception {
+        ConsumerThread consumerRunnable = new ConsumerThread(topicName, groupId);
+        consumerRunnable.start();
+        Runtime.getRuntime().wait(100);// cheap way to let things happen.
+        consumerRunnable.getKafkaConsumer().wakeup();
+        System.out.println("Stopping consumer .....");
+        consumerRunnable.join(100); // wait no more than 100ms to terminate.
+    }
+
+    private static class ConsumerThread extends Thread {
+        private String topicName;
+        private String groupId;
+        private KafkaConsumer<String, String> kafkaConsumer;
+
+        public ConsumerThread(String topicName, String groupId) {
+            this.topicName = topicName;
+            this.groupId = groupId;
+        }
+
+        @Override
+        public void run() {
+            Properties configProperties = new Properties();
+            configProperties.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092");
+            configProperties.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, "org.apache.kafka.common.serialization.StringDeserializer");
+            configProperties.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, "org.apache.kafka.common.serialization.StringDeserializer");
+            configProperties.put(ConsumerConfig.GROUP_ID_CONFIG, groupId);
+            configProperties.put(ConsumerConfig.CLIENT_ID_CONFIG, "simple");
+
+            // Figure out where to start processing messages from
+            kafkaConsumer = new KafkaConsumer<String, String>(configProperties);
+            kafkaConsumer.subscribe(Arrays.asList(topicName));
+            // Start processing messages
+            try {
+                while (true) {
+                    ConsumerRecords<String, String> records = kafkaConsumer.poll(100);
+                    for (ConsumerRecord<String, String> record : records)
+                        System.out.println(record.value());
+                }
+            } catch (WakeupException ex) {
+                System.out.println("Exception caught " + ex.getMessage());
+            } finally {
+                kafkaConsumer.close();
+                System.out.println("After closing KafkaConsumer");
+            }
+        }
+
+        public KafkaConsumer<String, String> getKafkaConsumer() {
+            return this.kafkaConsumer;
+        }
     }
 }

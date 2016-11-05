@@ -19,6 +19,7 @@
 package org.apache.rya.indexing.pcj.fluo.app.export.rya;
 
 import java.util.Map;
+import java.util.Properties;
 
 import org.apache.fluo.api.observer.Observer;
 import org.apache.rya.indexing.pcj.fluo.app.export.ParametersBase;
@@ -27,12 +28,13 @@ import org.apache.rya.indexing.pcj.fluo.app.export.ParametersBase;
  * Provides read/write functions to the parameters map that is passed into an
  * {@link Observer#init(io.fluo.api.observer.Observer.Context)} method related
  * to PCJ exporting to a kafka topic.
+ * Remember: if doesn't count unless it is added to params
  */
 
 public class KafkaExportParameters extends ParametersBase {
 
     public static final String CONF_EXPORT_TO_KAFKA = "pcj.fluo.export.kafka.enabled";
-    /* TODO Kafka connection information here */
+    private Properties producerConfig;
 
     public KafkaExportParameters(final Map<String, String> params) {
         super(params);
@@ -53,5 +55,19 @@ public class KafkaExportParameters extends ParametersBase {
      */
     public boolean isExportToKafka() {
         return getBoolean(params, CONF_EXPORT_TO_KAFKA, false);
+    }
+
+    /**
+     * Add the properties to the params.
+     * Would be better to keep them separate from the other params.
+     * Guaranteed by Properties: Each key and its corresponding value in the property list is a string.
+     * 
+     * @param producerConfig
+     */
+    public void setProducerConfig(final Properties producerConfig) {
+        for (Object key : producerConfig.keySet().toArray()) {
+            Object value = producerConfig.getProperty(key.toString());
+            this.params.put(key.toString(), value.toString());
+        }
     }
 }

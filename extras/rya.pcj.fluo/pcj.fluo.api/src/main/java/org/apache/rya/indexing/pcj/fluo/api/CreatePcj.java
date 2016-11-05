@@ -26,9 +26,8 @@ import static org.apache.rya.indexing.pcj.fluo.app.IncrementalUpdateConstants.NO
 import java.util.HashSet;
 import java.util.Set;
 
-import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
-import edu.umd.cs.findbugs.annotations.NonNull;
-
+import org.apache.fluo.api.client.FluoClient;
+import org.apache.fluo.api.client.Transaction;
 import org.apache.rya.indexing.pcj.fluo.app.FluoStringConverter;
 import org.apache.rya.indexing.pcj.fluo.app.query.FluoQuery;
 import org.apache.rya.indexing.pcj.fluo.app.query.FluoQueryColumns;
@@ -53,9 +52,9 @@ import org.openrdf.repository.sail.SailRepository;
 import org.openrdf.sail.SailConnection;
 import org.openrdf.sail.SailException;
 
+import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
+import edu.umd.cs.findbugs.annotations.NonNull;
 import info.aduna.iteration.CloseableIteration;
-import org.apache.fluo.api.client.FluoClient;
-import org.apache.fluo.api.client.Transaction;
 
 /**
  * Sets up a new Pre Computed Join (PCJ) in Fluo from a SPARQL query.
@@ -123,7 +122,7 @@ public class CreatePcj {
      * @throws SailException Historic PCJ results could not be loaded because of a problem with {@code rya}.
      * @throws QueryEvaluationException Historic PCJ results could not be loaded because of a problem with {@code rya}.
      */
-    public void withRyaIntegration(
+    public String withRyaIntegration(
             final String pcjId,
             final PrecomputedJoinStorage pcjStorage,
             final FluoClient fluo,
@@ -133,6 +132,9 @@ public class CreatePcj {
         requireNonNull(pcjStorage);
         requireNonNull(fluo);
         requireNonNull(rya);
+
+        // return queryId to the caller for later monitoring from the export.
+        String queryId = null;
 
         // Keeps track of the IDs that are assigned to each of the query's nodes in Fluo.
         // We use these IDs later when scanning Rya for historic Statement Pattern matches
@@ -150,7 +152,7 @@ public class CreatePcj {
             new FluoQueryMetadataDAO().write(tx, fluoQuery);
 
             // The results of the query are eventually exported to an instance of Rya, so store the Rya ID for the PCJ.
-            final String queryId = fluoQuery.getQueryMetadata().getNodeId();
+            queryId = fluoQuery.getQueryMetadata().getNodeId();
             tx.set(queryId, FluoQueryColumns.RYA_PCJ_ID, pcjId);
             tx.set(pcjId, FluoQueryColumns.PCJ_ID_QUERY_ID, queryId);
             
@@ -185,6 +187,7 @@ public class CreatePcj {
                 batch.clear();
             }
         }
+        return queryId;
     }
 
     /**

@@ -21,6 +21,8 @@ package org.apache.rya.indexing.pcj.fluo.app.export.rya;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import org.apache.fluo.api.client.TransactionBase;
+import org.apache.kafka.clients.producer.KafkaProducer;
+import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.rya.indexing.pcj.fluo.app.export.IncrementalResultExporter;
 import org.apache.rya.indexing.pcj.fluo.app.query.FluoQueryColumns;
 import org.apache.rya.indexing.pcj.storage.accumulo.VisibilityBindingSet;
@@ -29,6 +31,23 @@ import org.apache.rya.indexing.pcj.storage.accumulo.VisibilityBindingSet;
  * Incrementally exports SPARQL query results to Accumulo PCJ tables as they are defined by Rya.
  */
 public class KafkaResultExporter implements IncrementalResultExporter {
+    private final KafkaProducer<String, String> producer;
+
+    /**
+     * Constructor
+     * 
+     * @param producer
+     *            created by {@link KafkaResultExporterFactory}
+     */
+    public KafkaResultExporter(KafkaProducer<String, String> producer) {
+        super();
+        checkNotNull(producer, "Producer is required.");
+        this.producer = producer;
+    }
+
+    /**
+     * Send the results to the topic using the queryID as the topicname
+     */
     @Override
     public void export(final TransactionBase fluoTx, final String queryId, final VisibilityBindingSet result) throws ResultExportException {
         checkNotNull(fluoTx);
@@ -36,8 +55,15 @@ public class KafkaResultExporter implements IncrementalResultExporter {
         checkNotNull(result);
         try {
         final String pcjId = fluoTx.gets(queryId, FluoQueryColumns.RYA_PCJ_ID);
-        System.out.println("out to kafta topic: queryId=" + queryId + " pcjId=" + pcjId + " result=" + result);
-        // TODO send result on topic
+            String msg = "out to kafta topic: queryId=" + queryId + " pcjId=" + pcjId + " result=" + result;
+            System.out.println(msg);
+
+            // Send result on topic
+            ProducerRecord<String, String> rec = new ProducerRecord<String, String>(/* topicname= */ queryId, /* value= */ msg);
+            // Can add a key if you need to:
+            // ProducerRecord(String topic, K key, V value)
+            producer.send(rec);
+
         } catch (final Throwable e) {
             throw new ResultExportException("A result could not be exported to Kafka.", e);
         }

@@ -34,7 +34,6 @@ import org.apache.rya.indexing.pcj.fluo.app.export.ParametersBase;
 public class KafkaExportParameters extends ParametersBase {
 
     public static final String CONF_EXPORT_TO_KAFKA = "pcj.fluo.export.kafka.enabled";
-    private Properties producerConfig;
 
     public KafkaExportParameters(final Map<String, String> params) {
         super(params);
@@ -58,16 +57,30 @@ public class KafkaExportParameters extends ParametersBase {
     }
 
     /**
-     * Add the properties to the params.
-     * Would be better to keep them separate from the other params.
+     * Add the properties to the params, NOT keeping them separate from the other params.
      * Guaranteed by Properties: Each key and its corresponding value in the property list is a string.
      * 
      * @param producerConfig
      */
     public void setProducerConfig(final Properties producerConfig) {
+        // params.put(CONF_KAFKA_PRODUCER_PROPS, propertiesIntoXmlString(producerConfig));
         for (Object key : producerConfig.keySet().toArray()) {
             Object value = producerConfig.getProperty(key.toString());
             this.params.put(key.toString(), value.toString());
         }
     }
+
+    /**
+     * @return all the params (not just kafka producer Configuration) as a {@link Properties}
+     */
+    public Properties getProducerConfig() {
+        //        return propertiesFromXmlString(params.get(CONF_KAFKA_PRODUCER_PROPS));
+        Properties props = new Properties();
+        for (Object key : params.keySet().toArray()) {
+            Object value = params.get(key.toString());
+            props.put(key.toString(), value.toString());
+        }
+        return props;
+    }
+
 }

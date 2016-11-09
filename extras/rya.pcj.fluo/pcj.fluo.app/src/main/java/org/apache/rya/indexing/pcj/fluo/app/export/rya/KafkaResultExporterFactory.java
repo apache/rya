@@ -37,11 +37,11 @@ public class KafkaResultExporterFactory implements IncrementalResultExporterFact
      */
     @Override
     public Optional<IncrementalResultExporter> build(Context context) throws IncrementalExporterFactoryException, ConfigurationException {
-        final KafkaExportParameters params = new KafkaExportParameters(context.getObserverConfiguration().toMap());
-        System.out.println("KafkaResultExporterFactory.build(): params.isExportToKafka()=" + params.isExportToKafka());
-        if (params.isExportToKafka()) {
+        final KafkaExportParameters exportParams = new KafkaExportParameters(context.getObserverConfiguration().toMap());
+        System.out.println("KafkaResultExporterFactory.build(): params.isExportToKafka()=" + exportParams.isExportToKafka());
+        if (exportParams.isExportToKafka()) {
             // Setup Kafka connection
-            KafkaProducer<String, String> producer = new KafkaProducer<String, String>(params)//TODO;
+            KafkaProducer<String, String> producer = new KafkaProducer<String, String>(exportParams.getProducerConfig());
             // Create the exporter
             final IncrementalResultExporter exporter = new KafkaResultExporter(producer);
             return Optional.of(exporter);

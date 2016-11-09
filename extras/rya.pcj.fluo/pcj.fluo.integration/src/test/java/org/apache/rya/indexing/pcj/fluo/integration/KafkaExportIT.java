@@ -19,8 +19,11 @@
 package org.apache.rya.indexing.pcj.fluo.integration;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Properties;
 import java.util.Set;
 
@@ -104,14 +107,18 @@ public class KafkaExportIT extends ITBase {
         // Fetch the exported results from Accumulo once the observers finish working.
         fluo.waitForObservers();
 
+        // Copied from RyaExportIT:
         // Fetch expected results from the PCJ table that is in Accumulo.
         // final Set<BindingSet> results = Sets.newHashSet(pcjStorage.listResults(pcjId));
         // Verify the end results of the query match the expected results.
         // assertEquals(expected, results);
 
-        // TODO Grab from Kafka topic instead of RYA
+        // Grab from Kafka topic instead of RYA
         ITConsumer consumer = new ITConsumer();
-        consumer.consume(QueryIdIsTopicName, "theOnlyGroup"); // TODO what is this group thing and how to ignore/use it?
+        List<ConsumerRecords<String, String>> verifyThese = ITConsumer.consume(QueryIdIsTopicName, "theOnlyGroup"); // TODO what is this group thing and how to ignore/use it?
+
+        System.out.println("Consumed these: " + verifyThese);
+        // assert (consumer.verifyTheseRecords;
     }
 
 
@@ -138,15 +145,16 @@ public class KafkaExportIT extends ITBase {
 }
 
 final class ITConsumer {
-    private static boolean stop = false;
+    private static List<ConsumerRecords<String, String>> verifyTheseRecords = new LinkedList<ConsumerRecords<String, String>>();
 
-    public static void consume(String topicName, String groupId) throws Exception {
+    public static List<ConsumerRecords<String, String>> consume(String topicName, String groupId) throws Exception {
         ConsumerThread consumerRunnable = new ConsumerThread(topicName, groupId);
         consumerRunnable.start();
-        Runtime.getRuntime().wait(100);// cheap way to let things happen.
+        consumerRunnable.wait(100);// cheap way to let things happen. TODO make it depend on something besides time
         consumerRunnable.getKafkaConsumer().wakeup();
         System.out.println("Stopping consumer .....");
         consumerRunnable.join(100); // wait no more than 100ms to terminate.
+        return Collections.unmodifiableList(verifyTheseRecords);
     }
 
     private static class ConsumerThread extends Thread {
@@ -175,8 +183,10 @@ final class ITConsumer {
             try {
                 while (true) {
                     ConsumerRecords<String, String> records = kafkaConsumer.poll(100);
-                    for (ConsumerRecord<String, String> record : records)
+                    verifyTheseRecords.add(records);
+                    for (ConsumerRecord<String, String> record : records) {
                         System.out.println(record.value());
+                    }
                 }
             } catch (WakeupException ex) {
                 System.out.println("Exception caught " + ex.getMessage());

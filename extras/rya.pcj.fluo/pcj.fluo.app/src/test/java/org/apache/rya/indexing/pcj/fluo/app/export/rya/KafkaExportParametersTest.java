@@ -20,10 +20,13 @@ package org.apache.rya.indexing.pcj.fluo.app.export.rya;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Properties;
 
 import org.junit.Test;
 
@@ -52,6 +55,30 @@ public class KafkaExportParametersTest {
         assertFalse(kafkaParams.isExportToKafka());
         assertEquals(expectedParams, params);
     }
+    @Test
+    public void writeParamsProps() {
+        final String KEY1 = "key1";
+        final String VALUE1FIRST = "value1-preserve-this";
+        final String VALUE1SECOND = "value1prop";
+        final String KEY2 = "歌古事学週文原問業間革社。"; // http://generator.lorem-ipsum.info/_chinese
+        final String VALUE2 = "良治鮮猿性社費著併病極験。";
+
+        final Map<String, String> params = new HashMap<>();
+        // Make sure export key1 is kept seperate from producer config key1
+        params.put(KEY1, VALUE1FIRST);
+        final KafkaExportParameters kafkaParams = new KafkaExportParameters(params);
+        // Load some values into the properties using the wrapper.
+        Properties props = new Properties();
+        props.put(KEY1, VALUE1SECOND);
+        props.put(KEY2, VALUE2);
+        kafkaParams.setProducerConfig(props);
+        Properties propsAfter = kafkaParams.getProducerConfig();
+        assertEquals(props, propsAfter);
+        assertEquals(params, params);
+        assertEquals("Should not change identical parameters key", params.get(KEY1), VALUE1FIRST);
+        assertEquals("Props should not have params's key", propsAfter.get(KEY1), VALUE1SECOND);
+        assertNull("Should not have props key", params.get(KEY2));
+    }
 
     @Test
     public void notConfigured() {
@@ -65,10 +92,8 @@ public class KafkaExportParametersTest {
     @Test
     public void testKafkaResultExporterFactory() {
         KafkaResultExporterFactory factory = new KafkaResultExporterFactory();
-        KafkaExportParameters params = new KafkaExportParameters(new HashMap<String, String>());
-        ;
-        // Context context = new Context();
-        // factory.build( what goes here? );
-    
+        assertNotNull(factory);
+        // KafkaExportParameters params = new KafkaExportParameters(new HashMap<String, String>());
+        // factory.build( need context );
     }
 }

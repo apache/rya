@@ -20,6 +20,7 @@ package org.apache.rya.indexing.pcj.fluo.app.export.rya;
 
 import org.apache.fluo.api.observer.Observer.Context;
 import org.apache.kafka.clients.producer.KafkaProducer;
+import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.rya.indexing.pcj.fluo.app.export.IncrementalResultExporter;
 import org.apache.rya.indexing.pcj.fluo.app.export.IncrementalResultExporterFactory;
 
@@ -27,14 +28,21 @@ import com.google.common.base.Optional;
 
 /**
  * Creates instances of {@link KafkaResultExporter}.
+ * <p/>
+ * Configure a Kafka producer by adding several required Key/values as described here:
+ * http://kafka.apache.org/documentation.html#producerconfigs
+ * <p/>
+ * Here is a simple example:
+ * <pre>
+ *     Properties producerConfig = new Properties();
+ *     producerConfig.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092");
+ *     producerConfig.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, "org.apache.kafka.common.serialization.ByteArraySerializer");
+ *     producerConfig.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, "org.apache.kafka.common.serialization.StringSerializer");
+ * </pre>
+ * 
+ * @see ProducerConfig
  */
 public class KafkaResultExporterFactory implements IncrementalResultExporterFactory {
-
-    /*
-     * (non-Javadoc)
-     * 
-     * @see org.apache.rya.indexing.pcj.fluo.app.export.IncrementalResultExporterFactory#build(org.apache.fluo.api.observer.Observer.Context)
-     */
     @Override
     public Optional<IncrementalResultExporter> build(Context context) throws IncrementalExporterFactoryException, ConfigurationException {
         final KafkaExportParameters exportParams = new KafkaExportParameters(context.getObserverConfiguration().toMap());

@@ -23,6 +23,7 @@ import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.rya.indexing.pcj.fluo.app.export.IncrementalResultExporter;
 import org.apache.rya.indexing.pcj.fluo.app.export.IncrementalResultExporterFactory;
+import org.apache.rya.indexing.pcj.storage.accumulo.VisibilityBindingSet;
 
 import com.google.common.base.Optional;
 
@@ -49,7 +50,7 @@ public class KafkaResultExporterFactory implements IncrementalResultExporterFact
         System.out.println("KafkaResultExporterFactory.build(): params.isExportToKafka()=" + exportParams.isExportToKafka());
         if (exportParams.isExportToKafka()) {
             // Setup Kafka connection
-            KafkaProducer<String, String> producer = new KafkaProducer<String, String>(exportParams.getProducerConfig());
+            KafkaProducer<String, VisibilityBindingSet> producer = new KafkaProducer<String, VisibilityBindingSet>(exportParams.getProducerConfig());
             // Create the exporter
             final IncrementalResultExporter exporter = new KafkaResultExporter(producer);
             return Optional.of(exporter);

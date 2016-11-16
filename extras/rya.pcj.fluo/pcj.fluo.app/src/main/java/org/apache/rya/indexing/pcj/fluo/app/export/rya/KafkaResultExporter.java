@@ -31,7 +31,7 @@ import org.apache.rya.indexing.pcj.storage.accumulo.VisibilityBindingSet;
  * Incrementally exports SPARQL query results to Accumulo PCJ tables as they are defined by Rya.
  */
 public class KafkaResultExporter implements IncrementalResultExporter {
-    private final KafkaProducer<String, String> producer;
+    private final KafkaProducer<String, VisibilityBindingSet> producer;
 
     /**
      * Constructor
@@ -39,7 +39,7 @@ public class KafkaResultExporter implements IncrementalResultExporter {
      * @param producer
      *            created by {@link KafkaResultExporterFactory}
      */
-    public KafkaResultExporter(KafkaProducer<String, String> producer) {
+    public KafkaResultExporter(KafkaProducer<String, VisibilityBindingSet> producer) {
         super();
         checkNotNull(producer, "Producer is required.");
         this.producer = producer;
@@ -59,7 +59,7 @@ public class KafkaResultExporter implements IncrementalResultExporter {
             System.out.println(msg);
 
             // Send result on topic
-            ProducerRecord<String, String> rec = new ProducerRecord<String, String>(/* topicname= */ queryId, /* value= */ msg);
+            ProducerRecord<String, VisibilityBindingSet> rec = new ProducerRecord<String, VisibilityBindingSet>(/* topicname= */ queryId, /* value= */ result);
             // Can add a key if you need to:
             // ProducerRecord(String topic, K key, V value)
             producer.send(rec);

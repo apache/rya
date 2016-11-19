@@ -19,7 +19,7 @@
 package org.apache.rya.indexing.pcj.fluo.integration;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertNotEquals;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -198,7 +198,6 @@ public class KafkaExportIT extends ITBase {
         // starting consumer polling for messages
         /// ConsumerRecords<Integer, byte[]> records = consumer.poll(3000);
         ConsumerRecords<Integer, VisibilityBindingSet> records = consumer.poll(3000);
-        assertTrue("Should get some results", records.count() > 0);
         /// Iterator<ConsumerRecord<Integer, byte[]>> recordIterator = records.iterator();
         Iterator<ConsumerRecord<Integer, VisibilityBindingSet>> recordIterator = records.iterator();
         while (recordIterator.hasNext()) {
@@ -207,6 +206,7 @@ public class KafkaExportIT extends ITBase {
             ConsumerRecord<Integer, VisibilityBindingSet> record = recordIterator.next();
             System.out.printf("Consumed offset = %d, key = %s, value = %s", record.offset(), record.key(), record.value().toString());
         }
+        assertNotEquals("Should get some results", 0, records.count());
         // assertEquals(42, (int) record.key());
         // assertEquals("test-message", new String(record.value(), StandardCharsets.UTF_8));
 

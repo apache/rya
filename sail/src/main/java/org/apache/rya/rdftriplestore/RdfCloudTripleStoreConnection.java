@@ -36,6 +36,7 @@ import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
 import org.apache.rya.api.RdfCloudTripleStoreConstants;
 import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.domain.RyaURI;
+import org.apache.rya.api.domain.StatementMetadata;
 import org.apache.rya.api.persist.RdfEvalStatsDAO;
 import org.apache.rya.api.persist.RyaDAO;
 import org.apache.rya.api.persist.RyaDAOException;
@@ -154,7 +155,7 @@ public class RdfCloudTripleStoreConnection extends SailConnectionBase {
                             RdfToRyaConversions.convertURI(predicate),
                             RdfToRyaConversions.convertValue(object),
                             RdfToRyaConversions.convertResource(context),
-                            null, cv);
+                            null, new StatementMetadata(), cv);
 
                     ryaDAO.add(statement);
                 }
@@ -163,7 +164,7 @@ public class RdfCloudTripleStoreConnection extends SailConnectionBase {
                         RdfToRyaConversions.convertResource(subject),
                         RdfToRyaConversions.convertURI(predicate),
                         RdfToRyaConversions.convertValue(object),
-                        null, null, cv);
+                        null, null, new StatementMetadata(), cv);
 
                 ryaDAO.add(statement);
             }

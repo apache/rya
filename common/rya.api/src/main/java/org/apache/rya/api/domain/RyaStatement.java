@@ -48,18 +48,25 @@ public class RyaStatement {
         this(subject, predicate, object, context, null);
     }
 
+
     public RyaStatement(RyaURI subject, RyaURI predicate, RyaType object, RyaURI context, String qualifier) {
-        this(subject, predicate, object, context, qualifier, null);
+        this(subject, predicate, object, context, qualifier, new StatementMetadata());
     }
 
-    public RyaStatement(RyaURI subject, RyaURI predicate, RyaType object, RyaURI context, String qualifier, byte[] columnVisibility) {
-        this(subject, predicate, object, context, qualifier, columnVisibility, null);
+    public RyaStatement(RyaURI subject, RyaURI predicate, RyaType object, RyaURI context, String qualifier, StatementMetadata metadata) {
+        this(subject, predicate, object, context, qualifier, metadata, null);
     }
 
+    public RyaStatement(RyaURI subject, RyaURI predicate, RyaType object, RyaURI context, String qualifier, StatementMetadata metadata, byte[] columnVisibility) {
+        this(subject, predicate, object, context, qualifier, columnVisibility, metadata.toBytes());
+    }
+
+    @Deprecated
     public RyaStatement(RyaURI subject, RyaURI predicate, RyaType object, RyaURI context, String qualifier, byte[] columnVisibility, byte[] value) {
         this(subject, predicate, object, context, qualifier, columnVisibility, value, null);
     }
 
+    @Deprecated
     public RyaStatement(RyaURI subject, RyaURI predicate, RyaType object, RyaURI context, String qualifier, byte[] columnVisibility, byte[] value, Long timestamp) {
         this.subject = subject;
         this.predicate = predicate;
@@ -110,11 +117,28 @@ public class RyaStatement {
     public void setColumnVisibility(byte[] columnVisibility) {
         this.columnVisibility = columnVisibility;
     }
+    
+    public StatementMetadata getMetadata() {
+        // try to deserialize the value, if not assume that there was 
+        // no explicit metadata
+        try {
+            return new StatementMetadata(value);
+        }
+        catch (Exception ex){
+            return null;
+        }
+    }
+    
+    public void setStatementMetadata(StatementMetadata metadata){
+        this.value = metadata.toBytes();
+    }
 
+    @Deprecated
     public byte[] getValue() {
         return value;
     }
 
+    @Deprecated
     public void setValue(byte[] value) {
         this.value = value;
     }
@@ -210,8 +234,14 @@ public class RyaStatement {
             return this;
         }
 
+        @Deprecated
         public RyaStatementBuilder setValue(byte[] value) {
             ryaStatement.setValue(value);
+            return this;
+        }
+
+        public RyaStatementBuilder setMetadata(StatementMetadata metadata) {
+            ryaStatement.setValue(metadata.toBytes());
             return this;
         }
 

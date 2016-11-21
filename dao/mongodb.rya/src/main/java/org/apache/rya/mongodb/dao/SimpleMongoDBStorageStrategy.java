@@ -27,17 +27,17 @@ import java.util.Map;
 
 import org.apache.commons.codec.binary.Hex;
 import org.apache.log4j.Logger;
+import org.apache.rya.api.domain.RyaStatement;
+import org.apache.rya.api.domain.RyaType;
+import org.apache.rya.api.domain.RyaURI;
+import org.apache.rya.api.domain.StatementMetadata;
+import org.apache.rya.api.persist.query.RyaQuery;
 import org.openrdf.model.impl.ValueFactoryImpl;
 import org.openrdf.model.vocabulary.XMLSchema;
 
 import com.mongodb.BasicDBObject;
 import com.mongodb.DBCollection;
 import com.mongodb.DBObject;
-
-import org.apache.rya.api.domain.RyaStatement;
-import org.apache.rya.api.domain.RyaType;
-import org.apache.rya.api.domain.RyaURI;
-import org.apache.rya.api.persist.query.RyaQuery;
 
 /**
  * Defines how {@link RyaStatement}s are stored in MongoDB.
@@ -46,12 +46,13 @@ public class SimpleMongoDBStorageStrategy implements MongoDBStorageStrategy<RyaS
     private static final Logger LOG = Logger.getLogger(SimpleMongoDBStorageStrategy.class);
     protected static final String ID = "_id";
     protected static final String OBJECT_TYPE = "objectType";
-    protected static final String OBJECT_TYPE_VALUE = XMLSchema.ANYURI.stringValue();
+    protected static final String URI_TYPE_VALUE = XMLSchema.ANYURI.stringValue();
     protected static final String CONTEXT = "context";
     protected static final String PREDICATE = "predicate";
     protected static final String OBJECT = "object";
     protected static final String SUBJECT = "subject";
     public static final String TIMESTAMP = "insertTimestamp";
+    protected static final String STATEMENT_METADATA = "statementMetadata";
     protected ValueFactoryImpl factory = new ValueFactoryImpl();
 
     @Override
@@ -102,6 +103,7 @@ public class SimpleMongoDBStorageStrategy implements MongoDBStorageStrategy<RyaS
         final String predicate = (String) result.get(PREDICATE);
         final String context = (String) result.get(CONTEXT);
         final Long timestamp = (Long) result.get(TIMESTAMP);
+        final String statementMetadata = (String) result.get(STATEMENT_METADATA);
         RyaType objectRya = null;
         if (objectType.equalsIgnoreCase(ANYURI.stringValue())){
             objectRya = new RyaURI(object);
@@ -120,6 +122,15 @@ public class SimpleMongoDBStorageStrategy implements MongoDBStorageStrategy<RyaS
 
         if(timestamp != null) {
             statement.setTimestamp(timestamp);
+        }
+        if(statementMetadata != null) {
+            try {
+                StatementMetadata metadata = new StatementMetadata(statementMetadata);
+                statement.setStatementMetadata(metadata);
+            }
+            catch (Exception ex){
+                LOG.debug("Error deserializing metadata for statement", ex);
+            }         
         }
         return statement;
     }
@@ -143,12 +154,16 @@ public class SimpleMongoDBStorageStrategy implements MongoDBStorageStrategy<RyaS
         } catch (final NoSuchAlgorithmException e) {
             LOG.error("Unable to perform SHA-1 on the ID, defaulting to raw bytes.", e);
         }
-        final BasicDBObject doc = new BasicDBObject(ID, new String(Hex.encodeHex(bytes)))
+        if (statement.getMetadata() == null){
+            statement.setStatementMetadata(StatementMetadata.EMPTY_METADATA);
+        }
+        BasicDBObject doc = new BasicDBObject(ID, new String(Hex.encodeHex(bytes)))
         .append(SUBJECT, statement.getSubject().getData())
         .append(PREDICATE, statement.getPredicate().getData())
         .append(OBJECT, statement.getObject().getData())
         .append(OBJECT_TYPE, statement.getObject().getDataType().toString())
         .append(CONTEXT, context)
+        .append(STATEMENT_METADATA, statement.getMetadata().toString())
         .append(TIMESTAMP, statement.getTimestamp());
         return doc;
 

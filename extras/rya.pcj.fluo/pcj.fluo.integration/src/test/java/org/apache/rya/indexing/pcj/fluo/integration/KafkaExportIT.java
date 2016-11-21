@@ -18,11 +18,6 @@
  */
 package org.apache.rya.indexing.pcj.fluo.integration;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotEquals;
-
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -36,9 +31,7 @@ import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
-import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerConfig;
-import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.indexing.pcj.fluo.ITBase;
 import org.apache.rya.indexing.pcj.fluo.api.CreatePcj;
@@ -46,7 +39,7 @@ import org.apache.rya.indexing.pcj.fluo.api.InsertTriples;
 import org.apache.rya.indexing.pcj.fluo.app.export.rya.KafkaExportParameters;
 import org.apache.rya.indexing.pcj.storage.PrecomputedJoinStorage;
 import org.apache.rya.indexing.pcj.storage.accumulo.AccumuloPcjStorage;
-import org.apache.rya.indexing.pcj.storage.accumulo.VisibilityBindingSet;
+import org.junit.Assert;
 import org.junit.Test;
 import org.openrdf.model.impl.URIImpl;
 import org.openrdf.query.BindingSet;
@@ -55,8 +48,6 @@ import org.openrdf.query.impl.BindingImpl;
 import com.google.common.base.Optional;
 import com.google.common.collect.Sets;
 
-import kafka.admin.AdminUtils;
-import kafka.admin.RackAwareMode;
 import kafka.server.KafkaConfig;
 import kafka.server.KafkaServer;
 import kafka.utils.MockTime;
@@ -113,53 +104,53 @@ public class KafkaExportIT extends ITBase {
         System.out.println("setup kafka and fluo.");
     }
 
-    /**
-     * Test kafka without rya code to make sure kafka works in this environment.
-     * If this test fails then its a testing environment issue, not with Rya.
-     * Source: https://github.com/asmaier/mini-kafka
-     * 
-     * @throws InterruptedException
-     * @throws IOException
-     */
-        @Test
-        public void embeddedKafkaTest() throws InterruptedException, IOException {
-
-            // create topic
-            AdminUtils.createTopic(zkUtils, TOPIC, 1, 1, new Properties(), RackAwareMode.Disabled$.MODULE$);
-
-            // setup producer
-            Properties producerProps = new Properties();
-            producerProps.setProperty("bootstrap.servers", BROKERHOST + ":" + BROKERPORT);
-            producerProps.setProperty("key.serializer","org.apache.kafka.common.serialization.IntegerSerializer");
-            producerProps.setProperty("value.serializer", "org.apache.kafka.common.serialization.ByteArraySerializer");
-            KafkaProducer<Integer, byte[]> producer = new KafkaProducer<Integer, byte[]>(producerProps);
-
-            // setup consumer
-            Properties consumerProps = new Properties();
-            consumerProps.setProperty("bootstrap.servers", BROKERHOST + ":" + BROKERPORT);
-            consumerProps.setProperty("group.id", "group0");
-            consumerProps.setProperty("client.id", "consumer0");
-            consumerProps.setProperty("key.deserializer","org.apache.kafka.common.serialization.IntegerDeserializer");
-            consumerProps.setProperty("value.deserializer", "org.apache.kafka.common.serialization.ByteArrayDeserializer");
-            consumerProps.put("auto.offset.reset", "earliest");  // to make sure the consumer starts from the beginning of the topic
-            KafkaConsumer<Integer, byte[]> consumer = new KafkaConsumer<>(consumerProps);
-            consumer.subscribe(Arrays.asList(TOPIC));
-
-            // send message
-            ProducerRecord<Integer, byte[]> data = new ProducerRecord<>(TOPIC, 42, "test-message".getBytes(StandardCharsets.UTF_8));
-            producer.send(data);
-            producer.close();
-
-            // starting consumer
-        ConsumerRecords<Integer, byte[]> records = consumer.poll(3000);
-            assertEquals(1, records.count());
-            Iterator<ConsumerRecord<Integer, byte[]>> recordIterator = records.iterator();
-            ConsumerRecord<Integer, byte[]> record = recordIterator.next();
-            System.out.printf("offset = %d, key = %s, value = %s", record.offset(), record.key(), record.value());
-            assertEquals(42, (int) record.key());
-            assertEquals("test-message", new String(record.value(), StandardCharsets.UTF_8));
-        consumer.close();
-    }
+    // /**
+    // * Test kafka without rya code to make sure kafka works in this environment.
+    // * If this test fails then its a testing environment issue, not with Rya.
+    // * Source: https://github.com/asmaier/mini-kafka
+    // *
+    // * @throws InterruptedException
+    // * @throws IOException
+    // */
+    // @Test
+    // public void embeddedKafkaTest() throws InterruptedException, IOException {
+    //
+    // // create topic
+    // AdminUtils.createTopic(zkUtils, TOPIC, 1, 1, new Properties(), RackAwareMode.Disabled$.MODULE$);
+    //
+    // // setup producer
+    // Properties producerProps = new Properties();
+    // producerProps.setProperty("bootstrap.servers", BROKERHOST + ":" + BROKERPORT);
+    // producerProps.setProperty("key.serializer","org.apache.kafka.common.serialization.IntegerSerializer");
+    // producerProps.setProperty("value.serializer", "org.apache.kafka.common.serialization.ByteArraySerializer");
+    // KafkaProducer<Integer, byte[]> producer = new KafkaProducer<Integer, byte[]>(producerProps);
+    //
+    // // setup consumer
+    // Properties consumerProps = new Properties();
+    // consumerProps.setProperty("bootstrap.servers", BROKERHOST + ":" + BROKERPORT);
+    // consumerProps.setProperty("group.id", "group0");
+    // consumerProps.setProperty("client.id", "consumer0");
+    // consumerProps.setProperty("key.deserializer","org.apache.kafka.common.serialization.IntegerDeserializer");
+    // consumerProps.setProperty("value.deserializer", "org.apache.kafka.common.serialization.ByteArrayDeserializer");
+    // consumerProps.put("auto.offset.reset", "earliest"); // to make sure the consumer starts from the beginning of the topic
+    // KafkaConsumer<Integer, byte[]> consumer = new KafkaConsumer<>(consumerProps);
+    // consumer.subscribe(Arrays.asList(TOPIC));
+    //
+    // // send message
+    // ProducerRecord<Integer, byte[]> data = new ProducerRecord<>(TOPIC, 42, "test-message".getBytes(StandardCharsets.UTF_8));
+    // producer.send(data);
+    // producer.close();
+    //
+    // // starting consumer
+    // ConsumerRecords<Integer, byte[]> records = consumer.poll(3000);
+    // assertEquals(1, records.count());
+    // Iterator<ConsumerRecord<Integer, byte[]>> recordIterator = records.iterator();
+    // ConsumerRecord<Integer, byte[]> record = recordIterator.next();
+    // System.out.printf("offset = %d, key = %s, value = %s", record.offset(), record.key(), record.value());
+    // assertEquals(42, (int) record.key());
+    // assertEquals("test-message", new String(record.value(), StandardCharsets.UTF_8));
+    //// consumer.close();
+    // }
 
     @Test
     public void newResultsExportedTest() throws Exception {
@@ -192,21 +183,26 @@ public class KafkaExportIT extends ITBase {
         // Fetch the exported results from Accumulo once the observers finish working.
         fluo.waitForObservers();
 
-        /// KafkaConsumer<Integer, byte[]> consumer = makeConsumer(QueryIdIsTopicName);
-        KafkaConsumer<Integer, VisibilityBindingSet> consumer = makeConsumer(QueryIdIsTopicName);
+        // setup consumer
+        Properties consumerProps = new Properties();
+        consumerProps.setProperty("bootstrap.servers", BROKERHOST + ":" + BROKERPORT);
+        consumerProps.setProperty("group.id", "group0");
+        consumerProps.setProperty("client.id", "consumer0");
+        consumerProps.setProperty("key.deserializer", "org.apache.kafka.common.serialization.IntegerDeserializer");
+        consumerProps.setProperty("value.deserializer", "org.apache.kafka.common.serialization.ByteArrayDeserializer");
+        consumerProps.put("auto.offset.reset", "earliest"); // to make sure the consumer starts from the beginning of the topic
+        KafkaConsumer<Integer, byte[]> consumer = new KafkaConsumer<>(consumerProps);
+        consumer.subscribe(Arrays.asList(QueryIdIsTopicName));
 
+        System.out.println(QueryIdIsTopicName);
         // starting consumer polling for messages
-        /// ConsumerRecords<Integer, byte[]> records = consumer.poll(3000);
-        ConsumerRecords<Integer, VisibilityBindingSet> records = consumer.poll(3000);
-        /// Iterator<ConsumerRecord<Integer, byte[]>> recordIterator = records.iterator();
-        Iterator<ConsumerRecord<Integer, VisibilityBindingSet>> recordIterator = records.iterator();
+        ConsumerRecords<Integer, byte[]> records = consumer.poll(3000);
+        Assert.assertTrue("Should get some results", records.count() > 0);
+        Iterator<ConsumerRecord<Integer, byte[]>> recordIterator = records.iterator();
         while (recordIterator.hasNext()) {
-            /// ConsumerRecord<Integer, byte[]> record = recordIterator.next();
-            /// System.out.printf("Consumed offset = %d, key = %s, value = %s", record.offset(), record.key(), new String(record.value(), StandardCharsets.UTF_8));
-            ConsumerRecord<Integer, VisibilityBindingSet> record = recordIterator.next();
-            System.out.printf("Consumed offset = %d, key = %s, value = %s", record.offset(), record.key(), record.value().toString());
+            ConsumerRecord<Integer, byte[]> record = recordIterator.next();
+            System.out.printf("offset = %d, key = %s, value = %s", record.offset(), record.key(), record.value());
         }
-        assertNotEquals("Should get some results", 0, records.count());
         // assertEquals(42, (int) record.key());
         // assertEquals("test-message", new String(record.value(), StandardCharsets.UTF_8));
 
@@ -216,7 +212,7 @@ public class KafkaExportIT extends ITBase {
      * @param TopicName
      * @return
      */
-    protected KafkaConsumer<Integer, VisibilityBindingSet> makeConsumer(String TopicName) {
+    protected KafkaConsumer<Integer, Object> makeConsumer(String TopicName) {
         // setup consumer
         Properties consumerProps = new Properties();
         consumerProps.setProperty(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, BROKERHOST + ":" + BROKERPORT);
@@ -226,7 +222,7 @@ public class KafkaExportIT extends ITBase {
         consumerProps.setProperty(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, "org.apache.kafka.common.serialization.ByteArrayDeserializer");
         consumerProps.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest"); // to make sure the consumer starts from the beginning of the topic
         /// KafkaConsumer<Integer, byte[]> consumer = new KafkaConsumer<>(consumerProps);
-        KafkaConsumer<Integer, VisibilityBindingSet> consumer = new KafkaConsumer<>(consumerProps);
+        KafkaConsumer<Integer, Object> consumer = new KafkaConsumer<>(consumerProps);
         consumer.subscribe(Arrays.asList(TopicName));
         return consumer;
     }

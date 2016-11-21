@@ -31,7 +31,7 @@ import org.apache.rya.indexing.pcj.storage.accumulo.VisibilityBindingSet;
  * Incrementally exports SPARQL query results to Accumulo PCJ tables as they are defined by Rya.
  */
 public class KafkaResultExporter implements IncrementalResultExporter {
-    private final KafkaProducer<String, VisibilityBindingSet> producer;
+    private final KafkaProducer<String, byte[]> producer;
 
     /**
      * Constructor
@@ -39,7 +39,7 @@ public class KafkaResultExporter implements IncrementalResultExporter {
      * @param producer
      *            created by {@link KafkaResultExporterFactory}
      */
-    public KafkaResultExporter(KafkaProducer<String, VisibilityBindingSet> producer) {
+    public KafkaResultExporter(KafkaProducer<String, byte[]> producer) {
         super();
         checkNotNull(producer, "Producer is required.");
         this.producer = producer;
@@ -58,11 +58,15 @@ public class KafkaResultExporter implements IncrementalResultExporter {
             String msg = "out to kafta topic: queryId=" + queryId + " pcjId=" + pcjId + " result=" + result;
             System.out.println(msg);
 
+
+            BindingSetSerializer serializer = new BindingSetSerializer();
+            byte[] bytes = serializer.serialize("", result);
             // Send result on topic
-            ProducerRecord<String, VisibilityBindingSet> rec = new ProducerRecord<String, VisibilityBindingSet>(/* topicname= */ queryId, /* value= */ result);
+            ProducerRecord<String, byte[]> rec = new ProducerRecord<String, byte[]>(/* topicname= */ queryId, /* value= */ bytes);
             // Can add a key if you need to:
             // ProducerRecord(String topic, K key, V value)
             producer.send(rec);
+            System.out.println("kafa producer sent.");
 
         } catch (final Throwable e) {
             throw new ResultExportException("A result could not be exported to Kafka.", e);

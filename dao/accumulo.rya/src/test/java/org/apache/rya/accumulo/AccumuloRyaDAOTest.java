@@ -36,6 +36,7 @@ import org.apache.rya.accumulo.query.AccumuloRyaQueryEngine;
 import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.domain.RyaType;
 import org.apache.rya.api.domain.RyaURI;
+import org.apache.rya.api.domain.StatementMetadata;
 import org.apache.rya.api.persist.RyaDAOException;
 import org.apache.rya.api.persist.query.RyaQuery;
 import org.apache.rya.api.resolver.RdfToRyaConversions;
@@ -117,9 +118,9 @@ public class AccumuloRyaDAOTest {
         RyaURI cpu = RdfToRyaConversions.convertURI(vf.createURI(litdupsNS, "cpu"));
         RyaURI loadPerc = RdfToRyaConversions.convertURI(vf.createURI(litdupsNS, "loadPerc"));
         RyaURI uri1 = RdfToRyaConversions.convertURI(vf.createURI(litdupsNS, "uri1"));
-        RyaStatement stmt1 = new RyaStatement(cpu, loadPerc, uri1, null, "1", "vis1".getBytes());
+        RyaStatement stmt1 = new RyaStatement(cpu, loadPerc, uri1, null, "1", new StatementMetadata(), "vis1".getBytes());
         dao.add(stmt1);
-        RyaStatement stmt2 = new RyaStatement(cpu, loadPerc, uri1, null, "2", "vis2".getBytes());
+        RyaStatement stmt2 = new RyaStatement(cpu, loadPerc, uri1, null, "2", new StatementMetadata(), "vis2".getBytes());
         dao.add(stmt2);
 
         AccumuloRdfConfiguration cloneConf = conf.clone();
@@ -253,7 +254,8 @@ public class AccumuloRyaDAOTest {
         RyaURI loadPerc = new RyaURI(litdupsNS + "loadPerc");
         RyaURI uri1 = new RyaURI(litdupsNS + "uri1");
         String myval = "myval";
-        dao.add(new RyaStatement(cpu, loadPerc, uri1, null, null, null, myval.getBytes()));
+        byte[] columnVis = null;
+        dao.add(new RyaStatement(cpu, loadPerc, uri1, null, null, columnVis, myval.getBytes()));
 
         AccumuloRyaQueryEngine queryEngine = dao.getQueryEngine();
         CloseableIteration<RyaStatement, RyaDAOException> iter = queryEngine.query(new RyaStatement(cpu, loadPerc, null), conf);
@@ -272,9 +274,9 @@ public class AccumuloRyaDAOTest {
         byte[] colVisABC = "A|B|C".getBytes();
         byte[] colVisAB = "A|B".getBytes();
         byte[] colVisA = "A".getBytes();
-        dao.add(new RyaStatement(cpu, loadPerc, uri1, null, null, colVisABC));
-        dao.add(new RyaStatement(cpu, loadPerc, uri2, null, null, colVisAB));
-        dao.add(new RyaStatement(cpu, loadPerc, uri3, null, null, colVisA));
+        dao.add(new RyaStatement(cpu, loadPerc, uri1, null, null, new StatementMetadata(), colVisABC));
+        dao.add(new RyaStatement(cpu, loadPerc, uri2, null, null, new StatementMetadata(), colVisAB));
+        dao.add(new RyaStatement(cpu, loadPerc, uri3, null, null, new StatementMetadata(), colVisA));
 
         AccumuloRyaQueryEngine queryEngine = dao.getQueryEngine();
 

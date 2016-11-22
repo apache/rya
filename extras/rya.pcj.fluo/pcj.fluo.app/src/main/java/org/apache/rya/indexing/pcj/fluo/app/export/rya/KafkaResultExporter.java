@@ -20,8 +20,6 @@ package org.apache.rya.indexing.pcj.fluo.app.export.rya;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import java.nio.charset.StandardCharsets;
-
 import org.apache.fluo.api.client.TransactionBase;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerRecord;
@@ -33,7 +31,7 @@ import org.apache.rya.indexing.pcj.storage.accumulo.VisibilityBindingSet;
  * Incrementally exports SPARQL query results to Accumulo PCJ tables as they are defined by Rya.
  */
 public class KafkaResultExporter implements IncrementalResultExporter {
-    private final KafkaProducer<String, String/* serial-type */> producer;
+    private final KafkaProducer<String, VisibilityBindingSet> producer;
 
     /**
      * Constructor
@@ -41,7 +39,7 @@ public class KafkaResultExporter implements IncrementalResultExporter {
      * @param producer
      *            created by {@link KafkaResultExporterFactory}
      */
-    public KafkaResultExporter(KafkaProducer<String, String/* serial-type */> producer) {
+    public KafkaResultExporter(KafkaProducer<String, VisibilityBindingSet> producer) {
         super();
         checkNotNull(producer, "Producer is required.");
         this.producer = producer;
@@ -60,15 +58,12 @@ public class KafkaResultExporter implements IncrementalResultExporter {
             String msg = "out to kafta topic: queryId=" + queryId + " pcjId=" + pcjId + " result=" + result;
             System.out.println(msg);
 
-
-            BindingSetSerializer serializer = new BindingSetSerializer();
-            byte[] bytes = serializer.serialize("", result);
             // Send result on topic
-            ProducerRecord<String, String/* serial-type */> rec = new ProducerRecord<String, String/* serial-type */>(/* topicname= */ queryId, /* value= */ new String(bytes, StandardCharsets.UTF_8));
+            ProducerRecord<String, VisibilityBindingSet> rec = new ProducerRecord<String, VisibilityBindingSet>(/* topicname= */ queryId, /* value= */ result);
             // Can add a key if you need to:
             // ProducerRecord(String topic, K key, V value)
             producer.send(rec);
-            System.out.println("kafa producer sent.");
+            System.out.println("producer.send(rec) completed");
 
         } catch (final Throwable e) {
             throw new ResultExportException("A result could not be exported to Kafka.", e);

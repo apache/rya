@@ -151,7 +151,8 @@ public class JoinResultUpdater {
 
         // Get the Binding strings
         final String childBindingSetString = valueConverter.convert(childBindingSet, childVarOrder);
-        final String[] childBindingStrings = FluoStringConverter.toBindingStrings(childBindingSetString);
+        String[] childBindingArray = childBindingSetString.split("\u0001");
+        final String[] childBindingStrings = FluoStringConverter.toBindingStrings(childBindingArray[0]);
 
         // Create the prefix that will be used to scan for binding sets of the sibling node.
         // This prefix includes the sibling Node ID and the common variable values from

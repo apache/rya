@@ -49,7 +49,7 @@ public class KafkaResultExporterFactory implements IncrementalResultExporterFact
         System.out.println("KafkaResultExporterFactory.build(): params.isExportToKafka()=" + exportParams.isExportToKafka());
         if (exportParams.isExportToKafka()) {
             // Setup Kafka connection
-            KafkaProducer<String, byte[]> producer = new KafkaProducer<String, byte[]>(exportParams.getProducerConfig());
+            KafkaProducer<String, String/*serial-type*/> producer = new KafkaProducer<String, String/*serial-type*/>(exportParams.getProducerConfig());
             // Create the exporter
             final IncrementalResultExporter exporter = new KafkaResultExporter(producer);
             return Optional.of(exporter);

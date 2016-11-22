@@ -67,6 +67,8 @@ import kafka.zk.EmbeddedZookeeper;
  */
 public class KafkaExportIT extends ITBase {
 
+    // final Logger logger = LoggerFactory.getLogger(KafkaExportIT.class);
+    
     private static final String ZKHOST = "127.0.0.1";
     private static final String BROKERHOST = "127.0.0.1";
     private static final String BROKERPORT = "9092";
@@ -101,7 +103,7 @@ public class KafkaExportIT extends ITBase {
         Time mock = new MockTime();
         kafkaServer = TestUtils.createServer(config, mock);
 
-        System.out.println("setup kafka and fluo.");
+        logDebug("Setup kafka and fluo.");
     }
 
     // /**
@@ -191,17 +193,16 @@ public class KafkaExportIT extends ITBase {
         consumerProps.setProperty("key.deserializer", "org.apache.kafka.common.serialization.IntegerDeserializer");
         consumerProps.setProperty("value.deserializer", "org.apache.kafka.common.serialization.ByteArrayDeserializer");
         consumerProps.put("auto.offset.reset", "earliest"); // to make sure the consumer starts from the beginning of the topic
-        KafkaConsumer<Integer, byte[]> consumer = new KafkaConsumer<>(consumerProps);
+        KafkaConsumer<Integer, Object> consumer = new KafkaConsumer<>(consumerProps);
         consumer.subscribe(Arrays.asList(QueryIdIsTopicName));
-
-        System.out.println(QueryIdIsTopicName);
+        logDebug("kafkaSubscribed to topic (QueryIdIsTopicName): "+QueryIdIsTopicName);
         // starting consumer polling for messages
-        ConsumerRecords<Integer, byte[]> records = consumer.poll(3000);
+        ConsumerRecords<Integer, Object> records = consumer.poll(3000);
         Assert.assertTrue("Should get some results", records.count() > 0);
-        Iterator<ConsumerRecord<Integer, byte[]>> recordIterator = records.iterator();
+        Iterator<ConsumerRecord<Integer, Object>> recordIterator = records.iterator();
         while (recordIterator.hasNext()) {
-            ConsumerRecord<Integer, byte[]> record = recordIterator.next();
-            System.out.printf("offset = %d, key = %s, value = %s", record.offset(), record.key(), record.value());
+            ConsumerRecord<Integer, Object> record = recordIterator.next();
+            logDebug(String.format("Consumed: offset = %d, key = %s, value = %s", record.offset(), record.key(), record.value()));
         }
         // assertEquals(42, (int) record.key());
         // assertEquals("test-message", new String(record.value(), StandardCharsets.UTF_8));
@@ -209,10 +210,19 @@ public class KafkaExportIT extends ITBase {
     }
 
     /**
+     * send messages to developer to find isssues.
+     * @param message
+     */
+    public void logDebug(final String message) {
+        System.out.println("KafkaExportIT: " + message);
+        // logger.debug(message);
+    }
+
+    /**
      * @param TopicName
      * @return
      */
-    protected KafkaConsumer<Integer, Object> makeConsumer(String TopicName) {
+    protected KafkaConsumer<Integer, String/* serial-type */> makeConsumer(String TopicName) {
         // setup consumer
         Properties consumerProps = new Properties();
         consumerProps.setProperty(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, BROKERHOST + ":" + BROKERPORT);
@@ -222,7 +232,7 @@ public class KafkaExportIT extends ITBase {
         consumerProps.setProperty(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, "org.apache.kafka.common.serialization.ByteArrayDeserializer");
         consumerProps.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest"); // to make sure the consumer starts from the beginning of the topic
         /// KafkaConsumer<Integer, byte[]> consumer = new KafkaConsumer<>(consumerProps);
-        KafkaConsumer<Integer, Object> consumer = new KafkaConsumer<>(consumerProps);
+        KafkaConsumer<Integer, String/* serial-type */> consumer = new KafkaConsumer<Integer, String/* serial-type */>(consumerProps);
         consumer.subscribe(Arrays.asList(TopicName));
         return consumer;
     }

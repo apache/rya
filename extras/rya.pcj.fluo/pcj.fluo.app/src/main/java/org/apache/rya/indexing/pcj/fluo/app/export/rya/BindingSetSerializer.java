@@ -38,6 +38,7 @@ public class BindingSetSerializer implements Serializer<VisibilityBindingSet>, D
         KryoInternalSerializer internalSerializer = new KryoInternalSerializer();
         Input input = new Input(new ByteArrayInputStream(data));
         return internalSerializer.read(kryos.get(), input, VisibilityBindingSet.class);
+        // this is an alternative, or perhaps replace it:
         // return (new VisibilityBindingSetStringConverter()).convert(new String(data, StandardCharsets.UTF_8), null);
     }
 
@@ -55,6 +56,7 @@ public class BindingSetSerializer implements Serializer<VisibilityBindingSet>, D
         output.flush();
         byte[] array = baos.toByteArray();
         return array;
+        // this is an alternative, or perhaps replace it:
         // return (new VisibilityBindingSetStringConverter()).convert(data, null).getBytes(StandardCharsets.UTF_8);
     }
 
@@ -76,7 +78,7 @@ public class BindingSetSerializer implements Serializer<VisibilityBindingSet>, D
     private static class KryoInternalSerializer extends com.esotericsoftware.kryo.Serializer<VisibilityBindingSet> {
         @Override
         public void write(Kryo kryo, Output output, VisibilityBindingSet visBindingSet) {
-            System.out.println("writing visBindingSet" + visBindingSet);
+            System.out.println("Serializer writing visBindingSet" + visBindingSet);
             output.writeString(visBindingSet.getVisibility());
             // write the number count for the reader.
             output.writeInt(visBindingSet.size());
@@ -92,7 +94,7 @@ public class BindingSetSerializer implements Serializer<VisibilityBindingSet>, D
 
         @Override
         public VisibilityBindingSet read(Kryo kryo, Input input, Class<VisibilityBindingSet> aClass) {
-            System.out.println("reading visBindingSet");
+            System.out.println("Serializer reading visBindingSet");
             String visibility = input.readString();
             int bindingCount = input.readInt();
             ArrayList<String> namesList = new ArrayList<String>(bindingCount);
@@ -105,11 +107,6 @@ public class BindingSetSerializer implements Serializer<VisibilityBindingSet>, D
             }
             BindingSet bindingSet = new ListBindingSet(namesList, valuesList);
             return new VisibilityBindingSet(bindingSet, visibility);
-            
-            // String id = input.readString();
-            // VisibilityBindingSet.Type type = VisibilityBindingSet.Type.valueOf(input.readString());
-            //
-            // return new VisibilityBindingSet(new VisibilityBindingSet(id, type), input.readLong(true), input.readDouble());
         }
     }
 }

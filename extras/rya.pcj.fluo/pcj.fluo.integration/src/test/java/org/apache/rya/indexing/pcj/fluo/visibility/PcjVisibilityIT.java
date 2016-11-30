@@ -38,12 +38,21 @@ import org.apache.accumulo.core.data.Value;
 import org.apache.accumulo.core.security.Authorizations;
 import org.apache.accumulo.core.security.TablePermission;
 import org.apache.hadoop.io.Text;
+import org.apache.rya.accumulo.AccumuloRdfConfiguration;
+import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
+import org.apache.rya.api.client.RyaClient;
+import org.apache.rya.api.client.accumulo.AccumuloConnectionDetails;
+import org.apache.rya.api.client.accumulo.AccumuloRyaClientFactory;
+import org.apache.rya.api.domain.RyaStatement;
+import org.apache.rya.indexing.accumulo.ConfigUtils;
 import org.apache.rya.indexing.pcj.fluo.ITBase;
 import org.apache.rya.indexing.pcj.fluo.api.CreatePcj;
 import org.apache.rya.indexing.pcj.fluo.api.InsertTriples;
 import org.apache.rya.indexing.pcj.storage.PrecomputedJoinStorage;
 import org.apache.rya.indexing.pcj.storage.accumulo.AccumuloPcjStorage;
 import org.apache.rya.indexing.pcj.storage.accumulo.PcjTableNameFactory;
+import org.apache.rya.rdftriplestore.RyaSailRepository;
+import org.apache.rya.sail.config.RyaSailFactory;
 import org.junit.Test;
 import org.openrdf.model.URI;
 import org.openrdf.model.ValueFactory;
@@ -56,15 +65,6 @@ import org.openrdf.sail.Sail;
 
 import com.beust.jcommander.internal.Sets;
 import com.google.common.base.Optional;
-
-import org.apache.rya.accumulo.AccumuloRdfConfiguration;
-import org.apache.rya.api.client.RyaClient;
-import org.apache.rya.api.client.accumulo.AccumuloConnectionDetails;
-import org.apache.rya.api.client.accumulo.AccumuloRyaClientFactory;
-import org.apache.rya.api.domain.RyaStatement;
-import org.apache.rya.indexing.accumulo.ConfigUtils;
-import org.apache.rya.rdftriplestore.RyaSailRepository;
-import org.apache.rya.sail.config.RyaSailFactory;
 
 /**
  * Integration tests that ensure the Fluo Application properly exports PCJ
@@ -110,6 +110,7 @@ public class PcjVisibilityIT extends ITBase {
         // PCJ updating application will have to maintain visibilities.
         final AccumuloRdfConfiguration ryaConf = super.makeConfig(instanceName, zookeepers);
         ryaConf.set(ConfigUtils.CLOUDBASE_AUTHS, "u");
+        ryaConf.set(RdfCloudTripleStoreConfiguration.CONF_CV, "u");
 
         Sail sail = null;
         RyaSailRepository ryaRepo = null;
@@ -195,7 +196,7 @@ public class PcjVisibilityIT extends ITBase {
         final String pcjId = rootStorage.createPcj(sparql);
 
         // Create the PCJ in Fluo.
-        new CreatePcj().withRyaIntegration(pcjId, rootStorage, fluoClient, ryaRepo);
+        new CreatePcj().withRyaIntegration(pcjId, rootStorage, fluoClient, accumuloConn, RYA_INSTANCE_NAME);
 
         // Stream the data into Fluo.
         for(final RyaStatement statement : streamedTriples.keySet()) {

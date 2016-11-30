@@ -47,9 +47,11 @@ import com.google.common.collect.Sets;
 
 import org.apache.fluo.api.client.FluoClient;
 import org.apache.fluo.api.mini.MiniFluo;
+import org.apache.rya.accumulo.query.AccumuloRyaQueryEngine;
 import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.domain.RyaType;
 import org.apache.rya.api.domain.RyaURI;
+import org.apache.rya.api.persist.RyaDAOException;
 import org.apache.rya.api.resolver.RyaToRdfConversions;
 import org.apache.rya.rdftriplestore.RyaSailRepository;
 
@@ -177,9 +179,9 @@ public class FluoAndHistoricPcjsDemo implements Demo {
             pcjId = pcjStorage.createPcj(sparql);
 
             // Tell the Fluo app to maintain it.
-            new CreatePcj().withRyaIntegration(pcjId, pcjStorage, fluoClient, ryaRepo);
+            new CreatePcj().withRyaIntegration(pcjId, pcjStorage, fluoClient, accumuloConn, ryaTablePrefix);
 
-        } catch (MalformedQueryException | SailException | QueryEvaluationException | PcjException e) {
+        } catch (MalformedQueryException | SailException | QueryEvaluationException | PcjException | RyaDAOException e) {
             throw new DemoExecutionException("Error while using Fluo to compute and export historic matches, so the demo can not continue. Exiting.", e);
         }
 

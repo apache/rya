@@ -88,6 +88,45 @@ public class InsertTriples {
             tx.commit();
         }
     }
+    
+    /**
+     * Inserts a triple into Fluo.
+     *
+     * @param fluo - A connection to the Fluo table that will be updated. (not null)
+     * @param triple - The RyaStatement to insert. (not null)
+     */
+    public void insert(final FluoClient fluo, final RyaStatement triple) {
+    	checkNotNull(fluo);
+        checkNotNull(triple);
+
+        insert(fluo, Collections.singleton(triple));
+    }
+    
+    /**
+     * Insert a batch of RyaStatements into Fluo.  
+     *
+     * @param fluo - A connection to the Fluo table that will be updated. (not null)
+     * @param triples - The triples to insert. (not null)
+     */
+    public void insert(final FluoClient fluo, final Collection<RyaStatement> triples) {
+    	checkNotNull(fluo);
+        checkNotNull(triples);
+
+        try(Transaction tx = fluo.newTransaction()) {
+            for(final RyaStatement triple : triples) {
+                Optional<byte[]> visibility = Optional.fromNullable(triple.getColumnVisibility());
+                try {
+                    tx.set(Bytes.of(spoFormat(triple)), FluoQueryColumns.TRIPLES, Bytes.of(visibility.or(new byte[0])));
+                } catch (final TripleRowResolverException e) {
+                    log.error("Could not convert a Triple into the SPO format: " + triple);
+                }
+            }
+
+            tx.commit();
+        }
+    }
+    
+    
 
     /**
      * Converts a triple into a byte[] holding the Rya SPO representation of it.

@@ -26,6 +26,7 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.indexing.pcj.fluo.ITBase;
 import org.apache.rya.indexing.pcj.fluo.api.GetQueryReport.QueryReport;
 import org.apache.rya.indexing.pcj.fluo.app.query.FluoQuery;
@@ -37,8 +38,6 @@ import org.junit.Test;
 
 import com.google.common.base.Optional;
 import com.google.common.collect.Sets;
-
-import org.apache.rya.api.domain.RyaStatement;
 
 /**
  * Integration tests the methods of {@link GetQueryReportl}.
@@ -79,7 +78,7 @@ public class GetQueryReportIT extends ITBase {
         final String pcjId = pcjStorage.createPcj(sparql);
 
         // Tell the Fluo app to maintain the PCJ.
-        new CreatePcj().withRyaIntegration(pcjId, pcjStorage, fluoClient, ryaRepo);
+        new CreatePcj().withRyaIntegration(pcjId, pcjStorage, fluoClient, accumuloConn, RYA_INSTANCE_NAME);
 
         // Stream the data into Fluo.
         new InsertTriples().insert(fluoClient, streamedTriples, Optional.<String>absent());

@@ -23,9 +23,11 @@ import static org.junit.Assert.assertEquals;
 import java.util.HashSet;
 import java.util.Set;
 
+import org.apache.fluo.api.client.FluoClient;
+import org.apache.rya.accumulo.AccumuloRyaDAO;
+import org.apache.rya.indexing.external.PrecomputedJoinIndexer;
 import org.apache.rya.indexing.pcj.fluo.ITBase;
 import org.apache.rya.indexing.pcj.fluo.api.CreatePcj;
-import org.apache.rya.indexing.pcj.fluo.app.IncUpdateDAO;
 import org.apache.rya.indexing.pcj.storage.PrecomputedJoinStorage;
 import org.apache.rya.indexing.pcj.storage.accumulo.AccumuloPcjStorage;
 import org.apache.rya.indexing.pcj.update.PrecomputedJoinUpdater;
@@ -37,10 +39,6 @@ import org.openrdf.query.impl.BindingImpl;
 import org.openrdf.repository.RepositoryConnection;
 
 import com.google.common.collect.Sets;
-
-import org.apache.fluo.api.client.FluoClient;
-import org.apache.rya.accumulo.AccumuloRyaDAO;
-import org.apache.rya.indexing.external.PrecomputedJoinIndexer;
 
 
 /**
@@ -91,7 +89,7 @@ public class RyaInputIncrementalUpdateIT extends ITBase {
         final String pcjId = pcjStorage.createPcj(sparql);
 
         // Tell the Fluo app to maintain the PCJ.
-        new CreatePcj().withRyaIntegration(pcjId, pcjStorage, fluoClient, ryaRepo);
+        new CreatePcj().withRyaIntegration(pcjId, pcjStorage, fluoClient, accumuloConn, RYA_INSTANCE_NAME);
 
         // Verify the end results of the query match the expected results.
         fluo.waitForObservers();
@@ -142,7 +140,7 @@ public class RyaInputIncrementalUpdateIT extends ITBase {
         final String pcjId = pcjStorage.createPcj(sparql);
 
         // Tell the Fluo app to maintain the PCJ.
-        new CreatePcj().withRyaIntegration(pcjId, pcjStorage, fluoClient, ryaRepo);
+        new CreatePcj().withRyaIntegration(pcjId, pcjStorage, fluoClient, accumuloConn, RYA_INSTANCE_NAME);
 
         fluo.waitForObservers();
 
@@ -191,7 +189,7 @@ public class RyaInputIncrementalUpdateIT extends ITBase {
         final String pcjId = pcjStorage.createPcj(sparql);
 
         // Tell the Fluo app to maintain the PCJ.
-        new CreatePcj().withRyaIntegration(pcjId, pcjStorage, fluoClient, ryaRepo);
+        new CreatePcj().withRyaIntegration(pcjId, pcjStorage, fluoClient, accumuloConn, RYA_INSTANCE_NAME);
 
         fluo.waitForObservers();
 

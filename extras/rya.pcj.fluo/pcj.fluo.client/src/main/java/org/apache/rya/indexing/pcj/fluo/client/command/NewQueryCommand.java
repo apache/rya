@@ -21,17 +21,26 @@ package org.apache.rya.indexing.pcj.fluo.client.command;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
 import edu.umd.cs.findbugs.annotations.NonNull;
 
+import org.apache.accumulo.core.client.AccumuloException;
+import org.apache.accumulo.core.client.AccumuloSecurityException;
 import org.apache.accumulo.core.client.Connector;
+import org.apache.accumulo.core.security.Authorizations;
 import org.apache.commons.io.IOUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.apache.rya.accumulo.AccumuloRdfConfiguration;
+import org.apache.rya.accumulo.query.AccumuloRyaQueryEngine;
+import org.apache.rya.api.persist.RyaDAOException;
 import org.apache.rya.indexing.pcj.fluo.api.CreatePcj;
 import org.apache.rya.indexing.pcj.fluo.client.PcjAdminClientCommand;
 import org.apache.rya.indexing.pcj.fluo.client.util.ParsedQueryRequest;
@@ -124,12 +133,14 @@ public class NewQueryCommand implements PcjAdminClientCommand {
             final String pcjId = pcjStorage.createPcj(sparql);
 
             // Tell the Fluo PCJ Updater app to maintain the PCJ.
-            createPcj.withRyaIntegration(pcjId, pcjStorage, fluo, rya);
+            createPcj.withRyaIntegration(pcjId, pcjStorage, fluo, accumulo, ryaTablePrefix);
 
-        } catch (MalformedQueryException | SailException | QueryEvaluationException | PcjException e) {
+        } catch (MalformedQueryException | SailException | QueryEvaluationException | PcjException | RyaDAOException e) {
             throw new ExecutionException("Could not create and load historic matches into the the Fluo app for the query.", e);
         }
 
         log.trace("Finished executing the New Query Command.");
     }
+  
+    
 }

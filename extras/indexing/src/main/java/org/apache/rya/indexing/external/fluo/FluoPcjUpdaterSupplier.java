@@ -25,22 +25,20 @@ import static org.apache.rya.indexing.external.fluo.FluoPcjUpdaterConfig.ACCUMUL
 import static org.apache.rya.indexing.external.fluo.FluoPcjUpdaterConfig.ACCUMULO_USERNAME;
 import static org.apache.rya.indexing.external.fluo.FluoPcjUpdaterConfig.ACCUMULO_ZOOKEEPERS;
 import static org.apache.rya.indexing.external.fluo.FluoPcjUpdaterConfig.FLUO_APP_NAME;
-import static org.apache.rya.indexing.external.fluo.FluoPcjUpdaterConfig.STATEMENT_VISIBILITY;
+
 import org.apache.fluo.api.client.FluoClient;
 import org.apache.fluo.api.client.FluoFactory;
 import org.apache.fluo.api.config.FluoConfiguration;
-
-import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
-import edu.umd.cs.findbugs.annotations.NonNull;
-
+import org.apache.hadoop.conf.Configuration;
 import org.apache.rya.indexing.external.PrecomputedJoinIndexerConfig;
 import org.apache.rya.indexing.external.PrecomputedJoinIndexerConfig.PrecomputedJoinUpdaterType;
-
-import org.apache.hadoop.conf.Configuration;
 import org.apache.rya.indexing.pcj.update.PrecomputedJoinUpdater;
 
 import com.google.common.base.Optional;
 import com.google.common.base.Supplier;
+
+import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
+import edu.umd.cs.findbugs.annotations.NonNull;
 
 /**
  * Creates instances of {@link FluoPcjUpdater} using the values found in a {@link Configuration}.
@@ -81,7 +79,6 @@ public class FluoPcjUpdaterSupplier implements Supplier<PrecomputedJoinUpdater> 
         checkArgument(fluoUpdaterConfig.getAccumuloInstance().isPresent(), "Missing configuration: " + ACCUMULO_INSTANCE);
         checkArgument(fluoUpdaterConfig.getAccumuloUsername().isPresent(), "Missing configuration: " + ACCUMULO_USERNAME);
         checkArgument(fluoUpdaterConfig.getAccumuloPassword().isPresent(), "Missing configuration: " + ACCUMULO_PASSWORD);
-        checkArgument(fluoUpdaterConfig.getStatementVisibility().isPresent(), "Missing configuration: " + STATEMENT_VISIBILITY);
 
         // Fluo configuration values.
         final FluoConfiguration fluoClientConfig = new FluoConfiguration();
@@ -95,7 +92,6 @@ public class FluoPcjUpdaterSupplier implements Supplier<PrecomputedJoinUpdater> 
         fluoClientConfig.setAccumuloPassword( fluoUpdaterConfig.getAccumuloPassword().get() );
 
         final FluoClient fluoClient = FluoFactory.newClient(fluoClientConfig);
-        final String statementVisibilities = fluoUpdaterConfig.getStatementVisibility().get();
-        return new FluoPcjUpdater(fluoClient, statementVisibilities);
+        return new FluoPcjUpdater(fluoClient);
     }
 }

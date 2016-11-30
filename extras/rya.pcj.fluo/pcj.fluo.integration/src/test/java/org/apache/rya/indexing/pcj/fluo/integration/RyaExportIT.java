@@ -23,6 +23,7 @@ import static org.junit.Assert.assertEquals;
 import java.util.HashSet;
 import java.util.Set;
 
+import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.indexing.pcj.fluo.ITBase;
 import org.apache.rya.indexing.pcj.fluo.api.CreatePcj;
 import org.apache.rya.indexing.pcj.fluo.api.InsertTriples;
@@ -35,8 +36,6 @@ import org.openrdf.query.impl.BindingImpl;
 
 import com.google.common.base.Optional;
 import com.google.common.collect.Sets;
-
-import org.apache.rya.api.domain.RyaStatement;
 
 /**
  * Performs integration tests over the Fluo application geared towards Rya PCJ exporting.
@@ -99,7 +98,7 @@ public class RyaExportIT extends ITBase {
         final String pcjId = pcjStorage.createPcj(sparql);
 
         // Tell the Fluo app to maintain the PCJ.
-        new CreatePcj().withRyaIntegration(pcjId, pcjStorage, fluoClient, ryaRepo);
+        new CreatePcj().withRyaIntegration(pcjId, pcjStorage, fluoClient, accumuloConn, RYA_INSTANCE_NAME);
 
         // Stream the data into Fluo.
         new InsertTriples().insert(fluoClient, streamedTriples, Optional.<String>absent());

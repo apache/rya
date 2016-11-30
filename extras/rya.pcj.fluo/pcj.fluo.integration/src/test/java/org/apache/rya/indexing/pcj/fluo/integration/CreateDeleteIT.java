@@ -84,7 +84,7 @@ public class CreateDeleteIT extends ITBase {
         final String pcjId = pcjStorage.createPcj(sparql);
 
         // Tell the Fluo app to maintain the PCJ.
-        new CreatePcj().withRyaIntegration(pcjId, pcjStorage, fluoClient, ryaRepo);
+        new CreatePcj().withRyaIntegration(pcjId, pcjStorage, fluoClient, accumuloConn, RYA_INSTANCE_NAME);
 
         // Verify the end results of the query match the expected results.
         fluo.waitForObservers();

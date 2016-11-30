@@ -18,27 +18,10 @@
  */
 package org.apache.rya.api.client.accumulo;
 
-import static com.google.common.base.Preconditions.checkNotNull;
 import static java.util.Objects.requireNonNull;
 
-import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
-import edu.umd.cs.findbugs.annotations.NonNull;
-
 import org.apache.accumulo.core.client.Connector;
-import org.apache.rya.indexing.pcj.storage.PcjException;
-import org.apache.rya.indexing.pcj.storage.PrecomputedJoinStorage;
-import org.apache.rya.indexing.pcj.storage.PrecomputedJoinStorage.PCJStorageException;
-import org.apache.rya.indexing.pcj.storage.accumulo.AccumuloPcjStorage;
-import org.openrdf.query.MalformedQueryException;
-import org.openrdf.query.QueryEvaluationException;
-import org.openrdf.repository.RepositoryException;
-import org.openrdf.sail.SailException;
-
-import com.google.common.base.Optional;
-
 import org.apache.fluo.api.client.FluoClient;
-import org.apache.rya.accumulo.AccumuloRdfConfiguration;
-import org.apache.rya.accumulo.AccumuloRyaDAO;
 import org.apache.rya.accumulo.instance.AccumuloRyaInstanceDetailsRepository;
 import org.apache.rya.api.client.CreatePCJ;
 import org.apache.rya.api.client.GetInstanceDetails;
@@ -54,8 +37,20 @@ import org.apache.rya.api.instance.RyaDetailsRepository.RyaDetailsRepositoryExce
 import org.apache.rya.api.instance.RyaDetailsUpdater;
 import org.apache.rya.api.instance.RyaDetailsUpdater.RyaDetailsMutator;
 import org.apache.rya.api.instance.RyaDetailsUpdater.RyaDetailsMutator.CouldNotApplyMutationException;
-import org.apache.rya.rdftriplestore.RdfCloudTripleStore;
-import org.apache.rya.rdftriplestore.RyaSailRepository;
+import org.apache.rya.api.persist.RyaDAOException;
+import org.apache.rya.indexing.pcj.storage.PcjException;
+import org.apache.rya.indexing.pcj.storage.PrecomputedJoinStorage;
+import org.apache.rya.indexing.pcj.storage.PrecomputedJoinStorage.PCJStorageException;
+import org.apache.rya.indexing.pcj.storage.accumulo.AccumuloPcjStorage;
+import org.openrdf.query.MalformedQueryException;
+import org.openrdf.query.QueryEvaluationException;
+import org.openrdf.repository.RepositoryException;
+import org.openrdf.sail.SailException;
+
+import com.google.common.base.Optional;
+
+import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
+import edu.umd.cs.findbugs.annotations.NonNull;
 
 /**
  * An Accumulo implementation of the {@link CreatePCJ} command.
@@ -108,7 +103,7 @@ public class AccumuloCreatePCJ extends AccumuloCommand implements CreatePCJ {
             final String fluoAppName = fluoDetailsHolder.get().getUpdateAppName();
             try {
                 updateFluoApp(instanceName, fluoAppName, pcjStorage, pcjId);
-            } catch (RepositoryException | MalformedQueryException | SailException | QueryEvaluationException | PcjException e) {
+            } catch (RepositoryException | MalformedQueryException | SailException | QueryEvaluationException | PcjException | RyaDAOException e) {
                 throw new RyaClientException("Problem while initializing the Fluo application with the new PCJ.", e);
             }
 
@@ -138,7 +133,7 @@ public class AccumuloCreatePCJ extends AccumuloCommand implements CreatePCJ {
         return pcjId;
     }
 
-    private void updateFluoApp(final String ryaInstance, final String fluoAppName, final PrecomputedJoinStorage pcjStorage, final String pcjId) throws RepositoryException, MalformedQueryException, SailException, QueryEvaluationException, PcjException {
+    private void updateFluoApp(final String ryaInstance, final String fluoAppName, final PrecomputedJoinStorage pcjStorage, final String pcjId) throws RepositoryException, MalformedQueryException, SailException, QueryEvaluationException, PcjException, RyaDAOException {
         requireNonNull(pcjStorage);
         requireNonNull(pcjId);
 
@@ -151,32 +146,9 @@ public class AccumuloCreatePCJ extends AccumuloCommand implements CreatePCJ {
                 cd.getZookeepers(),
                 fluoAppName);
 
-        // Setup the Rya client that is able to talk to scan Rya's statements.
-        final RyaSailRepository ryaSailRepo = makeRyaRepository(getConnector(), ryaInstance);
-
         // Initialize the PCJ within the Fluo application.
         final org.apache.rya.indexing.pcj.fluo.api.CreatePcj fluoCreatePcj = new org.apache.rya.indexing.pcj.fluo.api.CreatePcj();
-        fluoCreatePcj.withRyaIntegration(pcjId, pcjStorage, fluoClient, ryaSailRepo);
+        fluoCreatePcj.withRyaIntegration(pcjId, pcjStorage, fluoClient, getConnector(), ryaInstance);
     }
 
-    private static RyaSailRepository makeRyaRepository(final Connector connector, final String ryaInstance) throws RepositoryException {
-        checkNotNull(connector);
-        checkNotNull(ryaInstance);
-
-        // Setup Rya configuration values.
-        final AccumuloRdfConfiguration ryaConf = new AccumuloRdfConfiguration();
-        ryaConf.setTablePrefix( ryaInstance );
-
-        // Connect to the Rya repo using the provided Connector.
-        final AccumuloRyaDAO accumuloRyaDao = new AccumuloRyaDAO();
-        accumuloRyaDao.setConnector(connector);
-        accumuloRyaDao.setConf(ryaConf);
-
-        final RdfCloudTripleStore ryaStore = new RdfCloudTripleStore();
-        ryaStore.setRyaDAO(accumuloRyaDao);
-
-        final RyaSailRepository ryaRepo = new RyaSailRepository(ryaStore);
-        ryaRepo.initialize();
-        return ryaRepo;
-    }
 }

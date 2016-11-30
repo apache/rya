@@ -26,6 +26,7 @@ import java.util.Set;
 
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
+import org.apache.rya.api.persist.RyaDAOException;
 import org.apache.rya.indexing.pcj.fluo.ITBase;
 import org.apache.rya.indexing.pcj.fluo.api.GetPcjMetadata.NotInAccumuloException;
 import org.apache.rya.indexing.pcj.fluo.api.GetPcjMetadata.NotInFluoException;
@@ -49,7 +50,7 @@ import com.google.common.collect.Sets;
 public class GetPcjMetadataIT extends ITBase {
 
     @Test
-    public void getMetadataByQueryId() throws RepositoryException, MalformedQueryException, SailException, QueryEvaluationException, PcjException, NotInFluoException, NotInAccumuloException {
+    public void getMetadataByQueryId() throws RepositoryException, MalformedQueryException, SailException, QueryEvaluationException, PcjException, NotInFluoException, NotInAccumuloException, RyaDAOException {
         final String sparql =
                 "SELECT ?x " +
                   "WHERE { " +
@@ -62,7 +63,7 @@ public class GetPcjMetadataIT extends ITBase {
         final String pcjId = pcjStorage.createPcj(sparql);
 
         // Tell the Fluo app to maintain the PCJ.
-        new CreatePcj().withRyaIntegration(pcjId, pcjStorage, fluoClient, ryaRepo);
+        new CreatePcj().withRyaIntegration(pcjId, pcjStorage, fluoClient, accumuloConn, RYA_INSTANCE_NAME);
 
         // Fetch the PCJ's Metadata through the GetPcjMetadata interactor.
         final String queryId = new ListQueryIds().listQueryIds(fluoClient).get(0);
@@ -75,7 +76,7 @@ public class GetPcjMetadataIT extends ITBase {
     }
 
     @Test
-    public void getAllMetadata() throws MalformedQueryException, SailException, QueryEvaluationException, PcjException, NotInFluoException, NotInAccumuloException, AccumuloException, AccumuloSecurityException {
+    public void getAllMetadata() throws MalformedQueryException, SailException, QueryEvaluationException, PcjException, NotInFluoException, NotInAccumuloException, AccumuloException, AccumuloSecurityException, RyaDAOException {
 
         final CreatePcj createPcj = new CreatePcj();
 
@@ -89,7 +90,7 @@ public class GetPcjMetadataIT extends ITBase {
                   "?x <http://worksAt> <http://Chipotle>." +
                 "}";
         final String q1PcjId = pcjStorage.createPcj(q1Sparql);
-        createPcj.withRyaIntegration(q1PcjId, pcjStorage, fluoClient, ryaRepo);
+        createPcj.withRyaIntegration(q1PcjId, pcjStorage, fluoClient, accumuloConn, RYA_INSTANCE_NAME);
 
         final String q2Sparql =
                 "SELECT ?x ?y " +
@@ -98,7 +99,7 @@ public class GetPcjMetadataIT extends ITBase {
                   "?y <http://worksAt> <http://Chipotle>." +
                 "}";
         final String q2PcjId = pcjStorage.createPcj(q2Sparql);
-        createPcj.withRyaIntegration(q2PcjId, pcjStorage, fluoClient, ryaRepo);
+        createPcj.withRyaIntegration(q2PcjId, pcjStorage, fluoClient, accumuloConn, RYA_INSTANCE_NAME);
 
         // Ensure the command returns the correct metadata.
         final Set<PcjMetadata> expected = new HashSet<>();

@@ -21,14 +21,27 @@ package org.apache.rya.indexing.pcj.fluo.api;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static java.util.Objects.requireNonNull;
-import static org.apache.rya.indexing.pcj.fluo.app.IncrementalUpdateConstants.NODEID_BS_DELIM;
 
+import java.io.UnsupportedEncodingException;
 import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Set;
 
-import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
-import edu.umd.cs.findbugs.annotations.NonNull;
-
+import org.apache.accumulo.core.client.AccumuloException;
+import org.apache.accumulo.core.client.AccumuloSecurityException;
+import org.apache.accumulo.core.client.Connector;
+import org.apache.accumulo.core.security.Authorizations;
+import org.apache.fluo.api.client.FluoClient;
+import org.apache.fluo.api.client.Transaction;
+import org.apache.rya.accumulo.AccumuloRdfConfiguration;
+import org.apache.rya.accumulo.query.AccumuloRyaQueryEngine;
+import org.apache.rya.api.domain.RyaStatement;
+import org.apache.rya.api.domain.RyaType;
+import org.apache.rya.api.domain.RyaURI;
+import org.apache.rya.api.persist.RyaDAOException;
+import org.apache.rya.api.persist.query.BatchRyaQuery;
+import org.apache.rya.api.resolver.RdfToRyaConversions;
 import org.apache.rya.indexing.pcj.fluo.app.FluoStringConverter;
 import org.apache.rya.indexing.pcj.fluo.app.query.FluoQuery;
 import org.apache.rya.indexing.pcj.fluo.app.query.FluoQueryColumns;
@@ -39,23 +52,18 @@ import org.apache.rya.indexing.pcj.fluo.app.query.StatementPatternMetadata;
 import org.apache.rya.indexing.pcj.storage.PcjException;
 import org.apache.rya.indexing.pcj.storage.PcjMetadata;
 import org.apache.rya.indexing.pcj.storage.PrecomputedJoinStorage;
-import org.apache.rya.indexing.pcj.storage.accumulo.BindingSetStringConverter;
-import org.apache.rya.indexing.pcj.storage.accumulo.VariableOrder;
-import org.openrdf.query.Binding;
-import org.openrdf.query.BindingSet;
+import org.openrdf.model.Resource;
+import org.openrdf.model.URI;
+import org.openrdf.model.Value;
 import org.openrdf.query.MalformedQueryException;
 import org.openrdf.query.QueryEvaluationException;
 import org.openrdf.query.algebra.StatementPattern;
-import org.openrdf.query.impl.MapBindingSet;
 import org.openrdf.query.parser.ParsedQuery;
 import org.openrdf.query.parser.sparql.SPARQLParser;
-import org.openrdf.repository.sail.SailRepository;
-import org.openrdf.sail.SailConnection;
 import org.openrdf.sail.SailException;
 
-import info.aduna.iteration.CloseableIteration;
-import org.apache.fluo.api.client.FluoClient;
-import org.apache.fluo.api.client.Transaction;
+import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
+import edu.umd.cs.findbugs.annotations.NonNull;
 
 /**
  * Sets up a new Pre Computed Join (PCJ) in Fluo from a SPARQL query.
@@ -105,6 +113,7 @@ public class CreatePcj {
         this.spInsertBatchSize = spInsertBatchSize;
     }
 
+    
     /**
      * Tells the Fluo PCJ Updater application to maintain a new PCJ.
      * <p>
@@ -116,110 +125,145 @@ public class CreatePcj {
      * @param pcjId - Identifies the PCJ that will be updated by the Fluo app. (not null)
      * @param pcjStorage - Provides access to the PCJ index. (not null)
      * @param fluo - A connection to the Fluo application that updates the PCJ index. (not null)
-     * @param rya - A connection to the Rya instance hosting the PCJ, (not null)
+     * @param queryEngine - QueryEngine for a given Rya Instance, (not null)
      *
      * @throws MalformedQueryException The SPARQL query stored for the {@code pcjId} is malformed.
      * @throws PcjException The PCJ Metadata for {@code pcjId} could not be read from {@code pcjStorage}.
      * @throws SailException Historic PCJ results could not be loaded because of a problem with {@code rya}.
      * @throws QueryEvaluationException Historic PCJ results could not be loaded because of a problem with {@code rya}.
      */
-    public void withRyaIntegration(
-            final String pcjId,
-            final PrecomputedJoinStorage pcjStorage,
-            final FluoClient fluo,
-            final SailRepository rya)
-                    throws MalformedQueryException, PcjException, SailException, QueryEvaluationException {
-        requireNonNull(pcjId);
-        requireNonNull(pcjStorage);
-        requireNonNull(fluo);
-        requireNonNull(rya);
+	public void withRyaIntegration(final String pcjId, final PrecomputedJoinStorage pcjStorage, final FluoClient fluo,
+			final Connector accumulo, String ryaInstance )
+					throws MalformedQueryException, PcjException, SailException, QueryEvaluationException, RyaDAOException {
+		requireNonNull(pcjId);
+		requireNonNull(pcjStorage);
+		requireNonNull(fluo);
+		requireNonNull(accumulo);
+		requireNonNull(ryaInstance);
+		
+		//Create AccumuloRyaQueryEngine to query for historic results
+		AccumuloRdfConfiguration conf = new AccumuloRdfConfiguration();
+		conf.setTablePrefix(ryaInstance);
+		conf.setAuths(getAuths(accumulo));
+		AccumuloRyaQueryEngine queryEngine = new AccumuloRyaQueryEngine(accumulo, conf);
+		
 
-        // Keeps track of the IDs that are assigned to each of the query's nodes in Fluo.
-        // We use these IDs later when scanning Rya for historic Statement Pattern matches
-        // as well as setting up automatic exports.
-        final NodeIds nodeIds = new NodeIds();
+		// Keeps track of the IDs that are assigned to each of the query's nodes
+		// in Fluo.
+		// We use these IDs later when scanning Rya for historic Statement
+		// Pattern matches
+		// as well as setting up automatic exports.
+		final NodeIds nodeIds = new NodeIds();
 
-        // Parse the query's structure for the metadata that will be written to fluo.
-        final PcjMetadata pcjMetadata = pcjStorage.getPcjMetadata(pcjId);
-        final String sparql = pcjMetadata.getSparql();
-        final ParsedQuery parsedQuery = new SPARQLParser().parseQuery(sparql, null);
-        final FluoQuery fluoQuery = new SparqlFluoQueryBuilder().make(parsedQuery, nodeIds);
+		// Parse the query's structure for the metadata that will be written to
+		// fluo.
+		final PcjMetadata pcjMetadata = pcjStorage.getPcjMetadata(pcjId);
+		final String sparql = pcjMetadata.getSparql();
+		final ParsedQuery parsedQuery = new SPARQLParser().parseQuery(sparql, null);
+		final FluoQuery fluoQuery = new SparqlFluoQueryBuilder().make(parsedQuery, nodeIds);
 
-        try(Transaction tx = fluo.newTransaction()) {
-            // Write the query's structure to Fluo.
-            new FluoQueryMetadataDAO().write(tx, fluoQuery);
+		try (Transaction tx = fluo.newTransaction()) {
+			// Write the query's structure to Fluo.
+			new FluoQueryMetadataDAO().write(tx, fluoQuery);
 
-            // The results of the query are eventually exported to an instance of Rya, so store the Rya ID for the PCJ.
-            final String queryId = fluoQuery.getQueryMetadata().getNodeId();
-            tx.set(queryId, FluoQueryColumns.RYA_PCJ_ID, pcjId);
-            tx.set(pcjId, FluoQueryColumns.PCJ_ID_QUERY_ID, queryId);
-            
-            // Flush the changes to Fluo.
-            tx.commit();
-        }
+			// The results of the query are eventually exported to an instance
+			// of Rya, so store the Rya ID for the PCJ.
+			final String queryId = fluoQuery.getQueryMetadata().getNodeId();
+			tx.set(queryId, FluoQueryColumns.RYA_PCJ_ID, pcjId);
+			tx.set(pcjId, FluoQueryColumns.PCJ_ID_QUERY_ID, queryId);
 
-        // Get a connection to Rya. It's used to scan for Statement Pattern results.
-        final SailConnection ryaConn = rya.getSail().getConnection();
+			// Flush the changes to Fluo.
+			tx.commit();
+		}
 
-        // Reuse the same set object while performing batch inserts.
-        final Set<BindingSet> batch = new HashSet<>();
+		// Reuse the same set object while performing batch inserts.
+		final Set<RyaStatement> queryBatch = new HashSet<>();
 
-        // Iterate through each of the statement patterns and insert their historic matches into Fluo.
-        for(final StatementPatternMetadata patternMetadata : fluoQuery.getStatementPatternMetadata()) {
-            // Get an iterator over all of the binding sets that match the statement pattern.
-            final StatementPattern pattern = FluoStringConverter.toStatementPattern( patternMetadata.getStatementPattern() );
-            final CloseableIteration<? extends BindingSet, QueryEvaluationException> bindingSets = ryaConn.evaluate(pattern, null, null, false);
+		// Iterate through each of the statement patterns and insert their
+		// historic matches into Fluo.
+		for (final StatementPatternMetadata patternMetadata : fluoQuery.getStatementPatternMetadata()) {
+			// Get an iterator over all of the binding sets that match the
+			// statement pattern.
+			final StatementPattern pattern = FluoStringConverter
+					.toStatementPattern(patternMetadata.getStatementPattern());
+			queryBatch.add(spToRyaStatement(pattern));
+		}
 
-            // Insert batches of the binding sets into Fluo.
-            while(bindingSets.hasNext()) {
-                if(batch.size() == spInsertBatchSize) {
-                    writeBatch(fluo, patternMetadata, batch);
-                    batch.clear();
-                }
+		Iterator<RyaStatement> triples = queryEngine.query(new BatchRyaQuery(queryBatch)).iterator();
+		Set<RyaStatement> triplesBatch = new HashSet<>();
 
-                batch.add( bindingSets.next() );
-            }
+		// Insert batches of the binding sets into Fluo.
+		while (triples.hasNext()) {
+			if (triplesBatch.size() == spInsertBatchSize) {
+				writeBatch(fluo, triplesBatch);
+				triplesBatch.clear();
+			}
 
-            if(!batch.isEmpty()) {
-                writeBatch(fluo, patternMetadata, batch);
-                batch.clear();
-            }
-        }
-    }
+			triplesBatch.add(triples.next());
+		}
 
-    /**
-     * Writes a batch of {@link BindingSet}s that match a statement pattern to Fluo.
-     *
-     * @param fluo - Creates transactions to Fluo. (not null)
-     * @param spMetadata - The Statement Pattern the batch matches. (not null)
-     * @param batch - A set of binding sets that are the result of the statement pattern. (not null)
-     */
-    private static void writeBatch(final FluoClient fluo, final StatementPatternMetadata spMetadata, final Set<BindingSet> batch) {
+		if (!triplesBatch.isEmpty()) {
+			writeBatch(fluo, triplesBatch);
+			triplesBatch.clear();
+		}
+	}
+    
+    
+    private static void writeBatch(final FluoClient fluo, final Set<RyaStatement> batch) {
         checkNotNull(fluo);
-        checkNotNull(spMetadata);
         checkNotNull(batch);
+        
+        new InsertTriples().insert(fluo, batch);
 
-        final BindingSetStringConverter converter = new BindingSetStringConverter();
-
-        try(Transaction tx = fluo.newTransaction()) {
-            // Get the node's variable order.
-            final String spNodeId = spMetadata.getNodeId();
-            final VariableOrder varOrder = spMetadata.getVariableOrder();
-
-            for(final BindingSet bindingSet : batch) {
-                final MapBindingSet spBindingSet = new MapBindingSet();
-                for(final String var : varOrder) {
-                    final Binding binding = bindingSet.getBinding(var);
-                    spBindingSet.addBinding(binding);
-                }
-
-                final String bindingSetStr = converter.convert(spBindingSet, varOrder);
-
-                // Write the binding set entry to Fluo for the statement pattern.
-                tx.set(spNodeId + NODEID_BS_DELIM + bindingSetStr, FluoQueryColumns.STATEMENT_PATTERN_BINDING_SET, bindingSetStr);
-            }
-
-            tx.commit();
-        }
     }
+    
+    
+    private static RyaStatement spToRyaStatement(StatementPattern sp) {
+    
+    	Value subjVal = sp.getSubjectVar().getValue();
+    	Value predVal = sp.getPredicateVar().getValue();
+    	Value objVal = sp.getObjectVar().getValue();
+    	
+    	RyaURI subjURI = null;
+    	RyaURI predURI = null;
+    	RyaType objType = null;
+    	
+    	if(subjVal != null) {
+    		if(!(subjVal instanceof Resource)) {
+    			throw new AssertionError("Subject must be a Resource.");
+    		}
+    		subjURI = RdfToRyaConversions.convertResource((Resource) subjVal);
+    	}
+    	
+		if (predVal != null) {
+			if(!(predVal instanceof URI)) {
+    			throw new AssertionError("Predicate must be a URI.");
+    		}
+			predURI = RdfToRyaConversions.convertURI((URI) predVal);
+		}
+		
+		if (objVal != null ) {
+			objType = RdfToRyaConversions.convertValue(objVal);
+		}
+		
+    	return new RyaStatement(subjURI, predURI, objType);
+    }
+    
+    
+    private String[] getAuths(Connector accumulo) {
+   	 Authorizations auths;
+		try {
+			auths = accumulo.securityOperations().getUserAuthorizations(accumulo.whoami());
+			List<byte[]> authList = auths.getAuthorizations();
+	         String[] authArray = new String[authList.size()];
+	         for(int i = 0; i < authList.size(); i++){
+	         	authArray[i] = new String(authList.get(i), "UTF-8");
+	         }
+	         return authArray;
+		} catch (AccumuloException | AccumuloSecurityException | UnsupportedEncodingException e) {
+			throw new RuntimeException("Cannot read authorizations for user: " + accumulo.whoami());
+		}
+   }
+    
+    
 }

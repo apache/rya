@@ -22,17 +22,14 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.Collection;
 
-import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
-import edu.umd.cs.findbugs.annotations.NonNull;
-
+import org.apache.fluo.api.client.FluoClient;
 import org.apache.log4j.Logger;
+import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.indexing.pcj.fluo.api.InsertTriples;
 import org.apache.rya.indexing.pcj.update.PrecomputedJoinUpdater;
 
-import com.google.common.base.Optional;
-
-import org.apache.fluo.api.client.FluoClient;
-import org.apache.rya.api.domain.RyaStatement;
+import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
+import edu.umd.cs.findbugs.annotations.NonNull;
 
 /**
  * Updates the PCJ indices by forwarding the statement additions/removals to
@@ -47,24 +44,21 @@ public class FluoPcjUpdater implements PrecomputedJoinUpdater {
 
     private final FluoClient fluoClient;
     private final InsertTriples insertTriples = new InsertTriples();
-    private final String statementVis;
 
     /**
      * Constructs an instance of {@link FluoPcjUpdater}.
      *
      * @param fluoClient - A connection to the Fluo table new statements will be
      *   inserted into and deleted from. (not null)
-     * @param statementVis - The visibility label that will be applied to all
      *   statements that are inserted via the Fluo PCJ updater. (not null)
      */
-    public FluoPcjUpdater(final FluoClient fluoClient, final String statementVis) {
+    public FluoPcjUpdater(final FluoClient fluoClient) {
         this.fluoClient = checkNotNull(fluoClient);
-        this.statementVis = checkNotNull(statementVis);
     }
 
     @Override
     public void addStatements(final Collection<RyaStatement> statements) throws PcjUpdateException {
-        insertTriples.insert(fluoClient, statements, Optional.of(statementVis));
+        insertTriples.insert(fluoClient, statements);
     }
 
     @Override

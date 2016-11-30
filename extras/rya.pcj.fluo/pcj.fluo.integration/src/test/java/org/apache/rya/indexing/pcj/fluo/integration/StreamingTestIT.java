@@ -98,7 +98,7 @@ public class StreamingTestIT extends ITBase {
 	    // Create the PCJ table.
         final PrecomputedJoinStorage pcjStorage = new AccumuloPcjStorage(accumuloConn, RYA_INSTANCE_NAME);
         final String pcjId = pcjStorage.createPcj(pcj);
-		new CreatePcj().withRyaIntegration(pcjId, pcjStorage, fluoClient, ryaRepo);
+        new CreatePcj().withRyaIntegration(pcjId, pcjStorage, fluoClient, accumuloConn, RYA_INSTANCE_NAME);
 		String tableName = RYA_INSTANCE_NAME + "INDEX_" + pcjId;
 		
 		return tableName;

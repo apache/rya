@@ -64,6 +64,7 @@ under the License.
         <module>osgi</module>
         <module>pig</module>
         <module>sail</module>
+        <module>spark</module>
         <module>web</module>
     </modules>
     <properties>

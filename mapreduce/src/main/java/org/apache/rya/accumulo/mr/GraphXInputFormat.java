@@ -1,13 +1,31 @@
-package mvm.rya.accumulo.mr;
+package org.apache.rya.accumulo.mr;
+
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
 
 import java.io.IOException;
 import java.util.List;
 import java.util.Map.Entry;
-import java.util.SortedMap;
 
-import mvm.rya.api.domain.RyaType;
-import mvm.rya.api.resolver.RyaTypeResolverException;
-import mvm.rya.indexing.accumulo.entity.EntityCentricIndex;
+import org.apache.rya.api.domain.RyaType;
+import org.apache.rya.api.resolver.RyaTypeResolverException;
+import org.apache.rya.indexing.accumulo.entity.EntityCentricIndex;
 
 import org.apache.accumulo.core.client.IteratorSetting;
 import org.apache.accumulo.core.client.Scanner;
@@ -26,7 +44,7 @@ public class GraphXInputFormat extends InputFormatBase<Object, RyaTypeWritable> 
 	/**
 	 * Instantiates a RecordReader for this InputFormat and a given task and
 	 * input split.
-	 * 
+	 *
 	 * @param split
 	 *            Defines the portion of the input this RecordReader is
 	 *            responsible for.
@@ -40,8 +58,8 @@ public class GraphXInputFormat extends InputFormatBase<Object, RyaTypeWritable> 
 		return new RyaStatementRecordReader();
 	}
 
-	
-	
+
+
 	/**
 	 * Retrieves RyaStatementWritable objects from Accumulo tables.
 	 */
@@ -57,7 +75,7 @@ public class GraphXInputFormat extends InputFormatBase<Object, RyaTypeWritable> 
 
 		/**
 		 * Initializes the RecordReader.
-		 * 
+		 *
 		 * @param inSplit
 		 *            Defines the portion of data to read.
 		 * @param attempt
@@ -74,7 +92,7 @@ public class GraphXInputFormat extends InputFormatBase<Object, RyaTypeWritable> 
 		/**
 		 * Load the next statement by converting the next Accumulo row to a
 		 * statement, and make the new (key,value) pair available for retrieval.
-		 * 
+		 *
 		 * @return true if another (key,value) pair was fetched and is ready to
 		 *         be retrieved, false if there was none.
 		 * @throws IOException
@@ -90,13 +108,10 @@ public class GraphXInputFormat extends InputFormatBase<Object, RyaTypeWritable> 
 			currentKey = entry.getKey();
 
 			try {
-				currentK = currentKey.getRow();
-				SortedMap<Key, Value> wholeRow = WholeRowIterator.decodeRow(entry.getKey(), entry.getValue());
-				Key key = wholeRow.firstKey();
-				Value value = wholeRow.get(key);
-				RyaType type = EntityCentricIndex.getRyaType(key, value);
+				RyaType type = EntityCentricIndex.getRyaType(currentKey, entry.getValue());
 				RyaTypeWritable writable = new RyaTypeWritable();
 				writable.setRyaType(type);
+				currentK = GraphXEdgeInputFormat.getVertexId(type);
 				currentV = writable;
 			} catch (RyaTypeResolverException e) {
 				throw new IOException();

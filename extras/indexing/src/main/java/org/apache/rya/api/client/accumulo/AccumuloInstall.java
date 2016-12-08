@@ -205,6 +205,7 @@ public class AccumuloInstall extends AccumuloCommand implements Install {
         final PrecomputedJoinUpdaterType updaterType = fluoHolder.isPresent() ? PrecomputedJoinUpdaterType.FLUO : PrecomputedJoinUpdaterType.NO_UPDATE;
         conf.set(ConfigUtils.PCJ_UPDATER_TYPE, updaterType.toString());
 
+
         // XXX The Accumulo implementation of the secondary indices make need all
         //     of the accumulo connector's parameters to initialize themselves, so
         //     we need to include them here. It would be nice if the secondary

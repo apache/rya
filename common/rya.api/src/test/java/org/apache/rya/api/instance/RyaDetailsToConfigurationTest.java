@@ -21,7 +21,7 @@ package org.apache.rya.api.instance;
 
 import static org.apache.rya.api.instance.ConfigurationFields.USE_ENTITY;
 import static org.apache.rya.api.instance.ConfigurationFields.USE_FREETEXT;
-import static org.apache.rya.api.instance.ConfigurationFields.USE_PCJ;
+import static org.apache.rya.api.instance.ConfigurationFields.USE_PCJ_UPDATER;
 import static org.apache.rya.api.instance.ConfigurationFields.USE_TEMPORAL;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -76,6 +76,6 @@ public class RyaDetailsToConfigurationTest {
         assertFalse(conf.getBoolean(USE_FREETEXT, true));
       //RYA-215assertTrue(conf.getBoolean(USE_GEO, false));
         assertTrue(conf.getBoolean(USE_TEMPORAL, false));
-        assertTrue(conf.getBoolean(USE_PCJ, false));
+        assertTrue(conf.getBoolean(USE_PCJ_UPDATER, false));
     }
 }

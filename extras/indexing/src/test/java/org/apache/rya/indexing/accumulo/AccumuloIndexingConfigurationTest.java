@@ -1,5 +1,3 @@
-package org.apache.rya.accumulo;
-
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -8,9 +6,9 @@ package org.apache.rya.accumulo;
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- * 
+ *
  *   http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -18,6 +16,7 @@ package org.apache.rya.accumulo;
  * specific language governing permissions and limitations
  * under the License.
  */
+package org.apache.rya.indexing.accumulo;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -26,54 +25,15 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.HashSet;
 import java.util.Properties;
+import java.util.Set;
 
-import org.apache.accumulo.core.client.IteratorSetting;
 import org.apache.accumulo.core.security.Authorizations;
+import org.apache.rya.api.domain.RyaURI;
 import org.junit.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-public class AccumuloRdfConfigurationTest {
-    private static final Logger logger = LoggerFactory.getLogger(AccumuloRdfConfigurationTest.class);
-
-    @Test
-    public void testAuths() {
-        String[] arr = { "U", "FOUO" };
-        String str = "U,FOUO";
-        Authorizations auths = new Authorizations(arr);
-
-        AccumuloRdfConfiguration conf = new AccumuloRdfConfiguration();
-
-        conf.setAuths(arr);
-        assertTrue(Arrays.equals(arr, conf.getAuths()));
-        assertEquals(str, conf.getAuth());
-        assertEquals(auths, conf.getAuthorizations());
-
-        conf.setAuth(str);
-        assertTrue(Arrays.equals(arr, conf.getAuths()));
-        assertEquals(str, conf.getAuth());
-        assertEquals(auths, conf.getAuthorizations());
-    }
-
-    @Test
-    public void testIterators() {
-        AccumuloRdfConfiguration conf = new AccumuloRdfConfiguration();
-
-        Map<String, String> options = new HashMap<String, String>();
-        options.put("key1", "value1");
-        options.put("key2", "value2");
-        IteratorSetting setting = new IteratorSetting(1, "test", "test2", options);
-
-        conf.setAdditionalIterators(setting);
-        IteratorSetting[] iteratorSettings = conf.getAdditionalIterators();
-        assertTrue(iteratorSettings.length == 1);
-
-        assertEquals(setting, iteratorSettings[0]);
-
-    }
+public class AccumuloIndexingConfigurationTest {
 
     @Test
     public void testBuilder() {
@@ -90,20 +50,27 @@ public class AccumuloRdfConfigurationTest {
         boolean useInference = true;
         boolean displayPlan = false;
 
-        AccumuloRdfConfiguration conf = new AccumuloRdfConfiguration().getBuilder()//
-                .setAuths(auth)//
-                .setVisibilities(visibility)//
-                .setRyaPrefix(prefix)//
-                .setUseInference(useInference)//
-                .setUseCompositeCardinality(useComposite)//
-                .setDisplayQueryPlan(displayPlan)//
-                .setAccumuloInstance(instance)//
-                .setAccumuloPassword(password)//
-                .setAccumuloUser(user)//
-                .setAccumuloZooKeepers(zookeeper)//
-                .setUseMockAccumulo(useMock)//
-                .setUseAccumuloPrefixHashing(usePrefixHash)//
-                .build();
+        AccumuloIndexingConfiguration conf = AccumuloIndexingConfiguration.builder()
+                .setAuths(auth)
+                .setVisibilities(visibility)
+                .setRyaPrefix(prefix)
+                .setUseInference(useInference)
+                .setUseCompositeCardinality(useComposite)
+                .setDisplayQueryPlan(displayPlan)
+                .setAccumuloInstance(instance)
+                .setAccumuloPassword(password)
+                .setAccumuloUser(user)
+                .setAccumuloZooKeepers(zookeeper)
+                .setUseMockAccumulo(useMock)
+                .setUseAccumuloPrefixHashing(usePrefixHash)
+                .setAccumuloFreeTextPredicates("http://pred1", "http://pred2")
+                .setAccumuloTemporalPredicates("http://pred3", "http://pred4")
+                .setUseAccumuloTemporalIndex(true)
+                .setUseAccumuloEntityIndex(true)
+                .setUseAccumuloFreetextIndex(true)
+                .setPcjUpdaterFluoAppName("fluo")
+                .setUseOptimalPcj(true)
+                .setPcjTables("table1", "table2").build();
 
         assertEquals(conf.getTablePrefix(), prefix);
         assertEquals(conf.getCv(), visibility);
@@ -117,6 +84,18 @@ public class AccumuloRdfConfigurationTest {
         assertEquals(conf.getAccumuloZookeepers(), zookeeper);
         assertEquals(conf.getUseMockAccumulo(), useMock);
         assertEquals(conf.isPrefixRowsWithHash(), usePrefixHash);
+        assertTrue(
+                Arrays.equals(conf.getAccumuloFreeTextPredicates(), new String[] { "http://pred1", "http://pred2" }));
+        assertTrue(
+                Arrays.equals(conf.getAccumuloTemporalPredicates(), new String[] { "http://pred3", "http://pred4" }));
+        assertEquals(conf.getPcjTables(), Arrays.asList("table1", "table2"));
+        assertEquals(conf.getUsePCJ(), false);
+        assertEquals(conf.getUseOptimalPCJ(), true);
+        assertEquals(conf.getUseEntity(), true);
+        assertEquals(conf.getUseFreetext(), true);
+        assertEquals(conf.getUseTemporal(), true);
+        assertEquals(conf.getUsePCJUpdater(), true);
+        assertEquals(conf.getFluoAppUpdaterName(), "fluo");
 
     }
 
@@ -134,11 +113,14 @@ public class AccumuloRdfConfigurationTest {
         boolean usePrefixHash = true;
         boolean useInference = true;
         boolean displayPlan = false;
+        boolean useMetadata = true;
+        Set<RyaURI> metaProperties = new HashSet<>(Arrays.asList(new RyaURI("urn:123"), new RyaURI("urn:456"))); 
+        
 
         Properties props = new Properties();
-        props.load(new FileInputStream("src/test/resources/properties/rya.properties"));
+        props.load(new FileInputStream("src/test/resources/accumulo_rya_indexing.properties"));
 
-        AccumuloRdfConfiguration conf = AccumuloRdfConfiguration.fromProperties(props);
+        AccumuloIndexingConfiguration conf = AccumuloIndexingConfiguration.fromProperties(props);
 
         assertEquals(conf.getTablePrefix(), prefix);
         assertEquals(conf.getCv(), visibility);
@@ -152,6 +134,20 @@ public class AccumuloRdfConfigurationTest {
         assertEquals(conf.getAccumuloZookeepers(), zookeeper);
         assertEquals(conf.getUseMockAccumulo(), useMock);
         assertEquals(conf.isPrefixRowsWithHash(), usePrefixHash);
+        assertTrue(
+                Arrays.equals(conf.getAccumuloFreeTextPredicates(), new String[] { "http://pred1", "http://pred2" }));
+        assertTrue(
+                Arrays.equals(conf.getAccumuloTemporalPredicates(), new String[] { "http://pred3", "http://pred4" }));
+        assertEquals(conf.getPcjTables(), Arrays.asList("table1", "table2"));
+        assertEquals(conf.getUsePCJ(), false);
+        assertEquals(conf.getUseOptimalPCJ(), true);
+        assertEquals(conf.getUseEntity(), true);
+        assertEquals(conf.getUseFreetext(), true);
+        assertEquals(conf.getUseTemporal(), true);
+        assertEquals(conf.getUsePCJUpdater(), true);
+        assertEquals(conf.getFluoAppUpdaterName(), "fluo");
+        assertEquals(conf.getUseStatementMetadata(), useMetadata);
+        assertEquals(conf.getStatementMetadataProperties(), metaProperties);
 
     }
 

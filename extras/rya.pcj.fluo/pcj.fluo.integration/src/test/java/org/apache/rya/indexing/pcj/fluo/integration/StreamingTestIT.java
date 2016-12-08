@@ -25,6 +25,7 @@ import java.util.UUID;
 import org.apache.accumulo.core.security.Authorizations;
 import org.apache.log4j.Logger;
 import org.apache.rya.accumulo.AccumuloRdfConfiguration;
+import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
 import org.apache.rya.indexing.accumulo.ConfigUtils;
 import org.apache.rya.indexing.pcj.fluo.ITBase;
 import org.apache.rya.indexing.pcj.fluo.api.CreatePcj;
@@ -69,7 +70,9 @@ public class StreamingTestIT extends ITBase {
 	@Before
 	public void init() throws Exception {
 		AccumuloRdfConfiguration conf = makeConfig(instanceName, zookeepers);
-		conf.set(ConfigUtils.CLOUDBASE_AUTHS, "U");
+		conf.set(RdfCloudTripleStoreConfiguration.CONF_QUERY_AUTH, "U");
+		conf.set(RdfCloudTripleStoreConfiguration.CONF_CV, "U");
+		accumuloConn.securityOperations().changeUserAuthorizations("root", new Authorizations("U"));
 		sail =  RyaSailFactory.getInstance(conf);
 		repo = new SailRepository(sail);
 		conn = repo.getConnection();

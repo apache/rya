@@ -19,6 +19,8 @@
 package org.apache.rya.indexing.external.fluo;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+
+import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
 import org.apache.rya.indexing.accumulo.ConfigUtils;
 
 import org.apache.hadoop.conf.Configuration;
@@ -40,7 +42,7 @@ public final class FluoPcjUpdaterConfig {
     public static final String ACCUMULO_PASSWORD = ConfigUtils.CLOUDBASE_PASSWORD;
 
     // Values that define the visibilities associated with statement that are inserted by the fluo updater.
-    public static final String STATEMENT_VISIBILITY = ConfigUtils.CLOUDBASE_AUTHS;
+    public static final String STATEMENT_VISIBILITY = RdfCloudTripleStoreConfiguration.CONF_QUERY_AUTH;
 
     // The configuration object that is provided to Secondary Indexing implementations.
     private final Configuration config;

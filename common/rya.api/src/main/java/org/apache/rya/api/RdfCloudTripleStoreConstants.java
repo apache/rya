@@ -1,5 +1,7 @@
 package org.apache.rya.api;
 
+import org.apache.hadoop.io.Text;
+
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -24,7 +26,6 @@ package org.apache.rya.api;
 import org.apache.rya.api.domain.RyaSchema;
 import org.apache.rya.api.domain.RyaType;
 import org.apache.rya.api.domain.RyaURI;
-import org.apache.hadoop.io.Text;
 import org.openrdf.model.Literal;
 import org.openrdf.model.URI;
 import org.openrdf.model.Value;

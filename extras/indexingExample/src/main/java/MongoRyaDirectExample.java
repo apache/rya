@@ -50,6 +50,8 @@ import com.mongodb.ServerAddress;
 import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
 import org.apache.rya.indexing.GeoConstants;
 import org.apache.rya.indexing.accumulo.ConfigUtils;
+import org.apache.rya.indexing.mongodb.MongoIndexingConfiguration;
+import org.apache.rya.indexing.mongodb.MongoIndexingConfiguration.MongoDBIndexingConfigBuilder;
 import org.apache.rya.mongodb.MockMongoFactory;
 import org.apache.rya.mongodb.MongoConnectorFactory;
 import org.apache.rya.mongodb.MongoDBRdfConfiguration;
@@ -268,8 +270,8 @@ public class MongoRyaDirectExample {
     private static MockMongoFactory mock = null;
     private static Configuration getConf() throws IOException {
 
-        MongoDBRdfConfiguration conf = new MongoDBRdfConfiguration();
-        conf.set(ConfigUtils.USE_MONGO, "true");
+    	MongoDBIndexingConfigBuilder builder = MongoIndexingConfiguration.builder()
+    		.setUseMockMongo(USE_MOCK).setUseInference(USE_INFER).setAuths("U");
 
         if (USE_MOCK) {
             mock = MockMongoFactory.newFactory();
@@ -278,26 +280,20 @@ public class MongoRyaDirectExample {
             String url = address.getHost();
             String port = Integer.toString(address.getPort());
             c.close();
-            conf.set(MongoDBRdfConfiguration.MONGO_INSTANCE, url);
-            conf.set(MongoDBRdfConfiguration.MONGO_INSTANCE_PORT, port);
+            builder.setMongoHost(url).setMongoPort(port);
         } else {
             // User name and password must be filled in:
-            conf.set(MongoDBRdfConfiguration.MONGO_USER, "fill this in");
-            conf.set(MongoDBRdfConfiguration.MONGO_USER_PASSWORD, "fill this in");
-            conf.set(MongoDBRdfConfiguration.MONGO_INSTANCE, MONGO_INSTANCE_URL);
-            conf.set(MongoDBRdfConfiguration.MONGO_INSTANCE_PORT, MONGO_INSTANCE_PORT);
+        	builder = builder.setMongoUser("fill this in")
+        					 .setMongoPassword("fill this in")
+        					 .setMongoHost(MONGO_INSTANCE_URL)
+        					 .setMongoPort(MONGO_INSTANCE_PORT);
         }
-        conf.set(MongoDBRdfConfiguration.MONGO_DB_NAME, MONGO_DB);
-        conf.set(MongoDBRdfConfiguration.MONGO_COLLECTION_PREFIX, MONGO_COLL_PREFIX);
-        conf.set(ConfigUtils.GEO_PREDICATES_LIST, "http://www.opengis.net/ont/geosparql#asWKT");
-//        conf.set(ConfigUtils.USE_GEO, "true");
-        conf.set(ConfigUtils.USE_FREETEXT, "true");
-        conf.setTablePrefix(MONGO_COLL_PREFIX);
-        conf.set(ConfigUtils.GEO_PREDICATES_LIST, GeoConstants.GEO_AS_WKT.stringValue());
-        conf.set(ConfigUtils.FREETEXT_PREDICATES_LIST, RDFS.LABEL.stringValue());
-        conf.set(ConfigUtils.FREETEXT_PREDICATES_LIST, RDFS.LABEL.stringValue());
-        conf.set(RdfCloudTripleStoreConfiguration.CONF_INFER, Boolean.toString(USE_INFER));
-        return conf;
+        
+        return builder.setMongoDBName(MONGO_DB)
+               .setMongoCollectionPrefix(MONGO_COLL_PREFIX)
+               .setUseMongoFreetextIndex(true)
+               .setMongoFreeTextPredicates(RDFS.LABEL.stringValue()).build();
+        
     }
 
 

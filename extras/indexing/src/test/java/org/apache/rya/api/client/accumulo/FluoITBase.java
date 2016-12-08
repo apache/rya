@@ -278,7 +278,6 @@ public abstract class FluoITBase {
        conf.set(ConfigUtils.CLOUDBASE_INSTANCE, instanceName);
        conf.set(ConfigUtils.CLOUDBASE_ZOOKEEPERS, zookeepers);
        conf.set(ConfigUtils.USE_PCJ, "true");
-       conf.set(ConfigUtils.USE_PCJ_FLUO_UPDATER, "true");
        conf.set(ConfigUtils.FLUO_APP_NAME, appName);
        conf.set(ConfigUtils.PCJ_STORAGE_TYPE, PrecomputedJoinIndexerConfig.PrecomputedJoinStorageType.ACCUMULO.toString());
        conf.set(ConfigUtils.PCJ_UPDATER_TYPE, PrecomputedJoinIndexerConfig.PrecomputedJoinUpdaterType.FLUO.toString());

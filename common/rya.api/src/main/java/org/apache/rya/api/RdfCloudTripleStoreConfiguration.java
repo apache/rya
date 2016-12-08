@@ -72,59 +72,6 @@ public abstract class RdfCloudTripleStoreConfiguration extends Configuration {
     public static final String CONF_PCJ_TABLES = "pcj.index.tables";
     public static final String CONF_STATEMENT_METADATA_PROPERTIES = "statement.metadata.properites";
     public static final String CONF_USE_STATEMENT_METADATA = "use.statement.metadata";
-
-
-    /**
-     * @deprecated use CONF_*
-     */
-    @Deprecated
-	public static final String BINDING_DISP_QUERYPLAN = CONF_QUERYPLAN_FLAG;
-    /**
-     * @deprecated use CONF_*
-     */
-    @Deprecated
-	public static final String BINDING_AUTH = CONF_QUERY_AUTH;
-    /**
-     * @deprecated use CONF_*
-     */
-    @Deprecated
-	public static final String BINDING_CV = CONF_CV;
-    /**
-     * @deprecated use CONF_*
-     */
-    @Deprecated
-	public static final String BINDING_TTL = CONF_TTL;
-    /**
-     * @deprecated use CONF_*
-     */
-    @Deprecated
-	public static final String BINDING_STARTTIME = CONF_STARTTIME;
-    /**
-     * @deprecated use CONF_*
-     */
-    @Deprecated
-	public static final String BINDING_PERFORMANT = CONF_PERFORMANT;
-    /**
-     * @deprecated use CONF_*
-     */
-    @Deprecated
-	public static final String BINDING_INFER = CONF_INFER;
-    /**
-     * @deprecated use CONF_*
-     */
-    @Deprecated
-	public static final String BINDING_USESTATS = CONF_USE_STATS;
-    /**
-     * @deprecated use CONF_*
-     */
-    @Deprecated
-	public static final String BINDING_OFFSET = CONF_OFFSET;
-    /**
-     * @deprecated use CONF_*
-     */
-    @Deprecated
-	public static final String BINDING_LIMIT = CONF_LIMIT;
-
     public static final String STATS_PUSH_EMPTY_RDFTYPE_DOWN = "conf.stats.rdftype.down";
     public static final String INFER_INCLUDE_INVERSEOF = "infer.include.inverseof";
     public static final String INFER_INCLUDE_SUBCLASSOF = "infer.include.subclassof";
@@ -341,6 +288,7 @@ public abstract class RdfCloudTripleStoreConfiguration extends Configuration {
     }
 
     public void setAuths(String... auths) {
+        Preconditions.checkNotNull(auths);
         setStrings(CONF_QUERY_AUTH, auths);
     }
 

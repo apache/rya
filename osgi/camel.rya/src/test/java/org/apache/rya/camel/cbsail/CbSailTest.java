@@ -155,7 +155,7 @@ public class CbSailTest extends CamelTestSupport {
                 "}";
         Map<String, Object> headers = new HashMap<String, Object>();
         headers.put(CbSailComponent.SPARQL_QUERY_PROP, query);
-        headers.put(RdfCloudTripleStoreConfiguration.BINDING_AUTH, "auth1");
+        headers.put(RdfCloudTripleStoreConfiguration.CONF_QUERY_AUTH, "auth1");
         template.sendBodyAndHeaders(null, headers);
 
         assertMockEndpointsSatisfied();

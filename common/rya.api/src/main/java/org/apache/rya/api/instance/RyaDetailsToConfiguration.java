@@ -25,6 +25,7 @@ import edu.umd.cs.findbugs.annotations.NonNull;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.log4j.Logger;
+import org.apache.rya.api.instance.RyaDetails.PCJIndexDetails;
 
 import com.google.common.base.Optional;
 
@@ -52,7 +53,14 @@ public class RyaDetailsToConfiguration {
         checkAndSet(conf, ConfigurationFields.USE_FREETEXT, details.getFreeTextIndexDetails().isEnabled());
       //RYA-215        checkAndSet(conf, ConfigurationFields.USE_GEO, details.getGeoIndexDetails().isEnabled());
         checkAndSet(conf, ConfigurationFields.USE_TEMPORAL, details.getTemporalIndexDetails().isEnabled());
-        checkAndSet(conf, ConfigurationFields.USE_PCJ, details.getPCJIndexDetails().isEnabled());
+        PCJIndexDetails pcjDetails = details.getPCJIndexDetails();
+		if (pcjDetails.isEnabled() && pcjDetails.getFluoDetails().isPresent()) {
+			checkAndSet(conf, ConfigurationFields.USE_PCJ_UPDATER, true);
+			conf.set(ConfigurationFields.FLUO_APP_NAME, pcjDetails.getFluoDetails().get().getUpdateAppName());
+			conf.set(ConfigurationFields.PCJ_UPDATER_TYPE, "FLUO");
+		} else {
+			checkAndSet(conf, ConfigurationFields.USE_PCJ_UPDATER, false);
+		}
     }
 
     /**

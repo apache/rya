@@ -65,7 +65,6 @@ public class PrecomputedJoinIndexerConfig {
 
     // Indicates which implementation of PrecomputedJoinUpdater to use.
     public static final String PCJ_UPDATER_TYPE = "rya.indexing.pcj.updaterType";
-    public static final String USE_PCJ_FLUO_UPDATER = ConfigUtils.USE_PCJ_FLUO_UPDATER;
 
     // The configuration object that is provided to Secondary Indexing implementations.
     private final Configuration config;
@@ -110,7 +109,7 @@ public class PrecomputedJoinIndexerConfig {
 
 
     public boolean getUseFluoUpdater() {
-    	return config.getBoolean(USE_PCJ_FLUO_UPDATER, false);
+    	return config.getBoolean(ConfigUtils.USE_PCJ_UPDATER_INDEX, false);
     }
 
 

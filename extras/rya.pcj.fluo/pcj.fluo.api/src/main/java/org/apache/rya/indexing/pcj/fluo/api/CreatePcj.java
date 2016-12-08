@@ -210,8 +210,7 @@ public class CreatePcj {
 			triplesBatch.clear();
 		}
         return queryId;
-	}
-    
+    }
     
     private static void writeBatch(final FluoClient fluo, final Set<RyaStatement> batch) {
         checkNotNull(fluo);

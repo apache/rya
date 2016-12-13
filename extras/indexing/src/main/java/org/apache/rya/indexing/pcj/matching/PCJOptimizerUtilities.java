@@ -24,6 +24,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
+import org.apache.rya.indexing.external.matching.QuerySegment;
 import org.apache.rya.indexing.external.tupleSet.ExternalTupleSet;
 import org.apache.rya.indexing.pcj.matching.QueryVariableNormalizer.VarCollector;
 
@@ -345,9 +346,9 @@ public class PCJOptimizerUtilities {
 
 
 
-	public static boolean pcjContainsLeftJoins(ExternalTupleSet pcj) {
+	public static boolean tupleContainsLeftJoins(TupleExpr node) {
 	    LeftJoinVisitor lj = new LeftJoinVisitor();
-	    pcj.getTupleExpr().visit(lj);
+	    node.visit(lj);
         return lj.containsLeftJoin;
     }
 

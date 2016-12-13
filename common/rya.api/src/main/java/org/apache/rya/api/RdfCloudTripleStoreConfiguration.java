@@ -1,5 +1,7 @@
 package org.apache.rya.api;
 
+import java.util.HashSet;
+
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -22,7 +24,9 @@ package org.apache.rya.api;
 
 
 import java.util.List;
+import java.util.Set;
 
+import org.apache.rya.api.domain.RyaURI;
 import org.apache.rya.api.layout.TableLayoutStrategy;
 import org.apache.rya.api.layout.TablePrefixLayoutStrategy;
 import org.apache.rya.api.persist.RdfEvalStatsDAO;
@@ -66,6 +70,8 @@ public abstract class RdfCloudTripleStoreConfiguration extends Configuration {
     public static final String CONF_OPTIMIZERS = "query.optimizers";
     public static final String CONF_PCJ_OPTIMIZER = "pcj.query.optimizer";
     public static final String CONF_PCJ_TABLES = "pcj.index.tables";
+    public static final String CONF_STATEMENT_METADATA_PROPERTIES = "statement.metadata.properites";
+    public static final String CONF_USE_STATEMENT_METADATA = "use.statement.metadata";
 
 
     /**
@@ -449,6 +455,37 @@ public abstract class RdfCloudTripleStoreConfiguration extends Configuration {
         }
         return pcjTables;
     }
+    
+    public void setUseStatementMetadata(boolean useMetadata) {
+        setBoolean(CONF_USE_STATEMENT_METADATA, useMetadata);
+    }
+    
+    public boolean getUseStatementMetadata() {
+        return getBoolean(CONF_USE_STATEMENT_METADATA, false);
+    }
+    
+    public void setStatementMetadataProperties(Set<RyaURI> metadataProperties) {
+        
+        String[] propArray = new String[metadataProperties.size()];
+        int i = 0;
+        for(RyaURI uri: metadataProperties) {
+            propArray[i] = uri.getData();
+            i++;
+        }
+        setStrings(CONF_STATEMENT_METADATA_PROPERTIES, propArray);
+    }
+    
+    
+    public Set<RyaURI> getStatementMetadataProperties() {
+        Set<RyaURI> uriSet = new HashSet<>();
+        String[] uriStrings = getStrings(CONF_STATEMENT_METADATA_PROPERTIES);
+        if (uriStrings != null) {
+            for (String s : uriStrings) {
+                uriSet.add(new RyaURI(s));
+            }
+        }
+        return uriSet;
+    }
 
 
     public void setPcjOptimizer(Class<? extends QueryOptimizer> optimizer) {
@@ -464,7 +501,6 @@ public abstract class RdfCloudTripleStoreConfiguration extends Configuration {
         } else {
             return null;
         }
-
     }
 
 

@@ -20,6 +20,7 @@ package org.apache.rya.indexing.pcj.matching;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.rya.indexing.external.matching.FlattenedOptional;
 import org.junit.Assert;
 import org.junit.Test;
 import org.openrdf.query.MalformedQueryException;

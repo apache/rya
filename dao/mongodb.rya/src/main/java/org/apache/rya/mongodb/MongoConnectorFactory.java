@@ -24,18 +24,23 @@ import java.util.Arrays;
 import org.apache.commons.configuration.ConfigurationRuntimeException;
 import org.apache.commons.io.IOUtils;
 import org.apache.hadoop.conf.Configuration;
+import org.apache.http.annotation.ThreadSafe;
 
 import com.mongodb.MongoClient;
 import com.mongodb.MongoCredential;
 import com.mongodb.MongoException;
 import com.mongodb.ServerAddress;
 
+import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
+import edu.umd.cs.findbugs.annotations.NonNull;
 /**
  * Mongo convention generally allows for a single instance of a {@link MongoClient}
  * throughout the life cycle of an application.  This MongoConnectorFactory lazy
  * loads a Mongo Client and uses the same one whenever {@link MongoConnectorFactory#getMongoClient(Configuration)}
  * is invoked.
  */
+@ThreadSafe
+@DefaultAnnotation(NonNull.class)
 public class MongoConnectorFactory {
     private static MongoClient mongoClient;
 

@@ -21,7 +21,6 @@ package org.apache.rya.indexing.mongo;
 import java.util.HashSet;
 import java.util.Set;
 
-import org.apache.rya.accumulo.AccumuloRdfConfiguration;
 import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.domain.RyaType;
 import org.apache.rya.api.domain.RyaURI;
@@ -50,14 +49,14 @@ import info.aduna.iteration.CloseableIteration;
 public class MongoFreeTextIndexerTest extends MongoRyaTestBase {
     private static final StatementConstraints EMPTY_CONSTRAINTS = new StatementConstraints();
 
-    AccumuloRdfConfiguration conf;
+    MongoDBRdfConfiguration conf;
 
     @Before
     public void before() throws Exception {
-        conf = new AccumuloRdfConfiguration();
+        conf = new MongoDBRdfConfiguration();
         conf.set(ConfigUtils.USE_MONGO, "true");
-        conf.set(MongoDBRdfConfiguration.MONGO_DB_NAME, "test");
-        conf.set(MongoDBRdfConfiguration.MONGO_COLLECTION_PREFIX, "rya_");
+        conf.setMongoDBName("test");
+        conf.setCollectionName("rya_");
         conf.setTablePrefix("another_");
     }
     

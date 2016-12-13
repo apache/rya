@@ -23,6 +23,7 @@ package org.apache.rya.api.persist.query;
 
 import info.aduna.iteration.CloseableIteration;
 
+import java.io.Closeable;
 import java.util.Collection;
 import java.util.Map;
 
@@ -40,7 +41,7 @@ import org.openrdf.query.BindingSet;
  * Date: 7/17/12
  * Time: 8:25 AM
  */
-public interface RyaQueryEngine<C extends RdfCloudTripleStoreConfiguration> extends RyaConfigured<C> {
+public interface RyaQueryEngine<C extends RdfCloudTripleStoreConfiguration> extends RyaConfigured<C>, Closeable {
 
     /**
      * Query the Rya store using the RyaStatement. The Configuration object provides information such as auths, ttl, etc

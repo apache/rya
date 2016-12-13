@@ -20,6 +20,12 @@ package org.apache.rya.indexing.pcj.matching;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.rya.indexing.external.matching.OptionalJoinSegment;
+import org.apache.rya.indexing.external.matching.QueryNodeConsolidator;
+import org.apache.rya.indexing.external.matching.QuerySegment;
+import org.apache.rya.indexing.external.matching.QuerySegmentFactory;
+import org.apache.rya.indexing.external.matching.TopOfQueryFilterRelocator;
+import org.apache.rya.indexing.external.tupleSet.ExternalTupleSet;
 import org.junit.Assert;
 import org.junit.Test;
 import org.openrdf.query.algebra.Filter;
@@ -33,6 +39,7 @@ import org.openrdf.query.parser.sparql.SPARQLParser;
 
 public class PCJNodeConsolidatorTest {
 
+    private final QuerySegmentFactory<ExternalTupleSet> qFactory = new QuerySegmentFactory<ExternalTupleSet>();
 
 	@Test
 	public void testBasicOptionalWithFilter() throws Exception {
@@ -66,10 +73,10 @@ public class PCJNodeConsolidatorTest {
 		Filter filter1 = (Filter) ((Projection) te1).getArg();
 		Filter filter2 = (Filter) ((Projection) te2).getArg();
 
-		OptionalJoinSegment seg1 = new OptionalJoinSegment(filter1);
-		OptionalJoinSegment seg2 = new OptionalJoinSegment(filter2);
-
-		PCJNodeConsolidator consolidator = new PCJNodeConsolidator(seg1.getOrderedNodes(), seg2.getOrderedNodes());
+		QuerySegment<ExternalTupleSet> seg1 = qFactory.getQuerySegment(filter1);
+        QuerySegment<ExternalTupleSet> seg2 = qFactory.getQuerySegment(filter2);
+        
+		QueryNodeConsolidator consolidator = new QueryNodeConsolidator(seg1.getOrderedNodes(), seg2.getOrderedNodes());
 
 		List<QueryModelNode> queryNodes = new ArrayList<>(seg1.getOrderedNodes());
 		QueryModelNode node = queryNodes.remove(0);
@@ -114,10 +121,10 @@ public class PCJNodeConsolidatorTest {
 		Join join1 = (Join) ((Projection) te1).getArg();
 		Join join2 = (Join) ((Projection) te2).getArg();
 
-		OptionalJoinSegment seg1 = new OptionalJoinSegment(join1);
-		OptionalJoinSegment seg2 = new OptionalJoinSegment(join2);
-
-		PCJNodeConsolidator consolidator = new PCJNodeConsolidator(seg1.getOrderedNodes(), seg2.getOrderedNodes());
+		QuerySegment<ExternalTupleSet> seg1 = qFactory.getQuerySegment(join1);
+        QuerySegment<ExternalTupleSet> seg2 = qFactory.getQuerySegment(join2);
+        
+		QueryNodeConsolidator consolidator = new QueryNodeConsolidator(seg1.getOrderedNodes(), seg2.getOrderedNodes());
 
 		List<QueryModelNode> queryNodes = new ArrayList<>(seg1.getOrderedNodes());
 		QueryModelNode node = queryNodes.remove(0);
@@ -163,10 +170,10 @@ public class PCJNodeConsolidatorTest {
 		LeftJoin join1 = (LeftJoin) ((Projection) te1).getArg();
 		Join join2 = (Join) ((Projection) te2).getArg();
 
-		OptionalJoinSegment seg1 = new OptionalJoinSegment(join1);
-		OptionalJoinSegment seg2 = new OptionalJoinSegment(join2);
+		QuerySegment<ExternalTupleSet> seg1 = qFactory.getQuerySegment(join1);
+        QuerySegment<ExternalTupleSet> seg2 = qFactory.getQuerySegment(join2);
 
-		PCJNodeConsolidator consolidator = new PCJNodeConsolidator(seg1.getOrderedNodes(), seg2.getOrderedNodes());
+		QueryNodeConsolidator consolidator = new QueryNodeConsolidator(seg1.getOrderedNodes(), seg2.getOrderedNodes());
 		List<QueryModelNode> queryNodes = new ArrayList<>(seg1.getOrderedNodes());
 
 		Assert.assertTrue(consolidator.consolidateNodes());
@@ -205,10 +212,10 @@ public class PCJNodeConsolidatorTest {
 		Join join1 = (Join) ((Projection) te1).getArg();
 		LeftJoin join2 = (LeftJoin) ((Projection) te2).getArg();
 
-		OptionalJoinSegment seg1 = new OptionalJoinSegment(join1);
-		OptionalJoinSegment seg2 = new OptionalJoinSegment(join2);
+		QuerySegment<ExternalTupleSet> seg1 = qFactory.getQuerySegment(join1);
+	    QuerySegment<ExternalTupleSet> seg2 = qFactory.getQuerySegment(join2);
 
-		PCJNodeConsolidator consolidator = new PCJNodeConsolidator(seg1.getOrderedNodes(), seg2.getOrderedNodes());
+		QueryNodeConsolidator consolidator = new QueryNodeConsolidator(seg1.getOrderedNodes(), seg2.getOrderedNodes());
 
 		Assert.assertTrue(!consolidator.consolidateNodes());
 	}
@@ -243,10 +250,10 @@ public class PCJNodeConsolidatorTest {
 		Join join1 = (Join) ((Projection) te1).getArg();
 		Join join2 = (Join) ((Projection) te2).getArg();
 
-		OptionalJoinSegment seg1 = new OptionalJoinSegment(join1);
-		OptionalJoinSegment seg2 = new OptionalJoinSegment(join2);
+		QuerySegment<ExternalTupleSet> seg1 = qFactory.getQuerySegment(join1);
+	    QuerySegment<ExternalTupleSet> seg2 = qFactory.getQuerySegment(join2);
 
-		PCJNodeConsolidator consolidator = new PCJNodeConsolidator(seg1.getOrderedNodes(), seg2.getOrderedNodes());
+		QueryNodeConsolidator consolidator = new QueryNodeConsolidator(seg1.getOrderedNodes(), seg2.getOrderedNodes());
 
 		Assert.assertTrue(!consolidator.consolidateNodes());
 	}
@@ -281,10 +288,10 @@ public class PCJNodeConsolidatorTest {
 		Join join1 = (Join) ((Projection) te1).getArg();
 		Join join2 = (Join) ((Projection) te2).getArg();
 
-		OptionalJoinSegment seg1 = new OptionalJoinSegment(join1);
-		OptionalJoinSegment seg2 = new OptionalJoinSegment(join2);
+	    QuerySegment<ExternalTupleSet> seg1 = qFactory.getQuerySegment(join1);
+        QuerySegment<ExternalTupleSet> seg2 = qFactory.getQuerySegment(join2);
 
-		PCJNodeConsolidator consolidator = new PCJNodeConsolidator(seg1.getOrderedNodes(), seg2.getOrderedNodes());
+		QueryNodeConsolidator consolidator = new QueryNodeConsolidator(seg1.getOrderedNodes(), seg2.getOrderedNodes());
 
 		List<QueryModelNode> queryNodes = new ArrayList<>(seg1.getOrderedNodes());
 		QueryModelNode node = queryNodes.remove(5);
@@ -325,10 +332,10 @@ public class PCJNodeConsolidatorTest {
 		LeftJoin join1 = (LeftJoin) ((Projection) te1).getArg();
 		LeftJoin join2 = (LeftJoin) ((Projection) te2).getArg();
 
-		OptionalJoinSegment seg1 = new OptionalJoinSegment(join1);
-		OptionalJoinSegment seg2 = new OptionalJoinSegment(join2);
+		QuerySegment<ExternalTupleSet> seg1 = qFactory.getQuerySegment(join1);
+	    QuerySegment<ExternalTupleSet> seg2 = qFactory.getQuerySegment(join2);
 
-		PCJNodeConsolidator consolidator = new PCJNodeConsolidator(seg1.getOrderedNodes(), seg2.getOrderedNodes());
+		QueryNodeConsolidator consolidator = new QueryNodeConsolidator(seg1.getOrderedNodes(), seg2.getOrderedNodes());
 		List<QueryModelNode> queryNodes = new ArrayList<>(seg2.getOrderedNodes());
 
 		Assert.assertTrue(consolidator.consolidateNodes());
@@ -373,10 +380,10 @@ public class PCJNodeConsolidatorTest {
 		LeftJoin join1 = (LeftJoin) ((Projection) te1).getArg();
 		LeftJoin join2 = (LeftJoin) ((Projection) te2).getArg();
 
-		OptionalJoinSegment seg1 = new OptionalJoinSegment(join1);
-		OptionalJoinSegment seg2 = new OptionalJoinSegment(join2);
+		QuerySegment<ExternalTupleSet> seg1 = qFactory.getQuerySegment(join1);
+	    QuerySegment<ExternalTupleSet> seg2 = qFactory.getQuerySegment(join2);
 
-		PCJNodeConsolidator consolidator = new PCJNodeConsolidator(seg1.getOrderedNodes(), seg2.getOrderedNodes());
+		QueryNodeConsolidator consolidator = new QueryNodeConsolidator(seg1.getOrderedNodes(), seg2.getOrderedNodes());
 		List<QueryModelNode> queryNodes = new ArrayList<>(seg2.getOrderedNodes());
 
 		Assert.assertTrue(consolidator.consolidateNodes());
@@ -411,10 +418,10 @@ public class PCJNodeConsolidatorTest {
 		Join join1 = (Join) ((Projection) te1).getArg();
 		Join join2 = (Join) ((Projection) te2).getArg();
 
-		OptionalJoinSegment seg1 = new OptionalJoinSegment(join1);
-		OptionalJoinSegment seg2 = new OptionalJoinSegment(join2);
+		QuerySegment<ExternalTupleSet> seg1 = qFactory.getQuerySegment(join1);
+	    QuerySegment<ExternalTupleSet> seg2 = qFactory.getQuerySegment(join2);
 
-		PCJNodeConsolidator consolidator = new PCJNodeConsolidator(seg1.getOrderedNodes(), seg2.getOrderedNodes());
+		QueryNodeConsolidator consolidator = new QueryNodeConsolidator(seg1.getOrderedNodes(), seg2.getOrderedNodes());
 		List<QueryModelNode> queryNodes = new ArrayList<>(seg2.getOrderedNodes());
 
 		Assert.assertTrue(consolidator.consolidateNodes());
@@ -454,10 +461,10 @@ public class PCJNodeConsolidatorTest {
 		Join join1 = (Join) ((Projection) te1).getArg();
 		Join join2 = (Join) ((Projection) te2).getArg();
 
-		OptionalJoinSegment seg1 = new OptionalJoinSegment(join1);
-		OptionalJoinSegment seg2 = new OptionalJoinSegment(join2);
+		QuerySegment<ExternalTupleSet> seg1 = qFactory.getQuerySegment(join1);
+	    QuerySegment<ExternalTupleSet> seg2 = qFactory.getQuerySegment(join2);
 
-		PCJNodeConsolidator consolidator = new PCJNodeConsolidator(seg1.getOrderedNodes(), seg2.getOrderedNodes());
+		QueryNodeConsolidator consolidator = new QueryNodeConsolidator(seg1.getOrderedNodes(), seg2.getOrderedNodes());
 		List<QueryModelNode> queryNodes = new ArrayList<>(seg2.getOrderedNodes());
 
 		Assert.assertTrue(consolidator.consolidateNodes());

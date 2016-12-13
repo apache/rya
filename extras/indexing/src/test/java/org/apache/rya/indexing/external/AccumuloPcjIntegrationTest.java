@@ -1215,11 +1215,7 @@ public class AccumuloPcjIntegrationTest {
 	}
 
 	@Test
-	public void testEvaluateTwoIndexValidate() throws PcjException,
-			RepositoryException, AccumuloException, AccumuloSecurityException,
-			TableExistsException, TableNotFoundException,
-			TupleQueryResultHandlerException, QueryEvaluationException,
-			MalformedQueryException, SailException {
+	public void testEvaluateTwoIndexValidate() throws Exception {
 
 		final URI superclass = new URIImpl("uri:superclass");
 		final URI superclass2 = new URIImpl("uri:superclass2");
@@ -1289,11 +1285,7 @@ public class AccumuloPcjIntegrationTest {
 	}
 
 	@Test
-	public void testEvaluateThreeIndexValidate() throws PcjException,
-			RepositoryException, AccumuloException, AccumuloSecurityException,
-			TableExistsException, TableNotFoundException,
-			MalformedQueryException, SailException, QueryEvaluationException,
-			TupleQueryResultHandlerException {
+	public void testEvaluateThreeIndexValidate() throws Exception {
 
 		final URI superclass = new URIImpl("uri:superclass");
 		final URI superclass2 = new URIImpl("uri:superclass2");

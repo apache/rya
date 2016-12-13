@@ -407,4 +407,8 @@ public class AccumuloRyaQueryEngine implements RyaQueryEngine<AccumuloRdfConfigu
     public AccumuloRdfConfiguration getConf() {
         return configuration;
     }
+
+    @Override
+    public void close() throws IOException {
+    }
 }

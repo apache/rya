@@ -23,8 +23,11 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.apache.rya.indexing.external.matching.QuerySegment;
+import org.apache.rya.indexing.external.matching.QuerySegmentFactory;
+import org.apache.rya.indexing.external.matching.TopOfQueryFilterRelocator;
+import org.apache.rya.indexing.external.tupleSet.ExternalTupleSet;
 import org.apache.rya.indexing.external.tupleSet.SimpleExternalTupleSet;
-
 import org.junit.Assert;
 import org.junit.Test;
 import org.openrdf.query.MalformedQueryException;
@@ -39,7 +42,7 @@ import org.openrdf.query.parser.sparql.SPARQLParser;
 
 public class OptionalJoinSegmentTest {
 
-
+    private final QuerySegmentFactory<ExternalTupleSet> qFactory = new QuerySegmentFactory<ExternalTupleSet>();
 
 	@Test
 	public void testBasicOptional() throws MalformedQueryException {
@@ -67,8 +70,9 @@ public class OptionalJoinSegmentTest {
 		Join join = (Join) ((Projection) te1).getArg();
 		LeftJoin lj = (LeftJoin) ((Projection) te2).getArg();
 
-		OptionalJoinSegment seg1 = new OptionalJoinSegment(join);
-		OptionalJoinSegment seg2 = new OptionalJoinSegment(lj);
+		QuerySegment<ExternalTupleSet> seg1 = qFactory.getQuerySegment(join);
+        QuerySegment<ExternalTupleSet> seg2 = qFactory.getQuerySegment(lj);
+
 
 		Assert.assertEquals(true, seg1.containsQuerySegment(seg2));
 		Assert.assertEquals(join, seg1.getQuery().getTupleExpr());
@@ -76,7 +80,7 @@ public class OptionalJoinSegmentTest {
 		SimpleExternalTupleSet pcj = new SimpleExternalTupleSet((Projection)te2);
 		List<QueryModelNode> nodes = seg1.getOrderedNodes();
 		QueryModelNode node = nodes.get(0);
-		seg1.replaceWithPcj(seg2, pcj);
+		seg1.replaceWithExternalSet(seg2, pcj);
 
 		Set<QueryModelNode> nodeSet = new HashSet<>();
 		nodeSet.add(node);
@@ -116,8 +120,8 @@ public class OptionalJoinSegmentTest {
 		Filter filter1 = (Filter) ((Projection) te1).getArg();
 		Filter filter2 = (Filter) ((Projection) te2).getArg();
 
-		OptionalJoinSegment seg1 = new OptionalJoinSegment(filter1);
-		OptionalJoinSegment seg2 = new OptionalJoinSegment(filter2);
+		QuerySegment<ExternalTupleSet> seg1 = qFactory.getQuerySegment(filter1);
+        QuerySegment<ExternalTupleSet> seg2 = qFactory.getQuerySegment(filter2);
 
 		Assert.assertEquals(filter1, seg1.getQuery().getTupleExpr());
 		Assert.assertEquals(true, seg1.containsQuerySegment(seg2));
@@ -125,7 +129,7 @@ public class OptionalJoinSegmentTest {
 		SimpleExternalTupleSet pcj = new SimpleExternalTupleSet((Projection)te2);
 		List<QueryModelNode> nodes = seg1.getOrderedNodes();
 		QueryModelNode node = nodes.get(3);
-		seg1.replaceWithPcj(seg2, pcj);
+		seg1.replaceWithExternalSet(seg2, pcj);
 
 		Set<QueryModelNode> nodeSet = new HashSet<>();
 		nodeSet.add(node);

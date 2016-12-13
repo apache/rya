@@ -62,6 +62,7 @@ import org.apache.rya.indexing.accumulo.temporal.AccumuloTemporalIndexer;
 import org.apache.rya.indexing.external.PrecomputedJoinIndexer;
 import org.apache.rya.indexing.mongodb.freetext.MongoFreeTextIndexer;
 import org.apache.rya.indexing.pcj.matching.PCJOptimizer;
+import org.apache.rya.indexing.statement.metadata.matching.StatementMetadataOptimizer;
 
 /**
  * A set of configuration utils to read a Hadoop {@link Configuration} object and create Cloudbase/Accumulo objects.
@@ -405,7 +406,10 @@ public class ConfigUtils {
         if (getUseEntity(conf)) {
             indexList.add(EntityCentricIndex.class.getName());
             optimizers.add(EntityOptimizer.class.getName());
-
+        }
+        
+        if(conf.getUseStatementMetadata()) {
+            optimizers.add(StatementMetadataOptimizer.class.getName());
         }
 
         conf.setStrings(AccumuloRdfConfiguration.CONF_ADDITIONAL_INDEXERS, indexList.toArray(new String[]{}));

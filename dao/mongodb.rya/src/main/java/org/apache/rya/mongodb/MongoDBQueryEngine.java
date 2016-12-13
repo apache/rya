@@ -57,7 +57,7 @@ import com.google.common.collect.Multimap;
  * Date: 7/17/12
  * Time: 9:28 AM
  */
-public class MongoDBQueryEngine implements RyaQueryEngine<MongoDBRdfConfiguration>, Closeable {
+public class MongoDBQueryEngine implements RyaQueryEngine<MongoDBRdfConfiguration> {
 
     private MongoDBRdfConfiguration configuration;
     private final MongoClient mongoClient;

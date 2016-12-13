@@ -26,7 +26,6 @@ import java.util.NoSuchElementException;
 import java.util.Set;
 
 import org.apache.rya.indexing.external.tupleSet.ExternalTupleSet;
-
 import org.openrdf.query.algebra.Filter;
 import org.openrdf.query.algebra.QueryModelNode;
 import org.openrdf.query.algebra.StatementPattern;
@@ -39,16 +38,19 @@ import com.google.common.collect.Sets;
 
 public class ValidIndexCombinationGenerator {
 
-	private TupleExpr query;
 	private Set<String> invalidCombos = Sets.newTreeSet();
 	private Set<QueryModelNode> spFilterSet;
 
 	public ValidIndexCombinationGenerator(TupleExpr query) {
-		this.query = query;
 		SpFilterCollector sfc = new SpFilterCollector();
 		query.visit(sfc);
 		spFilterSet = sfc.getSpFilterSet();
 	}
+	
+	public ValidIndexCombinationGenerator(List<QueryModelNode> qNodes) {
+        spFilterSet = Sets.newHashSet(qNodes);
+    }
+	
 
 	public Iterator<List<ExternalTupleSet>> getValidIndexCombos(
 			List<ExternalTupleSet> indexSet) {
@@ -433,10 +435,6 @@ public class ValidIndexCombinationGenerator {
 			QueryModelVisitorBase<RuntimeException> {
 
 		private Set<QueryModelNode> spFilterSet = Sets.newHashSet();
-
-		public int getNodeNumber() {
-			return spFilterSet.size();
-		}
 
 		public Set<QueryModelNode> getSpFilterSet() {
 			return spFilterSet;

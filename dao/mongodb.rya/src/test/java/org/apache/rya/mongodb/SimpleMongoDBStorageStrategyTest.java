@@ -40,6 +40,7 @@ public class SimpleMongoDBStorageStrategyTest {
     private static final String PREDICATE = "http://temp.com";
     private static final String OBJECT = "http://object.com";
     private static final String CONTEXT = "http://context.com";
+    private static final String STATEMENT_METADATA = "{}";
 
     private static final RyaStatement testStatement;
     private static final DBObject testDBO;
@@ -61,6 +62,7 @@ public class SimpleMongoDBStorageStrategyTest {
         testDBO.put("object", OBJECT);
         testDBO.put("objectType", ANYURI.stringValue());
         testDBO.put("context", CONTEXT);
+        testDBO.put("statementMetadata", STATEMENT_METADATA);
         testDBO.put("insertTimestamp", null);
     }
 

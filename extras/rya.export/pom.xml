@@ -43,12 +43,6 @@ under the License.
         <module>export.mongo</module>
         <module>export.integration</module>
     </modules>
-    
-    <properties>
-        <jcommander.version>1.48</jcommander.version>
-        <hadoop.version>2.5.0</hadoop.version>
-    </properties>
-
     <build>
         <plugins>
             <plugin>
@@ -65,34 +59,5 @@ under the License.
         </plugins>
     </build>
 
-    <!-- 
-         note, this parent pom can likely be removed provided the contents of its 
-         dependencyManagement section are transferred to org.apache.rya:rya-project 
-    -->
-    <dependencyManagement>
-        <dependencies>
-            <dependency>
-                <groupId>org.apache.hadoop</groupId>
-                <artifactId>hadoop-client</artifactId>
-                <version>${hadoop.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.hadoop</groupId>
-                <artifactId>hadoop-minicluster</artifactId>
-                <version>${hadoop.version}</version>
-            </dependency>
-                    
-            <dependency>
-                <groupId>org.openrdf.sesame</groupId>
-                <artifactId>sesame-queryrender</artifactId>
-                <version>${openrdf.sesame.version}</version>
-            </dependency>
-        
-            <dependency>
-                <groupId>com.beust</groupId>
-                <artifactId>jcommander</artifactId>
-                <version>${jcommander.version}</version>
-            </dependency>
-        </dependencies>
-    </dependencyManagement>
+
 </project>

@@ -26,6 +26,8 @@ import java.util.Objects;
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
 import org.apache.accumulo.core.client.Connector;
+import org.apache.accumulo.core.client.Instance;
+import org.apache.accumulo.core.client.security.tokens.PasswordToken;
 import org.apache.hadoop.conf.Configuration;
 import org.openrdf.sail.Sail;
 import org.openrdf.sail.SailException;
@@ -36,6 +38,7 @@ import com.mongodb.MongoClient;
 
 import org.apache.rya.accumulo.AccumuloRdfConfiguration;
 import org.apache.rya.accumulo.AccumuloRyaDAO;
+import org.apache.rya.accumulo.instance.AccumuloRyaInstanceDetailsRepository;
 import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
 import org.apache.rya.api.instance.RyaDetailsRepository.RyaDetailsRepositoryException;
 import org.apache.rya.api.instance.RyaDetailsToConfiguration;
@@ -144,18 +147,4 @@ public class GeoRyaSailFactory {
         dao.init();
         return dao;
     }
-<<<<<<< HEAD:extras/rya.geoindexing/src/main/java/org/apache/rya/indexing/GeoRyaSailFactory.java
-=======
-
-    private static void updateAccumuloConfig(final AccumuloRdfConfiguration config, final String user, final String pswd, final String ryaInstance) throws AccumuloException, AccumuloSecurityException {
-        try {
-            final PasswordToken pswdToken = new PasswordToken(pswd);
-            final Instance accInst = ConfigUtils.getInstance(config);
-            final AccumuloRyaInstanceDetailsRepository ryaDetailsRepo = new AccumuloRyaInstanceDetailsRepository(accInst.getConnector(user, pswdToken), ryaInstance);
-            RyaDetailsToConfiguration.addRyaDetailsToConfiguration(ryaDetailsRepo.getRyaInstanceDetails(), config);
-        } catch(final RyaDetailsRepositoryException e) {
-            LOG.info("Instance does not have a rya details collection, skipping.");
-        }
-    }
->>>>>>> RYA-161 Merge Tool with client:extras/indexing/src/main/java/mvm/rya/sail/config/RyaSailFactory.java
 }

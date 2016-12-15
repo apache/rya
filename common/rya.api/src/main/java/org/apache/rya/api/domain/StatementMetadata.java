@@ -1,4 +1,3 @@
-package org.apache.rya.api.domain;
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -17,6 +16,7 @@ package org.apache.rya.api.domain;
  * specific language governing permissions and limitations
  * under the License.
  */
+package org.apache.rya.api.domain;
 
 import java.io.UnsupportedEncodingException;
 import java.util.HashMap;
@@ -43,9 +43,16 @@ public class StatementMetadata {
 
     public StatementMetadata(byte[] value) throws RdfDAOException {
         try {
-            // try to convert back to a json string and then back to the map.
-            String metadataString = new String(value, "UTF8");
-            metadataMap = gson.fromJson(metadataString, HashMap.class);
+            if (value == null) {
+                metadataMap = new HashMap<>();
+            } else {
+                // try to convert back to a json string and then back to the map.
+                String metadataString = new String(value, "UTF8");
+                metadataMap = gson.fromJson(metadataString, HashMap.class);
+                if (metadataMap == null) {
+                    metadataMap = new HashMap<>();
+                }
+            }
         } catch (UnsupportedEncodingException e) {
             throw new RdfDAOException(e);
         }
@@ -65,6 +72,9 @@ public class StatementMetadata {
 
     public byte[] toBytes() {
         // convert the map to a json string
+        if (metadataMap.isEmpty()) {
+            return null;
+        }
         String metadataString = gson.toJson(metadataMap);
         // TODO may want to cache this for performance reasons
         return metadataString.getBytes();

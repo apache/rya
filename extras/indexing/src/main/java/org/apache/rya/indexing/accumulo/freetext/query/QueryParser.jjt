@@ -1,90 +1,0 @@
-/**
- * A simple boolean query language that supports a number of features for free text querying.  These
- * features include: "and"s, "or"s, sub-expressions using parens "( )", negation, and prefix and postfix wildcard queries.
- *
- * Most of the classes in this package are auto-generated from QueryParser.jjt using javacc and jjtree.  ASTExpression and
- * ASTTerm slightly modified versions of the auto-generated files.
- * 
- * I highly recommend the "JavaCC Eclipse Plug-in".
- */
-/*
- * Licensed to the Apache Software Foundation (ASF) under one
- * or more contributor license agreements.  See the NOTICE file
- * distributed with this work for additional information
- * regarding copyright ownership.  The ASF licenses this file
- * to you under the Apache License, Version 2.0 (the
- * "License"); you may not use this file except in compliance
- * with the License.  You may obtain a copy of the License at
- * 
- *   http://www.apache.org/licenses/LICENSE-2.0
- * 
- * Unless required by applicable law or agreed to in writing,
- * software distributed under the License is distributed on an
- * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
- * KIND, either express or implied.  See the License for the
- * specific language governing permissions and limitations
- * under the License.
- */
-options{
-  MULTI = true;  JDK_VERSION = "1.5";  IGNORE_CASE = true;  NODE_DEFAULT_VOID=true;
-  static = false;
-//  DEBUG_PARSER = true;
-//  DEBUG_LOOKAHEAD = true;}PARSER_BEGIN(QueryParser)package mvm.rya.indexing.accumulo.freetext.query;
-import java.io.StringReader;
-public class QueryParser{
-  // Helper method to parse Strings (instead of streams)
-  public static SimpleNode parse(String query) throws ParseException, TokenMgrError  {    QueryParser parser = new QueryParser(new StringReader(query));    return parser.Start();  }}PARSER_END(QueryParser)SKIP : /* Ignore Whitespace */{  " " | "\t" | "\n" | "\r"
-}
-TOKEN : {
-  <AND:       ("AND" | "&&" | "&") >
-| <OR:        ("OR" | "||" | "|") >
-| <NOT:       ("NOT" | "!") >
-| <LPAREN:    "(" >
-| <RPAREN:    ")" >
-| <QUOTED:     "\"" (<_QUOTED_CHAR>)* "\"">
-| <#_QUOTED_CHAR:  ~[ "\""] >
-| <TERM:      <_TERM_CHAR> (<_TERM_CHAR>)*  >
-| <PREFIXTERM:  "*" <TERM> >
-| <WILDTERM:   <TERM> "*" >
-| <#_TERM_CHAR: ~[ " ", "\t", "\n", "\r", "*", "(", ")", "!"] >
-}  
-SimpleNode Start() #SimpleNode:{}{
-  // "or"s have the lowest order of operations, so they will be highest on the tree.  Start with them.   OrExpression() < EOF >  {    return jjtThis;  }}
-
-void OrExpression() #Expression(>1):
-{ jjtThis.setType(ASTExpression.OR); }	
-{
-  AndExpression() (< OR > AndExpression())*}
-
-void AndExpression() #Expression(>1):{ jjtThis.setType(ASTExpression.AND); }
-{  Term() ([< AND >] Term())*
-}
-void Term() :{ Token t; boolean notFlag = false; String type = ""; }{
-  // Update the notFlag if a "not" is present
-  [ < NOT > { notFlag = true; } ]
-
-  (    // Create a term, if a term is present
-    (	  t = < TERM > { type = ASTTerm.TERM; }	  | t = < WILDTERM > { type = ASTTerm.WILDTERM; }
-	  | t = < PREFIXTERM > { type = ASTTerm.PREFIXTERM; }
-	  | t = < QUOTED > { type = ASTTerm.QUOTED; }
-	)	{ jjtThis.setTerm(t.image); jjtThis.setNotFlag(notFlag); jjtThis.setType(type); } #Term()
-	
-    // Otherwise, we a dealing with a Sub-Expression, so start back from the top.
-	| ( < LPAREN > ( OrExpression() ) <  RPAREN > )
-    {
-      // pass on the notFlag state to the sub-expression
-      // note: the sub-expression might be a term (eg, "a" is a term in "!(!a)")
-      {
-	   if (notFlag) {
-	     Node n = jjtree.peekNode();
-	     if (n instanceof ASTExpression) {
-	       boolean v = ((ASTExpression)n).isNotFlag();
-		   ((ASTExpression)n).setNotFlag(v ^ notFlag);
-	     }
-	     if (n instanceof ASTTerm) {	       boolean v = ((ASTTerm)n).isNotFlag();		   ((ASTTerm)n).setNotFlag(v ^ notFlag);	      }
-	    }
-      }
-    }
-  )
-  
-}

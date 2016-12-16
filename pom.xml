@@ -74,16 +74,7 @@ under the License.
     <prerequisites>
         <maven>${maven.min-version}</maven>
     </prerequisites>
-    <modules>
-        <module>common</module>
-        <module>dao</module>
-        <module>extras</module>
-        <module>mapreduce</module>
-        <module>osgi</module>
-        <module>pig</module>
-        <module>sail</module>
-        <module>web</module>
-    </modules>
+
     <properties>
         <openrdf.sesame.version>2.7.6</openrdf.sesame.version> <!-- Newest: 4.0.0 -->
         <!--Cannot upgrade to openrdf.sesame 2.7.6 until RYA-9 is resolved -->

@@ -1,7 +1,0 @@
-#prefix z, y, x
-#prefix y, x, z
-#prefix z, x, y
-SELECT ?x ?y ?z WHERE {
-?x <uri:talksTo> ?y.
-?y <uri:hangsOutWith> ?z.
-}

@@ -187,12 +187,12 @@ You will need at least accumulo.rya-<version>, rya.api, rya.sail.impl on the cla
 ``` JAVA
 final RdfCloudTripleStore store = new RdfCloudTripleStore();
 AccumuloRdfConfiguration conf = new AccumuloRdfConfiguration();
-AccumuloRyaDAO dao = new AccumuloRdfDAO();
+AccumuloRyaDAO dao = new AccumuloRyaDAO();
 Connector connector = new ZooKeeperInstance("instance", "zoo1,zoo2,zoo3").getConnector("user", "password");
 dao.setConnector(connector);
 conf.setTablePrefix("rya_");
 dao.setConf(conf);
-store.setRdfDao(dao);
+store.setRyaDAO(dao);
 
 Repository myRepository = new RyaSailRepository(store);
 myRepository.initialize();
@@ -243,7 +243,7 @@ public class QueryDataServletRun {
 
             String queryenc = URLEncoder.encode(query, "UTF-8");
 
-            URL url = new URL("http://server/rdfTripleStore/queryrdf?query=" + queryenc);
+            URL url = new URL("http://server/web.rya/queryrdf?query=" + queryenc);
             URLConnection urlConnection = url.openConnection();
             urlConnection.setDoOutput(true);
 
@@ -275,13 +275,13 @@ AccumuloRyaDAO crdfdao = new AccumuloRyaDAO();
 crdfdao.setConnector(connector);
 
 AccumuloRdfConfiguration conf = new AccumuloRdfConfiguration();
-conf.setTablePrefix("rts_");
+conf.setTablePrefix("rya_");
 conf.setDisplayQueryPlan(true);
 crdfdao.setConf(conf);
-store.setRdfDao(crdfdao);
+store.setRyaDAO(crdfdao);
 
 InferenceEngine inferenceEngine = new InferenceEngine();
-inferenceEngine.setRdfDao(crdfdao);
+inferenceEngine.setRyaDAO(crdfdao);
 inferenceEngine.setConf(conf);
 store.setInferenceEngine(inferenceEngine);
 
@@ -298,23 +298,7 @@ TupleQuery tupleQuery = conn.prepareTupleQuery(
 ValueFactory vf = ValueFactoryImpl.getInstance();
 
 TupleQueryResultHandler writer = new SPARQLResultsXMLWriter(System.out);
-tupleQuery.evaluate(new TupleQueryResultHandler() {
-
-    int count = 0;
-
-    @Override
-    public void startQueryResult(List<String> strings) throws TupleQueryResultHandlerException {
-    }
-
-    @Override
-    public void endQueryResult() throws TupleQueryResultHandlerException {
-    }
-
-    @Override
-    public void handleSolution(BindingSet bindingSet) throws TupleQueryResultHandlerException {
-        System.out.println(bindingSet);
-    }
-});
+tupleQuery.evaluate(writer);
 
 conn.close();
 myRepository.shutDown();

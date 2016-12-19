@@ -38,6 +38,6 @@ under the License.
     </bean>
 
 	<bean id="ryaDAO" class="org.apache.rya.mongodb.MongoDBRyaDAO" init-method="init" destroy-method="destroy">
-        <constructor-arg ref="conf"/>
+        <property name="conf" ref="conf"/>
     </bean>
 </beans>

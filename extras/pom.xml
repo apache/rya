@@ -42,7 +42,8 @@ under the License.
         <module>rya.pcj.fluo</module>
         <module>rya.export</module>
         <module>rya.merger</module>
-        <module>rya.benchmark</module>
+        <module>rya.giraph</module>
+       <module>rya.benchmark</module>
     </modules>
 	
 	<profiles>

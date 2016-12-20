@@ -27,6 +27,7 @@ import org.apache.accumulo.core.client.mapreduce.AbstractInputFormat;
 import org.apache.accumulo.core.client.mapreduce.RangeInputSplit;
 import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Value;
+import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.InputSplit;
 import org.apache.hadoop.mapreduce.Job;
@@ -92,6 +93,19 @@ public class RyaInputFormat extends AbstractInputFormat<Text, RyaStatementWritab
             this.tableLayout = MRUtils.getTableLayout(attempt.getConfiguration(), TABLE_LAYOUT.OSP);
             //TODO verify that this is correct
             this.ryaContext = RyaTripleContext.getInstance(new AccumuloRdfConfiguration(attempt.getConfiguration()));
+        }
+
+        /**
+         * Initializes the RecordReader.
+         * @param   inSplit Defines the portion of data to read.
+         * @param   attempt Context for this task attempt.
+         * @throws IOException if thrown by the superclass's initialize method.
+         */
+        public void initialize(InputSplit inSplit, TaskAttemptContext attempt, RyaTripleContext context, TABLE_LAYOUT tableLayout) throws IOException {
+            super.initialize(inSplit, attempt);
+            this.tableLayout = tableLayout;
+            //TODO verify that this is correct
+            this.ryaContext = context;
         }
 
         /**

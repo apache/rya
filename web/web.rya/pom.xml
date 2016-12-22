@@ -106,48 +106,92 @@ under the License.
             <artifactId>commons-pool</artifactId>
         </dependency>
 
-        <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.mockito</groupId>
-            <artifactId>mockito-all</artifactId>
-            <scope>test</scope>
-        </dependency>
-    </dependencies>
-    <build>
-        <finalName>web.rya</finalName>
-        <plugins>
-            <plugin>
-                <groupId>org.mortbay.jetty</groupId>
-                <artifactId>maven-jetty-plugin</artifactId>
-                <version>6.1.26</version>
-                <configuration>
-                    <webAppConfig>
-                        <contextPath>/web.rya</contextPath>
-                        <extraClasspath>resources</extraClasspath>
-                    </webAppConfig>
-                </configuration>
-            </plugin>
-        </plugins>
-        <pluginManagement>
-            <plugins>
-                <plugin>
-                    <groupId>org.apache.rat</groupId>
-                    <artifactId>apache-rat-plugin</artifactId>
-                    <configuration>
-                        <excludes>
-                            <!-- RDF data Files -->
-                            <exclude>**/*.trig</exclude>
-                            <exclude>**/*.nt</exclude>
-                            <!-- data file -->
-                            <exclude>**/*.data</exclude>
-                        </excludes>
-                    </configuration>
-                </plugin>
-            </plugins>
-        </pluginManagement>
-    </build>
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.mockito</groupId>
+			<artifactId>mockito-all</artifactId>
+			<scope>test</scope>
+		</dependency>
+	</dependencies>
+	<build>
+		<finalName>web.rya</finalName>
+		<resources>
+			<resource>
+				<!-- filter the web.xml so the correct db-related spring-root.xml will 
+					be used -->
+				<!-- based on the profile settings, below. -->
+				<targetPath>${project.build.directory}</targetPath>
+				<filtering>true</filtering>
+				<directory>src/main/webapp/WEB-INF</directory>
+				<includes>
+					<include>web.xml</include>
+				</includes>
+			</resource>
+		</resources>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-war-plugin</artifactId>
+				<configuration>
+					<!-- Use the web.xml that was filtered in the resources section. -->
+					<webXml>${project.build.directory}/web.xml</webXml>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.eclipse.jetty</groupId>
+				<artifactId>jetty-maven-plugin</artifactId>
+				<version>9.4.0.v20161208</version>
+				<configuration>
+					<scanIntervalSeconds>10</scanIntervalSeconds>
+					<webApp>
+						<contextPath>/web.rya</contextPath>
+						<extraClasspath>resources</extraClasspath>
+						<!-- Use the web.xml that was filtered in the resources section. -->
+						<descriptor>${project.build.directory}/web.xml</descriptor>
+					</webApp>
+				</configuration>
+			</plugin>
+		</plugins>
+		<pluginManagement>
+			<plugins>
+				<plugin>
+					<groupId>org.apache.rat</groupId>
+					<artifactId>apache-rat-plugin</artifactId>
+					<configuration>
+						<excludes>
+							<!-- RDF data Files -->
+							<exclude>**/*.trig</exclude>
+							<exclude>**/*.nt</exclude>
+							<!-- data file -->
+							<exclude>**/*.data</exclude>
+						</excludes>
+					</configuration>
+				</plugin>
+			</plugins>
+		</pluginManagement>
+	</build>
+	<profiles>
+		<profile>
+			<id>nodbspecified</id>
+			<activation>
+				<property>
+					<name>!db.specified</name>
+				</property>
+			</activation>
+			<properties>
+				<database.implementation>accumulo</database.implementation>
+			</properties>
+		</profile>
+		<profile>
+			<id>mongodb</id>
+			<properties>
+				<db.specified>true</db.specified>
+				<database.implementation>mongodb</database.implementation>
+			</properties>
+		</profile>
+	</profiles>
 </project>

@@ -61,7 +61,15 @@ Run the command to build the code `mvn clean install`
 
 If all goes well, the build should be successful and a war should be produced in `web/web.rya/target/web.rya.war`
 
-Note: To perform a build of the geomesa/lucene indexing, run the build with the profile 'indexing' `mvn clean install -P indexing`
+Note: The following profiles are available to tailor the build:
+
+
+| Profile ID | Purpose |
+| ---------- | ------- |
+| geoindexing | perform a build of the geomesa/lucene indexing |
+| mongodb | build with mongoDB configuration (defaults to accumulo) |
+
+To run the build with the profile 'geoindexing' `mvn clean install -P geoindexing`.
 
 Note: If you are building on windows, you will need hadoop-common 2.6.0's `winutils.exe` and `hadoop.dll`.  You can download it from [here](https://github.com/amihalik/hadoop-common-2.6.0-bin/archive/master.zip).  This build requires the [Visual C++ Redistributable for Visual Studio 2015 (x64)](https://www.microsoft.com/en-us/download/details.aspx?id=48145).   Also you will need to set your path and Hadoop home using the commands below:
 
@@ -74,7 +82,9 @@ set PATH=%PATH%;c:\hadoop-common-2.6.0-bin\bin
 
 Unwar the above war into the webapps directory.
 
-To point the web.rya war to the appropriate Accumulo instance, make a properties file `environment.properties` and put it in the classpath. Here is an example:
+To point the web.rya war to the appropriate database instance, make a properties file `environment.properties` and put it in the classpath. 
+
+Here is an example for accumulo:
 
 ```
 instance.name=accumulo  #Accumulo instance name
@@ -85,6 +95,21 @@ rya.tableprefix=triplestore_  #Rya Table Prefix
 rya.displayqueryplan=true  #To display the query plan
 ```
 
+Here is an example for mongoDB (populate user/userpassword if authentication to mongoDB required):
+```
+rya.displayqueryplan=true
+sc.useMongo=true
+sc.use_freetext=true
+sc.geo.predicates=http://www.opengis.net/ont/geosparql#asWKT
+sc.freetext.predicates=http://www.w3.org/2000/01/rdf-schema#label
+mongo.db.instance=localhost
+mongo.db.port=27017
+mongo.db.name=rya
+mongo.db.collectionprefix=rya_
+mongo.db.user=
+mongo.db.userpassword=
+mongo.geo.maxdist=1e-10
+```
 Start the Tomcat server. `./bin/startup.sh`
 
 ## Usage

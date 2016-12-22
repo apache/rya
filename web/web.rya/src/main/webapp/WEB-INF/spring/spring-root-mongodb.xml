@@ -22,22 +22,32 @@ under the License.
 <beans xmlns="http://www.springframework.org/schema/beans"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:p="http://www.springframework.org/schema/p"
 	xmlns:context="http://www.springframework.org/schema/context"
-	xmlns:oxm="http://www.springframework.org/schema/oxm"
+	xmlns:util="http://www.springframework.org/schema/util"
 	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
 				http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-2.5.xsd
-				http://www.springframework.org/schema/oxm http://www.springframework.org/schema/oxm/spring-oxm-3.0.xsd">
+				http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-3.0.xsd">
 
-
-    <bean id="conf" class="org.apache.rya.mongodb.MongoDBRdfConfiguration">
-        <property name="collectionName" value="${mongo.db.collectionprefix}"/>
-        <property name="mongoInstance" value="${mongo.db.instance}"/>
-        <property name="mongoPort" value="${mongo.db.port}"/>
-        <property name="mongoDBName" value="${mongo.db.name}"/>
-        <property name="displayQueryPlan" value="${rya.displayqueryplan}"/>
-        <property name="useStats" value="false"/>
+    <bean id="environmentProperties" class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+        <property name="location" value="classpath:environment.properties"/>
     </bean>
 
-	<bean id="ryaDAO" class="org.apache.rya.mongodb.MongoDBRyaDAO" init-method="init" destroy-method="destroy">
-        <constructor-arg ref="conf"/>
-    </bean>
+	<context:component-scan base-package="org.apache.cloud.rdf.web.sail" />
+
+	<import resource="spring-security.xml"/>	
+	<import resource="spring-mongodb.xml"/>
+
+	<bean id="inferenceEngine" class="org.apache.rya.rdftriplestore.inference.InferenceEngine" init-method="init" destroy-method="destroy">
+        <property name="ryaDAO" ref="ryaDAO"/>
+        <property name="conf" ref="conf"/>
+	</bean>
+    
+	<bean id="rts" class="org.apache.rya.rdftriplestore.RdfCloudTripleStore">
+        <property name="ryaDAO" ref="ryaDAO"/>
+        <property name="inferenceEngine" ref="inferenceEngine"/>
+        <property name="conf" ref="conf"/>
+	</bean>
+
+	<bean id="sailRepo" class="org.apache.rya.rdftriplestore.RyaSailRepository" init-method="initialize" destroy-method="shutDown">
+        <constructor-arg ref="rts"/>
+	</bean>
 </beans>

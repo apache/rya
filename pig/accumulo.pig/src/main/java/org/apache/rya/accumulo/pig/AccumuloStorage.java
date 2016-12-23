@@ -284,7 +284,7 @@ public class AccumuloStorage extends LoadFunc implements StoreFuncInterface, Ord
             try {
 				AccumuloOutputFormat.setConnectorInfo(job, user, new PasswordToken(password.getBytes()));
 			} catch (AccumuloSecurityException e) {
-				new RuntimeException(e);
+				throw new RuntimeException(e);
 			}
             AccumuloOutputFormat.setDefaultTableName(job, table);
             AccumuloOutputFormat.setZooKeeperInstance(job, inst, zookeepers);

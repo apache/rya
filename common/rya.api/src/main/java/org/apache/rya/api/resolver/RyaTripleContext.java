@@ -37,6 +37,7 @@ import org.apache.rya.api.domain.RyaURI;
 import org.apache.rya.api.query.strategy.TriplePatternStrategy;
 import org.apache.rya.api.query.strategy.wholerow.HashedPoWholeRowTriplePatternStrategy;
 import org.apache.rya.api.query.strategy.wholerow.HashedSpoWholeRowTriplePatternStrategy;
+import org.apache.rya.api.query.strategy.wholerow.NullRowTriplePatternStrategy;
 import org.apache.rya.api.query.strategy.wholerow.OspWholeRowTriplePatternStrategy;
 import org.apache.rya.api.query.strategy.wholerow.PoWholeRowTriplePatternStrategy;
 import org.apache.rya.api.query.strategy.wholerow.SpoWholeRowTriplePatternStrategy;
@@ -97,6 +98,7 @@ public class RyaTripleContext {
     	else {
             triplePatternStrategyList.add(new SpoWholeRowTriplePatternStrategy());
             triplePatternStrategyList.add(new PoWholeRowTriplePatternStrategy());
+            triplePatternStrategyList.add(new NullRowTriplePatternStrategy());
     	}
         triplePatternStrategyList.add(new OspWholeRowTriplePatternStrategy());
     }

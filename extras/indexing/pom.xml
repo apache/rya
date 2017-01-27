@@ -167,6 +167,7 @@
 							<artifactSet>
 								<excludes>
 									<exclude>org.locationtech.geomesa:*</exclude>
+									<exclude>mil.nga.giat:*</exclude>
 									<exclude>scala:*</exclude>
 									<exclude>org.apache.accumulo:*</exclude>
 									<exclude>org.apache.thrift:*</exclude>

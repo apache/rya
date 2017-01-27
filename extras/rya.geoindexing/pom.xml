@@ -90,6 +90,17 @@
 			<artifactId>geomesa-accumulo-datastore_2.11</artifactId>
 		</dependency>
 
+		<dependency>
+			<groupId>mil.nga.giat</groupId>
+			<artifactId>geowave-datastore-accumulo</artifactId>
+			<version>${geowave.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>mil.nga.giat</groupId>
+			<artifactId>geowave-adapter-vector</artifactId>
+			<version>${geowave.version}</version>
+		</dependency>
 
 		<dependency>
 			<groupId>junit</groupId>
@@ -184,6 +195,7 @@
 							<artifactSet>
 								<excludes>
 									<exclude>org.locationtech.geomesa:*</exclude>
+									<exclude>mil.nga.giat:*</exclude>
 									<exclude>scala:*</exclude>
 									<exclude>org.apache.accumulo:*</exclude>
 									<exclude>org.apache.thrift:*</exclude>

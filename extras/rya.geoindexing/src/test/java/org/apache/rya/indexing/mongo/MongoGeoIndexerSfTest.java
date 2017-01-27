@@ -18,7 +18,8 @@ package org.apache.rya.indexing.mongo;
  * under the License.
  */
 
-import java.util.HashSet;
+import static org.apache.rya.indexing.GeoIndexingTestUtils.getSet;
+
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -71,17 +72,17 @@ public class MongoGeoIndexerSfTest extends MongoRyaTestBase {
     // Here is the landscape:
     /**
      * <pre>
-     * 	 +---+---+---+---+---+---+---+
-     * 	 |        F          |       |
-     * 	 +  A    +           +   C   +
-     * 	 |                   |       |
-     * 	 +---+---+    E      +---+---+
-     * 	 |       |   /       |
-     * 	 +   B   +  /+---+---+
-     * 	 |       | / |       |
-     * 	 +---+---+/--+---+---+
-     * 	         /   |     D |
-     * 	        /    +---+---+
+     *   +---+---+---+---+---+---+---+
+     *   |        F          |       |
+     *   +  A    +           +   C   +
+     *   |                   |       |
+     *   +---+---+    E      +---+---+
+     *   |       |   /       |
+     *   +   B   +  /+---+---+
+     *   |       | / |       |
+     *   +---+---+/--+---+---+
+     *           /   |     D |
+     *          /    +---+---+
      * </pre>
      **/
 
@@ -159,14 +160,6 @@ public class MongoGeoIndexerSfTest extends MongoRyaTestBase {
         }
 
         Assert.assertEquals(expectedSet, getSet(actual));
-    }
-
-    private static <X> Set<X> getSet(final CloseableIteration<X, ?> iter) throws Exception {
-        final Set<X> set = new HashSet<X>();
-        while (iter.hasNext()) {
-            set.add(iter.next());
-        }
-        return set;
     }
 
     private static Geometry[] EMPTY_RESULTS = {};

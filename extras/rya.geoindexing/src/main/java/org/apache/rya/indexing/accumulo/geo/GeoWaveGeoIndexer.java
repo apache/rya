@@ -18,6 +18,7 @@
  */
 package org.apache.rya.indexing.accumulo.geo;
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import static java.util.Objects.requireNonNull;
 
 import java.io.IOException;
@@ -31,6 +32,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.apache.accumulo.core.client.Connector;
 import org.apache.accumulo.core.client.Instance;
@@ -44,26 +46,20 @@ import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.resolver.RyaToRdfConversions;
 import org.apache.rya.indexing.GeoIndexer;
 import org.apache.rya.indexing.Md5Hash;
-import org.apache.rya.indexing.OptionalConfigUtils;
 import org.apache.rya.indexing.StatementConstraints;
 import org.apache.rya.indexing.StatementSerializer;
 import org.apache.rya.indexing.accumulo.ConfigUtils;
 import org.geotools.data.DataStore;
-import org.geotools.data.DataStoreFinder;
 import org.geotools.data.DataUtilities;
 import org.geotools.data.FeatureSource;
 import org.geotools.data.FeatureStore;
-import org.geotools.data.Query;
 import org.geotools.factory.CommonFactoryFinder;
 import org.geotools.factory.Hints;
 import org.geotools.feature.DefaultFeatureCollection;
-import org.geotools.feature.FeatureIterator;
 import org.geotools.feature.SchemaException;
 import org.geotools.feature.simple.SimpleFeatureBuilder;
 import org.geotools.filter.text.cql2.CQLException;
 import org.geotools.filter.text.ecql.ECQL;
-import org.locationtech.geomesa.accumulo.index.Constants;
-import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes;
 import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.feature.simple.SimpleFeatureType;
 import org.opengis.filter.Filter;
@@ -78,13 +74,27 @@ import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.io.ParseException;
 
 import info.aduna.iteration.CloseableIteration;
+import mil.nga.giat.geowave.adapter.vector.FeatureDataAdapter;
+import mil.nga.giat.geowave.adapter.vector.plugin.GeoWaveGTDataStore;
+import mil.nga.giat.geowave.adapter.vector.plugin.GeoWaveGTDataStoreFactory;
+import mil.nga.giat.geowave.adapter.vector.plugin.GeoWavePluginException;
+import mil.nga.giat.geowave.adapter.vector.query.cql.CQLQuery;
+import mil.nga.giat.geowave.core.geotime.ingest.SpatialDimensionalityTypeProvider;
+import mil.nga.giat.geowave.core.store.CloseableIterator;
+import mil.nga.giat.geowave.core.store.StoreFactoryFamilySpi;
+import mil.nga.giat.geowave.core.store.index.PrimaryIndex;
+import mil.nga.giat.geowave.core.store.memory.MemoryStoreFactoryFamily;
+import mil.nga.giat.geowave.core.store.query.EverythingQuery;
+import mil.nga.giat.geowave.core.store.query.QueryOptions;
+import mil.nga.giat.geowave.datastore.accumulo.AccumuloDataStore;
+import mil.nga.giat.geowave.datastore.accumulo.AccumuloStoreFactoryFamily;
 
 /**
- * A {@link GeoIndexer} wrapper around a GeoMesa {@link AccumuloDataStore}. This class configures and connects to the Datastore, creates the
+ * A {@link GeoIndexer} wrapper around a GeoWave {@link AccumuloDataStore}. This class configures and connects to the Datastore, creates the
  * RDF Feature Type, and interacts with the Datastore.
  * <p>
  * Specifically, this class creates a RDF Feature type and stores each RDF Statement as a RDF Feature in the datastore. Each feature
- * contains the standard set of GeoMesa attributes (Geometry, Start Date, and End Date). The GeoMesaGeoIndexer populates the Geometry
+ * contains the standard set of GeoWave attributes (Geometry, Start Date, and End Date). The GeoWaveGeoIndexer populates the Geometry
  * attribute by parsing the Well-Known Text contained in the RDF Statement’s object literal value.
  * <p>
  * The RDF Feature contains four additional attributes for each component of the RDF Statement. These attributes are:
@@ -120,11 +130,11 @@ import info.aduna.iteration.CloseableIteration;
  * </tr>
  * </table>
  */
-public class GeoMesaGeoIndexer extends AbstractAccumuloIndexer implements GeoIndexer  {
+public class GeoWaveGeoIndexer extends AbstractAccumuloIndexer implements GeoIndexer  {
 
     private static final String TABLE_SUFFIX = "geo";
 
-    private static final Logger logger = Logger.getLogger(GeoMesaGeoIndexer.class);
+    private static final Logger logger = Logger.getLogger(GeoWaveGeoIndexer.class);
 
     private static final String FEATURE_NAME = "RDF";
 
@@ -132,13 +142,18 @@ public class GeoMesaGeoIndexer extends AbstractAccumuloIndexer implements GeoInd
     private static final String PREDICATE_ATTRIBUTE = "P";
     private static final String OBJECT_ATTRIBUTE = "O";
     private static final String CONTEXT_ATTRIBUTE = "C";
-    private static final String GEOMETRY_ATTRIBUTE = Constants.SF_PROPERTY_GEOMETRY;
+    private static final String GEO_ID_ATTRIBUTE = "geo_id";
+    private static final String GEOMETRY_ATTRIBUTE = "geowave_index_geometry";
 
     private Set<URI> validPredicates;
     private Configuration conf;
     private FeatureStore<SimpleFeatureType, SimpleFeature> featureStore;
     private FeatureSource<SimpleFeatureType, SimpleFeature> featureSource;
     private SimpleFeatureType featureType;
+    private FeatureDataAdapter featureDataAdapter;
+    private DataStore geoToolsDataStore;
+    private mil.nga.giat.geowave.core.store.DataStore geoWaveDataStore;
+    private final PrimaryIndex index = new SpatialDimensionalityTypeProvider().createPrimaryIndex();
     private boolean isInit = false;
 
     //initialization occurs in setConf because index is created using reflection
@@ -161,52 +176,93 @@ public class GeoMesaGeoIndexer extends AbstractAccumuloIndexer implements GeoInd
         return conf;
     }
 
+    /**
+     * @return the internal GeoTools{@link DataStore} used by the {@link GeoWaveGeoIndexer}.
+     */
+    public DataStore getGeoToolsDataStore() {
+        return geoToolsDataStore;
+    }
+
+    /**
+     * @return the internal GeoWave {@link DataStore} used by the {@link GeoWaveGeoIndexer}.
+     */
+    public mil.nga.giat.geowave.core.store.DataStore getGeoWaveDataStore() {
+        return geoWaveDataStore;
+    }
 
     private void initInternal() throws IOException {
         validPredicates = ConfigUtils.getGeoPredicates(conf);
 
-        final DataStore dataStore = createDataStore(conf);
+        try {
+            geoToolsDataStore = createDataStore(conf);
+            geoWaveDataStore = ((GeoWaveGTDataStore) geoToolsDataStore).getDataStore();
+        } catch (final GeoWavePluginException e) {
+            logger.error("Failed to create GeoWave data store", e);
+        }
 
         try {
-            featureType = getStatementFeatureType(dataStore);
+            featureType = getStatementFeatureType(geoToolsDataStore);
         } catch (final IOException | SchemaException e) {
             throw new IOException(e);
         }
 
-        featureSource = dataStore.getFeatureSource(featureType.getName());
+        featureDataAdapter = new FeatureDataAdapter(featureType);
+
+        featureSource = geoToolsDataStore.getFeatureSource(featureType.getName());
         if (!(featureSource instanceof FeatureStore)) {
             throw new IllegalStateException("Could not retrieve feature store");
         }
         featureStore = (FeatureStore<SimpleFeatureType, SimpleFeature>) featureSource;
     }
 
-    private static DataStore createDataStore(final Configuration conf) throws IOException {
+    public Map<String, Serializable> getParams(final Configuration conf) {
         // get the configuration parameters
         final Instance instance = ConfigUtils.getInstance(conf);
-        final boolean useMock = instance instanceof MockInstance;
         final String instanceId = instance.getInstanceName();
         final String zookeepers = instance.getZooKeepers();
         final String user = ConfigUtils.getUsername(conf);
         final String password = ConfigUtils.getPassword(conf);
         final String auths = ConfigUtils.getAuthorizations(conf).toString();
         final String tableName = getTableName(conf);
-        final int numParitions = OptionalConfigUtils.getGeoNumPartitions(conf);
+        final String tablePrefix = ConfigUtils.getTablePrefix(conf);
 
-        final String featureSchemaFormat = "%~#s%" + numParitions + "#r%" + FEATURE_NAME
-                + "#cstr%0,3#gh%yyyyMMdd#d::%~#s%3,2#gh::%~#s%#id";
-        // build the map of parameters
-        final Map<String, Serializable> params = new HashMap<String, Serializable>();
-        params.put("instanceId", instanceId);
-        params.put("zookeepers", zookeepers);
+        final Map<String, Serializable> params = new HashMap<>();
+        params.put("zookeeper", zookeepers);
+        params.put("instance", instanceId);
         params.put("user", user);
         params.put("password", password);
-        params.put("auths", auths);
-        params.put("tableName", tableName);
-        params.put("indexSchemaFormat", featureSchemaFormat);
-        params.put("useMock", Boolean.toString(useMock));
+        params.put("namespace", tableName);
+        params.put("gwNamespace", tablePrefix + getClass().getSimpleName());
 
-        // fetch the data store from the finder
-        return DataStoreFinder.getDataStore(params);
+        params.put("Lock Management", LockManagementType.MEMORY.toString());
+        params.put("Authorization Management Provider", AuthorizationManagementProviderType.EMPTY.toString());
+        params.put("Authorization Data URL", null);
+        params.put("Transaction Buffer Size", 10000);
+        params.put("Query Index Strategy", QueryIndexStrategyType.HEURISTIC_MATCH.toString());
+        return params;
+    }
+
+    /**
+     * Creates the {@link DataStore} for the {@link GeoWaveGeoIndexer}.
+     * @param conf the {@link Configuration}.
+     * @return the {@link DataStore}.
+     */
+    public DataStore createDataStore(final Configuration conf) throws IOException, GeoWavePluginException {
+        final Map<String, Serializable> params = getParams(conf);
+        final Instance instance = ConfigUtils.getInstance(conf);
+        final boolean useMock = instance instanceof MockInstance;
+
+        final StoreFactoryFamilySpi storeFactoryFamily;
+        if (useMock) {
+            storeFactoryFamily = new MemoryStoreFactoryFamily();
+        } else {
+            storeFactoryFamily = new AccumuloStoreFactoryFamily();
+        }
+
+        final GeoWaveGTDataStoreFactory geoWaveGTDataStoreFactory = new GeoWaveGTDataStoreFactory(storeFactoryFamily);
+        final DataStore dataStore = geoWaveGTDataStoreFactory.createNewDataStore(params);
+
+        return dataStore;
     }
 
     private static SimpleFeatureType getStatementFeatureType(final DataStore dataStore) throws IOException, SchemaException {
@@ -216,12 +272,14 @@ public class GeoMesaGeoIndexer extends AbstractAccumuloIndexer implements GeoInd
         if (Arrays.asList(datastoreFeatures).contains(FEATURE_NAME)) {
             featureType = dataStore.getSchema(FEATURE_NAME);
         } else {
-            final String featureSchema = SUBJECT_ATTRIBUTE + ":String," //
-                    + PREDICATE_ATTRIBUTE + ":String," //
-                    + OBJECT_ATTRIBUTE + ":String," //
-                    + CONTEXT_ATTRIBUTE + ":String," //
-                    + GEOMETRY_ATTRIBUTE + ":Geometry:srid=4326;geomesa.mixed.geometries='true'";
-            featureType = SimpleFeatureTypes.createType(FEATURE_NAME, featureSchema);
+            featureType = DataUtilities.createType(FEATURE_NAME,
+                SUBJECT_ATTRIBUTE + ":String," +
+                PREDICATE_ATTRIBUTE + ":String," +
+                OBJECT_ATTRIBUTE + ":String," +
+                CONTEXT_ATTRIBUTE + ":String," +
+                GEOMETRY_ATTRIBUTE + ":Geometry:srid=4326," +
+                GEO_ID_ATTRIBUTE + ":String");
+
             dataStore.createSchema(featureType);
         }
         return featureType;
@@ -282,6 +340,9 @@ public class GeoMesaGeoIndexer extends AbstractAccumuloIndexer implements GeoInd
         newFeature.setAttribute(PREDICATE_ATTRIBUTE, predicate);
         newFeature.setAttribute(OBJECT_ATTRIBUTE, object);
         newFeature.setAttribute(CONTEXT_ATTRIBUTE, context);
+        // GeoWave does not support querying based on a user generated feature ID
+        // So, we create a separate ID attribute that it can query on.
+        newFeature.setAttribute(GEO_ID_ATTRIBUTE, statementId);
 
         // preserve the ID that we created for this feature
         // (set the hint to FALSE to have GeoTools generate IDs)
@@ -311,7 +372,7 @@ public class GeoMesaGeoIndexer extends AbstractAccumuloIndexer implements GeoInd
         }
 
         final String filterString = StringUtils.join(filterParms, " AND ");
-        logger.info("Performing geomesa query : " + filterString);
+        logger.info("Performing geowave query : " + filterString);
 
         return getIteratorWrapper(filterString);
     }
@@ -320,9 +381,9 @@ public class GeoMesaGeoIndexer extends AbstractAccumuloIndexer implements GeoInd
 
         return new CloseableIteration<Statement, QueryEvaluationException>() {
 
-            private FeatureIterator<SimpleFeature> featureIterator = null;
+            private CloseableIterator<SimpleFeature> featureIterator = null;
 
-            FeatureIterator<SimpleFeature> getIterator() throws QueryEvaluationException {
+            CloseableIterator<SimpleFeature> getIterator() throws QueryEvaluationException {
                 if (featureIterator == null) {
                     Filter cqlFilter;
                     try {
@@ -332,10 +393,12 @@ public class GeoMesaGeoIndexer extends AbstractAccumuloIndexer implements GeoInd
                         throw new QueryEvaluationException(e);
                     }
 
-                    final Query query = new Query(featureType.getTypeName(), cqlFilter);
+                    final CQLQuery cqlQuery = new CQLQuery(null, cqlFilter, featureDataAdapter);
+                    final QueryOptions queryOptions = new QueryOptions(featureDataAdapter, index);
+
                     try {
-                        featureIterator = featureSource.getFeatures(query).features();
-                    } catch (final IOException e) {
+                        featureIterator = geoWaveDataStore.query(queryOptions, cqlQuery);
+                    } catch (final Exception e) {
                         logger.error("Error performing query: " + filterString, e);
                         throw new QueryEvaluationException(e);
                     }
@@ -354,7 +417,8 @@ public class GeoMesaGeoIndexer extends AbstractAccumuloIndexer implements GeoInd
                 final String subjectString = feature.getAttribute(SUBJECT_ATTRIBUTE).toString();
                 final String predicateString = feature.getAttribute(PREDICATE_ATTRIBUTE).toString();
                 final String objectString = feature.getAttribute(OBJECT_ATTRIBUTE).toString();
-                final String contextString = feature.getAttribute(CONTEXT_ATTRIBUTE).toString();
+                final Object context = feature.getAttribute(CONTEXT_ATTRIBUTE);
+                final String contextString = context != null ? context.toString() : "";
                 final Statement statement = StatementSerializer.readStatement(subjectString, predicateString, objectString, contextString);
                 return statement;
             }
@@ -366,7 +430,11 @@ public class GeoMesaGeoIndexer extends AbstractAccumuloIndexer implements GeoInd
 
             @Override
             public void close() throws QueryEvaluationException {
-                getIterator().close();
+                try {
+                    getIterator().close();
+                } catch (final IOException e) {
+                    throw new QueryEvaluationException(e);
+                }
             }
         };
     }
@@ -480,7 +548,16 @@ public class GeoMesaGeoIndexer extends AbstractAccumuloIndexer implements GeoInd
             for (final String id : stringIds) {
                 featureIds.add(filterFactory.featureId(id));
             }
-            final Filter filter = filterFactory.id(featureIds);
+
+            final String filterString = stringIds.stream().collect(Collectors.joining("','", "'", "'"));
+
+            Filter filter = null;
+            try {
+                filter = ECQL.toFilter(GEO_ID_ATTRIBUTE + " IN (" + filterString + ")", filterFactory);
+            } catch (final CQLException e) {
+                logger.error("Unable to generate filter for deleting the statement.", e);
+            }
+
             featureStore.removeFeatures(filter);
         }
     }
@@ -505,9 +582,80 @@ public class GeoMesaGeoIndexer extends AbstractAccumuloIndexer implements GeoInd
 
     @Override
     public void purge(final RdfCloudTripleStoreConfiguration configuration) {
+        // delete existing data
+        geoWaveDataStore.delete(new QueryOptions(), new EverythingQuery());
     }
 
     @Override
     public void dropAndDestroy() {
+    }
+
+    /**
+     * The list of supported Geo Wave {@code LockingManagementFactory} types.
+     */
+    private static enum LockManagementType {
+        MEMORY("memory");
+
+        private final String name;
+
+        /**
+         * Creates a new {@link LockManagementType}.
+         * @param name the name of the type. (not {@code null})
+         */
+        private LockManagementType(final String name) {
+            this.name = checkNotNull(name);
+        }
+
+        @Override
+        public String toString() {
+            return name;
+        }
+    }
+
+    /**
+     * The list of supported Geo Wave {@code AuthorizationFactorySPI } types.
+     */
+    private static enum AuthorizationManagementProviderType {
+        EMPTY("empty"),
+        JSON_FILE("jsonFile");
+
+        private final String name;
+
+        /**
+         * Creates a new {@link AuthorizationManagementProviderType}.
+         * @param name the name of the type. (not {@code null})
+         */
+        private AuthorizationManagementProviderType(final String name) {
+            this.name = checkNotNull(name);
+        }
+
+        @Override
+        public String toString() {
+            return name;
+        }
+    }
+
+    /**
+     * The list of supported Geo Wave {@code IndexQueryStrategySPI} types.
+     */
+    private static enum QueryIndexStrategyType {
+        BEST_MATCH("Best Match"),
+        HEURISTIC_MATCH("Heuristic Match"),
+        PRESERVE_LOCALITY("Preserve Locality");
+
+        private final String name;
+
+        /**
+         * Creates a new {@link QueryIndexStrategyType}.
+         * @param name the name of the type. (not {@code null})
+         */
+        private QueryIndexStrategyType(final String name) {
+            this.name = checkNotNull(name);
+        }
+
+        @Override
+        public String toString() {
+            return name;
+        }
     }
 }

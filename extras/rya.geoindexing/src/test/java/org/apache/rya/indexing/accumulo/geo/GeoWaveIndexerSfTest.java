@@ -22,12 +22,19 @@ import static org.apache.rya.indexing.GeoIndexingTestUtils.getSet;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.accumulo.core.client.AccumuloException;
+import org.apache.accumulo.core.client.AccumuloSecurityException;
 import org.apache.accumulo.core.client.admin.TableOperations;
+import org.apache.accumulo.minicluster.impl.MiniAccumuloClusterImpl;
+import org.apache.accumulo.minicluster.impl.MiniAccumuloConfigImpl;
+import org.apache.commons.io.FileUtils;
 import org.apache.rya.accumulo.AccumuloRdfConfiguration;
 import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.resolver.RdfToRyaConversions;
@@ -38,9 +45,10 @@ import org.apache.rya.indexing.OptionalConfigUtils;
 import org.apache.rya.indexing.StatementConstraints;
 import org.apache.rya.indexing.accumulo.ConfigUtils;
 import org.geotools.geometry.jts.Geometries;
+import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Ignore;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
@@ -56,6 +64,7 @@ import org.openrdf.model.impl.ValueFactoryImpl;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Sets;
+import com.google.common.io.Files;
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.GeometryFactory;
@@ -69,16 +78,17 @@ import com.vividsolutions.jts.io.ParseException;
 import com.vividsolutions.jts.io.gml2.GMLWriter;
 
 import info.aduna.iteration.CloseableIteration;
+import mil.nga.giat.geowave.datastore.accumulo.minicluster.MiniAccumuloClusterFactory;
 
 /**
  * Tests all of the "simple functions" of the geoindexer specific to GML.
  * Parameterized so that each test is run for WKT and for GML.
  */
 @RunWith(value = Parameterized.class)
-public class GeoIndexerSfTest {
+public class GeoWaveIndexerSfTest {
     private static AccumuloRdfConfiguration conf;
     private static GeometryFactory gf = new GeometryFactory(new PrecisionModel(), 4326);
-    private static GeoMesaGeoIndexer g;
+    private static GeoWaveGeoIndexer g;
 
     private static final StatementConstraints EMPTY_CONSTRAINTS = new StatementConstraints();
 
@@ -118,6 +128,14 @@ public class GeoIndexerSfTest {
         .put(G, "G")
         .build();
 
+    private static File tempAccumuloDir;
+    private static MiniAccumuloClusterImpl accumulo;
+
+    private static final boolean IS_MOCK = true;
+
+    private static final String ACCUMULO_USER = IS_MOCK ? "username" : "root";
+    private static final String ACCUMULO_PASSWORD = "password";
+
     /**
      * JUnit 4 parameterized iterates thru this list and calls the constructor with each.
      * For each test, Call the constructor three times, for WKT and for GML encoding 1, and GML encoding 2
@@ -127,7 +145,7 @@ public class GeoIndexerSfTest {
 
     @Parameters
     public static Collection<URI[]> constructorData() {
-        final URI[][] data = new URI[][] { { GeoConstants.XMLSCHEMA_OGC_WKT, USE_JTS_LIB_ENCODING }, { GeoConstants.XMLSCHEMA_OGC_GML, USE_JTS_LIB_ENCODING }, { GeoConstants.XMLSCHEMA_OGC_GML, USE_ROUGH_ENCODING } };
+        final URI[][] data = new URI[][] { { GeoConstants.XMLSCHEMA_OGC_WKT, USE_JTS_LIB_ENCODING }, { GeoConstants.XMLSCHEMA_OGC_GML, USE_JTS_LIB_ENCODING }, { GeoConstants.XMLSCHEMA_OGC_GML, USE_JTS_LIB_ENCODING } };
         return Arrays.asList(data);
     }
 
@@ -139,9 +157,33 @@ public class GeoIndexerSfTest {
      * @param schemaToTest the schema to test {@link URI}.
      * @param encodeMethod the encode method {@link URI}.
      */
-    public GeoIndexerSfTest(final URI schemaToTest, final URI encodeMethod) {
+    public GeoWaveIndexerSfTest(final URI schemaToTest, final URI encodeMethod) {
         this.schemaToTest = schemaToTest;
         this.encodeMethod = encodeMethod;
+    }
+
+    @BeforeClass
+    public static void setup() throws AccumuloException, AccumuloSecurityException, IOException, InterruptedException {
+        if (!IS_MOCK) {
+            tempAccumuloDir = Files.createTempDir();
+
+            accumulo = MiniAccumuloClusterFactory.newAccumuloCluster(
+                    new MiniAccumuloConfigImpl(tempAccumuloDir, ACCUMULO_PASSWORD),
+                    GeoWaveIndexerTest.class);
+
+            accumulo.start();
+        }
+    }
+
+    @AfterClass
+    public static void cleanup() throws IOException, InterruptedException {
+        if (!IS_MOCK) {
+            try {
+                accumulo.stop();
+            } finally {
+                FileUtils.deleteDirectory(tempAccumuloDir);
+            }
+        }
     }
 
     /**
@@ -152,15 +194,15 @@ public class GeoIndexerSfTest {
     public void before() throws Exception {
         conf = new AccumuloRdfConfiguration();
         conf.setTablePrefix("triplestore_");
-        final String tableName = GeoMesaGeoIndexer.getTableName(conf);
-        conf.setBoolean(ConfigUtils.USE_MOCK_INSTANCE, true);
-        conf.set(ConfigUtils.CLOUDBASE_USER, "USERNAME");
-        conf.set(ConfigUtils.CLOUDBASE_PASSWORD, "PASS");
-        conf.set(ConfigUtils.CLOUDBASE_INSTANCE, "INSTANCE");
-        conf.set(ConfigUtils.CLOUDBASE_ZOOKEEPERS, "localhost");
+        final String tableName = GeoWaveGeoIndexer.getTableName(conf);
+        conf.setBoolean(ConfigUtils.USE_MOCK_INSTANCE, IS_MOCK);
+        conf.set(ConfigUtils.CLOUDBASE_USER, ACCUMULO_USER);
+        conf.set(ConfigUtils.CLOUDBASE_PASSWORD, ACCUMULO_PASSWORD);
+        conf.set(ConfigUtils.CLOUDBASE_INSTANCE, IS_MOCK ? "INSTANCE" : accumulo.getInstanceName());
+        conf.set(ConfigUtils.CLOUDBASE_ZOOKEEPERS, IS_MOCK ? "localhost" : accumulo.getZooKeepers());
         conf.set(ConfigUtils.CLOUDBASE_AUTHS, "U");
         conf.set(OptionalConfigUtils.USE_GEO, "true");
-        conf.set(OptionalConfigUtils.GEO_INDEXER_TYPE, GeoIndexerType.GEO_MESA.toString());
+        conf.set(OptionalConfigUtils.GEO_INDEXER_TYPE, GeoIndexerType.GEO_WAVE.toString());
 
         final TableOperations tops = ConfigUtils.getConnector(conf).tableOperations();
         // get all of the table names with the prefix
@@ -174,8 +216,9 @@ public class GeoIndexerSfTest {
             tops.delete(t);
         }
 
-        g = new GeoMesaGeoIndexer();
+        g = new GeoWaveGeoIndexer();
         g.setConf(conf);
+        g.purge(conf);
         // Convert the statements as schema WKT or GML, then GML has two methods to encode.
         g.storeStatement(createRyaStatement(A, schemaToTest, encodeMethod));
         g.storeStatement(createRyaStatement(B, schemaToTest, encodeMethod));
@@ -400,24 +443,13 @@ public class GeoIndexerSfTest {
     }
 
     @Test
-    @Ignore
     public void testIntersectsPoint() throws Exception {
-        // This seems like a bug
-        //   scala.MatchError: POINT (2 4) (of class com.vividsolutions.jts.geom.Point)
-        //   at org.locationtech.geomesa.filter.FilterHelper$.updateToIDLSafeFilter(FilterHelper.scala:53)
-        // compare(g.queryIntersects(F, EMPTY_CONSTRAINTS), A, F);
-        // compare(g.queryIntersects(F, EMPTY_CONSTRAINTS), EMPTY_RESULTS);
+        compare(g.queryIntersects(F, EMPTY_CONSTRAINTS), A, F);
     }
 
-    @Ignore
     @Test
     public void testIntersectsLine() throws Exception {
-        // This seems like a bug
-        // fails with:
-        //     scala.MatchError: LINESTRING (2 0, 3 3) (of class com.vividsolutions.jts.geom.LineString)
-        //     at org.locationtech.geomesa.filter.FilterHelper$.updateToIDLSafeFilter(FilterHelper.scala:53)
-        //compare(g.queryIntersects(E, EMPTY_CONSTRAINTS), A, E, D);
-        //compare(g.queryIntersects(E, EMPTY_CONSTRAINTS), EMPTY_RESULTS);
+        compare(g.queryIntersects(E, EMPTY_CONSTRAINTS), A, E, D);
     }
 
     @Test
@@ -445,19 +477,12 @@ public class GeoIndexerSfTest {
     public void testCrossesPoint() throws Exception {
         compare(g.queryCrosses(F, EMPTY_CONSTRAINTS), EMPTY_RESULTS);
         compare(g.queryCrosses(G, EMPTY_CONSTRAINTS), EMPTY_RESULTS);
-        // bug? java.lang.IllegalStateException:  getX called on empty Point
-        //    compare(g.queryCrosses(point(2, 0), EMPTY_CONSTRAINTS), E);
+        compare(g.queryCrosses(point(2, 0), EMPTY_CONSTRAINTS), EMPTY_RESULTS);
     }
 
-    @Ignore
     @Test
     public void testCrossesLine() throws Exception {
-        // fails with:
-        //     java.lang.IllegalStateException: getX called on empty Point
-        //      at com.vividsolutions.jts.geom.Point.getX(Point.java:124)
-        //      at org.locationtech.geomesa.utils.geohash.GeohashUtils$.considerCandidate$1(GeohashUtils.scala:1023)
-
-        // compare(g.queryCrosses(E, EMPTY_CONSTRAINTS), A);
+        compare(g.queryCrosses(E, EMPTY_CONSTRAINTS), A);
     }
 
     @Test
@@ -469,12 +494,10 @@ public class GeoIndexerSfTest {
     @Test
     public void testWithin() throws Exception {
         // point
-        // geomesa bug? scala.MatchError: POINT (2 4) (of class com.vividsolutions.jts.geom.Point)
-        //    compare(g.queryWithin(F, EMPTY_CONSTRAINTS), F);
+        compare(g.queryWithin(F, EMPTY_CONSTRAINTS), F);
 
         // line
-        // geomesa bug? scala.MatchError: LINESTRING (2 0, 3 2) (of class com.vividsolutions.jts.geom.LineString)
-        //    compare(g.queryWithin(E, EMPTY_CONSTRAINTS), E);
+        compare(g.queryWithin(E, EMPTY_CONSTRAINTS), E);
 
         // poly
         compare(g.queryWithin(A, EMPTY_CONSTRAINTS), A, B, F);
@@ -485,10 +508,9 @@ public class GeoIndexerSfTest {
         compare(g.queryContains(F, EMPTY_CONSTRAINTS), A, F);
     }
 
-    @Ignore
     @Test
     public void testContainsLine() throws Exception {
-        // compare(g.queryContains(E, EMPTY_CONSTRAINTS), E);
+        compare(g.queryContains(E, EMPTY_CONSTRAINTS), E);
     }
 
     @Test
@@ -497,20 +519,14 @@ public class GeoIndexerSfTest {
         compare(g.queryContains(B, EMPTY_CONSTRAINTS), A, B);
     }
 
-    @Ignore
     @Test
     public void testOverlapsPoint() throws Exception {
-        // compare(g.queryOverlaps(F, EMPTY_CONSTRAINTS), F);
-        // You cannot have overlapping points
-        // compare(g.queryOverlaps(F, EMPTY_CONSTRAINTS), EMPTY_RESULTS);
+        compare(g.queryOverlaps(F, EMPTY_CONSTRAINTS), EMPTY_RESULTS);
     }
 
-    @Ignore
     @Test
     public void testOverlapsLine() throws Exception {
-        // compare(g.queryOverlaps(E, EMPTY_CONSTRAINTS), A, E);
-        // You cannot have overlapping lines
-        // compare(g.queryOverlaps(E, EMPTY_CONSTRAINTS), EMPTY_RESULTS);
+        compare(g.queryOverlaps(E, EMPTY_CONSTRAINTS), EMPTY_RESULTS);
     }
 
     @Test

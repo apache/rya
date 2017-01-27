@@ -1,5 +1,3 @@
-package org.apache.rya.indexing.mongo;
-
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -18,24 +16,32 @@ package org.apache.rya.indexing.mongo;
  * specific language governing permissions and limitations
  * under the License.
  */
-
-
+package org.apache.rya.indexing.accumulo.geo;
 
 import static org.apache.rya.api.resolver.RdfToRyaConversions.convertStatement;
 import static org.apache.rya.indexing.GeoIndexingTestUtils.getSet;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.Collections;
 import java.util.Set;
 
+import org.apache.accumulo.core.client.AccumuloException;
+import org.apache.accumulo.core.client.AccumuloSecurityException;
+import org.apache.accumulo.core.client.admin.TableOperations;
+import org.apache.accumulo.minicluster.impl.MiniAccumuloClusterImpl;
+import org.apache.accumulo.minicluster.impl.MiniAccumuloConfigImpl;
+import org.apache.commons.io.FileUtils;
+import org.apache.rya.accumulo.AccumuloRdfConfiguration;
 import org.apache.rya.indexing.GeoConstants;
+import org.apache.rya.indexing.GeoIndexerType;
 import org.apache.rya.indexing.OptionalConfigUtils;
 import org.apache.rya.indexing.StatementConstraints;
 import org.apache.rya.indexing.accumulo.ConfigUtils;
-import org.apache.rya.indexing.mongodb.geo.MongoGeoIndexer;
-import org.apache.rya.mongodb.MongoDBRdfConfiguration;
-import org.apache.rya.mongodb.MongoRyaTestBase;
+import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.openrdf.model.Resource;
 import org.openrdf.model.Statement;
@@ -47,6 +53,7 @@ import org.openrdf.model.impl.StatementImpl;
 import org.openrdf.model.impl.ValueFactoryImpl;
 
 import com.google.common.collect.Sets;
+import com.google.common.io.Files;
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.GeometryFactory;
 import com.vividsolutions.jts.geom.LinearRing;
@@ -55,29 +62,84 @@ import com.vividsolutions.jts.geom.Polygon;
 import com.vividsolutions.jts.geom.PrecisionModel;
 import com.vividsolutions.jts.geom.impl.PackedCoordinateSequence;
 
-public class MongoGeoIndexerTest extends MongoRyaTestBase {
+import mil.nga.giat.geowave.datastore.accumulo.minicluster.MiniAccumuloClusterFactory;
+
+/**
+ * Tests  higher level functioning of the geoindexer parse WKT, predicate list,
+ * prime and anti meridian, delete, search, context, search with Statement Constraints.
+ */
+public class GeoWaveIndexerTest {
 
     private static final StatementConstraints EMPTY_CONSTRAINTS = new StatementConstraints();
 
-    MongoDBRdfConfiguration conf;
-    GeometryFactory gf = new GeometryFactory(new PrecisionModel(), 4326);
+    private AccumuloRdfConfiguration conf;
+    private final GeometryFactory gf = new GeometryFactory(new PrecisionModel(), 4326);
+
+    private static File tempAccumuloDir;
+    private static MiniAccumuloClusterImpl accumulo;
+
+    private static final boolean IS_MOCK = true;
+
+    private static final String ACCUMULO_USER = IS_MOCK ? "username" : "root";
+    private static final String ACCUMULO_PASSWORD = "password";
+
+    @BeforeClass
+    public static void setup() throws AccumuloException, AccumuloSecurityException, IOException, InterruptedException {
+        if (!IS_MOCK) {
+            tempAccumuloDir = Files.createTempDir();
+
+            accumulo = MiniAccumuloClusterFactory.newAccumuloCluster(
+                    new MiniAccumuloConfigImpl(tempAccumuloDir, ACCUMULO_PASSWORD),
+                    GeoWaveIndexerTest.class);
+
+            accumulo.start();
+        }
+    }
+
+    @AfterClass
+    public static void cleanup() throws IOException, InterruptedException {
+        if (!IS_MOCK) {
+            try {
+                accumulo.stop();
+            } finally {
+                FileUtils.deleteDirectory(tempAccumuloDir);
+            }
+        }
+    }
 
     @Before
     public void before() throws Exception {
-        conf = new MongoDBRdfConfiguration();
-        conf.set(ConfigUtils.USE_MONGO, "true");
-        conf.set(MongoDBRdfConfiguration.MONGO_DB_NAME, "test");
-        conf.set(MongoDBRdfConfiguration.MONGO_COLLECTION_PREFIX, "rya_");
-        conf.set(ConfigUtils.GEO_PREDICATES_LIST, "http://www.opengis.net/ont/geosparql#asWKT");
+        conf = new AccumuloRdfConfiguration();
+        conf.setTablePrefix("triplestore_");
+        final String tableName = GeoWaveGeoIndexer.getTableName(conf);
+        conf.setBoolean(ConfigUtils.USE_MOCK_INSTANCE, IS_MOCK);
+        conf.set(ConfigUtils.CLOUDBASE_USER, ACCUMULO_USER);
+        conf.set(ConfigUtils.CLOUDBASE_PASSWORD, ACCUMULO_PASSWORD);
+        conf.set(ConfigUtils.CLOUDBASE_INSTANCE, IS_MOCK ? "INSTANCE" : accumulo.getInstanceName());
+        conf.set(ConfigUtils.CLOUDBASE_ZOOKEEPERS, IS_MOCK ? "localhost" : accumulo.getZooKeepers());
+        conf.set(ConfigUtils.CLOUDBASE_AUTHS, "U");
         conf.set(OptionalConfigUtils.USE_GEO, "true");
-        conf.setTablePrefix("rya_");
+        conf.set(OptionalConfigUtils.GEO_INDEXER_TYPE, GeoIndexerType.GEO_WAVE.toString());
+
+        final TableOperations tops = ConfigUtils.getConnector(conf).tableOperations();
+        // get all of the table names with the prefix
+        final Set<String> toDel = Sets.newHashSet();
+        for (final String t : tops.list()){
+            if (t.startsWith(tableName)){
+                toDel.add(t);
+            }
+        }
+        for (final String t : toDel) {
+            tops.delete(t);
+        }
     }
 
     @Test
     public void testRestrictPredicatesSearch() throws Exception {
         conf.setStrings(ConfigUtils.GEO_PREDICATES_LIST, "pred:1,pred:2");
-        try (final MongoGeoIndexer f = new MongoGeoIndexer()) {
-            f.initIndexer(conf, mongoClient);
+        try (final GeoWaveGeoIndexer f = new GeoWaveGeoIndexer()) {
+            f.setConf(conf);
+            f.purge(conf);
 
             final ValueFactory vf = new ValueFactoryImpl();
 
@@ -115,8 +177,9 @@ public class MongoGeoIndexerTest extends MongoRyaTestBase {
 
     @Test
     public void testPrimeMeridianSearch() throws Exception {
-        try (final MongoGeoIndexer f = new MongoGeoIndexer()) {
-            f.initIndexer(conf, mongoClient);
+        try (final GeoWaveGeoIndexer f = new GeoWaveGeoIndexer()) {
+            f.setConf(conf);
+            f.purge(conf);
 
             final ValueFactory vf = new ValueFactoryImpl();
             final Resource subject = vf.createURI("foo:subj");
@@ -159,8 +222,9 @@ public class MongoGeoIndexerTest extends MongoRyaTestBase {
     @Test
     public void testDcSearch() throws Exception {
         // test a ring around dc
-        try (final MongoGeoIndexer f = new MongoGeoIndexer()) {
-            f.initIndexer(conf, mongoClient);
+        try (final GeoWaveGeoIndexer f = new GeoWaveGeoIndexer()) {
+            f.setConf(conf);
+            f.purge(conf);
 
             final ValueFactory vf = new ValueFactoryImpl();
             final Resource subject = vf.createURI("foo:subj");
@@ -188,8 +252,9 @@ public class MongoGeoIndexerTest extends MongoRyaTestBase {
     @Test
     public void testDeleteSearch() throws Exception {
         // test a ring around dc
-        try (final MongoGeoIndexer f = new MongoGeoIndexer()) {
-            f.initIndexer(conf, mongoClient);
+        try (final GeoWaveGeoIndexer f = new GeoWaveGeoIndexer()) {
+            f.setConf(conf);
+            f.purge(conf);
 
             final ValueFactory vf = new ValueFactoryImpl();
             final Resource subject = vf.createURI("foo:subj");
@@ -216,8 +281,7 @@ public class MongoGeoIndexerTest extends MongoRyaTestBase {
             Assert.assertEquals(Sets.newHashSet(), getSet(f.queryWithin(pOut, EMPTY_CONSTRAINTS)));
 
             // test a ring for the whole world and make sure the point is gone
-            // Geomesa is a little sensitive around lon 180, so we only go to 179
-            final double[] world = { -180, 90, 179, 90, 179, -90, -180, -90, -180, 90 };
+            final double[] world = { -180, 90, 180, 90, 180, -90, -180, -90, -180, 90 };
             final LinearRing rWorld = gf.createLinearRing(new PackedCoordinateSequence.Double(world, 2));
             final Polygon pWorld = gf.createPolygon(rWorld, new LinearRing[] {});
             Assert.assertEquals(Sets.newHashSet(), getSet(f.queryWithin(pWorld, EMPTY_CONSTRAINTS)));
@@ -227,8 +291,9 @@ public class MongoGeoIndexerTest extends MongoRyaTestBase {
     @Test
     public void testDcSearchWithContext() throws Exception {
         // test a ring around dc
-        try (final MongoGeoIndexer f = new MongoGeoIndexer()) {
-            f.initIndexer(conf, mongoClient);
+        try (final GeoWaveGeoIndexer f = new GeoWaveGeoIndexer()) {
+            f.setConf(conf);
+            f.purge(conf);
 
             final ValueFactory vf = new ValueFactoryImpl();
             final Resource subject = vf.createURI("foo:subj");
@@ -256,8 +321,9 @@ public class MongoGeoIndexerTest extends MongoRyaTestBase {
     @Test
     public void testDcSearchWithSubject() throws Exception {
         // test a ring around dc
-        try (final MongoGeoIndexer f = new MongoGeoIndexer()) {
-            f.initIndexer(conf, mongoClient);
+        try (final GeoWaveGeoIndexer f = new GeoWaveGeoIndexer()) {
+            f.setConf(conf);
+            f.purge(conf);
 
             final ValueFactory vf = new ValueFactoryImpl();
             final Resource subject = vf.createURI("foo:subj");
@@ -284,8 +350,9 @@ public class MongoGeoIndexerTest extends MongoRyaTestBase {
     @Test
     public void testDcSearchWithSubjectAndContext() throws Exception {
         // test a ring around dc
-        try (final MongoGeoIndexer f = new MongoGeoIndexer()) {
-            f.initIndexer(conf, mongoClient);
+        try (final GeoWaveGeoIndexer f = new GeoWaveGeoIndexer()) {
+            f.setConf(conf);
+            f.purge(conf);
 
             final ValueFactory vf = new ValueFactoryImpl();
             final Resource subject = vf.createURI("foo:subj");
@@ -317,8 +384,9 @@ public class MongoGeoIndexerTest extends MongoRyaTestBase {
     @Test
     public void testDcSearchWithPredicate() throws Exception {
         // test a ring around dc
-        try (final MongoGeoIndexer f = new MongoGeoIndexer()) {
-            f.initIndexer(conf, mongoClient);
+        try (final GeoWaveGeoIndexer f = new GeoWaveGeoIndexer()) {
+            f.setConf(conf);
+            f.purge(conf);
 
             final ValueFactory vf = new ValueFactoryImpl();
             final Resource subject = vf.createURI("foo:subj");
@@ -347,8 +415,9 @@ public class MongoGeoIndexerTest extends MongoRyaTestBase {
     // @Test
     public void testAntiMeridianSearch() throws Exception {
         // verify that a search works if the bounding box crosses the anti meridian
-        try (final MongoGeoIndexer f = new MongoGeoIndexer()) {
-            f.initIndexer(conf, mongoClient);
+        try (final GeoWaveGeoIndexer f = new GeoWaveGeoIndexer()) {
+            f.setConf(conf);
+            f.purge(conf);
 
             final ValueFactory vf = new ValueFactoryImpl();
             final Resource context = vf.createURI("foo:context");

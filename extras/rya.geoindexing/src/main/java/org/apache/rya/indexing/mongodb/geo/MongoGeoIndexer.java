@@ -23,19 +23,20 @@ import static org.apache.rya.indexing.mongodb.geo.GeoMongoDBStorageStrategy.GeoQ
 import static org.apache.rya.indexing.mongodb.geo.GeoMongoDBStorageStrategy.GeoQueryType.WITHIN;
 
 import org.apache.log4j.Logger;
-import org.openrdf.model.Statement;
-import org.openrdf.query.QueryEvaluationException;
-
-import com.mongodb.DBObject;
-import com.vividsolutions.jts.geom.Geometry;
-
-import info.aduna.iteration.CloseableIteration;
 import org.apache.rya.indexing.GeoIndexer;
 import org.apache.rya.indexing.StatementConstraints;
 import org.apache.rya.indexing.accumulo.ConfigUtils;
 import org.apache.rya.indexing.mongodb.AbstractMongoIndexer;
 import org.apache.rya.indexing.mongodb.geo.GeoMongoDBStorageStrategy.GeoQuery;
 import org.apache.rya.mongodb.MongoDBRdfConfiguration;
+import org.openrdf.model.Statement;
+import org.openrdf.query.MalformedQueryException;
+import org.openrdf.query.QueryEvaluationException;
+
+import com.mongodb.DBObject;
+import com.vividsolutions.jts.geom.Geometry;
+
+import info.aduna.iteration.CloseableIteration;
 
 public class MongoGeoIndexer extends AbstractMongoIndexer<GeoMongoDBStorageStrategy> implements GeoIndexer {
     private static final String COLLECTION_SUFFIX = "geo";
@@ -52,8 +53,13 @@ public class MongoGeoIndexer extends AbstractMongoIndexer<GeoMongoDBStorageStrat
     @Override
     public CloseableIteration<Statement, QueryEvaluationException> queryEquals(
             final Geometry query, final StatementConstraints constraints) {
-        final DBObject queryObj = storageStrategy.getQuery(new GeoQuery(EQUALS, query));
-        return withConstraints(constraints, queryObj);
+        try {
+            final DBObject queryObj = storageStrategy.getQuery(new GeoQuery(EQUALS, query));
+            return withConstraints(constraints, queryObj);
+        } catch (final MalformedQueryException e) {
+            logger.error(e.getMessage(), e);
+            return null;
+        }
     }
 
     @Override
@@ -66,8 +72,13 @@ public class MongoGeoIndexer extends AbstractMongoIndexer<GeoMongoDBStorageStrat
     @Override
     public CloseableIteration<Statement, QueryEvaluationException> queryIntersects(
             final Geometry query, final StatementConstraints constraints) {
-        final DBObject queryObj = storageStrategy.getQuery(new GeoQuery(INTERSECTS, query));
-        return withConstraints(constraints, queryObj);
+        try {
+            final DBObject queryObj = storageStrategy.getQuery(new GeoQuery(INTERSECTS, query));
+            return withConstraints(constraints, queryObj);
+        } catch (final MalformedQueryException e) {
+            logger.error(e.getMessage(), e);
+            return null;
+        }
     }
 
     @Override
@@ -87,8 +98,13 @@ public class MongoGeoIndexer extends AbstractMongoIndexer<GeoMongoDBStorageStrat
     @Override
     public CloseableIteration<Statement, QueryEvaluationException> queryWithin(
             final Geometry query, final StatementConstraints constraints) {
-        final DBObject queryObj = storageStrategy.getQuery(new GeoQuery(WITHIN, query));
-        return withConstraints(constraints, queryObj);
+        try {
+            final DBObject queryObj = storageStrategy.getQuery(new GeoQuery(WITHIN, query));
+            return withConstraints(constraints, queryObj);
+        } catch (final MalformedQueryException e) {
+            logger.error(e.getMessage(), e);
+            return null;
+        }
     }
 
     @Override

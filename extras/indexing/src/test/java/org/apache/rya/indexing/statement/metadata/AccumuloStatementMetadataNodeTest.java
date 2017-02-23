@@ -19,12 +19,17 @@ package org.apache.rya.indexing.statement.metadata;
  * under the License.
  */
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.accumulo.core.client.Connector;
 import org.apache.rya.accumulo.AccumuloRdfConfiguration;
 import org.apache.rya.accumulo.AccumuloRyaDAO;
+import org.apache.rya.accumulo.query.AccumuloRyaQueryEngine;
 import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
+import org.apache.rya.api.RdfCloudTripleStoreUtils;
 import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.domain.RyaType;
 import org.apache.rya.api.domain.RyaURI;
@@ -54,10 +59,10 @@ public class AccumuloStatementMetadataNodeTest {
 
     private AccumuloRyaDAO dao;
     private AccumuloRdfConfiguration conf;
-    private final String query = "prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> select ?x ?y where {_:blankNode rdf:type rdf:Statement; rdf:subject <http://Joe>; "
-            + "rdf:predicate <http://worksAt>; rdf:object ?x; <http://createdBy> ?y; <http://createdOn> \'2017-01-04\'^^xsd:date }";
-    private final String query2 = "prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> select ?x ?y where {_:blankNode rdf:type rdf:Statement; rdf:subject ?x; "
-            + "rdf:predicate <http://worksAt>; rdf:object ?y; <http://createdBy> ?x; <http://createdOn> \'2017-01-04\'^^xsd:date }";
+    private final String query = "prefix owl: <http://www.w3.org/2002/07/owl#> prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> select ?x ?y where {_:blankNode rdf:type owl:Annotation; owl:annotatedSource <http://Joe>; "
+            + "owl:annotatedProperty <http://worksAt>; owl:annotatedTarget ?x; <http://createdBy> ?y; <http://createdOn> \'2017-01-04\'^^xsd:date }";
+    private final String query2 = "prefix owl: <http://www.w3.org/2002/07/owl#> prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> select ?x ?y where {_:blankNode rdf:type owl:Annotation; owl:annotatedSource ?x; "
+            + "owl:annotatedProperty <http://worksAt>; owl:annotatedTarget ?y; <http://createdBy> ?x; <http://createdOn> \'2017-01-04\'^^xsd:date }";
 
     @Before
     public void init() throws Exception {
@@ -348,6 +353,259 @@ public class AccumuloStatementMetadataNodeTest {
         expected2.addBinding("x", new LiteralImpl("HardwareStore"));
         expected2.addBinding("y", new LiteralImpl("Joe"));
         expected2.addBinding("z", new LiteralImpl("Maryland"));
+
+        List<BindingSet> bsList = new ArrayList<>();
+        while (iteration.hasNext()) {
+            bsList.add(iteration.next());
+        }
+
+        Assert.assertEquals(2, bsList.size());
+        Assert.assertEquals(expected1, bsList.get(1));
+        Assert.assertEquals(expected2, bsList.get(0));
+
+        dao.delete(statement1, conf);
+        dao.delete(statement2, conf);
+    }
+
+    /**
+     * Tests if StatementMetadataNode joins BindingSet values correctly for
+     * variables appearing as the object in one of the StatementPattern
+     * statements (in the case ?x appears as the Object in the statement
+     * _:blankNode rdf:object ?x). StatementPattern statements have either
+     * rdf:subject, rdf:predicate, or rdf:object as the predicate. Additionally,
+     * this test also determines whether node uses specified context as a query
+     * constraint.
+     * 
+     * @throws MalformedQueryException
+     * @throws QueryEvaluationException
+     * @throws RyaDAOException
+     */
+    @Test
+    public void simpleQueryWithConstantContext()
+            throws MalformedQueryException, QueryEvaluationException, RyaDAOException {
+
+        // query used to create StatementPatternMetadataNode
+        String contextQuery = "prefix owl: <http://www.w3.org/2002/07/owl#> prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> select ?x ?y where { graph <http://context_1> {_:blankNode rdf:type owl:Annotation; owl:annotatedSource <http://Joe>; "
+                + "owl:annotatedProperty <http://worksAt>; owl:annotatedTarget ?x; <http://createdBy> ?y; <http://createdOn> \'2017-01-04\'^^xsd:date }}";
+
+        StatementMetadata metadata = new StatementMetadata();
+        metadata.addMetadata(new RyaURI("http://createdBy"), new RyaType("Joe"));
+        metadata.addMetadata(new RyaURI("http://createdOn"), new RyaType(XMLSchema.DATE, "2017-01-04"));
+
+        RyaStatement statement1 = new RyaStatement(new RyaURI("http://Joe"), new RyaURI("http://worksAt"),
+                new RyaType("CoffeeShop"), new RyaURI("http://context_1"), "", metadata);
+        RyaStatement statement2 = new RyaStatement(new RyaURI("http://Joe"), new RyaURI("http://worksAt"),
+                new RyaType("HardwareStore"), new RyaURI("http://context_2"), "", metadata);
+        dao.add(statement1);
+        dao.add(statement2);
+
+        SPARQLParser parser = new SPARQLParser();
+        ParsedQuery pq = parser.parseQuery(contextQuery, null);
+        List<StatementPattern> spList = StatementPatternCollector.process(pq.getTupleExpr());
+        StatementMetadataNode<AccumuloRdfConfiguration> node = new StatementMetadataNode<>(spList, conf);
+
+        List<BindingSet> bsCollection = new ArrayList<>();
+        QueryBindingSet bsConstraint1 = new QueryBindingSet();
+        bsConstraint1.addBinding("x", new LiteralImpl("CoffeeShop"));
+        bsConstraint1.addBinding("z", new LiteralImpl("Virginia"));
+
+        QueryBindingSet bsConstraint2 = new QueryBindingSet();
+        bsConstraint2.addBinding("x", new LiteralImpl("HardwareStore"));
+        bsConstraint2.addBinding("z", new LiteralImpl("Maryland"));
+
+        QueryBindingSet bsConstraint3 = new QueryBindingSet();
+        bsConstraint3.addBinding("x", new LiteralImpl("BurgerShack"));
+        bsConstraint3.addBinding("z", new LiteralImpl("Delaware"));
+        bsCollection.add(bsConstraint1);
+        bsCollection.add(bsConstraint2);
+        bsCollection.add(bsConstraint3);
+
+        CloseableIteration<BindingSet, QueryEvaluationException> iteration = node.evaluate(bsCollection);
+
+        QueryBindingSet expected1 = new QueryBindingSet();
+        expected1.addBinding("x", new LiteralImpl("CoffeeShop"));
+        expected1.addBinding("y", new LiteralImpl("Joe"));
+        expected1.addBinding("z", new LiteralImpl("Virginia"));
+
+        List<BindingSet> bsList = new ArrayList<>();
+        while (iteration.hasNext()) {
+            bsList.add(iteration.next());
+        }
+
+        Assert.assertEquals(1, bsList.size());
+        Assert.assertEquals(expected1, bsList.get(0));
+
+        dao.delete(statement1, conf);
+        dao.delete(statement2, conf);
+    }
+
+    /**
+     * Tests if StatementMetadataNode joins BindingSet values correctly for
+     * variables appearing as the object in one of the StatementPattern
+     * statements (in the case ?x appears as the Object in the statement
+     * _:blankNode rdf:object ?x). StatementPattern statements have either
+     * rdf:subject, rdf:predicate, or rdf:object as the predicate. Additionally,
+     * this test also determines whether node passes back bindings corresponding
+     * to a specified context.
+     * 
+     * @throws MalformedQueryException
+     * @throws QueryEvaluationException
+     * @throws RyaDAOException
+     */
+    @Test
+    public void simpleQueryWithVariableContext()
+            throws MalformedQueryException, QueryEvaluationException, RyaDAOException {
+
+        // query used to create StatementPatternMetadataNode
+        String contextQuery = "prefix owl: <http://www.w3.org/2002/07/owl#> prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> select ?x ?y ?c where { graph ?c {_:blankNode rdf:type owl:Annotation; owl:annotatedSource <http://Joe>; "
+                + "owl:annotatedProperty <http://worksAt>; owl:annotatedTarget ?x; <http://createdBy> ?y; <http://createdOn> \'2017-01-04\'^^xsd:date }}";
+
+        StatementMetadata metadata = new StatementMetadata();
+        metadata.addMetadata(new RyaURI("http://createdBy"), new RyaType("Joe"));
+        metadata.addMetadata(new RyaURI("http://createdOn"), new RyaType(XMLSchema.DATE, "2017-01-04"));
+
+        RyaStatement statement1 = new RyaStatement(new RyaURI("http://Joe"), new RyaURI("http://worksAt"),
+                new RyaType("CoffeeShop"), new RyaURI("http://context_1"), "", metadata);
+        RyaStatement statement2 = new RyaStatement(new RyaURI("http://Joe"), new RyaURI("http://worksAt"),
+                new RyaType("HardwareStore"), new RyaURI("http://context_2"), "", metadata);
+        dao.add(statement1);
+        dao.add(statement2);
+
+        SPARQLParser parser = new SPARQLParser();
+        ParsedQuery pq = parser.parseQuery(contextQuery, null);
+        List<StatementPattern> spList = StatementPatternCollector.process(pq.getTupleExpr());
+        StatementMetadataNode<AccumuloRdfConfiguration> node = new StatementMetadataNode<>(spList, conf);
+
+        List<BindingSet> bsCollection = new ArrayList<>();
+        QueryBindingSet bsConstraint1 = new QueryBindingSet();
+        bsConstraint1.addBinding("x", new LiteralImpl("CoffeeShop"));
+        bsConstraint1.addBinding("z", new LiteralImpl("Virginia"));
+
+        QueryBindingSet bsConstraint2 = new QueryBindingSet();
+        bsConstraint2.addBinding("x", new LiteralImpl("HardwareStore"));
+        bsConstraint2.addBinding("z", new LiteralImpl("Maryland"));
+
+        QueryBindingSet bsConstraint3 = new QueryBindingSet();
+        bsConstraint3.addBinding("x", new LiteralImpl("BurgerShack"));
+        bsConstraint3.addBinding("z", new LiteralImpl("Delaware"));
+        bsCollection.add(bsConstraint1);
+        bsCollection.add(bsConstraint2);
+        bsCollection.add(bsConstraint3);
+
+        CloseableIteration<BindingSet, QueryEvaluationException> iteration = node.evaluate(bsCollection);
+
+        QueryBindingSet expected1 = new QueryBindingSet();
+        expected1.addBinding("x", new LiteralImpl("CoffeeShop"));
+        expected1.addBinding("y", new LiteralImpl("Joe"));
+        expected1.addBinding("z", new LiteralImpl("Virginia"));
+        expected1.addBinding("c", new URIImpl("http://context_1"));
+
+        QueryBindingSet expected2 = new QueryBindingSet();
+        expected2.addBinding("x", new LiteralImpl("HardwareStore"));
+        expected2.addBinding("y", new LiteralImpl("Joe"));
+        expected2.addBinding("z", new LiteralImpl("Maryland"));
+        expected2.addBinding("c", new URIImpl("http://context_2"));
+
+        List<BindingSet> bsList = new ArrayList<>();
+        while (iteration.hasNext()) {
+            bsList.add(iteration.next());
+        }
+
+        Assert.assertEquals(2, bsList.size());
+        Assert.assertEquals(expected1, bsList.get(1));
+        Assert.assertEquals(expected2, bsList.get(0));
+
+        dao.delete(statement1, conf);
+        dao.delete(statement2, conf);
+    }
+
+    /**
+     * Tests if StatementMetadataNode joins BindingSet values correctly for
+     * variables appearing as the object in one of the StatementPattern
+     * statements (in the case ?x appears as the Object in the statement
+     * _:blankNode rdf:object ?x). StatementPattern statements have either
+     * rdf:subject, rdf:predicate, or rdf:object as the predicate. Additionally,
+     * this test also determines whether node passes back bindings corresponding
+     * to a specified context and that a join across variable context is
+     * performed properly.
+     * 
+     * @throws MalformedQueryException
+     * @throws QueryEvaluationException
+     * @throws RyaDAOException
+     */
+    @Test
+    public void simpleQueryWithVariableContextAndJoinOnContext()
+            throws MalformedQueryException, QueryEvaluationException, RyaDAOException {
+
+        // query used to create StatementPatternMetadataNode
+        String contextQuery = "prefix owl: <http://www.w3.org/2002/07/owl#> prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> select ?x ?y ?c where { graph ?c {_:blankNode rdf:type owl:Annotation; owl:annotatedSource <http://Joe>; "
+                + "owl:annotatedProperty <http://worksAt>; owl:annotatedTarget ?x; <http://createdBy> ?y; <http://createdOn> \'2017-01-04\'^^xsd:date }}";
+
+        StatementMetadata metadata = new StatementMetadata();
+        metadata.addMetadata(new RyaURI("http://createdBy"), new RyaType("Joe"));
+        metadata.addMetadata(new RyaURI("http://createdOn"), new RyaType(XMLSchema.DATE, "2017-01-04"));
+
+        RyaStatement statement1 = new RyaStatement(new RyaURI("http://Joe"), new RyaURI("http://worksAt"),
+                new RyaType("CoffeeShop"), new RyaURI("http://context_1"), "", metadata);
+        RyaStatement statement2 = new RyaStatement(new RyaURI("http://Joe"), new RyaURI("http://worksAt"),
+                new RyaType("HardwareStore"), new RyaURI("http://context_2"), "", metadata);
+        dao.add(statement1);
+        dao.add(statement2);
+
+
+        SPARQLParser parser = new SPARQLParser();
+        ParsedQuery pq = parser.parseQuery(contextQuery, null);
+        List<StatementPattern> spList = StatementPatternCollector.process(pq.getTupleExpr());
+        StatementMetadataNode<AccumuloRdfConfiguration> node = new StatementMetadataNode<>(spList, conf);
+
+        List<BindingSet> bsCollection = new ArrayList<>();
+        QueryBindingSet bsConstraint1 = new QueryBindingSet();
+        bsConstraint1.addBinding("x", new LiteralImpl("CoffeeShop"));
+        bsConstraint1.addBinding("z", new LiteralImpl("Virginia"));
+        bsConstraint1.addBinding("c", new URIImpl("http://context_1"));
+
+        QueryBindingSet bsConstraint2 = new QueryBindingSet();
+        bsConstraint2.addBinding("x", new LiteralImpl("CoffeeShop"));
+        bsConstraint2.addBinding("z", new LiteralImpl("Maryland"));
+        bsConstraint2.addBinding("c", new URIImpl("http://context_2"));
+
+        QueryBindingSet bsConstraint4 = new QueryBindingSet();
+        bsConstraint4.addBinding("x", new LiteralImpl("HardwareStore"));
+        bsConstraint4.addBinding("z", new LiteralImpl("WestVirginia"));
+        bsConstraint4.addBinding("c", new URIImpl("http://context_2"));
+
+        QueryBindingSet bsConstraint3 = new QueryBindingSet();
+        bsConstraint3.addBinding("x", new LiteralImpl("BurgerShack"));
+        bsConstraint3.addBinding("z", new LiteralImpl("Delaware"));
+        bsConstraint3.addBinding("c", new URIImpl("http://context_1"));
+        bsCollection.add(bsConstraint1);
+        bsCollection.add(bsConstraint2);
+        bsCollection.add(bsConstraint3);
+        bsCollection.add(bsConstraint4);
+        
+//        AccumuloRyaQueryEngine engine = dao.getQueryEngine();
+////        CloseableIteration<RyaStatement, RyaDAOException> iter = engine.query(new RyaStatement(new RyaURI("http://Joe"),
+////                new RyaURI("http://worksAt"), new RyaType("HardwareStore"), new RyaURI("http://context_2")), conf);
+//        CloseableIteration<? extends Map.Entry<RyaStatement,BindingSet>, RyaDAOException> iter = engine.queryWithBindingSet(Arrays.asList(new RdfCloudTripleStoreUtils.CustomEntry<RyaStatement, BindingSet>(
+//                new RyaStatement(new RyaURI("http://Joe"),
+//                        new RyaURI("http://worksAt"), new RyaType("HardwareStore"), new RyaURI("http://context_2")), bsConstraint4)), conf);
+//        while (iter.hasNext()) {
+//            System.out.println(iter.next());
+//        }
+//
+        CloseableIteration<BindingSet, QueryEvaluationException> iteration = node.evaluate(bsCollection);
+
+        QueryBindingSet expected1 = new QueryBindingSet();
+        expected1.addBinding("x", new LiteralImpl("CoffeeShop"));
+        expected1.addBinding("y", new LiteralImpl("Joe"));
+        expected1.addBinding("z", new LiteralImpl("Virginia"));
+        expected1.addBinding("c", new URIImpl("http://context_1"));
+
+        QueryBindingSet expected2 = new QueryBindingSet();
+        expected2.addBinding("x", new LiteralImpl("HardwareStore"));
+        expected2.addBinding("y", new LiteralImpl("Joe"));
+        expected2.addBinding("z", new LiteralImpl("WestVirginia"));
+        expected2.addBinding("c", new URIImpl("http://context_2"));
 
         List<BindingSet> bsList = new ArrayList<>();
         while (iteration.hasNext()) {

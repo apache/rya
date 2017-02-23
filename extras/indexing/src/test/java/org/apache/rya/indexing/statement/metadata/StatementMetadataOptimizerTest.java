@@ -54,28 +54,28 @@ import org.openrdf.query.parser.sparql.SPARQLParser;
 @RunWith(value = Parameterized.class)
 public class StatementMetadataOptimizerTest {
 
-    private static final String query1 = "prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> select ?x ?y where {_:blankNode rdf:type rdf:Statement; rdf:subject <http://Joe>; "
-            + "rdf:predicate <http://worksAt>; rdf:object ?x; <http://createdBy> ?y; <http://createdOn> \'2017-01-04\'^^xsd:date }";
-    private static final String query2 = "prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> select ?x ?y where {_:blankNode2 rdf:type rdf:Statement; rdf:subject <http://Bob>; "
-            + "rdf:predicate <http://worksAt>; rdf:object ?x; <http://createdBy> ?y; <http://createdOn> \'2017-02-04\'^^xsd:date }";
-    private static final String query3 = "prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> select ?x ?y where {_:blankNode2 rdf:type rdf:Statement; rdf:subject <http://Frank>; "
-            + "rdf:predicate <http://worksAt>; rdf:object ?x; <http://createdBy> ?y; <http://createdOn> \'2017-03-04\'^^xsd:date }";
-    private static final String query4 = "prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> select ?x ?y where {_:blankNode1 rdf:type rdf:Statement; rdf:subject <http://Joe>; "
-            + "rdf:predicate <http://worksAt>; rdf:object ?x; <http://createdBy> ?y; <http://createdOn> \'2017-01-04\'^^xsd:date. "
+    private static final String query1 = "prefix owl: <http://www.w3.org/2002/07/owl#> prefix ano: <http://www.w3.org/2002/07/owl#annotated> prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> select ?x ?y where {_:blankNode rdf:type owl:Annotated; ano:Source <http://Joe>; "
+            + "ano:Property <http://worksAt>; ano:Target ?x; <http://createdBy> ?y; <http://createdOn> \'2017-01-04\'^^xsd:date }";
+    private static final String query2 = "prefix owl: <http://www.w3.org/2002/07/owl#> prefix ano: <http://www.w3.org/2002/07/owl#annotated> prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> select ?x ?y where {_:blankNode2 rdf:type owl:Annotated; ano:Source <http://Bob>; "
+            + "ano:Property <http://worksAt>; ano:Target ?x; <http://createdBy> ?y; <http://createdOn> \'2017-02-04\'^^xsd:date }";
+    private static final String query3 = "prefix owl: <http://www.w3.org/2002/07/owl#> prefix ano: <http://www.w3.org/2002/07/owl#annotated> prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> select ?x ?y where {_:blankNode2 rdf:type owl:Annotated; ano:Source <http://Frank>; "
+            + "ano:Property <http://worksAt>; ano:Target ?x; <http://createdBy> ?y; <http://createdOn> \'2017-03-04\'^^xsd:date }";
+    private static final String query4 = "prefix owl: <http://www.w3.org/2002/07/owl#> prefix ano: <http://www.w3.org/2002/07/owl#annotated> prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> select ?x ?y where {_:blankNode1 rdf:type owl:Annotated; ano:Source <http://Joe>; "
+            + "ano:Property <http://worksAt>; ano:Target ?x; <http://createdBy> ?y; <http://createdOn> \'2017-01-04\'^^xsd:date. "
             + "_:blankNode2 rdf:type rdf:Statement; rdf:subject <http://Bob>; "
-            + "rdf:predicate <http://worksAt>; rdf:object ?x; <http://createdBy> ?y; <http://createdOn> \'2017-02-04\'^^xsd:date }";
-    private static final String query5 = "prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> select ?x ?y where {_:blankNode1 rdf:type rdf:Statement; rdf:subject <http://Joe>; "
-            + "rdf:predicate <http://worksAt>; rdf:object ?x; <http://createdBy> ?y; <http://createdOn> \'2017-01-04\'^^xsd:date. "
-            + "_:blankNode2 rdf:type rdf:Statement; rdf:subject <http://Bob>; "
-            + "rdf:predicate <http://worksAt>; rdf:object ?a; <http://createdBy> ?b; <http://createdOn> \'2017-02-04\'^^xsd:date. "
-            + "OPTIONAL{ _:blankNode3 rdf:type rdf:Statement; rdf:subject <http://Frank>; "
-            + "rdf:predicate <http://worksAt>; rdf:object ?c; <http://createdBy> <http://Doug>; <http://createdOn> \'2017-03-04\'^^xsd:date } }";
-    private static final String query6 = "prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> select ?x ?y where {?m rdf:type rdf:Statement; rdf:subject <http://Joe>; "
-            + "rdf:predicate <http://worksAt>; rdf:object ?x; <http://createdBy> ?y; <http://createdOn> \'2017-01-04\'^^xsd:date. "
-            + "{ ?o rdf:type rdf:Statement; rdf:subject <http://Frank>; "
-            + "rdf:predicate <http://worksAt>; rdf:object ?c; <http://createdBy> ?p; <http://createdOn> \'2017-03-04\'^^xsd:date . } "
-            + "UNION {?n rdf:predicate <http://worksAt>; rdf:object ?a; <http://createdBy> ?c; <http://createdOn> \'2017-02-04\'^^xsd:date; "
-            + "rdf:type rdf:Statement; rdf:subject ?p. } }";
+            + "ano:Property <http://worksAt>; ano:Target ?x; <http://createdBy> ?y; <http://createdOn> \'2017-02-04\'^^xsd:date }";
+    private static final String query5 = "prefix owl: <http://www.w3.org/2002/07/owl#> prefix ano: <http://www.w3.org/2002/07/owl#annotated> prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> select ?x ?y where {_:blankNode1 rdf:type owl:Annotated; ano:Source <http://Joe>; "
+            + "ano:Property <http://worksAt>; ano:Target ?x; <http://createdBy> ?y; <http://createdOn> \'2017-01-04\'^^xsd:date. "
+            + "_:blankNode2 rdf:type owl:Annotated; rdf:subject <http://Bob>; "
+            + "ano:Property <http://worksAt>; ano:Target ?a; <http://createdBy> ?b; <http://createdOn> \'2017-02-04\'^^xsd:date. "
+            + "OPTIONAL{ _:blankNode3 rdf:type owl:Annotated; ano:Source <http://Frank>; "
+            + "ano:Property <http://worksAt>; ano:Target ?c; <http://createdBy> <http://Doug>; <http://createdOn> \'2017-03-04\'^^xsd:date } }";
+    private static final String query6 = "prefix owl: <http://www.w3.org/2002/07/owl#> prefix ano: <http://www.w3.org/2002/07/owl#annotated> prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> select ?x ?y where {?m rdf:type owl:Annotated; ano:Source <http://Joe>; "
+            + "ano:Property <http://worksAt>; ano:Target ?x; <http://createdBy> ?y; <http://createdOn> \'2017-01-04\'^^xsd:date. "
+            + "{ ?o rdf:type owl:Annotated; ano:Source <http://Frank>; "
+            + "ano:Property <http://worksAt>; ano:Target ?c; <http://createdBy> ?p; <http://createdOn> \'2017-03-04\'^^xsd:date . } "
+            + "UNION {?n ano:Property <http://worksAt>; ano:Target ?a; <http://createdBy> ?c; <http://createdOn> \'2017-02-04\'^^xsd:date; "
+            + "rdf:type owl:Annotated; ano:Source ?p. } }";
 
     private String query;
     private Set<StatementMetadataNode<?>> expected;

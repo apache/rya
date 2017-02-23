@@ -45,8 +45,8 @@ import com.google.common.collect.Multimap;
  */
 public class StatementMetadataExternalSetProvider implements ExternalSetProvider<StatementMetadataNode<?>> {
 
-    private List<RyaURI> expectedURI = Arrays.asList(RdfToRyaConversions.convertURI(RDF.SUBJECT),
-            RdfToRyaConversions.convertURI(RDF.PREDICATE), RdfToRyaConversions.convertURI(RDF.OBJECT),
+    private List<RyaURI> expectedURI = Arrays.asList(RdfToRyaConversions.convertURI(OWLReify.SOURCE),
+            RdfToRyaConversions.convertURI(OWLReify.PROPERTY), RdfToRyaConversions.convertURI(OWLReify.TARGET),
             RdfToRyaConversions.convertURI(RDF.TYPE));
     private Multimap<Var, StatementPattern> reifiedQueries;
     private Set<RyaURI> metadataProperties;

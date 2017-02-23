@@ -55,19 +55,19 @@ import edu.umd.cs.findbugs.annotations.NonNull;
 @DefaultAnnotation(NonNull.class)
 public class MongoEntityStorage implements EntityStorage {
 
-    private static final String COLLECTION_NAME = "entity-entities";
+    protected static final String COLLECTION_NAME = "entity-entities";
 
     private static final EntityDocumentConverter ENTITY_CONVERTER = new EntityDocumentConverter();
 
     /**
      * A client connected to the Mongo instance that hosts the Rya instance.
      */
-    private final MongoClient mongo;
+    protected final MongoClient mongo;
 
     /**
      * The name of the Rya instance the {@link TypedEntity}s are for.
      */
-    private final String ryaInstanceName;
+    protected final String ryaInstanceName;
 
     /**
      * Constructs an instance of {@link MongoEntityStorage}.

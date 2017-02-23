@@ -40,10 +40,10 @@ import org.apache.rya.indexing.entity.model.Entity;
 import org.apache.rya.indexing.entity.model.Property;
 import org.apache.rya.indexing.entity.model.Type;
 import org.apache.rya.indexing.entity.storage.EntityStorage;
-import org.apache.rya.indexing.entity.storage.EntityStorage.EntityStorageException;
 import org.apache.rya.indexing.entity.storage.TypeStorage;
 import org.apache.rya.indexing.entity.storage.TypeStorage.TypeStorageException;
 import org.apache.rya.indexing.entity.storage.mongo.ConvertingCursor;
+import org.apache.rya.indexing.mongodb.IndexingException;
 import org.apache.rya.mongodb.MongoDBRdfConfiguration;
 import org.apache.rya.mongodb.MongoSecondaryIndex;
 import org.openrdf.model.URI;
@@ -98,7 +98,7 @@ public abstract class BaseEntityIndexer implements EntityIndexer, MongoSecondary
         for(final Entry<RyaURI, List<RyaStatement>> entry : groupedBySubject.entrySet()) {
             try {
                 updateEntity(entry.getKey(), entry.getValue());
-            } catch (final EntityStorageException e) {
+            } catch (final IndexingException e) {
                 throw new IOException("Failed to update the Entity index.", e);
             }
         }
@@ -109,8 +109,9 @@ public abstract class BaseEntityIndexer implements EntityIndexer, MongoSecondary
      *
      * @param subject - The Subject of the {@link Entity} the statements are for. (not null)
      * @param statements - Statements that the {@link Entity} will be updated with. (not null)
+     * @throws IndexingException
      */
-    private void updateEntity(final RyaURI subject, final Collection<RyaStatement> statements) throws EntityStorageException {
+    private void updateEntity(final RyaURI subject, final Collection<RyaStatement> statements) throws IndexingException {
         requireNonNull(subject);
         requireNonNull(statements);
 
@@ -216,7 +217,7 @@ public abstract class BaseEntityIndexer implements EntityIndexer, MongoSecondary
 
                 return Optional.of( updated.build() );
             });
-        } catch (final EntityStorageException e) {
+        } catch (final IndexingException e) {
             throw new IOException("Failed to update the Entity index.", e);
         }
     }

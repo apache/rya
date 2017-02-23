@@ -22,12 +22,12 @@ import java.util.Optional;
 import java.util.Set;
 
 import org.apache.rya.api.domain.RyaURI;
-import org.apache.rya.indexing.entity.EntityIndexException;
 import org.apache.rya.indexing.entity.model.Entity;
 import org.apache.rya.indexing.entity.model.Property;
 import org.apache.rya.indexing.entity.model.Type;
 import org.apache.rya.indexing.entity.model.TypedEntity;
 import org.apache.rya.indexing.entity.storage.mongo.ConvertingCursor;
+import org.apache.rya.indexing.mongodb.update.RyaObjectStorage;
 import org.calrissian.mango.collect.CloseableIterator;
 
 import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
@@ -37,36 +37,7 @@ import edu.umd.cs.findbugs.annotations.NonNull;
  * Stores and provides access to {@link Entity}s.
  */
 @DefaultAnnotation(NonNull.class)
-public interface EntityStorage {
-
-    /**
-     * Creates a new {@link Entity} within the storage. The new Entity's subject must be unique.
-     *
-     * @param entity - The {@link Entity} to create. (not null)
-     * @throws EntityAlreadyExistsException An {@link Entity} could not be created because one already exists for the Subject.
-     * @throws EntityStorageException A problem occurred while creating the Entity.
-     */
-    public void create(Entity entity) throws EntityAlreadyExistsException, EntityStorageException;
-
-    /**
-     * Get an {@link Entity} from the storage by its subject.
-     *
-     * @param subject - Identifies which {@link Entity} to get. (not null)
-     * @return The {@link Entity} if one exists for the subject.
-     * @throws EntityStorageException A problem occurred while fetching the Entity from the storage.
-     */
-    public Optional<Entity> get(RyaURI subject) throws EntityStorageException;
-
-    /**
-     * Update the state of an {@link Entity}.
-     *
-     * @param old - The Entity the changes were applied to. (not null)
-     * @param updated - The updated Entity to store. (not null)
-     * @throws StaleUpdateException The {@code old} Entity does not match any Entities that are stored.
-     * @throws EntityStorageException A problem occurred while updating the Entity within the storage.
-     */
-    public void update(Entity old, Entity updated) throws StaleUpdateException, EntityStorageException;
-
+public interface EntityStorage extends RyaObjectStorage<Entity> {
     /**
      * Search the stored {@link Entity}s that have a specific {@link Type} as
      * well as the provided {@link Property} values.
@@ -80,18 +51,9 @@ public interface EntityStorage {
     public ConvertingCursor<TypedEntity> search(final Optional<RyaURI> subject, Type type, Set<Property> properties) throws EntityStorageException;
 
     /**
-     * Deletes an {@link Entity} from the storage.
-     *
-     * @param subject -Identifies which {@link Entity} to delete. (not null)
-     * @return {@code true} if something was deleted; otherwise {@code false}.
-     * @throws EntityStorageException A problem occurred while deleting from the storage.
-     */
-    public boolean delete(RyaURI subject) throws EntityStorageException;
-
-    /**
      * Indicates a problem while interacting with an {@link EntityStorage}.
      */
-    public static class EntityStorageException extends EntityIndexException {
+    public static class EntityStorageException extends ObjectStorageException {
         private static final long serialVersionUID = 1L;
 
         /**

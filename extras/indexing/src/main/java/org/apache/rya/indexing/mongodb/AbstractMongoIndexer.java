@@ -25,20 +25,6 @@ import java.util.Set;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.log4j.Logger;
-import org.openrdf.model.Literal;
-import org.openrdf.model.Statement;
-import org.openrdf.model.URI;
-import org.openrdf.query.QueryEvaluationException;
-
-import com.mongodb.DB;
-import com.mongodb.DBCollection;
-import com.mongodb.DBCursor;
-import com.mongodb.DBObject;
-import com.mongodb.MongoClient;
-import com.mongodb.QueryBuilder;
-import com.mongodb.ServerAddress;
-
-import info.aduna.iteration.CloseableIteration;
 import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.domain.RyaURI;
 import org.apache.rya.api.resolver.RyaToRdfConversions;
@@ -47,6 +33,22 @@ import org.apache.rya.mongodb.MongoConnectorFactory;
 import org.apache.rya.mongodb.MongoDBRdfConfiguration;
 import org.apache.rya.mongodb.MongoDBRyaDAO;
 import org.apache.rya.mongodb.MongoSecondaryIndex;
+import org.openrdf.model.Literal;
+import org.openrdf.model.Statement;
+import org.openrdf.model.URI;
+import org.openrdf.query.QueryEvaluationException;
+
+import com.google.common.annotations.VisibleForTesting;
+import com.mongodb.DB;
+import com.mongodb.DBCollection;
+import com.mongodb.DBCursor;
+import com.mongodb.DBObject;
+import com.mongodb.MongoClient;
+import com.mongodb.QueryBuilder;
+import com.mongodb.ServerAddress;
+import com.mongodb.WriteConcern;
+
+import info.aduna.iteration.CloseableIteration;
 
 /**
  * Secondary Indexer using MondoDB
@@ -71,15 +73,16 @@ public abstract class AbstractMongoIndexer<T extends IndexingMongoDBStorageStrat
         db = this.mongoClient.getDB(dbName);
         collection = db.getCollection(conf.get(MongoDBRdfConfiguration.MONGO_COLLECTION_PREFIX, "rya") + getCollectionName());
     }
-    
+
     @Override
-    public void setClient(MongoClient client){
+    public void setClient(final MongoClient client){
     	this.mongoClient = client;
     }
 
-    // TODO this method is only intended to be used in testing
+    @VisibleForTesting
     public void initIndexer(final Configuration conf, final MongoClient client) {
-        ServerAddress address = client.getAddress();
+        setClient(client);
+        final ServerAddress address = client.getAddress();
         conf.set(MongoDBRdfConfiguration.MONGO_INSTANCE, address.getHost());
         conf.set(MongoDBRdfConfiguration.MONGO_INSTANCE_PORT, Integer.toString(address.getPort()));
         setConf(conf);
@@ -144,8 +147,7 @@ public abstract class AbstractMongoIndexer<T extends IndexingMongoDBStorageStrat
             if (isValidPredicate && (statement.getObject() instanceof Literal)) {
                 final DBObject obj = storageStrategy.serialize(ryaStatement);
                 if (obj != null) {
-                    final DBObject query = storageStrategy.serialize(ryaStatement);
-                    collection.update(query, obj, true, false);
+                    collection.insert(obj, WriteConcern.ACKNOWLEDGED);
                 }
             }
         } catch (final IllegalArgumentException e) {

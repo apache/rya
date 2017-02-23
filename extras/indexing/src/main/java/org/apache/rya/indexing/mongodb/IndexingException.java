@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -7,7 +7,7 @@
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *   http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
@@ -16,17 +16,12 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.apache.rya.indexing.entity;
-
-import org.apache.rya.indexing.entity.model.TypedEntity;
-import org.apache.rya.indexing.mongodb.IndexingException;
+package org.apache.rya.indexing.mongodb;
 
 /**
- * An operation over the {@link TypedEntity} index failed to complete.
+ * An indexing operation over mongoDB failed to complete.
  */
-public class EntityIndexException extends IndexingException {
-    private static final long serialVersionUID = 1L;
-
+public class IndexingException extends Exception {
     /**
      * Constructs a new exception with the specified detail message.  The
      * cause is not initialized, and may subsequently be initialized by
@@ -35,7 +30,7 @@ public class EntityIndexException extends IndexingException {
      * @param   message   the detail message. The detail message is saved for
      *          later retrieval by the {@link #getMessage()} method.
      */
-    public EntityIndexException(final String message) {
+    public IndexingException(final String message) {
         super(message);
     }
 
@@ -52,7 +47,7 @@ public class EntityIndexException extends IndexingException {
      *         permitted, and indicates that the cause is nonexistent or
      *         unknown.)
      */
-    public EntityIndexException(final String message, final Throwable cause) {
+    public IndexingException(final String message, final Throwable cause) {
         super(message, cause);
     }
 }

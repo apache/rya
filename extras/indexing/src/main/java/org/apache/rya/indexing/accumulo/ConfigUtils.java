@@ -124,6 +124,7 @@ public class ConfigUtils {
     public static final String USE_PCJ_UPDATER_INDEX = "sc.use.updater";
 
     public static final String FLUO_APP_NAME = "rya.indexing.pcj.fluo.fluoAppName";
+    public static final String USE_PCJ_FLUO_UPDATER = "rya.indexing.pcj.updater.fluo";
     public static final String PCJ_STORAGE_TYPE = "rya.indexing.pcj.storageType";
     public static final String PCJ_UPDATER_TYPE = "rya.indexing.pcj.updaterType";
 
@@ -427,6 +428,7 @@ public class ConfigUtils {
         return conf.getBoolean(USE_PCJ_UPDATER_INDEX, false);
     }
 
+
     /**
      * @return The name of the Fluo Application this instance of RYA is using to
      *         incrementally update PCJs.
@@ -436,9 +438,11 @@ public class ConfigUtils {
         return Optional.fromNullable(conf.get(FLUO_APP_NAME));
     }
 
+
     public static boolean getUseMongo(final Configuration conf) {
         return conf.getBoolean(USE_MONGO, false);
     }
+
 
     public static void setIndexers(final RdfCloudTripleStoreConfiguration conf) {
 
@@ -452,6 +456,7 @@ public class ConfigUtils {
                 indexList.add(MongoFreeTextIndexer.class.getName());
                 useFilterIndex = true;
             }
+
             if (getUseEntity(conf)) {
                 indexList.add(MongoEntityIndexer.class.getName());
                 optimizers.add(EntityIndexOptimizer.class.getName());
@@ -462,9 +467,9 @@ public class ConfigUtils {
                 useFilterIndex = true;
             }
         } else {
-        	if (getUsePCJ(conf) || getUseOptimalPCJ(conf)) {
-        		conf.setPcjOptimizer(PCJOptimizer.class);
-        	}
+            if (getUsePCJ(conf) || getUseOptimalPCJ(conf)) {
+                conf.setPcjOptimizer(PCJOptimizer.class);
+            }
 
             if (getUsePcjUpdaterIndex(conf)) {
                 indexList.add(PrecomputedJoinIndexer.class.getName());

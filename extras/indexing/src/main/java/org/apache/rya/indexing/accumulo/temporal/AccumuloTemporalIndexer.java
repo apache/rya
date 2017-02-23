@@ -378,7 +378,6 @@ public class AccumuloTemporalIndexer extends AbstractAccumuloIndexer implements 
         }
     }
 
-
     /**
      * statements where the datetime is exactly the same as the queryInstant.
      */

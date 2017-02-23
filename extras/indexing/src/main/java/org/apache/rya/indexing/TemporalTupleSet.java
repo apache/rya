@@ -4,6 +4,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.hadoop.conf.Configuration;
+import org.apache.rya.indexing.external.tupleSet.ExternalTupleSet;
 import org.joda.time.DateTime;
 import org.openrdf.model.Statement;
 import org.openrdf.model.URI;
@@ -35,7 +36,6 @@ import com.google.common.collect.Maps;
  */
 
 import info.aduna.iteration.CloseableIteration;
-import org.apache.rya.indexing.external.tupleSet.ExternalTupleSet;
 
 //Indexing Node for temporal expressions to be inserted into execution plan
 //to delegate temporal portion of query to temporal index
@@ -111,7 +111,7 @@ public class TemporalTupleSet extends ExternalTupleSet {
     public CloseableIteration<BindingSet, QueryEvaluationException> evaluate(final BindingSet bindings)
             throws QueryEvaluationException {
         final URI funcURI = filterInfo.getFunction();
-        final SearchFunction searchFunction = (new TemporalSearchFunctionFactory(conf)).getSearchFunction(funcURI);
+        final SearchFunction searchFunction = new TemporalSearchFunctionFactory(conf, temporalIndexer).getSearchFunction(funcURI);
 
         if(filterInfo.getArguments().length > 1) {
             throw new IllegalArgumentException("Index functions do not support more than two arguments.");
@@ -123,12 +123,14 @@ public class TemporalTupleSet extends ExternalTupleSet {
 
     //returns appropriate search function for a given URI
     //search functions used by TemporalIndexer to query Temporal Index
-    private class TemporalSearchFunctionFactory  {
+    public static class TemporalSearchFunctionFactory  {
         private final Map<URI, SearchFunction> SEARCH_FUNCTION_MAP = Maps.newHashMap();
+        private final TemporalIndexer temporalIndexer;
         Configuration conf;
 
-        public TemporalSearchFunctionFactory(final Configuration conf) {
+        public TemporalSearchFunctionFactory(final Configuration conf, final TemporalIndexer temporalIndexer) {
             this.conf = conf;
+            this.temporalIndexer = temporalIndexer;
         }
 
         /**

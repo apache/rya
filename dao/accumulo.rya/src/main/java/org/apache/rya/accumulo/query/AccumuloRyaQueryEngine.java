@@ -133,9 +133,15 @@ public class AccumuloRyaQueryEngine implements RyaQueryEngine<AccumuloRdfConfigu
             TABLE_LAYOUT layout = null;
             RyaURI context = null;
             TriplePatternStrategy strategy = null;
+            boolean contextSet = false;
             for (Map.Entry<RyaStatement, BindingSet> stmtbs : stmts) {
                 RyaStatement stmt = stmtbs.getKey();
-                context = stmt.getContext(); //TODO: This will be overwritten
+                if(!contextSet) {
+                    context = stmt.getContext();
+                    contextSet =  true;
+                } else if(context != null && !context.equals(stmt.getContext())) {
+                    context = null;
+                }
                 BindingSet bs = stmtbs.getValue();
                 strategy = ryaContext.retrieveStrategy(stmt);
                 if (strategy == null) {

@@ -1,4 +1,5 @@
 package org.apache.rya.indexing.statement.metadata;
+
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -65,12 +66,12 @@ public class MongoStatementMetadataIT {
     private SailRepository repo;
     private SailRepositoryConnection conn;
     private MongoDBRyaDAO dao;
-    private final String query1 = "prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> select ?x ?y where {_:blankNode rdf:type rdf:Statement; rdf:subject <http://Joe>; "
-            + "rdf:predicate <http://worksAt>; rdf:object ?x; <http://createdBy> ?y; <http://createdOn> \'2017-01-04\'^^xsd:date }";
-    private final String query2 = "prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> select ?a ?b ?c where {_:blankNode1 rdf:type rdf:Statement; rdf:subject ?a; "
-            + "rdf:predicate <http://worksAt>; rdf:object <http://BurgerShack>; <http://createdBy> ?c; <http://createdOn> \'2017-01-04\'^^xsd:date. "
-            + "_:blankNode2 rdf:type rdf:Statement; rdf:subject ?a; "
-            + "rdf:predicate <http://talksTo>; rdf:object ?b; <http://createdBy> ?c; <http://createdOn> \'2017-01-04\'^^xsd:date }";
+    private final String query1 = "prefix owl: <http://www.w3.org/2002/07/owl#> prefix ano: <http://www.w3.org/2002/07/owl#annotated> prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> select ?x ?y where {_:blankNode rdf:type owl:Annotation; ano:Source <http://Joe>; "
+            + "ano:Property <http://worksAt>; ano:Target ?x; <http://createdBy> ?y; <http://createdOn> \'2017-01-04\'^^xsd:date }";
+    private final String query2 = "prefix owl: <http://www.w3.org/2002/07/owl#> prefix ano: <http://www.w3.org/2002/07/owl#annotated> prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> select ?a ?b ?c where {_:blankNode1 rdf:type owl:Annotation; ano:Source ?a; "
+            + "ano:Property <http://worksAt>; ano:Target <http://BurgerShack>; <http://createdBy> ?c; <http://createdOn> \'2017-01-04\'^^xsd:date. "
+            + "_:blankNode2 rdf:type owl:Annotation; ano:Source ?a; "
+            + "ano:Property <http://talksTo>; ano:Target ?b; <http://createdBy> ?c; <http://createdOn> \'2017-01-04\'^^xsd:date }";
 
     @Before
     public void init() throws Exception {
@@ -92,7 +93,7 @@ public class MongoStatementMetadataIT {
         sail.shutDown();
         sail.shutDown();
         dao.destroy();
-        
+
         if (mongoClient != null) {
             mongoClient.close();
         }
@@ -101,7 +102,6 @@ public class MongoStatementMetadataIT {
         }
         MongoConnectorFactory.closeMongoClient();
     }
-    
 
     @Test
     public void simpleQueryWithoutBindingSet() throws Exception {
@@ -231,9 +231,9 @@ public class MongoStatementMetadataIT {
         dao.add(statement2);
         dao.add(statement3);
         dao.add(statement4);
-        
+
         TupleQueryResult result = conn.prepareTupleQuery(QueryLanguage.SPARQL, query2).evaluate();
-        
+
         Set<BindingSet> expected = new HashSet<>();
         QueryBindingSet expected1 = new QueryBindingSet();
         expected1.addBinding("b", new URIImpl("http://Betty"));
@@ -255,7 +255,7 @@ public class MongoStatementMetadataIT {
     }
 
     private MongoDBRdfConfiguration getConf() throws IOException {
-        
+
         String host = mongoClient.getServerAddressList().get(0).getHost();
         int port = mongoClient.getServerAddressList().get(0).getPort();
         Set<RyaURI> propertySet = new HashSet<RyaURI>(

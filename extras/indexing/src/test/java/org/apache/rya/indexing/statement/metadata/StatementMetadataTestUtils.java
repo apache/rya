@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.Set;
 
 import org.apache.rya.api.domain.RyaURI;
+import org.apache.rya.indexing.statement.metadata.matching.OWLReify;
 import org.openrdf.model.URI;
 import org.openrdf.model.Value;
 import org.openrdf.model.vocabulary.RDF;
@@ -36,8 +37,8 @@ import org.openrdf.query.algebra.helpers.QueryModelVisitorBase;
 public class StatementMetadataTestUtils {
 
     private static final List<RyaURI> uriList = Arrays.asList(new RyaURI(RDF.TYPE.toString()),
-            new RyaURI(RDF.SUBJECT.toString()), new RyaURI(RDF.PREDICATE.toString()),
-            new RyaURI(RDF.OBJECT.toString()));
+            new RyaURI(OWLReify.SOURCE.toString()), new RyaURI(OWLReify.PROPERTY.toString()),
+            new RyaURI(OWLReify.TARGET.toString()));
 
     public static Set<QueryModelNode> getMetadataNodes(TupleExpr query) {
         MetadataNodeCollector collector = new MetadataNodeCollector();

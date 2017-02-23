@@ -58,12 +58,12 @@ public class AccumuloStatementMetadataOptimizerIT {
     private SailRepository repo;
     private SailRepositoryConnection conn;
     private AccumuloRyaDAO dao;
-    private final String query1 = "prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> select ?x ?y where {_:blankNode rdf:type rdf:Statement; rdf:subject <http://Joe>; "
-            + "rdf:predicate <http://worksAt>; rdf:object ?x; <http://createdBy> ?y; <http://createdOn> \'2017-01-04\'^^xsd:date }";
-    private final String query2 = "prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> select ?a ?b ?c where {_:blankNode1 rdf:type rdf:Statement; rdf:subject ?a; "
-            + "rdf:predicate <http://worksAt>; rdf:object <http://BurgerShack>; <http://createdBy> ?c; <http://createdOn> \'2017-01-04\'^^xsd:date. "
-            + "_:blankNode2 rdf:type rdf:Statement; rdf:subject ?a; "
-            + "rdf:predicate <http://talksTo>; rdf:object ?b; <http://createdBy> ?c; <http://createdOn> \'2017-01-04\'^^xsd:date }";
+    private final String query1 = "prefix owl: <http://www.w3.org/2002/07/owl#> prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> select ?x ?y where {_:blankNode rdf:type owl:Annotation; owl:annotatedSource <http://Joe>; "
+            + "owl:annotatedProperty <http://worksAt>; owl:annotatedTarget ?x; <http://createdBy> ?y; <http://createdOn> \'2017-01-04\'^^xsd:date }";
+    private final String query2 = "prefix owl: <http://www.w3.org/2002/07/owl#> prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> select ?a ?b ?c where {_:blankNode1 rdf:type owl:Annotation; owl:annotatedSource ?a; "
+            + "owl:annotatedProperty <http://worksAt>; owl:annotatedTarget <http://BurgerShack>; <http://createdBy> ?c; <http://createdOn> \'2017-01-04\'^^xsd:date. "
+            + "_:blankNode2 rdf:type owl:Annotation; owl:annotatedSource ?a; "
+            + "owl:annotatedProperty <http://talksTo>; owl:annotatedTarget ?b; <http://createdBy> ?c; <http://createdOn> \'2017-01-04\'^^xsd:date }";
 
     @Before
     public void init() throws Exception {
@@ -142,31 +142,6 @@ public class AccumuloStatementMetadataOptimizerIT {
         Assert.assertEquals(0, bsList.size());
         dao.delete(statement, (AccumuloRdfConfiguration) conf);
     }
-
-//    @Test
-//    public void simpleDataTypeTest() throws Exception {
-//        StatementMetadata metadata = new StatementMetadata();
-//        metadata.addMetadata(new RyaURI("http://createdBy"), new RyaType("Doug"));
-//        metadata.addMetadata(new RyaURI("http://createdOn"), new RyaType(XMLSchema.DATE, "2017-02-15"));
-//
-//        RyaStatement statement = new RyaStatement(new RyaURI("http://Joe"), new RyaURI("http://worksAt"),
-//                new RyaType("http://BurgerShack"), new RyaURI("http://context"), "", metadata);
-//        dao.add(statement);
-//        RyaStatement statement2 = new RyaStatement(new RyaURI("http://Bob"), new RyaURI("http://worksAt"),
-//                new RyaURI("http://BurgerShack"), new RyaURI("http://context"), "", metadata);
-//        dao.add(statement2);
-//        
-//        String temp = "select ?x where { ?x <http://worksAt> 'http://BurgerShack' . }";
-//        TupleQueryResult result = conn.prepareTupleQuery(QueryLanguage.SPARQL, temp).evaluate();
-//        
-//        List<BindingSet> bsList = new ArrayList<>();
-//        while (result.hasNext()) {
-//            bsList.add(result.next());
-//        }
-//        System.out.println("Bindings are: " + bsList);
-//        dao.delete(statement, (AccumuloRdfConfiguration) conf);
-//        dao.delete(statement2, (AccumuloRdfConfiguration) conf);
-//    }
 
     
     @Test

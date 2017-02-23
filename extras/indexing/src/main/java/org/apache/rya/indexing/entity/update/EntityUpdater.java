@@ -21,14 +21,13 @@ package org.apache.rya.indexing.entity.update;
 import static java.util.Objects.requireNonNull;
 
 import java.util.Optional;
-import java.util.function.Function;
 
 import org.apache.rya.api.domain.RyaURI;
 import org.apache.rya.indexing.entity.model.Entity;
 import org.apache.rya.indexing.entity.storage.EntityStorage;
-import org.apache.rya.indexing.entity.storage.EntityStorage.EntityAlreadyExistsException;
 import org.apache.rya.indexing.entity.storage.EntityStorage.EntityStorageException;
-import org.apache.rya.indexing.entity.storage.EntityStorage.StaleUpdateException;
+import org.apache.rya.indexing.mongodb.update.DocumentUpdater;
+import org.apache.rya.indexing.mongodb.update.RyaObjectStorage.ObjectStorageException;
 
 import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
 import edu.umd.cs.findbugs.annotations.NonNull;
@@ -37,7 +36,7 @@ import edu.umd.cs.findbugs.annotations.NonNull;
  * Performs update operations over an {@link EntityStorage}.
  */
 @DefaultAnnotation(NonNull.class)
-public class EntityUpdater {
+public class EntityUpdater implements DocumentUpdater<RyaURI, Entity>{
 
     private final EntityStorage storage;
 
@@ -50,73 +49,30 @@ public class EntityUpdater {
         this.storage = requireNonNull(storage);
     }
 
-    /**
-     * Tries to updates the state of an {@link Entity} until the update succeeds
-     * or a non-recoverable exception is thrown.
-     *
-     * @param subject - The Subject of the {@link Entity} that will be updated. (not null)
-     * @param mutator - Performs the mutation on the old state of the Entity and returns
-     *   the new state of the Entity. (not null)
-     * @throws EntityStorageException A non-recoverable error has caused the update to fail.
-     */
-    public void update(final RyaURI subject, final EntityMutator mutator) throws EntityStorageException {
-        requireNonNull(subject);
-        requireNonNull(mutator);
-
-        // Fetch the current state of the Entity.
-        boolean completed = false;
-        while(!completed) {
-            try {
-                final Optional<Entity> old = storage.get(subject);
-                final Optional<Entity> updated = mutator.apply(old);
-
-                final boolean doWork = updated.isPresent();
-                if(doWork) {
-                    if(!old.isPresent()) {
-                        storage.create(updated.get());
-                    } else {
-                        storage.update(old.get(), updated.get());
-                    }
-                }
-                completed = true;
-            } catch(final EntityAlreadyExistsException | StaleUpdateException e) {
-                // These are recoverable exceptions. Try again.
-            } catch(final RuntimeException e) {
-                throw new EntityStorageException("Failed to update Entity with Subject '" + subject.getData() + "'.", e);
-            }
+    @Override
+    public void create(final Entity newObj) throws EntityStorageException {
+        try {
+            storage.create(newObj);
+        } catch (final ObjectStorageException e) {
+            throw new EntityStorageException(e.getMessage(), e);
         }
     }
 
-    /**
-     * Implementations of this interface are used to update the state of an
-     * {@link Entity} in unison with a {@link EntityUpdater}.
-     * </p>
-     * This table describes what the updater will do depending on if an Entity
-     * exists and if an updated Entity is returned.
-     * </p>
-     * <table border="1px">
-     *     <tr><th>Entity Provided</th><th>Update Returned</th><th>Effect</th></tr>
-     *     <tr>
-     *         <td>true</td>
-     *         <td>true</td>
-     *         <td>The old Entity will be updated using the returned state.</td>
-     *     </tr>
-     *     <tr>
-     *         <td>true</td>
-     *         <td>false</td>
-     *         <td>No work is performed.</td>
-     *     </tr>
-     *     <tr>
-     *         <td>false</td>
-     *         <td>true</td>
-     *         <td>A new Entity will be created using the returned state.</td>
-     *     </tr>
-     *     <tr>
-     *         <td>false</td>
-     *         <td>false</td>
-     *         <td>No work is performed.</td>
-     *     </tr>
-     * </table>
-     */
-    public interface EntityMutator extends Function<Optional<Entity>, Optional<Entity>> { }
+    @Override
+    public void update(final Entity old, final Entity updated) throws EntityStorageException {
+        try {
+            storage.update(old, updated);
+        } catch (final ObjectStorageException e) {
+            throw new EntityStorageException(e.getMessage(), e);
+        }
+    }
+
+    @Override
+    public Optional<Entity> getOld(final RyaURI key) throws EntityStorageException {
+        try {
+            return storage.get(key);
+        } catch (final ObjectStorageException e) {
+            throw new EntityStorageException(e.getMessage(), e);
+        }
+    }
 }

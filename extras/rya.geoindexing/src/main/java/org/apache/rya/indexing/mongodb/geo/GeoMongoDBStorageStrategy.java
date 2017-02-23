@@ -65,7 +65,7 @@ public class GeoMongoDBStorageStrategy extends IndexingMongoDBStorageStrategy {
         public abstract String getKeyword();
     }
 
-    static class GeoQuery {
+    public static class GeoQuery {
         private final GeoQueryType queryType;
         private final Geometry geo;
 
@@ -136,7 +136,7 @@ public class GeoMongoDBStorageStrategy extends IndexingMongoDBStorageStrategy {
         }
     }
 
-    private List<double[]> getCorrespondingPoints(final Geometry geo){
+    public List<double[]> getCorrespondingPoints(final Geometry geo){
        final List<double[]> points = new ArrayList<double[]>();
         for (final Coordinate coord : geo.getCoordinates()){
             points.add(new double[] {

@@ -21,20 +21,21 @@ package org.apache.rya.indexing.mongodb.temporal;
 
 import java.util.regex.Matcher;
 
-import com.mongodb.BasicDBObject;
-import com.mongodb.DBCollection;
-import com.mongodb.DBObject;
-
 import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.indexing.TemporalInstantRfc3339;
 import org.apache.rya.indexing.TemporalInterval;
 import org.apache.rya.indexing.mongodb.IndexingMongoDBStorageStrategy;
 
+import com.mongodb.BasicDBObject;
+import com.mongodb.BasicDBObjectBuilder;
+import com.mongodb.DBCollection;
+import com.mongodb.DBObject;
+
 /**
  * Defines how time based intervals/instants are stored in MongoDB.
  * <p>
  * Time can be stored as the following:
- * <p>
+ * <p>l
  * <li><b>instant</b> {[statement], instant: TIME}</li>
  * <li><b>interval</b> {[statement], start: TIME, end: TIME}</li>
  * @see {@link TemporalInstantRfc3339} for how the dates are formatted.
@@ -53,16 +54,24 @@ public class TemporalMongoDBStorageStrategy extends IndexingMongoDBStorageStrate
 
     @Override
     public DBObject serialize(final RyaStatement ryaStatement) {
-         final BasicDBObject base = (BasicDBObject) super.serialize(ryaStatement);
-         final String objString = ryaStatement.getObject().getData();
-         final Matcher match = TemporalInstantRfc3339.PATTERN.matcher(objString);
-         if(match.find()) {
-             final TemporalInterval date = TemporalInstantRfc3339.parseInterval(ryaStatement.getObject().getData());
-             base.append(INTERVAL_START, date.getHasBeginning().getAsDateTime().toDate());
-             base.append(INTERVAL_END, date.getHasEnd().getAsDateTime().toDate());
-         } else {
-             base.append(INSTANT, TemporalInstantRfc3339.FORMATTER.parseDateTime(objString).toDate());
-         }
-         return base;
+        final BasicDBObject base = (BasicDBObject) super.serialize(ryaStatement);
+        final DBObject time = getTimeValue(ryaStatement.getObject().getData());
+        base.putAll(time.toMap());
+        return base;
     }
+
+    public DBObject getTimeValue(final String timeData) {
+        final Matcher match = TemporalInstantRfc3339.PATTERN.matcher(timeData);
+        final BasicDBObjectBuilder builder = BasicDBObjectBuilder.start();
+        if(match.find()) {
+            final TemporalInterval date = TemporalInstantRfc3339.parseInterval(timeData);
+            builder.add(INTERVAL_START, date.getHasBeginning().getAsDateTime().toDate());
+            builder.add(INTERVAL_END, date.getHasEnd().getAsDateTime().toDate());
+        } else {
+            builder.add(INSTANT, TemporalInstantRfc3339.FORMATTER.parseDateTime(timeData).toDate());
+        }
+        return builder.get();
+    }
+
+
 }

@@ -50,7 +50,7 @@ public class MongoEntityStorageIT extends MongoITBase {
     private static final String RYA_INSTANCE_NAME = "testInstance";
 
     @Test
-    public void create_and_get() throws EntityStorageException {
+    public void create_and_get() throws Exception {
         // An Entity that will be stored.
         final Entity entity = Entity.builder()
                 .setSubject(new RyaURI("urn:GTIN-14/00012345600012"))
@@ -71,7 +71,7 @@ public class MongoEntityStorageIT extends MongoITBase {
     }
 
     @Test
-    public void can_not_create_with_same_subject() throws EntityStorageException {
+    public void can_not_create_with_same_subject() throws Exception {
         // A Type that will be stored.
         final Entity entity = Entity.builder()
                 .setSubject(new RyaURI("urn:GTIN-14/00012345600012"))
@@ -95,7 +95,7 @@ public class MongoEntityStorageIT extends MongoITBase {
     }
 
     @Test
-    public void get_noneExisting() throws EntityStorageException {
+    public void get_noneExisting() throws Exception {
         // Get a Type that hasn't been created.
         final EntityStorage storage = new MongoEntityStorage(super.getMongoClient(), RYA_INSTANCE_NAME);
         final Optional<Entity> storedEntity = storage.get(new RyaURI("urn:GTIN-14/00012345600012"));
@@ -105,7 +105,7 @@ public class MongoEntityStorageIT extends MongoITBase {
     }
 
     @Test
-    public void delete() throws EntityStorageException {
+    public void delete() throws Exception {
         // An Entity that will be stored.
         final Entity entity = Entity.builder()
                 .setSubject(new RyaURI("urn:GTIN-14/00012345600012"))
@@ -126,7 +126,7 @@ public class MongoEntityStorageIT extends MongoITBase {
     }
 
     @Test
-    public void delete_nonExisting() throws EntityStorageException {
+    public void delete_nonExisting() throws Exception {
         // Delete an Entity that has not been created.
         final EntityStorage storage = new MongoEntityStorage(super.getMongoClient(), RYA_INSTANCE_NAME);
         final boolean deleted = storage.delete( new RyaURI("urn:GTIN-14/00012345600012") );
@@ -305,7 +305,7 @@ public class MongoEntityStorageIT extends MongoITBase {
     }
 
     @Test
-    public void update() throws EntityStorageException {
+    public void update() throws Exception {
         final EntityStorage storage = new MongoEntityStorage(super.getMongoClient(), RYA_INSTANCE_NAME);
 
         // Store Alice in the repository.
@@ -338,7 +338,7 @@ public class MongoEntityStorageIT extends MongoITBase {
     }
 
     @Test(expected = StaleUpdateException.class)
-    public void update_stale() throws EntityStorageException {
+    public void update_stale() throws Exception {
         final EntityStorage storage = new MongoEntityStorage(super.getMongoClient(), RYA_INSTANCE_NAME);
 
         // Store Alice in the repository.
@@ -370,7 +370,7 @@ public class MongoEntityStorageIT extends MongoITBase {
     }
 
     @Test(expected = EntityStorageException.class)
-    public void update_differentSubjects() throws StaleUpdateException, EntityStorageException {
+    public void update_differentSubjects() throws Exception {
         // Two objects that do not have the same Subjects.
         final Entity old = Entity.builder()
                 .setSubject( new RyaURI("urn:SSN/111-11-1111") )

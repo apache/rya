@@ -29,8 +29,12 @@ import java.util.Objects;
 import java.util.Optional;
 
 import org.apache.http.annotation.Immutable;
+import org.apache.log4j.Logger;
 import org.apache.rya.api.domain.RyaURI;
 import org.apache.rya.indexing.entity.storage.EntityStorage;
+import org.apache.rya.indexing.smarturi.SmartUriAdapter;
+import org.apache.rya.indexing.smarturi.SmartUriException;
+import org.openrdf.model.URI;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -73,6 +77,7 @@ import edu.umd.cs.findbugs.annotations.Nullable;
 @Immutable
 @DefaultAnnotation(NonNull.class)
 public class Entity {
+    private static final Logger log = Logger.getLogger(Entity.class);
 
     private final RyaURI subject;
     private final ImmutableList<RyaURI> explicitTypeIds;
@@ -84,18 +89,60 @@ public class Entity {
 
     private final int version;
 
+    private URI smartUri = null;
+
     /**
-     * To construct an instances of this class, use {@link Builder}.
+     * To construct an instance of this class, use {@link Builder}.
+     * @param subject Identifies the thing that is being represented as an
+     * Entity.
+     * @param explicitTypeIds {@link Type}s that have been explicitly applied to
+     * the {@link Entity}.
+     * @param typeProperties All {@link Property}s that have been set for the
+     * Entity, grouped by Type ID.
+     * @param version The version of this Entity. This value is used by the
+     * {@link EntityStorage} to prevent stale updates.
+     * @param smartUri the Smart {@link URI} representation of this
+     * {@link Entity}.
+     */
+    private Entity(
+            final RyaURI subject,
+            final ImmutableList<RyaURI> explicitTypeIds,
+            final ImmutableMap<RyaURI, ImmutableMap<RyaURI, Property>> typeProperties,
+            final int version,
+            final URI smartUri) {
+        this.subject = requireNonNull(subject);
+        this.explicitTypeIds = requireNonNull(explicitTypeIds);
+        properties = requireNonNull(typeProperties);
+        this.version = version;
+        if (smartUri != null) {
+            this.smartUri = smartUri;
+        } else {
+            // if Smart URI isn't provided create it from the given properties
+            try {
+                this.smartUri = SmartUriAdapter.serializeUriEntity(this);
+            } catch (final SmartUriException e) {
+                log.error("Unable to create a Smart URI for the entity", e);
+            }
+        }
+    }
+
+    /**
+     * To construct an instance of this class, use {@link Builder}.
+     * @param subject Identifies the thing that is being represented as an
+     * Entity.
+     * @param explicitTypeIds {@link Type}s that have been explicitly applied to
+     * the {@link Entity}.
+     * @param typeProperties All {@link Property}s that have been set for the
+     * Entity, grouped by Type ID.
+     * @param version The version of this Entity. This value is used by the
+     * {@link EntityStorage} to prevent stale updates.
      */
     private Entity(
             final RyaURI subject,
             final ImmutableList<RyaURI> explicitTypeIds,
             final ImmutableMap<RyaURI, ImmutableMap<RyaURI, Property>> typeProperties,
             final int version) {
-        this.subject = requireNonNull(subject);
-        this.explicitTypeIds = requireNonNull(explicitTypeIds);
-        properties = requireNonNull(typeProperties);
-        this.version = version;
+        this(subject, explicitTypeIds, typeProperties, version, null);
     }
 
     /**
@@ -125,6 +172,45 @@ public class Entity {
      */
     public int getVersion() {
         return version;
+    }
+
+    /**
+     * @return the Smart {@link URI} representation of this {@link Entity}.
+     */
+    public URI getSmartUri() {
+        return smartUri;
+    }
+
+    /**
+     * Does a lookup to see if the {@link Entity} contains the specified
+     * property for the specified type.
+     * @param typeRyaUri the type {@link RyaURI}. (not {@code null})
+     * @param propertyRyaUri the property {@link RyaURI}. (not {@code null})
+     * @return the {@link Property} or an empty {@link Optional} if it could not
+     * be found in the {@link Entity}.
+     */
+    public Optional<Property> lookupTypeProperty(final Type type, final RyaURI propertyRyaUri) {
+        requireNonNull(type);
+        return lookupTypeProperty(type.getId(), propertyRyaUri);
+    }
+
+    /**
+     * Does a lookup to see if the {@link Entity} contains the specified
+     * property for the specified type.
+     * @param typeRyaUri the type {@link RyaURI}. (not {@code null})
+     * @param propertyRyaUri the property {@link RyaURI}. (not {@code null})
+     * @return the {@link Property} or an empty {@link Optional} if it could not
+     * be found in the {@link Entity}.
+     */
+    public Optional<Property> lookupTypeProperty(final RyaURI typeRyaUri, final RyaURI propertyRyaUri) {
+        requireNonNull(typeRyaUri);
+        requireNonNull(propertyRyaUri);
+        final ImmutableMap<RyaURI, Property> typePropertyMap = properties.get(typeRyaUri);
+        Optional<Property> property = Optional.empty();
+        if (typePropertyMap != null) {
+            property = Optional.of(typePropertyMap.get(propertyRyaUri));
+        }
+        return property;
     }
 
     @Override
@@ -206,6 +292,7 @@ public class Entity {
         private RyaURI subject = null;
         private final List<RyaURI> explicitTypes = new ArrayList<>();
         private final Map<RyaURI, Map<RyaURI, Property>> properties = new HashMap<>();
+        private URI smartUri = null;
 
         private int version = 0;
 
@@ -230,6 +317,8 @@ public class Entity {
             }
 
             version = entity.getVersion();
+
+            smartUri = entity.getSmartUri();
         }
 
         /**
@@ -303,6 +392,27 @@ public class Entity {
         }
 
         /**
+         * @param smartUri - the Smart {@link URI} representation of this
+         * {@link Entity}.
+         * @return This {@link Builder} so that method invocations may be chained.
+         */
+        public Builder setSmartUri(final URI smartUri) {
+            this.smartUri = smartUri;
+            return this;
+        }
+
+        /**
+         * Indicates that the builder should rebuild the Smart URI. This should
+         * be used when properties or anything else in the {@link Entity} has
+         * changed.
+         * @return This {@link Builder} so that method invocations may be chained.
+         */
+        public Builder rebuildSmartUri() {
+            setSmartUri(null);
+            return this;
+        }
+
+        /**
          * @param version - The version of this Entity. This value is used by the
          * {@link EntityStorage} to prevent stale updates.
          * @return This {@link Builder} so that method invocations may be chained.
@@ -324,7 +434,8 @@ public class Entity {
             return new Entity(subject,
                     ImmutableList.copyOf( explicitTypes ),
                     propertiesBuilder.build(),
-                    version);
+                    version,
+                    smartUri);
         }
     }
 }

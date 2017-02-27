@@ -27,7 +27,9 @@ import org.apache.rya.api.domain.RyaType;
 import org.apache.rya.api.domain.RyaURI;
 import org.apache.rya.indexing.entity.model.Entity;
 import org.apache.rya.indexing.entity.model.Property;
+import org.apache.rya.indexing.entity.storage.mongo.key.MongoDbSafeKey;
 import org.bson.Document;
+import org.openrdf.model.impl.URIImpl;
 
 import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
 import edu.umd.cs.findbugs.annotations.NonNull;
@@ -42,6 +44,7 @@ public class EntityDocumentConverter implements DocumentConverter<Entity> {
     public static final String EXPLICIT_TYPE_IDS = "explicitTypeIds";
     public static final String PROPERTIES = "properties";
     public static final String VERSION = "version";
+    public static final String SMART_URI = "smartUri";
 
     private final RyaTypeDocumentConverter ryaTypeConverter = new RyaTypeDocumentConverter();
 
@@ -62,14 +65,17 @@ public class EntityDocumentConverter implements DocumentConverter<Entity> {
             entity.getProperties().get(typeId)
                 .forEach((propertyNameUri, property) -> {
                     final String propertyName = property.getName().getData();
+                    final String encodedPropertyName = MongoDbSafeKey.encodeKey(propertyName);
                     final RyaType value = property.getValue();
-                    typePropertiesDoc.append(propertyName,  ryaTypeConverter.toDocument(value));
+                    typePropertiesDoc.append(encodedPropertyName,  ryaTypeConverter.toDocument(value));
                 });
             propertiesDoc.append(typeId.getData(), typePropertiesDoc);
         }
         doc.append(PROPERTIES, propertiesDoc);
 
         doc.append(VERSION, entity.getVersion());
+
+        doc.append(SMART_URI, entity.getSmartUri().stringValue());
 
         return doc;
     }
@@ -99,6 +105,11 @@ public class EntityDocumentConverter implements DocumentConverter<Entity> {
                     "' because its '" + VERSION + "' field is missing.");
         }
 
+        if(!document.containsKey(SMART_URI)) {
+            throw new DocumentConverterException("Could not convert document '" + document +
+                    "' because its '" + SMART_URI + "' field is missing.");
+        }
+
         // Perform the conversion.
         final Entity.Builder builder = Entity.builder()
                 .setSubject( new RyaURI(document.getString(SUBJECT)) );
@@ -110,13 +121,16 @@ public class EntityDocumentConverter implements DocumentConverter<Entity> {
         for(final String typeId : propertiesDoc.keySet()) {
             final Document typePropertiesDoc = (Document) propertiesDoc.get(typeId);
             for(final String propertyName : typePropertiesDoc.keySet()) {
+                final String decodedPropertyName = MongoDbSafeKey.decodeKey(propertyName);
                 final Document value = (Document) typePropertiesDoc.get(propertyName);
                 final RyaType propertyValue = ryaTypeConverter.fromDocument( value );
-                builder.setProperty(new RyaURI(typeId), new Property(new RyaURI(propertyName), propertyValue));
+                builder.setProperty(new RyaURI(typeId), new Property(new RyaURI(decodedPropertyName), propertyValue));
             }
         }
 
         builder.setVersion( document.getInteger(VERSION) );
+
+        builder.setSmartUri( new URIImpl(document.getString(SMART_URI)) );
 
         return builder.build();
     }

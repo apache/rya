@@ -97,6 +97,9 @@ under the License.
 
         <guava.version>14.0.1</guava.version> <!-- Newest: 18.0 -->
 
+        <httpcomponents.httpclient.version>4.5.2</httpcomponents.httpclient.version> <!-- Newest: 4.5.3 -->
+        <httpcomponents.httpcore.version>4.4.4</httpcomponents.httpcore.version> <!-- Newest: 4.4.6 -->
+
         <karaf.version>2.2.11</karaf.version> <!-- Newest: 4.0.3 -->
         <mango.version>1.2.0</mango.version> <!-- Newest: 1.4.0 -->
         <antlr-runtime.version>3.4</antlr-runtime.version> <!-- Newest: 3.5.2 -->
@@ -125,7 +128,6 @@ under the License.
         <plexus.version>3.0.8</plexus.version>
         <thrift.version>0.9.1</thrift.version>
         <commons.cli.version>1.2</commons.cli.version>
-        <commons.http.version>3.0.1</commons.http.version>
         <jcommander.version>1.48</jcommander.version>
         <twitter4jstream.version>4.0.1</twitter4jstream.version>
 
@@ -484,11 +486,6 @@ under the License.
                 <artifactId>commons-cli</artifactId>
                 <version>${commons.cli.version}</version>
             </dependency>
-            <dependency>
-                <groupId>commons-httpclient</groupId>
-                <artifactId>commons-httpclient</artifactId>
-                <version>${commons.http.version}</version>
-            </dependency>
 
             <!-- Free Text Indexing -->
             <dependency>
@@ -593,6 +590,18 @@ under the License.
                 <artifactId>fluo-recipes-test</artifactId>
                 <version>${fluo.version}</version>
                 <scope>test</scope>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.httpcomponents</groupId>
+                <artifactId>httpclient</artifactId>
+                <version>${httpcomponents.httpclient.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.httpcomponents</groupId>
+                <artifactId>httpcore</artifactId>
+                <version>${httpcomponents.httpcore.version}</version>
             </dependency>
 
             <dependency>

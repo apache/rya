@@ -34,6 +34,7 @@ import org.apache.rya.indexing.entity.model.TypedEntity;
 import org.apache.rya.indexing.entity.storage.EntityStorage;
 import org.apache.rya.indexing.entity.storage.mongo.ConvertingCursor.Converter;
 import org.apache.rya.indexing.entity.storage.mongo.DocumentConverter.DocumentConverterException;
+import org.apache.rya.indexing.entity.storage.mongo.key.MongoDbSafeKey;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 
@@ -225,16 +226,17 @@ public class MongoEntityStorage implements EntityStorage {
 
     private static Stream<Bson> makePropertyFilters(final RyaURI typeId, final Property property) {
         final String propertyName = property.getName().getData();
+        final String encodedPropertyName = MongoDbSafeKey.encodeKey(propertyName);
 
         // Must match the property's data type.
         final String dataTypePath = Joiner.on(".").join(
-                new String[]{EntityDocumentConverter.PROPERTIES, typeId.getData(), propertyName, RyaTypeDocumentConverter.DATA_TYPE});
+                new String[]{EntityDocumentConverter.PROPERTIES, typeId.getData(), encodedPropertyName, RyaTypeDocumentConverter.DATA_TYPE});
         final String propertyDataType = property.getValue().getDataType().stringValue();
         final Bson dataTypeFilter = Filters.eq(dataTypePath, propertyDataType);
 
         // Must match the property's value.
         final String valuePath = Joiner.on(".").join(
-                new String[]{EntityDocumentConverter.PROPERTIES, typeId.getData(), propertyName, RyaTypeDocumentConverter.VALUE});
+                new String[]{EntityDocumentConverter.PROPERTIES, typeId.getData(), encodedPropertyName, RyaTypeDocumentConverter.VALUE});
         final String propertyValue = property.getValue().getData();
         final Bson valueFilter = Filters.eq(valuePath, propertyValue);
 

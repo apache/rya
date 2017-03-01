@@ -1,5 +1,37 @@
 package org.apache.rya.indexing.accumulo.entity;
 
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Set;
+
+import org.apache.accumulo.core.client.AccumuloException;
+import org.apache.accumulo.core.client.AccumuloSecurityException;
+import org.apache.accumulo.core.client.Connector;
+import org.apache.commons.io.IOUtils;
+import org.apache.rya.accumulo.AccumuloRdfConfiguration;
+import org.apache.rya.accumulo.AccumuloRyaDAO;
+import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
+import org.apache.rya.indexing.accumulo.ConfigUtils;
+import org.apache.rya.indexing.accumulo.entity.StarQuery.CardinalityStatementPattern;
+import org.apache.rya.joinselect.AccumuloSelectivityEvalDAO;
+import org.apache.rya.prospector.service.ProspectorServiceEvalStatsDAO;
+import org.apache.rya.rdftriplestore.RdfCloudTripleStore;
+import org.apache.rya.rdftriplestore.RdfCloudTripleStoreConnection;
+import org.apache.rya.rdftriplestore.evaluation.ExternalBatchingIterator;
+import org.openrdf.query.BindingSet;
+import org.openrdf.query.QueryEvaluationException;
+import org.openrdf.query.algebra.StatementPattern;
+import org.openrdf.query.algebra.Var;
+import org.openrdf.query.algebra.evaluation.QueryBindingSet;
+import org.openrdf.query.algebra.evaluation.impl.ExternalSet;
+import org.openrdf.sail.SailException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.beust.jcommander.internal.Sets;
+import com.google.common.base.Joiner;
+
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -22,39 +54,8 @@ package org.apache.rya.indexing.accumulo.entity;
 
 import info.aduna.iteration.CloseableIteration;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
-
-import org.apache.rya.accumulo.AccumuloRdfConfiguration;
-import org.apache.rya.accumulo.AccumuloRyaDAO;
-import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
-import org.apache.rya.indexing.accumulo.ConfigUtils;
-import org.apache.rya.indexing.accumulo.entity.StarQuery.CardinalityStatementPattern;
-import org.apache.rya.joinselect.AccumuloSelectivityEvalDAO;
-import org.apache.rya.prospector.service.ProspectorServiceEvalStatsDAO;
-import org.apache.rya.rdftriplestore.RdfCloudTripleStore;
-import org.apache.rya.rdftriplestore.RdfCloudTripleStoreConnection;
-import org.apache.rya.rdftriplestore.evaluation.ExternalBatchingIterator;
-
-import org.apache.accumulo.core.client.AccumuloException;
-import org.apache.accumulo.core.client.AccumuloSecurityException;
-import org.apache.accumulo.core.client.Connector;
-import org.apache.commons.io.IOUtils;
-import org.openrdf.query.BindingSet;
-import org.openrdf.query.QueryEvaluationException;
-import org.openrdf.query.algebra.StatementPattern;
-import org.openrdf.query.algebra.Var;
-import org.openrdf.query.algebra.evaluation.QueryBindingSet;
-import org.openrdf.query.algebra.evaluation.impl.ExternalSet;
-import org.openrdf.sail.SailException;
-
-import com.beust.jcommander.internal.Sets;
-import com.google.common.base.Joiner;
-
 public class EntityTupleSet extends ExternalSet implements ExternalBatchingIterator {
-
+    private static final Logger LOG = LoggerFactory.getLogger(EntityTupleSet.class);
 
     private StarQuery starQuery;
     private RdfCloudTripleStoreConfiguration conf;
@@ -97,26 +98,29 @@ public class EntityTupleSet extends ExternalSet implements ExternalBatchingItera
         } catch (AccumuloSecurityException e) {
             e.printStackTrace();
         }
-        if (conf.isUseStats() && conf.isUseSelectivity()) {
 
-            ProspectorServiceEvalStatsDAO evalDao = new ProspectorServiceEvalStatsDAO(accCon, conf);
-            evalDao.init();
-            AccumuloSelectivityEvalDAO ase = new AccumuloSelectivityEvalDAO(conf, accCon);
-            ase.setRdfEvalDAO(evalDao);
-            ase.init();
+        try {
+            if (conf.isUseStats() && conf.isUseSelectivity()) {
+                ProspectorServiceEvalStatsDAO evalDao = new ProspectorServiceEvalStatsDAO(accCon, conf);
+                evalDao.init();
+                AccumuloSelectivityEvalDAO ase = new AccumuloSelectivityEvalDAO(conf, accCon);
+                ase.setRdfEvalDAO(evalDao);
+                ase.init();
 
-            cardinality = starQuery.getCardinality(ase);
-            CardinalityStatementPattern csp = starQuery.getMinCardSp(ase);
+                cardinality = starQuery.getCardinality(ase);
+                CardinalityStatementPattern csp = starQuery.getMinCardSp(ase);
 
-            minCard = csp.getCardinality();
-            minSp = csp.getSp();
-        } else {
-            // TODO come up with a better default if cardinality is not
-            // initialized
-            cardinality = minCard = 1;
-            minSp = starQuery.getNodes().get(0);
+                minCard = csp.getCardinality();
+                minSp = csp.getSp();
+            } else {
+                // TODO come up with a better default if cardinality is not
+                // initialized
+                cardinality = minCard = 1;
+                minSp = starQuery.getNodes().get(0);
+            }
+        } catch(final Exception e) {
+            LOG.warn("A problem was encountered while initializing the EntityTupleSet.", e);
         }
-
     }
 
     @Override
@@ -224,7 +228,7 @@ public class EntityTupleSet extends ExternalSet implements ExternalBatchingItera
 
 
     @Override
-    public CloseableIteration<BindingSet,QueryEvaluationException> evaluate(final Collection<BindingSet> bindingset) throws QueryEvaluationException {
+    public CloseableIteration<BindingSet,QueryEvaluationException> evaluate(Collection<BindingSet> bindingset) throws QueryEvaluationException {
 
         if(bindingset.size() < 2 && !this.evalOptUsed) {
             BindingSet bs = new QueryBindingSet();
@@ -248,7 +252,7 @@ public class EntityTupleSet extends ExternalSet implements ExternalBatchingItera
 
     private RdfCloudTripleStoreConnection getRyaSailConnection() throws AccumuloException,
             AccumuloSecurityException, SailException {
-        final RdfCloudTripleStore store = new RdfCloudTripleStore();
+        RdfCloudTripleStore store = new RdfCloudTripleStore();
         AccumuloRyaDAO crdfdao = new AccumuloRyaDAO();
         crdfdao.setConnector(accCon);
         AccumuloRdfConfiguration acc = new AccumuloRdfConfiguration(conf);

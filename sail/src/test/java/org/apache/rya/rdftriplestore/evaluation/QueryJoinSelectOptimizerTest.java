@@ -642,6 +642,10 @@ public class QueryJoinSelectOptimizerTest {
     QueryJoinSelectOptimizer qjs = new QueryJoinSelectOptimizer(ars, accc);
     System.out.println("Originial query is " + te);
     qjs.optimize(te, null, null);
+    
+    TupleExpr what = getTupleExpr(Q4);
+    System.out.println("lolol: \n" + what);
+    
     Assert.assertTrue(te.equals(getTupleExpr(Q4)));
 
     System.out.print("Optimized query is " + te);

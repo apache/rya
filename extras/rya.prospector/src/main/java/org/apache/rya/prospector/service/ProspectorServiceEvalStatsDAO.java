@@ -1,0 +1,143 @@
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
+package org.apache.rya.prospector.service;
+
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+
+import org.apache.accumulo.core.client.AccumuloException;
+import org.apache.accumulo.core.client.AccumuloSecurityException;
+import org.apache.accumulo.core.client.Connector;
+import org.apache.accumulo.core.client.TableExistsException;
+import org.apache.accumulo.core.client.TableNotFoundException;
+import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
+import org.apache.rya.api.persist.RdfDAOException;
+import org.apache.rya.api.persist.RdfEvalStatsDAO;
+import org.apache.rya.prospector.domain.IndexEntry;
+import org.apache.rya.prospector.domain.TripleValueType;
+import org.apache.rya.prospector.utils.ProspectorConstants;
+import org.openrdf.model.Resource;
+import org.openrdf.model.Value;
+
+/**
+ * An ${@link org.apache.rya.api.persist.RdfEvalStatsDAO} that uses the Prospector Service underneath return counts.
+ */
+public class ProspectorServiceEvalStatsDAO implements RdfEvalStatsDAO<RdfCloudTripleStoreConfiguration> {
+
+    private ProspectorService prospectorService;
+
+    public ProspectorServiceEvalStatsDAO() {
+    }
+
+    public ProspectorServiceEvalStatsDAO(ProspectorService prospectorService, RdfCloudTripleStoreConfiguration conf) {
+        this.prospectorService = prospectorService;
+    }
+
+    public ProspectorServiceEvalStatsDAO(Connector connector, RdfCloudTripleStoreConfiguration conf) throws AccumuloException, AccumuloSecurityException, TableExistsException {
+        this.prospectorService = new ProspectorService(connector, getProspectTableName(conf));
+    }
+
+    @Override
+    public void init() {
+        assert prospectorService != null;
+    }
+
+    @Override
+    public boolean isInitialized() {
+        return prospectorService != null;
+    }
+
+    @Override
+    public void destroy() {
+    }
+
+    @Override
+    public double getCardinality(RdfCloudTripleStoreConfiguration conf, CARDINALITY_OF card, List<Value> val) throws RdfDAOException {
+        assert conf != null && card != null && val != null;
+
+        String triplePart = null;
+        switch (card) {
+            case SUBJECT:
+                triplePart = TripleValueType.SUBJECT.getIndexType();
+                break;
+            case PREDICATE:
+                triplePart = TripleValueType.PREDICATE.getIndexType();
+                break;
+            case OBJECT:
+                triplePart = TripleValueType.OBJECT.getIndexType();
+                break;
+            case SUBJECTPREDICATE:
+                triplePart = TripleValueType.SUBJECT_PREDICATE.getIndexType();
+                break;
+            case SUBJECTOBJECT:
+                triplePart = TripleValueType.SUBJECT_OBJECT.getIndexType();
+                break;
+            case PREDICATEOBJECT:
+                triplePart = TripleValueType.PREDICATE_OBJECT.getIndexType();
+                break;
+        }
+
+        final String[] auths = conf.getAuths();
+        final List<String> indexedValues = new ArrayList<>();
+        final Iterator<Value> valueIt = val.iterator();
+        while (valueIt.hasNext()){
+            indexedValues.add(valueIt.next().stringValue());
+        }
+
+        double cardinality = -1;
+        try {
+            final List<IndexEntry> entries = prospectorService.query(null, ProspectorConstants.COUNT, triplePart, indexedValues, null, auths);
+            if(!entries.isEmpty()) {
+                cardinality = entries.iterator().next().getCount();
+            }
+        } catch (final TableNotFoundException e) {
+            throw new RdfDAOException(e);
+        }
+        return cardinality;
+    }
+
+    @Override
+    public double getCardinality(RdfCloudTripleStoreConfiguration conf, CARDINALITY_OF card, List<Value> val, Resource context) {
+        return getCardinality(conf, card, val); //TODO: Not sure about the context yet
+    }
+
+    @Override
+    public void setConf(RdfCloudTripleStoreConfiguration conf) {
+    }
+
+    @Override
+    public RdfCloudTripleStoreConfiguration getConf() {
+        return null;
+    }
+
+    public static String getProspectTableName(RdfCloudTripleStoreConfiguration conf) {
+        return conf.getTablePrefix() + "prospects";
+    }
+
+    /**
+     * This method exists so that the Rya Web project may autowrire itself together
+     * using the Spring framework.
+     *
+     * @param prospectorService - The {@link ProspectorService} that will be used by this DAO.
+     */
+    public void setProspectorService(ProspectorService prospectorService) {
+        this.prospectorService = prospectorService;
+    }
+}

@@ -20,25 +20,36 @@ package org.apache.rya.indexing.pcj.fluo.integration;
 
 import static org.junit.Assert.assertEquals;
 
+import java.math.BigDecimal;
 import java.util.HashSet;
 import java.util.Set;
 
 import org.apache.rya.api.domain.RyaStatement;
+import org.apache.rya.api.domain.RyaType;
 import org.apache.rya.indexing.pcj.fluo.ITBase;
 import org.apache.rya.indexing.pcj.fluo.api.CreatePcj;
 import org.apache.rya.indexing.pcj.fluo.api.InsertTriples;
 import org.apache.rya.indexing.pcj.storage.PrecomputedJoinStorage;
 import org.apache.rya.indexing.pcj.storage.accumulo.AccumuloPcjStorage;
 import org.junit.Test;
+import org.openrdf.model.Literal;
+import org.openrdf.model.URI;
+import org.openrdf.model.Value;
+import org.openrdf.model.ValueFactory;
+import org.openrdf.model.datatypes.XMLDatatypeUtil;
+import org.openrdf.model.impl.BooleanLiteralImpl;
+import org.openrdf.model.impl.LiteralImpl;
 import org.openrdf.model.impl.NumericLiteralImpl;
 import org.openrdf.model.impl.URIImpl;
 import org.openrdf.model.vocabulary.XMLSchema;
 import org.openrdf.query.BindingSet;
+import org.openrdf.query.algebra.evaluation.ValueExprEvaluationException;
+import org.openrdf.query.algebra.evaluation.function.Function;
+import org.openrdf.query.algebra.evaluation.function.FunctionRegistry;
 import org.openrdf.query.impl.BindingImpl;
 
 import com.google.common.base.Optional;
 import com.google.common.collect.Sets;
-
 /**
  * Performs integration tests over the Fluo application geared towards various query structures.
  * <p>
@@ -291,5 +302,151 @@ public class QueryIT extends ITBase {
         fluo.waitForObservers();
         final Set<BindingSet> results = getQueryBindingSetValues(fluoClient, sparql);
         assertEquals(expected,  results);
+    }
+    
+    @Test
+    public void withCustomFilters() throws Exception {
+        final String sparql = "prefix ryafunc: <tag:rya.apache.org,2017:function#> \n" //
+                        + "SELECT ?name ?age \n" //
+                        + "{ \n" //
+                        + "FILTER( ryafunc:isTeen(?age) ) . \n" //
+                        + "?name <http://hasAge> ?age . \n" //
+                        + "?name <http://playsSport> \"Soccer\" \n" //
+                        + "}"; //
+
+        final Set<RyaStatement> streamedTriples = Sets.newHashSet(
+                makeRyaStatement("http://Alice", "http://hasAge", 18),
+                makeRyaStatement("http://Bob", "http://hasAge", 30),
+                makeRyaStatement("http://Charlie", "http://hasAge", 14),
+                makeRyaStatement("http://David", "http://hasAge", 16),
+                makeRyaStatement("http://Eve", "http://hasAge", 35),
+
+                makeRyaStatement("http://Alice", "http://playsSport", "Soccer"),
+                makeRyaStatement("http://Bob", "http://playsSport", "Soccer"),
+                makeRyaStatement("http://Charlie", "http://playsSport", "Basketball"),
+                makeRyaStatement("http://Charlie", "http://playsSport", "Soccer"),
+                makeRyaStatement("http://David", "http://playsSport", "Basketball"));
+
+        Function fooFunction = new Function() {
+
+            @Override
+            public String getURI() {
+                return "tag:rya.apache.org,2017:function#isTeen";
+            }
+
+            final static int TEEN_THRESHOLD = 20;
+
+            @Override
+            public Value evaluate(ValueFactory valueFactory, Value... args) throws ValueExprEvaluationException {
+
+                if (args.length != 1) {
+                    throw new ValueExprEvaluationException("isTeen() requires exactly 1 argument, got " + args.length);
+                }
+
+                if (args[0] instanceof Literal) {
+                    Literal literal = (Literal) args[0];
+
+                    URI datatype = literal.getDatatype();
+
+                    // ABS function accepts only numeric literals
+                    if (datatype != null && XMLDatatypeUtil.isNumericDatatype(datatype)) {
+                        if (XMLDatatypeUtil.isDecimalDatatype(datatype)) {
+                            BigDecimal bigValue = literal.decimalValue();
+                            return BooleanLiteralImpl.valueOf(bigValue.compareTo(new BigDecimal(TEEN_THRESHOLD)) < 0);
+                        } else if (XMLDatatypeUtil.isFloatingPointDatatype(datatype)) {
+                            double doubleValue = literal.doubleValue();
+                            return BooleanLiteralImpl.valueOf(doubleValue < TEEN_THRESHOLD);
+                        } else {
+                            throw new ValueExprEvaluationException("unexpected datatype (expect decimal/int or floating) for function operand: " + args[0]);
+                        }
+                    } else {
+                        throw new ValueExprEvaluationException("unexpected input value (expect non-null and numeric) for function: " + args[0]);
+                    }
+                } else {
+                    throw new ValueExprEvaluationException("unexpected input value (expect literal) for function: " + args[0]);
+                }
+            }
+        };
+
+        // Add our new function to the registry
+        FunctionRegistry.getInstance().add(fooFunction);
+
+        // The expected results of the SPARQL query once the PCJ has been computed.
+        final Set<BindingSet> expected = new HashSet<>();
+        expected.add( makeBindingSet(
+                new BindingImpl("name", new URIImpl("http://Alice")),
+                new BindingImpl("age", new NumericLiteralImpl(18, XMLSchema.INTEGER))));
+        expected.add( makeBindingSet(
+                new BindingImpl("name", new URIImpl("http://Charlie")),
+                new BindingImpl("age", new NumericLiteralImpl(14, XMLSchema.INTEGER))));
+
+        // Create the PCJ table.
+        final PrecomputedJoinStorage pcjStorage = new AccumuloPcjStorage(accumuloConn, RYA_INSTANCE_NAME);
+        final String pcjId = pcjStorage.createPcj(sparql);
+
+        // Tell the Fluo app to maintain the PCJ.
+        new CreatePcj().withRyaIntegration(pcjId, pcjStorage, fluoClient, accumuloConn, RYA_INSTANCE_NAME);
+
+        // Stream the data into Fluo.
+        new InsertTriples().insert(fluoClient, streamedTriples, Optional.<String>absent());
+
+        // Verify the end results of the query match the expected results.
+        fluo.waitForObservers();
+        final Set<BindingSet> results = getQueryBindingSetValues(fluoClient, sparql);
+        assertEquals(expected,  results);
+    }
+
+    @Test
+    public void withTemporal() throws Exception {
+        final String dtPredUri = "http://www.w3.org/2006/time#inXSDDateTime";
+        final String dtPred = "<" + dtPredUri + ">";
+        final String xmlDateTime = "http://www.w3.org/2001/XMLSchema#dateTime";
+        // Find all stored dates.
+        String selectQuery = "PREFIX time: <http://www.w3.org/2006/time#> \n"//
+                        + "PREFIX xml: <http://www.w3.org/2001/XMLSchema#> \n" //
+                        + "PREFIX tempo: <tag:rya-rdf.org,2015:temporal#> \n"//
+                        + "SELECT ?event ?time \n" //
+                        + "WHERE { \n" //
+                        + "  ?event " + dtPred + " ?time . \n"//
+                        // + " FILTER(?time > '2000-01-01T01:00:00Z'^^xml:dateTime) \n"// all
+                        // + " FILTER(?time < '2007-01-01T01:01:03-08:00'^^xml:dateTime) \n"// after 2007
+                        + " FILTER(?time > '2001-01-01T01:01:03-08:00'^^xml:dateTime) \n"// after 3 seconds
+                        + "}";//
+
+        // create some resources and literals to make statements out of
+        String eventz = "<http://eventz>";
+        final Set<RyaStatement> streamedTriples = Sets.newHashSet(//
+                        makeRyaStatement(eventz, "http://www.w3.org/1999/02/22-rdf-syntax-ns#type", "<http://www.w3.org/2006/time#Instant>"), //
+                        makeRyaStatement(eventz, dtPredUri, new RyaType(new URIImpl(xmlDateTime), "2001-01-01T01:01:01-08:00")), // one second
+                        makeRyaStatement(eventz, dtPredUri, new RyaType(new URIImpl(xmlDateTime), "2001-01-01T04:01:02.000-05:00")), // 2 seconds
+                        makeRyaStatement(eventz, dtPredUri, new RyaType(new URIImpl(xmlDateTime), "2001-01-01T01:01:03-08:00")), // 3 seconds
+                        makeRyaStatement(eventz, dtPredUri, new RyaType(new URIImpl(xmlDateTime), "2001-01-01T01:01:04-08:00")), // 4seconds
+                        makeRyaStatement(eventz, dtPredUri, new RyaType(new URIImpl(xmlDateTime), "2001-01-01T09:01:05Z")), // 5 seconds
+                        makeRyaStatement(eventz, dtPredUri, new RyaType(new URIImpl(xmlDateTime), "2006-01-01")), //
+                        makeRyaStatement(eventz, dtPredUri, new RyaType(new URIImpl(xmlDateTime), "2007-01-01")), //
+                        makeRyaStatement(eventz, dtPredUri, new RyaType(new URIImpl(xmlDateTime), "2008-01-01")));
+
+        // The expected results of the SPARQL query once the PCJ has been computed.
+        final Set<BindingSet> expected = new HashSet<>();
+        expected.add(makeBindingSet(new BindingImpl("event", new URIImpl(eventz)), new BindingImpl("time", new LiteralImpl("2001-01-01T09:01:04.000Z", new URIImpl(xmlDateTime))))); //
+        expected.add(makeBindingSet(new BindingImpl("event", new URIImpl(eventz)), new BindingImpl("time", new LiteralImpl("2001-01-01T09:01:05.000Z", new URIImpl(xmlDateTime))))); //
+        expected.add(makeBindingSet(new BindingImpl("event", new URIImpl(eventz)), new BindingImpl("time", new LiteralImpl("2006-01-01T05:00:00.000Z", new URIImpl(xmlDateTime))))); //
+        expected.add(makeBindingSet(new BindingImpl("event", new URIImpl(eventz)), new BindingImpl("time", new LiteralImpl("2007-01-01T05:00:00.000Z", new URIImpl(xmlDateTime))))); //
+        expected.add(makeBindingSet(new BindingImpl("event", new URIImpl(eventz)), new BindingImpl("time", new LiteralImpl("2008-01-01T05:00:00.000Z", new URIImpl(xmlDateTime)))));
+
+        // Create the PCJ table.
+        final PrecomputedJoinStorage pcjStorage = new AccumuloPcjStorage(accumuloConn, RYA_INSTANCE_NAME);
+        final String pcjId = pcjStorage.createPcj(selectQuery);
+
+        // Tell the Fluo app to maintain the PCJ.
+        new CreatePcj().withRyaIntegration(pcjId, pcjStorage, fluoClient, accumuloConn, RYA_INSTANCE_NAME);
+
+        // Stream the data into Fluo.
+        new InsertTriples().insert(fluoClient, streamedTriples, Optional.<String> absent());
+
+        // Verify the end results of the query match the expected results.
+        fluo.waitForObservers();
+        final Set<BindingSet> results = getQueryBindingSetValues(fluoClient, selectQuery);
+        assertEquals(expected, results);
     }
 }

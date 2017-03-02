@@ -44,8 +44,6 @@ import org.apache.fluo.api.client.FluoClient;
 import org.apache.fluo.api.client.FluoFactory;
 import org.apache.fluo.api.client.Snapshot;
 import org.apache.fluo.api.client.scanner.CellScanner;
-import org.apache.fluo.api.client.scanner.ColumnScanner;
-import org.apache.fluo.api.client.scanner.RowScanner;
 import org.apache.fluo.api.config.FluoConfiguration;
 import org.apache.fluo.api.config.ObserverSpecification;
 import org.apache.fluo.api.data.Bytes;
@@ -53,6 +51,18 @@ import org.apache.fluo.api.data.RowColumnValue;
 import org.apache.fluo.api.mini.MiniFluo;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
+import org.apache.rya.accumulo.AccumuloRdfConfiguration;
+import org.apache.rya.api.client.Install.InstallConfiguration;
+import org.apache.rya.api.client.RyaClient;
+import org.apache.rya.api.client.accumulo.AccumuloConnectionDetails;
+import org.apache.rya.api.client.accumulo.AccumuloRyaClientFactory;
+import org.apache.rya.api.domain.RyaStatement;
+import org.apache.rya.api.domain.RyaStatement.RyaStatementBuilder;
+import org.apache.rya.api.domain.RyaType;
+import org.apache.rya.api.domain.RyaURI;
+import org.apache.rya.api.resolver.RyaToRdfConversions;
+import org.apache.rya.indexing.accumulo.ConfigUtils;
+import org.apache.rya.indexing.external.PrecomputedJoinIndexerConfig;
 import org.apache.rya.indexing.pcj.fluo.app.export.rya.RyaExportParameters;
 import org.apache.rya.indexing.pcj.fluo.app.observers.FilterObserver;
 import org.apache.rya.indexing.pcj.fluo.app.observers.JoinObserver;
@@ -64,6 +74,8 @@ import org.apache.rya.indexing.pcj.fluo.app.query.FluoQueryMetadataDAO;
 import org.apache.rya.indexing.pcj.fluo.app.query.QueryMetadata;
 import org.apache.rya.indexing.pcj.storage.accumulo.BindingSetStringConverter;
 import org.apache.rya.indexing.pcj.storage.accumulo.VariableOrder;
+import org.apache.rya.rdftriplestore.RyaSailRepository;
+import org.apache.rya.sail.config.RyaSailFactory;
 import org.apache.zookeeper.ClientCnxn;
 import org.junit.After;
 import org.junit.Before;
@@ -77,21 +89,6 @@ import org.openrdf.repository.RepositoryConnection;
 import org.openrdf.sail.Sail;
 
 import com.google.common.io.Files;
-
-import org.apache.rya.accumulo.AccumuloRdfConfiguration;
-import org.apache.rya.api.client.Install.InstallConfiguration;
-import org.apache.rya.api.client.RyaClient;
-import org.apache.rya.api.client.accumulo.AccumuloConnectionDetails;
-import org.apache.rya.api.client.accumulo.AccumuloRyaClientFactory;
-import org.apache.rya.api.domain.RyaStatement;
-import org.apache.rya.api.domain.RyaStatement.RyaStatementBuilder;
-import org.apache.rya.api.domain.RyaType;
-import org.apache.rya.api.domain.RyaURI;
-import org.apache.rya.api.resolver.RyaToRdfConversions;
-import org.apache.rya.indexing.accumulo.ConfigUtils;
-import org.apache.rya.indexing.external.PrecomputedJoinIndexerConfig;
-import org.apache.rya.rdftriplestore.RyaSailRepository;
-import org.apache.rya.sail.config.RyaSailFactory;
 
 /**
  * Integration tests that ensure the Fluo application processes PCJs results
@@ -122,11 +119,14 @@ public abstract class ITBase {
 
     @BeforeClass
     public static void killLoudLogs() {
-        Logger.getLogger(ClientCnxn.class).setLevel(Level.ERROR);
+        Logger.getRootLogger().setLevel(Level.ERROR);
+        Logger.getLogger(ClientCnxn.class).setLevel(Level.OFF);
     }
 
     @Before
     public void setupMiniResources() throws Exception {
+        // Will set defaults for log4J
+        org.apache.log4j.BasicConfigurator.configure();
     	// Initialize the Mini Accumulo that will be used to host Rya and Fluo.
     	setupMiniAccumulo();
 
@@ -224,7 +224,7 @@ public abstract class ITBase {
         final RyaStatementBuilder builder = RyaStatement.builder().setSubject(new RyaURI(subject))
                 .setPredicate(new RyaURI(predicate));
 
-        if (object.startsWith("http://")) {
+        if (object.startsWith("http://") || object.startsWith("tag:")) {
             builder.setObject(new RyaURI(object));
         } else {
             builder.setObject(new RyaType(object));
@@ -234,12 +234,33 @@ public abstract class ITBase {
     }
 
     /**
-     * A helper function for creating a {@link RyaStatement} that represents a
-     * Triple.
+     * A helper function for creating a {@link RyaStatement} that represents a Triple.
+     * This overload takes a typed literal for the object. Prepare it like this for example specify the type (wktLiteral) and the value (Point...):
+     * makeRyaStatement(s, p, new RyaType(new URIImpl("http://www.opengis.net/ont/geosparql#wktLiteral"), "Point(-77.03524 38.889468)")) //
      *
      * @param subject - The Subject of the Triple. (not null)
      * @param predicate - The Predicate of the Triple. (not null)
      * @param object - The Object of the Triple. (not null)
+     * @return A Triple as a {@link RyaStatement}.
+     */
+    protected static RyaStatement makeRyaStatement(final String subject, final String predicate, final RyaType object) {
+        checkNotNull(subject);
+        checkNotNull(predicate);
+        checkNotNull(object);
+
+        final RyaStatementBuilder builder = RyaStatement.builder()//
+                        .setSubject(new RyaURI(subject))//
+                        .setPredicate(new RyaURI(predicate))//
+                        .setObject(object);
+        return builder.build();
+    }
+
+    /**
+     * A helper function for creating a {@link RyaStatement} that represents a Triple with an integer.
+     *
+     * @param subject - The Subject of the Triple. (not null)
+     * @param predicate - The Predicate of the Triple. (not null)
+     * @param object - The Object of the Triple, an integer value (int).
      * @return A Triple as a {@link RyaStatement}.
      */
     protected static RyaStatement makeRyaStatement(final String subject, final String predicate, final int object) {
@@ -409,8 +430,7 @@ public abstract class ITBase {
 
         config.addObservers(observers);
 
-        FluoFactory.newAdmin(config).initialize(
-        		new FluoAdmin.InitializationOptions().setClearTable(true).setClearZookeeper(true) );
+        FluoFactory.newAdmin(config).initialize(new FluoAdmin.InitializationOptions().setClearTable(true).setClearZookeeper(true) );
         return FluoFactory.newMiniFluo(config);
     }
 }

@@ -1,5 +1,3 @@
-package org.apache.rya.indexing.accumulo;
-
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -18,6 +16,7 @@ package org.apache.rya.indexing.accumulo;
  * specific language governing permissions and limitations
  * under the License.
  */
+package org.apache.rya.indexing.accumulo;
 
 import static java.util.Objects.requireNonNull;
 
@@ -44,6 +43,7 @@ import org.apache.hadoop.mapreduce.JobContext;
 import org.apache.hadoop.util.ReflectionUtils;
 import org.apache.log4j.Logger;
 import org.apache.rya.accumulo.AccumuloRdfConfiguration;
+import org.apache.rya.accumulo.utils.ConnectorFactory;
 import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
 import org.apache.rya.api.instance.RyaDetails;
 import org.apache.rya.indexing.FilterFunctionOptimizer;
@@ -67,48 +67,45 @@ import com.google.common.base.Optional;
 import com.google.common.collect.Lists;
 
 /**
- * A set of configuration utils to read a Hadoop {@link Configuration} object
- * and create Cloudbase/Accumulo objects. Soon will deprecate this class. Use
- * installer for the set methods, use {@link RyaDetails} for the get methods.
- * New code must separate parameters that are set at Rya install time from that
- * which is specific to the client. Also Accumulo index tables are pushed down
- * to the implementation and not configured in conf.
+ * A set of configuration utils to read a Hadoop {@link Configuration} object and create Cloudbase/Accumulo objects.
+ * Soon will deprecate this class.  Use installer for the set methods, use {@link RyaDetails} for the get methods.
+ * New code must separate parameters that are set at Rya install time from that which is specific to the client.
+ * Also Accumulo index tables are pushed down to the implementation and not configured in conf.
  */
 public class ConfigUtils {
     private static final Logger logger = Logger.getLogger(ConfigUtils.class);
 
     /**
-     * @Deprecated use {@link RdfCloudTripleStoreConfiguration#CONF_TBL_PREFIX}
-     *             instead
+     * @Deprecated use {@link RdfCloudTripleStoreConfiguration#CONF_TBL_PREFIX} instead.
      */
     @Deprecated
     public static final String CLOUDBASE_TBL_PREFIX = RdfCloudTripleStoreConfiguration.CONF_TBL_PREFIX;
+    
     /**
-     * @Deprecated use {@link AccumuloRdfConfiguration#CLOUDBASE_INSTANCE}
-     *             instead
+     * @Deprecated use {@link AccumuloRdfConfiguration#CLOUDBASE_INSTANCE} instead.
      */
     @Deprecated
     public static final String CLOUDBASE_INSTANCE = AccumuloRdfConfiguration.CLOUDBASE_INSTANCE;
+    
     /**
-     * @Deprecated use {@link AccumuloRdfConfiguration#CLOUDBASE_ZOOKEEPERS}
-     *             instead
+     * @Deprecated use {@link AccumuloRdfConfiguration#CLOUDBASE_ZOOKEEPERS} instead.
      */
     @Deprecated
     public static final String CLOUDBASE_ZOOKEEPERS = AccumuloRdfConfiguration.CLOUDBASE_ZOOKEEPERS;
+    
     /**
-     * @Deprecated use {@link AccumuloRdfConfiguration#CLOUDBASE_USER} instead
+     * @Deprecated use {@link AccumuloRdfConfiguration#CLOUDBASE_USER} instead.
      */
     @Deprecated
     public static final String CLOUDBASE_USER = AccumuloRdfConfiguration.CLOUDBASE_USER;
+    
     /**
-     * @Deprecated use {@link AccumuloRdfConfiguration#CLOUDBASE_PASSWORD}
-     *             instead
+     * @Deprecated use {@link AccumuloRdfConfiguration#CLOUDBASE_PASSWORD} instead.
      */
     @Deprecated
     public static final String CLOUDBASE_PASSWORD = AccumuloRdfConfiguration.CLOUDBASE_PASSWORD;
     /**
-     * @Deprecated use {@link RdfCloudTripleStoreConfiguration#CONF_QUERY_AUTH}
-     *             instead
+     * @Deprecated use {@link RdfCloudTripleStoreConfiguration#CONF_QUERY_AUTH} instead.
      */
     @Deprecated
     public static final String CLOUDBASE_AUTHS = RdfCloudTripleStoreConfiguration.CONF_QUERY_AUTH;
@@ -233,7 +230,7 @@ public class ConfigUtils {
 
     protected static Set<URI> getPredicates(final Configuration conf, final String confName) {
         final String[] validPredicateStrings = conf.getStrings(confName, new String[] {});
-        final Set<URI> predicates = new HashSet<URI>();
+        final Set<URI> predicates = new HashSet<>();
         for (final String prediateString : validPredicateStrings) {
             predicates.add(new URIImpl(prediateString));
         }
@@ -300,8 +297,15 @@ public class ConfigUtils {
         return getUsername(job.getConfiguration());
     }
 
+    /**
+     * Get the Accumulo username from the configuration object that is meant to
+     * be used when connecting a {@link Connector} to Accumulo.
+     *
+     * @param conf - The configuration object that will be interrogated. (not null)
+     * @return The username if one could be found; otherwise {@code null}.
+     */
     public static String getUsername(final Configuration conf) {
-        return conf.get(CLOUDBASE_USER);
+        return new AccumuloRdfConfiguration(conf).getUsername();
     }
 
     public static Authorizations getAuthorizations(final JobContext job) {
@@ -320,33 +324,71 @@ public class ConfigUtils {
         return getInstance(job.getConfiguration());
     }
 
+    /**
+     * Create an {@link Instance} that may be used to create {@link Connector}s
+     * to Accumulo. If the configuration has the {@link #USE_MOCK_INSTANCE} flag
+     * set, then the instance will be be a {@link MockInstance} instead of a
+     * Zookeeper backed instance.
+     *
+     * @param conf - The configuration object that will be interrogated. (not null)
+     * @return The {@link Instance} that may be used to connect to Accumulo.
+     */
     public static Instance getInstance(final Configuration conf) {
+        // Pull out the Accumulo specific configuration values.
+        final AccumuloRdfConfiguration accConf = new AccumuloRdfConfiguration(conf);
+        String instanceName = accConf.getInstanceName();
+        String zoookeepers = accConf.getZookeepers();
+
+        // Create an Instance a mock if the mock flag is set.
         if (useMockInstance(conf)) {
-            return new MockInstance(conf.get(CLOUDBASE_INSTANCE));
+            return new MockInstance(instanceName);
         }
-        return new ZooKeeperInstance(conf.get(CLOUDBASE_INSTANCE), conf.get(CLOUDBASE_ZOOKEEPERS));
+
+        // Otherwise create an Instance to a Zookeeper managed instance of Accumulo.
+        return new ZooKeeperInstance(instanceName, zoookeepers);
     }
 
     public static String getPassword(final JobContext job) {
         return getPassword(job.getConfiguration());
     }
 
+    /**
+     * Get the Accumulo password from the configuration object that is meant to
+     * be used when connecting a {@link Connector} to Accumulo.
+     *
+     * @param conf - The configuration object that will be interrogated. (not null)
+     * @return The password if one could be found; otherwise an empty string.
+     */
     public static String getPassword(final Configuration conf) {
-        return conf.get(CLOUDBASE_PASSWORD, "");
+        return new AccumuloRdfConfiguration(conf).getPassword();
     }
 
     public static Connector getConnector(final JobContext job) throws AccumuloException, AccumuloSecurityException {
         return getConnector(job.getConfiguration());
     }
 
+    /**
+     * Create an Accumulo {@link Connector} using the configured connection information.
+     * If the connection information  points to a mock instance of Accumulo, then the
+     * {@link #USE_MOCK_INSTANCE} flag must be set.
+     *
+     * @param conf - Configures how the connector will be built. (not null)
+     * @return A {@link Connector} that may be used to interact with the configured Accumulo instance.
+     * @throws AccumuloException The connector couldn't be created because of an Accumulo problem.
+     * @throws AccumuloSecurityException The connector couldn't be created because of an Accumulo security violation.
+     */
     public static Connector getConnector(final Configuration conf) throws AccumuloException, AccumuloSecurityException {
-        final Instance instance = ConfigUtils.getInstance(conf);
-
-        return instance.getConnector(getUsername(conf), getPassword(conf));
+        return ConnectorFactory.connect( new AccumuloRdfConfiguration(conf) );
     }
 
+    /**
+     * Indicates that a Mock instance of Accumulo is being used to back the Rya instance.
+     *
+     * @param conf - The configuration object that will be interrogated. (not null)
+     * @return {@code true} if the Rya instance is backed by a mock Accumulo; otherwise {@code false}.
+     */
     public static boolean useMockInstance(final Configuration conf) {
-        return conf.getBoolean(USE_MOCK_INSTANCE, false);
+        return new AccumuloRdfConfiguration(conf).useMockInstance();
     }
 
     protected static int getNumPartitions(final Configuration conf) {
@@ -420,10 +462,9 @@ public class ConfigUtils {
                 useFilterIndex = true;
             }
         } else {
-
-            if (getUsePCJ(conf) || getUseOptimalPCJ(conf)) {
-                conf.setPcjOptimizer(PCJOptimizer.class);
-            }
+        	if (getUsePCJ(conf) || getUseOptimalPCJ(conf)) {
+        		conf.setPcjOptimizer(PCJOptimizer.class);
+        	}
 
             if (getUsePcjUpdaterIndex(conf)) {
                 indexList.add(PrecomputedJoinIndexer.class.getName());
@@ -455,7 +496,5 @@ public class ConfigUtils {
 
         conf.setStrings(AccumuloRdfConfiguration.CONF_ADDITIONAL_INDEXERS, indexList.toArray(new String[] {}));
         conf.setStrings(RdfCloudTripleStoreConfiguration.CONF_OPTIMIZERS, optimizers.toArray(new String[] {}));
-
     }
-
 }

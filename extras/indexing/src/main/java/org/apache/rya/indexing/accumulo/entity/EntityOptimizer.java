@@ -27,7 +27,6 @@ import java.util.Set;
 
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
-import org.apache.accumulo.core.client.TableExistsException;
 import org.apache.hadoop.conf.Configurable;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.rya.accumulo.AccumuloRdfConfiguration;
@@ -72,7 +71,7 @@ public class EntityOptimizer implements QueryOptimizer, Configurable {
                 eval = new AccumuloSelectivityEvalDAO(conf, ConfigUtils.getConnector(conf));
                 ((AccumuloSelectivityEvalDAO)eval).setRdfEvalDAO(new ProspectorServiceEvalStatsDAO(ConfigUtils.getConnector(conf), conf));
                 eval.init();
-            } catch (final AccumuloException | AccumuloSecurityException | TableExistsException e) {
+            } catch (final AccumuloException | AccumuloSecurityException e) {
                 LOG.warn("A problem was encountered while constructing the EntityOptimizer.", e);
             }
 
@@ -104,7 +103,7 @@ public class EntityOptimizer implements QueryOptimizer, Configurable {
                     eval = new AccumuloSelectivityEvalDAO(this.conf, ConfigUtils.getConnector(this.conf));
                     ((AccumuloSelectivityEvalDAO)eval).setRdfEvalDAO(new ProspectorServiceEvalStatsDAO(ConfigUtils.getConnector(this.conf), this.conf));
                     eval.init();
-                } catch (final AccumuloException | AccumuloSecurityException | TableExistsException e) {
+                } catch (final AccumuloException | AccumuloSecurityException e) {
                     LOG.warn("A problem was encountered while setting the Configuration for the EntityOptimizer.", e);
                 }
 

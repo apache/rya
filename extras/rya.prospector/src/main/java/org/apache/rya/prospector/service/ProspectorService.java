@@ -64,18 +64,21 @@ public class ProspectorService {
      * @param tableName - The name of the Accumulo table that will be queried for Prospect results. (not null)
      * @throws AccumuloException A problem occurred while creating the table.
      * @throws AccumuloSecurityException A problem occurred while creating the table.
-     * @throws TableExistsException A problem occurred while creating the table.
      */
-    public ProspectorService(Connector connector, String tableName) throws AccumuloException, AccumuloSecurityException, TableExistsException {
+    public ProspectorService(Connector connector, String tableName) throws AccumuloException, AccumuloSecurityException {
         this.connector = requireNonNull(connector);
         this.tableName = requireNonNull(tableName);
 
         this.plans = ProspectorUtils.planMap(manager.getPlans());
 
         // Create the table if it doesn't already exist.
-        final TableOperations tos = connector.tableOperations();
-        if(!tos.exists(tableName)) {
-            tos.create(tableName);
+        try {
+            final TableOperations tos = connector.tableOperations();
+            if(!tos.exists(tableName)) {
+                tos.create(tableName);
+            }
+        } catch(TableExistsException e) {
+            // Do nothing. Something else must have made it while we were.
         }
     }
 

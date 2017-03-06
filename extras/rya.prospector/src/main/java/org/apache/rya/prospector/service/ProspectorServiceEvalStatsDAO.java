@@ -18,6 +18,8 @@
  */
 package org.apache.rya.prospector.service;
 
+import static java.util.Objects.requireNonNull;
+
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -25,8 +27,10 @@ import java.util.List;
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
 import org.apache.accumulo.core.client.Connector;
-import org.apache.accumulo.core.client.TableExistsException;
 import org.apache.accumulo.core.client.TableNotFoundException;
+import org.apache.hadoop.conf.Configuration;
+import org.apache.rya.accumulo.AccumuloRdfConfiguration;
+import org.apache.rya.accumulo.utils.ConnectorFactory;
 import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
 import org.apache.rya.api.persist.RdfDAOException;
 import org.apache.rya.api.persist.RdfEvalStatsDAO;
@@ -50,9 +54,25 @@ public class ProspectorServiceEvalStatsDAO implements RdfEvalStatsDAO<RdfCloudTr
         this.prospectorService = prospectorService;
     }
 
-    public ProspectorServiceEvalStatsDAO(Connector connector, RdfCloudTripleStoreConfiguration conf) throws AccumuloException, AccumuloSecurityException, TableExistsException {
+    public ProspectorServiceEvalStatsDAO(Connector connector, RdfCloudTripleStoreConfiguration conf) throws AccumuloException, AccumuloSecurityException {
         this.prospectorService = new ProspectorService(connector, getProspectTableName(conf));
     }
+
+    /**
+     * Creates an instance of {@link ProspectorServiceEvalStatsDAO} that is connected to the Accumulo and Rya instance
+     * that is specified within the provided {@link Configuration}.
+     *
+     * @param config - Configures which instance of Accumulo Rya this DAO will be backed by. (not null)
+     * @return A new instance of {@link ProspectorServiceEvalStatsDAO}.
+     * @throws AccumuloException The connector couldn't be created because of an Accumulo problem.
+     * @throws AccumuloSecurityException The connector couldn't be created because of an Accumulo security violation.
+     */
+    public static ProspectorServiceEvalStatsDAO make(Configuration config) throws AccumuloException, AccumuloSecurityException {
+        requireNonNull(config);
+        AccumuloRdfConfiguration accConfig = new AccumuloRdfConfiguration(config);
+        return new ProspectorServiceEvalStatsDAO(ConnectorFactory.connect(accConfig), accConfig);
+    }
+
 
     @Override
     public void init() {

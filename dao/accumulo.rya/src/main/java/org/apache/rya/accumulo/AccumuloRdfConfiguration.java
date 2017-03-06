@@ -25,6 +25,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
 
+import org.apache.accumulo.core.client.Connector;
 import org.apache.accumulo.core.client.IteratorSetting;
 import org.apache.accumulo.core.security.Authorizations;
 import org.apache.hadoop.conf.Configuration;
@@ -34,25 +35,18 @@ import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 
-
-/**
- * Created by IntelliJ IDEA.
- * Date: 4/25/12
- * Time: 3:24 PM
- * To change this template use File | Settings | File Templates.
- */
 public class AccumuloRdfConfiguration extends RdfCloudTripleStoreConfiguration {
 
+    public static final String USE_MOCK_INSTANCE = ".useMockInstance";
     public static final String CLOUDBASE_INSTANCE = "sc.cloudbase.instancename";
     public static final String CLOUDBASE_ZOOKEEPERS = "sc.cloudbase.zookeepers";
     public static final String CLOUDBASE_USER = "sc.cloudbase.username";
     public static final String CLOUDBASE_PASSWORD = "sc.cloudbase.password";
-    public static final String USE_MOCK_INSTANCE = ".useMockInstance";
-    
+
     public static final String MAXRANGES_SCANNER = "ac.query.maxranges";
-    
+
     public static final String CONF_ADDITIONAL_INDEXERS = "ac.additional.indexers";
-    
+
     public static final String CONF_FLUSH_EACH_UPDATE = "ac.dao.flush";
 
     public static final String ITERATOR_SETTINGS_SIZE = "ac.iterators.size";
@@ -210,10 +204,61 @@ public class AccumuloRdfConfiguration extends RdfCloudTripleStoreConfiguration {
     }
     
 
+    /**
+     * Indicates that a Mock instance of Accumulo is being used to back the Rya instance.
+     *
+     * @return {@code true} if the Rya instance is backed by a mock Accumulo; otherwise {@code false}.
+     */
+    public boolean useMockInstance() {
+        return super.getBoolean(USE_MOCK_INSTANCE, false);
+    }
+
+    /**
+     * Get the Accumulo username from the configuration object that is meant to
+     * be used when connecting a {@link Connector} to Accumulo.
+     *
+     * @return The username if one could be found; otherwise {@code null}.
+     */
+    public String getUsername() {
+        return super.get(CLOUDBASE_USER);
+    }
+
+    /**
+     * Get the Accumulo password from the configuration object that is meant to
+     * be used when connecting a {@link Connector} to Accumulo.
+     *
+     * @return The password if one could be found; otherwise an empty string.
+     */
+    public String getPassword() {
+        return super.get(CLOUDBASE_PASSWORD, "");
+    }
+
+    /**
+     * Get the Accumulo instance name from the configuration object that is
+     * meant to be used when connecting a {@link Connector} to Accumulo.
+     *
+     * @return The instance name if one could be found; otherwise {@code null}.
+     */
+    public String getInstanceName() {
+        return super.get(CLOUDBASE_INSTANCE);
+    }
+
+    /**
+     * Get a comma delimited list of the names of the Zookeeper servers from
+     * the configuration object that is meant to be used when connecting a
+     * {@link Connector} to Accumulo.
+     *
+     * @return The zookeepers list if one could be found; otherwise {@code null}.
+     */
+    public String getZookeepers() {
+        return super.get(CLOUDBASE_ZOOKEEPERS);
+    }
+
     public Authorizations getAuthorizations() {
         String[] auths = getAuths();
-        if (auths == null || auths.length == 0)
+        if (auths == null || auths.length == 0) {
             return AccumuloRdfConstants.ALL_AUTHORIZATIONS;
+        }
         return new Authorizations(auths);
     }
 
@@ -230,7 +275,7 @@ public class AccumuloRdfConfiguration extends RdfCloudTripleStoreConfiguration {
         for (Class<? extends AccumuloIndexer> ai : indexers){
             strs.add(ai.getName());
         }
-        
+
         setStrings(CONF_ADDITIONAL_INDEXERS, strs.toArray(new String[]{}));
     }
 
@@ -281,7 +326,7 @@ public class AccumuloRdfConfiguration extends RdfCloudTripleStoreConfiguration {
             int priority = Integer.valueOf(this.get(String.format(ITERATOR_SETTINGS_PRIORITY, i)));
 
             int optionsSize = Integer.valueOf(this.get(String.format(ITERATOR_SETTINGS_OPTIONS_SIZE, i)));
-            Map<String, String> options = new HashMap<String, String>(optionsSize);
+            Map<String, String> options = new HashMap<>(optionsSize);
             for(int j = 0; j < optionsSize; j++) {
                 String key = this.get(String.format(ITERATOR_SETTINGS_OPTIONS_KEY, i, j));
                 String value = this.get(String.format(ITERATOR_SETTINGS_OPTIONS_VALUE, i, j));

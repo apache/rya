@@ -205,12 +205,27 @@ public class AccumuloRdfConfiguration extends RdfCloudTripleStoreConfiguration {
     
 
     /**
+     * @param enabled - {@code true} if the Rya instance is backed by a mock Accumulo; otherwise {@code false}.
+     */
+    public void useMockInstance(boolean enabled) {
+        super.setBooleanIfUnset(USE_MOCK_INSTANCE, enabled);
+    }
+
+    /**
      * Indicates that a Mock instance of Accumulo is being used to back the Rya instance.
      *
      * @return {@code true} if the Rya instance is backed by a mock Accumulo; otherwise {@code false}.
      */
     public boolean useMockInstance() {
         return super.getBoolean(USE_MOCK_INSTANCE, false);
+    }
+
+    /**
+     * @param username - The Accumulo username from the configuration object that is meant to
+     *   be used when connecting a {@link Connector} to Accumulo.
+     */
+    public void setUsername(String username) {
+        super.set(CLOUDBASE_USER, username);
     }
 
     /**
@@ -224,6 +239,14 @@ public class AccumuloRdfConfiguration extends RdfCloudTripleStoreConfiguration {
     }
 
     /**
+     * @param password - The Accumulo password from the configuration object that is meant to
+     * be used when connecting a {@link Connector} to Accumulo.
+     */
+    public void setPassword(String password) {
+        super.set(CLOUDBASE_PASSWORD, password);
+    }
+
+    /**
      * Get the Accumulo password from the configuration object that is meant to
      * be used when connecting a {@link Connector} to Accumulo.
      *
@@ -234,6 +257,14 @@ public class AccumuloRdfConfiguration extends RdfCloudTripleStoreConfiguration {
     }
 
     /**
+     * @param instanceName - The Accumulo instance name from the configuration object that is
+     * meant to be used when connecting a {@link Connector} to Accumulo.
+     */
+    public void setInstanceName(String instanceName) {
+        super.set(CLOUDBASE_INSTANCE, instanceName);
+    }
+
+    /**
      * Get the Accumulo instance name from the configuration object that is
      * meant to be used when connecting a {@link Connector} to Accumulo.
      *
@@ -241,6 +272,15 @@ public class AccumuloRdfConfiguration extends RdfCloudTripleStoreConfiguration {
      */
     public String getInstanceName() {
         return super.get(CLOUDBASE_INSTANCE);
+    }
+
+    /**
+     * @param zookeepers - A comma delimited list of the names of the Zookeeper servers from
+     * the configuration object that is meant to be used when connecting a
+     * {@link Connector} to Accumulo.
+     */
+    public void setZookeepers(String zookeepers) {
+        super.set(CLOUDBASE_ZOOKEEPERS, zookeepers);
     }
 
     /**

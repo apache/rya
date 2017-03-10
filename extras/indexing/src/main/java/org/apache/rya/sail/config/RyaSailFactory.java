@@ -139,8 +139,7 @@ public class RyaSailFactory {
         dao.setConnector(connector);
 
         ConfigUtils.setIndexers(config);
-        config.setDisplayQueryPlan(true);
-
+        
         dao.setConf(config);
         dao.init();
         return dao;

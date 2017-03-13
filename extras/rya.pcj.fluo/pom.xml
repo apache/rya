@@ -74,6 +74,24 @@
                     </execution>
                 </executions>
             </plugin>
+            <plugin>
+		<groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-dependency-plugin</artifactId>
+            </plugin>
         </plugins>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>org.apache.rat</groupId>
+                        <artifactId>apache-rat-plugin</artifactId>
+                        <configuration>
+                            <excludes>
+                                <!--  Trivial listing of classes to be loaded via SPI -->
+                                <exclude>**/resources/META-INF/services/**</exclude>
+                            </excludes>
+                        </configuration>
+                    </plugin>
+            </plugins>
+        </pluginManagement>
     </build>
 </project>

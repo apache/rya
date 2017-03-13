@@ -47,7 +47,7 @@ import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.indexing.accumulo.ConfigUtils;
 import org.apache.rya.indexing.pcj.fluo.ITBase;
 import org.apache.rya.indexing.pcj.fluo.api.CreatePcj;
-import org.apache.rya.indexing.pcj.fluo.api.InsertTriples;
+import org.apache.rya.indexing.pcj.fluo.api.InsertStatements;
 import org.apache.rya.indexing.pcj.storage.PrecomputedJoinStorage;
 import org.apache.rya.indexing.pcj.storage.accumulo.AccumuloPcjStorage;
 import org.apache.rya.indexing.pcj.storage.accumulo.PcjTableNameFactory;
@@ -201,7 +201,7 @@ public class PcjVisibilityIT extends ITBase {
         // Stream the data into Fluo.
         for(final RyaStatement statement : streamedTriples.keySet()) {
             final Optional<String> visibility = Optional.of(streamedTriples.get(statement));
-            new InsertTriples().insert(fluoClient, statement, visibility);
+            new InsertStatements().insert(fluoClient, statement, visibility);
         }
 
         // Fetch the exported results from Accumulo once the observers finish working.

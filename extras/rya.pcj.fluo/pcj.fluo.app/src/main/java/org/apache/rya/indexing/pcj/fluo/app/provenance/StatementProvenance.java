@@ -25,10 +25,13 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 
-import javax.annotation.ParametersAreNonnullByDefault;
-import javax.annotation.concurrent.Immutable;
-
 import org.openrdf.model.Statement;
+
+import com.google.common.collect.ImmutableMap;
+
+import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
+import edu.umd.cs.findbugs.annotations.NonNull;
+import edu.umd.cs.findbugs.annotations.Nullable;
 
 /**
  * Keeps track of a {@link Statement}'s INSERT and DELETE history. We keep track
@@ -47,7 +50,7 @@ import org.openrdf.model.Statement;
  * runtime exception because it isn't recoverable. It indicates a problem with
  * the service that is assigning ordering outside of this application.
  */
-@ParametersAreNonnullByDefault
+@DefaultAnnotation(NonNull.class)
 public class StatementProvenance {
 
     /**
@@ -112,19 +115,50 @@ public class StatementProvenance {
         /**
          * The {@link Statement} has been inserted into Rya.
          */
-        INSERT,
+        INSERT(0),
 
         /**
          * The {@link Statement} has been deleted from Rya.
          */
-        DELETE;
+        DELETE(1);
+
+        private int id;
+
+        private Operation(int id) {
+            this.id = id;
+        }
+
+        /**
+         * @return Uniquely identifies the operation.
+         */
+        public int getId() {
+            return id;
+        }
+
+        private static final ImmutableMap<Integer, Operation> lookup;
+        static {
+            ImmutableMap.Builder<Integer, Operation> builder = ImmutableMap.builder();
+            for(Operation operation : Operation.values()) {
+                builder.put(operation.getId(), operation);
+            }
+            lookup = builder.build();
+        }
+
+        /**
+         * Get the {@link Operation} that has a specific ID.
+         *
+         * @param id - The ID to lookup.
+         * @return The {@link Operation} for the id, or {@code null} if none match.
+         */
+        public static @Nullable Operation getById(int id) {
+            return lookup.get(id);
+        }
     }
 
     /**
      * Represents when an {@link Operation} was executed for a specific {@link Statement} within Rya.
      */
-    @Immutable
-    @ParametersAreNonnullByDefault
+    @DefaultAnnotation(NonNull.class)
     public static final class StatementEvent {
         private final Long operationNumber;
         private final Operation operation;

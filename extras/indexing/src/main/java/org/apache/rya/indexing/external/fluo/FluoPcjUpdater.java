@@ -25,7 +25,7 @@ import java.util.Collection;
 import org.apache.fluo.api.client.FluoClient;
 import org.apache.log4j.Logger;
 import org.apache.rya.api.domain.RyaStatement;
-import org.apache.rya.indexing.pcj.fluo.api.InsertTriples;
+import org.apache.rya.indexing.pcj.fluo.api.InsertStatements;
 import org.apache.rya.indexing.pcj.update.PrecomputedJoinUpdater;
 
 import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
@@ -43,7 +43,7 @@ public class FluoPcjUpdater implements PrecomputedJoinUpdater {
     private boolean deleteWarningPrinted = false;
 
     private final FluoClient fluoClient;
-    private final InsertTriples insertTriples = new InsertTriples();
+    private final InsertStatements insertTriples = new InsertStatements();
 
     /**
      * Constructs an instance of {@link FluoPcjUpdater}.

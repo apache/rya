@@ -18,49 +18,58 @@
  */
 package org.apache.rya.indexing.pcj.fluo.api;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import static java.util.Objects.requireNonNull;
 
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
 
-import org.apache.log4j.Logger;
-import org.apache.rya.indexing.pcj.fluo.app.query.FluoQueryColumns;
-
-import com.google.common.base.Optional;
-
 import org.apache.fluo.api.client.FluoClient;
 import org.apache.fluo.api.client.Transaction;
 import org.apache.fluo.api.data.Bytes;
+import org.apache.log4j.Logger;
 import org.apache.rya.api.RdfCloudTripleStoreConstants.TABLE_LAYOUT;
 import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.resolver.triple.TripleRow;
 import org.apache.rya.api.resolver.triple.TripleRowResolverException;
 import org.apache.rya.api.resolver.triple.impl.WholeRowTripleResolver;
+import org.apache.rya.indexing.pcj.fluo.app.query.FluoQueryColumns;
+
+import com.google.common.base.Charsets;
+import com.google.common.base.Optional;
 
 /**
- * Insert a batch of Triples into. This will trigger observers that will update
+ * Insert a batch of {@link RyaStatement}s into the fluo application. This will trigger observers that will update
  * the final results of any PCJs that are being managed by this application.
  */
-public class InsertTriples {
-    private static final Logger log = Logger.getLogger(InsertTriples.class);
+public class InsertStatements {
+    private static final Logger log = Logger.getLogger(InsertStatements.class);
 
     /**
      * Converts triples into the byte[] used as the row ID in Accumulo.
      */
     private static final WholeRowTripleResolver TRIPLE_RESOLVER = new WholeRowTripleResolver();
 
-    // TODO visiblity is part of RyaStatement. Put it there instead.
-
     /**
-     * Inserts a triple into Fluo.
+     * Inserts a {@link RyaStatement} into Fluo.
      *
      * @param fluo - A connection to the Fluo table that will be updated. (not null)
-     * @param triple - The triple to insert. (not null)
-     * @param visibility - The visibility/permissions required to view this triple once stored. (not null)
+     * @param statement - The statement to insert. (not null)
      */
-    public void insert(final FluoClient fluo, final RyaStatement triple, final Optional<String> visibility) {
-        insert(fluo, Collections.singleton(triple), visibility);
+    public void insert(final FluoClient fluo, final RyaStatement statement) {
+        requireNonNull(fluo);
+        requireNonNull(statement);
+
+        // Check the RyaStatement to see if it contains a visibility value.
+        Optional<String> visibility = Optional.absent();
+        byte[] visBytes = statement.getColumnVisibility();
+        if(visBytes != null) {
+            String visString = new String(visBytes, Charsets.UTF_8);
+            visibility = Optional.of( visString );
+        }
+
+        // Perform the insert.
+        insert(fluo, Collections.singleton(statement), visibility);
     }
 
     /**
@@ -72,9 +81,9 @@ public class InsertTriples {
      * Note: The same visibility will be applied to each triple.(not null)
      */
     public void insert(final FluoClient fluo, final Collection<RyaStatement> triples, final Optional<String> visibility) {
-        checkNotNull(fluo);
-        checkNotNull(triples);
-        checkNotNull(visibility);
+        requireNonNull(fluo);
+        requireNonNull(triples);
+        requireNonNull(visibility);
 
         try(Transaction tx = fluo.newTransaction()) {
             for(final RyaStatement triple : triples) {
@@ -88,29 +97,16 @@ public class InsertTriples {
             tx.commit();
         }
     }
-    
-    /**
-     * Inserts a triple into Fluo.
-     *
-     * @param fluo - A connection to the Fluo table that will be updated. (not null)
-     * @param triple - The RyaStatement to insert. (not null)
-     */
-    public void insert(final FluoClient fluo, final RyaStatement triple) {
-    	checkNotNull(fluo);
-        checkNotNull(triple);
 
-        insert(fluo, Collections.singleton(triple));
-    }
-    
     /**
-     * Insert a batch of RyaStatements into Fluo.  
+     * Insert a batch of RyaStatements into Fluo.
      *
      * @param fluo - A connection to the Fluo table that will be updated. (not null)
      * @param triples - The triples to insert. (not null)
      */
     public void insert(final FluoClient fluo, final Collection<RyaStatement> triples) {
-    	checkNotNull(fluo);
-        checkNotNull(triples);
+        requireNonNull(fluo);
+        requireNonNull(triples);
 
         try(Transaction tx = fluo.newTransaction()) {
             for(final RyaStatement triple : triples) {
@@ -125,8 +121,6 @@ public class InsertTriples {
             tx.commit();
         }
     }
-    
-    
 
     /**
      * Converts a triple into a byte[] holding the Rya SPO representation of it.
@@ -136,7 +130,7 @@ public class InsertTriples {
      * @throws TripleRowResolverException The triple could not be converted.
      */
     public static byte[] spoFormat(final RyaStatement triple) throws TripleRowResolverException {
-        checkNotNull(triple);
+        requireNonNull(triple);
         final Map<TABLE_LAYOUT, TripleRow> serialized = TRIPLE_RESOLVER.serialize(triple);
         final TripleRow spoRow = serialized.get(TABLE_LAYOUT.SPO);
         return spoRow.getRow();

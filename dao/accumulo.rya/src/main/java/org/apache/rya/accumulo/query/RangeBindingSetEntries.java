@@ -1,5 +1,9 @@
 package org.apache.rya.accumulo.query;
 
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Set;
+
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -19,40 +23,64 @@ package org.apache.rya.accumulo.query;
  * under the License.
  */
 
-
-
 import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Range;
+import org.apache.hadoop.io.Text;
+import org.apache.hadoop.io.WritableComparator;
 import org.openrdf.query.BindingSet;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Map;
+import com.google.common.collect.HashMultimap;
+import com.google.common.collect.Multimap;
 
 /**
- * Class RangeBindingSetCollection
- * Date: Feb 23, 2011
- * Time: 10:15:48 AM
+ * Class RangeBindingSetCollection Date: Feb 23, 2011 Time: 10:15:48 AM
  */
 public class RangeBindingSetEntries {
-    public Collection<Map.Entry<Range, BindingSet>> ranges;
+    private Multimap<Range, BindingSet> ranges = HashMultimap.create();
 
     public RangeBindingSetEntries() {
-        this(new ArrayList<Map.Entry<Range, BindingSet>>());
+        ranges = HashMultimap.create();
     }
 
-    public RangeBindingSetEntries(Collection<Map.Entry<Range, BindingSet>> ranges) {
-        this.ranges = ranges;
+    public void put(Range range, BindingSet bs) {
+        ranges.put(range, bs);
     }
 
     public Collection<BindingSet> containsKey(Key key) {
-        //TODO: need to find a better way to sort these and pull
-        //TODO: maybe fork/join here
-        Collection<BindingSet> bss = new ArrayList<BindingSet>();
-        for (Map.Entry<Range, BindingSet> entry : ranges) {
-            if (entry.getKey().contains(key))
-                bss.add(entry.getValue());
+        Set<BindingSet> bsSet = new HashSet<>();
+        for (Range range : ranges.keySet()) {
+            // Check to see if the Key falls within Range and has same ColumnFamily
+            // as beginning and ending key of Range.
+            // The additional ColumnFamily check by the method
+            // validateContext(...) is necessary because range.contains(key)
+            // returns true if only the Row is within the Range but the ColumnFamily
+            // doesn't fall within the Range ColumnFamily bounds.
+            if (range.contains(key) && validateContext(key.getColumnFamily(), range.getStartKey().getColumnFamily(),
+                    range.getEndKey().getColumnFamily())) {
+                bsSet.addAll(ranges.get(range));
+            }
         }
-        return bss;
+        return bsSet;
+    }
+
+    /**
+     * 
+     * @param colFamily
+     * @param startColFamily
+     * @param stopColFamily
+     * @return true if colFamily lies between startColFamily and stopColFamily
+     */
+    private boolean validateContext(Text colFamily, Text startColFamily, Text stopColFamily) {
+        byte[] cfBytes = colFamily.getBytes();
+        byte[] start = startColFamily.getBytes();
+        byte[] stop = stopColFamily.getBytes();
+        // range has empty column family, so all Keys falling with Range Row
+        // constraints should match
+        if (start.length == 0 && stop.length == 0) {
+            return true;
+        }
+        int result1 = WritableComparator.compareBytes(cfBytes, 0, cfBytes.length, start, 0, start.length);
+        int result2 = WritableComparator.compareBytes(cfBytes, 0, cfBytes.length, stop, 0, stop.length);
+        return result1 >= 0 && result2 <= 0;
     }
 }

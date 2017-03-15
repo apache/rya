@@ -296,7 +296,7 @@ public class RdfCloudTripleStoreConnection extends SailConnectionBase {
             }
             
             final ParallelEvaluationStrategyImpl strategy = new ParallelEvaluationStrategyImpl(
-                    new StoreTripleSource(queryConf), inferenceEngine, dataset, queryConf);
+                    new StoreTripleSource(queryConf, ryaDAO), inferenceEngine, dataset, queryConf);
             
                 (new BindingAssigner()).optimize(tupleExpr, dataset, bindings);
                 (new ConstantOptimizer(strategy)).optimize(tupleExpr, dataset,
@@ -591,12 +591,14 @@ public class RdfCloudTripleStoreConnection extends SailConnectionBase {
         //TODO: ?
     }
 
-    public class StoreTripleSource implements TripleSource {
+    public static class StoreTripleSource implements TripleSource {
 
         private RdfCloudTripleStoreConfiguration conf;
+        private RyaDAO<?> ryaDAO;
 
-        public StoreTripleSource(RdfCloudTripleStoreConfiguration conf) {
+        public StoreTripleSource(RdfCloudTripleStoreConfiguration conf, RyaDAO<?> ryaDAO) {
             this.conf = conf;
+            this.ryaDAO = ryaDAO;
         }
 
         public CloseableIteration<Statement, QueryEvaluationException> getStatements(

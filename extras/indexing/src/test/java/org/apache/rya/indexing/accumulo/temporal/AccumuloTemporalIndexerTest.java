@@ -21,8 +21,10 @@ package org.apache.rya.indexing.accumulo.temporal;
 
 
 import static org.apache.rya.api.resolver.RdfToRyaConversions.convertStatement;
-import static org.junit.Assert.*; 
-import org.junit.Assert; 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+
 import java.io.IOException;
 import java.io.PrintStream;
 import java.security.NoSuchAlgorithmException;
@@ -35,8 +37,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
+import org.apache.accumulo.core.client.BatchWriterConfig;
+import org.apache.accumulo.core.client.Connector;
+import org.apache.accumulo.core.client.MultiTableBatchWriter;
 import org.apache.accumulo.core.client.Scanner;
 import org.apache.accumulo.core.client.TableExistsException;
 import org.apache.accumulo.core.client.TableNotFoundException;
@@ -48,8 +54,17 @@ import org.apache.commons.codec.binary.StringUtils;
 import org.apache.commons.io.output.NullOutputStream;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.Text;
+import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
+import org.apache.rya.api.domain.RyaStatement;
+import org.apache.rya.indexing.StatementConstraints;
+import org.apache.rya.indexing.StatementSerializer;
+import org.apache.rya.indexing.TemporalInstant;
+import org.apache.rya.indexing.TemporalInstantRfc3339;
+import org.apache.rya.indexing.TemporalInterval;
+import org.apache.rya.indexing.accumulo.ConfigUtils;
 import org.junit.After;
 import org.junit.AfterClass;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -64,14 +79,6 @@ import org.openrdf.query.QueryEvaluationException;
 import com.beust.jcommander.internal.Lists;
 
 import info.aduna.iteration.CloseableIteration;
-import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
-import org.apache.rya.api.domain.RyaStatement;
-import org.apache.rya.indexing.StatementConstraints;
-import org.apache.rya.indexing.StatementSerializer;
-import org.apache.rya.indexing.TemporalInstant;
-import org.apache.rya.indexing.TemporalInstantRfc3339;
-import org.apache.rya.indexing.TemporalInterval;
-import org.apache.rya.indexing.accumulo.ConfigUtils;
 
 /**
  * JUnit tests for TemporalIndexer and it's implementation AccumuloTemporalIndexer
@@ -230,6 +237,11 @@ public final class AccumuloTemporalIndexerTest {
 
         tIndexer = new AccumuloTemporalIndexer();
         tIndexer.setConf(conf);
+        Connector connector = ConfigUtils.getConnector(conf);
+        MultiTableBatchWriter mt_bw = connector.createMultiTableBatchWriter(new BatchWriterConfig());
+        tIndexer.setConnector(connector);
+        tIndexer.setMultiTableBatchWriter(mt_bw);
+        tIndexer.init();
     }
 
     /**

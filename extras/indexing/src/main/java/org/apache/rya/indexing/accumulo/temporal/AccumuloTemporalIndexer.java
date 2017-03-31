@@ -56,6 +56,7 @@ import org.apache.hadoop.io.Text;
 import org.apache.log4j.Logger;
 import org.apache.rya.accumulo.experimental.AbstractAccumuloIndexer;
 import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
+import org.apache.rya.api.client.RyaClientException;
 import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.resolver.RyaToRdfConversions;
 import org.apache.rya.indexing.KeyParts;
@@ -102,17 +103,42 @@ public class AccumuloTemporalIndexer extends AbstractAccumuloIndexer implements 
     private boolean isInit = false;
 
 
+    /**
+     * intilize the temporal index.
+     * This is dependent on a few set method calls before init:
+     * >  Connector = ConfigUtils.getConnector(conf);
+     * >  MultiTableBatchWriter mtbw = connector.createMultiTableBatchWriter(new BatchWriterConfig());
+     * >  // optional: temporal.setConnector(connector);
+     * >  temporal.setMultiTableBatchWriter(mtbw);
+     * >  temporal.init();
+     */
+    @Override
+    public void init() {
+        if (!isInit) {
+            try {
+                initInternal();
+                isInit = true;
+            } catch (final AccumuloException | AccumuloSecurityException | TableNotFoundException | TableExistsException | RyaClientException e) {
+                logger.warn("Unable to initialize index.  Throwing Runtime Exception. ", e);
+                throw new RuntimeException(e);
+            }
+        }
+    }
 
     private void initInternal() throws AccumuloException, AccumuloSecurityException, TableNotFoundException,
-            TableExistsException {
+                    TableExistsException, RyaClientException {
+        if (mtbw == null)
+            throw new RyaClientException("Failed to initialize temporal index, setMultiTableBatchWriter() was not set.");
+        if (conf == null)
+            throw new RyaClientException("Failed to initialize temporal index, setConf() was not set.");
+
         temporalIndexTableName = getTableName();
         // Create one index table on first run.
-        ConfigUtils.createTableIfNotExists(conf, temporalIndexTableName);
-
-        mtbw = ConfigUtils.createMultitableBatchWriter(conf);
-
+        Boolean isCreated = ConfigUtils.createTableIfNotExists(conf, temporalIndexTableName);
+        if (isCreated) {
+            logger.info("First run, created temporal index table: " + temporalIndexTableName);
+        }
         temporalIndexBatchWriter = mtbw.getBatchWriter(temporalIndexTableName);
-
         validPredicates = ConfigUtils.getTemporalPredicates(conf);
     }
 
@@ -120,24 +146,7 @@ public class AccumuloTemporalIndexer extends AbstractAccumuloIndexer implements 
     @Override
     public void setConf(final Configuration conf) {
         this.conf = conf;
-        if (!isInit) {
-            try {
-                initInternal();
-                isInit = true;
-            } catch (final AccumuloException e) {
-                logger.warn("Unable to initialize index.  Throwing Runtime Exception. ", e);
-                throw new RuntimeException(e);
-            } catch (final AccumuloSecurityException e) {
-                logger.warn("Unable to initialize index.  Throwing Runtime Exception. ", e);
-                throw new RuntimeException(e);
-            } catch (final TableNotFoundException e) {
-                logger.warn("Unable to initialize index.  Throwing Runtime Exception. ", e);
-                throw new RuntimeException(e);
-            } catch (final TableExistsException e) {
-                logger.warn("Unable to initialize index.  Throwing Runtime Exception. ", e);
-                throw new RuntimeException(e);
-            }
-        }
+
     }
 
     @Override
@@ -158,15 +167,19 @@ public class AccumuloTemporalIndexer extends AbstractAccumuloIndexer implements 
     private void storeStatement(final Statement statement) throws IOException, IllegalArgumentException {
         // if the predicate list is empty, accept all predicates.
         // Otherwise, make sure the predicate is on the "valid" list
-        final boolean isValidPredicate = validPredicates.isEmpty() || validPredicates.contains(statement.getPredicate());
+        final boolean isValidPredicate = validPredicates == null || validPredicates.isEmpty() || validPredicates.contains(statement.getPredicate());
         if (!isValidPredicate || !(statement.getObject() instanceof Literal)) {
             return;
         }
+
         final DateTime[] indexDateTimes = new DateTime[2]; // 0 begin, 1 end of interval
         extractDateTime(statement, indexDateTimes);
         if (indexDateTimes[0]==null) {
             return;
         }
+
+        if (!this.isInit)
+            throw new RuntimeException("Method .init() was not called (or failed) before attempting to store statements.");
 
         // Add this as an instant, or interval.
         try {
@@ -865,8 +878,9 @@ public class AccumuloTemporalIndexer extends AbstractAccumuloIndexer implements 
     @Override
     public void close() throws IOException {
         try {
-
-            mtbw.close();
+            if (mtbw != null) {
+                mtbw.close();
+            }
 
         } catch (final MutationsRejectedException e) {
             final String msg = "Error while closing the batch writer.";
@@ -926,12 +940,6 @@ public class AccumuloTemporalIndexer extends AbstractAccumuloIndexer implements 
     }
 
     @Override
-    public void init() {
-        // TODO Auto-generated method stub
-
-    }
-
-    @Override
     public void setConnector(final Connector connector) {
         // TODO Auto-generated method stub
 
@@ -953,5 +961,15 @@ public class AccumuloTemporalIndexer extends AbstractAccumuloIndexer implements 
     public void dropAndDestroy() {
         // TODO Auto-generated method stub
 
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.apache.rya.accumulo.experimental.AbstractAccumuloIndexer#setMultiTableBatchWriter(org.apache.accumulo.core.client.MultiTableBatchWriter)
+     */
+    @Override
+    public void setMultiTableBatchWriter(MultiTableBatchWriter writer) throws IOException {
+        mtbw = writer;
     }
 }

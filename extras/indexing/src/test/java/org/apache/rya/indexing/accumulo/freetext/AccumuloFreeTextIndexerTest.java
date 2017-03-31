@@ -93,6 +93,8 @@ public class AccumuloFreeTextIndexerTest {
     public void testSearch() throws Exception {
         try (AccumuloFreeTextIndexer f = new AccumuloFreeTextIndexer()) {
             f.setConf(conf);
+            f.setMultiTableBatchWriter(ConfigUtils.createMultitableBatchWriter(conf));
+            f.init();
 
             ValueFactory vf = new ValueFactoryImpl();
 
@@ -134,6 +136,8 @@ public class AccumuloFreeTextIndexerTest {
     public void testDelete() throws Exception {
         try (AccumuloFreeTextIndexer f = new AccumuloFreeTextIndexer()) {
             f.setConf(conf);
+            f.setMultiTableBatchWriter(ConfigUtils.createMultitableBatchWriter(conf));
+            f.init();
 
             ValueFactory vf = new ValueFactoryImpl();
 
@@ -187,6 +191,8 @@ public class AccumuloFreeTextIndexerTest {
 
         try (AccumuloFreeTextIndexer f = new AccumuloFreeTextIndexer()) {
             f.setConf(conf);
+            f.setMultiTableBatchWriter(ConfigUtils.createMultitableBatchWriter(conf));
+            f.init();
 
             // These should not be stored because they are not in the predicate list
             f.storeStatement(new RyaStatement(new RyaURI("foo:subj1"), new RyaURI(RDFS.LABEL.toString()), new RyaType("invalid")));
@@ -222,6 +228,8 @@ public class AccumuloFreeTextIndexerTest {
     public void testContextSearch() throws Exception {
         try (AccumuloFreeTextIndexer f = new AccumuloFreeTextIndexer()) {
             f.setConf(conf);
+            f.setMultiTableBatchWriter(ConfigUtils.createMultitableBatchWriter(conf));
+            f.init();
 
             ValueFactory vf = new ValueFactoryImpl();
             URI subject = new URIImpl("foo:subj");

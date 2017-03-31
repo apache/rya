@@ -45,9 +45,6 @@ import org.apache.hadoop.mapreduce.RecordWriter;
 import org.apache.hadoop.mapreduce.TaskAttemptContext;
 import org.apache.hadoop.mapreduce.lib.output.NullOutputFormat;
 import org.apache.log4j.Logger;
-import org.openrdf.model.Statement;
-import org.openrdf.model.vocabulary.XMLSchema;
-
 import org.apache.rya.accumulo.AccumuloRdfConfiguration;
 import org.apache.rya.accumulo.AccumuloRdfConstants;
 import org.apache.rya.accumulo.AccumuloRyaDAO;
@@ -64,6 +61,8 @@ import org.apache.rya.indexing.accumulo.ConfigUtils;
 import org.apache.rya.indexing.accumulo.entity.EntityCentricIndex;
 import org.apache.rya.indexing.accumulo.freetext.AccumuloFreeTextIndexer;
 import org.apache.rya.indexing.accumulo.temporal.AccumuloTemporalIndexer;
+import org.openrdf.model.Statement;
+import org.openrdf.model.vocabulary.XMLSchema;
 
 /**
  * {@link OutputFormat} that uses Rya, the {@link GeoIndexer}, the
@@ -207,21 +206,42 @@ public class RyaOutputFormat extends OutputFormat<Writable, RyaStatementWritable
     }
 
 
-    private static FreeTextIndexer getFreeTextIndexer(Configuration conf) {
+    private static FreeTextIndexer getFreeTextIndexer(Configuration conf) throws IOException {
         if (!conf.getBoolean(ENABLE_FREETEXT, true)) {
             return null;
         }
         AccumuloFreeTextIndexer freeText = new AccumuloFreeTextIndexer();
         freeText.setConf(conf);
+        Connector connector;
+        try {
+            connector = ConfigUtils.getConnector(conf);
+        } catch (AccumuloException | AccumuloSecurityException e) {
+            throw new IOException("Error when attempting to create a connection for writing the freeText index.", e);
+        }
+        MultiTableBatchWriter mtbw = connector.createMultiTableBatchWriter(new BatchWriterConfig());
+        freeText.setConnector(connector);
+        freeText.setMultiTableBatchWriter(mtbw);
+        freeText.init();
+
         return freeText;
     }
 
-    private static TemporalIndexer getTemporalIndexer(Configuration conf) {
+    private static TemporalIndexer getTemporalIndexer(Configuration conf) throws IOException {
         if (!conf.getBoolean(ENABLE_TEMPORAL, true)) {
             return null;
         }
         AccumuloTemporalIndexer temporal = new AccumuloTemporalIndexer();
         temporal.setConf(conf);
+        Connector connector;
+        try {
+            connector = ConfigUtils.getConnector(conf);
+        } catch (AccumuloException | AccumuloSecurityException e) {
+            throw new IOException("Error when attempting to create a connection for writing the temporal index.", e);
+        }
+        MultiTableBatchWriter mtbw = connector.createMultiTableBatchWriter(new BatchWriterConfig());
+        temporal.setConnector(connector);
+        temporal.setMultiTableBatchWriter(mtbw);
+        temporal.init();
         return temporal;
     }
 

@@ -126,10 +126,8 @@ public class TemporalTupleSet extends ExternalTupleSet {
     public static class TemporalSearchFunctionFactory  {
         private final Map<URI, SearchFunction> SEARCH_FUNCTION_MAP = Maps.newHashMap();
         private final TemporalIndexer temporalIndexer;
-        Configuration conf;
 
         public TemporalSearchFunctionFactory(final Configuration conf, final TemporalIndexer temporalIndexer) {
-            this.conf = conf;
             this.temporalIndexer = temporalIndexer;
         }
 

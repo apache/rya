@@ -26,7 +26,7 @@ import org.apache.rya.api.domain.RyaURI;
 import org.apache.rya.indexing.entity.model.Entity;
 import org.apache.rya.indexing.entity.storage.EntityStorage;
 import org.apache.rya.indexing.entity.storage.EntityStorage.EntityStorageException;
-import org.apache.rya.indexing.mongodb.update.DocumentUpdater;
+import org.apache.rya.indexing.mongodb.update.MongoDocumentUpdater;
 import org.apache.rya.indexing.mongodb.update.RyaObjectStorage.ObjectStorageException;
 
 import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
@@ -36,7 +36,7 @@ import edu.umd.cs.findbugs.annotations.NonNull;
  * Performs update operations over an {@link EntityStorage}.
  */
 @DefaultAnnotation(NonNull.class)
-public class EntityUpdater implements DocumentUpdater<RyaURI, Entity>{
+public class EntityUpdater implements MongoDocumentUpdater<RyaURI, Entity>{
 
     private final EntityStorage storage;
 

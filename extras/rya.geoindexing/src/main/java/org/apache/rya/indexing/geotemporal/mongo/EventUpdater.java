@@ -26,7 +26,7 @@ import org.apache.rya.api.domain.RyaURI;
 import org.apache.rya.indexing.geotemporal.model.Event;
 import org.apache.rya.indexing.geotemporal.storage.EventStorage;
 import org.apache.rya.indexing.geotemporal.storage.EventStorage.EventStorageException;
-import org.apache.rya.indexing.mongodb.update.DocumentUpdater;
+import org.apache.rya.indexing.mongodb.update.MongoDocumentUpdater;
 import org.apache.rya.indexing.mongodb.update.RyaObjectStorage.ObjectStorageException;
 
 import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
@@ -36,7 +36,7 @@ import edu.umd.cs.findbugs.annotations.NonNull;
  * Performs update operations over an {@link EventStorage}.
  */
 @DefaultAnnotation(NonNull.class)
-public class EventUpdater implements DocumentUpdater<RyaURI, Event>{
+public class EventUpdater implements MongoDocumentUpdater<RyaURI, Event>{
     private final EventStorage events;
 
     /**

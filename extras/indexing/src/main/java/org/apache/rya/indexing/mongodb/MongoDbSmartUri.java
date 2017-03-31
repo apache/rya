@@ -36,6 +36,7 @@ import org.apache.rya.indexing.entity.storage.EntityStorage;
 import org.apache.rya.indexing.entity.storage.EntityStorage.EntityStorageException;
 import org.apache.rya.indexing.entity.storage.mongo.ConvertingCursor;
 import org.apache.rya.indexing.entity.storage.mongo.MongoEntityStorage;
+import org.apache.rya.indexing.mongodb.update.RyaObjectStorage.ObjectStorageException;
 import org.apache.rya.indexing.smarturi.SmartUriAdapter;
 import org.apache.rya.indexing.smarturi.SmartUriException;
 import org.apache.rya.indexing.smarturi.SmartUriStorage;
@@ -74,7 +75,7 @@ public class MongoDbSmartUri implements SmartUriStorage {
         // Create it.
         try {
             entityStorage.create(entity);
-        } catch (final EntityStorageException e) {
+        } catch (final ObjectStorageException e) {
             throw new SmartUriException("Failed to create entity storage", e);
         }
     }
@@ -86,7 +87,7 @@ public class MongoDbSmartUri implements SmartUriStorage {
         // Create it.
         try {
             entityStorage.create(entity);
-        } catch (final EntityStorageException e) {
+        } catch (final ObjectStorageException e) {
             throw new SmartUriException("Failed to create entity storage", e);
         }
     }
@@ -98,7 +99,7 @@ public class MongoDbSmartUri implements SmartUriStorage {
         // Update it.
         try {
             entityStorage.update(oldEntity, updatedEntity);
-        } catch (final EntityStorageException e) {
+        } catch (final ObjectStorageException e) {
             throw new SmartUriException("Failed to update entity", e);
         }
     }
@@ -111,7 +112,7 @@ public class MongoDbSmartUri implements SmartUriStorage {
         try {
             final Optional<Entity> resultEntity = entityStorage.get(subject);
             return resultEntity.get();
-        } catch (final EntityStorageException e) {
+        } catch (final ObjectStorageException e) {
             throw new SmartUriException("Failed to query entity storage", e);
         }
     }

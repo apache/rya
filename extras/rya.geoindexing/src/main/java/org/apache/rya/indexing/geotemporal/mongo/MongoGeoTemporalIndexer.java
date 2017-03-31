@@ -206,12 +206,16 @@ public class MongoGeoTemporalIndexer extends AbstractMongoIndexer<GeoTemporalMon
 
     @Override
     public EventStorage getEventStorage(final Configuration conf) {
+        requireNonNull(conf);
+
         if(events.get() != null) {
             return events.get();
         }
 
-        final MongoDBRdfConfiguration mongoConf = (MongoDBRdfConfiguration) conf;
+
+        final MongoDBRdfConfiguration mongoConf = new MongoDBRdfConfiguration(conf);
         mongoClient = mongoConf.getMongoClient();
+        configuration.set(mongoConf);
         if (mongoClient == null) {
             mongoClient = MongoConnectorFactory.getMongoClient(conf);
         }

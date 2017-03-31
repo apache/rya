@@ -34,6 +34,18 @@ import org.apache.commons.lang.Validate;
 import org.apache.hadoop.conf.Configurable;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.log4j.Logger;
+import org.apache.rya.accumulo.AccumuloRdfConfiguration;
+import org.apache.rya.indexing.IndexingFunctionRegistry.FUNCTION_TYPE;
+import org.apache.rya.indexing.accumulo.ConfigUtils;
+import org.apache.rya.indexing.accumulo.freetext.AccumuloFreeTextIndexer;
+import org.apache.rya.indexing.accumulo.freetext.FreeTextTupleSet;
+import org.apache.rya.indexing.accumulo.geo.GeoMesaGeoIndexer;
+import org.apache.rya.indexing.accumulo.geo.GeoParseUtils;
+import org.apache.rya.indexing.accumulo.geo.GeoTupleSet;
+import org.apache.rya.indexing.accumulo.temporal.AccumuloTemporalIndexer;
+import org.apache.rya.indexing.mongodb.freetext.MongoFreeTextIndexer;
+import org.apache.rya.indexing.mongodb.geo.MongoGeoIndexer;
+import org.apache.rya.indexing.mongodb.temporal.MongoTemporalIndexer;
 import org.geotools.feature.SchemaException;
 import org.openrdf.model.Resource;
 import org.openrdf.model.URI;
@@ -52,24 +64,11 @@ import org.openrdf.query.algebra.QueryModelNode;
 import org.openrdf.query.algebra.StatementPattern;
 import org.openrdf.query.algebra.TupleExpr;
 import org.openrdf.query.algebra.ValueConstant;
-import org.openrdf.query.algebra.ValueExpr;
 import org.openrdf.query.algebra.Var;
 import org.openrdf.query.algebra.evaluation.QueryOptimizer;
 import org.openrdf.query.algebra.helpers.QueryModelVisitorBase;
 
 import com.google.common.collect.Lists;
-
-import org.apache.rya.accumulo.AccumuloRdfConfiguration;
-import org.apache.rya.indexing.IndexingFunctionRegistry.FUNCTION_TYPE;
-import org.apache.rya.indexing.accumulo.ConfigUtils;
-import org.apache.rya.indexing.accumulo.freetext.AccumuloFreeTextIndexer;
-import org.apache.rya.indexing.accumulo.freetext.FreeTextTupleSet;
-import org.apache.rya.indexing.accumulo.geo.GeoMesaGeoIndexer;
-import org.apache.rya.indexing.accumulo.geo.GeoTupleSet;
-import org.apache.rya.indexing.accumulo.temporal.AccumuloTemporalIndexer;
-import org.apache.rya.indexing.mongodb.freetext.MongoFreeTextIndexer;
-import org.apache.rya.indexing.mongodb.geo.MongoGeoIndexer;
-import org.apache.rya.indexing.mongodb.temporal.MongoTemporalIndexer;
 
 public class GeoEnabledFilterFunctionOptimizer implements QueryOptimizer, Configurable {
     private static final Logger LOG = Logger.getLogger(GeoEnabledFilterFunctionOptimizer.class);
@@ -232,33 +231,13 @@ public class GeoEnabledFilterFunctionOptimizer implements QueryOptimizer, Config
             final URI fnUri = valueFactory.createURI(call.getURI());
             final Var resultVar = IndexingFunctionRegistry.getResultVarFromFunctionCall(fnUri, call.getArgs());
             if (resultVar != null && resultVar.getName().equals(matchVar)) {
-                addFilter(valueFactory.createURI(call.getURI()), extractArguments(matchVar, call));
+                addFilter(valueFactory.createURI(call.getURI()), GeoParseUtils.extractArguments(matchVar, call));
                 if (call.getParentNode() instanceof Filter || call.getParentNode() instanceof And || call.getParentNode() instanceof LeftJoin) {
                     call.replaceWith(new ValueConstant(valueFactory.createLiteral(true)));
                 } else {
                     throw new IllegalArgumentException("Query error: Found " + call + " as part of an expression that is too complex");
                 }
             }
-        }
-
-        private Value[] extractArguments(final String matchName, final FunctionCall call) {
-            final Value args[] = new Value[call.getArgs().size() - 1];
-            int argI = 0;
-            for (int i = 0; i != call.getArgs().size(); ++i) {
-                final ValueExpr arg = call.getArgs().get(i);
-                if (argI == i && arg instanceof Var && matchName.equals(((Var)arg).getName())) {
-                    continue;
-                }
-                if (arg instanceof ValueConstant) {
-                    args[argI] = ((ValueConstant)arg).getValue();
-                } else if (arg instanceof Var && ((Var)arg).hasValue()) {
-                    args[argI] = ((Var)arg).getValue();
-                } else {
-                    throw new IllegalArgumentException("Query error: Found " + arg + ", expected a Literal, BNode or URI");
-                }
-                ++argI;
-            }
-            return args;
         }
 
         @Override

@@ -63,7 +63,8 @@ import com.vividsolutions.jts.io.WKTReader;
 import jline.internal.Log;
 
 /**
- * TODO: doc
+ * Storage adapter for serializing Geo Temporal statements into mongo objects.
+ * This includes adapting the {@link IndexingExpr}s for the GeoTemporal indexer.
  */
 public class GeoTemporalMongoDBStorageStrategy extends IndexingMongoDBStorageStrategy {
     private static final Logger LOG = Logger.getLogger(GeoTemporalMongoDBStorageStrategy.class);

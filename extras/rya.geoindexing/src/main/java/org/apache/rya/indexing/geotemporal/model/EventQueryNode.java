@@ -29,12 +29,17 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 
+import org.apache.commons.lang.builder.EqualsBuilder;
 import org.apache.rya.api.domain.RyaURI;
 import org.apache.rya.indexing.IndexingExpr;
+import org.apache.rya.indexing.TemporalInstant;
 import org.apache.rya.indexing.TemporalInstantRfc3339;
+import org.apache.rya.indexing.entity.query.EntityQueryNode;
 import org.apache.rya.indexing.geotemporal.storage.EventStorage;
 import org.apache.rya.indexing.mongodb.update.RyaObjectStorage.ObjectStorageException;
 import org.apache.rya.rdftriplestore.evaluation.ExternalBatchingIterator;
+import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
 import org.openrdf.model.Value;
 import org.openrdf.model.impl.ValueFactoryImpl;
 import org.openrdf.query.BindingSet;
@@ -60,8 +65,10 @@ public class EventQueryNode extends ExternalSet implements ExternalBatchingItera
 
     //Information about the subject of the patterns.
     private final boolean subjectIsConstant;
-    private final Optional<String> subjectConstant;
     private final Optional<String> subjectVar;
+    //not final because if the subject is a variable and the evaluate() is
+    //  provided a binding set that contains the subject, this optional is used.
+    private Optional<String> subjectConstant;
 
     //since and EventQueryNode exists in a single segment, all binding names are garunteed to be assured.
     private final Set<String> bindingNames;
@@ -80,7 +87,7 @@ public class EventQueryNode extends ExternalSet implements ExternalBatchingItera
      * @param entities - The {@link EventStorage} that will be searched to match
      *   {@link BindingSet}s when evaluating a query. (not null)
      */
-    public EventQueryNode(final EventStorage eventStore, final StatementPattern geoPattern, final StatementPattern temporalPattern, final Collection<IndexingExpr> geoFilters, final Collection<IndexingExpr> temporalFilters, final Collection<FunctionCall> usedFilters) throws IllegalStateException {
+    private EventQueryNode(final EventStorage eventStore, final StatementPattern geoPattern, final StatementPattern temporalPattern, final Collection<IndexingExpr> geoFilters, final Collection<IndexingExpr> temporalFilters, final Collection<FunctionCall> usedFilters) throws IllegalStateException {
         this.geoPattern = requireNonNull(geoPattern);
         this.temporalPattern = requireNonNull(temporalPattern);
         this.geoFilters = requireNonNull(geoFilters);
@@ -159,8 +166,15 @@ public class EventQueryNode extends ExternalSet implements ExternalBatchingItera
         try {
             final Collection<Event> searchEvents;
             final String subj;
+            //if the provided binding set has the subject already, set it to the constant subject.
+            if(!subjectConstant.isPresent() && bindings.hasBinding(subjectVar.get())) {
+                subjectConstant = Optional.of(bindings.getValue(subjectVar.get()).stringValue());
+            } else if(bindings.size() != 0) {
+                list.add(bindings);
+            }
+
             // If the subject needs to be filled in, check if the subject variable is in the binding set.
-            if(subjectIsConstant) {
+            if(subjectConstant.isPresent()) {
                 // if it is, fetch that value and then fetch the entity for the subject.
                 subj = subjectConstant.get();
                 searchEvents = eventStore.search(Optional.of(new RyaURI(subj)), Optional.of(geoFilters), Optional.of(temporalFilters));
@@ -179,7 +193,11 @@ public class EventQueryNode extends ExternalSet implements ExternalBatchingItera
 
                 final Value temporalValue;
                 if(event.isInstant() && event.getInstant().isPresent()) {
-                    temporalValue = ValueFactoryImpl.getInstance().createLiteral(event.getInstant().get().getAsDateTime().toString(TemporalInstantRfc3339.FORMATTER));
+                    final Optional<TemporalInstant> opt = event.getInstant();
+                    DateTime dt = opt.get().getAsDateTime();
+                    dt = dt.toDateTime(DateTimeZone.UTC);
+                    final String str = dt.toString(TemporalInstantRfc3339.FORMATTER);
+                    temporalValue = ValueFactoryImpl.getInstance().createLiteral(str);
                 } else if(event.getInterval().isPresent()) {
                     temporalValue = ValueFactoryImpl.getInstance().createLiteral(event.getInterval().get().getAsPair());
                 } else {
@@ -194,9 +212,6 @@ public class EventQueryNode extends ExternalSet implements ExternalBatchingItera
             }
         } catch (final ObjectStorageException e) {
             throw new QueryEvaluationException("Failed to evaluate the binding set", e);
-        }
-        if(bindings.size() != 0) {
-            list.add(bindings);
         }
         return new CollectionIteration<>(list);
     }
@@ -238,15 +253,16 @@ public class EventQueryNode extends ExternalSet implements ExternalBatchingItera
     public boolean equals(final Object other) {
         if(other instanceof EventQueryNode) {
             final EventQueryNode otherNode = (EventQueryNode)other;
-
-            return  Objects.equals(subjectIsConstant, otherNode.subjectIsConstant) &&
-                    Objects.equals(subjectVar, otherNode.subjectVar) &&
-                    Objects.equals(geoFilters, otherNode.geoFilters) &&
-                    Objects.equals(geoPattern, otherNode.geoPattern) &&
-                    Objects.equals(temporalFilters, otherNode.temporalFilters) &&
-                    Objects.equals(temporalPattern, otherNode.temporalPattern) &&
-                    Objects.equals(bindingNames, otherNode.bindingNames) &&
-                    Objects.equals(subjectConstant, otherNode.subjectConstant);
+            return new EqualsBuilder()
+                .append(subjectIsConstant, otherNode.subjectIsConstant)
+                .append(subjectVar, otherNode.subjectVar)
+                .append(geoFilters, otherNode.geoFilters)
+                .append(geoPattern, otherNode.geoPattern)
+                .append(temporalFilters, otherNode.temporalFilters)
+                .append(temporalPattern, otherNode.temporalPattern)
+                .append(bindingNames, otherNode.bindingNames)
+                .append(subjectConstant, otherNode.subjectConstant)
+                .isEquals();
         }
         return false;
     }
@@ -279,5 +295,78 @@ public class EventQueryNode extends ExternalSet implements ExternalBatchingItera
     public CloseableIteration<BindingSet, QueryEvaluationException> evaluate(final Collection<BindingSet> bindingset)
             throws QueryEvaluationException {
         return null;
+    }
+
+    /**
+     * Builder for {@link EventQueryNode}s.
+     */
+    public static class EventQueryNodeBuilder {
+        private EventStorage store;
+        private StatementPattern geoPattern;
+        private StatementPattern temporalPattern;
+        private Collection<IndexingExpr> geoFilters;
+        private Collection<IndexingExpr> temporalFilters;
+        private Collection<FunctionCall> usedFilters;
+
+        /**
+         * @param store - The {@link EventStorage} to use in the {@link EntityQueryNode}
+         * @return - The Builder.
+         */
+        public EventQueryNodeBuilder setStorage(final EventStorage store) {
+            this.store = store;
+            return this;
+        }
+
+        /**
+         * @param geoPattern - The geo {@link StatementPattern} to use in the {@link EntityQueryNode}
+         * @return - The Builder.
+         */
+        public EventQueryNodeBuilder setGeoPattern(final StatementPattern geoPattern) {
+            this.geoPattern = geoPattern;
+            return this;
+        }
+
+        /**
+         * @param temporalPattern - The temporal {@link StatementPattern} to use in the {@link EntityQueryNode}
+         * @return - The Builder.
+         */
+        public EventQueryNodeBuilder setTemporalPattern(final StatementPattern temporalPattern) {
+            this.temporalPattern = temporalPattern;
+            return this;
+        }
+
+        /**
+         * @param geoFilters - The geo filter(s) {@link IndexingExpr} to use in the {@link EntityQueryNode}
+         * @return - The Builder.
+         */
+        public EventQueryNodeBuilder setGeoFilters(final Collection<IndexingExpr> geoFilters) {
+            this.geoFilters = geoFilters;
+            return this;
+        }
+
+        /**
+         * @param temporalFilters - The temporal filter(s) {@link IndexingExpr} to use in the {@link EntityQueryNode}
+         * @return - The Builder.
+         */
+        public EventQueryNodeBuilder setTemporalFilters(final Collection<IndexingExpr> temporalFilters) {
+            this.temporalFilters = temporalFilters;
+            return this;
+        }
+
+        /**
+         * @param usedFilters - The filter(s) used by the {@link EntityQueryNode}
+         * @return - The Builder.
+         */
+        public EventQueryNodeBuilder setUsedFilters(final Collection<FunctionCall> usedFilters) {
+            this.usedFilters = usedFilters;
+            return this;
+        }
+
+        /**
+         * @return The {@link EntityQueryNode} built by the builder.
+         */
+        public EventQueryNode build() {
+            return new EventQueryNode(store, geoPattern, temporalPattern, geoFilters, temporalFilters, usedFilters);
+        }
     }
 }

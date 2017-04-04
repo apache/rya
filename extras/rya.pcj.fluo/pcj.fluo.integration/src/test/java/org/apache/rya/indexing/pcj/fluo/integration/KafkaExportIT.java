@@ -33,6 +33,8 @@ import java.util.Properties;
 import java.util.Set;
 
 import org.I0Itec.zkclient.ZkClient;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
@@ -44,7 +46,7 @@ import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.indexing.pcj.fluo.ITBase;
 import org.apache.rya.indexing.pcj.fluo.api.CreatePcj;
 import org.apache.rya.indexing.pcj.fluo.api.InsertTriples;
-import org.apache.rya.indexing.pcj.fluo.app.export.rya.KafkaExportParameters;
+import org.apache.rya.indexing.pcj.fluo.app.export.kafka.KafkaExportParameters;
 import org.apache.rya.indexing.pcj.storage.PrecomputedJoinStorage;
 import org.apache.rya.indexing.pcj.storage.accumulo.AccumuloPcjStorage;
 import org.apache.rya.indexing.pcj.storage.accumulo.VisibilityBindingSet;
@@ -77,6 +79,7 @@ import kafka.zk.EmbeddedZookeeper;
  * $ mvn surefire:test -Dtest=KafkaExportIT
  */
 public class KafkaExportIT extends ITBase {
+    private static final Log logger = LogFactory.getLog(KafkaExportIT.class);
 
     private static final String ZKHOST = "127.0.0.1";
     private static final String BROKERHOST = "127.0.0.1";
@@ -112,7 +115,7 @@ public class KafkaExportIT extends ITBase {
         Time mock = new MockTime();
         kafkaServer = TestUtils.createServer(config, mock);
 
-        System.out.println("setup kafka and fluo.");
+        logger.trace("setup kafka and fluo.");
     }
 
     /**
@@ -125,7 +128,6 @@ public class KafkaExportIT extends ITBase {
      */
         @Test
         public void embeddedKafkaTest() throws InterruptedException, IOException {
-
             // create topic
             AdminUtils.createTopic(zkUtils, TOPIC, 1, 1, new Properties(), RackAwareMode.Disabled$.MODULE$);
 
@@ -157,7 +159,7 @@ public class KafkaExportIT extends ITBase {
             assertEquals(1, records.count());
             Iterator<ConsumerRecord<Integer, byte[]>> recordIterator = records.iterator();
             ConsumerRecord<Integer, byte[]> record = recordIterator.next();
-            System.out.printf("offset = %d, key = %s, value = %s", record.offset(), record.key(), record.value());
+        logger.trace(String.format("offset = %d, key = %s, value = %s", record.offset(), record.key(), record.value()));
             assertEquals(42, (int) record.key());
             assertEquals("test-message", new String(record.value(), StandardCharsets.UTF_8));
         consumer.close();
@@ -206,10 +208,10 @@ public class KafkaExportIT extends ITBase {
         ConsumerRecord<Integer, VisibilityBindingSet> unexpectedRecord = null;
         while (recordIterator.hasNext()) {
             ConsumerRecord<Integer, VisibilityBindingSet> record = recordIterator.next();
-            System.out.printf("Consumed offset = %d, key = %s, value = %s", record.offset(), record.key(), record.value().toString());
+            logger.trace(String.format("Consumed offset = %d, key = %s, value = %s", record.offset(), record.key(), record.value().toString()));
             boolean expectedThis = expected.contains(record.value());
             if (!expectedThis) {
-                System.out.println("This consumed record is not expected.");
+                logger.trace("This consumed record is not expected.");
                 unexpectedRecord = record;
             }
             allExpected = allExpected && expectedThis;
@@ -244,7 +246,7 @@ public class KafkaExportIT extends ITBase {
         consumerProps.setProperty(ConsumerConfig.GROUP_ID_CONFIG, "group0");
         consumerProps.setProperty(ConsumerConfig.CLIENT_ID_CONFIG, "consumer0");
         consumerProps.setProperty(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, "org.apache.kafka.common.serialization.IntegerDeserializer");
-        consumerProps.setProperty(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, "org.apache.rya.indexing.pcj.fluo.app.export.rya.BindingSetSerializer");
+        consumerProps.setProperty(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, "org.apache.rya.indexing.pcj.fluo.app.export.kafka.KryoVisibilityBindingSetSerializer");
         // "org.apache.kafka.common.serialization.ByteArrayDeserializer");
         consumerProps.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest"); // to make sure the consumer starts from the beginning of the topic
         /// KafkaConsumer<Integer, byte[]> consumer = new KafkaConsumer<>(consumerProps);
@@ -270,9 +272,9 @@ public class KafkaExportIT extends ITBase {
         Properties producerConfig = new Properties();
         producerConfig.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, BROKERHOST + ":" + BROKERPORT);
         producerConfig.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, "org.apache.kafka.common.serialization.ByteArraySerializer");
-        producerConfig.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, "org.apache.rya.indexing.pcj.fluo.app.export.rya.BindingSetSerializer");
+        producerConfig.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, "org.apache.rya.indexing.pcj.fluo.app.export.kafka.KryoVisibilityBindingSetSerializer");
         // "org.apache.kafka.common.serialization.StringSerializer");
-        kafkaParams.setProducerConfig(producerConfig);
+        kafkaParams.addAllProducerConfig(producerConfig);
     }
 
     /**

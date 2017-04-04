@@ -16,7 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.apache.rya.indexing.pcj.fluo.app.export.rya;
+package org.apache.rya.indexing.pcj.fluo.app.export.kafka;
 
 import org.apache.fluo.api.observer.Observer.Context;
 import org.apache.kafka.clients.producer.KafkaProducer;
@@ -52,7 +52,7 @@ public class KafkaResultExporterFactory implements IncrementalResultExporterFact
         log.debug("KafkaResultExporterFactory.build(): params.isExportToKafka()=" + exportParams.isExportToKafka());
         if (exportParams.isExportToKafka()) {
             // Setup Kafka connection
-            KafkaProducer<String, VisibilityBindingSet> producer = new KafkaProducer<String, VisibilityBindingSet>(exportParams.getProducerConfig());
+            KafkaProducer<String, VisibilityBindingSet> producer = new KafkaProducer<String, VisibilityBindingSet>(exportParams.listAllConfig());
             // Create the exporter
             final IncrementalResultExporter exporter = new KafkaResultExporter(producer);
             return Optional.of(exporter);

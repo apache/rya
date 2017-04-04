@@ -16,7 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.apache.rya.indexing.pcj.fluo.app.export.rya;
+package org.apache.rya.indexing.pcj.fluo.app.export.kafka;
 
 import java.util.Map;
 import java.util.Properties;
@@ -62,7 +62,7 @@ public class KafkaExportParameters extends ParametersBase {
      * 
      * @param producerConfig
      */
-    public void setProducerConfig(final Properties producerConfig) {
+    public void addAllProducerConfig(final Properties producerConfig) {
         for (Object key : producerConfig.keySet().toArray()) {
             Object value = producerConfig.getProperty(key.toString());
             this.params.put(key.toString(), value.toString());
@@ -70,9 +70,11 @@ public class KafkaExportParameters extends ParametersBase {
     }
 
     /**
+     * Collect all the properties
+     * 
      * @return all the params (not just kafka producer Configuration) as a {@link Properties}
      */
-    public Properties getProducerConfig() {
+    public Properties listAllConfig() {
         Properties props = new Properties();
         for (Object key : params.keySet().toArray()) {
             Object value = params.get(key.toString());

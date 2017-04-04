@@ -16,7 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.apache.rya.indexing.pcj.fluo.app.export.rya;
+package org.apache.rya.indexing.pcj.fluo.app.export.kafka;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -40,7 +40,7 @@ public class KafkaResultExporter implements IncrementalResultExporter {
      * 
      * @param producer
      *            for sending result set alerts to a broker. (not null)
-     *            created and configured by {@link KafkaResultExporterFactory}
+     *            Can be created and configured by {@link KafkaResultExporterFactory}
      */
     public KafkaResultExporter(KafkaProducer<String, VisibilityBindingSet> producer) {
         super();
@@ -59,7 +59,7 @@ public class KafkaResultExporter implements IncrementalResultExporter {
         try {
             final String pcjId = fluoTx.gets(queryId, FluoQueryColumns.RYA_PCJ_ID);
             String msg = "out to kafta topic: queryId=" + queryId + " pcjId=" + pcjId + " result=" + result;
-            log.info(msg);
+            log.trace(msg);
 
             // Send result on topic
             ProducerRecord<String, VisibilityBindingSet> rec = new ProducerRecord<String, VisibilityBindingSet>(/* topicname= */ queryId, /* value= */ result);

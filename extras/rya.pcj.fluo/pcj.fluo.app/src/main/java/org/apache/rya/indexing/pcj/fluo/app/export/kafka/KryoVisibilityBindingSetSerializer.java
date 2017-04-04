@@ -16,7 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.apache.rya.indexing.pcj.fluo.app.export.rya;
+package org.apache.rya.indexing.pcj.fluo.app.export.kafka;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -43,7 +43,11 @@ import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.io.Input;
 import com.esotericsoftware.kryo.io.Output;
 
-public class BindingSetSerializer implements Serializer<VisibilityBindingSet>, Deserializer<VisibilityBindingSet> {
+/**
+ * Serialize and deserialize a VisibilityBindingSet using Kyro lib. Great for exporting results of queries.
+ *
+ */
+public class KryoVisibilityBindingSetSerializer implements Serializer<VisibilityBindingSet>, Deserializer<VisibilityBindingSet> {
     private static final ThreadLocal<Kryo> kryos = new ThreadLocal<Kryo>() {
         @Override
         protected Kryo initialValue() {
@@ -52,20 +56,43 @@ public class BindingSetSerializer implements Serializer<VisibilityBindingSet>, D
         };
     };
 
+    /**
+     * Deserialize a VisibilityBindingSet using Kyro lib. Exporting results of queries.
+     * If you don't want to use Kyro, here is an alternative:
+     * return (new VisibilityBindingSetStringConverter()).convert(new String(data, StandardCharsets.UTF_8), null);
+     * 
+     * @param topic
+     *            ignored
+     * @param data
+     *            serialized bytes
+     * @return deserialized instance of VisibilityBindingSet
+     */
     @Override
     public VisibilityBindingSet deserialize(String topic, byte[] data) {
         KryoInternalSerializer internalSerializer = new KryoInternalSerializer();
         Input input = new Input(new ByteArrayInputStream(data));
         return internalSerializer.read(kryos.get(), input, VisibilityBindingSet.class);
-        // this is an alternative, or perhaps replace it:
-        // return (new VisibilityBindingSetStringConverter()).convert(new String(data, StandardCharsets.UTF_8), null);
     }
 
+    /**
+     * Ignored. Nothing to configure.
+     */
     @Override
     public void configure(Map<String, ?> configs, boolean isKey) {
         // Do nothing.
     }
 
+    /**
+     * Serialize a VisibilityBindingSet using Kyro lib. Exporting results of queries.
+     * If you don't want to use Kyro, here is an alternative:
+     * return (new VisibilityBindingSetStringConverter()).convert(data, null).getBytes(StandardCharsets.UTF_8);
+     * 
+     * @param topic
+     *            ignored
+     * @param data
+     *            serialize this instance
+     * @return Serialized form of VisibilityBindingSet
+     */
     @Override
     public byte[] serialize(String topic, VisibilityBindingSet data) {
         KryoInternalSerializer internalSerializer = new KryoInternalSerializer();
@@ -75,10 +102,11 @@ public class BindingSetSerializer implements Serializer<VisibilityBindingSet>, D
         output.flush();
         byte[] array = baos.toByteArray();
         return array;
-        // this is an alternative, or perhaps replace it:
-        // return (new VisibilityBindingSetStringConverter()).convert(data, null).getBytes(StandardCharsets.UTF_8);
     }
 
+    /**
+     * Ignored. Nothing to close.
+     */
     @Override
     public void close() {
         // Do nothing.
@@ -96,11 +124,10 @@ public class BindingSetSerializer implements Serializer<VisibilityBindingSet>, D
 
     /**
      * De/Serialize a visibility binding set using the Kryo library.
-     * TODO rename this KryoSomething and change the package.
      *
      */
     private static class KryoInternalSerializer extends com.esotericsoftware.kryo.Serializer<VisibilityBindingSet> {
-        private static final Logger log = Logger.getLogger(BindingSetSerializer.class);
+        private static final Logger log = Logger.getLogger(KryoVisibilityBindingSetSerializer.class);
         @Override
         public void write(Kryo kryo, Output output, VisibilityBindingSet visBindingSet) {
             log.debug("Serializer writing visBindingSet" + visBindingSet);

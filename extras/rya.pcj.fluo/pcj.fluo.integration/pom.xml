@@ -79,7 +79,6 @@
             <artifactId>kafka_2.11</artifactId>
             <version>0.10.1.0</version>
             <classifier>test</classifier>
-<!--             <scope>test</scope> -->
             <exclusions>
                 <exclusion>
                     <artifactId>slf4j-log4j12</artifactId>

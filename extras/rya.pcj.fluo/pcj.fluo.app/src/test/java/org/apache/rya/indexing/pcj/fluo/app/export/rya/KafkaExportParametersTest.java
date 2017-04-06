@@ -27,6 +27,9 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
+import org.apache.rya.indexing.pcj.fluo.app.export.kafka.KafkaExportParameters;
+import org.apache.rya.indexing.pcj.fluo.app.export.kafka.KafkaResultExporterFactory;
+
 import org.junit.Test;
 
 /**
@@ -71,8 +74,8 @@ public class KafkaExportParametersTest {
         Properties props = new Properties();
         props.put(key1, value1Second);
         props.put(key2, value2);
-        kafkaParams.setProducerConfig(props);
-        Properties propsAfter = kafkaParams.getProducerConfig();
+        kafkaParams.addAllProducerConfig(props);
+        Properties propsAfter = kafkaParams.listAllConfig();
         assertEquals(props, propsAfter);
         assertEquals(params, params);
         assertEquals("Should change identical parameters key", params.get(key1), value1Second);

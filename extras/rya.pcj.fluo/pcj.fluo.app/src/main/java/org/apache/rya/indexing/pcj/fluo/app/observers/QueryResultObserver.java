@@ -33,7 +33,7 @@ import org.apache.rya.indexing.pcj.fluo.app.export.IncrementalResultExporter;
 import org.apache.rya.indexing.pcj.fluo.app.export.IncrementalResultExporter.ResultExportException;
 import org.apache.rya.indexing.pcj.fluo.app.export.IncrementalResultExporterFactory;
 import org.apache.rya.indexing.pcj.fluo.app.export.IncrementalResultExporterFactory.IncrementalExporterFactoryException;
-import org.apache.rya.indexing.pcj.fluo.app.export.rya.KafkaResultExporterFactory;
+import org.apache.rya.indexing.pcj.fluo.app.export.kafka.KafkaResultExporterFactory;
 import org.apache.rya.indexing.pcj.fluo.app.export.rya.RyaResultExporterFactory;
 import org.apache.rya.indexing.pcj.fluo.app.query.FluoQueryColumns;
 import org.apache.rya.indexing.pcj.fluo.app.query.FluoQueryMetadataDAO;

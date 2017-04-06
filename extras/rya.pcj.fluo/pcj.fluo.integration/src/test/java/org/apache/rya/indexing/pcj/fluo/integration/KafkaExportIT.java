@@ -128,6 +128,7 @@ public class KafkaExportIT extends ITBase {
      */
         @Test
         public void embeddedKafkaTest() throws InterruptedException, IOException {
+
             // create topic
             AdminUtils.createTopic(zkUtils, TOPIC, 1, 1, new Properties(), RackAwareMode.Disabled$.MODULE$);
 

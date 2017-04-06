@@ -29,6 +29,7 @@ import java.util.Properties;
 
 import org.apache.rya.indexing.pcj.fluo.app.export.kafka.KafkaExportParameters;
 import org.apache.rya.indexing.pcj.fluo.app.export.kafka.KafkaResultExporterFactory;
+
 import org.junit.Test;
 
 /**

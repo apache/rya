@@ -25,6 +25,7 @@ import static org.apache.rya.indexing.pcj.fluo.app.IncrementalUpdateConstants.UR
 
 import org.apache.fluo.api.client.FluoClient;
 import org.apache.fluo.api.client.Snapshot;
+import org.apache.fluo.api.client.SnapshotBase;
 import org.apache.fluo.api.client.Transaction;
 import org.apache.fluo.api.client.scanner.CellScanner;
 import org.apache.fluo.api.data.Bytes;
@@ -53,7 +54,7 @@ public class IncUpdateDAO {
         return rs;
     }
 
-    private static String getTripleString(final RyaStatement rs) {
+    public static String getTripleString(final RyaStatement rs) {
         final String subj = rs.getSubject().getData() + TYPE_DELIM + URI_TYPE;
         final String pred = rs.getPredicate().getData() + TYPE_DELIM + URI_TYPE;
         final String objData = rs.getObject().getData();
@@ -102,81 +103,41 @@ public class IncUpdateDAO {
      */
     public static void printTriples(final FluoClient fluoClient) throws Exception {
         try (Snapshot snapshot = fluoClient.newSnapshot()) {
-        	CellScanner cscanner = snapshot.scanner().fetch(new Column("triples", "SPO")).build();
-        	for (RowColumnValue rcv : cscanner) {
+        	final CellScanner cscanner = snapshot.scanner().fetch(new Column("triples", "SPO")).build();
+        	for (final RowColumnValue rcv : cscanner) {
         		System.out.println("Triple: "+rcv.getsRow());
 			}
         }
     }
 
-//    /**
-//     * Print all bindings for the given queries. For demo's and diagnostics.
-//     * @param fluoClient
-//     * @param queryNames
-//     * @throws Exception
-//     */
-//    public static void printQueryResults(final FluoClient fluoClient,
-//            final Map<String, String> queryNames) throws Exception {
-//        try (Snapshot snapshot = fluoClient.newSnapshot();
-//                TypedTransaction tx1 = stl.wrap(fluoClient.newTransaction())) {
-//
-//            final ScannerConfiguration scanConfig = new ScannerConfiguration();
-//            scanConfig.fetchColumn(Bytes.of("query"), Bytes.of("bindingSet"));
-//
-//            final RowIterator rowIter = snapshot.get(scanConfig);
-//            String sparqlRow = "";
-//            System.out.println("*********************************************************");
-//
-//            while (rowIter.hasNext()) {
-//                final Entry<Bytes, ColumnIterator> row = rowIter.next();
-//                final String[] joinInfo = row.getKey().toString()
-//                        .split(NODEID_BS_DELIM);
-//                final String sparql = joinInfo[0];
-//                final String bs = joinInfo[1];
-//                if (!sparqlRow.equals(sparql)) {
-//                    sparqlRow = sparql;
-//                    System.out.println();
-//                    System.out.println();
-//                    System.out.println(queryNames.get(sparqlRow)
-//                            + " has bindings: ");
-//                    System.out.println();
-//                }
-//
-//                final String variables = tx1.get().row(sparqlRow).col(NODE_VARS).toString();
-//                final String[] vars = variables.split(";");
-//                final String[] bsVals = bs.split(DELIM);
-//                System.out.print("Bindingset:  ");
-//                for (int i = 0; i < vars.length; i++) {
-//                    System.out.print(vars[i] + " = " + bsVals[i] + "   ");
-//                }
-//                System.out.println();
-//
-//            }
-//
-//            System.out.println("*********************************************************");
-//        }
-//    }
+    /**
+     * Print all rows in the Fluo table for diagnostics.
+     * </p>
+     * Consider using {@code FluoITHelper.printFluoTable(FluoClient client)} instead.
+     */
+    @Deprecated
+    public static void printAll(final SnapshotBase sx) {
+        final String FORMAT = "%-30s | %-10s | %-10s | %-40s\n";
+        System.out.println("Printing all tables.  Showing unprintable bytes and braces as {ff} and {{} and {}} where ff is the value in hexadecimal.");
+        System.out.format(FORMAT, "--Row--", "--Column Family--", "--Column Qual--", "--Value--");
+        final CellScanner cscanner = sx.scanner().build();
+        for (final RowColumnValue rcv : cscanner) {
+            System.out.format(FORMAT, to_String(rcv.getRow()),
+                    to_String(rcv.getColumn().getFamily()),
+                    to_String(rcv.getColumn().getQualifier()),
+                    to_String(rcv.getValue()));
+        }
+    }
 
     /**
      * Print all rows in the Fluo table for diagnostics.
-     * @param fluoClient
-     * @throws Exception
+     * </p>
+     * Consider using {@code FluoITHelper.printFluoTable(FluoClient client)} instead.
      */
+    @Deprecated
     public static void printAll(final FluoClient fluoClient) throws Exception {
-        final String FORMAT = "%-30s | %-10s | %-10s | %-40s\n";
-        System.out
-        .println("Printing all tables.  Showing unprintable bytes and braces as {ff} and {{} and {}} where ff is the value in hexadecimal.");
-        System.out.format(FORMAT, "--Row--", "--Column Family--",
-                "--Column Qual--", "--Value--");
-        // Use try with resource to ensure snapshot is closed.
-        try (Snapshot snapshot = fluoClient.newSnapshot()) {
-        	CellScanner cscanner = snapshot.scanner().build();
-        	for (RowColumnValue rcv : cscanner) {
-        		System.out.format(FORMAT, to_String(rcv.getRow()),
-                        to_String(rcv.getColumn().getFamily()),
-                        to_String(rcv.getColumn().getQualifier()),
-                        to_String(rcv.getValue()));
-			}
+        try(Snapshot sx = fluoClient.newSnapshot()) {
+            printAll(sx);
         }
     }
 

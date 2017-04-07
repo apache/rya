@@ -38,10 +38,17 @@ import org.apache.accumulo.minicluster.MiniAccumuloCluster;
 import org.apache.hadoop.io.Text;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
+import org.apache.rya.accumulo.AccumuloRdfConfiguration;
+import org.apache.rya.accumulo.AccumuloRyaDAO;
+import org.apache.rya.accumulo.MiniAccumuloClusterInstance;
+import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
 import org.apache.rya.indexing.pcj.storage.PcjException;
 import org.apache.rya.indexing.pcj.storage.PcjMetadata;
+import org.apache.rya.indexing.pcj.storage.PrecomputedJoinStorage.CloseableIterator;
 import org.apache.rya.indexing.pcj.storage.PrecomputedJoinStorage.PCJStorageException;
 import org.apache.rya.indexing.pcj.storage.accumulo.BindingSetConverter.BindingSetConversionException;
+import org.apache.rya.rdftriplestore.RdfCloudTripleStore;
+import org.apache.rya.rdftriplestore.RyaSailRepository;
 import org.apache.zookeeper.ClientCnxn;
 import org.junit.After;
 import org.junit.Before;
@@ -62,13 +69,6 @@ import com.google.common.base.Optional;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
-
-import org.apache.rya.accumulo.AccumuloRdfConfiguration;
-import org.apache.rya.accumulo.AccumuloRyaDAO;
-import org.apache.rya.accumulo.MiniAccumuloClusterInstance;
-import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
-import org.apache.rya.rdftriplestore.RdfCloudTripleStore;
-import org.apache.rya.rdftriplestore.RyaSailRepository;
 
 /**
  * Performs integration test using {@link MiniAccumuloCluster} to ensure the
@@ -237,7 +237,7 @@ public class PcjTablesIntegrationTest {
     }
 
     @Test
-    public void listResults() throws PCJStorageException, AccumuloException, AccumuloSecurityException {
+    public void listResults() throws Exception {
         final String sparql =
                 "SELECT ?name ?age " +
                 "{" +
@@ -274,8 +274,14 @@ public class PcjTablesIntegrationTest {
 
         // Fetch the Binding Sets that have been stored in the PCJ table.
         final Set<BindingSet> results = new HashSet<>();
-        for(final BindingSet result : pcjs.listResults(accumuloConn, pcjTableName, new Authorizations())) {
-            results.add( result );
+
+        final CloseableIterator<BindingSet> resultsIt = pcjs.listResults(accumuloConn, pcjTableName, new Authorizations());
+        try {
+            while(resultsIt.hasNext()) {
+                results.add( resultsIt.next() );
+            }
+        } finally {
+            resultsIt.close();
         }
 
         // Verify the fetched results match the expected ones.

@@ -1,18 +1,3 @@
-package org.apache.rya.indexing.pcj.storage.accumulo;
-
-import static org.junit.Assert.assertEquals;
-
-import org.apache.rya.indexing.pcj.storage.accumulo.AccumuloPcjSerializer;
-import org.apache.rya.indexing.pcj.storage.accumulo.BindingSetConverter;
-import org.apache.rya.indexing.pcj.storage.accumulo.BindingSetConverter.BindingSetConversionException;
-import org.apache.rya.indexing.pcj.storage.accumulo.VariableOrder;
-import org.junit.Test;
-import org.openrdf.model.impl.LiteralImpl;
-import org.openrdf.model.impl.URIImpl;
-import org.openrdf.query.BindingSet;
-import org.openrdf.query.algebra.evaluation.QueryBindingSet;
-import org.openrdf.query.impl.MapBindingSet;
-
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -31,13 +16,27 @@ import org.openrdf.query.impl.MapBindingSet;
  * specific language governing permissions and limitations
  * under the License.
  */
+package org.apache.rya.indexing.pcj.storage.accumulo;
+
+import static org.junit.Assert.assertEquals;
+
+import org.apache.rya.indexing.pcj.storage.accumulo.AccumuloPcjSerializer;
+import org.apache.rya.indexing.pcj.storage.accumulo.BindingSetConverter;
+import org.apache.rya.indexing.pcj.storage.accumulo.BindingSetConverter.BindingSetConversionException;
+import org.apache.rya.indexing.pcj.storage.accumulo.VariableOrder;
+import org.junit.Test;
+import org.openrdf.model.impl.LiteralImpl;
+import org.openrdf.model.impl.URIImpl;
+import org.openrdf.query.BindingSet;
+import org.openrdf.query.algebra.evaluation.QueryBindingSet;
+import org.openrdf.query.impl.MapBindingSet;
 
 import org.apache.rya.api.resolver.RyaTypeResolverException;
 
 /**
  * Tests the methods of {@link AccumuloPcjSerialzer}.
  */
-public class AccumuloPcjSerialzerTest {
+public class AccumuloPcjSerializerTest {
 
     /**
      * The BindingSet has fewer Bindings than there are variables in the variable
@@ -66,10 +65,11 @@ public class AccumuloPcjSerialzerTest {
     }
 
     /**
-     * The BindingSet has a Binding whose name is not in the variable order.
-     * This is illegal.
+     * The BindingSet has more Bindings than there are variables in the variable order.
+     * This is the case where a Group By clause does not include all of the Bindings that
+     * are in the Binding Set.
      */
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void serialize_bindingNotInVariableOrder() throws RyaTypeResolverException, BindingSetConversionException {
         // Setup the Binding Set.
         final MapBindingSet originalBindingSet = new MapBindingSet();
@@ -80,9 +80,19 @@ public class AccumuloPcjSerialzerTest {
         // Setup the variable order.
         final VariableOrder varOrder = new VariableOrder("x", "y");
 
-        // Create the byte[] representation of the BindingSet. This will throw an exception.
+        // Serialize the Binding Set.
         BindingSetConverter<byte[]> converter = new AccumuloPcjSerializer();
-        converter.convert(originalBindingSet, varOrder);
+        byte[] serialized = converter.convert(originalBindingSet, varOrder);
+        
+        // Deserialize it again.
+        BindingSet deserialized = converter.convert(serialized, varOrder);
+        
+        // Show that it only contains the bindings that were part of the Variable Order.
+        MapBindingSet expected = new MapBindingSet();
+        expected.addBinding("x", new URIImpl("http://a"));
+        expected.addBinding("y", new URIImpl("http://b"));
+        
+        assertEquals(expected, deserialized);
     }
 
 	@Test

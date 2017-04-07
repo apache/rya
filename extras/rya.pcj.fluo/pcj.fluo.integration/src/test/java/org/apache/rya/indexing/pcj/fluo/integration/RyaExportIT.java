@@ -23,26 +23,29 @@ import static org.junit.Assert.assertEquals;
 import java.util.HashSet;
 import java.util.Set;
 
+import org.apache.accumulo.core.client.Connector;
+import org.apache.fluo.api.client.FluoClient;
+import org.apache.fluo.api.client.FluoFactory;
 import org.apache.rya.api.domain.RyaStatement;
-import org.apache.rya.indexing.pcj.fluo.ITBase;
+import org.apache.rya.api.domain.RyaURI;
+import org.apache.rya.indexing.pcj.fluo.RyaExportITBase;
 import org.apache.rya.indexing.pcj.fluo.api.CreatePcj;
 import org.apache.rya.indexing.pcj.fluo.api.InsertTriples;
 import org.apache.rya.indexing.pcj.storage.PrecomputedJoinStorage;
 import org.apache.rya.indexing.pcj.storage.accumulo.AccumuloPcjStorage;
 import org.junit.Test;
-import org.openrdf.model.impl.URIImpl;
+import org.openrdf.model.ValueFactory;
+import org.openrdf.model.impl.ValueFactoryImpl;
 import org.openrdf.query.BindingSet;
-import org.openrdf.query.impl.BindingImpl;
+import org.openrdf.query.impl.MapBindingSet;
 
 import com.google.common.base.Optional;
 import com.google.common.collect.Sets;
 
 /**
  * Performs integration tests over the Fluo application geared towards Rya PCJ exporting.
- * <p>
- * These tests are being ignore so that they will not run as unit tests while building the application.
  */
-public class RyaExportIT extends ITBase {
+public class RyaExportIT extends RyaExportITBase {
 
     @Test
     public void resultsExported() throws Exception {
@@ -57,59 +60,69 @@ public class RyaExportIT extends ITBase {
                 "}";
 
         // Triples that will be streamed into Fluo after the PCJ has been created.
+        final ValueFactory vf = new ValueFactoryImpl();
         final Set<RyaStatement> streamedTriples = Sets.newHashSet(
-                makeRyaStatement("http://Alice", "http://talksTo", "http://Bob"),
-                makeRyaStatement("http://Bob", "http://livesIn", "http://London"),
-                makeRyaStatement("http://Bob", "http://worksAt", "http://Chipotle"),
+                new RyaStatement(new RyaURI("http://Alice"), new RyaURI("http://talksTo"), new RyaURI("http://Bob")),
+                new RyaStatement(new RyaURI("http://Bob"), new RyaURI("http://livesIn"), new RyaURI("http://London")),
+                new RyaStatement(new RyaURI("http://Bob"), new RyaURI("http://worksAt"), new RyaURI("http://Chipotle")),
 
-                makeRyaStatement("http://Alice", "http://talksTo", "http://Charlie"),
-                makeRyaStatement("http://Charlie", "http://livesIn", "http://London"),
-                makeRyaStatement("http://Charlie", "http://worksAt", "http://Chipotle"),
+                new RyaStatement(new RyaURI("http://Alice"), new RyaURI("http://talksTo"), new RyaURI("http://Charlie")),
+                new RyaStatement(new RyaURI("http://Charlie"), new RyaURI("http://livesIn"), new RyaURI("http://London")),
+                new RyaStatement(new RyaURI("http://Charlie"), new RyaURI("http://worksAt"), new RyaURI("http://Chipotle")),
 
-                makeRyaStatement("http://Alice", "http://talksTo", "http://David"),
-                makeRyaStatement("http://David", "http://livesIn", "http://London"),
-                makeRyaStatement("http://David", "http://worksAt", "http://Chipotle"),
+                new RyaStatement(new RyaURI("http://Alice"), new RyaURI("http://talksTo"), new RyaURI("http://David")),
+                new RyaStatement(new RyaURI("http://David"), new RyaURI("http://livesIn"), new RyaURI("http://London")),
+                new RyaStatement(new RyaURI("http://David"), new RyaURI("http://worksAt"), new RyaURI("http://Chipotle")),
 
-                makeRyaStatement("http://Alice", "http://talksTo", "http://Eve"),
-                makeRyaStatement("http://Eve", "http://livesIn", "http://Leeds"),
-                makeRyaStatement("http://Eve", "http://worksAt", "http://Chipotle"),
+                new RyaStatement(new RyaURI("http://Alice"), new RyaURI("http://talksTo"), new RyaURI("http://Eve")),
+                new RyaStatement(new RyaURI("http://Eve"), new RyaURI("http://livesIn"), new RyaURI("http://Leeds")),
+                new RyaStatement(new RyaURI("http://Eve"), new RyaURI("http://worksAt"), new RyaURI("http://Chipotle")),
 
-                makeRyaStatement("http://Frank", "http://talksTo", "http://Alice"),
-                makeRyaStatement("http://Frank", "http://livesIn", "http://London"),
-                makeRyaStatement("http://Frank", "http://worksAt", "http://Chipotle"));
+                new RyaStatement(new RyaURI("http://Frank"), new RyaURI("http://talksTo"), new RyaURI("http://Alice")),
+                new RyaStatement(new RyaURI("http://Frank"), new RyaURI("http://livesIn"), new RyaURI("http://London")),
+                new RyaStatement(new RyaURI("http://Frank"), new RyaURI("http://worksAt"), new RyaURI("http://Chipotle")));
 
         // The expected results of the SPARQL query once the PCJ has been computed.
         final Set<BindingSet> expected = new HashSet<>();
-        expected.add(makeBindingSet(
-                new BindingImpl("customer", new URIImpl("http://Alice")),
-                new BindingImpl("worker", new URIImpl("http://Bob")),
-                new BindingImpl("city", new URIImpl("http://London"))));
-        expected.add(makeBindingSet(
-                new BindingImpl("customer", new URIImpl("http://Alice")),
-                new BindingImpl("worker", new URIImpl("http://Charlie")),
-                new BindingImpl("city", new URIImpl("http://London"))));
-        expected.add(makeBindingSet(
-                new BindingImpl("customer", new URIImpl("http://Alice")),
-                new BindingImpl("worker", new URIImpl("http://David")),
-                new BindingImpl("city", new URIImpl("http://London"))));
+
+        MapBindingSet bs = new MapBindingSet();
+        bs.addBinding("customer", vf.createURI("http://Alice"));
+        bs.addBinding("worker", vf.createURI("http://Bob"));
+        bs.addBinding("city", vf.createURI("http://London"));
+        expected.add(bs);
+
+        bs = new MapBindingSet();
+        bs.addBinding("customer", vf.createURI("http://Alice"));
+        bs.addBinding("worker", vf.createURI("http://Charlie"));
+        bs.addBinding("city", vf.createURI("http://London"));
+        expected.add(bs);
+
+        bs = new MapBindingSet();
+        bs.addBinding("customer", vf.createURI("http://Alice"));
+        bs.addBinding("worker", vf.createURI("http://David"));
+        bs.addBinding("city", vf.createURI("http://London"));
+        expected.add(bs);
 
         // Create the PCJ table.
+        final Connector accumuloConn = super.getAccumuloConnector();
         final PrecomputedJoinStorage pcjStorage = new AccumuloPcjStorage(accumuloConn, RYA_INSTANCE_NAME);
         final String pcjId = pcjStorage.createPcj(sparql);
 
-        // Tell the Fluo app to maintain the PCJ.
-        new CreatePcj().withRyaIntegration(pcjId, pcjStorage, fluoClient, accumuloConn, RYA_INSTANCE_NAME);
+        try(FluoClient fluoClient = FluoFactory.newClient(super.getFluoConfiguration())) {
+            // Tell the Fluo app to maintain the PCJ.
+            new CreatePcj().withRyaIntegration(pcjId, pcjStorage, fluoClient, accumuloConn, RYA_INSTANCE_NAME);
 
-        // Stream the data into Fluo.
-        new InsertTriples().insert(fluoClient, streamedTriples, Optional.<String>absent());
+            // Stream the data into Fluo.
+            new InsertTriples().insert(fluoClient, streamedTriples, Optional.<String>absent());
 
-        // Fetch the exported results from Accumulo once the observers finish working.
-        fluo.waitForObservers();
+            // Fetch the exported results from Accumulo once the observers finish working.
+            super.getMiniFluo().waitForObservers();
 
-        // Fetch expected results from the PCJ table that is in Accumulo.
-        final Set<BindingSet> results = Sets.newHashSet( pcjStorage.listResults(pcjId) );
+            // Fetch expected results from the PCJ table that is in Accumulo.
+            final Set<BindingSet> results = Sets.newHashSet( pcjStorage.listResults(pcjId) );
 
-        // Verify the end results of the query match the expected results.
-        assertEquals(expected, results);
+            // Verify the end results of the query match the expected results.
+            assertEquals(expected, results);
+        }
     }
 }

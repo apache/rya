@@ -37,6 +37,9 @@ import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Value;
 import org.apache.accumulo.core.security.Authorizations;
 import org.apache.accumulo.core.security.TablePermission;
+import org.apache.accumulo.minicluster.MiniAccumuloCluster;
+import org.apache.fluo.api.client.FluoClient;
+import org.apache.fluo.api.client.FluoFactory;
 import org.apache.hadoop.io.Text;
 import org.apache.rya.accumulo.AccumuloRdfConfiguration;
 import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
@@ -44,11 +47,13 @@ import org.apache.rya.api.client.RyaClient;
 import org.apache.rya.api.client.accumulo.AccumuloConnectionDetails;
 import org.apache.rya.api.client.accumulo.AccumuloRyaClientFactory;
 import org.apache.rya.api.domain.RyaStatement;
+import org.apache.rya.api.domain.RyaURI;
 import org.apache.rya.indexing.accumulo.ConfigUtils;
-import org.apache.rya.indexing.pcj.fluo.ITBase;
+import org.apache.rya.indexing.pcj.fluo.RyaExportITBase;
 import org.apache.rya.indexing.pcj.fluo.api.CreatePcj;
 import org.apache.rya.indexing.pcj.fluo.api.InsertTriples;
 import org.apache.rya.indexing.pcj.storage.PrecomputedJoinStorage;
+import org.apache.rya.indexing.pcj.storage.PrecomputedJoinStorage.CloseableIterator;
 import org.apache.rya.indexing.pcj.storage.accumulo.AccumuloPcjStorage;
 import org.apache.rya.indexing.pcj.storage.accumulo.PcjTableNameFactory;
 import org.apache.rya.rdftriplestore.RyaSailRepository;
@@ -56,10 +61,9 @@ import org.apache.rya.sail.config.RyaSailFactory;
 import org.junit.Test;
 import org.openrdf.model.URI;
 import org.openrdf.model.ValueFactory;
-import org.openrdf.model.impl.URIImpl;
 import org.openrdf.model.impl.ValueFactoryImpl;
 import org.openrdf.query.BindingSet;
-import org.openrdf.query.impl.BindingImpl;
+import org.openrdf.query.impl.MapBindingSet;
 import org.openrdf.repository.RepositoryConnection;
 import org.openrdf.sail.Sail;
 
@@ -70,7 +74,7 @@ import com.google.common.base.Optional;
  * Integration tests that ensure the Fluo Application properly exports PCJ
  * results with the correct Visibility values.
  */
-public class PcjVisibilityIT extends ITBase {
+public class PcjVisibilityIT extends RyaExportITBase {
 
     private static final ValueFactory VF = new ValueFactoryImpl();
 
@@ -94,6 +98,10 @@ public class PcjVisibilityIT extends ITBase {
                   "?worker <" + WORKS_AT + "> <" + BURGER_JOINT + ">. " +
                 "}";
 
+        final Connector accumuloConn = super.getAccumuloConnector();
+        final String instanceName = super.getMiniAccumuloCluster().getInstanceName();
+        final String zookeepers = super.getMiniAccumuloCluster().getZooKeepers();
+
         final RyaClient ryaClient = AccumuloRyaClientFactory.build(new AccumuloConnectionDetails(
                 ACCUMULO_USER,
                 ACCUMULO_PASSWORD.toCharArray(),
@@ -103,7 +111,7 @@ public class PcjVisibilityIT extends ITBase {
         final String pcjId = ryaClient.getCreatePCJ().createPCJ(RYA_INSTANCE_NAME, sparql);
 
         // Grant the root user the "u" authorization.
-        accumuloConn.securityOperations().changeUserAuthorizations(ACCUMULO_USER, new Authorizations("u"));
+        super.getAccumuloConnector().securityOperations().changeUserAuthorizations(ACCUMULO_USER, new Authorizations("u"));
 
         // Setup a connection to the Rya instance that uses the "u" authorizations. This ensures
         // any statements that are inserted will have the "u" authorization on them and that the
@@ -127,7 +135,7 @@ public class PcjVisibilityIT extends ITBase {
             ryaConn.add(VF.createStatement(BOB, WORKS_AT, BURGER_JOINT));
 
             // Wait for Fluo to finish processing.
-            fluo.waitForObservers();
+            super.getMiniFluo().waitForObservers();
 
             // Fetch the exported result and show that its column visibility has been simplified.
             final String pcjTableName = new PcjTableNameFactory().makeTableName(RYA_INSTANCE_NAME, pcjId);
@@ -171,41 +179,46 @@ public class PcjVisibilityIT extends ITBase {
 
         // Triples that will be streamed into Fluo after the PCJ has been created.
         final Map<RyaStatement, String> streamedTriples = new HashMap<>();
-        addStatementVisibilityEntry(streamedTriples, makeRyaStatement("http://Alice", "http://talksTo", "http://Bob"), "A&B");
-        addStatementVisibilityEntry(streamedTriples, makeRyaStatement("http://Bob", "http://livesIn", "http://London"), "A");
-        addStatementVisibilityEntry(streamedTriples, makeRyaStatement("http://Bob", "http://worksAt", "http://Chipotle"), "B");
+        addStatementVisibilityEntry(streamedTriples, new RyaStatement(new RyaURI("http://Alice"), new RyaURI("http://talksTo"),new RyaURI("http://Bob")), "A&B");
+        addStatementVisibilityEntry(streamedTriples, new RyaStatement(new RyaURI("http://Bob"), new RyaURI("http://livesIn"),new RyaURI("http://London")), "A");
+        addStatementVisibilityEntry(streamedTriples, new RyaStatement(new RyaURI("http://Bob"), new RyaURI("http://worksAt"),new RyaURI("http://Chipotle")), "B");
 
-        addStatementVisibilityEntry(streamedTriples, makeRyaStatement("http://Alice", "http://talksTo", "http://Charlie"), "B&C");
-        addStatementVisibilityEntry(streamedTriples, makeRyaStatement("http://Charlie", "http://livesIn", "http://London"), "B");
-        addStatementVisibilityEntry(streamedTriples, makeRyaStatement("http://Charlie", "http://worksAt", "http://Chipotle"), "C");
+        addStatementVisibilityEntry(streamedTriples, new RyaStatement(new RyaURI("http://Alice"), new RyaURI("http://talksTo"),new RyaURI("http://Charlie")), "B&C");
+        addStatementVisibilityEntry(streamedTriples, new RyaStatement(new RyaURI("http://Charlie"), new RyaURI("http://livesIn"),new RyaURI("http://London")), "B");
+        addStatementVisibilityEntry(streamedTriples, new RyaStatement(new RyaURI("http://Charlie"), new RyaURI("http://worksAt"),new RyaURI("http://Chipotle")), "C");
 
-        addStatementVisibilityEntry(streamedTriples, makeRyaStatement("http://Alice", "http://talksTo", "http://David"), "C&D");
-        addStatementVisibilityEntry(streamedTriples, makeRyaStatement("http://David", "http://livesIn", "http://London"), "C");
-        addStatementVisibilityEntry(streamedTriples, makeRyaStatement("http://David", "http://worksAt", "http://Chipotle"), "D");
+        addStatementVisibilityEntry(streamedTriples, new RyaStatement(new RyaURI("http://Alice"), new RyaURI("http://talksTo"),new RyaURI("http://David")), "C&D");
+        addStatementVisibilityEntry(streamedTriples, new RyaStatement(new RyaURI("http://David"), new RyaURI("http://livesIn"),new RyaURI("http://London")), "C");
+        addStatementVisibilityEntry(streamedTriples, new RyaStatement(new RyaURI("http://David"), new RyaURI("http://worksAt"),new RyaURI("http://Chipotle")), "D");
 
-        addStatementVisibilityEntry(streamedTriples, makeRyaStatement("http://Alice", "http://talksTo", "http://Eve"), "D&E");
-        addStatementVisibilityEntry(streamedTriples, makeRyaStatement("http://Eve", "http://livesIn", "http://Leeds"), "D");
-        addStatementVisibilityEntry(streamedTriples, makeRyaStatement("http://Eve", "http://worksAt", "http://Chipotle"), "E");
+        addStatementVisibilityEntry(streamedTriples, new RyaStatement(new RyaURI("http://Alice"), new RyaURI("http://talksTo"),new RyaURI("http://Eve")), "D&E");
+        addStatementVisibilityEntry(streamedTriples, new RyaStatement(new RyaURI("http://Eve"), new RyaURI("http://livesIn"),new RyaURI("http://Leeds")), "D");
+        addStatementVisibilityEntry(streamedTriples, new RyaStatement(new RyaURI("http://Eve"), new RyaURI("http://worksAt"),new RyaURI("http://Chipotle")), "E");
 
-        addStatementVisibilityEntry(streamedTriples, makeRyaStatement("http://Frank", "http://talksTo", "http://Alice"), "");
-        addStatementVisibilityEntry(streamedTriples, makeRyaStatement("http://Frank", "http://livesIn", "http://London"), "");
-        addStatementVisibilityEntry(streamedTriples, makeRyaStatement("http://Frank", "http://worksAt", "http://Chipotle"), "");
+        addStatementVisibilityEntry(streamedTriples, new RyaStatement(new RyaURI("http://Frank"), new RyaURI("http://talksTo"),new RyaURI("http://Alice")), "");
+        addStatementVisibilityEntry(streamedTriples, new RyaStatement(new RyaURI("http://Frank"), new RyaURI("http://livesIn"),new RyaURI("http://London")), "");
+        addStatementVisibilityEntry(streamedTriples, new RyaStatement(new RyaURI("http://Frank"), new RyaURI("http://worksAt"),new RyaURI("http://Chipotle")), "");
+
+        final Connector accumuloConn = super.getAccumuloConnector();
 
         // Create the PCJ Table in Accumulo.
         final PrecomputedJoinStorage rootStorage = new AccumuloPcjStorage(accumuloConn, RYA_INSTANCE_NAME);
         final String pcjId = rootStorage.createPcj(sparql);
 
-        // Create the PCJ in Fluo.
-        new CreatePcj().withRyaIntegration(pcjId, rootStorage, fluoClient, accumuloConn, RYA_INSTANCE_NAME);
 
-        // Stream the data into Fluo.
-        for(final RyaStatement statement : streamedTriples.keySet()) {
-            final Optional<String> visibility = Optional.of(streamedTriples.get(statement));
-            new InsertTriples().insert(fluoClient, statement, visibility);
+        try( final FluoClient fluoClient = FluoFactory.newClient( super.getFluoConfiguration() )) {
+            // Create the PCJ in Fluo.
+            new CreatePcj().withRyaIntegration(pcjId, rootStorage, fluoClient, accumuloConn, RYA_INSTANCE_NAME);
+
+            // Stream the data into Fluo.
+            for(final RyaStatement statement : streamedTriples.keySet()) {
+                final Optional<String> visibility = Optional.of(streamedTriples.get(statement));
+                new InsertTriples().insert(fluoClient, statement, visibility);
+            }
         }
 
         // Fetch the exported results from Accumulo once the observers finish working.
-        fluo.waitForObservers();
+        super.getMiniFluo().waitForObservers();
 
         setupTestUsers(accumuloConn, RYA_INSTANCE_NAME, pcjId);
 
@@ -213,80 +226,98 @@ public class PcjVisibilityIT extends ITBase {
         final Set<BindingSet> rootResults = toSet( rootStorage.listResults(pcjId));
 
         final Set<BindingSet> rootExpected = Sets.newHashSet();
-        rootExpected.add( makeBindingSet(
-                new BindingImpl("customer", new URIImpl("http://Alice")),
-                new BindingImpl("worker", new URIImpl("http://Bob")),
-                new BindingImpl("city", new URIImpl("http://London"))));
-        rootExpected.add( makeBindingSet(
-                new BindingImpl("customer", new URIImpl("http://Alice")),
-                new BindingImpl("worker", new URIImpl("http://Charlie")),
-                new BindingImpl("city", new URIImpl("http://London"))));
-        rootExpected.add( makeBindingSet(
-                new BindingImpl("customer", new URIImpl("http://Alice")),
-                new BindingImpl("worker", new URIImpl("http://Eve")),
-                new BindingImpl("city", new URIImpl("http://Leeds"))));
-        rootExpected.add( makeBindingSet(
-                new BindingImpl("customer", new URIImpl("http://Alice")),
-                new BindingImpl("worker", new URIImpl("http://David")),
-                new BindingImpl("city", new URIImpl("http://London"))));
+        MapBindingSet bs = new MapBindingSet();
+        bs.addBinding("customer", VF.createURI("http://Alice"));
+        bs.addBinding("worker", VF.createURI("http://Bob"));
+        bs.addBinding("city", VF.createURI("http://London"));
+        rootExpected.add(bs);
+
+        bs = new MapBindingSet();
+        bs.addBinding("customer", VF.createURI("http://Alice"));
+        bs.addBinding("worker", VF.createURI("http://Charlie"));
+        bs.addBinding("city", VF.createURI("http://London"));
+        rootExpected.add(bs);
+
+        bs = new MapBindingSet();
+        bs.addBinding("customer", VF.createURI("http://Alice"));
+        bs.addBinding("worker", VF.createURI("http://Eve"));
+        bs.addBinding("city", VF.createURI("http://Leeds"));
+        rootExpected.add(bs);
+
+        bs = new MapBindingSet();
+        bs.addBinding("customer", VF.createURI("http://Alice"));
+        bs.addBinding("worker", VF.createURI("http://David"));
+        bs.addBinding("city", VF.createURI("http://London"));
+        rootExpected.add(bs);
 
         assertEquals(rootExpected, rootResults);
 
+        final MiniAccumuloCluster cluster = super.getMiniAccumuloCluster();
+
         // Verify AB
         final Connector abConn = cluster.getConnector("abUser", "password");
-        final PrecomputedJoinStorage abStorage = new AccumuloPcjStorage(abConn, RYA_INSTANCE_NAME);
-        final Set<BindingSet> abResults = toSet( abStorage.listResults(pcjId) );
+        try(final PrecomputedJoinStorage abStorage = new AccumuloPcjStorage(abConn, RYA_INSTANCE_NAME)) {
+            final Set<BindingSet> abResults = toSet( abStorage.listResults(pcjId) );
 
-        final Set<BindingSet> abExpected = Sets.newHashSet();
-        abExpected.add( makeBindingSet(
-                new BindingImpl("customer", new URIImpl("http://Alice")),
-                new BindingImpl("worker", new URIImpl("http://Bob")),
-                new BindingImpl("city", new URIImpl("http://London"))));
+            final Set<BindingSet> abExpected = Sets.newHashSet();
+            bs = new MapBindingSet();
+            bs.addBinding("customer", VF.createURI("http://Alice"));
+            bs.addBinding("worker", VF.createURI("http://Bob"));
+            bs.addBinding("city", VF.createURI("http://London"));
+            abExpected.add(bs);
 
-        assertEquals(abExpected, abResults);
+            assertEquals(abExpected, abResults);
+        }
 
         // Verify ABC
         final Connector abcConn = cluster.getConnector("abcUser", "password");
-        final PrecomputedJoinStorage abcStorage = new AccumuloPcjStorage(abcConn, RYA_INSTANCE_NAME);
-        final Set<BindingSet> abcResults = toSet( abcStorage.listResults(pcjId) );
+        try(final PrecomputedJoinStorage abcStorage = new AccumuloPcjStorage(abcConn, RYA_INSTANCE_NAME)) {
+            final Set<BindingSet> abcResults = toSet( abcStorage.listResults(pcjId) );
 
-        final Set<BindingSet> abcExpected = Sets.newHashSet();
-        abcExpected.add(makeBindingSet(
-                new BindingImpl("customer", new URIImpl("http://Alice")),
-                new BindingImpl("worker", new URIImpl("http://Bob")),
-                new BindingImpl("city", new URIImpl("http://London"))));
-        abcExpected.add(makeBindingSet(
-                new BindingImpl("customer", new URIImpl("http://Alice")),
-                new BindingImpl("worker", new URIImpl("http://Charlie")),
-                new BindingImpl("city", new URIImpl("http://London"))));
+            final Set<BindingSet> abcExpected = Sets.newHashSet();
+            bs = new MapBindingSet();
+            bs.addBinding("customer", VF.createURI("http://Alice"));
+            bs.addBinding("worker", VF.createURI("http://Bob"));
+            bs.addBinding("city", VF.createURI("http://London"));
+            abcExpected.add(bs);
 
-        assertEquals(abcExpected, abcResults);
+            bs = new MapBindingSet();
+            bs.addBinding("customer", VF.createURI("http://Alice"));
+            bs.addBinding("worker", VF.createURI("http://Charlie"));
+            bs.addBinding("city", VF.createURI("http://London"));
+            abcExpected.add(bs);
+
+            assertEquals(abcExpected, abcResults);
+        }
 
         // Verify ADE
         final Connector adeConn = cluster.getConnector("adeUser", "password");
-        final PrecomputedJoinStorage adeStorage = new AccumuloPcjStorage(adeConn, RYA_INSTANCE_NAME);
-        final Set<BindingSet> adeResults = toSet( adeStorage.listResults(pcjId) );
+        try(final PrecomputedJoinStorage adeStorage = new AccumuloPcjStorage(adeConn, RYA_INSTANCE_NAME)) {
+            final Set<BindingSet> adeResults = toSet( adeStorage.listResults(pcjId) );
 
-        final Set<BindingSet> adeExpected = Sets.newHashSet();
-        adeExpected.add(makeBindingSet(
-                new BindingImpl("customer", new URIImpl("http://Alice")),
-                new BindingImpl("worker", new URIImpl("http://Eve")),
-                new BindingImpl("city", new URIImpl("http://Leeds"))));
+            final Set<BindingSet> adeExpected = Sets.newHashSet();
+            bs = new MapBindingSet();
+            bs.addBinding("customer", VF.createURI("http://Alice"));
+            bs.addBinding("worker", VF.createURI("http://Eve"));
+            bs.addBinding("city", VF.createURI("http://Leeds"));
+            adeExpected.add(bs);
 
-        assertEquals(adeExpected, adeResults);
+            assertEquals(adeExpected, adeResults);
+        }
 
         // Verify no auths.
         final Connector noAuthConn = cluster.getConnector("noAuth", "password");
-        final PrecomputedJoinStorage noAuthStorage = new AccumuloPcjStorage(noAuthConn, RYA_INSTANCE_NAME);
-        final Set<BindingSet> noAuthResults = toSet( noAuthStorage.listResults(pcjId) );
-        assertTrue( noAuthResults.isEmpty() );
+        try(final PrecomputedJoinStorage noAuthStorage = new AccumuloPcjStorage(noAuthConn, RYA_INSTANCE_NAME)) {
+            final Set<BindingSet> noAuthResults = toSet( noAuthStorage.listResults(pcjId) );
+            assertTrue( noAuthResults.isEmpty() );
+        }
     }
 
     private void setupTestUsers(final Connector accumuloConn, final String ryaInstanceName, final String pcjId) throws AccumuloException, AccumuloSecurityException {
         final PasswordToken pass = new PasswordToken("password");
         final SecurityOperations secOps = accumuloConn.securityOperations();
 
-        // XXX We need the table name so that we can update security for the users.
+        // We need the table name so that we can update security for the users.
         final String pcjTableName = new PcjTableNameFactory().makeTableName(ryaInstanceName, pcjId);
 
         // Give the 'roor' user authorizations to see everything.
@@ -317,10 +348,14 @@ public class PcjVisibilityIT extends ITBase {
         triplesMap.put(statement, visibility);
     }
 
-    private Set<BindingSet> toSet(final Iterable<BindingSet> bindingSets) {
+    private Set<BindingSet> toSet(final CloseableIterator<BindingSet> bindingSets) throws Exception {
         final Set<BindingSet> set = new HashSet<>();
-        for(final BindingSet bindingSet : bindingSets) {
-            set.add( bindingSet );
+        try {
+            while(bindingSets.hasNext()) {
+                set.add( bindingSets.next() );
+            }
+        } finally {
+            bindingSets.close();
         }
         return set;
     }

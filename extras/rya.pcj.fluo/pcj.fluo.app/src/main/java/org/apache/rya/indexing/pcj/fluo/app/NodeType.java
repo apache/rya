@@ -19,6 +19,7 @@
 package org.apache.rya.indexing.pcj.fluo.app;
 
 import static java.util.Objects.requireNonNull;
+import static org.apache.rya.indexing.pcj.fluo.app.IncrementalUpdateConstants.AGGREGATION_PREFIX;
 import static org.apache.rya.indexing.pcj.fluo.app.IncrementalUpdateConstants.FILTER_PREFIX;
 import static org.apache.rya.indexing.pcj.fluo.app.IncrementalUpdateConstants.JOIN_PREFIX;
 import static org.apache.rya.indexing.pcj.fluo.app.IncrementalUpdateConstants.QUERY_PREFIX;
@@ -26,13 +27,12 @@ import static org.apache.rya.indexing.pcj.fluo.app.IncrementalUpdateConstants.SP
 
 import java.util.List;
 
+import org.apache.fluo.api.data.Column;
 import org.apache.rya.indexing.pcj.fluo.app.query.FluoQueryColumns;
 import org.apache.rya.indexing.pcj.fluo.app.query.FluoQueryColumns.QueryNodeMetadataColumns;
 import org.openrdf.query.BindingSet;
 
 import com.google.common.base.Optional;
-
-import org.apache.fluo.api.data.Column;
 
 /**
  * Represents the different types of nodes that a Query may have.
@@ -41,7 +41,8 @@ public enum NodeType {
     FILTER (QueryNodeMetadataColumns.FILTER_COLUMNS, FluoQueryColumns.FILTER_BINDING_SET),
     JOIN(QueryNodeMetadataColumns.JOIN_COLUMNS, FluoQueryColumns.JOIN_BINDING_SET),
     STATEMENT_PATTERN(QueryNodeMetadataColumns.STATEMENTPATTERN_COLUMNS, FluoQueryColumns.STATEMENT_PATTERN_BINDING_SET),
-    QUERY(QueryNodeMetadataColumns.QUERY_COLUMNS, FluoQueryColumns.QUERY_BINDING_SET);
+    QUERY(QueryNodeMetadataColumns.QUERY_COLUMNS, FluoQueryColumns.QUERY_BINDING_SET),
+    AGGREGATION(QueryNodeMetadataColumns.AGGREGATION_COLUMNS, FluoQueryColumns.AGGREGATION_BINDING_SET);
 
     //Metadata Columns associated with given NodeType
     private QueryNodeMetadataColumns metadataColumns;
@@ -55,7 +56,7 @@ public enum NodeType {
      * @param metadataColumns - Metadata {@link Column}s associated with this {@link NodeType}. (not null)
      * @param bindingSetColumn - The {@link Column} used to store this {@link NodeType|'s {@link BindingSet}s. (not null)
      */
-    private NodeType(QueryNodeMetadataColumns metadataColumns, Column bindingSetColumn) {
+    private NodeType(final QueryNodeMetadataColumns metadataColumns, final Column bindingSetColumn) {
     	this.metadataColumns = requireNonNull(metadataColumns);
     	this.bindingSetColumn = requireNonNull(bindingSetColumn);
     }
@@ -95,6 +96,8 @@ public enum NodeType {
             type = JOIN;
         } else if(nodeId.startsWith(QUERY_PREFIX)) {
             type = QUERY;
+        } else if(nodeId.startsWith(AGGREGATION_PREFIX)) {
+            type = AGGREGATION;
         }
 
         return Optional.fromNullable(type);

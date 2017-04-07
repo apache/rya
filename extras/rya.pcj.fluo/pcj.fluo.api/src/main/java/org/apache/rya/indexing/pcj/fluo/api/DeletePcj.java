@@ -25,17 +25,6 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
-import edu.umd.cs.findbugs.annotations.NonNull;
-
-import org.apache.rya.indexing.pcj.fluo.app.NodeType;
-import org.apache.rya.indexing.pcj.fluo.app.query.FilterMetadata;
-import org.apache.rya.indexing.pcj.fluo.app.query.FluoQueryColumns;
-import org.apache.rya.indexing.pcj.fluo.app.query.FluoQueryMetadataDAO;
-import org.apache.rya.indexing.pcj.fluo.app.query.JoinMetadata;
-import org.apache.rya.indexing.pcj.fluo.app.query.QueryMetadata;
-import org.openrdf.query.BindingSet;
-
 import org.apache.fluo.api.client.FluoClient;
 import org.apache.fluo.api.client.Transaction;
 import org.apache.fluo.api.client.scanner.CellScanner;
@@ -43,6 +32,17 @@ import org.apache.fluo.api.data.Bytes;
 import org.apache.fluo.api.data.Column;
 import org.apache.fluo.api.data.RowColumnValue;
 import org.apache.fluo.api.data.Span;
+import org.apache.rya.indexing.pcj.fluo.app.NodeType;
+import org.apache.rya.indexing.pcj.fluo.app.query.AggregationMetadata;
+import org.apache.rya.indexing.pcj.fluo.app.query.FilterMetadata;
+import org.apache.rya.indexing.pcj.fluo.app.query.FluoQueryColumns;
+import org.apache.rya.indexing.pcj.fluo.app.query.FluoQueryMetadataDAO;
+import org.apache.rya.indexing.pcj.fluo.app.query.JoinMetadata;
+import org.apache.rya.indexing.pcj.fluo.app.query.QueryMetadata;
+import org.openrdf.query.BindingSet;
+
+import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
+import edu.umd.cs.findbugs.annotations.NonNull;
 
 /**
  * Deletes a Pre-computed Join (PCJ) from Fluo.
@@ -154,6 +154,12 @@ public class DeletePcj {
                 nodeIds.add(filterChild);
                 getChildNodeIds(tx, filterChild, nodeIds);
                 break;
+            case AGGREGATION:
+                final AggregationMetadata aggMeta = dao.readAggregationMetadata(tx, nodeId);
+                final String aggChild = aggMeta.getChildNodeId();
+                nodeIds.add(aggChild);
+                getChildNodeIds(tx, aggChild, nodeIds);
+                break;
             case STATEMENT_PATTERN:
                 break;
         }
@@ -254,7 +260,7 @@ public class DeletePcj {
 
         try(Transaction ntx = tx) {
           int count = 0;
-          Iterator<RowColumnValue> iter = scanner.iterator();
+          final Iterator<RowColumnValue> iter = scanner.iterator();
           while (iter.hasNext() && count < batchSize) {
             final Bytes row = iter.next().getRow();
             count++;

@@ -20,25 +20,25 @@ package org.apache.rya.indexing.pcj.fluo.app.observers;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
-import edu.umd.cs.findbugs.annotations.NonNull;
-
-import org.apache.rya.indexing.pcj.fluo.app.BindingSetRow;
-import org.apache.rya.indexing.pcj.fluo.app.FilterResultUpdater;
-import org.apache.rya.indexing.pcj.fluo.app.JoinResultUpdater;
-import org.apache.rya.indexing.pcj.fluo.app.NodeType;
-import org.apache.rya.indexing.pcj.fluo.app.QueryResultUpdater;
-import org.apache.rya.indexing.pcj.fluo.app.query.FilterMetadata;
-import org.apache.rya.indexing.pcj.fluo.app.query.FluoQueryMetadataDAO;
-import org.apache.rya.indexing.pcj.fluo.app.query.JoinMetadata;
-import org.apache.rya.indexing.pcj.fluo.app.query.QueryMetadata;
-import org.apache.rya.indexing.pcj.storage.accumulo.BindingSetConverter.BindingSetConversionException;
-import org.apache.rya.indexing.pcj.storage.accumulo.VisibilityBindingSet;
-
 import org.apache.fluo.api.client.TransactionBase;
 import org.apache.fluo.api.data.Bytes;
 import org.apache.fluo.api.data.Column;
 import org.apache.fluo.api.observer.AbstractObserver;
+import org.apache.log4j.Logger;
+import org.apache.rya.indexing.pcj.fluo.app.AggregationResultUpdater;
+import org.apache.rya.indexing.pcj.fluo.app.FilterResultUpdater;
+import org.apache.rya.indexing.pcj.fluo.app.JoinResultUpdater;
+import org.apache.rya.indexing.pcj.fluo.app.NodeType;
+import org.apache.rya.indexing.pcj.fluo.app.QueryResultUpdater;
+import org.apache.rya.indexing.pcj.fluo.app.query.AggregationMetadata;
+import org.apache.rya.indexing.pcj.fluo.app.query.FilterMetadata;
+import org.apache.rya.indexing.pcj.fluo.app.query.FluoQueryMetadataDAO;
+import org.apache.rya.indexing.pcj.fluo.app.query.JoinMetadata;
+import org.apache.rya.indexing.pcj.fluo.app.query.QueryMetadata;
+import org.apache.rya.indexing.pcj.storage.accumulo.VisibilityBindingSet;
+
+import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
+import edu.umd.cs.findbugs.annotations.NonNull;
 
 /**
  * Notified when the results of a node have been updated to include a new Binding
@@ -47,6 +47,7 @@ import org.apache.fluo.api.observer.AbstractObserver;
  */
 @DefaultAnnotation(NonNull.class)
 public abstract class BindingSetUpdater extends AbstractObserver {
+    private static final Logger log = Logger.getLogger(BindingSetUpdater.class);
 
     // DAO
     private final FluoQueryMetadataDAO queryDao = new FluoQueryMetadataDAO();
@@ -55,6 +56,7 @@ public abstract class BindingSetUpdater extends AbstractObserver {
     private final JoinResultUpdater joinUpdater = new JoinResultUpdater();
     private final FilterResultUpdater filterUpdater = new FilterResultUpdater();
     private final QueryResultUpdater queryUpdater = new QueryResultUpdater();
+    private final AggregationResultUpdater aggregationUpdater = new AggregationResultUpdater();
 
     @Override
     public abstract ObservedColumn getObservedColumn();
@@ -63,10 +65,11 @@ public abstract class BindingSetUpdater extends AbstractObserver {
      * Create an {@link Observation} that defines the work that needs to be done.
      *
      * @param tx - The Fluo transaction being used for the observer notification. (not null)
-     * @param parsedRow - The RowID parsed into a Binding Set and Node ID. (not null)
+     * @param row - The row that triggered the notification. (not null)
      * @return An {@link Observation} that defines the work that needs to be done.
+     * @throws Exception A problem caused this method to fail.
      */
-    public abstract Observation parseObservation(TransactionBase tx, final BindingSetRow parsedRow);
+    public abstract Observation parseObservation(TransactionBase tx, Bytes row) throws Exception;
 
     @Override
     public final void process(final TransactionBase tx, final Bytes row, final Column col) {
@@ -74,8 +77,15 @@ public abstract class BindingSetUpdater extends AbstractObserver {
         checkNotNull(row);
         checkNotNull(col);
 
-        final String bindingSetString = tx.get(row, col).toString();
-        final Observation observation = parseObservation( tx, new BindingSetRow(BindingSetRow.make(row).getNodeId(), bindingSetString) );
+        final Observation observation;
+        try {
+            observation = parseObservation(tx, row);
+        } catch (final Exception e) {
+            log.error("Unable to parse an Observation from a Row and Column pair, so this notification will be skipped. " +
+                    "Row: " + row + " Column: " + col, e);
+            return;
+        }
+
         final String observedNodeId = observation.getObservedNodeId();
         final VisibilityBindingSet observedBindingSet = observation.getObservedBindingSet();
         final String parentNodeId = observation.getParentId();
@@ -85,7 +95,11 @@ public abstract class BindingSetUpdater extends AbstractObserver {
         switch(parentNodeType) {
             case QUERY:
                 final QueryMetadata parentQuery = queryDao.readQueryMetadata(tx, parentNodeId);
-                queryUpdater.updateQueryResults(tx, observedBindingSet, parentQuery);
+                try {
+                    queryUpdater.updateQueryResults(tx, observedBindingSet, parentQuery);
+                } catch (final Exception e) {
+                    throw new RuntimeException("Could not process a Query node.", e);
+                }
                 break;
 
             case FILTER:
@@ -101,8 +115,17 @@ public abstract class BindingSetUpdater extends AbstractObserver {
                 final JoinMetadata parentJoin = queryDao.readJoinMetadata(tx, parentNodeId);
                 try {
                     joinUpdater.updateJoinResults(tx, observedNodeId, observedBindingSet, parentJoin);
-                } catch (final BindingSetConversionException e) {
+                } catch (final Exception e) {
                     throw new RuntimeException("Could not process a Join node.", e);
+                }
+                break;
+
+            case AGGREGATION:
+                final AggregationMetadata parentAggregation = queryDao.readAggregationMetadata(tx, parentNodeId);
+                try {
+                    aggregationUpdater.updateAggregateResults(tx, observedBindingSet, parentAggregation);
+                } catch (final Exception e) {
+                    throw new RuntimeException("Could not process an Aggregation node.", e);
                 }
                 break;
 

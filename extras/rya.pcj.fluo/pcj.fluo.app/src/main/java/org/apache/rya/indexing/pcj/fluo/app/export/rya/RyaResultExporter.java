@@ -19,16 +19,16 @@
 package org.apache.rya.indexing.pcj.fluo.app.export.rya;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static java.util.Objects.requireNonNull;
 
 import java.util.Collections;
 
+import org.apache.fluo.api.client.TransactionBase;
 import org.apache.rya.indexing.pcj.fluo.app.export.IncrementalResultExporter;
 import org.apache.rya.indexing.pcj.fluo.app.query.FluoQueryColumns;
 import org.apache.rya.indexing.pcj.storage.PrecomputedJoinStorage;
 import org.apache.rya.indexing.pcj.storage.PrecomputedJoinStorage.PCJStorageException;
 import org.apache.rya.indexing.pcj.storage.accumulo.VisibilityBindingSet;
-import org.apache.fluo.api.client.TransactionBase;
-import org.apache.fluo.api.data.Bytes;
 
 /**
  * Incrementally exports SPARQL query results to Accumulo PCJ tables as they are defined by Rya.
@@ -51,10 +51,11 @@ public class RyaResultExporter implements IncrementalResultExporter {
             final TransactionBase fluoTx,
             final String queryId,
             final VisibilityBindingSet result) throws ResultExportException {
-        checkNotNull(fluoTx);
-        checkNotNull(queryId);
-        checkNotNull(result);
+        requireNonNull(fluoTx);
+        requireNonNull(queryId);
+        requireNonNull(result);
 
+        // Look up the ID the PCJ represents within the PCJ Storage.
         final String pcjId = fluoTx.gets(queryId, FluoQueryColumns.RYA_PCJ_ID);
 
         try {
@@ -62,5 +63,10 @@ public class RyaResultExporter implements IncrementalResultExporter {
         } catch (final PCJStorageException e) {
             throw new ResultExportException("A result could not be exported to Rya.", e);
         }
+    }
+
+    @Override
+    public void close() throws Exception {
+        pcjStorage.close();
     }
 }

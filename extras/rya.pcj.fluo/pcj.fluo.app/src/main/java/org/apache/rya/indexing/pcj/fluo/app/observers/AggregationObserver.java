@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
+ * 
  *   http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -22,46 +22,53 @@ import static java.util.Objects.requireNonNull;
 
 import org.apache.fluo.api.client.TransactionBase;
 import org.apache.fluo.api.data.Bytes;
+import org.apache.rya.indexing.pcj.fluo.app.AggregationResultUpdater.AggregationState;
+import org.apache.rya.indexing.pcj.fluo.app.AggregationResultUpdater.AggregationStateSerDe;
+import org.apache.rya.indexing.pcj.fluo.app.AggregationResultUpdater.ObjectSerializationAggregationStateSerDe;
 import org.apache.rya.indexing.pcj.fluo.app.BindingSetRow;
-import org.apache.rya.indexing.pcj.fluo.app.VisibilityBindingSetSerDe;
+import org.apache.rya.indexing.pcj.fluo.app.query.AggregationMetadata;
 import org.apache.rya.indexing.pcj.fluo.app.query.FluoQueryColumns;
 import org.apache.rya.indexing.pcj.fluo.app.query.FluoQueryMetadataDAO;
-import org.apache.rya.indexing.pcj.fluo.app.query.JoinMetadata;
 import org.apache.rya.indexing.pcj.storage.accumulo.VisibilityBindingSet;
 import org.openrdf.query.BindingSet;
 
+import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
+import edu.umd.cs.findbugs.annotations.NonNull;
+
 /**
- * Notified when the results of a Join have been updated to include a new
- * {@link BindingSet}. This observer updates its parent if the new Binding Set
+ * Notified when the results of an Aggregation have been updated to include a new
+ * {@link BindingSet} value. This observer updates its parent if the new Binding Set
  * effects the parent's results.
  */
-public class JoinObserver extends BindingSetUpdater {
+@DefaultAnnotation(NonNull.class)
+public class AggregationObserver extends BindingSetUpdater {
 
-    private static final VisibilityBindingSetSerDe BS_SERDE = new VisibilityBindingSetSerDe();
+    private static final AggregationStateSerDe STATE_SERDE = new ObjectSerializationAggregationStateSerDe();
 
     private final FluoQueryMetadataDAO queryDao = new FluoQueryMetadataDAO();
 
     @Override
     public ObservedColumn getObservedColumn() {
-        return new ObservedColumn(FluoQueryColumns.JOIN_BINDING_SET, NotificationType.STRONG);
+        return new ObservedColumn(FluoQueryColumns.AGGREGATION_BINDING_SET, NotificationType.STRONG);
     }
 
     @Override
-    public Observation parseObservation(final TransactionBase tx, final Bytes row) throws Exception {
+    public Observation parseObservation(final TransactionBase tx, final Bytes row) {
         requireNonNull(tx);
         requireNonNull(row);
 
-        // Read the Join metadata.
-        final String joinNodeId = BindingSetRow.make(row).getNodeId();
-        final JoinMetadata joinMetadata = queryDao.readJoinMetadata(tx, joinNodeId);
+        // Fetch the Aggregation node's metadata.
+        final String nodeId = BindingSetRow.make(row).getNodeId();
+        final AggregationMetadata metadata = queryDao.readAggregationMetadata(tx, nodeId);
 
         // Read the Visibility Binding Set from the value.
-        final Bytes valueBytes = tx.get(row, FluoQueryColumns.JOIN_BINDING_SET);
-        final VisibilityBindingSet joinBindingSet = BS_SERDE.deserialize(valueBytes);
+        final Bytes stateBytes = tx.get(row, FluoQueryColumns.AGGREGATION_BINDING_SET);
+        final AggregationState state = STATE_SERDE.deserialize( stateBytes.toArray() );
+        final VisibilityBindingSet aggBindingSet = new VisibilityBindingSet(state.getBindingSet(), state.getVisibility());
 
         // Figure out which node needs to handle the new metadata.
-        final String parentNodeId = joinMetadata.getParentNodeId();
+        final String parentNodeId = metadata.getParentNodeId();
 
-        return new Observation(joinNodeId, joinBindingSet, parentNodeId);
+        return new Observation(nodeId, aggBindingSet, parentNodeId);
     }
 }

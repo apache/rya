@@ -28,23 +28,6 @@ import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
 import org.apache.accumulo.core.client.Connector;
 import org.apache.log4j.Logger;
-import org.apache.rya.indexing.pcj.storage.PcjMetadata;
-import org.apache.rya.indexing.pcj.storage.PrecomputedJoinStorage;
-import org.apache.rya.indexing.pcj.storage.PrecomputedJoinStorage.PCJStorageException;
-import org.apache.rya.indexing.pcj.storage.accumulo.AccumuloPcjStorage;
-import org.apache.rya.indexing.pcj.storage.accumulo.VisibilityBindingSet;
-import org.openrdf.query.BindingSet;
-import org.openrdf.query.MalformedQueryException;
-import org.openrdf.query.QueryEvaluationException;
-import org.openrdf.query.parser.ParsedQuery;
-import org.openrdf.query.parser.sparql.SPARQLParser;
-import org.openrdf.sail.Sail;
-import org.openrdf.sail.SailConnection;
-import org.openrdf.sail.SailException;
-
-import com.google.common.base.Optional;
-
-import info.aduna.iteration.CloseableIteration;
 import org.apache.rya.accumulo.AccumuloRdfConfiguration;
 import org.apache.rya.accumulo.instance.AccumuloRyaInstanceDetailsRepository;
 import org.apache.rya.api.client.BatchUpdatePCJ;
@@ -62,8 +45,25 @@ import org.apache.rya.api.instance.RyaDetailsUpdater.RyaDetailsMutator;
 import org.apache.rya.api.instance.RyaDetailsUpdater.RyaDetailsMutator.CouldNotApplyMutationException;
 import org.apache.rya.api.persist.RyaDAOException;
 import org.apache.rya.indexing.accumulo.ConfigUtils;
+import org.apache.rya.indexing.pcj.storage.PcjMetadata;
+import org.apache.rya.indexing.pcj.storage.PrecomputedJoinStorage;
+import org.apache.rya.indexing.pcj.storage.PrecomputedJoinStorage.PCJStorageException;
+import org.apache.rya.indexing.pcj.storage.accumulo.AccumuloPcjStorage;
+import org.apache.rya.indexing.pcj.storage.accumulo.VisibilityBindingSet;
 import org.apache.rya.rdftriplestore.inference.InferenceEngineException;
 import org.apache.rya.sail.config.RyaSailFactory;
+import org.openrdf.query.BindingSet;
+import org.openrdf.query.MalformedQueryException;
+import org.openrdf.query.QueryEvaluationException;
+import org.openrdf.query.parser.ParsedQuery;
+import org.openrdf.query.parser.sparql.SPARQLParser;
+import org.openrdf.sail.Sail;
+import org.openrdf.sail.SailConnection;
+import org.openrdf.sail.SailException;
+
+import com.google.common.base.Optional;
+
+import info.aduna.iteration.CloseableIteration;
 
 /**
  * Uses an in memory Rya Client to batch update a PCJ index.
@@ -126,12 +126,11 @@ public class AccumuloBatchUpdatePCJ extends AccumuloCommand implements BatchUpda
         SailConnection sailConn = null;
         CloseableIteration<? extends BindingSet, QueryEvaluationException> results = null;
 
-        try {
+        try(final PrecomputedJoinStorage pcjStorage = new AccumuloPcjStorage(super.getConnector(), ryaInstanceName)) {
             // Create an instance of Sail backed by the Rya instance.
             sail = connectToRya(ryaInstanceName);
 
             // Purge the old results from the PCJ.
-            final PrecomputedJoinStorage pcjStorage = new AccumuloPcjStorage(super.getConnector(), ryaInstanceName);
             try {
                 pcjStorage.purge(pcjId);
             } catch (final PCJStorageException e) {
@@ -139,37 +138,35 @@ public class AccumuloBatchUpdatePCJ extends AccumuloCommand implements BatchUpda
                         "results could not be purged from it.", e);
             }
 
-            try {
-                // Parse the PCJ's SPARQL query.
-                final PcjMetadata metadata = pcjStorage.getPcjMetadata(pcjId);
-                final String sparql = metadata.getSparql();
-                final SPARQLParser parser = new SPARQLParser();
-                final ParsedQuery parsedQuery = parser.parseQuery(sparql, null);
+            // Parse the PCJ's SPARQL query.
+            final PcjMetadata metadata = pcjStorage.getPcjMetadata(pcjId);
+            final String sparql = metadata.getSparql();
+            final SPARQLParser parser = new SPARQLParser();
+            final ParsedQuery parsedQuery = parser.parseQuery(sparql, null);
 
-                // Execute the query.
-                sailConn = sail.getConnection();
-                results = sailConn.evaluate(parsedQuery.getTupleExpr(), null, null, false);
+            // Execute the query.
+            sailConn = sail.getConnection();
+            results = sailConn.evaluate(parsedQuery.getTupleExpr(), null, null, false);
 
-                // Load the results into the PCJ table.
-                final List<VisibilityBindingSet> batch = new ArrayList<>(1000);
+            // Load the results into the PCJ table.
+            final List<VisibilityBindingSet> batch = new ArrayList<>(1000);
 
-                while(results.hasNext()) {
-                    final VisibilityBindingSet result = new VisibilityBindingSet(results.next(), "");
-                    batch.add(result);
+            while(results.hasNext()) {
+                final VisibilityBindingSet result = new VisibilityBindingSet(results.next(), "");
+                batch.add(result);
 
-                    if(batch.size() == 1000) {
-                        pcjStorage.addResults(pcjId, batch);
-                        batch.clear();
-                    }
-                }
-
-                if(!batch.isEmpty()) {
+                if(batch.size() == 1000) {
                     pcjStorage.addResults(pcjId, batch);
                     batch.clear();
                 }
-            } catch(final MalformedQueryException | PCJStorageException | SailException | QueryEvaluationException e) {
-                throw new RyaClientException("Fail to batch load new results into the PCJ with ID '" + pcjId + "'.", e);
             }
+
+            if(!batch.isEmpty()) {
+                pcjStorage.addResults(pcjId, batch);
+                batch.clear();
+            }
+        } catch(final MalformedQueryException | PCJStorageException | SailException | QueryEvaluationException e) {
+            throw new RyaClientException("Fail to batch load new results into the PCJ with ID '" + pcjId + "'.", e);
         } finally {
             if(results != null) {
                 try {

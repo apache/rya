@@ -18,57 +18,38 @@
  */
 package org.apache.rya.indexing.pcj.fluo.integration;
 
+import static java.util.Objects.requireNonNull;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotEquals;
-import static org.junit.Assert.assertTrue;
 
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.Properties;
+import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 
-import org.I0Itec.zkclient.ZkClient;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.apache.kafka.clients.consumer.ConsumerConfig;
+import org.apache.accumulo.core.client.Connector;
+import org.apache.accumulo.core.client.Instance;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
-import org.apache.kafka.clients.producer.KafkaProducer;
-import org.apache.kafka.clients.producer.ProducerConfig;
-import org.apache.kafka.clients.producer.ProducerRecord;
-import org.apache.rya.api.domain.RyaStatement;
-import org.apache.rya.indexing.pcj.fluo.ITBase;
-import org.apache.rya.indexing.pcj.fluo.api.CreatePcj;
-import org.apache.rya.indexing.pcj.fluo.api.InsertTriples;
-import org.apache.rya.indexing.pcj.fluo.app.export.kafka.KafkaExportParameters;
-import org.apache.rya.indexing.pcj.storage.PrecomputedJoinStorage;
-import org.apache.rya.indexing.pcj.storage.accumulo.AccumuloPcjStorage;
+import org.apache.rya.api.client.RyaClient;
+import org.apache.rya.api.client.accumulo.AccumuloConnectionDetails;
+import org.apache.rya.api.client.accumulo.AccumuloRyaClientFactory;
+import org.apache.rya.indexing.pcj.fluo.KafkaExportITBase;
+import org.apache.rya.indexing.pcj.storage.accumulo.VariableOrder;
 import org.apache.rya.indexing.pcj.storage.accumulo.VisibilityBindingSet;
 import org.junit.Test;
-import org.openrdf.model.impl.URIImpl;
-import org.openrdf.query.Binding;
+import org.openrdf.model.Statement;
+import org.openrdf.model.ValueFactory;
+import org.openrdf.model.impl.ValueFactoryImpl;
+import org.openrdf.model.vocabulary.XMLSchema;
 import org.openrdf.query.BindingSet;
-import org.openrdf.query.impl.BindingImpl;
+import org.openrdf.query.impl.MapBindingSet;
+import org.openrdf.repository.sail.SailRepositoryConnection;
 
-import com.google.common.base.Optional;
 import com.google.common.collect.Sets;
-
-import kafka.admin.AdminUtils;
-import kafka.admin.RackAwareMode;
-import kafka.server.KafkaConfig;
-import kafka.server.KafkaServer;
-import kafka.utils.MockTime;
-import kafka.utils.TestUtils;
-import kafka.utils.Time;
-import kafka.utils.ZKStringSerializer$;
-import kafka.utils.ZkUtils;
-import kafka.zk.EmbeddedZookeeper;
 
 /**
  * Performs integration tests over the Fluo application geared towards Kafka PCJ exporting.
@@ -78,215 +59,463 @@ import kafka.zk.EmbeddedZookeeper;
  * $ cd rya/extras/rya.pcj.fluo/pcj.fluo.integration
  * $ mvn surefire:test -Dtest=KafkaExportIT
  */
-public class KafkaExportIT extends ITBase {
-    private static final Log logger = LogFactory.getLog(KafkaExportIT.class);
-
-    private static final String ZKHOST = "127.0.0.1";
-    private static final String BROKERHOST = "127.0.0.1";
-    private static final String BROKERPORT = "9092";
-    private static final String TOPIC = "testTopic";
-    private ZkUtils zkUtils;
-    private KafkaServer kafkaServer;
-    private EmbeddedZookeeper zkServer;
-    private ZkClient zkClient;
-
-
-        /**
-     * setup mini kafka and call the super to setup mini fluo
-     * 
-     * @see org.apache.rya.indexing.pcj.fluo.ITBase#setupMiniResources()
-     */
-    @Override
-    public void setupMiniResources() throws Exception {
-        super.setupMiniResources();
-
-        zkServer = new EmbeddedZookeeper();
-        String zkConnect = ZKHOST + ":" + zkServer.port();
-        zkClient = new ZkClient(zkConnect, 30000, 30000, ZKStringSerializer$.MODULE$);
-        zkUtils = ZkUtils.apply(zkClient, false);
-
-        // setup Broker
-        Properties brokerProps = new Properties();
-        brokerProps.setProperty("zookeeper.connect", zkConnect);
-        brokerProps.setProperty("broker.id", "0");
-        brokerProps.setProperty("log.dirs", Files.createTempDirectory("kafka-").toAbsolutePath().toString());
-        brokerProps.setProperty("listeners", "PLAINTEXT://" + BROKERHOST + ":" + BROKERPORT);
-        KafkaConfig config = new KafkaConfig(brokerProps);
-        Time mock = new MockTime();
-        kafkaServer = TestUtils.createServer(config, mock);
-
-        logger.trace("setup kafka and fluo.");
-    }
-
-    /**
-     * Test kafka without rya code to make sure kafka works in this environment.
-     * If this test fails then its a testing environment issue, not with Rya.
-     * Source: https://github.com/asmaier/mini-kafka
-     * 
-     * @throws InterruptedException
-     * @throws IOException
-     */
-        @Test
-        public void embeddedKafkaTest() throws InterruptedException, IOException {
-            // create topic
-            AdminUtils.createTopic(zkUtils, TOPIC, 1, 1, new Properties(), RackAwareMode.Disabled$.MODULE$);
-
-            // setup producer
-            Properties producerProps = new Properties();
-            producerProps.setProperty("bootstrap.servers", BROKERHOST + ":" + BROKERPORT);
-            producerProps.setProperty("key.serializer","org.apache.kafka.common.serialization.IntegerSerializer");
-            producerProps.setProperty("value.serializer", "org.apache.kafka.common.serialization.ByteArraySerializer");
-            KafkaProducer<Integer, byte[]> producer = new KafkaProducer<Integer, byte[]>(producerProps);
-
-            // setup consumer
-            Properties consumerProps = new Properties();
-            consumerProps.setProperty("bootstrap.servers", BROKERHOST + ":" + BROKERPORT);
-            consumerProps.setProperty("group.id", "group0");
-            consumerProps.setProperty("client.id", "consumer0");
-            consumerProps.setProperty("key.deserializer","org.apache.kafka.common.serialization.IntegerDeserializer");
-            consumerProps.setProperty("value.deserializer", "org.apache.kafka.common.serialization.ByteArrayDeserializer");
-            consumerProps.put("auto.offset.reset", "earliest");  // to make sure the consumer starts from the beginning of the topic
-            KafkaConsumer<Integer, byte[]> consumer = new KafkaConsumer<>(consumerProps);
-            consumer.subscribe(Arrays.asList(TOPIC));
-
-            // send message
-            ProducerRecord<Integer, byte[]> data = new ProducerRecord<>(TOPIC, 42, "test-message".getBytes(StandardCharsets.UTF_8));
-            producer.send(data);
-            producer.close();
-
-            // starting consumer
-        ConsumerRecords<Integer, byte[]> records = consumer.poll(3000);
-            assertEquals(1, records.count());
-            Iterator<ConsumerRecord<Integer, byte[]>> recordIterator = records.iterator();
-            ConsumerRecord<Integer, byte[]> record = recordIterator.next();
-        logger.trace(String.format("offset = %d, key = %s, value = %s", record.offset(), record.key(), record.value()));
-            assertEquals(42, (int) record.key());
-            assertEquals("test-message", new String(record.value(), StandardCharsets.UTF_8));
-        consumer.close();
-    }
+public class KafkaExportIT extends KafkaExportITBase {
 
     @Test
     public void newResultsExportedTest() throws Exception {
-        final String sparql = "SELECT ?customer ?worker ?city " + "{ " + "FILTER(?customer = <http://Alice>) " + "FILTER(?city = <http://London>) " + "?customer <http://talksTo> ?worker. " + "?worker <http://livesIn> ?city. " + "?worker <http://worksAt> <http://Chipotle>. " + "}";
-    
+        final String sparql =
+                "SELECT ?customer ?worker ?city { " +
+                    "FILTER(?customer = <http://Alice>) " +
+                    "FILTER(?city = <http://London>) " +
+                    "?customer <http://talksTo> ?worker. " +
+                    "?worker <http://livesIn> ?city. " +
+                    "?worker <http://worksAt> <http://Chipotle>. " +
+                "}";
+
         // Triples that will be streamed into Fluo after the PCJ has been created.
-        final Set<RyaStatement> streamedTriples = Sets.newHashSet(makeRyaStatement("http://Alice", "http://talksTo", "http://Bob"), makeRyaStatement("http://Bob", "http://livesIn", "http://London"), makeRyaStatement("http://Bob", "http://worksAt", "http://Chipotle"),
-                        makeRyaStatement("http://Alice", "http://talksTo", "http://Charlie"), makeRyaStatement("http://Charlie", "http://livesIn", "http://London"), makeRyaStatement("http://Charlie", "http://worksAt", "http://Chipotle"),
-                        makeRyaStatement("http://Alice", "http://talksTo", "http://David"), makeRyaStatement("http://David", "http://livesIn", "http://London"), makeRyaStatement("http://David", "http://worksAt", "http://Chipotle"),
-                        makeRyaStatement("http://Alice", "http://talksTo", "http://Eve"), makeRyaStatement("http://Eve", "http://livesIn", "http://Leeds"), makeRyaStatement("http://Eve", "http://worksAt", "http://Chipotle"),
-                        makeRyaStatement("http://Frank", "http://talksTo", "http://Alice"), makeRyaStatement("http://Frank", "http://livesIn", "http://London"), makeRyaStatement("http://Frank", "http://worksAt", "http://Chipotle"));
-    
+        final ValueFactory vf = new ValueFactoryImpl();
+        final Collection<Statement> statements =
+                Sets.newHashSet(
+                        vf.createStatement(vf.createURI("http://Alice"), vf.createURI("http://talksTo"), vf.createURI("http://Bob")),
+                        vf.createStatement(vf.createURI("http://Bob"), vf.createURI("http://livesIn"), vf.createURI("http://London")),
+                        vf.createStatement(vf.createURI("http://Bob"), vf.createURI("http://worksAt"), vf.createURI("http://Chipotle")),
+                        vf.createStatement(vf.createURI("http://Alice"), vf.createURI("http://talksTo"), vf.createURI("http://Charlie")),
+                        vf.createStatement(vf.createURI("http://Charlie"), vf.createURI("http://livesIn"), vf.createURI("http://London")),
+                        vf.createStatement(vf.createURI("http://Charlie"), vf.createURI("http://worksAt"), vf.createURI("http://Chipotle")),
+                        vf.createStatement(vf.createURI("http://Alice"), vf.createURI("http://talksTo"), vf.createURI("http://David")),
+                        vf.createStatement(vf.createURI("http://David"), vf.createURI("http://livesIn"), vf.createURI("http://London")),
+                        vf.createStatement(vf.createURI("http://David"), vf.createURI("http://worksAt"), vf.createURI("http://Chipotle")),
+                        vf.createStatement(vf.createURI("http://Alice"), vf.createURI("http://talksTo"), vf.createURI("http://Eve")),
+                        vf.createStatement(vf.createURI("http://Eve"), vf.createURI("http://livesIn"), vf.createURI("http://Leeds")),
+                        vf.createStatement(vf.createURI("http://Eve"), vf.createURI("http://worksAt"), vf.createURI("http://Chipotle")),
+                        vf.createStatement(vf.createURI("http://Frank"), vf.createURI("http://talksTo"), vf.createURI("http://Alice")),
+                        vf.createStatement(vf.createURI("http://Frank"), vf.createURI("http://livesIn"), vf.createURI("http://London")),
+                        vf.createStatement(vf.createURI("http://Frank"), vf.createURI("http://worksAt"), vf.createURI("http://Chipotle")));
+
+        // Create the PCJ in Fluo and load the statements into Rya.
+        final String pcjId = loadData(sparql, statements);
+
         // The expected results of the SPARQL query once the PCJ has been computed.
-        final Set<BindingSet> expected = new HashSet<>();
-        expected.add(makeBindingSet(new BindingImpl("customer", new URIImpl("http://Alice")), new BindingImpl("worker", new URIImpl("http://Bob")), new BindingImpl("city", new URIImpl("http://London"))));
-        expected.add(makeBindingSet(new BindingImpl("customer", new URIImpl("http://Alice")), new BindingImpl("worker", new URIImpl("http://Charlie")), new BindingImpl("city", new URIImpl("http://London"))));
-        expected.add(makeBindingSet(new BindingImpl("customer", new URIImpl("http://Alice")), new BindingImpl("worker", new URIImpl("http://David")), new BindingImpl("city", new URIImpl("http://London"))));
-    
-        // Create the PCJ table.
-        final PrecomputedJoinStorage pcjStorage = new AccumuloPcjStorage(accumuloConn, RYA_INSTANCE_NAME);
-        final String pcjId = pcjStorage.createPcj(sparql);
-    
-        // Tell the Fluo app to maintain the PCJ.
-        CreatePcj createPcj = new CreatePcj();
-        String QueryIdIsTopicName = createPcj.withRyaIntegration(pcjId, pcjStorage, fluoClient, accumuloConn, RYA_INSTANCE_NAME);
+        final Set<BindingSet> expectedResult = new HashSet<>();
 
-        // Stream the data into Fluo.
-        new InsertTriples().insert(fluoClient, streamedTriples, Optional.<String> absent());
-    
-        // Fetch the exported results from Accumulo once the observers finish working.
-        fluo.waitForObservers();
+        MapBindingSet bs = new MapBindingSet();
+        bs.addBinding("customer", vf.createURI("http://Alice"));
+        bs.addBinding("worker", vf.createURI("http://Bob"));
+        bs.addBinding("city", vf.createURI("http://London"));
+        expectedResult.add( new VisibilityBindingSet(bs) );
 
-        /// KafkaConsumer<Integer, byte[]> consumer = makeConsumer(QueryIdIsTopicName);
-        KafkaConsumer<Integer, VisibilityBindingSet> consumer = makeConsumer(QueryIdIsTopicName);
+        bs = new MapBindingSet();
+        bs.addBinding("customer", vf.createURI("http://Alice"));
+        bs.addBinding("worker", vf.createURI("http://Charlie"));
+        bs.addBinding("city", vf.createURI("http://London"));
+        expectedResult.add( new VisibilityBindingSet(bs) );
 
-        // starting consumer polling for messages
-        /// ConsumerRecords<Integer, byte[]> records = consumer.poll(3000);
-        ConsumerRecords<Integer, VisibilityBindingSet> records = consumer.poll(3000);
-        /// Iterator<ConsumerRecord<Integer, byte[]>> recordIterator = records.iterator();
-        Iterator<ConsumerRecord<Integer, VisibilityBindingSet>> recordIterator = records.iterator();
-        boolean allExpected = true;
-        ConsumerRecord<Integer, VisibilityBindingSet> unexpectedRecord = null;
-        while (recordIterator.hasNext()) {
-            ConsumerRecord<Integer, VisibilityBindingSet> record = recordIterator.next();
-            logger.trace(String.format("Consumed offset = %d, key = %s, value = %s", record.offset(), record.key(), record.value().toString()));
-            boolean expectedThis = expected.contains(record.value());
-            if (!expectedThis) {
-                logger.trace("This consumed record is not expected.");
-                unexpectedRecord = record;
+        bs = new MapBindingSet();
+        bs.addBinding("customer", vf.createURI("http://Alice"));
+        bs.addBinding("worker", vf.createURI("http://David"));
+        bs.addBinding("city", vf.createURI("http://London"));
+        expectedResult.add( new VisibilityBindingSet(bs) );
+
+        // Ensure the last result matches the expected result.
+        final Set<VisibilityBindingSet> result = readAllResults(pcjId);
+        assertEquals(expectedResult, result);
+    }
+
+    @Test
+    public void min() throws Exception {
+        // A query that finds the minimum price for an item within the inventory.
+        final String sparql =
+                "SELECT (min(?price) as ?minPrice) { " +
+                    "?item <urn:price> ?price . " +
+                "}";
+
+        // Create the Statements that will be loaded into Rya.
+        final ValueFactory vf = new ValueFactoryImpl();
+        final Collection<Statement> statements = Sets.newHashSet(
+                vf.createStatement(vf.createURI("urn:apple"), vf.createURI("urn:price"), vf.createLiteral(2.50)),
+                vf.createStatement(vf.createURI("urn:gum"), vf.createURI("urn:price"), vf.createLiteral(0.99)),
+                vf.createStatement(vf.createURI("urn:sandwich"), vf.createURI("urn:price"), vf.createLiteral(4.99)));
+
+        // Create the PCJ in Fluo and load the statements into Rya.
+        final String pcjId = loadData(sparql, statements);
+
+        // Create the expected results of the SPARQL query once the PCJ has been computed.
+        final MapBindingSet expectedResult = new MapBindingSet();
+        expectedResult.addBinding("minPrice", vf.createLiteral(0.99));
+
+        // Ensure the last result matches the expected result.
+        final VisibilityBindingSet result = readLastResult(pcjId);
+        assertEquals(expectedResult, result);
+    }
+
+    @Test
+    public void max() throws Exception {
+        // A query that finds the maximum price for an item within the inventory.
+        final String sparql =
+                "SELECT (max(?price) as ?maxPrice) { " +
+                    "?item <urn:price> ?price . " +
+                "}";
+
+        // Create the Statements that will be loaded into Rya.
+        final ValueFactory vf = new ValueFactoryImpl();
+        final Collection<Statement> statements = Sets.newHashSet(
+                vf.createStatement(vf.createURI("urn:apple"), vf.createURI("urn:price"), vf.createLiteral(2.50)),
+                vf.createStatement(vf.createURI("urn:gum"), vf.createURI("urn:price"), vf.createLiteral(0.99)),
+                vf.createStatement(vf.createURI("urn:sandwich"), vf.createURI("urn:price"), vf.createLiteral(4.99)));
+
+        // Create the PCJ in Fluo and load the statements into Rya.
+        final String pcjId = loadData(sparql, statements);
+
+        // Create the expected results of the SPARQL query once the PCJ has been computed.
+        final MapBindingSet expectedResult = new MapBindingSet();
+        expectedResult.addBinding("maxPrice", vf.createLiteral(4.99));
+
+        // Ensure the last result matches the expected result.
+        final VisibilityBindingSet result = readLastResult(pcjId);
+        assertEquals(expectedResult, result);
+    }
+
+    @Test
+    public void count() throws Exception {
+        // A query that counts the number of unique items that are in the inventory.
+        final String sparql =
+                "SELECT (count(?item) as ?itemCount) { " +
+                    "?item <urn:id> ?id . " +
+                "}";
+
+        // Create the Statements that will be loaded into Rya.
+        final ValueFactory vf = new ValueFactoryImpl();
+        final Collection<Statement> statements = Sets.newHashSet(
+                // Three that are part of the count.
+                vf.createStatement(vf.createURI("urn:apple"), vf.createURI("urn:id"), vf.createLiteral(UUID.randomUUID().toString())),
+                vf.createStatement(vf.createURI("urn:gum"), vf.createURI("urn:id"), vf.createLiteral(UUID.randomUUID().toString())),
+                vf.createStatement(vf.createURI("urn:sandwich"), vf.createURI("urn:id"), vf.createLiteral(UUID.randomUUID().toString())),
+
+                // One that is not.
+                vf.createStatement(vf.createURI("urn:sandwich"), vf.createURI("urn:price"), vf.createLiteral(3.99)));
+
+        // Create the PCJ in Fluo and load the statements into Rya.
+        final String pcjId = loadData(sparql, statements);
+
+        // Create the expected results of the SPARQL query once the PCJ has been computed.
+        final MapBindingSet expectedResult = new MapBindingSet();
+        expectedResult.addBinding("itemCount", vf.createLiteral("3", XMLSchema.INTEGER));
+
+        // Ensure the last result matches the expected result.
+        final VisibilityBindingSet result = readLastResult(pcjId);
+        assertEquals(expectedResult, result);
+    }
+
+    @Test
+    public void sum() throws Exception {
+        // A query that sums the counts of all of the items that are in the inventory.
+        final String sparql =
+                "SELECT (sum(?count) as ?itemSum) { " +
+                    "?item <urn:count> ?count . " +
+                "}";
+
+        // Create the Statements that will be loaded into Rya.
+        final ValueFactory vf = new ValueFactoryImpl();
+        final Collection<Statement> statements = Sets.newHashSet(
+                vf.createStatement(vf.createURI("urn:apple"), vf.createURI("urn:count"), vf.createLiteral(5)),
+                vf.createStatement(vf.createURI("urn:gum"), vf.createURI("urn:count"), vf.createLiteral(7)),
+                vf.createStatement(vf.createURI("urn:sandwich"), vf.createURI("urn:count"), vf.createLiteral(2)));
+
+        // Create the PCJ in Fluo and load the statements into Rya.
+        final String pcjId = loadData(sparql, statements);
+
+        // Create the expected results of the SPARQL query once the PCJ has been computed.
+        final MapBindingSet expectedResult = new MapBindingSet();
+        expectedResult.addBinding("itemSum", vf.createLiteral("14", XMLSchema.INTEGER));
+
+        // Ensure the last result matches the expected result.
+        final VisibilityBindingSet result = readLastResult(pcjId);
+        assertEquals(expectedResult, result);
+    }
+
+    @Test
+    public void average() throws Exception  {
+        // A query that finds the average price for an item that is in the inventory.
+        final String sparql =
+                "SELECT (avg(?price) as ?averagePrice) { " +
+                    "?item <urn:price> ?price . " +
+                "}";
+
+        // Create the Statements that will be loaded into Rya.
+        final ValueFactory vf = new ValueFactoryImpl();
+        final Collection<Statement> statements = Sets.newHashSet(
+                vf.createStatement(vf.createURI("urn:apple"), vf.createURI("urn:price"), vf.createLiteral(3)),
+                vf.createStatement(vf.createURI("urn:gum"), vf.createURI("urn:price"), vf.createLiteral(4)),
+                vf.createStatement(vf.createURI("urn:sandwich"), vf.createURI("urn:price"), vf.createLiteral(8)));
+
+        // Create the PCJ in Fluo and load the statements into Rya.
+        final String pcjId = loadData(sparql, statements);
+
+        // Create the expected results of the SPARQL query once the PCJ has been computed.
+        final MapBindingSet expectedResult = new MapBindingSet();
+        expectedResult.addBinding("averagePrice", vf.createLiteral("5", XMLSchema.DECIMAL));
+
+        // Ensure the last result matches the expected result.
+        final VisibilityBindingSet result = readLastResult(pcjId);
+        assertEquals(expectedResult, result);
+    }
+
+    @Test
+    public void aggregateWithFilter() throws Exception {
+        // A query that filters results from a statement pattern before applying the aggregation function.
+        final String sparql =
+                "SELECT (min(?price) as ?minPrice) { " +
+                    "FILTER(?price > 1.00) " +
+                    "?item <urn:price> ?price . " +
+                "}";
+
+        // Create the Statements that will be loaded into Rya.
+        final ValueFactory vf = new ValueFactoryImpl();
+        final Collection<Statement> statements = Sets.newHashSet(
+                vf.createStatement(vf.createURI("urn:apple"), vf.createURI("urn:price"), vf.createLiteral(2.50)),
+                vf.createStatement(vf.createURI("urn:gum"), vf.createURI("urn:price"), vf.createLiteral(0.99)),
+                vf.createStatement(vf.createURI("urn:sandwich"), vf.createURI("urn:price"), vf.createLiteral(4.99)));
+
+        // Create the PCJ in Fluo and load the statements into Rya.
+        final String pcjId = loadData(sparql, statements);
+
+        // Create the expected results of the SPARQL query once the PCJ has been computed.
+        final MapBindingSet expectedResult = new MapBindingSet();
+        expectedResult.addBinding("minPrice", vf.createLiteral(2.50));
+
+        // Ensure the last result matches the expected result.
+        final VisibilityBindingSet result = readLastResult(pcjId);
+        assertEquals(expectedResult, result);
+    }
+
+    @Test
+    public void multipleAggregations() throws Exception {
+        // A query that both counts the number of items being averaged and finds the average price.
+        final String sparql =
+                "SELECT (count(?item) as ?itemCount) (avg(?price) as ?averagePrice) {" +
+                    "?item <urn:price> ?price . " +
+                "}";
+
+        // Create the Statements that will be loaded into Rya.
+        final ValueFactory vf = new ValueFactoryImpl();
+        final Collection<Statement> statements = Sets.newHashSet(
+                vf.createStatement(vf.createURI("urn:apple"), vf.createURI("urn:price"), vf.createLiteral(5.25)),
+                vf.createStatement(vf.createURI("urn:gum"), vf.createURI("urn:price"), vf.createLiteral(7)),
+                vf.createStatement(vf.createURI("urn:sandwich"), vf.createURI("urn:price"), vf.createLiteral(2.75)));
+
+        // Create the PCJ in Fluo and load the statements into Rya.
+        final String pcjId = loadData(sparql, statements);
+
+        // Create the expected results of the SPARQL query once the PCJ has been computed.
+        final MapBindingSet expectedResult = new MapBindingSet();
+        expectedResult.addBinding("itemCount", vf.createLiteral("3", XMLSchema.INTEGER));
+        expectedResult.addBinding("averagePrice", vf.createLiteral("5.0", XMLSchema.DECIMAL));
+
+        // Ensure the last result matches the expected result.
+        final VisibilityBindingSet result = readLastResult(pcjId);
+        assertEquals(expectedResult, result);
+    }
+
+    @Test
+    public void groupBySingleBinding() throws Exception {
+        // A query that groups what is aggregated by one of the keys.
+        final String sparql =
+                "SELECT ?item (avg(?price) as ?averagePrice) {" +
+                    "?item <urn:price> ?price . " +
+                "} " +
+                "GROUP BY ?item";
+
+        // Create the Statements that will be loaded into Rya.
+        final ValueFactory vf = new ValueFactoryImpl();
+        final Collection<Statement> statements = Sets.newHashSet(
+                vf.createStatement(vf.createURI("urn:apple"), vf.createURI("urn:price"), vf.createLiteral(5.25)),
+                vf.createStatement(vf.createURI("urn:apple"), vf.createURI("urn:price"), vf.createLiteral(7)),
+                vf.createStatement(vf.createURI("urn:apple"), vf.createURI("urn:price"), vf.createLiteral(2.75)),
+                vf.createStatement(vf.createURI("urn:banana"), vf.createURI("urn:price"), vf.createLiteral(2.75)),
+                vf.createStatement(vf.createURI("urn:banana"), vf.createURI("urn:price"), vf.createLiteral(1.99)));
+
+        // Create the PCJ in Fluo and load the statements into Rya.
+        final String pcjId = loadData(sparql, statements);
+
+        // Create the expected results of the SPARQL query once the PCJ has been computed.
+        final Set<VisibilityBindingSet> expectedResults = new HashSet<>();
+
+        MapBindingSet bs = new MapBindingSet();
+        bs.addBinding("item", vf.createURI("urn:apple"));
+        bs.addBinding("averagePrice", vf.createLiteral("5.0", XMLSchema.DECIMAL));
+        expectedResults.add( new VisibilityBindingSet(bs) );
+
+        bs = new MapBindingSet();
+        bs.addBinding("item", vf.createURI("urn:banana"));
+        bs.addBinding("averagePrice", vf.createLiteral("2.37", XMLSchema.DECIMAL));
+        expectedResults.add( new VisibilityBindingSet(bs) );
+
+        // Verify the end results of the query match the expected results.
+        final Set<VisibilityBindingSet> results = readGroupedResults(pcjId, new VariableOrder("item"));
+        assertEquals(expectedResults, results);
+    }
+
+    @Test
+    public void groupByManyBindings_avaerages() throws Exception {
+        // A query that groups what is aggregated by two of the keys.
+        final String sparql =
+                "SELECT ?type ?location (avg(?price) as ?averagePrice) {" +
+                    "?id <urn:type> ?type . " +
+                    "?id <urn:location> ?location ." +
+                    "?id <urn:price> ?price ." +
+                "} " +
+                "GROUP BY ?type ?location";
+
+        // Create the Statements that will be loaded into Rya.
+        final ValueFactory vf = new ValueFactoryImpl();
+        final Collection<Statement> statements = Sets.newHashSet(
+                // American items that will be averaged.
+                vf.createStatement(vf.createURI("urn:1"), vf.createURI("urn:type"), vf.createLiteral("apple")),
+                vf.createStatement(vf.createURI("urn:1"), vf.createURI("urn:location"), vf.createLiteral("USA")),
+                vf.createStatement(vf.createURI("urn:1"), vf.createURI("urn:price"), vf.createLiteral(2.50)),
+
+                vf.createStatement(vf.createURI("urn:2"), vf.createURI("urn:type"), vf.createLiteral("cheese")),
+                vf.createStatement(vf.createURI("urn:2"), vf.createURI("urn:location"), vf.createLiteral("USA")),
+                vf.createStatement(vf.createURI("urn:2"), vf.createURI("urn:price"), vf.createLiteral(.99)),
+
+                vf.createStatement(vf.createURI("urn:3"), vf.createURI("urn:type"), vf.createLiteral("cheese")),
+                vf.createStatement(vf.createURI("urn:3"), vf.createURI("urn:location"), vf.createLiteral("USA")),
+                vf.createStatement(vf.createURI("urn:3"), vf.createURI("urn:price"), vf.createLiteral(5.25)),
+
+                // French items that will be averaged.
+                vf.createStatement(vf.createURI("urn:4"), vf.createURI("urn:type"), vf.createLiteral("cheese")),
+                vf.createStatement(vf.createURI("urn:4"), vf.createURI("urn:location"), vf.createLiteral("France")),
+                vf.createStatement(vf.createURI("urn:4"), vf.createURI("urn:price"), vf.createLiteral(8.5)),
+
+                vf.createStatement(vf.createURI("urn:5"), vf.createURI("urn:type"), vf.createLiteral("cigarettes")),
+                vf.createStatement(vf.createURI("urn:5"), vf.createURI("urn:location"), vf.createLiteral("France")),
+                vf.createStatement(vf.createURI("urn:5"), vf.createURI("urn:price"), vf.createLiteral(3.99)),
+
+                vf.createStatement(vf.createURI("urn:6"), vf.createURI("urn:type"), vf.createLiteral("cigarettes")),
+                vf.createStatement(vf.createURI("urn:6"), vf.createURI("urn:location"), vf.createLiteral("France")),
+                vf.createStatement(vf.createURI("urn:6"), vf.createURI("urn:price"), vf.createLiteral(4.99)));
+
+        // Create the PCJ in Fluo and load the statements into Rya.
+        final String pcjId = loadData(sparql, statements);
+
+        // Create the expected results of the SPARQL query once the PCJ has been computed.
+        final Set<VisibilityBindingSet> expectedResults = new HashSet<>();
+
+        MapBindingSet bs = new MapBindingSet();
+        bs.addBinding("type", vf.createLiteral("apple", XMLSchema.STRING));
+        bs.addBinding("location", vf.createLiteral("USA", XMLSchema.STRING));
+        bs.addBinding("averagePrice", vf.createLiteral("2.5", XMLSchema.DECIMAL));
+        expectedResults.add( new VisibilityBindingSet(bs) );
+
+        bs = new MapBindingSet();
+        bs.addBinding("type", vf.createLiteral("cheese", XMLSchema.STRING));
+        bs.addBinding("location", vf.createLiteral("USA", XMLSchema.STRING));
+        bs.addBinding("averagePrice", vf.createLiteral("3.12", XMLSchema.DECIMAL));
+        expectedResults.add( new VisibilityBindingSet(bs) );
+
+        bs = new MapBindingSet();
+        bs.addBinding("type", vf.createLiteral("cheese", XMLSchema.STRING));
+        bs.addBinding("location", vf.createLiteral("France", XMLSchema.STRING));
+        bs.addBinding("averagePrice", vf.createLiteral("8.5", XMLSchema.DECIMAL));
+        expectedResults.add( new VisibilityBindingSet(bs));
+
+        bs = new MapBindingSet();
+        bs.addBinding("type", vf.createLiteral("cigarettes", XMLSchema.STRING));
+        bs.addBinding("location", vf.createLiteral("France", XMLSchema.STRING));
+        bs.addBinding("averagePrice", vf.createLiteral("4.49", XMLSchema.DECIMAL));
+        expectedResults.add( new VisibilityBindingSet(bs) );
+
+        // Verify the end results of the query match the expected results.
+        final Set<VisibilityBindingSet> results = readGroupedResults(pcjId, new VariableOrder("type", "location"));
+        assertEquals(expectedResults, results);
+    }
+
+    private String loadData(final String sparql, final Collection<Statement> statements) throws Exception {
+        requireNonNull(sparql);
+        requireNonNull(statements);
+
+        // Register the PCJ with Rya.
+        final Instance accInstance = super.getAccumuloConnector().getInstance();
+        final Connector accumuloConn = super.getAccumuloConnector();
+
+        final RyaClient ryaClient = AccumuloRyaClientFactory.build(new AccumuloConnectionDetails(
+                ACCUMULO_USER,
+                ACCUMULO_PASSWORD.toCharArray(),
+                accInstance.getInstanceName(),
+                accInstance.getZooKeepers()), accumuloConn);
+
+        final String pcjId = ryaClient.getCreatePCJ().createPCJ(RYA_INSTANCE_NAME, sparql);
+
+        // Write the data to Rya.
+        final SailRepositoryConnection ryaConn = super.getRyaSailRepository().getConnection();
+        ryaConn.begin();
+        ryaConn.add(statements);
+        ryaConn.commit();
+        ryaConn.close();
+
+        // Wait for the Fluo application to finish computing the end result.
+        super.getMiniFluo().waitForObservers();
+
+        // The PCJ Id is the topic name the results will be written to.
+        return pcjId;
+    }
+
+    private Set<VisibilityBindingSet> readAllResults(final String pcjId) throws Exception {
+        requireNonNull(pcjId);
+
+        // Read all of the results from the Kafka topic.
+        final Set<VisibilityBindingSet> results = new HashSet<>();
+
+        try(final KafkaConsumer<Integer, VisibilityBindingSet> consumer = makeConsumer(pcjId)) {
+            final ConsumerRecords<Integer, VisibilityBindingSet> records = consumer.poll(5000);
+            final Iterator<ConsumerRecord<Integer, VisibilityBindingSet>> recordIterator = records.iterator();
+            while (recordIterator.hasNext()) {
+                results.add( recordIterator.next().value() );
             }
-            allExpected = allExpected && expectedThis;
         }
-        assertTrue("Must consume expected record: not expected:" + unexpectedRecord, allExpected);
-        assertNotEquals("Should get some results", 0, records.count());
-        // assertEquals(42, (int) record.key());
-        // assertEquals("test-message", new String(record.value(), StandardCharsets.UTF_8));
 
+        return results;
     }
 
-    /**
-     * A helper function for creating a {@link BindingSet} from an array of
-     * {@link Binding}s.
-     *
-     * @param bindings
-     *            - The bindings to include in the set. (not null)
-     * @return A {@link BindingSet} holding the bindings.
-     */
-    protected static BindingSet makeBindingSet(final Binding... bindings) {
-        return new VisibilityBindingSet(ITBase.makeBindingSet(bindings));
+    private VisibilityBindingSet readLastResult(final String pcjId) throws Exception {
+        requireNonNull(pcjId);
+
+        // Read the results from the Kafka topic. The last one has the final aggregation result.
+        VisibilityBindingSet result = null;
+
+        try(final KafkaConsumer<Integer, VisibilityBindingSet> consumer = makeConsumer(pcjId)) {
+            final ConsumerRecords<Integer, VisibilityBindingSet> records = consumer.poll(5000);
+            final Iterator<ConsumerRecord<Integer, VisibilityBindingSet>> recordIterator = records.iterator();
+            while (recordIterator.hasNext()) {
+                result = recordIterator.next().value();
+            }
+        }
+
+        return result;
     }
 
-    /**
-     * @param TopicName
-     * @return
-     */
-    protected KafkaConsumer<Integer, VisibilityBindingSet> makeConsumer(String TopicName) {
-        // setup consumer
-        Properties consumerProps = new Properties();
-        consumerProps.setProperty(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, BROKERHOST + ":" + BROKERPORT);
-        consumerProps.setProperty(ConsumerConfig.GROUP_ID_CONFIG, "group0");
-        consumerProps.setProperty(ConsumerConfig.CLIENT_ID_CONFIG, "consumer0");
-        consumerProps.setProperty(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, "org.apache.kafka.common.serialization.IntegerDeserializer");
-        consumerProps.setProperty(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, "org.apache.rya.indexing.pcj.fluo.app.export.kafka.KryoVisibilityBindingSetSerializer");
-        // "org.apache.kafka.common.serialization.ByteArrayDeserializer");
-        consumerProps.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest"); // to make sure the consumer starts from the beginning of the topic
-        /// KafkaConsumer<Integer, byte[]> consumer = new KafkaConsumer<>(consumerProps);
-        KafkaConsumer<Integer, VisibilityBindingSet> consumer = new KafkaConsumer<>(consumerProps);
-        consumer.subscribe(Arrays.asList(TopicName));
-        return consumer;
-    }
+    private Set<VisibilityBindingSet> readGroupedResults(final String pcjId, final VariableOrder groupByVars) {
+        requireNonNull(pcjId);
 
-    /**
-     * Add info about the kafka queue/topic to receive the export.
-     * Call super to get the Rya parameters.
-     * 
-     * @see org.apache.rya.indexing.pcj.fluo.ITBase#setExportParameters(java.util.HashMap)
-     */
-    @Override
-    protected void setExportParameters(HashMap<String, String> exportParams) {
-        // Get the defaults
-        super.setExportParameters(exportParams);
-        // Add the kafka parameters
-        final KafkaExportParameters kafkaParams = new KafkaExportParameters(exportParams);
-        kafkaParams.setExportToKafka(true);
-        // Configure the Producer
-        Properties producerConfig = new Properties();
-        producerConfig.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, BROKERHOST + ":" + BROKERPORT);
-        producerConfig.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, "org.apache.kafka.common.serialization.ByteArraySerializer");
-        producerConfig.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, "org.apache.rya.indexing.pcj.fluo.app.export.kafka.KryoVisibilityBindingSetSerializer");
-        // "org.apache.kafka.common.serialization.StringSerializer");
-        kafkaParams.addAllProducerConfig(producerConfig);
-    }
+        // Read the results from the Kafka topic. The last one for each set of Group By values is an aggregation result.
+        // The key in this map is a Binding Set containing only the group by variables.
+        final Map<BindingSet, VisibilityBindingSet> results = new HashMap<>();
 
-    /**
-     * Close all the Kafka mini server and mini-zookeeper
-     * 
-     * @see org.apache.rya.indexing.pcj.fluo.ITBase#shutdownMiniResources()
-     */
-    @Override
-    public void shutdownMiniResources() {
-        super.shutdownMiniResources();
-        kafkaServer.shutdown();
-        zkClient.close();
-        zkServer.shutdown();
+        try(final KafkaConsumer<Integer, VisibilityBindingSet> consumer = makeConsumer(pcjId)) {
+            final ConsumerRecords<Integer, VisibilityBindingSet> records = consumer.poll(5000);
+            final Iterator<ConsumerRecord<Integer, VisibilityBindingSet>> recordIterator = records.iterator();
+            while (recordIterator.hasNext()) {
+                final VisibilityBindingSet visBindingSet = recordIterator.next().value();
+
+                final MapBindingSet key = new MapBindingSet();
+                for(final String groupByBar : groupByVars) {
+                    key.addBinding( visBindingSet.getBinding(groupByBar) );
+                }
+
+                results.put(key, visBindingSet);
+            }
+        }
+
+        return Sets.newHashSet( results.values() );
     }
 }

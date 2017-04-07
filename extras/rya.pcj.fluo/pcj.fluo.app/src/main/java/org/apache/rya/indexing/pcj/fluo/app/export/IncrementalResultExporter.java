@@ -18,27 +18,25 @@
  */
 package org.apache.rya.indexing.pcj.fluo.app.export;
 
-import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
-import edu.umd.cs.findbugs.annotations.NonNull;
-
 import org.apache.fluo.api.client.TransactionBase;
 import org.apache.rya.indexing.pcj.storage.accumulo.VisibilityBindingSet;
 
+import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
+import edu.umd.cs.findbugs.annotations.NonNull;
 
 /**
  * Exports a single Binding Set that is a new result for a SPARQL query to some
  * other location.
  */
 @DefaultAnnotation(NonNull.class)
-public interface IncrementalResultExporter {
+public interface IncrementalResultExporter extends AutoCloseable {
 
     /**
-     * Export a Binding Set that is a result of a SPARQL query.
+     * Export a Binding Set that is a result of a SPARQL query that does not include a Group By clause.
      *
      * @param tx - The Fluo transaction this export is a part of. (not null)
      * @param queryId - The Fluo ID of the SPARQL query the binding set is a result of. (not null)
-     * @param bindingSetString - The binding set as it was represented within the
-     *   Fluo application. (not null)
+     * @param bindingSetString - The Binding Set as it was represented within the Fluo application. (not null)
      * @throws ResultExportException The result could not be exported.
      */
     public void export(TransactionBase tx, String queryId, VisibilityBindingSet result) throws ResultExportException;

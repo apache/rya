@@ -23,10 +23,7 @@ import static org.junit.Assert.assertEquals;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 
-import org.apache.rya.indexing.pcj.storage.accumulo.BindingSetConverter;
 import org.apache.rya.indexing.pcj.storage.accumulo.BindingSetConverter.BindingSetConversionException;
-import org.apache.rya.indexing.pcj.storage.accumulo.BindingSetStringConverter;
-import org.apache.rya.indexing.pcj.storage.accumulo.VariableOrder;
 import org.junit.Test;
 import org.openrdf.model.impl.BooleanLiteralImpl;
 import org.openrdf.model.impl.DecimalLiteralImpl;
@@ -41,6 +38,23 @@ import org.openrdf.query.impl.MapBindingSet;
 public class BindingSetStringConverterTest {
 
     @Test
+    public void noBindings() throws BindingSetConversionException {
+        // Create a BindingSet that doesn't have any bindings.
+        final MapBindingSet original = new MapBindingSet();
+
+        // Convert it to a String.
+        final VariableOrder varOrder = new VariableOrder();
+        final BindingSetConverter<String> converter = new BindingSetStringConverter();
+        final String bindingSetString = converter.convert(original, varOrder);
+
+        // Convert it back to a binding set.
+        final BindingSet converted = converter.convert(bindingSetString, varOrder);
+
+        // Ensure it is still an empty BindingSet.
+        assertEquals(original, converted);
+    }
+
+    @Test
     public void toString_URIs() throws BindingSetConversionException {
         // Setup the binding set that will be converted.
         final MapBindingSet originalBindingSet = new MapBindingSet();
@@ -53,7 +67,7 @@ public class BindingSetStringConverterTest {
         final BindingSetConverter<String> converter = new BindingSetStringConverter();
         final String bindingSetString = converter.convert(originalBindingSet, varOrder);
 
-        // Ensure it converted to the expected result.l
+        // Ensure it converted to the expected result.
         final String expected =
                 "http://b<<~>>http://www.w3.org/2001/XMLSchema#anyURI:::" +
                 "http://c<<~>>http://www.w3.org/2001/XMLSchema#anyURI:::" +
@@ -161,26 +175,6 @@ public class BindingSetStringConverterTest {
                 "http://b<<~>>http://www.w3.org/2001/XMLSchema#anyURI:::" +
                 BindingSetStringConverter.NULL_VALUE_STRING;
         assertEquals(expected, bindingSetString);
-    }
-
-    /**
-     * The BindingSet has a Binding whose name is not in the variable order.
-     * This is illegal.
-     */
-    @Test(expected = IllegalArgumentException.class)
-    public void toString_bindingNotInVariableOrder() throws BindingSetConversionException {
-        // Setup the Binding Set.
-        final MapBindingSet originalBindingSet = new MapBindingSet();
-        originalBindingSet.addBinding("x", new URIImpl("http://a"));
-        originalBindingSet.addBinding("y", new URIImpl("http://b"));
-        originalBindingSet.addBinding("z", new URIImpl("http://d"));
-
-        // Setup the variable order.
-        final VariableOrder varOrder = new VariableOrder("x", "y");
-
-        // Create the String representation of the BindingSet. This will throw an exception.
-        final BindingSetConverter<String> converter = new BindingSetStringConverter();
-        converter.convert(originalBindingSet, varOrder);
     }
 
     @Test

@@ -25,9 +25,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
-import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
-import edu.umd.cs.findbugs.annotations.NonNull;
-
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
 import org.apache.accumulo.core.client.Connector;
@@ -46,6 +43,9 @@ import org.apache.rya.indexing.pcj.storage.PcjMetadata;
 import org.apache.rya.indexing.pcj.storage.PrecomputedJoinStorage;
 import org.openrdf.query.BindingSet;
 import org.openrdf.query.MalformedQueryException;
+
+import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
+import edu.umd.cs.findbugs.annotations.NonNull;
 
 /**
  * An Accumulo backed implementation of {@link PrecomputedJoinStorage}.
@@ -156,7 +156,7 @@ public class AccumuloPcjStorage implements PrecomputedJoinStorage {
     }
 
     @Override
-    public Iterable<BindingSet> listResults(final String pcjId) throws PCJStorageException {
+    public CloseableIterator<BindingSet> listResults(final String pcjId) throws PCJStorageException {
         requireNonNull(pcjId);
 
         try {

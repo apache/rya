@@ -578,6 +578,22 @@ under the License.
                 <artifactId>fluo-mini</artifactId>
                 <version>${fluo.version}</version>
             </dependency>
+            <dependency>
+                <groupId>org.apache.fluo</groupId>
+                <artifactId>fluo-recipes-core</artifactId>
+                <version>${fluo.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.fluo</groupId>
+                <artifactId>fluo-recipes-accumulo</artifactId>
+                <version>${fluo.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.fluo</groupId>
+                <artifactId>fluo-recipes-test</artifactId>
+                <version>${fluo.version}</version>
+                <scope>test</scope>
+            </dependency>
 
             <dependency>
                 <groupId>org.mockito</groupId>

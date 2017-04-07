@@ -24,57 +24,33 @@ import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.rya.indexing.pcj.fluo.ITBase;
+import org.apache.fluo.api.client.FluoClient;
+import org.apache.fluo.api.client.FluoFactory;
+import org.apache.fluo.api.config.ObserverSpecification;
+import org.apache.rya.api.domain.RyaStatement;
+import org.apache.rya.api.domain.RyaURI;
+import org.apache.rya.indexing.pcj.fluo.RyaExportITBase;
 import org.junit.Test;
 
 import com.google.common.base.Optional;
 
-import org.apache.fluo.api.client.FluoAdmin;
-import org.apache.fluo.api.client.FluoAdmin.AlreadyInitializedException;
-import org.apache.fluo.api.client.FluoAdmin.TableExistsException;
-import org.apache.fluo.api.client.FluoFactory;
-import org.apache.fluo.api.config.FluoConfiguration;
-import org.apache.fluo.api.config.ObserverSpecification;
-import org.apache.fluo.api.mini.MiniFluo;
-import org.apache.rya.api.domain.RyaStatement;
-import org.apache.rya.api.domain.RyaURI;
-
 /**
  * Tests the methods of {@link CountStatements}.
  */
-public class CountStatementsIT extends ITBase {
+public class CountStatementsIT extends RyaExportITBase {
 
     /**
      * Overriden so that no Observers will be started. This ensures whatever
      * statements are inserted as part of the test will not be consumed.
-     *
-     * @return A Mini Fluo cluster.
      */
     @Override
-    protected MiniFluo startMiniFluo() throws AlreadyInitializedException, TableExistsException {
+    protected void preFluoInitHook() throws Exception {
         // Setup the observers that will be used by the Fluo PCJ Application.
         final List<ObserverSpecification> observers = new ArrayList<>();
 
-        // Configure how the mini fluo will run.
-        final FluoConfiguration config = new FluoConfiguration();
-        config.setMiniStartAccumulo(false);
-        config.setAccumuloInstance(instanceName);
-        config.setAccumuloUser(ACCUMULO_USER);
-        config.setAccumuloPassword(ACCUMULO_PASSWORD);
-        config.setInstanceZookeepers(zookeepers + "/fluo");
-        config.setAccumuloZookeepers(zookeepers);
-
-        config.setApplicationName(FLUO_APP_NAME);
-        config.setAccumuloTable("fluo" + FLUO_APP_NAME);
-
-        config.addObservers(observers);
-
-        FluoFactory.newAdmin(config).initialize(
-                new FluoAdmin.InitializationOptions().setClearTable(true).setClearZookeeper(true) );
-        final MiniFluo miniFluo = FluoFactory.newMiniFluo(config);
-        return miniFluo;
+        // Add the observers to the Fluo Configuration.
+        super.getFluoConfiguration().addObservers(observers);
     }
-
 
     @Test
     public void countStatements() {
@@ -86,12 +62,14 @@ public class CountStatementsIT extends ITBase {
         triples.add( RyaStatement.builder().setSubject(new RyaURI("http://David")).setPredicate(new RyaURI("http://talksTo")).setObject(new RyaURI("http://Bob")).build() );
         triples.add( RyaStatement.builder().setSubject(new RyaURI("http://Eve")).setPredicate(new RyaURI("http://talksTo")).setObject(new RyaURI("http://Bob")).build() );
 
-        new InsertTriples().insert(fluoClient, triples, Optional.<String>absent());
+        try(FluoClient fluoClient = FluoFactory.newClient(super.getFluoConfiguration())) {
+            new InsertTriples().insert(fluoClient, triples, Optional.<String>absent());
 
-        // Load some statements into the Fluo app.
-        final BigInteger count = new CountStatements().countStatements(fluoClient);
+            // Load some statements into the Fluo app.
+            final BigInteger count = new CountStatements().countStatements(fluoClient);
 
-        // Ensure the count matches the expected values.
-        assertEquals(BigInteger.valueOf(5), count);
+            // Ensure the count matches the expected values.
+            assertEquals(BigInteger.valueOf(5), count);
+        }
     }
 }

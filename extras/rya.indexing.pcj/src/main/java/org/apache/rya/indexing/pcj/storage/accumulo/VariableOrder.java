@@ -23,14 +23,14 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import java.util.Collection;
 import java.util.Iterator;
 
-import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
-import edu.umd.cs.findbugs.annotations.NonNull;
-import net.jcip.annotations.Immutable;
-
 import org.openrdf.query.BindingSet;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
+
+import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
+import edu.umd.cs.findbugs.annotations.NonNull;
+import net.jcip.annotations.Immutable;
 
 /**
  * An ordered list of {@link BindingSet} variable names. These are used to
@@ -44,6 +44,13 @@ public final class VariableOrder implements Iterable<String> {
     public static final String VAR_ORDER_DELIM = ";";
 
     private final ImmutableList<String> variableOrder;
+
+    /**
+     * Constructs an instance of {@link VariableOrder} when there are no variables.
+     */
+    public VariableOrder() {
+        variableOrder = ImmutableList.of();
+    }
 
     /**
      * Constructs an instance of {@link VariableOrder}.

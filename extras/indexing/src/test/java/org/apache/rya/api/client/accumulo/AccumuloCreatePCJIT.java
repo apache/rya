@@ -24,6 +24,15 @@ import static org.junit.Assert.assertFalse;
 import java.util.List;
 import java.util.Set;
 
+import org.apache.rya.api.client.CreatePCJ;
+import org.apache.rya.api.client.Install;
+import org.apache.rya.api.client.Install.DuplicateInstanceNameException;
+import org.apache.rya.api.client.Install.InstallConfiguration;
+import org.apache.rya.api.client.InstanceDoesNotExistException;
+import org.apache.rya.api.client.RyaClientException;
+import org.apache.rya.api.instance.RyaDetails;
+import org.apache.rya.api.instance.RyaDetails.PCJIndexDetails.PCJDetails;
+import org.apache.rya.api.instance.RyaDetails.PCJIndexDetails.PCJDetails.PCJUpdateStrategy;
 import org.apache.rya.indexing.pcj.fluo.api.ListQueryIds;
 import org.apache.rya.indexing.pcj.storage.PcjMetadata;
 import org.apache.rya.indexing.pcj.storage.PrecomputedJoinStorage;
@@ -35,16 +44,6 @@ import org.openrdf.query.impl.MapBindingSet;
 
 import com.google.common.base.Optional;
 import com.google.common.collect.Sets;
-
-import org.apache.rya.api.client.CreatePCJ;
-import org.apache.rya.api.client.Install;
-import org.apache.rya.api.client.Install.DuplicateInstanceNameException;
-import org.apache.rya.api.client.Install.InstallConfiguration;
-import org.apache.rya.api.client.InstanceDoesNotExistException;
-import org.apache.rya.api.client.RyaClientException;
-import org.apache.rya.api.instance.RyaDetails;
-import org.apache.rya.api.instance.RyaDetails.PCJIndexDetails.PCJDetails;
-import org.apache.rya.api.instance.RyaDetails.PCJIndexDetails.PCJDetails.PCJUpdateStrategy;
 
 /**
  * Integration tests the methods of {@link AccumuloCreatePCJ}.
@@ -80,42 +79,43 @@ public class AccumuloCreatePCJIT extends FluoITBase {
         assertEquals(PCJUpdateStrategy.INCREMENTAL, pcjDetails.getUpdateStrategy().get());
 
         // Verify the PCJ's metadata was initialized.
-        final PrecomputedJoinStorage pcjStorage = new AccumuloPcjStorage(accumuloConn, RYA_INSTANCE_NAME);
-        final PcjMetadata pcjMetadata = pcjStorage.getPcjMetadata(pcjId);
-        assertEquals(sparql, pcjMetadata.getSparql());
-        assertEquals(0L, pcjMetadata.getCardinality());
+        try(final PrecomputedJoinStorage pcjStorage = new AccumuloPcjStorage(accumuloConn, RYA_INSTANCE_NAME)) {
+            final PcjMetadata pcjMetadata = pcjStorage.getPcjMetadata(pcjId);
+            assertEquals(sparql, pcjMetadata.getSparql());
+            assertEquals(0L, pcjMetadata.getCardinality());
 
-        // Verify a Query ID was added for the query within the Fluo app.
-        final List<String> fluoQueryIds = new ListQueryIds().listQueryIds(fluoClient);
-        assertEquals(1, fluoQueryIds.size());
+            // Verify a Query ID was added for the query within the Fluo app.
+            final List<String> fluoQueryIds = new ListQueryIds().listQueryIds(fluoClient);
+            assertEquals(1, fluoQueryIds.size());
 
-        // Insert some statements into Rya.
-        final ValueFactory vf = ryaRepo.getValueFactory();
-        ryaConn.add(vf.createURI("http://Alice"), vf.createURI("http://talksTo"), vf.createURI("http://Eve"));
-        ryaConn.add(vf.createURI("http://Bob"), vf.createURI("http://talksTo"), vf.createURI("http://Eve"));
-        ryaConn.add(vf.createURI("http://Charlie"), vf.createURI("http://talksTo"), vf.createURI("http://Eve"));
+            // Insert some statements into Rya.
+            final ValueFactory vf = ryaRepo.getValueFactory();
+            ryaConn.add(vf.createURI("http://Alice"), vf.createURI("http://talksTo"), vf.createURI("http://Eve"));
+            ryaConn.add(vf.createURI("http://Bob"), vf.createURI("http://talksTo"), vf.createURI("http://Eve"));
+            ryaConn.add(vf.createURI("http://Charlie"), vf.createURI("http://talksTo"), vf.createURI("http://Eve"));
 
-        ryaConn.add(vf.createURI("http://Eve"), vf.createURI("http://helps"), vf.createURI("http://Kevin"));
+            ryaConn.add(vf.createURI("http://Eve"), vf.createURI("http://helps"), vf.createURI("http://Kevin"));
 
-        ryaConn.add(vf.createURI("http://Bob"), vf.createURI("http://worksAt"), vf.createURI("http://TacoJoint"));
-        ryaConn.add(vf.createURI("http://Charlie"), vf.createURI("http://worksAt"), vf.createURI("http://TacoJoint"));
-        ryaConn.add(vf.createURI("http://Eve"), vf.createURI("http://worksAt"), vf.createURI("http://TacoJoint"));
-        ryaConn.add(vf.createURI("http://David"), vf.createURI("http://worksAt"), vf.createURI("http://TacoJoint"));
+            ryaConn.add(vf.createURI("http://Bob"), vf.createURI("http://worksAt"), vf.createURI("http://TacoJoint"));
+            ryaConn.add(vf.createURI("http://Charlie"), vf.createURI("http://worksAt"), vf.createURI("http://TacoJoint"));
+            ryaConn.add(vf.createURI("http://Eve"), vf.createURI("http://worksAt"), vf.createURI("http://TacoJoint"));
+            ryaConn.add(vf.createURI("http://David"), vf.createURI("http://worksAt"), vf.createURI("http://TacoJoint"));
 
-        // Verify the correct results were exported.
-        fluo.waitForObservers();
+            // Verify the correct results were exported.
+            fluo.waitForObservers();
 
-        final Set<BindingSet> results = Sets.newHashSet( pcjStorage.listResults(pcjId) );
+            final Set<BindingSet> results = Sets.newHashSet( pcjStorage.listResults(pcjId) );
 
-        final MapBindingSet bob = new MapBindingSet();
-        bob.addBinding("x", vf.createURI("http://Bob"));
+            final MapBindingSet bob = new MapBindingSet();
+            bob.addBinding("x", vf.createURI("http://Bob"));
 
-        final MapBindingSet charlie = new MapBindingSet();
-        charlie.addBinding("x", vf.createURI("http://Charlie"));
+            final MapBindingSet charlie = new MapBindingSet();
+            charlie.addBinding("x", vf.createURI("http://Charlie"));
 
-        final Set<BindingSet> expected = Sets.<BindingSet>newHashSet(bob, charlie);
+            final Set<BindingSet> expected = Sets.<BindingSet>newHashSet(bob, charlie);
 
-        assertEquals(expected, results);
+            assertEquals(expected, results);
+        }
     }
 
     @Test(expected = InstanceDoesNotExistException.class)

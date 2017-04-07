@@ -34,6 +34,7 @@ import org.apache.rya.api.layout.TablePrefixLayoutStrategy;
 import org.apache.rya.indexing.accumulo.entity.EntityCentricIndex;
 import org.apache.rya.indexing.accumulo.freetext.AccumuloFreeTextIndexer;
 import org.apache.rya.indexing.accumulo.temporal.AccumuloTemporalIndexer;
+import org.apache.rya.indexing.pcj.storage.PrecomputedJoinStorage;
 import org.apache.rya.indexing.pcj.storage.PrecomputedJoinStorage.PCJStorageException;
 import org.apache.rya.indexing.pcj.storage.accumulo.AccumuloPcjStorage;
 import org.apache.rya.indexing.pcj.storage.accumulo.PcjTableNameFactory;
@@ -93,11 +94,13 @@ public class RyaTableNames {
  */
 
         if(details.getPCJIndexDetails().isEnabled()) {
-            final List<String> pcjIds = new AccumuloPcjStorage(conn, ryaInstanceName).listPcjs();
+            try(final PrecomputedJoinStorage pcjStorage = new AccumuloPcjStorage(conn, ryaInstanceName)) {
+                final List<String> pcjIds = pcjStorage.listPcjs();
 
-            final PcjTableNameFactory tableNameFactory = new PcjTableNameFactory();
-            for(final String pcjId : pcjIds) {
-                tables.add( tableNameFactory.makeTableName(ryaInstanceName, pcjId) );
+                final PcjTableNameFactory tableNameFactory = new PcjTableNameFactory();
+                for(final String pcjId : pcjIds) {
+                    tables.add( tableNameFactory.makeTableName(ryaInstanceName, pcjId) );
+                }
             }
         }
 

@@ -20,9 +20,13 @@ package org.apache.rya.indexing.pcj.fluo.app.export.kafka;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+
 import org.apache.fluo.api.client.TransactionBase;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerRecord;
+import org.apache.kafka.clients.producer.RecordMetadata;
 import org.apache.log4j.Logger;
 import org.apache.rya.indexing.pcj.fluo.app.export.IncrementalResultExporter;
 import org.apache.rya.indexing.pcj.fluo.app.query.FluoQueryColumns;
@@ -32,17 +36,18 @@ import org.apache.rya.indexing.pcj.storage.accumulo.VisibilityBindingSet;
  * Incrementally exports SPARQL query results to Kafka topics.
  */
 public class KafkaResultExporter implements IncrementalResultExporter {
-    private final KafkaProducer<String, VisibilityBindingSet> producer;
     private static final Logger log = Logger.getLogger(KafkaResultExporter.class);
+
+    private final KafkaProducer<String, VisibilityBindingSet> producer;
 
     /**
      * Constructs an instance given a Kafka producer.
-     * 
+     *
      * @param producer
      *            for sending result set alerts to a broker. (not null)
      *            Can be created and configured by {@link KafkaResultExporterFactory}
      */
-    public KafkaResultExporter(KafkaProducer<String, VisibilityBindingSet> producer) {
+    public KafkaResultExporter(final KafkaProducer<String, VisibilityBindingSet> producer) {
         super();
         checkNotNull(producer, "Producer is required.");
         this.producer = producer;
@@ -58,18 +63,25 @@ public class KafkaResultExporter implements IncrementalResultExporter {
         checkNotNull(result);
         try {
             final String pcjId = fluoTx.gets(queryId, FluoQueryColumns.RYA_PCJ_ID);
-            String msg = "out to kafta topic: queryId=" + queryId + " pcjId=" + pcjId + " result=" + result;
+            final String msg = "out to kafta topic: queryId=" + queryId + " pcjId=" + pcjId + " result=" + result;
             log.trace(msg);
 
-            // Send result on topic
-            ProducerRecord<String, VisibilityBindingSet> rec = new ProducerRecord<String, VisibilityBindingSet>(/* topicname= */ queryId, /* value= */ result);
-            // Can add a key if you need to:
-            // ProducerRecord(String topic, K key, V value)
-            producer.send(rec);
+            // Send the result to the topic whose name matches the PCJ ID.
+            final ProducerRecord<String, VisibilityBindingSet> rec = new ProducerRecord<>(pcjId, result);
+            final Future<RecordMetadata> future = producer.send(rec);
+
+            // Don't let the export return until the result has been written to the topic. Otherwise we may lose results.
+            future.get();
+
             log.debug("producer.send(rec) completed");
 
         } catch (final Throwable e) {
             throw new ResultExportException("A result could not be exported to Kafka.", e);
         }
+    }
+
+    @Override
+    public void close() throws Exception {
+        producer.close(5, TimeUnit.SECONDS);
     }
 }

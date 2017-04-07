@@ -19,24 +19,22 @@
 package org.apache.rya.indexing.pcj.fluo.app;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static org.apache.rya.indexing.pcj.fluo.app.IncrementalUpdateConstants.NODEID_BS_DELIM;
 
-import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
-import edu.umd.cs.findbugs.annotations.NonNull;
-
+import org.apache.fluo.api.client.TransactionBase;
+import org.apache.fluo.api.data.Bytes;
+import org.apache.log4j.Logger;
 import org.apache.rya.indexing.pcj.fluo.app.query.FilterMetadata;
 import org.apache.rya.indexing.pcj.fluo.app.query.FluoQueryColumns;
-import org.apache.rya.indexing.pcj.storage.accumulo.BindingSetStringConverter;
+import org.apache.rya.indexing.pcj.fluo.app.util.BindingSetUtil;
+import org.apache.rya.indexing.pcj.fluo.app.util.RowKeyUtil;
 import org.apache.rya.indexing.pcj.storage.accumulo.VariableOrder;
 import org.apache.rya.indexing.pcj.storage.accumulo.VisibilityBindingSet;
-import org.apache.rya.indexing.pcj.storage.accumulo.VisibilityBindingSetStringConverter;
 import org.openrdf.model.Resource;
 import org.openrdf.model.Statement;
 import org.openrdf.model.URI;
 import org.openrdf.model.Value;
 import org.openrdf.model.ValueFactory;
 import org.openrdf.model.impl.ValueFactoryImpl;
-import org.openrdf.query.Binding;
 import org.openrdf.query.BindingSet;
 import org.openrdf.query.QueryEvaluationException;
 import org.openrdf.query.algebra.Filter;
@@ -45,14 +43,12 @@ import org.openrdf.query.algebra.evaluation.TripleSource;
 import org.openrdf.query.algebra.evaluation.ValueExprEvaluationException;
 import org.openrdf.query.algebra.evaluation.impl.EvaluationStrategyImpl;
 import org.openrdf.query.algebra.evaluation.util.QueryEvaluationUtil;
-import org.openrdf.query.impl.MapBindingSet;
 
 import com.google.common.base.Optional;
 
+import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
+import edu.umd.cs.findbugs.annotations.NonNull;
 import info.aduna.iteration.CloseableIteration;
-import org.apache.fluo.api.client.TransactionBase;
-import org.apache.fluo.api.data.Bytes;
-import org.apache.fluo.api.data.Column;
 
 /**
  * Updates the results of a Filter node when its child has added a new Binding
@@ -61,8 +57,9 @@ import org.apache.fluo.api.data.Column;
 @DefaultAnnotation(NonNull.class)
 public class FilterResultUpdater {
 
-    private static final BindingSetStringConverter ID_CONVERTER = new BindingSetStringConverter();
-    private static final VisibilityBindingSetStringConverter VALUE_CONVERTER = new VisibilityBindingSetStringConverter();
+    private static final Logger log = Logger.getLogger(FilterResultUpdater.class);
+
+    private static final VisibilityBindingSetSerDe BS_SERDE = new VisibilityBindingSetSerDe();
 
     /**
      * A utility class used to search SPARQL queries for Filters.
@@ -96,7 +93,7 @@ public class FilterResultUpdater {
      * new Binding Set to its results.
      *
      * @param tx - The transaction all Fluo queries will use. (not null)
-     * @param childBindingSet - A binding set that the query's child node has emmitted. (not null)
+     * @param childBindingSet - A binding set that the query's child node has emitted. (not null)
      * @param filterMetadata - The metadata of the Filter whose results will be updated. (not null)
      * @throws Exception Something caused the update to fail.
      */
@@ -108,6 +105,11 @@ public class FilterResultUpdater {
         checkNotNull(childBindingSet);
         checkNotNull(filterMetadata);
 
+        log.trace(
+                "Transaction ID: " + tx.getStartTimestamp() + "\n" +
+                "Filter Node ID: " + filterMetadata.getNodeId() + "\n" +
+                "Binding Set:\n" + childBindingSet + "\n");
+
         // Parse the original query and find the Filter that represents filterId.
         final String sparql = filterMetadata.getOriginalSparql();
         final int indexWithinQuery = filterMetadata.getFilterIndexWithinSparql();
@@ -118,23 +120,22 @@ public class FilterResultUpdater {
         if (isTrue(condition, childBindingSet)) {
             // Create the Filter's binding set from the child's.
             final VariableOrder filterVarOrder = filterMetadata.getVariableOrder();
+            final BindingSet filterBindingSet = BindingSetUtil.keepBindings(filterVarOrder, childBindingSet);
 
-            final MapBindingSet filterBindingSet = new MapBindingSet();
-            for(final String bindingName : filterVarOrder) {
-                if(childBindingSet.hasBinding(bindingName)) {
-                    final Binding binding = childBindingSet.getBinding(bindingName);
-                    filterBindingSet.addBinding(binding);
-                }
+            // Create the Row Key for the emitted binding set. It does not contain visibilities.
+            final Bytes resultRow = RowKeyUtil.makeRowKey(filterMetadata.getNodeId(), filterVarOrder, filterBindingSet);
+
+            // If this is a new binding set, then emit it.
+            if(tx.get(resultRow, FluoQueryColumns.FILTER_BINDING_SET) == null) {
+                final VisibilityBindingSet visBindingSet = new VisibilityBindingSet(filterBindingSet, childBindingSet.getVisibility());
+                final Bytes nodeValueBytes = BS_SERDE.serialize(visBindingSet);
+
+                log.trace(
+                        "Transaction ID: " + tx.getStartTimestamp() + "\n" +
+                        "New Binding Set: " + visBindingSet + "\n");
+
+                tx.set(resultRow, FluoQueryColumns.FILTER_BINDING_SET, nodeValueBytes);
             }
-
-            final String filterBindingSetIdString = ID_CONVERTER.convert(filterBindingSet, filterVarOrder);
-            String filterBindingSetValueString = "";
-            filterBindingSetValueString = VALUE_CONVERTER.convert(childBindingSet, filterVarOrder);
-
-            final String row = filterMetadata.getNodeId() + NODEID_BS_DELIM + filterBindingSetIdString;
-            final Column col = FluoQueryColumns.FILTER_BINDING_SET;
-            final String value = filterBindingSetValueString;
-            tx.set(row, col, value);
         }
     }
 

@@ -20,19 +20,7 @@ package org.apache.rya.api.client.accumulo;
 
 import static java.util.Objects.requireNonNull;
 
-import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
-import edu.umd.cs.findbugs.annotations.NonNull;
-
 import org.apache.accumulo.core.client.Connector;
-import org.apache.rya.indexing.pcj.fluo.api.DeletePcj;
-import org.apache.rya.indexing.pcj.storage.PrecomputedJoinStorage;
-import org.apache.rya.indexing.pcj.storage.PrecomputedJoinStorage.PCJStorageException;
-import org.apache.rya.indexing.pcj.storage.accumulo.AccumuloPcjStorage;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.google.common.base.Optional;
-
 import org.apache.fluo.api.client.FluoClient;
 import org.apache.rya.api.client.DeletePCJ;
 import org.apache.rya.api.client.GetInstanceDetails;
@@ -43,6 +31,17 @@ import org.apache.rya.api.instance.RyaDetails.PCJIndexDetails;
 import org.apache.rya.api.instance.RyaDetails.PCJIndexDetails.FluoDetails;
 import org.apache.rya.api.instance.RyaDetails.PCJIndexDetails.PCJDetails;
 import org.apache.rya.api.instance.RyaDetails.PCJIndexDetails.PCJDetails.PCJUpdateStrategy;
+import org.apache.rya.indexing.pcj.fluo.api.DeletePcj;
+import org.apache.rya.indexing.pcj.storage.PrecomputedJoinStorage;
+import org.apache.rya.indexing.pcj.storage.PrecomputedJoinStorage.PCJStorageException;
+import org.apache.rya.indexing.pcj.storage.accumulo.AccumuloPcjStorage;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.google.common.base.Optional;
+
+import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
+import edu.umd.cs.findbugs.annotations.NonNull;
 
 /**
  * An Accumulo implementation of the {@link DeletePCJ} command.
@@ -104,8 +103,7 @@ public class AccumuloDeletePCJ extends AccumuloCommand implements DeletePCJ {
         }
 
         // Drop the table that holds the PCJ results from Accumulo.
-        final PrecomputedJoinStorage pcjs = new AccumuloPcjStorage(getConnector(), instanceName);
-        try {
+        try(final PrecomputedJoinStorage pcjs = new AccumuloPcjStorage(getConnector(), instanceName)) {
             pcjs.dropPcj(pcjId);
         } catch (final PCJStorageException e) {
             throw new RyaClientException("Could not drop the PCJ's table from Accumulo.", e);
@@ -118,14 +116,14 @@ public class AccumuloDeletePCJ extends AccumuloCommand implements DeletePCJ {
 
         // Connect to the Fluo application that is updating this instance's PCJs.
         final AccumuloConnectionDetails cd = super.getAccumuloConnectionDetails();
-        final FluoClient fluoClient = new FluoClientFactory().connect(
+        try(final FluoClient fluoClient = new FluoClientFactory().connect(
                 cd.getUsername(),
                 new String(cd.getPassword()),
                 cd.getInstanceName(),
                 cd.getZookeepers(),
-                fluoAppName);
-
-        // Delete the PCJ from the Fluo App.
-        new DeletePcj(1000).deletePcj(fluoClient, pcjId);
+                fluoAppName)) {
+            // Delete the PCJ from the Fluo App.
+            new DeletePcj(1000).deletePcj(fluoClient, pcjId);
+        }
     }
 }

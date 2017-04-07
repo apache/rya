@@ -18,53 +18,56 @@
  */
 package org.apache.rya.indexing.pcj.functions.geo;
 
+import static java.util.Objects.requireNonNull;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 
-import org.apache.rya.api.domain.RyaStatement;
-import org.apache.rya.api.domain.RyaType;
-import org.apache.rya.indexing.pcj.fluo.ITBase;
-import org.apache.rya.indexing.pcj.fluo.api.CreatePcj;
-import org.apache.rya.indexing.pcj.fluo.api.InsertTriples;
+import javax.xml.datatype.DatatypeFactory;
+
+import org.apache.accumulo.core.client.Connector;
+import org.apache.accumulo.core.client.Instance;
+import org.apache.rya.api.client.RyaClient;
+import org.apache.rya.api.client.accumulo.AccumuloConnectionDetails;
+import org.apache.rya.api.client.accumulo.AccumuloRyaClientFactory;
+import org.apache.rya.indexing.pcj.fluo.RyaExportITBase;
 import org.apache.rya.indexing.pcj.storage.PrecomputedJoinStorage;
 import org.apache.rya.indexing.pcj.storage.accumulo.AccumuloPcjStorage;
 import org.junit.Test;
+import org.openrdf.model.Statement;
+import org.openrdf.model.URI;
 import org.openrdf.model.Value;
 import org.openrdf.model.ValueFactory;
-import org.openrdf.model.impl.LiteralImpl;
-import org.openrdf.model.impl.URIImpl;
+import org.openrdf.model.impl.ValueFactoryImpl;
 import org.openrdf.query.BindingSet;
 import org.openrdf.query.algebra.evaluation.ValueExprEvaluationException;
 import org.openrdf.query.algebra.evaluation.function.Function;
 import org.openrdf.query.algebra.evaluation.function.FunctionRegistry;
-import org.openrdf.query.impl.BindingImpl;
+import org.openrdf.query.impl.MapBindingSet;
+import org.openrdf.repository.sail.SailRepositoryConnection;
 
-import com.google.common.base.Optional;
 import com.google.common.collect.Sets;
 
 /**
  * Performs integration tests PCJ Geospatial functions in SPARQL.
  * Each test starts a Accumulo/Rya/Fluo single node stack and runs a continuous query, checking results.
  */
-public class GeoFunctionsIT extends ITBase {
+public class GeoFunctionsIT extends RyaExportITBase {
 
     @Test
     public void verifySpiLoadedGeoFunctions() {
-        final String functions[] = { "distance", //
-                "convexHull", "boundary", "envelope", "union", "intersection", "symDifference", "difference", //
-                "relate", /* "equals", */ "sfDisjoint", "sfIntersects", "sfTouches", "sfCrosses", //
-                "sfWithin", "sfContains", "sfOverlaps", "ehDisjoint", "ehMeet", "ehOverlap", //
-                "ehCovers", "ehCoveredBy", "ehInside", "ehContains", "rcc8dc", "rcc8ec", //
-                "rcc8po", "rcc8tppi", "rcc8tpp", "rcc8ntpp", "rcc8ntppi" }; //
-        HashSet<String> functionsCheckList = new HashSet<String>();
+        final String functions[] = { "distance", "convexHull", "boundary", "envelope", "union", "intersection",
+                "symDifference", "difference", "relate", "sfDisjoint", "sfIntersects", "sfTouches", "sfCrosses",
+                "sfWithin", "sfContains", "sfOverlaps", "ehDisjoint", "ehMeet", "ehOverlap", "ehCovers", "ehCoveredBy",
+                "ehInside", "ehContains", "rcc8dc", "rcc8ec", "rcc8po", "rcc8tppi", "rcc8tpp", "rcc8ntpp", "rcc8ntppi" };
+        final HashSet<String> functionsCheckList = new HashSet<>();
         functionsCheckList.addAll(Arrays.asList(functions));
-        for (String f : FunctionRegistry.getInstance().getKeys()) {
-            String functionShortName = f.replaceFirst("^.*/geosparql/(.*)", "$1");
-            // System.out.println("Registered function: " + f + " shortname: " + functionShortName);
+        for (final String f : FunctionRegistry.getInstance().getKeys()) {
+            final String functionShortName = f.replaceFirst("^.*/geosparql/(.*)", "$1");
             functionsCheckList.remove(functionShortName);
         }
         assertTrue("Missed loading these functions via SPI: " + functionsCheckList, functionsCheckList.isEmpty());
@@ -72,122 +75,104 @@ public class GeoFunctionsIT extends ITBase {
 
     @Test
     public void withGeoFilters() throws Exception {
-        final String geoWithinSelect = "PREFIX geo: <http://www.opengis.net/ont/geosparql#> "//
-                        + "PREFIX ryageo: <tag:rya.apache.org,2017:function/geo#> "//
-                        + "PREFIX geof: <http://www.opengis.net/def/function/geosparql/> "//
-                        + "SELECT ?feature ?point ?wkt " //
-                        + "{" //
-                        + " ?feature a geo:Feature . "//
-                        + " ?feature geo:hasGeometry ?point . "//
-                        + " ?point a geo:Point . "//
-                        + " ?point geo:asWKT ?wkt . "//
-                        + " FILTER(ryageo:ehContains(?wkt, \"POLYGON((-77 39, -76 39, -76 38, -77 38, -77 39))\"^^geo:wktLiteral)) " //
-                        + "}";//
-        final Set<RyaStatement> streamedTriples = Sets.newHashSet(makeRyaStatement("tag:rya.apache.org,2017:ex#feature", "http://www.w3.org/1999/02/22-rdf-syntax-ns#type", "http://www.opengis.net/ont/geosparql#Feature"), //
-                        makeRyaStatement("tag:rya.apache.org,2017:ex#feature", "http://www.opengis.net/ont/geosparql#hasGeometry", "tag:rya.apache.org,2017:ex#test_point"), //
-                        makeRyaStatement("tag:rya.apache.org,2017:ex#test_point", "http://www.w3.org/1999/02/22-rdf-syntax-ns#type", "http://www.opengis.net/ont/geosparql#Point"), //
-                        makeRyaStatement("tag:rya.apache.org,2017:ex#test_point", "http://www.opengis.net/ont/geosparql#asWKT", new RyaType(new URIImpl("http://www.opengis.net/ont/geosparql#wktLiteral"), "Point(-77.03524 38.889468)")) //
-        );
+        final String sparql =
+                "PREFIX geo: <http://www.opengis.net/ont/geosparql#> " +
+                "PREFIX ryageo: <tag:rya.apache.org,2017:function/geo#> " +
+                "PREFIX geof: <http://www.opengis.net/def/function/geosparql/> " +
+                "SELECT ?feature ?point ?wkt {" +
+                    " ?feature a geo:Feature . " +
+                    " ?feature geo:hasGeometry ?point . " +
+                    " ?point a geo:Point . " +
+                    " ?point geo:asWKT ?wkt . " +
+                    " FILTER(ryageo:ehContains(?wkt, \"POLYGON((-77 39, -76 39, -76 38, -77 38, -77 39))\"^^geo:wktLiteral)) " +
+                "}";
 
-        Function fooFunction = new Function() {
+        final ValueFactory vf = new ValueFactoryImpl();
+        final Set<Statement> statements = Sets.newHashSet(
+                vf.createStatement(vf.createURI("tag:rya.apache.org,2017:ex#feature"), vf.createURI("http://www.w3.org/1999/02/22-rdf-syntax-ns#type"), vf.createURI("http://www.opengis.net/ont/geosparql#Feature")),
+                vf.createStatement(vf.createURI("tag:rya.apache.org,2017:ex#feature"), vf.createURI("http://www.opengis.net/ont/geosparql#hasGeometry"), vf.createURI("tag:rya.apache.org,2017:ex#test_point")),
+                vf.createStatement(vf.createURI("tag:rya.apache.org,2017:ex#test_point"), vf.createURI("http://www.w3.org/1999/02/22-rdf-syntax-ns#type"), vf.createURI("http://www.opengis.net/ont/geosparql#Point")),
+                vf.createStatement(vf.createURI("tag:rya.apache.org,2017:ex#test_point"), vf.createURI("http://www.opengis.net/ont/geosparql#asWKT"), vf.createLiteral("Point(-77.03524 38.889468)", vf.createURI("http://www.opengis.net/ont/geosparql#wktLiteral"))));
+
+        // Create a Geo function.
+        final Function geoFunction = new Function() {
             @Override
             public String getURI() {
                 return "tag:rya.apache.org,2017:function/geo#ehContains";
             }
 
             @Override
-            public Value evaluate(ValueFactory valueFactory, Value... args) throws ValueExprEvaluationException {
-
+            public Value evaluate(final ValueFactory valueFactory, final Value... args) throws ValueExprEvaluationException {
                 if (args.length != 2) {
                     throw new ValueExprEvaluationException(getURI() + " requires exactly 3 arguments, got " + args.length);
                 }
-                // SpatialContext spatialContext = (new SpatialContextFactory()).newSpatialContext();
-                // Shape shape1 = org.eclipse.rdf4j.query.algebra.evaluation.function.geosparql.FunctionArguments() .getShape(this, args[0], spatialContext);
-                // Shape shape2 = FunctionArguments.getShape(this, args[1], spatialContext);
-                // //https://github.com/eclipse/rdf4j/blob/master/core/queryalgebra/geosparql/src/main/java/org/eclipse/rdf4j/query/algebra/evaluation/function/geosparql/SpatialSupport.java
-                // boolean result = SpatialSupport.getSpatialAlgebra().ehContains(shape1, shape2);
-                // return valueFactory.createLiteral(result);
                 return valueFactory.createLiteral(true);
             }
         };
 
         // Add our new function to the registry
-        FunctionRegistry.getInstance().add(fooFunction);
+        FunctionRegistry.getInstance().add(geoFunction);
 
         // The expected results of the SPARQL query once the PCJ has been computed.
-        final Set<BindingSet> expected = new HashSet<>();
-        expected.add(makeBindingSet(//
-                        new BindingImpl("wkt", new LiteralImpl("Point(-77.03524 38.889468)", new URIImpl("http://www.opengis.net/ont/geosparql#wktLiteral"))), //
-                        new BindingImpl("feature", new URIImpl("tag:rya.apache.org,2017:ex#feature")), //
-                        new BindingImpl("point", new URIImpl("tag:rya.apache.org,2017:ex#test_point"))));
+        final Set<BindingSet> expectedResults = new HashSet<>();
+        final MapBindingSet bs = new MapBindingSet();
+        bs.addBinding("wkt", vf.createLiteral("Point(-77.03524 38.889468)", vf.createURI("http://www.opengis.net/ont/geosparql#wktLiteral")));
+        bs.addBinding("feature", vf.createURI("tag:rya.apache.org,2017:ex#feature"));
+        bs.addBinding("point", vf.createURI("tag:rya.apache.org,2017:ex#test_point"));
+        expectedResults.add(bs);
 
-        // Create the PCJ table.
-        final PrecomputedJoinStorage pcjStorage = new AccumuloPcjStorage(accumuloConn, RYA_INSTANCE_NAME);
-        final String pcjId = pcjStorage.createPcj(geoWithinSelect);
-
-        // Tell the Fluo app to maintain the PCJ.
-        new CreatePcj().withRyaIntegration(pcjId, pcjStorage, fluoClient, accumuloConn, RYA_INSTANCE_NAME);
-
-        // Stream the data into Fluo.
-        new InsertTriples().insert(fluoClient, streamedTriples, Optional.<String> absent());
-
-        // Verify the end results of the query match the expected results.
-        fluo.waitForObservers();
-        final Set<BindingSet> results = getQueryBindingSetValues(fluoClient, geoWithinSelect);
-        assertEquals(expected, results);
+        runTest(sparql, statements, expectedResults);
     }
 
     @Test
     public void GeoDistance() throws Exception {
-        String geoCitySelect = "PREFIX geo: <http://www.opengis.net/ont/geosparql#> " //
-                        + "PREFIX geof: <http://www.opengis.net/def/function/geosparql/> " //
-                        + "PREFIX uom: <http://www.opengis.net/def/uom/OGC/1.0/> " //
-                        + "SELECT ?cityA ?cityB " //
-                        // + "SELECT ?cityA ?cityB ?dist " //
-                        + "WHERE { ?cityA geo:asWKT ?coord1 . " //
-                        + "        ?cityB geo:asWKT ?coord2 . " //
-                        // + " BIND( (geof:distance(?coord1, ?coord2, uom:metre) / 1000) as ?dist) . " // currently not supported
-                        + " FILTER ( 500000 > geof:distance(?coord1, ?coord2, uom:metre)  ) . " // from brussels 173km to amsterdam
-                        + " FILTER ( !sameTerm (?cityA, ?cityB) ) }"; //
+        final String sparql =
+                "PREFIX geo: <http://www.opengis.net/ont/geosparql#> " +
+                "PREFIX geof: <http://www.opengis.net/def/function/geosparql/> " +
+                "PREFIX uom: <http://www.opengis.net/def/uom/OGC/1.0/> " +
+                "SELECT ?cityA ?cityB " +
+                "WHERE { " +
+                    "?cityA geo:asWKT ?coord1 . " +
+                    "?cityB geo:asWKT ?coord2 . " +
+                    // from brussels 173km to amsterdam
+                    " FILTER ( 500000 > geof:distance(?coord1, ?coord2, uom:metre)  ) . " +
+                    " FILTER ( !sameTerm (?cityA, ?cityB) ) " +
+                "}";
 
-        final URIImpl wktTypeUri = new URIImpl("http://www.opengis.net/ont/geosparql#wktLiteral");
-        final String asWKT = "http://www.opengis.net/ont/geosparql#asWKT";
-        final Set<RyaStatement> streamedTriples = Sets.newHashSet(//
-                        makeRyaStatement("tag:rya.apache.org,2017:ex#dakar", asWKT, new RyaType(wktTypeUri, "Point(-17.45 14.69)")), //
-                        makeRyaStatement("tag:rya.apache.org,2017:ex#dakar2", asWKT, new RyaType(wktTypeUri, "Point(-17.45 14.69)")), //
-                        makeRyaStatement("tag:rya.apache.org,2017:ex#canberra", asWKT, new RyaType(wktTypeUri, "Point(149.12 -35.31)")), //
-                        makeRyaStatement("tag:rya.apache.org,2017:ex#brussels", asWKT, new RyaType(wktTypeUri, "Point(4.35 50.85)")), //
-                        makeRyaStatement("tag:rya.apache.org,2017:ex#amsterdam", asWKT, new RyaType(wktTypeUri, "Point(4.9 52.37)")) //
-        );
+        final ValueFactory vf = new ValueFactoryImpl();
+        final URI wktTypeUri = vf.createURI("http://www.opengis.net/ont/geosparql#wktLiteral");
+        final URI asWKT = vf.createURI("http://www.opengis.net/ont/geosparql#asWKT");
+        final Set<Statement> statements = Sets.newHashSet(
+                vf.createStatement(vf.createURI("tag:rya.apache.org,2017:ex#dakar"), asWKT, vf.createLiteral("Point(-17.45 14.69)", wktTypeUri)),
+                vf.createStatement(vf.createURI("tag:rya.apache.org,2017:ex#dakar2"), asWKT, vf.createLiteral("Point(-17.45 14.69)", wktTypeUri)),
+                vf.createStatement(vf.createURI("tag:rya.apache.org,2017:ex#canberra"), asWKT, vf.createLiteral("Point(149.12 -35.31)", wktTypeUri)),
+                vf.createStatement(vf.createURI("tag:rya.apache.org,2017:ex#brussels"), asWKT, vf.createLiteral("Point(4.35 50.85)", wktTypeUri)),
+                vf.createStatement(vf.createURI("tag:rya.apache.org,2017:ex#amsterdam"), asWKT, vf.createLiteral("Point(4.9 52.37)", wktTypeUri)));
 
         // The expected results of the SPARQL query once the PCJ has been computed.
-        final Set<BindingSet> expected = new HashSet<>();
-        expected.add(makeBindingSet(new BindingImpl("cityA", new URIImpl("tag:rya.apache.org,2017:ex#dakar")), new BindingImpl("cityB", new URIImpl("tag:rya.apache.org,2017:ex#dakar2"))));
-        expected.add(makeBindingSet(new BindingImpl("cityA", new URIImpl("tag:rya.apache.org,2017:ex#dakar2")), new BindingImpl("cityB", new URIImpl("tag:rya.apache.org,2017:ex#dakar"))));
-        expected.add(makeBindingSet(new BindingImpl("cityA", new URIImpl("tag:rya.apache.org,2017:ex#brussels")), new BindingImpl("cityB", new URIImpl("tag:rya.apache.org,2017:ex#amsterdam"))));
-        expected.add(makeBindingSet(new BindingImpl("cityA", new URIImpl("tag:rya.apache.org,2017:ex#amsterdam")), new BindingImpl("cityB", new URIImpl("tag:rya.apache.org,2017:ex#brussels"))));
+        final Set<BindingSet> expectedResults = new HashSet<>();
 
-        // Create the PCJ table.
-        final PrecomputedJoinStorage pcjStorage = new AccumuloPcjStorage(accumuloConn, RYA_INSTANCE_NAME);
-        final String pcjId = pcjStorage.createPcj(geoCitySelect);
+        MapBindingSet bs = new MapBindingSet();
+        bs.addBinding("cityA", vf.createURI("tag:rya.apache.org,2017:ex#dakar"));
+        bs.addBinding("cityB", vf.createURI("tag:rya.apache.org,2017:ex#dakar2"));
+        expectedResults.add(bs);
 
-        // Tell the Fluo app to maintain the PCJ.
-        new CreatePcj().withRyaIntegration(pcjId, pcjStorage, fluoClient, accumuloConn, RYA_INSTANCE_NAME);
+        bs = new MapBindingSet();
+        bs.addBinding("cityA", vf.createURI("tag:rya.apache.org,2017:ex#dakar2"));
+        bs.addBinding("cityB", vf.createURI("tag:rya.apache.org,2017:ex#dakar"));
+        expectedResults.add(bs);
 
-        // Stream the data into Fluo.
-        new InsertTriples().insert(fluoClient, streamedTriples, Optional.<String> absent());
+        bs = new MapBindingSet();
+        bs.addBinding("cityA", vf.createURI("tag:rya.apache.org,2017:ex#brussels"));
+        bs.addBinding("cityB", vf.createURI("tag:rya.apache.org,2017:ex#amsterdam"));
+        expectedResults.add(bs);
 
-        // Verify the end results of the query match the expected results.
-        fluo.waitForObservers();
-        final Set<BindingSet> results = getQueryBindingSetValues(fluoClient, geoCitySelect);
+        bs = new MapBindingSet();
+        bs.addBinding("cityA", vf.createURI("tag:rya.apache.org,2017:ex#amsterdam"));
+        bs.addBinding("cityB", vf.createURI("tag:rya.apache.org,2017:ex#brussels"));
+        expectedResults.add(bs);
 
-        results.forEach(res -> {
-            // System.out.println(res.getValue("cityA").stringValue() + " - " + res.getValue("cityB").stringValue() + " : "
-            // /* + res.getValue("dist").stringValue() + "km" */
-            // );
-        });
-
-        assertEquals(expected, results);
+        runTest(sparql, statements, expectedResults);
     }
 
     /**
@@ -203,167 +188,169 @@ public class GeoFunctionsIT extends ITBase {
      * Then add a bit of code to replace the default one that comes with RDF4J:
      * SpatialSupportInitializer.java
      * Here is one: https://bitbucket.org/pulquero/sesame-geosparql-jts
-     *
-     * @throws Exception
      */
-    // @Ignore("needs JTS initializer, see comments.")
     @Test
     public void withGeoSpatialSupportInitializer() throws Exception {
-        final String geoWithinSelect = "PREFIX geo: <http://www.opengis.net/ont/geosparql#> "//
-                        + "PREFIX ryageo: <tag:rya.apache.org,2017:function/geo#> "//
-                        + "PREFIX geof: <http://www.opengis.net/def/function/geosparql/> "//
-                        + "SELECT ?feature ?point ?wkt " //
-                        + "{" //
-                        + " ?feature a geo:Feature . "//
-                        + " ?feature geo:hasGeometry ?point . "//
-                        + " ?point a geo:Point . "//
-                        + " ?point geo:asWKT ?wkt . "//
-                        + " FILTER(geof:sfWithin(?wkt, \"POLYGON((-78 39, -76 39, -76 38, -78 38, -78 39))\"^^geo:wktLiteral)) " //
-                        + "}";//
-        final Set<RyaStatement> streamedTriples = Sets.newHashSet(//
-                        makeRyaStatement("tag:rya.apache.org,2017:ex#feature", "http://www.w3.org/1999/02/22-rdf-syntax-ns#type", "http://www.opengis.net/ont/geosparql#Feature"), //
-                        makeRyaStatement("tag:rya.apache.org,2017:ex#feature", "http://www.opengis.net/ont/geosparql#hasGeometry", "tag:rya.apache.org,2017:ex#test_point"), //
-                        makeRyaStatement("tag:rya.apache.org,2017:ex#test_point", "http://www.w3.org/1999/02/22-rdf-syntax-ns#type", "http://www.opengis.net/ont/geosparql#Point"), //
-                        makeRyaStatement("tag:rya.apache.org,2017:ex#test_point", "http://www.opengis.net/ont/geosparql#asWKT", new RyaType(new URIImpl("http://www.opengis.net/ont/geosparql#wktLiteral") //
-                                        , "Point(-77.03524 38.889468)")), //
-                        makeRyaStatement("tag:rya.apache.org,2017:ex#skip_point", "http://www.w3.org/1999/02/22-rdf-syntax-ns#type", "http://www.opengis.net/ont/geosparql#Point"), //
-                        makeRyaStatement("tag:rya.apache.org,2017:ex#skip_point", "http://www.opengis.net/ont/geosparql#asWKT", new RyaType(new URIImpl("http://www.opengis.net/ont/geosparql#wktLiteral")//
-                                        , "Point(-10 10)")) //
-        );
+        final String sparql =
+                "PREFIX geo: <http://www.opengis.net/ont/geosparql#> " +
+                "PREFIX ryageo: <tag:rya.apache.org,2017:function/geo#> " +
+                "PREFIX geof: <http://www.opengis.net/def/function/geosparql/> " +
+                "SELECT ?feature ?point ?wkt { " +
+                    "?feature a geo:Feature . " +
+                    "?feature geo:hasGeometry ?point . " +
+                    "?point a geo:Point . " +
+                    "?point geo:asWKT ?wkt . " +
+                    "FILTER(geof:sfWithin(?wkt, \"POLYGON((-78 39, -76 39, -76 38, -78 38, -78 39))\"^^geo:wktLiteral)) " +
+                "}";
+
+        final ValueFactory vf = new ValueFactoryImpl();
+        final Set<Statement> statements = Sets.newHashSet(
+                vf.createStatement(vf.createURI("tag:rya.apache.org,2017:ex#feature"), vf.createURI("http://www.w3.org/1999/02/22-rdf-syntax-ns#type"), vf.createURI("http://www.opengis.net/ont/geosparql#Feature")),
+                vf.createStatement(vf.createURI("tag:rya.apache.org,2017:ex#feature"), vf.createURI("http://www.opengis.net/ont/geosparql#hasGeometry"), vf.createURI("tag:rya.apache.org,2017:ex#test_point")),
+                vf.createStatement(vf.createURI("tag:rya.apache.org,2017:ex#test_point"), vf.createURI("http://www.w3.org/1999/02/22-rdf-syntax-ns#type"), vf.createURI("http://www.opengis.net/ont/geosparql#Point")),
+                vf.createStatement(vf.createURI("tag:rya.apache.org,2017:ex#test_point"), vf.createURI("http://www.opengis.net/ont/geosparql#asWKT"), vf.createLiteral("Point(-77.03524 38.889468)", vf.createURI("http://www.opengis.net/ont/geosparql#wktLiteral"))),
+                vf.createStatement(vf.createURI("tag:rya.apache.org,2017:ex#skip_point"), vf.createURI("http://www.w3.org/1999/02/22-rdf-syntax-ns#type"), vf.createURI("http://www.opengis.net/ont/geosparql#Point")),
+                vf.createStatement(vf.createURI("tag:rya.apache.org,2017:ex#skip_point"), vf.createURI("http://www.opengis.net/ont/geosparql#asWKT"), vf.createLiteral("Point(-10 10)", vf.createURI("http://www.opengis.net/ont/geosparql#wktLiteral"))));
+
         // Register geo functions from RDF4J is done automatically via SPI.
         // The expected results of the SPARQL query once the PCJ has been computed.
-        final Set<BindingSet> expected = new HashSet<>();
-        expected.add(makeBindingSet(new BindingImpl("wkt", (new LiteralImpl("Point(-77.03524 38.889468)", new URIImpl("http://www.opengis.net/ont/geosparql#wktLiteral")))), new BindingImpl("feature", new URIImpl("tag:rya.apache.org,2017:ex#feature")), new BindingImpl("point", new URIImpl("tag:rya.apache.org,2017:ex#test_point"))));
-        // expected.add(makeBindingSet(new BindingImpl("wkt", (new LiteralImpl("Point(-77.03524 38.889468)", new URIImpl("http://www.opengis.net/ont/geosparql#wktLiteral"))))));
-        // expected.add(makeBindingSet(new BindingImpl("wkt", new URIImpl("\"Point(-77.03524 38.889468)\"^^<http://www.opengis.net/ont/geosparql#wktLiteral>")), new BindingImpl("feature", new
-        // URIImpl("tag:rya.apache.org,2017:ex#feature")), new BindingImpl("point", new URIImpl("tag:rya.apache.org,2017:ex#test_point"))));
+        final Set<BindingSet> expectedResults = new HashSet<>();
+        final MapBindingSet bs = new MapBindingSet();
+        bs.addBinding("wkt", vf.createLiteral("Point(-77.03524 38.889468)", vf.createURI("http://www.opengis.net/ont/geosparql#wktLiteral")));
+        bs.addBinding("feature", vf.createURI("tag:rya.apache.org,2017:ex#feature"));
+        bs.addBinding("point", vf.createURI("tag:rya.apache.org,2017:ex#test_point"));
+        expectedResults.add(bs);
 
-        // Create the PCJ table.
-        final PrecomputedJoinStorage pcjStorage = new AccumuloPcjStorage(accumuloConn, RYA_INSTANCE_NAME);
-        final String pcjId = pcjStorage.createPcj(geoWithinSelect);
-
-        // Tell the Fluo app to maintain the PCJ.
-        new CreatePcj().withRyaIntegration(pcjId, pcjStorage, fluoClient, accumuloConn, RYA_INSTANCE_NAME);
-
-        // Stream the data into Fluo.
-        new InsertTriples().insert(fluoClient, streamedTriples, Optional.<String> absent());
-
-        // Verify the end results of the query match the expected results.
-        fluo.waitForObservers();
-        final Set<BindingSet> results = getQueryBindingSetValues(fluoClient, geoWithinSelect);
-        assertEquals(expected, results);
+        runTest(sparql, statements, expectedResults);
     }
 
     /**
      * This test does not rely on geoTools. The default implementation in RDF4J handles point intersections.
-     * 
-     * @throws Exception
      */
     @Test
     public void withGeoIntersectsPoint() throws Exception {
-        String geoCitySelect = "PREFIX geo: <http://www.opengis.net/ont/geosparql#> " //
-                        + "PREFIX geof: <http://www.opengis.net/def/function/geosparql/> " //
-                        + "PREFIX uom: <http://www.opengis.net/def/uom/OGC/1.0/> " //
-                        + "SELECT ?cityA ?cityB " //
-                        + "WHERE { ?cityA geo:asWKT ?coord1 . " //
-                        + "        ?cityB geo:asWKT ?coord2 . " //
-                        + " FILTER ( geof:sfIntersects(?coord1, ?coord2) ) " //
-                        + " FILTER ( !sameTerm (?cityA, ?cityB) ) }"; //
+        final String sparql =
+                "PREFIX geo: <http://www.opengis.net/ont/geosparql#> "  +
+                "PREFIX geof: <http://www.opengis.net/def/function/geosparql/> "  +
+                "PREFIX uom: <http://www.opengis.net/def/uom/OGC/1.0/> "  +
+                "SELECT ?cityA ?cityB { "  +
+                    "?cityA geo:asWKT ?coord1 . " +
+                    "?cityB geo:asWKT ?coord2 . " +
+                    " FILTER ( geof:sfIntersects(?coord1, ?coord2) ) " +
+                    " FILTER ( !sameTerm (?cityA, ?cityB) ) " +
+                "}";
 
-        final URIImpl wktTypeUri = new URIImpl("http://www.opengis.net/ont/geosparql#wktLiteral");
-        final String asWKT = "http://www.opengis.net/ont/geosparql#asWKT";
-        final Set<RyaStatement> streamedTriples = Sets.newHashSet(//
-                        makeRyaStatement("tag:rya.apache.org,2017:ex#dakar", asWKT, new RyaType(wktTypeUri, "Point(-17.45 14.69)")), //
-                        makeRyaStatement("tag:rya.apache.org,2017:ex#canberra", asWKT, new RyaType(wktTypeUri, "Point(149.12 -35.31)")), //
-                        makeRyaStatement("tag:rya.apache.org,2017:ex#brussels", asWKT, new RyaType(wktTypeUri, "Point(4.35 50.85)")), //
-                        makeRyaStatement("tag:rya.apache.org,2017:ex#amsterdam", asWKT, new RyaType(wktTypeUri, "Point(4.9 52.37)")), //
-                        makeRyaStatement("tag:rya.apache.org,2017:ex#amsterdam2", asWKT, new RyaType(wktTypeUri, "Point(4.9 52.37)")) //
-        );
+        final ValueFactory vf = new ValueFactoryImpl();
+        final URI wktTypeUri = vf.createURI("http://www.opengis.net/ont/geosparql#wktLiteral");
+        final URI asWKT = vf.createURI("http://www.opengis.net/ont/geosparql#asWKT");
+        final Set<Statement> statements = Sets.newHashSet(
+                vf.createStatement(vf.createURI("tag:rya.apache.org,2017:ex#dakar"), asWKT, vf.createLiteral("Point(-17.45 14.69)", wktTypeUri)),
+                vf.createStatement(vf.createURI("tag:rya.apache.org,2017:ex#canberra"), asWKT, vf.createLiteral("Point(149.12 -35.31)", wktTypeUri)),
+                vf.createStatement(vf.createURI("tag:rya.apache.org,2017:ex#brussels"), asWKT, vf.createLiteral("Point(4.35 50.85)", wktTypeUri)),
+                vf.createStatement(vf.createURI("tag:rya.apache.org,2017:ex#amsterdam"), asWKT, vf.createLiteral("Point(4.9 52.37)", wktTypeUri)),
+                vf.createStatement(vf.createURI("tag:rya.apache.org,2017:ex#amsterdam2"), asWKT, vf.createLiteral("Point(4.9 52.37)", wktTypeUri)));
 
         // The expected results of the SPARQL query once the PCJ has been computed.
-        final Set<BindingSet> expected = new HashSet<>();
-        expected.add(makeBindingSet(new BindingImpl("cityA", new URIImpl("tag:rya.apache.org,2017:ex#amsterdam")), new BindingImpl("cityB", new URIImpl("tag:rya.apache.org,2017:ex#amsterdam2"))));
-        expected.add(makeBindingSet(new BindingImpl("cityA", new URIImpl("tag:rya.apache.org,2017:ex#amsterdam2")), new BindingImpl("cityB", new URIImpl("tag:rya.apache.org,2017:ex#amsterdam"))));
+        final Set<BindingSet> expectedResults = new HashSet<>();
 
-        // Register geo functions from RDF4J is done automatically via SPI.
-        // Create the PCJ table.
-        final PrecomputedJoinStorage pcjStorage = new AccumuloPcjStorage(accumuloConn, RYA_INSTANCE_NAME);
-        final String pcjId = pcjStorage.createPcj(geoCitySelect);
+        MapBindingSet bs = new MapBindingSet();
+        bs.addBinding("cityA", vf.createURI("tag:rya.apache.org,2017:ex#amsterdam"));
+        bs.addBinding("cityB", vf.createURI("tag:rya.apache.org,2017:ex#amsterdam2"));
+        expectedResults.add(bs);
 
-        // Tell the Fluo app to maintain the PCJ.
-        new CreatePcj().withRyaIntegration(pcjId, pcjStorage, fluoClient, accumuloConn, RYA_INSTANCE_NAME);
+        bs = new MapBindingSet();
+        bs.addBinding("cityA", vf.createURI("tag:rya.apache.org,2017:ex#amsterdam2"));
+        bs.addBinding("cityB", vf.createURI("tag:rya.apache.org,2017:ex#amsterdam"));
+        expectedResults.add(bs);
 
-        // Stream the data into Fluo.
-        new InsertTriples().insert(fluoClient, streamedTriples, Optional.<String> absent());
-
-        // Verify the end results of the query match the expected results.
-        fluo.waitForObservers();
-        final Set<BindingSet> results = getQueryBindingSetValues(fluoClient, geoCitySelect);
-
-        results.forEach(res -> {
-            // System.out.println(res.getValue("cityA").stringValue() + " - " + res.getValue("cityB").stringValue() + " : "
-            // /* + res.getValue("dist").stringValue() + "km" */
-            // );
-        });
-
-        assertEquals(expected, results);
+        runTest(sparql, statements, expectedResults);
     }
 
     @Test
     public void withTemporal() throws Exception {
-        final String dtPredUri = "http://www.w3.org/2006/time#inXSDDateTime";
-        final String xmlDateTime = "http://www.w3.org/2001/XMLSchema#dateTime";
         // Find all stored dates.
-        String selectQuery = "PREFIX time: <http://www.w3.org/2006/time#> \n"//
-                        + "PREFIX xml: <http://www.w3.org/2001/XMLSchema#> \n" //
-                        + "PREFIX tempo: <tag:rya-rdf.org,2015:temporal#> \n"//
-                        + "SELECT ?event ?time \n" //
-                        + "WHERE { \n" //
-                        + "  ?event time:inXSDDateTime ?time . \n"//
-                        // + " FILTER(?time > '2000-01-01T01:00:00Z'^^xml:dateTime) \n"// all
-                        // + " FILTER(?time < '2007-01-01T01:01:03-08:00'^^xml:dateTime) \n"// after 2007
-                        + " FILTER(?time > '2001-01-01T01:01:03-08:00'^^xml:dateTime) \n"// after 3 seconds
-                        + " FILTER('2007-01-01T01:01:01+09:00'^^xml:dateTime > ?time ) \n"// 2006/12/31 include 2006, not 2007,8
-                        + "}";//
+        final String sparql =
+                "PREFIX time: <http://www.w3.org/2006/time#> " +
+                "PREFIX xml: <http://www.w3.org/2001/XMLSchema#> " +
+                "PREFIX tempo: <tag:rya-rdf.org,2015:temporal#> " +
+                "SELECT ?event ?time { " +
+                    "?event time:inXSDDateTime ?time . " +
+                    "FILTER(?time > '2001-01-01T01:01:03-08:00'^^xml:dateTime) " + // after 3 seconds
+                    "FILTER('2007-01-01T01:01:01+09:00'^^xml:dateTime > ?time ) " + // 2006/12/31 include 2006, not 2007,8
+                "}";
 
         // create some resources and literals to make statements out of
-        String eventz = "<http://eventz>";
-        final Set<RyaStatement> streamedTriples = Sets.newHashSet(//
-                        makeRyaStatement(eventz, "http://www.w3.org/1999/02/22-rdf-syntax-ns#type", "<http://www.w3.org/2006/time#Instant>"), //
-                        makeRyaStatement(eventz, dtPredUri, new RyaType(new URIImpl(xmlDateTime), "2001-01-01T01:01:01-08:00")), // one second
-                        makeRyaStatement(eventz, dtPredUri, new RyaType(new URIImpl(xmlDateTime), "2001-01-01T04:01:02.000-05:00")), // 2 seconds
-                        makeRyaStatement(eventz, dtPredUri, new RyaType(new URIImpl(xmlDateTime), "2001-01-01T01:01:03-08:00")), // 3 seconds
-                        makeRyaStatement(eventz, dtPredUri, new RyaType(new URIImpl(xmlDateTime), "2001-01-01T01:01:03.999-08:00")), // 4 seconds
-                        makeRyaStatement(eventz, dtPredUri, new RyaType(new URIImpl(xmlDateTime), "2001-01-01T09:01:05Z")), // 5 seconds
-                        makeRyaStatement(eventz, dtPredUri, new RyaType(new URIImpl(xmlDateTime), "2006-01-01TZ")), //
-                        makeRyaStatement(eventz, dtPredUri, new RyaType(new URIImpl(xmlDateTime), "2007-01-01TZ")), //
-                        makeRyaStatement(eventz, dtPredUri, new RyaType(new URIImpl(xmlDateTime), "2008-01-01TZ")));
+        final ValueFactory vf = new ValueFactoryImpl();
+        final DatatypeFactory dtf = DatatypeFactory.newInstance();
 
-        // The expected results of the SPARQL query once the PCJ has been computed.
-        final Set<BindingSet> expected = new HashSet<>();
-        expected.add(makeBindingSet(new BindingImpl("time", new LiteralImpl("2001-01-01T09:01:03.999Z", new URIImpl(xmlDateTime))), new BindingImpl("event", new URIImpl(eventz)))); //
-        expected.add(makeBindingSet(new BindingImpl("time", new LiteralImpl("2001-01-01T09:01:05.000Z", new URIImpl(xmlDateTime))), new BindingImpl("event", new URIImpl(eventz)))); //
-        expected.add(makeBindingSet(new BindingImpl("time", new LiteralImpl("2006-01-01T00:00:00.000Z", new URIImpl(xmlDateTime))), new BindingImpl("event", new URIImpl(eventz)))); //
-        expected.add(makeBindingSet(new BindingImpl("time", new LiteralImpl("2006-01-01T00:00:00.000Z", new URIImpl(xmlDateTime))), new BindingImpl("event", new URIImpl(eventz)))); //
-        // expected.add(makeBindingSet(new BindingImpl("event", new URIImpl(eventz)), new BindingImpl("time", new LiteralImpl("2007-01-01T05:00:00.000Z", new URIImpl(xmlDateTime))))); //
-        // expected.add(makeBindingSet(new BindingImpl("event", new URIImpl(eventz)), new BindingImpl("time", new LiteralImpl("2008-01-01T05:00:00.000Z", new URIImpl(xmlDateTime)))));
+        final URI dtPredUri = vf.createURI("http://www.w3.org/2006/time#inXSDDateTime");
+        final URI eventz = vf.createURI("<http://eventz>");
 
-        // Register geo functions from RDF4J is done automatically via SPI.
-        // Create the PCJ table.
-        final PrecomputedJoinStorage pcjStorage = new AccumuloPcjStorage(accumuloConn, RYA_INSTANCE_NAME);
-        final String pcjId = pcjStorage.createPcj(selectQuery);
+        final Set<Statement> statements = Sets.newHashSet(
+                vf.createStatement(eventz, vf.createURI("http://www.w3.org/1999/02/22-rdf-syntax-ns#type"), vf.createURI("<http://www.w3.org/2006/time#Instant>")),
+                vf.createStatement(eventz, dtPredUri, vf.createLiteral(dtf.newXMLGregorianCalendar("2001-01-01T01:01:01-08:00"))), // 1 second
+                vf.createStatement(eventz, dtPredUri, vf.createLiteral(dtf.newXMLGregorianCalendar("2001-01-01T04:01:02.000-05:00"))), // 2 seconds
+                vf.createStatement(eventz, dtPredUri, vf.createLiteral(dtf.newXMLGregorianCalendar("2001-01-01T01:01:03-08:00"))), // 3 seconds
+                vf.createStatement(eventz, dtPredUri, vf.createLiteral(dtf.newXMLGregorianCalendar("2001-01-01T01:01:03.999-08:00"))), // 4 seconds
+                vf.createStatement(eventz, dtPredUri, vf.createLiteral(dtf.newXMLGregorianCalendar("2001-01-01T09:01:05Z"))), // 5 seconds
+                vf.createStatement(eventz, dtPredUri, vf.createLiteral(dtf.newXMLGregorianCalendar("2006-01-01T05:00:00.000Z"))),
+                vf.createStatement(eventz, dtPredUri, vf.createLiteral(dtf.newXMLGregorianCalendar("2007-01-01T05:00:00.000Z"))),
+                vf.createStatement(eventz, dtPredUri, vf.createLiteral(dtf.newXMLGregorianCalendar("2008-01-01T05:00:00.000Z"))));
 
-        // Tell the Fluo app to maintain the PCJ.
-        new CreatePcj().withRyaIntegration(pcjId, pcjStorage, fluoClient, accumuloConn, RYA_INSTANCE_NAME);
+        final Set<BindingSet> expectedResults = new HashSet<>();
 
-        // Stream the data into Fluo.
-        new InsertTriples().insert(fluoClient, streamedTriples, Optional.<String> absent());
+        MapBindingSet bs = new MapBindingSet();
+        bs.addBinding("time", vf.createLiteral(dtf.newXMLGregorianCalendar("2001-01-01T09:01:05.000Z")));
+        bs.addBinding("event", eventz);
+        expectedResults.add(bs);
 
-        // Verify the end results of the query match the expected results.
-        fluo.waitForObservers();
-        final Set<BindingSet> results = getQueryBindingSetValues(fluoClient, selectQuery);
-        assertEquals(expected, results);
+        bs = new MapBindingSet();
+        bs.addBinding("time", vf.createLiteral(dtf.newXMLGregorianCalendar("2006-01-01T05:00:00.000Z")));
+        bs.addBinding("event", eventz);
+        expectedResults.add(bs);
+
+        bs = new MapBindingSet();
+        bs.addBinding("time", vf.createLiteral(dtf.newXMLGregorianCalendar("2001-01-01T09:01:03.999Z")));
+        bs.addBinding("event", eventz);
+        expectedResults.add(bs);
+
+        runTest(sparql, statements, expectedResults);
     }
 
-}
+    public void runTest(final String sparql, final Collection<Statement> statements, final Collection<BindingSet> expectedResults) throws Exception {
+        requireNonNull(sparql);
+        requireNonNull(statements);
+        requireNonNull(expectedResults);
 
+        // Register the PCJ with Rya.
+        final Instance accInstance = super.getAccumuloConnector().getInstance();
+        final Connector accumuloConn = super.getAccumuloConnector();
+
+        final RyaClient ryaClient = AccumuloRyaClientFactory.build(new AccumuloConnectionDetails(
+                ACCUMULO_USER,
+                ACCUMULO_PASSWORD.toCharArray(),
+                accInstance.getInstanceName(),
+                accInstance.getZooKeepers()), accumuloConn);
+
+        ryaClient.getCreatePCJ().createPCJ(RYA_INSTANCE_NAME, sparql);
+
+        // Write the data to Rya.
+        final SailRepositoryConnection ryaConn = super.getRyaSailRepository().getConnection();
+        ryaConn.begin();
+        ryaConn.add(statements);
+        ryaConn.commit();
+        ryaConn.close();
+
+        // Wait for the Fluo application to finish computing the end result.
+        super.getMiniFluo().waitForObservers();
+
+        // Fetch the value that is stored within the PCJ table.
+        try(final PrecomputedJoinStorage pcjStorage = new AccumuloPcjStorage(accumuloConn, RYA_INSTANCE_NAME)) {
+            final String pcjId = pcjStorage.listPcjs().get(0);
+            final Set<BindingSet> results = Sets.newHashSet( pcjStorage.listResults(pcjId) );
+
+            // Ensure the result of the query matches the expected result.
+            assertEquals(expectedResults, results);
+        }
+    }
+}

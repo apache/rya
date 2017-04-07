@@ -30,9 +30,6 @@ import java.util.List;
 import java.util.Map.Entry;
 import java.util.Set;
 
-import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
-import edu.umd.cs.findbugs.annotations.NonNull;
-
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
 import org.apache.accumulo.core.client.BatchWriter;
@@ -59,6 +56,7 @@ import org.apache.accumulo.core.security.ColumnVisibility;
 import org.apache.hadoop.io.Text;
 import org.apache.log4j.Logger;
 import org.apache.rya.indexing.pcj.storage.PcjMetadata;
+import org.apache.rya.indexing.pcj.storage.PrecomputedJoinStorage.CloseableIterator;
 import org.apache.rya.indexing.pcj.storage.PrecomputedJoinStorage.PCJStorageException;
 import org.apache.rya.indexing.pcj.storage.accumulo.BindingSetConverter.BindingSetConversionException;
 import org.openrdf.query.BindingSet;
@@ -71,6 +69,9 @@ import org.openrdf.repository.RepositoryConnection;
 import org.openrdf.repository.RepositoryException;
 
 import com.google.common.base.Optional;
+
+import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
+import edu.umd.cs.findbugs.annotations.NonNull;
 
 /**
  * Functions that create and maintain the PCJ tables that are used by Rya.
@@ -157,6 +158,7 @@ public class PcjTables {
 
         final TableOperations tableOps = accumuloConn.tableOperations();
         if(!tableOps.exists(pcjTableName)) {
+            BatchWriter writer = null;
             try {
                 // Create the new table in Accumulo.
                 tableOps.create(pcjTableName);
@@ -165,14 +167,21 @@ public class PcjTables {
                 final PcjMetadata pcjMetadata = new PcjMetadata(sparql, 0L, varOrders);
                 final List<Mutation> mutations = makeWriteMetadataMutations(pcjMetadata);
 
-                final BatchWriter writer = accumuloConn.createBatchWriter(pcjTableName, new BatchWriterConfig());
+                writer = accumuloConn.createBatchWriter(pcjTableName, new BatchWriterConfig());
                 writer.addMutations(mutations);
-                writer.close();
             } catch (final TableExistsException e) {
                 log.warn("Something else just created the Rya PCJ export table named '" + pcjTableName
                         + "'. This is unexpected, but we will continue as normal.");
             } catch (AccumuloException | AccumuloSecurityException | TableNotFoundException e) {
                 throw new PCJStorageException("Could not create a new PCJ named: " + pcjTableName, e);
+            } finally {
+                if(writer != null) {
+                    try {
+                        writer.close();
+                    } catch (final MutationsRejectedException e) {
+                        log.error("Mutations rejected while creating the PCJ table.", e);
+                    }
+                }
             }
         }
     }
@@ -231,9 +240,10 @@ public class PcjTables {
         checkNotNull(accumuloConn);
         checkNotNull(pcjTableName);
 
+        Scanner scanner = null;
         try {
             // Create an Accumulo scanner that iterates through the metadata entries.
-            final Scanner scanner = accumuloConn.createScanner(pcjTableName, new Authorizations());
+            scanner = accumuloConn.createScanner(pcjTableName, new Authorizations());
             final Iterator<Entry<Key, Value>> entries = scanner.iterator();
 
             // No metadata has been stored in the table yet.
@@ -266,6 +276,10 @@ public class PcjTables {
 
         } catch (final TableNotFoundException e) {
             throw new PCJStorageException("Could not add results to a PCJ because the PCJ table does not exist.", e);
+        } finally {
+            if(scanner != null) {
+                scanner.close();
+            }
         }
     }
 
@@ -310,7 +324,7 @@ public class PcjTables {
      *   results for the PCJ.
      * @throws PCJStorageException The binding sets could not be fetched.
      */
-    public Iterable<BindingSet> listResults(final Connector accumuloConn, final String pcjTableName, final Authorizations auths) throws PCJStorageException {
+    public CloseableIterator<BindingSet> listResults(final Connector accumuloConn, final String pcjTableName, final Authorizations auths) throws PCJStorageException {
         requireNonNull(pcjTableName);
 
         // Fetch the Variable Orders for the binding sets and choose one of them. It
@@ -324,12 +338,7 @@ public class PcjTables {
             scanner.fetchColumnFamily( new Text(varOrder.toString()) );
 
             // Return an Iterator that uses that scanner.
-            return new Iterable<BindingSet>() {
-                @Override
-                public Iterator<BindingSet> iterator() {
-                    return new ScannerBindingSetIterator(scanner, varOrder);
-                }
-            };
+            return new ScannerBindingSetIterator(scanner, varOrder);
 
         } catch (final TableNotFoundException e) {
             throw new PCJStorageException(String.format("PCJ Table does not exist for name '%s'.", pcjTableName), e);
@@ -398,10 +407,10 @@ public class PcjTables {
         for(final VariableOrder varOrder : varOrders) {
             try {
                 // Serialize the result to the variable order.
-                final byte[] serializedResult = converter.convert(result, varOrder);
+                final byte[] rowKey = converter.convert(result, varOrder);
 
                 // Row ID = binding set values, Column Family = variable order of the binding set.
-                final Mutation addResult = new Mutation(serializedResult);
+                final Mutation addResult = new Mutation(rowKey);
                 final String visibility = result.getVisibility();
                 addResult.put(varOrder.toString(), "", new ColumnVisibility(visibility), "");
                 mutations.add(addResult);

@@ -16,29 +16,32 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.apache.rya.indexing.smarturi;
+package org.apache.rya.indexing.smarturi.duplication;
+
+import org.apache.rya.indexing.entity.model.Entity;
+import org.apache.rya.indexing.entity.storage.EntityStorage.EntityStorageException;
 
 /**
- * Exception thrown when a SmartURI is malformed when attempting to
- * serialize/deserialize it.
+ * An {@link Entity} could not be created because another entity is a nearly
+ * identical duplicate based on the configured tolerances.
  */
-public class SmartUriException extends Exception {
+public class EntityNearDuplicateException extends EntityStorageException {
     private static final long serialVersionUID = 1L;
 
     /**
-     * Creates a new instance of {@link SmartUriException}.
+     * Creates a new instance of {@link EntityNearDuplicateException}.
      * @param message the message to be displayed by the exception.
      */
-    public SmartUriException(final String message) {
+    public EntityNearDuplicateException(final String message) {
         super(message);
     }
 
     /**
-     * Creates a new instance of {@link SmartUriException}.
+     * Creates a new instance of {@link EntityNearDuplicateException}.
      * @param message the message to be displayed by the exception.
      * @param throwable the source {#link Throwable} cause of the exception.
      */
-    public SmartUriException(final String message, final Throwable throwable) {
+    public EntityNearDuplicateException(final String message, final Throwable throwable) {
         super(message, throwable);
     }
 }

@@ -20,21 +20,29 @@ package org.apache.rya.indexing.entity.storage.mongo;
 
 import static java.util.Objects.requireNonNull;
 
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import org.apache.commons.configuration.ConfigurationException;
+import org.apache.log4j.Logger;
 import org.apache.rya.api.domain.RyaURI;
 import org.apache.rya.indexing.entity.model.Entity;
+import org.apache.rya.indexing.entity.model.Entity.Builder;
 import org.apache.rya.indexing.entity.model.Property;
 import org.apache.rya.indexing.entity.model.Type;
 import org.apache.rya.indexing.entity.model.TypedEntity;
 import org.apache.rya.indexing.entity.storage.EntityStorage;
+import org.apache.rya.indexing.entity.storage.TypeStorage.TypeStorageException;
 import org.apache.rya.indexing.entity.storage.mongo.ConvertingCursor.Converter;
 import org.apache.rya.indexing.entity.storage.mongo.DocumentConverter.DocumentConverterException;
 import org.apache.rya.indexing.entity.storage.mongo.key.MongoDbSafeKey;
+import org.apache.rya.indexing.smarturi.SmartUriException;
+import org.apache.rya.indexing.smarturi.duplication.DuplicateDataDetector;
+import org.apache.rya.indexing.smarturi.duplication.EntityNearDuplicateException;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 
@@ -54,6 +62,7 @@ import edu.umd.cs.findbugs.annotations.NonNull;
  */
 @DefaultAnnotation(NonNull.class)
 public class MongoEntityStorage implements EntityStorage {
+    private static final Logger log = Logger.getLogger(MongoEntityStorage.class);
 
     protected static final String COLLECTION_NAME = "entity-entities";
 
@@ -69,15 +78,40 @@ public class MongoEntityStorage implements EntityStorage {
      */
     protected final String ryaInstanceName;
 
+    private final DuplicateDataDetector duplicateDataDetector;
+    private MongoTypeStorage mongoTypeStorage = null;
+
     /**
      * Constructs an instance of {@link MongoEntityStorage}.
      *
      * @param mongo - A client connected to the Mongo instance that hosts the Rya instance. (not null)
      * @param ryaInstanceName - The name of the Rya instance the {@link TypedEntity}s are for. (not null)
+     * @throws ConfigurationException
      */
-    public MongoEntityStorage(final MongoClient mongo, final String ryaInstanceName) {
+    public MongoEntityStorage(final MongoClient mongo, final String ryaInstanceName) throws EntityStorageException {
+        this(mongo, ryaInstanceName, null);
+    }
+
+    /**
+     * Constructs an instance of {@link MongoEntityStorage}.
+     *
+     * @param mongo - A client connected to the Mongo instance that hosts the Rya instance. (not null)
+     * @param ryaInstanceName - The name of the Rya instance the {@link TypedEntity}s are for. (not null)
+     * @param duplicateDataDetector - The {@link DuplicateDataDetector}.
+     * @throws EntityStorageException
+     */
+    public MongoEntityStorage(final MongoClient mongo, final String ryaInstanceName, final DuplicateDataDetector duplicateDataDetector) throws EntityStorageException {
         this.mongo = requireNonNull(mongo);
         this.ryaInstanceName = requireNonNull(ryaInstanceName);
+        if (duplicateDataDetector == null) {
+            try {
+                this.duplicateDataDetector = new DuplicateDataDetector();
+            } catch (final ConfigurationException e) {
+                throw new EntityStorageException("Could not create duplicate data detector.", e);
+            }
+        } else {
+            this.duplicateDataDetector = duplicateDataDetector;
+        }
     }
 
     @Override
@@ -85,10 +119,15 @@ public class MongoEntityStorage implements EntityStorage {
         requireNonNull(entity);
 
         try {
-            mongo.getDatabase(ryaInstanceName)
-                .getCollection(COLLECTION_NAME)
-                .insertOne( ENTITY_CONVERTER.toDocument(entity) );
+            final boolean hasDuplicate = detectDuplicates(entity);
 
+            if (!hasDuplicate) {
+                mongo.getDatabase(ryaInstanceName)
+                    .getCollection(COLLECTION_NAME)
+                    .insertOne( ENTITY_CONVERTER.toDocument(entity) );
+            } else {
+                throw new EntityNearDuplicateException("Duplicate data found and will not be inserted for Entity with Subject: "  + entity);
+            }
         } catch(final MongoException e) {
             final ErrorCategory category = ErrorCategory.fromErrorCode( e.getCode() );
             if(category == ErrorCategory.DUPLICATE_KEY) {
@@ -241,5 +280,47 @@ public class MongoEntityStorage implements EntityStorage {
         final Bson valueFilter = Filters.eq(valuePath, propertyValue);
 
         return Stream.of(dataTypeFilter, valueFilter);
+    }
+
+    private boolean detectDuplicates(final Entity entity) throws EntityStorageException {
+        boolean hasDuplicate = false;
+        if (duplicateDataDetector.isDetectionEnabled()) {
+            if (mongoTypeStorage == null) {
+                mongoTypeStorage = new MongoTypeStorage(mongo, ryaInstanceName);
+            }
+            final Builder builder = new Builder();
+            builder.setSubject(entity.getSubject());
+            boolean abort = false;
+            for (final RyaURI typeRyaUri : entity.getExplicitTypeIds()) {
+                Optional<Type> type;
+                try {
+                    type = mongoTypeStorage.get(typeRyaUri);
+                } catch (final TypeStorageException e) {
+                    throw new EntityStorageException("Unable to get entity type: " + typeRyaUri, e);
+                }
+                if (type.isPresent()) {
+                    final ConvertingCursor<TypedEntity> cursor = search(Optional.empty(), type.get(), Collections.emptySet());
+                    while (cursor.hasNext()) {
+                        final TypedEntity typedEntity = cursor.next();
+                        builder.setExplicitType(typeRyaUri);
+                        for (final Property property : typedEntity.getProperties()) {
+                            builder.setProperty(typeRyaUri, property);
+                        }
+                    }
+                } else {
+                    abort = true;
+                    break;
+                }
+            }
+            if (!abort) {
+                final Entity entity2 = builder.build();
+                try {
+                    hasDuplicate = duplicateDataDetector.compareEntities(entity, entity2);
+                } catch (final SmartUriException e) {
+                    throw new EntityStorageException("Encountered an error while comparing entities.", e);
+                }
+            }
+        }
+        return hasDuplicate;
     }
 }

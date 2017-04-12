@@ -22,6 +22,7 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.persist.index.RyaSecondaryIndexer;
 import org.apache.rya.indexing.entity.storage.EntityStorage;
+import org.apache.rya.indexing.entity.storage.EntityStorage.EntityStorageException;
 import org.apache.rya.indexing.entity.storage.TypeStorage;
 
 import edu.umd.cs.findbugs.annotations.Nullable;
@@ -37,8 +38,9 @@ public interface EntityIndexer extends RyaSecondaryIndexer {
      *
      * @param conf - Indicates how the {@link EntityStorage} is initialized. (not null)
      * @return The {@link EntityStorage} that will be used by this indexer.
+     * @throws EntityStorageException
      */
-    public @Nullable EntityStorage getEntityStorage(Configuration conf);
+    public @Nullable EntityStorage getEntityStorage(Configuration conf) throws EntityStorageException;
 
     /**
      * Creates the {@link TypeStorage} that will be used by the indexer.

@@ -26,6 +26,7 @@ import org.apache.log4j.Logger;
 import org.apache.rya.indexing.entity.model.Entity;
 import org.apache.rya.indexing.entity.query.EntityQueryNode;
 import org.apache.rya.indexing.entity.storage.EntityStorage;
+import org.apache.rya.indexing.entity.storage.EntityStorage.EntityStorageException;
 import org.apache.rya.indexing.entity.storage.TypeStorage;
 import org.apache.rya.indexing.entity.update.mongo.MongoEntityIndexer;
 import org.apache.rya.indexing.external.matching.AbstractExternalSetOptimizer;
@@ -71,7 +72,11 @@ public class EntityIndexOptimizer extends AbstractExternalSetOptimizer<EntityQue
         indexer.setConf(conf);
 
         typeStorage = indexer.getTypeStorage(conf);
-        entityStorage = indexer.getEntityStorage(conf);
+        try {
+            entityStorage = indexer.getEntityStorage(conf);
+        } catch (final EntityStorageException e) {
+            log.error("Error getting entity storage", e);
+        }
 
         provider = new EntityIndexSetProvider(typeStorage, entityStorage);
     }

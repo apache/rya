@@ -24,12 +24,44 @@ import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.format.ISODateTimeFormat;
 import org.openrdf.model.URI;
+import org.openrdf.model.impl.URIImpl;
 import org.openrdf.model.vocabulary.XMLSchema;
+
+import com.google.common.collect.ImmutableMap;
 
 /**
  * Utility methods for using {@link RyaType}.
  */
 public final class RyaTypeUtils {
+    private static final ImmutableMap<Class<?>, RyaTypeMethod> METHOD_MAP =
+        ImmutableMap.<Class<?>, RyaTypeMethod>builder()
+            .put(Boolean.class, (v) -> booleanRyaType((Boolean) v))
+            .put(Byte.class, (v) -> byteRyaType((Byte) v))
+            .put(Date.class, (v) -> dateRyaType((Date) v))
+            .put(DateTime.class, (v) -> dateRyaType((DateTime) v))
+            .put(Double.class, (v) -> doubleRyaType((Double) v))
+            .put(Float.class, (v) -> floatRyaType((Float) v))
+            .put(Integer.class, (v) -> intRyaType((Integer) v))
+            .put(Long.class, (v) -> longRyaType((Long) v))
+            .put(Short.class, (v) -> shortRyaType((Short) v))
+            .put(String.class, (v) -> stringRyaType((String) v))
+            .put(URI.class, (v) -> uriRyaType((URI) v))
+            .put(URIImpl.class, (v) -> uriRyaType((URIImpl) v))
+            .build();
+
+    /**
+     * Represents a method inside the {@link RyaTypeUtils} class that can be
+     * called.
+     */
+    private static interface RyaTypeMethod {
+        /**
+         * Calls the method within {@link RyaTypeUtils} with the supplied value.
+         * @param value the object value.
+         * @return the {@link RyaType}.
+         */
+        public RyaType callRyaTypeMethod(final Object value);
+    }
+
     /**
      * Private constructor to prevent instantiation.
      */
@@ -66,7 +98,10 @@ public final class RyaTypeUtils {
      */
     public static RyaType dateRyaType(final Date value) {
         final DateTime dateTime = new DateTime(value.getTime());
-        return dateRyaType(dateTime);
+        final StringBuffer sb = new StringBuffer();
+        ISODateTimeFormat.dateTime().withZone(DateTimeZone.UTC).printTo(sb, dateTime.getMillis());
+        final String formattedDate = sb.toString();
+        return new RyaType(XMLSchema.DATE, formattedDate);
     }
 
     /**
@@ -153,5 +188,22 @@ public final class RyaTypeUtils {
      */
     public static RyaType uriRyaType(final URI value) {
         return new RyaType(XMLSchema.ANYURI, value.stringValue());
+    }
+
+    /**
+     * Calls the appropriate {@link RyaTypeUtils} method based on the class
+     * specified and initializes it with the supplied value.
+     * @param classType the {@link Class} of {@link RyaType} to find.
+     * @param value the value to initialize the {@link RyaType} with.
+     * @return the {@link RyaType} or {@code null} if none could be found for
+     * the specified {@code classType}.
+     */
+    public static RyaType getRyaTypeForClass(final Class<?> classType, final Object value) {
+        final RyaTypeMethod method = METHOD_MAP.get(classType);
+        RyaType ryaType = null;
+        if (method != null) {
+            ryaType = method.callRyaTypeMethod(value);
+        }
+        return ryaType;
     }
 }

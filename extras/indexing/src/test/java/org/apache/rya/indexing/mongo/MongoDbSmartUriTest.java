@@ -245,7 +245,6 @@ public class MongoDbSmartUriTest {
         final Entity resultEntity = SmartUriAdapter.deserializeUriEntity(smartUri);
         System.out.println(resultEntity);
         assertEquals(BOB_ENTITY.getSubject(), resultEntity.getSubject());
-        //assertTrue(Paths.get(BOB_ENTITY.getSubject().getData()).equals(Paths.get(resultEntity.getSubject().getData())));
     }
 
     @Test

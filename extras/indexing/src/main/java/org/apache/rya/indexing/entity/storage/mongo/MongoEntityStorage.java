@@ -20,25 +20,35 @@ package org.apache.rya.indexing.entity.storage.mongo;
 
 import static java.util.Objects.requireNonNull;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import org.apache.commons.configuration.ConfigurationException;
+import org.apache.log4j.Logger;
 import org.apache.rya.api.domain.RyaURI;
 import org.apache.rya.indexing.entity.model.Entity;
 import org.apache.rya.indexing.entity.model.Property;
 import org.apache.rya.indexing.entity.model.Type;
 import org.apache.rya.indexing.entity.model.TypedEntity;
 import org.apache.rya.indexing.entity.storage.EntityStorage;
+import org.apache.rya.indexing.entity.storage.TypeStorage.TypeStorageException;
 import org.apache.rya.indexing.entity.storage.mongo.ConvertingCursor.Converter;
 import org.apache.rya.indexing.entity.storage.mongo.DocumentConverter.DocumentConverterException;
 import org.apache.rya.indexing.entity.storage.mongo.key.MongoDbSafeKey;
+import org.apache.rya.indexing.smarturi.SmartUriException;
+import org.apache.rya.indexing.smarturi.duplication.DuplicateDataDetector;
+import org.apache.rya.indexing.smarturi.duplication.EntityNearDuplicateException;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 
 import com.google.common.base.Joiner;
+import com.google.common.collect.ImmutableList;
 import com.mongodb.ErrorCategory;
 import com.mongodb.MongoClient;
 import com.mongodb.MongoException;
@@ -54,6 +64,7 @@ import edu.umd.cs.findbugs.annotations.NonNull;
  */
 @DefaultAnnotation(NonNull.class)
 public class MongoEntityStorage implements EntityStorage {
+    private static final Logger log = Logger.getLogger(MongoEntityStorage.class);
 
     protected static final String COLLECTION_NAME = "entity-entities";
 
@@ -69,15 +80,40 @@ public class MongoEntityStorage implements EntityStorage {
      */
     protected final String ryaInstanceName;
 
+    private final DuplicateDataDetector duplicateDataDetector;
+    private MongoTypeStorage mongoTypeStorage = null;
+
     /**
      * Constructs an instance of {@link MongoEntityStorage}.
      *
      * @param mongo - A client connected to the Mongo instance that hosts the Rya instance. (not null)
      * @param ryaInstanceName - The name of the Rya instance the {@link TypedEntity}s are for. (not null)
+     * @throws ConfigurationException
      */
-    public MongoEntityStorage(final MongoClient mongo, final String ryaInstanceName) {
+    public MongoEntityStorage(final MongoClient mongo, final String ryaInstanceName) throws EntityStorageException {
+        this(mongo, ryaInstanceName, null);
+    }
+
+    /**
+     * Constructs an instance of {@link MongoEntityStorage}.
+     *
+     * @param mongo - A client connected to the Mongo instance that hosts the Rya instance. (not null)
+     * @param ryaInstanceName - The name of the Rya instance the {@link TypedEntity}s are for. (not null)
+     * @param duplicateDataDetector - The {@link DuplicateDataDetector}.
+     * @throws EntityStorageException
+     */
+    public MongoEntityStorage(final MongoClient mongo, final String ryaInstanceName, final DuplicateDataDetector duplicateDataDetector) throws EntityStorageException {
         this.mongo = requireNonNull(mongo);
         this.ryaInstanceName = requireNonNull(ryaInstanceName);
+        if (duplicateDataDetector == null) {
+            try {
+                this.duplicateDataDetector = new DuplicateDataDetector();
+            } catch (final ConfigurationException e) {
+                throw new EntityStorageException("Could not create duplicate data detector.", e);
+            }
+        } else {
+            this.duplicateDataDetector = duplicateDataDetector;
+        }
     }
 
     @Override
@@ -85,10 +121,15 @@ public class MongoEntityStorage implements EntityStorage {
         requireNonNull(entity);
 
         try {
-            mongo.getDatabase(ryaInstanceName)
-                .getCollection(COLLECTION_NAME)
-                .insertOne( ENTITY_CONVERTER.toDocument(entity) );
+            final boolean hasDuplicate = detectDuplicates(entity);
 
+            if (!hasDuplicate) {
+                mongo.getDatabase(ryaInstanceName)
+                    .getCollection(COLLECTION_NAME)
+                    .insertOne( ENTITY_CONVERTER.toDocument(entity) );
+            } else {
+                throw new EntityNearDuplicateException("Duplicate data found and will not be inserted for Entity with Subject: "  + entity);
+            }
         } catch(final MongoException e) {
             final ErrorCategory category = ErrorCategory.fromErrorCode( e.getCode() );
             if(category == ErrorCategory.DUPLICATE_KEY) {
@@ -241,5 +282,85 @@ public class MongoEntityStorage implements EntityStorage {
         final Bson valueFilter = Filters.eq(valuePath, propertyValue);
 
         return Stream.of(dataTypeFilter, valueFilter);
+    }
+
+    private boolean detectDuplicates(final Entity entity) throws EntityStorageException {
+        boolean hasDuplicate = false;
+        if (duplicateDataDetector.isDetectionEnabled()) {
+            // Grab all entities that have all the same explicit types as our
+            // original Entity.
+            final List<Entity> comparisonEntities = searchHasAllExplicitTypes(entity.getExplicitTypeIds());
+
+            // Now that we have our set of potential duplicates, compare them.
+            // We can stop when we find one duplicate.
+            for (final Entity compareEntity : comparisonEntities) {
+                try {
+                    hasDuplicate = duplicateDataDetector.compareEntities(entity, compareEntity);
+                } catch (final SmartUriException e) {
+                    throw new EntityStorageException("Encountered an error while comparing entities.", e);
+                }
+                if (hasDuplicate) {
+                    break;
+                }
+            }
+        }
+        return hasDuplicate;
+    }
+
+    /**
+     * Searches the Entity storage for all Entities that contain all the
+     * specified explicit type IDs.
+     * @param explicitTypeIds the {@link ImmutableList} of {@link RyaURI}s that
+     * are being searched for.
+     * @return the {@link List} of {@link Entity}s that have all the specified
+     * explicit type IDs. If nothing was found an empty {@link List} is
+     * returned.
+     * @throws EntityStorageException
+     */
+    private List<Entity> searchHasAllExplicitTypes(final ImmutableList<RyaURI> explicitTypeIds) throws EntityStorageException {
+        final List<Entity> hasAllExplicitTypesEntities = new ArrayList<>();
+        if (!explicitTypeIds.isEmpty()) {
+            // Grab the first type from the explicit type IDs.
+            final RyaURI firstType = explicitTypeIds.get(0);
+
+            // Check if that type exists anywhere in storage.
+            final List<RyaURI> subjects = new ArrayList<>();
+            Optional<Type> type;
+            try {
+                if (mongoTypeStorage == null) {
+                    mongoTypeStorage = new MongoTypeStorage(mongo, ryaInstanceName);
+                }
+                type = mongoTypeStorage.get(firstType);
+            } catch (final TypeStorageException e) {
+                throw new EntityStorageException("Unable to get entity type: " + firstType, e);
+            }
+            if (type.isPresent()) {
+                // Grab the subjects for all the types we found matching "firstType"
+                final ConvertingCursor<TypedEntity> cursor = search(Optional.empty(), type.get(), Collections.emptySet());
+                while (cursor.hasNext()) {
+                    final TypedEntity typedEntity = cursor.next();
+                    final RyaURI subject = typedEntity.getSubject();
+                    subjects.add(subject);
+                }
+            }
+
+            // Now grab all the Entities that have the subjects we found.
+            for (final RyaURI subject : subjects) {
+                final Optional<Entity> entityFromSubject = get(subject);
+                if (entityFromSubject.isPresent()) {
+                    final Entity candidateEntity = entityFromSubject.get();
+                    // Filter out any entities that don't have all the same
+                    // types associated with them as our original list of
+                    // explicit type IDs. We already know the entities we found
+                    // have "firstType" but now we have access to all the other
+                    // types they have.
+                    if (candidateEntity.getExplicitTypeIds().containsAll(explicitTypeIds)) {
+                        hasAllExplicitTypesEntities.add(candidateEntity);
+                    }
+                }
+            }
+        }
+
+        return hasAllExplicitTypesEntities;
     }
 }

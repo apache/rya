@@ -20,6 +20,7 @@ package org.apache.rya.indexing.entity.update.mongo;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.rya.indexing.entity.storage.EntityStorage;
+import org.apache.rya.indexing.entity.storage.EntityStorage.EntityStorageException;
 import org.apache.rya.indexing.entity.storage.TypeStorage;
 import org.apache.rya.indexing.entity.storage.mongo.MongoEntityStorage;
 import org.apache.rya.indexing.entity.storage.mongo.MongoTypeStorage;
@@ -41,7 +42,7 @@ public class MongoEntityIndexer extends BaseEntityIndexer {
     private MongoClient client;
 
     @Override
-    public EntityStorage getEntityStorage(final Configuration conf) {
+    public EntityStorage getEntityStorage(final Configuration conf) throws EntityStorageException {
         final MongoDBRdfConfiguration mongoConf = (MongoDBRdfConfiguration) conf;
         if (client == null) {
             if(mongoConf.getMongoClient() != null) {

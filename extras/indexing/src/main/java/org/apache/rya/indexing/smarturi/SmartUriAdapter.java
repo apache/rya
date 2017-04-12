@@ -21,8 +21,6 @@ package org.apache.rya.indexing.smarturi;
 import java.io.UnsupportedEncodingException;
 import java.net.URISyntaxException;
 import java.net.URLDecoder;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -98,40 +96,23 @@ public class SmartUriAdapter {
     }
 
     private static String getShortNameForType(final RyaURI type) throws SmartUriException {
-        String typeUriString;
-        try {
-            typeUriString = new java.net.URI(type.getData()).getRawSchemeSpecificPart();
-        } catch (final URISyntaxException e) {
-            throw new SmartUriException("Unable to get create URI for type", e);
-        }
-        final Path path = Paths.get(typeUriString);
-        final String shortName = path.getFileName().toString();
+        final String shortName = new URIImpl(type.getData()).getLocalName();
         return shortName;
     }
 
 
     private static String addTypePrefixToUri(final String uriString, final String typePrefix) {
-        int location = StringUtils.lastIndexOf(uriString, "#");
-        if (location == - 1) {
-            location = StringUtils.lastIndexOf(uriString, "/");
-        }
-
-        final String lastSegment = uriString.substring(location + 1);
-
-        final String formattedUriString = uriString.substring(0, location + 1) + typePrefix + lastSegment;
+        final String localName = new URIImpl(uriString).getLocalName();
+        final String beginning = StringUtils.removeEnd(uriString, localName);
+        final String formattedUriString = beginning + typePrefix + localName;
         return formattedUriString;
     }
 
     private static String removeTypePrefixFromUri(final String uriString, final String typePrefix) {
-        int location = StringUtils.lastIndexOf(uriString, "#");
-        if (location == - 1) {
-            location = StringUtils.lastIndexOf(uriString, "/");
-        }
-
-        final String lastSegment = uriString.substring(location + 1);
-        final String replacement = lastSegment.replaceFirst(typePrefix + ".", "");
-
-        final String formattedUriString = uriString.substring(0, location + 1) + replacement;
+        final String localName = new URIImpl(uriString).getLocalName();
+        final String beginning = StringUtils.removeEnd(uriString, localName);
+        final String replacement = localName.replaceFirst(typePrefix + ".", "");
+        final String formattedUriString = beginning + replacement;
         return formattedUriString;
     }
 
@@ -310,7 +291,7 @@ public class SmartUriAdapter {
 
                 String formattedKey = key.getData();
                 if (StringUtils.isNotBlank(typeShortName)) {
-                    formattedKey = addTypePrefixToUri(key.getData(), typeShortName);
+                    formattedKey = addTypePrefixToUri(formattedKey, typeShortName);
                 }
                 final URI uri = new URIImpl(formattedKey);
                 objectMap.put(uri, value);
@@ -343,7 +324,7 @@ public class SmartUriAdapter {
             if (fragmentPosition > -1) {
                 uriBuilder = new URIBuilder(new java.net.URI("urn://" + fragment));
             } else {
-                uriBuilder = new URIBuilder(new java.net.URI(subjectData));
+                uriBuilder = new URIBuilder(new java.net.URI(subjectData.replaceFirst(":", "://")));
             }
         } catch (final URISyntaxException e) {
             throw new SmartUriException("Unable to serialize a Smart URI from the provided properties", e);
@@ -446,55 +427,6 @@ public class SmartUriAdapter {
         }
         return map;
     }
-
-//    public static Map<URI, Value> deserializeUri(final URI uri) throws SmartUriException {
-//        final String uriString = uri.stringValue();
-//        final int fragmentPosition = uriString.indexOf("#");
-//        String prefix = uriString.substring(0, fragmentPosition + 1);
-//        if (fragmentPosition == -1) {
-//            prefix = uriString.split("\\?", 2)[0];
-//        }
-//        final String fragment = uriString.substring(fragmentPosition + 1, uriString.length());
-//        java.net.URI queryUri;
-//
-//        URIBuilder uriBuilder = null;
-//        try {
-//             if (fragmentPosition > -1) {
-//                 queryUri = new java.net.URI("urn://" + fragment);
-//             } else {
-//                 queryUri = new java.net.URI(uriString);
-//             }
-//            uriBuilder = new URIBuilder(queryUri);
-//        } catch (final URISyntaxException e) {
-//            throw new SmartUriException("Unable to deserialize Smart URI", e);
-//        }
-//        final Map<URI, Value> map = new HashMap<>();
-//        final List<NameValuePair> parameters = uriBuilder.getQueryParams();
-//        Map<RyaURI, String> entityTypeMap = new LinkedHashMap<>();
-//        for (final NameValuePair pair : parameters) {
-//            final String keyString = pair.getName();
-//            final String valueString = pair.getValue();
-//
-//            final URI keyUri = new URIImpl(prefix + keyString);
-//            final URI type = TypeDeterminer.determineType(valueString);
-//            if (type == XMLSchema.ANYURI) {
-//                final String decoded;
-//                try {
-//                    decoded = URLDecoder.decode(valueString, Charsets.UTF_8.name());
-//                } catch (final UnsupportedEncodingException e) {
-//                    throw new SmartUriException("", e);
-//                }
-//                entityTypeMap = convertUriToTypeMap(new URIImpl(decoded));
-//            } else {
-//                final RyaType ryaType = new RyaType(type, valueString);
-//
-//                final Value value = RyaToRdfConversions.convertValue(ryaType);
-//
-//                map.put(keyUri, value);
-//            }
-//        }
-//        return map;
-//    }
 
     public static Entity deserializeUriEntity(final URI uri) throws SmartUriException {
         final String uriString = uri.stringValue();

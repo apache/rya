@@ -30,9 +30,18 @@ import org.apache.accumulo.core.client.security.tokens.PasswordToken;
 import org.apache.commons.lang.Validate;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.log4j.Logger;
+import org.apache.rya.accumulo.AccumuloRdfConfiguration;
+import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
+import org.apache.rya.api.persist.RyaDAOException;
+import org.apache.rya.indexing.GeoConstants;
+import org.apache.rya.indexing.accumulo.ConfigUtils;
+import org.apache.rya.indexing.external.PrecomputedJoinIndexerConfig;
+import org.apache.rya.indexing.external.PrecomputedJoinIndexerConfig.PrecomputedJoinStorageType;
 import org.apache.rya.indexing.pcj.storage.PcjException;
 import org.apache.rya.indexing.pcj.storage.accumulo.PcjTables;
 import org.apache.rya.indexing.pcj.storage.accumulo.PcjVarOrderFactory;
+import org.apache.rya.rdftriplestore.inference.InferenceEngineException;
+import org.apache.rya.sail.config.RyaSailFactory;
 import org.openrdf.model.URI;
 import org.openrdf.model.ValueFactory;
 import org.openrdf.model.impl.LiteralImpl;
@@ -56,16 +65,6 @@ import org.openrdf.sail.Sail;
 import org.openrdf.sail.SailException;
 
 import com.google.common.base.Optional;
-
-import org.apache.rya.accumulo.AccumuloRdfConfiguration;
-import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
-import org.apache.rya.api.persist.RyaDAOException;
-import org.apache.rya.indexing.GeoConstants;
-import org.apache.rya.indexing.accumulo.ConfigUtils;
-import org.apache.rya.indexing.external.PrecomputedJoinIndexerConfig;
-import org.apache.rya.indexing.external.PrecomputedJoinIndexerConfig.PrecomputedJoinStorageType;
-import org.apache.rya.rdftriplestore.inference.InferenceEngineException;
-import org.apache.rya.sail.config.RyaSailFactory;
 
 public class RyaDirectExample {
 	private static final Logger log = Logger.getLogger(RyaDirectExample.class);

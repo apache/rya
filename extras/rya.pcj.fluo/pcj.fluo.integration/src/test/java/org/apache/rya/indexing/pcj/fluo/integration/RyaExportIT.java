@@ -26,7 +26,7 @@ import java.util.Set;
 import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.indexing.pcj.fluo.ITBase;
 import org.apache.rya.indexing.pcj.fluo.api.CreatePcj;
-import org.apache.rya.indexing.pcj.fluo.api.InsertTriples;
+import org.apache.rya.indexing.pcj.fluo.api.InsertStatements;
 import org.apache.rya.indexing.pcj.storage.PrecomputedJoinStorage;
 import org.apache.rya.indexing.pcj.storage.accumulo.AccumuloPcjStorage;
 import org.junit.Test;
@@ -101,7 +101,7 @@ public class RyaExportIT extends ITBase {
         new CreatePcj().withRyaIntegration(pcjId, pcjStorage, fluoClient, accumuloConn, RYA_INSTANCE_NAME);
 
         // Stream the data into Fluo.
-        new InsertTriples().insert(fluoClient, streamedTriples, Optional.<String>absent());
+        new InsertStatements().insert(fluoClient, streamedTriples, Optional.<String>absent());
 
         // Fetch the exported results from Accumulo once the observers finish working.
         fluo.waitForObservers();

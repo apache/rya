@@ -216,7 +216,7 @@ public class CreatePcj {
         checkNotNull(fluo);
         checkNotNull(batch);
         
-        new InsertTriples().insert(fluo, batch);
+        new InsertStatements().insert(fluo, batch);
 
     }
     

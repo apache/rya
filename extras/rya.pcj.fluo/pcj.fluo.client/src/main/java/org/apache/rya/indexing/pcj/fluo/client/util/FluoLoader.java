@@ -24,7 +24,7 @@ import java.util.ArrayList;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.apache.rya.indexing.pcj.fluo.api.InsertTriples;
+import org.apache.rya.indexing.pcj.fluo.api.InsertStatements;
 import org.openrdf.model.Statement;
 import org.openrdf.rio.RDFHandlerException;
 import org.openrdf.rio.RDFParser;
@@ -47,7 +47,7 @@ public class FluoLoader extends RDFHandlerBase {
     private final ArrayList<RyaStatement> buff = new ArrayList<>(1000);
 
     private final FluoClient fluoClient;
-    private final InsertTriples insertTriples;
+    private final InsertStatements insertTriples;
 
     /**
      * Constructs an instance of {@link FluoLoader}.
@@ -55,7 +55,7 @@ public class FluoLoader extends RDFHandlerBase {
      * @param fluoClient - The client that will be used to connect to Fluo. (not null)
      * @param insertTriples - The interactor that loads triples into a Fluo table. (not null)
      */
-    public FluoLoader(final FluoClient fluoClient, final InsertTriples insertTriples) {
+    public FluoLoader(final FluoClient fluoClient, final InsertStatements insertTriples) {
         this.fluoClient = checkNotNull(fluoClient);
         this.insertTriples = checkNotNull(insertTriples);
     }

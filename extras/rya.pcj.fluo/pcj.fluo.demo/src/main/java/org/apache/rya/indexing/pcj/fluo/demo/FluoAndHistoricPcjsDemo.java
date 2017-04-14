@@ -26,7 +26,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.apache.rya.indexing.pcj.fluo.api.CreatePcj;
-import org.apache.rya.indexing.pcj.fluo.api.InsertTriples;
+import org.apache.rya.indexing.pcj.fluo.api.InsertStatements;
 import org.apache.rya.indexing.pcj.storage.PcjException;
 import org.apache.rya.indexing.pcj.storage.PrecomputedJoinStorage;
 import org.apache.rya.indexing.pcj.storage.PrecomputedJoinStorage.PCJStorageException;
@@ -287,7 +287,7 @@ public class FluoAndHistoricPcjsDemo implements Demo {
     }
 
     private static void loadDataIntoFluo(final FluoClient fluoClient, final Set<RyaStatement> statements) {
-        final InsertTriples insertTriples = new InsertTriples();
+        final InsertStatements insertTriples = new InsertStatements();
         for(final RyaStatement statement : statements) {
             insertTriples.insert(fluoClient, statement, Optional.<String>absent());
         }

@@ -27,7 +27,7 @@ import java.util.Set;
 import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.indexing.pcj.fluo.ITBase;
 import org.apache.rya.indexing.pcj.fluo.api.CreatePcj;
-import org.apache.rya.indexing.pcj.fluo.api.InsertTriples;
+import org.apache.rya.indexing.pcj.fluo.api.InsertStatements;
 import org.apache.rya.indexing.pcj.storage.PrecomputedJoinStorage;
 import org.apache.rya.indexing.pcj.storage.accumulo.AccumuloPcjStorage;
 import org.junit.Test;
@@ -144,7 +144,7 @@ public class InputIT extends ITBase {
         assertTrue( results.isEmpty() );
 
         // Stream the data into Fluo.
-        new InsertTriples().insert(fluoClient, streamedTriples, Optional.<String>absent());
+        new InsertStatements().insert(fluoClient, streamedTriples, Optional.<String>absent());
 
         // Verify the end results of the query match the expected results.
         fluo.waitForObservers();
@@ -200,7 +200,7 @@ public class InputIT extends ITBase {
         assertEquals(expected, results);
 
         // Stream the data into Fluo.
-        new InsertTriples().insert(fluoClient, streamedTriples, Optional.<String>absent());
+        new InsertStatements().insert(fluoClient, streamedTriples, Optional.<String>absent());
 
         // Verify the end results of the query also include Frank.
         fluo.waitForObservers();
@@ -261,7 +261,7 @@ public class InputIT extends ITBase {
         assertEquals(expected, results);
 
         // Stream the same Alice triple into Fluo.
-        new InsertTriples().insert(fluoClient, streamedTriples, Optional.<String>absent());
+        new InsertStatements().insert(fluoClient, streamedTriples, Optional.<String>absent());
 
         // Verify the end results of the query is stiill only Alice.
         fluo.waitForObservers();

@@ -81,7 +81,7 @@ public class GetQueryReportIT extends ITBase {
         new CreatePcj().withRyaIntegration(pcjId, pcjStorage, fluoClient, accumuloConn, RYA_INSTANCE_NAME);
 
         // Stream the data into Fluo.
-        new InsertTriples().insert(fluoClient, streamedTriples, Optional.<String>absent());
+        new InsertStatements().insert(fluoClient, streamedTriples, Optional.<String>absent());
 
         // Wait for the results to finish processing.
         fluo.waitForObservers();

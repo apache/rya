@@ -25,6 +25,14 @@ import static org.apache.rya.indexing.pcj.fluo.app.IncrementalUpdateConstants.VA
 
 import java.util.Map;
 
+import org.apache.fluo.api.client.TransactionBase;
+import org.apache.fluo.api.client.scanner.ColumnScanner;
+import org.apache.fluo.api.client.scanner.RowScanner;
+import org.apache.fluo.api.data.Bytes;
+import org.apache.fluo.api.data.Column;
+import org.apache.fluo.api.data.ColumnValue;
+import org.apache.fluo.api.data.Span;
+import org.apache.fluo.api.observer.AbstractObserver;
 import org.apache.rya.indexing.pcj.fluo.app.IncUpdateDAO;
 import org.apache.rya.indexing.pcj.fluo.app.query.FluoQueryColumns;
 import org.apache.rya.indexing.pcj.fluo.app.query.FluoQueryMetadataDAO;
@@ -34,14 +42,6 @@ import org.apache.rya.indexing.pcj.storage.accumulo.VisibilityBindingSet;
 import org.apache.rya.indexing.pcj.storage.accumulo.VisibilityBindingSetStringConverter;
 
 import com.google.common.collect.Maps;
-import org.apache.fluo.api.client.TransactionBase;
-import org.apache.fluo.api.client.scanner.ColumnScanner;
-import org.apache.fluo.api.client.scanner.RowScanner;
-import org.apache.fluo.api.data.Bytes;
-import org.apache.fluo.api.data.Column;
-import org.apache.fluo.api.data.ColumnValue;
-import org.apache.fluo.api.data.Span;
-import org.apache.fluo.api.observer.AbstractObserver;
 
 /**
  * An observer that matches new Triples to the Statement Patterns that are part
@@ -62,14 +62,19 @@ public class TripleObserver extends AbstractObserver {
 
     @Override
     public void process(final TransactionBase tx, final Bytes brow, final Column column) {
-        //get string representation of triple
-        String row = brow.toString();
-        final String triple = IncUpdateDAO.getTripleString(brow);
-        String visibility = tx.gets(row, FluoQueryColumns.TRIPLES, "");
-       
-        //get variable metadata for all SP in table
-        RowScanner rscanner = tx.scanner().over(Span.prefix(SP_PREFIX)).fetch(FluoQueryColumns.STATEMENT_PATTERN_VARIABLE_ORDER).byRow().build();
-       
+        // The statement that is written to the Triples column is formatted using the Rya SPO table's format. We need
+        // to convert the statement to the format the Fluo application uses.
+        final String ryaStatementStr = brow.toString();
+        final String statement = IncUpdateDAO.getTripleString(brow);
+        final String visibility = tx.gets(ryaStatementStr, FluoQueryColumns.TRIPLES, "");
+
+        // Get the variable metadata for all of the Statement Patterns that in table
+        final RowScanner rscanner = tx.scanner()
+                .over(Span.prefix(SP_PREFIX))
+                .fetch(FluoQueryColumns.STATEMENT_PATTERN_VARIABLE_ORDER)
+                .byRow()
+                .build();
+
 
         //see if triple matches conditions of any of the SP
 
@@ -78,11 +83,11 @@ public class TripleObserver extends AbstractObserver {
 
             final StatementPatternMetadata spMetadata = QUERY_DAO.readStatementPatternMetadata(tx, spID);
             final String pattern = spMetadata.getStatementPattern();
-            
+
             for (ColumnValue cv : colScanner) {
                 final String varOrders = cv.getsValue();
                 final VariableOrder varOrder = new VariableOrder(varOrders);
-                final String bindingSetString = getBindingSet(triple, pattern, varOrders);
+                final String bindingSetString = getBindingSet(statement, pattern, varOrders);
 
                 //Statement matches to a binding set
                 if(bindingSetString.length() != 0) {
@@ -96,7 +101,7 @@ public class TripleObserver extends AbstractObserver {
 		}
 
         // Once the triple has been handled, it may be deleted.
-        tx.delete(row, column);
+        tx.delete(ryaStatementStr, column);
     }
 
     /**

@@ -32,7 +32,7 @@ import org.apache.accumulo.core.client.Connector;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.apache.rya.indexing.pcj.fluo.api.InsertTriples;
+import org.apache.rya.indexing.pcj.fluo.api.InsertStatements;
 import org.apache.rya.indexing.pcj.fluo.client.PcjAdminClientCommand;
 import org.apache.rya.indexing.pcj.fluo.client.util.FluoLoader;
 import org.openrdf.rio.RDFHandlerException;
@@ -105,7 +105,7 @@ public class LoadTriplesCommand implements PcjAdminClientCommand {
 
         try {
             final RDFParser parser = makeParser(triplesPath);
-            final FluoLoader loader = new FluoLoader(fluo, new InsertTriples());
+            final FluoLoader loader = new FluoLoader(fluo, new InsertStatements());
             parser.setRDFHandler(loader);
             parser.parse(Files.newInputStream(triplesPath), triplesPath.toUri().toString());
         } catch (UnsupportedFormatException | RDFParseException | RDFHandlerException | IOException e) {

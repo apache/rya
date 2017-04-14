@@ -86,7 +86,7 @@ public class CountStatementsIT extends ITBase {
         triples.add( RyaStatement.builder().setSubject(new RyaURI("http://David")).setPredicate(new RyaURI("http://talksTo")).setObject(new RyaURI("http://Bob")).build() );
         triples.add( RyaStatement.builder().setSubject(new RyaURI("http://Eve")).setPredicate(new RyaURI("http://talksTo")).setObject(new RyaURI("http://Bob")).build() );
 
-        new InsertTriples().insert(fluoClient, triples, Optional.<String>absent());
+        new InsertStatements().insert(fluoClient, triples, Optional.<String>absent());
 
         // Load some statements into the Fluo app.
         final BigInteger count = new CountStatements().countStatements(fluoClient);

@@ -22,9 +22,9 @@ package org.apache.rya.indexing.mongo;
 
 
 import static org.apache.rya.api.resolver.RdfToRyaConversions.convertStatement;
+import static org.apache.rya.indexing.GeoIndexingTestUtils.getSet;
 
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.Set;
 
 import org.apache.rya.indexing.GeoConstants;
@@ -55,8 +55,6 @@ import com.vividsolutions.jts.geom.Polygon;
 import com.vividsolutions.jts.geom.PrecisionModel;
 import com.vividsolutions.jts.geom.impl.PackedCoordinateSequence;
 
-import info.aduna.iteration.CloseableIteration;
-
 public class MongoGeoIndexerTest extends MongoRyaTestBase {
 
     private static final StatementConstraints EMPTY_CONSTRAINTS = new StatementConstraints();
@@ -78,7 +76,7 @@ public class MongoGeoIndexerTest extends MongoRyaTestBase {
     @Test
     public void testRestrictPredicatesSearch() throws Exception {
         conf.setStrings(ConfigUtils.GEO_PREDICATES_LIST, "pred:1,pred:2");
-        try (MongoGeoIndexer f = new MongoGeoIndexer()) {
+        try (final MongoGeoIndexer f = new MongoGeoIndexer()) {
             f.initIndexer(conf, mongoClient);
 
             final ValueFactory vf = new ValueFactoryImpl();
@@ -115,17 +113,9 @@ public class MongoGeoIndexerTest extends MongoRyaTestBase {
         }
     }
 
-    private static <X> Set<X> getSet(final CloseableIteration<X, ?> iter) throws Exception {
-        final Set<X> set = new HashSet<X>();
-        while (iter.hasNext()) {
-            set.add(iter.next());
-        }
-        return set;
-    }
-
     @Test
     public void testPrimeMeridianSearch() throws Exception {
-        try (MongoGeoIndexer f = new MongoGeoIndexer()) {
+        try (final MongoGeoIndexer f = new MongoGeoIndexer()) {
             f.initIndexer(conf, mongoClient);
 
             final ValueFactory vf = new ValueFactoryImpl();
@@ -169,7 +159,7 @@ public class MongoGeoIndexerTest extends MongoRyaTestBase {
     @Test
     public void testDcSearch() throws Exception {
         // test a ring around dc
-        try (MongoGeoIndexer f = new MongoGeoIndexer()) {
+        try (final MongoGeoIndexer f = new MongoGeoIndexer()) {
             f.initIndexer(conf, mongoClient);
 
             final ValueFactory vf = new ValueFactoryImpl();
@@ -198,7 +188,7 @@ public class MongoGeoIndexerTest extends MongoRyaTestBase {
     @Test
     public void testDeleteSearch() throws Exception {
         // test a ring around dc
-        try (MongoGeoIndexer f = new MongoGeoIndexer()) {
+        try (final MongoGeoIndexer f = new MongoGeoIndexer()) {
             f.initIndexer(conf, mongoClient);
 
             final ValueFactory vf = new ValueFactoryImpl();
@@ -237,7 +227,7 @@ public class MongoGeoIndexerTest extends MongoRyaTestBase {
     @Test
     public void testDcSearchWithContext() throws Exception {
         // test a ring around dc
-        try (MongoGeoIndexer f = new MongoGeoIndexer()) {
+        try (final MongoGeoIndexer f = new MongoGeoIndexer()) {
             f.initIndexer(conf, mongoClient);
 
             final ValueFactory vf = new ValueFactoryImpl();
@@ -266,7 +256,7 @@ public class MongoGeoIndexerTest extends MongoRyaTestBase {
     @Test
     public void testDcSearchWithSubject() throws Exception {
         // test a ring around dc
-        try (MongoGeoIndexer f = new MongoGeoIndexer()) {
+        try (final MongoGeoIndexer f = new MongoGeoIndexer()) {
             f.initIndexer(conf, mongoClient);
 
             final ValueFactory vf = new ValueFactoryImpl();
@@ -294,7 +284,7 @@ public class MongoGeoIndexerTest extends MongoRyaTestBase {
     @Test
     public void testDcSearchWithSubjectAndContext() throws Exception {
         // test a ring around dc
-        try (MongoGeoIndexer f = new MongoGeoIndexer()) {
+        try (final MongoGeoIndexer f = new MongoGeoIndexer()) {
             f.initIndexer(conf, mongoClient);
 
             final ValueFactory vf = new ValueFactoryImpl();
@@ -327,7 +317,7 @@ public class MongoGeoIndexerTest extends MongoRyaTestBase {
     @Test
     public void testDcSearchWithPredicate() throws Exception {
         // test a ring around dc
-        try (MongoGeoIndexer f = new MongoGeoIndexer()) {
+        try (final MongoGeoIndexer f = new MongoGeoIndexer()) {
             f.initIndexer(conf, mongoClient);
 
             final ValueFactory vf = new ValueFactoryImpl();
@@ -357,7 +347,7 @@ public class MongoGeoIndexerTest extends MongoRyaTestBase {
     // @Test
     public void testAntiMeridianSearch() throws Exception {
         // verify that a search works if the bounding box crosses the anti meridian
-        try (MongoGeoIndexer f = new MongoGeoIndexer()) {
+        try (final MongoGeoIndexer f = new MongoGeoIndexer()) {
             f.initIndexer(conf, mongoClient);
 
             final ValueFactory vf = new ValueFactoryImpl();

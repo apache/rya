@@ -43,6 +43,7 @@ import org.openrdf.repository.sail.SailRepositoryConnection;
 import org.openrdf.sail.Sail;
 
 import org.apache.rya.accumulo.AccumuloRdfConfiguration;
+import org.apache.rya.indexing.accumulo.AccumuloIndexingConfiguration;
 import org.apache.rya.indexing.accumulo.ConfigUtils;
 import org.apache.rya.sail.config.RyaSailFactory;
 
@@ -237,18 +238,15 @@ public class EntityDirectExample {
 
     private static Configuration getConf() {
 
-        final AccumuloRdfConfiguration conf = new AccumuloRdfConfiguration();
-
-        conf.setBoolean(ConfigUtils.USE_MOCK_INSTANCE, USE_MOCK_INSTANCE);
-        conf.set(ConfigUtils.USE_ENTITY, "true");
-        conf.setTablePrefix(RYA_TABLE_PREFIX);
-        conf.set(ConfigUtils.CLOUDBASE_USER, "root");
-        conf.set(ConfigUtils.CLOUDBASE_PASSWORD, "");
-        conf.set(ConfigUtils.CLOUDBASE_INSTANCE, INSTANCE);
-        conf.setInt(ConfigUtils.NUM_PARTITIONS, 3);
-        conf.set(ConfigUtils.CLOUDBASE_AUTHS, AUTHS);
-
-        return conf;
+    	return AccumuloIndexingConfiguration.builder()
+    			.setUseMockAccumulo(USE_MOCK_INSTANCE)
+    			.setAuths(AUTHS)
+    			.setAccumuloUser("root")
+    			.setAccumuloPassword("")
+    			.setAccumuloInstance(INSTANCE)
+    			.setRyaPrefix(RYA_TABLE_PREFIX)
+    			.setUseAccumuloEntityIndex(true)
+    			.build();
     }
 
 

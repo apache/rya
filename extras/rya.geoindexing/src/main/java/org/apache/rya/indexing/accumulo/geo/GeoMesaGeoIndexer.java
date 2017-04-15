@@ -62,7 +62,6 @@ import org.geotools.feature.SchemaException;
 import org.geotools.feature.simple.SimpleFeatureBuilder;
 import org.geotools.filter.text.cql2.CQLException;
 import org.geotools.filter.text.ecql.ECQL;
-import org.locationtech.geomesa.accumulo.data.AccumuloDataStore;
 import org.locationtech.geomesa.accumulo.index.Constants;
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes;
 import org.opengis.feature.simple.SimpleFeature;
@@ -133,6 +132,7 @@ public class GeoMesaGeoIndexer extends AbstractAccumuloIndexer implements GeoInd
     private static final String PREDICATE_ATTRIBUTE = "P";
     private static final String OBJECT_ATTRIBUTE = "O";
     private static final String CONTEXT_ATTRIBUTE = "C";
+    private static final String GEOMETRY_ATTRIBUTE = Constants.SF_PROPERTY_GEOMETRY;
 
     private Set<URI> validPredicates;
     private Configuration conf;
@@ -147,7 +147,7 @@ public class GeoMesaGeoIndexer extends AbstractAccumuloIndexer implements GeoInd
         this.conf = conf;
         if (!isInit) {
             try {
-            	initInternal();
+                initInternal();
                 isInit = true;
             } catch (final IOException e) {
                 logger.warn("Unable to initialize index.  Throwing Runtime Exception. ", e);
@@ -169,9 +169,7 @@ public class GeoMesaGeoIndexer extends AbstractAccumuloIndexer implements GeoInd
 
         try {
             featureType = getStatementFeatureType(dataStore);
-        } catch (final IOException e) {
-            throw new IOException(e);
-        } catch (final SchemaException e) {
+        } catch (final IOException | SchemaException e) {
             throw new IOException(e);
         }
 
@@ -222,7 +220,7 @@ public class GeoMesaGeoIndexer extends AbstractAccumuloIndexer implements GeoInd
                     + PREDICATE_ATTRIBUTE + ":String," //
                     + OBJECT_ATTRIBUTE + ":String," //
                     + CONTEXT_ATTRIBUTE + ":String," //
-                    + Constants.SF_PROPERTY_GEOMETRY + ":Geometry:srid=4326;geomesa.mixed.geometries='true'";
+                    + GEOMETRY_ATTRIBUTE + ":Geometry:srid=4326;geomesa.mixed.geometries='true'";
             featureType = SimpleFeatureTypes.createType(FEATURE_NAME, featureSchema);
             dataStore.createSchema(featureType);
         }
@@ -254,7 +252,6 @@ public class GeoMesaGeoIndexer extends AbstractAccumuloIndexer implements GeoInd
             featureStore.addFeatures(featureCollection);
         }
     }
-
 
     @Override
     public void storeStatement(final RyaStatement statement) throws IOException {
@@ -297,7 +294,7 @@ public class GeoMesaGeoIndexer extends AbstractAccumuloIndexer implements GeoInd
             final StatementConstraints contraints) {
         final List<String> filterParms = new ArrayList<String>();
 
-        filterParms.add(type + "(" + Constants.SF_PROPERTY_GEOMETRY + ", " + geometry + " )");
+        filterParms.add(type + "(" + GEOMETRY_ATTRIBUTE + ", " + geometry + " )");
 
         if (contraints.hasSubject()) {
             filterParms.add("( " + SUBJECT_ATTRIBUTE + "= '" + contraints.getSubject() + "') ");
@@ -342,7 +339,6 @@ public class GeoMesaGeoIndexer extends AbstractAccumuloIndexer implements GeoInd
                         logger.error("Error performing query: " + filterString, e);
                         throw new QueryEvaluationException(e);
                     }
-
                 }
                 return featureIterator;
             }
@@ -495,33 +491,23 @@ public class GeoMesaGeoIndexer extends AbstractAccumuloIndexer implements GeoInd
         deleteStatements(Collections.singleton(statement));
     }
 
-	@Override
-	public void init() {
-		// TODO Auto-generated method stub
+    @Override
+    public void init() {
+    }
 
-	}
+    @Override
+    public void setConnector(final Connector connector) {
+    }
 
-	@Override
-	public void setConnector(final Connector connector) {
-		// TODO Auto-generated method stub
+    @Override
+    public void destroy() {
+    }
 
-	}
+    @Override
+    public void purge(final RdfCloudTripleStoreConfiguration configuration) {
+    }
 
-	@Override
-	public void destroy() {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public void purge(final RdfCloudTripleStoreConfiguration configuration) {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public void dropAndDestroy() {
-		// TODO Auto-generated method stub
-
-	}
+    @Override
+    public void dropAndDestroy() {
+    }
 }

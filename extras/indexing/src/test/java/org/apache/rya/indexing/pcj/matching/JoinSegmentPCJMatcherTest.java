@@ -23,9 +23,10 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.apache.rya.indexing.external.matching.ExternalSetMatcher;
+import org.apache.rya.indexing.external.matching.QuerySegmentFactory;
 import org.apache.rya.indexing.external.tupleSet.ExternalTupleSet;
 import org.apache.rya.indexing.external.tupleSet.SimpleExternalTupleSet;
-
 import org.junit.Assert;
 import org.junit.Test;
 import org.openrdf.query.MalformedQueryException;
@@ -42,7 +43,9 @@ import org.openrdf.query.parser.sparql.SPARQLParser;
 
 public class JoinSegmentPCJMatcherTest {
 
-
+    private final PCJExternalSetMatcherFactory pcjFactory = new PCJExternalSetMatcherFactory();
+    private final QuerySegmentFactory<ExternalTupleSet> qFactory = new QuerySegmentFactory<ExternalTupleSet>();
+    
 	@Test
 	public void testBasicSegment() throws MalformedQueryException {
 
@@ -69,11 +72,11 @@ public class JoinSegmentPCJMatcherTest {
 		Projection proj = (Projection) te1;
 		Join join = (Join) proj.getArg();
 
-		JoinSegmentPCJMatcher jsm = new JoinSegmentPCJMatcher(join);
+		ExternalSetMatcher<ExternalTupleSet> jsm = pcjFactory.getMatcher(qFactory.getQuerySegment(join));
 		SimpleExternalTupleSet pcj = new SimpleExternalTupleSet((Projection)te2);
-		Assert.assertEquals(true, jsm.matchPCJ(pcj));
+		Assert.assertEquals(true, jsm.match(pcj));
 		TupleExpr te = jsm.getQuery();
-		Assert.assertEquals(new HashSet<QueryModelNode>(), jsm.getUnmatchedArgs());
+		Assert.assertEquals(new HashSet<QueryModelNode>(), jsm.getUnmatchedArgNodes());
 
 		Set<QueryModelNode> qNodes = QueryNodeGatherer.getNodes(te);
 		List<QueryModelNode> nodes = jsm.getOrderedNodes();
@@ -116,11 +119,11 @@ public class JoinSegmentPCJMatcherTest {
 		Projection proj = (Projection) te1;
 		Filter filter = (Filter) proj.getArg();
 
-		JoinSegmentPCJMatcher jsm = new JoinSegmentPCJMatcher(filter);
+		ExternalSetMatcher<ExternalTupleSet> jsm = pcjFactory.getMatcher(qFactory.getQuerySegment(filter));
 		SimpleExternalTupleSet pcj = new SimpleExternalTupleSet((Projection)te2);
-		Assert.assertEquals(true, jsm.matchPCJ(pcj));
+		Assert.assertEquals(true, jsm.match(pcj));
 		TupleExpr te = jsm.getQuery();
-		Assert.assertEquals(new HashSet<QueryModelNode>(), jsm.getUnmatchedArgs());
+		Assert.assertEquals(new HashSet<QueryModelNode>(), jsm.getUnmatchedArgNodes());
 
 		Set<QueryModelNode> qNodes = QueryNodeGatherer.getNodes(te);
 		List<QueryModelNode> nodes = jsm.getOrderedNodes();
@@ -133,61 +136,6 @@ public class JoinSegmentPCJMatcherTest {
 		Assert.assertEquals(nodeSet, qNodes);
 
 	}
-
-
-
-	@Test
-	public void testWithUnmatchedNodes() throws Exception {
-
-		String query1 = ""//
-				+ "SELECT ?e ?c ?l" //
-				+ "{" //
-				+ " Filter(?e = <uri:Bob>)" //
-				+ " Filter(?c = <uri:Lawyer>)" //
-				+ " ?l <uri:workAt> <uri:Company1> ."
-				+ " OPTIONAL { ?e <http://www.w3.org/2000/01/rdf-schema#label> ?l } . "//
-				+ "  ?e a ?c . "//
-				+ "  ?e <uri:talksTo> ?l  . "//
-				+ "}";//
-
-		String query2 = ""//
-				+ "SELECT ?e ?c ?l" //
-				+ "{" //
-				+ " Filter(?e = <uri:Bob>)" //
-				+ " ?e a ?c . "//
-				+ " ?e <uri:talksTo> ?l . "//
-				+ "}";//
-
-		SPARQLParser parser = new SPARQLParser();
-		ParsedQuery pq1 = parser.parseQuery(query1, null);
-		ParsedQuery pq2 = parser.parseQuery(query2, null);
-		TupleExpr te1 = pq1.getTupleExpr();
-		TupleExpr te2 = pq2.getTupleExpr();
-		Projection proj = (Projection) te1;
-		Join join = (Join) proj.getArg();
-
-		JoinSegmentPCJMatcher jsm = new JoinSegmentPCJMatcher(join);
-		SimpleExternalTupleSet pcj = new SimpleExternalTupleSet((Projection)te2);
-		Assert.assertEquals(true, jsm.matchPCJ(pcj));
-		TupleExpr te = jsm.getQuery();
-
-
-		Set<QueryModelNode> qNodes = QueryNodeGatherer.getNodes(te);
-		List<QueryModelNode> nodes = jsm.getOrderedNodes();
-		Set<QueryModelNode> nodeSet = new HashSet<>();
-		nodeSet.add(nodes.get(0));
-		nodeSet.add(nodes.get(1));
-		nodeSet.add(pcj);
-
-		Assert.assertEquals(1, jsm.getUnmatchedArgs().size());
-		Assert.assertEquals(true, jsm.getUnmatchedArgs().contains(nodes.get(1)));
-
-		Assert.assertEquals(nodeSet, new HashSet<QueryModelNode>(nodes));
-		Assert.assertEquals(nodeSet, qNodes);
-
-	}
-
-
 
 
 

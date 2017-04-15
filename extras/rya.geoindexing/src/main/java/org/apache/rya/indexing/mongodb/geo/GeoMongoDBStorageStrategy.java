@@ -23,20 +23,21 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.log4j.Logger;
+import org.apache.rya.api.domain.RyaStatement;
+import org.apache.rya.api.resolver.RyaToRdfConversions;
+import org.apache.rya.indexing.accumulo.geo.GeoParseUtils;
+import org.apache.rya.indexing.mongodb.IndexingMongoDBStorageStrategy;
 import org.openrdf.model.Statement;
+import org.openrdf.query.MalformedQueryException;
 
 import com.mongodb.BasicDBObject;
 import com.mongodb.DBCollection;
 import com.mongodb.DBObject;
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.Geometry;
+import com.vividsolutions.jts.geom.Polygon;
 import com.vividsolutions.jts.io.ParseException;
 import com.vividsolutions.jts.io.WKTReader;
-
-import org.apache.rya.api.domain.RyaStatement;
-import org.apache.rya.api.resolver.RyaToRdfConversions;
-import org.apache.rya.indexing.accumulo.geo.GeoParseUtils;
-import org.apache.rya.indexing.mongodb.IndexingMongoDBStorageStrategy;
 
 public class GeoMongoDBStorageStrategy extends IndexingMongoDBStorageStrategy {
     private static final Logger LOG = Logger.getLogger(GeoMongoDBStorageStrategy.class);
@@ -92,9 +93,13 @@ public class GeoMongoDBStorageStrategy extends IndexingMongoDBStorageStrategy {
         coll.createIndex("{" + GEO + " : \"2dsphere\"" );
     }
 
-    public DBObject getQuery(final GeoQuery queryObj) {
+    public DBObject getQuery(final GeoQuery queryObj) throws MalformedQueryException {
         final Geometry geo = queryObj.getGeo();
         final GeoQueryType queryType = queryObj.getQueryType();
+        if(queryType != GeoQueryType.EQUALS && !(geo instanceof Polygon)) {
+            //They can also be applied to MultiPolygons, but those are not supported either.
+            throw new MalformedQueryException("Mongo Within operations can only be performed on Polygons.");
+        }
 
         BasicDBObject query;
         if (queryType.equals(GeoQueryType.EQUALS)){

@@ -29,13 +29,6 @@ import org.apache.accumulo.core.client.Connector;
 import org.apache.accumulo.core.client.Instance;
 import org.apache.accumulo.core.client.security.tokens.PasswordToken;
 import org.apache.hadoop.conf.Configuration;
-import org.openrdf.sail.Sail;
-import org.openrdf.sail.SailException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.mongodb.MongoClient;
-
 import org.apache.rya.accumulo.AccumuloRdfConfiguration;
 import org.apache.rya.accumulo.AccumuloRyaDAO;
 import org.apache.rya.accumulo.instance.AccumuloRyaInstanceDetailsRepository;
@@ -53,6 +46,12 @@ import org.apache.rya.mongodb.instance.MongoRyaInstanceDetailsRepository;
 import org.apache.rya.rdftriplestore.RdfCloudTripleStore;
 import org.apache.rya.rdftriplestore.inference.InferenceEngine;
 import org.apache.rya.rdftriplestore.inference.InferenceEngineException;
+import org.openrdf.sail.Sail;
+import org.openrdf.sail.SailException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.mongodb.MongoClient;
 
 public class RyaSailFactory {
     private static final Logger LOG = LoggerFactory.getLogger(RyaSailFactory.class);
@@ -90,7 +89,8 @@ public class RyaSailFactory {
                 RyaDetailsToConfiguration.addRyaDetailsToConfiguration(ryaDetailsRepo.getRyaInstanceDetails(), mongoConfig);
             } catch (final RyaDetailsRepositoryException e) {
                LOG.info("Instance does not have a rya details collection, skipping.");
-           }            dao = getMongoDAO((MongoDBRdfConfiguration)rdfConfig, client);
+           }
+            dao = getMongoDAO((MongoDBRdfConfiguration)rdfConfig, client);
         } else {
             rdfConfig = new AccumuloRdfConfiguration(config);
             user = rdfConfig.get(ConfigUtils.CLOUDBASE_USER);
@@ -139,7 +139,6 @@ public class RyaSailFactory {
         dao.setConnector(connector);
 
         ConfigUtils.setIndexers(config);
-        config.setDisplayQueryPlan(true);
 
         dao.setConf(config);
         dao.init();

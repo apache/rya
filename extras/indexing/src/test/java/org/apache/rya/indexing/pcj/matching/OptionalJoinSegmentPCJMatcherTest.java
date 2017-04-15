@@ -23,9 +23,11 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.apache.rya.indexing.external.matching.ExternalSetMatcher;
+import org.apache.rya.indexing.external.matching.FlattenedOptional;
+import org.apache.rya.indexing.external.matching.QuerySegmentFactory;
 import org.apache.rya.indexing.external.tupleSet.ExternalTupleSet;
 import org.apache.rya.indexing.external.tupleSet.SimpleExternalTupleSet;
-
 import org.junit.Assert;
 import org.junit.Test;
 import org.openrdf.query.MalformedQueryException;
@@ -44,6 +46,10 @@ import org.openrdf.query.parser.sparql.SPARQLParser;
 public class OptionalJoinSegmentPCJMatcherTest {
 
 
+    private final PCJExternalSetMatcherFactory pcjFactory = new PCJExternalSetMatcherFactory();
+    private final QuerySegmentFactory<ExternalTupleSet> qFactory = new QuerySegmentFactory<ExternalTupleSet>();
+    
+    
 	@Test
 	public void testBasicSegment() throws MalformedQueryException {
 
@@ -70,11 +76,12 @@ public class OptionalJoinSegmentPCJMatcherTest {
 		Projection proj = (Projection) te1;
 		Join join = (Join) proj.getArg();
 
-		OptionalJoinSegmentPCJMatcher jsm = new OptionalJoinSegmentPCJMatcher(join);
+		
+		ExternalSetMatcher<ExternalTupleSet> jsm = pcjFactory.getMatcher(qFactory.getQuerySegment(join));
 		SimpleExternalTupleSet pcj = new SimpleExternalTupleSet((Projection)te2);
-		Assert.assertEquals(true, jsm.matchPCJ(pcj));
+		Assert.assertEquals(true, jsm.match(pcj));
 		TupleExpr te = jsm.getQuery();
-		Assert.assertEquals(new HashSet<QueryModelNode>(), jsm.getUnmatchedArgs());
+		Assert.assertEquals(new HashSet<QueryModelNode>(), jsm.getUnmatchedArgNodes());
 
 		Set<QueryModelNode> qNodes = LeftJoinQueryNodeGatherer.getNodes(te);
 		List<QueryModelNode> nodes = jsm.getOrderedNodes();
@@ -117,11 +124,11 @@ public class OptionalJoinSegmentPCJMatcherTest {
 		Projection proj = (Projection) te1;
 		Filter filter = (Filter) proj.getArg();
 
-		OptionalJoinSegmentPCJMatcher jsm = new OptionalJoinSegmentPCJMatcher(filter);
+		ExternalSetMatcher<ExternalTupleSet> jsm = pcjFactory.getMatcher(qFactory.getQuerySegment(filter));
 		SimpleExternalTupleSet pcj = new SimpleExternalTupleSet((Projection)te2);
-		Assert.assertEquals(true, jsm.matchPCJ(pcj));
+		Assert.assertEquals(true, jsm.match(pcj));
 		TupleExpr te = jsm.getQuery();
-		Assert.assertEquals(new HashSet<QueryModelNode>(), jsm.getUnmatchedArgs());
+		Assert.assertEquals(new HashSet<QueryModelNode>(), jsm.getUnmatchedArgNodes());
 
 		Set<QueryModelNode> qNodes = LeftJoinQueryNodeGatherer.getNodes(te);
 		List<QueryModelNode> nodes = jsm.getOrderedNodes();
@@ -167,11 +174,11 @@ public class OptionalJoinSegmentPCJMatcherTest {
 		Projection proj = (Projection) te1;
 		Join join = (Join) proj.getArg();
 
-		OptionalJoinSegmentPCJMatcher jsm = new OptionalJoinSegmentPCJMatcher(join);
+		ExternalSetMatcher<ExternalTupleSet> jsm = pcjFactory.getMatcher(qFactory.getQuerySegment(join));
 		SimpleExternalTupleSet pcj = new SimpleExternalTupleSet((Projection)te2);
-		Assert.assertEquals(true, jsm.matchPCJ(pcj));
+		Assert.assertEquals(true, jsm.match(pcj));
 		TupleExpr te = jsm.getQuery();
-		Assert.assertEquals(new HashSet<QueryModelNode>(), jsm.getUnmatchedArgs());
+		Assert.assertEquals(new HashSet<QueryModelNode>(), jsm.getUnmatchedArgNodes());
 
 		Set<QueryModelNode> qNodes = LeftJoinQueryNodeGatherer.getNodes(te);
 		List<QueryModelNode> nodes = jsm.getOrderedNodes();
@@ -220,15 +227,15 @@ public class OptionalJoinSegmentPCJMatcherTest {
 		Projection proj = (Projection) te1;
 		Join join = (Join) proj.getArg();
 
-		OptionalJoinSegmentPCJMatcher jsm = new OptionalJoinSegmentPCJMatcher(join);
+		ExternalSetMatcher<ExternalTupleSet> jsm = pcjFactory.getMatcher(qFactory.getQuerySegment(join));
 		SimpleExternalTupleSet pcj = new SimpleExternalTupleSet((Projection)te2);
-		Assert.assertEquals(true, jsm.matchPCJ(pcj));
+		Assert.assertEquals(true, jsm.match(pcj));
 		TupleExpr te = jsm.getQuery();
 		Set<QueryModelNode> qNodes = LeftJoinQueryNodeGatherer.getNodes(te);
 		List<QueryModelNode> nodes = jsm.getOrderedNodes();
 
-		Assert.assertEquals(1, jsm.getUnmatchedArgs().size());
-		Assert.assertEquals(true, jsm.getUnmatchedArgs().contains(nodes.get(3)));
+		Assert.assertEquals(1, jsm.getUnmatchedArgNodes().size());
+		Assert.assertEquals(true, jsm.getUnmatchedArgNodes().contains(nodes.get(3)));
 
 		Set<QueryModelNode> nodeSet = new HashSet<>();
 		nodeSet.add(nodes.get(0));
@@ -283,11 +290,5 @@ public class OptionalJoinSegmentPCJMatcherTest {
 		public void meet(Union node) {
 			nodes.add(node);
 		}
-
-
 	}
-
-
-
-
 }

@@ -300,7 +300,7 @@ public class PrecompJoinOptimizerTest {
 	}
 
 	@Test
-	public void twoFourIndexWithFilterTest() {
+	public void twoFourIndexWithFilterTest() throws Exception {
 
 		final String q1 = ""//
 				+ "SELECT ?f ?m ?d ?e ?l ?c " //

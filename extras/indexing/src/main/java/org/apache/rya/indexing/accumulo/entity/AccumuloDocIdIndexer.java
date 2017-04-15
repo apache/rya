@@ -420,8 +420,16 @@ public class AccumuloDocIdIndexer implements DocIdIndexer {
             if (query.hasContext()) {
                 DocumentIndexIntersectingIterator.setContext(is, query.getContextURI());
             }
-            bs = accCon.createBatchScanner(EntityCentricIndex.getTableName(conf),
-                    new Authorizations(conf.get(ConfigUtils.CLOUDBASE_AUTHS)), 15);
+            
+            final Authorizations auths;
+            final String authsStr = conf.get(ConfigUtils.CLOUDBASE_AUTHS);
+            if(authsStr == null || authsStr.isEmpty()) {
+                auths = new Authorizations();
+            } else {
+                auths = new Authorizations(authsStr);
+            }
+            
+            bs = accCon.createBatchScanner(EntityCentricIndex.getTableName(conf), auths, 15);
             bs.addScanIterator(is);
             bs.setRanges(ranges);
 

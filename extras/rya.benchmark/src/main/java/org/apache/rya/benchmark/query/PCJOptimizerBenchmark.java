@@ -116,7 +116,7 @@ public class PCJOptimizerBenchmark {
     private final Map<BenchmarkParams, BenchmarkValues> unchainedBenchmarkValues = new HashMap<>();
 
     @Setup
-    public void buildBenchmarkValues() throws MalformedQueryException {
+    public void buildBenchmarkValues() throws Exception {
         for(int numPCJs = 0; numPCJs <= 6; numPCJs++) {
             for(int pcjSPCount = 2; pcjSPCount <= 6; pcjSPCount++) {
                 for(int querySPCount = 1; querySPCount <= 6; querySPCount++) {
@@ -197,7 +197,7 @@ public class PCJOptimizerBenchmark {
         return parser.parseQuery(sparql, null).getTupleExpr();
     }
 
-    private static PCJOptimizer makeUnchainedPCJOptimizer(final BenchmarkParams params) throws MalformedQueryException {
+    private static PCJOptimizer makeUnchainedPCJOptimizer(final BenchmarkParams params) throws Exception {
         final Queue<String> varQueue= Lists.newLinkedList(variables);
         final SPARQLParser parser = new SPARQLParser();
 
@@ -237,7 +237,7 @@ public class PCJOptimizerBenchmark {
         return new PCJOptimizer(indices, false);
     }
 
-    private static PCJOptimizer makeChainedPCJOptimizer(final BenchmarkParams params) throws MalformedQueryException {
+    private static PCJOptimizer makeChainedPCJOptimizer(final BenchmarkParams params) throws Exception {
         final Queue<String> varQueue= Lists.newLinkedList(variables);
         final SPARQLParser parser = new SPARQLParser();
 

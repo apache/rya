@@ -42,6 +42,7 @@ import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
 import org.apache.rya.api.RdfCloudTripleStoreUtils;
 import org.apache.rya.api.utils.NullableStatementImpl;
 import org.apache.rya.rdftriplestore.RdfCloudTripleStoreConnection;
+import org.apache.rya.rdftriplestore.RdfCloudTripleStoreConnection.StoreTripleSource;
 import org.apache.rya.rdftriplestore.inference.InferenceEngine;
 import org.apache.rya.rdftriplestore.inference.InferenceEngineException;
 import org.apache.rya.rdftriplestore.utils.FixedStatementPattern;
@@ -83,7 +84,7 @@ public class ParallelEvaluationStrategyImpl extends EvaluationStrategyImpl {
     private ExecutorService executorService;
     private InferenceEngine inferenceEngine;
 
-    public ParallelEvaluationStrategyImpl(RdfCloudTripleStoreConnection.StoreTripleSource tripleSource, InferenceEngine inferenceEngine,
+    public ParallelEvaluationStrategyImpl(StoreTripleSource tripleSource, InferenceEngine inferenceEngine,
                                           Dataset dataset, RdfCloudTripleStoreConfiguration conf) {
         super(tripleSource, dataset);
         Integer nthreads = conf.getNumThreads();
@@ -221,16 +222,18 @@ public class ParallelEvaluationStrategyImpl extends EvaluationStrategyImpl {
                 Statement st = stbs.getKey();
                 BindingSet bs = stbs.getValue();
                 QueryBindingSet result = new QueryBindingSet(bs);
-                if (subjVar != null && !result.hasBinding(subjVar.getName())) {
+                //only add values to result BindingSet if Var is not constant and BindingSet doesn't already
+                //contain a Value for that Var name
+                if (subjVar != null && !subjVar.isConstant() && !result.hasBinding(subjVar.getName())) {
                     result.addBinding(subjVar.getName(), st.getSubject());
                 }
-                if (predVar != null && !result.hasBinding(predVar.getName())) {
+                if (predVar != null && !predVar.isConstant() && !result.hasBinding(predVar.getName())) {
                     result.addBinding(predVar.getName(), st.getPredicate());
                 }
-                if (objVar != null && !result.hasBinding(objVar.getName())) {
+                if (objVar != null && !objVar.isConstant() && !result.hasBinding(objVar.getName())) {
                     result.addBinding(objVar.getName(), st.getObject());
                 }
-                if (cntxtVar != null && !result.hasBinding(cntxtVar.getName()) && st.getContext() != null) {
+                if (cntxtVar != null && !cntxtVar.isConstant() && !result.hasBinding(cntxtVar.getName()) && st.getContext() != null) {
                     result.addBinding(cntxtVar.getName(), st.getContext());
                 }
                 return result;

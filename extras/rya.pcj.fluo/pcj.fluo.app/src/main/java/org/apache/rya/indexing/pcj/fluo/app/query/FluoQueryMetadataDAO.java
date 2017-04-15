@@ -31,7 +31,8 @@ import org.apache.fluo.api.client.SnapshotBase;
 import org.apache.fluo.api.client.TransactionBase;
 import org.apache.fluo.api.data.Bytes;
 import org.apache.fluo.api.data.Column;
-import org.apache.log4j.Logger;
+import org.apache.rya.indexing.pcj.fluo.app.ConstructGraph;
+import org.apache.rya.indexing.pcj.fluo.app.ConstructGraphSerializer;
 import org.apache.rya.indexing.pcj.fluo.app.NodeType;
 import org.apache.rya.indexing.pcj.fluo.app.query.AggregationMetadata.AggregationElement;
 import org.apache.rya.indexing.pcj.fluo.app.query.JoinMetadata.JoinType;
@@ -39,6 +40,7 @@ import org.apache.rya.indexing.pcj.storage.accumulo.VariableOrder;
 
 import com.google.common.base.Charsets;
 import com.google.common.base.Joiner;
+import com.google.common.base.Preconditions;
 
 import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
 import edu.umd.cs.findbugs.annotations.NonNull;
@@ -102,6 +104,59 @@ public class FluoQueryMetadataDAO {
                 .setChildNodeId( childNodeId );
     }
 
+    /**
+     * Write an instance of {@link ConstructQueryMetadata} to the Fluo table.
+     *
+     * @param tx - The transaction that will be used to commit the metadata. (not null)
+     * @param metadata - The Construct Query node metadata that will be written to the table. (not null)
+     */
+    public void write(final TransactionBase tx, final ConstructQueryMetadata metadata) {
+        requireNonNull(tx);
+        requireNonNull(metadata);
+
+        final String rowId = metadata.getNodeId();
+        tx.set(rowId, FluoQueryColumns.CONSTRUCT_NODE_ID, rowId);
+        tx.set(rowId, FluoQueryColumns.CONSTRUCT_VARIABLE_ORDER, metadata.getVariableOrder().toString());
+        tx.set(rowId, FluoQueryColumns.CONSTRUCT_CHILD_NODE_ID, metadata.getChildNodeId() );
+        tx.set(rowId, FluoQueryColumns.CONSTRUCT_SPARQL, metadata.getSparql());
+        tx.set(rowId, FluoQueryColumns.CONSTRUCT_GRAPH, ConstructGraphSerializer.toConstructString(metadata.getConstructGraph()));
+    }
+
+    /**
+     * Read an instance of {@link ConstructQueryMetadata} from the Fluo table.
+     *
+     * @param sx - The snapshot that will be used to read the metadata . (not null)
+     * @param nodeId - The nodeId of the Construct Query node that will be read. (not null)
+     * @return The {@link ConstructQueryMetadata} that was read from table.
+     */
+    public ConstructQueryMetadata readConstructQueryMetadata(final SnapshotBase sx, final String nodeId) {
+        return readConstructQueryMetadataBuilder(sx, nodeId).build();
+    }
+
+    private ConstructQueryMetadata.Builder readConstructQueryMetadataBuilder(final SnapshotBase sx, final String nodeId) {
+        requireNonNull(sx);
+        requireNonNull(nodeId);
+
+        // Fetch the values from the Fluo table.
+        final String rowId = nodeId;
+        final Map<Column, String> values = sx.gets(rowId, 
+                FluoQueryColumns.CONSTRUCT_GRAPH,
+                FluoQueryColumns.CONSTRUCT_SPARQL,
+                FluoQueryColumns.CONSTRUCT_CHILD_NODE_ID);
+
+        final String graphString = values.get(FluoQueryColumns.CONSTRUCT_GRAPH);
+        final ConstructGraph graph = ConstructGraphSerializer.toConstructGraph(graphString);
+        final String childNodeId = values.get(FluoQueryColumns.CONSTRUCT_CHILD_NODE_ID);
+        final String sparql = values.get(FluoQueryColumns.CONSTRUCT_SPARQL);
+
+        return ConstructQueryMetadata.builder()
+                .setNodeId(nodeId)
+                .setConstructGraph(graph)
+                .setSparql(sparql)
+                .setChildNodeId(childNodeId);
+    }
+    
+    
     /**
      * Write an instance of {@link FilterMetadata} to the Fluo table.
      *
@@ -376,13 +431,25 @@ public class FluoQueryMetadataDAO {
         requireNonNull(tx);
         requireNonNull(query);
 
-        // Store the Query ID so that it may be looked up from the original SPARQL string.
-        final String sparql = query.getQueryMetadata().getSparql();
-        final String queryId = query.getQueryMetadata().getNodeId();
-        tx.set(Bytes.of(sparql), FluoQueryColumns.QUERY_ID, Bytes.of(queryId));
-
         // Write the rest of the metadata objects.
-        write(tx, query.getQueryMetadata());
+        switch(query.getQueryType()) {
+        case Construct:
+            ConstructQueryMetadata constructMetadata = query.getConstructQueryMetadata().get();
+            // Store the Query ID so that it may be looked up from the original SPARQL string.
+            final String constructSparql = constructMetadata.getSparql();
+            final String constructQueryId = constructMetadata.getNodeId();
+            tx.set(Bytes.of(constructSparql), FluoQueryColumns.QUERY_ID, Bytes.of(constructQueryId));
+            write(tx, constructMetadata);
+            break;
+        case Projection:
+            QueryMetadata queryMetadata = query.getQueryMetadata().get();
+            // Store the Query ID so that it may be looked up from the original SPARQL string.
+            final String sparql = queryMetadata.getSparql();
+            final String queryId = queryMetadata.getNodeId();
+            tx.set(Bytes.of(sparql), FluoQueryColumns.QUERY_ID, Bytes.of(queryId));
+            write(tx, queryMetadata);
+            break;
+        }
 
         for(final FilterMetadata filter : query.getFilterMetadata()) {
             write(tx, filter);
@@ -423,50 +490,62 @@ public class FluoQueryMetadataDAO {
         requireNonNull(childNodeId);
 
         final NodeType childType = NodeType.fromNodeId(childNodeId).get();
-        switch(childType) {
-            case QUERY:
-                // Add this node's metadata.
-                final QueryMetadata.Builder queryBuilder = readQueryMetadataBuilder(sx, childNodeId);
-                builder.setQueryMetadata(queryBuilder);
+        switch (childType) {
+        case QUERY:
+            // Add this node's metadata.
+            final QueryMetadata.Builder queryBuilder = readQueryMetadataBuilder(sx, childNodeId);
+            Preconditions.checkArgument(!builder.getQueryBuilder().isPresent());
+            builder.setQueryMetadata(queryBuilder);
 
-                // Add it's child's metadata.
-                addChildMetadata(sx, builder, queryBuilder.build().getChildNodeId());
-                break;
+            // Add it's child's metadata.
+            addChildMetadata(sx, builder, queryBuilder.build().getChildNodeId());
+            break;
 
-            case JOIN:
-                // Add this node's metadata.
-                final JoinMetadata.Builder joinBuilder = readJoinMetadataBuilder(sx, childNodeId);
-                builder.addJoinMetadata(joinBuilder);
+        case CONSTRUCT:
+            final ConstructQueryMetadata.Builder constructBuilder = readConstructQueryMetadataBuilder(sx, childNodeId);
+            Preconditions.checkArgument(!builder.getQueryBuilder().isPresent());
+            builder.setConstructQueryMetadata(constructBuilder);
+            
+            // Add it's child's metadata.
+            addChildMetadata(sx, builder, constructBuilder.build().getChildNodeId());
+            break;
 
-                // Add it's children's metadata.
-                final JoinMetadata joinMetadata = joinBuilder.build();
-                addChildMetadata(sx, builder, joinMetadata.getLeftChildNodeId());
-                addChildMetadata(sx, builder, joinMetadata.getRightChildNodeId());
-                break;
+        case AGGREGATION:
+            // Add this node's metadata.
+            final AggregationMetadata.Builder aggregationBuilder = readAggregationMetadataBuilder(sx, childNodeId);
+            builder.addAggregateMetadata(aggregationBuilder);
+            
+            // Add it's child's metadata.
+            addChildMetadata(sx, builder, aggregationBuilder.build().getChildNodeId());
+            break;
+            
+        case JOIN:
+            // Add this node's metadata.
+            final JoinMetadata.Builder joinBuilder = readJoinMetadataBuilder(sx, childNodeId);
+            builder.addJoinMetadata(joinBuilder);
 
-            case FILTER:
-                // Add this node's metadata.
-                final FilterMetadata.Builder filterBuilder = readFilterMetadataBuilder(sx, childNodeId);
-                builder.addFilterMetadata(filterBuilder);
+            // Add it's children's metadata.
+            final JoinMetadata joinMetadata = joinBuilder.build();
+            addChildMetadata(sx, builder, joinMetadata.getLeftChildNodeId());
+            addChildMetadata(sx, builder, joinMetadata.getRightChildNodeId());
+            break;
 
-                // Add it's child's metadata.
-                addChildMetadata(sx, builder, filterBuilder.build().getChildNodeId());
-                break;
+        case FILTER:
+            // Add this node's metadata.
+            final FilterMetadata.Builder filterBuilder = readFilterMetadataBuilder(sx, childNodeId);
+            builder.addFilterMetadata(filterBuilder);
 
-            case STATEMENT_PATTERN:
-                // Add this node's metadata.
-                final StatementPatternMetadata.Builder spBuilder = readStatementPatternMetadataBuilder(sx, childNodeId);
-                builder.addStatementPatternBuilder(spBuilder);
-                break;
+            // Add it's child's metadata.
+            addChildMetadata(sx, builder, filterBuilder.build().getChildNodeId());
+            break;
 
-            case AGGREGATION:
-                // Add this node's metadata.
-                final AggregationMetadata.Builder aggregationBuilder = readAggregationMetadataBuilder(sx, childNodeId);
-                builder.addAggregateMetadata(aggregationBuilder);
-
-                // Add it's child's metadata.
-                addChildMetadata(sx, builder, aggregationBuilder.build().getChildNodeId());
-                break;
+        case STATEMENT_PATTERN:
+            // Add this node's metadata.
+            final StatementPatternMetadata.Builder spBuilder = readStatementPatternMetadataBuilder(sx, childNodeId);
+            builder.addStatementPatternBuilder(spBuilder);
+            break;
+        default:
+            break;
         }
     }
 }

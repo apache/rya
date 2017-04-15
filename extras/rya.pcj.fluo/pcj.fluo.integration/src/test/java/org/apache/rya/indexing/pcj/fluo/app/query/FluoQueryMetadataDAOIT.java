@@ -20,21 +20,29 @@ package org.apache.rya.indexing.pcj.fluo.app.query;
 
 import static org.junit.Assert.assertEquals;
 
+import java.util.List;
+
 import org.apache.fluo.api.client.FluoClient;
 import org.apache.fluo.api.client.FluoFactory;
 import org.apache.fluo.api.client.Snapshot;
 import org.apache.fluo.api.client.Transaction;
 import org.apache.rya.indexing.pcj.fluo.RyaExportITBase;
+import org.apache.rya.indexing.pcj.fluo.app.ConstructGraph;
 import org.apache.rya.indexing.pcj.fluo.app.query.AggregationMetadata.AggregationElement;
 import org.apache.rya.indexing.pcj.fluo.app.query.AggregationMetadata.AggregationType;
+import org.apache.rya.indexing.pcj.fluo.app.query.FluoQuery.QueryType;
 import org.apache.rya.indexing.pcj.fluo.app.query.JoinMetadata.JoinType;
 import org.apache.rya.indexing.pcj.fluo.app.query.SparqlFluoQueryBuilder.NodeIds;
 import org.apache.rya.indexing.pcj.storage.accumulo.VariableOrder;
 import org.junit.Test;
 import org.openrdf.query.MalformedQueryException;
+import org.openrdf.query.algebra.StatementPattern;
+import org.openrdf.query.algebra.helpers.StatementPatternCollector;
 import org.openrdf.query.parser.ParsedQuery;
 import org.openrdf.query.parser.sparql.SPARQLParser;
 import org.openrdf.repository.RepositoryException;
+
+import com.google.common.base.Optional;
 
 /**
  * Integration tests the methods of {@link FluoQueryMetadataDAO}.
@@ -160,6 +168,42 @@ public class FluoQueryMetadataDAOIT extends RyaExportITBase {
             assertEquals(originalMetadata, storedMetdata);
         }
     }
+    
+    @Test
+    public void constructQueryMetadataTest() throws MalformedQueryException {
+        
+        String query = "select ?x ?y where {?x <uri:p1> ?y. ?y <uri:p2> <uri:o1> }";
+        SPARQLParser parser = new SPARQLParser();
+        ParsedQuery pq = parser.parseQuery(query, null);
+        List<StatementPattern> patterns = StatementPatternCollector.process(pq.getTupleExpr());
+        
+        final FluoQueryMetadataDAO dao = new FluoQueryMetadataDAO();
+
+        // Create the object that will be serialized.
+        final ConstructQueryMetadata.Builder builder = ConstructQueryMetadata.builder();
+        builder.setNodeId("nodeId");
+        builder.setSparql(query);
+        builder.setChildNodeId("childNodeId");
+        builder.setConstructGraph(new ConstructGraph(patterns));
+        final ConstructQueryMetadata originalMetadata = builder.build();
+
+        try(FluoClient fluoClient = FluoFactory.newClient(super.getFluoConfiguration())) {
+            // Write it to the Fluo table.
+            try(Transaction tx = fluoClient.newTransaction()) {
+                dao.write(tx, originalMetadata);
+                tx.commit();
+            }
+
+            // Read it from the Fluo table.
+            ConstructQueryMetadata storedMetdata = null;
+            try(Snapshot sx = fluoClient.newSnapshot()) {
+                storedMetdata = dao.readConstructQueryMetadata(sx, "nodeId");
+            }
+
+            // Ensure the deserialized object is the same as the serialized one.
+            assertEquals(originalMetadata, storedMetdata);
+        }
+    }
 
     @Test
     public void aggregationMetadataTest_withGroupByVarOrders() {
@@ -242,6 +286,9 @@ public class FluoQueryMetadataDAOIT extends RyaExportITBase {
         final ParsedQuery query = new SPARQLParser().parseQuery(sparql, null);
         final FluoQuery originalQuery = new SparqlFluoQueryBuilder().make(query, new NodeIds());
 
+        assertEquals(QueryType.Projection, originalQuery.getQueryType());
+        assertEquals(false, originalQuery.getConstructQueryMetadata().isPresent());
+        
         try(FluoClient fluoClient = FluoFactory.newClient(super.getFluoConfiguration())) {
             // Write it to the Fluo table.
             try(Transaction tx = fluoClient.newTransaction()) {
@@ -249,11 +296,50 @@ public class FluoQueryMetadataDAOIT extends RyaExportITBase {
                 tx.commit();
             }
 
-            // Read it from the Fluo table.
-            FluoQuery storedQuery = null;
-            try(Snapshot sx = fluoClient.newSnapshot()) {
-                storedQuery = dao.readFluoQuery(sx, originalQuery.getQueryMetadata().getNodeId());
+        // Read it from the Fluo table.
+        FluoQuery storedQuery = null;
+        try(Snapshot sx = fluoClient.newSnapshot()) {
+            storedQuery = dao.readFluoQuery(sx, originalQuery.getQueryMetadata().get().getNodeId());
+        }
+
+            // Ensure the deserialized object is the same as the serialized one.
+            assertEquals(originalQuery, storedQuery);
+        }
+    }
+    
+    @Test
+    public void fluoConstructQueryTest() throws MalformedQueryException {
+        final FluoQueryMetadataDAO dao = new FluoQueryMetadataDAO();
+
+        // Create the object that will be serialized.
+        final String sparql =
+                "CONSTRUCT { ?customer <http://travelsTo> <http://England> .  ?customer <http://friendsWith> ?worker }" +
+                "WHERE { " +
+                  "FILTER(?customer = <http://Alice>) " +
+                  "FILTER(?city = <http://London>) " +
+                  "?customer <http://talksTo> ?worker. " +
+                  "?worker <http://livesIn> ?city. " +
+                  "?worker <http://worksAt> <http://Chipotle>. " +
+                "}";
+
+        final ParsedQuery query = new SPARQLParser().parseQuery(sparql, null);
+        final FluoQuery originalQuery = new SparqlFluoQueryBuilder().make(query, new NodeIds());
+        
+        assertEquals(QueryType.Construct, originalQuery.getQueryType());
+        assertEquals(false, originalQuery.getQueryMetadata().isPresent());
+
+        try(FluoClient fluoClient = FluoFactory.newClient(super.getFluoConfiguration())) {
+            // Write it to the Fluo table.
+            try(Transaction tx = fluoClient.newTransaction()) {
+                dao.write(tx, originalQuery);
+                tx.commit();
             }
+
+        // Read it from the Fluo table.
+        FluoQuery storedQuery = null;
+        try(Snapshot sx = fluoClient.newSnapshot()) {
+            storedQuery = dao.readFluoQuery(sx, originalQuery.getConstructQueryMetadata().get().getNodeId());
+        }
 
             // Ensure the deserialized object is the same as the serialized one.
             assertEquals(originalQuery, storedQuery);

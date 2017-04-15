@@ -34,6 +34,7 @@ import org.apache.fluo.api.data.RowColumnValue;
 import org.apache.fluo.api.data.Span;
 import org.apache.rya.indexing.pcj.fluo.app.NodeType;
 import org.apache.rya.indexing.pcj.fluo.app.query.AggregationMetadata;
+import org.apache.rya.indexing.pcj.fluo.app.query.ConstructQueryMetadata;
 import org.apache.rya.indexing.pcj.fluo.app.query.FilterMetadata;
 import org.apache.rya.indexing.pcj.fluo.app.query.FluoQueryColumns;
 import org.apache.rya.indexing.pcj.fluo.app.query.FluoQueryMetadataDAO;
@@ -139,6 +140,12 @@ public class DeletePcj {
                 nodeIds.add(queryChild);
                 getChildNodeIds(tx, queryChild, nodeIds);
                 break;
+            case CONSTRUCT:
+                final ConstructQueryMetadata constructMeta = dao.readConstructQueryMetadata(tx, nodeId);
+                final String constructChild = constructMeta.getChildNodeId();
+                nodeIds.add(constructChild);
+                getChildNodeIds(tx, constructChild, nodeIds);
+                break;
             case JOIN:
                 final JoinMetadata joinMeta = dao.readJoinMetadata(tx, nodeId);
                 final String lchild = joinMeta.getLeftChildNodeId();
@@ -229,7 +236,7 @@ public class DeletePcj {
 
 
     /**
-     * Deletes all BindingSets associated with the specified nodeId.
+     * Deletes all results (BindingSets or Statements) associated with the specified nodeId.
      *
      * @param nodeId - nodeId whose {@link BindingSet}s will be deleted. (not null)
      * @param client - Used to delete the data. (not null)
@@ -240,7 +247,7 @@ public class DeletePcj {
 
         final NodeType type = NodeType.fromNodeId(nodeId).get();
         Transaction tx = client.newTransaction();
-        while(deleteDataBatch(tx, getIterator(tx, nodeId, type.getBsColumn()), type.getBsColumn())) {
+        while (deleteDataBatch(tx, getIterator(tx, nodeId, type.getResultColumn()), type.getResultColumn())) {
             tx = client.newTransaction();
         }
     }

@@ -23,17 +23,25 @@ import static org.apache.rya.indexing.pcj.fluo.app.IncrementalUpdateConstants.DE
 import static org.apache.rya.indexing.pcj.fluo.app.IncrementalUpdateConstants.TYPE_DELIM;
 import static org.apache.rya.indexing.pcj.fluo.app.IncrementalUpdateConstants.URI_TYPE;
 
+import java.util.UUID;
+
 import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
 import edu.umd.cs.findbugs.annotations.NonNull;
 
+import org.openrdf.model.BNode;
 import org.openrdf.model.Literal;
 import org.openrdf.model.URI;
+import org.openrdf.model.Value;
+import org.openrdf.model.impl.BNodeImpl;
 import org.openrdf.model.impl.LiteralImpl;
 import org.openrdf.model.impl.URIImpl;
 import org.openrdf.query.BindingSet;
 import org.openrdf.query.algebra.StatementPattern;
 import org.openrdf.query.algebra.Var;
 
+import com.google.common.base.Preconditions;
+
+import org.apache.rya.api.domain.RyaSchema;
 import org.apache.rya.api.domain.RyaType;
 import org.apache.rya.api.resolver.RdfToRyaConversions;
 
@@ -85,25 +93,33 @@ public class FluoStringConverter {
      */
     public static Var toVar(final String varString) {
         checkNotNull(varString);
-
-        if(varString.startsWith("-const-")) {
-            // The variable is a constant value.
-            final String[] varParts = varString.split(TYPE_DELIM);
-            final String name = varParts[0];
-            final String valueString = name.substring("-const-".length());
-
+        final String[] varParts = varString.split(TYPE_DELIM);
+        final String name = varParts[0];
+        
+        // The variable is a constant value.
+        if(varParts.length > 1) {
             final String dataTypeString = varParts[1];
             if(dataTypeString.equals(URI_TYPE)) {
                 // Handle a URI object.
+                Preconditions.checkArgument(varParts.length == 2);
+                final String valueString = name.substring("-const-".length());
                 final Var var = new Var(name, new URIImpl(valueString));
-                var.setAnonymous(true);
+                var.setConstant(true);
+                return var;
+            } else if(dataTypeString.equals(RyaSchema.BNODE_NAMESPACE)) { 
+                // Handle a BNode object
+                Preconditions.checkArgument(varParts.length == 3);
+                Var var = new Var(name);
+                var.setValue(new BNodeImpl(varParts[2]));
                 return var;
             } else {
-                // Literal value.
+                // Handle a Literal Value.
+                Preconditions.checkArgument(varParts.length == 2);
+                final String valueString = name.substring("-const-".length());
                 final URI dataType = new URIImpl(dataTypeString);
                 final Literal value = new LiteralImpl(valueString, dataType);
                 final Var var = new Var(name, value);
-                var.setAnonymous(true);
+                var.setConstant(true);
                 return var;
             }
         } else {
@@ -126,19 +142,24 @@ public class FluoStringConverter {
 
         final Var subjVar = sp.getSubjectVar();
         String subj = subjVar.getName();
-        if(subjVar.isConstant()) {
-            subj = subj + TYPE_DELIM + URI_TYPE;
-        }
+        if(subjVar.getValue() != null) {
+            Value subjValue = subjVar.getValue();
+            if (subjValue instanceof BNode ) {
+                subj = subj + TYPE_DELIM + RyaSchema.BNODE_NAMESPACE + TYPE_DELIM + ((BNode) subjValue).getID(); 
+            } else {
+                subj = subj + TYPE_DELIM + URI_TYPE;
+            }
+        } 
 
         final Var predVar = sp.getPredicateVar();
         String pred = predVar.getName();
-        if(predVar.isConstant()) {
+        if(predVar.getValue() != null) {
             pred = pred + TYPE_DELIM + URI_TYPE;
         }
 
         final Var objVar = sp.getObjectVar();
         String obj = objVar.getName();
-        if (objVar.isConstant()) {
+        if (objVar.getValue() != null) {
             final RyaType rt = RdfToRyaConversions.convertValue(objVar.getValue());
             obj =  obj + TYPE_DELIM + rt.getDataType().stringValue();
         }

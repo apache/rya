@@ -20,6 +20,7 @@ package org.apache.rya.indexing.pcj.fluo.app;
 
 import static java.util.Objects.requireNonNull;
 import static org.apache.rya.indexing.pcj.fluo.app.IncrementalUpdateConstants.AGGREGATION_PREFIX;
+import static org.apache.rya.indexing.pcj.fluo.app.IncrementalUpdateConstants.CONSTRUCT_PREFIX;
 import static org.apache.rya.indexing.pcj.fluo.app.IncrementalUpdateConstants.FILTER_PREFIX;
 import static org.apache.rya.indexing.pcj.fluo.app.IncrementalUpdateConstants.JOIN_PREFIX;
 import static org.apache.rya.indexing.pcj.fluo.app.IncrementalUpdateConstants.QUERY_PREFIX;
@@ -30,7 +31,6 @@ import java.util.List;
 import org.apache.fluo.api.data.Column;
 import org.apache.rya.indexing.pcj.fluo.app.query.FluoQueryColumns;
 import org.apache.rya.indexing.pcj.fluo.app.query.FluoQueryColumns.QueryNodeMetadataColumns;
-import org.openrdf.query.BindingSet;
 
 import com.google.common.base.Optional;
 
@@ -42,23 +42,24 @@ public enum NodeType {
     JOIN(QueryNodeMetadataColumns.JOIN_COLUMNS, FluoQueryColumns.JOIN_BINDING_SET),
     STATEMENT_PATTERN(QueryNodeMetadataColumns.STATEMENTPATTERN_COLUMNS, FluoQueryColumns.STATEMENT_PATTERN_BINDING_SET),
     QUERY(QueryNodeMetadataColumns.QUERY_COLUMNS, FluoQueryColumns.QUERY_BINDING_SET),
-    AGGREGATION(QueryNodeMetadataColumns.AGGREGATION_COLUMNS, FluoQueryColumns.AGGREGATION_BINDING_SET);
+    AGGREGATION(QueryNodeMetadataColumns.AGGREGATION_COLUMNS, FluoQueryColumns.AGGREGATION_BINDING_SET),
+    CONSTRUCT(QueryNodeMetadataColumns.CONSTRUCT_COLUMNS, FluoQueryColumns.CONSTRUCT_STATEMENTS);
 
     //Metadata Columns associated with given NodeType
     private QueryNodeMetadataColumns metadataColumns;
 
-    //Column where BindingSet results are stored for given NodeType
-    private Column bindingSetColumn;
+    //Column where results are stored for given NodeType
+    private Column resultColumn;
 
     /**
      * Constructs an instance of {@link NodeType}.
      *
      * @param metadataColumns - Metadata {@link Column}s associated with this {@link NodeType}. (not null)
-     * @param bindingSetColumn - The {@link Column} used to store this {@link NodeType|'s {@link BindingSet}s. (not null)
+     * @param resultColumn - The {@link Column} used to store this {@link NodeType}'s results. (not null)
      */
-    private NodeType(final QueryNodeMetadataColumns metadataColumns, final Column bindingSetColumn) {
+    private NodeType(QueryNodeMetadataColumns metadataColumns, Column resultColumn) {
     	this.metadataColumns = requireNonNull(metadataColumns);
-    	this.bindingSetColumn = requireNonNull(bindingSetColumn);
+    	this.resultColumn = requireNonNull(resultColumn);
     }
 
     /**
@@ -70,10 +71,10 @@ public enum NodeType {
 
 
     /**
-     * @return The {@link Column} used to store this {@link NodeType|'s {@link BindingSet}s.
+     * @return The {@link Column} used to store this {@link NodeType}'s query results.
      */
-    public Column getBsColumn() {
-    	return bindingSetColumn;
+    public Column getResultColumn() {
+    	return resultColumn;
     }
 
     /**
@@ -98,6 +99,8 @@ public enum NodeType {
             type = QUERY;
         } else if(nodeId.startsWith(AGGREGATION_PREFIX)) {
             type = AGGREGATION;
+        } else if(nodeId.startsWith(CONSTRUCT_PREFIX)) {
+            type = CONSTRUCT;
         }
 
         return Optional.fromNullable(type);

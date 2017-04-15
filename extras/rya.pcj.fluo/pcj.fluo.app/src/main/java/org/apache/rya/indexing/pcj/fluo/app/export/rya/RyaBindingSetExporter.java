@@ -24,7 +24,7 @@ import static java.util.Objects.requireNonNull;
 import java.util.Collections;
 
 import org.apache.fluo.api.client.TransactionBase;
-import org.apache.rya.indexing.pcj.fluo.app.export.IncrementalResultExporter;
+import org.apache.rya.indexing.pcj.fluo.app.export.IncrementalBindingSetExporter;
 import org.apache.rya.indexing.pcj.fluo.app.query.FluoQueryColumns;
 import org.apache.rya.indexing.pcj.storage.PrecomputedJoinStorage;
 import org.apache.rya.indexing.pcj.storage.PrecomputedJoinStorage.PCJStorageException;
@@ -33,16 +33,16 @@ import org.apache.rya.indexing.pcj.storage.accumulo.VisibilityBindingSet;
 /**
  * Incrementally exports SPARQL query results to Accumulo PCJ tables as they are defined by Rya.
  */
-public class RyaResultExporter implements IncrementalResultExporter {
+public class RyaBindingSetExporter implements IncrementalBindingSetExporter {
 
     private final PrecomputedJoinStorage pcjStorage;
 
     /**
-     * Constructs an instance of {@link RyaResultExporter}.
+     * Constructs an instance of {@link RyaBindingSetExporter}.
      *
      * @param pcjStorage - The PCJ storage the new results will be exported to. (not null)
      */
-    public RyaResultExporter(final PrecomputedJoinStorage pcjStorage) {
+    public RyaBindingSetExporter(final PrecomputedJoinStorage pcjStorage) {
         this.pcjStorage = checkNotNull(pcjStorage);
     }
 

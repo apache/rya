@@ -26,8 +26,8 @@ import org.apache.accumulo.core.client.Connector;
 import org.apache.accumulo.core.client.Instance;
 import org.apache.accumulo.core.client.ZooKeeperInstance;
 import org.apache.accumulo.core.client.security.tokens.PasswordToken;
-import org.apache.rya.indexing.pcj.fluo.app.export.IncrementalResultExporter;
-import org.apache.rya.indexing.pcj.fluo.app.export.IncrementalResultExporterFactory;
+import org.apache.rya.indexing.pcj.fluo.app.export.IncrementalBindingSetExporter;
+import org.apache.rya.indexing.pcj.fluo.app.export.IncrementalBindingSetExporterFactory;
 import org.apache.rya.indexing.pcj.storage.PrecomputedJoinStorage;
 import org.apache.rya.indexing.pcj.storage.accumulo.AccumuloPcjStorage;
 
@@ -36,12 +36,12 @@ import com.google.common.base.Optional;
 import org.apache.fluo.api.observer.Observer.Context;
 
 /**
- * Creates instances of {@link RyaResultExporter}.
+ * Creates instances of {@link RyaBindingSetExporter}.
  */
-public class RyaResultExporterFactory implements IncrementalResultExporterFactory {
+public class RyaBindingSetExporterFactory implements IncrementalBindingSetExporterFactory {
 
     @Override
-    public Optional<IncrementalResultExporter> build(final Context context) throws IncrementalExporterFactoryException, ConfigurationException {
+    public Optional<IncrementalBindingSetExporter> build(final Context context) throws IncrementalExporterFactoryException, ConfigurationException {
         checkNotNull(context);
 
         // Wrap the context's parameters for parsing.
@@ -64,7 +64,7 @@ public class RyaResultExporterFactory implements IncrementalResultExporterFactor
                 final PrecomputedJoinStorage pcjStorage = new AccumuloPcjStorage(accumuloConn, ryaInstanceName);
 
                 // Make the exporter.
-                final IncrementalResultExporter exporter = new RyaResultExporter(pcjStorage);
+                final IncrementalBindingSetExporter exporter = new RyaBindingSetExporter(pcjStorage);
                 return Optional.of(exporter);
 
             } catch (final AccumuloException | AccumuloSecurityException e) {

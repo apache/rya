@@ -29,7 +29,7 @@ import edu.umd.cs.findbugs.annotations.NonNull;
  * other location.
  */
 @DefaultAnnotation(NonNull.class)
-public interface IncrementalResultExporter extends AutoCloseable {
+public interface IncrementalBindingSetExporter extends AutoCloseable {
 
     /**
      * Export a Binding Set that is a result of a SPARQL query that does not include a Group By clause.

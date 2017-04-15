@@ -22,14 +22,14 @@ import org.apache.fluo.api.observer.Observer.Context;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.log4j.Logger;
-import org.apache.rya.indexing.pcj.fluo.app.export.IncrementalResultExporter;
-import org.apache.rya.indexing.pcj.fluo.app.export.IncrementalResultExporterFactory;
+import org.apache.rya.indexing.pcj.fluo.app.export.IncrementalBindingSetExporter;
+import org.apache.rya.indexing.pcj.fluo.app.export.IncrementalBindingSetExporterFactory;
 import org.apache.rya.indexing.pcj.storage.accumulo.VisibilityBindingSet;
 
 import com.google.common.base.Optional;
 
 /**
- * Creates instances of {@link KafkaResultExporter}.
+ * Creates instances of {@link KafkaBindingSetExporter}.
  * <p/>
  * Configure a Kafka producer by adding several required Key/values as described here:
  * http://kafka.apache.org/documentation.html#producerconfigs
@@ -44,17 +44,17 @@ import com.google.common.base.Optional;
  * 
  * @see ProducerConfig
  */
-public class KafkaResultExporterFactory implements IncrementalResultExporterFactory {
-    private static final Logger log = Logger.getLogger(KafkaResultExporterFactory.class);
+public class KafkaBindingSetExporterFactory implements IncrementalBindingSetExporterFactory {
+    private static final Logger log = Logger.getLogger(KafkaBindingSetExporterFactory.class);
     @Override
-    public Optional<IncrementalResultExporter> build(Context context) throws IncrementalExporterFactoryException, ConfigurationException {
+    public Optional<IncrementalBindingSetExporter> build(Context context) throws IncrementalExporterFactoryException, ConfigurationException {
         final KafkaExportParameters exportParams = new KafkaExportParameters(context.getObserverConfiguration().toMap());
         log.debug("KafkaResultExporterFactory.build(): params.isExportToKafka()=" + exportParams.isExportToKafka());
         if (exportParams.isExportToKafka()) {
             // Setup Kafka connection
             KafkaProducer<String, VisibilityBindingSet> producer = new KafkaProducer<String, VisibilityBindingSet>(exportParams.listAllConfig());
             // Create the exporter
-            final IncrementalResultExporter exporter = new KafkaResultExporter(producer);
+            final IncrementalBindingSetExporter exporter = new KafkaBindingSetExporter(producer);
             return Optional.of(exporter);
         } else {
             return Optional.absent();

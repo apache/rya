@@ -18,6 +18,8 @@
  */
 package org.apache.rya.indexing.pcj.fluo.app;
 
+import org.apache.rya.indexing.pcj.storage.PeriodicQueryResultStorage;
+
 public class IncrementalUpdateConstants {
 
     // String constants used to create more easily parsed patterns.
@@ -34,6 +36,9 @@ public class IncrementalUpdateConstants {
     public static final String AGGREGATION_PREFIX = "AGGREGATION";
     public static final String QUERY_PREFIX = "QUERY";
     public static final String CONSTRUCT_PREFIX = "CONSTRUCT";
+    public static final String PERIODIC_QUERY_PREFIX = "PERIODIC_QUERY";
+    
+    public static final String PERIODIC_BIN_ID = PeriodicQueryResultStorage.PeriodicBinId;
 
     public static final String URI_TYPE = "http://www.w3.org/2001/XMLSchema#anyURI";
 }

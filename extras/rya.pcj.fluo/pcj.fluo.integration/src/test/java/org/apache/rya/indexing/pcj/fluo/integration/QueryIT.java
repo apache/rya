@@ -22,20 +22,27 @@ import static java.util.Objects.requireNonNull;
 import static org.junit.Assert.assertEquals;
 
 import java.math.BigDecimal;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.Optional;
 import java.util.Set;
 
 import javax.xml.datatype.DatatypeFactory;
 
 import org.apache.accumulo.core.client.Connector;
-import org.apache.accumulo.core.client.Instance;
+import org.apache.fluo.api.client.FluoClient;
+import org.apache.fluo.core.client.FluoClientImpl;
 import org.apache.rya.api.client.RyaClient;
-import org.apache.rya.api.client.accumulo.AccumuloConnectionDetails;
 import org.apache.rya.api.client.accumulo.AccumuloRyaClientFactory;
-import org.apache.rya.indexing.pcj.fluo.RyaExportITBase;
+import org.apache.rya.indexing.pcj.fluo.api.CreatePcj;
+import org.apache.rya.indexing.pcj.storage.PeriodicQueryResultStorage;
 import org.apache.rya.indexing.pcj.storage.PrecomputedJoinStorage;
+import org.apache.rya.indexing.pcj.storage.PrecomputedJoinStorage.CloseableIterator;
 import org.apache.rya.indexing.pcj.storage.accumulo.AccumuloPcjStorage;
+import org.apache.rya.indexing.pcj.storage.accumulo.AccumuloPeriodicQueryResultStorage;
+import org.apache.rya.pcj.fluo.test.base.RyaExportITBase;
 import org.junit.Test;
 import org.openrdf.model.Literal;
 import org.openrdf.model.Statement;
@@ -51,6 +58,7 @@ import org.openrdf.query.algebra.evaluation.ValueExprEvaluationException;
 import org.openrdf.query.algebra.evaluation.function.Function;
 import org.openrdf.query.algebra.evaluation.function.FunctionRegistry;
 import org.openrdf.query.impl.MapBindingSet;
+import org.openrdf.repository.RepositoryException;
 import org.openrdf.repository.sail.SailRepositoryConnection;
 
 import com.google.common.collect.Sets;
@@ -60,6 +68,8 @@ import com.google.common.collect.Sets;
  */
 public class QueryIT extends RyaExportITBase {
 
+    private enum ExporterType {Pcj, Periodic};
+    
     @Test
     public void optionalStatements() throws Exception {
         // A query that has optional statement patterns. This query is looking for all
@@ -100,7 +110,7 @@ public class QueryIT extends RyaExportITBase {
         expectedResults.add(bs);
 
         // Verify the end results of the query match the expected results.
-        runTest(sparql, statements, expectedResults);
+        runTest(sparql, statements, expectedResults, ExporterType.Pcj);
     }
 
     /**
@@ -181,7 +191,7 @@ public class QueryIT extends RyaExportITBase {
         expectedResults.add(bs);
 
         // Verify the end results of the query match the expected results.
-        runTest(sparql, statements, expectedResults);
+        runTest(sparql, statements, expectedResults, ExporterType.Pcj);
     }
 
     @Test
@@ -241,7 +251,7 @@ public class QueryIT extends RyaExportITBase {
         expectedResults.add(bs);
 
         // Verify the end results of the query match the expected results.
-        runTest(sparql, statements, expectedResults);
+        runTest(sparql, statements, expectedResults, ExporterType.Pcj);
     }
 
     @Test
@@ -283,7 +293,7 @@ public class QueryIT extends RyaExportITBase {
         expectedResults.add(bs);
 
         // Verify the end results of the query match the expected results.
-        runTest(sparql, statements, expectedResults);
+        runTest(sparql, statements, expectedResults, ExporterType.Pcj);
     }
 
     @Test
@@ -368,7 +378,7 @@ public class QueryIT extends RyaExportITBase {
         expectedResults.add(bs);
 
         // Verify the end results of the query match the expected results.
-        runTest(sparql, statements, expectedResults);
+        runTest(sparql, statements, expectedResults, ExporterType.Pcj);
     }
 
     @Test
@@ -430,10 +440,295 @@ public class QueryIT extends RyaExportITBase {
         expectedResults.add(bs);
 
         // Verify the end results of the query match the expected results.
-        runTest(sparql, statements, expectedResults);
+        runTest(sparql, statements, expectedResults, ExporterType.Pcj);
     }
+    
+    
+    @Test
+    public void periodicQueryTestWithoutAggregation() throws Exception {
+        String query = "prefix function: <http://org.apache.rya/function#> " //n
+                + "prefix time: <http://www.w3.org/2006/time#> " //n
+                + "select ?id where {" //n
+                + "Filter(function:periodic(?time, 2, .5, time:hours)) " //n
+                + "?obs <uri:hasTime> ?time. " //n
+                + "?obs <uri:hasId> ?id }"; //n
 
-    public void runTest(final String sparql, final Collection<Statement> statements, final Collection<BindingSet> expectedResults) throws Exception {
+        // Create the Statements that will be loaded into Rya.
+        final ValueFactory vf = new ValueFactoryImpl();
+        final DatatypeFactory dtf = DatatypeFactory.newInstance();
+        ZonedDateTime time = ZonedDateTime.now();
+        long currentTime = time.toInstant().toEpochMilli();
+        
+        ZonedDateTime zTime1 = time.minusMinutes(30);
+        String time1 = zTime1.format(DateTimeFormatter.ISO_INSTANT);
+        
+        ZonedDateTime zTime2 = zTime1.minusMinutes(30);
+        String time2 = zTime2.format(DateTimeFormatter.ISO_INSTANT);
+        
+        ZonedDateTime zTime3 = zTime2.minusMinutes(30);
+        String time3 = zTime3.format(DateTimeFormatter.ISO_INSTANT);
+        
+        ZonedDateTime zTime4 = zTime3.minusMinutes(30);
+        String time4 = zTime4.format(DateTimeFormatter.ISO_INSTANT);
+        
+        final Collection<Statement> statements = Sets.newHashSet(
+                vf.createStatement(vf.createURI("urn:obs_1"), vf.createURI("uri:hasTime"), vf.createLiteral(dtf.newXMLGregorianCalendar(time1))),
+                vf.createStatement(vf.createURI("urn:obs_1"), vf.createURI("uri:hasId"), vf.createLiteral("id_1")),
+                vf.createStatement(vf.createURI("urn:obs_2"), vf.createURI("uri:hasTime"), vf.createLiteral(dtf.newXMLGregorianCalendar(time2))),
+                vf.createStatement(vf.createURI("urn:obs_2"), vf.createURI("uri:hasId"), vf.createLiteral("id_2")),
+                vf.createStatement(vf.createURI("urn:obs_3"), vf.createURI("uri:hasTime"), vf.createLiteral(dtf.newXMLGregorianCalendar(time3))),
+                vf.createStatement(vf.createURI("urn:obs_3"), vf.createURI("uri:hasId"), vf.createLiteral("id_3")),
+                vf.createStatement(vf.createURI("urn:obs_4"), vf.createURI("uri:hasTime"), vf.createLiteral(dtf.newXMLGregorianCalendar(time4))),
+                vf.createStatement(vf.createURI("urn:obs_4"), vf.createURI("uri:hasId"), vf.createLiteral("id_4"))
+                );
+
+        // Create the expected results of the SPARQL query once the PCJ has been computed.
+        final Set<BindingSet> expectedResults = new HashSet<>();
+
+        long period = 1800000;
+        long binId = (currentTime/period)*period;
+        
+        MapBindingSet bs = new MapBindingSet();
+        bs.addBinding("id", vf.createLiteral("id_1", XMLSchema.STRING));
+        bs.addBinding("periodicBinId", vf.createLiteral(binId));
+        expectedResults.add(bs);
+        
+        bs = new MapBindingSet();
+        bs.addBinding("id", vf.createLiteral("id_1", XMLSchema.STRING));
+        bs.addBinding("periodicBinId", vf.createLiteral(binId + period));
+        expectedResults.add(bs);
+        
+        bs = new MapBindingSet();
+        bs.addBinding("id", vf.createLiteral("id_1", XMLSchema.STRING));
+        bs.addBinding("periodicBinId", vf.createLiteral(binId + 2*period));
+        expectedResults.add(bs);
+        
+        bs = new MapBindingSet();
+        bs.addBinding("id", vf.createLiteral("id_1", XMLSchema.STRING));
+        bs.addBinding("periodicBinId", vf.createLiteral(binId + 3*period));
+        expectedResults.add(bs);
+
+        bs = new MapBindingSet();
+        bs.addBinding("id", vf.createLiteral("id_2", XMLSchema.STRING));
+        bs.addBinding("periodicBinId", vf.createLiteral(binId));
+        expectedResults.add(bs);
+        
+        bs = new MapBindingSet();
+        bs.addBinding("id", vf.createLiteral("id_2", XMLSchema.STRING));
+        bs.addBinding("periodicBinId", vf.createLiteral(binId + period));
+        expectedResults.add(bs);
+        
+        bs = new MapBindingSet();
+        bs.addBinding("id", vf.createLiteral("id_2", XMLSchema.STRING));
+        bs.addBinding("periodicBinId", vf.createLiteral(binId + 2*period));
+        expectedResults.add(bs);
+        
+        bs = new MapBindingSet();
+        bs.addBinding("id", vf.createLiteral("id_3", XMLSchema.STRING));
+        bs.addBinding("periodicBinId", vf.createLiteral(binId));
+        expectedResults.add(bs);
+        
+        bs = new MapBindingSet();
+        bs.addBinding("id", vf.createLiteral("id_3", XMLSchema.STRING));
+        bs.addBinding("periodicBinId", vf.createLiteral(binId + period));
+        expectedResults.add(bs);
+        
+        bs = new MapBindingSet();
+        bs.addBinding("id", vf.createLiteral("id_4", XMLSchema.STRING));
+        bs.addBinding("periodicBinId", vf.createLiteral(binId));
+        expectedResults.add(bs);
+
+        // Verify the end results of the query match the expected results.
+        runTest(query, statements, expectedResults, ExporterType.Periodic);
+    }
+    
+    
+    @Test
+    public void periodicQueryTestWithAggregation() throws Exception {
+        String query = "prefix function: <http://org.apache.rya/function#> " //n
+                + "prefix time: <http://www.w3.org/2006/time#> " //n
+                + "select (count(?obs) as ?total) where {" //n
+                + "Filter(function:periodic(?time, 2, .5, time:hours)) " //n
+                + "?obs <uri:hasTime> ?time. " //n
+                + "?obs <uri:hasId> ?id }"; //n
+
+        // Create the Statements that will be loaded into Rya.
+        final ValueFactory vf = new ValueFactoryImpl();
+        final DatatypeFactory dtf = DatatypeFactory.newInstance();
+        ZonedDateTime time = ZonedDateTime.now();
+        long currentTime = time.toInstant().toEpochMilli();
+        
+        ZonedDateTime zTime1 = time.minusMinutes(30);
+        String time1 = zTime1.format(DateTimeFormatter.ISO_INSTANT);
+        
+        ZonedDateTime zTime2 = zTime1.minusMinutes(30);
+        String time2 = zTime2.format(DateTimeFormatter.ISO_INSTANT);
+        
+        ZonedDateTime zTime3 = zTime2.minusMinutes(30);
+        String time3 = zTime3.format(DateTimeFormatter.ISO_INSTANT);
+        
+        ZonedDateTime zTime4 = zTime3.minusMinutes(30);
+        String time4 = zTime4.format(DateTimeFormatter.ISO_INSTANT);
+        
+        final Collection<Statement> statements = Sets.newHashSet(
+                vf.createStatement(vf.createURI("urn:obs_1"), vf.createURI("uri:hasTime"), vf.createLiteral(dtf.newXMLGregorianCalendar(time1))),
+                vf.createStatement(vf.createURI("urn:obs_1"), vf.createURI("uri:hasId"), vf.createLiteral("id_1")),
+                vf.createStatement(vf.createURI("urn:obs_2"), vf.createURI("uri:hasTime"), vf.createLiteral(dtf.newXMLGregorianCalendar(time2))),
+                vf.createStatement(vf.createURI("urn:obs_2"), vf.createURI("uri:hasId"), vf.createLiteral("id_2")),
+                vf.createStatement(vf.createURI("urn:obs_3"), vf.createURI("uri:hasTime"), vf.createLiteral(dtf.newXMLGregorianCalendar(time3))),
+                vf.createStatement(vf.createURI("urn:obs_3"), vf.createURI("uri:hasId"), vf.createLiteral("id_3")),
+                vf.createStatement(vf.createURI("urn:obs_4"), vf.createURI("uri:hasTime"), vf.createLiteral(dtf.newXMLGregorianCalendar(time4))),
+                vf.createStatement(vf.createURI("urn:obs_4"), vf.createURI("uri:hasId"), vf.createLiteral("id_4"))
+                );
+
+        // Create the expected results of the SPARQL query once the PCJ has been computed.
+        final Set<BindingSet> expectedResults = new HashSet<>();
+
+        long period = 1800000;
+        long binId = (currentTime/period)*period;
+        
+        MapBindingSet bs = new MapBindingSet();
+        bs.addBinding("total", vf.createLiteral("4", XMLSchema.INTEGER));
+        bs.addBinding("periodicBinId", vf.createLiteral(binId));
+        expectedResults.add(bs);
+        
+        bs = new MapBindingSet();
+        bs.addBinding("total", vf.createLiteral("3", XMLSchema.INTEGER));
+        bs.addBinding("periodicBinId", vf.createLiteral(binId + period));
+        expectedResults.add(bs);
+        
+        bs = new MapBindingSet();
+        bs.addBinding("total", vf.createLiteral("2", XMLSchema.INTEGER));
+        bs.addBinding("periodicBinId", vf.createLiteral(binId + 2*period));
+        expectedResults.add(bs);
+        
+        bs = new MapBindingSet();
+        bs.addBinding("total", vf.createLiteral("1", XMLSchema.INTEGER));
+        bs.addBinding("periodicBinId", vf.createLiteral(binId + 3*period));
+        expectedResults.add(bs);
+
+
+        // Verify the end results of the query match the expected results.
+        runTest(query, statements, expectedResults, ExporterType.Periodic);
+    }
+    
+    @Test
+    public void periodicQueryTestWithAggregationAndGroupBy() throws Exception {
+        String query = "prefix function: <http://org.apache.rya/function#> " //n
+                + "prefix time: <http://www.w3.org/2006/time#> " //n
+                + "select ?id (count(?obs) as ?total) where {" //n
+                + "Filter(function:periodic(?time, 2, .5, time:hours)) " //n
+                + "?obs <uri:hasTime> ?time. " //n
+                + "?obs <uri:hasId> ?id } group by ?id"; //n
+
+        // Create the Statements that will be loaded into Rya.
+        final ValueFactory vf = new ValueFactoryImpl();
+        final DatatypeFactory dtf = DatatypeFactory.newInstance();
+        ZonedDateTime time = ZonedDateTime.now();
+        long currentTime = time.toInstant().toEpochMilli();
+        
+        ZonedDateTime zTime1 = time.minusMinutes(30);
+        String time1 = zTime1.format(DateTimeFormatter.ISO_INSTANT);
+        
+        ZonedDateTime zTime2 = zTime1.minusMinutes(30);
+        String time2 = zTime2.format(DateTimeFormatter.ISO_INSTANT);
+        
+        ZonedDateTime zTime3 = zTime2.minusMinutes(30);
+        String time3 = zTime3.format(DateTimeFormatter.ISO_INSTANT);
+        
+        ZonedDateTime zTime4 = zTime3.minusMinutes(30);
+        String time4 = zTime4.format(DateTimeFormatter.ISO_INSTANT);
+        
+        final Collection<Statement> statements = Sets.newHashSet(
+                vf.createStatement(vf.createURI("urn:obs_1"), vf.createURI("uri:hasTime"), vf.createLiteral(dtf.newXMLGregorianCalendar(time1))),
+                vf.createStatement(vf.createURI("urn:obs_1"), vf.createURI("uri:hasId"), vf.createLiteral("id_1")),
+                vf.createStatement(vf.createURI("urn:obs_2"), vf.createURI("uri:hasTime"), vf.createLiteral(dtf.newXMLGregorianCalendar(time2))),
+                vf.createStatement(vf.createURI("urn:obs_2"), vf.createURI("uri:hasId"), vf.createLiteral("id_2")),
+                vf.createStatement(vf.createURI("urn:obs_3"), vf.createURI("uri:hasTime"), vf.createLiteral(dtf.newXMLGregorianCalendar(time3))),
+                vf.createStatement(vf.createURI("urn:obs_3"), vf.createURI("uri:hasId"), vf.createLiteral("id_3")),
+                vf.createStatement(vf.createURI("urn:obs_4"), vf.createURI("uri:hasTime"), vf.createLiteral(dtf.newXMLGregorianCalendar(time4))),
+                vf.createStatement(vf.createURI("urn:obs_4"), vf.createURI("uri:hasId"), vf.createLiteral("id_4")),
+                vf.createStatement(vf.createURI("urn:obs_1"), vf.createURI("uri:hasTime"), vf.createLiteral(dtf.newXMLGregorianCalendar(time4))),
+                vf.createStatement(vf.createURI("urn:obs_1"), vf.createURI("uri:hasId"), vf.createLiteral("id_1")),
+                vf.createStatement(vf.createURI("urn:obs_2"), vf.createURI("uri:hasTime"), vf.createLiteral(dtf.newXMLGregorianCalendar(time3))),
+                vf.createStatement(vf.createURI("urn:obs_2"), vf.createURI("uri:hasId"), vf.createLiteral("id_2"))
+                );
+
+        // Create the expected results of the SPARQL query once the PCJ has been computed.
+        final Set<BindingSet> expectedResults = new HashSet<>();
+
+        long period = 1800000;
+        long binId = (currentTime/period)*period;
+        
+        MapBindingSet bs = new MapBindingSet();
+        bs.addBinding("total", vf.createLiteral("2", XMLSchema.INTEGER));
+        bs.addBinding("id", vf.createLiteral("id_1", XMLSchema.STRING));
+        bs.addBinding("periodicBinId", vf.createLiteral(binId));
+        expectedResults.add(bs);
+        
+        bs = new MapBindingSet();
+        bs.addBinding("total", vf.createLiteral("2", XMLSchema.INTEGER));
+        bs.addBinding("id", vf.createLiteral("id_2", XMLSchema.STRING));
+        bs.addBinding("periodicBinId", vf.createLiteral(binId));
+        expectedResults.add(bs);
+        
+        bs = new MapBindingSet();
+        bs.addBinding("total", vf.createLiteral("1", XMLSchema.INTEGER));
+        bs.addBinding("id", vf.createLiteral("id_3", XMLSchema.STRING));
+        bs.addBinding("periodicBinId", vf.createLiteral(binId));
+        expectedResults.add(bs);
+        
+        bs = new MapBindingSet();
+        bs.addBinding("total", vf.createLiteral("1", XMLSchema.INTEGER));
+        bs.addBinding("id", vf.createLiteral("id_4", XMLSchema.STRING));
+        bs.addBinding("periodicBinId", vf.createLiteral(binId));
+        expectedResults.add(bs);
+        
+        bs = new MapBindingSet();
+        bs.addBinding("total", vf.createLiteral("1", XMLSchema.INTEGER));
+        bs.addBinding("id", vf.createLiteral("id_1", XMLSchema.STRING));
+        bs.addBinding("periodicBinId", vf.createLiteral(binId + period));
+        expectedResults.add(bs);
+        
+        bs = new MapBindingSet();
+        bs.addBinding("total", vf.createLiteral("2", XMLSchema.INTEGER));
+        bs.addBinding("id", vf.createLiteral("id_2", XMLSchema.STRING));
+        bs.addBinding("periodicBinId", vf.createLiteral(binId + period));
+        expectedResults.add(bs);
+        
+        bs = new MapBindingSet();
+        bs.addBinding("total", vf.createLiteral("1", XMLSchema.INTEGER));
+        bs.addBinding("id", vf.createLiteral("id_3", XMLSchema.STRING));
+        bs.addBinding("periodicBinId", vf.createLiteral(binId + period));
+        expectedResults.add(bs);
+        
+        bs = new MapBindingSet();
+        bs.addBinding("total", vf.createLiteral("1", XMLSchema.INTEGER));
+        bs.addBinding("id", vf.createLiteral("id_1", XMLSchema.STRING));
+        bs.addBinding("periodicBinId", vf.createLiteral(binId + 2*period));
+        expectedResults.add(bs);
+        
+        bs = new MapBindingSet();
+        bs.addBinding("total", vf.createLiteral("1", XMLSchema.INTEGER));
+        bs.addBinding("id", vf.createLiteral("id_2", XMLSchema.STRING));
+        bs.addBinding("periodicBinId", vf.createLiteral(binId + 2*period));
+        expectedResults.add(bs);
+        
+        bs = new MapBindingSet();
+        bs.addBinding("total", vf.createLiteral("1", XMLSchema.INTEGER));
+        bs.addBinding("id", vf.createLiteral("id_1", XMLSchema.STRING));
+        bs.addBinding("periodicBinId", vf.createLiteral(binId + 3*period));
+        expectedResults.add(bs);
+
+        // Verify the end results of the query match the expected results.
+        runTest(query, statements, expectedResults, ExporterType.Periodic);
+    }
+    
+    
+    
+    
+
+    public void runTest(final String sparql, final Collection<Statement> statements, final Collection<BindingSet> expectedResults, ExporterType type ) throws Exception {
         requireNonNull(sparql);
         requireNonNull(statements);
         requireNonNull(expectedResults);
@@ -443,9 +738,38 @@ public class QueryIT extends RyaExportITBase {
 
         final RyaClient ryaClient = AccumuloRyaClientFactory.build(createConnectionDetails(), accumuloConn);
 
-        ryaClient.getCreatePCJ().createPCJ(getRyaInstanceName(), sparql);
-
-        // Write the data to Rya.
+        switch (type) {
+        case Pcj:
+            ryaClient.getCreatePCJ().createPCJ(getRyaInstanceName(), sparql);
+            addStatementsAndWait(statements);
+            // Fetch the value that is stored within the PCJ table.
+            try (final PrecomputedJoinStorage pcjStorage = new AccumuloPcjStorage(accumuloConn, getRyaInstanceName())) {
+                final String pcjId = pcjStorage.listPcjs().get(0);
+                final Set<BindingSet> results = Sets.newHashSet(pcjStorage.listResults(pcjId));
+                // Ensure the result of the query matches the expected result.
+                assertEquals(expectedResults, results);
+            }
+            break;
+        case Periodic:
+            PeriodicQueryResultStorage periodicStorage = new AccumuloPeriodicQueryResultStorage(accumuloConn, getRyaInstanceName());
+            String periodicId = periodicStorage.createPeriodicQuery(sparql);
+            try (FluoClient fluo = new FluoClientImpl(super.getFluoConfiguration())) {
+                new CreatePcj().createPcj(periodicId, sparql, fluo);
+            }
+            addStatementsAndWait(statements);
+            final Set<BindingSet> results = Sets.newHashSet();
+            try (CloseableIterator<BindingSet> resultIter = periodicStorage.listResults(periodicId, Optional.empty())) {
+                while (resultIter.hasNext()) {
+                    results.add(resultIter.next());
+                }
+            }
+            assertEquals(expectedResults, results);
+            break;
+        }
+    }
+    
+    private void addStatementsAndWait(final Collection<Statement> statements) throws RepositoryException, Exception {
+     // Write the data to Rya.
         final SailRepositoryConnection ryaConn = super.getRyaSailRepository().getConnection();
         ryaConn.begin();
         ryaConn.add(statements);
@@ -454,14 +778,5 @@ public class QueryIT extends RyaExportITBase {
 
         // Wait for the Fluo application to finish computing the end result.
         super.getMiniFluo().waitForObservers();
-
-        // Fetch the value that is stored within the PCJ table.
-        try(final PrecomputedJoinStorage pcjStorage = new AccumuloPcjStorage(accumuloConn, getRyaInstanceName())) {
-            final String pcjId = pcjStorage.listPcjs().get(0);
-            final Set<BindingSet> results = Sets.newHashSet( pcjStorage.listResults(pcjId) );
-
-            // Ensure the result of the query matches the expected result.
-            assertEquals(expectedResults, results);
-        }
     }
 }

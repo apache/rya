@@ -30,12 +30,14 @@ import org.apache.rya.indexing.pcj.fluo.app.ConstructQueryResultUpdater;
 import org.apache.rya.indexing.pcj.fluo.app.FilterResultUpdater;
 import org.apache.rya.indexing.pcj.fluo.app.JoinResultUpdater;
 import org.apache.rya.indexing.pcj.fluo.app.NodeType;
+import org.apache.rya.indexing.pcj.fluo.app.PeriodicQueryUpdater;
 import org.apache.rya.indexing.pcj.fluo.app.QueryResultUpdater;
 import org.apache.rya.indexing.pcj.fluo.app.query.AggregationMetadata;
 import org.apache.rya.indexing.pcj.fluo.app.query.ConstructQueryMetadata;
 import org.apache.rya.indexing.pcj.fluo.app.query.FilterMetadata;
 import org.apache.rya.indexing.pcj.fluo.app.query.FluoQueryMetadataDAO;
 import org.apache.rya.indexing.pcj.fluo.app.query.JoinMetadata;
+import org.apache.rya.indexing.pcj.fluo.app.query.PeriodicQueryMetadata;
 import org.apache.rya.indexing.pcj.fluo.app.query.QueryMetadata;
 import org.apache.rya.indexing.pcj.storage.accumulo.VisibilityBindingSet;
 
@@ -50,7 +52,6 @@ import edu.umd.cs.findbugs.annotations.NonNull;
 @DefaultAnnotation(NonNull.class)
 public abstract class BindingSetUpdater extends AbstractObserver {
     private static final Logger log = Logger.getLogger(BindingSetUpdater.class);
-
     // DAO
     private final FluoQueryMetadataDAO queryDao = new FluoQueryMetadataDAO();
 
@@ -60,6 +61,7 @@ public abstract class BindingSetUpdater extends AbstractObserver {
     private final QueryResultUpdater queryUpdater = new QueryResultUpdater();
     private final AggregationResultUpdater aggregationUpdater = new AggregationResultUpdater();
     private final ConstructQueryResultUpdater constructUpdater = new ConstructQueryResultUpdater();
+    private final PeriodicQueryUpdater periodicQueryUpdater = new PeriodicQueryUpdater();
 
     @Override
     public abstract ObservedColumn getObservedColumn();
@@ -131,6 +133,15 @@ public abstract class BindingSetUpdater extends AbstractObserver {
                     throw new RuntimeException("Could not process a Join node.", e);
                 }
                 break;
+                
+            case PERIODIC_QUERY:
+                final PeriodicQueryMetadata parentPeriodicQuery = queryDao.readPeriodicQueryMetadata(tx, parentNodeId);
+                try{
+                    periodicQueryUpdater.updatePeriodicBinResults(tx, observedBindingSet, parentPeriodicQuery);
+                } catch(Exception e) {
+                    throw new RuntimeException("Could not process PeriodicBin node.", e);
+                }
+                break;
 
             case AGGREGATION:
                 final AggregationMetadata parentAggregation = queryDao.readAggregationMetadata(tx, parentNodeId);
@@ -141,8 +152,9 @@ public abstract class BindingSetUpdater extends AbstractObserver {
                 }
                 break;
 
+
             default:
-                throw new IllegalArgumentException("The parent node's NodeType must be of type Filter, Join, or Query, but was " + parentNodeType);
+                throw new IllegalArgumentException("The parent node's NodeType must be of type Filter, Join, PeriodicBin or Query, but was " + parentNodeType);
         }
     }
 

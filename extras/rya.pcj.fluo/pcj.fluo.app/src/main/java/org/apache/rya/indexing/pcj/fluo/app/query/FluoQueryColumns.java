@@ -63,11 +63,25 @@ import edu.umd.cs.findbugs.annotations.NonNull;
  *     <tr> <th>Fluo Row</td> <th>Fluo Column</td> <th>Fluo Value</td> </tr>
  *     <tr> <td>Node ID</td> <td>filterMetadata:nodeId</td> <td>The Node ID of the Filter.</td> </tr>
  *     <tr> <td>Node ID</td> <td>filterMetadata:veriableOrder</td> <td>The Variable Order binding sets are emitted with.</td> </tr>
- *     <tr> <td>Node ID</td> <td>filterMetadata:originalSparql</td> <td>The original SPRAQL query this filter was derived from.</td> </tr>
- *     <tr> <td>Node ID</td> <td>filterMetadata:filterIndexWithinSparql</td> <td>Indicates which filter within the original SPARQL query this represents.</td> </tr>
+ *     <tr> <td>Node ID</td> <td>filterMetadata:filterSparql</td> <td>A SPARQL query representing this filter.</td> </tr>
  *     <tr> <td>Node ID</td> <td>filterMetadata:parentNodeId</td> <td>The Node ID this filter emits Binding Sets to.</td> </tr>
  *     <tr> <td>Node ID</td> <td>filterMetadata:childNodeId</td> <td>The Node ID of the node that feeds this node Binding Sets.</td> </tr>
  *     <tr> <td>Node ID + DELIM + Binding Set String</td> <td>filterMetadata:bindingSet</td> <td>A {@link VisibilityBindingSet} object.</td> </tr>
+ *   </table>
+ * </p>
+ * <p>
+ *   <b>Periodic Bin Metadata</b>
+ *   <table border="1" style="width:100%">
+ *     <tr> <th>Fluo Row</td> <th>Fluo Column</td> <th>Fluo Value</td> </tr>
+ *     <tr> <td>Node ID</td> <td>periodicQueryMetadata:nodeId</td> <td>The Node ID of the Filter.</td> </tr>
+ *     <tr> <td>Node ID</td> <td>periodicQueryMetadata:variableOrder</td> <td>The Variable Order binding sets are emitted with.</td> </tr>
+ *     <tr> <td>Node ID</td> <td>periodicQueryMetadata:period</td> <td>The period size used to form BindingSet bins.</td> </tr>
+ *     <tr> <td>Node ID</td> <td>periodicQueryMetadata:windowSize</td> <td>The window size used to form BindingSet bins.</td> </tr>
+ *     <tr> <td>Node ID</td> <td>periodicQueryMetadata:timeUnit</td> <td>The unit of time corresponding to period and window size.</td> </tr>
+ *     <tr> <td>Node ID</td> <td>periodicQueryMetadata:temporalVariable</td> <td>The BindingSet variable corresponding to event time.</td> </tr>
+ *     <tr> <td>Node ID</td> <td>periodicQueryMetadata:parentNodeId</td> <td>The parent node for this node.</td> </tr>
+ *     <tr> <td>Node ID</td> <td>periodicQueryMetadata:childNodeId</td> <td>The child node for this node.</td> </tr>
+ *     <tr> <td>Node ID + DELIM + Binding set String</td> <td>periodicQueryMetadata:bindingSet</td> <td>A binned BindingSet.</td> </tr>
  *   </table>
  * </p>
  * <p>
@@ -117,6 +131,7 @@ public class FluoQueryColumns {
     public static final String STATEMENT_PATTERN_METADATA_CF = "statementPatternMetadata";
     public static final String AGGREGATION_METADATA_CF = "aggregationMetadata";
     public static final String CONSTRUCT_METADATA_CF = "constructMetadata";
+    public static final String PERIODIC_QUERY_METADATA_CF = "periodicQueryMetadata";
 
     /**
      * New triples that have been added to Rya are written as a row in this
@@ -174,13 +189,23 @@ public class FluoQueryColumns {
 
     // Filter Metadata columns.
     public static final Column FILTER_NODE_ID = new Column(FILTER_METADATA_CF, "nodeId");
-    public static final Column FILTER_VARIABLE_ORDER = new Column(FILTER_METADATA_CF, "veriableOrder");
-    public static final Column FILTER_ORIGINAL_SPARQL = new Column(FILTER_METADATA_CF, "originalSparql");
-    public static final Column FILTER_INDEX_WITHIN_SPARQL = new Column(FILTER_METADATA_CF, "filterIndexWithinSparql");
+    public static final Column FILTER_VARIABLE_ORDER = new Column(FILTER_METADATA_CF, "variableOrder");
+    public static final Column FILTER_SPARQL = new Column(FILTER_METADATA_CF, "filterSparql");
     public static final Column FILTER_PARENT_NODE_ID = new Column(FILTER_METADATA_CF, "parentNodeId");
     public static final Column FILTER_CHILD_NODE_ID = new Column(FILTER_METADATA_CF, "childNodeId");
     public static final Column FILTER_BINDING_SET = new Column(FILTER_METADATA_CF, "bindingSet");
-
+    
+    // Periodic Bin Metadata columns.
+    public static final Column PERIODIC_QUERY_NODE_ID = new Column(PERIODIC_QUERY_METADATA_CF, "nodeId");
+    public static final Column PERIODIC_QUERY_VARIABLE_ORDER = new Column(PERIODIC_QUERY_METADATA_CF, "variableOrder");
+    public static final Column PERIODIC_QUERY_PARENT_NODE_ID = new Column(PERIODIC_QUERY_METADATA_CF, "parentNodeId");
+    public static final Column PERIODIC_QUERY_CHILD_NODE_ID = new Column(PERIODIC_QUERY_METADATA_CF, "childNodeId");
+    public static final Column PERIODIC_QUERY_BINDING_SET = new Column(PERIODIC_QUERY_METADATA_CF, "bindingSet");
+    public static final Column PERIODIC_QUERY_PERIOD = new Column(PERIODIC_QUERY_METADATA_CF, "period");
+    public static final Column PERIODIC_QUERY_WINDOWSIZE = new Column(PERIODIC_QUERY_METADATA_CF, "windowSize");
+    public static final Column PERIODIC_QUERY_TIMEUNIT = new Column(PERIODIC_QUERY_METADATA_CF, "timeUnit");
+    public static final Column PERIODIC_QUERY_TEMPORAL_VARIABLE = new Column(PERIODIC_QUERY_METADATA_CF, "temporalVariable");
+    
     // Join Metadata columns.
     public static final Column JOIN_NODE_ID = new Column(JOIN_METADATA_CF, "nodeId");
     public static final Column JOIN_VARIABLE_ORDER = new Column(JOIN_METADATA_CF, "variableOrder");
@@ -207,6 +232,18 @@ public class FluoQueryColumns {
     public static final Column AGGREGATION_BINDING_SET = new Column(AGGREGATION_METADATA_CF, "bindingSet");
 
     /**
+     * BatchObserver column for processing tasks that need to be broken into
+     * batches. Entries stored stored in this column are of the form Row:
+     * nodeId, Value: BatchInformation. The nodeId indicates the node that the
+     * batch operation will be performed on. All batch operations are performed
+     * on the bindingSet column for the NodeType indicated by the given nodeId.
+     * For example, if the nodeId indicated that the NodeType was
+     * StatementPattern, then the batch operation would be performed on
+     * {@link FluoQueryColumns#STATEMENT_PATTERN_BINDING_SET}.
+     */
+    public static final Column BATCH_COLUMN = new Column("batch","information");
+
+    /**
      * Enumerates the {@link Column}s that hold all of the fields for each type
      * of node that can compose a query.
      */
@@ -220,6 +257,20 @@ public class FluoQueryColumns {
                         QUERY_VARIABLE_ORDER,
                         QUERY_SPARQL,
                         QUERY_CHILD_NODE_ID)),
+        
+        
+        /**
+         * The columns a {@link PeriodicBinMetadata} object's fields are stored within.
+         */
+        PERIODIC_QUERY_COLUMNS(
+                Arrays.asList(PERIODIC_QUERY_NODE_ID,
+                        PERIODIC_QUERY_VARIABLE_ORDER,
+                        PERIODIC_QUERY_PERIOD,
+                        PERIODIC_QUERY_WINDOWSIZE,
+                        PERIODIC_QUERY_TIMEUNIT,
+                        PERIODIC_QUERY_TEMPORAL_VARIABLE,
+                        PERIODIC_QUERY_PARENT_NODE_ID,
+                        PERIODIC_QUERY_CHILD_NODE_ID)),
 
         /**
          * The columns a {@link ConstructQueryMetadata} object's fields are stored within.
@@ -239,8 +290,7 @@ public class FluoQueryColumns {
         FILTER_COLUMNS(
                 Arrays.asList(FILTER_NODE_ID,
                         FILTER_VARIABLE_ORDER,
-                        FILTER_ORIGINAL_SPARQL,
-                        FILTER_INDEX_WITHIN_SPARQL,
+                        FILTER_SPARQL,
                         FILTER_PARENT_NODE_ID,
                         FILTER_CHILD_NODE_ID)),
 

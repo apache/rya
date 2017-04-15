@@ -43,6 +43,11 @@
             <artifactId>rya.indexing</artifactId>
         </dependency>
         <dependency>
+            <groupId>org.apache.rya</groupId>
+            <artifactId>rya.pcj.fluo.test.base</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+         <dependency>
             <groupId>org.apache.fluo</groupId>
             <artifactId>fluo-api</artifactId>
         </dependency>

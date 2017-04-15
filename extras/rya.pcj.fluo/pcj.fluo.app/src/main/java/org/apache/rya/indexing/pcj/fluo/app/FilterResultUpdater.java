@@ -26,9 +26,11 @@ import org.apache.log4j.Logger;
 import org.apache.rya.indexing.pcj.fluo.app.query.FilterMetadata;
 import org.apache.rya.indexing.pcj.fluo.app.query.FluoQueryColumns;
 import org.apache.rya.indexing.pcj.fluo.app.util.BindingSetUtil;
+import org.apache.rya.indexing.pcj.fluo.app.util.FilterSerializer;
 import org.apache.rya.indexing.pcj.fluo.app.util.RowKeyUtil;
 import org.apache.rya.indexing.pcj.storage.accumulo.VariableOrder;
 import org.apache.rya.indexing.pcj.storage.accumulo.VisibilityBindingSet;
+import org.apache.rya.indexing.pcj.storage.accumulo.VisibilityBindingSetSerDe;
 import org.openrdf.model.Resource;
 import org.openrdf.model.Statement;
 import org.openrdf.model.URI;
@@ -60,11 +62,6 @@ public class FilterResultUpdater {
     private static final Logger log = Logger.getLogger(FilterResultUpdater.class);
 
     private static final VisibilityBindingSetSerDe BS_SERDE = new VisibilityBindingSetSerDe();
-
-    /**
-     * A utility class used to search SPARQL queries for Filters.
-     */
-    private static final FilterFinder filterFinder = new FilterFinder();
 
     /**
      * Is used to evaluate the conditions of a {@link Filter}.
@@ -111,12 +108,11 @@ public class FilterResultUpdater {
                 "Binding Set:\n" + childBindingSet + "\n");
 
         // Parse the original query and find the Filter that represents filterId.
-        final String sparql = filterMetadata.getOriginalSparql();
-        final int indexWithinQuery = filterMetadata.getFilterIndexWithinSparql();
-        final Optional<Filter> filter = filterFinder.findFilter(sparql, indexWithinQuery);
+        final String sparql = filterMetadata.getFilterSparql();
+        Filter filter = FilterSerializer.deserialize(sparql);
 
         // Evaluate whether the child BindingSet satisfies the filter's condition.
-        final ValueExpr condition = filter.get().getCondition();
+        final ValueExpr condition = filter.getCondition();
         if (isTrue(condition, childBindingSet)) {
             // Create the Filter's binding set from the child's.
             final VariableOrder filterVarOrder = filterMetadata.getVariableOrder();

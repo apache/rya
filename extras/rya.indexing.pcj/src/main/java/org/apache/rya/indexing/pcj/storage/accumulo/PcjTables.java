@@ -403,6 +403,7 @@ public class PcjTables {
 
         final Set<Mutation> mutations = new HashSet<>();
         final AccumuloPcjSerializer converter = new AccumuloPcjSerializer();
+        VisibilityBindingSetSerDe bsSerDe = new VisibilityBindingSetSerDe();
 
         for(final VariableOrder varOrder : varOrders) {
             try {
@@ -412,9 +413,9 @@ public class PcjTables {
                 // Row ID = binding set values, Column Family = variable order of the binding set.
                 final Mutation addResult = new Mutation(rowKey);
                 final String visibility = result.getVisibility();
-                addResult.put(varOrder.toString(), "", new ColumnVisibility(visibility), "");
+                addResult.put(varOrder.toString(), "", new ColumnVisibility(visibility), new Value(bsSerDe.serialize(result).toArray()));
                 mutations.add(addResult);
-            } catch(final BindingSetConversionException e) {
+            } catch(Exception e) {
                 throw new PCJStorageException("Could not serialize a result.", e);
             }
         }

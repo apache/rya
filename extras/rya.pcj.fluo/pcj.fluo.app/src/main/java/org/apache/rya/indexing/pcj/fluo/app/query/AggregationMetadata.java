@@ -321,6 +321,13 @@ public class AggregationMetadata extends CommonNodeMetadata {
             this.varOrder = varOrder;
             return this;
         }
+        
+        /**
+         * @return the variable order of binding sets that are emitted by this node.
+         */
+        public VariableOrder getVariableOrder() {
+            return varOrder;
+        }
 
         /**
          * @param parentNodeId - The Node ID of this node's parent.
@@ -329,6 +336,10 @@ public class AggregationMetadata extends CommonNodeMetadata {
         public Builder setParentNodeId(@Nullable final String parentNodeId) {
             this.parentNodeId = parentNodeId;
             return this;
+        }
+       
+        public String getParentNodeId() {
+            return parentNodeId;
         }
 
         /**
@@ -359,6 +370,13 @@ public class AggregationMetadata extends CommonNodeMetadata {
         public Builder setGroupByVariableOrder(@Nullable final VariableOrder groupByVariables) {
             this.groupByVariables = groupByVariables;
             return this;
+        }
+        
+        /**
+         * @return variable order that defines how data is grouped for the aggregation function
+         */
+        public VariableOrder getGroupByVariableOrder() {
+            return groupByVariables;
         }
 
         /**

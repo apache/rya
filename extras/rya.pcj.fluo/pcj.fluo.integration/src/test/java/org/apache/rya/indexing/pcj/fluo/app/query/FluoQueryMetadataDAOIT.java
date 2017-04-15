@@ -21,12 +21,12 @@ package org.apache.rya.indexing.pcj.fluo.app.query;
 import static org.junit.Assert.assertEquals;
 
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.fluo.api.client.FluoClient;
 import org.apache.fluo.api.client.FluoFactory;
 import org.apache.fluo.api.client.Snapshot;
 import org.apache.fluo.api.client.Transaction;
-import org.apache.rya.indexing.pcj.fluo.RyaExportITBase;
 import org.apache.rya.indexing.pcj.fluo.app.ConstructGraph;
 import org.apache.rya.indexing.pcj.fluo.app.query.AggregationMetadata.AggregationElement;
 import org.apache.rya.indexing.pcj.fluo.app.query.AggregationMetadata.AggregationType;
@@ -34,6 +34,7 @@ import org.apache.rya.indexing.pcj.fluo.app.query.FluoQuery.QueryType;
 import org.apache.rya.indexing.pcj.fluo.app.query.JoinMetadata.JoinType;
 import org.apache.rya.indexing.pcj.fluo.app.query.SparqlFluoQueryBuilder.NodeIds;
 import org.apache.rya.indexing.pcj.storage.accumulo.VariableOrder;
+import org.apache.rya.pcj.fluo.test.base.RyaExportITBase;
 import org.junit.Test;
 import org.openrdf.query.MalformedQueryException;
 import org.openrdf.query.algebra.StatementPattern;
@@ -41,8 +42,6 @@ import org.openrdf.query.algebra.helpers.StatementPatternCollector;
 import org.openrdf.query.parser.ParsedQuery;
 import org.openrdf.query.parser.sparql.SPARQLParser;
 import org.openrdf.repository.RepositoryException;
-
-import com.google.common.base.Optional;
 
 /**
  * Integration tests the methods of {@link FluoQueryMetadataDAO}.
@@ -87,8 +86,7 @@ public class FluoQueryMetadataDAOIT extends RyaExportITBase {
         builder.setVarOrder(new VariableOrder("e;f"));
         builder.setParentNodeId("parentNodeId");
         builder.setChildNodeId("childNodeId");
-        builder.setOriginalSparql("originalSparql");
-        builder.setFilterIndexWithinSparql(2);
+        builder.setFilterSparql("originalSparql");
         final FilterMetadata originalMetadata = builder.build();
 
         try(FluoClient fluoClient = FluoFactory.newClient(super.getFluoConfiguration())) {
@@ -232,10 +230,9 @@ public class FluoQueryMetadataDAOIT extends RyaExportITBase {
                 storedMetadata = dao.readAggregationMetadata(sx, "nodeId");
             }
 
-            // Ensure the deserialized object is the same as the serialized one.
-            assertEquals(originalMetadata, storedMetadata);
         }
     }
+
 
     @Test
     public void aggregationMetadataTest_noGroupByVarOrders() {
@@ -261,6 +258,41 @@ public class FluoQueryMetadataDAOIT extends RyaExportITBase {
             AggregationMetadata storedMetadata = null;
             try(Snapshot sx = fluoClient.newSnapshot()) {
                 storedMetadata = dao.readAggregationMetadata(sx, "nodeId");
+            }
+
+            // Ensure the deserialized object is the same as the serialized one.
+            assertEquals(originalMetadata, storedMetadata);
+        }
+    }
+    
+    @Test
+    public void periodicQueryMetadataTest() {
+        final FluoQueryMetadataDAO dao = new FluoQueryMetadataDAO();
+
+        // Create the object that will be serialized.
+        PeriodicQueryMetadata originalMetadata =  PeriodicQueryMetadata.builder()
+            .setNodeId("nodeId")
+            .setParentNodeId("parentNodeId")
+            .setVarOrder(new VariableOrder("a","b","c"))
+            .setChildNodeId("childNodeId")
+            .setPeriod(10)
+            .setWindowSize(20)
+            .setUnit(TimeUnit.DAYS)
+            .setTemporalVariable("a")
+            .build();
+            
+
+        try(FluoClient fluoClient = FluoFactory.newClient(super.getFluoConfiguration())) {
+            // Write it to the Fluo table.
+            try(Transaction tx = fluoClient.newTransaction()) {
+                dao.write(tx, originalMetadata);
+                tx.commit();
+            }
+
+            // Read it from the Fluo table.
+            PeriodicQueryMetadata storedMetadata = null;
+            try(Snapshot sx = fluoClient.newSnapshot()) {
+                storedMetadata = dao.readPeriodicQueryMetadata(sx, "nodeId");
             }
 
             // Ensure the deserialized object is the same as the serialized one.

@@ -36,16 +36,16 @@ import org.apache.rya.indexing.pcj.storage.accumulo.VisibilityBindingSet;
  * Incrementally exports SPARQL query results to Kafka topics.
  */
 public class KafkaBindingSetExporter implements IncrementalBindingSetExporter {
+    
     private static final Logger log = Logger.getLogger(KafkaBindingSetExporter.class);
-
     private final KafkaProducer<String, VisibilityBindingSet> producer;
+
 
     /**
      * Constructs an instance given a Kafka producer.
      *
-     * @param producer
-     *            for sending result set alerts to a broker. (not null)
-     *            Can be created and configured by {@link KafkaBindingSetExporterFactory}
+     * @param producer for sending result set alerts to a broker. (not null) Can be created and configured by
+     *            {@link KafkaBindingSetExporterFactory}
      */
     public KafkaBindingSetExporter(KafkaProducer<String, VisibilityBindingSet> producer) {
         super();

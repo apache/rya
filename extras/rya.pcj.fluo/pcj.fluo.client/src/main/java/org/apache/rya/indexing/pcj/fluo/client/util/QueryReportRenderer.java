@@ -83,8 +83,7 @@ public class QueryReportRenderer {
             builder.appendItem( new ReportItem("FILTER NODE") );
             builder.appendItem( new ReportItem("Node ID", filterMetadata.getNodeId()) );
             builder.appendItem( new ReportItem("Variable Order", filterMetadata.getVariableOrder().toString()) );
-            builder.appendItem( new ReportItem("Original SPARQL", prettyFormatSparql(  filterMetadata.getOriginalSparql()) ) );
-            builder.appendItem( new ReportItem("Filter Index", "" + filterMetadata.getFilterIndexWithinSparql()) );
+            builder.appendItem( new ReportItem("Filter SPARQL", prettyFormatSparql(  filterMetadata.getFilterSparql())));
             builder.appendItem( new ReportItem("Parent Node ID", filterMetadata.getParentNodeId()) );
             builder.appendItem( new ReportItem("Child Node ID", filterMetadata.getChildNodeId()) );
             builder.appendItem( new ReportItem("Count", "" + queryReport.getCount(filterMetadata.getNodeId())) );

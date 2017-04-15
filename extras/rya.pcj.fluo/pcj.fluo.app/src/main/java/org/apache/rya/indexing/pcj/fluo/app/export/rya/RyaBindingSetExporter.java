@@ -24,8 +24,11 @@ import static java.util.Objects.requireNonNull;
 import java.util.Collections;
 
 import org.apache.fluo.api.client.TransactionBase;
+import org.apache.rya.indexing.pcj.fluo.app.IncrementalUpdateConstants;
 import org.apache.rya.indexing.pcj.fluo.app.export.IncrementalBindingSetExporter;
 import org.apache.rya.indexing.pcj.fluo.app.query.FluoQueryColumns;
+import org.apache.rya.indexing.pcj.storage.PeriodicQueryResultStorage;
+import org.apache.rya.indexing.pcj.storage.PeriodicQueryStorageException;
 import org.apache.rya.indexing.pcj.storage.PrecomputedJoinStorage;
 import org.apache.rya.indexing.pcj.storage.PrecomputedJoinStorage.PCJStorageException;
 import org.apache.rya.indexing.pcj.storage.accumulo.VisibilityBindingSet;
@@ -36,14 +39,16 @@ import org.apache.rya.indexing.pcj.storage.accumulo.VisibilityBindingSet;
 public class RyaBindingSetExporter implements IncrementalBindingSetExporter {
 
     private final PrecomputedJoinStorage pcjStorage;
+    private final PeriodicQueryResultStorage periodicStorage;
 
     /**
      * Constructs an instance of {@link RyaBindingSetExporter}.
      *
      * @param pcjStorage - The PCJ storage the new results will be exported to. (not null)
      */
-    public RyaBindingSetExporter(final PrecomputedJoinStorage pcjStorage) {
+    public RyaBindingSetExporter(final PrecomputedJoinStorage pcjStorage, PeriodicQueryResultStorage periodicStorage) {
         this.pcjStorage = checkNotNull(pcjStorage);
+        this.periodicStorage = checkNotNull(periodicStorage);
     }
 
     @Override
@@ -59,8 +64,12 @@ public class RyaBindingSetExporter implements IncrementalBindingSetExporter {
         final String pcjId = fluoTx.gets(queryId, FluoQueryColumns.RYA_PCJ_ID);
 
         try {
-            pcjStorage.addResults(pcjId, Collections.singleton(result));
-        } catch (final PCJStorageException e) {
+            if (result.hasBinding(IncrementalUpdateConstants.PERIODIC_BIN_ID)) {
+                periodicStorage.addPeriodicQueryResults(pcjId, Collections.singleton(result));
+            } else {
+                pcjStorage.addResults(pcjId, Collections.singleton(result));
+            }
+        } catch (final PCJStorageException | PeriodicQueryStorageException e) {
             throw new ResultExportException("A result could not be exported to Rya.", e);
         }
     }

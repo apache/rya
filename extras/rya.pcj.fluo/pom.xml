@@ -38,6 +38,7 @@
         <module>pcj.fluo.app</module>
         <module>pcj.fluo.client</module>
         <module>pcj.fluo.integration</module>
+        <module>pcj.fluo.test.base</module>
         <module>pcj.fluo.demo</module>
     </modules>
     <profiles>

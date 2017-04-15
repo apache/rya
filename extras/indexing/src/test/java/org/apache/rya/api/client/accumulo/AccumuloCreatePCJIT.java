@@ -80,6 +80,7 @@ public class AccumuloCreatePCJIT extends FluoITBase {
             assertEquals(sparql, pcjMetadata.getSparql());
             assertEquals(0L, pcjMetadata.getCardinality());
 
+
             // Verify a Query ID was added for the query within the Fluo app.
             final List<String> fluoQueryIds = new ListQueryIds().listQueryIds(fluoClient);
             assertEquals(1, fluoQueryIds.size());

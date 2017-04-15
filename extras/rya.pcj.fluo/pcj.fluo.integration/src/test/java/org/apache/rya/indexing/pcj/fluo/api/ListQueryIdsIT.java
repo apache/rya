@@ -29,7 +29,7 @@ import org.apache.accumulo.core.client.TableExistsException;
 import org.apache.fluo.api.client.FluoClient;
 import org.apache.fluo.api.client.FluoFactory;
 import org.apache.fluo.api.client.Transaction;
-import org.apache.rya.indexing.pcj.fluo.RyaExportITBase;
+import org.apache.rya.pcj.fluo.test.base.RyaExportITBase;
 import org.junit.Test;
 
 import com.beust.jcommander.internal.Lists;

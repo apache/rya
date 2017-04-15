@@ -113,9 +113,49 @@ public class CreatePcj {
         checkArgument(spInsertBatchSize > 0, "The SP insert batch size '" + spInsertBatchSize + "' must be greater than 0.");
         this.spInsertBatchSize = spInsertBatchSize;
     }
+    
+    
+    /**
+     * Tells the Fluo PCJ Updater application to maintain a new PCJ.  This method does not
+     * require a pcjId and does not require a PCJ table to have already been created via {@link PrecomputedJoinStorage}.
+     * This method only adds the metadata to the Fluo table to incrementally generate query results.  Since there
+     * is no PCJ table, the incremental results must be exported to some external queuing service such as Kafka.
+     * This method currently only supports SPARQL COSNTRUCT queries, as they only export to Kafka by default. 
+     *
+     * @param sparql - SPARQL query whose results will be updated in the Fluo table
+     * @param fluo - A connection to the Fluo application that updates the PCJ index. (not null)
+     * @return The metadata that was written to the Fluo application for the PCJ.
+     * @throws MalformedQueryException The SPARQL query stored for the {@code pcjId} is malformed.
+     * @throws PcjException The PCJ Metadata for {@code pcjId} could not be read from {@code pcjStorage}.
+     * @throws RuntimeException If SPARQL query is not a CONSTRUCT query.
+     */
+    public FluoQuery createFluoPcj(final FluoClient fluo, String sparql) throws MalformedQueryException, PcjException {
+        requireNonNull(sparql);
+        requireNonNull(fluo);
+
+        // Keeps track of the IDs that are assigned to each of the query's nodes in Fluo.
+        // We use these IDs later when scanning Rya for historic Statement Pattern matches
+        // as well as setting up automatic exports.
+        final NodeIds nodeIds = new NodeIds();
+        final ParsedQuery parsedQuery = new SPARQLParser().parseQuery(sparql, null);
+        final FluoQuery fluoQuery = new SparqlFluoQueryBuilder().make(parsedQuery, nodeIds);
+        checkArgument(fluoQuery.getConstructQueryMetadata().isPresent(), "Sparql query: " + sparql + " must begin with a construct.");
+
+        try (Transaction tx = fluo.newTransaction()) {
+            // Write the query's structure to Fluo.
+            new FluoQueryMetadataDAO().write(tx, fluoQuery);
+            tx.commit();
+        }
+
+        return fluoQuery;
+    }
+
+    
 
     /**
-     * Tells the Fluo PCJ Updater application to maintain a new PCJ.
+     * Tells the Fluo PCJ Updater application to maintain a new PCJ.  This method requires that a
+     * PCJ table already exist for the query corresponding to the pcjId.  Results will be exported
+     * to this table.
      *
      * @param pcjId - Identifies the PCJ that will be updated by the Fluo app. (not null)
      * @param pcjStorage - Provides access to the PCJ index. (not null)
@@ -146,12 +186,14 @@ public class CreatePcj {
         try (Transaction tx = fluo.newTransaction()) {
             // Write the query's structure to Fluo.
             new FluoQueryMetadataDAO().write(tx, fluoQuery);
-
-            // The results of the query are eventually exported to an instance of Rya, so store the Rya ID for the PCJ.
-            final String queryId = fluoQuery.getQueryMetadata().getNodeId();
-            tx.set(queryId, FluoQueryColumns.RYA_PCJ_ID, pcjId);
-            tx.set(pcjId, FluoQueryColumns.PCJ_ID_QUERY_ID, queryId);
-
+            
+            if (fluoQuery.getQueryMetadata().isPresent()) {
+                // If the query is not a construct query, 
+                // the results of the query are eventually exported to an instance of Rya, so store the Rya ID for the PCJ.
+                final String queryId = fluoQuery.getQueryMetadata().get().getNodeId();
+                tx.set(queryId, FluoQueryColumns.RYA_PCJ_ID, pcjId);
+                tx.set(pcjId, FluoQueryColumns.PCJ_ID_QUERY_ID, queryId);
+            } 
             // Flush the changes to Fluo.
             tx.commit();
         }
@@ -165,7 +207,9 @@ public class CreatePcj {
      * This call scans Rya for Statement Pattern matches and inserts them into
      * the Fluo application. The Fluo application will then maintain the intermediate
      * results as new triples are inserted and export any new query results to the
-     * {@code pcjId} within the provided {@code pcjStorage}.
+     * {@code pcjId} within the provided {@code pcjStorage}.  This method requires that a
+     * PCJ table already exist for the query corresponding to the pcjId.  Results will be exported
+     * to this table.
      *
      * @param pcjId - Identifies the PCJ that will be updated by the Fluo app. (not null)
      * @param pcjStorage - Provides access to the PCJ index. (not null)
@@ -227,9 +271,14 @@ public class CreatePcj {
         } catch (final IOException e) {
             log.warn("Ignoring IOException thrown while closing the AccumuloRyaQueryEngine used by CreatePCJ.", e);
         }
-
-        // return queryId to the caller for later monitoring from the export.
-        return fluoQuery.getQueryMetadata().getNodeId();
+        
+        //return queryId to the caller for later monitoring from the export
+        if(fluoQuery.getConstructQueryMetadata().isPresent()) {
+            return fluoQuery.getConstructQueryMetadata().get().getNodeId();
+        } 
+        
+        return fluoQuery.getQueryMetadata().get().getNodeId();
+        
     }
 
     private static void writeBatch(final FluoClient fluo, final Set<RyaStatement> batch) {

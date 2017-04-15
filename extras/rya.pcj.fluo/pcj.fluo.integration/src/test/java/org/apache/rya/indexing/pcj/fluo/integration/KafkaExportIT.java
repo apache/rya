@@ -29,14 +29,9 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
-import org.apache.accumulo.core.client.Connector;
-import org.apache.accumulo.core.client.Instance;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
-import org.apache.rya.api.client.RyaClient;
-import org.apache.rya.api.client.accumulo.AccumuloConnectionDetails;
-import org.apache.rya.api.client.accumulo.AccumuloRyaClientFactory;
 import org.apache.rya.indexing.pcj.fluo.KafkaExportITBase;
 import org.apache.rya.indexing.pcj.storage.accumulo.VariableOrder;
 import org.apache.rya.indexing.pcj.storage.accumulo.VisibilityBindingSet;
@@ -47,7 +42,6 @@ import org.openrdf.model.impl.ValueFactoryImpl;
 import org.openrdf.model.vocabulary.XMLSchema;
 import org.openrdf.query.BindingSet;
 import org.openrdf.query.impl.MapBindingSet;
-import org.openrdf.repository.sail.SailRepositoryConnection;
 
 import com.google.common.collect.Sets;
 
@@ -427,38 +421,10 @@ public class KafkaExportIT extends KafkaExportITBase {
 
         // Verify the end results of the query match the expected results.
         final Set<VisibilityBindingSet> results = readGroupedResults(pcjId, new VariableOrder("type", "location"));
+        System.out.println(results);
         assertEquals(expectedResults, results);
     }
 
-    private String loadData(final String sparql, final Collection<Statement> statements) throws Exception {
-        requireNonNull(sparql);
-        requireNonNull(statements);
-
-        // Register the PCJ with Rya.
-        final Instance accInstance = super.getAccumuloConnector().getInstance();
-        final Connector accumuloConn = super.getAccumuloConnector();
-
-        final RyaClient ryaClient = AccumuloRyaClientFactory.build(new AccumuloConnectionDetails(
-                ACCUMULO_USER,
-                ACCUMULO_PASSWORD.toCharArray(),
-                accInstance.getInstanceName(),
-                accInstance.getZooKeepers()), accumuloConn);
-
-        final String pcjId = ryaClient.getCreatePCJ().createPCJ(RYA_INSTANCE_NAME, sparql);
-
-        // Write the data to Rya.
-        final SailRepositoryConnection ryaConn = super.getRyaSailRepository().getConnection();
-        ryaConn.begin();
-        ryaConn.add(statements);
-        ryaConn.commit();
-        ryaConn.close();
-
-        // Wait for the Fluo application to finish computing the end result.
-        super.getMiniFluo().waitForObservers();
-
-        // The PCJ Id is the topic name the results will be written to.
-        return pcjId;
-    }
 
     private Set<VisibilityBindingSet> readAllResults(final String pcjId) throws Exception {
         requireNonNull(pcjId);

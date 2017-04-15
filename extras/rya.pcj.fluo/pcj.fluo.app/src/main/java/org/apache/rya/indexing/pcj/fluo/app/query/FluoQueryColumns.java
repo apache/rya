@@ -46,6 +46,18 @@ import edu.umd.cs.findbugs.annotations.NonNull;
  *   </table>
  * </p>
  * <p>
+ *   <b>Construct Query Metadata</b>
+ *   <table border="1" style="width:100%">
+ *     <tr> <th>Fluo Row</td> <th>Fluo Column</td> <th>Fluo Value</td> </tr>
+ *     <tr> <td>Node ID</td> <td>constructMetadata:nodeId</td> <td>The Node ID of the Query.</td> </tr>
+ *     <tr> <td>Node ID</td> <td>constructMetadata:sparql</td> <td>The original SPARQL query that is being computed by this query.</td> </tr>
+ *     <tr> <td>Node ID</td> <td>constructMetadata:variableOrder</td> <td>The Variable Order binding sets are emitted with.</td> </tr>
+ *     <tr> <td>Node ID</td> <td>constructMetadata:graph</td> <td>The construct graph used to project BindingSets to statements.</td> </tr>
+ *     <tr> <td>Node ID</td> <td>constructMetadata:childNodeId</td> <td>The Node ID of the child who feeds this node.</td> </tr>
+ *     <tr> <td>Node ID</td> <td>constructMetadata:statements</td> <td>The RDF statements produced by this construct query node.</td> </tr>
+ *   </table>
+ * </p>
+ * <p>
  *   <b>Filter Metadata</b>
  *   <table border="1" style="width:100%">
  *     <tr> <th>Fluo Row</td> <th>Fluo Column</td> <th>Fluo Value</td> </tr>
@@ -104,6 +116,7 @@ public class FluoQueryColumns {
     public static final String JOIN_METADATA_CF = "joinMetadata";
     public static final String STATEMENT_PATTERN_METADATA_CF = "statementPatternMetadata";
     public static final String AGGREGATION_METADATA_CF = "aggregationMetadata";
+    public static final String CONSTRUCT_METADATA_CF = "constructMetadata";
 
     /**
      * New triples that have been added to Rya are written as a row in this
@@ -150,6 +163,14 @@ public class FluoQueryColumns {
     public static final Column QUERY_SPARQL = new Column(QUERY_METADATA_CF, "sparql");
     public static final Column QUERY_CHILD_NODE_ID = new Column(QUERY_METADATA_CF, "childNodeId");
     public static final Column QUERY_BINDING_SET = new Column(QUERY_METADATA_CF, "bindingSet");
+
+ // Construct Query Metadata columns.
+    public static final Column CONSTRUCT_NODE_ID = new Column(CONSTRUCT_METADATA_CF, "nodeId");
+    public static final Column CONSTRUCT_VARIABLE_ORDER = new Column(CONSTRUCT_METADATA_CF, "variableOrder");
+    public static final Column CONSTRUCT_GRAPH = new Column(CONSTRUCT_METADATA_CF, "graph");
+    public static final Column CONSTRUCT_CHILD_NODE_ID = new Column(CONSTRUCT_METADATA_CF, "childNodeId");
+    public static final Column CONSTRUCT_STATEMENTS = new Column(CONSTRUCT_METADATA_CF, "statements");
+    public static final Column CONSTRUCT_SPARQL = new Column(CONSTRUCT_METADATA_CF, "sparql");
 
     // Filter Metadata columns.
     public static final Column FILTER_NODE_ID = new Column(FILTER_METADATA_CF, "nodeId");
@@ -200,6 +221,18 @@ public class FluoQueryColumns {
                         QUERY_SPARQL,
                         QUERY_CHILD_NODE_ID)),
 
+        /**
+         * The columns a {@link ConstructQueryMetadata} object's fields are stored within.
+         */
+        CONSTRUCT_COLUMNS(
+                Arrays.asList(CONSTRUCT_NODE_ID,
+                        CONSTRUCT_VARIABLE_ORDER,
+                        CONSTRUCT_GRAPH,
+                        CONSTRUCT_CHILD_NODE_ID,
+                        CONSTRUCT_SPARQL,
+                        CONSTRUCT_STATEMENTS)),
+
+        
         /**
          * The columns a {@link FilterMetadata} object's fields are stored within.
          */

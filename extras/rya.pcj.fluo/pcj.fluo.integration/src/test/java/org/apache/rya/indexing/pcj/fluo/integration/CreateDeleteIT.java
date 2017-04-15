@@ -121,6 +121,7 @@ public class CreateDeleteIT extends RyaExportITBase {
             assertEquals(0, empty_rows.size());
         }
     }
+    
 
     private String loadData(final String sparql, final Collection<Statement> statements) throws Exception {
         requireNonNull(sparql);

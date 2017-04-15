@@ -29,6 +29,7 @@ import org.apache.commons.lang3.builder.EqualsBuilder;
 
 import com.google.common.base.Objects;
 import com.google.common.base.Optional;
+import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
 
 import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
@@ -43,11 +44,14 @@ import net.jcip.annotations.Immutable;
 @DefaultAnnotation(NonNull.class)
 public class FluoQuery {
 
-    private final QueryMetadata queryMetadata;
+    private final Optional<QueryMetadata> queryMetadata;
+    private final Optional<ConstructQueryMetadata> constructMetadata;
     private final ImmutableMap<String, StatementPatternMetadata> statementPatternMetadata;
     private final ImmutableMap<String, FilterMetadata> filterMetadata;
     private final ImmutableMap<String, JoinMetadata> joinMetadata;
     private final ImmutableMap<String, AggregationMetadata> aggregationMetadata;
+    private final QueryType type;
+    public static enum QueryType {Projection, Construct};
 
     /**
      * Constructs an instance of {@link FluoQuery}. Private because applications
@@ -67,20 +71,64 @@ public class FluoQuery {
             final QueryMetadata queryMetadata,
             final ImmutableMap<String, StatementPatternMetadata> statementPatternMetadata,
             final ImmutableMap<String, FilterMetadata> filterMetadata,
-            final ImmutableMap<String, JoinMetadata> joinMetadata,
+            final ImmutableMap<String, JoinMetadata> joinMetadata, 
             final ImmutableMap<String, AggregationMetadata> aggregationMetadata) {
-        this.queryMetadata = requireNonNull(queryMetadata);
+                this.aggregationMetadata = requireNonNull(aggregationMetadata);
+        this.queryMetadata = Optional.of(requireNonNull(queryMetadata));
+        this.constructMetadata = Optional.absent();
         this.statementPatternMetadata = requireNonNull(statementPatternMetadata);
         this.filterMetadata = requireNonNull(filterMetadata);
         this.joinMetadata = requireNonNull(joinMetadata);
-        this.aggregationMetadata = requireNonNull(aggregationMetadata);
+        this.type = QueryType.Projection;
+    }
+    
+    
+    /**
+     * Constructs an instance of {@link FluoQuery}. Private because applications
+     * must use {@link Builder} instead.
+     *
+     * @param constructMetadata - The root node of a query that is updated in Fluo. (not null)
+     * @param statementPatternMetadata - A map from Node ID to Statement Pattern metadata as
+     *   it is represented within the Fluo app. (not null)
+     * @param filterMetadata A map from Node ID to Filter metadata as it is represented
+     *   within the Fluo app. (not null)
+     * @param joinMetadata A map from Node ID to Join metadata as it is represented
+     *   within the Fluo app. (not null)
+     * @param aggregationMetadata - A map from Node ID to Aggregation metadata as it is
+     *   represented within the Fluo app. (not null)
+     */
+    private FluoQuery(
+            final ConstructQueryMetadata constructMetadata,
+            final ImmutableMap<String, StatementPatternMetadata> statementPatternMetadata,
+            final ImmutableMap<String, FilterMetadata> filterMetadata,
+            final ImmutableMap<String, JoinMetadata> joinMetadata,
+            final ImmutableMap<String, AggregationMetadata> aggregationMetadata) {
+        this.constructMetadata = Optional.of(requireNonNull(constructMetadata));
+        this.queryMetadata = Optional.absent();
+        this.statementPatternMetadata = requireNonNull(statementPatternMetadata);
+        this.filterMetadata = requireNonNull(filterMetadata);
+        this.joinMetadata = requireNonNull(joinMetadata);
+        this.aggregationMetadata = aggregationMetadata;
+        this.type = QueryType.Construct;
+    }
+    
+    /**
+     * Returns the {@link QueryType} of this query
+     * @return the QueryType of this query (either Construct or Projection}
+     */
+    public QueryType getQueryType() {
+        return type;
     }
 
     /**
      * @return Metadata about the root node of a query that is updated within the Fluo app.
      */
-    public QueryMetadata getQueryMetadata() {
+    public Optional<QueryMetadata> getQueryMetadata() {
         return queryMetadata;
+    }
+    
+    public Optional<ConstructQueryMetadata> getConstructQueryMetadata() {
+        return constructMetadata;
     }
 
     /**
@@ -175,6 +223,7 @@ public class FluoQuery {
             final FluoQuery fluoQuery = (FluoQuery)o;
             return new EqualsBuilder()
                     .append(queryMetadata, fluoQuery.queryMetadata)
+                    .append(constructMetadata,  fluoQuery.constructMetadata)
                     .append(statementPatternMetadata, fluoQuery.statementPatternMetadata)
                     .append(filterMetadata, fluoQuery.filterMetadata)
                     .append(joinMetadata, fluoQuery.joinMetadata)
@@ -189,8 +238,13 @@ public class FluoQuery {
     public String toString() {
         final StringBuilder builder = new StringBuilder();
 
-        if(queryMetadata != null) {
-            builder.append( queryMetadata.toString() );
+        if(queryMetadata.isPresent()) {
+            builder.append( queryMetadata.get().toString() );
+            builder.append("\n");
+        }
+        
+        if(constructMetadata.isPresent()) {
+            builder.append( constructMetadata.get().toString() );
             builder.append("\n");
         }
 
@@ -231,6 +285,7 @@ public class FluoQuery {
     public static final class Builder {
 
         private QueryMetadata.Builder queryBuilder = null;
+        private ConstructQueryMetadata.Builder constructBuilder = null;
         private final Map<String, StatementPatternMetadata.Builder> spBuilders = new HashMap<>();
         private final Map<String, FilterMetadata.Builder> filterBuilders = new HashMap<>();
         private final Map<String, JoinMetadata.Builder> joinBuilders = new HashMap<>();
@@ -239,11 +294,11 @@ public class FluoQuery {
         /**
          * Sets the {@link QueryMetadata.Builder} that is used by this builder.
          *
-         * @param queryMetadata - The builder representing the query's results.
+         * @param queryBuilder - The builder representing the query's results.
          * @return This builder so that method invocation may be chained.
          */
-        public Builder setQueryMetadata(@Nullable final QueryMetadata.Builder queryMetadata) {
-            this.queryBuilder = queryMetadata;
+        public Builder setQueryMetadata(@Nullable final QueryMetadata.Builder queryBuilder) {
+            this.queryBuilder = queryBuilder;
             return this;
         }
 
@@ -253,6 +308,26 @@ public class FluoQuery {
         public Optional<QueryMetadata.Builder> getQueryBuilder() {
             return Optional.fromNullable( queryBuilder );
         }
+        
+        /**
+         * Sets the {@link ConstructQueryMetadata.Builder} that is used by this builder.
+         *
+         * @param constructBuilder
+         *            - The builder representing the query's results.
+         * @return This builder so that method invocation may be chained.
+         */
+        public Builder setConstructQueryMetadata(@Nullable final ConstructQueryMetadata.Builder constructBuilder) {
+            this.constructBuilder = constructBuilder;
+            return this;
+        }
+
+        /**
+         * @return The Construct Query metadata builder if one has been set.
+         */
+        public Optional<ConstructQueryMetadata.Builder> getConstructQueryBuilder() {
+            return Optional.fromNullable( constructBuilder );
+        }
+        
 
         /**
          * Adds a new {@link StatementPatternMetadata.Builder} to this builder.
@@ -345,12 +420,14 @@ public class FluoQuery {
             requireNonNull(nodeId);
             return Optional.fromNullable( joinBuilders.get(nodeId) );
         }
+        
 
         /**
          * @return Creates a {@link FluoQuery} using the values that have been supplied to this builder.
          */
         public FluoQuery build() {
-            final QueryMetadata queryMetadata = queryBuilder.build();
+            Preconditions.checkArgument(
+                    (queryBuilder != null && constructBuilder == null) || (queryBuilder == null && constructBuilder != null));
 
             final ImmutableMap.Builder<String, StatementPatternMetadata> spMetadata = ImmutableMap.builder();
             for(final Entry<String, StatementPatternMetadata.Builder> entry : spBuilders.entrySet()) {
@@ -372,7 +449,14 @@ public class FluoQuery {
                 aggregateMetadata.put(entry.getKey(), entry.getValue().build());
             }
 
-            return new FluoQuery(queryMetadata, spMetadata.build(), filterMetadata.build(), joinMetadata.build(), aggregateMetadata.build());
+            if(queryBuilder != null) {
+                return new FluoQuery(queryBuilder.build(), spMetadata.build(), filterMetadata.build(), joinMetadata.build(), aggregateMetadata.build());
+            }
+            //constructBuilder non-null in this case, but no need to check
+            else {
+                return new FluoQuery(constructBuilder.build(), spMetadata.build(), filterMetadata.build(), joinMetadata.build(), aggregateMetadata.build());
+            }
+            
         }
     }
 }

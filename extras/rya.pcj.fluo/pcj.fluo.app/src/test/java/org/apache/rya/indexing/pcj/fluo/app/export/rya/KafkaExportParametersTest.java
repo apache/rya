@@ -28,7 +28,7 @@ import java.util.Map;
 import java.util.Properties;
 
 import org.apache.rya.indexing.pcj.fluo.app.export.kafka.KafkaExportParameters;
-import org.apache.rya.indexing.pcj.fluo.app.export.kafka.KafkaResultExporterFactory;
+import org.apache.rya.indexing.pcj.fluo.app.export.kafka.KafkaBindingSetExporterFactory;
 import org.junit.Test;
 
 /**
@@ -93,7 +93,7 @@ public class KafkaExportParametersTest {
 
     @Test
     public void testKafkaResultExporterFactory() {
-        KafkaResultExporterFactory factory = new KafkaResultExporterFactory();
+        KafkaBindingSetExporterFactory factory = new KafkaBindingSetExporterFactory();
         assertNotNull(factory);
     }
 }

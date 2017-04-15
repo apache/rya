@@ -26,11 +26,13 @@ import org.apache.fluo.api.data.Column;
 import org.apache.fluo.api.observer.AbstractObserver;
 import org.apache.log4j.Logger;
 import org.apache.rya.indexing.pcj.fluo.app.AggregationResultUpdater;
+import org.apache.rya.indexing.pcj.fluo.app.ConstructQueryResultUpdater;
 import org.apache.rya.indexing.pcj.fluo.app.FilterResultUpdater;
 import org.apache.rya.indexing.pcj.fluo.app.JoinResultUpdater;
 import org.apache.rya.indexing.pcj.fluo.app.NodeType;
 import org.apache.rya.indexing.pcj.fluo.app.QueryResultUpdater;
 import org.apache.rya.indexing.pcj.fluo.app.query.AggregationMetadata;
+import org.apache.rya.indexing.pcj.fluo.app.query.ConstructQueryMetadata;
 import org.apache.rya.indexing.pcj.fluo.app.query.FilterMetadata;
 import org.apache.rya.indexing.pcj.fluo.app.query.FluoQueryMetadataDAO;
 import org.apache.rya.indexing.pcj.fluo.app.query.JoinMetadata;
@@ -57,6 +59,7 @@ public abstract class BindingSetUpdater extends AbstractObserver {
     private final FilterResultUpdater filterUpdater = new FilterResultUpdater();
     private final QueryResultUpdater queryUpdater = new QueryResultUpdater();
     private final AggregationResultUpdater aggregationUpdater = new AggregationResultUpdater();
+    private final ConstructQueryResultUpdater constructUpdater = new ConstructQueryResultUpdater();
 
     @Override
     public abstract ObservedColumn getObservedColumn();
@@ -102,6 +105,15 @@ public abstract class BindingSetUpdater extends AbstractObserver {
                 }
                 break;
 
+            case CONSTRUCT: 
+                final ConstructQueryMetadata constructQuery = queryDao.readConstructQueryMetadata(tx, parentNodeId);
+                try{
+                    constructUpdater.updateConstructQueryResults(tx, observedBindingSet, constructQuery);
+                } catch (final Exception e) {
+                    throw new RuntimeException("Could not process a Query node.", e);
+                }
+                break;
+                
             case FILTER:
                 final FilterMetadata parentFilter = queryDao.readFilterMetadata(tx, parentNodeId);
                 try {

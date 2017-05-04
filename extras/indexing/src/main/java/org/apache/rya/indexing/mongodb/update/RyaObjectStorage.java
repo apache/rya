@@ -25,6 +25,7 @@ import org.apache.rya.indexing.mongodb.IndexingException;
 
 /**
  * Stores and provides access to objects of type T.
+ * The RyaURI subject is the primary storage key used.
  * @param <T> - The type of object to store/access.
  */
 public interface RyaObjectStorage<T> {

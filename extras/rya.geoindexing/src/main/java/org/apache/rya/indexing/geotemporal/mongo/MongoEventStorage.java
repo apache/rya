@@ -31,10 +31,10 @@ import org.apache.rya.api.domain.RyaURI;
 import org.apache.rya.indexing.IndexingExpr;
 import org.apache.rya.indexing.entity.model.TypedEntity;
 import org.apache.rya.indexing.entity.storage.mongo.DocumentConverter.DocumentConverterException;
+import org.apache.rya.indexing.entity.storage.mongo.MongoEntityStorage;
 import org.apache.rya.indexing.geotemporal.GeoTemporalIndexException;
 import org.apache.rya.indexing.geotemporal.model.Event;
 import org.apache.rya.indexing.geotemporal.storage.EventStorage;
-import org.apache.rya.indexing.entity.storage.mongo.MongoEntityStorage;
 import org.bson.BsonDocument;
 import org.bson.BsonString;
 import org.bson.Document;
@@ -138,9 +138,8 @@ public class MongoEventStorage implements EventStorage {
                 .iterator();
 
             final List<Event> events = new ArrayList<>();
-            final EventDocumentConverter adapter = new EventDocumentConverter();
             while(results.hasNext()) {
-                events.add(adapter.fromDocument(results.next()));
+                events.add(EVENT_CONVERTER.fromDocument(results.next()));
             }
             return events;
         } catch(final MongoException | DocumentConverterException | GeoTemporalIndexException e) {

@@ -34,7 +34,7 @@ import edu.umd.cs.findbugs.annotations.NonNull;
  * @param <V> - The type of object to get updated.
  */
 @DefaultAnnotation(NonNull.class)
-public interface DocumentUpdater<T, V> {
+public interface MongoDocumentUpdater<T, V> {
     public default void update(final T key, final DocumentMutator<V> mutator) throws IndexingException {
         requireNonNull(mutator);
 
@@ -65,7 +65,7 @@ public interface DocumentUpdater<T, V> {
 
     /**
      * Implementations of this interface are used to update the state of a
-     * {@link DocumentUpdater#V} in unison with a {@link DocumentUpdater}.
+     * {@link MongoDocumentUpdater#V} in unison with a {@link MongoDocumentUpdater}.
      * </p>
      * This table describes what the updater will do depending on if the object
      * exists and if an updated object is returned.

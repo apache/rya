@@ -19,6 +19,7 @@
 package org.apache.rya.indexing.geotemporal.model;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 
@@ -77,7 +78,14 @@ public class EventQueryNodeTest extends GeoTemporalTestBase {
         final Var timeObj = new Var("time");
         final StatementPattern timeSP = new StatementPattern(timeSubj, timePred, timeObj);
         // This will fail.
-        new EventQueryNode(mock(EventStorage.class), geoSP, timeSP, new ArrayList<IndexingExpr>(), new ArrayList<IndexingExpr>(), new ArrayList<>());
+        new EventQueryNode.EventQueryNodeBuilder()
+            .setStorage(mock(EventStorage.class))
+            .setGeoPattern(geoSP)
+            .setTemporalPattern(timeSP)
+            .setGeoFilters(new ArrayList<IndexingExpr>())
+            .setTemporalFilters(new ArrayList<IndexingExpr>())
+            .setUsedFilters(new ArrayList<>())
+            .build();
     }
 
     @Test(expected = IllegalStateException.class)
@@ -93,7 +101,14 @@ public class EventQueryNodeTest extends GeoTemporalTestBase {
         final Var timeObj = new Var("time");
         final StatementPattern timeSP = new StatementPattern(timeSubj, timePred, timeObj);
         // This will fail.
-        new EventQueryNode(mock(EventStorage.class), geoSP, timeSP, new ArrayList<IndexingExpr>(), new ArrayList<IndexingExpr>(), new ArrayList<>());
+        new EventQueryNode.EventQueryNodeBuilder()
+        .setStorage(mock(EventStorage.class))
+        .setGeoPattern(geoSP)
+        .setTemporalPattern(timeSP)
+        .setGeoFilters(new ArrayList<IndexingExpr>())
+        .setTemporalFilters(new ArrayList<IndexingExpr>())
+        .setUsedFilters(new ArrayList<>())
+        .build();
     }
 
     @Test
@@ -188,7 +203,6 @@ public class EventQueryNodeTest extends GeoTemporalTestBase {
         final MapBindingSet expected1 = new MapBindingSet();
         expected1.addBinding("wkt", VF.createLiteral("POINT (1 1)"));
         expected1.addBinding("time", VF.createLiteral("2015-12-30T07:00:00-05:00"));
-
         final MapBindingSet expected2 = new MapBindingSet();
         expected2.addBinding("wkt", VF.createLiteral("POINT (-1 -1)"));
         expected2.addBinding("time", VF.createLiteral("2015-12-30T07:00:00-05:00"));
@@ -200,6 +214,107 @@ public class EventQueryNodeTest extends GeoTemporalTestBase {
         assertEquals(expected1, actual.get(0));
         assertEquals(expected2, actual.get(1));
         assertEquals(2, actual.size());
+    }
+
+    @Test
+    public void evaluate_variableSubject_existingBindingset() throws Exception {
+        final MongoClient client = MockMongoFactory.newFactory().newMongoClient();
+        final EventStorage storage = new MongoEventStorage(client, "testDB");
+        RyaURI subject = new RyaURI("urn:event-1111");
+        Geometry geo = GF.createPoint(new Coordinate(1, 1));
+        final TemporalInstant temp = new TemporalInstantRfc3339(2015, 12, 30, 12, 00, 0);
+        final Event event = Event.builder()
+            .setSubject(subject)
+            .setGeometry(geo)
+            .setTemporalInstant(temp)
+            .build();
+
+        subject = new RyaURI("urn:event-2222");
+        geo = GF.createPoint(new Coordinate(-1, -1));
+        final Event otherEvent = Event.builder()
+            .setSubject(subject)
+            .setGeometry(geo)
+            .setTemporalInstant(temp)
+            .build();
+
+        storage.create(event);
+        storage.create(otherEvent);
+
+        final String query =
+                "PREFIX time: <http://www.w3.org/2006/time#> \n"
+              + "PREFIX tempo: <tag:rya-rdf.org,2015:temporal#> \n"
+              + "PREFIX geo: <http://www.opengis.net/ont/geosparql#>"
+              + "PREFIX geof: <http://www.opengis.net/def/function/geosparql/>"
+              + "SELECT ?event ?time ?point ?wkt "
+              + "WHERE { "
+                + "  ?event time:atTime ?time . "
+                + "  ?event geo:asWKT ?wkt . "
+                + "  FILTER(geof:sfWithin(?wkt, \"POLYGON((-3 -2, -3 2, 1 2, 1 -2, -3 -2))\"^^geo:wktLiteral)) "
+                + "  FILTER(tempo:equals(?time, \"2015-12-30T12:00:00Z\")) "
+              + "}";
+
+        final EventQueryNode node = buildNode(storage, query);
+        final MapBindingSet existingBindings = new MapBindingSet();
+        existingBindings.addBinding("event", VF.createURI("urn:event-2222"));
+        final CloseableIteration<BindingSet, QueryEvaluationException> rez = node.evaluate(existingBindings);
+        final MapBindingSet expected = new MapBindingSet();
+        expected.addBinding("wkt", VF.createLiteral("POINT (-1 -1)"));
+        expected.addBinding("time", VF.createLiteral("2015-12-30T07:00:00-05:00"));
+
+        final List<BindingSet> actual = new ArrayList<>();
+        while(rez.hasNext()) {
+            actual.add(rez.next());
+        }
+        assertEquals(1, actual.size());
+        assertEquals(expected, actual.get(0));
+    }
+
+    @Test
+    public void evaluate_variableSubject_existingBindingsetWrongFilters() throws Exception {
+        final MongoClient client = MockMongoFactory.newFactory().newMongoClient();
+        final EventStorage storage = new MongoEventStorage(client, "testDB");
+        RyaURI subject = new RyaURI("urn:event-1111");
+        Geometry geo = GF.createPoint(new Coordinate(1, 1));
+        final TemporalInstant temp = new TemporalInstantRfc3339(2015, 12, 30, 12, 00, 0);
+        final Event event = Event.builder()
+            .setSubject(subject)
+            .setGeometry(geo)
+            .setTemporalInstant(temp)
+            .build();
+
+        subject = new RyaURI("urn:event-2222");
+        geo = GF.createPoint(new Coordinate(-10, -10));
+        final Event otherEvent = Event.builder()
+            .setSubject(subject)
+            .setGeometry(geo)
+            .setTemporalInstant(temp)
+            .build();
+
+        storage.create(event);
+        storage.create(otherEvent);
+
+        final String query =
+                "PREFIX time: <http://www.w3.org/2006/time#> \n"
+              + "PREFIX tempo: <tag:rya-rdf.org,2015:temporal#> \n"
+              + "PREFIX geo: <http://www.opengis.net/ont/geosparql#>"
+              + "PREFIX geof: <http://www.opengis.net/def/function/geosparql/>"
+              + "SELECT ?event ?time ?point ?wkt "
+              + "WHERE { "
+                + "  ?event time:atTime ?time . "
+                + "  ?event geo:asWKT ?wkt . "
+                + "  FILTER(geof:sfWithin(?wkt, \"POLYGON((-3 -2, -3 2, 1 2, 1 -2, -3 -2))\"^^geo:wktLiteral)) "
+                + "  FILTER(tempo:equals(?time, \"2015-12-30T12:00:00Z\")) "
+              + "}";
+
+        final EventQueryNode node = buildNode(storage, query);
+        final MapBindingSet existingBindings = new MapBindingSet();
+        existingBindings.addBinding("event", VF.createURI("urn:event-2222"));
+        final CloseableIteration<BindingSet, QueryEvaluationException> rez = node.evaluate(existingBindings);
+        final MapBindingSet expected = new MapBindingSet();
+        expected.addBinding("wkt", VF.createLiteral("POINT (-1 -1)"));
+        expected.addBinding("time", VF.createLiteral("2015-12-30T07:00:00-05:00"));
+
+        assertFalse(rez.hasNext());
     }
 
     private EventQueryNode buildNode(final EventStorage store, final String query) throws Exception {
@@ -221,7 +336,14 @@ public class EventQueryNodeTest extends GeoTemporalTestBase {
         final StatementPattern geoPattern = sps.get(1);
         final StatementPattern temporalPattern = sps.get(0);
 
-        return new EventQueryNode(store, geoPattern, temporalPattern, geoFilters, temporalFilters, filters);
+        return new EventQueryNode.EventQueryNodeBuilder()
+            .setStorage(store)
+            .setGeoPattern(geoPattern)
+            .setTemporalPattern(temporalPattern)
+            .setGeoFilters(geoFilters)
+            .setTemporalFilters(temporalFilters)
+            .setUsedFilters(filters)
+            .build();
     }
 
     private Value[] extractArguments(final String matchName, final FunctionCall call) {

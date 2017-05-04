@@ -39,14 +39,50 @@ public interface GeoTemporalIndexer extends RyaSecondaryIndexer {
      */
     public abstract EventStorage getEventStorage(final Configuration conf);
 
-    public enum GeoPolicy {
+    /**
+     * Used to indicate which geo filter functions to use in a query.
+     */
+    public static enum GeoPolicy {
+        /**
+         * The provided geo object equals the geo object where the event took place.
+         */
         EQUALS(GeoConstants.GEO_SF_EQUALS),
+
+        /**
+         * The provided geo object does not share any space with the event.
+         */
         DISJOINT(GeoConstants.GEO_SF_DISJOINT),
+
+        /**
+         * The provided geo object shares some amount of space with the event.
+         */
         INTERSECTS(GeoConstants.GEO_SF_INTERSECTS),
+
+        /**
+         * The provided geo object shares a point with the event, but only on the edge.
+         */
         TOUCHES(GeoConstants.GEO_SF_TOUCHES),
+
+        /**
+         * The provided geo object shares some, but not all space with the event.
+         */
         CROSSES(GeoConstants.GEO_SF_CROSSES),
+
+        /**
+         * The provided geo object exists completely within the event.
+         */
         WITHIN(GeoConstants.GEO_SF_WITHIN),
+
+        /**
+         * The event took place completely within the provided geo object.
+         */
         CONTAINS(GeoConstants.GEO_SF_CONTAINS),
+
+        /**
+         * The provided geo object has some but not all points in common with the event,
+         * are of the same dimension, and the intersection of the interiors has the
+         * same dimension as the geometries themselves.
+         */
         OVERLAPS(GeoConstants.GEO_SF_OVERLAPS);
 
         private final URI uri;
@@ -69,10 +105,9 @@ public interface GeoTemporalIndexer extends RyaSecondaryIndexer {
         }
     }
 
-    String TEMPORAL_NS = "tag:rya-rdf.org,2015:temporal#";
+    static final String TEMPORAL_NS = "tag:rya-rdf.org,2015:temporal#";
     /**
-     * All of the filter functions that can be used in a temporal based query.
-     * <p>
+     * Used to indicate which temporal filter functions to use in a query.
      */
     public enum TemporalPolicy {
         /**
@@ -106,12 +141,28 @@ public interface GeoTemporalIndexer extends RyaSecondaryIndexer {
         INSTANT_AFTER_INTERVAL(false, new URIImpl(TEMPORAL_NS+"afterInterval")),
 
         /**
-         * The provided instant in time equals the instant the event took place.
+         * The provided instant in time equals the start of the interval in which the event took place.
          */
         INSTANT_START_INTERVAL(false, new URIImpl(TEMPORAL_NS+"hasBeginningInterval")),
+
+        /**
+         * The provided instant in time equals the end of the interval in which the event took place.
+         */
         INSTANT_END_INTERVAL(false, new URIImpl(TEMPORAL_NS+"hasEndInterval")),
+
+        /**
+         * The provided interval equals the interval in which the event took place.
+         */
         INTERVAL_EQUALS(false, new URIImpl(TEMPORAL_NS+"intervalEquals")),
+
+        /**
+         * The provided interval is before the interval in which the event took place.
+         */
         INTERVAL_BEFORE(false, new URIImpl(TEMPORAL_NS+"intervalBefore")),
+
+        /**
+         * The provided interval is after the interval in which the event took place.
+         */
         INTERVAL_AFTER(false, new URIImpl(TEMPORAL_NS+"intervalAfter"));
 
         private final boolean isInstant;

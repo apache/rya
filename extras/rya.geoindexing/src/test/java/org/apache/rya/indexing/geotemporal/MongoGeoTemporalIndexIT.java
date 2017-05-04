@@ -63,7 +63,6 @@ public class MongoGeoTemporalIndexIT {
     private static final ValueFactory VF = ValueFactoryImpl.getInstance();
     private MongoDBRdfConfiguration conf;
     private SailRepositoryConnection conn;
-    private MongoGeoTemporalIndexer indexer;
     private MongoClient mongoClient;
 
     @Before
@@ -84,20 +83,23 @@ public class MongoGeoTemporalIndexIT {
         conn = new SailRepository(sail).getConnection();
         conn.begin();
 
-        indexer = new MongoGeoTemporalIndexer();
-        indexer.setConf(conf);
-        indexer.setClient(mongoClient);
-        indexer.init();
     }
 
     @Test
     public void ensureInEventStore_Test() throws Exception {
+        final MongoGeoTemporalIndexer indexer = new MongoGeoTemporalIndexer();
+        indexer.setConf(conf);
+        indexer.setClient(mongoClient);
+        indexer.init();
+
         addStatements();
 
         final EventStorage events = indexer.getEventStorage(conf);
         final RyaURI subject = new RyaURI("urn:event1");
         final Optional<Event> event = events.get(subject);
         assertTrue(event.isPresent());
+
+        indexer.close();
     }
 
     @Test

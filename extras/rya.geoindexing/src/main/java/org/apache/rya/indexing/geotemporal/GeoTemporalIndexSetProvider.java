@@ -28,22 +28,22 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import org.apache.log4j.Logger;
 import org.apache.rya.indexing.IndexingExpr;
 import org.apache.rya.indexing.IndexingFunctionRegistry;
 import org.apache.rya.indexing.IndexingFunctionRegistry.FUNCTION_TYPE;
+import org.apache.rya.indexing.accumulo.geo.GeoParseUtils;
 import org.apache.rya.indexing.accumulo.geo.GeoTupleSet;
 import org.apache.rya.indexing.external.matching.ExternalSetProvider;
 import org.apache.rya.indexing.external.matching.QuerySegment;
 import org.apache.rya.indexing.geotemporal.model.EventQueryNode;
+import org.apache.rya.indexing.geotemporal.model.EventQueryNode.EventQueryNodeBuilder;
 import org.apache.rya.indexing.geotemporal.storage.EventStorage;
 import org.openrdf.model.URI;
-import org.openrdf.model.Value;
 import org.openrdf.model.impl.URIImpl;
 import org.openrdf.query.algebra.FunctionCall;
 import org.openrdf.query.algebra.QueryModelNode;
 import org.openrdf.query.algebra.StatementPattern;
-import org.openrdf.query.algebra.ValueConstant;
-import org.openrdf.query.algebra.ValueExpr;
 import org.openrdf.query.algebra.Var;
 import org.openrdf.query.algebra.helpers.QueryModelVisitorBase;
 
@@ -54,6 +54,8 @@ import com.google.common.collect.Multimap;
  * Provides {@link GeoTupleSet}s.
  */
 public class GeoTemporalIndexSetProvider implements ExternalSetProvider<EventQueryNode> {
+    private static final Logger LOG = Logger.getLogger(GeoTemporalIndexSetProvider.class);
+
     //organzied by object var.  Each object is a filter, or set of filters
     private Multimap<Var, IndexingExpr> filterMap;
 
@@ -138,13 +140,20 @@ public class GeoTemporalIndexSetProvider implements ExternalSetProvider<EventQue
         }
 
         if(geoFilters.isPresent() && temporalFilters.isPresent() && geoPattern.isPresent() && temporalPattern.isPresent()) {
-            return new EventQueryNode(eventStorage, geoPattern.get(), temporalPattern.get(), geoFilters.get(), temporalFilters.get(), usedFilters);
+            return new EventQueryNodeBuilder()
+                    .setStorage(eventStorage)
+                    .setGeoPattern(geoPattern.get())
+                    .setTemporalPattern(temporalPattern.get())
+                    .setGeoFilters(geoFilters.get())
+                    .setTemporalFilters(temporalFilters.get())
+                    .setUsedFilters(usedFilters)
+                    .build();
         } else {
             return null;
         }
     }
 
-    private FUNCTION_TYPE ensureSameType(final Collection<IndexingExpr> filters) {
+    private static FUNCTION_TYPE ensureSameType(final Collection<IndexingExpr> filters) {
         FUNCTION_TYPE type = null;
         for(final IndexingExpr filter : filters) {
             if(type == null) {
@@ -174,7 +183,7 @@ public class GeoTemporalIndexSetProvider implements ExternalSetProvider<EventQue
         try {
             filter.visit(new FilterVisitor());
         } catch (final Exception e) {
-            e.printStackTrace();
+            LOG.error("Failed to match the filter object.", e);
         }
     }
 
@@ -204,27 +213,7 @@ public class GeoTemporalIndexSetProvider implements ExternalSetProvider<EventQue
     private void addFilter(final FunctionCall call) {
         filterURI = new URIImpl(call.getURI());
         final Var objVar = IndexingFunctionRegistry.getResultVarFromFunctionCall(filterURI, call.getArgs());
-        filterMap.put(objVar, new IndexingExpr(filterURI, objectPatterns.get(objVar), extractArguments(objVar.getName(), call)));
-    }
-
-    private Value[] extractArguments(final String matchName, final FunctionCall call) {
-        final Value args[] = new Value[call.getArgs().size() - 1];
-        int argI = 0;
-        for (int i = 0; i != call.getArgs().size(); ++i) {
-            final ValueExpr arg = call.getArgs().get(i);
-            if (argI == i && arg instanceof Var && matchName.equals(((Var)arg).getName())) {
-                continue;
-            }
-            if (arg instanceof ValueConstant) {
-                args[argI] = ((ValueConstant)arg).getValue();
-            } else if (arg instanceof Var && ((Var)arg).hasValue()) {
-                args[argI] = ((Var)arg).getValue();
-            } else {
-                throw new IllegalArgumentException("Query error: Found " + arg + ", expected a Literal, BNode or URI");
-            }
-            ++argI;
-        }
-        return args;
+        filterMap.put(objVar, new IndexingExpr(filterURI, objectPatterns.get(objVar), GeoParseUtils.extractArguments(objVar.getName(), call)));
     }
 
     /**
@@ -234,13 +223,12 @@ public class GeoTemporalIndexSetProvider implements ExternalSetProvider<EventQue
     private class FilterVisitor extends QueryModelVisitorBase<Exception> {
         @Override
         public void meet(final FunctionCall call) throws Exception {
-
             filterURI = new URIImpl(call.getURI());
             final FUNCTION_TYPE type = IndexingFunctionRegistry.getFunctionType(filterURI);
             if(type == FUNCTION_TYPE.GEO || type == FUNCTION_TYPE.TEMPORAL) {
                 final Var objVar = IndexingFunctionRegistry.getResultVarFromFunctionCall(filterURI, call.getArgs());
                 if(objectPatterns.containsKey(objVar)) {
-                    filterMap.put(objVar, new IndexingExpr(filterURI, objectPatterns.get(objVar), extractArguments(objVar.getName(), call)));
+                    filterMap.put(objVar, new IndexingExpr(filterURI, objectPatterns.get(objVar), GeoParseUtils.extractArguments(objVar.getName(), call)));
                     matchedFilters.put(objVar, call);
                 } else {
                     unmatchedFilters.put(objVar, call);

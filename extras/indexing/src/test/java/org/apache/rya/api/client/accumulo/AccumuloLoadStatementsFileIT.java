@@ -116,11 +116,16 @@ public class AccumuloLoadStatementsFileIT extends AccumuloITBase {
             final Statement statement = RyaToRdfConversions.convertStatement(ryaStatement);
 
             // Filter out the rya version statement if it is present.
-            if(!statement.getPredicate().equals( vf.createURI("urn:mvm.rya/2012/05#version") )) {
+            if(!isRyaMetadataStatement(vf, statement)) {
                 statements.add( statement );
             }
         }
 
         assertEquals(expected, statements);
+    }
+
+    private boolean isRyaMetadataStatement(ValueFactory vf, Statement statement) {
+        return statement.getPredicate().equals( vf.createURI("urn:org.apache.rya/2012/05#version") ) ||
+                statement.getPredicate().equals( vf.createURI("urn:org.apache.rya/2012/05#rts") );
     }
 }

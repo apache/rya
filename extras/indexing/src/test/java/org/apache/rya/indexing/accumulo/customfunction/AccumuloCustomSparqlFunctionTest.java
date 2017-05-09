@@ -19,10 +19,6 @@ package org.apache.rya.indexing.accumulo.customfunction;
  * under the License.
  */
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Set;
-
 import org.apache.rya.accumulo.AccumuloRdfConfiguration;
 import org.apache.rya.indexing.accumulo.ConfigUtils;
 import org.apache.rya.indexing.accumulo.freetext.SimpleTokenizer;
@@ -30,86 +26,56 @@ import org.apache.rya.indexing.accumulo.freetext.Tokenizer;
 import org.apache.rya.sail.config.RyaSailFactory;
 import org.junit.Before;
 import org.junit.Test;
-import org.openrdf.model.Value;
-import org.openrdf.query.BindingSet;
-import org.openrdf.query.MalformedQueryException;
 import org.openrdf.query.QueryLanguage;
 import org.openrdf.query.TupleQuery;
 import org.openrdf.query.TupleQueryResult;
+import org.openrdf.query.algebra.evaluation.function.FunctionRegistry;
 import org.openrdf.repository.Repository;
 import org.openrdf.repository.sail.SailRepository;
 import org.openrdf.sail.Sail;
-
+import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
+import org.openrdf.repository.RepositoryConnection;
 import org.junit.*;
 
-import org.openrdf.repository.RepositoryConnection;
-import org.openrdf.repository.RepositoryException;
-
 public class AccumuloCustomSparqlFunctionTest {
-	private AccumuloRdfConfiguration conf;
-	private Repository repository = null;
-	private Sail sail = null;
-	private RepositoryConnection conn = null;
-	
+    private AccumuloRdfConfiguration conf;
+    private Repository repository = null;
+    private Sail sail = null;
+    private RepositoryConnection conn = null;
 
-	@Before
+    @Before
     public void before() throws Exception {
         conf = new AccumuloRdfConfiguration();
         conf.setBoolean(ConfigUtils.USE_MOCK_INSTANCE, true);
-        conf.set(ConfigUtils.CLOUDBASE_USER, "USERNAME");
-        conf.set(ConfigUtils.CLOUDBASE_PASSWORD, "PASS");
-        conf.set(ConfigUtils.CLOUDBASE_AUTHS, "U");
+        conf.set(AccumuloRdfConfiguration.CLOUDBASE_USER, "USERNAME");
+        conf.set(AccumuloRdfConfiguration.CLOUDBASE_PASSWORD, "PASS");
+        conf.set(RdfCloudTripleStoreConfiguration.CONF_QUERY_AUTH, "U");
         conf.setClass(ConfigUtils.TOKENIZER_CLASS, SimpleTokenizer.class, Tokenizer.class);
         conf.setTablePrefix("triplestore_");
-        
+
         this.sail = RyaSailFactory.getInstance(conf);
         this.repository = new SailRepository(this.sail);
         this.conn = this.repository.getConnection();
-        
     }
-	
-	@Test
-	public void customFunction() {
-		String sql = "" 
-				+ "PREFIX fn: <http://example.org#> "
-				+ "select (fn:mycustomfucnction() as ?res1) (str(fn:mycustomfucnction('Rya')) as ?res2) "
-				+ "where {}";
-		try {
-			TupleQuery query = this.conn.prepareTupleQuery(QueryLanguage.SPARQL, sql);
-		
-			TupleQueryResult qres = query.evaluate();
-			ArrayList<HashMap<String, Value>> reslist = new ArrayList<HashMap<String, Value>>();
-			while (qres.hasNext()) {
-				BindingSet b = qres.next();
-				Set<String> names = b.getBindingNames();
-				HashMap<String, Value> hm = new HashMap<String, Value>();
-				for (Object n : names) {
-					hm.put(
-							(String) n, 
-							b.getValue((String) n)
-					);
-				}
-				reslist.add(hm);
-				
-				if (hm.containsKey("res1")) {
-					Assert.assertEquals(hm.get("res1").stringValue(), "Hello");
-				}
-				else {
-					Assert.fail("'res1' is not in result set.");
-				}
-				
-				if (hm.containsKey("res2")) {
-					Assert.assertEquals(hm.get("res2").stringValue(), "Hello, Rya");
-				}
-				else {
-					Assert.fail("'res2' is not in result set");
-				}
-			} 
-		}
-		catch (Exception ex) {
-			Assert.fail(ex.getMessage());
-		}
-		 
-				
-	}
+
+    @Test
+    public void customFunction() {
+        FunctionRegistry.getInstance().add(new CustomSparqlFunction());
+
+        String sql = "" + "PREFIX fn: <http://example.org#> "
+                + "select (fn:mycustomfunction() as ?res1) (str(fn:mycustomfunction('Rya')) as ?res2) " + "where {}";
+        try {
+            TupleQuery query = this.conn.prepareTupleQuery(QueryLanguage.SPARQL, sql);
+
+            TupleQueryResult qres = query.evaluate();
+            if (qres.getBindingNames().size() == 2) {
+                Assert.assertArrayEquals(new String[] { "res1", "res2" }, qres.getBindingNames().toArray());
+            } else {
+                Assert.fail("Binding set length is not what's expected.");
+            }
+        } catch (Exception ex) {
+            Assert.fail(ex.getMessage());
+        }
+
+    }
 }

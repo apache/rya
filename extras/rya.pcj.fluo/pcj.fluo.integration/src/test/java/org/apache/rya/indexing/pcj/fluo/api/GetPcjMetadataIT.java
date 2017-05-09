@@ -26,8 +26,11 @@ import java.util.Set;
 
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
+import org.apache.accumulo.core.client.Connector;
+import org.apache.fluo.api.client.FluoClient;
+import org.apache.fluo.api.client.FluoFactory;
 import org.apache.rya.api.persist.RyaDAOException;
-import org.apache.rya.indexing.pcj.fluo.ITBase;
+import org.apache.rya.indexing.pcj.fluo.RyaExportITBase;
 import org.apache.rya.indexing.pcj.fluo.api.GetPcjMetadata.NotInAccumuloException;
 import org.apache.rya.indexing.pcj.fluo.api.GetPcjMetadata.NotInFluoException;
 import org.apache.rya.indexing.pcj.storage.PcjException;
@@ -47,7 +50,7 @@ import com.google.common.collect.Sets;
 /**
  * Integration tests the methods of {@link GetPcjMetadata}.
  */
-public class GetPcjMetadataIT extends ITBase {
+public class GetPcjMetadataIT extends RyaExportITBase {
 
     @Test
     public void getMetadataByQueryId() throws RepositoryException, MalformedQueryException, SailException, QueryEvaluationException, PcjException, NotInFluoException, NotInAccumuloException, RyaDAOException {
@@ -59,56 +62,60 @@ public class GetPcjMetadataIT extends ITBase {
                 "}";
 
         // Create the PCJ table.
+        final Connector accumuloConn = super.getAccumuloConnector();
         final PrecomputedJoinStorage pcjStorage = new AccumuloPcjStorage(accumuloConn, RYA_INSTANCE_NAME);
         final String pcjId = pcjStorage.createPcj(sparql);
 
-        // Tell the Fluo app to maintain the PCJ.
-        new CreatePcj().withRyaIntegration(pcjId, pcjStorage, fluoClient, accumuloConn, RYA_INSTANCE_NAME);
+        try(FluoClient fluoClient = FluoFactory.newClient(super.getFluoConfiguration())) {
+            // Tell the Fluo app to maintain the PCJ.
+            new CreatePcj().withRyaIntegration(pcjId, pcjStorage, fluoClient, accumuloConn, RYA_INSTANCE_NAME);
 
-        // Fetch the PCJ's Metadata through the GetPcjMetadata interactor.
-        final String queryId = new ListQueryIds().listQueryIds(fluoClient).get(0);
-        final PcjMetadata metadata = new GetPcjMetadata().getMetadata(pcjStorage, fluoClient, queryId);
+            // Fetch the PCJ's Metadata through the GetPcjMetadata interactor.
+            final String queryId = new ListQueryIds().listQueryIds(fluoClient).get(0);
+            final PcjMetadata metadata = new GetPcjMetadata().getMetadata(pcjStorage, fluoClient, queryId);
 
-        // Ensure the command returns the correct metadata.
-        final Set<VariableOrder> varOrders = new ShiftVarOrderFactory().makeVarOrders(sparql);
-        final PcjMetadata expected = new PcjMetadata(sparql, 0L, varOrders);
-        assertEquals(expected, metadata);
+            // Ensure the command returns the correct metadata.
+            final Set<VariableOrder> varOrders = new ShiftVarOrderFactory().makeVarOrders(sparql);
+            final PcjMetadata expected = new PcjMetadata(sparql, 0L, varOrders);
+            assertEquals(expected, metadata);
+        }
     }
 
     @Test
     public void getAllMetadata() throws MalformedQueryException, SailException, QueryEvaluationException, PcjException, NotInFluoException, NotInAccumuloException, AccumuloException, AccumuloSecurityException, RyaDAOException {
-
-        final CreatePcj createPcj = new CreatePcj();
-
+        final Connector accumuloConn = super.getAccumuloConnector();
         final PrecomputedJoinStorage pcjStorage = new AccumuloPcjStorage(accumuloConn, RYA_INSTANCE_NAME);
 
-        // Add a couple of queries to Accumulo.
-        final String q1Sparql =
-                "SELECT ?x " +
-                  "WHERE { " +
-                  "?x <http://talksTo> <http://Eve>. " +
-                  "?x <http://worksAt> <http://Chipotle>." +
-                "}";
-        final String q1PcjId = pcjStorage.createPcj(q1Sparql);
-        createPcj.withRyaIntegration(q1PcjId, pcjStorage, fluoClient, accumuloConn, RYA_INSTANCE_NAME);
+        try(FluoClient fluoClient = FluoFactory.newClient(super.getFluoConfiguration())) {
+            // Add a couple of queries to Accumulo.
+            final String q1Sparql =
+                    "SELECT ?x " +
+                            "WHERE { " +
+                            "?x <http://talksTo> <http://Eve>. " +
+                            "?x <http://worksAt> <http://Chipotle>." +
+                            "}";
+            final String q1PcjId = pcjStorage.createPcj(q1Sparql);
+            final CreatePcj createPcj = new CreatePcj();
+            createPcj.withRyaIntegration(q1PcjId, pcjStorage, fluoClient, accumuloConn, RYA_INSTANCE_NAME);
 
-        final String q2Sparql =
-                "SELECT ?x ?y " +
-                  "WHERE { " +
-                  "?x <http://talksTo> ?y. " +
-                  "?y <http://worksAt> <http://Chipotle>." +
-                "}";
-        final String q2PcjId = pcjStorage.createPcj(q2Sparql);
-        createPcj.withRyaIntegration(q2PcjId, pcjStorage, fluoClient, accumuloConn, RYA_INSTANCE_NAME);
+            final String q2Sparql =
+                    "SELECT ?x ?y " +
+                            "WHERE { " +
+                            "?x <http://talksTo> ?y. " +
+                            "?y <http://worksAt> <http://Chipotle>." +
+                            "}";
+            final String q2PcjId = pcjStorage.createPcj(q2Sparql);
+            createPcj.withRyaIntegration(q2PcjId, pcjStorage, fluoClient, accumuloConn, RYA_INSTANCE_NAME);
 
-        // Ensure the command returns the correct metadata.
-        final Set<PcjMetadata> expected = new HashSet<>();
-        final Set<VariableOrder> q1VarOrders = new ShiftVarOrderFactory().makeVarOrders(q1Sparql);
-        final Set<VariableOrder> q2VarOrders = new ShiftVarOrderFactory().makeVarOrders(q2Sparql);
-        expected.add(new PcjMetadata(q1Sparql, 0L, q1VarOrders));
-        expected.add(new PcjMetadata(q2Sparql, 0L, q2VarOrders));
+            // Ensure the command returns the correct metadata.
+            final Set<PcjMetadata> expected = new HashSet<>();
+            final Set<VariableOrder> q1VarOrders = new ShiftVarOrderFactory().makeVarOrders(q1Sparql);
+            final Set<VariableOrder> q2VarOrders = new ShiftVarOrderFactory().makeVarOrders(q2Sparql);
+            expected.add(new PcjMetadata(q1Sparql, 0L, q1VarOrders));
+            expected.add(new PcjMetadata(q2Sparql, 0L, q2VarOrders));
 
-        final Map<String, PcjMetadata> metadata = new GetPcjMetadata().getMetadata(pcjStorage, fluoClient);
-        assertEquals(expected, Sets.newHashSet( metadata.values() ));
+            final Map<String, PcjMetadata> metadata = new GetPcjMetadata().getMetadata(pcjStorage, fluoClient);
+            assertEquals(expected, Sets.newHashSet( metadata.values() ));
+        }
     }
 }

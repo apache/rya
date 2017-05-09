@@ -21,11 +21,11 @@ package org.apache.rya.indexing.pcj.fluo.app;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.apache.rya.indexing.pcj.fluo.app.IncrementalUpdateConstants.NODEID_BS_DELIM;
 
+import org.apache.fluo.api.data.Bytes;
+
 import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
 import edu.umd.cs.findbugs.annotations.NonNull;
 import net.jcip.annotations.Immutable;
-
-import org.apache.fluo.api.data.Bytes;
 
 /**
  * The values of an Accumulo Row ID for a row that stores a Binding set for
@@ -73,13 +73,8 @@ public class BindingSetRow {
 
         // Read the Node ID from the row's bytes.
         final String[] rowArray = row.toString().split(NODEID_BS_DELIM);
-        if(rowArray.length != 2) {
-            throw new IllegalArgumentException("A row must contain a single NODEID_BS_DELIM.");
-        }
-
         final String nodeId = rowArray[0];
-        String bindingSetString = rowArray[1];
-
+        final String bindingSetString = rowArray.length == 2 ? rowArray[1] : "";
         return new BindingSetRow(nodeId, bindingSetString);
     }
 }

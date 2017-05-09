@@ -34,7 +34,6 @@ import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
 import edu.umd.cs.findbugs.annotations.NonNull;
 
 import org.openrdf.model.Value;
-import org.openrdf.query.Binding;
 import org.openrdf.query.BindingSet;
 import org.openrdf.query.algebra.evaluation.QueryBindingSet;
 
@@ -57,7 +56,6 @@ public class AccumuloPcjSerializer implements BindingSetConverter<byte[]> {
     public byte[] convert(BindingSet bindingSet, VariableOrder varOrder) throws BindingSetConversionException {
         checkNotNull(bindingSet);
         checkNotNull(varOrder);
-        checkBindingsSubsetOfVarOrder(bindingSet, varOrder);
 
         // A list that holds all of the byte segments that will be concatenated at the end.
         // This minimizes byte[] construction.
@@ -110,24 +108,6 @@ public class AccumuloPcjSerializer implements BindingSetConverter<byte[]> {
         } catch (RyaTypeResolverException e) {
             throw new BindingSetConversionException("Could not convert the byte[] into a BindingSet.", e);
         }
-    }
-
-    /**
-     * Checks to see if the names of all the {@link Binding}s in the {@link BindingSet}
-     * are a subset of the variables names in {@link VariableOrder}.
-     *
-     * @param bindingSet - The binding set whose Bindings will be inspected. (not null)
-     * @param varOrder - The names of the bindings that may appear in the BindingSet. (not null)
-     * @throws IllegalArgumentException Indicates the names of the bindings are
-     *   not a subset of the variable order.
-     */
-    private static void checkBindingsSubsetOfVarOrder(BindingSet bindingSet, VariableOrder varOrder) throws IllegalArgumentException {
-        checkNotNull(bindingSet);
-        checkNotNull(varOrder);
-
-        Set<String> bindingNames = bindingSet.getBindingNames();
-        List<String> varNames = varOrder.getVariableOrders();
-        checkArgument(varNames.containsAll(bindingNames), "The BindingSet contains a Binding whose name is not part of the VariableOrder.");
     }
 
     private static final byte[] concat(Iterable<byte[]> byteSegments) {

@@ -20,27 +20,30 @@ package org.apache.rya.indexing.pcj.storage.accumulo;
 
 import static java.util.Objects.requireNonNull;
 
+import java.io.IOException;
 import java.util.Iterator;
 import java.util.Map.Entry;
-
-import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
-import edu.umd.cs.findbugs.annotations.NonNull;
 
 import org.apache.accumulo.core.client.Scanner;
 import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Value;
+import org.apache.rya.indexing.pcj.storage.PrecomputedJoinStorage.CloseableIterator;
 import org.apache.rya.indexing.pcj.storage.accumulo.BindingSetConverter.BindingSetConversionException;
 import org.openrdf.query.BindingSet;
+
+import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
+import edu.umd.cs.findbugs.annotations.NonNull;
 
 /**
  * Iterates over the results of a {@link Scanner} assuming the results are
  * binding sets that can be converted using a {@link AccumuloPcjSerializer}.
  */
 @DefaultAnnotation(NonNull.class)
-public class ScannerBindingSetIterator implements Iterator<BindingSet> {
+public class ScannerBindingSetIterator implements CloseableIterator<BindingSet> {
 
     private static final AccumuloPcjSerializer converter = new AccumuloPcjSerializer();
 
+    private final Scanner scanner;
     private final Iterator<Entry<Key, Value>> accEntries;
     private final VariableOrder varOrder;
 
@@ -51,7 +54,7 @@ public class ScannerBindingSetIterator implements Iterator<BindingSet> {
      * @param varOrder - The variable order of the binding sets the scanner returns. (not null)
      */
     public ScannerBindingSetIterator(final Scanner scanner, final VariableOrder varOrder) {
-        requireNonNull(scanner);
+        this.scanner = requireNonNull(scanner);
         this.accEntries = scanner.iterator();
         this.varOrder = requireNonNull(varOrder);
     }
@@ -70,5 +73,10 @@ public class ScannerBindingSetIterator implements Iterator<BindingSet> {
         } catch (final BindingSetConversionException e) {
             throw new RuntimeException("Could not deserialize a BindingSet from Accumulo.", e);
         }
+    }
+
+    @Override
+    public void close() throws IOException {
+        scanner.close();
     }
 }

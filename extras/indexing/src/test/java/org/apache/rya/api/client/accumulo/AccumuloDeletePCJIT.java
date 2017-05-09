@@ -24,6 +24,10 @@ import static org.junit.Assert.assertTrue;
 import java.util.List;
 import java.util.Set;
 
+import org.apache.rya.api.client.CreatePCJ;
+import org.apache.rya.api.client.DeletePCJ;
+import org.apache.rya.api.client.InstanceDoesNotExistException;
+import org.apache.rya.api.client.RyaClientException;
 import org.apache.rya.indexing.pcj.fluo.api.ListQueryIds;
 import org.apache.rya.indexing.pcj.storage.PrecomputedJoinStorage;
 import org.apache.rya.indexing.pcj.storage.PrecomputedJoinStorage.PCJStorageException;
@@ -35,11 +39,6 @@ import org.openrdf.query.impl.MapBindingSet;
 import org.openrdf.repository.RepositoryException;
 
 import com.google.common.collect.Sets;
-
-import org.apache.rya.api.client.CreatePCJ;
-import org.apache.rya.api.client.DeletePCJ;
-import org.apache.rya.api.client.InstanceDoesNotExistException;
-import org.apache.rya.api.client.RyaClientException;
 
 /**
  * Integration tests the methods of {@link AccumuloCreatePCJ}.
@@ -86,31 +85,32 @@ public class AccumuloDeletePCJIT extends FluoITBase {
         // Verify the correct results were exported.
         fluo.waitForObservers();
 
-        final PrecomputedJoinStorage pcjStorage = new AccumuloPcjStorage(accumuloConn, RYA_INSTANCE_NAME);
-        final Set<BindingSet> results = Sets.newHashSet( pcjStorage.listResults(pcjId) );
+        try(final PrecomputedJoinStorage pcjStorage = new AccumuloPcjStorage(accumuloConn, RYA_INSTANCE_NAME)) {
+            final Set<BindingSet> results = Sets.newHashSet( pcjStorage.listResults(pcjId) );
 
-        final MapBindingSet bob = new MapBindingSet();
-        bob.addBinding("x", vf.createURI("http://Bob"));
+            final MapBindingSet bob = new MapBindingSet();
+            bob.addBinding("x", vf.createURI("http://Bob"));
 
-        final MapBindingSet charlie = new MapBindingSet();
-        charlie.addBinding("x", vf.createURI("http://Charlie"));
+            final MapBindingSet charlie = new MapBindingSet();
+            charlie.addBinding("x", vf.createURI("http://Charlie"));
 
-        final Set<BindingSet> expected = Sets.<BindingSet>newHashSet(bob, charlie);
-        assertEquals(expected, results);
+            final Set<BindingSet> expected = Sets.<BindingSet>newHashSet(bob, charlie);
+            assertEquals(expected, results);
 
-        // Delete the PCJ.
-        final DeletePCJ deletePCJ = new AccumuloDeletePCJ(connectionDetails, accumuloConn);
-        deletePCJ.deletePCJ(RYA_INSTANCE_NAME, pcjId);
+            // Delete the PCJ.
+            final DeletePCJ deletePCJ = new AccumuloDeletePCJ(connectionDetails, accumuloConn);
+            deletePCJ.deletePCJ(RYA_INSTANCE_NAME, pcjId);
 
-        // Ensure the PCJ's metadata has been removed from the storage.
-        assertTrue( pcjStorage.listPcjs().isEmpty() );
+            // Ensure the PCJ's metadata has been removed from the storage.
+            assertTrue( pcjStorage.listPcjs().isEmpty() );
 
-        // Ensure the PCJ has been removed from the Fluo application.
-        fluo.waitForObservers();
+            // Ensure the PCJ has been removed from the Fluo application.
+            fluo.waitForObservers();
 
-        // Verify a Query ID was added for the query within the Fluo app.
-        fluoQueryIds = new ListQueryIds().listQueryIds(fluoClient);
-        assertEquals(0, fluoQueryIds.size());
+            // Verify a Query ID was added for the query within the Fluo app.
+            fluoQueryIds = new ListQueryIds().listQueryIds(fluoClient);
+            assertEquals(0, fluoQueryIds.size());
+        }
     }
 
     @Test(expected = InstanceDoesNotExistException.class)

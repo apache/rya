@@ -50,4 +50,28 @@ public class VisibilitySimplifierTest {
         final String simplified = new VisibilitySimplifier().simplify("(a|b)|(a|b)|a|b");
         assertEquals("a|b", simplified);
     }
+
+    @Test
+    public void unionAndSimplify() {
+        final String simplified = new VisibilitySimplifier().unionAndSimplify("u&b", "u");
+        assertEquals("b&u", simplified);
+    }
+
+    @Test
+    public void unionAndSimplify_firstIsEmpty() {
+        final String simplified = new VisibilitySimplifier().unionAndSimplify("", "u");
+        assertEquals("u", simplified);
+    }
+
+    @Test
+    public void unionAndSimplify_secondIsEmpty() {
+        final String simplified = new VisibilitySimplifier().unionAndSimplify("u", "");
+        assertEquals("u", simplified);
+    }
+
+    @Test
+    public void unionAndSimplify_bothAreEmpty() {
+        final String simplified = new VisibilitySimplifier().unionAndSimplify("", "");
+        assertEquals("", simplified);
+    }
 }

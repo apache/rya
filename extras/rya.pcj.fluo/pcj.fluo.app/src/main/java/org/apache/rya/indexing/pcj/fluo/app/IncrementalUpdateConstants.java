@@ -31,6 +31,7 @@ public class IncrementalUpdateConstants {
     public static final String SP_PREFIX = "STATEMENT_PATTERN";
     public static final String JOIN_PREFIX = "JOIN";
     public static final String FILTER_PREFIX = "FILTER";
+    public static final String AGGREGATION_PREFIX = "AGGREGATION";
     public static final String QUERY_PREFIX = "QUERY";
 
     public static final String URI_TYPE = "http://www.w3.org/2001/XMLSchema#anyURI";

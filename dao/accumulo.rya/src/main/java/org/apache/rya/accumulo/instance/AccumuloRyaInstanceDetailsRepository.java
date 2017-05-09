@@ -22,9 +22,6 @@ import static java.util.Objects.requireNonNull;
 
 import java.util.Map.Entry;
 
-import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
-import edu.umd.cs.findbugs.annotations.NonNull;
-
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
 import org.apache.accumulo.core.client.BatchWriter;
@@ -47,6 +44,9 @@ import org.apache.accumulo.core.security.Authorizations;
 import org.apache.hadoop.io.Text;
 import org.apache.rya.api.instance.RyaDetails;
 import org.apache.rya.api.instance.RyaDetailsRepository;
+
+import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
+import edu.umd.cs.findbugs.annotations.NonNull;
 
 /**
  * An implementation of {@link RyaDetailsRepository} that stores a Rya
@@ -89,12 +89,17 @@ public class AccumuloRyaInstanceDetailsRepository implements RyaDetailsRepositor
 
     @Override
     public boolean isInitialized() throws RyaDetailsRepositoryException {
+        Scanner scanner = null;
         try {
-            final Scanner scanner = connector.createScanner(detailsTableName, new Authorizations());
+            scanner = connector.createScanner(detailsTableName, new Authorizations());
             scanner.fetchColumn(COL_FAMILY, COL_QUALIFIER);
             return scanner.iterator().hasNext();
         } catch (final TableNotFoundException e) {
             return false;
+        } finally {
+            if(scanner != null) {
+                scanner.close();
+            }
         }
     }
 
@@ -157,9 +162,10 @@ public class AccumuloRyaInstanceDetailsRepository implements RyaDetailsRepositor
         }
 
         // Read it from the table.
+        Scanner scanner = null;
         try {
             // Fetch the value from the table.
-            final Scanner scanner = connector.createScanner(detailsTableName, new Authorizations());
+            scanner = connector.createScanner(detailsTableName, new Authorizations());
             scanner.fetchColumn(COL_FAMILY, COL_QUALIFIER);
             final Entry<Key, Value> entry = scanner.iterator().next();
 
@@ -169,6 +175,10 @@ public class AccumuloRyaInstanceDetailsRepository implements RyaDetailsRepositor
 
         } catch (final TableNotFoundException e) {
             throw new RyaDetailsRepositoryException("Could not get the details from the table.", e);
+        } finally {
+            if(scanner != null) {
+                scanner.close();
+            }
         }
     }
 

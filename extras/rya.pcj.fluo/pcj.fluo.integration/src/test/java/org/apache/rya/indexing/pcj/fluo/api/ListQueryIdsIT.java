@@ -26,17 +26,18 @@ import java.util.List;
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
 import org.apache.accumulo.core.client.TableExistsException;
-import org.apache.rya.indexing.pcj.fluo.ITBase;
+import org.apache.fluo.api.client.FluoClient;
+import org.apache.fluo.api.client.FluoFactory;
+import org.apache.fluo.api.client.Transaction;
+import org.apache.rya.indexing.pcj.fluo.RyaExportITBase;
 import org.junit.Test;
 
 import com.beust.jcommander.internal.Lists;
 
-import org.apache.fluo.api.client.Transaction;
-
 /**
  * Integration tests the methods of {@link ListQueryIds}.
  */
-public class ListQueryIdsIT extends ITBase {
+public class ListQueryIdsIT extends RyaExportITBase {
 
     /**
      * This test ensures that when there are PCJ tables in Accumulo as well as
@@ -45,18 +46,20 @@ public class ListQueryIdsIT extends ITBase {
      */
     @Test
     public void getQueryIds() throws AccumuloException, AccumuloSecurityException, TableExistsException {
-        // Store a few SPARQL/Query ID pairs in the Fluo table.
-        try(Transaction tx = fluoClient.newTransaction()) {
-            tx.set("SPARQL_3", QUERY_ID, "ID_3");
-            tx.set("SPARQL_1", QUERY_ID, "ID_1");
-            tx.set("SPARQL_4", QUERY_ID, "ID_4");
-            tx.set("SPARQL_2", QUERY_ID, "ID_2");
-            tx.commit();
-        }
+        try(FluoClient fluoClient = FluoFactory.newClient(super.getFluoConfiguration())) {
+            // Store a few SPARQL/Query ID pairs in the Fluo table.
+            try(Transaction tx = fluoClient.newTransaction()) {
+                tx.set("SPARQL_3", QUERY_ID, "ID_3");
+                tx.set("SPARQL_1", QUERY_ID, "ID_1");
+                tx.set("SPARQL_4", QUERY_ID, "ID_4");
+                tx.set("SPARQL_2", QUERY_ID, "ID_2");
+                tx.commit();
+            }
 
-        // Ensure the correct list of Query IDs is retured.
-        final List<String> expected = Lists.newArrayList("ID_1", "ID_2", "ID_3", "ID_4");
-        final List<String> queryIds = new ListQueryIds().listQueryIds(fluoClient);
-        assertEquals(expected, queryIds);
+            // Ensure the correct list of Query IDs is retured.
+            final List<String> expected = Lists.newArrayList("ID_1", "ID_2", "ID_3", "ID_4");
+            final List<String> queryIds = new ListQueryIds().listQueryIds(fluoClient);
+            assertEquals(expected, queryIds);
+        }
     }
 }

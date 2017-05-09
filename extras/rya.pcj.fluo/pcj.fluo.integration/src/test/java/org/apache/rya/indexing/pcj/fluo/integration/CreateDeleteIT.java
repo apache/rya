@@ -18,100 +18,152 @@
  */
 package org.apache.rya.indexing.pcj.fluo.integration;
 
+import static java.util.Objects.requireNonNull;
 import static org.junit.Assert.assertEquals;
 
 import java.util.ArrayList;
-import java.util.HashSet;
+import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
+import org.apache.accumulo.core.client.Connector;
+import org.apache.accumulo.core.client.Instance;
 import org.apache.fluo.api.client.FluoClient;
+import org.apache.fluo.api.client.FluoFactory;
 import org.apache.fluo.api.client.Snapshot;
 import org.apache.fluo.api.client.scanner.ColumnScanner;
 import org.apache.fluo.api.client.scanner.RowScanner;
 import org.apache.fluo.api.data.Bytes;
 import org.apache.fluo.api.data.Span;
-import org.apache.rya.indexing.pcj.fluo.ITBase;
-import org.apache.rya.indexing.pcj.fluo.api.CreatePcj;
+import org.apache.rya.api.client.RyaClient;
+import org.apache.rya.api.client.accumulo.AccumuloConnectionDetails;
+import org.apache.rya.api.client.accumulo.AccumuloRyaClientFactory;
+import org.apache.rya.indexing.pcj.fluo.RyaExportITBase;
 import org.apache.rya.indexing.pcj.fluo.api.DeletePcj;
-import org.apache.rya.indexing.pcj.storage.PrecomputedJoinStorage;
-import org.apache.rya.indexing.pcj.storage.accumulo.AccumuloPcjStorage;
 import org.junit.Test;
 import org.openrdf.model.Statement;
-import org.openrdf.model.impl.URIImpl;
-import org.openrdf.query.BindingSet;
-import org.openrdf.query.impl.BindingImpl;
+import org.openrdf.model.ValueFactory;
+import org.openrdf.model.impl.ValueFactoryImpl;
+import org.openrdf.repository.sail.SailRepositoryConnection;
 
 import com.google.common.collect.Sets;
 
-public class CreateDeleteIT extends ITBase {
+/**
+ * Tests that ensure the PCJ delete support works.
+ */
+public class CreateDeleteIT extends RyaExportITBase {
 
-    /**
-     * Ensure historic matches are included in the result.
-     */
     @Test
-    public void historicResults() throws Exception {
+    public void deletePCJ() throws Exception {
         // A query that finds people who talk to Eve and work at Chipotle.
-        final String sparql = "SELECT ?x " + "WHERE { " + "?x <http://talksTo> <http://Eve>. "
-                + "?x <http://worksAt> <http://Chipotle>." + "}";
+        final String sparql =
+                "SELECT ?x " + "WHERE { " +
+                    "?x <http://talksTo> <http://Eve>. " +
+                    "?x <http://worksAt> <http://Chipotle>." +
+                "}";
 
         // Triples that are loaded into Rya before the PCJ is created.
-        final Set<Statement> historicTriples = Sets.newHashSet(
-                makeStatement("http://Alice", "http://talksTo", "http://Eve"),
-                makeStatement("http://Bob", "http://talksTo", "http://Eve"),
-                makeStatement("http://Charlie", "http://talksTo", "http://Eve"),
+        final ValueFactory vf = new ValueFactoryImpl();
+        final Set<Statement> statements = Sets.newHashSet(
+                vf.createStatement(vf.createURI("http://Alice"), vf.createURI("http://talksTo"), vf.createURI("http://Eve")),
+                vf.createStatement(vf.createURI("http://Bob"), vf.createURI("http://talksTo"), vf.createURI("http://Eve")),
+                vf.createStatement(vf.createURI("http://Charlie"), vf.createURI("http://talksTo"), vf.createURI("http://Eve")),
 
-                makeStatement("http://Eve", "http://helps", "http://Kevin"),
+                vf.createStatement(vf.createURI("http://Eve"), vf.createURI("http://helps"), vf.createURI("http://Kevin")),
 
-                makeStatement("http://Bob", "http://worksAt", "http://Chipotle"),
-                makeStatement("http://Charlie", "http://worksAt", "http://Chipotle"),
-                makeStatement("http://Eve", "http://worksAt", "http://Chipotle"),
-                makeStatement("http://David", "http://worksAt", "http://Chipotle"));
+                vf.createStatement(vf.createURI("http://Bob"), vf.createURI("http://worksAt"), vf.createURI("http://Chipotle")),
+                vf.createStatement(vf.createURI("http://Charlie"), vf.createURI("http://worksAt"), vf.createURI("http://Chipotle")),
+                vf.createStatement(vf.createURI("http://Eve"), vf.createURI("http://worksAt"), vf.createURI("http://Chipotle")),
+                vf.createStatement(vf.createURI("http://David"), vf.createURI("http://worksAt"), vf.createURI("http://Chipotle")));
 
-        // The expected results of the SPARQL query once the PCJ has been
-        // computed.
-        final Set<BindingSet> expected = new HashSet<>();
-        expected.add(makeBindingSet(new BindingImpl("x", new URIImpl("http://Bob"))));
-        expected.add(makeBindingSet(new BindingImpl("x", new URIImpl("http://Charlie"))));
+        // Create the PCJ in Fluo and load the statements into Rya.
+        final String pcjId = loadData(sparql, statements);
 
-        // Load the historic data into Rya.
-        for (final Statement triple : historicTriples) {
-            ryaConn.add(triple);
+        try(FluoClient fluoClient = FluoFactory.newClient(super.getFluoConfiguration())) {
+            // Ensure the data was loaded.
+            final List<Bytes> rows = getFluoTableEntries(fluoClient);
+            assertEquals(17, rows.size());
+
+            // Delete the PCJ from the Fluo application.
+            new DeletePcj(1).deletePcj(fluoClient, pcjId);
+
+            // Ensure all data related to the query has been removed.
+            final List<Bytes> empty_rows = getFluoTableEntries(fluoClient);
+            assertEquals(0, empty_rows.size());
         }
-
-        // Create the PCJ table.
-        final PrecomputedJoinStorage pcjStorage = new AccumuloPcjStorage(accumuloConn, RYA_INSTANCE_NAME);
-        final String pcjId = pcjStorage.createPcj(sparql);
-
-        // Tell the Fluo app to maintain the PCJ.
-        new CreatePcj().withRyaIntegration(pcjId, pcjStorage, fluoClient, accumuloConn, RYA_INSTANCE_NAME);
-
-        // Verify the end results of the query match the expected results.
-        fluo.waitForObservers();
-
-        final Set<BindingSet> results = getQueryBindingSetValues(fluoClient, sparql);
-        assertEquals(expected, results);
-
-        List<Bytes> rows = getFluoTableEntries(fluoClient);
-        assertEquals(17, rows.size());
-
-        // Delete the PCJ from the Fluo application.
-        new DeletePcj(1).deletePcj(fluoClient, pcjId);
-
-        // Ensure all data related to the query has been removed.
-        List<Bytes> empty_rows = getFluoTableEntries(fluoClient);
-        assertEquals(0, empty_rows.size());
     }
 
-    private List<Bytes> getFluoTableEntries(FluoClient fluoClient) {
-        try (Snapshot snapshot = fluoClient.newSnapshot()) {
-            List<Bytes> rows = new ArrayList<>();
-            RowScanner rscanner = snapshot.scanner().over(Span.prefix("")).byRow().build();
+    @Test
+    public void deleteAggregation() throws Exception {
+        // A query that finds the maximum price for an item within the inventory.
+        final String sparql =
+                "SELECT (max(?price) as ?maxPrice) { " +
+                    "?item <urn:price> ?price . " +
+                "}";
 
-            for(ColumnScanner cscanner: rscanner) {
+        // Create the Statements that will be loaded into Rya.
+        final ValueFactory vf = new ValueFactoryImpl();
+        final Collection<Statement> statements = Sets.newHashSet(
+                vf.createStatement(vf.createURI("urn:apple"), vf.createURI("urn:price"), vf.createLiteral(2.50)),
+                vf.createStatement(vf.createURI("urn:gum"), vf.createURI("urn:price"), vf.createLiteral(0.99)),
+                vf.createStatement(vf.createURI("urn:sandwich"), vf.createURI("urn:price"), vf.createLiteral(4.99)));
+
+        // Create the PCJ in Fluo and load the statements into Rya.
+        final String pcjId = loadData(sparql, statements);
+
+        try(FluoClient fluoClient = FluoFactory.newClient(super.getFluoConfiguration())) {
+            // Ensure the data was loaded.
+            final List<Bytes> rows = getFluoTableEntries(fluoClient);
+            assertEquals(10, rows.size());
+
+            // Delete the PCJ from the Fluo application.
+            new DeletePcj(1).deletePcj(fluoClient, pcjId);
+
+            // Ensure all data related to the query has been removed.
+            final List<Bytes> empty_rows = getFluoTableEntries(fluoClient);
+            assertEquals(0, empty_rows.size());
+        }
+    }
+
+    private String loadData(final String sparql, final Collection<Statement> statements) throws Exception {
+        requireNonNull(sparql);
+        requireNonNull(statements);
+
+        // Register the PCJ with Rya.
+        final Instance accInstance = super.getAccumuloConnector().getInstance();
+        final Connector accumuloConn = super.getAccumuloConnector();
+
+        final RyaClient ryaClient = AccumuloRyaClientFactory.build(new AccumuloConnectionDetails(
+                ACCUMULO_USER,
+                ACCUMULO_PASSWORD.toCharArray(),
+                accInstance.getInstanceName(),
+                accInstance.getZooKeepers()), accumuloConn);
+
+        final String pcjId = ryaClient.getCreatePCJ().createPCJ(RYA_INSTANCE_NAME, sparql);
+
+        // Write the data to Rya.
+        final SailRepositoryConnection ryaConn = super.getRyaSailRepository().getConnection();
+        ryaConn.begin();
+        ryaConn.add(statements);
+        ryaConn.commit();
+        ryaConn.close();
+
+        // Wait for the Fluo application to finish computing the end result.
+        super.getMiniFluo().waitForObservers();
+
+        // The PCJ Id is the topic name the results will be written to.
+        return pcjId;
+    }
+
+    private List<Bytes> getFluoTableEntries(final FluoClient fluoClient) {
+        try (Snapshot snapshot = fluoClient.newSnapshot()) {
+            final List<Bytes> rows = new ArrayList<>();
+            final RowScanner rscanner = snapshot.scanner().over(Span.prefix("")).byRow().build();
+
+            for(final ColumnScanner cscanner: rscanner) {
             	rows.add(cscanner.getRow());
             }
-            
+
             return rows;
         }
     }

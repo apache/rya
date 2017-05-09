@@ -18,18 +18,17 @@
  */
 package org.apache.rya.indexing.pcj.fluo.app.observers;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import static java.util.Objects.requireNonNull;
 
+import org.apache.fluo.api.client.TransactionBase;
+import org.apache.fluo.api.data.Bytes;
 import org.apache.rya.indexing.pcj.fluo.app.BindingSetRow;
+import org.apache.rya.indexing.pcj.fluo.app.VisibilityBindingSetSerDe;
 import org.apache.rya.indexing.pcj.fluo.app.query.FluoQueryColumns;
 import org.apache.rya.indexing.pcj.fluo.app.query.FluoQueryMetadataDAO;
 import org.apache.rya.indexing.pcj.fluo.app.query.StatementPatternMetadata;
-import org.apache.rya.indexing.pcj.storage.accumulo.VariableOrder;
 import org.apache.rya.indexing.pcj.storage.accumulo.VisibilityBindingSet;
-import org.apache.rya.indexing.pcj.storage.accumulo.VisibilityBindingSetStringConverter;
 import org.openrdf.query.BindingSet;
-
-import org.apache.fluo.api.client.TransactionBase;
 
 /**
  * Notified when the results of a Statement Pattern have been updated to include
@@ -38,7 +37,7 @@ import org.apache.fluo.api.client.TransactionBase;
  */
 public class StatementPatternObserver extends BindingSetUpdater {
 
-    private static final VisibilityBindingSetStringConverter CONVERTER = new VisibilityBindingSetStringConverter();
+    private static final VisibilityBindingSetSerDe BS_SERDE = new VisibilityBindingSetSerDe();
 
     // DAO
     private final FluoQueryMetadataDAO queryDao = new FluoQueryMetadataDAO();
@@ -49,17 +48,17 @@ public class StatementPatternObserver extends BindingSetUpdater {
     }
 
     @Override
-    public Observation parseObservation(final TransactionBase tx, final BindingSetRow parsedRow) {
-        checkNotNull(tx);
+    public Observation parseObservation(final TransactionBase tx, final Bytes row) throws Exception {
+        requireNonNull(tx);
+        requireNonNull(row);
 
         // Read the Statement Pattern metadata.
-        final String spNodeId = parsedRow.getNodeId();
+        final String spNodeId = BindingSetRow.make(row).getNodeId();
         final StatementPatternMetadata spMetadata = queryDao.readStatementPatternMetadata(tx, spNodeId);
-        final String bindingSetValue = parsedRow.getBindingSetString();
 
-        // Read the Binding Set that was just emmitted by the Statement Pattern.
-        final VariableOrder spVarOrder = spMetadata.getVariableOrder();
-        final VisibilityBindingSet spBindingSet = (VisibilityBindingSet) CONVERTER.convert(bindingSetValue, spVarOrder);
+        // Read the Visibility Binding Set from the value.
+        final Bytes valueBytes = tx.get(row, FluoQueryColumns.STATEMENT_PATTERN_BINDING_SET);
+        final VisibilityBindingSet spBindingSet = BS_SERDE.deserialize(valueBytes);
 
         // Figure out which node needs to handle the new metadata.
         final String parentNodeId = spMetadata.getParentNodeId();

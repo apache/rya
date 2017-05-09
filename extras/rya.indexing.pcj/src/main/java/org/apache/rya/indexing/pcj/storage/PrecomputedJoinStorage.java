@@ -22,17 +22,17 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 
-import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
-import edu.umd.cs.findbugs.annotations.NonNull;
-
 import org.apache.rya.indexing.pcj.storage.accumulo.VisibilityBindingSet;
 import org.openrdf.query.BindingSet;
+
+import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
+import edu.umd.cs.findbugs.annotations.NonNull;
 
 /**
  * Functions that create and maintain the PCJ tables that are used by Rya.
  */
 @DefaultAnnotation(NonNull.class)
-public interface PrecomputedJoinStorage {
+public interface PrecomputedJoinStorage extends AutoCloseable {
 
     /**
      * Get a list of all Precomputed Join indices that are being maintained.
@@ -75,7 +75,7 @@ public interface PrecomputedJoinStorage {
      *   results for the PCJ.
      * @throws PCJStorageException The scan couldn't be performed.
      */
-    public Iterable<BindingSet> listResults(String pcjId) throws PCJStorageException;
+    public CloseableIterator<BindingSet> listResults(String pcjId) throws PCJStorageException;
 
     /**
      * Clears all values from a Precomputed Join index. The index will remain,
@@ -94,13 +94,23 @@ public interface PrecomputedJoinStorage {
      */
     public void dropPcj(final String pcjId) throws PCJStorageException;
 
-
     /**
      * Releases and resources that are being used by the storage.
      *
      * @throws PCJStorageException Indicates the resources could not be released.
      */
+    @Override
     public void close() throws PCJStorageException;
+
+    /**
+     * An {@link Iterator} that also extends {@link AutoCloseable} because it has reference to resources
+     * that need to be released once you are done iterating.
+     *
+     * @param <T> The type of object that is iterated over.
+     */
+    public static interface CloseableIterator<T> extends Iterator<T>, AutoCloseable {
+
+    }
 
     /**
      * An operation of {@link PrecomputedJoinStorage} failed.

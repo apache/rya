@@ -135,7 +135,7 @@ public class NewQueryCommand implements PcjAdminClientCommand {
             // Tell the Fluo PCJ Updater app to maintain the PCJ.
             createPcj.withRyaIntegration(pcjId, pcjStorage, fluo, accumulo, ryaTablePrefix);
 
-        } catch (MalformedQueryException | SailException | QueryEvaluationException | PcjException | RyaDAOException e) {
+        } catch (MalformedQueryException | PcjException | RyaDAOException e) {
             throw new ExecutionException("Could not create and load historic matches into the the Fluo app for the query.", e);
         }
 

@@ -64,6 +64,14 @@ under the License.
             	</exclusion>
             </exclusions>
         </dependency>
+        <dependency>
+            <groupId>org.apache.fluo</groupId>
+            <artifactId>fluo-recipes-core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.fluo</groupId>
+            <artifactId>fluo-recipes-accumulo</artifactId>
+        </dependency>
         
         <dependency>
           <groupId>org.apache.kafka</groupId>
@@ -81,7 +89,7 @@ under the License.
                 </exclusion>
             </exclusions>
         </dependency>
-                <dependency>
+        <dependency>
             <groupId>com.esotericsoftware</groupId>
             <artifactId>kryo</artifactId>
             <version>${kryo.version}</version>

@@ -20,12 +20,12 @@ package org.apache.rya.accumulo.utils;
 
 import static java.util.Objects.requireNonNull;
 
-import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
-import edu.umd.cs.findbugs.annotations.NonNull;
-
 import org.apache.accumulo.core.security.ColumnVisibility;
 
 import com.google.common.base.Charsets;
+
+import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
+import edu.umd.cs.findbugs.annotations.NonNull;
 
 /**
  * Simplifies Accumulo visibility expressions.
@@ -34,12 +34,34 @@ import com.google.common.base.Charsets;
 public class VisibilitySimplifier {
 
     /**
+     * Unions two visibility equations and then simplifies the result.
+     *
+     * @param vis1 - The first visibility equation that will be unioned. (not null)
+     * @param vis2 - The other visibility equation that will be unioned. (not null)
+     * @return A simplified form of the unioned visibility equations.
+     */
+    public static String unionAndSimplify(final String vis1, final String vis2) {
+        requireNonNull(vis1);
+        requireNonNull(vis2);
+
+        if(vis1.isEmpty()) {
+            return vis2;
+        }
+
+        if(vis2.isEmpty()) {
+            return vis1;
+        }
+
+        return simplify("(" + vis1 + ")&(" + vis2 + ")");
+    }
+
+    /**
      * Simplifies an Accumulo visibility expression.
      *
      * @param visibility - The expression to simplify. (not null)
      * @return A simplified form of {@code visibility}.
      */
-    public String simplify(final String visibility) {
+    public static String simplify(final String visibility) {
         requireNonNull(visibility);
 
         String last = visibility;

@@ -19,6 +19,7 @@
 package org.apache.rya.indexing.pcj.fluo.app.query;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.apache.rya.indexing.pcj.fluo.app.IncrementalUpdateConstants.AGGREGATION_PREFIX;
 import static org.apache.rya.indexing.pcj.fluo.app.IncrementalUpdateConstants.FILTER_PREFIX;
 import static org.apache.rya.indexing.pcj.fluo.app.IncrementalUpdateConstants.JOIN_PREFIX;
 import static org.apache.rya.indexing.pcj.fluo.app.IncrementalUpdateConstants.QUERY_PREFIX;
@@ -29,31 +30,39 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
-
-import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
-import edu.umd.cs.findbugs.annotations.NonNull;
-import net.jcip.annotations.Immutable;
+import java.util.concurrent.atomic.AtomicReference;
 
 import org.apache.rya.indexing.pcj.fluo.app.FilterResultUpdater;
 import org.apache.rya.indexing.pcj.fluo.app.FluoStringConverter;
 import org.apache.rya.indexing.pcj.fluo.app.NodeType;
+import org.apache.rya.indexing.pcj.fluo.app.query.AggregationMetadata.AggregationElement;
+import org.apache.rya.indexing.pcj.fluo.app.query.AggregationMetadata.AggregationType;
 import org.apache.rya.indexing.pcj.fluo.app.query.JoinMetadata.JoinType;
 import org.apache.rya.indexing.pcj.storage.accumulo.VariableOrder;
+import org.openrdf.query.algebra.AggregateOperator;
+import org.openrdf.query.algebra.Extension;
 import org.openrdf.query.algebra.Filter;
+import org.openrdf.query.algebra.Group;
+import org.openrdf.query.algebra.GroupElem;
 import org.openrdf.query.algebra.Join;
 import org.openrdf.query.algebra.LeftJoin;
 import org.openrdf.query.algebra.Projection;
 import org.openrdf.query.algebra.QueryModelNode;
 import org.openrdf.query.algebra.StatementPattern;
 import org.openrdf.query.algebra.TupleExpr;
+import org.openrdf.query.algebra.Var;
 import org.openrdf.query.algebra.helpers.QueryModelVisitorBase;
 import org.openrdf.query.parser.ParsedQuery;
 
-import com.google.common.base.Optional;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+
+import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
+import edu.umd.cs.findbugs.annotations.NonNull;
+import net.jcip.annotations.Immutable;
 
 /**
  * Creates the {@link FluoQuery} metadata that is required by the Fluo
@@ -119,7 +128,7 @@ public class SparqlFluoQueryBuilder {
          */
         public Optional<String> getId(final QueryModelNode node) {
             checkNotNull(node);
-            return Optional.fromNullable( nodeIds.get(node) );
+            return Optional.ofNullable( nodeIds.get(node) );
         }
 
         /**
@@ -157,13 +166,14 @@ public class SparqlFluoQueryBuilder {
                 prefix = JOIN_PREFIX;
             } else if(node instanceof Projection) {
                 prefix = QUERY_PREFIX;
+            } else if(node instanceof Extension) {
+                prefix = AGGREGATION_PREFIX;
             } else {
-                throw new IllegalArgumentException("Node must be of type {StatementPattern, Join, Filter, Projection} but was " + node.getClass());
+                throw new IllegalArgumentException("Node must be of type {StatementPattern, Join, Filter, Extension, Projection} but was " + node.getClass());
             }
 
             // Create the unique portion of the id.
             final String unique = UUID.randomUUID().toString().replaceAll("-", "");
-
 
             // Put them together to create the Node ID.
             return prefix + "_" + unique;
@@ -202,6 +212,77 @@ public class SparqlFluoQueryBuilder {
             this.sparql = checkNotNull(sparql);
             this.fluoQueryBuilder = checkNotNull(fluoQueryBuilder);
             this.nodeIds = checkNotNull(nodeIds);
+        }
+
+        /**
+         * If we encounter an Extension node that contains a Group, then we've found an aggregation.
+         */
+        @Override
+        public void meet(final Extension node) {
+            final TupleExpr arg = node.getArg();
+            if(arg instanceof Group) {
+                final Group group = (Group) arg;
+
+                // Get the Aggregation Node's id.
+                final String aggregationId = nodeIds.getOrMakeId(node);
+
+                // Get the group's child node id. This call forces it to be a supported child type.
+                final TupleExpr child = group.getArg();
+                final String childNodeId = nodeIds.getOrMakeId( child );
+
+                // Get the list of group by binding names.
+                VariableOrder groupByVariableOrder = null;
+                if(!group.getGroupBindingNames().isEmpty()) {
+                    groupByVariableOrder = new VariableOrder(group.getGroupBindingNames());
+                } else {
+                    groupByVariableOrder = new VariableOrder();
+                }
+
+                // The aggregations that need to be performed are the Group Elements.
+                final List<AggregationElement> aggregations = new ArrayList<>();
+                for(final GroupElem groupElem : group.getGroupElements()) {
+                    // Figure out the type of the aggregation.
+                    final AggregateOperator operator = groupElem.getOperator();
+                    final Optional<AggregationType> type = AggregationType.byOperatorClass( operator.getClass() );
+
+                    // If the type is one we support, create the AggregationElement.
+                    if(type.isPresent()) {
+                        final String resultBindingName = groupElem.getName();
+
+                        final AtomicReference<String> aggregatedBindingName = new AtomicReference<>();
+                        groupElem.visitChildren(new QueryModelVisitorBase<RuntimeException>() {
+                            @Override
+                            public void meet(final Var node) {
+                                aggregatedBindingName.set( node.getName() );
+                            }
+                        });
+
+                        aggregations.add( new AggregationElement(type.get(), aggregatedBindingName.get(), resultBindingName) );
+                    }
+                }
+
+                // Update the aggregation's metadata.
+                AggregationMetadata.Builder aggregationBuilder = fluoQueryBuilder.getAggregateBuilder(aggregationId).orNull();
+                if(aggregationBuilder == null) {
+                    aggregationBuilder = AggregationMetadata.builder(aggregationId);
+                    fluoQueryBuilder.addAggregateMetadata(aggregationBuilder);
+                }
+
+                aggregationBuilder.setChildNodeId(childNodeId);
+                aggregationBuilder.setGroupByVariableOrder(groupByVariableOrder);
+                for(final AggregationElement aggregation : aggregations) {
+                    aggregationBuilder.addAggregation(aggregation);
+                }
+
+                // Update the child node's metadata.
+                final Set<String> childVars = getVars(child);
+                final VariableOrder childVarOrder = new VariableOrder(childVars);
+
+                setChildMetadata(childNodeId, childVarOrder, aggregationId);
+            }
+
+            // Walk to the next node.
+            super.meet(node);
         }
 
         @Override
@@ -386,10 +467,21 @@ public class SparqlFluoQueryBuilder {
                     filterBuilder.setParentNodeId(parentNodeId);
                     break;
 
-            case QUERY:
-                throw new IllegalArgumentException("QUERY nodes do not have children.");
-            default:
-                throw new IllegalArgumentException("Unsupported NodeType: " + childType);
+                case AGGREGATION:
+                    AggregationMetadata.Builder aggregationBuilder = fluoQueryBuilder.getAggregateBuilder(childNodeId).orNull();
+                    if(aggregationBuilder == null) {
+                        aggregationBuilder = AggregationMetadata.builder(childNodeId);
+                        fluoQueryBuilder.addAggregateMetadata(aggregationBuilder);
+                    }
+
+                    aggregationBuilder.setVariableOrder(childVarOrder);
+                    aggregationBuilder.setParentNodeId(parentNodeId);
+                    break;
+
+                case QUERY:
+                    throw new IllegalArgumentException("QUERY nodes do not have children.");
+                default:
+                    throw new IllegalArgumentException("Unsupported NodeType: " + childType);
             }
         }
 

@@ -40,7 +40,6 @@ import org.apache.rya.api.instance.RyaDetails.EntityCentricIndexDetails;
 import org.apache.rya.api.instance.RyaDetails.FreeTextIndexDetails;
 import org.apache.rya.api.instance.RyaDetails.JoinSelectivityDetails;
 import org.apache.rya.api.instance.RyaDetails.PCJIndexDetails;
-import org.apache.rya.api.instance.RyaDetails.PCJIndexDetails.FluoDetails;
 import org.apache.rya.api.instance.RyaDetails.ProspectorDetails;
 import org.apache.rya.api.instance.RyaDetails.TemporalIndexDetails;
 import org.junit.Test;
@@ -63,7 +62,6 @@ public class AccumuloGetInstanceDetailsIT extends AccumuloITBase {
                 .setEnableTemporalIndex(true)
                 .setEnablePcjIndex(true)
                 .setEnableGeoIndex(true)
-                .setFluoPcjAppName("fluo_app_name")
                 .build();
 
         final AccumuloConnectionDetails connectionDetails = new AccumuloConnectionDetails(
@@ -91,8 +89,7 @@ public class AccumuloGetInstanceDetailsIT extends AccumuloITBase {
                 .setEntityCentricIndexDetails( new EntityCentricIndexDetails(true) )
                 .setPCJIndexDetails(
                         PCJIndexDetails.builder()
-                            .setEnabled(true)
-                            .setFluoDetails( new FluoDetails("fluo_app_name") ))
+                            .setEnabled(true))
                 .setProspectorDetails( new ProspectorDetails(Optional.<Date>absent()) )
                 .setJoinSelectivityDetails( new JoinSelectivityDetails(Optional.<Date>absent()) )
                 .build();

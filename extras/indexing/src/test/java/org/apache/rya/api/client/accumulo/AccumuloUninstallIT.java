@@ -55,7 +55,6 @@ public class AccumuloUninstallIT extends AccumuloITBase {
                 .setEnableTemporalIndex(true)
                 .setEnablePcjIndex(true)
                 .setEnableGeoIndex(true)
-                .setFluoPcjAppName("fluo_app_name")
                 .build();
 
         final AccumuloConnectionDetails connectionDetails = new AccumuloConnectionDetails(

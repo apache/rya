@@ -63,17 +63,9 @@ public class RyaDetailsToConfiguration {
         		conf.set(ConfigurationFields.PCJ_UPDATER_TYPE, "NO_UPDATE");
         	}
         } else {
-        	if (pcjDetails.isEnabled() ) {
-        		conf.set(ConfigurationFields.PCJ_STORAGE_TYPE, "ACCUMULO");
-        		if (pcjDetails.getFluoDetails().isPresent()) {
-        			checkAndSet(conf, ConfigurationFields.USE_PCJ_UPDATER, true);
-        			conf.set(ConfigurationFields.FLUO_APP_NAME, pcjDetails.getFluoDetails().get().getUpdateAppName());
-        			conf.set(ConfigurationFields.PCJ_UPDATER_TYPE, "FLUO");
-        		} else {
-        			checkAndSet(conf, ConfigurationFields.USE_PCJ_UPDATER, false);
-        			conf.set(ConfigurationFields.PCJ_UPDATER_TYPE, "NO_UPDATE");
-        		}
-        	}
+            //checkAndSet(conf, ConfigurationFields.USE_PCJ_UPDATER, details.getPCJIndexDetails().isEnabled());
+        	checkAndSet(conf, ConfigurationFields.USE_PCJ_UPDATER, false);
+            conf.set(ConfigurationFields.PCJ_UPDATER_TYPE, "NO_UPDATE");
         }
     }
 

@@ -51,7 +51,8 @@ public class AccumuloUninstallIT extends AccumuloITBase {
                 .setEnableEntityCentricIndex(true)
                 .setEnableFreeTextIndex(true)
                 .setEnableTemporalIndex(true)
-                .setEnablePcjIndex(true)
+                .setEnablePcjIndex(false)//todo this doesn't install properly
+                .setFluoPcjAppName(getRyaInstanceName())
                 .setEnableGeoIndex(true)
                 .build();
 

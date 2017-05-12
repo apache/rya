@@ -45,7 +45,7 @@ public class RyaDetailsFormatter {
      * @param details - The object to format. (not null)
      * @return A pretty render of the object.
      */
-    public String format(StorageType storageType, final RyaDetails details) {
+    public String format(final StorageType storageType, final RyaDetails details) {
         requireNonNull(details);
 
         final StringBuilder report = new StringBuilder();
@@ -72,41 +72,43 @@ public class RyaDetailsFormatter {
         report.append("  Temporal Index:\n");
         report.append("    Enabled: ").append( details.getTemporalIndexDetails().isEnabled() ).append("\n");
 
-        if(storageType == StorageType.ACCUMULO) {
-            report.append("  PCJ Index:\n");
-            final PCJIndexDetails pcjDetails = details.getPCJIndexDetails();
-            report.append("    Enabled: ").append( pcjDetails.isEnabled() ).append("\n");
-            if(pcjDetails.isEnabled()) {
-                if(pcjDetails.getFluoDetails().isPresent()) {
-                    final String fluoAppName = pcjDetails.getFluoDetails().get().getUpdateAppName();
-                    report.append("    Fluo App Name: ").append(fluoAppName).append("\n");
-                }
+        report.append("  PCJ Index:\n");
+        final PCJIndexDetails pcjDetails = details.getPCJIndexDetails();
+        report.append("    Enabled: ").append( pcjDetails.isEnabled() ).append("\n");
+        if(pcjDetails.isEnabled()) {
+            if(pcjDetails.getFluoDetails().isPresent()) {
+                final String fluoAppName = pcjDetails.getFluoDetails().get().getUpdateAppName();
+                report.append("    Fluo App Name: ").append(fluoAppName).append("\n");
+            }
 
-                final ImmutableMap<String, PCJDetails> pcjs = pcjDetails.getPCJDetails();
-                report.append("    PCJs:\n");
-                if(pcjs.isEmpty()) {
-                    report.append("      No PCJs have been added yet.\n");
-                } else {
-                    for(final PCJDetails pcj : pcjs.values()) {
-                        report.append("      ID: ").append(pcj.getId()).append("\n");
+            final ImmutableMap<String, PCJDetails> pcjs = pcjDetails.getPCJDetails();
+            report.append("    PCJs:\n");
+            if(pcjs.isEmpty()) {
+                report.append("      No PCJs have been added yet.\n");
+            } else {
+                for(final PCJDetails pcj : pcjs.values()) {
+                    report.append("      ID: ").append(pcj.getId()).append("\n");
 
-                        final String updateStrategy = format( pcj.getUpdateStrategy(), "None" );
-                        report.append("        Update Strategy: ").append(updateStrategy).append("\n");
+                    final String updateStrategy = format( pcj.getUpdateStrategy(), "None" );
+                    report.append("        Update Strategy: ").append(updateStrategy).append("\n");
 
-                        final String lastUpdateTime = format( pcj.getLastUpdateTime(), "unavailable");
-                        report.append("        Last Update Time: ").append(lastUpdateTime).append("\n");
-                    }
+                    final String lastUpdateTime = format( pcj.getLastUpdateTime(), "unavailable");
+                    report.append("        Last Update Time: ").append(lastUpdateTime).append("\n");
                 }
             }
 
-            report.append("Statistics:\n");
-            report.append("  Prospector:\n");
-            final String prospectorLastUpdateTime = format(details.getProspectorDetails().getLastUpdated(), "unavailable");
-            report.append("    Last Update Time: ").append( prospectorLastUpdateTime).append("\n");
+            if (storageType == StorageType.ACCUMULO) {
+                report.append("Statistics:\n");
+                report.append("  Prospector:\n");
+                final String prospectorLastUpdateTime = format(details.getProspectorDetails().getLastUpdated(),
+                        "unavailable");
+                report.append("    Last Update Time: ").append(prospectorLastUpdateTime).append("\n");
 
-            report.append("  Join Selectivity:\n");
-            final String jsLastUpdateTime = format(details.getJoinSelectivityDetails().getLastUpdated(), "unavailable");
-            report.append("    Last Updated Time: ").append( jsLastUpdateTime ).append("\n");
+                report.append("  Join Selectivity:\n");
+                final String jsLastUpdateTime = format(details.getJoinSelectivityDetails().getLastUpdated(),
+                        "unavailable");
+                report.append("    Last Updated Time: ").append(jsLastUpdateTime).append("\n");
+            }
         }
 
         return report.toString();

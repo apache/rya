@@ -1,6 +1,4 @@
-package org.apache.rya.indexing.IndexPlanValidator;
-
-/*
+/**
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -18,18 +16,26 @@ package org.apache.rya.indexing.IndexPlanValidator;
  * specific language governing permissions and limitations
  * under the License.
  */
+package org.apache.rya.indexing.IndexPlanValidator;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 
+import org.apache.hadoop.conf.Configuration;
 import org.apache.rya.indexing.external.tupleSet.ExternalTupleSet;
 import org.apache.rya.indexing.external.tupleSet.SimpleExternalTupleSet;
+import org.apache.rya.indexing.mongodb.pcj.MongoPcjIndexSetProvider;
 import org.apache.rya.indexing.pcj.matching.PCJOptimizer;
-
+import org.apache.rya.indexing.pcj.matching.provider.AbstractPcjIndexSetProvider;
+import org.apache.rya.indexing.pcj.matching.provider.AccumuloIndexSetProvider;
+import org.apache.rya.mongodb.EmbeddedMongoSingleton;
+import org.apache.rya.mongodb.StatefulMongoDBRdfConfiguration;
 import org.junit.Assert;
 import org.junit.Test;
-import org.openrdf.query.MalformedQueryException;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
 import org.openrdf.query.algebra.Projection;
 import org.openrdf.query.algebra.TupleExpr;
 import org.openrdf.query.parser.ParsedQuery;
@@ -37,716 +43,743 @@ import org.openrdf.query.parser.sparql.SPARQLParser;
 
 import com.google.common.collect.Lists;
 
+@RunWith(Parameterized.class)
 public class IndexPlanValidatorTest {
+    private final AbstractPcjIndexSetProvider provider;
+
+    @Parameterized.Parameters
+    public static Collection providers() throws Exception {
+        final StatefulMongoDBRdfConfiguration conf = new StatefulMongoDBRdfConfiguration(new Configuration(), EmbeddedMongoSingleton.getNewMongoClient());
+        return Lists.<AbstractPcjIndexSetProvider> newArrayList(
+                new AccumuloIndexSetProvider(new Configuration()),
+                new MongoPcjIndexSetProvider(conf)
+                );
+    }
+
+    public IndexPlanValidatorTest(final AbstractPcjIndexSetProvider provider) {
+        this.provider = provider;
+    }
+
+    @Test
+    public void testEvaluateTwoIndexTwoVarOrder1()
+            throws Exception {
+
+
+        final String indexSparqlString = ""//
+                + "SELECT ?c ?e ?l  " //
+                + "{" //
+                + "  ?e a ?c . "//
+                + "  ?e <http://www.w3.org/2000/01/rdf-schema#label> ?l "//
+                + "}";//
+
+        final String indexSparqlString2 = ""//
+                + "SELECT ?e ?o ?l " //
+                + "{" //
+                + "  ?e <uri:talksTo> ?o . "//
+                + "  ?o <http://www.w3.org/2000/01/rdf-schema#label> ?l "//
+                + "}";//
+
+        final String queryString = ""//
+                + "SELECT ?e ?c ?l ?o " //
+                + "{" //
+                + "  ?e a ?c . "//
+                + "  ?e <http://www.w3.org/2000/01/rdf-schema#label> ?l . "//
+                + "  ?e <uri:talksTo> ?o . "//
+                + "  ?o <http://www.w3.org/2000/01/rdf-schema#label> ?l "//
+                + "}";//
+
+        final SPARQLParser sp = new SPARQLParser();
+        final ParsedQuery index1 = sp.parseQuery(indexSparqlString, null);
+        final ParsedQuery index2 = sp.parseQuery(indexSparqlString2, null);
+        final List<ExternalTupleSet> index = Lists.newArrayList();
+
+        final SimpleExternalTupleSet ais1 = new SimpleExternalTupleSet(
+                (Projection) index1.getTupleExpr());
+        final SimpleExternalTupleSet ais2 = new SimpleExternalTupleSet(
+                (Projection) index2.getTupleExpr());
+
+        index.add(ais1);
+        index.add(ais2);
+
+        final ParsedQuery pq = sp.parseQuery(queryString, null);
+        final TupleExpr tup = pq.getTupleExpr().clone();
+        provider.setIndices(index);
+        final PCJOptimizer pcj = new PCJOptimizer(index, false, provider);
+        pcj.optimize(tup, null, null);
+
+
+        final IndexPlanValidator ipv = new IndexPlanValidator(false);
+        Assert.assertEquals(false, ipv.isValid(tup));
+
+    }
+
+    @Test
+    public void testEvaluateTwoIndexTwoVarOrder2()
+            throws Exception {
+
+
+        final String indexSparqlString = ""//
+                + "SELECT ?e ?l ?c  " //
+                + "{" //
+                + "  ?e a ?c . "//
+                + "  ?e <http://www.w3.org/2000/01/rdf-schema#label> ?l "//
+                + "}";//
+
+        final String indexSparqlString2 = ""//
+                + "SELECT ?e ?o ?l " //
+                + "{" //
+                + "  ?e <uri:talksTo> ?o . "//
+                + "  ?o <http://www.w3.org/2000/01/rdf-schema#label> ?l "//
+                + "}";//
+
+        final String queryString = ""//
+                + "SELECT ?e ?c ?l ?o " //
+                + "{" //
+                + "  ?e a ?c . "//
+                + "  ?e <http://www.w3.org/2000/01/rdf-schema#label> ?l . "//
+                + "  ?e <uri:talksTo> ?o . "//
+                + "  ?o <http://www.w3.org/2000/01/rdf-schema#label> ?l "//
+                + "}";//
+
+        final SPARQLParser sp = new SPARQLParser();
+        final ParsedQuery index1 = sp.parseQuery(indexSparqlString, null);
+        final ParsedQuery index2 = sp.parseQuery(indexSparqlString2, null);
+
+        final List<ExternalTupleSet> index = Lists.newArrayList();
+
+        final SimpleExternalTupleSet ais1 = new SimpleExternalTupleSet(
+                (Projection) index1.getTupleExpr());
+        final SimpleExternalTupleSet ais2 = new SimpleExternalTupleSet(
+                (Projection) index2.getTupleExpr());
+
+        index.add(ais1);
+        index.add(ais2);
+
+        final ParsedQuery pq = sp.parseQuery(queryString, null);
+        final TupleExpr tup = pq.getTupleExpr().clone();
+        provider.setIndices(index);
+        final PCJOptimizer pcj = new PCJOptimizer(index, false, provider);
+        pcj.optimize(tup, null, null);
+
+
+        final IndexPlanValidator ipv = new IndexPlanValidator(false);
+        Assert.assertEquals(true, ipv.isValid(tup));
+
+    }
+
+    @Test
+    public void testEvaluateTwoIndexTwoVarOrder3()
+            throws Exception {
+
+
+        final String indexSparqlString = ""//
+                + "SELECT ?l ?e ?c  " //
+                + "{" //
+                + "  ?e a ?c . "//
+                + "  ?e <http://www.w3.org/2000/01/rdf-schema#label> ?l "//
+                + "}";//
 
-	@Test
-	public void testEvaluateTwoIndexTwoVarOrder1()
-			throws Exception {
-
-
-		String indexSparqlString = ""//
-				+ "SELECT ?c ?e ?l  " //
-				+ "{" //
-				+ "  ?e a ?c . "//
-				+ "  ?e <http://www.w3.org/2000/01/rdf-schema#label> ?l "//
-				+ "}";//
+        final String indexSparqlString2 = ""//
+                + "SELECT ?e ?o ?l " //
+                + "{" //
+                + "  ?e <uri:talksTo> ?o . "//
+                + "  ?o <http://www.w3.org/2000/01/rdf-schema#label> ?l "//
+                + "}";//
 
-		String indexSparqlString2 = ""//
-				+ "SELECT ?e ?o ?l " //
-				+ "{" //
-				+ "  ?e <uri:talksTo> ?o . "//
-				+ "  ?o <http://www.w3.org/2000/01/rdf-schema#label> ?l "//
-				+ "}";//
-
-		String queryString = ""//
-				+ "SELECT ?e ?c ?l ?o " //
-				+ "{" //
-				+ "  ?e a ?c . "//
-				+ "  ?e <http://www.w3.org/2000/01/rdf-schema#label> ?l . "//
-				+ "  ?e <uri:talksTo> ?o . "//
-				+ "  ?o <http://www.w3.org/2000/01/rdf-schema#label> ?l "//
-				+ "}";//
-
-		SPARQLParser sp = new SPARQLParser();
-		ParsedQuery index1 = sp.parseQuery(indexSparqlString, null);
-		ParsedQuery index2 = sp.parseQuery(indexSparqlString2, null);
-		List<ExternalTupleSet> index = Lists.newArrayList();
-
-		SimpleExternalTupleSet ais1 = new SimpleExternalTupleSet(
-				(Projection) index1.getTupleExpr());
-		SimpleExternalTupleSet ais2 = new SimpleExternalTupleSet(
-				(Projection) index2.getTupleExpr());
-
-		index.add(ais1);
-		index.add(ais2);
-
-		ParsedQuery pq = sp.parseQuery(queryString, null);
-		TupleExpr tup = pq.getTupleExpr().clone();
-		PCJOptimizer pcj = new PCJOptimizer(index, false);
-		pcj.optimize(tup, null, null);
-
-
-		IndexPlanValidator ipv = new IndexPlanValidator(false);
-		Assert.assertEquals(false, ipv.isValid(tup));
-
-	}
-
-	@Test
-	public void testEvaluateTwoIndexTwoVarOrder2()
-			throws Exception {
-
-
-		String indexSparqlString = ""//
-				+ "SELECT ?e ?l ?c  " //
-				+ "{" //
-				+ "  ?e a ?c . "//
-				+ "  ?e <http://www.w3.org/2000/01/rdf-schema#label> ?l "//
-				+ "}";//
+        final String queryString = ""//
+                + "SELECT ?e ?c ?l ?o " //
+                + "{" //
+                + "  ?e a ?c . "//
+                + "  ?e <http://www.w3.org/2000/01/rdf-schema#label> ?l . "//
+                + "  ?e <uri:talksTo> ?o . "//
+                + "  ?o <http://www.w3.org/2000/01/rdf-schema#label> ?l "//
+                + "}";//
+
+        final SPARQLParser sp = new SPARQLParser();
+        final ParsedQuery index1 = sp.parseQuery(indexSparqlString, null);
+        final ParsedQuery index2 = sp.parseQuery(indexSparqlString2, null);
+
+        final List<ExternalTupleSet> index = Lists.newArrayList();
+
+        final SimpleExternalTupleSet ais1 = new SimpleExternalTupleSet(
+                (Projection) index1.getTupleExpr());
+        final SimpleExternalTupleSet ais2 = new SimpleExternalTupleSet(
+                (Projection) index2.getTupleExpr());
+
+        index.add(ais1);
+        index.add(ais2);
+
+        final ParsedQuery pq = sp.parseQuery(queryString, null);
+        final TupleExpr tup = pq.getTupleExpr().clone();
+        provider.setIndices(index);
+        final PCJOptimizer pcj = new PCJOptimizer(index, false, provider);
+        pcj.optimize(tup, null, null);
+
+
+        final IndexPlanValidator ipv = new IndexPlanValidator(false);
+        Assert.assertEquals(true, ipv.isValid(tup));
+
+    }
+
+    @Test
+    public void testEvaluateTwoIndexTwoVarOrder4()
+            throws Exception {
+
 
-		String indexSparqlString2 = ""//
-				+ "SELECT ?e ?o ?l " //
-				+ "{" //
-				+ "  ?e <uri:talksTo> ?o . "//
-				+ "  ?o <http://www.w3.org/2000/01/rdf-schema#label> ?l "//
-				+ "}";//
-
-		String queryString = ""//
-				+ "SELECT ?e ?c ?l ?o " //
-				+ "{" //
-				+ "  ?e a ?c . "//
-				+ "  ?e <http://www.w3.org/2000/01/rdf-schema#label> ?l . "//
-				+ "  ?e <uri:talksTo> ?o . "//
-				+ "  ?o <http://www.w3.org/2000/01/rdf-schema#label> ?l "//
-				+ "}";//
-
-		SPARQLParser sp = new SPARQLParser();
-		ParsedQuery index1 = sp.parseQuery(indexSparqlString, null);
-		ParsedQuery index2 = sp.parseQuery(indexSparqlString2, null);
-
-		List<ExternalTupleSet> index = Lists.newArrayList();
-
-		SimpleExternalTupleSet ais1 = new SimpleExternalTupleSet(
-				(Projection) index1.getTupleExpr());
-		SimpleExternalTupleSet ais2 = new SimpleExternalTupleSet(
-				(Projection) index2.getTupleExpr());
-
-		index.add(ais1);
-		index.add(ais2);
-
-		ParsedQuery pq = sp.parseQuery(queryString, null);
-		TupleExpr tup = pq.getTupleExpr().clone();
-		PCJOptimizer pcj = new PCJOptimizer(index, false);
-		pcj.optimize(tup, null, null);
-
-
-		IndexPlanValidator ipv = new IndexPlanValidator(false);
-		Assert.assertEquals(true, ipv.isValid(tup));
-
-	}
-
-	@Test
-	public void testEvaluateTwoIndexTwoVarOrder3()
-			throws Exception {
-
+        final String indexSparqlString = ""//
+                + "SELECT ?e ?c ?l  " //
+                + "{" //
+                + "  ?e a ?c . "//
+                + "  ?e <http://www.w3.org/2000/01/rdf-schema#label> ?l "//
+                + "}";//
 
-		String indexSparqlString = ""//
-				+ "SELECT ?l ?e ?c  " //
-				+ "{" //
-				+ "  ?e a ?c . "//
-				+ "  ?e <http://www.w3.org/2000/01/rdf-schema#label> ?l "//
-				+ "}";//
+        final String indexSparqlString2 = ""//
+                + "SELECT ?e ?o ?l " //
+                + "{" //
+                + "  ?e <uri:talksTo> ?o . "//
+                + "  ?o <http://www.w3.org/2000/01/rdf-schema#label> ?l "//
+                + "}";//
 
-		String indexSparqlString2 = ""//
-				+ "SELECT ?e ?o ?l " //
-				+ "{" //
-				+ "  ?e <uri:talksTo> ?o . "//
-				+ "  ?o <http://www.w3.org/2000/01/rdf-schema#label> ?l "//
-				+ "}";//
-
-		String queryString = ""//
-				+ "SELECT ?e ?c ?l ?o " //
-				+ "{" //
-				+ "  ?e a ?c . "//
-				+ "  ?e <http://www.w3.org/2000/01/rdf-schema#label> ?l . "//
-				+ "  ?e <uri:talksTo> ?o . "//
-				+ "  ?o <http://www.w3.org/2000/01/rdf-schema#label> ?l "//
-				+ "}";//
-
-		SPARQLParser sp = new SPARQLParser();
-		ParsedQuery index1 = sp.parseQuery(indexSparqlString, null);
-		ParsedQuery index2 = sp.parseQuery(indexSparqlString2, null);
-
-		List<ExternalTupleSet> index = Lists.newArrayList();
-
-		SimpleExternalTupleSet ais1 = new SimpleExternalTupleSet(
-				(Projection) index1.getTupleExpr());
-		SimpleExternalTupleSet ais2 = new SimpleExternalTupleSet(
-				(Projection) index2.getTupleExpr());
-
-		index.add(ais1);
-		index.add(ais2);
-
-		ParsedQuery pq = sp.parseQuery(queryString, null);
-		TupleExpr tup = pq.getTupleExpr().clone();
-		PCJOptimizer pcj = new PCJOptimizer(index, false);
-		pcj.optimize(tup, null, null);
-
-
-		IndexPlanValidator ipv = new IndexPlanValidator(false);
-		Assert.assertEquals(true, ipv.isValid(tup));
-
-	}
-
-	@Test
-	public void testEvaluateTwoIndexTwoVarOrder4()
-			throws Exception {
-
-
-		String indexSparqlString = ""//
-				+ "SELECT ?e ?c ?l  " //
-				+ "{" //
-				+ "  ?e a ?c . "//
-				+ "  ?e <http://www.w3.org/2000/01/rdf-schema#label> ?l "//
-				+ "}";//
-
-		String indexSparqlString2 = ""//
-				+ "SELECT ?e ?o ?l " //
-				+ "{" //
-				+ "  ?e <uri:talksTo> ?o . "//
-				+ "  ?o <http://www.w3.org/2000/01/rdf-schema#label> ?l "//
-				+ "}";//
-
-		String queryString = ""//
-				+ "SELECT ?e ?c ?l ?o " //
-				+ "{" //
-				+ "  ?e a ?c . "//
-				+ "  ?e <http://www.w3.org/2000/01/rdf-schema#label> ?l . "//
-				+ "  ?e <uri:talksTo> ?o . "//
-				+ "  ?o <http://www.w3.org/2000/01/rdf-schema#label> ?l "//
-				+ "}";//
-
-		SPARQLParser sp = new SPARQLParser();
-		ParsedQuery index1 = sp.parseQuery(indexSparqlString, null);
-		ParsedQuery index2 = sp.parseQuery(indexSparqlString2, null);
-
-		List<ExternalTupleSet> index = Lists.newArrayList();
-
-		SimpleExternalTupleSet ais1 = new SimpleExternalTupleSet(
-				(Projection) index1.getTupleExpr());
-		SimpleExternalTupleSet ais2 = new SimpleExternalTupleSet(
-				(Projection) index2.getTupleExpr());
-
-		index.add(ais1);
-		index.add(ais2);
-
-		ParsedQuery pq = sp.parseQuery(queryString, null);
-		TupleExpr tup = pq.getTupleExpr().clone();
-		PCJOptimizer pcj = new PCJOptimizer(index, false);
-		pcj.optimize(tup, null, null);
-
-
-		IndexPlanValidator ipv = new IndexPlanValidator(false);
-		Assert.assertEquals(false, ipv.isValid(tup));
-
-	}
-
-
-	@Test
-	public void testEvaluateTwoIndexTwoVarOrder6()
-			throws Exception {
-
-
-		String indexSparqlString = ""//
-				+ "SELECT ?e ?l ?c  " //
-				+ "{" //
-				+ "  ?e a ?c . "//
-				+ "  ?e <http://www.w3.org/2000/01/rdf-schema#label> ?l "//
-				+ "}";//
-
-		String indexSparqlString2 = ""//
-				+ "SELECT ?l ?e ?o " //
-				+ "{" //
-				+ "  ?e <uri:talksTo> ?o . "//
-				+ "  ?o <http://www.w3.org/2000/01/rdf-schema#label> ?l "//
-				+ "}";//
-
-		String queryString = ""//
-				+ "SELECT ?e ?c ?l ?o " //
-				+ "{" //
-				+ "  ?e a ?c . "//
-				+ "  ?e <http://www.w3.org/2000/01/rdf-schema#label> ?l . "//
-				+ "  ?e <uri:talksTo> ?o . "//
-				+ "  ?o <http://www.w3.org/2000/01/rdf-schema#label> ?l "//
-				+ "}";//
-
-		SPARQLParser sp = new SPARQLParser();
-		ParsedQuery index1 = sp.parseQuery(indexSparqlString, null);
-		ParsedQuery index2 = sp.parseQuery(indexSparqlString2, null);
-
-		List<ExternalTupleSet> index = Lists.newArrayList();
-
-		SimpleExternalTupleSet ais1 = new SimpleExternalTupleSet(
-				(Projection) index1.getTupleExpr());
-		SimpleExternalTupleSet ais2 = new SimpleExternalTupleSet(
-				(Projection) index2.getTupleExpr());
-
-		index.add(ais2);
-		index.add(ais1);
-
-		ParsedQuery pq = sp.parseQuery(queryString, null);
-		TupleExpr tup = pq.getTupleExpr().clone();
-		PCJOptimizer pcj = new PCJOptimizer(index, false);
-		pcj.optimize(tup, null, null);
-
-
-		IndexPlanValidator ipv = new IndexPlanValidator(false);
-		Assert.assertEquals(true, ipv.isValid(tup));
-
-	}
-
-	@Test
-	public void testEvaluateTwoIndexCrossProduct1()
-			throws Exception {
-
-
-		String indexSparqlString = ""//
-				+ "SELECT ?e ?l ?c  " //
-				+ "{" //
-				+ "  ?e a ?c . "//
-				+ "  ?e <http://www.w3.org/2000/01/rdf-schema#label> ?l "//
-				+ "}";//
-
-		String indexSparqlString2 = ""//
-				+ "SELECT ?e ?l ?o " //
-				+ "{" //
-				+ "  ?e <uri:talksTo> ?o . "//
-				+ "  ?o <http://www.w3.org/2000/01/rdf-schema#label> ?l "//
-				+ "}";//
-
-		String queryString = ""//
-				+ "SELECT ?e ?c ?l ?o ?f ?g " //
-				+ "{" //
-				+ "  ?e a ?c . "//
-				+ "  ?e <http://www.w3.org/2000/01/rdf-schema#label> ?l . "//
-				+ "  ?e <uri:talksTo> ?o . "//
-				+ "  ?o <http://www.w3.org/2000/01/rdf-schema#label> ?l . "//
-				+ "  ?f <uri:talksTo> ?g . " //
-				+ "}";//
-
-		SPARQLParser sp = new SPARQLParser();
-		ParsedQuery index1 = sp.parseQuery(indexSparqlString, null);
-		ParsedQuery index2 = sp.parseQuery(indexSparqlString2, null);
-		List<ExternalTupleSet> index = Lists.newArrayList();
-
-		SimpleExternalTupleSet ais1 = new SimpleExternalTupleSet(
-				(Projection) index1.getTupleExpr());
-		SimpleExternalTupleSet ais2 = new SimpleExternalTupleSet(
-				(Projection) index2.getTupleExpr());
-
-		index.add(ais2);
-		index.add(ais1);
-
-		ParsedQuery pq = sp.parseQuery(queryString, null);
-		TupleExpr tup = pq.getTupleExpr().clone();
-		PCJOptimizer pcj = new PCJOptimizer(index, false);
-		pcj.optimize(tup, null, null);
-
-		IndexPlanValidator ipv = new IndexPlanValidator(true);
-		Assert.assertEquals(false, ipv.isValid(tup));
-
-	}
-
-	@Test
-	public void testEvaluateTwoIndexCrossProduct2()
-			throws Exception {
-
-
-		String indexSparqlString = ""//
-				+ "SELECT ?e ?l ?c  " //
-				+ "{" //
-				+ "  ?e a ?c . "//
-				+ "  ?e <http://www.w3.org/2000/01/rdf-schema#label> ?l "//
-				+ "}";//
-
-		String indexSparqlString2 = ""//
-				+ "SELECT ?e ?l ?o " //
-				+ "{" //
-				+ "  ?e <uri:talksTo> ?o . "//
-				+ "  ?o <http://www.w3.org/2000/01/rdf-schema#label> ?l "//
-				+ "}";//
-
-		String queryString = ""//
-				+ "SELECT ?e ?c ?l ?o ?f ?g " //
-				+ "{" //
-				+ "  ?e a ?c . "//
-				+ "  ?e <http://www.w3.org/2000/01/rdf-schema#label> ?l . "//
-				+ "  ?e <uri:talksTo> ?o . "//
-				+ "  ?o <http://www.w3.org/2000/01/rdf-schema#label> ?l . "//
-				+ "  ?f <uri:talksTo> ?g . " //
-				+ "}";//
-
-		SPARQLParser sp = new SPARQLParser();
-		ParsedQuery index1 = sp.parseQuery(indexSparqlString, null);
-		ParsedQuery index2 = sp.parseQuery(indexSparqlString2, null);
-
-		List<ExternalTupleSet> index = Lists.newArrayList();
-
-		SimpleExternalTupleSet ais1 = new SimpleExternalTupleSet(
-				(Projection) index1.getTupleExpr());
-		SimpleExternalTupleSet ais2 = new SimpleExternalTupleSet(
-				(Projection) index2.getTupleExpr());
-
-		index.add(ais1);
-		index.add(ais2);
-
-		ParsedQuery pq = sp.parseQuery(queryString, null);
-		TupleExpr tup = pq.getTupleExpr().clone();
-		PCJOptimizer pcj = new PCJOptimizer(index, false);
-		pcj.optimize(tup, null, null);
-
-		IndexPlanValidator ipv = new IndexPlanValidator(true);
-		Assert.assertEquals(false, ipv.isValid(tup));
-
-	}
-
-	@Test
-	public void testEvaluateTwoIndexCrossProduct3()
-			throws Exception {
-
-
-		String indexSparqlString = ""//
-				+ "SELECT ?e ?l ?c  " //
-				+ "{" //
-				+ "  ?e a ?c . "//
-				+ "  ?e <http://www.w3.org/2000/01/rdf-schema#label> ?l "//
-				+ "}";//
-
-		String indexSparqlString2 = ""//
-				+ "SELECT ?e ?l ?o " //
-				+ "{" //
-				+ "  ?e <uri:talksTo> ?o . "//
-				+ "  ?o <http://www.w3.org/2000/01/rdf-schema#label> ?l "//
-				+ "}";//
-
-		String queryString = ""//
-				+ "SELECT ?e ?c ?l ?o ?f ?g " //
-				+ "{" //
-				+ "  ?e a ?c . "//
-				+ "  ?e <http://www.w3.org/2000/01/rdf-schema#label> ?l . "//
-				+ "  ?e <uri:talksTo> ?o . "//
-				+ "  ?o <http://www.w3.org/2000/01/rdf-schema#label> ?l . "//
-				+ "  ?f <uri:talksTo> ?g . " //
-				+ "}";//
-
-		SPARQLParser sp = new SPARQLParser();
-		ParsedQuery index1 = sp.parseQuery(indexSparqlString, null);
-		ParsedQuery index2 = sp.parseQuery(indexSparqlString2, null);
-
-		List<ExternalTupleSet> index = Lists.newArrayList();
-
-		SimpleExternalTupleSet ais1 = new SimpleExternalTupleSet(
-				(Projection) index1.getTupleExpr());
-		SimpleExternalTupleSet ais2 = new SimpleExternalTupleSet(
-				(Projection) index2.getTupleExpr());
-
-		index.add(ais1);
-		index.add(ais2);
-
-		ParsedQuery pq = sp.parseQuery(queryString, null);
-		TupleExpr tup = pq.getTupleExpr().clone();
-		PCJOptimizer pcj = new PCJOptimizer(index, false);
-		pcj.optimize(tup, null, null);
-
-		IndexPlanValidator ipv = new IndexPlanValidator(false);
-		Assert.assertEquals(true, ipv.isValid(tup));
-
-	}
-
-	@Test
-	public void testEvaluateTwoIndexDiffVars() throws Exception {
-
-
-		String indexSparqlString = ""//
-				+ "SELECT ?chicken ?dog ?pig  " //
-				+ "{" //
-				+ "  ?dog a ?chicken . "//
-				+ "  ?dog <http://www.w3.org/2000/01/rdf-schema#label> ?pig "//
-				+ "}";//
-
-		String indexSparqlString2 = ""//
-				+ "SELECT ?fish ?ant ?turkey " //
-				+ "{" //
-				+ "  ?fish <uri:talksTo> ?turkey . "//
-				+ "  ?turkey <http://www.w3.org/2000/01/rdf-schema#label> ?ant "//
-				+ "}";//
-
-		String queryString = ""//
-				+ "SELECT ?e ?c ?l ?o ?f ?g " //
-				+ "{" //
-				+ "  ?e a ?c . "//
-				+ "  ?e <http://www.w3.org/2000/01/rdf-schema#label> ?l . "//
-				+ "  ?e <uri:talksTo> ?o . "//
-				+ "  ?o <http://www.w3.org/2000/01/rdf-schema#label> ?l . "//
-				+ "  ?f <uri:talksTo> ?g . " //
-				+ "}";//
-
-		SPARQLParser sp = new SPARQLParser();
-		ParsedQuery index1 = sp.parseQuery(indexSparqlString, null);
-		ParsedQuery index2 = sp.parseQuery(indexSparqlString2, null);
-
-		List<ExternalTupleSet> index = Lists.newArrayList();
-
-		SimpleExternalTupleSet ais1 = new SimpleExternalTupleSet(
-				(Projection) index1.getTupleExpr());
-		SimpleExternalTupleSet ais2 = new SimpleExternalTupleSet(
-				(Projection) index2.getTupleExpr());
-
-		index.add(ais1);
-		index.add(ais2);
-
-		ParsedQuery pq = sp.parseQuery(queryString, null);
-		TupleExpr tup = pq.getTupleExpr().clone();
-		PCJOptimizer pcj = new PCJOptimizer(index, false);
-		pcj.optimize(tup, null, null);
-
-		IndexPlanValidator ipv = new IndexPlanValidator(false);
-		Assert.assertEquals(false, ipv.isValid(tup));
-
-	}
-
-	@Test
-	public void testEvaluateTwoIndexDiffVars2() throws Exception {
-
-
-		String indexSparqlString = ""//
-				+ "SELECT ?dog ?pig ?chicken  " //
-				+ "{" //
-				+ "  ?dog a ?chicken . "//
-				+ "  ?dog <http://www.w3.org/2000/01/rdf-schema#label> ?pig "//
-				+ "}";//
-
-		String indexSparqlString2 = ""//
-				+ "SELECT ?fish ?ant ?turkey " //
-				+ "{" //
-				+ "  ?fish <uri:talksTo> ?turkey . "//
-				+ "  ?turkey <http://www.w3.org/2000/01/rdf-schema#label> ?ant "//
-				+ "}";//
-
-		String queryString = ""//
-				+ "SELECT ?e ?c ?l ?o ?f ?g " //
-				+ "{" //
-				+ "  ?e a ?c . "//
-				+ "  ?e <http://www.w3.org/2000/01/rdf-schema#label> ?l . "//
-				+ "  ?e <uri:talksTo> ?o . "//
-				+ "  ?o <http://www.w3.org/2000/01/rdf-schema#label> ?l . "//
-				+ "  ?f <uri:talksTo> ?g . " //
-				+ "}";//
-
-		SPARQLParser sp = new SPARQLParser();
-		ParsedQuery index1 = sp.parseQuery(indexSparqlString, null);
-		ParsedQuery index2 = sp.parseQuery(indexSparqlString2, null);
-
-		List<ExternalTupleSet> index = Lists.newArrayList();
-
-		SimpleExternalTupleSet ais1 = new SimpleExternalTupleSet(
-				(Projection) index1.getTupleExpr());
-		SimpleExternalTupleSet ais2 = new SimpleExternalTupleSet(
-				(Projection) index2.getTupleExpr());
-
-		index.add(ais1);
-		index.add(ais2);
-
-		ParsedQuery pq = sp.parseQuery(queryString, null);
-		TupleExpr tup = pq.getTupleExpr().clone();
-		PCJOptimizer pcj = new PCJOptimizer(index, false);
-		pcj.optimize(tup, null, null);
-
-		IndexPlanValidator ipv = new IndexPlanValidator(false);
-		Assert.assertEquals(true, ipv.isValid(tup));
-
-	}
-
-	@Test
-	public void testEvaluateTwoIndexDiffVars3() throws Exception {
-
-
-		String indexSparqlString = ""//
-				+ "SELECT ?pig ?dog ?chicken  " //
-				+ "{" //
-				+ "  ?dog a ?chicken . "//
-				+ "  ?dog <http://www.w3.org/2000/01/rdf-schema#label> ?pig "//
-				+ "}";//
-
-		String indexSparqlString2 = ""//
-				+ "SELECT ?fish ?ant ?turkey " //
-				+ "{" //
-				+ "  ?fish <uri:talksTo> ?turkey . "//
-				+ "  ?turkey <http://www.w3.org/2000/01/rdf-schema#label> ?ant "//
-				+ "}";//
-
-		String queryString = ""//
-				+ "SELECT ?e ?c ?l ?o ?f ?g " //
-				+ "{" //
-				+ "  ?e a ?c . "//
-				+ "  ?e <http://www.w3.org/2000/01/rdf-schema#label> ?l . "//
-				+ "  ?e <uri:talksTo> ?o . "//
-				+ "  ?o <http://www.w3.org/2000/01/rdf-schema#label> ?l . "//
-				+ "  ?f <uri:talksTo> ?g . " //
-				+ "}";//
-
-		SPARQLParser sp = new SPARQLParser();
-		ParsedQuery index1 = sp.parseQuery(indexSparqlString, null);
-		ParsedQuery index2 = sp.parseQuery(indexSparqlString2, null);
-
-		List<ExternalTupleSet> index = Lists.newArrayList();
-
-		SimpleExternalTupleSet ais1 = new SimpleExternalTupleSet(
-				(Projection) index1.getTupleExpr());
-		SimpleExternalTupleSet ais2 = new SimpleExternalTupleSet(
-				(Projection) index2.getTupleExpr());
-
-		index.add(ais1);
-		index.add(ais2);
-
-		ParsedQuery pq = sp.parseQuery(queryString, null);
-		TupleExpr tup = pq.getTupleExpr().clone();
-		PCJOptimizer pcj = new PCJOptimizer(index, false);
-		pcj.optimize(tup, null, null);
-
-		IndexPlanValidator ipv = new IndexPlanValidator(false);
-		Assert.assertEquals(true, ipv.isValid(tup));
-
-	}
-
-	@Test
-	public void testEvaluateTwoIndexDiffVarsDirProd()
-			throws Exception {
-
-
-		String indexSparqlString = ""//
-				+ "SELECT ?pig ?dog ?chicken  " //
-				+ "{" //
-				+ "  ?dog a ?chicken . "//
-				+ "  ?dog <http://www.w3.org/2000/01/rdf-schema#label> ?pig "//
-				+ "}";//
-
-		String indexSparqlString2 = ""//
-				+ "SELECT ?fish ?ant ?turkey " //
-				+ "{" //
-				+ "  ?fish <uri:talksTo> ?turkey . "//
-				+ "  ?turkey <http://www.w3.org/2000/01/rdf-schema#label> ?ant "//
-				+ "}";//
-
-		String queryString = ""//
-				+ "SELECT ?e ?c ?l ?o ?f ?g " //
-				+ "{" //
-				+ "  ?e a ?c . "//
-				+ "  ?e <http://www.w3.org/2000/01/rdf-schema#label> ?l . "//
-				+ "  ?e <uri:talksTo> ?o . "//
-				+ "  ?o <http://www.w3.org/2000/01/rdf-schema#label> ?l . "//
-				+ "  ?f <uri:talksTo> ?g . " //
-				+ "}";//
-
-		SPARQLParser sp = new SPARQLParser();
-		ParsedQuery index1 = sp.parseQuery(indexSparqlString, null);
-		ParsedQuery index2 = sp.parseQuery(indexSparqlString2, null);
-
-		List<ExternalTupleSet> index = Lists.newArrayList();
-
-		SimpleExternalTupleSet ais1 = new SimpleExternalTupleSet(
-				(Projection) index1.getTupleExpr());
-		SimpleExternalTupleSet ais2 = new SimpleExternalTupleSet(
-				(Projection) index2.getTupleExpr());
-
-		index.add(ais1);
-		index.add(ais2);
-
-		ParsedQuery pq = sp.parseQuery(queryString, null);
-		TupleExpr tup = pq.getTupleExpr().clone();
-		PCJOptimizer pcj = new PCJOptimizer(index, false);
-		pcj.optimize(tup, null, null);
-
-		IndexPlanValidator ipv = new IndexPlanValidator(true);
-		Assert.assertEquals(false, ipv.isValid(tup));
-
-	}
-
-	@Test
-	public void testValidTupleIterator() throws Exception {
-
-		String q1 = ""//
-				+ "SELECT ?f ?m ?d ?h ?i " //
-				+ "{" //
-				+ "  ?f a ?m ."//
-				+ "  ?m <http://www.w3.org/2000/01/rdf-schema#label> ?d ."//
-				+ "  ?d <uri:talksTo> ?f . "//
-				+ "  ?d <uri:hangOutWith> ?f ." //
-				+ "  ?f <uri:hangOutWith> ?h ." //
-				+ "  ?f <uri:associatesWith> ?i ." //
-				+ "  ?i <uri:associatesWith> ?h ." //
-				+ "}";//
-
-		String q2 = ""//
-				+ "SELECT ?t ?s ?u " //
-				+ "{" //
-				+ "  ?s a ?t ."//
-				+ "  ?t <http://www.w3.org/2000/01/rdf-schema#label> ?u ."//
-				+ "  ?u <uri:talksTo> ?s . "//
-				+ "}";//
-
-		String q3 = ""//
-				+ "SELECT ?s ?t ?u " //
-				+ "{" //
-				+ "  ?s <uri:hangOutWith> ?t ." //
-				+ "  ?t <uri:hangOutWith> ?u ." //
-				+ "}";//
-
-		String q4 = ""//
-				+ "SELECT ?s ?t ?u " //
-				+ "{" //
-				+ "  ?s <uri:associatesWith> ?t ." //
-				+ "  ?t <uri:associatesWith> ?u ." //
-				+ "}";//
-
-		SPARQLParser parser = new SPARQLParser();
-
-		ParsedQuery pq1 = parser.parseQuery(q1, null);
-		ParsedQuery pq2 = parser.parseQuery(q2, null);
-		ParsedQuery pq3 = parser.parseQuery(q3, null);
-		ParsedQuery pq4 = parser.parseQuery(q4, null);
-
-		SimpleExternalTupleSet extTup1 = new SimpleExternalTupleSet(
-				(Projection) pq2.getTupleExpr());
-		SimpleExternalTupleSet extTup2 = new SimpleExternalTupleSet(
-				(Projection) pq3.getTupleExpr());
-		SimpleExternalTupleSet extTup3 = new SimpleExternalTupleSet(
-				(Projection) pq4.getTupleExpr());
-
-		List<ExternalTupleSet> list = new ArrayList<ExternalTupleSet>();
-
-		list.add(extTup2);
-		list.add(extTup1);
-		list.add(extTup3);
-
-		IndexedExecutionPlanGenerator iep = new IndexedExecutionPlanGenerator(
-				pq1.getTupleExpr(), list);
-
-		Iterator<TupleExpr> plans = new TupleExecutionPlanGenerator()
-				.getPlans(iep.getIndexedTuples());
-		IndexPlanValidator ipv = new IndexPlanValidator(true);
-		Iterator<TupleExpr> validPlans = ipv.getValidTuples(plans);
-
-		int size = 0;
-
-		while (validPlans.hasNext()) {
-			Assert.assertTrue(validPlans.hasNext());
-			validPlans.next();
-			size++;
-		}
-
-		Assert.assertTrue(!validPlans.hasNext());
-		Assert.assertEquals(732, size);
-
-	}
+        final String queryString = ""//
+                + "SELECT ?e ?c ?l ?o " //
+                + "{" //
+                + "  ?e a ?c . "//
+                + "  ?e <http://www.w3.org/2000/01/rdf-schema#label> ?l . "//
+                + "  ?e <uri:talksTo> ?o . "//
+                + "  ?o <http://www.w3.org/2000/01/rdf-schema#label> ?l "//
+                + "}";//
+
+        final SPARQLParser sp = new SPARQLParser();
+        final ParsedQuery index1 = sp.parseQuery(indexSparqlString, null);
+        final ParsedQuery index2 = sp.parseQuery(indexSparqlString2, null);
+
+        final List<ExternalTupleSet> index = Lists.newArrayList();
+
+        final SimpleExternalTupleSet ais1 = new SimpleExternalTupleSet(
+                (Projection) index1.getTupleExpr());
+        final SimpleExternalTupleSet ais2 = new SimpleExternalTupleSet(
+                (Projection) index2.getTupleExpr());
+
+        index.add(ais1);
+        index.add(ais2);
+
+        final ParsedQuery pq = sp.parseQuery(queryString, null);
+        final TupleExpr tup = pq.getTupleExpr().clone();
+        provider.setIndices(index);
+        final PCJOptimizer pcj = new PCJOptimizer(index, false, provider);
+        pcj.optimize(tup, null, null);
+
+
+        final IndexPlanValidator ipv = new IndexPlanValidator(false);
+        Assert.assertEquals(false, ipv.isValid(tup));
+
+    }
+
+
+    @Test
+    public void testEvaluateTwoIndexTwoVarOrder6()
+            throws Exception {
+
+
+        final String indexSparqlString = ""//
+                + "SELECT ?e ?l ?c  " //
+                + "{" //
+                + "  ?e a ?c . "//
+                + "  ?e <http://www.w3.org/2000/01/rdf-schema#label> ?l "//
+                + "}";//
+
+        final String indexSparqlString2 = ""//
+                + "SELECT ?l ?e ?o " //
+                + "{" //
+                + "  ?e <uri:talksTo> ?o . "//
+                + "  ?o <http://www.w3.org/2000/01/rdf-schema#label> ?l "//
+                + "}";//
+
+        final String queryString = ""//
+                + "SELECT ?e ?c ?l ?o " //
+                + "{" //
+                + "  ?e a ?c . "//
+                + "  ?e <http://www.w3.org/2000/01/rdf-schema#label> ?l . "//
+                + "  ?e <uri:talksTo> ?o . "//
+                + "  ?o <http://www.w3.org/2000/01/rdf-schema#label> ?l "//
+                + "}";//
+
+        final SPARQLParser sp = new SPARQLParser();
+        final ParsedQuery index1 = sp.parseQuery(indexSparqlString, null);
+        final ParsedQuery index2 = sp.parseQuery(indexSparqlString2, null);
+
+        final List<ExternalTupleSet> index = Lists.newArrayList();
+
+        final SimpleExternalTupleSet ais1 = new SimpleExternalTupleSet(
+                (Projection) index1.getTupleExpr());
+        final SimpleExternalTupleSet ais2 = new SimpleExternalTupleSet(
+                (Projection) index2.getTupleExpr());
+
+        index.add(ais2);
+        index.add(ais1);
+
+        final ParsedQuery pq = sp.parseQuery(queryString, null);
+        final TupleExpr tup = pq.getTupleExpr().clone();
+        provider.setIndices(index);
+        final PCJOptimizer pcj = new PCJOptimizer(index, false, provider);
+        pcj.optimize(tup, null, null);
+
+
+        final IndexPlanValidator ipv = new IndexPlanValidator(false);
+        Assert.assertEquals(true, ipv.isValid(tup));
+
+    }
+
+    @Test
+    public void testEvaluateTwoIndexCrossProduct1()
+            throws Exception {
+
+
+        final String indexSparqlString = ""//
+                + "SELECT ?e ?l ?c  " //
+                + "{" //
+                + "  ?e a ?c . "//
+                + "  ?e <http://www.w3.org/2000/01/rdf-schema#label> ?l "//
+                + "}";//
+
+        final String indexSparqlString2 = ""//
+                + "SELECT ?e ?l ?o " //
+                + "{" //
+                + "  ?e <uri:talksTo> ?o . "//
+                + "  ?o <http://www.w3.org/2000/01/rdf-schema#label> ?l "//
+                + "}";//
+
+        final String queryString = ""//
+                + "SELECT ?e ?c ?l ?o ?f ?g " //
+                + "{" //
+                + "  ?e a ?c . "//
+                + "  ?e <http://www.w3.org/2000/01/rdf-schema#label> ?l . "//
+                + "  ?e <uri:talksTo> ?o . "//
+                + "  ?o <http://www.w3.org/2000/01/rdf-schema#label> ?l . "//
+                + "  ?f <uri:talksTo> ?g . " //
+                + "}";//
+
+        final SPARQLParser sp = new SPARQLParser();
+        final ParsedQuery index1 = sp.parseQuery(indexSparqlString, null);
+        final ParsedQuery index2 = sp.parseQuery(indexSparqlString2, null);
+        final List<ExternalTupleSet> index = Lists.newArrayList();
+
+        final SimpleExternalTupleSet ais1 = new SimpleExternalTupleSet(
+                (Projection) index1.getTupleExpr());
+        final SimpleExternalTupleSet ais2 = new SimpleExternalTupleSet(
+                (Projection) index2.getTupleExpr());
+
+        index.add(ais2);
+        index.add(ais1);
+
+        final ParsedQuery pq = sp.parseQuery(queryString, null);
+        final TupleExpr tup = pq.getTupleExpr().clone();
+        provider.setIndices(index);
+        final PCJOptimizer pcj = new PCJOptimizer(index, false, provider);
+        pcj.optimize(tup, null, null);
+
+        final IndexPlanValidator ipv = new IndexPlanValidator(true);
+        Assert.assertEquals(false, ipv.isValid(tup));
+
+    }
+
+    @Test
+    public void testEvaluateTwoIndexCrossProduct2()
+            throws Exception {
+
+
+        final String indexSparqlString = ""//
+                + "SELECT ?e ?l ?c  " //
+                + "{" //
+                + "  ?e a ?c . "//
+                + "  ?e <http://www.w3.org/2000/01/rdf-schema#label> ?l "//
+                + "}";//
+
+        final String indexSparqlString2 = ""//
+                + "SELECT ?e ?l ?o " //
+                + "{" //
+                + "  ?e <uri:talksTo> ?o . "//
+                + "  ?o <http://www.w3.org/2000/01/rdf-schema#label> ?l "//
+                + "}";//
+
+        final String queryString = ""//
+                + "SELECT ?e ?c ?l ?o ?f ?g " //
+                + "{" //
+                + "  ?e a ?c . "//
+                + "  ?e <http://www.w3.org/2000/01/rdf-schema#label> ?l . "//
+                + "  ?e <uri:talksTo> ?o . "//
+                + "  ?o <http://www.w3.org/2000/01/rdf-schema#label> ?l . "//
+                + "  ?f <uri:talksTo> ?g . " //
+                + "}";//
+
+        final SPARQLParser sp = new SPARQLParser();
+        final ParsedQuery index1 = sp.parseQuery(indexSparqlString, null);
+        final ParsedQuery index2 = sp.parseQuery(indexSparqlString2, null);
+
+        final List<ExternalTupleSet> index = Lists.newArrayList();
+
+        final SimpleExternalTupleSet ais1 = new SimpleExternalTupleSet(
+                (Projection) index1.getTupleExpr());
+        final SimpleExternalTupleSet ais2 = new SimpleExternalTupleSet(
+                (Projection) index2.getTupleExpr());
+
+        index.add(ais1);
+        index.add(ais2);
+
+        final ParsedQuery pq = sp.parseQuery(queryString, null);
+        final TupleExpr tup = pq.getTupleExpr().clone();
+        provider.setIndices(index);
+        final PCJOptimizer pcj = new PCJOptimizer(index, false, provider);
+        pcj.optimize(tup, null, null);
+
+        final IndexPlanValidator ipv = new IndexPlanValidator(true);
+        Assert.assertEquals(false, ipv.isValid(tup));
+
+    }
+
+    @Test
+    public void testEvaluateTwoIndexCrossProduct3()
+            throws Exception {
+
+
+        final String indexSparqlString = ""//
+                + "SELECT ?e ?l ?c  " //
+                + "{" //
+                + "  ?e a ?c . "//
+                + "  ?e <http://www.w3.org/2000/01/rdf-schema#label> ?l "//
+                + "}";//
+
+        final String indexSparqlString2 = ""//
+                + "SELECT ?e ?l ?o " //
+                + "{" //
+                + "  ?e <uri:talksTo> ?o . "//
+                + "  ?o <http://www.w3.org/2000/01/rdf-schema#label> ?l "//
+                + "}";//
+
+        final String queryString = ""//
+                + "SELECT ?e ?c ?l ?o ?f ?g " //
+                + "{" //
+                + "  ?e a ?c . "//
+                + "  ?e <http://www.w3.org/2000/01/rdf-schema#label> ?l . "//
+                + "  ?e <uri:talksTo> ?o . "//
+                + "  ?o <http://www.w3.org/2000/01/rdf-schema#label> ?l . "//
+                + "  ?f <uri:talksTo> ?g . " //
+                + "}";//
+
+        final SPARQLParser sp = new SPARQLParser();
+        final ParsedQuery index1 = sp.parseQuery(indexSparqlString, null);
+        final ParsedQuery index2 = sp.parseQuery(indexSparqlString2, null);
+
+        final List<ExternalTupleSet> index = Lists.newArrayList();
+
+        final SimpleExternalTupleSet ais1 = new SimpleExternalTupleSet(
+                (Projection) index1.getTupleExpr());
+        final SimpleExternalTupleSet ais2 = new SimpleExternalTupleSet(
+                (Projection) index2.getTupleExpr());
+
+        index.add(ais1);
+        index.add(ais2);
+
+        final ParsedQuery pq = sp.parseQuery(queryString, null);
+        final TupleExpr tup = pq.getTupleExpr().clone();
+        provider.setIndices(index);
+        final PCJOptimizer pcj = new PCJOptimizer(index, false, provider);
+        pcj.optimize(tup, null, null);
+
+        final IndexPlanValidator ipv = new IndexPlanValidator(false);
+        Assert.assertEquals(true, ipv.isValid(tup));
+
+    }
+
+    @Test
+    public void testEvaluateTwoIndexDiffVars() throws Exception {
+
+
+        final String indexSparqlString = ""//
+                + "SELECT ?chicken ?dog ?pig  " //
+                + "{" //
+                + "  ?dog a ?chicken . "//
+                + "  ?dog <http://www.w3.org/2000/01/rdf-schema#label> ?pig "//
+                + "}";//
+
+        final String indexSparqlString2 = ""//
+                + "SELECT ?fish ?ant ?turkey " //
+                + "{" //
+                + "  ?fish <uri:talksTo> ?turkey . "//
+                + "  ?turkey <http://www.w3.org/2000/01/rdf-schema#label> ?ant "//
+                + "}";//
+
+        final String queryString = ""//
+                + "SELECT ?e ?c ?l ?o ?f ?g " //
+                + "{" //
+                + "  ?e a ?c . "//
+                + "  ?e <http://www.w3.org/2000/01/rdf-schema#label> ?l . "//
+                + "  ?e <uri:talksTo> ?o . "//
+                + "  ?o <http://www.w3.org/2000/01/rdf-schema#label> ?l . "//
+                + "  ?f <uri:talksTo> ?g . " //
+                + "}";//
+
+        final SPARQLParser sp = new SPARQLParser();
+        final ParsedQuery index1 = sp.parseQuery(indexSparqlString, null);
+        final ParsedQuery index2 = sp.parseQuery(indexSparqlString2, null);
+
+        final List<ExternalTupleSet> index = Lists.newArrayList();
+
+        final SimpleExternalTupleSet ais1 = new SimpleExternalTupleSet(
+                (Projection) index1.getTupleExpr());
+        final SimpleExternalTupleSet ais2 = new SimpleExternalTupleSet(
+                (Projection) index2.getTupleExpr());
+
+        index.add(ais1);
+        index.add(ais2);
+
+        final ParsedQuery pq = sp.parseQuery(queryString, null);
+        final TupleExpr tup = pq.getTupleExpr().clone();
+        provider.setIndices(index);
+        final PCJOptimizer pcj = new PCJOptimizer(index, false, provider);
+        pcj.optimize(tup, null, null);
+
+        final IndexPlanValidator ipv = new IndexPlanValidator(false);
+        Assert.assertEquals(false, ipv.isValid(tup));
+
+    }
+
+    @Test
+    public void testEvaluateTwoIndexDiffVars2() throws Exception {
+
+
+        final String indexSparqlString = ""//
+                + "SELECT ?dog ?pig ?chicken  " //
+                + "{" //
+                + "  ?dog a ?chicken . "//
+                + "  ?dog <http://www.w3.org/2000/01/rdf-schema#label> ?pig "//
+                + "}";//
+
+        final String indexSparqlString2 = ""//
+                + "SELECT ?fish ?ant ?turkey " //
+                + "{" //
+                + "  ?fish <uri:talksTo> ?turkey . "//
+                + "  ?turkey <http://www.w3.org/2000/01/rdf-schema#label> ?ant "//
+                + "}";//
+
+        final String queryString = ""//
+                + "SELECT ?e ?c ?l ?o ?f ?g " //
+                + "{" //
+                + "  ?e a ?c . "//
+                + "  ?e <http://www.w3.org/2000/01/rdf-schema#label> ?l . "//
+                + "  ?e <uri:talksTo> ?o . "//
+                + "  ?o <http://www.w3.org/2000/01/rdf-schema#label> ?l . "//
+                + "  ?f <uri:talksTo> ?g . " //
+                + "}";//
+
+        final SPARQLParser sp = new SPARQLParser();
+        final ParsedQuery index1 = sp.parseQuery(indexSparqlString, null);
+        final ParsedQuery index2 = sp.parseQuery(indexSparqlString2, null);
+
+        final List<ExternalTupleSet> index = Lists.newArrayList();
+
+        final SimpleExternalTupleSet ais1 = new SimpleExternalTupleSet(
+                (Projection) index1.getTupleExpr());
+        final SimpleExternalTupleSet ais2 = new SimpleExternalTupleSet(
+                (Projection) index2.getTupleExpr());
+
+        index.add(ais1);
+        index.add(ais2);
+
+        final ParsedQuery pq = sp.parseQuery(queryString, null);
+        final TupleExpr tup = pq.getTupleExpr().clone();
+        provider.setIndices(index);
+        final PCJOptimizer pcj = new PCJOptimizer(index, false, provider);
+        pcj.optimize(tup, null, null);
+
+        final IndexPlanValidator ipv = new IndexPlanValidator(false);
+        Assert.assertEquals(true, ipv.isValid(tup));
+
+    }
+
+    @Test
+    public void testEvaluateTwoIndexDiffVars3() throws Exception {
+
+
+        final String indexSparqlString = ""//
+                + "SELECT ?pig ?dog ?chicken  " //
+                + "{" //
+                + "  ?dog a ?chicken . "//
+                + "  ?dog <http://www.w3.org/2000/01/rdf-schema#label> ?pig "//
+                + "}";//
+
+        final String indexSparqlString2 = ""//
+                + "SELECT ?fish ?ant ?turkey " //
+                + "{" //
+                + "  ?fish <uri:talksTo> ?turkey . "//
+                + "  ?turkey <http://www.w3.org/2000/01/rdf-schema#label> ?ant "//
+                + "}";//
+
+        final String queryString = ""//
+                + "SELECT ?e ?c ?l ?o ?f ?g " //
+                + "{" //
+                + "  ?e a ?c . "//
+                + "  ?e <http://www.w3.org/2000/01/rdf-schema#label> ?l . "//
+                + "  ?e <uri:talksTo> ?o . "//
+                + "  ?o <http://www.w3.org/2000/01/rdf-schema#label> ?l . "//
+                + "  ?f <uri:talksTo> ?g . " //
+                + "}";//
+
+        final SPARQLParser sp = new SPARQLParser();
+        final ParsedQuery index1 = sp.parseQuery(indexSparqlString, null);
+        final ParsedQuery index2 = sp.parseQuery(indexSparqlString2, null);
+
+        final List<ExternalTupleSet> index = Lists.newArrayList();
+
+        final SimpleExternalTupleSet ais1 = new SimpleExternalTupleSet(
+                (Projection) index1.getTupleExpr());
+        final SimpleExternalTupleSet ais2 = new SimpleExternalTupleSet(
+                (Projection) index2.getTupleExpr());
+
+        index.add(ais1);
+        index.add(ais2);
+
+        final ParsedQuery pq = sp.parseQuery(queryString, null);
+        final TupleExpr tup = pq.getTupleExpr().clone();
+        provider.setIndices(index);
+        final PCJOptimizer pcj = new PCJOptimizer(index, false, provider);
+        pcj.optimize(tup, null, null);
+
+        final IndexPlanValidator ipv = new IndexPlanValidator(false);
+        Assert.assertEquals(true, ipv.isValid(tup));
+
+    }
+
+    @Test
+    public void testEvaluateTwoIndexDiffVarsDirProd()
+            throws Exception {
+
+
+        final String indexSparqlString = ""//
+                + "SELECT ?pig ?dog ?chicken  " //
+                + "{" //
+                + "  ?dog a ?chicken . "//
+                + "  ?dog <http://www.w3.org/2000/01/rdf-schema#label> ?pig "//
+                + "}";//
+
+        final String indexSparqlString2 = ""//
+                + "SELECT ?fish ?ant ?turkey " //
+                + "{" //
+                + "  ?fish <uri:talksTo> ?turkey . "//
+                + "  ?turkey <http://www.w3.org/2000/01/rdf-schema#label> ?ant "//
+                + "}";//
+
+        final String queryString = ""//
+                + "SELECT ?e ?c ?l ?o ?f ?g " //
+                + "{" //
+                + "  ?e a ?c . "//
+                + "  ?e <http://www.w3.org/2000/01/rdf-schema#label> ?l . "//
+                + "  ?e <uri:talksTo> ?o . "//
+                + "  ?o <http://www.w3.org/2000/01/rdf-schema#label> ?l . "//
+                + "  ?f <uri:talksTo> ?g . " //
+                + "}";//
+
+        final SPARQLParser sp = new SPARQLParser();
+        final ParsedQuery index1 = sp.parseQuery(indexSparqlString, null);
+        final ParsedQuery index2 = sp.parseQuery(indexSparqlString2, null);
+
+        final List<ExternalTupleSet> index = Lists.newArrayList();
+
+        final SimpleExternalTupleSet ais1 = new SimpleExternalTupleSet(
+                (Projection) index1.getTupleExpr());
+        final SimpleExternalTupleSet ais2 = new SimpleExternalTupleSet(
+                (Projection) index2.getTupleExpr());
+
+        index.add(ais1);
+        index.add(ais2);
+
+        final ParsedQuery pq = sp.parseQuery(queryString, null);
+        final TupleExpr tup = pq.getTupleExpr().clone();
+        provider.setIndices(index);
+        final PCJOptimizer pcj = new PCJOptimizer(index, false, provider);
+        pcj.optimize(tup, null, null);
+
+        final IndexPlanValidator ipv = new IndexPlanValidator(true);
+        Assert.assertEquals(false, ipv.isValid(tup));
+
+    }
+
+    @Test
+    public void testValidTupleIterator() throws Exception {
+
+        final String q1 = ""//
+                + "SELECT ?f ?m ?d ?h ?i " //
+                + "{" //
+                + "  ?f a ?m ."//
+                + "  ?m <http://www.w3.org/2000/01/rdf-schema#label> ?d ."//
+                + "  ?d <uri:talksTo> ?f . "//
+                + "  ?d <uri:hangOutWith> ?f ." //
+                + "  ?f <uri:hangOutWith> ?h ." //
+                + "  ?f <uri:associatesWith> ?i ." //
+                + "  ?i <uri:associatesWith> ?h ." //
+                + "}";//
+
+        final String q2 = ""//
+                + "SELECT ?t ?s ?u " //
+                + "{" //
+                + "  ?s a ?t ."//
+                + "  ?t <http://www.w3.org/2000/01/rdf-schema#label> ?u ."//
+                + "  ?u <uri:talksTo> ?s . "//
+                + "}";//
+
+        final String q3 = ""//
+                + "SELECT ?s ?t ?u " //
+                + "{" //
+                + "  ?s <uri:hangOutWith> ?t ." //
+                + "  ?t <uri:hangOutWith> ?u ." //
+                + "}";//
+
+        final String q4 = ""//
+                + "SELECT ?s ?t ?u " //
+                + "{" //
+                + "  ?s <uri:associatesWith> ?t ." //
+                + "  ?t <uri:associatesWith> ?u ." //
+                + "}";//
+
+        final SPARQLParser parser = new SPARQLParser();
+
+        final ParsedQuery pq1 = parser.parseQuery(q1, null);
+        final ParsedQuery pq2 = parser.parseQuery(q2, null);
+        final ParsedQuery pq3 = parser.parseQuery(q3, null);
+        final ParsedQuery pq4 = parser.parseQuery(q4, null);
+
+        final SimpleExternalTupleSet extTup1 = new SimpleExternalTupleSet(
+                (Projection) pq2.getTupleExpr());
+        final SimpleExternalTupleSet extTup2 = new SimpleExternalTupleSet(
+                (Projection) pq3.getTupleExpr());
+        final SimpleExternalTupleSet extTup3 = new SimpleExternalTupleSet(
+                (Projection) pq4.getTupleExpr());
+
+        final List<ExternalTupleSet> list = new ArrayList<ExternalTupleSet>();
+
+        list.add(extTup2);
+        list.add(extTup1);
+        list.add(extTup3);
+
+        final IndexedExecutionPlanGenerator iep = new IndexedExecutionPlanGenerator(
+                pq1.getTupleExpr(), list);
+
+        final Iterator<TupleExpr> plans = new TupleExecutionPlanGenerator()
+                .getPlans(iep.getIndexedTuples());
+        final IndexPlanValidator ipv = new IndexPlanValidator(true);
+        final Iterator<TupleExpr> validPlans = ipv.getValidTuples(plans);
+
+        int size = 0;
+
+        while (validPlans.hasNext()) {
+            Assert.assertTrue(validPlans.hasNext());
+            validPlans.next();
+            size++;
+        }
+
+        Assert.assertTrue(!validPlans.hasNext());
+        Assert.assertEquals(732, size);
+
+    }
 
 }

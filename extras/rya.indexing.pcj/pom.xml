@@ -48,6 +48,10 @@ under the License.
             <groupId>org.apache.rya</groupId>
             <artifactId>accumulo.rya</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.apache.rya</groupId>
+            <artifactId>mongodb.rya</artifactId>
+        </dependency>
         
         <!-- Accumulo support dependencies. -->
         <dependency>
@@ -87,6 +91,12 @@ under the License.
         <dependency>
             <groupId>org.apache.rya</groupId>
             <artifactId>accumulo.rya</artifactId>
+            <type>test-jar</type>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.rya</groupId>
+            <artifactId>mongodb.rya</artifactId>
             <type>test-jar</type>
             <scope>test</scope>
         </dependency>

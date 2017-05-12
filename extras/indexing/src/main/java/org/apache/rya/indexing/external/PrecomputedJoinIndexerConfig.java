@@ -47,7 +47,11 @@ public class PrecomputedJoinIndexerConfig {
         /**
          * Stores each PCJ within an Accumulo table.
          */
-        ACCUMULO;
+        ACCUMULO,
+        /**
+         * Stores each PCJ within a MongoDB collection.
+         */
+        MONGO;
     }
 
     /**
@@ -105,8 +109,6 @@ public class PrecomputedJoinIndexerConfig {
         final PrecomputedJoinUpdaterType updaterType = PrecomputedJoinUpdaterType.valueOf(updaterTypeString);
         return Optional.fromNullable(updaterType);
     }
-
-
 
     public boolean getUseFluoUpdater() {
     	return config.getBoolean(ConfigUtils.USE_PCJ_UPDATER_INDEX, false);

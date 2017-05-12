@@ -1,9 +1,8 @@
 package org.apache.rya.accumulo;
 
-import com.google.common.base.Optional;
+import java.util.concurrent.atomic.AtomicInteger;
+
 import org.apache.rya.accumulo.instance.AccumuloRyaInstanceDetailsRepository;
-import org.apache.rya.api.client.Install.InstallConfiguration;
-import org.apache.rya.api.client.RyaClient;
 import org.apache.rya.api.instance.RyaDetails;
 import org.apache.rya.api.instance.RyaDetails.EntityCentricIndexDetails;
 import org.apache.rya.api.instance.RyaDetails.FreeTextIndexDetails;
@@ -14,7 +13,7 @@ import org.apache.rya.api.instance.RyaDetails.TemporalIndexDetails;
 import org.apache.rya.api.instance.RyaDetailsRepository;
 import org.junit.rules.ExternalResource;
 
-import java.util.concurrent.atomic.AtomicInteger;
+import com.google.common.base.Optional;
 
 /**
  * Licensed to the Apache Software Foundation (ASF) under one

@@ -154,6 +154,5 @@ public class MongoDBQueryEngine implements RyaQueryEngine<StatefulMongoDBRdfConf
 
     @Override
     public void close() throws IOException {
-//        if (mongoClient != null){ mongoClient.close(); }
     }
 }

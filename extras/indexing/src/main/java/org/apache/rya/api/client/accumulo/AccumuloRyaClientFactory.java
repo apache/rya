@@ -52,12 +52,12 @@ public class AccumuloRyaClientFactory {
         // Build the RyaCommands option with the initialized commands.
         return new RyaClient(
                 new AccumuloInstall(connectionDetails, connector),
-                Optional.of(new AccumuloCreatePCJ(connectionDetails, connector)),
-                Optional.of(new AccumuloDeletePCJ(connectionDetails, connector)),
+                new AccumuloCreatePCJ(connectionDetails, connector),
+                new AccumuloDeletePCJ(connectionDetails, connector),
                 Optional.of(new AccumuloCreatePeriodicPCJ(connectionDetails, connector)),
                 Optional.of(new AccumuloDeletePeriodicPCJ(connectionDetails, connector)),
                 Optional.of(new AccumuloListIncrementalQueries(connectionDetails, connector)),
-                Optional.of(new AccumuloBatchUpdatePCJ(connectionDetails, connector)),
+                new AccumuloBatchUpdatePCJ(connectionDetails, connector),
                 new AccumuloGetInstanceDetails(connectionDetails, connector),
                 new AccumuloInstanceExists(connectionDetails, connector),
                 new AccumuloListInstances(connectionDetails, connector),

@@ -80,25 +80,25 @@ public class ConfigUtils {
      */
     @Deprecated
     public static final String CLOUDBASE_TBL_PREFIX = RdfCloudTripleStoreConfiguration.CONF_TBL_PREFIX;
-    
+
     /**
      * @Deprecated use {@link AccumuloRdfConfiguration#CLOUDBASE_INSTANCE} instead.
      */
     @Deprecated
     public static final String CLOUDBASE_INSTANCE = AccumuloRdfConfiguration.CLOUDBASE_INSTANCE;
-    
+
     /**
      * @Deprecated use {@link AccumuloRdfConfiguration#CLOUDBASE_ZOOKEEPERS} instead.
      */
     @Deprecated
     public static final String CLOUDBASE_ZOOKEEPERS = AccumuloRdfConfiguration.CLOUDBASE_ZOOKEEPERS;
-    
+
     /**
      * @Deprecated use {@link AccumuloRdfConfiguration#CLOUDBASE_USER} instead.
      */
     @Deprecated
     public static final String CLOUDBASE_USER = AccumuloRdfConfiguration.CLOUDBASE_USER;
-    
+
     /**
      * @Deprecated use {@link AccumuloRdfConfiguration#CLOUDBASE_PASSWORD} instead.
      */
@@ -192,7 +192,7 @@ public class ConfigUtils {
      * null. Future, get table prefix from RyaDetails -- the Rya instance name
      * -- also getting info from the RyaDetails should happen within
      * RyaSailFactory and not ConfigUtils.
-     * 
+     *
      * @param conf
      *            Rya configuration map where it extracts the prefix (instance
      *            name)
@@ -220,7 +220,7 @@ public class ConfigUtils {
 
     /**
      * Used for indexing statements about date & time instances and intervals.
-     * 
+     *
      * @param conf
      * @return Set of predicate URI's whose objects should be date time
      *         literals.
@@ -337,8 +337,8 @@ public class ConfigUtils {
     public static Instance getInstance(final Configuration conf) {
         // Pull out the Accumulo specific configuration values.
         final AccumuloRdfConfiguration accConf = new AccumuloRdfConfiguration(conf);
-        String instanceName = accConf.getInstanceName();
-        String zoookeepers = accConf.getZookeepers();
+        final String instanceName = accConf.getInstanceName();
+        final String zoookeepers = accConf.getZookeepers();
 
         // Create an Instance a mock if the mock flag is set.
         if (useMockInstance(conf)) {
@@ -465,6 +465,10 @@ public class ConfigUtils {
             if (getUseTemporal(conf)) {
                 indexList.add(MongoTemporalIndexer.class.getName());
                 useFilterIndex = true;
+            }
+
+            if (getUsePCJ(conf) && getUseOptimalPCJ(conf)) {
+                conf.setPcjOptimizer(PCJOptimizer.class);
             }
         } else {
             if (getUsePCJ(conf) || getUseOptimalPCJ(conf)) {

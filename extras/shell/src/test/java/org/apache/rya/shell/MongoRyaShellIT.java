@@ -56,19 +56,6 @@ public class MongoRyaShellIT extends RyaShellMongoITBase {
         // Ensure the connection was successful.
         assertTrue(connectResult.isSuccess());
     }
-    
-    @Test
-    public void connectMongo_noConnection() throws IOException {
-        final JLineShellComponent shell = getTestShell();
-        // Attempt to connect to a mongo instance.  The bad hostname should make this fail.
-        final String cmd =
-                RyaConnectionCommands.CONNECT_MONGO_CMD + " " +
-                        "--hostname badhostname " +
-                        "--port " + super.conf.getMongoPort();
-
-        final CommandResult rez = shell.executeCommand(cmd);
-        assertEquals(RuntimeException.class, rez.getException().getClass());
-    }
 
     @Test
     public void printConnectionDetails_notConnected() {

@@ -28,9 +28,11 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Queue;
 
+import org.apache.hadoop.conf.Configuration;
 import org.apache.rya.indexing.external.tupleSet.ExternalTupleSet;
 import org.apache.rya.indexing.external.tupleSet.SimpleExternalTupleSet;
 import org.apache.rya.indexing.pcj.matching.PCJOptimizer;
+import org.apache.rya.indexing.pcj.matching.provider.AccumuloIndexSetProvider;
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.Param;
 import org.openjdk.jmh.annotations.Scope;
@@ -106,12 +108,12 @@ public class PCJOptimizerBenchmark {
                     final BenchmarkValues chainedValues = new BenchmarkValues(
                             makeChainedQuery(benchmarkParams),
                             makeChainedPCJOptimizer(benchmarkParams));
-                    this.chainedBenchmarkValues.put(benchmarkParams, chainedValues);
+                    chainedBenchmarkValues.put(benchmarkParams, chainedValues);
 
                     final BenchmarkValues unchainedValues = new BenchmarkValues(
                             makeUnchainedQuery(benchmarkParams),
                             makeUnchainedPCJOptimizer(benchmarkParams));
-                    this.unchainedBenchmarkValues.put(benchmarkParams, unchainedValues);
+                    unchainedBenchmarkValues.put(benchmarkParams, unchainedValues);
                 }
             }
         }
@@ -215,7 +217,7 @@ public class PCJOptimizerBenchmark {
         }
 
         // Create the optimizer.
-        return new PCJOptimizer(indices, false);
+        return new PCJOptimizer(indices, false, new AccumuloIndexSetProvider(new Configuration()));
     }
 
     private static PCJOptimizer makeChainedPCJOptimizer(final BenchmarkParams params) throws Exception {
@@ -252,7 +254,7 @@ public class PCJOptimizerBenchmark {
         }
 
         // Create the optimizer.
-        return new PCJOptimizer(indices, false);
+        return new PCJOptimizer(indices, false, new AccumuloIndexSetProvider(new Configuration()));
     }
 
     private static String buildUnchainedSPARQL(final List<String> vars) {
@@ -274,8 +276,8 @@ public class PCJOptimizerBenchmark {
         }
 
         return "select " + Joiner.on(" ").join(vars) + " where { " +
-                    Joiner.on(" . ").join(statementPatterns) +
-                " . }" ;
+        Joiner.on(" . ").join(statementPatterns) +
+        " . }" ;
     }
 
     private static String buildChainedSPARQL(final List<String> vars) {
@@ -298,8 +300,8 @@ public class PCJOptimizerBenchmark {
 
         // Build the SPARQL query from the pieces.
         return "select " + Joiner.on(" ").join(vars) + " where { " +
-                    Joiner.on(" . ").join(statementPatterns) +
-                " . }" ;
+        Joiner.on(" . ").join(statementPatterns) +
+        " . }" ;
     }
 
     /**

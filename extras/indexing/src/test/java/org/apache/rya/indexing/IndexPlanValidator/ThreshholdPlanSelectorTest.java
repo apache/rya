@@ -23,10 +23,11 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+import org.apache.hadoop.conf.Configuration;
 import org.apache.rya.indexing.external.tupleSet.ExternalTupleSet;
 import org.apache.rya.indexing.external.tupleSet.SimpleExternalTupleSet;
 import org.apache.rya.indexing.pcj.matching.PCJOptimizer;
-
+import org.apache.rya.indexing.pcj.matching.provider.AccumuloIndexSetProvider;
 import org.junit.Assert;
 import org.junit.Test;
 import org.openrdf.query.algebra.Projection;
@@ -679,7 +680,7 @@ public class ThreshholdPlanSelectorTest {
 		eList.add(sep);
 
 		final TupleExpr te = pq1.getTupleExpr().clone();
-		final PCJOptimizer pcj = new PCJOptimizer(eList, false);
+		final PCJOptimizer pcj = new PCJOptimizer(eList, false, new AccumuloIndexSetProvider(new Configuration(), eList));
         pcj.optimize(te, null, null);
 
 		ThreshholdPlanSelector tps = new ThreshholdPlanSelector(

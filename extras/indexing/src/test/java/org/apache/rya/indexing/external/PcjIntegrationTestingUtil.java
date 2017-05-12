@@ -1,6 +1,4 @@
-package org.apache.rya.indexing.external;
-
-/*
+/**
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -18,10 +16,12 @@ package org.apache.rya.indexing.external;
  * specific language governing permissions and limitations
  * under the License.
  */
+package org.apache.rya.indexing.external;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.net.UnknownHostException;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
@@ -35,6 +35,12 @@ import org.apache.accumulo.core.client.MutationsRejectedException;
 import org.apache.accumulo.core.client.TableNotFoundException;
 import org.apache.accumulo.core.client.admin.TableOperations;
 import org.apache.accumulo.core.data.Mutation;
+import org.apache.rya.accumulo.AccumuloRdfConfiguration;
+import org.apache.rya.api.model.VisibilityBindingSet;
+import org.apache.rya.api.persist.RyaDAOException;
+import org.apache.rya.indexing.accumulo.ConfigUtils;
+import org.apache.rya.indexing.external.PrecomputedJoinIndexerConfig.PrecomputedJoinStorageType;
+import org.apache.rya.indexing.external.tupleSet.ExternalTupleSet;
 import org.apache.rya.indexing.pcj.storage.PcjException;
 import org.apache.rya.indexing.pcj.storage.PcjMetadata;
 import org.apache.rya.indexing.pcj.storage.accumulo.AccumuloPcjSerializer;
@@ -43,6 +49,9 @@ import org.apache.rya.indexing.pcj.storage.accumulo.PcjTables;
 import org.apache.rya.indexing.pcj.storage.accumulo.PcjVarOrderFactory;
 import org.apache.rya.indexing.pcj.storage.accumulo.ShiftVarOrderFactory;
 import org.apache.rya.indexing.pcj.storage.accumulo.VariableOrder;
+import org.apache.rya.indexing.pcj.storage.mongo.MongoPcjDocuments;
+import org.apache.rya.rdftriplestore.inference.InferenceEngineException;
+import org.apache.rya.sail.config.RyaSailFactory;
 import org.openrdf.query.BindingSet;
 import org.openrdf.query.MalformedQueryException;
 import org.openrdf.query.QueryEvaluationException;
@@ -62,14 +71,7 @@ import org.openrdf.sail.SailException;
 
 import com.google.common.base.Optional;
 import com.google.common.collect.Sets;
-
-import org.apache.rya.accumulo.AccumuloRdfConfiguration;
-import org.apache.rya.api.persist.RyaDAOException;
-import org.apache.rya.indexing.accumulo.ConfigUtils;
-import org.apache.rya.indexing.external.PrecomputedJoinIndexerConfig.PrecomputedJoinStorageType;
-import org.apache.rya.indexing.external.tupleSet.ExternalTupleSet;
-import org.apache.rya.rdftriplestore.inference.InferenceEngineException;
-import org.apache.rya.sail.config.RyaSailFactory;
+import com.mongodb.MongoClient;
 
 public class PcjIntegrationTestingUtil {
 
@@ -96,7 +98,7 @@ public class PcjIntegrationTestingUtil {
         }
     }
 
-    public static SailRepository getPcjRepo(final String tablePrefix, final String instance)
+    public static SailRepository getAccumuloPcjRepo(final String tablePrefix, final String instance)
             throws AccumuloException, AccumuloSecurityException,
             RyaDAOException, RepositoryException, InferenceEngineException,
             NumberFormatException, UnknownHostException, SailException {
@@ -104,26 +106,26 @@ public class PcjIntegrationTestingUtil {
         final AccumuloRdfConfiguration pcjConf = new AccumuloRdfConfiguration();
         pcjConf.set(ConfigUtils.USE_PCJ, "true");
         pcjConf.set(PrecomputedJoinIndexerConfig.PCJ_STORAGE_TYPE,PrecomputedJoinStorageType.ACCUMULO.name());
-        populateTestConfig(instance, tablePrefix, pcjConf);
+        populateAccumuloConfig(instance, tablePrefix, pcjConf);
 
         final Sail pcjSail = RyaSailFactory.getInstance(pcjConf);
         final SailRepository pcjRepo = new SailRepository(pcjSail);
         return pcjRepo;
     }
 
-    public static SailRepository getNonPcjRepo(final String tablePrefix,
+    public static SailRepository getAccumuloNonPcjRepo(final String tablePrefix,
             final String instance) throws AccumuloException,
-            AccumuloSecurityException, RyaDAOException, RepositoryException, InferenceEngineException,
-            NumberFormatException, UnknownHostException, SailException {
+    AccumuloSecurityException, RyaDAOException, RepositoryException, InferenceEngineException,
+    NumberFormatException, UnknownHostException, SailException {
 
         final AccumuloRdfConfiguration nonPcjConf = new AccumuloRdfConfiguration();
-        populateTestConfig(instance, tablePrefix, nonPcjConf);
+        populateAccumuloConfig(instance, tablePrefix, nonPcjConf);
         final Sail nonPcjSail = RyaSailFactory.getInstance(nonPcjConf);
         final SailRepository nonPcjRepo = new SailRepository(nonPcjSail);
         return nonPcjRepo;
     }
 
-    private static void populateTestConfig(final String instance, final String tablePrefix, final AccumuloRdfConfiguration config) {
+    private static void populateAccumuloConfig(final String instance, final String tablePrefix, final AccumuloRdfConfiguration config) {
         config.set(ConfigUtils.USE_MOCK_INSTANCE, "true");
         config.set(ConfigUtils.CLOUDBASE_INSTANCE, instance);
         config.set(ConfigUtils.CLOUDBASE_USER, "test_user");
@@ -138,9 +140,13 @@ public class PcjIntegrationTestingUtil {
         repo.shutDown();
     }
 
+    public static void deleteIndexDocuments(final MongoClient client, final String instance) {
+        client.getDatabase(instance).getCollection(MongoPcjDocuments.PCJ_COLLECTION_NAME).drop();
+    }
+
     public static void deleteIndexTables(final Connector accCon, final int tableNum,
             final String prefix) throws AccumuloException, AccumuloSecurityException,
-            TableNotFoundException {
+    TableNotFoundException {
         final TableOperations ops = accCon.tableOperations();
         final String tablename = prefix + "INDEX_";
         for (int i = 1; i < tableNum + 1; i++) {
@@ -151,7 +157,7 @@ public class PcjIntegrationTestingUtil {
     }
 
     public static class BindingSetAssignmentCollector extends
-            QueryModelVisitorBase<RuntimeException> {
+    QueryModelVisitorBase<RuntimeException> {
 
         private final Set<QueryModelNode> bindingSetList = Sets.newHashSet();
 
@@ -172,7 +178,7 @@ public class PcjIntegrationTestingUtil {
     }
 
     public static class ExternalTupleVisitor extends
-            QueryModelVisitorBase<RuntimeException> {
+    QueryModelVisitorBase<RuntimeException> {
 
         private final Set<QueryModelNode> eSet = new HashSet<>();
 
@@ -195,13 +201,13 @@ public class PcjIntegrationTestingUtil {
 
 
 
-//****************************Creation and Population of PcjTables***********************************
+    //****************************Creation and Population of PcjTables Accumulo***************************
 
 
 
 
 
-      /**
+    /**
      * Creates a new PCJ Table in Accumulo and populates it by scanning an
      * instance of Rya for historic matches.
      * <p>
@@ -268,7 +274,7 @@ public class PcjIntegrationTestingUtil {
      */
     public static void populatePcj(final Connector accumuloConn,
             final String pcjTableName, final RepositoryConnection ryaConn)
-            throws PcjException {
+                    throws PcjException {
         checkNotNull(accumuloConn);
         checkNotNull(pcjTableName);
         checkNotNull(ryaConn);
@@ -309,7 +315,7 @@ public class PcjIntegrationTestingUtil {
 
     public static void addResults(final Connector accumuloConn,
             final String pcjTableName, final Collection<BindingSet> results)
-            throws PcjException {
+                    throws PcjException {
         checkNotNull(accumuloConn);
         checkNotNull(pcjTableName);
         checkNotNull(results);
@@ -336,7 +342,7 @@ public class PcjIntegrationTestingUtil {
      */
     private static void writeResults(final Connector accumuloConn,
             final String pcjTableName, final Collection<BindingSet> results)
-            throws PcjException {
+                    throws PcjException {
         checkNotNull(accumuloConn);
         checkNotNull(pcjTableName);
         checkNotNull(results);
@@ -387,7 +393,7 @@ public class PcjIntegrationTestingUtil {
      */
     private static Set<Mutation> makeWriteResultMutations(
             final Set<VariableOrder> varOrders, final BindingSet result)
-            throws PcjException {
+                    throws PcjException {
         checkNotNull(varOrders);
         checkNotNull(result);
 
@@ -409,5 +415,113 @@ public class PcjIntegrationTestingUtil {
         }
 
         return mutations;
+    }
+
+    //****************************Creation and Population of PcjTables Mongo ***********************************
+
+    public static void deleteCoreRyaTables(final MongoClient client, final String instance, final String collName) {
+        final boolean bool = client.isLocked();
+        client.getDatabase(instance).getCollection(collName).drop();
+    }
+
+    /**
+     * Creates a new PCJ Table in Accumulo and populates it by scanning an
+     * instance of Rya for historic matches.
+     * <p>
+     * If any portion of this operation fails along the way, the partially
+     * create PCJ table will be left in Accumulo.
+     *
+     * @param ryaConn - Connects to the Rya that will be scanned. (not null)
+     * @param mongoClient - Connects to the mongoDB that hosts the PCJ results. (not null)
+     * @param pcjName - The name of the PCJ table that will be created. (not null)
+     * @param sparql - The SPARQL query whose results will be loaded into the table. (not null)
+     * @throws PcjException The PCJ table could not be create or the values from Rya were
+     *         not able to be loaded into it.
+     */
+    public static void createAndPopulatePcj(final RepositoryConnection ryaConn, final MongoClient mongoClient, final String pcjName, final String instanceName, final String sparql) throws PcjException {
+        checkNotNull(ryaConn);
+        checkNotNull(mongoClient);
+        checkNotNull(pcjName);
+        checkNotNull(instanceName);
+        checkNotNull(sparql);
+
+        final MongoPcjDocuments pcj = new MongoPcjDocuments(mongoClient, instanceName);
+
+        pcj.createPcj(pcjName, sparql);
+
+        // Load historic matches from Rya into the PCJ table.
+        populatePcj(pcj, pcjName, ryaConn);
+    }
+
+
+    /**
+     * Scan Rya for results that solve the PCJ's query and store them in the PCJ
+     * table.
+     * <p>
+     * This method assumes the PCJ table has already been created.
+     *
+     * @param mongoClient - A connection to the mongoDB that hosts the PCJ table. (not null)
+     * @param pcjTableName - The name of the PCJ table that will receive the results. (not null)
+     * @param ryaConn - A connection to the Rya store that will be queried to find results. (not null)
+     * @throws PcjException
+     *             If results could not be written to the PCJ table, the PCJ
+     *             table does not exist, or the query that is being execute was
+     *             malformed.
+     */
+    public static void populatePcj(final MongoPcjDocuments pcj, final String pcjTableName, final RepositoryConnection ryaConn) throws PcjException {
+        checkNotNull(pcj);
+        checkNotNull(pcjTableName);
+        checkNotNull(ryaConn);
+
+        try {
+            // Fetch the query that needs to be executed from the PCJ table.
+            final PcjMetadata pcjMetadata = pcj.getPcjMetadata(pcjTableName);
+            final String sparql = pcjMetadata.getSparql();
+
+            // Query Rya for results to the SPARQL query.
+            final TupleQuery query = ryaConn.prepareTupleQuery(QueryLanguage.SPARQL, sparql);
+            final TupleQueryResult results = query.evaluate();
+
+            // Load batches of 1000 of them at a time into the PCJ table
+            final Set<BindingSet> batch = new HashSet<>(1000);
+            while (results.hasNext()) {
+                batch.add(results.next());
+
+                if (batch.size() == 1000) {
+                    writeResults(pcj, pcjTableName, batch);
+                    batch.clear();
+                }
+            }
+
+            if (!batch.isEmpty()) {
+                writeResults(pcj, pcjTableName, batch);
+            }
+
+        } catch (RepositoryException | MalformedQueryException | QueryEvaluationException e) {
+            throw new PcjException("Could not populate a PCJ table with Rya results for the table named: " + pcjTableName, e);
+        }
+    }
+
+    /**
+     * Add a collection of results to a specific PCJ table.
+     *
+     * @param accumuloConn - A connection to the Accumulo that hosts the PCJ table. (not null)
+     * @param pcjTableName - The name of the PCJ table that will receive the results. (not null)
+     * @param results - Binding sets that will be written to the PCJ table. (not null)
+     * @throws PcjException The provided PCJ table doesn't exist, is missing the
+     *   PCJ metadata, or the result could not be written to it.
+     */
+    private static void writeResults(final MongoPcjDocuments pcj,
+            final String pcjTableName, final Collection<BindingSet> results)
+                    throws PcjException {
+        checkNotNull(pcj);
+        checkNotNull(pcjTableName);
+        checkNotNull(results);
+
+        final Collection<VisibilityBindingSet> visRes = new ArrayList<>();
+        results.forEach(bindingSet -> {
+            visRes.add(new VisibilityBindingSet(bindingSet));
+        });
+        pcj.addResults(pcjTableName, visRes);
     }
 }

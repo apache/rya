@@ -85,7 +85,6 @@ public class MongoDetailsAdapterTest {
                         //RYA-215            + "geoDetails : true,"
                         + "pcjDetails : {"
                         +    "enabled : true ,"
-                        +    "fluoName : \"fluo\","
                         +    "pcjs : [ "
                         +       "{"
                         +          "id : \"pcj_0\","
@@ -150,7 +149,6 @@ public class MongoDetailsAdapterTest {
                 .setPCJIndexDetails(
                         PCJIndexDetails.builder()
                         .setEnabled(true)
-                        .setFluoDetails(new FluoDetails("fluo"))
                         .addPCJDetails(
                                 PCJDetails.builder()
                                 .setId("pcj_0")
@@ -242,7 +240,6 @@ public class MongoDetailsAdapterTest {
                         //RYA-215                + "geoDetails : false,"
                         + "pcjDetails : {"
                         +    "enabled : true,"
-                        +    "fluoName : \"fluo\","
                         +    "pcjs : [ ]"
                         + "},"
                         + "temporalDetails : false,"

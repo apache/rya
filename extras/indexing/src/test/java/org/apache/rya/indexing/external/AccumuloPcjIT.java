@@ -34,8 +34,19 @@ import org.apache.accumulo.core.client.TableExistsException;
 import org.apache.accumulo.core.client.TableNotFoundException;
 import org.apache.accumulo.core.client.admin.TableOperations;
 import org.apache.hadoop.conf.Configuration;
+import org.apache.rya.accumulo.AccumuloRdfConfiguration;
+import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
+import org.apache.rya.api.persist.RyaDAOException;
+import org.apache.rya.indexing.IndexPlanValidator.IndexPlanValidator;
+import org.apache.rya.indexing.accumulo.ConfigUtils;
+import org.apache.rya.indexing.external.PrecomputedJoinIndexerConfig.PrecomputedJoinStorageType;
+import org.apache.rya.indexing.external.tupleSet.AccumuloIndexSet;
+import org.apache.rya.indexing.external.tupleSet.ExternalTupleSet;
+import org.apache.rya.indexing.pcj.matching.PCJOptimizer;
+import org.apache.rya.indexing.pcj.matching.provider.AccumuloIndexSetProvider;
 import org.apache.rya.indexing.pcj.storage.PcjException;
 import org.apache.rya.indexing.pcj.storage.accumulo.PcjVarOrderFactory;
+import org.apache.rya.rdftriplestore.inference.InferenceEngineException;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -64,17 +75,6 @@ import com.google.common.base.Optional;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
-import org.apache.rya.accumulo.AccumuloRdfConfiguration;
-import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
-import org.apache.rya.api.persist.RyaDAOException;
-import org.apache.rya.indexing.IndexPlanValidator.IndexPlanValidator;
-import org.apache.rya.indexing.accumulo.ConfigUtils;
-import org.apache.rya.indexing.external.PrecomputedJoinIndexerConfig.PrecomputedJoinStorageType;
-import org.apache.rya.indexing.external.tupleSet.AccumuloIndexSet;
-import org.apache.rya.indexing.external.tupleSet.ExternalTupleSet;
-import org.apache.rya.indexing.pcj.matching.PCJOptimizer;
-import org.apache.rya.rdftriplestore.inference.InferenceEngineException;
-
 public class AccumuloPcjIT {
 
 	private SailRepositoryConnection conn, pcjConn;
@@ -93,10 +93,10 @@ public class AccumuloPcjIT {
 			TableNotFoundException, InferenceEngineException,
 			NumberFormatException, UnknownHostException, SailException {
 
-		repo = PcjIntegrationTestingUtil.getNonPcjRepo(prefix, "instance");
+		repo = PcjIntegrationTestingUtil.getAccumuloNonPcjRepo(prefix, "instance");
 		conn = repo.getConnection();
 
-		pcjRepo = PcjIntegrationTestingUtil.getPcjRepo(prefix, "instance");
+		pcjRepo = PcjIntegrationTestingUtil.getAccumuloPcjRepo(prefix, "instance");
 		pcjConn = pcjRepo.getConnection();
 
 		final URI sub = new URIImpl("uri:entity");
@@ -1274,7 +1274,7 @@ public class AccumuloPcjIT {
 		final List<TupleExpr> teList = Lists.newArrayList();
 		final TupleExpr te = pq.getTupleExpr();
 
-		final PCJOptimizer pcj = new PCJOptimizer(index, false);
+        final PCJOptimizer pcj = new PCJOptimizer(index, false, new AccumuloIndexSetProvider(conf));
         pcj.optimize(te, null, null);
 		teList.add(te);
 
@@ -1372,7 +1372,7 @@ public class AccumuloPcjIT {
 		final List<TupleExpr> teList = Lists.newArrayList();
 		final TupleExpr te = pq.getTupleExpr();
 
-		final PCJOptimizer pcj = new PCJOptimizer(index, false);
+        final PCJOptimizer pcj = new PCJOptimizer(index, false, new AccumuloIndexSetProvider(conf));
         pcj.optimize(te, null, null);
 
 		teList.add(te);

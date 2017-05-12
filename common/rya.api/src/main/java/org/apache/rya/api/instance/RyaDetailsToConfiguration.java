@@ -51,17 +51,29 @@ public class RyaDetailsToConfiguration {
 
         checkAndSet(conf, ConfigurationFields.USE_ENTITY, details.getEntityCentricIndexDetails().isEnabled());
         checkAndSet(conf, ConfigurationFields.USE_FREETEXT, details.getFreeTextIndexDetails().isEnabled());
-      //RYA-215        checkAndSet(conf, ConfigurationFields.USE_GEO, details.getGeoIndexDetails().isEnabled());
+        //RYA-215        checkAndSet(conf, ConfigurationFields.USE_GEO, details.getGeoIndexDetails().isEnabled());
         checkAndSet(conf, ConfigurationFields.USE_TEMPORAL, details.getTemporalIndexDetails().isEnabled());
         final PCJIndexDetails pcjDetails = details.getPCJIndexDetails();
-        if (pcjDetails.isEnabled() && pcjDetails.getFluoDetails().isPresent()) {
-            checkAndSet(conf, ConfigurationFields.USE_PCJ_UPDATER, true);
-            conf.set(ConfigurationFields.FLUO_APP_NAME, pcjDetails.getFluoDetails().get().getUpdateAppName());
-            conf.set(ConfigurationFields.PCJ_UPDATER_TYPE, "FLUO");
-            conf.set(ConfigurationFields.PCJ_STORAGE_TYPE, "ACCUMULO");
+        
+        if(conf.getBoolean(ConfigurationFields.USE_MONGO, false) ) {
+        	if(pcjDetails.isEnabled()) {
+        		conf.set(ConfigurationFields.PCJ_STORAGE_TYPE, "MONGO");
+        		//mongo does not currently support pcj updaters
+        		checkAndSet(conf, ConfigurationFields.USE_PCJ_UPDATER, false);
+        		conf.set(ConfigurationFields.PCJ_UPDATER_TYPE, "NO_UPDATE");
+        	}
         } else {
-            checkAndSet(conf, ConfigurationFields.USE_PCJ_UPDATER, false);
-            conf.set(ConfigurationFields.PCJ_UPDATER_TYPE, "NO_UPDATE");
+        	if (pcjDetails.isEnabled() ) {
+        		conf.set(ConfigurationFields.PCJ_STORAGE_TYPE, "ACCUMULO");
+        		if (pcjDetails.getFluoDetails().isPresent()) {
+        			checkAndSet(conf, ConfigurationFields.USE_PCJ_UPDATER, true);
+        			conf.set(ConfigurationFields.FLUO_APP_NAME, pcjDetails.getFluoDetails().get().getUpdateAppName());
+        			conf.set(ConfigurationFields.PCJ_UPDATER_TYPE, "FLUO");
+        		} else {
+        			checkAndSet(conf, ConfigurationFields.USE_PCJ_UPDATER, false);
+        			conf.set(ConfigurationFields.PCJ_UPDATER_TYPE, "NO_UPDATE");
+        		}
+        	}
         }
     }
 

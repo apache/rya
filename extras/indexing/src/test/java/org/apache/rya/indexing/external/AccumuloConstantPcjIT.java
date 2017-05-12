@@ -75,10 +75,10 @@ public class AccumuloConstantPcjIT {
 			TableNotFoundException, RyaDAOException, InferenceEngineException,
 			NumberFormatException, UnknownHostException, SailException {
 
-		repo = PcjIntegrationTestingUtil.getNonPcjRepo(prefix, "instance");
+		repo = PcjIntegrationTestingUtil.getAccumuloNonPcjRepo(prefix, "instance");
 		conn = repo.getConnection();
 
-		pcjRepo = PcjIntegrationTestingUtil.getPcjRepo(prefix, "instance");
+		pcjRepo = PcjIntegrationTestingUtil.getAccumuloPcjRepo(prefix, "instance");
 		pcjConn = pcjRepo.getConnection();
 
 		final URI sub = new URIImpl("uri:entity");

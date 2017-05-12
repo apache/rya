@@ -22,11 +22,9 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import org.apache.rya.accumulo.AccumuloITBase;
-import org.apache.rya.api.client.Install;
 import org.apache.rya.api.client.Install.InstallConfiguration;
 import org.apache.rya.api.client.InstanceDoesNotExistException;
-import org.apache.rya.api.client.InstanceExists;
-import org.apache.rya.api.client.Uninstall;
+import org.apache.rya.api.client.RyaClient;
 import org.junit.Test;
 
 /**
@@ -62,20 +60,16 @@ public class AccumuloUninstallIT extends AccumuloITBase {
                 getPassword().toCharArray(),
                 getInstanceName(),
                 getZookeepers());
-
-        final Install install = new AccumuloInstall(connectionDetails, getConnector());
-        final String ryaInstanceName = getRyaInstanceName();
-        install.install(ryaInstanceName, installConfig);
+        final RyaClient ryaClient = AccumuloRyaClientFactory.build(connectionDetails, getConnector());
+        ryaClient.getInstall().install(getRyaInstanceName(), installConfig);
 
         // Check that the instance exists.
-        final InstanceExists instanceExists = new AccumuloInstanceExists(connectionDetails, getConnector());
-        assertTrue( instanceExists.exists(ryaInstanceName) );
+        assertTrue( ryaClient.getInstanceExists().exists(getRyaInstanceName()) );
 
         // Uninstall the instance of Rya.
-        final Uninstall uninstall = new AccumuloUninstall(connectionDetails, getConnector());
-        uninstall.uninstall(ryaInstanceName);
+        ryaClient.getUninstall().uninstall(getRyaInstanceName());
 
         // Verify that it no longer exists.
-        assertFalse( instanceExists.exists(ryaInstanceName) );
+        assertFalse( ryaClient.getInstanceExists().exists(getRyaInstanceName()) );
     }
 }

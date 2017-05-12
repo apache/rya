@@ -64,27 +64,26 @@ public class MongoRyaDetailsRepositoryIT extends MongoITBase {
 
         // Create the metadata object the repository will be initialized with.
         final RyaDetails details = RyaDetails.builder()
-            .setRyaInstanceName(instanceName)
-            .setRyaVersion("1.2.3.4")
-            .setEntityCentricIndexDetails( new EntityCentricIndexDetails(true) )
-          //RYA-215            .setGeoIndexDetails( new GeoIndexDetails(true) )
-            .setTemporalIndexDetails( new TemporalIndexDetails(true) )
-            .setFreeTextDetails( new FreeTextIndexDetails(true) )
-            .setPCJIndexDetails(
-                    PCJIndexDetails.builder()
+                .setRyaInstanceName(instanceName)
+                .setRyaVersion("1.2.3.4")
+                .setEntityCentricIndexDetails( new EntityCentricIndexDetails(true) )
+                //RYA-215            .setGeoIndexDetails( new GeoIndexDetails(true) )
+                .setTemporalIndexDetails( new TemporalIndexDetails(true) )
+                .setFreeTextDetails( new FreeTextIndexDetails(true) )
+                .setPCJIndexDetails(
+                        PCJIndexDetails.builder()
                         .setEnabled(true)
-                        .setFluoDetails( new FluoDetails("test_instance_rya_pcj_updater") )
                         .addPCJDetails(
                                 PCJDetails.builder()
-                                    .setId("pcj 1")
-                                    .setUpdateStrategy(PCJUpdateStrategy.BATCH)
-                                    .setLastUpdateTime( new Date() ))
+                                .setId("pcj 1")
+                                .setUpdateStrategy(PCJUpdateStrategy.BATCH)
+                                .setLastUpdateTime( new Date() ))
                         .addPCJDetails(
                                 PCJDetails.builder()
-                                    .setId("pcj 2")))
-            .setProspectorDetails( new ProspectorDetails(Optional.of(new Date())) )
-            .setJoinSelectivityDetails( new JoinSelectivityDetails(Optional.of(new Date())) )
-            .build();
+                                .setId("pcj 2")))
+                .setProspectorDetails( new ProspectorDetails(Optional.of(new Date())) )
+                .setJoinSelectivityDetails( new JoinSelectivityDetails(Optional.of(new Date())) )
+                .build();
 
         // Setup the repository that will be tested using a mock instance of MongoDB.
         final RyaDetailsRepository repo = new MongoRyaInstanceDetailsRepository(client, instanceName);
@@ -105,27 +104,27 @@ public class MongoRyaDetailsRepositoryIT extends MongoITBase {
 
         // Create the metadata object the repository will be initialized with.
         final RyaDetails details = RyaDetails.builder()
-            .setRyaInstanceName(instanceName)
-            .setRyaVersion("1.2.3.4")
-            .setEntityCentricIndexDetails( new EntityCentricIndexDetails(true) )
-          //RYA-215            .setGeoIndexDetails( new GeoIndexDetails(true) )
-            .setTemporalIndexDetails( new TemporalIndexDetails(true) )
-            .setFreeTextDetails( new FreeTextIndexDetails(true) )
-            .setPCJIndexDetails(
-                    PCJIndexDetails.builder()
+                .setRyaInstanceName(instanceName)
+                .setRyaVersion("1.2.3.4")
+                .setEntityCentricIndexDetails( new EntityCentricIndexDetails(true) )
+                //RYA-215            .setGeoIndexDetails( new GeoIndexDetails(true) )
+                .setTemporalIndexDetails( new TemporalIndexDetails(true) )
+                .setFreeTextDetails( new FreeTextIndexDetails(true) )
+                .setPCJIndexDetails(
+                        PCJIndexDetails.builder()
                         .setEnabled(true)
                         .setFluoDetails( new FluoDetails("test_instance_rya_pcj_updater") )
                         .addPCJDetails(
                                 PCJDetails.builder()
-                                    .setId("pcj 1")
-                                    .setUpdateStrategy(PCJUpdateStrategy.BATCH)
-                                    .setLastUpdateTime( new Date() ))
+                                .setId("pcj 1")
+                                .setUpdateStrategy(PCJUpdateStrategy.BATCH)
+                                .setLastUpdateTime( new Date() ))
                         .addPCJDetails(
                                 PCJDetails.builder()
-                                    .setId("pcj 2")))
-            .setProspectorDetails( new ProspectorDetails(Optional.of(new Date())) )
-            .setJoinSelectivityDetails( new JoinSelectivityDetails(Optional.of(new Date())) )
-            .build();
+                                .setId("pcj 2")))
+                .setProspectorDetails( new ProspectorDetails(Optional.of(new Date())) )
+                .setJoinSelectivityDetails( new JoinSelectivityDetails(Optional.of(new Date())) )
+                .build();
 
         // Setup the repository that will be tested using a mock instance of MongoDB.
         final RyaDetailsRepository repo = new MongoRyaInstanceDetailsRepository(client, instanceName);
@@ -152,27 +151,27 @@ public class MongoRyaDetailsRepositoryIT extends MongoITBase {
 
         // Create the metadata object the repository will be initialized with.
         final RyaDetails details = RyaDetails.builder()
-            .setRyaInstanceName(instanceName)
-            .setRyaVersion("1.2.3.4")
-            .setEntityCentricIndexDetails( new EntityCentricIndexDetails(true) )
-          //RYA-215            .setGeoIndexDetails( new GeoIndexDetails(true) )
-            .setTemporalIndexDetails( new TemporalIndexDetails(true) )
-            .setFreeTextDetails( new FreeTextIndexDetails(true) )
-            .setPCJIndexDetails(
-                    PCJIndexDetails.builder()
+                .setRyaInstanceName(instanceName)
+                .setRyaVersion("1.2.3.4")
+                .setEntityCentricIndexDetails( new EntityCentricIndexDetails(true) )
+                //RYA-215            .setGeoIndexDetails( new GeoIndexDetails(true) )
+                .setTemporalIndexDetails( new TemporalIndexDetails(true) )
+                .setFreeTextDetails( new FreeTextIndexDetails(true) )
+                .setPCJIndexDetails(
+                        PCJIndexDetails.builder()
                         .setEnabled(true)
                         .setFluoDetails( new FluoDetails("test_instance_rya_pcj_updater") )
                         .addPCJDetails(
                                 PCJDetails.builder()
-                                    .setId("pcj 1")
-                                    .setUpdateStrategy(PCJUpdateStrategy.BATCH)
-                                    .setLastUpdateTime( new Date() ))
+                                .setId("pcj 1")
+                                .setUpdateStrategy(PCJUpdateStrategy.BATCH)
+                                .setLastUpdateTime( new Date() ))
                         .addPCJDetails(
                                 PCJDetails.builder()
-                                    .setId("pcj 2")))
-            .setProspectorDetails( new ProspectorDetails(Optional.of(new Date())) )
-            .setJoinSelectivityDetails( new JoinSelectivityDetails(Optional.of(new Date())) )
-            .build();
+                                .setId("pcj 2")))
+                .setProspectorDetails( new ProspectorDetails(Optional.of(new Date())) )
+                .setJoinSelectivityDetails( new JoinSelectivityDetails(Optional.of(new Date())) )
+                .build();
 
         // Setup the repository that will be tested using a mock instance of MongoDB.
         final RyaDetailsRepository repo = new MongoRyaInstanceDetailsRepository(client, "testInstance");
@@ -199,27 +198,26 @@ public class MongoRyaDetailsRepositoryIT extends MongoITBase {
 
         // Create the metadata object the repository will be initialized with.
         final RyaDetails details = RyaDetails.builder()
-            .setRyaInstanceName(instanceName)
-            .setRyaVersion("1.2.3.4")
-            .setEntityCentricIndexDetails( new EntityCentricIndexDetails(true) )
-          //RYA-215            .setGeoIndexDetails( new GeoIndexDetails(true) )
-            .setTemporalIndexDetails( new TemporalIndexDetails(true) )
-            .setFreeTextDetails( new FreeTextIndexDetails(true) )
-            .setPCJIndexDetails(
-                    PCJIndexDetails.builder()
+                .setRyaInstanceName(instanceName)
+                .setRyaVersion("1.2.3.4")
+                .setEntityCentricIndexDetails( new EntityCentricIndexDetails(true) )
+                //RYA-215            .setGeoIndexDetails( new GeoIndexDetails(true) )
+                .setTemporalIndexDetails( new TemporalIndexDetails(true) )
+                .setFreeTextDetails( new FreeTextIndexDetails(true) )
+                .setPCJIndexDetails(
+                        PCJIndexDetails.builder()
                         .setEnabled(true)
-                        .setFluoDetails( new FluoDetails("test_instance_rya_pcj_updater") )
                         .addPCJDetails(
                                 PCJDetails.builder()
-                                    .setId("pcj 1")
-                                    .setUpdateStrategy(PCJUpdateStrategy.BATCH)
-                                    .setLastUpdateTime( new Date() ))
+                                .setId("pcj 1")
+                                .setUpdateStrategy(PCJUpdateStrategy.BATCH)
+                                .setLastUpdateTime( new Date() ))
                         .addPCJDetails(
                                 PCJDetails.builder()
-                                    .setId("pcj 2")))
-            .setProspectorDetails( new ProspectorDetails(Optional.of(new Date())) )
-            .setJoinSelectivityDetails( new JoinSelectivityDetails(Optional.of(new Date())) )
-            .build();
+                                .setId("pcj 2")))
+                .setProspectorDetails( new ProspectorDetails(Optional.of(new Date())) )
+                .setJoinSelectivityDetails( new JoinSelectivityDetails(Optional.of(new Date())) )
+                .build();
 
         // Setup the repository that will be tested using a mock instance of MongoDB.
         final RyaDetailsRepository repo = new MongoRyaInstanceDetailsRepository(client, "testInstance");
@@ -246,27 +244,27 @@ public class MongoRyaDetailsRepositoryIT extends MongoITBase {
 
         // Create the metadata object the repository will be initialized with.
         final RyaDetails details = RyaDetails.builder()
-            .setRyaInstanceName(instanceName)
-            .setRyaVersion("1.2.3.4")
-            .setEntityCentricIndexDetails( new EntityCentricIndexDetails(true) )
-          //RYA-215            .setGeoIndexDetails( new GeoIndexDetails(true) )
-            .setTemporalIndexDetails( new TemporalIndexDetails(true) )
-            .setFreeTextDetails( new FreeTextIndexDetails(true) )
-            .setPCJIndexDetails(
-                    PCJIndexDetails.builder()
+                .setRyaInstanceName(instanceName)
+                .setRyaVersion("1.2.3.4")
+                .setEntityCentricIndexDetails( new EntityCentricIndexDetails(true) )
+                //RYA-215            .setGeoIndexDetails( new GeoIndexDetails(true) )
+                .setTemporalIndexDetails( new TemporalIndexDetails(true) )
+                .setFreeTextDetails( new FreeTextIndexDetails(true) )
+                .setPCJIndexDetails(
+                        PCJIndexDetails.builder()
                         .setEnabled(true)
                         .setFluoDetails( new FluoDetails("test_instance_rya_pcj_updater") )
                         .addPCJDetails(
                                 PCJDetails.builder()
-                                    .setId("pcj 1")
-                                    .setUpdateStrategy(PCJUpdateStrategy.BATCH)
-                                    .setLastUpdateTime( new Date() ))
+                                .setId("pcj 1")
+                                .setUpdateStrategy(PCJUpdateStrategy.BATCH)
+                                .setLastUpdateTime( new Date() ))
                         .addPCJDetails(
                                 PCJDetails.builder()
-                                    .setId("pcj 2")))
-            .setProspectorDetails( new ProspectorDetails(Optional.of(new Date())) )
-            .setJoinSelectivityDetails( new JoinSelectivityDetails(Optional.of(new Date())) )
-            .build();
+                                .setId("pcj 2")))
+                .setProspectorDetails( new ProspectorDetails(Optional.of(new Date())) )
+                .setJoinSelectivityDetails( new JoinSelectivityDetails(Optional.of(new Date())) )
+                .build();
 
         // Setup the repository that will be tested using a mock instance of MongoDB.
         final RyaDetailsRepository repo = new MongoRyaInstanceDetailsRepository(client, "testInstance");

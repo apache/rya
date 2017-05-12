@@ -43,6 +43,10 @@ public class RyaToRdfConversions {
     public static URI convertURI(RyaURI uri) {
         return new URIImpl(uri.getData());
     }
+    
+    private static URI convertURI(RyaType value) {
+        return new URIImpl(value.getData());
+    }
 
     public static Literal convertLiteral(RyaType literal) {
         if (XMLSchema.STRING.equals(literal.getDataType())) {
@@ -55,7 +59,7 @@ public class RyaToRdfConversions {
 
     public static Value convertValue(RyaType value) {
         //assuming either uri or Literal here
-        return (value instanceof RyaURI) ? convertURI((RyaURI) value) : convertLiteral(value);
+        return (value instanceof RyaURI || value.getDataType().equals(XMLSchema.ANYURI)) ? convertURI(value) : convertLiteral(value);
     }
 
     public static Statement convertStatement(RyaStatement statement) {

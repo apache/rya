@@ -74,10 +74,10 @@ public class PrecompJoinOptimizerIT {
 			TableNotFoundException, InferenceEngineException, NumberFormatException,
 			UnknownHostException, SailException {
 
-		repo = PcjIntegrationTestingUtil.getNonPcjRepo(tablePrefix, "instance");
+		repo = PcjIntegrationTestingUtil.getAccumuloNonPcjRepo(tablePrefix, "instance");
 		conn = repo.getConnection();
 
-		pcjRepo = PcjIntegrationTestingUtil.getPcjRepo(tablePrefix, "instance");
+		pcjRepo = PcjIntegrationTestingUtil.getAccumuloPcjRepo(tablePrefix, "instance");
 		pcjConn = pcjRepo.getConnection();
 
 		sub = new URIImpl("uri:entity");
@@ -142,7 +142,7 @@ public class PrecompJoinOptimizerIT {
 		final CountingResultHandler crh = new CountingResultHandler();
 		PcjIntegrationTestingUtil.deleteCoreRyaTables(accCon, tablePrefix);
 		PcjIntegrationTestingUtil.closeAndShutdown(conn, repo);
-		repo = PcjIntegrationTestingUtil.getPcjRepo(tablePrefix, "instance");
+		repo = PcjIntegrationTestingUtil.getAccumuloPcjRepo(tablePrefix, "instance");
 		conn = repo.getConnection();
 		conn.add(sub, talksTo, obj);
 		conn.add(sub2, talksTo, obj2);
@@ -231,7 +231,7 @@ public class PrecompJoinOptimizerIT {
 		final CountingResultHandler crh = new CountingResultHandler();
 		PcjIntegrationTestingUtil.deleteCoreRyaTables(accCon, tablePrefix);
 		PcjIntegrationTestingUtil.closeAndShutdown(conn, repo);
-		repo = PcjIntegrationTestingUtil.getPcjRepo(tablePrefix, "instance");
+		repo = PcjIntegrationTestingUtil.getAccumuloPcjRepo(tablePrefix, "instance");
 		conn = repo.getConnection();
 		conn.add(sub, talksTo, obj);
 		conn.add(sub2, talksTo, obj2);
@@ -274,7 +274,7 @@ public class PrecompJoinOptimizerIT {
 		final CountingResultHandler crh = new CountingResultHandler();
 		PcjIntegrationTestingUtil.deleteCoreRyaTables(accCon, tablePrefix);
 		PcjIntegrationTestingUtil.closeAndShutdown(conn, repo);
-		repo = PcjIntegrationTestingUtil.getPcjRepo(tablePrefix, "instance");
+		repo = PcjIntegrationTestingUtil.getAccumuloPcjRepo(tablePrefix, "instance");
 		conn = repo.getConnection();
 		conn.add(sub, talksTo, obj);
 		conn.add(sub2, talksTo, obj2);
@@ -321,7 +321,7 @@ public class PrecompJoinOptimizerIT {
 		final CountingResultHandler crh = new CountingResultHandler();
 		PcjIntegrationTestingUtil.deleteCoreRyaTables(accCon, tablePrefix);
 		PcjIntegrationTestingUtil.closeAndShutdown(conn, repo);
-		repo = PcjIntegrationTestingUtil.getPcjRepo(tablePrefix, "instance");
+		repo = PcjIntegrationTestingUtil.getAccumuloPcjRepo(tablePrefix, "instance");
 		conn = repo.getConnection();
 		conn.add(sub, talksTo, obj);
 		conn.add(sub, RDFS.LABEL, new LiteralImpl("label"));
@@ -379,7 +379,7 @@ public class PrecompJoinOptimizerIT {
 
 		PcjIntegrationTestingUtil.deleteCoreRyaTables(accCon, tablePrefix);
 		PcjIntegrationTestingUtil.closeAndShutdown(conn, repo);
-		repo = PcjIntegrationTestingUtil.getPcjRepo(tablePrefix, "instance");
+		repo = PcjIntegrationTestingUtil.getAccumuloPcjRepo(tablePrefix, "instance");
 		conn = repo.getConnection();
 		conn.add(sub2, RDF.TYPE, subclass2);
 		conn.add(sub2, RDF.TYPE, obj2);
@@ -445,7 +445,7 @@ public class PrecompJoinOptimizerIT {
 
 		PcjIntegrationTestingUtil.deleteCoreRyaTables(accCon, tablePrefix);
 		PcjIntegrationTestingUtil.closeAndShutdown(conn, repo);
-		repo = PcjIntegrationTestingUtil.getPcjRepo(tablePrefix, "instance");
+		repo = PcjIntegrationTestingUtil.getAccumuloPcjRepo(tablePrefix, "instance");
 		conn = repo.getConnection();
 		conn.add(sub2, livesIn, city3);
 		conn.add(sub, livesIn, city3);

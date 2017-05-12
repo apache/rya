@@ -29,7 +29,6 @@ import org.apache.rya.api.instance.RyaDetails.EntityCentricIndexDetails;
 import org.apache.rya.api.instance.RyaDetails.FreeTextIndexDetails;
 import org.apache.rya.api.instance.RyaDetails.JoinSelectivityDetails;
 import org.apache.rya.api.instance.RyaDetails.PCJIndexDetails;
-import org.apache.rya.api.instance.RyaDetails.PCJIndexDetails.FluoDetails;
 import org.apache.rya.api.instance.RyaDetails.PCJIndexDetails.PCJDetails;
 import org.apache.rya.api.instance.RyaDetails.PCJIndexDetails.PCJDetails.PCJUpdateStrategy;
 import org.apache.rya.api.instance.RyaDetails.ProspectorDetails;
@@ -100,13 +99,13 @@ public class MongoDetailsAdapter {
     public static BasicDBObject toDBObject(final RyaDetails details) {
         Preconditions.checkNotNull(details);
         final BasicDBObjectBuilder builder = BasicDBObjectBuilder.start()
-            .add(INSTANCE_KEY, details.getRyaInstanceName())
-            .add(VERSION_KEY, details.getRyaVersion())
-            .add(ENTITY_DETAILS_KEY, details.getEntityCentricIndexDetails().isEnabled())
-          //RYA-215            .add(GEO_DETAILS_KEY, details.getGeoIndexDetails().isEnabled())
-            .add(PCJ_DETAILS_KEY, toDBObject(details.getPCJIndexDetails()))
-            .add(TEMPORAL_DETAILS_KEY, details.getTemporalIndexDetails().isEnabled())
-            .add(FREETEXT_DETAILS_KEY, details.getFreeTextIndexDetails().isEnabled());
+                .add(INSTANCE_KEY, details.getRyaInstanceName())
+                .add(VERSION_KEY, details.getRyaVersion())
+                .add(ENTITY_DETAILS_KEY, details.getEntityCentricIndexDetails().isEnabled())
+                //RYA-215            .add(GEO_DETAILS_KEY, details.getGeoIndexDetails().isEnabled())
+                .add(PCJ_DETAILS_KEY, toDBObject(details.getPCJIndexDetails()))
+                .add(TEMPORAL_DETAILS_KEY, details.getTemporalIndexDetails().isEnabled())
+                .add(FREETEXT_DETAILS_KEY, details.getFreeTextIndexDetails().isEnabled());
         if(details.getProspectorDetails().getLastUpdated().isPresent()) {
             builder.add(PROSPECTOR_DETAILS_KEY, details.getProspectorDetails().getLastUpdated().get());
         }
@@ -123,11 +122,6 @@ public class MongoDetailsAdapter {
 
         // Is Enabled
         builder.add(PCJ_ENABLED_KEY, pcjIndexDetails.isEnabled());
-
-        // Fluo Details if present.
-        if(pcjIndexDetails.getFluoDetails().isPresent()) {
-            builder.add(PCJ_FLUO_KEY, pcjIndexDetails.getFluoDetails().get().getUpdateAppName());
-        }
 
         // Add the PCJDetail objects.
         final List<DBObject> pcjDetailsList = new ArrayList<>();
@@ -163,17 +157,17 @@ public class MongoDetailsAdapter {
     public static RyaDetails toRyaDetails(final DBObject mongoObj) throws MalformedRyaDetailsException {
         final BasicDBObject basicObj = (BasicDBObject) mongoObj;
         try {
-        return RyaDetails.builder()
-            .setRyaInstanceName(basicObj.getString(INSTANCE_KEY))
-            .setRyaVersion(basicObj.getString(VERSION_KEY))
-            .setEntityCentricIndexDetails(new EntityCentricIndexDetails(basicObj.getBoolean(ENTITY_DETAILS_KEY)))
-          //RYA-215            .setGeoIndexDetails(new GeoIndexDetails(basicObj.getBoolean(GEO_DETAILS_KEY)))
-            .setPCJIndexDetails(getPCJIndexDetails(basicObj))
-            .setTemporalIndexDetails(new TemporalIndexDetails(basicObj.getBoolean(TEMPORAL_DETAILS_KEY)))
-            .setFreeTextDetails(new FreeTextIndexDetails(basicObj.getBoolean(FREETEXT_DETAILS_KEY)))
-            .setProspectorDetails(new ProspectorDetails(Optional.<Date>fromNullable(basicObj.getDate(PROSPECTOR_DETAILS_KEY))))
-            .setJoinSelectivityDetails(new JoinSelectivityDetails(Optional.<Date>fromNullable(basicObj.getDate(JOIN_SELECTIVITY_DETAILS_KEY))))
-            .build();
+            return RyaDetails.builder()
+                    .setRyaInstanceName(basicObj.getString(INSTANCE_KEY))
+                    .setRyaVersion(basicObj.getString(VERSION_KEY))
+                    .setEntityCentricIndexDetails(new EntityCentricIndexDetails(basicObj.getBoolean(ENTITY_DETAILS_KEY)))
+                    //RYA-215            .setGeoIndexDetails(new GeoIndexDetails(basicObj.getBoolean(GEO_DETAILS_KEY)))
+                    .setPCJIndexDetails(getPCJIndexDetails(basicObj))
+                    .setTemporalIndexDetails(new TemporalIndexDetails(basicObj.getBoolean(TEMPORAL_DETAILS_KEY)))
+                    .setFreeTextDetails(new FreeTextIndexDetails(basicObj.getBoolean(FREETEXT_DETAILS_KEY)))
+                    .setProspectorDetails(new ProspectorDetails(Optional.<Date>fromNullable(basicObj.getDate(PROSPECTOR_DETAILS_KEY))))
+                    .setJoinSelectivityDetails(new JoinSelectivityDetails(Optional.<Date>fromNullable(basicObj.getDate(JOIN_SELECTIVITY_DETAILS_KEY))))
+                    .build();
         } catch(final Exception e) {
             throw new MalformedRyaDetailsException("Failed to make RyaDetail from Mongo Object, it is malformed.", e);
         }
@@ -186,7 +180,7 @@ public class MongoDetailsAdapter {
         if (!pcjIndexDBO.getBoolean(PCJ_ENABLED_KEY)) {
             pcjBuilder.setEnabled(false);
         } else {
-            pcjBuilder.setEnabled(true).setFluoDetails(new FluoDetails(pcjIndexDBO.getString(PCJ_FLUO_KEY)));
+            pcjBuilder.setEnabled(true);//no fluo details to set since mongo has no fluo support
             final BasicDBList pcjs = (BasicDBList) pcjIndexDBO.get(PCJ_PCJS_KEY);
             if (pcjs != null) {
                 for (int ii = 0; ii < pcjs.size(); ii++) {

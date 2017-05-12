@@ -33,6 +33,10 @@ import org.apache.rya.indexing.external.matching.QueryNodeListRater;
 import org.apache.rya.indexing.external.matching.QuerySegment;
 import org.apache.rya.indexing.external.matching.TopOfQueryFilterRelocator;
 import org.apache.rya.indexing.external.tupleSet.ExternalTupleSet;
+import org.apache.rya.indexing.mongodb.pcj.MongoPcjIndexSetProvider;
+import org.apache.rya.indexing.pcj.matching.provider.AbstractPcjIndexSetProvider;
+import org.apache.rya.indexing.pcj.matching.provider.AccumuloIndexSetProvider;
+import org.apache.rya.mongodb.StatefulMongoDBRdfConfiguration;
 import org.openrdf.query.BindingSet;
 import org.openrdf.query.Dataset;
 import org.openrdf.query.algebra.QueryModelNode;
@@ -58,29 +62,32 @@ import com.google.common.base.Optional;;
  */
 public class PCJOptimizer extends AbstractExternalSetOptimizer<ExternalTupleSet>implements Configurable {
     private static final PCJExternalSetMatcherFactory factory = new PCJExternalSetMatcherFactory();
-    private AccumuloIndexSetProvider provider;
+    private AbstractPcjIndexSetProvider provider;
     private Configuration conf;
     private boolean init = false;
 
     public PCJOptimizer() {}
 
     public PCJOptimizer(final Configuration conf) {
-       setConf(conf);
+        setConf(conf);
     }
 
     /**
      * This constructor is designed to be used for testing.  A more typical use
      * pattern is for a user to specify Accumulo connection details in a Configuration
      * file so that PCJs can be retrieved by an AccumuloIndexSetProvider.
-     * 
-     * @param indices - user specified PCJs to match to query
+     *
+     * @param indices - user specified PCJs to match to query. (not null)
      * @param useOptimalPcj - optimize PCJ combos for matching
+     * @param provider - The provider to use in this optimizer. (not null)
      */
-    public PCJOptimizer(final List<ExternalTupleSet> indices, final boolean useOptimalPcj) {
+    public PCJOptimizer(final List<ExternalTupleSet> indices, final boolean useOptimalPcj,
+            final AbstractPcjIndexSetProvider provider) {
         checkNotNull(indices);
+        checkNotNull(provider);
         conf = new Configuration();
-        this.useOptimal = useOptimalPcj;
-        provider = new AccumuloIndexSetProvider(conf, indices);
+        useOptimal = useOptimalPcj;
+        this.provider = provider;
         init = true;
     }
 
@@ -90,9 +97,14 @@ public class PCJOptimizer extends AbstractExternalSetOptimizer<ExternalTupleSet>
         if (!init) {
             try {
                 this.conf = conf;
-                this.useOptimal = ConfigUtils.getUseOptimalPCJ(conf);
-                provider = new AccumuloIndexSetProvider(conf);
-            } catch (Exception e) {
+                useOptimal = ConfigUtils.getUseOptimalPCJ(conf);
+                if (conf instanceof StatefulMongoDBRdfConfiguration) {
+                    final StatefulMongoDBRdfConfiguration mongoConf = (StatefulMongoDBRdfConfiguration) conf;
+                    provider = new MongoPcjIndexSetProvider(mongoConf);
+                } else {
+                    provider = new AccumuloIndexSetProvider(conf);
+                }
+            } catch (final Exception e) {
                 throw new Error(e);
             }
             init = true;
@@ -124,14 +136,14 @@ public class PCJOptimizer extends AbstractExternalSetOptimizer<ExternalTupleSet>
             } else {
                 return;
             }
-        } catch (Exception e) {
-            throw new RuntimeException("Could not populate Accumulo Index Cache.");
+        } catch (final Exception e) {
+            throw new RuntimeException("Could not populate Index Cache.", e);
         }
     }
 
 
     @Override
-    protected ExternalSetMatcher<ExternalTupleSet> getMatcher(QuerySegment<ExternalTupleSet> segment) {
+    protected ExternalSetMatcher<ExternalTupleSet> getMatcher(final QuerySegment<ExternalTupleSet> segment) {
         return factory.getMatcher(segment);
     }
 
@@ -141,7 +153,7 @@ public class PCJOptimizer extends AbstractExternalSetOptimizer<ExternalTupleSet>
     }
 
     @Override
-    protected Optional<QueryNodeListRater> getNodeListRater(QuerySegment<ExternalTupleSet> segment) {
+    protected Optional<QueryNodeListRater> getNodeListRater(final QuerySegment<ExternalTupleSet> segment) {
         return Optional.of(new BasicRater(segment.getOrderedNodes()));
     }
 }

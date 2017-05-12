@@ -29,8 +29,17 @@ import org.apache.accumulo.core.client.TableExistsException;
 import org.apache.accumulo.core.client.TableNotFoundException;
 import org.apache.accumulo.core.client.mock.MockInstance;
 import org.apache.accumulo.core.client.security.tokens.PasswordToken;
+import org.apache.hadoop.conf.Configuration;
+import org.apache.rya.api.persist.RyaDAOException;
+import org.apache.rya.indexing.external.PrecompJoinOptimizerIT.CountingResultHandler;
+import org.apache.rya.indexing.external.PrecompJoinOptimizerTest.NodeCollector;
+import org.apache.rya.indexing.external.tupleSet.ExternalTupleSet;
+import org.apache.rya.indexing.external.tupleSet.SimpleExternalTupleSet;
+import org.apache.rya.indexing.pcj.matching.PCJOptimizer;
+import org.apache.rya.indexing.pcj.matching.provider.AccumuloIndexSetProvider;
 import org.apache.rya.indexing.pcj.storage.PcjException;
 import org.apache.rya.indexing.pcj.storage.accumulo.PcjVarOrderFactory;
+import org.apache.rya.rdftriplestore.inference.InferenceEngineException;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -58,14 +67,6 @@ import org.openrdf.sail.SailException;
 import com.google.common.base.Optional;
 import com.google.common.collect.Lists;
 
-import org.apache.rya.api.persist.RyaDAOException;
-import org.apache.rya.indexing.external.PrecompJoinOptimizerIT.CountingResultHandler;
-import org.apache.rya.indexing.external.PrecompJoinOptimizerTest.NodeCollector;
-import org.apache.rya.indexing.external.tupleSet.ExternalTupleSet;
-import org.apache.rya.indexing.external.tupleSet.SimpleExternalTupleSet;
-import org.apache.rya.indexing.pcj.matching.PCJOptimizer;
-import org.apache.rya.rdftriplestore.inference.InferenceEngineException;
-
 public class PCJOptionalTestIT {
 
 
@@ -83,10 +84,10 @@ public class PCJOptionalTestIT {
             TableNotFoundException, InferenceEngineException, NumberFormatException,
             UnknownHostException, SailException {
 
-        repo = PcjIntegrationTestingUtil.getNonPcjRepo(tablePrefix, "instance");
+        repo = PcjIntegrationTestingUtil.getAccumuloNonPcjRepo(tablePrefix, "instance");
         conn = repo.getConnection();
 
-        pcjRepo = PcjIntegrationTestingUtil.getPcjRepo(tablePrefix, "instance");
+        pcjRepo = PcjIntegrationTestingUtil.getAccumuloPcjRepo(tablePrefix, "instance");
         pcjConn = pcjRepo.getConnection();
 
         sub = new URIImpl("uri:entity");
@@ -196,7 +197,7 @@ public class PCJOptionalTestIT {
         PcjIntegrationTestingUtil.deleteCoreRyaTables(accCon, tablePrefix);
         PcjIntegrationTestingUtil.closeAndShutdown(conn, repo);
 
-        repo = PcjIntegrationTestingUtil.getPcjRepo(tablePrefix, "instance");
+        repo = PcjIntegrationTestingUtil.getAccumuloPcjRepo(tablePrefix, "instance");
         conn = repo.getConnection();
         conn.add(sub, RDF.TYPE, subclass);
         conn.add(sub2, RDF.TYPE, subclass2);
@@ -240,7 +241,7 @@ public class PCJOptionalTestIT {
         final List<QueryModelNode> optTupNodes = Lists.newArrayList();
         optTupNodes.add(extTup1);
 
-        final PCJOptimizer pcj = new PCJOptimizer(list, true);
+        final PCJOptimizer pcj = new PCJOptimizer(list, true, new AccumuloIndexSetProvider(new Configuration(), list));
         final TupleExpr te = pq1.getTupleExpr();
         pcj.optimize(te, null, null);
 
@@ -306,7 +307,7 @@ public class PCJOptionalTestIT {
         final List<QueryModelNode> optTupNodes = Lists.newArrayList();
         optTupNodes.add(extTup2);
 
-        final PCJOptimizer opt = new PCJOptimizer(list, true);
+        final PCJOptimizer opt = new PCJOptimizer(list, true, new AccumuloIndexSetProvider(new Configuration(), list));
         final TupleExpr te = pq1.getTupleExpr();
         opt.optimize(te, null, null);
 

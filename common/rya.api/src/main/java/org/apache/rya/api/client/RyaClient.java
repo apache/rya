@@ -34,12 +34,12 @@ import net.jcip.annotations.Immutable;
 public class RyaClient {
     // Administrative functions.
     private final Install install;
-    private final Optional<CreatePCJ> createPcj;
-    private final Optional<DeletePCJ> deletePcj;
+    private final CreatePCJ createPcj;
+    private final DeletePCJ deletePcj;
     private final Optional<CreatePeriodicPCJ> createPeriodicPcj;
     private final Optional<DeletePeriodicPCJ> deletePeriodicPcj;
     private final Optional<ListIncrementalQueries> listIncrementalQueries;
-    private final Optional<BatchUpdatePCJ> bactchUpdatePCJ;
+    private final BatchUpdatePCJ bactchUpdatePCJ;
     private final GetInstanceDetails getInstanceDetails;
     private final InstanceExists instanceExists;
     private final ListInstances listInstances;
@@ -55,12 +55,11 @@ public class RyaClient {
      */
     public RyaClient(
             final Install install,
-            final Optional<CreatePCJ> createPcj,
-            final Optional<DeletePCJ> deletePcj,
+            final CreatePCJ createPcj, final DeletePCJ deletePcj,
             final Optional<CreatePeriodicPCJ> createPeriodicPcj,
             final Optional<DeletePeriodicPCJ> deletePeriodicPcj,
             final Optional<ListIncrementalQueries> listIncrementalQueries,
-            final Optional<BatchUpdatePCJ> batchUpdatePcj,
+            final BatchUpdatePCJ batchUpdatePcj,
             final GetInstanceDetails getInstanceDetails,
             final InstanceExists instanceExists,
             final ListInstances listInstances,
@@ -76,7 +75,7 @@ public class RyaClient {
         this.createPeriodicPcj = requireNonNull(createPeriodicPcj);
         this.deletePeriodicPcj = requireNonNull(deletePeriodicPcj);
         this.listIncrementalQueries = requireNonNull(listIncrementalQueries);
-        this.bactchUpdatePCJ = requireNonNull(batchUpdatePcj);
+        bactchUpdatePCJ = requireNonNull(batchUpdatePcj);
         this.getInstanceDetails = requireNonNull(getInstanceDetails);
         this.instanceExists = requireNonNull(instanceExists);
         this.listInstances = requireNonNull(listInstances);
@@ -99,7 +98,7 @@ public class RyaClient {
      * @return An instance of {@link CreatePCJ} that is connected to a Rya storage
      *   if the Rya instance supports PCJ indexing.
      */
-    public Optional<CreatePCJ> getCreatePCJ() {
+    public CreatePCJ getCreatePCJ() {
         return createPcj;
     }
 
@@ -107,7 +106,7 @@ public class RyaClient {
      * @return An instance of {@link DeletePCJ} that is connected to a Rya storage
      *   if the Rya instance supports PCJ indexing.
      */
-    public Optional<DeletePCJ> getDeletePCJ() {
+    public DeletePCJ getDeletePCJ() {
         return deletePcj;
     }
 
@@ -137,7 +136,7 @@ public class RyaClient {
      * @return An instance of {@link BatchUpdatePCJ} that is connect to a Rya storage
      *   if the Rya instance supports PCJ indexing.
      */
-    public Optional<BatchUpdatePCJ> getBatchUpdatePCJ() {
+    public BatchUpdatePCJ getBatchUpdatePCJ() {
         return bactchUpdatePCJ;
     }
 

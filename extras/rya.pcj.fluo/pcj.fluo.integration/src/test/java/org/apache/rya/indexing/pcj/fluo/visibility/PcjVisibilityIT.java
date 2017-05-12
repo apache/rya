@@ -104,7 +104,7 @@ public class PcjVisibilityIT extends RyaExportITBase {
 
         final RyaClient ryaClient = AccumuloRyaClientFactory.build(createConnectionDetails(), accumuloConn);
 
-        final String pcjId = ryaClient.getCreatePCJ().get().createPCJ(getRyaInstanceName(), sparql);
+        final String pcjId = ryaClient.getCreatePCJ().createPCJ(getRyaInstanceName(), sparql);
 
         // Grant the root user the "u" authorization.
         super.getAccumuloConnector().securityOperations().changeUserAuthorizations(getUsername(), new Authorizations("u"));

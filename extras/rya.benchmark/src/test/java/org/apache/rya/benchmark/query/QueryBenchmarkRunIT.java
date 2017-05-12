@@ -148,7 +148,7 @@ public class QueryBenchmarkRunIT {
             final String pcjId = pcjs.createPcj(SPARQL_QUERY);
 
             // Batch update the PCJ using the Rya Client.
-            ryaClient.getBatchUpdatePCJ().get().batchUpdate(RYA_INSTANCE_NAME, pcjId);
+            ryaClient.getBatchUpdatePCJ().batchUpdate(RYA_INSTANCE_NAME, pcjId);
         }
     }
 

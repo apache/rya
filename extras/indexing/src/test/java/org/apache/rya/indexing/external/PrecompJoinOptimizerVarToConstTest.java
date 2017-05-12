@@ -24,10 +24,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
+import org.apache.hadoop.conf.Configuration;
 import org.apache.rya.indexing.external.tupleSet.ExternalTupleSet;
 import org.apache.rya.indexing.external.tupleSet.SimpleExternalTupleSet;
 import org.apache.rya.indexing.pcj.matching.PCJOptimizer;
-
+import org.apache.rya.indexing.pcj.matching.provider.AccumuloIndexSetProvider;
 import org.junit.Assert;
 import org.junit.Test;
 import org.openrdf.query.algebra.Projection;
@@ -224,7 +225,7 @@ public class PrecompJoinOptimizerVarToConstTest {
 
         final TupleExpr tup = pq1.getTupleExpr().clone();
 
-		final PCJOptimizer pcj = new PCJOptimizer(list, false);
+        final PCJOptimizer pcj = new PCJOptimizer(list, false, new AccumuloIndexSetProvider(new Configuration(), list));
         pcj.optimize(tup, null, null);
 
         System.out.println("Processed query is " + tup);
@@ -264,7 +265,7 @@ public class PrecompJoinOptimizerVarToConstTest {
         list.add(extTup);
 
         final TupleExpr tup = pq1.getTupleExpr().clone();
-		final PCJOptimizer pcj = new PCJOptimizer(list, false);
+        final PCJOptimizer pcj = new PCJOptimizer(list, false, new AccumuloIndexSetProvider(new Configuration(), list));
         pcj.optimize(tup, null, null);
 
         System.out.println("Processed query is " + tup);
@@ -305,7 +306,7 @@ public class PrecompJoinOptimizerVarToConstTest {
         list.add(extTup);
 
         final TupleExpr tup = pq1.getTupleExpr().clone();
-		final PCJOptimizer pcj = new PCJOptimizer(list, false);
+        final PCJOptimizer pcj = new PCJOptimizer(list, false, new AccumuloIndexSetProvider(new Configuration(), list));
         pcj.optimize(tup, null, null);
 
         System.out.println("Processed query is " + tup);
@@ -350,7 +351,7 @@ public class PrecompJoinOptimizerVarToConstTest {
         list.add(extTup2);
 
         final TupleExpr tup = pq1.getTupleExpr().clone();
-		final PCJOptimizer pcj = new PCJOptimizer(list, false);
+        final PCJOptimizer pcj = new PCJOptimizer(list, false, new AccumuloIndexSetProvider(new Configuration(), list));
         pcj.optimize(tup, null, null);
 
         System.out.println("Processed query is " + tup);
@@ -399,7 +400,7 @@ public class PrecompJoinOptimizerVarToConstTest {
         list.add(extTup3);
 
         final TupleExpr tup = pq1.getTupleExpr().clone();
-		final PCJOptimizer pcj = new PCJOptimizer(list, false);
+        final PCJOptimizer pcj = new PCJOptimizer(list, false, new AccumuloIndexSetProvider(new Configuration(), list));
         pcj.optimize(tup, null, null);
 
         System.out.println("Processed query is " + tup);

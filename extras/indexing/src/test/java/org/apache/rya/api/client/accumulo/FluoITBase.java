@@ -20,8 +20,6 @@ package org.apache.rya.api.client.accumulo;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import java.io.File;
-import java.io.IOException;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -35,9 +33,11 @@ import org.apache.accumulo.core.client.Instance;
 import org.apache.accumulo.core.client.ZooKeeperInstance;
 import org.apache.accumulo.core.client.security.tokens.PasswordToken;
 import org.apache.accumulo.minicluster.MiniAccumuloCluster;
-import org.apache.accumulo.minicluster.MiniAccumuloConfig;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
+import org.apache.rya.accumulo.MiniAccumuloClusterInstance;
+import org.apache.rya.accumulo.MiniAccumuloSingleton;
+import org.apache.rya.accumulo.RyaTestInstanceRule;
 import org.apache.rya.indexing.pcj.fluo.app.export.rya.RyaExportParameters;
 import org.apache.rya.indexing.pcj.fluo.app.observers.FilterObserver;
 import org.apache.rya.indexing.pcj.fluo.app.observers.JoinObserver;
@@ -48,12 +48,11 @@ import org.apache.zookeeper.ClientCnxn;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.Rule;
 import org.openrdf.repository.RepositoryConnection;
 import org.openrdf.repository.RepositoryException;
 import org.openrdf.sail.Sail;
 import org.openrdf.sail.SailException;
-
-import com.google.common.io.Files;
 
 import org.apache.fluo.api.client.FluoAdmin;
 import org.apache.fluo.api.client.FluoAdmin.AlreadyInitializedException;
@@ -85,45 +84,49 @@ import org.apache.rya.sail.config.RyaSailFactory;
 public abstract class FluoITBase {
     private static final Logger log = Logger.getLogger(FluoITBase.class);
 
-    protected static final String RYA_INSTANCE_NAME = "test_";
-
-    protected static final String ACCUMULO_USER = "root";
-    protected static final String ACCUMULO_PASSWORD = "password";
-
     // Mini Accumulo Cluster
-    protected MiniAccumuloCluster cluster;
+    private static MiniAccumuloClusterInstance clusterInstance = MiniAccumuloSingleton.getInstance();
+    private static MiniAccumuloCluster cluster;
+
+    private static String instanceName = null;
+    private static String zookeepers = null;
+
     protected static Connector accumuloConn = null;
-    protected String instanceName = null;
-    protected String zookeepers = null;
 
     // Fluo data store and connections.
     protected MiniFluo fluo = null;
     protected FluoClient fluoClient = null;
-    protected final String appName = "IntegrationTests";
 
     // Rya data store and connections.
     protected RyaSailRepository ryaRepo = null;
     protected RepositoryConnection ryaConn = null;
 
+    @Rule
+    public RyaTestInstanceRule testInstance = new RyaTestInstanceRule(false);
+
     @BeforeClass
-    public static void killLoudLogs() {
+    public static void beforeClass() throws Exception {
         Logger.getLogger(ClientCnxn.class).setLevel(Level.ERROR);
+
+        // Setup and start the Mini Accumulo.
+        cluster = clusterInstance.getCluster();
+
+        // Store a connector to the Mini Accumulo.
+        instanceName = cluster.getInstanceName();
+        zookeepers = cluster.getZooKeepers();
+
+        final Instance instance = new ZooKeeperInstance(instanceName, zookeepers);
+        accumuloConn = instance.getConnector(clusterInstance.getUsername(), new PasswordToken(clusterInstance.getPassword()));
     }
 
     @Before
-    public void setupMiniResources()
-            throws IOException, InterruptedException, AccumuloException, AccumuloSecurityException, RepositoryException,
-            RyaDAOException, NumberFormatException, InferenceEngineException, AlreadyInitializedException,
-            TableExistsException, AlreadyInitializedException, RyaDetailsRepositoryException, DuplicateInstanceNameException, RyaClientException, SailException {
-        // Initialize the Mini Accumulo that will be used to host Rya and Fluo.
-        setupMiniAccumulo();
-
+    public void setupMiniResources() throws Exception {
         // Initialize the Mini Fluo that will be used to store created queries.
         fluo = startMiniFluo();
         fluoClient = FluoFactory.newClient(fluo.getClientConfiguration());
 
         // Initialize the Rya that will be used by the tests.
-        ryaRepo = setupRya(ACCUMULO_USER, ACCUMULO_PASSWORD, instanceName, zookeepers, appName);
+        ryaRepo = setupRya();
         ryaConn = ryaRepo.getConnection();
     }
 
@@ -169,31 +172,18 @@ public abstract class FluoITBase {
             }
         }
 
-        if(cluster != null) {
-            try {
-                log.info("Shutting down the Mini Accumulo being used as a Rya store.");
-                cluster.stop();
-                log.info("Mini Accumulo being used as a Rya store shut down.");
-            } catch(final Exception e) {
-                log.error("Could not shut down the Mini Accumulo.", e);
-            }
-        }
     }
 
-    private void setupMiniAccumulo() throws IOException, InterruptedException, AccumuloException, AccumuloSecurityException {
-        final File miniDataDir = Files.createTempDir();
+    public String getRyaInstanceName() {
+        return testInstance.getRyaInstanceName();
+    }
 
-        // Setup and start the Mini Accumulo.
-        final MiniAccumuloConfig cfg = new MiniAccumuloConfig(miniDataDir, ACCUMULO_PASSWORD);
-        cluster = new MiniAccumuloCluster(cfg);
-        cluster.start();
-
-        // Store a connector to the Mini Accumulo.
-        instanceName = cluster.getInstanceName();
-        zookeepers = cluster.getZooKeepers();
-
-        final Instance instance = new ZooKeeperInstance(instanceName, zookeepers);
-        accumuloConn = instance.getConnector(ACCUMULO_USER, new PasswordToken(ACCUMULO_PASSWORD));
+    public AccumuloConnectionDetails createConnectionDetails() {
+        return new AccumuloConnectionDetails(
+                clusterInstance.getUsername(),
+                clusterInstance.getPassword().toCharArray(),
+                clusterInstance.getInstanceName(),
+                clusterInstance.getZookeepers());
     }
 
     /**
@@ -210,9 +200,9 @@ public abstract class FluoITBase {
         ryaParams.setExportToRya(true);
         ryaParams.setAccumuloInstanceName(instanceName);
         ryaParams.setZookeeperServers(zookeepers);
-        ryaParams.setExporterUsername(ACCUMULO_USER);
-        ryaParams.setExporterPassword(ACCUMULO_PASSWORD);
-        ryaParams.setRyaInstanceName(RYA_INSTANCE_NAME);
+        ryaParams.setExporterUsername(clusterInstance.getUsername());
+        ryaParams.setExporterPassword(clusterInstance.getPassword());
+        ryaParams.setRyaInstanceName(getRyaInstanceName());
         return params;
     }
 
@@ -240,13 +230,13 @@ public abstract class FluoITBase {
         final FluoConfiguration config = new FluoConfiguration();
         config.setMiniStartAccumulo(false);
         config.setAccumuloInstance(instanceName);
-        config.setAccumuloUser(ACCUMULO_USER);
-        config.setAccumuloPassword(ACCUMULO_PASSWORD);
+        config.setAccumuloUser(clusterInstance.getUsername());
+        config.setAccumuloPassword(clusterInstance.getPassword());
         config.setInstanceZookeepers(zookeepers + "/fluo");
         config.setAccumuloZookeepers(zookeepers);
 
-        config.setApplicationName(appName);
-        config.setAccumuloTable("fluo" + appName);
+        config.setApplicationName(getRyaInstanceName());
+        config.setAccumuloTable("fluo" + getRyaInstanceName());
 
         config.addObservers(observers);
 
@@ -258,38 +248,30 @@ public abstract class FluoITBase {
     /**
      * Sets up a Rya instance.
      */
-   protected RyaSailRepository setupRya(final String user, final String password, final String instanceName, final String zookeepers, final String appName)
+   protected RyaSailRepository setupRya()
            throws AccumuloException, AccumuloSecurityException, RepositoryException, RyaDAOException,
            NumberFormatException, UnknownHostException, InferenceEngineException, AlreadyInitializedException,
            RyaDetailsRepositoryException, DuplicateInstanceNameException, RyaClientException, SailException {
-       checkNotNull(user);
-       checkNotNull(password);
        checkNotNull(instanceName);
        checkNotNull(zookeepers);
-       checkNotNull(appName);
 
        // Setup Rya configuration values.
        final AccumuloRdfConfiguration conf = new AccumuloRdfConfiguration();
-       conf.setTablePrefix(RYA_INSTANCE_NAME);
+       conf.setTablePrefix(getRyaInstanceName());
        conf.setDisplayQueryPlan(true);
        conf.setBoolean(ConfigUtils.USE_MOCK_INSTANCE, false);
-       conf.set(ConfigUtils.CLOUDBASE_USER, user);
-       conf.set(ConfigUtils.CLOUDBASE_PASSWORD, password);
-       conf.set(ConfigUtils.CLOUDBASE_INSTANCE, instanceName);
-       conf.set(ConfigUtils.CLOUDBASE_ZOOKEEPERS, zookeepers);
+       conf.set(ConfigUtils.CLOUDBASE_USER, clusterInstance.getUsername());
+       conf.set(ConfigUtils.CLOUDBASE_PASSWORD, clusterInstance.getPassword());
+       conf.set(ConfigUtils.CLOUDBASE_INSTANCE, clusterInstance.getInstanceName());
+       conf.set(ConfigUtils.CLOUDBASE_ZOOKEEPERS, clusterInstance.getZookeepers());
        conf.set(ConfigUtils.USE_PCJ, "true");
-       conf.set(ConfigUtils.FLUO_APP_NAME, appName);
+       conf.set(ConfigUtils.FLUO_APP_NAME, getRyaInstanceName());
        conf.set(ConfigUtils.PCJ_STORAGE_TYPE, PrecomputedJoinIndexerConfig.PrecomputedJoinStorageType.ACCUMULO.toString());
        conf.set(ConfigUtils.PCJ_UPDATER_TYPE, PrecomputedJoinIndexerConfig.PrecomputedJoinUpdaterType.FLUO.toString());
        conf.set(ConfigUtils.CLOUDBASE_AUTHS, "");
 
        // Install the test instance of Rya.
-       final AccumuloConnectionDetails connectionDetails = new AccumuloConnectionDetails(
-               ACCUMULO_USER,
-               ACCUMULO_PASSWORD.toCharArray(),
-               cluster.getInstanceName(),
-               cluster.getZooKeepers());
-       final Install install = new AccumuloInstall(connectionDetails, accumuloConn);
+       final Install install = new AccumuloInstall(createConnectionDetails(), accumuloConn);
 
        final InstallConfiguration installConfig = InstallConfiguration.builder()
                .setEnableTableHashPrefix(true)
@@ -298,9 +280,9 @@ public abstract class FluoITBase {
                .setEnableTemporalIndex(true)
                .setEnablePcjIndex(true)
                .setEnableGeoIndex(true)
-               .setFluoPcjAppName(appName)
+               .setFluoPcjAppName(getRyaInstanceName())
                .build();
-       install.install(RYA_INSTANCE_NAME, installConfig);
+       install.install(getRyaInstanceName(), installConfig);
 
        // Connect to the instance of Rya that was just installed.
        final Sail sail = RyaSailFactory.getInstance(conf);

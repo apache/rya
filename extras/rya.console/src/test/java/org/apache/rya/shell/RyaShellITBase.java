@@ -25,10 +25,13 @@ import org.apache.accumulo.core.client.AccumuloSecurityException;
 import org.apache.accumulo.minicluster.MiniAccumuloCluster;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
+import org.apache.rya.accumulo.MiniAccumuloSingleton;
+import org.apache.rya.accumulo.RyaTestInstanceRule;
 import org.apache.zookeeper.ClientCnxn;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.Rule;
 import org.springframework.shell.Bootstrap;
 import org.springframework.shell.core.JLineShellComponent;
 
@@ -42,11 +45,6 @@ import org.apache.rya.accumulo.MiniAccumuloClusterInstance;
 public class RyaShellITBase {
 
     /**
-     * The cluster that will be used.
-     */
-    private MiniAccumuloClusterInstance cluster = null;
-
-    /**
      * The bootstrap that was used to initialize the Shell that will be tested.
      */
     private Bootstrap bootstrap;
@@ -56,6 +54,9 @@ public class RyaShellITBase {
      */
     private JLineShellComponent shell;
 
+    @Rule
+    public RyaTestInstanceRule testInstance = new RyaTestInstanceRule(false);
+
     @BeforeClass
     public static void killLoudLogs() {
         Logger.getLogger(ClientCnxn.class).setLevel(Level.ERROR);
@@ -63,10 +64,6 @@ public class RyaShellITBase {
 
     @Before
     public void startShell() throws IOException, InterruptedException, AccumuloException, AccumuloSecurityException {
-        // Start the cluster.
-        cluster = new MiniAccumuloClusterInstance();
-        cluster.startMiniAccumulo();
-
         // Bootstrap the shell with the test bean configuration.
         bootstrap = new Bootstrap(new String[]{}, new String[]{"file:src/test/resources/RyaShellTest-context.xml"});
         shell = bootstrap.getJLineShellComponent();
@@ -75,9 +72,6 @@ public class RyaShellITBase {
     @After
     public void stopShell() throws IOException, InterruptedException {
         shell.stop();
-
-        // Stop the cluster.
-        cluster.stopMiniAccumulo();
     }
 
     /**
@@ -98,6 +92,11 @@ public class RyaShellITBase {
      * @return The cluster that is hosting the test.
      */
     public MiniAccumuloCluster getCluster() {
-        return cluster.getCluster();
+        return MiniAccumuloSingleton.getInstance().getCluster();
     }
+
+    public String getInstanceName() {
+        return testInstance.getRyaInstanceName();
+    }
+
 }

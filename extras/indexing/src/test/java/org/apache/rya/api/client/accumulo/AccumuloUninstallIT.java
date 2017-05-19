@@ -64,7 +64,7 @@ public class AccumuloUninstallIT extends AccumuloITBase {
                 getZookeepers());
 
         final Install install = new AccumuloInstall(connectionDetails, getConnector());
-        final String ryaInstanceName = "testInstance_";
+        final String ryaInstanceName = getRyaInstanceName();
         install.install(ryaInstanceName, installConfig);
 
         // Check that the instance exists.

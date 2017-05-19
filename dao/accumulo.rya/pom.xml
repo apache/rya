@@ -129,6 +129,9 @@ under the License.
                         <artifactId>maven-shade-plugin</artifactId>
                         <executions>
                             <execution>
+                                <goals>
+                                    <goal>shade</goal>
+                                </goals>
                                 <configuration>
                                     <transformers>
                                         <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer" />

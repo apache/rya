@@ -21,6 +21,7 @@ package org.apache.rya.mongodb;
 import static org.junit.Assert.assertEquals;
 
 import java.io.IOException;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
@@ -43,7 +44,7 @@ public class MongoDBRyaDAOTest extends MongoRyaTestBase {
 	@Before
 	public void setUp() throws IOException, RyaDAOException{
 		final Configuration conf = new Configuration();
-        conf.set(MongoDBRdfConfiguration.MONGO_DB_NAME, "test");
+        conf.set(MongoDBRdfConfiguration.MONGO_DB_NAME, getDbName());
         conf.set(MongoDBRdfConfiguration.MONGO_COLLECTION_PREFIX, "rya_");
         conf.set(RdfCloudTripleStoreConfiguration.CONF_TBL_PREFIX, "rya_");
         configuration = new MongoDBRdfConfiguration(conf);

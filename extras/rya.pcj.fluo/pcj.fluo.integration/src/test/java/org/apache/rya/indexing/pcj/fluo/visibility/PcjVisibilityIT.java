@@ -49,6 +49,7 @@ import org.apache.rya.api.client.accumulo.AccumuloRyaClientFactory;
 import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.domain.RyaURI;
 import org.apache.rya.indexing.accumulo.ConfigUtils;
+import org.apache.rya.indexing.external.PrecomputedJoinIndexerConfig;
 import org.apache.rya.indexing.pcj.fluo.RyaExportITBase;
 import org.apache.rya.indexing.pcj.fluo.api.CreatePcj;
 import org.apache.rya.indexing.pcj.fluo.api.InsertTriples;
@@ -102,23 +103,35 @@ public class PcjVisibilityIT extends RyaExportITBase {
         final String instanceName = super.getMiniAccumuloCluster().getInstanceName();
         final String zookeepers = super.getMiniAccumuloCluster().getZooKeepers();
 
-        final RyaClient ryaClient = AccumuloRyaClientFactory.build(new AccumuloConnectionDetails(
-                ACCUMULO_USER,
-                ACCUMULO_PASSWORD.toCharArray(),
-                instanceName,
-                zookeepers), accumuloConn);
+        final RyaClient ryaClient = AccumuloRyaClientFactory.build(createConnectionDetails(), accumuloConn);
 
-        final String pcjId = ryaClient.getCreatePCJ().createPCJ(RYA_INSTANCE_NAME, sparql);
+        final String pcjId = ryaClient.getCreatePCJ().createPCJ(getRyaInstanceName(), sparql);
 
         // Grant the root user the "u" authorization.
-        super.getAccumuloConnector().securityOperations().changeUserAuthorizations(ACCUMULO_USER, new Authorizations("u"));
+        super.getAccumuloConnector().securityOperations().changeUserAuthorizations(getUsername(), new Authorizations("u"));
 
         // Setup a connection to the Rya instance that uses the "u" authorizations. This ensures
         // any statements that are inserted will have the "u" authorization on them and that the
         // PCJ updating application will have to maintain visibilities.
-        final AccumuloRdfConfiguration ryaConf = super.makeConfig(instanceName, zookeepers);
+        final AccumuloRdfConfiguration ryaConf = new AccumuloRdfConfiguration();
+        ryaConf.setTablePrefix(getRyaInstanceName());
+
+        // Accumulo connection information.
+        ryaConf.setAccumuloUser(getUsername());
+        ryaConf.setAccumuloPassword(getPassword());
+        ryaConf.setAccumuloInstance(super.getAccumuloConnector().getInstance().getInstanceName());
+        ryaConf.setAccumuloZookeepers(super.getAccumuloConnector().getInstance().getZooKeepers());
         ryaConf.set(ConfigUtils.CLOUDBASE_AUTHS, "u");
         ryaConf.set(RdfCloudTripleStoreConfiguration.CONF_CV, "u");
+
+        // PCJ configuration information.
+        ryaConf.set(ConfigUtils.USE_PCJ, "true");
+        ryaConf.set(ConfigUtils.USE_PCJ_UPDATER_INDEX, "true");
+        ryaConf.set(ConfigUtils.FLUO_APP_NAME, super.getFluoConfiguration().getApplicationName());
+        ryaConf.set(ConfigUtils.PCJ_STORAGE_TYPE,
+                PrecomputedJoinIndexerConfig.PrecomputedJoinStorageType.ACCUMULO.toString());
+        ryaConf.set(ConfigUtils.PCJ_UPDATER_TYPE,
+                PrecomputedJoinIndexerConfig.PrecomputedJoinUpdaterType.FLUO.toString());
 
         Sail sail = null;
         RyaSailRepository ryaRepo = null;
@@ -138,7 +151,7 @@ public class PcjVisibilityIT extends RyaExportITBase {
             super.getMiniFluo().waitForObservers();
 
             // Fetch the exported result and show that its column visibility has been simplified.
-            final String pcjTableName = new PcjTableNameFactory().makeTableName(RYA_INSTANCE_NAME, pcjId);
+            final String pcjTableName = new PcjTableNameFactory().makeTableName(getRyaInstanceName(), pcjId);
             final Scanner scan = accumuloConn.createScanner(pcjTableName, new Authorizations("u"));
             scan.fetchColumnFamily(new Text("customer;worker;city"));
 
@@ -202,13 +215,13 @@ public class PcjVisibilityIT extends RyaExportITBase {
         final Connector accumuloConn = super.getAccumuloConnector();
 
         // Create the PCJ Table in Accumulo.
-        final PrecomputedJoinStorage rootStorage = new AccumuloPcjStorage(accumuloConn, RYA_INSTANCE_NAME);
+        final PrecomputedJoinStorage rootStorage = new AccumuloPcjStorage(accumuloConn, getRyaInstanceName());
         final String pcjId = rootStorage.createPcj(sparql);
 
 
         try( final FluoClient fluoClient = FluoFactory.newClient( super.getFluoConfiguration() )) {
             // Create the PCJ in Fluo.
-            new CreatePcj().withRyaIntegration(pcjId, rootStorage, fluoClient, accumuloConn, RYA_INSTANCE_NAME);
+            new CreatePcj().withRyaIntegration(pcjId, rootStorage, fluoClient, accumuloConn, getRyaInstanceName());
 
             // Stream the data into Fluo.
             for(final RyaStatement statement : streamedTriples.keySet()) {
@@ -220,7 +233,7 @@ public class PcjVisibilityIT extends RyaExportITBase {
         // Fetch the exported results from Accumulo once the observers finish working.
         super.getMiniFluo().waitForObservers();
 
-        setupTestUsers(accumuloConn, RYA_INSTANCE_NAME, pcjId);
+        setupTestUsers(accumuloConn, getRyaInstanceName(), pcjId);
 
         // Verify ABCDE using root.
         final Set<BindingSet> rootResults = toSet( rootStorage.listResults(pcjId));
@@ -256,7 +269,7 @@ public class PcjVisibilityIT extends RyaExportITBase {
 
         // Verify AB
         final Connector abConn = cluster.getConnector("abUser", "password");
-        try(final PrecomputedJoinStorage abStorage = new AccumuloPcjStorage(abConn, RYA_INSTANCE_NAME)) {
+        try(final PrecomputedJoinStorage abStorage = new AccumuloPcjStorage(abConn, getRyaInstanceName())) {
             final Set<BindingSet> abResults = toSet( abStorage.listResults(pcjId) );
 
             final Set<BindingSet> abExpected = Sets.newHashSet();
@@ -271,7 +284,7 @@ public class PcjVisibilityIT extends RyaExportITBase {
 
         // Verify ABC
         final Connector abcConn = cluster.getConnector("abcUser", "password");
-        try(final PrecomputedJoinStorage abcStorage = new AccumuloPcjStorage(abcConn, RYA_INSTANCE_NAME)) {
+        try(final PrecomputedJoinStorage abcStorage = new AccumuloPcjStorage(abcConn, getRyaInstanceName())) {
             final Set<BindingSet> abcResults = toSet( abcStorage.listResults(pcjId) );
 
             final Set<BindingSet> abcExpected = Sets.newHashSet();
@@ -292,7 +305,7 @@ public class PcjVisibilityIT extends RyaExportITBase {
 
         // Verify ADE
         final Connector adeConn = cluster.getConnector("adeUser", "password");
-        try(final PrecomputedJoinStorage adeStorage = new AccumuloPcjStorage(adeConn, RYA_INSTANCE_NAME)) {
+        try(final PrecomputedJoinStorage adeStorage = new AccumuloPcjStorage(adeConn, getRyaInstanceName())) {
             final Set<BindingSet> adeResults = toSet( adeStorage.listResults(pcjId) );
 
             final Set<BindingSet> adeExpected = Sets.newHashSet();
@@ -307,7 +320,7 @@ public class PcjVisibilityIT extends RyaExportITBase {
 
         // Verify no auths.
         final Connector noAuthConn = cluster.getConnector("noAuth", "password");
-        try(final PrecomputedJoinStorage noAuthStorage = new AccumuloPcjStorage(noAuthConn, RYA_INSTANCE_NAME)) {
+        try(final PrecomputedJoinStorage noAuthStorage = new AccumuloPcjStorage(noAuthConn, getRyaInstanceName())) {
             final Set<BindingSet> noAuthResults = toSet( noAuthStorage.listResults(pcjId) );
             assertTrue( noAuthResults.isEmpty() );
         }

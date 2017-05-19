@@ -67,7 +67,7 @@ public class HistoricStreamingVisibilityIT extends RyaExportITBase {
               "}";
 
         final Connector accumuloConn = super.getAccumuloConnector();
-        accumuloConn.securityOperations().changeUserAuthorizations(ACCUMULO_USER, new Authorizations("U","V","W"));
+        accumuloConn.securityOperations().changeUserAuthorizations(getUsername(), new Authorizations("U","V","W"));
         final AccumuloRyaDAO dao = new AccumuloRyaDAO();
         dao.setConnector(accumuloConn);
         dao.setConf(makeConfig());
@@ -103,11 +103,11 @@ public class HistoricStreamingVisibilityIT extends RyaExportITBase {
         expected.add(bs);
 
         // Create the PCJ table.
-        final PrecomputedJoinStorage pcjStorage = new AccumuloPcjStorage(accumuloConn, RYA_INSTANCE_NAME);
+        final PrecomputedJoinStorage pcjStorage = new AccumuloPcjStorage(accumuloConn, getRyaInstanceName());
         final String pcjId = pcjStorage.createPcj(sparql);
 
         try(FluoClient fluoClient = FluoFactory.newClient(super.getFluoConfiguration())) {
-            new CreatePcj().withRyaIntegration(pcjId, pcjStorage, fluoClient, accumuloConn, RYA_INSTANCE_NAME);
+            new CreatePcj().withRyaIntegration(pcjId, pcjStorage, fluoClient, accumuloConn, getRyaInstanceName());
         }
 
         // Verify the end results of the query match the expected results.
@@ -119,10 +119,10 @@ public class HistoricStreamingVisibilityIT extends RyaExportITBase {
 
     private AccumuloRdfConfiguration makeConfig() {
         final AccumuloRdfConfiguration conf = new AccumuloRdfConfiguration();
-        conf.setTablePrefix(RYA_INSTANCE_NAME);
+        conf.setTablePrefix(getRyaInstanceName());
         // Accumulo connection information.
-        conf.set(ConfigUtils.CLOUDBASE_USER, ACCUMULO_USER);
-        conf.set(ConfigUtils.CLOUDBASE_PASSWORD, ACCUMULO_PASSWORD);
+        conf.set(ConfigUtils.CLOUDBASE_USER, getUsername());
+        conf.set(ConfigUtils.CLOUDBASE_PASSWORD, getPassword());
         conf.set(ConfigUtils.CLOUDBASE_INSTANCE, super.getMiniAccumuloCluster().getInstanceName());
         conf.set(ConfigUtils.CLOUDBASE_ZOOKEEPERS, super.getMiniAccumuloCluster().getZooKeepers());
         conf.set(RdfCloudTripleStoreConfiguration.CONF_QUERY_AUTH, "U,V,W");

@@ -48,13 +48,7 @@ public class AccumuloDeletePCJIT extends FluoITBase {
     @Test
     public void deletePCJ() throws InstanceDoesNotExistException, RyaClientException, PCJStorageException, RepositoryException {
         // Initialize the commands that will be used by this test.
-        final AccumuloConnectionDetails connectionDetails = new AccumuloConnectionDetails(
-                ACCUMULO_USER,
-                ACCUMULO_PASSWORD.toCharArray(),
-                super.cluster.getInstanceName(),
-                super.cluster.getZooKeepers());
-
-        final CreatePCJ createPCJ = new AccumuloCreatePCJ(connectionDetails, accumuloConn);
+        final CreatePCJ createPCJ = new AccumuloCreatePCJ(createConnectionDetails(), accumuloConn);
 
         // Create a PCJ.
         final String sparql =
@@ -63,7 +57,7 @@ public class AccumuloDeletePCJIT extends FluoITBase {
                   "?x <http://talksTo> <http://Eve>. " +
                   "?x <http://worksAt> <http://TacoJoint>." +
                 "}";
-        final String pcjId = createPCJ.createPCJ(RYA_INSTANCE_NAME, sparql);
+        final String pcjId = createPCJ.createPCJ(getRyaInstanceName(), sparql);
 
         // Verify a Query ID was added for the query within the Fluo app.
         List<String> fluoQueryIds = new ListQueryIds().listQueryIds(fluoClient);
@@ -85,7 +79,8 @@ public class AccumuloDeletePCJIT extends FluoITBase {
         // Verify the correct results were exported.
         fluo.waitForObservers();
 
-        try(final PrecomputedJoinStorage pcjStorage = new AccumuloPcjStorage(accumuloConn, RYA_INSTANCE_NAME)) {
+
+        try(final PrecomputedJoinStorage pcjStorage = new AccumuloPcjStorage(accumuloConn, getRyaInstanceName())) {
             final Set<BindingSet> results = Sets.newHashSet( pcjStorage.listResults(pcjId) );
 
             final MapBindingSet bob = new MapBindingSet();
@@ -97,9 +92,10 @@ public class AccumuloDeletePCJIT extends FluoITBase {
             final Set<BindingSet> expected = Sets.<BindingSet>newHashSet(bob, charlie);
             assertEquals(expected, results);
 
+
             // Delete the PCJ.
-            final DeletePCJ deletePCJ = new AccumuloDeletePCJ(connectionDetails, accumuloConn);
-            deletePCJ.deletePCJ(RYA_INSTANCE_NAME, pcjId);
+            final DeletePCJ deletePCJ = new AccumuloDeletePCJ(createConnectionDetails(), accumuloConn);
+            deletePCJ.deletePCJ(getRyaInstanceName(), pcjId);
 
             // Ensure the PCJ's metadata has been removed from the storage.
             assertTrue( pcjStorage.listPcjs().isEmpty() );
@@ -115,27 +111,15 @@ public class AccumuloDeletePCJIT extends FluoITBase {
 
     @Test(expected = InstanceDoesNotExistException.class)
     public void deletePCJ_instanceDoesNotExist() throws InstanceDoesNotExistException, RyaClientException {
-        final AccumuloConnectionDetails connectionDetails = new AccumuloConnectionDetails(
-                ACCUMULO_USER,
-                ACCUMULO_PASSWORD.toCharArray(),
-                super.cluster.getInstanceName(),
-                super.cluster.getZooKeepers());
-
         // Delete a PCJ for a Rya instance that doesn't exist.
-        final DeletePCJ deletePCJ = new AccumuloDeletePCJ(connectionDetails, accumuloConn);
+        final DeletePCJ deletePCJ = new AccumuloDeletePCJ(createConnectionDetails(), accumuloConn);
         deletePCJ.deletePCJ("doesNotExist", "randomID");
     }
 
     @Test(expected = RyaClientException.class)
     public void deletePCJ_pcjDoesNotExist() throws InstanceDoesNotExistException, RyaClientException {
-        final AccumuloConnectionDetails connectionDetails = new AccumuloConnectionDetails(
-                ACCUMULO_USER,
-                ACCUMULO_PASSWORD.toCharArray(),
-                super.cluster.getInstanceName(),
-                super.cluster.getZooKeepers());
-
         // Delete the PCJ.
-        final DeletePCJ deletePCJ = new AccumuloDeletePCJ(connectionDetails, accumuloConn);
-        deletePCJ.deletePCJ(RYA_INSTANCE_NAME, "randomID");
+        final DeletePCJ deletePCJ = new AccumuloDeletePCJ(createConnectionDetails(), accumuloConn);
+        deletePCJ.deletePCJ(getRyaInstanceName(), "randomID");
     }
 }

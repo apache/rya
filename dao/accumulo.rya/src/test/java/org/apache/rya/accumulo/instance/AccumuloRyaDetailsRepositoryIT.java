@@ -56,7 +56,7 @@ public class AccumuloRyaDetailsRepositoryIT extends AccumuloITBase {
 
     @Test
     public void initializeAndGet() throws AccumuloException, AccumuloSecurityException, AlreadyInitializedException, RyaDetailsRepositoryException {
-        final String instanceName = "testInstance";
+        final String instanceName = getRyaInstanceName();
 
         // Create the metadata object the repository will be initialized with.
         final RyaDetails details = RyaDetails.builder()
@@ -98,7 +98,7 @@ public class AccumuloRyaDetailsRepositoryIT extends AccumuloITBase {
 
     @Test(expected = AlreadyInitializedException.class)
     public void initialize_alreadyInitialized() throws AlreadyInitializedException, RyaDetailsRepositoryException, AccumuloException, AccumuloSecurityException {
-        final String instanceName = "testInstance";
+        final String instanceName = getRyaInstanceName();
 
         // Create the metadata object the repository will be initialized with.
         final RyaDetails details = RyaDetails.builder()
@@ -139,7 +139,7 @@ public class AccumuloRyaDetailsRepositoryIT extends AccumuloITBase {
     public void getRyaInstance_notInitialized() throws AccumuloException, AccumuloSecurityException, NotInitializedException, RyaDetailsRepositoryException {
         // Setup the repository that will be tested using a mini instance of Accumulo.
         final Connector connector = getClusterInstance().getConnector();
-        final RyaDetailsRepository repo = new AccumuloRyaInstanceDetailsRepository(connector, "testInstance");
+        final RyaDetailsRepository repo = new AccumuloRyaInstanceDetailsRepository(connector, getRyaInstanceName());
 
         // Try to fetch the details from the uninitialized repository.
         repo.getRyaInstanceDetails();
@@ -147,7 +147,7 @@ public class AccumuloRyaDetailsRepositoryIT extends AccumuloITBase {
 
     @Test
     public void isInitialized_true() throws AccumuloException, AccumuloSecurityException, AlreadyInitializedException, RyaDetailsRepositoryException {
-        final String instanceName = "testInstance";
+        final String instanceName = getRyaInstanceName();
 
         // Create the metadata object the repository will be initialized with.
         final RyaDetails details = RyaDetails.builder()
@@ -176,7 +176,7 @@ public class AccumuloRyaDetailsRepositoryIT extends AccumuloITBase {
         // Setup the repository that will be tested using a mini instance of Accumulo.
         final MiniAccumuloClusterInstance clusterInstance = getClusterInstance();
         final Connector connector = clusterInstance.getConnector();
-        final RyaDetailsRepository repo = new AccumuloRyaInstanceDetailsRepository(connector, "testInstance");
+        final RyaDetailsRepository repo = new AccumuloRyaInstanceDetailsRepository(connector, instanceName);
 
         // Initialize the repository
         repo.initialize(details);
@@ -189,7 +189,7 @@ public class AccumuloRyaDetailsRepositoryIT extends AccumuloITBase {
     public void isInitialized_false() throws AccumuloException, AccumuloSecurityException, RyaDetailsRepositoryException {
         // Setup the repository that will be tested using a mock instance of Accumulo.
         final Connector connector = getClusterInstance().getConnector();
-        final RyaDetailsRepository repo = new AccumuloRyaInstanceDetailsRepository(connector, "testInstance");
+        final RyaDetailsRepository repo = new AccumuloRyaInstanceDetailsRepository(connector, getRyaInstanceName());
 
         // Ensure the repository reports that is has not been initialized.
         assertFalse( repo.isInitialized() );
@@ -197,7 +197,7 @@ public class AccumuloRyaDetailsRepositoryIT extends AccumuloITBase {
 
     @Test
     public void update() throws AlreadyInitializedException, RyaDetailsRepositoryException, AccumuloException, AccumuloSecurityException {
-        final String instanceName = "testInstance";
+        final String instanceName = getRyaInstanceName();
 
         // Create the metadata object the repository will be initialized with.
         final RyaDetails details = RyaDetails.builder()
@@ -225,7 +225,7 @@ public class AccumuloRyaDetailsRepositoryIT extends AccumuloITBase {
 
         // Setup the repository that will be tested using a mini instance of Accumulo.
         final Connector connector = getClusterInstance().getConnector();
-        final RyaDetailsRepository repo = new AccumuloRyaInstanceDetailsRepository(connector, "testInstance");
+        final RyaDetailsRepository repo = new AccumuloRyaInstanceDetailsRepository(connector, instanceName);
 
         // Initialize the repository
         repo.initialize(details);
@@ -245,7 +245,7 @@ public class AccumuloRyaDetailsRepositoryIT extends AccumuloITBase {
 
     @Test(expected = ConcurrentUpdateException.class)
     public void update_outOfDate() throws AccumuloException, AccumuloSecurityException, AlreadyInitializedException, RyaDetailsRepositoryException {
-        final String instanceName = "testInstance";
+        final String instanceName = getRyaInstanceName();
 
         // Create the metadata object the repository will be initialized with.
         final RyaDetails details = RyaDetails.builder()
@@ -273,7 +273,7 @@ public class AccumuloRyaDetailsRepositoryIT extends AccumuloITBase {
 
         // Setup the repository that will be tested using a mini instance of Accumulo.
         final Connector connector = getClusterInstance().getConnector();
-        final RyaDetailsRepository repo = new AccumuloRyaInstanceDetailsRepository(connector, "testInstance");
+        final RyaDetailsRepository repo = new AccumuloRyaInstanceDetailsRepository(connector, instanceName);
 
         // Initialize the repository
         repo.initialize(details);

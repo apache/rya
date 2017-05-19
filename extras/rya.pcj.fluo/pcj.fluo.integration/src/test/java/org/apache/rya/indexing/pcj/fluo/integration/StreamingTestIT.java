@@ -56,11 +56,11 @@ public class StreamingTestIT extends RyaExportITBase {
 	    try (FluoClient fluoClient = FluoFactory.newClient(super.getFluoConfiguration())) {
 	        // Create the PCJ table.
 	        final Connector accumuloConn = super.getAccumuloConnector();
-	        final PrecomputedJoinStorage pcjStorage = new AccumuloPcjStorage(accumuloConn, RYA_INSTANCE_NAME);
+	        final PrecomputedJoinStorage pcjStorage = new AccumuloPcjStorage(accumuloConn, getRyaInstanceName());
 	        final String pcjId = pcjStorage.createPcj(sparql);
 
 	        // Task the Fluo app with the PCJ.
-	        new CreatePcj().withRyaIntegration(pcjId, pcjStorage, fluoClient, accumuloConn, RYA_INSTANCE_NAME);
+	        new CreatePcj().withRyaIntegration(pcjId, pcjStorage, fluoClient, accumuloConn, getRyaInstanceName());
 
 	        // Add Statements to the Fluo app.
 	        log.info("Adding Join Pairs...");

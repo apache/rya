@@ -63,12 +63,12 @@ public class GetPcjMetadataIT extends RyaExportITBase {
 
         // Create the PCJ table.
         final Connector accumuloConn = super.getAccumuloConnector();
-        final PrecomputedJoinStorage pcjStorage = new AccumuloPcjStorage(accumuloConn, RYA_INSTANCE_NAME);
+        final PrecomputedJoinStorage pcjStorage = new AccumuloPcjStorage(accumuloConn, getRyaInstanceName());
         final String pcjId = pcjStorage.createPcj(sparql);
 
         try(FluoClient fluoClient = FluoFactory.newClient(super.getFluoConfiguration())) {
             // Tell the Fluo app to maintain the PCJ.
-            new CreatePcj().withRyaIntegration(pcjId, pcjStorage, fluoClient, accumuloConn, RYA_INSTANCE_NAME);
+            new CreatePcj().withRyaIntegration(pcjId, pcjStorage, fluoClient, accumuloConn, getRyaInstanceName());
 
             // Fetch the PCJ's Metadata through the GetPcjMetadata interactor.
             final String queryId = new ListQueryIds().listQueryIds(fluoClient).get(0);
@@ -84,7 +84,7 @@ public class GetPcjMetadataIT extends RyaExportITBase {
     @Test
     public void getAllMetadata() throws MalformedQueryException, SailException, QueryEvaluationException, PcjException, NotInFluoException, NotInAccumuloException, AccumuloException, AccumuloSecurityException, RyaDAOException {
         final Connector accumuloConn = super.getAccumuloConnector();
-        final PrecomputedJoinStorage pcjStorage = new AccumuloPcjStorage(accumuloConn, RYA_INSTANCE_NAME);
+        final PrecomputedJoinStorage pcjStorage = new AccumuloPcjStorage(accumuloConn, getRyaInstanceName());
 
         try(FluoClient fluoClient = FluoFactory.newClient(super.getFluoConfiguration())) {
             // Add a couple of queries to Accumulo.
@@ -96,7 +96,7 @@ public class GetPcjMetadataIT extends RyaExportITBase {
                             "}";
             final String q1PcjId = pcjStorage.createPcj(q1Sparql);
             final CreatePcj createPcj = new CreatePcj();
-            createPcj.withRyaIntegration(q1PcjId, pcjStorage, fluoClient, accumuloConn, RYA_INSTANCE_NAME);
+            createPcj.withRyaIntegration(q1PcjId, pcjStorage, fluoClient, accumuloConn, getRyaInstanceName());
 
             final String q2Sparql =
                     "SELECT ?x ?y " +
@@ -105,7 +105,7 @@ public class GetPcjMetadataIT extends RyaExportITBase {
                             "?y <http://worksAt> <http://Chipotle>." +
                             "}";
             final String q2PcjId = pcjStorage.createPcj(q2Sparql);
-            createPcj.withRyaIntegration(q2PcjId, pcjStorage, fluoClient, accumuloConn, RYA_INSTANCE_NAME);
+            createPcj.withRyaIntegration(q2PcjId, pcjStorage, fluoClient, accumuloConn, getRyaInstanceName());
 
             // Ensure the command returns the correct metadata.
             final Set<PcjMetadata> expected = new HashSet<>();

@@ -439,16 +439,11 @@ public class QueryIT extends RyaExportITBase {
         requireNonNull(expectedResults);
 
         // Register the PCJ with Rya.
-        final Instance accInstance = super.getAccumuloConnector().getInstance();
         final Connector accumuloConn = super.getAccumuloConnector();
 
-        final RyaClient ryaClient = AccumuloRyaClientFactory.build(new AccumuloConnectionDetails(
-                ACCUMULO_USER,
-                ACCUMULO_PASSWORD.toCharArray(),
-                accInstance.getInstanceName(),
-                accInstance.getZooKeepers()), accumuloConn);
+        final RyaClient ryaClient = AccumuloRyaClientFactory.build(createConnectionDetails(), accumuloConn);
 
-        ryaClient.getCreatePCJ().createPCJ(RYA_INSTANCE_NAME, sparql);
+        ryaClient.getCreatePCJ().createPCJ(getRyaInstanceName(), sparql);
 
         // Write the data to Rya.
         final SailRepositoryConnection ryaConn = super.getRyaSailRepository().getConnection();
@@ -461,7 +456,7 @@ public class QueryIT extends RyaExportITBase {
         super.getMiniFluo().waitForObservers();
 
         // Fetch the value that is stored within the PCJ table.
-        try(final PrecomputedJoinStorage pcjStorage = new AccumuloPcjStorage(accumuloConn, RYA_INSTANCE_NAME)) {
+        try(final PrecomputedJoinStorage pcjStorage = new AccumuloPcjStorage(accumuloConn, getRyaInstanceName())) {
             final String pcjId = pcjStorage.listPcjs().get(0);
             final Set<BindingSet> results = Sets.newHashSet( pcjStorage.listResults(pcjId) );
 

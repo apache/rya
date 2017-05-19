@@ -93,8 +93,6 @@ public class KafkaExportITBase extends AccumuloExportITBase {
 
     /**
      * Add info about the Kafka queue/topic to receive the export.
-     *
-     * @see org.apache.rya.indexing.pcj.fluo.ITBase#setExportParameters(java.util.HashMap)
      */
     @Override
     protected void preFluoInitHook() throws Exception {
@@ -128,8 +126,6 @@ public class KafkaExportITBase extends AccumuloExportITBase {
 
     /**
      * setup mini kafka and call the super to setup mini fluo
-     *
-     * @see org.apache.rya.indexing.pcj.fluo.ITBase#setupMiniResources()
      */
     @Before
     public void setupKafka() throws Exception {
@@ -239,8 +235,6 @@ public class KafkaExportITBase extends AccumuloExportITBase {
 
     /**
      * Close all the Kafka mini server and mini-zookeeper
-     *
-     * @see org.apache.rya.indexing.pcj.fluo.ITBase#shutdownMiniResources()
      */
     @After
     public void teardownKafka() {

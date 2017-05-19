@@ -49,38 +49,41 @@ public class AccumuloRemoveUserIT extends AccumuloITBase {
      */
     @Test
     public void removedUserNotInDetails() throws Exception {
+        String adminUser = testInstance.createUniqueUser();
+        String user = testInstance.createUniqueUser();
         final SecurityOperations secOps = super.getConnector().securityOperations();
 
         // Create the user that will install the instance of Rya.
-        secOps.createLocalUser("userA", new PasswordToken("userA"));
-        secOps.grantSystemPermission("userA", SystemPermission.CREATE_TABLE);
+        secOps.createLocalUser(adminUser, new PasswordToken(adminUser));
+        secOps.grantSystemPermission(adminUser, SystemPermission.CREATE_TABLE);
+        
 
         final RyaClient userAClient = AccumuloRyaClientFactory.build(
-                new AccumuloConnectionDetails("userA", "userA".toCharArray(), getInstanceName(), getZookeepers()),
-                super.getClusterInstance().getCluster().getConnector("userA", "userA"));
+                new AccumuloConnectionDetails(adminUser, adminUser.toCharArray(), getInstanceName(), getZookeepers()),
+                super.getClusterInstance().getCluster().getConnector(adminUser, adminUser));
 
         // Create the user that will be added to the instance of Rya.
-        secOps.createLocalUser("userB", new PasswordToken("userB"));
+        secOps.createLocalUser(user, new PasswordToken(user));
 
         final RyaClient userBClient = AccumuloRyaClientFactory.build(
-                new AccumuloConnectionDetails("userB", "userB".toCharArray(), getInstanceName(), getZookeepers()),
-                super.getClusterInstance().getCluster().getConnector("userB", "userB"));
+                new AccumuloConnectionDetails(user, user.toCharArray(), getInstanceName(), getZookeepers()),
+                super.getClusterInstance().getCluster().getConnector(user, user));
 
         // Install the instance of Rya.
-        userAClient.getInstall().install("testInstance_", InstallConfiguration.builder().build());
+        userAClient.getInstall().install(getRyaInstanceName(), InstallConfiguration.builder().build());
 
         // Add userB.
-        userAClient.getAddUser().addUser("testInstance_", "userB");
+        userAClient.getAddUser().addUser(getRyaInstanceName(), user);
 
         // Remove userA.
-        userBClient.getRemoveUser().removeUser("testInstance_", "userA");
+        userBClient.getRemoveUser().removeUser(getRyaInstanceName(), adminUser);
 
         // Ensure the Rya instance's details have been updated to include the added user.
         final ImmutableList<String> expectedUsers = ImmutableList.<String>builder()
-                .add("userB")
+                .add(user)
                 .build();
 
-        final RyaDetails details = userBClient.getGetInstanceDetails().getDetails("testInstance_").get();
+        final RyaDetails details = userBClient.getGetInstanceDetails().getDetails(getRyaInstanceName()).get();
         assertEquals(expectedUsers, details.getUsers());
     }
 
@@ -89,31 +92,33 @@ public class AccumuloRemoveUserIT extends AccumuloITBase {
      */
     @Test
     public void removedUserCanNotInsert() throws Exception {
+        String adminUser = testInstance.createUniqueUser();
+        String user = testInstance.createUniqueUser();
         final SecurityOperations secOps = super.getConnector().securityOperations();
 
         // Create the user that will install the instance of Rya.
-        secOps.createLocalUser("userA", new PasswordToken("userA"));
-        secOps.grantSystemPermission("userA", SystemPermission.CREATE_TABLE);
+        secOps.createLocalUser(adminUser, new PasswordToken(adminUser));
+        secOps.grantSystemPermission(adminUser, SystemPermission.CREATE_TABLE);
 
         final RyaClient userAClient = AccumuloRyaClientFactory.build(
-                new AccumuloConnectionDetails("userA", "userA".toCharArray(), getInstanceName(), getZookeepers()),
-                super.getClusterInstance().getCluster().getConnector("userA", "userA"));
+                new AccumuloConnectionDetails(adminUser, adminUser.toCharArray(), getInstanceName(), getZookeepers()),
+                super.getClusterInstance().getCluster().getConnector(adminUser, adminUser));
 
         // Create the user that will be added to the instance of Rya.
-        secOps.createLocalUser("userB", new PasswordToken("userB"));
+        secOps.createLocalUser(user, new PasswordToken(user));
 
-        final RyaClient userBClient = AccumuloRyaClientFactory.build(
-                new AccumuloConnectionDetails("userB", "userB".toCharArray(), getInstanceName(), getZookeepers()),
-                super.getClusterInstance().getCluster().getConnector("userB", "userB"));
+        final RyaClient userCClient = AccumuloRyaClientFactory.build(
+                new AccumuloConnectionDetails(user, user.toCharArray(), getInstanceName(), getZookeepers()),
+                super.getClusterInstance().getCluster().getConnector(user, user));
 
         // Install the instance of Rya.
-        userAClient.getInstall().install("testInstance_", InstallConfiguration.builder().build());
+        userAClient.getInstall().install(getRyaInstanceName(), InstallConfiguration.builder().build());
 
-        // Add userB.
-        userAClient.getAddUser().addUser("testInstance_", "userB");
+        // Add userC.
+        userAClient.getAddUser().addUser(getRyaInstanceName(), user);
 
         // Remove userA.
-        userBClient.getRemoveUser().removeUser("testInstance_", "userA");
+        userCClient.getRemoveUser().removeUser(getRyaInstanceName(), adminUser);
 
         // Show that userA can not insert anything.
         boolean securityExceptionThrown = false;
@@ -121,7 +126,7 @@ public class AccumuloRemoveUserIT extends AccumuloITBase {
         Sail sail = null;
         SailConnection sailConn = null;
         try {
-            final AccumuloRdfConfiguration userAConf = makeRyaConfig("testInstance_", "userA", "userA", getInstanceName(), getZookeepers());
+            final AccumuloRdfConfiguration userAConf = makeRyaConfig(getRyaInstanceName(), adminUser, adminUser, getInstanceName(), getZookeepers());
             sail = RyaSailFactory.getInstance(userAConf);
             sailConn = sail.getConnection();
 
@@ -135,14 +140,10 @@ public class AccumuloRemoveUserIT extends AccumuloITBase {
             }
         } finally {
             if(sailConn != null) {
-                try {
-                    sailConn.close();
-                } finally { }
+                sailConn.close();
             }
             if(sail != null) {
-                try {
-                    sail.shutDown();
-                } finally { }
+                sail.shutDown();
             }
         }
 

@@ -18,8 +18,6 @@
  */
 package org.apache.rya.accumulo;
 
-import java.io.IOException;
-
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
 import org.apache.accumulo.core.client.Connector;
@@ -27,9 +25,8 @@ import org.apache.accumulo.minicluster.MiniAccumuloCluster;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.apache.zookeeper.ClientCnxn;
-import org.junit.After;
-import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.Rule;
 
 /**
  * Boilerplate code for a unit test that uses a {@link MiniAccumuloCluster}.
@@ -39,24 +36,15 @@ import org.junit.BeforeClass;
  */
 public class AccumuloITBase {
 
-    // Managed the MiniAccumuloCluster
-    private MiniAccumuloClusterInstance cluster = null;
+    private static MiniAccumuloClusterInstance cluster = MiniAccumuloSingleton.getInstance();
+
+    @Rule
+    public RyaTestInstanceRule testInstance = new RyaTestInstanceRule(false);
+
 
     @BeforeClass
     public static void killLoudLogs() {
         Logger.getLogger(ClientCnxn.class).setLevel(Level.ERROR);
-    }
-
-    @Before
-    public void initCluster() throws IOException, InterruptedException, AccumuloException, AccumuloSecurityException {
-        cluster = new MiniAccumuloClusterInstance();
-        cluster.startMiniAccumulo();
-    }
-
-
-    @After
-    public void tearDownCluster() throws IOException, InterruptedException {
-        cluster.stopMiniAccumulo();
     }
 
     /**
@@ -102,4 +90,9 @@ public class AccumuloITBase {
     public Connector getConnector() throws AccumuloException, AccumuloSecurityException {
         return cluster.getConnector();
     }
+
+    public String getRyaInstanceName() {
+        return testInstance.getRyaInstanceName();
+    }
+
 }

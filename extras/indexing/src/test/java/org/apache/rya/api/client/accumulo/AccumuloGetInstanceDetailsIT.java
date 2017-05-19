@@ -54,7 +54,7 @@ public class AccumuloGetInstanceDetailsIT extends AccumuloITBase {
     @Test
     public void getDetails() throws AccumuloException, AccumuloSecurityException, DuplicateInstanceNameException, RyaClientException {
         // Install an instance of Rya.
-        final String instanceName = "instance_name";
+        final String instanceName = getRyaInstanceName();
         final InstallConfiguration installConfig = InstallConfiguration.builder()
                 .setEnableTableHashPrefix(true)
                 .setEnableEntityCentricIndex(true)
@@ -106,19 +106,17 @@ public class AccumuloGetInstanceDetailsIT extends AccumuloITBase {
                 getZookeepers());
 
         final GetInstanceDetails getInstanceDetails = new AccumuloGetInstanceDetails(connectionDetails, getConnector());
-        getInstanceDetails.getDetails("instance_name");
+        getInstanceDetails.getDetails("instance_name_does_not_exist");
     }
 
     @Test
     public void getDetails_instanceDoesNotHaveDetails() throws AccumuloException, AccumuloSecurityException, InstanceDoesNotExistException, RyaClientException, TableExistsException {
         // Mimic a pre-details rya install.
-        final String instanceName = "instance_name";
-
         final TableOperations tableOps = getConnector().tableOperations();
 
-        final String spoTableName = instanceName + RdfCloudTripleStoreConstants.TBL_SPO_SUFFIX;
-        final String ospTableName = instanceName + RdfCloudTripleStoreConstants.TBL_OSP_SUFFIX;
-        final String poTableName = instanceName + RdfCloudTripleStoreConstants.TBL_PO_SUFFIX;
+        final String spoTableName = getRyaInstanceName() + RdfCloudTripleStoreConstants.TBL_SPO_SUFFIX;
+        final String ospTableName = getRyaInstanceName() + RdfCloudTripleStoreConstants.TBL_OSP_SUFFIX;
+        final String poTableName = getRyaInstanceName() + RdfCloudTripleStoreConstants.TBL_PO_SUFFIX;
         tableOps.create(spoTableName);
         tableOps.create(ospTableName);
         tableOps.create(poTableName);
@@ -131,7 +129,7 @@ public class AccumuloGetInstanceDetailsIT extends AccumuloITBase {
                 getZookeepers());
 
         final GetInstanceDetails getInstanceDetails = new AccumuloGetInstanceDetails(connectionDetails, getConnector());
-        final Optional<RyaDetails> details = getInstanceDetails.getDetails(instanceName);
+        final Optional<RyaDetails> details = getInstanceDetails.getDetails(getRyaInstanceName());
         assertFalse( details.isPresent() );
     }
 }

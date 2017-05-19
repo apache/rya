@@ -60,13 +60,12 @@ public class AccumuloLoadStatementsFileIT extends AccumuloITBase {
                 getZookeepers());
 
         final RyaClient ryaClient = AccumuloRyaClientFactory.build(connectionDetails, getConnector());
-        ryaClient.getLoadStatementsFile().loadStatements("testInstance_", Paths.get("src/test/resources/example.ttl"), RDFFormat.TURTLE);
+        ryaClient.getLoadStatementsFile().loadStatements(getRyaInstanceName(), Paths.get("src/test/resources/example.ttl"), RDFFormat.TURTLE);
     }
 
     @Test
     public void loadTurtleFile() throws Exception {
         // Install an instance of Rya.
-        final String instanceName = "testInstance_";
         final InstallConfiguration installConfig = InstallConfiguration.builder()
                 .setEnableTableHashPrefix(false)
                 .setEnableEntityCentricIndex(false)
@@ -85,10 +84,10 @@ public class AccumuloLoadStatementsFileIT extends AccumuloITBase {
 
         final RyaClient ryaClient = AccumuloRyaClientFactory.build(connectionDetails, getConnector());
         final Install install = ryaClient.getInstall();
-        install.install(instanceName, installConfig);
+        install.install(getRyaInstanceName(), installConfig);
 
         // Load the test statement file.
-        ryaClient.getLoadStatementsFile().loadStatements("testInstance_", Paths.get("src/test/resources/example.ttl"), RDFFormat.TURTLE);
+        ryaClient.getLoadStatementsFile().loadStatements(getRyaInstanceName(), Paths.get("src/test/resources/example.ttl"), RDFFormat.TURTLE);
 
         // Verify that the statements were loaded.
         final ValueFactory vf = new ValueFactoryImpl();
@@ -101,7 +100,7 @@ public class AccumuloLoadStatementsFileIT extends AccumuloITBase {
         final List<Statement> statements = new ArrayList<>();
 
         final WholeRowTripleResolver tripleResolver = new WholeRowTripleResolver();
-        final Scanner scanner = getConnector().createScanner("testInstance_spo", new Authorizations());
+        final Scanner scanner = getConnector().createScanner(getRyaInstanceName() + "spo", new Authorizations());
         final Iterator<Entry<Key, Value>> it = scanner.iterator();
         while(it.hasNext()) {
             final Entry<Key, Value> next = it.next();

@@ -19,24 +19,35 @@
 package org.apache.rya.mongodb;
 
 import java.io.IOException;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.rya.api.persist.RyaDAOException;
 import org.junit.After;
+import org.junit.AfterClass;
 import org.junit.Before;
 
 import com.mongodb.MongoClient;
 
 import de.flapdoodle.embed.mongo.distribution.Version;
+import org.junit.BeforeClass;
 
 public class MongoRyaTestBase {
 
-    protected MockMongoFactory testsFactory;
+    private static final AtomicInteger db = new AtomicInteger(1);
+
+    protected static MockMongoFactory testsFactory;
     protected MongoClient mongoClient;
+    private int currentTestDb = -1;
+
+    @BeforeClass()
+    public static void beforeClass() throws Exception {
+        testsFactory = MockMongoFactory.with(Version.Main.PRODUCTION);
+    }
 
     @Before
     public void MongoRyaTestBaseSetUp() throws IOException, RyaDAOException {
-        testsFactory = MockMongoFactory.with(Version.Main.PRODUCTION);
         mongoClient = testsFactory.newMongoClient();
+        currentTestDb = db.getAndIncrement();
     }
 
     @After
@@ -44,10 +55,19 @@ public class MongoRyaTestBase {
         if (mongoClient != null) {
             mongoClient.close();
         }
+        currentTestDb = -1;
+        MongoConnectorFactory.closeMongoClient();
+    }
+
+    @AfterClass()
+    public static void afterClass() throws Exception {
         if (testsFactory != null) {
             testsFactory.shutdown();
         }
-        MongoConnectorFactory.closeMongoClient();
+    }
+
+    public String getDbName() {
+        return "rya_" + currentTestDb;
     }
 
 }

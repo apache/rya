@@ -170,6 +170,9 @@
 				<artifactId>maven-shade-plugin</artifactId>
 				<executions>
 					<execution>
+						<goals>
+							<goal>shade</goal>
+						</goals>
 						<configuration>
 							<shadedArtifactAttached>true</shadedArtifactAttached>
 							<shadedClassifierName>map-reduce</shadedClassifierName>

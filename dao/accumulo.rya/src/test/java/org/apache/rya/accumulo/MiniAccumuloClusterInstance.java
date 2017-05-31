@@ -20,12 +20,15 @@ package org.apache.rya.accumulo;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Paths;
 
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
 import org.apache.accumulo.core.client.Connector;
 import org.apache.accumulo.minicluster.MiniAccumuloCluster;
 import org.apache.accumulo.minicluster.MiniAccumuloConfig;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang.SystemUtils;
 import org.apache.log4j.Logger;
 
 import com.google.common.io.Files;
@@ -57,6 +60,7 @@ public class MiniAccumuloClusterInstance {
         // Setup and start the Mini Accumulo.
         final MiniAccumuloConfig cfg = new MiniAccumuloConfig(miniDataDir, PASSWORD);
         cluster = new MiniAccumuloCluster(cfg);
+        copyHadoopHomeToTemp();
         cluster.start();
     }
 
@@ -71,6 +75,34 @@ public class MiniAccumuloClusterInstance {
                 log.info("Mini Accumulo being used as a Rya store shut down.");
             } catch(final Exception e) {
                 log.error("Could not shut down the Mini Accumulo.", e);
+            }
+        }
+    }
+
+    /**
+     * Copies the HADOOP_HOME bin directory to the {@link MiniAccumuloCluster} temp directory.
+     * {@link MiniAccumuloCluster} expects to find bin/winutils.exe in the MAC temp
+     * directory instead of HADOOP_HOME for some reason.
+     * @throws IOException
+     */
+    private static void copyHadoopHomeToTemp() throws IOException {
+        if (SystemUtils.IS_OS_WINDOWS && cluster != null) {
+            final String hadoopHomeEnv = System.getenv("HADOOP_HOME");
+            if (hadoopHomeEnv != null) {
+                final File hadoopHomeDir = new File(hadoopHomeEnv);
+                if (hadoopHomeDir.exists()) {
+                    final File binDir = Paths.get(hadoopHomeDir.getAbsolutePath(), "/bin").toFile();
+                    if (binDir.exists()) {
+                        final File tempDir = cluster.getConfig().getDir();
+                        FileUtils.copyDirectoryToDirectory(binDir, tempDir);
+                    } else {
+                        log.warn("The specified path for the Hadoop bin directory does not exist: " + binDir.getAbsolutePath());
+                    }
+                } else {
+                    log.warn("The specified path for HADOOP_HOME does not exist: " + hadoopHomeDir.getAbsolutePath());
+                }
+            } else {
+                log.warn("The HADOOP_HOME environment variable was not found.");
             }
         }
     }

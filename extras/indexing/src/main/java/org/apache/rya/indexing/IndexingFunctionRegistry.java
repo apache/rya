@@ -73,18 +73,22 @@ public class IndexingFunctionRegistry {
     
     
     public static Var getResultVarFromFunctionCall(URI function, List<ValueExpr> args) {
-        
         FUNCTION_TYPE type = SEARCH_FUNCTIONS.get(function);
-        
-        switch(type) {
-        case GEO: 
-            return findBinaryResultVar(args);
-        case FREETEXT:
-            return findLiteralResultVar(args);
-        case TEMPORAL:
-            return findBinaryResultVar(args);
-        default:
-            return null;
+        if (type == null) {
+        	return findBinaryResultVar(args);
+        }
+        else {
+	        switch(type) {
+	        case GEO: 
+	            return findBinaryResultVar(args);
+	        case FREETEXT:
+	            return findLiteralResultVar(args);
+	        case TEMPORAL:
+	            return findBinaryResultVar(args);
+	        default:
+	            //return null;
+	        	return findBinaryResultVar(args);
+	        }
         }
         
     }
@@ -106,18 +110,20 @@ public class IndexingFunctionRegistry {
     
     
     private static Var findBinaryResultVar(List<ValueExpr> args) {
-     
+    	Var retval = null;
         if (args.size() >= 2) {
             ValueExpr arg1 = args.get(0);
             ValueExpr arg2 = args.get(1);
-            if (isUnboundVariable(arg1) && isConstant(arg2))
-                return (Var) arg1;
-            else if (isUnboundVariable(arg2) && isConstant(arg1))
-                return (Var) arg2;
+            
+            if (isUnboundVariable(arg1) && isConstant(arg2)) {
+                retval = (Var) arg1;
+            }
+            else if (isUnboundVariable(arg2) && isConstant(arg1)) {
+                retval = (Var) arg2;
+            }
         }
-        return null;
+        return retval;
     }
-    
     
     private static Var findLiteralResultVar(List<ValueExpr> args) {
         if (args.size() >= 2) {
@@ -128,7 +134,5 @@ public class IndexingFunctionRegistry {
         }
         return null;
     }
-    
-    
     
 }

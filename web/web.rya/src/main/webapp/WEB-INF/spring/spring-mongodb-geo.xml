@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+Licensed to the Apache Software Foundation (ASF) under one
+or more contributor license agreements.  See the NOTICE file
+distributed with this work for additional information
+regarding copyright ownership.  The ASF licenses this file
+to you under the Apache License, Version 2.0 (the
+"License"); you may not use this file except in compliance
+with the License.  You may obtain a copy of the License at
+
+  http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing,
+software distributed under the License is distributed on an
+"AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+KIND, either express or implied.  See the License for the
+specific language governing permissions and limitations
+under the License.
+-->
+
+<beans xmlns="http://www.springframework.org/schema/beans"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:p="http://www.springframework.org/schema/p"
+    xmlns:context="http://www.springframework.org/schema/context"
+    xmlns:oxm="http://www.springframework.org/schema/oxm"
+    xmlns:hdp="http://www.springframework.org/schema/hadoop"
+    xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
+                http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-2.5.xsd
+                http://www.springframework.org/schema/oxm http://www.springframework.org/schema/oxm/spring-oxm-3.0.xsd
+                http://www.springframework.org/schema/hadoop http://www.springframework.org/schema/hadoop/spring-hadoop.xsd">
+
+
+     <hdp:configuration id="hadoopConf">
+        sc.useMongo=true
+      </hdp:configuration>
+
+    <bean id="conf" class="org.apache.rya.mongodb.MongoDBRdfConfiguration">
+        <constructor-arg ref="hadoopConf"/>
+        <property name="collectionName" value="${mongo.db.collectionprefix}"/>
+        <property name="tablePrefix" value="${mongo.db.collectionprefix}"/>
+        <property name="mongoInstance" value="${mongo.db.instance}"/>
+        <property name="mongoPort" value="${mongo.db.port}"/>
+        <property name="mongoDBName" value="${mongo.db.name}"/>
+        <property name="displayQueryPlan" value="${rya.displayqueryplan}"/>
+        <property name="useStats" value="false"/>
+        <property name="additionalIndexers">
+            <list>
+            <value type="java.lang.Class">org.apache.rya.indexing.mongodb.geo.MongoGeoIndexer</value>
+            </list>
+        </property>
+        <property name="optimizers">
+            <list>
+            <value type="java.lang.Class">org.apache.rya.indexing.GeoEnabledFilterFunctionOptimizer</value>
+            </list>
+        </property>
+    </bean>
+
+
+    <bean id="mongoClient" class="org.apache.rya.mongodb.MongoConnectorFactory" factory-method="getMongoClient">
+        <constructor-arg ref="conf"/>
+    </bean>
+
+	<bean id="ryaDAO" class="org.apache.rya.mongodb.MongoDBRyaDAO" init-method="init" destroy-method="destroy">
+        <constructor-arg ref="conf"/>
+        <constructor-arg ref="mongoClient"/>
+    </bean>
+
+
+</beans>

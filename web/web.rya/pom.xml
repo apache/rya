@@ -186,12 +186,37 @@ under the License.
 				<database.implementation>accumulo</database.implementation>
 			</properties>
 		</profile>
-		<profile>
-			<id>mongodb</id>
-			<properties>
-				<db.specified>true</db.specified>
-				<database.implementation>mongodb</database.implementation>
-			</properties>
-		</profile>
+        <profile>
+            <id>mongodb</id>
+            <properties>
+                <db.specified>true</db.specified>
+                <database.implementation>mongodb</database.implementation>
+            </properties>
+        </profile>
+        <profile>
+            <id>geoindexing</id>
+            <properties>
+                <db.specified>true</db.specified>
+                <database.implementation>mongodb-geo</database.implementation>
+            </properties>
+            <dependencies>
+                <dependency>
+                    <groupId>org.apache.rya</groupId>
+                    <artifactId>rya.geoindexing</artifactId>
+                    <version>${project.version}</version>
+                    <!-- GeoWave brings in org.springframework jars that are not compatible with web.rya versions -->
+                    <exclusions>
+                        <exclusion>
+                            <groupId>mil.nga.giat</groupId>
+                            <artifactId>geowave-datastore-accumulo</artifactId>
+                        </exclusion>
+                        <exclusion>
+                            <groupId>mil.nga.giat</groupId>
+                            <artifactId>geowave-adapter-vector</artifactId>
+                        </exclusion>
+                    </exclusions>
+                </dependency>
+            </dependencies>
+        </profile>
 	</profiles>
 </project>

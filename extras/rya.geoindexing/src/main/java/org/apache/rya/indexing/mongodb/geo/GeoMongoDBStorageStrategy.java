@@ -127,6 +127,10 @@ public class GeoMongoDBStorageStrategy extends IndexingMongoDBStorageStrategy {
         try {
             final Statement statement = RyaToRdfConversions.convertStatement(ryaStatement);
             final Geometry geo = (new WKTReader()).read(GeoParseUtils.getWellKnownText(statement));
+            if(geo == null) {
+                LOG.error("Failed to parse geo statement: " + statement.toString());
+                return null;
+            }
             final BasicDBObject base = (BasicDBObject) super.serialize(ryaStatement);
             base.append(GEO, getCorrespondingPoints(geo));
             return base;

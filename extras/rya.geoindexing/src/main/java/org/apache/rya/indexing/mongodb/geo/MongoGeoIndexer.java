@@ -46,6 +46,9 @@ public class MongoGeoIndexer extends AbstractMongoIndexer<GeoMongoDBStorageStrat
 	public void init() {
         initCore();
         predicates = ConfigUtils.getGeoPredicates(conf);
+        if(predicates.size() == 0) {
+            logger.debug("No predicates specified for geo indexing.  During insertion, all statements will be attempted to be indexed into the geo indexer.");
+        }
         storageStrategy = new GeoMongoDBStorageStrategy(Double.valueOf(conf.get(MongoDBRdfConfiguration.MONGO_GEO_MAXDISTANCE, "1e-10")));
         storageStrategy.createIndices(collection);
     }

@@ -23,8 +23,8 @@ public class SimpleJunitTest {
 
     @Test
     public void mytest() throws Exception {
-        System.out.println("Counting to 30...");
-        for (int i = 0 ; i <= 30 ; i++) {
+        System.out.println("Counting to 15...");
+        for (int i = 0 ; i <= 15 ; i++) {
             System.out.println(i);
             Thread.sleep(1_000);
         }

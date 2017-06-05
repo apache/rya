@@ -32,11 +32,14 @@ import java.util.Set;
 import org.apache.commons.lang.builder.EqualsBuilder;
 import org.apache.rya.api.domain.RyaURI;
 import org.apache.rya.indexing.IndexingExpr;
+import org.apache.rya.indexing.TemporalInstant;
 import org.apache.rya.indexing.TemporalInstantRfc3339;
 import org.apache.rya.indexing.entity.query.EntityQueryNode;
 import org.apache.rya.indexing.geotemporal.storage.EventStorage;
 import org.apache.rya.indexing.mongodb.update.RyaObjectStorage.ObjectStorageException;
 import org.apache.rya.rdftriplestore.evaluation.ExternalBatchingIterator;
+import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
 import org.openrdf.model.Value;
 import org.openrdf.model.impl.ValueFactoryImpl;
 import org.openrdf.query.BindingSet;
@@ -190,7 +193,11 @@ public class EventQueryNode extends ExternalSet implements ExternalBatchingItera
 
                 final Value temporalValue;
                 if(event.isInstant() && event.getInstant().isPresent()) {
-                    temporalValue = ValueFactoryImpl.getInstance().createLiteral(event.getInstant().get().getAsDateTime().toString(TemporalInstantRfc3339.FORMATTER));
+                    final Optional<TemporalInstant> opt = event.getInstant();
+                    DateTime dt = opt.get().getAsDateTime();
+                    dt = dt.toDateTime(DateTimeZone.UTC);
+                    final String str = dt.toString(TemporalInstantRfc3339.FORMATTER);
+                    temporalValue = ValueFactoryImpl.getInstance().createLiteral(str);
                 } else if(event.getInterval().isPresent()) {
                     temporalValue = ValueFactoryImpl.getInstance().createLiteral(event.getInterval().get().getAsPair());
                 } else {

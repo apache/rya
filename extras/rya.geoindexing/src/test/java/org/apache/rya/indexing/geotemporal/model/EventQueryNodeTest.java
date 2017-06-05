@@ -144,14 +144,14 @@ public class EventQueryNodeTest extends GeoTemporalTestBase {
                 + "  <urn:event-1111> time:atTime ?time . "
                 + "  <urn:event-1111> geo:asWKT ?wkt . "
                 + "  FILTER(geof:sfWithin(?wkt, \"POLYGON((-3 -2, -3 2, 1 2, 1 -2, -3 -2))\"^^geo:wktLiteral)) "
-                + "  FILTER(tempo:equals(?time, \"2015-12-30T12:00:00Z\")) "
+                + "  FILTER(tempo:equals(?time, \"" + temp.toString() + "\")) "
               + "}";
 
         final EventQueryNode node = buildNode(storage, query);
         final CloseableIteration<BindingSet, QueryEvaluationException> rez = node.evaluate(new MapBindingSet());
         final MapBindingSet expected = new MapBindingSet();
         expected.addBinding("wkt", VF.createLiteral("POINT (1 1)"));
-        expected.addBinding("time", VF.createLiteral("2015-12-30T07:00:00-05:00"));
+        expected.addBinding("time", VF.createLiteral(temp.toString()));
         int count = 0;
         assertTrue(rez.hasNext());
         while(rez.hasNext()) {
@@ -202,10 +202,10 @@ public class EventQueryNodeTest extends GeoTemporalTestBase {
         final CloseableIteration<BindingSet, QueryEvaluationException> rez = node.evaluate(new MapBindingSet());
         final MapBindingSet expected1 = new MapBindingSet();
         expected1.addBinding("wkt", VF.createLiteral("POINT (1 1)"));
-        expected1.addBinding("time", VF.createLiteral("2015-12-30T07:00:00-05:00"));
+        expected1.addBinding("time", VF.createLiteral(new TemporalInstantRfc3339(2015, 12, 30, 12, 00, 0).toString()));
         final MapBindingSet expected2 = new MapBindingSet();
         expected2.addBinding("wkt", VF.createLiteral("POINT (-1 -1)"));
-        expected2.addBinding("time", VF.createLiteral("2015-12-30T07:00:00-05:00"));
+        expected2.addBinding("time", VF.createLiteral(new TemporalInstantRfc3339(2015, 12, 30, 12, 00, 0).toString()));
 
         final List<BindingSet> actual = new ArrayList<>();
         while(rez.hasNext()) {
@@ -259,7 +259,7 @@ public class EventQueryNodeTest extends GeoTemporalTestBase {
         final CloseableIteration<BindingSet, QueryEvaluationException> rez = node.evaluate(existingBindings);
         final MapBindingSet expected = new MapBindingSet();
         expected.addBinding("wkt", VF.createLiteral("POINT (-1 -1)"));
-        expected.addBinding("time", VF.createLiteral("2015-12-30T07:00:00-05:00"));
+        expected.addBinding("time", VF.createLiteral(new TemporalInstantRfc3339(2015, 12, 30, 12, 00, 0).toString()));
 
         final List<BindingSet> actual = new ArrayList<>();
         while(rez.hasNext()) {
@@ -312,7 +312,7 @@ public class EventQueryNodeTest extends GeoTemporalTestBase {
         final CloseableIteration<BindingSet, QueryEvaluationException> rez = node.evaluate(existingBindings);
         final MapBindingSet expected = new MapBindingSet();
         expected.addBinding("wkt", VF.createLiteral("POINT (-1 -1)"));
-        expected.addBinding("time", VF.createLiteral("2015-12-30T07:00:00-05:00"));
+        expected.addBinding("time", VF.createLiteral(new TemporalInstantRfc3339(2015, 12, 30, 12, 00, 0).toString()));
 
         assertFalse(rez.hasNext());
     }

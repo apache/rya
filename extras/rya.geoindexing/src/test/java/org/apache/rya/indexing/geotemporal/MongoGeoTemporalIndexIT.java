@@ -55,8 +55,6 @@ import org.openrdf.sail.Sail;
 
 import com.mongodb.MongoClient;
 
-import de.flapdoodle.embed.mongo.distribution.Version;
-
 public class MongoGeoTemporalIndexIT {
     private static final String URI_PROPERTY_AT_TIME = "Property:atTime";
 
@@ -67,44 +65,35 @@ public class MongoGeoTemporalIndexIT {
 
     @Before
     public void setUp() throws Exception{
-        mongoClient = MockMongoFactory.with(Version.Main.PRODUCTION).newMongoClient();
-        final int port = mongoClient.getServerAddressList().get(0).getPort();
+        mongoClient = MockMongoFactory.newFactory().newMongoClient();
         conf = new MongoDBRdfConfiguration();
         conf.set(MongoDBRdfConfiguration.MONGO_DB_NAME, "test");
         conf.set(MongoDBRdfConfiguration.MONGO_COLLECTION_PREFIX, "rya");
         conf.set(RdfCloudTripleStoreConfiguration.CONF_TBL_PREFIX, "rya");
-        conf.set(MongoDBRdfConfiguration.MONGO_INSTANCE_PORT, Integer.toString(port));
         conf.setBoolean(ConfigUtils.USE_MONGO, true);
         conf.setBoolean(OptionalConfigUtils.USE_GEOTEMPORAL, true);
         conf.setMongoClient(mongoClient);
-        conf.setTablePrefix("isthisused_");
 
         final Sail sail = GeoRyaSailFactory.getInstance(conf);
         conn = new SailRepository(sail).getConnection();
         conn.begin();
 
+        addStatements();
     }
 
     @Test
     public void ensureInEventStore_Test() throws Exception {
         final MongoGeoTemporalIndexer indexer = new MongoGeoTemporalIndexer();
-        indexer.setConf(conf);
-        indexer.setClient(mongoClient);
-        indexer.init();
-
-        addStatements();
+        indexer.initIndexer(conf, mongoClient);
 
         final EventStorage events = indexer.getEventStorage(conf);
         final RyaURI subject = new RyaURI("urn:event1");
         final Optional<Event> event = events.get(subject);
         assertTrue(event.isPresent());
-
-        indexer.close();
     }
 
     @Test
     public void constantSubjQuery_Test() throws Exception {
-        addStatements();
         final String query =
                 "PREFIX time: <http://www.w3.org/2006/time#> \n"
               + "PREFIX tempo: <tag:rya-rdf.org,2015:temporal#> \n"
@@ -126,7 +115,7 @@ public class MongoGeoTemporalIndexIT {
         }
         final MapBindingSet expected = new MapBindingSet();
         expected.addBinding("point", VF.createLiteral("POINT (0 0)"));
-        expected.addBinding("time", VF.createLiteral("2015-12-30T07:00:00-05:00"));
+        expected.addBinding("time", VF.createLiteral("2015-12-30T12:00:00Z"));
 
         assertEquals(1, results.size());
         assertEquals(expected, results.iterator().next());
@@ -134,7 +123,6 @@ public class MongoGeoTemporalIndexIT {
 
     @Test
     public void variableSubjQuery_Test() throws Exception {
-        addStatements();
         final String query =
                 "PREFIX time: <http://www.w3.org/2006/time#> \n"
               + "PREFIX tempo: <tag:rya-rdf.org,2015:temporal#> \n"
@@ -156,11 +144,11 @@ public class MongoGeoTemporalIndexIT {
         }
         final MapBindingSet expected1 = new MapBindingSet();
         expected1.addBinding("point", VF.createLiteral("POINT (0 0)"));
-        expected1.addBinding("time", VF.createLiteral("2015-12-30T07:00:00-05:00"));
+        expected1.addBinding("time", VF.createLiteral("2015-12-30T12:00:00Z"));
 
         final MapBindingSet expected2 = new MapBindingSet();
         expected2.addBinding("point", VF.createLiteral("POINT (1 1)"));
-        expected2.addBinding("time", VF.createLiteral("2015-12-30T07:00:00-05:00"));
+        expected2.addBinding("time", VF.createLiteral("2015-12-30T12:00:00Z"));
 
         assertEquals(2, results.size());
         assertEquals(expected1, results.get(0));

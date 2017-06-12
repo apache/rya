@@ -4,6 +4,13 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.hadoop.conf.Configuration;
+import org.apache.rya.indexing.GeoConstants;
+import org.apache.rya.indexing.GeoIndexer;
+import org.apache.rya.indexing.IndexingExpr;
+import org.apache.rya.indexing.IteratorFactory;
+import org.apache.rya.indexing.SearchFunction;
+import org.apache.rya.indexing.StatementConstraints;
+import org.apache.rya.indexing.external.tupleSet.ExternalTupleSet;
 import org.openrdf.model.Statement;
 import org.openrdf.model.URI;
 import org.openrdf.query.BindingSet;
@@ -36,13 +43,6 @@ import com.vividsolutions.jts.io.WKTReader;
 
 
 import info.aduna.iteration.CloseableIteration;
-import org.apache.rya.indexing.GeoConstants;
-import org.apache.rya.indexing.GeoIndexer;
-import org.apache.rya.indexing.IndexingExpr;
-import org.apache.rya.indexing.IteratorFactory;
-import org.apache.rya.indexing.SearchFunction;
-import org.apache.rya.indexing.StatementConstraints;
-import org.apache.rya.indexing.external.tupleSet.ExternalTupleSet;
 
 //Indexing Node for geo expressions to be inserted into execution plan
 //to delegate geo portion of query to geo index
@@ -116,7 +116,7 @@ public class GeoTupleSet extends ExternalTupleSet {
 
 
         final URI funcURI = filterInfo.getFunction();
-        final SearchFunction searchFunction = new GeoSearchFunctionFactory(conf).getSearchFunction(funcURI);
+        final SearchFunction searchFunction = new GeoSearchFunctionFactory(conf, geoIndexer).getSearchFunction(funcURI);
         if(filterInfo.getArguments().length > 1) {
             throw new IllegalArgumentException("Index functions do not support more than two arguments.");
         }
@@ -130,14 +130,17 @@ public class GeoTupleSet extends ExternalTupleSet {
 
     //returns appropriate search function for a given URI
     //search functions used in GeoMesaGeoIndexer to access index
-    public class GeoSearchFunctionFactory {
+    public static class GeoSearchFunctionFactory {
 
         Configuration conf;
 
         private final Map<URI, SearchFunction> SEARCH_FUNCTION_MAP = Maps.newHashMap();
 
-        public GeoSearchFunctionFactory(final Configuration conf) {
+        private final GeoIndexer geoIndexer;
+
+        public GeoSearchFunctionFactory(final Configuration conf, final GeoIndexer geoIndexer) {
             this.conf = conf;
+            this.geoIndexer = geoIndexer;
         }
 
 

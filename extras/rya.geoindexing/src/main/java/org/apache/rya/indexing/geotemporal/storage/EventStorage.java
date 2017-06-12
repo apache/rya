@@ -16,44 +16,34 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.apache.rya.indexing.entity.storage;
+package org.apache.rya.indexing.geotemporal.storage;
 
+import java.util.Collection;
 import java.util.Optional;
-import java.util.Set;
 
 import org.apache.rya.api.domain.RyaURI;
-import org.apache.rya.indexing.entity.model.Entity;
-import org.apache.rya.indexing.entity.model.Property;
-import org.apache.rya.indexing.entity.model.Type;
-import org.apache.rya.indexing.entity.model.TypedEntity;
-import org.apache.rya.indexing.entity.storage.mongo.ConvertingCursor;
+import org.apache.rya.indexing.IndexingExpr;
+import org.apache.rya.indexing.geotemporal.GeoTemporalIndexer;
+import org.apache.rya.indexing.geotemporal.model.Event;
 import org.apache.rya.indexing.mongodb.update.RyaObjectStorage;
-import org.calrissian.mango.collect.CloseableIterator;
 
-import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
-import edu.umd.cs.findbugs.annotations.NonNull;
-
-/**
- * Stores and provides access to {@link Entity}s.
- */
-@DefaultAnnotation(NonNull.class)
-public interface EntityStorage extends RyaObjectStorage<Entity> {
+public interface EventStorage extends RyaObjectStorage<Event> {
     /**
-     * Search the stored {@link Entity}s that have a specific {@link Type} as
-     * well as the provided {@link Property} values.
+     * Search for {@link Event}s from the storage by its subject.
+     * Will query based on present parameters.
      *
-     * @param subject - The {@link RyaURI} subject of the Entity. (Optional)
-     * @param type - The {@link Type} of the Entities. (not null)
-     * @param properties - The {@link Property} values that must be set on the Entity. (not null)
-     * @return A {@link CloseableIterator} over the {@link TypedEntity}s that match the search parameters.
-     * @throws EntityStorageException A problem occurred while searching the storage.
+     * @param subject - The subject key to find events.
+     * @param geoFilters - The geo filters to find Events.
+     * @param temporalFilters - The temporal filters to find Events.
+     * @return The {@link Event}, if one exists for the subject.
+     * @throws ObjectStorageException A problem occurred while fetching the Entity from the storage.
      */
-    public ConvertingCursor<TypedEntity> search(final Optional<RyaURI> subject, Type type, Set<Property> properties) throws EntityStorageException;
+    public Collection<Event> search(final Optional<RyaURI> subject, Optional<Collection<IndexingExpr>> geoFilters, Optional<Collection<IndexingExpr>> temporalFilters) throws ObjectStorageException;
 
     /**
-     * Indicates a problem while interacting with an {@link EntityStorage}.
+     * Indicates a problem while interacting with an {@link EventStorage}.
      */
-    public static class EntityStorageException extends ObjectStorageException {
+    public static class EventStorageException extends ObjectStorageException {
         private static final long serialVersionUID = 1L;
 
         /**
@@ -64,7 +54,7 @@ public interface EntityStorage extends RyaObjectStorage<Entity> {
          * @param   message   the detail message. The detail message is saved for
          *          later retrieval by the {@link #getMessage()} method.
          */
-        public EntityStorageException(final String message) {
+        public EventStorageException(final String message) {
             super(message);
         }
 
@@ -81,31 +71,31 @@ public interface EntityStorage extends RyaObjectStorage<Entity> {
          *         permitted, and indicates that the cause is nonexistent or
          *         unknown.)
          */
-        public EntityStorageException(final String message, final Throwable cause) {
+        public EventStorageException(final String message, final Throwable cause) {
             super(message, cause);
         }
     }
 
     /**
-     * An {@link Entity} could not be created because one already exists for the Subject.
+     * An {@link Event} could not be created because one already exists for the Subject.
      */
-    public static class EntityAlreadyExistsException extends EntityStorageException {
+    public static class EventAlreadyExistsException extends EventStorageException {
         private static final long serialVersionUID = 1L;
 
-        public EntityAlreadyExistsException(final String message) {
+        public EventAlreadyExistsException(final String message) {
             super(message);
         }
 
-        public EntityAlreadyExistsException(final String message, final Throwable cause) {
+        public EventAlreadyExistsException(final String message, final Throwable cause) {
             super(message, cause);
         }
     }
 
     /**
-     * An {@link TypedEntity} could not be updated because the old state does not
+     * An {@link TypedEvent} could not be updated because the old state does not
      * match the current state.
      */
-    public static class StaleUpdateException extends EntityStorageException {
+    public static class StaleUpdateException extends EventStorageException {
         private static final long serialVersionUID = 1L;
 
         public StaleUpdateException(final String message) {
@@ -115,5 +105,26 @@ public interface EntityStorage extends RyaObjectStorage<Entity> {
         public StaleUpdateException(final String message, final Throwable cause) {
             super(message, cause);
         }
+    }
+
+    /**
+     *  A {@link EventFilter} is a translation from an {@link IndexingExpr}
+     *  to a format the {@link GeoTemporalIndexer} can use to easily determine which
+     *  filter function is being used.
+     *
+     *   @param T - The type of
+     */
+    interface EventFilter<T> {
+        /**
+         * Gets the translated query friendly form of the filter.
+         */
+        public T getQueryObject();
+    }
+
+    /**
+     * Factory for getting the {@link EventFilter} from an {@link IndexingExpr}.
+     */
+    interface EventFilterFactory<T> {
+        public EventFilter<T> getSearchFunction(final IndexingExpr filter);
     }
 }

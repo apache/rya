@@ -16,15 +16,14 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.apache.rya.indexing.entity;
+package org.apache.rya.indexing.geotemporal;
 
 import org.apache.rya.indexing.entity.model.TypedEntity;
-import org.apache.rya.indexing.mongodb.IndexingException;
 
 /**
  * An operation over the {@link TypedEntity} index failed to complete.
  */
-public class EntityIndexException extends IndexingException {
+public class GeoTemporalIndexException extends Exception {
     private static final long serialVersionUID = 1L;
 
     /**
@@ -35,7 +34,7 @@ public class EntityIndexException extends IndexingException {
      * @param   message   the detail message. The detail message is saved for
      *          later retrieval by the {@link #getMessage()} method.
      */
-    public EntityIndexException(final String message) {
+    public GeoTemporalIndexException(final String message) {
         super(message);
     }
 
@@ -52,7 +51,7 @@ public class EntityIndexException extends IndexingException {
      *         permitted, and indicates that the cause is nonexistent or
      *         unknown.)
      */
-    public EntityIndexException(final String message, final Throwable cause) {
+    public GeoTemporalIndexException(final String message, final Throwable cause) {
         super(message, cause);
     }
 }

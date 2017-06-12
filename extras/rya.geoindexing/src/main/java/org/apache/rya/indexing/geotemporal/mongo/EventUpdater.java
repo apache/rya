@@ -16,16 +16,16 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.apache.rya.indexing.entity.update;
+package org.apache.rya.indexing.geotemporal.mongo;
 
 import static java.util.Objects.requireNonNull;
 
 import java.util.Optional;
 
 import org.apache.rya.api.domain.RyaURI;
-import org.apache.rya.indexing.entity.model.Entity;
-import org.apache.rya.indexing.entity.storage.EntityStorage;
-import org.apache.rya.indexing.entity.storage.EntityStorage.EntityStorageException;
+import org.apache.rya.indexing.geotemporal.model.Event;
+import org.apache.rya.indexing.geotemporal.storage.EventStorage;
+import org.apache.rya.indexing.geotemporal.storage.EventStorage.EventStorageException;
 import org.apache.rya.indexing.mongodb.update.MongoDocumentUpdater;
 import org.apache.rya.indexing.mongodb.update.RyaObjectStorage.ObjectStorageException;
 
@@ -33,46 +33,53 @@ import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
 import edu.umd.cs.findbugs.annotations.NonNull;
 
 /**
- * Performs update operations over an {@link EntityStorage}.
+ * Performs update operations over an {@link EventStorage}.
  */
 @DefaultAnnotation(NonNull.class)
-public class EntityUpdater implements MongoDocumentUpdater<RyaURI, Entity>{
-
-    private final EntityStorage storage;
+public class EventUpdater implements MongoDocumentUpdater<RyaURI, Event>{
+    private final EventStorage events;
 
     /**
-     * Constructs an instance of {@link EntityUpdater}.
+     * Constructs an instance of {@link EventUpdater}
      *
-     * @param storage - The storage this updater operates over. (not null)
+     * @param events - The storage this updater operates over. (not null)
      */
-    public EntityUpdater(final EntityStorage storage) {
-        this.storage = requireNonNull(storage);
+    public EventUpdater(final EventStorage events) {
+        this.events = requireNonNull(events);
     }
 
     @Override
-    public void create(final Entity newObj) throws EntityStorageException {
+    public Optional<Event> getOld(final RyaURI key) throws EventStorageException {
         try {
-            storage.create(newObj);
+            return events.get(key);
         } catch (final ObjectStorageException e) {
-            throw new EntityStorageException(e.getMessage(), e);
+            throw new EventStorageException(e.getMessage(), e);
         }
     }
 
     @Override
-    public void update(final Entity old, final Entity updated) throws EntityStorageException {
+    public void create(final Event newObj) throws EventStorageException {
         try {
-            storage.update(old, updated);
+            events.create(newObj);
         } catch (final ObjectStorageException e) {
-            throw new EntityStorageException(e.getMessage(), e);
+            throw new EventStorageException(e.getMessage(), e);
         }
     }
 
     @Override
-    public Optional<Entity> getOld(final RyaURI key) throws EntityStorageException {
+    public void update(final Event old, final Event updated) throws EventStorageException {
         try {
-            return storage.get(key);
+            events.update(old, updated);
         } catch (final ObjectStorageException e) {
-            throw new EntityStorageException(e.getMessage(), e);
+            throw new EventStorageException(e.getMessage(), e);
+        }
+    }
+
+    public void delete(final Event event) throws EventStorageException {
+        try {
+            events.delete(event.getSubject());
+        } catch (final ObjectStorageException e) {
+            throw new EventStorageException(e.getMessage(), e);
         }
     }
 }

@@ -11,27 +11,44 @@
     OF ANY KIND, either express or implied. See the License for the specific 
     language governing permissions and limitations under the License. -->
 
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-    <modelVersion>4.0.0</modelVersion>
-    <parent>
-        <groupId>org.apache.rya</groupId>
-        <artifactId>rya.extras</artifactId>
-        <version>3.2.11-incubating-SNAPSHOT</version>
-    </parent>
-
-    <artifactId>rya.geoindexing</artifactId>
-    <name>Apache Rya Geospatial Secondary Indexing (Optional)</name>
-
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <groupId>org.apache.rya</groupId>
+    <artifactId>rya.extras</artifactId>
+    <version>3.2.11-incubating-SNAPSHOT</version>
+  </parent>
+  <artifactId>rya.geoindexing</artifactId>
+  <packaging>pom</packaging>
+  <name>Apache Rya Geo Indexing Projects</name>
+  <description>This parent has several alternative implementations using different libraries or versions of the same library.  
+  Specifically 
+          Geomesa depends on geotools v5.1 and 
+          GeoWave depends on geotools v6.
+  See the module poms for the actual versions.
+  </description>
+     <modules>
+        <!-- common for all implementations  -->
+     	 <!-- geomesa for accumulo, uses geotools (not compatible with geowave's dependencies)   -->
+     	 <!-- geo wave for accumulo, uses geotools (not compatible with geomesa's dependencies)  -->
+     	 <!-- mongo native geo, not accumulo  -->
+     	<module>geo.common</module>
+     	<module>geo.geomesa</module>
+     	<module>geo.geowave</module>
+     	<module>geo.mongo</module>
+     </modules>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <geotools.version>14.3</geotools.version>
     </properties>
 
-    <dependencies>
-
-        <dependency>
-            <groupId>org.apache.accumulo</groupId>
+	<dependencies>
+		<dependency>
+			<groupId>com.vividsolutions</groupId>
+			<artifactId>jts</artifactId>
+			<version>1.13</version>
+		</dependency>
+		<dependency>
+		   <groupId>org.apache.accumulo</groupId>
             <artifactId>accumulo-minicluster</artifactId>
             <scope>test</scope>
         </dependency>
@@ -78,34 +95,16 @@
             <artifactId>commons-codec</artifactId>
         </dependency>
 
-        <!-- Geo Indexing -->
-        <dependency>
-            <groupId>org.locationtech.geomesa</groupId>
-            <artifactId>geomesa-accumulo-datastore_2.11</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>mil.nga.giat</groupId>
-            <artifactId>geowave-datastore-accumulo</artifactId>
-            <version>${geowave.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>mil.nga.giat</groupId>
-            <artifactId>geowave-adapter-vector</artifactId>
-            <version>${geowave.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.mockito</groupId>
-            <artifactId>mockito-all</artifactId>
-            <scope>test</scope>
-        </dependency>
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.mockito</groupId>
+			<artifactId>mockito-all</artifactId>
+			<scope>test</scope>
+		</dependency>
         <dependency>
             <groupId>org.apache.rya</groupId>
             <artifactId>accumulo.rya</artifactId>
@@ -118,104 +117,90 @@
             <type>test-jar</type>
             <scope>test</scope>
         </dependency>
-        <dependency>
-            <groupId>org.geotools.xsd</groupId>
-            <artifactId>gt-xsd-gml3</artifactId>
-            <version>${geotools.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.geotools</groupId>
-            <artifactId>gt-api</artifactId>
-            <version>${geotools.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.vividsolutions</groupId>
-            <artifactId>jts</artifactId>
-            <version>1.13</version>
-        </dependency>
     </dependencies>
-    <build>
-        <pluginManagement>
-            <plugins>
-                <plugin>
-                    <groupId>org.apache.rat</groupId>
-                    <artifactId>apache-rat-plugin</artifactId>
-                    <configuration>
-                        <excludes>
-                            <!-- RDF data Files -->
-                            <exclude>**/*.ttl</exclude>
+	<build>
+		<pluginManagement>
+			<plugins>
+				<plugin>
+					<groupId>org.apache.rat</groupId>
+					<artifactId>apache-rat-plugin</artifactId>
+					<configuration>
+						<excludes>
+							<!-- RDF data Files -->
+							<exclude>**/*.ttl</exclude>
 
-                            <!-- Services Files -->
-                            <exclude>**/resources/META-INF/services/**</exclude>
-                        </excludes>
-                    </configuration>
-                </plugin>
-            </plugins>
-        </pluginManagement>
-        <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-shade-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>shade</goal>
-                        </goals>
-                        <configuration>
-                            <shadedArtifactAttached>true</shadedArtifactAttached>
-                            <shadedClassifierName>map-reduce</shadedClassifierName>
-                            <transformers>
-                                <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer" />
-                            </transformers>
-                            <filters>
-                                <filter>
-                                    <artifact>*:*</artifact>
-                                    <excludes>
-                                        <exclude>META-INF/*.SF</exclude>
-                                        <exclude>META-INF/*.DSA</exclude>
-                                        <exclude>META-INF/*.RSA</exclude>
-                                    </excludes>
-                                </filter>
-                            </filters>
-                        </configuration>
-                    </execution>
-                    <execution>
-                        <id>accumulo-server</id>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>shade</goal>
-                        </goals>
-                        <configuration>
-                            <shadedArtifactAttached>true</shadedArtifactAttached>
-                            <shadedClassifierName>accumulo-server</shadedClassifierName>
-                            <artifactSet>
-                                <excludes>
-                                    <exclude>org.locationtech.geomesa:*</exclude>
-                                    <exclude>mil.nga.giat:*</exclude>
-                                    <exclude>scala:*</exclude>
-                                    <exclude>org.apache.accumulo:*</exclude>
-                                    <exclude>org.apache.thrift:*</exclude>
-                                    <exclude>org.apache.hadoop:*</exclude>
-                                    <exclude>org.apache.zookeeper:*</exclude>
-                                </excludes>
-                            </artifactSet>
-                            <transformers>
-                                <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer" />
-                            </transformers>
-                            <filters>
-                                <filter>
-                                    <artifact>*:*</artifact>
-                                    <excludes>
-                                        <exclude>META-INF/*.SF</exclude>
-                                        <exclude>META-INF/*.DSA</exclude>
-                                        <exclude>META-INF/*.RSA</exclude>
-                                    </excludes>
-                                </filter>
-                            </filters>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-        </plugins>
-    </build>
+							<!-- Services Files -->
+							<exclude>**/resources/META-INF/services/**</exclude>
+						</excludes>
+					</configuration>
+				</plugin>
+			</plugins>
+		</pluginManagement>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-shade-plugin</artifactId>
+				<executions>
+					<execution>
+						<goals>
+							<goal>shade</goal>
+						</goals>
+						<configuration>
+							<shadedArtifactAttached>true</shadedArtifactAttached>
+							<shadedClassifierName>map-reduce</shadedClassifierName>
+							<transformers>
+								<transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer" />
+							</transformers>
+							<filters>
+								<filter>
+									<artifact>*:*</artifact>
+									<excludes>
+										<exclude>META-INF/*.SF</exclude>
+										<exclude>META-INF/*.DSA</exclude>
+										<exclude>META-INF/*.RSA</exclude>
+									</excludes>
+								</filter>
+							</filters>
+						</configuration>
+					</execution>
+					<execution>
+						<id>accumulo-server</id>
+						<phase>package</phase>
+						<goals>
+							<goal>shade</goal>
+						</goals>
+						<configuration>
+							<shadedArtifactAttached>true</shadedArtifactAttached>
+							<shadedClassifierName>accumulo-server</shadedClassifierName>
+							<artifactSet>
+								<excludes>
+									<exclude>org.locationtech.geomesa:*</exclude>
+									<exclude>mil.nga.giat:*</exclude>
+									<exclude>scala:*</exclude>
+									<exclude>org.apache.accumulo:*</exclude>
+									<exclude>org.apache.thrift:*</exclude>
+									<exclude>org.apache.hadoop:*</exclude>
+									<exclude>org.apache.zookeeper:*</exclude>
+								</excludes>
+							</artifactSet>
+							<transformers>
+								<transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer" />
+							</transformers>
+							<filters>
+								<filter>
+									<artifact>*:*</artifact>
+									<excludes>
+										<exclude>META-INF/*.SF</exclude>
+										<exclude>META-INF/*.DSA</exclude>
+										<exclude>META-INF/*.RSA</exclude>
+									</excludes>
+								</filter>
+							</filters>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+		</plugins>
+	</build>
+
 </project>

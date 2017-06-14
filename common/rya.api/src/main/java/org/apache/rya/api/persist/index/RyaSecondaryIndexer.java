@@ -33,7 +33,10 @@ import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.domain.RyaURI;
 
 public interface RyaSecondaryIndexer extends Closeable, Flushable, Configurable {
-
+	/**
+	 * initialize after setting configuration.
+	 */
+    public void init();    
     /**
      * Returns the table name if the implementation supports it.
      * Note that some indexers use multiple tables, this only returns one.

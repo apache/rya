@@ -24,6 +24,7 @@ import java.util.Objects;
 import java.util.Optional;
 
 import org.apache.rya.api.domain.RyaURI;
+import org.apache.rya.indexing.Md5Hash;
 import org.apache.rya.indexing.TemporalInstant;
 import org.apache.rya.indexing.TemporalInterval;
 import org.apache.rya.indexing.geotemporal.GeoTemporalIndexer;
@@ -136,7 +137,13 @@ public class Event {
         return false;
     }
 
-    public static Builder builder(final Event event) {
+	@Override
+	public String toString() {
+		return "Event [subject=" + subject + ", geometry=" + geometry + ", isInstant=" + isInstant + ", instant="
+				+ instant + ", interval=" + interval + "]";
+	}
+
+	public static Builder builder(final Event event) {
         final Builder builder = new Builder()
             .setSubject(event.getSubject());
         if(event.getGeometry().isPresent()) {
@@ -215,4 +222,15 @@ public class Event {
             }
         }
     }
+
+	public String getUniqueHash() {
+		String firstpart = Md5Hash.md5Base64(subject.toString() + (geometry.isPresent()?geometry.get().toText():""));
+		String secondPart;
+        if(isInstant) {
+            secondPart = instant.isPresent()?instant.get().getAsKeyString():"";
+        } else {
+            secondPart = instant.isPresent()?interval.get().getAsPair():"";
+        }
+        return Md5Hash.md5Base64(firstpart +  secondPart );
+	}
 }

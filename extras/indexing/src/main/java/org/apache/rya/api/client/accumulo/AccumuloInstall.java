@@ -33,6 +33,7 @@ import org.apache.rya.api.client.RyaClientException;
 import org.apache.rya.api.instance.RyaDetails;
 import org.apache.rya.api.instance.RyaDetails.EntityCentricIndexDetails;
 import org.apache.rya.api.instance.RyaDetails.FreeTextIndexDetails;
+import org.apache.rya.api.instance.RyaDetails.GeoTemporalIndexDetails;
 import org.apache.rya.api.instance.RyaDetails.JoinSelectivityDetails;
 import org.apache.rya.api.instance.RyaDetails.PCJIndexDetails;
 import org.apache.rya.api.instance.RyaDetails.PCJIndexDetails.FluoDetails;
@@ -156,6 +157,8 @@ public class AccumuloInstall extends AccumuloCommand implements Install {
               //RYA-215                .setGeoIndexDetails(new GeoIndexDetails(installConfig.isGeoIndexEnabled()))
                 .setTemporalIndexDetails(
                         new TemporalIndexDetails(installConfig.isTemporalIndexEnabled()))
+              //RYA-215   
+                		.setGeoTemporalIndexDetails(new GeoTemporalIndexDetails(installConfig.isGeoTemporalIndexEnabled()))
                 .setFreeTextDetails(
                         new FreeTextIndexDetails(installConfig.isFreeTextIndexEnabled()))
                 .setEntityCentricIndexDetails(
@@ -201,6 +204,7 @@ public class AccumuloInstall extends AccumuloCommand implements Install {
          */
         conf.set(ConfigUtils.USE_FREETEXT, "" + details.getFreeTextIndexDetails().isEnabled() );
         conf.set(ConfigUtils.USE_TEMPORAL, "" + details.getTemporalIndexDetails().isEnabled() );
+        conf.set(/*OptionalConfigUtils.USE_GEOTEMPORAL*/ "sc.use_geotemporal", "" + details.getGeoTemporalIndexDetails().isEnabled() ); //TODO OptionalConfigUtils.USE_GEOTEMPORAL
         conf.set(ConfigUtils.USE_ENTITY, "" + details.getEntityCentricIndexDetails().isEnabled());
 
         conf.set(ConfigUtils.USE_PCJ, "" + details.getPCJIndexDetails().isEnabled() );

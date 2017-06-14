@@ -29,7 +29,12 @@ public enum GeoTemporalIndexerType {
 	 * MongoDB based GeoTemporal index and optimizer go together.
 	 */
 	MONGO_GEO_TEMPORAL("org.apache.rya.indexing.geotemporal.mongo.MongoGeoTemporalIndexer"),
-	MONGO_GEO_TEMPORAL_OPTIMIZER("org.apache.rya.indexing.geotemporal.GeoTemporalOptimizer"), 
+	MONGO_GEO_TEMPORAL_OPTIMIZER("org.apache.rya.indexing.geotemporal.GeoTemporalOptimizer"),
+	/**
+	 * GeoMesa Accumulo based GeoTemporal index and optimizer go together.
+	 */
+	GEOMESA_GEO_TEMPORAL("org.apache.rya.indexing.geotemporal.accumulo.AccumuloGeoTemporalIndexer"),
+	GEOMESA_GEO_TEMPORAL_OPTIMIZER("org.apache.rya.indexing.geotemporal.GeoTemporalOptimizer"),
 	/**
 	 * No mention of a type is specified, so use default.
 	 */

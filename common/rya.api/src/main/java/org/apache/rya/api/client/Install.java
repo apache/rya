@@ -69,6 +69,7 @@ public interface Install {
         private final boolean enableGeoIndex;
         private final boolean enableEntityCentricIndex;
         private final boolean enableTemporalIndex;
+        private final boolean enableGeoTemporalIndex;
         private final boolean enablePcjIndex;
         private final Optional<String> fluoPcjAppName;
 
@@ -81,6 +82,7 @@ public interface Install {
                 final boolean enableGeoIndex,
                 final boolean enableEntityCentricIndex,
                 final boolean enableTemporalIndex,
+                final boolean enableGeoTemporalIndex,
                 final boolean enablePcjIndex,
                 final Optional<String> fluoPcjAppName) {
             this.enableTableHashPrefix = requireNonNull(enableTableHashPrefix);
@@ -88,6 +90,7 @@ public interface Install {
             this.enableGeoIndex = requireNonNull(enableGeoIndex);
             this.enableEntityCentricIndex = requireNonNull(enableEntityCentricIndex);
             this.enableTemporalIndex = requireNonNull(enableTemporalIndex);
+            this.enableGeoTemporalIndex = requireNonNull(enableGeoTemporalIndex);
             this.enablePcjIndex = requireNonNull(enablePcjIndex);
             this.fluoPcjAppName = requireNonNull(fluoPcjAppName);
         }
@@ -128,6 +131,13 @@ public interface Install {
         }
 
         /**
+         * @return Whether or not the installed instance of Rya will maintain a Geo Temporal index.
+         */
+        public boolean isGeoTemporalIndexEnabled() {
+            return enableGeoTemporalIndex;
+        }
+
+        /**
          * @return Whether or not the installed instance of Rya will maintain a PCJ index.
          */
         public boolean isPcjIndexEnabled() {
@@ -150,6 +160,7 @@ public interface Install {
                     enableGeoIndex,
                     enableEntityCentricIndex,
                     enableTemporalIndex,
+                    enableGeoTemporalIndex,
                     enablePcjIndex,
                     fluoPcjAppName);
         }
@@ -166,6 +177,7 @@ public interface Install {
                         enableGeoIndex == config.enableGeoIndex &&
                         enableEntityCentricIndex == config.enableEntityCentricIndex &&
                         enableTemporalIndex == config.enableTemporalIndex &&
+                        enableGeoTemporalIndex == config.enableGeoTemporalIndex &&
                         enablePcjIndex == config.enablePcjIndex &&
                         Objects.equals(fluoPcjAppName, config.fluoPcjAppName);
             }
@@ -189,6 +201,7 @@ public interface Install {
             private boolean enableGeoIndex = false;
             private boolean enableEntityCentricIndex = false;
             private boolean enableTemporalIndex = false;
+            private boolean enableGeoTemporalIndex = false;
             private boolean enablePcjIndex = false;
             private String fluoPcjAppName = null;
 
@@ -238,6 +251,17 @@ public interface Install {
             }
 
             /**
+             * install Geo temporal indexing using Geomesa
+             * @param enabled True means created the index tables
+             * @return this so you can chain more methods!
+             */
+            public Builder SetEnableGeoTemporalIndex
+            (final boolean enabled) {
+            	enableGeoTemporalIndex = enabled;
+                return this;
+            }
+
+            /**
              * @param enabled - Whether or not the installed instance of Rya will maintain a PCJ index.
              * @return This {@link Builder} so that method invocations may be chained.
              */
@@ -261,6 +285,7 @@ public interface Install {
                         enableGeoIndex,
                         enableEntityCentricIndex,
                         enableTemporalIndex,
+                        enableGeoTemporalIndex,
                         enablePcjIndex,
                         Optional.fromNullable(fluoPcjAppName));
             }

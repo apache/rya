@@ -30,6 +30,7 @@ import java.util.Date;
 
 import org.apache.rya.api.instance.RyaDetails.EntityCentricIndexDetails;
 import org.apache.rya.api.instance.RyaDetails.FreeTextIndexDetails;
+import org.apache.rya.api.instance.RyaDetails.GeoTemporalIndexDetails;
 import org.apache.rya.api.instance.RyaDetails.JoinSelectivityDetails;
 import org.apache.rya.api.instance.RyaDetails.PCJIndexDetails;
 import org.apache.rya.api.instance.RyaDetails.ProspectorDetails;
@@ -57,6 +58,7 @@ public class RyaDetailsUpdaterTest {
                 .setFreeTextDetails( new FreeTextIndexDetails(true) )
                 .setEntityCentricIndexDetails( new EntityCentricIndexDetails(true) )
               //RYA-215                .setGeoIndexDetails( new GeoIndexDetails(true) )
+                .setGeoTemporalIndexDetails(new GeoTemporalIndexDetails(true))
                 .setTemporalIndexDetails( new TemporalIndexDetails(true) )
                 .setPCJIndexDetails(
                         PCJIndexDetails.builder()
@@ -94,6 +96,7 @@ public class RyaDetailsUpdaterTest {
                 .setFreeTextDetails( new FreeTextIndexDetails(true) )
                 .setEntityCentricIndexDetails( new EntityCentricIndexDetails(true) )
               //RYA-215                .setGeoIndexDetails( new GeoIndexDetails(true) )
+                .setGeoTemporalIndexDetails(new GeoTemporalIndexDetails(true))
                 .setTemporalIndexDetails( new TemporalIndexDetails(true) )
                 .setPCJIndexDetails(
                         PCJIndexDetails.builder()

@@ -503,7 +503,21 @@ public class ConfigUtils {
             optimizers.add(StatementMetadataOptimizer.class.getName());
         }
 
-        conf.setStrings(AccumuloRdfConfiguration.CONF_ADDITIONAL_INDEXERS, indexList.toArray(new String[] {}));
-        conf.setStrings(RdfCloudTripleStoreConfiguration.CONF_OPTIMIZERS, optimizers.toArray(new String[] {}));
+        final String[] existingIndexers = conf.getStrings(AccumuloRdfConfiguration.CONF_ADDITIONAL_INDEXERS);
+        if(existingIndexers != null ) {
+            for(final String idx : existingIndexers) {
+                indexList.add(idx);
+            }
+        }
+
+        final String[] existingOptimizers = conf.getStrings(RdfCloudTripleStoreConfiguration.CONF_OPTIMIZERS);
+        if(existingOptimizers != null ) {
+            for(final String opt : existingOptimizers) {
+                optimizers.add(opt);
+            }
+        }
+
+        conf.setStrings(AccumuloRdfConfiguration.CONF_ADDITIONAL_INDEXERS, indexList.toArray(new String[]{}));
+        conf.setStrings(RdfCloudTripleStoreConfiguration.CONF_OPTIMIZERS, optimizers.toArray(new String[]{}));
     }
 }

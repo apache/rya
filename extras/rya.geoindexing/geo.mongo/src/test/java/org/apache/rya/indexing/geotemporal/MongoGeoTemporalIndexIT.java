@@ -39,6 +39,7 @@ import org.apache.rya.indexing.geotemporal.model.Event;
 import org.apache.rya.indexing.geotemporal.mongo.MongoGeoTemporalIndexer;
 import org.apache.rya.indexing.geotemporal.mongo.MongoITBase;
 import org.apache.rya.indexing.geotemporal.storage.EventStorage;
+import org.apache.rya.mongodb.MockMongoFactory;
 import org.apache.rya.mongodb.MongoDBRdfConfiguration;
 import org.junit.Before;
 import org.junit.Test;
@@ -64,6 +65,7 @@ public class MongoGeoTemporalIndexIT extends MongoITBase {
     private SailRepositoryConnection conn;
     private MongoClient mongoClient;
     private static final AtomicInteger COUNTER = new AtomicInteger(1);
+    private static boolean isInitialized=false;
 
     @Before
     public void setUp() throws Exception{
@@ -80,7 +82,10 @@ public class MongoGeoTemporalIndexIT extends MongoITBase {
         conn = new SailRepository(sail).getConnection();
         conn.begin();
 
-        addStatements();
+        if ( ! isInitialized) {
+        	addStatements();
+        	isInitialized = true;
+        }
     }
 
     @Test
@@ -174,3 +179,4 @@ public class MongoGeoTemporalIndexIT extends MongoITBase {
         conn.add(VF.createStatement(subject, GeoConstants.GEO_AS_WKT, object));
     }
 }
+

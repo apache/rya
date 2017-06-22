@@ -33,12 +33,11 @@ import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.net.ntp.NTPUDPClient;
 import org.apache.commons.net.ntp.TimeInfo;
+import org.apache.log4j.Logger;
 import org.codehaus.plexus.util.StringUtils;
 import org.mortbay.jetty.HttpMethods;
 
 import com.google.common.net.HttpHeaders;
-
-import twitter4j.Logger;
 
 /**
  * Utility methods for time.

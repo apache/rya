@@ -37,11 +37,7 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.MRJobConfig;
 import org.apache.hadoop.mapreduce.Mapper;
-
-import com.google.common.base.Joiner;
-import com.google.common.base.Splitter;
-import com.google.common.collect.Lists;
-
+import org.apache.log4j.Logger;
 import org.apache.rya.accumulo.AccumuloRdfConfiguration;
 import org.apache.rya.accumulo.AccumuloRyaDAO;
 import org.apache.rya.accumulo.mr.MRUtils;
@@ -50,7 +46,10 @@ import org.apache.rya.accumulo.mr.merge.MergeTool;
 import org.apache.rya.accumulo.mr.merge.util.AccumuloRyaUtils;
 import org.apache.rya.api.persist.RyaDAOException;
 import org.apache.rya.api.resolver.RyaTripleContext;
-import twitter4j.Logger;
+
+import com.google.common.base.Joiner;
+import com.google.common.base.Splitter;
+import com.google.common.collect.Lists;
 
 /**
  * The base {@link Mapper} for the copy tool which initializes the mapper for use.  The mapper will take all

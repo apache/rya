@@ -44,7 +44,6 @@ class FunctionAdapter implements Function {
 
     @Override
     public Value evaluate(ValueFactory valueFactory, Value... args) throws ValueExprEvaluationException {
-        System.out.println("Evaluate: Valuefactory=" + valueFactory);
         // need a Adapter for org.eclipse.rdf4j.model.ValueFactory
         org.eclipse.rdf4j.model.ValueFactory rdf4jValueFactory = org.eclipse.rdf4j.model.impl.SimpleValueFactory.getInstance();
         // org.eclipse.rdf4j.model.ValueFactory rdf4jValueFactory = new ValueFactoryAdapter(valueFactory);
@@ -61,7 +60,6 @@ class FunctionAdapter implements Function {
             org.eclipse.rdf4j.model.Literal vLiteral = (org.eclipse.rdf4j.model.Literal) v;
             org.openrdf.model.URI vType = valueFactory.createURI(vLiteral.getDatatype().stringValue());
             org.openrdf.model.Literal theReturnValue = valueFactory.createLiteral(vLiteral.getLabel(), vType);
-            System.out.println("Function RETURNS:" + theReturnValue + " class:" + theReturnValue.getClass() + " rdf4j=" + v + " class:" + v.getClass());
             return theReturnValue;
         }
         //

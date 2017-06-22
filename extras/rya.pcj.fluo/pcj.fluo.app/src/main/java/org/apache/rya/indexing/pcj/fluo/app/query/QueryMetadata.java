@@ -129,7 +129,7 @@ public class QueryMetadata extends CommonNodeMetadata {
     @DefaultAnnotation(NonNull.class)
     public static final class Builder {
 
-        private final String nodeId;
+        private String nodeId;
         private VariableOrder varOrder;
         private String sparql;
         private String childNodeId;
@@ -143,6 +143,7 @@ public class QueryMetadata extends CommonNodeMetadata {
             this.nodeId = checkNotNull(nodeId);
         }
 
+        
         /**
          * Set the variable order of binding sets that are emitted by this node.
          *

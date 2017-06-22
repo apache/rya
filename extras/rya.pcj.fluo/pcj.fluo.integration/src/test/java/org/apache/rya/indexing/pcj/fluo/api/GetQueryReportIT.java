@@ -106,7 +106,7 @@ public class GetQueryReportIT extends RyaExportITBase {
 
             final FluoQuery fluoQuery = report.getFluoQuery();
 
-            final String queryNodeId = fluoQuery.getQueryMetadata().getNodeId();
+            final String queryNodeId = fluoQuery.getQueryMetadata().get().getNodeId();
             expectedCounts.put(queryNodeId, BigInteger.valueOf(8));
 
             final String filterNodeId = fluoQuery.getFilterMetadata().iterator().next().getNodeId();

@@ -44,19 +44,19 @@ public abstract class AbstractAccumuloRdfConfigurationBuilder<B extends Abstract
     private boolean useComposite = false;
     private boolean useSelectivity = false;
 
-    protected static final String ACCUMULO_USER = "accumulo.user";
-    protected static final String ACCUMULO_PASSWORD = "accumulo.password";
-    protected static final String ACCUMULO_INSTANCE = "accumulo.instance";
-    protected static final String ACCUMULO_AUTHS = "accumulo.auths";
-    protected static final String ACCUMULO_VISIBILITIES = "accumulo.visibilities";
-    protected static final String ACCUMULO_ZOOKEEPERS = "accumulo.zookeepers";
-    protected static final String ACCUMULO_RYA_PREFIX = "accumulo.rya.prefix";
-    protected static final String USE_INFERENCE = "use.inference";
-    protected static final String USE_DISPLAY_QUERY_PLAN = "use.display.plan";
-    protected static final String USE_MOCK_ACCUMULO = "use.mock";
-    protected static final String USE_PREFIX_HASHING = "use.prefix.hashing";
-    protected static final String USE_COUNT_STATS = "use.count.stats";
-    protected static final String USE_JOIN_SELECTIVITY = "use.join.selectivity";
+    public static final String ACCUMULO_USER = "accumulo.user";
+    public static final String ACCUMULO_PASSWORD = "accumulo.password";
+    public static final String ACCUMULO_INSTANCE = "accumulo.instance";
+    public static final String ACCUMULO_AUTHS = "accumulo.auths";
+    public static final String ACCUMULO_VISIBILITIES = "accumulo.visibilities";
+    public static final String ACCUMULO_ZOOKEEPERS = "accumulo.zookeepers";
+    public static final String ACCUMULO_RYA_PREFIX = "accumulo.rya.prefix";
+    public static final String USE_INFERENCE = "use.inference";
+    public static final String USE_DISPLAY_QUERY_PLAN = "use.display.plan";
+    public static final String USE_MOCK_ACCUMULO = "use.mock";
+    public static final String USE_PREFIX_HASHING = "use.prefix.hashing";
+    public static final String USE_COUNT_STATS = "use.count.stats";
+    public static final String USE_JOIN_SELECTIVITY = "use.join.selectivity";
 
     /**
      * Sets Accumulo user. This is a required parameter to connect to an

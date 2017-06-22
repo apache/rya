@@ -26,14 +26,14 @@ import com.google.common.base.Optional;
 import org.apache.fluo.api.observer.Observer.Context;
 
 /**
- * Builds instances of {@link IncrementalResultExporter} using the provided
+ * Builds instances of {@link IncrementalBindingSetExporter} using the provided
  * configurations.
  */
 @DefaultAnnotation(NonNull.class)
-public interface IncrementalResultExporterFactory {
+public interface IncrementalBindingSetExporterFactory {
 
     /**
-     * Builds an instance of {@link IncrementalResultExporter} using the
+     * Builds an instance of {@link IncrementalBindingSetExporter} using the
      * configurations that are provided.
      *
      * @param context - Contains the host application's configuration values
@@ -46,11 +46,11 @@ public interface IncrementalResultExporterFactory {
      *   using them. This could be because they were improperly formatted,
      *   a required field was missing, or some other configuration based problem.
      */
-    public Optional<IncrementalResultExporter> build(Context context) throws IncrementalExporterFactoryException, ConfigurationException;
+    public Optional<IncrementalBindingSetExporter> build(Context context) throws IncrementalExporterFactoryException, ConfigurationException;
 
     /**
-     * Indicates a {@link IncrementalResultExporter} could not be created by a
-     * {@link IncrementalResultExporterFactory}.
+     * Indicates a {@link IncrementalBindingSetExporter} could not be created by a
+     * {@link IncrementalBindingSetExporterFactory}.
      */
     public static class IncrementalExporterFactoryException extends Exception {
         private static final long serialVersionUID = 1L;

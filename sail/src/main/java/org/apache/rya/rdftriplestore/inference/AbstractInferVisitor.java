@@ -19,11 +19,7 @@ package org.apache.rya.rdftriplestore.inference;
  * under the License.
  */
 
-
-
 import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
-import org.apache.rya.rdftriplestore.utils.FixedStatementPattern;
-import org.apache.rya.rdftriplestore.utils.TransitivePropertySP;
 import org.apache.rya.rdftriplestore.utils.FixedStatementPattern;
 import org.apache.rya.rdftriplestore.utils.TransitivePropertySP;
 import org.openrdf.query.algebra.Join;
@@ -39,7 +35,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
  * Date: Mar 14, 2012
  * Time: 5:33:01 PM
  */
-public class AbstractInferVisitor extends QueryModelVisitorBase {
+public class AbstractInferVisitor extends QueryModelVisitorBase<Exception> {
 
     static Var EXPANDED = new Var("infer-expanded");
 

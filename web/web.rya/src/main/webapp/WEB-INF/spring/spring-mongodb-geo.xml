@@ -32,6 +32,7 @@ under the License.
 
      <hdp:configuration id="hadoopConf">
         sc.useMongo=true
+        sc.geo.predicates=http://www.opengis.net/ont/geosparql#asWKT
       </hdp:configuration>
 
     <bean id="conf" class="org.apache.rya.mongodb.MongoDBRdfConfiguration">

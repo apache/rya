@@ -72,7 +72,7 @@ public class SimpleMongoDBStorageStrategy implements MongoDBStorageStrategy<RyaS
         doc.put(OBJECT_TYPE, 1);
         coll.createIndex(doc);
         doc = new BasicDBObject(OBJECT, 1);
-        doc = new BasicDBObject(OBJECT_TYPE, 1);
+        doc.put(OBJECT_TYPE, 1);
         doc.put(SUBJECT, 1);
         coll.createIndex(doc);
     }

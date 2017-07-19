@@ -93,7 +93,7 @@ public final class MongoDBRyaDAO implements RyaDAO<MongoDBRdfConfiguration>{
     @Override
     public void setConf(final MongoDBRdfConfiguration conf) {
         this.conf = conf;
-        this.auths = conf.getAuthorizations();
+        auths = conf.getAuthorizations();
     }
 
     public MongoClient getMongoClient(){
@@ -200,6 +200,13 @@ public final class MongoDBRyaDAO implements RyaDAO<MongoDBRdfConfiguration>{
         if (canDelete) {
             final DBObject obj = storageStrategy.getQuery(statement);
             coll.remove(obj);
+            for (final RyaSecondaryIndexer index : secondaryIndexers) {
+                try {
+                    index.deleteStatement(statement);
+                } catch (final IOException e) {
+                    log.error("Unable to remove statement: " + statement.toString() + " from secondary indexer: " + index.getTableName(), e);
+                }
+            }
         } else {
             throw new RyaDAOException("User does not have the required authorizations to delete statement");
         }
@@ -219,6 +226,13 @@ public final class MongoDBRyaDAO implements RyaDAO<MongoDBRdfConfiguration>{
             final boolean canDelete = DocumentVisibilityUtil.doesUserHaveDocumentAccess(auths, ryaStatement.getColumnVisibility());
             if (canDelete) {
                 coll.remove(storageStrategy.getQuery(ryaStatement));
+                for (final RyaSecondaryIndexer index : secondaryIndexers) {
+                    try {
+                        index.deleteStatement(ryaStatement);
+                    } catch (final IOException e) {
+                        log.error("Unable to remove statement: " + ryaStatement.toString() + " from secondary indexer: " + index.getTableName(), e);
+                    }
+                }
             } else {
                 throw new RyaDAOException("User does not have the required authorizations to delete statement");
             }

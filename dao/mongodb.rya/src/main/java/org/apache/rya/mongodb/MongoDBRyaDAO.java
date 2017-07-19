@@ -37,6 +37,9 @@ import org.apache.rya.api.persist.RyaDAOException;
 import org.apache.rya.api.persist.RyaNamespaceManager;
 import org.apache.rya.api.persist.index.RyaSecondaryIndexer;
 import org.apache.rya.api.persist.query.RyaQueryEngine;
+import org.apache.rya.mongodb.batch.MongoDbBatchWriter;
+import org.apache.rya.mongodb.batch.MongoDbBatchWriterException;
+import org.apache.rya.mongodb.batch.MongoDbBatchWriterUtils;
 import org.apache.rya.mongodb.dao.MongoDBNamespaceManager;
 import org.apache.rya.mongodb.dao.MongoDBStorageStrategy;
 import org.apache.rya.mongodb.dao.SimpleMongoDBNamespaceManager;
@@ -47,7 +50,6 @@ import com.mongodb.DB;
 import com.mongodb.DBCollection;
 import com.mongodb.DBObject;
 import com.mongodb.DuplicateKeyException;
-import com.mongodb.InsertOptions;
 import com.mongodb.MongoClient;
 
 /**
@@ -66,6 +68,8 @@ public final class MongoDBRyaDAO implements RyaDAO<MongoDBRdfConfiguration>{
 
     private List<MongoSecondaryIndex> secondaryIndexers;
     private Authorizations auths;
+
+    private MongoDbBatchWriter mongoDbBatchWriter;
 
     /**
      * Creates a new instance of {@link MongoDBRyaDAO}.
@@ -131,6 +135,15 @@ public final class MongoDBRyaDAO implements RyaDAO<MongoDBRdfConfiguration>{
         for(final MongoSecondaryIndex index: secondaryIndexers) {
             index.init();
         }
+
+        final int batchWriteSize = MongoDbBatchWriterUtils.getConfigBatchWriteSize(conf);
+        final long batchFlushTimeMs = MongoDbBatchWriterUtils.getConfigBatchFlushTimeMs(conf);
+        mongoDbBatchWriter = new MongoDbBatchWriter(coll, batchWriteSize, batchFlushTimeMs);
+        try {
+            mongoDbBatchWriter.start();
+        } catch (final MongoDbBatchWriterException e) {
+            log.error("Error start MongoDB batch writer", e);
+        }
     }
 
     @Override
@@ -153,7 +166,13 @@ public final class MongoDBRyaDAO implements RyaDAO<MongoDBRdfConfiguration>{
         try {
             final boolean canAdd = DocumentVisibilityUtil.doesUserHaveDocumentAccess(auths, statement.getColumnVisibility());
             if (canAdd) {
-                coll.insert(storageStrategy.serialize(statement));
+                //coll.insert(storageStrategy.serialize(statement));
+                final DBObject obj = storageStrategy.serialize(statement);
+                try {
+                    mongoDbBatchWriter.addObjectToQueue(obj);
+                } catch (final MongoDbBatchWriterException e) {
+                    throw new RyaDAOException("Error adding statement", e);
+                }
                 for(final RyaSecondaryIndexer index: secondaryIndexers) {
                     index.storeStatement(statement);
                 }
@@ -190,7 +209,12 @@ public final class MongoDBRyaDAO implements RyaDAO<MongoDBRdfConfiguration>{
                 throw new RyaDAOException("User does not have the required authorizations to add statement");
             }
         }
-        coll.insert(dbInserts, new InsertOptions().continueOnError(true));
+        //coll.insert(dbInserts, new InsertOptions().continueOnError(true));
+        try {
+            mongoDbBatchWriter.addObjectsToQueue(dbInserts);
+        } catch (final MongoDbBatchWriterException e) {
+            throw new RyaDAOException("Error adding statements", e);
+        }
     }
 
     @Override

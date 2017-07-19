@@ -33,6 +33,9 @@ import org.apache.rya.mongodb.MongoConnectorFactory;
 import org.apache.rya.mongodb.MongoDBRdfConfiguration;
 import org.apache.rya.mongodb.MongoDBRyaDAO;
 import org.apache.rya.mongodb.MongoSecondaryIndex;
+import org.apache.rya.mongodb.batch.MongoDbBatchWriter;
+import org.apache.rya.mongodb.batch.MongoDbBatchWriterException;
+import org.apache.rya.mongodb.batch.MongoDbBatchWriterUtils;
 import org.openrdf.model.Literal;
 import org.openrdf.model.Statement;
 import org.openrdf.model.URI;
@@ -46,7 +49,6 @@ import com.mongodb.DBObject;
 import com.mongodb.MongoClient;
 import com.mongodb.QueryBuilder;
 import com.mongodb.ServerAddress;
-import com.mongodb.WriteConcern;
 
 import info.aduna.iteration.CloseableIteration;
 
@@ -68,15 +70,26 @@ public abstract class AbstractMongoIndexer<T extends IndexingMongoDBStorageStrat
 
     protected T storageStrategy;
 
+    private MongoDbBatchWriter mongoDbBatchWriter;
+
     protected void initCore() {
         dbName = conf.get(MongoDBRdfConfiguration.MONGO_DB_NAME);
         db = this.mongoClient.getDB(dbName);
         collection = db.getCollection(conf.get(MongoDBRdfConfiguration.MONGO_COLLECTION_PREFIX, "rya") + getCollectionName());
+
+        final int batchWriteSize = MongoDbBatchWriterUtils.getConfigBatchWriteSize(conf);
+        final long batchFlushTimeMs = MongoDbBatchWriterUtils.getConfigBatchFlushTimeMs(conf);
+        mongoDbBatchWriter = new MongoDbBatchWriter(collection, batchWriteSize, batchFlushTimeMs);
+        try {
+            mongoDbBatchWriter.start();
+        } catch (final MongoDbBatchWriterException e) {
+            LOG.error("Error start MongoDB batch writer", e);
+        }
     }
 
     @Override
     public void setClient(final MongoClient client){
-    	this.mongoClient = client;
+        this.mongoClient = client;
     }
 
     @VisibleForTesting
@@ -96,8 +109,8 @@ public abstract class AbstractMongoIndexer<T extends IndexingMongoDBStorageStrat
     public void setConf(final Configuration conf) {
         this.conf = conf;
         if (!isInit){
-        	setClient(MongoConnectorFactory.getMongoClient(conf));
-        	init();
+            setClient(MongoConnectorFactory.getMongoClient(conf));
+            init();
         }
     }
 
@@ -141,18 +154,27 @@ public abstract class AbstractMongoIndexer<T extends IndexingMongoDBStorageStrat
 
     @Override
     public void storeStatement(final RyaStatement ryaStatement) throws IOException {
+        final DBObject obj = prepareStatementForStorage(ryaStatement);
+        try {
+            mongoDbBatchWriter.addObjectToQueue(obj);
+        } catch (final MongoDbBatchWriterException e) {
+            throw new IOException("Error storing statement", e);
+        }
+    }
+
+    private DBObject prepareStatementForStorage(final RyaStatement ryaStatement) {
         try {
             final Statement statement = RyaToRdfConversions.convertStatement(ryaStatement);
             final boolean isValidPredicate = predicates.isEmpty() || predicates.contains(statement.getPredicate());
             if (isValidPredicate && (statement.getObject() instanceof Literal)) {
                 final DBObject obj = storageStrategy.serialize(ryaStatement);
-                if (obj != null) {
-                    collection.insert(obj, WriteConcern.ACKNOWLEDGED);
-                }
+                return obj;
             }
         } catch (final IllegalArgumentException e) {
             LOG.error("Unable to parse the statement: " + ryaStatement.toString(), e);
         }
+
+        return null;
     }
 
     @Override

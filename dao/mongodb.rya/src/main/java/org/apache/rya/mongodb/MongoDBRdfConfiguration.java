@@ -40,6 +40,8 @@ public class MongoDBRdfConfiguration extends RdfCloudTripleStoreConfiguration {
     public static final String MONGO_USER_PASSWORD = "mongo.db.userpassword";
     public static final String CONF_ADDITIONAL_INDEXERS = "ac.additional.indexers";
     public static final String USE_MOCK_MONGO = ".useMockInstance";
+    public static final String CONF_FLUSH_EACH_UPDATE = "rya.mongodb.dao.flusheachupdate";
+
     private MongoClient mongoClient;
 
     public MongoDBRdfConfiguration() {
@@ -96,6 +98,28 @@ public class MongoDBRdfConfiguration extends RdfCloudTripleStoreConfiguration {
             return MongoDbRdfConstants.ALL_AUTHORIZATIONS;
         }
         return new Authorizations(auths);
+    }
+
+    /**
+     * @return {@code true} if each statement added to the batch writer should
+     * be flushed and written right away to the datastore. {@code false} if the
+     * statements should be queued and written to the datastore when the queue
+     * is full or after enough time has passed without a write.<p>
+     * Defaults to {@code true} if nothing is specified.
+     */
+    public boolean flushEachUpdate(){
+        return getBoolean(CONF_FLUSH_EACH_UPDATE, true);
+    }
+
+    /**
+     * Sets the {@link #CONF_FLUSH_EACH_UPDATE} property of the configuration.
+     * @param flush {@code true} if each statement added to the batch writer
+     * should be flushed and written right away to the datastore. {@code false}
+     * if the statements should be queued and written to the datastore when the
+     * queue is full or after enough time has passed without a write.
+     */
+    public void setFlush(final boolean flush){
+        setBoolean(CONF_FLUSH_EACH_UPDATE, flush);
     }
 
     /**

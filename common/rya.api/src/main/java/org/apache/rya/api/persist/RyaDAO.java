@@ -123,4 +123,11 @@ public interface RyaDAO<C extends RdfCloudTripleStoreConfiguration> extends RyaC
     public void purge(RdfCloudTripleStoreConfiguration configuration);
 
     public void dropAndDestroy() throws RyaDAOException;
+
+    /**
+     * Flushes any RyaStatements queued for insertion and writes them to the
+     * datastore.
+     * @throws RyaDAOException
+     */
+    public void flush() throws RyaDAOException;
 }

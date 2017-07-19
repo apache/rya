@@ -71,6 +71,8 @@ public class InferenceEngine {
     private Set<URI> symmetricPropertySet;
     private Map<URI, URI> inverseOfMap;
     private Set<URI> transitivePropertySet;
+    private Map<Resource, Map<URI, Value>> hasValueByType;
+    private Map<URI, Map<Resource, Value>> hasValueByProperty;
 
     private RyaDAO ryaDAO;
     private RdfCloudTripleStoreConfiguration conf;
@@ -360,12 +362,60 @@ public class InferenceEngine {
             	  }
             	}
             }
-            
+
+            refreshPropertyRestrictions();
+
         } catch (QueryEvaluationException e) {
             throw new InferenceEngineException(e);
         }
     }
-    
+
+    private void refreshPropertyRestrictions() throws QueryEvaluationException {
+        // Get a set of all property restrictions of any type
+        CloseableIteration<Statement, QueryEvaluationException> iter = RyaDAOHelper.query(ryaDAO, null, OWL.ONPROPERTY, null, conf);
+        Map<Resource, URI> restrictions = new HashMap<>();
+        try {
+            while (iter.hasNext()) {
+                Statement st = iter.next();
+                restrictions.put(st.getSubject(), (URI) st.getObject());
+            }
+        } finally {
+            if (iter != null) {
+                iter.close();
+            }
+        }
+        // Query for the hasValue restrictions and add them to the schema
+        refreshHasValueRestrictions(restrictions);
+    }
+
+    private void refreshHasValueRestrictions(Map<Resource, URI> restrictions) throws QueryEvaluationException {
+        hasValueByType = new HashMap<>();
+        hasValueByProperty = new HashMap<>();
+        CloseableIteration<Statement, QueryEvaluationException> iter = RyaDAOHelper.query(ryaDAO, null, OWL.HASVALUE, null, conf);
+        try {
+            while (iter.hasNext()) {
+                Statement st = iter.next();
+                Resource restrictionClass = st.getSubject();
+                if (restrictions.containsKey(restrictionClass)) {
+                    URI property = restrictions.get(restrictionClass);
+                    Value value = st.getObject();
+                    if (!hasValueByType.containsKey(restrictionClass)) {
+                        hasValueByType.put(restrictionClass, new HashMap<>());
+                    }
+                    if (!hasValueByProperty.containsKey(property)) {
+                        hasValueByProperty.put(property, new HashMap<>());
+                    }
+                    hasValueByType.get(restrictionClass).put(property, value);
+                    hasValueByProperty.get(property).put(restrictionClass, value);
+                }
+            }
+        } finally {
+            if (iter != null) {
+                iter.close();
+            }
+        }
+    }
+
     private static Vertex getVertex(Graph graph, Object id) {
         Iterator<Vertex> it = graph.vertices(id.toString());
         if (it.hasNext()) {
@@ -582,5 +632,70 @@ public class InferenceEngine {
 
     public void setSchedule(boolean schedule) {
         this.schedule = schedule;
+    }
+
+    /**
+     * For a given type, return any properties and values such that owl:hasValue restrictions on
+     * those properties could imply this type. No matter how many restrictions are returned, each
+     * one is considered individually sufficient: if a resource has the property and the value, then
+     * it belongs to the provided type. Takes type hierarchy into account, so the value may imply a
+     * subtype which in turn implies the provided type.
+     * @param type The type (URI or bnode) to check against the known restrictions
+     * @return For each relevant property, a set of values such that whenever a resource has that
+     *      value for that property, it is implied to belong to the type.
+     */
+    public Map<URI, Set<Value>> getHasValueByType(Resource type) {
+        Map<URI, Set<Value>> implications = new HashMap<>();
+        if (hasValueByType != null) {
+            Set<Resource> types = new HashSet<>();
+            types.add(type);
+            if (type instanceof URI) {
+                types.addAll(findParents(subClassOfGraph, (URI) type));
+            }
+            for (Resource relevantType : types) {
+                if (hasValueByType.containsKey(relevantType)) {
+                    for (Map.Entry<URI, Value> propertyToValue : hasValueByType.get(relevantType).entrySet()) {
+                        if (!implications.containsKey(propertyToValue.getKey())) {
+                            implications.put(propertyToValue.getKey(), new HashSet<>());
+                        }
+                        implications.get(propertyToValue.getKey()).add(propertyToValue.getValue());
+                    }
+                }
+            }
+        }
+        return implications;
+    }
+
+    /**
+     * For a given property, return any types and values such that some owl:hasValue restriction
+     * states that members of the type are implied to have the associated specific value(s) for
+     * this property. Takes class hierarchy into account, which means one type may imply multiple
+     * values by way of supertypes with their own restrictions. Does not consider the property
+     * hierarchy, so only restrictions that directly reference the given property (using
+     * owl:onProperty) are relevant.
+     * @param property The property whose owl:hasValue restrictions to return
+     * @return A mapping from type (URIs or bnodes) to the set of any values that belonging to that
+     *      type implies.
+     */
+    public Map<Resource, Set<Value>> getHasValueByProperty(URI property) {
+        Map<Resource, Set<Value>> implications = new HashMap<>();
+        if (hasValueByProperty != null && hasValueByProperty.containsKey(property)) {
+            for (Map.Entry<Resource, Value> typeToValue : hasValueByProperty.get(property).entrySet()) {
+                Resource type = typeToValue.getKey();
+                if (!implications.containsKey(type)) {
+                    implications.put(type, new HashSet<>());
+                }
+                implications.get(type).add(typeToValue.getValue());
+                if (type instanceof URI) {
+                    for (URI subtype : findParents(subClassOfGraph, (URI) type)) {
+                        if (!implications.containsKey(subtype)) {
+                            implications.put(subtype, new HashSet<>());
+                        }
+                        implications.get(subtype).add(typeToValue.getValue());
+                    }
+                }
+            }
+        }
+        return implications;
     }
 }

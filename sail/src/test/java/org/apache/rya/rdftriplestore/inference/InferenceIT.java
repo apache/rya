@@ -178,4 +178,41 @@ public class InferenceIT extends TestCase {
         expected.add(new ListBindingSet(varNames, vf.createURI("urn:Hank"), vf.createURI("urn:Mammalia")));
         Assert.assertEquals(expected, new HashSet<>(solutions));
     }
+
+    @Test
+    public void testUnionQuery() throws Exception {
+        final String ontology = "INSERT DATA { GRAPH <http://updated/test> {\n"
+                + "  <urn:A> owl:unionOf <urn:list1> . \n"
+                + "  <urn:B> owl:unionOf <urn:list2> . \n"
+                + "  <urn:list1> rdf:first <urn:X> . \n"
+                + "  <urn:list1> rdf:rest <urn:list2> . \n"
+                + "  <urn:list2> rdf:first <urn:Y> . \n"
+                + "  <urn:list2> rdf:rest <urn:list3> . \n"
+                + "  <urn:list3> rdf:first <urn:Z> . \n"
+                + "  <urn:SubY> rdfs:subClassOf <urn:Y> . \n"
+                + "  <urn:Y> rdfs:subClassOf <urn:SuperY> . \n"
+                + "}}";
+        final String instances = "INSERT DATA { GRAPH <http://updated/test> {\n"
+                + "  <urn:Alice> a <urn:X>  . \n"
+                + "  <urn:Bob> a <urn:Y>  . \n"
+                + "  <urn:Carol> a <urn:Z>  . \n"
+                + "  <urn:Dan> a <urn:SuperY>  . \n"
+                + "  <urn:Eve> a <urn:SubY>  . \n"
+                + "}}";
+        final String query = "SELECT ?x { GRAPH <http://updated/test> { ?x a <urn:B> } } \n";
+        conn.prepareUpdate(QueryLanguage.SPARQL, ontology).execute();
+        inferenceEngine.refreshGraph();
+        conn.prepareUpdate(QueryLanguage.SPARQL, instances).execute();
+        conn.prepareTupleQuery(QueryLanguage.SPARQL, query).evaluate(resultHandler);
+        Set<Value> expected = new HashSet<>();
+        expected.add(vf.createURI("urn:Bob"));
+        expected.add(vf.createURI("urn:Carol"));
+        expected.add(vf.createURI("urn:Eve"));
+        Set<Value> returned = new HashSet<>();
+        for (BindingSet bs : solutions) {
+            returned.add(bs.getBinding("x").getValue());
+        }
+        Assert.assertEquals(expected, returned);
+        Assert.assertEquals(expected.size(), solutions.size());
+    }
 }

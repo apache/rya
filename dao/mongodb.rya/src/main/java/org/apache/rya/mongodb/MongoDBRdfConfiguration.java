@@ -40,6 +40,8 @@ public class MongoDBRdfConfiguration extends RdfCloudTripleStoreConfiguration {
     public static final String MONGO_USER_PASSWORD = "mongo.db.userpassword";
     public static final String CONF_ADDITIONAL_INDEXERS = "ac.additional.indexers";
     public static final String USE_MOCK_MONGO = ".useMockInstance";
+    public static final String CONF_FLUSH_EACH_UPDATE = "rya.mongodb.dao.flusheachupdate";
+
     private MongoClient mongoClient;
 
     public MongoDBRdfConfiguration() {
@@ -96,6 +98,14 @@ public class MongoDBRdfConfiguration extends RdfCloudTripleStoreConfiguration {
             return MongoDbRdfConstants.ALL_AUTHORIZATIONS;
         }
         return new Authorizations(auths);
+    }
+
+    public boolean flushEachUpdate(){
+        return getBoolean(CONF_FLUSH_EACH_UPDATE, true);
+    }
+
+    public void setFlush(final boolean flush){
+        setBoolean(CONF_FLUSH_EACH_UPDATE, flush);
     }
 
     /**

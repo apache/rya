@@ -34,6 +34,7 @@ import org.apache.rya.mongodb.MongoDBRdfConfiguration;
 import org.apache.rya.mongodb.MongoDBRyaDAO;
 import org.apache.rya.mongodb.MongoSecondaryIndex;
 import org.apache.rya.mongodb.batch.MongoDbBatchWriter;
+import org.apache.rya.mongodb.batch.MongoDbBatchWriterConfig;
 import org.apache.rya.mongodb.batch.MongoDbBatchWriterException;
 import org.apache.rya.mongodb.batch.MongoDbBatchWriterUtils;
 import org.openrdf.model.Literal;
@@ -60,6 +61,7 @@ public abstract class AbstractMongoIndexer<T extends IndexingMongoDBStorageStrat
     private static final Logger LOG = Logger.getLogger(AbstractMongoIndexer.class);
 
     private boolean isInit = false;
+    private boolean flushEachUpdate = true;
     protected Configuration conf;
     protected MongoDBRyaDAO dao;
     protected MongoClient mongoClient;
@@ -77,9 +79,10 @@ public abstract class AbstractMongoIndexer<T extends IndexingMongoDBStorageStrat
         db = this.mongoClient.getDB(dbName);
         collection = db.getCollection(conf.get(MongoDBRdfConfiguration.MONGO_COLLECTION_PREFIX, "rya") + getCollectionName());
 
-        final int batchWriteSize = MongoDbBatchWriterUtils.getConfigBatchWriteSize(conf);
-        final long batchFlushTimeMs = MongoDbBatchWriterUtils.getConfigBatchFlushTimeMs(conf);
-        mongoDbBatchWriter = new MongoDbBatchWriter(collection, batchWriteSize, batchFlushTimeMs);
+        flushEachUpdate = ((MongoDBRdfConfiguration)conf).flushEachUpdate();
+
+        final MongoDbBatchWriterConfig mongoDbBatchWriterConfig = MongoDbBatchWriterUtils.getMongoDbBatchWriterConfig(conf);
+        mongoDbBatchWriter = new MongoDbBatchWriter(collection, mongoDbBatchWriterConfig);
         try {
             mongoDbBatchWriter.start();
         } catch (final MongoDbBatchWriterException e) {
@@ -121,6 +124,11 @@ public abstract class AbstractMongoIndexer<T extends IndexingMongoDBStorageStrat
 
     @Override
     public void flush() throws IOException {
+        try {
+            mongoDbBatchWriter.flush();
+        } catch (final MongoDbBatchWriterException e) {
+            throw new IOException("Error flushing batch writer", e);
+        }
     }
 
     @Override
@@ -148,15 +156,25 @@ public abstract class AbstractMongoIndexer<T extends IndexingMongoDBStorageStrat
     public void storeStatements(final Collection<RyaStatement> ryaStatements)
             throws IOException {
         for (final RyaStatement ryaStatement : ryaStatements){
-            storeStatement(ryaStatement);
+            storeStatement(ryaStatement, false);
+        }
+        if (flushEachUpdate) {
+            flush();
         }
     }
 
     @Override
     public void storeStatement(final RyaStatement ryaStatement) throws IOException {
+        storeStatement(ryaStatement, flushEachUpdate);
+    }
+
+    private void storeStatement(final RyaStatement ryaStatement, final boolean flush) throws IOException {
         final DBObject obj = prepareStatementForStorage(ryaStatement);
         try {
             mongoDbBatchWriter.addObjectToQueue(obj);
+            if (flush) {
+                flush();
+            }
         } catch (final MongoDbBatchWriterException e) {
             throw new IOException("Error storing statement", e);
         }

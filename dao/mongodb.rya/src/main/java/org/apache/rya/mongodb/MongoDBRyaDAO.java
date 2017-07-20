@@ -38,6 +38,7 @@ import org.apache.rya.api.persist.RyaNamespaceManager;
 import org.apache.rya.api.persist.index.RyaSecondaryIndexer;
 import org.apache.rya.api.persist.query.RyaQueryEngine;
 import org.apache.rya.mongodb.batch.MongoDbBatchWriter;
+import org.apache.rya.mongodb.batch.MongoDbBatchWriterConfig;
 import org.apache.rya.mongodb.batch.MongoDbBatchWriterException;
 import org.apache.rya.mongodb.batch.MongoDbBatchWriterUtils;
 import org.apache.rya.mongodb.dao.MongoDBNamespaceManager;
@@ -58,6 +59,7 @@ import com.mongodb.MongoClient;
 public final class MongoDBRyaDAO implements RyaDAO<MongoDBRdfConfiguration>{
     private static final Logger log = Logger.getLogger(MongoDBRyaDAO.class);
 
+    private boolean flushEachUpdate = true;
     private MongoDBRdfConfiguration conf;
     private final MongoClient mongoClient;
     private DB db;
@@ -91,6 +93,7 @@ public final class MongoDBRyaDAO implements RyaDAO<MongoDBRdfConfiguration>{
         this.mongoClient = mongoClient;
         conf.setMongoClient(mongoClient);
         auths = conf.getAuthorizations();
+        flushEachUpdate = conf.flushEachUpdate();
         init();
     }
 
@@ -136,9 +139,8 @@ public final class MongoDBRyaDAO implements RyaDAO<MongoDBRdfConfiguration>{
             index.init();
         }
 
-        final int batchWriteSize = MongoDbBatchWriterUtils.getConfigBatchWriteSize(conf);
-        final long batchFlushTimeMs = MongoDbBatchWriterUtils.getConfigBatchFlushTimeMs(conf);
-        mongoDbBatchWriter = new MongoDbBatchWriter(coll, batchWriteSize, batchFlushTimeMs);
+        final MongoDbBatchWriterConfig mongoDbBatchWriterConfig = MongoDbBatchWriterUtils.getMongoDbBatchWriterConfig(conf);
+        mongoDbBatchWriter = new MongoDbBatchWriter(coll, mongoDbBatchWriterConfig);
         try {
             mongoDbBatchWriter.start();
         } catch (final MongoDbBatchWriterException e) {
@@ -153,6 +155,12 @@ public final class MongoDBRyaDAO implements RyaDAO<MongoDBRdfConfiguration>{
 
     @Override
     public void destroy() throws RyaDAOException {
+        flush();
+        try {
+            mongoDbBatchWriter.shutdown();
+        } catch (final MongoDbBatchWriterException e) {
+            throw new RyaDAOException("Error shutting down batch writer", e);
+        }
         if (mongoClient != null) {
             mongoClient.close();
         }
@@ -170,6 +178,9 @@ public final class MongoDBRyaDAO implements RyaDAO<MongoDBRdfConfiguration>{
                 final DBObject obj = storageStrategy.serialize(statement);
                 try {
                     mongoDbBatchWriter.addObjectToQueue(obj);
+                    if (flushEachUpdate) {
+                        flush();
+                    }
                 } catch (final MongoDbBatchWriterException e) {
                     throw new RyaDAOException("Error adding statement", e);
                 }
@@ -212,6 +223,9 @@ public final class MongoDBRyaDAO implements RyaDAO<MongoDBRdfConfiguration>{
         //coll.insert(dbInserts, new InsertOptions().continueOnError(true));
         try {
             mongoDbBatchWriter.addObjectsToQueue(dbInserts);
+            if (flushEachUpdate) {
+                flush();
+            }
         } catch (final MongoDbBatchWriterException e) {
             throw new RyaDAOException("Error adding statements", e);
         }
@@ -286,5 +300,15 @@ public final class MongoDBRyaDAO implements RyaDAO<MongoDBRdfConfiguration>{
     @Override
     public void dropAndDestroy() throws RyaDAOException {
         db.dropDatabase(); // this is dangerous!
+    }
+
+    @Override
+    public void flush() throws RyaDAOException {
+        try {
+            mongoDbBatchWriter.flush();
+        } catch (final MongoDbBatchWriterException e) {
+            log.error(e, e);
+            throw new RyaDAOException("Error flushing data.", e);
+        }
     }
 }

@@ -20,7 +20,6 @@ package org.apache.rya.indexing.pcj.fluo.app.util;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -30,13 +29,8 @@ import org.apache.fluo.api.client.SnapshotBase;
 import org.apache.fluo.api.data.Bytes;
 import org.apache.rya.indexing.pcj.fluo.app.IncrementalUpdateConstants;
 import org.apache.rya.indexing.pcj.fluo.app.NodeType;
-import org.apache.rya.indexing.pcj.fluo.app.query.AggregationMetadata;
-import org.apache.rya.indexing.pcj.fluo.app.query.FluoQuery;
 import org.apache.rya.indexing.pcj.fluo.app.query.FluoQueryColumns;
-import org.apache.rya.indexing.pcj.fluo.app.query.PeriodicQueryMetadata;
 import org.apache.rya.indexing.pcj.fluo.app.query.PeriodicQueryNode;
-import org.apache.rya.indexing.pcj.fluo.app.query.QueryMetadata;
-import org.apache.rya.indexing.pcj.storage.accumulo.VariableOrder;
 import org.openrdf.model.Literal;
 import org.openrdf.model.URI;
 import org.openrdf.model.Value;
@@ -194,72 +188,6 @@ public class PeriodicQueryUtil {
     }
 
     /**
-     * Adds the variable "periodicBinId" to the beginning of all {@link VariableOrder}s for the 
-     * Metadata nodes that appear above the PeriodicQueryNode.  This ensures that the binId is
-     * written first in the Row so that bins can be easily scanned and deleted.
-     * @param builder
-     * @param nodeId
-     */
-    public static void updateVarOrdersToIncludeBin(FluoQuery.Builder builder, String nodeId) {
-        NodeType type = NodeType.fromNodeId(nodeId).orNull();
-        if (type == null) {
-            throw new IllegalArgumentException("NodeId must be associated with an existing MetadataBuilder.");
-        }
-        switch (type) {
-        case AGGREGATION:
-            AggregationMetadata.Builder aggBuilder = builder.getAggregateBuilder(nodeId).orNull();
-            if (aggBuilder != null) {
-                VariableOrder varOrder = aggBuilder.getVariableOrder();
-                VariableOrder groupOrder = aggBuilder.getGroupByVariableOrder();
-                // update varOrder with BIN_ID
-                List<String> orderList = new ArrayList<>(varOrder.getVariableOrders());
-                orderList.add(0, IncrementalUpdateConstants.PERIODIC_BIN_ID);
-                aggBuilder.setVariableOrder(new VariableOrder(orderList));
-                // update groupVarOrder with BIN_ID
-                List<String> groupOrderList = new ArrayList<>(groupOrder.getVariableOrders());
-                groupOrderList.add(0, IncrementalUpdateConstants.PERIODIC_BIN_ID);
-                aggBuilder.setGroupByVariableOrder(new VariableOrder(groupOrderList));
-                // recursive call to update the VariableOrders of all ancestors
-                // of this node
-                updateVarOrdersToIncludeBin(builder, aggBuilder.getParentNodeId());
-            } else {
-                throw new IllegalArgumentException("There is no AggregationMetadata.Builder for the indicated Id.");
-            }
-            break;
-        case PERIODIC_QUERY:
-            PeriodicQueryMetadata.Builder periodicBuilder = builder.getPeriodicQueryBuilder().orNull();
-            if (periodicBuilder != null && periodicBuilder.getNodeId().equals(nodeId)) {
-                VariableOrder varOrder = periodicBuilder.getVarOrder();
-                List<String> orderList = new ArrayList<>(varOrder.getVariableOrders());
-                orderList.add(0, IncrementalUpdateConstants.PERIODIC_BIN_ID);
-                periodicBuilder.setVarOrder(new VariableOrder(orderList));
-                // recursive call to update the VariableOrders of all ancestors
-                // of this node
-                updateVarOrdersToIncludeBin(builder, periodicBuilder.getParentNodeId());
-            } else {
-                throw new IllegalArgumentException(
-                        "PeriodicQueryMetadata.Builder id does not match the indicated id.  A query cannot have more than one PeriodicQueryMetadata Node.");
-            }
-            break;
-        case QUERY:
-            QueryMetadata.Builder queryBuilder = builder.getQueryBuilder().orNull();
-            if (queryBuilder != null && queryBuilder.getNodeId().equals(nodeId)) {
-                VariableOrder varOrder = queryBuilder.getVariableOrder();
-                List<String> orderList = new ArrayList<>(varOrder.getVariableOrders());
-                orderList.add(0, IncrementalUpdateConstants.PERIODIC_BIN_ID);
-                queryBuilder.setVariableOrder(new VariableOrder(orderList));
-            } else {
-                throw new IllegalArgumentException(
-                        "QueryMetadata.Builder id does not match the indicated id.  A query cannot have more than one QueryMetadata Node.");
-            }
-            break;
-        default:
-            throw new IllegalArgumentException(
-                    "Incorrectly positioned PeriodicQueryNode.  The PeriodicQueryNode can only be positioned below Projections, Extensions, and ConstructQueryNodes.");
-        }
-    }
-
-    /**
      * Collects all Metadata node Ids that are ancestors of the PeriodicQueryNode and contain the variable 
      * {@link IncrementalUpdateConstants#PERIODIC_BIN_ID}.
      * @param sx - Fluo Snapshot for scanning Fluo
@@ -276,6 +204,10 @@ public class PeriodicQueryUtil {
             break;
         case PERIODIC_QUERY:
             ids.add(nodeId);
+            break;
+        case PROJECTION:
+            ids.add(nodeId);
+            getPeriodicQueryNodeAncestorIds(sx, sx.get( Bytes.of(nodeId), FluoQueryColumns.PROJECTION_CHILD_NODE_ID).toString(), ids);
             break;
         case QUERY:
             ids.add(nodeId);

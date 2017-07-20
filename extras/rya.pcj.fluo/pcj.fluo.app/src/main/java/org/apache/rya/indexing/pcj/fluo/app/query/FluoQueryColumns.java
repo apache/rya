@@ -42,6 +42,20 @@ import edu.umd.cs.findbugs.annotations.NonNull;
  *     <tr> <td>Node ID</td> <td>queryMetadata:variableOrder</td> <td>The Variable Order binding sets are emitted with.</td> </tr>
  *     <tr> <td>Node ID</td> <td>queryMetadata:sparql</td> <td>The original SPARQL query that is being computed by this query.</td> </tr>
  *     <tr> <td>Node ID</td> <td>queryMetadata:childNodeId</td> <td>The Node ID of the child who feeds this node.</td> </tr>
+ *     <tr> <td>Node ID</td> <td>queryMetadata:queryType</td> <td>The {@link QueryType} of this query.</td> </tr>
+ *     <tr> <td>Node ID</td> <td>queryMetadata:exportStrategies</td> <td>Strategies for exporting results from Rya Fluo app</td> </tr>
+ *     <tr> <td>Node ID + DELIM + Binding Set String</td> <td>queryMetadata:bindingSet</td> <td>A {@link VisibilityBindingSet} object.</td> </tr>
+ *   </table>
+ * </p>
+ * <p>
+ *   <b>Projection Metadata</b>
+ *   <table border="1" style="width:100%">
+ *     <tr> <th>Fluo Row</td> <th>Fluo Column</td> <th>Fluo Value</td> </tr>
+ *     <tr> <td>Node ID</td> <td>projectionMetadata:nodeId</td> <td>The Node ID of the Query.</td> </tr>
+ *     <tr> <td>Node ID</td> <td>projectionMetadata:projectedVars</td> <td>The variables that results are projected onto.</td> </tr>*     
+ *     <tr> <td>Node ID</td> <td>projectionMetadata:variableOrder</td> <td>The Variable Order that Binding values are written in in the Row to identify solutions.</td> </tr>
+ *     <tr> <td>Node ID</td> <td>projectionMetadata:childNodeId</td> <td>The Node ID of the child who feeds this node.</td> </tr>
+ *     <tr> <td>Node ID</td> <td>projectionMetadata:parentNodeId</td> <td>The Node ID of the parent of this node.</td> </tr>
  *     <tr> <td>Node ID + DELIM + Binding Set String</td> <td>queryMetadata:bindingSet</td> <td>A {@link VisibilityBindingSet} object.</td> </tr>
  *   </table>
  * </p>
@@ -50,11 +64,11 @@ import edu.umd.cs.findbugs.annotations.NonNull;
  *   <table border="1" style="width:100%">
  *     <tr> <th>Fluo Row</td> <th>Fluo Column</td> <th>Fluo Value</td> </tr>
  *     <tr> <td>Node ID</td> <td>constructMetadata:nodeId</td> <td>The Node ID of the Query.</td> </tr>
- *     <tr> <td>Node ID</td> <td>constructMetadata:sparql</td> <td>The original SPARQL query that is being computed by this query.</td> </tr>
  *     <tr> <td>Node ID</td> <td>constructMetadata:variableOrder</td> <td>The Variable Order binding sets are emitted with.</td> </tr>
  *     <tr> <td>Node ID</td> <td>constructMetadata:graph</td> <td>The construct graph used to project BindingSets to statements.</td> </tr>
  *     <tr> <td>Node ID</td> <td>constructMetadata:childNodeId</td> <td>The Node ID of the child who feeds this node.</td> </tr>
- *     <tr> <td>Node ID</td> <td>constructMetadata:statements</td> <td>The RDF statements produced by this construct query node.</td> </tr>
+ *     <tr> <td>Node ID</td> <td>constructMetadata:parentNodeId</td> <td>The Node ID of the parent that this node feeds.</td> </tr>
+ *     <tr> <td>Node ID + DELIM + Binding Set String</td> <td>constructMetadata:statements</td> <td>The RDF statements produced by this construct query node.</td> </tr>
  *   </table>
  * </p>
  * <p>
@@ -131,6 +145,7 @@ public class FluoQueryColumns {
     public static final String STATEMENT_PATTERN_METADATA_CF = "statementPatternMetadata";
     public static final String AGGREGATION_METADATA_CF = "aggregationMetadata";
     public static final String CONSTRUCT_METADATA_CF = "constructMetadata";
+    public static final String PROJECTION_METADATA_CF = "projectionMetadata";
     public static final String PERIODIC_QUERY_METADATA_CF = "periodicQueryMetadata";
 
     /**
@@ -178,14 +193,24 @@ public class FluoQueryColumns {
     public static final Column QUERY_SPARQL = new Column(QUERY_METADATA_CF, "sparql");
     public static final Column QUERY_CHILD_NODE_ID = new Column(QUERY_METADATA_CF, "childNodeId");
     public static final Column QUERY_BINDING_SET = new Column(QUERY_METADATA_CF, "bindingSet");
+    public static final Column QUERY_EXPORT_STRATEGIES = new Column(QUERY_METADATA_CF, "exportStrategies");
+    public static final Column QUERY_TYPE = new Column(QUERY_METADATA_CF, "queryType");
+    
+    // Query Metadata columns.
+    public static final Column PROJECTION_NODE_ID = new Column(PROJECTION_METADATA_CF, "nodeId");
+    public static final Column PROJECTION_PROJECTED_VARS = new Column(PROJECTION_METADATA_CF, "projectedVars");
+    public static final Column PROJECTION_VARIABLE_ORDER = new Column(PROJECTION_METADATA_CF, "variableOrder");
+    public static final Column PROJECTION_CHILD_NODE_ID = new Column(PROJECTION_METADATA_CF, "childNodeId");
+    public static final Column PROJECTION_PARENT_NODE_ID = new Column(PROJECTION_METADATA_CF, "parentNodeId");
+    public static final Column PROJECTION_BINDING_SET = new Column(PROJECTION_METADATA_CF, "bindingSet");
 
  // Construct Query Metadata columns.
     public static final Column CONSTRUCT_NODE_ID = new Column(CONSTRUCT_METADATA_CF, "nodeId");
     public static final Column CONSTRUCT_VARIABLE_ORDER = new Column(CONSTRUCT_METADATA_CF, "variableOrder");
     public static final Column CONSTRUCT_GRAPH = new Column(CONSTRUCT_METADATA_CF, "graph");
     public static final Column CONSTRUCT_CHILD_NODE_ID = new Column(CONSTRUCT_METADATA_CF, "childNodeId");
+    public static final Column CONSTRUCT_PARENT_NODE_ID = new Column(CONSTRUCT_METADATA_CF, "parentNodeId");
     public static final Column CONSTRUCT_STATEMENTS = new Column(CONSTRUCT_METADATA_CF, "statements");
-    public static final Column CONSTRUCT_SPARQL = new Column(CONSTRUCT_METADATA_CF, "sparql");
 
     // Filter Metadata columns.
     public static final Column FILTER_NODE_ID = new Column(FILTER_METADATA_CF, "nodeId");
@@ -256,7 +281,19 @@ public class FluoQueryColumns {
                 Arrays.asList(QUERY_NODE_ID,
                         QUERY_VARIABLE_ORDER,
                         QUERY_SPARQL,
+                        QUERY_TYPE,
+                        QUERY_EXPORT_STRATEGIES,
                         QUERY_CHILD_NODE_ID)),
+        
+        /**
+         * The columns a {@link ProjectionMetadata} object's fields are stored within.
+         */
+        PROJECTION_COLUMNS(
+                Arrays.asList(PROJECTION_NODE_ID,
+                        PROJECTION_PROJECTED_VARS,
+                        PROJECTION_VARIABLE_ORDER,
+                        PROJECTION_PARENT_NODE_ID,
+                        PROJECTION_CHILD_NODE_ID)),
         
         
         /**
@@ -280,7 +317,7 @@ public class FluoQueryColumns {
                         CONSTRUCT_VARIABLE_ORDER,
                         CONSTRUCT_GRAPH,
                         CONSTRUCT_CHILD_NODE_ID,
-                        CONSTRUCT_SPARQL,
+                        CONSTRUCT_PARENT_NODE_ID,
                         CONSTRUCT_STATEMENTS)),
 
         

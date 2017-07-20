@@ -43,24 +43,28 @@ import org.apache.kafka.common.serialization.StringSerializer;
 import org.apache.rya.accumulo.AccumuloRyaDAO;
 import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.domain.RyaSubGraph;
+import org.apache.rya.api.domain.RyaType;
 import org.apache.rya.api.domain.RyaURI;
 import org.apache.rya.api.resolver.RdfToRyaConversions;
 import org.apache.rya.indexing.pcj.fluo.ConstructGraphTestUtils;
-import org.apache.rya.indexing.pcj.fluo.api.CreatePcj;
+import org.apache.rya.indexing.pcj.fluo.api.CreateFluoPcj;
 import org.apache.rya.indexing.pcj.fluo.app.export.kafka.KafkaExportParameters;
 import org.apache.rya.indexing.pcj.fluo.app.export.kafka.RyaSubGraphKafkaSerDe;
 import org.apache.rya.indexing.pcj.fluo.app.observers.AggregationObserver;
 import org.apache.rya.indexing.pcj.fluo.app.observers.ConstructQueryResultObserver;
 import org.apache.rya.indexing.pcj.fluo.app.observers.FilterObserver;
 import org.apache.rya.indexing.pcj.fluo.app.observers.JoinObserver;
+import org.apache.rya.indexing.pcj.fluo.app.observers.ProjectionObserver;
 import org.apache.rya.indexing.pcj.fluo.app.observers.StatementPatternObserver;
 import org.apache.rya.indexing.pcj.fluo.app.observers.TripleObserver;
-import org.apache.rya.indexing.pcj.fluo.app.query.FluoQuery;
 import org.apache.rya.pcj.fluo.test.base.KafkaExportITBase;
+import org.junit.Assert;
 import org.junit.Test;
 import org.openrdf.model.Statement;
 import org.openrdf.model.ValueFactory;
 import org.openrdf.model.impl.ValueFactoryImpl;
+import org.openrdf.model.vocabulary.RDF;
+import org.openrdf.model.vocabulary.XMLSchema;
 
 import com.google.common.collect.Sets;
 
@@ -83,6 +87,7 @@ public class KafkaRyaSubGraphExportIT extends KafkaExportITBase {
         observers.add(new ObserverSpecification(JoinObserver.class.getName()));
         observers.add(new ObserverSpecification(FilterObserver.class.getName()));
         observers.add(new ObserverSpecification(AggregationObserver.class.getName()));
+        observers.add(new ObserverSpecification(ProjectionObserver.class.getName()));
 
         // Configure the export observer to export new PCJ results to the mini
         // accumulo cluster.
@@ -285,6 +290,77 @@ public class KafkaRyaSubGraphExportIT extends KafkaExportITBase {
         ConstructGraphTestUtils.subGraphsEqualIgnoresBlankNode(expectedResults, results);
     }
     
+    
+    @Test
+    public void nestedConstructQuery() throws Exception {
+        // A query that groups what is aggregated by one of the keys.
+        final String sparql = "CONSTRUCT { "
+                + "_:b a <urn:highSpeedTrafficArea> . "
+                + "_:b <urn:hasCount> ?obsCount . "
+                + "_:b <urn:hasLocation> ?location ."
+                + "_:b <urn:hasAverageVelocity> ?avgVelocity ."
+                + "} WHERE { "
+                + "FILTER(?obsCount > 1) "
+                + "{ "
+                + "SELECT ?location (count(?obs) AS ?obsCount) (avg(?velocity) AS ?avgVelocity) "
+                + "WHERE { "
+                + "FILTER(?velocity > 75) "
+                + "?obs <urn:hasVelocity> ?velocity. " 
+                + "?obs <urn:hasLocation> ?location. " 
+                + "}GROUP BY ?location }}";
+
+        // Create the Statements that will be loaded into Rya.
+        final ValueFactory vf = new ValueFactoryImpl();
+        final Collection<Statement> statements = Sets.newHashSet(
+                vf.createStatement(vf.createURI("urn:obs1"), vf.createURI("urn:hasVelocity"), vf.createLiteral(77)),
+                vf.createStatement(vf.createURI("urn:obs1"), vf.createURI("urn:hasLocation"), vf.createLiteral("OldTown")),
+                vf.createStatement(vf.createURI("urn:obs2"), vf.createURI("urn:hasVelocity"), vf.createLiteral(81)),
+                vf.createStatement(vf.createURI("urn:obs2"), vf.createURI("urn:hasLocation"), vf.createLiteral("OldTown")),
+                vf.createStatement(vf.createURI("urn:obs3"), vf.createURI("urn:hasVelocity"), vf.createLiteral(70)),
+                vf.createStatement(vf.createURI("urn:obs3"), vf.createURI("urn:hasLocation"), vf.createLiteral("OldTown")),
+                vf.createStatement(vf.createURI("urn:obs5"), vf.createURI("urn:hasVelocity"), vf.createLiteral(87)),
+                vf.createStatement(vf.createURI("urn:obs5"), vf.createURI("urn:hasLocation"), vf.createLiteral("Rosslyn")),
+                vf.createStatement(vf.createURI("urn:obs6"), vf.createURI("urn:hasVelocity"), vf.createLiteral(81)),
+                vf.createStatement(vf.createURI("urn:obs6"), vf.createURI("urn:hasLocation"), vf.createLiteral("Rosslyn")),
+                vf.createStatement(vf.createURI("urn:obs7"), vf.createURI("urn:hasVelocity"), vf.createLiteral(67)),
+                vf.createStatement(vf.createURI("urn:obs7"), vf.createURI("urn:hasLocation"), vf.createLiteral("Clarendon")),
+                vf.createStatement(vf.createURI("urn:obs8"), vf.createURI("urn:hasVelocity"), vf.createLiteral(77)),
+                vf.createStatement(vf.createURI("urn:obs8"), vf.createURI("urn:hasLocation"), vf.createLiteral("Ballston")),
+                vf.createStatement(vf.createURI("urn:obs9"), vf.createURI("urn:hasVelocity"), vf.createLiteral(87)),
+                vf.createStatement(vf.createURI("urn:obs9"), vf.createURI("urn:hasLocation"), vf.createLiteral("FallsChurch")));
+
+        // Create the PCJ in Fluo and load the statements into Rya.
+        final String pcjId = loadStatements(sparql, statements);
+
+        // Verify the end results of the query match the expected results.
+        final Set<RyaSubGraph> results = readAllResults(pcjId);
+        
+        RyaStatement statement1 = new RyaStatement(new RyaURI("urn:obs1"), new RyaURI("urn:hasCount"), new RyaType(XMLSchema.INTEGER, "2"));
+        RyaStatement statement2 = new RyaStatement(new RyaURI("urn:obs1"), new RyaURI("urn:hasAverageVelocity"), new RyaType(XMLSchema.DECIMAL, "84"));
+        RyaStatement statement3 = new RyaStatement(new RyaURI("urn:obs1"), new RyaURI("urn:hasLocation"), new RyaType("Rosslyn"));
+        RyaStatement statement4 = new RyaStatement(new RyaURI("urn:obs1"), new RyaURI(RDF.TYPE.toString()), new RyaURI("urn:highSpeedTrafficArea"));
+        RyaStatement statement5 = new RyaStatement(new RyaURI("urn:obs2"), new RyaURI("urn:hasCount"), new RyaType(XMLSchema.INTEGER, "2"));
+        RyaStatement statement6 = new RyaStatement(new RyaURI("urn:obs2"), new RyaURI("urn:hasAverageVelocity"), new RyaType(XMLSchema.DECIMAL, "79"));
+        RyaStatement statement7 = new RyaStatement(new RyaURI("urn:obs2"), new RyaURI("urn:hasLocation"), new RyaType("OldTown"));
+        RyaStatement statement8 = new RyaStatement(new RyaURI("urn:obs2"), new RyaURI(RDF.TYPE.toString()), new RyaURI("urn:highSpeedTrafficArea"));
+
+        final Set<RyaSubGraph> expectedResults = new HashSet<>();
+
+        RyaSubGraph subGraph1 = new RyaSubGraph(pcjId);
+        Set<RyaStatement> stmnts1 = new HashSet<>(Arrays.asList(statement1, statement2, statement3, statement4));
+        subGraph1.setStatements(stmnts1);
+        expectedResults.add(subGraph1);
+        
+        RyaSubGraph subGraph2 = new RyaSubGraph(pcjId);
+        Set<RyaStatement> stmnts2 = new HashSet<>(Arrays.asList(statement5, statement6, statement7, statement8));
+        subGraph2.setStatements(stmnts2);
+        expectedResults.add(subGraph2);
+        
+        Assert.assertEquals(expectedResults.size(), results.size());
+        ConstructGraphTestUtils.subGraphsEqualIgnoresBlankNode(expectedResults, results);;
+    }
+    
+    
     protected KafkaConsumer<String, RyaSubGraph> makeRyaSubGraphConsumer(final String TopicName) {
         // setup consumer
         final Properties consumerProps = new Properties();
@@ -330,9 +406,9 @@ public class KafkaRyaSubGraphExportIT extends KafkaExportITBase {
         FluoClient client = null;
 
         try {
-            CreatePcj createPcj = new CreatePcj();
+            CreateFluoPcj createPcj = new CreateFluoPcj();
             client = new FluoClientImpl(super.getFluoConfiguration());
-            FluoQuery fluoQuery = createPcj.createFluoPcj(client, sparql);
+            String id = createPcj.createPcj(sparql, client).getQueryId();
 
             AccumuloRyaDAO dao = getRyaDAO();
             dao.add(statements.iterator());
@@ -341,7 +417,7 @@ public class KafkaRyaSubGraphExportIT extends KafkaExportITBase {
             super.getMiniFluo().waitForObservers();
 
             // FluoITHelper.printFluoTable(client);
-            return fluoQuery.getConstructQueryMetadata().get().getNodeId();
+            return id;
         } finally {
             if (client != null) {
                 client.close();

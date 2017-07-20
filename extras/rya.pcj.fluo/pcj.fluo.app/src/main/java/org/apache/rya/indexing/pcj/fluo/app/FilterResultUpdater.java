@@ -25,7 +25,6 @@ import org.apache.fluo.api.data.Bytes;
 import org.apache.log4j.Logger;
 import org.apache.rya.indexing.pcj.fluo.app.query.FilterMetadata;
 import org.apache.rya.indexing.pcj.fluo.app.query.FluoQueryColumns;
-import org.apache.rya.indexing.pcj.fluo.app.util.BindingSetUtil;
 import org.apache.rya.indexing.pcj.fluo.app.util.FilterSerializer;
 import org.apache.rya.indexing.pcj.fluo.app.util.RowKeyUtil;
 import org.apache.rya.indexing.pcj.storage.accumulo.VariableOrder;
@@ -45,8 +44,6 @@ import org.openrdf.query.algebra.evaluation.TripleSource;
 import org.openrdf.query.algebra.evaluation.ValueExprEvaluationException;
 import org.openrdf.query.algebra.evaluation.impl.EvaluationStrategyImpl;
 import org.openrdf.query.algebra.evaluation.util.QueryEvaluationUtil;
-
-import com.google.common.base.Optional;
 
 import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
 import edu.umd.cs.findbugs.annotations.NonNull;
@@ -114,24 +111,16 @@ public class FilterResultUpdater {
         // Evaluate whether the child BindingSet satisfies the filter's condition.
         final ValueExpr condition = filter.getCondition();
         if (isTrue(condition, childBindingSet)) {
-            // Create the Filter's binding set from the child's.
-            final VariableOrder filterVarOrder = filterMetadata.getVariableOrder();
-            final BindingSet filterBindingSet = BindingSetUtil.keepBindings(filterVarOrder, childBindingSet);
 
             // Create the Row Key for the emitted binding set. It does not contain visibilities.
-            final Bytes resultRow = RowKeyUtil.makeRowKey(filterMetadata.getNodeId(), filterVarOrder, filterBindingSet);
+            final VariableOrder filterVarOrder = filterMetadata.getVariableOrder();
+            final Bytes resultRow = RowKeyUtil.makeRowKey(filterMetadata.getNodeId(), filterVarOrder, childBindingSet);
 
-            // If this is a new binding set, then emit it.
-            if(tx.get(resultRow, FluoQueryColumns.FILTER_BINDING_SET) == null) {
-                final VisibilityBindingSet visBindingSet = new VisibilityBindingSet(filterBindingSet, childBindingSet.getVisibility());
-                final Bytes nodeValueBytes = BS_SERDE.serialize(visBindingSet);
+            // Serialize and emit BindingSet
+            final Bytes nodeValueBytes = BS_SERDE.serialize(childBindingSet);
+            log.trace("Transaction ID: " + tx.getStartTimestamp() + "\n" + "New Binding Set: " + childBindingSet + "\n");
 
-                log.trace(
-                        "Transaction ID: " + tx.getStartTimestamp() + "\n" +
-                        "New Binding Set: " + visBindingSet + "\n");
-
-                tx.set(resultRow, FluoQueryColumns.FILTER_BINDING_SET, nodeValueBytes);
-            }
+            tx.set(resultRow, FluoQueryColumns.FILTER_BINDING_SET, nodeValueBytes);
         }
     }
 

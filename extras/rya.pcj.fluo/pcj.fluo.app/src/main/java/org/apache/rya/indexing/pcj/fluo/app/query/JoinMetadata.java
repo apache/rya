@@ -163,7 +163,7 @@ public class JoinMetadata extends CommonNodeMetadata {
      * Builds instances of {@link JoinMetadata}.
      */
     @DefaultAnnotation(NonNull.class)
-    public static final class Builder {
+    public static final class Builder implements CommonNodeMetadata.Builder {
 
         private final String nodeId;
         private VariableOrder varOrder;
@@ -194,11 +194,16 @@ public class JoinMetadata extends CommonNodeMetadata {
          * @param varOrder - The variable order of the binding sets that are emitted by this node.
          * @return This builder so that method invocation could be chained.
          */
-        public Builder setVariableOrder(@Nullable final VariableOrder varOrder) {
+        public Builder setVarOrder(@Nullable final VariableOrder varOrder) {
             this.varOrder = varOrder;
             return this;
         }
 
+        @Override
+        public VariableOrder getVariableOrder() {
+            return varOrder;
+        }
+        
         /**
          * Sets the node id of this node's parent.
          *
@@ -241,6 +246,14 @@ public class JoinMetadata extends CommonNodeMetadata {
         public Builder setRightChildNodeId(@Nullable final String rightChildNodeId) {
             this.rightChildNodeId = rightChildNodeId;
             return this;
+        }
+        
+        public String getLeftChildNodeId() {
+            return leftChildNodeId;
+        }
+        
+        public String getRightChildNodeId() {
+            return rightChildNodeId;
         }
 
         /**

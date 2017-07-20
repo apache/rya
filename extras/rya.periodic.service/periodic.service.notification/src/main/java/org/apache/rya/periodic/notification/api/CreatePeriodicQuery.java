@@ -21,8 +21,9 @@ package org.apache.rya.periodic.notification.api;
 import java.util.Optional;
 
 import org.apache.fluo.api.client.FluoClient;
-import org.apache.rya.indexing.pcj.fluo.api.CreatePcj;
+import org.apache.rya.indexing.pcj.fluo.api.CreateFluoPcj;
 import org.apache.rya.indexing.pcj.fluo.app.query.PeriodicQueryNode;
+import org.apache.rya.indexing.pcj.fluo.app.util.FluoQueryUtils;
 import org.apache.rya.indexing.pcj.fluo.app.util.PeriodicQueryUtil;
 import org.apache.rya.indexing.pcj.storage.PeriodicQueryResultStorage;
 import org.apache.rya.indexing.pcj.storage.PeriodicQueryStorageException;
@@ -30,6 +31,8 @@ import org.apache.rya.periodic.notification.application.PeriodicNotificationAppl
 import org.apache.rya.periodic.notification.notification.PeriodicNotification;
 import org.openrdf.query.MalformedQueryException;
 import org.openrdf.query.algebra.evaluation.function.Function;
+
+import com.google.common.base.Preconditions;
 
 /**
  * Object that creates a Periodic Query.  A Periodic Query is any query
@@ -79,8 +82,9 @@ public class CreatePeriodicQuery {
             Optional<PeriodicQueryNode> optNode = PeriodicQueryUtil.getPeriodicNode(sparql);
             if(optNode.isPresent()) {
                 PeriodicQueryNode periodicNode = optNode.get();
-                CreatePcj createPcj = new CreatePcj();
-                String queryId = createPcj.createPcj(sparql, fluoClient);
+                CreateFluoPcj createPcj = new CreateFluoPcj();
+                String queryId = createPcj.createPcj(sparql, fluoClient).getQueryId();
+                queryId = FluoQueryUtils.convertFluoQueryIdToPcjId(queryId);
                 periodicStorage.createPeriodicQuery(queryId, sparql);
                 PeriodicNotification notification = PeriodicNotification.builder().id(queryId).period(periodicNode.getPeriod())
                         .timeUnit(periodicNode.getUnit()).build();

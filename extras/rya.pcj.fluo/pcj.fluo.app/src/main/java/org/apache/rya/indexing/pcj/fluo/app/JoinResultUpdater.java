@@ -139,9 +139,9 @@ public class JoinResultUpdater {
 
             // Create the Row Key for the emitted binding set. It does not contain visibilities.
             final Bytes resultRow = RowKeyUtil.makeRowKey(joinMetadata.getNodeId(), joinVarOrder, newJoinResult);
-
-            // Only insert the join Binding Set if it is new.
-            if(tx.get(resultRow, FluoQueryColumns.JOIN_BINDING_SET) == null) {
+            
+            // Only insert the join Binding Set if it is new or BindingSet contains values not used in resultRow.
+            if(tx.get(resultRow, FluoQueryColumns.JOIN_BINDING_SET) == null || joinVarOrder.getVariableOrders().size() < newJoinResult.size()) {
                 // Create the Node Value. It does contain visibilities.
                 final Bytes nodeValueBytes = BS_SERDE.serialize(newJoinResult);
 
@@ -210,16 +210,26 @@ public class JoinResultUpdater {
         final NodeType nodeType = NodeType.fromNodeId(nodeId).get();
         switch(nodeType) {
             case STATEMENT_PATTERN:
-                return queryDao.readStatementPatternMetadata(tx, nodeId).getVariableOrder();
-
+                return removeBinIdFromVarOrder(queryDao.readStatementPatternMetadata(tx, nodeId).getVariableOrder());
             case FILTER:
-                return queryDao.readFilterMetadata(tx, nodeId).getVariableOrder();
-
+                return removeBinIdFromVarOrder(queryDao.readFilterMetadata(tx, nodeId).getVariableOrder());
             case JOIN:
-                return queryDao.readJoinMetadata(tx, nodeId).getVariableOrder();
-
+                return removeBinIdFromVarOrder(queryDao.readJoinMetadata(tx, nodeId).getVariableOrder());
+            case PROJECTION: 
+                return removeBinIdFromVarOrder(queryDao.readProjectionMetadata(tx, nodeId).getVariableOrder());
             default:
                 throw new IllegalArgumentException("Could not figure out the variable order for node with ID: " + nodeId);
+        }
+    }
+    
+    private VariableOrder removeBinIdFromVarOrder(VariableOrder varOrder) {
+        List<String> varOrderList = varOrder.getVariableOrders();
+        if(varOrderList.get(0).equals(IncrementalUpdateConstants.PERIODIC_BIN_ID)) {
+            List<String> updatedVarOrderList = Lists.newArrayList(varOrderList);
+            updatedVarOrderList.remove(0);
+            return new VariableOrder(updatedVarOrderList);
+        } else {
+            return varOrder;
         }
     }
 
@@ -284,6 +294,9 @@ public class JoinResultUpdater {
                 break;
             case JOIN:
                 column = FluoQueryColumns.JOIN_BINDING_SET;
+                break;
+            case PROJECTION:
+                column = FluoQueryColumns.PROJECTION_BINDING_SET;
                 break;
             default:
                 throw new IllegalArgumentException("The child node's sibling is not of type StatementPattern, Join, Left Join, or Filter.");

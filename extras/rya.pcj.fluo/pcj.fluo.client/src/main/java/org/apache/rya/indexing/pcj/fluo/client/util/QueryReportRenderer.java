@@ -25,10 +25,12 @@ import edu.umd.cs.findbugs.annotations.NonNull;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.rya.indexing.pcj.fluo.api.GetQueryReport.QueryReport;
+import org.apache.rya.indexing.pcj.fluo.app.IncrementalUpdateConstants.QueryType;
 import org.apache.rya.indexing.pcj.fluo.app.query.ConstructQueryMetadata;
 import org.apache.rya.indexing.pcj.fluo.app.query.FilterMetadata;
 import org.apache.rya.indexing.pcj.fluo.app.query.FluoQuery;
 import org.apache.rya.indexing.pcj.fluo.app.query.JoinMetadata;
+import org.apache.rya.indexing.pcj.fluo.app.query.ProjectionMetadata;
 import org.apache.rya.indexing.pcj.fluo.app.query.QueryMetadata;
 import org.apache.rya.indexing.pcj.fluo.app.query.StatementPatternMetadata;
 import org.apache.rya.indexing.pcj.fluo.client.util.Report.ReportItem;
@@ -56,25 +58,40 @@ public class QueryReportRenderer {
 
         final FluoQuery metadata = queryReport.getFluoQuery();
 
-        switch (metadata.getQueryType()) {
-        case Projection:
-            final QueryMetadata queryMetadata = metadata.getQueryMetadata().get();
-            builder.appendItem(new ReportItem("QUERY NODE"));
-            builder.appendItem(new ReportItem("Node ID", queryMetadata.getNodeId()));
-            builder.appendItem(new ReportItem("Variable Order", queryMetadata.getVariableOrder().toString()));
-            builder.appendItem(new ReportItem("SPARQL", prettyFormatSparql(queryMetadata.getSparql())));
-            builder.appendItem(new ReportItem("Child Node ID", queryMetadata.getChildNodeId()));
-            builder.appendItem(new ReportItem("Count", "" + queryReport.getCount(queryMetadata.getNodeId())));
-            break;
-        case Construct:
+        QueryMetadata queryMetadata = metadata.getQueryMetadata();
+        builder.appendItem( new ReportItem("") );
+        
+        builder.appendItem(new ReportItem("QUERY NODE"));
+        builder.appendItem(new ReportItem("Node ID", queryMetadata.getNodeId()));
+        builder.appendItem(new ReportItem("Variable Order", queryMetadata.getVariableOrder().toString()));
+        builder.appendItem( new ReportItem("SPARQL", queryMetadata.getSparql()) );
+        builder.appendItem(new ReportItem("Child Node ID", queryMetadata.getChildNodeId()));
+        builder.appendItem(new ReportItem("Count", "" + queryReport.getCount(queryMetadata.getNodeId())));
+        
+        
+        
+        if (metadata.getQueryType() == QueryType.Construct) {
+            builder.appendItem( new ReportItem("") );
+            
             final ConstructQueryMetadata constructMetadata = metadata.getConstructQueryMetadata().get();
             builder.appendItem(new ReportItem("CONSTRUCT QUERY NODE"));
             builder.appendItem(new ReportItem("Node ID", constructMetadata.getNodeId()));
             builder.appendItem(new ReportItem("Variable Order", constructMetadata.getVariableOrder().toString()));
-            builder.appendItem(new ReportItem("SPARQL", prettyFormatSparql(constructMetadata.getSparql())));
+            builder.appendItem( new ReportItem("Parent Node ID", constructMetadata.getParentNodeId()) );
             builder.appendItem(new ReportItem("Child Node ID", constructMetadata.getChildNodeId()));
             builder.appendItem(new ReportItem("Construct Graph", constructMetadata.getConstructGraph().toString()));
             builder.appendItem(new ReportItem("Count", "" + queryReport.getCount(constructMetadata.getNodeId())));
+        }
+        
+        for (ProjectionMetadata projectionMetadata : metadata.getProjectionMetadata()) {
+            builder.appendItem( new ReportItem("") );
+            
+            builder.appendItem(new ReportItem("PROJECTION NODE"));
+            builder.appendItem(new ReportItem("Node ID", projectionMetadata.getNodeId()));
+            builder.appendItem(new ReportItem("Variable Order", projectionMetadata.getVariableOrder().toString()));
+            builder.appendItem( new ReportItem("Parent Node ID", projectionMetadata.getParentNodeId()) );
+            builder.appendItem(new ReportItem("Child Node ID", projectionMetadata.getChildNodeId()));
+            builder.appendItem(new ReportItem("Count", "" + queryReport.getCount(projectionMetadata.getNodeId())));
         }
 
         for(final FilterMetadata filterMetadata : metadata.getFilterMetadata()) {

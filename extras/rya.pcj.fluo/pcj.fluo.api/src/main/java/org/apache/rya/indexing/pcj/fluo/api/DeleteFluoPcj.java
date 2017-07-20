@@ -40,6 +40,7 @@ import org.apache.rya.indexing.pcj.fluo.app.query.FluoQueryColumns;
 import org.apache.rya.indexing.pcj.fluo.app.query.FluoQueryMetadataDAO;
 import org.apache.rya.indexing.pcj.fluo.app.query.JoinMetadata;
 import org.apache.rya.indexing.pcj.fluo.app.query.PeriodicQueryMetadata;
+import org.apache.rya.indexing.pcj.fluo.app.query.ProjectionMetadata;
 import org.apache.rya.indexing.pcj.fluo.app.query.QueryMetadata;
 import org.openrdf.query.BindingSet;
 
@@ -60,17 +61,17 @@ import edu.umd.cs.findbugs.annotations.NonNull;
  * </ol>
  */
 @DefaultAnnotation(NonNull.class)
-public class DeletePcj {
+public class DeleteFluoPcj {
 
     private final FluoQueryMetadataDAO dao = new FluoQueryMetadataDAO();
     private final int batchSize;
 
     /**
-     * Constructs an instance of {@link DeletePcj}.
+     * Constructs an instance of {@link DeleteFluoPcj}.
      *
      * @param batchSize - The number of entries that will be deleted at a time. (> 0)
      */
-    public DeletePcj(final int batchSize) {
+    public DeleteFluoPcj(final int batchSize) {
         checkArgument(batchSize > 0);
         this.batchSize = batchSize;
     }
@@ -175,6 +176,12 @@ public class DeletePcj {
                 final String periodicChild = periodicMeta.getChildNodeId();
                 nodeIds.add(periodicChild);
                 getChildNodeIds(tx, periodicChild, nodeIds);
+                break;
+            case PROJECTION:
+                final ProjectionMetadata projectionMetadata = dao.readProjectionMetadata(tx, nodeId);
+                final String projectionChild = projectionMetadata.getChildNodeId();
+                nodeIds.add(projectionChild);
+                getChildNodeIds(tx, projectionChild, nodeIds);
                 break;
             case STATEMENT_PATTERN:
                 break;

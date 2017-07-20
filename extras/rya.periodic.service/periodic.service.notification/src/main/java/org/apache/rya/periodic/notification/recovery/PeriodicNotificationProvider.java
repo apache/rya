@@ -126,11 +126,14 @@ public class PeriodicNotificationProvider {
             id = getQueryIdFromPeriodicId(sx, sx.get(Bytes.of(nodeId), FluoQueryColumns.AGGREGATION_PARENT_NODE_ID).toString());
             break;
         case CONSTRUCT:
-            id = sx.get(Bytes.of(nodeId), FluoQueryColumns.CONSTRUCT_NODE_ID).toString();
-            id = id.split(IncrementalUpdateConstants.CONSTRUCT_PREFIX)[1];
+            id = getQueryIdFromPeriodicId(sx, sx.get(Bytes.of(nodeId), FluoQueryColumns.CONSTRUCT_PARENT_NODE_ID).toString());
+            break;
+        case PROJECTION:
+            id = getQueryIdFromPeriodicId(sx, sx.get(Bytes.of(nodeId), FluoQueryColumns.PROJECTION_PARENT_NODE_ID).toString());
             break;
         default:
-            throw new RuntimeException("Invalid NodeType.");
+            throw new IllegalArgumentException("Invalid node type");
+        
         }
         return id;
     }

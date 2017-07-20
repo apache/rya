@@ -127,7 +127,7 @@ public class StatementPatternMetadata extends CommonNodeMetadata {
      * Builds instances of {@link StatementPatternMetadata}.
      */
     @DefaultAnnotation(NonNull.class)
-    public static final class Builder {
+    public static final class Builder implements CommonNodeMetadata.Builder {
 
         private final String nodeId;
         private VariableOrder varOrder;
@@ -159,6 +159,11 @@ public class StatementPatternMetadata extends CommonNodeMetadata {
         public Builder setVarOrder(@Nullable final VariableOrder varOrder) {
             this.varOrder = varOrder;
             return this;
+        }
+        
+        @Override
+        public VariableOrder getVariableOrder() {
+            return varOrder;
         }
 
         /**

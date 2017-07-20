@@ -29,6 +29,7 @@ import org.apache.accumulo.core.client.security.tokens.PasswordToken;
 import org.apache.rya.accumulo.AccumuloRdfConfiguration;
 import org.apache.rya.accumulo.AccumuloRyaDAO;
 import org.apache.rya.rdftriplestore.RdfCloudTripleStore;
+import org.apache.tinkerpop.gremlin.structure.Graph;
 import org.junit.After;
 import org.junit.Assert;
 
@@ -115,6 +116,7 @@ public class InferenceEngineTest extends TestCase {
         Assert.assertEquals(typeToValueImplications, inferenceEngine.getHasValueByProperty(vf.createURI("urn:taxon")));
     }
 
+    @Test
     public void testHasValueGivenType() throws Exception {
         String insert = "INSERT DATA { GRAPH <http://updated/test> {\n"
                 + "  <urn:Biped> owl:onProperty <urn:walksUsingLegs>  . \n"
@@ -163,5 +165,34 @@ public class InferenceEngineTest extends TestCase {
         valuesImplyingAnimal.put(taxon, new HashSet<>(valuesImplyingVertebrate.get(taxon)));
         valuesImplyingAnimal.get(taxon).addAll(valuesImplyingTunicate.get(taxon));
         Assert.assertEquals(valuesImplyingAnimal, inferenceEngine.getHasValueByType(vf.createURI("urn:Animal")));
+    }
+
+    @Test
+    public void testUnionOf() throws Exception {
+        final String ontology = "INSERT DATA { GRAPH <http://updated/test> {\n"
+                + "  <urn:A> owl:unionOf <urn:list1> . \n"
+                + "  <urn:B> owl:unionOf <urn:list2> . \n"
+                + "  <urn:list1> rdf:first <urn:X> . \n"
+                + "  <urn:list1> rdf:rest <urn:list2> . \n"
+                + "  <urn:list2> rdf:first <urn:Y> . \n"
+                + "  <urn:list2> rdf:rest <urn:list3> . \n"
+                + "  <urn:list3> rdf:first <urn:Z> . \n"
+                + "  <urn:Y> rdfs:subClassOf <urn:SuperY> . \n"
+                + "  <urn:SubY> rdfs:subClassOf <urn:Y> . \n"
+                + "}}";
+        conn.prepareUpdate(QueryLanguage.SPARQL, ontology).execute();
+        inferenceEngine.refreshGraph();
+        Graph subClassGraph = inferenceEngine.getSubClassOfGraph();
+        Set<URI> subClassesA = inferenceEngine.findParents(subClassGraph, vf.createURI("urn:A"));
+        Set<URI> subClassesB = inferenceEngine.findParents(subClassGraph, vf.createURI("urn:B"));
+        Set<URI> expectedA = new HashSet<>();
+        Set<URI> expectedB = new HashSet<>();
+        expectedB.add(vf.createURI("urn:Y"));
+        expectedB.add(vf.createURI("urn:SubY"));
+        expectedB.add(vf.createURI("urn:Z"));
+        expectedA.addAll(expectedB);
+        expectedA.add(vf.createURI("urn:X"));
+        Assert.assertEquals(expectedA, subClassesA);
+        Assert.assertEquals(expectedB, subClassesB);
     }
 }

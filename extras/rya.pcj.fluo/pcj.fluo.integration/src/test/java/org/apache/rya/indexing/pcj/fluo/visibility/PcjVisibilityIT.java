@@ -49,7 +49,7 @@ import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.domain.RyaURI;
 import org.apache.rya.indexing.accumulo.ConfigUtils;
 import org.apache.rya.indexing.external.PrecomputedJoinIndexerConfig;
-import org.apache.rya.indexing.pcj.fluo.api.CreatePcj;
+import org.apache.rya.indexing.pcj.fluo.api.CreateFluoPcj;
 import org.apache.rya.indexing.pcj.fluo.api.InsertTriples;
 import org.apache.rya.indexing.pcj.storage.PrecomputedJoinStorage;
 import org.apache.rya.indexing.pcj.storage.PrecomputedJoinStorage.CloseableIterator;
@@ -220,7 +220,7 @@ public class PcjVisibilityIT extends RyaExportITBase {
 
         try( final FluoClient fluoClient = FluoFactory.newClient( super.getFluoConfiguration() )) {
             // Create the PCJ in Fluo.
-            new CreatePcj().withRyaIntegration(pcjId, rootStorage, fluoClient, accumuloConn, getRyaInstanceName());
+            new CreateFluoPcj().withRyaIntegration(pcjId, rootStorage, fluoClient, accumuloConn, getRyaInstanceName());
 
             // Stream the data into Fluo.
             for(final RyaStatement statement : streamedTriples.keySet()) {

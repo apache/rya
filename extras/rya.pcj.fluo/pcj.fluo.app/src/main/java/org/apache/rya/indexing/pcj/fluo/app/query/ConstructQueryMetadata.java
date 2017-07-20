@@ -38,7 +38,7 @@ public class ConstructQueryMetadata extends CommonNodeMetadata {
 
     private String childNodeId;
     private ConstructGraph graph;
-    private String sparql;
+    private String parentNodeId;
 
     /**
      * Creates ConstructQueryMetadata object from the provided metadata arguments.
@@ -47,21 +47,11 @@ public class ConstructQueryMetadata extends CommonNodeMetadata {
      * @param graph - {@link ConstructGraph} used to project {@link BindingSet}s onto sets of statement representing construct graph
      * @param sparql - SPARQL query containing construct graph
      */
-    public ConstructQueryMetadata(String nodeId, String childNodeId, ConstructGraph graph, String sparql) {
-        super(nodeId, new VariableOrder("subject", "predicate", "object"));
-        Preconditions.checkNotNull(childNodeId);
-        Preconditions.checkNotNull(graph);
-        Preconditions.checkNotNull(sparql);
-        this.childNodeId = childNodeId;
-        this.graph = graph;
-        this.sparql = sparql;
-    }
-
-    /**
-     * @return sparql query string representing this construct query
-     */
-    public String getSparql() {
-        return sparql;
+    public ConstructQueryMetadata(String nodeId, String parentNodeId, String childNodeId, VariableOrder varOrder, ConstructGraph graph) {
+        super(nodeId, varOrder);
+        this.childNodeId = Preconditions.checkNotNull(childNodeId);
+        this.parentNodeId = Preconditions.checkNotNull(parentNodeId);
+        this.graph = Preconditions.checkNotNull(graph);
     }
 
     /**
@@ -70,6 +60,13 @@ public class ConstructQueryMetadata extends CommonNodeMetadata {
      */
     public String getChildNodeId() {
         return childNodeId;
+    }
+    
+    /**
+     * @return The parent of this construct node
+     */
+    public String getParentNodeId() {
+        return parentNodeId;
     }
 
     /**
@@ -82,7 +79,7 @@ public class ConstructQueryMetadata extends CommonNodeMetadata {
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(super.getNodeId(), super.getVariableOrder(), childNodeId, graph, sparql);
+        return Objects.hashCode(super.getNodeId(), super.getVariableOrder(), parentNodeId, childNodeId, graph);
     }
 
     @Override
@@ -94,8 +91,8 @@ public class ConstructQueryMetadata extends CommonNodeMetadata {
         if (o instanceof ConstructQueryMetadata) {
             ConstructQueryMetadata queryMetadata = (ConstructQueryMetadata) o;
             if (super.equals(queryMetadata)) {
-                return new EqualsBuilder().append(childNodeId, queryMetadata.childNodeId).append(graph, queryMetadata.graph)
-                        .append(sparql, queryMetadata.sparql).isEquals();
+                return new EqualsBuilder().append(parentNodeId, queryMetadata.parentNodeId).append(childNodeId, queryMetadata.childNodeId).append(graph, queryMetadata.graph)
+                        .isEquals();
             }
             return false;
         }
@@ -105,7 +102,7 @@ public class ConstructQueryMetadata extends CommonNodeMetadata {
     @Override
     public String toString() {
         return new StringBuilder().append("Construct Query Metadata {\n").append("    Node ID: " + super.getNodeId() + "\n")
-                .append("    SPARQL QUERY: " + sparql + "\n").append("    Variable Order: " + super.getVariableOrder() + "\n")
+                .append("    Variable Order: " + super.getVariableOrder() + "\n")
                 .append("    Child Node ID: " + childNodeId + "\n").append("    Construct Graph: " + graph.getProjections() + "\n")
                 .append("}").toString();
     }
@@ -123,13 +120,14 @@ public class ConstructQueryMetadata extends CommonNodeMetadata {
      * Builds instances of {@link QueryMetadata}.
      */
     @DefaultAnnotation(NonNull.class)
-    public static final class Builder {
+    public static final class Builder implements CommonNodeMetadata.Builder {
 
 
         private String nodeId;
         private ConstructGraph graph;
+        private String parentNodeId;
         private String childNodeId;
-        private String sparql;
+        private VariableOrder varOrder;
 
         /**
          * Set the node Id that identifies this Construct Query Node
@@ -144,21 +142,31 @@ public class ConstructQueryMetadata extends CommonNodeMetadata {
         }
         
         /**
-         * Set the SPARQL String representing this construct query
-         * @param SPARQL string representing this construct query
+         * @return the node id for this construct query
          */
-        public Builder setSparql(String sparql) {
-            this.sparql = sparql;
+        public String getNodeId() {
+            return nodeId;
+        }
+        
+        /**
+         * Sets the VariableOrder that determines how results will be written
+         * @param varOrder
+         * @return This builder so that method invocations may be chained.
+         */
+        public Builder setVarOrder(VariableOrder varOrder) {
+            this.varOrder = varOrder;
             return this;
+        }
+        
+        @Override
+        public VariableOrder getVariableOrder() {
+            return varOrder;
         }
 
         /**
-         * Set the ConstructGraph used to form statement {@link BindingSet}s for
-         * this Construct Query
+         * Set the ConstructGraph used to form statement {@link BindingSet}s for this Construct Query
          *
-         * @param varOrder
-         *            - ConstructGraph to project {@link BindingSet}s onto RDF
-         *            statements
+         * @param varOrder - ConstructGraph to project {@link BindingSet}s onto RDF statements
          * @return This builder so that method invocations may be chained.
          */
         public Builder setConstructGraph(ConstructGraph graph) {
@@ -167,16 +175,28 @@ public class ConstructQueryMetadata extends CommonNodeMetadata {
         }
 
         /**
-         * Set the node whose results are projected onto the given
-         * {@link ConstructGraph}.
+         * Set the node whose results are projected onto the given {@link ConstructGraph}.
          *
-         * @param childNodeId
-         *            - The node whose results are projected onto the given
-         *            {@link ConstructGraph}.
+         * @param childNodeId - The node whose results are projected onto the given {@link ConstructGraph}.
          * @return This builder so that method invocations may be chained.
          */
         public Builder setChildNodeId(String childNodeId) {
             this.childNodeId = childNodeId;
+            return this;
+        }
+        
+        public String getChildNodeId() {
+            return childNodeId;
+        }
+        
+        /**
+         * Set the parent node of this {@link ConstructGraph}.
+         *
+         * @param parentNodeId - The the parent node of this {@link ConstructGraph}.
+         * @return This builder so that method invocations may be chained.
+         */
+        public Builder setParentNodeId(String parentNodeId) {
+            this.parentNodeId = parentNodeId;
             return this;
         }
 
@@ -185,7 +205,7 @@ public class ConstructQueryMetadata extends CommonNodeMetadata {
          *         this builder's values.
          */
         public ConstructQueryMetadata build() {
-            return new ConstructQueryMetadata(nodeId, childNodeId, graph, sparql);
+            return new ConstructQueryMetadata(nodeId, parentNodeId, childNodeId, varOrder, graph);
         }
     }
 

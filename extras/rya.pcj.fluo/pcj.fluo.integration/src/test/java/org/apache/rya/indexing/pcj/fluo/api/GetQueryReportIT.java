@@ -85,7 +85,7 @@ public class GetQueryReportIT extends RyaExportITBase {
 
         try(FluoClient fluoClient = FluoFactory.newClient(super.getFluoConfiguration())) {
             // Tell the Fluo app to maintain the PCJ.
-            new CreatePcj().withRyaIntegration(pcjId, pcjStorage, fluoClient, accumuloConn, getRyaInstanceName());
+            new CreateFluoPcj().withRyaIntegration(pcjId, pcjStorage, fluoClient, accumuloConn, getRyaInstanceName());
 
             // Stream the data into Fluo.
             new InsertTriples().insert(fluoClient, streamedTriples, Optional.<String>absent());
@@ -106,7 +106,7 @@ public class GetQueryReportIT extends RyaExportITBase {
 
             final FluoQuery fluoQuery = report.getFluoQuery();
 
-            final String queryNodeId = fluoQuery.getQueryMetadata().get().getNodeId();
+            final String queryNodeId = fluoQuery.getQueryMetadata().getNodeId();
             expectedCounts.put(queryNodeId, BigInteger.valueOf(8));
 
             final String filterNodeId = fluoQuery.getFilterMetadata().iterator().next().getNodeId();

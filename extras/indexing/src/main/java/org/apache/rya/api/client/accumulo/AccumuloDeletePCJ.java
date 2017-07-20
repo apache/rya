@@ -31,7 +31,7 @@ import org.apache.rya.api.instance.RyaDetails.PCJIndexDetails;
 import org.apache.rya.api.instance.RyaDetails.PCJIndexDetails.FluoDetails;
 import org.apache.rya.api.instance.RyaDetails.PCJIndexDetails.PCJDetails;
 import org.apache.rya.api.instance.RyaDetails.PCJIndexDetails.PCJDetails.PCJUpdateStrategy;
-import org.apache.rya.indexing.pcj.fluo.api.DeletePcj;
+import org.apache.rya.indexing.pcj.fluo.api.DeleteFluoPcj;
 import org.apache.rya.indexing.pcj.storage.PrecomputedJoinStorage;
 import org.apache.rya.indexing.pcj.storage.PrecomputedJoinStorage.PCJStorageException;
 import org.apache.rya.indexing.pcj.storage.accumulo.AccumuloPcjStorage;
@@ -123,7 +123,7 @@ public class AccumuloDeletePCJ extends AccumuloCommand implements DeletePCJ {
                 cd.getZookeepers(),
                 fluoAppName)) {
             // Delete the PCJ from the Fluo App.
-            new DeletePcj(1000).deletePcj(fluoClient, pcjId);
+            new DeleteFluoPcj(1000).deletePcj(fluoClient, pcjId);
         }
     }
 }

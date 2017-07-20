@@ -30,6 +30,7 @@ import org.junit.Assert;
 import org.openrdf.model.Statement;
 
 import com.google.common.base.Objects;
+import com.google.common.base.Preconditions;
 
 public class ConstructGraphTestUtils {
 
@@ -47,8 +48,18 @@ public class ConstructGraphTestUtils {
     
     public static void subGraphsEqualIgnoresBlankNode(Set<RyaSubGraph> subgraph1, Set<RyaSubGraph> subgraph2) {
         Map<Integer, RyaSubGraph> subGraphMap = new HashMap<>();
-        subgraph1.forEach(x->subGraphMap.put(getKey(x), x));
-        subgraph2.forEach(x->ryaStatementsEqualIgnoresBlankNode(x.getStatements(), subGraphMap.get(getKey(x)).getStatements()));
+        for(RyaSubGraph subgraph: subgraph1) {
+            int key = getKey(subgraph);
+            subGraphMap.put(key, subgraph);
+        }
+        
+        for(RyaSubGraph subgraph: subgraph2) {
+            int key = getKey(subgraph);
+            RyaSubGraph sub = subGraphMap.get(key);
+            Preconditions.checkNotNull(sub);
+            Set<RyaStatement> statements = sub.getStatements();
+            ryaStatementsEqualIgnoresBlankNode(subgraph.getStatements(), statements);
+        }
     }
     
     private static int getKey(RyaSubGraph subgraph) {

@@ -107,7 +107,7 @@ public class QueryResultObserver extends AbstractObserver {
         // Read the Child Binding Set that will be exported.
         final Bytes valueBytes = tx.get(brow, col);
         final VisibilityBindingSet result = BS_SERDE.deserialize(valueBytes);
-
+        
         // Simplify the result's visibilities.
         final String visibility = result.getVisibility();
         if(!simplifiedVisibilities.containsKey(visibility)) {

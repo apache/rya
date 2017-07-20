@@ -19,12 +19,8 @@ package org.apache.rya.indexing.pcj.fluo.app;
  * under the License.
  */
 import java.io.UnsupportedEncodingException;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.UUID;
 
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.log4j.Logger;

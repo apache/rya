@@ -28,7 +28,7 @@ import org.apache.fluo.api.client.FluoClient;
 import org.apache.fluo.api.client.FluoFactory;
 import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.domain.RyaURI;
-import org.apache.rya.indexing.pcj.fluo.api.CreatePcj;
+import org.apache.rya.indexing.pcj.fluo.api.CreateFluoPcj;
 import org.apache.rya.indexing.pcj.fluo.api.InsertTriples;
 import org.apache.rya.indexing.pcj.storage.PrecomputedJoinStorage;
 import org.apache.rya.indexing.pcj.storage.accumulo.AccumuloPcjStorage;
@@ -110,7 +110,7 @@ public class RyaExportIT extends RyaExportITBase {
 
         try(FluoClient fluoClient = FluoFactory.newClient(super.getFluoConfiguration())) {
             // Tell the Fluo app to maintain the PCJ.
-            new CreatePcj().withRyaIntegration(pcjId, pcjStorage, fluoClient, accumuloConn, getRyaInstanceName());
+            new CreateFluoPcj().withRyaIntegration(pcjId, pcjStorage, fluoClient, accumuloConn, getRyaInstanceName());
 
             // Stream the data into Fluo.
             new InsertTriples().insert(fluoClient, streamedTriples, Optional.<String>absent());

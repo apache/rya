@@ -23,8 +23,6 @@ import static org.apache.rya.indexing.pcj.fluo.app.IncrementalUpdateConstants.DE
 import static org.apache.rya.indexing.pcj.fluo.app.IncrementalUpdateConstants.TYPE_DELIM;
 import static org.apache.rya.indexing.pcj.fluo.app.IncrementalUpdateConstants.URI_TYPE;
 
-import java.util.UUID;
-
 import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
 import edu.umd.cs.findbugs.annotations.NonNull;
 

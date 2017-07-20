@@ -34,7 +34,6 @@ import org.openrdf.model.Literal;
 import org.openrdf.model.Value;
 import org.openrdf.model.ValueFactory;
 import org.openrdf.model.impl.ValueFactoryImpl;
-import org.openrdf.query.Binding;
 import org.openrdf.query.algebra.evaluation.QueryBindingSet;
 
 /**

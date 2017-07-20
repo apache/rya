@@ -41,7 +41,7 @@ import org.apache.logging.log4j.Logger;
 import org.apache.rya.accumulo.AccumuloRdfConfiguration;
 import org.apache.rya.accumulo.query.AccumuloRyaQueryEngine;
 import org.apache.rya.api.persist.RyaDAOException;
-import org.apache.rya.indexing.pcj.fluo.api.CreatePcj;
+import org.apache.rya.indexing.pcj.fluo.api.CreateFluoPcj;
 import org.apache.rya.indexing.pcj.fluo.client.PcjAdminClientCommand;
 import org.apache.rya.indexing.pcj.fluo.client.util.ParsedQueryRequest;
 import org.apache.rya.indexing.pcj.storage.PcjException;
@@ -124,7 +124,7 @@ public class NewQueryCommand implements PcjAdminClientCommand {
         log.trace("SPARQL Query: " + request.getQuery());
         log.trace("Var Orders: " + request.getVarOrders());
         log.trace("Loading these values into the Fluo app.");
-        final CreatePcj createPcj = new CreatePcj();
+        final CreateFluoPcj createPcj = new CreateFluoPcj();
         try {
             // Create the PCJ in Rya.
             final String sparql = request.getQuery();

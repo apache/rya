@@ -41,7 +41,7 @@ import org.apache.fluo.core.client.FluoClientImpl;
 import org.apache.log4j.Logger;
 import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.domain.RyaURI;
-import org.apache.rya.indexing.pcj.fluo.api.CreatePcj;
+import org.apache.rya.indexing.pcj.fluo.api.CreateFluoPcj;
 import org.apache.rya.indexing.pcj.fluo.api.InsertTriples;
 import org.apache.rya.indexing.pcj.fluo.app.IncrementalUpdateConstants;
 import org.apache.rya.indexing.pcj.fluo.app.JoinResultUpdater.Side;
@@ -91,7 +91,7 @@ public class BatchDeleteIT extends RyaExportITBase {
             final String pcjId = pcjStorage.createPcj(sparql);
 
             // Tell the Fluo app to maintain the PCJ.
-            String queryId = new CreatePcj().withRyaIntegration(pcjId, pcjStorage, fluoClient, getAccumuloConnector(), getRyaInstanceName());
+            String queryId = new CreateFluoPcj().withRyaIntegration(pcjId, pcjStorage, fluoClient, getAccumuloConnector(), getRyaInstanceName());
 
             List<String> ids = getNodeIdStrings(fluoClient, queryId);
             List<String> prefixes = Arrays.asList("urn:subject_1", "urn:object", "urn:subject_1", "urn:subject_1");
@@ -130,7 +130,7 @@ public class BatchDeleteIT extends RyaExportITBase {
             final String pcjId = pcjStorage.createPcj(sparql);
 
             // Tell the Fluo app to maintain the PCJ.
-            String queryId = new CreatePcj().withRyaIntegration(pcjId, pcjStorage, fluoClient, getAccumuloConnector(), getRyaInstanceName());
+            String queryId = new CreateFluoPcj().withRyaIntegration(pcjId, pcjStorage, fluoClient, getAccumuloConnector(), getRyaInstanceName());
 
             List<String> ids = getNodeIdStrings(fluoClient, queryId);
             String joinId = ids.get(1);
@@ -176,7 +176,7 @@ public class BatchDeleteIT extends RyaExportITBase {
             final String pcjId = pcjStorage.createPcj(sparql);
 
             // Tell the Fluo app to maintain the PCJ.
-            String queryId = new CreatePcj().withRyaIntegration(pcjId, pcjStorage, fluoClient, getAccumuloConnector(), getRyaInstanceName());
+            String queryId = new CreateFluoPcj().withRyaIntegration(pcjId, pcjStorage, fluoClient, getAccumuloConnector(), getRyaInstanceName());
 
             List<String> ids = getNodeIdStrings(fluoClient, queryId);
             String joinId = ids.get(1);

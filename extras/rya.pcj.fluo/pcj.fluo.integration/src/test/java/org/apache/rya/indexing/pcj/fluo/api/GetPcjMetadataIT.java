@@ -68,7 +68,7 @@ public class GetPcjMetadataIT extends RyaExportITBase {
 
         try(FluoClient fluoClient = FluoFactory.newClient(super.getFluoConfiguration())) {
             // Tell the Fluo app to maintain the PCJ.
-            new CreatePcj().withRyaIntegration(pcjId, pcjStorage, fluoClient, accumuloConn, getRyaInstanceName());
+            new CreateFluoPcj().withRyaIntegration(pcjId, pcjStorage, fluoClient, accumuloConn, getRyaInstanceName());
 
             // Fetch the PCJ's Metadata through the GetPcjMetadata interactor.
             final String queryId = new ListQueryIds().listQueryIds(fluoClient).get(0);
@@ -95,7 +95,7 @@ public class GetPcjMetadataIT extends RyaExportITBase {
                             "?x <http://worksAt> <http://Chipotle>." +
                             "}";
             final String q1PcjId = pcjStorage.createPcj(q1Sparql);
-            final CreatePcj createPcj = new CreatePcj();
+            final CreateFluoPcj createPcj = new CreateFluoPcj();
             createPcj.withRyaIntegration(q1PcjId, pcjStorage, fluoClient, accumuloConn, getRyaInstanceName());
 
             final String q2Sparql =

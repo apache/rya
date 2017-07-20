@@ -25,7 +25,8 @@ import java.util.concurrent.TimeUnit;
 import org.apache.fluo.api.client.FluoClient;
 import org.apache.fluo.core.client.FluoClientImpl;
 import org.apache.fluo.recipes.test.AccumuloExportITBase;
-import org.apache.rya.indexing.pcj.fluo.api.CreatePcj;
+import org.apache.rya.indexing.pcj.fluo.api.CreateFluoPcj;
+import org.apache.rya.indexing.pcj.fluo.app.util.FluoQueryUtils;
 import org.apache.rya.periodic.notification.coordinator.PeriodicNotificationCoordinatorExecutor;
 import org.apache.rya.periodic.notification.notification.TimestampedNotification;
 import org.apache.rya.periodic.notification.recovery.PeriodicNotificationProvider;
@@ -49,11 +50,11 @@ public class PeriodicNotificationProviderIT extends AccumuloExportITBase {
         BlockingQueue<TimestampedNotification> notifications = new LinkedBlockingQueue<>();
         PeriodicNotificationCoordinatorExecutor coord = new PeriodicNotificationCoordinatorExecutor(2, notifications);
         PeriodicNotificationProvider provider = new PeriodicNotificationProvider();
-        CreatePcj pcj = new CreatePcj();
+        CreateFluoPcj pcj = new CreateFluoPcj();
         
         String id = null;
         try(FluoClient fluo = new FluoClientImpl(getFluoConfiguration())) {
-            id = pcj.createPcj(sparql, fluo);
+            id = pcj.createPcj(sparql, fluo).getQueryId();
             provider.processRegisteredNotifications(coord, fluo.newSnapshot());
         }
         
@@ -61,7 +62,7 @@ public class PeriodicNotificationProviderIT extends AccumuloExportITBase {
         Assert.assertEquals(5000, notification.getInitialDelay());
         Assert.assertEquals(15000, notification.getPeriod());
         Assert.assertEquals(TimeUnit.MILLISECONDS, notification.getTimeUnit());
-        Assert.assertEquals(id, notification.getId());
+        Assert.assertEquals(FluoQueryUtils.convertFluoQueryIdToPcjId(id), notification.getId());
         
     }
     

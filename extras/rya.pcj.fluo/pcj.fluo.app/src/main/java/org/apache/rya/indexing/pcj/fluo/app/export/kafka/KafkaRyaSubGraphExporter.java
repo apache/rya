@@ -30,8 +30,6 @@ import org.apache.rya.api.domain.RyaSubGraph;
 import org.apache.rya.indexing.pcj.fluo.app.export.IncrementalBindingSetExporter.ResultExportException;
 import org.apache.rya.indexing.pcj.fluo.app.export.IncrementalRyaSubGraphExporter;
 
-import com.google.common.base.Preconditions;
-
 /**
  * Exports {@link RyaSubGraph}s to Kafka from Rya Fluo Application 
  *

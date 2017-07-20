@@ -287,7 +287,7 @@ public class AggregationMetadata extends CommonNodeMetadata {
      * Builds instances of {@link AggregationMetadata}.
      */
     @DefaultAnnotation(NonNull.class)
-    public static final class Builder {
+    public static final class Builder implements CommonNodeMetadata.Builder {
 
         private final String nodeId;
         private VariableOrder varOrder;
@@ -317,7 +317,7 @@ public class AggregationMetadata extends CommonNodeMetadata {
          *   single variable because aggregations are only able to emit the aggregated value.
          * @return This builder so that method invocations may be chained.
          */
-        public Builder setVariableOrder(@Nullable final VariableOrder varOrder) {
+        public Builder setVarOrder(@Nullable final VariableOrder varOrder) {
             this.varOrder = varOrder;
             return this;
         }
@@ -349,6 +349,10 @@ public class AggregationMetadata extends CommonNodeMetadata {
         public Builder setChildNodeId(@Nullable final String childNodeId) {
             this.childNodeId = childNodeId;
             return this;
+        }
+        
+        public String getChildNodeId() {
+            return childNodeId;
         }
 
         /**

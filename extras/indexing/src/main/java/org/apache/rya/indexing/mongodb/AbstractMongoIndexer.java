@@ -37,6 +37,7 @@ import org.apache.rya.mongodb.batch.MongoDbBatchWriter;
 import org.apache.rya.mongodb.batch.MongoDbBatchWriterConfig;
 import org.apache.rya.mongodb.batch.MongoDbBatchWriterException;
 import org.apache.rya.mongodb.batch.MongoDbBatchWriterUtils;
+import org.apache.rya.mongodb.batch.collection.DbCollectionType;
 import org.openrdf.model.Literal;
 import org.openrdf.model.Statement;
 import org.openrdf.model.URI;
@@ -72,17 +73,18 @@ public abstract class AbstractMongoIndexer<T extends IndexingMongoDBStorageStrat
 
     protected T storageStrategy;
 
-    private MongoDbBatchWriter mongoDbBatchWriter;
+    private MongoDbBatchWriter<DBObject> mongoDbBatchWriter;
 
     protected void initCore() {
         dbName = conf.get(MongoDBRdfConfiguration.MONGO_DB_NAME);
         db = this.mongoClient.getDB(dbName);
-        collection = db.getCollection(conf.get(MongoDBRdfConfiguration.MONGO_COLLECTION_PREFIX, "rya") + getCollectionName());
+        final String collectionName = conf.get(MongoDBRdfConfiguration.MONGO_COLLECTION_PREFIX, "rya") + getCollectionName();
+        collection = db.getCollection(collectionName);
 
         flushEachUpdate = ((MongoDBRdfConfiguration)conf).flushEachUpdate();
 
         final MongoDbBatchWriterConfig mongoDbBatchWriterConfig = MongoDbBatchWriterUtils.getMongoDbBatchWriterConfig(conf);
-        mongoDbBatchWriter = new MongoDbBatchWriter(collection, mongoDbBatchWriterConfig);
+        mongoDbBatchWriter = new MongoDbBatchWriter<DBObject>(new DbCollectionType(collection), mongoDbBatchWriterConfig);
         try {
             mongoDbBatchWriter.start();
         } catch (final MongoDbBatchWriterException e) {

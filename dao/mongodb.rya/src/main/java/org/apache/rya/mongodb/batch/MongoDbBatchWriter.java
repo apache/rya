@@ -32,11 +32,9 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.apache.log4j.Logger;
+import org.apache.rya.mongodb.batch.collection.CollectionType;
 
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
-import com.mongodb.DBCollection;
-import com.mongodb.DBObject;
-import com.mongodb.WriteConcern;
 
 /**
  * Handles batch writing MongoDB statement objects to the repository. It takes
@@ -44,16 +42,18 @@ import com.mongodb.WriteConcern;
  * in the queue reaching the batch size then the objects are bulk written to the
  * datastore. Or if the queue has not filled up after the batch time duration
  * has passed then the statements are flushed out and written to the datastore.
+ * @param <T> the type of object that the batch writer's internal collection
+ * type uses.
  */
-public class MongoDbBatchWriter {
+public class MongoDbBatchWriter<T> {
     private static final Logger log = Logger.getLogger(MongoDbBatchWriter.class);
 
     private static final int CHECK_QUEUE_INTERVAL_MS = 10;
 
-    private final DBCollection collection;
+    private final CollectionType<T> collectionType;
     private final long batchFlushTimeMs;
 
-    private final ArrayBlockingQueue<DBObject> statementInsertionQueue;
+    private final ArrayBlockingQueue<T> statementInsertionQueue;
     private final ScheduledThreadPoolExecutor scheduledExecutor = (ScheduledThreadPoolExecutor) Executors.newScheduledThreadPool(0);
     private ScheduledFuture<?> flushBatchFuture;
     private final Runnable flushBatchTask;
@@ -63,12 +63,12 @@ public class MongoDbBatchWriter {
 
     /**
      * Creates a new instance of {@link MongoDbBatchWriter}.
-     * @param collection the {@link DBCollection}. (not {@code null})
+     * @param collectionType the {@link CollectionType}. (not {@code null})
      * @param mongoDbBatchWriterConfig the {@link MongoDbBatchWriterConfig}.
      * (not {@code null})
      */
-    public MongoDbBatchWriter(final DBCollection collection, final MongoDbBatchWriterConfig mongoDbBatchWriterConfig) {
-        this.collection = checkNotNull(collection);
+    public MongoDbBatchWriter(final CollectionType<T> collectionType, final MongoDbBatchWriterConfig mongoDbBatchWriterConfig) {
+        this.collectionType = checkNotNull(collectionType);
         this.batchFlushTimeMs = checkNotNull(mongoDbBatchWriterConfig).getBatchFlushTimeMs();
 
         statementInsertionQueue = new ArrayBlockingQueue<>(mongoDbBatchWriterConfig.getBatchSize());
@@ -84,7 +84,7 @@ public class MongoDbBatchWriter {
         public void run() {
             try {
                 if (!statementInsertionQueue.isEmpty()) {
-                    log.trace("Running statement insertion flush task");
+                    log.trace("Running statement insertion flush task. Too much time has passed without any object insertions so all queued data is being flushed.");
                     flush();
                 }
             } catch (final Exception e) {
@@ -170,18 +170,18 @@ public class MongoDbBatchWriter {
      *  <li>A direct call to the {@link MongoDbBatchWriter#flush()} method
      *  has been made</li>
      * </ul>
-     * @param dbObject the {@link DBObject} to add to the queue.
+     * @param object the object to add to the queue.
      * @throws IOException
      */
-    public void addObjectToQueue(final DBObject dbObject) throws MongoDbBatchWriterException {
-        if (dbObject != null) {
+    public void addObjectToQueue(final T object) throws MongoDbBatchWriterException {
+        if (object != null) {
             try {
                 // Place in the queue which will bulk write after the specified
                 // "batchSize" number of items have filled the queue or if more
                 // than "batchFlushTimeMs" milliseconds have passed since the
                 // last insertion.
                 resetFlushTimer();
-                statementInsertionQueue.put(dbObject);
+                statementInsertionQueue.put(object);
             } catch (final Exception e) {
                 throw new MongoDbBatchWriterException("Error adding object to batch queue.", e);
             }
@@ -197,13 +197,13 @@ public class MongoDbBatchWriter {
      *  <li>A direct call to the {@link MongoDbBatchWriter#flush()} method
      *  has been made</li>
      * </ul>
-     * @param dbObjects a {@link List} of {@link DBObject}s to add to the queue.
+     * @param objects a {@link List} of objects to add to the queue.
      * @throws IOException
      */
-    public void addObjectsToQueue(final List<DBObject> dbObjects) throws MongoDbBatchWriterException {
-        if (dbObjects != null) {
-            for (final DBObject dbObject : dbObjects) {
-                addObjectToQueue(dbObject);
+    public void addObjectsToQueue(final List<T> objects) throws MongoDbBatchWriterException {
+        if (objects != null) {
+            for (final T object : objects) {
+                addObjectToQueue(object);
             }
         }
     }
@@ -212,11 +212,11 @@ public class MongoDbBatchWriter {
      * Flushes out statements that are in the queue.
      */
     public void flush() throws MongoDbBatchWriterException {
-        final List<DBObject> batch = new ArrayList<>();
+        final List<T> batch = new ArrayList<>();
         try {
             statementInsertionQueue.drainTo(batch);
             if (!batch.isEmpty()) {
-                collection.insert(batch, WriteConcern.ACKNOWLEDGED);
+                collectionType.insertMany(batch);
             }
         } catch (final Exception e) {
             throw new MongoDbBatchWriterException("Error flushing statements", e);

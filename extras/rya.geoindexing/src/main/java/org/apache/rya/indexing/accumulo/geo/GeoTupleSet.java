@@ -20,6 +20,7 @@ import org.openrdf.model.URI;
 import org.openrdf.model.Value;
 import org.openrdf.query.BindingSet;
 import org.openrdf.query.QueryEvaluationException;
+import org.openrdf.query.algebra.Var;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.Maps;
@@ -123,7 +124,15 @@ public class GeoTupleSet extends ExternalTupleSet {
         final URI funcURI = filterInfo.getFunction();
         final SearchFunction searchFunction = new GeoSearchFunctionFactory(conf, geoIndexer).getSearchFunction(funcURI);
 
-        String queryText = filterInfo.getArguments()[0].stringValue();
+        String queryText;
+        Object arg = filterInfo.getArguments()[0];
+        if (arg instanceof Value) {
+            queryText = ((Value) arg).stringValue();
+        } else if (arg instanceof Var) {
+            queryText = bindings.getBinding(((Var) arg).getName()).getValue().stringValue();
+        } else {
+            throw new IllegalArgumentException("Query text was not resolved");
+        }
 
         if(funcURI.equals(GeoConstants.GEO_SF_NEAR)) {
             if (filterInfo.getArguments().length > 3) {
@@ -131,8 +140,14 @@ public class GeoTupleSet extends ExternalTupleSet {
             }
 
             final List<String> valueList = new ArrayList<>();
-            for (final Value val : filterInfo.getArguments()) {
-                valueList.add(val.stringValue());
+            for (final Object val : filterInfo.getArguments()) {
+                if (val instanceof Value) {
+                    valueList.add(((Value)val).stringValue());
+                } else if (val instanceof Var) {
+                    valueList.add(bindings.getBinding(((Var) val).getName()).getValue().stringValue());
+                } else {
+                    throw new IllegalArgumentException("Query text was not resolved");
+                }
             }
             queryText = Strings.join(valueList, NEAR_DELIM);
         } else if (filterInfo.getArguments().length > 1) {

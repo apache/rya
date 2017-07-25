@@ -49,6 +49,7 @@ import org.apache.rya.indexing.mongodb.temporal.TemporalMongoDBStorageStrategy;
 import org.joda.time.DateTime;
 import org.openrdf.model.Statement;
 import org.openrdf.model.URI;
+import org.openrdf.model.Value;
 import org.openrdf.query.MalformedQueryException;
 
 import com.mongodb.BasicDBObject;
@@ -144,7 +145,7 @@ public class GeoTemporalMongoDBStorageStrategy extends IndexingMongoDBStorageStr
         geoFilters.forEach(filter -> {
             final GeoPolicy policy = GeoPolicy.fromURI(filter.getFunction());
             final WKTReader reader = new WKTReader();
-            final String geoStr = filter.getArguments()[0].stringValue();
+            final String geoStr = ((Value) filter.getArguments()[0]).stringValue();
             try {
                 //This method is what is used in the GeoIndexer.
                 final Geometry geo = reader.read(geoStr);
@@ -160,7 +161,7 @@ public class GeoTemporalMongoDBStorageStrategy extends IndexingMongoDBStorageStr
         final List<DBObject> objs = new ArrayList<>();
         temporalFilters.forEach(filter -> {
             final TemporalPolicy policy = TemporalPolicy.fromURI(filter.getFunction());
-            final String timeStr = filter.getArguments()[0].stringValue();
+            final String timeStr = ((Value) filter.getArguments()[0]).stringValue();
             final Matcher matcher = TemporalInstantRfc3339.PATTERN.matcher(timeStr);
             if(matcher.find()) {
                 final TemporalInterval interval = TemporalInstantRfc3339.parseInterval(timeStr);

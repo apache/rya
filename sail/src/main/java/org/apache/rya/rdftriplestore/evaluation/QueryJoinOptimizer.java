@@ -1,5 +1,14 @@
 package org.apache.rya.rdftriplestore.evaluation;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import org.apache.rya.rdftriplestore.utils.DefaultStatistics;
+
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -23,13 +32,15 @@ package org.apache.rya.rdftriplestore.evaluation;
 
 import org.openrdf.query.BindingSet;
 import org.openrdf.query.Dataset;
-import org.openrdf.query.algebra.*;
+import org.openrdf.query.algebra.Join;
+import org.openrdf.query.algebra.LeftJoin;
+import org.openrdf.query.algebra.StatementPattern;
+import org.openrdf.query.algebra.TupleExpr;
+import org.openrdf.query.algebra.Var;
 import org.openrdf.query.algebra.evaluation.QueryOptimizer;
 import org.openrdf.query.algebra.evaluation.impl.EvaluationStatistics;
 import org.openrdf.query.algebra.helpers.QueryModelVisitorBase;
 import org.openrdf.query.algebra.helpers.StatementPatternCollector;
-
-import java.util.*;
 
 /**
  * A query optimizer that re-orders nested Joins.
@@ -56,7 +67,9 @@ public class QueryJoinOptimizer implements QueryOptimizer {
      * @param tupleExpr
      */
     public void optimize(TupleExpr tupleExpr, Dataset dataset, BindingSet bindings) {
-        tupleExpr.visit(new JoinVisitor());
+        if (!(statistics instanceof DefaultStatistics)) {
+            tupleExpr.visit(new JoinVisitor());
+        }
     }
 
     protected class JoinVisitor extends QueryModelVisitorBase<RuntimeException> {

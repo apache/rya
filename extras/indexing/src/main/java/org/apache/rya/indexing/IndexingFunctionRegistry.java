@@ -115,6 +115,8 @@ public class IndexingFunctionRegistry {
                 return (Var) arg1;
             else if (isUnboundVariable(arg2) && isConstant(arg1))
                 return (Var) arg2;
+            else 
+                return (Var) arg1;
         }
         return null;
     }

@@ -47,6 +47,7 @@ import com.mongodb.MongoClient;
 import com.mongodb.QueryBuilder;
 import com.mongodb.ServerAddress;
 import com.mongodb.WriteConcern;
+import com.mongodb.WriteResult;
 
 import info.aduna.iteration.CloseableIteration;
 
@@ -127,8 +128,9 @@ public abstract class AbstractMongoIndexer<T extends IndexingMongoDBStorageStrat
 
     @Override
     public void deleteStatement(final RyaStatement stmt) throws IOException {
-       final DBObject obj = storageStrategy.getQuery(stmt);
-       collection.remove(obj);
+        final DBObject obj = storageStrategy.getQuery(stmt);
+        final WriteResult wr = collection.remove(obj);
+        wr.getN();
     }
 
     @Override

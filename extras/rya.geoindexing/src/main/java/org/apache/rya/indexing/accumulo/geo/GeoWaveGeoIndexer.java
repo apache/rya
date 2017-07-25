@@ -658,4 +658,10 @@ public class GeoWaveGeoIndexer extends AbstractAccumuloIndexer implements GeoInd
             return name;
         }
     }
+
+    @Override
+    public CloseableIteration<Statement, QueryEvaluationException> queryNear(final String query,
+            final StatementConstraints contraints) {
+        throw new UnsupportedOperationException("Near queries are not supported in Accumulo.");
+    }
 }

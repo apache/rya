@@ -52,8 +52,9 @@ import com.mongodb.MongoClient;
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.GeometryFactory;
+import com.vividsolutions.jts.io.WKTWriter;
 
-public class MongoGeoIT {
+public class MongoIndexerDeleteIT {
     private MongoClient client;
     private Sail sail;
     private SailRepositoryConnection conn;
@@ -84,6 +85,7 @@ public class MongoGeoIT {
     public void deleteTest() throws Exception {
         populateRya();
 
+        //The extra 1 is from the person type defined in freetext
         assertEquals(8, client.getDatabase("indexerTests").getCollection("rya__triples").count());
         assertEquals(4, client.getDatabase("indexerTests").getCollection("rya_rya_geo").count());
         assertEquals(1, client.getDatabase("indexerTests").getCollection("rya_rya_temporal").count());
@@ -106,9 +108,26 @@ public class MongoGeoIT {
         update = conn.prepareUpdate(QueryLanguage.SPARQL, delete);
         update.execute();
 
+        //geo -- remove many from many
+        delete =
+             "PREFIX geo: <http://www.opengis.net/ont/geosparql#>\n"
+           + "PREFIX geof: <http://www.opengis.net/def/function/geosparql/>\n"
+           + "DELETE \n" //
+           + "{\n"
+           + "  <urn:geo> geo:asWKT ?point \n"
+           + "}"
+           + "WHERE { \n"
+           + "  <urn:geo> geo:asWKT ?point .\n"
+           + "  FILTER(geof:sfWithin(?point, \"POLYGON((0 0, 2 0, 2 1, 0 1, 0 0))\"^^geo:wktLiteral))"
+           + "}";
+
+        update = conn.prepareUpdate(QueryLanguage.SPARQL, delete);
+        update.execute();
+
+        assertEquals(2, client.getDatabase("indexerTests").getCollection("rya_rya_geo").count());
         assertEquals(0, client.getDatabase("indexerTests").getCollection("rya_rya_temporal").count());
         assertEquals(1, client.getDatabase("indexerTests").getCollection("rya_rya_freetext").count());
-        assertEquals(6, client.getDatabase("indexerTests").getCollection("rya__triples").count());
+        assertEquals(4, client.getDatabase("indexerTests").getCollection("rya__triples").count());
     }
 
     private void populateRya() throws Exception {
@@ -146,7 +165,8 @@ public class MongoGeoIT {
         final ValueFactory vf = new ValueFactoryImpl();
         final Resource subject = vf.createURI("urn:geo");
         final URI predicate = GeoConstants.GEO_AS_WKT;
-        final Value object = vf.createLiteral(geo.toString(), GeoConstants.XMLSCHEMA_OGC_WKT);
+        final WKTWriter w = new WKTWriter();
+        final Value object = vf.createLiteral(w.write(geo), GeoConstants.XMLSCHEMA_OGC_WKT);
         return RdfToRyaConversions.convertStatement(new StatementImpl(subject, predicate, object));
     }
 

@@ -127,8 +127,8 @@ public abstract class AbstractMongoIndexer<T extends IndexingMongoDBStorageStrat
 
     @Override
     public void deleteStatement(final RyaStatement stmt) throws IOException {
-       final DBObject obj = storageStrategy.getQuery(stmt);
-       collection.remove(obj);
+        final DBObject obj = storageStrategy.getQuery(stmt);
+        collection.remove(obj);
     }
 
     @Override
@@ -151,7 +151,7 @@ public abstract class AbstractMongoIndexer<T extends IndexingMongoDBStorageStrat
                 }
             }
         } catch (final IllegalArgumentException e) {
-            LOG.error("Unable to parse the statement: " + ryaStatement.toString());
+            LOG.error("Unable to parse the statement: " + ryaStatement.toString(), e);
         }
     }
 

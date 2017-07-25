@@ -28,6 +28,7 @@ import com.vividsolutions.jts.geom.Geometry;
 
 import info.aduna.iteration.CloseableIteration;
 import org.apache.rya.api.persist.index.RyaSecondaryIndexer;
+import org.apache.rya.indexing.accumulo.geo.GeoTupleSet.GeoSearchFunctionFactory.NearQuery;
 
 /**
  * A repository to store, index, and retrieve {@link Statement}s based on geospatial features.
@@ -182,4 +183,28 @@ public interface GeoIndexer extends RyaSecondaryIndexer {
 	 * @return
 	 */
 	public abstract CloseableIteration<Statement, QueryEvaluationException> queryOverlaps(Geometry query, StatementConstraints contraints);
+	
+    /**
+     * Returns statements that contain a geometry that is near the queried {@link Geometry} and meet the {@link StatementConstraints}.
+     * <p>
+     * A geometry is considered near if it within the min/max distances specified in the provided {@link NearQuery}.  This will make a disc (specify max),
+     *  a donut(specify both), or a spheroid complement disc (specify min)
+     * <p>
+     * The distances are specified in meters and must be >= 0.
+     * <p>
+     * To specify max/min distances:
+     * <ul>
+     * <li>Enter parameters in order MAX, MIN -- Donut</li>
+     * <li>Omit the MIN -- Disc</li>
+     * <li>Enter 0 for MAX, and Enter parameter for MIN -- Spheroid complement Dist</li>
+     * <li>Omit both -- Default max/min [TODO: Find these values]</li>
+     * </ul>
+     * <p>
+     * Note: This query will not fail if the min is greater than the max, it will just return no results.
+     * 
+     * @param query the queried geometry, with Optional min and max distance fields.
+     * @param contraints the {@link StatementConstraints}
+     * @return
+     */
+    public abstract CloseableIteration<Statement, QueryEvaluationException> queryNear(NearQuery query, StatementConstraints contraints);
 }

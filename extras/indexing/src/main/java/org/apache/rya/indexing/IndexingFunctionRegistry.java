@@ -61,6 +61,7 @@ public class IndexingFunctionRegistry {
         SEARCH_FUNCTIONS.put(GeoConstants.GEO_SF_CONTAINS, FUNCTION_TYPE.GEO);
         SEARCH_FUNCTIONS.put(GeoConstants.GEO_SF_OVERLAPS, FUNCTION_TYPE.GEO);
         SEARCH_FUNCTIONS.put(GeoConstants.GEO_SF_CROSSES, FUNCTION_TYPE.GEO);
+        SEARCH_FUNCTIONS.put(GeoConstants.GEO_SF_NEAR, FUNCTION_TYPE.GEO);
 
     }
     

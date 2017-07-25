@@ -20,12 +20,14 @@ package org.apache.rya.indexing.mongodb.geo;
 
 import static org.apache.rya.indexing.mongodb.geo.GeoMongoDBStorageStrategy.GeoQueryType.EQUALS;
 import static org.apache.rya.indexing.mongodb.geo.GeoMongoDBStorageStrategy.GeoQueryType.INTERSECTS;
+import static org.apache.rya.indexing.mongodb.geo.GeoMongoDBStorageStrategy.GeoQueryType.NEAR;
 import static org.apache.rya.indexing.mongodb.geo.GeoMongoDBStorageStrategy.GeoQueryType.WITHIN;
 
 import org.apache.log4j.Logger;
 import org.apache.rya.indexing.GeoIndexer;
 import org.apache.rya.indexing.StatementConstraints;
 import org.apache.rya.indexing.accumulo.ConfigUtils;
+import org.apache.rya.indexing.accumulo.geo.GeoTupleSet.GeoSearchFunctionFactory.NearQuery;
 import org.apache.rya.indexing.mongodb.AbstractMongoIndexer;
 import org.apache.rya.indexing.mongodb.geo.GeoMongoDBStorageStrategy.GeoQuery;
 import org.apache.rya.mongodb.MongoDBRdfConfiguration;
@@ -103,6 +105,27 @@ public class MongoGeoIndexer extends AbstractMongoIndexer<GeoMongoDBStorageStrat
             final Geometry query, final StatementConstraints constraints) {
         try {
             final DBObject queryObj = storageStrategy.getQuery(new GeoQuery(WITHIN, query));
+            return withConstraints(constraints, queryObj);
+        } catch (final MalformedQueryException e) {
+            logger.error(e.getMessage(), e);
+            return null;
+        }
+    }
+
+    @Override
+    public CloseableIteration<Statement, QueryEvaluationException> queryNear(final NearQuery query, final StatementConstraints constraints) {
+        double maxDistance = 0;
+        double minDistance = 0;
+        if (query.getMaxDistance().isPresent()) {
+            maxDistance = query.getMaxDistance().get();
+        }
+
+        if (query.getMinDistance().isPresent()) {
+            minDistance = query.getMinDistance().get();
+        }
+
+        try {
+            final DBObject queryObj = storageStrategy.getQuery(new GeoQuery(NEAR, query.getGeometry(), maxDistance, minDistance));
             return withConstraints(constraints, queryObj);
         } catch (final MalformedQueryException e) {
             logger.error(e.getMessage(), e);

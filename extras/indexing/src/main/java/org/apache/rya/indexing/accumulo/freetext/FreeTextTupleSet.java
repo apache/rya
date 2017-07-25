@@ -35,6 +35,7 @@ import org.apache.rya.indexing.external.tupleSet.ExternalTupleSet;
 import org.apache.hadoop.conf.Configuration;
 import org.openrdf.model.Statement;
 import org.openrdf.model.URI;
+import org.openrdf.model.Value;
 import org.openrdf.query.BindingSet;
 import org.openrdf.query.QueryEvaluationException;
 import org.openrdf.query.algebra.QueryModelVisitor;
@@ -152,7 +153,7 @@ public class FreeTextTupleSet extends ExternalTupleSet {
             throw new IllegalArgumentException("Index functions do not support more than two arguments.");
         }
 
-        String queryText = filterInfo.getArguments()[0].stringValue();
+        String queryText = ((Value) filterInfo.getArguments()[0]).stringValue();
 
         return IteratorFactory.getIterator(filterInfo.getSpConstraint(), bindings, queryText, searchFunction);
     }

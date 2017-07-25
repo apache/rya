@@ -126,8 +126,8 @@ public class GeoParseUtils {
      * @param call - The {@link FunctionCall} to match against.
      * @return - The {@link Value}s matched.
      */
-    public static Value[] extractArguments(final String matchName, final FunctionCall call) {
-        final Value args[] = new Value[call.getArgs().size() - 1];
+    public static Object[] extractArguments(final String matchName, final FunctionCall call) {
+        final Object[] args = new Object[call.getArgs().size() - 1];
         int argI = 0;
         for (int i = 0; i != call.getArgs().size(); ++i) {
             final ValueExpr arg = call.getArgs().get(i);
@@ -139,7 +139,7 @@ public class GeoParseUtils {
             } else if (arg instanceof Var && ((Var)arg).hasValue()) {
                 args[argI] = ((Var)arg).getValue();
             } else {
-                throw new IllegalArgumentException("Query error: Found " + arg + ", expected a Literal, BNode or URI");
+                args[argI] = arg;
             }
             ++argI;
         }

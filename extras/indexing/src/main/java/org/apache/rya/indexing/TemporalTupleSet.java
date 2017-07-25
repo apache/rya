@@ -8,6 +8,7 @@ import org.apache.rya.indexing.external.tupleSet.ExternalTupleSet;
 import org.joda.time.DateTime;
 import org.openrdf.model.Statement;
 import org.openrdf.model.URI;
+import org.openrdf.model.Value;
 import org.openrdf.model.impl.URIImpl;
 import org.openrdf.query.BindingSet;
 import org.openrdf.query.QueryEvaluationException;
@@ -117,7 +118,7 @@ public class TemporalTupleSet extends ExternalTupleSet {
             throw new IllegalArgumentException("Index functions do not support more than two arguments.");
         }
 
-        final String queryText = filterInfo.getArguments()[0].stringValue();
+        final String queryText = ((Value) filterInfo.getArguments()[0]).stringValue();
         return IteratorFactory.getIterator(filterInfo.getSpConstraint(), bindings, queryText, searchFunction);
     }
 

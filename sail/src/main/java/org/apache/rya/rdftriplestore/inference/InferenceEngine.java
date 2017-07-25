@@ -127,22 +127,12 @@ public class InferenceEngine {
     public void refreshGraph() throws InferenceEngineException {
         ValueFactory vf = ValueFactoryImpl.getInstance();
         try {
+            CloseableIteration<Statement, QueryEvaluationException> iter;
             //get all subclassof
             Graph graph = TinkerGraph.open();
-            CloseableIteration<Statement, QueryEvaluationException> iter = RyaDAOHelper.query(ryaDAO, null,
-                    RDFS.SUBCLASSOF, null, conf);
-            try {
-                while (iter.hasNext()) {
-                    String edgeName = RDFS.SUBCLASSOF.stringValue();
-                    Statement st = iter.next();
-                    addStatementEdge(graph, edgeName, st);
-                }
-            } finally {
-                if (iter != null) {
-                    iter.close();
-                }
-            }
-
+            addPredicateEdges(RDFS.SUBCLASSOF, Direction.OUT, graph, RDFS.SUBCLASSOF.stringValue());
+            //equivalentClass is the same as subClassOf both ways
+            addPredicateEdges(OWL.EQUIVALENTCLASS, Direction.BOTH, graph, RDFS.SUBCLASSOF.stringValue());
             // Add unions to the subclass graph: if c owl:unionOf LIST(c1, c2, ... cn), then any
             // instances of c1, c2, ... or cn are also instances of c, meaning c is a superclass
             // of all the rest.
@@ -189,41 +179,12 @@ public class InferenceEngine {
                     iter.close();
                 }
             }
-
             subClassOfGraph = graph; //TODO: Should this be synchronized?
 
             graph = TinkerGraph.open();
-
-            iter = RyaDAOHelper.query(ryaDAO, null,
-                    RDFS.SUBPROPERTYOF, null, conf);
-            try {
-                while (iter.hasNext()) {
-                    String edgeName = RDFS.SUBPROPERTYOF.stringValue();
-                    Statement st = iter.next();
-                    addStatementEdge(graph, edgeName, st);
-                }
-            } finally {
-                if (iter != null) {
-                    iter.close();
-                }
-            }
-
+            addPredicateEdges(RDFS.SUBPROPERTYOF, Direction.OUT, graph, RDFS.SUBPROPERTYOF.stringValue());
             //equiv property really is the same as a subPropertyOf both ways
-            iter = RyaDAOHelper.query(ryaDAO, null, OWL.EQUIVALENTPROPERTY, null, conf);
-            try {
-                while (iter.hasNext()) {
-                    String edgeName = RDFS.SUBPROPERTYOF.stringValue();
-                    Statement st = iter.next();
-                    addStatementEdge(graph, edgeName, st);
-                    //reverse is also true
-                    addStatementEdge(graph, edgeName, new StatementImpl((Resource) st.getObject(), st.getPredicate(), st.getSubject()));
-                }
-            } finally {
-                if (iter != null) {
-                    iter.close();
-                }
-            }
-
+            addPredicateEdges(OWL.EQUIVALENTPROPERTY, Direction.BOTH, graph, RDFS.SUBPROPERTYOF.stringValue());
             subPropertyOfGraph = graph; //TODO: Should this be synchronized?
 
             iter = RyaDAOHelper.query(ryaDAO, null, RDF.TYPE, OWL.SYMMETRICPROPERTY, conf);
@@ -414,6 +375,39 @@ public class InferenceEngine {
 
         } catch (QueryEvaluationException e) {
             throw new InferenceEngineException(e);
+        }
+    }
+
+    /**
+     * Query for all triples involving a given predicate and add corresponding edges to a
+     * {@link Graph} in one or both directions.
+     * @param predicate Find all connections via this predicate URI
+     * @param dir Direction of interest: for a matching triple, if {@link Direction#OUT} add an edge
+     *      from subject to object; if {@link Direction#IN} add an edge from object to subject;
+     *      if {@link Direction#BOTH} add both.
+     * @param graph A TinkerPop graph
+     * @param edgeName Label that will be given to all added edges
+     * @throws QueryEvaluationException
+     */
+    private void addPredicateEdges(URI predicate, Direction dir, Graph graph, String edgeName)
+            throws QueryEvaluationException {
+        CloseableIteration<Statement, QueryEvaluationException> iter = RyaDAOHelper.query(ryaDAO,
+                null, predicate, null, conf);
+        try {
+            while (iter.hasNext()) {
+                Statement st = iter.next();
+                if (Direction.OUT.equals(dir) || Direction.BOTH.equals(dir)) {
+                    addStatementEdge(graph, edgeName, st);
+                }
+                if (Direction.IN.equals(dir) || Direction.BOTH.equals(dir)) {
+                    addStatementEdge(graph, edgeName, new StatementImpl((Resource) st.getObject(),
+                            st.getPredicate(), st.getSubject()));
+                }
+            }
+        } finally {
+            if (iter != null) {
+                iter.close();
+            }
         }
     }
 

@@ -35,6 +35,7 @@ import org.junit.Test;
 import org.openrdf.model.Value;
 import org.openrdf.model.ValueFactory;
 import org.openrdf.model.impl.ValueFactoryImpl;
+import org.openrdf.model.vocabulary.FOAF;
 import org.openrdf.query.BindingSet;
 import org.openrdf.query.QueryLanguage;
 import org.openrdf.query.QueryResultHandlerException;
@@ -102,6 +103,42 @@ public class InferenceIT extends TestCase {
         store.shutDown();
         dao.purge(conf);
         dao.destroy();
+    }
+
+    @Test
+    public void testSubClassInferenceQuery() throws Exception {
+        final String ontology = "INSERT DATA { GRAPH <http://updated/test> {\n"
+                + "  <urn:Agent> owl:equivalentClass <http://dbpedia.org/ontology/Agent> . \n"
+                + "  <urn:Person> rdfs:subClassOf <urn:Agent> . \n"
+                + "  [ owl:equivalentClass <http://schema.org/Person> ] rdfs:subClassOf <http://dbpedia.org/ontology/Agent> . \n"
+                + "  <" + FOAF.PERSON.stringValue() + "> owl:equivalentClass <http://dbpedia.org/ontology/Person> . \n"
+                + "  <" + FOAF.PERSON.stringValue() + "> owl:equivalentClass <urn:Person> . \n"
+                + "  <http://dbpedia.org/ontology/Engineer> rdfs:subClassOf <http://dbpedia.org/ontology/Person> . \n"
+                + "  <http://dbpedia.org/ontology/Engineer> rdfs:subClassOf <http://example.org/Person> . \n"
+                + "  <http://dbpedia.org/ontology/Engineer> owl:equivalentClass <http://www.wikidata.org/entity/Q81096> . \n"
+                + "}}";
+        final String instances = "INSERT DATA { GRAPH <http://updated/test> {\n"
+                + "  <urn:Alice> a <http://schema.org/Person> . \n"
+                + "  <urn:Bob> a <http://www.wikidata.org/entity/Q81096> . \n"
+                + "  <urn:Carol> a <http://example.org/Person> . \n"
+                + "  <urn:Dan> a <http://example.org/Engineer> . \n"
+                + "  <urn:Eve> a <urn:Agent> . \n"
+                + "}}";
+        final String query = "SELECT ?x { GRAPH <http://updated/test> { ?x a <urn:Agent> } } \n";
+        conn.prepareUpdate(QueryLanguage.SPARQL, ontology).execute();
+        inferenceEngine.refreshGraph();
+        conn.prepareUpdate(QueryLanguage.SPARQL, instances).execute();
+        conn.prepareTupleQuery(QueryLanguage.SPARQL, query).evaluate(resultHandler);
+        Set<Value> expected = new HashSet<>();
+        expected.add(vf.createURI("urn:Alice"));
+        expected.add(vf.createURI("urn:Bob"));
+        expected.add(vf.createURI("urn:Eve"));
+        Set<Value> returned = new HashSet<>();
+        for (BindingSet bs : solutions) {
+            returned.add(bs.getBinding("x").getValue());
+        }
+        Assert.assertEquals(expected, returned);
+        Assert.assertEquals(expected.size(), solutions.size());
     }
 
     @Test

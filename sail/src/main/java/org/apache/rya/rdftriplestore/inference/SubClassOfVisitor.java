@@ -68,7 +68,7 @@ public class SubClassOfVisitor extends AbstractInferVisitor {
                 String s = UUID.randomUUID().toString();
                 Var typeVar = new Var(s);
                 FixedStatementPattern fsp = new FixedStatementPattern(typeVar, new Var("c-" + s, RDFS.SUBCLASSOF), objVar, conVar);
-                fsp.statements.add(new NullableStatementImpl(subclassof_uri, RDFS.SUBCLASSOF, subclassof_uri));
+                parents.add(subclassof_uri);
                 for (URI u : parents) {
                     fsp.statements.add(new NullableStatementImpl(u, RDFS.SUBCLASSOF, subclassof_uri));
                 }

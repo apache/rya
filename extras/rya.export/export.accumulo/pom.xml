@@ -39,12 +39,10 @@ under the License.
         <dependency>
             <groupId>org.apache.rya</groupId>
             <artifactId>rya.export.api</artifactId>
-            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.rya</groupId>
             <artifactId>rya.indexing</artifactId>
-            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.rya</groupId>
@@ -67,23 +65,20 @@ under the License.
         <dependency>
             <groupId>org.apache.accumulo</groupId>
             <artifactId>accumulo-core</artifactId>
-            <version>1.6.4</version>
         </dependency>
         <dependency>
             <groupId>org.apache.accumulo</groupId>
             <artifactId>accumulo-start</artifactId>
-            <version>1.6.4</version>
         </dependency>
         <dependency>
             <groupId>org.apache.accumulo</groupId>
             <artifactId>accumulo</artifactId>
-            <version>1.6.4</version>
+            <version>${accumulo.version}</version>
             <type>pom</type>
         </dependency>
         <dependency>
             <groupId>org.apache.thrift</groupId>
             <artifactId>libthrift</artifactId>
-            <version>0.9.1</version>
         </dependency>
     </dependencies>
     <build>
@@ -91,7 +86,6 @@ under the License.
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>jaxb2-maven-plugin</artifactId>
-                <version>2.2</version>
                 <executions>
                     <execution>
                         <id>xjc</id>

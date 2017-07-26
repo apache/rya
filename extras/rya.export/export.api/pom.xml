@@ -57,24 +57,20 @@ under the License.
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
-            <version>4.8.2</version>
             <scope>test</scope>
         </dependency>
 
         <dependency>
             <groupId>org.apache.rya</groupId>
             <artifactId>mongodb.rya</artifactId>
-            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
-            <version>${slf4j.version}</version>
         </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-log4j12</artifactId>
-            <version>${slf4j.version}</version>
         </dependency>
         <dependency>
             <groupId>org.glassfish.jaxb</groupId>
@@ -84,37 +80,10 @@ under the License.
     </dependencies>
 
     <build>
-        <pluginManagement>
-            <plugins>
-                <!--
-                    If we e.g. execute on JDK 1.7, we should compile for Java 7 to get
-                    the same (or higher) JAXB API version as used during the xjc execution.
-                -->
-                <plugin>
-                    <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-compiler-plugin</artifactId>
-                    <configuration>
-                        <source>1.8</source>
-                        <target>1.8</target>
-                    </configuration>
-                </plugin>
-            </plugins>
-        </pluginManagement>
-    
         <plugins>
-            <plugin>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <version>2.0.2</version>
-                <configuration>
-                    <source>1.8</source>
-                    <target>1.8</target>
-                </configuration>
-           </plugin>
-
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-failsafe-plugin</artifactId>
-                <version>2.19.1</version>
                 <executions>
                     <execution>
                         <goals>
@@ -146,7 +115,6 @@ under the License.
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
-                <version>2.4.3</version>
                 <executions>
                     <execution>
                         <phase>package</phase>
@@ -229,7 +197,6 @@ under the License.
             -->
             <plugin>
                 <artifactId>maven-resources-plugin</artifactId>
-                <version>2.7</version>
                 <executions>
                     <execution>
                         <id>copy-resource-bin</id>
@@ -238,7 +205,7 @@ under the License.
                             <goal>copy-resources</goal>
                         </goals>
                         <configuration>
-                            <outputDirectory>${project.build.directory}/distribution/${artifactId}-${version}/bin</outputDirectory>
+                            <outputDirectory>${project.build.directory}/distribution/${project.artifactId}-${project.version}/bin</outputDirectory>
                             <resources>
                                 <resource>
                                     <directory>${basedir}/startup_scripts</directory>
@@ -253,7 +220,7 @@ under the License.
                             <goal>copy-resources</goal>
                         </goals>
                         <configuration>
-                            <outputDirectory>${project.build.directory}/distribution/${artifactId}-${version}/config</outputDirectory>
+                            <outputDirectory>${project.build.directory}/distribution/${project.artifactId}-${project.version}/config</outputDirectory>
                             <resources>
                                 <resource>
                                     <directory>${basedir}/config</directory>
@@ -268,7 +235,7 @@ under the License.
                             <goal>copy-resources</goal>
                         </goals>
                         <configuration>
-                            <outputDirectory>${project.build.directory}/distribution/${artifactId}-${version}/lib</outputDirectory>
+                            <outputDirectory>${project.build.directory}/distribution/${project.artifactId}-${project.version}/lib</outputDirectory>
                             <resources>
                                 <resource>
                                     <directory>${project.build.directory}/lib</directory>
@@ -286,7 +253,7 @@ under the License.
                             <goal>copy-resources</goal>
                         </goals>
                         <configuration>
-                            <outputDirectory>${project.build.directory}/distribution/${artifactId}-${version}/</outputDirectory>
+                            <outputDirectory>${project.build.directory}/distribution/${project.artifactId}-${project.version}/</outputDirectory>
                             <resources>
                                 <resource>
                                     <directory>${project.build.directory}</directory>
@@ -309,7 +276,7 @@ under the License.
                             <goal>copy-resources</goal>
                         </goals>
                         <configuration>
-                            <outputDirectory>${project.build.directory}/distribution/${artifactId}-${version}/</outputDirectory>
+                            <outputDirectory>${project.build.directory}/distribution/${project.artifactId}-${project.version}/</outputDirectory>
                             <resources>
                                 <resource>
                                     <directory>${basedir}</directory>

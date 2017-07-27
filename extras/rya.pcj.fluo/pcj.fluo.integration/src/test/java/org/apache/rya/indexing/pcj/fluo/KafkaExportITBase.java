@@ -21,6 +21,8 @@ package org.apache.rya.indexing.pcj.fluo;
 import static java.util.Objects.requireNonNull;
 import static org.junit.Assert.assertEquals;
 
+import java.io.IOException;
+import java.net.ServerSocket;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.ArrayList;
@@ -72,7 +74,6 @@ import org.openrdf.model.Statement;
 import org.openrdf.repository.sail.SailRepositoryConnection;
 import org.openrdf.sail.Sail;
 
-
 import kafka.admin.AdminUtils;
 import kafka.admin.RackAwareMode;
 import kafka.server.KafkaConfig;
@@ -94,7 +95,7 @@ public class KafkaExportITBase extends AccumuloExportITBase {
 
     private static final String ZKHOST = "127.0.0.1";
     private static final String BROKERHOST = "127.0.0.1";
-    private static final String BROKERPORT = "9092";
+    private static final String BROKERPORT = getFreePort();
     private ZkUtils zkUtils;
     private KafkaServer kafkaServer;
     private EmbeddedZookeeper zkServer;
@@ -180,6 +181,17 @@ public class KafkaExportITBase extends AccumuloExportITBase {
         final KafkaConfig config = new KafkaConfig(brokerProps);
         final Time mock = new MockTime();
         kafkaServer = TestUtils.createServer(config, mock);
+    }
+    
+    static private String getFreePort() {
+        try {
+            ServerSocket s = new ServerSocket(0);
+            int port = s.getLocalPort();    // returns the port the system selected
+            s.close();
+            return Integer.toString(port);
+        } catch (IOException e) {
+        }
+        return "9092";
     }
 
     @After

@@ -16,24 +16,6 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-///**
-// * Licensed to the Apache Software Foundation (ASF) under one
-// * or more contributor license agreements.  See the NOTICE file
-// * distributed with this work for additional information
-// * regarding copyright ownership.  The ASF licenses this file
-// * to you under the Apache License, Version 2.0 (the
-// * "License"); you may not use this file except in compliance
-// * with the License.  You may obtain a copy of the License at
-// *
-// *     http://www.apache.org/licenses/LICENSE-2.0
-// *
-// * Unless required by applicable law or agreed to in writing,
-// * software distributed under the License is distributed on an
-// * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
-// * KIND, either express or implied.  See the License for the
-// * specific language governing permissions and limitations
-// * under the License.
-// */
 package org.apache.rya.shell;
 
 import static org.junit.Assert.assertEquals;
@@ -44,17 +26,16 @@ import static org.mockito.Mockito.when;
 import java.io.IOException;
 
 import org.apache.accumulo.minicluster.MiniAccumuloCluster;
-import org.junit.Test;
-import org.springframework.context.ApplicationContext;
-import org.springframework.shell.Bootstrap;
-import org.springframework.shell.core.CommandResult;
-import org.springframework.shell.core.JLineShellComponent;
-
 import org.apache.rya.api.client.Install.InstallConfiguration;
 import org.apache.rya.shell.SharedShellState.ConnectionState;
 import org.apache.rya.shell.SharedShellState.ShellState;
 import org.apache.rya.shell.util.InstallPrompt;
 import org.apache.rya.shell.util.PasswordPrompt;
+import org.junit.Test;
+import org.springframework.context.ApplicationContext;
+import org.springframework.shell.Bootstrap;
+import org.springframework.shell.core.CommandResult;
+import org.springframework.shell.core.JLineShellComponent;
 
 /**
  * Integration tests the methods of {@link RyaConnectionCommands}.
@@ -201,7 +182,7 @@ public class RyaConnectionCommandsIT extends RyaShellITBase {
 
         final InstallPrompt installPrompt = context.getBean( InstallPrompt.class );
         when(installPrompt.promptInstanceName()).thenReturn("testInstance");
-        when(installPrompt.promptInstallConfiguration()).thenReturn( installConf );
+        when(installPrompt.promptInstallConfiguration("testInstance")).thenReturn( installConf );
         when(installPrompt.promptVerified(instanceName, installConf)).thenReturn(true);
 
         result = shell.executeCommand( RyaAdminCommands.INSTALL_CMD );

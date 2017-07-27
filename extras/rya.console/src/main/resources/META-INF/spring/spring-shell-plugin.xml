@@ -32,9 +32,19 @@
     <bean id="sharedShellState" class="org.apache.rya.shell.SharedShellState" />
     <bean id="passwordPrompt" class="org.apache.rya.shell.util.PasswordPrompt.JLinePasswordPrompt" />
     <bean id="installPrompt" class="org.apache.rya.shell.util.InstallPrompt.JLineAccumuloInstallPrompt" />
+    <bean id="uninstallPrompt" class="org.apache.rya.shell.util.UninstallPrompt.JLineUninstallPrompt" />
     <bean id="sparqlPrompt" class="org.apache.rya.shell.util.SparqlPrompt.JLineSparqlPrompt" />
+    <bean id="consolePrinter" class="org.apache.rya.shell.util.ConsolePrinter.JLineConsolePrinter" />
     
     <!-- Define each of the beans that hold onto commands used by the shell. -->
     <bean id="ryaConnectionCommands" class="org.apache.rya.shell.RyaConnectionCommands" />
     <bean id="ryaAdminCommands" class="org.apache.rya.shell.RyaAdminCommands" />
+    <bean id="ryaCommands" class="org.apache.rya.shell.RyaCommands" />
+    
+    <!--  
+    <bean id="springHelpCommands" class="org.springframework.shell.commands.HelpCommands" />
+    <bean id="springScriptCommands" class="org.springframework.shell.commands.ScriptCommands" />
+    <bean id="springExitCommands" class="org.springframework.shell.commands.ExitCommands" />
+    -->
+    
 </beans>

@@ -20,6 +20,8 @@ package org.apache.rya.api.client.accumulo;
 
 import static java.util.Objects.requireNonNull;
 
+import org.apache.rya.accumulo.AccumuloRdfConfiguration;
+
 import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
 import edu.umd.cs.findbugs.annotations.NonNull;
 import net.jcip.annotations.Immutable;
@@ -33,7 +35,7 @@ public class AccumuloConnectionDetails {
     private final String username;
     private final char[] password;
     private final String instanceName;
-    private final String zookeepers; 
+    private final String zookeepers;
 
     /**
      * Constructs an instance of {@link AccumuloConnectionDetails}.
@@ -80,5 +82,24 @@ public class AccumuloConnectionDetails {
      */
     public String getZookeepers() {
         return zookeepers;
+    }
+
+    /**
+     *
+     * @param ryaInstanceName - The Rya instance to connect to.
+     * @return Constructs a new {@link AccumuloRdfConfiguration} object with values from this object.
+     */
+    public AccumuloRdfConfiguration buildAccumuloRdfConfiguration(final String ryaInstanceName) {
+        
+        // Note, we don't use the AccumuloRdfConfigurationBuilder here because it explicitly sets 
+        // authorizations and visibilities to an empty string if they are not set on the builder.
+        // If they are null in the AccumuloRdfConfiguration object, then Accumulo uses the values stored in accumulo for the user.
+        final AccumuloRdfConfiguration conf = new AccumuloRdfConfiguration();
+                conf.setTablePrefix(ryaInstanceName);
+                conf.setAccumuloZookeepers(zookeepers);
+                conf.setAccumuloInstance(instanceName);
+                conf.setAccumuloUser(username);
+                conf.setAccumuloPassword(new String(password));
+        return conf;
     }
 }

@@ -23,9 +23,6 @@ import static java.util.Objects.requireNonNull;
 import java.io.IOException;
 import java.util.Set;
 
-import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
-import edu.umd.cs.findbugs.annotations.NonNull;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.util.FieldUtils;
 import org.springframework.shell.core.Shell;
@@ -33,6 +30,8 @@ import org.springframework.shell.core.Shell;
 import com.google.common.base.Optional;
 import com.google.common.collect.Sets;
 
+import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
+import edu.umd.cs.findbugs.annotations.NonNull;
 import jline.console.ConsoleReader;
 
 /**
@@ -72,6 +71,17 @@ public abstract class JLinePrompt {
      * @return A prompt that shows the default value for a field.
      */
     public String makeFieldPrompt(final String fieldName, final boolean defaultValue) {
+    	return makeFieldPrompt(fieldName, Boolean.toString(defaultValue));
+    }
+
+    /**
+     * Formats a prompt that shows a default value.
+     *
+     * @param fieldName - The text portion that appears before the default. (not null)
+     * @param defaultValue - The default value that will be shown in the prompt.
+     * @return A prompt that shows the default value for a field.
+     */
+    public String makeFieldPrompt(final String fieldName, final String defaultValue) {
         return String.format("%s [default: %s]: ", fieldName, defaultValue);
     }
 

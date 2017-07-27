@@ -20,10 +20,11 @@ package org.apache.rya.shell.util;
 
 import java.io.IOException;
 
+import org.apache.rya.api.client.Install.InstallConfiguration;
+
 import com.google.common.base.Optional;
 
 import jline.console.ConsoleReader;
-import org.apache.rya.api.client.Install.InstallConfiguration;
 
 /**
  * A mechanism for prompting a user of the application for a the parameters
@@ -42,10 +43,11 @@ public interface InstallPrompt {
     /**
      * Prompt the user for which features of Rya they want enabled.
      *
+     * @param instanceName - The Rya instance name.
      * @return The value they entered.
      * @throws IOException There was a problem reading the values.
      */
-    public InstallConfiguration promptInstallConfiguration() throws IOException;
+    public InstallConfiguration promptInstallConfiguration(String instanceName) throws IOException;
 
     /**
      * Prompt the user asking them if they are sure they would like to do the
@@ -63,14 +65,13 @@ public interface InstallPrompt {
 
         @Override
         public String promptInstanceName() throws IOException {
-            final ConsoleReader reader = getReader();
-            reader.setPrompt("Rya Instance Name: ");
-            final String instanceName = reader.readLine();
+            final String prompt = makeFieldPrompt("Rya Instance Name", "rya_");
+            final String instanceName = promptString(prompt, Optional.of("rya_"));
             return instanceName;
         }
 
         @Override
-        public InstallConfiguration promptInstallConfiguration() throws IOException {
+        public InstallConfiguration promptInstallConfiguration(final String instanceName) throws IOException {
             final InstallConfiguration.Builder builder = InstallConfiguration.builder();
 
             String prompt = makeFieldPrompt("Use Shard Balancing (improves streamed input write speeds)", false);
@@ -89,23 +90,23 @@ public interface InstallPrompt {
             final boolean enableGeoIndexing = promptBoolean(prompt, Optional.of(true));
             builder.setEnableGeoIndex( enableGeoIndexing );
 
+            prompt = makeFieldPrompt("Use Temporal Indexing", true);
+            final boolean useTemporalIndexing = promptBoolean(prompt, Optional.of(true));
+            builder.setEnableTemporalIndex( useTemporalIndexing );
+
             prompt = makeFieldPrompt("Use Precomputed Join Indexing", true);
             final boolean enablePCJIndexing = promptBoolean(prompt, Optional.of(true));
             builder.setEnablePcjIndex( enablePCJIndexing );
 
             if(enablePCJIndexing) {
-                final boolean useFluoApp = promptBoolean("Use a Fluo application to update the PCJ? ", Optional.absent());
+                final boolean useFluoApp = promptBoolean("Use a Fluo application to update the PCJ Index? (y/n) ", Optional.absent());
 
                 if(useFluoApp) {
-                    prompt = "PCJ Updater Fluo Application Name: ";
-                    final String fluoAppName = promptString(prompt, Optional.<String>absent());
+                    prompt = makeFieldPrompt("PCJ Updater Fluo Application Name (must be initialized)", instanceName + "pcj_updater");
+                    final String fluoAppName = promptString(prompt, Optional.of(instanceName + "pcj_updater"));
                     builder.setFluoPcjAppName(fluoAppName);
                 }
             }
-
-            prompt = makeFieldPrompt("Use Temporal Indexing", true);
-            final boolean useTemporalIndexing = promptBoolean(prompt, Optional.of(true));
-            builder.setEnableTemporalIndex( useTemporalIndexing );
 
             return builder.build();
         }
@@ -120,7 +121,7 @@ public interface InstallPrompt {
             reader.println("   Use Entity Centric Indexing: " + installConfig.isEntityCentrixIndexEnabled());
             reader.println("   Use Free Text Indexing: " + installConfig.isFreeTextIndexEnabled());
             reader.println("   Use Geospatial Indexing: " + installConfig.isGeoIndexEnabled());
-
+            reader.println("   Use Temporal Indexing: " + installConfig.isTemporalIndexEnabled());
             reader.println("   Use Precomputed Join Indexing: " + installConfig.isPcjIndexEnabled());
             if(installConfig.isPcjIndexEnabled()) {
                 if(installConfig.getFluoPcjAppName().isPresent()) {
@@ -130,10 +131,9 @@ public interface InstallPrompt {
                 }
             }
 
-            reader.println("   Use Temporal Indexing: " + installConfig.isTemporalIndexEnabled());
             reader.println("");
 
-            return promptBoolean("Continue with the install? ", Optional.<Boolean>absent());
+            return promptBoolean("Continue with the install? (y/n) ", Optional.absent());
         }
     }
 }

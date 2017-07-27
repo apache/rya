@@ -26,6 +26,14 @@ import java.nio.CharBuffer;
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
 import org.apache.accumulo.core.client.Connector;
+import org.apache.rya.api.client.InstanceExists;
+import org.apache.rya.api.client.RyaClient;
+import org.apache.rya.api.client.RyaClientException;
+import org.apache.rya.api.client.accumulo.AccumuloConnectionDetails;
+import org.apache.rya.api.client.accumulo.AccumuloRyaClientFactory;
+import org.apache.rya.shell.SharedShellState.ConnectionState;
+import org.apache.rya.shell.util.ConnectorFactory;
+import org.apache.rya.shell.util.PasswordPrompt;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.shell.core.CommandMarker;
 import org.springframework.shell.core.annotation.CliAvailabilityIndicator;
@@ -34,15 +42,6 @@ import org.springframework.shell.core.annotation.CliOption;
 import org.springframework.stereotype.Component;
 
 import com.google.common.base.Optional;
-
-import org.apache.rya.api.client.InstanceExists;
-import org.apache.rya.api.client.RyaClientException;
-import org.apache.rya.api.client.RyaClient;
-import org.apache.rya.api.client.accumulo.AccumuloConnectionDetails;
-import org.apache.rya.api.client.accumulo.AccumuloRyaClientFactory;
-import org.apache.rya.shell.SharedShellState.ConnectionState;
-import org.apache.rya.shell.util.ConnectorFactory;
-import org.apache.rya.shell.util.PasswordPrompt;
 
 /**
  * Spring Shell commands that manage the connection that is used by the shell.
@@ -53,7 +52,7 @@ public class RyaConnectionCommands implements CommandMarker {
     // Command line commands.
     public static final String PRINT_CONNECTION_DETAILS_CMD = "print-connection-details";
     public static final String CONNECT_ACCUMULO_CMD = "connect-accumulo";
-    public static final String CONNECT_INSTANCE_CMD = "connect-to-instance";
+    public static final String CONNECT_INSTANCE_CMD = "connect-rya";
     public static final String DISCONNECT_COMMAND_NAME_CMD = "disconnect";
 
     private final SharedShellState sharedState;
@@ -139,9 +138,9 @@ public class RyaConnectionCommands implements CommandMarker {
         return "Connected. You must select a Rya instance to interact with next.";
     }
 
-    @CliCommand(value = CONNECT_INSTANCE_CMD, help = "Connect to a specific ")
+    @CliCommand(value = CONNECT_INSTANCE_CMD, help = "Connect to a specific Rya instance")
     public void connectToInstance(
-            @CliOption(key = {"instance"}, mandatory = true, help = "The name of the Rya Instance the shell will interact with.")
+            @CliOption(key = {"instance"}, mandatory = true, help = "The name of the Rya instance the shell will interact with.")
             final String instance) {
         try {
             final InstanceExists instanceExists = sharedState.getShellState().getConnectedCommands().get().getInstanceExists();
@@ -160,7 +159,7 @@ public class RyaConnectionCommands implements CommandMarker {
         sharedState.connectedToInstance(instance);
     }
 
-    @CliCommand(value = DISCONNECT_COMMAND_NAME_CMD, help = "Disconnect the shell from the Rya storage it is connect to.")
+    @CliCommand(value = DISCONNECT_COMMAND_NAME_CMD, help = "Disconnect the shell's Rya storage connection (Accumulo).")
     public void disconnect() {
         sharedState.disconnected();
     }

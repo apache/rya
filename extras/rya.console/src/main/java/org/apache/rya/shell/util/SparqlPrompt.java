@@ -20,9 +20,10 @@ package org.apache.rya.shell.util;
 
 import java.io.IOException;
 
+import com.google.common.base.Optional;
+
 import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
 import edu.umd.cs.findbugs.annotations.NonNull;
-
 import jline.console.ConsoleReader;
 
 /**
@@ -32,13 +33,12 @@ import jline.console.ConsoleReader;
 public interface SparqlPrompt {
 
     /**
-     * Prompt the user for a SPARQL query, wait for their input, and then get the
-     * value they entered.
+     * Prompt the user for a SPARQL query, wait for their input, and then get the value they entered.
      *
-     * @return The user entered SPARQL query.
-     * @throws IOEXception There was a problem reading the user's input.
+     * @return The user entered SPARQL query, or an empty string if the user aborts.
+     * @throws IOException There was a problem reading the user's input.
      */
-    public String getSparql() throws IOException;
+    public Optional<String> getSparql() throws IOException;
 
     /**
      * Prompts a user for a SPARQL query using a JLine {@link ConsoleReader}.
@@ -46,11 +46,37 @@ public interface SparqlPrompt {
     @DefaultAnnotation(NonNull.class)
     public static class JLineSparqlPrompt extends JLinePrompt implements SparqlPrompt {
 
+        private final String EXECUTE_COMMAND = "\\e";
+        private final String CLEAR_COMMAND = "\\c";
+
         @Override
-        public String getSparql() throws IOException {
+        public Optional<String> getSparql() throws IOException {
             final ConsoleReader reader = getReader();
-            reader.setPrompt("SPARQL: ");
-            return reader.readLine();
+            reader.setCopyPasteDetection(true); // disable tab completion from activating
+            reader.setHistoryEnabled(false);    // don't store SPARQL fragments in the command history
+            try {
+                reader.println("Enter a SPARQL Query.");
+                reader.println("Type '" + EXECUTE_COMMAND + "' to execute the current query.");
+                reader.println("Type '" + CLEAR_COMMAND + "' to clear the current query.");
+                reader.flush();
+
+                final StringBuilder sb = new StringBuilder();
+                String line = reader.readLine("SPARQL> ");
+                while (!line.endsWith(CLEAR_COMMAND) && !line.endsWith(EXECUTE_COMMAND)) {
+                    sb.append(line).append("\n");
+                    line = reader.readLine("     -> ");
+                }
+
+                if (line.endsWith(EXECUTE_COMMAND)) {
+                    sb.append(line.substring(0, line.length() - EXECUTE_COMMAND.length()));
+                    return Optional.of(sb.toString());
+                }
+                return Optional.absent();
+            } finally {
+                reader.setHistoryEnabled(true);      // restore the ConsoleReader's settings
+                reader.setCopyPasteDetection(false); // restore tab completion
+            }
         }
     }
+
 }

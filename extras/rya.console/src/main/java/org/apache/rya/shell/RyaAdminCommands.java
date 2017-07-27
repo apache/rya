@@ -55,8 +55,9 @@ public class RyaAdminCommands implements CommandMarker {
 
     public static final String CREATE_PCJ_CMD = "create-pcj";
     public static final String DELETE_PCJ_CMD = "delete-pcj";
-    public static final String GET_INSTANCE_DETAILS_CMD = "get-instance-details";
+    public static final String PRINT_INSTANCE_DETAILS_CMD = "print-instance-details";
     public static final String INSTALL_CMD = "install";
+    public static final String INSTALL_PARAMETERS_CMD = "install-with-parameters";
     public static final String LIST_INSTANCES_CMD = "list-instances";
     public static final String UNINSTALL_CMD = "uninstall";
     public static final String ADD_USER_CMD = "add-user";
@@ -107,7 +108,7 @@ public class RyaAdminCommands implements CommandMarker {
      * Enables commands that are always available once the Shell is connected to a Rya Instance.
      */
     @CliAvailabilityIndicator({
-        GET_INSTANCE_DETAILS_CMD,
+        PRINT_INSTANCE_DETAILS_CMD,
         UNINSTALL_CMD,
         ADD_USER_CMD,
         REMOVE_USER_CMD})
@@ -171,7 +172,7 @@ public class RyaAdminCommands implements CommandMarker {
         }
     }
 
-    @CliCommand(value = INSTALL_CMD, help = "Create a new instance of Rya.")
+    @CliCommand(value = INSTALL_CMD, help = "Create a new instance of Rya interactively.")
     public String install() {
         // Fetch the commands that are connected to the store.
         final RyaClient commands = state.getShellState().getConnectedCommands().get();
@@ -183,7 +184,7 @@ public class RyaAdminCommands implements CommandMarker {
             while(!verified) {
                 // Use the install prompt to fetch the user's installation options.
                 instanceName = installPrompt.promptInstanceName();
-                installConfig = installPrompt.promptInstallConfiguration();
+                installConfig = installPrompt.promptInstallConfiguration(instanceName);
 
                 // Verify the configuration is what the user actually wants to do.
                 verified = installPrompt.promptVerified(instanceName, installConfig);
@@ -200,8 +201,65 @@ public class RyaAdminCommands implements CommandMarker {
         }
     }
 
-    @CliCommand(value = GET_INSTANCE_DETAILS_CMD, help = "Print information about how the Rya instance is configured.")
-    public String getInstanceDetails() {
+    @CliCommand(value = INSTALL_PARAMETERS_CMD, help = "Create a new instance of Rya with command line parameters.")
+    public String installWithParameters(
+            @CliOption(key = {"instanceName"}, mandatory = true, help = "The name of the Rya instance to create.")
+            final String instanceName,
+
+            @CliOption(key = {"enableTableHashPrefix"}, mandatory = false, help = "Use Shard Balancing (improves streamed input write speeds).", unspecifiedDefaultValue = "false", specifiedDefaultValue = "true")
+            final boolean enableTableHashPrefix,
+
+            @CliOption(key = {"enableEntityCentricIndex"}, mandatory = false, help = "Use Entity Centric Indexing.", unspecifiedDefaultValue = "false", specifiedDefaultValue = "true")
+            final boolean enableEntityCentricIndex,
+
+            @CliOption(key = {"enableFreeTextIndex"}, mandatory = false, help = "Use Free Text Indexing.", unspecifiedDefaultValue = "false", specifiedDefaultValue = "true")
+            final boolean enableFreeTextIndex,
+
+            @CliOption(key = {"enableGeospatialIndex"}, mandatory = false, help = "Use Geospatial Indexing.", unspecifiedDefaultValue = "false", specifiedDefaultValue = "true")
+            final boolean enableGeospatialIndex,
+
+            @CliOption(key = {"enableTemporalIndex"}, mandatory = false, help = "Use Temporal Indexing.", unspecifiedDefaultValue = "false", specifiedDefaultValue = "true")
+            final boolean enableTemporalIndex,
+
+            @CliOption(key = {"enablePcjIndex"}, mandatory = false, help = "Use Precomputed Join (PCJ) Indexing.", unspecifiedDefaultValue = "false", specifiedDefaultValue = "true")
+            final boolean enablePcjIndex,
+
+            @CliOption(key = {"fluoPcjAppName"}, mandatory = false, help = "Fluo Application Name for PCJ Index Updater (fluo app must be initialized and enablePcjIndex=true).")
+            final String fluoPcjAppName
+            ) {
+
+        // Fetch the commands that are connected to the store.
+        final RyaClient commands = state.getShellState().getConnectedCommands().get();
+
+        try {
+            final InstallConfiguration installConfig = InstallConfiguration.builder()
+                    .setEnableTableHashPrefix(enableTableHashPrefix)
+                    .setEnableEntityCentricIndex(enableEntityCentricIndex)
+                    .setEnableFreeTextIndex(enableFreeTextIndex)
+                    .setEnableGeoIndex(enableGeospatialIndex)
+                    .setEnableTemporalIndex(enableTemporalIndex)
+                    .setEnablePcjIndex(enablePcjIndex)
+                    .setFluoPcjAppName(fluoPcjAppName)
+                    .build();
+
+            // Verify the configuration is what the user actually wants to do.
+            if (!installPrompt.promptVerified(instanceName, installConfig)) {
+                return "Skipping Installation.";
+            }
+
+            // Execute the command.
+            commands.getInstall().install(instanceName, installConfig);
+            return String.format("The Rya instance named '%s' has been installed.", instanceName);
+
+        } catch(final DuplicateInstanceNameException e) {
+            throw new RuntimeException(String.format("A Rya instance named '%s' already exists. Try again with a different name.", instanceName), e);
+        } catch (final IOException | RyaClientException e) {
+            throw new RuntimeException("Could not install a new instance of Rya. Reason: " + e.getMessage(), e);
+        }
+    }
+
+    @CliCommand(value = PRINT_INSTANCE_DETAILS_CMD, help = "Print information about how the Rya instance is configured.")
+    public String printInstanceDetails() {
         // Fetch the command that is connected to the store.
         final ShellState shellState = state.getShellState();
         final RyaClient commands = shellState.getConnectedCommands().get();
@@ -230,11 +288,15 @@ public class RyaAdminCommands implements CommandMarker {
 
         try {
             // Prompt the user for the SPARQL.
-            final String sparql = sparqlPrompt.getSparql();
-            // Execute the command.
-            final String pcjId = commands.getCreatePCJ().createPCJ(ryaInstance, sparql);
-            // Return a message that indicates the ID of the newly created ID.
-            return String.format("The PCJ has been created. Its ID is '%s'.", pcjId);
+            final Optional<String> sparql = sparqlPrompt.getSparql();
+            if (sparql.isPresent()) {
+                // Execute the command.
+                final String pcjId = commands.getCreatePCJ().createPCJ(ryaInstance, sparql.get());
+                // Return a message that indicates the ID of the newly created ID.
+                return String.format("The PCJ has been created. Its ID is '%s'.", pcjId);
+            } else {
+                return ""; // user aborted the SPARQL prompt.
+            }
         } catch (final InstanceDoesNotExistException e) {
             throw new RuntimeException(String.format("A Rya instance named '%s' does not exist.", ryaInstance), e);
         } catch (final IOException | RyaClientException e) {

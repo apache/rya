@@ -123,7 +123,7 @@ public class AccumuloLoadStatementsFileIT extends AccumuloITBase {
         assertEquals(expected, statements);
     }
 
-    private boolean isRyaMetadataStatement(ValueFactory vf, Statement statement) {
+    private boolean isRyaMetadataStatement(final ValueFactory vf, final Statement statement) {
         return statement.getPredicate().equals( vf.createURI("urn:org.apache.rya/2012/05#version") ) ||
                 statement.getPredicate().equals( vf.createURI("urn:org.apache.rya/2012/05#rts") );
     }

@@ -84,7 +84,7 @@ public class RyaAdminCommandsTest {
         state.connectedToInstance(instanceName);
 
         final SparqlPrompt mockSparqlPrompt = mock(SparqlPrompt.class);
-        when(mockSparqlPrompt.getSparql()).thenReturn(sparql);
+        when(mockSparqlPrompt.getSparql()).thenReturn(Optional.of(sparql));
 
         // Execute the command.
         final RyaAdminCommands commands = new RyaAdminCommands(state, mock(InstallPrompt.class), mockSparqlPrompt, mock(UninstallPrompt.class));
@@ -95,6 +95,29 @@ public class RyaAdminCommandsTest {
 
         // Verify a message is returned that explains what was created.
         final String expected = "The PCJ has been created. Its ID is '123412342'.";
+        assertEquals(expected, message);
+    }
+
+    @Test
+    public void createPCJ_cancelledPrompt() throws InstanceDoesNotExistException, RyaClientException, IOException {
+        // Mock the object that performs the create operation.
+        final String instanceName = "unitTest";
+
+        final RyaClient mockCommands = mock(RyaClient.class);
+
+        final SharedShellState state = new SharedShellState();
+        state.connectedToAccumulo(mock(AccumuloConnectionDetails.class), mockCommands);
+        state.connectedToInstance(instanceName);
+
+        final SparqlPrompt mockSparqlPrompt = mock(SparqlPrompt.class);
+        when(mockSparqlPrompt.getSparql()).thenReturn(Optional.absent());
+
+        // Execute the command.
+        final RyaAdminCommands commands = new RyaAdminCommands(state, mock(InstallPrompt.class), mockSparqlPrompt, mock(UninstallPrompt.class));
+        final String message = commands.createPcj();
+
+        // Verify a message is returned that explains what was created.
+        final String expected = "";
         assertEquals(expected, message);
     }
 
@@ -170,7 +193,7 @@ public class RyaAdminCommandsTest {
 
         // Execute the command.
         final RyaAdminCommands commands = new RyaAdminCommands(state, mock(InstallPrompt.class), mock(SparqlPrompt.class), mock(UninstallPrompt.class));
-        final String message = commands.getInstanceDetails();
+        final String message = commands.printInstanceDetails();
 
         // Verify the values that were provided to the command were passed through to the GetInstanceDetails.
         verify(mockGetInstanceDetails).getDetails(eq(instanceName));
@@ -228,7 +251,7 @@ public class RyaAdminCommandsTest {
 
         final InstallPrompt mockInstallPrompt = mock(InstallPrompt.class);
         when(mockInstallPrompt.promptInstanceName()).thenReturn( instanceName );
-        when(mockInstallPrompt.promptInstallConfiguration()).thenReturn( installConfig );
+        when(mockInstallPrompt.promptInstallConfiguration(instanceName)).thenReturn( installConfig );
         when(mockInstallPrompt.promptVerified(eq(instanceName), eq(installConfig))).thenReturn(true);
 
         final RyaAdminCommands commands = new RyaAdminCommands(state, mockInstallPrompt, mock(SparqlPrompt.class), mock(UninstallPrompt.class));
@@ -239,6 +262,97 @@ public class RyaAdminCommandsTest {
 
         // Verify a message is returned that indicates the success of the operation.
         final String expected = "The Rya instance named 'unitTests' has been installed.";
+        assertEquals(expected, message);
+    }
+
+    @Test
+    public void installWithParameters() throws DuplicateInstanceNameException, RyaClientException, IOException {
+        // Mock the object that performs the install operation.
+        final Install mockInstall = mock(Install.class);
+
+        final RyaClient mockCommands = mock(RyaClient.class);
+        when(mockCommands.getInstall()).thenReturn( mockInstall );
+
+        final SharedShellState state = new SharedShellState();
+        state.connectedToAccumulo(mock(AccumuloConnectionDetails.class), mockCommands);
+
+        final String instanceName = "unitTests";
+        final boolean enableTableHashPrefix = false;
+        final boolean enableEntityCentricIndex = true;
+        final boolean enableFreeTextIndex = false;
+        final boolean enableGeospatialIndex = true;
+        final boolean enableTemporalIndex = false;
+        final boolean enablePcjIndex = true;
+        final String fluoPcjAppName = instanceName + "pcj_updater";
+
+        // Execute the command.
+        final InstallConfiguration installConfig = InstallConfiguration.builder()
+                .setEnableTableHashPrefix(enableTableHashPrefix)
+                .setEnableEntityCentricIndex(enableEntityCentricIndex)
+                .setEnableFreeTextIndex(enableFreeTextIndex)
+                .setEnableGeoIndex(enableGeospatialIndex)
+                .setEnableTemporalIndex(enableTemporalIndex)
+                .setEnablePcjIndex(enablePcjIndex)
+                .setFluoPcjAppName(fluoPcjAppName)
+                .build();
+
+        final InstallPrompt mockInstallPrompt = mock(InstallPrompt.class);
+        when(mockInstallPrompt.promptInstanceName()).thenReturn( instanceName );
+        when(mockInstallPrompt.promptInstallConfiguration(instanceName)).thenReturn( installConfig );
+        when(mockInstallPrompt.promptVerified(eq(instanceName), eq(installConfig))).thenReturn(true);
+
+        final RyaAdminCommands commands = new RyaAdminCommands(state, mockInstallPrompt, mock(SparqlPrompt.class), mock(UninstallPrompt.class));
+        final String message = commands.installWithParameters(instanceName, enableTableHashPrefix, enableEntityCentricIndex, enableFreeTextIndex, enableGeospatialIndex, enableTemporalIndex, enablePcjIndex, fluoPcjAppName);
+
+        // Verify the values that were provided to the command were passed through to the Install.
+        verify(mockInstall).install(eq(instanceName), eq(installConfig));
+
+        // Verify a message is returned that indicates the success of the operation.
+        final String expected = "The Rya instance named 'unitTests' has been installed.";
+        assertEquals(expected, message);
+    }
+
+    @Test
+    public void installWithParameters_userAbort() throws DuplicateInstanceNameException, RyaClientException, IOException {
+        // Mock the object that performs the install operation.
+        final Install mockInstall = mock(Install.class);
+
+        final RyaClient mockCommands = mock(RyaClient.class);
+        when(mockCommands.getInstall()).thenReturn( mockInstall );
+
+        final SharedShellState state = new SharedShellState();
+        state.connectedToAccumulo(mock(AccumuloConnectionDetails.class), mockCommands);
+
+        final String instanceName = "unitTests";
+        final boolean enableTableHashPrefix = false;
+        final boolean enableEntityCentricIndex = true;
+        final boolean enableFreeTextIndex = false;
+        final boolean enableGeospatialIndex = true;
+        final boolean enableTemporalIndex = false;
+        final boolean enablePcjIndex = true;
+        final String fluoPcjAppName = instanceName + "pcj_updater";
+
+        // Execute the command.
+        final InstallConfiguration installConfig = InstallConfiguration.builder()
+                .setEnableTableHashPrefix(enableTableHashPrefix)
+                .setEnableEntityCentricIndex(enableEntityCentricIndex)
+                .setEnableFreeTextIndex(enableFreeTextIndex)
+                .setEnableGeoIndex(enableGeospatialIndex)
+                .setEnableTemporalIndex(enableTemporalIndex)
+                .setEnablePcjIndex(enablePcjIndex)
+                .setFluoPcjAppName(fluoPcjAppName)
+                .build();
+
+        final InstallPrompt mockInstallPrompt = mock(InstallPrompt.class);
+        when(mockInstallPrompt.promptInstanceName()).thenReturn( instanceName );
+        when(mockInstallPrompt.promptInstallConfiguration(instanceName)).thenReturn( installConfig );
+        when(mockInstallPrompt.promptVerified(eq(instanceName), eq(installConfig))).thenReturn(false);
+
+        final RyaAdminCommands commands = new RyaAdminCommands(state, mockInstallPrompt, mock(SparqlPrompt.class), mock(UninstallPrompt.class));
+        final String message = commands.installWithParameters(instanceName, enableTableHashPrefix, enableEntityCentricIndex, enableFreeTextIndex, enableGeospatialIndex, enableTemporalIndex, enablePcjIndex, fluoPcjAppName);
+
+        // Verify a message is returned that indicates the success of the operation.
+        final String expected = "Skipping Installation.";
         assertEquals(expected, message);
     }
 

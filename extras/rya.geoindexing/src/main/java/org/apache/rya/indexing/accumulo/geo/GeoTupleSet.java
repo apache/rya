@@ -419,6 +419,10 @@ public class GeoTupleSet extends ExternalTupleSet {
 
             private Optional<Double> getDistanceOpt(final String num, final String name) {
                 try {
+                    double dist = Double.parseDouble(num);
+                    if(dist < 0) {
+                        throw new IllegalArgumentException("Value for: " + name + " must be non-negative.");
+                    }
                     return Optional.of(Double.parseDouble(num));
                 } catch (final NumberFormatException nfe) {
                     throw new IllegalArgumentException("Value for: " + name + " must be a number.");

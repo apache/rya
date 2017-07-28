@@ -213,6 +213,26 @@ public class MongoGeoIndexerFilterIT {
 
         conn.prepareTupleQuery(QueryLanguage.SPARQL, query).evaluate();
     }
+    
+    @Test(expected = IllegalArgumentException.class)
+    public void near_negativeDistance() throws Exception {
+        populateRya();
+
+        //Only captial
+        final String query =
+             "PREFIX geo: <http://www.opengis.net/ont/geosparql#>\n"
+           + "PREFIX geof: <http://www.opengis.net/def/function/geosparql/>\n"
+           + "SELECT * \n" //
+           + "WHERE { \n"
+           + "  <urn:geo> geo:asWKT ?point .\n"
+           + "  FILTER(geof:sfNear(?point, \"POINT(38.8895 77.0353)\"^^geo:wktLiteral, -100))"
+           + "}";
+
+        final TupleQueryResult rez = conn.prepareTupleQuery(QueryLanguage.SPARQL, query).evaluate();
+        while(rez.hasNext()) {
+            rez.next();
+        }
+    }
 
     @Test(expected = QueryEvaluationException.class)
     public void tooManyArgumentsTest() throws Exception {

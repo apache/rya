@@ -189,6 +189,9 @@ public interface GeoIndexer extends RyaSecondaryIndexer {
      * <p>
      * A geometry is considered near if it within the min/max distances specified in the provided {@link NearQuery}.  This will make a disc (specify max),
      *  a donut(specify both), or a spheroid complement disc (specify min)
+     * <p>
+     * The distances are specified in meters and must be >= 0.
+     * <p>
      * To specify max/min distances:
      * <ul>
      * <li>Enter parameters in order MAX, MIN -- Donut</li>

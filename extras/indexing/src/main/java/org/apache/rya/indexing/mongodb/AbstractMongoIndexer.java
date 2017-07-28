@@ -129,8 +129,7 @@ public abstract class AbstractMongoIndexer<T extends IndexingMongoDBStorageStrat
     @Override
     public void deleteStatement(final RyaStatement stmt) throws IOException {
         final DBObject obj = storageStrategy.getQuery(stmt);
-        final WriteResult wr = collection.remove(obj);
-        wr.getN();
+        collection.remove(obj);
     }
 
     @Override

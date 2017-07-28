@@ -19,6 +19,8 @@ package org.apache.rya.indexing.pcj.fluo.integration;
  */
 import static java.util.Objects.requireNonNull;
 
+import java.io.IOException;
+import java.net.ServerSocket;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -67,8 +69,18 @@ import com.google.common.collect.Sets;
 public class KafkaRyaSubGraphExportIT extends KafkaExportITBase {
 
     private static final String BROKERHOST = "127.0.0.1";
-    private static final String BROKERPORT = "9092";
+    private static final String BROKERPORT = getFreePort();
 
+    static private String getFreePort() {
+        try {
+            ServerSocket s = new ServerSocket(0);
+            int port = s.getLocalPort();    // returns the port the system selected
+            s.close();
+            return Integer.toString(port);
+        } catch (IOException e) {
+        }
+        return "9092";
+    }
     /**
      * Add info about the Kafka queue/topic to receive the export.
      *

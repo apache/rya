@@ -35,6 +35,7 @@ import com.mongodb.DBCollection;
 import com.mongodb.DBObject;
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.Geometry;
+import com.vividsolutions.jts.geom.Point;
 import com.vividsolutions.jts.geom.Polygon;
 import com.vividsolutions.jts.io.ParseException;
 import com.vividsolutions.jts.io.WKTReader;
@@ -54,8 +55,12 @@ public class GeoMongoDBStorageStrategy extends IndexingMongoDBStorageStrategy {
             public String getKeyword() {
                 return "$geoWithin";
             }
-        },
-        EQUALS {
+        }, EQUALS {
+            @Override
+            public String getKeyword() {
+                return "$near";
+            }
+        }, NEAR {
             @Override
             public String getKeyword() {
                 return "$near";
@@ -69,16 +74,34 @@ public class GeoMongoDBStorageStrategy extends IndexingMongoDBStorageStrategy {
         private final GeoQueryType queryType;
         private final Geometry geo;
 
+        private final double maxDistance;
+        private final double minDistance;
+
         public GeoQuery(final GeoQueryType queryType, final Geometry geo) {
+            this(queryType, geo, 0, 0);
+        }
+
+        public GeoQuery(final GeoQueryType queryType, final Geometry geo, final double maxDistance, final double minDistance) {
             this.queryType = queryType;
             this.geo = geo;
+            this.maxDistance = maxDistance;
+            this.minDistance = minDistance;
         }
 
         public GeoQueryType getQueryType() {
             return queryType;
         }
+
         public Geometry getGeo() {
             return geo;
+        }
+
+        public double getMaxDistance() {
+            return maxDistance;
+        }
+
+        public double getMinDistance() {
+            return minDistance;
         }
     }
 
@@ -90,15 +113,18 @@ public class GeoMongoDBStorageStrategy extends IndexingMongoDBStorageStrategy {
 
     @Override
     public void createIndices(final DBCollection coll){
-        coll.createIndex("{" + GEO + " : \"2dsphere\"" );
+        coll.createIndex(new BasicDBObject(GEO, "2dsphere"));
     }
 
     public DBObject getQuery(final GeoQuery queryObj) throws MalformedQueryException {
         final Geometry geo = queryObj.getGeo();
         final GeoQueryType queryType = queryObj.getQueryType();
-        if(queryType != GeoQueryType.EQUALS && !(geo instanceof Polygon)) {
+        if (queryType == GeoQueryType.WITHIN && !(geo instanceof Polygon)) {
             //They can also be applied to MultiPolygons, but those are not supported either.
             throw new MalformedQueryException("Mongo Within operations can only be performed on Polygons.");
+        } else if(queryType == GeoQueryType.NEAR && !(geo instanceof Point)) {
+            //They can also be applied to Point, but those are not supported either.
+            throw new MalformedQueryException("Mongo near operations can only be performed on Points.");
         }
 
         BasicDBObject query;
@@ -113,6 +139,20 @@ public class GeoMongoDBStorageStrategy extends IndexingMongoDBStorageStrategy {
             } else {
                 query = new BasicDBObject(GEO, points);
             }
+        } else if(queryType.equals(GeoQueryType.NEAR)) {
+            final BasicDBObject geoDoc =
+                new BasicDBObject("$geometry",
+                    new BasicDBObject("type", "Point")
+                        .append("coordinates", getPoint(geo))
+                    );
+            if(queryObj.getMaxDistance() != 0) {
+                geoDoc.append("$maxDistance", queryObj.getMaxDistance());
+            }
+
+            if(queryObj.getMinDistance() != 0) {
+                geoDoc.append("$minDistance", queryObj.getMinDistance());
+            }
+            query = new BasicDBObject(GEO, new BasicDBObject(queryType.getKeyword(), geoDoc));
         } else {
             query = new BasicDBObject(GEO, new BasicDBObject(queryType.getKeyword(), new BasicDBObject("$polygon", getCorrespondingPoints(geo))));
         }
@@ -132,7 +172,11 @@ public class GeoMongoDBStorageStrategy extends IndexingMongoDBStorageStrategy {
                 return null;
             }
             final BasicDBObject base = (BasicDBObject) super.serialize(ryaStatement);
-            base.append(GEO, getCorrespondingPoints(geo));
+            if (geo.getNumPoints() > 1) {
+                base.append(GEO, getCorrespondingPoints(geo));
+            } else {
+                base.append(GEO, getPoint(geo));
+            }
             return base;
         } catch(final ParseException e) {
             LOG.error("Could not create geometry for statement " + ryaStatement, e);
@@ -148,5 +192,12 @@ public class GeoMongoDBStorageStrategy extends IndexingMongoDBStorageStrategy {
             });
         }
         return points;
+    }
+
+    private double[] getPoint(final Geometry geo) {
+        return new double[] {
+            geo.getCoordinate().x,
+            geo.getCoordinate().y
+        };
     }
 }

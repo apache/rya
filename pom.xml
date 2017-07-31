@@ -137,7 +137,21 @@ under the License.
         <jcip.version>1.0-1</jcip.version>
         <findbugs.plugin.version>3.0.4</findbugs.plugin.version>
         <kafka.version>0.10.1.0</kafka.version>
+        
+        <!-- set profile property defaults -->
+        <skip.rya.it>true</skip.rya.it>  <!-- modified by  -P enable-it  -->
     </properties>
+    
+    <profiles>
+        <!-- enable this profile "mvn ... -P enable-it" -->
+        <profile>
+            <id>enable-it</id>
+            <properties>
+                <skip.rya.it>false</skip.rya.it>
+            </properties>
+        </profile>
+    </profiles>
+    
     <dependencyManagement>
         <dependencies>
             <dependency>
@@ -695,6 +709,12 @@ under the License.
                     </exclusion>
                 </exclusions>
             </dependency>
+            <dependency>
+                <groupId>org.apache.kafka</groupId>
+                <artifactId>kafka_2.11</artifactId>
+                <version>${kafka.version}</version>
+                <classifier>test</classifier>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 
@@ -745,6 +765,18 @@ under the License.
                     <artifactId>maven-surefire-plugin</artifactId>
                     <configuration>
                         <argLine>-Dfile.encoding=${project.build.sourceEncoding}</argLine>
+                        <systemPropertyVariables>
+                            <java.io.tmpdir>${project.build.directory}</java.io.tmpdir>
+                        </systemPropertyVariables>
+                    </configuration>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-failsafe-plugin</artifactId>
+                    <configuration>
+                        <systemPropertyVariables>
+                            <java.io.tmpdir>${project.build.directory}</java.io.tmpdir>
+                        </systemPropertyVariables>
                     </configuration>
                 </plugin>
                 <plugin>
@@ -902,6 +934,9 @@ under the License.
                             <goal>integration-test</goal>
                             <goal>verify</goal>
                         </goals>
+                        <configuration>
+                            <skipITs>${skip.rya.it}</skipITs>
+                        </configuration>
                     </execution>
                 </executions>
             </plugin>

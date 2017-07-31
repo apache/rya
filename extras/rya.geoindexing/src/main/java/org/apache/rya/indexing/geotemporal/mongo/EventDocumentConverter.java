@@ -55,16 +55,7 @@ public class EventDocumentConverter implements DocumentConverter<Event>{
         doc.append(SUBJECT, event.getSubject().getData());
 
         if(event.getGeometry().isPresent()) {
-            final BasicBSONList points = new BasicBSONList();
-            for(final double[] point : geoAdapter.getCorrespondingPoints(event.getGeometry().get())) {
-                final BasicBSONList pointDoc = new BasicBSONList();
-                for(final double p : point) {
-                    pointDoc.add(p);
-                }
-                points.add(pointDoc);
-            }
-
-            doc.append(GEO_KEY, points);
+            doc.append(GEO_KEY, geoAdapter.getCorrespondingPoints(event.getGeometry().get()));
         }
         if(event.isInstant()) {
             if(event.getInstant().isPresent()) {

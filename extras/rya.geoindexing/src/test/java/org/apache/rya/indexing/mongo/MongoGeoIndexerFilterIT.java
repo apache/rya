@@ -213,7 +213,7 @@ public class MongoGeoIndexerFilterIT {
 
         conn.prepareTupleQuery(QueryLanguage.SPARQL, query).evaluate();
     }
-    
+
     @Test(expected = IllegalArgumentException.class)
     public void near_negativeDistance() throws Exception {
         populateRya();

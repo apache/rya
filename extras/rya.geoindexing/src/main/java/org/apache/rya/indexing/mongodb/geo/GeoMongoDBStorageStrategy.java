@@ -31,6 +31,7 @@ import org.openrdf.model.Statement;
 import org.openrdf.query.MalformedQueryException;
 
 import com.mongodb.BasicDBObject;
+import com.mongodb.BasicDBObjectBuilder;
 import com.mongodb.DBCollection;
 import com.mongodb.DBObject;
 import com.vividsolutions.jts.geom.Coordinate;
@@ -129,22 +130,17 @@ public class GeoMongoDBStorageStrategy extends IndexingMongoDBStorageStrategy {
 
         BasicDBObject query;
         if (queryType.equals(GeoQueryType.EQUALS)){
-            final List<double[]> points = getCorrespondingPoints(geo);
-            if (points.size() == 1){
+            if(geo.getNumPoints() == 1) {
                 final List circle = new ArrayList();
-                circle.add(points.get(0));
+                circle.add(getPoint(geo));
                 circle.add(maxDistance);
                 final BasicDBObject polygon = new BasicDBObject("$centerSphere", circle);
                 query = new BasicDBObject(GEO,  new BasicDBObject(GeoQueryType.WITHIN.getKeyword(), polygon));
             } else {
-                query = new BasicDBObject(GEO, points);
+                query = new BasicDBObject(GEO, getCorrespondingPoints(geo));
             }
         } else if(queryType.equals(GeoQueryType.NEAR)) {
-            final BasicDBObject geoDoc =
-                new BasicDBObject("$geometry",
-                    new BasicDBObject("type", "Point")
-                        .append("coordinates", getPoint(geo))
-                    );
+            final BasicDBObject geoDoc = new BasicDBObject("$geometry", getDBPoint(geo));
             if(queryObj.getMaxDistance() != 0) {
                 geoDoc.append("$maxDistance", queryObj.getMaxDistance());
             }
@@ -154,7 +150,8 @@ public class GeoMongoDBStorageStrategy extends IndexingMongoDBStorageStrategy {
             }
             query = new BasicDBObject(GEO, new BasicDBObject(queryType.getKeyword(), geoDoc));
         } else {
-            query = new BasicDBObject(GEO, new BasicDBObject(queryType.getKeyword(), new BasicDBObject("$polygon", getCorrespondingPoints(geo))));
+            final BasicDBObject geoDoc = new BasicDBObject("$geometry", getCorrespondingPoints(geo));
+            query = new BasicDBObject(GEO, new BasicDBObject(queryType.getKeyword(), geoDoc));
         }
 
         return query;
@@ -175,7 +172,7 @@ public class GeoMongoDBStorageStrategy extends IndexingMongoDBStorageStrategy {
             if (geo.getNumPoints() > 1) {
                 base.append(GEO, getCorrespondingPoints(geo));
             } else {
-                base.append(GEO, getPoint(geo));
+                base.append(GEO, getDBPoint(geo));
             }
             return base;
         } catch(final ParseException e) {
@@ -184,20 +181,59 @@ public class GeoMongoDBStorageStrategy extends IndexingMongoDBStorageStrategy {
         }
     }
 
-    public List<double[]> getCorrespondingPoints(final Geometry geo){
-       final List<double[]> points = new ArrayList<double[]>();
-        for (final Coordinate coord : geo.getCoordinates()){
-            points.add(new double[] {
-                coord.x, coord.y
-            });
+    public BasicDBObject getCorrespondingPoints(final Geometry geo) {
+        //Polygons must be a 3 dimensional array.
+
+        //polygons must be a closed loop
+        final BasicDBObjectBuilder geoDocBuilder = new BasicDBObjectBuilder();
+        if (geo instanceof Polygon) {
+            final Polygon poly = (Polygon) geo;
+            final List<List<double[]>> DBpoints = new ArrayList<List<double[]>>();
+
+            // outer shell of the polygon
+            final List<double[]> ring = new ArrayList<>();
+            for (final Coordinate coord : poly.getExteriorRing().getCoordinates()) {
+                ring.add(new double[] { coord.x, coord.y });
+            }
+            DBpoints.add(ring);
+
+            // each hold in the polygon
+            for (int ii = 0; ii < poly.getNumInteriorRing(); ii++) {
+                final List<double[]> holeCoords = new ArrayList<>();
+                for (final Coordinate coord : poly.getInteriorRingN(ii).getCoordinates()) {
+                    holeCoords.add(new double[] { coord.x, coord.y });
+                }
+                DBpoints.add(holeCoords);
+            }
+            geoDocBuilder.append("coordinates", DBpoints)
+                         .append("type", "Polygon");
+        } else {
+            final List<double[]> points = getPoints(geo);
+            geoDocBuilder.append("coordinates", points)
+                         .append("type", "LineString");
+        }
+        return (BasicDBObject) geoDocBuilder.get();
+    }
+
+    private List<double[]> getPoints(final Geometry geo) {
+        final List<double[]> points = new ArrayList<double[]>();
+        for (final Coordinate coord : geo.getCoordinates()) {
+            points.add(new double[] { coord.x, coord.y });
         }
         return points;
     }
 
+    private BasicDBObject getDBPoint(final Geometry geo) {
+        return (BasicDBObject) new BasicDBObjectBuilder()
+            .append("coordinates", getPoint(geo))
+            .append("type", "Point")
+            .get();
+    }
+
     private double[] getPoint(final Geometry geo) {
         return new double[] {
-            geo.getCoordinate().x,
-            geo.getCoordinate().y
+                geo.getCoordinate().x,
+                geo.getCoordinate().y
         };
     }
 }

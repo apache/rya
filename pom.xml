@@ -695,6 +695,12 @@ under the License.
                     </exclusion>
                 </exclusions>
             </dependency>
+            <dependency>
+                <groupId>org.apache.kafka</groupId>
+                <artifactId>kafka_2.11</artifactId>
+                <version>${kafka.version}</version>
+                <classifier>test</classifier>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 

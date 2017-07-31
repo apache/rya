@@ -38,8 +38,8 @@ import com.google.common.util.concurrent.ThreadFactoryBuilder;
 
 /**
  * Handles batch writing MongoDB statement objects to the repository. It takes
- * in a configurable batch size and flush size. If the number of objects placed
- * in the queue reaching the batch size then the objects are bulk written to the
+ * in a configurable batch size and flush time. If the number of objects placed
+ * in the queue reaches the batch size then the objects are bulk written to the
  * datastore. Or if the queue has not filled up after the batch time duration
  * has passed then the statements are flushed out and written to the datastore.
  * @param <T> the type of object that the batch writer's internal collection

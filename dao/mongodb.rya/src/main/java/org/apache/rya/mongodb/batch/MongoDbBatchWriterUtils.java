@@ -21,7 +21,7 @@ package org.apache.rya.mongodb.batch;
 import org.apache.hadoop.conf.Configuration;
 
 /**
- * Constant and utility methods related to batch writing statements in a MongoDB
+ * Constants and utility methods related to batch writing statements in a MongoDB
  * Rya repository.
  */
 public final class MongoDbBatchWriterUtils {

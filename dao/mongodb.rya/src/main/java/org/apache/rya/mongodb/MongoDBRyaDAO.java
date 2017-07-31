@@ -149,7 +149,7 @@ public final class MongoDBRyaDAO implements RyaDAO<MongoDBRdfConfiguration>{
         try {
             mongoDbBatchWriter.start();
         } catch (final MongoDbBatchWriterException e) {
-            log.error("Error start MongoDB batch writer", e);
+            throw new RyaDAOException("Error starting MongoDB batch writer", e);
         }
         isInitialized = true;
     }
@@ -169,7 +169,7 @@ public final class MongoDBRyaDAO implements RyaDAO<MongoDBRdfConfiguration>{
         try {
             mongoDbBatchWriter.shutdown();
         } catch (final MongoDbBatchWriterException e) {
-            throw new RyaDAOException("Error shutting down batch writer", e);
+            throw new RyaDAOException("Error shutting down MongoDB batch writer", e);
         }
         if (mongoClient != null) {
             mongoClient.close();
@@ -315,7 +315,6 @@ public final class MongoDBRyaDAO implements RyaDAO<MongoDBRdfConfiguration>{
         try {
             mongoDbBatchWriter.flush();
         } catch (final MongoDbBatchWriterException e) {
-            log.error(e, e);
             throw new RyaDAOException("Error flushing data.", e);
         }
     }

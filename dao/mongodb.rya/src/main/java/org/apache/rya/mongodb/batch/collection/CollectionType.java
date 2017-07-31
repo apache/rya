@@ -24,7 +24,7 @@ import java.util.List;
  * Wrapper for interacting with the new and legacy MongoDB collection types
  * ({@link com.mongodb.client.MongoCollection} and
  * {@link com.mongodb.DBCollection} respectively)
- * in order to handle inserts from both types and the objects type they
+ * in order to handle inserts from both types and the object types they
  * utilize.
  * @param <T> the type of object the collection type inserts.
  */

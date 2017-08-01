@@ -106,11 +106,29 @@
                 </executions>
                 <configuration>
                     <!-- Place the generated source within the 'src' directory so license-maven-plugin will find it. -->
-                    <outputDirectory>src/main/gen</outputDirectory>
+                    <outputDirectory>src/gen/java</outputDirectory>
                     <packageName>org.apache.rya.benchmark.query</packageName>
                 </configuration>
             </plugin>
             
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>build-helper-maven-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <phase>generate-sources</phase>
+                        <goals>
+                            <goal>add-source</goal>
+                        </goals>
+                        <configuration>
+                            <sources>
+                                <source>src/gen/java</source>
+                            </sources>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
             <!-- Automatically place Apache 2 license headers at the top of all of the project's Java files.
                  Rat runs during the 'validate' lifecycle step, so it will fail the build before this one 
                  executes if any of the headers are missing. Run the build with rat turned off to add
@@ -120,7 +138,7 @@
                 <artifactId>license-maven-plugin</artifactId>
                 <version>2.6</version>
                 <configuration>
-                    <!-- We use a custome Apache 2.0 license because we do not include a copywrite section. -->                
+                    <!-- We use a custom Apache 2.0 license because we do not include a copyright section. -->
                     <header>src/main/resources/LICENSE.txt</header>
                 </configuration>
                 <executions>

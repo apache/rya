@@ -846,7 +846,7 @@ under the License.
                 <plugin>
                     <groupId>org.codehaus.mojo</groupId>
                     <artifactId>jaxb2-maven-plugin</artifactId>
-                    <version>2.2</version>
+                    <version>2.3.1</version>
                 </plugin>
                 <!--This plugin's configuration is used to store Eclipse m2e settings only. It has no influence on the Maven build itself.-->
                 <plugin>
@@ -887,6 +887,17 @@ under the License.
                         <excludes>
                             <exclude>DEPENDENCIES</exclude>
                         </excludes>
+                    </configuration>
+                </plugin>
+                <plugin>
+                    <groupId>org.codehaus.mojo</groupId>
+                    <artifactId>license-maven-plugin</artifactId>
+                    <version>1.13</version>
+                    <configuration>
+                        <licenseName>apache_v2</licenseName>
+                        <processStartTag>========================LICENSE_START=================================</processStartTag>
+                        <processEndTag>=========================LICENSE_END==================================</processEndTag>
+                        <addJavaLicenseAfterPackage>false</addJavaLicenseAfterPackage>
                     </configuration>
                 </plugin>
             </plugins>

@@ -110,14 +110,20 @@
                         </goals>
                         <configuration>
                             <skipITs>${skip.fluo.pcj.it}</skipITs>
+                            <!-- 
                             <excludes>
                                 <exclude>**/KafkaExportIT.java</exclude>
                                 <exclude>**/KafkaRyaSubGraphExportIT.java</exclude>
                             </excludes>
+                            -->
+                            <forkCount>1</forkCount>
+                            <reuseForks>false</reuseForks>
                         </configuration>
                     </execution>
+                    
+                    <!-- Run problematic ITs in isolation. -->
+                    <!-- 
                     <execution>
-                        <!-- Run problematic ITs in isolation. -->
                         <id>integration-test-isolation</id>
                         <goals>
                             <goal>integration-test</goal>
@@ -133,6 +139,7 @@
                             <reuseForks>false</reuseForks>
                         </configuration>
                     </execution>
+                    -->
                 </executions>
             </plugin>
         </plugins>

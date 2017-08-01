@@ -229,13 +229,18 @@
                             <goal>verify</goal>
                         </goals>
                         <configuration>
+                            <!-- 
                             <excludes>
                                 <exclude>**/MongoGeoIT.java</exclude>
                             </excludes>
+                            -->
+                            <forkCount>1</forkCount>
+                            <reuseForks>false</reuseForks>
                         </configuration>
                     </execution>
+                    <!-- Run problematic ITs in isolation. -->
+                    <!-- 
                     <execution>
-                        <!-- Run problematic ITs in isolation. -->
                         <id>integration-test-isolation</id>
                         <goals>
                             <goal>integration-test</goal>
@@ -247,6 +252,7 @@
                             </includes>
                         </configuration>
                     </execution>
+                    -->
                 </executions>
             </plugin>
         </plugins>

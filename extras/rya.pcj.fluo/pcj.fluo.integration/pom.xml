@@ -112,6 +112,7 @@
                             <skipITs>${skip.fluo.pcj.it}</skipITs>
                             <excludes>
                                 <exclude>**/KafkaExportIT.java</exclude>
+                                <exclude>**/KafkaRyaSubGraphExportIT.java</exclude>
                             </excludes>
                         </configuration>
                     </execution>
@@ -126,7 +127,10 @@
                             <skipITs>${skip.fluo.pcj.it}</skipITs>
                             <includes>
                                 <include>**/KafkaExportIT.java</include>
+                                <include>**/KafkaRyaSubGraphExportIT.java</include>
                             </includes>
+                            <forkCount>1</forkCount>
+                            <reuseForks>false</reuseForks>
                         </configuration>
                     </execution>
                 </executions>

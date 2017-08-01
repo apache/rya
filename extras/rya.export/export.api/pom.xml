@@ -98,6 +98,32 @@ under the License.
                 </configuration>
             </plugin>
 
+            <!-- Automatically place Apache 2 license headers at the top of all of the project's Java files.
+                 Rat runs during the 'validate' lifecycle step, so it will fail the build before this one
+                 executes if any of the headers are missing. Run the build with rat turned off to add
+                 missing headers to the Java files. -->
+            <plugin>
+                <groupId>com.mycila</groupId>
+                <artifactId>license-maven-plugin</artifactId>
+                <version>2.6</version>
+                <configuration>
+                    <!-- We use a custom Apache 2.0 license because we do not include a copyright section. -->
+                    <header>${license.header.file}</header>
+                    <aggregate>true</aggregate>
+                    <includes>
+                        <include>src/gen/**</include>
+                    </includes>
+                </configuration>
+                <executions>
+                    <execution>
+                        <phase>process-sources</phase>
+                        <goals>
+                            <goal>format</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>build-helper-maven-plugin</artifactId>

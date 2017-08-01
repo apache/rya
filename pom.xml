@@ -140,6 +140,8 @@ under the License.
         
         <!-- set profile property defaults -->
         <skip.rya.it>true</skip.rya.it>  <!-- modified by  -P enable-it  -->
+
+        <license.header.file>${rya.project.basedir}/resources/LICENSE_HEADER.txt</license.header.file>
     </properties>
     
     <profiles>
@@ -959,6 +961,29 @@ under the License.
                         <exclude>**/*IntegrationTest.java</exclude>
                     </excludes>
                 </configuration>
+            </plugin>
+
+            <!-- Determine the absolute path for the root Rya project directory -->
+            <plugin>
+                <groupId>org.commonjava.maven.plugins</groupId>
+                <artifactId>directory-maven-plugin</artifactId>
+                <version>0.1</version>
+                <executions>
+                    <execution>
+                        <id>directories</id>
+                        <goals>
+                            <goal>directory-of</goal>
+                        </goals>
+                        <phase>initialize</phase>
+                        <configuration>
+                            <property>rya.project.basedir</property>
+                            <project>
+                                <groupId>org.apache.rya</groupId>
+                                <artifactId>rya-project</artifactId>
+                            </project>
+                        </configuration>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>

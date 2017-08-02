@@ -31,6 +31,7 @@ import org.apache.rya.indexing.pcj.fluo.app.util.BindingSetUtil;
 import org.apache.rya.indexing.pcj.fluo.app.util.RowKeyUtil;
 import org.apache.rya.indexing.pcj.storage.accumulo.VariableOrder;
 import org.apache.rya.indexing.pcj.storage.accumulo.VisibilityBindingSet;
+import org.apache.rya.indexing.pcj.storage.accumulo.VisibilityBindingSetSerDe;
 import org.openrdf.query.BindingSet;
 
 import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
@@ -88,7 +89,7 @@ public class QueryResultUpdater {
         }
 
         // Create the Binding Set that goes in the Node Value. It does contain visibilities.
-        final Bytes nodeValueBytes = BS_SERDE.serialize(childBindingSet);
+        final Bytes nodeValueBytes = BS_SERDE.serialize(new VisibilityBindingSet(queryBindingSet,childBindingSet.getVisibility()));
 
         log.trace(
                 "Transaction ID: " + tx.getStartTimestamp() + "\n" +

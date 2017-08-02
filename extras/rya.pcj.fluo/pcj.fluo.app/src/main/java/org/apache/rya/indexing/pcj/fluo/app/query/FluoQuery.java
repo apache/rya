@@ -18,6 +18,7 @@
  */
 package org.apache.rya.indexing.pcj.fluo.app.query;
 
+import static com.google.common.base.Preconditions.checkArgument;
 import static java.util.Objects.requireNonNull;
 
 import java.util.Collection;
@@ -29,7 +30,6 @@ import org.apache.commons.lang3.builder.EqualsBuilder;
 
 import com.google.common.base.Objects;
 import com.google.common.base.Optional;
-import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
 
 import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
@@ -46,6 +46,7 @@ public class FluoQuery {
 
     private final Optional<QueryMetadata> queryMetadata;
     private final Optional<ConstructQueryMetadata> constructMetadata;
+    private final Optional<PeriodicQueryMetadata> periodicQueryMetadata;
     private final ImmutableMap<String, StatementPatternMetadata> statementPatternMetadata;
     private final ImmutableMap<String, FilterMetadata> filterMetadata;
     private final ImmutableMap<String, JoinMetadata> joinMetadata;
@@ -58,6 +59,7 @@ public class FluoQuery {
      * must use {@link Builder} instead.
      *
      * @param queryMetadata - The root node of a query that is updated in Fluo. (not null)
+     * @param periodicQueryMetadata - The periodic query node that is updated in Fluo.
      * @param statementPatternMetadata - A map from Node ID to Statement Pattern metadata as
      *   it is represented within the Fluo app. (not null)
      * @param filterMetadata - A map from Node ID to Filter metadata as it is represented
@@ -69,6 +71,7 @@ public class FluoQuery {
      */
     private FluoQuery(
             final QueryMetadata queryMetadata,
+            final Optional<PeriodicQueryMetadata> periodicQueryMetadata,
             final ImmutableMap<String, StatementPatternMetadata> statementPatternMetadata,
             final ImmutableMap<String, FilterMetadata> filterMetadata,
             final ImmutableMap<String, JoinMetadata> joinMetadata, 
@@ -76,6 +79,7 @@ public class FluoQuery {
                 this.aggregationMetadata = requireNonNull(aggregationMetadata);
         this.queryMetadata = Optional.of(requireNonNull(queryMetadata));
         this.constructMetadata = Optional.absent();
+        this.periodicQueryMetadata = periodicQueryMetadata;
         this.statementPatternMetadata = requireNonNull(statementPatternMetadata);
         this.filterMetadata = requireNonNull(filterMetadata);
         this.joinMetadata = requireNonNull(joinMetadata);
@@ -88,23 +92,26 @@ public class FluoQuery {
      * must use {@link Builder} instead.
      *
      * @param constructMetadata - The root node of a query that is updated in Fluo. (not null)
+     * @param periodicQueryMetadata - The periodic query node that is updated in Fluo.
      * @param statementPatternMetadata - A map from Node ID to Statement Pattern metadata as
      *   it is represented within the Fluo app. (not null)
      * @param filterMetadata A map from Node ID to Filter metadata as it is represented
      *   within the Fluo app. (not null)
-     * @param joinMetadata A map from Node ID to Join metadata as it is represented
+     * @param joinMetadata - A map from Node ID to Join metadata as it is represented
      *   within the Fluo app. (not null)
      * @param aggregationMetadata - A map from Node ID to Aggregation metadata as it is
      *   represented within the Fluo app. (not null)
      */
     private FluoQuery(
             final ConstructQueryMetadata constructMetadata,
+            final Optional<PeriodicQueryMetadata> periodicQueryMetadata,
             final ImmutableMap<String, StatementPatternMetadata> statementPatternMetadata,
             final ImmutableMap<String, FilterMetadata> filterMetadata,
             final ImmutableMap<String, JoinMetadata> joinMetadata,
             final ImmutableMap<String, AggregationMetadata> aggregationMetadata) {
         this.constructMetadata = Optional.of(requireNonNull(constructMetadata));
         this.queryMetadata = Optional.absent();
+        this.periodicQueryMetadata = periodicQueryMetadata;
         this.statementPatternMetadata = requireNonNull(statementPatternMetadata);
         this.filterMetadata = requireNonNull(filterMetadata);
         this.joinMetadata = requireNonNull(joinMetadata);
@@ -129,6 +136,13 @@ public class FluoQuery {
     
     public Optional<ConstructQueryMetadata> getConstructQueryMetadata() {
         return constructMetadata;
+    }
+    
+    /**
+     * @return All of the Periodic Query metadata that is stored for the query.
+     */
+    public Optional<PeriodicQueryMetadata> getPeriodicQueryMetadata() {
+        return periodicQueryMetadata;
     }
 
     /**
@@ -207,6 +221,7 @@ public class FluoQuery {
     public int hashCode() {
         return Objects.hashCode(
                 queryMetadata,
+                periodicQueryMetadata,
                 statementPatternMetadata,
                 filterMetadata,
                 joinMetadata,
@@ -224,6 +239,7 @@ public class FluoQuery {
             return new EqualsBuilder()
                     .append(queryMetadata, fluoQuery.queryMetadata)
                     .append(constructMetadata,  fluoQuery.constructMetadata)
+                    .append(periodicQueryMetadata, fluoQuery.periodicQueryMetadata)
                     .append(statementPatternMetadata, fluoQuery.statementPatternMetadata)
                     .append(filterMetadata, fluoQuery.filterMetadata)
                     .append(joinMetadata, fluoQuery.joinMetadata)
@@ -245,6 +261,11 @@ public class FluoQuery {
         
         if(constructMetadata.isPresent()) {
             builder.append( constructMetadata.get().toString() );
+            builder.append("\n");
+        }
+        
+        if(periodicQueryMetadata.isPresent()) {
+            builder.append(periodicQueryMetadata.get());
             builder.append("\n");
         }
 
@@ -286,6 +307,7 @@ public class FluoQuery {
 
         private QueryMetadata.Builder queryBuilder = null;
         private ConstructQueryMetadata.Builder constructBuilder = null;
+        private PeriodicQueryMetadata.Builder periodicQueryBuilder = null;
         private final Map<String, StatementPatternMetadata.Builder> spBuilders = new HashMap<>();
         private final Map<String, FilterMetadata.Builder> filterBuilders = new HashMap<>();
         private final Map<String, JoinMetadata.Builder> joinBuilders = new HashMap<>();
@@ -388,6 +410,17 @@ public class FluoQuery {
         }
 
         /**
+         * Get a Join builder from this builder.
+         *
+         * @param nodeId - The Node ID the Join builder was stored at. (not null)
+         * @return The builder that was stored at the node id if one was found.
+         */
+        public Optional<JoinMetadata.Builder> getJoinBuilder(final String nodeId) {
+            requireNonNull(nodeId);
+            return Optional.fromNullable( joinBuilders.get(nodeId) );
+        }
+        
+        /**
          * Get an Aggregate builder from this builder.
          *
          * @param nodeId - The Node ID the Aggregate builder was stored at. (not null)
@@ -410,15 +443,28 @@ public class FluoQuery {
             return this;
         }
 
+        
+        
         /**
-         * Get a Join builder from this builder.
+         * Adds a new {@link PeriodicQueryMetadata.Builder} to this builder.
          *
-         * @param nodeId - The Node ID the Join builder was stored at. (not null)
-         * @return The builder that was stored at the node id if one was found.
+         * @param periodicQueryBuilder - A builder representing a specific Join within the query. (not null)
+         * @return This builder so that method invocation may be chained.
          */
-        public Optional<JoinMetadata.Builder> getJoinBuilder(final String nodeId) {
-            requireNonNull(nodeId);
-            return Optional.fromNullable( joinBuilders.get(nodeId) );
+        public Builder addPeriodicQueryMetadata(final PeriodicQueryMetadata.Builder periodicQueryBuilder) {
+            requireNonNull(periodicQueryBuilder);
+            this.periodicQueryBuilder = periodicQueryBuilder;
+            return this;
+        }
+
+        
+        /**
+         * Get a PeriodicQuery builder from this builder.
+         *
+         * @return The PeriodicQuery builder if one has been set.
+         */
+        public Optional<PeriodicQueryMetadata.Builder> getPeriodicQueryBuilder() {
+            return Optional.fromNullable( periodicQueryBuilder);
         }
         
 
@@ -426,8 +472,19 @@ public class FluoQuery {
          * @return Creates a {@link FluoQuery} using the values that have been supplied to this builder.
          */
         public FluoQuery build() {
-            Preconditions.checkArgument(
-                    (queryBuilder != null && constructBuilder == null) || (queryBuilder == null && constructBuilder != null));
+            checkArgument((queryBuilder != null && constructBuilder == null) || (queryBuilder == null && constructBuilder != null));
+            
+            Optional<QueryMetadata.Builder> optionalQueryBuilder = getQueryBuilder();
+            QueryMetadata queryMetadata = null;
+            if(optionalQueryBuilder.isPresent()) {
+                queryMetadata = optionalQueryBuilder.get().build();
+            }
+            
+            Optional<PeriodicQueryMetadata.Builder> optionalPeriodicQueryBuilder = getPeriodicQueryBuilder();
+            PeriodicQueryMetadata periodicQueryMetadata = null;
+            if(optionalPeriodicQueryBuilder.isPresent()) {
+                periodicQueryMetadata = optionalPeriodicQueryBuilder.get().build();
+            }
 
             final ImmutableMap.Builder<String, StatementPatternMetadata> spMetadata = ImmutableMap.builder();
             for(final Entry<String, StatementPatternMetadata.Builder> entry : spBuilders.entrySet()) {
@@ -450,11 +507,11 @@ public class FluoQuery {
             }
 
             if(queryBuilder != null) {
-                return new FluoQuery(queryBuilder.build(), spMetadata.build(), filterMetadata.build(), joinMetadata.build(), aggregateMetadata.build());
+                return new FluoQuery(queryBuilder.build(), Optional.fromNullable(periodicQueryMetadata), spMetadata.build(), filterMetadata.build(), joinMetadata.build(), aggregateMetadata.build());
             }
             //constructBuilder non-null in this case, but no need to check
             else {
-                return new FluoQuery(constructBuilder.build(), spMetadata.build(), filterMetadata.build(), joinMetadata.build(), aggregateMetadata.build());
+                return new FluoQuery(constructBuilder.build(), Optional.fromNullable(periodicQueryMetadata), spMetadata.build(), filterMetadata.build(), joinMetadata.build(), aggregateMetadata.build());
             }
             
         }

@@ -39,6 +39,7 @@ import org.apache.rya.indexing.pcj.fluo.app.query.FilterMetadata;
 import org.apache.rya.indexing.pcj.fluo.app.query.FluoQueryColumns;
 import org.apache.rya.indexing.pcj.fluo.app.query.FluoQueryMetadataDAO;
 import org.apache.rya.indexing.pcj.fluo.app.query.JoinMetadata;
+import org.apache.rya.indexing.pcj.fluo.app.query.PeriodicQueryMetadata;
 import org.apache.rya.indexing.pcj.fluo.app.query.QueryMetadata;
 import org.openrdf.query.BindingSet;
 
@@ -50,12 +51,12 @@ import edu.umd.cs.findbugs.annotations.NonNull;
  * <p>
  * This is a two phase process.
  * <ol>
- *   <li>Delete metadata about each node of the query using a single Fluo
- *       transaction. This prevents new {@link BindingSet}s from being created when
- *       new triples are inserted.</li>
- *   <li>Delete BindingSets associated with each node of the query. This is done
- *       in a batch fashion to guard against large delete transactions that don't fit
- *       into memory.</li>
+ * <li>Delete metadata about each node of the query using a single Fluo
+ * transaction. This prevents new {@link BindingSet}s from being created when
+ * new triples are inserted.</li>
+ * <li>Delete BindingSets associated with each node of the query. This is done
+ * in a batch fashion to guard against large delete transactions that don't fit
+ * into memory.</li>
  * </ol>
  */
 @DefaultAnnotation(NonNull.class)
@@ -79,8 +80,10 @@ public class DeletePcj {
      * Precomputed Join Index from the Fluo application that is incrementally
      * updating it.
      *
-     * @param client - Connects to the Fluo application that is updating the PCJ Index. (not null)
-     * @param pcjId - The PCJ ID for the query that will removed from the Fluo application. (not null)
+     * @param client - Connects to the Fluo application that is updating the PCJ
+     *            Index. (not null)
+     * @param pcjId - The PCJ ID for the query that will removed from the Fluo
+     *            application. (not null)
      */
     public void deletePcj(final FluoClient client, final String pcjId) {
         requireNonNull(client);
@@ -167,6 +170,12 @@ public class DeletePcj {
                 nodeIds.add(aggChild);
                 getChildNodeIds(tx, aggChild, nodeIds);
                 break;
+            case PERIODIC_QUERY:
+                final PeriodicQueryMetadata periodicMeta = dao.readPeriodicQueryMetadata(tx, nodeId);
+                final String periodicChild = periodicMeta.getChildNodeId();
+                nodeIds.add(periodicChild);
+                getChildNodeIds(tx, periodicChild, nodeIds);
+                break;
             case STATEMENT_PATTERN:
                 break;
         }
@@ -215,10 +224,9 @@ public class DeletePcj {
         }
     }
 
-
     /**
-     * Deletes high level query meta for converting from queryId to pcjId and vice
-     * versa, as well as converting from sparql to queryId.
+     * Deletes high level query meta for converting from queryId to pcjId and
+     * vice versa, as well as converting from sparql to queryId.
      *
      * @param tx - Transaction the deletes will be performed with. (not null)
      * @param pcjId - The PCJ whose metadata will be deleted. (not null)
@@ -233,7 +241,6 @@ public class DeletePcj {
         tx.delete(sparql, FluoQueryColumns.QUERY_ID);
         tx.delete(pcjId, FluoQueryColumns.PCJ_ID_QUERY_ID);
     }
-
 
     /**
      * Deletes all results (BindingSets or Statements) associated with the specified nodeId.
@@ -265,18 +272,18 @@ public class DeletePcj {
         requireNonNull(scanner);
         requireNonNull(column);
 
-        try(Transaction ntx = tx) {
-          int count = 0;
-          final Iterator<RowColumnValue> iter = scanner.iterator();
-          while (iter.hasNext() && count < batchSize) {
-            final Bytes row = iter.next().getRow();
-            count++;
-            tx.delete(row, column);
-          }
+        try (Transaction ntx = tx) {
+            int count = 0;
+            final Iterator<RowColumnValue> iter = scanner.iterator();
+            while (iter.hasNext() && count < batchSize) {
+                final Bytes row = iter.next().getRow();
+                count++;
+                tx.delete(row, column);
+            }
 
-          final boolean hasNext = iter.hasNext();
-          tx.commit();
-          return hasNext;
+            final boolean hasNext = iter.hasNext();
+            tx.commit();
+            return hasNext;
         }
     }
 

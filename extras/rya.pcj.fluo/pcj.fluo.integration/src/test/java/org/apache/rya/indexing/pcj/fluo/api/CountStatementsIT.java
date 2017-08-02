@@ -29,7 +29,7 @@ import org.apache.fluo.api.client.FluoFactory;
 import org.apache.fluo.api.config.ObserverSpecification;
 import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.domain.RyaURI;
-import org.apache.rya.indexing.pcj.fluo.RyaExportITBase;
+import org.apache.rya.pcj.fluo.test.base.RyaExportITBase;
 import org.junit.Test;
 
 import com.google.common.base.Optional;

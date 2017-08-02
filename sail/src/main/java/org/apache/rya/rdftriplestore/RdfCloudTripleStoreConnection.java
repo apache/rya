@@ -46,6 +46,7 @@ import org.apache.rya.api.persist.utils.RyaDAOHelper;
 import org.apache.rya.api.resolver.RdfToRyaConversions;
 import org.apache.rya.rdftriplestore.evaluation.FilterRangeVisitor;
 import org.apache.rya.rdftriplestore.evaluation.ParallelEvaluationStrategyImpl;
+import org.apache.rya.rdftriplestore.evaluation.QueryJoinOptimizer;
 import org.apache.rya.rdftriplestore.evaluation.QueryJoinSelectOptimizer;
 import org.apache.rya.rdftriplestore.evaluation.RdfCloudTripleStoreEvaluationStatistics;
 import org.apache.rya.rdftriplestore.evaluation.RdfCloudTripleStoreSelectivityEvaluationStatistics;
@@ -54,6 +55,7 @@ import org.apache.rya.rdftriplestore.inference.AllValuesFromVisitor;
 import org.apache.rya.rdftriplestore.inference.DomainRangeVisitor;
 import org.apache.rya.rdftriplestore.inference.HasValueVisitor;
 import org.apache.rya.rdftriplestore.inference.InferenceEngine;
+import org.apache.rya.rdftriplestore.inference.IntersectionOfVisitor;
 import org.apache.rya.rdftriplestore.inference.InverseOfVisitor;
 import org.apache.rya.rdftriplestore.inference.PropertyChainVisitor;
 import org.apache.rya.rdftriplestore.inference.SameAsVisitor;
@@ -103,7 +105,6 @@ import org.openrdf.sail.helpers.SailConnectionBase;
 import info.aduna.iteration.CloseableIteration;
 
 public class RdfCloudTripleStoreConnection extends SailConnectionBase {
-
     private final RdfCloudTripleStore store;
 
     private RdfEvalStatsDAO rdfEvalStatsDAO;
@@ -114,7 +115,7 @@ public class RdfCloudTripleStoreConnection extends SailConnectionBase {
     private final RdfCloudTripleStoreConfiguration conf;
 
 
-	private ProvenanceCollector provenanceCollector;
+    private ProvenanceCollector provenanceCollector;
 
     public RdfCloudTripleStoreConnection(final RdfCloudTripleStore sailBase, final RdfCloudTripleStoreConfiguration conf, final ValueFactory vf)
             throws SailException {
@@ -218,12 +219,11 @@ public class RdfCloudTripleStoreConnection extends SailConnectionBase {
         verifyIsOpen();
         logger.trace("Incoming query model:\n{}", tupleExpr.toString());
         if (provenanceCollector != null){
-        	try {
-				provenanceCollector.recordQuery(tupleExpr.toString());
-			} catch (final ProvenanceCollectionException e) {
-				// TODO silent fail
-				e.printStackTrace();
-			}
+            try {
+                provenanceCollector.recordQuery(tupleExpr.toString());
+            } catch (final ProvenanceCollectionException e) {
+                logger.trace("Provenance failed to record query.", e);
+            }
         }
         tupleExpr = tupleExpr.clone();
 
@@ -354,6 +354,7 @@ public class RdfCloudTripleStoreConnection extends SailConnectionBase {
                     tupleExpr.visit(new DomainRangeVisitor(queryConf, inferenceEngine));
                     tupleExpr.visit(new AllValuesFromVisitor(queryConf, inferenceEngine));
                     tupleExpr.visit(new HasValueVisitor(queryConf, inferenceEngine));
+                    tupleExpr.visit(new IntersectionOfVisitor(queryConf, inferenceEngine));
                     tupleExpr.visit(new PropertyChainVisitor(queryConf, inferenceEngine));
                     tupleExpr.visit(new TransitivePropertyVisitor(queryConf, inferenceEngine));
                     tupleExpr.visit(new SymmetricPropertyVisitor(queryConf, inferenceEngine));
@@ -362,7 +363,7 @@ public class RdfCloudTripleStoreConnection extends SailConnectionBase {
                     tupleExpr.visit(new SubClassOfVisitor(queryConf, inferenceEngine));
                     tupleExpr.visit(new SameAsVisitor(queryConf, inferenceEngine));
                 } catch (final Exception e) {
-                    e.printStackTrace();
+                    logger.error("Error encountered while visiting query node.", e);
                 }
             }
             if (queryConf.isPerformant()) {
@@ -388,13 +389,11 @@ public class RdfCloudTripleStoreConnection extends SailConnectionBase {
             if (stats != null) {
 
                 if (stats instanceof RdfCloudTripleStoreSelectivityEvaluationStatistics) {
-
-                    (new QueryJoinSelectOptimizer(stats,
-                            selectEvalDAO)).optimize(tupleExpr, dataset, bindings);
+                    final QueryJoinSelectOptimizer qjso = new QueryJoinSelectOptimizer(stats, selectEvalDAO);
+                    qjso.optimize(tupleExpr, dataset, bindings);
                 } else {
-
-                    (new org.apache.rya.rdftriplestore.evaluation.QueryJoinOptimizer(stats)).optimize(tupleExpr, dataset,
-                            bindings); // TODO: Make pluggable
+                    final QueryJoinOptimizer qjo = new QueryJoinOptimizer(stats);
+                    qjo.optimize(tupleExpr, dataset, bindings); // TODO: Make pluggable
                 }
             }
 
@@ -611,7 +610,7 @@ public class RdfCloudTripleStoreConnection extends SailConnectionBase {
         }
 
         @Override
-		public CloseableIteration<Statement, QueryEvaluationException> getStatements(
+        public CloseableIteration<Statement, QueryEvaluationException> getStatements(
                 final Resource subject, final URI predicate, final Value object,
                 final Resource... contexts) throws QueryEvaluationException {
             return RyaDAOHelper.query(ryaDAO, subject, predicate, object, conf, contexts);
@@ -625,7 +624,7 @@ public class RdfCloudTripleStoreConnection extends SailConnectionBase {
         }
 
         @Override
-		public ValueFactory getValueFactory() {
+        public ValueFactory getValueFactory() {
             return RdfCloudTripleStoreConstants.VALUE_FACTORY;
         }
     }

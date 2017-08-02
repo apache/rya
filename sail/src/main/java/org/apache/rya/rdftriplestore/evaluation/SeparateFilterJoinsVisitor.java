@@ -8,9 +8,9 @@ package org.apache.rya.rdftriplestore.evaluation;
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- * 
+ *
  *   http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -18,10 +18,11 @@ package org.apache.rya.rdftriplestore.evaluation;
  * specific language governing permissions and limitations
  * under the License.
  */
-
-
-
-import org.openrdf.query.algebra.*;
+import org.openrdf.query.algebra.Filter;
+import org.openrdf.query.algebra.Join;
+import org.openrdf.query.algebra.StatementPattern;
+import org.openrdf.query.algebra.TupleExpr;
+import org.openrdf.query.algebra.ValueExpr;
 import org.openrdf.query.algebra.helpers.QueryModelVisitorBase;
 
 /**
@@ -30,24 +31,24 @@ import org.openrdf.query.algebra.helpers.QueryModelVisitorBase;
  * Date: Apr 11, 2011
  * Time: 10:16:15 PM
  */
-public class SeparateFilterJoinsVisitor extends QueryModelVisitorBase {
+public class SeparateFilterJoinsVisitor extends QueryModelVisitorBase<Exception> {
     @Override
-    public void meet(Filter node) throws Exception {
+    public void meet(final Filter node) throws Exception {
         super.meet(node);
 
-        ValueExpr condition = node.getCondition();
-        TupleExpr arg = node.getArg();
+        final ValueExpr condition = node.getCondition();
+        final TupleExpr arg = node.getArg();
         if (!(arg instanceof Join)) {
             return;
         }
 
-        Join join = (Join) arg;
-        TupleExpr leftArg = join.getLeftArg();
-        TupleExpr rightArg = join.getRightArg();
+        final Join join = (Join) arg;
+        final TupleExpr leftArg = join.getLeftArg();
+        final TupleExpr rightArg = join.getRightArg();
 
         if (leftArg instanceof StatementPattern && rightArg instanceof StatementPattern) {
-            Filter left = new Filter(leftArg, condition);
-            Filter right = new Filter(rightArg, condition);
+            final Filter left = new Filter(leftArg, condition);
+            final Filter right = new Filter(rightArg, condition);
             node.replaceWith(new Join(left, right));
         }
 

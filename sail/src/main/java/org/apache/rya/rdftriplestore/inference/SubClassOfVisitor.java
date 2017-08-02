@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- * 
+ *
  *   http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -18,18 +18,17 @@
  */
 package org.apache.rya.rdftriplestore.inference;
 
+import java.util.Collection;
+import java.util.UUID;
+
 import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
 import org.apache.rya.api.utils.NullableStatementImpl;
-import org.apache.rya.rdftriplestore.utils.FixedStatementPattern;
 import org.apache.rya.rdftriplestore.utils.FixedStatementPattern;
 import org.openrdf.model.URI;
 import org.openrdf.model.vocabulary.RDF;
 import org.openrdf.model.vocabulary.RDFS;
 import org.openrdf.query.algebra.StatementPattern;
 import org.openrdf.query.algebra.Var;
-
-import java.util.Collection;
-import java.util.UUID;
 
 /**
  * Class SubClassOfVisitor
@@ -38,14 +37,14 @@ import java.util.UUID;
  */
 public class SubClassOfVisitor extends AbstractInferVisitor {
 
-    public SubClassOfVisitor(RdfCloudTripleStoreConfiguration conf, InferenceEngine inferenceEngine) {
+    public SubClassOfVisitor(final RdfCloudTripleStoreConfiguration conf, final InferenceEngine inferenceEngine) {
         super(conf, inferenceEngine);
         include = conf.isInferSubClassOf();
     }
 
     @Override
-    protected void meetSP(StatementPattern node) throws Exception {
-        StatementPattern sp = node.clone();
+    protected void meetSP(final StatementPattern node) throws Exception {
+        final StatementPattern sp = node.clone();
         final Var predVar = sp.getPredicateVar();
         final Var objVar = sp.getObjectVar();
         final Var conVar = sp.getContextVar();
@@ -62,19 +61,19 @@ public class SubClassOfVisitor extends AbstractInferVisitor {
 //            join.getProperties().put(InferConstants.INFERRED, InferConstants.TRUE);
 //            node.replaceWith(join);
 
-            URI subclassof_uri = (URI) objVar.getValue();
-            Collection<URI> parents = inferenceEngine.findParents(inferenceEngine.getSubClassOfGraph(), subclassof_uri);
+            final URI subclassof_uri = (URI) objVar.getValue();
+            final Collection<URI> parents = InferenceEngine.findParents(inferenceEngine.getSubClassOfGraph(), subclassof_uri);
             if (parents != null && parents.size() > 0) {
-                String s = UUID.randomUUID().toString();
-                Var typeVar = new Var(s);
-                FixedStatementPattern fsp = new FixedStatementPattern(typeVar, new Var("c-" + s, RDFS.SUBCLASSOF), objVar, conVar);
+                final String s = UUID.randomUUID().toString();
+                final Var typeVar = new Var(s);
+                final FixedStatementPattern fsp = new FixedStatementPattern(typeVar, new Var("c-" + s, RDFS.SUBCLASSOF), objVar, conVar);
                 parents.add(subclassof_uri);
-                for (URI u : parents) {
+                for (final URI u : parents) {
                     fsp.statements.add(new NullableStatementImpl(u, RDFS.SUBCLASSOF, subclassof_uri));
                 }
 
-                StatementPattern rdfType = new DoNotExpandSP(sp.getSubjectVar(), sp.getPredicateVar(), typeVar, conVar);
-                InferJoin join = new InferJoin(fsp, rdfType);
+                final StatementPattern rdfType = new DoNotExpandSP(sp.getSubjectVar(), sp.getPredicateVar(), typeVar, conVar);
+                final InferJoin join = new InferJoin(fsp, rdfType);
                 join.getProperties().put(InferConstants.INFERRED, InferConstants.TRUE);
                 node.replaceWith(join);
             }

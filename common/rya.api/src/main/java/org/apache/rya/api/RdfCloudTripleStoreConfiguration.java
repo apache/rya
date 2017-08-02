@@ -26,12 +26,11 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.apache.hadoop.conf.Configuration;
 import org.apache.rya.api.domain.RyaURI;
 import org.apache.rya.api.layout.TableLayoutStrategy;
 import org.apache.rya.api.layout.TablePrefixLayoutStrategy;
 import org.apache.rya.api.persist.RdfEvalStatsDAO;
-
-import org.apache.hadoop.conf.Configuration;
 import org.openrdf.query.algebra.evaluation.QueryOptimizer;
 
 import com.google.common.base.Joiner;
@@ -59,7 +58,7 @@ public abstract class RdfCloudTripleStoreConfiguration extends Configuration {
     public static final String CONF_LIMIT = "query.limit";
     public static final String CONF_QUERYPLAN_FLAG = "query.printqueryplan";
     public static final String CONF_QUERY_AUTH = "query.auth";
-	public static final String CONF_RESULT_FORMAT = "query.resultformat";
+    public static final String CONF_RESULT_FORMAT = "query.resultformat";
     public static final String CONF_CV = "conf.cv";
     public static final String CONF_TBL_SPO = "tbl.spo";
     public static final String CONF_TBL_PO = "tbl.po";
@@ -73,6 +72,7 @@ public abstract class RdfCloudTripleStoreConfiguration extends Configuration {
     public static final String CONF_STATEMENT_METADATA_PROPERTIES = "statement.metadata.properites";
     public static final String CONF_USE_STATEMENT_METADATA = "use.statement.metadata";
     public static final String STATS_PUSH_EMPTY_RDFTYPE_DOWN = "conf.stats.rdftype.down";
+    public static final String INFER_INCLUDE_INTERSECTION_OF = "infer.include.intersectionof";
     public static final String INFER_INCLUDE_INVERSEOF = "infer.include.inverseof";
     public static final String INFER_INCLUDE_SUBCLASSOF = "infer.include.subclassof";
     public static final String INFER_INCLUDE_SUBPROPOF = "infer.include.subpropof";
@@ -92,7 +92,7 @@ public abstract class RdfCloudTripleStoreConfiguration extends Configuration {
     public RdfCloudTripleStoreConfiguration() {
     }
 
-    public RdfCloudTripleStoreConfiguration(Configuration other) {
+    public RdfCloudTripleStoreConfiguration(final Configuration other) {
         super(other);
         if (other instanceof RdfCloudTripleStoreConfiguration) {
             setTableLayoutStrategy(((RdfCloudTripleStoreConfiguration) other).getTableLayoutStrategy());
@@ -100,13 +100,13 @@ public abstract class RdfCloudTripleStoreConfiguration extends Configuration {
     }
 
     @Override
-	public abstract RdfCloudTripleStoreConfiguration clone();
+    public abstract RdfCloudTripleStoreConfiguration clone();
 
     public TableLayoutStrategy getTableLayoutStrategy() {
         return tableLayoutStrategy;
     }
 
-    public void setTableLayoutStrategy(TableLayoutStrategy tableLayoutStrategy) {
+    public void setTableLayoutStrategy(final TableLayoutStrategy tableLayoutStrategy) {
         if (tableLayoutStrategy != null) {
             this.tableLayoutStrategy = tableLayoutStrategy;
         } else {
@@ -120,28 +120,28 @@ public abstract class RdfCloudTripleStoreConfiguration extends Configuration {
     }
 
     public Long getTtl() {
-        String val = get(CONF_TTL);
+        final String val = get(CONF_TTL);
         if (val != null) {
             return Long.valueOf(val);
         }
         return null;
     }
 
-    public void setTtl(Long ttl) {
+    public void setTtl(final Long ttl) {
         Preconditions.checkNotNull(ttl);
         Preconditions.checkArgument(ttl >= 0, "ttl must be non negative");
         set(CONF_TTL, ttl.toString());
     }
 
     public Long getStartTime() {
-        String val = get(CONF_STARTTIME);
+        final String val = get(CONF_STARTTIME);
         if (val != null) {
             return Long.valueOf(val);
         }
         return null;
     }
 
-    public void setStartTime(Long startTime) {
+    public void setStartTime(final Long startTime) {
         Preconditions.checkNotNull(startTime);
         Preconditions.checkArgument(startTime >= 0, "startTime must be non negative");
         set(CONF_STARTTIME, startTime.toString());
@@ -151,7 +151,7 @@ public abstract class RdfCloudTripleStoreConfiguration extends Configuration {
         return getInt(CONF_NUM_THREADS, 2);
     }
 
-    public void setNumThreads(Integer numThreads) {
+    public void setNumThreads(final Integer numThreads) {
         Preconditions.checkNotNull(numThreads);
         Preconditions.checkArgument(numThreads > 0, "numThreads must be greater than 0");
         setInt(CONF_NUM_THREADS, numThreads);
@@ -161,7 +161,7 @@ public abstract class RdfCloudTripleStoreConfiguration extends Configuration {
         return getBoolean(CONF_PERFORMANT, true);
     }
 
-    public void setPerformant(Boolean val) {
+    public void setPerformant(final Boolean val) {
         Preconditions.checkNotNull(val);
         setBoolean(CONF_PERFORMANT, val);
     }
@@ -170,7 +170,7 @@ public abstract class RdfCloudTripleStoreConfiguration extends Configuration {
         return getBoolean(CONF_INFER, false);
     }
 
-    public void setInfer(Boolean val) {
+    public void setInfer(final Boolean val) {
         Preconditions.checkNotNull(val);
         setBoolean(CONF_INFER, val);
     }
@@ -179,7 +179,7 @@ public abstract class RdfCloudTripleStoreConfiguration extends Configuration {
         return getBoolean(CONF_USE_STATS, false);
     }
 
-    public void setUseStats(Boolean val) {
+    public void setUseStats(final Boolean val) {
         Preconditions.checkNotNull(val);
         setBoolean(CONF_USE_STATS, val);
     }
@@ -188,7 +188,7 @@ public abstract class RdfCloudTripleStoreConfiguration extends Configuration {
         return getBoolean(CONF_USE_SELECTIVITY, false);
     }
 
-    public void setUseSelectivity(Boolean val) {
+    public void setUseSelectivity(final Boolean val) {
         Preconditions.checkNotNull(val);
         setBoolean(CONF_USE_SELECTIVITY, val);
     }
@@ -197,7 +197,7 @@ public abstract class RdfCloudTripleStoreConfiguration extends Configuration {
         return getBoolean(CONF_PREFIX_ROW_WITH_HASH, false);
     }
 
-    public void setPrefixRowsWithHash(Boolean val) {
+    public void setPrefixRowsWithHash(final Boolean val) {
         Preconditions.checkNotNull(val);
         setBoolean(CONF_PREFIX_ROW_WITH_HASH, val);
     }
@@ -206,49 +206,49 @@ public abstract class RdfCloudTripleStoreConfiguration extends Configuration {
         return get(CONF_TBL_PREFIX, RdfCloudTripleStoreConstants.TBL_PRFX_DEF);
     }
 
-    public void setTablePrefix(String tablePrefix) {
+    public void setTablePrefix(final String tablePrefix) {
         Preconditions.checkNotNull(tablePrefix);
         set(CONF_TBL_PREFIX, tablePrefix);
         setTableLayoutStrategy(new TablePrefixLayoutStrategy(tablePrefix)); //TODO: Should we change the layout strategy
     }
 
     public Integer getBatchSize() {
-        String val = get(CONF_BATCH_SIZE);
+        final String val = get(CONF_BATCH_SIZE);
         if (val != null) {
             return Integer.valueOf(val);
         }
         return null;
     }
 
-    public void setBatchSize(Long batchSize) {
+    public void setBatchSize(final Long batchSize) {
         Preconditions.checkNotNull(batchSize);
         Preconditions.checkArgument(batchSize > 0, "Batch Size must be greater than 0");
         setLong(CONF_BATCH_SIZE, batchSize);
     }
 
     public Long getOffset() {
-        String val = get(CONF_OFFSET);
+        final String val = get(CONF_OFFSET);
         if (val != null) {
             return Long.valueOf(val);
         }
         return null;
     }
 
-    public void setOffset(Long offset) {
+    public void setOffset(final Long offset) {
         Preconditions.checkNotNull(offset);
         Preconditions.checkArgument(offset >= 0, "offset must be positive");
         setLong(CONF_OFFSET, offset);
     }
 
     public Long getLimit() {
-        String val = get(CONF_LIMIT);
+        final String val = get(CONF_LIMIT);
         if (val != null) {
             return Long.valueOf(val);
         }
         return null;
     }
 
-    public void setLimit(Long limit) {
+    public void setLimit(final Long limit) {
         Preconditions.checkNotNull(limit);
         Preconditions.checkArgument(limit >= 0, "limit must be positive");
         setLong(CONF_LIMIT, limit);
@@ -259,7 +259,7 @@ public abstract class RdfCloudTripleStoreConfiguration extends Configuration {
         return getBoolean(CONF_QUERYPLAN_FLAG, false);
     }
 
-    public void setDisplayQueryPlan(Boolean val) {
+    public void setDisplayQueryPlan(final Boolean val) {
         Preconditions.checkNotNull(val);
         setBoolean(CONF_QUERYPLAN_FLAG, val);
     }
@@ -269,7 +269,7 @@ public abstract class RdfCloudTripleStoreConfiguration extends Configuration {
      * @deprecated
      */
     @Deprecated
-	public String getAuth() {
+    public String getAuth() {
         return Joiner.on(",").join(getAuths());
     }
 
@@ -278,7 +278,7 @@ public abstract class RdfCloudTripleStoreConfiguration extends Configuration {
      * @deprecated
      */
     @Deprecated
-	public void setAuth(String auth) {
+    public void setAuth(final String auth) {
         Preconditions.checkNotNull(auth);
         setStrings(CONF_QUERY_AUTH, auth);
     }
@@ -287,25 +287,25 @@ public abstract class RdfCloudTripleStoreConfiguration extends Configuration {
         return getStrings(CONF_QUERY_AUTH, EMPTY_STR_ARR);
     }
 
-    public void setAuths(String... auths) {
+    public void setAuths(final String... auths) {
         Preconditions.checkNotNull(auths);
         setStrings(CONF_QUERY_AUTH, auths);
     }
 
-	public String getEmit() {
-		return get(CONF_RESULT_FORMAT);
+    public String getEmit() {
+        return get(CONF_RESULT_FORMAT);
     }
 
-    public void setEmit(String emit) {
-		Preconditions.checkNotNull(emit);
-		set(CONF_RESULT_FORMAT, emit);
+    public void setEmit(final String emit) {
+        Preconditions.checkNotNull(emit);
+        set(CONF_RESULT_FORMAT, emit);
     }
 
     public String getCv() {
         return get(CONF_CV);
     }
 
-    public void setCv(String cv) {
+    public void setCv(final String cv) {
         Preconditions.checkNotNull(cv);
         set(CONF_CV, cv);
     }
@@ -315,7 +315,7 @@ public abstract class RdfCloudTripleStoreConfiguration extends Configuration {
         return getBoolean(CONF_USE_COMPOSITE, true);
     }
 
-    public void setCompositeCardinality(Boolean val) {
+    public void setCompositeCardinality(final Boolean val) {
         Preconditions.checkNotNull(val);
         setBoolean(CONF_USE_COMPOSITE, val);
     }
@@ -325,16 +325,35 @@ public abstract class RdfCloudTripleStoreConfiguration extends Configuration {
         return getBoolean(STATS_PUSH_EMPTY_RDFTYPE_DOWN, true);
     }
 
-    public void setStatsPushEmptyRdftypeDown(Boolean val) {
+    public void setStatsPushEmptyRdftypeDown(final Boolean val) {
         Preconditions.checkNotNull(val);
         setBoolean(STATS_PUSH_EMPTY_RDFTYPE_DOWN, val);
+    }
+
+    /**
+     * @return {@code true} if owl:intersectionOf inferencing is enabled.
+     * {@code false} otherwise. Defaults to {@code true} if nothing is
+     * specified.
+     */
+    public Boolean isInferIntersectionOf() {
+        return getBoolean(INFER_INCLUDE_INTERSECTION_OF, true);
+    }
+
+    /**
+     * Sets whether owl:intersectionOf inferencing is enabled or disabled.
+     * @param value {@code true} if owl:intersectionOf inferencing is enabled.
+     * {@code false} otherwise.
+     */
+    public void setInferIntersectionOf(final Boolean value) {
+        Preconditions.checkNotNull(value);
+        setBoolean(INFER_INCLUDE_INTERSECTION_OF, value);
     }
 
     public Boolean isInferInverseOf() {
         return getBoolean(INFER_INCLUDE_INVERSEOF, true);
     }
 
-    public void setInferInverseOf(Boolean val) {
+    public void setInferInverseOf(final Boolean val) {
         Preconditions.checkNotNull(val);
         setBoolean(INFER_INCLUDE_INVERSEOF, val);
     }
@@ -343,7 +362,7 @@ public abstract class RdfCloudTripleStoreConfiguration extends Configuration {
         return getBoolean(INFER_INCLUDE_SUBCLASSOF, true);
     }
 
-    public void setInferSubClassOf(Boolean val) {
+    public void setInferSubClassOf(final Boolean val) {
         Preconditions.checkNotNull(val);
         setBoolean(INFER_INCLUDE_SUBCLASSOF, val);
     }
@@ -352,7 +371,7 @@ public abstract class RdfCloudTripleStoreConfiguration extends Configuration {
         return getBoolean(INFER_INCLUDE_SUBPROPOF, true);
     }
 
-    public void setInferSubPropertyOf(Boolean val) {
+    public void setInferSubPropertyOf(final Boolean val) {
         Preconditions.checkNotNull(val);
         setBoolean(INFER_INCLUDE_SUBPROPOF, val);
     }
@@ -361,7 +380,7 @@ public abstract class RdfCloudTripleStoreConfiguration extends Configuration {
         return getBoolean(INFER_INCLUDE_SYMMPROP, true);
     }
 
-    public void setInferSymmetricProperty(Boolean val) {
+    public void setInferSymmetricProperty(final Boolean val) {
         Preconditions.checkNotNull(val);
         setBoolean(INFER_INCLUDE_SYMMPROP, val);
     }
@@ -370,12 +389,12 @@ public abstract class RdfCloudTripleStoreConfiguration extends Configuration {
         return getBoolean(INFER_INCLUDE_TRANSITIVEPROP, true);
     }
 
-    public void setInferTransitiveProperty(Boolean val) {
+    public void setInferTransitiveProperty(final Boolean val) {
         Preconditions.checkNotNull(val);
         setBoolean(INFER_INCLUDE_TRANSITIVEPROP, val);
     }
 
-    public void setRdfEvalStatsDaoClass(Class<? extends RdfEvalStatsDAO> rdfEvalStatsDaoClass) {
+    public void setRdfEvalStatsDaoClass(final Class<? extends RdfEvalStatsDAO> rdfEvalStatsDaoClass) {
         Preconditions.checkNotNull(rdfEvalStatsDaoClass);
         setClass(RDF_EVAL_STATS_DAO_CLASS, rdfEvalStatsDaoClass, RdfEvalStatsDAO.class);
     }
@@ -385,50 +404,50 @@ public abstract class RdfCloudTripleStoreConfiguration extends Configuration {
     }
 
 
-    public void setPcjTables(List<String> indexTables) {
+    public void setPcjTables(final List<String> indexTables) {
         Preconditions.checkNotNull(indexTables);
         setStrings(CONF_PCJ_TABLES, indexTables.toArray(new String[]{}));
     }
 
 
     public List<String> getPcjTables() {
-        List<String> pcjTables = Lists.newArrayList();
-        String[] tables = getStrings(CONF_PCJ_TABLES);
+        final List<String> pcjTables = Lists.newArrayList();
+        final String[] tables = getStrings(CONF_PCJ_TABLES);
         if(tables == null) {
             return pcjTables;
         }
-        for(String table: tables) {
+        for(final String table: tables) {
             Preconditions.checkNotNull(table);
             pcjTables.add(table);
         }
         return pcjTables;
     }
-    
-    public void setUseStatementMetadata(boolean useMetadata) {
+
+    public void setUseStatementMetadata(final boolean useMetadata) {
         setBoolean(CONF_USE_STATEMENT_METADATA, useMetadata);
     }
-    
+
     public boolean getUseStatementMetadata() {
         return getBoolean(CONF_USE_STATEMENT_METADATA, false);
     }
-    
-    public void setStatementMetadataProperties(Set<RyaURI> metadataProperties) {
-        
-        String[] propArray = new String[metadataProperties.size()];
+
+    public void setStatementMetadataProperties(final Set<RyaURI> metadataProperties) {
+
+        final String[] propArray = new String[metadataProperties.size()];
         int i = 0;
-        for(RyaURI uri: metadataProperties) {
+        for(final RyaURI uri: metadataProperties) {
             propArray[i] = uri.getData();
             i++;
         }
         setStrings(CONF_STATEMENT_METADATA_PROPERTIES, propArray);
     }
-    
-    
+
+
     public Set<RyaURI> getStatementMetadataProperties() {
-        Set<RyaURI> uriSet = new HashSet<>();
-        String[] uriStrings = getStrings(CONF_STATEMENT_METADATA_PROPERTIES);
+        final Set<RyaURI> uriSet = new HashSet<>();
+        final String[] uriStrings = getStrings(CONF_STATEMENT_METADATA_PROPERTIES);
         if (uriStrings != null) {
-            for (String s : uriStrings) {
+            for (final String s : uriStrings) {
                 uriSet.add(new RyaURI(s));
             }
         }
@@ -436,13 +455,13 @@ public abstract class RdfCloudTripleStoreConfiguration extends Configuration {
     }
 
 
-    public void setPcjOptimizer(Class<? extends QueryOptimizer> optimizer) {
+    public void setPcjOptimizer(final Class<? extends QueryOptimizer> optimizer) {
         Preconditions.checkNotNull(optimizer);
         setClass(CONF_PCJ_OPTIMIZER, optimizer, QueryOptimizer.class);
     }
 
     public Class<QueryOptimizer> getPcjOptimizer() {
-        Class<? extends QueryOptimizer> opt = getClass(CONF_PCJ_OPTIMIZER, null, QueryOptimizer.class);
+        final Class<? extends QueryOptimizer> opt = getClass(CONF_PCJ_OPTIMIZER, null, QueryOptimizer.class);
         if (opt != null) {
             Preconditions.checkArgument(QueryOptimizer.class.isAssignableFrom(opt));
             return (Class<QueryOptimizer>) opt;
@@ -452,10 +471,10 @@ public abstract class RdfCloudTripleStoreConfiguration extends Configuration {
     }
 
 
-    public void setOptimizers(List<Class<? extends QueryOptimizer>> optimizers) {
+    public void setOptimizers(final List<Class<? extends QueryOptimizer>> optimizers) {
         Preconditions.checkNotNull(optimizers);
-        List<String> strs = Lists.newArrayList();
-        for (Class ai : optimizers){
+        final List<String> strs = Lists.newArrayList();
+        for (final Class ai : optimizers){
             Preconditions.checkNotNull(ai);
             strs.add(ai.getName());
         }
@@ -464,8 +483,8 @@ public abstract class RdfCloudTripleStoreConfiguration extends Configuration {
     }
 
     public List<Class<QueryOptimizer>> getOptimizers() {
-        List<Class<QueryOptimizer>> opts = Lists.newArrayList();
-        for (Class<?> clazz : getClasses(CONF_OPTIMIZERS)){
+        final List<Class<QueryOptimizer>> opts = Lists.newArrayList();
+        for (final Class<?> clazz : getClasses(CONF_OPTIMIZERS)){
             Preconditions.checkArgument(QueryOptimizer.class.isAssignableFrom(clazz));
             opts.add((Class<QueryOptimizer>) clazz);
         }
@@ -479,7 +498,7 @@ public abstract class RdfCloudTripleStoreConfiguration extends Configuration {
         return get(REGEX_SUBJECT);
     }
 
-    public void setRegexSubject(String regexSubject) {
+    public void setRegexSubject(final String regexSubject) {
         Preconditions.checkNotNull(regexSubject);
         set(REGEX_SUBJECT, regexSubject);
     }
@@ -488,7 +507,7 @@ public abstract class RdfCloudTripleStoreConfiguration extends Configuration {
         return get(REGEX_PREDICATE);
     }
 
-    public void setRegexPredicate(String regex) {
+    public void setRegexPredicate(final String regex) {
         Preconditions.checkNotNull(regex);
         set(REGEX_PREDICATE, regex);
     }
@@ -497,7 +516,7 @@ public abstract class RdfCloudTripleStoreConfiguration extends Configuration {
         return get(REGEX_OBJECT);
     }
 
-    public void setRegexObject(String regex) {
+    public void setRegexObject(final String regex) {
         Preconditions.checkNotNull(regex);
         set(REGEX_OBJECT, regex);
     }

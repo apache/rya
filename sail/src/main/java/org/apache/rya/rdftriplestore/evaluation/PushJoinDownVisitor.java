@@ -8,9 +8,9 @@ package org.apache.rya.rdftriplestore.evaluation;
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- * 
+ *
  *   http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -30,13 +30,13 @@ import org.openrdf.query.algebra.helpers.QueryModelVisitorBase;
  * Date: Apr 11, 2011
  * Time: 10:16:15 PM
  */
-public class PushJoinDownVisitor extends QueryModelVisitorBase {
+public class PushJoinDownVisitor extends QueryModelVisitorBase<Exception> {
     @Override
-    public void meet(Join node) throws Exception {
+    public void meet(final Join node) throws Exception {
         super.meet(node);
 
-        TupleExpr leftArg = node.getLeftArg();
-        TupleExpr rightArg = node.getRightArg();
+        final TupleExpr leftArg = node.getLeftArg();
+        final TupleExpr rightArg = node.getRightArg();
 
         /**
          * if join(join(1, 2), join(3,4))
@@ -44,12 +44,12 @@ public class PushJoinDownVisitor extends QueryModelVisitorBase {
          * join(join(join(1,2), 3), 4)
          */
         if (leftArg instanceof Join && rightArg instanceof Join) {
-            Join leftJoin = (Join) leftArg;
-            Join rightJoin = (Join) rightArg;
-            TupleExpr right_LeftArg = rightJoin.getLeftArg();
-            TupleExpr right_rightArg = rightJoin.getRightArg();
-            Join inner = new Join(leftJoin, right_LeftArg);
-            Join outer = new Join(inner, right_rightArg);
+            final Join leftJoin = (Join) leftArg;
+            final Join rightJoin = (Join) rightArg;
+            final TupleExpr right_LeftArg = rightJoin.getLeftArg();
+            final TupleExpr right_rightArg = rightJoin.getRightArg();
+            final Join inner = new Join(leftJoin, right_LeftArg);
+            final Join outer = new Join(inner, right_rightArg);
             node.replaceWith(outer);
         }
 

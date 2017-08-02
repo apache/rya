@@ -1,4 +1,3 @@
-package org.apache.rya.rdftriplestore.inference;
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -17,10 +16,12 @@ package org.apache.rya.rdftriplestore.inference;
  * specific language governing permissions and limitations
  * under the License.
  */
+package org.apache.rya.rdftriplestore.inference;
 
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -33,7 +34,6 @@ import org.apache.rya.rdftriplestore.RdfCloudTripleStore;
 import org.apache.tinkerpop.gremlin.structure.Graph;
 import org.junit.After;
 import org.junit.Assert;
-
 import org.junit.Test;
 import org.openrdf.model.Resource;
 import org.openrdf.model.URI;
@@ -44,12 +44,14 @@ import org.openrdf.query.QueryLanguage;
 import org.openrdf.repository.sail.SailRepository;
 import org.openrdf.repository.sail.SailRepositoryConnection;
 
+import com.google.common.collect.Sets;
+
 import junit.framework.TestCase;
 
 public class InferenceEngineTest extends TestCase {
     private Connector connector;
     private AccumuloRyaDAO dao;
-    private ValueFactory vf = new ValueFactoryImpl();
+    private final ValueFactory vf = new ValueFactoryImpl();
     private AccumuloRdfConfiguration conf;
     private RdfCloudTripleStore store;
     private InferenceEngine inferenceEngine;
@@ -77,6 +79,7 @@ public class InferenceEngineTest extends TestCase {
         conn = repository.getConnection();
     }
 
+    @Override
     @After
     public void tearDown() throws Exception {
         conn.close();
@@ -88,7 +91,7 @@ public class InferenceEngineTest extends TestCase {
 
     @Test
     public void testSubClassGraph() throws Exception {
-        String insert = "INSERT DATA { GRAPH <http://updated/test> {\n"
+        final String insert = "INSERT DATA { GRAPH <http://updated/test> {\n"
                 + "  <urn:A> rdfs:subClassOf <urn:C> . \n"
                 + "  <urn:B> rdfs:subClassOf <urn:C> . \n"
                 + "  <urn:C> rdfs:subClassOf <urn:D> . \n"
@@ -99,34 +102,33 @@ public class InferenceEngineTest extends TestCase {
                 + "}}";
         conn.prepareUpdate(QueryLanguage.SPARQL, insert).execute();
         inferenceEngine.refreshGraph();
-        Graph graph = inferenceEngine.getSubClassOfGraph();
-        URI a = vf.createURI("urn:A");
-        URI b = vf.createURI("urn:B");
-        URI c = vf.createURI("urn:C");
-        URI d = vf.createURI("urn:D");
-        URI e = vf.createURI("urn:E");
-        URI f = vf.createURI("urn:F");
-        URI g = vf.createURI("urn:G");
-        URI z = vf.createURI("urn:Z");
-        URI missing = vf.createURI("urn:Missing");
-        Set<URI> empty = new HashSet<>();
-        Set<URI> belowLevel2 = new HashSet<>(Arrays.asList(new URI[] { a, b }));
-        Set<URI> belowLevel3 = new HashSet<>(Arrays.asList(new URI[] { a, b, c, d, e }));
-        Set<URI> belowLevel4 = new HashSet<>(Arrays.asList(new URI[] { a, b, c, d, e, f, g }));
-        Assert.assertEquals(empty, inferenceEngine.findParents(graph, a));
-        Assert.assertEquals(empty, inferenceEngine.findParents(graph, b));
-        Assert.assertEquals(empty, inferenceEngine.findParents(graph, z));
-        Assert.assertEquals(empty, inferenceEngine.findParents(graph, missing));
-        Assert.assertEquals(belowLevel2, inferenceEngine.findParents(graph, c));
-        Assert.assertEquals(belowLevel3, inferenceEngine.findParents(graph, d));
-        Assert.assertEquals(belowLevel3, inferenceEngine.findParents(graph, e));
-        Assert.assertEquals(belowLevel4, inferenceEngine.findParents(graph, f));
-        Assert.assertEquals(belowLevel4, inferenceEngine.findParents(graph, g));
+        final URI a = vf.createURI("urn:A");
+        final URI b = vf.createURI("urn:B");
+        final URI c = vf.createURI("urn:C");
+        final URI d = vf.createURI("urn:D");
+        final URI e = vf.createURI("urn:E");
+        final URI f = vf.createURI("urn:F");
+        final URI g = vf.createURI("urn:G");
+        final URI z = vf.createURI("urn:Z");
+        final URI missing = vf.createURI("urn:Missing");
+        final Set<URI> empty = new HashSet<>();
+        final Set<URI> belowLevel2 = new HashSet<>(Arrays.asList(new URI[] { a, b }));
+        final Set<URI> belowLevel3 = new HashSet<>(Arrays.asList(new URI[] { a, b, c, d, e }));
+        final Set<URI> belowLevel4 = new HashSet<>(Arrays.asList(new URI[] { a, b, c, d, e, f, g }));
+        Assert.assertEquals(empty, inferenceEngine.getSubClasses(a));
+        Assert.assertEquals(empty, inferenceEngine.getSubClasses(b));
+        Assert.assertEquals(empty, inferenceEngine.getSubClasses(z));
+        Assert.assertEquals(empty, inferenceEngine.getSubClasses(missing));
+        Assert.assertEquals(belowLevel2, inferenceEngine.getSubClasses(c));
+        Assert.assertEquals(belowLevel3, inferenceEngine.getSubClasses(d));
+        Assert.assertEquals(belowLevel3, inferenceEngine.getSubClasses(e));
+        Assert.assertEquals(belowLevel4, inferenceEngine.getSubClasses(f));
+        Assert.assertEquals(belowLevel4, inferenceEngine.getSubClasses(g));
     }
 
     @Test
     public void testSubPropertyGraph() throws Exception {
-        String insert = "INSERT DATA { GRAPH <http://updated/test> {\n"
+        final String insert = "INSERT DATA { GRAPH <http://updated/test> {\n"
                 + "  <urn:p> rdfs:subPropertyOf <urn:q> . \n"
                 + "  <urn:p> rdfs:subPropertyOf <urn:r> . \n"
                 + "  <urn:r> owl:equivalentProperty <urn:s> . \n"
@@ -138,35 +140,35 @@ public class InferenceEngineTest extends TestCase {
                 + "}}";
         conn.prepareUpdate(QueryLanguage.SPARQL, insert).execute();
         inferenceEngine.refreshGraph();
-        Graph graph = inferenceEngine.getSubPropertyOfGraph();
-        URI p = vf.createURI("urn:p");
-        URI q = vf.createURI("urn:q");
-        URI r = vf.createURI("urn:r");
-        URI s = vf.createURI("urn:s");
-        URI t = vf.createURI("urn:t");
-        URI u = vf.createURI("urn:u");
-        URI v = vf.createURI("urn:v");
-        URI w = vf.createURI("urn:w");
-        URI missing = vf.createURI("urn:Missing");
-        Set<URI> empty = new HashSet<>();
-        Set<URI> belowQ = new HashSet<>(Arrays.asList(new URI[] { p }));
-        Set<URI> belowR = new HashSet<>(Arrays.asList(new URI[] { p, r, s }));
-        Set<URI> belowT = new HashSet<>(Arrays.asList(new URI[] { p, q }));
-        Set<URI> belowU = new HashSet<>(Arrays.asList(new URI[] { p, q, r, s, t, u, v }));
-        Assert.assertEquals(empty, inferenceEngine.findParents(graph, p));
-        Assert.assertEquals(empty, inferenceEngine.findParents(graph, w));
-        Assert.assertEquals(empty, inferenceEngine.findParents(graph, missing));
-        Assert.assertEquals(belowQ, inferenceEngine.findParents(graph, q));
-        Assert.assertEquals(belowR, inferenceEngine.findParents(graph, r));
-        Assert.assertEquals(belowR, inferenceEngine.findParents(graph, s));
-        Assert.assertEquals(belowT, inferenceEngine.findParents(graph, t));
-        Assert.assertEquals(belowU, inferenceEngine.findParents(graph, u));
-        Assert.assertEquals(belowU, inferenceEngine.findParents(graph, v));
+        final Graph graph = inferenceEngine.getSubPropertyOfGraph();
+        final URI p = vf.createURI("urn:p");
+        final URI q = vf.createURI("urn:q");
+        final URI r = vf.createURI("urn:r");
+        final URI s = vf.createURI("urn:s");
+        final URI t = vf.createURI("urn:t");
+        final URI u = vf.createURI("urn:u");
+        final URI v = vf.createURI("urn:v");
+        final URI w = vf.createURI("urn:w");
+        final URI missing = vf.createURI("urn:Missing");
+        final Set<URI> empty = new HashSet<>();
+        final Set<URI> belowQ = new HashSet<>(Arrays.asList(new URI[] { p }));
+        final Set<URI> belowR = new HashSet<>(Arrays.asList(new URI[] { p, r, s }));
+        final Set<URI> belowT = new HashSet<>(Arrays.asList(new URI[] { p, q }));
+        final Set<URI> belowU = new HashSet<>(Arrays.asList(new URI[] { p, q, r, s, t, u, v }));
+        Assert.assertEquals(empty, InferenceEngine.findParents(graph, p));
+        Assert.assertEquals(empty, InferenceEngine.findParents(graph, w));
+        Assert.assertEquals(empty, InferenceEngine.findParents(graph, missing));
+        Assert.assertEquals(belowQ, InferenceEngine.findParents(graph, q));
+        Assert.assertEquals(belowR, InferenceEngine.findParents(graph, r));
+        Assert.assertEquals(belowR, InferenceEngine.findParents(graph, s));
+        Assert.assertEquals(belowT, InferenceEngine.findParents(graph, t));
+        Assert.assertEquals(belowU, InferenceEngine.findParents(graph, u));
+        Assert.assertEquals(belowU, InferenceEngine.findParents(graph, v));
     }
 
     @Test
     public void testDomainRange() throws Exception {
-        String insert = "INSERT DATA { GRAPH <http://updated/test> {\n"
+        final String insert = "INSERT DATA { GRAPH <http://updated/test> {\n"
                 + "  <urn:p1> rdfs:subPropertyOf <urn:p2> . \n"
                 + "  <urn:p2> rdfs:subPropertyOf <urn:p3> . \n"
                 + "  <urn:q1> rdfs:subPropertyOf <urn:q2> . \n"
@@ -187,25 +189,25 @@ public class InferenceEngineTest extends TestCase {
                 + "}}";
         conn.prepareUpdate(QueryLanguage.SPARQL, insert).execute();
         inferenceEngine.refreshGraph();
-        Set<URI> hasDomainD1 = inferenceEngine.getPropertiesWithDomain(vf.createURI("urn:D1"));
-        Set<URI> hasDomainD2 = inferenceEngine.getPropertiesWithDomain(vf.createURI("urn:D2"));
-        Set<URI> hasDomainD3 = inferenceEngine.getPropertiesWithDomain(vf.createURI("urn:D3"));
-        Set<URI> hasRangeD1 = inferenceEngine.getPropertiesWithRange(vf.createURI("urn:D1"));
-        Set<URI> hasRangeD2 = inferenceEngine.getPropertiesWithRange(vf.createURI("urn:D2"));
-        Set<URI> hasRangeD3 = inferenceEngine.getPropertiesWithRange(vf.createURI("urn:D3"));
-        Set<URI> hasDomainR1 = inferenceEngine.getPropertiesWithDomain(vf.createURI("urn:R1"));
-        Set<URI> hasDomainR2 = inferenceEngine.getPropertiesWithDomain(vf.createURI("urn:R2"));
-        Set<URI> hasDomainR3 = inferenceEngine.getPropertiesWithDomain(vf.createURI("urn:R3"));
-        Set<URI> hasRangeR1 = inferenceEngine.getPropertiesWithRange(vf.createURI("urn:R1"));
-        Set<URI> hasRangeR2 = inferenceEngine.getPropertiesWithRange(vf.createURI("urn:R2"));
-        Set<URI> hasRangeR3 = inferenceEngine.getPropertiesWithRange(vf.createURI("urn:R3"));
-        Set<URI> empty = new HashSet<>();
-        Set<URI> expectedForward = new HashSet<>();
+        final Set<URI> hasDomainD1 = inferenceEngine.getPropertiesWithDomain(vf.createURI("urn:D1"));
+        final Set<URI> hasDomainD2 = inferenceEngine.getPropertiesWithDomain(vf.createURI("urn:D2"));
+        final Set<URI> hasDomainD3 = inferenceEngine.getPropertiesWithDomain(vf.createURI("urn:D3"));
+        final Set<URI> hasRangeD1 = inferenceEngine.getPropertiesWithRange(vf.createURI("urn:D1"));
+        final Set<URI> hasRangeD2 = inferenceEngine.getPropertiesWithRange(vf.createURI("urn:D2"));
+        final Set<URI> hasRangeD3 = inferenceEngine.getPropertiesWithRange(vf.createURI("urn:D3"));
+        final Set<URI> hasDomainR1 = inferenceEngine.getPropertiesWithDomain(vf.createURI("urn:R1"));
+        final Set<URI> hasDomainR2 = inferenceEngine.getPropertiesWithDomain(vf.createURI("urn:R2"));
+        final Set<URI> hasDomainR3 = inferenceEngine.getPropertiesWithDomain(vf.createURI("urn:R3"));
+        final Set<URI> hasRangeR1 = inferenceEngine.getPropertiesWithRange(vf.createURI("urn:R1"));
+        final Set<URI> hasRangeR2 = inferenceEngine.getPropertiesWithRange(vf.createURI("urn:R2"));
+        final Set<URI> hasRangeR3 = inferenceEngine.getPropertiesWithRange(vf.createURI("urn:R3"));
+        final Set<URI> empty = new HashSet<>();
+        final Set<URI> expectedForward = new HashSet<>();
         expectedForward.add(vf.createURI("urn:p2"));
         expectedForward.add(vf.createURI("urn:p1"));
         expectedForward.add(vf.createURI("urn:q2"));
         expectedForward.add(vf.createURI("urn:q1"));
-        Set<URI> expectedInverse = new HashSet<>();
+        final Set<URI> expectedInverse = new HashSet<>();
         expectedInverse.add(vf.createURI("urn:i1"));
         expectedInverse.add(vf.createURI("urn:i2"));
         expectedInverse.add(vf.createURI("urn:j1"));
@@ -226,7 +228,7 @@ public class InferenceEngineTest extends TestCase {
 
     @Test
     public void testAllValuesFrom() throws Exception {
-        String insert = "INSERT DATA { GRAPH <http://updated/test> {\n"
+        final String insert = "INSERT DATA { GRAPH <http://updated/test> {\n"
                 + "  <urn:Dog> owl:onProperty <urn:relative> ; owl:allValuesFrom <urn:Dog> .\n"
                 + "  <urn:Retriever> rdfs:subClassOf <urn:Dog> .\n"
                 + "  <urn:Terrier> rdfs:subClassOf <urn:Dog> .\n"
@@ -257,7 +259,7 @@ public class InferenceEngineTest extends TestCase {
 
     @Test
     public void testHasValueGivenProperty() throws Exception {
-        String insert = "INSERT DATA { GRAPH <http://updated/test> {\n"
+        final String insert = "INSERT DATA { GRAPH <http://updated/test> {\n"
                 + "  <urn:Biped> owl:onProperty <urn:walksUsingLegs>  . \n"
                 + "  <urn:Biped> owl:hasValue \"2\" . \n"
                 + "  <urn:Mammal> owl:onProperty <urn:taxon> . \n"
@@ -288,7 +290,7 @@ public class InferenceEngineTest extends TestCase {
 
     @Test
     public void testHasValueGivenType() throws Exception {
-        String insert = "INSERT DATA { GRAPH <http://updated/test> {\n"
+        final String insert = "INSERT DATA { GRAPH <http://updated/test> {\n"
                 + "  <urn:Biped> owl:onProperty <urn:walksUsingLegs>  . \n"
                 + "  <urn:Biped> owl:hasValue \"2\" . \n"
                 + "  <urn:Mammal> owl:onProperty <urn:taxon> . \n"
@@ -352,11 +354,10 @@ public class InferenceEngineTest extends TestCase {
                 + "}}";
         conn.prepareUpdate(QueryLanguage.SPARQL, ontology).execute();
         inferenceEngine.refreshGraph();
-        Graph subClassGraph = inferenceEngine.getSubClassOfGraph();
-        Set<URI> subClassesA = inferenceEngine.findParents(subClassGraph, vf.createURI("urn:A"));
-        Set<URI> subClassesB = inferenceEngine.findParents(subClassGraph, vf.createURI("urn:B"));
-        Set<URI> expectedA = new HashSet<>();
-        Set<URI> expectedB = new HashSet<>();
+        final Set<URI> subClassesA = inferenceEngine.getSubClasses(vf.createURI("urn:A"));
+        final Set<URI> subClassesB = inferenceEngine.getSubClasses(vf.createURI("urn:B"));
+        final Set<URI> expectedA = new HashSet<>();
+        final Set<URI> expectedB = new HashSet<>();
         expectedB.add(vf.createURI("urn:Y"));
         expectedB.add(vf.createURI("urn:SubY"));
         expectedB.add(vf.createURI("urn:Z"));
@@ -364,5 +365,77 @@ public class InferenceEngineTest extends TestCase {
         expectedA.add(vf.createURI("urn:X"));
         Assert.assertEquals(expectedA, subClassesA);
         Assert.assertEquals(expectedB, subClassesB);
+    }
+
+    public void testIntersectionOf() throws Exception {
+        final String ontology = "INSERT DATA { GRAPH <http://updated/test> {\n"
+                + "  <urn:Mother> owl:intersectionOf _:bnode1 . \n"
+                + "  _:bnode1 rdf:first <urn:Woman> . \n"
+                + "  _:bnode1 rdf:rest _:bnode2 . \n"
+                + "  _:bnode2 rdf:first <urn:Parent> . \n"
+                + "  _:bnode2 rdf:rest rdf:nil . \n"
+                + "  <urn:Father> owl:intersectionOf _:bnode3 . \n"
+                + "  _:bnode3 rdf:first <urn:Man> . \n"
+                + "  _:bnode3 rdf:rest _:bnode4 . \n"
+                + "  _:bnode4 rdf:first <urn:Parent> . \n"
+                + "  _:bnode4 rdf:rest rdf:nil . \n"
+                + "  <urn:Mom> owl:intersectionOf _:bnode5 . \n"
+                + "  _:bnode5 rdf:first <urn:Woman> . \n"
+                + "  _:bnode5 rdf:rest _:bnode6 . \n"
+                + "  _:bnode6 rdf:first <urn:Parent> . \n"
+                + "  _:bnode6 rdf:rest rdf:nil . \n"
+                + "  <urn:Mother> rdfs:subClassOf <urn:ImmediateFamilyMember> . \n"
+                + "  <urn:ImmediateFamilyMember> rdfs:subClassOf <urn:Relative> . \n"
+                + "}}";
+
+        conn.prepareUpdate(QueryLanguage.SPARQL, ontology).execute();
+        inferenceEngine.refreshGraph();
+
+        final URI mother = vf.createURI("urn:Mother");
+        final URI father = vf.createURI("urn:Father");
+        final URI woman = vf.createURI("urn:Woman");
+        final URI parent = vf.createURI("urn:Parent");
+        final URI man = vf.createURI("urn:Man");
+        final URI mom = vf.createURI("urn:Mom");
+        final URI immediateFamilyMember = vf.createURI("urn:ImmediateFamilyMember");
+        final URI relative = vf.createURI("urn:Relative");
+
+        final List<Set<Resource>> intersectionsImplyingMother = Arrays.asList(Sets.newHashSet(woman, parent));
+        Assert.assertEquals(intersectionsImplyingMother, inferenceEngine.getIntersectionsImplying(mother));
+        final List<Set<Resource>> intersectionsImplyingFather = Arrays.asList(Sets.newHashSet(man, parent));
+        Assert.assertEquals(intersectionsImplyingFather, inferenceEngine.getIntersectionsImplying(father));
+
+        // Check that Mother is a subclassOf Parent and Woman and
+        // ImmediateFamilyMember and Relative. Also, Mother is a subclassOf
+        // Mother and Mom through inferring equivalentClass.
+        final Set<URI> motherSuperClassUris = inferenceEngine.getSuperClasses(mother);
+        Assert.assertNotNull(motherSuperClassUris);
+        Assert.assertEquals(6, motherSuperClassUris.size());
+        Assert.assertTrue(motherSuperClassUris.contains(parent));
+        Assert.assertTrue(motherSuperClassUris.contains(woman));
+        Assert.assertTrue(motherSuperClassUris.contains(immediateFamilyMember));
+        Assert.assertTrue(motherSuperClassUris.contains(relative));
+        Assert.assertTrue(motherSuperClassUris.contains(mother));
+        Assert.assertTrue(motherSuperClassUris.contains(mom));
+        // Check that Father is a subclassOf Parent and Man
+        final Set<URI> fatherSuperClassUris = inferenceEngine.getSuperClasses(father);
+        Assert.assertNotNull(fatherSuperClassUris);
+        Assert.assertEquals(2, fatherSuperClassUris.size());
+        Assert.assertTrue(fatherSuperClassUris.contains(parent));
+        Assert.assertTrue(fatherSuperClassUris.contains(man));
+
+        // Check that Mom is a subclassOf Parent and Woman and
+        // ImmediateFamilyMember and Relative. The last 2 should be inferred
+        // from having the same intersection as Mother. Also, Mom is a
+        // subclassOf Mother and Mom through inferring equivalentClass.
+        final Set<URI> momSuperClassUris = inferenceEngine.getSuperClasses(mom);
+        Assert.assertNotNull(momSuperClassUris);
+        Assert.assertEquals(6, momSuperClassUris.size());
+        Assert.assertTrue(momSuperClassUris.contains(parent));
+        Assert.assertTrue(momSuperClassUris.contains(woman));
+        Assert.assertTrue(momSuperClassUris.contains(immediateFamilyMember));
+        Assert.assertTrue(momSuperClassUris.contains(relative));
+        Assert.assertTrue(momSuperClassUris.contains(mother));
+        Assert.assertTrue(momSuperClassUris.contains(mom));
     }
 }

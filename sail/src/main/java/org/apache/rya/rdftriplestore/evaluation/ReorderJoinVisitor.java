@@ -8,9 +8,9 @@ package org.apache.rya.rdftriplestore.evaluation;
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- * 
+ *
  *   http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -31,13 +31,13 @@ import org.openrdf.query.algebra.helpers.QueryModelVisitorBase;
  * Date: Apr 11, 2011
  * Time: 10:16:15 PM
  */
-public class ReorderJoinVisitor extends QueryModelVisitorBase {
+public class ReorderJoinVisitor extends QueryModelVisitorBase<Exception> {
     @Override
-    public void meet(Join node) throws Exception {
+    public void meet(final Join node) throws Exception {
         super.meet(node);
-        
-        TupleExpr leftArg = node.getLeftArg();
-        TupleExpr rightArg = node.getRightArg();
+
+        final TupleExpr leftArg = node.getLeftArg();
+        final TupleExpr rightArg = node.getRightArg();
 
         /**
          * if join(stmtPattern1, join(stmtPattern2, anything)
@@ -45,10 +45,10 @@ public class ReorderJoinVisitor extends QueryModelVisitorBase {
          * join(join(stmtPattern1, stmtPattern2), anything)
          */
         if (leftArg instanceof StatementPattern && rightArg instanceof Join) {
-            Join rightJoin = (Join) rightArg;
+            final Join rightJoin = (Join) rightArg;
             //find the stmtPattern in the right side
-            TupleExpr right_LeftArg = rightJoin.getLeftArg();
-            TupleExpr right_rightArg = rightJoin.getRightArg();
+            final TupleExpr right_LeftArg = rightJoin.getLeftArg();
+            final TupleExpr right_rightArg = rightJoin.getRightArg();
             if (right_LeftArg instanceof StatementPattern || right_rightArg instanceof StatementPattern) {
                 StatementPattern stmtPattern = null;
                 TupleExpr anything = null;
@@ -60,8 +60,8 @@ public class ReorderJoinVisitor extends QueryModelVisitorBase {
                     anything = right_LeftArg;
                 }
 
-                Join inner = new Join(leftArg, stmtPattern);
-                Join outer = new Join(inner, anything);
+                final Join inner = new Join(leftArg, stmtPattern);
+                final Join outer = new Join(inner, anything);
                 node.replaceWith(outer);
             }
         }

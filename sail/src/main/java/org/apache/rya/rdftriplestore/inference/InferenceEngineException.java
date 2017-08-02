@@ -8,9 +8,9 @@ package org.apache.rya.rdftriplestore.inference;
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- * 
+ *
  *   http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -26,18 +26,20 @@ package org.apache.rya.rdftriplestore.inference;
  * Time: 11:03 AM
  */
 public class InferenceEngineException extends Exception {
+    private static final long serialVersionUID = 1L;
+
     public InferenceEngineException() {
     }
 
-    public InferenceEngineException(String s) {
+    public InferenceEngineException(final String s) {
         super(s);
     }
 
-    public InferenceEngineException(String s, Throwable throwable) {
+    public InferenceEngineException(final String s, final Throwable throwable) {
         super(s, throwable);
     }
 
-    public InferenceEngineException(Throwable throwable) {
+    public InferenceEngineException(final Throwable throwable) {
         super(throwable);
     }
 }

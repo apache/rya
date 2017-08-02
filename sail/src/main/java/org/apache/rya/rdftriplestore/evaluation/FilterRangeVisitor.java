@@ -1,5 +1,11 @@
 package org.apache.rya.rdftriplestore.evaluation;
 
+import static org.apache.rya.api.RdfCloudTripleStoreConstants.RANGE;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -8,9 +14,9 @@ package org.apache.rya.rdftriplestore.evaluation;
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- * 
+ *
  *   http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -27,47 +33,46 @@ import org.apache.rya.api.domain.RangeValue;
 import org.openrdf.model.Value;
 import org.openrdf.model.impl.BooleanLiteralImpl;
 import org.openrdf.query.QueryEvaluationException;
-import org.openrdf.query.algebra.*;
+import org.openrdf.query.algebra.Filter;
+import org.openrdf.query.algebra.FunctionCall;
+import org.openrdf.query.algebra.StatementPattern;
+import org.openrdf.query.algebra.ValueConstant;
+import org.openrdf.query.algebra.ValueExpr;
+import org.openrdf.query.algebra.Var;
 import org.openrdf.query.algebra.helpers.QueryModelVisitorBase;
-
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import static org.apache.rya.api.RdfCloudTripleStoreConstants.RANGE;
 
 /**
  * Class FilterTimeIndexVisitor
  * Date: Apr 11, 2011
  * Time: 10:16:15 PM
  */
-public class FilterRangeVisitor extends QueryModelVisitorBase {
+public class FilterRangeVisitor extends QueryModelVisitorBase<Exception> {
 
-    private RdfCloudTripleStoreConfiguration conf;
-    private Map<Var, RangeValue> rangeValues = new HashMap<Var, RangeValue>();
+    private final RdfCloudTripleStoreConfiguration conf;
+    private final Map<Var, RangeValue> rangeValues = new HashMap<Var, RangeValue>();
 
-    public FilterRangeVisitor(RdfCloudTripleStoreConfiguration conf) {
+    public FilterRangeVisitor(final RdfCloudTripleStoreConfiguration conf) {
         this.conf = conf;
     }
 
     @Override
-    public void meet(Filter node) throws Exception {
+    public void meet(final Filter node) throws Exception {
         super.meet(node);
 
-        ValueExpr arg = node.getCondition();
+        final ValueExpr arg = node.getCondition();
         if (arg instanceof FunctionCall) {
-            FunctionCall fc = (FunctionCall) arg;
+            final FunctionCall fc = (FunctionCall) arg;
             if (RANGE.stringValue().equals(fc.getURI())) {
                 //range(?var, start, end)
-                List<ValueExpr> valueExprs = fc.getArgs();
+                final List<ValueExpr> valueExprs = fc.getArgs();
                 if (valueExprs.size() != 3) {
                     throw new QueryEvaluationException("org.apache:range must have 3 parameters: variable, start, end");
                 }
-                Var var = (Var) valueExprs.get(0);
-                ValueConstant startVc = (ValueConstant) valueExprs.get(1);
-                ValueConstant endVc = (ValueConstant) valueExprs.get(2);
-                Value start = startVc.getValue();
-                Value end = endVc.getValue();
+                final Var var = (Var) valueExprs.get(0);
+                final ValueConstant startVc = (ValueConstant) valueExprs.get(1);
+                final ValueConstant endVc = (ValueConstant) valueExprs.get(2);
+                final Value start = startVc.getValue();
+                final Value end = endVc.getValue();
                 rangeValues.put(var, new RangeValue(start, end));
                 node.setCondition(new ValueConstant(BooleanLiteralImpl.TRUE));
             }
@@ -75,15 +80,15 @@ public class FilterRangeVisitor extends QueryModelVisitorBase {
     }
 
     @Override
-    public void meet(StatementPattern node) throws Exception {
+    public void meet(final StatementPattern node) throws Exception {
         super.meet(node);
 
-        Var subjectVar = node.getSubjectVar();
-        RangeValue subjRange = rangeValues.get(subjectVar);
-        Var predVar = node.getPredicateVar();
-        RangeValue predRange = rangeValues.get(predVar);
-        Var objVar = node.getObjectVar();
-        RangeValue objRange = rangeValues.get(objVar);
+        final Var subjectVar = node.getSubjectVar();
+        final RangeValue subjRange = rangeValues.get(subjectVar);
+        final Var predVar = node.getPredicateVar();
+        final RangeValue predRange = rangeValues.get(predVar);
+        final Var objVar = node.getObjectVar();
+        final RangeValue objRange = rangeValues.get(objVar);
         if(subjRange != null) {
             subjectVar.setValue(new RangeURI(subjRange));//Assumes no blank nodes can be ranges
         }

@@ -26,11 +26,9 @@ import org.apache.rya.indexing.GeoConstants;
 import org.apache.rya.indexing.IndexingExpr;
 import org.apache.rya.indexing.IndexingFunctionRegistry;
 import org.apache.rya.indexing.IndexingFunctionRegistry.FUNCTION_TYPE;
-import org.apache.rya.indexing.geotemporal.GeoTemporalIndexer;
-import org.apache.rya.indexing.geotemporal.GeoTemporalTestBase;
 import org.apache.rya.indexing.geotemporal.GeoTemporalIndexer.GeoPolicy;
 import org.apache.rya.indexing.geotemporal.GeoTemporalIndexer.TemporalPolicy;
-import org.apache.rya.indexing.geotemporal.mongo.GeoTemporalMongoDBStorageStrategy;
+import org.apache.rya.indexing.geotemporal.GeoTemporalTestBase;
 import org.junit.Before;
 import org.junit.Test;
 import org.openrdf.model.Resource;
@@ -99,12 +97,15 @@ public class GeoTemporalMongoDBStorageStrategyTest extends GeoTemporalTestBase {
         final DBObject actual = adapter.getFilterQuery(geoFilters, temporalFilters);
         final String expectedString =
             "{ "
-              + "\"location\" : {"
-                + "\"$geoWithin\" : {"
-                  + "\"$polygon\" : [ [ -3.0 , -2.0] , [ -3.0 , 2.0] , [ 1.0 , 2.0] , [ 1.0 , -2.0] , [ -3.0 , -2.0]]"
+            + "\"location\" : { "
+              + "\"$geoWithin\" : { "
+                + "\"$geometry\" : { "
+                  + "\"coordinates\" : [ [ [ -3.0 , -2.0] , [ -3.0 , 2.0] , [ 1.0 , 2.0] , [ 1.0 , -2.0] , [ -3.0 , -2.0]]] , "
+                  + "\"type\" : \"Polygon\""
                 + "}"
               + "}"
-            + "}";
+            + "}"
+          + "}";
         final DBObject expected = (DBObject) JSON.parse(expectedString);
         assertEqualMongo(expected, actual);
     }
@@ -136,18 +137,24 @@ public class GeoTemporalMongoDBStorageStrategyTest extends GeoTemporalTestBase {
               }
               final List<IndexingExpr> temporalFilters = new ArrayList<>();
               final DBObject actual = adapter.getFilterQuery(geoFilters, temporalFilters);
+
               final String expectedString =
                   "{ "
-                    + "\"$and\" : [{"
-                      + "\"location\" : [ [ -4.0 , -3.0] , [ -4.0 , 3.0] , [ 2.0 , 3.0] , [ 2.0 , -3.0] , [ -4.0 , -3.0]]"
-                      + "}, {"
-                      + "\"location\" : {"
-                        + "\"$geoIntersects\" : {"
-                          + "\"$polygon\" : [ [ -3.0 , -2.0] , [ -3.0 , 2.0] , [ 1.0 , 2.0] , [ 1.0 , -2.0] , [ -3.0 , -2.0]]"
-                        + "}"
+                  + "\"$and\" : [ { "
+                    + "\"location\" : {"
+                      + " \"coordinates\" : [ [ [ -4.0 , -3.0] , [ -4.0 , 3.0] , [ 2.0 , 3.0] , [ 2.0 , -3.0] , [ -4.0 , -3.0]]] ,"
+                      + " \"type\" : \"Polygon\""
+                    + "}"
+                  + "} , { "
+                  + "\"location\" : { "
+                    + "\"$geoIntersects\" : {"
+                      + " \"$geometry\" : {"
+                        + " \"coordinates\" : [ [ [ -3.0 , -2.0] , [ -3.0 , 2.0] , [ 1.0 , 2.0] , [ 1.0 , -2.0] , [ -3.0 , -2.0]]] ,"
+                        + " \"type\" : \"Polygon\""
                       + "}"
-                    + "}]"
-                  + "}";
+                    + "}"
+                  + "}"
+                + "}]}";
               final DBObject expected = (DBObject) JSON.parse(expectedString);
               assertEqualMongo(expected, actual);
     }
@@ -257,14 +264,18 @@ public class GeoTemporalMongoDBStorageStrategyTest extends GeoTemporalTestBase {
               final DBObject actual = adapter.getFilterQuery(geoFilters, temporalFilters);
               final String expectedString =
               "{ "
-              + "\"$and\" : [{"
-                + "\"location\" : {"
-                  + "\"$geoWithin\" : {"
-                    + "\"$polygon\" : [ [ -3.0 , -2.0] , [ -3.0 , 2.0] , [ 1.0 , 2.0] , [ 1.0 , -2.0] , [ -3.0 , -2.0]]"
-                  + "},"
-                + "}}, {"
-                + "\"instant\" : {"
-                  + "\"$gt\" : {"
+              + "\"$and\" : [ { "
+                + "\"location\" : { "
+                  + "\"$geoWithin\" : { "
+                    + "\"$geometry\" : { "
+                      + "\"coordinates\" : [ [ [ -3.0 , -2.0] , [ -3.0 , 2.0] , [ 1.0 , 2.0] , [ 1.0 , -2.0] , [ -3.0 , -2.0]]] , "
+                      + "\"type\" : \"Polygon\""
+                    + "}"
+                  + "}"
+                + "}"
+              + "} , { "
+                + "\"instant\" : { "
+                  + "\"$gt\" : { "
                     + "\"$date\" : \"2015-12-30T12:00:00.000Z\""
                   + "}"
                 + "}"
@@ -306,32 +317,37 @@ public class GeoTemporalMongoDBStorageStrategyTest extends GeoTemporalTestBase {
               }
               final DBObject actual = adapter.getFilterQuery(geoFilters, temporalFilters);
               final String expectedString =
-              "{ "
-              + "\"$and\" : [{"
-                + "\"$and\" : [{"
-                  + "\"location\" : [ [ -4.0 , -3.0] , [ -4.0 , 3.0] , [ 2.0 , 3.0] , [ 2.0 , -3.0] , [ -4.0 , -3.0]]"
-                  + "}, {"
-                  + "\"location\" : {"
-                    + "\"$geoWithin\" : {"
-                      + "\"$polygon\" : [ [ -3.0 , -2.0] , [ -3.0 , 2.0] , [ 1.0 , 2.0] , [ 1.0 , -2.0] , [ -3.0 , -2.0]]"
-                    + "}"
-                  + "}"
-                + "}]"
-              + "},{"
-                + "\"$and\" : [{"
-                  + "\"instant\" : {"
-                    + "\"$lt\" : {"
-                      + "\"$date\" : \"1970-01-01T00:00:00.000Z\""
-                    + "},"
-                    + "}"
-                  + "}, {"
-                    + "\"instant\" : {"
-                      + "\"$date\" : \"1970-01-01T00:00:01.000Z\""
-                    + "}"
-                  + "}]"
-                + "}"
-              + "]"
-            + "}";
+                  "{ "
+                  + "\"$and\" : [ { "
+                    + "\"$and\" : [ { "
+                      + "\"location\" : { "
+                        + "\"coordinates\" : [ [ [ -4.0 , -3.0] , [ -4.0 , 3.0] , [ 2.0 , 3.0] , [ 2.0 , -3.0] , [ -4.0 , -3.0]]] , "
+                        + "\"type\" : \"Polygon\""
+                      + "}"
+                    + "} , { "
+                      + "\"location\" : { "
+                        + "\"$geoWithin\" : { "
+                          + "\"$geometry\" : { "
+                            + "\"coordinates\" : [ [ [ -3.0 , -2.0] , [ -3.0 , 2.0] , [ 1.0 , 2.0] , [ 1.0 , -2.0] , [ -3.0 , -2.0]]] , "
+                            + "\"type\" : \"Polygon\""
+                         + "}"
+                       + "}"
+                     + "}"
+                   + "}]"
+                 + "} , { "
+                   + "\"$and\" : [ { "
+                     + "\"instant\" : { "
+                       + "\"$lt\" : { "
+                         + "\"$date\" : \"1970-01-01T00:00:00.000Z\""
+                       + "}"
+                     + "}"
+                   + "} , { "
+                     + "\"instant\" : { "
+                       + "\"$date\" : \"1970-01-01T00:00:01.000Z\""
+                     + "}"
+                   + "}]"
+                 + "}]"
+               + "}";
               final DBObject expected = (DBObject) JSON.parse(expectedString);
               assertEqualMongo(expected, actual);
     }
@@ -367,24 +383,26 @@ public class GeoTemporalMongoDBStorageStrategyTest extends GeoTemporalTestBase {
         }
         final DBObject actual = adapter.getFilterQuery(geoFilters, temporalFilters);
         final String expectedString =
-              "{ "
-              + "\"$and\" : [{"
-                  + "\"location\" : [ [ -4.0 , -3.0] , [ -4.0 , 3.0] , [ 2.0 , 3.0] , [ 2.0 , -3.0] , [ -4.0 , -3.0]]"
-                + "},{"
-                + "\"$and\" : [{"
-                  + "\"instant\" : {"
-                    + "\"$gt\" : {"
-                      + "\"$date\" : \"1970-01-01T00:00:01.000Z\""
-                    + "},"
-                    + "}"
-                  + "}, {"
-                    + "\"instant\" : {"
-                      + "\"$date\" : \"1970-01-01T00:00:00.000Z\""
-                    + "}"
-                  + "}]"
+            "{ "
+            + "\"$and\" : [ { "
+              + "\"location\" : { "
+                + "\"coordinates\" : [ [ [ -4.0 , -3.0] , [ -4.0 , 3.0] , [ 2.0 , 3.0] , [ 2.0 , -3.0] , [ -4.0 , -3.0]]] , "
+                + "\"type\" : \"Polygon\""
+              + "}"
+            + "} , { "
+              + "\"$and\" : [ { "
+                + "\"instant\" : { "
+                  + "\"$gt\" : { "
+                    + "\"$date\" : \"1970-01-01T00:00:01.000Z\""
+                  + "}"
                 + "}"
-              + "]"
-            + "}";
+              + "} , { "
+                + "\"instant\" : { "
+                  + "\"$date\" : \"1970-01-01T00:00:00.000Z\""
+                + "}"
+              + "}]"
+            + "}]"
+          + "}";
         final DBObject expected = (DBObject) JSON.parse(expectedString);
         assertEqualMongo(expected, actual);
     }
@@ -402,10 +420,13 @@ public class GeoTemporalMongoDBStorageStrategyTest extends GeoTemporalTestBase {
         Statement statement = new ContextStatementImpl(subject, predicate, object, context);
         DBObject actual = adapter.serialize(RdfToRyaConversions.convertStatement(statement));
         String expectedString =
-                "{"
-                  +"_id : -852305321, "
-                  +"location : [ [ -77.03524 , 38.889468]]"
-              + "}";
+            "{ "
+            + "\"_id\" : -852305321 , "
+            + "\"location\" : { "
+              + "\"coordinates\" : [ -77.03524 , 38.889468] , "
+              + "\"type\" : \"Point\""
+            + "}"
+          + "}";
         DBObject expected = (DBObject) JSON.parse(expectedString);
         assertEqualMongo(expected, actual);
 

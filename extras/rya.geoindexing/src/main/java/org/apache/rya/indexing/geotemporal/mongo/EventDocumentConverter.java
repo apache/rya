@@ -31,12 +31,13 @@ import org.apache.rya.indexing.entity.storage.mongo.DocumentConverter;
 import org.apache.rya.indexing.geotemporal.model.Event;
 import org.apache.rya.indexing.mongodb.geo.GeoMongoDBStorageStrategy;
 import org.bson.Document;
-import org.bson.types.BasicBSONList;
 import org.joda.time.DateTime;
 
 import com.vividsolutions.jts.geom.Coordinate;
+import com.vividsolutions.jts.geom.CoordinateList;
 import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.GeometryFactory;
+import com.vividsolutions.jts.geom.LinearRing;
 
 public class EventDocumentConverter implements DocumentConverter<Event>{
     public static final String SUBJECT = "_id";
@@ -45,7 +46,7 @@ public class EventDocumentConverter implements DocumentConverter<Event>{
     public static final String INTERVAL_END = "end";
     public static final String INSTANT = "instant";
 
-    private final GeoMongoDBStorageStrategy geoAdapter = new GeoMongoDBStorageStrategy(0);
+    private final GeoMongoDBStorageStrategy geoAdapter = new GeoMongoDBStorageStrategy(0.0);
 
     @Override
     public Document toDocument(final Event event) {
@@ -55,7 +56,11 @@ public class EventDocumentConverter implements DocumentConverter<Event>{
         doc.append(SUBJECT, event.getSubject().getData());
 
         if(event.getGeometry().isPresent()) {
-            doc.append(GEO_KEY, geoAdapter.getCorrespondingPoints(event.getGeometry().get()));
+            if (event.getGeometry().get().getNumPoints() > 1) {
+                doc.append(GEO_KEY, geoAdapter.getCorrespondingPoints(event.getGeometry().get()));
+            } else {
+                doc.append(GEO_KEY, geoAdapter.getDBPoint(event.getGeometry().get()));
+            }
         }
         if(event.isInstant()) {
             if(event.getInstant().isPresent()) {
@@ -95,21 +100,50 @@ public class EventDocumentConverter implements DocumentConverter<Event>{
             .setSubject(new RyaURI(subject));
 
         if(document.containsKey(GEO_KEY)) {
-            final List<List<Double>> pointsList = (List<List<Double>>) document.get(GEO_KEY);
-            final Coordinate[] coords = new Coordinate[pointsList.size()];
-
-            int ii = 0;
-            for(final List<Double> point : pointsList) {
-                coords[ii] = new Coordinate(point.get(0), point.get(1));
-                ii++;
-            }
-
+            final Document geoObj = (Document) document.get(GEO_KEY);
             final GeometryFactory geoFact = new GeometryFactory();
+            final String typeString = (String) geoObj.get("type");
+            final CoordinateList coords = new CoordinateList();
             final Geometry geo;
-            if(coords.length == 1) {
-                geo = geoFact.createPoint(coords[0]);
+            if (typeString.equals("Point")) {
+                final List<Double> point = (List<Double>) geoObj.get("coordinates");
+                final Coordinate coord = new Coordinate(point.get(0), point.get(1));
+                geo = geoFact.createPoint(coord);
+            } else if (typeString.equals("LineString")) {
+                final List<List<Double>> pointsList = (List<List<Double>>) geoObj.get("coordinates");
+                for (final List<Double> point : pointsList) {
+                    coords.add(new Coordinate(point.get(0), point.get(1)));
+                }
+                geo = geoFact.createLineString(coords.toCoordinateArray());
             } else {
-                geo = geoFact.createPolygon(coords);
+                final List<List<List<Double>>> pointsList = (List<List<List<Double>>>) geoObj.get("coordinates");
+                if(pointsList.size() == 1) {
+                    final List<List<Double>> poly = pointsList.get(0);
+                    for (final List<Double> point : poly) {
+                        coords.add(new Coordinate(point.get(0), point.get(1)));
+                    }
+                    geo = geoFact.createPolygon(coords.toCoordinateArray());
+                } else {
+                    final List<List<Double>> first = pointsList.get(0);
+                    final CoordinateList shellCoords = new CoordinateList();
+                    for (final List<Double> point : pointsList.get(0)) {
+                        shellCoords.add(new Coordinate(point.get(0), point.get(1)));
+                    }
+                    final LinearRing shell = geoFact.createLinearRing(shellCoords.toCoordinateArray());
+
+                    final List<List<List<Double>>> holesPoints = pointsList.subList(1, pointsList.size() - 1);
+                    final LinearRing[] holes = new LinearRing[holesPoints.size()];
+                    for(int ii = 0; ii < holes.length; ii++) {
+                        final List<List<Double>> holePoints = holesPoints.get(ii);
+                        final CoordinateList shells = new CoordinateList();
+                        for (final List<Double> point : pointsList.get(0)) {
+                            shells.add(new Coordinate(point.get(0), point.get(1)));
+                        }
+                        holes[ii] = geoFact.createLinearRing(shells.toCoordinateArray());
+                    }
+                    geo = geoFact.createPolygon(shell,
+                            holes);
+                }
             }
             builder.setGeometry(geo);
         }
@@ -134,5 +168,4 @@ public class EventDocumentConverter implements DocumentConverter<Event>{
         }
         return builder.build();
     }
-
 }

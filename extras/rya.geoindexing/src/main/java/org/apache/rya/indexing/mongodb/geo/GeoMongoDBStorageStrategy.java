@@ -27,6 +27,7 @@ import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.resolver.RyaToRdfConversions;
 import org.apache.rya.indexing.accumulo.geo.GeoParseUtils;
 import org.apache.rya.indexing.mongodb.IndexingMongoDBStorageStrategy;
+import org.bson.Document;
 import org.openrdf.model.Statement;
 import org.openrdf.query.MalformedQueryException;
 
@@ -75,14 +76,15 @@ public class GeoMongoDBStorageStrategy extends IndexingMongoDBStorageStrategy {
         private final GeoQueryType queryType;
         private final Geometry geo;
 
-        private final double maxDistance;
-        private final double minDistance;
+        private final Double maxDistance;
+        private final Double minDistance;
 
         public GeoQuery(final GeoQueryType queryType, final Geometry geo) {
             this(queryType, geo, 0, 0);
         }
 
-        public GeoQuery(final GeoQueryType queryType, final Geometry geo, final double maxDistance, final double minDistance) {
+        public GeoQuery(final GeoQueryType queryType, final Geometry geo, final double maxDistance,
+                final double minDistance) {
             this.queryType = queryType;
             this.geo = geo;
             this.maxDistance = maxDistance;
@@ -97,18 +99,18 @@ public class GeoMongoDBStorageStrategy extends IndexingMongoDBStorageStrategy {
             return geo;
         }
 
-        public double getMaxDistance() {
+        public Double getMaxDistance() {
             return maxDistance;
         }
 
-        public double getMinDistance() {
+        public Double getMinDistance() {
             return minDistance;
         }
     }
 
-    private final double maxDistance;
+    private final Double maxDistance;
 
-    public GeoMongoDBStorageStrategy(final double maxDistance) {
+    public GeoMongoDBStorageStrategy(final Double maxDistance) {
         this.maxDistance = maxDistance;
     }
 
@@ -181,59 +183,65 @@ public class GeoMongoDBStorageStrategy extends IndexingMongoDBStorageStrategy {
         }
     }
 
-    public BasicDBObject getCorrespondingPoints(final Geometry geo) {
+    public Document getCorrespondingPoints(final Geometry geo) {
         //Polygons must be a 3 dimensional array.
 
         //polygons must be a closed loop
-        final BasicDBObjectBuilder geoDocBuilder = new BasicDBObjectBuilder();
+        final Document geoDoc = new Document();
         if (geo instanceof Polygon) {
             final Polygon poly = (Polygon) geo;
-            final List<List<double[]>> DBpoints = new ArrayList<List<double[]>>();
+            final List<List<List<Double>>> DBpoints = new ArrayList<>();
 
             // outer shell of the polygon
-            final List<double[]> ring = new ArrayList<>();
+            final List<List<Double>> ring = new ArrayList<>();
             for (final Coordinate coord : poly.getExteriorRing().getCoordinates()) {
-                ring.add(new double[] { coord.x, coord.y });
+                ring.add(getPoint(coord));
             }
             DBpoints.add(ring);
 
             // each hold in the polygon
             for (int ii = 0; ii < poly.getNumInteriorRing(); ii++) {
-                final List<double[]> holeCoords = new ArrayList<>();
+                final List<List<Double>> holeCoords = new ArrayList<>();
                 for (final Coordinate coord : poly.getInteriorRingN(ii).getCoordinates()) {
-                    holeCoords.add(new double[] { coord.x, coord.y });
+                    holeCoords.add(getPoint(coord));
                 }
                 DBpoints.add(holeCoords);
             }
-            geoDocBuilder.append("coordinates", DBpoints)
-                         .append("type", "Polygon");
+            geoDoc.append("coordinates", DBpoints)
+                  .append("type", "Polygon");
         } else {
-            final List<double[]> points = getPoints(geo);
-            geoDocBuilder.append("coordinates", points)
-                         .append("type", "LineString");
+            final List<List<Double>> points = getPoints(geo);
+            geoDoc.append("coordinates", points)
+                  .append("type", "LineString");
         }
-        return (BasicDBObject) geoDocBuilder.get();
+        return geoDoc;
     }
 
-    private List<double[]> getPoints(final Geometry geo) {
-        final List<double[]> points = new ArrayList<double[]>();
+    private List<List<Double>> getPoints(final Geometry geo) {
+        final List<List<Double>> points = new ArrayList<>();
         for (final Coordinate coord : geo.getCoordinates()) {
-            points.add(new double[] { coord.x, coord.y });
+            points.add(getPoint(coord));
         }
         return points;
     }
 
-    private BasicDBObject getDBPoint(final Geometry geo) {
-        return (BasicDBObject) new BasicDBObjectBuilder()
+    public Document getDBPoint(final Geometry geo) {
+        return new Document()
             .append("coordinates", getPoint(geo))
-            .append("type", "Point")
-            .get();
+            .append("type", "Point");
     }
 
-    private double[] getPoint(final Geometry geo) {
-        return new double[] {
-                geo.getCoordinate().x,
-                geo.getCoordinate().y
-        };
+    private List<Double> getPoint(final Coordinate coord) {
+        final List<Double> point = new ArrayList<>();
+        point.add(coord.x);
+        point.add(coord.y);
+        return point;
+    }
+
+    private List<Double> getPoint(final Geometry geo) {
+        final List<Double> point = new ArrayList<>();
+        point.add(geo.getCoordinate().x);
+        point.add(geo.getCoordinate().y);
+        return point;
     }
 }

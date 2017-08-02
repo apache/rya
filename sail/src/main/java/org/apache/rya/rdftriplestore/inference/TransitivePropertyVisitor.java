@@ -1,5 +1,3 @@
-package org.apache.rya.rdftriplestore.inference;
-
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -8,9 +6,9 @@ package org.apache.rya.rdftriplestore.inference;
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- * 
+ *
  *   http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -18,11 +16,9 @@ package org.apache.rya.rdftriplestore.inference;
  * specific language governing permissions and limitations
  * under the License.
  */
-
-
+package org.apache.rya.rdftriplestore.inference;
 
 import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
-import org.apache.rya.rdftriplestore.utils.TransitivePropertySP;
 import org.apache.rya.rdftriplestore.utils.TransitivePropertySP;
 import org.openrdf.model.URI;
 import org.openrdf.model.vocabulary.RDF;
@@ -39,18 +35,18 @@ import org.openrdf.query.algebra.Var;
  */
 public class TransitivePropertyVisitor extends AbstractInferVisitor {
 
-    public TransitivePropertyVisitor(RdfCloudTripleStoreConfiguration conf, InferenceEngine inferenceEngine) {
+    public TransitivePropertyVisitor(final RdfCloudTripleStoreConfiguration conf, final InferenceEngine inferenceEngine) {
         super(conf, inferenceEngine);
         include = conf.isInferTransitiveProperty();
     }
 
     @Override
-    protected void meetSP(StatementPattern node) throws Exception {
-        StatementPattern sp = node.clone();
+    protected void meetSP(final StatementPattern node) throws Exception {
+        final StatementPattern sp = node.clone();
         final Var predVar = sp.getPredicateVar();
 
-        URI pred = (URI) predVar.getValue();
-        String predNamespace = pred.getNamespace();
+        final URI pred = (URI) predVar.getValue();
+        final String predNamespace = pred.getNamespace();
 
         final Var objVar = sp.getObjectVar();
         final Var cntxtVar = sp.getContextVar();
@@ -60,7 +56,7 @@ public class TransitivePropertyVisitor extends AbstractInferVisitor {
                 !RDFS.NAMESPACE.equals(predNamespace)
                 && !EXPANDED.equals(cntxtVar)) {
 
-            URI transPropUri = (URI) predVar.getValue();
+            final URI transPropUri = (URI) predVar.getValue();
             if (inferenceEngine.isTransitiveProperty(transPropUri)) {
                 node.replaceWith(new TransitivePropertySP(sp.getSubjectVar(), sp.getPredicateVar(), sp.getObjectVar(), sp.getContextVar()));
             }

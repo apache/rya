@@ -74,13 +74,13 @@ public class GeoTemporalMongoDBStorageStrategy extends IndexingMongoDBStorageStr
     private final GeoMongoDBStorageStrategy geoStrategy;
 
     public GeoTemporalMongoDBStorageStrategy() {
-        geoStrategy = new GeoMongoDBStorageStrategy(0);
+        geoStrategy = new GeoMongoDBStorageStrategy(0.0);
         temporalStrategy = new TemporalMongoDBStorageStrategy();
     }
 
     @Override
     public void createIndices(final DBCollection coll){
-        coll.createIndex(GEO_KEY);
+        coll.createIndex(new BasicDBObject(GEO_KEY, "2dsphere"));
         coll.createIndex(TIME_KEY);
     }
 
@@ -124,7 +124,11 @@ public class GeoTemporalMongoDBStorageStrategy extends IndexingMongoDBStorageStr
             try {
                 final Statement statement = RyaToRdfConversions.convertStatement(ryaStatement);
                 final Geometry geo = GeoParseUtils.getGeometry(statement);
-                builder.add(GEO_KEY, geoStrategy.getCorrespondingPoints(geo));
+                if (geo.getNumPoints() > 1) {
+                    builder.add(GEO_KEY, geoStrategy.getCorrespondingPoints(geo));
+                } else {
+                    builder.add(GEO_KEY, geoStrategy.getDBPoint(geo));
+                }
             } catch (final ParseException e) {
                 LOG.error("Could not create geometry for statement " + ryaStatement, e);
                 return null;

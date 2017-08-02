@@ -25,11 +25,11 @@ import org.apache.rya.api.persist.RyaDAOException;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
+import org.junit.BeforeClass;
 
 import com.mongodb.MongoClient;
 
 import de.flapdoodle.embed.mongo.distribution.Version;
-import org.junit.BeforeClass;
 
 public class MongoRyaTestBase {
 

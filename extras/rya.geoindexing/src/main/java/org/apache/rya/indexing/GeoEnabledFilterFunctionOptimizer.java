@@ -207,13 +207,13 @@ public class GeoEnabledFilterFunctionOptimizer implements QueryOptimizer, Config
     private abstract class AbstractEnhanceVisitor extends QueryModelVisitorBase<RuntimeException> {
         final String matchVar;
         List<URI> func = Lists.newArrayList();
-        List<Value[]> args = Lists.newArrayList();
+        List<Object[]> args = Lists.newArrayList();
 
         public AbstractEnhanceVisitor(final String matchVar) {
             this.matchVar = matchVar;
         }
 
-        protected void addFilter(final URI uri, final Value[] values) {
+        protected void addFilter(final URI uri, final Object[] values) {
             func.add(uri);
             args.add(values);
         }

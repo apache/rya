@@ -32,10 +32,10 @@ import com.google.common.collect.Sets;
 public class IndexingExpr {
 
     private final URI function;
-    private final Value[] arguments;
+    private final Object[] arguments;
     private final StatementPattern spConstraint;
 
-    public IndexingExpr(URI function, StatementPattern spConstraint, Value... arguments) {
+    public IndexingExpr(URI function, StatementPattern spConstraint, Object... arguments) {
         this.function = function;
         this.arguments = arguments;
         this.spConstraint = spConstraint;
@@ -45,7 +45,7 @@ public class IndexingExpr {
         return function;
     }
 
-    public Value[] getArguments() {
+    public Object[] getArguments() {
         return arguments;
     }
 

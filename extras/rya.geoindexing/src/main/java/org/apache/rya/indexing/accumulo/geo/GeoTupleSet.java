@@ -13,8 +13,10 @@ import org.apache.rya.indexing.StatementConstraints;
 import org.apache.rya.indexing.external.tupleSet.ExternalTupleSet;
 import org.openrdf.model.Statement;
 import org.openrdf.model.URI;
+import org.openrdf.model.Value;
 import org.openrdf.query.BindingSet;
 import org.openrdf.query.QueryEvaluationException;
+import org.openrdf.query.algebra.Var;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.Maps;
@@ -121,7 +123,15 @@ public class GeoTupleSet extends ExternalTupleSet {
             throw new IllegalArgumentException("Index functions do not support more than two arguments.");
         }
 
-        final String queryText = filterInfo.getArguments()[0].stringValue();
+        final String queryText;
+        Object arg = filterInfo.getArguments()[0];
+        if (arg instanceof Value) {
+            queryText = ((Value) arg).stringValue();
+        } else if (arg instanceof Var) {
+            queryText = bindings.getBinding(((Var) arg).getName()).getValue().stringValue();
+        } else {
+            throw new IllegalArgumentException("Query text was not resolved");
+        }
 
         return IteratorFactory.getIterator(filterInfo.getSpConstraint(), bindings, queryText, searchFunction);
     }

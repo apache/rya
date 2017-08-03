@@ -28,8 +28,8 @@
         <version>3.2.11-incubating-SNAPSHOT</version>
     </parent>
 
-    <artifactId>rya.console</artifactId>
-    <name>Apache Rya Console</name>
+    <artifactId>rya.shell</artifactId>
+    <name>Apache Rya Shell</name>
 
     <dependencies>
         <dependency>
@@ -71,6 +71,8 @@
             <artifactId>spring-security-web</artifactId>
             <version>4.1.0.RELEASE</version>
         </dependency>
+        
+        <!--  testing dependencies -->
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>

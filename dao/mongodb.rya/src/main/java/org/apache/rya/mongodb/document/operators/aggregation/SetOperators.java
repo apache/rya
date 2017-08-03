@@ -18,15 +18,13 @@
  */
 package org.apache.rya.mongodb.document.operators.aggregation;
 
-import static com.google.common.base.Preconditions.checkNotNull;
 import static org.apache.rya.mongodb.document.operators.query.ConditionalOperators.ifNull;
 
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
 
-import com.mongodb.BasicDBObject;
-import com.mongodb.BasicDBObjectBuilder;
-import com.mongodb.DBObject;
+import org.bson.Document;
 
 /**
  * Utility methods for MongoDB set operators.
@@ -42,48 +40,20 @@ public final class SetOperators {
      * Checks if the field intersects the set.
      * @param field the field to check.
      * @param set the set to check.
-     * @return the $setIntersection expression {@link BasicDBObject}.
+     * @return the $setIntersection expression {@link Document}.
      */
-    public static BasicDBObject setIntersection(final String field, final Object[] set) {
-        final BasicDBObjectBuilder builder = BasicDBObjectBuilder.start();
-        return (BasicDBObject) setIntersection(builder, field, set).get();
-    }
-
-    /**
-     * Checks if the field intersects the set.
-     * @param builder the {@link BasicDBObjectBuilder}. (not {@code null})
-     * @param field the field to check.
-     * @param set the set to check.
-     * @return the $setIntersection expression {@link BasicDBObjectBuilder}.
-     */
-    public static BasicDBObjectBuilder setIntersection(final BasicDBObjectBuilder builder, final String field, final Object[] set) {
-        checkNotNull(builder);
-        builder.add("$setIntersection", Arrays.asList(field, set));
-        return builder;
+    public static Document setIntersection(final String field, final List<String> set) {
+        return new Document("$setIntersection", Arrays.asList(field, set));
     }
 
     /**
      * Checks if the expression is a subset of the set.
      * @param expression the expression to see if it's in the set.
      * @param set the set to check against.
-     * @return the $setIsSubset expression {@link BasicDBObject}.
+     * @return the $setIsSubset expression {@link Document}.
      */
-    public static BasicDBObject setIsSubset(final DBObject expression, final Object[] set) {
-        final BasicDBObjectBuilder builder = BasicDBObjectBuilder.start();
-        return (BasicDBObject) setIsSubset(builder, expression, set).get();
-    }
-
-    /**
-     * Checks if the expression is a subset of the set.
-     * @param builder the {@link BasicDBObjectBuilder}. (not {@code null})
-     * @param expression the expression to see if it's in the set.
-     * @param set the set to check against.
-     * @return the $setIsSubset expression {@link BasicDBObjectBuilder}.
-     */
-    public static BasicDBObjectBuilder setIsSubset(final BasicDBObjectBuilder builder, final DBObject expression, final Object[] set) {
-        checkNotNull(builder);
-        builder.add("$setIsSubset", Arrays.asList(expression, set).toArray(new Object[0]));
-        return builder;
+    public static Document setIsSubset(final Document expression, final List<String> set) {
+        return new Document("$setIsSubset", Arrays.asList(expression, set));
     }
 
     /**
@@ -91,25 +61,11 @@ public final class SetOperators {
      * null.
      * @param field the field to see if it's in the set.
      * @param set the set to check against.
-     * @return the $setIsSubset expression {@link BasicDBObject}.
+     * @return the $setIsSubset expression {@link Document}.
      */
-    public static BasicDBObject setIsSubsetNullSafe(final String field, final Object[] set) {
-        final BasicDBObjectBuilder builder = BasicDBObjectBuilder.start();
-        return (BasicDBObject) setIsSubsetNullSafe(builder, field, set).get();
-    }
-
-    /**
-     * Checks if the field is a subset of the set and is safe if the field is
-     * null.
-     * @param builder the {@link BasicDBObjectBuilder}. (not {@code null})
-     * @param field the field to see if it's in the set.
-     * @param set the set to check against.
-     * @return the $setIsSubset expression {@link BasicDBObjectBuilder}.
-     */
-    public static BasicDBObjectBuilder setIsSubsetNullSafe(final BasicDBObjectBuilder builder, final String field, final Object[] set) {
-        checkNotNull(builder);
-        final Object emptyAccess = Collections.emptyList().toArray();
-        return setIsSubset(builder,
+    public static Document setIsSubsetNullSafe(final String field, final List<String> set) {
+        final Object emptyAccess = Collections.emptyList();
+        return setIsSubset(
             ifNull(
                 field,
                 emptyAccess
@@ -121,22 +77,9 @@ public final class SetOperators {
     /**
      * Checks if any elements from the expression are {@code true}.
      * @param expression the expression to see if any elements are {@code true}.
-     * @return the $anyElementTrue expression {@link BasicDBObject}.
+     * @return the $anyElementTrue expression {@link Document}.
      */
-    public static BasicDBObject anyElementTrue(final DBObject expression) {
-        final BasicDBObjectBuilder builder = BasicDBObjectBuilder.start();
-        return (BasicDBObject) anyElementTrue(builder, expression).get();
-    }
-
-    /**
-     * Checks if any elements from the expression are {@code true}.
-     * @param builder the {@link BasicDBObjectBuilder}. (not {@code null})
-     * @param expression the expression to see if any elements are {@code true}.
-     * @return the $anyElementTrue expression {@link BasicDBObjectBuilder}.
-     */
-    public static BasicDBObjectBuilder anyElementTrue(final BasicDBObjectBuilder builder, final DBObject expression) {
-        checkNotNull(builder);
-        builder.add("$anyElementTrue", expression);
-        return builder;
+    public static Document anyElementTrue(final Document expression) {
+        return new Document("$anyElementTrue", expression);
     }
 }

@@ -18,13 +18,13 @@
  */
 package org.apache.rya.mongodb.document.operators.query;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 import java.util.List;
 
+import javax.xml.parsers.DocumentBuilder;
+
+import org.bson.Document;
+
 import com.google.common.collect.Lists;
-import com.mongodb.BasicDBObject;
-import com.mongodb.BasicDBObjectBuilder;
 
 /**
  * Utility methods for logical operators.
@@ -41,62 +41,33 @@ public final class LogicalOperators {
      * @param lhs the left-hand side operand.
      * @param rhs the right-hand side operand.
      * @param extras any additional operands.
-     * @return the $and expression {@link BasicDBObject}.
+     * @return the $and expression {@link DocumentBuilder}.
      */
-    public static BasicDBObject and(final BasicDBObject lhs, final BasicDBObject rhs, final BasicDBObject... extras) {
-        final BasicDBObjectBuilder builder = BasicDBObjectBuilder.start();
-        return (BasicDBObject) and(builder, lhs, rhs, extras).get();
-    }
-
-    /**
-     * Creates an $and MongoDB expression.
-     * @param builder the {@link BasicDBObjectBuilder}. (not {@code null})
-     * @param lhs the left-hand side operand.
-     * @param rhs the right-hand side operand.
-     * @param extras any additional operands.
-     * @return the $and expression {@link BasicDBObjectBuilder}.
-     */
-    public static BasicDBObjectBuilder and(final BasicDBObjectBuilder builder, final BasicDBObject lhs, final BasicDBObject rhs, final BasicDBObject... extras) {
-        checkNotNull(builder);
-        final List<BasicDBObject> operands = Lists.newArrayList(lhs, rhs);
+    public static Document and(final Document lhs, final Document rhs, final Document... extras) {
+        final List<Document> operands = Lists.newArrayList(lhs, rhs);
 
         if (extras != null && extras.length > 0) {
             operands.addAll(Lists.newArrayList(extras));
         }
 
-        builder.add("$and", operands);
-        return builder;
+        return new Document("$and", operands);
     }
 
     /**
      * Creates an $or MongoDB expression.
+     * @param builder the {@link DocumentBuilder}. (not {@code null})
      * @param lhs the left-hand side operand.
      * @param rhs the right-hand side operand.
      * @param extras any additional operands.
-     * @return the $or expression {@link BasicDBObject}.
+     * @return the $or expression {@link DocumentBuilder}.
      */
-    public static BasicDBObject or(final BasicDBObject lhs, final BasicDBObject rhs, final BasicDBObject... extras) {
-        final BasicDBObjectBuilder builder = BasicDBObjectBuilder.start();
-        return (BasicDBObject) or(builder, lhs, rhs, extras).get();
-    }
-
-    /**
-     * Creates an $or MongoDB expression.
-     * @param builder the {@link BasicDBObjectBuilder}. (not {@code null})
-     * @param lhs the left-hand side operand.
-     * @param rhs the right-hand side operand.
-     * @param extras any additional operands.
-     * @return the $or expression {@link BasicDBObjectBuilder}.
-     */
-    public static BasicDBObjectBuilder or(final BasicDBObjectBuilder builder, final BasicDBObject lhs, final BasicDBObject rhs, final BasicDBObject... extras) {
-        checkNotNull(builder);
-        final List<BasicDBObject> operands = Lists.newArrayList(lhs, rhs);
+    public static Document or(final Document lhs, final Document rhs, final Document... extras) {
+        final List<Document> operands = Lists.newArrayList(lhs, rhs);
 
         if (extras != null && extras.length > 0) {
             operands.addAll(Lists.newArrayList(extras));
         }
 
-        builder.add("$or", operands);
-        return builder;
+        return new Document("$or", operands);
     }
 }

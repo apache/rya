@@ -31,35 +31,37 @@ import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.persist.RyaDAOException;
 import org.apache.rya.mongodb.dao.MongoDBStorageStrategy;
 import org.apache.rya.mongodb.document.operators.aggregation.AggregationUtil;
+import org.bson.Document;
 import org.openrdf.query.BindingSet;
 
 import com.google.common.collect.Multimap;
-import com.mongodb.AggregationOutput;
-import com.mongodb.BasicDBObject;
-import com.mongodb.DBCollection;
 import com.mongodb.DBObject;
+import com.mongodb.client.AggregateIterable;
+import com.mongodb.client.MongoCollection;
+import com.mongodb.util.JSON;
 
 import info.aduna.iteration.CloseableIteration;
 
 public class RyaStatementBindingSetCursorIterator implements CloseableIteration<Entry<RyaStatement, BindingSet>, RyaDAOException> {
     private static final Logger log = Logger.getLogger(RyaStatementBindingSetCursorIterator.class);
 
-    private final DBCollection coll;
+    private final MongoCollection<Document> coll;
     private final Multimap<DBObject, BindingSet> rangeMap;
     private final Iterator<DBObject> queryIterator;
     private Long maxResults;
-    private Iterator<DBObject> resultsIterator;
+    private Iterator<Document> resultsIterator;
     private RyaStatement currentStatement;
     private Collection<BindingSet> currentBindingSetCollection;
     private Iterator<BindingSet> currentBindingSetIterator;
     private final MongoDBStorageStrategy<RyaStatement> strategy;
     private final Authorizations auths;
 
-    public RyaStatementBindingSetCursorIterator(final DBCollection coll,
-            final Multimap<DBObject, BindingSet> rangeMap, final MongoDBStorageStrategy<RyaStatement> strategy, final Authorizations auths) {
+    public RyaStatementBindingSetCursorIterator(final MongoCollection<Document> coll,
+            final Multimap<DBObject, BindingSet> rangeMap, final MongoDBStorageStrategy<RyaStatement> strategy,
+            final Authorizations auths) {
         this.coll = coll;
         this.rangeMap = rangeMap;
-        this.queryIterator = rangeMap.keySet().iterator();
+        queryIterator = rangeMap.keySet().iterator();
         this.strategy = strategy;
         this.auths = auths;
     }
@@ -94,8 +96,9 @@ public class RyaStatementBindingSetCursorIterator implements CloseableIteration<
         }
         if (currentResultCursorIsValid()) {
             // convert to Rya Statement
-            final DBObject queryResult = resultsIterator.next();
-            currentStatement = strategy.deserializeDBObject(queryResult);
+            final Document queryResult = resultsIterator.next();
+            final DBObject dbo = (DBObject) JSON.parse(queryResult.toJson());
+            currentStatement = strategy.deserializeDBObject(dbo);
             currentBindingSetIterator = currentBindingSetCollection.iterator();
         }
     }
@@ -106,12 +109,14 @@ public class RyaStatementBindingSetCursorIterator implements CloseableIteration<
             currentBindingSetCollection = rangeMap.get(currentQuery);
             // Executing redact aggregation to only return documents the user
             // has access to.
-            final List<DBObject> pipeline = new ArrayList<>();
-            pipeline.add(new BasicDBObject("$match", currentQuery));
+            final List<Document> pipeline = new ArrayList<>();
+            pipeline.add(new Document("$match", currentQuery));
             pipeline.addAll(AggregationUtil.createRedactPipeline(auths));
             log.debug(pipeline);
-            final AggregationOutput output = coll.aggregate(pipeline);
-            resultsIterator = output.results().iterator();
+
+            final AggregateIterable<Document> aggIter = coll.aggregate(pipeline);
+            aggIter.batchSize(1000);
+            resultsIterator = aggIter.iterator();
             if (resultsIterator.hasNext()) {
                 break;
             }

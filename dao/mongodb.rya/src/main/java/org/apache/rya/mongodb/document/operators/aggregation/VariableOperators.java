@@ -18,11 +18,9 @@
  */
 package org.apache.rya.mongodb.document.operators.aggregation;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import javax.xml.parsers.DocumentBuilder;
 
-import com.mongodb.BasicDBObject;
-import com.mongodb.BasicDBObjectBuilder;
-import com.mongodb.DBObject;
+import org.bson.Document;
 
 /**
  * Utility methods for variable operators.
@@ -43,31 +41,14 @@ public final class VariableOperators {
      * by this variable.
      * @param in the expression to apply to each item in the {@code input}
      * array. The expression accesses the item by its variable name.
-     * @return the $map expression {@link BasicDBObject}.
+     * @return the $map expression {@link DocumentBuilder}.
      */
-    public static BasicDBObject map(final String input, final String as, final DBObject in) {
-        final BasicDBObjectBuilder builder = BasicDBObjectBuilder.start();
-        return (BasicDBObject) map(builder, input, as, in).get();
-    }
+    public static Document map(final String input, final String as, final Document in) {
+        final Document mapDoc = new Document()
+            .append("input", input)
+            .append("as", as)
+            .append("in", in);
 
-    /**
-     * Applies an expression to each item in an array and returns an array with
-     * the applied results.
-     * @param builder the {@link BasicDBObjectBuilder}. (not {@code null})
-     * @param input an expression that resolves to an array.
-     * @param as the variable name for the items in the {@code input} array.
-     * The {@code in} expression accesses each item in the {@code input} array
-     * by this variable.
-     * @param in the expression to apply to each item in the {@code input}
-     * array. The expression accesses the item by its variable name.
-     * @return the $map expression {@link BasicDBObjectBuilder}.
-     */
-    public static BasicDBObjectBuilder map(final BasicDBObjectBuilder builder, final String input, final String as, final DBObject in) {
-        checkNotNull(builder);
-        builder.push("$map")
-            .add("input", input)
-            .add("as", as)
-            .add("in", in);
-        return builder;
+        return new Document("$map", mapDoc);
     }
 }

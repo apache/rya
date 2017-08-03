@@ -34,9 +34,9 @@ import org.apache.rya.mongodb.MongoDbRdfConstants;
 import org.apache.rya.mongodb.dao.SimpleMongoDBStorageStrategy;
 import org.apache.rya.mongodb.document.operators.aggregation.PipelineOperators.RedactAggregationResult;
 import org.apache.rya.mongodb.document.util.AuthorizationsUtil;
+import org.bson.Document;
 
 import com.google.common.collect.Lists;
-import com.mongodb.BasicDBObject;
 import com.mongodb.DBObject;
 
 /**
@@ -58,7 +58,7 @@ public final class AggregationUtil {
      * @return the {@link List} of {@link DBObject}s that represents the $redact
      * aggregation pipeline.
      */
-    public static List<DBObject> createRedactPipeline(final Authorizations authorizations) {
+    public static List<Document> createRedactPipeline(final Authorizations authorizations) {
         if (MongoDbRdfConstants.ALL_AUTHORIZATIONS.equals(authorizations)) {
             return Lists.newArrayList();
         }
@@ -69,29 +69,29 @@ public final class AggregationUtil {
 
         final String mapVariableCursorName = "dvItemCursorTag";
 
-        final BasicDBObject anyElementTrue =
+        final Document anyElementTrue =
             anyElementTrue(
                 map(
                     documentVisibilityField,
                     mapVariableCursorName,
                     setIsSubsetNullSafe(
                         "$$" + mapVariableCursorName,
-                        authList.toArray()
+                        authList
                     )
                 )
             );
 
         // If the field is empty then there are no authorizations required,
         // so all users should be able to view it when they query.
-        final BasicDBObject isFieldSizeZero =
+        final Document isFieldSizeZero =
             eq(
                 size(documentVisibilityField),
                 0
             );
 
-        final BasicDBObject orExpression = or(anyElementTrue, isFieldSizeZero);
+        final Document orExpression = or(anyElementTrue, isFieldSizeZero);
 
-        final List<DBObject> pipeline = new ArrayList<>();
+        final List<Document> pipeline = new ArrayList<>();
         pipeline.add(
             redact(
                 orExpression,

@@ -21,6 +21,8 @@ package org.apache.rya.mongodb.document.operators.aggregation;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.apache.rya.mongodb.document.operators.query.ConditionalOperators.cond;
 
+import org.bson.Document;
+
 import com.mongodb.BasicDBObject;
 import com.mongodb.BasicDBObjectBuilder;
 
@@ -83,26 +85,9 @@ public final class PipelineOperators {
      * the expression passes.
      * @param rejectResult the {@link RedactAggregationResult} to return when
      * the expression fails.
-     * @return the $redact expression {@link BasicDBObject}.
-     */
-    public static BasicDBObject redact(final BasicDBObject expression, final RedactAggregationResult acceptResult, final RedactAggregationResult rejectResult) {
-        final BasicDBObjectBuilder builder = BasicDBObjectBuilder.start();
-        return (BasicDBObject) redact(builder, expression, acceptResult, rejectResult).get();
-    }
-
-    /**
-     * Creates a $redact expression.
-     * @param builder the {@link BasicDBObjectBuilder}. (not {@code null})
-     * @param expression the expression to run redact on.
-     * @param acceptResult the {@link RedactAggregationResult} to return when
-     * the expression passes.
-     * @param rejectResult the {@link RedactAggregationResult} to return when
-     * the expression fails.
      * @return the $redact expression {@link BasicDBObjectBuilder}.
      */
-    public static BasicDBObjectBuilder redact(final BasicDBObjectBuilder builder, final BasicDBObject expression, final RedactAggregationResult acceptResult, final RedactAggregationResult rejectResult) {
-        checkNotNull(builder);
-        builder.add("$redact", cond(expression, acceptResult.toString(), rejectResult.toString()));
-        return builder;
+    public static Document redact(final Document expression, final RedactAggregationResult acceptResult, final RedactAggregationResult rejectResult) {
+        return new Document("$redact", cond(expression, acceptResult.toString(), rejectResult.toString()));
     }
 }

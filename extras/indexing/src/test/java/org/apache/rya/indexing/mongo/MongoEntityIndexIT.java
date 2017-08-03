@@ -21,9 +21,7 @@ package org.apache.rya.indexing.mongo;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
-import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
@@ -36,12 +34,13 @@ import org.apache.rya.indexing.entity.storage.EntityStorage;
 import org.apache.rya.indexing.entity.storage.TypeStorage;
 import org.apache.rya.indexing.entity.update.mongo.MongoEntityIndexer;
 import org.apache.rya.mongodb.MockMongoFactory;
+import org.apache.rya.mongodb.MongoConnectorFactory;
 import org.apache.rya.mongodb.MongoDBRdfConfiguration;
 import org.apache.rya.sail.config.RyaSailFactory;
 import org.bson.Document;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.openrdf.model.Statement;
 import org.openrdf.model.URI;
 import org.openrdf.model.Value;
 import org.openrdf.model.ValueFactory;
@@ -70,7 +69,7 @@ public class MongoEntityIndexIT {
     private MongoClient mongoClient;
 
     @Before
-    public void setUp() throws Exception{
+    public void setUp() throws Exception {
         mongoClient = MockMongoFactory.with(Version.Main.PRODUCTION).newMongoClient();
         conf = new MongoDBRdfConfiguration();
         conf.set(MongoDBRdfConfiguration.MONGO_DB_NAME, "test");
@@ -89,6 +88,19 @@ public class MongoEntityIndexIT {
         indexer = new MongoEntityIndexer();
         indexer.setConf(conf);
         indexer.init();
+    }
+
+    @After
+    public void tearDown() throws Exception {
+        if (mongoClient != null) {
+            MongoConnectorFactory.closeMongoClient();
+        }
+        if (conn != null) {
+            conn.clear();
+        }
+        if (indexer != null) {
+            indexer.close();
+        }
     }
 
     @Test
@@ -202,8 +214,6 @@ public class MongoEntityIndexIT {
     }
 
     private void addStatements() throws Exception {
-        final List<Statement> stmnts = new ArrayList<>();
-
         //alice
         URI subject = VF.createURI("urn:alice");
         URI predicate = VF.createURI("urn:name");

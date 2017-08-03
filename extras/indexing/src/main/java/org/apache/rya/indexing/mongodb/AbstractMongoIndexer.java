@@ -33,6 +33,11 @@ import org.apache.rya.mongodb.MongoConnectorFactory;
 import org.apache.rya.mongodb.MongoDBRdfConfiguration;
 import org.apache.rya.mongodb.MongoDBRyaDAO;
 import org.apache.rya.mongodb.MongoSecondaryIndex;
+import org.apache.rya.mongodb.batch.MongoDbBatchWriter;
+import org.apache.rya.mongodb.batch.MongoDbBatchWriterConfig;
+import org.apache.rya.mongodb.batch.MongoDbBatchWriterException;
+import org.apache.rya.mongodb.batch.MongoDbBatchWriterUtils;
+import org.apache.rya.mongodb.batch.collection.DbCollectionType;
 import org.openrdf.model.Literal;
 import org.openrdf.model.Statement;
 import org.openrdf.model.URI;
@@ -46,7 +51,6 @@ import com.mongodb.DBObject;
 import com.mongodb.MongoClient;
 import com.mongodb.QueryBuilder;
 import com.mongodb.ServerAddress;
-import com.mongodb.WriteConcern;
 
 import info.aduna.iteration.CloseableIteration;
 
@@ -58,6 +62,7 @@ public abstract class AbstractMongoIndexer<T extends IndexingMongoDBStorageStrat
     private static final Logger LOG = Logger.getLogger(AbstractMongoIndexer.class);
 
     private boolean isInit = false;
+    private boolean flushEachUpdate = true;
     protected Configuration conf;
     protected MongoDBRyaDAO dao;
     protected MongoClient mongoClient;
@@ -68,15 +73,28 @@ public abstract class AbstractMongoIndexer<T extends IndexingMongoDBStorageStrat
 
     protected T storageStrategy;
 
+    private MongoDbBatchWriter<DBObject> mongoDbBatchWriter;
+
     protected void initCore() {
         dbName = conf.get(MongoDBRdfConfiguration.MONGO_DB_NAME);
         db = this.mongoClient.getDB(dbName);
-        collection = db.getCollection(conf.get(MongoDBRdfConfiguration.MONGO_COLLECTION_PREFIX, "rya") + getCollectionName());
+        final String collectionName = conf.get(MongoDBRdfConfiguration.MONGO_COLLECTION_PREFIX, "rya") + getCollectionName();
+        collection = db.getCollection(collectionName);
+
+        flushEachUpdate = ((MongoDBRdfConfiguration)conf).flushEachUpdate();
+
+        final MongoDbBatchWriterConfig mongoDbBatchWriterConfig = MongoDbBatchWriterUtils.getMongoDbBatchWriterConfig(conf);
+        mongoDbBatchWriter = new MongoDbBatchWriter<DBObject>(new DbCollectionType(collection), mongoDbBatchWriterConfig);
+        try {
+            mongoDbBatchWriter.start();
+        } catch (final MongoDbBatchWriterException e) {
+            LOG.error("Error start MongoDB batch writer", e);
+        }
     }
 
     @Override
     public void setClient(final MongoClient client){
-    	this.mongoClient = client;
+        this.mongoClient = client;
     }
 
     @VisibleForTesting
@@ -96,8 +114,8 @@ public abstract class AbstractMongoIndexer<T extends IndexingMongoDBStorageStrat
     public void setConf(final Configuration conf) {
         this.conf = conf;
         if (!isInit){
-        	setClient(MongoConnectorFactory.getMongoClient(conf));
-        	init();
+            setClient(MongoConnectorFactory.getMongoClient(conf));
+            init();
         }
     }
 
@@ -108,6 +126,11 @@ public abstract class AbstractMongoIndexer<T extends IndexingMongoDBStorageStrat
 
     @Override
     public void flush() throws IOException {
+        try {
+            mongoDbBatchWriter.flush();
+        } catch (final MongoDbBatchWriterException e) {
+            throw new IOException("Error flushing batch writer", e);
+        }
     }
 
     @Override
@@ -135,24 +158,43 @@ public abstract class AbstractMongoIndexer<T extends IndexingMongoDBStorageStrat
     public void storeStatements(final Collection<RyaStatement> ryaStatements)
             throws IOException {
         for (final RyaStatement ryaStatement : ryaStatements){
-            storeStatement(ryaStatement);
+            storeStatement(ryaStatement, false);
+        }
+        if (flushEachUpdate) {
+            flush();
         }
     }
 
     @Override
     public void storeStatement(final RyaStatement ryaStatement) throws IOException {
+        storeStatement(ryaStatement, flushEachUpdate);
+    }
+
+    private void storeStatement(final RyaStatement ryaStatement, final boolean flush) throws IOException {
+        final DBObject obj = prepareStatementForStorage(ryaStatement);
+        try {
+            mongoDbBatchWriter.addObjectToQueue(obj);
+            if (flush) {
+                flush();
+            }
+        } catch (final MongoDbBatchWriterException e) {
+            throw new IOException("Error storing statement", e);
+        }
+    }
+
+    private DBObject prepareStatementForStorage(final RyaStatement ryaStatement) {
         try {
             final Statement statement = RyaToRdfConversions.convertStatement(ryaStatement);
             final boolean isValidPredicate = predicates.isEmpty() || predicates.contains(statement.getPredicate());
             if (isValidPredicate && (statement.getObject() instanceof Literal)) {
                 final DBObject obj = storageStrategy.serialize(ryaStatement);
-                if (obj != null) {
-                    collection.insert(obj, WriteConcern.ACKNOWLEDGED);
-                }
+                return obj;
             }
         } catch (final IllegalArgumentException e) {
             LOG.error("Unable to parse the statement: " + ryaStatement.toString(), e);
         }
+
+        return null;
     }
 
     @Override

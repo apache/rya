@@ -31,6 +31,8 @@ import org.apache.rya.indexing.TemporalInstantRfc3339;
 import org.apache.rya.indexing.accumulo.ConfigUtils;
 import org.apache.rya.indexing.mongodb.MongoIndexingConfiguration;
 import org.apache.rya.mongodb.MockMongoFactory;
+import org.apache.rya.mongodb.MongoConnectorFactory;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.openrdf.model.Resource;
@@ -79,6 +81,16 @@ public class MongoIndexerDeleteIT {
         sail = GeoRyaSailFactory.getInstance(indxrConf);
         conn = new SailRepository(sail).getConnection();
         conn.begin();
+    }
+
+    @After
+    public void after() throws Exception {
+        if (client != null) {
+            MongoConnectorFactory.closeMongoClient();
+        }
+        if (conn != null) {
+            conn.clear();
+        }
     }
 
     @Test
@@ -150,14 +162,10 @@ public class MongoIndexerDeleteIT {
         uuid = "urn:people";
         conn.add(VF.createURI(uuid), RDF.TYPE, person);
         conn.add(VF.createURI(uuid), RDFS.LABEL, VF.createLiteral("Alice Palace Hose", VF.createURI("http://www.w3.org/2001/XMLSchema#string")));
-
-        uuid = "urn:people";
-        conn.add(VF.createURI(uuid), RDF.TYPE, person);
         conn.add(VF.createURI(uuid), RDFS.LABEL, VF.createLiteral("Bob Snob Hose", "en"));
 
         // temporal
         final TemporalInstant instant = new TemporalInstantRfc3339(1, 2, 3, 4, 5, 6);
-        final URI time = VF.createURI("Property:atTime");
         conn.add(VF.createURI("foo:time"), VF.createURI("Property:atTime"), VF.createLiteral(instant.toString()));
     }
 

@@ -105,8 +105,6 @@
                     </execution>
                 </executions>
                 <configuration>
-                    <!-- Place the generated source within the 'src' directory so license-maven-plugin will find it. -->
-                    <outputDirectory>src/gen/java</outputDirectory>
                     <packageName>org.apache.rya.benchmark.query</packageName>
                 </configuration>
             </plugin>
@@ -122,7 +120,7 @@
                         </goals>
                         <configuration>
                             <sources>
-                                <source>src/gen/java</source>
+                                <source>${project.build.directory}/generated-sources/jaxb</source>
                             </sources>
                         </configuration>
                     </execution>
@@ -142,7 +140,7 @@
                     <header>${license.header.file}</header>
                     <aggregate>true</aggregate>
                     <includes>
-                        <include>src/gen/**</include>
+                        <include>${project.build.directory}/generated-sources/jaxb/**</include>
                     </includes>
                 </configuration>
                 <executions>

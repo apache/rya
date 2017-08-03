@@ -66,9 +66,6 @@ import com.google.common.collect.Sets;
 
 public class KafkaRyaSubGraphExportIT extends KafkaExportITBase {
 
-    private static final String BROKERHOST = "127.0.0.1";
-    private static final String BROKERPORT = "9092";
-
     /**
      * Add info about the Kafka queue/topic to receive the export.
      *
@@ -92,8 +89,7 @@ public class KafkaRyaSubGraphExportIT extends KafkaExportITBase {
         kafkaParams.setExportToKafka(true);
 
         // Configure the Kafka Producer
-        final Properties producerConfig = new Properties();
-        producerConfig.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, BROKERHOST + ":" + BROKERPORT);
+        final Properties producerConfig = createBootstrapServerConfig();
         producerConfig.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
         producerConfig.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, RyaSubGraphKafkaSerDe.class.getName());
         kafkaParams.addAllProducerConfig(producerConfig);
@@ -124,11 +120,11 @@ public class KafkaRyaSubGraphExportIT extends KafkaExportITBase {
 
         // Verify the end results of the query match the expected results.
         final Set<RyaSubGraph> results = readAllResults(pcjId);
-        
+
         final Set<RyaSubGraph> expectedResults = new HashSet<>();
-        RyaSubGraph subGraph = new RyaSubGraph(pcjId);
-        RyaStatement statement1 = new RyaStatement(new RyaURI("urn:Joe"), new RyaURI("urn:travelsTo"), new RyaURI("urn:London"));
-        RyaStatement statement2 = new RyaStatement(new RyaURI("urn:Joe"), new RyaURI("urn:friendsWith"), new RyaURI("urn:Bob"));
+        final RyaSubGraph subGraph = new RyaSubGraph(pcjId);
+        final RyaStatement statement1 = new RyaStatement(new RyaURI("urn:Joe"), new RyaURI("urn:travelsTo"), new RyaURI("urn:London"));
+        final RyaStatement statement2 = new RyaStatement(new RyaURI("urn:Joe"), new RyaURI("urn:friendsWith"), new RyaURI("urn:Bob"));
         // if no visibility indicated, then visibilities set to empty byte in
         // Fluo - they are null by default in RyaStatement
         // need to set visibility to empty byte so that RyaStatement's equals
@@ -136,7 +132,7 @@ public class KafkaRyaSubGraphExportIT extends KafkaExportITBase {
         statement1.setColumnVisibility(new byte[0]);
         statement2.setColumnVisibility(new byte[0]);
 
-        Set<RyaStatement> stmnts = new HashSet<>(Arrays.asList(statement1, statement2));
+        final Set<RyaStatement> stmnts = new HashSet<>(Arrays.asList(statement1, statement2));
         subGraph.setStatements(stmnts);
         expectedResults.add(subGraph);
 
@@ -150,13 +146,13 @@ public class KafkaRyaSubGraphExportIT extends KafkaExportITBase {
                 + "?customer <urn:talksTo> ?worker. " + "?worker <urn:livesIn> ?city. " + "?worker <urn:worksAt> <urn:burgerShack>. " + "}";
 
         // Create the Statements that will be loaded into Rya.
-        RyaStatement statement1 = new RyaStatement(new RyaURI("urn:Joe"), new RyaURI("urn:talksTo"), new RyaURI("urn:Bob"));
-        RyaStatement statement2 = new RyaStatement(new RyaURI("urn:Bob"), new RyaURI("urn:livesIn"), new RyaURI("urn:London"));
-        RyaStatement statement3 = new RyaStatement(new RyaURI("urn:Bob"), new RyaURI("urn:worksAt"), new RyaURI("urn:burgerShack"));
+        final RyaStatement statement1 = new RyaStatement(new RyaURI("urn:Joe"), new RyaURI("urn:talksTo"), new RyaURI("urn:Bob"));
+        final RyaStatement statement2 = new RyaStatement(new RyaURI("urn:Bob"), new RyaURI("urn:livesIn"), new RyaURI("urn:London"));
+        final RyaStatement statement3 = new RyaStatement(new RyaURI("urn:Bob"), new RyaURI("urn:worksAt"), new RyaURI("urn:burgerShack"));
         statement1.setColumnVisibility("U&W".getBytes("UTF-8"));
         statement2.setColumnVisibility("V".getBytes("UTF-8"));
         statement3.setColumnVisibility("W".getBytes("UTF-8"));
-        
+
         // Create the PCJ in Fluo and load the statements into Rya.
         final String pcjId = loadRyaStatements(sparql, Arrays.asList(statement1, statement2, statement3));
 
@@ -165,9 +161,9 @@ public class KafkaRyaSubGraphExportIT extends KafkaExportITBase {
         // Create the expected results of the SPARQL query once the PCJ has been
         // computed.
         final Set<RyaSubGraph> expectedResults = new HashSet<>();
-        RyaSubGraph subGraph = new RyaSubGraph(pcjId);
-        RyaStatement statement4 = new RyaStatement(new RyaURI("urn:Joe"), new RyaURI("urn:travelsTo"), new RyaURI("urn:London"));
-        RyaStatement statement5 = new RyaStatement(new RyaURI("urn:Joe"), new RyaURI("urn:friendsWith"), new RyaURI("urn:Bob"));
+        final RyaSubGraph subGraph = new RyaSubGraph(pcjId);
+        final RyaStatement statement4 = new RyaStatement(new RyaURI("urn:Joe"), new RyaURI("urn:travelsTo"), new RyaURI("urn:London"));
+        final RyaStatement statement5 = new RyaStatement(new RyaURI("urn:Joe"), new RyaURI("urn:friendsWith"), new RyaURI("urn:Bob"));
         // if no visibility indicated, then visibilities set to empty byte in
         // Fluo - they are null by default in RyaStatement
         // need to set visibility to empty byte so that RyaStatement's equals
@@ -175,14 +171,14 @@ public class KafkaRyaSubGraphExportIT extends KafkaExportITBase {
         statement4.setColumnVisibility("U&V&W".getBytes("UTF-8"));
         statement5.setColumnVisibility("U&V&W".getBytes("UTF-8"));
 
-        Set<RyaStatement> stmnts = new HashSet<>(Arrays.asList(statement4, statement5));
+        final Set<RyaStatement> stmnts = new HashSet<>(Arrays.asList(statement4, statement5));
         subGraph.setStatements(stmnts);
         expectedResults.add(subGraph);
 
         ConstructGraphTestUtils.subGraphsEqualIgnoresTimestamp(expectedResults, results);
     }
 
-    
+
     @Test
     public void constructQueryWithVisAndMultipleSubGraphs() throws Exception {
         // A query that groups what is aggregated by one of the keys.
@@ -190,19 +186,19 @@ public class KafkaRyaSubGraphExportIT extends KafkaExportITBase {
                 + "?customer <urn:talksTo> ?worker. " + "?worker <urn:livesIn> ?city. " + "?worker <urn:worksAt> <urn:burgerShack>. " + "}";
 
         // Create the Statements that will be loaded into Rya.
-        RyaStatement statement1 = new RyaStatement(new RyaURI("urn:Joe"), new RyaURI("urn:talksTo"), new RyaURI("urn:Bob"));
-        RyaStatement statement2 = new RyaStatement(new RyaURI("urn:Bob"), new RyaURI("urn:livesIn"), new RyaURI("urn:London"));
-        RyaStatement statement3 = new RyaStatement(new RyaURI("urn:Bob"), new RyaURI("urn:worksAt"), new RyaURI("urn:burgerShack"));
-        RyaStatement statement4 = new RyaStatement(new RyaURI("urn:John"), new RyaURI("urn:talksTo"), new RyaURI("urn:Evan"));
-        RyaStatement statement5 = new RyaStatement(new RyaURI("urn:Evan"), new RyaURI("urn:livesIn"), new RyaURI("urn:SanFrancisco"));
-        RyaStatement statement6 = new RyaStatement(new RyaURI("urn:Evan"), new RyaURI("urn:worksAt"), new RyaURI("urn:burgerShack"));
+        final RyaStatement statement1 = new RyaStatement(new RyaURI("urn:Joe"), new RyaURI("urn:talksTo"), new RyaURI("urn:Bob"));
+        final RyaStatement statement2 = new RyaStatement(new RyaURI("urn:Bob"), new RyaURI("urn:livesIn"), new RyaURI("urn:London"));
+        final RyaStatement statement3 = new RyaStatement(new RyaURI("urn:Bob"), new RyaURI("urn:worksAt"), new RyaURI("urn:burgerShack"));
+        final RyaStatement statement4 = new RyaStatement(new RyaURI("urn:John"), new RyaURI("urn:talksTo"), new RyaURI("urn:Evan"));
+        final RyaStatement statement5 = new RyaStatement(new RyaURI("urn:Evan"), new RyaURI("urn:livesIn"), new RyaURI("urn:SanFrancisco"));
+        final RyaStatement statement6 = new RyaStatement(new RyaURI("urn:Evan"), new RyaURI("urn:worksAt"), new RyaURI("urn:burgerShack"));
         statement1.setColumnVisibility("U&W".getBytes("UTF-8"));
         statement2.setColumnVisibility("V".getBytes("UTF-8"));
         statement3.setColumnVisibility("W".getBytes("UTF-8"));
         statement4.setColumnVisibility("A&B".getBytes("UTF-8"));
         statement5.setColumnVisibility("B".getBytes("UTF-8"));
         statement6.setColumnVisibility("C".getBytes("UTF-8"));
-        
+
         // Create the PCJ in Fluo and load the statements into Rya.
         final String pcjId = loadRyaStatements(sparql, Arrays.asList(statement1, statement2, statement3, statement4, statement5, statement6));
 
@@ -210,10 +206,10 @@ public class KafkaRyaSubGraphExportIT extends KafkaExportITBase {
         final Set<RyaSubGraph> results = readAllResults(pcjId);
         // Create the expected results of the SPARQL query once the PCJ has been
         // computed.
-        RyaStatement statement7 = new RyaStatement(new RyaURI("urn:Joe"), new RyaURI("urn:travelsTo"), new RyaURI("urn:London"));
-        RyaStatement statement8 = new RyaStatement(new RyaURI("urn:Joe"), new RyaURI("urn:friendsWith"), new RyaURI("urn:Bob"));
-        RyaStatement statement9 = new RyaStatement(new RyaURI("urn:John"), new RyaURI("urn:travelsTo"), new RyaURI("urn:SanFrancisco"));
-        RyaStatement statement10 = new RyaStatement(new RyaURI("urn:John"), new RyaURI("urn:friendsWith"), new RyaURI("urn:Evan"));
+        final RyaStatement statement7 = new RyaStatement(new RyaURI("urn:Joe"), new RyaURI("urn:travelsTo"), new RyaURI("urn:London"));
+        final RyaStatement statement8 = new RyaStatement(new RyaURI("urn:Joe"), new RyaURI("urn:friendsWith"), new RyaURI("urn:Bob"));
+        final RyaStatement statement9 = new RyaStatement(new RyaURI("urn:John"), new RyaURI("urn:travelsTo"), new RyaURI("urn:SanFrancisco"));
+        final RyaStatement statement10 = new RyaStatement(new RyaURI("urn:John"), new RyaURI("urn:friendsWith"), new RyaURI("urn:Evan"));
         statement7.setColumnVisibility("U&V&W".getBytes("UTF-8"));
         statement8.setColumnVisibility("U&V&W".getBytes("UTF-8"));
         statement9.setColumnVisibility("A&B&C".getBytes("UTF-8"));
@@ -221,19 +217,19 @@ public class KafkaRyaSubGraphExportIT extends KafkaExportITBase {
 
         final Set<RyaSubGraph> expectedResults = new HashSet<>();
 
-        RyaSubGraph subGraph1 = new RyaSubGraph(pcjId);
-        Set<RyaStatement> stmnts1 = new HashSet<>(Arrays.asList(statement7, statement8));
+        final RyaSubGraph subGraph1 = new RyaSubGraph(pcjId);
+        final Set<RyaStatement> stmnts1 = new HashSet<>(Arrays.asList(statement7, statement8));
         subGraph1.setStatements(stmnts1);
         expectedResults.add(subGraph1);
-        
-        RyaSubGraph subGraph2 = new RyaSubGraph(pcjId);
-        Set<RyaStatement> stmnts2 = new HashSet<>(Arrays.asList(statement9, statement10));
+
+        final RyaSubGraph subGraph2 = new RyaSubGraph(pcjId);
+        final Set<RyaStatement> stmnts2 = new HashSet<>(Arrays.asList(statement9, statement10));
         subGraph2.setStatements(stmnts2);
         expectedResults.add(subGraph2);
 
         ConstructGraphTestUtils.subGraphsEqualIgnoresTimestamp(expectedResults, results);
     }
-    
+
     @Test
     public void constructQueryWithBlankNodesAndMultipleSubGraphs() throws Exception {
         // A query that groups what is aggregated by one of the keys.
@@ -241,19 +237,19 @@ public class KafkaRyaSubGraphExportIT extends KafkaExportITBase {
                 + "?customer <urn:talksTo> ?worker. " + "?worker <urn:livesIn> ?city. " + "?worker <urn:worksAt> <urn:burgerShack>. " + "}";
 
         // Create the Statements that will be loaded into Rya.
-        RyaStatement statement1 = new RyaStatement(new RyaURI("urn:Joe"), new RyaURI("urn:talksTo"), new RyaURI("urn:Bob"));
-        RyaStatement statement2 = new RyaStatement(new RyaURI("urn:Bob"), new RyaURI("urn:livesIn"), new RyaURI("urn:London"));
-        RyaStatement statement3 = new RyaStatement(new RyaURI("urn:Bob"), new RyaURI("urn:worksAt"), new RyaURI("urn:burgerShack"));
-        RyaStatement statement4 = new RyaStatement(new RyaURI("urn:John"), new RyaURI("urn:talksTo"), new RyaURI("urn:Evan"));
-        RyaStatement statement5 = new RyaStatement(new RyaURI("urn:Evan"), new RyaURI("urn:livesIn"), new RyaURI("urn:SanFrancisco"));
-        RyaStatement statement6 = new RyaStatement(new RyaURI("urn:Evan"), new RyaURI("urn:worksAt"), new RyaURI("urn:burgerShack"));
+        final RyaStatement statement1 = new RyaStatement(new RyaURI("urn:Joe"), new RyaURI("urn:talksTo"), new RyaURI("urn:Bob"));
+        final RyaStatement statement2 = new RyaStatement(new RyaURI("urn:Bob"), new RyaURI("urn:livesIn"), new RyaURI("urn:London"));
+        final RyaStatement statement3 = new RyaStatement(new RyaURI("urn:Bob"), new RyaURI("urn:worksAt"), new RyaURI("urn:burgerShack"));
+        final RyaStatement statement4 = new RyaStatement(new RyaURI("urn:John"), new RyaURI("urn:talksTo"), new RyaURI("urn:Evan"));
+        final RyaStatement statement5 = new RyaStatement(new RyaURI("urn:Evan"), new RyaURI("urn:livesIn"), new RyaURI("urn:SanFrancisco"));
+        final RyaStatement statement6 = new RyaStatement(new RyaURI("urn:Evan"), new RyaURI("urn:worksAt"), new RyaURI("urn:burgerShack"));
         statement1.setColumnVisibility("U&W".getBytes("UTF-8"));
         statement2.setColumnVisibility("V".getBytes("UTF-8"));
         statement3.setColumnVisibility("W".getBytes("UTF-8"));
         statement4.setColumnVisibility("A&B".getBytes("UTF-8"));
         statement5.setColumnVisibility("B".getBytes("UTF-8"));
         statement6.setColumnVisibility("C".getBytes("UTF-8"));
-        
+
         // Create the PCJ in Fluo and load the statements into Rya.
         final String pcjId = loadRyaStatements(sparql, Arrays.asList(statement1, statement2, statement3, statement4, statement5, statement6));
 
@@ -261,10 +257,10 @@ public class KafkaRyaSubGraphExportIT extends KafkaExportITBase {
         final Set<RyaSubGraph> results = readAllResults(pcjId);
         // Create the expected results of the SPARQL query once the PCJ has been
         // computed.
-        RyaStatement statement7 = new RyaStatement(new RyaURI("urn:Joe"), new RyaURI("urn:travelsTo"), new RyaURI("urn:London"));
-        RyaStatement statement8 = new RyaStatement(new RyaURI("urn:Joe"), new RyaURI("urn:friendsWith"), new RyaURI("urn:Bob"));
-        RyaStatement statement9 = new RyaStatement(new RyaURI("urn:John"), new RyaURI("urn:travelsTo"), new RyaURI("urn:SanFrancisco"));
-        RyaStatement statement10 = new RyaStatement(new RyaURI("urn:John"), new RyaURI("urn:friendsWith"), new RyaURI("urn:Evan"));
+        final RyaStatement statement7 = new RyaStatement(new RyaURI("urn:Joe"), new RyaURI("urn:travelsTo"), new RyaURI("urn:London"));
+        final RyaStatement statement8 = new RyaStatement(new RyaURI("urn:Joe"), new RyaURI("urn:friendsWith"), new RyaURI("urn:Bob"));
+        final RyaStatement statement9 = new RyaStatement(new RyaURI("urn:John"), new RyaURI("urn:travelsTo"), new RyaURI("urn:SanFrancisco"));
+        final RyaStatement statement10 = new RyaStatement(new RyaURI("urn:John"), new RyaURI("urn:friendsWith"), new RyaURI("urn:Evan"));
         statement7.setColumnVisibility("U&V&W".getBytes("UTF-8"));
         statement8.setColumnVisibility("U&V&W".getBytes("UTF-8"));
         statement9.setColumnVisibility("A&B&C".getBytes("UTF-8"));
@@ -272,23 +268,22 @@ public class KafkaRyaSubGraphExportIT extends KafkaExportITBase {
 
         final Set<RyaSubGraph> expectedResults = new HashSet<>();
 
-        RyaSubGraph subGraph1 = new RyaSubGraph(pcjId);
-        Set<RyaStatement> stmnts1 = new HashSet<>(Arrays.asList(statement7, statement8));
+        final RyaSubGraph subGraph1 = new RyaSubGraph(pcjId);
+        final Set<RyaStatement> stmnts1 = new HashSet<>(Arrays.asList(statement7, statement8));
         subGraph1.setStatements(stmnts1);
         expectedResults.add(subGraph1);
-        
-        RyaSubGraph subGraph2 = new RyaSubGraph(pcjId);
-        Set<RyaStatement> stmnts2 = new HashSet<>(Arrays.asList(statement9, statement10));
+
+        final RyaSubGraph subGraph2 = new RyaSubGraph(pcjId);
+        final Set<RyaStatement> stmnts2 = new HashSet<>(Arrays.asList(statement9, statement10));
         subGraph2.setStatements(stmnts2);
         expectedResults.add(subGraph2);
 
         ConstructGraphTestUtils.subGraphsEqualIgnoresBlankNode(expectedResults, results);
     }
-    
+
     protected KafkaConsumer<String, RyaSubGraph> makeRyaSubGraphConsumer(final String TopicName) {
         // setup consumer
-        final Properties consumerProps = new Properties();
-        consumerProps.setProperty(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, BROKERHOST + ":" + BROKERPORT);
+        final Properties consumerProps = createBootstrapServerConfig();
         consumerProps.setProperty(ConsumerConfig.GROUP_ID_CONFIG, "group0");
         consumerProps.setProperty(ConsumerConfig.CLIENT_ID_CONFIG, "consumer0");
         consumerProps.setProperty(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
@@ -318,11 +313,11 @@ public class KafkaRyaSubGraphExportIT extends KafkaExportITBase {
 
         return results;
     }
-    
+
     protected String loadStatements(final String sparql, final Collection<Statement> statements) throws Exception {
         return loadRyaStatements(sparql, statements.stream().map(x -> RdfToRyaConversions.convertStatement(x)).collect(Collectors.toSet()));
     }
-    
+
 
     protected String loadRyaStatements(final String sparql, final Collection<RyaStatement> statements) throws Exception {
         requireNonNull(sparql);
@@ -330,11 +325,11 @@ public class KafkaRyaSubGraphExportIT extends KafkaExportITBase {
         FluoClient client = null;
 
         try {
-            CreatePcj createPcj = new CreatePcj();
+            final CreatePcj createPcj = new CreatePcj();
             client = new FluoClientImpl(super.getFluoConfiguration());
-            FluoQuery fluoQuery = createPcj.createFluoPcj(client, sparql);
+            final FluoQuery fluoQuery = createPcj.createFluoPcj(client, sparql);
 
-            AccumuloRyaDAO dao = getRyaDAO();
+            final AccumuloRyaDAO dao = getRyaDAO();
             dao.add(statements.iterator());
 
             // Wait for the Fluo application to finish computing the end result.

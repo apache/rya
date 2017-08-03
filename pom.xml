@@ -137,20 +137,7 @@ under the License.
         <jcip.version>1.0-1</jcip.version>
         <findbugs.plugin.version>3.0.4</findbugs.plugin.version>
         <kafka.version>0.10.1.0</kafka.version>
-        
-        <!-- set profile property defaults -->
-        <skip.rya.it>true</skip.rya.it>  <!-- modified by  -P enable-it  -->
     </properties>
-    
-    <profiles>
-        <!-- enable this profile "mvn ... -P enable-it" -->
-        <profile>
-            <id>enable-it</id>
-            <properties>
-                <skip.rya.it>false</skip.rya.it>
-            </properties>
-        </profile>
-    </profiles>
     
     <dependencyManagement>
         <dependencies>
@@ -955,10 +942,6 @@ under the License.
                             <goal>integration-test</goal>
                             <goal>verify</goal>
                         </goals>
-                        <configuration>
-                            <skipITs>${skip.rya.it}</skipITs>
-                            <reuseForks>false</reuseForks>  <!-- Temporary fix until RYA-331 is resolved. -->
-                        </configuration>
                     </execution>
                 </executions>
             </plugin>

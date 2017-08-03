@@ -36,7 +36,9 @@ import org.apache.accumulo.core.client.Connector;
 import org.apache.accumulo.core.client.Instance;
 import org.apache.accumulo.minicluster.MiniAccumuloCluster;
 import org.apache.fluo.api.config.ObserverSpecification;
+import org.apache.fluo.core.util.PortUtils;
 import org.apache.fluo.recipes.test.AccumuloExportITBase;
+import org.apache.kafka.clients.CommonClientConfigs;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
@@ -72,17 +74,16 @@ import org.openrdf.model.Statement;
 import org.openrdf.repository.sail.SailRepositoryConnection;
 import org.openrdf.sail.Sail;
 
-
 import kafka.admin.AdminUtils;
 import kafka.admin.RackAwareMode;
 import kafka.server.KafkaConfig;
+import kafka.server.KafkaConfig$;
 import kafka.server.KafkaServer;
 import kafka.utils.MockTime;
 import kafka.utils.TestUtils;
 import kafka.utils.Time;
 import kafka.utils.ZKStringSerializer$;
 import kafka.utils.ZkUtils;
-import kafka.zk.EmbeddedZookeeper;
 
 /**
  * The base Integration Test class used for Fluo applications that export to a
@@ -92,18 +93,25 @@ public class KafkaExportITBase extends AccumuloExportITBase {
 
     protected static final String RYA_INSTANCE_NAME = "test_";
 
-    private static final String ZKHOST = "127.0.0.1";
-    private static final String BROKERHOST = "127.0.0.1";
-    private static final String BROKERPORT = "9092";
-    private ZkUtils zkUtils;
     private KafkaServer kafkaServer;
-    private EmbeddedZookeeper zkServer;
-    private ZkClient zkClient;
+    private static final String BROKERHOST = "127.0.0.1";
+    private String brokerPort;
+
 
     // The Rya instance statements are written to that will be fed into the Fluo
     // app.
     private RyaSailRepository ryaSailRepo = null;
     private AccumuloRyaDAO dao = null;
+
+    /**
+     * @return A new Property object containing the correct value for Kafka's
+     *         {@link CommonClientConfigs#BOOTSTRAP_SERVERS_CONFIG}.
+     */
+    protected Properties createBootstrapServerConfig() {
+        final Properties config = new Properties();
+        config.setProperty(CommonClientConfigs.BOOTSTRAP_SERVERS_CONFIG, BROKERHOST + ":" + brokerPort);
+        return config;
+    }
 
     /**
      * Add info about the Kafka queue/topic to receive the export.
@@ -126,8 +134,7 @@ public class KafkaExportITBase extends AccumuloExportITBase {
         kafkaParams.setExportToKafka(true);
 
         // Configure the Kafka Producer
-        final Properties producerConfig = new Properties();
-        producerConfig.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, BROKERHOST + ":" + BROKERPORT);
+        final Properties producerConfig = createBootstrapServerConfig();
         producerConfig.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, "org.apache.kafka.common.serialization.ByteArraySerializer");
         producerConfig.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG,
                 "org.apache.rya.indexing.pcj.fluo.app.export.kafka.KryoVisibilityBindingSetSerializer");
@@ -135,16 +142,15 @@ public class KafkaExportITBase extends AccumuloExportITBase {
 
         final ObserverSpecification exportObserverConfig = new ObserverSpecification(QueryResultObserver.class.getName(), exportParams);
         observers.add(exportObserverConfig);
-        
+
         //create construct query observer and tell it not to export to Kafka
         //it will only add results back into Fluo
-        HashMap<String, String> constructParams = new HashMap<>();
+        final HashMap<String, String> constructParams = new HashMap<>();
         final KafkaExportParameters kafkaConstructParams = new KafkaExportParameters(constructParams);
         kafkaConstructParams.setExportToKafka(true);
-        
+
         // Configure the Kafka Producer
-        final Properties constructProducerConfig = new Properties();
-        constructProducerConfig.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, BROKERHOST + ":" + BROKERPORT);
+        final Properties constructProducerConfig = createBootstrapServerConfig();
         constructProducerConfig.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
         constructProducerConfig.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, RyaSubGraphKafkaSerDe.class.getName());
         kafkaConstructParams.addAllProducerConfig(constructProducerConfig);
@@ -163,23 +169,57 @@ public class KafkaExportITBase extends AccumuloExportITBase {
     @Before
     public void setupKafka() throws Exception {
         // Install an instance of Rya on the Accumulo cluster.
+        System.out.print("Installing Rya...");
         installRyaInstance();
+        System.out.println("done.");
+        // grab the connection string for the zookeeper spun up by our parent class.
+        final String zkConnect = getMiniAccumuloCluster().getZooKeepers();
 
-        // Setup Kafka.
-        zkServer = new EmbeddedZookeeper();
-        final String zkConnect = ZKHOST + ":" + zkServer.port();
-        zkClient = new ZkClient(zkConnect, 30000, 30000, ZKStringSerializer$.MODULE$);
-        zkUtils = ZkUtils.apply(zkClient, false);
 
         // setup Broker
+        brokerPort = Integer.toString(PortUtils.getRandomFreePort());
         final Properties brokerProps = new Properties();
-        brokerProps.setProperty("zookeeper.connect", zkConnect);
-        brokerProps.setProperty("broker.id", "0");
-        brokerProps.setProperty("log.dirs", Files.createTempDirectory("kafka-").toAbsolutePath().toString());
-        brokerProps.setProperty("listeners", "PLAINTEXT://" + BROKERHOST + ":" + BROKERPORT);
+        brokerProps.setProperty(KafkaConfig$.MODULE$.BrokerIdProp(), "0");
+        brokerProps.setProperty(KafkaConfig$.MODULE$.HostNameProp(), BROKERHOST);
+        brokerProps.setProperty(KafkaConfig$.MODULE$.ZkConnectProp(), zkConnect);
+        brokerProps.setProperty(KafkaConfig$.MODULE$.LogDirsProp(), Files.createTempDirectory(getClass().getSimpleName()+"-").toAbsolutePath().toString());
+        brokerProps.setProperty(KafkaConfig$.MODULE$.PortProp(), brokerPort);
         final KafkaConfig config = new KafkaConfig(brokerProps);
+
+
+
+
+//        // setup Broker
+//        final Properties brokerProps = new Properties();
+//
+//
+//        brokerPort = Integer.toString(PortUtils.getRandomFreePort());
+//
+////        brokerProps.setProperty("zookeeper.connect", zkConnect);
+////        brokerProps.setProperty("broker.id", "0");
+////        brokerProps.setProperty("log.dirs", Files.createTempDirectory("KafkaExportITBase-").toAbsolutePath().toString());
+////        brokerProps.setProperty("listeners", "PLAINTEXT://" + brokerHost + ":" + brokerPort);
+//
+//        brokerProps.put(KafkaConfig$.MODULE$.BrokerIdProp(), 0);
+//        brokerProps.put(KafkaConfig$.MODULE$.HostNameProp(), brokerHost);
+//        brokerProps.put(KafkaConfig$.MODULE$.PortProp(), brokerPort);
+//        brokerProps.put(KafkaConfig$.MODULE$.ZkConnectProp(), zkConnect);
+//        brokerProps.put(KafkaConfig$.MODULE$.LogDirsProp(), Files.createTempDirectory("-").toAbsolutePath().toString());
+//        final KafkaConfig config = new KafkaConfig(brokerProps);
+        //brokerProps.put(KafkaConfig$.MODULE$.ListenersProp(), zkConnect);
+        //Broker
+       // KafkaConfig$.MODULE$.BrokerIdProp()
         final Time mock = new MockTime();
+        System.out.print("Creating Kafka..." + brokerPort);
+        System.out.println(brokerProps);
         kafkaServer = TestUtils.createServer(config, mock);
+        System.out.println("done.");
+//        if (targetDir.exists() && targetDir.isDirectory()) {
+//            baseDir = new File(targetDir, "accumuloExportIT-" + UUID.randomUUID());
+//          } else {
+//            baseDir = new File(FileUtils.getTempDirectory(), "accumuloExportIT-" + UUID.randomUUID());
+//          }
+
     }
 
     @After
@@ -198,7 +238,7 @@ public class KafkaExportITBase extends AccumuloExportITBase {
             // Shutdown the repo.
             if(ryaSailRepo != null) {ryaSailRepo.shutDown();}
             if(dao != null ) {dao.destroy();}
-        } catch (Exception e) {
+        } catch (final Exception e) {
             System.out.println("Encountered the following Exception when shutting down Rya: " + e.getMessage());
         }
     }
@@ -269,9 +309,9 @@ public class KafkaExportITBase extends AccumuloExportITBase {
      */
     @After
     public void teardownKafka() {
-        if(kafkaServer != null) {kafkaServer.shutdown();}
-        if(zkClient != null) {zkClient.close();}
-        if(zkServer != null) {zkServer.shutdown();}
+        if (kafkaServer != null) {
+            kafkaServer.shutdown();
+        }
     }
 
     /**
@@ -281,24 +321,29 @@ public class KafkaExportITBase extends AccumuloExportITBase {
      */
     @Test
     public void embeddedKafkaTest() throws Exception {
+        try {
         // create topic
         final String topic = "testTopic";
+        // grab the connection string for the zookeeper spun up by our parent class.
+        final String zkConnect = getMiniAccumuloCluster().getZooKeepers();
+
+        // Setup Kafka.
+        final ZkUtils zkUtils = ZkUtils.apply(new ZkClient(zkConnect, 30000, 30000, ZKStringSerializer$.MODULE$), false);
         AdminUtils.createTopic(zkUtils, topic, 1, 1, new Properties(), RackAwareMode.Disabled$.MODULE$);
+        zkUtils.close();
 
         // setup producer
-        final Properties producerProps = new Properties();
-        producerProps.setProperty("bootstrap.servers", BROKERHOST + ":" + BROKERPORT);
+        final Properties producerProps = createBootstrapServerConfig();
         producerProps.setProperty("key.serializer", "org.apache.kafka.common.serialization.IntegerSerializer");
         producerProps.setProperty("value.serializer", "org.apache.kafka.common.serialization.ByteArraySerializer");
         final KafkaProducer<Integer, byte[]> producer = new KafkaProducer<>(producerProps);
 
         // setup consumer
-        final Properties consumerProps = new Properties();
-        consumerProps.setProperty("bootstrap.servers", BROKERHOST + ":" + BROKERPORT);
-        consumerProps.setProperty("group.id", "group0");
-        consumerProps.setProperty("client.id", "consumer0");
-        consumerProps.setProperty("key.deserializer", "org.apache.kafka.common.serialization.IntegerDeserializer");
-        consumerProps.setProperty("value.deserializer", "org.apache.kafka.common.serialization.ByteArrayDeserializer");
+        final Properties consumerProps = createBootstrapServerConfig();
+        consumerProps.setProperty(ConsumerConfig.GROUP_ID_CONFIG, "group0");
+        consumerProps.setProperty(ConsumerConfig.CLIENT_ID_CONFIG, "consumer0");
+        consumerProps.setProperty(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, "org.apache.kafka.common.serialization.IntegerDeserializer");
+        consumerProps.setProperty(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, "org.apache.kafka.common.serialization.ByteArrayDeserializer");
 
         // to make sure the consumer starts from the beginning of the topic
         consumerProps.put("auto.offset.reset", "earliest");
@@ -319,12 +364,15 @@ public class KafkaExportITBase extends AccumuloExportITBase {
         assertEquals(42, (int) record.key());
         assertEquals("test-message", new String(record.value(), StandardCharsets.UTF_8));
         consumer.close();
+
+        } catch (final Exception e) {
+            e.printStackTrace();
+        }
     }
 
     protected KafkaConsumer<Integer, VisibilityBindingSet> makeConsumer(final String TopicName) {
         // setup consumer
-        final Properties consumerProps = new Properties();
-        consumerProps.setProperty(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, BROKERHOST + ":" + BROKERPORT);
+        final Properties consumerProps = createBootstrapServerConfig();
         consumerProps.setProperty(ConsumerConfig.GROUP_ID_CONFIG, "group0");
         consumerProps.setProperty(ConsumerConfig.CLIENT_ID_CONFIG, "consumer0");
         consumerProps.setProperty(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG,

@@ -64,11 +64,6 @@ under the License.
             <artifactId>junit</artifactId>
             <scope>compile</scope>
         </dependency>
-         <dependency>
-            <groupId>org.apache.fluo</groupId>
-            <artifactId>fluo-api</artifactId>
-        </dependency>
-
         <dependency>
           <groupId>org.apache.kafka</groupId>
           <artifactId>kafka-clients</artifactId>

@@ -946,6 +946,7 @@ under the License.
                         </goals>
                         <configuration>
                             <skipITs>${skip.rya.it}</skipITs>
+                            <reuseForks>false</reuseForks>  <!-- Temporary fix until RYA-331 is resolved. -->
                         </configuration>
                     </execution>
                 </executions>

@@ -18,12 +18,9 @@
  */
 package org.apache.rya.mongodb.document.operators.query;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 import java.util.Arrays;
 
-import com.mongodb.BasicDBObject;
-import com.mongodb.BasicDBObjectBuilder;
+import org.bson.Document;
 
 /**
  * Utility methods for comparison operators.
@@ -37,49 +34,23 @@ public final class ComparisonOperators {
 
     /**
      * Creates a $gt MongoDB expression.
+     *
      * @param expression the expression.
      * @param value the value to test if the expression is greater than
-     * @return the $gt expression {@link BasicDBObject}.
+     * @return the $gt expression {@link Document}.
      */
-    public static BasicDBObject gt(final BasicDBObject expression, final Number value) {
-        final BasicDBObjectBuilder builder = BasicDBObjectBuilder.start();
-        return (BasicDBObject) gt(builder, expression, value).get();
-    }
-
-    /**
-     * Creates a $gt MongoDB expression.
-     * @param builder the {@link BasicDBObjectBuilder}. (not {@code null})
-     * @param expression the expression.
-     * @param value the value to test if the expression is greater than
-     * @return the $gt expression {@link BasicDBObjectBuilder}.
-     */
-    public static BasicDBObjectBuilder gt(final BasicDBObjectBuilder builder, final BasicDBObject expression, final Number value) {
-        checkNotNull(builder);
-        builder.add("$gt", Arrays.asList(expression, value));
-        return builder;
+    public static Document gt(final Document expression, final Number value) {
+        return new Document("$gt", Arrays.asList(expression, value));
     }
 
     /**
      * Creates an $eq MongoDB expression.
+     *
      * @param expression1 the first expression.
      * @param expression2 the second expression.
-     * @return the $eq expression {@link BasicDBObject}.
+     * @return the $eq expression {@link Document}.
      */
-    public static BasicDBObject eq(final BasicDBObject expression1, final Object expression2) {
-        final BasicDBObjectBuilder builder = BasicDBObjectBuilder.start();
-        return (BasicDBObject) eq(builder, expression1, expression2).get();
-    }
-
-    /**
-     * Creates an $eq MongoDB expression.
-     * @param builder the {@link BasicDBObjectBuilder}. (not {@code null})
-     * @param expression1 the first expression.
-     * @param expression2 the second expression.
-     * @return the $eq expression {@link BasicDBObjectBuilder}.
-     */
-    public static BasicDBObjectBuilder eq(final BasicDBObjectBuilder builder, final BasicDBObject expression1, final Object expression2) {
-        checkNotNull(builder);
-        builder.add("$eq", Arrays.asList(expression1, expression2));
-        return builder;
+    public static Document eq(final Document expression1, final Object expression2) {
+        return new Document("$eq", Arrays.asList(expression1, expression2));
     }
 }

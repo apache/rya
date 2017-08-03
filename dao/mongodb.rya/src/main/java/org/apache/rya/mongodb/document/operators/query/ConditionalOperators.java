@@ -18,9 +18,9 @@
  */
 package org.apache.rya.mongodb.document.operators.query;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 import java.util.Arrays;
+
+import org.bson.Document;
 
 import com.mongodb.BasicDBObject;
 import com.mongodb.BasicDBObjectBuilder;
@@ -42,74 +42,27 @@ public final class ConditionalOperators {
      * {@code ifStatement} is {@code true}.
      * @param elseResult the {@link Object} to return when the
      * {@code ifStatement} is {@code false}.
-     * @return the "if" expression {@link BasicDBObject}.
-     */
-    public static BasicDBObject ifThenElse(final BasicDBObject ifStatement, final Object thenResult, final Object elseResult) {
-        final BasicDBObjectBuilder builder = BasicDBObjectBuilder.start();
-        return (BasicDBObject) ifThenElse(builder, ifStatement, thenResult, elseResult).get();
-    }
-
-    /**
-     * Creates an "if-then-else" MongoDB expression.
-     * @param builder the {@link BasicDBObjectBuilder}. (not {@code null})
-     * @param ifStatement the "if" statement {@link BasicDBObject}.
-     * @param thenResult the {@link Object} to return when the
-     * {@code ifStatement} is {@code true}.
-     * @param elseResult the {@link Object} to return when the
-     * {@code ifStatement} is {@code false}.
      * @return the "if" expression {@link BasicDBObjectBuilder}.
      */
-    public static BasicDBObjectBuilder ifThenElse(final BasicDBObjectBuilder builder, final BasicDBObject ifStatement, final Object thenResult, final Object elseResult) {
-        checkNotNull(builder);
-        builder.add("if", ifStatement);
-        builder.append("then", thenResult);
-        builder.append("else", elseResult);
-        return builder;
+    public static Document ifThenElse(final Document ifStatement, final Object thenResult, final Object elseResult) {
+        return new Document("if", ifStatement)
+            .append("then", thenResult)
+            .append("else", elseResult);
     }
 
     /**
      * Checks if the expression is {@code null} and replaces it if it is.
-     * @param expression the expression to {@code null} check.
-     * @param replacementExpression the expression to replace it with if it's
-     * {@code null}.
-     * @return the $ifNull expression {@link BasicDBObject}.
-     */
-    public static BasicDBObject ifNull(final Object expression, final Object replacementExpression) {
-        final BasicDBObjectBuilder builder = BasicDBObjectBuilder.start();
-        return (BasicDBObject) ifNull(builder, expression, replacementExpression).get();
-    }
-
-    /**
-     * Checks if the expression is {@code null} and replaces it if it is.
-     * @param builder the {@link BasicDBObjectBuilder}. (not {@code null})
      * @param expression the expression to {@code null} check.
      * @param replacementExpression the expression to replace it with if it's
      * {@code null}.
      * @return the $ifNull expression {@link BasicDBObjectBuilder}.
      */
-    public static BasicDBObjectBuilder ifNull(final BasicDBObjectBuilder builder, final Object expression, final Object replacementExpression) {
-        checkNotNull(builder);
-        builder.add("$ifNull", Arrays.asList(expression, replacementExpression));
-        return builder;
+    public static Document ifNull(final Object expression, final Object replacementExpression) {
+        return new Document("$ifNull", Arrays.asList(expression, replacementExpression));
     }
 
     /**
      * Creates an "$cond" MongoDB expression.
-     * @param expression the expression {@link BasicDBObject}.
-     * @param thenResult the {@link Object} to return when the
-     * {@code expression} is {@code true}.
-     * @param elseResult the {@link Object} to return when the
-     * {@code expression} is {@code false}.
-     * @return the $cond expression {@link BasicDBObject}.
-     */
-    public static BasicDBObject cond(final BasicDBObject expression, final Object thenResult, final Object elseResult) {
-        final BasicDBObjectBuilder builder = BasicDBObjectBuilder.start();
-        return (BasicDBObject) cond(builder, expression, thenResult, elseResult).get();
-    }
-
-    /**
-     * Creates an "$cond" MongoDB expression.
-     * @param builder the {@link BasicDBObjectBuilder}. (not {@code null})
      * @param expression the expression {@link BasicDBObject}.
      * @param thenResult the {@link Object} to return when the
      * {@code expression} is {@code true}.
@@ -117,9 +70,7 @@ public final class ConditionalOperators {
      * {@code expression} is {@code false}.
      * @return the $cond expression {@link BasicDBObjectBuilder}.
      */
-    public static BasicDBObjectBuilder cond(final BasicDBObjectBuilder builder, final BasicDBObject expression, final Object thenResult, final Object elseResult) {
-        checkNotNull(builder);
-        builder.add("$cond", ifThenElse(expression, thenResult, elseResult));
-        return builder;
+    public static Document cond(final Document expression, final Object thenResult, final Object elseResult) {
+        return new Document("$cond", ifThenElse(expression, thenResult, elseResult));
     }
 }

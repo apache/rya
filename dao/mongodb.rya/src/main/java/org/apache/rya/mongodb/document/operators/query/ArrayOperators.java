@@ -18,10 +18,9 @@
  */
 package org.apache.rya.mongodb.document.operators.query;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import javax.xml.parsers.DocumentBuilder;
 
-import com.mongodb.BasicDBObject;
-import com.mongodb.BasicDBObjectBuilder;
+import org.bson.Document;
 
 /**
  * Utility methods for array operators.
@@ -36,22 +35,9 @@ public final class ArrayOperators {
     /**
      * Creates an $size MongoDB expression.
      * @param expression the expression to get the size of.
-     * @return the $size expression {@link BasicDBObject}.
+     * @return the $size expression {@link DocumentBuilder}.
      */
-    public static BasicDBObject size(final Object expression) {
-        final BasicDBObjectBuilder builder = BasicDBObjectBuilder.start();
-        return (BasicDBObject) size(builder, expression).get();
-    }
-
-    /**
-     * Creates an $size MongoDB expression.
-     * @param builder the {@link BasicDBObjectBuilder}. (not {@code null})
-     * @param expression the expression to get the size of.
-     * @return the $size expression {@link BasicDBObjectBuilder}.
-     */
-    public static BasicDBObjectBuilder size(final BasicDBObjectBuilder builder, final Object expression) {
-        checkNotNull(builder);
-        builder.add("$size", expression);
-        return builder;
+    public static Document size(final Object expression) {
+        return new Document("$size", expression);
     }
 }

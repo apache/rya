@@ -18,7 +18,7 @@ specific language governing permissions and limitations
 under the License.
 -->
   <modelVersion>4.0.0</modelVersion>
-  <artifactId>rya.periodic.service</artifactId>
+  <artifactId>rya.periodic.notification.parent</artifactId>
   
    <parent>
         <groupId>org.apache.rya</groupId>
@@ -26,14 +26,14 @@ under the License.
         <version>3.2.11-incubating-SNAPSHOT</version>
     </parent>
   
-  <name>Apache Rya Periodic Service</name>
-  <description>Parent class for Rya Periodic Service</description>
+  <name>Apache Rya Periodic Notification Parent</name>
+  <description>Parent POM for Rya Periodic Notification Projects</description>
   
   <packaging>pom</packaging>
 
     <modules>
-        <module>periodic.service.notification</module>
-        <module>periodic.service.integration.tests</module>
+        <module>service</module>
+        <module>tests</module>
     </modules>
   
 </project>

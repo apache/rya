@@ -33,7 +33,7 @@ under the License.
     <modules>
         <module>rya.prospector</module>
         <module>rya.manual</module>
-        <module>rya.periodic.service</module>
+        <module>periodic.notification</module>
         <module>rya.console</module>
         <module>indexing</module>
         <module>rya.indexing.pcj</module>

@@ -777,6 +777,7 @@ under the License.
                         <systemPropertyVariables>
                             <java.io.tmpdir>${project.build.directory}</java.io.tmpdir>
                         </systemPropertyVariables>
+                        <reuseForks>false</reuseForks>  <!-- Temporary fix until RYA-331 is resolved. -->
                     </configuration>
                 </plugin>
                 <plugin>

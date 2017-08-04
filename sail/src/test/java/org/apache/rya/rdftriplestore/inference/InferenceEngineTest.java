@@ -165,6 +165,66 @@ public class InferenceEngineTest extends TestCase {
     }
 
     @Test
+    public void testDomainRange() throws Exception {
+        String insert = "INSERT DATA { GRAPH <http://updated/test> {\n"
+                + "  <urn:p1> rdfs:subPropertyOf <urn:p2> . \n"
+                + "  <urn:p2> rdfs:subPropertyOf <urn:p3> . \n"
+                + "  <urn:q1> rdfs:subPropertyOf <urn:q2> . \n"
+                + "  <urn:q2> rdfs:subPropertyOf <urn:q3> . \n"
+                + "  <urn:i1> rdfs:subPropertyOf <urn:i2> . \n"
+                + "  <urn:i2> rdfs:subPropertyOf <urn:i3> . \n"
+                + "  <urn:j1> rdfs:subPropertyOf <urn:j2> . \n"
+                + "  <urn:j2> rdfs:subPropertyOf <urn:j3> . \n"
+                + "  <urn:p2> owl:inverseOf <urn:i2> . \n"
+                + "  <urn:i1> owl:inverseOf <urn:q2> . \n"
+                + "  <urn:q1> owl:inverseOf <urn:j2> . \n"
+                + "  <urn:D1> rdfs:subClassOf <urn:D2> . \n"
+                + "  <urn:D2> rdfs:subClassOf <urn:D3> . \n"
+                + "  <urn:R1> rdfs:subClassOf <urn:R2> . \n"
+                + "  <urn:R2> rdfs:subClassOf <urn:R3> . \n"
+                + "  <urn:p2> rdfs:domain <urn:D2> . \n"
+                + "  <urn:p2> rdfs:range <urn:R2> . \n"
+                + "}}";
+        conn.prepareUpdate(QueryLanguage.SPARQL, insert).execute();
+        inferenceEngine.refreshGraph();
+        Set<URI> hasDomainD1 = inferenceEngine.getPropertiesWithDomain(vf.createURI("urn:D1"));
+        Set<URI> hasDomainD2 = inferenceEngine.getPropertiesWithDomain(vf.createURI("urn:D2"));
+        Set<URI> hasDomainD3 = inferenceEngine.getPropertiesWithDomain(vf.createURI("urn:D3"));
+        Set<URI> hasRangeD1 = inferenceEngine.getPropertiesWithRange(vf.createURI("urn:D1"));
+        Set<URI> hasRangeD2 = inferenceEngine.getPropertiesWithRange(vf.createURI("urn:D2"));
+        Set<URI> hasRangeD3 = inferenceEngine.getPropertiesWithRange(vf.createURI("urn:D3"));
+        Set<URI> hasDomainR1 = inferenceEngine.getPropertiesWithDomain(vf.createURI("urn:R1"));
+        Set<URI> hasDomainR2 = inferenceEngine.getPropertiesWithDomain(vf.createURI("urn:R2"));
+        Set<URI> hasDomainR3 = inferenceEngine.getPropertiesWithDomain(vf.createURI("urn:R3"));
+        Set<URI> hasRangeR1 = inferenceEngine.getPropertiesWithRange(vf.createURI("urn:R1"));
+        Set<URI> hasRangeR2 = inferenceEngine.getPropertiesWithRange(vf.createURI("urn:R2"));
+        Set<URI> hasRangeR3 = inferenceEngine.getPropertiesWithRange(vf.createURI("urn:R3"));
+        Set<URI> empty = new HashSet<>();
+        Set<URI> expectedForward = new HashSet<>();
+        expectedForward.add(vf.createURI("urn:p2"));
+        expectedForward.add(vf.createURI("urn:p1"));
+        expectedForward.add(vf.createURI("urn:q2"));
+        expectedForward.add(vf.createURI("urn:q1"));
+        Set<URI> expectedInverse = new HashSet<>();
+        expectedInverse.add(vf.createURI("urn:i1"));
+        expectedInverse.add(vf.createURI("urn:i2"));
+        expectedInverse.add(vf.createURI("urn:j1"));
+        expectedInverse.add(vf.createURI("urn:j2"));
+        Assert.assertEquals(empty, hasDomainD1);
+        Assert.assertEquals(empty, hasRangeD1);
+        Assert.assertEquals(empty, hasDomainR1);
+        Assert.assertEquals(empty, hasRangeR1);
+        Assert.assertEquals(expectedForward, hasDomainD2);
+        Assert.assertEquals(expectedInverse, hasRangeD2);
+        Assert.assertEquals(expectedInverse, hasDomainR2);
+        Assert.assertEquals(expectedForward, hasRangeR2);
+        Assert.assertEquals(expectedForward, hasDomainD3);
+        Assert.assertEquals(expectedInverse, hasRangeD3);
+        Assert.assertEquals(expectedInverse, hasDomainR3);
+        Assert.assertEquals(expectedForward, hasRangeR3);
+    }
+
+    @Test
     public void testHasValueGivenProperty() throws Exception {
         String insert = "INSERT DATA { GRAPH <http://updated/test> {\n"
                 + "  <urn:Biped> owl:onProperty <urn:walksUsingLegs>  . \n"

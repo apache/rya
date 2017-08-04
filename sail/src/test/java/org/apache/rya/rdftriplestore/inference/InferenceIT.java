@@ -92,7 +92,9 @@ public class InferenceIT extends TestCase {
                 solutions.add(arg0);
             }
             @Override
-            public void startQueryResult(List<String> arg0) throws TupleQueryResultHandlerException { }
+            public void startQueryResult(List<String> arg0) throws TupleQueryResultHandlerException {
+                solutions.clear();
+            }
         };
     }
 
@@ -139,6 +141,50 @@ public class InferenceIT extends TestCase {
         }
         Assert.assertEquals(expected, returned);
         Assert.assertEquals(expected.size(), solutions.size());
+    }
+
+    @Test
+    public void testDomainRangeQuery() throws Exception {
+        final String ontology = "PREFIX lubm: <http://swat.lehigh.edu/onto/univ-bench.owl#>\n"
+                + "INSERT DATA {\n"
+                + "  lubm:advisor rdfs:domain lubm:Person ;\n"
+                + "               rdfs:range lubm:Professor ;"
+                + "               owl:inverseOf lubm:advisee .\n"
+                + "  lubm:teachesCourse rdfs:domain lubm:Professor ;\n"
+                + "               rdfs:range lubm:Course ."
+                + "  lubm:takesCourse rdfs:domain lubm:Student ;\n"
+                + "               rdfs:range lubm:Course ."
+                + "  lubm:FullProfessor rdfs:subClassOf lubm:Professor .\n"
+                + "  lubm:Professor rdfs:subClassOf lubm:Faculty .\n"
+                + "  lubm:Faculty rdfs:subClassOf lubm:Person .\n"
+                + "  lubm:Student rdfs:subClassOf lubm:Person .\n"
+                + "}";
+        final String instances = "PREFIX lubm: <http://swat.lehigh.edu/onto/univ-bench.owl#>\n"
+                + "INSERT DATA {\n"
+                + "  <urn:Professor1> a lubm:Professor .\n"
+                + "  <urn:Student1> a lubm:Student .\n"
+                + "  <urn:Student2> lubm:advisor <urn:Professor2> .\n"
+                + "  <urn:Student3> lubm:advisor <urn:Professor2> .\n"
+                + "  <urn:Professor3> lubm:advisee <urn:Student4> .\n"
+                + "  <urn:Professor4> lubm:teachesCourse <urn:CS100> .\n"
+                + "  <urn:Student1> lubm:takesCourse <urn:CS100> .\n"
+                + "}";
+        final String query = "SELECT ?x { ?x a <http://swat.lehigh.edu/onto/univ-bench.owl#Faculty> }";
+        conn.prepareUpdate(QueryLanguage.SPARQL, ontology).execute();
+        inferenceEngine.refreshGraph();
+        conn.prepareUpdate(QueryLanguage.SPARQL, instances).execute();
+        conn.prepareTupleQuery(QueryLanguage.SPARQL, query).evaluate(resultHandler);
+        Set<Value> expected = new HashSet<>();
+        expected.add(vf.createURI("urn:Professor1"));
+        expected.add(vf.createURI("urn:Professor2"));
+        expected.add(vf.createURI("urn:Professor3"));
+        expected.add(vf.createURI("urn:Professor4"));
+        Set<Value> returned = new HashSet<>();
+        for (BindingSet bs : solutions) {
+            returned.add(bs.getBinding("x").getValue());
+        }
+        Assert.assertEquals(expected, returned);
+        Assert.assertEquals(5, solutions.size());
     }
 
     @Test

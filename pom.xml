@@ -848,7 +848,7 @@ under the License.
                 <plugin>
                     <groupId>org.codehaus.mojo</groupId>
                     <artifactId>jaxb2-maven-plugin</artifactId>
-                    <version>2.2</version>
+                    <version>2.3.1</version>
                 </plugin>
                 <!--This plugin's configuration is used to store Eclipse m2e settings only. It has no influence on the Maven build itself.-->
                 <plugin>
@@ -891,7 +891,32 @@ under the License.
                         </excludes>
                     </configuration>
                 </plugin>
-            </plugins>
+                <!-- Determine the absolute path for the root Rya project directory
+                     and place it in a property called "rya.project.basedir" which
+                     all children pom files can reference.
+                -->
+                <plugin>
+                    <groupId>org.commonjava.maven.plugins</groupId>
+                    <artifactId>directory-maven-plugin</artifactId>
+                    <version>0.1</version>
+                    <executions>
+                        <execution>
+                            <id>directories</id>
+                            <goals>
+                                <goal>directory-of</goal>
+                            </goals>
+                            <phase>initialize</phase>
+                            <configuration>
+                                <property>rya.project.basedir</property>
+                                <project>
+                                    <groupId>org.apache.rya</groupId>
+                                    <artifactId>rya-project</artifactId>
+                                </project>
+                            </configuration>
+                        </execution>
+                    </executions>
+                </plugin>
+                </plugins>
         </pluginManagement>
 
         <plugins>
@@ -961,29 +986,6 @@ under the License.
                         <exclude>**/*IntegrationTest.java</exclude>
                     </excludes>
                 </configuration>
-            </plugin>
-
-            <!-- Determine the absolute path for the root Rya project directory -->
-            <plugin>
-                <groupId>org.commonjava.maven.plugins</groupId>
-                <artifactId>directory-maven-plugin</artifactId>
-                <version>0.1</version>
-                <executions>
-                    <execution>
-                        <id>directories</id>
-                        <goals>
-                            <goal>directory-of</goal>
-                        </goals>
-                        <phase>initialize</phase>
-                        <configuration>
-                            <property>rya.project.basedir</property>
-                            <project>
-                                <groupId>org.apache.rya</groupId>
-                                <artifactId>rya-project</artifactId>
-                            </project>
-                        </configuration>
-                    </execution>
-                </executions>
             </plugin>
         </plugins>
     </build>

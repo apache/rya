@@ -50,6 +50,7 @@ import org.apache.rya.rdftriplestore.evaluation.QueryJoinSelectOptimizer;
 import org.apache.rya.rdftriplestore.evaluation.RdfCloudTripleStoreEvaluationStatistics;
 import org.apache.rya.rdftriplestore.evaluation.RdfCloudTripleStoreSelectivityEvaluationStatistics;
 import org.apache.rya.rdftriplestore.evaluation.SeparateFilterJoinsVisitor;
+import org.apache.rya.rdftriplestore.inference.DomainRangeVisitor;
 import org.apache.rya.rdftriplestore.inference.HasValueVisitor;
 import org.apache.rya.rdftriplestore.inference.InferenceEngine;
 import org.apache.rya.rdftriplestore.inference.InverseOfVisitor;
@@ -349,6 +350,7 @@ public class RdfCloudTripleStoreConnection extends SailConnectionBase {
                     && this.inferenceEngine != null
                     ) {
                 try {
+                    tupleExpr.visit(new DomainRangeVisitor(queryConf, inferenceEngine));
                     tupleExpr.visit(new HasValueVisitor(queryConf, inferenceEngine));
                     tupleExpr.visit(new PropertyChainVisitor(queryConf, inferenceEngine));
                     tupleExpr.visit(new TransitivePropertyVisitor(queryConf, inferenceEngine));

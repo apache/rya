@@ -28,9 +28,11 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.Stack;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.TreeMap;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.openrdf.model.Resource;
 import org.openrdf.model.Statement;
@@ -73,6 +75,8 @@ public class InferenceEngine {
     private Set<URI> transitivePropertySet;
     private Map<Resource, Map<URI, Value>> hasValueByType;
     private Map<URI, Map<Resource, Value>> hasValueByProperty;
+    private Map<URI, Set<URI>> domainByType;
+    private Map<URI, Set<URI>> rangeByType;
 
     private RyaDAO ryaDAO;
     private RdfCloudTripleStoreConfiguration conf;
@@ -371,6 +375,8 @@ public class InferenceEngine {
             	}
             }
 
+            refreshDomainRange();
+
             refreshPropertyRestrictions();
 
         } catch (QueryEvaluationException e) {
@@ -409,6 +415,164 @@ public class InferenceEngine {
                 iter.close();
             }
         }
+    }
+
+    /**
+     * Queries domain and range information, then populates the inference engine with direct
+     * domain/range relations and any that can be inferred from the subclass graph, subproperty
+     * graph, and inverse property map. Should be called after that class and property information
+     * has been refreshed.
+     *
+     * Computes indirect domain/range:
+     *  - If p1 has domain c, and p2 is a subproperty of p1, then p2 also has domain c.
+     *  - If p1 has range c, and p2 is a subproperty of p1, then p2 also has range c.
+     *  - If p1 has domain c, and p2 is the inverse of p1, then p2 has range c.
+     *  - If p1 has range c, and p2 is the inverse of p1, then p2 has domain c.
+     *  - If p has domain c1, and c1 is a subclass of c2, then p also has domain c2.
+     *  - If p has range c1, and c1 is a subclass of c2, then p also has range c2.
+     * @throws QueryEvaluationException
+     */
+    private void refreshDomainRange() throws QueryEvaluationException {
+        Map<URI, Set<URI>> domainByTypePartial = new ConcurrentHashMap<>();
+        Map<URI, Set<URI>> rangeByTypePartial = new ConcurrentHashMap<>();
+        // First, populate domain and range based on direct domain/range triples.
+        CloseableIteration<Statement, QueryEvaluationException> iter = RyaDAOHelper.query(ryaDAO, null, RDFS.DOMAIN, null, conf);
+        try {
+            while (iter.hasNext()) {
+                Statement st = iter.next();
+                Resource property = st.getSubject();
+                Value domainType = st.getObject();
+                if (domainType instanceof URI && property instanceof URI) {
+                    if (!domainByTypePartial.containsKey(domainType)) {
+                        domainByTypePartial.put((URI) domainType, new HashSet<>());
+                    }
+                    domainByTypePartial.get(domainType).add((URI) property);
+                }
+            }
+        } finally {
+            if (iter != null) {
+                iter.close();
+            }
+        }
+        iter = RyaDAOHelper.query(ryaDAO, null, RDFS.RANGE, null, conf);
+        try {
+            while (iter.hasNext()) {
+                Statement st = iter.next();
+                Resource property = st.getSubject();
+                Value rangeType = st.getObject();
+                if (rangeType instanceof URI && property instanceof URI) {
+                    if (!rangeByTypePartial.containsKey(rangeType)) {
+                        rangeByTypePartial.put((URI) rangeType, new HashSet<>());
+                    }
+                    rangeByTypePartial.get(rangeType).add((URI) property);
+                }
+            }
+        } finally {
+            if (iter != null) {
+                iter.close();
+            }
+        }
+        // Then combine with the subclass/subproperty graphs and the inverse property map to compute
+        // the closure of domain and range per class.
+        Set<URI> domainRangeTypeSet = new HashSet<>(domainByTypePartial.keySet());
+        domainRangeTypeSet.addAll(rangeByTypePartial.keySet());
+        // Extend to subproperties: make sure that using a more specific form of a property
+        // still triggers its domain/range inferences.
+        // Mirror for inverse properties: make sure that using the inverse form of a property
+        // triggers the inverse domain/range inferences.
+        // These two rules can recursively trigger one another.
+        for (URI domainRangeType : domainRangeTypeSet) {
+            Set<URI> propertiesWithDomain = domainByTypePartial.getOrDefault(domainRangeType, new HashSet<>());
+            Set<URI> propertiesWithRange = rangeByTypePartial.getOrDefault(domainRangeType, new HashSet<>());
+            // Since findParents will traverse the subproperty graph and find all indirect
+            // subproperties, the subproperty rule does not need to trigger itself directly.
+            // And since no more than one inverseOf relationship is stored for any property, the
+            // inverse property rule does not need to trigger itself directly. However, each rule
+            // can trigger the other, so keep track of how the inferred domains/ranges were
+            // discovered so we can apply only those rules that might yield new information.
+            Stack<URI> domainViaSuperProperty  = new Stack<>();
+            Stack<URI> rangeViaSuperProperty  = new Stack<>();
+            Stack<URI> domainViaInverseProperty  = new Stack<>();
+            Stack<URI> rangeViaInverseProperty  = new Stack<>();
+            // Start with the direct domain/range assertions, which can trigger any rule.
+            domainViaSuperProperty.addAll(propertiesWithDomain);
+            domainViaInverseProperty.addAll(propertiesWithDomain);
+            rangeViaSuperProperty.addAll(propertiesWithRange);
+            rangeViaInverseProperty.addAll(propertiesWithRange);
+            // Repeatedly infer domain/range from subproperties/inverse properties until no new
+            // information can be generated.
+            while (!(domainViaSuperProperty.isEmpty() && rangeViaSuperProperty.isEmpty()
+                    && domainViaInverseProperty.isEmpty() && rangeViaInverseProperty.isEmpty())) {
+                // For a type c and property p, if c is a domain of p, then c is the range of any
+                // inverse of p. Would be redundant for properties discovered via inverseOf.
+                while (!domainViaSuperProperty.isEmpty()) {
+                    URI property = domainViaSuperProperty.pop();
+                    URI inverseProperty = findInverseOf(property);
+                    if (inverseProperty != null && propertiesWithRange.add(inverseProperty)) {
+                        rangeViaInverseProperty.push(inverseProperty);
+                    }
+                }
+                // For a type c and property p, if c is a range of p, then c is the domain of any
+                // inverse of p. Would be redundant for properties discovered via inverseOf.
+                while (!rangeViaSuperProperty.isEmpty()) {
+                    URI property = rangeViaSuperProperty.pop();
+                    URI inverseProperty = findInverseOf(property);
+                    if (inverseProperty != null && propertiesWithDomain.add(inverseProperty)) {
+                        domainViaInverseProperty.push(inverseProperty);
+                    }
+                }
+                // For a type c and property p, if c is a domain of p, then c is also a domain of
+                // p's subproperties. Would be redundant for properties discovered via this rule.
+                while (!domainViaInverseProperty.isEmpty()) {
+                    URI property = domainViaInverseProperty.pop();
+                    Set<URI> subProperties = findParents(subPropertyOfGraph, property);
+                    subProperties.removeAll(propertiesWithDomain);
+                    propertiesWithDomain.addAll(subProperties);
+                    domainViaSuperProperty.addAll(subProperties);
+                }
+                // For a type c and property p, if c is a range of p, then c is also a range of
+                // p's subproperties. Would be redundant for properties discovered via this rule.
+                while (!rangeViaInverseProperty.isEmpty()) {
+                    URI property = rangeViaInverseProperty.pop();
+                    Set<URI> subProperties = findParents(subPropertyOfGraph, property);
+                    subProperties.removeAll(propertiesWithRange);
+                    propertiesWithRange.addAll(subProperties);
+                    rangeViaSuperProperty.addAll(subProperties);
+                }
+            }
+            if (!propertiesWithDomain.isEmpty()) {
+                domainByTypePartial.put(domainRangeType, propertiesWithDomain);
+            }
+            if (!propertiesWithRange.isEmpty()) {
+                rangeByTypePartial.put(domainRangeType, propertiesWithRange);
+            }
+        }
+        // Once all properties have been found for each domain/range class, extend to superclasses:
+        // make sure that the consequent of a domain/range inference goes on to apply any more
+        // general classes as well.
+        for (URI subtype : domainRangeTypeSet) {
+            Set<URI> supertypes = findChildren(subClassOfGraph, subtype);
+            Set<URI> propertiesWithDomain = domainByTypePartial.getOrDefault(subtype, new HashSet<>());
+            Set<URI> propertiesWithRange = rangeByTypePartial.getOrDefault(subtype, new HashSet<>());
+            for (URI supertype : supertypes) {
+                // For a property p and its domain c: all of c's superclasses are also domains of p.
+                if (!propertiesWithDomain.isEmpty() && !domainByTypePartial.containsKey(supertype)) {
+                    domainByTypePartial.put(supertype, new HashSet<>());
+                }
+                for (URI property : propertiesWithDomain) {
+                    domainByTypePartial.get(supertype).add(property);
+                }
+                // For a property p and its range c: all of c's superclasses are also ranges of p.
+                if (!propertiesWithRange.isEmpty() && !rangeByTypePartial.containsKey(supertype)) {
+                    rangeByTypePartial.put(supertype, new HashSet<>());
+                }
+                for (URI property : propertiesWithRange) {
+                    rangeByTypePartial.get(supertype).add(property);
+                }
+            }
+        }
+        domainByType = domainByTypePartial;
+        rangeByType = rangeByTypePartial;
     }
 
     private void refreshPropertyRestrictions() throws QueryEvaluationException {
@@ -482,27 +646,35 @@ public class InferenceEngine {
    }
 
     public Set<URI> findParents(Graph graph, URI vertexId) {
-        Set<URI> parents = new HashSet<>();
+        return findConnected(graph, vertexId, Direction.IN);
+    }
+
+    public Set<URI> findChildren(Graph graph, URI vertexId) {
+        return findConnected(graph, vertexId, Direction.OUT);
+    }
+
+    private Set<URI> findConnected(Graph graph, URI vertexId, Direction traversal) {
+        Set<URI> connected = new HashSet<>();
         if (graph == null) {
-            return parents;
+            return connected;
         }
         Vertex v = getVertex(graph, vertexId);
         if (v == null) {
-            return parents;
+            return connected;
         }
-        addParents(v, parents);
-        return parents;
+        addConnected(v, connected, traversal);
+        return connected;
     }
 
-    private static void addParents(Vertex v, Set<URI> parents) {
-        v.edges(Direction.IN).forEachRemaining(edge -> {
-            Vertex ov = edge.vertices(Direction.OUT).next();
+    private static void addConnected(Vertex v, Set<URI> connected, Direction traversal) {
+        v.edges(traversal).forEachRemaining(edge -> {
+            Vertex ov = edge.vertices(traversal.opposite()).next();
             Object o = ov.property(URI_PROP).value();
             if (o != null && o instanceof URI) {
-                boolean contains = parents.contains(o);
+                boolean contains = connected.contains(o);
                 if (!contains) {
-                    parents.add((URI) o);
-                    addParents(ov, parents);
+                    connected.add((URI) o);
+                    addConnected(ov, connected, traversal);
                 }
             }
         });
@@ -738,5 +910,41 @@ public class InferenceEngine {
             }
         }
         return implications;
+    }
+
+    /**
+     * For a given type, get all properties which have that type as a domain. That type can be
+     * inferred for any resource which is a subject of any triple involving one of these properties.
+     * Accounts for class and property hierarchy, for example that a subproperty implicitly has its
+     * superproperty's domain, as well as inverse properties, where a property's range is its
+     * inverse property's domain.
+     * @param domainType The type to check against the known domains
+     * @return The set of properties with domain of that type, meaning that any triple whose
+     *      predicate belongs to that set implies that the triple's subject belongs to the type.
+     */
+    public Set<URI> getPropertiesWithDomain(URI domainType) {
+        Set<URI> properties = new HashSet<>();
+        if (domainByType.containsKey(domainType)) {
+            properties.addAll(domainByType.get(domainType));
+        }
+        return properties;
+    }
+
+    /**
+     * For a given type, get all properties which have that type as a range. That type can be
+     * inferred for any resource which is an object of any triple involving one of these properties.
+     * Accounts for class and property hierarchy, for example that a subproperty implicitly has its
+     * superproperty's range, as well as inverse properties, where a property's domain is its
+     * inverse property's range.
+     * @param rangeType The type to check against the known ranges
+     * @return The set of properties with range of that type, meaning that any triple whose
+     *      predicate belongs to that set implies that the triple's object belongs to the type.
+     */
+    public Set<URI> getPropertiesWithRange(URI rangeType) {
+        Set<URI> properties = new HashSet<>();
+        if (rangeByType.containsKey(rangeType)) {
+            properties.addAll(rangeByType.get(rangeType));
+        }
+        return properties;
     }
 }

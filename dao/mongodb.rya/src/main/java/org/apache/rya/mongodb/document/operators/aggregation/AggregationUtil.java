@@ -76,7 +76,7 @@ public final class AggregationUtil {
                     mapVariableCursorName,
                     setIsSubsetNullSafe(
                         "$$" + mapVariableCursorName,
-                        authList.toArray()
+                        authList
                     )
                 )
             );

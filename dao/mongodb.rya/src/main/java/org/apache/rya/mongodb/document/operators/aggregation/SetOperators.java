@@ -22,10 +22,9 @@ import static org.apache.rya.mongodb.document.operators.query.ConditionalOperato
 
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
 
 import org.bson.Document;
-
-import com.mongodb.DBObject;
 
 /**
  * Utility methods for MongoDB set operators.
@@ -43,7 +42,7 @@ public final class SetOperators {
      * @param set the set to check.
      * @return the $setIntersection expression {@link Document}.
      */
-    public static Document setIntersection(final String field, final Object[] set) {
+    public static Document setIntersection(final String field, final List<String> set) {
         return new Document("$setIntersection", Arrays.asList(field, set));
     }
 
@@ -53,8 +52,8 @@ public final class SetOperators {
      * @param set the set to check against.
      * @return the $setIsSubset expression {@link Document}.
      */
-    public static Document setIsSubset(final Document expression, final Object[] set) {
-        return new Document("$setIsSubset", Arrays.asList(expression, set).toArray(new Object[0]));
+    public static Document setIsSubset(final Document expression, final List<String> set) {
+        return new Document("$setIsSubset", Arrays.asList(expression, set));
     }
 
     /**
@@ -64,8 +63,8 @@ public final class SetOperators {
      * @param set the set to check against.
      * @return the $setIsSubset expression {@link Document}.
      */
-    public static Document setIsSubsetNullSafe(final String field, final Object[] set) {
-        final Object emptyAccess = Collections.emptyList().toArray();
+    public static Document setIsSubsetNullSafe(final String field, final List<String> set) {
+        final Object emptyAccess = Collections.emptyList();
         return setIsSubset(
             ifNull(
                 field,

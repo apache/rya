@@ -34,6 +34,7 @@ import org.bson.Document;
 import com.mongodb.DBObject;
 import com.mongodb.client.AggregateIterable;
 import com.mongodb.client.MongoCollection;
+import com.mongodb.util.JSON;
 
 import info.aduna.iteration.CloseableIteration;
 
@@ -42,7 +43,7 @@ public class RyaStatementCursorIterator implements CloseableIteration<RyaStateme
 
     private final MongoCollection coll;
     private final Iterator<DBObject> queryIterator;
-    private Iterator<DBObject> resultsIterator;
+    private Iterator<Document> resultsIterator;
     private final MongoDBStorageStrategy<RyaStatement> strategy;
     private Long maxResults;
     private final Authorizations auths;
@@ -70,8 +71,9 @@ public class RyaStatementCursorIterator implements CloseableIteration<RyaStateme
         }
         if (currentCursorIsValid()) {
             // convert to Rya Statement
-            final DBObject queryResult = resultsIterator.next();
-            final RyaStatement statement = strategy.deserializeDBObject(queryResult);
+            final Document queryResult = resultsIterator.next();
+            final DBObject dbo = (DBObject) JSON.parse(queryResult.toJson());
+            final RyaStatement statement = strategy.deserializeDBObject(dbo);
             return statement;
         }
         return null;
@@ -87,8 +89,9 @@ public class RyaStatementCursorIterator implements CloseableIteration<RyaStateme
             pipeline.add(new Document("$match", currentQuery));
             pipeline.addAll(AggregationUtil.createRedactPipeline(auths));
             log.debug(pipeline);
-            final AggregateIterable output = coll.aggregate(pipeline);
+            final AggregateIterable<Document> output = coll.aggregate(pipeline);
             output.batchSize(1000);
+
             resultsIterator = output.iterator();
             if (resultsIterator.hasNext()) {
                 break;

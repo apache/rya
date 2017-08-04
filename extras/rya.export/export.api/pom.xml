@@ -72,11 +72,6 @@ under the License.
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-log4j12</artifactId>
         </dependency>
-        <dependency>
-            <groupId>org.glassfish.jaxb</groupId>
-            <artifactId>jaxb-xjc</artifactId>
-            <version>2.2.11</version>
-        </dependency>
     </dependencies>
 
     <build>
@@ -94,7 +89,6 @@ under the License.
                 </executions>
                 <configuration>
                     <packageName>org.apache.rya.export</packageName>
-                    <outputDirectory>src/gen/java</outputDirectory>
                 </configuration>
             </plugin>
 
@@ -111,7 +105,7 @@ under the License.
                     <header>${license.header.file}</header>
                     <aggregate>true</aggregate>
                     <includes>
-                        <include>src/gen/**</include>
+                        <include>${project.build.directory}/generated-sources/jaxb/**</include>
                     </includes>
                 </configuration>
                 <executions>
@@ -120,24 +114,6 @@ under the License.
                         <goals>
                             <goal>format</goal>
                         </goals>
-                    </execution>
-                </executions>
-            </plugin>
-
-            <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>build-helper-maven-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <phase>generate-sources</phase>
-                        <goals>
-                            <goal>add-source</goal>
-                        </goals>
-                        <configuration>
-                            <sources>
-                                <source>src/gen/java</source>
-                            </sources>
-                        </configuration>
                     </execution>
                 </executions>
             </plugin>

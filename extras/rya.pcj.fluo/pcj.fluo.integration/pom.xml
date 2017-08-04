@@ -25,6 +25,13 @@
     <description>Integration tests for the Rya Fluo application.</description>
 
     <dependencies>
+        <!--  slf4j-log4j12 is placed at top to be loaded before other loggers for testing -->
+        <dependency>
+            <artifactId>slf4j-log4j12</artifactId>
+            <groupId>org.slf4j</groupId>
+            <scope>test</scope>
+        </dependency>
+    
         <!-- Rya Runtime Dependencies. -->
         <dependency>
             <groupId>org.apache.rya</groupId>

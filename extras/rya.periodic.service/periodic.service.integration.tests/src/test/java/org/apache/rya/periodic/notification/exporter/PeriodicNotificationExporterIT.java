@@ -48,13 +48,11 @@ public class PeriodicNotificationExporterIT extends KafkaITBase {
 
     @Test
     public void testExporter() throws InterruptedException {
-        final long t = System.currentTimeMillis();
         final BlockingQueue<BindingSetRecord> records = new LinkedBlockingQueue<>();
         final Properties props = createKafkaConfig();
 
         final KafkaExporterExecutor exporter = new KafkaExporterExecutor(new KafkaProducer<String, BindingSet>(props), 1, records);
         exporter.start();
-        final long t2 = System.currentTimeMillis();
         final QueryBindingSet bs1 = new QueryBindingSet();
         bs1.addBinding(PeriodicQueryResultStorage.PeriodicBinId, vf.createLiteral(1L));
         bs1.addBinding("name", vf.createURI("uri:Bob"));
@@ -80,8 +78,6 @@ public class PeriodicNotificationExporterIT extends KafkaITBase {
         Assert.assertEquals(expected2, actual2);
 
         exporter.stop();
-        final long t3 = System.currentTimeMillis();
-        System.out.println((t2-t )+ " "+ (t3-t2));
     }
 
 

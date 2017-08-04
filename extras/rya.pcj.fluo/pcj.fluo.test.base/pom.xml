@@ -31,6 +31,18 @@ under the License.
     <description>Base classes for Integration tests.</description>
 
     <dependencies>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+        </dependency>
+        
+        <!--  Dependencies for executing tests in this project. -->
+        <!--  slf4j-log4j12 is placed at top to be loaded before other loggers -->
+        <dependency>
+             <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-log4j12</artifactId>
+            <scope>test</scope>
+        </dependency>
         <!-- Rya Runtime Dependencies. -->
         <dependency>
             <groupId>org.apache.rya</groupId>
@@ -67,12 +79,10 @@ under the License.
         <dependency>
           <groupId>org.apache.kafka</groupId>
           <artifactId>kafka-clients</artifactId>
-          <version>0.10.1.0</version>
         </dependency>
         <dependency>
             <groupId>org.apache.kafka</groupId>
             <artifactId>kafka_2.11</artifactId>
-            <version>0.10.1.0</version>
             <exclusions>
                 <exclusion>
                     <artifactId>slf4j-log4j12</artifactId>
@@ -84,7 +94,6 @@ under the License.
         <dependency>
             <groupId>org.apache.kafka</groupId>
             <artifactId>kafka_2.11</artifactId>
-            <version>0.10.1.0</version>
             <classifier>test</classifier>
             <scope>compile</scope>
             <exclusions>

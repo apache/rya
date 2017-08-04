@@ -19,19 +19,15 @@
 package org.apache.rya.pcj.fluo.test.base;
 
 import static java.util.Objects.requireNonNull;
-import static org.junit.Assert.assertEquals;
 
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Properties;
 
-import org.I0Itec.zkclient.ZkClient;
 import org.apache.accumulo.core.client.Connector;
 import org.apache.accumulo.core.client.Instance;
 import org.apache.accumulo.minicluster.MiniAccumuloCluster;
@@ -40,12 +36,8 @@ import org.apache.fluo.core.util.PortUtils;
 import org.apache.fluo.recipes.test.AccumuloExportITBase;
 import org.apache.kafka.clients.CommonClientConfigs;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
-import org.apache.kafka.clients.consumer.ConsumerRecord;
-import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
-import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerConfig;
-import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.apache.rya.accumulo.AccumuloRdfConfiguration;
 import org.apache.rya.accumulo.AccumuloRyaDAO;
@@ -69,27 +61,29 @@ import org.apache.rya.rdftriplestore.RyaSailRepository;
 import org.apache.rya.sail.config.RyaSailFactory;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Test;
 import org.openrdf.model.Statement;
 import org.openrdf.repository.sail.SailRepositoryConnection;
 import org.openrdf.sail.Sail;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import kafka.admin.AdminUtils;
-import kafka.admin.RackAwareMode;
 import kafka.server.KafkaConfig;
 import kafka.server.KafkaConfig$;
 import kafka.server.KafkaServer;
 import kafka.utils.MockTime;
 import kafka.utils.TestUtils;
 import kafka.utils.Time;
-import kafka.utils.ZKStringSerializer$;
-import kafka.utils.ZkUtils;
 
 /**
  * The base Integration Test class used for Fluo applications that export to a
  * Kakfa topic.
+ * <p>
+ * Note, to reduce the amount of garbage in the logs, you can run with
+ * -Djava.net.preferIPv4Stack=true to prevent attempting to resolve localhost to an ipv6 address.
  */
 public class KafkaExportITBase extends AccumuloExportITBase {
+
+    private static final Logger logger = LoggerFactory.getLogger(KafkaExportITBase.class);
 
     protected static final String RYA_INSTANCE_NAME = "test_";
 
@@ -163,18 +157,18 @@ public class KafkaExportITBase extends AccumuloExportITBase {
         super.getFluoConfiguration().addObservers(observers);
     }
 
-    /**
-     * setup mini kafka and call the super to setup mini fluo
-     */
+
+    @Override
     @Before
-    public void setupKafka() throws Exception {
-        // Install an instance of Rya on the Accumulo cluster.
-        System.out.print("Installing Rya...");
+    public void setupMiniFluo() throws Exception {
+        setupKafka();
+        super.setupMiniFluo();
         installRyaInstance();
-        System.out.println("done.");
+    }
+
+    public void setupKafka() throws Exception {
         // grab the connection string for the zookeeper spun up by our parent class.
         final String zkConnect = getMiniAccumuloCluster().getZooKeepers();
-
 
         // setup Broker
         brokerPort = Integer.toString(PortUtils.getRandomFreePort());
@@ -186,40 +180,9 @@ public class KafkaExportITBase extends AccumuloExportITBase {
         brokerProps.setProperty(KafkaConfig$.MODULE$.PortProp(), brokerPort);
         final KafkaConfig config = new KafkaConfig(brokerProps);
 
-
-
-
-//        // setup Broker
-//        final Properties brokerProps = new Properties();
-//
-//
-//        brokerPort = Integer.toString(PortUtils.getRandomFreePort());
-//
-////        brokerProps.setProperty("zookeeper.connect", zkConnect);
-////        brokerProps.setProperty("broker.id", "0");
-////        brokerProps.setProperty("log.dirs", Files.createTempDirectory("KafkaExportITBase-").toAbsolutePath().toString());
-////        brokerProps.setProperty("listeners", "PLAINTEXT://" + brokerHost + ":" + brokerPort);
-//
-//        brokerProps.put(KafkaConfig$.MODULE$.BrokerIdProp(), 0);
-//        brokerProps.put(KafkaConfig$.MODULE$.HostNameProp(), brokerHost);
-//        brokerProps.put(KafkaConfig$.MODULE$.PortProp(), brokerPort);
-//        brokerProps.put(KafkaConfig$.MODULE$.ZkConnectProp(), zkConnect);
-//        brokerProps.put(KafkaConfig$.MODULE$.LogDirsProp(), Files.createTempDirectory("-").toAbsolutePath().toString());
-//        final KafkaConfig config = new KafkaConfig(brokerProps);
-        //brokerProps.put(KafkaConfig$.MODULE$.ListenersProp(), zkConnect);
-        //Broker
-       // KafkaConfig$.MODULE$.BrokerIdProp()
         final Time mock = new MockTime();
-        System.out.print("Creating Kafka..." + brokerPort);
-        System.out.println(brokerProps);
         kafkaServer = TestUtils.createServer(config, mock);
-        System.out.println("done.");
-//        if (targetDir.exists() && targetDir.isDirectory()) {
-//            baseDir = new File(targetDir, "accumuloExportIT-" + UUID.randomUUID());
-//          } else {
-//            baseDir = new File(FileUtils.getTempDirectory(), "accumuloExportIT-" + UUID.randomUUID());
-//          }
-
+        logger.info("Created a Kafka Server: ", config);
     }
 
     @After
@@ -239,7 +202,7 @@ public class KafkaExportITBase extends AccumuloExportITBase {
             if(ryaSailRepo != null) {ryaSailRepo.shutDown();}
             if(dao != null ) {dao.destroy();}
         } catch (final Exception e) {
-            System.out.println("Encountered the following Exception when shutting down Rya: " + e.getMessage());
+            logger.warn("Encountered an exception when shutting down Rya.", e);
         }
     }
 
@@ -317,62 +280,6 @@ public class KafkaExportITBase extends AccumuloExportITBase {
     public void teardownKafka() {
         if (kafkaServer != null) {
             kafkaServer.shutdown();
-        }
-    }
-
-    /**
-     * Test kafka without rya code to make sure kafka works in this environment.
-     * If this test fails then its a testing environment issue, not with Rya.
-     * Source: https://github.com/asmaier/mini-kafka
-     */
-    @Test
-    public void embeddedKafkaTest() throws Exception {
-        try {
-        // create topic
-        final String topic = "testTopic";
-        // grab the connection string for the zookeeper spun up by our parent class.
-        final String zkConnect = getMiniAccumuloCluster().getZooKeepers();
-
-        // Setup Kafka.
-        final ZkUtils zkUtils = ZkUtils.apply(new ZkClient(zkConnect, 30000, 30000, ZKStringSerializer$.MODULE$), false);
-        AdminUtils.createTopic(zkUtils, topic, 1, 1, new Properties(), RackAwareMode.Disabled$.MODULE$);
-        zkUtils.close();
-
-        // setup producer
-        final Properties producerProps = createBootstrapServerConfig();
-        producerProps.setProperty("key.serializer", "org.apache.kafka.common.serialization.IntegerSerializer");
-        producerProps.setProperty("value.serializer", "org.apache.kafka.common.serialization.ByteArraySerializer");
-        final KafkaProducer<Integer, byte[]> producer = new KafkaProducer<>(producerProps);
-
-        // setup consumer
-        final Properties consumerProps = createBootstrapServerConfig();
-        consumerProps.setProperty(ConsumerConfig.GROUP_ID_CONFIG, "group0");
-        consumerProps.setProperty(ConsumerConfig.CLIENT_ID_CONFIG, "consumer0");
-        consumerProps.setProperty(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, "org.apache.kafka.common.serialization.IntegerDeserializer");
-        consumerProps.setProperty(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, "org.apache.kafka.common.serialization.ByteArrayDeserializer");
-
-        // to make sure the consumer starts from the beginning of the topic
-        consumerProps.put("auto.offset.reset", "earliest");
-
-        final KafkaConsumer<Integer, byte[]> consumer = new KafkaConsumer<>(consumerProps);
-        consumer.subscribe(Arrays.asList(topic));
-
-        // send message
-        final ProducerRecord<Integer, byte[]> data = new ProducerRecord<>(topic, 42, "test-message".getBytes(StandardCharsets.UTF_8));
-        producer.send(data);
-        producer.close();
-
-        // starting consumer
-        final ConsumerRecords<Integer, byte[]> records = consumer.poll(3000);
-        assertEquals(1, records.count());
-        final Iterator<ConsumerRecord<Integer, byte[]>> recordIterator = records.iterator();
-        final ConsumerRecord<Integer, byte[]> record = recordIterator.next();
-        assertEquals(42, (int) record.key());
-        assertEquals("test-message", new String(record.value(), StandardCharsets.UTF_8));
-        consumer.close();
-
-        } catch (final Exception e) {
-            e.printStackTrace();
         }
     }
 

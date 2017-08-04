@@ -34,7 +34,7 @@ under the License.
         <module>rya.prospector</module>
         <module>rya.manual</module>
         <module>rya.periodic.service</module>
-        <module>rya.console</module>
+        <module>shell</module>
         <module>indexing</module>
         <module>rya.indexing.pcj</module>
         <module>indexingExample</module>

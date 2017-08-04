@@ -35,7 +35,6 @@ import org.bson.Document;
 import org.openrdf.query.BindingSet;
 
 import com.google.common.collect.Multimap;
-import com.mongodb.AggregationOptions;
 import com.mongodb.DBObject;
 import com.mongodb.client.AggregateIterable;
 import com.mongodb.client.MongoCollection;
@@ -115,10 +114,8 @@ public class RyaStatementBindingSetCursorIterator implements CloseableIteration<
             pipeline.addAll(AggregationUtil.createRedactPipeline(auths));
             log.debug(pipeline);
 
-            final AggregationOptions opts = AggregationOptions.builder()
-                .batchSize(1000)
-                .build();
             final AggregateIterable<Document> aggIter = coll.aggregate(pipeline);
+            aggIter.batchSize(1000);
             resultsIterator = aggIter.iterator();
             if (resultsIterator.hasNext()) {
                 break;

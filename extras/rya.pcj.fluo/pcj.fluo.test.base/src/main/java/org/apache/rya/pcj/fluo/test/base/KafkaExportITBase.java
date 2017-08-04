@@ -254,9 +254,15 @@ public class KafkaExportITBase extends AccumuloExportITBase {
                 super.getAccumuloConnector());
 
         ryaClient.getInstall().install(RYA_INSTANCE_NAME,
-                InstallConfiguration.builder().setEnableTableHashPrefix(false).setEnableFreeTextIndex(false)
-                        .setEnableEntityCentricIndex(false).setEnableGeoIndex(false).setEnableTemporalIndex(false).setEnablePcjIndex(true)
-                        .setFluoPcjAppName(super.getFluoConfiguration().getApplicationName()).build());
+                InstallConfiguration.builder()
+                .setEnableTableHashPrefix(false)
+                .setEnableFreeTextIndex(false)
+                .setEnableEntityCentricIndex(false)
+                .setEnableGeoIndex(false)
+                .setEnableTemporalIndex(false)
+                .setEnablePcjIndex(true)
+                .setFluoPcjAppName(super.getFluoConfiguration().getApplicationName())
+                .build());
 
         // Connect to the Rya instance that was just installed.
         final AccumuloRdfConfiguration conf = makeConfig(instanceName, zookeepers);

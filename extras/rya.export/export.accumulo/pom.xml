@@ -109,7 +109,7 @@ under the License.
                 <version>2.6</version>
                 <configuration>
                     <!-- We use a custom Apache 2.0 license because we do not include a copyright section. -->
-                    <header>${license.header.file}</header>
+                    <header>../../../${license.header.file}</header>
                     <aggregate>true</aggregate>
                     <includes>
                         <include>${project.build.directory}/generated-sources/jaxb/**</include>

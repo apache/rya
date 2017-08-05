@@ -102,6 +102,8 @@ public class SparqlFluoQueryBuilder {
     private TupleExpr te;
     private String queryId;
     private NodeIds nodeIds;
+    private Optional<Integer> joinBatchSize = Optional.empty();
+  
     //Default behavior is to export to Kafka - subject to change when user can 
     //specify their own export strategy
     private Set<ExportStrategy> exportStrategies = new HashSet<>(Arrays.asList(ExportStrategy.Kafka));
@@ -137,6 +139,12 @@ public class SparqlFluoQueryBuilder {
         return this;
     }
     
+    public SparqlFluoQueryBuilder setJoinBatchSize(int joinBatchSize) {
+        Preconditions.checkArgument(joinBatchSize > 0); 
+        this.joinBatchSize = Optional.of(joinBatchSize);
+        return this;
+    }
+    
     public FluoQuery build() {
         Preconditions.checkNotNull(sparql);
         Preconditions.checkNotNull(queryId);
@@ -167,6 +175,7 @@ public class SparqlFluoQueryBuilder {
         queryBuilder.setSparql(sparql);
         queryBuilder.setChildNodeId(childNodeId);
         queryBuilder.setExportStrategies(exportStrategies);
+        queryBuilder.setJoinBatchSize(joinBatchSize);
         fluoQueryBuilder.setQueryMetadata(queryBuilder);
         
         setChildMetadata(fluoQueryBuilder, childNodeId, queryBuilder.getVariableOrder(), queryId);
@@ -427,6 +436,9 @@ public class SparqlFluoQueryBuilder {
             joinBuilder.setJoinType(joinType);
             joinBuilder.setLeftChildNodeId( leftChildNodeId );
             joinBuilder.setRightChildNodeId( rightChildNodeId );
+            if(fluoQueryBuilder.getQueryBuilder().getJoinBatchSize().isPresent()) {
+                joinBuilder.setJoinBatchSize(fluoQueryBuilder.getQueryBuilder().getJoinBatchSize().get());
+            }
 
             // Figure out the variable order for each child node's binding set and
             // store it. Also store that each child node's parent is this join.

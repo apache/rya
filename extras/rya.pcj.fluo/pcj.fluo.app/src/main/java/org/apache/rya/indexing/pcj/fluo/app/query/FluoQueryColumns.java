@@ -108,6 +108,7 @@ import edu.umd.cs.findbugs.annotations.NonNull;
  *     <tr> <td>Node ID</td> <td>joinMetadata:parentNodeId</td> <td>The Node ID this join emits Binding Sets to.</td> </tr>
  *     <tr> <td>Node ID</td> <td>joinMetadata:leftChildNodeId</td> <td>A Node ID of the node that feeds this node Binding Sets.</td> </tr>
  *     <tr> <td>Node ID</td> <td>joinMetadata:rightChildNodeId</td> <td>A Node ID of the node that feeds this node Binding Sets.</td> </tr>
+ *     <tr> <td>Node ID</td> <td>joinMetadata:joinBatchSize</td> <td>Batch size used for processing joins</td> </tr> 
  *     <tr> <td>Node ID + DELIM + Binding Set String</td> <td>joinMetadata:bindingSet</td> <td>A {@link VisibilityBindingSet} object.</td> </tr>
  *   </table>
  * </p>
@@ -238,6 +239,7 @@ public class FluoQueryColumns {
     public static final Column JOIN_PARENT_NODE_ID = new Column(JOIN_METADATA_CF, "parentNodeId");
     public static final Column JOIN_LEFT_CHILD_NODE_ID = new Column(JOIN_METADATA_CF, "leftChildNodeId");
     public static final Column JOIN_RIGHT_CHILD_NODE_ID = new Column(JOIN_METADATA_CF, "rightChildNodeId");
+    public static final Column JOIN_BATCH_SIZE = new Column(JOIN_METADATA_CF, "joinBatchSize");
     public static final Column JOIN_BINDING_SET = new Column(JOIN_METADATA_CF, "bindingSet");
 
     // Statement Pattern Metadata columns.
@@ -340,6 +342,7 @@ public class FluoQueryColumns {
                         JOIN_TYPE,
                         JOIN_PARENT_NODE_ID,
                         JOIN_LEFT_CHILD_NODE_ID,
+                        JOIN_BATCH_SIZE, 
                         JOIN_RIGHT_CHILD_NODE_ID)),
 
         /**

@@ -20,7 +20,6 @@ package org.apache.rya.indexing.pcj.fluo.app.batch.serializer;
 
 import static org.junit.Assert.assertEquals;
 
-import java.util.Arrays;
 import java.util.Optional;
 
 import org.apache.fluo.api.data.Bytes;
@@ -32,7 +31,6 @@ import org.apache.rya.indexing.pcj.fluo.app.batch.JoinBatchInformation;
 import org.apache.rya.indexing.pcj.fluo.app.batch.SpanBatchDeleteInformation;
 import org.apache.rya.indexing.pcj.fluo.app.query.FluoQueryColumns;
 import org.apache.rya.indexing.pcj.fluo.app.query.JoinMetadata.JoinType;
-import org.apache.rya.indexing.pcj.storage.accumulo.VariableOrder;
 import org.apache.rya.indexing.pcj.storage.accumulo.VisibilityBindingSet;
 import org.junit.Test;
 import org.openrdf.model.impl.URIImpl;
@@ -62,8 +60,7 @@ public class BatchInformationSerializerTest {
         
         JoinBatchInformation batch = JoinBatchInformation.builder().setBatchSize(1000).setTask(Task.Update)
                 .setColumn(FluoQueryColumns.PERIODIC_QUERY_BINDING_SET).setSpan(Span.prefix(Bytes.of("prefix346")))
-                .setJoinType(JoinType.LEFT_OUTER_JOIN).setSide(Side.RIGHT).setVarOrder(new VariableOrder(Arrays.asList("a", "b")))
-                .setBs(vBis).build();
+                .setJoinType(JoinType.LEFT_OUTER_JOIN).setSide(Side.RIGHT).setBs(vBis).build();
         
         byte[] batchBytes = BatchInformationSerializer.toBytes(batch);
         Optional<BatchInformation> decodedBatch = BatchInformationSerializer.fromBytes(batchBytes);

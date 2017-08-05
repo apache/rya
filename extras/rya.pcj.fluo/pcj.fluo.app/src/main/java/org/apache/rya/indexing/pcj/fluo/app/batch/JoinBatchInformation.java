@@ -37,8 +37,7 @@ import jline.internal.Preconditions;
  * VariableOrder are specified. This is so that the sibling node (the node that
  * wasn't updated) can be scanned to obtain results that can be joined with the
  * VisibilityBindingSet. The assumption here is that the Span is derived from
- * the {@link Binding}s of common variables between the join children, with
- * Values ordered according to the indicated {@link VariableOrder}. This class
+ * the {@link Binding}s of common variables between the join children. This class
  * represents a batch order to perform a given task on join BindingSet results.
  * The {@link Task} is to Add, Delete, or Update. This batch order is processed
  * by the {@link BatchObserver} and used with the nodeId provided to the
@@ -54,7 +53,6 @@ public class JoinBatchInformation extends AbstractSpanBatchInformation {
 
     private static final BatchBindingSetUpdater updater = new JoinBatchBindingSetUpdater();
     private VisibilityBindingSet bs; //update for join child indicated by side
-    private VariableOrder varOrder; //variable order for child indicated by Span
     private Side side;  //join child that was updated by bs
     private JoinType join;
     /**
@@ -63,20 +61,18 @@ public class JoinBatchInformation extends AbstractSpanBatchInformation {
      * @param column - Column of join child to be scanned
      * @param span - span of join child to be scanned (derived from common variables of left and right join children)
      * @param bs - BindingSet to be joined with results of child scan
-     * @param varOrder - VariableOrder used to form join (order for join child corresponding to Span)
      * @param side - The side of the child that the VisibilityBindingSet update occurred at
      * @param join - JoinType (left, right, natural inner)
      */
-    public JoinBatchInformation(int batchSize, Task task, Column column, Span span, VisibilityBindingSet bs, VariableOrder varOrder, Side side, JoinType join) {
+    public JoinBatchInformation(int batchSize, Task task, Column column, Span span, VisibilityBindingSet bs, Side side, JoinType join) {
         super(batchSize, task, column, span);
         this.bs = Preconditions.checkNotNull(bs);
-        this.varOrder = Preconditions.checkNotNull(varOrder);
         this.side = Preconditions.checkNotNull(side);
         this.join = Preconditions.checkNotNull(join);
     }
     
-    public JoinBatchInformation(Task task, Column column, Span span, VisibilityBindingSet bs, VariableOrder varOrder, Side side, JoinType join) {
-        this(DEFAULT_BATCH_SIZE, task, column, span, bs, varOrder, side, join);
+    public JoinBatchInformation(Task task, Column column, Span span, VisibilityBindingSet bs, Side side, JoinType join) {
+        this(DEFAULT_BATCH_SIZE, task, column, span, bs, side, join);
     }
     
     /**
@@ -95,13 +91,6 @@ public class JoinBatchInformation extends AbstractSpanBatchInformation {
         return join;
     }
     
-    /**
-     * Returns the VariableOrder for the join child corresponding to the Span.
-     * @return {@link VariableOrder} used to join {@link VisibilityBindingSet}s.
-     */
-    public VariableOrder getVarOrder() {
-        return varOrder;
-    }
 
    /**
     * Sets the VisibilityBindingSet that represents an update to the join child.  The join child
@@ -129,7 +118,6 @@ public class JoinBatchInformation extends AbstractSpanBatchInformation {
                 .append("    Batch Size: " + super.getBatchSize() + "\n")
                 .append("    Task: " + super.getTask() + "\n")
                 .append("    Column: " + super.getColumn() + "\n")
-                .append("    VariableOrder: " + varOrder + "\n")
                 .append("    Join Type: " + join + "\n")
                 .append("    Join Side: " + side + "\n")
                 .append("    Binding Set: " + bs + "\n")
@@ -149,12 +137,12 @@ public class JoinBatchInformation extends AbstractSpanBatchInformation {
 
         JoinBatchInformation batch = (JoinBatchInformation) other;
         return super.equals(other) &&  Objects.equals(this.bs, batch.bs) && Objects.equals(this.join, batch.join)
-                && Objects.equals(this.side, batch.side) && Objects.equals(this.varOrder, batch.varOrder);
+                && Objects.equals(this.side, batch.side);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(super.getBatchSize(), super.getColumn(), super.getSpan(), super.getTask(), bs, join, side, varOrder);
+        return Objects.hash(super.getBatchSize(), super.getColumn(), super.getSpan(), super.getTask(), bs, join, side);
     }
     
     
@@ -169,7 +157,6 @@ public class JoinBatchInformation extends AbstractSpanBatchInformation {
         private Column column;
         private Span span;
         private VisibilityBindingSet bs;
-        private VariableOrder varOrder;
         private JoinType join;
         private Side side;
    
@@ -237,19 +224,10 @@ public class JoinBatchInformation extends AbstractSpanBatchInformation {
         }
    
         /**
-         * Sets the variable order for the join child corresponding to the Span
-         * @param varOrder - Variable order used to join BindingSet with result of scan
-         */
-        public Builder setVarOrder(VariableOrder varOrder) {
-            this.varOrder = varOrder;
-            return this;
-        }
-        
-        /**
          * @return an instance of {@link JoinBatchInformation} constructed from the parameters passed to this Builder
          */
         public JoinBatchInformation build() {
-            return new JoinBatchInformation(batchSize, task, column, span, bs, varOrder, side, join); 
+            return new JoinBatchInformation(batchSize, task, column, span, bs, side, join); 
         }
     }
 }

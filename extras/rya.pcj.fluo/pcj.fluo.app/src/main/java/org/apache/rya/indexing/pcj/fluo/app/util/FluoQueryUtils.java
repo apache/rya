@@ -59,4 +59,16 @@ public class FluoQueryUtils {
         return queryIdParts[1];
     }
     
+    /**
+     * Uses a {@link NodeIdCollector} visitor to do a pre-order traverse of the
+     * FluoQuery and gather the nodeIds of the metadata nodes.
+     * @param query - FluoQuery to be traversed
+     * @return - List of nodeIds, ordered according to the pre-order traversal of the FluoQuery
+     */
+    public static List<String> collectNodeIds(FluoQuery query) {
+        NodeIdCollector collector = new NodeIdCollector(query);
+        collector.visit();
+        return collector.getNodeIds();
+    }
+    
 }

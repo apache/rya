@@ -385,6 +385,7 @@ public class FluoQueryMetadataDAO {
         tx.set(rowId, FluoQueryColumns.JOIN_TYPE, metadata.getJoinType().toString() );
         tx.set(rowId, FluoQueryColumns.JOIN_PARENT_NODE_ID, metadata.getParentNodeId() );
         tx.set(rowId, FluoQueryColumns.JOIN_LEFT_CHILD_NODE_ID, metadata.getLeftChildNodeId() );
+        tx.set(rowId, FluoQueryColumns.JOIN_BATCH_SIZE, Integer.toString(metadata.getJoinBatchSize()));
         tx.set(rowId, FluoQueryColumns.JOIN_RIGHT_CHILD_NODE_ID, metadata.getRightChildNodeId() );
     }
 
@@ -410,6 +411,7 @@ public class FluoQueryMetadataDAO {
                 FluoQueryColumns.JOIN_TYPE,
                 FluoQueryColumns.JOIN_PARENT_NODE_ID,
                 FluoQueryColumns.JOIN_LEFT_CHILD_NODE_ID,
+                FluoQueryColumns.JOIN_BATCH_SIZE,
                 FluoQueryColumns.JOIN_RIGHT_CHILD_NODE_ID);
 
         // Return an object holding them.
@@ -421,12 +423,14 @@ public class FluoQueryMetadataDAO {
 
         final String parentNodeId = values.get(FluoQueryColumns.JOIN_PARENT_NODE_ID);
         final String leftChildNodeId = values.get(FluoQueryColumns.JOIN_LEFT_CHILD_NODE_ID);
+        final int joinBatchSize = Integer.parseInt(values.get(FluoQueryColumns.JOIN_BATCH_SIZE));
         final String rightChildNodeId = values.get(FluoQueryColumns.JOIN_RIGHT_CHILD_NODE_ID);
 
         return JoinMetadata.builder(nodeId)
                 .setVarOrder(varOrder)
                 .setJoinType(joinType)
                 .setParentNodeId(parentNodeId)
+                .setJoinBatchSize(joinBatchSize)
                 .setLeftChildNodeId(leftChildNodeId)
                 .setRightChildNodeId(rightChildNodeId);
     }

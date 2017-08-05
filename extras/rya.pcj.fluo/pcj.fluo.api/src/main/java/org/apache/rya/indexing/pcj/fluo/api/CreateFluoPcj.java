@@ -47,9 +47,7 @@ import org.apache.rya.api.resolver.RdfToRyaConversions;
 import org.apache.rya.indexing.pcj.fluo.app.FluoStringConverter;
 import org.apache.rya.indexing.pcj.fluo.app.NodeType;
 import org.apache.rya.indexing.pcj.fluo.app.query.FluoQuery;
-import org.apache.rya.indexing.pcj.fluo.app.query.FluoQueryColumns;
 import org.apache.rya.indexing.pcj.fluo.app.query.FluoQueryMetadataDAO;
-import org.apache.rya.indexing.pcj.fluo.app.query.QueryMetadata;
 import org.apache.rya.indexing.pcj.fluo.app.query.SparqlFluoQueryBuilder;
 import org.apache.rya.indexing.pcj.fluo.app.query.StatementPatternMetadata;
 import org.apache.rya.indexing.pcj.storage.PcjException;
@@ -90,6 +88,10 @@ public class CreateFluoPcj {
      * The default Statement Pattern batch insert size is 1000.
      */
     private static final int DEFAULT_SP_INSERT_BATCH_SIZE = 1000;
+    /**
+     * The default Join batch size is 5000.
+     */
+    private static final int DEFAULT_JOIN_BATCH_SIZE = 5000;
 
     /**
      * The maximum number of binding sets that will be inserted into each Statement
@@ -98,11 +100,15 @@ public class CreateFluoPcj {
     private final int spInsertBatchSize;
 
     /**
+     * The maximum number of join results that will be processed per transaction.
+     */
+    private final int joinBatchSize;
+    /**
      * Constructs an instance of {@link CreateFluoPcj} that uses
      * {@link #DEFAULT_SP_INSERT_BATCH_SIZE} as the default batch insert size.
      */
     public CreateFluoPcj() {
-        this(DEFAULT_SP_INSERT_BATCH_SIZE);
+        this(DEFAULT_SP_INSERT_BATCH_SIZE, DEFAULT_JOIN_BATCH_SIZE);
     }
 
     /**
@@ -111,9 +117,11 @@ public class CreateFluoPcj {
      * @param spInsertBatchSize - The maximum number of binding sets that will be
      *   inserted into each Statement Pattern's result set per Fluo transaction.
      */
-    public CreateFluoPcj(final int spInsertBatchSize) {
+    public CreateFluoPcj(final int spInsertBatchSize, final int joinBatchSize) {
         checkArgument(spInsertBatchSize > 0, "The SP insert batch size '" + spInsertBatchSize + "' must be greater than 0.");
+        checkArgument(joinBatchSize > 0, "The Join batch size '" + joinBatchSize + "' must be greater than 0.");
         this.spInsertBatchSize = spInsertBatchSize;
+        this.joinBatchSize = joinBatchSize;
     }
     
 
@@ -173,6 +181,7 @@ public class CreateFluoPcj {
         SparqlFluoQueryBuilder builder = new SparqlFluoQueryBuilder();
         builder.setFluoQueryId(queryId);
         builder.setSparql(sparql);
+        builder.setJoinBatchSize(joinBatchSize);
         
         return builder.build();
     }

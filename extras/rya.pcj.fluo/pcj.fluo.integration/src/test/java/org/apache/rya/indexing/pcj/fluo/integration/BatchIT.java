@@ -20,9 +20,7 @@ package org.apache.rya.indexing.pcj.fluo.integration;
 
 import static org.junit.Assert.assertEquals;
 
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -54,11 +52,10 @@ import org.apache.rya.indexing.pcj.fluo.app.batch.SpanBatchDeleteInformation;
 import org.apache.rya.indexing.pcj.fluo.app.query.FluoQuery;
 import org.apache.rya.indexing.pcj.fluo.app.query.FluoQueryColumns;
 import org.apache.rya.indexing.pcj.fluo.app.query.FluoQueryMetadataDAO;
-import org.apache.rya.indexing.pcj.fluo.app.query.JoinMetadata;
 import org.apache.rya.indexing.pcj.fluo.app.query.JoinMetadata.JoinType;
+import org.apache.rya.indexing.pcj.fluo.app.util.FluoQueryUtils;
 import org.apache.rya.indexing.pcj.storage.PrecomputedJoinStorage;
 import org.apache.rya.indexing.pcj.storage.accumulo.AccumuloPcjStorage;
-import org.apache.rya.indexing.pcj.storage.accumulo.VariableOrder;
 import org.apache.rya.indexing.pcj.storage.accumulo.VisibilityBindingSet;
 import org.apache.rya.pcj.fluo.test.base.RyaExportITBase;
 import org.junit.Test;
@@ -68,9 +65,9 @@ import org.openrdf.query.algebra.evaluation.QueryBindingSet;
 import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
 
-public class BatchDeleteIT extends RyaExportITBase {
+public class BatchIT extends RyaExportITBase {
 
-    private static final Logger log = Logger.getLogger(BatchDeleteIT.class);
+    private static final Logger log = Logger.getLogger(BatchIT.class);
     private static final FluoQueryMetadataDAO dao = new FluoQueryMetadataDAO();
 
     @Test
@@ -91,10 +88,11 @@ public class BatchDeleteIT extends RyaExportITBase {
             final String pcjId = pcjStorage.createPcj(sparql);
 
             // Tell the Fluo app to maintain the PCJ.
-            String queryId = new CreateFluoPcj().withRyaIntegration(pcjId, pcjStorage, fluoClient, getAccumuloConnector(), getRyaInstanceName());
+            String queryId = new CreateFluoPcj().withRyaIntegration(pcjId, pcjStorage, fluoClient, getAccumuloConnector(),
+                    getRyaInstanceName());
 
             List<String> ids = getNodeIdStrings(fluoClient, queryId);
-            List<String> prefixes = Arrays.asList("urn:subject_1", "urn:object", "urn:subject_1", "urn:subject_1");
+            List<String> prefixes = Arrays.asList("urn:subject_1", "urn:subject_1", "urn:object", "urn:subject_1", "urn:subject_1");
 
             // Stream the data into Fluo.
             InsertTriples inserter = new InsertTriples();
@@ -104,16 +102,16 @@ public class BatchDeleteIT extends RyaExportITBase {
             // Verify the end results of the query match the expected results.
             getMiniFluo().waitForObservers();
 
-            verifyCounts(fluoClient, ids, Arrays.asList(100, 100, 10, 10));
+            verifyCounts(fluoClient, ids, Arrays.asList(100, 100, 100, 10, 10));
 
             createSpanBatches(fluoClient, ids, prefixes, 10);
             getMiniFluo().waitForObservers();
 
-            verifyCounts(fluoClient, ids, Arrays.asList(0, 0, 0, 0));
+            verifyCounts(fluoClient, ids, Arrays.asList(0, 0, 0, 0, 0));
         }
     }
 
-     @Test
+    @Test
     public void simpleJoinDelete() throws Exception {
         final String sparql = "SELECT ?subject ?object1 ?object2 WHERE { ?subject <urn:predicate_1> ?object1; "
                 + " <urn:predicate_2> ?object2 } ";
@@ -130,17 +128,17 @@ public class BatchDeleteIT extends RyaExportITBase {
             final String pcjId = pcjStorage.createPcj(sparql);
 
             // Tell the Fluo app to maintain the PCJ.
-            String queryId = new CreateFluoPcj().withRyaIntegration(pcjId, pcjStorage, fluoClient, getAccumuloConnector(), getRyaInstanceName());
+            String queryId = new CreateFluoPcj().withRyaIntegration(pcjId, pcjStorage, fluoClient, getAccumuloConnector(),
+                    getRyaInstanceName());
 
             List<String> ids = getNodeIdStrings(fluoClient, queryId);
-            String joinId = ids.get(1);
-            String rightSp = ids.get(3);
+            String joinId = ids.get(2);
+            String rightSp = ids.get(4);
             QueryBindingSet bs = new QueryBindingSet();
             bs.addBinding("subject", new URIImpl("urn:subject_1"));
             bs.addBinding("object1", new URIImpl("urn:object_0"));
             VisibilityBindingSet vBs = new VisibilityBindingSet(bs);
             Span span = Span.prefix(Bytes.of(rightSp + IncrementalUpdateConstants.NODEID_BS_DELIM + "urn:subject_1"));
-            VariableOrder varOrder = new VariableOrder(Arrays.asList("subject", "object2"));
 
             // Stream the data into Fluo.
             InsertTriples inserter = new InsertTriples();
@@ -148,20 +146,20 @@ public class BatchDeleteIT extends RyaExportITBase {
             inserter.insert(fluoClient, statements2, Optional.<String> absent());
 
             getMiniFluo().waitForObservers();
-            verifyCounts(fluoClient, ids, Arrays.asList(25, 25, 5, 5));
+            verifyCounts(fluoClient, ids, Arrays.asList(25, 25, 25, 5, 5));
 
             JoinBatchInformation batch = JoinBatchInformation.builder().setBatchSize(1)
                     .setColumn(FluoQueryColumns.STATEMENT_PATTERN_BINDING_SET).setSpan(span).setTask(Task.Delete)
-                    .setJoinType(JoinType.NATURAL_JOIN).setSide(Side.LEFT).setBs(vBs).setVarOrder(varOrder).build();
+                    .setJoinType(JoinType.NATURAL_JOIN).setSide(Side.LEFT).setBs(vBs).build();
             // Verify the end results of the query match the expected results.
             createSpanBatch(fluoClient, joinId, batch);
 
             getMiniFluo().waitForObservers();
-            verifyCounts(fluoClient, ids, Arrays.asList(25, 20, 5, 5));
+            verifyCounts(fluoClient, ids, Arrays.asList(25, 25, 20, 5, 5));
         }
     }
 
-     @Test
+    @Test
     public void simpleJoinAdd() throws Exception {
         final String sparql = "SELECT ?subject ?object1 ?object2 WHERE { ?subject <urn:predicate_1> ?object1; "
                 + " <urn:predicate_2> ?object2 } ";
@@ -176,35 +174,151 @@ public class BatchDeleteIT extends RyaExportITBase {
             final String pcjId = pcjStorage.createPcj(sparql);
 
             // Tell the Fluo app to maintain the PCJ.
-            String queryId = new CreateFluoPcj().withRyaIntegration(pcjId, pcjStorage, fluoClient, getAccumuloConnector(), getRyaInstanceName());
+            String queryId = new CreateFluoPcj().withRyaIntegration(pcjId, pcjStorage, fluoClient, getAccumuloConnector(),
+                    getRyaInstanceName());
 
             List<String> ids = getNodeIdStrings(fluoClient, queryId);
-            String joinId = ids.get(1);
-            String rightSp = ids.get(3);
+            String joinId = ids.get(2);
+            String rightSp = ids.get(4);
             QueryBindingSet bs = new QueryBindingSet();
             bs.addBinding("subject", new URIImpl("urn:subject_1"));
             bs.addBinding("object1", new URIImpl("urn:object_0"));
             VisibilityBindingSet vBs = new VisibilityBindingSet(bs);
             Span span = Span.prefix(Bytes.of(rightSp + IncrementalUpdateConstants.NODEID_BS_DELIM + "urn:subject_1"));
-            VariableOrder varOrder = new VariableOrder(Arrays.asList("subject", "object2"));
 
             // Stream the data into Fluo.
             InsertTriples inserter = new InsertTriples();
             inserter.insert(fluoClient, statements2, Optional.<String> absent());
 
             getMiniFluo().waitForObservers();
-            verifyCounts(fluoClient, ids, Arrays.asList(0, 0, 0, 5));
+            verifyCounts(fluoClient, ids, Arrays.asList(0, 0, 0, 0, 5));
 
             JoinBatchInformation batch = JoinBatchInformation.builder().setBatchSize(1)
                     .setColumn(FluoQueryColumns.STATEMENT_PATTERN_BINDING_SET).setSpan(span).setTask(Task.Add)
-                    .setJoinType(JoinType.NATURAL_JOIN).setSide(Side.LEFT).setBs(vBs).setVarOrder(varOrder).build();
+                    .setJoinType(JoinType.NATURAL_JOIN).setSide(Side.LEFT).setBs(vBs).build();
             // Verify the end results of the query match the expected results.
             createSpanBatch(fluoClient, joinId, batch);
 
             getMiniFluo().waitForObservers();
-            verifyCounts(fluoClient, ids, Arrays.asList(5, 5, 0, 5));
+            verifyCounts(fluoClient, ids, Arrays.asList(5, 5, 5, 0, 5));
         }
     }
+
+    @Test
+    public void joinBatchIntegrationTest() throws Exception {
+        final String sparql = "SELECT ?subject ?object1 ?object2 WHERE { ?subject <urn:predicate_1> ?object1; "
+                + " <urn:predicate_2> ?object2 } ";
+        try (FluoClient fluoClient = new FluoClientImpl(getFluoConfiguration())) {
+
+            RyaURI subj = new RyaURI("urn:subject_1");
+            RyaStatement statement1 = new RyaStatement(subj, new RyaURI("urn:predicate_1"), null);
+            RyaStatement statement2 = new RyaStatement(subj, new RyaURI("urn:predicate_2"), null);
+            
+            Set<RyaStatement> statements1 = getRyaStatements(statement1, 15);
+            Set<RyaStatement> statements2 = getRyaStatements(statement2, 15);
+
+            // Create the PCJ table.
+            final PrecomputedJoinStorage pcjStorage = new AccumuloPcjStorage(getAccumuloConnector(), getRyaInstanceName());
+            final String pcjId = pcjStorage.createPcj(sparql);
+
+            // Tell the Fluo app to maintain the PCJ and sets batch scan size for StatementPatterns to 5 and
+            // batch size of joins to 5.
+            String queryId = new CreateFluoPcj(5, 5).withRyaIntegration(pcjId, pcjStorage, fluoClient, getAccumuloConnector(),
+                    getRyaInstanceName());
+
+            List<String> ids = getNodeIdStrings(fluoClient, queryId);
+
+            // Stream the data into Fluo.
+            InsertTriples inserter = new InsertTriples();
+            inserter.insert(fluoClient, statements1, Optional.<String> absent());
+            inserter.insert(fluoClient, statements2, Optional.<String> absent());
+
+            getMiniFluo().waitForObservers();
+            verifyCounts(fluoClient, ids, Arrays.asList(225, 225, 225, 15, 15));
+        }
+    }
+    
+    
+    @Test
+    public void leftJoinBatchIntegrationTest() throws Exception {
+        final String sparql = "SELECT ?subject ?object1 ?object2 WHERE { ?subject <urn:predicate_1> ?object1; "
+                + "OPTIONAL{ ?subject <urn:predicate_2> ?object2} } ";
+        try (FluoClient fluoClient = new FluoClientImpl(getFluoConfiguration())) {
+
+            RyaURI subj = new RyaURI("urn:subject_1");
+            RyaStatement statement1 = new RyaStatement(subj, new RyaURI("urn:predicate_1"), null);
+            RyaStatement statement2 = new RyaStatement(subj, new RyaURI("urn:predicate_2"), null);
+            
+            subj = new RyaURI("urn:subject_2");
+            RyaStatement statement3 = new RyaStatement(subj, new RyaURI("urn:predicate_1"), null);
+            
+            Set<RyaStatement> statements1 = getRyaStatements(statement1, 10);
+            Set<RyaStatement> statements2 = getRyaStatements(statement2, 10);
+            Set<RyaStatement> statements3 = getRyaStatements(statement3, 10);
+
+            // Create the PCJ table.
+            final PrecomputedJoinStorage pcjStorage = new AccumuloPcjStorage(getAccumuloConnector(), getRyaInstanceName());
+            final String pcjId = pcjStorage.createPcj(sparql);
+
+            // Tell the Fluo app to maintain the PCJ and sets batch scan size for StatementPatterns to 5 and
+            // batch size of joins to 5.
+            String queryId = new CreateFluoPcj(5, 5).withRyaIntegration(pcjId, pcjStorage, fluoClient, getAccumuloConnector(),
+                    getRyaInstanceName());
+
+            List<String> ids = getNodeIdStrings(fluoClient, queryId);
+
+            // Stream the data into Fluo.
+            InsertTriples inserter = new InsertTriples();
+            inserter.insert(fluoClient, statements1, Optional.<String> absent());
+            inserter.insert(fluoClient, statements2, Optional.<String> absent());
+            inserter.insert(fluoClient, statements3, Optional.<String> absent());
+
+            getMiniFluo().waitForObservers();
+            verifyCounts(fluoClient, ids, Arrays.asList(110, 110, 110, 20, 10));
+        }
+    }
+    
+    
+    @Test
+    public void multiJoinBatchIntegrationTest() throws Exception {
+        final String sparql = "SELECT ?subject1 ?subject2 ?object1 ?object2 WHERE { ?subject1 <urn:predicate_1> ?object1; "
+                + " <urn:predicate_2> ?object2 ."
+                + " ?subject2 <urn:predicate_3> ?object2 } ";
+        try (FluoClient fluoClient = new FluoClientImpl(getFluoConfiguration())) {
+
+            RyaURI subj1 = new RyaURI("urn:subject_1");
+            RyaStatement statement1 = new RyaStatement(subj1, new RyaURI("urn:predicate_1"), null);
+            RyaStatement statement2 = new RyaStatement(subj1, new RyaURI("urn:predicate_2"), null);
+            
+            Set<RyaStatement> statements1 = getRyaStatements(statement1, 10);
+            Set<RyaStatement> statements2 = getRyaStatements(statement2, 10);
+            
+            RyaURI subj2 = new RyaURI("urn:subject_2");
+            RyaStatement statement3 = new RyaStatement(subj2, new RyaURI("urn:predicate_3"), null);
+            Set<RyaStatement> statements3 = getRyaStatements(statement3, 10);
+
+            // Create the PCJ table.
+            final PrecomputedJoinStorage pcjStorage = new AccumuloPcjStorage(getAccumuloConnector(), getRyaInstanceName());
+            final String pcjId = pcjStorage.createPcj(sparql);
+
+            // Tell the Fluo app to maintain the PCJ and sets batch scan size for StatementPatterns to 5 and
+            // batch size of joins to 5.
+            String queryId = new CreateFluoPcj(5, 5).withRyaIntegration(pcjId, pcjStorage, fluoClient, getAccumuloConnector(),
+                    getRyaInstanceName());
+
+            List<String> ids = getNodeIdStrings(fluoClient, queryId);
+
+            // Stream the data into Fluo.
+            InsertTriples inserter = new InsertTriples();
+            inserter.insert(fluoClient, statements1, Optional.<String> absent());
+            inserter.insert(fluoClient, statements2, Optional.<String> absent());
+            inserter.insert(fluoClient, statements3, Optional.<String> absent());
+
+            getMiniFluo().waitForObservers();
+            verifyCounts(fluoClient, ids, Arrays.asList(100, 100, 100, 100, 10, 10, 10));
+        }
+    }
+
 
     private Set<RyaStatement> getRyaStatements(RyaStatement statement, int numTriples) {
 
@@ -230,16 +344,10 @@ public class BatchDeleteIT extends RyaExportITBase {
     }
 
     private List<String> getNodeIdStrings(FluoClient fluoClient, String queryId) {
-        List<String> nodeStrings = new ArrayList<>();
+        List<String> nodeStrings;
         try (Snapshot sx = fluoClient.newSnapshot()) {
             FluoQuery query = dao.readFluoQuery(sx, queryId);
-            nodeStrings.add(queryId);
-            Collection<JoinMetadata> jMeta = query.getJoinMetadata();
-            for (JoinMetadata meta : jMeta) {
-                nodeStrings.add(meta.getNodeId());
-                nodeStrings.add(meta.getLeftChildNodeId());
-                nodeStrings.add(meta.getRightChildNodeId());
-            }
+            nodeStrings = FluoQueryUtils.collectNodeIds(query);
         }
         return nodeStrings;
     }

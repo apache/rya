@@ -20,6 +20,7 @@ package org.apache.rya.indexing.pcj.fluo.app.query;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
+import java.util.Optional;
 import java.util.Set;
 
 import org.apache.commons.lang3.builder.EqualsBuilder;
@@ -28,6 +29,7 @@ import org.apache.rya.indexing.pcj.fluo.app.IncrementalUpdateConstants.QueryType
 import org.apache.rya.indexing.pcj.storage.accumulo.VariableOrder;
 
 import com.google.common.base.Objects;
+import com.google.common.base.Preconditions;
 
 import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
 import edu.umd.cs.findbugs.annotations.NonNull;
@@ -48,6 +50,7 @@ public class QueryMetadata extends CommonNodeMetadata {
     private final Set<ExportStrategy> exportStrategy;
     private final QueryType queryType;
     private final String exportId;
+    
 
     /**
      * Constructs an instance of {@link QueryMetadata}.
@@ -108,6 +111,7 @@ public class QueryMetadata extends CommonNodeMetadata {
     public QueryType getQueryType() {
         return queryType;
     }
+    
     
     @Override
     public int hashCode() {
@@ -178,6 +182,8 @@ public class QueryMetadata extends CommonNodeMetadata {
         private String childNodeId;
         private Set<ExportStrategy> exportStrategies;
         private QueryType queryType;
+        private Optional<Integer> joinBatchSize = Optional.empty();
+        
 
         /**
          * Constructs an instance of {@link Builder}.
@@ -266,6 +272,22 @@ public class QueryMetadata extends CommonNodeMetadata {
          */
         public String getChildNodeId() {
             return childNodeId;
+        }
+        
+        /**
+         * Sets batch size used to process joins for this query
+         * @param joinBatchSize - batch size used to process joins
+         */
+        public Builder setJoinBatchSize(Optional<Integer> joinBatchSize) {
+            this.joinBatchSize = joinBatchSize;
+            return this;
+        }
+        
+        /**
+         * @return Optional containing the batch size used to process large joins
+         */
+        public Optional<Integer> getJoinBatchSize() {
+            return joinBatchSize;
         }
 
         /**

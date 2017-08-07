@@ -23,6 +23,7 @@ import static org.openrdf.model.vocabulary.XMLSchema.ANYURI;
 
 import java.io.IOException;
 
+import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.domain.RyaStatement.RyaStatementBuilder;
 import org.apache.rya.api.domain.RyaURI;
@@ -64,6 +65,7 @@ public class SimpleMongoDBStorageStrategyTest {
         testDBO.put(SimpleMongoDBStorageStrategy.SUBJECT, SUBJECT);
         testDBO.put(SimpleMongoDBStorageStrategy.PREDICATE, PREDICATE);
         testDBO.put(SimpleMongoDBStorageStrategy.OBJECT, OBJECT);
+        testDBO.put(SimpleMongoDBStorageStrategy.OBJECT_HASH, DigestUtils.sha256Hex(OBJECT));
         testDBO.put(SimpleMongoDBStorageStrategy.OBJECT_TYPE, ANYURI.stringValue());
         testDBO.put(SimpleMongoDBStorageStrategy.CONTEXT, CONTEXT);
         testDBO.put(SimpleMongoDBStorageStrategy.STATEMENT_METADATA, STATEMENT_METADATA);

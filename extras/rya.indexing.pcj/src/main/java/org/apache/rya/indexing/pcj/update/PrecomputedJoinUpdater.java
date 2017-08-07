@@ -20,19 +20,18 @@ package org.apache.rya.indexing.pcj.update;
 
 import java.util.Collection;
 
-import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
-import edu.umd.cs.findbugs.annotations.NonNull;
-
+import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.indexing.pcj.storage.PcjException;
 
-import org.apache.rya.api.domain.RyaStatement;
+import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
+import edu.umd.cs.findbugs.annotations.NonNull;
 
 /**
  * Updates the state of all PCJ indices whenever {@link RyaStatement}s are
  * added to or removed from the system.
  */
 @DefaultAnnotation(NonNull.class)
-public interface PrecomputedJoinUpdater {
+public interface PrecomputedJoinUpdater extends AutoCloseable {
 
     /**
      * The PCJ indices will be updated to include new statements within
@@ -80,6 +79,7 @@ public interface PrecomputedJoinUpdater {
      *
      * @throws PcjUpdateException The updater could not be closed.
      */
+    @Override
     public void close() throws PcjUpdateException;
 
     /**

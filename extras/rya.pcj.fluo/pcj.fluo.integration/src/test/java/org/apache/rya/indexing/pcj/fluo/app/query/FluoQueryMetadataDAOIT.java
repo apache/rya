@@ -20,23 +20,33 @@ package org.apache.rya.indexing.pcj.fluo.app.query;
 
 import static org.junit.Assert.assertEquals;
 
-import org.apache.rya.indexing.pcj.fluo.ITBase;
+import java.util.List;
+import java.util.concurrent.TimeUnit;
+
+import org.apache.fluo.api.client.FluoClient;
+import org.apache.fluo.api.client.FluoFactory;
+import org.apache.fluo.api.client.Snapshot;
+import org.apache.fluo.api.client.Transaction;
+import org.apache.rya.indexing.pcj.fluo.app.ConstructGraph;
+import org.apache.rya.indexing.pcj.fluo.app.query.AggregationMetadata.AggregationElement;
+import org.apache.rya.indexing.pcj.fluo.app.query.AggregationMetadata.AggregationType;
+import org.apache.rya.indexing.pcj.fluo.app.query.FluoQuery.QueryType;
 import org.apache.rya.indexing.pcj.fluo.app.query.JoinMetadata.JoinType;
 import org.apache.rya.indexing.pcj.fluo.app.query.SparqlFluoQueryBuilder.NodeIds;
 import org.apache.rya.indexing.pcj.storage.accumulo.VariableOrder;
+import org.apache.rya.pcj.fluo.test.base.RyaExportITBase;
 import org.junit.Test;
 import org.openrdf.query.MalformedQueryException;
+import org.openrdf.query.algebra.StatementPattern;
+import org.openrdf.query.algebra.helpers.StatementPatternCollector;
 import org.openrdf.query.parser.ParsedQuery;
 import org.openrdf.query.parser.sparql.SPARQLParser;
 import org.openrdf.repository.RepositoryException;
 
-import org.apache.fluo.api.client.Snapshot;
-import org.apache.fluo.api.client.Transaction;
-
 /**
  * Integration tests the methods of {@link FluoQueryMetadataDAO}.
  */
-public class FluoQueryMetadataDAOIT extends ITBase {
+public class FluoQueryMetadataDAOIT extends RyaExportITBase {
 
     @Test
     public void statementPatternMetadataTest() throws RepositoryException {
@@ -49,20 +59,22 @@ public class FluoQueryMetadataDAOIT extends ITBase {
         builder.setParentNodeId("parentNodeId");
         final StatementPatternMetadata originalMetadata = builder.build();
 
-        // Write it to the Fluo table.
-        try(Transaction tx = fluoClient.newTransaction()) {
-            dao.write(tx, originalMetadata);
-            tx.commit();
-        }
+        try(FluoClient fluoClient = FluoFactory.newClient(super.getFluoConfiguration())) {
+            // Write it to the Fluo table.
+            try(Transaction tx = fluoClient.newTransaction()) {
+                dao.write(tx, originalMetadata);
+                tx.commit();
+            }
 
-        // Read it from the Fluo table.
-        StatementPatternMetadata storedMetadata = null;
-        try(Snapshot sx = fluoClient.newSnapshot()) {
-            storedMetadata = dao.readStatementPatternMetadata(sx, "nodeId");
-        }
+            // Read it from the Fluo table.
+            StatementPatternMetadata storedMetadata = null;
+            try(Snapshot sx = fluoClient.newSnapshot()) {
+                storedMetadata = dao.readStatementPatternMetadata(sx, "nodeId");
+            }
 
-        // Ensure the deserialized object is the same as the serialized one.
-        assertEquals(originalMetadata, storedMetadata);
+            // Ensure the deserialized object is the same as the serialized one.
+            assertEquals(originalMetadata, storedMetadata);
+        }
     }
 
     @Test
@@ -74,24 +86,25 @@ public class FluoQueryMetadataDAOIT extends ITBase {
         builder.setVarOrder(new VariableOrder("e;f"));
         builder.setParentNodeId("parentNodeId");
         builder.setChildNodeId("childNodeId");
-        builder.setOriginalSparql("originalSparql");
-        builder.setFilterIndexWithinSparql(2);
+        builder.setFilterSparql("originalSparql");
         final FilterMetadata originalMetadata = builder.build();
 
-        // Write it to the Fluo table.
-        try(Transaction tx = fluoClient.newTransaction()) {
-            dao.write(tx, originalMetadata);
-            tx.commit();
-        }
+        try(FluoClient fluoClient = FluoFactory.newClient(super.getFluoConfiguration())) {
+            // Write it to the Fluo table.
+            try(Transaction tx = fluoClient.newTransaction()) {
+                dao.write(tx, originalMetadata);
+                tx.commit();
+            }
 
-        // Read it from the Fluo table.
-        FilterMetadata storedMetadata = null;
-        try(Snapshot sx = fluoClient.newSnapshot()) {
-            storedMetadata = dao.readFilterMetadata(sx, "nodeId");
-        }
+            // Read it from the Fluo table.
+            FilterMetadata storedMetadata = null;
+            try(Snapshot sx = fluoClient.newSnapshot()) {
+                storedMetadata = dao.readFilterMetadata(sx, "nodeId");
+            }
 
-        // Ensure the deserialized object is the same as the serialized one.
-        assertEquals(originalMetadata, storedMetadata);
+            // Ensure the deserialized object is the same as the serialized one.
+            assertEquals(originalMetadata, storedMetadata);
+        }
     }
 
     @Test
@@ -107,20 +120,22 @@ public class FluoQueryMetadataDAOIT extends ITBase {
         builder.setRightChildNodeId("rightChildNodeId");
         final JoinMetadata originalMetadata = builder.build();
 
-        // Write it to the Fluo table.
-        try(Transaction tx = fluoClient.newTransaction()) {
-            dao.write(tx, originalMetadata);
-            tx.commit();
-        }
+        try(FluoClient fluoClient = FluoFactory.newClient(super.getFluoConfiguration())) {
+            // Write it to the Fluo table.
+            try(Transaction tx = fluoClient.newTransaction()) {
+                dao.write(tx, originalMetadata);
+                tx.commit();
+            }
 
-        // Read it from the Fluo table.
-        JoinMetadata storedMetadata = null;
-        try(Snapshot sx = fluoClient.newSnapshot()) {
-            storedMetadata = dao.readJoinMetadata(sx, "nodeId");
-        }
+            // Read it from the Fluo table.
+            JoinMetadata storedMetadata = null;
+            try(Snapshot sx = fluoClient.newSnapshot()) {
+                storedMetadata = dao.readJoinMetadata(sx, "nodeId");
+            }
 
-        // Ensure the deserialized object is the same as the serialized one.
-        assertEquals(originalMetadata, storedMetadata);
+            // Ensure the deserialized object is the same as the serialized one.
+            assertEquals(originalMetadata, storedMetadata);
+        }
     }
 
     @Test
@@ -134,20 +149,155 @@ public class FluoQueryMetadataDAOIT extends ITBase {
         builder.setChildNodeId("childNodeId");
         final QueryMetadata originalMetadata = builder.build();
 
-        // Write it to the Fluo table.
-        try(Transaction tx = fluoClient.newTransaction()) {
-            dao.write(tx, originalMetadata);
-            tx.commit();
-        }
+        try(FluoClient fluoClient = FluoFactory.newClient(super.getFluoConfiguration())) {
+            // Write it to the Fluo table.
+            try(Transaction tx = fluoClient.newTransaction()) {
+                dao.write(tx, originalMetadata);
+                tx.commit();
+            }
 
-        // Read it from the Fluo table.
-        QueryMetadata storedMetdata = null;
-        try(Snapshot sx = fluoClient.newSnapshot()) {
-            storedMetdata = dao.readQueryMetadata(sx, "nodeId");
-        }
+            // Read it from the Fluo table.
+            QueryMetadata storedMetdata = null;
+            try(Snapshot sx = fluoClient.newSnapshot()) {
+                storedMetdata = dao.readQueryMetadata(sx, "nodeId");
+            }
 
-        // Ensure the deserialized object is the same as the serialized one.
-        assertEquals(originalMetadata, storedMetdata);
+            // Ensure the deserialized object is the same as the serialized one.
+            assertEquals(originalMetadata, storedMetdata);
+        }
+    }
+    
+    @Test
+    public void constructQueryMetadataTest() throws MalformedQueryException {
+        
+        String query = "select ?x ?y where {?x <uri:p1> ?y. ?y <uri:p2> <uri:o1> }";
+        SPARQLParser parser = new SPARQLParser();
+        ParsedQuery pq = parser.parseQuery(query, null);
+        List<StatementPattern> patterns = StatementPatternCollector.process(pq.getTupleExpr());
+        
+        final FluoQueryMetadataDAO dao = new FluoQueryMetadataDAO();
+
+        // Create the object that will be serialized.
+        final ConstructQueryMetadata.Builder builder = ConstructQueryMetadata.builder();
+        builder.setNodeId("nodeId");
+        builder.setSparql(query);
+        builder.setChildNodeId("childNodeId");
+        builder.setConstructGraph(new ConstructGraph(patterns));
+        final ConstructQueryMetadata originalMetadata = builder.build();
+
+        try(FluoClient fluoClient = FluoFactory.newClient(super.getFluoConfiguration())) {
+            // Write it to the Fluo table.
+            try(Transaction tx = fluoClient.newTransaction()) {
+                dao.write(tx, originalMetadata);
+                tx.commit();
+            }
+
+            // Read it from the Fluo table.
+            ConstructQueryMetadata storedMetdata = null;
+            try(Snapshot sx = fluoClient.newSnapshot()) {
+                storedMetdata = dao.readConstructQueryMetadata(sx, "nodeId");
+            }
+
+            // Ensure the deserialized object is the same as the serialized one.
+            assertEquals(originalMetadata, storedMetdata);
+        }
+    }
+
+    @Test
+    public void aggregationMetadataTest_withGroupByVarOrders() {
+        final FluoQueryMetadataDAO dao = new FluoQueryMetadataDAO();
+
+        // Create the object that will be serialized.
+        final AggregationMetadata originalMetadata = AggregationMetadata.builder("nodeId")
+                .setVariableOrder(new VariableOrder("totalCount"))
+                .setParentNodeId("parentNodeId")
+                .setChildNodeId("childNodeId")
+                .setGroupByVariableOrder(new VariableOrder("a", "b", "c"))
+                .addAggregation(new AggregationElement(AggregationType.COUNT, "count", "totalCount"))
+                .addAggregation(new AggregationElement(AggregationType.AVERAGE, "privae", "avgPrice"))
+                .build();
+
+        try(FluoClient fluoClient = FluoFactory.newClient(super.getFluoConfiguration())) {
+            // Write it to the Fluo table.
+            try(Transaction tx = fluoClient.newTransaction()) {
+                dao.write(tx, originalMetadata);
+                tx.commit();
+            }
+
+            // Read it from the Fluo table.
+            AggregationMetadata storedMetadata = null;
+            try(Snapshot sx = fluoClient.newSnapshot()) {
+                storedMetadata = dao.readAggregationMetadata(sx, "nodeId");
+            }
+
+        }
+    }
+
+
+    @Test
+    public void aggregationMetadataTest_noGroupByVarOrders() {
+        final FluoQueryMetadataDAO dao = new FluoQueryMetadataDAO();
+
+        // Create the object that will be serialized.
+        final AggregationMetadata originalMetadata = AggregationMetadata.builder("nodeId")
+                .setVariableOrder(new VariableOrder("totalCount"))
+                .setParentNodeId("parentNodeId")
+                .setChildNodeId("childNodeId")
+                .addAggregation(new AggregationElement(AggregationType.COUNT, "count", "totalCount"))
+                .addAggregation(new AggregationElement(AggregationType.AVERAGE, "privae", "avgPrice"))
+                .build();
+
+        try(FluoClient fluoClient = FluoFactory.newClient(super.getFluoConfiguration())) {
+            // Write it to the Fluo table.
+            try(Transaction tx = fluoClient.newTransaction()) {
+                dao.write(tx, originalMetadata);
+                tx.commit();
+            }
+
+            // Read it from the Fluo table.
+            AggregationMetadata storedMetadata = null;
+            try(Snapshot sx = fluoClient.newSnapshot()) {
+                storedMetadata = dao.readAggregationMetadata(sx, "nodeId");
+            }
+
+            // Ensure the deserialized object is the same as the serialized one.
+            assertEquals(originalMetadata, storedMetadata);
+        }
+    }
+    
+    @Test
+    public void periodicQueryMetadataTest() {
+        final FluoQueryMetadataDAO dao = new FluoQueryMetadataDAO();
+
+        // Create the object that will be serialized.
+        PeriodicQueryMetadata originalMetadata =  PeriodicQueryMetadata.builder()
+            .setNodeId("nodeId")
+            .setParentNodeId("parentNodeId")
+            .setVarOrder(new VariableOrder("a","b","c"))
+            .setChildNodeId("childNodeId")
+            .setPeriod(10)
+            .setWindowSize(20)
+            .setUnit(TimeUnit.DAYS)
+            .setTemporalVariable("a")
+            .build();
+            
+
+        try(FluoClient fluoClient = FluoFactory.newClient(super.getFluoConfiguration())) {
+            // Write it to the Fluo table.
+            try(Transaction tx = fluoClient.newTransaction()) {
+                dao.write(tx, originalMetadata);
+                tx.commit();
+            }
+
+            // Read it from the Fluo table.
+            PeriodicQueryMetadata storedMetadata = null;
+            try(Snapshot sx = fluoClient.newSnapshot()) {
+                storedMetadata = dao.readPeriodicQueryMetadata(sx, "nodeId");
+            }
+
+            // Ensure the deserialized object is the same as the serialized one.
+            assertEquals(originalMetadata, storedMetadata);
+        }
     }
 
     @Test
@@ -168,19 +318,63 @@ public class FluoQueryMetadataDAOIT extends ITBase {
         final ParsedQuery query = new SPARQLParser().parseQuery(sparql, null);
         final FluoQuery originalQuery = new SparqlFluoQueryBuilder().make(query, new NodeIds());
 
-        // Write it to the Fluo table.
-        try(Transaction tx = fluoClient.newTransaction()) {
-            dao.write(tx, originalQuery);
-            tx.commit();
-        }
+        assertEquals(QueryType.Projection, originalQuery.getQueryType());
+        assertEquals(false, originalQuery.getConstructQueryMetadata().isPresent());
+        
+        try(FluoClient fluoClient = FluoFactory.newClient(super.getFluoConfiguration())) {
+            // Write it to the Fluo table.
+            try(Transaction tx = fluoClient.newTransaction()) {
+                dao.write(tx, originalQuery);
+                tx.commit();
+            }
 
         // Read it from the Fluo table.
         FluoQuery storedQuery = null;
         try(Snapshot sx = fluoClient.newSnapshot()) {
-            storedQuery = dao.readFluoQuery(sx, originalQuery.getQueryMetadata().getNodeId());
+            storedQuery = dao.readFluoQuery(sx, originalQuery.getQueryMetadata().get().getNodeId());
         }
 
-        // Ensure the deserialized object is the same as the serialized one.
-        assertEquals(originalQuery, storedQuery);
+            // Ensure the deserialized object is the same as the serialized one.
+            assertEquals(originalQuery, storedQuery);
+        }
+    }
+    
+    @Test
+    public void fluoConstructQueryTest() throws MalformedQueryException {
+        final FluoQueryMetadataDAO dao = new FluoQueryMetadataDAO();
+
+        // Create the object that will be serialized.
+        final String sparql =
+                "CONSTRUCT { ?customer <http://travelsTo> <http://England> .  ?customer <http://friendsWith> ?worker }" +
+                "WHERE { " +
+                  "FILTER(?customer = <http://Alice>) " +
+                  "FILTER(?city = <http://London>) " +
+                  "?customer <http://talksTo> ?worker. " +
+                  "?worker <http://livesIn> ?city. " +
+                  "?worker <http://worksAt> <http://Chipotle>. " +
+                "}";
+
+        final ParsedQuery query = new SPARQLParser().parseQuery(sparql, null);
+        final FluoQuery originalQuery = new SparqlFluoQueryBuilder().make(query, new NodeIds());
+        
+        assertEquals(QueryType.Construct, originalQuery.getQueryType());
+        assertEquals(false, originalQuery.getQueryMetadata().isPresent());
+
+        try(FluoClient fluoClient = FluoFactory.newClient(super.getFluoConfiguration())) {
+            // Write it to the Fluo table.
+            try(Transaction tx = fluoClient.newTransaction()) {
+                dao.write(tx, originalQuery);
+                tx.commit();
+            }
+
+        // Read it from the Fluo table.
+        FluoQuery storedQuery = null;
+        try(Snapshot sx = fluoClient.newSnapshot()) {
+            storedQuery = dao.readFluoQuery(sx, originalQuery.getConstructQueryMetadata().get().getNodeId());
+        }
+
+            // Ensure the deserialized object is the same as the serialized one.
+            assertEquals(originalQuery, storedQuery);
+        }
     }
 }

@@ -32,6 +32,9 @@ import org.apache.rya.api.domain.RyaType;
 import org.apache.rya.api.domain.RyaURI;
 import org.apache.rya.api.domain.StatementMetadata;
 import org.apache.rya.api.persist.query.RyaQuery;
+import org.apache.rya.mongodb.document.visibility.DocumentVisibility;
+import org.apache.rya.mongodb.document.visibility.DocumentVisibilityAdapter;
+import org.apache.rya.mongodb.document.visibility.DocumentVisibilityAdapter.MalformedDocumentVisibilityException;
 import org.openrdf.model.impl.ValueFactoryImpl;
 import org.openrdf.model.vocabulary.XMLSchema;
 
@@ -44,15 +47,18 @@ import com.mongodb.DBObject;
  */
 public class SimpleMongoDBStorageStrategy implements MongoDBStorageStrategy<RyaStatement> {
     private static final Logger LOG = Logger.getLogger(SimpleMongoDBStorageStrategy.class);
-    protected static final String ID = "_id";
-    protected static final String OBJECT_TYPE = "objectType";
-    protected static final String URI_TYPE_VALUE = XMLSchema.ANYURI.stringValue();
-    protected static final String CONTEXT = "context";
-    protected static final String PREDICATE = "predicate";
-    protected static final String OBJECT = "object";
-    protected static final String SUBJECT = "subject";
+
+    public static final String ID = "_id";
+    public static final String OBJECT_TYPE = "objectType";
+    public static final String OBJECT_TYPE_VALUE = XMLSchema.ANYURI.stringValue();
+    public static final String CONTEXT = "context";
+    public static final String PREDICATE = "predicate";
+    public static final String OBJECT = "object";
+    public static final String SUBJECT = "subject";
     public static final String TIMESTAMP = "insertTimestamp";
-    protected static final String STATEMENT_METADATA = "statementMetadata";
+    public static final String STATEMENT_METADATA = "statementMetadata";
+    public static final String DOCUMENT_VISIBILITY = "documentVisibility";
+
     protected ValueFactoryImpl factory = new ValueFactoryImpl();
 
     @Override
@@ -66,7 +72,7 @@ public class SimpleMongoDBStorageStrategy implements MongoDBStorageStrategy<RyaS
         doc.put(OBJECT_TYPE, 1);
         coll.createIndex(doc);
         doc = new BasicDBObject(OBJECT, 1);
-        doc = new BasicDBObject(OBJECT_TYPE, 1);
+        doc.put(OBJECT_TYPE, 1);
         doc.put(SUBJECT, 1);
         coll.createIndex(doc);
     }
@@ -96,12 +102,18 @@ public class SimpleMongoDBStorageStrategy implements MongoDBStorageStrategy<RyaS
 
     @Override
     public RyaStatement deserializeDBObject(final DBObject queryResult) {
-        final Map result = queryResult.toMap();
+        final Map<?, ?> result = queryResult.toMap();
         final String subject = (String) result.get(SUBJECT);
         final String object = (String) result.get(OBJECT);
         final String objectType = (String) result.get(OBJECT_TYPE);
         final String predicate = (String) result.get(PREDICATE);
         final String context = (String) result.get(CONTEXT);
+        DocumentVisibility documentVisibility = null;
+        try {
+            documentVisibility = DocumentVisibilityAdapter.toDocumentVisibility(queryResult);
+        } catch (final MalformedDocumentVisibilityException e) {
+            LOG.error("Unable to convert document visibility");
+        }
         final Long timestamp = (Long) result.get(TIMESTAMP);
         final String statementMetadata = (String) result.get(STATEMENT_METADATA);
         RyaType objectRya = null;
@@ -120,17 +132,18 @@ public class SimpleMongoDBStorageStrategy implements MongoDBStorageStrategy<RyaS
             statement = new RyaStatement(new RyaURI(subject), new RyaURI(predicate), objectRya);
         }
 
+        statement.setColumnVisibility(documentVisibility.flatten());
         if(timestamp != null) {
             statement.setTimestamp(timestamp);
         }
         if(statementMetadata != null) {
             try {
-                StatementMetadata metadata = new StatementMetadata(statementMetadata);
+                final StatementMetadata metadata = new StatementMetadata(statementMetadata);
                 statement.setStatementMetadata(metadata);
             }
-            catch (Exception ex){
+            catch (final Exception ex){
                 LOG.debug("Error deserializing metadata for statement", ex);
-            }         
+            }
         }
         return statement;
     }
@@ -157,16 +170,17 @@ public class SimpleMongoDBStorageStrategy implements MongoDBStorageStrategy<RyaS
         if (statement.getMetadata() == null){
             statement.setStatementMetadata(StatementMetadata.EMPTY_METADATA);
         }
-        BasicDBObject doc = new BasicDBObject(ID, new String(Hex.encodeHex(bytes)))
+        final BasicDBObject dvObject = DocumentVisibilityAdapter.toDBObject(statement.getColumnVisibility());
+        final BasicDBObject doc = new BasicDBObject(ID, new String(Hex.encodeHex(bytes)))
         .append(SUBJECT, statement.getSubject().getData())
         .append(PREDICATE, statement.getPredicate().getData())
         .append(OBJECT, statement.getObject().getData())
         .append(OBJECT_TYPE, statement.getObject().getDataType().toString())
         .append(CONTEXT, context)
         .append(STATEMENT_METADATA, statement.getMetadata().toString())
+        .append(DOCUMENT_VISIBILITY, dvObject.get(DOCUMENT_VISIBILITY))
         .append(TIMESTAMP, statement.getTimestamp());
         return doc;
-
     }
 
     @Override

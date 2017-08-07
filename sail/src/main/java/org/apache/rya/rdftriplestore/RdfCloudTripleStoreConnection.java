@@ -8,9 +8,9 @@ package org.apache.rya.rdftriplestore;
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- * 
+ *
  *   http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -23,15 +23,16 @@ package org.apache.rya.rdftriplestore;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
-import info.aduna.iteration.CloseableIteration;
 
 import java.lang.reflect.Constructor;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.NoSuchElementException;
 
+import org.apache.hadoop.conf.Configurable;
 import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
 import org.apache.rya.api.RdfCloudTripleStoreConstants;
 import org.apache.rya.api.domain.RyaStatement;
@@ -49,6 +50,7 @@ import org.apache.rya.rdftriplestore.evaluation.QueryJoinSelectOptimizer;
 import org.apache.rya.rdftriplestore.evaluation.RdfCloudTripleStoreEvaluationStatistics;
 import org.apache.rya.rdftriplestore.evaluation.RdfCloudTripleStoreSelectivityEvaluationStatistics;
 import org.apache.rya.rdftriplestore.evaluation.SeparateFilterJoinsVisitor;
+import org.apache.rya.rdftriplestore.inference.HasValueVisitor;
 import org.apache.rya.rdftriplestore.inference.InferenceEngine;
 import org.apache.rya.rdftriplestore.inference.InverseOfVisitor;
 import org.apache.rya.rdftriplestore.inference.PropertyChainVisitor;
@@ -61,8 +63,6 @@ import org.apache.rya.rdftriplestore.namespace.NamespaceManager;
 import org.apache.rya.rdftriplestore.provenance.ProvenanceCollectionException;
 import org.apache.rya.rdftriplestore.provenance.ProvenanceCollector;
 import org.apache.rya.rdftriplestore.utils.DefaultStatistics;
-
-import org.apache.hadoop.conf.Configurable;
 import org.openrdf.model.Namespace;
 import org.openrdf.model.Resource;
 import org.openrdf.model.Statement;
@@ -98,21 +98,23 @@ import org.openrdf.query.impl.EmptyBindingSet;
 import org.openrdf.sail.SailException;
 import org.openrdf.sail.helpers.SailConnectionBase;
 
+import info.aduna.iteration.CloseableIteration;
+
 public class RdfCloudTripleStoreConnection extends SailConnectionBase {
 
-    private RdfCloudTripleStore store;
+    private final RdfCloudTripleStore store;
 
     private RdfEvalStatsDAO rdfEvalStatsDAO;
     private SelectivityEvalDAO selectEvalDAO;
     private RyaDAO ryaDAO;
     private InferenceEngine inferenceEngine;
     private NamespaceManager namespaceManager;
-    private RdfCloudTripleStoreConfiguration conf;
-    
+    private final RdfCloudTripleStoreConfiguration conf;
+
 
 	private ProvenanceCollector provenanceCollector;
 
-    public RdfCloudTripleStoreConnection(RdfCloudTripleStore sailBase, RdfCloudTripleStoreConfiguration conf, ValueFactory vf)
+    public RdfCloudTripleStoreConnection(final RdfCloudTripleStore sailBase, final RdfCloudTripleStoreConfiguration conf, final ValueFactory vf)
             throws SailException {
         super(sailBase);
         this.store = sailBase;
@@ -137,54 +139,56 @@ public class RdfCloudTripleStoreConnection extends SailConnectionBase {
             this.namespaceManager = store.getNamespaceManager();
             this.provenanceCollector = store.getProvenanceCollector();
 
-        } catch (Exception e) {
+        } catch (final Exception e) {
             throw new SailException(e);
         }
     }
 
     @Override
-    protected void addStatementInternal(Resource subject, URI predicate,
-                                        Value object, Resource... contexts) throws SailException {
+    protected void addStatementInternal(final Resource subject, final URI predicate,
+                                        final Value object, final Resource... contexts) throws SailException {
         try {
-            String cv_s = conf.getCv();
-            byte[] cv = cv_s == null ? null : cv_s.getBytes();
+            final String cv_s = conf.getCv();
+            final byte[] cv = cv_s == null ? null : cv_s.getBytes();
+            final List<RyaStatement> ryaStatements = new ArrayList<>();
             if (contexts != null && contexts.length > 0) {
-                for (Resource context : contexts) {
-                    RyaStatement statement = new RyaStatement(
+                for (final Resource context : contexts) {
+                    final RyaStatement statement = new RyaStatement(
                             RdfToRyaConversions.convertResource(subject),
                             RdfToRyaConversions.convertURI(predicate),
                             RdfToRyaConversions.convertValue(object),
                             RdfToRyaConversions.convertResource(context),
                             null, new StatementMetadata(), cv);
 
-                    ryaDAO.add(statement);
+                    ryaStatements.add(statement);
                 }
             } else {
-                RyaStatement statement = new RyaStatement(
+                final RyaStatement statement = new RyaStatement(
                         RdfToRyaConversions.convertResource(subject),
                         RdfToRyaConversions.convertURI(predicate),
                         RdfToRyaConversions.convertValue(object),
                         null, null, new StatementMetadata(), cv);
 
-                ryaDAO.add(statement);
+                ryaStatements.add(statement);
             }
-        } catch (RyaDAOException e) {
+            ryaDAO.add(ryaStatements.iterator());
+        } catch (final RyaDAOException e) {
             throw new SailException(e);
         }
     }
 
-    
-    
-    
+
+
+
     @Override
-    protected void clearInternal(Resource... aresource) throws SailException {
+    protected void clearInternal(final Resource... aresource) throws SailException {
         try {
-            RyaURI[] graphs = new RyaURI[aresource.length];
+            final RyaURI[] graphs = new RyaURI[aresource.length];
             for (int i = 0 ; i < graphs.length ; i++){
                 graphs[i] = RdfToRyaConversions.convertResource(aresource[i]);
             }
             ryaDAO.dropGraph(conf, graphs);
-        } catch (RyaDAOException e) {
+        } catch (final RyaDAOException e) {
             throw new SailException(e);
         }
     }
@@ -207,63 +211,63 @@ public class RdfCloudTripleStoreConnection extends SailConnectionBase {
 
     @Override
     protected CloseableIteration<? extends BindingSet, QueryEvaluationException> evaluateInternal(
-            TupleExpr tupleExpr, Dataset dataset, BindingSet bindings,
-            boolean flag) throws SailException {
+            TupleExpr tupleExpr, final Dataset dataset, BindingSet bindings,
+            final boolean flag) throws SailException {
         verifyIsOpen();
         logger.trace("Incoming query model:\n{}", tupleExpr.toString());
         if (provenanceCollector != null){
         	try {
 				provenanceCollector.recordQuery(tupleExpr.toString());
-			} catch (ProvenanceCollectionException e) {
+			} catch (final ProvenanceCollectionException e) {
 				// TODO silent fail
 				e.printStackTrace();
 			}
         }
         tupleExpr = tupleExpr.clone();
 
-        RdfCloudTripleStoreConfiguration queryConf = store.getConf().clone();
+        final RdfCloudTripleStoreConfiguration queryConf = store.getConf().clone();
         if (bindings != null) {
-            Binding dispPlan = bindings.getBinding(RdfCloudTripleStoreConfiguration.CONF_QUERYPLAN_FLAG);
+            final Binding dispPlan = bindings.getBinding(RdfCloudTripleStoreConfiguration.CONF_QUERYPLAN_FLAG);
             if (dispPlan != null) {
                 queryConf.setDisplayQueryPlan(Boolean.parseBoolean(dispPlan.getValue().stringValue()));
             }
 
-            Binding authBinding = bindings.getBinding(RdfCloudTripleStoreConfiguration.CONF_QUERY_AUTH);
+            final Binding authBinding = bindings.getBinding(RdfCloudTripleStoreConfiguration.CONF_QUERY_AUTH);
             if (authBinding != null) {
                 queryConf.setAuths(authBinding.getValue().stringValue().split(","));
             }
 
-            Binding ttlBinding = bindings.getBinding(RdfCloudTripleStoreConfiguration.CONF_TTL);
+            final Binding ttlBinding = bindings.getBinding(RdfCloudTripleStoreConfiguration.CONF_TTL);
             if (ttlBinding != null) {
                 queryConf.setTtl(Long.valueOf(ttlBinding.getValue().stringValue()));
             }
 
-            Binding startTimeBinding = bindings.getBinding(RdfCloudTripleStoreConfiguration.CONF_STARTTIME);
+            final Binding startTimeBinding = bindings.getBinding(RdfCloudTripleStoreConfiguration.CONF_STARTTIME);
             if (startTimeBinding != null) {
                 queryConf.setStartTime(Long.valueOf(startTimeBinding.getValue().stringValue()));
             }
 
-            Binding performantBinding = bindings.getBinding(RdfCloudTripleStoreConfiguration.CONF_PERFORMANT);
+            final Binding performantBinding = bindings.getBinding(RdfCloudTripleStoreConfiguration.CONF_PERFORMANT);
             if (performantBinding != null) {
                 queryConf.setBoolean(RdfCloudTripleStoreConfiguration.CONF_PERFORMANT, Boolean.parseBoolean(performantBinding.getValue().stringValue()));
             }
 
-            Binding inferBinding = bindings.getBinding(RdfCloudTripleStoreConfiguration.CONF_INFER);
+            final Binding inferBinding = bindings.getBinding(RdfCloudTripleStoreConfiguration.CONF_INFER);
             if (inferBinding != null) {
                 queryConf.setInfer(Boolean.parseBoolean(inferBinding.getValue().stringValue()));
             }
 
-            Binding useStatsBinding = bindings.getBinding(RdfCloudTripleStoreConfiguration.CONF_USE_STATS);
+            final Binding useStatsBinding = bindings.getBinding(RdfCloudTripleStoreConfiguration.CONF_USE_STATS);
             if (useStatsBinding != null) {
                 queryConf.setUseStats(Boolean.parseBoolean(useStatsBinding.getValue().stringValue()));
             }
 
-            Binding offsetBinding = bindings.getBinding(RdfCloudTripleStoreConfiguration.CONF_OFFSET);
+            final Binding offsetBinding = bindings.getBinding(RdfCloudTripleStoreConfiguration.CONF_OFFSET);
             if (offsetBinding != null) {
                 queryConf.setOffset(Long.parseLong(offsetBinding.getValue().stringValue()));
             }
 
-            Binding limitBinding = bindings.getBinding(RdfCloudTripleStoreConfiguration.CONF_LIMIT);
+            final Binding limitBinding = bindings.getBinding(RdfCloudTripleStoreConfiguration.CONF_LIMIT);
             if (limitBinding != null) {
                 queryConf.setLimit(Long.parseLong(limitBinding.getValue().stringValue()));
             }
@@ -276,15 +280,15 @@ public class RdfCloudTripleStoreConnection extends SailConnectionBase {
         }
 
         try {
-            List<Class<QueryOptimizer>> optimizers = queryConf.getOptimizers();
-            Class<QueryOptimizer> pcjOptimizer = queryConf.getPcjOptimizer();
-            
+            final List<Class<QueryOptimizer>> optimizers = queryConf.getOptimizers();
+            final Class<QueryOptimizer> pcjOptimizer = queryConf.getPcjOptimizer();
+
             if(pcjOptimizer != null) {
                 QueryOptimizer opt = null;
                 try {
-                    Constructor<QueryOptimizer> construct = pcjOptimizer.getDeclaredConstructor(new Class[] {});
+                    final Constructor<QueryOptimizer> construct = pcjOptimizer.getDeclaredConstructor(new Class[] {});
                     opt = construct.newInstance();
-                } catch (Exception e) {
+                } catch (final Exception e) {
                 }
                 if (opt == null) {
                     throw new NoSuchMethodException("Could not find valid constructor for " + pcjOptimizer.getName());
@@ -294,10 +298,10 @@ public class RdfCloudTripleStoreConnection extends SailConnectionBase {
                 }
                 opt.optimize(tupleExpr, dataset, bindings);
             }
-            
+
             final ParallelEvaluationStrategyImpl strategy = new ParallelEvaluationStrategyImpl(
-                    new StoreTripleSource(queryConf), inferenceEngine, dataset, queryConf);
-            
+                    new StoreTripleSource(queryConf, ryaDAO), inferenceEngine, dataset, queryConf);
+
                 (new BindingAssigner()).optimize(tupleExpr, dataset, bindings);
                 (new ConstantOptimizer(strategy)).optimize(tupleExpr, dataset,
                         bindings);
@@ -309,22 +313,22 @@ public class RdfCloudTripleStoreConnection extends SailConnectionBase {
                 (new SameTermFilterOptimizer()).optimize(tupleExpr, dataset,
                         bindings);
                 (new QueryModelNormalizer()).optimize(tupleExpr, dataset, bindings);
-    
+
                 (new IterativeEvaluationOptimizer()).optimize(tupleExpr, dataset,
                         bindings);
 
             if (!optimizers.isEmpty()) {
-                for (Class<QueryOptimizer> optclz : optimizers) {
+                for (final Class<QueryOptimizer> optclz : optimizers) {
                     QueryOptimizer result = null;
                     try {
-                        Constructor<QueryOptimizer> meth = optclz.getDeclaredConstructor(new Class[] {});
+                        final Constructor<QueryOptimizer> meth = optclz.getDeclaredConstructor(new Class[] {});
                         result = meth.newInstance();
-                    } catch (Exception e) {
+                    } catch (final Exception e) {
                     }
                     try {
-                        Constructor<QueryOptimizer> meth = optclz.getDeclaredConstructor(EvaluationStrategy.class);
+                        final Constructor<QueryOptimizer> meth = optclz.getDeclaredConstructor(EvaluationStrategy.class);
                         result = meth.newInstance(strategy);
-                    } catch (Exception e) {
+                    } catch (final Exception e) {
                     }
                     if (result == null) {
                         throw new NoSuchMethodException("Could not find valid constructor for " + optclz.getName());
@@ -338,13 +342,14 @@ public class RdfCloudTripleStoreConnection extends SailConnectionBase {
 
             (new FilterOptimizer()).optimize(tupleExpr, dataset, bindings);
             (new OrderLimitOptimizer()).optimize(tupleExpr, dataset, bindings);
-            
+
             logger.trace("Optimized query model:\n{}", tupleExpr.toString());
 
             if (queryConf.isInfer()
                     && this.inferenceEngine != null
                     ) {
                 try {
+                    tupleExpr.visit(new HasValueVisitor(queryConf, inferenceEngine));
                     tupleExpr.visit(new PropertyChainVisitor(queryConf, inferenceEngine));
                     tupleExpr.visit(new TransitivePropertyVisitor(queryConf, inferenceEngine));
                     tupleExpr.visit(new SymmetricPropertyVisitor(queryConf, inferenceEngine));
@@ -352,7 +357,7 @@ public class RdfCloudTripleStoreConnection extends SailConnectionBase {
                     tupleExpr.visit(new SubPropertyOfVisitor(queryConf, inferenceEngine));
                     tupleExpr.visit(new SubClassOfVisitor(queryConf, inferenceEngine));
                     tupleExpr.visit(new SameAsVisitor(queryConf, inferenceEngine));
-                } catch (Exception e) {
+                } catch (final Exception e) {
                     e.printStackTrace();
                 }
             }
@@ -361,7 +366,7 @@ public class RdfCloudTripleStoreConnection extends SailConnectionBase {
 //                tupleExpr.visit(new FilterTimeIndexVisitor(queryConf));
 //                tupleExpr.visit(new PartitionFilterTimeIndexVisitor(queryConf));
             }
-            FilterRangeVisitor rangeVisitor = new FilterRangeVisitor(queryConf);
+            final FilterRangeVisitor rangeVisitor = new FilterRangeVisitor(queryConf);
             tupleExpr.visit(rangeVisitor);
             tupleExpr.visit(rangeVisitor); //this has to be done twice to get replace the statementpatterns with the right ranges
             EvaluationStatistics stats = null;
@@ -380,7 +385,7 @@ public class RdfCloudTripleStoreConnection extends SailConnectionBase {
 
                 if (stats instanceof RdfCloudTripleStoreSelectivityEvaluationStatistics) {
 
-                    (new QueryJoinSelectOptimizer((RdfCloudTripleStoreSelectivityEvaluationStatistics) stats,
+                    (new QueryJoinSelectOptimizer(stats,
                             selectEvalDAO)).optimize(tupleExpr, dataset, bindings);
                 } else {
 
@@ -391,23 +396,23 @@ public class RdfCloudTripleStoreConnection extends SailConnectionBase {
 
             final CloseableIteration<BindingSet, QueryEvaluationException> iter = strategy
                     .evaluate(tupleExpr, EmptyBindingSet.getInstance());
-            CloseableIteration<BindingSet, QueryEvaluationException> iterWrap = new CloseableIteration<BindingSet, QueryEvaluationException>() {
-                
+            final CloseableIteration<BindingSet, QueryEvaluationException> iterWrap = new CloseableIteration<BindingSet, QueryEvaluationException>() {
+
                 @Override
                 public void remove() throws QueryEvaluationException {
                   iter.remove();
                 }
-                
+
                 @Override
                 public BindingSet next() throws QueryEvaluationException {
                     return iter.next();
                 }
-                
+
                 @Override
                 public boolean hasNext() throws QueryEvaluationException {
                     return iter.hasNext();
                 }
-                
+
                 @Override
                 public void close() throws QueryEvaluationException {
                     iter.close();
@@ -415,9 +420,9 @@ public class RdfCloudTripleStoreConnection extends SailConnectionBase {
                 }
             };
             return iterWrap;
-        } catch (QueryEvaluationException e) {
+        } catch (final QueryEvaluationException e) {
             throw new SailException(e);
-        } catch (Exception e) {
+        } catch (final Exception e) {
             throw new SailException(e);
         }
     }
@@ -432,7 +437,7 @@ public class RdfCloudTripleStoreConnection extends SailConnectionBase {
     }
 
     @Override
-    protected String getNamespaceInternal(String s) throws SailException {
+    protected String getNamespaceInternal(final String s) throws SailException {
         return namespaceManager.getNamespace(s);
     }
 
@@ -444,8 +449,8 @@ public class RdfCloudTripleStoreConnection extends SailConnectionBase {
 
     @Override
     protected CloseableIteration<? extends Statement, SailException> getStatementsInternal(
-            Resource subject, URI predicate, Value object, boolean flag,
-            Resource... contexts) throws SailException {
+            final Resource subject, final URI predicate, final Value object, final boolean flag,
+            final Resource... contexts) throws SailException {
 //        try {
         //have to do this to get the inferred values
         //TODO: Will this method reduce performance?
@@ -468,7 +473,7 @@ public class RdfCloudTripleStoreConnection extends SailConnectionBase {
             isClosed = true;
                 try {
                     evaluate.close();
-                } catch (QueryEvaluationException e) {
+                } catch (final QueryEvaluationException e) {
                     throw new SailException(e);
                 }
             }
@@ -477,7 +482,7 @@ public class RdfCloudTripleStoreConnection extends SailConnectionBase {
             public boolean hasNext() throws SailException {
                 try {
                     return evaluate.hasNext();
-                } catch (QueryEvaluationException e) {
+                } catch (final QueryEvaluationException e) {
                     throw new SailException(e);
                 }
             }
@@ -489,11 +494,11 @@ public class RdfCloudTripleStoreConnection extends SailConnectionBase {
                 }
 
                 try {
-                    BindingSet next = evaluate.next();
-                    Resource bs_subj = (Resource) ((subjVar.hasValue()) ? subjVar.getValue() : next.getBinding(subjVar.getName()).getValue());
-                    URI bs_pred = (URI) ((predVar.hasValue()) ? predVar.getValue() : next.getBinding(predVar.getName()).getValue());
-                    Value bs_obj = (objVar.hasValue()) ? objVar.getValue() : (Value) next.getBinding(objVar.getName()).getValue();
-                    Binding b_cntxt = next.getBinding(cntxtVar.getName());
+                    final BindingSet next = evaluate.next();
+                    final Resource bs_subj = (Resource) ((subjVar.hasValue()) ? subjVar.getValue() : next.getBinding(subjVar.getName()).getValue());
+                    final URI bs_pred = (URI) ((predVar.hasValue()) ? predVar.getValue() : next.getBinding(predVar.getName()).getValue());
+                    final Value bs_obj = (objVar.hasValue()) ? objVar.getValue() : (Value) next.getBinding(objVar.getName()).getValue();
+                    final Binding b_cntxt = next.getBinding(cntxtVar.getName());
 
                     //convert BindingSet to Statement
                     if (b_cntxt != null) {
@@ -501,7 +506,7 @@ public class RdfCloudTripleStoreConnection extends SailConnectionBase {
                     } else {
                         return new StatementImpl(bs_subj, bs_pred, bs_obj);
                     }
-                } catch (QueryEvaluationException e) {
+                } catch (final QueryEvaluationException e) {
                     throw new SailException(e);
                 }
             }
@@ -510,7 +515,7 @@ public class RdfCloudTripleStoreConnection extends SailConnectionBase {
             public void remove() throws SailException {
                 try {
                     evaluate.remove();
-                } catch (QueryEvaluationException e) {
+                } catch (final QueryEvaluationException e) {
                     throw new SailException(e);
                 }
             }
@@ -520,7 +525,7 @@ public class RdfCloudTripleStoreConnection extends SailConnectionBase {
 //        }
     }
 
-    protected Var decorateValue(Value val, String name) {
+    protected Var decorateValue(final Value val, final String name) {
         if (val == null) {
             return new Var(name);
         } else {
@@ -529,24 +534,24 @@ public class RdfCloudTripleStoreConnection extends SailConnectionBase {
     }
 
     @Override
-    protected void removeNamespaceInternal(String s) throws SailException {
+    protected void removeNamespaceInternal(final String s) throws SailException {
         namespaceManager.removeNamespace(s);
     }
 
     @Override
-    protected void removeStatementsInternal(Resource subject, URI predicate,
-                                            Value object, Resource... contexts) throws SailException {
+    protected void removeStatementsInternal(final Resource subject, final URI predicate,
+                                            final Value object, final Resource... contexts) throws SailException {
         if (!(subject instanceof URI)) {
             throw new SailException("Subject[" + subject + "] must be URI");
         }
 
         try {
             if (contexts != null && contexts.length > 0) {
-                for (Resource context : contexts) {
+                for (final Resource context : contexts) {
                     if (!(context instanceof URI)) {
                         throw new SailException("Context[" + context + "] must be URI");
                     }
-                    RyaStatement statement = new RyaStatement(
+                    final RyaStatement statement = new RyaStatement(
                             RdfToRyaConversions.convertResource(subject),
                             RdfToRyaConversions.convertURI(predicate),
                             RdfToRyaConversions.convertValue(object),
@@ -555,7 +560,7 @@ public class RdfCloudTripleStoreConnection extends SailConnectionBase {
                     ryaDAO.delete(statement, conf);
                 }
             } else {
-                RyaStatement statement = new RyaStatement(
+                final RyaStatement statement = new RyaStatement(
                         RdfToRyaConversions.convertResource(subject),
                         RdfToRyaConversions.convertURI(predicate),
                         RdfToRyaConversions.convertValue(object),
@@ -563,7 +568,7 @@ public class RdfCloudTripleStoreConnection extends SailConnectionBase {
 
                 ryaDAO.delete(statement, conf);
             }
-        } catch (RyaDAOException e) {
+        } catch (final RyaDAOException e) {
             throw new SailException(e);
         }
     }
@@ -574,13 +579,13 @@ public class RdfCloudTripleStoreConnection extends SailConnectionBase {
     }
 
     @Override
-    protected void setNamespaceInternal(String s, String s1)
+    protected void setNamespaceInternal(final String s, final String s1)
             throws SailException {
         namespaceManager.addNamespace(s, s1);
     }
 
     @Override
-    protected long sizeInternal(Resource... contexts) throws SailException {
+    protected long sizeInternal(final Resource... contexts) throws SailException {
         logger.error("Cannot determine size as of yet");
 
         return 0;
@@ -591,32 +596,36 @@ public class RdfCloudTripleStoreConnection extends SailConnectionBase {
         //TODO: ?
     }
 
-    public class StoreTripleSource implements TripleSource {
+    public static class StoreTripleSource implements TripleSource {
 
-        private RdfCloudTripleStoreConfiguration conf;
+        private final RdfCloudTripleStoreConfiguration conf;
+        private final RyaDAO<?> ryaDAO;
 
-        public StoreTripleSource(RdfCloudTripleStoreConfiguration conf) {
+        public StoreTripleSource(final RdfCloudTripleStoreConfiguration conf, final RyaDAO<?> ryaDAO) {
             this.conf = conf;
+            this.ryaDAO = ryaDAO;
         }
 
-        public CloseableIteration<Statement, QueryEvaluationException> getStatements(
-                Resource subject, URI predicate, Value object,
-                Resource... contexts) throws QueryEvaluationException {
+        @Override
+		public CloseableIteration<Statement, QueryEvaluationException> getStatements(
+                final Resource subject, final URI predicate, final Value object,
+                final Resource... contexts) throws QueryEvaluationException {
             return RyaDAOHelper.query(ryaDAO, subject, predicate, object, conf, contexts);
         }
 
         public CloseableIteration<? extends Entry<Statement, BindingSet>, QueryEvaluationException> getStatements(
-                Collection<Map.Entry<Statement, BindingSet>> statements,
-                Resource... contexts) throws QueryEvaluationException {
+                final Collection<Map.Entry<Statement, BindingSet>> statements,
+                final Resource... contexts) throws QueryEvaluationException {
 
             return RyaDAOHelper.query(ryaDAO, statements, conf);
         }
 
-        public ValueFactory getValueFactory() {
+        @Override
+		public ValueFactory getValueFactory() {
             return RdfCloudTripleStoreConstants.VALUE_FACTORY;
         }
     }
-    
+
     public InferenceEngine getInferenceEngine() {
         return inferenceEngine;
     }

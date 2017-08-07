@@ -18,11 +18,11 @@
  */
 package org.apache.rya.indexing.pcj.storage.accumulo;
 
-import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
-import edu.umd.cs.findbugs.annotations.NonNull;
-
 import org.openrdf.query.Binding;
 import org.openrdf.query.BindingSet;
+
+import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
+import edu.umd.cs.findbugs.annotations.NonNull;
 
 /**
  * Converts {@link BindingSet}s into other representations. This library is
@@ -52,8 +52,7 @@ public interface BindingSetConverter<T> {
     *   resulting model. (not null)
     * @return The BindingSet formatted as the target model.
     * @throws BindingSetConversionException The BindingSet was unable to be
-    *   converted into the target model. This will happen if the BindingSet has
-    *   a binding whose name is not in the VariableOrder or if one of the values
+    *   converted into the target model. This will happen if one of the values
     *   could not be converted into the target model.
     */
    public T convert(BindingSet bindingSet, VariableOrder varOrder) throws BindingSetConversionException;

@@ -115,7 +115,7 @@ under the License.
                             <classpathLayoutType>custom</classpathLayoutType>
                             <customClasspathLayout>WEB-INF/lib/$${artifact.groupIdPath}/$${artifact.artifactId}-$${artifact.version}$${dashClassifier?}.$${artifact.extension}</customClasspathLayout>
                         
-                            <mainClass>org.apache.rya.indexing.pcj.fluo.PcjAdminClient</mainClass>
+                            <mainClass>org.apache.rya.indexing.pcj.fluo.client.PcjAdminClient</mainClass>
                         </manifest>
                     </archive>
                     <descriptorRefs>

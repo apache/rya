@@ -38,14 +38,24 @@ import org.apache.accumulo.minicluster.MiniAccumuloCluster;
 import org.apache.hadoop.io.Text;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
+import org.apache.rya.accumulo.AccumuloRdfConfiguration;
+import org.apache.rya.accumulo.AccumuloRyaDAO;
+import org.apache.rya.accumulo.MiniAccumuloClusterInstance;
+import org.apache.rya.accumulo.MiniAccumuloSingleton;
+import org.apache.rya.accumulo.RyaTestInstanceRule;
+import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
 import org.apache.rya.indexing.pcj.storage.PcjException;
 import org.apache.rya.indexing.pcj.storage.PcjMetadata;
+import org.apache.rya.indexing.pcj.storage.PrecomputedJoinStorage.CloseableIterator;
 import org.apache.rya.indexing.pcj.storage.PrecomputedJoinStorage.PCJStorageException;
 import org.apache.rya.indexing.pcj.storage.accumulo.BindingSetConverter.BindingSetConversionException;
+import org.apache.rya.rdftriplestore.RdfCloudTripleStore;
+import org.apache.rya.rdftriplestore.RyaSailRepository;
 import org.apache.zookeeper.ClientCnxn;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.Rule;
 import org.junit.Test;
 import org.openrdf.model.Statement;
 import org.openrdf.model.impl.LiteralImpl;
@@ -63,13 +73,6 @@ import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
 
-import org.apache.rya.accumulo.AccumuloRdfConfiguration;
-import org.apache.rya.accumulo.AccumuloRyaDAO;
-import org.apache.rya.accumulo.MiniAccumuloClusterInstance;
-import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
-import org.apache.rya.rdftriplestore.RdfCloudTripleStore;
-import org.apache.rya.rdftriplestore.RyaSailRepository;
-
 /**
  * Performs integration test using {@link MiniAccumuloCluster} to ensure the
  * functions of {@link PcjTables} work within a cluster setting.
@@ -83,14 +86,15 @@ public class PcjTablesIntegrationTest {
 
     private static final AccumuloPcjSerializer converter = new AccumuloPcjSerializer();
 
-    protected static final String RYA_TABLE_PREFIX = "demo_";
-
     // The MiniAccumuloCluster is re-used between tests.
-    private MiniAccumuloClusterInstance cluster;
+    private MiniAccumuloClusterInstance cluster = MiniAccumuloSingleton.getInstance();
 
     // Rya data store and connections.
     protected RyaSailRepository ryaRepo = null;
     protected RepositoryConnection ryaConn = null;
+
+    @Rule
+    public RyaTestInstanceRule testInstance = new RyaTestInstanceRule(false);
 
     @BeforeClass
     public static void killLoudLogs() {
@@ -99,10 +103,6 @@ public class PcjTablesIntegrationTest {
 
     @Before
     public void resetTestEnvironmanet() throws AccumuloException, AccumuloSecurityException, TableNotFoundException, RepositoryException, IOException, InterruptedException {
-        // Start the cluster.
-        cluster = new MiniAccumuloClusterInstance();
-        cluster.startMiniAccumulo();
-
         // Setup the Rya library to use the Mini Accumulo.
         ryaRepo = setupRya();
         ryaConn = ryaRepo.getConnection();
@@ -111,12 +111,15 @@ public class PcjTablesIntegrationTest {
     @After
     public void shutdownMiniCluster() throws IOException, InterruptedException, RepositoryException {
         // Stop Rya.
-        ryaRepo.shutDown();
-
-        // Stop the cluster.
-        cluster.stopMiniAccumulo();
+        if (ryaRepo != null) {
+            ryaRepo.shutDown();
+        }
     }
 
+    private String getRyaInstanceName() {
+        return testInstance.getRyaInstanceName();
+    }
+    
     /**
      * Format a Mini Accumulo to be a Rya repository.
      *
@@ -130,11 +133,11 @@ public class PcjTablesIntegrationTest {
 
         // Setup Rya configuration values.
         final AccumuloRdfConfiguration conf = new AccumuloRdfConfiguration();
-        conf.setTablePrefix(RYA_TABLE_PREFIX);
+        conf.setTablePrefix(getRyaInstanceName());
         conf.setDisplayQueryPlan(true);
 
         conf.setBoolean(USE_MOCK_INSTANCE, false);
-        conf.set(RdfCloudTripleStoreConfiguration.CONF_TBL_PREFIX, RYA_TABLE_PREFIX);
+        conf.set(RdfCloudTripleStoreConfiguration.CONF_TBL_PREFIX, getRyaInstanceName());
         conf.set(CLOUDBASE_USER, cluster.getUsername());
         conf.set(CLOUDBASE_PASSWORD, cluster.getPassword());
         conf.set(CLOUDBASE_INSTANCE, cluster.getInstanceName());
@@ -167,7 +170,7 @@ public class PcjTablesIntegrationTest {
         final Connector accumuloConn = cluster.getConnector();
 
         // Create a PCJ table in the Mini Accumulo.
-        final String pcjTableName = new PcjTableNameFactory().makeTableName(RYA_TABLE_PREFIX, "testPcj");
+        final String pcjTableName = new PcjTableNameFactory().makeTableName(getRyaInstanceName(), "testPcj");
         final Set<VariableOrder> varOrders = new ShiftVarOrderFactory().makeVarOrders(new VariableOrder("name;age"));
         final PcjTables pcjs = new PcjTables();
         pcjs.createPcjTable(accumuloConn, pcjTableName, varOrders, sparql);
@@ -198,7 +201,7 @@ public class PcjTablesIntegrationTest {
         final Connector accumuloConn = cluster.getConnector();
 
         // Create a PCJ table in the Mini Accumulo.
-        final String pcjTableName = new PcjTableNameFactory().makeTableName(RYA_TABLE_PREFIX, "testPcj");
+        final String pcjTableName = new PcjTableNameFactory().makeTableName(getRyaInstanceName(), "testPcj");
         final Set<VariableOrder> varOrders = new ShiftVarOrderFactory().makeVarOrders(new VariableOrder("name;age"));
         final PcjTables pcjs = new PcjTables();
         pcjs.createPcjTable(accumuloConn, pcjTableName, varOrders, sparql);
@@ -237,7 +240,7 @@ public class PcjTablesIntegrationTest {
     }
 
     @Test
-    public void listResults() throws PCJStorageException, AccumuloException, AccumuloSecurityException {
+    public void listResults() throws Exception {
         final String sparql =
                 "SELECT ?name ?age " +
                 "{" +
@@ -249,7 +252,7 @@ public class PcjTablesIntegrationTest {
         final Connector accumuloConn = cluster.getConnector();
 
         // Create a PCJ table in the Mini Accumulo.
-        final String pcjTableName = new PcjTableNameFactory().makeTableName(RYA_TABLE_PREFIX, "testPcj");
+        final String pcjTableName = new PcjTableNameFactory().makeTableName(getRyaInstanceName(), "testPcj");
         final Set<VariableOrder> varOrders = new ShiftVarOrderFactory().makeVarOrders(new VariableOrder("name;age"));
         final PcjTables pcjs = new PcjTables();
         pcjs.createPcjTable(accumuloConn, pcjTableName, varOrders, sparql);
@@ -274,8 +277,14 @@ public class PcjTablesIntegrationTest {
 
         // Fetch the Binding Sets that have been stored in the PCJ table.
         final Set<BindingSet> results = new HashSet<>();
-        for(final BindingSet result : pcjs.listResults(accumuloConn, pcjTableName, new Authorizations())) {
-            results.add( result );
+
+        final CloseableIterator<BindingSet> resultsIt = pcjs.listResults(accumuloConn, pcjTableName, new Authorizations());
+        try {
+            while(resultsIt.hasNext()) {
+                results.add( resultsIt.next() );
+            }
+        } finally {
+            resultsIt.close();
         }
 
         // Verify the fetched results match the expected ones.
@@ -317,7 +326,7 @@ public class PcjTablesIntegrationTest {
 
         final Connector accumuloConn = cluster.getConnector();
 
-        final String pcjTableName = new PcjTableNameFactory().makeTableName(RYA_TABLE_PREFIX, "testPcj");
+        final String pcjTableName = new PcjTableNameFactory().makeTableName(getRyaInstanceName(), "testPcj");
         final Set<VariableOrder> varOrders = new ShiftVarOrderFactory().makeVarOrders(new VariableOrder("name;age"));
         final PcjTables pcjs = new PcjTables();
         pcjs.createPcjTable(accumuloConn, pcjTableName, varOrders, sparql);
@@ -387,7 +396,7 @@ public class PcjTablesIntegrationTest {
 
         final Connector accumuloConn = cluster.getConnector();
 
-        final String pcjTableName = new PcjTableNameFactory().makeTableName(RYA_TABLE_PREFIX, "testPcj");
+        final String pcjTableName = new PcjTableNameFactory().makeTableName(getRyaInstanceName(), "testPcj");
 
         // Create and populate the PCJ table.
         final PcjTables pcjs = new PcjTables();
@@ -470,7 +479,7 @@ public class PcjTablesIntegrationTest {
         final Connector accumuloConn = cluster.getConnector();
 
         // Create a PCJ table in the Mini Accumulo.
-        final String pcjTableName = new PcjTableNameFactory().makeTableName(RYA_TABLE_PREFIX, "testPcj");
+        final String pcjTableName = new PcjTableNameFactory().makeTableName(getRyaInstanceName(), "testPcj");
         final Set<VariableOrder> varOrders = new ShiftVarOrderFactory().makeVarOrders(new VariableOrder("name;age"));
         final PcjTables pcjs = new PcjTables();
         pcjs.createPcjTable(accumuloConn, pcjTableName, varOrders, sparql);
@@ -510,7 +519,7 @@ public class PcjTablesIntegrationTest {
         final Connector accumuloConn = cluster.getConnector();
 
         // Create a PCJ index.
-        final String tableName = new PcjTableNameFactory().makeTableName(RYA_TABLE_PREFIX, "thePcj");
+        final String tableName = new PcjTableNameFactory().makeTableName(getRyaInstanceName(), "thePcj");
         final Set<VariableOrder> varOrders = Sets.<VariableOrder>newHashSet( new VariableOrder("x") );
         final String sparql = "SELECT x WHERE ?x <http://isA> <http://Food>";
 

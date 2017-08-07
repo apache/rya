@@ -1,5 +1,3 @@
-package org.apache.rya.indexing.accumulo;
-
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -18,6 +16,7 @@ package org.apache.rya.indexing.accumulo;
  * specific language governing permissions and limitations
  * under the License.
  */
+package org.apache.rya.indexing.accumulo;
 
 import static java.util.Objects.requireNonNull;
 
@@ -43,13 +42,8 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.mapreduce.JobContext;
 import org.apache.hadoop.util.ReflectionUtils;
 import org.apache.log4j.Logger;
-import org.openrdf.model.URI;
-import org.openrdf.model.impl.URIImpl;
-
-import com.google.common.base.Optional;
-import com.google.common.collect.Lists;
-
 import org.apache.rya.accumulo.AccumuloRdfConfiguration;
+import org.apache.rya.accumulo.utils.ConnectorFactory;
 import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
 import org.apache.rya.api.instance.RyaDetails;
 import org.apache.rya.indexing.FilterFunctionOptimizer;
@@ -59,25 +53,62 @@ import org.apache.rya.indexing.accumulo.freetext.AccumuloFreeTextIndexer;
 import org.apache.rya.indexing.accumulo.freetext.LuceneTokenizer;
 import org.apache.rya.indexing.accumulo.freetext.Tokenizer;
 import org.apache.rya.indexing.accumulo.temporal.AccumuloTemporalIndexer;
+import org.apache.rya.indexing.entity.EntityIndexOptimizer;
+import org.apache.rya.indexing.entity.update.mongo.MongoEntityIndexer;
 import org.apache.rya.indexing.external.PrecomputedJoinIndexer;
 import org.apache.rya.indexing.mongodb.freetext.MongoFreeTextIndexer;
+import org.apache.rya.indexing.mongodb.temporal.MongoTemporalIndexer;
 import org.apache.rya.indexing.pcj.matching.PCJOptimizer;
+import org.apache.rya.indexing.statement.metadata.matching.StatementMetadataOptimizer;
+import org.openrdf.model.URI;
+import org.openrdf.model.impl.URIImpl;
+
+import com.google.common.base.Optional;
+import com.google.common.collect.Lists;
 
 /**
  * A set of configuration utils to read a Hadoop {@link Configuration} object and create Cloudbase/Accumulo objects.
- * Soon will deprecate this class.  Use installer for the set methods, use {@link RyaDetails} for the get methods. 
+ * Soon will deprecate this class.  Use installer for the set methods, use {@link RyaDetails} for the get methods.
  * New code must separate parameters that are set at Rya install time from that which is specific to the client.
- * Also Accumulo index tables are pushed down to the implementation and not configured in conf.   
+ * Also Accumulo index tables are pushed down to the implementation and not configured in conf.
  */
 public class ConfigUtils {
     private static final Logger logger = Logger.getLogger(ConfigUtils.class);
 
-    public static final String CLOUDBASE_TBL_PREFIX = "sc.cloudbase.tableprefix";
-    public static final String CLOUDBASE_AUTHS = "sc.cloudbase.authorizations";
-    public static final String CLOUDBASE_INSTANCE = "sc.cloudbase.instancename";
-    public static final String CLOUDBASE_ZOOKEEPERS = "sc.cloudbase.zookeepers";
-    public static final String CLOUDBASE_USER = "sc.cloudbase.username";
-    public static final String CLOUDBASE_PASSWORD = "sc.cloudbase.password";
+    /**
+     * @Deprecated use {@link RdfCloudTripleStoreConfiguration#CONF_TBL_PREFIX} instead.
+     */
+    @Deprecated
+    public static final String CLOUDBASE_TBL_PREFIX = RdfCloudTripleStoreConfiguration.CONF_TBL_PREFIX;
+    
+    /**
+     * @Deprecated use {@link AccumuloRdfConfiguration#CLOUDBASE_INSTANCE} instead.
+     */
+    @Deprecated
+    public static final String CLOUDBASE_INSTANCE = AccumuloRdfConfiguration.CLOUDBASE_INSTANCE;
+    
+    /**
+     * @Deprecated use {@link AccumuloRdfConfiguration#CLOUDBASE_ZOOKEEPERS} instead.
+     */
+    @Deprecated
+    public static final String CLOUDBASE_ZOOKEEPERS = AccumuloRdfConfiguration.CLOUDBASE_ZOOKEEPERS;
+    
+    /**
+     * @Deprecated use {@link AccumuloRdfConfiguration#CLOUDBASE_USER} instead.
+     */
+    @Deprecated
+    public static final String CLOUDBASE_USER = AccumuloRdfConfiguration.CLOUDBASE_USER;
+    
+    /**
+     * @Deprecated use {@link AccumuloRdfConfiguration#CLOUDBASE_PASSWORD} instead.
+     */
+    @Deprecated
+    public static final String CLOUDBASE_PASSWORD = AccumuloRdfConfiguration.CLOUDBASE_PASSWORD;
+    /**
+     * @Deprecated use {@link RdfCloudTripleStoreConfiguration#CONF_QUERY_AUTH} instead.
+     */
+    @Deprecated
+    public static final String CLOUDBASE_AUTHS = RdfCloudTripleStoreConfiguration.CONF_QUERY_AUTH;
 
     public static final String CLOUDBASE_WRITER_MAX_WRITE_THREADS = "sc.cloudbase.writer.maxwritethreads";
     public static final String CLOUDBASE_WRITER_MAX_LATENCY = "sc.cloudbase.writer.maxlatency";
@@ -97,11 +128,7 @@ public class ConfigUtils {
     public static final String PCJ_STORAGE_TYPE = "rya.indexing.pcj.storageType";
     public static final String PCJ_UPDATER_TYPE = "rya.indexing.pcj.updaterType";
 
-
-    public static final String USE_INDEXING_SAIL = "sc.use.indexing.sail";
-    public static final String USE_EXTERNAL_SAIL = "sc.use.external.sail";
-
-    public static final String USE_MOCK_INSTANCE = ".useMockInstance";
+    public static final String USE_MOCK_INSTANCE = AccumuloRdfConfiguration.USE_MOCK_INSTANCE;
 
     public static final String NUM_PARTITIONS = "sc.cloudbase.numPartitions";
 
@@ -123,12 +150,13 @@ public class ConfigUtils {
 
     public static final String USE_MONGO = "sc.useMongo";
 
-    public static boolean isDisplayQueryPlan(final Configuration conf){
+    public static boolean isDisplayQueryPlan(final Configuration conf) {
         return conf.getBoolean(DISPLAY_QUERY_PLAN, false);
     }
 
     /**
-     * get a value from the configuration file and throw an exception if the value does not exist.
+     * get a value from the configuration file and throw an exception if the
+     * value does not exist.
      *
      * @param conf
      * @param key
@@ -148,8 +176,8 @@ public class ConfigUtils {
      * @throws AccumuloSecurityException
      * @throws TableExistsException
      */
-    public static boolean createTableIfNotExists(final Configuration conf, final String tablename) throws AccumuloException, AccumuloSecurityException,
-            TableExistsException {
+    public static boolean createTableIfNotExists(final Configuration conf, final String tablename)
+            throws AccumuloException, AccumuloSecurityException, TableExistsException {
         final TableOperations tops = getConnector(conf).tableOperations();
         if (!tops.exists(tablename)) {
             logger.info("Creating table: " + tablename);
@@ -160,17 +188,21 @@ public class ConfigUtils {
     }
 
     /**
-     * Lookup the table name prefix in the conf and throw an error if it is null.
-     * Future,  get table prefix from RyaDetails -- the Rya instance name
-     *  -- also getting info from the RyaDetails should happen within RyaSailFactory and not ConfigUtils.
-     * @param conf  Rya configuration map where it extracts the prefix (instance name)
-     * @return  index table prefix corresponding to this Rya instance
+     * Lookup the table name prefix in the conf and throw an error if it is
+     * null. Future, get table prefix from RyaDetails -- the Rya instance name
+     * -- also getting info from the RyaDetails should happen within
+     * RyaSailFactory and not ConfigUtils.
+     * 
+     * @param conf
+     *            Rya configuration map where it extracts the prefix (instance
+     *            name)
+     * @return index table prefix corresponding to this Rya instance
      */
     public static String getTablePrefix(final Configuration conf) {
         final String tablePrefix;
         tablePrefix = conf.get(RdfCloudTripleStoreConfiguration.CONF_TBL_PREFIX);
-        requireNonNull(tablePrefix, "Configuration key: " + RdfCloudTripleStoreConfiguration.CONF_TBL_PREFIX
-                + " not set.  Cannot generate table name.");
+        requireNonNull(tablePrefix,
+                "Configuration key: " + RdfCloudTripleStoreConfiguration.CONF_TBL_PREFIX + " not set.  Cannot generate table name.");
         return tablePrefix;
     }
 
@@ -185,10 +217,13 @@ public class ConfigUtils {
     public static Set<URI> getGeoPredicates(final Configuration conf) {
         return getPredicates(conf, GEO_PREDICATES_LIST);
     }
+
     /**
      * Used for indexing statements about date & time instances and intervals.
+     * 
      * @param conf
-     * @return Set of predicate URI's whose objects should be date time literals.
+     * @return Set of predicate URI's whose objects should be date time
+     *         literals.
      */
     public static Set<URI> getTemporalPredicates(final Configuration conf) {
         return getPredicates(conf, TEMPORAL_PREDICATES_LIST);
@@ -196,7 +231,7 @@ public class ConfigUtils {
 
     protected static Set<URI> getPredicates(final Configuration conf, final String confName) {
         final String[] validPredicateStrings = conf.getStrings(confName, new String[] {});
-        final Set<URI> predicates = new HashSet<URI>();
+        final Set<URI> predicates = new HashSet<>();
         for (final String prediateString : validPredicateStrings) {
             predicates.add(new URIImpl(prediateString));
         }
@@ -208,8 +243,8 @@ public class ConfigUtils {
         return ReflectionUtils.newInstance(c, conf);
     }
 
-    public static BatchWriter createDefaultBatchWriter(final String tablename, final Configuration conf) throws TableNotFoundException,
-            AccumuloException, AccumuloSecurityException {
+    public static BatchWriter createDefaultBatchWriter(final String tablename, final Configuration conf)
+            throws TableNotFoundException, AccumuloException, AccumuloSecurityException {
         final Long DEFAULT_MAX_MEMORY = getWriterMaxMemory(conf);
         final Long DEFAULT_MAX_LATENCY = getWriterMaxLatency(conf);
         final Integer DEFAULT_MAX_WRITE_THREADS = getWriterMaxWriteThreads(conf);
@@ -217,7 +252,8 @@ public class ConfigUtils {
         return connector.createBatchWriter(tablename, DEFAULT_MAX_MEMORY, DEFAULT_MAX_LATENCY, DEFAULT_MAX_WRITE_THREADS);
     }
 
-    public static MultiTableBatchWriter createMultitableBatchWriter(final Configuration conf) throws AccumuloException, AccumuloSecurityException {
+    public static MultiTableBatchWriter createMultitableBatchWriter(final Configuration conf)
+            throws AccumuloException, AccumuloSecurityException {
         final Long DEFAULT_MAX_MEMORY = getWriterMaxMemory(conf);
         final Long DEFAULT_MAX_LATENCY = getWriterMaxLatency(conf);
         final Integer DEFAULT_MAX_WRITE_THREADS = getWriterMaxWriteThreads(conf);
@@ -225,26 +261,26 @@ public class ConfigUtils {
         return connector.createMultiTableBatchWriter(DEFAULT_MAX_MEMORY, DEFAULT_MAX_LATENCY, DEFAULT_MAX_WRITE_THREADS);
     }
 
-    public static Scanner createScanner(final String tablename, final Configuration conf) throws AccumuloException, AccumuloSecurityException,
-            TableNotFoundException {
+    public static Scanner createScanner(final String tablename, final Configuration conf)
+            throws AccumuloException, AccumuloSecurityException, TableNotFoundException {
         final Connector connector = ConfigUtils.getConnector(conf);
         final Authorizations auths = ConfigUtils.getAuthorizations(conf);
         return connector.createScanner(tablename, auths);
 
     }
 
-	public static BatchScanner createBatchScanner(final String tablename, final Configuration conf) throws AccumuloException, AccumuloSecurityException,
-			TableNotFoundException {
-		final Connector connector = ConfigUtils.getConnector(conf);
-		final Authorizations auths = ConfigUtils.getAuthorizations(conf);
-		Integer numThreads = null;
-		if (conf instanceof RdfCloudTripleStoreConfiguration) {
-			numThreads = ((RdfCloudTripleStoreConfiguration) conf).getNumThreads();
-		} else {
-			numThreads = conf.getInt(RdfCloudTripleStoreConfiguration.CONF_NUM_THREADS, 2);
-		}
-		return connector.createBatchScanner(tablename, auths, numThreads);
-	}
+    public static BatchScanner createBatchScanner(final String tablename, final Configuration conf)
+            throws AccumuloException, AccumuloSecurityException, TableNotFoundException {
+        final Connector connector = ConfigUtils.getConnector(conf);
+        final Authorizations auths = ConfigUtils.getAuthorizations(conf);
+        Integer numThreads = null;
+        if (conf instanceof RdfCloudTripleStoreConfiguration) {
+            numThreads = ((RdfCloudTripleStoreConfiguration) conf).getNumThreads();
+        } else {
+            numThreads = conf.getInt(RdfCloudTripleStoreConfiguration.CONF_NUM_THREADS, 2);
+        }
+        return connector.createBatchScanner(tablename, auths, numThreads);
+    }
 
     public static int getWriterMaxWriteThreads(final Configuration conf) {
         return conf.getInt(CLOUDBASE_WRITER_MAX_WRITE_THREADS, WRITER_MAX_WRITE_THREADS);
@@ -262,8 +298,15 @@ public class ConfigUtils {
         return getUsername(job.getConfiguration());
     }
 
+    /**
+     * Get the Accumulo username from the configuration object that is meant to
+     * be used when connecting a {@link Connector} to Accumulo.
+     *
+     * @param conf - The configuration object that will be interrogated. (not null)
+     * @return The username if one could be found; otherwise {@code null}.
+     */
     public static String getUsername(final Configuration conf) {
-        return conf.get(CLOUDBASE_USER);
+        return new AccumuloRdfConfiguration(conf).getUsername();
     }
 
     public static Authorizations getAuthorizations(final JobContext job) {
@@ -271,7 +314,7 @@ public class ConfigUtils {
     }
 
     public static Authorizations getAuthorizations(final Configuration conf) {
-        final String authString = conf.get(CLOUDBASE_AUTHS, "");
+        final String authString = conf.get(RdfCloudTripleStoreConfiguration.CONF_QUERY_AUTH, "");
         if (authString.isEmpty()) {
             return new Authorizations();
         }
@@ -282,33 +325,71 @@ public class ConfigUtils {
         return getInstance(job.getConfiguration());
     }
 
+    /**
+     * Create an {@link Instance} that may be used to create {@link Connector}s
+     * to Accumulo. If the configuration has the {@link #USE_MOCK_INSTANCE} flag
+     * set, then the instance will be be a {@link MockInstance} instead of a
+     * Zookeeper backed instance.
+     *
+     * @param conf - The configuration object that will be interrogated. (not null)
+     * @return The {@link Instance} that may be used to connect to Accumulo.
+     */
     public static Instance getInstance(final Configuration conf) {
+        // Pull out the Accumulo specific configuration values.
+        final AccumuloRdfConfiguration accConf = new AccumuloRdfConfiguration(conf);
+        String instanceName = accConf.getInstanceName();
+        String zoookeepers = accConf.getZookeepers();
+
+        // Create an Instance a mock if the mock flag is set.
         if (useMockInstance(conf)) {
-            return new MockInstance(conf.get(CLOUDBASE_INSTANCE));
+            return new MockInstance(instanceName);
         }
-        return new ZooKeeperInstance(conf.get(CLOUDBASE_INSTANCE), conf.get(CLOUDBASE_ZOOKEEPERS));
+
+        // Otherwise create an Instance to a Zookeeper managed instance of Accumulo.
+        return new ZooKeeperInstance(instanceName, zoookeepers);
     }
 
     public static String getPassword(final JobContext job) {
         return getPassword(job.getConfiguration());
     }
 
+    /**
+     * Get the Accumulo password from the configuration object that is meant to
+     * be used when connecting a {@link Connector} to Accumulo.
+     *
+     * @param conf - The configuration object that will be interrogated. (not null)
+     * @return The password if one could be found; otherwise an empty string.
+     */
     public static String getPassword(final Configuration conf) {
-        return conf.get(CLOUDBASE_PASSWORD, "");
+        return new AccumuloRdfConfiguration(conf).getPassword();
     }
 
     public static Connector getConnector(final JobContext job) throws AccumuloException, AccumuloSecurityException {
         return getConnector(job.getConfiguration());
     }
 
+    /**
+     * Create an Accumulo {@link Connector} using the configured connection information.
+     * If the connection information  points to a mock instance of Accumulo, then the
+     * {@link #USE_MOCK_INSTANCE} flag must be set.
+     *
+     * @param conf - Configures how the connector will be built. (not null)
+     * @return A {@link Connector} that may be used to interact with the configured Accumulo instance.
+     * @throws AccumuloException The connector couldn't be created because of an Accumulo problem.
+     * @throws AccumuloSecurityException The connector couldn't be created because of an Accumulo security violation.
+     */
     public static Connector getConnector(final Configuration conf) throws AccumuloException, AccumuloSecurityException {
-        final Instance instance = ConfigUtils.getInstance(conf);
-
-        return instance.getConnector(getUsername(conf), getPassword(conf));
+        return ConnectorFactory.connect( new AccumuloRdfConfiguration(conf) );
     }
 
+    /**
+     * Indicates that a Mock instance of Accumulo is being used to back the Rya instance.
+     *
+     * @param conf - The configuration object that will be interrogated. (not null)
+     * @return {@code true} if the Rya instance is backed by a mock Accumulo; otherwise {@code false}.
+     */
     public static boolean useMockInstance(final Configuration conf) {
-        return conf.getBoolean(USE_MOCK_INSTANCE, false);
+        return new AccumuloRdfConfiguration(conf).useMockInstance();
     }
 
     protected static int getNumPartitions(final Configuration conf) {
@@ -323,7 +404,7 @@ public class ConfigUtils {
         return conf.getInt(FREETEXT_TERM_NUM_PARTITIONS, getNumPartitions(conf));
     }
 
-     public static boolean getUseFreeText(final Configuration conf) {
+    public static boolean getUseFreeText(final Configuration conf) {
         return conf.getBoolean(USE_FREETEXT, false);
     }
 
@@ -342,18 +423,18 @@ public class ConfigUtils {
     public static boolean getUseOptimalPCJ(final Configuration conf) {
         return conf.getBoolean(USE_OPTIMAL_PCJ, false);
     }
-    
+
     public static boolean getUsePcjUpdaterIndex(final Configuration conf) {
         return conf.getBoolean(USE_PCJ_UPDATER_INDEX, false);
     }
 
 
     /**
-     * @return The name of the Fluo Application this instance of RYA is
-     *   using to incrementally update PCJs.
+     * @return The name of the Fluo Application this instance of RYA is using to
+     *         incrementally update PCJs.
      */
-    //TODO delete this eventually and use Details table
-    public Optional<String> getFluoAppName(Configuration conf) {
+    // TODO delete this eventually and use Details table
+    public Optional<String> getFluoAppName(final Configuration conf) {
         return Optional.fromNullable(conf.get(FLUO_APP_NAME));
     }
 
@@ -371,20 +452,28 @@ public class ConfigUtils {
         boolean useFilterIndex = false;
 
         if (ConfigUtils.getUseMongo(conf)) {
-             if (getUseFreeText(conf)) {
+            if (getUseFreeText(conf)) {
                 indexList.add(MongoFreeTextIndexer.class.getName());
                 useFilterIndex = true;
             }
+
+            if (getUseEntity(conf)) {
+                indexList.add(MongoEntityIndexer.class.getName());
+                optimizers.add(EntityIndexOptimizer.class.getName());
+            }
+
+            if (getUseTemporal(conf)) {
+                indexList.add(MongoTemporalIndexer.class.getName());
+                useFilterIndex = true;
+            }
         } else {
+            if (getUsePCJ(conf) || getUseOptimalPCJ(conf)) {
+                conf.setPcjOptimizer(PCJOptimizer.class);
+            }
 
-        	 if (getUsePCJ(conf) || getUseOptimalPCJ(conf)) {
-                 conf.setPcjOptimizer(PCJOptimizer.class);
-             }
-             
-             if(getUsePcjUpdaterIndex(conf)) {
-             	indexList.add(PrecomputedJoinIndexer.class.getName());
-             }
-
+            if (getUsePcjUpdaterIndex(conf)) {
+                indexList.add(PrecomputedJoinIndexer.class.getName());
+            }
 
             if (getUseFreeText(conf)) {
                 indexList.add(AccumuloFreeTextIndexer.class.getName());
@@ -396,23 +485,21 @@ public class ConfigUtils {
                 useFilterIndex = true;
             }
 
+            if (getUseEntity(conf)) {
+                indexList.add(EntityCentricIndex.class.getName());
+                optimizers.add(EntityOptimizer.class.getName());
+            }
         }
 
         if (useFilterIndex) {
             optimizers.add(FilterFunctionOptimizer.class.getName());
         }
 
-        if (getUseEntity(conf)) {
-            indexList.add(EntityCentricIndex.class.getName());
-            optimizers.add(EntityOptimizer.class.getName());
-
+        if (conf.getUseStatementMetadata()) {
+            optimizers.add(StatementMetadataOptimizer.class.getName());
         }
 
-        conf.setStrings(AccumuloRdfConfiguration.CONF_ADDITIONAL_INDEXERS, indexList.toArray(new String[]{}));
-        conf.setStrings(RdfCloudTripleStoreConfiguration.CONF_OPTIMIZERS, optimizers.toArray(new String[]{}));
-
+        conf.setStrings(AccumuloRdfConfiguration.CONF_ADDITIONAL_INDEXERS, indexList.toArray(new String[] {}));
+        conf.setStrings(RdfCloudTripleStoreConfiguration.CONF_OPTIMIZERS, optimizers.toArray(new String[] {}));
     }
-
-
-
 }

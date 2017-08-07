@@ -41,7 +41,7 @@ public class IndexPlanValidatorTest {
 
 	@Test
 	public void testEvaluateTwoIndexTwoVarOrder1()
-			throws MalformedQueryException {
+			throws Exception {
 
 
 		String indexSparqlString = ""//
@@ -93,7 +93,7 @@ public class IndexPlanValidatorTest {
 
 	@Test
 	public void testEvaluateTwoIndexTwoVarOrder2()
-			throws MalformedQueryException {
+			throws Exception {
 
 
 		String indexSparqlString = ""//
@@ -146,7 +146,7 @@ public class IndexPlanValidatorTest {
 
 	@Test
 	public void testEvaluateTwoIndexTwoVarOrder3()
-			throws MalformedQueryException {
+			throws Exception {
 
 
 		String indexSparqlString = ""//
@@ -199,7 +199,7 @@ public class IndexPlanValidatorTest {
 
 	@Test
 	public void testEvaluateTwoIndexTwoVarOrder4()
-			throws MalformedQueryException {
+			throws Exception {
 
 
 		String indexSparqlString = ""//
@@ -253,7 +253,7 @@ public class IndexPlanValidatorTest {
 
 	@Test
 	public void testEvaluateTwoIndexTwoVarOrder6()
-			throws MalformedQueryException {
+			throws Exception {
 
 
 		String indexSparqlString = ""//
@@ -306,7 +306,7 @@ public class IndexPlanValidatorTest {
 
 	@Test
 	public void testEvaluateTwoIndexCrossProduct1()
-			throws MalformedQueryException {
+			throws Exception {
 
 
 		String indexSparqlString = ""//
@@ -358,7 +358,7 @@ public class IndexPlanValidatorTest {
 
 	@Test
 	public void testEvaluateTwoIndexCrossProduct2()
-			throws MalformedQueryException {
+			throws Exception {
 
 
 		String indexSparqlString = ""//
@@ -411,7 +411,7 @@ public class IndexPlanValidatorTest {
 
 	@Test
 	public void testEvaluateTwoIndexCrossProduct3()
-			throws MalformedQueryException {
+			throws Exception {
 
 
 		String indexSparqlString = ""//
@@ -463,7 +463,7 @@ public class IndexPlanValidatorTest {
 	}
 
 	@Test
-	public void testEvaluateTwoIndexDiffVars() throws MalformedQueryException {
+	public void testEvaluateTwoIndexDiffVars() throws Exception {
 
 
 		String indexSparqlString = ""//
@@ -515,7 +515,7 @@ public class IndexPlanValidatorTest {
 	}
 
 	@Test
-	public void testEvaluateTwoIndexDiffVars2() throws MalformedQueryException {
+	public void testEvaluateTwoIndexDiffVars2() throws Exception {
 
 
 		String indexSparqlString = ""//
@@ -567,7 +567,7 @@ public class IndexPlanValidatorTest {
 	}
 
 	@Test
-	public void testEvaluateTwoIndexDiffVars3() throws MalformedQueryException {
+	public void testEvaluateTwoIndexDiffVars3() throws Exception {
 
 
 		String indexSparqlString = ""//
@@ -620,7 +620,7 @@ public class IndexPlanValidatorTest {
 
 	@Test
 	public void testEvaluateTwoIndexDiffVarsDirProd()
-			throws MalformedQueryException {
+			throws Exception {
 
 
 		String indexSparqlString = ""//

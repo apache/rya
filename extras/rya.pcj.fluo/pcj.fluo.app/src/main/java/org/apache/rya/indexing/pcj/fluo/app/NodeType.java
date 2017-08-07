@@ -19,45 +19,49 @@
 package org.apache.rya.indexing.pcj.fluo.app;
 
 import static java.util.Objects.requireNonNull;
+import static org.apache.rya.indexing.pcj.fluo.app.IncrementalUpdateConstants.AGGREGATION_PREFIX;
+import static org.apache.rya.indexing.pcj.fluo.app.IncrementalUpdateConstants.CONSTRUCT_PREFIX;
 import static org.apache.rya.indexing.pcj.fluo.app.IncrementalUpdateConstants.FILTER_PREFIX;
 import static org.apache.rya.indexing.pcj.fluo.app.IncrementalUpdateConstants.JOIN_PREFIX;
 import static org.apache.rya.indexing.pcj.fluo.app.IncrementalUpdateConstants.QUERY_PREFIX;
 import static org.apache.rya.indexing.pcj.fluo.app.IncrementalUpdateConstants.SP_PREFIX;
+import static org.apache.rya.indexing.pcj.fluo.app.IncrementalUpdateConstants.PERIODIC_QUERY_PREFIX;
 
 import java.util.List;
 
+import org.apache.fluo.api.data.Column;
 import org.apache.rya.indexing.pcj.fluo.app.query.FluoQueryColumns;
 import org.apache.rya.indexing.pcj.fluo.app.query.FluoQueryColumns.QueryNodeMetadataColumns;
-import org.openrdf.query.BindingSet;
 
 import com.google.common.base.Optional;
-
-import org.apache.fluo.api.data.Column;
 
 /**
  * Represents the different types of nodes that a Query may have.
  */
 public enum NodeType {
+    PERIODIC_QUERY(QueryNodeMetadataColumns.PERIODIC_QUERY_COLUMNS, FluoQueryColumns.PERIODIC_QUERY_BINDING_SET),
     FILTER (QueryNodeMetadataColumns.FILTER_COLUMNS, FluoQueryColumns.FILTER_BINDING_SET),
     JOIN(QueryNodeMetadataColumns.JOIN_COLUMNS, FluoQueryColumns.JOIN_BINDING_SET),
     STATEMENT_PATTERN(QueryNodeMetadataColumns.STATEMENTPATTERN_COLUMNS, FluoQueryColumns.STATEMENT_PATTERN_BINDING_SET),
-    QUERY(QueryNodeMetadataColumns.QUERY_COLUMNS, FluoQueryColumns.QUERY_BINDING_SET);
+    QUERY(QueryNodeMetadataColumns.QUERY_COLUMNS, FluoQueryColumns.QUERY_BINDING_SET),
+    AGGREGATION(QueryNodeMetadataColumns.AGGREGATION_COLUMNS, FluoQueryColumns.AGGREGATION_BINDING_SET),
+    CONSTRUCT(QueryNodeMetadataColumns.CONSTRUCT_COLUMNS, FluoQueryColumns.CONSTRUCT_STATEMENTS);
 
     //Metadata Columns associated with given NodeType
     private QueryNodeMetadataColumns metadataColumns;
 
-    //Column where BindingSet results are stored for given NodeType
-    private Column bindingSetColumn;
+    //Column where results are stored for given NodeType
+    private Column resultColumn;
 
     /**
      * Constructs an instance of {@link NodeType}.
      *
      * @param metadataColumns - Metadata {@link Column}s associated with this {@link NodeType}. (not null)
-     * @param bindingSetColumn - The {@link Column} used to store this {@link NodeType|'s {@link BindingSet}s. (not null)
+     * @param resultColumn - The {@link Column} used to store this {@link NodeType}'s results. (not null)
      */
-    private NodeType(QueryNodeMetadataColumns metadataColumns, Column bindingSetColumn) {
+    private NodeType(QueryNodeMetadataColumns metadataColumns, Column resultColumn) {
     	this.metadataColumns = requireNonNull(metadataColumns);
-    	this.bindingSetColumn = requireNonNull(bindingSetColumn);
+    	this.resultColumn = requireNonNull(resultColumn);
     }
 
     /**
@@ -69,10 +73,10 @@ public enum NodeType {
 
 
     /**
-     * @return The {@link Column} used to store this {@link NodeType|'s {@link BindingSet}s.
+     * @return The {@link Column} used to store this {@link NodeType}'s query results.
      */
-    public Column getBsColumn() {
-    	return bindingSetColumn;
+    public Column getResultColumn() {
+    	return resultColumn;
     }
 
     /**
@@ -95,6 +99,12 @@ public enum NodeType {
             type = JOIN;
         } else if(nodeId.startsWith(QUERY_PREFIX)) {
             type = QUERY;
+        } else if(nodeId.startsWith(AGGREGATION_PREFIX)) {
+            type = AGGREGATION;
+        } else if(nodeId.startsWith(CONSTRUCT_PREFIX)) {
+            type = CONSTRUCT;
+        } else if(nodeId.startsWith(PERIODIC_QUERY_PREFIX)) {
+            type = PERIODIC_QUERY;
         }
 
         return Optional.fromNullable(type);

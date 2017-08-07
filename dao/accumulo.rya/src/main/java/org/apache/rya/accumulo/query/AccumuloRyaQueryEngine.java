@@ -19,8 +19,6 @@ package org.apache.rya.accumulo.query;
  * under the License.
  */
 
-
-
 import static org.apache.rya.api.RdfCloudTripleStoreUtils.layoutToTable;
 import info.aduna.iteration.CloseableIteration;
 
@@ -57,6 +55,7 @@ import org.apache.accumulo.core.client.Connector;
 import org.apache.accumulo.core.client.IteratorSetting;
 import org.apache.accumulo.core.client.Scanner;
 import org.apache.accumulo.core.client.ScannerBase;
+import org.apache.accumulo.core.data.Column;
 import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Range;
 import org.apache.accumulo.core.data.Value;
@@ -75,8 +74,7 @@ import com.google.common.collect.FluentIterable;
 import com.google.common.collect.Iterators;
 
 /**
- * Date: 7/17/12
- * Time: 9:28 AM
+ * Date: 7/17/12 Time: 9:28 AM
  */
 public class AccumuloRyaQueryEngine implements RyaQueryEngine<AccumuloRdfConfiguration> {
 
@@ -99,7 +97,8 @@ public class AccumuloRyaQueryEngine implements RyaQueryEngine<AccumuloRdfConfigu
     }
 
     @Override
-    public CloseableIteration<RyaStatement, RyaDAOException> query(RyaStatement stmt, AccumuloRdfConfiguration conf) throws RyaDAOException {
+    public CloseableIteration<RyaStatement, RyaDAOException> query(RyaStatement stmt, AccumuloRdfConfiguration conf)
+            throws RyaDAOException {
         if (conf == null) {
             conf = configuration;
         }
@@ -115,46 +114,90 @@ public class AccumuloRyaQueryEngine implements RyaQueryEngine<AccumuloRdfConfigu
     }
 
     @Override
-    public CloseableIteration<? extends Map.Entry<RyaStatement, BindingSet>, RyaDAOException> queryWithBindingSet(Collection<Map.Entry<RyaStatement, BindingSet>> stmts, AccumuloRdfConfiguration conf) throws RyaDAOException {
+    public CloseableIteration<? extends Map.Entry<RyaStatement, BindingSet>, RyaDAOException> queryWithBindingSet(
+            Collection<Map.Entry<RyaStatement, BindingSet>> stmts, AccumuloRdfConfiguration conf) throws RyaDAOException {
         if (conf == null) {
             conf = configuration;
         }
-        //query configuration
+        // query configuration
         Authorizations authorizations = conf.getAuthorizations();
         Long ttl = conf.getTtl();
         Long maxResults = conf.getLimit();
         Integer maxRanges = conf.getMaxRangesForScanner();
         Integer numThreads = conf.getNumThreads();
 
-        //TODO: cannot span multiple tables here
+        // TODO: cannot span multiple tables here
         try {
             Collection<Range> ranges = new HashSet<Range>();
             RangeBindingSetEntries rangeMap = new RangeBindingSetEntries();
             TABLE_LAYOUT layout = null;
             RyaURI context = null;
             TriplePatternStrategy strategy = null;
+            RyaURI columnFamily = null;
+            boolean columnFamilySet = false;
             for (Map.Entry<RyaStatement, BindingSet> stmtbs : stmts) {
                 RyaStatement stmt = stmtbs.getKey();
-                context = stmt.getContext(); //TODO: This will be overwritten
+                context = stmt.getContext();
+                // if all RyaStatements for this query have the same context,
+                // then set the columnFamily to be that value so that Scanner can fetch
+                // only that ColumnFamily. Otherwise set columnFamily to null so that
+                // Scanner will fetch all ColumnFamilies.
+                if (!columnFamilySet) {
+                    columnFamily = context;
+                    columnFamilySet = true;
+                } else if (columnFamily != null && !columnFamily.equals(context)) {
+                    columnFamily = null;
+                }
                 BindingSet bs = stmtbs.getValue();
                 strategy = ryaContext.retrieveStrategy(stmt);
                 if (strategy == null) {
                     throw new IllegalArgumentException("TriplePattern[" + stmt + "] not supported");
                 }
 
-                Map.Entry<RdfCloudTripleStoreConstants.TABLE_LAYOUT, ByteRange> entry =
-                        strategy.defineRange(stmt.getSubject(), stmt.getPredicate(), stmt.getObject(), stmt.getContext(), conf);
+                Map.Entry<RdfCloudTripleStoreConstants.TABLE_LAYOUT, ByteRange> entry = strategy.defineRange(stmt.getSubject(),
+                        stmt.getPredicate(), stmt.getObject(), stmt.getContext(), conf);
 
-                //use range to set scanner
-                //populate scanner based on authorizations, ttl
+                // use range to set scanner
+                // populate scanner based on authorizations, ttl
                 layout = entry.getKey();
                 ByteRange byteRange = entry.getValue();
                 Range range = new Range(new Text(byteRange.getStart()), new Text(byteRange.getEnd()));
+                Range rangeMapRange = range;
+                // if context != null, bind context info to Range so that
+                // ColumnFamily Keys returned by Scanner
+                // can be compared to ColumnFamily of start and stop Keys of
+                // Range -- important when querying for named
+                // graphs by requiring that Statements have same context Value
+                // as the Value specified in the BindingSet
+                if (context != null) {
+                    byte[] contextBytes = context.getData().getBytes("UTF-8");
+                    rangeMapRange = range.bound(new Column(contextBytes, new byte[] { (byte) 0x00 }, new byte[] { (byte) 0x00 }),
+                            new Column(contextBytes, new byte[] { (byte) 0xff }, new byte[] { (byte) 0xff }));
+                }
+                // ranges gets a Range that has no Column bounds, but
+                // rangeMap gets a Range that does have Column bounds
+                // If we inserted multiple Ranges with the same Row (but
+                // distinct Column bounds) into the Set ranges, we would get
+                // duplicate
+                // results when the Row is not exact. So RyaStatements that
+                // differ only in their context are all mapped to the same
+                // Range (with no Column bounds) for scanning purposes.
+                // However, context information is included in a Column that
+                // bounds the Range inserted into rangeMap. This is because
+                // in the class {@link RyaStatementBindingSetKeyValueIterator},
+                // the rangeMap is
+                // used to join the scan results with the BindingSets to produce
+                // the query results. The additional ColumnFamily info is
+                // required in this join
+                // process to allow for the Statement contexts to be compared
+                // with the BindingSet contexts
+                // See {@link RangeBindingSetEntries#containsKey}.
                 ranges.add(range);
-                rangeMap.ranges.add(new RdfCloudTripleStoreUtils.CustomEntry<Range, BindingSet>(range, bs));
+                rangeMap.put(rangeMapRange, bs);
             }
-            //no ranges
-            if (layout == null) return null;
+            // no ranges
+            if (layout == null)
+                return null;
             String regexSubject = conf.getRegexSubject();
             String regexPredicate = conf.getRegexPredicate();
             String regexObject = conf.getRegexObject();
@@ -166,7 +209,7 @@ public class AccumuloRyaQueryEngine implements RyaQueryEngine<AccumuloRdfConfigu
             if (useBatchScanner) {
                 ScannerBase scanner = connector.createBatchScanner(table, authorizations, numThreads);
                 ((BatchScanner) scanner).setRanges(ranges);
-                fillScanner(scanner, context, null, ttl, null, tripleRowRegex, conf);
+                fillScanner(scanner, columnFamily, null, ttl, null, tripleRowRegex, conf);
                 iterator = new RyaStatementBindingSetKeyValueIterator(layout, ryaContext, scanner, rangeMap);
             } else {
                 Scanner scannerBase = null;
@@ -175,7 +218,7 @@ public class AccumuloRyaQueryEngine implements RyaQueryEngine<AccumuloRdfConfigu
                 for (Range range : ranges) {
                     scannerBase = connector.createScanner(table, authorizations);
                     scannerBase.setRange(range);
-                    fillScanner(scannerBase, context, null, ttl, null, tripleRowRegex, conf);
+                    fillScanner(scannerBase, columnFamily, null, ttl, null, tripleRowRegex, conf);
                     iters[i] = scannerBase.iterator();
                     i++;
                 }
@@ -210,7 +253,7 @@ public class AccumuloRyaQueryEngine implements RyaQueryEngine<AccumuloRdfConfigu
         RyaStatement stmt = ryaQuery.getQuery();
         Preconditions.checkNotNull(stmt);
 
-        //query configuration
+        // query configuration
         String[] auths = ryaQuery.getAuths();
         Authorizations authorizations = auths != null ? new Authorizations(auths) : configuration.getAuthorizations();
         Long ttl = ryaQuery.getTtl();
@@ -223,7 +266,7 @@ public class AccumuloRyaQueryEngine implements RyaQueryEngine<AccumuloRdfConfigu
         TableLayoutStrategy tableLayoutStrategy = configuration.getTableLayoutStrategy();
 
         try {
-            //find triple pattern range
+            // find triple pattern range
             TriplePatternStrategy strategy = ryaContext.retrieveStrategy(stmt);
             TABLE_LAYOUT layout;
             Range range;
@@ -234,9 +277,9 @@ public class AccumuloRyaQueryEngine implements RyaQueryEngine<AccumuloRdfConfigu
             String qualifier = stmt.getQualifer();
             TripleRowRegex tripleRowRegex = null;
             if (strategy != null) {
-                //otherwise, full table scan is supported
-                Map.Entry<RdfCloudTripleStoreConstants.TABLE_LAYOUT, ByteRange> entry =
-                        strategy.defineRange(subject, predicate, object, context, null);
+                // otherwise, full table scan is supported
+                Map.Entry<RdfCloudTripleStoreConstants.TABLE_LAYOUT, ByteRange> entry = strategy.defineRange(subject, predicate, object,
+                        context, null);
                 layout = entry.getKey();
                 ByteRange byteRange = entry.getValue();
                 range = new Range(new Text(byteRange.getStart()), new Text(byteRange.getEnd()));
@@ -249,7 +292,7 @@ public class AccumuloRyaQueryEngine implements RyaQueryEngine<AccumuloRdfConfigu
 
             byte[] objectTypeInfo = null;
             if (object != null) {
-                //TODO: Not good to serialize this twice
+                // TODO: Not good to serialize this twice
                 if (object instanceof RyaRange) {
                     objectTypeInfo = RyaContext.getInstance().serializeType(((RyaRange) object).getStart())[1];
                 } else {
@@ -259,8 +302,8 @@ public class AccumuloRyaQueryEngine implements RyaQueryEngine<AccumuloRdfConfigu
 
             tripleRowRegex = strategy.buildRegex(regexSubject, regexPredicate, regexObject, null, objectTypeInfo);
 
-            //use range to set scanner
-            //populate scanner based on authorizations, ttl
+            // use range to set scanner
+            // populate scanner based on authorizations, ttl
             String table = layoutToTable(layout, tableLayoutStrategy);
             Scanner scanner = connector.createScanner(table, authorizations);
             scanner.setRange(range);
@@ -287,7 +330,7 @@ public class AccumuloRyaQueryEngine implements RyaQueryEngine<AccumuloRdfConfigu
         Iterable<RyaStatement> stmts = ryaQuery.getQueries();
         Preconditions.checkNotNull(stmts);
 
-        //query configuration
+        // query configuration
         String[] auths = ryaQuery.getAuths();
         final Authorizations authorizations = auths != null ? new Authorizations(auths) : configuration.getAuthorizations();
         final Long ttl = ryaQuery.getTtl();
@@ -301,31 +344,32 @@ public class AccumuloRyaQueryEngine implements RyaQueryEngine<AccumuloRdfConfigu
         TableLayoutStrategy tableLayoutStrategy = configuration.getTableLayoutStrategy();
         int maxRanges = ryaQuery.getMaxRanges();
 
-        //TODO: cannot span multiple tables here
+        // TODO: cannot span multiple tables here
         try {
             Collection<Range> ranges = new HashSet<Range>();
             TABLE_LAYOUT layout = null;
             RyaURI context = null;
             TriplePatternStrategy strategy = null;
             for (RyaStatement stmt : stmts) {
-                context = stmt.getContext(); //TODO: This will be overwritten
+                context = stmt.getContext(); // TODO: This will be overwritten
                 strategy = ryaContext.retrieveStrategy(stmt);
                 if (strategy == null) {
                     throw new IllegalArgumentException("TriplePattern[" + stmt + "] not supported");
                 }
 
-                Map.Entry<RdfCloudTripleStoreConstants.TABLE_LAYOUT, ByteRange> entry =
-                        strategy.defineRange(stmt.getSubject(), stmt.getPredicate(), stmt.getObject(), stmt.getContext(), null);
+                Map.Entry<RdfCloudTripleStoreConstants.TABLE_LAYOUT, ByteRange> entry = strategy.defineRange(stmt.getSubject(),
+                        stmt.getPredicate(), stmt.getObject(), stmt.getContext(), null);
 
-                //use range to set scanner
-                //populate scanner based on authorizations, ttl
+                // use range to set scanner
+                // populate scanner based on authorizations, ttl
                 layout = entry.getKey();
                 ByteRange byteRange = entry.getValue();
                 Range range = new Range(new Text(byteRange.getStart()), new Text(byteRange.getEnd()));
                 ranges.add(range);
             }
-            //no ranges
-            if (layout == null) throw new IllegalArgumentException("No table layout specified");
+            // no ranges
+            if (layout == null)
+                throw new IllegalArgumentException("No table layout specified");
 
             final TripleRowRegex tripleRowRegex = strategy.buildRegex(regexSubject, regexPredicate, regexObject, null, null);
 
@@ -336,23 +380,25 @@ public class AccumuloRyaQueryEngine implements RyaQueryEngine<AccumuloRdfConfigu
                 BatchScanner scanner = connector.createBatchScanner(table, authorizations, numQueryThreads);
                 scanner.setRanges(ranges);
                 fillScanner(scanner, context, null, ttl, null, tripleRowRegex, ryaQuery.getConf());
-                results = FluentCloseableIterable.from(new ScannerBaseCloseableIterable(scanner)).transform(keyValueToRyaStatementFunctionMap.get(layout));
+                results = FluentCloseableIterable.from(new ScannerBaseCloseableIterable(scanner))
+                        .transform(keyValueToRyaStatementFunctionMap.get(layout));
             } else {
                 final RyaURI fcontext = context;
                 final RdfCloudTripleStoreConfiguration fconf = ryaQuery.getConf();
-                FluentIterable<RyaStatement> fluent = FluentIterable.from(ranges).transformAndConcat(new Function<Range, Iterable<Map.Entry<Key, Value>>>() {
-                    @Override
-                    public Iterable<Map.Entry<Key, Value>> apply(Range range) {
-                        try {
-                            Scanner scanner = connector.createScanner(table, authorizations);
-                            scanner.setRange(range);
-                            fillScanner(scanner, fcontext, null, ttl, null, tripleRowRegex, fconf);
-                            return scanner;
-                        } catch (Exception e) {
-                            throw new RuntimeException(e);
-                        }
-                    }
-                }).transform(keyValueToRyaStatementFunctionMap.get(layout));
+                FluentIterable<RyaStatement> fluent = FluentIterable.from(ranges)
+                        .transformAndConcat(new Function<Range, Iterable<Map.Entry<Key, Value>>>() {
+                            @Override
+                            public Iterable<Map.Entry<Key, Value>> apply(Range range) {
+                                try {
+                                    Scanner scanner = connector.createScanner(table, authorizations);
+                                    scanner.setRange(range);
+                                    fillScanner(scanner, fcontext, null, ttl, null, tripleRowRegex, fconf);
+                                    return scanner;
+                                } catch (Exception e) {
+                                    throw new RuntimeException(e);
+                                }
+                            }
+                        }).transform(keyValueToRyaStatementFunctionMap.get(layout));
 
                 results = FluentCloseableIterable.from(CloseableIterables.wrap(fluent));
             }
@@ -365,7 +411,8 @@ public class AccumuloRyaQueryEngine implements RyaQueryEngine<AccumuloRdfConfigu
         }
     }
 
-    protected void fillScanner(ScannerBase scanner, RyaURI context, String qualifier, Long ttl, Long currentTime, TripleRowRegex tripleRowRegex, RdfCloudTripleStoreConfiguration conf) throws IOException {
+    protected void fillScanner(ScannerBase scanner, RyaURI context, String qualifier, Long ttl, Long currentTime,
+            TripleRowRegex tripleRowRegex, RdfCloudTripleStoreConfiguration conf) throws IOException {
         if (context != null && qualifier != null) {
             scanner.fetchColumn(new Text(context.getData()), new Text(qualifier));
         } else if (context != null) {
@@ -377,8 +424,8 @@ public class AccumuloRyaQueryEngine implements RyaQueryEngine<AccumuloRdfConfigu
         }
         if (ttl != null) {
             IteratorSetting setting = new IteratorSetting(9, "fi", TimestampFilter.class.getName());
-            TimestampFilter.setStart(setting,  System.currentTimeMillis() - ttl, true);
-            if(currentTime != null){
+            TimestampFilter.setStart(setting, System.currentTimeMillis() - ttl, true);
+            if (currentTime != null) {
                 TimestampFilter.setStart(setting, currentTime - ttl, true);
                 TimestampFilter.setEnd(setting, currentTime, true);
             }
@@ -391,8 +438,9 @@ public class AccumuloRyaQueryEngine implements RyaQueryEngine<AccumuloRdfConfigu
             scanner.addScanIterator(setting);
         }
         if (conf instanceof AccumuloRdfConfiguration) {
-            //TODO should we take the iterator settings as is or should we adjust the priority based on the above?
-            for (IteratorSetting itr : ((AccumuloRdfConfiguration)conf).getAdditionalIterators()) {
+            // TODO should we take the iterator settings as is or should we
+            // adjust the priority based on the above?
+            for (IteratorSetting itr : ((AccumuloRdfConfiguration) conf).getAdditionalIterators()) {
                 scanner.addScanIterator(itr);
             }
         }
@@ -406,5 +454,9 @@ public class AccumuloRyaQueryEngine implements RyaQueryEngine<AccumuloRdfConfigu
     @Override
     public AccumuloRdfConfiguration getConf() {
         return configuration;
+    }
+
+    @Override
+    public void close() throws IOException {
     }
 }

@@ -1,5 +1,3 @@
-package org.apache.rya.mongodb.iter;
-
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -8,9 +6,9 @@ package org.apache.rya.mongodb.iter;
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- * 
+ *
  *   http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -18,108 +16,130 @@ package org.apache.rya.mongodb.iter;
  * specific language governing permissions and limitations
  * under the License.
  */
+package org.apache.rya.mongodb.iter;
 
-
-import info.aduna.iteration.CloseableIteration;
-
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map.Entry;
 
+import org.apache.accumulo.core.security.Authorizations;
+import org.apache.log4j.Logger;
 import org.apache.rya.api.RdfCloudTripleStoreUtils;
 import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.persist.RyaDAOException;
 import org.apache.rya.mongodb.dao.MongoDBStorageStrategy;
-
+import org.apache.rya.mongodb.document.operators.aggregation.AggregationUtil;
+import org.bson.Document;
 import org.openrdf.query.BindingSet;
 
 import com.google.common.collect.Multimap;
-import com.mongodb.DBCollection;
-import com.mongodb.DBCursor;
 import com.mongodb.DBObject;
+import com.mongodb.client.AggregateIterable;
+import com.mongodb.client.MongoCollection;
+import com.mongodb.util.JSON;
+
+import info.aduna.iteration.CloseableIteration;
 
 public class RyaStatementBindingSetCursorIterator implements CloseableIteration<Entry<RyaStatement, BindingSet>, RyaDAOException> {
+    private static final Logger log = Logger.getLogger(RyaStatementBindingSetCursorIterator.class);
 
-	private DBCollection coll;
-	private Multimap<DBObject, BindingSet> rangeMap;
-	private Iterator<DBObject> queryIterator;
-	private Long maxResults;
-	private DBCursor resultCursor;
-	private RyaStatement currentStatement;
-	private Collection<BindingSet> currentBindingSetCollection;
-	private Iterator<BindingSet> currentBindingSetIterator;
-	private MongoDBStorageStrategy strategy;
+    private final MongoCollection<Document> coll;
+    private final Multimap<DBObject, BindingSet> rangeMap;
+    private final Iterator<DBObject> queryIterator;
+    private Long maxResults;
+    private Iterator<Document> resultsIterator;
+    private RyaStatement currentStatement;
+    private Collection<BindingSet> currentBindingSetCollection;
+    private Iterator<BindingSet> currentBindingSetIterator;
+    private final MongoDBStorageStrategy<RyaStatement> strategy;
+    private final Authorizations auths;
 
-	public RyaStatementBindingSetCursorIterator(DBCollection coll,
-			Multimap<DBObject, BindingSet> rangeMap, MongoDBStorageStrategy strategy) {
-		this.coll = coll;
-		this.rangeMap = rangeMap;
-		this.queryIterator = rangeMap.keySet().iterator();
-		this.strategy = strategy;
-	}
+    public RyaStatementBindingSetCursorIterator(final MongoCollection<Document> coll,
+            final Multimap<DBObject, BindingSet> rangeMap, final MongoDBStorageStrategy<RyaStatement> strategy,
+            final Authorizations auths) {
+        this.coll = coll;
+        this.rangeMap = rangeMap;
+        queryIterator = rangeMap.keySet().iterator();
+        this.strategy = strategy;
+        this.auths = auths;
+    }
 
-	@Override
-	public boolean hasNext() {
-		if (!currentBindingSetIteratorIsValid()) {
-			findNextResult();
-		}
-		return currentBindingSetIteratorIsValid();
-	}
+    @Override
+    public boolean hasNext() {
+        if (!currentBindingSetIteratorIsValid()) {
+            findNextResult();
+        }
+        return currentBindingSetIteratorIsValid();
+    }
 
-	@Override
-	public Entry<RyaStatement, BindingSet> next() {
-		if (!currentBindingSetIteratorIsValid()) {
-			findNextResult();
-		}
-		if (currentBindingSetIteratorIsValid()) {
-			BindingSet currentBindingSet = currentBindingSetIterator.next();
-			return new RdfCloudTripleStoreUtils.CustomEntry<RyaStatement, BindingSet>(currentStatement, currentBindingSet);
-		}
-		return null;
-	}
-	
-	private boolean currentBindingSetIteratorIsValid() {
-		return (currentBindingSetIterator != null) && currentBindingSetIterator.hasNext();
-	}
+    @Override
+    public Entry<RyaStatement, BindingSet> next() {
+        if (!currentBindingSetIteratorIsValid()) {
+            findNextResult();
+        }
+        if (currentBindingSetIteratorIsValid()) {
+            final BindingSet currentBindingSet = currentBindingSetIterator.next();
+            return new RdfCloudTripleStoreUtils.CustomEntry<RyaStatement, BindingSet>(currentStatement, currentBindingSet);
+        }
+        return null;
+    }
 
-	private void findNextResult() {
-		if (!currentResultCursorIsValid()) {
-			findNextValidResultCursor();
-		}
-		if (currentResultCursorIsValid()) {
-			// convert to Rya Statement
-			DBObject queryResult = resultCursor.next();
-			currentStatement = strategy.deserializeDBObject(queryResult);
-			currentBindingSetIterator = currentBindingSetCollection.iterator();
-		}
-	}
+    private boolean currentBindingSetIteratorIsValid() {
+        return (currentBindingSetIterator != null) && currentBindingSetIterator.hasNext();
+    }
 
-	private void findNextValidResultCursor() {
-		while (queryIterator.hasNext()){
-			DBObject currentQuery = queryIterator.next();
-			resultCursor = coll.find(currentQuery);
-			currentBindingSetCollection = rangeMap.get(currentQuery);
-			if (resultCursor.hasNext()) return;
-		}
-	}
-	
-	private boolean currentResultCursorIsValid() {
-		return (resultCursor != null) && resultCursor.hasNext();
-	}
+    private void findNextResult() {
+        if (!currentResultCursorIsValid()) {
+            findNextValidResultCursor();
+        }
+        if (currentResultCursorIsValid()) {
+            // convert to Rya Statement
+            final Document queryResult = resultsIterator.next();
+            final DBObject dbo = (DBObject) JSON.parse(queryResult.toJson());
+            currentStatement = strategy.deserializeDBObject(dbo);
+            currentBindingSetIterator = currentBindingSetCollection.iterator();
+        }
+    }
+
+    private void findNextValidResultCursor() {
+        while (queryIterator.hasNext()){
+            final DBObject currentQuery = queryIterator.next();
+            currentBindingSetCollection = rangeMap.get(currentQuery);
+            // Executing redact aggregation to only return documents the user
+            // has access to.
+            final List<Document> pipeline = new ArrayList<>();
+            pipeline.add(new Document("$match", currentQuery));
+            pipeline.addAll(AggregationUtil.createRedactPipeline(auths));
+            log.debug(pipeline);
+
+            final AggregateIterable<Document> aggIter = coll.aggregate(pipeline);
+            aggIter.batchSize(1000);
+            resultsIterator = aggIter.iterator();
+            if (resultsIterator.hasNext()) {
+                break;
+            }
+        }
+    }
+
+    private boolean currentResultCursorIsValid() {
+        return (resultsIterator != null) && resultsIterator.hasNext();
+    }
 
 
-	public void setMaxResults(Long maxResults) {
-		this.maxResults = maxResults;
-	}
+    public void setMaxResults(final Long maxResults) {
+        this.maxResults = maxResults;
+    }
 
-	@Override
-	public void close() throws RyaDAOException {
-		// TODO don't know what to do here
-	}
+    @Override
+    public void close() throws RyaDAOException {
+        // TODO don't know what to do here
+    }
 
-	@Override
-	public void remove() throws RyaDAOException {
-		next();
-	}
+    @Override
+    public void remove() throws RyaDAOException {
+        next();
+    }
 
 }

@@ -8,9 +8,9 @@ package org.apache.rya.api.persist;
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- * 
+ *
  *   http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -46,7 +46,7 @@ public interface RyaDAO<C extends RdfCloudTripleStoreConfiguration> extends RyaC
 
     /**
      *
-     * @return true if the store is already initiailized
+     * @return true if the store is already initialized
      * @throws RyaDAOException
      */
     public boolean isInitialized() throws RyaDAOException;
@@ -69,10 +69,10 @@ public interface RyaDAO<C extends RdfCloudTripleStoreConfiguration> extends RyaC
     /**
      * Add and commit a collection of RyaStatements
      *
-     * @param statement
+     * @param statementIter
      * @throws RyaDAOException
      */
-    public void add(Iterator<RyaStatement> statement) throws RyaDAOException;
+    public void add(Iterator<RyaStatement> statementIter) throws RyaDAOException;
 
     /**
      * Delete a RyaStatement. The Configuration should provide the auths to perform the delete
@@ -89,7 +89,7 @@ public interface RyaDAO<C extends RdfCloudTripleStoreConfiguration> extends RyaC
      * @param conf
      * @throws RyaDAOException
      */
-    public void dropGraph(C conf, RyaURI... graphs) throws RyaDAOException; 
+    public void dropGraph(C conf, RyaURI... graphs) throws RyaDAOException;
 
     /**
      * Delete a collection of RyaStatements.
@@ -123,4 +123,11 @@ public interface RyaDAO<C extends RdfCloudTripleStoreConfiguration> extends RyaC
     public void purge(RdfCloudTripleStoreConfiguration configuration);
 
     public void dropAndDestroy() throws RyaDAOException;
+
+    /**
+     * Flushes any RyaStatements queued for insertion and writes them to the
+     * datastore.
+     * @throws RyaDAOException
+     */
+    public void flush() throws RyaDAOException;
 }

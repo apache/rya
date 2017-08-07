@@ -43,7 +43,7 @@ import com.google.common.collect.Sets;
 public class PCJOptimizerTest {
 
     @Test
-    public void testBasicSegment() throws MalformedQueryException {
+    public void testBasicSegment() throws Exception {
 
         String query1 = ""//
                 + "SELECT ?e ?c ?l" //
@@ -84,7 +84,7 @@ public class PCJOptimizerTest {
     }
 
     @Test
-    public void testSegmentWithUnion() throws MalformedQueryException {
+    public void testSegmentWithUnion() throws Exception {
 
         String query1 = ""//
                 + "SELECT ?e ?c ?l" //
@@ -287,7 +287,7 @@ public class PCJOptimizerTest {
     }
 
     @Test
-    public void testSegmentWithLargeUnion() throws MalformedQueryException {
+    public void testSegmentWithLargeUnion() throws Exception {
 
         String query1 = ""//
                 + "SELECT ?e ?c ?l" //
@@ -350,7 +350,7 @@ public class PCJOptimizerTest {
     }
 
     @Test
-    public void testSegmentWithUnionAndFilters() throws MalformedQueryException {
+    public void testSegmentWithUnionAndFilters() throws Exception {
 
         String query1 = ""//
                 + "SELECT ?e ?c ?l" //
@@ -407,7 +407,7 @@ public class PCJOptimizerTest {
     }
 
     @Test
-    public void testSegmentWithLeftJoinsAndFilters() throws MalformedQueryException {
+    public void testSegmentWithLeftJoinsAndFilters() throws Exception {
 
         String query1 = ""//
                 + "SELECT ?e ?c ?l" //
@@ -457,7 +457,7 @@ public class PCJOptimizerTest {
     }
 
     @Test
-    public void testJoinMatcherRejectsLeftJoinPcj() throws MalformedQueryException {
+    public void testJoinMatcherRejectsLeftJoinPcj() throws Exception {
 
         String query1 = ""//
                 + "SELECT ?e ?c ?l" //

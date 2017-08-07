@@ -18,18 +18,17 @@
  */
 package org.apache.rya.indexing.pcj.fluo.app.observers;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import static java.util.Objects.requireNonNull;
 
+import org.apache.fluo.api.client.TransactionBase;
+import org.apache.fluo.api.data.Bytes;
 import org.apache.rya.indexing.pcj.fluo.app.BindingSetRow;
 import org.apache.rya.indexing.pcj.fluo.app.query.FluoQueryColumns;
 import org.apache.rya.indexing.pcj.fluo.app.query.FluoQueryMetadataDAO;
 import org.apache.rya.indexing.pcj.fluo.app.query.JoinMetadata;
-import org.apache.rya.indexing.pcj.storage.accumulo.VariableOrder;
 import org.apache.rya.indexing.pcj.storage.accumulo.VisibilityBindingSet;
-import org.apache.rya.indexing.pcj.storage.accumulo.VisibilityBindingSetStringConverter;
+import org.apache.rya.indexing.pcj.storage.accumulo.VisibilityBindingSetSerDe;
 import org.openrdf.query.BindingSet;
-
-import org.apache.fluo.api.client.TransactionBase;
 
 /**
  * Notified when the results of a Join have been updated to include a new
@@ -38,7 +37,7 @@ import org.apache.fluo.api.client.TransactionBase;
  */
 public class JoinObserver extends BindingSetUpdater {
 
-    private final VisibilityBindingSetStringConverter converter = new VisibilityBindingSetStringConverter();
+    private static final VisibilityBindingSetSerDe BS_SERDE = new VisibilityBindingSetSerDe();
 
     private final FluoQueryMetadataDAO queryDao = new FluoQueryMetadataDAO();
 
@@ -48,16 +47,17 @@ public class JoinObserver extends BindingSetUpdater {
     }
 
     @Override
-    public Observation parseObservation(final TransactionBase tx, final BindingSetRow parsedRow) {
-        checkNotNull(parsedRow);
+    public Observation parseObservation(final TransactionBase tx, final Bytes row) throws Exception {
+        requireNonNull(tx);
+        requireNonNull(row);
 
         // Read the Join metadata.
-        final String joinNodeId = parsedRow.getNodeId();
+        final String joinNodeId = BindingSetRow.make(row).getNodeId();
         final JoinMetadata joinMetadata = queryDao.readJoinMetadata(tx, joinNodeId);
 
-        // Read the Binding Set that was just emmitted by the Join.
-        final VariableOrder joinVarOrder = joinMetadata.getVariableOrder();
-        final VisibilityBindingSet joinBindingSet = (VisibilityBindingSet) converter.convert(parsedRow.getBindingSetString(), joinVarOrder);
+        // Read the Visibility Binding Set from the value.
+        final Bytes valueBytes = tx.get(row, FluoQueryColumns.JOIN_BINDING_SET);
+        final VisibilityBindingSet joinBindingSet = BS_SERDE.deserialize(valueBytes);
 
         // Figure out which node needs to handle the new metadata.
         final String parentNodeId = joinMetadata.getParentNodeId();

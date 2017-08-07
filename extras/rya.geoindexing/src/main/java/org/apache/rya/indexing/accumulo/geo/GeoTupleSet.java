@@ -1,13 +1,26 @@
 package org.apache.rya.indexing.accumulo.geo;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
+import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.hadoop.conf.Configuration;
+import org.apache.rya.indexing.GeoConstants;
+import org.apache.rya.indexing.GeoIndexer;
+import org.apache.rya.indexing.IndexingExpr;
+import org.apache.rya.indexing.IteratorFactory;
+import org.apache.rya.indexing.SearchFunction;
+import org.apache.rya.indexing.StatementConstraints;
+import org.apache.rya.indexing.external.tupleSet.ExternalTupleSet;
 import org.openrdf.model.Statement;
 import org.openrdf.model.URI;
+import org.openrdf.model.Value;
 import org.openrdf.query.BindingSet;
 import org.openrdf.query.QueryEvaluationException;
+import org.openrdf.query.algebra.Var;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.Maps;
@@ -36,18 +49,12 @@ import com.vividsolutions.jts.io.WKTReader;
 
 
 import info.aduna.iteration.CloseableIteration;
-import org.apache.rya.indexing.GeoConstants;
-import org.apache.rya.indexing.GeoIndexer;
-import org.apache.rya.indexing.IndexingExpr;
-import org.apache.rya.indexing.IteratorFactory;
-import org.apache.rya.indexing.SearchFunction;
-import org.apache.rya.indexing.StatementConstraints;
-import org.apache.rya.indexing.external.tupleSet.ExternalTupleSet;
+import joptsimple.internal.Strings;
 
 //Indexing Node for geo expressions to be inserted into execution plan
 //to delegate geo portion of query to geo index
 public class GeoTupleSet extends ExternalTupleSet {
-
+    private static final String NEAR_DELIM = "::";
     private final Configuration conf;
     private final GeoIndexer geoIndexer;
     private final IndexingExpr filterInfo;
@@ -114,30 +121,63 @@ public class GeoTupleSet extends ExternalTupleSet {
     public CloseableIteration<BindingSet, QueryEvaluationException> evaluate(final BindingSet bindings)
             throws QueryEvaluationException {
 
-
         final URI funcURI = filterInfo.getFunction();
-        final SearchFunction searchFunction = new GeoSearchFunctionFactory(conf).getSearchFunction(funcURI);
-        if(filterInfo.getArguments().length > 1) {
+        final SearchFunction searchFunction = new GeoSearchFunctionFactory(conf, geoIndexer).getSearchFunction(funcURI);
+
+        String queryText;
+        Object arg = filterInfo.getArguments()[0];
+        if (arg instanceof Value) {
+            queryText = ((Value) arg).stringValue();
+        } else if (arg instanceof Var) {
+            queryText = bindings.getBinding(((Var) arg).getName()).getValue().stringValue();
+        } else {
+            throw new IllegalArgumentException("Query text was not resolved");
+        }
+
+        if(funcURI.equals(GeoConstants.GEO_SF_NEAR)) {
+            if (filterInfo.getArguments().length > 3) {
+                throw new IllegalArgumentException("Near functions do not support more than four arguments.");
+            }
+
+            final List<String> valueList = new ArrayList<>();
+            for (final Object val : filterInfo.getArguments()) {
+                if (val instanceof Value) {
+                    valueList.add(((Value)val).stringValue());
+                } else if (val instanceof Var) {
+                    valueList.add(bindings.getBinding(((Var) val).getName()).getValue().stringValue());
+                } else {
+                    throw new IllegalArgumentException("Query text was not resolved");
+                }
+            }
+            queryText = Strings.join(valueList, NEAR_DELIM);
+        } else if (filterInfo.getArguments().length > 1) {
             throw new IllegalArgumentException("Index functions do not support more than two arguments.");
         }
 
-        final String queryText = filterInfo.getArguments()[0].stringValue();
-
-        return IteratorFactory.getIterator(filterInfo.getSpConstraint(), bindings, queryText, searchFunction);
+        try {
+            final CloseableIteration<BindingSet, QueryEvaluationException> iterrez = IteratorFactory
+                    .getIterator(filterInfo.getSpConstraint(), bindings,
+                    queryText, searchFunction);
+            return iterrez;
+        } catch (final Exception e) {
+            System.out.println(e.getMessage());
+            throw e;
+        }
     }
-
-
 
     //returns appropriate search function for a given URI
     //search functions used in GeoMesaGeoIndexer to access index
-    public class GeoSearchFunctionFactory {
+    public static class GeoSearchFunctionFactory {
 
         Configuration conf;
 
         private final Map<URI, SearchFunction> SEARCH_FUNCTION_MAP = Maps.newHashMap();
 
-        public GeoSearchFunctionFactory(final Configuration conf) {
+        private final GeoIndexer geoIndexer;
+
+        public GeoSearchFunctionFactory(final Configuration conf, final GeoIndexer geoIndexer) {
             this.conf = conf;
+            this.geoIndexer = geoIndexer;
         }
 
 
@@ -178,7 +218,7 @@ public class GeoTupleSet extends ExternalTupleSet {
                 try {
                     final WKTReader reader = new WKTReader();
                     final Geometry geometry = reader.read(queryText);
-                    final CloseableIteration<Statement, QueryEvaluationException> statements = geoIndexer.queryWithin(
+                    final CloseableIteration<Statement, QueryEvaluationException> statements = geoIndexer.queryEquals(
                             geometry, contraints);
                     return statements;
                 } catch (final ParseException e) {
@@ -200,7 +240,7 @@ public class GeoTupleSet extends ExternalTupleSet {
                 try {
                     final WKTReader reader = new WKTReader();
                     final Geometry geometry = reader.read(queryText);
-                    final CloseableIteration<Statement, QueryEvaluationException> statements = geoIndexer.queryWithin(
+                    final CloseableIteration<Statement, QueryEvaluationException> statements = geoIndexer.queryDisjoint(
                             geometry, contraints);
                     return statements;
                 } catch (final ParseException e) {
@@ -222,7 +262,7 @@ public class GeoTupleSet extends ExternalTupleSet {
                 try {
                     final WKTReader reader = new WKTReader();
                     final Geometry geometry = reader.read(queryText);
-                    final CloseableIteration<Statement, QueryEvaluationException> statements = geoIndexer.queryWithin(
+                    final CloseableIteration<Statement, QueryEvaluationException> statements = geoIndexer.queryIntersects(
                             geometry, contraints);
                     return statements;
                 } catch (final ParseException e) {
@@ -244,7 +284,7 @@ public class GeoTupleSet extends ExternalTupleSet {
                 try {
                     final WKTReader reader = new WKTReader();
                     final Geometry geometry = reader.read(queryText);
-                    final CloseableIteration<Statement, QueryEvaluationException> statements = geoIndexer.queryWithin(
+                    final CloseableIteration<Statement, QueryEvaluationException> statements = geoIndexer.queryTouches(
                             geometry, contraints);
                     return statements;
                 } catch (final ParseException e) {
@@ -266,7 +306,7 @@ public class GeoTupleSet extends ExternalTupleSet {
                 try {
                     final WKTReader reader = new WKTReader();
                     final Geometry geometry = reader.read(queryText);
-                    final CloseableIteration<Statement, QueryEvaluationException> statements = geoIndexer.queryWithin(
+                    final CloseableIteration<Statement, QueryEvaluationException> statements = geoIndexer.queryContains(
                             geometry, contraints);
                     return statements;
                 } catch (final ParseException e) {
@@ -288,7 +328,7 @@ public class GeoTupleSet extends ExternalTupleSet {
                 try {
                     final WKTReader reader = new WKTReader();
                     final Geometry geometry = reader.read(queryText);
-                    final CloseableIteration<Statement, QueryEvaluationException> statements = geoIndexer.queryWithin(
+                    final CloseableIteration<Statement, QueryEvaluationException> statements = geoIndexer.queryOverlaps(
                             geometry, contraints);
                     return statements;
                 } catch (final ParseException e) {
@@ -310,7 +350,7 @@ public class GeoTupleSet extends ExternalTupleSet {
                 try {
                     final WKTReader reader = new WKTReader();
                     final Geometry geometry = reader.read(queryText);
-                    final CloseableIteration<Statement, QueryEvaluationException> statements = geoIndexer.queryWithin(
+                    final CloseableIteration<Statement, QueryEvaluationException> statements = geoIndexer.queryCrosses(
                             geometry, contraints);
                     return statements;
                 } catch (final ParseException e) {
@@ -346,6 +386,104 @@ public class GeoTupleSet extends ExternalTupleSet {
             };
         };
 
+        private final SearchFunction GEO_NEAR = new SearchFunction() {
+            @Override
+            public CloseableIteration<Statement, QueryEvaluationException> performSearch(final String queryText,
+                    final StatementConstraints contraints) throws QueryEvaluationException {
+                try {
+                    final String[] args = queryText.split(NEAR_DELIM);
+                    Optional<Double> maxDistanceOpt = Optional.empty();
+                    Optional<Double> minDistanceOpt = Optional.empty();
+                    final String query = args[0];
+
+                    for (int ii = 1; ii < args.length; ii++) {
+                        String numArg = args[ii];
+
+                        // remove pre-padding 0's since NumberUtils.isNumber()
+                        // will assume its octal if it starts with a 0.
+                        while (numArg.startsWith("0")) {
+                            numArg = numArg.substring(1);
+                        }
+                        // was 0
+                        if (numArg.equals("")) {
+                            // if max hasn't been set, set it to 0.
+                            // Otherwise, min is just ignored.
+                            if (!maxDistanceOpt.isPresent()) {
+                                maxDistanceOpt = Optional.of(0.0);
+                            }
+                        } else {
+                            if (!maxDistanceOpt.isPresent() && NumberUtils.isNumber(numArg)) {
+                                // no variable identifier, going by order.
+                                maxDistanceOpt = getDistanceOpt(numArg, "maxDistance");
+                            } else if (NumberUtils.isNumber(numArg)) {
+                                // no variable identifier, going by order.
+                                minDistanceOpt = getDistanceOpt(numArg, "minDistance");
+                            } else {
+                                throw new IllegalArgumentException(numArg + " is not a valid Near function argument.");
+                            }
+                        }
+                    }
+                    final WKTReader reader = new WKTReader();
+                    final Geometry geometry = reader.read(query);
+                    final NearQuery nearQuery = new NearQuery(maxDistanceOpt, minDistanceOpt, geometry);
+                    return geoIndexer.queryNear(nearQuery, contraints);
+                } catch (final ParseException e) {
+                    throw new QueryEvaluationException(e);
+                }
+            }
+
+            private Optional<Double> getDistanceOpt(final String num, final String name) {
+                try {
+                    double dist = Double.parseDouble(num);
+                    if(dist < 0) {
+                        throw new IllegalArgumentException("Value for: " + name + " must be non-negative.");
+                    }
+                    return Optional.of(Double.parseDouble(num));
+                } catch (final NumberFormatException nfe) {
+                    throw new IllegalArgumentException("Value for: " + name + " must be a number.");
+                }
+            }
+
+            @Override
+            public String toString() {
+                return "GEO_NEAR";
+            }
+        };
+
+        /**
+         *
+         */
+        public class NearQuery {
+            private final Optional<Double> maxDistanceOpt;
+            private final Optional<Double> minDistanceOpt;
+            private final Geometry geo;
+
+            /**
+             *
+             * @param maxDistance
+             * @param minDistance
+             * @param geo
+             */
+            public NearQuery(final Optional<Double> maxDistance, final Optional<Double> minDistance,
+                    final Geometry geo) {
+                maxDistanceOpt = maxDistance;
+                minDistanceOpt = minDistance;
+                this.geo = geo;
+            }
+
+            public Optional<Double> getMaxDistance() {
+                return maxDistanceOpt;
+            }
+
+            public Optional<Double> getMinDistance() {
+                return minDistanceOpt;
+            }
+
+            public Geometry getGeometry() {
+                return geo;
+            }
+        }
+
         {
             SEARCH_FUNCTION_MAP.put(GeoConstants.GEO_SF_EQUALS, GEO_EQUALS);
             SEARCH_FUNCTION_MAP.put(GeoConstants.GEO_SF_DISJOINT, GEO_DISJOINT);
@@ -355,9 +493,7 @@ public class GeoTupleSet extends ExternalTupleSet {
             SEARCH_FUNCTION_MAP.put(GeoConstants.GEO_SF_OVERLAPS, GEO_OVERLAPS);
             SEARCH_FUNCTION_MAP.put(GeoConstants.GEO_SF_CROSSES, GEO_CROSSES);
             SEARCH_FUNCTION_MAP.put(GeoConstants.GEO_SF_WITHIN, GEO_WITHIN);
+            SEARCH_FUNCTION_MAP.put(GeoConstants.GEO_SF_NEAR, GEO_NEAR);
         }
-
     }
-
-
 }

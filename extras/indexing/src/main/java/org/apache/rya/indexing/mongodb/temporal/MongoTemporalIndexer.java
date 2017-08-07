@@ -23,6 +23,12 @@ import static org.apache.rya.indexing.mongodb.temporal.TemporalMongoDBStorageStr
 import static org.apache.rya.indexing.mongodb.temporal.TemporalMongoDBStorageStrategy.INTERVAL_START;
 
 import org.apache.log4j.Logger;
+import org.apache.rya.indexing.StatementConstraints;
+import org.apache.rya.indexing.TemporalIndexer;
+import org.apache.rya.indexing.TemporalInstant;
+import org.apache.rya.indexing.TemporalInterval;
+import org.apache.rya.indexing.accumulo.ConfigUtils;
+import org.apache.rya.indexing.mongodb.AbstractMongoIndexer;
 import org.openrdf.model.Statement;
 import org.openrdf.query.QueryEvaluationException;
 
@@ -31,12 +37,6 @@ import com.mongodb.DBCollection;
 import com.mongodb.QueryBuilder;
 
 import info.aduna.iteration.CloseableIteration;
-import org.apache.rya.indexing.StatementConstraints;
-import org.apache.rya.indexing.TemporalIndexer;
-import org.apache.rya.indexing.TemporalInstant;
-import org.apache.rya.indexing.TemporalInterval;
-import org.apache.rya.indexing.accumulo.ConfigUtils;
-import org.apache.rya.indexing.mongodb.AbstractMongoIndexer;
 
 /**
  * Indexes MongoDB based on time instants or intervals.
@@ -49,6 +49,9 @@ public class MongoTemporalIndexer extends AbstractMongoIndexer<TemporalMongoDBSt
     public void init() {
         initCore();
         predicates = ConfigUtils.getTemporalPredicates(conf);
+        if(predicates.size() == 0) {
+            LOG.debug("No predicates specified for temporal indexing.  During insertion, all statements will be attempted to be indexed into the temporal indexer.");
+        }
         storageStrategy = new TemporalMongoDBStorageStrategy();
         storageStrategy.createIndices(collection);
     }

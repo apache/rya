@@ -46,18 +46,6 @@ under the License.
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-failsafe-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <goals>
-                          <goal>integration-test</goal>
-                          <goal>verify</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-enforcer-plugin</artifactId>
                 <configuration>
                     <rules>
@@ -78,6 +66,11 @@ Tests will fail with the following error when using 32bit JVM on either Linux or
         <dependency>
             <groupId>org.apache.rya</groupId>
             <artifactId>rya.api</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.accumulo</groupId>
+            <artifactId>accumulo-core</artifactId>
         </dependency>
 
         <dependency>

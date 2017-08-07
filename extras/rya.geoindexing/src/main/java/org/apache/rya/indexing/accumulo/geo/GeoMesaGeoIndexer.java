@@ -48,6 +48,7 @@ import org.apache.rya.indexing.OptionalConfigUtils;
 import org.apache.rya.indexing.StatementConstraints;
 import org.apache.rya.indexing.StatementSerializer;
 import org.apache.rya.indexing.accumulo.ConfigUtils;
+import org.apache.rya.indexing.accumulo.geo.GeoTupleSet.GeoSearchFunctionFactory.NearQuery;
 import org.geotools.data.DataStore;
 import org.geotools.data.DataStoreFinder;
 import org.geotools.data.DataUtilities;
@@ -62,7 +63,6 @@ import org.geotools.feature.SchemaException;
 import org.geotools.feature.simple.SimpleFeatureBuilder;
 import org.geotools.filter.text.cql2.CQLException;
 import org.geotools.filter.text.ecql.ECQL;
-import org.locationtech.geomesa.accumulo.data.AccumuloDataStore;
 import org.locationtech.geomesa.accumulo.index.Constants;
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes;
 import org.opengis.feature.simple.SimpleFeature;
@@ -79,7 +79,7 @@ import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.io.ParseException;
 
 import info.aduna.iteration.CloseableIteration;
-
+ 
 /**
  * A {@link GeoIndexer} wrapper around a GeoMesa {@link AccumuloDataStore}. This class configures and connects to the Datastore, creates the
  * RDF Feature Type, and interacts with the Datastore.
@@ -133,6 +133,7 @@ public class GeoMesaGeoIndexer extends AbstractAccumuloIndexer implements GeoInd
     private static final String PREDICATE_ATTRIBUTE = "P";
     private static final String OBJECT_ATTRIBUTE = "O";
     private static final String CONTEXT_ATTRIBUTE = "C";
+    private static final String GEOMETRY_ATTRIBUTE = Constants.SF_PROPERTY_GEOMETRY;
 
     private Set<URI> validPredicates;
     private Configuration conf;
@@ -147,7 +148,7 @@ public class GeoMesaGeoIndexer extends AbstractAccumuloIndexer implements GeoInd
         this.conf = conf;
         if (!isInit) {
             try {
-            	initInternal();
+                initInternal();
                 isInit = true;
             } catch (final IOException e) {
                 logger.warn("Unable to initialize index.  Throwing Runtime Exception. ", e);
@@ -169,9 +170,7 @@ public class GeoMesaGeoIndexer extends AbstractAccumuloIndexer implements GeoInd
 
         try {
             featureType = getStatementFeatureType(dataStore);
-        } catch (final IOException e) {
-            throw new IOException(e);
-        } catch (final SchemaException e) {
+        } catch (final IOException | SchemaException e) {
             throw new IOException(e);
         }
 
@@ -222,7 +221,7 @@ public class GeoMesaGeoIndexer extends AbstractAccumuloIndexer implements GeoInd
                     + PREDICATE_ATTRIBUTE + ":String," //
                     + OBJECT_ATTRIBUTE + ":String," //
                     + CONTEXT_ATTRIBUTE + ":String," //
-                    + Constants.SF_PROPERTY_GEOMETRY + ":Geometry:srid=4326;geomesa.mixed.geometries='true'";
+                    + GEOMETRY_ATTRIBUTE + ":Geometry:srid=4326;geomesa.mixed.geometries='true'";
             featureType = SimpleFeatureTypes.createType(FEATURE_NAME, featureSchema);
             dataStore.createSchema(featureType);
         }
@@ -254,7 +253,6 @@ public class GeoMesaGeoIndexer extends AbstractAccumuloIndexer implements GeoInd
             featureStore.addFeatures(featureCollection);
         }
     }
-
 
     @Override
     public void storeStatement(final RyaStatement statement) throws IOException {
@@ -297,7 +295,7 @@ public class GeoMesaGeoIndexer extends AbstractAccumuloIndexer implements GeoInd
             final StatementConstraints contraints) {
         final List<String> filterParms = new ArrayList<String>();
 
-        filterParms.add(type + "(" + Constants.SF_PROPERTY_GEOMETRY + ", " + geometry + " )");
+        filterParms.add(type + "(" + GEOMETRY_ATTRIBUTE + ", " + geometry + " )");
 
         if (contraints.hasSubject()) {
             filterParms.add("( " + SUBJECT_ATTRIBUTE + "= '" + contraints.getSubject() + "') ");
@@ -342,7 +340,6 @@ public class GeoMesaGeoIndexer extends AbstractAccumuloIndexer implements GeoInd
                         logger.error("Error performing query: " + filterString, e);
                         throw new QueryEvaluationException(e);
                     }
-
                 }
                 return featureIterator;
             }
@@ -413,6 +410,12 @@ public class GeoMesaGeoIndexer extends AbstractAccumuloIndexer implements GeoInd
     @Override
     public CloseableIteration<Statement, QueryEvaluationException> queryOverlaps(final Geometry query, final StatementConstraints contraints) {
         return performQuery("OVERLAPS", query, contraints);
+    }
+    
+    @Override
+    public CloseableIteration<Statement, QueryEvaluationException> queryNear(final NearQuery query,
+            final StatementConstraints contraints) {
+        throw new UnsupportedOperationException("Near queries are not supported in Accumulo.");
     }
 
     @Override
@@ -495,33 +498,23 @@ public class GeoMesaGeoIndexer extends AbstractAccumuloIndexer implements GeoInd
         deleteStatements(Collections.singleton(statement));
     }
 
-	@Override
-	public void init() {
-		// TODO Auto-generated method stub
+    @Override
+    public void init() {
+    }
 
-	}
+    @Override
+    public void setConnector(final Connector connector) {
+    }
 
-	@Override
-	public void setConnector(final Connector connector) {
-		// TODO Auto-generated method stub
+    @Override
+    public void destroy() {
+    }
 
-	}
+    @Override
+    public void purge(final RdfCloudTripleStoreConfiguration configuration) {
+    }
 
-	@Override
-	public void destroy() {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public void purge(final RdfCloudTripleStoreConfiguration configuration) {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public void dropAndDestroy() {
-		// TODO Auto-generated method stub
-
-	}
+    @Override
+    public void dropAndDestroy() {
+    }
 }

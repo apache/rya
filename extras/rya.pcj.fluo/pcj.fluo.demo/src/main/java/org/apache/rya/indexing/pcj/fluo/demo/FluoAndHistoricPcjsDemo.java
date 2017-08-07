@@ -18,19 +18,29 @@
  */
 package org.apache.rya.indexing.pcj.fluo.demo;
 
+import java.io.IOException;
 import java.util.Set;
 
 import org.apache.accumulo.core.client.Connector;
 import org.apache.accumulo.minicluster.MiniAccumuloCluster;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.fluo.api.client.FluoClient;
+import org.apache.fluo.api.mini.MiniFluo;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
+import org.apache.rya.api.domain.RyaStatement;
+import org.apache.rya.api.domain.RyaType;
+import org.apache.rya.api.domain.RyaURI;
+import org.apache.rya.api.persist.RyaDAOException;
+import org.apache.rya.api.resolver.RyaToRdfConversions;
 import org.apache.rya.indexing.pcj.fluo.api.CreatePcj;
 import org.apache.rya.indexing.pcj.fluo.api.InsertTriples;
 import org.apache.rya.indexing.pcj.storage.PcjException;
 import org.apache.rya.indexing.pcj.storage.PrecomputedJoinStorage;
+import org.apache.rya.indexing.pcj.storage.PrecomputedJoinStorage.CloseableIterator;
 import org.apache.rya.indexing.pcj.storage.PrecomputedJoinStorage.PCJStorageException;
 import org.apache.rya.indexing.pcj.storage.accumulo.AccumuloPcjStorage;
+import org.apache.rya.rdftriplestore.RyaSailRepository;
 import org.openrdf.model.Statement;
 import org.openrdf.query.BindingSet;
 import org.openrdf.query.MalformedQueryException;
@@ -44,16 +54,6 @@ import org.openrdf.sail.SailException;
 
 import com.google.common.base.Optional;
 import com.google.common.collect.Sets;
-
-import org.apache.fluo.api.client.FluoClient;
-import org.apache.fluo.api.mini.MiniFluo;
-import org.apache.rya.accumulo.query.AccumuloRyaQueryEngine;
-import org.apache.rya.api.domain.RyaStatement;
-import org.apache.rya.api.domain.RyaType;
-import org.apache.rya.api.domain.RyaURI;
-import org.apache.rya.api.persist.RyaDAOException;
-import org.apache.rya.api.resolver.RyaToRdfConversions;
-import org.apache.rya.rdftriplestore.RyaSailRepository;
 
 /**
  * Demonstrates historicly added Rya statements that are stored within the core
@@ -181,7 +181,7 @@ public class FluoAndHistoricPcjsDemo implements Demo {
             // Tell the Fluo app to maintain it.
             new CreatePcj().withRyaIntegration(pcjId, pcjStorage, fluoClient, accumuloConn, ryaTablePrefix);
 
-        } catch (MalformedQueryException | SailException | QueryEvaluationException | PcjException | RyaDAOException e) {
+        } catch (MalformedQueryException | PcjException | RyaDAOException e) {
             throw new DemoExecutionException("Error while using Fluo to compute and export historic matches, so the demo can not continue. Exiting.", e);
         }
 
@@ -192,11 +192,11 @@ public class FluoAndHistoricPcjsDemo implements Demo {
 
         // 5. Show that the Fluo app exported the results to the PCJ table in Accumulo.
         log.info("The following Binding Sets were exported to the PCJ with ID '" + pcjId + "' in Rya:");
-        try {
-            for(final BindingSet result : pcjStorage.listResults(pcjId)) {
-                log.info("    " + result);
+        try(CloseableIterator<BindingSet> resultsIt = pcjStorage.listResults(pcjId)) {
+            while(resultsIt.hasNext()) {
+                log.info("    " + resultsIt.next());
             }
-        } catch (final PCJStorageException e) {
+        } catch (final Exception e) {
             throw new DemoExecutionException("Could not fetch the PCJ's reuslts from Accumulo. Exiting.", e);
         }
         waitForEnter();
@@ -257,11 +257,11 @@ public class FluoAndHistoricPcjsDemo implements Demo {
 
         // 8. Show the new results have been exported to the PCJ table in Accumulo.
         log.info("The following Binding Sets were exported to the PCJ with ID '" + pcjId + "' in Rya:");
-        try {
-            for(final BindingSet result : pcjStorage.listResults(pcjId)) {
-                log.info("    " + result);
+        try(CloseableIterator<BindingSet> resultsIt = pcjStorage.listResults(pcjId)) {
+            while(resultsIt.hasNext()) {
+                log.info("    " + resultsIt.next());
             }
-        } catch (final PCJStorageException e) {
+        } catch (final Exception e) {
             throw new DemoExecutionException("Could not fetch the PCJ's reuslts from Accumulo. Exiting.", e);
         }
         log.info("");

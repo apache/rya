@@ -25,6 +25,7 @@ import edu.umd.cs.findbugs.annotations.NonNull;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.rya.indexing.pcj.fluo.api.GetQueryReport.QueryReport;
+import org.apache.rya.indexing.pcj.fluo.app.query.ConstructQueryMetadata;
 import org.apache.rya.indexing.pcj.fluo.app.query.FilterMetadata;
 import org.apache.rya.indexing.pcj.fluo.app.query.FluoQuery;
 import org.apache.rya.indexing.pcj.fluo.app.query.JoinMetadata;
@@ -55,13 +56,26 @@ public class QueryReportRenderer {
 
         final FluoQuery metadata = queryReport.getFluoQuery();
 
-        final QueryMetadata queryMetadata = metadata.getQueryMetadata();
-        builder.appendItem( new ReportItem("QUERY NODE") );
-        builder.appendItem( new ReportItem("Node ID", queryMetadata.getNodeId()) );
-        builder.appendItem( new ReportItem("Variable Order", queryMetadata.getVariableOrder().toString()) );
-        builder.appendItem( new ReportItem("SPARQL", prettyFormatSparql( queryMetadata.getSparql()) ) );
-        builder.appendItem( new ReportItem("Child Node ID", queryMetadata.getChildNodeId()) );
-        builder.appendItem( new ReportItem("Count", "" + queryReport.getCount(queryMetadata.getNodeId())) );
+        switch (metadata.getQueryType()) {
+        case Projection:
+            final QueryMetadata queryMetadata = metadata.getQueryMetadata().get();
+            builder.appendItem(new ReportItem("QUERY NODE"));
+            builder.appendItem(new ReportItem("Node ID", queryMetadata.getNodeId()));
+            builder.appendItem(new ReportItem("Variable Order", queryMetadata.getVariableOrder().toString()));
+            builder.appendItem(new ReportItem("SPARQL", prettyFormatSparql(queryMetadata.getSparql())));
+            builder.appendItem(new ReportItem("Child Node ID", queryMetadata.getChildNodeId()));
+            builder.appendItem(new ReportItem("Count", "" + queryReport.getCount(queryMetadata.getNodeId())));
+            break;
+        case Construct:
+            final ConstructQueryMetadata constructMetadata = metadata.getConstructQueryMetadata().get();
+            builder.appendItem(new ReportItem("CONSTRUCT QUERY NODE"));
+            builder.appendItem(new ReportItem("Node ID", constructMetadata.getNodeId()));
+            builder.appendItem(new ReportItem("Variable Order", constructMetadata.getVariableOrder().toString()));
+            builder.appendItem(new ReportItem("SPARQL", prettyFormatSparql(constructMetadata.getSparql())));
+            builder.appendItem(new ReportItem("Child Node ID", constructMetadata.getChildNodeId()));
+            builder.appendItem(new ReportItem("Construct Graph", constructMetadata.getConstructGraph().toString()));
+            builder.appendItem(new ReportItem("Count", "" + queryReport.getCount(constructMetadata.getNodeId())));
+        }
 
         for(final FilterMetadata filterMetadata : metadata.getFilterMetadata()) {
             builder.appendItem( new ReportItem("") );
@@ -69,8 +83,7 @@ public class QueryReportRenderer {
             builder.appendItem( new ReportItem("FILTER NODE") );
             builder.appendItem( new ReportItem("Node ID", filterMetadata.getNodeId()) );
             builder.appendItem( new ReportItem("Variable Order", filterMetadata.getVariableOrder().toString()) );
-            builder.appendItem( new ReportItem("Original SPARQL", prettyFormatSparql(  filterMetadata.getOriginalSparql()) ) );
-            builder.appendItem( new ReportItem("Filter Index", "" + filterMetadata.getFilterIndexWithinSparql()) );
+            builder.appendItem( new ReportItem("Filter SPARQL", prettyFormatSparql(  filterMetadata.getFilterSparql())));
             builder.appendItem( new ReportItem("Parent Node ID", filterMetadata.getParentNodeId()) );
             builder.appendItem( new ReportItem("Child Node ID", filterMetadata.getChildNodeId()) );
             builder.appendItem( new ReportItem("Count", "" + queryReport.getCount(filterMetadata.getNodeId())) );

@@ -31,6 +31,7 @@ import org.apache.rya.indexing.accumulo.ConfigUtils;
 import org.apache.rya.indexing.external.PrecomputedJoinIndexerConfig.PrecomputedJoinStorageType;
 import org.apache.rya.indexing.external.PrecomputedJoinIndexerConfig.PrecomputedJoinUpdaterType;
 import org.apache.rya.indexing.pcj.storage.PrecomputedJoinStorage;
+import org.apache.rya.indexing.pcj.storage.PrecomputedJoinStorage.CloseableIterator;
 import org.apache.rya.indexing.pcj.storage.accumulo.AccumuloPcjStorage;
 import org.apache.rya.sail.config.RyaSailFactory;
 import org.junit.Test;
@@ -63,7 +64,7 @@ public class AccumuloBatchUpdatePCJIT extends AccumuloITBase {
                 .build());
 
         Sail sail = null;
-        try {
+        try(final PrecomputedJoinStorage pcjStorage = new AccumuloPcjStorage(super.getConnector(), RYA_INSTANCE_NAME)) {
             // Get a Sail connection backed by the installed Rya instance.
             final AccumuloRdfConfiguration ryaConf = new AccumuloRdfConfiguration();
             ryaConf.setTablePrefix(RYA_INSTANCE_NAME);
@@ -102,7 +103,6 @@ public class AccumuloBatchUpdatePCJIT extends AccumuloITBase {
             sailConn.close();
 
             // Create a PCJ for a SPARQL query.
-            final PrecomputedJoinStorage pcjStorage = new AccumuloPcjStorage(super.getConnector(), RYA_INSTANCE_NAME);
             final String sparql = "SELECT ?name WHERE { ?name <urn:likes> <urn:icecream> . ?name <urn:hasEyeColor> <urn:blue> . }";
             final String pcjId = pcjStorage.createPcj(sparql);
 
@@ -137,8 +137,10 @@ public class AccumuloBatchUpdatePCJIT extends AccumuloITBase {
             expectedResults.add(bs);
 
             final Set<BindingSet> results = new HashSet<>();
-            for(final BindingSet result : pcjStorage.listResults(pcjId)) {
-                results.add( result );
+            try(CloseableIterator<BindingSet> resultsIt = pcjStorage.listResults(pcjId)) {
+                while(resultsIt.hasNext()) {
+                    results.add( resultsIt.next() );
+                }
             }
 
             assertEquals(expectedResults, results);

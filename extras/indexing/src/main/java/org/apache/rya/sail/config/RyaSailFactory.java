@@ -26,16 +26,7 @@ import java.util.Objects;
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
 import org.apache.accumulo.core.client.Connector;
-import org.apache.accumulo.core.client.Instance;
-import org.apache.accumulo.core.client.security.tokens.PasswordToken;
 import org.apache.hadoop.conf.Configuration;
-import org.openrdf.sail.Sail;
-import org.openrdf.sail.SailException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.mongodb.MongoClient;
-
 import org.apache.rya.accumulo.AccumuloRdfConfiguration;
 import org.apache.rya.accumulo.AccumuloRyaDAO;
 import org.apache.rya.accumulo.instance.AccumuloRyaInstanceDetailsRepository;
@@ -53,6 +44,12 @@ import org.apache.rya.mongodb.instance.MongoRyaInstanceDetailsRepository;
 import org.apache.rya.rdftriplestore.RdfCloudTripleStore;
 import org.apache.rya.rdftriplestore.inference.InferenceEngine;
 import org.apache.rya.rdftriplestore.inference.InferenceEngineException;
+import org.openrdf.sail.Sail;
+import org.openrdf.sail.SailException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.mongodb.MongoClient;
 
 public class RyaSailFactory {
     private static final Logger LOG = LoggerFactory.getLogger(RyaSailFactory.class);
@@ -90,7 +87,8 @@ public class RyaSailFactory {
                 RyaDetailsToConfiguration.addRyaDetailsToConfiguration(ryaDetailsRepo.getRyaInstanceDetails(), mongoConfig);
             } catch (final RyaDetailsRepositoryException e) {
                LOG.info("Instance does not have a rya details collection, skipping.");
-           }            dao = getMongoDAO((MongoDBRdfConfiguration)rdfConfig, client);
+           }
+            dao = getMongoDAO((MongoDBRdfConfiguration)rdfConfig, client);
         } else {
             rdfConfig = new AccumuloRdfConfiguration(config);
             user = rdfConfig.get(ConfigUtils.CLOUDBASE_USER);
@@ -133,24 +131,62 @@ public class RyaSailFactory {
         return dao;
     }
 
+    /**
+     * Creates AccumuloRyaDAO without updating the AccumuloRdfConfiguration.  This method does not force
+     * the user's configuration to be consistent with the Rya Instance configuration.  As a result, new index
+     * tables might be created when using this method.  This method does not require the {@link AccumuloRyaInstanceDetailsRepository}
+     * to exist.  This is for internal use, backwards compatibility and testing purposes only.  It is recommended that
+     * {@link RyaSailFactory#getAccumuloDAOWithUpdatedConfig(AccumuloRdfConfiguration)} be used for new installations of Rya.
+     * 
+     * @param config - user configuration
+     * @return - AccumuloRyaDAO with Indexers configured according to user's specification
+     * @throws AccumuloException
+     * @throws AccumuloSecurityException
+     * @throws RyaDAOException
+     */
     public static AccumuloRyaDAO getAccumuloDAO(final AccumuloRdfConfiguration config) throws AccumuloException, AccumuloSecurityException, RyaDAOException {
         final Connector connector = ConfigUtils.getConnector(config);
         final AccumuloRyaDAO dao = new AccumuloRyaDAO();
         dao.setConnector(connector);
 
         ConfigUtils.setIndexers(config);
-        config.setDisplayQueryPlan(true);
 
         dao.setConf(config);
         dao.init();
         return dao;
     }
+    
+    /**
+     * Creates an AccumuloRyaDAO after updating the AccumuloRdfConfiguration so that it is consistent
+     * with the configuration of the RyaInstance that the user is trying to connect to.  This ensures
+     * that user configuration aligns with Rya instance configuration and prevents the creation of 
+     * new index tables based on a user's query configuration.  This method requires the {@link AccumuloRyaInstanceDetailsRepository}
+     * to exist.
+     * 
+     * @param config - user's query configuration
+     * @return - AccumuloRyaDAO with an updated configuration that is consistent with the Rya instance configuration
+     * @throws AccumuloException
+     * @throws AccumuloSecurityException
+     * @throws RyaDAOException
+     */
+    public static AccumuloRyaDAO getAccumuloDAOWithUpdatedConfig(final AccumuloRdfConfiguration config) throws AccumuloException, AccumuloSecurityException, RyaDAOException {
+        
+        String ryaInstance = config.get(RdfCloudTripleStoreConfiguration.CONF_TBL_PREFIX);
+        Objects.requireNonNull(ryaInstance, "RyaInstance or table prefix is missing from configuration."+RdfCloudTripleStoreConfiguration.CONF_TBL_PREFIX);
+        String user = config.get(AccumuloRdfConfiguration.CLOUDBASE_USER);
+        String pswd = config.get(AccumuloRdfConfiguration.CLOUDBASE_PASSWORD);
+        Objects.requireNonNull(user, "Accumulo user name is missing from configuration."+AccumuloRdfConfiguration.CLOUDBASE_USER);
+        Objects.requireNonNull(pswd, "Accumulo user password is missing from configuration."+AccumuloRdfConfiguration.CLOUDBASE_PASSWORD);
+        config.setTableLayoutStrategy( new TablePrefixLayoutStrategy(ryaInstance) );
+        updateAccumuloConfig(config, user, pswd, ryaInstance);
+        
+        return getAccumuloDAO(config);
+    }
 
     public static void updateAccumuloConfig(final AccumuloRdfConfiguration config, final String user, final String pswd, final String ryaInstance) throws AccumuloException, AccumuloSecurityException {
         try {
-            final PasswordToken pswdToken = new PasswordToken(pswd);
-            final Instance accInst = ConfigUtils.getInstance(config);
-            final AccumuloRyaInstanceDetailsRepository ryaDetailsRepo = new AccumuloRyaInstanceDetailsRepository(accInst.getConnector(user, pswdToken), ryaInstance);
+            final Connector connector = ConfigUtils.getConnector(config);
+            final AccumuloRyaInstanceDetailsRepository ryaDetailsRepo = new AccumuloRyaInstanceDetailsRepository(connector, ryaInstance);
             RyaDetailsToConfiguration.addRyaDetailsToConfiguration(ryaDetailsRepo.getRyaInstanceDetails(), config);
         } catch(final RyaDetailsRepositoryException e) {
             LOG.info("Instance does not have a rya details collection, skipping.");

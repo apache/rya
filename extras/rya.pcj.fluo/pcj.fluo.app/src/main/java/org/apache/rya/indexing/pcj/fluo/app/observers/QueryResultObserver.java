@@ -23,26 +23,24 @@ import static org.apache.rya.indexing.pcj.fluo.app.IncrementalUpdateConstants.NO
 import java.util.HashMap;
 import java.util.Map;
 
-import org.apache.log4j.Logger;
-import org.apache.rya.indexing.pcj.fluo.app.export.IncrementalResultExporter;
-import org.apache.rya.indexing.pcj.fluo.app.export.IncrementalResultExporter.ResultExportException;
-import org.apache.rya.indexing.pcj.fluo.app.export.IncrementalResultExporterFactory;
-import org.apache.rya.indexing.pcj.fluo.app.export.IncrementalResultExporterFactory.IncrementalExporterFactoryException;
-import org.apache.rya.indexing.pcj.fluo.app.export.rya.RyaResultExporterFactory;
-import org.apache.rya.indexing.pcj.fluo.app.query.FluoQueryColumns;
-import org.apache.rya.indexing.pcj.fluo.app.query.FluoQueryMetadataDAO;
-import org.apache.rya.indexing.pcj.fluo.app.query.QueryMetadata;
-import org.apache.rya.indexing.pcj.storage.accumulo.VariableOrder;
-import org.apache.rya.indexing.pcj.storage.accumulo.VisibilityBindingSet;
-import org.apache.rya.indexing.pcj.storage.accumulo.VisibilityBindingSetStringConverter;
-
-import com.google.common.base.Optional;
-import com.google.common.collect.ImmutableSet;
 import org.apache.fluo.api.client.TransactionBase;
 import org.apache.fluo.api.data.Bytes;
 import org.apache.fluo.api.data.Column;
 import org.apache.fluo.api.observer.AbstractObserver;
+import org.apache.log4j.Logger;
 import org.apache.rya.accumulo.utils.VisibilitySimplifier;
+import org.apache.rya.indexing.pcj.fluo.app.export.IncrementalBindingSetExporter;
+import org.apache.rya.indexing.pcj.fluo.app.export.IncrementalBindingSetExporter.ResultExportException;
+import org.apache.rya.indexing.pcj.fluo.app.export.IncrementalBindingSetExporterFactory;
+import org.apache.rya.indexing.pcj.fluo.app.export.IncrementalBindingSetExporterFactory.IncrementalExporterFactoryException;
+import org.apache.rya.indexing.pcj.fluo.app.export.kafka.KafkaBindingSetExporterFactory;
+import org.apache.rya.indexing.pcj.fluo.app.export.rya.RyaBindingSetExporterFactory;
+import org.apache.rya.indexing.pcj.fluo.app.query.FluoQueryColumns;
+import org.apache.rya.indexing.pcj.storage.accumulo.VisibilityBindingSet;
+import org.apache.rya.indexing.pcj.storage.accumulo.VisibilityBindingSetSerDe;
+
+import com.google.common.base.Optional;
+import com.google.common.collect.ImmutableSet;
 
 /**
  * Performs incremental result exporting to the configured destinations.
@@ -50,13 +48,7 @@ import org.apache.rya.accumulo.utils.VisibilitySimplifier;
 public class QueryResultObserver extends AbstractObserver {
     private static final Logger log = Logger.getLogger(QueryResultObserver.class);
 
-    private static final FluoQueryMetadataDAO QUERY_DAO = new FluoQueryMetadataDAO();
-    private static final VisibilityBindingSetStringConverter CONVERTER = new VisibilityBindingSetStringConverter();
-
-    /**
-     * Simplifies Visibility expressions prior to exporting PCJ results.
-     */
-    private static final VisibilitySimplifier SIMPLIFIER = new VisibilitySimplifier();
+    private static final VisibilityBindingSetSerDe BS_SERDE = new VisibilityBindingSetSerDe();
 
     /**
      * We expect to see the same expressions a lot, so we cache the simplified forms.
@@ -66,15 +58,16 @@ public class QueryResultObserver extends AbstractObserver {
     /**
      * Builders for each type of result exporter we support.
      */
-    private static final ImmutableSet<IncrementalResultExporterFactory> factories =
-            ImmutableSet.<IncrementalResultExporterFactory>builder()
-                .add(new RyaResultExporterFactory())
+    private static final ImmutableSet<IncrementalBindingSetExporterFactory> factories =
+            ImmutableSet.<IncrementalBindingSetExporterFactory>builder()
+                .add(new RyaBindingSetExporterFactory())
+                .add(new KafkaBindingSetExporterFactory())
                 .build();
 
     /**
      * The exporters that are configured.
      */
-    private ImmutableSet<IncrementalResultExporter> exporters = null;
+    private ImmutableSet<IncrementalBindingSetExporter> exporters = null;
 
     @Override
     public ObservedColumn getObservedColumn() {
@@ -86,11 +79,13 @@ public class QueryResultObserver extends AbstractObserver {
      */
     @Override
     public void init(final Context context) {
-        final ImmutableSet.Builder<IncrementalResultExporter> exportersBuilder = ImmutableSet.builder();
+        final ImmutableSet.Builder<IncrementalBindingSetExporter> exportersBuilder = ImmutableSet.builder();
 
-        for(final IncrementalResultExporterFactory builder : factories) {
+        for(final IncrementalBindingSetExporterFactory builder : factories) {
             try {
-                final Optional<IncrementalResultExporter> exporter = builder.build(context);
+                log.debug("QueryResultObserver.init(): for each exportersBuilder=" + builder);
+
+                final Optional<IncrementalBindingSetExporter> exporter = builder.build(context);
                 if(exporter.isPresent()) {
                     exportersBuilder.add(exporter.get());
                 }
@@ -103,36 +98,43 @@ public class QueryResultObserver extends AbstractObserver {
     }
 
     @Override
-    public void process(final TransactionBase tx, final Bytes brow, final Column col) {
+    public void process(final TransactionBase tx, final Bytes brow, final Column col) throws Exception {
         final String row = brow.toString();
-        
+
         // Read the SPARQL query and it Binding Set from the row id.
-        final String[] queryAndBindingSet = row.split(NODEID_BS_DELIM);
-        final String queryId = queryAndBindingSet[0];
-        final String bindingSetString = tx.gets(row, col);
+        final String queryId = row.split(NODEID_BS_DELIM)[0];
 
-        // Fetch the query's Variable Order from the Fluo table.
-        final QueryMetadata queryMetadata = QUERY_DAO.readQueryMetadata(tx, queryId);
-        final VariableOrder varOrder = queryMetadata.getVariableOrder();
-
-        // Create the result that will be exported.
-        final VisibilityBindingSet result = CONVERTER.convert(bindingSetString, varOrder);
+        // Read the Child Binding Set that will be exported.
+        final Bytes valueBytes = tx.get(brow, col);
+        final VisibilityBindingSet result = BS_SERDE.deserialize(valueBytes);
 
         // Simplify the result's visibilities.
         final String visibility = result.getVisibility();
         if(!simplifiedVisibilities.containsKey(visibility)) {
-            final String simplified = SIMPLIFIER.simplify( visibility );
+            final String simplified = VisibilitySimplifier.simplify( visibility );
             simplifiedVisibilities.put(visibility, simplified);
         }
-
         result.setVisibility( simplifiedVisibilities.get(visibility) );
 
         // Export the result using each of the provided exporters.
-        for(final IncrementalResultExporter exporter : exporters) {
+        for(final IncrementalBindingSetExporter exporter : exporters) {
             try {
                 exporter.export(tx, queryId, result);
             } catch (final ResultExportException e) {
-                log.error("Could not export a binding set for query '" + queryId + "'. Binding Set: " + bindingSetString);
+                log.error("Could not export a binding set for query '" + queryId + "'. Binding Set: " + result, e);
+            }
+        }
+    }
+
+    @Override
+    public void close() {
+        if(exporters != null) {
+            for(final IncrementalBindingSetExporter exporter : exporters) {
+                try {
+                    exporter.close();
+                } catch(final Exception e) {
+                    log.warn("Problem encountered while closing one of the exporters.", e);
+                }
             }
         }
     }

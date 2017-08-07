@@ -4,9 +4,11 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.hadoop.conf.Configuration;
+import org.apache.rya.indexing.external.tupleSet.ExternalTupleSet;
 import org.joda.time.DateTime;
 import org.openrdf.model.Statement;
 import org.openrdf.model.URI;
+import org.openrdf.model.Value;
 import org.openrdf.model.impl.URIImpl;
 import org.openrdf.query.BindingSet;
 import org.openrdf.query.QueryEvaluationException;
@@ -35,7 +37,6 @@ import com.google.common.collect.Maps;
  */
 
 import info.aduna.iteration.CloseableIteration;
-import org.apache.rya.indexing.external.tupleSet.ExternalTupleSet;
 
 //Indexing Node for temporal expressions to be inserted into execution plan
 //to delegate temporal portion of query to temporal index
@@ -111,24 +112,24 @@ public class TemporalTupleSet extends ExternalTupleSet {
     public CloseableIteration<BindingSet, QueryEvaluationException> evaluate(final BindingSet bindings)
             throws QueryEvaluationException {
         final URI funcURI = filterInfo.getFunction();
-        final SearchFunction searchFunction = (new TemporalSearchFunctionFactory(conf)).getSearchFunction(funcURI);
+        final SearchFunction searchFunction = new TemporalSearchFunctionFactory(conf, temporalIndexer).getSearchFunction(funcURI);
 
         if(filterInfo.getArguments().length > 1) {
             throw new IllegalArgumentException("Index functions do not support more than two arguments.");
         }
 
-        final String queryText = filterInfo.getArguments()[0].stringValue();
+        final String queryText = ((Value) filterInfo.getArguments()[0]).stringValue();
         return IteratorFactory.getIterator(filterInfo.getSpConstraint(), bindings, queryText, searchFunction);
     }
 
     //returns appropriate search function for a given URI
     //search functions used by TemporalIndexer to query Temporal Index
-    private class TemporalSearchFunctionFactory  {
+    public static class TemporalSearchFunctionFactory  {
         private final Map<URI, SearchFunction> SEARCH_FUNCTION_MAP = Maps.newHashMap();
-        Configuration conf;
+        private final TemporalIndexer temporalIndexer;
 
-        public TemporalSearchFunctionFactory(final Configuration conf) {
-            this.conf = conf;
+        public TemporalSearchFunctionFactory(final Configuration conf, final TemporalIndexer temporalIndexer) {
+            this.temporalIndexer = temporalIndexer;
         }
 
         /**

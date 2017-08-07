@@ -33,7 +33,6 @@ import org.apache.rya.api.client.InstanceExists;
 import org.apache.rya.api.client.LoadStatementsFile;
 import org.apache.rya.api.client.RyaClientException;
 import org.apache.rya.api.persist.RyaDAOException;
-import org.apache.rya.indexing.accumulo.ConfigUtils;
 import org.apache.rya.rdftriplestore.inference.InferenceEngineException;
 import org.apache.rya.sail.config.RyaSailFactory;
 import org.openrdf.repository.RepositoryException;
@@ -41,6 +40,7 @@ import org.openrdf.repository.sail.SailRepository;
 import org.openrdf.repository.sail.SailRepositoryConnection;
 import org.openrdf.rio.RDFFormat;
 import org.openrdf.rio.RDFParseException;
+import org.openrdf.rio.UnsupportedRDFormatException;
 import org.openrdf.sail.Sail;
 import org.openrdf.sail.SailException;
 
@@ -86,25 +86,20 @@ public class AccumuloLoadStatementsFile extends AccumuloCommand implements LoadS
 
         try {
             // Get a Sail object that is connected to the Rya instance.
-            final AccumuloConnectionDetails connDetails = getAccumuloConnectionDetails();
-
-            final AccumuloRdfConfiguration ryaConf = new AccumuloRdfConfiguration();
-            ryaConf.setTablePrefix( ryaInstanceName );
-            ryaConf.set(ConfigUtils.CLOUDBASE_ZOOKEEPERS, connDetails.getZookeepers());
-            ryaConf.set(ConfigUtils.CLOUDBASE_INSTANCE, connDetails.getInstanceName());
-            ryaConf.set(ConfigUtils.CLOUDBASE_USER, connDetails.getUsername());
-            ryaConf.set(ConfigUtils.CLOUDBASE_PASSWORD, new String(connDetails.getPassword()));
-
+            final AccumuloRdfConfiguration ryaConf = getAccumuloConnectionDetails().buildAccumuloRdfConfiguration(ryaInstanceName);
+            ryaConf.setFlush(false); //RYA-327 should address this hardcoded value.
             sail = RyaSailFactory.getInstance(ryaConf);
 
             // Load the file.
-            sailRepo = new SailRepository( sail );
+            sailRepo = new SailRepository(sail);
             sailRepoConn = sailRepo.getConnection();
             sailRepoConn.add(statementsFile.toFile(), null, format);
 
         } catch (final SailException | AccumuloException | AccumuloSecurityException | RyaDAOException | InferenceEngineException  e) {
+            log.warn("Exception while loading:", e);
             throw new RyaClientException("A problem connecting to the Rya instance named '" + ryaInstanceName + "' has caused the load to fail.", e);
-        } catch (final RepositoryException | RDFParseException | IOException e) {
+        } catch (final RepositoryException | RDFParseException | UnsupportedRDFormatException | IOException e) {
+            log.warn("Exception while loading:", e);
             throw new RyaClientException("A problem processing the RDF file has caused the load into Rya instance named " + ryaInstanceName + "to fail.", e);
         } finally {
             // Shut it all down.

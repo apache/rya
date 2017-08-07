@@ -22,9 +22,6 @@ import static java.util.Objects.requireNonNull;
 
 import java.util.Date;
 
-import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
-import edu.umd.cs.findbugs.annotations.NonNull;
-
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
 import org.apache.accumulo.core.client.Connector;
@@ -54,6 +51,9 @@ import org.openrdf.sail.Sail;
 import org.openrdf.sail.SailException;
 
 import com.google.common.base.Optional;
+
+import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
+import edu.umd.cs.findbugs.annotations.NonNull;
 
 /**
  * An Accumulo implementation of the {@link Install} command.
@@ -194,6 +194,11 @@ public class AccumuloInstall extends AccumuloCommand implements Install {
          * RYA-215
          * conf.set(ConfigUtils.USE_GEO, "" + details.getGeoIndexDetails().isEnabled() );
          */
+
+        /**
+         * RYA-322
+         * conf.setPrefixRowsWithHash(details.getPrefixRowsWithHashDetails().isEnabled());
+         */
         conf.set(ConfigUtils.USE_FREETEXT, "" + details.getFreeTextIndexDetails().isEnabled() );
         conf.set(ConfigUtils.USE_TEMPORAL, "" + details.getTemporalIndexDetails().isEnabled() );
         conf.set(ConfigUtils.USE_ENTITY, "" + details.getEntityCentricIndexDetails().isEnabled());
@@ -204,6 +209,7 @@ public class AccumuloInstall extends AccumuloCommand implements Install {
         final Optional<FluoDetails> fluoHolder = details.getPCJIndexDetails().getFluoDetails();
         final PrecomputedJoinUpdaterType updaterType = fluoHolder.isPresent() ? PrecomputedJoinUpdaterType.FLUO : PrecomputedJoinUpdaterType.NO_UPDATE;
         conf.set(ConfigUtils.PCJ_UPDATER_TYPE, updaterType.toString());
+
 
         // XXX The Accumulo implementation of the secondary indices make need all
         //     of the accumulo connector's parameters to initialize themselves, so

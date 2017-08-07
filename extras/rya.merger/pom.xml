@@ -133,11 +133,6 @@ under the License.
          </dependency>
 
         <dependency>
-            <groupId>commons-httpclient</groupId>
-            <artifactId>commons-httpclient</artifactId>
-        </dependency>
-
-        <dependency>
             <groupId>com.beust</groupId>
             <artifactId>jcommander</artifactId>
          </dependency>

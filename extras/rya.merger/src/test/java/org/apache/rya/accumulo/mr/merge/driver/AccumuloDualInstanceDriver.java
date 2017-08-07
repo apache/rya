@@ -34,13 +34,12 @@ import org.apache.accumulo.core.client.mock.MockInstance;
 import org.apache.accumulo.core.security.Authorizations;
 import org.apache.accumulo.core.security.ColumnVisibility;
 import org.apache.accumulo.minicluster.MiniAccumuloCluster;
-
+import org.apache.log4j.Logger;
 import org.apache.rya.accumulo.AccumuloRdfConfiguration;
 import org.apache.rya.accumulo.AccumuloRyaDAO;
 import org.apache.rya.accumulo.mr.merge.util.AccumuloInstanceDriver;
 import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.persist.RyaDAOException;
-import twitter4j.Logger;
 
 /**
  * Handles running a {@link MiniAccumuloCluster} or a {@link MockInstance} for a parent and child instance for testing.

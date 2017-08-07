@@ -27,17 +27,30 @@ import org.apache.accumulo.core.security.Authorizations;
 import org.apache.accumulo.minicluster.MiniAccumuloCluster;
 import org.apache.accumulo.minicluster.MiniAccumuloConfig;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.fluo.api.client.FluoAdmin;
+import org.apache.fluo.api.client.FluoAdmin.AlreadyInitializedException;
+import org.apache.fluo.api.client.FluoAdmin.TableExistsException;
+import org.apache.fluo.api.client.FluoFactory;
+import org.apache.fluo.api.config.FluoConfiguration;
+import org.apache.fluo.api.config.ObserverSpecification;
+import org.apache.fluo.api.mini.MiniFluo;
 import org.apache.log4j.ConsoleAppender;
 import org.apache.log4j.Level;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 import org.apache.log4j.PatternLayout;
+import org.apache.rya.api.client.Install.InstallConfiguration;
+import org.apache.rya.api.client.RyaClient;
+import org.apache.rya.api.client.accumulo.AccumuloConnectionDetails;
+import org.apache.rya.api.client.accumulo.AccumuloRyaClientFactory;
+import org.apache.rya.indexing.accumulo.AccumuloIndexingConfiguration;
 import org.apache.rya.indexing.pcj.fluo.app.export.rya.RyaExportParameters;
 import org.apache.rya.indexing.pcj.fluo.app.observers.FilterObserver;
 import org.apache.rya.indexing.pcj.fluo.app.observers.JoinObserver;
 import org.apache.rya.indexing.pcj.fluo.app.observers.QueryResultObserver;
 import org.apache.rya.indexing.pcj.fluo.app.observers.StatementPatternObserver;
 import org.apache.rya.indexing.pcj.fluo.app.observers.TripleObserver;
+import org.apache.rya.sail.config.RyaSailFactory;
 import org.apache.zookeeper.ClientCnxn;
 import org.openrdf.model.Statement;
 import org.openrdf.model.ValueFactory;
@@ -53,23 +66,8 @@ import com.beust.jcommander.internal.Lists;
 import com.google.common.io.Files;
 
 import info.aduna.iteration.CloseableIteration;
-import org.apache.fluo.api.client.FluoAdmin;
-import org.apache.fluo.api.client.FluoAdmin.AlreadyInitializedException;
-import org.apache.fluo.api.client.FluoAdmin.TableExistsException;
-import org.apache.fluo.api.client.FluoFactory;
-import org.apache.fluo.api.config.FluoConfiguration;
-import org.apache.fluo.api.config.ObserverSpecification;
-import org.apache.fluo.api.mini.MiniFluo;
-import org.apache.rya.accumulo.AccumuloRdfConfiguration;
-import org.apache.rya.api.client.Install.InstallConfiguration;
-import org.apache.rya.api.client.RyaClient;
-import org.apache.rya.api.client.accumulo.AccumuloConnectionDetails;
-import org.apache.rya.api.client.accumulo.AccumuloRyaClientFactory;
-import org.apache.rya.indexing.accumulo.ConfigUtils;
-import org.apache.rya.indexing.external.PrecomputedJoinIndexerConfig;
-import org.apache.rya.sail.config.RyaSailFactory;
 
-/**
+/**  
  * Demonstrates how a {@link RyaClient} may be used to interact with an instance
  * of Accumulo to install and manage a Rya instance.
  */
@@ -132,18 +130,17 @@ public class RyaClientExample {
                      "}";
 
             // Load some statements into the Rya instance.
-            final AccumuloRdfConfiguration conf = new AccumuloRdfConfiguration();
-            conf.setTablePrefix(ryaInstanceName);
-            conf.set(ConfigUtils.CLOUDBASE_USER, accumuloUsername);
-            conf.set(ConfigUtils.CLOUDBASE_PASSWORD, accumuloPassword);
-            conf.set(ConfigUtils.CLOUDBASE_INSTANCE, cluster.getInstanceName());
-            conf.set(ConfigUtils.CLOUDBASE_ZOOKEEPERS, cluster.getZooKeepers());
-            conf.set(ConfigUtils.CLOUDBASE_AUTHS, "U");
-            conf.set(ConfigUtils.USE_PCJ_FLUO_UPDATER, "true");
-            conf.set(ConfigUtils.FLUO_APP_NAME, fluoAppName);
-            conf.set(ConfigUtils.PCJ_STORAGE_TYPE, PrecomputedJoinIndexerConfig.PrecomputedJoinStorageType.ACCUMULO.toString());
-            conf.set(ConfigUtils.PCJ_UPDATER_TYPE, PrecomputedJoinIndexerConfig.PrecomputedJoinUpdaterType.FLUO.toString());
-
+            
+            AccumuloIndexingConfiguration conf = AccumuloIndexingConfiguration.builder()
+        			.setAuths("U")
+        			.setAccumuloUser(accumuloUsername)
+        			.setAccumuloPassword(accumuloPassword)
+        			.setAccumuloInstance(cluster.getInstanceName())
+        			.setAccumuloZooKeepers(cluster.getZooKeepers())
+        			.setRyaPrefix(ryaInstanceName)
+        			.setPcjUpdaterFluoAppName(fluoAppName)
+        			.build();
+            
             ryaSail = RyaSailFactory.getInstance(conf);
 
             final ValueFactory vf = ryaSail.getValueFactory();

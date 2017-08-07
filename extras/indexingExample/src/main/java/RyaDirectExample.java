@@ -19,20 +19,33 @@
 
 import java.net.UnknownHostException;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
 import org.apache.accumulo.core.client.Connector;
+import org.apache.accumulo.core.client.Scanner;
 import org.apache.accumulo.core.client.TableExistsException;
 import org.apache.accumulo.core.client.TableNotFoundException;
 import org.apache.accumulo.core.client.mock.MockInstance;
 import org.apache.accumulo.core.client.security.tokens.PasswordToken;
+import org.apache.accumulo.core.data.Key;
+import org.apache.accumulo.core.data.Value;
+import org.apache.accumulo.core.security.Authorizations;
 import org.apache.commons.lang.Validate;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.log4j.Logger;
+import org.apache.rya.accumulo.AccumuloRdfConfiguration;
+import org.apache.rya.api.persist.RyaDAOException;
+import org.apache.rya.indexing.accumulo.AccumuloIndexingConfiguration;
+import org.apache.rya.indexing.accumulo.ConfigUtils;
+import org.apache.rya.indexing.external.PrecomputedJoinIndexerConfig;
+import org.apache.rya.indexing.external.PrecomputedJoinIndexerConfig.PrecomputedJoinStorageType;
 import org.apache.rya.indexing.pcj.storage.PcjException;
 import org.apache.rya.indexing.pcj.storage.accumulo.PcjTables;
 import org.apache.rya.indexing.pcj.storage.accumulo.PcjVarOrderFactory;
+import org.apache.rya.rdftriplestore.inference.InferenceEngineException;
+import org.apache.rya.sail.config.RyaSailFactory;
 import org.openrdf.model.URI;
 import org.openrdf.model.ValueFactory;
 import org.openrdf.model.impl.LiteralImpl;
@@ -57,16 +70,6 @@ import org.openrdf.sail.SailException;
 
 import com.google.common.base.Optional;
 
-import org.apache.rya.accumulo.AccumuloRdfConfiguration;
-import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
-import org.apache.rya.api.persist.RyaDAOException;
-import org.apache.rya.indexing.GeoConstants;
-import org.apache.rya.indexing.accumulo.ConfigUtils;
-import org.apache.rya.indexing.external.PrecomputedJoinIndexerConfig;
-import org.apache.rya.indexing.external.PrecomputedJoinIndexerConfig.PrecomputedJoinStorageType;
-import org.apache.rya.rdftriplestore.inference.InferenceEngineException;
-import org.apache.rya.sail.config.RyaSailFactory;
-
 public class RyaDirectExample {
 	private static final Logger log = Logger.getLogger(RyaDirectExample.class);
 
@@ -82,6 +85,7 @@ public class RyaDirectExample {
 
 	public static void main(final String[] args) throws Exception {
 		final Configuration conf = getConf();
+		conf.set(PrecomputedJoinIndexerConfig.PCJ_STORAGE_TYPE, PrecomputedJoinStorageType.ACCUMULO.name());
 		conf.setBoolean(ConfigUtils.DISPLAY_QUERY_PLAN, PRINT_QUERIES);
 
 		log.info("Creating the tables as root.");
@@ -149,24 +153,19 @@ public class RyaDirectExample {
 
 	private static Configuration getConf() {
 
-		final AccumuloRdfConfiguration conf = new AccumuloRdfConfiguration();
-
-		conf.setBoolean(ConfigUtils.USE_MOCK_INSTANCE, USE_MOCK_INSTANCE);
-		conf.set(ConfigUtils.USE_PCJ, "true");
-		conf.set(ConfigUtils.USE_FREETEXT, "true");
-		conf.set(ConfigUtils.USE_TEMPORAL, "true");
-		conf.set(PrecomputedJoinIndexerConfig.PCJ_STORAGE_TYPE, PrecomputedJoinStorageType.ACCUMULO.name());
-		conf.set(RdfCloudTripleStoreConfiguration.CONF_TBL_PREFIX, RYA_TABLE_PREFIX);
-		conf.set(ConfigUtils.CLOUDBASE_USER, "root");
-		conf.set(ConfigUtils.CLOUDBASE_PASSWORD, "");
-		conf.set(ConfigUtils.CLOUDBASE_INSTANCE, INSTANCE);
-		conf.setInt(ConfigUtils.NUM_PARTITIONS, 3);
-		conf.set(ConfigUtils.CLOUDBASE_AUTHS, AUTHS);
-
-		// only geo index statements with geo:asWKT predicates
-		conf.set(ConfigUtils.GEO_PREDICATES_LIST,
-				GeoConstants.GEO_AS_WKT.stringValue());
-		return conf;
+		
+		return AccumuloIndexingConfiguration.builder()
+			.setUseMockAccumulo(USE_MOCK_INSTANCE)
+			.setAuths(AUTHS)
+			.setAccumuloUser("root")
+			.setAccumuloPassword("")
+			.setAccumuloInstance(INSTANCE)
+			.setRyaPrefix(RYA_TABLE_PREFIX)
+			.setUsePcj(true)
+			.setUseAccumuloFreetextIndex(true)
+			.setUseAccumuloTemporalIndex(true)
+			.build();
+		
 	}
 
 	public static void testAddAndDelete(final SailRepositoryConnection conn)
@@ -729,7 +728,7 @@ public class RyaDirectExample {
 			throws RepositoryException, AccumuloException,
 			AccumuloSecurityException, TableExistsException, PcjException,
 			InferenceEngineException, NumberFormatException,
-			UnknownHostException, SailException {
+			UnknownHostException, SailException, TableNotFoundException {
 
 		final Configuration config = new AccumuloRdfConfiguration(conf);
 		config.set(ConfigUtils.USE_PCJ, "false");
@@ -785,6 +784,7 @@ public class RyaDirectExample {
 			new PcjTables().createAndPopulatePcj(conn, accCon, tablename2,
 					queryString2, new String[] { "e", "c", "l", "o" },
 					Optional.<PcjVarOrderFactory> absent());
+			
 		} catch (final RyaDAOException e) {
 			throw new Error("While creating PCJ tables.",e);
 		} finally {

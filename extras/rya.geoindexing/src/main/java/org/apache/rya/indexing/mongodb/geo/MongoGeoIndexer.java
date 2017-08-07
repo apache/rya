@@ -20,22 +20,25 @@ package org.apache.rya.indexing.mongodb.geo;
 
 import static org.apache.rya.indexing.mongodb.geo.GeoMongoDBStorageStrategy.GeoQueryType.EQUALS;
 import static org.apache.rya.indexing.mongodb.geo.GeoMongoDBStorageStrategy.GeoQueryType.INTERSECTS;
+import static org.apache.rya.indexing.mongodb.geo.GeoMongoDBStorageStrategy.GeoQueryType.NEAR;
 import static org.apache.rya.indexing.mongodb.geo.GeoMongoDBStorageStrategy.GeoQueryType.WITHIN;
 
 import org.apache.log4j.Logger;
+import org.apache.rya.indexing.GeoIndexer;
+import org.apache.rya.indexing.StatementConstraints;
+import org.apache.rya.indexing.accumulo.ConfigUtils;
+import org.apache.rya.indexing.accumulo.geo.GeoTupleSet.GeoSearchFunctionFactory.NearQuery;
+import org.apache.rya.indexing.mongodb.AbstractMongoIndexer;
+import org.apache.rya.indexing.mongodb.geo.GeoMongoDBStorageStrategy.GeoQuery;
+import org.apache.rya.mongodb.MongoDBRdfConfiguration;
 import org.openrdf.model.Statement;
+import org.openrdf.query.MalformedQueryException;
 import org.openrdf.query.QueryEvaluationException;
 
 import com.mongodb.DBObject;
 import com.vividsolutions.jts.geom.Geometry;
 
 import info.aduna.iteration.CloseableIteration;
-import org.apache.rya.indexing.GeoIndexer;
-import org.apache.rya.indexing.StatementConstraints;
-import org.apache.rya.indexing.accumulo.ConfigUtils;
-import org.apache.rya.indexing.mongodb.AbstractMongoIndexer;
-import org.apache.rya.indexing.mongodb.geo.GeoMongoDBStorageStrategy.GeoQuery;
-import org.apache.rya.mongodb.MongoDBRdfConfiguration;
 
 public class MongoGeoIndexer extends AbstractMongoIndexer<GeoMongoDBStorageStrategy> implements GeoIndexer {
     private static final String COLLECTION_SUFFIX = "geo";
@@ -45,6 +48,9 @@ public class MongoGeoIndexer extends AbstractMongoIndexer<GeoMongoDBStorageStrat
 	public void init() {
         initCore();
         predicates = ConfigUtils.getGeoPredicates(conf);
+        if(predicates.size() == 0) {
+            logger.debug("No predicates specified for geo indexing.  During insertion, all statements will be attempted to be indexed into the geo indexer.");
+        }
         storageStrategy = new GeoMongoDBStorageStrategy(Double.valueOf(conf.get(MongoDBRdfConfiguration.MONGO_GEO_MAXDISTANCE, "1e-10")));
         storageStrategy.createIndices(collection);
     }
@@ -52,8 +58,13 @@ public class MongoGeoIndexer extends AbstractMongoIndexer<GeoMongoDBStorageStrat
     @Override
     public CloseableIteration<Statement, QueryEvaluationException> queryEquals(
             final Geometry query, final StatementConstraints constraints) {
-        final DBObject queryObj = storageStrategy.getQuery(new GeoQuery(EQUALS, query));
-        return withConstraints(constraints, queryObj);
+        try {
+            final DBObject queryObj = storageStrategy.getQuery(new GeoQuery(EQUALS, query));
+            return withConstraints(constraints, queryObj);
+        } catch (final MalformedQueryException e) {
+            logger.error(e.getMessage(), e);
+            return null;
+        }
     }
 
     @Override
@@ -66,8 +77,13 @@ public class MongoGeoIndexer extends AbstractMongoIndexer<GeoMongoDBStorageStrat
     @Override
     public CloseableIteration<Statement, QueryEvaluationException> queryIntersects(
             final Geometry query, final StatementConstraints constraints) {
-        final DBObject queryObj = storageStrategy.getQuery(new GeoQuery(INTERSECTS, query));
-        return withConstraints(constraints, queryObj);
+        try {
+            final DBObject queryObj = storageStrategy.getQuery(new GeoQuery(INTERSECTS, query));
+            return withConstraints(constraints, queryObj);
+        } catch (final MalformedQueryException e) {
+            logger.error(e.getMessage(), e);
+            return null;
+        }
     }
 
     @Override
@@ -87,8 +103,34 @@ public class MongoGeoIndexer extends AbstractMongoIndexer<GeoMongoDBStorageStrat
     @Override
     public CloseableIteration<Statement, QueryEvaluationException> queryWithin(
             final Geometry query, final StatementConstraints constraints) {
-        final DBObject queryObj = storageStrategy.getQuery(new GeoQuery(WITHIN, query));
-        return withConstraints(constraints, queryObj);
+        try {
+            final DBObject queryObj = storageStrategy.getQuery(new GeoQuery(WITHIN, query));
+            return withConstraints(constraints, queryObj);
+        } catch (final MalformedQueryException e) {
+            logger.error(e.getMessage(), e);
+            return null;
+        }
+    }
+
+    @Override
+    public CloseableIteration<Statement, QueryEvaluationException> queryNear(final NearQuery query, final StatementConstraints constraints) {
+        double maxDistance = 0;
+        double minDistance = 0;
+        if (query.getMaxDistance().isPresent()) {
+            maxDistance = query.getMaxDistance().get();
+        }
+
+        if (query.getMinDistance().isPresent()) {
+            minDistance = query.getMinDistance().get();
+        }
+
+        try {
+            final DBObject queryObj = storageStrategy.getQuery(new GeoQuery(NEAR, query.getGeometry(), maxDistance, minDistance));
+            return withConstraints(constraints, queryObj);
+        } catch (final MalformedQueryException e) {
+            logger.error(e.getMessage(), e);
+            return null;
+        }
     }
 
     @Override

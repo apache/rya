@@ -19,14 +19,16 @@ package org.apache.rya.accumulo;
  * under the License.
  */
 
-
-
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Properties;
 
 import org.apache.accumulo.core.client.IteratorSetting;
 import org.apache.accumulo.core.security.Authorizations;
@@ -39,7 +41,7 @@ public class AccumuloRdfConfigurationTest {
 
     @Test
     public void testAuths() {
-        String[] arr = {"U", "FOUO"};
+        String[] arr = { "U", "FOUO" };
         String str = "U,FOUO";
         Authorizations auths = new Authorizations(arr);
 
@@ -72,4 +74,85 @@ public class AccumuloRdfConfigurationTest {
         assertEquals(setting, iteratorSettings[0]);
 
     }
+
+    @Test
+    public void testBuilder() {
+        String prefix = "rya_";
+        String auth = "U";
+        String visibility = "U";
+        String user = "user";
+        String password = "password";
+        String instance = "instance";
+        String zookeeper = "zookeeper";
+        boolean useMock = false;
+        boolean useComposite = true;
+        boolean usePrefixHash = true;
+        boolean useInference = true;
+        boolean displayPlan = false;
+
+        AccumuloRdfConfiguration conf = new AccumuloRdfConfiguration().getBuilder()//
+                .setAuths(auth)//
+                .setVisibilities(visibility)//
+                .setRyaPrefix(prefix)//
+                .setUseInference(useInference)//
+                .setUseCompositeCardinality(useComposite)//
+                .setDisplayQueryPlan(displayPlan)//
+                .setAccumuloInstance(instance)//
+                .setAccumuloPassword(password)//
+                .setAccumuloUser(user)//
+                .setAccumuloZooKeepers(zookeeper)//
+                .setUseMockAccumulo(useMock)//
+                .setUseAccumuloPrefixHashing(usePrefixHash)//
+                .build();
+
+        assertEquals(conf.getTablePrefix(), prefix);
+        assertEquals(conf.getCv(), visibility);
+        assertEquals(conf.getAuthorizations(), new Authorizations(auth));
+        assertEquals(conf.isInfer(), useInference);
+        assertEquals(conf.isUseCompositeCardinality(), useComposite);
+        assertEquals(conf.isDisplayQueryPlan(), displayPlan);
+        assertEquals(conf.getAccumuloInstance(), instance);
+        assertEquals(conf.getAccumuloPassword(), password);
+        assertEquals(conf.getAccumuloUser(), user);
+        assertEquals(conf.getAccumuloZookeepers(), zookeeper);
+        assertEquals(conf.getUseMockAccumulo(), useMock);
+        assertEquals(conf.isPrefixRowsWithHash(), usePrefixHash);
+
+    }
+
+    @Test
+    public void testBuilderFromProperties() throws FileNotFoundException, IOException {
+        String prefix = "rya_";
+        String auth = "U";
+        String visibility = "U";
+        String user = "user";
+        String password = "password";
+        String instance = "instance";
+        String zookeeper = "zookeeper";
+        boolean useMock = false;
+        boolean useComposite = true;
+        boolean usePrefixHash = true;
+        boolean useInference = true;
+        boolean displayPlan = false;
+
+        Properties props = new Properties();
+        props.load(new FileInputStream("src/test/resources/properties/rya.properties"));
+
+        AccumuloRdfConfiguration conf = AccumuloRdfConfiguration.fromProperties(props);
+
+        assertEquals(conf.getTablePrefix(), prefix);
+        assertEquals(conf.getCv(), visibility);
+        assertEquals(conf.getAuthorizations(), new Authorizations(auth));
+        assertEquals(conf.isInfer(), useInference);
+        assertEquals(conf.isUseCompositeCardinality(), useComposite);
+        assertEquals(conf.isDisplayQueryPlan(), displayPlan);
+        assertEquals(conf.getAccumuloInstance(), instance);
+        assertEquals(conf.getAccumuloPassword(), password);
+        assertEquals(conf.getAccumuloUser(), user);
+        assertEquals(conf.getAccumuloZookeepers(), zookeeper);
+        assertEquals(conf.getUseMockAccumulo(), useMock);
+        assertEquals(conf.isPrefixRowsWithHash(), usePrefixHash);
+
+    }
+
 }

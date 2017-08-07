@@ -6,6 +6,7 @@ import java.util.Set;
 import org.apache.hadoop.conf.Configuration;
 import org.openrdf.model.Statement;
 import org.openrdf.model.URI;
+import org.openrdf.model.Value;
 import org.openrdf.query.BindingSet;
 import org.openrdf.query.QueryEvaluationException;
 
@@ -118,8 +119,8 @@ public class MongoGeoTupleSet extends ExternalTupleSet {
         if(filterInfo.getArguments().length > 1) {
             throw new IllegalArgumentException("Index functions do not support more than two arguments.");
         }
-        
-        String queryText = filterInfo.getArguments()[0].stringValue();
+
+        String queryText = ((Value) filterInfo.getArguments()[0]).stringValue();
         
         return IteratorFactory.getIterator(filterInfo.getSpConstraint(), bindings, queryText, searchFunction);
     }

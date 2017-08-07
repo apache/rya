@@ -38,10 +38,8 @@ public class FluoStringConverterTest {
         // Setup a StatementPattern that represents "?x <http://worksAt> <http://Chipotle>."
         final Var subject = new Var("x");
         final Var predicate = new Var("-const-http://worksAt", new URIImpl("http://worksAt"));
-        predicate.setAnonymous(true);
         predicate.setConstant(true);
         final Var object = new Var("-const-http://Chipotle", new URIImpl("http://Chipotle"));
-        object.setAnonymous(true);
         object.setConstant(true);
         final StatementPattern pattern = new StatementPattern(subject, predicate, object);
 
@@ -69,10 +67,8 @@ public class FluoStringConverterTest {
         // Enusre it converted to the expected result.
         final Var subject = new Var("x");
         final Var predicate = new Var("-const-http://worksAt", new URIImpl("http://worksAt"));
-        predicate.setAnonymous(true);
         predicate.setConstant(true);
         final Var object = new Var("-const-http://Chipotle", new URIImpl("http://Chipotle"));
-        object.setAnonymous(true);
         object.setConstant(true);
         final StatementPattern expected = new StatementPattern(subject, predicate, object);
 
@@ -89,7 +85,6 @@ public class FluoStringConverterTest {
 
         // Ensure it converted to the expected result.
         final Var expected = new Var("-const-http://Chipotle", new URIImpl("http://Chipotle"));
-        expected.setAnonymous(true);
         expected.setConstant(true);
 
         assertEquals(expected, var);
@@ -105,7 +100,6 @@ public class FluoStringConverterTest {
 
         // Ensure it converted to the expected result.
         final Var expected = new Var("-const-5", new LiteralImpl("5", XMLSchema.INTEGER));
-        expected.setAnonymous(true);
         expected.setConstant(true);
 
         assertEquals(expected, result);
@@ -121,7 +115,6 @@ public class FluoStringConverterTest {
 
         // Ensure it converted to the expected result.
         final Var expected = new Var("-const-Chipotle", new LiteralImpl("Chipotle", XMLSchema.STRING));
-        expected.setAnonymous(true);
         expected.setConstant(true);
 
         assertEquals(expected, result);

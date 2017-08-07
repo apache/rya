@@ -87,13 +87,22 @@ To point the web.rya war to the appropriate database instance, make a properties
 Here is an example for accumulo:
 
 ```
-instance.name=accumulo  #Accumulo instance name
-instance.zk=localhost:2181  #Accumulo Zookeepers
-instance.username=root  #Accumulo username
-instance.password=secret  #Accumulo pwd
-rya.tableprefix=triplestore_  #Rya Table Prefix
-rya.displayqueryplan=true  #To display the query plan
+# Accumulo instance name
+instance.name=accumulo
+# Accumulo Zookeepers
+instance.zk=localhost:2181
+# Accumulo username
+instance.username=root
+# Accumulo password
+instance.password=secret
+
+# Rya Table Prefix
+rya.tableprefix=triplestore_
+# To display the query plan
+rya.displayqueryplan=true
 ```
+
+Please consult the [Accumulo], [ZooKeeper], and [Hadoop] documentation for help with setting up these prerequisites.
 
 Here is an example for mongoDB (populate user/userpassword if authentication to mongoDB required):
 ```
@@ -331,4 +340,6 @@ myRepository.shutDown();
 
 
 [RYA]: http://rya.incubator.apache.org/ 
-
+[Accumulo]: https://accumulo.apache.org/
+[ZooKeeper]: https://zookeeper.apache.org/
+[Hadoop]: http://hadoop.apache.org/

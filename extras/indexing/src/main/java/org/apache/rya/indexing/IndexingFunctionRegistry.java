@@ -61,6 +61,7 @@ public class IndexingFunctionRegistry {
         SEARCH_FUNCTIONS.put(GeoConstants.GEO_SF_CONTAINS, FUNCTION_TYPE.GEO);
         SEARCH_FUNCTIONS.put(GeoConstants.GEO_SF_OVERLAPS, FUNCTION_TYPE.GEO);
         SEARCH_FUNCTIONS.put(GeoConstants.GEO_SF_CROSSES, FUNCTION_TYPE.GEO);
+        SEARCH_FUNCTIONS.put(GeoConstants.GEO_SF_NEAR, FUNCTION_TYPE.GEO);
 
     }
     
@@ -114,6 +115,8 @@ public class IndexingFunctionRegistry {
                 return (Var) arg1;
             else if (isUnboundVariable(arg2) && isConstant(arg1))
                 return (Var) arg2;
+            else 
+                return (Var) arg1;
         }
         return null;
     }

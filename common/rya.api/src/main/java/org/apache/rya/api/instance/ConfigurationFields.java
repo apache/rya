@@ -31,5 +31,7 @@ class ConfigurationFields {
     static final String USE_FREETEXT = "sc.use_freetext";
     static final String USE_TEMPORAL = "sc.use_temporal";
     static final String USE_ENTITY = "sc.use_entity";
-    static final String USE_PCJ = "sc.use_pcj";
+    static final String USE_PCJ_UPDATER = "sc.use.updater";
+    static final String FLUO_APP_NAME = "rya.indexing.pcj.fluo.fluoAppName";
+    static final String PCJ_UPDATER_TYPE = "rya.indexing.pcj.updaterType";
 }

@@ -40,7 +40,7 @@ public class AccumuloInstallIT extends AccumuloITBase {
     @Test
     public void install() throws AccumuloException, AccumuloSecurityException, DuplicateInstanceNameException, RyaClientException, NotInitializedException, RyaDetailsRepositoryException {
         // Install an instance of Rya.
-        final String instanceName = "testInstance_";
+        final String instanceName = getRyaInstanceName();
         final InstallConfiguration installConfig = InstallConfiguration.builder()
                 .setEnableTableHashPrefix(false)
                 .setEnableEntityCentricIndex(false)
@@ -68,7 +68,7 @@ public class AccumuloInstallIT extends AccumuloITBase {
     @Test(expected = DuplicateInstanceNameException.class)
     public void install_alreadyExists() throws DuplicateInstanceNameException, RyaClientException, AccumuloException, AccumuloSecurityException {
         // Install an instance of Rya.
-        final String instanceName = "testInstance_";
+        final String instanceName = getRyaInstanceName();
         final InstallConfiguration installConfig = InstallConfiguration.builder().build();
 
         final AccumuloConnectionDetails connectionDetails = new AccumuloConnectionDetails(

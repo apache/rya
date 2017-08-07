@@ -32,7 +32,6 @@ under the License.
             <outputDirectory>accumulo/lib/ext</outputDirectory>
             <includes>
                 <include>org.apache.rya:rya.indexing:*:accumulo-server</include>
-                <include>org.locationtech.geomesa:geomesa-accumulo-distributed-runtime:*</include>
             </includes>
         </dependencySet>
         <dependencySet>
@@ -67,14 +66,22 @@ under the License.
             <outputDirectory>dist</outputDirectory>
         </file>
     </files>
-    <!-- Add Apache licenses to the distribution zip -->
     <fileSets>
+        <!-- Add Apache licenses to the distribution zip -->
         <fileSet>
             <directory>${project.basedir}/../../</directory>
             <outputDirectory></outputDirectory>
             <includes>
                 <include>LICENSE*</include>
                 <include>NOTICE*</include>
+            </includes>
+        </fileSet>
+        <!-- Add instructions to the distribution zip -->
+        <fileSet>
+            <directory>${project.basedir}</directory>
+            <outputDirectory></outputDirectory>
+            <includes>
+                <include>README.md</include>
             </includes>
         </fileSet>
     </fileSets>

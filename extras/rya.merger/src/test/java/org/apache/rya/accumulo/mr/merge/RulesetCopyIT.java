@@ -31,6 +31,23 @@ import java.util.Set;
 import org.apache.accumulo.core.client.Connector;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.log4j.Logger;
+import org.apache.rya.accumulo.AccumuloRdfConfiguration;
+import org.apache.rya.accumulo.AccumuloRyaDAO;
+import org.apache.rya.accumulo.mr.MRUtils;
+import org.apache.rya.accumulo.mr.merge.common.InstanceType;
+import org.apache.rya.accumulo.mr.merge.demo.util.DemoUtilities;
+import org.apache.rya.accumulo.mr.merge.demo.util.DemoUtilities.LoggingDetail;
+import org.apache.rya.accumulo.mr.merge.driver.AccumuloDualInstanceDriver;
+import org.apache.rya.accumulo.mr.merge.util.AccumuloRyaUtils;
+import org.apache.rya.accumulo.mr.merge.util.TestUtils;
+import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
+import org.apache.rya.api.domain.RyaStatement;
+import org.apache.rya.api.domain.RyaType;
+import org.apache.rya.api.domain.RyaURI;
+import org.apache.rya.api.persist.RyaDAOException;
+import org.apache.rya.api.resolver.RyaToRdfConversions;
+import org.apache.rya.indexing.accumulo.ConfigUtils;
+import org.apache.rya.sail.config.RyaSailFactory;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -56,21 +73,6 @@ import org.openrdf.sail.Sail;
 
 import info.aduna.iteration.CloseableIteration;
 import junit.framework.Assert;
-import org.apache.rya.accumulo.AccumuloRdfConfiguration;
-import org.apache.rya.accumulo.AccumuloRyaDAO;
-import org.apache.rya.accumulo.mr.MRUtils;
-import org.apache.rya.accumulo.mr.merge.common.InstanceType;
-import org.apache.rya.accumulo.mr.merge.driver.AccumuloDualInstanceDriver;
-import org.apache.rya.accumulo.mr.merge.util.AccumuloRyaUtils;
-import org.apache.rya.accumulo.mr.merge.util.TestUtils;
-import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
-import org.apache.rya.api.domain.RyaStatement;
-import org.apache.rya.api.domain.RyaType;
-import org.apache.rya.api.domain.RyaURI;
-import org.apache.rya.api.persist.RyaDAOException;
-import org.apache.rya.api.resolver.RyaToRdfConversions;
-import org.apache.rya.indexing.accumulo.ConfigUtils;
-import org.apache.rya.sail.config.RyaSailFactory;
 
 public class RulesetCopyIT {
     private static final Logger log = Logger.getLogger(RulesetCopyIT.class);
@@ -144,32 +146,33 @@ public class RulesetCopyIT {
 
     @BeforeClass
     public static void setUpPerClass() throws Exception {
+        DemoUtilities.setupLogging(LoggingDetail.LIGHT);
         accumuloDualInstanceDriver = new AccumuloDualInstanceDriver(IS_MOCK, true, true, false, false);
         accumuloDualInstanceDriver.setUpInstances();
     }
 
     @Before
     public void setUpPerTest() throws Exception {
+        accumuloDualInstanceDriver.setUpConfigs();
+        accumuloDualInstanceDriver.setUpTables();
+        accumuloDualInstanceDriver.setUpDaos();
         parentConfig = accumuloDualInstanceDriver.getParentConfig();
         childConfig = accumuloDualInstanceDriver.getChildConfig();
-        accumuloDualInstanceDriver.setUpTables();
-        accumuloDualInstanceDriver.setUpConfigs();
-        accumuloDualInstanceDriver.setUpDaos();
         parentDao = accumuloDualInstanceDriver.getParentDao();
     }
 
     @After
     public void tearDownPerTest() throws Exception {
         log.info("tearDownPerTest(): tearing down now.");
-        accumuloDualInstanceDriver.tearDownDaos();
         accumuloDualInstanceDriver.tearDownTables();
+        accumuloDualInstanceDriver.tearDownDaos();
+        if (rulesetTool != null) {
+            rulesetTool.shutdown();
+        }
     }
 
     @AfterClass
     public static void tearDownPerClass() throws Exception {
-        if (rulesetTool != null) {
-            rulesetTool.shutdown();
-        }
         accumuloDualInstanceDriver.tearDown();
     }
 
@@ -184,6 +187,9 @@ public class RulesetCopyIT {
         for (final String table : accumuloDualInstanceDriver.getParentTableList()) {
             AccumuloRyaUtils.printTablePretty(table, parentConfig, false);
         }
+
+        parentConfig.set(RdfCloudTripleStoreConfiguration.CONF_INFER, Boolean.toString(infer));
+        childConfig.set(RdfCloudTripleStoreConfiguration.CONF_INFER, Boolean.toString(infer));
 
         rulesetTool = new CopyTool();
         rulesetTool.setupAndRun(new String[] {
@@ -210,8 +216,8 @@ public class RulesetCopyIT {
         });
 
         final Configuration toolConfig = rulesetTool.getConf();
-        childConfig.set(MRUtils.AC_ZK_PROP, toolConfig.get(MRUtils.AC_ZK_PROP + CHILD_SUFFIX));
-        MergeTool.setDuplicateKeys(childConfig);
+        final String zooKeepers = toolConfig.get(MRUtils.AC_ZK_PROP + CHILD_SUFFIX);
+        MergeTool.setDuplicateKeysForProperty(childConfig, MRUtils.AC_ZK_PROP, zooKeepers);
 
         log.info("Finished running tool.");
 
@@ -272,7 +278,6 @@ public class RulesetCopyIT {
         try {
             final Sail extSail = RyaSailFactory.getInstance(conf);
             repository = new SailRepository(extSail);
-            repository.initialize();
             conn = repository.getConnection();
             final ResultHandler handler = new ResultHandler();
             final TupleQuery tq = conn.prepareTupleQuery(QueryLanguage.SPARQL, query);

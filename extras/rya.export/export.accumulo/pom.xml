@@ -99,28 +99,31 @@ under the License.
                 </configuration>
             </plugin>
 
-            <!-- Automatically place Apache 2 license headers at the top of all of the project's Java files.
-                 Rat runs during the 'validate' lifecycle step, so it will fail the build before this one
-                 executes if any of the headers are missing. Run the build with rat turned off to add
-                 missing headers to the Java files. -->
             <plugin>
-                <groupId>com.mycila</groupId>
+                <groupId>org.codehaus.mojo</groupId>
                 <artifactId>license-maven-plugin</artifactId>
-                <version>2.6</version>
+                <version>1.13</version>
                 <configuration>
-                    <!-- We use a custom Apache 2.0 license because we do not include a copyright section. -->
-                    <header>../../../${license.header.file}</header>
-                    <aggregate>true</aggregate>
-                    <includes>
-                        <include>${project.build.directory}/generated-sources/jaxb/**</include>
-                    </includes>
+                    <licenseName>apache_v2</licenseName>
+                    <processStartTag>========================LICENSE_START=================================</processStartTag>
+                    <processEndTag>=========================LICENSE_END==================================</processEndTag>
+                    <addJavaLicenseAfterPackage>false</addJavaLicenseAfterPackage>
                 </configuration>
                 <executions>
                     <execution>
-                        <phase>process-sources</phase>
+                        <id>update_license_headers</id>
                         <goals>
-                            <goal>format</goal>
+                            <goal>update-file-header</goal>
                         </goals>
+                        <phase>process-sources</phase>
+                        <configuration>
+                            <roots>
+                                <root>${project.build.directory}/generated-sources/jaxb</root>
+                            </roots>
+                            <extraFiles>
+                                <sun-jaxb.episode>xml</sun-jaxb.episode>
+                            </extraFiles>
+                        </configuration>
                     </execution>
                 </executions>
             </plugin>

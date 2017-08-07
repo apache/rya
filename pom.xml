@@ -140,8 +140,6 @@ under the License.
         
         <!-- set profile property defaults -->
         <skip.rya.it>true</skip.rya.it>  <!-- modified by  -P enable-it  -->
-
-        <license.header.file>resources/LICENSE_HEADER.txt</license.header.file>
     </properties>
     
     <profiles>

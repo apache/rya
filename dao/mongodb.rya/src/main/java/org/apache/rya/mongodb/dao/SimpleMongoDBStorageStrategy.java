@@ -26,6 +26,7 @@ import java.security.NoSuchAlgorithmException;
 import java.util.Map;
 
 import org.apache.commons.codec.binary.Hex;
+import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.log4j.Logger;
 import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.domain.RyaType;
@@ -53,8 +54,11 @@ public class SimpleMongoDBStorageStrategy implements MongoDBStorageStrategy<RyaS
     public static final String OBJECT_TYPE_VALUE = XMLSchema.ANYURI.stringValue();
     public static final String CONTEXT = "context";
     public static final String PREDICATE = "predicate";
+    public static final String PREDICATE_HASH = "predicate_hash";
     public static final String OBJECT = "object";
+    public static final String OBJECT_HASH = "object_hash";
     public static final String SUBJECT = "subject";
+    public static final String SUBJECT_HASH = "subject_hash";
     public static final String TIMESTAMP = "insertTimestamp";
     public static final String STATEMENT_METADATA = "statementMetadata";
     public static final String DOCUMENT_VISIBILITY = "documentVisibility";
@@ -64,16 +68,18 @@ public class SimpleMongoDBStorageStrategy implements MongoDBStorageStrategy<RyaS
     @Override
     public void createIndices(final DBCollection coll){
         BasicDBObject doc = new BasicDBObject();
-        doc.put(SUBJECT, 1);
-        doc.put(PREDICATE, 1);
-        coll.createIndex(doc);
-        doc = new BasicDBObject(PREDICATE, 1);
-        doc.put(OBJECT, 1);
+        doc.put(SUBJECT_HASH, 1);
+        doc.put(PREDICATE_HASH, 1);
+        doc.put(OBJECT_HASH, 1);
         doc.put(OBJECT_TYPE, 1);
         coll.createIndex(doc);
-        doc = new BasicDBObject(OBJECT, 1);
+        doc = new BasicDBObject(PREDICATE_HASH, 1);
+        doc.put(OBJECT_HASH, 1);
         doc.put(OBJECT_TYPE, 1);
-        doc.put(SUBJECT, 1);
+        coll.createIndex(doc);
+        doc = new BasicDBObject(OBJECT_HASH, 1);
+        doc.put(OBJECT_TYPE, 1);
+        doc.put(SUBJECT_HASH, 1);
         coll.createIndex(doc);
     }
 
@@ -85,14 +91,14 @@ public class SimpleMongoDBStorageStrategy implements MongoDBStorageStrategy<RyaS
         final RyaURI context = stmt.getContext();
         final BasicDBObject query = new BasicDBObject();
         if (subject != null){
-            query.append(SUBJECT, subject.getData());
+            query.append(SUBJECT_HASH, DigestUtils.sha256Hex(subject.getData()));
         }
         if (object != null){
-            query.append(OBJECT, object.getData());
+            query.append(OBJECT_HASH, DigestUtils.sha256Hex(object.getData()));
             query.append(OBJECT_TYPE, object.getDataType().toString());
         }
         if (predicate != null){
-            query.append(PREDICATE, predicate.getData());
+            query.append(PREDICATE_HASH, DigestUtils.sha256Hex(predicate.getData()));
         }
         if (context != null){
             query.append(CONTEXT, context.getData());
@@ -173,8 +179,11 @@ public class SimpleMongoDBStorageStrategy implements MongoDBStorageStrategy<RyaS
         final BasicDBObject dvObject = DocumentVisibilityAdapter.toDBObject(statement.getColumnVisibility());
         final BasicDBObject doc = new BasicDBObject(ID, new String(Hex.encodeHex(bytes)))
         .append(SUBJECT, statement.getSubject().getData())
+        .append(SUBJECT_HASH, DigestUtils.sha256Hex(statement.getSubject().getData()))
         .append(PREDICATE, statement.getPredicate().getData())
+        .append(PREDICATE_HASH, DigestUtils.sha256Hex(statement.getPredicate().getData()))
         .append(OBJECT, statement.getObject().getData())
+        .append(OBJECT_HASH, DigestUtils.sha256Hex(statement.getObject().getData()))
         .append(OBJECT_TYPE, statement.getObject().getDataType().toString())
         .append(CONTEXT, context)
         .append(STATEMENT_METADATA, statement.getMetadata().toString())

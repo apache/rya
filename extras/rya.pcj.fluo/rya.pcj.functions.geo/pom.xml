@@ -82,9 +82,9 @@ under the License.
             <scope>test</scope>
         </dependency>
         <dependency>
-             <groupId>org.apache.fluo</groupId>
-            <artifactId>fluo-recipes-test</artifactId>
-            <scope>test</scope>
+            <groupId>org.apache.rya</groupId>
+            <artifactId>rya.pcj.fluo.test.base</artifactId>
+            <version>${project.version}</version>
         </dependency>
     </dependencies>
     <build>

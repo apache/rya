@@ -28,12 +28,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Properties;
 
-import org.apache.accumulo.core.client.Connector;
-import org.apache.accumulo.core.client.Instance;
-import org.apache.accumulo.minicluster.MiniAccumuloCluster;
 import org.apache.fluo.api.config.ObserverSpecification;
 import org.apache.fluo.core.util.PortUtils;
-import org.apache.fluo.recipes.test.AccumuloExportITBase;
 import org.apache.kafka.clients.CommonClientConfigs;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
@@ -175,9 +171,9 @@ public class KafkaExportITBase extends ModifiedAccumuloExportITBase {
         final Properties brokerProps = new Properties();
         brokerProps.setProperty(KafkaConfig$.MODULE$.BrokerIdProp(), "0");
         brokerProps.setProperty(KafkaConfig$.MODULE$.HostNameProp(), BROKERHOST);
+        brokerProps.setProperty(KafkaConfig$.MODULE$.PortProp(), brokerPort);
         brokerProps.setProperty(KafkaConfig$.MODULE$.ZkConnectProp(), zkConnect);
         brokerProps.setProperty(KafkaConfig$.MODULE$.LogDirsProp(), Files.createTempDirectory(getClass().getSimpleName()+"-").toAbsolutePath().toString());
-        brokerProps.setProperty(KafkaConfig$.MODULE$.PortProp(), brokerPort);
         final KafkaConfig config = new KafkaConfig(brokerProps);
 
         final Time mock = new MockTime();
@@ -187,14 +183,8 @@ public class KafkaExportITBase extends ModifiedAccumuloExportITBase {
 
     @After
     public void teardownRya() {
-        final MiniAccumuloCluster cluster = getMiniAccumuloCluster();
-        final String instanceName = cluster.getInstanceName();
-        final String zookeepers = cluster.getZooKeepers();
-
         // Uninstall the instance of Rya.
-        final RyaClient ryaClient = AccumuloRyaClientFactory.build(
-                new AccumuloConnectionDetails(ACCUMULO_USER, ACCUMULO_PASSWORD.toCharArray(), instanceName, zookeepers),
-                super.getAccumuloConnector());
+        final RyaClient ryaClient = AccumuloRyaClientFactory.build(super.createConnectionDetails(), super.getAccumuloConnector());
 
         try {
             ryaClient.getUninstall().uninstall(RYA_INSTANCE_NAME);
@@ -207,13 +197,10 @@ public class KafkaExportITBase extends ModifiedAccumuloExportITBase {
     }
 
     private void installRyaInstance() throws Exception {
-        final MiniAccumuloCluster cluster = super.getMiniAccumuloCluster();
-        final String instanceName = cluster.getInstanceName();
-        final String zookeepers = cluster.getZooKeepers();
+        final AccumuloConnectionDetails details = super.createConnectionDetails();
 
         // Install the Rya instance to the mini accumulo cluster.
-        final RyaClient ryaClient = AccumuloRyaClientFactory.build(
-                new AccumuloConnectionDetails(ACCUMULO_USER, ACCUMULO_PASSWORD.toCharArray(), instanceName, zookeepers),
+        final RyaClient ryaClient = AccumuloRyaClientFactory.build(details,
                 super.getAccumuloConnector());
 
         ryaClient.getInstall().install(RYA_INSTANCE_NAME,
@@ -228,21 +215,21 @@ public class KafkaExportITBase extends ModifiedAccumuloExportITBase {
                 .build());
 
         // Connect to the Rya instance that was just installed.
-        final AccumuloRdfConfiguration conf = makeConfig(instanceName, zookeepers);
+        final AccumuloRdfConfiguration conf = makeConfig(details);
         final Sail sail = RyaSailFactory.getInstance(conf);
         dao = RyaSailFactory.getAccumuloDAOWithUpdatedConfig(conf);
         ryaSailRepo = new RyaSailRepository(sail);
     }
 
-    protected AccumuloRdfConfiguration makeConfig(final String instanceName, final String zookeepers) {
+    protected AccumuloRdfConfiguration makeConfig(final AccumuloConnectionDetails details) {
         final AccumuloRdfConfiguration conf = new AccumuloRdfConfiguration();
         conf.setTablePrefix(RYA_INSTANCE_NAME);
 
         // Accumulo connection information.
-        conf.setAccumuloUser(AccumuloExportITBase.ACCUMULO_USER);
-        conf.setAccumuloPassword(AccumuloExportITBase.ACCUMULO_PASSWORD);
-        conf.setAccumuloInstance(super.getAccumuloConnector().getInstance().getInstanceName());
-        conf.setAccumuloZookeepers(super.getAccumuloConnector().getInstance().getZooKeepers());
+        conf.setAccumuloUser(details.getUsername());
+        conf.setAccumuloPassword(new String(details.getPassword()));
+        conf.setAccumuloInstance(details.getInstanceName());
+        conf.setAccumuloZookeepers(details.getZookeepers());
         conf.setAuths("");
 
         // PCJ configuration information.
@@ -306,11 +293,7 @@ public class KafkaExportITBase extends ModifiedAccumuloExportITBase {
         requireNonNull(statements);
 
         // Register the PCJ with Rya.
-        final Instance accInstance = super.getAccumuloConnector().getInstance();
-        final Connector accumuloConn = super.getAccumuloConnector();
-
-        final RyaClient ryaClient = AccumuloRyaClientFactory.build(new AccumuloConnectionDetails(ACCUMULO_USER,
-                ACCUMULO_PASSWORD.toCharArray(), accInstance.getInstanceName(), accInstance.getZooKeepers()), accumuloConn);
+        final RyaClient ryaClient = AccumuloRyaClientFactory.build(super.createConnectionDetails(), super.getAccumuloConnector());
 
         final String pcjId = ryaClient.getCreatePCJ().createPCJ(RYA_INSTANCE_NAME, sparql);
 

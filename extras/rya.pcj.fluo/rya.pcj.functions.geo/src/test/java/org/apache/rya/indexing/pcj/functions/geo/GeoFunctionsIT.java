@@ -30,9 +30,7 @@ import java.util.Set;
 import javax.xml.datatype.DatatypeFactory;
 
 import org.apache.accumulo.core.client.Connector;
-import org.apache.accumulo.core.client.Instance;
 import org.apache.rya.api.client.RyaClient;
-import org.apache.rya.api.client.accumulo.AccumuloConnectionDetails;
 import org.apache.rya.api.client.accumulo.AccumuloRyaClientFactory;
 import org.apache.rya.indexing.pcj.fluo.RyaExportITBase;
 import org.apache.rya.indexing.pcj.storage.PrecomputedJoinStorage;
@@ -323,14 +321,8 @@ public class GeoFunctionsIT extends RyaExportITBase {
         requireNonNull(expectedResults);
 
         // Register the PCJ with Rya.
-        final Instance accInstance = super.getAccumuloConnector().getInstance();
         final Connector accumuloConn = super.getAccumuloConnector();
-
-        final RyaClient ryaClient = AccumuloRyaClientFactory.build(new AccumuloConnectionDetails(
-                ACCUMULO_USER,
-                ACCUMULO_PASSWORD.toCharArray(),
-                accInstance.getInstanceName(),
-                accInstance.getZooKeepers()), accumuloConn);
+        final RyaClient ryaClient = AccumuloRyaClientFactory.build(super.createConnectionDetails(), accumuloConn);
 
         ryaClient.getCreatePCJ().createPCJ(RYA_INSTANCE_NAME, sparql);
 

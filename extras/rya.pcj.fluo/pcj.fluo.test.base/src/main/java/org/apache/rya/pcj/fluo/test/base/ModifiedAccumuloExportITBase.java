@@ -1,24 +1,20 @@
 package org.apache.rya.pcj.fluo.test.base;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
 import org.apache.accumulo.core.client.Connector;
 import org.apache.accumulo.minicluster.MiniAccumuloCluster;
-import org.apache.accumulo.minicluster.MiniAccumuloConfig;
-import org.apache.commons.io.FileUtils;
 import org.apache.fluo.api.client.FluoAdmin;
 import org.apache.fluo.api.client.FluoFactory;
 import org.apache.fluo.api.config.FluoConfiguration;
 import org.apache.fluo.api.mini.MiniFluo;
 import org.apache.fluo.recipes.accumulo.ops.TableOperations;
 import org.apache.rya.accumulo.MiniAccumuloClusterInstance;
+import org.apache.rya.accumulo.MiniAccumuloSingleton;
+import org.apache.rya.api.client.accumulo.AccumuloConnectionDetails;
 import org.junit.After;
-import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 
@@ -86,10 +82,10 @@ import org.junit.BeforeClass;
  */
 public class ModifiedAccumuloExportITBase {
 
-    public static final String ACCUMULO_USER = "root";
-    public static final String ACCUMULO_PASSWORD = "secret";
 
-    private static File baseDir;
+    //private static File baseDir;
+    // Mini Accumulo Cluster
+    private static MiniAccumuloClusterInstance clusterInstance = MiniAccumuloSingleton.getInstance();
     private static MiniAccumuloCluster cluster;
     private FluoConfiguration fluoConfig;
     private MiniFluo miniFluo;
@@ -110,31 +106,34 @@ public class ModifiedAccumuloExportITBase {
 
     @BeforeClass
     public static void setupMiniAccumulo() throws Exception {
-        try {
+//        try {
 
-            // try to put in target dir
-            final File targetDir = new File("target");
-            final String tempDirName = ModifiedAccumuloExportITBase.class.getSimpleName() + "-" + UUID.randomUUID();
-            if (targetDir.exists() && targetDir.isDirectory()) {
-                baseDir = new File(targetDir, tempDirName);
-            } else {
-                baseDir = new File(FileUtils.getTempDirectory(), tempDirName);
-            }
+//            // try to put in target dir
+//            final File targetDir = new File("target");
+//            final String tempDirName = ModifiedAccumuloExportITBase.class.getSimpleName() + "-" + UUID.randomUUID();
+//            if (targetDir.exists() && targetDir.isDirectory()) {
+//                baseDir = new File(targetDir, tempDirName);
+//            } else {
+//                baseDir = new File(FileUtils.getTempDirectory(), tempDirName);
+//            }
 
-            FileUtils.deleteDirectory(baseDir);
-            final MiniAccumuloConfig cfg = new MiniAccumuloConfig(baseDir, ACCUMULO_PASSWORD);
-            cluster = new MiniAccumuloCluster(cfg);
-            cluster.start();
-        } catch (IOException | InterruptedException e) {
-            throw new IllegalStateException(e);
-        }
+//            FileUtils.deleteDirectory(baseDir);
+//            final MiniAccumuloConfig cfg = new MiniAccumuloConfig(baseDir, ACCUMULO_PASSWORD);
+//            cluster = new MiniAccumuloCluster(cfg);
+//            cluster.start();
+
+            // Setup and start the Mini Accumulo.
+            cluster = clusterInstance.getCluster();
+//        } catch (IOException | InterruptedException e) {
+//            throw new IllegalStateException(e);
+//        }
     }
 
-    @AfterClass
-    public static void tearDownMiniAccumulo() throws Exception {
-        cluster.stop();
-        FileUtils.deleteDirectory(baseDir);
-    }
+//    @AfterClass
+//    public static void tearDownMiniAccumulo() throws Exception {
+//        cluster.stop();
+//        FileUtils.deleteDirectory(baseDir);
+//    }
 
     @Before
     public void setupMiniFluo() throws Exception {
@@ -191,7 +190,7 @@ public class ModifiedAccumuloExportITBase {
      */
     protected Connector getAccumuloConnector() {
         try {
-            return cluster.getConnector(ACCUMULO_USER, ACCUMULO_PASSWORD);
+            return cluster.getConnector(clusterInstance.getUsername(), clusterInstance.getPassword());
         } catch (AccumuloException | AccumuloSecurityException e) {
             throw new IllegalStateException(e);
         }
@@ -207,19 +206,35 @@ public class ModifiedAccumuloExportITBase {
     /**
      * A utility method that will set the configuration needed by Fluo from a given MiniCluster
      */
-    public static void configureFromMAC(final FluoConfiguration fluoConfig, final MiniAccumuloCluster cluster) {
+    public static void configureFromMAC(final FluoConfiguration fluoConfig, final MiniAccumuloClusterInstance cluster) {
         fluoConfig.setMiniStartAccumulo(false);
         fluoConfig.setAccumuloInstance(cluster.getInstanceName());
-        fluoConfig.setAccumuloUser("root");
-        fluoConfig.setAccumuloPassword(cluster.getConfig().getRootPassword());
-        fluoConfig.setInstanceZookeepers(cluster.getZooKeepers() + "/fluo");
-        fluoConfig.setAccumuloZookeepers(cluster.getZooKeepers());
+        fluoConfig.setAccumuloUser(cluster.getUsername());
+        fluoConfig.setAccumuloPassword(cluster.getPassword());
+        fluoConfig.setInstanceZookeepers(cluster.getZookeepers() + "/fluo");
+        fluoConfig.setAccumuloZookeepers(cluster.getZookeepers());
     }
 
     private void resetFluoConfig() {
         fluoConfig = new FluoConfiguration();
-        configureFromMAC(fluoConfig, cluster);
+        configureFromMAC(fluoConfig, clusterInstance);
         fluoConfig.setApplicationName("fluo-it");
         fluoConfig.setAccumuloTable("fluo" + tableCounter.getAndIncrement());
+    }
+
+    protected AccumuloConnectionDetails createConnectionDetails() {
+        return new AccumuloConnectionDetails(
+                clusterInstance.getUsername(),
+                clusterInstance.getPassword().toCharArray(),
+                clusterInstance.getInstanceName(),
+                clusterInstance.getZookeepers());
+    }
+
+    protected String getUsername() {
+        return clusterInstance.getUsername();
+    }
+
+    protected String getPassword() {
+        return clusterInstance.getPassword();
     }
 }

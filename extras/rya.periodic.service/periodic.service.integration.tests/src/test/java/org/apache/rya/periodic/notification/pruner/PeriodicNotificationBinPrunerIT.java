@@ -38,7 +38,6 @@ import org.apache.fluo.api.data.Bytes;
 import org.apache.fluo.api.data.ColumnValue;
 import org.apache.fluo.api.data.Span;
 import org.apache.fluo.core.client.FluoClientImpl;
-import org.apache.fluo.recipes.test.FluoITHelper;
 import org.apache.rya.api.resolver.RdfToRyaConversions;
 import org.apache.rya.indexing.pcj.fluo.api.InsertTriples;
 import org.apache.rya.indexing.pcj.fluo.app.IncrementalUpdateConstants;
@@ -133,8 +132,6 @@ public class PeriodicNotificationBinPrunerIT extends RyaExportITBase {
         statements.forEach(x -> inserter.insert(fluo, RdfToRyaConversions.convertStatement(x)));
 
         super.getMiniFluo().waitForObservers();
-
-        // FluoITHelper.printFluoTable(fluo);
 
         // Create the expected results of the SPARQL query once the PCJ has been
         // computed.

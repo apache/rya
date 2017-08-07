@@ -123,10 +123,5 @@
             -->
             <scope>test</scope>
         </dependency>
-        <dependency>
-            <groupId>org.apache.fluo</groupId>
-            <artifactId>fluo-recipes-test</artifactId>
-            <scope>test</scope>
-        </dependency>
     </dependencies>
 </project>

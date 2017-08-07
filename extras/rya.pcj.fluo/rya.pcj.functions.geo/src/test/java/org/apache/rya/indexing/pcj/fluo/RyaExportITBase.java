@@ -22,9 +22,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-import org.apache.accumulo.minicluster.MiniAccumuloCluster;
 import org.apache.fluo.api.config.ObserverSpecification;
-import org.apache.fluo.recipes.test.AccumuloExportITBase;
 import org.apache.rya.accumulo.AccumuloRdfConfiguration;
 import org.apache.rya.api.client.Install.InstallConfiguration;
 import org.apache.rya.api.client.RyaClient;
@@ -39,16 +37,16 @@ import org.apache.rya.indexing.pcj.fluo.app.observers.JoinObserver;
 import org.apache.rya.indexing.pcj.fluo.app.observers.QueryResultObserver;
 import org.apache.rya.indexing.pcj.fluo.app.observers.StatementPatternObserver;
 import org.apache.rya.indexing.pcj.fluo.app.observers.TripleObserver;
+import org.apache.rya.pcj.fluo.test.base.ModifiedAccumuloExportITBase;
 import org.apache.rya.rdftriplestore.RyaSailRepository;
 import org.apache.rya.sail.config.RyaSailFactory;
 import org.junit.After;
 import org.junit.Before;
 import org.openrdf.sail.Sail;
-
 /**
  * The base Integration Test class used for Fluo applications that export to a Rya PCJ Index.
  */
-public class RyaExportITBase extends AccumuloExportITBase {
+public class RyaExportITBase extends ModifiedAccumuloExportITBase {
 
     protected static final String RYA_INSTANCE_NAME = "test_";
 
@@ -76,8 +74,8 @@ public class RyaExportITBase extends AccumuloExportITBase {
         ryaParams.setRyaInstanceName(RYA_INSTANCE_NAME);
         ryaParams.setAccumuloInstanceName(super.getMiniAccumuloCluster().getInstanceName());
         ryaParams.setZookeeperServers(super.getMiniAccumuloCluster().getZooKeepers());
-        ryaParams.setExporterUsername(ACCUMULO_USER);
-        ryaParams.setExporterPassword(ACCUMULO_PASSWORD);
+        ryaParams.setExporterUsername(super.getUsername());
+        ryaParams.setExporterPassword(super.getPassword());
 
         final ObserverSpecification exportObserverConfig = new ObserverSpecification(QueryResultObserver.class.getName(), exportParams);
         observers.add(exportObserverConfig);
@@ -88,18 +86,10 @@ public class RyaExportITBase extends AccumuloExportITBase {
 
     @Before
     public void setupRya() throws Exception {
-        final MiniAccumuloCluster cluster = super.getMiniAccumuloCluster();
-        final String instanceName = cluster.getInstanceName();
-        final String zookeepers = cluster.getZooKeepers();
+        final AccumuloConnectionDetails details = super.createConnectionDetails();
 
         // Install the Rya instance to the mini accumulo cluster.
-        final RyaClient ryaClient = AccumuloRyaClientFactory.build(
-                new AccumuloConnectionDetails(
-                    ACCUMULO_USER,
-                    ACCUMULO_PASSWORD.toCharArray(),
-                    instanceName,
-                    zookeepers),
-                super.getAccumuloConnector());
+        final RyaClient ryaClient = AccumuloRyaClientFactory.build(details, super.getAccumuloConnector());
 
         ryaClient.getInstall().install(RYA_INSTANCE_NAME, InstallConfiguration.builder()
                 .setEnableTableHashPrefix(false)
@@ -112,25 +102,15 @@ public class RyaExportITBase extends AccumuloExportITBase {
                 .build());
 
         // Connect to the Rya instance that was just installed.
-        final AccumuloRdfConfiguration conf = makeConfig(instanceName, zookeepers);
+        final AccumuloRdfConfiguration conf = makeConfig(details);
         final Sail sail = RyaSailFactory.getInstance(conf);
         ryaSailRepo = new RyaSailRepository(sail);
     }
 
     @After
     public void teardownRya() throws Exception {
-        final MiniAccumuloCluster cluster = super.getMiniAccumuloCluster();
-        final String instanceName = cluster.getInstanceName();
-        final String zookeepers = cluster.getZooKeepers();
-
         // Uninstall the instance of Rya.
-        final RyaClient ryaClient = AccumuloRyaClientFactory.build(
-                new AccumuloConnectionDetails(
-                    ACCUMULO_USER,
-                    ACCUMULO_PASSWORD.toCharArray(),
-                    instanceName,
-                    zookeepers),
-                super.getAccumuloConnector());
+        final RyaClient ryaClient = AccumuloRyaClientFactory.build(super.createConnectionDetails(), super.getAccumuloConnector());
 
         ryaClient.getUninstall().uninstall(RYA_INSTANCE_NAME);
 
@@ -145,15 +125,15 @@ public class RyaExportITBase extends AccumuloExportITBase {
         return ryaSailRepo;
     }
 
-    protected AccumuloRdfConfiguration makeConfig(final String instanceName, final String zookeepers) {
+    protected AccumuloRdfConfiguration makeConfig(final AccumuloConnectionDetails details) {
         final AccumuloRdfConfiguration conf = new AccumuloRdfConfiguration();
         conf.setTablePrefix(RYA_INSTANCE_NAME);
 
         // Accumulo connection information.
-        conf.setAccumuloUser(AccumuloExportITBase.ACCUMULO_USER);
-        conf.setAccumuloPassword(AccumuloExportITBase.ACCUMULO_PASSWORD);
-        conf.setAccumuloInstance(super.getAccumuloConnector().getInstance().getInstanceName());
-        conf.setAccumuloZookeepers(super.getAccumuloConnector().getInstance().getZooKeepers());
+        conf.setAccumuloUser(details.getUsername());
+        conf.setAccumuloPassword(new String(details.getPassword()));
+        conf.setAccumuloInstance(details.getInstanceName());
+        conf.setAccumuloZookeepers(details.getZookeepers());
         conf.setAuths("");
 
         // PCJ configuration information.

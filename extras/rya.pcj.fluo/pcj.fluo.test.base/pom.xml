@@ -103,10 +103,5 @@ under the License.
                 </exclusion>
             </exclusions>
         </dependency>
-        <dependency>
-             <groupId>org.apache.fluo</groupId>
-            <artifactId>fluo-recipes-test</artifactId>
-            <scope>compile</scope>
-        </dependency>
     </dependencies>
 </project>

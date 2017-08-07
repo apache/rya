@@ -81,7 +81,7 @@ import kafka.utils.Time;
  * Note, to reduce the amount of garbage in the logs, you can run with
  * -Djava.net.preferIPv4Stack=true to prevent attempting to resolve localhost to an ipv6 address.
  */
-public class KafkaExportITBase extends AccumuloExportITBase {
+public class KafkaExportITBase extends ModifiedAccumuloExportITBase {
 
     private static final Logger logger = LoggerFactory.getLogger(KafkaExportITBase.class);
 

@@ -23,9 +23,6 @@ import java.util.HashMap;
 import java.util.List;
 
 import org.apache.fluo.api.config.ObserverSpecification;
-import org.apache.log4j.BasicConfigurator;
-import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
 import org.apache.rya.indexing.pcj.fluo.app.batch.BatchObserver;
 import org.apache.rya.indexing.pcj.fluo.app.export.rya.RyaExportParameters;
 import org.apache.rya.indexing.pcj.fluo.app.observers.AggregationObserver;
@@ -35,18 +32,12 @@ import org.apache.rya.indexing.pcj.fluo.app.observers.PeriodicQueryObserver;
 import org.apache.rya.indexing.pcj.fluo.app.observers.QueryResultObserver;
 import org.apache.rya.indexing.pcj.fluo.app.observers.StatementPatternObserver;
 import org.apache.rya.indexing.pcj.fluo.app.observers.TripleObserver;
-import org.junit.BeforeClass;
 
 /**
  * The base Integration Test class used for Fluo applications that export to a Rya PCJ Index.
  */
 public class RyaExportITBase extends FluoITBase {
 
-    @BeforeClass
-    public static void setupLogging() {
-        BasicConfigurator.configure();
-        Logger.getRootLogger().setLevel(Level.ERROR);
-    }
 
     @Override
     protected void preFluoInitHook() throws Exception {

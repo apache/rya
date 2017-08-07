@@ -16,22 +16,29 @@ import org.apache.fluo.api.client.FluoFactory;
 import org.apache.fluo.api.config.FluoConfiguration;
 import org.apache.fluo.api.mini.MiniFluo;
 import org.apache.fluo.recipes.accumulo.ops.TableOperations;
+import org.apache.rya.accumulo.MiniAccumuloClusterInstance;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 
 /**
- * This class is intended to be extended by classes testing exporting from Fluo to Accumulo. Using
- * MiniFluo by itself is easy. However, using MiniAccumulo and MiniFluo together involves writing a
- * lot of boiler plate code. Thats why this class exists, its a place to put that boiler plate code.
+ * This class is based significantly on {@code org.apache.fluo.recipes.test.AccumuloExportITBase} from maven artifact
+ * {@code org.apache.fluo:fluo-recipes-test:1.0.0-incubating}.
+ *
+ * <p>
+ * This class differs from {@code AccumuloExportITBase} in that it has been modified to use the {@link MiniAccumuloClusterInstance}.
+ * <p>
+ * This class is intended to be extended by classes testing exporting from Fluo to Accumulo. Using MiniFluo by itself is
+ * easy. However, using MiniAccumulo and MiniFluo together involves writing a lot of boiler plate code. Thats why this
+ * class exists, its a place to put that boiler plate code.
  *
  * <p>
  * Below is some example code showing how to use this class to write a test.
  *
  * <pre>
  * <code>
- *    class MyExportIT extends AccumuloExportITBase {
+ *    class MyExportIT extends ModifiedAccumuloExportITBase {
  *
  *         private String exportTable;
  *

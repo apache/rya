@@ -15,7 +15,8 @@
  * KIND, either express or implied.  See the License for the
  * specific language governing permissions and limitations
  * under the License.
- */package org.apache.rya.periodic.notification.registration.kafka;
+ */
+package org.apache.rya.periodic.notification.registration.kafka;
 
 import java.util.Properties;
 import java.util.concurrent.BlockingQueue;
@@ -27,13 +28,11 @@ import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.kafka.common.serialization.StringSerializer;
-import org.apache.log4j.BasicConfigurator;
 import org.apache.rya.pcj.fluo.test.base.KafkaExportITBase;
 import org.apache.rya.periodic.notification.coordinator.PeriodicNotificationCoordinatorExecutor;
 import org.apache.rya.periodic.notification.notification.CommandNotification;
 import org.apache.rya.periodic.notification.notification.TimestampedNotification;
 import org.apache.rya.periodic.notification.serialization.CommandNotificationSerializer;
-import org.junit.After;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -47,11 +46,9 @@ public class PeriodicCommandNotificationConsumerIT extends KafkaExportITBase {
     @Test
     public void kafkaNotificationProviderTest() throws InterruptedException {
 
-        BasicConfigurator.configure();
-
-        BlockingQueue<TimestampedNotification> notifications = new LinkedBlockingQueue<>();
-        Properties props = createKafkaConfig();
-        KafkaProducer<String, CommandNotification> producer = new KafkaProducer<>(props);
+        final BlockingQueue<TimestampedNotification> notifications = new LinkedBlockingQueue<>();
+        final Properties props = createKafkaConfig();
+        final KafkaProducer<String, CommandNotification> producer = new KafkaProducer<>(props);
         registration = new KafkaNotificationRegistrationClient(topic, producer);
         coord = new PeriodicNotificationCoordinatorExecutor(1, notifications);
         provider = new KafkaNotificationProvider(topic, new StringDeserializer(), new CommandNotificationSerializer(), props, coord, 1);
@@ -64,22 +61,20 @@ public class PeriodicCommandNotificationConsumerIT extends KafkaExportITBase {
 
         registration.deleteNotification("1");
         Thread.sleep(2000);
-        int size = notifications.size();
+        final int size = notifications.size();
         // sleep for 2 seconds to ensure no more messages being produced
         Thread.sleep(2000);
         Assert.assertEquals(size, notifications.size());
-        
+
         tearDown();
     }
 
     @Test
     public void kafkaNotificationMillisProviderTest() throws InterruptedException {
 
-        BasicConfigurator.configure();
-
-        BlockingQueue<TimestampedNotification> notifications = new LinkedBlockingQueue<>();
-        Properties props = createKafkaConfig();
-        KafkaProducer<String, CommandNotification> producer = new KafkaProducer<>(props);
+        final BlockingQueue<TimestampedNotification> notifications = new LinkedBlockingQueue<>();
+        final Properties props = createKafkaConfig();
+        final KafkaProducer<String, CommandNotification> producer = new KafkaProducer<>(props);
         registration = new KafkaNotificationRegistrationClient(topic, producer);
         coord = new PeriodicNotificationCoordinatorExecutor(1, notifications);
         provider = new KafkaNotificationProvider(topic, new StringDeserializer(), new CommandNotificationSerializer(), props, coord, 1);
@@ -92,11 +87,11 @@ public class PeriodicCommandNotificationConsumerIT extends KafkaExportITBase {
 
         registration.deleteNotification("1");
         Thread.sleep(2000);
-        int size = notifications.size();
+        final int size = notifications.size();
         // sleep for 2 seconds to ensure no more messages being produced
         Thread.sleep(2000);
         Assert.assertEquals(size, notifications.size());
-        
+
         tearDown();
     }
 
@@ -107,8 +102,7 @@ public class PeriodicCommandNotificationConsumerIT extends KafkaExportITBase {
     }
 
     private Properties createKafkaConfig() {
-        Properties props = new Properties();
-        props.setProperty(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, "127.0.0.1:9092");
+        final Properties props = createBootstrapServerConfig();
         props.setProperty(ConsumerConfig.GROUP_ID_CONFIG, "group0");
         props.setProperty(ConsumerConfig.CLIENT_ID_CONFIG, "consumer0");
         props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");

@@ -371,6 +371,16 @@ under the License.
                 <artifactId>slf4j-log4j12</artifactId>
                 <version>${slf4j.version}</version>
             </dependency>
+            <dependency>
+                <groupId>org.slf4j</groupId>
+                <artifactId>jul-to-slf4j</artifactId>
+                <version>${slf4j.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.slf4j</groupId>
+                <artifactId>jcl-over-slf4j</artifactId>
+                <version>${slf4j.version}</version>
+            </dependency>
 
             <dependency>
                 <groupId>org.apache.hadoop</groupId>
@@ -767,9 +777,11 @@ under the License.
                     <artifactId>maven-failsafe-plugin</artifactId>
                     <configuration>
                         <systemPropertyVariables>
-                            <!--  Zookeeper tries to resolve localhost to IPv6 by default.
-                                  If not executing on an IPv6 network, using -Djava.net.preferIPv4Stack=true
-                                  can make some IT's with many connections execute 3.6x faster. -->
+                            <!--  
+                            Zookeeper tries to resolve localhost to IPv6 by default.
+                            If on an IPv4 network, using -Djava.net.preferIPv4Stack=true
+                            can make some IT's that create many connections run 3-5x faster. 
+                            -->
                             <java.net.preferIPv4Stack>true</java.net.preferIPv4Stack>
                             <java.io.tmpdir>${project.build.directory}</java.io.tmpdir>
                         </systemPropertyVariables>

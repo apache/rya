@@ -25,9 +25,6 @@ import java.util.List;
 import org.apache.accumulo.minicluster.MiniAccumuloCluster;
 import org.apache.fluo.api.config.ObserverSpecification;
 import org.apache.fluo.recipes.test.AccumuloExportITBase;
-import org.apache.log4j.BasicConfigurator;
-import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
 import org.apache.rya.accumulo.AccumuloRdfConfiguration;
 import org.apache.rya.api.client.Install.InstallConfiguration;
 import org.apache.rya.api.client.RyaClient;
@@ -46,7 +43,6 @@ import org.apache.rya.rdftriplestore.RyaSailRepository;
 import org.apache.rya.sail.config.RyaSailFactory;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.openrdf.sail.Sail;
 
 /**
@@ -61,12 +57,6 @@ public class RyaExportITBase extends AccumuloExportITBase {
     public RyaExportITBase() {
         // Indicates that MiniFluo should be started before each test.
         super(true);
-    }
-
-    @BeforeClass
-    public static void setupLogging() {
-        BasicConfigurator.configure();
-        Logger.getRootLogger().setLevel(Level.ERROR);
     }
 
     @Override

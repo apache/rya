@@ -15,6 +15,7 @@ import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.clients.producer.ProducerRecord;
+import org.apache.rya.kafka.base.EmbeddedKafkaSingleton;
 import org.junit.Test;
 
 import kafka.admin.AdminUtils;
@@ -33,9 +34,10 @@ public class KafkaExportITBaseIT extends KafkaExportITBase {
     @Test
     public void embeddedKafkaTest() throws Exception {
         // create topic
-        final String topic = "testTopic";
+        final String topic = getKafkaTopicName();
+
         // grab the connection string for the zookeeper spun up by our parent class.
-        final String zkConnect = getMiniAccumuloCluster().getZooKeepers();
+        final String zkConnect = EmbeddedKafkaSingleton.getInstance().getZookeeperConnect();
 
         // Setup Kafka.
         ZkUtils zkUtils = null;

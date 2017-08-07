@@ -19,6 +19,7 @@
 package org.apache.rya.periodic.notification.registration.kafka;
 
 import java.util.Properties;
+import java.util.UUID;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
@@ -38,14 +39,13 @@ import org.junit.Test;
 
 public class PeriodicCommandNotificationConsumerIT extends KafkaExportITBase {
 
-    private static final String topic = "topic";
+    private static final String topic = "topic-" + UUID.randomUUID();  // tests are dependent on each other
     private KafkaNotificationRegistrationClient registration;
     private PeriodicNotificationCoordinatorExecutor coord;
     private KafkaNotificationProvider provider;
 
     @Test
     public void kafkaNotificationProviderTest() throws InterruptedException {
-
         final BlockingQueue<TimestampedNotification> notifications = new LinkedBlockingQueue<>();
         final Properties props = createKafkaConfig();
         final KafkaProducer<String, CommandNotification> producer = new KafkaProducer<>(props);
@@ -71,7 +71,6 @@ public class PeriodicCommandNotificationConsumerIT extends KafkaExportITBase {
 
     @Test
     public void kafkaNotificationMillisProviderTest() throws InterruptedException {
-
         final BlockingQueue<TimestampedNotification> notifications = new LinkedBlockingQueue<>();
         final Properties props = createKafkaConfig();
         final KafkaProducer<String, CommandNotification> producer = new KafkaProducer<>(props);

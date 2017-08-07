@@ -18,68 +18,34 @@
  */
 package org.apache.rya.kafka.base;
 
-import java.nio.file.Files;
 import java.util.Properties;
 
-import org.apache.fluo.core.util.PortUtils;
 import org.apache.kafka.clients.CommonClientConfigs;
-import org.junit.After;
-import org.junit.Before;
+import org.junit.Rule;
 
-import kafka.server.KafkaConfig;
-import kafka.server.KafkaConfig$;
-import kafka.server.KafkaServer;
-import kafka.utils.MockTime;
-import kafka.utils.TestUtils;
-import kafka.utils.Time;
-import kafka.zk.EmbeddedZookeeper;
-
+/**
+ * A class intended to be extended for Kafka Integration tests.
+ */
 public class KafkaITBase {
 
-    private static final String ZKHOST = "127.0.0.1";
-    private static final String BROKERHOST = "127.0.0.1";
-    private KafkaServer kafkaServer;
-    private EmbeddedZookeeper zkServer;
-    private String brokerPort;
+    private static EmbeddedKafkaInstance embeddedKafka = EmbeddedKafkaSingleton.getInstance();
 
-    @Before
-    public void setupKafka() throws Exception {
-        // Setup Kafka.
-        zkServer = new EmbeddedZookeeper();
-        final String zkConnect = ZKHOST + ":" + zkServer.port();
-
-        // setup Broker
-        brokerPort = Integer.toString(PortUtils.getRandomFreePort());
-        final Properties brokerProps = new Properties();
-        brokerProps.setProperty(KafkaConfig$.MODULE$.BrokerIdProp(), "0");
-        brokerProps.setProperty(KafkaConfig$.MODULE$.HostNameProp(), BROKERHOST);
-        brokerProps.setProperty(KafkaConfig$.MODULE$.ZkConnectProp(), zkConnect);
-        brokerProps.setProperty(KafkaConfig$.MODULE$.LogDirsProp(), Files.createTempDirectory(getClass().getSimpleName()+"-").toAbsolutePath().toString());
-        brokerProps.setProperty(KafkaConfig$.MODULE$.PortProp(), brokerPort);
-        final KafkaConfig config = new KafkaConfig(brokerProps);
-
-        final Time mock = new MockTime();
-        kafkaServer = TestUtils.createServer(config, mock);
-    }
-
-    /**
-     * Close all the Kafka mini server and mini-zookeeper
-     *
-     * @see org.apache.rya.indexing.pcj.fluo.ITBase#shutdownMiniResources()
-     */
-    @After
-    public void teardownKafka() {
-        kafkaServer.shutdown();
-        zkServer.shutdown();
-    }
+    @Rule
+    public KafkaTestInstanceRule testInstance = new KafkaTestInstanceRule(false);
 
     /**
      * @return A new Property object containing the correct value for Kafka's
      *         {@link CommonClientConfigs#BOOTSTRAP_SERVERS_CONFIG}.
      */
-   protected Properties createBootstrapServerConfig() {
-       final Properties config = new Properties();
-       config.setProperty(CommonClientConfigs.BOOTSTRAP_SERVERS_CONFIG, BROKERHOST + ":" + brokerPort);
-       return config;
-   }
+    protected Properties createBootstrapServerConfig() {
+        return embeddedKafka.createBootstrapServerConfig();
+    }
+
+    protected String getKafkaTopicName() {
+        return testInstance.getKafkaTopicName();
+    }
+
+    protected String getKafkaTopicNamePrefix() {
+        return testInstance.getKafkaTopicName();
+    }
 }

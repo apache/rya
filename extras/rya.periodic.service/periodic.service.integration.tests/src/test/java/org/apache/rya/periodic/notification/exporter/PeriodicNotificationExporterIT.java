@@ -48,6 +48,9 @@ public class PeriodicNotificationExporterIT extends KafkaITBase {
 
     @Test
     public void testExporter() throws InterruptedException {
+        final String topic1 = getKafkaTopicNamePrefix() + "1";
+        final String topic2 = getKafkaTopicNamePrefix() + "2";
+
         final BlockingQueue<BindingSetRecord> records = new LinkedBlockingQueue<>();
         final Properties props = createKafkaConfig();
 
@@ -56,12 +59,12 @@ public class PeriodicNotificationExporterIT extends KafkaITBase {
         final QueryBindingSet bs1 = new QueryBindingSet();
         bs1.addBinding(PeriodicQueryResultStorage.PeriodicBinId, vf.createLiteral(1L));
         bs1.addBinding("name", vf.createURI("uri:Bob"));
-        final BindingSetRecord record1 = new BindingSetRecord(bs1, "topic1");
+        final BindingSetRecord record1 = new BindingSetRecord(bs1, topic1);
 
         final QueryBindingSet bs2 = new QueryBindingSet();
         bs2.addBinding(PeriodicQueryResultStorage.PeriodicBinId, vf.createLiteral(2L));
         bs2.addBinding("name", vf.createURI("uri:Joe"));
-        final BindingSetRecord record2 = new BindingSetRecord(bs2, "topic2");
+        final BindingSetRecord record2 = new BindingSetRecord(bs2, topic2);
 
         records.add(record1);
         records.add(record2);
@@ -71,8 +74,8 @@ public class PeriodicNotificationExporterIT extends KafkaITBase {
         final Set<BindingSet> expected2 = new HashSet<>();
         expected2.add(bs2);
 
-        final Set<BindingSet> actual1 = getBindingSetsFromKafka("topic1");
-        final Set<BindingSet> actual2 = getBindingSetsFromKafka("topic2");
+        final Set<BindingSet> actual1 = getBindingSetsFromKafka(topic1);
+        final Set<BindingSet> actual2 = getBindingSetsFromKafka(topic2);
 
         Assert.assertEquals(expected1, actual1);
         Assert.assertEquals(expected2, actual2);

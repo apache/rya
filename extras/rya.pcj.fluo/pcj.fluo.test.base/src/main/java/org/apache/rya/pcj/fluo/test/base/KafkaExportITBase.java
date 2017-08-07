@@ -20,7 +20,6 @@ package org.apache.rya.pcj.fluo.test.base;
 
 import static java.util.Objects.requireNonNull;
 
-import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -29,7 +28,6 @@ import java.util.List;
 import java.util.Properties;
 
 import org.apache.fluo.api.config.ObserverSpecification;
-import org.apache.fluo.core.util.PortUtils;
 import org.apache.kafka.clients.CommonClientConfigs;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
@@ -53,22 +51,19 @@ import org.apache.rya.indexing.pcj.fluo.app.observers.QueryResultObserver;
 import org.apache.rya.indexing.pcj.fluo.app.observers.StatementPatternObserver;
 import org.apache.rya.indexing.pcj.fluo.app.observers.TripleObserver;
 import org.apache.rya.indexing.pcj.storage.accumulo.VisibilityBindingSet;
+import org.apache.rya.kafka.base.EmbeddedKafkaInstance;
+import org.apache.rya.kafka.base.EmbeddedKafkaSingleton;
+import org.apache.rya.kafka.base.KafkaTestInstanceRule;
 import org.apache.rya.rdftriplestore.RyaSailRepository;
 import org.apache.rya.sail.config.RyaSailFactory;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Rule;
 import org.openrdf.model.Statement;
 import org.openrdf.repository.sail.SailRepositoryConnection;
 import org.openrdf.sail.Sail;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import kafka.server.KafkaConfig;
-import kafka.server.KafkaConfig$;
-import kafka.server.KafkaServer;
-import kafka.utils.MockTime;
-import kafka.utils.TestUtils;
-import kafka.utils.Time;
 
 /**
  * The base Integration Test class used for Fluo applications that export to a
@@ -83,10 +78,15 @@ public class KafkaExportITBase extends ModifiedAccumuloExportITBase {
 
     protected static final String RYA_INSTANCE_NAME = "test_";
 
-    private KafkaServer kafkaServer;
-    private static final String BROKERHOST = "127.0.0.1";
-    private String brokerPort;
+//    private KafkaServer kafkaServer;
+//    private static final String BROKERHOST = "127.0.0.1";
+//    private String brokerPort;
 
+
+    private static EmbeddedKafkaInstance embeddedKafka = EmbeddedKafkaSingleton.getInstance();
+
+    @Rule
+    public KafkaTestInstanceRule testInstance = new KafkaTestInstanceRule(false);
 
     // The Rya instance statements are written to that will be fed into the Fluo
     // app.
@@ -98,9 +98,15 @@ public class KafkaExportITBase extends ModifiedAccumuloExportITBase {
      *         {@link CommonClientConfigs#BOOTSTRAP_SERVERS_CONFIG}.
      */
     protected Properties createBootstrapServerConfig() {
-        final Properties config = new Properties();
-        config.setProperty(CommonClientConfigs.BOOTSTRAP_SERVERS_CONFIG, BROKERHOST + ":" + brokerPort);
-        return config;
+        return embeddedKafka.createBootstrapServerConfig();
+    }
+
+    protected String getKafkaTopicName() {
+        return testInstance.getKafkaTopicName();
+    }
+
+    protected String getKafkaTopicNamePrefix() {
+        return testInstance.getKafkaTopicName();
     }
 
     /**
@@ -157,29 +163,29 @@ public class KafkaExportITBase extends ModifiedAccumuloExportITBase {
     @Override
     @Before
     public void setupMiniFluo() throws Exception {
-        setupKafka();
+        //setupKafka();
         super.setupMiniFluo();
         installRyaInstance();
     }
 
-    public void setupKafka() throws Exception {
-        // grab the connection string for the zookeeper spun up by our parent class.
-        final String zkConnect = getMiniAccumuloCluster().getZooKeepers();
-
-        // setup Broker
-        brokerPort = Integer.toString(PortUtils.getRandomFreePort());
-        final Properties brokerProps = new Properties();
-        brokerProps.setProperty(KafkaConfig$.MODULE$.BrokerIdProp(), "0");
-        brokerProps.setProperty(KafkaConfig$.MODULE$.HostNameProp(), BROKERHOST);
-        brokerProps.setProperty(KafkaConfig$.MODULE$.PortProp(), brokerPort);
-        brokerProps.setProperty(KafkaConfig$.MODULE$.ZkConnectProp(), zkConnect);
-        brokerProps.setProperty(KafkaConfig$.MODULE$.LogDirsProp(), Files.createTempDirectory(getClass().getSimpleName()+"-").toAbsolutePath().toString());
-        final KafkaConfig config = new KafkaConfig(brokerProps);
-
-        final Time mock = new MockTime();
-        kafkaServer = TestUtils.createServer(config, mock);
-        logger.info("Created a Kafka Server: ", config);
-    }
+//    public void setupKafka() throws Exception {
+//        // grab the connection string for the zookeeper spun up by our parent class.
+//        final String zkConnect = getMiniAccumuloCluster().getZooKeepers();
+//
+//        // setup Broker
+//        brokerPort = Integer.toString(PortUtils.getRandomFreePort());
+//        final Properties brokerProps = new Properties();
+//        brokerProps.setProperty(KafkaConfig$.MODULE$.BrokerIdProp(), "0");
+//        brokerProps.setProperty(KafkaConfig$.MODULE$.HostNameProp(), BROKERHOST);
+//        brokerProps.setProperty(KafkaConfig$.MODULE$.PortProp(), brokerPort);
+//        brokerProps.setProperty(KafkaConfig$.MODULE$.ZkConnectProp(), zkConnect);
+//        brokerProps.setProperty(KafkaConfig$.MODULE$.LogDirsProp(), Files.createTempDirectory(getClass().getSimpleName()+"-").toAbsolutePath().toString());
+//        final KafkaConfig config = new KafkaConfig(brokerProps);
+//
+//        final Time mock = new MockTime();
+//        kafkaServer = TestUtils.createServer(config, mock);
+//        logger.info("Created a Kafka Server: ", config);
+//    }
 
     @After
     public void teardownRya() {
@@ -265,9 +271,9 @@ public class KafkaExportITBase extends ModifiedAccumuloExportITBase {
      */
     @After
     public void teardownKafka() {
-        if (kafkaServer != null) {
-            kafkaServer.shutdown();
-        }
+//        if (kafkaServer != null) {
+//            kafkaServer.shutdown();
+//        }
     }
 
     protected KafkaConsumer<Integer, VisibilityBindingSet> makeConsumer(final String TopicName) {

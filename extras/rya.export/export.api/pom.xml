@@ -95,16 +95,9 @@ under the License.
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>license-maven-plugin</artifactId>
-                <version>1.13</version>
-                <configuration>
-                    <licenseName>apache_v2</licenseName>
-                    <processStartTag>========================LICENSE_START=================================</processStartTag>
-                    <processEndTag>=========================LICENSE_END==================================</processEndTag>
-                    <addJavaLicenseAfterPackage>false</addJavaLicenseAfterPackage>
-                </configuration>
                 <executions>
                     <execution>
-                        <id>update_license_headers</id>
+                        <id>update-generated-source-headers</id>
                         <goals>
                             <goal>update-file-header</goal>
                         </goals>

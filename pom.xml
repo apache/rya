@@ -889,6 +889,17 @@ under the License.
                         </excludes>
                     </configuration>
                 </plugin>
+                <plugin>
+                    <groupId>org.codehaus.mojo</groupId>
+                    <artifactId>license-maven-plugin</artifactId>
+                    <version>1.13</version>
+                    <configuration>
+                        <licenseName>apache_v2</licenseName>
+                        <processStartTag>========================LICENSE_START=================================</processStartTag>
+                        <processEndTag>=========================LICENSE_END==================================</processEndTag>
+                        <addJavaLicenseAfterPackage>false</addJavaLicenseAfterPackage>
+                    </configuration>
+                </plugin>
             </plugins>
         </pluginManagement>
 

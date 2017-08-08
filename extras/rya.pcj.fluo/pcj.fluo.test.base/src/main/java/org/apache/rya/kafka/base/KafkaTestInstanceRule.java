@@ -22,6 +22,8 @@ import java.util.Properties;
 
 import org.I0Itec.zkclient.ZkClient;
 import org.junit.rules.ExternalResource;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import kafka.admin.AdminUtils;
 import kafka.admin.RackAwareMode;
@@ -29,7 +31,7 @@ import kafka.utils.ZKStringSerializer$;
 import kafka.utils.ZkUtils;
 
 public class KafkaTestInstanceRule extends ExternalResource {
-
+    private static final Logger logger = LoggerFactory.getLogger(KafkaTestInstanceRule.class);
     private static final EmbeddedKafkaInstance kafkaInstance = EmbeddedKafkaSingleton.getInstance();
     private String kafkaTopicName;
     private final boolean createTopic;
@@ -59,15 +61,24 @@ public class KafkaTestInstanceRule extends ExternalResource {
         kafkaTopicName = kafkaInstance.getUniqueTopicName();
 
         if(createTopic) {
-            // Setup Kafka.
-            ZkUtils zkUtils = null;
-            try {
-                zkUtils = ZkUtils.apply(new ZkClient(kafkaInstance.getZookeeperConnect(), 30000, 30000, ZKStringSerializer$.MODULE$), false);
-                AdminUtils.createTopic(zkUtils, kafkaTopicName, 1, 1, new Properties(), RackAwareMode.Disabled$.MODULE$);
-            } finally {
-                if(zkUtils != null) {
-                    zkUtils.close();
-                }
+            createTopic(kafkaTopicName);
+        }
+    }
+
+    /**
+     *
+     * @param topicName - The Kafka topic to create.
+     */
+    public void createTopic(final String topicName) {
+        // Setup Kafka.
+        ZkUtils zkUtils = null;
+        try {
+            logger.info("Creating Kafka Topic: '{}'", kafkaTopicName);
+            zkUtils = ZkUtils.apply(new ZkClient(kafkaInstance.getZookeeperConnect(), 30000, 30000, ZKStringSerializer$.MODULE$), false);
+            AdminUtils.createTopic(zkUtils, kafkaTopicName, 1, 1, new Properties(), RackAwareMode.Disabled$.MODULE$);
+        } finally {
+            if(zkUtils != null) {
+                zkUtils.close();
             }
         }
     }

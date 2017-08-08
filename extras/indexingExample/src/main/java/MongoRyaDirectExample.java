@@ -26,6 +26,7 @@ import org.apache.log4j.Logger;
 import org.openrdf.model.Namespace;
 import org.openrdf.model.URI;
 import org.openrdf.model.ValueFactory;
+import org.openrdf.model.vocabulary.OWL;
 import org.openrdf.model.vocabulary.RDF;
 import org.openrdf.model.vocabulary.RDFS;
 import org.openrdf.query.BindingSet;
@@ -98,6 +99,7 @@ public class MongoRyaDirectExample {
             	testInfer(conn, sail);
             	testPropertyChainInference(conn, sail);
             	testPropertyChainInferenceAltRepresentation(conn, sail);
+            	testAllValuesFromInference(conn, sail);
             }
 
             log.info("TIME: " + (System.currentTimeMillis() - start) / 1000.);
@@ -445,6 +447,56 @@ public class MongoRyaDirectExample {
     	tupleQuery.evaluate(resultHandler);
     	log.info("Result count : " + resultHandler.getCount());
 
+    }
+
+    public static void testAllValuesFromInference(SailRepositoryConnection conn, Sail sail) throws MalformedQueryException, RepositoryException,
+    UpdateExecutionException, QueryEvaluationException, TupleQueryResultHandlerException, InferenceEngineException {
+        log.info("Adding Data");
+        String insert = "INSERT DATA\n"
+                + "{ GRAPH <http://updated/test> {\n"
+                + "  <urn:Alice> a <urn:Person> .\n"
+                + "  <urn:Alice> <urn:hasParent> <urn:Bob> .\n"
+                + "  <urn:Carol> <urn:hasParent> <urn:Dan> .\n"
+                + "}}";
+        Update update = conn.prepareUpdate(QueryLanguage.SPARQL, insert);
+        update.execute();
+        final String inferQuery = "select distinct ?x { GRAPH <http://updated/test> { ?x a <urn:Person> }}";
+        final String explicitQuery = "select distinct ?x { GRAPH <http://updated/test> {\n"
+                + "  { ?x a <urn:Person> }\n"
+                + "  UNION {\n"
+                + "    ?y a <urn:Person> .\n"
+                + "    ?y <urn:hasParent> ?x .\n"
+                + "  }\n"
+                + "}}";
+        log.info("Running Explicit Query");
+        CountingResultHandler resultHandler = new CountingResultHandler();
+        TupleQuery tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, explicitQuery);
+        tupleQuery.evaluate(resultHandler);
+        log.info("Result count : " + resultHandler.getCount());
+        Validate.isTrue(resultHandler.getCount() == 2);
+        log.info("Running Inference-dependent Query");
+        resultHandler.resetCount();
+        tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, inferQuery);
+        tupleQuery.evaluate(resultHandler);
+        log.info("Result count : " + resultHandler.getCount());
+        Validate.isTrue(resultHandler.getCount() == 1);
+        log.info("Adding owl:allValuesFrom Schema");
+        insert = "PREFIX rdfs: <" + RDFS.NAMESPACE + ">\n"
+                + "PREFIX owl: <" + OWL.NAMESPACE + ">\n"
+                + "INSERT DATA\n"
+                + "{ GRAPH <http://updated/test> {\n"
+                + "  <urn:Person> rdfs:subClassOf [ owl:onProperty <urn:hasParent> ; owl:allValuesFrom <urn:Person> ] ."
+                + "}}";
+        update = conn.prepareUpdate(QueryLanguage.SPARQL, insert);
+        update.execute();
+        log.info("Refreshing InferenceEngine");
+        ((RdfCloudTripleStore) sail).getInferenceEngine().refreshGraph();
+        log.info("Re-running Inference-dependent Query");
+        resultHandler.resetCount();
+        tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, inferQuery);
+        tupleQuery.evaluate(resultHandler);
+        log.info("Result count : " + resultHandler.getCount());
+        Validate.isTrue(resultHandler.getCount() == 2);
     }
     
     public static void testInfer(SailRepositoryConnection conn, Sail sail) throws MalformedQueryException, RepositoryException, 

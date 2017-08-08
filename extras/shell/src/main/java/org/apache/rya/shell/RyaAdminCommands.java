@@ -22,8 +22,11 @@ import static java.util.Objects.requireNonNull;
 
 import java.io.IOException;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
+import org.apache.rya.api.client.CreatePCJ.ExportStrategy;
 import org.apache.rya.api.client.GetInstanceDetails;
 import org.apache.rya.api.client.Install.DuplicateInstanceNameException;
 import org.apache.rya.api.client.Install.InstallConfiguration;
@@ -280,7 +283,11 @@ public class RyaAdminCommands implements CommandMarker {
     }
 
     @CliCommand(value = CREATE_PCJ_CMD, help = "Creates and starts the maintenance of a new PCJ using a Fluo application.")
-    public String createPcj() {
+    public String createPcj(
+            @CliOption(key = {"exportToRya"}, mandatory = false, help = "Indicates that results for the query should be exported to a Rya PCJ table.")
+            boolean exportToRya,
+            @CliOption(key = {"exportToKafka"}, mandatory = false, help = "Indicates that results for the query should be exported to a Kafka Topic.")
+            boolean exportToKafka) {
         // Fetch the command that is connected to the store.
         final ShellState shellState = state.getShellState();
         final RyaClient commands = shellState.getConnectedCommands().get();
@@ -290,8 +297,18 @@ public class RyaAdminCommands implements CommandMarker {
             // Prompt the user for the SPARQL.
             final Optional<String> sparql = sparqlPrompt.getSparql();
             if (sparql.isPresent()) {
+                Set<ExportStrategy> strategies = new HashSet<>();
+                if(exportToRya) {
+                    strategies.add(ExportStrategy.RYA);
+                }
+                if(exportToKafka) {
+                    strategies.add(ExportStrategy.KAFKA);
+                }
+                if(strategies.size() == 0) {
+                    return "The user must specify at least one export strategy by setting either exportToRya or exportToKafka to true."; 
+                }
                 // Execute the command.
-                final String pcjId = commands.getCreatePCJ().createPCJ(ryaInstance, sparql.get());
+                final String pcjId = commands.getCreatePCJ().createPCJ(ryaInstance, sparql.get(), strategies);
                 // Return a message that indicates the ID of the newly created ID.
                 return String.format("The PCJ has been created. Its ID is '%s'.", pcjId);
             } else {

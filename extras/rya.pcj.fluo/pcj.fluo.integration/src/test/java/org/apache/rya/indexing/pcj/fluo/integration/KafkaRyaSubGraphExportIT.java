@@ -33,13 +33,12 @@ import java.util.stream.Collectors;
 import org.apache.fluo.api.client.FluoClient;
 import org.apache.fluo.api.config.ObserverSpecification;
 import org.apache.fluo.core.client.FluoClientImpl;
+import org.apache.fluo.recipes.test.FluoITHelper;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
-import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.serialization.StringDeserializer;
-import org.apache.kafka.common.serialization.StringSerializer;
 import org.apache.rya.accumulo.AccumuloRyaDAO;
 import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.domain.RyaSubGraph;
@@ -48,13 +47,14 @@ import org.apache.rya.api.domain.RyaURI;
 import org.apache.rya.api.resolver.RdfToRyaConversions;
 import org.apache.rya.indexing.pcj.fluo.ConstructGraphTestUtils;
 import org.apache.rya.indexing.pcj.fluo.api.CreateFluoPcj;
-import org.apache.rya.indexing.pcj.fluo.app.export.kafka.KafkaExportParameters;
+import org.apache.rya.indexing.pcj.fluo.app.export.kafka.KafkaSubGraphExporterParameters;
 import org.apache.rya.indexing.pcj.fluo.app.export.kafka.RyaSubGraphKafkaSerDe;
 import org.apache.rya.indexing.pcj.fluo.app.observers.AggregationObserver;
 import org.apache.rya.indexing.pcj.fluo.app.observers.ConstructQueryResultObserver;
 import org.apache.rya.indexing.pcj.fluo.app.observers.FilterObserver;
 import org.apache.rya.indexing.pcj.fluo.app.observers.JoinObserver;
 import org.apache.rya.indexing.pcj.fluo.app.observers.ProjectionObserver;
+import org.apache.rya.indexing.pcj.fluo.app.observers.QueryResultObserver;
 import org.apache.rya.indexing.pcj.fluo.app.observers.StatementPatternObserver;
 import org.apache.rya.indexing.pcj.fluo.app.observers.TripleObserver;
 import org.apache.rya.pcj.fluo.test.base.KafkaExportITBase;
@@ -88,22 +88,18 @@ public class KafkaRyaSubGraphExportIT extends KafkaExportITBase {
         observers.add(new ObserverSpecification(FilterObserver.class.getName()));
         observers.add(new ObserverSpecification(AggregationObserver.class.getName()));
         observers.add(new ObserverSpecification(ProjectionObserver.class.getName()));
+        observers.add(new ObserverSpecification(ConstructQueryResultObserver.class.getName()));
+        
 
         // Configure the export observer to export new PCJ results to the mini
         // accumulo cluster.
         final HashMap<String, String> exportParams = new HashMap<>();
 
-        final KafkaExportParameters kafkaParams = new KafkaExportParameters(exportParams);
-        kafkaParams.setExportToKafka(true);
+        final KafkaSubGraphExporterParameters kafkaParams = new KafkaSubGraphExporterParameters(exportParams);
+        kafkaParams.setUseKafkaSubgraphExporter(true);
+        kafkaParams.setKafkaBootStrapServers(BROKERHOST + ":" + BROKERPORT);
 
-        // Configure the Kafka Producer
-        final Properties producerConfig = new Properties();
-        producerConfig.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, BROKERHOST + ":" + BROKERPORT);
-        producerConfig.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
-        producerConfig.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, RyaSubGraphKafkaSerDe.class.getName());
-        kafkaParams.addAllProducerConfig(producerConfig);
-
-        final ObserverSpecification exportObserverConfig = new ObserverSpecification(ConstructQueryResultObserver.class.getName(),
+        final ObserverSpecification exportObserverConfig = new ObserverSpecification(QueryResultObserver.class.getName(),
                 exportParams);
         observers.add(exportObserverConfig);
 

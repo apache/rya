@@ -20,17 +20,20 @@ package org.apache.rya.indexing.pcj.fluo.app.export.kafka;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
+import java.util.Set;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
-import org.apache.fluo.api.client.TransactionBase;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.clients.producer.RecordMetadata;
 import org.apache.log4j.Logger;
+import org.apache.rya.api.client.CreatePCJ.ExportStrategy;
+import org.apache.rya.api.client.CreatePCJ.QueryType;
 import org.apache.rya.indexing.pcj.fluo.app.export.IncrementalBindingSetExporter;
-import org.apache.rya.indexing.pcj.fluo.app.query.FluoQueryColumns;
 import org.apache.rya.indexing.pcj.storage.accumulo.VisibilityBindingSet;
+
+import com.google.common.collect.Sets;
 
 /**
  * Incrementally exports SPARQL query results to Kafka topics.
@@ -57,17 +60,15 @@ public class KafkaBindingSetExporter implements IncrementalBindingSetExporter {
      * Send the results to the topic using the queryID as the topicname
      */
     @Override
-    public void export(final TransactionBase fluoTx, final String queryId, final VisibilityBindingSet result) throws ResultExportException {
-        checkNotNull(fluoTx);
+    public void export(final String queryId, final VisibilityBindingSet result) throws ResultExportException {
         checkNotNull(queryId);
         checkNotNull(result);
         try {
-            final String pcjId = fluoTx.gets(queryId, FluoQueryColumns.RYA_PCJ_ID);
-            final String msg = "out to kafta topic: queryId=" + queryId + " pcjId=" + pcjId + " result=" + result;
+            final String msg = "Out to Kafka topic: " + queryId + ", Result: " + result;
             log.trace(msg);
 
             // Send the result to the topic whose name matches the PCJ ID.
-            final ProducerRecord<String, VisibilityBindingSet> rec = new ProducerRecord<>(pcjId, result);
+            final ProducerRecord<String, VisibilityBindingSet> rec = new ProducerRecord<>(queryId, result);
             final Future<RecordMetadata> future = producer.send(rec);
 
             // Don't let the export return until the result has been written to the topic. Otherwise we may lose results.
@@ -83,5 +84,15 @@ public class KafkaBindingSetExporter implements IncrementalBindingSetExporter {
     @Override
     public void close() throws Exception {
         producer.close(5, TimeUnit.SECONDS);
+    }
+
+    @Override
+    public Set<QueryType> getQueryTypes() {
+        return Sets.newHashSet(QueryType.PROJECTION);
+    }
+
+    @Override
+    public ExportStrategy getExportStrategy() {
+        return ExportStrategy.KAFKA;
     }
 }

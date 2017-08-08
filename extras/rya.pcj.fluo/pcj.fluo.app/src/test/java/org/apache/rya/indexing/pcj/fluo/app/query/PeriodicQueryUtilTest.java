@@ -154,7 +154,7 @@ public class PeriodicQueryUtilTest {
     }
     
     @Test
-    public void testFluoQueryVarOrders() throws MalformedQueryException {
+    public void testFluoQueryVarOrders() throws MalformedQueryException, UnsupportedQueryException {
         String query = "prefix function: <http://org.apache.rya/function#> " //n
                 + "prefix time: <http://www.w3.org/2006/time#> " //n
                 + "select (count(?obs) as ?total) where {" //n

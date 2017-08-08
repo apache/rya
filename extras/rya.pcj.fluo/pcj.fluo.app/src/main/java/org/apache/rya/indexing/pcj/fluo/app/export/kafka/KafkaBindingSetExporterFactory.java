@@ -23,7 +23,8 @@ import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.log4j.Logger;
 import org.apache.rya.indexing.pcj.fluo.app.export.IncrementalBindingSetExporter;
-import org.apache.rya.indexing.pcj.fluo.app.export.IncrementalBindingSetExporterFactory;
+import org.apache.rya.indexing.pcj.fluo.app.export.IncrementalResultExporter;
+import org.apache.rya.indexing.pcj.fluo.app.export.IncrementalResultExporterFactory;
 import org.apache.rya.indexing.pcj.storage.accumulo.VisibilityBindingSet;
 
 import com.google.common.base.Optional;
@@ -44,13 +45,13 @@ import com.google.common.base.Optional;
  * 
  * @see ProducerConfig
  */
-public class KafkaBindingSetExporterFactory implements IncrementalBindingSetExporterFactory {
+public class KafkaBindingSetExporterFactory implements IncrementalResultExporterFactory {
     private static final Logger log = Logger.getLogger(KafkaBindingSetExporterFactory.class);
     @Override
-    public Optional<IncrementalBindingSetExporter> build(Context context) throws IncrementalExporterFactoryException, ConfigurationException {
-        final KafkaExportParameters exportParams = new KafkaExportParameters(context.getObserverConfiguration().toMap());
-        log.debug("KafkaResultExporterFactory.build(): params.isExportToKafka()=" + exportParams.isExportToKafka());
-        if (exportParams.isExportToKafka()) {
+    public Optional<IncrementalResultExporter> build(Context context) throws IncrementalExporterFactoryException, ConfigurationException {
+        final KafkaBindingSetExporterParameters exportParams = new KafkaBindingSetExporterParameters(context.getObserverConfiguration().toMap());
+        log.debug("KafkaResultExporterFactory.build(): params.isExportToKafka()=" + exportParams.getUseKafkaBindingSetExporter());
+        if (exportParams.getUseKafkaBindingSetExporter()) {
             // Setup Kafka connection
             KafkaProducer<String, VisibilityBindingSet> producer = new KafkaProducer<String, VisibilityBindingSet>(exportParams.listAllConfig());
             // Create the exporter

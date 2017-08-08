@@ -26,9 +26,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import org.apache.fluo.api.client.FluoClient;
 import org.apache.fluo.api.client.Snapshot;
 import org.apache.fluo.api.client.SnapshotBase;
-import org.apache.fluo.api.data.Bytes;
 import org.apache.log4j.Logger;
-import org.apache.rya.indexing.pcj.fluo.app.query.FluoQueryColumns;
+import org.apache.rya.indexing.pcj.fluo.app.NodeType;
 import org.apache.rya.indexing.pcj.fluo.app.util.PeriodicQueryUtil;
 import org.apache.rya.periodic.notification.api.BinPruner;
 import org.apache.rya.periodic.notification.api.NodeBin;
@@ -79,12 +78,12 @@ public class PeriodicQueryPruner implements BinPruner, Runnable {
      */
     @Override
     public void pruneBindingSetBin(NodeBin nodeBin) {
-        String id = nodeBin.getNodeId();
+        String pcjId = nodeBin.getNodeId();
         long bin = nodeBin.getBin();
         try(Snapshot sx = client.newSnapshot()) {
-            String queryId = sx.get(Bytes.of(id), FluoQueryColumns.PCJ_ID_QUERY_ID).toString();
+            String queryId = NodeType.generateNewIdForType(NodeType.QUERY, pcjId);
             Set<String> fluoIds = getNodeIdsFromResultId(sx, queryId);
-            accPruner.pruneBindingSetBin(new NodeBin(id, bin));
+            accPruner.pruneBindingSetBin(nodeBin);
             for(String fluoId: fluoIds) {
                 fluoPruner.pruneBindingSetBin(new NodeBin(fluoId, bin));
             }

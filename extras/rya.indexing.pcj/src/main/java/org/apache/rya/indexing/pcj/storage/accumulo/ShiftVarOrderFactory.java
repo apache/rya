@@ -46,6 +46,7 @@ public class ShiftVarOrderFactory implements PcjVarOrderFactory {
         final Set<String> bindingNames = new SPARQLParser().parseQuery(sparql, null)
                 .getTupleExpr()
                 .getBindingNames();
+        
 
         return makeVarOrders( new VariableOrder(bindingNames) );
     }

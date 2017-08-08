@@ -55,7 +55,7 @@ import edu.umd.cs.findbugs.annotations.NonNull;
 public abstract class BindingSetUpdater extends AbstractObserver {
     private static final Logger log = Logger.getLogger(BindingSetUpdater.class);
     // DAO
-    private final FluoQueryMetadataDAO queryDao = new FluoQueryMetadataDAO();
+    protected final FluoQueryMetadataDAO queryDao = new FluoQueryMetadataDAO();
 
     // Updaters
     private final JoinResultUpdater joinUpdater = new JoinResultUpdater();

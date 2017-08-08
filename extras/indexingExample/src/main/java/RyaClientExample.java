@@ -249,7 +249,7 @@ public class RyaClientExample {
         // export observer.
         final HashMap<String, String> params = new HashMap<>();
         final RyaExportParameters ryaParams = new RyaExportParameters(params);
-        ryaParams.setExportToRya(true);
+        ryaParams.setUseRyaBindingSetExporter(true);
         ryaParams.setAccumuloInstanceName(instanceName);
         ryaParams.setZookeeperServers(zookeepers);
         ryaParams.setExporterUsername(username);

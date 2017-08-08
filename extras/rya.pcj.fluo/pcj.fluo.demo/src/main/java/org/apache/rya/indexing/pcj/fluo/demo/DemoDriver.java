@@ -304,7 +304,7 @@ public class DemoDriver {
         // Provide export parameters child test classes may provide to the export observer.
         final HashMap<String, String> exportParams = new HashMap<>();
         final RyaExportParameters ryaParams = new RyaExportParameters(exportParams);
-        ryaParams.setExportToRya(true);
+        ryaParams.setUseRyaBindingSetExporter(true);
         ryaParams.setAccumuloInstanceName(accumulo.getInstanceName());
         ryaParams.setZookeeperServers(accumulo.getZooKeepers());
         ryaParams.setExporterUsername("root");

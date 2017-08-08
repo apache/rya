@@ -52,7 +52,7 @@ public class ListQueryIds {
 
         try(Snapshot snap = fluo.newSnapshot() ) {
             // Create an iterator that iterates over the QUERY_ID column.
-            final CellScanner cellScanner = snap.scanner().fetch( FluoQueryColumns.QUERY_ID).build();
+            final CellScanner cellScanner = snap.scanner().fetch( FluoQueryColumns.QUERY_NODE_ID).build();
 
             for (RowColumnValue rcv : cellScanner) {
             	queryIds.add(rcv.getsValue());

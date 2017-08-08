@@ -18,7 +18,7 @@
  */
 package org.apache.rya.indexing.pcj.fluo.api;
 
-import static org.apache.rya.indexing.pcj.fluo.app.query.FluoQueryColumns.QUERY_ID;
+import static org.apache.rya.indexing.pcj.fluo.app.query.FluoQueryColumns.QUERY_NODE_ID;
 import static org.junit.Assert.assertEquals;
 
 import java.util.List;
@@ -49,10 +49,10 @@ public class ListQueryIdsIT extends RyaExportITBase {
         try(FluoClient fluoClient = FluoFactory.newClient(super.getFluoConfiguration())) {
             // Store a few SPARQL/Query ID pairs in the Fluo table.
             try(Transaction tx = fluoClient.newTransaction()) {
-                tx.set("SPARQL_3", QUERY_ID, "ID_3");
-                tx.set("SPARQL_1", QUERY_ID, "ID_1");
-                tx.set("SPARQL_4", QUERY_ID, "ID_4");
-                tx.set("SPARQL_2", QUERY_ID, "ID_2");
+                tx.set("SPARQL_3", QUERY_NODE_ID, "ID_3");
+                tx.set("SPARQL_1", QUERY_NODE_ID, "ID_1");
+                tx.set("SPARQL_4", QUERY_NODE_ID, "ID_4");
+                tx.set("SPARQL_2", QUERY_NODE_ID, "ID_2");
                 tx.commit();
             }
 

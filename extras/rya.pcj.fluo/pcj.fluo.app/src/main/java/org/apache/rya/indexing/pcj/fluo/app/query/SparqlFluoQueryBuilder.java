@@ -40,12 +40,12 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicReference;
 
+import org.apache.rya.api.client.CreatePCJ.ExportStrategy;
+import org.apache.rya.api.client.CreatePCJ.QueryType;
 import org.apache.rya.indexing.pcj.fluo.app.ConstructGraph;
 import org.apache.rya.indexing.pcj.fluo.app.ConstructProjection;
 import org.apache.rya.indexing.pcj.fluo.app.FluoStringConverter;
 import org.apache.rya.indexing.pcj.fluo.app.IncrementalUpdateConstants;
-import org.apache.rya.indexing.pcj.fluo.app.IncrementalUpdateConstants.ExportStrategy;
-import org.apache.rya.indexing.pcj.fluo.app.IncrementalUpdateConstants.QueryType;
 import org.apache.rya.indexing.pcj.fluo.app.NodeType;
 import org.apache.rya.indexing.pcj.fluo.app.query.AggregationMetadata.AggregationElement;
 import org.apache.rya.indexing.pcj.fluo.app.query.AggregationMetadata.AggregationType;
@@ -106,7 +106,7 @@ public class SparqlFluoQueryBuilder {
   
     //Default behavior is to export to Kafka - subject to change when user can 
     //specify their own export strategy
-    private Set<ExportStrategy> exportStrategies = new HashSet<>(Arrays.asList(ExportStrategy.Kafka));
+    private Set<ExportStrategy> exportStrategies = new HashSet<>(Arrays.asList(ExportStrategy.KAFKA));
     
     public SparqlFluoQueryBuilder setSparql(String sparql) {
         this.sparql = Preconditions.checkNotNull(sparql);
@@ -145,7 +145,7 @@ public class SparqlFluoQueryBuilder {
         return this;
     }
     
-    public FluoQuery build() {
+    public FluoQuery build() throws UnsupportedQueryException {
         Preconditions.checkNotNull(sparql);
         Preconditions.checkNotNull(queryId);
         Preconditions.checkNotNull(exportStrategies);
@@ -172,10 +172,12 @@ public class SparqlFluoQueryBuilder {
         QueryMetadata.Builder queryBuilder = QueryMetadata.builder(queryId);
         //sets {@link QueryType} and VariableOrder
         setVarOrderAndQueryType(queryBuilder, te);
-        queryBuilder.setSparql(sparql);
-        queryBuilder.setChildNodeId(childNodeId);
-        queryBuilder.setExportStrategies(exportStrategies);
-        queryBuilder.setJoinBatchSize(joinBatchSize);
+        queryBuilder
+            .setSparql(sparql)
+            .setChildNodeId(childNodeId)
+            .setExportStrategies(exportStrategies)
+            .setJoinBatchSize(joinBatchSize);
+        
         fluoQueryBuilder.setQueryMetadata(queryBuilder);
         
         setChildMetadata(fluoQueryBuilder, childNodeId, queryBuilder.getVariableOrder(), queryId);
@@ -800,7 +802,7 @@ public class SparqlFluoQueryBuilder {
             }
             
             if(queryType == null) {
-                queryType = QueryType.Projection;
+                queryType = QueryType.PROJECTION;
             }
             super.meet(node);
         }
@@ -811,14 +813,14 @@ public class SparqlFluoQueryBuilder {
             }
             
             if(queryType == null) {
-                queryType = QueryType.Construct;
+                queryType = QueryType.CONSTRUCT;
             }
             super.meet(node);
         }
         
         public void meetOther(final QueryModelNode node) throws Exception {
             if (node instanceof PeriodicQueryNode) {
-                queryType = QueryType.Periodic;
+                queryType = QueryType.PERIODIC;
             } else {
                 super.meetOther(node);
             }

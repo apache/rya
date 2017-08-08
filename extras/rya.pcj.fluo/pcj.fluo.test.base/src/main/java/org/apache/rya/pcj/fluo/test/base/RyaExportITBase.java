@@ -65,7 +65,8 @@ public class RyaExportITBase extends FluoITBase {
         // Configure the export observer to export new PCJ results to the mini accumulo cluster.
         final HashMap<String, String> exportParams = new HashMap<>();
         final RyaExportParameters ryaParams = new RyaExportParameters(exportParams);
-        ryaParams.setExportToRya(true);
+        ryaParams.setUseRyaBindingSetExporter(true);
+        ryaParams.setUsePeriodicBindingSetExporter(true);
         ryaParams.setRyaInstanceName(getRyaInstanceName());
         ryaParams.setAccumuloInstanceName(super.getMiniAccumuloCluster().getInstanceName());
         ryaParams.setZookeeperServers(super.getMiniAccumuloCluster().getZooKeepers());

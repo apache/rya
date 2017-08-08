@@ -29,9 +29,9 @@ import org.apache.fluo.api.client.FluoClient;
 import org.apache.fluo.api.client.FluoFactory;
 import org.apache.fluo.api.client.Snapshot;
 import org.apache.fluo.api.client.Transaction;
+import org.apache.rya.api.client.CreatePCJ.ExportStrategy;
+import org.apache.rya.api.client.CreatePCJ.QueryType;
 import org.apache.rya.indexing.pcj.fluo.app.ConstructGraph;
-import org.apache.rya.indexing.pcj.fluo.app.IncrementalUpdateConstants.ExportStrategy;
-import org.apache.rya.indexing.pcj.fluo.app.IncrementalUpdateConstants.QueryType;
 import org.apache.rya.indexing.pcj.fluo.app.NodeType;
 import org.apache.rya.indexing.pcj.fluo.app.query.AggregationMetadata.AggregationElement;
 import org.apache.rya.indexing.pcj.fluo.app.query.AggregationMetadata.AggregationType;
@@ -148,11 +148,11 @@ public class FluoQueryMetadataDAOIT extends RyaExportITBase {
         // Create the object that will be serialized.
         String queryId = NodeType.generateNewFluoIdForType(NodeType.QUERY);
         final QueryMetadata.Builder builder = QueryMetadata.builder(queryId);
-        builder.setQueryType(QueryType.Projection);
+        builder.setQueryType(QueryType.PROJECTION);
         builder.setVarOrder(new VariableOrder("y;s;d"));
         builder.setSparql("sparql string");
         builder.setChildNodeId("childNodeId");
-        builder.setExportStrategies(new HashSet<>(Arrays.asList(ExportStrategy.Kafka)));
+        builder.setExportStrategies(new HashSet<>(Arrays.asList(ExportStrategy.KAFKA)));
         final QueryMetadata originalMetadata = builder.build();
 
         try(FluoClient fluoClient = FluoFactory.newClient(super.getFluoConfiguration())) {
@@ -338,7 +338,7 @@ public class FluoQueryMetadataDAOIT extends RyaExportITBase {
     }
 
     @Test
-    public void fluoQueryTest() throws MalformedQueryException {
+    public void fluoQueryTest() throws MalformedQueryException, UnsupportedQueryException {
         final FluoQueryMetadataDAO dao = new FluoQueryMetadataDAO();
 
         // Create the object that will be serialized.
@@ -357,7 +357,7 @@ public class FluoQueryMetadataDAOIT extends RyaExportITBase {
         builder.setFluoQueryId(NodeType.generateNewFluoIdForType(NodeType.QUERY));
         final FluoQuery originalQuery = builder.build();
 
-        assertEquals(QueryType.Projection, originalQuery.getQueryType());
+        assertEquals(QueryType.PROJECTION, originalQuery.getQueryType());
         assertEquals(false, originalQuery.getConstructQueryMetadata().isPresent());
         
         try(FluoClient fluoClient = FluoFactory.newClient(super.getFluoConfiguration())) {
@@ -379,7 +379,7 @@ public class FluoQueryMetadataDAOIT extends RyaExportITBase {
     }
     
     @Test
-    public void fluoConstructQueryTest() throws MalformedQueryException {
+    public void fluoConstructQueryTest() throws MalformedQueryException, UnsupportedQueryException {
         final FluoQueryMetadataDAO dao = new FluoQueryMetadataDAO();
 
         // Create the object that will be serialized.
@@ -398,7 +398,7 @@ public class FluoQueryMetadataDAOIT extends RyaExportITBase {
         builder.setFluoQueryId(NodeType.generateNewFluoIdForType(NodeType.QUERY));
         final FluoQuery originalQuery = builder.build();
         
-        assertEquals(QueryType.Construct, originalQuery.getQueryType());
+        assertEquals(QueryType.CONSTRUCT, originalQuery.getQueryType());
         assertEquals(true, originalQuery.getConstructQueryMetadata().isPresent());
 
         try(FluoClient fluoClient = FluoFactory.newClient(super.getFluoConfiguration())) {
@@ -421,7 +421,7 @@ public class FluoQueryMetadataDAOIT extends RyaExportITBase {
     
     
     @Test
-    public void fluoNestedQueryTest() throws MalformedQueryException {
+    public void fluoNestedQueryTest() throws MalformedQueryException, UnsupportedQueryException {
         final FluoQueryMetadataDAO dao = new FluoQueryMetadataDAO();
 
         // Create the object that will be serialized.
@@ -442,7 +442,7 @@ public class FluoQueryMetadataDAOIT extends RyaExportITBase {
         builder.setFluoQueryId(NodeType.generateNewFluoIdForType(NodeType.QUERY));
         final FluoQuery originalQuery = builder.build();
         
-        assertEquals(QueryType.Projection, originalQuery.getQueryType());
+        assertEquals(QueryType.PROJECTION, originalQuery.getQueryType());
 
         try(FluoClient fluoClient = FluoFactory.newClient(super.getFluoConfiguration())) {
             // Write it to the Fluo table.
@@ -463,7 +463,7 @@ public class FluoQueryMetadataDAOIT extends RyaExportITBase {
     }
     
     @Test
-    public void fluoNestedConstructQueryTest() throws MalformedQueryException {
+    public void fluoNestedConstructQueryTest() throws MalformedQueryException, UnsupportedQueryException {
         final FluoQueryMetadataDAO dao = new FluoQueryMetadataDAO();
 
         // Create the object that will be serialized.
@@ -488,7 +488,7 @@ public class FluoQueryMetadataDAOIT extends RyaExportITBase {
         builder.setFluoQueryId(NodeType.generateNewFluoIdForType(NodeType.QUERY));
         final FluoQuery originalQuery = builder.build();
         
-        assertEquals(QueryType.Construct, originalQuery.getQueryType());
+        assertEquals(QueryType.CONSTRUCT, originalQuery.getQueryType());
 
         try(FluoClient fluoClient = FluoFactory.newClient(super.getFluoConfiguration())) {
             // Write it to the Fluo table.

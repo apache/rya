@@ -27,12 +27,13 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
-import org.apache.rya.indexing.pcj.fluo.app.export.kafka.KafkaExportParameters;
+import org.apache.rya.indexing.pcj.fluo.app.export.kafka.KafkaExportParameterBase;
 import org.apache.rya.indexing.pcj.fluo.app.export.kafka.KafkaBindingSetExporterFactory;
+import org.apache.rya.indexing.pcj.fluo.app.export.kafka.KafkaBindingSetExporterParameters;
 import org.junit.Test;
 
 /**
- * Tests the methods of {@link KafkaExportParameters}.
+ * Tests the methods of {@link KafkaExportParameterBase}.
  */
 public class KafkaExportParametersTest {
 
@@ -41,19 +42,19 @@ public class KafkaExportParametersTest {
         final Map<String, String> params = new HashMap<>();
 
         // Load some values into the params using the wrapper.
-        final KafkaExportParameters kafkaParams = new KafkaExportParameters(params);
-        kafkaParams.setExportToKafka(true);
+        final KafkaBindingSetExporterParameters kafkaParams = new KafkaBindingSetExporterParameters(params);
+        kafkaParams.setUseKafkaBindingSetExporter(true);
 
         // Ensure the params map has the expected values.
         final Map<String, String> expectedParams = new HashMap<>();
-        expectedParams.put(KafkaExportParameters.CONF_EXPORT_TO_KAFKA, "true");
-        assertTrue(kafkaParams.isExportToKafka());
+        expectedParams.put(KafkaBindingSetExporterParameters.CONF_USE_KAFKA_BINDING_SET_EXPORTER, "true");
+        assertTrue(kafkaParams.getUseKafkaBindingSetExporter());
         assertEquals(expectedParams, params);
 
         // now go the other way.
-        expectedParams.put(KafkaExportParameters.CONF_EXPORT_TO_KAFKA, "false");
-        kafkaParams.setExportToKafka(false);
-        assertFalse(kafkaParams.isExportToKafka());
+        expectedParams.put(KafkaBindingSetExporterParameters.CONF_USE_KAFKA_BINDING_SET_EXPORTER, "false");
+        kafkaParams.setUseKafkaBindingSetExporter(false);
+        assertFalse(kafkaParams.getUseKafkaBindingSetExporter());
         assertEquals(expectedParams, params);
     }
     @Test
@@ -68,7 +69,7 @@ public class KafkaExportParametersTest {
         // Make sure export key1 is NOT kept separate from producer config key1
         // This is a change, originally they were kept separate.
         params.put(key1, value1First);
-        final KafkaExportParameters kafkaParams = new KafkaExportParameters(params);
+        final KafkaExportParameterBase kafkaParams = new KafkaExportParameterBase(params);
         // Load some values into the properties using the wrapper.
         Properties props = new Properties();
         props.put(key1, value1Second);
@@ -87,8 +88,8 @@ public class KafkaExportParametersTest {
         final Map<String, String> params = new HashMap<>();
 
         // Ensure an unconfigured parameters map will say kafka export is disabled.
-        final KafkaExportParameters kafkaParams = new KafkaExportParameters(params);
-        assertFalse(kafkaParams.isExportToKafka());
+        final KafkaBindingSetExporterParameters kafkaParams = new KafkaBindingSetExporterParameters(params);
+        assertFalse(kafkaParams.getUseKafkaBindingSetExporter());
     }
 
     @Test

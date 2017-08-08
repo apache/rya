@@ -24,14 +24,12 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.apache.rya.indexing.pcj.fluo.app.query.FluoQueryColumns;
+import org.apache.fluo.api.client.FluoClient;
+import org.apache.fluo.api.client.Snapshot;
+import org.apache.rya.indexing.pcj.fluo.app.util.FluoQueryUtils;
 import org.apache.rya.indexing.pcj.storage.PcjException;
 import org.apache.rya.indexing.pcj.storage.PcjMetadata;
 import org.apache.rya.indexing.pcj.storage.PrecomputedJoinStorage;
-
-import org.apache.fluo.api.client.FluoClient;
-import org.apache.fluo.api.client.Snapshot;
-import org.apache.fluo.api.data.Bytes;
 
 /**
  * Get {@link PcjMetadata} for queries that are managed by the Fluo app.
@@ -87,7 +85,7 @@ public class GetPcjMetadata {
         // Lookup the Rya PCJ ID associated with the query.
         String pcjId = null;
         try(Snapshot snap = fluo.newSnapshot() ) {
-            pcjId = snap.gets(queryId, FluoQueryColumns.RYA_PCJ_ID);
+            pcjId = FluoQueryUtils.convertFluoQueryIdToPcjId(queryId);
             if(pcjId == null) {
                 throw new NotInFluoException("Could not get the PcjMetadata for queryId '" + queryId +
                         "' because a Rya PCJ ID not stored in the Fluo table.");

@@ -31,25 +31,20 @@ import org.apache.rya.indexing.pcj.fluo.app.export.IncrementalBindingSetExporter
 import org.apache.rya.indexing.pcj.fluo.app.export.IncrementalResultExporter;
 import org.apache.rya.indexing.pcj.fluo.app.export.IncrementalResultExporterFactory;
 import org.apache.rya.indexing.pcj.storage.PeriodicQueryResultStorage;
-import org.apache.rya.indexing.pcj.storage.PrecomputedJoinStorage;
-import org.apache.rya.indexing.pcj.storage.accumulo.AccumuloPcjStorage;
 import org.apache.rya.indexing.pcj.storage.accumulo.AccumuloPeriodicQueryResultStorage;
 
 import com.google.common.base.Optional;
 
-/**
- * Creates instances of {@link RyaBindingSetExporter}.
- */
-public class RyaBindingSetExporterFactory implements IncrementalResultExporterFactory {
+public class PeriodicBindingSetExporterFactory implements IncrementalResultExporterFactory {
 
     @Override
-    public Optional<IncrementalResultExporter> build(final Context context) throws IncrementalExporterFactoryException, ConfigurationException {
+    public Optional<IncrementalResultExporter> build(Context context) throws IncrementalExporterFactoryException, ConfigurationException {
         checkNotNull(context);
 
         // Wrap the context's parameters for parsing.
         final RyaExportParameters params = new RyaExportParameters( context.getObserverConfiguration().toMap() );
 
-        if(params.getUseRyaBindingSetExporter()) {
+        if(params.getUsePeriodicBindingSetExporter()) {
             // Setup Zookeeper connection info.
             final String accumuloInstance = params.getAccumuloInstanceName().get();
             final String zookeeperServers =  params.getZookeeperServers().get().replaceAll(";", ",");
@@ -63,10 +58,10 @@ public class RyaBindingSetExporterFactory implements IncrementalResultExporterFa
 
                 // Setup Rya PCJ Storage.
                 final String ryaInstanceName = params.getRyaInstanceName().get();
-                final PrecomputedJoinStorage pcjStorage = new AccumuloPcjStorage(accumuloConn, ryaInstanceName);
+                final PeriodicQueryResultStorage periodicStorage = new AccumuloPeriodicQueryResultStorage(accumuloConn, ryaInstanceName);
                 
                 // Make the exporter.
-                final IncrementalBindingSetExporter exporter = new RyaBindingSetExporter(pcjStorage);
+                final IncrementalBindingSetExporter exporter = new PeriodicBindingSetExporter(periodicStorage);
                 return Optional.of(exporter);
 
             } catch (final AccumuloException | AccumuloSecurityException e) {

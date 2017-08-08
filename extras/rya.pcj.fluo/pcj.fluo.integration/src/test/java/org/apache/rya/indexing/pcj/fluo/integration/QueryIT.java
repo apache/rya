@@ -34,9 +34,11 @@ import javax.xml.datatype.DatatypeFactory;
 import org.apache.accumulo.core.client.Connector;
 import org.apache.fluo.api.client.FluoClient;
 import org.apache.fluo.core.client.FluoClientImpl;
+import org.apache.rya.api.client.CreatePCJ.ExportStrategy;
 import org.apache.rya.api.client.RyaClient;
 import org.apache.rya.api.client.accumulo.AccumuloRyaClientFactory;
 import org.apache.rya.indexing.pcj.fluo.api.CreateFluoPcj;
+import org.apache.rya.indexing.pcj.fluo.app.query.UnsupportedQueryException;
 import org.apache.rya.indexing.pcj.storage.PeriodicQueryResultStorage;
 import org.apache.rya.indexing.pcj.storage.PrecomputedJoinStorage;
 import org.apache.rya.indexing.pcj.storage.PrecomputedJoinStorage.CloseableIterator;
@@ -877,7 +879,7 @@ public class QueryIT extends RyaExportITBase {
         runTest(query, statements, expectedResults, ExporterType.Periodic);
     }
 
-    @Test(expected= IllegalArgumentException.class)
+    @Test(expected= UnsupportedQueryException.class)
     public void nestedConstructPeriodicQueryWithAggregationAndGroupBy() throws Exception {
         String query = "prefix function: <http://org.apache.rya/function#> " // n
                 + "prefix time: <http://www.w3.org/2006/time#> " // n
@@ -924,7 +926,7 @@ public class QueryIT extends RyaExportITBase {
             PeriodicQueryResultStorage periodicStorage = new AccumuloPeriodicQueryResultStorage(accumuloConn, getRyaInstanceName());
             String periodicId = periodicStorage.createPeriodicQuery(sparql);
             try (FluoClient fluo = new FluoClientImpl(super.getFluoConfiguration())) {
-                new CreateFluoPcj().createPcj(periodicId, sparql, fluo);
+                new CreateFluoPcj().createPcj(periodicId, sparql, Sets.newHashSet(ExportStrategy.RYA), fluo);
             }
             addStatementsAndWait(statements);
             

@@ -26,6 +26,7 @@ import org.apache.fluo.api.client.FluoClient;
 import org.apache.fluo.core.client.FluoClientImpl;
 import org.apache.fluo.recipes.test.AccumuloExportITBase;
 import org.apache.rya.indexing.pcj.fluo.api.CreateFluoPcj;
+import org.apache.rya.indexing.pcj.fluo.app.query.UnsupportedQueryException;
 import org.apache.rya.indexing.pcj.fluo.app.util.FluoQueryUtils;
 import org.apache.rya.periodic.notification.coordinator.PeriodicNotificationCoordinatorExecutor;
 import org.apache.rya.periodic.notification.notification.TimestampedNotification;
@@ -38,7 +39,7 @@ import org.junit.Assert;
 public class PeriodicNotificationProviderIT extends AccumuloExportITBase {
 
     @Test
-    public void testProvider() throws MalformedQueryException, InterruptedException {
+    public void testProvider() throws MalformedQueryException, InterruptedException, UnsupportedQueryException {
         
         String sparql = "prefix function: <http://org.apache.rya/function#> " // n
                 + "prefix time: <http://www.w3.org/2006/time#> " // n

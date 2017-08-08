@@ -19,6 +19,7 @@ package org.apache.rya.indexing.pcj.fluo.app.export.kafka;
  */
 import static com.google.common.base.Preconditions.checkNotNull;
 
+import java.util.Set;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
@@ -26,8 +27,13 @@ import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.clients.producer.RecordMetadata;
 import org.apache.log4j.Logger;
+import org.apache.rya.api.client.CreatePCJ.ExportStrategy;
+import org.apache.rya.api.client.CreatePCJ.QueryType;
 import org.apache.rya.api.domain.RyaSubGraph;
 import org.apache.rya.indexing.pcj.fluo.app.export.IncrementalBindingSetExporter.ResultExportException;
+
+import com.google.common.collect.Sets;
+
 import org.apache.rya.indexing.pcj.fluo.app.export.IncrementalRyaSubGraphExporter;
 
 /**
@@ -74,6 +80,16 @@ public class KafkaRyaSubGraphExporter implements IncrementalRyaSubGraphExporter 
     @Override
     public void close() throws Exception {
         producer.close(5, TimeUnit.SECONDS);
+    }
+
+    @Override
+    public Set<QueryType> getQueryTypes() {
+        return Sets.newHashSet(QueryType.CONSTRUCT);
+    }
+
+    @Override
+    public ExportStrategy getExportStrategy() {
+        return ExportStrategy.KAFKA;
     }
 
 }

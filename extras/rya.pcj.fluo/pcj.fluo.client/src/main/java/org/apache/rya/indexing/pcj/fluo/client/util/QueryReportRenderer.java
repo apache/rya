@@ -20,12 +20,9 @@ package org.apache.rya.indexing.pcj.fluo.client.util;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
-import edu.umd.cs.findbugs.annotations.NonNull;
-
 import org.apache.commons.lang3.StringUtils;
+import org.apache.rya.api.client.CreatePCJ.QueryType;
 import org.apache.rya.indexing.pcj.fluo.api.GetQueryReport.QueryReport;
-import org.apache.rya.indexing.pcj.fluo.app.IncrementalUpdateConstants.QueryType;
 import org.apache.rya.indexing.pcj.fluo.app.query.ConstructQueryMetadata;
 import org.apache.rya.indexing.pcj.fluo.app.query.FilterMetadata;
 import org.apache.rya.indexing.pcj.fluo.app.query.FluoQuery;
@@ -37,6 +34,9 @@ import org.apache.rya.indexing.pcj.fluo.client.util.Report.ReportItem;
 import org.openrdf.query.parser.ParsedQuery;
 import org.openrdf.query.parser.sparql.SPARQLParser;
 import org.openrdf.queryrender.sparql.SPARQLQueryRenderer;
+
+import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
+import edu.umd.cs.findbugs.annotations.NonNull;
 
 /**
  * Pretty renders a {@link QueryReport}.
@@ -70,7 +70,7 @@ public class QueryReportRenderer {
         
         
         
-        if (metadata.getQueryType() == QueryType.Construct) {
+        if (metadata.getQueryType() == QueryType.CONSTRUCT) {
             builder.appendItem( new ReportItem("") );
             
             final ConstructQueryMetadata constructMetadata = metadata.getConstructQueryMetadata().get();

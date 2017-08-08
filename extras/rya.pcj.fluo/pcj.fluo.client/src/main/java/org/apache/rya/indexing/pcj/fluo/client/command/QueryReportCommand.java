@@ -26,6 +26,7 @@ import org.apache.logging.log4j.Logger;
 import org.apache.rya.indexing.pcj.fluo.client.PcjAdminClientCommand;
 import org.apache.rya.indexing.pcj.fluo.api.GetQueryReport;
 import org.apache.rya.indexing.pcj.fluo.api.GetQueryReport.QueryReport;
+import org.apache.rya.indexing.pcj.fluo.app.query.UnsupportedQueryException;
 import org.apache.rya.indexing.pcj.fluo.client.util.QueryReportRenderer;
 
 import com.beust.jcommander.JCommander;
@@ -69,7 +70,7 @@ public class QueryReportCommand implements PcjAdminClientCommand {
     }
 
     @Override
-    public void execute(final Connector accumulo, final String ryaTablePrefix, final RyaSailRepository rya, final FluoClient fluo, final String[] args) throws ArgumentsException, ExecutionException {
+    public void execute(final Connector accumulo, final String ryaTablePrefix, final RyaSailRepository rya, final FluoClient fluo, final String[] args) throws ArgumentsException, ExecutionException, UnsupportedQueryException {
         checkNotNull(accumulo);
         checkNotNull(ryaTablePrefix);
         checkNotNull(rya);

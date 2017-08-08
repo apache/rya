@@ -123,7 +123,11 @@ public class AccumuloDeletePCJ extends AccumuloCommand implements DeletePCJ {
                 cd.getZookeepers(),
                 fluoAppName)) {
             // Delete the PCJ from the Fluo App.
-            new DeleteFluoPcj(1000).deletePcj(fluoClient, pcjId);
+            try {
+                new DeleteFluoPcj(1000).deletePcj(fluoClient, pcjId);
+            } catch (Exception e) {
+                log.warn("PcjId corresponds to an invalid PCJ. The query cannot be deleted.");
+            }
         }
     }
 }

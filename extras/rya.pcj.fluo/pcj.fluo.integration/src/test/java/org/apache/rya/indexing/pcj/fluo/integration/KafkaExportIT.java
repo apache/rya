@@ -92,6 +92,8 @@ public class KafkaExportIT extends KafkaExportITBase {
         // Create the PCJ in Fluo and load the statements into Rya.
         final String pcjId = loadData(sparql, statements);
 
+        FluoITHelper.printFluoTable(super.getFluoConfiguration());
+        
         // The expected results of the SPARQL query once the PCJ has been computed.
         final Set<BindingSet> expectedResult = new HashSet<>();
 
@@ -590,9 +592,9 @@ public class KafkaExportIT extends KafkaExportITBase {
         // Read all of the results from the Kafka topic.
         final Set<VisibilityBindingSet> results = new HashSet<>();
 
-        try(final KafkaConsumer<Integer, VisibilityBindingSet> consumer = makeConsumer(pcjId)) {
-            final ConsumerRecords<Integer, VisibilityBindingSet> records = consumer.poll(5000);
-            final Iterator<ConsumerRecord<Integer, VisibilityBindingSet>> recordIterator = records.iterator();
+        try(final KafkaConsumer<String, VisibilityBindingSet> consumer = makeConsumer(pcjId)) {
+            final ConsumerRecords<String, VisibilityBindingSet> records = consumer.poll(5000);
+            final Iterator<ConsumerRecord<String, VisibilityBindingSet>> recordIterator = records.iterator();
             while (recordIterator.hasNext()) {
                 results.add( recordIterator.next().value() );
             }
@@ -607,9 +609,9 @@ public class KafkaExportIT extends KafkaExportITBase {
         // Read the results from the Kafka topic. The last one has the final aggregation result.
         VisibilityBindingSet result = null;
 
-        try(final KafkaConsumer<Integer, VisibilityBindingSet> consumer = makeConsumer(pcjId)) {
-            final ConsumerRecords<Integer, VisibilityBindingSet> records = consumer.poll(5000);
-            final Iterator<ConsumerRecord<Integer, VisibilityBindingSet>> recordIterator = records.iterator();
+        try(final KafkaConsumer<String, VisibilityBindingSet> consumer = makeConsumer(pcjId)) {
+            final ConsumerRecords<String, VisibilityBindingSet> records = consumer.poll(5000);
+            final Iterator<ConsumerRecord<String, VisibilityBindingSet>> recordIterator = records.iterator();
             while (recordIterator.hasNext()) {
                 result = recordIterator.next().value();
             }
@@ -625,9 +627,9 @@ public class KafkaExportIT extends KafkaExportITBase {
         // The key in this map is a Binding Set containing only the group by variables.
         final Map<BindingSet, VisibilityBindingSet> results = new HashMap<>();
 
-        try(final KafkaConsumer<Integer, VisibilityBindingSet> consumer = makeConsumer(pcjId)) {
-            final ConsumerRecords<Integer, VisibilityBindingSet> records = consumer.poll(5000);
-            final Iterator<ConsumerRecord<Integer, VisibilityBindingSet>> recordIterator = records.iterator();
+        try(final KafkaConsumer<String, VisibilityBindingSet> consumer = makeConsumer(pcjId)) {
+            final ConsumerRecords<String, VisibilityBindingSet> records = consumer.poll(5000);
+            final Iterator<ConsumerRecord<String, VisibilityBindingSet>> recordIterator = records.iterator();
             while (recordIterator.hasNext()) {
                 final VisibilityBindingSet visBindingSet = recordIterator.next().value();
 

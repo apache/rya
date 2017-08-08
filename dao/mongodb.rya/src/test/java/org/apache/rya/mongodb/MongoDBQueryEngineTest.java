@@ -98,6 +98,36 @@ public class MongoDBQueryEngineTest extends MongoRyaTestBase {
 
     @SuppressWarnings("unchecked")
     @Test
+    public void batchbindingSetsQuery() throws Exception {
+        final RyaStatement s1 = getStatement(null, null, "u:b");
+
+        final MapBindingSet bs1 = new MapBindingSet();
+        bs1.addBinding("foo", new URIImpl("u:x"));
+
+        final Map.Entry<RyaStatement, BindingSet> e1 = new RdfCloudTripleStoreUtils.CustomEntry<RyaStatement, BindingSet>(s1, bs1);
+        final Collection<Entry<RyaStatement, BindingSet>> stmts1 = Lists.newArrayList(e1);
+        Assert.assertEquals(1, size(engine.queryWithBindingSet(stmts1, configuration)));
+
+
+        final MapBindingSet bs2 = new MapBindingSet();
+        bs2.addBinding("foo", new URIImpl("u:y"));
+
+        final RyaStatement s2 = getStatement(null, null, "u:c");
+
+        final Map.Entry<RyaStatement, BindingSet> e2 = new RdfCloudTripleStoreUtils.CustomEntry<RyaStatement, BindingSet>(s2, bs2);
+
+        final Collection<Entry<RyaStatement, BindingSet>> stmts2 = Lists.newArrayList(e1, e2);
+        Assert.assertEquals(2, size(engine.queryWithBindingSet(stmts2, configuration)));
+
+
+        final Map.Entry<RyaStatement, BindingSet> e3 = new RdfCloudTripleStoreUtils.CustomEntry<RyaStatement, BindingSet>(s2, bs1);
+        final Map.Entry<RyaStatement, BindingSet> e4 = new RdfCloudTripleStoreUtils.CustomEntry<RyaStatement, BindingSet>(s1, bs2);
+        
+        final Collection<Entry<RyaStatement, BindingSet>> stmts3 = Lists.newArrayList(e1, e2, e3, e4);
+        Assert.assertEquals(4, size(engine.queryWithBindingSet(stmts3, configuration)));
+}
+    @SuppressWarnings("unchecked")
+    @Test
     public void bindingSetsQuery() throws Exception {
         final RyaStatement s = getStatement("u:a", null, null);
 

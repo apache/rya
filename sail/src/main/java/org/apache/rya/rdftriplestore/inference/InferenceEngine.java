@@ -73,6 +73,8 @@ import info.aduna.iteration.CloseableIteration;
  */
 public class InferenceEngine {
     private static final Logger log = Logger.getLogger(InferenceEngine.class);
+    private static final ValueFactory VF = ValueFactoryImpl.getInstance();
+    private static final URI HAS_SELF = VF.createURI(OWL.NAMESPACE, "hasSelf");
 
     private Graph subClassOfGraph;
     private Graph subPropertyOfGraph;
@@ -87,6 +89,9 @@ public class InferenceEngine {
     private Map<Resource, Map<Resource, URI>> allValuesFromByValueType;
     private final ConcurrentHashMap<Resource, List<Set<Resource>>> intersections = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<Resource, Set<Resource>> enumerations = new ConcurrentHashMap<>();
+    // hasSelf maps.
+    private Map<URI, Set<Resource>> hasSelfByProperty;
+    private Map<Resource, Set<URI>> hasSelfByType;
 
     private RyaDAO<?> ryaDAO;
     private RdfCloudTripleStoreConfiguration conf;
@@ -141,7 +146,6 @@ public class InferenceEngine {
     }
 
     public void refreshGraph() throws InferenceEngineException {
-        final ValueFactory vf = ValueFactoryImpl.getInstance();
         try {
             CloseableIteration<Statement, QueryEvaluationException> iter;
             //get all subclassof
@@ -170,7 +174,7 @@ public class InferenceEngine {
                                 final Statement firstStatement = listIter.next();
                                 if (firstStatement.getObject() instanceof Resource) {
                                     final Resource subclass = (Resource) firstStatement.getObject();
-                                    final Statement subclassStatement = vf.createStatement(subclass, RDFS.SUBCLASSOF, unionType);
+                                    final Statement subclassStatement = VF.createStatement(subclass, RDFS.SUBCLASSOF, unionType);
                                     addStatementEdge(graph, RDFS.SUBCLASSOF.stringValue(), subclassStatement);
                                 }
                             }
@@ -251,7 +255,7 @@ public class InferenceEngine {
             inverseOfMap = invProp;
 
             iter = RyaDAOHelper.query(ryaDAO, null,
-                    vf.createURI("http://www.w3.org/2002/07/owl#propertyChainAxiom"),
+                    VF.createURI("http://www.w3.org/2002/07/owl#propertyChainAxiom"),
                     null, conf);
             final Map<URI,URI> propertyChainPropertiesToBNodes = new HashMap<>();
             propertyChainPropertyToChain = new HashMap<>();
@@ -269,7 +273,7 @@ public class InferenceEngine {
             for (final URI propertyChainProperty : propertyChainPropertiesToBNodes.keySet()){
                 final URI bNode = propertyChainPropertiesToBNodes.get(propertyChainProperty);
                 // query for the list of indexed properties
-                iter = RyaDAOHelper.query(ryaDAO, bNode, vf.createURI("http://www.w3.org/2000/10/swap/list#index"),
+                iter = RyaDAOHelper.query(ryaDAO, bNode, VF.createURI("http://www.w3.org/2000/10/swap/list#index"),
                         null, conf);
                 final TreeMap<Integer, URI> orderedProperties = new TreeMap<>();
                 // TODO refactor this.  Wish I could execute sparql
@@ -278,7 +282,7 @@ public class InferenceEngine {
                         final Statement st = iter.next();
                         final String indexedElement = st.getObject().stringValue();
                         log.info(indexedElement);
-                        CloseableIteration<Statement, QueryEvaluationException>  iter2 = RyaDAOHelper.query(ryaDAO, vf.createURI(st.getObject().stringValue()), RDF.FIRST,
+                        CloseableIteration<Statement, QueryEvaluationException>  iter2 = RyaDAOHelper.query(ryaDAO, VF.createURI(st.getObject().stringValue()), RDF.FIRST,
                                 null, conf);
                         String integerValue = "";
                         Value anonPropNode = null;
@@ -291,7 +295,7 @@ public class InferenceEngine {
                             }
                             iter2.close();
                         }
-                        iter2 = RyaDAOHelper.query(ryaDAO, vf.createURI(st.getObject().stringValue()), RDF.REST,
+                        iter2 = RyaDAOHelper.query(ryaDAO, VF.createURI(st.getObject().stringValue()), RDF.REST,
                                 null, conf);
                         if (iter2 != null){
                             while (iter2.hasNext()){
@@ -301,7 +305,7 @@ public class InferenceEngine {
                             }
                             iter2.close();
                             if (anonPropNode != null){
-                                iter2 = RyaDAOHelper.query(ryaDAO, vf.createURI(anonPropNode.stringValue()), RDF.FIRST,
+                                iter2 = RyaDAOHelper.query(ryaDAO, VF.createURI(anonPropNode.stringValue()), RDF.FIRST,
                                         null, conf);
                                 while (iter2.hasNext()){
                                     final Statement iter2Statement = iter2.next();
@@ -314,7 +318,7 @@ public class InferenceEngine {
                         if (!integerValue.isEmpty() && propURI!=null) {
                             try {
                                 final int indexValue = Integer.parseInt(integerValue);
-                                final URI chainPropURI = vf.createURI(propURI.stringValue());
+                                final URI chainPropURI = VF.createURI(propURI.stringValue());
                                 orderedProperties.put(indexValue, chainPropURI);
                             }
                             catch (final Exception ex){
@@ -350,7 +354,7 @@ public class InferenceEngine {
                         Value currentPropValue = iter2Statement.getObject();
                         while ((currentPropValue != null) && (!currentPropValue.stringValue().equalsIgnoreCase(RDF.NIL.stringValue()))){
                             if (currentPropValue instanceof URI){
-                                iter2 = RyaDAOHelper.query(ryaDAO, vf.createURI(currentPropValue.stringValue()), RDF.FIRST,
+                                iter2 = RyaDAOHelper.query(ryaDAO, VF.createURI(currentPropValue.stringValue()), RDF.FIRST,
                                         null, conf);
                                 if (iter2.hasNext()){
                                     iter2Statement = iter2.next();
@@ -360,7 +364,7 @@ public class InferenceEngine {
                                 }
                                 // otherwise see if there is an inverse declaration
                                 else {
-                                    iter2 = RyaDAOHelper.query(ryaDAO, vf.createURI(currentPropValue.stringValue()), OWL.INVERSEOF,
+                                    iter2 = RyaDAOHelper.query(ryaDAO, VF.createURI(currentPropValue.stringValue()), OWL.INVERSEOF,
                                             null, conf);
                                     if (iter2.hasNext()){
                                         iter2Statement = iter2.next();
@@ -609,6 +613,7 @@ public class InferenceEngine {
         refreshHasValueRestrictions(restrictions);
         refreshSomeValuesFromRestrictions(restrictions);
         refreshAllValuesFromRestrictions(restrictions);
+        refreshHasSelfRestrictions(restrictions);
     }
 
     private void refreshHasValueRestrictions(final Map<Resource, URI> restrictions) throws QueryEvaluationException {
@@ -689,6 +694,39 @@ public class InferenceEngine {
                 }
             }
         });
+    }
+
+    private void refreshHasSelfRestrictions(final Map<Resource, URI> restrictions) throws QueryEvaluationException {
+        hasSelfByType = new HashMap<>();
+        hasSelfByProperty = new HashMap<>();
+
+        for(final Resource type : restrictions.keySet()) {
+            final URI property = restrictions.get(type);
+            final CloseableIteration<Statement, QueryEvaluationException> iter = RyaDAOHelper.query(ryaDAO, type, HAS_SELF, null, conf);
+            try {
+                if (iter.hasNext()) {
+                    Set<URI> typeSet = hasSelfByType.get(type);
+                    Set<Resource> propSet = hasSelfByProperty.get(property);
+
+                    if (typeSet == null) {
+                        typeSet = new HashSet<>();
+                    }
+                    if (propSet == null) {
+                        propSet = new HashSet<>();
+                    }
+
+                    typeSet.add(property);
+                    propSet.add(type);
+
+                    hasSelfByType.put(type, typeSet);
+                    hasSelfByProperty.put(property, propSet);
+                }
+            } finally {
+                if (iter != null) {
+                    iter.close();
+                }
+            }
+        }
     }
 
     private void refreshIntersectionOf() throws QueryEvaluationException {
@@ -826,6 +864,72 @@ public class InferenceEngine {
 
         enumerations.clear();
         enumerations.putAll(enumTypes);
+    }
+
+    /**
+     * For a given type, return any properties such that some owl:hasSelf
+     * restrictions implies that properties of this type have the value of
+     * themselves for this type.
+     *
+     * This takes into account type hierarchy, where children of a type that
+     * have this property are also assumed to have the property.
+     * 
+     * @param type
+     *            The type (URI or bnode) to check against the known
+     *            restrictions
+     * @return For each relevant property, a set of values such that whenever a
+     *         resource has that value for that property, it is implied to
+     *         belong to the type.
+     */
+    public Set<URI> getHasSelfImplyingType(final Resource type){
+        // return properties that imply this type if reflexive
+        final Set<URI> properties = new HashSet<>();
+        Set<URI> tempProperties = hasSelfByType.get(type);
+
+        if (tempProperties != null) {
+            properties.addAll(tempProperties);
+        }
+        //findParent gets all subclasses, add self.
+        if (type instanceof URI) {
+            for (final URI subtype : findParents(subClassOfGraph, (URI) type)) {
+                tempProperties = hasSelfByType.get(subtype);
+                if (tempProperties != null) {
+                    properties.addAll(tempProperties);
+                }
+            }
+        }
+
+        // make map hasSelfByType[]
+        return properties;
+    }
+
+    /**
+     * For a given property, return any types such that some owl:hasSelf restriction implies that members
+     * of the type have the value of themselves for this property.
+     *
+     * This takes into account type hierarchy, where children of a type that have
+     * this property are also assumed to have the property.
+     * @param property The property whose owl:hasSelf restrictions to return
+     * @return A set of types that possess the implied property.
+     */
+    public Set<Resource> getHasSelfImplyingProperty(final URI property) {
+        // return types that imply this type if reflexive
+        final Set<Resource> types = new HashSet<>();
+        final Set<Resource> baseTypes = hasSelfByProperty.get(property);
+
+        if (baseTypes != null) {
+            types.addAll(baseTypes);
+
+            // findParent gets all subclasses, add self.
+            for (final Resource baseType : baseTypes) {
+                if (baseType instanceof URI) {
+                    types.addAll(findParents(subClassOfGraph, (URI) baseType));
+                }
+            }
+        }
+
+        // make map hasSelfByProperty[]
+        return types;
     }
 
     /**
@@ -1187,7 +1291,7 @@ public class InferenceEngine {
 
     public void setRyaDAO(final RyaDAO<?> ryaDAO) {
         this.ryaDAO = ryaDAO;
-        this.ryaDaoQueryWrapper = new RyaDaoQueryWrapper(ryaDAO);
+        ryaDaoQueryWrapper = new RyaDaoQueryWrapper(ryaDAO);
     }
 
     public RdfCloudTripleStoreConfiguration getConf() {

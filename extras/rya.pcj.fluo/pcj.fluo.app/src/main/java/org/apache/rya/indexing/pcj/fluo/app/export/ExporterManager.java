@@ -30,7 +30,6 @@ import org.apache.rya.api.client.CreatePCJ.ExportStrategy;
 import org.apache.rya.api.client.CreatePCJ.QueryType;
 import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.domain.RyaSubGraph;
-import org.apache.rya.indexing.pcj.fluo.app.export.IncrementalBindingSetExporter;
 import org.apache.rya.indexing.pcj.fluo.app.export.IncrementalBindingSetExporter.ResultExportException;
 import org.apache.rya.indexing.pcj.fluo.app.export.kafka.RyaSubGraphKafkaSerDe;
 import org.apache.rya.indexing.pcj.fluo.app.query.FluoQuery;
@@ -95,16 +94,21 @@ public class ExporterManager implements AutoCloseable {
      * @throws ResultExportException
      */
     private void exportBindingSet(Map<ExportStrategy, IncrementalResultExporter> exporters, Set<ExportStrategy> strategies, String pcjId, Bytes data) throws ResultExportException {
+        VisibilityBindingSet bs;
         try {
-            VisibilityBindingSet bs = BS_SERDE.deserialize(data);
+            bs = BS_SERDE.deserialize(data);
             simplifyVisibilities(bs);
+        } catch (Exception e) {
+            throw new ResultExportException("Unable to deserialize the given BindingSet.", e);
+        }
             
+        try{
             for(ExportStrategy strategy: strategies) {
                 IncrementalBindingSetExporter exporter = (IncrementalBindingSetExporter) exporters.get(strategy);
                 exporter.export(pcjId, bs);
             }
         } catch (Exception e) {
-            throw new ResultExportException("Unable to deserialize the provided BindingSet", e);
+            throw new ResultExportException("Unable to export the given BindingSet " + bs + " with the given set of ExportStrategies " + strategies, e);
         }
     }
     
@@ -125,9 +129,14 @@ public class ExporterManager implements AutoCloseable {
             throw new ResultExportException("Undable to deserialize provided RyaSubgraph", e);
         }
         
-        for(ExportStrategy strategy: strategies) {
-            IncrementalRyaSubGraphExporter exporter = (IncrementalRyaSubGraphExporter) exporters.get(strategy);
-            exporter.export(pcjId, subGraph);
+        try {
+            for (ExportStrategy strategy : strategies) {
+                IncrementalRyaSubGraphExporter exporter = (IncrementalRyaSubGraphExporter) exporters.get(strategy);
+                exporter.export(pcjId, subGraph);
+            }
+        } catch (Exception e) {
+            throw new ResultExportException(
+                    "Unable to export the given subgraph " + subGraph + " using all of the ExportStrategies " + strategies);
         }
     }
     
@@ -195,8 +204,6 @@ public class ExporterManager implements AutoCloseable {
          * @return - ExporterManager for managing IncrementalResultExporters and exporting results
          */
         public ExporterManager build() {
-            //adds NoOpExporter in the event that users does not want to Export results
-            addIncrementalResultExporter(new NoOpExporter());
             return new ExporterManager(exporters);
         }
         

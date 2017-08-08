@@ -16,7 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.apache.rya.periodic.notification.registration.kafka;
+package org.apache.rya.periodic.notification.registration;
 
 import java.util.concurrent.TimeUnit;
 

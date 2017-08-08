@@ -90,7 +90,7 @@ public class KafkaExportIT extends KafkaExportITBase {
                         vf.createStatement(vf.createURI("http://Frank"), vf.createURI("http://worksAt"), vf.createURI("http://Chipotle")));
 
         // Create the PCJ in Fluo and load the statements into Rya.
-        final String pcjId = loadData(sparql, statements);
+        final String pcjId = loadDataAndCreateQuery(sparql, statements);
 
         FluoITHelper.printFluoTable(super.getFluoConfiguration());
         
@@ -136,7 +136,7 @@ public class KafkaExportIT extends KafkaExportITBase {
                 vf.createStatement(vf.createURI("urn:sandwich"), vf.createURI("urn:price"), vf.createLiteral(4.99)));
 
         // Create the PCJ in Fluo and load the statements into Rya.
-        final String pcjId = loadData(sparql, statements);
+        final String pcjId = loadDataAndCreateQuery(sparql, statements);
 
         // Create the expected results of the SPARQL query once the PCJ has been computed.
         final MapBindingSet expectedResult = new MapBindingSet();
@@ -163,7 +163,7 @@ public class KafkaExportIT extends KafkaExportITBase {
                 vf.createStatement(vf.createURI("urn:sandwich"), vf.createURI("urn:price"), vf.createLiteral(4.99)));
 
         // Create the PCJ in Fluo and load the statements into Rya.
-        final String pcjId = loadData(sparql, statements);
+        final String pcjId = loadDataAndCreateQuery(sparql, statements);
 
         // Create the expected results of the SPARQL query once the PCJ has been computed.
         final MapBindingSet expectedResult = new MapBindingSet();
@@ -194,7 +194,7 @@ public class KafkaExportIT extends KafkaExportITBase {
                 vf.createStatement(vf.createURI("urn:sandwich"), vf.createURI("urn:price"), vf.createLiteral(3.99)));
 
         // Create the PCJ in Fluo and load the statements into Rya.
-        final String pcjId = loadData(sparql, statements);
+        final String pcjId = loadDataAndCreateQuery(sparql, statements);
 
         // Create the expected results of the SPARQL query once the PCJ has been computed.
         final MapBindingSet expectedResult = new MapBindingSet();
@@ -221,7 +221,7 @@ public class KafkaExportIT extends KafkaExportITBase {
                 vf.createStatement(vf.createURI("urn:sandwich"), vf.createURI("urn:count"), vf.createLiteral(2)));
 
         // Create the PCJ in Fluo and load the statements into Rya.
-        final String pcjId = loadData(sparql, statements);
+        final String pcjId = loadDataAndCreateQuery(sparql, statements);
 
         // Create the expected results of the SPARQL query once the PCJ has been computed.
         final MapBindingSet expectedResult = new MapBindingSet();
@@ -248,7 +248,7 @@ public class KafkaExportIT extends KafkaExportITBase {
                 vf.createStatement(vf.createURI("urn:sandwich"), vf.createURI("urn:price"), vf.createLiteral(8)));
 
         // Create the PCJ in Fluo and load the statements into Rya.
-        final String pcjId = loadData(sparql, statements);
+        final String pcjId = loadDataAndCreateQuery(sparql, statements);
         
         try(FluoClient fluo = new FluoClientImpl(super.getFluoConfiguration())) {
             FluoITHelper.printFluoTable(fluo);
@@ -280,7 +280,7 @@ public class KafkaExportIT extends KafkaExportITBase {
                 vf.createStatement(vf.createURI("urn:sandwich"), vf.createURI("urn:price"), vf.createLiteral(4.99)));
 
         // Create the PCJ in Fluo and load the statements into Rya.
-        final String pcjId = loadData(sparql, statements);
+        final String pcjId = loadDataAndCreateQuery(sparql, statements);
 
         // Create the expected results of the SPARQL query once the PCJ has been computed.
         final MapBindingSet expectedResult = new MapBindingSet();
@@ -307,7 +307,7 @@ public class KafkaExportIT extends KafkaExportITBase {
                 vf.createStatement(vf.createURI("urn:sandwich"), vf.createURI("urn:price"), vf.createLiteral(2.75)));
 
         // Create the PCJ in Fluo and load the statements into Rya.
-        final String pcjId = loadData(sparql, statements);
+        final String pcjId = loadDataAndCreateQuery(sparql, statements);
 
         // Create the expected results of the SPARQL query once the PCJ has been computed.
         final MapBindingSet expectedResult = new MapBindingSet();
@@ -338,7 +338,7 @@ public class KafkaExportIT extends KafkaExportITBase {
                 vf.createStatement(vf.createURI("urn:banana"), vf.createURI("urn:price"), vf.createLiteral(1.99)));
 
         // Create the PCJ in Fluo and load the statements into Rya.
-        final String pcjId = loadData(sparql, statements);
+        final String pcjId = loadDataAndCreateQuery(sparql, statements);
 
         // Create the expected results of the SPARQL query once the PCJ has been computed.
         final Set<VisibilityBindingSet> expectedResults = new HashSet<>();
@@ -399,7 +399,7 @@ public class KafkaExportIT extends KafkaExportITBase {
                 vf.createStatement(vf.createURI("urn:6"), vf.createURI("urn:price"), vf.createLiteral(4.99)));
 
         // Create the PCJ in Fluo and load the statements into Rya.
-        final String pcjId = loadData(sparql, statements);
+        final String pcjId = loadDataAndCreateQuery(sparql, statements);
 
         // Create the expected results of the SPARQL query once the PCJ has been computed.
         final Set<VisibilityBindingSet> expectedResults = new HashSet<>();
@@ -477,7 +477,7 @@ public class KafkaExportIT extends KafkaExportITBase {
                 vf.createStatement(vf.createURI("urn:6"), vf.createURI("urn:price"), vf.createLiteral(4.99)));
 
         // Create the PCJ in Fluo and load the statements into Rya.
-        final String pcjId = loadData(sparql, statements);
+        final String pcjId = loadDataAndCreateQuery(sparql, statements);
 
         // Create the expected results of the SPARQL query once the PCJ has been computed.
         final Set<VisibilityBindingSet> expectedResults = new HashSet<>();
@@ -554,7 +554,7 @@ public class KafkaExportIT extends KafkaExportITBase {
                 vf.createStatement(vf.createURI("urn:6"), vf.createURI("urn:price"), vf.createLiteral(4.99)));
 
         // Create the PCJ in Fluo and load the statements into Rya.
-        final String pcjId = loadData(sparql, statements);
+        final String pcjId = loadDataAndCreateQuery(sparql, statements);
 
         // Create the expected results of the SPARQL query once the PCJ has been computed.
         final Set<VisibilityBindingSet> expectedResults = new HashSet<>();

@@ -39,9 +39,11 @@ import org.apache.fluo.api.data.ColumnValue;
 import org.apache.fluo.api.data.Span;
 import org.apache.fluo.core.client.FluoClientImpl;
 import org.apache.rya.api.resolver.RdfToRyaConversions;
+import org.apache.rya.indexing.pcj.fluo.api.CreatePeriodicQuery;
 import org.apache.rya.indexing.pcj.fluo.api.InsertTriples;
 import org.apache.rya.indexing.pcj.fluo.app.IncrementalUpdateConstants;
 import org.apache.rya.indexing.pcj.fluo.app.NodeType;
+import org.apache.rya.indexing.pcj.fluo.app.util.FluoQueryUtils;
 import org.apache.rya.indexing.pcj.fluo.app.util.PeriodicQueryUtil;
 import org.apache.rya.indexing.pcj.fluo.app.util.RowKeyUtil;
 import org.apache.rya.indexing.pcj.storage.PeriodicQueryResultStorage;
@@ -50,9 +52,7 @@ import org.apache.rya.indexing.pcj.storage.PrecomputedJoinStorage.CloseableItera
 import org.apache.rya.indexing.pcj.storage.accumulo.AccumuloPeriodicQueryResultStorage;
 import org.apache.rya.indexing.pcj.storage.accumulo.VariableOrder;
 import org.apache.rya.pcj.fluo.test.base.RyaExportITBase;
-import org.apache.rya.periodic.notification.api.CreatePeriodicQuery;
 import org.apache.rya.periodic.notification.api.NodeBin;
-import org.apache.rya.periodic.notification.notification.PeriodicNotification;
 import org.junit.Assert;
 import org.junit.Test;
 import org.openrdf.model.Statement;
@@ -85,8 +85,7 @@ public class PeriodicNotificationBinPrunerIT extends RyaExportITBase {
         PeriodicQueryResultStorage periodicStorage = new AccumuloPeriodicQueryResultStorage(super.getAccumuloConnector(),
                 getRyaInstanceName());
         CreatePeriodicQuery createPeriodicQuery = new CreatePeriodicQuery(fluo, periodicStorage);
-        PeriodicNotification notification = createPeriodicQuery.createPeriodicQuery(sparql);
-        String queryId = notification.getId();
+        String queryId = FluoQueryUtils.convertFluoQueryIdToPcjId(createPeriodicQuery.createPeriodicQuery(sparql).getQueryId());
 
         // create statements to ingest into Fluo
         final ValueFactory vf = new ValueFactoryImpl();

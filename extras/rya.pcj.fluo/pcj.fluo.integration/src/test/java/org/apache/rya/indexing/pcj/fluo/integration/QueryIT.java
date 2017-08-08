@@ -70,10 +70,6 @@ import com.google.common.collect.Sets;
  */
 public class QueryIT extends RyaExportITBase {
 
-    private enum ExporterType {
-        Pcj, Periodic
-    };
-
     @Test
     public void optionalStatements() throws Exception {
         // A query that has optional statement patterns. This query is looking for all
@@ -112,7 +108,7 @@ public class QueryIT extends RyaExportITBase {
         expectedResults.add(bs);
 
         // Verify the end results of the query match the expected results.
-        runTest(sparql, statements, expectedResults, ExporterType.Pcj);
+        runTest(sparql, statements, expectedResults, ExportStrategy.RYA);
     }
 
     /**
@@ -187,7 +183,7 @@ public class QueryIT extends RyaExportITBase {
         expectedResults.add(bs);
 
         // Verify the end results of the query match the expected results.
-        runTest(sparql, statements, expectedResults, ExporterType.Pcj);
+        runTest(sparql, statements, expectedResults, ExportStrategy.RYA);
     }
 
     @Test
@@ -241,7 +237,7 @@ public class QueryIT extends RyaExportITBase {
         expectedResults.add(bs);
 
         // Verify the end results of the query match the expected results.
-        runTest(sparql, statements, expectedResults, ExporterType.Pcj);
+        runTest(sparql, statements, expectedResults, ExportStrategy.RYA);
     }
 
     @Test
@@ -278,7 +274,7 @@ public class QueryIT extends RyaExportITBase {
         expectedResults.add(bs);
 
         // Verify the end results of the query match the expected results.
-        runTest(sparql, statements, expectedResults, ExporterType.Pcj);
+        runTest(sparql, statements, expectedResults, ExportStrategy.RYA);
     }
 
     @Test
@@ -359,7 +355,7 @@ public class QueryIT extends RyaExportITBase {
         expectedResults.add(bs);
 
         // Verify the end results of the query match the expected results.
-        runTest(sparql, statements, expectedResults, ExporterType.Pcj);
+        runTest(sparql, statements, expectedResults, ExportStrategy.RYA);
     }
 
     @Test
@@ -424,7 +420,7 @@ public class QueryIT extends RyaExportITBase {
         expectedResults.add(bs);
 
         // Verify the end results of the query match the expected results.
-        runTest(sparql, statements, expectedResults, ExporterType.Pcj);
+        runTest(sparql, statements, expectedResults, ExportStrategy.RYA);
     }
 
     @Test
@@ -525,7 +521,7 @@ public class QueryIT extends RyaExportITBase {
         expectedResults.add(bs);
 
         // Verify the end results of the query match the expected results.
-        runTest(query, statements, expectedResults, ExporterType.Periodic);
+        runTest(query, statements, expectedResults, ExportStrategy.PERIODIC);
     }
 
     @Test
@@ -596,7 +592,7 @@ public class QueryIT extends RyaExportITBase {
         expectedResults.add(bs);
 
         // Verify the end results of the query match the expected results.
-        runTest(query, statements, expectedResults, ExporterType.Periodic);
+        runTest(query, statements, expectedResults, ExportStrategy.PERIODIC);
     }
 
     @Test
@@ -713,7 +709,7 @@ public class QueryIT extends RyaExportITBase {
         expectedResults.add(bs);
 
         // Verify the end results of the query match the expected results.
-        runTest(query, statements, expectedResults, ExporterType.Periodic);
+        runTest(query, statements, expectedResults, ExportStrategy.PERIODIC);
     }
     
     
@@ -792,7 +788,7 @@ public class QueryIT extends RyaExportITBase {
         expectedResults.add(bs);
 
         // Verify the end results of the query match the expected results.
-        runTest(query, statements, expectedResults, ExporterType.Periodic);
+        runTest(query, statements, expectedResults, ExportStrategy.PERIODIC);
     }
     
     @Test
@@ -876,7 +872,7 @@ public class QueryIT extends RyaExportITBase {
         expectedResults.add(bs);
 
         // Verify the end results of the query match the expected results.
-        runTest(query, statements, expectedResults, ExporterType.Periodic);
+        runTest(query, statements, expectedResults, ExportStrategy.PERIODIC);
     }
 
     @Test(expected= UnsupportedQueryException.class)
@@ -896,11 +892,11 @@ public class QueryIT extends RyaExportITBase {
         final Set<BindingSet> expectedResults = new HashSet<>();
 
         // Verify the end results of the query match the expected results.
-        runTest(query, statements, expectedResults, ExporterType.Periodic);
+        runTest(query, statements, expectedResults, ExportStrategy.PERIODIC);
     }
 
     public void runTest(final String sparql, final Collection<Statement> statements, final Collection<BindingSet> expectedResults,
-            ExporterType type) throws Exception {
+            ExportStrategy strategy) throws Exception {
         requireNonNull(sparql);
         requireNonNull(statements);
         requireNonNull(expectedResults);
@@ -910,8 +906,8 @@ public class QueryIT extends RyaExportITBase {
 
         final RyaClient ryaClient = AccumuloRyaClientFactory.build(createConnectionDetails(), accumuloConn);
 
-        switch (type) {
-        case Pcj:
+        switch (strategy) {
+        case RYA:
             ryaClient.getCreatePCJ().createPCJ(getRyaInstanceName(), sparql);
             addStatementsAndWait(statements);
             // Fetch the value that is stored within the PCJ table.
@@ -922,11 +918,11 @@ public class QueryIT extends RyaExportITBase {
                 assertEquals(expectedResults, results);
             }
             break;
-        case Periodic:
+        case PERIODIC:
             PeriodicQueryResultStorage periodicStorage = new AccumuloPeriodicQueryResultStorage(accumuloConn, getRyaInstanceName());
             String periodicId = periodicStorage.createPeriodicQuery(sparql);
             try (FluoClient fluo = new FluoClientImpl(super.getFluoConfiguration())) {
-                new CreateFluoPcj().createPcj(periodicId, sparql, Sets.newHashSet(ExportStrategy.RYA), fluo);
+                new CreateFluoPcj().createPcj(periodicId, sparql, Sets.newHashSet(ExportStrategy.PERIODIC), fluo);
             }
             addStatementsAndWait(statements);
             
@@ -938,6 +934,8 @@ public class QueryIT extends RyaExportITBase {
             }
             assertEquals(expectedResults, results);
             break;
+        default:
+            throw new RuntimeException("Invalid export option");
         }
     }
 

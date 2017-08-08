@@ -27,9 +27,9 @@ import java.util.concurrent.TimeUnit;
 
 import org.apache.log4j.Logger;
 import org.apache.rya.indexing.pcj.storage.PeriodicQueryResultStorage;
+import org.apache.rya.periodic.notification.api.BindingSetRecord;
 import org.apache.rya.periodic.notification.api.LifeCycle;
 import org.apache.rya.periodic.notification.api.NodeBin;
-import org.apache.rya.periodic.notification.exporter.BindingSetRecord;
 import org.apache.rya.periodic.notification.notification.TimestampedNotification;
 
 import com.google.common.base.Preconditions;

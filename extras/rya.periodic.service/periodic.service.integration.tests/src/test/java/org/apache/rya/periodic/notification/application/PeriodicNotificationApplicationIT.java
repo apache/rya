@@ -21,7 +21,6 @@ package org.apache.rya.periodic.notification.application;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.file.Files;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -34,15 +33,16 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Properties;
 import java.util.Set;
+import java.util.UUID;
 
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
 
-import org.I0Itec.zkclient.ZkClient;
 import org.apache.accumulo.core.client.Connector;
 import org.apache.fluo.api.client.FluoClient;
 import org.apache.fluo.api.config.FluoConfiguration;
 import org.apache.fluo.core.client.FluoClientImpl;
+import org.apache.kafka.clients.CommonClientConfigs;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
@@ -52,21 +52,27 @@ import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.apache.rya.api.resolver.RdfToRyaConversions;
 import org.apache.rya.indexing.accumulo.ConfigUtils;
+import org.apache.rya.indexing.pcj.fluo.api.CreatePeriodicQuery;
 import org.apache.rya.indexing.pcj.fluo.api.InsertTriples;
 import org.apache.rya.indexing.pcj.fluo.app.IncrementalUpdateConstants;
 import org.apache.rya.indexing.pcj.fluo.app.util.FluoClientFactory;
+import org.apache.rya.indexing.pcj.fluo.app.util.FluoQueryUtils;
 import org.apache.rya.indexing.pcj.storage.PeriodicQueryResultStorage;
 import org.apache.rya.indexing.pcj.storage.PrecomputedJoinStorage.CloseableIterator;
 import org.apache.rya.indexing.pcj.storage.accumulo.AccumuloPeriodicQueryResultStorage;
+import org.apache.rya.kafka.base.EmbeddedKafkaInstance;
+import org.apache.rya.kafka.base.EmbeddedKafkaSingleton;
+import org.apache.rya.kafka.base.KafkaTestInstanceRule;
 import org.apache.rya.pcj.fluo.test.base.RyaExportITBase;
-import org.apache.rya.periodic.notification.api.CreatePeriodicQuery;
 import org.apache.rya.periodic.notification.notification.CommandNotification;
-import org.apache.rya.periodic.notification.registration.kafka.KafkaNotificationRegistrationClient;
+import org.apache.rya.periodic.notification.registration.KafkaNotificationRegistrationClient;
 import org.apache.rya.periodic.notification.serialization.BindingSetSerDe;
 import org.apache.rya.periodic.notification.serialization.CommandNotificationSerializer;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Rule;
 import org.junit.Test;
 import org.openrdf.model.Statement;
 import org.openrdf.model.Value;
@@ -81,14 +87,9 @@ import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
 
-import kafka.server.KafkaConfig;
-import kafka.server.KafkaServer;
-import kafka.utils.MockTime;
-import kafka.utils.TestUtils;
-import kafka.utils.Time;
-import kafka.utils.ZKStringSerializer$;
-import kafka.utils.ZkUtils;
-import kafka.zk.EmbeddedZookeeper;
+import static org.apache.rya.periodic.notification.application.PeriodicNotificationApplicationConfiguration.NOTIFICATION_TOPIC;
+import static org.apache.rya.periodic.notification.application.PeriodicNotificationApplicationConfiguration.KAFKA_BOOTSTRAP_SERVERS;;
+
 
 public class PeriodicNotificationApplicationIT extends RyaExportITBase {
 
@@ -97,43 +98,36 @@ public class PeriodicNotificationApplicationIT extends RyaExportITBase {
     private KafkaProducer<String, CommandNotification> producer;
     private Properties props;
     private Properties kafkaProps;
-    PeriodicNotificationApplicationConfiguration conf;
+    private PeriodicNotificationApplicationConfiguration conf;
+    private static EmbeddedKafkaInstance embeddedKafka = EmbeddedKafkaSingleton.getInstance();
+    private static String bootstrapServers;
     
-    private static final String ZKHOST = "127.0.0.1";
-    private static final String BROKERHOST = "127.0.0.1";
-    private static final String BROKERPORT = "9092";
-    private ZkUtils zkUtils;
-    private KafkaServer kafkaServer;
-    private EmbeddedZookeeper zkServer;
-    private ZkClient zkClient;
+    @Rule
+    public KafkaTestInstanceRule rule = new KafkaTestInstanceRule(false);
+    
+    @BeforeClass
+    public static void initClass() {
+        bootstrapServers = embeddedKafka.createBootstrapServerConfig().getProperty(CommonClientConfigs.BOOTSTRAP_SERVERS_CONFIG);
+    }
     
     @Before
     public void init() throws Exception {
-        setUpKafka();
+        String topic = rule.getKafkaTopicName();
+        rule.createTopic(topic);
+        
+        //get user specified props and update with the embedded kafka bootstrap servers and rule generated topic
         props = getProps();
+        props.setProperty(NOTIFICATION_TOPIC, topic);
+        props.setProperty(KAFKA_BOOTSTRAP_SERVERS, bootstrapServers);
         conf = new PeriodicNotificationApplicationConfiguration(props);
+        
+        //create Kafka Producer
         kafkaProps = getKafkaProperties(conf);
-        app = PeriodicNotificationApplicationFactory.getPeriodicApplication(props);
         producer = new KafkaProducer<>(kafkaProps, new StringSerializer(), new CommandNotificationSerializer());
+        
+        //extract kafka specific properties from application config
+        app = PeriodicNotificationApplicationFactory.getPeriodicApplication(props);
         registrar = new KafkaNotificationRegistrationClient(conf.getNotificationTopic(), producer);
-    }
-    
-    private void setUpKafka() throws Exception {
-        // Setup Kafka.
-        zkServer = new EmbeddedZookeeper();
-        final String zkConnect = ZKHOST + ":" + zkServer.port();
-        zkClient = new ZkClient(zkConnect, 30000, 30000, ZKStringSerializer$.MODULE$);
-        zkUtils = ZkUtils.apply(zkClient, false);
-
-        // setup Brokersparql
-        final Properties brokerProps = new Properties();
-        brokerProps.setProperty("zookeeper.connect", zkConnect);
-        brokerProps.setProperty("broker.id", "0");
-        brokerProps.setProperty("log.dirs", Files.createTempDirectory("kafka-").toAbsolutePath().toString());
-        brokerProps.setProperty("listeners", "PLAINTEXT://" + BROKERHOST + ":" + BROKERPORT);
-        final KafkaConfig config = new KafkaConfig(brokerProps);
-        final Time mock = new MockTime();
-        kafkaServer = TestUtils.createServer(config, mock);
     }
     
     @Test
@@ -185,10 +179,10 @@ public class PeriodicNotificationApplicationIT extends RyaExportITBase {
             Connector connector = ConfigUtils.getConnector(conf);
             PeriodicQueryResultStorage storage = new AccumuloPeriodicQueryResultStorage(connector, conf.getTablePrefix());
             CreatePeriodicQuery periodicQuery = new CreatePeriodicQuery(fluo, storage);
-            String id = periodicQuery.createQueryAndRegisterWithKafka(sparql, registrar);
+            String id = FluoQueryUtils.convertFluoQueryIdToPcjId(periodicQuery.createPeriodicQuery(sparql, registrar).getQueryId());
             addData(statements);
             app.start();
-//            
+           
             Multimap<Long, BindingSet> actual = HashMultimap.create();
             try (KafkaConsumer<String, BindingSet> consumer = new KafkaConsumer<>(kafkaProps, new StringDeserializer(), new BindingSetSerDe())) {
                 consumer.subscribe(Arrays.asList(id));
@@ -321,10 +315,10 @@ public class PeriodicNotificationApplicationIT extends RyaExportITBase {
             Connector connector = ConfigUtils.getConnector(conf);
             PeriodicQueryResultStorage storage = new AccumuloPeriodicQueryResultStorage(connector, conf.getTablePrefix());
             CreatePeriodicQuery periodicQuery = new CreatePeriodicQuery(fluo, storage);
-            String id = periodicQuery.createQueryAndRegisterWithKafka(sparql, registrar);
+            String id = FluoQueryUtils.convertFluoQueryIdToPcjId(periodicQuery.createPeriodicQuery(sparql, registrar).getQueryId());
             addData(statements);
             app.start();
-//            
+            
             Multimap<Long, BindingSet> expected = HashMultimap.create();
             try (KafkaConsumer<String, BindingSet> consumer = new KafkaConsumer<>(kafkaProps, new StringDeserializer(), new BindingSetSerDe())) {
                 consumer.subscribe(Arrays.asList(id));
@@ -411,10 +405,10 @@ public class PeriodicNotificationApplicationIT extends RyaExportITBase {
             Connector connector = ConfigUtils.getConnector(conf);
             PeriodicQueryResultStorage storage = new AccumuloPeriodicQueryResultStorage(connector, conf.getTablePrefix());
             CreatePeriodicQuery periodicQuery = new CreatePeriodicQuery(fluo, storage);
-            String id = periodicQuery.createQueryAndRegisterWithKafka(sparql, registrar);
+            String id = FluoQueryUtils.convertFluoQueryIdToPcjId(periodicQuery.createPeriodicQuery(sparql, registrar).getQueryId());
             addData(statements);
             app.start();
-//            
+           
             Multimap<Long, BindingSet> expected = HashMultimap.create();
             try (KafkaConsumer<String, BindingSet> consumer = new KafkaConsumer<>(kafkaProps, new StringDeserializer(), new BindingSetSerDe())) {
                 consumer.subscribe(Arrays.asList(id));
@@ -458,13 +452,6 @@ public class PeriodicNotificationApplicationIT extends RyaExportITBase {
     public void shutdown() {
         registrar.close();
         app.stop();
-        teardownKafka();
-    }
-    
-    private void teardownKafka() {
-        kafkaServer.shutdown();
-        zkClient.close();
-        zkServer.shutdown();
     }
     
     private void addData(Collection<Statement> statements) throws DatatypeConfigurationException {
@@ -473,20 +460,17 @@ public class PeriodicNotificationApplicationIT extends RyaExportITBase {
             InsertTriples inserter = new InsertTriples();
             statements.forEach(x -> inserter.insert(fluo, RdfToRyaConversions.convertStatement(x)));
             getMiniFluo().waitForObservers();
-//            FluoITHelper.printFluoTable(fluo);
         }
-
     }
 
-    private Properties getKafkaProperties(PeriodicNotificationApplicationConfiguration conf) { 
+    private static Properties getKafkaProperties(PeriodicNotificationApplicationConfiguration conf) { 
         Properties kafkaProps = new Properties();
-        kafkaProps.setProperty(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, conf.getBootStrapServers());
-        kafkaProps.setProperty(ConsumerConfig.CLIENT_ID_CONFIG, conf.getNotificationClientId());
+        kafkaProps.setProperty(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
+        kafkaProps.setProperty(ConsumerConfig.CLIENT_ID_CONFIG, UUID.randomUUID().toString());
         kafkaProps.setProperty(ConsumerConfig.GROUP_ID_CONFIG, conf.getNotificationGroupId());
         kafkaProps.setProperty(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
         return kafkaProps;
     }
-
     
     private Properties getProps() throws IOException {
         

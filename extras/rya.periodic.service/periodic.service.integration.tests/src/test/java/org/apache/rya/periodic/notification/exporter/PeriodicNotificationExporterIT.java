@@ -36,6 +36,7 @@ import org.apache.kafka.common.serialization.StringSerializer;
 import org.apache.rya.indexing.pcj.storage.PeriodicQueryResultStorage;
 import org.apache.rya.kafka.base.KafkaITBase;
 import org.apache.rya.kafka.base.KafkaTestInstanceRule;
+import org.apache.rya.periodic.notification.api.BindingSetRecord;
 import org.apache.rya.periodic.notification.serialization.BindingSetSerDe;
 import org.junit.Assert;
 import org.junit.Rule;

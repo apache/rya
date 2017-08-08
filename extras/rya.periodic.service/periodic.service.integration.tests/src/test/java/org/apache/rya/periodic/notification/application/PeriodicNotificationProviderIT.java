@@ -31,10 +31,11 @@ import org.apache.rya.indexing.pcj.fluo.app.util.FluoQueryUtils;
 import org.apache.rya.periodic.notification.coordinator.PeriodicNotificationCoordinatorExecutor;
 import org.apache.rya.periodic.notification.notification.TimestampedNotification;
 import org.apache.rya.periodic.notification.recovery.PeriodicNotificationProvider;
+import org.junit.Assert;
 import org.junit.Test;
 import org.openrdf.query.MalformedQueryException;
 
-import org.junit.Assert;
+import com.google.common.collect.Sets;
 
 public class PeriodicNotificationProviderIT extends AccumuloExportITBase {
 
@@ -55,7 +56,7 @@ public class PeriodicNotificationProviderIT extends AccumuloExportITBase {
         
         String id = null;
         try(FluoClient fluo = new FluoClientImpl(getFluoConfiguration())) {
-            id = pcj.createPcj(sparql, fluo).getQueryId();
+            id = pcj.createPcj(FluoQueryUtils.createNewPcjId(), sparql, Sets.newHashSet(), fluo).getQueryId();
             provider.processRegisteredNotifications(coord, fluo.newSnapshot());
         }
         

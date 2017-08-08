@@ -24,6 +24,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import org.apache.fluo.api.data.Column;
+import org.apache.rya.api.client.CreatePCJ.QueryType;
 import org.apache.rya.indexing.pcj.fluo.app.AggregationResultUpdater.AggregationState;
 import org.apache.rya.indexing.pcj.storage.accumulo.VisibilityBindingSet;
 

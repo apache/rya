@@ -495,4 +495,53 @@ public class InferenceIT extends TestCase {
         Assert.assertEquals(expectedCardRanks.size(), solutions.size());
         Assert.assertEquals(expectedCardRanks, new HashSet<>(solutions));
     }
+
+    @Test
+    public void testHasSelfQuery() throws Exception {
+        final String ontology = "INSERT DATA { GRAPH <http://updated/test> {\n"
+                + "  <urn:Narcissist> owl:onProperty <urn:love> ; owl:hasSelf \"true\" . \n"
+                + "}}";
+        final String instances = "INSERT DATA { GRAPH <http://updated/test> {\n"
+                + "  <urn:Alice> a <urn:Narcissist> . \n"
+                + "  <urn:Narcissus> <urn:love> <urn:Narcissus> . \n"
+                + "}}";
+        conn.prepareUpdate(QueryLanguage.SPARQL, ontology).execute();
+        conn.prepareUpdate(QueryLanguage.SPARQL, instances).execute();
+        inferenceEngine.refreshGraph();
+
+        String query = "SELECT ?who ?self { GRAPH <http://updated/test> { ?self <urn:love> ?who } } \n";
+        conn.prepareTupleQuery(QueryLanguage.SPARQL, query).evaluate(resultHandler);
+        final Set<BindingSet> expected = new HashSet<BindingSet>();
+        final List<String> varNames = new LinkedList<>();
+        varNames.add("who");
+        varNames.add("self");
+        expected.add(new ListBindingSet(varNames, vf.createURI("urn:Alice"), vf.createURI("urn:Alice")));
+        expected.add(new ListBindingSet(varNames, vf.createURI("urn:Narcissus"), vf.createURI("urn:Narcissus")));
+        Assert.assertEquals(expected, new HashSet<>(solutions));
+
+        query = "SELECT ?self { GRAPH <http://updated/test> { <urn:Alice> <urn:love> ?self } } \n";
+        conn.prepareTupleQuery(QueryLanguage.SPARQL, query).evaluate(resultHandler);
+        expected.clear();
+        varNames.clear();
+        varNames.add("self");
+        expected.add(new ListBindingSet(varNames, vf.createURI("urn:Alice")));
+        Assert.assertEquals(expected, new HashSet<>(solutions));
+
+        query = "SELECT ?who { GRAPH <http://updated/test> { ?who <urn:love> <urn:Alice> } } \n";
+        conn.prepareTupleQuery(QueryLanguage.SPARQL, query).evaluate(resultHandler);
+        expected.clear();
+        varNames.clear();
+        varNames.add("who");
+        expected.add(new ListBindingSet(varNames, vf.createURI("urn:Alice")));
+        Assert.assertEquals(expected, new HashSet<>(solutions));
+
+        query = "SELECT ?who { GRAPH <http://updated/test> { ?who a <urn:Narcissist> } } \n";
+        conn.prepareTupleQuery(QueryLanguage.SPARQL, query).evaluate(resultHandler);
+        expected.clear();
+        varNames.clear();
+        varNames.add("who");
+        expected.add(new ListBindingSet(varNames, vf.createURI("urn:Narcissus")));
+        expected.add(new ListBindingSet(varNames, vf.createURI("urn:Alice")));
+        Assert.assertEquals(expected, new HashSet<>(solutions));
+    }
 }

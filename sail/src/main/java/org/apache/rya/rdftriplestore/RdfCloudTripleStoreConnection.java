@@ -53,6 +53,7 @@ import org.apache.rya.rdftriplestore.evaluation.RdfCloudTripleStoreSelectivityEv
 import org.apache.rya.rdftriplestore.evaluation.SeparateFilterJoinsVisitor;
 import org.apache.rya.rdftriplestore.inference.AllValuesFromVisitor;
 import org.apache.rya.rdftriplestore.inference.DomainRangeVisitor;
+import org.apache.rya.rdftriplestore.inference.HasSelfVisitor;
 import org.apache.rya.rdftriplestore.inference.HasValueVisitor;
 import org.apache.rya.rdftriplestore.inference.InferenceEngine;
 import org.apache.rya.rdftriplestore.inference.IntersectionOfVisitor;
@@ -364,6 +365,7 @@ public class RdfCloudTripleStoreConnection extends SailConnectionBase {
                     tupleExpr.visit(new SubClassOfVisitor(queryConf, inferenceEngine));
                     tupleExpr.visit(new SameAsVisitor(queryConf, inferenceEngine));
                     tupleExpr.visit(new OneOfVisitor(queryConf, inferenceEngine));
+                    tupleExpr.visit(new HasSelfVisitor(queryConf, inferenceEngine));
                 } catch (final Exception e) {
                     logger.error("Error encountered while visiting query node.", e);
                 }

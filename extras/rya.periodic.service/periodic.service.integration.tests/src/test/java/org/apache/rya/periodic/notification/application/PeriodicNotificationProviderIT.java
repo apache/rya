@@ -56,7 +56,8 @@ public class PeriodicNotificationProviderIT extends ModifiedAccumuloExportITBase
             provider.processRegisteredNotifications(coord, fluo.newSnapshot());
         }
 
-        final TimestampedNotification notification = notifications.take();
+        final TimestampedNotification notification = notifications.poll(30, TimeUnit.SECONDS);
+        Assert.assertNotNull("timed out before we received a notification", notification);
         Assert.assertEquals(5000, notification.getInitialDelay());
         Assert.assertEquals(15000, notification.getPeriod());
         Assert.assertEquals(TimeUnit.MILLISECONDS, notification.getTimeUnit());

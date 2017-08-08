@@ -44,7 +44,7 @@ import jline.internal.Preconditions;
  */
 public class KafkaPeriodicBindingSetExporter implements BindingSetExporter, Runnable {
 
-    private static final Logger log = Logger.getLogger(BindingSetExporter.class);
+    private static final Logger log = Logger.getLogger(KafkaPeriodicBindingSetExporter.class);
     private KafkaProducer<String, BindingSet> producer;
     private BlockingQueue<BindingSetRecord> bindingSets;
     private AtomicBoolean closed = new AtomicBoolean(false);

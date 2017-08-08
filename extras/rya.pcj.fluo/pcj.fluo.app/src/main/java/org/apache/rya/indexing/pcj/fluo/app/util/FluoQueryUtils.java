@@ -19,6 +19,7 @@
 package org.apache.rya.indexing.pcj.fluo.app.util;
 
 import java.util.List;
+import java.util.UUID;
 
 import org.apache.rya.indexing.pcj.fluo.app.IncrementalUpdateConstants;
 import org.apache.rya.indexing.pcj.fluo.app.query.FluoQuery;
@@ -57,6 +58,13 @@ public class FluoQueryUtils {
         String[] queryIdParts = fluoQueryId.split(IncrementalUpdateConstants.QUERY_PREFIX + "_");
         Preconditions.checkArgument(queryIdParts.length == 2 && queryIdParts[1]!= null && queryIdParts[1].length() > 0);
         return queryIdParts[1];
+    }
+    
+    /**
+     * @return - A new pcjId, which is a UUID with all dashes removed
+     */
+    public static String createNewPcjId() {
+        return UUID.randomUUID().toString().replaceAll("-", "");
     }
     
     /**

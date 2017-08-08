@@ -22,6 +22,7 @@ import java.util.Map;
 import java.util.Properties;
 
 import org.apache.fluo.api.observer.Observer;
+import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.rya.indexing.pcj.fluo.app.export.ParametersBase;
 
 /**
@@ -31,29 +32,25 @@ import org.apache.rya.indexing.pcj.fluo.app.export.ParametersBase;
  * Remember: if doesn't count unless it is added to params
  */
 
-public class KafkaExportParameters extends ParametersBase {
+public class KafkaExportParameterBase extends ParametersBase {
 
-    public static final String CONF_EXPORT_TO_KAFKA = "pcj.fluo.export.kafka.enabled";
-
-    public KafkaExportParameters(final Map<String, String> params) {
+    public KafkaExportParameterBase(final Map<String, String> params) {
         super(params);
     }
 
     /**
-     * @param isExportToKafka
-     *            - {@code True} if the Fluo application should export
-     *            to Kafka; otherwise {@code false}.
+     * Sets the bootstrap servers for reading from and writing to Kafka
+     * @param bootstrapServers - connect string for Kafka brokers
      */
-    public void setExportToKafka(final boolean isExportToKafka) {
-        setBoolean(params, CONF_EXPORT_TO_KAFKA, isExportToKafka);
+    public void setKafkaBootStrapServers(String bootstrapServers) {
+        params.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
     }
-
+    
     /**
-     * @return {@code True} if the Fluo application should export to Kafka; otherwise
-     *         {@code false}. Defaults to {@code false} if no value is present.
+     * @return Connect string for Kafka servers
      */
-    public boolean isExportToKafka() {
-        return getBoolean(params, CONF_EXPORT_TO_KAFKA, false);
+    public String getKafkaBootStrapServers() {
+        return params.get(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG);
     }
 
     /**

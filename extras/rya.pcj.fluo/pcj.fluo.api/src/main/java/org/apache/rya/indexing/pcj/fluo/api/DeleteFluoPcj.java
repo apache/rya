@@ -21,7 +21,6 @@ package org.apache.rya.indexing.pcj.fluo.api;
 import static com.google.common.base.Preconditions.checkArgument;
 import static java.util.Objects.requireNonNull;
 
-import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
@@ -33,15 +32,10 @@ import org.apache.fluo.api.data.Column;
 import org.apache.fluo.api.data.RowColumnValue;
 import org.apache.fluo.api.data.Span;
 import org.apache.rya.indexing.pcj.fluo.app.NodeType;
-import org.apache.rya.indexing.pcj.fluo.app.query.AggregationMetadata;
-import org.apache.rya.indexing.pcj.fluo.app.query.ConstructQueryMetadata;
-import org.apache.rya.indexing.pcj.fluo.app.query.FilterMetadata;
-import org.apache.rya.indexing.pcj.fluo.app.query.FluoQueryColumns;
+import org.apache.rya.indexing.pcj.fluo.app.query.FluoQuery;
 import org.apache.rya.indexing.pcj.fluo.app.query.FluoQueryMetadataDAO;
-import org.apache.rya.indexing.pcj.fluo.app.query.JoinMetadata;
-import org.apache.rya.indexing.pcj.fluo.app.query.PeriodicQueryMetadata;
-import org.apache.rya.indexing.pcj.fluo.app.query.ProjectionMetadata;
-import org.apache.rya.indexing.pcj.fluo.app.query.QueryMetadata;
+import org.apache.rya.indexing.pcj.fluo.app.query.UnsupportedQueryException;
+import org.apache.rya.indexing.pcj.fluo.app.util.FluoQueryUtils;
 import org.openrdf.query.BindingSet;
 
 import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
@@ -85,8 +79,9 @@ public class DeleteFluoPcj {
      *            Index. (not null)
      * @param pcjId - The PCJ ID for the query that will removed from the Fluo
      *            application. (not null)
+     * @throws UnsupportedQueryException 
      */
-    public void deletePcj(final FluoClient client, final String pcjId) {
+    public void deletePcj(final FluoClient client, final String pcjId) throws UnsupportedQueryException {
         requireNonNull(client);
         requireNonNull(pcjId);
 
@@ -109,84 +104,17 @@ public class DeleteFluoPcj {
      * @param tx - Transaction of a given Fluo table. (not null)
      * @param pcjId - Id of query. (not null)
      * @return list of Node IDs associated with the query {@code pcjId}.
+     * @throws UnsupportedQueryException 
      */
-    private List<String> getNodeIds(Transaction tx, String pcjId) {
+    private List<String> getNodeIds(Transaction tx, String pcjId) throws UnsupportedQueryException {
         requireNonNull(tx);
         requireNonNull(pcjId);
 
-        // Get the ID that tracks the query within the Fluo application.
-        final String queryId = getQueryIdFromPcjId(tx, pcjId);
-
-        // Get the query's children nodes.
-        final List<String> nodeIds = new ArrayList<>();
-        nodeIds.add(queryId);
-        getChildNodeIds(tx, queryId, nodeIds);
-        return nodeIds;
+        String queryId = NodeType.generateNewIdForType(NodeType.QUERY, pcjId);
+        FluoQuery fluoQuery = dao.readFluoQuery(tx, queryId);
+        return FluoQueryUtils.collectNodeIds(fluoQuery);
     }
 
-    /**
-     * Recursively navigate query tree to extract all of the nodeIds.
-     *
-     * @param tx - Transaction of a given Fluo table. (not null)
-     * @param nodeId - Current node in query tree. (not null)
-     * @param nodeIds - The Node IDs extracted from query tree. (not null)
-     */
-    private void getChildNodeIds(final Transaction tx, final String nodeId, final List<String> nodeIds) {
-        requireNonNull(tx);
-        requireNonNull(nodeId);
-        requireNonNull(nodeIds);
-
-        final NodeType type = NodeType.fromNodeId(nodeId).get();
-        switch (type) {
-            case QUERY:
-                final QueryMetadata queryMeta = dao.readQueryMetadata(tx, nodeId);
-                final String queryChild = queryMeta.getChildNodeId();
-                nodeIds.add(queryChild);
-                getChildNodeIds(tx, queryChild, nodeIds);
-                break;
-            case CONSTRUCT:
-                final ConstructQueryMetadata constructMeta = dao.readConstructQueryMetadata(tx, nodeId);
-                final String constructChild = constructMeta.getChildNodeId();
-                nodeIds.add(constructChild);
-                getChildNodeIds(tx, constructChild, nodeIds);
-                break;
-            case JOIN:
-                final JoinMetadata joinMeta = dao.readJoinMetadata(tx, nodeId);
-                final String lchild = joinMeta.getLeftChildNodeId();
-                final String rchild = joinMeta.getRightChildNodeId();
-                nodeIds.add(lchild);
-                nodeIds.add(rchild);
-                getChildNodeIds(tx, lchild, nodeIds);
-                getChildNodeIds(tx, rchild, nodeIds);
-                break;
-            case FILTER:
-                final FilterMetadata filterMeta = dao.readFilterMetadata(tx, nodeId);
-                final String filterChild = filterMeta.getChildNodeId();
-                nodeIds.add(filterChild);
-                getChildNodeIds(tx, filterChild, nodeIds);
-                break;
-            case AGGREGATION:
-                final AggregationMetadata aggMeta = dao.readAggregationMetadata(tx, nodeId);
-                final String aggChild = aggMeta.getChildNodeId();
-                nodeIds.add(aggChild);
-                getChildNodeIds(tx, aggChild, nodeIds);
-                break;
-            case PERIODIC_QUERY:
-                final PeriodicQueryMetadata periodicMeta = dao.readPeriodicQueryMetadata(tx, nodeId);
-                final String periodicChild = periodicMeta.getChildNodeId();
-                nodeIds.add(periodicChild);
-                getChildNodeIds(tx, periodicChild, nodeIds);
-                break;
-            case PROJECTION:
-                final ProjectionMetadata projectionMetadata = dao.readProjectionMetadata(tx, nodeId);
-                final String projectionChild = projectionMetadata.getChildNodeId();
-                nodeIds.add(projectionChild);
-                getChildNodeIds(tx, projectionChild, nodeIds);
-                break;
-            case STATEMENT_PATTERN:
-                break;
-        }
-    }
 
     /**
      * Deletes metadata for all nodeIds associated with a given queryId in a
@@ -203,8 +131,6 @@ public class DeleteFluoPcj {
         requireNonNull(pcjId);
 
         try (final Transaction typeTx = tx) {
-            deletePcjIdAndSparqlMetadata(typeTx, pcjId);
-
             for (final String nodeId : nodeIds) {
                 final NodeType type = NodeType.fromNodeId(nodeId).get();
                 deleteMetadataColumns(typeTx, nodeId, type.getMetaDataColumns());
@@ -229,24 +155,6 @@ public class DeleteFluoPcj {
         for (final Column column : columns) {
             tx.delete(row, column);
         }
-    }
-
-    /**
-     * Deletes high level query meta for converting from queryId to pcjId and
-     * vice versa, as well as converting from sparql to queryId.
-     *
-     * @param tx - Transaction the deletes will be performed with. (not null)
-     * @param pcjId - The PCJ whose metadata will be deleted. (not null)
-     */
-    private void deletePcjIdAndSparqlMetadata(final Transaction tx, final String pcjId) {
-        requireNonNull(tx);
-        requireNonNull(pcjId);
-
-        final String queryId = getQueryIdFromPcjId(tx, pcjId);
-        final String sparql = getSparqlFromQueryId(tx, queryId);
-        tx.delete(queryId, FluoQueryColumns.RYA_PCJ_ID);
-        tx.delete(sparql, FluoQueryColumns.QUERY_ID);
-        tx.delete(pcjId, FluoQueryColumns.PCJ_ID_QUERY_ID);
     }
 
     /**
@@ -294,19 +202,4 @@ public class DeleteFluoPcj {
         }
     }
 
-    private String getQueryIdFromPcjId(final Transaction tx, final String pcjId) {
-        requireNonNull(tx);
-        requireNonNull(pcjId);
-
-        final Bytes queryIdBytes = tx.get(Bytes.of(pcjId), FluoQueryColumns.PCJ_ID_QUERY_ID);
-        return queryIdBytes.toString();
-    }
-
-    private String getSparqlFromQueryId(final Transaction tx, final String queryId) {
-        requireNonNull(tx);
-        requireNonNull(queryId);
-
-        final QueryMetadata metadata = dao.readQueryMetadata(tx, queryId);
-        return metadata.getSparql();
-    }
 }

@@ -27,7 +27,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import org.apache.commons.lang3.builder.EqualsBuilder;
-import org.apache.rya.indexing.pcj.fluo.app.IncrementalUpdateConstants.QueryType;
+import org.apache.rya.api.client.CreatePCJ.ExportStrategy;
+import org.apache.rya.api.client.CreatePCJ.QueryType;
 
 import com.google.common.base.Objects;
 import com.google.common.base.Optional;
@@ -568,8 +569,9 @@ public class FluoQuery {
         
         /**
          * @return Creates a {@link FluoQuery} using the values that have been supplied to this builder.
+         * @throws UnsupportedQueryException 
          */
-        public FluoQuery build() {
+        public FluoQuery build() throws UnsupportedQueryException {
             checkArgument((projectionBuilders.size() > 0 || constructBuilder != null));
             
             Optional<PeriodicQueryMetadata.Builder> optionalPeriodicQueryBuilder = getPeriodicQueryBuilder();
@@ -603,12 +605,18 @@ public class FluoQuery {
                 aggregateMetadata.put(entry.getKey(), entry.getValue().build());
             }
 
+            QueryMetadata qMetadata = queryBuilder.build();
+            
             if(constructBuilder != null) {
                 if(periodicQueryMetadata != null) {
-                    throw new IllegalArgumentException("Queries containing sliding window filters and construct query patterns are not supported.");
+                    throw new UnsupportedQueryException("Queries containing sliding window filters and construct query patterns are not supported.");
                 }
-                return new FluoQuery(queryBuilder.build(), projectionMetadata.build(), Optional.of(constructBuilder.build()), Optional.fromNullable(periodicQueryMetadata), spMetadata.build(), filterMetadata.build(), joinMetadata.build(), aggregateMetadata.build());
+                return new FluoQuery(qMetadata, projectionMetadata.build(), Optional.of(constructBuilder.build()), Optional.fromNullable(periodicQueryMetadata), spMetadata.build(), filterMetadata.build(), joinMetadata.build(), aggregateMetadata.build());
             } else {
+                if(aggregationBuilders.size() > 0 && qMetadata.getQueryType() == QueryType.Projection && qMetadata.getExportStrategies().contains(ExportStrategy.Rya)) {
+                    throw new UnsupportedQueryException("Exporting to Rya PCJ tables is currently not supported for queries containing aggregations.");
+                }
+                
                 return new FluoQuery(queryBuilder.build(), projectionMetadata.build(), Optional.absent(), Optional.fromNullable(periodicQueryMetadata), spMetadata.build(), filterMetadata.build(), joinMetadata.build(), aggregateMetadata.build());
             }
             

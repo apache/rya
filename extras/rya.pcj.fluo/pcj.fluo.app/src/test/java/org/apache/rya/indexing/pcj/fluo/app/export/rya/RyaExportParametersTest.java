@@ -37,7 +37,7 @@ public class RyaExportParametersTest {
 
         // Load some values into the params using the wrapper.
         final RyaExportParameters ryaParams = new RyaExportParameters(params);
-        ryaParams.setExportToRya(true);
+        ryaParams.setUseRyaBindingSetExporter(true);
         ryaParams.setAccumuloInstanceName("demoAccumulo");
         ryaParams.setZookeeperServers("zoo1;zoo2");
         ryaParams.setExporterUsername("fluo");
@@ -45,7 +45,7 @@ public class RyaExportParametersTest {
 
         // Ensure the params map has the expected values.
         final Map<String, String> expectedParams = new HashMap<>();
-        expectedParams.put(RyaExportParameters.CONF_EXPORT_TO_RYA, "true");
+        expectedParams.put(RyaExportParameters.CONF_USE_RYA_BINDING_SET_EXPORTER, "true");
         expectedParams.put(RyaExportParameters.CONF_ACCUMULO_INSTANCE_NAME, "demoAccumulo");
         expectedParams.put(RyaExportParameters.CONF_ZOOKEEPER_SERVERS, "zoo1;zoo2");
         expectedParams.put(RyaExportParameters.CONF_EXPORTER_USERNAME, "fluo");
@@ -60,6 +60,6 @@ public class RyaExportParametersTest {
 
         // Ensure an unconfigured parameters map will say rya export is disabled.
         final RyaExportParameters ryaParams = new RyaExportParameters(params);
-        assertFalse(ryaParams.isExportToRya());
+        assertFalse(ryaParams.getUseRyaBindingSetExporter());
     }
 }

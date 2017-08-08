@@ -24,7 +24,6 @@ import org.apache.fluo.api.client.TransactionBase;
 import org.apache.fluo.api.data.Bytes;
 import org.apache.rya.indexing.pcj.fluo.app.BindingSetRow;
 import org.apache.rya.indexing.pcj.fluo.app.query.FluoQueryColumns;
-import org.apache.rya.indexing.pcj.fluo.app.query.FluoQueryMetadataDAO;
 import org.apache.rya.indexing.pcj.fluo.app.query.StatementPatternMetadata;
 import org.apache.rya.indexing.pcj.storage.accumulo.VisibilityBindingSet;
 import org.apache.rya.indexing.pcj.storage.accumulo.VisibilityBindingSetSerDe;
@@ -38,9 +37,6 @@ import org.openrdf.query.BindingSet;
 public class StatementPatternObserver extends BindingSetUpdater {
 
     private static final VisibilityBindingSetSerDe BS_SERDE = new VisibilityBindingSetSerDe();
-
-    // DAO
-    private final FluoQueryMetadataDAO queryDao = new FluoQueryMetadataDAO();
 
     @Override
     public ObservedColumn getObservedColumn() {

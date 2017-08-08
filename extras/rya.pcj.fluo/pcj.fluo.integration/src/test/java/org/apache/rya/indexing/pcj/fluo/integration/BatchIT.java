@@ -53,6 +53,7 @@ import org.apache.rya.indexing.pcj.fluo.app.query.FluoQuery;
 import org.apache.rya.indexing.pcj.fluo.app.query.FluoQueryColumns;
 import org.apache.rya.indexing.pcj.fluo.app.query.FluoQueryMetadataDAO;
 import org.apache.rya.indexing.pcj.fluo.app.query.JoinMetadata.JoinType;
+import org.apache.rya.indexing.pcj.fluo.app.query.UnsupportedQueryException;
 import org.apache.rya.indexing.pcj.fluo.app.util.FluoQueryUtils;
 import org.apache.rya.indexing.pcj.storage.PrecomputedJoinStorage;
 import org.apache.rya.indexing.pcj.storage.accumulo.AccumuloPcjStorage;
@@ -343,7 +344,7 @@ public class BatchIT extends RyaExportITBase {
         return statements;
     }
 
-    private List<String> getNodeIdStrings(FluoClient fluoClient, String queryId) {
+    private List<String> getNodeIdStrings(FluoClient fluoClient, String queryId) throws UnsupportedQueryException {
         List<String> nodeStrings;
         try (Snapshot sx = fluoClient.newSnapshot()) {
             FluoQuery query = dao.readFluoQuery(sx, queryId);

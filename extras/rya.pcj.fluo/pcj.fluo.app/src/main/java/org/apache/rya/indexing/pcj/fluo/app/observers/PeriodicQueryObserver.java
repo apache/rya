@@ -25,7 +25,6 @@ import org.apache.fluo.api.data.Bytes;
 import org.apache.rya.indexing.pcj.fluo.app.BindingSetRow;
 import org.apache.rya.indexing.pcj.fluo.app.PeriodicQueryUpdater;
 import org.apache.rya.indexing.pcj.fluo.app.query.FluoQueryColumns;
-import org.apache.rya.indexing.pcj.fluo.app.query.FluoQueryMetadataDAO;
 import org.apache.rya.indexing.pcj.fluo.app.query.PeriodicQueryMetadata;
 import org.apache.rya.indexing.pcj.storage.accumulo.VisibilityBindingSet;
 import org.apache.rya.indexing.pcj.storage.accumulo.VisibilityBindingSetSerDe;
@@ -42,7 +41,6 @@ import org.apache.rya.indexing.pcj.storage.accumulo.VisibilityBindingSetSerDe;
 public class PeriodicQueryObserver extends BindingSetUpdater {
 
     private static final VisibilityBindingSetSerDe BS_SERDE = new VisibilityBindingSetSerDe();
-    private final FluoQueryMetadataDAO queryDao = new FluoQueryMetadataDAO();
 
     @Override
     public ObservedColumn getObservedColumn() {

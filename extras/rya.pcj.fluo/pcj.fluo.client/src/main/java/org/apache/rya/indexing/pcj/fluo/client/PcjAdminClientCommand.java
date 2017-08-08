@@ -24,6 +24,7 @@ import edu.umd.cs.findbugs.annotations.NonNull;
 import org.apache.accumulo.core.client.Connector;
 
 import org.apache.fluo.api.client.FluoClient;
+import org.apache.rya.indexing.pcj.fluo.app.query.UnsupportedQueryException;
 import org.apache.rya.rdftriplestore.RyaSailRepository;
 
 /**
@@ -57,13 +58,14 @@ public interface PcjAdminClientCommand {
      * @param rya - A connection to the Rya instance used to search for historic PCJ matches. (not null)
      * @param client - A connection to the Fluo app that is updating the PCJs. (not null)
      * @param args - Command line arguments that configure how the command will execute. (not null)
+     * @throws UnsupportedQueryException 
      */
     public void execute(
             final Connector accumulo,
             final String ryaTablePrefix,
             final RyaSailRepository rya,
             final FluoClient fluo,
-            final String[] args) throws ArgumentsException, ExecutionException;
+            final String[] args) throws ArgumentsException, ExecutionException, UnsupportedQueryException;
 
     /**
      * A {@link PcjAdminClientCommand} could not be executed because of a problem with

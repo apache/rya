@@ -18,6 +18,8 @@
  */
 package org.apache.rya.api.client;
 
+import java.util.Set;
+
 import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
 import edu.umd.cs.findbugs.annotations.NonNull;
 
@@ -27,8 +29,28 @@ import edu.umd.cs.findbugs.annotations.NonNull;
 @DefaultAnnotation(NonNull.class)
 public interface CreatePCJ {
 
+    public static enum QueryType{Construct, Projection, Periodic};
+    public static enum ExportStrategy{Rya, Kafka, NoOpExport};
+
+    
     /**
      * Designate a new PCJ that will be maintained by the target instance of Rya.
+     * Results will be exported according to the specified export strategies.
+     *
+     * @param instanceName - Indicates which Rya instance will create and maintain
+     *   the PCJ. (not null)
+     * @param sparql - The SPARQL query that will be maintained. (not null)
+     * @param strategies - The export strategies used to export results for this query
+     * @return The ID that was assigned to this newly created PCJ.
+     * @throws InstanceDoesNotExistException No instance of Rya exists for the provided name.
+     * @throws RyaClientException Something caused the command to fail.
+     */
+    public String createPCJ(final String instanceName, String sparql, Set<ExportStrategy> strategies) throws InstanceDoesNotExistException, RyaClientException;
+    
+    
+    /**
+     * Designate a new PCJ that will be maintained by the target instance of Rya.
+     * Results will be exported to a Rya PCJ table.
      *
      * @param instanceName - Indicates which Rya instance will create and maintain
      *   the PCJ. (not null)
@@ -38,4 +60,5 @@ public interface CreatePCJ {
      * @throws RyaClientException Something caused the command to fail.
      */
     public String createPCJ(final String instanceName, String sparql) throws InstanceDoesNotExistException, RyaClientException;
+    
 }

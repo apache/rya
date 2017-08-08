@@ -40,12 +40,12 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicReference;
 
+import org.apache.rya.api.client.CreatePCJ.ExportStrategy;
+import org.apache.rya.api.client.CreatePCJ.QueryType;
 import org.apache.rya.indexing.pcj.fluo.app.ConstructGraph;
 import org.apache.rya.indexing.pcj.fluo.app.ConstructProjection;
 import org.apache.rya.indexing.pcj.fluo.app.FluoStringConverter;
 import org.apache.rya.indexing.pcj.fluo.app.IncrementalUpdateConstants;
-import org.apache.rya.indexing.pcj.fluo.app.IncrementalUpdateConstants.ExportStrategy;
-import org.apache.rya.indexing.pcj.fluo.app.IncrementalUpdateConstants.QueryType;
 import org.apache.rya.indexing.pcj.fluo.app.NodeType;
 import org.apache.rya.indexing.pcj.fluo.app.query.AggregationMetadata.AggregationElement;
 import org.apache.rya.indexing.pcj.fluo.app.query.AggregationMetadata.AggregationType;
@@ -145,7 +145,7 @@ public class SparqlFluoQueryBuilder {
         return this;
     }
     
-    public FluoQuery build() {
+    public FluoQuery build() throws UnsupportedQueryException {
         Preconditions.checkNotNull(sparql);
         Preconditions.checkNotNull(queryId);
         Preconditions.checkNotNull(exportStrategies);
@@ -172,10 +172,12 @@ public class SparqlFluoQueryBuilder {
         QueryMetadata.Builder queryBuilder = QueryMetadata.builder(queryId);
         //sets {@link QueryType} and VariableOrder
         setVarOrderAndQueryType(queryBuilder, te);
-        queryBuilder.setSparql(sparql);
-        queryBuilder.setChildNodeId(childNodeId);
-        queryBuilder.setExportStrategies(exportStrategies);
-        queryBuilder.setJoinBatchSize(joinBatchSize);
+        queryBuilder
+            .setSparql(sparql)
+            .setChildNodeId(childNodeId)
+            .setExportStrategies(exportStrategies)
+            .setJoinBatchSize(joinBatchSize);
+        
         fluoQueryBuilder.setQueryMetadata(queryBuilder);
         
         setChildMetadata(fluoQueryBuilder, childNodeId, queryBuilder.getVariableOrder(), queryId);

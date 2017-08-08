@@ -37,25 +37,25 @@ import org.apache.accumulo.core.client.Instance;
 import org.apache.accumulo.minicluster.MiniAccumuloCluster;
 import org.apache.fluo.api.config.ObserverSpecification;
 import org.apache.fluo.recipes.test.AccumuloExportITBase;
-import org.apache.fluo.recipes.test.FluoITHelper;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.clients.producer.KafkaProducer;
-import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.clients.producer.ProducerRecord;
-import org.apache.kafka.common.serialization.StringSerializer;
+import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.rya.accumulo.AccumuloRdfConfiguration;
 import org.apache.rya.accumulo.AccumuloRyaDAO;
+import org.apache.rya.api.client.CreatePCJ.ExportStrategy;
 import org.apache.rya.api.client.Install.InstallConfiguration;
 import org.apache.rya.api.client.RyaClient;
 import org.apache.rya.api.client.accumulo.AccumuloConnectionDetails;
 import org.apache.rya.api.client.accumulo.AccumuloRyaClientFactory;
 import org.apache.rya.indexing.accumulo.ConfigUtils;
 import org.apache.rya.indexing.external.PrecomputedJoinIndexerConfig;
-import org.apache.rya.indexing.pcj.fluo.app.export.kafka.KafkaExportParameters;
-import org.apache.rya.indexing.pcj.fluo.app.export.kafka.RyaSubGraphKafkaSerDe;
+import org.apache.rya.indexing.pcj.fluo.app.export.kafka.KafkaBindingSetExporterParameters;
+import org.apache.rya.indexing.pcj.fluo.app.export.kafka.KafkaSubGraphExporterParameters;
+import org.apache.rya.indexing.pcj.fluo.app.export.kafka.KryoVisibilityBindingSetSerializer;
 import org.apache.rya.indexing.pcj.fluo.app.observers.AggregationObserver;
 import org.apache.rya.indexing.pcj.fluo.app.observers.ConstructQueryResultObserver;
 import org.apache.rya.indexing.pcj.fluo.app.observers.FilterObserver;
@@ -73,6 +73,8 @@ import org.junit.Test;
 import org.openrdf.model.Statement;
 import org.openrdf.repository.sail.SailRepositoryConnection;
 import org.openrdf.sail.Sail;
+
+import com.google.common.collect.Sets;
 
 import kafka.admin.AdminUtils;
 import kafka.admin.RackAwareMode;
@@ -119,41 +121,20 @@ public class KafkaExportITBase extends AccumuloExportITBase {
         observers.add(new ObserverSpecification(FilterObserver.class.getName()));
         observers.add(new ObserverSpecification(AggregationObserver.class.getName()));
         observers.add(new ObserverSpecification(ProjectionObserver.class.getName()));
+        observers.add(new ObserverSpecification(ConstructQueryResultObserver.class.getName()));
 
         // Configure the export observer to export new PCJ results to the mini
         // accumulo cluster.
         final HashMap<String, String> exportParams = new HashMap<>();
-
-        final KafkaExportParameters kafkaParams = new KafkaExportParameters(exportParams);
-        kafkaParams.setExportToKafka(true);
-
-        // Configure the Kafka Producer
-        final Properties producerConfig = new Properties();
-        producerConfig.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, BROKERHOST + ":" + BROKERPORT);
-        producerConfig.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, "org.apache.kafka.common.serialization.ByteArraySerializer");
-        producerConfig.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG,
-                "org.apache.rya.indexing.pcj.fluo.app.export.kafka.KryoVisibilityBindingSetSerializer");
-        kafkaParams.addAllProducerConfig(producerConfig);
+        final KafkaBindingSetExporterParameters kafkaParams = new KafkaBindingSetExporterParameters(exportParams);
+        kafkaParams.setUseKafkaBindingSetExporter(true);
+        kafkaParams.setKafkaBootStrapServers(BROKERHOST + ":" + BROKERPORT);
+        
+        final KafkaSubGraphExporterParameters kafkaConstructParams = new KafkaSubGraphExporterParameters(exportParams);
+        kafkaConstructParams.setUseKafkaSubgraphExporter(true);
 
         final ObserverSpecification exportObserverConfig = new ObserverSpecification(QueryResultObserver.class.getName(), exportParams);
         observers.add(exportObserverConfig);
-        
-        //create construct query observer and tell it not to export to Kafka
-        //it will only add results back into Fluo
-        HashMap<String, String> constructParams = new HashMap<>();
-        final KafkaExportParameters kafkaConstructParams = new KafkaExportParameters(constructParams);
-        kafkaConstructParams.setExportToKafka(true);
-        
-        // Configure the Kafka Producer
-        final Properties constructProducerConfig = new Properties();
-        constructProducerConfig.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, BROKERHOST + ":" + BROKERPORT);
-        constructProducerConfig.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
-        constructProducerConfig.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, RyaSubGraphKafkaSerDe.class.getName());
-        kafkaConstructParams.addAllProducerConfig(constructProducerConfig);
-
-        final ObserverSpecification constructExportObserverConfig = new ObserverSpecification(ConstructQueryResultObserver.class.getName(),
-                constructParams);
-        observers.add(constructExportObserverConfig);
 
         // Add the observers to the Fluo Configuration.
         super.getFluoConfiguration().addObservers(observers);
@@ -323,21 +304,19 @@ public class KafkaExportITBase extends AccumuloExportITBase {
         consumer.close();
     }
 
-    protected KafkaConsumer<Integer, VisibilityBindingSet> makeConsumer(final String TopicName) {
+    protected KafkaConsumer<String, VisibilityBindingSet> makeConsumer(final String TopicName) {
         // setup consumer
         final Properties consumerProps = new Properties();
         consumerProps.setProperty(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, BROKERHOST + ":" + BROKERPORT);
         consumerProps.setProperty(ConsumerConfig.GROUP_ID_CONFIG, "group0");
         consumerProps.setProperty(ConsumerConfig.CLIENT_ID_CONFIG, "consumer0");
-        consumerProps.setProperty(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG,
-                "org.apache.kafka.common.serialization.IntegerDeserializer");
-        consumerProps.setProperty(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG,
-                "org.apache.rya.indexing.pcj.fluo.app.export.kafka.KryoVisibilityBindingSetSerializer");
+        consumerProps.setProperty(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
+        consumerProps.setProperty(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, KryoVisibilityBindingSetSerializer.class.getName());
 
         // to make sure the consumer starts from the beginning of the topic
         consumerProps.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
 
-        final KafkaConsumer<Integer, VisibilityBindingSet> consumer = new KafkaConsumer<>(consumerProps);
+        final KafkaConsumer<String, VisibilityBindingSet> consumer = new KafkaConsumer<>(consumerProps);
         consumer.subscribe(Arrays.asList(TopicName));
         return consumer;
     }
@@ -353,7 +332,7 @@ public class KafkaExportITBase extends AccumuloExportITBase {
         final RyaClient ryaClient = AccumuloRyaClientFactory.build(new AccumuloConnectionDetails(ACCUMULO_USER,
                 ACCUMULO_PASSWORD.toCharArray(), accInstance.getInstanceName(), accInstance.getZooKeepers()), accumuloConn);
 
-        final String pcjId = ryaClient.getCreatePCJ().createPCJ(RYA_INSTANCE_NAME, sparql);
+        final String pcjId = ryaClient.getCreatePCJ().createPCJ(RYA_INSTANCE_NAME, sparql, Sets.newHashSet(ExportStrategy.Kafka));
 
         // Write the data to Rya.
         final SailRepositoryConnection ryaConn = getRyaSailRepository().getConnection();

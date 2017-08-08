@@ -25,20 +25,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import edu.umd.cs.findbugs.annotations.Nullable;
-import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
-import edu.umd.cs.findbugs.annotations.NonNull;
-import net.jcip.annotations.Immutable;
-
-import org.apache.rya.indexing.pcj.fluo.app.query.FilterMetadata;
-import org.apache.rya.indexing.pcj.fluo.app.query.FluoQuery;
-import org.apache.rya.indexing.pcj.fluo.app.query.FluoQueryColumns;
-import org.apache.rya.indexing.pcj.fluo.app.query.FluoQueryMetadataDAO;
-import org.apache.rya.indexing.pcj.fluo.app.query.JoinMetadata;
-import org.apache.rya.indexing.pcj.fluo.app.query.StatementPatternMetadata;
-
-import com.google.common.collect.ImmutableMap;
-
 import org.apache.fluo.api.client.FluoClient;
 import org.apache.fluo.api.client.Snapshot;
 import org.apache.fluo.api.client.SnapshotBase;
@@ -46,6 +32,20 @@ import org.apache.fluo.api.client.scanner.ColumnScanner;
 import org.apache.fluo.api.client.scanner.RowScanner;
 import org.apache.fluo.api.data.Column;
 import org.apache.fluo.api.data.Span;
+import org.apache.rya.indexing.pcj.fluo.app.query.FilterMetadata;
+import org.apache.rya.indexing.pcj.fluo.app.query.FluoQuery;
+import org.apache.rya.indexing.pcj.fluo.app.query.FluoQueryColumns;
+import org.apache.rya.indexing.pcj.fluo.app.query.FluoQueryMetadataDAO;
+import org.apache.rya.indexing.pcj.fluo.app.query.JoinMetadata;
+import org.apache.rya.indexing.pcj.fluo.app.query.StatementPatternMetadata;
+import org.apache.rya.indexing.pcj.fluo.app.query.UnsupportedQueryException;
+
+import com.google.common.collect.ImmutableMap;
+
+import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
+import edu.umd.cs.findbugs.annotations.NonNull;
+import edu.umd.cs.findbugs.annotations.Nullable;
+import net.jcip.annotations.Immutable;
 
 /**
  * Get a reports that indicates how many binding sets have been emitted for
@@ -63,8 +63,9 @@ public class GetQueryReport {
      * @param fluo - The connection to Fluo that will be used to fetch the metadata. (not null)
      * @return A map from Query ID to QueryReport that holds a report for all of
      *   the queries that are being managed within the fluo app.
+     * @throws UnsupportedQueryException 
      */
-    public Map<String, QueryReport> getAllQueryReports(final FluoClient fluo) {
+    public Map<String, QueryReport> getAllQueryReports(final FluoClient fluo) throws UnsupportedQueryException {
         checkNotNull(fluo);
 
         // Fetch the queries that are being managed by the Fluo.
@@ -85,8 +86,9 @@ public class GetQueryReport {
      * @param fluo - The connection to Fluo that will be used to fetch the metadata. (not null)
      * @param queryId - The ID of the query to fetch. (not null)
      * @return A report that was built for the query.
+     * @throws UnsupportedQueryException 
      */
-    public QueryReport getReport(final FluoClient fluo, final String queryId) {
+    public QueryReport getReport(final FluoClient fluo, final String queryId) throws UnsupportedQueryException {
         checkNotNull(fluo);
         checkNotNull(queryId);
 

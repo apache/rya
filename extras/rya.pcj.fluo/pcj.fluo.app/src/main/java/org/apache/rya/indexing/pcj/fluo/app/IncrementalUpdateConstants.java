@@ -39,9 +39,6 @@ public class IncrementalUpdateConstants {
     public static final String CONSTRUCT_PREFIX = "CONSTRUCT";
     public static final String PERIODIC_QUERY_PREFIX = "PERIODIC_QUERY";
     
-    public static enum QueryType{Construct, Projection, Periodic};
-    public static enum ExportStrategy{Rya, Kafka};
-    
     public static final String PERIODIC_BIN_ID = PeriodicQueryResultStorage.PeriodicBinId;
 
     public static final String URI_TYPE = "http://www.w3.org/2001/XMLSchema#anyURI";

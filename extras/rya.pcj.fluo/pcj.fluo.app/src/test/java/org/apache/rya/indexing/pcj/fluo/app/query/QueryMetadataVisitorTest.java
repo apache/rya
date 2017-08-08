@@ -29,7 +29,7 @@ import org.junit.Test;
 public class QueryMetadataVisitorTest {
 
     @Test
-    public void builderTest() {
+    public void builderTest() throws UnsupportedQueryException {
         String query = "prefix function: <http://org.apache.rya/function#> " // n
                 + "prefix time: <http://www.w3.org/2006/time#> " // n
                 + "select ?id (count(?obs) as ?total) where {" // n

@@ -20,6 +20,8 @@ package org.apache.rya.api.client.accumulo;
 
 import static java.util.Objects.requireNonNull;
 
+import java.util.Set;
+
 import org.apache.accumulo.core.client.Connector;
 import org.apache.fluo.api.client.FluoClient;
 import org.apache.rya.accumulo.instance.AccumuloRyaInstanceDetailsRepository;
@@ -39,6 +41,7 @@ import org.apache.rya.api.instance.RyaDetailsUpdater.RyaDetailsMutator;
 import org.apache.rya.api.instance.RyaDetailsUpdater.RyaDetailsMutator.CouldNotApplyMutationException;
 import org.apache.rya.api.persist.RyaDAOException;
 import org.apache.rya.indexing.pcj.fluo.api.CreateFluoPcj;
+import org.apache.rya.indexing.pcj.fluo.app.query.UnsupportedQueryException;
 import org.apache.rya.indexing.pcj.storage.PcjException;
 import org.apache.rya.indexing.pcj.storage.PrecomputedJoinStorage;
 import org.apache.rya.indexing.pcj.storage.PrecomputedJoinStorage.PCJStorageException;
@@ -49,6 +52,7 @@ import org.openrdf.repository.RepositoryException;
 import org.openrdf.sail.SailException;
 
 import com.google.common.base.Optional;
+import com.google.common.collect.Sets;
 
 import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
 import edu.umd.cs.findbugs.annotations.NonNull;
@@ -73,7 +77,7 @@ public class AccumuloCreatePCJ extends AccumuloCommand implements CreatePCJ {
     }
 
     @Override
-    public String createPCJ(final String instanceName, final String sparql) throws InstanceDoesNotExistException, RyaClientException {
+    public String createPCJ(final String instanceName, final String sparql, Set<ExportStrategy> strategies) throws InstanceDoesNotExistException, RyaClientException {
         requireNonNull(instanceName);
         requireNonNull(sparql);
 
@@ -99,9 +103,14 @@ public class AccumuloCreatePCJ extends AccumuloCommand implements CreatePCJ {
             if(fluoDetailsHolder.isPresent()) {
                 final String fluoAppName = fluoDetailsHolder.get().getUpdateAppName();
                 try {
-                    updateFluoApp(instanceName, fluoAppName, pcjStorage, pcjId);
+                    updateFluoApp(instanceName, fluoAppName, pcjId, sparql, strategies);
                 } catch (RepositoryException | MalformedQueryException | SailException | QueryEvaluationException | PcjException | RyaDAOException e) {
                     throw new RyaClientException("Problem while initializing the Fluo application with the new PCJ.", e);
+                } catch (UnsupportedQueryException e) {
+                    throw new RyaClientException("The new PCJ could not be initialized because it either contains an unsupported query node "
+                            + "or an invalid ExportStrategy for the given QueryType.  Projection queries can be exported to either Rya or Kafka,"
+                            + "unless they contain an aggregation, in which case they can only be exported to Kafka.  Construct queries can be exported"
+                            + "to Rya and Kafka, and Periodic queries can only be exported to Rya.");
                 }
 
                 // Update the Rya Details to indicate the PCJ is being updated incrementally.
@@ -133,9 +142,16 @@ public class AccumuloCreatePCJ extends AccumuloCommand implements CreatePCJ {
         }
     }
 
-    private void updateFluoApp(final String ryaInstance, final String fluoAppName, final PrecomputedJoinStorage pcjStorage, final String pcjId) throws RepositoryException, MalformedQueryException, SailException, QueryEvaluationException, PcjException, RyaDAOException {
-        requireNonNull(pcjStorage);
+    @Override
+    public String createPCJ(String instanceName, String sparql) throws InstanceDoesNotExistException, RyaClientException {
+        return createPCJ(instanceName, sparql, Sets.newHashSet(ExportStrategy.Rya));
+    }
+    
+    
+    private void updateFluoApp(final String ryaInstance, final String fluoAppName, final String pcjId, String sparql, Set<ExportStrategy> strategies) throws RepositoryException, MalformedQueryException, SailException, QueryEvaluationException, PcjException, RyaDAOException, UnsupportedQueryException {
+        requireNonNull(sparql);
         requireNonNull(pcjId);
+        requireNonNull(strategies);
 
         // Connect to the Fluo application that is updating this instance's PCJs.
         final AccumuloConnectionDetails cd = super.getAccumuloConnectionDetails();
@@ -147,7 +163,8 @@ public class AccumuloCreatePCJ extends AccumuloCommand implements CreatePCJ {
                 fluoAppName);) {
             // Initialize the PCJ within the Fluo application.
             final CreateFluoPcj fluoCreatePcj = new CreateFluoPcj();
-            fluoCreatePcj.withRyaIntegration(pcjId, pcjStorage, fluoClient, getConnector(), ryaInstance);
+            fluoCreatePcj.withRyaIntegration(pcjId, sparql, strategies, fluoClient, getConnector(), ryaInstance);
         }
     }
+
 }

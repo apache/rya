@@ -162,32 +162,6 @@ public class FluoQueryColumns {
      */
     public static final Column TRIPLES = new Column("triples", "SPO");
 
-    /**
-     * Stores the Rya assigned PCJ ID that the query's results reflect. This
-     * value defines where the results will be exported to.
-     * <p>
-     *   <table border="1" style="width:100%">
-     *     <tr> <th>Fluo Row</td> <th>Fluo Column</td> <th>Fluo Value</td> </tr>
-     *     <tr> <td>Query ID</td> <td>query:ryaPcjId</td> <td>Identifies which PCJ the results of this query will be exported to.</td> </tr>
-     *   </table>
-     * </p>
-     */
-    public static final Column RYA_PCJ_ID = new Column("query", "ryaPcjId");
-
-    /**
-     * Associates a PCJ ID with a Query ID. This enables a quick lookup of the Query ID from the PCJ ID and is useful of Deleting PCJs.
-     * <p>
-     *   <table border="1" style="width:100%">
-     *     <tr> <th>Fluo Row</td> <th>Fluo Column</td> <th>Fluo Value</td> </tr>
-     *     <tr> <td>PCJ ID</td> <td>ryaPcjId:queryId</td> <td>Identifies which Query ID is associated with the given PCJ ID.</td> </tr>
-     *   </table>
-     * </p>
-     */
-    public static final Column PCJ_ID_QUERY_ID = new Column("ryaPcjId", "queryId");
-
-    // Sparql to Query ID used to list all queries that are in the system.
-    public static final Column QUERY_ID = new Column("sparql", "queryId");
-
     // Query Metadata columns.
     public static final Column QUERY_NODE_ID = new Column(QUERY_METADATA_CF, "nodeId");
     public static final Column QUERY_VARIABLE_ORDER = new Column(QUERY_METADATA_CF, "variableOrder");

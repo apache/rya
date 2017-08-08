@@ -38,7 +38,8 @@ import org.apache.fluo.api.observer.Observer;
 @DefaultAnnotation(NonNull.class)
 public class RyaExportParameters extends ParametersBase {
 
-    public static final String CONF_EXPORT_TO_RYA = "pcj.fluo.export.rya.enabled";
+    public static final String CONF_USE_RYA_BINDING_SET_EXPORTER = "pcj.fluo.export.rya.bindingset.enabled";
+    public static final String CONF_USE_PERIODIC_BINDING_SET_EXPORTER = "pcj.fluo.export.periodic.bindingset.enabled";
     public static final String CONF_ACCUMULO_INSTANCE_NAME = "pcj.fluo.export.rya.accumuloInstanceName";
     public static final String CONF_ZOOKEEPER_SERVERS = "pcj.fluo.export.rya.zookeeperServers";
     public static final String CONF_EXPORTER_USERNAME = "pcj.fluo.export.rya.exporterUsername";
@@ -57,19 +58,35 @@ public class RyaExportParameters extends ParametersBase {
     }
 
     /**
-     * @param isExportToRya - {@code True} if the Fluo application should export
-     *   to Rya; otherwise {@code false}.
+     * @param useExporter - {@code True} if the Fluo application should use the {@link RyaBindingSetExporter}; otherwise
+     *            {@code false}.
      */
-    public void setExportToRya(final boolean isExportToRya) {
-        setBoolean(params, CONF_EXPORT_TO_RYA, isExportToRya);
+    public void setUseRyaBindingSetExporter(final boolean useExporter) {
+        setBoolean(params, CONF_USE_RYA_BINDING_SET_EXPORTER, useExporter);
     }
 
     /**
-     * @return {@code True} if the Fluo application should export to Rya; otherwise
+     * @return {@code True} if the Fluo application should use the {@link RyaBindingSetExporter}; otherwise
      *   {@code false}. Defaults to {@code false} if no value is present.
      */
-    public boolean isExportToRya() {
-        return getBoolean(params, CONF_EXPORT_TO_RYA, false);
+    public boolean getUseRyaBindingSetExporter() {
+        return getBoolean(params, CONF_USE_RYA_BINDING_SET_EXPORTER, false);
+    }
+    
+    /**
+     * @param useExporter - {@code True} if the Fluo application should use the
+     *            {@link PeriodicBindingSetExporter}; otherwise {@code false}.
+     */
+    public void setUsePeriodicBindingSetExporter(final boolean useExporter) {
+        setBoolean(params, CONF_USE_PERIODIC_BINDING_SET_EXPORTER, useExporter);
+    }
+
+    /**
+     * @return {@code True} if the Fluo application should use the {@link PeriodicBindingSetExporter}; otherwise
+     *         {@code false}. Defaults to {@code false} if no value is present.
+     */
+    public boolean getUsePeriodicBindingSetExporter() {
+        return getBoolean(params, CONF_USE_PERIODIC_BINDING_SET_EXPORTER, false);
     }
 
     /**

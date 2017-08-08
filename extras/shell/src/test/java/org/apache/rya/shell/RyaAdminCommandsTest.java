@@ -28,6 +28,7 @@ import static org.mockito.Mockito.when;
 import java.io.IOException;
 import java.util.Date;
 import java.util.List;
+import java.util.Set;
 import java.util.TimeZone;
 
 import org.apache.rya.api.client.AddUser;
@@ -43,6 +44,7 @@ import org.apache.rya.api.client.RemoveUser;
 import org.apache.rya.api.client.RyaClient;
 import org.apache.rya.api.client.RyaClientException;
 import org.apache.rya.api.client.Uninstall;
+import org.apache.rya.api.client.CreatePCJ.ExportStrategy;
 import org.apache.rya.api.client.accumulo.AccumuloConnectionDetails;
 import org.apache.rya.api.instance.RyaDetails;
 import org.apache.rya.api.instance.RyaDetails.EntityCentricIndexDetails;
@@ -61,6 +63,7 @@ import org.junit.Test;
 
 import com.google.common.base.Optional;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 
 /**
  * Unit tests the methods of {@link RyaAdminCommands}.
@@ -74,7 +77,8 @@ public class RyaAdminCommandsTest {
         final String sparql = "SELECT * WHERE { ?person <http://isA> ?noun }";
         final String pcjId = "123412342";
         final CreatePCJ mockCreatePCJ = mock(CreatePCJ.class);
-        when(mockCreatePCJ.createPCJ( eq(instanceName), eq(sparql) ) ).thenReturn( pcjId );
+        final Set<ExportStrategy> strategies = Sets.newHashSet(ExportStrategy.Rya);
+        when(mockCreatePCJ.createPCJ( eq(instanceName), eq(sparql), eq(strategies) ) ).thenReturn( pcjId );
 
         final RyaClient mockCommands = mock(RyaClient.class);
         when(mockCommands.getCreatePCJ()).thenReturn( mockCreatePCJ );
@@ -88,10 +92,10 @@ public class RyaAdminCommandsTest {
 
         // Execute the command.
         final RyaAdminCommands commands = new RyaAdminCommands(state, mock(InstallPrompt.class), mockSparqlPrompt, mock(UninstallPrompt.class));
-        final String message = commands.createPcj();
+        final String message = commands.createPcj(true, false);
 
         // Verify the values that were provided to the command were passed through to CreatePCJ.
-        verify(mockCreatePCJ).createPCJ(eq(instanceName), eq(sparql));
+        verify(mockCreatePCJ).createPCJ(eq(instanceName), eq(sparql), eq(strategies));
 
         // Verify a message is returned that explains what was created.
         final String expected = "The PCJ has been created. Its ID is '123412342'.";
@@ -114,7 +118,7 @@ public class RyaAdminCommandsTest {
 
         // Execute the command.
         final RyaAdminCommands commands = new RyaAdminCommands(state, mock(InstallPrompt.class), mockSparqlPrompt, mock(UninstallPrompt.class));
-        final String message = commands.createPcj();
+        final String message = commands.createPcj(true, false);
 
         // Verify a message is returned that explains what was created.
         final String expected = "";

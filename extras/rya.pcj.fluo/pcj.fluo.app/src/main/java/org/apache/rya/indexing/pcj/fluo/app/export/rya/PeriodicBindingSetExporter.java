@@ -19,7 +19,6 @@
 package org.apache.rya.indexing.pcj.fluo.app.export.rya;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static java.util.Objects.requireNonNull;
 
 import java.util.Collections;
 import java.util.Set;
@@ -27,52 +26,46 @@ import java.util.Set;
 import org.apache.rya.api.client.CreatePCJ.ExportStrategy;
 import org.apache.rya.api.client.CreatePCJ.QueryType;
 import org.apache.rya.indexing.pcj.fluo.app.export.IncrementalBindingSetExporter;
-import org.apache.rya.indexing.pcj.storage.PrecomputedJoinStorage;
-import org.apache.rya.indexing.pcj.storage.PrecomputedJoinStorage.PCJStorageException;
+import org.apache.rya.indexing.pcj.storage.PeriodicQueryResultStorage;
+import org.apache.rya.indexing.pcj.storage.PeriodicQueryStorageException;
 import org.apache.rya.indexing.pcj.storage.accumulo.VisibilityBindingSet;
 
 import com.google.common.collect.Sets;
 
-/**
- * Incrementally exports SPARQL query results to Accumulo PCJ tables as they are defined by Rya.
- */
-public class RyaBindingSetExporter implements IncrementalBindingSetExporter {
+public class PeriodicBindingSetExporter implements IncrementalBindingSetExporter {
 
-    private final PrecomputedJoinStorage pcjStorage;
-
+    private PeriodicQueryResultStorage periodicStorage;
+    
     /**
-     * Constructs an instance of {@link RyaBindingSetExporter}.
+     * Constructs an instance of {@link PeriodicBindingSetExporter}.
      *
      * @param pcjStorage - The PCJ storage the new results will be exported to. (not null)
      */
-    public RyaBindingSetExporter(final PrecomputedJoinStorage pcjStorage) {
-        this.pcjStorage = checkNotNull(pcjStorage);
+    public PeriodicBindingSetExporter(PeriodicQueryResultStorage periodicStorage) {
+        this.periodicStorage = checkNotNull(periodicStorage);
     }
-
-    @Override
-    public void export(final String queryId, final VisibilityBindingSet result) throws ResultExportException {
-        requireNonNull(queryId);
-        requireNonNull(result);
-
-        try {
-            pcjStorage.addResults(queryId, Collections.singleton(result));
-        } catch (PCJStorageException e) {
-            throw new ResultExportException("Unable to successfully export the result: " + result, e);
-        }
-    }
-
-    @Override
-    public void close() throws Exception {
-        pcjStorage.close();
-    }
-
+    
     @Override
     public Set<QueryType> getQueryTypes() {
-        return Sets.newHashSet(QueryType.Projection);
+        return Sets.newHashSet(QueryType.Periodic);
     }
 
     @Override
     public ExportStrategy getExportStrategy() {
         return ExportStrategy.Rya;
     }
+
+    @Override
+    public void close() throws Exception {
+    }
+
+    @Override
+    public void export(String queryId, VisibilityBindingSet result) throws ResultExportException {
+        try {
+            periodicStorage.addPeriodicQueryResults(queryId, Collections.singleton(result));
+        } catch (PeriodicQueryStorageException e) {
+            throw new ResultExportException("Could not successfully export the BindingSet: " + result, e);
+        }
+    }
+
 }

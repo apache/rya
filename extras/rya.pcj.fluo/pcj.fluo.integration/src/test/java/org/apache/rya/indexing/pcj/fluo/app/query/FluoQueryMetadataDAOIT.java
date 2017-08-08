@@ -29,9 +29,9 @@ import org.apache.fluo.api.client.FluoClient;
 import org.apache.fluo.api.client.FluoFactory;
 import org.apache.fluo.api.client.Snapshot;
 import org.apache.fluo.api.client.Transaction;
+import org.apache.rya.api.client.CreatePCJ.ExportStrategy;
+import org.apache.rya.api.client.CreatePCJ.QueryType;
 import org.apache.rya.indexing.pcj.fluo.app.ConstructGraph;
-import org.apache.rya.indexing.pcj.fluo.app.IncrementalUpdateConstants.ExportStrategy;
-import org.apache.rya.indexing.pcj.fluo.app.IncrementalUpdateConstants.QueryType;
 import org.apache.rya.indexing.pcj.fluo.app.NodeType;
 import org.apache.rya.indexing.pcj.fluo.app.query.AggregationMetadata.AggregationElement;
 import org.apache.rya.indexing.pcj.fluo.app.query.AggregationMetadata.AggregationType;
@@ -338,7 +338,7 @@ public class FluoQueryMetadataDAOIT extends RyaExportITBase {
     }
 
     @Test
-    public void fluoQueryTest() throws MalformedQueryException {
+    public void fluoQueryTest() throws MalformedQueryException, UnsupportedQueryException {
         final FluoQueryMetadataDAO dao = new FluoQueryMetadataDAO();
 
         // Create the object that will be serialized.
@@ -379,7 +379,7 @@ public class FluoQueryMetadataDAOIT extends RyaExportITBase {
     }
     
     @Test
-    public void fluoConstructQueryTest() throws MalformedQueryException {
+    public void fluoConstructQueryTest() throws MalformedQueryException, UnsupportedQueryException {
         final FluoQueryMetadataDAO dao = new FluoQueryMetadataDAO();
 
         // Create the object that will be serialized.
@@ -421,7 +421,7 @@ public class FluoQueryMetadataDAOIT extends RyaExportITBase {
     
     
     @Test
-    public void fluoNestedQueryTest() throws MalformedQueryException {
+    public void fluoNestedQueryTest() throws MalformedQueryException, UnsupportedQueryException {
         final FluoQueryMetadataDAO dao = new FluoQueryMetadataDAO();
 
         // Create the object that will be serialized.
@@ -463,7 +463,7 @@ public class FluoQueryMetadataDAOIT extends RyaExportITBase {
     }
     
     @Test
-    public void fluoNestedConstructQueryTest() throws MalformedQueryException {
+    public void fluoNestedConstructQueryTest() throws MalformedQueryException, UnsupportedQueryException {
         final FluoQueryMetadataDAO dao = new FluoQueryMetadataDAO();
 
         // Create the object that will be serialized.

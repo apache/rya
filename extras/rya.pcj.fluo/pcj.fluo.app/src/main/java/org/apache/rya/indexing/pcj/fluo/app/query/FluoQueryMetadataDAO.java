@@ -34,11 +34,11 @@ import org.apache.fluo.api.client.SnapshotBase;
 import org.apache.fluo.api.client.TransactionBase;
 import org.apache.fluo.api.data.Bytes;
 import org.apache.fluo.api.data.Column;
+import org.apache.rya.api.client.CreatePCJ.ExportStrategy;
+import org.apache.rya.api.client.CreatePCJ.QueryType;
 import org.apache.rya.indexing.pcj.fluo.app.ConstructGraph;
 import org.apache.rya.indexing.pcj.fluo.app.ConstructGraphSerializer;
 import org.apache.rya.indexing.pcj.fluo.app.IncrementalUpdateConstants;
-import org.apache.rya.indexing.pcj.fluo.app.IncrementalUpdateConstants.ExportStrategy;
-import org.apache.rya.indexing.pcj.fluo.app.IncrementalUpdateConstants.QueryType;
 import org.apache.rya.indexing.pcj.fluo.app.NodeType;
 import org.apache.rya.indexing.pcj.fluo.app.query.AggregationMetadata.AggregationElement;
 import org.apache.rya.indexing.pcj.fluo.app.query.JoinMetadata.JoinType;
@@ -585,17 +585,9 @@ public class FluoQueryMetadataDAO {
         requireNonNull(tx);
         requireNonNull(query);
         
-        QueryMetadata queryMetadata = query.getQueryMetadata();
-        final String sparql = queryMetadata.getSparql();
-        final String queryId = queryMetadata.getNodeId();
-        final String pcjId = queryMetadata.getExportId();
-        
         // The results of the query are eventually exported to an instance
         // of Rya, so store the Rya ID for the PCJ.
-        tx.set(queryId, FluoQueryColumns.RYA_PCJ_ID, pcjId);
-        tx.set(pcjId, FluoQueryColumns.PCJ_ID_QUERY_ID, queryId);
-        tx.set(Bytes.of(sparql), FluoQueryColumns.QUERY_ID, Bytes.of(queryId));
-        write(tx, queryMetadata);
+        write(tx, query.getQueryMetadata());
 
         // Write the rest of the metadata objects.
         
@@ -636,8 +628,9 @@ public class FluoQueryMetadataDAO {
      * @param sx - The snapshot that will be used to read the metadata from the Fluo table. (not null)
      * @param queryId - The ID of the query whose nodes will be read. (not null)
      * @return The {@link FluoQuery} that was read from table.
+     * @throws UnsupportedQueryException 
      */
-    public FluoQuery readFluoQuery(final SnapshotBase sx, final String queryId) {
+    public FluoQuery readFluoQuery(final SnapshotBase sx, final String queryId) throws UnsupportedQueryException {
         requireNonNull(sx);
         requireNonNull(queryId);
 

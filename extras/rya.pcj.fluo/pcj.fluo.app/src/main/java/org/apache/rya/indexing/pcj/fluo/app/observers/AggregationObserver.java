@@ -28,7 +28,6 @@ import org.apache.rya.indexing.pcj.fluo.app.AggregationResultUpdater.ObjectSeria
 import org.apache.rya.indexing.pcj.fluo.app.BindingSetRow;
 import org.apache.rya.indexing.pcj.fluo.app.query.AggregationMetadata;
 import org.apache.rya.indexing.pcj.fluo.app.query.FluoQueryColumns;
-import org.apache.rya.indexing.pcj.fluo.app.query.FluoQueryMetadataDAO;
 import org.apache.rya.indexing.pcj.storage.accumulo.VisibilityBindingSet;
 import org.openrdf.query.BindingSet;
 
@@ -44,8 +43,6 @@ import edu.umd.cs.findbugs.annotations.NonNull;
 public class AggregationObserver extends BindingSetUpdater {
 
     private static final AggregationStateSerDe STATE_SERDE = new ObjectSerializationAggregationStateSerDe();
-
-    private final FluoQueryMetadataDAO queryDao = new FluoQueryMetadataDAO();
 
     @Override
     public ObservedColumn getObservedColumn() {

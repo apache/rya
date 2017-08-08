@@ -38,12 +38,10 @@ import org.apache.fluo.api.data.Bytes;
 import org.apache.fluo.api.data.ColumnValue;
 import org.apache.fluo.api.data.Span;
 import org.apache.fluo.core.client.FluoClientImpl;
-import org.apache.fluo.recipes.test.FluoITHelper;
 import org.apache.rya.api.resolver.RdfToRyaConversions;
 import org.apache.rya.indexing.pcj.fluo.api.InsertTriples;
 import org.apache.rya.indexing.pcj.fluo.app.IncrementalUpdateConstants;
 import org.apache.rya.indexing.pcj.fluo.app.NodeType;
-import org.apache.rya.indexing.pcj.fluo.app.query.FluoQueryColumns;
 import org.apache.rya.indexing.pcj.fluo.app.util.PeriodicQueryUtil;
 import org.apache.rya.indexing.pcj.fluo.app.util.RowKeyUtil;
 import org.apache.rya.indexing.pcj.storage.PeriodicQueryResultStorage;
@@ -252,14 +250,14 @@ public class PeriodicNotificationBinPrunerIT extends RyaExportITBase {
         }
     }
     
-    private void compareFluoCounts(FluoClient client, String queryId, long bin) {
+    private void compareFluoCounts(FluoClient client, String pcjId, long bin) {
         QueryBindingSet bs = new QueryBindingSet();
         bs.addBinding(IncrementalUpdateConstants.PERIODIC_BIN_ID, new LiteralImpl(Long.toString(bin), XMLSchema.LONG));
         
         VariableOrder varOrder = new VariableOrder(IncrementalUpdateConstants.PERIODIC_BIN_ID);
         
         try(Snapshot sx = client.newSnapshot()) {
-            String fluoQueryId = sx.get(Bytes.of(queryId), FluoQueryColumns.PCJ_ID_QUERY_ID).toString();
+            String fluoQueryId = NodeType.generateNewIdForType(NodeType.QUERY, pcjId);
             Set<String> ids = new HashSet<>();
             PeriodicQueryUtil.getPeriodicQueryNodeAncestorIds(sx, fluoQueryId, ids);
             for(String id: ids) {

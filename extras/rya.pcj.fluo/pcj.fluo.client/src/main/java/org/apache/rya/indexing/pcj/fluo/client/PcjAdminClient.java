@@ -43,6 +43,7 @@ import org.apache.accumulo.core.client.ZooKeeperInstance;
 import org.apache.accumulo.core.client.security.tokens.PasswordToken;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.apache.rya.indexing.pcj.fluo.app.query.UnsupportedQueryException;
 import org.apache.rya.indexing.pcj.fluo.client.PcjAdminClientCommand.ArgumentsException;
 import org.apache.rya.indexing.pcj.fluo.client.PcjAdminClientCommand.ExecutionException;
 import org.apache.rya.indexing.pcj.fluo.client.command.CountUnprocessedStatementsCommand;
@@ -152,6 +153,9 @@ public class PcjAdminClient {
             System.err.println("Could not execute the command.");
             e.printStackTrace();
             System.exit(-1);
+        } catch (UnsupportedQueryException e) {
+            System.err.println("Could not execute the command because the query is invalid.");
+            e.printStackTrace();
         } finally {
             log.trace("Shutting down the PCJ Admin Client.");
 

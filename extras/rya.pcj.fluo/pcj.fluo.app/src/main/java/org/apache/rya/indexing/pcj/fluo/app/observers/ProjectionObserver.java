@@ -25,7 +25,6 @@ import org.apache.fluo.api.data.Bytes;
 import org.apache.log4j.Logger;
 import org.apache.rya.indexing.pcj.fluo.app.BindingSetRow;
 import org.apache.rya.indexing.pcj.fluo.app.query.FluoQueryColumns;
-import org.apache.rya.indexing.pcj.fluo.app.query.FluoQueryMetadataDAO;
 import org.apache.rya.indexing.pcj.fluo.app.query.ProjectionMetadata;
 import org.apache.rya.indexing.pcj.storage.accumulo.VisibilityBindingSet;
 import org.apache.rya.indexing.pcj.storage.accumulo.VisibilityBindingSetSerDe;
@@ -37,7 +36,6 @@ public class ProjectionObserver extends BindingSetUpdater {
     private static final Logger log = Logger.getLogger(ProjectionObserver.class);
 
     private static final VisibilityBindingSetSerDe BS_SERDE = new VisibilityBindingSetSerDe();
-    private final FluoQueryMetadataDAO queryDao = new FluoQueryMetadataDAO();
 
     @Override
     public ObservedColumn getObservedColumn() {

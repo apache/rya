@@ -35,6 +35,7 @@ import org.apache.rya.indexing.pcj.fluo.app.NodeType;
 import org.apache.rya.indexing.pcj.fluo.app.query.FluoQueryColumns;
 import org.apache.rya.indexing.pcj.fluo.app.query.FluoQueryMetadataDAO;
 import org.apache.rya.indexing.pcj.fluo.app.query.PeriodicQueryMetadata;
+import org.apache.rya.indexing.pcj.fluo.app.util.FluoQueryUtils;
 import org.apache.rya.periodic.notification.api.NotificationCoordinatorExecutor;
 import org.apache.rya.periodic.notification.coordinator.PeriodicNotificationCoordinatorExecutor;
 import org.apache.rya.periodic.notification.notification.CommandNotification;
@@ -120,7 +121,7 @@ public class PeriodicNotificationProvider {
             id = getQueryIdFromPeriodicId(sx, sx.get(Bytes.of(nodeId), FluoQueryColumns.PERIODIC_QUERY_PARENT_NODE_ID).toString());
             break;
         case QUERY:
-            id = sx.get(Bytes.of(nodeId), FluoQueryColumns.RYA_PCJ_ID).toString();
+            id = FluoQueryUtils.convertFluoQueryIdToPcjId(nodeId);
             break;
         case AGGREGATION: 
             id = getQueryIdFromPeriodicId(sx, sx.get(Bytes.of(nodeId), FluoQueryColumns.AGGREGATION_PARENT_NODE_ID).toString());

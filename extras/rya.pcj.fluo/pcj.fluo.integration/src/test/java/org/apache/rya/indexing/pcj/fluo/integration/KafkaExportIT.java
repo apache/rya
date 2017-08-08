@@ -350,7 +350,7 @@ public class KafkaExportIT extends KafkaExportITBase {
     }
 
     @Test
-    public void groupByManyBindings_avaerages() throws Exception {
+    public void groupByManyBindings_averages() throws Exception {
         // A query that groups what is aggregated by two of the keys.
         final String sparql =
                 "SELECT ?type ?location (avg(?price) as ?averagePrice) {" +
@@ -433,7 +433,7 @@ public class KafkaExportIT extends KafkaExportITBase {
         final Set<VisibilityBindingSet> results = new HashSet<>();
 
         try(final KafkaConsumer<Integer, VisibilityBindingSet> consumer = makeConsumer(pcjId)) {
-            final ConsumerRecords<Integer, VisibilityBindingSet> records = consumer.poll(1000);
+            final ConsumerRecords<Integer, VisibilityBindingSet> records = consumer.poll(2000);
             final Iterator<ConsumerRecord<Integer, VisibilityBindingSet>> recordIterator = records.iterator();
             while (recordIterator.hasNext()) {
                 results.add( recordIterator.next().value() );
@@ -450,7 +450,7 @@ public class KafkaExportIT extends KafkaExportITBase {
         VisibilityBindingSet result = null;
 
         try(final KafkaConsumer<Integer, VisibilityBindingSet> consumer = makeConsumer(pcjId)) {
-            final ConsumerRecords<Integer, VisibilityBindingSet> records = consumer.poll(1000);
+            final ConsumerRecords<Integer, VisibilityBindingSet> records = consumer.poll(2000);
             final Iterator<ConsumerRecord<Integer, VisibilityBindingSet>> recordIterator = records.iterator();
             while (recordIterator.hasNext()) {
                 result = recordIterator.next().value();
@@ -468,7 +468,7 @@ public class KafkaExportIT extends KafkaExportITBase {
         final Map<BindingSet, VisibilityBindingSet> results = new HashMap<>();
 
         try(final KafkaConsumer<Integer, VisibilityBindingSet> consumer = makeConsumer(pcjId)) {
-            final ConsumerRecords<Integer, VisibilityBindingSet> records = consumer.poll(1000);
+            final ConsumerRecords<Integer, VisibilityBindingSet> records = consumer.poll(2000);
             final Iterator<ConsumerRecord<Integer, VisibilityBindingSet>> recordIterator = records.iterator();
             while (recordIterator.hasNext()) {
                 final VisibilityBindingSet visBindingSet = recordIterator.next().value();

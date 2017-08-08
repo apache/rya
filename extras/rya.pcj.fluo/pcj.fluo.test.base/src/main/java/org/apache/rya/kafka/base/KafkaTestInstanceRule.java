@@ -73,10 +73,11 @@ public class KafkaTestInstanceRule extends ExternalResource {
         // Setup Kafka.
         ZkUtils zkUtils = null;
         try {
-            logger.info("Creating Kafka Topic: '{}'", kafkaTopicName);
+            logger.info("Creating Kafka Topic: '{}'", topicName);
             zkUtils = ZkUtils.apply(new ZkClient(kafkaInstance.getZookeeperConnect(), 30000, 30000, ZKStringSerializer$.MODULE$), false);
-            AdminUtils.createTopic(zkUtils, kafkaTopicName, 1, 1, new Properties(), RackAwareMode.Disabled$.MODULE$);
-        } finally {
+            AdminUtils.createTopic(zkUtils, topicName, 1, 1, new Properties(), RackAwareMode.Disabled$.MODULE$);
+        }
+        finally {
             if(zkUtils != null) {
                 zkUtils.close();
             }

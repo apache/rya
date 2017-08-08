@@ -59,6 +59,7 @@ import org.apache.rya.indexing.pcj.storage.PrecomputedJoinStorage.CloseableItera
 import org.apache.rya.indexing.pcj.storage.accumulo.AccumuloPeriodicQueryResultStorage;
 import org.apache.rya.kafka.base.EmbeddedKafkaInstance;
 import org.apache.rya.kafka.base.EmbeddedKafkaSingleton;
+import org.apache.rya.kafka.base.KafkaTestInstanceRule;
 import org.apache.rya.pcj.fluo.test.base.RyaExportITBase;
 import org.apache.rya.periodic.notification.api.CreatePeriodicQuery;
 import org.apache.rya.periodic.notification.notification.CommandNotification;
@@ -68,6 +69,7 @@ import org.apache.rya.periodic.notification.serialization.CommandNotificationSer
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 import org.openrdf.model.Statement;
 import org.openrdf.model.Value;
@@ -88,18 +90,22 @@ public class PeriodicNotificationApplicationIT extends RyaExportITBase {
     private KafkaNotificationRegistrationClient registrar;
     private KafkaProducer<String, CommandNotification> producer;
     private Properties props;
-    private Properties kafkaProps;
+    private Properties kafkaConsumerProps;
     PeriodicNotificationApplicationConfiguration conf;
 
     private static EmbeddedKafkaInstance embeddedKafka = EmbeddedKafkaSingleton.getInstance();
+
+    @Rule
+    public KafkaTestInstanceRule kafkaTestRule = new KafkaTestInstanceRule(true);
 
     @Before
     public void init() throws Exception {
         props = getProps();
         conf = new PeriodicNotificationApplicationConfiguration(props);
-        kafkaProps = getKafkaProperties(conf);
+        kafkaConsumerProps = getKafkaConsumerProperties(conf);
+
         app = PeriodicNotificationApplicationFactory.getPeriodicApplication(props);
-        producer = new KafkaProducer<>(kafkaProps, new StringSerializer(), new CommandNotificationSerializer());
+        producer = new KafkaProducer<>(getKafkaProducerProperties(), new StringSerializer(), new CommandNotificationSerializer());
         registrar = new KafkaNotificationRegistrationClient(conf.getNotificationTopic(), producer);
     }
 
@@ -159,7 +165,7 @@ public class PeriodicNotificationApplicationIT extends RyaExportITBase {
             app.start();
 //
             final Multimap<Long, BindingSet> actual = HashMultimap.create();
-            try (KafkaConsumer<String, BindingSet> consumer = new KafkaConsumer<>(kafkaProps, new StringDeserializer(), new BindingSetSerDe())) {
+            try (KafkaConsumer<String, BindingSet> consumer = new KafkaConsumer<>(kafkaConsumerProps, new StringDeserializer(), new BindingSetSerDe())) {
                 consumer.subscribe(Arrays.asList(id));
                 final long end = System.currentTimeMillis() + 4*periodMult*1000;
                 long lastBinId = 0L;
@@ -297,7 +303,7 @@ public class PeriodicNotificationApplicationIT extends RyaExportITBase {
             app.start();
 //
             final Multimap<Long, BindingSet> expected = HashMultimap.create();
-            try (KafkaConsumer<String, BindingSet> consumer = new KafkaConsumer<>(kafkaProps, new StringDeserializer(), new BindingSetSerDe())) {
+            try (KafkaConsumer<String, BindingSet> consumer = new KafkaConsumer<>(kafkaConsumerProps, new StringDeserializer(), new BindingSetSerDe())) {
                 consumer.subscribe(Arrays.asList(id));
                 final long end = System.currentTimeMillis() + 4*periodMult*1000;
                 long lastBinId = 0L;
@@ -389,7 +395,7 @@ public class PeriodicNotificationApplicationIT extends RyaExportITBase {
             app.start();
 //
             final Multimap<Long, BindingSet> expected = HashMultimap.create();
-            try (KafkaConsumer<String, BindingSet> consumer = new KafkaConsumer<>(kafkaProps, new StringDeserializer(), new BindingSetSerDe())) {
+            try (KafkaConsumer<String, BindingSet> consumer = new KafkaConsumer<>(kafkaConsumerProps, new StringDeserializer(), new BindingSetSerDe())) {
                 consumer.subscribe(Arrays.asList(id));
                 final long end = System.currentTimeMillis() + 4*periodMult*1000;
                 long lastBinId = 0L;
@@ -444,11 +450,16 @@ public class PeriodicNotificationApplicationIT extends RyaExportITBase {
 
     }
 
-    private Properties getKafkaProperties(final PeriodicNotificationApplicationConfiguration conf) {
+    private Properties getKafkaConsumerProperties(final PeriodicNotificationApplicationConfiguration conf) {
         final Properties kafkaProps = embeddedKafka.createBootstrapServerConfig();
         kafkaProps.setProperty(ConsumerConfig.CLIENT_ID_CONFIG, conf.getNotificationClientId());
         kafkaProps.setProperty(ConsumerConfig.GROUP_ID_CONFIG, conf.getNotificationGroupId());
         kafkaProps.setProperty(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
+        return kafkaProps;
+    }
+
+    private Properties getKafkaProducerProperties() {
+        final Properties kafkaProps = embeddedKafka.createBootstrapServerConfig();
         return kafkaProps;
     }
 
@@ -468,7 +479,7 @@ public class PeriodicNotificationApplicationIT extends RyaExportITBase {
         props.setProperty("accumulo.rya.prefix", getRyaInstanceName());
         props.setProperty(PeriodicNotificationApplicationConfiguration.FLUO_APP_NAME, fluoConf.getApplicationName());
         props.setProperty(PeriodicNotificationApplicationConfiguration.FLUO_TABLE_NAME, fluoConf.getAccumuloTable());
-        props.setProperty(PeriodicNotificationApplicationConfiguration.NOTIFICATION_TOPIC, embeddedKafka.getUniqueTopicName());
+        props.setProperty(PeriodicNotificationApplicationConfiguration.NOTIFICATION_TOPIC, kafkaTestRule.getKafkaTopicName());
         final String bootstrapServers = embeddedKafka.createBootstrapServerConfig().getProperty(CommonClientConfigs.BOOTSTRAP_SERVERS_CONFIG);
         props.setProperty(PeriodicNotificationApplicationConfiguration.KAFKA_BOOTSTRAP_SERVERS, bootstrapServers);
         return props;

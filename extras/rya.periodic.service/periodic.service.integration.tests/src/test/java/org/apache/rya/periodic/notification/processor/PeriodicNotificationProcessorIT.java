@@ -44,10 +44,9 @@ import org.openrdf.query.algebra.evaluation.QueryBindingSet;
 public class PeriodicNotificationProcessorIT extends ModifiedAccumuloExportITBase {
 
     private static final ValueFactory vf = new ValueFactoryImpl();
-    private static final String RYA_INSTANCE_NAME = "rya_";
 
     @Test
-    public void periodicProcessorTest() throws Exception {
+    public void testPeriodicProcessor() throws Exception {
 
         final String id = UUID.randomUUID().toString().replace("-", "");
         final BlockingQueue<TimestampedNotification> notifications = new LinkedBlockingQueue<>();
@@ -96,7 +95,7 @@ public class PeriodicNotificationProcessorIT extends ModifiedAccumuloExportITBas
         storageResults.add(new VisibilityBindingSet(bs4));
 
         final PeriodicQueryResultStorage periodicStorage = new AccumuloPeriodicQueryResultStorage(super.getAccumuloConnector(),
-                RYA_INSTANCE_NAME);
+                getRyaInstanceName());
         periodicStorage.createPeriodicQuery(id, "select ?id where {?obs <urn:hasId> ?id.}", new VariableOrder("periodicBinId", "id"));
         periodicStorage.addPeriodicQueryResults(id, storageResults);
 

@@ -1,5 +1,6 @@
 package org.apache.rya.pcj.fluo.test.base;
 
+import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.accumulo.core.client.AccumuloException;
@@ -13,10 +14,12 @@ import org.apache.fluo.api.mini.MiniFluo;
 import org.apache.fluo.recipes.accumulo.ops.TableOperations;
 import org.apache.rya.accumulo.MiniAccumuloClusterInstance;
 import org.apache.rya.accumulo.MiniAccumuloSingleton;
+import org.apache.rya.accumulo.RyaTestInstanceRule;
 import org.apache.rya.api.client.accumulo.AccumuloConnectionDetails;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.Rule;
 
 /**
  * This class is based significantly on {@code org.apache.fluo.recipes.test.AccumuloExportITBase} from maven artifact
@@ -92,6 +95,9 @@ public class ModifiedAccumuloExportITBase {
     protected static AtomicInteger tableCounter = new AtomicInteger(1);
     private final boolean startMiniFluo;
 
+    @Rule
+    public RyaTestInstanceRule ryaTestInstance = new RyaTestInstanceRule(false);
+
     protected ModifiedAccumuloExportITBase() {
         this(true);
     }
@@ -103,6 +109,17 @@ public class ModifiedAccumuloExportITBase {
     protected ModifiedAccumuloExportITBase(final boolean startMiniFluo) {
         this.startMiniFluo = startMiniFluo;
     }
+
+
+    public String getRyaInstanceName() {
+        return ryaTestInstance.getRyaInstanceName();
+    }
+
+    public String getUniquePcjId() {
+        return UUID.randomUUID().toString().replace("-", "");
+    }
+
+
 
     @BeforeClass
     public static void setupMiniAccumulo() throws Exception {

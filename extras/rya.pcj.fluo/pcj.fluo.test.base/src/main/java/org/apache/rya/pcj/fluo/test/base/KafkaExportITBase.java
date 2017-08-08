@@ -53,12 +53,10 @@ import org.apache.rya.indexing.pcj.fluo.app.observers.TripleObserver;
 import org.apache.rya.indexing.pcj.storage.accumulo.VisibilityBindingSet;
 import org.apache.rya.kafka.base.EmbeddedKafkaInstance;
 import org.apache.rya.kafka.base.EmbeddedKafkaSingleton;
-import org.apache.rya.kafka.base.KafkaTestInstanceRule;
 import org.apache.rya.rdftriplestore.RyaSailRepository;
 import org.apache.rya.sail.config.RyaSailFactory;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Rule;
 import org.openrdf.model.Statement;
 import org.openrdf.repository.sail.SailRepositoryConnection;
 import org.openrdf.sail.Sail;
@@ -76,17 +74,7 @@ public class KafkaExportITBase extends ModifiedAccumuloExportITBase {
 
     private static final Logger logger = LoggerFactory.getLogger(KafkaExportITBase.class);
 
-    protected static final String RYA_INSTANCE_NAME = "test_";
-
-//    private KafkaServer kafkaServer;
-//    private static final String BROKERHOST = "127.0.0.1";
-//    private String brokerPort;
-
-
     private static EmbeddedKafkaInstance embeddedKafka = EmbeddedKafkaSingleton.getInstance();
-
-    @Rule
-    public KafkaTestInstanceRule testInstance = new KafkaTestInstanceRule(false);
 
     // The Rya instance statements are written to that will be fed into the Fluo
     // app.
@@ -99,14 +87,6 @@ public class KafkaExportITBase extends ModifiedAccumuloExportITBase {
      */
     protected Properties createBootstrapServerConfig() {
         return embeddedKafka.createBootstrapServerConfig();
-    }
-
-    protected String getKafkaTopicName() {
-        return testInstance.getKafkaTopicName();
-    }
-
-    protected String getKafkaTopicNamePrefix() {
-        return testInstance.getKafkaTopicName();
     }
 
     /**
@@ -132,8 +112,7 @@ public class KafkaExportITBase extends ModifiedAccumuloExportITBase {
         // Configure the Kafka Producer
         final Properties producerConfig = createBootstrapServerConfig();
         producerConfig.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, "org.apache.kafka.common.serialization.ByteArraySerializer");
-        producerConfig.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG,
-                "org.apache.rya.indexing.pcj.fluo.app.export.kafka.KryoVisibilityBindingSetSerializer");
+        producerConfig.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, "org.apache.rya.indexing.pcj.fluo.app.export.kafka.KryoVisibilityBindingSetSerializer");
         kafkaParams.addAllProducerConfig(producerConfig);
 
         final ObserverSpecification exportObserverConfig = new ObserverSpecification(QueryResultObserver.class.getName(), exportParams);
@@ -160,13 +139,22 @@ public class KafkaExportITBase extends ModifiedAccumuloExportITBase {
     }
 
 
-    @Override
-    @Before
-    public void setupMiniFluo() throws Exception {
-        //setupKafka();
-        super.setupMiniFluo();
-        installRyaInstance();
-    }
+//    @Override
+//    @Before
+//    public void setupMiniFluo() throws Exception {
+//        //setupKafka();
+//        super.setupMiniFluo();
+//        installRyaInstance();
+//    }
+//
+
+//    @Before
+//    public void setupRya() throws Exception {
+//        //setupKafka();
+//        super.setupMiniFluo();
+//        installRyaInstance();
+//    }
+
 
 //    public void setupKafka() throws Exception {
 //        // grab the connection string for the zookeeper spun up by our parent class.
@@ -187,29 +175,18 @@ public class KafkaExportITBase extends ModifiedAccumuloExportITBase {
 //        logger.info("Created a Kafka Server: ", config);
 //    }
 
-    @After
-    public void teardownRya() {
-        // Uninstall the instance of Rya.
-        final RyaClient ryaClient = AccumuloRyaClientFactory.build(super.createConnectionDetails(), super.getAccumuloConnector());
 
-        try {
-            ryaClient.getUninstall().uninstall(RYA_INSTANCE_NAME);
-            // Shutdown the repo.
-            if(ryaSailRepo != null) {ryaSailRepo.shutDown();}
-            if(dao != null ) {dao.destroy();}
-        } catch (final Exception e) {
-            logger.warn("Encountered an exception when shutting down Rya.", e);
-        }
-    }
+    @Before
+    public void installRyaInstance() throws Exception {
+        logger.info("Installing Rya to: {}", getRyaInstanceName());
 
-    private void installRyaInstance() throws Exception {
         final AccumuloConnectionDetails details = super.createConnectionDetails();
 
         // Install the Rya instance to the mini accumulo cluster.
         final RyaClient ryaClient = AccumuloRyaClientFactory.build(details,
                 super.getAccumuloConnector());
 
-        ryaClient.getInstall().install(RYA_INSTANCE_NAME,
+        ryaClient.getInstall().install(getRyaInstanceName(),
                 InstallConfiguration.builder()
                 .setEnableTableHashPrefix(false)
                 .setEnableFreeTextIndex(false)
@@ -219,17 +196,34 @@ public class KafkaExportITBase extends ModifiedAccumuloExportITBase {
                 .setEnablePcjIndex(true)
                 .setFluoPcjAppName(super.getFluoConfiguration().getApplicationName())
                 .build());
-
+        logger.info("Finished Installing Rya to: {}", getRyaInstanceName());
         // Connect to the Rya instance that was just installed.
         final AccumuloRdfConfiguration conf = makeConfig(details);
         final Sail sail = RyaSailFactory.getInstance(conf);
         dao = RyaSailFactory.getAccumuloDAOWithUpdatedConfig(conf);
         ryaSailRepo = new RyaSailRepository(sail);
+        logger.info("Finished Installing Rya2 to: {}", getRyaInstanceName());
+    }
+
+    @After
+    public void teardownRya() {
+        logger.info("Uninstalling Rya at: {}", getRyaInstanceName());
+        // Uninstall the instance of Rya.
+        final RyaClient ryaClient = AccumuloRyaClientFactory.build(super.createConnectionDetails(), super.getAccumuloConnector());
+
+        try {
+            ryaClient.getUninstall().uninstall(getRyaInstanceName());
+            // Shutdown the repo.
+            if(ryaSailRepo != null) {ryaSailRepo.shutDown();}
+            if(dao != null ) {dao.destroy();}
+        } catch (final Exception e) {
+            logger.warn("Encountered an exception when shutting down Rya.", e);
+        }
     }
 
     protected AccumuloRdfConfiguration makeConfig(final AccumuloConnectionDetails details) {
         final AccumuloRdfConfiguration conf = new AccumuloRdfConfiguration();
-        conf.setTablePrefix(RYA_INSTANCE_NAME);
+        conf.setTablePrefix(getRyaInstanceName());
 
         // Accumulo connection information.
         conf.setAccumuloUser(details.getUsername());
@@ -266,17 +260,7 @@ public class KafkaExportITBase extends ModifiedAccumuloExportITBase {
         return dao;
     }
 
-    /**
-     * Close all the Kafka mini server and mini-zookeeper
-     */
-    @After
-    public void teardownKafka() {
-//        if (kafkaServer != null) {
-//            kafkaServer.shutdown();
-//        }
-    }
-
-    protected KafkaConsumer<Integer, VisibilityBindingSet> makeConsumer(final String TopicName) {
+    protected KafkaConsumer<Integer, VisibilityBindingSet> makeConsumer(final String topicName) {
         // setup consumer
         final Properties consumerProps = createBootstrapServerConfig();
         consumerProps.setProperty(ConsumerConfig.GROUP_ID_CONFIG, "group0");
@@ -290,7 +274,7 @@ public class KafkaExportITBase extends ModifiedAccumuloExportITBase {
         consumerProps.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
 
         final KafkaConsumer<Integer, VisibilityBindingSet> consumer = new KafkaConsumer<>(consumerProps);
-        consumer.subscribe(Arrays.asList(TopicName));
+        consumer.subscribe(Arrays.asList(topicName));
         return consumer;
     }
 
@@ -301,7 +285,7 @@ public class KafkaExportITBase extends ModifiedAccumuloExportITBase {
         // Register the PCJ with Rya.
         final RyaClient ryaClient = AccumuloRyaClientFactory.build(super.createConnectionDetails(), super.getAccumuloConnector());
 
-        final String pcjId = ryaClient.getCreatePCJ().createPCJ(RYA_INSTANCE_NAME, sparql);
+        final String pcjId = ryaClient.getCreatePCJ().createPCJ(getRyaInstanceName(), sparql);
 
         // Write the data to Rya.
         final SailRepositoryConnection ryaConn = getRyaSailRepository().getConnection();

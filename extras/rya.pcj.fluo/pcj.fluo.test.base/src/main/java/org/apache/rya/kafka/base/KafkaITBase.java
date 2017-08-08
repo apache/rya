@@ -21,7 +21,6 @@ package org.apache.rya.kafka.base;
 import java.util.Properties;
 
 import org.apache.kafka.clients.CommonClientConfigs;
-import org.junit.Rule;
 
 /**
  * A class intended to be extended for Kafka Integration tests.
@@ -29,9 +28,6 @@ import org.junit.Rule;
 public class KafkaITBase {
 
     private static EmbeddedKafkaInstance embeddedKafka = EmbeddedKafkaSingleton.getInstance();
-
-    @Rule
-    public KafkaTestInstanceRule testInstance = new KafkaTestInstanceRule(false);
 
     /**
      * @return A new Property object containing the correct value for Kafka's
@@ -41,11 +37,4 @@ public class KafkaITBase {
         return embeddedKafka.createBootstrapServerConfig();
     }
 
-    protected String getKafkaTopicName() {
-        return testInstance.getKafkaTopicName();
-    }
-
-    protected String getKafkaTopicNamePrefix() {
-        return testInstance.getKafkaTopicName();
-    }
 }

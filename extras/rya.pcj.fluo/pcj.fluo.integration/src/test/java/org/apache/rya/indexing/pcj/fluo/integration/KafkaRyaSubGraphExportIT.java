@@ -281,7 +281,7 @@ public class KafkaRyaSubGraphExportIT extends KafkaExportITBase {
         ConstructGraphTestUtils.subGraphsEqualIgnoresBlankNode(expectedResults, results);
     }
 
-    protected KafkaConsumer<String, RyaSubGraph> makeRyaSubGraphConsumer(final String TopicName) {
+    protected KafkaConsumer<String, RyaSubGraph> makeRyaSubGraphConsumer(final String topicName) {
         // setup consumer
         final Properties consumerProps = createBootstrapServerConfig();
         consumerProps.setProperty(ConsumerConfig.GROUP_ID_CONFIG, "group0");
@@ -293,7 +293,7 @@ public class KafkaRyaSubGraphExportIT extends KafkaExportITBase {
         consumerProps.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
 
         final KafkaConsumer<String, RyaSubGraph> consumer = new KafkaConsumer<>(consumerProps);
-        consumer.subscribe(Arrays.asList(TopicName));
+        consumer.subscribe(Arrays.asList(topicName));
         return consumer;
     }
 

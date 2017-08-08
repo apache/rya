@@ -7,7 +7,6 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.Properties;
 
-import org.I0Itec.zkclient.ZkClient;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
@@ -15,16 +14,15 @@ import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.clients.producer.ProducerRecord;
-import org.apache.rya.kafka.base.EmbeddedKafkaSingleton;
+import org.apache.rya.kafka.base.KafkaTestInstanceRule;
+import org.junit.Rule;
 import org.junit.Test;
-
-import kafka.admin.AdminUtils;
-import kafka.admin.RackAwareMode;
-import kafka.utils.ZKStringSerializer$;
-import kafka.utils.ZkUtils;
 
 
 public class KafkaExportITBaseIT extends KafkaExportITBase {
+
+    @Rule
+    public KafkaTestInstanceRule kafkaTestRule = new KafkaTestInstanceRule(true);
 
     /**
      * Test kafka without rya code to make sure kafka works in this environment.
@@ -34,21 +32,7 @@ public class KafkaExportITBaseIT extends KafkaExportITBase {
     @Test
     public void embeddedKafkaTest() throws Exception {
         // create topic
-        final String topic = getKafkaTopicName();
-
-        // grab the connection string for the zookeeper spun up by our parent class.
-        final String zkConnect = EmbeddedKafkaSingleton.getInstance().getZookeeperConnect();
-
-        // Setup Kafka.
-        ZkUtils zkUtils = null;
-        try {
-            zkUtils = ZkUtils.apply(new ZkClient(zkConnect, 30000, 30000, ZKStringSerializer$.MODULE$), false);
-            AdminUtils.createTopic(zkUtils, topic, 1, 1, new Properties(), RackAwareMode.Disabled$.MODULE$);
-        } finally {
-            if(zkUtils != null) {
-                zkUtils.close();
-            }
-        }
+        final String topic = kafkaTestRule.getKafkaTopicName();
 
         // setup producer
         final Properties producerProps = createBootstrapServerConfig();

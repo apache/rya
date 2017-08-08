@@ -25,9 +25,10 @@ import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.common.errors.WakeupException;
-import org.apache.log4j.Logger;
 import org.apache.rya.periodic.notification.api.NotificationCoordinatorExecutor;
 import org.apache.rya.periodic.notification.notification.CommandNotification;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Consumer for the {@link KafkaNotificationProvider}.  This consumer pull messages
@@ -35,12 +36,12 @@ import org.apache.rya.periodic.notification.notification.CommandNotification;
  *
  */
 public class PeriodicNotificationConsumer implements Runnable {
-    private KafkaConsumer<String, CommandNotification> consumer;
-    private int m_threadNumber;
-    private String topic;
+    private final KafkaConsumer<String, CommandNotification> consumer;
+    private final int m_threadNumber;
+    private final String topic;
     private final AtomicBoolean closed = new AtomicBoolean(false);
-    private NotificationCoordinatorExecutor coord;
-    private static final Logger LOG = Logger.getLogger(PeriodicNotificationConsumer.class);
+    private final NotificationCoordinatorExecutor coord;
+    private static final Logger LOG = LoggerFactory.getLogger(PeriodicNotificationConsumer.class);
 
     /**
      * Creates a new PeriodicNotificationConsumer for consuming new notification requests from
@@ -50,37 +51,42 @@ public class PeriodicNotificationConsumer implements Runnable {
      * @param a_threadNumber - number of consumer threads to be used
      * @param coord - notification coordinator for managing and generating notifications
      */
-    public PeriodicNotificationConsumer(String topic, KafkaConsumer<String, CommandNotification> consumer, int a_threadNumber,
-            NotificationCoordinatorExecutor coord) {
+    public PeriodicNotificationConsumer(final String topic, final KafkaConsumer<String, CommandNotification> consumer, final int a_threadNumber,
+            final NotificationCoordinatorExecutor coord) {
         this.topic = topic;
-        m_threadNumber = a_threadNumber;
+        this.m_threadNumber = a_threadNumber;
         this.consumer = consumer;
         this.coord = coord;
+        LOG.info("Creating PeriodicNotificationConsumer");
     }
 
+    @Override
     public void run() {
-        
+
         try {
-            LOG.info("Creating kafka stream for consumer:" + m_threadNumber);
+            LOG.info("Creating kafka stream on topic: '{}' for consumer: {}", topic, m_threadNumber);
+
             consumer.subscribe(Arrays.asList(topic));
             while (!closed.get()) {
-                ConsumerRecords<String, CommandNotification> records = consumer.poll(10000);
+                LOG.debug("Polling topic: '{}' ...", topic);
+                final ConsumerRecords<String, CommandNotification> records = consumer.poll(5000);
                 // Handle new records
-                for(ConsumerRecord<String, CommandNotification> record: records) {
-                    CommandNotification notification = record.value();
-                    LOG.info("Thread " + m_threadNumber + " is adding notification " + notification + " to queue.");
-                    LOG.info("Message: " + notification);
+                for(final ConsumerRecord<String, CommandNotification> record: records) {
+                    final CommandNotification notification = record.value();
+                    LOG.info("Thread {} is adding notification to queue. Message: {}", m_threadNumber, notification);
                     coord.processNextCommandNotification(notification);
                 }
             }
-        } catch (WakeupException e) {
+        } catch (final WakeupException e) {
             // Ignore exception if closing
-            if (!closed.get()) throw e;
+            if (!closed.get()) {
+                throw e;
+            }
         } finally {
             consumer.close();
         }
     }
-    
+
     public void shutdown() {
         closed.set(true);
         consumer.wakeup();

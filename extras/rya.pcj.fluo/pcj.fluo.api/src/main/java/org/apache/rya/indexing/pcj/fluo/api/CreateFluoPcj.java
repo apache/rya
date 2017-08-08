@@ -38,6 +38,7 @@ import org.apache.log4j.Logger;
 import org.apache.rya.accumulo.AccumuloRdfConfiguration;
 import org.apache.rya.accumulo.query.AccumuloRyaQueryEngine;
 import org.apache.rya.api.client.CreatePCJ.ExportStrategy;
+import org.apache.rya.api.client.CreatePCJ.QueryType;
 import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.domain.RyaType;
 import org.apache.rya.api.domain.RyaURI;
@@ -135,6 +136,7 @@ public class CreateFluoPcj {
      * according to the Kafka {@link ExportStrategy}.  
      *
      * @param sparql - sparql query String to be registered with Fluo
+     * @param strategies - ExportStrategies used to specify how final results will be handled
      * @param fluo - A connection to the Fluo application that updates the PCJ index. (not null)
      * @return The metadata that was written to the Fluo application for the PCJ.
      * @throws MalformedQueryException The SPARQL query stored for the {@code pcjId} is malformed.
@@ -218,7 +220,17 @@ public class CreateFluoPcj {
                 .setSparql(sparql)
                 .setJoinBatchSize(joinBatchSize);
         
-        return builder.build();
+        FluoQuery query = builder.build();
+        
+        if(query.getQueryType() == QueryType.PERIODIC && !Sets.newHashSet(ExportStrategy.PERIODIC).containsAll(strategies)) {
+            throw new UnsupportedQueryException("Periodic Queries must only utilize the PeriodicExport or the NoOpExport ExportStrategy.");
+        }
+        
+        if(query.getQueryType() != QueryType.PERIODIC && strategies.contains(ExportStrategy.PERIODIC)) {
+            throw new UnsupportedQueryException("Only Periodic Queries can utilize the PeriodicExport ExportStrategy.");
+        }
+        
+        return query;
     }
     
     private void writeFluoQuery(FluoClient fluo, FluoQuery fluoQuery, String pcjId) {
@@ -283,13 +295,13 @@ public class CreateFluoPcj {
      * @param fluo - A connection to the Fluo application that updates the PCJ index. (not null)
      * @param accumulo - Accumulo connector for connecting with Accumulo
      * @param ryaInstance - name of Rya instance to connect to
-     * @return The Fluo application's Query ID of the query that was created.
+     * @return FluoQuery containing the metadata for the newly registered SPARQL query
      * @throws MalformedQueryException The SPARQL query stored for the {@code pcjId} is malformed.
      * @throws PcjException The PCJ Metadata for {@code pcjId} could not be read from {@code pcjStorage}.
      * @throws RyaDAOException Historic PCJ results could not be loaded because of a problem with {@code rya}.
      * @throws UnsupportedQueryException 
      */
-    public String withRyaIntegration(
+    public FluoQuery withRyaIntegration(
             final String pcjId,
             final String sparql,
             final Set<ExportStrategy> strategies,
@@ -308,7 +320,7 @@ public class CreateFluoPcj {
         //import results already ingested into Rya that match query
         importHistoricResultsIntoFluo(fluo, fluoQuery, accumulo, ryaInstance);
         // return queryId to the caller for later monitoring from the export.
-        return fluoQuery.getQueryMetadata().getNodeId();
+        return fluoQuery;
     }
     
     /**
@@ -326,13 +338,13 @@ public class CreateFluoPcj {
      * @param fluo - A connection to the Fluo application that updates the PCJ index. (not null)
      * @param accumulo - Accumuo connector for connecting to Accumulo
      * @param ryaInstance - name of Rya instance to connect to
-     * @return The Fluo application's Query ID of the query that was created.
+     * @return FluoQuery containing the metadata for the newly registered SPARQL query
      * @throws MalformedQueryException The SPARQL query stored for the {@code pcjId} is malformed.
      * @throws PcjException The PCJ Metadata for {@code pcjId} could not be read from {@code pcjStorage}.
      * @throws RyaDAOException Historic PCJ results could not be loaded because of a problem with {@code rya}.
      * @throws UnsupportedQueryException 
      */
-    public String withRyaIntegration(
+    public FluoQuery withRyaIntegration(
             final String pcjId,
             final PrecomputedJoinStorage pcjStorage,
             final FluoClient fluo,

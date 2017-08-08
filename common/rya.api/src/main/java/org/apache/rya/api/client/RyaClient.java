@@ -34,6 +34,9 @@ public class RyaClient {
     private final Install install;
     private final CreatePCJ createPcj;
     private final DeletePCJ deletePcj;
+    private final CreatePeriodicPCJ createPeriodicPcj;
+    private final DeletePeriodicPCJ deletePeriodicPcj;
+    private final ListIncrementalQueries listIncrementalQueries;
     private final BatchUpdatePCJ bactchUpdatePCJ;
     private final GetInstanceDetails getInstanceDetails;
     private final InstanceExists instanceExists;
@@ -51,6 +54,9 @@ public class RyaClient {
             final Install install,
             final CreatePCJ createPcj,
             final DeletePCJ deletePcj,
+            final CreatePeriodicPCJ createPeriodicPcj,
+            final DeletePeriodicPCJ deletePeriodicPcj,
+            final ListIncrementalQueries listIncrementalQueries,
             final BatchUpdatePCJ batchUpdatePcj,
             final GetInstanceDetails getInstanceDetails,
             final InstanceExists instanceExists,
@@ -63,6 +69,9 @@ public class RyaClient {
         this.install = requireNonNull(install);
         this.createPcj = requireNonNull(createPcj);
         this.deletePcj = requireNonNull(deletePcj);
+        this.createPeriodicPcj = createPeriodicPcj;
+        this.deletePeriodicPcj = deletePeriodicPcj;
+        this.listIncrementalQueries = listIncrementalQueries;
         this.bactchUpdatePCJ = requireNonNull(batchUpdatePcj);
         this.getInstanceDetails = requireNonNull(getInstanceDetails);
         this.instanceExists = requireNonNull(instanceExists);
@@ -96,7 +105,29 @@ public class RyaClient {
     public DeletePCJ getDeletePCJ() {
         return deletePcj;
     }
+    
+    /**
+     * @return An instance of {@link CreatePeridodicPCJ} that is connected to a Rya Periodic Storage
+     */ 
+    public CreatePeriodicPCJ getCreatePeriodicPCJ() {
+        return createPeriodicPcj;
+    }
 
+    /**
+     * @return An instance of {@link DeletePeriodicPCJ} that is connected to a Rya Periodic Storage
+     */
+    public DeletePeriodicPCJ getDeletePeriodicPCJ() {
+        return deletePeriodicPcj;
+    }
+    
+    /**
+     * @return An instance of {@link ListIncrementalQueries} for displaying queries that are incrementallly
+     * maintained by the Rya instance
+     */
+    public ListIncrementalQueries getListIncrementalQueries() {
+        return listIncrementalQueries;
+    }
+    
     /**
      * @return An instance of {@link BatchUpdatePCJ} that is connect to a Rya storage
      *   if the Rya instance supports PCJ indexing.

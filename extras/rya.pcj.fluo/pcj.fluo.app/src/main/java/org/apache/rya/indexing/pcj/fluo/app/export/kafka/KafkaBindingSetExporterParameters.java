@@ -26,7 +26,6 @@ import org.apache.kafka.common.serialization.StringSerializer;
 
 import com.google.common.base.Preconditions;
 
-
 public class KafkaBindingSetExporterParameters extends KafkaExportParameterBase {
     
     public static final String CONF_USE_KAFKA_BINDING_SET_EXPORTER = "pcj.fluo.export.kafka.bindingset.enabled";

@@ -57,7 +57,10 @@ import com.google.common.base.Optional;
 public class RyaAdminCommands implements CommandMarker {
 
     public static final String CREATE_PCJ_CMD = "create-pcj";
+    public static final String CREATE_PERIODIC_PCJ_CMD = "create-periodic-pcj";
     public static final String DELETE_PCJ_CMD = "delete-pcj";
+    public static final String DELETE_PERIODIC_PCJ_CMD = "delete-periodic-pcj";
+    public static final String LIST_INCREMENTAL_QUERIES = "list-incremental-queries";
     public static final String PRINT_INSTANCE_DETAILS_CMD = "print-instance-details";
     public static final String INSTALL_CMD = "install";
     public static final String INSTALL_PARAMETERS_CMD = "install-with-parameters";
@@ -129,7 +132,10 @@ public class RyaAdminCommands implements CommandMarker {
      */
     @CliAvailabilityIndicator({
         CREATE_PCJ_CMD,
-        DELETE_PCJ_CMD })
+        DELETE_PCJ_CMD,
+        CREATE_PERIODIC_PCJ_CMD,
+        DELETE_PERIODIC_PCJ_CMD,
+        LIST_INCREMENTAL_QUERIES})
     public boolean arePCJCommandsAvailable() {
         // The PCJ commands are only available if the Shell is connected to an instance of Rya
         // that is new enough to use the RyaDetailsRepository and is configured to maintain PCJs.
@@ -341,6 +347,79 @@ public class RyaAdminCommands implements CommandMarker {
             throw new RuntimeException("The PCJ could not be deleted. Provided reason: " + e.getMessage(), e);
         }
     }
+    
+    @CliCommand(value = CREATE_PERIODIC_PCJ_CMD, help = "Creates and starts the maintenance of a new Periodic PCJ and registers the associated Periodic Notification with Kafka.")
+    public String createPeriodicPcj(
+            @CliOption(key = {"topic"}, mandatory = true, help = "Kafka topic for registering new PeriodicNotifications.  This topic is monitored by the Periodic Notification Service.")
+            String topic,
+            @CliOption(key = {"brokers"}, mandatory = true, help = "Comma delimited list of host/port pairs to establish the initial connection to the Kafka cluster.")
+            String brokers) {
+        // Fetch the command that is connected to the store.
+        final ShellState shellState = state.getShellState();
+        final RyaClient commands = shellState.getConnectedCommands().get();
+        final String ryaInstance = shellState.getRyaInstanceName().get();
+
+        try {
+            // Prompt the user for the SPARQL.
+            final Optional<String> sparql = sparqlPrompt.getSparql();
+            if (sparql.isPresent()) {
+                // Execute the command.
+                final String pcjId = commands.getCreatePeriodicPCJ().createPeriodicPCJ(ryaInstance, sparql.get(), topic, brokers);
+                // Return a message that indicates the ID of the newly created ID.
+                return String.format("The Periodic PCJ has been created. Its ID is '%s'.", pcjId);
+            } else {
+                return ""; // user aborted the SPARQL prompt.
+            }
+        } catch (final InstanceDoesNotExistException e) {
+            throw new RuntimeException(String.format("A Rya instance named '%s' does not exist.", ryaInstance), e);
+        } catch (final IOException | RyaClientException e) {
+            throw new RuntimeException("Could not create the Periodic PCJ. Provided reasons: " + e.getMessage(), e);
+        }
+    }
+    
+    @CliCommand(value = DELETE_PERIODIC_PCJ_CMD, help = "Deletes and halts maintenance of a Periodic PCJ.")
+    public String deletePeriodicPcj(
+            @CliOption(key = {"pcjId"}, mandatory = true, help = "The ID of the PCJ that will be deleted.")
+            final String pcjId,
+            @CliOption(key = {"topic"}, mandatory = true, help = "Kafka topic for registering a delete notice to remove a PeriodicNotification from the Periodic Notification Service.")
+            final String topic,
+            @CliOption(key = {"brokers"}, mandatory = true, help = "Comma delimited list of host/port pairs to establish the initial connection to the Kafka cluster.")
+            final String brokers
+            ) {
+        // Fetch the command that is connected to the store.
+        final ShellState shellState = state.getShellState();
+        final RyaClient commands = shellState.getConnectedCommands().get();
+        final String ryaInstance = shellState.getRyaInstanceName().get();
+
+        try {
+            // Execute the command.
+            commands.getDeletePeriodicPCJ().deletePeriodicPCJ(ryaInstance, pcjId, topic, brokers);
+            return "The Periodic PCJ has been deleted.";
+
+        } catch (final InstanceDoesNotExistException e) {
+            throw new RuntimeException(String.format("A Rya instance named '%s' does not exist.", ryaInstance), e);
+        } catch (final RyaClientException e) {
+            throw new RuntimeException("The Periodic PCJ could not be deleted. Provided reason: " + e.getMessage(), e);
+        }
+    }
+    
+    
+    @CliCommand(value = LIST_INCREMENTAL_QUERIES, help = "Lists relevant information about all SPARQL queries maintained by the Fluo application.")
+    public String listFluoQueries() {
+        // Fetch the command that is connected to the store.
+        final ShellState shellState = state.getShellState();
+        final RyaClient commands = shellState.getConnectedCommands().get();
+        final String ryaInstance = shellState.getRyaInstanceName().get();
+
+        try {
+            return commands.getListIncrementalQueries().listIncrementalQueries(ryaInstance);
+        } catch (final InstanceDoesNotExistException e) {
+            throw new RuntimeException(String.format("A Rya instance named '%s' does not exist.", ryaInstance), e);
+        } catch (RyaClientException e) {
+            throw new RuntimeException("Could not list incremental queries. Provided reasons: " + e.getMessage(), e);
+        }
+    }
+    
 
     @CliCommand(value = ADD_USER_CMD, help = "Adds an authorized user to the Rya instance.")
     public void addUser(

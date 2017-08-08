@@ -34,6 +34,7 @@ import java.util.TimeZone;
 import org.apache.rya.api.client.AddUser;
 import org.apache.rya.api.client.CreatePCJ;
 import org.apache.rya.api.client.DeletePCJ;
+import org.apache.rya.api.client.DeletePeriodicPCJ;
 import org.apache.rya.api.client.GetInstanceDetails;
 import org.apache.rya.api.client.Install;
 import org.apache.rya.api.client.Install.DuplicateInstanceNameException;
@@ -45,6 +46,7 @@ import org.apache.rya.api.client.RyaClient;
 import org.apache.rya.api.client.RyaClientException;
 import org.apache.rya.api.client.Uninstall;
 import org.apache.rya.api.client.CreatePCJ.ExportStrategy;
+import org.apache.rya.api.client.CreatePeriodicPCJ;
 import org.apache.rya.api.client.accumulo.AccumuloConnectionDetails;
 import org.apache.rya.api.instance.RyaDetails;
 import org.apache.rya.api.instance.RyaDetails.EntityCentricIndexDetails;
@@ -151,6 +153,69 @@ public class RyaAdminCommandsTest {
         final String expected = "The PCJ has been deleted.";
         assertEquals(expected, message);
     }
+    
+    @Test
+    public void createPeriodicPCJ() throws InstanceDoesNotExistException, RyaClientException, IOException {
+        // Mock the object that performs the create operation.
+        final String instanceName = "unitTest";
+        final String sparql = "SELECT * WHERE { ?person <http://isA> ?noun }";
+        final String topic = "topic";
+        final String brokers = "brokers";
+        final String pcjId = "12341234";
+        final CreatePeriodicPCJ mockCreatePCJ = mock(CreatePeriodicPCJ.class);
+        when(mockCreatePCJ.createPeriodicPCJ( eq(instanceName), eq(sparql), eq(topic), eq(brokers) )).thenReturn( pcjId );
+
+        final RyaClient mockCommands = mock(RyaClient.class);
+        when(mockCommands.getCreatePeriodicPCJ()).thenReturn( mockCreatePCJ );
+
+        final SharedShellState state = new SharedShellState();
+        state.connectedToAccumulo(mock(AccumuloConnectionDetails.class), mockCommands);
+        state.connectedToInstance(instanceName);
+
+        final SparqlPrompt mockSparqlPrompt = mock(SparqlPrompt.class);
+        when(mockSparqlPrompt.getSparql()).thenReturn(Optional.of(sparql));
+
+        // Execute the command.
+        final RyaAdminCommands commands = new RyaAdminCommands(state, mock(InstallPrompt.class), mockSparqlPrompt, mock(UninstallPrompt.class));
+        final String message = commands.createPeriodicPcj(topic, brokers);
+
+        // Verify the values that were provided to the command were passed through to CreatePCJ.
+        verify(mockCreatePCJ).createPeriodicPCJ(eq(instanceName), eq(sparql), eq(topic), eq(brokers));
+
+        // Verify a message is returned that explains what was created.
+        final String expected = "The Periodic PCJ has been created. Its ID is '12341234'.";
+        assertEquals(expected, message);
+    }
+    
+    @Test
+    public void deletePeriodicPCJ() throws InstanceDoesNotExistException, RyaClientException {
+        // Mock the object that performs the delete operation.
+        final DeletePeriodicPCJ mockDeletePCJ = mock(DeletePeriodicPCJ.class);
+
+        final RyaClient mockCommands = mock(RyaClient.class);
+        when(mockCommands.getDeletePeriodicPCJ()).thenReturn( mockDeletePCJ );
+
+        final SharedShellState state = new SharedShellState();
+        state.connectedToAccumulo(mock(AccumuloConnectionDetails.class), mockCommands);
+        final String instanceName = "unitTests";
+        state.connectedToInstance(instanceName);
+
+        // Execute the command.
+        final String pcjId = "123412342";
+        final String topic = "topic";
+        final String brokers = "brokers";
+
+        final RyaAdminCommands commands = new RyaAdminCommands(state, mock(InstallPrompt.class), mock(SparqlPrompt.class), mock(UninstallPrompt.class));
+        final String message = commands.deletePeriodicPcj(pcjId, topic, brokers);
+
+        // Verify the values that were provided to the command were passed through to the DeletePCJ.
+        verify(mockDeletePCJ).deletePeriodicPCJ(eq(instanceName), eq(pcjId), eq(topic), eq(brokers));
+
+        // Verify a message is returned that explains what was deleted.
+        final String expected = "The Periodic PCJ has been deleted.";
+        assertEquals(expected, message);
+    }
+    
 
     @Test
     public void getInstanceDetails() throws InstanceDoesNotExistException, RyaClientException {

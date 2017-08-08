@@ -21,11 +21,13 @@ package org.apache.rya.mongodb;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.io.IOException;
+import java.util.AbstractMap;
 import java.util.Collection;
-import java.util.HashSet;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Set;
 
 import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.persist.RyaDAOException;
@@ -34,18 +36,17 @@ import org.apache.rya.api.persist.query.RyaQuery;
 import org.apache.rya.api.persist.query.RyaQueryEngine;
 import org.apache.rya.mongodb.dao.MongoDBStorageStrategy;
 import org.apache.rya.mongodb.dao.SimpleMongoDBStorageStrategy;
-import org.apache.rya.mongodb.iter.NonCloseableRyaStatementCursorIterator;
 import org.apache.rya.mongodb.iter.RyaStatementBindingSetCursorIterator;
-import org.apache.rya.mongodb.iter.RyaStatementCursorIterable;
 import org.apache.rya.mongodb.iter.RyaStatementCursorIterator;
 import org.bson.Document;
 import org.calrissian.mango.collect.CloseableIterable;
+import org.calrissian.mango.collect.CloseableIterables;
 import org.openrdf.query.BindingSet;
+import org.openrdf.query.impl.MapBindingSet;
 
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
 import com.mongodb.DB;
-import com.mongodb.DBCollection;
 import com.mongodb.DBObject;
 import com.mongodb.MongoClient;
 import com.mongodb.client.MongoCollection;
@@ -61,13 +62,10 @@ public class MongoDBQueryEngine implements RyaQueryEngine<MongoDBRdfConfiguratio
 
     private MongoDBRdfConfiguration configuration;
     private final MongoClient mongoClient;
-    private final DBCollection coll;
     private final MongoDBStorageStrategy<RyaStatement> strategy;
 
     public MongoDBQueryEngine(final MongoDBRdfConfiguration conf, final MongoClient mongoClient) {
         this.mongoClient = checkNotNull(mongoClient);
-        final DB db = mongoClient.getDB(conf.get(MongoDBRdfConfiguration.MONGO_DB_NAME));
-        coll = db.getCollection(conf.getTriplesCollectionName());
         strategy = new SimpleMongoDBStorageStrategy();
     }
 
@@ -86,22 +84,10 @@ public class MongoDBQueryEngine implements RyaQueryEngine<MongoDBRdfConfiguratio
     public CloseableIteration<RyaStatement, RyaDAOException> query(
             final RyaStatement stmt, MongoDBRdfConfiguration conf)
             throws RyaDAOException {
-        if (conf == null) {
-            conf = configuration;
-        }
-        final Long maxResults = conf.getLimit();
-        final Set<DBObject> queries = new HashSet<DBObject>();
-        final DBObject query = strategy.getQuery(stmt);
-        queries.add(query);
-        final MongoDatabase db = mongoClient.getDatabase(conf.getMongoDBName());
-        final MongoCollection<Document> collection = db.getCollection(conf.getTriplesCollectionName());
-        final RyaStatementCursorIterator iterator = new RyaStatementCursorIterator(collection, queries, strategy,
-                conf.getAuthorizations());
-
-        if (maxResults != null) {
-            iterator.setMaxResults(maxResults);
-        }
-        return iterator;
+        Entry<RyaStatement, BindingSet> entry = new AbstractMap.SimpleEntry<>(stmt, new MapBindingSet());
+        Collection<Entry<RyaStatement, BindingSet>> collection = Collections.singleton(entry);
+        
+        return new RyaStatementCursorIterator(queryWithBindingSet(collection, conf));
     }
 
     @Override
@@ -111,25 +97,20 @@ public class MongoDBQueryEngine implements RyaQueryEngine<MongoDBRdfConfiguratio
         if (conf == null) {
             conf = configuration;
         }
-        final Long maxResults = conf.getLimit();
-        final Multimap<DBObject, BindingSet> rangeMap = HashMultimap.create();
+        final Multimap<RyaStatement, BindingSet> rangeMap = HashMultimap.create();
 
         //TODO: cannot span multiple tables here
         try {
             for (final Map.Entry<RyaStatement, BindingSet> stmtbs : stmts) {
                 final RyaStatement stmt = stmtbs.getKey();
                 final BindingSet bs = stmtbs.getValue();
-                final DBObject query = strategy.getQuery(stmt);
-                rangeMap.put(query, bs);
+                rangeMap.put(stmt, bs);
             }
 
             // TODO not sure what to do about regex ranges?
             final RyaStatementBindingSetCursorIterator iterator = new RyaStatementBindingSetCursorIterator(
                     getCollection(conf), rangeMap, strategy, conf.getAuthorizations());
 
-            if (maxResults != null) {
-                iterator.setMaxResults(maxResults);
-            }
             return iterator;
         } catch (final Exception e) {
             throw new RyaDAOException(e);
@@ -140,72 +121,35 @@ public class MongoDBQueryEngine implements RyaQueryEngine<MongoDBRdfConfiguratio
     public CloseableIteration<RyaStatement, RyaDAOException> batchQuery(
             final Collection<RyaStatement> stmts, MongoDBRdfConfiguration conf)
             throws RyaDAOException {
-        if (conf == null) {
-            conf = configuration;
-        }
-        final Long maxResults = conf.getLimit();
-        final Set<DBObject> queries = new HashSet<DBObject>();
+        final Map<RyaStatement, BindingSet> queries = new HashMap<>();
 
-        try {
-            for (final RyaStatement stmt : stmts) {
-                queries.add( strategy.getQuery(stmt));
-             }
-
-            // TODO not sure what to do about regex ranges?
-            final RyaStatementCursorIterator iterator = new RyaStatementCursorIterator(getCollection(conf), queries,
-                    strategy, configuration.getAuthorizations());
-
-            if (maxResults != null) {
-                iterator.setMaxResults(maxResults);
-            }
-            return iterator;
-        } catch (final Exception e) {
-            throw new RyaDAOException(e);
+        for (final RyaStatement stmt : stmts) {
+            queries.put(stmt, new MapBindingSet());
         }
 
+        return new RyaStatementCursorIterator(queryWithBindingSet(queries.entrySet(), conf));
     }
+    
     @Override
     public CloseableIterable<RyaStatement> query(final RyaQuery ryaQuery)
             throws RyaDAOException {
-            final Set<DBObject> queries = new HashSet<DBObject>();
-
-            try {
-                queries.add( strategy.getQuery(ryaQuery));
-
-                // TODO not sure what to do about regex ranges?
-                // TODO this is gross
-            final RyaStatementCursorIterable iterator = new RyaStatementCursorIterable(
-                    new NonCloseableRyaStatementCursorIterator(new RyaStatementCursorIterator(getCollection(getConf()),
-                            queries, strategy, configuration.getAuthorizations())));
-
-                return iterator;
-            } catch (final Exception e) {
-                throw new RyaDAOException(e);
-            }
+        return query(new BatchRyaQuery(Collections.singleton(ryaQuery.getQuery())));
     }
+
     @Override
     public CloseableIterable<RyaStatement> query(final BatchRyaQuery batchRyaQuery)
             throws RyaDAOException {
-         try {
-             final Set<DBObject> queries = new HashSet<DBObject>();
-            for (final RyaStatement statement : batchRyaQuery.getQueries()){
-                queries.add( strategy.getQuery(statement));
+        final Map<RyaStatement, BindingSet> queries = new HashMap<>();
 
-            }
-
-            // TODO not sure what to do about regex ranges?
-            // TODO this is gross
-            final RyaStatementCursorIterable iterator = new RyaStatementCursorIterable(
-                    new NonCloseableRyaStatementCursorIterator(new RyaStatementCursorIterator(getCollection(getConf()),
-                            queries, strategy, configuration.getAuthorizations())));
-
-            return iterator;
-        } catch (final Exception e) {
-            throw new RyaDAOException(e);
+        for (final RyaStatement stmt : batchRyaQuery.getQueries()) {
+            queries.put(stmt, new MapBindingSet());
         }
+
+        Iterator<RyaStatement> iterator = new RyaStatementCursorIterator(queryWithBindingSet(queries.entrySet(), getConf()));
+        return CloseableIterables.wrap((Iterable<RyaStatement>) () -> iterator);
     }
 
-    private MongoCollection getCollection(final MongoDBRdfConfiguration conf) {
+    private MongoCollection<Document> getCollection(final MongoDBRdfConfiguration conf) {
         final MongoDatabase db = mongoClient.getDatabase(conf.getMongoDBName());
         return db.getCollection(conf.getTriplesCollectionName());
     }

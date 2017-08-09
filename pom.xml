@@ -1007,6 +1007,7 @@ under the License.
                 <enabled>false</enabled>
             </snapshots>
         </repository>
+        <!--
         <repository>
             <id>geowave-maven-snapshot</id>
             <name>GeoWave AWS Snapshot Repository</name>
@@ -1018,6 +1019,7 @@ under the License.
                 <enabled>true</enabled>
             </snapshots>
         </repository>
+        -->
         <repository>
             <id>osgeo</id>
             <name>Open Source Geospatial Foundation Repository</name>

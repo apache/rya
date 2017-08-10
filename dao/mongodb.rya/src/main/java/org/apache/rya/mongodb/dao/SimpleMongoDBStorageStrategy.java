@@ -55,7 +55,7 @@ public class SimpleMongoDBStorageStrategy implements MongoDBStorageStrategy<RyaS
     public static final String CONTEXT = "context";
     public static final String PREDICATE = "predicate";
     public static final String PREDICATE_HASH = "predicate_hash";
-    public static final String OBJECT = "object_original";
+    public static final String OBJECT = "object";
     public static final String OBJECT_HASH = "object_hash";
     public static final String SUBJECT = "subject";
     public static final String SUBJECT_HASH = "subject_hash";
@@ -70,6 +70,8 @@ public class SimpleMongoDBStorageStrategy implements MongoDBStorageStrategy<RyaS
         BasicDBObject doc = new BasicDBObject();
         doc.put(SUBJECT_HASH, 1);
         doc.put(PREDICATE_HASH, 1);
+        doc.put(OBJECT_HASH, 1);
+        doc.put(OBJECT_TYPE, 1);
         coll.createIndex(doc);
         doc = new BasicDBObject(PREDICATE_HASH, 1);
         doc.put(OBJECT_HASH, 1);
@@ -77,7 +79,7 @@ public class SimpleMongoDBStorageStrategy implements MongoDBStorageStrategy<RyaS
         coll.createIndex(doc);
         doc = new BasicDBObject(OBJECT_HASH, 1);
         doc.put(OBJECT_TYPE, 1);
-        doc.put(SUBJECT, 1);
+        doc.put(SUBJECT_HASH, 1);
         coll.createIndex(doc);
     }
 

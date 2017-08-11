@@ -125,6 +125,7 @@ public class InferenceEngine {
     }
 
     public void refreshGraph() throws InferenceEngineException {
+        ValueFactory vf = ValueFactoryImpl.getInstance();
         try {
             //get all subclassof
             Graph graph = TinkerGraph.open();
@@ -135,6 +136,53 @@ public class InferenceEngine {
                     String edgeName = RDFS.SUBCLASSOF.stringValue();
                     Statement st = iter.next();
                     addStatementEdge(graph, edgeName, st);
+                }
+            } finally {
+                if (iter != null) {
+                    iter.close();
+                }
+            }
+
+            // Add unions to the subclass graph: if c owl:unionOf LIST(c1, c2, ... cn), then any
+            // instances of c1, c2, ... or cn are also instances of c, meaning c is a superclass
+            // of all the rest.
+            // (In principle, an instance of c is likewise implied to be at least one of the other
+            // types, but this fact is ignored for now to avoid nondeterministic reasoning.)
+            iter = RyaDAOHelper.query(ryaDAO, null, OWL.UNIONOF, null, conf);
+            try {
+                while (iter.hasNext()) {
+                    Statement st = iter.next();
+                    Value unionType = st.getSubject();
+                    // Traverse the list of types constituting the union
+                    Value current = st.getObject();
+                    while (current instanceof Resource && !RDF.NIL.equals(current)) {
+                        Resource listNode = (Resource) current;
+                        CloseableIteration<Statement, QueryEvaluationException> listIter = RyaDAOHelper.query(ryaDAO,
+                                listNode, RDF.FIRST, null, conf);
+                        try {
+                            if (listIter.hasNext()) {
+                                Statement firstStatement = listIter.next();
+                                if (firstStatement.getObject() instanceof Resource) {
+                                    Resource subclass = (Resource) firstStatement.getObject();
+                                    Statement subclassStatement = vf.createStatement(subclass, RDFS.SUBCLASSOF, unionType);
+                                    addStatementEdge(graph, RDFS.SUBCLASSOF.stringValue(), subclassStatement);
+                                }
+                            }
+                        } finally {
+                            listIter.close();
+                        }
+                        listIter = RyaDAOHelper.query(ryaDAO, listNode, RDF.REST, null, conf);
+                        try {
+                            if (listIter.hasNext()) {
+                                current = listIter.next().getObject();
+                            }
+                            else {
+                                current = RDF.NIL;
+                            }
+                        } finally {
+                            listIter.close();
+                        }
+                    }
                 }
             } finally {
                 if (iter != null) {
@@ -221,7 +269,6 @@ public class InferenceEngine {
             }
             inverseOfMap = invProp;
             
-            ValueFactory vf = ValueFactoryImpl.getInstance();
             iter = RyaDAOHelper.query(ryaDAO, null, 
             		vf.createURI("http://www.w3.org/2002/07/owl#propertyChainAxiom"),
             		null, conf);

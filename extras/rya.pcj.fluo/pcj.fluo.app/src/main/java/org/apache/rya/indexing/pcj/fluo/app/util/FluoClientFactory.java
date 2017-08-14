@@ -21,8 +21,8 @@ package org.apache.rya.indexing.pcj.fluo.app.util;
 import java.util.Optional;
 
 import org.apache.fluo.api.client.FluoClient;
+import org.apache.fluo.api.client.FluoFactory;
 import org.apache.fluo.api.config.FluoConfiguration;
-import org.apache.fluo.core.client.FluoClientImpl;
 import org.apache.rya.accumulo.AccumuloRdfConfiguration;
 
 /**
@@ -38,8 +38,8 @@ public class FluoClientFactory {
      * @param conf - AccumuloConfiguration (must contain Accumulo User, Accumulo Instance, Accumulo Password, and Accumulo Zookeepers)
      * @return FluoClient for connecting to Fluo
      */
-    public static FluoClient getFluoClient(String appName, Optional<String> tableName, AccumuloRdfConfiguration conf) {
-        FluoConfiguration fluoConfig = new FluoConfiguration();
+    public static FluoClient getFluoClient(final String appName, final Optional<String> tableName, final AccumuloRdfConfiguration conf) {
+        final FluoConfiguration fluoConfig = new FluoConfiguration();
         fluoConfig.setAccumuloInstance(conf.getAccumuloInstance());
         fluoConfig.setAccumuloUser(conf.getAccumuloUser());
         fluoConfig.setAccumuloPassword(conf.getAccumuloPassword());
@@ -51,6 +51,6 @@ public class FluoClientFactory {
         } else {
             fluoConfig.setAccumuloTable(appName);
         }
-        return new FluoClientImpl(fluoConfig);
+        return FluoFactory.newClient(fluoConfig);
     }
 }

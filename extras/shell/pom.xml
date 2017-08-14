@@ -96,8 +96,8 @@
         <dependency>
             <groupId>org.apache.rya</groupId>
             <artifactId>accumulo.rya</artifactId>
-            <version>${project.version}</version>
             <type>test-jar</type>
+            <scope>test</scope>
         </dependency>
     </dependencies>
 

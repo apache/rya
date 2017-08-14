@@ -20,14 +20,14 @@ package org.apache.rya.api.instance;
 
 import static java.util.Objects.requireNonNull;
 
-import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
-import edu.umd.cs.findbugs.annotations.NonNull;
-
 import org.apache.hadoop.conf.Configuration;
 import org.apache.log4j.Logger;
 import org.apache.rya.api.instance.RyaDetails.PCJIndexDetails;
 
 import com.google.common.base.Optional;
+
+import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
+import edu.umd.cs.findbugs.annotations.NonNull;
 
 /**
  * Used to fetch {@link RyaDetails} from a {@link RyaDetailsRepository} and
@@ -53,14 +53,16 @@ public class RyaDetailsToConfiguration {
         checkAndSet(conf, ConfigurationFields.USE_FREETEXT, details.getFreeTextIndexDetails().isEnabled());
       //RYA-215        checkAndSet(conf, ConfigurationFields.USE_GEO, details.getGeoIndexDetails().isEnabled());
         checkAndSet(conf, ConfigurationFields.USE_TEMPORAL, details.getTemporalIndexDetails().isEnabled());
-        PCJIndexDetails pcjDetails = details.getPCJIndexDetails();
-		if (pcjDetails.isEnabled() && pcjDetails.getFluoDetails().isPresent()) {
-			checkAndSet(conf, ConfigurationFields.USE_PCJ_UPDATER, true);
-			conf.set(ConfigurationFields.FLUO_APP_NAME, pcjDetails.getFluoDetails().get().getUpdateAppName());
-			conf.set(ConfigurationFields.PCJ_UPDATER_TYPE, "FLUO");
-		} else {
-			checkAndSet(conf, ConfigurationFields.USE_PCJ_UPDATER, false);
-		}
+        final PCJIndexDetails pcjDetails = details.getPCJIndexDetails();
+        if (pcjDetails.isEnabled() && pcjDetails.getFluoDetails().isPresent()) {
+            checkAndSet(conf, ConfigurationFields.USE_PCJ_UPDATER, true);
+            conf.set(ConfigurationFields.FLUO_APP_NAME, pcjDetails.getFluoDetails().get().getUpdateAppName());
+            conf.set(ConfigurationFields.PCJ_UPDATER_TYPE, "FLUO");
+            conf.set(ConfigurationFields.PCJ_STORAGE_TYPE, "ACCUMULO");
+        } else {
+            checkAndSet(conf, ConfigurationFields.USE_PCJ_UPDATER, false);
+            conf.set(ConfigurationFields.PCJ_UPDATER_TYPE, "NO_UPDATE");
+        }
     }
 
     /**

@@ -53,7 +53,12 @@ under the License.
             <artifactId>fluo-api</artifactId>
         </dependency>
 
-        <!-- Testing dependencies. -->
+        <!-- Testing dependencies.  (should be compile scope for this project) -->
+        <dependency>
+            <groupId>org.apache.rya</groupId>
+            <artifactId>accumulo.rya</artifactId>
+            <type>test-jar</type>
+        </dependency>
         <dependency>
             <groupId>org.apache.fluo</groupId>
             <artifactId>fluo-mini</artifactId>
@@ -67,12 +72,15 @@ under the License.
         <dependency>
           <groupId>org.apache.kafka</groupId>
           <artifactId>kafka-clients</artifactId>
-          <version>0.10.1.0</version>
+        </dependency>
+        <dependency>
+          <groupId>org.apache.kafka</groupId>
+          <artifactId>kafka-clients</artifactId>
+          <classifier>test</classifier>
         </dependency>
         <dependency>
             <groupId>org.apache.kafka</groupId>
             <artifactId>kafka_2.11</artifactId>
-            <version>0.10.1.0</version>
             <exclusions>
                 <exclusion>
                     <artifactId>slf4j-log4j12</artifactId>
@@ -80,11 +88,9 @@ under the License.
                 </exclusion>
             </exclusions>
         </dependency>
-        <!-- Testing dependencies. -->
         <dependency>
             <groupId>org.apache.kafka</groupId>
             <artifactId>kafka_2.11</artifactId>
-            <version>0.10.1.0</version>
             <classifier>test</classifier>
             <scope>compile</scope>
             <exclusions>

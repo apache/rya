@@ -73,7 +73,6 @@ under the License.
         <dependency>
             <groupId>org.apache.accumulo</groupId>
             <artifactId>accumulo-minicluster</artifactId>
-            <version>${accumulo.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -84,8 +83,8 @@ under the License.
         <dependency>
             <groupId>org.apache.rya</groupId>
             <artifactId>accumulo.rya</artifactId>
-            <version>${project.version}</version>
             <type>test-jar</type>
+            <scope>test</scope>
         </dependency>
     </dependencies>
 </project>

@@ -26,6 +26,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
 import org.apache.rya.api.domain.RyaURI;
@@ -36,8 +37,8 @@ import org.apache.rya.indexing.TemporalInstantRfc3339;
 import org.apache.rya.indexing.accumulo.ConfigUtils;
 import org.apache.rya.indexing.geotemporal.model.Event;
 import org.apache.rya.indexing.geotemporal.mongo.MongoGeoTemporalIndexer;
+import org.apache.rya.indexing.geotemporal.mongo.MongoITBase;
 import org.apache.rya.indexing.geotemporal.storage.EventStorage;
-import org.apache.rya.mongodb.MockMongoFactory;
 import org.apache.rya.mongodb.MongoDBRdfConfiguration;
 import org.junit.Before;
 import org.junit.Test;
@@ -55,19 +56,20 @@ import org.openrdf.sail.Sail;
 
 import com.mongodb.MongoClient;
 
-public class MongoGeoTemporalIndexIT {
+public class MongoGeoTemporalIndexIT extends MongoITBase {
     private static final String URI_PROPERTY_AT_TIME = "Property:atTime";
 
     private static final ValueFactory VF = ValueFactoryImpl.getInstance();
     private MongoDBRdfConfiguration conf;
     private SailRepositoryConnection conn;
     private MongoClient mongoClient;
+    private static final AtomicInteger COUNTER = new AtomicInteger(1);
 
     @Before
     public void setUp() throws Exception{
-        mongoClient = MockMongoFactory.newFactory().newMongoClient();
+        mongoClient = super.getMongoClient();
         conf = new MongoDBRdfConfiguration();
-        conf.set(MongoDBRdfConfiguration.MONGO_DB_NAME, "test");
+        conf.set(MongoDBRdfConfiguration.MONGO_DB_NAME, MongoGeoTemporalIndexIT.class.getSimpleName() + "_" + COUNTER.getAndIncrement());
         conf.set(MongoDBRdfConfiguration.MONGO_COLLECTION_PREFIX, "rya");
         conf.set(RdfCloudTripleStoreConfiguration.CONF_TBL_PREFIX, "rya");
         conf.setBoolean(ConfigUtils.USE_MONGO, true);

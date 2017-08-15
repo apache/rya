@@ -22,6 +22,7 @@ import static org.junit.Assert.assertEquals;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.resolver.RdfToRyaConversions;
@@ -30,8 +31,9 @@ import org.apache.rya.indexing.GeoConstants;
 import org.apache.rya.indexing.GeoRyaSailFactory;
 import org.apache.rya.indexing.OptionalConfigUtils;
 import org.apache.rya.indexing.accumulo.ConfigUtils;
+import org.apache.rya.indexing.geotemporal.mongo.MongoITBase;
 import org.apache.rya.indexing.mongodb.MongoIndexingConfiguration;
-import org.apache.rya.mongodb.MockMongoFactory;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.openrdf.model.Resource;
@@ -46,6 +48,7 @@ import org.openrdf.query.MalformedQueryException;
 import org.openrdf.query.QueryEvaluationException;
 import org.openrdf.query.QueryLanguage;
 import org.openrdf.query.TupleQueryResult;
+import org.openrdf.repository.RepositoryException;
 import org.openrdf.repository.sail.SailRepository;
 import org.openrdf.repository.sail.SailRepositoryConnection;
 import org.openrdf.sail.Sail;
@@ -58,27 +61,28 @@ import com.vividsolutions.jts.io.ParseException;
 import com.vividsolutions.jts.io.WKTReader;
 import com.vividsolutions.jts.io.WKTWriter;
 
-public class MongoGeoIndexerFilterIT {
+public class MongoGeoIndexerFilterIT extends MongoITBase {
     private static final GeometryFactory GF = new GeometryFactory();
     private static final Geometry WASHINGTON_MONUMENT = GF.createPoint(new Coordinate(38.8895, 77.0353));
     private static final Geometry LINCOLN_MEMORIAL = GF.createPoint(new Coordinate(38.8893, 77.0502));
     private static final Geometry CAPITAL_BUILDING = GF.createPoint(new Coordinate(38.8899, 77.0091));
     private static final Geometry WHITE_HOUSE = GF.createPoint(new Coordinate(38.8977, 77.0365));
 
+    private static final AtomicInteger COUNTER = new AtomicInteger(1);
+
     private MongoClient client;
     private Sail sail;
     private SailRepositoryConnection conn;
-
     @Before
     public void before() throws Exception {
         final MongoIndexingConfiguration indxrConf = MongoIndexingConfiguration.builder()
             .setMongoCollectionPrefix("rya_")
-            .setMongoDBName("indexerTests")
+            .setMongoDBName(MongoGeoIndexerFilterIT.class.getSimpleName() + "_" + COUNTER.getAndIncrement())
             .setUseMongoFreetextIndex(false)
             .setUseMongoTemporalIndex(false)
             .build();
 
-        client = MockMongoFactory.newFactory().newMongoClient();
+        client = super.getMongoClient();
         indxrConf.setBoolean(OptionalConfigUtils.USE_GEO, true);
         indxrConf.set(ConfigUtils.GEO_PREDICATES_LIST, "http://www.opengis.net/ont/geosparql#asWKT");
         indxrConf.setBoolean(ConfigUtils.USE_MONGO, true);
@@ -86,7 +90,13 @@ public class MongoGeoIndexerFilterIT {
 
         sail = GeoRyaSailFactory.getInstance(indxrConf);
         conn = new SailRepository(sail).getConnection();
-        conn.begin();
+    }
+
+    @After
+    public void after() throws RepositoryException {
+        if(conn != null) {
+            conn.close();
+        }
     }
 
     @Test
@@ -252,6 +262,7 @@ public class MongoGeoIndexerFilterIT {
 
     private void populateRya() throws Exception {
         // geo 2x2 points
+        conn.begin();
         RyaStatement stmnt = statement(WASHINGTON_MONUMENT);
         Statement statement = RyaToRdfConversions.convertStatement(stmnt);
         conn.add(statement);
@@ -267,6 +278,7 @@ public class MongoGeoIndexerFilterIT {
         stmnt = statement(WHITE_HOUSE);
         statement = RyaToRdfConversions.convertStatement(stmnt);
         conn.add(statement);
+        conn.commit();
     }
 
     private static Geometry bindingToGeo(final BindingSet bs) throws ParseException {

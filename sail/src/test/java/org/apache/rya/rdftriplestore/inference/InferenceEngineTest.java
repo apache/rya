@@ -18,6 +18,7 @@ package org.apache.rya.rdftriplestore.inference;
  * under the License.
  */
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -83,6 +84,84 @@ public class InferenceEngineTest extends TestCase {
         store.shutDown();
         dao.purge(conf);
         dao.destroy();
+    }
+
+    @Test
+    public void testSubClassGraph() throws Exception {
+        String insert = "INSERT DATA { GRAPH <http://updated/test> {\n"
+                + "  <urn:A> rdfs:subClassOf <urn:C> . \n"
+                + "  <urn:B> rdfs:subClassOf <urn:C> . \n"
+                + "  <urn:C> rdfs:subClassOf <urn:D> . \n"
+                + "  <urn:E> owl:equivalentClass <urn:D> . \n"
+                + "  <urn:E> rdfs:subClassOf <urn:G> . \n"
+                + "  <urn:Z> a owl:Class . \n"
+                + "  <urn:F> owl:equivalentClass <urn:G> . \n"
+                + "}}";
+        conn.prepareUpdate(QueryLanguage.SPARQL, insert).execute();
+        inferenceEngine.refreshGraph();
+        Graph graph = inferenceEngine.getSubClassOfGraph();
+        URI a = vf.createURI("urn:A");
+        URI b = vf.createURI("urn:B");
+        URI c = vf.createURI("urn:C");
+        URI d = vf.createURI("urn:D");
+        URI e = vf.createURI("urn:E");
+        URI f = vf.createURI("urn:F");
+        URI g = vf.createURI("urn:G");
+        URI z = vf.createURI("urn:Z");
+        URI missing = vf.createURI("urn:Missing");
+        Set<URI> empty = new HashSet<>();
+        Set<URI> belowLevel2 = new HashSet<>(Arrays.asList(new URI[] { a, b }));
+        Set<URI> belowLevel3 = new HashSet<>(Arrays.asList(new URI[] { a, b, c, d, e }));
+        Set<URI> belowLevel4 = new HashSet<>(Arrays.asList(new URI[] { a, b, c, d, e, f, g }));
+        Assert.assertEquals(empty, inferenceEngine.findParents(graph, a));
+        Assert.assertEquals(empty, inferenceEngine.findParents(graph, b));
+        Assert.assertEquals(empty, inferenceEngine.findParents(graph, z));
+        Assert.assertEquals(empty, inferenceEngine.findParents(graph, missing));
+        Assert.assertEquals(belowLevel2, inferenceEngine.findParents(graph, c));
+        Assert.assertEquals(belowLevel3, inferenceEngine.findParents(graph, d));
+        Assert.assertEquals(belowLevel3, inferenceEngine.findParents(graph, e));
+        Assert.assertEquals(belowLevel4, inferenceEngine.findParents(graph, f));
+        Assert.assertEquals(belowLevel4, inferenceEngine.findParents(graph, g));
+    }
+
+    @Test
+    public void testSubPropertyGraph() throws Exception {
+        String insert = "INSERT DATA { GRAPH <http://updated/test> {\n"
+                + "  <urn:p> rdfs:subPropertyOf <urn:q> . \n"
+                + "  <urn:p> rdfs:subPropertyOf <urn:r> . \n"
+                + "  <urn:r> owl:equivalentProperty <urn:s> . \n"
+                + "  <urn:q> rdfs:subPropertyOf <urn:t> . \n"
+                + "  <urn:t> rdfs:subPropertyOf <urn:u> . \n"
+                + "  <urn:s> rdfs:subPropertyOf <urn:u> . \n"
+                + "  <urn:v> owl:equivalentProperty <urn:u> . \n"
+                + "  <urn:w> a owl:FunctionalProperty . \n"
+                + "}}";
+        conn.prepareUpdate(QueryLanguage.SPARQL, insert).execute();
+        inferenceEngine.refreshGraph();
+        Graph graph = inferenceEngine.getSubPropertyOfGraph();
+        URI p = vf.createURI("urn:p");
+        URI q = vf.createURI("urn:q");
+        URI r = vf.createURI("urn:r");
+        URI s = vf.createURI("urn:s");
+        URI t = vf.createURI("urn:t");
+        URI u = vf.createURI("urn:u");
+        URI v = vf.createURI("urn:v");
+        URI w = vf.createURI("urn:w");
+        URI missing = vf.createURI("urn:Missing");
+        Set<URI> empty = new HashSet<>();
+        Set<URI> belowQ = new HashSet<>(Arrays.asList(new URI[] { p }));
+        Set<URI> belowR = new HashSet<>(Arrays.asList(new URI[] { p, r, s }));
+        Set<URI> belowT = new HashSet<>(Arrays.asList(new URI[] { p, q }));
+        Set<URI> belowU = new HashSet<>(Arrays.asList(new URI[] { p, q, r, s, t, u, v }));
+        Assert.assertEquals(empty, inferenceEngine.findParents(graph, p));
+        Assert.assertEquals(empty, inferenceEngine.findParents(graph, w));
+        Assert.assertEquals(empty, inferenceEngine.findParents(graph, missing));
+        Assert.assertEquals(belowQ, inferenceEngine.findParents(graph, q));
+        Assert.assertEquals(belowR, inferenceEngine.findParents(graph, r));
+        Assert.assertEquals(belowR, inferenceEngine.findParents(graph, s));
+        Assert.assertEquals(belowT, inferenceEngine.findParents(graph, t));
+        Assert.assertEquals(belowU, inferenceEngine.findParents(graph, u));
+        Assert.assertEquals(belowU, inferenceEngine.findParents(graph, v));
     }
 
     @Test

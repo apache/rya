@@ -34,4 +34,5 @@ class ConfigurationFields {
     static final String USE_PCJ_UPDATER = "sc.use.updater";
     static final String FLUO_APP_NAME = "rya.indexing.pcj.fluo.fluoAppName";
     static final String PCJ_UPDATER_TYPE = "rya.indexing.pcj.updaterType";
+    static final String PCJ_STORAGE_TYPE = "rya.indexing.pcj.storageType";
 }

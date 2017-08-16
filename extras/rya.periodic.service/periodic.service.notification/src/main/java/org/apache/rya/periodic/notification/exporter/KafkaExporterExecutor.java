@@ -27,7 +27,6 @@ import java.util.concurrent.TimeUnit;
 
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.log4j.Logger;
-import org.apache.rya.periodic.notification.api.BindingSetExporter;
 import org.apache.rya.periodic.notification.api.LifeCycle;
 import org.openrdf.query.BindingSet;
 
@@ -39,7 +38,7 @@ import jline.internal.Preconditions;
  */
 public class KafkaExporterExecutor implements LifeCycle {
 
-    private static final Logger log = Logger.getLogger(BindingSetExporter.class);
+    private static final Logger log = Logger.getLogger(KafkaExporterExecutor.class);
     private KafkaProducer<String, BindingSet> producer;
     private BlockingQueue<BindingSetRecord> bindingSets;
     private ExecutorService executor;

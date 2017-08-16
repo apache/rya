@@ -154,6 +154,7 @@ public class AccumuloPeriodicQueryResultStorage implements PeriodicQueryResultSt
             BatchDeleter deleter = accumuloConn.createBatchDeleter(tableName, auths, 1, new BatchWriterConfig());
             deleter.setRanges(Collections.singleton(Range.prefix(prefix)));
             deleter.delete();
+            deleter.close();
         } catch (Exception e) {
             throw new PeriodicQueryStorageException(e.getMessage());
         }

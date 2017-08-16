@@ -23,10 +23,6 @@ import static org.junit.Assert.assertTrue;
 import java.util.Arrays;
 import java.util.HashSet;
 
-import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
-import org.apache.zookeeper.ClientCnxn;
-import org.junit.Before;
 import org.junit.Test;
 import org.openrdf.query.algebra.evaluation.function.FunctionRegistry;
 
@@ -35,12 +31,6 @@ import org.openrdf.query.algebra.evaluation.function.FunctionRegistry;
  * Also see the more detailed integration test.
  */
 public class GeoFunctionsTest {
-    @Before
-    public void before() {
-        org.apache.log4j.BasicConfigurator.configure();
-        Logger.getRootLogger().setLevel(Level.ERROR);
-        Logger.getLogger(ClientCnxn.class).setLevel(Level.OFF);
-    }
 
     /**
      * Thirty-some functions are registered via SPI. Make sure they are registered.
@@ -55,10 +45,10 @@ public class GeoFunctionsTest {
                 "sfWithin", "sfContains", "sfOverlaps", "ehDisjoint", "ehMeet", "ehOverlap", //
                 "ehCovers", "ehCoveredBy", "ehInside", "ehContains", "rcc8dc", "rcc8ec", //
                 "rcc8po", "rcc8tppi", "rcc8tpp", "rcc8ntpp", "rcc8ntppi" }; //
-        HashSet<String> functionsCheckList = new HashSet<String>();
+        final HashSet<String> functionsCheckList = new HashSet<String>();
         functionsCheckList.addAll(Arrays.asList(functions));
-        for (String f : FunctionRegistry.getInstance().getKeys()) {
-            String functionShortName = f.replaceFirst("^.*/geosparql/(.*)", "$1");
+        for (final String f : FunctionRegistry.getInstance().getKeys()) {
+            final String functionShortName = f.replaceFirst("^.*/geosparql/(.*)", "$1");
             // System.out.println("Registered function: " + f + " shortname: " + functionShortName);
             functionsCheckList.remove(functionShortName);
         }

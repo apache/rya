@@ -38,7 +38,6 @@ import org.apache.fluo.api.data.Column;
 import org.apache.fluo.api.data.ColumnValue;
 import org.apache.fluo.api.data.Span;
 import org.apache.fluo.core.client.FluoClientImpl;
-import org.apache.log4j.Logger;
 import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.domain.RyaURI;
 import org.apache.rya.indexing.pcj.fluo.api.CreatePcj;
@@ -64,13 +63,15 @@ import org.apache.rya.pcj.fluo.test.base.RyaExportITBase;
 import org.junit.Test;
 import org.openrdf.model.impl.URIImpl;
 import org.openrdf.query.algebra.evaluation.QueryBindingSet;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
 
 public class BatchDeleteIT extends RyaExportITBase {
 
-    private static final Logger log = Logger.getLogger(BatchDeleteIT.class);
+    private static final Logger log = LoggerFactory.getLogger(BatchDeleteIT.class);
     private static final FluoQueryMetadataDAO dao = new FluoQueryMetadataDAO();
 
     @Test
@@ -80,24 +81,24 @@ public class BatchDeleteIT extends RyaExportITBase {
                 + " <urn:predicate_2> ?object2 } ";
         try (FluoClient fluoClient = new FluoClientImpl(getFluoConfiguration())) {
 
-            RyaURI subj = new RyaURI("urn:subject_1");
-            RyaStatement statement1 = new RyaStatement(subj, new RyaURI("urn:predicate_1"), null);
-            RyaStatement statement2 = new RyaStatement(subj, new RyaURI("urn:predicate_2"), null);
-            Set<RyaStatement> statements1 = getRyaStatements(statement1, 10);
-            Set<RyaStatement> statements2 = getRyaStatements(statement2, 10);
+            final RyaURI subj = new RyaURI("urn:subject_1");
+            final RyaStatement statement1 = new RyaStatement(subj, new RyaURI("urn:predicate_1"), null);
+            final RyaStatement statement2 = new RyaStatement(subj, new RyaURI("urn:predicate_2"), null);
+            final Set<RyaStatement> statements1 = getRyaStatements(statement1, 10);
+            final Set<RyaStatement> statements2 = getRyaStatements(statement2, 10);
 
             // Create the PCJ table.
             final PrecomputedJoinStorage pcjStorage = new AccumuloPcjStorage(getAccumuloConnector(), getRyaInstanceName());
             final String pcjId = pcjStorage.createPcj(sparql);
 
             // Tell the Fluo app to maintain the PCJ.
-            String queryId = new CreatePcj().withRyaIntegration(pcjId, pcjStorage, fluoClient, getAccumuloConnector(), getRyaInstanceName());
+            final String queryId = new CreatePcj().withRyaIntegration(pcjId, pcjStorage, fluoClient, getAccumuloConnector(), getRyaInstanceName());
 
-            List<String> ids = getNodeIdStrings(fluoClient, queryId);
-            List<String> prefixes = Arrays.asList("urn:subject_1", "urn:object", "urn:subject_1", "urn:subject_1");
+            final List<String> ids = getNodeIdStrings(fluoClient, queryId);
+            final List<String> prefixes = Arrays.asList("urn:subject_1", "urn:object", "urn:subject_1", "urn:subject_1");
 
             // Stream the data into Fluo.
-            InsertTriples inserter = new InsertTriples();
+            final InsertTriples inserter = new InsertTriples();
             inserter.insert(fluoClient, statements1, Optional.<String> absent());
             inserter.insert(fluoClient, statements2, Optional.<String> absent());
 
@@ -119,38 +120,38 @@ public class BatchDeleteIT extends RyaExportITBase {
                 + " <urn:predicate_2> ?object2 } ";
         try (FluoClient fluoClient = new FluoClientImpl(getFluoConfiguration())) {
 
-            RyaURI subj = new RyaURI("urn:subject_1");
-            RyaStatement statement1 = new RyaStatement(subj, new RyaURI("urn:predicate_1"), null);
-            RyaStatement statement2 = new RyaStatement(subj, new RyaURI("urn:predicate_2"), null);
-            Set<RyaStatement> statements1 = getRyaStatements(statement1, 5);
-            Set<RyaStatement> statements2 = getRyaStatements(statement2, 5);
+            final RyaURI subj = new RyaURI("urn:subject_1");
+            final RyaStatement statement1 = new RyaStatement(subj, new RyaURI("urn:predicate_1"), null);
+            final RyaStatement statement2 = new RyaStatement(subj, new RyaURI("urn:predicate_2"), null);
+            final Set<RyaStatement> statements1 = getRyaStatements(statement1, 5);
+            final Set<RyaStatement> statements2 = getRyaStatements(statement2, 5);
 
             // Create the PCJ table.
             final PrecomputedJoinStorage pcjStorage = new AccumuloPcjStorage(getAccumuloConnector(), getRyaInstanceName());
             final String pcjId = pcjStorage.createPcj(sparql);
 
             // Tell the Fluo app to maintain the PCJ.
-            String queryId = new CreatePcj().withRyaIntegration(pcjId, pcjStorage, fluoClient, getAccumuloConnector(), getRyaInstanceName());
+            final String queryId = new CreatePcj().withRyaIntegration(pcjId, pcjStorage, fluoClient, getAccumuloConnector(), getRyaInstanceName());
 
-            List<String> ids = getNodeIdStrings(fluoClient, queryId);
-            String joinId = ids.get(1);
-            String rightSp = ids.get(3);
-            QueryBindingSet bs = new QueryBindingSet();
+            final List<String> ids = getNodeIdStrings(fluoClient, queryId);
+            final String joinId = ids.get(1);
+            final String rightSp = ids.get(3);
+            final QueryBindingSet bs = new QueryBindingSet();
             bs.addBinding("subject", new URIImpl("urn:subject_1"));
             bs.addBinding("object1", new URIImpl("urn:object_0"));
-            VisibilityBindingSet vBs = new VisibilityBindingSet(bs);
-            Span span = Span.prefix(Bytes.of(rightSp + IncrementalUpdateConstants.NODEID_BS_DELIM + "urn:subject_1"));
-            VariableOrder varOrder = new VariableOrder(Arrays.asList("subject", "object2"));
+            final VisibilityBindingSet vBs = new VisibilityBindingSet(bs);
+            final Span span = Span.prefix(Bytes.of(rightSp + IncrementalUpdateConstants.NODEID_BS_DELIM + "urn:subject_1"));
+            final VariableOrder varOrder = new VariableOrder(Arrays.asList("subject", "object2"));
 
             // Stream the data into Fluo.
-            InsertTriples inserter = new InsertTriples();
+            final InsertTriples inserter = new InsertTriples();
             inserter.insert(fluoClient, statements1, Optional.<String> absent());
             inserter.insert(fluoClient, statements2, Optional.<String> absent());
 
             getMiniFluo().waitForObservers();
             verifyCounts(fluoClient, ids, Arrays.asList(25, 25, 5, 5));
 
-            JoinBatchInformation batch = JoinBatchInformation.builder().setBatchSize(1)
+            final JoinBatchInformation batch = JoinBatchInformation.builder().setBatchSize(1)
                     .setColumn(FluoQueryColumns.STATEMENT_PATTERN_BINDING_SET).setSpan(span).setTask(Task.Delete)
                     .setJoinType(JoinType.NATURAL_JOIN).setSide(Side.LEFT).setBs(vBs).setVarOrder(varOrder).build();
             // Verify the end results of the query match the expected results.
@@ -167,35 +168,35 @@ public class BatchDeleteIT extends RyaExportITBase {
                 + " <urn:predicate_2> ?object2 } ";
         try (FluoClient fluoClient = new FluoClientImpl(getFluoConfiguration())) {
 
-            RyaURI subj = new RyaURI("urn:subject_1");
-            RyaStatement statement2 = new RyaStatement(subj, new RyaURI("urn:predicate_2"), null);
-            Set<RyaStatement> statements2 = getRyaStatements(statement2, 5);
+            final RyaURI subj = new RyaURI("urn:subject_1");
+            final RyaStatement statement2 = new RyaStatement(subj, new RyaURI("urn:predicate_2"), null);
+            final Set<RyaStatement> statements2 = getRyaStatements(statement2, 5);
 
             // Create the PCJ table.
             final PrecomputedJoinStorage pcjStorage = new AccumuloPcjStorage(getAccumuloConnector(), getRyaInstanceName());
             final String pcjId = pcjStorage.createPcj(sparql);
 
             // Tell the Fluo app to maintain the PCJ.
-            String queryId = new CreatePcj().withRyaIntegration(pcjId, pcjStorage, fluoClient, getAccumuloConnector(), getRyaInstanceName());
+            final String queryId = new CreatePcj().withRyaIntegration(pcjId, pcjStorage, fluoClient, getAccumuloConnector(), getRyaInstanceName());
 
-            List<String> ids = getNodeIdStrings(fluoClient, queryId);
-            String joinId = ids.get(1);
-            String rightSp = ids.get(3);
-            QueryBindingSet bs = new QueryBindingSet();
+            final List<String> ids = getNodeIdStrings(fluoClient, queryId);
+            final String joinId = ids.get(1);
+            final String rightSp = ids.get(3);
+            final QueryBindingSet bs = new QueryBindingSet();
             bs.addBinding("subject", new URIImpl("urn:subject_1"));
             bs.addBinding("object1", new URIImpl("urn:object_0"));
-            VisibilityBindingSet vBs = new VisibilityBindingSet(bs);
-            Span span = Span.prefix(Bytes.of(rightSp + IncrementalUpdateConstants.NODEID_BS_DELIM + "urn:subject_1"));
-            VariableOrder varOrder = new VariableOrder(Arrays.asList("subject", "object2"));
+            final VisibilityBindingSet vBs = new VisibilityBindingSet(bs);
+            final Span span = Span.prefix(Bytes.of(rightSp + IncrementalUpdateConstants.NODEID_BS_DELIM + "urn:subject_1"));
+            final VariableOrder varOrder = new VariableOrder(Arrays.asList("subject", "object2"));
 
             // Stream the data into Fluo.
-            InsertTriples inserter = new InsertTriples();
+            final InsertTriples inserter = new InsertTriples();
             inserter.insert(fluoClient, statements2, Optional.<String> absent());
 
             getMiniFluo().waitForObservers();
             verifyCounts(fluoClient, ids, Arrays.asList(0, 0, 0, 5));
 
-            JoinBatchInformation batch = JoinBatchInformation.builder().setBatchSize(1)
+            final JoinBatchInformation batch = JoinBatchInformation.builder().setBatchSize(1)
                     .setColumn(FluoQueryColumns.STATEMENT_PATTERN_BINDING_SET).setSpan(span).setTask(Task.Add)
                     .setJoinType(JoinType.NATURAL_JOIN).setSide(Side.LEFT).setBs(vBs).setVarOrder(varOrder).build();
             // Verify the end results of the query match the expected results.
@@ -206,15 +207,15 @@ public class BatchDeleteIT extends RyaExportITBase {
         }
     }
 
-    private Set<RyaStatement> getRyaStatements(RyaStatement statement, int numTriples) {
+    private Set<RyaStatement> getRyaStatements(final RyaStatement statement, final int numTriples) {
 
-        Set<RyaStatement> statements = new HashSet<>();
+        final Set<RyaStatement> statements = new HashSet<>();
         final String subject = "urn:subject_";
         final String predicate = "urn:predicate_";
         final String object = "urn:object_";
 
         for (int i = 0; i < numTriples; i++) {
-            RyaStatement stmnt = new RyaStatement(statement.getSubject(), statement.getPredicate(), statement.getObject());
+            final RyaStatement stmnt = new RyaStatement(statement.getSubject(), statement.getPredicate(), statement.getObject());
             if (stmnt.getSubject() == null) {
                 stmnt.setSubject(new RyaURI(subject + i));
             }
@@ -229,13 +230,13 @@ public class BatchDeleteIT extends RyaExportITBase {
         return statements;
     }
 
-    private List<String> getNodeIdStrings(FluoClient fluoClient, String queryId) {
-        List<String> nodeStrings = new ArrayList<>();
+    private List<String> getNodeIdStrings(final FluoClient fluoClient, final String queryId) {
+        final List<String> nodeStrings = new ArrayList<>();
         try (Snapshot sx = fluoClient.newSnapshot()) {
-            FluoQuery query = dao.readFluoQuery(sx, queryId);
+            final FluoQuery query = dao.readFluoQuery(sx, queryId);
             nodeStrings.add(queryId);
-            Collection<JoinMetadata> jMeta = query.getJoinMetadata();
-            for (JoinMetadata meta : jMeta) {
+            final Collection<JoinMetadata> jMeta = query.getJoinMetadata();
+            for (final JoinMetadata meta : jMeta) {
                 nodeStrings.add(meta.getNodeId());
                 nodeStrings.add(meta.getLeftChildNodeId());
                 nodeStrings.add(meta.getRightChildNodeId());
@@ -244,19 +245,19 @@ public class BatchDeleteIT extends RyaExportITBase {
         return nodeStrings;
     }
 
-    private void createSpanBatches(FluoClient fluoClient, List<String> ids, List<String> prefixes, int batchSize) {
+    private void createSpanBatches(final FluoClient fluoClient, final List<String> ids, final List<String> prefixes, final int batchSize) {
 
         Preconditions.checkArgument(ids.size() == prefixes.size());
 
         try (Transaction tx = fluoClient.newTransaction()) {
             for (int i = 0; i < ids.size(); i++) {
-                String id = ids.get(i);
-                String bsPrefix = prefixes.get(i);
-                NodeType type = NodeType.fromNodeId(id).get();
-                Column bsCol = type.getResultColumn();
-                String row = id + IncrementalUpdateConstants.NODEID_BS_DELIM + bsPrefix;
-                Span span = Span.prefix(Bytes.of(row));
-                BatchInformation batch = SpanBatchDeleteInformation.builder().setBatchSize(batchSize).setColumn(bsCol).setSpan(span)
+                final String id = ids.get(i);
+                final String bsPrefix = prefixes.get(i);
+                final NodeType type = NodeType.fromNodeId(id).get();
+                final Column bsCol = type.getResultColumn();
+                final String row = id + IncrementalUpdateConstants.NODEID_BS_DELIM + bsPrefix;
+                final Span span = Span.prefix(Bytes.of(row));
+                final BatchInformation batch = SpanBatchDeleteInformation.builder().setBatchSize(batchSize).setColumn(bsCol).setSpan(span)
                         .build();
                 BatchInformationDAO.addBatch(tx, id, batch);
             }
@@ -264,21 +265,21 @@ public class BatchDeleteIT extends RyaExportITBase {
         }
     }
 
-    private void createSpanBatch(FluoClient fluoClient, String nodeId, BatchInformation batch) {
+    private void createSpanBatch(final FluoClient fluoClient, final String nodeId, final BatchInformation batch) {
         try (Transaction tx = fluoClient.newTransaction()) {
             BatchInformationDAO.addBatch(tx, nodeId, batch);
             tx.commit();
         }
     }
 
-    private int countResults(FluoClient fluoClient, String nodeId, Column bsColumn) {
+    private int countResults(final FluoClient fluoClient, final String nodeId, final Column bsColumn) {
         try (Transaction tx = fluoClient.newTransaction()) {
             int count = 0;
-            RowScanner scanner = tx.scanner().over(Span.prefix(nodeId)).fetch(bsColumn).byRow().build();
-            Iterator<ColumnScanner> colScanners = scanner.iterator();
+            final RowScanner scanner = tx.scanner().over(Span.prefix(nodeId)).fetch(bsColumn).byRow().build();
+            final Iterator<ColumnScanner> colScanners = scanner.iterator();
             while (colScanners.hasNext()) {
-                ColumnScanner colScanner = colScanners.next();
-                Iterator<ColumnValue> vals = colScanner.iterator();
+                final ColumnScanner colScanner = colScanners.next();
+                final Iterator<ColumnValue> vals = colScanner.iterator();
                 while (vals.hasNext()) {
                     vals.next();
                     count++;
@@ -289,13 +290,13 @@ public class BatchDeleteIT extends RyaExportITBase {
         }
     }
 
-    private void verifyCounts(FluoClient fluoClient, List<String> ids, List<Integer> expectedCounts) {
+    private void verifyCounts(final FluoClient fluoClient, final List<String> ids, final List<Integer> expectedCounts) {
         Preconditions.checkArgument(ids.size() == expectedCounts.size());
         for (int i = 0; i < ids.size(); i++) {
-            String id = ids.get(i);
-            int expected = expectedCounts.get(i);
-            NodeType type = NodeType.fromNodeId(id).get();
-            int count = countResults(fluoClient, id, type.getResultColumn());
+            final String id = ids.get(i);
+            final int expected = expectedCounts.get(i);
+            final NodeType type = NodeType.fromNodeId(id).get();
+            final int count = countResults(fluoClient, id, type.getResultColumn());
             log.trace("NodeId: " + id + " Count: " + count + " Expected: " + expected);
             switch (type) {
             case STATEMENT_PATTERN:

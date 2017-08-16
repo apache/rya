@@ -114,7 +114,7 @@ under the License.
         <junit.version>4.12</junit.version> <!-- Newest: 4.12 -->
         <mockito.version>1.10.19</mockito.version> <!-- Newest: 1.10.19 -->
         <mrunit.version>1.1.0</mrunit.version> <!-- Newest: 1.1.0 -->
-        <slf4j.version>1.6.6</slf4j.version> <!-- Newest: 1.7.13 -->
+        <slf4j.version>1.7.25</slf4j.version> <!-- Newest: 1.7.13 -->
         <powermock.version>1.6.1</powermock.version>
 
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -137,20 +137,7 @@ under the License.
         <jcip.version>1.0-1</jcip.version>
         <findbugs.plugin.version>3.0.4</findbugs.plugin.version>
         <kafka.version>0.10.1.0</kafka.version>
-        
-        <!-- set profile property defaults -->
-        <skip.rya.it>true</skip.rya.it>  <!-- modified by  -P enable-it  -->
     </properties>
-    
-    <profiles>
-        <!-- enable this profile "mvn ... -P enable-it" -->
-        <profile>
-            <id>enable-it</id>
-            <properties>
-                <skip.rya.it>false</skip.rya.it>
-            </properties>
-        </profile>
-    </profiles>
     
     <dependencyManagement>
         <dependencies>
@@ -382,6 +369,16 @@ under the License.
             <dependency>
                 <groupId>org.slf4j</groupId>
                 <artifactId>slf4j-log4j12</artifactId>
+                <version>${slf4j.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.slf4j</groupId>
+                <artifactId>jul-to-slf4j</artifactId>
+                <version>${slf4j.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.slf4j</groupId>
+                <artifactId>jcl-over-slf4j</artifactId>
                 <version>${slf4j.version}</version>
             </dependency>
 
@@ -780,6 +777,12 @@ under the License.
                     <artifactId>maven-failsafe-plugin</artifactId>
                     <configuration>
                         <systemPropertyVariables>
+                            <!--  
+                            Zookeeper tries to resolve localhost to IPv6 by default.
+                            If on an IPv4 network, using -Djava.net.preferIPv4Stack=true
+                            can make some IT's that create many connections run 3-5x faster. 
+                            -->
+                            <java.net.preferIPv4Stack>true</java.net.preferIPv4Stack>
                             <java.io.tmpdir>${project.build.directory}</java.io.tmpdir>
                         </systemPropertyVariables>
                     </configuration>
@@ -956,8 +959,7 @@ under the License.
                             <goal>verify</goal>
                         </goals>
                         <configuration>
-                            <skipITs>${skip.rya.it}</skipITs>
-                            <reuseForks>false</reuseForks>  <!-- Temporary fix until RYA-331 is resolved. -->
+                            <argLine>-Xmx2G</argLine>
                         </configuration>
                     </execution>
                 </executions>
@@ -1008,6 +1010,7 @@ under the License.
                 <enabled>false</enabled>
             </snapshots>
         </repository>
+        <!--
         <repository>
             <id>geowave-maven-snapshot</id>
             <name>GeoWave AWS Snapshot Repository</name>
@@ -1019,6 +1022,7 @@ under the License.
                 <enabled>true</enabled>
             </snapshots>
         </repository>
+        -->
         <repository>
             <id>osgeo</id>
             <name>Open Source Geospatial Foundation Repository</name>

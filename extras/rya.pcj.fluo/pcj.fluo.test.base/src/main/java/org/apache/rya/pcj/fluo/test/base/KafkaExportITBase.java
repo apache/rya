@@ -19,31 +19,19 @@
 package org.apache.rya.pcj.fluo.test.base;
 
 import static java.util.Objects.requireNonNull;
-import static org.junit.Assert.assertEquals;
 
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Properties;
 
-import org.I0Itec.zkclient.ZkClient;
-import org.apache.accumulo.core.client.Connector;
-import org.apache.accumulo.core.client.Instance;
-import org.apache.accumulo.minicluster.MiniAccumuloCluster;
 import org.apache.fluo.api.config.ObserverSpecification;
-import org.apache.fluo.recipes.test.AccumuloExportITBase;
+import org.apache.kafka.clients.CommonClientConfigs;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
-import org.apache.kafka.clients.consumer.ConsumerRecord;
-import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
-import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerConfig;
-import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.apache.rya.accumulo.AccumuloRdfConfiguration;
 import org.apache.rya.accumulo.AccumuloRyaDAO;
@@ -63,47 +51,43 @@ import org.apache.rya.indexing.pcj.fluo.app.observers.QueryResultObserver;
 import org.apache.rya.indexing.pcj.fluo.app.observers.StatementPatternObserver;
 import org.apache.rya.indexing.pcj.fluo.app.observers.TripleObserver;
 import org.apache.rya.indexing.pcj.storage.accumulo.VisibilityBindingSet;
+import org.apache.rya.kafka.base.EmbeddedKafkaInstance;
+import org.apache.rya.kafka.base.EmbeddedKafkaSingleton;
 import org.apache.rya.rdftriplestore.RyaSailRepository;
 import org.apache.rya.sail.config.RyaSailFactory;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Test;
 import org.openrdf.model.Statement;
 import org.openrdf.repository.sail.SailRepositoryConnection;
 import org.openrdf.sail.Sail;
-
-
-import kafka.admin.AdminUtils;
-import kafka.admin.RackAwareMode;
-import kafka.server.KafkaConfig;
-import kafka.server.KafkaServer;
-import kafka.utils.MockTime;
-import kafka.utils.TestUtils;
-import kafka.utils.Time;
-import kafka.utils.ZKStringSerializer$;
-import kafka.utils.ZkUtils;
-import kafka.zk.EmbeddedZookeeper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * The base Integration Test class used for Fluo applications that export to a
  * Kakfa topic.
+ * <p>
+ * Note, to reduce the amount of garbage in the logs, you can run with
+ * -Djava.net.preferIPv4Stack=true to prevent attempting to resolve localhost to an ipv6 address.
  */
-public class KafkaExportITBase extends AccumuloExportITBase {
+public class KafkaExportITBase extends ModifiedAccumuloExportITBase {
 
-    protected static final String RYA_INSTANCE_NAME = "test_";
+    private static final Logger logger = LoggerFactory.getLogger(KafkaExportITBase.class);
 
-    private static final String ZKHOST = "127.0.0.1";
-    private static final String BROKERHOST = "127.0.0.1";
-    private static final String BROKERPORT = "9092";
-    private ZkUtils zkUtils;
-    private KafkaServer kafkaServer;
-    private EmbeddedZookeeper zkServer;
-    private ZkClient zkClient;
+    private static EmbeddedKafkaInstance embeddedKafka = EmbeddedKafkaSingleton.getInstance();
 
     // The Rya instance statements are written to that will be fed into the Fluo
     // app.
     private RyaSailRepository ryaSailRepo = null;
     private AccumuloRyaDAO dao = null;
+
+    /**
+     * @return A new Property object containing the correct value for Kafka's
+     *         {@link CommonClientConfigs#BOOTSTRAP_SERVERS_CONFIG}.
+     */
+    protected Properties createBootstrapServerConfig() {
+        return embeddedKafka.createBootstrapServerConfig();
+    }
 
     /**
      * Add info about the Kafka queue/topic to receive the export.
@@ -126,25 +110,22 @@ public class KafkaExportITBase extends AccumuloExportITBase {
         kafkaParams.setExportToKafka(true);
 
         // Configure the Kafka Producer
-        final Properties producerConfig = new Properties();
-        producerConfig.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, BROKERHOST + ":" + BROKERPORT);
+        final Properties producerConfig = createBootstrapServerConfig();
         producerConfig.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, "org.apache.kafka.common.serialization.ByteArraySerializer");
-        producerConfig.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG,
-                "org.apache.rya.indexing.pcj.fluo.app.export.kafka.KryoVisibilityBindingSetSerializer");
+        producerConfig.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, "org.apache.rya.indexing.pcj.fluo.app.export.kafka.KryoVisibilityBindingSetSerializer");
         kafkaParams.addAllProducerConfig(producerConfig);
 
         final ObserverSpecification exportObserverConfig = new ObserverSpecification(QueryResultObserver.class.getName(), exportParams);
         observers.add(exportObserverConfig);
-        
+
         //create construct query observer and tell it not to export to Kafka
         //it will only add results back into Fluo
-        HashMap<String, String> constructParams = new HashMap<>();
+        final HashMap<String, String> constructParams = new HashMap<>();
         final KafkaExportParameters kafkaConstructParams = new KafkaExportParameters(constructParams);
         kafkaConstructParams.setExportToKafka(true);
-        
+
         // Configure the Kafka Producer
-        final Properties constructProducerConfig = new Properties();
-        constructProducerConfig.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, BROKERHOST + ":" + BROKERPORT);
+        final Properties constructProducerConfig = createBootstrapServerConfig();
         constructProducerConfig.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
         constructProducerConfig.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, RyaSubGraphKafkaSerDe.class.getName());
         kafkaConstructParams.addAllProducerConfig(constructProducerConfig);
@@ -157,83 +138,98 @@ public class KafkaExportITBase extends AccumuloExportITBase {
         super.getFluoConfiguration().addObservers(observers);
     }
 
-    /**
-     * setup mini kafka and call the super to setup mini fluo
-     */
+
+//    @Override
+//    @Before
+//    public void setupMiniFluo() throws Exception {
+//        //setupKafka();
+//        super.setupMiniFluo();
+//        installRyaInstance();
+//    }
+//
+
+//    @Before
+//    public void setupRya() throws Exception {
+//        //setupKafka();
+//        super.setupMiniFluo();
+//        installRyaInstance();
+//    }
+
+
+//    public void setupKafka() throws Exception {
+//        // grab the connection string for the zookeeper spun up by our parent class.
+//        final String zkConnect = getMiniAccumuloCluster().getZooKeepers();
+//
+//        // setup Broker
+//        brokerPort = Integer.toString(PortUtils.getRandomFreePort());
+//        final Properties brokerProps = new Properties();
+//        brokerProps.setProperty(KafkaConfig$.MODULE$.BrokerIdProp(), "0");
+//        brokerProps.setProperty(KafkaConfig$.MODULE$.HostNameProp(), BROKERHOST);
+//        brokerProps.setProperty(KafkaConfig$.MODULE$.PortProp(), brokerPort);
+//        brokerProps.setProperty(KafkaConfig$.MODULE$.ZkConnectProp(), zkConnect);
+//        brokerProps.setProperty(KafkaConfig$.MODULE$.LogDirsProp(), Files.createTempDirectory(getClass().getSimpleName()+"-").toAbsolutePath().toString());
+//        final KafkaConfig config = new KafkaConfig(brokerProps);
+//
+//        final Time mock = new MockTime();
+//        kafkaServer = TestUtils.createServer(config, mock);
+//        logger.info("Created a Kafka Server: ", config);
+//    }
+
+
     @Before
-    public void setupKafka() throws Exception {
-        // Install an instance of Rya on the Accumulo cluster.
-        installRyaInstance();
+    public void installRyaInstance() throws Exception {
+        logger.info("Installing Rya to: {}", getRyaInstanceName());
 
-        // Setup Kafka.
-        zkServer = new EmbeddedZookeeper();
-        final String zkConnect = ZKHOST + ":" + zkServer.port();
-        zkClient = new ZkClient(zkConnect, 30000, 30000, ZKStringSerializer$.MODULE$);
-        zkUtils = ZkUtils.apply(zkClient, false);
+        final AccumuloConnectionDetails details = super.createConnectionDetails();
 
-        // setup Broker
-        final Properties brokerProps = new Properties();
-        brokerProps.setProperty("zookeeper.connect", zkConnect);
-        brokerProps.setProperty("broker.id", "0");
-        brokerProps.setProperty("log.dirs", Files.createTempDirectory("kafka-").toAbsolutePath().toString());
-        brokerProps.setProperty("listeners", "PLAINTEXT://" + BROKERHOST + ":" + BROKERPORT);
-        final KafkaConfig config = new KafkaConfig(brokerProps);
-        final Time mock = new MockTime();
-        kafkaServer = TestUtils.createServer(config, mock);
+        // Install the Rya instance to the mini accumulo cluster.
+        final RyaClient ryaClient = AccumuloRyaClientFactory.build(details,
+                super.getAccumuloConnector());
+
+        ryaClient.getInstall().install(getRyaInstanceName(),
+                InstallConfiguration.builder()
+                .setEnableTableHashPrefix(false)
+                .setEnableFreeTextIndex(false)
+                .setEnableEntityCentricIndex(false)
+                .setEnableGeoIndex(false)
+                .setEnableTemporalIndex(false)
+                .setEnablePcjIndex(true)
+                .setFluoPcjAppName(super.getFluoConfiguration().getApplicationName())
+                .build());
+        logger.info("Finished Installing Rya to: {}", getRyaInstanceName());
+        // Connect to the Rya instance that was just installed.
+        final AccumuloRdfConfiguration conf = makeConfig(details);
+        final Sail sail = RyaSailFactory.getInstance(conf);
+        dao = RyaSailFactory.getAccumuloDAOWithUpdatedConfig(conf);
+        ryaSailRepo = new RyaSailRepository(sail);
+        logger.info("Finished Installing Rya2 to: {}", getRyaInstanceName());
     }
 
     @After
     public void teardownRya() {
-        final MiniAccumuloCluster cluster = getMiniAccumuloCluster();
-        final String instanceName = cluster.getInstanceName();
-        final String zookeepers = cluster.getZooKeepers();
-
+        logger.info("Uninstalling Rya at: {}", getRyaInstanceName());
         // Uninstall the instance of Rya.
-        final RyaClient ryaClient = AccumuloRyaClientFactory.build(
-                new AccumuloConnectionDetails(ACCUMULO_USER, ACCUMULO_PASSWORD.toCharArray(), instanceName, zookeepers),
-                super.getAccumuloConnector());
+        final RyaClient ryaClient = AccumuloRyaClientFactory.build(super.createConnectionDetails(), super.getAccumuloConnector());
 
         try {
-            ryaClient.getUninstall().uninstall(RYA_INSTANCE_NAME);
+            ryaClient.getUninstall().uninstall(getRyaInstanceName());
             // Shutdown the repo.
             if(ryaSailRepo != null) {ryaSailRepo.shutDown();}
             if(dao != null ) {dao.destroy();}
-        } catch (Exception e) {
-            System.out.println("Encountered the following Exception when shutting down Rya: " + e.getMessage());
+        } catch (final Exception e) {
+            logger.warn("Encountered an exception when shutting down Rya.", e);
         }
     }
 
-    private void installRyaInstance() throws Exception {
-        final MiniAccumuloCluster cluster = super.getMiniAccumuloCluster();
-        final String instanceName = cluster.getInstanceName();
-        final String zookeepers = cluster.getZooKeepers();
-
-        // Install the Rya instance to the mini accumulo cluster.
-        final RyaClient ryaClient = AccumuloRyaClientFactory.build(
-                new AccumuloConnectionDetails(ACCUMULO_USER, ACCUMULO_PASSWORD.toCharArray(), instanceName, zookeepers),
-                super.getAccumuloConnector());
-
-        ryaClient.getInstall().install(RYA_INSTANCE_NAME,
-                InstallConfiguration.builder().setEnableTableHashPrefix(false).setEnableFreeTextIndex(false)
-                        .setEnableEntityCentricIndex(false).setEnableGeoIndex(false).setEnableTemporalIndex(false).setEnablePcjIndex(true)
-                        .setFluoPcjAppName(super.getFluoConfiguration().getApplicationName()).build());
-
-        // Connect to the Rya instance that was just installed.
-        final AccumuloRdfConfiguration conf = makeConfig(instanceName, zookeepers);
-        final Sail sail = RyaSailFactory.getInstance(conf);
-        dao = RyaSailFactory.getAccumuloDAOWithUpdatedConfig(conf);
-        ryaSailRepo = new RyaSailRepository(sail);
-    }
-
-    protected AccumuloRdfConfiguration makeConfig(final String instanceName, final String zookeepers) {
+    protected AccumuloRdfConfiguration makeConfig(final AccumuloConnectionDetails details) {
         final AccumuloRdfConfiguration conf = new AccumuloRdfConfiguration();
-        conf.setTablePrefix(RYA_INSTANCE_NAME);
+        conf.setTablePrefix(getRyaInstanceName());
 
         // Accumulo connection information.
-        conf.setAccumuloUser(AccumuloExportITBase.ACCUMULO_USER);
-        conf.setAccumuloPassword(AccumuloExportITBase.ACCUMULO_PASSWORD);
-        conf.setAccumuloInstance(super.getAccumuloConnector().getInstance().getInstanceName());
-        conf.setAccumuloZookeepers(super.getAccumuloConnector().getInstance().getZooKeepers());
+        conf.setAccumuloUser(details.getUsername());
+        conf.setAccumuloPassword(new String(details.getPassword()));
+        conf.setAccumuloInstance(details.getInstanceName());
+        conf.setAccumuloZookeepers(details.getZookeepers());
         conf.setAuths("");
 
         // PCJ configuration information.
@@ -264,67 +260,9 @@ public class KafkaExportITBase extends AccumuloExportITBase {
         return dao;
     }
 
-    /**
-     * Close all the Kafka mini server and mini-zookeeper
-     */
-    @After
-    public void teardownKafka() {
-        if(kafkaServer != null) {kafkaServer.shutdown();}
-        if(zkClient != null) {zkClient.close();}
-        if(zkServer != null) {zkServer.shutdown();}
-    }
-
-    /**
-     * Test kafka without rya code to make sure kafka works in this environment.
-     * If this test fails then its a testing environment issue, not with Rya.
-     * Source: https://github.com/asmaier/mini-kafka
-     */
-    @Test
-    public void embeddedKafkaTest() throws Exception {
-        // create topic
-        final String topic = "testTopic";
-        AdminUtils.createTopic(zkUtils, topic, 1, 1, new Properties(), RackAwareMode.Disabled$.MODULE$);
-
-        // setup producer
-        final Properties producerProps = new Properties();
-        producerProps.setProperty("bootstrap.servers", BROKERHOST + ":" + BROKERPORT);
-        producerProps.setProperty("key.serializer", "org.apache.kafka.common.serialization.IntegerSerializer");
-        producerProps.setProperty("value.serializer", "org.apache.kafka.common.serialization.ByteArraySerializer");
-        final KafkaProducer<Integer, byte[]> producer = new KafkaProducer<>(producerProps);
-
+    protected KafkaConsumer<Integer, VisibilityBindingSet> makeConsumer(final String topicName) {
         // setup consumer
-        final Properties consumerProps = new Properties();
-        consumerProps.setProperty("bootstrap.servers", BROKERHOST + ":" + BROKERPORT);
-        consumerProps.setProperty("group.id", "group0");
-        consumerProps.setProperty("client.id", "consumer0");
-        consumerProps.setProperty("key.deserializer", "org.apache.kafka.common.serialization.IntegerDeserializer");
-        consumerProps.setProperty("value.deserializer", "org.apache.kafka.common.serialization.ByteArrayDeserializer");
-
-        // to make sure the consumer starts from the beginning of the topic
-        consumerProps.put("auto.offset.reset", "earliest");
-
-        final KafkaConsumer<Integer, byte[]> consumer = new KafkaConsumer<>(consumerProps);
-        consumer.subscribe(Arrays.asList(topic));
-
-        // send message
-        final ProducerRecord<Integer, byte[]> data = new ProducerRecord<>(topic, 42, "test-message".getBytes(StandardCharsets.UTF_8));
-        producer.send(data);
-        producer.close();
-
-        // starting consumer
-        final ConsumerRecords<Integer, byte[]> records = consumer.poll(3000);
-        assertEquals(1, records.count());
-        final Iterator<ConsumerRecord<Integer, byte[]>> recordIterator = records.iterator();
-        final ConsumerRecord<Integer, byte[]> record = recordIterator.next();
-        assertEquals(42, (int) record.key());
-        assertEquals("test-message", new String(record.value(), StandardCharsets.UTF_8));
-        consumer.close();
-    }
-
-    protected KafkaConsumer<Integer, VisibilityBindingSet> makeConsumer(final String TopicName) {
-        // setup consumer
-        final Properties consumerProps = new Properties();
-        consumerProps.setProperty(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, BROKERHOST + ":" + BROKERPORT);
+        final Properties consumerProps = createBootstrapServerConfig();
         consumerProps.setProperty(ConsumerConfig.GROUP_ID_CONFIG, "group0");
         consumerProps.setProperty(ConsumerConfig.CLIENT_ID_CONFIG, "consumer0");
         consumerProps.setProperty(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG,
@@ -336,7 +274,7 @@ public class KafkaExportITBase extends AccumuloExportITBase {
         consumerProps.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
 
         final KafkaConsumer<Integer, VisibilityBindingSet> consumer = new KafkaConsumer<>(consumerProps);
-        consumer.subscribe(Arrays.asList(TopicName));
+        consumer.subscribe(Arrays.asList(topicName));
         return consumer;
     }
 
@@ -345,13 +283,9 @@ public class KafkaExportITBase extends AccumuloExportITBase {
         requireNonNull(statements);
 
         // Register the PCJ with Rya.
-        final Instance accInstance = super.getAccumuloConnector().getInstance();
-        final Connector accumuloConn = super.getAccumuloConnector();
+        final RyaClient ryaClient = AccumuloRyaClientFactory.build(super.createConnectionDetails(), super.getAccumuloConnector());
 
-        final RyaClient ryaClient = AccumuloRyaClientFactory.build(new AccumuloConnectionDetails(ACCUMULO_USER,
-                ACCUMULO_PASSWORD.toCharArray(), accInstance.getInstanceName(), accInstance.getZooKeepers()), accumuloConn);
-
-        final String pcjId = ryaClient.getCreatePCJ().createPCJ(RYA_INSTANCE_NAME, sparql);
+        final String pcjId = ryaClient.getCreatePCJ().createPCJ(getRyaInstanceName(), sparql);
 
         // Write the data to Rya.
         final SailRepositoryConnection ryaConn = getRyaSailRepository().getConnection();

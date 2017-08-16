@@ -42,11 +42,11 @@ import org.slf4j.LoggerFactory;
  */
 public class KafkaNotificationProvider implements LifeCycle {
     private static final Logger LOG = LoggerFactory.getLogger(KafkaNotificationProvider.class);
-    private String topic;
+    private final String topic;
     private ExecutorService executor;
-    private NotificationCoordinatorExecutor coord;
-    private Properties props;
-    private int numThreads;
+    private final NotificationCoordinatorExecutor coord;
+    private final Properties props;
+    private final int numThreads;
     private boolean running = false;
     Deserializer<String> keyDe;
     Deserializer<CommandNotification> valDe;
@@ -54,15 +54,15 @@ public class KafkaNotificationProvider implements LifeCycle {
 
     /**
      * Create KafkaNotificationProvider for reading new notification requests form Kafka
-     * @param topic - notification topic    
+     * @param topic - notification topic
      * @param keyDe - Kafka message key deserializer
      * @param valDe - Kafka message value deserializer
      * @param props - properties used to creates a {@link KafkaConsumer}
      * @param coord - {@link NotificationCoordinatorExecutor} for managing and generating notifications
      * @param numThreads - number of threads used by this notification provider
      */
-    public KafkaNotificationProvider(String topic, Deserializer<String> keyDe, Deserializer<CommandNotification> valDe, Properties props,
-            NotificationCoordinatorExecutor coord, int numThreads) {
+    public KafkaNotificationProvider(final String topic, final Deserializer<String> keyDe, final Deserializer<CommandNotification> valDe, final Properties props,
+            final NotificationCoordinatorExecutor coord, final int numThreads) {
         this.coord = coord;
         this.numThreads = numThreads;
         this.topic = topic;
@@ -75,7 +75,7 @@ public class KafkaNotificationProvider implements LifeCycle {
     @Override
     public void stop() {
         if (consumers != null && consumers.size() > 0) {
-            for (PeriodicNotificationConsumer consumer : consumers) {
+            for (final PeriodicNotificationConsumer consumer : consumers) {
                 consumer.shutdown();
             }
         }
@@ -88,11 +88,13 @@ public class KafkaNotificationProvider implements LifeCycle {
                 LOG.info("Timed out waiting for consumer threads to shut down, exiting uncleanly");
                 executor.shutdownNow();
             }
-        } catch (InterruptedException e) {
-            LOG.info("Interrupted during shutdown, exiting uncleanly");
+        } catch (final InterruptedException e) {
+            LOG.info("Interrupted during shutdown, exiting uncleanly", e);
         }
+        LOG.info("Notification Provider stopped.");
     }
 
+    @Override
     public void start() {
         if (!running) {
             if (!coord.currentlyRunning()) {
@@ -104,9 +106,9 @@ public class KafkaNotificationProvider implements LifeCycle {
             // now create consumers to consume the messages
             int threadNumber = 0;
             for (int i = 0; i < numThreads; i++) {
-                LOG.info("Creating consumer:" + threadNumber);
-                KafkaConsumer<String, CommandNotification> consumer = new KafkaConsumer<String, CommandNotification>(props, keyDe, valDe);
-                PeriodicNotificationConsumer periodicConsumer = new PeriodicNotificationConsumer(topic, consumer, threadNumber, coord);
+                LOG.info("Creating consumer: {} on topic: '{}' with properties: {}", threadNumber, topic, props);
+                final PeriodicNotificationConsumer periodicConsumer = new PeriodicNotificationConsumer(topic, new KafkaConsumer<String, CommandNotification>(props, keyDe, valDe), threadNumber, coord);
+                //consumer.
                 consumers.add(periodicConsumer);
                 executor.submit(periodicConsumer);
                 threadNumber++;

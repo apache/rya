@@ -25,6 +25,28 @@
     <description>Integration tests for the Rya Fluo application.</description>
 
     <dependencies>
+        <!--  slf4j-log4j12 is placed at top to be loaded before other loggers for testing -->
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>jcl-over-slf4j</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>jul-to-slf4j</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-log4j12</artifactId>
+            <scope>test</scope>
+        </dependency>
+        
         <!-- Rya Runtime Dependencies. -->
         <dependency>
             <groupId>org.apache.rya</groupId>
@@ -37,6 +59,12 @@
         <dependency>
             <groupId>org.apache.rya</groupId>
             <artifactId>rya.pcj.fluo.client</artifactId>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.apache.logging.log4j</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.apache.rya</groupId>
@@ -71,29 +99,28 @@
         <dependency>
             <groupId>org.apache.kafka</groupId>
             <artifactId>kafka_2.11</artifactId>
+            <!-- 
             <exclusions>
                 <exclusion>
                     <artifactId>slf4j-log4j12</artifactId>
                     <groupId>org.slf4j</groupId>
                 </exclusion>
             </exclusions>
+            -->
         </dependency>
         <!-- Testing dependencies. -->
         <dependency>
             <groupId>org.apache.kafka</groupId>
             <artifactId>kafka_2.11</artifactId>
             <classifier>test</classifier>
+            <!-- 
             <exclusions>
                 <exclusion>
                     <artifactId>slf4j-log4j12</artifactId>
                     <groupId>org.slf4j</groupId>
                 </exclusion>
             </exclusions>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.fluo</groupId>
-            <artifactId>fluo-recipes-test</artifactId>
+            -->
             <scope>test</scope>
         </dependency>
     </dependencies>

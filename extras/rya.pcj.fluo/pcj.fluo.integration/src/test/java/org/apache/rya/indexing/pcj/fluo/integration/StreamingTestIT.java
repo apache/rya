@@ -27,7 +27,6 @@ import java.util.UUID;
 import org.apache.accumulo.core.client.Connector;
 import org.apache.fluo.api.client.FluoClient;
 import org.apache.fluo.api.client.FluoFactory;
-import org.apache.log4j.Logger;
 import org.apache.rya.indexing.pcj.fluo.api.CreatePcj;
 import org.apache.rya.indexing.pcj.storage.PrecomputedJoinStorage;
 import org.apache.rya.indexing.pcj.storage.PrecomputedJoinStorage.CloseableIterator;
@@ -40,10 +39,12 @@ import org.openrdf.model.impl.LiteralImpl;
 import org.openrdf.model.impl.StatementImpl;
 import org.openrdf.model.impl.URIImpl;
 import org.openrdf.query.BindingSet;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class StreamingTestIT extends RyaExportITBase {
 
-	private static final Logger log = Logger.getLogger(StreamingTestIT.class);
+	private static final Logger log = LoggerFactory.getLogger(StreamingTestIT.class);
 
 	@Test
 	public void testRandomStreamingIngest() throws Exception {

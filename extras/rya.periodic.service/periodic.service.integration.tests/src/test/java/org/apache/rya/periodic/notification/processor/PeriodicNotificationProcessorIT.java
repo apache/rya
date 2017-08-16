@@ -25,11 +25,11 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
-import org.apache.fluo.recipes.test.AccumuloExportITBase;
 import org.apache.rya.indexing.pcj.storage.PeriodicQueryResultStorage;
 import org.apache.rya.indexing.pcj.storage.accumulo.AccumuloPeriodicQueryResultStorage;
 import org.apache.rya.indexing.pcj.storage.accumulo.VariableOrder;
 import org.apache.rya.indexing.pcj.storage.accumulo.VisibilityBindingSet;
+import org.apache.rya.pcj.fluo.test.base.ModifiedAccumuloExportITBase;
 import org.apache.rya.periodic.notification.api.NodeBin;
 import org.apache.rya.periodic.notification.exporter.BindingSetRecord;
 import org.apache.rya.periodic.notification.notification.PeriodicNotification;
@@ -41,81 +41,80 @@ import org.openrdf.model.impl.ValueFactoryImpl;
 import org.openrdf.query.BindingSet;
 import org.openrdf.query.algebra.evaluation.QueryBindingSet;
 
-public class PeriodicNotificationProcessorIT extends AccumuloExportITBase {
+public class PeriodicNotificationProcessorIT extends ModifiedAccumuloExportITBase {
 
     private static final ValueFactory vf = new ValueFactoryImpl();
-    private static final String RYA_INSTANCE_NAME = "rya_";
-    
+
     @Test
-    public void periodicProcessorTest() throws Exception {
-        
-        String id = UUID.randomUUID().toString().replace("-", "");
-        BlockingQueue<TimestampedNotification> notifications = new LinkedBlockingQueue<>();
-        BlockingQueue<NodeBin> bins = new LinkedBlockingQueue<>();
-        BlockingQueue<BindingSetRecord> bindingSets = new LinkedBlockingQueue<>();
-        
-        TimestampedNotification ts1 = new TimestampedNotification(
-                PeriodicNotification.builder().id(id).initialDelay(0).period(2000).timeUnit(TimeUnit.SECONDS).build());  
-        long binId1 = (ts1.getTimestamp().getTime()/ts1.getPeriod())*ts1.getPeriod();
-        
+    public void testPeriodicProcessor() throws Exception {
+
+        final String id = UUID.randomUUID().toString().replace("-", "");
+        final BlockingQueue<TimestampedNotification> notifications = new LinkedBlockingQueue<>();
+        final BlockingQueue<NodeBin> bins = new LinkedBlockingQueue<>();
+        final BlockingQueue<BindingSetRecord> bindingSets = new LinkedBlockingQueue<>();
+
+        final TimestampedNotification ts1 = new TimestampedNotification(
+                PeriodicNotification.builder().id(id).initialDelay(0).period(2000).timeUnit(TimeUnit.SECONDS).build());
+        final long binId1 = (ts1.getTimestamp().getTime()/ts1.getPeriod())*ts1.getPeriod();
+
         Thread.sleep(2000);
-        
-        TimestampedNotification ts2 = new TimestampedNotification(
-                PeriodicNotification.builder().id(id).initialDelay(0).period(2000).timeUnit(TimeUnit.SECONDS).build());  
-        long binId2 = (ts2.getTimestamp().getTime()/ts2.getPeriod())*ts2.getPeriod();
-        
-        Set<NodeBin> expectedBins = new HashSet<>();
+
+        final TimestampedNotification ts2 = new TimestampedNotification(
+                PeriodicNotification.builder().id(id).initialDelay(0).period(2000).timeUnit(TimeUnit.SECONDS).build());
+        final long binId2 = (ts2.getTimestamp().getTime()/ts2.getPeriod())*ts2.getPeriod();
+
+        final Set<NodeBin> expectedBins = new HashSet<>();
         expectedBins.add(new NodeBin(id, binId1));
         expectedBins.add(new NodeBin(id, binId2));
-        
-        Set<BindingSet> expected = new HashSet<>();
-        Set<VisibilityBindingSet> storageResults = new HashSet<>();
-        
-        QueryBindingSet bs1 = new QueryBindingSet();
+
+        final Set<BindingSet> expected = new HashSet<>();
+        final Set<VisibilityBindingSet> storageResults = new HashSet<>();
+
+        final QueryBindingSet bs1 = new QueryBindingSet();
         bs1.addBinding("periodicBinId", vf.createLiteral(binId1));
         bs1.addBinding("id", vf.createLiteral(1));
         expected.add(bs1);
         storageResults.add(new VisibilityBindingSet(bs1));
-        
-        QueryBindingSet bs2 = new QueryBindingSet();
+
+        final QueryBindingSet bs2 = new QueryBindingSet();
         bs2.addBinding("periodicBinId", vf.createLiteral(binId1));
         bs2.addBinding("id", vf.createLiteral(2));
         expected.add(bs2);
         storageResults.add(new VisibilityBindingSet(bs2));
-        
-        QueryBindingSet bs3 = new QueryBindingSet();
+
+        final QueryBindingSet bs3 = new QueryBindingSet();
         bs3.addBinding("periodicBinId", vf.createLiteral(binId2));
         bs3.addBinding("id", vf.createLiteral(3));
         expected.add(bs3);
         storageResults.add(new VisibilityBindingSet(bs3));
-        
-        QueryBindingSet bs4 = new QueryBindingSet();
+
+        final QueryBindingSet bs4 = new QueryBindingSet();
         bs4.addBinding("periodicBinId", vf.createLiteral(binId2));
         bs4.addBinding("id", vf.createLiteral(4));
         expected.add(bs4);
         storageResults.add(new VisibilityBindingSet(bs4));
-        
-        PeriodicQueryResultStorage periodicStorage = new AccumuloPeriodicQueryResultStorage(super.getAccumuloConnector(),
-                RYA_INSTANCE_NAME);
+
+        final PeriodicQueryResultStorage periodicStorage = new AccumuloPeriodicQueryResultStorage(super.getAccumuloConnector(),
+                getRyaInstanceName());
         periodicStorage.createPeriodicQuery(id, "select ?id where {?obs <urn:hasId> ?id.}", new VariableOrder("periodicBinId", "id"));
         periodicStorage.addPeriodicQueryResults(id, storageResults);
 
-        NotificationProcessorExecutor processor = new NotificationProcessorExecutor(periodicStorage, notifications, bins, bindingSets, 1);
+        final NotificationProcessorExecutor processor = new NotificationProcessorExecutor(periodicStorage, notifications, bins, bindingSets, 1);
         processor.start();
-        
+
         notifications.add(ts1);
         notifications.add(ts2);
 
         Thread.sleep(5000);
-        
+
         Assert.assertEquals(expectedBins.size(), bins.size());
         Assert.assertEquals(true, bins.containsAll(expectedBins));
-        
-        Set<BindingSet> actual = new HashSet<>();
+
+        final Set<BindingSet> actual = new HashSet<>();
         bindingSets.forEach(x -> actual.add(x.getBindingSet()));
         Assert.assertEquals(expected, actual);
-        
+
         processor.stop();
     }
-    
+
 }

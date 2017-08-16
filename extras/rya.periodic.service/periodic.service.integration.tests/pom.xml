@@ -27,7 +27,6 @@
 		<dependency>
 			<groupId>org.apache.rya</groupId>
 			<artifactId>rya.pcj.fluo.test.base</artifactId>
-			<version>${project.version}</version>
 			<exclusions>
 				<exclusion>
 					<artifactId>log4j-1.2-api</artifactId>
@@ -59,19 +58,5 @@
 			</exclusions>
 		</dependency>
 	</dependencies>
-
-	<build>
-		<plugins>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-compiler-plugin</artifactId>
-				<configuration>
-					<encoding>UTF-8</encoding>
-					<source>1.8</source>
-					<target>1.8</target>
-				</configuration>
-			</plugin>
-		</plugins>
-	</build>
 
 </project>

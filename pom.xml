@@ -176,8 +176,20 @@ under the License.
             </dependency>
             <dependency>
                 <groupId>org.apache.rya</groupId>
+                <artifactId>accumulo.rya</artifactId>
+                <version>${project.version}</version>
+                <type>test-jar</type>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.rya</groupId>
                 <artifactId>mongodb.rya</artifactId>
                 <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.rya</groupId>
+                <artifactId>mongodb.rya</artifactId>
+                <version>${project.version}</version>
+                <type>test-jar</type>
             </dependency>
             <dependency>
                 <groupId>org.apache.rya</groupId>
@@ -239,6 +251,11 @@ under the License.
             <dependency>
                 <groupId>org.apache.rya</groupId>
                 <artifactId>rya.pcj.fluo.client</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.rya</groupId>
+                <artifactId>rya.pcj.fluo.test.base</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
@@ -705,6 +722,12 @@ under the License.
             </dependency>
             <dependency>
                 <groupId>org.apache.kafka</groupId>
+                <artifactId>kafka-clients</artifactId>
+                <classifier>test</classifier>
+                <version>${kafka.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.kafka</groupId>
                 <artifactId>kafka_2.11</artifactId>
                 <version>${kafka.version}</version>
                 <exclusions>
@@ -780,6 +803,12 @@ under the License.
                     <artifactId>maven-failsafe-plugin</artifactId>
                     <configuration>
                         <systemPropertyVariables>
+                            <!--  
+                            Zookeeper tries to resolve localhost to IPv6 by default.
+                            If on an IPv4 network, using -Djava.net.preferIPv4Stack=true
+                            can make some IT's that create many connections run 3-5x faster.
+                            -->
+                            <java.net.preferIPv4Stack>true</java.net.preferIPv4Stack>
                             <java.io.tmpdir>${project.build.directory}</java.io.tmpdir>
                         </systemPropertyVariables>
                     </configuration>
@@ -958,6 +987,7 @@ under the License.
                         <configuration>
                             <skipITs>${skip.rya.it}</skipITs>
                             <reuseForks>false</reuseForks>  <!-- Temporary fix until RYA-331 is resolved. -->
+                            <forkedProcessTimeoutInSeconds>600</forkedProcessTimeoutInSeconds> <!-- kill fork after 10 minutes -->
                         </configuration>
                     </execution>
                 </executions>

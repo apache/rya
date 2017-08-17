@@ -207,12 +207,12 @@ public class JoinResultUpdater {
             ColumnScanner colScanner = colScannerIter.next();
             row = colScanner.getRow();
             Iterator<ColumnValue> iter = colScanner.iterator();
-            while (iter.hasNext()) {
+            while (iter.hasNext() && !batchLimitMet) {
+                bsSet.add(BS_SERDE.deserialize(iter.next().getValue()));
+                //check if batch size has been met and set flag if it has been met
                 if (bsSet.size() >= batchSize) {
                     batchLimitMet = true;
-                    break;
                 }
-                bsSet.add(BS_SERDE.deserialize(iter.next().getValue()));
             }
         }
 

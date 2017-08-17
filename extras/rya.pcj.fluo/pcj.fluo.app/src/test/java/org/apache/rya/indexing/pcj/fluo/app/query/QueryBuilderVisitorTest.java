@@ -79,25 +79,21 @@ public class QueryBuilderVisitorTest {
         }
         
         public void visit(QueryMetadata.Builder queryBuilder) {
-            System.out.println(queryBuilder.getNodeId());
             ids.add(queryBuilder.getNodeId());
             super.visit(queryBuilder);
         }
         
         public void visit(ProjectionMetadata.Builder projectionBuilder) {
-            System.out.println(projectionBuilder.getNodeId());
             ids.add(projectionBuilder.getNodeId());
             super.visit(projectionBuilder);
         }
         
         public void visit(JoinMetadata.Builder joinBuilder) {
-            System.out.println(joinBuilder.getNodeId());
             ids.add(joinBuilder.getNodeId());
             super.visit(joinBuilder);
         }
         
         public void visit(StatementPatternMetadata.Builder statementBuilder) {
-            System.out.println(statementBuilder.getNodeId());
             ids.add(statementBuilder.getNodeId());
         }
     }

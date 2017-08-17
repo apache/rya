@@ -357,7 +357,7 @@ public class MongoEntityStorage implements EntityStorage {
                 // type IDs. We already know the entities we found have
                 // "firstType" but now we have access to all the other types
                 // they have.
-                if (explicitTypeIds.containsAll(explicitTypeIds)) {
+                if (candidateEntity.getExplicitTypeIds().containsAll(explicitTypeIds)) {
                     hasAllExplicitTypesEntities.add(candidateEntity);
                 }
             }

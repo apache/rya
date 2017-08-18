@@ -44,10 +44,9 @@ import org.calrissian.mango.collect.CloseableIterables;
 import org.openrdf.query.BindingSet;
 import org.openrdf.query.impl.MapBindingSet;
 
+import com.google.common.base.Preconditions;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
-import com.mongodb.DB;
-import com.mongodb.DBObject;
 import com.mongodb.MongoClient;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
@@ -84,6 +83,9 @@ public class MongoDBQueryEngine implements RyaQueryEngine<MongoDBRdfConfiguratio
     public CloseableIteration<RyaStatement, RyaDAOException> query(
             final RyaStatement stmt, MongoDBRdfConfiguration conf)
             throws RyaDAOException {
+        Preconditions.checkNotNull(stmt);
+        Preconditions.checkNotNull(conf);
+        
         Entry<RyaStatement, BindingSet> entry = new AbstractMap.SimpleEntry<>(stmt, new MapBindingSet());
         Collection<Entry<RyaStatement, BindingSet>> collection = Collections.singleton(entry);
         
@@ -94,9 +96,9 @@ public class MongoDBQueryEngine implements RyaQueryEngine<MongoDBRdfConfiguratio
     public CloseableIteration<? extends Entry<RyaStatement, BindingSet>, RyaDAOException> queryWithBindingSet(
             final Collection<Entry<RyaStatement, BindingSet>> stmts,
             MongoDBRdfConfiguration conf) throws RyaDAOException {
-        if (conf == null) {
-            conf = configuration;
-        }
+        Preconditions.checkNotNull(stmts);
+        Preconditions.checkNotNull(conf);
+        
         final Multimap<RyaStatement, BindingSet> rangeMap = HashMultimap.create();
 
         //TODO: cannot span multiple tables here
@@ -133,12 +135,16 @@ public class MongoDBQueryEngine implements RyaQueryEngine<MongoDBRdfConfiguratio
     @Override
     public CloseableIterable<RyaStatement> query(final RyaQuery ryaQuery)
             throws RyaDAOException {
+        Preconditions.checkNotNull(ryaQuery);
+
         return query(new BatchRyaQuery(Collections.singleton(ryaQuery.getQuery())));
     }
 
     @Override
     public CloseableIterable<RyaStatement> query(final BatchRyaQuery batchRyaQuery)
             throws RyaDAOException {
+        Preconditions.checkNotNull(batchRyaQuery);
+
         final Map<RyaStatement, BindingSet> queries = new HashMap<>();
 
         for (final RyaStatement stmt : batchRyaQuery.getQueries()) {

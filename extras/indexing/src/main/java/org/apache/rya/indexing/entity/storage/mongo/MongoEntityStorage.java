@@ -287,10 +287,6 @@ public class MongoEntityStorage implements EntityStorage {
     private boolean detectDuplicates(final Entity entity) throws EntityStorageException {
         boolean hasDuplicate = false;
         if (duplicateDataDetector.isDetectionEnabled()) {
-            if (mongoTypeStorage == null) {
-                mongoTypeStorage = new MongoTypeStorage(mongo, ryaInstanceName);
-            }
-
             // Grab all entities that have all the same explicit types as our
             // original Entity.
             final List<Entity> comparisonEntities = searchHasAllExplicitTypes(entity.getExplicitTypeIds());
@@ -332,6 +328,9 @@ public class MongoEntityStorage implements EntityStorage {
         final List<RyaURI> subjects = new ArrayList<>();
         Optional<Type> type;
         try {
+            if (mongoTypeStorage == null) {
+                mongoTypeStorage = new MongoTypeStorage(mongo, ryaInstanceName);
+            }
             type = mongoTypeStorage.get(firstType);
         } catch (final TypeStorageException e) {
             throw new EntityStorageException("Unable to get entity type: " + firstType, e);

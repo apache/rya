@@ -318,46 +318,45 @@ public class MongoEntityStorage implements EntityStorage {
      * @throws EntityStorageException
      */
     private List<Entity> searchHasAllExplicitTypes(final ImmutableList<RyaURI> explicitTypeIds) throws EntityStorageException {
-        // Grab the first type from the explicit type IDs.
-        RyaURI firstType = null;
-        if (!explicitTypeIds.isEmpty()) {
-            firstType = explicitTypeIds.get(0);
-        }
-
-        // Check if that type exists anywhere in storage.
-        final List<RyaURI> subjects = new ArrayList<>();
-        Optional<Type> type;
-        try {
-            if (mongoTypeStorage == null) {
-                mongoTypeStorage = new MongoTypeStorage(mongo, ryaInstanceName);
-            }
-            type = mongoTypeStorage.get(firstType);
-        } catch (final TypeStorageException e) {
-            throw new EntityStorageException("Unable to get entity type: " + firstType, e);
-        }
-        if (type.isPresent()) {
-            // Grab the subjects for all the types we found matching "firstType"
-            final ConvertingCursor<TypedEntity> cursor = search(Optional.empty(), type.get(), Collections.emptySet());
-            while (cursor.hasNext()) {
-                final TypedEntity typedEntity = cursor.next();
-                final RyaURI subject = typedEntity.getSubject();
-                subjects.add(subject);
-            }
-        }
-
-        // Now grab all the Entities that have the subjects we found.
         final List<Entity> hasAllExplicitTypesEntities = new ArrayList<>();
-        for (final RyaURI subject : subjects) {
-            final Optional<Entity> entityFromSubject = get(subject);
-            if (entityFromSubject.isPresent()) {
-                final Entity candidateEntity = entityFromSubject.get();
-                // Filter out any entities that don't have all the same
-                // types associated with them as our original list of explicit
-                // type IDs. We already know the entities we found have
-                // "firstType" but now we have access to all the other types
-                // they have.
-                if (candidateEntity.getExplicitTypeIds().containsAll(explicitTypeIds)) {
-                    hasAllExplicitTypesEntities.add(candidateEntity);
+        if (!explicitTypeIds.isEmpty()) {
+            // Grab the first type from the explicit type IDs.
+            final RyaURI firstType = explicitTypeIds.get(0);
+
+            // Check if that type exists anywhere in storage.
+            final List<RyaURI> subjects = new ArrayList<>();
+            Optional<Type> type;
+            try {
+                if (mongoTypeStorage == null) {
+                    mongoTypeStorage = new MongoTypeStorage(mongo, ryaInstanceName);
+                }
+                type = mongoTypeStorage.get(firstType);
+            } catch (final TypeStorageException e) {
+                throw new EntityStorageException("Unable to get entity type: " + firstType, e);
+            }
+            if (type.isPresent()) {
+                // Grab the subjects for all the types we found matching "firstType"
+                final ConvertingCursor<TypedEntity> cursor = search(Optional.empty(), type.get(), Collections.emptySet());
+                while (cursor.hasNext()) {
+                    final TypedEntity typedEntity = cursor.next();
+                    final RyaURI subject = typedEntity.getSubject();
+                    subjects.add(subject);
+                }
+            }
+
+            // Now grab all the Entities that have the subjects we found.
+            for (final RyaURI subject : subjects) {
+                final Optional<Entity> entityFromSubject = get(subject);
+                if (entityFromSubject.isPresent()) {
+                    final Entity candidateEntity = entityFromSubject.get();
+                    // Filter out any entities that don't have all the same
+                    // types associated with them as our original list of
+                    // explicit type IDs. We already know the entities we found
+                    // have "firstType" but now we have access to all the other
+                    // types they have.
+                    if (candidateEntity.getExplicitTypeIds().containsAll(explicitTypeIds)) {
+                        hasAllExplicitTypesEntities.add(candidateEntity);
+                    }
                 }
             }
         }

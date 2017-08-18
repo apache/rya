@@ -25,7 +25,9 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.fluo.api.client.SnapshotBase;
@@ -34,6 +36,9 @@ import org.apache.fluo.api.data.Bytes;
 import org.apache.fluo.api.data.Column;
 import org.apache.rya.indexing.pcj.fluo.app.ConstructGraph;
 import org.apache.rya.indexing.pcj.fluo.app.ConstructGraphSerializer;
+import org.apache.rya.indexing.pcj.fluo.app.IncrementalUpdateConstants;
+import org.apache.rya.indexing.pcj.fluo.app.IncrementalUpdateConstants.ExportStrategy;
+import org.apache.rya.indexing.pcj.fluo.app.IncrementalUpdateConstants.QueryType;
 import org.apache.rya.indexing.pcj.fluo.app.NodeType;
 import org.apache.rya.indexing.pcj.fluo.app.query.AggregationMetadata.AggregationElement;
 import org.apache.rya.indexing.pcj.fluo.app.query.JoinMetadata.JoinType;
@@ -42,7 +47,6 @@ import org.apache.rya.indexing.pcj.storage.accumulo.VariableOrder;
 import com.google.common.base.Charsets;
 import com.google.common.base.Joiner;
 import com.google.common.base.Optional;
-import com.google.common.base.Preconditions;
 
 import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
 import edu.umd.cs.findbugs.annotations.NonNull;
@@ -64,10 +68,14 @@ public class FluoQueryMetadataDAO {
         requireNonNull(tx);
         requireNonNull(metadata);
 
+        Joiner joiner = Joiner.on(IncrementalUpdateConstants.VAR_DELIM);
+        
         final String rowId = metadata.getNodeId();
         tx.set(rowId, FluoQueryColumns.QUERY_NODE_ID, rowId);
         tx.set(rowId, FluoQueryColumns.QUERY_VARIABLE_ORDER, metadata.getVariableOrder().toString());
         tx.set(rowId, FluoQueryColumns.QUERY_SPARQL, metadata.getSparql() );
+        tx.set(rowId, FluoQueryColumns.QUERY_EXPORT_STRATEGIES, joiner.join(metadata.getExportStrategies()));
+        tx.set(rowId, FluoQueryColumns.QUERY_TYPE, metadata.getQueryType().toString());
         tx.set(rowId, FluoQueryColumns.QUERY_CHILD_NODE_ID, metadata.getChildNodeId() );
     }
 
@@ -91,6 +99,8 @@ public class FluoQueryMetadataDAO {
         final Map<Column, String> values = sx.gets(rowId,
                 FluoQueryColumns.QUERY_VARIABLE_ORDER,
                 FluoQueryColumns.QUERY_SPARQL,
+                FluoQueryColumns.QUERY_TYPE,
+                FluoQueryColumns.QUERY_EXPORT_STRATEGIES,
                 FluoQueryColumns.QUERY_CHILD_NODE_ID);
 
         // Return an object holding them.
@@ -99,13 +109,81 @@ public class FluoQueryMetadataDAO {
 
         final String sparql = values.get(FluoQueryColumns.QUERY_SPARQL);
         final String childNodeId = values.get(FluoQueryColumns.QUERY_CHILD_NODE_ID);
+        final String queryType = values.get(FluoQueryColumns.QUERY_TYPE);
+        final String[] exportStrategies = values.get(FluoQueryColumns.QUERY_EXPORT_STRATEGIES).split(IncrementalUpdateConstants.VAR_DELIM);
+        
+        Set<ExportStrategy> strategies = new HashSet<>();
+        for(String strategy: exportStrategies) {
+            strategies.add(ExportStrategy.valueOf(strategy));
+        }
 
         return QueryMetadata.builder(nodeId)
-                .setVariableOrder( varOrder )
+                .setVarOrder( varOrder )
                 .setSparql( sparql )
+                .setExportStrategies(strategies)
+                .setQueryType(QueryType.valueOf(queryType))
                 .setChildNodeId( childNodeId );
     }
+    
+    
+    /**
+     * Write an instance of {@link ProjectionMetadata} to the Fluo table.
+     *
+     * @param tx - The transaction that will be used to commit the metadata. (not null)
+     * @param metadata - The Query node metadata that will be written to the table. (not null)
+     */
+    public void write(final TransactionBase tx, final ProjectionMetadata metadata) {
+        requireNonNull(tx);
+        requireNonNull(metadata);
 
+        final String rowId = metadata.getNodeId();
+        tx.set(rowId, FluoQueryColumns.PROJECTION_NODE_ID, rowId);
+        tx.set(rowId, FluoQueryColumns.PROJECTION_VARIABLE_ORDER, metadata.getVariableOrder().toString());
+        tx.set(rowId, FluoQueryColumns.PROJECTION_PROJECTED_VARS, metadata.getProjectedVars().toString());
+        tx.set(rowId, FluoQueryColumns.PROJECTION_PARENT_NODE_ID, metadata.getParentNodeId());
+        tx.set(rowId, FluoQueryColumns.PROJECTION_CHILD_NODE_ID, metadata.getChildNodeId() );
+    }
+
+    /**
+     * Read an instance of {@link ProjectionMetadata} from the Fluo table.
+     *
+     * @param sx - The snapshot that will be used to read the metadata . (not null)
+     * @param nodeId - The nodeId of the Projection node that will be read. (not null)
+     * @return The {@link ProjectionMetadata} that was read from the table.
+     */
+    public ProjectionMetadata readProjectionMetadata(final SnapshotBase sx, final String nodeId) {
+        return readProjectionMetadataBuilder(sx, nodeId).build();
+    }
+
+    private ProjectionMetadata.Builder readProjectionMetadataBuilder(final SnapshotBase sx, final String nodeId) {
+        requireNonNull(sx);
+        requireNonNull(nodeId);
+
+        // Fetch the values from the Fluo table.
+        final String rowId = nodeId;
+        final Map<Column, String> values = sx.gets(rowId,
+                FluoQueryColumns.PROJECTION_VARIABLE_ORDER,
+                FluoQueryColumns.PROJECTION_PROJECTED_VARS,
+                FluoQueryColumns.PROJECTION_PARENT_NODE_ID,
+                FluoQueryColumns.PROJECTION_CHILD_NODE_ID);
+
+        // Return an object holding them.
+        final String varOrderString = values.get(FluoQueryColumns.PROJECTION_VARIABLE_ORDER);
+        final String projectedVarString = values.get(FluoQueryColumns.PROJECTION_PROJECTED_VARS);
+        final VariableOrder varOrder = new VariableOrder(varOrderString);
+        final VariableOrder projectedVars = new VariableOrder(projectedVarString);
+        final String childNodeId = values.get(FluoQueryColumns.PROJECTION_CHILD_NODE_ID);
+        final String parentNodeId = values.get(FluoQueryColumns.PROJECTION_PARENT_NODE_ID);
+
+        
+        return ProjectionMetadata.builder(nodeId)
+                .setVarOrder( varOrder )
+                .setProjectedVars(projectedVars)
+                .setParentNodeId(parentNodeId)
+                .setChildNodeId( childNodeId );
+    }
+    
+    
     /**
      * Write an instance of {@link ConstructQueryMetadata} to the Fluo table.
      *
@@ -120,7 +198,7 @@ public class FluoQueryMetadataDAO {
         tx.set(rowId, FluoQueryColumns.CONSTRUCT_NODE_ID, rowId);
         tx.set(rowId, FluoQueryColumns.CONSTRUCT_VARIABLE_ORDER, metadata.getVariableOrder().toString());
         tx.set(rowId, FluoQueryColumns.CONSTRUCT_CHILD_NODE_ID, metadata.getChildNodeId() );
-        tx.set(rowId, FluoQueryColumns.CONSTRUCT_SPARQL, metadata.getSparql());
+        tx.set(rowId, FluoQueryColumns.CONSTRUCT_PARENT_NODE_ID, metadata.getParentNodeId() );
         tx.set(rowId, FluoQueryColumns.CONSTRUCT_GRAPH, ConstructGraphSerializer.toConstructString(metadata.getConstructGraph()));
     }
 
@@ -143,18 +221,22 @@ public class FluoQueryMetadataDAO {
         final String rowId = nodeId;
         final Map<Column, String> values = sx.gets(rowId, 
                 FluoQueryColumns.CONSTRUCT_GRAPH,
-                FluoQueryColumns.CONSTRUCT_SPARQL,
-                FluoQueryColumns.CONSTRUCT_CHILD_NODE_ID);
+                FluoQueryColumns.CONSTRUCT_CHILD_NODE_ID, 
+                FluoQueryColumns.CONSTRUCT_PARENT_NODE_ID,
+                FluoQueryColumns.CONSTRUCT_VARIABLE_ORDER);
 
         final String graphString = values.get(FluoQueryColumns.CONSTRUCT_GRAPH);
         final ConstructGraph graph = ConstructGraphSerializer.toConstructGraph(graphString);
         final String childNodeId = values.get(FluoQueryColumns.CONSTRUCT_CHILD_NODE_ID);
-        final String sparql = values.get(FluoQueryColumns.CONSTRUCT_SPARQL);
+        final String parentNodeId = values.get(FluoQueryColumns.CONSTRUCT_PARENT_NODE_ID);
+        final String varOrderString = values.get(FluoQueryColumns.CONSTRUCT_VARIABLE_ORDER);
+        
 
         return ConstructQueryMetadata.builder()
                 .setNodeId(nodeId)
+                .setParentNodeId(parentNodeId)
                 .setConstructGraph(graph)
-                .setSparql(sparql)
+                .setVarOrder(new VariableOrder(varOrderString))
                 .setChildNodeId(childNodeId);
     }
     
@@ -303,6 +385,7 @@ public class FluoQueryMetadataDAO {
         tx.set(rowId, FluoQueryColumns.JOIN_TYPE, metadata.getJoinType().toString() );
         tx.set(rowId, FluoQueryColumns.JOIN_PARENT_NODE_ID, metadata.getParentNodeId() );
         tx.set(rowId, FluoQueryColumns.JOIN_LEFT_CHILD_NODE_ID, metadata.getLeftChildNodeId() );
+        tx.set(rowId, FluoQueryColumns.JOIN_BATCH_SIZE, Integer.toString(metadata.getJoinBatchSize()));
         tx.set(rowId, FluoQueryColumns.JOIN_RIGHT_CHILD_NODE_ID, metadata.getRightChildNodeId() );
     }
 
@@ -328,6 +411,7 @@ public class FluoQueryMetadataDAO {
                 FluoQueryColumns.JOIN_TYPE,
                 FluoQueryColumns.JOIN_PARENT_NODE_ID,
                 FluoQueryColumns.JOIN_LEFT_CHILD_NODE_ID,
+                FluoQueryColumns.JOIN_BATCH_SIZE,
                 FluoQueryColumns.JOIN_RIGHT_CHILD_NODE_ID);
 
         // Return an object holding them.
@@ -339,12 +423,14 @@ public class FluoQueryMetadataDAO {
 
         final String parentNodeId = values.get(FluoQueryColumns.JOIN_PARENT_NODE_ID);
         final String leftChildNodeId = values.get(FluoQueryColumns.JOIN_LEFT_CHILD_NODE_ID);
+        final int joinBatchSize = Integer.parseInt(values.get(FluoQueryColumns.JOIN_BATCH_SIZE));
         final String rightChildNodeId = values.get(FluoQueryColumns.JOIN_RIGHT_CHILD_NODE_ID);
 
         return JoinMetadata.builder(nodeId)
-                .setVariableOrder(varOrder)
+                .setVarOrder(varOrder)
                 .setJoinType(joinType)
                 .setParentNodeId(parentNodeId)
+                .setJoinBatchSize(joinBatchSize)
                 .setLeftChildNodeId(leftChildNodeId)
                 .setRightChildNodeId(rightChildNodeId);
     }
@@ -477,7 +563,7 @@ public class FluoQueryMetadataDAO {
         }
 
         final AggregationMetadata.Builder builder = AggregationMetadata.builder(nodeId)
-                .setVariableOrder(varOrder)
+                .setVarOrder(varOrder)
                 .setParentNodeId(parentNodeId)
                 .setChildNodeId(childNodeId)
                 .setGroupByVariableOrder(groupByVars);
@@ -498,27 +584,28 @@ public class FluoQueryMetadataDAO {
     public void write(final TransactionBase tx, final FluoQuery query) {
         requireNonNull(tx);
         requireNonNull(query);
+        
+        QueryMetadata queryMetadata = query.getQueryMetadata();
+        final String sparql = queryMetadata.getSparql();
+        final String queryId = queryMetadata.getNodeId();
+        final String pcjId = queryMetadata.getExportId();
+        
+        // The results of the query are eventually exported to an instance
+        // of Rya, so store the Rya ID for the PCJ.
+        tx.set(queryId, FluoQueryColumns.RYA_PCJ_ID, pcjId);
+        tx.set(pcjId, FluoQueryColumns.PCJ_ID_QUERY_ID, queryId);
+        tx.set(Bytes.of(sparql), FluoQueryColumns.QUERY_ID, Bytes.of(queryId));
+        write(tx, queryMetadata);
 
         // Write the rest of the metadata objects.
-        switch (query.getQueryType()) {
-        case Construct:
+        
+        if (query.getQueryType() == QueryType.Construct) {
             ConstructQueryMetadata constructMetadata = query.getConstructQueryMetadata().get();
-            // Store the Query ID so that it may be looked up from the original
-            // SPARQL string.
-            final String constructSparql = constructMetadata.getSparql();
-            final String constructQueryId = constructMetadata.getNodeId();
-            tx.set(Bytes.of(constructSparql), FluoQueryColumns.QUERY_ID, Bytes.of(constructQueryId));
             write(tx, constructMetadata);
-            break;
-        case Projection:
-            QueryMetadata queryMetadata = query.getQueryMetadata().get();
-            // Store the Query ID so that it may be looked up from the original
-            // SPARQL string.
-            final String sparql = queryMetadata.getSparql();
-            final String queryId = queryMetadata.getNodeId();
-            tx.set(Bytes.of(sparql), FluoQueryColumns.QUERY_ID, Bytes.of(queryId));
-            write(tx, queryMetadata);
-            break;
+        }
+        
+        for(final ProjectionMetadata projection : query.getProjectionMetadata()) {
+            write(tx, projection);
         }
         
         Optional<PeriodicQueryMetadata> periodicMetadata = query.getPeriodicQueryMetadata();
@@ -569,16 +656,23 @@ public class FluoQueryMetadataDAO {
         case QUERY:
             // Add this node's metadata.
             final QueryMetadata.Builder queryBuilder = readQueryMetadataBuilder(sx, childNodeId);
-            Preconditions.checkArgument(!builder.getQueryBuilder().isPresent());
             builder.setQueryMetadata(queryBuilder);
 
             // Add it's child's metadata.
             addChildMetadata(sx, builder, queryBuilder.build().getChildNodeId());
             break;
-
+            
+        case PROJECTION:
+            //Add this node's metadata
+            final ProjectionMetadata.Builder projectionBuilder = readProjectionMetadataBuilder(sx, childNodeId);
+            builder.addProjectionBuilder(projectionBuilder);
+            
+            //Add it's child's metadata
+            addChildMetadata(sx, builder, projectionBuilder.build().getChildNodeId());
+            break; 
+            
         case CONSTRUCT:
             final ConstructQueryMetadata.Builder constructBuilder = readConstructQueryMetadataBuilder(sx, childNodeId);
-            Preconditions.checkArgument(!builder.getQueryBuilder().isPresent());
             builder.setConstructQueryMetadata(constructBuilder);
             
             // Add it's child's metadata.

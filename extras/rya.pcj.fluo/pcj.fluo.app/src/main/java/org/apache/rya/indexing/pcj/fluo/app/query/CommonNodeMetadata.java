@@ -99,4 +99,18 @@ public abstract class CommonNodeMetadata {
                 .append("}")
                 .toString();
     }
+    
+    /**
+     * Base interface for all metadata Builders.  Using this type def
+     * allows for the implementation of a Builder visitor for navigating
+     * the Builder tree.
+     *
+     */
+    public static interface Builder {
+        
+        public String getNodeId();
+        
+        public VariableOrder getVariableOrder();
+    }
+    
 }

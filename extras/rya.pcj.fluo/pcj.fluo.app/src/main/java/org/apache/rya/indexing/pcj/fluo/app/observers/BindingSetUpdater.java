@@ -31,6 +31,7 @@ import org.apache.rya.indexing.pcj.fluo.app.FilterResultUpdater;
 import org.apache.rya.indexing.pcj.fluo.app.JoinResultUpdater;
 import org.apache.rya.indexing.pcj.fluo.app.NodeType;
 import org.apache.rya.indexing.pcj.fluo.app.PeriodicQueryUpdater;
+import org.apache.rya.indexing.pcj.fluo.app.ProjectionResultUpdater;
 import org.apache.rya.indexing.pcj.fluo.app.QueryResultUpdater;
 import org.apache.rya.indexing.pcj.fluo.app.query.AggregationMetadata;
 import org.apache.rya.indexing.pcj.fluo.app.query.ConstructQueryMetadata;
@@ -38,6 +39,7 @@ import org.apache.rya.indexing.pcj.fluo.app.query.FilterMetadata;
 import org.apache.rya.indexing.pcj.fluo.app.query.FluoQueryMetadataDAO;
 import org.apache.rya.indexing.pcj.fluo.app.query.JoinMetadata;
 import org.apache.rya.indexing.pcj.fluo.app.query.PeriodicQueryMetadata;
+import org.apache.rya.indexing.pcj.fluo.app.query.ProjectionMetadata;
 import org.apache.rya.indexing.pcj.fluo.app.query.QueryMetadata;
 import org.apache.rya.indexing.pcj.storage.accumulo.VisibilityBindingSet;
 
@@ -61,6 +63,7 @@ public abstract class BindingSetUpdater extends AbstractObserver {
     private final QueryResultUpdater queryUpdater = new QueryResultUpdater();
     private final AggregationResultUpdater aggregationUpdater = new AggregationResultUpdater();
     private final ConstructQueryResultUpdater constructUpdater = new ConstructQueryResultUpdater();
+    private final ProjectionResultUpdater projectionUpdater = new ProjectionResultUpdater();
     private final PeriodicQueryUpdater periodicQueryUpdater = new PeriodicQueryUpdater();
 
     @Override
@@ -107,6 +110,15 @@ public abstract class BindingSetUpdater extends AbstractObserver {
                 }
                 break;
 
+            case PROJECTION:
+                final ProjectionMetadata projectionQuery = queryDao.readProjectionMetadata(tx, parentNodeId);
+                try {
+                    projectionUpdater.updateProjectionResults(tx, observedBindingSet, projectionQuery);
+                } catch (final Exception e) {
+                    throw new RuntimeException("Could not process a Query node.", e);
+                }
+                break;    
+                
             case CONSTRUCT: 
                 final ConstructQueryMetadata constructQuery = queryDao.readConstructQueryMetadata(tx, parentNodeId);
                 try{
@@ -154,7 +166,7 @@ public abstract class BindingSetUpdater extends AbstractObserver {
 
 
             default:
-                throw new IllegalArgumentException("The parent node's NodeType must be of type Filter, Join, PeriodicBin or Query, but was " + parentNodeType);
+                throw new IllegalArgumentException("The parent node's NodeType must be of type Aggregation, Projection, ConstructQuery, Filter, Join, PeriodicBin or Query, but was " + parentNodeType);
         }
     }
 

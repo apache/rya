@@ -35,7 +35,7 @@ import org.apache.fluo.api.data.Bytes;
 import org.apache.fluo.api.data.Span;
 import org.apache.rya.api.client.RyaClient;
 import org.apache.rya.api.client.accumulo.AccumuloRyaClientFactory;
-import org.apache.rya.indexing.pcj.fluo.api.DeletePcj;
+import org.apache.rya.indexing.pcj.fluo.api.DeleteFluoPcj;
 import org.apache.rya.pcj.fluo.test.base.RyaExportITBase;
 import org.junit.Test;
 import org.openrdf.model.Statement;
@@ -79,10 +79,10 @@ public class CreateDeleteIT extends RyaExportITBase {
         try(FluoClient fluoClient = FluoFactory.newClient(super.getFluoConfiguration())) {
             // Ensure the data was loaded.
             final List<Bytes> rows = getFluoTableEntries(fluoClient);
-            assertEquals(17, rows.size());
+            assertEquals(20, rows.size());
 
             // Delete the PCJ from the Fluo application.
-            new DeletePcj(1).deletePcj(fluoClient, pcjId);
+            new DeleteFluoPcj(1).deletePcj(fluoClient, pcjId);
 
             // Ensure all data related to the query has been removed.
             final List<Bytes> empty_rows = getFluoTableEntries(fluoClient);
@@ -111,10 +111,10 @@ public class CreateDeleteIT extends RyaExportITBase {
         try(FluoClient fluoClient = FluoFactory.newClient(super.getFluoConfiguration())) {
             // Ensure the data was loaded.
             final List<Bytes> rows = getFluoTableEntries(fluoClient);
-            assertEquals(10, rows.size());
+            assertEquals(12, rows.size());
 
             // Delete the PCJ from the Fluo application.
-            new DeletePcj(1).deletePcj(fluoClient, pcjId);
+            new DeleteFluoPcj(1).deletePcj(fluoClient, pcjId);
 
             // Ensure all data related to the query has been removed.
             final List<Bytes> empty_rows = getFluoTableEntries(fluoClient);

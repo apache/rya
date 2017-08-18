@@ -60,7 +60,6 @@ public class JoinBatchInformationTypeAdapter implements JsonSerializer<JoinBatch
         result.add("span", new JsonPrimitive(span.getStart().getsRow() + "\u0000" + span.getEnd().getsRow()));
         result.add("startInc", new JsonPrimitive(span.isStartInclusive()));
         result.add("endInc", new JsonPrimitive(span.isEndInclusive()));
-        result.add("varOrder", new JsonPrimitive(Joiner.on(";").join(batch.getVarOrder().getVariableOrders())));
         result.add("side", new JsonPrimitive(batch.getSide().name()));
         result.add("joinType", new JsonPrimitive(batch.getJoinType().name()));
         String updateVarOrderString = Joiner.on(";").join(batch.getBs().getBindingNames());
@@ -82,12 +81,11 @@ public class JoinBatchInformationTypeAdapter implements JsonSerializer<JoinBatch
         boolean startInc = json.get("startInc").getAsBoolean();
         boolean endInc = json.get("endInc").getAsBoolean();
         Span span = new Span(new RowColumn(rows[0]), startInc, new RowColumn(rows[1]), endInc);
-        VariableOrder varOrder = new VariableOrder(json.get("varOrder").getAsString());
         VariableOrder updateVarOrder = new VariableOrder(json.get("updateVarOrder").getAsString());
         VisibilityBindingSet bs = converter.convert(json.get("bindingSet").getAsString(), updateVarOrder);
         Side side = Side.valueOf(json.get("side").getAsString());
         JoinType join = JoinType.valueOf(json.get("joinType").getAsString());
-        return JoinBatchInformation.builder().setBatchSize(batchSize).setTask(task).setSpan(span).setColumn(column).setBs(bs).setVarOrder(varOrder)
+        return JoinBatchInformation.builder().setBatchSize(batchSize).setTask(task).setSpan(span).setColumn(column).setBs(bs)
                .setSide(side).setJoinType(join).build();
     }
 

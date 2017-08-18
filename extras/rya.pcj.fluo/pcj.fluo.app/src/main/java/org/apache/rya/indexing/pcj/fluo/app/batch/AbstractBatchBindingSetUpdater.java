@@ -38,7 +38,7 @@ public abstract class AbstractBatchBindingSetUpdater implements BatchBindingSetU
      * @param oldSpan - old Span to be updated with newStart
      * @return - updated Span used with an updated BatchInformation object to complete the batch task
      */
-    public Span getNewSpan(RowColumn newStart, Span oldSpan) {
+    public static Span getNewSpan(RowColumn newStart, Span oldSpan) {
         return new Span(newStart, oldSpan.isStartInclusive(), oldSpan.getEnd(), oldSpan.isEndInclusive());
     }
     

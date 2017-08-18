@@ -29,6 +29,7 @@ import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.rya.indexing.pcj.storage.accumulo.VariableOrder;
 
 import com.google.common.base.Objects;
+import com.google.common.base.Preconditions;
 
 /**
  * Metadata that is specific to Join nodes.
@@ -49,6 +50,9 @@ public class JoinMetadata extends CommonNodeMetadata {
     private final String parentNodeId;
     private final String leftChildNodeId;
     private final String rightChildNodeId;
+    private int joinBatchSize;
+    
+    public static final int DEFAULT_JOIN_BATCH_SIZE = 5000;
 
     /**
      * Constructs an instance of {@link JoinMetadata}.
@@ -59,6 +63,7 @@ public class JoinMetadata extends CommonNodeMetadata {
      * @param parentNodeId - The node id of this node's parent. (not null)
      * @param leftChildNodeId - One of the nodes whose results are being joined. (not null)
      * @param rightChildNodeId - The other node whose results are being joined. (not null)
+     * @param joinBatchSize - Batch size used to process large joins
      */
     public JoinMetadata(
             final String nodeId,
@@ -66,12 +71,15 @@ public class JoinMetadata extends CommonNodeMetadata {
             final JoinType joinType,
             final String parentNodeId,
             final String leftChildNodeId,
-            final String rightChildNodeId) {
+            final String rightChildNodeId,
+            final int joinBatchSize) {
         super(nodeId, varOrder);
         this.joinType = checkNotNull(joinType);
         this.parentNodeId = checkNotNull(parentNodeId);
         this.leftChildNodeId = checkNotNull(leftChildNodeId);
         this.rightChildNodeId = checkNotNull(rightChildNodeId);
+        Preconditions.checkArgument(joinBatchSize > 0);
+        this.joinBatchSize = joinBatchSize;
     }
 
     /**
@@ -101,6 +109,13 @@ public class JoinMetadata extends CommonNodeMetadata {
     public String getRightChildNodeId() {
         return rightChildNodeId;
     }
+    
+    /**
+     * @return - Batch size used to process large joins
+     */
+    public int getJoinBatchSize() {
+        return joinBatchSize;
+    }
 
     @Override
     public int hashCode() {
@@ -110,6 +125,7 @@ public class JoinMetadata extends CommonNodeMetadata {
                 joinType,
                 parentNodeId,
                 leftChildNodeId,
+                joinBatchSize,
                 rightChildNodeId);
     }
 
@@ -127,6 +143,7 @@ public class JoinMetadata extends CommonNodeMetadata {
                         .append(parentNodeId, joinMetadata.parentNodeId)
                         .append(leftChildNodeId, joinMetadata.leftChildNodeId)
                         .append(rightChildNodeId, joinMetadata.rightChildNodeId)
+                        .append(joinBatchSize, joinMetadata.joinBatchSize)
                         .isEquals();
             }
             return false;
@@ -145,6 +162,7 @@ public class JoinMetadata extends CommonNodeMetadata {
                 .append("    Parent Node ID: " + parentNodeId + "\n")
                 .append("    Left Child Node ID: " + leftChildNodeId + "\n")
                 .append("    Right Child Node ID: " + rightChildNodeId + "\n")
+                .append("    Join Batch Size: " + joinBatchSize + "\n")
                 .append("}")
                 .toString();
     }
@@ -163,7 +181,7 @@ public class JoinMetadata extends CommonNodeMetadata {
      * Builds instances of {@link JoinMetadata}.
      */
     @DefaultAnnotation(NonNull.class)
-    public static final class Builder {
+    public static final class Builder implements CommonNodeMetadata.Builder {
 
         private final String nodeId;
         private VariableOrder varOrder;
@@ -171,6 +189,7 @@ public class JoinMetadata extends CommonNodeMetadata {
         private String parentNodeId;
         private String leftChildNodeId;
         private String rightChildNodeId;
+        private int joinBatchSize = DEFAULT_JOIN_BATCH_SIZE;
 
         /**
          * Constructs an instance of {@link Builder}.
@@ -194,11 +213,16 @@ public class JoinMetadata extends CommonNodeMetadata {
          * @param varOrder - The variable order of the binding sets that are emitted by this node.
          * @return This builder so that method invocation could be chained.
          */
-        public Builder setVariableOrder(@Nullable final VariableOrder varOrder) {
+        public Builder setVarOrder(@Nullable final VariableOrder varOrder) {
             this.varOrder = varOrder;
             return this;
         }
 
+        @Override
+        public VariableOrder getVariableOrder() {
+            return varOrder;
+        }
+        
         /**
          * Sets the node id of this node's parent.
          *
@@ -242,6 +266,24 @@ public class JoinMetadata extends CommonNodeMetadata {
             this.rightChildNodeId = rightChildNodeId;
             return this;
         }
+        
+        /**
+         * Sets the batch size used to process large joins.
+         * @param joinBatchSize - batch size used to process large joins
+         * @return This builder so that method invocation could be chained.
+         */
+        public Builder setJoinBatchSize(int joinBatchSize) {
+            this.joinBatchSize = joinBatchSize;
+            return this;
+        }
+        
+        public String getLeftChildNodeId() {
+            return leftChildNodeId;
+        }
+        
+        public String getRightChildNodeId() {
+            return rightChildNodeId;
+        }
 
         /**
          * @return An instance of {@link JoinMetadata} built using this builder's values.
@@ -253,7 +295,8 @@ public class JoinMetadata extends CommonNodeMetadata {
                     joinType,
                     parentNodeId,
                     leftChildNodeId,
-                    rightChildNodeId);
+                    rightChildNodeId,
+                    joinBatchSize);
         }
     }
 }

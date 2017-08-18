@@ -26,8 +26,8 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
+import java.util.UUID;
 
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
@@ -45,13 +45,10 @@ import org.apache.rya.api.persist.RyaDAOException;
 import org.apache.rya.api.persist.query.BatchRyaQuery;
 import org.apache.rya.api.resolver.RdfToRyaConversions;
 import org.apache.rya.indexing.pcj.fluo.app.FluoStringConverter;
-import org.apache.rya.indexing.pcj.fluo.app.IncrementalUpdateConstants;
+import org.apache.rya.indexing.pcj.fluo.app.NodeType;
 import org.apache.rya.indexing.pcj.fluo.app.query.FluoQuery;
-import org.apache.rya.indexing.pcj.fluo.app.query.FluoQueryColumns;
 import org.apache.rya.indexing.pcj.fluo.app.query.FluoQueryMetadataDAO;
-import org.apache.rya.indexing.pcj.fluo.app.query.QueryMetadata;
 import org.apache.rya.indexing.pcj.fluo.app.query.SparqlFluoQueryBuilder;
-import org.apache.rya.indexing.pcj.fluo.app.query.SparqlFluoQueryBuilder.NodeIds;
 import org.apache.rya.indexing.pcj.fluo.app.query.StatementPatternMetadata;
 import org.apache.rya.indexing.pcj.storage.PcjException;
 import org.apache.rya.indexing.pcj.storage.PcjMetadata;
@@ -62,8 +59,6 @@ import org.openrdf.model.URI;
 import org.openrdf.model.Value;
 import org.openrdf.query.MalformedQueryException;
 import org.openrdf.query.algebra.StatementPattern;
-import org.openrdf.query.parser.ParsedQuery;
-import org.openrdf.query.parser.sparql.SPARQLParser;
 
 import com.google.common.base.Preconditions;
 
@@ -86,13 +81,17 @@ import edu.umd.cs.findbugs.annotations.NonNull;
  * Rya's query system.
  */
 @DefaultAnnotation(NonNull.class)
-public class CreatePcj {
-    private static final Logger log = Logger.getLogger(CreatePcj.class);
+public class CreateFluoPcj {
+    private static final Logger log = Logger.getLogger(CreateFluoPcj.class);
 
     /**
      * The default Statement Pattern batch insert size is 1000.
      */
     private static final int DEFAULT_SP_INSERT_BATCH_SIZE = 1000;
+    /**
+     * The default Join batch size is 5000.
+     */
+    private static final int DEFAULT_JOIN_BATCH_SIZE = 5000;
 
     /**
      * The maximum number of binding sets that will be inserted into each Statement
@@ -101,62 +100,30 @@ public class CreatePcj {
     private final int spInsertBatchSize;
 
     /**
-     * Constructs an instance of {@link CreatePcj} that uses
+     * The maximum number of join results that will be processed per transaction.
+     */
+    private final int joinBatchSize;
+    /**
+     * Constructs an instance of {@link CreateFluoPcj} that uses
      * {@link #DEFAULT_SP_INSERT_BATCH_SIZE} as the default batch insert size.
      */
-    public CreatePcj() {
-        this(DEFAULT_SP_INSERT_BATCH_SIZE);
+    public CreateFluoPcj() {
+        this(DEFAULT_SP_INSERT_BATCH_SIZE, DEFAULT_JOIN_BATCH_SIZE);
     }
 
     /**
-     * Constructs an instance of {@link CreatePcj}.
+     * Constructs an instance of {@link CreateFluoPcj}.
      *
      * @param spInsertBatchSize - The maximum number of binding sets that will be
      *   inserted into each Statement Pattern's result set per Fluo transaction.
      */
-    public CreatePcj(final int spInsertBatchSize) {
+    public CreateFluoPcj(final int spInsertBatchSize, final int joinBatchSize) {
         checkArgument(spInsertBatchSize > 0, "The SP insert batch size '" + spInsertBatchSize + "' must be greater than 0.");
+        checkArgument(joinBatchSize > 0, "The Join batch size '" + joinBatchSize + "' must be greater than 0.");
         this.spInsertBatchSize = spInsertBatchSize;
+        this.joinBatchSize = joinBatchSize;
     }
     
-    
-    /**
-     * Tells the Fluo PCJ Updater application to maintain a new PCJ.  This method does not
-     * require a pcjId and does not require a PCJ table to have already been created via {@link PrecomputedJoinStorage}.
-     * This method only adds the metadata to the Fluo table to incrementally generate query results.  Since there
-     * is no PCJ table, the incremental results must be exported to some external queuing service such as Kafka.
-     * This method currently only supports SPARQL COSNTRUCT queries, as they only export to Kafka by default. 
-     *
-     * @param sparql - SPARQL query whose results will be updated in the Fluo table
-     * @param fluo - A connection to the Fluo application that updates the PCJ index. (not null)
-     * @return The metadata that was written to the Fluo application for the PCJ.
-     * @throws MalformedQueryException The SPARQL query stored for the {@code pcjId} is malformed.
-     * @throws PcjException The PCJ Metadata for {@code pcjId} could not be read from {@code pcjStorage}.
-     * @throws RuntimeException If SPARQL query is not a CONSTRUCT query.
-     */
-    public FluoQuery createFluoPcj(final FluoClient fluo, String sparql) throws MalformedQueryException, PcjException {
-        requireNonNull(sparql);
-        requireNonNull(fluo);
-
-        // Keeps track of the IDs that are assigned to each of the query's nodes in Fluo.
-        // We use these IDs later when scanning Rya for historic Statement Pattern matches
-        // as well as setting up automatic exports.
-        final NodeIds nodeIds = new NodeIds();
-        final ParsedQuery parsedQuery = new SPARQLParser().parseQuery(sparql, null);
-        final FluoQuery fluoQuery = new SparqlFluoQueryBuilder().make(parsedQuery, nodeIds);
-        checkArgument(fluoQuery.getConstructQueryMetadata().isPresent(), "Sparql query: " + sparql + " must begin with a construct.");
-
-        try (Transaction tx = fluo.newTransaction()) {
-            // Write the query's structure to Fluo.
-            new FluoQueryMetadataDAO().write(tx, fluoQuery);
-            tx.commit();
-        }
-
-        return fluoQuery;
-    }
-
-    
-
 
     /**
      * Tells the Fluo PCJ Updater application to maintain a new PCJ. This method
@@ -168,29 +135,16 @@ public class CreatePcj {
      *
      * @param sparql - sparql query String to be registered with Fluo
      * @param fluo - A connection to the Fluo application that updates the PCJ index. (not null)
-     * @return queryId - The id of the root of the query metadata tree in Fluo
+     * @return The metadata that was written to the Fluo application for the PCJ.
      * @throws MalformedQueryException The SPARQL query stored for the {@code pcjId} is malformed.
      * @throws PcjException The PCJ Metadata for {@code pcjId} could not be read from {@code pcjStorage}.
      */
-    public String createPcj(String sparql, FluoClient fluo) throws MalformedQueryException {
+    public FluoQuery createPcj(String sparql, FluoClient fluo) throws MalformedQueryException {
         Preconditions.checkNotNull(sparql);
         Preconditions.checkNotNull(fluo);
         
-        FluoQuery fluoQuery = makeFluoQuery(sparql);
-        String queryId = null;
-        if(fluoQuery.getQueryMetadata().isPresent()) {
-            queryId = fluoQuery.getQueryMetadata().get().getNodeId();
-            queryId = queryId.split(IncrementalUpdateConstants.QUERY_PREFIX)[1];
-        } else {
-            queryId = fluoQuery.getConstructQueryMetadata().get().getNodeId();
-            queryId = queryId.split(IncrementalUpdateConstants.CONSTRUCT_PREFIX)[1];
-        }
-        
-        String[] idArray = queryId.split("_");
-        String id = idArray[idArray.length - 1];
-        
-        writeFluoQuery(fluo, fluoQuery, id);
-        return id;
+        String pcjId = UUID.randomUUID().toString().replaceAll("-", "");
+        return createPcj(pcjId, sparql, fluo);
     }
     
     /**
@@ -204,49 +158,39 @@ public class CreatePcj {
      * @param sparql - sparql query String to be registered with Fluo
      * @param fluo - A connection to the Fluo application that updates the PCJ index. (not null)
      * @return The metadata that was written to the Fluo application for the PCJ.
-     * @throws MalformedQueryException The SPARQL query stored for the {@code pcjId} is malformed.
      * @throws PcjException The PCJ Metadata for {@code pcjId} could not be read from {@code pcjStorage}.
      */
     public FluoQuery createPcj(
             final String pcjId,
             final String sparql,
-            final FluoClient fluo) throws MalformedQueryException, PcjException {
+            final FluoClient fluo) throws MalformedQueryException {
         requireNonNull(pcjId);
         requireNonNull(sparql);
         requireNonNull(fluo);
 
-        FluoQuery fluoQuery = makeFluoQuery(sparql);
+        FluoQuery fluoQuery = makeFluoQuery(sparql, pcjId);
         writeFluoQuery(fluo, fluoQuery, pcjId);
 
         return fluoQuery;
     }
     
-    private FluoQuery makeFluoQuery(String sparql) throws MalformedQueryException {
+    private FluoQuery makeFluoQuery(String sparql, String pcjId) throws MalformedQueryException {
         
-        // Keeps track of the IDs that are assigned to each of the query's nodes in Fluo.
-        // We use these IDs later when scanning Rya for historic Statement Pattern matches
-        // as well as setting up automatic exports.
-        final NodeIds nodeIds = new NodeIds();
-
-        // Parse the query's structure for the metadata that will be written to fluo.
-        final ParsedQuery parsedQuery = new SPARQLParser().parseQuery(sparql, null);
-        return new SparqlFluoQueryBuilder().make(parsedQuery, nodeIds);
+        String queryId = NodeType.generateNewIdForType(NodeType.QUERY, pcjId);
+        
+        SparqlFluoQueryBuilder builder = new SparqlFluoQueryBuilder();
+        builder.setFluoQueryId(queryId);
+        builder.setSparql(sparql);
+        builder.setJoinBatchSize(joinBatchSize);
+        
+        return builder.build();
     }
     
     private void writeFluoQuery(FluoClient fluo, FluoQuery fluoQuery, String pcjId) {
         try (Transaction tx = fluo.newTransaction()) {
             // Write the query's structure to Fluo.
             new FluoQueryMetadataDAO().write(tx, fluoQuery);
-
-            // The results of the query are eventually exported to an instance
-            // of Rya, so store the Rya ID for the PCJ.
-            QueryMetadata metadata = fluoQuery.getQueryMetadata().orNull();
-            if (metadata != null) {
-                String queryId = metadata.getNodeId();
-                tx.set(queryId, FluoQueryColumns.RYA_PCJ_ID, pcjId);
-                tx.set(pcjId, FluoQueryColumns.PCJ_ID_QUERY_ID, queryId);
-            }
-
+            
             // Flush the changes to Fluo.
             tx.commit();
         }
@@ -313,7 +257,7 @@ public class CreatePcj {
         //import results already ingested into Rya that match query
         importHistoricResultsIntoFluo(fluo, fluoQuery, accumulo, ryaInstance);
         // return queryId to the caller for later monitoring from the export.
-        return fluoQuery.getQueryMetadata().get().getNodeId();
+        return fluoQuery.getQueryMetadata().getNodeId();
     }
     
 

@@ -23,6 +23,7 @@ import static org.apache.rya.indexing.pcj.fluo.app.IncrementalUpdateConstants.DE
 import static org.apache.rya.indexing.pcj.fluo.app.IncrementalUpdateConstants.NODEID_BS_DELIM;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
@@ -33,14 +34,18 @@ import org.apache.fluo.api.client.scanner.RowScanner;
 import org.apache.fluo.api.data.Bytes;
 import org.apache.fluo.api.data.Column;
 import org.apache.fluo.api.data.ColumnValue;
+import org.apache.fluo.api.data.RowColumn;
 import org.apache.fluo.api.data.Span;
 import org.apache.log4j.Logger;
 import org.apache.rya.accumulo.utils.VisibilitySimplifier;
+import org.apache.rya.indexing.pcj.fluo.app.batch.AbstractBatchBindingSetUpdater;
+import org.apache.rya.indexing.pcj.fluo.app.batch.BatchInformation.Task;
+import org.apache.rya.indexing.pcj.fluo.app.batch.BatchInformationDAO;
+import org.apache.rya.indexing.pcj.fluo.app.batch.JoinBatchInformation;
 import org.apache.rya.indexing.pcj.fluo.app.query.FluoQueryColumns;
 import org.apache.rya.indexing.pcj.fluo.app.query.FluoQueryMetadataDAO;
 import org.apache.rya.indexing.pcj.fluo.app.query.JoinMetadata;
 import org.apache.rya.indexing.pcj.fluo.app.util.RowKeyUtil;
-import org.apache.rya.indexing.pcj.storage.accumulo.BindingSetConverter.BindingSetConversionException;
 import org.apache.rya.indexing.pcj.storage.accumulo.VariableOrder;
 import org.apache.rya.indexing.pcj.storage.accumulo.VisibilityBindingSet;
 import org.apache.rya.indexing.pcj.storage.accumulo.VisibilityBindingSetSerDe;
@@ -51,7 +56,6 @@ import org.openrdf.query.impl.MapBindingSet;
 
 import com.google.common.base.Optional;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 
 import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
 import edu.umd.cs.findbugs.annotations.NonNull;
@@ -122,14 +126,17 @@ public class JoinResultUpdater {
         }
 
         // Iterates over the sibling node's BindingSets that join with the new binding set.
-        final FluoTableIterator siblingBindingSets = makeSiblingScanIterator(childNodeId, childBindingSet, siblingId, tx);
-
+        Set<VisibilityBindingSet> siblingBindingSets = new HashSet<>();
+        Span siblingSpan = getSpan(tx, childNodeId, childBindingSet, siblingId);
+        Column siblingColumn = getScanColumnFamily(siblingId);
+        Optional<RowColumn> rowColumn = fillSiblingBatch(tx, siblingSpan, siblingColumn, siblingBindingSets, joinMetadata.getJoinBatchSize());
+        
         // Iterates over the resulting BindingSets from the join.
         final Iterator<VisibilityBindingSet> newJoinResults;
         if(emittingSide == Side.LEFT) {
-            newJoinResults = joinAlgorithm.newLeftResult(childBindingSet, siblingBindingSets);
+            newJoinResults = joinAlgorithm.newLeftResult(childBindingSet, siblingBindingSets.iterator());
         } else {
-            newJoinResults = joinAlgorithm.newRightResult(siblingBindingSets, childBindingSet);
+            newJoinResults = joinAlgorithm.newRightResult(siblingBindingSets.iterator(), childBindingSet);
         }
 
         // Insert the new join binding sets to the Fluo table.
@@ -139,9 +146,9 @@ public class JoinResultUpdater {
 
             // Create the Row Key for the emitted binding set. It does not contain visibilities.
             final Bytes resultRow = RowKeyUtil.makeRowKey(joinMetadata.getNodeId(), joinVarOrder, newJoinResult);
-
-            // Only insert the join Binding Set if it is new.
-            if(tx.get(resultRow, FluoQueryColumns.JOIN_BINDING_SET) == null) {
+            
+            // Only insert the join Binding Set if it is new or BindingSet contains values not used in resultRow.
+            if(tx.get(resultRow, FluoQueryColumns.JOIN_BINDING_SET) == null || joinVarOrder.getVariableOrders().size() < newJoinResult.size()) {
                 // Create the Node Value. It does contain visibilities.
                 final Bytes nodeValueBytes = BS_SERDE.serialize(newJoinResult);
 
@@ -152,6 +159,22 @@ public class JoinResultUpdater {
                 tx.set(resultRow, FluoQueryColumns.JOIN_BINDING_SET, nodeValueBytes);
             }
         }
+        
+        // if batch limit met, there are additional entries to process
+        // update the span and register updated batch job
+        if (rowColumn.isPresent()) {
+            Span newSpan = AbstractBatchBindingSetUpdater.getNewSpan(rowColumn.get(), siblingSpan);
+            JoinBatchInformation joinBatch = JoinBatchInformation.builder()
+                .setBatchSize(joinMetadata.getJoinBatchSize())
+                .setBs(childBindingSet)
+                .setColumn(siblingColumn)
+                .setJoinType(joinMetadata.getJoinType())
+                .setSide(emittingSide)
+                .setSpan(newSpan)
+                .setTask(Task.Add)
+                .build();
+            BatchInformationDAO.addBatch(tx, joinMetadata.getNodeId(), joinBatch);
+        }
     }
 
     /**
@@ -160,8 +183,55 @@ public class JoinResultUpdater {
     public static enum Side {
         LEFT, RIGHT;
     }
+    
+    
+    /**
+     * Fetches batch to be processed by scanning over the Span specified by the
+     * {@link JoinBatchInformation}. The number of results is less than or equal
+     * to the batch size specified by the JoinBatchInformation.
+     * 
+     * @param tx - Fluo transaction in which batch operation is performed
+     * @param siblingSpan - span of sibling to retrieve elements to join with
+     * @param bsSet- set that batch results are added to
+     * @return Set - containing results of sibling scan.
+     * @throws Exception 
+     */
+    private Optional<RowColumn> fillSiblingBatch(TransactionBase tx, Span siblingSpan, Column siblingColumn, Set<VisibilityBindingSet> bsSet, int batchSize) throws Exception {
 
-    private FluoTableIterator makeSiblingScanIterator(final String childId, final BindingSet childBindingSet, final String siblingId, final TransactionBase tx) throws BindingSetConversionException {
+        RowScanner rs = tx.scanner().over(siblingSpan).fetch(siblingColumn).byRow().build();
+        Iterator<ColumnScanner> colScannerIter = rs.iterator();
+
+        boolean batchLimitMet = false;
+        Bytes row = siblingSpan.getStart().getRow();
+        while (colScannerIter.hasNext() && !batchLimitMet) {
+            ColumnScanner colScanner = colScannerIter.next();
+            row = colScanner.getRow();
+            Iterator<ColumnValue> iter = colScanner.iterator();
+            while (iter.hasNext() && !batchLimitMet) {
+                bsSet.add(BS_SERDE.deserialize(iter.next().getValue()));
+                //check if batch size has been met and set flag if it has been met
+                if (bsSet.size() >= batchSize) {
+                    batchLimitMet = true;
+                }
+            }
+        }
+
+        if (batchLimitMet) {
+            return Optional.of(new RowColumn(row, siblingColumn));
+        } else {
+            return Optional.absent();
+        }
+    }
+    
+    /**
+     * Creates a Span for the sibling node to retrieve BindingSets to join with
+     * @param tx
+     * @param childId - Id of the node that was updated
+     * @param childBindingSet - BindingSet update
+     * @param siblingId - Id of the sibling node whose BindingSets will be retrieved and joined with the update
+     * @return Span to retrieve sibling node's BindingSets to form join results
+     */
+    private Span getSpan(TransactionBase tx, final String childId, final BindingSet childBindingSet, final String siblingId) {
         // Get the common variable orders. These are used to build the prefix.
         final VariableOrder childVarOrder = getVarOrder(tx, childId);
         final VariableOrder siblingVarOrder = getVarOrder(tx, siblingId);
@@ -184,15 +254,7 @@ public class JoinResultUpdater {
             }
         }
         siblingScanPrefix = siblingId + NODEID_BS_DELIM + siblingScanPrefix;
-
-        // Scan the sibling node's binding sets for those that have the same
-        // common variable values as childBindingSet. These needs to be joined
-        // and inserted into the Join's results. It's possible that none of these
-        // results will be new Join results if they have already been created in
-        // earlier iterations of this algorithm.
-
-        final RowScanner rs = tx.scanner().over(Span.prefix(siblingScanPrefix)).fetch(getScanColumnFamily(siblingId)).byRow().build();
-        return new FluoTableIterator(rs);
+        return Span.prefix(siblingScanPrefix);
     }
 
 
@@ -210,16 +272,26 @@ public class JoinResultUpdater {
         final NodeType nodeType = NodeType.fromNodeId(nodeId).get();
         switch(nodeType) {
             case STATEMENT_PATTERN:
-                return queryDao.readStatementPatternMetadata(tx, nodeId).getVariableOrder();
-
+                return removeBinIdFromVarOrder(queryDao.readStatementPatternMetadata(tx, nodeId).getVariableOrder());
             case FILTER:
-                return queryDao.readFilterMetadata(tx, nodeId).getVariableOrder();
-
+                return removeBinIdFromVarOrder(queryDao.readFilterMetadata(tx, nodeId).getVariableOrder());
             case JOIN:
-                return queryDao.readJoinMetadata(tx, nodeId).getVariableOrder();
-
+                return removeBinIdFromVarOrder(queryDao.readJoinMetadata(tx, nodeId).getVariableOrder());
+            case PROJECTION: 
+                return removeBinIdFromVarOrder(queryDao.readProjectionMetadata(tx, nodeId).getVariableOrder());
             default:
                 throw new IllegalArgumentException("Could not figure out the variable order for node with ID: " + nodeId);
+        }
+    }
+    
+    private VariableOrder removeBinIdFromVarOrder(VariableOrder varOrder) {
+        List<String> varOrderList = varOrder.getVariableOrders();
+        if(varOrderList.get(0).equals(IncrementalUpdateConstants.PERIODIC_BIN_ID)) {
+            List<String> updatedVarOrderList = Lists.newArrayList(varOrderList);
+            updatedVarOrderList.remove(0);
+            return new VariableOrder(updatedVarOrderList);
+        } else {
+            return varOrder;
         }
     }
 
@@ -284,6 +356,9 @@ public class JoinResultUpdater {
                 break;
             case JOIN:
                 column = FluoQueryColumns.JOIN_BINDING_SET;
+                break;
+            case PROJECTION:
+                column = FluoQueryColumns.PROJECTION_BINDING_SET;
                 break;
             default:
                 throw new IllegalArgumentException("The child node's sibling is not of type StatementPattern, Join, Left Join, or Filter.");
@@ -455,56 +530,4 @@ public class JoinResultUpdater {
         }
     }
 
-    /**
-     * Iterates over rows that have a Binding Set column and returns the unmarshalled
-     * {@link BindingSet}s.
-     */
-    private static final class FluoTableIterator implements Iterator<VisibilityBindingSet> {
-
-        private static final VisibilityBindingSetSerDe BS_SERDE = new VisibilityBindingSetSerDe();
-
-        private static final Set<Column> BINDING_SET_COLUMNS = Sets.newHashSet(
-                FluoQueryColumns.STATEMENT_PATTERN_BINDING_SET,
-                FluoQueryColumns.JOIN_BINDING_SET,
-                FluoQueryColumns.FILTER_BINDING_SET);
-
-        private final Iterator<ColumnScanner> rows;
-
-        /**
-         * Constructs an instance of {@link FluoTableIterator}.
-         *
-         * @param rows - Iterates over RowId values in a Fluo Table. (not null)
-         */
-        public FluoTableIterator(final RowScanner rows) {
-            this.rows = checkNotNull(rows).iterator();
-        }
-
-        @Override
-        public boolean hasNext() {
-            return rows.hasNext();
-        }
-
-        @Override
-        public VisibilityBindingSet next() {
-            final ColumnScanner columns = rows.next();
-
-            for (final ColumnValue cv : columns) {
-                if(BINDING_SET_COLUMNS.contains(cv.getColumn())) {
-                    final Bytes value = cv.getValue();
-                    try {
-                        return BS_SERDE.deserialize(value);
-                    } catch (final Exception e) {
-                        throw new RuntimeException("Row did not containing a Binding Set.", e);
-                    }
-                }
-            }
-
-            throw new RuntimeException("Row did not containing a Binding Set.");
-        }
-
-        @Override
-        public void remove() {
-            throw new UnsupportedOperationException("remove() is unsupported.");
-        }
-    }
 }

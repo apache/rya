@@ -166,7 +166,7 @@ public class PeriodicQueryMetadata extends CommonNodeMetadata {
     /**
      * Builder for chaining method calls to construct an instance of PeriodicQueryMetadata.
      */
-    public static class Builder {
+    public static class Builder implements CommonNodeMetadata.Builder {
 
         private String nodeId;
         private VariableOrder varOrder;
@@ -200,11 +200,12 @@ public class PeriodicQueryMetadata extends CommonNodeMetadata {
             return this;
         }
         
+        
         /**
          * Returns {@link VariableOrder} 
          * @return VariableOrder that indicates order that results are written in 
          */
-        public VariableOrder getVarOrder() {
+        public VariableOrder getVariableOrder() {
             return varOrder;
         }
         
@@ -233,6 +234,10 @@ public class PeriodicQueryMetadata extends CommonNodeMetadata {
         public Builder setChildNodeId(String childNodeId) {
             this.childNodeId = childNodeId;
             return this;
+        }
+        
+        public String getChildNodeId() {
+            return childNodeId;
         }
         
         /**

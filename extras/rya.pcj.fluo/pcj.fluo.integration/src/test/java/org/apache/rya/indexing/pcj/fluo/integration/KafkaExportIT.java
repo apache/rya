@@ -29,6 +29,9 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
+import org.apache.fluo.api.client.FluoClient;
+import org.apache.fluo.core.client.FluoClientImpl;
+import org.apache.fluo.recipes.test.FluoITHelper;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
@@ -244,6 +247,10 @@ public class KafkaExportIT extends KafkaExportITBase {
 
         // Create the PCJ in Fluo and load the statements into Rya.
         final String pcjId = loadData(sparql, statements);
+        
+        try(FluoClient fluo = new FluoClientImpl(super.getFluoConfiguration())) {
+            FluoITHelper.printFluoTable(fluo);
+        }
 
         // Create the expected results of the SPARQL query once the PCJ has been computed.
         final MapBindingSet expectedResult = new MapBindingSet();
@@ -350,7 +357,7 @@ public class KafkaExportIT extends KafkaExportITBase {
     }
 
     @Test
-    public void groupByManyBindings_avaerages() throws Exception {
+    public void groupByManyBindings_averages() throws Exception {
         // A query that groups what is aggregated by two of the keys.
         final String sparql =
                 "SELECT ?type ?location (avg(?price) as ?averagePrice) {" +
@@ -421,7 +428,158 @@ public class KafkaExportIT extends KafkaExportITBase {
 
         // Verify the end results of the query match the expected results.
         final Set<VisibilityBindingSet> results = readGroupedResults(pcjId, new VariableOrder("type", "location"));
-        System.out.println(results);
+        assertEquals(expectedResults, results);
+    }
+
+    
+    @Test
+    public void nestedGroupByManyBindings_averages() throws Exception {
+        // A query that groups what is aggregated by two of the keys.
+        final String sparql =
+                "SELECT ?type ?location ?averagePrice {" +
+                "FILTER(?averagePrice > 4) " +
+                "{SELECT ?type ?location (avg(?price) as ?averagePrice) {" +
+                    "?id <urn:type> ?type . " +
+                    "?id <urn:location> ?location ." +
+                    "?id <urn:price> ?price ." +
+                "} " +
+                "GROUP BY ?type ?location }}";
+
+        // Create the Statements that will be loaded into Rya.
+        final ValueFactory vf = new ValueFactoryImpl();
+        final Collection<Statement> statements = Sets.newHashSet(
+                // American items that will be averaged.
+                vf.createStatement(vf.createURI("urn:1"), vf.createURI("urn:type"), vf.createLiteral("apple")),
+                vf.createStatement(vf.createURI("urn:1"), vf.createURI("urn:location"), vf.createLiteral("USA")),
+                vf.createStatement(vf.createURI("urn:1"), vf.createURI("urn:price"), vf.createLiteral(2.50)),
+
+                vf.createStatement(vf.createURI("urn:2"), vf.createURI("urn:type"), vf.createLiteral("cheese")),
+                vf.createStatement(vf.createURI("urn:2"), vf.createURI("urn:location"), vf.createLiteral("USA")),
+                vf.createStatement(vf.createURI("urn:2"), vf.createURI("urn:price"), vf.createLiteral(4.25)),
+
+                vf.createStatement(vf.createURI("urn:3"), vf.createURI("urn:type"), vf.createLiteral("cheese")),
+                vf.createStatement(vf.createURI("urn:3"), vf.createURI("urn:location"), vf.createLiteral("USA")),
+                vf.createStatement(vf.createURI("urn:3"), vf.createURI("urn:price"), vf.createLiteral(5.25)),
+
+                // French items that will be averaged.
+                vf.createStatement(vf.createURI("urn:4"), vf.createURI("urn:type"), vf.createLiteral("cheese")),
+                vf.createStatement(vf.createURI("urn:4"), vf.createURI("urn:location"), vf.createLiteral("France")),
+                vf.createStatement(vf.createURI("urn:4"), vf.createURI("urn:price"), vf.createLiteral(8.5)),
+
+                vf.createStatement(vf.createURI("urn:5"), vf.createURI("urn:type"), vf.createLiteral("cigarettes")),
+                vf.createStatement(vf.createURI("urn:5"), vf.createURI("urn:location"), vf.createLiteral("France")),
+                vf.createStatement(vf.createURI("urn:5"), vf.createURI("urn:price"), vf.createLiteral(3.99)),
+
+                vf.createStatement(vf.createURI("urn:6"), vf.createURI("urn:type"), vf.createLiteral("cigarettes")),
+                vf.createStatement(vf.createURI("urn:6"), vf.createURI("urn:location"), vf.createLiteral("France")),
+                vf.createStatement(vf.createURI("urn:6"), vf.createURI("urn:price"), vf.createLiteral(4.99)));
+
+        // Create the PCJ in Fluo and load the statements into Rya.
+        final String pcjId = loadData(sparql, statements);
+
+        // Create the expected results of the SPARQL query once the PCJ has been computed.
+        final Set<VisibilityBindingSet> expectedResults = new HashSet<>();
+
+        MapBindingSet bs = new MapBindingSet();
+        bs.addBinding("type", vf.createLiteral("cheese", XMLSchema.STRING));
+        bs.addBinding("location", vf.createLiteral("France", XMLSchema.STRING));
+        bs.addBinding("averagePrice", vf.createLiteral("8.5", XMLSchema.DECIMAL));
+        expectedResults.add( new VisibilityBindingSet(bs));
+
+        bs = new MapBindingSet();
+        bs.addBinding("type", vf.createLiteral("cigarettes", XMLSchema.STRING));
+        bs.addBinding("location", vf.createLiteral("France", XMLSchema.STRING));
+        bs.addBinding("averagePrice", vf.createLiteral("4.49", XMLSchema.DECIMAL));
+        expectedResults.add( new VisibilityBindingSet(bs) );
+        
+        bs = new MapBindingSet();
+        bs.addBinding("type", vf.createLiteral("cheese", XMLSchema.STRING));
+        bs.addBinding("location", vf.createLiteral("USA", XMLSchema.STRING));
+        bs.addBinding("averagePrice", vf.createLiteral("4.75", XMLSchema.DECIMAL));
+        expectedResults.add( new VisibilityBindingSet(bs) );
+
+        // Verify the end results of the query match the expected results.
+        final Set<VisibilityBindingSet> results = readGroupedResults(pcjId, new VariableOrder("type", "location"));
+        assertEquals(expectedResults, results);
+    }
+    
+    
+    @Test
+    public void nestedWithJoinGroupByManyBindings_averages() throws Exception {
+       
+        // A query that groups what is aggregated by two of the keys.
+        final String sparql =
+                "SELECT ?type ?location ?averagePrice ?milkType {" +
+                "FILTER(?averagePrice > 4) " +
+                "?type <urn:hasMilkType> ?milkType ." +
+                "{SELECT ?type ?location (avg(?price) as ?averagePrice) {" +
+                    "?id <urn:type> ?type . " +
+                    "?id <urn:location> ?location ." +
+                    "?id <urn:price> ?price ." +
+                "} " +
+                "GROUP BY ?type ?location }}";
+
+        // Create the Statements that will be loaded into Rya.
+        final ValueFactory vf = new ValueFactoryImpl();
+        final Collection<Statement> statements = Sets.newHashSet(
+               
+                vf.createStatement(vf.createURI("urn:1"), vf.createURI("urn:type"), vf.createURI("urn:blue")),
+                vf.createStatement(vf.createURI("urn:1"), vf.createURI("urn:location"), vf.createLiteral("France")),
+                vf.createStatement(vf.createURI("urn:1"), vf.createURI("urn:price"), vf.createLiteral(8.5)),
+                vf.createStatement(vf.createURI("urn:blue"), vf.createURI("urn:hasMilkType"), vf.createLiteral("cow", XMLSchema.STRING)),
+
+                vf.createStatement(vf.createURI("urn:2"), vf.createURI("urn:type"), vf.createURI("urn:american")),
+                vf.createStatement(vf.createURI("urn:2"), vf.createURI("urn:location"), vf.createLiteral("USA")),
+                vf.createStatement(vf.createURI("urn:2"), vf.createURI("urn:price"), vf.createLiteral(.99)),
+
+                vf.createStatement(vf.createURI("urn:3"), vf.createURI("urn:type"), vf.createURI("urn:cheddar")),
+                vf.createStatement(vf.createURI("urn:3"), vf.createURI("urn:location"), vf.createLiteral("USA")),
+                vf.createStatement(vf.createURI("urn:3"), vf.createURI("urn:price"), vf.createLiteral(5.25)),
+
+                // French items that will be averaged.
+                vf.createStatement(vf.createURI("urn:4"), vf.createURI("urn:type"), vf.createURI("urn:goat")),
+                vf.createStatement(vf.createURI("urn:4"), vf.createURI("urn:location"), vf.createLiteral("France")),
+                vf.createStatement(vf.createURI("urn:4"), vf.createURI("urn:price"), vf.createLiteral(6.5)),
+                vf.createStatement(vf.createURI("urn:goat"), vf.createURI("urn:hasMilkType"), vf.createLiteral("goat", XMLSchema.STRING)),
+                
+                vf.createStatement(vf.createURI("urn:5"), vf.createURI("urn:type"), vf.createURI("urn:fontina")),
+                vf.createStatement(vf.createURI("urn:5"), vf.createURI("urn:location"), vf.createLiteral("Italy")),
+                vf.createStatement(vf.createURI("urn:5"), vf.createURI("urn:price"), vf.createLiteral(3.99)),
+                vf.createStatement(vf.createURI("urn:fontina"), vf.createURI("urn:hasMilkType"), vf.createLiteral("cow", XMLSchema.STRING)),
+
+                vf.createStatement(vf.createURI("urn:6"), vf.createURI("urn:type"), vf.createURI("urn:fontina")),
+                vf.createStatement(vf.createURI("urn:6"), vf.createURI("urn:location"), vf.createLiteral("Italy")),
+                vf.createStatement(vf.createURI("urn:6"), vf.createURI("urn:price"), vf.createLiteral(4.99)));
+
+        // Create the PCJ in Fluo and load the statements into Rya.
+        final String pcjId = loadData(sparql, statements);
+
+        // Create the expected results of the SPARQL query once the PCJ has been computed.
+        final Set<VisibilityBindingSet> expectedResults = new HashSet<>();
+
+        MapBindingSet bs = new MapBindingSet();
+        bs.addBinding("type", vf.createURI("urn:blue"));
+        bs.addBinding("location", vf.createLiteral("France", XMLSchema.STRING));
+        bs.addBinding("averagePrice", vf.createLiteral("8.5", XMLSchema.DECIMAL));
+        bs.addBinding("milkType", vf.createLiteral("cow", XMLSchema.STRING));
+        expectedResults.add( new VisibilityBindingSet(bs));
+
+        bs = new MapBindingSet();
+        bs.addBinding("type", vf.createURI("urn:goat"));
+        bs.addBinding("location", vf.createLiteral("France", XMLSchema.STRING));
+        bs.addBinding("averagePrice", vf.createLiteral("6.5", XMLSchema.DECIMAL));
+        bs.addBinding("milkType", vf.createLiteral("goat", XMLSchema.STRING));
+        expectedResults.add( new VisibilityBindingSet(bs) );
+        
+        bs = new MapBindingSet();
+        bs.addBinding("type", vf.createURI("urn:fontina"));
+        bs.addBinding("location", vf.createLiteral("Italy", XMLSchema.STRING));
+        bs.addBinding("averagePrice", vf.createLiteral("4.49", XMLSchema.DECIMAL));
+        bs.addBinding("milkType", vf.createLiteral("cow", XMLSchema.STRING));
+        expectedResults.add( new VisibilityBindingSet(bs) );
+
+        // Verify the end results of the query match the expected results.
+        final Set<VisibilityBindingSet> results = readGroupedResults(pcjId, new VariableOrder("type", "location"));
         assertEquals(expectedResults, results);
     }
 

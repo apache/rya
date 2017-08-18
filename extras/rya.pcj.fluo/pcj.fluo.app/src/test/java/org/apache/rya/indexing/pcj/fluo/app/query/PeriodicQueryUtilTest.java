@@ -26,7 +26,7 @@ import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.rya.indexing.pcj.fluo.app.IncrementalUpdateConstants;
-import org.apache.rya.indexing.pcj.fluo.app.query.SparqlFluoQueryBuilder.NodeIds;
+import org.apache.rya.indexing.pcj.fluo.app.NodeType;
 import org.apache.rya.indexing.pcj.fluo.app.util.PeriodicQueryUtil;
 import org.apache.rya.indexing.pcj.fluo.app.util.PeriodicQueryUtil.PeriodicQueryNodeRelocator;
 import org.apache.rya.indexing.pcj.fluo.app.util.PeriodicQueryUtil.PeriodicQueryNodeVisitor;
@@ -162,17 +162,17 @@ public class PeriodicQueryUtilTest {
                 + "?obs <uri:hasTime> ?time. " //n
                 + "?obs <uri:hasLattitude> ?lat }"; //n
          
-         SPARQLParser parser = new SPARQLParser();
-         ParsedQuery pq = parser.parseQuery(query, null);
          SparqlFluoQueryBuilder builder = new SparqlFluoQueryBuilder();
-         FluoQuery fluoQuery = builder.make(pq, new NodeIds());
+         builder.setSparql(query);
+         builder.setFluoQueryId(NodeType.generateNewFluoIdForType(NodeType.QUERY));
+         FluoQuery fluoQuery = builder.build();
          
          PeriodicQueryMetadata periodicMeta = fluoQuery.getPeriodicQueryMetadata().orNull();
          Assert.assertEquals(true, periodicMeta != null);
          VariableOrder periodicVars = periodicMeta.getVariableOrder();
          Assert.assertEquals(IncrementalUpdateConstants.PERIODIC_BIN_ID, periodicVars.getVariableOrders().get(0));
          
-         QueryMetadata queryMeta = fluoQuery.getQueryMetadata().get();
+         QueryMetadata queryMeta = fluoQuery.getQueryMetadata();
          VariableOrder queryVars = queryMeta.getVariableOrder();
          Assert.assertEquals(IncrementalUpdateConstants.PERIODIC_BIN_ID, queryVars.getVariableOrders().get(0));
          

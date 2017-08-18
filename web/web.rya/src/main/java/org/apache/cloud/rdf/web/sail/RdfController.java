@@ -117,6 +117,7 @@ public class RdfController {
 		}, QUERY_TIME_OUT_SECONDS * 1000);
 		
 		try {
+			response.setHeader("Access-Control-Allow-Origin", "*");
 			ServletOutputStream os = response.getOutputStream();
             conn = repository.getConnection();
 
@@ -331,6 +332,7 @@ public class RdfController {
         }
         SailRepositoryConnection conn = null;
         try {
+        	response.setHeader("Access-Control-Allow-Origin", "*");
             conn = repository.getConnection();
             
             if (conn.getSailConnection() instanceof RdfCloudTripleStoreConnection && cv != null) {

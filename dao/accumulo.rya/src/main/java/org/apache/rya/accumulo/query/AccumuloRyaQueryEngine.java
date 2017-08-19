@@ -23,6 +23,7 @@ import static org.apache.rya.api.RdfCloudTripleStoreUtils.layoutToTable;
 import info.aduna.iteration.CloseableIteration;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -47,6 +48,7 @@ import org.apache.rya.api.query.strategy.ByteRange;
 import org.apache.rya.api.query.strategy.TriplePatternStrategy;
 import org.apache.rya.api.resolver.RyaContext;
 import org.apache.rya.api.resolver.RyaTripleContext;
+import org.apache.rya.api.resolver.RyaTypeResolverException;
 import org.apache.rya.api.resolver.triple.TripleRowRegex;
 import org.apache.rya.api.utils.CloseableIterableIteration;
 
@@ -72,6 +74,7 @@ import com.google.common.base.Function;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.Iterators;
+import com.google.common.primitives.Bytes;
 
 /**
  * Date: 7/17/12 Time: 9:28 AM
@@ -162,6 +165,9 @@ public class AccumuloRyaQueryEngine implements RyaQueryEngine<AccumuloRdfConfigu
                 layout = entry.getKey();
                 ByteRange byteRange = entry.getValue();
                 Range range = new Range(new Text(byteRange.getStart()), new Text(byteRange.getEnd()));
+                if ((stmt.getSubject() != null) && (stmt.getPredicate() != null) && (stmt.getObject() != null)) {
+                    range = Range.exact(appendType(byteRange.getStart(), stmt.getObject()));
+                }
                 Range rangeMapRange = range;
                 // if context != null, bind context info to Range so that
                 // ColumnFamily Keys returned by Scanner
@@ -283,7 +289,9 @@ public class AccumuloRyaQueryEngine implements RyaQueryEngine<AccumuloRdfConfigu
                 layout = entry.getKey();
                 ByteRange byteRange = entry.getValue();
                 range = new Range(new Text(byteRange.getStart()), new Text(byteRange.getEnd()));
-
+                if ((stmt.getSubject() != null) && (stmt.getPredicate() != null) && (stmt.getObject() != null)) {
+                    range = Range.exact(appendType(byteRange.getStart(), stmt.getObject()));
+                }
             } else {
                 range = new Range();
                 layout = TABLE_LAYOUT.SPO;
@@ -365,6 +373,9 @@ public class AccumuloRyaQueryEngine implements RyaQueryEngine<AccumuloRdfConfigu
                 layout = entry.getKey();
                 ByteRange byteRange = entry.getValue();
                 Range range = new Range(new Text(byteRange.getStart()), new Text(byteRange.getEnd()));
+                if ((stmt.getSubject() != null) && (stmt.getPredicate() != null) && (stmt.getObject() != null)) {
+                    range = Range.exact(appendType(byteRange.getStart(), stmt.getObject()));
+                }
                 ranges.add(range);
             }
             // no ranges
@@ -459,4 +470,20 @@ public class AccumuloRyaQueryEngine implements RyaQueryEngine<AccumuloRdfConfigu
     @Override
     public void close() throws IOException {
     }
-}
+
+    /**
+     * Append a type extracted from {@link RyaType} to the end of the data
+     * 
+     * @param data The data where a type is appended to
+     * @param ryaType The {@link RyaType} where a byte type is retrieved so the value can be appended to the data
+     * @return the appended data as a {@link Text} type
+     * @throws RyaTypeResolverException when there is an error occurred in getting the type
+     */
+    private static Text appendType(final byte[] data, final RyaType ryaType) throws RyaTypeResolverException {
+        final RyaContext realRyaContext = RyaContext.getInstance();
+
+        byte[] type = realRyaContext.serializeType(ryaType)[1];
+        type = Arrays.copyOfRange(type, 1, type.length);
+
+        return new Text(Bytes.concat(data, type));
+    }}

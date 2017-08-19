@@ -73,10 +73,11 @@ public class InferenceEngine {
     private Set<URI> symmetricPropertySet;
     private Map<URI, URI> inverseOfMap;
     private Set<URI> transitivePropertySet;
-    private Map<Resource, Map<URI, Value>> hasValueByType;
-    private Map<URI, Map<Resource, Value>> hasValueByProperty;
     private Map<URI, Set<URI>> domainByType;
     private Map<URI, Set<URI>> rangeByType;
+    private Map<Resource, Map<URI, Value>> hasValueByType;
+    private Map<URI, Map<Resource, Value>> hasValueByProperty;
+    private Map<Resource, Map<Resource, URI>> allValuesFromByValueType;
 
     private RyaDAO ryaDAO;
     private RdfCloudTripleStoreConfiguration conf;
@@ -589,8 +590,9 @@ public class InferenceEngine {
                 iter.close();
             }
         }
-        // Query for the hasValue restrictions and add them to the schema
+        // Query for specific types of restriction and add their details to the schema
         refreshHasValueRestrictions(restrictions);
+        refreshAllValuesFromRestrictions(restrictions);
     }
 
     private void refreshHasValueRestrictions(Map<Resource, URI> restrictions) throws QueryEvaluationException {
@@ -612,6 +614,36 @@ public class InferenceEngine {
                     }
                     hasValueByType.get(restrictionClass).put(property, value);
                     hasValueByProperty.get(property).put(restrictionClass, value);
+                }
+            }
+        } finally {
+            if (iter != null) {
+                iter.close();
+            }
+        }
+    }
+
+    private void refreshAllValuesFromRestrictions(Map<Resource, URI> restrictions) throws QueryEvaluationException {
+        allValuesFromByValueType = new HashMap<>();
+        CloseableIteration<Statement, QueryEvaluationException> iter = RyaDAOHelper.query(ryaDAO, null, OWL.ALLVALUESFROM, null, conf);
+        try {
+            while (iter.hasNext()) {
+                Statement st = iter.next();
+                if (restrictions.containsKey(st.getSubject()) && st.getObject() instanceof URI) {
+                    URI property = restrictions.get(st.getSubject());
+                    URI valueClass = (URI) st.getObject();
+                    // Should also be triggered by subclasses of the property restriction
+                    Set<Resource> restrictionClasses = new HashSet<>();
+                    restrictionClasses.add(st.getSubject());
+                    if (st.getSubject() instanceof URI) {
+                        restrictionClasses.addAll(findParents(subClassOfGraph, (URI) st.getSubject()));
+                    }
+                    for (Resource restrictionClass : restrictionClasses) {
+                        if (!allValuesFromByValueType.containsKey(valueClass)) {
+                            allValuesFromByValueType.put(valueClass, new HashMap<>());
+                        }
+                        allValuesFromByValueType.get(valueClass).put(restrictionClass, property);
+                    }
                 }
             }
         } finally {
@@ -946,5 +978,48 @@ public class InferenceEngine {
             properties.addAll(rangeByType.get(rangeType));
         }
         return properties;
+    }
+
+    /**
+     * For a given type, return information about any owl:allValuesFrom restriction that could imply
+     * an individual's membership in that type: If the subject of a triple belongs to the type
+     * associated with the restriction itself, and the predicate is the one referenced by the
+     * restriction, then the object of the triple is implied to have the value type.
+     * @param valueType The type to be inferred, which is the type of the object of the triple, or
+     *      the type from which all values are stated to belong. Takes class hierarchy into account,
+     *      so possible inferences include any ways of inferring subtypes of the value type, and
+     *      subject types that trigger inference include any subtypes of relevant restrictions.
+     *      Also considers property hierarchy, so properties that trigger inference will include
+     *      subproperties of those referenced by relevant restrictions.
+     * @return A map from subject type (a property restriction type or a subtype of one) to the set
+     *      of properties (including any property referenced by such a restriction and all of its
+     *      subproperties) such that for any individual which belongs to the subject type, all
+     *      values it has for any of those properties belong to the value type.
+     */
+    public Map<Resource, Set<URI>> getAllValuesFromByValueType(Resource valueType) {
+        Map<Resource, Set<URI>> implications = new HashMap<>();
+        if (allValuesFromByValueType != null) {
+            // Check for any subtypes which would in turn imply the value type
+            HashSet<Resource> valueTypes = new HashSet<>();
+            valueTypes.add(valueType);
+            if (valueType instanceof URI) {
+                valueTypes.addAll(findParents(subClassOfGraph, (URI) valueType));
+            }
+            for (Resource valueSubType : valueTypes) {
+                if (allValuesFromByValueType.containsKey(valueSubType)) {
+                    Map<Resource, URI> restrictionToProperty = allValuesFromByValueType.get(valueSubType);
+                    for (Resource restrictionType : restrictionToProperty.keySet()) {
+                        if (!implications.containsKey(restrictionType)) {
+                            implications.put(restrictionType, new HashSet<>());
+                        }
+                        URI property = restrictionToProperty.get(restrictionType);
+                        implications.get(restrictionType).add(property);
+                        // Also add subproperties that would in turn imply the property
+                        implications.get(restrictionType).addAll(findParents(subPropertyOfGraph, property));
+                    }
+                }
+            }
+        }
+        return implications;
     }
 }

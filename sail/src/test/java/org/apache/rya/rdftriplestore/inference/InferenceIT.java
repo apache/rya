@@ -188,6 +188,43 @@ public class InferenceIT extends TestCase {
     }
 
     @Test
+    public void testAllValuesFromQuery() throws Exception {
+        final String ontology = "INSERT DATA { GRAPH <http://updated/test> {\n"
+                + "  <urn:Cairn_Terrier> rdfs:subClassOf <urn:Terrier> .\n"
+                + "  <urn:Terrier> rdfs:subClassOf <urn:Dog> ;\n"
+                + "    owl:onProperty <urn:relative> ;\n"
+                + "    owl:allValuesFrom <urn:Terrier> .\n"
+                + "  <urn:Dog> rdfs:subClassOf [\n"
+                + "    owl:onProperty <urn:portrays> ; owl:allValuesFrom <urn:FictionalDog>\n"
+                + "  ] .\n"
+                + "  <urn:parent> rdfs:subPropertyOf <urn:relative> .\n"
+                + "}}";
+        conn.prepareUpdate(QueryLanguage.SPARQL, ontology).execute();
+        inferenceEngine.refreshGraph();
+        final String instances = "INSERT DATA { GRAPH <http://updated/test> {\n"
+                + "  <urn:Rommy> a <urn:Cairn_Terrier> .\n"
+                + "  <urn:Rommy> <urn:parent> <urn:Terry> .\n"
+                + "  <urn:Terry> <urn:portrays> <urn:Toto> .\n"
+                + "}}";
+        conn.prepareUpdate(QueryLanguage.SPARQL, instances).execute();
+        conn.prepareTupleQuery(QueryLanguage.SPARQL, "SELECT ?x { ?x a <urn:Dog> }").evaluate(resultHandler);
+        Assert.assertEquals(2, solutions.size());
+        Set<Value> answers = new HashSet<>();
+        for (BindingSet solution : solutions) {
+            answers.add(solution.getBinding("x").getValue());
+        }
+        Assert.assertTrue(answers.contains(vf.createURI("urn:Terry")));
+        Assert.assertTrue(answers.contains(vf.createURI("urn:Rommy")));
+        // If allValuesFrom inference were applied recursively, this triple wouldn't be needed:
+        conn.prepareUpdate(QueryLanguage.SPARQL, "INSERT DATA { GRAPH <http://updated/test> {\n"
+                + "  <urn:Terry> a <urn:Cairn_Terrier> .\n"
+                + "}}").execute();
+        conn.prepareTupleQuery(QueryLanguage.SPARQL, "SELECT ?x { ?x a <urn:FictionalDog> }").evaluate(resultHandler);
+        Assert.assertEquals(1, solutions.size());
+        Assert.assertEquals(vf.createURI("urn:Toto"), solutions.get(0).getBinding("x").getValue());
+    }
+
+    @Test
     public void testHasValueTypeQuery() throws Exception {
         final String ontology = "INSERT DATA { GRAPH <http://updated/test> {\n"
                 + "  <urn:Biped> owl:onProperty <urn:walksOnLegs>  ; owl:hasValue \"2\"^^<xsd:integer> . \n"

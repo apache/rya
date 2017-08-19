@@ -225,6 +225,37 @@ public class InferenceEngineTest extends TestCase {
     }
 
     @Test
+    public void testAllValuesFrom() throws Exception {
+        String insert = "INSERT DATA { GRAPH <http://updated/test> {\n"
+                + "  <urn:Dog> owl:onProperty <urn:relative> ; owl:allValuesFrom <urn:Dog> .\n"
+                + "  <urn:Retriever> rdfs:subClassOf <urn:Dog> .\n"
+                + "  <urn:Terrier> rdfs:subClassOf <urn:Dog> .\n"
+                + "  <urn:Terrier> owl:onProperty <urn:relative> ; owl:allValuesFrom <urn:Terrier> .\n"
+                + "  <urn:Cairn_Terrier> rdfs:subClassOf <urn:Terrier> .\n"
+                + "  <urn:parent> rdfs:subPropertyOf <urn:relative> .\n"
+                + "  <urn:Dog> rdfs:subClassOf <urn:Mammal> .\n"
+                + "  <urn:Person> rdfs:subClassOf <urn:Mammal> .\n"
+                + "  <urn:Person> owl:onProperty <urn:relative> ; owl:allValuesFrom <urn:Person> .\n"
+                + "}}";
+        conn.prepareUpdate(QueryLanguage.SPARQL, insert).execute();
+        inferenceEngine.refreshGraph();
+        final Map<Resource, Set<URI>> restrictionsImplyingTerrier = new HashMap<>();
+        final Set<URI> properties = new HashSet<>();
+        properties.add(vf.createURI("urn:parent"));
+        properties.add(vf.createURI("urn:relative"));
+        restrictionsImplyingTerrier.put(vf.createURI("urn:Terrier"), properties);
+        restrictionsImplyingTerrier.put(vf.createURI("urn:Cairn_Terrier"), properties);
+        Assert.assertEquals(restrictionsImplyingTerrier, inferenceEngine.getAllValuesFromByValueType(vf.createURI("urn:Terrier")));
+        final Map<Resource, Set<URI>> restrictionsImplyingDog = new HashMap<>(restrictionsImplyingTerrier);
+        restrictionsImplyingDog.put(vf.createURI("urn:Dog"), properties);
+        restrictionsImplyingDog.put(vf.createURI("urn:Retriever"), properties);
+        Assert.assertEquals(restrictionsImplyingDog, inferenceEngine.getAllValuesFromByValueType(vf.createURI("urn:Dog")));
+        final Map<Resource, Set<URI>> restrictionsImplyingMammal = new HashMap<>(restrictionsImplyingDog);
+        restrictionsImplyingMammal.put(vf.createURI("urn:Person"), properties);
+        Assert.assertEquals(restrictionsImplyingMammal, inferenceEngine.getAllValuesFromByValueType(vf.createURI("urn:Mammal")));
+    }
+
+    @Test
     public void testHasValueGivenProperty() throws Exception {
         String insert = "INSERT DATA { GRAPH <http://updated/test> {\n"
                 + "  <urn:Biped> owl:onProperty <urn:walksUsingLegs>  . \n"

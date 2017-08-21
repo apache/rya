@@ -57,6 +57,10 @@ under the License.
             <artifactId>rya.indexing</artifactId>
         </dependency>
         <dependency>
+            <groupId>org.apache.rya</groupId>
+            <artifactId>rya.pcj.fluo.test.base</artifactId>
+        </dependency>
+        <dependency>
             <groupId>org.eclipse.rdf4j</groupId>
             <artifactId>rdf4j-queryalgebra-geosparql</artifactId>
             <version>2.2</version>

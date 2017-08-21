@@ -34,9 +34,9 @@ import org.apache.accumulo.core.client.Instance;
 import org.apache.rya.api.client.RyaClient;
 import org.apache.rya.api.client.accumulo.AccumuloConnectionDetails;
 import org.apache.rya.api.client.accumulo.AccumuloRyaClientFactory;
-import org.apache.rya.indexing.pcj.fluo.RyaExportITBase;
 import org.apache.rya.indexing.pcj.storage.PrecomputedJoinStorage;
 import org.apache.rya.indexing.pcj.storage.accumulo.AccumuloPcjStorage;
+import org.apache.rya.pcj.fluo.test.base.RyaExportITBase;
 import org.junit.Test;
 import org.openrdf.model.Statement;
 import org.openrdf.model.URI;
@@ -327,12 +327,12 @@ public class GeoFunctionsIT extends RyaExportITBase {
         final Connector accumuloConn = super.getAccumuloConnector();
 
         final RyaClient ryaClient = AccumuloRyaClientFactory.build(new AccumuloConnectionDetails(
-                ACCUMULO_USER,
-                ACCUMULO_PASSWORD.toCharArray(),
+                getUsername(),
+                getPassword().toCharArray(),
                 accInstance.getInstanceName(),
                 accInstance.getZooKeepers()), accumuloConn);
 
-        ryaClient.getCreatePCJ().createPCJ(RYA_INSTANCE_NAME, sparql);
+        ryaClient.getCreatePCJ().createPCJ(getRyaInstanceName(), sparql);
 
         // Write the data to Rya.
         final SailRepositoryConnection ryaConn = super.getRyaSailRepository().getConnection();
@@ -345,7 +345,7 @@ public class GeoFunctionsIT extends RyaExportITBase {
         super.getMiniFluo().waitForObservers();
 
         // Fetch the value that is stored within the PCJ table.
-        try(final PrecomputedJoinStorage pcjStorage = new AccumuloPcjStorage(accumuloConn, RYA_INSTANCE_NAME)) {
+        try(final PrecomputedJoinStorage pcjStorage = new AccumuloPcjStorage(accumuloConn, getRyaInstanceName())) {
             final String pcjId = pcjStorage.listPcjs().get(0);
             final Set<BindingSet> results = Sets.newHashSet( pcjStorage.listResults(pcjId) );
 

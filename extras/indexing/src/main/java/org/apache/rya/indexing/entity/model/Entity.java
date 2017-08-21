@@ -208,7 +208,7 @@ public class Entity {
         final ImmutableMap<RyaURI, Property> typePropertyMap = properties.get(typeRyaUri);
         Optional<Property> property = Optional.empty();
         if (typePropertyMap != null) {
-            property = Optional.of(typePropertyMap.get(propertyRyaUri));
+            property = Optional.ofNullable(typePropertyMap.get(propertyRyaUri));
         }
         return property;
     }

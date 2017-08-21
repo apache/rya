@@ -33,6 +33,7 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.apache.hadoop.conf.Configuration;
+import org.apache.log4j.Logger;
 import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.domain.RyaType;
 import org.apache.rya.api.domain.RyaURI;
@@ -40,6 +41,7 @@ import org.apache.rya.indexing.entity.model.Entity;
 import org.apache.rya.indexing.entity.model.Property;
 import org.apache.rya.indexing.entity.model.Type;
 import org.apache.rya.indexing.entity.storage.EntityStorage;
+import org.apache.rya.indexing.entity.storage.EntityStorage.EntityStorageException;
 import org.apache.rya.indexing.entity.storage.TypeStorage;
 import org.apache.rya.indexing.entity.storage.TypeStorage.TypeStorageException;
 import org.apache.rya.indexing.entity.storage.mongo.ConvertingCursor;
@@ -60,6 +62,7 @@ import edu.umd.cs.findbugs.annotations.NonNull;
  */
 @DefaultAnnotation(NonNull.class)
 public abstract class BaseEntityIndexer implements EntityIndexer, MongoSecondaryIndex {
+    private static final Logger log = Logger.getLogger(BaseEntityIndexer.class);
 
     /**
      * When this URI is the Predicate of a Statement, it indicates a {@link Type} for an {@link Entity}.
@@ -73,7 +76,11 @@ public abstract class BaseEntityIndexer implements EntityIndexer, MongoSecondary
     @Override
     public void setConf(final Configuration conf) {
         requireNonNull(conf);
-        entities.set( getEntityStorage(conf) );
+        try {
+            entities.set( getEntityStorage(conf) );
+        } catch (final EntityStorageException e) {
+            log.error("Unable to set entity storage.");
+        }
         types.set( getTypeStorage(conf) );
     }
 

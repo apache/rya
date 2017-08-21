@@ -135,7 +135,7 @@ public class MongoDbSmartUri implements SmartUriStorage {
         if (!isInit) {
             try {
                 setupClient(conf);
-            } catch (final UnknownHostException | MongoException e) {
+            } catch (final UnknownHostException | MongoException | EntityStorageException e) {
                 throw new SmartUriException("Failed to setup MongoDB client", e);
             }
         }
@@ -146,8 +146,9 @@ public class MongoDbSmartUri implements SmartUriStorage {
      * @param conf the {@link Configuration}.
      * @throws UnknownHostException
      * @throws MongoException
+     * @throws EntityStorageException
      */
-    private void setupClient(final Configuration conf) throws UnknownHostException, MongoException {
+    private void setupClient(final Configuration conf) throws UnknownHostException, MongoException, EntityStorageException {
         final MongoDBRdfConfiguration mongoConf = (MongoDBRdfConfiguration) conf;
         mongoClient = mongoConf.getMongoClient();
         if (mongoClient == null) {

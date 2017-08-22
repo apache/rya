@@ -77,7 +77,7 @@ import com.google.common.collect.Sets;
  * Performs integration test using {@link MiniAccumuloCluster} to ensure the
  * functions of {@link PcjTables} work within a cluster setting.
  */
-public class PcjTablesIntegrationTest {
+public class PcjTablesIT {
 
     private static final String USE_MOCK_INSTANCE = ".useMockInstance";
     private static final String CLOUDBASE_INSTANCE = "sc.cloudbase.instancename";

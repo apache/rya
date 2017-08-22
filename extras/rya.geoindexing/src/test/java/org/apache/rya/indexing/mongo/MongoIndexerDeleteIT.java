@@ -30,8 +30,7 @@ import org.apache.rya.indexing.TemporalInstant;
 import org.apache.rya.indexing.TemporalInstantRfc3339;
 import org.apache.rya.indexing.accumulo.ConfigUtils;
 import org.apache.rya.indexing.mongodb.MongoIndexingConfiguration;
-import org.apache.rya.mongodb.MockMongoFactory;
-import org.apache.rya.mongodb.MongoConnectorFactory;
+import org.apache.rya.mongodb.MockMongoSingleton;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -64,15 +63,14 @@ public class MongoIndexerDeleteIT {
     @Before
     public void before() throws Exception {
         final MongoIndexingConfiguration indxrConf = MongoIndexingConfiguration.builder()
-            .setMongoCollectionPrefix("rya_")
-            .setMongoDBName("indexerTests")
+                .setMongoCollectionPrefix("rya_").setMongoDBName("indexerTests")
             .setUseMongoFreetextIndex(true)
             .setUseMongoTemporalIndex(true)
             .setMongoFreeTextPredicates(RDFS.LABEL.stringValue())
             .setMongoTemporalPredicates("Property:atTime")
             .build();
 
-        client = MockMongoFactory.newFactory().newMongoClient();
+        client = MockMongoSingleton.getInstance();
         indxrConf.setBoolean(OptionalConfigUtils.USE_GEO, true);
         indxrConf.set(ConfigUtils.GEO_PREDICATES_LIST, "http://www.opengis.net/ont/geosparql#asWKT");
         indxrConf.setBoolean(ConfigUtils.USE_MONGO, true);
@@ -85,9 +83,6 @@ public class MongoIndexerDeleteIT {
 
     @After
     public void after() throws Exception {
-        if (client != null) {
-            MongoConnectorFactory.closeMongoClient();
-        }
         if (conn != null) {
             conn.clear();
         }

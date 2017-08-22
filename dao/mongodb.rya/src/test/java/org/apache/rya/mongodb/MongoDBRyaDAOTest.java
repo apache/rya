@@ -21,10 +21,7 @@ package org.apache.rya.mongodb;
 import static org.junit.Assert.assertEquals;
 
 import java.io.IOException;
-import java.util.concurrent.atomic.AtomicInteger;
 
-import org.apache.hadoop.conf.Configuration;
-import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
 import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.domain.RyaStatement.RyaStatementBuilder;
 import org.apache.rya.api.domain.RyaURI;
@@ -33,33 +30,26 @@ import org.bson.Document;
 import org.junit.Before;
 import org.junit.Test;
 
+import com.mongodb.MongoClient;
 import com.mongodb.MongoException;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 
-public class MongoDBRyaDAOTest extends MongoRyaTestBase {
-
+public class MongoDBRyaDAOTest extends MongoTestBase {
+    private MongoClient client;
     private MongoDBRyaDAO dao;
-    private MongoDBRdfConfiguration configuration;
 
     @Before
     public void setUp() throws IOException, RyaDAOException{
-        final Configuration conf = new Configuration();
-        conf.set(MongoDBRdfConfiguration.MONGO_DB_NAME, getDbName());
-        conf.set(MongoDBRdfConfiguration.MONGO_COLLECTION_PREFIX, "rya_");
-        conf.set(RdfCloudTripleStoreConfiguration.CONF_TBL_PREFIX, "rya_");
-        configuration = new MongoDBRdfConfiguration(conf);
-        final int port = mongoClient.getServerAddressList().get(0).getPort();
-        configuration.set(MongoDBRdfConfiguration.MONGO_INSTANCE_PORT, ""+port);
-        dao = new MongoDBRyaDAO(configuration, mongoClient);
+        client = super.getMongoClient();
+        dao = new MongoDBRyaDAO(conf, client);
     }
-
 
     @Test
     public void testDeleteWildcard() throws RyaDAOException {
         final RyaStatementBuilder builder = new RyaStatementBuilder();
         builder.setPredicate(new RyaURI("http://temp.com"));
-        dao.delete(builder.build(), configuration);
+        dao.delete(builder.build(), conf);
     }
 
 
@@ -70,8 +60,8 @@ public class MongoDBRyaDAOTest extends MongoRyaTestBase {
         builder.setSubject(new RyaURI("http://subject.com"));
         builder.setObject(new RyaURI("http://object.com"));
 
-        final MongoDatabase db = mongoClient.getDatabase(configuration.get(MongoDBRdfConfiguration.MONGO_DB_NAME));
-        final MongoCollection<Document> coll = db.getCollection(configuration.getTriplesCollectionName());
+        final MongoDatabase db = client.getDatabase(conf.get(MongoDBRdfConfiguration.MONGO_DB_NAME));
+        final MongoCollection<Document> coll = db.getCollection(conf.getTriplesCollectionName());
 
         dao.add(builder.build());
 
@@ -87,14 +77,14 @@ public class MongoDBRyaDAOTest extends MongoRyaTestBase {
         builder.setObject(new RyaURI("http://object.com"));
         final RyaStatement statement = builder.build();
 
-        final MongoDatabase db = mongoClient.getDatabase(configuration.get(MongoDBRdfConfiguration.MONGO_DB_NAME));
-        final MongoCollection<Document> coll = db.getCollection(configuration.getTriplesCollectionName());
+        final MongoDatabase db = client.getDatabase(conf.get(MongoDBRdfConfiguration.MONGO_DB_NAME));
+        final MongoCollection<Document> coll = db.getCollection(conf.getTriplesCollectionName());
 
         dao.add(statement);
 
         assertEquals(coll.count(),1);
 
-        dao.delete(statement, configuration);
+        dao.delete(statement, conf);
 
         assertEquals(coll.count(),0);
 
@@ -109,8 +99,8 @@ public class MongoDBRyaDAOTest extends MongoRyaTestBase {
         builder.setContext(new RyaURI("http://context.com"));
         final RyaStatement statement = builder.build();
 
-        final MongoDatabase db = mongoClient.getDatabase(configuration.get(MongoDBRdfConfiguration.MONGO_DB_NAME));
-        final MongoCollection<Document> coll = db.getCollection(configuration.getTriplesCollectionName());
+        final MongoDatabase db = client.getDatabase(conf.get(MongoDBRdfConfiguration.MONGO_DB_NAME));
+        final MongoCollection<Document> coll = db.getCollection(conf.getTriplesCollectionName());
 
         dao.add(statement);
 
@@ -122,7 +112,7 @@ public class MongoDBRyaDAOTest extends MongoRyaTestBase {
         builder2.setContext(new RyaURI("http://context3.com"));
         final RyaStatement query = builder2.build();
 
-        dao.delete(query, configuration);
+        dao.delete(query, conf);
 
         assertEquals(coll.count(),1);
     }

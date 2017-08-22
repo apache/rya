@@ -42,7 +42,6 @@ import org.apache.rya.api.domain.RyaSchema;
 import org.apache.rya.api.domain.RyaURI;
 import org.apache.rya.api.resolver.RdfToRyaConversions;
 import org.apache.rya.api.resolver.RyaToRdfConversions;
-import org.apache.rya.indexing.accumulo.ConfigUtils;
 import org.apache.rya.indexing.entity.model.Entity;
 import org.apache.rya.indexing.entity.model.Property;
 import org.apache.rya.indexing.entity.model.Type;
@@ -52,11 +51,9 @@ import org.apache.rya.indexing.entity.storage.mongo.ConvertingCursor;
 import org.apache.rya.indexing.mongodb.MongoDbSmartUri;
 import org.apache.rya.indexing.smarturi.SmartUriAdapter;
 import org.apache.rya.indexing.smarturi.SmartUriException;
-import org.apache.rya.mongodb.MockMongoFactory;
-import org.apache.rya.mongodb.MongoDBRdfConfiguration;
+import org.apache.rya.mongodb.MongoTestBase;
 import org.joda.time.DateTime;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 import org.openrdf.model.URI;
 import org.openrdf.model.Value;
@@ -74,14 +71,13 @@ import org.openrdf.query.parser.sparql.SPARQLParser;
 
 import com.beust.jcommander.internal.Lists;
 import com.google.common.collect.ImmutableSet;
-import com.mongodb.MongoClient;
 
 import info.aduna.iteration.CloseableIteration;
 
 /**
  * Tests for MongoDB based Smart URI.
  */
-public class MongoDbSmartUriTest {
+public class MongoDbSmartUriIT extends MongoTestBase {
     private static final String NAMESPACE = RyaSchema.NAMESPACE;
     private static final ValueFactory VALUE_FACTORY = ValueFactoryImpl.getInstance();
 
@@ -123,26 +119,10 @@ public class MongoDbSmartUriTest {
     private static final Type PERSON_TYPE = createPersonType();
     private static final Type EMPLOYEE_TYPE = createEmployeeType();
 
-    private static MongoDBRdfConfiguration conf;
     private static MongoDbSmartUri smartUriConverter;
 
-    @BeforeClass
-    public static void setupClass() throws Exception {
-        conf = new MongoDBRdfConfiguration();
-        conf.set(ConfigUtils.USE_MONGO, "true");
-        conf.set(MongoDBRdfConfiguration.MONGO_DB_NAME, "test");
-        conf.set(MongoDBRdfConfiguration.MONGO_COLLECTION_PREFIX, "rya_");
-        conf.setTablePrefix("another_");
-    }
-
     @Before
-    public void setupTest() throws Exception {
-        final MongoClient client = MockMongoFactory.newFactory().newMongoClient();
-        conf.setMongoClient(client);
-
-        if (smartUriConverter != null) {
-            smartUriConverter.shutdown();
-        }
+    public void setup() throws Exception {
         smartUriConverter = new MongoDbSmartUri(conf);
     }
 
@@ -153,7 +133,6 @@ public class MongoDbSmartUriTest {
      */
     private static RyaURI createRyaUri(final String localName) {
         return createRyaUri(NAMESPACE, localName);
-        //return new RyaURI("http://" + localName);
     }
 
     /**
@@ -241,9 +220,7 @@ public class MongoDbSmartUriTest {
     @Test
     public void testSerializeDeserialize() throws SmartUriException, URISyntaxException {
         final URI smartUri = SmartUriAdapter.serializeUriEntity(BOB_ENTITY);
-        System.out.println(smartUri);
         final Entity resultEntity = SmartUriAdapter.deserializeUriEntity(smartUri);
-        System.out.println(resultEntity);
         assertEquals(BOB_ENTITY.getSubject(), resultEntity.getSubject());
     }
 

@@ -686,7 +686,8 @@ public class PrecompJoinOptimizerTest2 {
 					.getTupleExpr()));
 		}
 
-		Assert.assertTrue(qSet.containsAll(set) && eTupSet.size() == 1);
+		Assert.assertTrue(qSet.containsAll(set));
+		Assert.assertEquals(3, eTupSet.size());
 	}
 
 	@Test

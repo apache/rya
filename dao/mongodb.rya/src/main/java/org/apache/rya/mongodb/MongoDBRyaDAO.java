@@ -102,7 +102,7 @@ public final class MongoDBRyaDAO implements RyaDAO<MongoDBRdfConfiguration>{
     @Override
     public void setConf(final MongoDBRdfConfiguration conf) {
         this.conf = conf;
-        this.auths = conf.getAuthorizations();
+        auths = conf.getAuthorizations();
     }
 
     public MongoClient getMongoClient(){

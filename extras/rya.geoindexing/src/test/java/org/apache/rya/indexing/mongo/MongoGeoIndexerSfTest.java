@@ -22,7 +22,6 @@ import static org.apache.rya.indexing.GeoIndexingTestUtils.getSet;
 
 import java.util.Map;
 import java.util.Set;
-import java.util.UUID;
 
 import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.resolver.RdfToRyaConversions;
@@ -31,9 +30,8 @@ import org.apache.rya.indexing.GeoConstants;
 import org.apache.rya.indexing.OptionalConfigUtils;
 import org.apache.rya.indexing.StatementConstraints;
 import org.apache.rya.indexing.accumulo.ConfigUtils;
+import org.apache.rya.indexing.geotemporal.mongo.MongoITBase;
 import org.apache.rya.indexing.mongodb.geo.MongoGeoIndexer;
-import org.apache.rya.mongodb.MongoDBRdfConfiguration;
-import org.apache.rya.mongodb.MongoRyaTestBase;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -47,23 +45,19 @@ import org.openrdf.model.impl.ValueFactoryImpl;
 
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
-import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.GeometryFactory;
 import com.vividsolutions.jts.geom.LineString;
-import com.vividsolutions.jts.geom.LinearRing;
 import com.vividsolutions.jts.geom.Point;
 import com.vividsolutions.jts.geom.Polygon;
 import com.vividsolutions.jts.geom.PrecisionModel;
-import com.vividsolutions.jts.geom.impl.PackedCoordinateSequence;
 
 import info.aduna.iteration.CloseableIteration;
 
 /**
  * Tests all of the "simple functions" of the geoindexer.
  */
-public class MongoGeoIndexerSfTest extends MongoRyaTestBase {
-    private MongoDBRdfConfiguration conf;
+public class MongoGeoIndexerSfTest extends MongoITBase {
     private static GeometryFactory gf = new GeometryFactory(new PrecisionModel(), 4326);
     private static MongoGeoIndexer g;
 
@@ -107,17 +101,11 @@ public class MongoGeoIndexerSfTest extends MongoRyaTestBase {
 
     @Before
     public void before() throws Exception {
-        System.out.println(UUID.randomUUID().toString());
-        conf = new MongoDBRdfConfiguration();
-        conf.set(ConfigUtils.USE_MONGO, "true");
-        conf.set(MongoDBRdfConfiguration.MONGO_DB_NAME, getDbName());
-        conf.set(MongoDBRdfConfiguration.MONGO_COLLECTION_PREFIX, "rya_");
         conf.set(ConfigUtils.GEO_PREDICATES_LIST, "http://www.opengis.net/ont/geosparql#asWKT");
         conf.set(OptionalConfigUtils.USE_GEO, "true");
-        conf.setTablePrefix("rya_");
 
         g = new MongoGeoIndexer();
-        g.initIndexer(conf, mongoClient);
+        g.initIndexer(conf, super.getMongoClient());
         g.storeStatement(statement(A));
         g.storeStatement(statement(B));
         g.storeStatement(statement(C));
@@ -133,24 +121,6 @@ public class MongoGeoIndexerSfTest extends MongoRyaTestBase {
         final Value object = vf.createLiteral(geo.toString(), GeoConstants.XMLSCHEMA_OGC_WKT);
         return RdfToRyaConversions.convertStatement(new StatementImpl(subject, predicate, object));
 
-    }
-
-    private static Point point(final double x, final double y) {
-        return gf.createPoint(new Coordinate(x, y));
-    }
-
-    private static LineString line(final double x1, final double y1, final double x2, final double y2) {
-        return new LineString(new PackedCoordinateSequence.Double(new double[] { x1, y1, x2, y2 }, 2), gf);
-    }
-
-    private static Polygon poly(final double[] arr) {
-        final LinearRing r1 = gf.createLinearRing(new PackedCoordinateSequence.Double(arr, 2));
-        final Polygon p1 = gf.createPolygon(r1, new LinearRing[] {});
-        return p1;
-    }
-
-    private static double[] bbox(final double x1, final double y1, final double x2, final double y2) {
-        return new double[] { x1, y1, x1, y2, x2, y2, x2, y1, x1, y1 };
     }
 
     public void compare(final CloseableIteration<Statement, ?> actual, final Geometry... expected) throws Exception {

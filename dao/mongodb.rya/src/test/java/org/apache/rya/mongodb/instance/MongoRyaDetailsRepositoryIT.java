@@ -23,7 +23,6 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
-import java.io.IOException;
 import java.util.Date;
 
 import org.apache.rya.api.instance.RyaDetails;
@@ -41,38 +40,22 @@ import org.apache.rya.api.instance.RyaDetailsRepository.AlreadyInitializedExcept
 import org.apache.rya.api.instance.RyaDetailsRepository.ConcurrentUpdateException;
 import org.apache.rya.api.instance.RyaDetailsRepository.NotInitializedException;
 import org.apache.rya.api.instance.RyaDetailsRepository.RyaDetailsRepositoryException;
-import org.junit.AfterClass;
+import org.apache.rya.mongodb.MongoTestBase;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 
 import com.google.common.base.Optional;
 import com.mongodb.MongoClient;
-import com.mongodb.MongoException;
-
-import de.flapdoodle.embed.mongo.tests.MongodForTestsFactory;
 
 /**
  * Tests the methods of {@link AccumuloRyaDetailsRepository} by using a {@link MiniAccumuloCluster}.
  */
-public class MongoRyaDetailsRepositoryIT {
-
-    private static MongoClient client = null;
-
-    @BeforeClass
-    public static void startMiniAccumulo() throws MongoException, IOException {
-        final MongodForTestsFactory mongoFactory = new MongodForTestsFactory();
-        client = mongoFactory.newMongo();
-    }
+public class MongoRyaDetailsRepositoryIT extends MongoTestBase {
+    private MongoClient client;
 
     @Before
-    public void clearLastTest() {
-        client.dropDatabase("testInstance");
-    }
-
-    @AfterClass
-    public static void stopMiniAccumulo() throws IOException, InterruptedException {
-        client.close();
+    public void startMongo() {
+        client = super.getMongoClient();
     }
 
     @Test

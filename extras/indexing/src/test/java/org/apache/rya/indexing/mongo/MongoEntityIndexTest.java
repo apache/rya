@@ -22,7 +22,6 @@ import java.util.List;
 
 import org.apache.rya.api.domain.RyaType;
 import org.apache.rya.api.domain.RyaURI;
-import org.apache.rya.indexing.accumulo.ConfigUtils;
 import org.apache.rya.indexing.entity.EntityIndexOptimizer;
 import org.apache.rya.indexing.entity.model.Entity;
 import org.apache.rya.indexing.entity.model.Property;
@@ -30,8 +29,7 @@ import org.apache.rya.indexing.entity.model.Type;
 import org.apache.rya.indexing.entity.query.EntityQueryNode;
 import org.apache.rya.indexing.entity.storage.EntityStorage;
 import org.apache.rya.indexing.entity.storage.TypeStorage;
-import org.apache.rya.mongodb.MockMongoFactory;
-import org.apache.rya.mongodb.MongoDBRdfConfiguration;
+import org.apache.rya.mongodb.MongoTestBase;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -45,9 +43,8 @@ import org.openrdf.query.algebra.helpers.StatementPatternCollector;
 import org.openrdf.query.parser.sparql.SPARQLParser;
 
 import com.google.common.collect.ImmutableSet;
-import com.mongodb.MongoClient;
 
-public class MongoEntityIndexTest {
+public class MongoEntityIndexTest extends MongoTestBase {
     private static final Type PERSON_TYPE =
             new Type(new RyaURI("urn:person"),
                 ImmutableSet.<RyaURI>builder()
@@ -57,21 +54,11 @@ public class MongoEntityIndexTest {
                     .build());
     private static final RyaURI RYA_PERSON_TYPE = new RyaURI("urn:person");
 
-    static MongoDBRdfConfiguration conf;
     private static EntityIndexOptimizer optimizer;
     private static EntityStorage entityStorage;
 
     @BeforeClass
     public static void beforeClass() throws Exception {
-        conf = new MongoDBRdfConfiguration();
-        conf.set(ConfigUtils.USE_MONGO, "true");
-        conf.set(MongoDBRdfConfiguration.MONGO_DB_NAME, "test");
-        conf.set(MongoDBRdfConfiguration.MONGO_COLLECTION_PREFIX, "rya_");
-        conf.setTablePrefix("another_");
-
-        final MongoClient client = MockMongoFactory.newFactory().newMongoClient();
-        conf.setMongoClient(client);
-
         optimizer = new EntityIndexOptimizer();
         optimizer.setConf(conf);
 

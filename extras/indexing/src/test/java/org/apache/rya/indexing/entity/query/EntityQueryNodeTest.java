@@ -32,7 +32,7 @@ import org.apache.rya.indexing.entity.model.Property;
 import org.apache.rya.indexing.entity.model.Type;
 import org.apache.rya.indexing.entity.storage.EntityStorage;
 import org.apache.rya.indexing.entity.storage.mongo.MongoEntityStorage;
-import org.apache.rya.mongodb.MockMongoFactory;
+import org.apache.rya.mongodb.MongoTestBase;
 import org.junit.Test;
 import org.openrdf.model.ValueFactory;
 import org.openrdf.model.impl.ValueFactoryImpl;
@@ -46,14 +46,13 @@ import org.openrdf.query.impl.MapBindingSet;
 import org.openrdf.query.parser.sparql.SPARQLParser;
 
 import com.google.common.collect.ImmutableSet;
-import com.mongodb.MongoClient;
 
 import info.aduna.iteration.CloseableIteration;
 
 /**
  * Unit tests the methods of {@link EntityQueryNode}.
  */
-public class EntityQueryNodeTest {
+public class EntityQueryNodeTest extends MongoTestBase {
 
     private static final Type PERSON_TYPE =
             new Type(new RyaURI("urn:person"),
@@ -152,8 +151,7 @@ public class EntityQueryNodeTest {
 
     @Test
     public void evaluate_constantSubject() throws Exception {
-        final MongoClient client = MockMongoFactory.newFactory().newMongoClient();
-        final EntityStorage storage = new MongoEntityStorage(client, "testDB");
+        final EntityStorage storage = new MongoEntityStorage(super.getMongoClient(), "testDB");
         final ValueFactory vf = ValueFactoryImpl.getInstance();
         final RyaURI subject = new RyaURI("urn:SSN:111-11-1111");
         final Entity entity = Entity.builder()
@@ -188,8 +186,7 @@ public class EntityQueryNodeTest {
 
     @Test
     public void evaluate_variableSubject() throws Exception {
-        final MongoClient client = MockMongoFactory.newFactory().newMongoClient();
-        final EntityStorage storage = new MongoEntityStorage(client, "testDB");
+        final EntityStorage storage = new MongoEntityStorage(super.getMongoClient(), "testDB");
         final ValueFactory vf = ValueFactoryImpl.getInstance();
         RyaURI subject = new RyaURI("urn:SSN:111-11-1111");
         final Entity bob = Entity.builder()
@@ -242,8 +239,7 @@ public class EntityQueryNodeTest {
 
     @Test
     public void evaluate_constantObject() throws Exception {
-        final MongoClient client = MockMongoFactory.newFactory().newMongoClient();
-        final EntityStorage storage = new MongoEntityStorage(client, "testDB");
+        final EntityStorage storage = new MongoEntityStorage(super.getMongoClient(), "testDB");
         final ValueFactory vf = ValueFactoryImpl.getInstance();
         final RyaURI subject = new RyaURI("urn:SSN:111-11-1111");
         final Entity entity = Entity.builder()

@@ -121,7 +121,6 @@ public abstract class AbstractMongoIndexer<T extends IndexingMongoDBStorageStrat
 
     @Override
     public void close() throws IOException {
-        mongoClient.close();
     }
 
     @Override

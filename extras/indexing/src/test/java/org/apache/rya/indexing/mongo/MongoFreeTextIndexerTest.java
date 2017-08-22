@@ -29,10 +29,8 @@ import org.apache.rya.api.resolver.RyaToRdfConversions;
 import org.apache.rya.indexing.StatementConstraints;
 import org.apache.rya.indexing.accumulo.ConfigUtils;
 import org.apache.rya.indexing.mongodb.freetext.MongoFreeTextIndexer;
-import org.apache.rya.mongodb.MongoDBRdfConfiguration;
-import org.apache.rya.mongodb.MongoRyaTestBase;
+import org.apache.rya.mongodb.MongoTestBase;
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.Test;
 import org.openrdf.model.Statement;
 import org.openrdf.model.URI;
@@ -46,24 +44,13 @@ import com.google.common.collect.Sets;
 
 import info.aduna.iteration.CloseableIteration;
 
-public class MongoFreeTextIndexerTest extends MongoRyaTestBase {
+public class MongoFreeTextIndexerTest extends MongoTestBase {
     private static final StatementConstraints EMPTY_CONSTRAINTS = new StatementConstraints();
 
-    MongoDBRdfConfiguration conf;
-
-    @Before
-    public void before() throws Exception {
-        conf = new MongoDBRdfConfiguration();
-        conf.set(ConfigUtils.USE_MONGO, "true");
-        conf.setMongoDBName(getDbName());
-        conf.setCollectionName("rya_");
-        conf.setTablePrefix("another_");
-    }
-    
     @Test
     public void testSearch() throws Exception {
         try (MongoFreeTextIndexer f = new MongoFreeTextIndexer()) {
-            f.initIndexer(conf, mongoClient);
+            f.initIndexer(conf, super.getMongoClient());
 
             final ValueFactory vf = new ValueFactoryImpl();
 
@@ -87,7 +74,7 @@ public class MongoFreeTextIndexerTest extends MongoRyaTestBase {
     @Test
     public void testDelete() throws Exception {
         try (MongoFreeTextIndexer f = new MongoFreeTextIndexer()) {
-            f.initIndexer(conf, mongoClient);
+            f.initIndexer(conf, super.getMongoClient());
 
             final ValueFactory vf = new ValueFactoryImpl();
 
@@ -137,7 +124,7 @@ public class MongoFreeTextIndexerTest extends MongoRyaTestBase {
         conf.setStrings(ConfigUtils.FREETEXT_PREDICATES_LIST, "pred:1,pred:2");
 
         try (MongoFreeTextIndexer f = new MongoFreeTextIndexer()) {
-            f.initIndexer(conf, mongoClient);
+            f.initIndexer(conf, super.getMongoClient());
 
             // These should not be stored because they are not in the predicate list
             f.storeStatement(new RyaStatement(new RyaURI("foo:subj1"), new RyaURI(RDFS.LABEL.toString()), new RyaType("invalid")));
@@ -170,7 +157,7 @@ public class MongoFreeTextIndexerTest extends MongoRyaTestBase {
     @Test
     public void testContextSearch() throws Exception {
         try (MongoFreeTextIndexer f = new MongoFreeTextIndexer()) {
-            f.initIndexer(conf, mongoClient);
+            f.initIndexer(conf, super.getMongoClient());
 
             final ValueFactory vf = new ValueFactoryImpl();
             final URI subject = new URIImpl("foo:subj");

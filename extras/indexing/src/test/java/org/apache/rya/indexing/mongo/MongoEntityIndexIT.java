@@ -25,7 +25,6 @@ import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
 
-import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
 import org.apache.rya.api.domain.RyaURI;
 import org.apache.rya.indexing.accumulo.ConfigUtils;
 import org.apache.rya.indexing.entity.model.Entity;
@@ -33,11 +32,8 @@ import org.apache.rya.indexing.entity.model.Type;
 import org.apache.rya.indexing.entity.storage.EntityStorage;
 import org.apache.rya.indexing.entity.storage.TypeStorage;
 import org.apache.rya.indexing.entity.update.mongo.MongoEntityIndexer;
-import org.apache.rya.mongodb.MockMongoFactory;
-import org.apache.rya.mongodb.MongoConnectorFactory;
-import org.apache.rya.mongodb.MongoDBRdfConfiguration;
+import org.apache.rya.mongodb.MongoTestBase;
 import org.apache.rya.sail.config.RyaSailFactory;
-import org.bson.Document;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -55,31 +51,16 @@ import org.openrdf.repository.sail.SailRepositoryConnection;
 import org.openrdf.sail.Sail;
 
 import com.google.common.collect.ImmutableSet;
-import com.mongodb.Block;
-import com.mongodb.MongoClient;
-import com.mongodb.client.MongoDatabase;
 
-import de.flapdoodle.embed.mongo.distribution.Version;
-
-public class MongoEntityIndexIT {
+public class MongoEntityIndexIT extends MongoTestBase {
     private static final ValueFactory VF = ValueFactoryImpl.getInstance();
-    private MongoDBRdfConfiguration conf;
     private SailRepositoryConnection conn;
     private MongoEntityIndexer indexer;
-    private MongoClient mongoClient;
 
     @Before
     public void setUp() throws Exception {
-        mongoClient = MockMongoFactory.with(Version.Main.PRODUCTION).newMongoClient();
-        conf = new MongoDBRdfConfiguration();
-        conf.set(MongoDBRdfConfiguration.MONGO_DB_NAME, "test");
-        conf.set(MongoDBRdfConfiguration.MONGO_COLLECTION_PREFIX, "rya");
-        conf.set(RdfCloudTripleStoreConfiguration.CONF_TBL_PREFIX, "rya");
         conf.setBoolean(ConfigUtils.USE_MONGO, true);
-        conf.setMongoClient(mongoClient);
         conf.setBoolean(ConfigUtils.USE_ENTITY, true);
-        final int port = mongoClient.getServerAddressList().get(0).getPort();
-        conf.set(MongoDBRdfConfiguration.MONGO_INSTANCE_PORT, Integer.toString(port));
 
         final Sail sail = RyaSailFactory.getInstance(conf);
         conn = new SailRepository(sail).getConnection();
@@ -92,9 +73,6 @@ public class MongoEntityIndexIT {
 
     @After
     public void tearDown() throws Exception {
-        if (mongoClient != null) {
-            MongoConnectorFactory.closeMongoClient();
-        }
         if (conn != null) {
             conn.clear();
         }
@@ -107,12 +85,6 @@ public class MongoEntityIndexIT {
     public void ensureInEntityStore_Test() throws Exception {
         setupTypes();
         addStatements();
-
-        final MongoDatabase db = mongoClient.getDatabase("test");
-        db.listCollections().forEach((Block<Document>)doc -> {
-            System.out.println(doc);
-        });
-
 
         final EntityStorage entities = indexer.getEntityStorage(conf);
         final RyaURI subject = new RyaURI("urn:alice");
@@ -136,7 +108,6 @@ public class MongoEntityIndexIT {
         final Set<BindingSet> results = new HashSet<>();
         while(rez.hasNext()) {
             final BindingSet bs = rez.next();
-            System.out.println(bs);
             results.add(bs);
         }
         final MapBindingSet expected = new MapBindingSet();

@@ -16,59 +16,39 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.apache.rya.indexing.entity.storage.mongo;
-
-import java.util.HashSet;
-import java.util.Set;
+package org.apache.rya.mongodb;
 
 import org.apache.hadoop.conf.Configuration;
-import org.apache.rya.mongodb.MockMongoFactory;
-import org.apache.rya.mongodb.MongoConnectorFactory;
-import org.apache.rya.mongodb.MongoDBRdfConfiguration;
 import org.junit.After;
-import org.junit.AfterClass;
 import org.junit.Before;
 
 import com.mongodb.MongoClient;
 
 /**
- * A base class that may be used when implementing Mongo DB integration tests that
- * use the JUnit framework.
+ * A base class that may be used when implementing Mongo DB tests that use the
+ * JUnit framework.
  */
-public class MongoITBase {
+public class MongoTestBase {
 
-    private MongoClient mongoClient = null;
-    private Set<String> originalDbNames = null;
-    protected MongoDBRdfConfiguration conf;
+    private static MongoClient mongoClient = null;
+    protected static MongoDBRdfConfiguration conf;
 
     @Before
     public void setupTest() throws Exception {
         conf = new MongoDBRdfConfiguration( new Configuration() );
+        conf.setBoolean("sc.useMongo", true);
+        conf.setTablePrefix("test_");
         conf.setMongoDBName("testDB");
-        mongoClient = MockMongoFactory.newFactory().newMongoClient();
+        mongoClient = MockMongoSingleton.getInstance();
         conf.setMongoClient(mongoClient);
-
-
-        // Store the names of the DBs that are present before running the test.
-        originalDbNames = new HashSet<>();
-        for(final String name : mongoClient.listDatabaseNames()) {
-            originalDbNames.add(name);
-        }
     }
 
     @After
     public void cleanupTest() {
         // Remove any DBs that were created by the test.
         for(final String dbName : mongoClient.listDatabaseNames()) {
-            if(!originalDbNames.contains(dbName)) {
-                mongoClient.dropDatabase(dbName);
-            }
+            mongoClient.dropDatabase(dbName);
         }
-    }
-
-    @AfterClass
-    public static void shutdown() {
-        MongoConnectorFactory.closeMongoClient();
     }
 
     /**

@@ -23,16 +23,12 @@ import static org.junit.Assert.assertTrue;
 
 import java.util.Optional;
 
-import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
 import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.resolver.RdfToRyaConversions;
 import org.apache.rya.indexing.GeoConstants;
 import org.apache.rya.indexing.TemporalInstant;
 import org.apache.rya.indexing.geotemporal.model.Event;
-import org.apache.rya.indexing.geotemporal.mongo.MongoGeoTemporalIndexer;
 import org.apache.rya.indexing.geotemporal.storage.EventStorage;
-import org.apache.rya.mongodb.MockMongoFactory;
-import org.apache.rya.mongodb.MongoDBRdfConfiguration;
 import org.junit.Before;
 import org.junit.Test;
 import org.openrdf.model.Resource;
@@ -42,24 +38,17 @@ import org.openrdf.model.ValueFactory;
 import org.openrdf.model.impl.StatementImpl;
 import org.openrdf.model.impl.ValueFactoryImpl;
 
-import com.mongodb.MongoClient;
 import com.vividsolutions.jts.geom.Geometry;
 
 /**
  * Integration tests the methods of {@link MongoGeoTemporalIndexer}.
  */
 public class MongoGeoTemporalIndexerIT extends MongoITBase {
-
     private MongoGeoTemporalIndexer indexer;
 
     @Before
     public void makeTestIndexer() throws Exception {
-        final MongoClient client = MockMongoFactory.newFactory().newMongoClient();
         indexer = new MongoGeoTemporalIndexer();
-        conf.setMongoDBName("GEO_TEMPORAL_INDEXER_TEST");
-        conf.set(MongoDBRdfConfiguration.MONGO_DB_NAME, "GEO_TEMPORAL_INDEXER_TEST");
-        conf.setMongoClient(client);
-        conf.set(RdfCloudTripleStoreConfiguration.CONF_TBL_PREFIX, "rya_");
         indexer.setConf(conf);
         indexer.init();
     }

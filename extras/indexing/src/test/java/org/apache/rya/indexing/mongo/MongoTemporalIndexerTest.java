@@ -39,9 +39,7 @@ import org.apache.rya.indexing.TemporalInterval;
 import org.apache.rya.indexing.accumulo.ConfigUtils;
 import org.apache.rya.indexing.mongodb.temporal.MongoTemporalIndexer;
 import org.apache.rya.mongodb.MongoDBRdfConfiguration;
-import org.apache.rya.mongodb.MongoRyaTestBase;
-import org.junit.After;
-import org.junit.AfterClass;
+import org.apache.rya.mongodb.MongoTestBase;
 import org.junit.Before;
 import org.junit.Test;
 import org.openrdf.model.Statement;
@@ -81,10 +79,9 @@ import info.aduna.iteration.CloseableIteration;
  * And a few more.
  *
  */
-public final class MongoTemporalIndexerTest extends MongoRyaTestBase {
-    MongoDBRdfConfiguration conf;
-    MongoTemporalIndexer tIndexer;
-    DBCollection collection;
+public final class MongoTemporalIndexerTest extends MongoTestBase {
+    private MongoTemporalIndexer tIndexer;
+    private DBCollection collection;
 
     private static final String URI_PROPERTY_EVENT_TIME = "Property:event:time";
     private static final String URI_PROPERTY_CIRCA = "Property:circa";
@@ -163,24 +160,10 @@ public final class MongoTemporalIndexerTest extends MongoRyaTestBase {
         for (int i = 0; i < seriesTs.length; i++) {
             seriesSpo[i] = new StatementImpl(vf.createURI("foo:event0" + i), pred1_atTime, vf.createLiteral(seriesTs[i].getAsReadable()));
         }
-
-    }
-
-    /**
-     * @throws java.lang.Exception
-     */
-    @AfterClass
-    public static void tearDownAfterClass() throws Exception {
     }
 
     @Before
     public void before() throws Exception {
-        conf = new MongoDBRdfConfiguration();
-        conf.set(ConfigUtils.USE_MONGO, getDbName());
-        conf.set(MongoDBRdfConfiguration.MONGO_DB_NAME, getDbName());
-        conf.set(MongoDBRdfConfiguration.MONGO_COLLECTION_PREFIX, "rya_");
-        conf.setTablePrefix("isthisused_");
-        
         // This is from http://linkedevents.org/ontology
         // and http://motools.sourceforge.net/event/event.html
         conf.setStrings(ConfigUtils.TEMPORAL_PREDICATES_LIST, ""
@@ -189,20 +172,12 @@ public final class MongoTemporalIndexerTest extends MongoRyaTestBase {
                 + URI_PROPERTY_EVENT_TIME);
 
         tIndexer = new MongoTemporalIndexer();
-        tIndexer.initIndexer(conf, mongoClient);
-
+        tIndexer.initIndexer(conf, super.getMongoClient());
 
         final String dbName = conf.get(MongoDBRdfConfiguration.MONGO_DB_NAME);
-        final DB db = mongoClient.getDB(dbName);
+        final DB db = super.getMongoClient().getDB(dbName);
         collection = db.getCollection(conf.get(MongoDBRdfConfiguration.MONGO_COLLECTION_PREFIX, "rya") + tIndexer.getCollectionName());
    }
-    /**
-     * @throws java.lang.Exception
-     */
-    @After
-    public void tearDown() throws Exception {
-        tIndexer.close();
-    }
 
     /**
      * Test method for {@link MongoTemporalIndexer#storeStatement(convertStatement(org.openrdf.model.Statement)}

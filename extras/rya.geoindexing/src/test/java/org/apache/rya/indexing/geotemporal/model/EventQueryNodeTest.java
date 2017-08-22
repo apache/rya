@@ -32,10 +32,9 @@ import org.apache.rya.indexing.IndexingFunctionRegistry;
 import org.apache.rya.indexing.IndexingFunctionRegistry.FUNCTION_TYPE;
 import org.apache.rya.indexing.TemporalInstant;
 import org.apache.rya.indexing.TemporalInstantRfc3339;
-import org.apache.rya.indexing.geotemporal.GeoTemporalTestBase;
 import org.apache.rya.indexing.geotemporal.mongo.MongoEventStorage;
+import org.apache.rya.indexing.geotemporal.mongo.MongoITBase;
 import org.apache.rya.indexing.geotemporal.storage.EventStorage;
-import org.apache.rya.mongodb.MockMongoFactory;
 import org.junit.Test;
 import org.openrdf.model.URI;
 import org.openrdf.model.Value;
@@ -51,7 +50,6 @@ import org.openrdf.query.algebra.ValueExpr;
 import org.openrdf.query.algebra.Var;
 import org.openrdf.query.impl.MapBindingSet;
 
-import com.mongodb.MongoClient;
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.GeometryFactory;
@@ -62,7 +60,7 @@ import info.aduna.iteration.CloseableIteration;
 /**
  * Unit tests the methods of {@link EventQueryNode}.
  */
-public class EventQueryNodeTest extends GeoTemporalTestBase {
+public class EventQueryNodeTest extends MongoITBase {
     private static final GeometryFactory GF = new GeometryFactory(new PrecisionModel(), 4326);
     private static final ValueFactory VF = ValueFactoryImpl.getInstance();
 
@@ -113,8 +111,7 @@ public class EventQueryNodeTest extends GeoTemporalTestBase {
 
     @Test
     public void evaluate_constantSubject() throws Exception {
-        final MongoClient client = MockMongoFactory.newFactory().newMongoClient();
-        final EventStorage storage = new MongoEventStorage(client, "testDB");
+        final EventStorage storage = new MongoEventStorage(super.getMongoClient(), "testDB");
         RyaURI subject = new RyaURI("urn:event-1111");
         final Geometry geo = GF.createPoint(new Coordinate(1, 1));
         final TemporalInstant temp = new TemporalInstantRfc3339(2015, 12, 30, 12, 00, 0);
@@ -163,8 +160,7 @@ public class EventQueryNodeTest extends GeoTemporalTestBase {
 
     @Test
     public void evaluate_variableSubject() throws Exception {
-        final MongoClient client = MockMongoFactory.newFactory().newMongoClient();
-        final EventStorage storage = new MongoEventStorage(client, "testDB");
+        final EventStorage storage = new MongoEventStorage(super.getMongoClient(), "testDB");
         RyaURI subject = new RyaURI("urn:event-1111");
         Geometry geo = GF.createPoint(new Coordinate(1, 1));
         final TemporalInstant temp = new TemporalInstantRfc3339(2015, 12, 30, 12, 00, 0);
@@ -218,8 +214,7 @@ public class EventQueryNodeTest extends GeoTemporalTestBase {
 
     @Test
     public void evaluate_variableSubject_existingBindingset() throws Exception {
-        final MongoClient client = MockMongoFactory.newFactory().newMongoClient();
-        final EventStorage storage = new MongoEventStorage(client, "testDB");
+        final EventStorage storage = new MongoEventStorage(super.getMongoClient(), "testDB");
         RyaURI subject = new RyaURI("urn:event-1111");
         Geometry geo = GF.createPoint(new Coordinate(1, 1));
         final TemporalInstant temp = new TemporalInstantRfc3339(2015, 12, 30, 12, 00, 0);
@@ -271,8 +266,7 @@ public class EventQueryNodeTest extends GeoTemporalTestBase {
 
     @Test
     public void evaluate_variableSubject_existingBindingsetWrongFilters() throws Exception {
-        final MongoClient client = MockMongoFactory.newFactory().newMongoClient();
-        final EventStorage storage = new MongoEventStorage(client, "testDB");
+        final EventStorage storage = new MongoEventStorage(super.getMongoClient(), "testDB");
         RyaURI subject = new RyaURI("urn:event-1111");
         Geometry geo = GF.createPoint(new Coordinate(1, 1));
         final TemporalInstant temp = new TemporalInstantRfc3339(2015, 12, 30, 12, 00, 0);

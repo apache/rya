@@ -23,8 +23,6 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import org.apache.hadoop.conf.Configuration;
-import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
 import org.apache.rya.api.RdfCloudTripleStoreUtils;
 import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.domain.RyaStatement.RyaStatementBuilder;
@@ -37,32 +35,27 @@ import org.openrdf.query.BindingSet;
 import org.openrdf.query.impl.MapBindingSet;
 
 import com.google.common.collect.Lists;
+import com.mongodb.MongoClient;
 
 import info.aduna.iteration.CloseableIteration;
 
-public class MongoDBQueryEngineTest extends MongoRyaTestBase {
-
-    // private dao;
-    // private configuration;
+public class MongoDBQueryEngineTest extends MongoTestBase {
+    private MongoClient client;
+    private MongoDBRyaDAO dao;
 
     private MongoDBQueryEngine engine;
-    private MongoDBRdfConfiguration configuration;
+
+    private static final String DB_NAME = "testInstance";
 
     @Before
     public void setUp() throws Exception {
-        // Set up Mongo/Rya
-        final Configuration conf = new Configuration();
-        conf.set(MongoDBRdfConfiguration.MONGO_DB_NAME, getDbName());
-        conf.set(MongoDBRdfConfiguration.MONGO_COLLECTION_PREFIX, "rya_");
-        conf.set(RdfCloudTripleStoreConfiguration.CONF_TBL_PREFIX, "rya_");
-        configuration = new MongoDBRdfConfiguration(conf);
-        final int port = mongoClient.getServerAddressList().get(0).getPort();
-        configuration.set(MongoDBRdfConfiguration.MONGO_INSTANCE_PORT, Integer.toString(port));
+        client = super.getMongoClient();
+        conf.setAuths("A", "B", "C");
 
-        engine = new MongoDBQueryEngine(configuration, mongoClient);
+        engine = new MongoDBQueryEngine(conf, client);
 
         // Add Data
-        final MongoDBRyaDAO dao = new MongoDBRyaDAO(configuration, mongoClient);
+        final MongoDBRyaDAO dao = new MongoDBRyaDAO(conf, client);
         dao.add(getStatement("u:a", "u:tt", "u:b"));
         dao.add(getStatement("u:a", "u:tt", "u:c"));
     }
@@ -93,7 +86,7 @@ public class MongoDBQueryEngineTest extends MongoRyaTestBase {
     @Test
     public void statementQuery() throws Exception {
         final RyaStatement s = getStatement("u:a", null, null);
-        Assert.assertEquals(2, size(engine.query(s, configuration)));
+        Assert.assertEquals(2, size(engine.query(s, conf)));
     }
 
     @SuppressWarnings("unchecked")
@@ -106,7 +99,7 @@ public class MongoDBQueryEngineTest extends MongoRyaTestBase {
 
         final Map.Entry<RyaStatement, BindingSet> e1 = new RdfCloudTripleStoreUtils.CustomEntry<RyaStatement, BindingSet>(s1, bs1);
         final Collection<Entry<RyaStatement, BindingSet>> stmts1 = Lists.newArrayList(e1);
-        Assert.assertEquals(1, size(engine.queryWithBindingSet(stmts1, configuration)));
+        Assert.assertEquals(1, size(engine.queryWithBindingSet(stmts1, conf)));
 
 
         final MapBindingSet bs2 = new MapBindingSet();
@@ -117,14 +110,14 @@ public class MongoDBQueryEngineTest extends MongoRyaTestBase {
         final Map.Entry<RyaStatement, BindingSet> e2 = new RdfCloudTripleStoreUtils.CustomEntry<RyaStatement, BindingSet>(s2, bs2);
 
         final Collection<Entry<RyaStatement, BindingSet>> stmts2 = Lists.newArrayList(e1, e2);
-        Assert.assertEquals(2, size(engine.queryWithBindingSet(stmts2, configuration)));
+        Assert.assertEquals(2, size(engine.queryWithBindingSet(stmts2, conf)));
 
 
         final Map.Entry<RyaStatement, BindingSet> e3 = new RdfCloudTripleStoreUtils.CustomEntry<RyaStatement, BindingSet>(s2, bs1);
         final Map.Entry<RyaStatement, BindingSet> e4 = new RdfCloudTripleStoreUtils.CustomEntry<RyaStatement, BindingSet>(s1, bs2);
-        
+
         final Collection<Entry<RyaStatement, BindingSet>> stmts3 = Lists.newArrayList(e1, e2, e3, e4);
-        Assert.assertEquals(4, size(engine.queryWithBindingSet(stmts3, configuration)));
+        Assert.assertEquals(4, size(engine.queryWithBindingSet(stmts3, conf)));
 }
     @SuppressWarnings("unchecked")
     @Test
@@ -136,7 +129,7 @@ public class MongoDBQueryEngineTest extends MongoRyaTestBase {
 
         final Map.Entry<RyaStatement, BindingSet> e1 = new RdfCloudTripleStoreUtils.CustomEntry<RyaStatement, BindingSet>(s, bs1);
         final Collection<Entry<RyaStatement, BindingSet>> stmts1 = Lists.newArrayList(e1);
-        Assert.assertEquals(2, size(engine.queryWithBindingSet(stmts1, configuration)));
+        Assert.assertEquals(2, size(engine.queryWithBindingSet(stmts1, conf)));
 
 
         final MapBindingSet bs2 = new MapBindingSet();
@@ -145,6 +138,6 @@ public class MongoDBQueryEngineTest extends MongoRyaTestBase {
         final Map.Entry<RyaStatement, BindingSet> e2 = new RdfCloudTripleStoreUtils.CustomEntry<RyaStatement, BindingSet>(s, bs2);
 
         final Collection<Entry<RyaStatement, BindingSet>> stmts2 = Lists.newArrayList(e1, e2);
-        Assert.assertEquals(4, size(engine.queryWithBindingSet(stmts2, configuration)));
+        Assert.assertEquals(4, size(engine.queryWithBindingSet(stmts2, conf)));
 }
 }

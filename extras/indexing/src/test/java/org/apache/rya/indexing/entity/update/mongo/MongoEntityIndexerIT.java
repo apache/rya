@@ -31,8 +31,8 @@ import org.apache.rya.indexing.entity.model.Type;
 import org.apache.rya.indexing.entity.storage.EntityStorage;
 import org.apache.rya.indexing.entity.storage.TypeStorage;
 import org.apache.rya.indexing.entity.storage.mongo.MongoEntityStorage;
-import org.apache.rya.indexing.entity.storage.mongo.MongoITBase;
 import org.apache.rya.indexing.entity.storage.mongo.MongoTypeStorage;
+import org.apache.rya.mongodb.MongoTestBase;
 import org.junit.Before;
 import org.junit.Test;
 import org.openrdf.model.vocabulary.RDF;
@@ -44,7 +44,7 @@ import com.google.common.collect.Sets;
 /**
  * Integration tests the methods of {@link MongoEntityIndexer}.
  */
-public class MongoEntityIndexerIT extends MongoITBase {
+public class MongoEntityIndexerIT extends MongoTestBase {
 
     private static final String RYA_INSTANCE_NAME = "testDB";
 

@@ -27,8 +27,6 @@ import static org.junit.Assert.assertTrue;
 import java.io.IOException;
 
 import org.apache.accumulo.core.security.Authorizations;
-import org.apache.hadoop.conf.Configuration;
-import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
 import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.domain.RyaStatement.RyaStatementBuilder;
 import org.apache.rya.api.domain.RyaURI;
@@ -41,26 +39,20 @@ import org.calrissian.mango.collect.CloseableIterable;
 import org.junit.Before;
 import org.junit.Test;
 
+import com.mongodb.MongoClient;
 import com.mongodb.MongoException;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 
-public class MongoDBRyaDAOIT extends MongoRyaTestBase {
-
+public class MongoDBRyaDAOIT extends MongoTestBase {
+    private MongoClient client;
     private MongoDBRyaDAO dao;
-    private MongoDBRdfConfiguration configuration;
 
     @Before
     public void setUp() throws IOException, RyaDAOException{
-        final Configuration conf = new Configuration();
-        conf.set(MongoDBRdfConfiguration.MONGO_DB_NAME, getDbName());
-        conf.set(MongoDBRdfConfiguration.MONGO_COLLECTION_PREFIX, "rya_");
-        conf.set(RdfCloudTripleStoreConfiguration.CONF_TBL_PREFIX, "rya_");
-        configuration = new MongoDBRdfConfiguration(conf);
-        configuration.setAuths("A", "B", "C");
-        final int port = mongoClient.getServerAddressList().get(0).getPort();
-        configuration.set(MongoDBRdfConfiguration.MONGO_INSTANCE_PORT, Integer.toString(port));
-        dao = new MongoDBRyaDAO(configuration, mongoClient);
+        conf.setAuths("A", "B", "C");
+        client = super.getMongoClient();
+        dao = new MongoDBRyaDAO(conf, client);
     }
 
     @Test
@@ -68,7 +60,7 @@ public class MongoDBRyaDAOIT extends MongoRyaTestBase {
         final RyaStatementBuilder builder = new RyaStatementBuilder();
         builder.setPredicate(new RyaURI("http://temp.com"));
         builder.setColumnVisibility(new DocumentVisibility("A").flatten());
-        dao.delete(builder.build(), configuration);
+        dao.delete(builder.build(), conf);
     }
 
     @Test
@@ -79,8 +71,8 @@ public class MongoDBRyaDAOIT extends MongoRyaTestBase {
         builder.setObject(new RyaURI("http://object.com"));
         builder.setColumnVisibility(new DocumentVisibility("B").flatten());
 
-        final MongoDatabase db = mongoClient.getDatabase(configuration.get(MongoDBRdfConfiguration.MONGO_DB_NAME));
-        final MongoCollection<Document> coll = db.getCollection(configuration.getTriplesCollectionName());
+        final MongoDatabase db = client.getDatabase(conf.get(MongoDBRdfConfiguration.MONGO_DB_NAME));
+        final MongoCollection<Document> coll = db.getCollection(conf.getTriplesCollectionName());
 
         dao.add(builder.build());
 
@@ -99,16 +91,16 @@ public class MongoDBRyaDAOIT extends MongoRyaTestBase {
         builder.setObject(new RyaURI("http://object.com"));
         builder.setColumnVisibility(new DocumentVisibility("C").flatten());
         final RyaStatement statement = builder.build();
-        final MongoDatabase db = mongoClient.getDatabase(configuration.get(MongoDBRdfConfiguration.MONGO_DB_NAME));
-        final MongoCollection<Document> coll = db.getCollection(configuration.getTriplesCollectionName());
+        final MongoDatabase db = client.getDatabase(conf.get(MongoDBRdfConfiguration.MONGO_DB_NAME));
+        final MongoCollection<Document> coll = db.getCollection(conf.getTriplesCollectionName());
 
         dao.add(statement);
 
-        assertEquals(coll.count(),1);
+        assertEquals(1, coll.count());
 
-        dao.delete(statement, configuration);
+        dao.delete(statement, conf);
 
-        assertEquals(coll.count(),0);
+        assertEquals(0, coll.count());
 
     }
 
@@ -122,12 +114,12 @@ public class MongoDBRyaDAOIT extends MongoRyaTestBase {
         builder.setColumnVisibility(new DocumentVisibility("A&B&C").flatten());
         final RyaStatement statement = builder.build();
 
-        final MongoDatabase db = mongoClient.getDatabase(configuration.get(MongoDBRdfConfiguration.MONGO_DB_NAME));
-        final MongoCollection<Document> coll = db.getCollection(configuration.getTriplesCollectionName());
+        final MongoDatabase db = client.getDatabase(conf.get(MongoDBRdfConfiguration.MONGO_DB_NAME));
+        final MongoCollection<Document> coll = db.getCollection(conf.getTriplesCollectionName());
 
         dao.add(statement);
 
-        assertEquals(coll.count(),1);
+        assertEquals(1, coll.count());
 
         final RyaStatementBuilder builder2 = new RyaStatementBuilder();
         builder2.setPredicate(new RyaURI("http://temp.com"));
@@ -135,9 +127,9 @@ public class MongoDBRyaDAOIT extends MongoRyaTestBase {
         builder2.setContext(new RyaURI("http://context3.com"));
         final RyaStatement query = builder2.build();
 
-        dao.delete(query, configuration);
+        dao.delete(query, conf);
 
-        assertEquals(coll.count(),1);
+        assertEquals(1, coll.count());
     }
 
     @Test
@@ -286,7 +278,8 @@ public class MongoDBRyaDAOIT extends MongoRyaTestBase {
         // Doc requires ("A" and "B") or ("C" and "D") and user has "A" and "B" and "E" = User can view
         assertTrue(testVisibilityStatement("(A&B)|(C&D)", new Authorizations("A", "B", "E")));
 
-        // Doc requires ("A" and "B") or ("C" and "D") and user has "C" and "D" and "E" = User can view
+        // Doc requires ("A" and "B")mongoClient or ("C" and "D") and user has
+        // "C" and "D" and "E" = User can view
         assertTrue(testVisibilityStatement("(A&B)|(C&D)", new Authorizations("C", "D", "E")));
 
         // Doc requires ("A" and "B") or ("C" and "D") and user has "A" and "C" = User CANNOT view
@@ -505,8 +498,8 @@ public class MongoDBRyaDAOIT extends MongoRyaTestBase {
      * @throws RyaDAOException
      */
     private boolean testVisibilityStatement(final String documentVisibility, final Authorizations userAuthorizations) throws RyaDAOException {
-        final MongoDatabase db = mongoClient.getDatabase(configuration.get(MongoDBRdfConfiguration.MONGO_DB_NAME));
-        final MongoCollection<Document> coll = db.getCollection(configuration.getTriplesCollectionName());
+        final MongoDatabase db = client.getDatabase(conf.get(MongoDBRdfConfiguration.MONGO_DB_NAME));
+        final MongoCollection<Document> coll = db.getCollection(conf.getTriplesCollectionName());
 
         final RyaStatement statement = buildVisibilityTestRyaStatement(documentVisibility);
 
@@ -514,18 +507,18 @@ public class MongoDBRyaDAOIT extends MongoRyaTestBase {
         dao.add(statement);
         dao.getConf().setAuths(AuthorizationsUtil.getAuthorizationsStringArray(userAuthorizations != null ? userAuthorizations : Authorizations.EMPTY));
 
-        assertEquals(coll.count(), 1);
+        assertEquals(1, coll.count());
 
         final MongoDBQueryEngine queryEngine = (MongoDBQueryEngine) dao.getQueryEngine();
-        queryEngine.setConf(configuration);
+        queryEngine.setConf(conf);
         final CloseableIterable<RyaStatement> iter = queryEngine.query(new RyaQuery(statement));
 
         // Check if user has authorization to view document based on its visibility
         final boolean hasNext = iter.iterator().hasNext();
 
         // Reset
-        dao.delete(statement, configuration);
-        assertEquals(coll.count(), 0);
+        dao.delete(statement, conf);
+        assertEquals(0, coll.count());
         dao.getConf().setAuths(AuthorizationsUtil.getAuthorizationsStringArray(Authorizations.EMPTY));
 
         return hasNext;

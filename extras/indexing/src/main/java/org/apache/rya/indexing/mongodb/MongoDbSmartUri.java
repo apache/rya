@@ -25,7 +25,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
-import org.apache.commons.io.IOUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.rya.api.domain.RyaURI;
 import org.apache.rya.indexing.entity.model.Entity;
@@ -156,13 +155,6 @@ public class MongoDbSmartUri implements SmartUriStorage {
         }
         entityStorage = new MongoEntityStorage(mongoClient, mongoConf.getMongoInstance());
         isInit = true;
-    }
-
-    /**
-     * Shutdown the MongoDB client.
-     */
-    public void shutdown() {
-        IOUtils.closeQuietly(mongoClient);
     }
 
     /**

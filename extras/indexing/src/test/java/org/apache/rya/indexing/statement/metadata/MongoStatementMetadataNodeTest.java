@@ -17,7 +17,6 @@ package org.apache.rya.indexing.statement.metadata;
  * specific language governing permissions and limitations
  * under the License.
  */
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -29,12 +28,10 @@ import org.apache.rya.api.domain.RyaType;
 import org.apache.rya.api.domain.RyaURI;
 import org.apache.rya.api.domain.StatementMetadata;
 import org.apache.rya.api.persist.RyaDAOException;
-import org.apache.rya.indexing.accumulo.ConfigUtils;
 import org.apache.rya.indexing.statement.metadata.matching.StatementMetadataNode;
-import org.apache.rya.mongodb.MockMongoFactory;
-import org.apache.rya.mongodb.MongoConnectorFactory;
 import org.apache.rya.mongodb.MongoDBRdfConfiguration;
 import org.apache.rya.mongodb.MongoDBRyaDAO;
+import org.apache.rya.mongodb.MongoTestBase;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -51,44 +48,23 @@ import org.openrdf.query.algebra.helpers.StatementPatternCollector;
 import org.openrdf.query.parser.ParsedQuery;
 import org.openrdf.query.parser.sparql.SPARQLParser;
 
-import com.mongodb.MongoClient;
-
-import de.flapdoodle.embed.mongo.distribution.Version;
 import info.aduna.iteration.CloseableIteration;
 
-public class MongoStatementMetadataNodeTest {
-
-    protected MockMongoFactory testsFactory;
-    protected MongoClient mongoClient;
-    private MongoDBRdfConfiguration conf;
+public class MongoStatementMetadataNodeTest extends MongoTestBase {
     private MongoDBRyaDAO dao;
     private final String query = "prefix owl: <http://www.w3.org/2002/07/owl#> prefix ano: <http://www.w3.org/2002/07/owl#annotated> prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> select ?x ?y where {_:blankNode rdf:type owl:Annotation; ano:Source <http://Joe>; "
             + "ano:Property <http://worksAt>; ano:Target ?x; <http://createdBy> ?y; <http://createdOn> \'2017-01-04\'^^xsd:date }";
     private final String query2 = "prefix owl: <http://www.w3.org/2002/07/owl#> prefix ano: <http://www.w3.org/2002/07/owl#annotated> prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> select ?x ?y where {_:blankNode rdf:type owl:Annotation; ano:Source ?x; "
             + "ano:Property <http://worksAt>; ano:Target ?y; <http://createdBy> ?x; <http://createdOn> \'2017-01-04\'^^xsd:date }";
 
-    
     @Before
     public void init() throws Exception {
-        testsFactory = MockMongoFactory.with(Version.Main.PRODUCTION);
-        mongoClient = testsFactory.newMongoClient();
-        conf = getConf();
-
-        dao = new MongoDBRyaDAO(conf, mongoClient);
-        dao.init();
-    }
-
-    @After
-    public void close() throws RyaDAOException {
-        dao.destroy();
+        final Set<RyaURI> propertySet = new HashSet<RyaURI>(Arrays.asList(new RyaURI("http://createdBy"), new RyaURI("http://createdOn")));
+        conf.setUseStatementMetadata(true);
+        conf.setStatementMetadataProperties(propertySet);
         
-        if (mongoClient != null) {
-            mongoClient.close();
-        }
-        if (testsFactory != null) {
-            testsFactory.shutdown();
-        }
-        MongoConnectorFactory.closeMongoClient();
+        dao = new MongoDBRyaDAO(conf, super.getMongoClient());
+        dao.init();
     }
 
     @Test
@@ -377,23 +353,5 @@ public class MongoStatementMetadataNodeTest {
 
         dao.delete(statement1, conf);
         dao.delete(statement2, conf);
-    }
-
-    private MongoDBRdfConfiguration getConf() throws IOException {
-        
-        String host = mongoClient.getServerAddressList().get(0).getHost();
-        int port = mongoClient.getServerAddressList().get(0).getPort();
-        Set<RyaURI> propertySet = new HashSet<RyaURI>(
-                Arrays.asList(new RyaURI("http://createdBy"), new RyaURI("http://createdOn")));
-        MongoDBRdfConfiguration conf = new MongoDBRdfConfiguration();
-        conf.set(ConfigUtils.USE_MONGO, "true");
-        conf.setMongoInstance(host);
-        conf.setMongoPort(Integer.toString(port));
-        conf.setMongoDBName("local");
-        conf.setCollectionName("rya");
-        conf.setTablePrefix("rya_");
-        conf.setUseStatementMetadata(true);
-        conf.setStatementMetadataProperties(propertySet);
-        return conf;
     }
 }

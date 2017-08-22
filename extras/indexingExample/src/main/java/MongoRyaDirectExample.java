@@ -63,6 +63,7 @@ import com.mongodb.ServerAddress;
 
 import info.aduna.iteration.Iterations;
 
+
 public class MongoRyaDirectExample {
     private static final Logger log = Logger.getLogger(MongoRyaDirectExample.class);
 
@@ -128,9 +129,6 @@ public class MongoRyaDirectExample {
             log.info("Shutting down");
             closeQuietly(conn);
             closeQuietly(repository);
-            if (mock != null) {
-                mock.shutdown();
-            }
             MongoConnectorFactory.closeMongoClient();
         }
     }
@@ -290,15 +288,13 @@ public class MongoRyaDirectExample {
         Validate.isTrue(tupleHandler.getCount() == 2);
     }
 
-    private static MockMongoFactory mock = null;
     private static Configuration getConf() throws IOException {
 
         MongoDBIndexingConfigBuilder builder = MongoIndexingConfiguration.builder()
             .setUseMockMongo(USE_MOCK).setUseInference(USE_INFER).setAuths("U");
 
         if (USE_MOCK) {
-            mock = MockMongoFactory.newFactory();
-            final MongoClient c = mock.newMongoClient();
+            final MongoClient c = MockMongoFactory.newFactory().newMongoClient();
             final ServerAddress address = c.getAddress();
             final String url = address.getHost();
             final String port = Integer.toString(address.getPort());
@@ -765,7 +761,7 @@ public class MongoRyaDirectExample {
         }
 
         public void resetCount() {
-            this.count = 0;
+            count = 0;
         }
 
         @Override

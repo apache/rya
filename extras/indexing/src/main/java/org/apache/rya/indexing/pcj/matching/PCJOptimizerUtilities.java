@@ -291,15 +291,22 @@ public class PCJOptimizerUtilities {
 		}
 
 		@Override
-		public void meet(Union union) {
-			if (Sets.intersection(union.getRightArg().getBindingNames(), filterVars).size() > 0) {
-				relocate(filter, union.getRightArg());
-			} else if (Sets.intersection(union.getLeftArg().getBindingNames(), filterVars).size() > 0) {
-				Filter clone = new Filter(filter.getArg(), filter
-						.getCondition().clone());
-				relocate(clone, union.getLeftArg());
-			}
-		}
+        public void meet(Union union) {
+            boolean filterMoved = false;
+            if (Sets.intersection(union.getRightArg().getBindingNames(), filterVars).size() > 0) {
+                relocate(filter, union.getRightArg());
+                filterMoved = true;
+            }
+ 
+            if (Sets.intersection(union.getLeftArg().getBindingNames(), filterVars).size() > 0) {
+                if (filterMoved) {
+                    Filter clone = new Filter(filter.getArg(), filter.getCondition().clone());
+                    relocate(clone, union.getLeftArg());
+                } else {
+                    relocate(filter, union.getLeftArg());
+                }
+            }
+        }
 
 		@Override
 		public void meet(Difference node) {

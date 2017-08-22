@@ -59,7 +59,7 @@ import com.beust.jcommander.internal.Lists;
 import com.google.common.base.Optional;
 
 import org.apache.rya.api.persist.RyaDAOException;
-import org.apache.rya.indexing.external.PrecompJoinOptimizerIntegrationTest.CountingResultHandler;
+import org.apache.rya.indexing.external.PrecompJoinOptimizerIT.CountingResultHandler;
 import org.apache.rya.indexing.external.PrecompJoinOptimizerTest.NodeCollector;
 import org.apache.rya.indexing.external.tupleSet.ExternalTupleSet;
 import org.apache.rya.indexing.external.tupleSet.SimpleExternalTupleSet;

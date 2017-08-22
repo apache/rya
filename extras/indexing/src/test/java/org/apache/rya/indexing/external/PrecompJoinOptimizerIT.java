@@ -58,7 +58,7 @@ import com.google.common.base.Optional;
 import org.apache.rya.api.persist.RyaDAOException;
 import org.apache.rya.rdftriplestore.inference.InferenceEngineException;
 
-public class PrecompJoinOptimizerIntegrationTest {
+public class PrecompJoinOptimizerIT {
 
 	private SailRepositoryConnection conn, pcjConn;
 	private SailRepository repo, pcjRepo;

@@ -75,7 +75,7 @@ import org.apache.rya.indexing.external.tupleSet.ExternalTupleSet;
 import org.apache.rya.indexing.pcj.matching.PCJOptimizer;
 import org.apache.rya.rdftriplestore.inference.InferenceEngineException;
 
-public class AccumuloPcjIntegrationTest {
+public class AccumuloPcjIT {
 
 	private SailRepositoryConnection conn, pcjConn;
 	private SailRepository repo, pcjRepo;

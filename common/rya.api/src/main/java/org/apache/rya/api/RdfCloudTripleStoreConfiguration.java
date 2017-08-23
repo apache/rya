@@ -74,6 +74,7 @@ public abstract class RdfCloudTripleStoreConfiguration extends Configuration {
     public static final String STATS_PUSH_EMPTY_RDFTYPE_DOWN = "conf.stats.rdftype.down";
     public static final String INFER_INCLUDE_INTERSECTION_OF = "infer.include.intersectionof";
     public static final String INFER_INCLUDE_INVERSEOF = "infer.include.inverseof";
+    public static final String INFER_INCLUDE_ONE_OF = "infer.include.oneof";
     public static final String INFER_INCLUDE_SUBCLASSOF = "infer.include.subclassof";
     public static final String INFER_INCLUDE_SUBPROPOF = "infer.include.subpropof";
     public static final String INFER_INCLUDE_SYMMPROP = "infer.include.symmprop";
@@ -356,6 +357,25 @@ public abstract class RdfCloudTripleStoreConfiguration extends Configuration {
     public void setInferInverseOf(final Boolean val) {
         Preconditions.checkNotNull(val);
         setBoolean(INFER_INCLUDE_INVERSEOF, val);
+    }
+
+    /**
+     * @return {@code true} if owl:oneOf inferencing is enabled.
+     * {@code false} otherwise. Defaults to {@code true} if nothing is
+     * specified.
+     */
+    public Boolean isInferOneOf() {
+        return getBoolean(INFER_INCLUDE_ONE_OF, true);
+    }
+
+    /**
+     * Sets whether owl:oneOf inferencing is enabled or disabled.
+     * @param value {@code true} if owl:oneOf inferencing is enabled.
+     * {@code false} otherwise.
+     */
+    public void setInferOneOf(final Boolean value) {
+        Preconditions.checkNotNull(value);
+        setBoolean(INFER_INCLUDE_ONE_OF, value);
     }
 
     public Boolean isInferSubClassOf() {

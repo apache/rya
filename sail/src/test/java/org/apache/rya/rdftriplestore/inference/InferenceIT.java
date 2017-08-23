@@ -212,8 +212,8 @@ public class InferenceIT extends TestCase {
         conn.prepareUpdate(QueryLanguage.SPARQL, instances).execute();
         conn.prepareTupleQuery(QueryLanguage.SPARQL, "SELECT ?x { ?x a <urn:Dog> }").evaluate(resultHandler);
         Assert.assertEquals(2, solutions.size());
-        Set<Value> answers = new HashSet<>();
-        for (BindingSet solution : solutions) {
+        final Set<Value> answers = new HashSet<>();
+        for (final BindingSet solution : solutions) {
             answers.add(solution.getBinding("x").getValue());
         }
         Assert.assertTrue(answers.contains(vf.createURI("urn:Terry")));
@@ -399,5 +399,100 @@ public class InferenceIT extends TestCase {
         final Set<BindingSet> expectedMen = new HashSet<>();
         expectedMen.add(new ListBindingSet(varNames, vf.createURI("urn:Bob")));
         Assert.assertEquals(expectedMen, new HashSet<>(solutions));
+    }
+
+    @Test
+    public void testOneOfQuery() throws Exception {
+        final String ontology = "INSERT DATA { GRAPH <http://updated/test> {\n"
+                + "  <urn:Suits> owl:oneOf _:bnodeS1 . \n"
+                + "  _:bnodeS1 rdf:first <urn:Clubs> . \n"
+                + "  _:bnodeS1 rdf:rest _:bnodeS2 . \n"
+                + "  _:bnodeS2 rdf:first <urn:Diamonds> . \n"
+                + "  _:bnodeS2 rdf:rest _:bnodeS3 . \n"
+                + "  _:bnodeS3 rdf:first <urn:Hearts> . \n"
+                + "  _:bnodeS3 rdf:rest _:bnodeS4 . \n"
+                + "  _:bnodeS4 rdf:first <urn:Spades> . \n"
+                + "  _:bnodeS4 rdf:rest rdf:nil . \n"
+                + "  <urn:Ranks> owl:oneOf _:bnodeR1 . \n"
+                + "  _:bnodeR1 rdf:first <urn:Ace> . \n"
+                + "  _:bnodeR1 rdf:rest _:bnodeR2 . \n"
+                + "  _:bnodeR2 rdf:first <urn:2> . \n"
+                + "  _:bnodeR2 rdf:rest _:bnodeR3 . \n"
+                + "  _:bnodeR3 rdf:first <urn:3> . \n"
+                + "  _:bnodeR3 rdf:rest _:bnodeR4 . \n"
+                + "  _:bnodeR4 rdf:first <urn:4> . \n"
+                + "  _:bnodeR4 rdf:rest _:bnodeR5 . \n"
+                + "  _:bnodeR5 rdf:first <urn:5> . \n"
+                + "  _:bnodeR5 rdf:rest _:bnodeR6 . \n"
+                + "  _:bnodeR6 rdf:first <urn:6> . \n"
+                + "  _:bnodeR6 rdf:rest _:bnodeR7 . \n"
+                + "  _:bnodeR7 rdf:first <urn:7> . \n"
+                + "  _:bnodeR7 rdf:rest _:bnodeR8 . \n"
+                + "  _:bnodeR8 rdf:first <urn:8> . \n"
+                + "  _:bnodeR8 rdf:rest _:bnodeR9 . \n"
+                + "  _:bnodeR9 rdf:first <urn:9> . \n"
+                + "  _:bnodeR9 rdf:rest _:bnodeR10 . \n"
+                + "  _:bnodeR10 rdf:first <urn:10> . \n"
+                + "  _:bnodeR10 rdf:rest _:bnodeR11 . \n"
+                + "  _:bnodeR11 rdf:first <urn:Jack> . \n"
+                + "  _:bnodeR11 rdf:rest _:bnodeR12 . \n"
+                + "  _:bnodeR12 rdf:first <urn:Queen> . \n"
+                + "  _:bnodeR12 rdf:rest _:bnodeR13 . \n"
+                + "  _:bnodeR13 rdf:first <urn:King> . \n"
+                + "  _:bnodeR13 rdf:rest rdf:nil . \n"
+                + "  <urn:Card> owl:intersectionOf (\n"
+                + "    [ owl:onProperty <urn:HasRank> ; owl:someValuesFrom <urn:Ranks> ]\n"
+                + "    [ owl:onProperty <urn:HasSuit> ; owl:someValuesFrom <urn:Suits> ]\n"
+                + "  ) . \n"
+                + "  <urn:HasRank> owl:range <urn:Ranks> . \n"
+                + "  <urn:HasSuit> owl:range <urn:Suits> . \n"
+                + "}}";
+        final String instances = "INSERT DATA { GRAPH <http://updated/test> {\n"
+                + "  <urn:FlopCard1> a <urn:Card> . \n"
+                + "    <urn:FlopCard1> <urn:HasRank> <urn:Ace> . \n"
+                + "    <urn:FlopCard1> <urn:HasSuit> <urn:Diamonds> . \n"
+                + "  <urn:FlopCard2> a <urn:Card> . \n"
+                + "    <urn:FlopCard2> <urn:HasRank> <urn:Ace> . \n"
+                + "    <urn:FlopCard2> <urn:HasSuit> <urn:Hearts> . \n"
+                + "  <urn:FlopCard3> a <urn:Card> . \n"
+                + "    <urn:FlopCard3> <urn:HasRank> <urn:King> . \n"
+                + "    <urn:FlopCard3> <urn:HasSuit> <urn:Spades> . \n"
+                + "  <urn:TurnCard> a <urn:Card> . \n"
+                + "    <urn:TurnCard> <urn:HasRank> <urn:10> . \n"
+                + "    <urn:TurnCard> <urn:HasSuit> <urn:Clubs> . \n"
+                + "  <urn:RiverCard> a <urn:Card> . \n"
+                + "    <urn:RiverCard> <urn:HasRank> <urn:Queen> . \n"
+                + "    <urn:RiverCard> <urn:HasSuit> <urn:Hearts> . \n"
+                + "}}";
+        conn.prepareUpdate(QueryLanguage.SPARQL, ontology).execute();
+        conn.prepareUpdate(QueryLanguage.SPARQL, instances).execute();
+        inferenceEngine.refreshGraph();
+
+        final List<String> varNames = new LinkedList<>();
+        varNames.add("card");
+
+        // Find all cards with a <urn:Suits> type (expect 5 results)
+        final String cardSuitQuery = "SELECT ?card { GRAPH <http://updated/test> { ?card a <urn:Card> . ?suit a <urn:Suits> . ?card <urn:HasSuit> ?suit} } \n";
+        conn.prepareTupleQuery(QueryLanguage.SPARQL, cardSuitQuery).evaluate(resultHandler);
+        final Set<BindingSet> expectedCardSuits = new HashSet<>();
+        expectedCardSuits.add(new ListBindingSet(varNames, vf.createURI("urn:FlopCard1")));
+        expectedCardSuits.add(new ListBindingSet(varNames, vf.createURI("urn:FlopCard2")));
+        expectedCardSuits.add(new ListBindingSet(varNames, vf.createURI("urn:FlopCard3")));
+        expectedCardSuits.add(new ListBindingSet(varNames, vf.createURI("urn:TurnCard")));
+        expectedCardSuits.add(new ListBindingSet(varNames, vf.createURI("urn:RiverCard")));
+        Assert.assertEquals(expectedCardSuits.size(), solutions.size());
+        Assert.assertEquals(expectedCardSuits, new HashSet<>(solutions));
+
+        // Find all cards with a <urn:Ranks> type (expect 5 results)
+        final String cardRankQuery = "SELECT ?card { GRAPH <http://updated/test> { ?card a <urn:Card> . ?rank a <urn:Ranks> . ?card <urn:HasRank> ?rank} } \n";
+        conn.prepareTupleQuery(QueryLanguage.SPARQL, cardRankQuery).evaluate(resultHandler);
+        final Set<BindingSet> expectedCardRanks = new HashSet<>();
+        expectedCardRanks.add(new ListBindingSet(varNames, vf.createURI("urn:FlopCard1")));
+        expectedCardRanks.add(new ListBindingSet(varNames, vf.createURI("urn:FlopCard2")));
+        expectedCardRanks.add(new ListBindingSet(varNames, vf.createURI("urn:FlopCard3")));
+        expectedCardRanks.add(new ListBindingSet(varNames, vf.createURI("urn:TurnCard")));
+        expectedCardRanks.add(new ListBindingSet(varNames, vf.createURI("urn:RiverCard")));
+        Assert.assertEquals(expectedCardRanks.size(), solutions.size());
+        Assert.assertEquals(expectedCardRanks, new HashSet<>(solutions));
     }
 }

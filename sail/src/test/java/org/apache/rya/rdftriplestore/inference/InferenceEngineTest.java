@@ -438,4 +438,88 @@ public class InferenceEngineTest extends TestCase {
         Assert.assertTrue(momSuperClassUris.contains(mother));
         Assert.assertTrue(momSuperClassUris.contains(mom));
     }
+
+    @Test
+    public void testOneOf() throws Exception {
+        final String ontology = "INSERT DATA { GRAPH <http://updated/test> {\n"
+                + "  <urn:Suits> owl:oneOf _:bnodeS1 . \n"
+                + "  _:bnodeS1 rdf:first <urn:Clubs> . \n"
+                + "  _:bnodeS1 rdf:rest _:bnodeS2 . \n"
+                + "  _:bnodeS2 rdf:first <urn:Diamonds> . \n"
+                + "  _:bnodeS2 rdf:rest _:bnodeS3 . \n"
+                + "  _:bnodeS3 rdf:first <urn:Hearts> . \n"
+                + "  _:bnodeS3 rdf:rest _:bnodeS4 . \n"
+                + "  _:bnodeS4 rdf:first <urn:Spades> . \n"
+                + "  _:bnodeS4 rdf:rest rdf:nil . \n"
+                + "  <urn:Ranks> owl:oneOf _:bnodeR1 . \n"
+                + "  _:bnodeR1 rdf:first <urn:Ace> . \n"
+                + "  _:bnodeR1 rdf:rest _:bnodeR2 . \n"
+                + "  _:bnodeR2 rdf:first <urn:2> . \n"
+                + "  _:bnodeR2 rdf:rest _:bnodeR3 . \n"
+                + "  _:bnodeR3 rdf:first <urn:3> . \n"
+                + "  _:bnodeR3 rdf:rest _:bnodeR4 . \n"
+                + "  _:bnodeR4 rdf:first <urn:4> . \n"
+                + "  _:bnodeR4 rdf:rest _:bnodeR5 . \n"
+                + "  _:bnodeR5 rdf:first <urn:5> . \n"
+                + "  _:bnodeR5 rdf:rest _:bnodeR6 . \n"
+                + "  _:bnodeR6 rdf:first <urn:6> . \n"
+                + "  _:bnodeR6 rdf:rest _:bnodeR7 . \n"
+                + "  _:bnodeR7 rdf:first <urn:7> . \n"
+                + "  _:bnodeR7 rdf:rest _:bnodeR8 . \n"
+                + "  _:bnodeR8 rdf:first <urn:8> . \n"
+                + "  _:bnodeR8 rdf:rest _:bnodeR9 . \n"
+                + "  _:bnodeR9 rdf:first <urn:9> . \n"
+                + "  _:bnodeR9 rdf:rest _:bnodeR10 . \n"
+                + "  _:bnodeR10 rdf:first <urn:10> . \n"
+                + "  _:bnodeR10 rdf:rest _:bnodeR11 . \n"
+                + "  _:bnodeR11 rdf:first <urn:Jack> . \n"
+                + "  _:bnodeR11 rdf:rest _:bnodeR12 . \n"
+                + "  _:bnodeR12 rdf:first <urn:Queen> . \n"
+                + "  _:bnodeR12 rdf:rest _:bnodeR13 . \n"
+                + "  _:bnodeR13 rdf:first <urn:King> . \n"
+                + "  _:bnodeR13 rdf:rest rdf:nil . \n"
+                + "}}";
+
+        conn.prepareUpdate(QueryLanguage.SPARQL, ontology).execute();
+        inferenceEngine.refreshGraph();
+
+        final URI suits = vf.createURI("urn:Suits");
+        final URI ranks = vf.createURI("urn:Ranks");
+
+        final URI clubs = vf.createURI("urn:Clubs");
+        final URI diamonds = vf.createURI("urn:Diamonds");
+        final URI hearts = vf.createURI("urn:Hearts");
+        final URI spades = vf.createURI("urn:Spades");
+
+        final URI ace = vf.createURI("urn:Ace");
+        final URI two = vf.createURI("urn:2");
+        final URI three = vf.createURI("urn:3");
+        final URI four = vf.createURI("urn:4");
+        final URI five = vf.createURI("urn:5");
+        final URI six = vf.createURI("urn:6");
+        final URI seven = vf.createURI("urn:7");
+        final URI eight = vf.createURI("urn:8");
+        final URI nine = vf.createURI("urn:9");
+        final URI ten = vf.createURI("urn:10");
+        final URI jack = vf.createURI("urn:Jack");
+        final URI queen = vf.createURI("urn:Queen");
+        final URI king = vf.createURI("urn:King");
+
+        final URI joker = vf.createURI("urn:Joker");
+
+        final boolean isJokerEnumeratedType = inferenceEngine.isEnumeratedType(joker);
+        Assert.assertFalse(isJokerEnumeratedType);
+
+        final boolean isSuitsEnumeratedType = inferenceEngine.isEnumeratedType(suits);
+        Assert.assertTrue(isSuitsEnumeratedType);
+        final Set<Resource> enumerationImplyingSuits = Sets.newHashSet(clubs, diamonds, hearts, spades);
+        final Set<Resource> actualCardSuits = inferenceEngine.getEnumeration(suits);
+        Assert.assertEquals(enumerationImplyingSuits, actualCardSuits);
+
+        final boolean isRanksEnumeratedType = inferenceEngine.isEnumeratedType(ranks);
+        Assert.assertTrue(isRanksEnumeratedType);
+        final Set<Resource> enumerationImplyingRanks = Sets.newHashSet(ace, two, three, four, five, six, seven, eight, nine, ten, jack, queen, king);
+        final Set<Resource> actualCardRanks = inferenceEngine.getEnumeration(ranks);
+        Assert.assertEquals(enumerationImplyingRanks, actualCardRanks);
+   }
 }

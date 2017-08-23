@@ -85,6 +85,7 @@ public class InferenceEngine {
     private Map<URI, Map<Resource, Value>> hasValueByProperty;
     private Map<Resource, Map<Resource, URI>> allValuesFromByValueType;
     private final ConcurrentHashMap<Resource, List<Set<Resource>>> intersections = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<Resource, Set<Resource>> enumerations = new ConcurrentHashMap<>();
 
     private RyaDAO<?> ryaDAO;
     private RdfCloudTripleStoreConfiguration conf;
@@ -202,6 +203,8 @@ public class InferenceEngine {
             subPropertyOfGraph = graph; //TODO: Should this be synchronized?
 
             refreshIntersectionOf();
+
+            refreshOneOf();
 
             iter = RyaDAOHelper.query(ryaDAO, null, RDF.TYPE, OWL.SYMMETRICPROPERTY, conf);
             final Set<URI> symProp = new HashSet<>();
@@ -761,6 +764,46 @@ public class InferenceEngine {
         }
     }
 
+    private void refreshOneOf() throws QueryEvaluationException {
+        final Map<Resource, Set<Resource>> enumTypes = new HashMap<>();
+
+        // First query for all the owl:oneOf's.
+        // If we have the following oneOf:
+        // :A owl:oneOf (:B, :C)
+        // It will be represented by triples following a pattern similar to:
+        // <:A> owl:oneOf _:bnode1 .
+        //  _:bnode1 rdf:first <:B> .
+        //  _:bnode1 rdf:rest _:bnode2 .
+        // _:bnode2 rdf:first <:C> .
+        // _:bnode2 rdf:rest rdf:nil .
+        ryaDaoQueryWrapper.queryAll(null, OWL.ONEOF, null, new RDFHandlerBase() {
+            @Override
+            public void handleStatement(final Statement statement) throws RDFHandlerException {
+                final Resource enumType = statement.getSubject();
+                // listHead will point to a type class of the enumeration.
+                final URI listHead = (URI) statement.getObject();
+                if (!enumTypes.containsKey(enumType)) {
+                    enumTypes.put(enumType, new LinkedHashSet<Resource>());
+                }
+
+                // listHead should point to a list of items that forms the
+                // enumeration.
+                try {
+                    final Set<Resource> enumeration = new LinkedHashSet<>(getList(listHead));
+                    if (!enumeration.isEmpty()) {
+                        // Add this enumeration for this type.
+                        enumTypes.get(enumType).addAll(enumeration);
+                    }
+                } catch (final QueryEvaluationException e) {
+                    throw new RDFHandlerException("Error getting enumeration list.", e);
+                }
+            }
+        });
+
+        enumerations.clear();
+        enumerations.putAll(enumTypes);
+    }
+
     /**
      * Queries for all items that are in a list of the form:
      * <pre>
@@ -1280,5 +1323,38 @@ public class InferenceEngine {
             return intersectionList;
         }
         return null;
+    }
+
+    /**
+     * For a given type, return all sets of types such that owl:oneOf
+     * restrictions on those properties could imply this type. A enumeration
+     * of all the types that are part of the specified class type.
+     * @param type The type (URI or bnode) to check against the known oneOf
+     * sets.
+     * @return A {@link Set} of {@link Resource} types that represents the
+     * enumeration of resources that belong to the class type.
+     * An empty set is returned if no enumerations were found for the specified
+     * type.
+     */
+    public Set<Resource> getEnumeration(final Resource type) {
+        if (enumerations != null) {
+            final Set<Resource> oneOfSet = enumerations.get(type);
+            if (oneOfSet != null) {
+                return oneOfSet;
+            }
+        }
+        return new LinkedHashSet<>();
+
+    }
+
+    /**
+     * Checks if the specified type is an enumerated type.
+     * @param type The type (URI or bnode) to check against the known oneOf
+     * sets.
+     * @return {@code true} if the type is an enumerated type. {@code false}
+     * otherwise.
+     */
+    public boolean isEnumeratedType(final Resource type) {
+        return enumerations != null && enumerations.containsKey(type);
     }
 }

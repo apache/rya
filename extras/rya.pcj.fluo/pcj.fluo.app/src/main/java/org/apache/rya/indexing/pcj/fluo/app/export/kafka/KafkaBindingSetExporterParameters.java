@@ -24,6 +24,8 @@ import java.util.Properties;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.serialization.StringSerializer;
 
+import com.google.common.base.Preconditions;
+
 
 public class KafkaBindingSetExporterParameters extends KafkaExportParameterBase {
     
@@ -58,7 +60,7 @@ public class KafkaBindingSetExporterParameters extends KafkaExportParameterBase 
      * @param serializer - Used for Serializing BindingSets pushed to Kafka
      */
     public void setKafkaBindingSetSerializer(String serializer) {
-        params.put(CONF_KAFKA_BINDING_SET_SERIALIZER, serializer);
+        params.put(CONF_KAFKA_BINDING_SET_SERIALIZER, Preconditions.checkNotNull(serializer));
     }
     
     /**

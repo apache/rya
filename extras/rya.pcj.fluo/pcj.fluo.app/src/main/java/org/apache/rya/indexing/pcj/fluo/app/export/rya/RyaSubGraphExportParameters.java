@@ -23,6 +23,8 @@ import java.util.Optional;
 
 import org.apache.fluo.api.config.FluoConfiguration;
 
+import com.google.common.base.Preconditions;
+
 import edu.umd.cs.findbugs.annotations.Nullable;
 
 /**
@@ -41,10 +43,16 @@ public class RyaSubGraphExportParameters extends RyaExportParameters {
         super(params);
     }
     
+    /**
+     * @param useExporter - indicates whether to use the {@link RyaSubGraphExporter}
+     */
     public void setUseRyaSubGraphExporter(boolean useExporter) {
         setBoolean(params, CONF_USE_RYA_SUBGRAPH_EXPORTER, useExporter);
     }
     
+    /**
+     * @return boolean indicating whether to use the {@link RyaSubGraphExporter}
+     */
     public boolean getUseRyaSubGraphExporter() {
         return getBoolean(params, CONF_USE_RYA_SUBGRAPH_EXPORTER, false);
     }
@@ -52,8 +60,8 @@ public class RyaSubGraphExportParameters extends RyaExportParameters {
     /**
      * @param fluoInstance - the Accumulo instance that Fluo is running on
      */
-    public void setFluoInstanceName(@Nullable String fluoInstance) {
-        params.put(CONF_FLUO_INSTANCE, fluoInstance);
+    public void setFluoInstanceName(String fluoInstance) {
+        params.put(CONF_FLUO_INSTANCE, Preconditions.checkNotNull(fluoInstance));
     }
     
     /**

@@ -47,9 +47,6 @@ public class ShiftVarOrderFactory implements PcjVarOrderFactory {
                 .getTupleExpr()
                 .getBindingNames();
         
-//      //Get Binding names and remove any aggregation variables
-//        final Set<String> bindingNames = new AggregateVariableRemover().getNonAggregationVariables(sparql);
-
 
         return makeVarOrders( new VariableOrder(bindingNames) );
     }

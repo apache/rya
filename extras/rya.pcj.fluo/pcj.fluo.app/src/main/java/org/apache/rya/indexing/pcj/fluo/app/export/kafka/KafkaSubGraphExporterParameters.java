@@ -24,6 +24,8 @@ import java.util.Properties;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.serialization.StringSerializer;
 
+import com.google.common.base.Preconditions;
+
 
 public class KafkaSubGraphExporterParameters extends KafkaExportParameterBase {
 
@@ -58,7 +60,7 @@ public class KafkaSubGraphExporterParameters extends KafkaExportParameterBase {
      * @param serializer - Used for Serializing RyaSubGraphs pushed to Kafka
      */
     public void setKafkaSubGraphSerializer(String serializer) {
-        params.put(CONF_KAFKA_SUBGRAPH_SERIALIZER, serializer);
+        params.put(CONF_KAFKA_SUBGRAPH_SERIALIZER, Preconditions.checkNotNull(serializer));
     }
     
     /**

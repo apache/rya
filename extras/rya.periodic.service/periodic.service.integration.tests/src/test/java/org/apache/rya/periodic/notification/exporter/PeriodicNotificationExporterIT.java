@@ -34,8 +34,10 @@ import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.apache.rya.indexing.pcj.storage.PeriodicQueryResultStorage;
 import org.apache.rya.kafka.base.KafkaITBase;
+import org.apache.rya.kafka.base.KafkaTestInstanceRule;
 import org.apache.rya.periodic.notification.serialization.BindingSetSerDe;
 import org.junit.Assert;
+import org.junit.Rule;
 import org.junit.Test;
 import org.openrdf.model.ValueFactory;
 import org.openrdf.model.impl.ValueFactoryImpl;
@@ -44,82 +46,91 @@ import org.openrdf.query.algebra.evaluation.QueryBindingSet;
 
 public class PeriodicNotificationExporterIT extends KafkaITBase {
 
+
+    @Rule
+    public KafkaTestInstanceRule kafkaTestInstanceRule = new KafkaTestInstanceRule(false);
+
+
     private static final ValueFactory vf = new ValueFactoryImpl();
-    
+
     @Test
     public void testExporter() throws InterruptedException {
-        
-        BlockingQueue<BindingSetRecord> records = new LinkedBlockingQueue<>();
-        Properties props = createKafkaConfig();
-        
-        KafkaExporterExecutor exporter = new KafkaExporterExecutor(new KafkaProducer<String, BindingSet>(props), 1, records);
+
+        final String topic1 = kafkaTestInstanceRule.getKafkaTopicName() + "1";
+        final String topic2 = kafkaTestInstanceRule.getKafkaTopicName() + "2";
+
+        kafkaTestInstanceRule.createTopic(topic1);
+        kafkaTestInstanceRule.createTopic(topic2);
+
+        final BlockingQueue<BindingSetRecord> records = new LinkedBlockingQueue<>();
+
+        final KafkaExporterExecutor exporter = new KafkaExporterExecutor(new KafkaProducer<String, BindingSet>(createKafkaProducerConfig()), 1, records);
         exporter.start();
-        
-        QueryBindingSet bs1 = new QueryBindingSet();
+        final QueryBindingSet bs1 = new QueryBindingSet();
         bs1.addBinding(PeriodicQueryResultStorage.PeriodicBinId, vf.createLiteral(1L));
         bs1.addBinding("name", vf.createURI("uri:Bob"));
-        BindingSetRecord record1 = new BindingSetRecord(bs1, "topic1");
-        
-        QueryBindingSet bs2 = new QueryBindingSet();
+        final BindingSetRecord record1 = new BindingSetRecord(bs1, topic1);
+
+        final QueryBindingSet bs2 = new QueryBindingSet();
         bs2.addBinding(PeriodicQueryResultStorage.PeriodicBinId, vf.createLiteral(2L));
         bs2.addBinding("name", vf.createURI("uri:Joe"));
-        BindingSetRecord record2 = new BindingSetRecord(bs2, "topic2");
-        
+        final BindingSetRecord record2 = new BindingSetRecord(bs2, topic2);
+
         records.add(record1);
         records.add(record2);
-        
-        Set<BindingSet> expected1 = new HashSet<>();
+
+        final Set<BindingSet> expected1 = new HashSet<>();
         expected1.add(bs1);
-        Set<BindingSet> expected2 = new HashSet<>();
+        final Set<BindingSet> expected2 = new HashSet<>();
         expected2.add(bs2);
-        
-        Set<BindingSet> actual1 = getBindingSetsFromKafka("topic1");
-        Set<BindingSet> actual2 = getBindingSetsFromKafka("topic2");
-        
+
+        final Set<BindingSet> actual1 = getBindingSetsFromKafka(topic1);
+        final Set<BindingSet> actual2 = getBindingSetsFromKafka(topic2);
+
         Assert.assertEquals(expected1, actual1);
         Assert.assertEquals(expected2, actual2);
-        
+
         exporter.stop();
-        
     }
-    
-    
-    private Properties createKafkaConfig() {
-        Properties props = new Properties();
-        props.setProperty(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, "127.0.0.1:9092");
-        props.setProperty(ConsumerConfig.GROUP_ID_CONFIG, "group0");
-        props.setProperty(ConsumerConfig.CLIENT_ID_CONFIG, "consumer0");
-        props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
+
+
+    private Properties createKafkaProducerConfig() {
+        final Properties props = createBootstrapServerConfig();
         props.setProperty(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
         props.setProperty(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, BindingSetSerDe.class.getName());
-        props.setProperty(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
-        props.setProperty(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, BindingSetSerDe.class.getName());
-
         return props;
     }
-    
-    
-    private KafkaConsumer<String, BindingSet> makeBindingSetConsumer(final String TopicName) {
+    private Properties createKafkaConsumerConfig() {
+        final Properties props = createBootstrapServerConfig();
+        props.setProperty(ConsumerConfig.GROUP_ID_CONFIG, "group0");
+        props.setProperty(ConsumerConfig.CLIENT_ID_CONFIG, "consumer0");
+        props.setProperty(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
+        props.setProperty(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
+        props.setProperty(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, BindingSetSerDe.class.getName());
+        return props;
+    }
+
+
+    private KafkaConsumer<String, BindingSet> makeBindingSetConsumer(final String topicName) {
         // setup consumer
-        final Properties consumerProps = createKafkaConfig();
-        final KafkaConsumer<String, BindingSet> consumer = new KafkaConsumer<>(consumerProps);
-        consumer.subscribe(Arrays.asList(TopicName));
+        final KafkaConsumer<String, BindingSet> consumer = new KafkaConsumer<>(createKafkaConsumerConfig());
+        consumer.subscribe(Arrays.asList(topicName));
         return consumer;
     }
-    
-    private Set<BindingSet> getBindingSetsFromKafka(String topic) {
+
+    private Set<BindingSet> getBindingSetsFromKafka(final String topicName) {
         KafkaConsumer<String, BindingSet> consumer = null;
 
         try {
-            consumer = makeBindingSetConsumer(topic);
-            ConsumerRecords<String, BindingSet> records = consumer.poll(5000);
+            consumer = makeBindingSetConsumer(topicName);
+            final ConsumerRecords<String, BindingSet> records = consumer.poll(5000);
 
-            Set<BindingSet> bindingSets = new HashSet<>();
+            final Set<BindingSet> bindingSets = new HashSet<>();
             records.forEach(x -> bindingSets.add(x.value()));
 
             return bindingSets;
 
-        } catch (Exception e) {
+        } catch (final Exception e) {
             throw new RuntimeException(e);
         } finally {
             if (consumer != null) {

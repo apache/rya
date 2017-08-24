@@ -123,7 +123,7 @@ public class PeriodicNotificationExporterIT extends KafkaITBase {
 
         try {
             consumer = makeBindingSetConsumer(topicName);
-            final ConsumerRecords<String, BindingSet> records = consumer.poll(5000);
+            final ConsumerRecords<String, BindingSet> records = consumer.poll(20000);  // Wait up to 20 seconds for a result to be published.
 
             final Set<BindingSet> bindingSets = new HashSet<>();
             records.forEach(x -> bindingSets.add(x.value()));

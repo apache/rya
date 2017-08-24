@@ -78,7 +78,7 @@ public class ExporterManager implements AutoCloseable {
         
         String pcjId = FluoQueryUtils.convertFluoQueryIdToPcjId(queryId);
         
-        if(type == QueryType.Construct) {
+        if(type == QueryType.CONSTRUCT) {
             exportSubGraph(exporters.get(type), strategies, pcjId, data);
         } else {
             exportBindingSet(exporters.get(type), strategies, pcjId, data);

@@ -93,9 +93,9 @@ public class FluoQuery {
         this.filterMetadata = requireNonNull(filterMetadata);
         this.joinMetadata = requireNonNull(joinMetadata);
         if(constructMetadata.isPresent()) {
-            this.type = QueryType.Construct;
+            this.type = QueryType.CONSTRUCT;
         } else {
-            this.type = QueryType.Projection;
+            this.type = QueryType.PROJECTION;
         }
     }
     
@@ -613,7 +613,7 @@ public class FluoQuery {
                 }
                 return new FluoQuery(qMetadata, projectionMetadata.build(), Optional.of(constructBuilder.build()), Optional.fromNullable(periodicQueryMetadata), spMetadata.build(), filterMetadata.build(), joinMetadata.build(), aggregateMetadata.build());
             } else {
-                if(aggregationBuilders.size() > 0 && qMetadata.getQueryType() == QueryType.Projection && qMetadata.getExportStrategies().contains(ExportStrategy.Rya)) {
+                if(aggregationBuilders.size() > 0 && qMetadata.getQueryType() == QueryType.PROJECTION && qMetadata.getExportStrategies().contains(ExportStrategy.RYA)) {
                     throw new UnsupportedQueryException("Exporting to Rya PCJ tables is currently not supported for queries containing aggregations.");
                 }
                 

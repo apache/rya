@@ -135,7 +135,6 @@ public class CreateFluoPcj {
      * according to the Kafka {@link ExportStrategy}.  
      *
      * @param sparql - sparql query String to be registered with Fluo
-     * @param strategies - ExportStrategies used to specify how final results will be handled
      * @param fluo - A connection to the Fluo application that updates the PCJ index. (not null)
      * @return The metadata that was written to the Fluo application for the PCJ.
      * @throws MalformedQueryException The SPARQL query stored for the {@code pcjId} is malformed.
@@ -147,7 +146,7 @@ public class CreateFluoPcj {
         Preconditions.checkNotNull(fluo);
         
         String pcjId = FluoQueryUtils.createNewPcjId();
-        return createPcj(pcjId, sparql, Sets.newHashSet(ExportStrategy.Kafka), fluo);
+        return createPcj(pcjId, sparql, Sets.newHashSet(ExportStrategy.KAFKA), fluo);
     }
     
     /**
@@ -159,11 +158,11 @@ public class CreateFluoPcj {
      *
      * @param pcjId - Identifies the PCJ that will be updated by the Fluo app. (not null)
      * @param sparql - sparql query String to be registered with Fluo
-     * @param strategy - ExportStrategies used to specify how final results will be handled
+     * @param strategies - ExportStrategies used to specify how final results will be handled
      * @param fluo - A connection to the Fluo application that updates the PCJ index. (not null)
      * @return The metadata that was written to the Fluo application for the PCJ.
      * @throws UnsupportedQueryException 
-     * @throws PcjException The PCJ Metadata for {@code pcjId} could not be read from {@code pcjStorage}.
+     * @throws MalformedQueryException
      */
     public FluoQuery createPcj(
             final String pcjId,
@@ -172,6 +171,7 @@ public class CreateFluoPcj {
             final FluoClient fluo) throws MalformedQueryException, UnsupportedQueryException {
         requireNonNull(pcjId);
         requireNonNull(sparql);
+        requireNonNull(strategies);
         requireNonNull(fluo);
 
         FluoQuery fluoQuery = makeFluoQuery(sparql, pcjId, strategies);
@@ -205,7 +205,7 @@ public class CreateFluoPcj {
         // Parse the query's structure for the metadata that will be written to fluo.
         final PcjMetadata pcjMetadata = pcjStorage.getPcjMetadata(pcjId);
         final String sparql = pcjMetadata.getSparql();
-        return createPcj(pcjId, sparql, Sets.newHashSet(ExportStrategy.Rya), fluo);
+        return createPcj(pcjId, sparql, Sets.newHashSet(ExportStrategy.RYA), fluo);
     }
     
     private FluoQuery makeFluoQuery(String sparql, String pcjId, Set<ExportStrategy> strategies) throws MalformedQueryException, UnsupportedQueryException {
@@ -240,6 +240,8 @@ public class CreateFluoPcj {
      *
      * @param sparql - sparql query that will registered with Fluo. (not null)
      * @param fluo - A connection to the Fluo application that updates the PCJ index. (not null)
+     * @param accumulo - Accumulo connector for connecting with Accumulo
+     * @param ryaInstance - Name of Rya instance to connect to
      * @return The Fluo application's Query ID of the query that was created.
      * @throws MalformedQueryException The SPARQL query stored for the {@code pcjId} is malformed.
      * @throws PcjException The PCJ Metadata for {@code pcjId} could not be read from {@code pcjStorage}.
@@ -279,6 +281,8 @@ public class CreateFluoPcj {
      * @param sparql - sparql query that will registered with Fluo. (not null)
      * @param strategies - ExportStrategies used to specify how final results will be handled
      * @param fluo - A connection to the Fluo application that updates the PCJ index. (not null)
+     * @param accumulo - Accumulo connector for connecting with Accumulo
+     * @param ryaInstance - name of Rya instance to connect to
      * @return The Fluo application's Query ID of the query that was created.
      * @throws MalformedQueryException The SPARQL query stored for the {@code pcjId} is malformed.
      * @throws PcjException The PCJ Metadata for {@code pcjId} could not be read from {@code pcjStorage}.
@@ -319,7 +323,9 @@ public class CreateFluoPcj {
      *
      * @param pcjId - Identifies the PCJ that will be updated by the Fluo app. (not null)
      * @param pcjStorage - Provides access to the PCJ index. (not null)
-     * @parlam fluo - A connection to the Fluo application that updates the PCJ index. (not null)
+     * @param fluo - A connection to the Fluo application that updates the PCJ index. (not null)
+     * @param accumulo - Accumuo connector for connecting to Accumulo
+     * @param ryaInstance - name of Rya instance to connect to
      * @return The Fluo application's Query ID of the query that was created.
      * @throws MalformedQueryException The SPARQL query stored for the {@code pcjId} is malformed.
      * @throws PcjException The PCJ Metadata for {@code pcjId} could not be read from {@code pcjStorage}.
@@ -342,7 +348,7 @@ public class CreateFluoPcj {
         final PcjMetadata pcjMetadata = pcjStorage.getPcjMetadata(pcjId);
         final String sparql = pcjMetadata.getSparql();
         
-        return withRyaIntegration(pcjId, sparql, Sets.newHashSet(ExportStrategy.Rya), fluo, accumulo, ryaInstance);
+        return withRyaIntegration(pcjId, sparql, Sets.newHashSet(ExportStrategy.RYA), fluo, accumulo, ryaInstance);
     }
     
     

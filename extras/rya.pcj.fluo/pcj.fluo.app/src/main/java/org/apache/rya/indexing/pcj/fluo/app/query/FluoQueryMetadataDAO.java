@@ -591,7 +591,7 @@ public class FluoQueryMetadataDAO {
 
         // Write the rest of the metadata objects.
         
-        if (query.getQueryType() == QueryType.Construct) {
+        if (query.getQueryType() == QueryType.CONSTRUCT) {
             ConstructQueryMetadata constructMetadata = query.getConstructQueryMetadata().get();
             write(tx, constructMetadata);
         }

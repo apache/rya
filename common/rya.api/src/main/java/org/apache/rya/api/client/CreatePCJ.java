@@ -29,8 +29,22 @@ import edu.umd.cs.findbugs.annotations.NonNull;
 @DefaultAnnotation(NonNull.class)
 public interface CreatePCJ {
 
-    public static enum QueryType{Construct, Projection, Periodic};
-    public static enum ExportStrategy{Rya, Kafka, NoOpExport};
+    /**
+     * Metadata enum used to indicate the type of query that is registered.  If
+     * the topmost node is a Construct QueryNode, then the type is Construct.  If the
+     * topmost node is a Projection QueryNode, then the type is Projection.  If the
+     * query contains a PeriodicQuery Filter anywhere within the query, then it is of type
+     * Periodic. 
+     *
+     */
+    public static enum QueryType{CONSTRUCT, PROJECTION, PERIODIC};
+    
+    /**
+     * Specifies the how Results will be exported from the Rya Fluo
+     * Application.
+     *
+     */
+    public static enum ExportStrategy{RYA, KAFKA, NO_OP_EXPORT};
 
     
     /**

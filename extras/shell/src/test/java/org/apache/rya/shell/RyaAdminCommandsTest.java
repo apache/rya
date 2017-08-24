@@ -77,7 +77,7 @@ public class RyaAdminCommandsTest {
         final String sparql = "SELECT * WHERE { ?person <http://isA> ?noun }";
         final String pcjId = "123412342";
         final CreatePCJ mockCreatePCJ = mock(CreatePCJ.class);
-        final Set<ExportStrategy> strategies = Sets.newHashSet(ExportStrategy.Rya);
+        final Set<ExportStrategy> strategies = Sets.newHashSet(ExportStrategy.RYA);
         when(mockCreatePCJ.createPCJ( eq(instanceName), eq(sparql), eq(strategies) ) ).thenReturn( pcjId );
 
         final RyaClient mockCommands = mock(RyaClient.class);

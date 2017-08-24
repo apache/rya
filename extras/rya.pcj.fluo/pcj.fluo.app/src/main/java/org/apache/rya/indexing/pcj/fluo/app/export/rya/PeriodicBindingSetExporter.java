@@ -47,12 +47,12 @@ public class PeriodicBindingSetExporter implements IncrementalBindingSetExporter
     
     @Override
     public Set<QueryType> getQueryTypes() {
-        return Sets.newHashSet(QueryType.Periodic);
+        return Sets.newHashSet(QueryType.PERIODIC);
     }
 
     @Override
     public ExportStrategy getExportStrategy() {
-        return ExportStrategy.Rya;
+        return ExportStrategy.RYA;
     }
 
     @Override

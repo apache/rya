@@ -68,11 +68,11 @@ public class RyaBindingSetExporter implements IncrementalBindingSetExporter {
 
     @Override
     public Set<QueryType> getQueryTypes() {
-        return Sets.newHashSet(QueryType.Projection);
+        return Sets.newHashSet(QueryType.PROJECTION);
     }
 
     @Override
     public ExportStrategy getExportStrategy() {
-        return ExportStrategy.Rya;
+        return ExportStrategy.RYA;
     }
 }

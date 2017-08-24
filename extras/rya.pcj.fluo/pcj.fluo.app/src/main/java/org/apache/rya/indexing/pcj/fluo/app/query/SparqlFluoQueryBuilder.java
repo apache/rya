@@ -106,7 +106,7 @@ public class SparqlFluoQueryBuilder {
   
     //Default behavior is to export to Kafka - subject to change when user can 
     //specify their own export strategy
-    private Set<ExportStrategy> exportStrategies = new HashSet<>(Arrays.asList(ExportStrategy.Kafka));
+    private Set<ExportStrategy> exportStrategies = new HashSet<>(Arrays.asList(ExportStrategy.KAFKA));
     
     public SparqlFluoQueryBuilder setSparql(String sparql) {
         this.sparql = Preconditions.checkNotNull(sparql);
@@ -802,7 +802,7 @@ public class SparqlFluoQueryBuilder {
             }
             
             if(queryType == null) {
-                queryType = QueryType.Projection;
+                queryType = QueryType.PROJECTION;
             }
             super.meet(node);
         }
@@ -813,14 +813,14 @@ public class SparqlFluoQueryBuilder {
             }
             
             if(queryType == null) {
-                queryType = QueryType.Construct;
+                queryType = QueryType.CONSTRUCT;
             }
             super.meet(node);
         }
         
         public void meetOther(final QueryModelNode node) throws Exception {
             if (node instanceof PeriodicQueryNode) {
-                queryType = QueryType.Periodic;
+                queryType = QueryType.PERIODIC;
             } else {
                 super.meetOther(node);
             }

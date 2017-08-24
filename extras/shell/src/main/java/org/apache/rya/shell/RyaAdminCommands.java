@@ -299,10 +299,10 @@ public class RyaAdminCommands implements CommandMarker {
             if (sparql.isPresent()) {
                 Set<ExportStrategy> strategies = new HashSet<>();
                 if(exportToRya) {
-                    strategies.add(ExportStrategy.Rya);
+                    strategies.add(ExportStrategy.RYA);
                 }
                 if(exportToKafka) {
-                    strategies.add(ExportStrategy.Kafka);
+                    strategies.add(ExportStrategy.KAFKA);
                 }
                 if(strategies.size() == 0) {
                     return "The user must specify at least one export strategy by setting either exportToRya or exportToKafka to true."; 

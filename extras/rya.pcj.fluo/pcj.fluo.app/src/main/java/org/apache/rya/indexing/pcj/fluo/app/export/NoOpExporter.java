@@ -36,12 +36,12 @@ public class NoOpExporter implements IncrementalBindingSetExporter, IncrementalR
 
     @Override
     public Set<QueryType> getQueryTypes() {
-        return Sets.newHashSet(QueryType.Construct, QueryType.Projection);
+        return Sets.newHashSet(QueryType.CONSTRUCT, QueryType.PROJECTION);
     }
 
     @Override
     public ExportStrategy getExportStrategy() {
-        return ExportStrategy.NoOpExport;
+        return ExportStrategy.NO_OP_EXPORT;
     }
 
     @Override

@@ -88,7 +88,7 @@ public class CreatePeriodicQuery {
                
                 //register query with Fluo
                 CreateFluoPcj createPcj = new CreateFluoPcj();
-                createPcj.createPcj(pcjId, sparql, Sets.newHashSet(ExportStrategy.Rya), fluoClient);
+                createPcj.createPcj(pcjId, sparql, Sets.newHashSet(ExportStrategy.RYA), fluoClient);
                 
                 //register query with PeriodicResultStorage table
                 periodicStorage.createPeriodicQuery(pcjId, sparql);

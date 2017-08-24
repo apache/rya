@@ -84,12 +84,12 @@ public class KafkaRyaSubGraphExporter implements IncrementalRyaSubGraphExporter 
 
     @Override
     public Set<QueryType> getQueryTypes() {
-        return Sets.newHashSet(QueryType.Construct);
+        return Sets.newHashSet(QueryType.CONSTRUCT);
     }
 
     @Override
     public ExportStrategy getExportStrategy() {
-        return ExportStrategy.Kafka;
+        return ExportStrategy.KAFKA;
     }
 
 }

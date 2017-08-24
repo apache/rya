@@ -70,7 +70,7 @@ public class QueryReportRenderer {
         
         
         
-        if (metadata.getQueryType() == QueryType.Construct) {
+        if (metadata.getQueryType() == QueryType.CONSTRUCT) {
             builder.appendItem( new ReportItem("") );
             
             final ConstructQueryMetadata constructMetadata = metadata.getConstructQueryMetadata().get();

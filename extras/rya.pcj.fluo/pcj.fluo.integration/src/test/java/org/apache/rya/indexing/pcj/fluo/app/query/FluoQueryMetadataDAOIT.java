@@ -148,11 +148,11 @@ public class FluoQueryMetadataDAOIT extends RyaExportITBase {
         // Create the object that will be serialized.
         String queryId = NodeType.generateNewFluoIdForType(NodeType.QUERY);
         final QueryMetadata.Builder builder = QueryMetadata.builder(queryId);
-        builder.setQueryType(QueryType.Projection);
+        builder.setQueryType(QueryType.PROJECTION);
         builder.setVarOrder(new VariableOrder("y;s;d"));
         builder.setSparql("sparql string");
         builder.setChildNodeId("childNodeId");
-        builder.setExportStrategies(new HashSet<>(Arrays.asList(ExportStrategy.Kafka)));
+        builder.setExportStrategies(new HashSet<>(Arrays.asList(ExportStrategy.KAFKA)));
         final QueryMetadata originalMetadata = builder.build();
 
         try(FluoClient fluoClient = FluoFactory.newClient(super.getFluoConfiguration())) {
@@ -357,7 +357,7 @@ public class FluoQueryMetadataDAOIT extends RyaExportITBase {
         builder.setFluoQueryId(NodeType.generateNewFluoIdForType(NodeType.QUERY));
         final FluoQuery originalQuery = builder.build();
 
-        assertEquals(QueryType.Projection, originalQuery.getQueryType());
+        assertEquals(QueryType.PROJECTION, originalQuery.getQueryType());
         assertEquals(false, originalQuery.getConstructQueryMetadata().isPresent());
         
         try(FluoClient fluoClient = FluoFactory.newClient(super.getFluoConfiguration())) {
@@ -398,7 +398,7 @@ public class FluoQueryMetadataDAOIT extends RyaExportITBase {
         builder.setFluoQueryId(NodeType.generateNewFluoIdForType(NodeType.QUERY));
         final FluoQuery originalQuery = builder.build();
         
-        assertEquals(QueryType.Construct, originalQuery.getQueryType());
+        assertEquals(QueryType.CONSTRUCT, originalQuery.getQueryType());
         assertEquals(true, originalQuery.getConstructQueryMetadata().isPresent());
 
         try(FluoClient fluoClient = FluoFactory.newClient(super.getFluoConfiguration())) {
@@ -442,7 +442,7 @@ public class FluoQueryMetadataDAOIT extends RyaExportITBase {
         builder.setFluoQueryId(NodeType.generateNewFluoIdForType(NodeType.QUERY));
         final FluoQuery originalQuery = builder.build();
         
-        assertEquals(QueryType.Projection, originalQuery.getQueryType());
+        assertEquals(QueryType.PROJECTION, originalQuery.getQueryType());
 
         try(FluoClient fluoClient = FluoFactory.newClient(super.getFluoConfiguration())) {
             // Write it to the Fluo table.
@@ -488,7 +488,7 @@ public class FluoQueryMetadataDAOIT extends RyaExportITBase {
         builder.setFluoQueryId(NodeType.generateNewFluoIdForType(NodeType.QUERY));
         final FluoQuery originalQuery = builder.build();
         
-        assertEquals(QueryType.Construct, originalQuery.getQueryType());
+        assertEquals(QueryType.CONSTRUCT, originalQuery.getQueryType());
 
         try(FluoClient fluoClient = FluoFactory.newClient(super.getFluoConfiguration())) {
             // Write it to the Fluo table.

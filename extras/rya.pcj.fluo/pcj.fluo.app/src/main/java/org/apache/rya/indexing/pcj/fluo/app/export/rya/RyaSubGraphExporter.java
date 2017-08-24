@@ -61,12 +61,12 @@ public class RyaSubGraphExporter implements IncrementalRyaSubGraphExporter {
     
     @Override
     public Set<QueryType> getQueryTypes() {
-        return Sets.newHashSet(QueryType.Construct);
+        return Sets.newHashSet(QueryType.CONSTRUCT);
     }
 
     @Override
     public ExportStrategy getExportStrategy() {
-        return ExportStrategy.Rya;
+        return ExportStrategy.RYA;
     }
 
     @Override

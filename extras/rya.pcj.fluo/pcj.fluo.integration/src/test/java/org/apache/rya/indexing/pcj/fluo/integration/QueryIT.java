@@ -926,7 +926,7 @@ public class QueryIT extends RyaExportITBase {
             PeriodicQueryResultStorage periodicStorage = new AccumuloPeriodicQueryResultStorage(accumuloConn, getRyaInstanceName());
             String periodicId = periodicStorage.createPeriodicQuery(sparql);
             try (FluoClient fluo = new FluoClientImpl(super.getFluoConfiguration())) {
-                new CreateFluoPcj().createPcj(periodicId, sparql, Sets.newHashSet(ExportStrategy.Rya), fluo);
+                new CreateFluoPcj().createPcj(periodicId, sparql, Sets.newHashSet(ExportStrategy.RYA), fluo);
             }
             addStatementsAndWait(statements);
             

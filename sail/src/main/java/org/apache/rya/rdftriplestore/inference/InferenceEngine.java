@@ -83,6 +83,7 @@ public class InferenceEngine {
     private Map<URI, Set<URI>> rangeByType;
     private Map<Resource, Map<URI, Value>> hasValueByType;
     private Map<URI, Map<Resource, Value>> hasValueByProperty;
+    private Map<Resource, Map<Resource, URI>> someValuesFromByRestrictionType;
     private Map<Resource, Map<Resource, URI>> allValuesFromByValueType;
     private final ConcurrentHashMap<Resource, List<Set<Resource>>> intersections = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<Resource, Set<Resource>> enumerations = new ConcurrentHashMap<>();
@@ -540,7 +541,7 @@ public class InferenceEngine {
                 // p's subproperties. Would be redundant for properties discovered via this rule.
                 while (!domainViaInverseProperty.isEmpty()) {
                     final URI property = domainViaInverseProperty.pop();
-                    final Set<URI> subProperties = findParents(subPropertyOfGraph, property);
+                    final Set<URI> subProperties = getSubProperties(property);
                     subProperties.removeAll(propertiesWithDomain);
                     propertiesWithDomain.addAll(subProperties);
                     domainViaSuperProperty.addAll(subProperties);
@@ -549,7 +550,7 @@ public class InferenceEngine {
                 // p's subproperties. Would be redundant for properties discovered via this rule.
                 while (!rangeViaInverseProperty.isEmpty()) {
                     final URI property = rangeViaInverseProperty.pop();
-                    final Set<URI> subProperties = findParents(subPropertyOfGraph, property);
+                    final Set<URI> subProperties = getSubProperties(property);
                     subProperties.removeAll(propertiesWithRange);
                     propertiesWithRange.addAll(subProperties);
                     rangeViaSuperProperty.addAll(subProperties);
@@ -606,6 +607,7 @@ public class InferenceEngine {
         }
         // Query for specific types of restriction and add their details to the schema
         refreshHasValueRestrictions(restrictions);
+        refreshSomeValuesFromRestrictions(restrictions);
         refreshAllValuesFromRestrictions(restrictions);
     }
 
@@ -637,34 +639,56 @@ public class InferenceEngine {
         }
     }
 
+    private void refreshSomeValuesFromRestrictions(final Map<Resource, URI> restrictions) throws QueryEvaluationException {
+        someValuesFromByRestrictionType = new ConcurrentHashMap<>();
+        ryaDaoQueryWrapper.queryAll(null, OWL.SOMEVALUESFROM, null, new RDFHandlerBase() {
+            @Override
+            public void handleStatement(final Statement statement) throws RDFHandlerException {
+                final Resource restrictionClass = statement.getSubject();
+                if (restrictions.containsKey(restrictionClass) && statement.getObject() instanceof Resource) {
+                    final URI property = restrictions.get(restrictionClass);
+                    final Resource valueClass = (Resource) statement.getObject();
+                    // Should also be triggered by subclasses of the value class
+                    final Set<Resource> valueClasses = new HashSet<>();
+                    valueClasses.add(valueClass);
+                    if (valueClass instanceof URI) {
+                        valueClasses.addAll(getSubClasses((URI) valueClass));
+                    }
+                    for (final Resource valueSubClass : valueClasses) {
+                        if (!someValuesFromByRestrictionType.containsKey(restrictionClass)) {
+                            someValuesFromByRestrictionType.put(restrictionClass, new ConcurrentHashMap<>());
+                        }
+                        someValuesFromByRestrictionType.get(restrictionClass).put(valueSubClass, property);
+                    }
+                }
+            }
+        });
+    }
+
     private void refreshAllValuesFromRestrictions(final Map<Resource, URI> restrictions) throws QueryEvaluationException {
-        allValuesFromByValueType = new HashMap<>();
-        final CloseableIteration<Statement, QueryEvaluationException> iter = RyaDAOHelper.query(ryaDAO, null, OWL.ALLVALUESFROM, null, conf);
-        try {
-            while (iter.hasNext()) {
-                final Statement st = iter.next();
-                if (restrictions.containsKey(st.getSubject()) && st.getObject() instanceof URI) {
-                    final URI property = restrictions.get(st.getSubject());
-                    final URI valueClass = (URI) st.getObject();
+        allValuesFromByValueType = new ConcurrentHashMap<>();
+        ryaDaoQueryWrapper.queryAll(null, OWL.ALLVALUESFROM, null, new RDFHandlerBase() {
+            @Override
+            public void handleStatement(final Statement statement) throws RDFHandlerException {
+                final Resource directRestrictionClass = statement.getSubject();
+                if (restrictions.containsKey(directRestrictionClass) && statement.getObject() instanceof Resource) {
+                    final URI property = restrictions.get(directRestrictionClass);
+                    final Resource valueClass = (Resource) statement.getObject();
                     // Should also be triggered by subclasses of the property restriction
                     final Set<Resource> restrictionClasses = new HashSet<>();
-                    restrictionClasses.add(st.getSubject());
-                    if (st.getSubject() instanceof URI) {
-                        restrictionClasses.addAll(getSubClasses((URI) st.getSubject()));
+                    restrictionClasses.add(directRestrictionClass);
+                    if (directRestrictionClass instanceof URI) {
+                        restrictionClasses.addAll(getSubClasses((URI) directRestrictionClass));
                     }
                     for (final Resource restrictionClass : restrictionClasses) {
                         if (!allValuesFromByValueType.containsKey(valueClass)) {
-                            allValuesFromByValueType.put(valueClass, new HashMap<>());
+                            allValuesFromByValueType.put(valueClass, new ConcurrentHashMap<>());
                         }
                         allValuesFromByValueType.get(valueClass).put(restrictionClass, property);
                     }
                 }
             }
-        } finally {
-            if (iter != null) {
-                iter.close();
-            }
-        }
+        });
     }
 
     private void refreshIntersectionOf() throws QueryEvaluationException {
@@ -904,7 +928,8 @@ public class InferenceEngine {
      * internal subclass graph.
      * @param type the type {@link URI} to find super classes for.
      * @return the {@link Set} of {@link URI} types that are super classes types
-     * of the specified {@code type}. Returns an empty set if nothing was found.
+     * of the specified {@code type}. Returns an empty set if nothing was found,
+     * or if either type or the subclass graph is {@code null}.
      */
     public Set<URI> getSuperClasses(final URI type) {
         return findChildren(subClassOfGraph, type);
@@ -915,31 +940,102 @@ public class InferenceEngine {
      * internal subclass graph.
      * @param type the type {@link URI} to find sub classes for.
      * @return the {@link Set} of {@link URI} types that are sub classes types
-     * of the specified {@code type}. Returns an empty set if nothing was found.
+     * of the specified {@code type}. Returns an empty set if nothing was found,
+     * or if either type or the subclass graph is {@code null}.
      */
     public Set<URI> getSubClasses(final URI type) {
         return findParents(subClassOfGraph, type);
     }
 
+    /**
+     * Returns all superproperties of the specified property based on the
+     * internal subproperty graph.
+     * @param property the property {@link URI} to find superproperties for.
+     * @return the {@link Set} of {@link URI} properties that are superproperties
+     * of the specified {@code property}. Returns an empty set if nothing was found,
+     * or if either property or the subproperty graph is {@code null}.
+     */
+    public Set<URI> getSuperProperties(final URI property) {
+        return findChildren(subPropertyOfGraph, property);
+    }
+
+    /**
+     * Returns all subproperties of the specified property based on the
+     * internal subproperty graph.
+     * @param property the property {@link URI} to find subproperties for.
+     * @return the {@link Set} of {@link URI} properties that are subproperties
+     * of the specified {@code property}. Returns an empty set if nothing was found,
+     * or if either property or the subproperty graph is {@code null}.
+     */
+    public Set<URI> getSubProperties(final URI property) {
+        return findParents(subPropertyOfGraph, property);
+    }
+
+    /**
+     * Given a graph and a node, recursively traverse the graph from that node
+     * to find all predecessors.
+     * @param graph A {@link Graph}
+     * @param vertexId The starting node
+     * @return The set of predecessors, or an empty set if none are found or if
+     *      either argument is {@code null}
+     */
     public static Set<URI> findParents(final Graph graph, final URI vertexId) {
         return findParents(graph, vertexId, true);
     }
 
+    /**
+     * Given a graph and a node, find all immediate parents and optionally
+     * traverse the graph recursively to find all indirect predecessors.
+     * @param graph A {@link Graph}
+     * @param vertexId The starting node
+     * @param isRecursive If true, traverse the graph recursively
+     * @return The set of predecessors, or an empty set if none are found or if
+     *      either argument is {@code null}
+     */
     public static Set<URI> findParents(final Graph graph, final URI vertexId, final boolean isRecursive) {
         return findConnected(graph, vertexId, Direction.IN, isRecursive);
     }
 
+    /**
+     * Given a graph and a node, recursively traverse the graph from that node
+     * to find all successors.
+     * @param graph A {@link Graph}
+     * @param vertexId The starting node
+     * @return The set of successors, or an empty set if none are found or if
+     *      either argument is {@code null}
+     */
     public static Set<URI> findChildren(final Graph graph, final URI vertexId) {
         return findChildren(graph, vertexId, true);
     }
 
+    /**
+     * Given a graph and a node, find all immediate children and optionally
+     * traverse the graph recursively to find all indirect successors.
+     * @param graph A {@link Graph}
+     * @param vertexId The starting node
+     * @param isRecursive If true, traverse the graph recursively
+     * @return The set of successors, or an empty set if none are found or if
+     *      either argument is {@code null}
+     */
     public static Set<URI> findChildren(final Graph graph, final URI vertexId, final boolean isRecursive) {
         return findConnected(graph, vertexId, Direction.OUT, isRecursive);
     }
 
+    /**
+     * Given a graph, a starting node, and a direction, find immediate neighbors
+     * of the start node in that direction, and optionally traverse the graph
+     * recursively in that same direction to find indirect connections.
+     * @param graph A {@link Graph}
+     * @param vertexId The starting node
+     * @param traversal Look for connected nodes in this direction
+     * @param isRecursive If true, recursively follow the connected nodes' own
+     *      edges (in the same direction)
+     * @return The set of connected nodes, or an empty set if none are found, or
+     *      if either the graph or the starting vertex are {@code null}.
+     */
     private static Set<URI> findConnected(final Graph graph, final URI vertexId, final Direction traversal, final boolean isRecursive) {
         final Set<URI> connected = new HashSet<>();
-        if (graph == null) {
+        if (graph == null || vertexId == null) {
             return connected;
         }
         final Vertex v = getVertex(graph, vertexId);
@@ -1263,6 +1359,75 @@ public class InferenceEngine {
     }
 
     /**
+     * Given some schema mapping types to (type, property) pairs that somehow imply the key type,
+     * and given a particular type being queried for, expand the combinations of types and
+     * properties that can imply the query type by including any pairs that could imply subtypes of
+     * the query type (using the subclass graph), and by expanding each property into a set of all
+     * subproperties that imply it (using the subproperty graph). Does not consider subtypes of
+     * potential triggering types.
+     * @param queryType The type whose possible derivations are needed
+     * @param schemaMap Map of schema information such that each key represents a type that can
+     *      somehow be derived from (other type x property) combinations, and the value provides
+     *      those combinations that can be used for the implication.
+     * @return Combinations of types and properties that can directly or indirectly imply the query
+     *      type according to the schema provided and the subclass/superproperty graphs. Any
+     *      individual type/property combination is sufficient. Returns an empty map if either
+     *      parameter is {@code null}.
+     */
+    private Map<Resource, Set<URI>> getTypePropertyImplyingType(final Resource queryType, final Map<Resource, Map<Resource, URI>> schemaMap) {
+        final Map<Resource, Set<URI>> implications = new HashMap<>();
+        if (schemaMap != null && queryType != null) {
+            // Check for any subtypes which would in turn imply the type being queried for
+            final HashSet<Resource> queryTypes = new HashSet<>();
+            queryTypes.add(queryType);
+            if (queryType instanceof URI) {
+                queryTypes.addAll(getSubClasses((URI) queryType));
+            }
+            for (final Resource querySubType : queryTypes) {
+                if (schemaMap.containsKey(querySubType)) {
+                    final Map<Resource, URI> otherTypeToProperty = schemaMap.get(querySubType);
+                    for (final Resource otherType : otherTypeToProperty.keySet()) {
+                        if (!implications.containsKey(otherType)) {
+                            implications.put(otherType, new HashSet<>());
+                        }
+                        final URI property = otherTypeToProperty.get(otherType);
+                        if (property != null) {
+                            implications.get(otherType).add(property);
+                            // Also add subproperties that would in turn imply the property
+                            implications.get(otherType).addAll(getSubProperties(property));
+                        }
+                    }
+                }
+            }
+        }
+        return implications;
+    }
+
+    /**
+     * For a given type, return information about any owl:someValuesFrom restriction that could
+     * imply an individual's membership in that type: When a property restriction R applies to
+     * property p and states "R owl:someValuesFrom T", then whenever the object of a triple belongs
+     * to T, and the predicate is p, then the subject of the triple is implied to have the type R
+     * (it belongs to the class defined by the restriction).
+     * @param restrictionType The type to be inferred, which is the type of the subject of the
+     *      triple, or the type for which all members are stated to have some value of the
+     *      appropriate type. Takes class hierarchy into account, so possible inferences include
+     *      any ways of inferring subtypes of the restriction type, and object types that trigger
+     *      inference include any subtypes of relevant value types. Also considers property
+     *      hierarchy, so properties that trigger inference will include subproperties of those
+     *      referenced by relevant restrictions.
+     * @return A map from object type (the object of the someValuesFrom condition or the subtype of
+     *      such a type) to the set of properties (including any property referenced by such a
+     *      restriction and all of its subproperties) such that for any individual which belongs to
+     *      the object type, any subject which has some value of that type for that property belongs
+     *      to the restriction type. Empty map if the parameter is {@code null} or if the
+     *      someValuesFrom schema has not been populated.
+     */
+    public Map<Resource, Set<URI>> getSomeValuesFromByRestrictionType(Resource restrictionType) {
+        return getTypePropertyImplyingType(restrictionType, someValuesFromByRestrictionType);
+    }
+
+    /**
      * For a given type, return information about any owl:allValuesFrom restriction that could imply
      * an individual's membership in that type: If the subject of a triple belongs to the type
      * associated with the restriction itself, and the predicate is the one referenced by the
@@ -1276,33 +1441,11 @@ public class InferenceEngine {
      * @return A map from subject type (a property restriction type or a subtype of one) to the set
      *      of properties (including any property referenced by such a restriction and all of its
      *      subproperties) such that for any individual which belongs to the subject type, all
-     *      values it has for any of those properties belong to the value type.
+     *      values it has for any of those properties belong to the value type. Empty map if the
+     *      parameter is {@code null} or if the allValuesFrom schema has not been populated.
      */
     public Map<Resource, Set<URI>> getAllValuesFromByValueType(final Resource valueType) {
-        final Map<Resource, Set<URI>> implications = new HashMap<>();
-        if (allValuesFromByValueType != null) {
-            // Check for any subtypes which would in turn imply the value type
-            final HashSet<Resource> valueTypes = new HashSet<>();
-            valueTypes.add(valueType);
-            if (valueType instanceof URI) {
-                valueTypes.addAll(getSubClasses((URI) valueType));
-            }
-            for (final Resource valueSubType : valueTypes) {
-                if (allValuesFromByValueType.containsKey(valueSubType)) {
-                    final Map<Resource, URI> restrictionToProperty = allValuesFromByValueType.get(valueSubType);
-                    for (final Resource restrictionType : restrictionToProperty.keySet()) {
-                        if (!implications.containsKey(restrictionType)) {
-                            implications.put(restrictionType, new HashSet<>());
-                        }
-                        final URI property = restrictionToProperty.get(restrictionType);
-                        implications.get(restrictionType).add(property);
-                        // Also add subproperties that would in turn imply the property
-                        implications.get(restrictionType).addAll(findParents(subPropertyOfGraph, property));
-                    }
-                }
-            }
-        }
-        return implications;
+        return getTypePropertyImplyingType(valueType, allValuesFromByValueType);
     }
 
     /**

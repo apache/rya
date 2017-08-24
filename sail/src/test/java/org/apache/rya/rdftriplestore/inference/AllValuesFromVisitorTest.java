@@ -108,11 +108,11 @@ public class AllValuesFromVisitorTest {
         Assert.assertTrue(left instanceof StatementPattern);
         Assert.assertTrue(right instanceof StatementPattern);
         // Verify expected predicate/restriction pairs
+        Assert.assertTrue(fsp.statements.contains(new NullableStatementImpl(parentsArePeople, OWL.ONPROPERTY, parent)));
+        Assert.assertTrue(fsp.statements.contains(new NullableStatementImpl(relativesArePeople, OWL.ONPROPERTY, relative)));
+        Assert.assertTrue(fsp.statements.contains(new NullableStatementImpl(relativesArePeople, OWL.ONPROPERTY, parent)));
+        Assert.assertTrue(fsp.statements.contains(new NullableStatementImpl(parentsAreTallPeople, OWL.ONPROPERTY, parent)));
         Assert.assertEquals(4, fsp.statements.size());
-        fsp.statements.contains(new NullableStatementImpl(parentsArePeople, OWL.ONPROPERTY, parent));
-        fsp.statements.contains(new NullableStatementImpl(relativesArePeople, OWL.ONPROPERTY, relative));
-        fsp.statements.contains(new NullableStatementImpl(relativesArePeople, OWL.ONPROPERTY, parent));
-        fsp.statements.contains(new NullableStatementImpl(parentsAreTallPeople, OWL.ONPROPERTY, parent));
         // Verify general pattern for matching instances of each pair: Join on unknown subject; left
         // triple states it belongs to the restriction while right triple relates it to the original
         // subject variable by the relevant property. Restriction and property variables are given

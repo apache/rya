@@ -119,6 +119,7 @@ public class MongoRyaDirectExample {
                 testInfer(conn, sail);
                 testPropertyChainInference(conn, sail);
                 testPropertyChainInferenceAltRepresentation(conn, sail);
+                testSomeValuesFromInference(conn, sail);
                 testAllValuesFromInference(conn, sail);
                 testIntersectionOfInference(conn, sail);
                 testOneOfInference(conn, sail);
@@ -517,6 +518,59 @@ public class MongoRyaDirectExample {
         tupleQuery.evaluate(resultHandler);
         log.info("Result count : " + resultHandler.getCount());
         Validate.isTrue(resultHandler.getCount() == 2);
+    }
+
+    public static void testSomeValuesFromInference(final SailRepositoryConnection conn, final Sail sail) throws MalformedQueryException, RepositoryException,
+    UpdateExecutionException, QueryEvaluationException, TupleQueryResultHandlerException, InferenceEngineException {
+        final String lubm = "http://swat.cse.lehigh.edu/onto/univ-bench.owl#";
+        log.info("Adding Data");
+        String insert = "PREFIX lubm: <" + lubm + ">\n"
+                + "INSERT DATA { GRAPH <http://updated/test> {\n"
+                + "  <urn:Department0> a lubm:Department; lubm:subOrganizationOf <urn:University0> .\n"
+                + "  <urn:ResearchGroup0> a lubm:ResearchGroup; lubm:subOrganizationOf <urn:Department0> .\n"
+                + "  <urn:Alice> lubm:headOf <urn:Department0> .\n"
+                + "  <urn:Bob> lubm:headOf <urn:ResearchGroup0> .\n"
+                + "  <urn:Carol> lubm:worksFor <urn:Department0> .\n"
+                + "}}";
+        Update update = conn.prepareUpdate(QueryLanguage.SPARQL, insert);
+        update.execute();
+        final String inferQuery = "select distinct ?x { GRAPH <http://updated/test> { ?x a <" + lubm + "Chair> }}";
+        final String explicitQuery = "prefix lubm: <" + lubm + ">\n"
+                + "select distinct ?x { GRAPH <http://updated/test> {\n"
+                + "  { ?x a lubm:Chair }\n"
+                + "  UNION\n"
+                + "  { ?x lubm:headOf [ a lubm:Department ] }\n"
+                + "}}";
+        log.info("Running Explicit Query");
+        final CountingResultHandler resultHandler = new CountingResultHandler();
+        TupleQuery tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, explicitQuery);
+        tupleQuery.evaluate(resultHandler);
+        log.info("Result count : " + resultHandler.getCount());
+        Validate.isTrue(resultHandler.getCount() == 1);
+        log.info("Running Inference-dependent Query");
+        resultHandler.resetCount();
+        tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, inferQuery);
+        tupleQuery.evaluate(resultHandler);
+        log.info("Result count : " + resultHandler.getCount());
+        Validate.isTrue(resultHandler.getCount() == 0);
+        log.info("Adding owl:someValuesFrom Schema");
+        insert = "PREFIX rdfs: <" + RDFS.NAMESPACE + ">\n"
+                + "PREFIX owl: <" + OWL.NAMESPACE + ">\n"
+                + "PREFIX lubm: <" + lubm + ">\n"
+                + "INSERT DATA\n"
+                + "{ GRAPH <http://updated/test> {\n"
+                + "  lubm:Chair owl:equivalentClass [ owl:onProperty lubm:headOf ; owl:someValuesFrom lubm:Department ] ."
+                + "}}";
+        update = conn.prepareUpdate(QueryLanguage.SPARQL, insert);
+        update.execute();
+        log.info("Refreshing InferenceEngine");
+        ((RdfCloudTripleStore) sail).getInferenceEngine().refreshGraph();
+        log.info("Re-running Inference-dependent Query");
+        resultHandler.resetCount();
+        tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, inferQuery);
+        tupleQuery.evaluate(resultHandler);
+        log.info("Result count : " + resultHandler.getCount());
+        Validate.isTrue(resultHandler.getCount() == 1);
     }
 
     public static void testAllValuesFromInference(final SailRepositoryConnection conn, final Sail sail) throws MalformedQueryException, RepositoryException,

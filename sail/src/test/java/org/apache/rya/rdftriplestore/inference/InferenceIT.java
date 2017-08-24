@@ -18,9 +18,11 @@ package org.apache.rya.rdftriplestore.inference;
  * under the License.
  */
 
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.apache.accumulo.core.client.Connector;
@@ -48,6 +50,8 @@ import org.openrdf.repository.sail.SailRepositoryConnection;
 import junit.framework.TestCase;
 
 public class InferenceIT extends TestCase {
+    private final static String LUBM = "http://swat.cse.lehigh.edu/onto/univ-bench.owl#";
+
     private Connector connector;
     private AccumuloRyaDAO dao;
     private final ValueFactory vf = new ValueFactoryImpl();
@@ -148,7 +152,7 @@ public class InferenceIT extends TestCase {
 
     @Test
     public void testDomainRangeQuery() throws Exception {
-        final String ontology = "PREFIX lubm: <http://swat.lehigh.edu/onto/univ-bench.owl#>\n"
+        final String ontology = "PREFIX lubm: <" + LUBM + ">\n"
                 + "INSERT DATA {\n"
                 + "  lubm:advisor rdfs:domain lubm:Person ;\n"
                 + "               rdfs:range lubm:Professor ;"
@@ -162,7 +166,7 @@ public class InferenceIT extends TestCase {
                 + "  lubm:Faculty rdfs:subClassOf lubm:Person .\n"
                 + "  lubm:Student rdfs:subClassOf lubm:Person .\n"
                 + "}";
-        final String instances = "PREFIX lubm: <http://swat.lehigh.edu/onto/univ-bench.owl#>\n"
+        final String instances = "PREFIX lubm: <" + LUBM + ">\n"
                 + "INSERT DATA {\n"
                 + "  <urn:Professor1> a lubm:Professor .\n"
                 + "  <urn:Student1> a lubm:Student .\n"
@@ -172,7 +176,7 @@ public class InferenceIT extends TestCase {
                 + "  <urn:Professor4> lubm:teachesCourse <urn:CS100> .\n"
                 + "  <urn:Student1> lubm:takesCourse <urn:CS100> .\n"
                 + "}";
-        final String query = "SELECT ?x { ?x a <http://swat.lehigh.edu/onto/univ-bench.owl#Faculty> }";
+        final String query = "SELECT ?x { ?x a <" + LUBM + "Faculty> }";
         conn.prepareUpdate(QueryLanguage.SPARQL, ontology).execute();
         inferenceEngine.refreshGraph();
         conn.prepareUpdate(QueryLanguage.SPARQL, instances).execute();
@@ -188,6 +192,64 @@ public class InferenceIT extends TestCase {
         }
         Assert.assertEquals(expected, returned);
         Assert.assertEquals(5, solutions.size());
+    }
+
+    @Test
+    public void testSomeValuesFromQuery() throws Exception {
+        final String ontology = "PREFIX lubm: <" + LUBM + ">\n"
+                + "INSERT DATA { GRAPH <http://updated/test> {\n"
+                + "  lubm:Chair rdfs:subClassOf lubm:Professor; \n"
+                + "    a owl:Restriction ;\n"
+                + "    owl:onProperty lubm:headOf ;\n"
+                + "    owl:someValuesFrom lubm:Department .\n"
+                + "  lubm:Dean rdfs:subClassOf lubm:Professor; \n"
+                + "    a owl:Restriction ;\n"
+                + "    owl:onProperty lubm:headOf ;\n"
+                + "    owl:someValuesFrom lubm:College .\n"
+                + "  lubm:Student rdfs:subClassOf lubm:Person ;\n"
+                + "    a owl:Restriction ;\n"
+                + "    owl:onProperty lubm:takesCourse ;\n"
+                + "    owl:someValuesFrom lubm:Course .\n"
+                + "  lubm:GraduateStudent rdfs:subClassOf lubm:Student; \n"
+                + "    a owl:Restriction ;\n"
+                + "    owl:onProperty lubm:takesCourse ;\n"
+                + "    owl:someValuesFrom lubm:GraduateCourse .\n"
+                + "  lubm:Professor rdfs:subClassOf lubm:Person .\n"
+                + "  lubm:headOf rdfs:subPropertyOf lubm:worksFor .\n"
+                + "  <urn:passesCourse> rdfs:subPropertyOf lubm:takesCourse ."
+                + "}}";
+        final String instances = "PREFIX lubm: <" + LUBM + ">\n"
+                + "INSERT DATA { GRAPH <http://updated/test> {\n"
+                + "  <urn:CS101> a <urn:UndergraduateCourse> .\n"
+                + "  <urn:CS301> a lubm:Course .\n"
+                + "  <urn:CS501> a lubm:GraduateCourse .\n"
+                // valid ways of inferring Student (including via GraduateStudent):
+                + "  <urn:Alice> lubm:takesCourse <urn:CS301>, <urn:CS501> .\n"
+                + "  <urn:Bob> <urn:passesCourse> [ a lubm:GraduateCourse ] .\n"
+                + "  <urn:Carol> a lubm:GraduateStudent; lubm:takesCourse <urn:CS301> .\n"
+                // similar patterns that don't match the appropriate restrictions:
+                + "  <urn:Dan> lubm:takesCourse <urn:CS101> .\n"
+                + "  <urn:Eve> lubm:headOf [ a lubm:Department ] .\n"
+                + "  <urn:Frank> lubm:headOf [ a lubm:College ] .\n"
+                + "}}";
+        final String query = "SELECT ?individual { GRAPH <http://updated/test> {\n"
+                + "  ?individual a <" + LUBM + "Student>\n"
+                + "}} \n";
+        // Query should match student and graduate student restrictions, but not the others
+        conn.prepareUpdate(QueryLanguage.SPARQL, ontology).execute();
+        inferenceEngine.refreshGraph();
+        conn.prepareUpdate(QueryLanguage.SPARQL, instances).execute();
+        conn.prepareTupleQuery(QueryLanguage.SPARQL, query).evaluate(resultHandler);
+        Map<Value, Integer> expected = new HashMap<>();
+        expected.put(vf.createURI("urn:Alice"), 2); // from both courses
+        expected.put(vf.createURI("urn:Bob"), 1); // from course
+        expected.put(vf.createURI("urn:Carol"), 2); // from course and explicit type
+        Map<Value, Integer> returned = new HashMap<>();
+        for (BindingSet bs : solutions) {
+            Value v = bs.getBinding("individual").getValue();
+            returned.put(v, returned.getOrDefault(v, 0) + 1);
+        }
+        Assert.assertEquals(expected, returned);
     }
 
     @Test

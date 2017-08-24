@@ -227,6 +227,48 @@ public class InferenceEngineTest extends TestCase {
     }
 
     @Test
+    public void testSomeValuesFrom() throws Exception {
+        final String insert = "INSERT DATA { GRAPH <http://updated/test> {\n"
+                // base restrictions
+                + "  <urn:Chair> owl:onProperty <urn:headOf> ; owl:someValuesFrom <urn:Department> .\n"
+                + "  <urn:Dean> owl:onProperty <urn:headOf> ; owl:someValuesFrom <urn:College> .\n"
+                // classes related to the restriction type
+                + "  <urn:ScienceDepartmentChair> rdfs:subClassOf <urn:Chair> .\n"
+                + "  <urn:Chair> rdfs:subClassOf <urn:Person> .\n"
+                + "  <urn:Dean> rdfs:subClassOf <urn:Person> .\n"
+                + "  <urn:Student> rdfs:subClassOf <urn:Person> .\n"
+                // classes related to the value type
+                + "  <urn:ScienceDepartment> rdfs:subClassOf <urn:Department> .\n"
+                + "  <urn:HumanitiesDepartment> rdfs:subClassOf <urn:Department> .\n"
+                + "  <urn:Department> rdfs:subClassOf <urn:Organization> .\n"
+                + "  <urn:College> rdfs:subClassOf <urn:Organization> .\n"
+                // properties related to the restriction property
+                + "  <urn:temporaryHeadOf> rdfs:subPropertyOf <urn:headOf> .\n"
+                + "  <urn:headOf> rdfs:subPropertyOf <urn:worksFor> .\n"
+                + "}}";
+        conn.prepareUpdate(QueryLanguage.SPARQL, insert).execute();
+        inferenceEngine.refreshGraph();
+        final Set<URI> properties = new HashSet<>();
+        properties.add(vf.createURI("urn:headOf"));
+        properties.add(vf.createURI("urn:temporaryHeadOf"));
+        final Map<Resource, Set<URI>> chairDerivations = new HashMap<>();
+        chairDerivations.put(vf.createURI("urn:Department"), properties);
+        chairDerivations.put(vf.createURI("urn:ScienceDepartment"), properties);
+        chairDerivations.put(vf.createURI("urn:HumanitiesDepartment"), properties);
+        final Map<Resource, Set<URI>> deanDerivations = new HashMap<>();
+        deanDerivations.put(vf.createURI("urn:College"), properties);
+        final Map<Resource, Set<URI>> combinedDerivations = new HashMap<>(chairDerivations);
+        combinedDerivations.put(vf.createURI("urn:College"), properties);
+        // Get someValuesFrom restrictions given the direct types
+        Assert.assertEquals(deanDerivations, inferenceEngine.getSomeValuesFromByRestrictionType(vf.createURI("urn:Dean")));
+        Assert.assertEquals(chairDerivations, inferenceEngine.getSomeValuesFromByRestrictionType(vf.createURI("urn:Chair")));
+        // Finds the subtype's restrictions given the supertype
+        Assert.assertEquals(combinedDerivations, inferenceEngine.getSomeValuesFromByRestrictionType(vf.createURI("urn:Person")));
+        // Finds nothing if given a subtype which is not a restriction
+        Assert.assertEquals(new HashMap<>(), inferenceEngine.getSomeValuesFromByRestrictionType(vf.createURI("urn:ScienceDepartmentChair")));
+    }
+
+    @Test
     public void testAllValuesFrom() throws Exception {
         final String insert = "INSERT DATA { GRAPH <http://updated/test> {\n"
                 + "  <urn:Dog> owl:onProperty <urn:relative> ; owl:allValuesFrom <urn:Dog> .\n"

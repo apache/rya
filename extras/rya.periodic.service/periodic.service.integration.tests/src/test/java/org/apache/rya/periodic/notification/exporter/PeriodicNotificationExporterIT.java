@@ -22,6 +22,7 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Properties;
 import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
@@ -102,7 +103,7 @@ public class PeriodicNotificationExporterIT extends KafkaITBase {
     }
     private Properties createKafkaConsumerConfig() {
         final Properties props = createBootstrapServerConfig();
-        props.setProperty(ConsumerConfig.GROUP_ID_CONFIG, "group0");
+        props.setProperty(ConsumerConfig.GROUP_ID_CONFIG, UUID.randomUUID().toString());
         props.setProperty(ConsumerConfig.CLIENT_ID_CONFIG, "consumer0");
         props.setProperty(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
         props.setProperty(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());

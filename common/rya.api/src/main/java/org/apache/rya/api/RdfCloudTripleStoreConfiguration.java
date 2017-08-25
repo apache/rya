@@ -80,6 +80,7 @@ public abstract class RdfCloudTripleStoreConfiguration extends Configuration {
     public static final String INFER_INCLUDE_SUBPROPOF = "infer.include.subpropof";
     public static final String INFER_INCLUDE_SYMMPROP = "infer.include.symmprop";
     public static final String INFER_INCLUDE_TRANSITIVEPROP = "infer.include.transprop";
+    public static final String INFER_INCLUDE_HAS_SELF = "infer.include.hasself";
 
     public static final String RDF_DAO_CLASS = "class.rdf.dao";
     public static final String RDF_EVAL_STATS_DAO_CLASS = "class.rdf.evalstats";
@@ -414,6 +415,15 @@ public abstract class RdfCloudTripleStoreConfiguration extends Configuration {
     public void setInferSubPropertyOf(final Boolean val) {
         Preconditions.checkNotNull(val);
         setBoolean(INFER_INCLUDE_SUBPROPOF, val);
+    }
+
+    public Boolean hasSelf() {
+        return getBoolean(INFER_INCLUDE_HAS_SELF, true);
+    }
+
+    public void setHasSelf(final Boolean val) {
+        Preconditions.checkNotNull(val);
+        setBoolean(INFER_INCLUDE_HAS_SELF, val);
     }
 
     public Boolean isInferSymmetricProperty() {

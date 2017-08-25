@@ -564,4 +564,19 @@ public class InferenceEngineTest extends TestCase {
         final Set<Resource> actualCardRanks = inferenceEngine.getEnumeration(ranks);
         Assert.assertEquals(enumerationImplyingRanks, actualCardRanks);
    }
+
+    @Test
+    public void hasSelfTest() throws Exception {
+        final String ontology = "INSERT DATA { GRAPH <http://updated/test> {\n"
+                + "  <urn:Narcissist> owl:onProperty <urn:love> ; owl:hasSelf \"true\" . \n" + "}}";
+        conn.prepareUpdate(QueryLanguage.SPARQL, ontology).execute();
+        inferenceEngine.refreshGraph();
+        final Set<Resource> expectedTypes = new HashSet<>();
+        expectedTypes.add(vf.createURI("urn:Narcissist"));
+        Assert.assertEquals(expectedTypes, inferenceEngine.getHasSelfImplyingProperty(vf.createURI("urn:love")));
+
+        final Set<URI> expectedProperties = new HashSet<>();
+        expectedProperties.add(vf.createURI("urn:love"));
+        Assert.assertEquals(expectedProperties, inferenceEngine.getHasSelfImplyingType(vf.createURI("urn:Narcissist")));
+    }
 }

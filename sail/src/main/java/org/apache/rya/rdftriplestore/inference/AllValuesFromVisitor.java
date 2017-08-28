@@ -58,13 +58,13 @@ import org.openrdf.query.algebra.Var;
 public class AllValuesFromVisitor extends AbstractInferVisitor {
 
     /**
-     * Creates a new {@link AllValuesFromVisitor}, which is enabled by default.
+     * Creates a new {@link AllValuesFromVisitor}.
      * @param conf The {@link RdfCloudTripleStoreConfiguration}.
      * @param inferenceEngine The InferenceEngine containing the relevant ontology.
      */
     public AllValuesFromVisitor(RdfCloudTripleStoreConfiguration conf, InferenceEngine inferenceEngine) {
         super(conf, inferenceEngine);
-        include = true;
+        include = conf.isInferAllValuesFrom();
     }
 
     /**

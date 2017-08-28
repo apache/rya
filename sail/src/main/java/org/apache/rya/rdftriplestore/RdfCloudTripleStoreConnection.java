@@ -60,6 +60,7 @@ import org.apache.rya.rdftriplestore.inference.IntersectionOfVisitor;
 import org.apache.rya.rdftriplestore.inference.InverseOfVisitor;
 import org.apache.rya.rdftriplestore.inference.OneOfVisitor;
 import org.apache.rya.rdftriplestore.inference.PropertyChainVisitor;
+import org.apache.rya.rdftriplestore.inference.ReflexivePropertyVisitor;
 import org.apache.rya.rdftriplestore.inference.SameAsVisitor;
 import org.apache.rya.rdftriplestore.inference.SomeValuesFromVisitor;
 import org.apache.rya.rdftriplestore.inference.SubClassOfVisitor;
@@ -359,6 +360,7 @@ public class RdfCloudTripleStoreConnection extends SailConnectionBase {
                     tupleExpr.visit(new AllValuesFromVisitor(queryConf, inferenceEngine));
                     tupleExpr.visit(new HasValueVisitor(queryConf, inferenceEngine));
                     tupleExpr.visit(new IntersectionOfVisitor(queryConf, inferenceEngine));
+                    tupleExpr.visit(new ReflexivePropertyVisitor(queryConf, inferenceEngine));
                     tupleExpr.visit(new PropertyChainVisitor(queryConf, inferenceEngine));
                     tupleExpr.visit(new TransitivePropertyVisitor(queryConf, inferenceEngine));
                     tupleExpr.visit(new SymmetricPropertyVisitor(queryConf, inferenceEngine));

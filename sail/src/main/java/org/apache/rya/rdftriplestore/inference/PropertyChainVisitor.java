@@ -42,7 +42,7 @@ public class PropertyChainVisitor extends AbstractInferVisitor {
 
     public PropertyChainVisitor(final RdfCloudTripleStoreConfiguration conf, final InferenceEngine inferenceEngine) {
         super(conf, inferenceEngine);
-        include = true;
+        include = conf.isInferPropertyChain();
     }
 
 

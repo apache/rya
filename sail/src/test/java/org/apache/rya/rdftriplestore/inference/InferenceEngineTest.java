@@ -579,4 +579,45 @@ public class InferenceEngineTest extends TestCase {
         expectedProperties.add(vf.createURI("urn:love"));
         Assert.assertEquals(expectedProperties, inferenceEngine.getHasSelfImplyingType(vf.createURI("urn:Narcissist")));
     }
+
+    @Test
+    public void testPropertyTypes() throws Exception {
+        final String ontology = "INSERT DATA { GRAPH <http://updated/test> {\n"
+                + "  <urn:comment> a owl:AnnotationProperty .\n"
+                + "  <urn:olderThan> a owl:TransitiveProperty, owl:IrreflexiveProperty, owl:AsymmetricProperty .\n"
+                + "  <urn:notYoungerThan> a owl:TransitiveProperty, owl:ReflexiveProperty .\n"
+                + "  <urn:related> a owl:Property, owl:SymmetricProperty, owl:TransitiveProperty .\n"
+                + "  <urn:knows> a owl:SymmetricProperty, owl:ObjectProperty, owl:ReflexiveProperty .\n"
+                + "  <urn:sameAgeAs> a owl:SymmetricProperty, owl:ReflexiveProperty, owl:TransitiveProperty .\n"
+                + "}}";
+        conn.prepareUpdate(QueryLanguage.SPARQL, ontology).execute();
+        inferenceEngine.refreshGraph();
+        final URI comment = vf.createURI("urn:comment"); // none of the three supported types
+        final URI older = vf.createURI("urn:olderThan"); // transitive only
+        final URI notYounger = vf.createURI("urn:notYoungerThan"); // transitive and reflexive
+        final URI related = vf.createURI("urn:related"); // transitive and symmetric
+        final URI knows = vf.createURI("urn:knows"); // reflexive and symmetric
+        final URI sameAge = vf.createURI("urn:sameAgeAs"); // all three
+        // symmetry
+        Assert.assertFalse(inferenceEngine.isSymmetricProperty(comment));
+        Assert.assertFalse(inferenceEngine.isSymmetricProperty(older));
+        Assert.assertFalse(inferenceEngine.isSymmetricProperty(notYounger));
+        Assert.assertTrue(inferenceEngine.isSymmetricProperty(related));
+        Assert.assertTrue(inferenceEngine.isSymmetricProperty(knows));
+        Assert.assertTrue(inferenceEngine.isSymmetricProperty(sameAge));
+        // transitivity
+        Assert.assertFalse(inferenceEngine.isTransitiveProperty(comment));
+        Assert.assertTrue(inferenceEngine.isTransitiveProperty(older));
+        Assert.assertTrue(inferenceEngine.isTransitiveProperty(notYounger));
+        Assert.assertTrue(inferenceEngine.isTransitiveProperty(related));
+        Assert.assertFalse(inferenceEngine.isTransitiveProperty(knows));
+        Assert.assertTrue(inferenceEngine.isTransitiveProperty(sameAge));
+        // reflexivity
+        Assert.assertFalse(inferenceEngine.isReflexiveProperty(comment));
+        Assert.assertFalse(inferenceEngine.isReflexiveProperty(older));
+        Assert.assertTrue(inferenceEngine.isReflexiveProperty(notYounger));
+        Assert.assertFalse(inferenceEngine.isReflexiveProperty(related));
+        Assert.assertTrue(inferenceEngine.isReflexiveProperty(knows));
+        Assert.assertTrue(inferenceEngine.isReflexiveProperty(sameAge));
+    }
 }

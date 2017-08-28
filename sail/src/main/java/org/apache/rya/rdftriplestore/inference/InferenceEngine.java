@@ -75,12 +75,14 @@ public class InferenceEngine {
     private static final Logger log = Logger.getLogger(InferenceEngine.class);
     private static final ValueFactory VF = ValueFactoryImpl.getInstance();
     private static final URI HAS_SELF = VF.createURI(OWL.NAMESPACE, "hasSelf");
+    private static final URI REFLEXIVE_PROPERTY = VF.createURI(OWL.NAMESPACE, "ReflexiveProperty");
 
     private Graph subClassOfGraph;
     private Graph subPropertyOfGraph;
     private Set<URI> symmetricPropertySet;
     private Map<URI, URI> inverseOfMap;
     private Set<URI> transitivePropertySet;
+    private Set<URI> reflexivePropertySet;
     private Map<URI, Set<URI>> domainByType;
     private Map<URI, Set<URI>> rangeByType;
     private Map<Resource, Map<URI, Value>> hasValueByType;
@@ -211,33 +213,9 @@ public class InferenceEngine {
 
             refreshOneOf();
 
-            iter = RyaDAOHelper.query(ryaDAO, null, RDF.TYPE, OWL.SYMMETRICPROPERTY, conf);
-            final Set<URI> symProp = new HashSet<>();
-            try {
-                while (iter.hasNext()) {
-                    final Statement st = iter.next();
-                    symProp.add((URI) st.getSubject()); //safe to assume it is a URI?
-                }
-            } finally {
-                if (iter != null) {
-                    iter.close();
-                }
-            }
-            symmetricPropertySet = symProp;
-
-            iter = RyaDAOHelper.query(ryaDAO, null, RDF.TYPE, OWL.TRANSITIVEPROPERTY, conf);
-            final Set<URI> transProp = new HashSet<>();
-            try {
-                while (iter.hasNext()) {
-                    final Statement st = iter.next();
-                    transProp.add((URI) st.getSubject());
-                }
-            } finally {
-                if (iter != null) {
-                    iter.close();
-                }
-            }
-            transitivePropertySet = transProp;
+            symmetricPropertySet = fetchInstances(OWL.SYMMETRICPROPERTY);
+            transitivePropertySet = fetchInstances(OWL.TRANSITIVEPROPERTY);
+            reflexivePropertySet = fetchInstances(REFLEXIVE_PROPERTY);
 
             iter = RyaDAOHelper.query(ryaDAO, null, OWL.INVERSEOF, null, conf);
             final Map<URI, URI> invProp = new HashMap<>();
@@ -402,6 +380,24 @@ public class InferenceEngine {
         } catch (final QueryEvaluationException e) {
             throw new InferenceEngineException(e);
         }
+    }
+
+    /**
+     * Query for and collect all instances of a given type. Should only be called for types expected
+     * to have few members, such as ontology vocabulary terms, as instances will be collected in
+     * memory.
+     */
+    private Set<URI> fetchInstances(final URI type) throws QueryEvaluationException {
+        final Set<URI> instances = new HashSet<>();
+        ryaDaoQueryWrapper.queryAll(null, RDF.TYPE, type, new RDFHandlerBase() {
+            @Override
+            public void handleStatement(final Statement st) throws RDFHandlerException {
+                if (st.getSubject() instanceof URI) {
+                    instances.add((URI) st.getSubject());
+                }
+            }
+        });
+        return instances;
     }
 
     /**
@@ -1176,6 +1172,15 @@ public class InferenceEngine {
 
     public boolean isTransitiveProperty(final URI prop) {
         return (transitivePropertySet != null) && transitivePropertySet.contains(prop);
+    }
+
+    /**
+     * Return whether a given property is known to be reflexive.
+     * @param prop A URI
+     * @return True if the given URI corresponds to an owl:ReflexiveProperty
+     */
+    public boolean isReflexiveProperty(final URI prop) {
+        return (reflexivePropertySet != null) && reflexivePropertySet.contains(prop);
     }
 
     /**

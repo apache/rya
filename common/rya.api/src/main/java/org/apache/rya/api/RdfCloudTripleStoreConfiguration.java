@@ -72,15 +72,21 @@ public abstract class RdfCloudTripleStoreConfiguration extends Configuration {
     public static final String CONF_STATEMENT_METADATA_PROPERTIES = "statement.metadata.properites";
     public static final String CONF_USE_STATEMENT_METADATA = "use.statement.metadata";
     public static final String STATS_PUSH_EMPTY_RDFTYPE_DOWN = "conf.stats.rdftype.down";
+    public static final String INFER_INCLUDE_ALL_VALUES_FROM = "infer.include.allvaluesfrom";
+    public static final String INFER_INCLUDE_DOMAIN_RANGE = "infer.include.domainrange";
+    public static final String INFER_INCLUDE_HAS_SELF = "infer.include.hasself";
+    public static final String INFER_INCLUDE_HAS_VALUE = "infer.include.hasvalue";
     public static final String INFER_INCLUDE_INTERSECTION_OF = "infer.include.intersectionof";
     public static final String INFER_INCLUDE_INVERSEOF = "infer.include.inverseof";
     public static final String INFER_INCLUDE_ONE_OF = "infer.include.oneof";
+    public static final String INFER_INCLUDE_PROPERTY_CHAIN = "infer.include.propertychain";
+    public static final String INFER_INCLUDE_REFLEXIVE_PROP = "infer.include.reflexiveprop";
     public static final String INFER_INCLUDE_SOME_VALUES_FROM = "infer.include.somevaluesfrom";
+    public static final String INFER_INCLUDE_SAME_AS = "infer.include.sameas";
     public static final String INFER_INCLUDE_SUBCLASSOF = "infer.include.subclassof";
     public static final String INFER_INCLUDE_SUBPROPOF = "infer.include.subpropof";
     public static final String INFER_INCLUDE_SYMMPROP = "infer.include.symmprop";
     public static final String INFER_INCLUDE_TRANSITIVEPROP = "infer.include.transprop";
-    public static final String INFER_INCLUDE_HAS_SELF = "infer.include.hasself";
 
     public static final String RDF_DAO_CLASS = "class.rdf.dao";
     public static final String RDF_EVAL_STATS_DAO_CLASS = "class.rdf.evalstats";
@@ -334,6 +340,82 @@ public abstract class RdfCloudTripleStoreConfiguration extends Configuration {
     }
 
     /**
+     * @return {@code true} if owl:allValuesFrom inferencing is enabled.
+     * {@code false} otherwise. Defaults to {@code true} if nothing is
+     * specified.
+     */
+    public Boolean isInferAllValuesFrom() {
+        return getBoolean(INFER_INCLUDE_ALL_VALUES_FROM, true);
+    }
+
+    /**
+     * Sets whether owl:allValuesFrom inferencing is enabled or disabled.
+     * @param value {@code true} if owl:allValuesFrom inferencing is enabled.
+     * {@code false} otherwise.
+     */
+    public void setInferAllValuesFrom(final Boolean value) {
+        Preconditions.checkNotNull(value);
+        setBoolean(INFER_INCLUDE_ALL_VALUES_FROM, value);
+    }
+
+    /**
+     * @return {@code true} if rdfs:domain and rdfs:range inferencing is enabled.
+     * {@code false} otherwise. Defaults to {@code true} if nothing is
+     * specified.
+     */
+    public Boolean isInferDomainRange() {
+        return getBoolean(INFER_INCLUDE_DOMAIN_RANGE, true);
+    }
+
+    /**
+     * Sets whether rdfs:domain and rdfs:range inferencing is enabled or disabled.
+     * @param value {@code true} if rdfs:domain/range inferencing is enabled.
+     * {@code false} otherwise.
+     */
+    public void setInferDomainRange(final Boolean val) {
+        Preconditions.checkNotNull(val);
+        setBoolean(INFER_INCLUDE_DOMAIN_RANGE, val);
+    }
+
+    /**
+     * @return {@code true} if owl:hasSelf inferencing is enabled.
+     * {@code false} otherwise. Defaults to {@code true} if nothing is
+     * specified.
+     */
+    public Boolean isInferHasSelf() {
+        return getBoolean(INFER_INCLUDE_HAS_SELF, true);
+    }
+
+    /**
+     * Sets whether owl:hasSelf inferencing is enabled or disabled.
+     * @param value {@code true} if owl:hasSelf inferencing is enabled.
+     * {@code false} otherwise.
+     */
+    public void setInferHasSelf(final Boolean val) {
+        Preconditions.checkNotNull(val);
+        setBoolean(INFER_INCLUDE_HAS_SELF, val);
+    }
+
+    /**
+     * @return {@code true} if owl:hasValue inferencing is enabled.
+     * {@code false} otherwise. Defaults to {@code true} if nothing is
+     * specified.
+     */
+    public Boolean isInferHasValue() {
+        return getBoolean(INFER_INCLUDE_HAS_VALUE, true);
+    }
+
+    /**
+     * Sets whether owl:hasValue inferencing is enabled or disabled.
+     * @param value {@code true} if owl:hasValue inferencing is enabled.
+     * {@code false} otherwise.
+     */
+    public void setInferHasValue(final Boolean value) {
+        Preconditions.checkNotNull(value);
+        setBoolean(INFER_INCLUDE_HAS_VALUE, value);
+    }
+
+    /**
      * @return {@code true} if owl:intersectionOf inferencing is enabled.
      * {@code false} otherwise. Defaults to {@code true} if nothing is
      * specified.
@@ -352,10 +434,20 @@ public abstract class RdfCloudTripleStoreConfiguration extends Configuration {
         setBoolean(INFER_INCLUDE_INTERSECTION_OF, value);
     }
 
+    /**
+     * @return {@code true} if owl:inverseOf inferencing is enabled.
+     * {@code false} otherwise. Defaults to {@code true} if nothing is
+     * specified.
+     */
     public Boolean isInferInverseOf() {
         return getBoolean(INFER_INCLUDE_INVERSEOF, true);
     }
 
+    /**
+     * Sets whether owl:inverseOf inferencing is enabled or disabled.
+     * @param value {@code true} if owl:inverseOf inferencing is enabled.
+     * {@code false} otherwise.
+     */
     public void setInferInverseOf(final Boolean val) {
         Preconditions.checkNotNull(val);
         setBoolean(INFER_INCLUDE_INVERSEOF, val);
@@ -381,6 +473,63 @@ public abstract class RdfCloudTripleStoreConfiguration extends Configuration {
     }
 
     /**
+     * @return {@code true} if owl:propertyChainAxiom inferencing is enabled.
+     * {@code false} otherwise. Defaults to {@code true} if nothing is
+     * specified.
+     */
+    public Boolean isInferPropertyChain() {
+        return getBoolean(INFER_INCLUDE_PROPERTY_CHAIN, true);
+    }
+
+    /**
+     * Sets whether owl:propertyChainAxiom inferencing is enabled or disabled.
+     * @param value {@code true} if owl:propertyChainAxiom inferencing is
+     * enabled. {@code false} otherwise.
+     */
+    public void setInferPropertyChain(final Boolean value) {
+        Preconditions.checkNotNull(value);
+        setBoolean(INFER_INCLUDE_PROPERTY_CHAIN, value);
+    }
+
+    /**
+     * @return {@code true} if owl:ReflexiveProperty inferencing is enabled.
+     * {@code false} otherwise. Defaults to {@code true} if nothing is
+     * specified.
+     */
+    public Boolean isInferReflexiveProperty() {
+        return getBoolean(INFER_INCLUDE_REFLEXIVE_PROP, true);
+    }
+
+    /**
+     * Sets whether owl:ReflexiveProperty inferencing is enabled or disabled.
+     * @param value {@code true} if owl:ReflexiveProperty inferencing is
+     * enabled. {@code false} otherwise.
+     */
+    public void setInferReflexiveProperty(final Boolean value) {
+        Preconditions.checkNotNull(value);
+        setBoolean(INFER_INCLUDE_REFLEXIVE_PROP, value);
+    }
+
+    /**
+     * @return {@code true} if owl:sameAs inferencing is enabled.
+     * {@code false} otherwise. Defaults to {@code true} if nothing is
+     * specified.
+     */
+    public Boolean isInferSameAs() {
+        return getBoolean(INFER_INCLUDE_SAME_AS, true);
+    }
+
+    /**
+     * Sets whether owl:sameAs inferencing is enabled or disabled.
+     * @param value {@code true} if owl:sameAs inferencing is enabled.
+     * {@code false} otherwise.
+     */
+    public void setInferSameAs(final Boolean value) {
+        Preconditions.checkNotNull(value);
+        setBoolean(INFER_INCLUDE_SAME_AS, value);
+    }
+
+    /**
      * @return {@code true} if owl:someValuesFrom inferencing is enabled.
      * {@code false} otherwise. Defaults to {@code true} if nothing is
      * specified.
@@ -399,46 +548,77 @@ public abstract class RdfCloudTripleStoreConfiguration extends Configuration {
         setBoolean(INFER_INCLUDE_SOME_VALUES_FROM, value);
     }
 
+    /**
+     * @return {@code true} if rdfs:subClassOf inferencing is enabled.
+     * {@code false} otherwise. Defaults to {@code true} if nothing is
+     * specified.
+     */
     public Boolean isInferSubClassOf() {
         return getBoolean(INFER_INCLUDE_SUBCLASSOF, true);
     }
 
+    /**
+     * Sets whether rdfs:subClassOf inferencing is enabled or disabled.
+     * @param value {@code true} if rdfs:subClassOf inferencing is enabled.
+     * {@code false} otherwise.
+     */
     public void setInferSubClassOf(final Boolean val) {
         Preconditions.checkNotNull(val);
         setBoolean(INFER_INCLUDE_SUBCLASSOF, val);
     }
 
+    /**
+     * @return {@code true} if rdfs:subPropertyOf inferencing is enabled.
+     * {@code false} otherwise. Defaults to {@code true} if nothing is
+     * specified.
+     */
     public Boolean isInferSubPropertyOf() {
         return getBoolean(INFER_INCLUDE_SUBPROPOF, true);
     }
 
+    /**
+     * Sets whether rdfs:subPropertyOf inferencing is enabled or disabled.
+     * @param value {@code true} if rdfs:subPropertyOf inferencing is enabled.
+     * {@code false} otherwise.
+     */
     public void setInferSubPropertyOf(final Boolean val) {
         Preconditions.checkNotNull(val);
         setBoolean(INFER_INCLUDE_SUBPROPOF, val);
     }
 
-    public Boolean hasSelf() {
-        return getBoolean(INFER_INCLUDE_HAS_SELF, true);
-    }
-
-    public void setHasSelf(final Boolean val) {
-        Preconditions.checkNotNull(val);
-        setBoolean(INFER_INCLUDE_HAS_SELF, val);
-    }
-
+    /**
+     * @return {@code true} if owl:SymmetricProperty inferencing is enabled.
+     * {@code false} otherwise. Defaults to {@code true} if nothing is
+     * specified.
+     */
     public Boolean isInferSymmetricProperty() {
         return getBoolean(INFER_INCLUDE_SYMMPROP, true);
     }
 
+    /**
+     * Sets whether owl:SymmetricProperty inferencing is enabled or disabled.
+     * @param value {@code true} if owl:SymmetricProperty inferencing is enabled.
+     * {@code false} otherwise.
+     */
     public void setInferSymmetricProperty(final Boolean val) {
         Preconditions.checkNotNull(val);
         setBoolean(INFER_INCLUDE_SYMMPROP, val);
     }
 
+    /**
+     * @return {@code true} if owl:TransitiveProperty inferencing is enabled.
+     * {@code false} otherwise. Defaults to {@code true} if nothing is
+     * specified.
+     */
     public Boolean isInferTransitiveProperty() {
         return getBoolean(INFER_INCLUDE_TRANSITIVEPROP, true);
     }
 
+    /**
+     * Sets whether owl:TransitiveProperty inferencing is enabled or disabled.
+     * @param value {@code true} if owl:TransitiveProperty inferencing is enabled.
+     * {@code false} otherwise.
+     */
     public void setInferTransitiveProperty(final Boolean val) {
         Preconditions.checkNotNull(val);
         setBoolean(INFER_INCLUDE_TRANSITIVEPROP, val);

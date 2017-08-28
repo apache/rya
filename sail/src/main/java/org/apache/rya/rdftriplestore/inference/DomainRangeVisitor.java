@@ -50,13 +50,13 @@ import org.openrdf.query.algebra.Var;
  */
 public class DomainRangeVisitor extends AbstractInferVisitor {
     /**
-     * Creates a new {@link DomainRangeVisitor}, which is enabled by default.
+     * Creates a new {@link DomainRangeVisitor}.
      * @param conf The {@link RdfCloudTripleStoreConfiguration}.
      * @param inferenceEngine The InferenceEngine containing the relevant ontology.
      */
     public DomainRangeVisitor(RdfCloudTripleStoreConfiguration conf, InferenceEngine inferenceEngine) {
         super(conf, inferenceEngine);
-        include = true;
+        include = conf.isInferDomainRange();
     }
 
     /**

@@ -71,13 +71,13 @@ import org.openrdf.query.algebra.Var;
  */
 public class HasValueVisitor extends AbstractInferVisitor {
     /**
-     * Creates a new {@link HasValueVisitor}, which is enabled by default.
+     * Creates a new {@link HasValueVisitor}.
      * @param conf The {@link RdfCloudTripleStoreConfiguration}.
      * @param inferenceEngine The InferenceEngine containing the relevant ontology.
      */
     public HasValueVisitor(RdfCloudTripleStoreConfiguration conf, InferenceEngine inferenceEngine) {
         super(conf, inferenceEngine);
-        include = true;
+        include = conf.isInferHasValue();
     }
 
     /**

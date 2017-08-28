@@ -1,5 +1,4 @@
-package org.apache.rya.triplestore.inference;
-
+package org.apache.rya.rdftriplestore.inference;
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -18,17 +17,7 @@ package org.apache.rya.triplestore.inference;
  * specific language governing permissions and limitations
  * under the License.
  */
-
-
-
-import info.aduna.iteration.Iterations;
-import junit.framework.TestCase;
-import org.apache.rya.accumulo.AccumuloRdfConfiguration;
-import org.apache.rya.accumulo.AccumuloRyaDAO;
-import org.apache.rya.api.RdfCloudTripleStoreConstants;
-import org.apache.rya.api.resolver.RdfToRyaConversions;
-import org.apache.rya.rdftriplestore.RdfCloudTripleStore;
-import org.apache.rya.rdftriplestore.inference.InferenceEngine;
+import java.util.List;
 
 import org.apache.accumulo.core.Constants;
 import org.apache.accumulo.core.client.Connector;
@@ -36,15 +25,42 @@ import org.apache.accumulo.core.client.admin.SecurityOperations;
 import org.apache.accumulo.core.client.mock.MockInstance;
 import org.apache.accumulo.core.security.Authorizations;
 import org.apache.accumulo.core.security.TablePermission;
+import org.junit.Assert;
 import org.junit.Test;
-import org.openrdf.model.Resource;
-import org.openrdf.model.Statement;
 import org.openrdf.model.URI;
 import org.openrdf.model.ValueFactory;
-import org.openrdf.model.impl.StatementImpl;
 import org.openrdf.model.impl.ValueFactoryImpl;
+import org.openrdf.query.QueryLanguage;
+import org.openrdf.query.Update;
+import org.openrdf.repository.sail.SailRepository;
+import org.openrdf.repository.sail.SailRepositoryConnection;
 
-public class SameAsTest extends TestCase {
+import junit.framework.TestCase;
+import org.apache.rya.accumulo.AccumuloRdfConfiguration;
+import org.apache.rya.accumulo.AccumuloRyaDAO;
+import org.apache.rya.api.RdfCloudTripleStoreConstants;
+import org.apache.rya.rdftriplestore.RdfCloudTripleStore;
+import org.apache.rya.rdftriplestore.inference.InferenceEngine;
+import org.apache.rya.rdftriplestore.inference.InverseURI;
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * 
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
+public class PropertyChainTest extends TestCase {
     private String user = "user";
     private String pwd = "pwd";
     private String instance = "myinstance";
@@ -89,27 +105,36 @@ public class SameAsTest extends TestCase {
     }
 
     @Test
-    //This isn't a good test.  It's simply a cut-and-paste from a test that was failing in a different package in the SameAsVisitor.
     public void testGraphConfiguration() throws Exception {
-        URI a = vf.createURI(namespace, "a");
-        Statement statement = new StatementImpl(a, vf.createURI(namespace, "p"), vf.createLiteral("l"));
-        Statement statement2 = new StatementImpl(a, vf.createURI(namespace, "p2"), vf.createLiteral("l"));
-        ryaDAO.add(RdfToRyaConversions.convertStatement(statement));
-        ryaDAO.add(RdfToRyaConversions.convertStatement(statement2));
-        ryaDAO.add(RdfToRyaConversions.convertStatement(new StatementImpl(vf.createURI(namespace, "b"), vf.createURI(namespace, "p"), vf.createLiteral("l"))));
-        ryaDAO.add(RdfToRyaConversions.convertStatement(new StatementImpl(vf.createURI(namespace, "c"), vf.createURI(namespace, "n"), vf.createLiteral("l"))));
-
         // build a connection
         RdfCloudTripleStore store = new RdfCloudTripleStore();
         store.setConf(conf);
         store.setRyaDAO(ryaDAO);
-
         InferenceEngine inferenceEngine = new InferenceEngine();
         inferenceEngine.setRyaDAO(ryaDAO);
         store.setInferenceEngine(inferenceEngine);
-        
+        inferenceEngine.refreshGraph();
         store.initialize();
+        SailRepository repository = new SailRepository(store);
+        SailRepositoryConnection conn = repository.getConnection();
+        
 
-        System.out.println(Iterations.asList(store.getConnection().getStatements(a, vf.createURI(namespace, "p"), vf.createLiteral("l"), false, new Resource[0])).size());
+        
+    	String query = "INSERT DATA\n"//
+    			+ "{ GRAPH <http://updated/test> {\n"//
+    			+ "  <urn:greatMother> owl:propertyChainAxiom <urn:12342>  . " + 
+    			" <urn:12342> <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> _:node1atjakcvbx15023 . " + 
+    			" _:node1atjakcvbx15023 <http://www.w3.org/2002/07/owl#inverseOf> <urn:isChildOf> . " + 
+    			" <urn:12342> <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> _:node1atjakcvbx15123 . " + 
+       			" _:node1atjakcvbx15123 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> <http://www.w3.org/1999/02/22-rdf-syntax-ns#nil> . " + 
+    			" _:node1atjakcvbx15123 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> <urn:MotherOf> .  }}";
+    	Update update = conn.prepareUpdate(QueryLanguage.SPARQL, query);
+    	update.execute();
+        inferenceEngine.refreshGraph();
+       List<URI> chain = inferenceEngine.getPropertyChain(vf.createURI("urn:greatMother"));
+       Assert.assertEquals(chain.size(), 2);
+       Assert.assertEquals(chain.get(0), new InverseURI(vf.createURI("urn:isChildOf")));
+       Assert.assertEquals(chain.get(1), vf.createURI("urn:MotherOf"));
+ 
     }
 }

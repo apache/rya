@@ -49,7 +49,7 @@ public class SameAsVisitor extends AbstractInferVisitor {
 
     public SameAsVisitor(RdfCloudTripleStoreConfiguration conf, InferenceEngine inferenceEngine) {
         super(conf, inferenceEngine);
-        include = conf.isInferSubPropertyOf(); // oops
+        include = conf.isInferSameAs();
     }
     
     public void meet(StatementPattern sp) throws Exception {

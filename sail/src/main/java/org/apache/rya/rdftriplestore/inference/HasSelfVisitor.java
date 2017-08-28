@@ -50,13 +50,13 @@ public class HasSelfVisitor extends AbstractInferVisitor {
     private static final Var TYPE_VAR = new Var(RDF.TYPE.stringValue(), RDF.TYPE);
 
     /**
-     * Creates a new {@link HasSelfVisitor}, which is enabled by default.
+     * Creates a new {@link HasSelfVisitor}.
      * @param conf The {@link RdfCloudTripleStoreConfiguration}.
      * @param inferenceEngine The InferenceEngine containing the relevant ontology.
      */
     public HasSelfVisitor(final RdfCloudTripleStoreConfiguration conf, final InferenceEngine inferenceEngine) {
         super(conf, inferenceEngine);
-        include = conf.hasSelf();
+        include = conf.isInferHasSelf();
     }
 
     @Override

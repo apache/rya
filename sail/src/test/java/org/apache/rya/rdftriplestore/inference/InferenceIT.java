@@ -30,14 +30,17 @@ import org.apache.accumulo.core.client.mock.MockInstance;
 import org.apache.accumulo.core.client.security.tokens.PasswordToken;
 import org.apache.rya.accumulo.AccumuloRdfConfiguration;
 import org.apache.rya.accumulo.AccumuloRyaDAO;
+import org.apache.rya.api.RdfCloudTripleStoreConstants;
 import org.apache.rya.rdftriplestore.RdfCloudTripleStore;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Test;
+import org.openrdf.model.URI;
 import org.openrdf.model.Value;
 import org.openrdf.model.ValueFactory;
 import org.openrdf.model.impl.ValueFactoryImpl;
 import org.openrdf.model.vocabulary.FOAF;
+import org.openrdf.model.vocabulary.OWL;
 import org.openrdf.query.BindingSet;
 import org.openrdf.query.QueryLanguage;
 import org.openrdf.query.QueryResultHandlerException;
@@ -605,5 +608,78 @@ public class InferenceIT extends TestCase {
         expected.add(new ListBindingSet(varNames, vf.createURI("urn:Narcissus")));
         expected.add(new ListBindingSet(varNames, vf.createURI("urn:Alice")));
         Assert.assertEquals(expected, new HashSet<>(solutions));
+    }
+
+    @Test
+    public void testReflexivePropertyQuery() throws Exception {
+        final String ontology = "INSERT DATA { GRAPH <http://updated/test> {\n"
+                + "  <urn:hasFamilyMember> a owl:ReflexiveProperty . \n"
+                + "}}";
+        final String instances = "INSERT DATA { GRAPH <http://updated/test> {\n"
+                + "  <urn:Alice> <urn:hasFamilyMember> <urn:Bob> . \n"
+                + "  <urn:Alice> <urn:knows> <urn:Eve> . \n"
+                + "}}";
+        conn.prepareUpdate(QueryLanguage.SPARQL, ontology).execute();
+        conn.prepareUpdate(QueryLanguage.SPARQL, instances).execute();
+        inferenceEngine.refreshGraph();
+        final URI alice = vf.createURI("urn:Alice");
+        final URI bob = vf.createURI("urn:Bob");
+        final URI carol = vf.createURI("urn:Carol");
+        final URI eve = vf.createURI("urn:Eve");
+        final List<String> varNames = new LinkedList<>();
+        varNames.add("x");
+        final Set<BindingSet> aliceAndBob = new HashSet<>();
+        aliceAndBob.add(new ListBindingSet(varNames, alice));
+        aliceAndBob.add(new ListBindingSet(varNames, bob));
+        final Set<BindingSet> carolOnly = new HashSet<>();
+        carolOnly.add(new ListBindingSet(varNames, carol));
+
+        // Queries where subject constant, object variable:
+        final String aliceFamilyQuery = "SELECT ?x { GRAPH <http://updated/test> { <urn:Alice> <urn:hasFamilyMember> ?x } }";
+        conn.prepareTupleQuery(QueryLanguage.SPARQL, aliceFamilyQuery).evaluate(resultHandler);
+        Assert.assertEquals(aliceAndBob, new HashSet<>(solutions));
+        final String carolFamilyQuery = "SELECT ?x { GRAPH <http://updated/test> { <urn:Carol> <urn:hasFamilyMember> ?x } }";
+        conn.prepareTupleQuery(QueryLanguage.SPARQL, carolFamilyQuery).evaluate(resultHandler);
+        Assert.assertEquals(carolOnly, new HashSet<>(solutions));
+
+        // Queries where subject variable, object constant:
+        final String familyOfBobQuery = "SELECT ?x { GRAPH <http://updated/test> { ?x <urn:hasFamilyMember> <urn:Bob> } }";
+        conn.prepareTupleQuery(QueryLanguage.SPARQL, familyOfBobQuery).evaluate(resultHandler);
+        Assert.assertEquals(aliceAndBob, new HashSet<>(solutions));
+        final String familyOfCarolQuery = "SELECT ?x { GRAPH <http://updated/test> { ?x <urn:hasFamilyMember> <urn:Carol> } }";
+        conn.prepareTupleQuery(QueryLanguage.SPARQL, familyOfCarolQuery).evaluate(resultHandler);
+        Assert.assertEquals(carolOnly, new HashSet<>(solutions));
+
+        varNames.add("y");
+        // Query where both subject and object are variables, but restricted by
+        // other statements
+        final Set<BindingSet> aliceAndBoth = new HashSet<>();
+        aliceAndBoth.add(new ListBindingSet(varNames, alice, bob));
+        aliceAndBoth.add(new ListBindingSet(varNames, alice, alice));
+        final String variableQuery = "SELECT * { GRAPH <http://updated/test> {\n"
+                + "  ?x <urn:knows> <urn:Eve> .\n"
+                + "  ?x <urn:hasFamilyMember> ?y .\n"
+                + "} }";
+        conn.prepareTupleQuery(QueryLanguage.SPARQL, variableQuery).evaluate(resultHandler);
+        Assert.assertEquals(aliceAndBoth, new HashSet<>(solutions));
+
+        // Query where subject and object are unrestricted variables: match
+        // every known node (dangerous, but correct)
+        final URI hasFamily = vf.createURI("urn:hasFamilyMember");
+        final URI rp = vf.createURI(OWL.NAMESPACE, "ReflexiveProperty");
+        final Set<BindingSet> everything = new HashSet<>();
+        everything.add(new ListBindingSet(varNames, alice, alice));
+        everything.add(new ListBindingSet(varNames, bob, bob));
+        everything.add(new ListBindingSet(varNames, alice, bob));
+        everything.add(new ListBindingSet(varNames, eve, eve));
+        everything.add(new ListBindingSet(varNames, hasFamily, hasFamily));
+        everything.add(new ListBindingSet(varNames, rp, rp));
+        everything.add(new ListBindingSet(varNames, RdfCloudTripleStoreConstants.RTS_SUBJECT, RdfCloudTripleStoreConstants.RTS_SUBJECT));
+        everything.add(new ListBindingSet(varNames, RdfCloudTripleStoreConstants.VERSION, RdfCloudTripleStoreConstants.VERSION));
+        final String everythingQuery = "SELECT * { GRAPH <http://updated/test> {\n"
+                + "  ?x <urn:hasFamilyMember> ?y .\n"
+                + "} }";
+        conn.prepareTupleQuery(QueryLanguage.SPARQL, everythingQuery).evaluate(resultHandler);
+        Assert.assertEquals(everything, new HashSet<>(solutions));
     }
 }

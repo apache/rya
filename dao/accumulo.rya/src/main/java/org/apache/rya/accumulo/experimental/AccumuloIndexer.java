@@ -29,7 +29,6 @@ import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
 import org.apache.rya.api.persist.index.RyaSecondaryIndexer;
 
 public interface AccumuloIndexer extends RyaSecondaryIndexer {
-    public void init();    
     public void setMultiTableBatchWriter(MultiTableBatchWriter writer) throws IOException;
     public void setConnector(Connector connector);
     public void destroy();

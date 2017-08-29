@@ -137,7 +137,6 @@ under the License.
         <jcip.version>1.0-1</jcip.version>
         <findbugs.plugin.version>3.0.4</findbugs.plugin.version>
         <kafka.version>0.10.0.1</kafka.version>
-        <jopt-simple.version>4.9</jopt-simple.version>
         
         <!-- set profile property defaults -->
         <skip.rya.it>true</skip.rya.it>  <!-- modified by  -P enable-it  -->

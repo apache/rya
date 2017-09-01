@@ -28,7 +28,7 @@ import edu.umd.cs.findbugs.annotations.NonNull;
  */
 @DefaultAnnotation(NonNull.class)
 public interface CreatePCJ {
-
+    
     /**
      * Metadata enum used to indicate the type of query that is registered.  If
      * the topmost node is a Construct QueryNode, then the type is Construct.  If the
@@ -44,7 +44,7 @@ public interface CreatePCJ {
      * Application.
      *
      */
-    public static enum ExportStrategy{RYA, KAFKA, NO_OP_EXPORT};
+    public static enum ExportStrategy{RYA, KAFKA, PERIODIC};
 
     
     /**

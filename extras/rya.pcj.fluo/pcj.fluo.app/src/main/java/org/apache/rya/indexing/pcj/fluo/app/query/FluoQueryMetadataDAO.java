@@ -113,8 +113,10 @@ public class FluoQueryMetadataDAO {
         final String[] exportStrategies = values.get(FluoQueryColumns.QUERY_EXPORT_STRATEGIES).split(IncrementalUpdateConstants.VAR_DELIM);
         
         Set<ExportStrategy> strategies = new HashSet<>();
-        for(String strategy: exportStrategies) {
-            strategies.add(ExportStrategy.valueOf(strategy));
+        for (String strategy : exportStrategies) {
+            if (!strategy.isEmpty()) {
+                strategies.add(ExportStrategy.valueOf(strategy));
+            }
         }
 
         return QueryMetadata.builder(nodeId)

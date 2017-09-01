@@ -16,7 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.apache.rya.periodic.notification.exporter;
+package org.apache.rya.periodic.notification.api;
 
 import org.openrdf.query.BindingSet;
 

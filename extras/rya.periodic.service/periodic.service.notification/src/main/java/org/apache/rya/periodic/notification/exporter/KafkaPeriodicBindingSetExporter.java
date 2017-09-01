@@ -30,8 +30,9 @@ import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.clients.producer.RecordMetadata;
 import org.apache.log4j.Logger;
 import org.apache.rya.indexing.pcj.fluo.app.IncrementalUpdateConstants;
-import org.apache.rya.indexing.pcj.fluo.app.export.IncrementalBindingSetExporter.ResultExportException;
 import org.apache.rya.periodic.notification.api.BindingSetExporter;
+import org.apache.rya.periodic.notification.api.BindingSetRecord;
+import org.apache.rya.periodic.notification.api.BindingSetRecordExportException;
 import org.openrdf.model.Literal;
 import org.openrdf.query.BindingSet;
 
@@ -64,7 +65,7 @@ public class KafkaPeriodicBindingSetExporter implements BindingSetExporter, Runn
      * the indicated BindingSetRecord and the BindingSet is then exported to the topic.
      */
     @Override
-    public void exportNotification(BindingSetRecord record) throws ResultExportException {
+    public void exportNotification(BindingSetRecord record) throws BindingSetRecordExportException {
         String bindingName = IncrementalUpdateConstants.PERIODIC_BIN_ID;
         BindingSet bindingSet = record.getBindingSet();
         String topic = record.getTopic();
@@ -75,7 +76,7 @@ public class KafkaPeriodicBindingSetExporter implements BindingSetExporter, Runn
             //wait for confirmation that results have been received
             future.get(5, TimeUnit.SECONDS);
         } catch (InterruptedException | ExecutionException | TimeoutException e) {
-            throw new ResultExportException(e.getMessage());
+            throw new BindingSetRecordExportException(e.getMessage());
         }
     }
 
@@ -85,7 +86,7 @@ public class KafkaPeriodicBindingSetExporter implements BindingSetExporter, Runn
             while (!closed.get()) {
                 exportNotification(bindingSets.take());
             }
-        } catch (InterruptedException | ResultExportException e) {
+        } catch (InterruptedException | BindingSetRecordExportException e) {
             log.trace("Thread " + threadNumber + " is unable to process message.");
         }
     }

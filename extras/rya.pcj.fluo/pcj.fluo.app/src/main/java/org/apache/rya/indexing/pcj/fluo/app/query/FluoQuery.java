@@ -92,11 +92,7 @@ public class FluoQuery {
         this.statementPatternMetadata = requireNonNull(statementPatternMetadata);
         this.filterMetadata = requireNonNull(filterMetadata);
         this.joinMetadata = requireNonNull(joinMetadata);
-        if(constructMetadata.isPresent()) {
-            this.type = QueryType.CONSTRUCT;
-        } else {
-            this.type = QueryType.PROJECTION;
-        }
+        this.type = queryMetadata.getQueryType();
     }
     
     /**

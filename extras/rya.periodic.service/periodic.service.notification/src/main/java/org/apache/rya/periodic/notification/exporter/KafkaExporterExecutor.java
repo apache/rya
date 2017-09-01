@@ -28,6 +28,7 @@ import java.util.concurrent.TimeUnit;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.log4j.Logger;
 import org.apache.rya.periodic.notification.api.BindingSetExporter;
+import org.apache.rya.periodic.notification.api.BindingSetRecord;
 import org.apache.rya.periodic.notification.api.LifeCycle;
 import org.openrdf.query.BindingSet;
 

@@ -90,7 +90,7 @@ public class BatchIT extends RyaExportITBase {
 
             // Tell the Fluo app to maintain the PCJ.
             String queryId = new CreateFluoPcj().withRyaIntegration(pcjId, pcjStorage, fluoClient, getAccumuloConnector(),
-                    getRyaInstanceName());
+                    getRyaInstanceName()).getQueryId();
 
             List<String> ids = getNodeIdStrings(fluoClient, queryId);
             List<String> prefixes = Arrays.asList("urn:subject_1", "urn:subject_1", "urn:object", "urn:subject_1", "urn:subject_1");
@@ -130,7 +130,7 @@ public class BatchIT extends RyaExportITBase {
 
             // Tell the Fluo app to maintain the PCJ.
             String queryId = new CreateFluoPcj().withRyaIntegration(pcjId, pcjStorage, fluoClient, getAccumuloConnector(),
-                    getRyaInstanceName());
+                    getRyaInstanceName()).getQueryId();
 
             List<String> ids = getNodeIdStrings(fluoClient, queryId);
             String joinId = ids.get(2);
@@ -176,7 +176,7 @@ public class BatchIT extends RyaExportITBase {
 
             // Tell the Fluo app to maintain the PCJ.
             String queryId = new CreateFluoPcj().withRyaIntegration(pcjId, pcjStorage, fluoClient, getAccumuloConnector(),
-                    getRyaInstanceName());
+                    getRyaInstanceName()).getQueryId();
 
             List<String> ids = getNodeIdStrings(fluoClient, queryId);
             String joinId = ids.get(2);
@@ -225,7 +225,7 @@ public class BatchIT extends RyaExportITBase {
             // Tell the Fluo app to maintain the PCJ and sets batch scan size for StatementPatterns to 5 and
             // batch size of joins to 5.
             String queryId = new CreateFluoPcj(5, 5).withRyaIntegration(pcjId, pcjStorage, fluoClient, getAccumuloConnector(),
-                    getRyaInstanceName());
+                    getRyaInstanceName()).getQueryId();
 
             List<String> ids = getNodeIdStrings(fluoClient, queryId);
 
@@ -264,7 +264,7 @@ public class BatchIT extends RyaExportITBase {
             // Tell the Fluo app to maintain the PCJ and sets batch scan size for StatementPatterns to 5 and
             // batch size of joins to 5.
             String queryId = new CreateFluoPcj(5, 5).withRyaIntegration(pcjId, pcjStorage, fluoClient, getAccumuloConnector(),
-                    getRyaInstanceName());
+                    getRyaInstanceName()).getQueryId();
 
             List<String> ids = getNodeIdStrings(fluoClient, queryId);
 
@@ -305,7 +305,7 @@ public class BatchIT extends RyaExportITBase {
             // Tell the Fluo app to maintain the PCJ and sets batch scan size for StatementPatterns to 5 and
             // batch size of joins to 5.
             String queryId = new CreateFluoPcj(5, 5).withRyaIntegration(pcjId, pcjStorage, fluoClient, getAccumuloConnector(),
-                    getRyaInstanceName());
+                    getRyaInstanceName()).getQueryId();
 
             List<String> ids = getNodeIdStrings(fluoClient, queryId);
 

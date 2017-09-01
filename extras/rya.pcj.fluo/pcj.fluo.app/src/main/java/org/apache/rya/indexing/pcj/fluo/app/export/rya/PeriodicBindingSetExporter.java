@@ -52,7 +52,7 @@ public class PeriodicBindingSetExporter implements IncrementalBindingSetExporter
 
     @Override
     public ExportStrategy getExportStrategy() {
-        return ExportStrategy.RYA;
+        return ExportStrategy.PERIODIC;
     }
 
     @Override

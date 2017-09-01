@@ -18,23 +18,28 @@
  */
 package org.apache.rya.periodic.notification.api;
 
-import org.apache.rya.indexing.pcj.fluo.app.IncrementalUpdateConstants;
-import org.openrdf.query.Binding;
-
 /**
- * Object that cleans up old {@link BindingSet}s corresponding to the specified
- * {@link NodeBin}. This class deletes all BindingSets with the bin 
- * indicated by {@link NodeBin#getBin()}.  A BindingSet corresponds to a given
- * bin if it contains a {@link Binding} with name {@link IncrementalUpdateConstants#PERIODIC_BIN_ID}
- * and value equal to the given bin.
- *
+ * A result could not be exported.
  */
-public interface BinPruner {
-    
+public class BindingSetRecordExportException extends Exception {
+    private static final long serialVersionUID = 1L;
+
     /**
-     * Cleans up all {@link BindingSet}s associated with the indicated {@link NodeBin}.
-     * @param bin - NodeBin that indicates which BindingSets to delete..
+     * Constructs an instance of {@link BindingSetRecordExportException}.
+     *
+     * @param message - Explains why the exception was thrown.
      */
-    public void pruneBindingSetBin(NodeBin bin);
-    
+    public BindingSetRecordExportException(final String message) {
+        super(message);
+    }
+
+    /**
+     * Constructs an instance of {@link BindingSetRecordExportException}.
+     *
+     * @param message - Explains why the exception was thrown.
+     * @param cause - The exception that caused this one to be thrown.
+     */
+    public BindingSetRecordExportException(final String message, final Throwable cause) {
+        super(message, cause);
+    }
 }

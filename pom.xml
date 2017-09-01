@@ -244,6 +244,26 @@ under the License.
                 <artifactId>rya.pcj.fluo.app</artifactId>
                 <version>${project.version}</version>
             </dependency>
+             <dependency>
+                <groupId>org.apache.rya</groupId>
+                <artifactId>rya.periodic.service</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.rya</groupId>
+                <artifactId>rya.periodic.service.api</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.rya</groupId>
+                <artifactId>rya.periodic.service.notification</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.rya</groupId>
+                <artifactId>rya.periodic.service.integration.tests</artifactId>
+                <version>${project.version}</version>
+            </dependency>
             <dependency>
                 <groupId>org.apache.thrift</groupId>
                 <artifactId>libthrift</artifactId>

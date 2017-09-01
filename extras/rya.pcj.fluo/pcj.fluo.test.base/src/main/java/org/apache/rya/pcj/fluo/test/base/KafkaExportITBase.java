@@ -321,7 +321,7 @@ public class KafkaExportITBase extends AccumuloExportITBase {
         return consumer;
     }
 
-    protected String loadData(final String sparql, final Collection<Statement> statements) throws Exception {
+    protected String loadDataAndCreateQuery(final String sparql, final Collection<Statement> statements) throws Exception {
         requireNonNull(sparql);
         requireNonNull(statements);
 
@@ -334,7 +334,16 @@ public class KafkaExportITBase extends AccumuloExportITBase {
 
         final String pcjId = ryaClient.getCreatePCJ().createPCJ(RYA_INSTANCE_NAME, sparql, Sets.newHashSet(ExportStrategy.KAFKA));
 
-        // Write the data to Rya.
+        loadData(statements);
+
+        // The PCJ Id is the topic name the results will be written to.
+        return pcjId;
+    }
+    
+    protected void loadData(final Collection<Statement> statements) throws Exception {
+        
+        requireNonNull(statements);
+
         final SailRepositoryConnection ryaConn = getRyaSailRepository().getConnection();
         ryaConn.begin();
         ryaConn.add(statements);
@@ -343,9 +352,7 @@ public class KafkaExportITBase extends AccumuloExportITBase {
 
         // Wait for the Fluo application to finish computing the end result.
         super.getMiniFluo().waitForObservers();
-
-        // The PCJ Id is the topic name the results will be written to.
-        return pcjId;
+        
     }
 
 }

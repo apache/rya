@@ -13,13 +13,13 @@
         the specific language governing permissions and limitations under the License. -->
     <parent>
         <groupId>org.apache.rya</groupId>
-        <artifactId>rya.periodic.service</artifactId>
+        <artifactId>rya.periodic.notification.parent</artifactId>
         <version>3.2.11-incubating-SNAPSHOT</version>
     </parent>
 
-    <artifactId>rya.periodic.service.notification</artifactId>
+    <artifactId>rya.periodic.notification.service</artifactId>
 
-    <name>Apache Rya Periodic Service Notification</name>
+    <name>Apache Rya Periodic Notification Service</name>
     <description>Notifications for Rya Periodic Service</description>
 
     <dependencies>
@@ -76,7 +76,7 @@
         </dependency>
         <dependency>
             <groupId>org.apache.rya</groupId>
-            <artifactId>rya.periodic.service.api</artifactId>
+            <artifactId>rya.periodic.notification.api</artifactId>
         </dependency>
 
     </dependencies>
@@ -85,17 +85,7 @@
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <configuration>
-                    <encoding>UTF-8</encoding>
-                    <source>1.8</source>
-                    <target>1.8</target>
-                </configuration>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
-                <version>3.0.0</version>
                 <executions>
                     <execution>
                         <phase>package</phase>

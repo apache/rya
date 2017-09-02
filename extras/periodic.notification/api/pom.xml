@@ -14,14 +14,14 @@
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>org.apache.rya</groupId>
-        <artifactId>rya.periodic.service</artifactId>
+        <artifactId>rya.periodic.notification.parent</artifactId>
         <version>3.2.11-incubating-SNAPSHOT</version>
     </parent>
 
-    <artifactId>rya.periodic.service.api</artifactId>
+    <artifactId>rya.periodic.notification.api</artifactId>
 
-    <name>Apache Rya Periodic Service API</name>
-    <description>API for Periodic Service Application</description>
+    <name>Apache Rya Periodic Notification API</name>
+    <description>API for Periodic Notification Applications</description>
 
     <dependencies>
 

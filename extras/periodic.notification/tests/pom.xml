@@ -15,14 +15,14 @@
 
     <parent>
         <groupId>org.apache.rya</groupId>
-        <artifactId>rya.periodic.service</artifactId>
+        <artifactId>rya.periodic.notification.parent</artifactId>
         <version>3.2.11-incubating-SNAPSHOT</version>
     </parent>
 
-    <artifactId>rya.periodic.service.integration.tests</artifactId>
+    <artifactId>rya.periodic.notification.tests</artifactId>
 
-    <name>Apache Rya Periodic Service Integration Tests</name>
-    <description>Integration Tests for Rya Periodic Service</description>
+    <name>Apache Rya Periodic Notification Service Integration Tests</name>
+    <description>Integration Tests for Rya Periodic Notification Service</description>
 
     <dependencies>
         <dependency>
@@ -45,7 +45,7 @@
         </dependency>
         <dependency>
             <groupId>org.apache.rya</groupId>
-            <artifactId>rya.periodic.service.notification</artifactId>
+            <artifactId>rya.periodic.notification.service</artifactId>
             <exclusions>
                 <exclusion>
                     <artifactId>logback-classic</artifactId>

@@ -21,12 +21,12 @@
 -->
 # Quick Start
 
-This tutorial will outline the steps needed to get quickly started with the Rya store using the web based endpoint.
+This tutorial will outline the steps needed to get quickly started with the Apache Rya store using the web based endpoint.
 
 ## Prerequisites
 
 * Columnar Store (Accumulo)
-* Rya code (Git: git://git.apache.org/incubator-rya.git)
+* Apache Rya code (Git: git://git.apache.org/incubator-rya.git)
 * Maven 3.0 +
 
 ## Building from Source

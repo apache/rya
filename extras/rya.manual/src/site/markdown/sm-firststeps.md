@@ -27,7 +27,7 @@ In this tutorial, I will give you a quick overview of some of the first steps I 
 
  We are assuming Accumulo 1.5+ usage here.
 
- * Rya Source Code `web.rya.war`)
+ * Apache Rya Source Code (`web.rya.war`)
  * Accumulo on top of Hadoop 0.20+
  * RDF Data (in N-Triples format, this format is the easiest to bulk load)
 

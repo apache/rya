@@ -20,7 +20,10 @@
 
 -->
 
-# Rya
+# Apache Rya
+
+This project contains documentation about Apache Rya, a scalable RDF triple store on top of Accumulo.
+
 - [Overview](overview.md)
 - [Quick Start](quickstart.md)
 - [Load Data](loaddata.md)

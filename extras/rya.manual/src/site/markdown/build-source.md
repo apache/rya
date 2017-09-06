@@ -23,7 +23,7 @@
 
 ## Prerequisites
 
-* Rya code
+* Apache Rya code
 * Maven 2.2 +
 
 ## Building

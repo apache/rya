@@ -100,23 +100,24 @@ under the License.
             </plugin>
 
             <plugin>
-                <groupId>org.codehaus.mojo</groupId>
+                <groupId>com.mycila</groupId>
                 <artifactId>license-maven-plugin</artifactId>
+                <configuration>
+                    <header>${project.basedir}/src/license/header.txt</header>
+                </configuration>
                 <executions>
                     <execution>
                         <id>update-generated-source-headers</id>
-                        <goals>
-                            <goal>update-file-header</goal>
-                        </goals>
-                        <phase>process-sources</phase>
                         <configuration>
-                            <roots>
-                                <root>${project.build.directory}/generated-sources/jaxb</root>
-                            </roots>
-                            <extraFiles>
-                                <sun-jaxb.episode>xml</sun-jaxb.episode>
-                            </extraFiles>
+                            <basedir>${project.build.directory}/generated-sources</basedir>
+                            <mapping>
+                                <sun-jaxb.episode>XML_STYLE</sun-jaxb.episode>
+                            </mapping>
                         </configuration>
+                        <phase>process-sources</phase>
+                        <goals>
+                            <goal>format</goal>
+                        </goals>
                     </execution>
                 </executions>
             </plugin>

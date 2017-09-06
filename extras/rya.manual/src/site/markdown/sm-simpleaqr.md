@@ -21,7 +21,7 @@
 -->
 # Simple Add Query and Remove of Statements
 
-This quick tutorial will give a small example on how to add, query, and remove statements from Rya
+This quick tutorial will give a small example on how to add, query, and remove statements from Apache Rya
 
 ## Code
 

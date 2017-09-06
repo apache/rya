@@ -21,7 +21,7 @@
 -->
 # Query Data
 
-There are a few mechanisms to query data
+Apache Rya has a few mechanisms to query data
 
 ## Web JSP endpoint
 

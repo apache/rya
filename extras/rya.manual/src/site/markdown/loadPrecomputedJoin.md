@@ -21,7 +21,7 @@
 -->
 # Load Pre-computed Join
 
-A tool has been created to load a pre-computed join.  This tool will generate an index to support a pre-computed join on a user provided SPARQL query, and then register that query within Rya.
+A tool has been created to load a pre-computed join.  This tool will generate an index to support a pre-computed join on a user provided SPARQL query, and then register that query within Apache Rya.
 
 
 ## Registering a pre-computed join

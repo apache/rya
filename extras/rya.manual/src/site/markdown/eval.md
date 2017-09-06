@@ -22,7 +22,7 @@
 # Prospects Table
 
 The Prospects Table provides statistics on the number of subject/predicate/object data found in the triple store. It is currently a
-Map Reduce job that will run against the Rya store and save all the statistics in the prosepcts table.
+Map Reduce job that will run against the Apache Rya store and save all the statistics in the prospects table.
 
 ## Build
 

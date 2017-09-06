@@ -21,7 +21,7 @@
 -->
 # Inferencing
 
-Rya currently provides simple inferencing. The supported list of inferred relationships include:
+Apache Rya currently provides simple inferencing. The supported list of inferred relationships include:
 
 - rdfs:subClassOf
 - rdfs:subPropertyOf

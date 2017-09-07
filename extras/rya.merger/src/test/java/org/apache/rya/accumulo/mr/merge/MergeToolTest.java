@@ -68,7 +68,6 @@ public class MergeToolTest {
 
     private static final boolean IS_MOCK = true;
     private static final boolean USE_TIME_SYNC = false;
-    private static final boolean IS_START_TIME_DIALOG_ENABLED = false;
 
     private static final String CHILD_SUFFIX = MergeTool.CHILD_SUFFIX;
 
@@ -157,7 +156,7 @@ public class MergeToolTest {
                 makeArgument(CopyTool.CHILD_TOMCAT_URL_PROP, CHILD_TOMCAT_URL),
                 makeArgument(CopyTool.NTP_SERVER_HOST_PROP, TimeUtils.DEFAULT_TIME_SERVER_HOST),
                 makeArgument(CopyTool.USE_NTP_SERVER_PROP, Boolean.toString(USE_TIME_SYNC)),
-                makeArgument(MergeTool.START_TIME_PROP, MergeTool.getStartTimeString(startDate, IS_START_TIME_DIALOG_ENABLED))
+                makeArgument(MergeTool.START_TIME_PROP, MergeTool.getStartTimeString(startDate))
         });
 
         log.info("Finished running tool.");

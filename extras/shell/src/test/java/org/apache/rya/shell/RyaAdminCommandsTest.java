@@ -128,6 +128,25 @@ public class RyaAdminCommandsTest {
     }
 
     @Test
+    public void createPCJ_noExportStrategy() throws InstanceDoesNotExistException, RyaClientException, IOException {
+        // Mock the object that performs the create operation.
+        final String instanceName = "unitTest";
+
+        final RyaClient mockCommands = mock(RyaClient.class);
+
+        final SharedShellState state = new SharedShellState();
+        state.connectedToAccumulo(mock(AccumuloConnectionDetails.class), mockCommands);
+        state.connectedToInstance(instanceName);
+
+        // Execute the command.
+        final RyaAdminCommands commands = new RyaAdminCommands(state, mock(InstallPrompt.class), mock(SparqlPrompt.class), mock(UninstallPrompt.class));
+        final String message = commands.createPcj(false, false);
+
+        // Verify a message is returned that explains what was created.
+        assertEquals("The user must specify at least one export strategy: (--exportToRya, --exportToKafka)", message);
+    }
+
+    @Test
     public void deletePCJ() throws InstanceDoesNotExistException, RyaClientException {
         // Mock the object that performs the delete operation.
         final DeletePCJ mockDeletePCJ = mock(DeletePCJ.class);

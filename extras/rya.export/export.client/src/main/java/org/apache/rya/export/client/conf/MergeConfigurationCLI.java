@@ -54,10 +54,6 @@ import com.google.common.annotations.VisibleForTesting;
  * Helper class for processing command line arguments for the Merge Tool.
  */
 public class MergeConfigurationCLI {
-    private static final String DIALOG_TITLE = "Select a Start Time/Date";
-    private static final String DIALOG_MESSAGE =
-        "<html>Choose the time of the data to merge.<br>Only data modified AFTER the selected time will be merged.</html>";
-
     private static final Option CONFIG_OPTION = new Option("c", true, "Defines the configuration file for the Merge Tool to use.");
     private static final Option TIME_OPTION = new Option("t", true, "Defines the timestamp from which to filter RyaStatements when merging.");
     private static final Option PARENT_HOST_OPTION = new Option("a", "pHost", true, "Defines the hostname of the parent db to connect to.");
@@ -149,7 +145,12 @@ public class MergeConfigurationCLI {
             throw new MergeConfigurationException("Failed to create a config based on the provided configuration.", JAXBe);
         }
     }
-
+    /**
+     * returns the time option and makes it required.
+     * This is for API and is not used internally as of v3.2.11
+     * @return
+     * @throws MergeConfigurationException
+     */
     public Date getRyaStatementMergeTime() throws MergeConfigurationException {
         final Date time;
         if(cmd.hasOption(TIME_OPTION.getOpt())) {
@@ -160,9 +161,7 @@ public class MergeConfigurationCLI {
                 throw new MergeConfigurationException("The provided timestamp was not formatted correctly.", e);
             }
         } else {
-            final DateTimePickerDialog dialog = new DateTimePickerDialog(DIALOG_TITLE, DIALOG_MESSAGE);
-            dialog.setVisible(true);
-            time = dialog.getSelectedDateTime();
+        	throw new MergeConfigurationException("The "+TIME_OPTION.getArgName()+" option was not specified. "+TIME_OPTION.getDescription());
         }
         return time;
     }

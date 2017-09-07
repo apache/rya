@@ -88,7 +88,6 @@ import org.apache.rya.accumulo.AccumuloRdfConfiguration;
 import org.apache.rya.accumulo.mr.AccumuloHDFSFileInputFormat;
 import org.apache.rya.accumulo.mr.MRUtils;
 import org.apache.rya.accumulo.mr.merge.common.InstanceType;
-import org.apache.rya.accumulo.mr.merge.gui.DateTimePickerDialog;
 import org.apache.rya.accumulo.mr.merge.mappers.AccumuloCopyToolMapper;
 import org.apache.rya.accumulo.mr.merge.mappers.AccumuloRyaRuleMapper;
 import org.apache.rya.accumulo.mr.merge.mappers.FileCopyToolMapper;
@@ -207,10 +206,9 @@ public class CopyTool extends AbstractDualInstanceAccumuloMRTool {
      */
     public static final String QUERY_FILE_PROP = "ac.copy.queryfile";
 
-    private static final String DIALOG_TITLE = "Select a Start Time/Date";
-    private static final String DIALOG_MESSAGE =
-        "<html>Choose the time of the data to copy.<br>Only parent data AFTER the selected time will be copied to the child.</html>";
-
+    /**
+     *  startTime is the time of the data to copy. Only parent data AFTER the selected time will be copied to the child.
+     */
     private String startTime = null;
     private boolean useCopyFileOutput = false;
     private String baseOutputDir = null;
@@ -250,17 +248,7 @@ public class CopyTool extends AbstractDualInstanceAccumuloMRTool {
         startTime = conf.get(MergeTool.START_TIME_PROP, null);
 
         if (!useCopyFileImport) {
-            // Display start time dialog if requested
-            if (MergeTool.USE_START_TIME_DIALOG.equals(startTime)) {
-                log.info("Select start time from dialog...");
-                final DateTimePickerDialog dateTimePickerDialog = new DateTimePickerDialog(DIALOG_TITLE, DIALOG_MESSAGE);
-                dateTimePickerDialog.setVisible(true);
-
-                final Date date = dateTimePickerDialog.getSelectedDateTime();
-                startTime = MergeTool.START_TIME_FORMATTER.format(date);
-                conf.set(MergeTool.START_TIME_PROP, startTime);
-                log.info("Will copy all data after " + date);
-            } else if (startTime != null) {
+        	if (startTime != null) {
                 try {
                     final Date date = MergeTool.START_TIME_FORMATTER.parse(startTime);
                     log.info("Will copy all data after " + date);

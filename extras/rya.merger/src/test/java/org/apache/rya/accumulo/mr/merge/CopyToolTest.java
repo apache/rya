@@ -73,7 +73,6 @@ public class CopyToolTest {
     private static final boolean IS_MOCK = true;
     private static final boolean USE_TIME_SYNC = false;
     private static final boolean USE_COPY_FILE_OUTPUT = false;
-    private static final boolean IS_START_TIME_DIALOG_ENABLED = false;
 
     private static final String CHILD_SUFFIX = MergeTool.CHILD_SUFFIX;
 
@@ -167,7 +166,7 @@ public class CopyToolTest {
                 makeArgument(CopyTool.USE_COPY_FILE_OUTPUT_DIRECTORY_CLEAR, Boolean.toString(true)),
                 makeArgument(CopyTool.COPY_FILE_IMPORT_DIRECTORY, "resources/test/copy_tool_file_output/"),
                 makeArgument(CopyTool.USE_COPY_FILE_IMPORT, Boolean.toString(isImporting)),
-                makeArgument(MergeTool.START_TIME_PROP, MergeTool.getStartTimeString(startDate, IS_START_TIME_DIALOG_ENABLED))
+                makeArgument(MergeTool.START_TIME_PROP, MergeTool.getStartTimeString(startDate))
         });
 
         final Configuration toolConfig = copyTool.getConf();

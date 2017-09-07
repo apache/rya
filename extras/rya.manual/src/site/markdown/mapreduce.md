@@ -20,7 +20,7 @@
 -->
 # MapReduce Interface
 
-The rya.mapreduce project contains a set of classes facilitating the use of
+The Apache Rya `rya.mapreduce` project contains a set of classes facilitating the use of
 Accumulo-backed Rya as the input source or output destination of Hadoop
 MapReduce jobs.
 

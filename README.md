@@ -15,17 +15,17 @@ KIND, either express or implied.  See the License for the
 specific language governing permissions and limitations
 under the License. -->
 
-# RYA
+# Apache Rya
 
 ## Overview
 
-[RYA] is a scalable RDF Store that is built on top of a Columnar Index Store (such as Accumulo). It is implemented as an extension to OpenRdf to provide easy query mechanisms (SPARQL, SERQL, etc) and Rdf data storage (RDF/XML, NTriples, etc).
+[Apache Rya] is a scalable RDF Store that is built on top of a Columnar Index Store (such as Accumulo). It is implemented as an extension to OpenRdf to provide easy query mechanisms (SPARQL, SERQL, etc) and Rdf data storage (RDF/XML, NTriples, etc).
 
-RYA stands for RDF y(and) Accumulo.
+Rya stands for RDF y(and) Accumulo.
 
-## Rya Manual
+## Manual
 
-A copy of the Rya Manual is located [here](extras/rya.manual/src/site/markdown/index.md).  The material in the manual and below may be out of sync.
+A copy of the Apache Rya Manual is located [here](extras/rya.manual/src/site/markdown/index.md).  The material in the manual and below may be out of sync.
 
 ## Upgrade Path
 

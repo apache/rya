@@ -290,9 +290,9 @@ public class RyaAdminCommands implements CommandMarker {
 
     @CliCommand(value = CREATE_PCJ_CMD, help = "Creates and starts the maintenance of a new PCJ using a Fluo application.")
     public String createPcj(
-            @CliOption(key = {"exportToRya"}, mandatory = false, help = "Indicates that results for the query should be exported to a Rya PCJ table.")
+            @CliOption(key = {"exportToRya"}, mandatory = false, help = "Indicates that results for the query should be exported to a Rya PCJ table.", unspecifiedDefaultValue = "false", specifiedDefaultValue = "true")
             boolean exportToRya,
-            @CliOption(key = {"exportToKafka"}, mandatory = false, help = "Indicates that results for the query should be exported to a Kafka Topic.")
+            @CliOption(key = {"exportToKafka"}, mandatory = false, help = "Indicates that results for the query should be exported to a Kafka Topic.", unspecifiedDefaultValue = "false", specifiedDefaultValue = "true")
             boolean exportToKafka) {
         // Fetch the command that is connected to the store.
         final ShellState shellState = state.getShellState();
@@ -300,19 +300,20 @@ public class RyaAdminCommands implements CommandMarker {
         final String ryaInstance = shellState.getRyaInstanceName().get();
 
         try {
+            final Set<ExportStrategy> strategies = new HashSet<>();
+            if(exportToRya) {
+                strategies.add(ExportStrategy.RYA);
+            }
+            if(exportToKafka) {
+                strategies.add(ExportStrategy.KAFKA);
+            }
+            if(strategies.isEmpty()) {
+                return "The user must specify at least one export strategy: (--exportToRya, --exportToKafka)";
+            }
+            
             // Prompt the user for the SPARQL.
             final Optional<String> sparql = sparqlPrompt.getSparql();
             if (sparql.isPresent()) {
-                Set<ExportStrategy> strategies = new HashSet<>();
-                if(exportToRya) {
-                    strategies.add(ExportStrategy.RYA);
-                }
-                if(exportToKafka) {
-                    strategies.add(ExportStrategy.KAFKA);
-                }
-                if(strategies.size() == 0) {
-                    return "The user must specify at least one export strategy by setting either exportToRya or exportToKafka to true."; 
-                }
                 // Execute the command.
                 final String pcjId = commands.getCreatePCJ().createPCJ(ryaInstance, sparql.get(), strategies);
                 // Return a message that indicates the ID of the newly created ID.

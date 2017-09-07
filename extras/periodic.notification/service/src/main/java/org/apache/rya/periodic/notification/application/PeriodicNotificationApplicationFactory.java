@@ -18,10 +18,13 @@
  */
 package org.apache.rya.periodic.notification.application;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.util.Optional;
 import java.util.Properties;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
@@ -33,6 +36,7 @@ import org.apache.fluo.api.client.FluoClient;
 import org.apache.fluo.api.client.Snapshot;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.producer.KafkaProducer;
+import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.apache.rya.indexing.pcj.fluo.app.util.FluoClientFactory;
@@ -51,6 +55,9 @@ import org.apache.rya.periodic.notification.registration.kafka.KafkaNotification
 import org.apache.rya.periodic.notification.serialization.BindingSetSerDe;
 import org.apache.rya.periodic.notification.serialization.CommandNotificationSerializer;
 import org.openrdf.query.BindingSet;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 
 /**
  * Factory for creating a {@link PeriodicNotificationApplication}.
@@ -59,82 +66,88 @@ public class PeriodicNotificationApplicationFactory {
 
     /**
      * Create a PeriodicNotificationApplication.
-     * @param props - Properties file that specifies the parameters needed to create the application
+     * @param conf - Configuration object that specifies the parameters needed to create the application
      * @return PeriodicNotificationApplication to periodically poll Rya Fluo for new results
      * @throws PeriodicApplicationException
      */
-    public static PeriodicNotificationApplication getPeriodicApplication(Properties props) throws PeriodicApplicationException {
-        PeriodicNotificationApplicationConfiguration conf = new PeriodicNotificationApplicationConfiguration(props);
-        Properties kafkaProps = getKafkaProperties(conf);
+    public static PeriodicNotificationApplication getPeriodicApplication(final PeriodicNotificationApplicationConfiguration conf) throws PeriodicApplicationException {
+        final Properties kafkaConsumerProps = getKafkaConsumerProperties(conf);
+        final Properties kafkaProducerProps = getKafkaProducerProperties(conf);
 
-        BlockingQueue<TimestampedNotification> notifications = new LinkedBlockingQueue<>();
-        BlockingQueue<NodeBin> bins = new LinkedBlockingQueue<>();
-        BlockingQueue<BindingSetRecord> bindingSets = new LinkedBlockingQueue<>();
+        final BlockingQueue<TimestampedNotification> notifications = new LinkedBlockingQueue<>();
+        final BlockingQueue<NodeBin> bins = new LinkedBlockingQueue<>();
+        final BlockingQueue<BindingSetRecord> bindingSets = new LinkedBlockingQueue<>();
 
         FluoClient fluo = null;
         try {
-            PeriodicQueryResultStorage storage = getPeriodicQueryResultStorage(conf);
+            final PeriodicQueryResultStorage storage = getPeriodicQueryResultStorage(conf);
             fluo = FluoClientFactory.getFluoClient(conf.getFluoAppName(), Optional.of(conf.getFluoTableName()), conf);
-            NotificationCoordinatorExecutor coordinator = getCoordinator(conf.getCoordinatorThreads(), notifications);
+            final NotificationCoordinatorExecutor coordinator = getCoordinator(conf.getCoordinatorThreads(), notifications);
             addRegisteredNotices(coordinator, fluo.newSnapshot());
-            KafkaExporterExecutor exporter = getExporter(conf.getExporterThreads(), kafkaProps, bindingSets);
-            PeriodicQueryPrunerExecutor pruner = getPruner(storage, fluo, conf.getPrunerThreads(), bins);
-            NotificationProcessorExecutor processor = getProcessor(storage, notifications, bins, bindingSets, conf.getProcessorThreads());
-            KafkaNotificationProvider provider = getProvider(conf.getProducerThreads(), conf.getNotificationTopic(), coordinator, kafkaProps);
+            final KafkaExporterExecutor exporter = getExporter(conf.getExporterThreads(), kafkaProducerProps, bindingSets);
+            final PeriodicQueryPrunerExecutor pruner = getPruner(storage, fluo, conf.getPrunerThreads(), bins);
+            final NotificationProcessorExecutor processor = getProcessor(storage, notifications, bins, bindingSets, conf.getProcessorThreads());
+            final KafkaNotificationProvider provider = getProvider(conf.getProducerThreads(), conf.getNotificationTopic(), coordinator, kafkaConsumerProps);
             return PeriodicNotificationApplication.builder().setCoordinator(coordinator).setProvider(provider).setExporter(exporter)
                     .setProcessor(processor).setPruner(pruner).build();
         } catch (AccumuloException | AccumuloSecurityException e) {
             throw new PeriodicApplicationException(e.getMessage());
-        } 
+        }
     }
-    
-    private static void addRegisteredNotices(NotificationCoordinatorExecutor coord, Snapshot sx) {
+
+    private static void addRegisteredNotices(final NotificationCoordinatorExecutor coord, final Snapshot sx) {
         coord.start();
-        PeriodicNotificationProvider provider = new PeriodicNotificationProvider();
+        final PeriodicNotificationProvider provider = new PeriodicNotificationProvider();
         provider.processRegisteredNotifications(coord, sx);
     }
 
-    private static NotificationCoordinatorExecutor getCoordinator(int numThreads, BlockingQueue<TimestampedNotification> notifications) {
+    private static NotificationCoordinatorExecutor getCoordinator(final int numThreads, final BlockingQueue<TimestampedNotification> notifications) {
         return new PeriodicNotificationCoordinatorExecutor(numThreads, notifications);
     }
 
-    private static KafkaExporterExecutor getExporter(int numThreads, Properties props, BlockingQueue<BindingSetRecord> bindingSets) {
-        KafkaProducer<String, BindingSet> producer = new KafkaProducer<>(props, new StringSerializer(), new BindingSetSerDe());
+    private static KafkaExporterExecutor getExporter(final int numThreads, final Properties props, final BlockingQueue<BindingSetRecord> bindingSets) {
+        final KafkaProducer<String, BindingSet> producer = new KafkaProducer<>(props, new StringSerializer(), new BindingSetSerDe());
         return new KafkaExporterExecutor(producer, numThreads, bindingSets);
     }
 
-    private static PeriodicQueryPrunerExecutor getPruner(PeriodicQueryResultStorage storage, FluoClient fluo, int numThreads,
-            BlockingQueue<NodeBin> bins) {
+    private static PeriodicQueryPrunerExecutor getPruner(final PeriodicQueryResultStorage storage, final FluoClient fluo, final int numThreads,
+            final BlockingQueue<NodeBin> bins) {
         return new PeriodicQueryPrunerExecutor(storage, fluo, numThreads, bins);
     }
 
-    private static NotificationProcessorExecutor getProcessor(PeriodicQueryResultStorage periodicStorage,
-            BlockingQueue<TimestampedNotification> notifications, BlockingQueue<NodeBin> bins, BlockingQueue<BindingSetRecord> bindingSets,
-            int numThreads) {
+    private static NotificationProcessorExecutor getProcessor(final PeriodicQueryResultStorage periodicStorage,
+            final BlockingQueue<TimestampedNotification> notifications, final BlockingQueue<NodeBin> bins, final BlockingQueue<BindingSetRecord> bindingSets,
+            final int numThreads) {
         return new NotificationProcessorExecutor(periodicStorage, notifications, bins, bindingSets, numThreads);
     }
 
-    private static KafkaNotificationProvider getProvider(int numThreads, String topic, NotificationCoordinatorExecutor coord,
-            Properties props) {
+    private static KafkaNotificationProvider getProvider(final int numThreads, final String topic, final NotificationCoordinatorExecutor coord,
+            final Properties props) {
         return new KafkaNotificationProvider(topic, new StringDeserializer(), new CommandNotificationSerializer(), props, coord,
                 numThreads);
     }
 
-    private static PeriodicQueryResultStorage getPeriodicQueryResultStorage(PeriodicNotificationApplicationConfiguration conf)
+    private static PeriodicQueryResultStorage getPeriodicQueryResultStorage(final PeriodicNotificationApplicationConfiguration conf)
             throws AccumuloException, AccumuloSecurityException {
-        Instance instance = new ZooKeeperInstance(conf.getAccumuloInstance(), conf.getAccumuloZookeepers());
-        Connector conn = instance.getConnector(conf.getAccumuloUser(), new PasswordToken(conf.getAccumuloPassword()));
-        String ryaInstance = conf.getTablePrefix();
+        final Instance instance = new ZooKeeperInstance(conf.getAccumuloInstance(), conf.getAccumuloZookeepers());
+        final Connector conn = instance.getConnector(conf.getAccumuloUser(), new PasswordToken(conf.getAccumuloPassword()));
+        final String ryaInstance = conf.getTablePrefix();
         return new AccumuloPeriodicQueryResultStorage(conn, ryaInstance);
     }
-    
-    private static Properties getKafkaProperties(PeriodicNotificationApplicationConfiguration conf) { 
-        Properties kafkaProps = new Properties();
+
+    private static Properties getKafkaConsumerProperties(final PeriodicNotificationApplicationConfiguration conf) {
+        final Properties kafkaProps = new Properties();
         kafkaProps.setProperty(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, conf.getBootStrapServers());
         kafkaProps.setProperty(ConsumerConfig.CLIENT_ID_CONFIG, conf.getNotificationClientId());
         kafkaProps.setProperty(ConsumerConfig.GROUP_ID_CONFIG, conf.getNotificationGroupId());
         kafkaProps.setProperty(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
+        kafkaProps.setProperty(ConsumerConfig.METADATA_MAX_AGE_CONFIG, "30000");  // reduce this value to 30 seconds for the scenario where we subscribe before the topic exists.
         return kafkaProps;
     }
 
+    private static Properties getKafkaProducerProperties(final PeriodicNotificationApplicationConfiguration conf) {
+        final Properties kafkaProps = new Properties();
+        kafkaProps.setProperty(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, conf.getBootStrapServers());
+        return kafkaProps;
+    }
 }

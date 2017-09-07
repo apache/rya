@@ -18,12 +18,11 @@
  */
 package org.apache.rya.indexing.pcj.matching;
 
-import static java.util.Objects.requireNonNull;
-
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
@@ -73,13 +72,11 @@ public class AccumuloIndexSetProvider implements ExternalSetProvider<ExternalTup
     private boolean init = false;
 
     public AccumuloIndexSetProvider(final Configuration conf) {
-        Preconditions.checkNotNull(conf);
-        this.conf = conf;
+        this.conf = Objects.requireNonNull(conf);
     }
 
     public AccumuloIndexSetProvider(final Configuration conf, final List<ExternalTupleSet> indices) {
-        Preconditions.checkNotNull(conf);
-        this.conf = conf;
+        this(conf);
         indexCache = indices;
         init = true;
     }
@@ -155,9 +152,9 @@ public class AccumuloIndexSetProvider implements ExternalSetProvider<ExternalTup
      */
     private List<ExternalTupleSet> getAccIndices() throws Exception {
 
-        requireNonNull(conf);
-        final String tablePrefix = requireNonNull(conf.get(RdfCloudTripleStoreConfiguration.CONF_TBL_PREFIX));
-        final Connector conn = requireNonNull(ConfigUtils.getConnector(conf));
+        Objects.requireNonNull(conf);
+        final String tablePrefix = Objects.requireNonNull(conf.get(RdfCloudTripleStoreConfiguration.CONF_TBL_PREFIX));
+        final Connector conn = Objects.requireNonNull(ConfigUtils.getConnector(conf));
         List<String> tables = null;
 
         if (conf instanceof RdfCloudTripleStoreConfiguration) {

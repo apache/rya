@@ -19,6 +19,7 @@
 package org.apache.rya.periodic.notification.pruner;
 
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -26,13 +27,12 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import org.apache.fluo.api.client.FluoClient;
 import org.apache.fluo.api.client.Snapshot;
 import org.apache.fluo.api.client.SnapshotBase;
-import org.apache.log4j.Logger;
 import org.apache.rya.indexing.pcj.fluo.app.NodeType;
 import org.apache.rya.indexing.pcj.fluo.app.util.PeriodicQueryUtil;
 import org.apache.rya.periodic.notification.api.BinPruner;
 import org.apache.rya.periodic.notification.api.NodeBin;
-
-import com.google.common.base.Preconditions;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Implementation of {@link BinPruner} that deletes old, already processed
@@ -42,63 +42,63 @@ import com.google.common.base.Preconditions;
  */
 public class PeriodicQueryPruner implements BinPruner, Runnable {
 
-    private static final Logger log = Logger.getLogger(PeriodicQueryPruner.class);
-    private FluoClient client;
-    private AccumuloBinPruner accPruner;
-    private FluoBinPruner fluoPruner;
-    private BlockingQueue<NodeBin> bins;
-    private AtomicBoolean closed = new AtomicBoolean(false);
-    private int threadNumber;
+    private static final Logger log = LoggerFactory.getLogger(PeriodicQueryPruner.class);
+    private final FluoClient client;
+    private final AccumuloBinPruner accPruner;
+    private final FluoBinPruner fluoPruner;
+    private final BlockingQueue<NodeBin> bins;
+    private final AtomicBoolean closed = new AtomicBoolean(false);
+    private final int threadNumber;
 
-    public PeriodicQueryPruner(FluoBinPruner fluoPruner, AccumuloBinPruner accPruner, FluoClient client, BlockingQueue<NodeBin> bins, int threadNumber) {
-        this.fluoPruner = Preconditions.checkNotNull(fluoPruner);
-        this.accPruner = Preconditions.checkNotNull(accPruner);
-        this.client = Preconditions.checkNotNull(client);
-        this.bins = Preconditions.checkNotNull(bins);
+    public PeriodicQueryPruner(final FluoBinPruner fluoPruner, final AccumuloBinPruner accPruner, final FluoClient client, final BlockingQueue<NodeBin> bins, final int threadNumber) {
+        this.fluoPruner = Objects.requireNonNull(fluoPruner);
+        this.accPruner = Objects.requireNonNull(accPruner);
+        this.client = Objects.requireNonNull(client);
+        this.bins = Objects.requireNonNull(bins);
         this.threadNumber = threadNumber;
     }
-    
+
     @Override
     public void run() {
         try {
             while (!closed.get()) {
                 pruneBindingSetBin(bins.take());
             }
-        } catch (InterruptedException e) {
-            log.trace("Thread " + threadNumber + " is unable to prune the next message.");
+        } catch (final InterruptedException e) {
+            log.warn("Thread {} is unable to prune the next message.", threadNumber);
             throw new RuntimeException(e);
         }
     }
-    
+
     /**
      * Prunes BindingSet bins from the Rya Fluo Application in addition to the BindingSet
      * bins created in the PCJ tables associated with the give query id.
-     * @param id - QueryResult Id for the Rya Fluo application 
+     * @param id - QueryResult Id for the Rya Fluo application
      * @param bin - bin id for bins to be deleted
      */
     @Override
-    public void pruneBindingSetBin(NodeBin nodeBin) {
-        String pcjId = nodeBin.getNodeId();
-        long bin = nodeBin.getBin();
+    public void pruneBindingSetBin(final NodeBin nodeBin) {
+        final String pcjId = nodeBin.getNodeId();
+        final long bin = nodeBin.getBin();
         try(Snapshot sx = client.newSnapshot()) {
-            String queryId = NodeType.generateNewIdForType(NodeType.QUERY, pcjId);
-            Set<String> fluoIds = getNodeIdsFromResultId(sx, queryId);
+            final String queryId = NodeType.generateNewIdForType(NodeType.QUERY, pcjId);
+            final Set<String> fluoIds = getNodeIdsFromResultId(sx, queryId);
             accPruner.pruneBindingSetBin(nodeBin);
-            for(String fluoId: fluoIds) {
+            for(final String fluoId: fluoIds) {
                 fluoPruner.pruneBindingSetBin(new NodeBin(fluoId, bin));
             }
-        } catch (Exception e) {
-            log.trace("Could not successfully initialize PeriodicQueryBinPruner.");
+        } catch (final Exception e) {
+            log.warn("Could not successfully initialize PeriodicQueryBinPruner.", e);
         }
     }
-    
-    
+
+
     public void shutdown() {
         closed.set(true);
     }
 
-    private Set<String> getNodeIdsFromResultId(SnapshotBase sx, String id) {
-        Set<String> ids = new HashSet<>();
+    private Set<String> getNodeIdsFromResultId(final SnapshotBase sx, final String id) {
+        final Set<String> ids = new HashSet<>();
         PeriodicQueryUtil.getPeriodicQueryNodeAncestorIds(sx, id, ids);
         return ids;
     }

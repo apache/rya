@@ -30,10 +30,8 @@ import org.apache.fluo.api.observer.Observer.Context;
 import org.apache.rya.indexing.pcj.fluo.app.export.IncrementalBindingSetExporter;
 import org.apache.rya.indexing.pcj.fluo.app.export.IncrementalResultExporter;
 import org.apache.rya.indexing.pcj.fluo.app.export.IncrementalResultExporterFactory;
-import org.apache.rya.indexing.pcj.storage.PeriodicQueryResultStorage;
 import org.apache.rya.indexing.pcj.storage.PrecomputedJoinStorage;
 import org.apache.rya.indexing.pcj.storage.accumulo.AccumuloPcjStorage;
-import org.apache.rya.indexing.pcj.storage.accumulo.AccumuloPeriodicQueryResultStorage;
 
 import com.google.common.base.Optional;
 
@@ -45,7 +43,6 @@ public class RyaBindingSetExporterFactory implements IncrementalResultExporterFa
     @Override
     public Optional<IncrementalResultExporter> build(final Context context) throws IncrementalExporterFactoryException, ConfigurationException {
         checkNotNull(context);
-
         // Wrap the context's parameters for parsing.
         final RyaExportParameters params = new RyaExportParameters( context.getObserverConfiguration().toMap() );
 
@@ -64,7 +61,7 @@ public class RyaBindingSetExporterFactory implements IncrementalResultExporterFa
                 // Setup Rya PCJ Storage.
                 final String ryaInstanceName = params.getRyaInstanceName().get();
                 final PrecomputedJoinStorage pcjStorage = new AccumuloPcjStorage(accumuloConn, ryaInstanceName);
-                
+
                 // Make the exporter.
                 final IncrementalBindingSetExporter exporter = new RyaBindingSetExporter(pcjStorage);
                 return Optional.of(exporter);

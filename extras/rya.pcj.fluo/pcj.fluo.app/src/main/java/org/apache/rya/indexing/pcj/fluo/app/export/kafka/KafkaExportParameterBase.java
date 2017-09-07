@@ -19,14 +19,13 @@
 package org.apache.rya.indexing.pcj.fluo.app.export.kafka;
 
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Properties;
 
 import org.apache.fluo.api.observer.Observer;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.rya.indexing.pcj.fluo.app.export.ParametersBase;
-
-import com.google.common.base.Preconditions;
 
 /**
  * Provides read/write functions to the parameters map that is passed into an
@@ -46,7 +45,7 @@ public class KafkaExportParameterBase extends ParametersBase {
      * @param bootstrapServers - connect string for Kafka brokers
      */
     public void setKafkaBootStrapServers(String bootstrapServers) {
-        params.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, Preconditions.checkNotNull(bootstrapServers));
+        params.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, Objects.requireNonNull(bootstrapServers));
     }
     
     /**

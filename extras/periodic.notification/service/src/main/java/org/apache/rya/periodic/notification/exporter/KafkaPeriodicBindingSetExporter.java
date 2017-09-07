@@ -18,46 +18,42 @@
  */
 package org.apache.rya.periodic.notification.exporter;
 
+import java.util.Objects;
 import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.clients.producer.RecordMetadata;
-import org.apache.log4j.Logger;
 import org.apache.rya.indexing.pcj.fluo.app.IncrementalUpdateConstants;
 import org.apache.rya.periodic.notification.api.BindingSetExporter;
 import org.apache.rya.periodic.notification.api.BindingSetRecord;
 import org.apache.rya.periodic.notification.api.BindingSetRecordExportException;
 import org.openrdf.model.Literal;
 import org.openrdf.query.BindingSet;
-
-import com.google.common.base.Preconditions;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Object that exports {@link BindingSet}s to the Kafka topic indicated by
  * the {@link BindingSetRecord}.
- * 
+ *
  */
 public class KafkaPeriodicBindingSetExporter implements BindingSetExporter, Runnable {
 
-    private static final Logger log = Logger.getLogger(BindingSetExporter.class);
-    private KafkaProducer<String, BindingSet> producer;
-    private BlockingQueue<BindingSetRecord> bindingSets;
-    private AtomicBoolean closed = new AtomicBoolean(false);
-    private int threadNumber;
+    private static final Logger log = LoggerFactory.getLogger(KafkaPeriodicBindingSetExporter.class);
+    private final KafkaProducer<String, BindingSet> producer;
+    private final BlockingQueue<BindingSetRecord> bindingSets;
+    private final AtomicBoolean closed = new AtomicBoolean(false);
+    private final int threadNumber;
 
-    public KafkaPeriodicBindingSetExporter(KafkaProducer<String, BindingSet> producer, int threadNumber,
-            BlockingQueue<BindingSetRecord> bindingSets) {
-        Preconditions.checkNotNull(producer);
-        Preconditions.checkNotNull(bindingSets);
+    public KafkaPeriodicBindingSetExporter(final KafkaProducer<String, BindingSet> producer, final int threadNumber,
+            final BlockingQueue<BindingSetRecord> bindingSets) {
         this.threadNumber = threadNumber;
-        this.producer = producer;
-        this.bindingSets = bindingSets;
+        this.producer = Objects.requireNonNull(producer);
+        this.bindingSets = Objects.requireNonNull(bindingSets);
     }
 
     /**
@@ -65,18 +61,21 @@ public class KafkaPeriodicBindingSetExporter implements BindingSetExporter, Runn
      * the indicated BindingSetRecord and the BindingSet is then exported to the topic.
      */
     @Override
-    public void exportNotification(BindingSetRecord record) throws BindingSetRecordExportException {
-        String bindingName = IncrementalUpdateConstants.PERIODIC_BIN_ID;
-        BindingSet bindingSet = record.getBindingSet();
-        String topic = record.getTopic();
-        long binId = ((Literal) bindingSet.getValue(bindingName)).longValue();
-        final Future<RecordMetadata> future = producer
-                .send(new ProducerRecord<String, BindingSet>(topic, Long.toString(binId), bindingSet));
+    public void exportNotification(final BindingSetRecord record) throws BindingSetRecordExportException {
         try {
+            log.info("Exporting {} records to Kafka to topic: {}", record.getBindingSet().size(), record.getTopic());
+            final String bindingName = IncrementalUpdateConstants.PERIODIC_BIN_ID;
+
+            final BindingSet bindingSet = record.getBindingSet();
+            final String topic = record.getTopic();
+            final long binId = ((Literal) bindingSet.getValue(bindingName)).longValue();
+
+            final Future<RecordMetadata> future = producer
+                .send(new ProducerRecord<String, BindingSet>(topic, Long.toString(binId), bindingSet));
             //wait for confirmation that results have been received
             future.get(5, TimeUnit.SECONDS);
-        } catch (InterruptedException | ExecutionException | TimeoutException e) {
-            throw new BindingSetRecordExportException(e.getMessage());
+        } catch (final Exception e) {  // catch all possible exceptional behavior and throw as our checked exception.
+            throw new BindingSetRecordExportException(e.getMessage(), e);
         }
     }
 
@@ -87,11 +86,11 @@ public class KafkaPeriodicBindingSetExporter implements BindingSetExporter, Runn
                 exportNotification(bindingSets.take());
             }
         } catch (InterruptedException | BindingSetRecordExportException e) {
-            log.trace("Thread " + threadNumber + " is unable to process message.");
+            log.warn("Thread " + threadNumber + " is unable to process message.", e);
         }
     }
-    
-    
+
+
     public void shutdown() {
         closed.set(true);
     }

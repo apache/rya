@@ -18,25 +18,25 @@
  */
 package org.apache.rya.periodic.notification.pruner;
 
-import org.apache.log4j.Logger;
+import java.util.Objects;
+
 import org.apache.rya.indexing.pcj.storage.PeriodicQueryResultStorage;
 import org.apache.rya.indexing.pcj.storage.PeriodicQueryStorageException;
 import org.apache.rya.periodic.notification.api.BinPruner;
 import org.apache.rya.periodic.notification.api.NodeBin;
-
-import com.google.common.base.Preconditions;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Deletes BindingSets from time bins in the indicated PCJ table
  */
 public class AccumuloBinPruner implements BinPruner {
 
-    private static final Logger log = Logger.getLogger(AccumuloBinPruner.class);
-    private PeriodicQueryResultStorage periodicStorage;
+    private static final Logger log = LoggerFactory.getLogger(AccumuloBinPruner.class);
+    private final PeriodicQueryResultStorage periodicStorage;
 
-    public AccumuloBinPruner(PeriodicQueryResultStorage periodicStorage) {
-        Preconditions.checkNotNull(periodicStorage);
-        this.periodicStorage = periodicStorage;
+    public AccumuloBinPruner(final PeriodicQueryResultStorage periodicStorage) {
+        this.periodicStorage = Objects.requireNonNull(periodicStorage);
     }
 
     /**
@@ -44,20 +44,20 @@ public class AccumuloBinPruner implements BinPruner {
      * table indicated by the id. It is assumed that all BindingSet entries for
      * the corresponding bin are written to the PCJ table so that the bin Id
      * occurs first.
-     * 
+     *
      * @param id
      *            - pcj table id
      * @param bin
      *            - temporal bin the BindingSets are contained in
      */
     @Override
-    public void pruneBindingSetBin(NodeBin nodeBin) {
-        Preconditions.checkNotNull(nodeBin);
-        String id = nodeBin.getNodeId();
-        long bin = nodeBin.getBin();
+    public void pruneBindingSetBin(final NodeBin nodeBin) {
+        Objects.requireNonNull(nodeBin);
+        final String id = nodeBin.getNodeId();
+        final long bin = nodeBin.getBin();
         try {
             periodicStorage.deletePeriodicQueryResults(id, bin);
-        } catch (PeriodicQueryStorageException e) {
+        } catch (final PeriodicQueryStorageException e) {
             log.trace("Unable to delete results from Peroidic Table: " + id + " for bin: " + bin);
             throw new RuntimeException(e);
         }

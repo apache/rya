@@ -126,7 +126,7 @@ public class PeriodicNotificationApplicationIT extends RyaExportITBase {
         producer = new KafkaProducer<>(kafkaProps, new StringSerializer(), new CommandNotificationSerializer());
 
         //extract kafka specific properties from application config
-        app = PeriodicNotificationApplicationFactory.getPeriodicApplication(props);
+        app = PeriodicNotificationApplicationFactory.getPeriodicApplication(conf);
         registrar = new KafkaNotificationRegistrationClient(conf.getNotificationTopic(), producer);
     }
 

@@ -62,8 +62,8 @@ import com.google.common.base.Preconditions;
  */
 public class AccumuloPeriodicQueryResultStorage implements PeriodicQueryResultStorage {
 
-    private String ryaInstance;
-    private Connector accumuloConn;
+    private final String ryaInstance;
+    private final Connector accumuloConn;
     private Authorizations auths;
     private final PCJIdFactory pcjIdFactory = new PCJIdFactory();
     private final AccumuloPcjSerializer converter = new AccumuloPcjSerializer();
@@ -75,10 +75,10 @@ public class AccumuloPeriodicQueryResultStorage implements PeriodicQueryResultSt
      * @param accumuloConn - Accumulo Connector for connecting to an Accumulo instance
      * @param ryaInstance - Rya Instance name for connecting to Rya
      */
-    public AccumuloPeriodicQueryResultStorage(Connector accumuloConn, String ryaInstance) {
+    public AccumuloPeriodicQueryResultStorage(final Connector accumuloConn, final String ryaInstance) {
         this.accumuloConn = Preconditions.checkNotNull(accumuloConn);
         this.ryaInstance = Preconditions.checkNotNull(ryaInstance);
-        String user = accumuloConn.whoami();
+        final String user = accumuloConn.whoami();
         try {
             this.auths = accumuloConn.securityOperations().getUserAuthorizations(user);
         } catch (AccumuloException | AccumuloSecurityException e) {
@@ -87,21 +87,21 @@ public class AccumuloPeriodicQueryResultStorage implements PeriodicQueryResultSt
     }
 
     @Override
-    public String createPeriodicQuery(String sparql) throws PeriodicQueryStorageException {
+    public String createPeriodicQuery(final String sparql) throws PeriodicQueryStorageException {
         Preconditions.checkNotNull(sparql);
-        String queryId = pcjIdFactory.nextId();
+        final String queryId = pcjIdFactory.nextId();
         return createPeriodicQuery(queryId, sparql);
     }
-    
+
     @Override
-    public String createPeriodicQuery(String queryId, String sparql) throws PeriodicQueryStorageException {
+    public String createPeriodicQuery(final String queryId, final String sparql) throws PeriodicQueryStorageException {
         Set<String> bindingNames;
         try {
             bindingNames = new AggregateVariableRemover().getNonAggregationVariables(sparql);
-        } catch (MalformedQueryException e) {
+        } catch (final MalformedQueryException e) {
             throw new PeriodicQueryStorageException(e.getMessage());
         }
-        List<String> varOrderList = new ArrayList<>();
+        final List<String> varOrderList = new ArrayList<>();
         varOrderList.add(PeriodicQueryResultStorage.PeriodicBinId);
         varOrderList.addAll(bindingNames);
         createPeriodicQuery(queryId, sparql, new VariableOrder(varOrderList));
@@ -109,79 +109,88 @@ public class AccumuloPeriodicQueryResultStorage implements PeriodicQueryResultSt
     }
 
     @Override
-    public void createPeriodicQuery(String queryId, String sparql, VariableOrder order) throws PeriodicQueryStorageException {
+    public void createPeriodicQuery(final String queryId, final String sparql, final VariableOrder order) throws PeriodicQueryStorageException {
         Preconditions.checkNotNull(sparql);
         Preconditions.checkNotNull(queryId);
         Preconditions.checkNotNull(order);
         Preconditions.checkArgument(PeriodicQueryResultStorage.PeriodicBinId.equals(order.getVariableOrders().get(0)),
                 "periodicBinId binding name must occur first in VariableOrder.");
-        String tableName = tableNameFactory.makeTableName(ryaInstance, queryId);
-        Set<VariableOrder> varOrders = new HashSet<>();
+        final String tableName = tableNameFactory.makeTableName(ryaInstance, queryId);
+        final Set<VariableOrder> varOrders = new HashSet<>();
         varOrders.add(order);
         try {
             pcjTables.createPcjTable(accumuloConn, tableName, varOrders, sparql);
-        } catch (Exception e) {
+        } catch (final Exception e) {
             throw new PeriodicQueryStorageException(e.getMessage());
         }
     }
 
     @Override
-    public PeriodicQueryStorageMetadata getPeriodicQueryMetadata(String queryId) throws PeriodicQueryStorageException {
+    public PeriodicQueryStorageMetadata getPeriodicQueryMetadata(final String queryId) throws PeriodicQueryStorageException {
         try {
             return new PeriodicQueryStorageMetadata(
                     pcjTables.getPcjMetadata(accumuloConn, tableNameFactory.makeTableName(ryaInstance, queryId)));
-        } catch (Exception e) {
+        } catch (final Exception e) {
             throw new PeriodicQueryStorageException(e.getMessage());
         }
     }
 
     @Override
-    public void addPeriodicQueryResults(String queryId, Collection<VisibilityBindingSet> results) throws PeriodicQueryStorageException {
+    public void addPeriodicQueryResults(final String queryId, final Collection<VisibilityBindingSet> results) throws PeriodicQueryStorageException {
         results.forEach(x -> Preconditions.checkArgument(x.hasBinding(PeriodicQueryResultStorage.PeriodicBinId),
                 "BindingSet must contain periodBinId binding."));
         try {
             pcjTables.addResults(accumuloConn, tableNameFactory.makeTableName(ryaInstance, queryId), results);
-        } catch (Exception e) {
+        } catch (final Exception e) {
             throw new PeriodicQueryStorageException(e.getMessage());
         }
     }
 
     @Override
-    public void deletePeriodicQueryResults(String queryId, long binId) throws PeriodicQueryStorageException {
-        String tableName = tableNameFactory.makeTableName(ryaInstance, queryId);
+    public void deletePeriodicQueryResults(final String queryId, final long binId) throws PeriodicQueryStorageException {
+        final String tableName = tableNameFactory.makeTableName(ryaInstance, queryId);
+        BatchDeleter deleter = null;
         try {
-            Text prefix = getRowPrefix(binId);
-            BatchDeleter deleter = accumuloConn.createBatchDeleter(tableName, auths, 1, new BatchWriterConfig());
+            final Text prefix = getRowPrefix(binId);
+            deleter = accumuloConn.createBatchDeleter(tableName, auths, 1, new BatchWriterConfig());
             deleter.setRanges(Collections.singleton(Range.prefix(prefix)));
             deleter.delete();
-        } catch (Exception e) {
+        } catch (final Exception e) {
             throw new PeriodicQueryStorageException(e.getMessage());
+        } finally {
+            try {
+                if(deleter != null) {
+                    deleter.close();
+                }
+            } catch (final Exception e) {
+                throw new PeriodicQueryStorageException(e.getMessage());
+            }
         }
     }
 
-    public void deletePeriodicQueryResults(String queryId) throws PeriodicQueryStorageException {
+    public void deletePeriodicQueryResults(final String queryId) throws PeriodicQueryStorageException {
         try {
             pcjTables.purgePcjTable(accumuloConn, tableNameFactory.makeTableName(ryaInstance, queryId));
-        } catch (Exception e) {
+        } catch (final Exception e) {
             throw new PeriodicQueryStorageException(e.getMessage());
         }
     }
 
     @Override
-    public void deletePeriodicQuery(String queryId) throws PeriodicQueryStorageException {
+    public void deletePeriodicQuery(final String queryId) throws PeriodicQueryStorageException {
         try {
             pcjTables.dropPcjTable(accumuloConn, tableNameFactory.makeTableName(ryaInstance, queryId));
-        } catch (Exception e) {
+        } catch (final Exception e) {
             throw new PeriodicQueryStorageException(e.getMessage());
         }
     }
 
     @Override
-    public CloseableIterator<BindingSet> listResults(String queryId, Optional<Long> binId)
+    public CloseableIterator<BindingSet> listResults(final String queryId, final Optional<Long> binId)
             throws PeriodicQueryStorageException {
         requireNonNull(queryId);
 
-        String tableName = tableNameFactory.makeTableName(ryaInstance, queryId);
+        final String tableName = tableNameFactory.makeTableName(ryaInstance, queryId);
         // Fetch the Variable Orders for the binding sets and choose one of
         // them. It
         // doesn't matter which one we choose because they all result in the
@@ -199,15 +208,15 @@ public class AccumuloPeriodicQueryResultStorage implements PeriodicQueryResultSt
             }
             return new AccumuloValueBindingSetIterator(scanner);
 
-        } catch (Exception e) {
+        } catch (final Exception e) {
             throw new PeriodicQueryStorageException(String.format("PCJ Table does not exist for name '%s'.", tableName), e);
         }
     }
-    
-    private Text getRowPrefix(long binId) throws BindingSetConversionException {
-        QueryBindingSet bs = new QueryBindingSet();
+
+    private Text getRowPrefix(final long binId) throws BindingSetConversionException {
+        final QueryBindingSet bs = new QueryBindingSet();
         bs.addBinding(PeriodicQueryResultStorage.PeriodicBinId, new LiteralImpl(Long.toString(binId), XMLSchema.LONG));
-        
+
         return new Text(converter.convert(bs, new VariableOrder(PeriodicQueryResultStorage.PeriodicBinId)));
     }
 
@@ -236,35 +245,35 @@ public class AccumuloPeriodicQueryResultStorage implements PeriodicQueryResultSt
         }
         return periodicTables;
     }
-    
+
     /**
      * Class for removing any aggregate variables from the ProjectionElementList
      * of the parsed SPARQL queries. This ensures that only non-aggregation
      * values are contained in the Accumulo row.  The non-aggregation variables
      * are not updated while the aggregation variables are, so they are included in
      * the serialized BindingSet in the Accumulo Value field, which is overwritten
-     * if an entry with the same Key and different Value (updated aggregation) is 
+     * if an entry with the same Key and different Value (updated aggregation) is
      * written to the table.
      *
      */
     static class AggregateVariableRemover extends QueryModelVisitorBase<RuntimeException> {
-        
+
         private Set<String> bindingNames;
-        
-        public Set<String> getNonAggregationVariables(String sparql) throws MalformedQueryException {
-            TupleExpr te = new SPARQLParser().parseQuery(sparql, null).getTupleExpr();
+
+        public Set<String> getNonAggregationVariables(final String sparql) throws MalformedQueryException {
+            final TupleExpr te = new SPARQLParser().parseQuery(sparql, null).getTupleExpr();
             bindingNames = te.getBindingNames();
             te.visit(this);
             return bindingNames;
         }
-        
+
         @Override
-        public void meet(ExtensionElem node) {
+        public void meet(final ExtensionElem node) {
             if(node.getExpr() instanceof AggregateOperatorBase) {
                 bindingNames.remove(node.getName());
             }
         }
-        
+
     }
 
 }

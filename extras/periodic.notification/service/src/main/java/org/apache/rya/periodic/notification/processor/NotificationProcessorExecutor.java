@@ -20,36 +20,43 @@
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
-import org.apache.log4j.Logger;
 import org.apache.rya.indexing.pcj.storage.PeriodicQueryResultStorage;
 import org.apache.rya.periodic.notification.api.BindingSetRecord;
 import org.apache.rya.periodic.notification.api.LifeCycle;
 import org.apache.rya.periodic.notification.api.NodeBin;
 import org.apache.rya.periodic.notification.notification.TimestampedNotification;
-
-import com.google.common.base.Preconditions;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Executor service that runs {@link TimestampedNotificationProcessor}s with basic
  * functionality for starting, stopping, and determining whether notification processors are
- * being executed. 
+ * being executed.
  *
  */
 public class NotificationProcessorExecutor implements LifeCycle {
 
-    private static final Logger log = Logger.getLogger(TimestampedNotificationProcessor.class);
-    private BlockingQueue<TimestampedNotification> notifications; // notifications
-    private BlockingQueue<NodeBin> bins; // entries to delete from Fluo
-    private BlockingQueue<BindingSetRecord> bindingSets; // query results to
-                                                         // export
-    private PeriodicQueryResultStorage periodicStorage;
-    private List<TimestampedNotificationProcessor> processors;
-    private int numberThreads;
+    private static final Logger log = LoggerFactory.getLogger(NotificationProcessorExecutor.class);
+    private final BlockingQueue<TimestampedNotification> notifications;
+
+    /**
+     * entries to delete from Fluo
+     */
+    private final BlockingQueue<NodeBin> bins;
+
+    /**
+     * query results to export
+     */
+    private final BlockingQueue<BindingSetRecord> bindingSets;
+    private final PeriodicQueryResultStorage periodicStorage;
+    private final List<TimestampedNotificationProcessor> processors;
+    private final int numberThreads;
     private ExecutorService executor;
     private boolean running = false;
 
@@ -61,11 +68,11 @@ public class NotificationProcessorExecutor implements LifeCycle {
      * @param bindingSets - results read from the storage layer to be exported
      * @param numberThreads - number of threads used for processing
      */
-    public NotificationProcessorExecutor(PeriodicQueryResultStorage periodicStorage, BlockingQueue<TimestampedNotification> notifications,
-            BlockingQueue<NodeBin> bins, BlockingQueue<BindingSetRecord> bindingSets, int numberThreads) {
-        this.notifications = Preconditions.checkNotNull(notifications);
-        this.bins = Preconditions.checkNotNull(bins);
-        this.bindingSets = Preconditions.checkNotNull(bindingSets);
+    public NotificationProcessorExecutor(final PeriodicQueryResultStorage periodicStorage, final BlockingQueue<TimestampedNotification> notifications,
+            final BlockingQueue<NodeBin> bins, final BlockingQueue<BindingSetRecord> bindingSets, final int numberThreads) {
+        this.notifications = Objects.requireNonNull(notifications);
+        this.bins = Objects.requireNonNull(bins);
+        this.bindingSets = Objects.requireNonNull(bindingSets);
         this.periodicStorage = periodicStorage;
         this.numberThreads = numberThreads;
         processors = new ArrayList<>();
@@ -76,8 +83,8 @@ public class NotificationProcessorExecutor implements LifeCycle {
         if (!running) {
             executor = Executors.newFixedThreadPool(numberThreads);
             for (int threadNumber = 0; threadNumber < numberThreads; threadNumber++) {
-                log.info("Creating exporter:" + threadNumber);
-                TimestampedNotificationProcessor processor = TimestampedNotificationProcessor.builder().setBindingSets(bindingSets)
+                log.info("Creating processor for thread: {}", threadNumber);
+                final TimestampedNotificationProcessor processor = TimestampedNotificationProcessor.builder().setBindingSets(bindingSets)
                         .setBins(bins).setPeriodicStorage(periodicStorage).setNotifications(notifications).setThreadNumber(threadNumber)
                         .build();
                 processors.add(processor);
@@ -97,11 +104,11 @@ public class NotificationProcessorExecutor implements LifeCycle {
         }
         running = false;
         try {
-            if (!executor.awaitTermination(5000, TimeUnit.MILLISECONDS)) {
+            if (!executor.awaitTermination(5, TimeUnit.SECONDS)) {
                 log.info("Timed out waiting for consumer threads to shut down, exiting uncleanly");
                 executor.shutdownNow();
             }
-        } catch (InterruptedException e) {
+        } catch (final InterruptedException e) {
             log.info("Interrupted during shutdown, exiting uncleanly");
         }
     }

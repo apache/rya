@@ -55,6 +55,13 @@
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
         </dependency>
+        
+        <!-- Fluo runtime dependency -->
+        <dependency>
+            <groupId>org.apache.fluo</groupId>
+            <artifactId>fluo-core</artifactId>
+            <scope>runtime</scope>
+        </dependency>
 
         <!-- Testing -->
         <dependency>
@@ -140,7 +147,6 @@
                             <goal>shade</goal>
                         </goals>
                         <configuration>
-                            <finalName>benchmarks</finalName>
                             <transformers>
                                 <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
                                     <mainClass>org.openjdk.jmh.Main</mainClass>
@@ -160,6 +166,23 @@
                                     </excludes>
                                 </filter>
                             </filters>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>create-binary-distribution</id>
+                        <goals>
+                            <goal>single</goal>
+                        </goals>
+                        <phase>package</phase>
+                        <configuration>
+                            <descriptors>
+                                <descriptor>src/main/assembly/binary-release.xml</descriptor>
+                            </descriptors>
                         </configuration>
                     </execution>
                 </executions>

@@ -18,7 +18,7 @@
  */
 package org.apache.rya.periodic.notification.serialization;
 
-import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
 import org.apache.kafka.common.serialization.Deserializer;
@@ -30,6 +30,7 @@ import org.slf4j.LoggerFactory;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.JsonParseException;
 
 /**
  * Kafka {@link Serializer} and {@link Deserializer} for producing and consuming {@link CommandNotification}s
@@ -43,22 +44,23 @@ public class CommandNotificationSerializer implements Serializer<CommandNotifica
     private static final Logger LOG = LoggerFactory.getLogger(CommandNotificationSerializer.class);
 
     @Override
-    public CommandNotification deserialize(String topic, byte[] bytes) {
-        String json = null;
+    public CommandNotification deserialize(final String topic, final byte[] bytes) {
         try {
-            json = new String(bytes, "UTF-8");
-        } catch (UnsupportedEncodingException e) {
-            LOG.info("Unable to deserialize notification for topic: " + topic);
+            final String json = new String(bytes, StandardCharsets.UTF_8);
+            return gson.fromJson(json, CommandNotification.class);
+        } catch (final JsonParseException e) {
+            LOG.warn("Unable to deserialize notification for topic: " + topic);
+            throw new RuntimeException(e);
         }
-        return gson.fromJson(json, CommandNotification.class);
+
     }
 
     @Override
-    public byte[] serialize(String topic, CommandNotification command) {
+    public byte[] serialize(final String topic, final CommandNotification command) {
         try {
-            return gson.toJson(command).getBytes("UTF-8");
-        } catch (UnsupportedEncodingException e) {
-            LOG.info("Unable to serialize notification: " + command  + "for topic: " + topic);
+            return gson.toJson(command).getBytes(StandardCharsets.UTF_8);
+        } catch (final JsonParseException e) {
+            LOG.warn("Unable to serialize notification: " + command  + "for topic: " + topic);
             throw new RuntimeException(e);
         }
     }
@@ -67,10 +69,10 @@ public class CommandNotificationSerializer implements Serializer<CommandNotifica
     public void close() {
         // Do nothing. Nothing to close
     }
-    
+
     @Override
-    public void configure(Map<String, ?> arg0, boolean arg1) {
+    public void configure(final Map<String, ?> arg0, final boolean arg1) {
         // Do nothing. Nothing to configure
     }
-    
+
 }

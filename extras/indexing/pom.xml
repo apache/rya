@@ -83,7 +83,7 @@
         </dependency>
         <dependency>
             <groupId>org.apache.rya</groupId>
-            <artifactId>rya.periodic.service.api</artifactId>
+            <artifactId>rya.periodic.notification.api</artifactId>
         </dependency>
         <!-- OpenRDF -->
         <dependency>

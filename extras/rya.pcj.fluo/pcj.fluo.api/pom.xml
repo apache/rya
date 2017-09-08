@@ -34,17 +34,17 @@ under the License.
         that allow other applications to interact with the Rya PCJ Fluo 
         application while it is running on a cluster.
     </description>
-    
+
     <dependencies>
-    	<!-- Rya Runtime Dependencies. --> 
-        <dependency> 
+        <!-- Rya Runtime Dependencies. -->
+        <dependency>
             <groupId>org.apache.rya</groupId>
             <artifactId>rya.pcj.fluo.app</artifactId>
         </dependency>
         <dependency>
-		   <groupId>org.apache.rya</groupId>
-		   <artifactId>rya.periodic.service.api</artifactId>
-		</dependency>
+            <groupId>org.apache.rya</groupId>
+            <artifactId>rya.periodic.notification.api</artifactId>
+        </dependency>
         <dependency>
             <groupId>org.apache.rya</groupId>
             <artifactId>rya.sail</artifactId>

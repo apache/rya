@@ -146,10 +146,10 @@ public class MergeConfigurationCLI {
         }
     }
     /**
-     * returns the time option and makes it required.
+     * Gets and parses the time from the configuration or command line.
      * This is for API and is not used internally as of v3.2.11
-     * @return
-     * @throws MergeConfigurationException
+     * @return a time or throws an exception when no time is configured because time is required.
+     * @throws MergeConfigurationException when date is badly formated or missing.
      */
     public Date getRyaStatementMergeTime() throws MergeConfigurationException {
         final Date time;

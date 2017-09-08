@@ -71,7 +71,6 @@ public class CopyToolDemo {
     private static final boolean USE_COPY_FILE_OUTPUT = false;
     private static final boolean USE_COPY_FILE_IMPORT = false;
     private static final boolean IS_PROMPTING_ENABLED = true;
-    private static final boolean IS_START_TIME_DIALOG_ENABLED = true;
     private static final LoggingDetail LOGGING_DETAIL = LoggingDetail.LIGHT;
 
     private static final String CHILD_SUFFIX = MergeTool.CHILD_SUFFIX;
@@ -190,7 +189,7 @@ public class CopyToolDemo {
                 makeArgument(CopyTool.COPY_FILE_IMPORT_DIRECTORY, "resources/test/copy_tool_file_output/"),
                 makeArgument(CopyTool.USE_COPY_FILE_IMPORT, Boolean.toString(USE_COPY_FILE_IMPORT)),
                 //makeArgument(CopyTool.COPY_TABLE_LIST_PROP, Joiner.on(",").join(accumuloDualInstanceDriver.getParentTableList())),
-                makeArgument(MergeTool.START_TIME_PROP, MergeTool.getStartTimeString(startDate, IS_START_TIME_DIALOG_ENABLED))
+                makeArgument(MergeTool.START_TIME_PROP, MergeTool.getStartTimeString(startDate))
         });
 
         final Configuration toolConfig = copyTool.getConf();

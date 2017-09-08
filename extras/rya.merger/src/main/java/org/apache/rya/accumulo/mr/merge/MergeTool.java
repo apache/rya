@@ -65,7 +65,6 @@ import com.google.common.collect.ImmutableMap;
 import org.apache.rya.accumulo.AccumuloRdfConfiguration;
 import org.apache.rya.accumulo.mr.AccumuloHDFSFileInputFormat;
 import org.apache.rya.accumulo.mr.MRUtils;
-import org.apache.rya.accumulo.mr.merge.gui.DateTimePickerDialog;
 import org.apache.rya.accumulo.mr.merge.mappers.MergeToolMapper;
 import org.apache.rya.accumulo.mr.merge.util.AccumuloRyaUtils;
 import org.apache.rya.accumulo.mr.merge.util.TimeUtils;
@@ -115,16 +114,7 @@ public class MergeTool extends AbstractDualInstanceAccumuloMRTool {
      */
     public static final String MERGE_FILE_INPUT_PATH = "merge.file.input.path";
 
-    /**
-     * A value used for the {@link #START_TIME_PROP} property to indicate that a dialog
-     * should be displayed to select the time.
-     */
-    public static final String USE_START_TIME_DIALOG = "dialog";
-
-    private static final String DIALOG_TITLE = "Select a Start Time/Date";
-    private static final String DIALOG_MESSAGE =
-        "<html>Choose the time of the data to merge.<br>Only data modified AFTER the selected time will be merged.</html>";
-
+    // startTime is the time of the data to merge. Only data modified AFTER the selected time will be merged.
     private String startTime = null;
     private String tempDir = null;
     private boolean useMergeFileInput = false;
@@ -208,18 +198,7 @@ public class MergeTool extends AbstractDualInstanceAccumuloMRTool {
         startTime = conf.get(START_TIME_PROP, null);
 
         if (!useMergeFileInput) {
-            // Display start time dialog if requested
-            if (USE_START_TIME_DIALOG.equals(startTime)) {
-                log.info("Select start time from dialog...");
-
-                final DateTimePickerDialog dateTimePickerDialog = new DateTimePickerDialog(DIALOG_TITLE, DIALOG_MESSAGE);
-                dateTimePickerDialog.setVisible(true);
-
-                final Date date = dateTimePickerDialog.getSelectedDateTime();
-                startTime = START_TIME_FORMATTER.format(date);
-                conf.set(START_TIME_PROP, startTime);
-                log.info("Will merge all data after " + date);
-            } else if (startTime != null) {
+            if (startTime != null) {
                 try {
                     final Date date = START_TIME_FORMATTER.parse(startTime);
                     log.info("Will merge all data after " + date);
@@ -510,20 +489,12 @@ public class MergeTool extends AbstractDualInstanceAccumuloMRTool {
     }
 
     /**
-     * Creates a formatted string for the start time based on the specified date and whether the dialog is to be displayed.
+     * Creates a formatted string for the start time based on the specified date.
      * @param startDate the start {@link Date} to format.
-     * @param isStartTimeDialogEnabled {@code true} to display the time dialog instead of using the date. {@code false}
-     * to use the provided {@code startDate}.
-     * @return the formatted start time string or {@code "dialog"}.
+     * @return the formatted start time string.
      */
-    public static String getStartTimeString(final Date startDate, final boolean isStartTimeDialogEnabled) {
-        String startTimeString;
-        if (isStartTimeDialogEnabled) {
-            startTimeString = USE_START_TIME_DIALOG; // set start date from dialog box
-        } else {
-            startTimeString = convertDateToStartTimeString(startDate);
-        }
-        return startTimeString;
+    public static String getStartTimeString(final Date startDate) {
+        return convertDateToStartTimeString(startDate);
     }
 
     /**

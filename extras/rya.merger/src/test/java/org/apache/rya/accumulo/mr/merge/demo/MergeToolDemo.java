@@ -56,7 +56,6 @@ public class MergeToolDemo {
     private static final boolean USE_TIME_SYNC = false;
     private static final boolean USE_MERGE_FILE_INPUT = false;
     private static final boolean IS_PROMPTING_ENABLED = true;
-    private static final boolean IS_START_TIME_DIALOG_ENABLED = true;
     private static final LoggingDetail LOGGING_DETAIL = LoggingDetail.LIGHT;
 
     private static final String CHILD_SUFFIX = MergeTool.CHILD_SUFFIX;
@@ -174,7 +173,7 @@ public class MergeToolDemo {
                 makeArgument(CopyTool.USE_NTP_SERVER_PROP, Boolean.toString(USE_TIME_SYNC)),
                 makeArgument(MergeTool.USE_MERGE_FILE_INPUT, Boolean.toString(USE_MERGE_FILE_INPUT)),
                 makeArgument(MergeTool.MERGE_FILE_INPUT_PATH, "resources/test/merge_tool_file_input/"),
-                makeArgument(MergeTool.START_TIME_PROP, MergeTool.getStartTimeString(startDate, IS_START_TIME_DIALOG_ENABLED))
+                makeArgument(MergeTool.START_TIME_PROP, MergeTool.getStartTimeString(startDate))
         });
 
         log.info("Finished running tool.");

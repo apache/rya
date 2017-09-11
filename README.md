@@ -339,7 +339,7 @@ myRepository.shutDown();
 ```
 
 
-[RYA]: http://rya.incubator.apache.org/ 
+[Apache Rya]: http://rya.incubator.apache.org/ 
 [Accumulo]: https://accumulo.apache.org/
 [ZooKeeper]: https://zookeeper.apache.org/
 [Hadoop]: http://hadoop.apache.org/

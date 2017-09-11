@@ -46,6 +46,8 @@ under the License.
         <item name="Pre-computed Joins" href="loadPrecomputedJoin.html"/>
         <item name="Inferencing" href="infer.html"/>
         <item name="MapReduce Interface" href="mapreduce.html"/>
+        <item name="Shell Interface" href="shell.html"/>
+        <item name="Incremental Join Maintenance" href="pcj-updater.html"/>
     </menu>
 
     <menu name="Samples">

@@ -32,6 +32,8 @@ This project contains documentation about Apache Rya, a scalable RDF triple stor
 - [Pre-computed Joins](loadPrecomputedJoin.md)
 - [Inferencing](infer.md)
 - [MapReduce Interface](mapreduce.md)
+- [Shell Interface](shell.md)
+- [Incremental Join Maintenance Application (PCJ Updater)](pcj-updater.md)
 
 # Samples
 - [Typical First Steps](sm-firststeps.md)
@@ -45,4 +47,3 @@ This project contains documentation about Apache Rya, a scalable RDF triple stor
 
 # Development
 - [Building From Source](build-source.md)
-- [LTS Maven Settings XML](maven-settings.md)

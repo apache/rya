@@ -202,7 +202,7 @@ under the License.
             <dependencies>
                 <dependency>
                     <groupId>org.apache.rya</groupId>
-                    <artifactId>geo.geowave</artifactId>
+                    <artifactId>rya.geo.geowave</artifactId>
                     <version>${project.version}</version>
                     <!-- GeoWave brings in org.springframework jars that are not compatible with web.rya versions -->
                     <exclusions>

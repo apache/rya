@@ -935,6 +935,13 @@ under the License.
                     </configuration>
                 </plugin>
                 <plugin>
+                    <!-- Used for auditing dependency licenses for releases. -->
+                    <groupId>org.codehaus.mojo</groupId>
+                    <artifactId>license-maven-plugin</artifactId>
+                    <version>1.14</version>
+                </plugin>
+                <plugin>
+                    <!-- Used to add ASF license headers (without a copyright clause) to generated source. -->
                     <groupId>com.mycila</groupId>
                     <artifactId>license-maven-plugin</artifactId>
                     <version>3.0</version>
@@ -998,6 +1005,7 @@ under the License.
                             <skipITs>${skip.rya.it}</skipITs>
                             <reuseForks>false</reuseForks>  <!-- Temporary fix until RYA-331 is resolved. -->
                             <forkedProcessTimeoutInSeconds>600</forkedProcessTimeoutInSeconds> <!-- kill fork after 10 minutes -->
+                            <argLine>-Xmx2G</argLine>  <!-- Specify Xmx to get a consistent memory limit on hosts with reduced RAM. -->
                         </configuration>
                     </execution>
                 </executions>

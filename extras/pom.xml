@@ -45,8 +45,8 @@ under the License.
         <module>rya.merger</module>
         <module>rya.giraph</module>
     </modules>
-	
-	<profiles>
+
+    <profiles>
         <profile>
             <id>geoindexing</id>
             <modules>
@@ -59,5 +59,5 @@ under the License.
                 <module>rya.benchmark</module>
            </modules>
         </profile>
-	</profiles>
+    </profiles>
 </project>

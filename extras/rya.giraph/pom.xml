@@ -31,12 +31,24 @@ under the License.
     <artifactId>rya.giraph</artifactId>
 
     <dependencies>
+<!--         
+        Uncomment the following drop-in replacement if the exclusion
+        of the dependency org.json:json causes issues at runtime.
+        <dependency>
+            <groupId>com.tdunning</groupId>
+            <artifactId>json</artifactId>
+            <version>1.8</version>
+            <scope>runtime</scope>
+        </dependency>
+ -->
         <dependency>
             <groupId>org.apache.giraph</groupId>
             <artifactId>giraph-core</artifactId>
             <version>1.2.0</version>
             <exclusions>
-            	<!-- exclude for incompatible license -->
+                <!-- Exclude for incompatible license -->
+                <!-- If this exclusion causes a ClassNotFoundException at runtime, -->
+                <!-- then, replace using this alternate library: https://github.com/tdunning/open-json  . -->
                 <exclusion>
                     <artifactId>json</artifactId>
                     <groupId>org.json</groupId>
@@ -47,6 +59,13 @@ under the License.
             <groupId>org.apache.giraph</groupId>
             <artifactId>giraph-accumulo</artifactId>
             <version>1.2.0</version>
+            <exclusions>
+            	<!-- exclude for incompatible license, see above if this causes issues. -->
+                <exclusion>
+                    <artifactId>json</artifactId>
+                    <groupId>org.json</groupId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.apache.hadoop</groupId>

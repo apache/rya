@@ -35,6 +35,7 @@ import org.openrdf.model.impl.ValueFactoryImpl;
 import org.openrdf.query.BindingSet;
 import org.openrdf.query.impl.MapBindingSet;
 
+import com.google.common.base.Optional;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
@@ -58,7 +59,7 @@ public class LeftOuterJoinTest {
         final Iterator<VisibilityBindingSet> rightResults= new ArrayList<VisibilityBindingSet>().iterator();
 
         // Therefore, the left result is a new join result.
-        final Iterator<VisibilityBindingSet> newJoinResultsIt = leftOuterJoin.newLeftResult(newLeftResult, rightResults);
+        final Iterator<VisibilityBindingSet> newJoinResultsIt = leftOuterJoin.newLeftResult(newLeftResult, rightResults, Optional.absent());
 
         final Set<BindingSet> newJoinResults = new HashSet<>();
         while(newJoinResultsIt.hasNext()) {
@@ -94,7 +95,7 @@ public class LeftOuterJoinTest {
         final Iterator<VisibilityBindingSet> rightResults = Lists.<VisibilityBindingSet>newArrayList(visiAge, visiHair).iterator();
 
         // Therefore, there are a few new join results that mix the two together.
-        final Iterator<VisibilityBindingSet> newJoinResultsIt = leftOuterJoin.newLeftResult(newLeftResult, rightResults);
+        final Iterator<VisibilityBindingSet> newJoinResultsIt = leftOuterJoin.newLeftResult(newLeftResult, rightResults, Optional.absent());
 
         final Set<BindingSet> newJoinResults = new HashSet<>();
         while(newJoinResultsIt.hasNext()) {
@@ -129,7 +130,7 @@ public class LeftOuterJoinTest {
         newRightResult.addBinding("name", vf.createLiteral("Bob"));
 
         // Therefore, there are no new join results.
-        final Iterator<VisibilityBindingSet> newJoinResultsIt = leftOuterJoin.newRightResult(leftResults, new VisibilityBindingSet(newRightResult));
+        final Iterator<VisibilityBindingSet> newJoinResultsIt = leftOuterJoin.newRightResult(leftResults, new VisibilityBindingSet(newRightResult), Optional.absent());
         assertFalse( newJoinResultsIt.hasNext() );
     }
 
@@ -156,7 +157,7 @@ public class LeftOuterJoinTest {
         newRightResult.addBinding("height", vf.createLiteral("5'9\""));
 
         // Therefore, there are a few new join results that mix the two together.
-        final Iterator<VisibilityBindingSet> newJoinResultsIt = leftOuterJoin.newRightResult(leftResults, new VisibilityBindingSet(newRightResult));
+        final Iterator<VisibilityBindingSet> newJoinResultsIt = leftOuterJoin.newRightResult(leftResults, new VisibilityBindingSet(newRightResult), Optional.absent());
 
         final Set<BindingSet> newJoinResults = new HashSet<>();
         while(newJoinResultsIt.hasNext()) {

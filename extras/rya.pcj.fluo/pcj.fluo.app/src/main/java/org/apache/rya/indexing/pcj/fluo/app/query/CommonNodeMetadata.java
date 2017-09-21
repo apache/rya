@@ -20,6 +20,8 @@ package org.apache.rya.indexing.pcj.fluo.app.query;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
+import java.io.Serializable;
+
 import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
 import edu.umd.cs.findbugs.annotations.NonNull;
 import net.jcip.annotations.Immutable;
@@ -37,7 +39,7 @@ import com.google.common.base.Objects;
 public abstract class CommonNodeMetadata {
 
     private final String nodeId;
-    private final VariableOrder varOrder;
+    private VariableOrder varOrder;
 
     /**
      * Constructs an instance of {@link CommonNodeMetadata}.
@@ -64,6 +66,14 @@ public abstract class CommonNodeMetadata {
      */
     public VariableOrder getVariableOrder() {
         return varOrder;
+    }
+    
+    /**
+     * Sets the VariableOrder for this node. Allows the VariableOrder to be updated.
+     * @param varOrder - VariableOrder for this metadata node.
+     */
+    public void setVariableOrder(VariableOrder varOrder) {
+        this.varOrder = varOrder;
     }
 
     @Override
@@ -94,9 +104,9 @@ public abstract class CommonNodeMetadata {
     public String toString() {
         return new StringBuilder()
                 .append("CommonNodeMetadata { ")
-                .append("    Node ID: " + nodeId + "\n")
-                .append("    Variable Order: " + varOrder + "\n")
-                .append("}")
+                .append("Node ID: " + nodeId )
+                .append("  Variable Order: " + varOrder )
+                .append(" }")
                 .toString();
     }
     

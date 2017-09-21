@@ -25,6 +25,7 @@ import org.apache.fluo.api.data.Bytes;
 import org.apache.log4j.Logger;
 import org.apache.rya.indexing.pcj.fluo.app.query.FilterMetadata;
 import org.apache.rya.indexing.pcj.fluo.app.query.FluoQueryColumns;
+import org.apache.rya.indexing.pcj.fluo.app.util.AggregationStateUtil;
 import org.apache.rya.indexing.pcj.fluo.app.util.FilterSerializer;
 import org.apache.rya.indexing.pcj.fluo.app.util.RowKeyUtil;
 import org.apache.rya.indexing.pcj.storage.accumulo.VariableOrder;
@@ -52,8 +53,7 @@ import edu.umd.cs.findbugs.annotations.NonNull;
 import info.aduna.iteration.CloseableIteration;
 
 /**
- * Updates the results of a Filter node when its child has added a new Binding
- * Set to its results.
+ * Updates the results of a Filter node when its child has added a new Binding Set to its results.
  */
 @DefaultAnnotation(NonNull.class)
 public class FilterResultUpdater {
@@ -65,64 +65,57 @@ public class FilterResultUpdater {
     /**
      * Is used to evaluate the conditions of a {@link Filter}.
      */
-    private static final EvaluationStrategyImpl evaluator = new EvaluationStrategyImpl(
-            new TripleSource() {
-                private final ValueFactory valueFactory = new ValueFactoryImpl();
+    private static final EvaluationStrategyImpl evaluator = new EvaluationStrategyImpl(new TripleSource() {
+        private final ValueFactory valueFactory = new ValueFactoryImpl();
 
-                @Override
-                public ValueFactory getValueFactory() {
-                    return valueFactory;
-                }
+        @Override
+        public ValueFactory getValueFactory() {
+            return valueFactory;
+        }
 
-                @Override
-                public CloseableIteration<? extends Statement, QueryEvaluationException> getStatements(
-                        final Resource arg0,
-                        final URI arg1,
-                        final Value arg2,
-                        final Resource... arg3) throws QueryEvaluationException {
-                    throw new UnsupportedOperationException();
-                }
-            });
+        @Override
+        public CloseableIteration<? extends Statement, QueryEvaluationException> getStatements(final Resource arg0, final URI arg1,
+                final Value arg2, final Resource... arg3) throws QueryEvaluationException {
+            throw new UnsupportedOperationException();
+        }
+    });
 
     /**
-     * Updates the results of a Filter node when one of its child has added a
-     * new Binding Set to its results.
+     * Updates the results of a Filter node when one of its child has added a new Binding Set to its results.
      *
      * @param tx - The transaction all Fluo queries will use. (not null)
      * @param childBindingSet - A binding set that the query's child node has emitted. (not null)
      * @param filterMetadata - The metadata of the Filter whose results will be updated. (not null)
      * @throws Exception Something caused the update to fail.
      */
-    public void updateFilterResults(
-            final TransactionBase tx,
-            final VisibilityBindingSet childBindingSet,
+    public void updateFilterResults(final TransactionBase tx, final VisibilityBindingSet childBindingSet,
             final FilterMetadata filterMetadata) throws Exception {
         checkNotNull(tx);
         checkNotNull(childBindingSet);
         checkNotNull(filterMetadata);
 
-        log.trace(
-                "Transaction ID: " + tx.getStartTimestamp() + "\n" +
-                "Filter Node ID: " + filterMetadata.getNodeId() + "\n" +
-                "Binding Set:\n" + childBindingSet + "\n");
+        if (AggregationStateUtil.checkAggregationState(tx, childBindingSet, filterMetadata)) {
+            log.trace("Transaction ID: " + tx.getStartTimestamp() + "\n" + "Filter Node ID: " + filterMetadata.getNodeId() + "\n"
+                    + "Binding Set:\n" + childBindingSet + "\n");
 
-        // Parse the original query and find the Filter that represents filterId.
-        final String sparql = filterMetadata.getFilterSparql();
-        Filter filter = FilterSerializer.deserialize(sparql);
+            // Parse the original query and find the Filter that represents filterId.
+            final String sparql = filterMetadata.getFilterSparql();
+            Filter filter = FilterSerializer.deserialize(sparql);
 
-        // Evaluate whether the child BindingSet satisfies the filter's condition.
-        final ValueExpr condition = filter.getCondition();
-        if (isTrue(condition, childBindingSet)) {
+            // Evaluate whether the child BindingSet satisfies the filter's condition.
+            final ValueExpr condition = filter.getCondition();
+            if (isTrue(condition, childBindingSet)) {
 
-            // Create the Row Key for the emitted binding set. It does not contain visibilities.
-            final VariableOrder filterVarOrder = filterMetadata.getVariableOrder();
-            final Bytes resultRow = RowKeyUtil.makeRowKey(filterMetadata.getNodeId(), filterVarOrder, childBindingSet);
+                // Create the Row Key for the emitted binding set. It does not contain visibilities.
+                final VariableOrder filterVarOrder = filterMetadata.getVariableOrder();
+                final Bytes resultRow = RowKeyUtil.makeRowKey(filterMetadata.getNodeId(), filterVarOrder, childBindingSet);
 
-            // Serialize and emit BindingSet
-            final Bytes nodeValueBytes = BS_SERDE.serialize(childBindingSet);
-            log.trace("Transaction ID: " + tx.getStartTimestamp() + "\n" + "New Binding Set: " + childBindingSet + "\n");
+                // Serialize and emit BindingSet
+                final Bytes nodeValueBytes = BS_SERDE.serialize(childBindingSet);
+                log.trace("Transaction ID: " + tx.getStartTimestamp() + "\n" + "New Binding Set: " + childBindingSet + "\n");
 
-            tx.set(resultRow, FluoQueryColumns.FILTER_BINDING_SET, nodeValueBytes);
+                tx.set(resultRow, FluoQueryColumns.FILTER_BINDING_SET, nodeValueBytes);
+            }
         }
     }
 

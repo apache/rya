@@ -20,10 +20,7 @@ package org.apache.rya.indexing.pcj.fluo.app.query;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import edu.umd.cs.findbugs.annotations.Nullable;
-import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
-import edu.umd.cs.findbugs.annotations.NonNull;
-import net.jcip.annotations.Immutable;
+import java.util.Optional;
 
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.rya.indexing.pcj.storage.accumulo.VariableOrder;
@@ -31,12 +28,17 @@ import org.apache.rya.indexing.pcj.storage.accumulo.VariableOrder;
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 
+import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
+import edu.umd.cs.findbugs.annotations.NonNull;
+import edu.umd.cs.findbugs.annotations.Nullable;
+import net.jcip.annotations.Immutable;
+
 /**
  * Metadata that is specific to Join nodes.
  */
 @Immutable
 @DefaultAnnotation(NonNull.class)
-public class JoinMetadata extends CommonNodeMetadata {
+public class JoinMetadata extends StateNodeMetadata {
 
     /**
      * The different types of Join algorithms that this join may perform.
@@ -59,6 +61,7 @@ public class JoinMetadata extends CommonNodeMetadata {
      *
      * @param nodeId - The ID the Fluo app uses to reference this node. (not null)
      * @param varOrder - The variable order of binding sets that are emitted by this node. (not null)
+     * @param stateMetadata - Optional containing information about the aggregation state that this node depends on. (not null)
      * @param joinType - Defines which join algorithm the join will use.
      * @param parentNodeId - The node id of this node's parent. (not null)
      * @param leftChildNodeId - One of the nodes whose results are being joined. (not null)
@@ -68,12 +71,13 @@ public class JoinMetadata extends CommonNodeMetadata {
     public JoinMetadata(
             final String nodeId,
             final VariableOrder varOrder,
+            final Optional<CommonNodeMetadataImpl> stateMetadata,
             final JoinType joinType,
             final String parentNodeId,
             final String leftChildNodeId,
             final String rightChildNodeId,
             final int joinBatchSize) {
-        super(nodeId, varOrder);
+        super(nodeId, varOrder, stateMetadata);
         this.joinType = checkNotNull(joinType);
         this.parentNodeId = checkNotNull(parentNodeId);
         this.leftChildNodeId = checkNotNull(leftChildNodeId);
@@ -122,6 +126,7 @@ public class JoinMetadata extends CommonNodeMetadata {
         return Objects.hashCode(
                 super.getNodeId(),
                 super.getVariableOrder(),
+                super.getStateMetadata(),
                 joinType,
                 parentNodeId,
                 leftChildNodeId,
@@ -158,6 +163,7 @@ public class JoinMetadata extends CommonNodeMetadata {
                 .append("Join Metadata {\n")
                 .append("    Node ID: " + super.getNodeId() + "\n")
                 .append("    Variable Order: " + super.getVariableOrder() + "\n")
+                .append("    State Metadata: " + super.getStateMetadata() + "\n")
                 .append("    Join Type: " + joinType + "\n")
                 .append("    Parent Node ID: " + parentNodeId + "\n")
                 .append("    Left Child Node ID: " + leftChildNodeId + "\n")
@@ -185,6 +191,7 @@ public class JoinMetadata extends CommonNodeMetadata {
 
         private final String nodeId;
         private VariableOrder varOrder;
+        private CommonNodeMetadataImpl state;
         private JoinType joinType;
         private String parentNodeId;
         private String leftChildNodeId;
@@ -223,6 +230,20 @@ public class JoinMetadata extends CommonNodeMetadata {
             return varOrder;
         }
         
+        /**
+         * Sets the Aggregation State.
+         * @param state - Aggregation State indicating current value of Aggregation 
+         * @return This builder so that method invocations may be chained. 
+         */
+        public Builder setStateMetadata(CommonNodeMetadataImpl state) {
+            this.state = state;
+            return this;
+        }
+        
+        public Optional<CommonNodeMetadataImpl> getStateMetadata() {
+            return Optional.ofNullable(state);
+        }
+
         /**
          * Sets the node id of this node's parent.
          *
@@ -292,6 +313,7 @@ public class JoinMetadata extends CommonNodeMetadata {
             return new JoinMetadata(
                     nodeId,
                     varOrder,
+                    Optional.ofNullable(state),
                     joinType,
                     parentNodeId,
                     leftChildNodeId,

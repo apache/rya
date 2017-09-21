@@ -25,6 +25,7 @@ import org.apache.fluo.api.data.Span;
 import org.apache.rya.indexing.pcj.fluo.app.JoinResultUpdater.Side;
 import org.apache.rya.indexing.pcj.fluo.app.batch.BatchInformation.Task;
 import org.apache.rya.indexing.pcj.fluo.app.batch.JoinBatchInformation;
+import org.apache.rya.indexing.pcj.fluo.app.query.CommonNodeMetadataImpl;
 import org.apache.rya.indexing.pcj.fluo.app.query.JoinMetadata.JoinType;
 import org.apache.rya.indexing.pcj.storage.accumulo.VariableOrder;
 import org.apache.rya.indexing.pcj.storage.accumulo.VisibilityBindingSet;
@@ -60,6 +61,10 @@ public class JoinBatchInformationTypeAdapter implements JsonSerializer<JoinBatch
         result.add("span", new JsonPrimitive(span.getStart().getsRow() + "\u0000" + span.getEnd().getsRow()));
         result.add("startInc", new JsonPrimitive(span.isStartInclusive()));
         result.add("endInc", new JsonPrimitive(span.isEndInclusive()));
+        if(batch.getAggregationStateMeta().isPresent()) {
+            CommonNodeMetadataImpl stateMeta = batch.getAggregationStateMeta().get();
+            result.add("aggStateMeta", new JsonPrimitive(stateMeta.getNodeId() + "\u0000" + stateMeta.getVariableOrder().toString()));
+        }
         result.add("side", new JsonPrimitive(batch.getSide().name()));
         result.add("joinType", new JsonPrimitive(batch.getJoinType().name()));
         String updateVarOrderString = Joiner.on(";").join(batch.getBs().getBindingNames());
@@ -78,6 +83,11 @@ public class JoinBatchInformationTypeAdapter implements JsonSerializer<JoinBatch
         String[] colArray = json.get("column").getAsString().split("\u0000");
         Column column = new Column(colArray[0], colArray[1]);
         String[] rows = json.get("span").getAsString().split("\u0000");
+        CommonNodeMetadataImpl aggStateMeta = null;
+        if(json.get("aggStateMeta") != null) {
+            String[] aggStateMetaArray = json.get("aggStateMeta").getAsString().split("\u0000");
+            aggStateMeta = new CommonNodeMetadataImpl(aggStateMetaArray[0], new VariableOrder(aggStateMetaArray[1]));
+        }
         boolean startInc = json.get("startInc").getAsBoolean();
         boolean endInc = json.get("endInc").getAsBoolean();
         Span span = new Span(new RowColumn(rows[0]), startInc, new RowColumn(rows[1]), endInc);
@@ -86,7 +96,7 @@ public class JoinBatchInformationTypeAdapter implements JsonSerializer<JoinBatch
         Side side = Side.valueOf(json.get("side").getAsString());
         JoinType join = JoinType.valueOf(json.get("joinType").getAsString());
         return JoinBatchInformation.builder().setBatchSize(batchSize).setTask(task).setSpan(span).setColumn(column).setBs(bs)
-               .setSide(side).setJoinType(join).build();
+               .setSide(side).setJoinType(join).setAggregationStateMeta(aggStateMeta).build();
     }
 
 }

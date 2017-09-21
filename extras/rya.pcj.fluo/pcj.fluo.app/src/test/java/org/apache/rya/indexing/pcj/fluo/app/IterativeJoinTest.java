@@ -38,6 +38,8 @@ import org.openrdf.model.ValueFactory;
 import org.openrdf.model.impl.ValueFactoryImpl;
 import org.openrdf.query.impl.MapBindingSet;
 
+import com.google.common.base.Optional;
+
 /**
  * Tests the methods of {@link IterativeJoin}.
  */
@@ -75,11 +77,11 @@ public class IterativeJoinTest {
         final VisibilityBindingSet vbs2 = new VisibilityBindingSet(bs2, "b");
 
         // new vbs1 shows up on the left, matches vbs2 on the right
-        final Iterator<VisibilityBindingSet> newLeftIt = join.newLeftResult(vbs1, Collections.singleton(vbs2).iterator());
+        final Iterator<VisibilityBindingSet> newLeftIt = join.newLeftResult(vbs1, Collections.singleton(vbs2).iterator(), Optional.absent());
         final VisibilityBindingSet newLeftResult = newLeftIt.next();
 
         // new vbs2 shows up on the right, matches vbs1 on the left
-        final Iterator<VisibilityBindingSet> newRightIt = join.newRightResult(Collections.singleton(vbs1).iterator(), vbs2);
+        final Iterator<VisibilityBindingSet> newRightIt = join.newRightResult(Collections.singleton(vbs1).iterator(), vbs2, Optional.absent());
         final VisibilityBindingSet newRightResult = newRightIt.next();
 
         // Ensure those two results are the same.

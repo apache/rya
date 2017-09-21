@@ -58,7 +58,6 @@ public class QueryMetadataVisitorTest {
         Assert.assertEquals(expected, visitor.getIds());
     }
     
-    
     public static class QueryMetadataVisitor extends QueryMetadataVisitorBase {
         
         private List<String> ids = new ArrayList<>();

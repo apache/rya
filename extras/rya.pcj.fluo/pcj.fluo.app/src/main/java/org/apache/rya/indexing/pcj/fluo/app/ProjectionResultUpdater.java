@@ -25,6 +25,7 @@ import org.apache.fluo.api.data.Bytes;
 import org.apache.log4j.Logger;
 import org.apache.rya.indexing.pcj.fluo.app.query.FluoQueryColumns;
 import org.apache.rya.indexing.pcj.fluo.app.query.ProjectionMetadata;
+import org.apache.rya.indexing.pcj.fluo.app.util.AggregationStateUtil;
 import org.apache.rya.indexing.pcj.fluo.app.util.BindingSetUtil;
 import org.apache.rya.indexing.pcj.fluo.app.util.RowKeyUtil;
 import org.apache.rya.indexing.pcj.storage.accumulo.VariableOrder;
@@ -36,8 +37,7 @@ import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
 import edu.umd.cs.findbugs.annotations.NonNull;
 
 /**
- * Updates the results of a Projection node when one of its children has added a
- * new Binding Set to its results.
+ * Updates the results of a Projection node when one of its children has added a new Binding Set to its results.
  */
 @DefaultAnnotation(NonNull.class)
 public class ProjectionResultUpdater {
@@ -46,44 +46,39 @@ public class ProjectionResultUpdater {
     private static final VisibilityBindingSetSerDe BS_SERDE = new VisibilityBindingSetSerDe();
 
     /**
-     * Updates the results of a Projection node when one of its children has added a
-     * new Binding Set to its results.
+     * Updates the results of a Projection node when one of its children has added a new Binding Set to its results.
      *
      * @param tx - The transaction all Fluo queries will use. (not null)
      * @param childBindingSet - A binding set that the query's child node has emmitted. (not null)
      * @param projectionMetadata - The metadata of the Query whose results will be updated. (not null)
      * @throws Exception A problem caused the update to fail.
      */
-    public void updateProjectionResults(
-            final TransactionBase tx,
-            final VisibilityBindingSet childBindingSet,
+    public void updateProjectionResults(final TransactionBase tx, final VisibilityBindingSet childBindingSet,
             final ProjectionMetadata projectionMetadata) throws Exception {
         checkNotNull(tx);
         checkNotNull(childBindingSet);
         checkNotNull(projectionMetadata);
 
-        log.trace(
-                "Transaction ID: " + tx.getStartTimestamp() + "\n" +
-                "Node ID: " + projectionMetadata.getNodeId() + "\n" +
-                "Parent Node ID: " + projectionMetadata.getParentNodeId() + "\n" +        
-                "Child Node ID: " + projectionMetadata.getChildNodeId() + "\n" +
-                "Child Binding Set:\n" + childBindingSet + "\n");
+        if (AggregationStateUtil.checkAggregationState(tx, childBindingSet, projectionMetadata)) {
+            log.trace("Transaction ID: " + tx.getStartTimestamp() + "\n" + "Node ID: " + projectionMetadata.getNodeId() + "\n"
+                    + "Parent Node ID: " + projectionMetadata.getParentNodeId() + "\n" + "Child Node ID: "
+                    + projectionMetadata.getChildNodeId() + "\n" + "Child Binding Set:\n" + childBindingSet + "\n");
 
-        // Create the query's Binding Set from the child node's binding set.
-        final VariableOrder queryVarOrder = projectionMetadata.getVariableOrder();
-        final VariableOrder projectionVarOrder = projectionMetadata.getProjectedVars();
-        final BindingSet queryBindingSet = BindingSetUtil.keepBindings(projectionVarOrder, childBindingSet);
+            // Create the query's Binding Set from the child node's binding set.
+            final VariableOrder queryVarOrder = projectionMetadata.getVariableOrder();
+            final VariableOrder projectionVarOrder = projectionMetadata.getProjectedVars();
+            final BindingSet queryBindingSet = BindingSetUtil.keepBindings(projectionVarOrder, childBindingSet);
 
-        // Create the Row Key for the result. If the child node groups results, then the key must only contain the Group By variables.
-        Bytes resultRow  = RowKeyUtil.makeRowKey(projectionMetadata.getNodeId(), queryVarOrder, queryBindingSet);
+            // Create the Row Key for the result. If the child node groups results, then the key must only contain the
+            // Group By variables.
+            Bytes resultRow = RowKeyUtil.makeRowKey(projectionMetadata.getNodeId(), queryVarOrder, queryBindingSet);
 
-        // Create the Binding Set that goes in the Node Value. It does contain visibilities.
-        final Bytes nodeValueBytes = BS_SERDE.serialize(new VisibilityBindingSet(queryBindingSet, childBindingSet.getVisibility()));
+            // Create the Binding Set that goes in the Node Value. It does contain visibilities.
+            final Bytes nodeValueBytes = BS_SERDE.serialize(new VisibilityBindingSet(queryBindingSet, childBindingSet.getVisibility()));
 
-        log.trace(
-                "Transaction ID: " + tx.getStartTimestamp() + "\n" +
-                "New Binding Set: " + childBindingSet + "\n");
+            log.trace("Transaction ID: " + tx.getStartTimestamp() + "\n" + "New Binding Set: " + childBindingSet + "\n");
 
-        tx.set(resultRow, FluoQueryColumns.PROJECTION_BINDING_SET, nodeValueBytes);
+            tx.set(resultRow, FluoQueryColumns.PROJECTION_BINDING_SET, nodeValueBytes);
+        }
     }
 }

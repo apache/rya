@@ -20,16 +20,17 @@ package org.apache.rya.indexing.pcj.fluo.app.util;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import org.apache.rya.indexing.pcj.fluo.app.IncrementalUpdateConstants;
 import org.apache.rya.indexing.pcj.fluo.app.query.AggregationMetadata;
+import org.apache.rya.indexing.pcj.fluo.app.query.CommonNodeMetadataImpl;
 import org.apache.rya.indexing.pcj.fluo.app.query.ConstructQueryMetadata;
 import org.apache.rya.indexing.pcj.fluo.app.query.FilterMetadata;
 import org.apache.rya.indexing.pcj.fluo.app.query.FluoQuery;
 import org.apache.rya.indexing.pcj.fluo.app.query.JoinMetadata;
 import org.apache.rya.indexing.pcj.fluo.app.query.PeriodicQueryMetadata;
 import org.apache.rya.indexing.pcj.fluo.app.query.ProjectionMetadata;
-import org.apache.rya.indexing.pcj.fluo.app.query.QueryBuilderVisitorBase;
 import org.apache.rya.indexing.pcj.fluo.app.query.QueryMetadata;
 import org.apache.rya.indexing.pcj.fluo.app.query.StatementPatternMetadata;
 import org.apache.rya.indexing.pcj.storage.accumulo.VariableOrder;
@@ -37,17 +38,15 @@ import org.apache.rya.indexing.pcj.storage.accumulo.VariableOrder;
 import com.google.common.base.Preconditions;
 
 /**
- * Visitor that traverses a {@link FluoQuery.Builder} and performs the indicated {@link UpdateAction}
- * on the {@link VariableOrder}s of each node using a provided list of variables.  The visitor
- * either adds the provided list of variables to the VariableOrder of each node or deletes the
- * provided variables from the VariableOrder of each node.
+ * Visitor that traverses a {@link FluoQuery.Builder} and performs the indicated {@link UpdateAction} on the
+ * {@link VariableOrder}s of each node using a provided list of variables. The visitor either adds the provided list of
+ * variables to the VariableOrder of each node or deletes the provided variables from the VariableOrder of each node.
  *
  */
-public class VariableOrderUpdateVisitor extends QueryBuilderVisitorBase {
+public class VariableOrderUpdateVisitor extends StopNodeVisitor {
 
     /**
-     * Enum class indicating whether to add or delete variables from
-     * the VariableOrders of nodes in the FluoQuery.
+     * Enum class indicating whether to add or delete variables from the VariableOrders of nodes in the FluoQuery.
      *
      */
     public static enum UpdateAction {
@@ -56,85 +55,70 @@ public class VariableOrderUpdateVisitor extends QueryBuilderVisitorBase {
 
     private UpdateAction action;
     private List<String> variables;
-    private String stopNodeId;
 
     /**
      * Creates a VariableOrderUpdateVisitor to update the variables in a given FluoQuery.Builder
+     * 
      * @param fluoBuilder - builder whose VariableOrder will be updated
-     * @param action - either add or delete 
+     * @param action - either add or delete
      * @param variables - variables to be added or deleted
      * @param stopNodeId - indicates the builder node to stop at
      */
     public VariableOrderUpdateVisitor(FluoQuery.Builder fluoBuilder, UpdateAction action, List<String> variables, String stopNodeId) {
-        super(fluoBuilder);
+        super(fluoBuilder, stopNodeId);
         this.action = Preconditions.checkNotNull(action);
         this.variables = Preconditions.checkNotNull(variables);
-        this.stopNodeId = Preconditions.checkNotNull(stopNodeId);
     }
 
     public void visit(QueryMetadata.Builder builder) {
         builder.setVarOrder(updateOrder(builder.getVariableOrder()));
-        if(!atStopNode(builder.getNodeId())) {
-            super.visit(builder);
-        }
+        builder.setStateMetadata(updateAggregationMetadata(builder.getStateMetadata()).orElse(null));
+        super.visit(builder);
     }
 
     public void visit(ProjectionMetadata.Builder builder) {
         builder.setVarOrder(updateOrder(builder.getVariableOrder()));
-        if(action == UpdateAction.AddVariable) {
+        builder.setStateMetadata(updateAggregationMetadata(builder.getStateMetadata()).orElse(null));
+        if (action == UpdateAction.AddVariable) {
             builder.setProjectedVars(updateOrder(builder.getProjectionVars()));
         }
-        if(!atStopNode(builder.getNodeId())) {
-            super.visit(builder);
-        }
+        super.visit(builder);
     }
 
     public void visit(ConstructQueryMetadata.Builder builder) {
         builder.setVarOrder(updateOrder(builder.getVariableOrder()));
-        if(!atStopNode(builder.getNodeId())) {
-            super.visit(builder);
-        }
+        builder.setStateMetadata(updateAggregationMetadata(builder.getStateMetadata()).orElse(null));
+        super.visit(builder);
     }
 
     public void visit(FilterMetadata.Builder builder) {
         builder.setVarOrder(updateOrder(builder.getVariableOrder()));
-        if(!atStopNode(builder.getNodeId())) {
-            super.visit(builder);
-        }
+        builder.setStateMetadata(updateAggregationMetadata(builder.getStateMetadata()).orElse(null));
+        super.visit(builder);
     }
 
     public void visit(PeriodicQueryMetadata.Builder builder) {
         builder.setVarOrder(updateOrder(builder.getVariableOrder()));
-        if(!atStopNode(builder.getNodeId())) {
-            super.visit(builder);
-        }
+        builder.setStateMetadata(updateAggregationMetadata(builder.getStateMetadata()).orElse(null));
+        super.visit(builder);
     }
 
     public void visit(JoinMetadata.Builder builder) {
         builder.setVarOrder(updateOrder(builder.getVariableOrder()));
-        if(!atStopNode(builder.getNodeId())) {
-            super.visit(builder);
-        }
+        builder.setStateMetadata(updateAggregationMetadata(builder.getStateMetadata()).orElse(null));
+        super.visit(builder);
     }
 
     public void visit(AggregationMetadata.Builder builder) {
         builder.setVarOrder(updateOrder(builder.getVariableOrder()));
         builder.setGroupByVariableOrder(updateOrder(builder.getGroupByVariableOrder()));
-        if(!atStopNode(builder.getNodeId())) {
-            super.visit(builder);
-        }
+        super.visit(builder);
     }
 
     public void visit(StatementPatternMetadata.Builder builder) {
-        if(!atStopNode(builder.getNodeId())) {
-            super.visit(builder);
-        }
+        super.visit(builder);
     }
 
-    boolean atStopNode(String nodeId) {
-        return nodeId.equals(stopNodeId);
-    }
-    
     private VariableOrder updateOrder(VariableOrder varOrder) {
 
         switch (action) {
@@ -146,6 +130,16 @@ public class VariableOrderUpdateVisitor extends QueryBuilderVisitorBase {
             break;
         }
         return varOrder;
+    }
+    
+    private Optional<CommonNodeMetadataImpl> updateAggregationMetadata(Optional<CommonNodeMetadataImpl> aggStateMetadata) {
+        if(aggStateMetadata.isPresent()) {
+            CommonNodeMetadataImpl metadata = aggStateMetadata.get();
+            metadata.setVariableOrder(updateOrder(metadata.getVariableOrder()));
+            return Optional.of(metadata);
+        }
+        
+        return Optional.empty();
     }
 
     private VariableOrder addBindingToOrder(VariableOrder varOrder) {

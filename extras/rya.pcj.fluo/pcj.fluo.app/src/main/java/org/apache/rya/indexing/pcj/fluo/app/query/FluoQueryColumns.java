@@ -166,6 +166,7 @@ public class FluoQueryColumns {
     // Query Metadata columns.
     public static final Column QUERY_NODE_ID = new Column(QUERY_METADATA_CF, "nodeId");
     public static final Column QUERY_VARIABLE_ORDER = new Column(QUERY_METADATA_CF, "variableOrder");
+    public static final Column QUERY_STATE_METADATA = new Column(QUERY_METADATA_CF, "stateMetadata");
     public static final Column QUERY_SPARQL = new Column(QUERY_METADATA_CF, "sparql");
     public static final Column QUERY_CHILD_NODE_ID = new Column(QUERY_METADATA_CF, "childNodeId");
     public static final Column QUERY_BINDING_SET = new Column(QUERY_METADATA_CF, "bindingSet");
@@ -176,6 +177,7 @@ public class FluoQueryColumns {
     public static final Column PROJECTION_NODE_ID = new Column(PROJECTION_METADATA_CF, "nodeId");
     public static final Column PROJECTION_PROJECTED_VARS = new Column(PROJECTION_METADATA_CF, "projectedVars");
     public static final Column PROJECTION_VARIABLE_ORDER = new Column(PROJECTION_METADATA_CF, "variableOrder");
+    public static final Column PROJECTION_STATE_METADATA = new Column(PROJECTION_METADATA_CF, "stateMetadata");
     public static final Column PROJECTION_CHILD_NODE_ID = new Column(PROJECTION_METADATA_CF, "childNodeId");
     public static final Column PROJECTION_PARENT_NODE_ID = new Column(PROJECTION_METADATA_CF, "parentNodeId");
     public static final Column PROJECTION_BINDING_SET = new Column(PROJECTION_METADATA_CF, "bindingSet");
@@ -183,6 +185,7 @@ public class FluoQueryColumns {
  // Construct Query Metadata columns.
     public static final Column CONSTRUCT_NODE_ID = new Column(CONSTRUCT_METADATA_CF, "nodeId");
     public static final Column CONSTRUCT_VARIABLE_ORDER = new Column(CONSTRUCT_METADATA_CF, "variableOrder");
+    public static final Column CONSTRUCT_STATE_METADATA = new Column(CONSTRUCT_METADATA_CF, "stateMetadata");
     public static final Column CONSTRUCT_GRAPH = new Column(CONSTRUCT_METADATA_CF, "graph");
     public static final Column CONSTRUCT_CHILD_NODE_ID = new Column(CONSTRUCT_METADATA_CF, "childNodeId");
     public static final Column CONSTRUCT_PARENT_NODE_ID = new Column(CONSTRUCT_METADATA_CF, "parentNodeId");
@@ -191,6 +194,7 @@ public class FluoQueryColumns {
     // Filter Metadata columns.
     public static final Column FILTER_NODE_ID = new Column(FILTER_METADATA_CF, "nodeId");
     public static final Column FILTER_VARIABLE_ORDER = new Column(FILTER_METADATA_CF, "variableOrder");
+    public static final Column FILTER_STATE_METADATA = new Column(FILTER_METADATA_CF, "stateMetadata");
     public static final Column FILTER_SPARQL = new Column(FILTER_METADATA_CF, "filterSparql");
     public static final Column FILTER_PARENT_NODE_ID = new Column(FILTER_METADATA_CF, "parentNodeId");
     public static final Column FILTER_CHILD_NODE_ID = new Column(FILTER_METADATA_CF, "childNodeId");
@@ -199,6 +203,7 @@ public class FluoQueryColumns {
     // Periodic Bin Metadata columns.
     public static final Column PERIODIC_QUERY_NODE_ID = new Column(PERIODIC_QUERY_METADATA_CF, "nodeId");
     public static final Column PERIODIC_QUERY_VARIABLE_ORDER = new Column(PERIODIC_QUERY_METADATA_CF, "variableOrder");
+    public static final Column PERIODIC_QUERY_STATE_METADATA = new Column(PERIODIC_QUERY_METADATA_CF, "stateMetadata");
     public static final Column PERIODIC_QUERY_PARENT_NODE_ID = new Column(PERIODIC_QUERY_METADATA_CF, "parentNodeId");
     public static final Column PERIODIC_QUERY_CHILD_NODE_ID = new Column(PERIODIC_QUERY_METADATA_CF, "childNodeId");
     public static final Column PERIODIC_QUERY_BINDING_SET = new Column(PERIODIC_QUERY_METADATA_CF, "bindingSet");
@@ -210,6 +215,7 @@ public class FluoQueryColumns {
     // Join Metadata columns.
     public static final Column JOIN_NODE_ID = new Column(JOIN_METADATA_CF, "nodeId");
     public static final Column JOIN_VARIABLE_ORDER = new Column(JOIN_METADATA_CF, "variableOrder");
+    public static final Column JOIN_STATE_METADATA = new Column(JOIN_METADATA_CF, "stateMetadata");
     public static final Column JOIN_TYPE = new Column(JOIN_METADATA_CF, "joinType");
     public static final Column JOIN_PARENT_NODE_ID = new Column(JOIN_METADATA_CF, "parentNodeId");
     public static final Column JOIN_LEFT_CHILD_NODE_ID = new Column(JOIN_METADATA_CF, "leftChildNodeId");
@@ -257,6 +263,7 @@ public class FluoQueryColumns {
         QUERY_COLUMNS(
                 Arrays.asList(QUERY_NODE_ID,
                         QUERY_VARIABLE_ORDER,
+                        QUERY_STATE_METADATA,
                         QUERY_SPARQL,
                         QUERY_TYPE,
                         QUERY_EXPORT_STRATEGIES,
@@ -268,6 +275,7 @@ public class FluoQueryColumns {
         PROJECTION_COLUMNS(
                 Arrays.asList(PROJECTION_NODE_ID,
                         PROJECTION_PROJECTED_VARS,
+                        PROJECTION_STATE_METADATA,
                         PROJECTION_VARIABLE_ORDER,
                         PROJECTION_PARENT_NODE_ID,
                         PROJECTION_CHILD_NODE_ID)),
@@ -279,6 +287,7 @@ public class FluoQueryColumns {
         PERIODIC_QUERY_COLUMNS(
                 Arrays.asList(PERIODIC_QUERY_NODE_ID,
                         PERIODIC_QUERY_VARIABLE_ORDER,
+                        PERIODIC_QUERY_STATE_METADATA,
                         PERIODIC_QUERY_PERIOD,
                         PERIODIC_QUERY_WINDOWSIZE,
                         PERIODIC_QUERY_TIMEUNIT,
@@ -292,6 +301,7 @@ public class FluoQueryColumns {
         CONSTRUCT_COLUMNS(
                 Arrays.asList(CONSTRUCT_NODE_ID,
                         CONSTRUCT_VARIABLE_ORDER,
+                        CONSTRUCT_STATE_METADATA,
                         CONSTRUCT_GRAPH,
                         CONSTRUCT_CHILD_NODE_ID,
                         CONSTRUCT_PARENT_NODE_ID,
@@ -304,6 +314,7 @@ public class FluoQueryColumns {
         FILTER_COLUMNS(
                 Arrays.asList(FILTER_NODE_ID,
                         FILTER_VARIABLE_ORDER,
+                        FILTER_STATE_METADATA,
                         FILTER_SPARQL,
                         FILTER_PARENT_NODE_ID,
                         FILTER_CHILD_NODE_ID)),
@@ -314,6 +325,7 @@ public class FluoQueryColumns {
         JOIN_COLUMNS(
                 Arrays.asList(JOIN_NODE_ID,
                         JOIN_VARIABLE_ORDER,
+                        JOIN_STATE_METADATA,
                         JOIN_TYPE,
                         JOIN_PARENT_NODE_ID,
                         JOIN_LEFT_CHILD_NODE_ID,

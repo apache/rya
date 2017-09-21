@@ -22,6 +22,7 @@ import java.util.List;
 import java.util.UUID;
 
 import org.apache.rya.indexing.pcj.fluo.app.IncrementalUpdateConstants;
+import org.apache.rya.indexing.pcj.fluo.app.query.CommonNodeMetadataImpl;
 import org.apache.rya.indexing.pcj.fluo.app.query.FluoQuery;
 import org.apache.rya.indexing.pcj.fluo.app.util.VariableOrderUpdateVisitor.UpdateAction;
 
@@ -33,6 +34,20 @@ import com.google.common.base.Preconditions;
  */
 public class FluoQueryUtils {
 
+    /**
+     * Adds aggregation state metadata to all ancestors of a given aggregation node
+     * @param builder - builder whose VariableOrders will be updated
+     * @param stopNodeId - node to stop at
+     * @param aggStateMeta - metadata to check if aggregation state has changed
+     * @return - FluoQuery.Builder with updated VariableOrders
+     */
+    public static FluoQuery.Builder addAggregationStateMetadata(FluoQuery.Builder builder, String stopNodeId, CommonNodeMetadataImpl aggStateMeta){
+        AggregationStateMetadataVisitor visitor = new AggregationStateMetadataVisitor(builder, stopNodeId, aggStateMeta);
+        visitor.visit();
+        
+        return builder;
+    }
+    
     /**
      * Updates the {@link VariableOrder}s of a given {@link FluoQuery.Builder}.
      * @param builder - builder whose VariableOrders will be updated

@@ -1,5 +1,7 @@
 package org.apache.rya.indexing.pcj.fluo.app.query;
 
+import java.util.Optional;
+
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -34,7 +36,7 @@ import edu.umd.cs.findbugs.annotations.NonNull;
  * SPARQL queries.
  *
  */
-public class ConstructQueryMetadata extends CommonNodeMetadata {
+public class ConstructQueryMetadata extends StateNodeMetadata {
 
     private String childNodeId;
     private ConstructGraph graph;
@@ -43,12 +45,13 @@ public class ConstructQueryMetadata extends CommonNodeMetadata {
     /**
      * Creates ConstructQueryMetadata object from the provided metadata arguments.
      * @param nodeId - id for the ConstructQueryNode
+     * @param stateMetadata - Optional containing information about the aggregation state that this node depends on. (not null)
      * @param childNodeId - id for the child of the ConstructQueryNode
      * @param graph - {@link ConstructGraph} used to project {@link BindingSet}s onto sets of statement representing construct graph
      * @param sparql - SPARQL query containing construct graph
      */
-    public ConstructQueryMetadata(String nodeId, String parentNodeId, String childNodeId, VariableOrder varOrder, ConstructGraph graph) {
-        super(nodeId, varOrder);
+    public ConstructQueryMetadata(String nodeId, String parentNodeId, String childNodeId, VariableOrder varOrder, Optional<CommonNodeMetadataImpl> stateMetadata, ConstructGraph graph) {
+        super(nodeId, varOrder, stateMetadata);
         this.childNodeId = Preconditions.checkNotNull(childNodeId);
         this.parentNodeId = Preconditions.checkNotNull(parentNodeId);
         this.graph = Preconditions.checkNotNull(graph);
@@ -79,7 +82,7 @@ public class ConstructQueryMetadata extends CommonNodeMetadata {
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(super.getNodeId(), super.getVariableOrder(), parentNodeId, childNodeId, graph);
+        return Objects.hashCode(super.getNodeId(), super.getVariableOrder(), super.getStateMetadata(), parentNodeId, childNodeId, graph);
     }
 
     @Override
@@ -103,7 +106,10 @@ public class ConstructQueryMetadata extends CommonNodeMetadata {
     public String toString() {
         return new StringBuilder().append("Construct Query Metadata {\n").append("    Node ID: " + super.getNodeId() + "\n")
                 .append("    Variable Order: " + super.getVariableOrder() + "\n")
-                .append("    Child Node ID: " + childNodeId + "\n").append("    Construct Graph: " + graph.getProjections() + "\n")
+                .append("    State Metadata: " + super.getStateMetadata() + "\n")
+                .append("    Child Node ID: " + childNodeId + "\n")
+                .append("    Parent Node ID: " + parentNodeId + "\n")
+                .append("    Construct Graph: " + graph.getProjections() + "\n")
                 .append("}").toString();
     }
 
@@ -127,6 +133,7 @@ public class ConstructQueryMetadata extends CommonNodeMetadata {
         private ConstructGraph graph;
         private String parentNodeId;
         private String childNodeId;
+        private CommonNodeMetadataImpl state;
         private VariableOrder varOrder;
 
         /**
@@ -199,13 +206,27 @@ public class ConstructQueryMetadata extends CommonNodeMetadata {
             this.parentNodeId = parentNodeId;
             return this;
         }
+        
+        /**
+         * Sets the state metadata of this {@link ConstructQueryMetadata}.
+         * @param stateMetadata
+         * @return This builder so that method invocations may be chained.
+         */
+        public Builder setStateMetadata(CommonNodeMetadataImpl stateMetadata) {
+            this.state = stateMetadata;
+            return this;
+        }
+        
+        public Optional<CommonNodeMetadataImpl> getStateMetadata() {
+            return Optional.ofNullable(state);
+        }
 
         /**
          * @return An instance of {@link ConstructQueryMetadata} build using
          *         this builder's values.
          */
         public ConstructQueryMetadata build() {
-            return new ConstructQueryMetadata(nodeId, parentNodeId, childNodeId, varOrder, graph);
+            return new ConstructQueryMetadata(nodeId, parentNodeId, childNodeId, varOrder, Optional.ofNullable(state), graph);
         }
     }
 

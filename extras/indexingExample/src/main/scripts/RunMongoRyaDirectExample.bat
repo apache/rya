@@ -16,7 +16,7 @@ rem KIND, either express or implied.  See the License for the
 rem specific language governing permissions and limitations
 rem under the License.
 
-SET name="Rya Direct Example"
+SET name="Mongo Rya Direct Example"
 echo "Starting %name%"
 
 SET CP=
@@ -29,9 +29,9 @@ IF %ERRORLEVEL% NEQ 0 goto :NO_JAVAC
 for /f %%f in ('DIR /b .\lib\*.jar') do call :append .\lib\%%f
 
 echo "Compiling %name%"
-javac -cp "%CP%" RyaDirectExample.java
+javac -cp "%CP%" MongoRyaDirectExample.java
 echo "Running %name%"
-java -cp "%CP%" RyaDirectExample
+java -cp "%CP%" MongoRyaDirectExample
 
 echo "Finished %name%"
 goto :end

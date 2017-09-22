@@ -29,6 +29,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.NoSuchElementException;
+import java.util.Objects;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -116,37 +117,56 @@ public class AccumuloTemporalIndexer extends AbstractAccumuloIndexer implements 
     public void init() {
         if (!isInit) {
             try {
-                initInternal();
+                initReadWrite();
                 isInit = true;
             } catch (final AccumuloException | AccumuloSecurityException | TableNotFoundException | TableExistsException | RyaClientException e) {
-                logger.warn("Unable to initialize index.  Throwing Runtime Exception. ", e);
+                logger.error("Unable to initialize index.  Throwing Runtime Exception. ", e);
                 throw new RuntimeException(e);
             }
         }
     }
-
-    private void initInternal() throws AccumuloException, AccumuloSecurityException, TableNotFoundException,
+    /**
+     * Initialize for writable use.  
+     * This is called from the DAO, perhaps others.
+     */
+    private void initReadWrite() throws AccumuloException, AccumuloSecurityException, TableNotFoundException,
                     TableExistsException, RyaClientException {
         if (mtbw == null)
             throw new RyaClientException("Failed to initialize temporal index, setMultiTableBatchWriter() was not set.");
         if (conf == null)
             throw new RyaClientException("Failed to initialize temporal index, setConf() was not set.");
+        if (temporalIndexTableName==null)
+            throw new RyaClientException("Failed to set temporalIndexTableName==null.");
 
-        temporalIndexTableName = getTableName();
+        // Now do all the writable setup, read should already be complete.
         // Create one index table on first run.
         Boolean isCreated = ConfigUtils.createTableIfNotExists(conf, temporalIndexTableName);
         if (isCreated) {
             logger.info("First run, created temporal index table: " + temporalIndexTableName);
         }
         temporalIndexBatchWriter = mtbw.getBatchWriter(temporalIndexTableName);
-        validPredicates = ConfigUtils.getTemporalPredicates(conf);
     }
 
-    //initialization occurs in setConf because index is created using reflection
+    /**
+     * Initialize everything for a query-only use.  
+     * This is called from setConf, since that must be called by anyone.
+     * The DAO will also call setMultiTableBatchWriter() and init().
+     */
+	private void initReadOnly()  {
+		if (conf == null)
+			throw new Error("Failed to initialize temporal index, setConf() was not set.");
+		temporalIndexTableName = getTableName();
+		validPredicates = ConfigUtils.getTemporalPredicates(conf);
+	}
+
+    /**
+     * Set the configuration, then initialize for read (query) use only.
+     * Readonly initialization occurs in setConf because it does not require setting a multitablebatchwriter (mtbw).
+     */
     @Override
     public void setConf(final Configuration conf) {
         this.conf = conf;
-
+			initReadOnly();
     }
 
     @Override
@@ -165,6 +185,7 @@ public class AccumuloTemporalIndexer extends AbstractAccumuloIndexer implements 
      * T O D O parse an interval using multiple predicates for same subject -- ontology dependent.
      */
     private void storeStatement(final Statement statement) throws IOException, IllegalArgumentException {
+    	Objects.requireNonNull(temporalIndexBatchWriter,"This is not initialized for writing.  Must call setMultiTableBatchWriter() and init().");
         // if the predicate list is empty, accept all predicates.
         // Otherwise, make sure the predicate is on the "valid" list
         final boolean isValidPredicate = validPredicates == null || validPredicates.isEmpty() || validPredicates.contains(statement.getPredicate());
@@ -908,6 +929,8 @@ public class AccumuloTemporalIndexer extends AbstractAccumuloIndexer implements 
     }
 
     private void deleteStatement(final Statement statement) throws IOException, IllegalArgumentException {
+    	Objects.requireNonNull(temporalIndexBatchWriter,"This is not initialized for writing.  Must call setMultiTableBatchWriter() and init().");
+
         // if the predicate list is empty, accept all predicates.
         // Otherwise, make sure the predicate is on the "valid" list
         final boolean isValidPredicate = validPredicates.isEmpty() || validPredicates.contains(statement.getPredicate());

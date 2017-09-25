@@ -29,6 +29,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.NoSuchElementException;
+import java.util.Objects;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -56,6 +57,7 @@ import org.apache.hadoop.io.Text;
 import org.apache.log4j.Logger;
 import org.apache.rya.accumulo.experimental.AbstractAccumuloIndexer;
 import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
+import org.apache.rya.api.client.RyaClientException;
 import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.resolver.RyaToRdfConversions;
 import org.apache.rya.indexing.KeyParts;
@@ -102,42 +104,69 @@ public class AccumuloTemporalIndexer extends AbstractAccumuloIndexer implements 
     private boolean isInit = false;
 
 
-
-    private void initInternal() throws AccumuloException, AccumuloSecurityException, TableNotFoundException,
-            TableExistsException {
-        temporalIndexTableName = getTableName();
-        // Create one index table on first run.
-        ConfigUtils.createTableIfNotExists(conf, temporalIndexTableName);
-
-        mtbw = ConfigUtils.createMultitableBatchWriter(conf);
-
-        temporalIndexBatchWriter = mtbw.getBatchWriter(temporalIndexTableName);
-
-        validPredicates = ConfigUtils.getTemporalPredicates(conf);
-    }
-
-    //initialization occurs in setConf because index is created using reflection
+    /**
+     * intilize the temporal index.
+     * This is dependent on a few set method calls before init:
+     * >  Connector = ConfigUtils.getConnector(conf);
+     * >  MultiTableBatchWriter mtbw = connector.createMultiTableBatchWriter(new BatchWriterConfig());
+     * >  // optional: temporal.setConnector(connector);
+     * >  temporal.setMultiTableBatchWriter(mtbw);
+     * >  temporal.init();
+     */
     @Override
-    public void setConf(final Configuration conf) {
-        this.conf = conf;
+    public void init() {
         if (!isInit) {
             try {
-                initInternal();
+                initReadWrite();
                 isInit = true;
-            } catch (final AccumuloException e) {
-                logger.warn("Unable to initialize index.  Throwing Runtime Exception. ", e);
-                throw new RuntimeException(e);
-            } catch (final AccumuloSecurityException e) {
-                logger.warn("Unable to initialize index.  Throwing Runtime Exception. ", e);
-                throw new RuntimeException(e);
-            } catch (final TableNotFoundException e) {
-                logger.warn("Unable to initialize index.  Throwing Runtime Exception. ", e);
-                throw new RuntimeException(e);
-            } catch (final TableExistsException e) {
-                logger.warn("Unable to initialize index.  Throwing Runtime Exception. ", e);
+            } catch (final AccumuloException | AccumuloSecurityException | TableNotFoundException | TableExistsException | RyaClientException e) {
+                logger.error("Unable to initialize index.  Throwing Runtime Exception. ", e);
                 throw new RuntimeException(e);
             }
         }
+    }
+    /**
+     * Initialize for writable use.  
+     * This is called from the DAO, perhaps others.
+     */
+    private void initReadWrite() throws AccumuloException, AccumuloSecurityException, TableNotFoundException,
+                    TableExistsException, RyaClientException {
+        if (mtbw == null)
+            throw new RyaClientException("Failed to initialize temporal index, setMultiTableBatchWriter() was not set.");
+        if (conf == null)
+            throw new RyaClientException("Failed to initialize temporal index, setConf() was not set.");
+        if (temporalIndexTableName==null)
+            throw new RyaClientException("Failed to set temporalIndexTableName==null.");
+
+        // Now do all the writable setup, read should already be complete.
+        // Create one index table on first run.
+        Boolean isCreated = ConfigUtils.createTableIfNotExists(conf, temporalIndexTableName);
+        if (isCreated) {
+            logger.info("First run, created temporal index table: " + temporalIndexTableName);
+        }
+        temporalIndexBatchWriter = mtbw.getBatchWriter(temporalIndexTableName);
+    }
+
+    /**
+     * Initialize everything for a query-only use.  
+     * This is called from setConf, since that must be called by anyone.
+     * The DAO will also call setMultiTableBatchWriter() and init().
+     */
+	private void initReadOnly()  {
+		if (conf == null)
+			throw new Error("Failed to initialize temporal index, setConf() was not set.");
+		temporalIndexTableName = getTableName();
+		validPredicates = ConfigUtils.getTemporalPredicates(conf);
+	}
+
+    /**
+     * Set the configuration, then initialize for read (query) use only.
+     * Readonly initialization occurs in setConf because it does not require setting a multitablebatchwriter (mtbw).
+     */
+    @Override
+    public void setConf(final Configuration conf) {
+        this.conf = conf;
+			initReadOnly();
     }
 
     @Override
@@ -156,17 +185,22 @@ public class AccumuloTemporalIndexer extends AbstractAccumuloIndexer implements 
      * T O D O parse an interval using multiple predicates for same subject -- ontology dependent.
      */
     private void storeStatement(final Statement statement) throws IOException, IllegalArgumentException {
+    	Objects.requireNonNull(temporalIndexBatchWriter,"This is not initialized for writing.  Must call setMultiTableBatchWriter() and init().");
         // if the predicate list is empty, accept all predicates.
         // Otherwise, make sure the predicate is on the "valid" list
-        final boolean isValidPredicate = validPredicates.isEmpty() || validPredicates.contains(statement.getPredicate());
+        final boolean isValidPredicate = validPredicates == null || validPredicates.isEmpty() || validPredicates.contains(statement.getPredicate());
         if (!isValidPredicate || !(statement.getObject() instanceof Literal)) {
             return;
         }
+
         final DateTime[] indexDateTimes = new DateTime[2]; // 0 begin, 1 end of interval
         extractDateTime(statement, indexDateTimes);
         if (indexDateTimes[0]==null) {
             return;
         }
+
+        if (!this.isInit)
+            throw new RuntimeException("Method .init() was not called (or failed) before attempting to store statements.");
 
         // Add this as an instant, or interval.
         try {
@@ -865,8 +899,9 @@ public class AccumuloTemporalIndexer extends AbstractAccumuloIndexer implements 
     @Override
     public void close() throws IOException {
         try {
-
-            mtbw.close();
+            if (mtbw != null) {
+                mtbw.close();
+            }
 
         } catch (final MutationsRejectedException e) {
             final String msg = "Error while closing the batch writer.";
@@ -894,6 +929,8 @@ public class AccumuloTemporalIndexer extends AbstractAccumuloIndexer implements 
     }
 
     private void deleteStatement(final Statement statement) throws IOException, IllegalArgumentException {
+    	Objects.requireNonNull(temporalIndexBatchWriter,"This is not initialized for writing.  Must call setMultiTableBatchWriter() and init().");
+
         // if the predicate list is empty, accept all predicates.
         // Otherwise, make sure the predicate is on the "valid" list
         final boolean isValidPredicate = validPredicates.isEmpty() || validPredicates.contains(statement.getPredicate());
@@ -926,12 +963,6 @@ public class AccumuloTemporalIndexer extends AbstractAccumuloIndexer implements 
     }
 
     @Override
-    public void init() {
-        // TODO Auto-generated method stub
-
-    }
-
-    @Override
     public void setConnector(final Connector connector) {
         // TODO Auto-generated method stub
 
@@ -953,5 +984,15 @@ public class AccumuloTemporalIndexer extends AbstractAccumuloIndexer implements 
     public void dropAndDestroy() {
         // TODO Auto-generated method stub
 
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.apache.rya.accumulo.experimental.AbstractAccumuloIndexer#setMultiTableBatchWriter(org.apache.accumulo.core.client.MultiTableBatchWriter)
+     */
+    @Override
+    public void setMultiTableBatchWriter(MultiTableBatchWriter writer) throws IOException {
+        mtbw = writer;
     }
 }

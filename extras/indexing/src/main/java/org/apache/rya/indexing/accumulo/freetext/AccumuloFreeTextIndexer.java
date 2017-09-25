@@ -29,6 +29,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map.Entry;
+import java.util.Objects;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
@@ -213,7 +214,17 @@ public class AccumuloFreeTextIndexer extends AbstractAccumuloIndexer implements 
 
     private boolean isInit = false;
 
-
+    /**
+     * Called by setConf to initialize query only.  
+     * Use this alone if usage does not require writing.
+     * For a writeable (store and delete) version of this, 
+     * call setconf() and then setMultiTableBatchWriter(), then call init()
+     * that is what the DAO does.
+     * @throws AccumuloException
+     * @throws AccumuloSecurityException
+     * @throws TableNotFoundException
+     * @throws TableExistsException
+     */
     private void initInternal() throws AccumuloException, AccumuloSecurityException, TableNotFoundException,
             TableExistsException {
         final String doctable = getFreeTextDocTablename(conf);
@@ -260,19 +271,25 @@ public class AccumuloFreeTextIndexer extends AbstractAccumuloIndexer implements 
             tableOps.setProperty(doctable, "table.bloom.enabled", Boolean.TRUE.toString());
         }
 
-        mtbw = ConfigUtils.createMultitableBatchWriter(conf);
-
-        docTableBw = mtbw.getBatchWriter(doctable);
-        termTableBw = mtbw.getBatchWriter(termtable);
-
+        // Set mtbw by calling setMultiTableBatchWriter().  The DAO does this and manages flushing.
+        // If you create it here, tests work, but a real Accumulo may lose writes due to unmanaged flushing.
+        if (mtbw != null) {
+	        docTableBw = mtbw.getBatchWriter(doctable);
+	        termTableBw = mtbw.getBatchWriter(termtable);
+        }
         tokenizer = ConfigUtils.getFreeTextTokenizer(conf);
         validPredicates = ConfigUtils.getFreeTextPredicates(conf);
 
         queryTermLimit = ConfigUtils.getFreeTextTermLimit(conf);
     }
 
-
-  //initialization occurs in setConf because index is created using reflection
+    /**
+     * setConf sets the configuration and then initializes for query only.  
+     * Use this alone if usage does not require writing.
+     * For a writeable (store and delete) version of this, 
+     * call this and then setMultiTableBatchWriter(), then call init()
+     * that is what the DAO does.
+     */
     @Override
     public void setConf(final Configuration conf) {
         this.conf = conf;
@@ -294,6 +311,8 @@ public class AccumuloFreeTextIndexer extends AbstractAccumuloIndexer implements 
 
 
     private void storeStatement(final Statement statement) throws IOException {
+        Objects.requireNonNull(mtbw, "Freetext indexer attempting to store, but setMultiTableBatchWriter() was not set.");
+
         // if the predicate list is empty, accept all predicates.
         // Otherwise, make sure the predicate is on the "valid" list
         final boolean isValidPredicate = validPredicates.isEmpty() || validPredicates.contains(statement.getPredicate());
@@ -393,7 +412,8 @@ public class AccumuloFreeTextIndexer extends AbstractAccumuloIndexer implements 
     @Override
     public void close() throws IOException {
         try {
-            mtbw.close();
+        	if (mtbw!=null)
+        		mtbw.close();
         } catch (final MutationsRejectedException e) {
             logger.error("error closing the batch writer", e);
             throw new IOException(e);
@@ -636,7 +656,13 @@ public class AccumuloFreeTextIndexer extends AbstractAccumuloIndexer implements 
         return makeFreeTextDocTablename( ConfigUtils.getTablePrefix(conf) );
     }
 
-    /**
+    @Override
+	public void setMultiTableBatchWriter(MultiTableBatchWriter writer) throws IOException {
+        mtbw = writer;
+	}
+
+
+	/**
      * Get the Term index's table name.
      *
      * @param conf - The Rya configuration that specifies which instance of Rya
@@ -684,6 +710,8 @@ public class AccumuloFreeTextIndexer extends AbstractAccumuloIndexer implements 
     }
 
     private void deleteStatement(final Statement statement) throws IOException {
+        Objects.requireNonNull(mtbw, "Freetext indexer attempting to delete, but setMultiTableBatchWriter() was not set.");
+
         // if the predicate list is empty, accept all predicates.
         // Otherwise, make sure the predicate is on the "valid" list
         final boolean isValidPredicate = validPredicates.isEmpty() || validPredicates.contains(statement.getPredicate());
@@ -795,10 +823,21 @@ public class AccumuloFreeTextIndexer extends AbstractAccumuloIndexer implements 
     }
 
 
-	@Override
+	/** 
+	 * called by the DAO after setting the mtbw.
+	 * The rest of the initilization is done by setConf()
+	 */
+    @Override
 	public void init() {
-		// TODO Auto-generated method stub
-
+        Objects.requireNonNull(mtbw, "Freetext indexer failed to initialize temporal index, setMultiTableBatchWriter() was not set.");
+        Objects.requireNonNull(conf, "Freetext indexer failed to initialize temporal index, setConf() was not set.");
+        try {
+			docTableBw = mtbw.getBatchWriter(getFreeTextDocTablename(conf));
+			termTableBw = mtbw.getBatchWriter(getFreeTextTermTablename(conf));
+		} catch (AccumuloException | AccumuloSecurityException | TableNotFoundException e) {
+			logger.error("Unable to initialize index.  Throwing Runtime Exception. ", e);
+            throw new RuntimeException(e);		
+        }
 	}
 
 

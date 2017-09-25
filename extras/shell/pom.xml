@@ -25,7 +25,7 @@
     <parent>
         <groupId>org.apache.rya</groupId>
         <artifactId>rya.extras</artifactId>
-        <version>3.2.11-incubating-SNAPSHOT</version>
+        <version>3.2.11-incubating</version>
     </parent>
 
     <artifactId>rya.shell</artifactId>
@@ -156,7 +156,7 @@
                                 <transformer implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
                                     <resource>META-INF/spring.schemas</resource>
                                 </transformer>
-                                <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
+                                <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer" />
                                 <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
                                     <mainClass>org.springframework.shell.Bootstrap</mainClass>
                                 </transformer>

@@ -206,12 +206,23 @@ public class RyaOutputFormat extends OutputFormat<Writable, RyaStatementWritable
     }
 
 
-    private static FreeTextIndexer getFreeTextIndexer(Configuration conf) {
+    private static FreeTextIndexer getFreeTextIndexer(Configuration conf) throws IOException {
         if (!conf.getBoolean(ENABLE_FREETEXT, true)) {
             return null;
         }
         AccumuloFreeTextIndexer freeText = new AccumuloFreeTextIndexer();
         freeText.setConf(conf);
+        Connector connector;
+        try {
+            connector = ConfigUtils.getConnector(conf);
+        } catch (AccumuloException | AccumuloSecurityException e) {
+            throw new IOException("Error when attempting to create a connection for writing the freeText index.", e);
+        }
+        MultiTableBatchWriter mtbw = connector.createMultiTableBatchWriter(new BatchWriterConfig());
+        freeText.setConnector(connector);
+        freeText.setMultiTableBatchWriter(mtbw);
+        freeText.init();
+
         return freeText;
     }
 

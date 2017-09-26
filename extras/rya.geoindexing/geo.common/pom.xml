@@ -22,7 +22,7 @@
     <parent>
         <groupId>org.apache.rya</groupId>
         <artifactId>rya.geoindexing</artifactId>
-        <version>3.2.11-incubating</version>
+        <version>3.2.12-incubating-SNAPSHOT</version>
     </parent>
 
     <artifactId>rya.geo.common</artifactId>

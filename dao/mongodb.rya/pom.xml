@@ -23,7 +23,7 @@ under the License.
     <parent>
         <groupId>org.apache.rya</groupId>
         <artifactId>rya.dao</artifactId>
-        <version>3.2.11-incubating</version>
+        <version>3.2.12-incubating-SNAPSHOT</version>
     </parent>
 
     <artifactId>mongodb.rya</artifactId>

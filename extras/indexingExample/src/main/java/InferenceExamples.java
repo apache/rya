@@ -43,9 +43,6 @@ import com.mongodb.MongoClient;
 import com.mongodb.ServerAddress;
 
 
-//
-//See notes in inferenceExamples_readme.txt
-//
 
 public class InferenceExamples {
 	   private static final Logger log = Logger.getLogger(InferenceExamples.class);
@@ -67,7 +64,6 @@ public class InferenceExamples {
 
 	    public static void setupLogging() {
 	        final Logger rootLogger = LogManager.getRootLogger();
-	        rootLogger.setLevel(Level.OFF);
 	        final ConsoleAppender ca = (ConsoleAppender) rootLogger.getAppender("stdout");
 	        ca.setLayout(new PatternLayout("%d{MMM dd yyyy HH:mm:ss} %5p [%t] (%F:%L) - %m%n"));
 	        rootLogger.setLevel(Level.INFO);

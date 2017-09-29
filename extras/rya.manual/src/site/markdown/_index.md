@@ -45,4 +45,3 @@ This project contains documentation about Apache Rya, a scalable RDF triple stor
 
 # Development
 - [Building From Source](build-source.md)
-- [LTS Maven Settings XML](maven-settings.md)

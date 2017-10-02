@@ -16,7 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.apache.rya.indexing.pcj.storage.accumulo;
+package org.apache.rya.api.model;
 
 import static java.util.Objects.requireNonNull;
 

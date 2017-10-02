@@ -21,6 +21,7 @@ package org.apache.rya.indexing.pcj.storage.accumulo;
 import static org.apache.rya.indexing.pcj.storage.accumulo.VisibilityBindingSetStringConverter.VISIBILITY_DELIM;
 import static org.junit.Assert.assertEquals;
 
+import org.apache.rya.api.model.VisibilityBindingSet;
 import org.apache.rya.indexing.pcj.storage.accumulo.BindingSetConverter.BindingSetConversionException;
 import org.junit.Test;
 import org.openrdf.model.impl.URIImpl;

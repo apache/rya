@@ -21,9 +21,9 @@ import java.util.Objects;
 
 import org.apache.fluo.api.data.Column;
 import org.apache.fluo.api.data.Span;
+import org.apache.rya.api.model.VisibilityBindingSet;
 import org.apache.rya.indexing.pcj.fluo.app.JoinResultUpdater.Side;
 import org.apache.rya.indexing.pcj.fluo.app.query.JoinMetadata.JoinType;
-import org.apache.rya.indexing.pcj.storage.accumulo.VisibilityBindingSet;
 import org.openrdf.query.Binding;
 
 /**
@@ -67,11 +67,11 @@ public class JoinBatchInformation extends AbstractSpanBatchInformation {
         this.side = Objects.requireNonNull(side);
         this.join = Objects.requireNonNull(join);
     }
-    
+
     public JoinBatchInformation(Task task, Column column, Span span, VisibilityBindingSet bs, Side side, JoinType join) {
         this(DEFAULT_BATCH_SIZE, task, column, span, bs, side, join);
     }
-    
+
     /**
      * Indicates the join child that the BindingSet result {@link JoinBatchInformation#getBs()} updated.
      * This BindingSet is join with the results obtained by scanning over the value of {@link JoinBatchInformation#getSpan()}.
@@ -80,14 +80,14 @@ public class JoinBatchInformation extends AbstractSpanBatchInformation {
     public Side getSide() {
         return side;
     }
-    
+
     /**
      * @return {@link JoinType} indicating type of join (left join, right join, natural inner join,...)
      */
     public JoinType getJoinType() {
         return join;
     }
-    
+
 
    /**
     * Sets the VisibilityBindingSet that represents an update to the join child.  The join child
@@ -98,7 +98,7 @@ public class JoinBatchInformation extends AbstractSpanBatchInformation {
    public VisibilityBindingSet getBs() {
         return bs;
     }
-    
+
    /**
     * @return BatchBindingSetUpdater used to apply {@link Task} to results formed by joining the given
     * VisibilityBindingSet with the results returned by scanned over the Span.
@@ -107,7 +107,7 @@ public class JoinBatchInformation extends AbstractSpanBatchInformation {
     public BatchBindingSetUpdater getBatchUpdater() {
         return updater;
     }
-    
+
     @Override
     public String toString() {
         return new StringBuilder()
@@ -121,7 +121,7 @@ public class JoinBatchInformation extends AbstractSpanBatchInformation {
                 .append("}")
                 .toString();
     }
-    
+
     @Override
     public boolean equals(Object other) {
         if (this == other) {
@@ -141,8 +141,8 @@ public class JoinBatchInformation extends AbstractSpanBatchInformation {
     public int hashCode() {
         return Objects.hash(super.getBatchSize(), super.getColumn(), super.getSpan(), super.getTask(), bs, join, side);
     }
-    
-    
+
+
     public static Builder builder() {
         return new Builder();
     }
@@ -156,7 +156,7 @@ public class JoinBatchInformation extends AbstractSpanBatchInformation {
         private VisibilityBindingSet bs;
         private JoinType join;
         private Side side;
-   
+
         /**
          * @param batchSize - batch size that {@link Task}s are performed in
          */
@@ -164,7 +164,7 @@ public class JoinBatchInformation extends AbstractSpanBatchInformation {
             this.batchSize = batchSize;
             return this;
         }
-     
+
         /**
          * @param task - Task performed (Add, Delete, Update)
          */
@@ -172,7 +172,7 @@ public class JoinBatchInformation extends AbstractSpanBatchInformation {
             this.task = task;
             return this;
         }
-        
+
         /**
          * @param column - Column of join child to be scanned
          */
@@ -180,9 +180,9 @@ public class JoinBatchInformation extends AbstractSpanBatchInformation {
             this.column = column;
             return this;
         }
-        
+
         /**
-         * Span to scan results for one child of the join. The Span corresponds to the side of 
+         * Span to scan results for one child of the join. The Span corresponds to the side of
          * the join that is not indicated by Side.  So if Side is Left, then the
          * Span will scan the right child of the join.  It is assumed that the span is derived from
          * the common variables of the left and right join children.
@@ -192,17 +192,17 @@ public class JoinBatchInformation extends AbstractSpanBatchInformation {
             this.span = span;
             return this;
         }
-      
+
         /**
          * Sets the BindingSet that corresponds to an update to the join child indicated
-         * by Side.  
+         * by Side.
          * @param bs - BindingSet update of join child to be joined with results of scan
          */
         public Builder setBs(VisibilityBindingSet bs) {
             this.bs = bs;
             return this;
         }
-        
+
         /**
          * @param join - JoinType (left, right, natural inner)
          */
@@ -210,7 +210,7 @@ public class JoinBatchInformation extends AbstractSpanBatchInformation {
             this.join = join;
             return this;
         }
-        
+
         /**
          * Indicates the join child corresponding to the VisibilityBindingSet update
          * @param side - side of join the child BindingSet update appeared at
@@ -219,12 +219,12 @@ public class JoinBatchInformation extends AbstractSpanBatchInformation {
             this.side = side;
             return this;
         }
-   
+
         /**
          * @return an instance of {@link JoinBatchInformation} constructed from the parameters passed to this Builder
          */
         public JoinBatchInformation build() {
-            return new JoinBatchInformation(batchSize, task, column, span, bs, side, join); 
+            return new JoinBatchInformation(batchSize, task, column, span, bs, side, join);
         }
     }
 }

@@ -25,10 +25,10 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
 
+import org.apache.rya.api.model.VisibilityBindingSet;
 import org.apache.rya.indexing.pcj.fluo.app.JoinResultUpdater.IterativeJoin;
 import org.apache.rya.indexing.pcj.fluo.app.JoinResultUpdater.LeftOuterJoin;
 import org.apache.rya.indexing.pcj.fluo.app.JoinResultUpdater.NaturalJoin;
-import org.apache.rya.indexing.pcj.storage.accumulo.VisibilityBindingSet;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;

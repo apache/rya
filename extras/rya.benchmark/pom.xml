@@ -49,6 +49,10 @@
             <groupId>org.apache.rya</groupId>
             <artifactId>rya.indexing</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.apache.rya</groupId>
+            <artifactId>rya.api.model</artifactId>
+        </dependency>
 
         <!-- Utils -->
         <dependency>

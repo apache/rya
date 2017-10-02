@@ -20,10 +20,12 @@ package org.apache.rya.indexing.pcj.storage.accumulo;
 
 import static java.util.Objects.requireNonNull;
 
-import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
-import edu.umd.cs.findbugs.annotations.NonNull;
+import java.util.Objects;
 
 import org.openrdf.query.BindingSet;
+
+import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
+import edu.umd.cs.findbugs.annotations.NonNull;
 
 /**
  * Decorates a {@link BindingSet} with a collection of visibilities.
@@ -31,8 +33,8 @@ import org.openrdf.query.BindingSet;
 @DefaultAnnotation(NonNull.class)
 public class VisibilityBindingSet extends BindingSetDecorator {
     private static final long serialVersionUID = 1L;
+
     private String visibility;
-    private volatile int hashCode;
 
     /**
      * Creates a new {@link VisibilityBindingSet} that does not have any visibilities
@@ -76,20 +78,14 @@ public class VisibilityBindingSet extends BindingSetDecorator {
             return true;
         } else if(o instanceof VisibilityBindingSet) {
             final VisibilityBindingSet other = (VisibilityBindingSet) o;
-            return set.equals(other) && visibility.equals(other.getVisibility());
+            return getBindingSet().equals(other) && visibility.equals(other.getVisibility());
         }
         return false;
     }
 
     @Override
     public int hashCode() {
-        int result = hashCode;
-        if(result == 0) {
-            result = 31 * result + visibility.hashCode();
-            result = 31 * result + super.hashCode();
-            hashCode = result;
-        }
-        return result;
+        return Objects.hash(visibility, super.getBindingSet());
     }
 
     @Override

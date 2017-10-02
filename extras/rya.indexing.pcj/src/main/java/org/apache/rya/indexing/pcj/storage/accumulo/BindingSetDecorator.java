@@ -18,7 +18,7 @@
  */
 package org.apache.rya.indexing.pcj.storage.accumulo;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import static java.util.Objects.requireNonNull;
 
 import java.util.Iterator;
 import java.util.Set;
@@ -32,16 +32,24 @@ import org.openrdf.query.BindingSet;
  */
 public abstract class BindingSetDecorator implements BindingSet {
     private static final long serialVersionUID = 1L;
-    protected final BindingSet set;
-    private volatile int hashCode;
+
+    private final BindingSet set;
 
     /**
      * Constructs a new {@link BindingSetDecorator}, decorating the provided
      * {@link BindingSet}.
+     *
      * @param set - The {@link BindingSet} to be decorated. (not null)
      */
     public BindingSetDecorator(final BindingSet set) {
-        this.set = checkNotNull(set);
+        this.set = requireNonNull(set);
+    }
+
+    /**
+     * @return The decorated {@link BindingSet}.
+     */
+    public BindingSet getBindingSet() {
+        return set;
     }
 
     @Override
@@ -85,12 +93,7 @@ public abstract class BindingSetDecorator implements BindingSet {
 
     @Override
     public int hashCode() {
-        int result = hashCode;
-        if(result == 0) {
-            result = 31 * result + set.hashCode();
-            hashCode = result;
-        }
-        return result;
+        return set.hashCode();
     }
 
     @Override

@@ -19,9 +19,9 @@
 package org.apache.rya.indexing.pcj.fluo.app;
 
 import org.apache.fluo.api.data.Bytes;
+import org.apache.rya.api.model.VisibilityBindingSet;
 import org.apache.rya.indexing.pcj.fluo.app.util.BindingHashShardingFunction;
 import org.apache.rya.indexing.pcj.storage.accumulo.VariableOrder;
-import org.apache.rya.indexing.pcj.storage.accumulo.VisibilityBindingSet;
 
 /**
  * This class provides the common functionality for generating sharded row

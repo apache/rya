@@ -20,6 +20,7 @@ package org.apache.rya.indexing.pcj.storage.accumulo;
 
 import static org.junit.Assert.assertNotEquals;
 
+import org.apache.rya.api.model.VisibilityBindingSet;
 import org.junit.Test;
 import org.openrdf.model.ValueFactory;
 import org.openrdf.model.impl.ValueFactoryImpl;

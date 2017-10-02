@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- * 
+ *
  *   http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -27,6 +27,7 @@ import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 
 import org.apache.fluo.api.data.Bytes;
+import org.apache.rya.api.model.VisibilityBindingSet;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -61,7 +62,7 @@ public class VisibilityBindingSetSerDeTest {
     /**
      * Tests that deserializing an ArrayList should throw an error.
      * if VisibilityBindingSet changes to include ArrayList, then this will need changing.
-     * 
+     *
      * @throws Exception
      */
     @Test

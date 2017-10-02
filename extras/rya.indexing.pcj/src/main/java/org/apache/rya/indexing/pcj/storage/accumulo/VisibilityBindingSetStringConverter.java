@@ -21,6 +21,7 @@ package org.apache.rya.indexing.pcj.storage.accumulo;
 import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
 import edu.umd.cs.findbugs.annotations.NonNull;
 
+import org.apache.rya.api.model.VisibilityBindingSet;
 import org.openrdf.query.BindingSet;
 
 /**

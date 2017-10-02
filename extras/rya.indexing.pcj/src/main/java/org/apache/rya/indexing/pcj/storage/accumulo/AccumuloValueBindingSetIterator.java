@@ -32,33 +32,32 @@ import org.openrdf.query.BindingSet;
 /**
  * Implementation of CloseableIterator for retrieving results from a {@link PeriodicQueryResultStorage}
  * table.
- *
  */
 public class AccumuloValueBindingSetIterator implements CloseableIterator<BindingSet>{
-    
+
     private final Scanner scanner;
     private final Iterator<Entry<Key, Value>> iter;
     private final VisibilityBindingSetSerDe bsSerDe = new VisibilityBindingSetSerDe();
-    
+
     public AccumuloValueBindingSetIterator(Scanner scanner) {
         this.scanner = scanner;
         iter = scanner.iterator();
     }
-    
+
     @Override
     public boolean hasNext() {
         return iter.hasNext();
     }
-    
-    @Override 
+
+    @Override
     public BindingSet next() {
         try {
-            return bsSerDe.deserialize(Bytes.of(iter.next().getValue().get())).set;
+            return bsSerDe.deserialize(Bytes.of(iter.next().getValue().get())).getBindingSet();
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
-    
+
     @Override
     public void close() {
         scanner.close();
@@ -68,6 +67,4 @@ public class AccumuloValueBindingSetIterator implements CloseableIterator<Bindin
     public void remove() {
         throw new UnsupportedOperationException();
     }
-    
-
 }

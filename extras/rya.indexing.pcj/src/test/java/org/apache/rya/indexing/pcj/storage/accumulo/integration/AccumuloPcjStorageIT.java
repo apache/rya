@@ -27,6 +27,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
@@ -201,19 +202,19 @@ public class AccumuloPcjStorageIT extends AccumuloRyaITBase {
             final String pcjId = pcjStorage.createPcj(sparql);
 
             // Add some binding sets to it.
-            final Set<VisibilityBindingSet> expectedResults = new HashSet<>();
+            final Set<VisibilityBindingSet> storedResults = new HashSet<>();
 
             final MapBindingSet aliceBS = new MapBindingSet();
             aliceBS.addBinding("a", new URIImpl("http://Alice"));
             aliceBS.addBinding("b", new URIImpl("http://Person"));
-            expectedResults.add( new VisibilityBindingSet(aliceBS, "") );
+            storedResults.add( new VisibilityBindingSet(aliceBS, "") );
 
             final MapBindingSet charlieBS = new MapBindingSet();
             charlieBS.addBinding("a", new URIImpl("http://Charlie"));
             charlieBS.addBinding("b", new URIImpl("http://Comedian"));
-            expectedResults.add( new VisibilityBindingSet(charlieBS, "") );
+            storedResults.add( new VisibilityBindingSet(charlieBS, "") );
 
-            pcjStorage.addResults(pcjId, expectedResults);
+            pcjStorage.addResults(pcjId, storedResults);
 
             // List the results that were stored.
             final Set<BindingSet> results = new HashSet<>();
@@ -222,6 +223,11 @@ public class AccumuloPcjStorageIT extends AccumuloRyaITBase {
                     results.add( resultsIt.next() );
                 }
             }
+
+            // The stored results are returned as normal binding sets, so unwrap them.
+            final Set<BindingSet> expectedResults = storedResults.stream()
+                    .map(visBs -> visBs.getBindingSet() )
+                    .collect(Collectors.toSet());
 
             assertEquals(expectedResults, results);
         }

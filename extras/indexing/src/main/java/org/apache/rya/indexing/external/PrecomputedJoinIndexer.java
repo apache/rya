@@ -26,13 +26,18 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
-import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
-import edu.umd.cs.findbugs.annotations.NonNull;
-
 import org.apache.accumulo.core.client.Connector;
 import org.apache.accumulo.core.client.MultiTableBatchWriter;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.log4j.Logger;
+import org.apache.rya.accumulo.experimental.AbstractAccumuloIndexer;
+import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
+import org.apache.rya.api.domain.RyaStatement;
+import org.apache.rya.api.domain.RyaURI;
+import org.apache.rya.api.log.LogUtils;
+import org.apache.rya.api.persist.RyaDAO;
+import org.apache.rya.indexing.external.accumulo.AccumuloPcjStorageSupplier;
+import org.apache.rya.indexing.external.fluo.PcjUpdaterSupplierFactory;
 import org.apache.rya.indexing.pcj.storage.PrecomputedJoinStorage;
 import org.apache.rya.indexing.pcj.storage.PrecomputedJoinStorage.PCJStorageException;
 import org.apache.rya.indexing.pcj.storage.accumulo.AccumuloPcjStorage;
@@ -43,13 +48,8 @@ import org.openrdf.model.URI;
 import com.google.common.base.Optional;
 import com.google.common.base.Supplier;
 
-import org.apache.rya.accumulo.experimental.AbstractAccumuloIndexer;
-import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
-import org.apache.rya.api.domain.RyaStatement;
-import org.apache.rya.api.domain.RyaURI;
-import org.apache.rya.api.persist.RyaDAO;
-import org.apache.rya.indexing.external.accumulo.AccumuloPcjStorageSupplier;
-import org.apache.rya.indexing.external.fluo.PcjUpdaterSupplierFactory;
+import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
+import edu.umd.cs.findbugs.annotations.NonNull;
 
 /**
  * Updates the state of the Precomputed Join indices that are used by Rya.
@@ -219,7 +219,7 @@ public class PrecomputedJoinIndexer extends AbstractAccumuloIndexer {
                     pcjStorage.purge(pcjId);
                 } catch (final PCJStorageException e) {
                     log.error(
-                            "Could not purge the PCJ index with id: " + pcjId,
+                                    "Could not purge the PCJ index with id: " + LogUtils.clean(pcjId),
                             e);
                 }
             }
@@ -237,18 +237,18 @@ public class PrecomputedJoinIndexer extends AbstractAccumuloIndexer {
     @Override
     public void dropAndDestroy() {
         try {
-            for (final String pcjId : pcjStorage.listPcjs()) {
+            for (String pcjId : pcjStorage.listPcjs()) {// FIXME final
                 try {
                     pcjStorage.dropPcj(pcjId);
                 } catch (final PCJStorageException e) {
                     log.error("Could not delete the PCJ index with id: "
-                            + pcjId, e);
+                                    + LogUtils.clean(pcjId), e);
                 }
             }
         } catch (final PCJStorageException e) {
             log.error(
-                    "Could not delete the PCJ indicies because they could not be listed.",
-                    e);
+                            "Could not delete the PCJ indicies because they could not be listed.",
+                            e);
         }
     }
 

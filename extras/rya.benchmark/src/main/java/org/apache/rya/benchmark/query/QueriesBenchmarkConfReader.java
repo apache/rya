@@ -20,22 +20,28 @@ package org.apache.rya.benchmark.query;
 
 import static java.util.Objects.requireNonNull;
 
+import java.io.IOException;
 import java.io.InputStream;
 
-import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
-import edu.umd.cs.findbugs.annotations.NonNull;
 import javax.xml.XMLConstants;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.stream.StreamSource;
 import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
 
+import org.apache.rya.api.utils.XmlFactoryConfiguration;
 import org.xml.sax.SAXException;
 
 import com.google.common.base.Supplier;
 import com.google.common.base.Suppliers;
+
+import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
+import edu.umd.cs.findbugs.annotations.NonNull;
 
 /**
  * Unmarshalls instances of {@link QueriesBenchmarkConf}.
@@ -57,6 +63,14 @@ public final class QueriesBenchmarkConfReader {
                         return schemaFactory.newSchema( new StreamSource( schemaStream ) );
                     } catch (final SAXException e) {
                         throw new RuntimeException("Could not load the '" + SCHEMA_LOCATION + "' schema file. Make sure it is on the classpath.", e);
+                            } finally {
+                                if (schemaStream != null) {
+                                    try {
+                                        schemaStream.close();
+                                    } catch (IOException e) {
+                                        e.printStackTrace();
+                                    }
+                                }
                     }
                 }
             });
@@ -68,8 +82,11 @@ public final class QueriesBenchmarkConfReader {
      * @param xmlStream - The input stream holding the XML. (not null)
      * @return The {@link BenchmarkQueries} instance that was read from the stream.
      * @throws JAXBException There was a problem with the formatting of the XML.
+     * @throws ParserConfigurationException There was a problem creating the DocumentBuilder.
+     * @throws IOException There was a problem reading the xmlStream.
+     * @throws SAXException There was a problem parsing the xmlStream.
      */
-    public QueriesBenchmarkConf load(final InputStream xmlStream) throws JAXBException {
+    public QueriesBenchmarkConf load(final InputStream xmlStream) throws JAXBException, ParserConfigurationException, SAXException, IOException {
         requireNonNull(xmlStream);
 
         // Load the schema that describes the stream.
@@ -79,6 +96,9 @@ public final class QueriesBenchmarkConfReader {
         final JAXBContext context = JAXBContext.newInstance( QueriesBenchmarkConf.class );
         final Unmarshaller unmarshaller = context.createUnmarshaller();
         unmarshaller.setSchema(schema);
-        return (QueriesBenchmarkConf) unmarshaller.unmarshal(xmlStream);
+        final DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+        XmlFactoryConfiguration.harden(dbf);
+        final DocumentBuilder db = dbf.newDocumentBuilder();
+        return (QueriesBenchmarkConf) unmarshaller.unmarshal(db.parse(xmlStream));
     }
 }

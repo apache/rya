@@ -1,5 +1,3 @@
-package org.apache.rya.indexing.accumulo.entity;
-
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -8,9 +6,9 @@ package org.apache.rya.indexing.accumulo.entity;
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- * 
+ *
  *   http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -18,22 +16,18 @@ package org.apache.rya.indexing.accumulo.entity;
  * specific language governing permissions and limitations
  * under the License.
  */
-
-
-import static org.junit.Assert.*;
+package org.apache.rya.indexing.accumulo.entity;
 
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.hadoop.io.Text;
 import org.apache.rya.accumulo.documentIndex.TextColumn;
 import org.apache.rya.api.domain.RyaType;
 import org.apache.rya.api.resolver.RdfToRyaConversions;
 import org.apache.rya.api.resolver.RyaContext;
 import org.apache.rya.api.resolver.RyaTypeResolverException;
-import org.apache.rya.indexing.accumulo.entity.StarQuery;
-
-import org.apache.hadoop.io.Text;
 import org.junit.Assert;
 import org.junit.Test;
 import org.openrdf.model.Value;
@@ -57,7 +51,7 @@ public class StarQueryTest {
     
     
     @Test
-    public void testBasicFunctionality() {
+    public void testBasicFunctionality() throws MalformedQueryException {
       
         String q1 = "" //
                 + "SELECT ?X ?Y1 ?Y2 " //
@@ -73,11 +67,7 @@ public class StarQueryTest {
         SPARQLParser parser = new SPARQLParser();
         
         ParsedQuery pq1 = null;
-        try {
-            pq1 = parser.parseQuery(q1, null);
-        } catch (MalformedQueryException e) {
-            e.printStackTrace();
-        }
+        pq1 = parser.parseQuery(q1, null);
 
         TupleExpr te1 = pq1.getTupleExpr();
         
@@ -158,7 +148,7 @@ public class StarQueryTest {
     
     
     @Test
-    public void testGetContrainedQuery() {
+    public void testGetContrainedQuery() throws RyaTypeResolverException, MalformedQueryException {
       
         String q1 = "" //
                 + "SELECT ?X ?Y1 ?Y2 " //
@@ -174,12 +164,7 @@ public class StarQueryTest {
         SPARQLParser parser = new SPARQLParser();
         
         ParsedQuery pq1 = null;
-        try {
-            pq1 = parser.parseQuery(q1, null);
-        } catch (MalformedQueryException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
+        pq1 = parser.parseQuery(q1, null);
 
         TupleExpr te1 = pq1.getTupleExpr();
         
@@ -221,11 +206,7 @@ public class StarQueryTest {
                Assert.assertEquals(tc3[i].getColumnFamily(), new Text("uri:cf3"));
                RyaType objType = RdfToRyaConversions.convertValue(v2);
                byte[][] b1 = null;
-            try {
                 b1 = RyaContext.getInstance().serializeType(objType);
-            } catch (RyaTypeResolverException e) {
-                e.printStackTrace();
-            }
                byte[] b2 = Bytes.concat("object".getBytes(),
                        "\u0000".getBytes(), b1[0], b1[1]);
                Assert.assertEquals(tc3[i].getColumnQualifier(), new Text(b2));
@@ -241,7 +222,7 @@ public class StarQueryTest {
     
     
     @Test
-    public void testConstantPriority() {
+    public void testConstantPriority() throws MalformedQueryException {
       
         String q1 = "" //
                 + "SELECT ?X " //
@@ -257,11 +238,7 @@ public class StarQueryTest {
         SPARQLParser parser = new SPARQLParser();
         
         ParsedQuery pq1 = null;
-        try {
-            pq1 = parser.parseQuery(q1, null);
-        } catch (MalformedQueryException e) {
-            e.printStackTrace();
-        }
+        pq1 = parser.parseQuery(q1, null);
 
         TupleExpr te1 = pq1.getTupleExpr();
         

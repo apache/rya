@@ -8,9 +8,9 @@ package org.apache.cloud.rdf.web.sail;
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- * 
+ *
  *   http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -19,15 +19,15 @@ package org.apache.cloud.rdf.web.sail;
  * under the License.
  */
 
-
-
-import static org.hamcrest.Matchers.equalToIgnoringWhiteSpace;
+import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.not;
 import static org.junit.Assert.assertTrue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.setup.MockMvcBuilders.standaloneSetup;
 
+import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -111,15 +111,48 @@ public class RdfControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.TEXT_XML));
     }
-
+    
+    /**
+     * Make sure input variables with odd characters that could be json get encoded.
+     * literals should be represented correctly, for example: "bad" in JSON becomes \"bad\" (java escaped \\\"bad\\\")
+     * 
+     * @throws Exception
+     */
     @Test
-    public void callback() throws Exception {
-        this.mockMvc.perform(get("/queryrdf")
-                .param("query", "")
-                .param("callback", "test"))
-                .andExpect(status().isOk())
-                .andExpect(content().string(equalToIgnoringWhiteSpace("test()")));
+    public void callbackEncodeCorrectlyJson() throws Exception {
+        this.mockMvc.perform(get("/queryrdf") //
+                        .param("query", "select ?x where { BIND( '''testbad\\\\or\"bad\"''' AS ?x) }") //
+                        .param(RdfCloudTripleStoreConfiguration.CONF_QUERY_AUTH    , "test<bad>or{bad}or\"bad\"") //
+                        .param(RdfCloudTripleStoreConfiguration.CONF_CV            , "test<bad>or{bad}or\"bad\"") //
+                        .param(RdfCloudTripleStoreConfiguration.CONF_INFER         , "test<bad>or{bad}or\"bad\"") //
+                        .param(RdfCloudTripleStoreConfiguration.CONF_RESULT_FORMAT, "json")) //
+                        .andExpect(content().string(not(containsString("<bad>")))) // non-query param data should not be in the results
+                        .andExpect(content().string(not(containsString("{bad}")))) // non-query param data should not be in the results
+                        .andExpect(content().string(not(containsString("bad\\or")))) // should be bad\\\\or
+                        .andExpect(content().string(not(containsString("\"bad\"")))); // should be \\\"bad\\\"
     }
+
+    /**
+     * Make sure input variables with odd characters that could be xml get encoded.
+     * literals should be represented correctly, for example: <bad> in xml becomes &lt;bad&gt;
+     * 
+     * @throws Exception
+     */
+@Test
+    public void encodeCorrectlyXml() throws Exception {
+        this.mockMvc.perform(get("/queryrdf") //
+                        .param("query", "select ?x where { BIND( '''test<bad>or&bador&apos;bador&quot;bad&quot;''' AS ?x ) }") //
+                    .param(RdfCloudTripleStoreConfiguration.CONF_QUERY_AUTH    , "test<bad>or{bad}or\"bad\"") //
+                    .param(RdfCloudTripleStoreConfiguration.CONF_CV            , "test<bad>or{bad}or\"bad\"") //
+                    .param(RdfCloudTripleStoreConfiguration.CONF_INFER         , "test<bad>or{bad}or\"bad\"") //
+                        .param(RdfCloudTripleStoreConfiguration.CONF_RESULT_FORMAT, "test<bad>or{bad}or\"bad\"")) //
+                        .andExpect(content().string(not(containsString("<bad")))) // &lt;
+                        .andExpect(content().string(not(containsString("bad>")))) // &gt;
+                        .andExpect(content().string(not(containsString("{bad}"))))// non-query param data should not be in the results
+                        .andExpect(content().string(not(containsString("&bad")))) // &amp;
+                        .andExpect(content().string(not(containsString("'bad")))) // &amp;apos; converted from &apos;
+                        .andExpect(content().string(not(containsString("\"bad")))); // &amp;&quot; converted from &quot;
+}
 
     @Test
     public void malformedQuery() throws Exception {
@@ -131,7 +164,7 @@ public class RdfControllerTest {
     @Test
     public void updateQuery() throws Exception {
         this.mockMvc.perform(get("/queryrdf")
-                .param("query", "INSERT DATA { <http://mynamespace/ProductType1> <http://mynamespace#pred1> \"test\" }"))
+                .param("query", "INSERT \n DATA\n {\n <http://mynamespace/ProductType1> <http://mynamespace#pred1> \"test\" }"))
                 .andExpect(status().isOk());
 
         ValueFactory vf = repository.getValueFactory();

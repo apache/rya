@@ -44,7 +44,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.apache.rya.indexing.pcj.matching.PCJOptimizerUtilities;
 import org.apache.rya.rdftriplestore.inference.DoNotExpandSP;
 import org.apache.rya.rdftriplestore.utils.FixedStatementPattern;
 import org.openrdf.query.algebra.Filter;
@@ -106,7 +105,7 @@ public class JoinSegment<T extends ExternalSet> extends AbstractQuerySegment<T> 
      */
     @Override
     public boolean replaceWithExternalSet(QuerySegment<T> nodeToReplace, T set) {
-        Preconditions.checkNotNull(nodeToReplace != null);
+        Preconditions.checkNotNull(nodeToReplace); 
         Preconditions.checkNotNull(set);
         if (!containsQuerySegment(nodeToReplace)) {
             return false;

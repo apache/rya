@@ -21,6 +21,7 @@ package org.apache.rya.accumulo.mr.merge;
 import static org.apache.rya.accumulo.mr.merge.util.TestUtils.YESTERDAY;
 import static org.apache.rya.accumulo.mr.merge.util.ToolConfigUtils.makeArgument;
 
+import java.io.File;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -144,6 +145,25 @@ public class RulesetCopyIT {
         return new RyaType(type, lit);
     }
 
+    public static String getProjectRootDir() {
+        String rootDir = System.getProperty("basedir");
+        if(rootDir == null) {
+            rootDir = System.getProperty("user.dir");
+        }
+        if(rootDir == null) {
+            throw new RuntimeException("Expected user.dir to contain a value");
+        }
+        return rootDir;
+    }
+
+    private static File getUnitTestScratchDirectory(final String testName) {
+        final File dir = new File(getProjectRootDir() + File.separator + "target"
+                + File.separator + "TestScratch" + File.separator
+                + testName+ "-" + System.currentTimeMillis());
+        Assert.assertTrue("Unable to make TestScratchDirectory:"+ dir.getAbsolutePath(), dir.mkdirs());
+        return dir;
+    }
+
     @BeforeClass
     public static void setUpPerClass() throws Exception {
         DemoUtilities.setupLogging(LoggingDetail.LIGHT);
@@ -212,7 +232,8 @@ public class RulesetCopyIT {
                 makeArgument(CopyTool.CREATE_CHILD_INSTANCE_TYPE_PROP, (IS_MOCK ? InstanceType.MOCK : InstanceType.MINI).toString()),
                 makeArgument(CopyTool.QUERY_STRING_PROP, query),
                 makeArgument(CopyTool.USE_COPY_QUERY_SPARQL, "true"),
-                makeArgument(RdfCloudTripleStoreConfiguration.CONF_INFER, Boolean.toString(infer))
+                makeArgument(RdfCloudTripleStoreConfiguration.CONF_INFER, Boolean.toString(infer)),
+                makeArgument("hadoop.tmp.dir", getUnitTestScratchDirectory(RulesetCopyIT.class.getSimpleName()).getAbsolutePath())
         });
 
         final Configuration toolConfig = rulesetTool.getConf();

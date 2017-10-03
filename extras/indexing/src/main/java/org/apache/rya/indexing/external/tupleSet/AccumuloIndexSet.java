@@ -38,6 +38,15 @@ import org.apache.accumulo.core.data.Range;
 import org.apache.accumulo.core.security.Authorizations;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.Text;
+import org.apache.rya.accumulo.pcj.iterators.BindingSetHashJoinIterator;
+import org.apache.rya.accumulo.pcj.iterators.BindingSetHashJoinIterator.HashJoinType;
+import org.apache.rya.accumulo.pcj.iterators.IteratorCombiner;
+import org.apache.rya.accumulo.pcj.iterators.PCJKeyToCrossProductBindingSetIterator;
+import org.apache.rya.accumulo.pcj.iterators.PCJKeyToJoinBindingSetIterator;
+import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
+import org.apache.rya.api.utils.IteratorWrapper;
+import org.apache.rya.indexing.accumulo.ConfigUtils;
+import org.apache.rya.indexing.pcj.matching.PCJOptimizerUtilities;
 import org.apache.rya.indexing.pcj.storage.PcjException;
 import org.apache.rya.indexing.pcj.storage.PcjMetadata;
 import org.apache.rya.indexing.pcj.storage.PrecomputedJoinStorage.PCJStorageException;
@@ -45,6 +54,7 @@ import org.apache.rya.indexing.pcj.storage.accumulo.AccumuloPcjSerializer;
 import org.apache.rya.indexing.pcj.storage.accumulo.BindingSetConverter.BindingSetConversionException;
 import org.apache.rya.indexing.pcj.storage.accumulo.PcjTables;
 import org.apache.rya.indexing.pcj.storage.accumulo.VariableOrder;
+import org.apache.rya.rdftriplestore.evaluation.ExternalBatchingIterator;
 import org.openrdf.model.Value;
 import org.openrdf.query.Binding;
 import org.openrdf.query.BindingSet;
@@ -68,16 +78,6 @@ import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
 
 import info.aduna.iteration.CloseableIteration;
-import org.apache.rya.accumulo.pcj.iterators.BindingSetHashJoinIterator;
-import org.apache.rya.accumulo.pcj.iterators.BindingSetHashJoinIterator.HashJoinType;
-import org.apache.rya.accumulo.pcj.iterators.IteratorCombiner;
-import org.apache.rya.accumulo.pcj.iterators.PCJKeyToCrossProductBindingSetIterator;
-import org.apache.rya.accumulo.pcj.iterators.PCJKeyToJoinBindingSetIterator;
-import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
-import org.apache.rya.api.utils.IteratorWrapper;
-import org.apache.rya.indexing.accumulo.ConfigUtils;
-import org.apache.rya.indexing.pcj.matching.PCJOptimizerUtilities;
-import org.apache.rya.rdftriplestore.evaluation.ExternalBatchingIterator;
 
 /**
  * During query planning, this node is inserted into the parsed query to
@@ -175,31 +175,26 @@ public class AccumuloIndexSet extends ExternalTupleSet implements
 	}
 
 	/**
-	 *
-	 * @param accCon
-	 *            - connection to a valid Accumulo instance
-	 * @param tablename
-	 *            - name of an existing PCJ table
-	 * @throws MalformedQueryException
-	 * @throws SailException
-	 * @throws QueryEvaluationException
-	 * @throws TableNotFoundException
-	 * @throws AccumuloSecurityException
-	 * @throws AccumuloException
-	 */
+     *
+     * @param accCon
+     *            - connection to a valid Accumulo instance
+     * @param tablename
+     *            - name of an existing PCJ table
+     * @throws MalformedQueryException
+     * @throws SailException
+     * @throws QueryEvaluationException
+     * @throws TableNotFoundException
+     * @throws AccumuloSecurityException
+     * @throws AccumuloException
+     * @throws PCJStorageException
+     */
 	public AccumuloIndexSet(final Configuration conf, final String tablename)
 			throws MalformedQueryException, SailException,
-			QueryEvaluationException, TableNotFoundException, AccumuloException, AccumuloSecurityException {
+                    QueryEvaluationException, TableNotFoundException, AccumuloException, AccumuloSecurityException, PCJStorageException {
+        this.tablename = tablename;
 		this.accCon = ConfigUtils.getConnector(conf);
 		this.auths = getAuthorizations(conf);
-		PcjMetadata meta = null;
-		try {
-			meta = pcj.getPcjMetadata(accCon, tablename);
-		} catch (final PcjException e) {
-			e.printStackTrace();
-		}
-
-		this.tablename = tablename;
+        PcjMetadata meta = pcj.getPcjMetadata(accCon, tablename);
 		final SPARQLParser sp = new SPARQLParser();
 		final ParsedTupleQuery pq = (ParsedTupleQuery) sp.parseQuery(meta.getSparql(), null);
 

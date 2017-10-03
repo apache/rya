@@ -43,6 +43,7 @@ import org.apache.log4j.Logger;
 import org.apache.rya.accumulo.experimental.AbstractAccumuloIndexer;
 import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
 import org.apache.rya.api.domain.RyaStatement;
+import org.apache.rya.api.log.LogUtils;
 import org.apache.rya.api.resolver.RyaToRdfConversions;
 import org.apache.rya.indexing.GeoIndexer;
 import org.apache.rya.indexing.Md5Hash;
@@ -373,7 +374,7 @@ public class GeoWaveGeoIndexer extends AbstractAccumuloIndexer implements GeoInd
         }
 
         final String filterString = StringUtils.join(filterParms, " AND ");
-        logger.info("Performing geowave query : " + filterString);
+        logger.info("Performing geowave query : " + LogUtils.clean(filterString));
 
         return getIteratorWrapper(filterString);
     }
@@ -390,7 +391,7 @@ public class GeoWaveGeoIndexer extends AbstractAccumuloIndexer implements GeoInd
                     try {
                         cqlFilter = ECQL.toFilter(filterString);
                     } catch (final CQLException e) {
-                        logger.error("Error parsing query: " + filterString, e);
+                        logger.error("Error parsing query: " + LogUtils.clean(filterString), e);
                         throw new QueryEvaluationException(e);
                     }
 
@@ -479,7 +480,7 @@ public class GeoWaveGeoIndexer extends AbstractAccumuloIndexer implements GeoInd
     public CloseableIteration<Statement, QueryEvaluationException> queryOverlaps(final Geometry query, final StatementConstraints contraints) {
         return performQuery("OVERLAPS", query, contraints);
     }
-    
+
     @Override
     public CloseableIteration<Statement, QueryEvaluationException> queryNear(final NearQuery query,
             final StatementConstraints contraints) {

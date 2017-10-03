@@ -88,13 +88,13 @@ public class AccumuloStorage extends LoadFunc implements StoreFuncInterface, Ord
 
     protected String inst;
     protected String zookeepers;
-    protected String user = "";
-    protected String password = "";
+    protected String user;
+    protected String userP;
     protected String table;
     protected Text tableName;
     protected String auths;
-    protected Authorizations authorizations = Constants.NO_AUTHS;
-    protected List<Pair<Text, Text>> columnFamilyColumnQualifierPairs = new LinkedList<Pair<Text, Text>>();
+    protected Authorizations authorizations;
+    private final List<Pair<Text, Text>> columnFamilyColumnQualifierPairs = new LinkedList<Pair<Text, Text>>();
 
     protected Collection<Range> ranges = new ArrayList<Range>();
     protected boolean mock = false;
@@ -156,7 +156,7 @@ public class AccumuloStorage extends LoadFunc implements StoreFuncInterface, Ord
 
         if (!ConfiguratorBase.isConnectorInfoSet(AccumuloInputFormat.class, conf)) {
             try {
-				AccumuloInputFormat.setConnectorInfo(job, user, new PasswordToken(password.getBytes(StandardCharsets.UTF_8)));
+				AccumuloInputFormat.setConnectorInfo(job, user, new PasswordToken(userP.getBytes(StandardCharsets.UTF_8)));
 			} catch (final AccumuloSecurityException e) {
 				throw new RuntimeException(e);
 			}
@@ -204,7 +204,7 @@ public class AccumuloStorage extends LoadFunc implements StoreFuncInterface, Ord
                 } else if (pair[0].equals("user")) {
                     user = pair[1];
                 } else if (pair[0].equals("password")) {
-                    password = pair[1];
+                    userP = pair[1];
                 } else if (pair[0].equals("zookeepers")) {
                     zookeepers = pair[1];
                 } else if (pair[0].equals("auths")) {
@@ -288,7 +288,7 @@ public class AccumuloStorage extends LoadFunc implements StoreFuncInterface, Ord
 
         if (!conf.getBoolean(AccumuloOutputFormat.class.getSimpleName() + ".configured", false)) {
             try {
-				AccumuloOutputFormat.setConnectorInfo(job, user, new PasswordToken(password.getBytes(StandardCharsets.UTF_8)));
+				AccumuloOutputFormat.setConnectorInfo(job, user, new PasswordToken(userP.getBytes(StandardCharsets.UTF_8)));
 			} catch (final AccumuloSecurityException e) {
 				throw new RuntimeException(e);
 			}

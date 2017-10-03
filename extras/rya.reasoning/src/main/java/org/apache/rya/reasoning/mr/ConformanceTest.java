@@ -43,6 +43,7 @@ import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.util.Tool;
 import org.apache.hadoop.util.ToolRunner;
 import org.apache.rya.accumulo.mr.MRUtils;
+import org.apache.rya.api.path.PathUtils;
 import org.apache.rya.reasoning.Fact;
 import org.apache.rya.reasoning.Schema;
 import org.openrdf.OpenRDFException;
@@ -165,7 +166,7 @@ public class ConformanceTest extends Configured implements Tool {
 
         // If tests are in a file, stick them in a repository for querying
         if (args.length == 2) {
-            workingDir = new File(args[1]);
+            workingDir = new File(PathUtils.clean(args[1]));
             RDFFormat inputFormat= RDFFormat.RDFXML;
             final String formatString = conf.get(MRUtils.FORMAT_PROP);
             if (formatString != null) {
@@ -174,12 +175,14 @@ public class ConformanceTest extends Configured implements Tool {
             repo = new SailRepository(new MemoryStore());
             repo.initialize();
             final RepositoryConnection conn = repo.getConnection();
-            conn.add(new FileInputStream(args[0]), "", inputFormat);
+            FileInputStream fileInput = new FileInputStream(PathUtils.clean(args[0]));
+            conn.add(fileInput, "", inputFormat);
+            fileInput.close();
             conn.close();
         }
         // Otherwise, get a Rya repository
         else {
-            workingDir = new File(args[0]);
+            workingDir = new File(PathUtils.clean(args[0]));
             repo = MRReasoningUtils.getRepository(conf);
             repo.initialize();
         }
@@ -283,7 +286,8 @@ public class ConformanceTest extends Configured implements Tool {
             // Read in the inferred triples from HDFS:
             final Schema schema = MRReasoningUtils.loadSchema(conf);
             final FileSystem fs = FileSystem.get(conf);
-            final Path path = MRReasoningUtils.getOutputPath(conf, "final");
+            final Path configuredPath = MRReasoningUtils.getOutputPath(conf, "final");
+            final Path path = PathUtils.cleanHadoopPath(configuredPath, conf);
             final OutputCollector inferred = new OutputCollector();
             final NTriplesParser parser = new NTriplesParser();
             parser.setRDFHandler(inferred);

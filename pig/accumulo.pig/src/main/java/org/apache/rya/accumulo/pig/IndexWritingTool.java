@@ -52,6 +52,7 @@ import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
 import org.apache.hadoop.util.Tool;
 import org.apache.hadoop.util.ToolRunner;
 import org.apache.log4j.Logger;
+import org.apache.rya.api.path.PathUtils;
 import org.openrdf.query.MalformedQueryException;
 import org.openrdf.query.algebra.Projection;
 import org.openrdf.query.algebra.TupleExpr;
@@ -78,8 +79,8 @@ public class IndexWritingTool extends Configured implements Tool {
         Preconditions.checkArgument(args.length == 7, "java " + IndexWritingTool.class.getCanonicalName()
                 + " hdfsSaveLocation sparqlFile cbinstance cbzk cbuser cbpassword rdfTablePrefix.");
 
-        final String inputDir = args[0];
-        final String sparqlFile = args[1];
+        final String inputDir = PathUtils.clean(args[0]);
+        final String sparqlFile = PathUtils.clean(args[1]);
         final String instStr = args[2];
         final String zooStr = args[3];
         final String userStr = args[4];

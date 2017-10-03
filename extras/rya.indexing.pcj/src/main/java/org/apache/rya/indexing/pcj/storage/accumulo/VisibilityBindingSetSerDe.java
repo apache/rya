@@ -22,9 +22,9 @@ import static java.util.Objects.requireNonNull;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 
+import org.apache.commons.io.serialization.ValidatingObjectInputStream;
 import org.apache.fluo.api.data.Bytes;
 
 import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
@@ -63,9 +63,24 @@ public class VisibilityBindingSetSerDe {
      */
     public VisibilityBindingSet deserialize(final Bytes bytes) throws Exception {
         requireNonNull(bytes);
-
-        try(final ObjectInputStream ois = new ObjectInputStream(new ByteArrayInputStream(bytes.toArray()))) {
-            final Object o = ois.readObject();
+        try (final ValidatingObjectInputStream vois = new ValidatingObjectInputStream(new ByteArrayInputStream(bytes.toArray()))) {
+            // Perform input validation.  Only the following classes are allowed to be deserialized.
+            vois.accept(org.apache.rya.indexing.pcj.storage.accumulo.VisibilityBindingSet.class,
+                    org.apache.rya.indexing.pcj.storage.accumulo.BindingSetDecorator.class,
+                    org.openrdf.query.impl.MapBindingSet.class,
+                    java.util.LinkedHashMap.class,
+                    java.util.HashMap.class,
+                    java.math.BigInteger.class,
+                    java.math.BigDecimal.class,
+                    java.lang.Number.class,
+                    org.openrdf.query.impl.BindingImpl.class,
+                    org.openrdf.model.impl.LiteralImpl.class,
+                    org.openrdf.model.impl.IntegerLiteralImpl.class,
+                    org.openrdf.model.impl.DecimalLiteralImpl.class,
+                    org.openrdf.model.impl.URIImpl.class,
+                    org.openrdf.query.algebra.evaluation.QueryBindingSet.class);
+            vois.accept("[B");
+            final Object o = vois.readObject();
             if(o instanceof VisibilityBindingSet) {
                 return (VisibilityBindingSet) o;
             } else {

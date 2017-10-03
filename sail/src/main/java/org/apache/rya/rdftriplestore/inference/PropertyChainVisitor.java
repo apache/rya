@@ -83,6 +83,9 @@ public class PropertyChainVisitor extends AbstractInferVisitor {
                     nextSubj = currentObj;
 
                 }
+                if (lastStatementPatternAdded == null) {
+                    throw new NullPointerException("lastStatementPatternAdded is null despite non-empty inferenceEngine property chain. chain.size()==" + chain.size());
+                }
                 lastStatementPatternAdded.setObjectVar(originalObj);
 
                 TupleExpr lastRight = null;

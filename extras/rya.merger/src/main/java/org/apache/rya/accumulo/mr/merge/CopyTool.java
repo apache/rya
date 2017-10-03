@@ -101,6 +101,7 @@ import org.apache.rya.accumulo.mr.merge.util.ToolConfigUtils;
 import org.apache.rya.api.RdfCloudTripleStoreConstants;
 import org.apache.rya.api.RdfCloudTripleStoreUtils;
 import org.apache.rya.api.layout.TablePrefixLayoutStrategy;
+import org.apache.rya.api.path.PathUtils;
 import org.apache.rya.indexing.accumulo.ConfigUtils;
 
 import com.google.common.base.Joiner;
@@ -232,23 +233,23 @@ public class CopyTool extends AbstractDualInstanceAccumuloMRTool {
     public void setup() throws Exception {
         super.init();
 
-        tempDir = conf.get("hadoop.tmp.dir", null);
+        tempDir = PathUtils.clean(conf.get("hadoop.tmp.dir", null));
         if (tempDir == null) {
             throw new Exception("Invalid hadoop temp directory. \"hadoop.tmp.dir\" could not be found in the configuration.");
         }
 
         useCopyFileOutput = conf.getBoolean(USE_COPY_FILE_OUTPUT, false);
         baseOutputDir = tempDir + "/copy_tool_file_output/";
-        localBaseOutputDir = conf.get(COPY_FILE_OUTPUT_PATH, null);
+        localBaseOutputDir = PathUtils.clean(conf.get(COPY_FILE_OUTPUT_PATH, null));
         compressionType = conf.get(COPY_FILE_OUTPUT_COMPRESSION_TYPE, null);
         useCopyFileOutputDirectoryClear = conf.getBoolean(USE_COPY_FILE_OUTPUT_DIRECTORY_CLEAR, false);
-        localCopyFileImportDir = conf.get(COPY_FILE_IMPORT_DIRECTORY, null);
+        localCopyFileImportDir = PathUtils.clean(conf.get(COPY_FILE_IMPORT_DIRECTORY, null));
         baseImportDir = tempDir + "/copy_tool_import/";
 
         startTime = conf.get(MergeTool.START_TIME_PROP, null);
 
         if (!useCopyFileImport) {
-        	if (startTime != null) {
+            if (startTime != null) {
                 try {
                     final Date date = MergeTool.START_TIME_FORMATTER.parse(startTime);
                     log.info("Will copy all data after " + date);
@@ -597,7 +598,7 @@ public class CopyTool extends AbstractDualInstanceAccumuloMRTool {
         }
         fs.setPermission(splitsPath, new FsPermission(FsAction.ALL, FsAction.ALL, FsAction.ALL));
 
-        final String userDir = System.getProperty("user.dir");
+        final String userDir = PathUtils.clean(System.getProperty("user.dir"));
         // The splits file has a symlink created in the user directory for some reason.
         // It might be better to copy the entire file for Windows but it doesn't seem to matter if
         // the user directory symlink is broken.
@@ -650,8 +651,11 @@ public class CopyTool extends AbstractDualInstanceAccumuloMRTool {
         final Path failures = getPath(hdfsBaseWorkDir.toString(), "failures");
 
         // With HDFS permissions on, we need to make sure the Accumulo user can read/move the files
-        final FsShell shell = new FsShell(conf);
-        shell.run(new String[] {"-chmod", "777", hdfsBaseWorkDir.toString()});
+        final FsShell hdfs = new FsShell(conf);
+        if (!fs.isDirectory(hdfsBaseWorkDir)) {
+            throw new IllegalArgumentException("Configured working directory is not a valid directory" + hdfsBaseWorkDir.toString());
+        }
+        hdfs.run(new String[] {"-chmod", "777", hdfsBaseWorkDir.toString()});
         if (fs.exists(failures)) {
             fs.delete(failures, true);
         }
@@ -863,7 +867,7 @@ public class CopyTool extends AbstractDualInstanceAccumuloMRTool {
     public static void main(final String[] args) {
         final String log4jConfiguration = System.getProperties().getProperty("log4j.configuration");
         if (StringUtils.isNotBlank(log4jConfiguration)) {
-            final String parsedConfiguration = StringUtils.removeStart(log4jConfiguration, "file:");
+            final String parsedConfiguration = PathUtils.clean(StringUtils.removeStart(log4jConfiguration, "file:"));
             final File configFile = new File(parsedConfiguration);
             if (configFile.exists()) {
                 DOMConfigurator.configure(parsedConfiguration);

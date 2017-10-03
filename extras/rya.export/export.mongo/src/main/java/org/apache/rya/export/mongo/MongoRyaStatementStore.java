@@ -38,6 +38,8 @@ import org.apache.rya.export.api.store.UpdateStatementException;
 import org.apache.rya.export.mongo.parent.MongoParentMetadataRepository;
 import org.apache.rya.mongodb.MongoDBRyaDAO;
 import org.apache.rya.mongodb.dao.SimpleMongoDBStorageStrategy;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.mongodb.BasicDBObject;
 import com.mongodb.Cursor;
@@ -50,6 +52,8 @@ import com.mongodb.MongoClient;
  * importing rya statements from MongoDB.
  */
 public class MongoRyaStatementStore implements RyaStatementStore {
+    private static final Logger logger = LoggerFactory.getLogger(MongoRyaStatementStore.class);
+
     public static final String TRIPLES_COLLECTION = "rya__triples";
     public static final String METADATA_COLLECTION = "parent_metadata";
     protected final SimpleMongoDBStorageStrategy adapter;
@@ -130,9 +134,12 @@ public class MongoRyaStatementStore implements RyaStatementStore {
         MergeParentMetadata metadata = null;
         try {
             metadata = parentMetadataRepo.get();
-        } finally {
-            return Optional.ofNullable(metadata);
+        } catch (final Exception e) {
+            // Catching any exception to ensure we always return Optional.ofNullable(metadata).
+            // Logging at the debug level if exceptional behavior needs to be investigated while deployed.
+            logger.debug("Parent metadata missing or exceptional behavior occurred.", e);
         }
+        return Optional.ofNullable(metadata);
     }
 
     @Override

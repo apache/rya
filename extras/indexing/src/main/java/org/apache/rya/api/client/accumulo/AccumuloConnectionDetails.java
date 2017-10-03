@@ -33,7 +33,7 @@ import net.jcip.annotations.Immutable;
 @DefaultAnnotation(NonNull.class)
 public class AccumuloConnectionDetails {
     private final String username;
-    private final char[] password;
+    private final char[] userpass;
     private final String instanceName;
     private final String zookeepers;
 
@@ -41,7 +41,7 @@ public class AccumuloConnectionDetails {
      * Constructs an instance of {@link AccumuloConnectionDetails}.
      *
      * @param username - The username that was used to establish the connection. (not null)
-     * @param password - The password that was used to establish the connection. (not null)
+     * @param userpass - The userpass that was used to establish the connection. (not null)
      * @param instanceName - The Accumulo instance name that was used to establish the connection. (not null)
      * @param zookeepers - The list of zookeeper hostname that were used to establish the connection. (not null)
      */
@@ -51,7 +51,7 @@ public class AccumuloConnectionDetails {
             final String instanceName,
             final String zookeepers) {
         this.username = requireNonNull(username);
-        this.password = requireNonNull(password);
+        this.userpass = requireNonNull(password);
         this.instanceName = requireNonNull(instanceName);
         this.zookeepers = requireNonNull(zookeepers);
     }
@@ -66,8 +66,8 @@ public class AccumuloConnectionDetails {
     /**
      * @return The password that was used to establish the connection.
      */
-    public char[] getPassword() {
-        return password;
+    public char[] getUserPass() {
+        return userpass;
     }
 
     /**
@@ -99,7 +99,7 @@ public class AccumuloConnectionDetails {
                 conf.setAccumuloZookeepers(zookeepers);
                 conf.setAccumuloInstance(instanceName);
                 conf.setAccumuloUser(username);
-                conf.setAccumuloPassword(new String(password));
+                conf.setAccumuloPassword(new String(userpass));
         return conf;
     }
 }

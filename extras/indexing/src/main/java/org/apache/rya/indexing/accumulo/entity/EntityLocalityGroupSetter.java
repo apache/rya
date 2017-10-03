@@ -27,7 +27,7 @@ import java.util.Iterator;
 import java.util.Map.Entry;
 import java.util.NoSuchElementException;
 import java.util.Set;
-import org.apache.rya.indexing.accumulo.ConfigUtils;
+
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
 import org.apache.accumulo.core.client.BatchScanner;
@@ -39,6 +39,7 @@ import org.apache.accumulo.core.data.Value;
 import org.apache.accumulo.core.security.Authorizations;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.Text;
+import org.apache.rya.indexing.accumulo.ConfigUtils;
 
 public class EntityLocalityGroupSetter {
 
@@ -63,6 +64,7 @@ public class EntityLocalityGroupSetter {
             bs = conn.createBatchScanner(tablePrefix + "prospects", new Authorizations(auths), 10);
         } catch (TableNotFoundException e) {
             e.printStackTrace();
+            throw new Error("Attempting to scan missing table: " + tablePrefix + "prospects", e);
         }
         bs.setRanges(Collections.singleton(Range.prefix(new Text("predicate" + "\u0000"))));
         final Iterator<Entry<Key,Value>> iter = bs.iterator();

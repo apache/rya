@@ -7,6 +7,7 @@ import java.nio.charset.StandardCharsets;
 
 import org.apache.accumulo.core.client.Connector;
 import org.apache.accumulo.core.client.ZooKeeperInstance;
+import org.apache.accumulo.core.client.security.tokens.PasswordToken;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -15,6 +16,8 @@ import org.apache.pig.PigServer;
 import org.apache.rya.accumulo.AccumuloRdfConfiguration;
 import org.apache.rya.accumulo.AccumuloRdfEvalStatsDAO;
 import org.apache.rya.accumulo.AccumuloRyaDAO;
+import org.apache.rya.api.log.LogUtils;
+import org.apache.rya.api.path.PathUtils;
 import org.apache.rya.rdftriplestore.evaluation.QueryJoinOptimizer;
 import org.apache.rya.rdftriplestore.evaluation.RdfCloudTripleStoreEvaluationStatistics;
 import org.apache.rya.rdftriplestore.inference.InferenceEngine;
@@ -65,7 +68,7 @@ public class SparqlQueryPigEngine {
     private SparqlToPigTransformVisitor sparqlToPigTransformVisitor;
     private PigServer pigServer;
     private InferenceEngine inferenceEngine = null;
-    private RdfCloudTripleStoreEvaluationStatistics rdfCloudTripleStoreEvaluationStatistics;
+    private RdfCloudTripleStoreEvaluationStatistics<AccumuloRdfConfiguration> rdfCloudTripleStoreEvaluationStatistics;
     private AccumuloRyaDAO ryaDAO;
     AccumuloRdfConfiguration conf = new AccumuloRdfConfiguration();
 
@@ -98,7 +101,7 @@ public class SparqlQueryPigEngine {
             final String user = sparqlToPigTransformVisitor.getUser();
             final String pass = sparqlToPigTransformVisitor.getPassword();
 
-            final Connector connector = new ZooKeeperInstance(instance, zoo).getConnector(user, pass.getBytes(StandardCharsets.UTF_8));
+            final Connector connector = new ZooKeeperInstance(instance, zoo).getConnector(user, new PasswordToken(pass.getBytes(StandardCharsets.UTF_8)));
 
             final String tablePrefix = sparqlToPigTransformVisitor.getTablePrefix();
             conf.setTablePrefix(tablePrefix);
@@ -122,7 +125,7 @@ public class SparqlQueryPigEngine {
                 rdfEvalStatsDAO.setConnector(connector);
 //                rdfEvalStatsDAO.setEvalTable(tablePrefix + RdfCloudTripleStoreConstants.TBL_EVAL_SUFFIX);
                 rdfEvalStatsDAO.init();
-                rdfCloudTripleStoreEvaluationStatistics = new RdfCloudTripleStoreEvaluationStatistics(conf, rdfEvalStatsDAO);
+                rdfCloudTripleStoreEvaluationStatistics = new RdfCloudTripleStoreEvaluationStatistics<AccumuloRdfConfiguration>(conf, rdfEvalStatsDAO);
             }
         }
     }
@@ -151,7 +154,7 @@ public class SparqlQueryPigEngine {
     public void runQuery(final String sparql, final String hdfsSaveLocation) throws IOException {
         Preconditions.checkNotNull(sparql, "Sparql query cannot be null");
         Preconditions.checkNotNull(hdfsSaveLocation, "Hdfs save location cannot be null");
-        logger.info("Running query[" + sparql + "]\n to Location[" + hdfsSaveLocation + "]");
+        logger.info("Running query[" + LogUtils.clean(sparql) + "]\n to Location[" + LogUtils.clean(hdfsSaveLocation) + "]");
         pigServer.deleteFile(hdfsSaveLocation);
         try {
             final String pigScript = generatePigScript(sparql);
@@ -195,7 +198,7 @@ public class SparqlQueryPigEngine {
             Preconditions.checkArgument(args.length == 7, "Usage: java -cp <jar>:$PIG_LIB <class> sparqlFile hdfsSaveLocation cbinstance cbzk cbuser cbpassword rdfTablePrefix.\n " +
                     "Sample command: java -cp java -cp cloudbase.pig-2.0.0-SNAPSHOT-shaded.jar:/usr/local/hadoop-etc/hadoop-0.20.2/hadoop-0.20.2-core.jar:/srv_old/hdfs-tmp/pig/pig-0.9.2/pig-0.9.2.jar:$HADOOP_HOME/conf org.apache.rya.accumulo.pig.SparqlQueryPigEngine " +
                     "tstSpqrl.query temp/engineTest stratus stratus13:2181 root password l_");
-            final String sparql = FileUtils.readFileToString(new File(args[0]), StandardCharsets.UTF_8);
+            final String sparql = FileUtils.readFileToString(new File(PathUtils.clean(args[0])), StandardCharsets.UTF_8);
             final String hdfsSaveLocation = args[1];
             final SparqlToPigTransformVisitor visitor = new SparqlToPigTransformVisitor();
             visitor.setTablePrefix(args[6]);

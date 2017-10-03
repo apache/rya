@@ -22,6 +22,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static org.apache.rya.export.MergePolicy.TIMESTAMP;
 
 import java.io.File;
+import java.io.IOException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -29,6 +30,9 @@ import java.util.Date;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
 
 import org.apache.commons.cli.BasicParser;
 import org.apache.commons.cli.CommandLine;
@@ -36,6 +40,7 @@ import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
+import org.apache.rya.api.utils.XmlFactoryConfiguration;
 import org.apache.rya.export.AccumuloMergeToolConfiguration;
 import org.apache.rya.export.DBType;
 import org.apache.rya.export.InstanceType;
@@ -47,6 +52,7 @@ import org.apache.rya.export.api.conf.ConfigurationAdapter;
 import org.apache.rya.export.api.conf.MergeConfiguration;
 import org.apache.rya.export.api.conf.MergeConfigurationException;
 import org.apache.rya.export.api.conf.policy.TimestampPolicyMergeConfiguration;
+import org.xml.sax.SAXException;
 
 import com.google.common.annotations.VisibleForTesting;
 
@@ -140,8 +146,11 @@ public class MergeConfigurationCLI {
         try {
             final JAXBContext context = JAXBContext.newInstance(DBType.class, MergeToolConfiguration.class, AccumuloMergeToolConfiguration.class, TimestampMergePolicyConfiguration.class, MergePolicy.class, InstanceType.class);
             final Unmarshaller unmarshaller = context.createUnmarshaller();
-            return (MergeToolConfiguration) unmarshaller.unmarshal(configFile);
-        } catch (final JAXBException | IllegalArgumentException JAXBe) {
+            final DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+            XmlFactoryConfiguration.harden(dbf);
+            final DocumentBuilder db = dbf.newDocumentBuilder();
+            return unmarshaller.unmarshal(db.parse(configFile), MergeToolConfiguration.class).getValue();
+        } catch (final JAXBException | IllegalArgumentException | ParserConfigurationException | SAXException | IOException JAXBe) {
             throw new MergeConfigurationException("Failed to create a config based on the provided configuration.", JAXBe);
         }
     }

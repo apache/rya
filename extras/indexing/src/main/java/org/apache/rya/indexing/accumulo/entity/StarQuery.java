@@ -478,7 +478,9 @@ public class StarQuery {
             }
 
         }
-
+        if (vars == null) {
+            throw new NullPointerException("vars is null so the list of statement pattern nodes must be empty: nodes.size()= " + nodes.size());
+        }
         if (vars.size() == 1) {
             return vars.iterator().next();
         } else if (vars.size() > 1) {

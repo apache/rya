@@ -32,6 +32,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.BasicConfigurator;
 import org.apache.log4j.Logger;
 import org.apache.log4j.xml.DOMConfigurator;
+import org.apache.rya.api.path.PathUtils;
 import org.apache.rya.export.accumulo.AccumuloRyaStatementStore;
 import org.apache.rya.export.api.MergerException;
 import org.apache.rya.export.api.conf.MergeConfiguration;
@@ -66,7 +67,7 @@ public class MergeDriverClient {
 
         final String log4jConfiguration = System.getProperties().getProperty("log4j.configuration");
         if (StringUtils.isNotBlank(log4jConfiguration)) {
-            final String parsedConfiguration = StringUtils.removeStart(log4jConfiguration, "file:");
+            final String parsedConfiguration = PathUtils.clean(StringUtils.removeStart(log4jConfiguration, "file:"));
             final File configFile = new File(parsedConfiguration);
             if (configFile.exists()) {
                 DOMConfigurator.configure(parsedConfiguration);

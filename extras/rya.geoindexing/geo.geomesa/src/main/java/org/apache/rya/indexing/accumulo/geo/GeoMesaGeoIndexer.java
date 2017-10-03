@@ -41,6 +41,7 @@ import org.apache.log4j.Logger;
 import org.apache.rya.accumulo.experimental.AbstractAccumuloIndexer;
 import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
 import org.apache.rya.api.domain.RyaStatement;
+import org.apache.rya.api.log.LogUtils;
 import org.apache.rya.api.resolver.RyaToRdfConversions;
 import org.apache.rya.indexing.GeoIndexer;
 import org.apache.rya.indexing.Md5Hash;
@@ -62,6 +63,7 @@ import org.geotools.feature.SchemaException;
 import org.geotools.feature.simple.SimpleFeatureBuilder;
 import org.geotools.filter.text.cql2.CQLException;
 import org.geotools.filter.text.ecql.ECQL;
+import org.locationtech.geomesa.accumulo.data.AccumuloDataStore;
 import org.locationtech.geomesa.accumulo.index.Constants;
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes;
 import org.opengis.feature.simple.SimpleFeature;
@@ -78,7 +80,7 @@ import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.io.ParseException;
 
 import info.aduna.iteration.CloseableIteration;
- 
+
 /**
  * A {@link GeoIndexer} wrapper around a GeoMesa {@link AccumuloDataStore}. This class configures and connects to the Datastore, creates the
  * RDF Feature Type, and interacts with the Datastore.
@@ -311,7 +313,7 @@ public class GeoMesaGeoIndexer extends AbstractAccumuloIndexer implements GeoInd
         }
 
         final String filterString = StringUtils.join(filterParms, " AND ");
-        logger.info("Performing geomesa query : " + filterString);
+        logger.info("Performing geomesa query : " + LogUtils.clean(filterString));
 
         return getIteratorWrapper(filterString);
     }
@@ -328,7 +330,7 @@ public class GeoMesaGeoIndexer extends AbstractAccumuloIndexer implements GeoInd
                     try {
                         cqlFilter = ECQL.toFilter(filterString);
                     } catch (final CQLException e) {
-                        logger.error("Error parsing query: " + filterString, e);
+                        logger.error("Error parsing query: " + LogUtils.clean(filterString), e);
                         throw new QueryEvaluationException(e);
                     }
 
@@ -336,7 +338,7 @@ public class GeoMesaGeoIndexer extends AbstractAccumuloIndexer implements GeoInd
                     try {
                         featureIterator = featureSource.getFeatures(query).features();
                     } catch (final IOException e) {
-                        logger.error("Error performing query: " + filterString, e);
+                        logger.error("Error performing query: " + LogUtils.clean(filterString), e);
                         throw new QueryEvaluationException(e);
                     }
                 }
@@ -410,7 +412,7 @@ public class GeoMesaGeoIndexer extends AbstractAccumuloIndexer implements GeoInd
     public CloseableIteration<Statement, QueryEvaluationException> queryOverlaps(final Geometry query, final StatementConstraints contraints) {
         return performQuery("OVERLAPS", query, contraints);
     }
-    
+
     @Override
     public CloseableIteration<Statement, QueryEvaluationException> queryNear(final NearQuery query,
             final StatementConstraints contraints) {

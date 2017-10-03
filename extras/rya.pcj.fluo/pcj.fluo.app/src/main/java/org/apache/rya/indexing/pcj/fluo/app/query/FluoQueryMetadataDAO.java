@@ -22,7 +22,7 @@ import static java.util.Objects.requireNonNull;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.ObjectInputStream;
+import java.io.InvalidClassException;
 import java.io.ObjectOutputStream;
 import java.util.Collection;
 import java.util.HashSet;
@@ -30,6 +30,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
+import org.apache.commons.io.serialization.ValidatingObjectInputStream;
 import org.apache.fluo.api.client.SnapshotBase;
 import org.apache.fluo.api.client.TransactionBase;
 import org.apache.fluo.api.data.Bytes;
@@ -560,8 +561,21 @@ public class FluoQueryMetadataDAO {
         // Deserialize the collection of AggregationElements.
         final Bytes aggBytes = sx.get(Bytes.of(nodeId.getBytes(Charsets.UTF_8)), FluoQueryColumns.AGGREGATION_AGGREGATIONS);
         final Collection<AggregationElement> aggregations;
-        try(final ObjectInputStream ois = new ObjectInputStream(aggBytes.toInputStream())) {
-             aggregations = (Collection<AggregationElement>)ois.readObject();
+        try (final ValidatingObjectInputStream vois = new ValidatingObjectInputStream(aggBytes.toInputStream())
+        //// this is how you find classes that you missed in the vois.accept() list, below.
+        // { @Override protected void invalidClassNameFound(String className) throws java.io.InvalidClassException {
+        // System.out.println("vois.accept(" + className + ".class, ");};};
+        ) {
+            // These classes are allowed to be deserialized. Others throw InvalidClassException.
+            vois.accept(java.util.ArrayList.class, //
+                            java.lang.Enum.class, //
+                            org.apache.rya.indexing.pcj.fluo.app.query.AggregationMetadata.AggregationElement.class, //
+                            org.apache.rya.indexing.pcj.fluo.app.query.AggregationMetadata.AggregationType.class);
+            final Object object = vois.readObject();
+            if (!(object instanceof Collection<?>)) {
+                throw new InvalidClassException("Object read was not of type Collection. It was: " + object.getClass());
+            }
+            aggregations = (Collection<AggregationElement>) object;
         } catch (final IOException | ClassNotFoundException e) {
             throw new RuntimeException("Problem encountered while reading AggregationMetadata from the Fluo table. Unable " +
                     "to deserialize the AggregationElements from a byte[].", e);

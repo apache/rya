@@ -217,9 +217,9 @@ public class StatementPatternStorage extends AccumuloStorage {
             ryaDAO.setConf(rdfConf);
             try {
                 if (!mock) {
-                    ryaDAO.setConnector(new ZooKeeperInstance(inst, zookeepers).getConnector(user, password.getBytes(StandardCharsets.UTF_8)));
+                    ryaDAO.setConnector(new ZooKeeperInstance(inst, zookeepers).getConnector(user, userP.getBytes(StandardCharsets.UTF_8)));
                 } else {
-                    ryaDAO.setConnector(new MockInstance(inst).getConnector(user, password.getBytes(StandardCharsets.UTF_8)));
+                    ryaDAO.setConnector(new MockInstance(inst).getConnector(user, userP.getBytes(StandardCharsets.UTF_8)));
                 }
             } catch (Exception e) {
                 throw new IOException(e);

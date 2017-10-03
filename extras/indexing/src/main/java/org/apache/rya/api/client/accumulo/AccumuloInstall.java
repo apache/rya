@@ -217,7 +217,7 @@ public class AccumuloInstall extends AccumuloCommand implements Install {
         //     indexers used the connector that is provided to them instead of
         //     building a new one.
         conf.set(ConfigUtils.CLOUDBASE_USER, connectionDetails.getUsername());
-        conf.set(ConfigUtils.CLOUDBASE_PASSWORD, new String(connectionDetails.getPassword()));
+        conf.set(ConfigUtils.CLOUDBASE_PASSWORD, new String(connectionDetails.getUserPass()));
         conf.set(ConfigUtils.CLOUDBASE_INSTANCE, connectionDetails.getInstanceName());
         conf.set(ConfigUtils.CLOUDBASE_ZOOKEEPERS, connectionDetails.getZookeepers());
 

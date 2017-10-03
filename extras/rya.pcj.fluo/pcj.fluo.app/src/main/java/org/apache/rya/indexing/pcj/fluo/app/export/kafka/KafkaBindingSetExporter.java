@@ -29,6 +29,7 @@ import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.clients.producer.RecordMetadata;
 import org.apache.rya.api.client.CreatePCJ.ExportStrategy;
 import org.apache.rya.api.client.CreatePCJ.QueryType;
+import org.apache.rya.api.log.LogUtils;
 import org.apache.rya.indexing.pcj.fluo.app.export.IncrementalBindingSetExporter;
 import org.apache.rya.indexing.pcj.storage.accumulo.VisibilityBindingSet;
 import org.slf4j.Logger;
@@ -71,9 +72,9 @@ public class KafkaBindingSetExporter implements IncrementalBindingSetExporter {
 
             // Don't let the export return until the result has been written to the topic. Otherwise we may lose results.
             future.get();
-
-            log.debug("Producer successfully sent record with queryId: {} and visbilityBindingSet: \n{}", queryId, result);
-
+            if(log.isDebugEnabled()) {
+                log.debug("Producer successfully sent record with queryId: {} and visbilityBindingSet: \n{}", LogUtils.clean(queryId), LogUtils.clean(result.toString()));
+            }
         } catch (final Throwable e) {
             throw new ResultExportException("A result could not be exported to Kafka.", e);
         }

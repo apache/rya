@@ -157,7 +157,7 @@ public class AccumuloCreatePCJ extends AccumuloCommand implements CreatePCJ {
         final AccumuloConnectionDetails cd = super.getAccumuloConnectionDetails();
         try(final FluoClient fluoClient = new FluoClientFactory().connect(
                 cd.getUsername(),
-                new String(cd.getPassword()),
+                new String(cd.getUserPass()),
                 cd.getInstanceName(),
                 cd.getZookeepers(),
                 fluoAppName);) {

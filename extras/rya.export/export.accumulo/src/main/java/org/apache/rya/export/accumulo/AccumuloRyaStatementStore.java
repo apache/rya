@@ -184,9 +184,12 @@ public class AccumuloRyaStatementStore implements RyaStatementStore {
         MergeParentMetadata metadata = null;
         try {
             metadata = metadataRepo.get();
-        } finally {
-            return Optional.ofNullable(metadata);
+        } catch (final Exception e) {
+            // Catching any exception to ensure we always return Optional.ofNullable(metadata).
+            // Logging at the debug level if exceptional behavior needs to be investigated while deployed.
+            log.debug("Parent metadata missing or exceptional behavior occurred.", e);
         }
+        return Optional.ofNullable(metadata);
     }
 
     @Override

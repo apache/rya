@@ -24,14 +24,15 @@ import static java.util.Objects.requireNonNull;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.util.regex.Pattern;
+
+import org.apache.commons.io.serialization.ValidatingObjectInputStream;
+import org.apache.rya.api.instance.RyaDetails;
+import org.apache.rya.api.instance.RyaDetailsRepository.RyaDetailsRepositoryException;
 
 import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
 import edu.umd.cs.findbugs.annotations.NonNull;
-
-import org.apache.rya.api.instance.RyaDetails;
-import org.apache.rya.api.instance.RyaDetailsRepository.RyaDetailsRepositoryException;
 
 /**
  * Serializes {@link RyaDetails} instances.
@@ -66,15 +67,32 @@ public class RyaDetailsSerializer {
     public RyaDetails deserialize(final byte[] bytes) throws SerializationException {
         requireNonNull(bytes);
 
-        try {
-            final ByteArrayInputStream stream = new ByteArrayInputStream( bytes );
-            final Object o = new ObjectInputStream( stream ).readObject();
+        try (final ByteArrayInputStream stream = new ByteArrayInputStream(bytes); //
+                        final ValidatingObjectInputStream vois = new ValidatingObjectInputStream(stream)
+        //// this is how you find classes that you missed in the accept list
+        // { @Override protected void invalidClassNameFound(String className) throws java.io.InvalidClassException {
+        // System.out.println("vois.accept(" + className + ".class, ");};};
+        ) {
+            vois.accept(RyaDetails.class,
+                            com.google.common.base.Optional.class, //
+                            java.util.Date.class, //
+                            java.lang.Enum.class);
+            vois.accept("com.google.common.base.Present", //
+                        "com.google.common.base.Absent", //
+                        "com.google.common.collect.ImmutableMap$SerializedForm", //
+                        "com.google.common.collect.ImmutableBiMap$SerializedForm", //
+                        "com.google.common.collect.ImmutableList$SerializedForm", //
+                        "[Ljava.lang.Object;");
+            vois.accept(Pattern.compile("org\\.apache\\.rya\\.api\\.instance\\.RyaDetails.*"));
 
-            if(! (o instanceof RyaDetails) ) {
-                throw new SerializationException("Wrong type of object was deserialized. Class: " + o.getClass().getName() );
+            final Object o = vois.readObject();
+
+            if (!(o instanceof RyaDetails)) {
+                throw new SerializationException("Wrong type of object was deserialized. Class: " + o.getClass().getName());
             }
 
             return (RyaDetails) o;
+
         } catch (final ClassNotFoundException | IOException e) {
             throw new SerializationException("Could not deserialize an instance of RyaDetails.", e);
         }

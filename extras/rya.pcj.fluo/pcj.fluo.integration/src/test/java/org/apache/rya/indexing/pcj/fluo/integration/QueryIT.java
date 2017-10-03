@@ -480,7 +480,7 @@ public class QueryIT extends RyaExportITBase {
 
         final String sparql = "PREFIX fn: <" + FN.NAMESPACE +">"
                 + "SELECT ?event ?startTime WHERE { ?event <uri:startTime> ?startTime. "
-                + "FILTER(fn:dateTimeWithin(?startTime, NOW(), 15, <" + OWLTime.SECONDS_URI + "> ))}";
+                + "FILTER(fn:dateTimeWithin(?startTime, NOW(), 30, <" + OWLTime.SECONDS_URI + "> ))}";
 
         ZonedDateTime zTime = ZonedDateTime.now();
         String time = zTime.format(DateTimeFormatter.ISO_INSTANT);

@@ -1,5 +1,15 @@
 package org.apache.rya.reasoning;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.DataInputStream;
+import java.io.DataOutput;
+import java.io.DataOutputStream;
+import java.io.ObjectOutputStream;
+import java.io.Serializable;
+
+import org.apache.rya.reasoning.mr.SchemaWritable;
+
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -21,13 +31,16 @@ package org.apache.rya.reasoning;
 
 import org.junit.Assert;
 import org.junit.Test;
+import org.openrdf.model.Resource;
 import org.openrdf.model.URI;
 import org.openrdf.model.vocabulary.OWL;
 import org.openrdf.model.vocabulary.RDF;
 import org.openrdf.model.vocabulary.RDFS;
 import org.openrdf.model.vocabulary.SKOS;
 
-public class SchemaTest {
+public class SchemaTest implements Serializable {
+    private static final long serialVersionUID = -3616030386119902719L;
+
     URI lubm(String s) {
         return TestUtils.uri("http://swat.cse.lehigh.edu/onto/univ-bench.owl", s);
     }
@@ -253,6 +266,55 @@ public class SchemaTest {
             OWL.HASVALUE, TestUtils.uri("y")));
         Assert.assertTrue("hasValue not returned for restriction x",
             schema.getClass(TestUtils.uri("x")).hasValue().contains(TestUtils.uri("y")));
+    }
+
+    @Test
+    public void testWritabe() throws Exception {
+        Resource c1 = TestUtils.bnode("c1");
+        Resource c2 = TestUtils.bnode("c2");
+        ByteArrayOutputStream outToArray = null;
+        {
+            SchemaWritable schema = new SchemaWritable();
+            // Load up as much variety to make sure it gets de/serialized.
+            schema.processTriple(TestUtils.statement(TestUtils.uri("x"), OWL.HASVALUE, TestUtils.uri("y")));
+            schema.processTriple(TestUtils.statement(c1, OWL.SOMEVALUESFROM, TestUtils.uri("Organization")));
+            schema.processTriple(TestUtils.statement(c1, OWL.ONPROPERTY, TestUtils.uri("worksFor")));
+            schema.processTriple(TestUtils.statement(c2, OWL.SOMEVALUESFROM, TestUtils.uri("Organization")));
+            schema.processTriple(TestUtils.statement(c2, OWL.ONPROPERTY, TestUtils.uri("memberOf")));
+            schema.processTriple(TestUtils.statement(TestUtils.uri("worksFor"), RDFS.SUBPROPERTYOF, TestUtils.uri("memberOf")));
+            schema.closure();
+
+            // now serialize and then read/deserialize
+            outToArray = new ByteArrayOutputStream();
+            DataOutput out = new java.io.DataOutputStream(outToArray);
+            schema.write(out);
+        }
+        byte inputArray[] = outToArray.toByteArray();
+        SchemaWritable schema2 = new SchemaWritable();
+        schema2.readFields(new DataInputStream(new ByteArrayInputStream(inputArray)));
+        Assert.assertTrue("hasValue should be returned for restriction x after serializeing and deserializing.", schema2.getClass(TestUtils.uri("x")).hasValue().contains(TestUtils.uri("y")));
+        Assert.assertTrue("[someValuesFrom y on <subproperty>] should be subclass of" + " [someValuesFrom y on <superproperty>]", schema2.getClass(c1).getSuperClasses().contains(c2));
+    }
+
+    @Test(expected = java.io.InvalidClassException.class)
+    public void testWritabeRejectWrongClass() throws Exception {
+        // String trouble = "Trouble";
+        SchemaTest trouble = new SchemaTest();
+        ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+        ObjectOutputStream stream = new ObjectOutputStream(bytes);
+        stream.writeObject(trouble);
+        stream.writeObject(trouble);
+        byte[] troubleArray = bytes.toByteArray();
+        stream.close();
+        final ByteArrayOutputStream outToArray = new ByteArrayOutputStream();
+        DataOutputStream out = new DataOutputStream(outToArray);
+        out.writeInt(troubleArray.length);
+        out.write(troubleArray);
+        out.close();
+        byte inputArray[] = outToArray.toByteArray();
+        SchemaWritable schema2 = new SchemaWritable();
+        schema2.readFields(new DataInputStream(new ByteArrayInputStream(inputArray)));
+        Assert.assertTrue("hasValue should be returned for restriction x after serializeing and deserializing.", schema2.getClass(TestUtils.uri("x")).hasValue().contains(TestUtils.uri("y")));
     }
 
     @Test

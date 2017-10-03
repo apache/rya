@@ -118,7 +118,7 @@ public class SimpleMongoDBStorageStrategy implements MongoDBStorageStrategy<RyaS
         try {
             documentVisibility = DocumentVisibilityAdapter.toDocumentVisibility(queryResult);
         } catch (final MalformedDocumentVisibilityException e) {
-            LOG.error("Unable to convert document visibility");
+            throw new RuntimeException("Unable to convert document visibility", e);
         }
         final Long timestamp = (Long) result.get(TIMESTAMP);
         final String statementMetadata = (String) result.get(STATEMENT_METADATA);

@@ -99,4 +99,5 @@ public class MongoDBRdfConfigurationTest {
         assertEquals(conf.get(MongoDBRdfConfiguration.MONGO_USER), user);
         assertEquals(conf.get(MongoDBRdfConfiguration.MONGO_USER_PASSWORD), password);
     }
+
 }

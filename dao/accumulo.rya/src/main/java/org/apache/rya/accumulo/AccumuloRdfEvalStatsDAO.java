@@ -28,11 +28,10 @@ import static org.apache.rya.api.RdfCloudTripleStoreConstants.SUBJECTPRED_CF_TXT
 import static org.apache.rya.api.RdfCloudTripleStoreConstants.SUBJECT_CF_TXT;
 
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.apache.accumulo.core.client.Connector;
 import org.apache.accumulo.core.client.Scanner;
@@ -41,7 +40,6 @@ import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Range;
 import org.apache.accumulo.core.security.Authorizations;
 import org.apache.hadoop.io.Text;
-import org.apache.rya.api.RdfCloudTripleStoreStatement;
 import org.apache.rya.api.layout.TableLayoutStrategy;
 import org.apache.rya.api.persist.RdfDAOException;
 import org.apache.rya.api.persist.RdfEvalStatsDAO;
@@ -55,10 +53,9 @@ import org.openrdf.model.Value;
  */
 public class AccumuloRdfEvalStatsDAO implements RdfEvalStatsDAO<AccumuloRdfConfiguration> {
 
-    private boolean initialized = false;
+    private final AtomicBoolean isInitialized = new AtomicBoolean();
     private AccumuloRdfConfiguration conf = new AccumuloRdfConfiguration();
 
-    private final Collection<RdfCloudTripleStoreStatement> statements = new ArrayList<RdfCloudTripleStoreStatement>();
     private Connector connector;
 
     //    private String evalTable = TBL_EVAL;
@@ -80,7 +77,7 @@ public class AccumuloRdfEvalStatsDAO implements RdfEvalStatsDAO<AccumuloRdfConfi
 //            boolean tableExists = tos.exists(evalTable);
 //            if (!tableExists)
 //                tos.create(evalTable);
-            initialized = true;
+            isInitialized.set(true);
         } catch (final Exception e) {
             throw new RdfDAOException(e);
         }
@@ -92,12 +89,12 @@ public class AccumuloRdfEvalStatsDAO implements RdfEvalStatsDAO<AccumuloRdfConfi
         if (!isInitialized()) {
             throw new IllegalStateException("Not initialized");
         }
-        initialized = false;
+        isInitialized.set(false);
     }
 
     @Override
     public boolean isInitialized() throws RdfDAOException {
-        return initialized;
+        return isInitialized.get();
     }
 
     public Connector getConnector() {
@@ -120,7 +117,7 @@ public class AccumuloRdfEvalStatsDAO implements RdfEvalStatsDAO<AccumuloRdfConfi
 
     @Override
     public double getCardinality(final AccumuloRdfConfiguration conf,
-            final org.apache.rya.api.persist.RdfEvalStatsDAO.CARDINALITY_OF card, final List<Value> val,
+            final RdfEvalStatsDAO.CARDINALITY_OF card, final List<Value> val,
             final Resource context) throws RdfDAOException {
         try {
             final Authorizations authorizations = conf.getAuthorizations();
@@ -150,7 +147,7 @@ public class AccumuloRdfEvalStatsDAO implements RdfEvalStatsDAO<AccumuloRdfConfi
             final Iterator<Value> vals = val.iterator();
             String compositeIndex = vals.next().stringValue();
             while (vals.hasNext()){
-            	compositeIndex += DELIM + vals.next().stringValue();
+                compositeIndex += DELIM + vals.next().stringValue();
             }
             scanner.setRange(new Range(new Text(compositeIndex.getBytes(StandardCharsets.UTF_8))));
             final Iterator<Map.Entry<Key, org.apache.accumulo.core.data.Value>> iter = scanner.iterator();
@@ -167,7 +164,7 @@ public class AccumuloRdfEvalStatsDAO implements RdfEvalStatsDAO<AccumuloRdfConfi
 
     @Override
     public double getCardinality(final AccumuloRdfConfiguration conf,
-            final org.apache.rya.api.persist.RdfEvalStatsDAO.CARDINALITY_OF card, final List<Value> val)
+            final RdfEvalStatsDAO.CARDINALITY_OF card, final List<Value> val)
             throws RdfDAOException {
         return getCardinality(conf, card, val, null);
     }

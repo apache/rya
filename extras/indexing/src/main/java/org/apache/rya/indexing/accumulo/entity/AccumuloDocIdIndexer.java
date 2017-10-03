@@ -71,6 +71,8 @@ import com.google.common.primitives.Bytes;
 
 import info.aduna.iteration.CloseableIteration;
 
+import info.aduna.iteration.CloseableIteration;
+
 public class AccumuloDocIdIndexer implements DocIdIndexer {
 
 
@@ -96,6 +98,7 @@ public class AccumuloDocIdIndexer implements DocIdIndexer {
             pq1 = parser.parseQuery(sparqlQuery, null);
         } catch (final MalformedQueryException e) {
             e.printStackTrace();
+            throw new QueryEvaluationException("Malformed query. query=" + sparqlQuery, e);
         }
 
         final TupleExpr te1 = pq1.getTupleExpr();

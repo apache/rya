@@ -8,9 +8,9 @@ package org.apache.cloud.rdf.web.sail;
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- * 
+ *
  *   http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -34,10 +34,12 @@ import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.rya.api.security.SecurityProvider;
+import org.apache.commons.lang3.StringEscapeUtils;
+import org.apache.log4j.Logger;
 import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
+import org.apache.rya.api.log.LogUtils;
+import org.apache.rya.api.security.SecurityProvider;
 import org.apache.rya.rdftriplestore.RdfCloudTripleStoreConnection;
-
 import org.openrdf.model.Resource;
 import org.openrdf.model.Statement;
 import org.openrdf.query.BindingSet;
@@ -82,58 +84,57 @@ import org.springframework.web.bind.annotation.RequestParam;
  */
 @Controller
 public class RdfController {
-    
-	private static final int QUERY_TIME_OUT_SECONDS = 120;
+    private static final Logger log = Logger.getLogger(RdfController.class);
+
+    private static final int QUERY_TIME_OUT_SECONDS = 120;
 
     @Autowired
     SailRepository repository;
-    
-    @Autowired   
+
+    @Autowired
     SecurityProvider provider;
 
     @RequestMapping(value = "/queryrdf", method = {RequestMethod.GET, RequestMethod.POST})
-    public void queryRdf(@RequestParam("query") String query,
+    public void queryRdf(@RequestParam("query") final String query,
                          @RequestParam(value = RdfCloudTripleStoreConfiguration.CONF_QUERY_AUTH, required = false) String auth,
-                         @RequestParam(value = RdfCloudTripleStoreConfiguration.CONF_CV, required = false) String vis,
-                         @RequestParam(value = RdfCloudTripleStoreConfiguration.CONF_INFER, required = false) String infer,
-                         @RequestParam(value = "nullout", required = false) String nullout,
-                         @RequestParam(value = RdfCloudTripleStoreConfiguration.CONF_RESULT_FORMAT, required = false) String emit,
-                         @RequestParam(value = "padding", required = false) String padding,
-                         @RequestParam(value = "callback", required = false) String callback,
-                         HttpServletRequest request,
-                         HttpServletResponse response) {
+                         @RequestParam(value = RdfCloudTripleStoreConfiguration.CONF_CV, required = false) final String vis,
+                         @RequestParam(value = RdfCloudTripleStoreConfiguration.CONF_INFER, required = false) final String infer,
+                         @RequestParam(value = "nullout", required = false) final String nullout,
+                         @RequestParam(value = RdfCloudTripleStoreConfiguration.CONF_RESULT_FORMAT, required = false) final String emit,
+                         @RequestParam(value = "padding", required = false) final String padding,
+                         @RequestParam(value = "callback", required = false) final String callback,
+                         final HttpServletRequest request,
+                         final HttpServletResponse response) {
+        // WARNING: if you add to the above request variables,
+        // Be sure to validate and encode since they come from the outside and could contain odd damaging character sequences.
         SailRepositoryConnection conn = null;
-		final Thread queryThread = Thread.currentThread();
-		auth = StringUtils.arrayToCommaDelimitedString(provider.getUserAuths(request));
-		Timer timer = new Timer();
-		timer.schedule(new TimerTask() {
+        final Thread queryThread = Thread.currentThread();
+        auth = StringUtils.arrayToCommaDelimitedString(provider.getUserAuths(request));
+        final Timer timer = new Timer();
+        timer.schedule(new TimerTask() {
 
-			@Override
-			public void run() {
-				System.out.println("interrupting");
-				queryThread.interrupt();
+            @Override
+            public void run() {
+                log.debug("interrupting");
+                queryThread.interrupt();
 
-			}
-		}, QUERY_TIME_OUT_SECONDS * 1000);
-		
-		try {
-			ServletOutputStream os = response.getOutputStream();
+            }
+        }, QUERY_TIME_OUT_SECONDS * 1000);
+
+        try {
+            final ServletOutputStream os = response.getOutputStream();
             conn = repository.getConnection();
 
-            Boolean isBlankQuery = StringUtils.isEmpty(query);
-            ParsedOperation operation = QueryParserUtil.parseOperation(QueryLanguage.SPARQL, query, null);
+            final Boolean isBlankQuery = StringUtils.isEmpty(query);
+            final ParsedOperation operation = QueryParserUtil.parseOperation(QueryLanguage.SPARQL, query, null);
 
-            Boolean requestedCallback = !StringUtils.isEmpty(callback);
-            Boolean requestedFormat = !StringUtils.isEmpty(emit);
-
-            if (requestedCallback) {
-                os.print(callback + "(");
-            }
+            final Boolean requestedCallback = !StringUtils.isEmpty(callback);
+            final Boolean requestedFormat = !StringUtils.isEmpty(emit);
 
             if (!isBlankQuery) {
-            	if (operation instanceof ParsedGraphQuery) {
-            		// Perform Graph Query
-                    RDFHandler handler = new RDFXMLWriter(os);
+                if (operation instanceof ParsedGraphQuery) {
+                    // Perform Graph Query
+                    final RDFHandler handler = new RDFXMLWriter(os);
                     response.setContentType("text/xml");
                     performGraphQuery(query, conn, auth, infer, nullout, handler);
                 } else if (operation instanceof ParsedTupleQuery) {
@@ -160,33 +161,35 @@ public class RdfController {
             if (requestedCallback) {
                 os.print(")");
             }
-        } catch (Exception e) {
-            e.printStackTrace();
+        } catch (final Exception e) {
+            log.error("Error running query", e);
             throw new RuntimeException(e);
         } finally {
             if (conn != null) {
                 try {
                     conn.close();
-                } catch (RepositoryException e) {
-                    e.printStackTrace();
+                } catch (final RepositoryException e) {
+                    log.error("Error closing connection", e);
                 }
             }
         }
-		
-		timer.cancel();
+
+        timer.cancel();
     }
-    
-    private void performQuery(String query, RepositoryConnection conn, String auth, String infer, String nullout, TupleQueryResultHandler handler) throws RepositoryException, MalformedQueryException, QueryEvaluationException, TupleQueryResultHandlerException {
-        TupleQuery tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, query);
-        if (auth != null && auth.length() > 0)
+
+    private void performQuery(final String query, final RepositoryConnection conn, final String auth, final String infer, final String nullout, final TupleQueryResultHandler handler) throws RepositoryException, MalformedQueryException, QueryEvaluationException, TupleQueryResultHandlerException {
+        final TupleQuery tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, query);
+        if (auth != null && auth.length() > 0) {
             tupleQuery.setBinding(RdfCloudTripleStoreConfiguration.CONF_QUERY_AUTH, VALUE_FACTORY.createLiteral(auth));
-        if (infer != null && infer.length() > 0)
+        }
+        if (infer != null && infer.length() > 0) {
             tupleQuery.setBinding(RdfCloudTripleStoreConfiguration.CONF_INFER, VALUE_FACTORY.createLiteral(Boolean.parseBoolean(infer)));
+        }
         if (nullout != null && nullout.length() > 0) {
             //output nothing, but still run query
             tupleQuery.evaluate(new TupleQueryResultHandler() {
                 @Override
-                public void startQueryResult(List<String> strings) throws TupleQueryResultHandlerException {
+                public void startQueryResult(final List<String> strings) throws TupleQueryResultHandlerException {
                 }
 
                 @Override
@@ -194,147 +197,155 @@ public class RdfController {
                 }
 
                 @Override
-                public void handleSolution(BindingSet bindings) throws TupleQueryResultHandlerException {
+                public void handleSolution(final BindingSet bindings) throws TupleQueryResultHandlerException {
                 }
 
                 @Override
-                public void handleBoolean(boolean arg0) throws QueryResultHandlerException {
+                public void handleBoolean(final boolean arg0) throws QueryResultHandlerException {
                 }
 
                 @Override
-                public void handleLinks(List<String> arg0) throws QueryResultHandlerException {
+                public void handleLinks(final List<String> arg0) throws QueryResultHandlerException {
                 }
             });
         } else {
-            CountingTupleQueryResultHandlerWrapper sparqlWriter = new CountingTupleQueryResultHandlerWrapper(handler);
-            long startTime = System.currentTimeMillis();
+            final CountingTupleQueryResultHandlerWrapper sparqlWriter = new CountingTupleQueryResultHandlerWrapper(handler);
+            final long startTime = System.currentTimeMillis();
             tupleQuery.evaluate(sparqlWriter);
-            System.out.format("Query Time = %.3f\n", (System.currentTimeMillis() - startTime) / 1000.);
-            System.out.format("Result Count = %s\n", sparqlWriter.getCount());
+            log.info(String.format("Query Time = %.3f\n", (System.currentTimeMillis() - startTime) / 1000.));
+            log.info(String.format("Result Count = %s\n", sparqlWriter.getCount()));
         }
 
     }
-    
-    private void performGraphQuery(String query, RepositoryConnection conn, String auth, String infer, String nullout, RDFHandler handler) throws RepositoryException, MalformedQueryException, QueryEvaluationException, RDFHandlerException {
-        GraphQuery graphQuery = conn.prepareGraphQuery(QueryLanguage.SPARQL, query);
-        if (auth != null && auth.length() > 0)
-        	graphQuery.setBinding(RdfCloudTripleStoreConfiguration.CONF_QUERY_AUTH, VALUE_FACTORY.createLiteral(auth));
-        if (infer != null && infer.length() > 0)
-        	graphQuery.setBinding(RdfCloudTripleStoreConfiguration.CONF_INFER, VALUE_FACTORY.createLiteral(Boolean.parseBoolean(infer)));
+
+    private void performGraphQuery(final String query, final RepositoryConnection conn, final String auth, final String infer, final String nullout, final RDFHandler handler) throws RepositoryException, MalformedQueryException, QueryEvaluationException, RDFHandlerException {
+        final GraphQuery graphQuery = conn.prepareGraphQuery(QueryLanguage.SPARQL, query);
+        if (auth != null && auth.length() > 0) {
+            graphQuery.setBinding(RdfCloudTripleStoreConfiguration.CONF_QUERY_AUTH, VALUE_FACTORY.createLiteral(auth));
+        }
+        if (infer != null && infer.length() > 0) {
+            graphQuery.setBinding(RdfCloudTripleStoreConfiguration.CONF_INFER, VALUE_FACTORY.createLiteral(Boolean.parseBoolean(infer)));
+        }
         if (nullout != null && nullout.length() > 0) {
             //output nothing, but still run query
-        	// TODO this seems like a strange use case.
-        	graphQuery.evaluate(new RDFHandler() {
-				@Override
-				public void startRDF() throws RDFHandlerException {
-				}
+            // TODO this seems like a strange use case.
+            graphQuery.evaluate(new RDFHandler() {
+                @Override
+                public void startRDF() throws RDFHandlerException {
+                }
 
-				@Override
-				public void endRDF() throws RDFHandlerException {
-				}
+                @Override
+                public void endRDF() throws RDFHandlerException {
+                }
 
-				@Override
-				public void handleNamespace(String prefix, String uri)
-						throws RDFHandlerException {
-				}
+                @Override
+                public void handleNamespace(final String prefix, final String uri)
+                        throws RDFHandlerException {
+                }
 
-				@Override
-				public void handleStatement(Statement st)
-						throws RDFHandlerException {
-				}
+                @Override
+                public void handleStatement(final Statement st)
+                        throws RDFHandlerException {
+                }
 
-				@Override
-				public void handleComment(String comment)
-						throws RDFHandlerException {
-				}
+                @Override
+                public void handleComment(final String comment)
+                        throws RDFHandlerException {
+                }
             });
         } else {
-            long startTime = System.currentTimeMillis();
+            final long startTime = System.currentTimeMillis();
             graphQuery.evaluate(handler);
-            System.out.format("Query Time = %.3f\n", (System.currentTimeMillis() - startTime) / 1000.);
+            log.info(String.format("Query Time = %.3f\n", (System.currentTimeMillis() - startTime) / 1000.));
         }
 
     }
-    private void performUpdate(String query, SailRepositoryConnection conn, ServletOutputStream os, String infer, String vis) throws RepositoryException, MalformedQueryException, IOException {
-        Update update = conn.prepareUpdate(QueryLanguage.SPARQL, query);
-        if (infer != null && infer.length() > 0)
+    private void performUpdate(final String query, final SailRepositoryConnection conn, final ServletOutputStream os, final String infer, final String vis) throws RepositoryException, MalformedQueryException, IOException {
+        final Update update = conn.prepareUpdate(QueryLanguage.SPARQL, query);
+        if (infer != null && infer.length() > 0) {
             update.setBinding(RdfCloudTripleStoreConfiguration.CONF_INFER, VALUE_FACTORY.createLiteral(Boolean.parseBoolean(infer)));
+        }
 
         if (conn.getSailConnection() instanceof RdfCloudTripleStoreConnection && vis != null) {
-            RdfCloudTripleStoreConnection sailConnection = (RdfCloudTripleStoreConnection) conn.getSailConnection();
+            final RdfCloudTripleStoreConnection<?> sailConnection = (RdfCloudTripleStoreConnection<?>) conn.getSailConnection();
             sailConnection.getConf().set(RdfCloudTripleStoreConfiguration.CONF_CV, vis);
         }
 
-        long startTime = System.currentTimeMillis();
+        final long startTime = System.currentTimeMillis();
 
         try {
             update.execute();
-        } catch (UpdateExecutionException e) {
-            os.print(String.format("Update could not be successfully completed for query: %s\n\n", query));
-            os.print(String.format("\n\n%s", e.getLocalizedMessage()));
+        } catch (final UpdateExecutionException e) {
+            final String message = "Update could not be successfully completed for query: ";
+            os.print(String.format(message + "%s\n\n", StringEscapeUtils.escapeHtml4(query)));
+            log.error(message + LogUtils.clean(query), e);
         }
 
-        System.out.format("Update Time = %.3f\n", (System.currentTimeMillis() - startTime) / 1000.);
-    }    
-    
+        log.info(String.format("Update Time = %.3f\n", (System.currentTimeMillis() - startTime) / 1000.));
+    }
+
     private static final class CountingTupleQueryResultHandlerWrapper implements TupleQueryResultHandler {
-    	private TupleQueryResultHandler indir;
-    	private int count = 0;
-    	
-    	public CountingTupleQueryResultHandlerWrapper(TupleQueryResultHandler indir){
-    		this.indir = indir;
-    	}
-    	
-    	public int getCount() { return count; }
-    	
-    	@Override
-    	public void endQueryResult() throws TupleQueryResultHandlerException {
-    		indir.endQueryResult();
-    	}
+        private final TupleQueryResultHandler indir;
+        private int count = 0;
 
-    	@Override
-    	public void handleSolution(BindingSet bindingSet) throws TupleQueryResultHandlerException {
-    		count++;
-    		indir.handleSolution(bindingSet);
-    	}
-    	@Override
-    	public void startQueryResult(List<String> bindingNames) throws TupleQueryResultHandlerException {
-    		count = 0;
-    		indir.startQueryResult(bindingNames);
-    	}
+        public CountingTupleQueryResultHandlerWrapper(final TupleQueryResultHandler indir){
+            this.indir = indir;
+        }
 
-      @Override
-      public void handleBoolean(boolean arg0) throws QueryResultHandlerException {
-      }
+        public int getCount() {
+            return count;
+        }
 
-      @Override
-      public void handleLinks(List<String> arg0) throws QueryResultHandlerException {
-      }
+        @Override
+        public void endQueryResult() throws TupleQueryResultHandlerException {
+            indir.endQueryResult();
+        }
+
+        @Override
+        public void handleSolution(final BindingSet bindingSet) throws TupleQueryResultHandlerException {
+            count++;
+            indir.handleSolution(bindingSet);
+        }
+
+        @Override
+        public void startQueryResult(final List<String> bindingNames) throws TupleQueryResultHandlerException {
+            count = 0;
+            indir.startQueryResult(bindingNames);
+        }
+
+        @Override
+        public void handleBoolean(final boolean arg0) throws QueryResultHandlerException {
+        }
+
+        @Override
+        public void handleLinks(final List<String> arg0) throws QueryResultHandlerException {
+        }
     }
 
     @RequestMapping(value = "/loadrdf", method = RequestMethod.POST)
-    public void loadRdf(@RequestParam(required = false) String format,
-            @RequestParam(value = RdfCloudTripleStoreConfiguration.CONF_CV, required = false) String cv,
-            @RequestParam(required = false) String graph,
-                        @RequestBody String body,
-                        HttpServletResponse response)
+    public void loadRdf(@RequestParam(required = false) final String format,
+            @RequestParam(value = RdfCloudTripleStoreConfiguration.CONF_CV, required = false) final String cv,
+            @RequestParam(required = false) final String graph,
+                        @RequestBody final String body,
+                        final HttpServletResponse response)
             throws RepositoryException, IOException, RDFParseException {
-        List<Resource> authList = new ArrayList<Resource>();
+        final List<Resource> authList = new ArrayList<Resource>();
         RDFFormat format_r = RDFFormat.RDFXML;
         if (format != null) {
             format_r = RDFFormat.valueOf(format);
-            if (format_r == null)
+            if (format_r == null) {
                 throw new RuntimeException("RDFFormat[" + format + "] not found");
+            }
         }
         if (graph != null) {
-        	authList.add(VALUE_FACTORY.createURI(graph));
+            authList.add(VALUE_FACTORY.createURI(graph));
         }
         SailRepositoryConnection conn = null;
         try {
             conn = repository.getConnection();
-            
+
             if (conn.getSailConnection() instanceof RdfCloudTripleStoreConnection && cv != null) {
-                RdfCloudTripleStoreConnection sailConnection = (RdfCloudTripleStoreConnection) conn.getSailConnection();
+                final RdfCloudTripleStoreConnection<?> sailConnection = (RdfCloudTripleStoreConnection<?>) conn.getSailConnection();
                 sailConnection.getConf().set(RdfCloudTripleStoreConfiguration.CONF_CV, cv);
             }
 

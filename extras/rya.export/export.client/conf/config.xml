@@ -32,5 +32,4 @@ under the License. -->
     <childPort>27017</childPort>
     <mergePolicy>timestamp</mergePolicy>
     <useNtpServer>false</useNtpServer>
-    <toolStartTime>Sep 026 2016 15:21:30</toolStartTime>
 </MergeToolConfiguration>

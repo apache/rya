@@ -26,6 +26,7 @@ import static org.apache.rya.accumulo.mr.merge.util.ToolConfigUtils.makeArgument
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
+import java.io.File;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
@@ -43,13 +44,6 @@ import org.apache.accumulo.core.security.Authorizations;
 import org.apache.accumulo.core.security.ColumnVisibility;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.log4j.Logger;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
-
-import info.aduna.iteration.CloseableIteration;
 import org.apache.rya.accumulo.AccumuloRdfConfiguration;
 import org.apache.rya.accumulo.AccumuloRyaDAO;
 import org.apache.rya.accumulo.mr.MRUtils;
@@ -63,6 +57,14 @@ import org.apache.rya.api.RdfCloudTripleStoreConstants;
 import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.persist.RyaDAOException;
 import org.apache.rya.indexing.accumulo.ConfigUtils;
+import org.junit.After;
+import org.junit.AfterClass;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Test;
+
+import info.aduna.iteration.CloseableIteration;
 
 /**
  * Tests for {@link CopyTool}.
@@ -97,6 +99,25 @@ public class CopyToolTest {
     private static AccumuloDualInstanceDriver accumuloDualInstanceDriver;
     private static CopyTool copyTool = null;
     private boolean isImporting = false;
+
+    public static String getProjectRootDir() {
+        String rootDir = System.getProperty("basedir");
+        if(rootDir == null) {
+            rootDir = System.getProperty("user.dir");
+        }
+        if(rootDir == null) {
+            throw new RuntimeException("Expected user.dir to contain a value");
+        }
+        return rootDir;
+    }
+
+    private static File getUnitTestScratchDirectory(final String testName) {
+        final File dir = new File(getProjectRootDir() + File.separator + "target"
+                + File.separator + "TestScratch" + File.separator
+                + testName+ "-" + System.currentTimeMillis());
+        Assert.assertTrue("Unable to make TestScratchDirectory:"+ dir.getAbsolutePath(), dir.mkdirs());
+        return dir;
+    }
 
     @BeforeClass
     public static void setUp() throws Exception {
@@ -161,12 +182,13 @@ public class CopyToolTest {
                 makeArgument(CopyTool.NTP_SERVER_HOST_PROP, TimeUtils.DEFAULT_TIME_SERVER_HOST),
                 makeArgument(CopyTool.USE_NTP_SERVER_PROP, Boolean.toString(USE_TIME_SYNC)),
                 makeArgument(CopyTool.USE_COPY_FILE_OUTPUT, Boolean.toString(USE_COPY_FILE_OUTPUT)),
-                makeArgument(CopyTool.COPY_FILE_OUTPUT_PATH, "/test/copy_tool_file_output/"),
+                makeArgument(CopyTool.COPY_FILE_OUTPUT_PATH, getUnitTestScratchDirectory(CopyToolTest.class.getSimpleName() + "-copyFileOutput").getAbsolutePath()),
                 makeArgument(CopyTool.COPY_FILE_OUTPUT_COMPRESSION_TYPE, Algorithm.GZ.getName()),
                 makeArgument(CopyTool.USE_COPY_FILE_OUTPUT_DIRECTORY_CLEAR, Boolean.toString(true)),
                 makeArgument(CopyTool.COPY_FILE_IMPORT_DIRECTORY, "resources/test/copy_tool_file_output/"),
                 makeArgument(CopyTool.USE_COPY_FILE_IMPORT, Boolean.toString(isImporting)),
-                makeArgument(MergeTool.START_TIME_PROP, MergeTool.getStartTimeString(startDate))
+                makeArgument(MergeTool.START_TIME_PROP, MergeTool.getStartTimeString(startDate)),
+                makeArgument("hadoop.tmp.dir", getUnitTestScratchDirectory(CopyToolTest.class.getSimpleName()).getAbsolutePath())
         });
 
         final Configuration toolConfig = copyTool.getConf();

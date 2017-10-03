@@ -42,12 +42,6 @@ import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
 import org.apache.hadoop.util.ToolRunner;
 import org.apache.log4j.Logger;
-import org.openrdf.model.Statement;
-import org.openrdf.rio.RDFFormat;
-import org.openrdf.rio.RDFHandlerException;
-import org.openrdf.rio.RDFWriter;
-import org.openrdf.rio.Rio;
-
 import org.apache.rya.accumulo.AccumuloRdfConfiguration;
 import org.apache.rya.accumulo.AccumuloRyaDAO;
 import org.apache.rya.accumulo.mr.AbstractAccumuloMRTool;
@@ -57,6 +51,11 @@ import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.domain.RyaURI;
 import org.apache.rya.api.persist.RyaDAOException;
 import org.apache.rya.api.resolver.RyaToRdfConversions;
+import org.openrdf.model.Statement;
+import org.openrdf.rio.RDFFormat;
+import org.openrdf.rio.RDFHandlerException;
+import org.openrdf.rio.RDFWriter;
+import org.openrdf.rio.Rio;
 
 /**
  * Example of using a MapReduce tool to get triples from a Rya instance and serialize them to a text file as RDF.
@@ -68,7 +67,7 @@ public class TextOutputExample extends AbstractAccumuloMRTool {
 
     // Connection information
     private static final String USERNAME = "root";
-    private static final String PASSWORD = "";
+    private static final String USERP = "";
     private static final String INSTANCE_NAME = "instanceName";
     private static final String PREFIX = "rya_example_";
 
@@ -80,7 +79,7 @@ public class TextOutputExample extends AbstractAccumuloMRTool {
 
     static void setUpRya() throws AccumuloException, AccumuloSecurityException, RyaDAOException {
         MockInstance mock = new MockInstance(INSTANCE_NAME);
-        Connector conn = mock.getConnector(USERNAME, new PasswordToken(PASSWORD));
+        Connector conn = mock.getConnector(USERNAME, new PasswordToken(USERP));
         AccumuloRyaDAO dao = new AccumuloRyaDAO();
         dao.setConnector(conn);
         AccumuloRdfConfiguration conf = new AccumuloRdfConfiguration();
@@ -101,7 +100,7 @@ public class TextOutputExample extends AbstractAccumuloMRTool {
     public int run(String[] args) throws Exception {
         logger.info("Configuring tool to connect to mock instance...");
         MRUtils.setACUserName(conf, USERNAME);
-        MRUtils.setACPwd(conf, PASSWORD);
+        MRUtils.setACPwd(conf, USERP);
         MRUtils.setACInstance(conf, INSTANCE_NAME);
         MRUtils.setACMock(conf, true);
         MRUtils.setTablePrefix(conf, PREFIX);

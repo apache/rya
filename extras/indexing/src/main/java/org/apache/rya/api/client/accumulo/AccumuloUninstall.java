@@ -34,6 +34,7 @@ import org.apache.rya.api.client.InstanceExists;
 import org.apache.rya.api.client.RyaClientException;
 import org.apache.rya.api.client.Uninstall;
 import org.apache.rya.api.instance.RyaDetailsRepository.RyaDetailsRepositoryException;
+import org.apache.rya.api.log.LogUtils;
 import org.apache.rya.indexing.pcj.storage.PrecomputedJoinStorage.PCJStorageException;
 
 import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
@@ -81,8 +82,9 @@ public class AccumuloUninstall extends AccumuloCommand implements Uninstall {
                 try {
                     tableOps.delete(table);
                 } catch(final TableNotFoundException e) {
-                    log.warn("Uninstall could not delete table named '" + table + "' because it does not exist. " +
-                            "Something else is also deleting tables.");
+                    log.warn("Uninstall could not delete table named '" + LogUtils.clean(table)
+                                    + "' because it does not exist. "
+                                    + "Something else is also deleting tables.");
                 }
             }
         } catch (PCJStorageException | RyaDetailsRepositoryException e) {

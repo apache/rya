@@ -24,7 +24,6 @@ import static java.util.Objects.requireNonNull;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.math.BigDecimal;
@@ -34,10 +33,12 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 
+import org.apache.commons.io.serialization.ValidatingObjectInputStream;
 import org.apache.fluo.api.client.TransactionBase;
 import org.apache.fluo.api.data.Bytes;
 import org.apache.log4j.Logger;
 import org.apache.rya.accumulo.utils.VisibilitySimplifier;
+import org.apache.rya.api.log.LogUtils;
 import org.apache.rya.indexing.pcj.fluo.app.query.AggregationMetadata;
 import org.apache.rya.indexing.pcj.fluo.app.query.AggregationMetadata.AggregationElement;
 import org.apache.rya.indexing.pcj.fluo.app.query.AggregationMetadata.AggregationType;
@@ -126,7 +127,7 @@ public class AggregationResultUpdater extends AbstractNodeUpdater {
 
         log.trace(
                 "Transaction ID: " + tx.getStartTimestamp() + "\n" +
-                "Before Update: " + state.getBindingSet().toString() + "\n");
+                "Before Update: " + LogUtils.clean(state.getBindingSet().toString()) + "\n");
 
         // Update the visibilities of the result binding set based on the child's visibilities.
         final String oldVisibility = state.getVisibility();
@@ -146,7 +147,7 @@ public class AggregationResultUpdater extends AbstractNodeUpdater {
 
         log.trace(
                 "Transaction ID: " + tx.getStartTimestamp() + "\n" +
-                "After Update:" + state.getBindingSet().toString() + "\n" );
+                "After Update:" + LogUtils.clean(state.getBindingSet().toString()) + "\n" );
 
         // Store the updated state. This will write on top of any old state that was present for the Group By values.
         tx.set(rowId, FluoQueryColumns.AGGREGATION_BINDING_SET, Bytes.of(AGG_STATE_SERDE.serialize(state)));
@@ -403,8 +404,27 @@ public class AggregationResultUpdater extends AbstractNodeUpdater {
             final AggregationState state;
 
             final ByteArrayInputStream bais = new ByteArrayInputStream(bytes);
-            try(ObjectInputStream ois = new ObjectInputStream(bais)) {
-                final Object o = ois.readObject();
+            try(ValidatingObjectInputStream vois = new ValidatingObjectInputStream(bais)
+            //// this is how you find classes that you missed in the vois.accept() list, below.
+            // { @Override protected void invalidClassNameFound(String className) throws java.io.InvalidClassException {
+            // System.out.println("vois.accept(" + className + ".class, ");};};
+                        ) {
+                // These classes are allowed to be deserialized. Others throw InvalidClassException.
+                vois.accept(org.apache.rya.indexing.pcj.fluo.app.AggregationResultUpdater.AggregationState.class, //
+                                org.apache.rya.indexing.pcj.fluo.app.AggregationResultUpdater.AverageState.class, //
+                                java.util.HashMap.class, //
+                                java.math.BigInteger.class, //
+                                java.lang.Number.class, //
+                                java.math.BigDecimal.class, //
+                                org.openrdf.query.impl.MapBindingSet.class, //
+                                java.util.LinkedHashMap.class, //
+                                org.openrdf.query.impl.BindingImpl.class, //
+                                org.openrdf.model.impl.URIImpl.class, //
+                                org.openrdf.model.impl.LiteralImpl.class, //
+                                org.openrdf.model.impl.DecimalLiteralImpl.class, //
+                                org.openrdf.model.impl.IntegerLiteralImpl.class);
+                vois.accept("[B"); // Array of Bytes
+                final Object o = vois.readObject();
                 if(o instanceof AggregationState) {
                     state = (AggregationState)o;
                 } else {

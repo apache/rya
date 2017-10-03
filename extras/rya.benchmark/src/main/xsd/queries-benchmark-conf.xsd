@@ -58,14 +58,14 @@
             <xsd:element name="NumReadsRuns">
                 <xsd:complexType>
                     <xsd:sequence>
-                        <xsd:element name="NumReads" type="xsd:string" maxOccurs="unbounded"/>
+                        <xsd:element name="NumReads" type="xsd:string" maxOccurs="32766"/>
                     </xsd:sequence>
                 </xsd:complexType>
             </xsd:element>
             <xsd:element name="Queries" minOccurs="0">
                 <xsd:complexType>
                     <xsd:sequence>
-                        <xsd:element name="SPARQL" type="xsd:string" maxOccurs="unbounded"/>
+                        <xsd:element name="SPARQL" type="xsd:string" maxOccurs="32766"/>
                     </xsd:sequence>
                 </xsd:complexType>
             </xsd:element>

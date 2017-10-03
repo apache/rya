@@ -106,20 +106,20 @@ import org.openrdf.sail.helpers.SailConnectionBase;
 
 import info.aduna.iteration.CloseableIteration;
 
-public class RdfCloudTripleStoreConnection extends SailConnectionBase {
-    private final RdfCloudTripleStore store;
+public class RdfCloudTripleStoreConnection<C extends RdfCloudTripleStoreConfiguration> extends SailConnectionBase {
+    private final RdfCloudTripleStore<C> store;
 
-    private RdfEvalStatsDAO rdfEvalStatsDAO;
-    private SelectivityEvalDAO selectEvalDAO;
-    private RyaDAO ryaDAO;
+    private RdfEvalStatsDAO<C> rdfEvalStatsDAO;
+    private SelectivityEvalDAO<C> selectEvalDAO;
+    private RyaDAO<C> ryaDAO;
     private InferenceEngine inferenceEngine;
     private NamespaceManager namespaceManager;
-    private final RdfCloudTripleStoreConfiguration conf;
+    private final C conf;
 
 
     private ProvenanceCollector provenanceCollector;
 
-    public RdfCloudTripleStoreConnection(final RdfCloudTripleStore sailBase, final RdfCloudTripleStoreConfiguration conf, final ValueFactory vf)
+    public RdfCloudTripleStoreConnection(final RdfCloudTripleStore<C> sailBase, final C conf, final ValueFactory vf)
             throws SailException {
         super(sailBase);
         this.store = sailBase;
@@ -229,7 +229,11 @@ public class RdfCloudTripleStoreConnection extends SailConnectionBase {
         }
         tupleExpr = tupleExpr.clone();
 
-        final RdfCloudTripleStoreConfiguration queryConf = store.getConf().clone();
+        final C queryConf = (C) store.getConf().clone();
+        if (queryConf == null) {
+            // Should not happen, but this is better than a null dereference error.
+            throw new SailException("Cloning store.getConf() returned null, aborting.");
+        }
         if (bindings != null) {
             final Binding dispPlan = bindings.getBinding(RdfCloudTripleStoreConfiguration.CONF_QUERYPLAN_FLAG);
             if (dispPlan != null) {
@@ -304,7 +308,7 @@ public class RdfCloudTripleStoreConnection extends SailConnectionBase {
             }
 
             final ParallelEvaluationStrategyImpl strategy = new ParallelEvaluationStrategyImpl(
-                    new StoreTripleSource(queryConf, ryaDAO), inferenceEngine, dataset, queryConf);
+                    new StoreTripleSource<C>(queryConf, ryaDAO), inferenceEngine, dataset, queryConf);
 
                 (new BindingAssigner()).optimize(tupleExpr, dataset, bindings);
                 (new ConstantOptimizer(strategy)).optimize(tupleExpr, dataset,
@@ -386,10 +390,10 @@ public class RdfCloudTripleStoreConnection extends SailConnectionBase {
             } else if (queryConf.isUseStats()) {
 
                 if (queryConf.isUseSelectivity()) {
-                    stats = new RdfCloudTripleStoreSelectivityEvaluationStatistics(queryConf, rdfEvalStatsDAO,
+                    stats = new RdfCloudTripleStoreSelectivityEvaluationStatistics<C>(queryConf, rdfEvalStatsDAO,
                             selectEvalDAO);
                 } else {
-                    stats = new RdfCloudTripleStoreEvaluationStatistics(queryConf, rdfEvalStatsDAO);
+                    stats = new RdfCloudTripleStoreEvaluationStatistics<C>(queryConf, rdfEvalStatsDAO);
                 }
             }
             if (stats != null) {
@@ -605,12 +609,12 @@ public class RdfCloudTripleStoreConnection extends SailConnectionBase {
         //TODO: ?
     }
 
-    public static class StoreTripleSource implements TripleSource {
+    public static class StoreTripleSource<C extends RdfCloudTripleStoreConfiguration> implements TripleSource {
 
-        private final RdfCloudTripleStoreConfiguration conf;
-        private final RyaDAO<?> ryaDAO;
+        private final C conf;
+        private final RyaDAO<C> ryaDAO;
 
-        public StoreTripleSource(final RdfCloudTripleStoreConfiguration conf, final RyaDAO<?> ryaDAO) {
+        public StoreTripleSource(final C conf, final RyaDAO<C> ryaDAO) {
             this.conf = conf;
             this.ryaDAO = ryaDAO;
         }
@@ -638,7 +642,7 @@ public class RdfCloudTripleStoreConnection extends SailConnectionBase {
     public InferenceEngine getInferenceEngine() {
         return inferenceEngine;
     }
-    public RdfCloudTripleStoreConfiguration getConf() {
+    public C getConf() {
         return conf;
     }
 }

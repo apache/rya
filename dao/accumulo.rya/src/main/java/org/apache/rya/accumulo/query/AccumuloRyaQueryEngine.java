@@ -20,7 +20,6 @@ package org.apache.rya.accumulo.query;
  */
 
 import static org.apache.rya.api.RdfCloudTripleStoreUtils.layoutToTable;
-import info.aduna.iteration.CloseableIteration;
 
 import java.io.IOException;
 import java.util.Collection;
@@ -29,11 +28,23 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
 
+import org.apache.accumulo.core.client.BatchScanner;
+import org.apache.accumulo.core.client.Connector;
+import org.apache.accumulo.core.client.IteratorSetting;
+import org.apache.accumulo.core.client.Scanner;
+import org.apache.accumulo.core.client.ScannerBase;
+import org.apache.accumulo.core.data.Column;
+import org.apache.accumulo.core.data.Key;
+import org.apache.accumulo.core.data.Range;
+import org.apache.accumulo.core.data.Value;
+import org.apache.accumulo.core.iterators.user.RegExFilter;
+import org.apache.accumulo.core.iterators.user.TimestampFilter;
+import org.apache.accumulo.core.security.Authorizations;
+import org.apache.hadoop.io.Text;
 import org.apache.rya.accumulo.AccumuloRdfConfiguration;
 import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
 import org.apache.rya.api.RdfCloudTripleStoreConstants;
 import org.apache.rya.api.RdfCloudTripleStoreConstants.TABLE_LAYOUT;
-import org.apache.rya.api.RdfCloudTripleStoreUtils;
 import org.apache.rya.api.domain.RyaRange;
 import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.domain.RyaType;
@@ -49,20 +60,6 @@ import org.apache.rya.api.resolver.RyaContext;
 import org.apache.rya.api.resolver.RyaTripleContext;
 import org.apache.rya.api.resolver.triple.TripleRowRegex;
 import org.apache.rya.api.utils.CloseableIterableIteration;
-
-import org.apache.accumulo.core.client.BatchScanner;
-import org.apache.accumulo.core.client.Connector;
-import org.apache.accumulo.core.client.IteratorSetting;
-import org.apache.accumulo.core.client.Scanner;
-import org.apache.accumulo.core.client.ScannerBase;
-import org.apache.accumulo.core.data.Column;
-import org.apache.accumulo.core.data.Key;
-import org.apache.accumulo.core.data.Range;
-import org.apache.accumulo.core.data.Value;
-import org.apache.accumulo.core.iterators.user.RegExFilter;
-import org.apache.accumulo.core.iterators.user.TimestampFilter;
-import org.apache.accumulo.core.security.Authorizations;
-import org.apache.hadoop.io.Text;
 import org.calrissian.mango.collect.CloseableIterable;
 import org.calrissian.mango.collect.CloseableIterables;
 import org.calrissian.mango.collect.FluentCloseableIterable;
@@ -72,6 +69,8 @@ import com.google.common.base.Function;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.Iterators;
+
+import info.aduna.iteration.CloseableIteration;
 
 /**
  * Date: 7/17/12 Time: 9:28 AM
@@ -195,9 +194,10 @@ public class AccumuloRyaQueryEngine implements RyaQueryEngine<AccumuloRdfConfigu
                 ranges.add(range);
                 rangeMap.put(rangeMapRange, bs);
             }
-            // no ranges
-            if (layout == null)
+            // no ranges. if strategy alone is null, it would be thrown in the loop above.
+            if (layout == null || strategy == null) {
                 return null;
+            }
             String regexSubject = conf.getRegexSubject();
             String regexPredicate = conf.getRegexPredicate();
             String regexObject = conf.getRegexObject();
@@ -368,8 +368,8 @@ public class AccumuloRyaQueryEngine implements RyaQueryEngine<AccumuloRdfConfigu
                 ranges.add(range);
             }
             // no ranges
-            if (layout == null)
-                throw new IllegalArgumentException("No table layout specified");
+            if (layout == null || strategy == null)
+                throw new IllegalArgumentException("No table layout specified, or no statements.");
 
             final TripleRowRegex tripleRowRegex = strategy.buildRegex(regexSubject, regexPredicate, regexObject, null, null);
 

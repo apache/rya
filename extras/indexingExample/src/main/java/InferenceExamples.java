@@ -73,7 +73,7 @@ public class InferenceExamples {
 	    private static final String MONGO_INSTANCE_URL = "localhost";
 	    private static final String MONGO_INSTANCE_PORT = "27017";
 	    private static final String MongoUserName="usern";
-	    private static final String MongoUserPassword="passwd";
+	    private static final String MongoUserPswd="passwd";
 
 	    public static void setupLogging() {
 	        final Logger rootLogger = LogManager.getRootLogger();
@@ -156,7 +156,7 @@ public class InferenceExamples {
 	        } else {
 	            // User name and password must be filled in:
 	            builder = builder.setMongoUser(MongoUserName)
-	                             .setMongoPassword(MongoUserPassword)
+	                             .setMongoPassword(MongoUserPswd)
 	                             .setMongoHost(MONGO_INSTANCE_URL)
 	                             .setMongoPort(MONGO_INSTANCE_PORT);
 	        }

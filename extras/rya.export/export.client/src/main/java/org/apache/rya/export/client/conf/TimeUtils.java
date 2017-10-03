@@ -128,7 +128,9 @@ public final class TimeUtils {
             }
         } finally {
             // Close the connection
-            conn.disconnect();
+            if (conn != null) {
+                conn.disconnect();
+            }
         }
 
         return remoteDate;

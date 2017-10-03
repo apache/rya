@@ -54,7 +54,10 @@ under the License.
             <groupId>org.openrdf.sesame</groupId>
             <artifactId>sesame-queryalgebra-evaluation</artifactId>
         </dependency>
-
+        <dependency>
+            <groupId>commons-io</groupId>
+            <artifactId>commons-io</artifactId>
+            </dependency>
         <!--  testing dependencies -->
         <dependency>
             <groupId>org.openrdf.sesame</groupId>

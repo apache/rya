@@ -26,7 +26,6 @@ import java.util.NoSuchElementException;
 
 import org.apache.rya.indexing.external.tupleSet.ExternalTupleSet;
 import org.apache.rya.indexing.pcj.matching.QueryVariableNormalizer;
-
 import org.openrdf.query.algebra.Projection;
 import org.openrdf.query.algebra.TupleExpr;
 
@@ -107,13 +106,13 @@ public class IndexedExecutionPlanGenerator implements ExternalIndexMatcher {
 
         ExternalTupleSet tempIndex;
         final List<ExternalTupleSet> normalizedIndexSet = Lists.newArrayList();
-
         for (final ExternalTupleSet e : indexSet) {
             List<TupleExpr> tupList = null;
             try {
                 tupList = QueryVariableNormalizer.getNormalizedIndex(query, e.getTupleExpr());
             } catch (final Exception e1) {
                 e1.printStackTrace();
+                throw new Error(e1);
             }
 
             for (final TupleExpr te : tupList) {

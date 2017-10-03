@@ -653,6 +653,9 @@ public class AccumuloTemporalIndexer extends AbstractAccumuloIndexer implements 
                 ranges.add(range);
                 lastKeyParts = thisKeyParts;
             }
+            if (lastKeyParts == null || scanner == null) {
+                throw new NullPointerException("lastkeyParts or scanner is null, impossible! keyParts.size()= " + keyParts.size() + " scanner= " + scanner);
+            }
             //System.out.println("Scanning columns, cf:" + lastKeyParts.cf + "CQ:" + lastKeyParts.cq);
             scanner.fetchColumn(new Text(lastKeyParts.cf), new Text(lastKeyParts.cq));
             if (scanner instanceof BatchScanner) {

@@ -37,6 +37,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
@@ -78,8 +79,8 @@ import info.aduna.iteration.CloseableIteration;
 public class AccumuloRyaDAO implements RyaDAO<AccumuloRdfConfiguration>, RyaNamespaceManager<AccumuloRdfConfiguration> {
     private static final Log logger = LogFactory.getLog(AccumuloRyaDAO.class);
 
-    private boolean initialized = false;
-    private boolean flushEachUpdate = true;
+    private final AtomicBoolean isInitialized = new AtomicBoolean();
+    private final AtomicBoolean flushEachUpdate = new AtomicBoolean(true);
     private Connector connector;
     private BatchWriterConfig batchWriterConfig;
 
@@ -102,12 +103,12 @@ public class AccumuloRyaDAO implements RyaDAO<AccumuloRdfConfiguration>, RyaName
 
     @Override
     public boolean isInitialized() throws RyaDAOException {
-        return initialized;
+        return isInitialized.get();
     }
 
     @Override
     public void init() throws RyaDAOException {
-        if (initialized) {
+        if (isInitialized.get()) {
             return;
         }
         try {
@@ -127,7 +128,7 @@ public class AccumuloRyaDAO implements RyaDAO<AccumuloRdfConfiguration>, RyaName
 
             secondaryIndexers = conf.getAdditionalIndexers();
 
-            flushEachUpdate = conf.flushEachUpdate();
+            flushEachUpdate.set(conf.flushEachUpdate());
 
             final TableOperations tableOperations = connector.tableOperations();
             AccumuloRdfUtils.createTableIfNotExist(tableOperations, tableLayoutStrategy.getSpo());
@@ -158,14 +159,14 @@ public class AccumuloRyaDAO implements RyaDAO<AccumuloRdfConfiguration>, RyaName
 
             checkVersion();
 
-            initialized = true;
+            isInitialized.set(true);
         } catch (final Exception e) {
             throw new RyaDAOException(e);
         }
     }
 
     @Override
-	public String getVersion() throws RyaDAOException {
+    public String getVersion() throws RyaDAOException {
         String version = null;
         final CloseableIteration<RyaStatement, RyaDAOException> versIter = queryEngine.query(new RyaStatement(RTS_SUBJECT_RYA, RTS_VERSION_PREDICATE_RYA, null), conf);
         if (versIter.hasNext()) {
@@ -206,7 +207,9 @@ public class AccumuloRyaDAO implements RyaDAO<AccumuloRdfConfiguration>, RyaName
                     index.deleteStatement(stmt);
                 }
             }
-            if (flushEachUpdate) { mt_bw.flush(); }
+            if (flushEachUpdate.get()) {
+                mt_bw.flush();
+            }
         } catch (final Exception e) {
             throw new RyaDAOException(e);
         }
@@ -284,7 +287,9 @@ public class AccumuloRyaDAO implements RyaDAO<AccumuloRdfConfiguration>, RyaName
                 }
             }
 
-            if (flushEachUpdate) { mt_bw.flush(); }
+            if (flushEachUpdate.get()) {
+                mt_bw.flush();
+            }
         } catch (final Exception e) {
             throw new RyaDAOException(e);
         }
@@ -292,12 +297,12 @@ public class AccumuloRyaDAO implements RyaDAO<AccumuloRdfConfiguration>, RyaName
 
     @Override
     public void destroy() throws RyaDAOException {
-        if (!initialized) {
+        if (!isInitialized.get()) {
             return;
         }
         //TODO: write lock
         try {
-            initialized = false;
+            isInitialized.set(false);
             mt_bw.flush();
 
             mt_bw.close();
@@ -319,7 +324,9 @@ public class AccumuloRyaDAO implements RyaDAO<AccumuloRdfConfiguration>, RyaName
             final Mutation m = new Mutation(new Text(pfx));
             m.put(INFO_NAMESPACE_TXT, EMPTY_TEXT, new Value(namespace.getBytes(StandardCharsets.UTF_8)));
             bw_ns.addMutation(m);
-            if (flushEachUpdate) { mt_bw.flush(); }
+            if (flushEachUpdate.get()) {
+                mt_bw.flush();
+            }
         } catch (final Exception e) {
             throw new RyaDAOException(e);
         }
@@ -350,7 +357,9 @@ public class AccumuloRyaDAO implements RyaDAO<AccumuloRdfConfiguration>, RyaName
             final Mutation del = new Mutation(new Text(pfx));
             del.putDelete(INFO_NAMESPACE_TXT, EMPTY_TEXT);
             bw_ns.addMutation(del);
-            if (flushEachUpdate) { mt_bw.flush(); }
+            if (flushEachUpdate.get()) {
+                mt_bw.flush();
+            }
         } catch (final Exception e) {
             throw new RyaDAOException(e);
         }
@@ -400,7 +409,9 @@ public class AccumuloRyaDAO implements RyaDAO<AccumuloRdfConfiguration>, RyaName
     public void dropAndDestroy() throws RyaDAOException {
         for (final String tableName : getTables()) {
             try {
-                drop(tableName);
+                if (tableName != null) {
+                    drop(tableName);
+                }
             } catch (final AccumuloSecurityException e) {
                 logger.error(e.getMessage());
                 throw new RyaDAOException(e);
@@ -421,11 +432,11 @@ public class AccumuloRyaDAO implements RyaDAO<AccumuloRdfConfiguration>, RyaName
         }
     }
 
-    public Connector getConnector() {
+    public synchronized Connector getConnector() {
         return connector;
     }
 
-    public void setConnector(final Connector connector) {
+    public synchronized void setConnector(final Connector connector) {
         this.connector = connector;
     }
 
@@ -438,16 +449,16 @@ public class AccumuloRyaDAO implements RyaDAO<AccumuloRdfConfiguration>, RyaName
     }
 
     protected MultiTableBatchWriter getMultiTableBatchWriter(){
-    	return mt_bw;
+        return mt_bw;
     }
 
     @Override
-	public AccumuloRdfConfiguration getConf() {
+    public synchronized AccumuloRdfConfiguration getConf() {
         return conf;
     }
 
     @Override
-	public void setConf(final AccumuloRdfConfiguration conf) {
+    public synchronized void setConf(final AccumuloRdfConfiguration conf) {
         this.conf = conf;
     }
 
@@ -460,7 +471,7 @@ public class AccumuloRyaDAO implements RyaDAO<AccumuloRdfConfiguration>, RyaName
     }
 
     @Override
-	public AccumuloRyaQueryEngine getQueryEngine() {
+    public AccumuloRyaQueryEngine getQueryEngine() {
         return queryEngine;
     }
 

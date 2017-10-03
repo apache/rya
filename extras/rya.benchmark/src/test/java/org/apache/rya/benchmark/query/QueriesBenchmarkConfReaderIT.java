@@ -22,10 +22,12 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 
 import javax.xml.bind.JAXBException;
+import javax.xml.parsers.ParserConfigurationException;
 
 import org.apache.rya.benchmark.query.Parameters.NumReadsRuns;
 import org.apache.rya.benchmark.query.Parameters.Queries;
@@ -43,7 +45,7 @@ import com.google.common.collect.Lists;
 public class QueriesBenchmarkConfReaderIT {
 
     @Test
-    public void load() throws JAXBException, SAXException {
+    public void load() throws JAXBException, SAXException, ParserConfigurationException, IOException {
         // Unmarshal some XML.
         final String xml =
                 "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +

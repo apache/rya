@@ -35,6 +35,10 @@ import java.util.Timer;
 import java.util.TimerTask;
 import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.concurrent.locks.ReentrantLock;
 
 import org.apache.commons.lang3.mutable.MutableObject;
 import org.apache.log4j.Logger;
@@ -76,35 +80,38 @@ public class InferenceEngine {
     private static final ValueFactory VF = ValueFactoryImpl.getInstance();
     private static final URI HAS_SELF = VF.createURI(OWL.NAMESPACE, "hasSelf");
     private static final URI REFLEXIVE_PROPERTY = VF.createURI(OWL.NAMESPACE, "ReflexiveProperty");
+    public static final String URI_PROP = "uri";
 
-    private Graph subClassOfGraph;
-    private Graph subPropertyOfGraph;
-    private Set<URI> symmetricPropertySet;
-    private Map<URI, URI> inverseOfMap;
-    private Set<URI> transitivePropertySet;
-    private Set<URI> reflexivePropertySet;
-    private Map<URI, Set<URI>> domainByType;
-    private Map<URI, Set<URI>> rangeByType;
-    private Map<Resource, Map<URI, Value>> hasValueByType;
-    private Map<URI, Map<Resource, Value>> hasValueByProperty;
-    private Map<Resource, Map<Resource, URI>> someValuesFromByRestrictionType;
-    private Map<Resource, Map<Resource, URI>> allValuesFromByValueType;
-    private final ConcurrentHashMap<Resource, List<Set<Resource>>> intersections = new ConcurrentHashMap<>();
-    private final ConcurrentHashMap<Resource, Set<Resource>> enumerations = new ConcurrentHashMap<>();
+    private final ReentrantLock refreshLock = new ReentrantLock();
+
+    private final AtomicReference<Graph> subClassOfGraph = new AtomicReference<>();
+    private final AtomicReference<Graph> subPropertyOfGraph = new AtomicReference<>();
+
+    private final Set<URI> symmetricPropertySet = ConcurrentHashMap.newKeySet();;
+    private final Map<URI, URI> inverseOfMap = new ConcurrentHashMap<>();
+    private final Set<URI> transitivePropertySet = ConcurrentHashMap.newKeySet();;
+    private final Set<URI> reflexivePropertySet = ConcurrentHashMap.newKeySet();;
+    private final Map<URI, Set<URI>> domainByType = new ConcurrentHashMap<>();
+    private final Map<URI, Set<URI>> rangeByType = new ConcurrentHashMap<>();
+    private final Map<Resource, Map<URI, Value>> hasValueByType = new ConcurrentHashMap<>();
+    private final Map<URI, Map<Resource, Value>> hasValueByProperty = new ConcurrentHashMap<>();
+    private final Map<Resource, Map<Resource, URI>> someValuesFromByRestrictionType = new ConcurrentHashMap<>();
+    private final Map<Resource, Map<Resource, URI>> allValuesFromByValueType = new ConcurrentHashMap<>();
+    private final Map<Resource, List<Set<Resource>>> intersections = new ConcurrentHashMap<>();
+    private final Map<Resource, Set<Resource>> enumerations = new ConcurrentHashMap<>();
+    private final Map<URI, List<URI>> propertyChainPropertyToChain = new ConcurrentHashMap<>();
     // hasSelf maps.
-    private Map<URI, Set<Resource>> hasSelfByProperty;
-    private Map<Resource, Set<URI>> hasSelfByType;
+    private final Map<URI, Set<Resource>> hasSelfByProperty = new ConcurrentHashMap<>();
+    private final Map<Resource, Set<URI>> hasSelfByType = new ConcurrentHashMap<>();
 
     private RyaDAO<?> ryaDAO;
     private RdfCloudTripleStoreConfiguration conf;
     private RyaDaoQueryWrapper ryaDaoQueryWrapper;
-    private boolean initialized = false;
-    private boolean schedule = true;
+    private final AtomicBoolean isInitialized = new AtomicBoolean();
+    private final AtomicBoolean schedule = new AtomicBoolean(true);
 
-    private long refreshGraphSchedule = 5 * 60 * 1000; //5 min
+    private final AtomicLong refreshGraphSchedule = new AtomicLong(5 * 60 * 1000); //5 min
     private Timer timer;
-    private HashMap<URI, List<URI>> propertyChainPropertyToChain = new HashMap<>();
-    public static final String URI_PROP = "uri";
 
     public void init() throws InferenceEngineException {
         try {
@@ -117,11 +124,11 @@ public class InferenceEngine {
             checkArgument(ryaDAO.isInitialized(), "RdfDao is not initialized");
             ryaDaoQueryWrapper = new RyaDaoQueryWrapper(ryaDAO, conf);
 
-            if (schedule) {
-                refreshGraph();
+            refreshGraph();
+
+            if (schedule.get()) {
                 timer = new Timer(InferenceEngine.class.getName());
                 timer.scheduleAtFixedRate(new TimerTask() {
-
                     @Override
                     public void run() {
                         try {
@@ -130,10 +137,9 @@ public class InferenceEngine {
                             throw new RuntimeException(e);
                         }
                     }
-
-                }, refreshGraphSchedule, refreshGraphSchedule);
+                }, refreshGraphSchedule.get(), refreshGraphSchedule.get());
             }
-            refreshGraph();
+
             setInitialized(true);
         } catch (final RyaDAOException e) {
             throw new InferenceEngineException(e);
@@ -148,237 +154,51 @@ public class InferenceEngine {
     }
 
     public void refreshGraph() throws InferenceEngineException {
+        refreshLock.lock();
         try {
-            CloseableIteration<Statement, QueryEvaluationException> iter;
             //get all subclassof
             Graph graph = TinkerGraph.open();
             addPredicateEdges(RDFS.SUBCLASSOF, Direction.OUT, graph, RDFS.SUBCLASSOF.stringValue());
             //equivalentClass is the same as subClassOf both ways
             addPredicateEdges(OWL.EQUIVALENTCLASS, Direction.BOTH, graph, RDFS.SUBCLASSOF.stringValue());
-            // Add unions to the subclass graph: if c owl:unionOf LIST(c1, c2, ... cn), then any
-            // instances of c1, c2, ... or cn are also instances of c, meaning c is a superclass
-            // of all the rest.
-            // (In principle, an instance of c is likewise implied to be at least one of the other
-            // types, but this fact is ignored for now to avoid nondeterministic reasoning.)
-            iter = RyaDAOHelper.query(ryaDAO, null, OWL.UNIONOF, null, conf);
-            try {
-                while (iter.hasNext()) {
-                    final Statement st = iter.next();
-                    final Value unionType = st.getSubject();
-                    // Traverse the list of types constituting the union
-                    Value current = st.getObject();
-                    while (current instanceof Resource && !RDF.NIL.equals(current)) {
-                        final Resource listNode = (Resource) current;
-                        CloseableIteration<Statement, QueryEvaluationException> listIter = RyaDAOHelper.query(ryaDAO,
-                                listNode, RDF.FIRST, null, conf);
-                        try {
-                            if (listIter.hasNext()) {
-                                final Statement firstStatement = listIter.next();
-                                if (firstStatement.getObject() instanceof Resource) {
-                                    final Resource subclass = (Resource) firstStatement.getObject();
-                                    final Statement subclassStatement = VF.createStatement(subclass, RDFS.SUBCLASSOF, unionType);
-                                    addStatementEdge(graph, RDFS.SUBCLASSOF.stringValue(), subclassStatement);
-                                }
-                            }
-                        } finally {
-                            listIter.close();
-                        }
-                        listIter = RyaDAOHelper.query(ryaDAO, listNode, RDF.REST, null, conf);
-                        try {
-                            if (listIter.hasNext()) {
-                                current = listIter.next().getObject();
-                            }
-                            else {
-                                current = RDF.NIL;
-                            }
-                        } finally {
-                            listIter.close();
-                        }
-                    }
-                }
-            } finally {
-                if (iter != null) {
-                    iter.close();
-                }
-            }
-            subClassOfGraph = graph; //TODO: Should this be synchronized?
+            // Add unions to the subclass graph
+            addUnions(graph);
+            subClassOfGraph.set(graph);
 
             graph = TinkerGraph.open();
             addPredicateEdges(RDFS.SUBPROPERTYOF, Direction.OUT, graph, RDFS.SUBPROPERTYOF.stringValue());
             //equiv property really is the same as a subPropertyOf both ways
             addPredicateEdges(OWL.EQUIVALENTPROPERTY, Direction.BOTH, graph, RDFS.SUBPROPERTYOF.stringValue());
-            subPropertyOfGraph = graph; //TODO: Should this be synchronized?
+            subPropertyOfGraph.set(graph);
 
             refreshIntersectionOf();
 
             refreshOneOf();
 
-            symmetricPropertySet = fetchInstances(OWL.SYMMETRICPROPERTY);
-            transitivePropertySet = fetchInstances(OWL.TRANSITIVEPROPERTY);
-            reflexivePropertySet = fetchInstances(REFLEXIVE_PROPERTY);
-
-            iter = RyaDAOHelper.query(ryaDAO, null, OWL.INVERSEOF, null, conf);
-            final Map<URI, URI> invProp = new HashMap<>();
-            try {
-                while (iter.hasNext()) {
-                    final Statement st = iter.next();
-                    invProp.put((URI) st.getSubject(), (URI) st.getObject());
-                    invProp.put((URI) st.getObject(), (URI) st.getSubject());
-                }
-            } finally {
-                if (iter != null) {
-                    iter.close();
-                }
+            synchronized(symmetricPropertySet) {
+                symmetricPropertySet.clear();
+                symmetricPropertySet.addAll(fetchInstances(OWL.SYMMETRICPROPERTY));
             }
-            inverseOfMap = invProp;
-
-            iter = RyaDAOHelper.query(ryaDAO, null,
-                    VF.createURI("http://www.w3.org/2002/07/owl#propertyChainAxiom"),
-                    null, conf);
-            final Map<URI,URI> propertyChainPropertiesToBNodes = new HashMap<>();
-            propertyChainPropertyToChain = new HashMap<>();
-            try {
-                while (iter.hasNext()){
-                    final Statement st = iter.next();
-                    propertyChainPropertiesToBNodes.put((URI)st.getSubject(), (URI)st.getObject());
-                }
-            } finally {
-                if (iter != null) {
-                    iter.close();
-                }
+            synchronized(transitivePropertySet) {
+                transitivePropertySet.clear();
+                transitivePropertySet.addAll(fetchInstances(OWL.TRANSITIVEPROPERTY));
             }
-            // now for each property chain bNode, get the indexed list of properties associated with that chain
-            for (final URI propertyChainProperty : propertyChainPropertiesToBNodes.keySet()){
-                final URI bNode = propertyChainPropertiesToBNodes.get(propertyChainProperty);
-                // query for the list of indexed properties
-                iter = RyaDAOHelper.query(ryaDAO, bNode, VF.createURI("http://www.w3.org/2000/10/swap/list#index"),
-                        null, conf);
-                final TreeMap<Integer, URI> orderedProperties = new TreeMap<>();
-                // TODO refactor this.  Wish I could execute sparql
-                try {
-                    while (iter.hasNext()){
-                        final Statement st = iter.next();
-                        final String indexedElement = st.getObject().stringValue();
-                        log.info(indexedElement);
-                        CloseableIteration<Statement, QueryEvaluationException>  iter2 = RyaDAOHelper.query(ryaDAO, VF.createURI(st.getObject().stringValue()), RDF.FIRST,
-                                null, conf);
-                        String integerValue = "";
-                        Value anonPropNode = null;
-                        Value propURI = null;
-                        if (iter2 != null){
-                            while (iter2.hasNext()){
-                                final Statement iter2Statement = iter2.next();
-                                integerValue = iter2Statement.getObject().stringValue();
-                                break;
-                            }
-                            iter2.close();
-                        }
-                        iter2 = RyaDAOHelper.query(ryaDAO, VF.createURI(st.getObject().stringValue()), RDF.REST,
-                                null, conf);
-                        if (iter2 != null){
-                            while (iter2.hasNext()){
-                                final Statement iter2Statement = iter2.next();
-                                anonPropNode = iter2Statement.getObject();
-                                break;
-                            }
-                            iter2.close();
-                            if (anonPropNode != null){
-                                iter2 = RyaDAOHelper.query(ryaDAO, VF.createURI(anonPropNode.stringValue()), RDF.FIRST,
-                                        null, conf);
-                                while (iter2.hasNext()){
-                                    final Statement iter2Statement = iter2.next();
-                                    propURI = iter2Statement.getObject();
-                                    break;
-                                }
-                                iter2.close();
-                            }
-                        }
-                        if (!integerValue.isEmpty() && propURI!=null) {
-                            try {
-                                final int indexValue = Integer.parseInt(integerValue);
-                                final URI chainPropURI = VF.createURI(propURI.stringValue());
-                                orderedProperties.put(indexValue, chainPropURI);
-                            }
-                            catch (final Exception ex){
-                                // TODO log an error here
-
-                            }
-                        }
-                    }
-                } finally{
-                    if (iter != null){
-                        iter.close();
-                    }
-                }
-                final List<URI> properties = new ArrayList<>();
-                for (final Map.Entry<Integer, URI> entry : orderedProperties.entrySet()){
-                    properties.add(entry.getValue());
-                }
-                propertyChainPropertyToChain.put(propertyChainProperty, properties);
+            synchronized(reflexivePropertySet) {
+                reflexivePropertySet.clear();
+                reflexivePropertySet.addAll(fetchInstances(REFLEXIVE_PROPERTY));
             }
 
-            // could also be represented as a list of properties (some of which may be blank nodes)
-            for (final URI propertyChainProperty : propertyChainPropertiesToBNodes.keySet()){
-                final List<URI> existingChain = propertyChainPropertyToChain.get(propertyChainProperty);
-                // if we didn't get a chain, try to get it through following the collection
-                if ((existingChain == null) || existingChain.isEmpty()) {
+            refreshInverseOf();
 
-                    CloseableIteration<Statement, QueryEvaluationException>  iter2 = RyaDAOHelper.query(ryaDAO, propertyChainPropertiesToBNodes.get(propertyChainProperty), RDF.FIRST,
-                            null, conf);
-                    final List<URI> properties = new ArrayList<>();
-                    URI previousBNode = propertyChainPropertiesToBNodes.get(propertyChainProperty);
-                    if (iter2.hasNext()) {
-                        Statement iter2Statement = iter2.next();
-                        Value currentPropValue = iter2Statement.getObject();
-                        while ((currentPropValue != null) && (!currentPropValue.stringValue().equalsIgnoreCase(RDF.NIL.stringValue()))){
-                            if (currentPropValue instanceof URI){
-                                iter2 = RyaDAOHelper.query(ryaDAO, VF.createURI(currentPropValue.stringValue()), RDF.FIRST,
-                                        null, conf);
-                                if (iter2.hasNext()){
-                                    iter2Statement = iter2.next();
-                                    if (iter2Statement.getObject() instanceof URI){
-                                        properties.add((URI)iter2Statement.getObject());
-                                    }
-                                }
-                                // otherwise see if there is an inverse declaration
-                                else {
-                                    iter2 = RyaDAOHelper.query(ryaDAO, VF.createURI(currentPropValue.stringValue()), OWL.INVERSEOF,
-                                            null, conf);
-                                    if (iter2.hasNext()){
-                                        iter2Statement = iter2.next();
-                                        if (iter2Statement.getObject() instanceof URI){
-                                            properties.add(new InverseURI((URI)iter2Statement.getObject()));
-                                        }
-                                    }
-                                }
-                                // get the next prop pointer
-                                iter2 = RyaDAOHelper.query(ryaDAO, previousBNode, RDF.REST,
-                                        null, conf);
-                                if (iter2.hasNext()){
-                                    iter2Statement = iter2.next();
-                                    previousBNode = (URI)currentPropValue;
-                                    currentPropValue = iter2Statement.getObject();
-                                }
-                                else {
-                                    currentPropValue = null;
-                                }
-                            }
-                            else {
-                                currentPropValue = null;
-                            }
-
-                        }
-                        propertyChainPropertyToChain.put(propertyChainProperty, properties);
-                    }
-                }
-            }
+            refreshPropertyChainPropertyToChain();
 
             refreshDomainRange();
 
             refreshPropertyRestrictions();
-
         } catch (final QueryEvaluationException e) {
             throw new InferenceEngineException(e);
+        } finally {
+            refreshLock.unlock();
         }
     }
 
@@ -430,6 +250,227 @@ public class InferenceEngine {
             if (iter != null) {
                 iter.close();
             }
+        }
+    }
+
+    /**
+     * Add unions to the subclass graph: if c owl:unionOf LIST(c1, c2, ... cn),
+     * then any instances of c1, c2, ... or cn are also instances of c, meaning
+     * c is a superclass of all the rest.
+     * (In principle, an instance of c is likewise implied to be at least one of
+     * the other types, but this fact is ignored for now to avoid
+     * nondeterministic reasoning.)
+     * @param graph the {@link Graph} to add to.
+     * @throws QueryEvaluationException
+     */
+    private void addUnions(final Graph graph) throws QueryEvaluationException {
+        final CloseableIteration<Statement, QueryEvaluationException> iter = RyaDAOHelper.query(ryaDAO, null, OWL.UNIONOF, null, conf);
+        try {
+            while (iter.hasNext()) {
+                final Statement st = iter.next();
+                final Value unionType = st.getSubject();
+                // Traverse the list of types constituting the union
+                Value current = st.getObject();
+                while (current instanceof Resource && !RDF.NIL.equals(current)) {
+                    final Resource listNode = (Resource) current;
+                    CloseableIteration<Statement, QueryEvaluationException> listIter = RyaDAOHelper.query(ryaDAO,
+                            listNode, RDF.FIRST, null, conf);
+                    try {
+                        if (listIter.hasNext()) {
+                            final Statement firstStatement = listIter.next();
+                            if (firstStatement.getObject() instanceof Resource) {
+                                final Resource subclass = (Resource) firstStatement.getObject();
+                                final Statement subclassStatement = VF.createStatement(subclass, RDFS.SUBCLASSOF, unionType);
+                                addStatementEdge(graph, RDFS.SUBCLASSOF.stringValue(), subclassStatement);
+                            }
+                        }
+                    } finally {
+                        listIter.close();
+                    }
+                    listIter = RyaDAOHelper.query(ryaDAO, listNode, RDF.REST, null, conf);
+                    try {
+                        if (listIter.hasNext()) {
+                            current = listIter.next().getObject();
+                        }
+                        else {
+                            current = RDF.NIL;
+                        }
+                    } finally {
+                        listIter.close();
+                    }
+                }
+            }
+        } finally {
+            if (iter != null) {
+                iter.close();
+            }
+        }
+    }
+
+    private void refreshInverseOf() throws QueryEvaluationException {
+        final CloseableIteration<Statement, QueryEvaluationException> iter = RyaDAOHelper.query(ryaDAO, null, OWL.INVERSEOF, null, conf);
+        final Map<URI, URI> invProp = new HashMap<>();
+        try {
+            while (iter.hasNext()) {
+                final Statement st = iter.next();
+                invProp.put((URI) st.getSubject(), (URI) st.getObject());
+                invProp.put((URI) st.getObject(), (URI) st.getSubject());
+            }
+        } finally {
+            if (iter != null) {
+                iter.close();
+            }
+        }
+        synchronized(inverseOfMap) {
+            inverseOfMap.clear();
+            inverseOfMap.putAll(invProp);
+        }
+    }
+
+    private void refreshPropertyChainPropertyToChain() throws QueryEvaluationException {
+        CloseableIteration<Statement, QueryEvaluationException> iter = RyaDAOHelper.query(ryaDAO, null,
+                VF.createURI("http://www.w3.org/2002/07/owl#propertyChainAxiom"),
+                null, conf);
+        final Map<URI,URI> propertyChainPropertiesToBNodes = new HashMap<>();
+        final Map<URI, List<URI>> tempPropertyChainPropertyToChain = new HashMap<>();
+        try {
+            while (iter.hasNext()){
+                final Statement st = iter.next();
+                propertyChainPropertiesToBNodes.put((URI)st.getSubject(), (URI)st.getObject());
+            }
+        } finally {
+            if (iter != null) {
+                iter.close();
+            }
+        }
+        // now for each property chain bNode, get the indexed list of properties associated with that chain
+        for (final URI propertyChainProperty : propertyChainPropertiesToBNodes.keySet()){
+            final URI bNode = propertyChainPropertiesToBNodes.get(propertyChainProperty);
+            // query for the list of indexed properties
+            iter = RyaDAOHelper.query(ryaDAO, bNode, VF.createURI("http://www.w3.org/2000/10/swap/list#index"),
+                    null, conf);
+            final TreeMap<Integer, URI> orderedProperties = new TreeMap<>();
+            // TODO refactor this.  Wish I could execute sparql
+            try {
+                while (iter.hasNext()){
+                    final Statement st = iter.next();
+                    final String indexedElement = st.getObject().stringValue();
+                    log.info(indexedElement);
+                    CloseableIteration<Statement, QueryEvaluationException>  iter2 = RyaDAOHelper.query(ryaDAO, VF.createURI(st.getObject().stringValue()), RDF.FIRST,
+                            null, conf);
+                    String integerValue = "";
+                    Value anonPropNode = null;
+                    Value propURI = null;
+                    if (iter2 != null){
+                        while (iter2.hasNext()){
+                            final Statement iter2Statement = iter2.next();
+                            integerValue = iter2Statement.getObject().stringValue();
+                            break;
+                        }
+                        iter2.close();
+                    }
+                    iter2 = RyaDAOHelper.query(ryaDAO, VF.createURI(st.getObject().stringValue()), RDF.REST,
+                            null, conf);
+                    if (iter2 != null){
+                        while (iter2.hasNext()){
+                            final Statement iter2Statement = iter2.next();
+                            anonPropNode = iter2Statement.getObject();
+                            break;
+                        }
+                        iter2.close();
+                        if (anonPropNode != null){
+                            iter2 = RyaDAOHelper.query(ryaDAO, VF.createURI(anonPropNode.stringValue()), RDF.FIRST,
+                                    null, conf);
+                            while (iter2.hasNext()){
+                                final Statement iter2Statement = iter2.next();
+                                propURI = iter2Statement.getObject();
+                                break;
+                            }
+                            iter2.close();
+                        }
+                    }
+                    if (!integerValue.isEmpty() && propURI!=null) {
+                        try {
+                            final int indexValue = Integer.parseInt(integerValue);
+                            final URI chainPropURI = VF.createURI(propURI.stringValue());
+                            orderedProperties.put(indexValue, chainPropURI);
+                        }
+                        catch (final Exception e){
+                            log.error("Error adding chain property to ordered properties", e);
+                        }
+                    }
+                }
+            } finally{
+                if (iter != null){
+                    iter.close();
+                }
+            }
+            final List<URI> properties = new ArrayList<>();
+            for (final Map.Entry<Integer, URI> entry : orderedProperties.entrySet()){
+                properties.add(entry.getValue());
+            }
+            tempPropertyChainPropertyToChain.put(propertyChainProperty, properties);
+        }
+
+        // could also be represented as a list of properties (some of which may be blank nodes)
+        for (final URI propertyChainProperty : propertyChainPropertiesToBNodes.keySet()){
+            final List<URI> existingChain = tempPropertyChainPropertyToChain.get(propertyChainProperty);
+            // if we didn't get a chain, try to get it through following the collection
+            if ((existingChain == null) || existingChain.isEmpty()) {
+
+                CloseableIteration<Statement, QueryEvaluationException>  iter2 = RyaDAOHelper.query(ryaDAO, propertyChainPropertiesToBNodes.get(propertyChainProperty), RDF.FIRST,
+                        null, conf);
+                final List<URI> properties = new ArrayList<>();
+                URI previousBNode = propertyChainPropertiesToBNodes.get(propertyChainProperty);
+                if (iter2.hasNext()) {
+                    Statement iter2Statement = iter2.next();
+                    Value currentPropValue = iter2Statement.getObject();
+                    while ((currentPropValue != null) && (!currentPropValue.stringValue().equalsIgnoreCase(RDF.NIL.stringValue()))){
+                        if (currentPropValue instanceof URI){
+                            iter2 = RyaDAOHelper.query(ryaDAO, VF.createURI(currentPropValue.stringValue()), RDF.FIRST,
+                                    null, conf);
+                            if (iter2.hasNext()){
+                                iter2Statement = iter2.next();
+                                if (iter2Statement.getObject() instanceof URI){
+                                    properties.add((URI)iter2Statement.getObject());
+                                }
+                            }
+                            // otherwise see if there is an inverse declaration
+                            else {
+                                iter2 = RyaDAOHelper.query(ryaDAO, VF.createURI(currentPropValue.stringValue()), OWL.INVERSEOF,
+                                        null, conf);
+                                if (iter2.hasNext()){
+                                    iter2Statement = iter2.next();
+                                    if (iter2Statement.getObject() instanceof URI){
+                                        properties.add(new InverseURI((URI)iter2Statement.getObject()));
+                                    }
+                                }
+                            }
+                            // get the next prop pointer
+                            iter2 = RyaDAOHelper.query(ryaDAO, previousBNode, RDF.REST,
+                                    null, conf);
+                            if (iter2.hasNext()){
+                                iter2Statement = iter2.next();
+                                previousBNode = (URI)currentPropValue;
+                                currentPropValue = iter2Statement.getObject();
+                            }
+                            else {
+                                currentPropValue = null;
+                            }
+                        }
+                        else {
+                            currentPropValue = null;
+                        }
+
+                    }
+                    tempPropertyChainPropertyToChain.put(propertyChainProperty, properties);
+                }
+            }
+        }
+
+        synchronized(propertyChainPropertyToChain) {
+            propertyChainPropertyToChain.clear();
+            propertyChainPropertyToChain.putAll(tempPropertyChainPropertyToChain);
         }
     }
 
@@ -587,8 +628,14 @@ public class InferenceEngine {
                 }
             }
         }
-        domainByType = domainByTypePartial;
-        rangeByType = rangeByTypePartial;
+        synchronized(domainByType) {
+            domainByType.clear();
+            domainByType.putAll(domainByTypePartial);
+        }
+        synchronized(rangeByType) {
+            rangeByType.clear();
+            rangeByType.putAll(rangeByTypePartial);
+        }
     }
 
     private void refreshPropertyRestrictions() throws QueryEvaluationException {
@@ -613,8 +660,8 @@ public class InferenceEngine {
     }
 
     private void refreshHasValueRestrictions(final Map<Resource, URI> restrictions) throws QueryEvaluationException {
-        hasValueByType = new HashMap<>();
-        hasValueByProperty = new HashMap<>();
+        hasValueByType.clear();
+        hasValueByProperty.clear();
         final CloseableIteration<Statement, QueryEvaluationException> iter = RyaDAOHelper.query(ryaDAO, null, OWL.HASVALUE, null, conf);
         try {
             while (iter.hasNext()) {
@@ -641,7 +688,7 @@ public class InferenceEngine {
     }
 
     private void refreshSomeValuesFromRestrictions(final Map<Resource, URI> restrictions) throws QueryEvaluationException {
-        someValuesFromByRestrictionType = new ConcurrentHashMap<>();
+        someValuesFromByRestrictionType.clear();
         ryaDaoQueryWrapper.queryAll(null, OWL.SOMEVALUESFROM, null, new RDFHandlerBase() {
             @Override
             public void handleStatement(final Statement statement) throws RDFHandlerException {
@@ -667,7 +714,7 @@ public class InferenceEngine {
     }
 
     private void refreshAllValuesFromRestrictions(final Map<Resource, URI> restrictions) throws QueryEvaluationException {
-        allValuesFromByValueType = new ConcurrentHashMap<>();
+        allValuesFromByValueType.clear();
         ryaDaoQueryWrapper.queryAll(null, OWL.ALLVALUESFROM, null, new RDFHandlerBase() {
             @Override
             public void handleStatement(final Statement statement) throws RDFHandlerException {
@@ -693,8 +740,8 @@ public class InferenceEngine {
     }
 
     private void refreshHasSelfRestrictions(final Map<Resource, URI> restrictions) throws QueryEvaluationException {
-        hasSelfByType = new HashMap<>();
-        hasSelfByProperty = new HashMap<>();
+        hasSelfByType.clear();
+        hasSelfByProperty.clear();
 
         for(final Resource type : restrictions.keySet()) {
             final URI property = restrictions.get(type);
@@ -858,8 +905,10 @@ public class InferenceEngine {
             }
         });
 
-        enumerations.clear();
-        enumerations.putAll(enumTypes);
+        synchronized(enumerations) {
+            enumerations.clear();
+            enumerations.putAll(enumTypes);
+        }
     }
 
     /**
@@ -869,7 +918,7 @@ public class InferenceEngine {
      *
      * This takes into account type hierarchy, where children of a type that
      * have this property are also assumed to have the property.
-     * 
+     *
      * @param type
      *            The type (URI or bnode) to check against the known
      *            restrictions
@@ -887,7 +936,7 @@ public class InferenceEngine {
         }
         //findParent gets all subclasses, add self.
         if (type instanceof URI) {
-            for (final URI subtype : findParents(subClassOfGraph, (URI) type)) {
+            for (final URI subtype : findParents(subClassOfGraph.get(), (URI) type)) {
                 tempProperties = hasSelfByType.get(subtype);
                 if (tempProperties != null) {
                     properties.addAll(tempProperties);
@@ -915,11 +964,10 @@ public class InferenceEngine {
 
         if (baseTypes != null) {
             types.addAll(baseTypes);
-
             // findParent gets all subclasses, add self.
             for (final Resource baseType : baseTypes) {
                 if (baseType instanceof URI) {
-                    types.addAll(findParents(subClassOfGraph, (URI) baseType));
+                    types.addAll(findParents(subClassOfGraph.get(), (URI) baseType));
                 }
             }
         }
@@ -983,7 +1031,8 @@ public class InferenceEngine {
     private void addSubClassOf(final Resource s, final Resource o) {
         final Statement statement = new StatementImpl(s, RDFS.SUBCLASSOF, o);
         final String edgeName = RDFS.SUBCLASSOF.stringValue();
-        addStatementEdge(subClassOfGraph, edgeName, statement);
+
+        addStatementEdge(subClassOfGraph.get(), edgeName, statement);
     }
 
     private void addIntersection(final Set<Resource> intersection, final Resource type) {
@@ -1032,7 +1081,7 @@ public class InferenceEngine {
      * or if either type or the subclass graph is {@code null}.
      */
     public Set<URI> getSuperClasses(final URI type) {
-        return findChildren(subClassOfGraph, type);
+        return findChildren(subClassOfGraph.get(), type);
     }
 
     /**
@@ -1044,7 +1093,7 @@ public class InferenceEngine {
      * or if either type or the subclass graph is {@code null}.
      */
     public Set<URI> getSubClasses(final URI type) {
-        return findParents(subClassOfGraph, type);
+        return findParents(subClassOfGraph.get(), type);
     }
 
     /**
@@ -1056,7 +1105,7 @@ public class InferenceEngine {
      * or if either property or the subproperty graph is {@code null}.
      */
     public Set<URI> getSuperProperties(final URI property) {
-        return findChildren(subPropertyOfGraph, property);
+        return findChildren(subPropertyOfGraph.get(), property);
     }
 
     /**
@@ -1068,7 +1117,7 @@ public class InferenceEngine {
      * or if either property or the subproperty graph is {@code null}.
      */
     public Set<URI> getSubProperties(final URI property) {
-        return findParents(subPropertyOfGraph, property);
+        return findParents(subPropertyOfGraph.get(), property);
     }
 
     /**
@@ -1283,32 +1332,32 @@ public class InferenceEngine {
     }
 
     public boolean isInitialized() {
-        return initialized;
+        return isInitialized.get();
     }
 
-    public void setInitialized(final boolean initialized) {
-        this.initialized = initialized;
+    public void setInitialized(final boolean isInitialized) {
+        this.isInitialized.set(isInitialized);
     }
 
-    public RyaDAO<?> getRyaDAO() {
+    public synchronized RyaDAO<?> getRyaDAO() {
         return ryaDAO;
     }
 
-    public void setRyaDAO(final RyaDAO<?> ryaDAO) {
+    public synchronized void setRyaDAO(final RyaDAO<?> ryaDAO) {
         this.ryaDAO = ryaDAO;
         ryaDaoQueryWrapper = new RyaDaoQueryWrapper(ryaDAO);
     }
 
-    public RdfCloudTripleStoreConfiguration getConf() {
+    public synchronized RdfCloudTripleStoreConfiguration getConf() {
         return conf;
     }
 
-    public void setConf(final RdfCloudTripleStoreConfiguration conf) {
+    public synchronized void setConf(final RdfCloudTripleStoreConfiguration conf) {
         this.conf = conf;
     }
 
     public Graph getSubClassOfGraph() {
-        return subClassOfGraph;
+        return subClassOfGraph.get();
     }
 
     public Map<URI, List<URI>> getPropertyChainMap() {
@@ -1323,47 +1372,35 @@ public class InferenceEngine {
     }
 
     public Graph getSubPropertyOfGraph() {
-        return subPropertyOfGraph;
+        return subPropertyOfGraph.get();
     }
 
     public long getRefreshGraphSchedule() {
-        return refreshGraphSchedule;
+        return refreshGraphSchedule.get();
     }
 
     public void setRefreshGraphSchedule(final long refreshGraphSchedule) {
-        this.refreshGraphSchedule = refreshGraphSchedule;
+        this.refreshGraphSchedule.set(refreshGraphSchedule);
     }
 
     public Set<URI> getSymmetricPropertySet() {
         return symmetricPropertySet;
     }
 
-    public void setSymmetricPropertySet(final Set<URI> symmetricPropertySet) {
-        this.symmetricPropertySet = symmetricPropertySet;
-    }
-
     public Map<URI, URI> getInverseOfMap() {
         return inverseOfMap;
-    }
-
-    public void setInverseOfMap(final Map<URI, URI> inverseOfMap) {
-        this.inverseOfMap = inverseOfMap;
     }
 
     public Set<URI> getTransitivePropertySet() {
         return transitivePropertySet;
     }
 
-    public void setTransitivePropertySet(final Set<URI> transitivePropertySet) {
-        this.transitivePropertySet = transitivePropertySet;
-    }
-
     public boolean isSchedule() {
-        return schedule;
+        return schedule.get();
     }
 
     public void setSchedule(final boolean schedule) {
-        this.schedule = schedule;
+        this.schedule.set(schedule);
     }
 
     /**
@@ -1532,7 +1569,7 @@ public class InferenceEngine {
      *      to the restriction type. Empty map if the parameter is {@code null} or if the
      *      someValuesFrom schema has not been populated.
      */
-    public Map<Resource, Set<URI>> getSomeValuesFromByRestrictionType(Resource restrictionType) {
+    public Map<Resource, Set<URI>> getSomeValuesFromByRestrictionType(final Resource restrictionType) {
         return getTypePropertyImplyingType(restrictionType, someValuesFromByRestrictionType);
     }
 

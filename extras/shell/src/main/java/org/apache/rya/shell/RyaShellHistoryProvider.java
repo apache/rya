@@ -20,6 +20,7 @@ package org.apache.rya.shell;
 
 import java.io.File;
 
+import org.apache.rya.api.path.PathUtils;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.shell.plugin.HistoryFileNameProvider;
@@ -36,7 +37,7 @@ public class RyaShellHistoryProvider implements HistoryFileNameProvider {
 
     @Override
     public String getHistoryFileName() {
-        final String userHome = System.getProperty("user.home");
+        final String userHome = PathUtils.clean(System.getProperty("user.home"));
         if(userHome == null) {
             return RYA_SHELL_HISTORY_FILENAME;
         } else {

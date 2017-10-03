@@ -135,7 +135,7 @@ public class AccumuloParentMetadataRepository implements ParentMetadataRepositor
 
             // No metadata has been stored in the table yet.
             if (!entries.hasNext()) {
-                log.error("Could not find any MergeParentMetadata metadata in the table named: " + mergeParentMetadataTableName);
+                throw new ParentMetadataDoesNotExistException("Could not find any MergeParentMetadata metadata in the table named: " + mergeParentMetadataTableName);
             }
 
             // Fetch the metadata from the entries.

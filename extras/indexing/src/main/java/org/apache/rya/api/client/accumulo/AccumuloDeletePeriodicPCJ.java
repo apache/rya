@@ -110,7 +110,7 @@ public class AccumuloDeletePeriodicPCJ extends AccumuloCommand implements Delete
 
         // Connect to the Fluo application that is updating this instance's PCJs.
         final AccumuloConnectionDetails cd = super.getAccumuloConnectionDetails();
-        try (final FluoClient fluoClient = new FluoClientFactory().connect(cd.getUsername(), new String(cd.getPassword()),
+        try (final FluoClient fluoClient = new FluoClientFactory().connect(cd.getUsername(), new String(cd.getUserPass()),
                 cd.getInstanceName(), cd.getZookeepers(), fluoAppName)) {
             // Delete the PCJ from the Fluo App.
             PeriodicQueryResultStorage periodic = new AccumuloPeriodicQueryResultStorage(getConnector(), ryaInstance);

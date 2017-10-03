@@ -1,5 +1,14 @@
 package org.apache.rya.rdftriplestore.namespace;
 
+import java.io.InputStream;
+
+import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
+import org.apache.rya.api.persist.RdfDAOException;
+import org.apache.rya.api.persist.RyaDAO;
+import org.apache.rya.api.persist.RyaNamespaceManager;
+import org.openrdf.model.Namespace;
+import org.openrdf.sail.SailException;
+
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -22,18 +31,10 @@ package org.apache.rya.rdftriplestore.namespace;
 
 
 import info.aduna.iteration.CloseableIteration;
-import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
-import org.apache.rya.api.persist.RdfDAOException;
-import org.apache.rya.api.persist.RyaDAO;
-import org.apache.rya.api.persist.RyaNamespaceManager;
 import net.sf.ehcache.Cache;
 import net.sf.ehcache.CacheManager;
 import net.sf.ehcache.Element;
 import net.sf.ehcache.Statistics;
-import org.openrdf.model.Namespace;
-import org.openrdf.sail.SailException;
-
-import java.io.InputStream;
 
 /**
  * Class NamespaceManager
@@ -53,10 +54,9 @@ public class NamespaceManager {
     }
 
     protected void initialize(RyaDAO ryaDAO) {
-        try {
-            this.namespaceManager = ryaDAO.getNamespaceManager();
+        this.namespaceManager = ryaDAO.getNamespaceManager();
 
-            InputStream cacheConfigStream = Thread.currentThread().getContextClassLoader().getResourceAsStream("ehcache.xml");
+        try (InputStream cacheConfigStream = Thread.currentThread().getContextClassLoader().getResourceAsStream("ehcache.xml")) {
             if (cacheConfigStream == null) {
                 this.cacheManager = CacheManager.create();
 //                throw new RuntimeException("Cache Configuration does not exist");

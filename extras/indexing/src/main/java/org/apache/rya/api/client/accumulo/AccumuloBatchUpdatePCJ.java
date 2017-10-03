@@ -201,7 +201,7 @@ public class AccumuloBatchUpdatePCJ extends AccumuloCommand implements BatchUpda
             final AccumuloRdfConfiguration ryaConf = new AccumuloRdfConfiguration();
             ryaConf.setTablePrefix(ryaInstanceName);
             ryaConf.set(ConfigUtils.CLOUDBASE_USER, connectionDetails.getUsername());
-            ryaConf.set(ConfigUtils.CLOUDBASE_PASSWORD, new String(connectionDetails.getPassword()));
+            ryaConf.set(ConfigUtils.CLOUDBASE_PASSWORD, new String(connectionDetails.getUserPass()));
             ryaConf.set(ConfigUtils.CLOUDBASE_ZOOKEEPERS, connectionDetails.getZookeepers());
             ryaConf.set(ConfigUtils.CLOUDBASE_INSTANCE, connectionDetails.getInstanceName());
 

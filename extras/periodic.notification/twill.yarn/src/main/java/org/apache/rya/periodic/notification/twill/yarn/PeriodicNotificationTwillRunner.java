@@ -284,11 +284,15 @@ public class PeriodicNotificationTwillRunner implements AutoCloseable {
         }
 
         // pick the correct zookeepers
-        String zookeepers;
+        String zookeepers = null;
         if(options.zookeepers != null && !options.zookeepers.isEmpty()) {
             zookeepers = options.zookeepers;
-        } else {
+        } else if (conf != null) {
             zookeepers = conf.getAccumuloZookeepers();
+        }
+        if (zookeepers == null) {
+            LOG.warn("Zookeeper connection info can not be determined from main options nor configuration file.");
+            System.exit(1);
         }
 
         try (final PeriodicNotificationTwillRunner app = new PeriodicNotificationTwillRunner(zookeepers, options.configFile)) {

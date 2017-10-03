@@ -62,7 +62,23 @@ under the License.
             <outputDirectory>dist</outputDirectory>
         </file>
         <file>
+            <source>src/main/scripts/RunRyaDirectExample.sh</source>
+            <outputDirectory>dist</outputDirectory>
+        </file>
+        <file>
             <source>src/main/java/RyaDirectExample.java</source>
+            <outputDirectory>dist</outputDirectory>
+        </file>
+        <file>
+            <source>src/main/scripts/RunMongoRyaDirectExample.bat</source>
+            <outputDirectory>dist</outputDirectory>
+        </file>
+        <file>
+            <source>src/main/scripts/RunMongoRyaDirectExample.sh</source>
+            <outputDirectory>dist</outputDirectory>
+        </file>
+        <file>
+            <source>src/main/java/MongoRyaDirectExample.java</source>
             <outputDirectory>dist</outputDirectory>
         </file>
     </files>

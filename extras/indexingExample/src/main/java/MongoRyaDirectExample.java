@@ -78,6 +78,8 @@ public class MongoRyaDirectExample {
     private static final String MONGO_COLL_PREFIX = "rya_";
     private static final boolean USE_MOCK = true;
     private static final boolean USE_INFER = true;
+    private static final String MONGO_USER = null;
+    private static final String MONGO_PASSWORD = null;
     private static final String MONGO_INSTANCE_URL = "localhost";
     private static final String MONGO_INSTANCE_PORT = "27017";
 
@@ -303,8 +305,8 @@ public class MongoRyaDirectExample {
             builder.setMongoHost(url).setMongoPort(port);
         } else {
             // User name and password must be filled in:
-            builder = builder.setMongoUser("fill this in")
-                             .setMongoPassword("fill this in")
+            builder = builder.setMongoUser(MONGO_USER)
+                             .setMongoPassword(MONGO_PASSWORD)
                              .setMongoHost(MONGO_INSTANCE_URL)
                              .setMongoPort(MONGO_INSTANCE_PORT);
         }
@@ -763,7 +765,7 @@ public class MongoRyaDirectExample {
         for (final Namespace space : Iterations.asList(results)){
             System.out.println(space.getName() + ", " + space.getPrefix());
         }
-      }
+    }
 
     public static void testAddAndDeleteNoContext(final SailRepositoryConnection conn) throws MalformedQueryException, RepositoryException,
     UpdateExecutionException, QueryEvaluationException, TupleQueryResultHandlerException {

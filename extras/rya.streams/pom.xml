@@ -34,5 +34,6 @@
     <packaging>pom</packaging>
 
     <modules>
+        <module>kafka</module>
     </modules>
 </project>

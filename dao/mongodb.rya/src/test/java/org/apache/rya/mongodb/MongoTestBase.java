@@ -19,10 +19,13 @@
 package org.apache.rya.mongodb;
 
 import org.apache.hadoop.conf.Configuration;
+import org.bson.Document;
 import org.junit.After;
 import org.junit.Before;
 
+import com.mongodb.DBCollection;
 import com.mongodb.MongoClient;
+import com.mongodb.client.MongoCollection;
 
 /**
  * A base class that may be used when implementing Mongo DB tests that use the
@@ -56,5 +59,19 @@ public class MongoTestBase {
      */
     public MongoClient getMongoClient() {
         return mongoClient;
+    }
+
+    /**
+     * @return The Rya triples {@link MongoCollection}.
+     */
+    public MongoCollection<Document> getRyaCollection() {
+        return mongoClient.getDatabase(conf.getMongoDBName()).getCollection(conf.getTriplesCollectionName());
+    }
+
+    /**
+     * @return The Rya triples {@link DBCollection}.
+     */
+    public DBCollection getRyaDbCollection() {
+        return mongoClient.getDB(conf.getMongoDBName()).getCollection(conf.getTriplesCollectionName());
     }
 }

@@ -31,6 +31,7 @@ import org.apache.rya.indexing.entity.storage.EntityStorage;
 import org.apache.rya.indexing.entity.storage.TypeStorage;
 import org.apache.rya.mongodb.MongoTestBase;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.openrdf.model.vocabulary.RDF;
@@ -54,11 +55,11 @@ public class MongoEntityIndexTest extends MongoTestBase {
                     .build());
     private static final RyaURI RYA_PERSON_TYPE = new RyaURI("urn:person");
 
-    private static EntityIndexOptimizer optimizer;
-    private static EntityStorage entityStorage;
+    private EntityIndexOptimizer optimizer;
+    private EntityStorage entityStorage;
 
-    @BeforeClass
-    public static void beforeClass() throws Exception {
+    @Before
+    public void beforeClass() throws Exception {
         optimizer = new EntityIndexOptimizer();
         optimizer.setConf(conf);
 

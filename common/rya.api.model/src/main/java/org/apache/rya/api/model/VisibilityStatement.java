@@ -42,16 +42,16 @@ public class VisibilityStatement extends StatementDecorator {
      * @param statement - The statement that will be decorated. (not null)
      */
     public VisibilityStatement(final Statement statement) {
-        this("", statement);
+        this(statement, "");
     }
 
     /**
      * Constructs an instance of {@link VisibilityStatement}.
      *
-     * @param visibility - The visibility expression associated with the statement. (not null)
      * @param statement - The statement that will be decorated. (not null)
+     * @param visibility - The visibility expression associated with the statement. (not null)
      */
-    public VisibilityStatement(final String visibility, final Statement statement) {
+    public VisibilityStatement(final Statement statement, final String visibility) {
         super(statement);
         this.visibility = requireNonNull(visibility);
     }

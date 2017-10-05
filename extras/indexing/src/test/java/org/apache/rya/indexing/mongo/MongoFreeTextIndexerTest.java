@@ -99,11 +99,7 @@ public class MongoFreeTextIndexerTest extends MongoTestBase {
             f.flush();
 
 
-            System.out.println("testDelete: BEFORE DELETE");
-
             f.deleteStatement(RdfToRyaConversions.convertStatement(statement1));
-            System.out.println("testDelete: AFTER FIRST DELETION");
-//            Assert.assertEquals(Sets.newHashSet(), getSet(f.queryText("this is a new hat", EMPTY_CONSTRAINTS)));
             Assert.assertEquals(Sets.newHashSet(statement2), getSet(f.queryText("Do you like my new hat?", EMPTY_CONSTRAINTS)));
 
             // Check that "new" didn't get deleted from the term table after "this is a new hat"
@@ -111,9 +107,6 @@ public class MongoFreeTextIndexerTest extends MongoTestBase {
             Assert.assertEquals(Sets.newHashSet(statement2), getSet(f.queryText("new", EMPTY_CONSTRAINTS)));
 
             f.deleteStatement(RdfToRyaConversions.convertStatement(statement2));
-            System.out.println("testDelete: AFTER LAST DELETION");
-
-            System.out.println("testDelete: DONE");
             Assert.assertEquals(Sets.newHashSet(), getSet(f.queryText("this is a new hat", EMPTY_CONSTRAINTS)));
             Assert.assertEquals(Sets.newHashSet(), getSet(f.queryText("Do you like my new hat?", EMPTY_CONSTRAINTS)));
         }

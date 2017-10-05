@@ -34,7 +34,30 @@ under the License.
     </description>
 
     <dependencies>
-        <!-- Kafka dependencies -->
+        <!-- Rya dependencies -->
+        <dependency>
+            <groupId>org.apache.rya</groupId>
+            <artifactId>rya.api.model</artifactId>
+        </dependency>
         
+        <!-- Kafka dependencies -->
+        <dependency>
+            <groupId>org.apache.kafka</groupId>
+            <artifactId>kafka-clients</artifactId>
+            <version>0.11.0.1</version>
+        </dependency>
+        
+        
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+        </dependency>
+        
+        <!-- Test dependences -->
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 </project>

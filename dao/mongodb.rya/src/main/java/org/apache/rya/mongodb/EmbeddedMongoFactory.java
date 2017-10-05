@@ -40,15 +40,15 @@ import de.flapdoodle.embed.mongo.config.RuntimeConfigBuilder;
 import de.flapdoodle.embed.mongo.distribution.IFeatureAwareVersion;
 import de.flapdoodle.embed.mongo.distribution.Version;
 
-public class MockMongoFactory {
-    private static Logger logger = LoggerFactory.getLogger(MockMongoFactory.class.getName());
+public class EmbeddedMongoFactory {
+    private static Logger logger = LoggerFactory.getLogger(EmbeddedMongoFactory.class.getName());
 
-    public static MockMongoFactory newFactory() throws IOException {
-        return MockMongoFactory.with(Version.Main.PRODUCTION);
+    public static EmbeddedMongoFactory newFactory() throws IOException {
+        return EmbeddedMongoFactory.with(Version.Main.PRODUCTION);
     }
     
-    public static MockMongoFactory with(final IFeatureAwareVersion version) throws IOException {
-        return new MockMongoFactory(version);
+    public static EmbeddedMongoFactory with(final IFeatureAwareVersion version) throws IOException {
+        return new EmbeddedMongoFactory(version);
     }
 
     private final MongodExecutable mongodExecutable;
@@ -60,7 +60,7 @@ public class MockMongoFactory {
      * @param version
      *            version of MongoDB.
      */
-    private MockMongoFactory(final IFeatureAwareVersion version) throws IOException {
+    private EmbeddedMongoFactory(final IFeatureAwareVersion version) throws IOException {
         final MongodStarter runtime = MongodStarter.getInstance(new RuntimeConfigBuilder().defaultsWithLogger(Command.MongoD, logger).build());
         mongodExecutable = runtime.prepare(newMongodConfig(version));
         mongodProcess = mongodExecutable.start();

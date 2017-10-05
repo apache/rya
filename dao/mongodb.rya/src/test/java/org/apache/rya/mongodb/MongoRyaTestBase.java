@@ -35,13 +35,13 @@ public class MongoRyaTestBase {
 
     private static final AtomicInteger db = new AtomicInteger(1);
 
-    protected static MockMongoFactory testsFactory;
+    protected static EmbeddedMongoFactory testsFactory;
     protected MongoClient mongoClient;
     private int currentTestDb = -1;
 
     @BeforeClass()
     public static void beforeClass() throws Exception {
-        testsFactory = MockMongoFactory.with(Version.Main.PRODUCTION);
+        testsFactory = EmbeddedMongoFactory.with(Version.Main.PRODUCTION);
     }
 
     @Before

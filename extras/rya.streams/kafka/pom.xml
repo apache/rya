@@ -21,7 +21,7 @@ under the License.
 
     <parent>
         <groupId>org.apache.rya</groupId>
-        <artifactId>rya.pcj.fluo.parent</artifactId>
+        <artifactId>rya.streams.parent</artifactId>
         <version>3.2.11-incubating-SNAPSHOT</version>
     </parent>
     

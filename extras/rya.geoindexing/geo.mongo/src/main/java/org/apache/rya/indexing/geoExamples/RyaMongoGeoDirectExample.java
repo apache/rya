@@ -29,7 +29,7 @@ import org.apache.rya.indexing.accumulo.ConfigUtils;
 import org.apache.rya.indexing.accumulo.geo.OptionalConfigUtils;
 import org.apache.rya.indexing.mongodb.MongoIndexingConfiguration;
 import org.apache.rya.indexing.mongodb.MongoIndexingConfiguration.MongoDBIndexingConfigBuilder;
-import org.apache.rya.mongodb.MockMongoFactory;
+import org.apache.rya.mongodb.EmbeddedMongoFactory;
 import org.apache.rya.mongodb.MongoConnectorFactory;
 import org.openrdf.model.vocabulary.RDFS;
 import org.openrdf.query.BindingSet;
@@ -172,14 +172,14 @@ public class RyaMongoGeoDirectExample {
         }
     }
 
-    private static MockMongoFactory mock = null;
+    private static EmbeddedMongoFactory mock = null;
     private static Configuration getConf() throws IOException {
 
     	MongoDBIndexingConfigBuilder builder = MongoIndexingConfiguration.builder()
     		.setUseMockMongo(USE_MOCK).setUseInference(USE_INFER).setAuths("U");
 
         if (USE_MOCK) {
-            mock = MockMongoFactory.newFactory();
+            mock = EmbeddedMongoFactory.newFactory();
             MongoClient c = mock.newMongoClient();
             ServerAddress address = c.getAddress();
             String url = address.getHost();

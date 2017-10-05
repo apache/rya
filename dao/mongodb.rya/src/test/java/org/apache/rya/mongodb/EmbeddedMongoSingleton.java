@@ -30,12 +30,12 @@ import com.mongodb.MongoClient;
  * throughout all of the MongoDB related tests. Without the singleton, the
  * embedded mongo factory ends up orphaning processes, consuming resources.
  */
-public class MockMongoSingleton {
+public class EmbeddedMongoSingleton {
     public static MongoClient getInstance() {
         return InstanceHolder.SINGLETON.instance;
     }
 
-    private MockMongoSingleton() {
+    private EmbeddedMongoSingleton() {
         // hiding implicit default constructor
     }
 
@@ -47,10 +47,10 @@ public class MockMongoSingleton {
         private MongoClient instance;
 
         InstanceHolder() {
-            log = LoggerFactory.getLogger(MockMongoSingleton.class);
+            log = LoggerFactory.getLogger(EmbeddedMongoSingleton.class);
             instance = null;
             try {
-                instance = MockMongoFactory.newFactory().newMongoClient();
+                instance = EmbeddedMongoFactory.newFactory().newMongoClient();
                 // JUnit does not have an overall lifecycle event for tearing down
                 // this kind of resource, but shutdown hooks work alright in practice
                 // since this should only be used during testing

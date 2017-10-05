@@ -30,7 +30,7 @@ import org.apache.log4j.PatternLayout;
 import org.apache.rya.indexing.accumulo.ConfigUtils;
 import org.apache.rya.indexing.mongodb.MongoIndexingConfiguration;
 import org.apache.rya.indexing.mongodb.MongoIndexingConfiguration.MongoDBIndexingConfigBuilder;
-import org.apache.rya.mongodb.MockMongoFactory;
+import org.apache.rya.mongodb.EmbeddedMongoFactory;
 import org.apache.rya.mongodb.MongoConnectorFactory;
 import org.apache.rya.rdftriplestore.RdfCloudTripleStore;
 import org.apache.rya.rdftriplestore.inference.InferenceEngineException;
@@ -91,7 +91,7 @@ public class MongoRyaDirectExample {
         rootLogger.setLevel(Level.INFO);
         // Filter out noisy messages from the following classes.
         Logger.getLogger(ClientCnxn.class).setLevel(Level.OFF);
-        Logger.getLogger(MockMongoFactory.class).setLevel(Level.OFF);
+        Logger.getLogger(EmbeddedMongoFactory.class).setLevel(Level.OFF);
     }
 
     public static void main(final String[] args) throws Exception {
@@ -297,7 +297,7 @@ public class MongoRyaDirectExample {
             .setUseMockMongo(USE_MOCK).setUseInference(USE_INFER).setAuths("U");
 
         if (USE_MOCK) {
-            final MongoClient c = MockMongoFactory.newFactory().newMongoClient();
+            final MongoClient c = EmbeddedMongoFactory.newFactory().newMongoClient();
             final ServerAddress address = c.getAddress();
             final String url = address.getHost();
             final String port = Integer.toString(address.getPort());

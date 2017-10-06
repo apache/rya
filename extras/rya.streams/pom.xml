@@ -35,5 +35,6 @@
 
     <modules>
         <module>kafka</module>
+        <module>api</module>
     </modules>
 </project>

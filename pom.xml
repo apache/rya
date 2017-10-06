@@ -310,6 +310,22 @@ under the License.
                 <version>${project.version}</version>
             </dependency>
             <dependency>
+                <groupId>org.apache.rya</groupId>
+                <artifactId>rya.streams.parent</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.rya</groupId>
+                <artifactId>rya.streams.api</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.rya</groupId>
+                <artifactId>rya.streams.kafka</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
                 <groupId>org.apache.thrift</groupId>
                 <artifactId>libthrift</artifactId>
                 <version>${thrift.version}</version>

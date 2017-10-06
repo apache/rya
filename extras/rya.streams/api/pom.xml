@@ -26,11 +26,11 @@ under the License.
     </parent>
     
     <modelVersion>4.0.0</modelVersion>
-    <artifactId>rya.streams.kafka</artifactId>
+    <artifactId>rya.streams.api</artifactId>
     
-    <name>Apache Rya Streams Kafka</name>
+    <name>Apache Rya Streams API</name>
     <description>
-        This module contains the Rya Streams components that integrate with Kafka.
+        This module contains the Rya Streams API components.
     </description>
 
     <dependencies>
@@ -39,19 +39,6 @@ under the License.
             <groupId>org.apache.rya</groupId>
             <artifactId>rya.api.model</artifactId>
         </dependency>
-        
-        <dependency>
-            <groupId>org.apache.rya</groupId>
-            <artifactId>rya.streams.api</artifactId>
-        </dependency>
-
-        <!-- Kafka dependencies -->
-        <dependency>
-            <groupId>org.apache.kafka</groupId>
-            <artifactId>kafka-clients</artifactId>
-            <version>0.11.0.1</version>
-        </dependency>
-        
         
         <dependency>
             <groupId>org.slf4j</groupId>

@@ -36,6 +36,7 @@ import org.apache.rya.mongodb.batch.collection.CollectionType;
 
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.mongodb.DuplicateKeyException;
+import com.mongodb.MongoBulkWriteException;
 
 /**
  * Handles batch writing MongoDB statement objects to the repository. It takes
@@ -221,6 +222,12 @@ public class MongoDbBatchWriter<T> {
             }
         } catch (final DuplicateKeyException e) {
             log.warn(e); // Suppress the stack trace so log doesn't get flooded.
+        } catch (final MongoBulkWriteException e) {
+            if (e.getMessage().contains("duplicate key error")) {
+                log.warn(e); // Suppress the stack trace so log doesn't get flooded.
+            } else {
+                throw new MongoDbBatchWriterException("Error flushing statements", e);
+            }
         } catch (final Exception e) {
             throw new MongoDbBatchWriterException("Error flushing statements", e);
         }

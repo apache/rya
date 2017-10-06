@@ -23,6 +23,7 @@ import org.bson.Document;
 import org.junit.After;
 import org.junit.Before;
 
+import com.mongodb.DBCollection;
 import com.mongodb.MongoClient;
 import com.mongodb.client.MongoCollection;
 
@@ -65,5 +66,12 @@ public class MongoTestBase {
      */
     public MongoCollection<Document> getRyaCollection() {
         return mongoClient.getDatabase(conf.getMongoDBName()).getCollection(conf.getTriplesCollectionName());
+    }
+
+    /**
+     * @return The Rya triples {@link DBCollection}.
+     */
+    public DBCollection getRyaDbCollection() {
+        return mongoClient.getDB(conf.getMongoDBName()).getCollection(conf.getTriplesCollectionName());
     }
 }

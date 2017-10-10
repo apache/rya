@@ -30,7 +30,7 @@ import org.apache.rya.indexing.TemporalInstantRfc3339;
 import org.apache.rya.indexing.accumulo.ConfigUtils;
 import org.apache.rya.indexing.accumulo.geo.OptionalConfigUtils;
 import org.apache.rya.indexing.mongodb.MongoIndexingConfiguration;
-import org.apache.rya.mongodb.MockMongoSingleton;
+import org.apache.rya.mongodb.EmbeddedMongoSingleton;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -70,7 +70,7 @@ public class MongoIndexerDeleteIT {
             .setMongoTemporalPredicates("Property:atTime")
             .build();
 
-        client = MockMongoSingleton.getInstance();
+        client = EmbeddedMongoSingleton.getInstance();
         indxrConf.setBoolean(OptionalConfigUtils.USE_GEO, true);
         indxrConf.set(ConfigUtils.GEO_PREDICATES_LIST, "http://www.opengis.net/ont/geosparql#asWKT");
         indxrConf.setBoolean(ConfigUtils.USE_MONGO, true);

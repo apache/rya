@@ -39,7 +39,7 @@ public class MongoTestBase {
         conf.setBoolean("sc.useMongo", true);
         conf.setTablePrefix("test_");
         conf.setMongoDBName("testDB");
-        mongoClient = MockMongoSingleton.getInstance();
+        mongoClient = EmbeddedMongoSingleton.getInstance();
         conf.setMongoClient(mongoClient);
     }
 

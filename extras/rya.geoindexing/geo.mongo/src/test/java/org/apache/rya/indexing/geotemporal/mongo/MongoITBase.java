@@ -21,7 +21,7 @@ package org.apache.rya.indexing.geotemporal.mongo;
 import org.apache.rya.indexing.accumulo.ConfigUtils;
 import org.apache.rya.indexing.geotemporal.GeoTemporalTestBase;
 import org.apache.rya.indexing.mongodb.MongoIndexingConfiguration;
-import org.apache.rya.mongodb.MockMongoSingleton;
+import org.apache.rya.mongodb.EmbeddedMongoSingleton;
 import org.junit.After;
 import org.junit.Before;
 
@@ -38,7 +38,7 @@ public class MongoITBase extends GeoTemporalTestBase {
 
     @Before
     public void setupTest() throws Exception {
-        mongoClient = MockMongoSingleton.getInstance();
+        mongoClient = EmbeddedMongoSingleton.getInstance();
         conf = MongoIndexingConfiguration.builder()
             .setMongoCollectionPrefix("test_")
             .setMongoDBName("testDB")

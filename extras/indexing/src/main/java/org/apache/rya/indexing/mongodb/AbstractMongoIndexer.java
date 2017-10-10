@@ -121,6 +121,12 @@ public abstract class AbstractMongoIndexer<T extends IndexingMongoDBStorageStrat
 
     @Override
     public void close() throws IOException {
+        flush();
+        try {
+            mongoDbBatchWriter.shutdown();
+        } catch (final MongoDbBatchWriterException e) {
+            throw new IOException("Error shutting down MongoDB batch writer", e);
+        }
     }
 
     @Override

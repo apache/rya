@@ -36,6 +36,7 @@ import org.apache.rya.mongodb.document.util.AuthorizationsUtil;
 import org.apache.rya.mongodb.document.visibility.DocumentVisibility;
 import org.bson.Document;
 import org.calrissian.mango.collect.CloseableIterable;
+import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -46,13 +47,18 @@ import com.mongodb.client.MongoDatabase;
 
 public class MongoDBRyaDAOIT extends MongoTestBase {
     private MongoClient client;
-    private MongoDBRyaDAO dao;
+    private static MongoDBRyaDAO dao;
 
     @Before
     public void setUp() throws IOException, RyaDAOException{
         conf.setAuths("A", "B", "C");
         client = super.getMongoClient();
         dao = new MongoDBRyaDAO(conf, client);
+    }
+
+    @AfterClass
+    public static void tearDown() throws RyaDAOException {
+        dao.destroy();
     }
 
     @Test

@@ -171,6 +171,13 @@ public final class MongoDBRyaDAO implements RyaDAO<MongoDBRdfConfiguration>{
         } catch (final MongoDbBatchWriterException e) {
             throw new RyaDAOException("Error shutting down MongoDB batch writer", e);
         }
+        for(final MongoSecondaryIndex indexer : secondaryIndexers) {
+            try {
+                indexer.close();
+            } catch (final IOException e) {
+                log.error("Error closing indexer: " + indexer.getClass().getSimpleName(), e);
+            }
+        }
         if (mongoClient != null) {
             mongoClient.close();
         }
@@ -314,8 +321,19 @@ public final class MongoDBRyaDAO implements RyaDAO<MongoDBRdfConfiguration>{
     public void flush() throws RyaDAOException {
         try {
             mongoDbBatchWriter.flush();
+            flushIndexers();
         } catch (final MongoDbBatchWriterException e) {
             throw new RyaDAOException("Error flushing data.", e);
+        }
+    }
+
+    private void flushIndexers() throws RyaDAOException {
+        for (final MongoSecondaryIndex indexer : secondaryIndexers) {
+            try {
+                indexer.flush();
+            } catch (final IOException e) {
+                log.error("Error flushing data in indexer: " + indexer.getClass().getSimpleName(), e);
+            }
         }
     }
 }

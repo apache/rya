@@ -472,8 +472,19 @@ public class AccumuloRyaDAO implements RyaDAO<AccumuloRdfConfiguration>, RyaName
     public void flush() throws RyaDAOException {
         try {
             mt_bw.flush();
+            flushIndexers();
         } catch (final MutationsRejectedException e) {
             throw new RyaDAOException(e);
+        }
+    }
+
+    private void flushIndexers() throws RyaDAOException {
+        for (final AccumuloIndexer indexer : secondaryIndexers) {
+            try {
+                indexer.flush();
+            } catch (final IOException e) {
+                logger.error("Error flushing data in indexer: " + indexer.getClass().getSimpleName(), e);
+            }
         }
     }
 

@@ -97,7 +97,6 @@ public class MongoDbBatchWriter<T> {
 
     private static final ThreadFactory QUEUE_THREAD_FACTORY = new ThreadFactoryBuilder()
         .setNameFormat("Queue Full Checker Thread - %d")
-        .setDaemon(true)
         .build();
 
     /**

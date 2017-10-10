@@ -24,7 +24,7 @@
     <parent>
         <artifactId>rya.extras</artifactId>
         <groupId>org.apache.rya</groupId>
-        <version>3.2.11-incubating-SNAPSHOT</version>
+        <version>3.2.12-incubating-SNAPSHOT</version>
     </parent>
 
     <modelVersion>4.0.0</modelVersion>
@@ -85,7 +85,7 @@
                     <!-- Java Bug Database link : http://bugs.java.com/bugdatabase/view_bug.do?bug_id=8067747 -->
                     <useIncrementalCompilation>false</useIncrementalCompilation>
                     <compilerArguments>
-                        <Xlint/>
+                        <Xlint />
                     </compilerArguments>
                 </configuration>
             </plugin>

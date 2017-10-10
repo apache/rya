@@ -20,34 +20,28 @@ package org.apache.rya.indexing.pcj.fluo.client.command;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
-import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
-import edu.umd.cs.findbugs.annotations.NonNull;
-
 import org.apache.accumulo.core.client.Connector;
-import org.apache.commons.io.FilenameUtils;
+import org.apache.fluo.api.client.FluoClient;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.rya.indexing.pcj.fluo.api.InsertTriples;
 import org.apache.rya.indexing.pcj.fluo.client.PcjAdminClientCommand;
 import org.apache.rya.indexing.pcj.fluo.client.util.FluoLoader;
-import org.openrdf.rio.RDFHandlerException;
-import org.openrdf.rio.RDFParseException;
+import org.apache.rya.rdftriplestore.RyaSailRepository;
+import org.openrdf.rio.RDFFormat;
 import org.openrdf.rio.RDFParser;
-import org.openrdf.rio.ntriples.NTriplesParser;
-import org.openrdf.rio.trig.TriGParser;
-import org.openrdf.rio.turtle.TurtleParser;
+import org.openrdf.rio.Rio;
 
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.ParameterException;
 
-import org.apache.fluo.api.client.FluoClient;
-import org.apache.rya.rdftriplestore.RyaSailRepository;
+import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
+import edu.umd.cs.findbugs.annotations.NonNull;
 
 /**
  * A command that loads the contents of an NTriple file into the Fluo application.
@@ -104,38 +98,14 @@ public class LoadTriplesCommand implements PcjAdminClientCommand {
         final Path triplesPath = Paths.get( params.nTriplesFile );
 
         try {
-            final RDFParser parser = makeParser(triplesPath);
+            final RDFParser parser = Rio.createParser(RDFFormat.forFileName(triplesPath.getFileName().toString()));
             final FluoLoader loader = new FluoLoader(fluo, new InsertTriples());
             parser.setRDFHandler(loader);
             parser.parse(Files.newInputStream(triplesPath), triplesPath.toUri().toString());
-        } catch (UnsupportedFormatException | RDFParseException | RDFHandlerException | IOException e) {
+        } catch (final Exception e) {
             throw new ExecutionException("Could not load the RDF file into the Fluo app.", e);
         }
 
         log.trace("Finished executing the Load Triples Command.");
-    }
-
-    private static RDFParser makeParser(final Path tripleFile) throws UnsupportedFormatException {
-        checkNotNull(tripleFile);
-
-        final String extension = FilenameUtils.getExtension( tripleFile.getFileName().toString() );
-        switch(extension) {
-            case "nt":
-                return new NTriplesParser();
-            case "ttl":
-                return new TurtleParser();
-            case "trig":
-                return new TriGParser();
-            default:
-                throw new UnsupportedFormatException("RDF File with extension '" + extension + "' not supported.");
-        }
-    }
-
-    private static final class UnsupportedFormatException extends Exception {
-        private static final long serialVersionUID = 1L;
-
-        public UnsupportedFormatException(final String message) {
-            super(message);
-        }
     }
 }

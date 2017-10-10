@@ -18,11 +18,12 @@
  */
 package org.apache.rya.streams.api.interactor;
 
+import java.nio.file.Path;
+
 import org.apache.rya.api.model.VisibilityStatement;
 
 import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
 import edu.umd.cs.findbugs.annotations.NonNull;
-import info.aduna.iteration.CloseableIteration;
 
 /**
  * An interactor that is used to load {@link VisibilityStatement}s into a Rya Streaming program.
@@ -31,12 +32,17 @@ import info.aduna.iteration.CloseableIteration;
 public interface LoadStatements {
 
     /**
-     * Loads a series of statements into the Rya Streams system. Once there are no more statements to load, or
-     * an exception is thrown, the iteration is closed.
+     * Loads a series of statements from a RDF File into the Rya Streams system.
      *
-     * @param statements - The {@link VisibilityStatements} that will be loaded. (not null)
-     * @param Exception If an exception was thrown while iterating through the statements or while
-     *   loading them into the Rya Streams system.
+     * @param statementsPath - The {@link Path} that will be loaded. (not null)
+     * @param visibilities - The visibilities of the statements to load into Rya
+     *        Streams. (not null)
+     *        <p>
+     *        <b>NOTE:</b> The file extension is used to determine the format of
+     *        the RDF file.
+     *
+     * @throws Exception Thrown when the format of the file provided is unknown,
+     *         or not a valid RDF format.
      */
-    public void load(CloseableIteration<VisibilityStatement, Exception> statements) throws Exception;
+    public void load(final Path statementsPath, final String visibilities) throws Exception;
 }

@@ -39,9 +39,11 @@ import org.openrdf.model.impl.ValueFactoryImpl;
 import org.openrdf.query.BindingSet;
 import org.openrdf.query.QueryEvaluationException;
 import org.openrdf.query.algebra.Filter;
+import org.openrdf.query.algebra.FunctionCall;
 import org.openrdf.query.algebra.ValueExpr;
 import org.openrdf.query.algebra.evaluation.TripleSource;
 import org.openrdf.query.algebra.evaluation.ValueExprEvaluationException;
+import org.openrdf.query.algebra.evaluation.function.FunctionRegistry;
 import org.openrdf.query.algebra.evaluation.impl.EvaluationStrategyImpl;
 import org.openrdf.query.algebra.evaluation.util.QueryEvaluationUtil;
 
@@ -130,16 +132,20 @@ public class FilterResultUpdater {
      * @param condition - The filter condition. (not null)
      * @param bindings - The binding set to evaluate. (not null)
      * @return {@code true} if the binding set is accepted by the filter; otherwise {@code false}.
-     * @throws QueryEvaluationException The condition couldn't be evaluated.
+     * @throws QueryEvaluationException The condition couldn't be evaluated. In the case that the ValueExpr is a
+     *             {@link FunctionCall}, this Exception is thrown because the Function could not be found in the
+     *             {@link FunctionRegistry}.
      */
     private static boolean isTrue(final ValueExpr condition, final BindingSet bindings) throws QueryEvaluationException {
         try {
             final Value value = evaluator.evaluate(condition, bindings);
             return QueryEvaluationUtil.getEffectiveBooleanValue(value);
         } catch (final ValueExprEvaluationException e) {
-            // XXX Hack: If filtering a statement that does not have the right bindings, return true.
-            //           When would this ever come up? Should we actually return true?
-            return true;
+            //False returned because for whatever reason, the ValueExpr could not be evaluated.
+            //In the event that the ValueExpr is a FunctionCall, this Exception will be generated if
+            //the Function URI is a valid URI that was found in the FunctionRegistry, but the arguments
+            //for that Function could not be parsed.
+            return false;
         }
     }
 }

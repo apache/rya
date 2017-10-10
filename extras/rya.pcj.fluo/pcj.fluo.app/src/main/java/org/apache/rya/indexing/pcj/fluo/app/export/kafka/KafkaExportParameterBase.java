@@ -26,7 +26,7 @@ import org.apache.fluo.api.observer.Observer;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.rya.indexing.pcj.fluo.app.export.ParametersBase;
 
-import jline.internal.Preconditions;
+import com.google.common.base.Preconditions;
 
 /**
  * Provides read/write functions to the parameters map that is passed into an

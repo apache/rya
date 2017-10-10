@@ -32,7 +32,7 @@ import org.apache.rya.periodic.notification.api.BindingSetRecord;
 import org.apache.rya.periodic.notification.api.LifeCycle;
 import org.openrdf.query.BindingSet;
 
-import jline.internal.Preconditions;
+import com.google.common.base.Preconditions;
 
 /**
  * Executor service that runs {@link KafkaPeriodicBindingSetExporter}s.  

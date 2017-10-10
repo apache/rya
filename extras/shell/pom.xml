@@ -123,7 +123,6 @@
             <plugin>
                 <groupId>com.mycila</groupId>
                 <artifactId>license-maven-plugin</artifactId>
-                <version>2.6</version>
                 <configuration>
                     <!-- We use a custome Apache 2.0 license because we do not include a copywrite section. -->                
                     <header>src/main/resources/LICENSE.txt</header>
@@ -194,27 +193,6 @@
                                 <descriptor>src/main/assembly/binary-release.xml</descriptor>
                             </descriptors>
                         </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-            
-            <!-- Generate Code Coverage report. -->
-            <plugin>
-                <groupId>org.jacoco</groupId>
-                <artifactId>jacoco-maven-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <id>default-prepare-agent</id>
-                        <goals>
-                            <goal>prepare-agent</goal>
-                        </goals>
-                    </execution>
-                    <execution>
-                        <id>default-report</id>
-                        <phase>prepare-package</phase>
-                        <goals>
-                            <goal>report</goal>
-                        </goals>
                     </execution>
                 </executions>
             </plugin>

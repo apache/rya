@@ -27,7 +27,7 @@ import org.apache.rya.indexing.pcj.storage.accumulo.VariableOrder;
 import org.apache.rya.indexing.pcj.storage.accumulo.VisibilityBindingSet;
 import org.openrdf.query.Binding;
 
-import jline.internal.Preconditions;
+import com.google.common.base.Preconditions;
 
 /**
  * This class updates join results based on parameters specified for the join's

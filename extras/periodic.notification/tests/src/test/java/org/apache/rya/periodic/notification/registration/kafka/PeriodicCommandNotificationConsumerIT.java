@@ -30,13 +30,13 @@ import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.apache.log4j.BasicConfigurator;
-import org.apache.rya.kafka.base.KafkaITBase;
-import org.apache.rya.kafka.base.KafkaTestInstanceRule;
 import org.apache.rya.periodic.notification.coordinator.PeriodicNotificationCoordinatorExecutor;
 import org.apache.rya.periodic.notification.notification.CommandNotification;
 import org.apache.rya.periodic.notification.notification.TimestampedNotification;
 import org.apache.rya.periodic.notification.registration.KafkaNotificationRegistrationClient;
 import org.apache.rya.periodic.notification.serialization.CommandNotificationSerializer;
+import org.apache.rya.test.kafka.KafkaITBase;
+import org.apache.rya.test.kafka.KafkaTestInstanceRule;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
@@ -48,10 +48,10 @@ public class PeriodicCommandNotificationConsumerIT extends KafkaITBase {
     private PeriodicNotificationCoordinatorExecutor coord;
     private KafkaNotificationProvider provider;
     private String bootstrapServer;
-    
+
     @Rule
     public KafkaTestInstanceRule rule = new KafkaTestInstanceRule(false);
-    
+
     @Before
     public void init() throws Exception {
         bootstrapServer = createBootstrapServerConfig().getProperty(CommonClientConfigs.BOOTSTRAP_SERVERS_CONFIG);
@@ -62,12 +62,12 @@ public class PeriodicCommandNotificationConsumerIT extends KafkaITBase {
 
         BasicConfigurator.configure();
 
-        BlockingQueue<TimestampedNotification> notifications = new LinkedBlockingQueue<>();
-        Properties props = createKafkaConfig();
-        KafkaProducer<String, CommandNotification> producer = new KafkaProducer<>(props);
-        String topic = rule.getKafkaTopicName();
+        final BlockingQueue<TimestampedNotification> notifications = new LinkedBlockingQueue<>();
+        final Properties props = createKafkaConfig();
+        final KafkaProducer<String, CommandNotification> producer = new KafkaProducer<>(props);
+        final String topic = rule.getKafkaTopicName();
         rule.createTopic(topic);
-        
+
         registration = new KafkaNotificationRegistrationClient(topic, producer);
         coord = new PeriodicNotificationCoordinatorExecutor(1, notifications);
         provider = new KafkaNotificationProvider(topic, new StringDeserializer(), new CommandNotificationSerializer(), props, coord, 1);
@@ -80,11 +80,11 @@ public class PeriodicCommandNotificationConsumerIT extends KafkaITBase {
 
         registration.deleteNotification("1");
         Thread.sleep(2000);
-        int size = notifications.size();
+        final int size = notifications.size();
         // sleep for 2 seconds to ensure no more messages being produced
         Thread.sleep(2000);
         Assert.assertEquals(size, notifications.size());
-        
+
         tearDown();
     }
 
@@ -93,12 +93,12 @@ public class PeriodicCommandNotificationConsumerIT extends KafkaITBase {
 
         BasicConfigurator.configure();
 
-        BlockingQueue<TimestampedNotification> notifications = new LinkedBlockingQueue<>();
-        Properties props = createKafkaConfig();
-        KafkaProducer<String, CommandNotification> producer = new KafkaProducer<>(props);
-        String topic = rule.getKafkaTopicName();
+        final BlockingQueue<TimestampedNotification> notifications = new LinkedBlockingQueue<>();
+        final Properties props = createKafkaConfig();
+        final KafkaProducer<String, CommandNotification> producer = new KafkaProducer<>(props);
+        final String topic = rule.getKafkaTopicName();
         rule.createTopic(topic);
-        
+
         registration = new KafkaNotificationRegistrationClient(topic, producer);
         coord = new PeriodicNotificationCoordinatorExecutor(1, notifications);
         provider = new KafkaNotificationProvider(topic, new StringDeserializer(), new CommandNotificationSerializer(), props, coord, 1);
@@ -111,11 +111,11 @@ public class PeriodicCommandNotificationConsumerIT extends KafkaITBase {
 
         registration.deleteNotification("1");
         Thread.sleep(2000);
-        int size = notifications.size();
+        final int size = notifications.size();
         // sleep for 2 seconds to ensure no more messages being produced
         Thread.sleep(2000);
         Assert.assertEquals(size, notifications.size());
-        
+
         tearDown();
     }
 
@@ -126,7 +126,7 @@ public class PeriodicCommandNotificationConsumerIT extends KafkaITBase {
     }
 
     private Properties createKafkaConfig() {
-        Properties props = new Properties();
+        final Properties props = new Properties();
         props.setProperty(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServer);
         props.setProperty(ConsumerConfig.GROUP_ID_CONFIG, UUID.randomUUID().toString());
         props.setProperty(ConsumerConfig.CLIENT_ID_CONFIG, "consumer0");

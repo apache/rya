@@ -26,6 +26,10 @@
     <dependencies>
         <dependency>
             <groupId>org.apache.rya</groupId>
+            <artifactId>rya.test.kafka</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.rya</groupId>
             <artifactId>rya.pcj.fluo.test.base</artifactId>
             <exclusions>
                 <exclusion>

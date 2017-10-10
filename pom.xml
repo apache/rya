@@ -65,6 +65,7 @@ under the License.
         <module>pig</module>
         <module>sail</module>
         <module>spark</module>
+        <module>test</module>
         <module>web</module>
     </modules>
     <properties>
@@ -277,6 +278,16 @@ under the License.
             <dependency>
                 <groupId>org.apache.rya</groupId>
                 <artifactId>rya.pcj.fluo.integration</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.rya</groupId>
+                <artifactId>rya.test.parent</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.rya</groupId>
+                <artifactId>rya.test.kafka</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>

@@ -457,6 +457,11 @@ under the License.
             </dependency>
             <dependency>
                 <groupId>org.openrdf.sesame</groupId>
+                <artifactId>sesame-rio-turtle</artifactId>
+                <version>${openrdf.sesame.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.openrdf.sesame</groupId>
                 <artifactId>sesame-repository-api</artifactId>
                 <version>${openrdf.sesame.version}</version>
             </dependency>

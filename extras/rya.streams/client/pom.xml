@@ -26,44 +26,49 @@ under the License.
     </parent>
     
     <modelVersion>4.0.0</modelVersion>
-    <artifactId>rya.streams.kafka</artifactId>
+    <artifactId>rya.streams.client</artifactId>
     
-    <name>Apache Rya Streams Kafka</name>
+    <name>Apache Rya Streams Client</name>
     <description>
-        This module contains the Rya Streams components that integrate with Kafka.
+        This module contains the Rya Streams Drivers.
     </description>
 
     <dependencies>
         <!-- Rya dependencies -->
         <dependency>
             <groupId>org.apache.rya</groupId>
-            <artifactId>rya.api.model</artifactId>
+            <artifactId>rya.streams.api</artifactId>
         </dependency>
         <dependency>
             <groupId>org.apache.rya</groupId>
-            <artifactId>rya.streams.api</artifactId>
+            <artifactId>rya.api</artifactId>
         </dependency>
 
-        <!-- Kafka dependencies -->
+        <!-- OpenRDF dependencies -->
         <dependency>
-            <groupId>org.apache.kafka</groupId>
-            <artifactId>kafka-clients</artifactId>
-        </dependency>
-        
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-api</artifactId>
+            <groupId>org.openrdf.sesame</groupId>
+            <artifactId>sesame-queryrender</artifactId>
         </dependency>
 
-        <!-- Test dependencies -->
+        <!-- Third Party dependencies -->
+        <dependency>
+            <groupId>com.beust</groupId>
+            <artifactId>jcommander</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>commons-io</groupId>
+            <artifactId>commons-io</artifactId>
+            <version>2.4</version>
+        </dependency>
+        <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+        </dependency>
+
+        <!-- Test dependences -->
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.rya</groupId>
-            <artifactId>rya.test.kafka</artifactId>
             <scope>test</scope>
         </dependency>
     </dependencies>

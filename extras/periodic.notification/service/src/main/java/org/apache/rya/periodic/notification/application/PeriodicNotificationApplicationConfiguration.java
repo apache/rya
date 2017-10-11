@@ -22,7 +22,7 @@ import java.util.Properties;
 
 import org.apache.rya.accumulo.AccumuloRdfConfiguration;
 
-import jline.internal.Preconditions;
+import com.google.common.base.Preconditions;
 
 /**
  * Configuration object for creating a {@link PeriodicNotificationApplication}.

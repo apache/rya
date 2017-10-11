@@ -52,10 +52,9 @@ import org.openrdf.query.QueryEvaluationException;
 import org.openrdf.query.algebra.TupleExpr;
 import org.openrdf.sail.SailException;
 
+import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-
-import jline.internal.Preconditions;
 
 /**
  * Implementation of {@link ExternalSetProvider} that provides {@link ExternalTupleSet}s.

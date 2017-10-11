@@ -24,7 +24,7 @@ import org.apache.rya.indexing.pcj.storage.PeriodicQueryStorageException;
 import org.apache.rya.periodic.notification.api.BinPruner;
 import org.apache.rya.periodic.notification.api.NodeBin;
 
-import jline.internal.Preconditions;
+import com.google.common.base.Preconditions;
 
 /**
  * Deletes BindingSets from time bins in the indicated PCJ table

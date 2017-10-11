@@ -23,7 +23,7 @@ import java.util.Objects;
 import org.apache.fluo.api.data.Column;
 import org.apache.fluo.api.data.Span;
 
-import jline.internal.Preconditions;
+import com.google.common.base.Preconditions;
 
 /**
  * Abstract class for generating span based notifications.  A spanned notification

@@ -36,7 +36,7 @@ import org.apache.rya.periodic.notification.api.BindingSetRecordExportException;
 import org.openrdf.model.Literal;
 import org.openrdf.query.BindingSet;
 
-import jline.internal.Preconditions;
+import com.google.common.base.Preconditions;
 
 /**
  * Object that exports {@link BindingSet}s to the Kafka topic indicated by

@@ -16,7 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.apache.rya.kafka.base;
+package org.apache.rya.test.kafka;
 
 import java.util.Properties;
 

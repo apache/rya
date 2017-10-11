@@ -27,6 +27,7 @@ import static org.apache.rya.api.RdfCloudTripleStoreConstants.EMPTY_TEXT;
 import static org.apache.rya.api.RdfCloudTripleStoreConstants.TYPE_DELIM_BYTES;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
@@ -67,6 +68,9 @@ public class EntityCentricIndex extends AbstractAccumuloIndexer {
 
     private static final Logger logger = Logger.getLogger(EntityCentricIndex.class);
     private static final String TABLE_SUFFIX = "EntityCentricIndex";
+
+    private static final String OBJECT = "object";
+    private static final String SUBJECT = "subject";
 
     private AccumuloRdfConfiguration conf;
     private BatchWriter writer;
@@ -235,15 +239,15 @@ public class EntityCentricIndex extends AbstractAccumuloIndexer {
         final byte[] columnVisibility = stmt.getColumnVisibility();
         final byte[] value = stmt.getValue();
         assert subject != null && predicate != null && object != null;
-        final byte[] cf = (context == null) ? EMPTY_BYTES : context.getData().getBytes();
-        final byte[] subjBytes = subject.getData().getBytes();
-        final byte[] predBytes = predicate.getData().getBytes();
+        final byte[] cf = (context == null) ? EMPTY_BYTES : context.getData().getBytes(StandardCharsets.UTF_8);
+        final byte[] subjBytes = subject.getData().getBytes(StandardCharsets.UTF_8);
+        final byte[] predBytes = predicate.getData().getBytes(StandardCharsets.UTF_8);
         final byte[][] objBytes = RyaContext.getInstance().serializeType(object);
 
         return Lists.newArrayList(new TripleRow(subjBytes,
             predBytes,
             Bytes.concat(cf, DELIM_BYTES,
-                "object".getBytes(), DELIM_BYTES,
+                OBJECT.getBytes(StandardCharsets.UTF_8), DELIM_BYTES,
                 objBytes[0], objBytes[1]),
             timestamp,
             columnVisibility,
@@ -251,7 +255,7 @@ public class EntityCentricIndex extends AbstractAccumuloIndexer {
             new TripleRow(objBytes[0],
                 predBytes,
                 Bytes.concat(cf, DELIM_BYTES,
-                    "subject".getBytes(), DELIM_BYTES,
+                    SUBJECT.getBytes(StandardCharsets.UTF_8), DELIM_BYTES,
                     subjBytes, objBytes[1]),
                 timestamp,
                 columnVisibility,
@@ -282,25 +286,25 @@ public class EntityCentricIndex extends AbstractAccumuloIndexer {
         final byte[] columnFamily = Arrays.copyOf(data, split);
         final byte[] edgeBytes = Arrays.copyOfRange(data, split + DELIM_BYTES.length, data.length);
         split = Bytes.indexOf(edgeBytes, DELIM_BYTES);
-        String otherNodeVar = new String(Arrays.copyOf(edgeBytes, split));
-        byte[] otherNodeBytes = Arrays.copyOfRange(edgeBytes,  split + DELIM_BYTES.length, edgeBytes.length);
+        final String otherNodeVar = new String(Arrays.copyOf(edgeBytes, split), StandardCharsets.UTF_8);
+        final byte[] otherNodeBytes = Arrays.copyOfRange(edgeBytes,  split + DELIM_BYTES.length, edgeBytes.length);
         split = Bytes.indexOf(otherNodeBytes, TYPE_DELIM_BYTES);
-        byte[] otherNodeData = Arrays.copyOf(otherNodeBytes,  split);
-        byte[] typeBytes = Arrays.copyOfRange(otherNodeBytes,  split, otherNodeBytes.length);
+        final byte[] otherNodeData = Arrays.copyOf(otherNodeBytes,  split);
+        final byte[] typeBytes = Arrays.copyOfRange(otherNodeBytes,  split, otherNodeBytes.length);
         byte[] objectBytes;
         RyaURI subject;
-        final RyaURI predicate = new RyaURI(new String(predicateBytes));
+        final RyaURI predicate = new RyaURI(new String(predicateBytes, StandardCharsets.UTF_8));
         RyaType object;
         RyaURI context = null;
         // Expect either: entity=subject.data, otherNodeVar="object", otherNodeBytes={object.data, object.datatype}
         //            or: entity=object.data, otherNodeVar="subject", otherNodeBytes={subject.data, object.datatype}
         switch (otherNodeVar) {
-            case "subject":
-                subject = new RyaURI(new String(otherNodeData));
+            case SUBJECT:
+                subject = new RyaURI(new String(otherNodeData, StandardCharsets.UTF_8));
                 objectBytes = Bytes.concat(entityBytes, typeBytes);
                 break;
-            case "object":
-                subject = new RyaURI(new String(entityBytes));
+            case OBJECT:
+                subject = new RyaURI(new String(entityBytes, StandardCharsets.UTF_8));
                 objectBytes = Bytes.concat(otherNodeData, typeBytes);
                 break;
             default:
@@ -309,7 +313,7 @@ public class EntityCentricIndex extends AbstractAccumuloIndexer {
         }
         object = RyaContext.getInstance().deserialize(objectBytes);
         if (columnFamily != null && columnFamily.length > 0) {
-            context = new RyaURI(new String(columnFamily));
+            context = new RyaURI(new String(columnFamily, StandardCharsets.UTF_8));
         }
         return new RyaStatement(subject, predicate, object, context,
                 null, columnVisibility, valueBytes, timestamp);
@@ -323,33 +327,33 @@ public class EntityCentricIndex extends AbstractAccumuloIndexer {
      * @throws IOException if edge direction can't be extracted as expected.
      * @throws RyaTypeResolverException if a type error occurs deserializing the statement's object.
      */
-    public static RyaType getRyaType(Key key, Value value) throws RyaTypeResolverException, IOException {
+    public static RyaType getRyaType(final Key key, final Value value) throws RyaTypeResolverException, IOException {
         assert key != null;
         assert value != null;
-        byte[] entityBytes = key.getRowData().toArray();
-        byte[] data = key.getColumnQualifierData().toArray();
+        final byte[] entityBytes = key.getRowData().toArray();
+        final byte[] data = key.getColumnQualifierData().toArray();
 
         // main entity is either the subject or object
         // data contains: column family , var name of other node , data of other node + datatype of object
         int split = Bytes.indexOf(data, DELIM_BYTES);
-        byte[] edgeBytes = Arrays.copyOfRange(data, split + DELIM_BYTES.length, data.length);
+        final byte[] edgeBytes = Arrays.copyOfRange(data, split + DELIM_BYTES.length, data.length);
         split = Bytes.indexOf(edgeBytes, DELIM_BYTES);
-        String otherNodeVar = new String(Arrays.copyOf(edgeBytes, split));
-        byte[] otherNodeBytes = Arrays.copyOfRange(edgeBytes,  split + DELIM_BYTES.length, edgeBytes.length);
+        final String otherNodeVar = new String(Arrays.copyOf(edgeBytes, split), StandardCharsets.UTF_8);
+        final byte[] otherNodeBytes = Arrays.copyOfRange(edgeBytes,  split + DELIM_BYTES.length, edgeBytes.length);
         split = Bytes.indexOf(otherNodeBytes, TYPE_DELIM_BYTES);
-        byte[] typeBytes = Arrays.copyOfRange(otherNodeBytes,  split, otherNodeBytes.length);
+        final byte[] typeBytes = Arrays.copyOfRange(otherNodeBytes,  split, otherNodeBytes.length);
         byte[] objectBytes;
         RyaURI subject;
         RyaType object;
         RyaType type = null;
         switch (otherNodeVar) {
-            case "subject":
+            case SUBJECT:
                 objectBytes = Bytes.concat(entityBytes, typeBytes);
-                object = RyaContext.getInstance().deserialize(objectBytes); //return this
+                object = RyaContext.getInstance().deserialize(objectBytes);
                 type = object;
                 break;
-            case "object":
-                subject = new RyaURI(new String(entityBytes));//return this
+            case OBJECT:
+                subject = new RyaURI(new String(entityBytes, StandardCharsets.UTF_8));
                 type = subject;
                 break;
             default:

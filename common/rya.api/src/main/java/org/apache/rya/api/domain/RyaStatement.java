@@ -1,5 +1,3 @@
-package org.apache.rya.api.domain;
-
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -8,9 +6,9 @@ package org.apache.rya.api.domain;
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- * 
+ *
  *   http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -18,9 +16,9 @@ package org.apache.rya.api.domain;
  * specific language governing permissions and limitations
  * under the License.
  */
+package org.apache.rya.api.domain;
 
-
-
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 
 /**
@@ -40,34 +38,34 @@ public class RyaStatement {
     public RyaStatement() {
     }
 
-    public RyaStatement(RyaURI subject, RyaURI predicate, RyaType object) {
+    public RyaStatement(final RyaURI subject, final RyaURI predicate, final RyaType object) {
         this(subject, predicate, object, null);
     }
 
-    public RyaStatement(RyaURI subject, RyaURI predicate, RyaType object, RyaURI context) {
+    public RyaStatement(final RyaURI subject, final RyaURI predicate, final RyaType object, final RyaURI context) {
         this(subject, predicate, object, context, null);
     }
 
 
-    public RyaStatement(RyaURI subject, RyaURI predicate, RyaType object, RyaURI context, String qualifier) {
+    public RyaStatement(final RyaURI subject, final RyaURI predicate, final RyaType object, final RyaURI context, final String qualifier) {
         this(subject, predicate, object, context, qualifier, new StatementMetadata());
     }
 
-    public RyaStatement(RyaURI subject, RyaURI predicate, RyaType object, RyaURI context, String qualifier, StatementMetadata metadata) {
+    public RyaStatement(final RyaURI subject, final RyaURI predicate, final RyaType object, final RyaURI context, final String qualifier, final StatementMetadata metadata) {
         this(subject, predicate, object, context, qualifier, metadata, null);
     }
 
-    public RyaStatement(RyaURI subject, RyaURI predicate, RyaType object, RyaURI context, String qualifier, StatementMetadata metadata, byte[] columnVisibility) {
+    public RyaStatement(final RyaURI subject, final RyaURI predicate, final RyaType object, final RyaURI context, final String qualifier, final StatementMetadata metadata, final byte[] columnVisibility) {
         this(subject, predicate, object, context, qualifier, columnVisibility, metadata.toBytes());
     }
 
     @Deprecated
-    public RyaStatement(RyaURI subject, RyaURI predicate, RyaType object, RyaURI context, String qualifier, byte[] columnVisibility, byte[] value) {
+    public RyaStatement(final RyaURI subject, final RyaURI predicate, final RyaType object, final RyaURI context, final String qualifier, final byte[] columnVisibility, final byte[] value) {
         this(subject, predicate, object, context, qualifier, columnVisibility, value, null);
     }
 
     @Deprecated
-    public RyaStatement(RyaURI subject, RyaURI predicate, RyaType object, RyaURI context, String qualifier, byte[] columnVisibility, byte[] value, Long timestamp) {
+    public RyaStatement(final RyaURI subject, final RyaURI predicate, final RyaType object, final RyaURI context, final String qualifier, final byte[] columnVisibility, final byte[] value, final Long timestamp) {
         this.subject = subject;
         this.predicate = predicate;
         this.object = object;
@@ -82,7 +80,7 @@ public class RyaStatement {
         return subject;
     }
 
-    public void setSubject(RyaURI subject) {
+    public void setSubject(final RyaURI subject) {
         this.subject = subject;
     }
 
@@ -90,7 +88,7 @@ public class RyaStatement {
         return predicate;
     }
 
-    public void setPredicate(RyaURI predicate) {
+    public void setPredicate(final RyaURI predicate) {
         this.predicate = predicate;
     }
 
@@ -98,7 +96,7 @@ public class RyaStatement {
         return object;
     }
 
-    public void setObject(RyaType object) {
+    public void setObject(final RyaType object) {
         this.object = object;
     }
 
@@ -106,7 +104,7 @@ public class RyaStatement {
         return context;
     }
 
-    public void setContext(RyaURI context) {
+    public void setContext(final RyaURI context) {
         this.context = context;
     }
 
@@ -114,22 +112,22 @@ public class RyaStatement {
         return columnVisibility;
     }
 
-    public void setColumnVisibility(byte[] columnVisibility) {
+    public void setColumnVisibility(final byte[] columnVisibility) {
         this.columnVisibility = columnVisibility;
     }
-    
+
     public StatementMetadata getMetadata() {
-        // try to deserialize the value, if not assume that there was 
+        // try to deserialize the value, if not assume that there was
         // no explicit metadata
         try {
             return new StatementMetadata(value);
         }
-        catch (Exception ex){
+        catch (final Exception ex){
             return null;
         }
     }
-    
-    public void setStatementMetadata(StatementMetadata metadata){
+
+    public void setStatementMetadata(final StatementMetadata metadata){
         this.value = metadata.toBytes();
     }
 
@@ -139,7 +137,7 @@ public class RyaStatement {
     }
 
     @Deprecated
-    public void setValue(byte[] value) {
+    public void setValue(final byte[] value) {
         this.value = value;
     }
 
@@ -147,25 +145,45 @@ public class RyaStatement {
         return timestamp;
     }
 
-    public void setTimestamp(Long timestamp) {
+    public void setTimestamp(final Long timestamp) {
         this.timestamp = timestamp;
     }
 
     @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+    public boolean equals(final Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
 
-        RyaStatement that = (RyaStatement) o;
+        final RyaStatement that = (RyaStatement) o;
 
-        if (!Arrays.equals(columnVisibility, that.columnVisibility)) return false;
-        if (context != null ? !context.equals(that.context) : that.context != null) return false;
-        if (object != null ? !object.equals(that.object) : that.object != null) return false;
-        if (predicate != null ? !predicate.equals(that.predicate) : that.predicate != null) return false;
-        if (qualifer != null ? !qualifer.equals(that.qualifer) : that.qualifer != null) return false;
-        if (subject != null ? !subject.equals(that.subject) : that.subject != null) return false;
-        if (timestamp != null ? !timestamp.equals(that.timestamp) : that.timestamp != null) return false;
-        if (!Arrays.equals(value, that.value)) return false;
+        if (!Arrays.equals(columnVisibility, that.columnVisibility)) {
+            return false;
+        }
+        if (context != null ? !context.equals(that.context) : that.context != null) {
+            return false;
+        }
+        if (object != null ? !object.equals(that.object) : that.object != null) {
+            return false;
+        }
+        if (predicate != null ? !predicate.equals(that.predicate) : that.predicate != null) {
+            return false;
+        }
+        if (qualifer != null ? !qualifer.equals(that.qualifer) : that.qualifer != null) {
+            return false;
+        }
+        if (subject != null ? !subject.equals(that.subject) : that.subject != null) {
+            return false;
+        }
+        if (timestamp != null ? !timestamp.equals(that.timestamp) : that.timestamp != null) {
+            return false;
+        }
+        if (!Arrays.equals(value, that.value)) {
+            return false;
+        }
 
         return true;
     }
@@ -187,7 +205,7 @@ public class RyaStatement {
         return qualifer;
     }
 
-    public void setQualifer(String qualifer) {
+    public void setQualifer(final String qualifer) {
         this.qualifer = qualifer;
     }
 
@@ -200,8 +218,8 @@ public class RyaStatement {
         sb.append(", object=").append(object);
         sb.append(", context=").append(context);
         sb.append(", qualifier=").append(qualifer);
-        sb.append(", columnVisibility=").append(columnVisibility == null ? "null" : new String(columnVisibility));
-        sb.append(", value=").append(value == null ? "null" : new String(value));
+        sb.append(", columnVisibility=").append(columnVisibility == null ? "null" : new String(columnVisibility, StandardCharsets.UTF_8));
+        sb.append(", value=").append(value == null ? "null" : new String(value, StandardCharsets.UTF_8));
         sb.append(", timestamp=").append(timestamp);
         sb.append('}');
         return sb.toString();
@@ -211,7 +229,7 @@ public class RyaStatement {
         return new RyaStatementBuilder();
     }
 
-    public static RyaStatementBuilder builder(RyaStatement ryaStatement) {
+    public static RyaStatementBuilder builder(final RyaStatement ryaStatement) {
         return new RyaStatementBuilder(ryaStatement);
     }
 
@@ -225,52 +243,52 @@ public class RyaStatement {
             ryaStatement = new RyaStatement();
         }
 
-        public RyaStatementBuilder(RyaStatement ryaStatement) {
+        public RyaStatementBuilder(final RyaStatement ryaStatement) {
             this.ryaStatement = ryaStatement;
         }
 
-        public RyaStatementBuilder setTimestamp(Long timestamp) {
+        public RyaStatementBuilder setTimestamp(final Long timestamp) {
             ryaStatement.setTimestamp(timestamp);
             return this;
         }
 
         @Deprecated
-        public RyaStatementBuilder setValue(byte[] value) {
+        public RyaStatementBuilder setValue(final byte[] value) {
             ryaStatement.setValue(value);
             return this;
         }
 
-        public RyaStatementBuilder setMetadata(StatementMetadata metadata) {
+        public RyaStatementBuilder setMetadata(final StatementMetadata metadata) {
             ryaStatement.setValue(metadata.toBytes());
             return this;
         }
 
-        public RyaStatementBuilder setColumnVisibility(byte[] columnVisibility) {
+        public RyaStatementBuilder setColumnVisibility(final byte[] columnVisibility) {
             ryaStatement.setColumnVisibility(columnVisibility);
             return this;
         }
 
-        public RyaStatementBuilder setQualifier(String str) {
+        public RyaStatementBuilder setQualifier(final String str) {
             ryaStatement.setQualifer(str);
             return this;
         }
 
-        public RyaStatementBuilder setContext(RyaURI ryaURI) {
+        public RyaStatementBuilder setContext(final RyaURI ryaURI) {
             ryaStatement.setContext(ryaURI);
             return this;
         }
 
-        public RyaStatementBuilder setSubject(RyaURI ryaURI) {
+        public RyaStatementBuilder setSubject(final RyaURI ryaURI) {
             ryaStatement.setSubject(ryaURI);
             return this;
         }
 
-        public RyaStatementBuilder setPredicate(RyaURI ryaURI) {
+        public RyaStatementBuilder setPredicate(final RyaURI ryaURI) {
             ryaStatement.setPredicate(ryaURI);
             return this;
         }
 
-        public RyaStatementBuilder setObject(RyaType ryaType) {
+        public RyaStatementBuilder setObject(final RyaType ryaType) {
             ryaStatement.setObject(ryaType);
             return this;
         }

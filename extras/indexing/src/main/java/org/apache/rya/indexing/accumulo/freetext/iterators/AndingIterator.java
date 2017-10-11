@@ -1,5 +1,3 @@
-package org.apache.rya.indexing.accumulo.freetext.iterators;
-
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -8,9 +6,9 @@ package org.apache.rya.indexing.accumulo.freetext.iterators;
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- * 
+ *
  *   http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -18,10 +16,10 @@ package org.apache.rya.indexing.accumulo.freetext.iterators;
  * specific language governing permissions and limitations
  * under the License.
  */
-
-
+package org.apache.rya.indexing.accumulo.freetext.iterators;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
@@ -49,27 +47,27 @@ public class AndingIterator implements SortedKeyValueIterator<Key, Value> {
 
 	protected Text nullText = new Text();
 
-	protected Text getPartition(Key key) {
+	protected Text getPartition(final Key key) {
 		return key.getRow();
 	}
 
-	protected Text getTerm(Key key) {
+	protected Text getTerm(final Key key) {
 		return key.getColumnFamily();
 	}
 
-	protected Text getDocID(Key key) {
+	protected Text getDocID(final Key key) {
 		return key.getColumnQualifier();
 	}
 
-	protected Key buildKey(Text partition, Text term) {
+	protected Key buildKey(final Text partition, final Text term) {
 		return new Key(partition, (term == null) ? nullText : term);
 	}
 
-	protected Key buildKey(Text partition, Text term, Text docID) {
+	protected Key buildKey(final Text partition, final Text term, final Text docID) {
 		return new Key(partition, (term == null) ? nullText : term, docID);
 	}
 
-	protected Key buildFollowingPartitionKey(Key key) {
+	protected Key buildFollowingPartitionKey(final Key key) {
 		return key.followingKey(PartialKey.ROW);
 	}
 
@@ -81,18 +79,18 @@ public class AndingIterator implements SortedKeyValueIterator<Key, Value> {
 		public Collection<ByteSequence> seekColfams;
 		public boolean notFlag;
 
-		public TermSource(TermSource other) {
+		public TermSource(final TermSource other) {
 			this.iter = other.iter;
 			this.term = other.term;
 			this.notFlag = other.notFlag;
 			this.seekColfams = other.seekColfams;
 		}
 
-		public TermSource(SortedKeyValueIterator<Key, Value> iter, Text term) {
+		public TermSource(final SortedKeyValueIterator<Key, Value> iter, final Text term) {
 			this(iter, term, false);
 		}
 
-		public TermSource(SortedKeyValueIterator<Key, Value> iter, Text term, boolean notFlag) {
+		public TermSource(final SortedKeyValueIterator<Key, Value> iter, final Text term, final boolean notFlag) {
 			this.iter = iter;
 			this.term = term;
 			this.notFlag = notFlag;
@@ -128,11 +126,11 @@ public class AndingIterator implements SortedKeyValueIterator<Key, Value> {
 	}
 
 	@Override
-	public SortedKeyValueIterator<Key, Value> deepCopy(IteratorEnvironment env) {
+	public SortedKeyValueIterator<Key, Value> deepCopy(final IteratorEnvironment env) {
 		return new AndingIterator(this, env);
 	}
 
-	private AndingIterator(AndingIterator other, IteratorEnvironment env) {
+	private AndingIterator(final AndingIterator other, final IteratorEnvironment env) {
 		if (other.sources != null) {
 			sourcesCount = other.sourcesCount;
 			sources = new TermSource[sourcesCount];
@@ -159,7 +157,7 @@ public class AndingIterator implements SortedKeyValueIterator<Key, Value> {
 	}
 
 	// precondition: currentRow is not null
-	private boolean seekOneSource(int sourceID) throws IOException {
+	private boolean seekOneSource(final int sourceID) throws IOException {
 		// find the next key in the appropriate column family that is at or beyond the cursor (currentRow, currentCQ)
 		// advance the cursor if this source goes beyond it
 		// return whether we advanced the cursor
@@ -189,13 +187,13 @@ public class AndingIterator implements SortedKeyValueIterator<Key, Value> {
 						break;
 					}
 				}
-				int partitionCompare = currentPartition.compareTo(getPartition(sources[sourceID].iter.getTopKey()));
+				final int partitionCompare = currentPartition.compareTo(getPartition(sources[sourceID].iter.getTopKey()));
 				// check if this source is already at or beyond currentRow
 				// if not, then seek to at least the current row
 
 				if (partitionCompare > 0) {
 					// seek to at least the currentRow
-					Key seekKey = buildKey(currentPartition, sources[sourceID].term);
+					final Key seekKey = buildKey(currentPartition, sources[sourceID].term);
 					sources[sourceID].iter.seek(new Range(seekKey, true, null, false), sources[sourceID].seekColfams, true);
 					continue;
 				}
@@ -208,11 +206,11 @@ public class AndingIterator implements SortedKeyValueIterator<Key, Value> {
 				// now we must make sure we're in the right columnFamily in the current row
 				// Note: Iterators are auto-magically set to the correct columnFamily
 				if (sources[sourceID].term != null) {
-					int termCompare = sources[sourceID].term.compareTo(getTerm(sources[sourceID].iter.getTopKey()));
+					final int termCompare = sources[sourceID].term.compareTo(getTerm(sources[sourceID].iter.getTopKey()));
 					// check if this source is already on the right columnFamily
 					// if not, then seek forwards to the right columnFamily
 					if (termCompare > 0) {
-						Key seekKey = buildKey(currentPartition, sources[sourceID].term, currentDocID);
+						final Key seekKey = buildKey(currentPartition, sources[sourceID].term, currentDocID);
 						sources[sourceID].iter.seek(new Range(seekKey, true, null, false), sources[sourceID].seekColfams, true);
 						continue;
 					}
@@ -225,8 +223,8 @@ public class AndingIterator implements SortedKeyValueIterator<Key, Value> {
 
 				// we have verified that we are in currentRow and the correct column family
 				// make sure we are at or beyond columnQualifier
-				Text docID = getDocID(sources[sourceID].iter.getTopKey());
-				int docIDCompare = currentDocID.compareTo(docID);
+				final Text docID = getDocID(sources[sourceID].iter.getTopKey());
+				final int docIDCompare = currentDocID.compareTo(docID);
 				// If we are past the target, this is a valid result
 				if (docIDCompare < 0) {
 					break;
@@ -234,7 +232,7 @@ public class AndingIterator implements SortedKeyValueIterator<Key, Value> {
 				// if this source is not yet at the currentCQ then advance in this source
 				if (docIDCompare > 0) {
 					// seek forwards
-					Key seekKey = buildKey(currentPartition, sources[sourceID].term, currentDocID);
+					final Key seekKey = buildKey(currentPartition, sources[sourceID].term, currentDocID);
 					sources[sourceID].iter.seek(new Range(seekKey, true, null, false), sources[sourceID].seekColfams, true);
 					continue;
 				}
@@ -267,12 +265,12 @@ public class AndingIterator implements SortedKeyValueIterator<Key, Value> {
 						return true;
 					}
 				}
-				int partitionCompare = currentPartition.compareTo(getPartition(sources[sourceID].iter.getTopKey()));
+				final int partitionCompare = currentPartition.compareTo(getPartition(sources[sourceID].iter.getTopKey()));
 				// check if this source is already at or beyond currentRow
 				// if not, then seek to at least the current row
 				if (partitionCompare > 0) {
 					// seek to at least the currentRow
-					Key seekKey = buildKey(currentPartition, sources[sourceID].term);
+					final Key seekKey = buildKey(currentPartition, sources[sourceID].term);
 					sources[sourceID].iter.seek(new Range(seekKey, true, null, false), sources[sourceID].seekColfams, true);
 					continue;
 				}
@@ -289,11 +287,11 @@ public class AndingIterator implements SortedKeyValueIterator<Key, Value> {
 				// Note: Iterators are auto-magically set to the correct columnFamily
 
 				if (sources[sourceID].term != null) {
-					int termCompare = sources[sourceID].term.compareTo(getTerm(sources[sourceID].iter.getTopKey()));
+					final int termCompare = sources[sourceID].term.compareTo(getTerm(sources[sourceID].iter.getTopKey()));
 					// check if this source is already on the right columnFamily
 					// if not, then seek forwards to the right columnFamily
 					if (termCompare > 0) {
-						Key seekKey = buildKey(currentPartition, sources[sourceID].term, currentDocID);
+						final Key seekKey = buildKey(currentPartition, sources[sourceID].term, currentDocID);
 						sources[sourceID].iter.seek(new Range(seekKey, true, null, false), sources[sourceID].seekColfams, true);
 						continue;
 					}
@@ -313,15 +311,15 @@ public class AndingIterator implements SortedKeyValueIterator<Key, Value> {
 							// setting currentRow to null counts as advancing the cursor
 							return true;
 						}
-						Key seekKey = buildFollowingPartitionKey(sources[sourceID].iter.getTopKey());
+						final Key seekKey = buildFollowingPartitionKey(sources[sourceID].iter.getTopKey());
 						sources[sourceID].iter.seek(new Range(seekKey, true, null, false), sources[sourceID].seekColfams, true);
 						continue;
 					}
 				}
 				// we have verified that we are in currentRow and the correct column family
 				// make sure we are at or beyond columnQualifier
-				Text docID = getDocID(sources[sourceID].iter.getTopKey());
-				int docIDCompare = currentDocID.compareTo(docID);
+				final Text docID = getDocID(sources[sourceID].iter.getTopKey());
+				final int docIDCompare = currentDocID.compareTo(docID);
 				// if this source has advanced beyond the current column qualifier then advance currentCQ and return true
 				if (docIDCompare < 0) {
 					currentDocID.set(docID);
@@ -331,7 +329,7 @@ public class AndingIterator implements SortedKeyValueIterator<Key, Value> {
 				// if this source is not yet at the currentCQ then seek in this source
 				if (docIDCompare > 0) {
 					// seek forwards
-					Key seekKey = buildKey(currentPartition, sources[sourceID].term, currentDocID);
+					final Key seekKey = buildKey(currentPartition, sources[sourceID].term, currentDocID);
 					sources[sourceID].iter.seek(new Range(seekKey, true, null, false), sources[sourceID].seekColfams, true);
 					continue;
 				}
@@ -372,9 +370,10 @@ public class AndingIterator implements SortedKeyValueIterator<Key, Value> {
 		topKey = buildKey(currentPartition, nullText, currentDocID);
 	}
 
-	public static String stringTopKey(SortedKeyValueIterator<Key, Value> iter) {
-		if (iter.hasTop())
-			return iter.getTopKey().toString();
+	public static String stringTopKey(final SortedKeyValueIterator<Key, Value> iter) {
+		if (iter.hasTop()) {
+            return iter.getTopKey().toString();
+        }
 		return "";
 	}
 
@@ -387,10 +386,11 @@ public class AndingIterator implements SortedKeyValueIterator<Key, Value> {
 	 * @deprecated since 1.4. To be made protected. Do not interact with flags string directly, just use
 	 *             {@link #setColumnFamilies(IteratorSetting, Text[], boolean[])}.
 	 */
-	public static String encodeColumns(Text[] columns) {
-		StringBuilder sb = new StringBuilder();
-		for (int i = 0; i < columns.length; i++) {
-			sb.append(new String(Base64.encodeBase64(TextUtil.getBytes(columns[i]))));
+	@Deprecated
+    public static String encodeColumns(final Text[] columns) {
+		final StringBuilder sb = new StringBuilder();
+		for (final Text column : columns) {
+			sb.append(new String(Base64.encodeBase64(TextUtil.getBytes(column)), StandardCharsets.UTF_8));
 			sb.append('\n');
 		}
 		return sb.toString();
@@ -402,53 +402,58 @@ public class AndingIterator implements SortedKeyValueIterator<Key, Value> {
 	 * @deprecated since 1.4. To be made protected. Do not interact with flags string directly, just use
 	 *             {@link #setColumnFamilies(IteratorSetting, Text[], boolean[])}.
 	 */
-	public static String encodeBooleans(boolean[] flags) {
-		byte[] bytes = new byte[flags.length];
+	@Deprecated
+    public static String encodeBooleans(final boolean[] flags) {
+		final byte[] bytes = new byte[flags.length];
 		for (int i = 0; i < flags.length; i++) {
-			if (flags[i])
-				bytes[i] = 1;
-			else
-				bytes[i] = 0;
+			if (flags[i]) {
+                bytes[i] = 1;
+            } else {
+                bytes[i] = 0;
+            }
 		}
-		return new String(Base64.encodeBase64(bytes));
+		return new String(Base64.encodeBase64(bytes), StandardCharsets.UTF_8);
 	}
 
-	protected static Text[] decodeColumns(String columns) {
-		String[] columnStrings = columns.split("\n");
-		Text[] columnTexts = new Text[columnStrings.length];
+	protected static Text[] decodeColumns(final String columns) {
+		final String[] columnStrings = columns.split("\n");
+		final Text[] columnTexts = new Text[columnStrings.length];
 		for (int i = 0; i < columnStrings.length; i++) {
-			columnTexts[i] = new Text(Base64.decodeBase64(columnStrings[i].getBytes()));
+			columnTexts[i] = new Text(Base64.decodeBase64(columnStrings[i].getBytes(StandardCharsets.UTF_8)));
 		}
 		return columnTexts;
 	}
 
 	/**
 	 * to be made protected
-	 * 
+	 *
 	 * @param flags
 	 * @return decoded flags
 	 * @deprecated since 1.4. To be made protected. Do not interact with flags string directly, just use
 	 *             {@link #setColumnFamilies(IteratorSetting, Text[], boolean[])}.
 	 */
-	public static boolean[] decodeBooleans(String flags) {
+	@Deprecated
+    public static boolean[] decodeBooleans(final String flags) {
 		// return null of there were no flags
-		if (flags == null)
-			return null;
+		if (flags == null) {
+            return null;
+        }
 
-		byte[] bytes = Base64.decodeBase64(flags.getBytes());
-		boolean[] bFlags = new boolean[bytes.length];
+		final byte[] bytes = Base64.decodeBase64(flags.getBytes(StandardCharsets.UTF_8));
+		final boolean[] bFlags = new boolean[bytes.length];
 		for (int i = 0; i < bytes.length; i++) {
-			if (bytes[i] == 1)
-				bFlags[i] = true;
-			else
-				bFlags[i] = false;
+			if (bytes[i] == 1) {
+                bFlags[i] = true;
+            } else {
+                bFlags[i] = false;
+            }
 		}
 		return bFlags;
 	}
 
 	@Override
-	public void init(SortedKeyValueIterator<Key, Value> source, Map<String, String> options, IteratorEnvironment env) throws IOException {
-		Text[] terms = decodeColumns(options.get(columnFamiliesOptionName));
+	public void init(final SortedKeyValueIterator<Key, Value> source, final Map<String, String> options, final IteratorEnvironment env) throws IOException {
+		final Text[] terms = decodeColumns(options.get(columnFamiliesOptionName));
 		boolean[] notFlag = decodeBooleans(options.get(notFlagOptionName));
 
 		if (terms.length < 2) {
@@ -460,13 +465,14 @@ public class AndingIterator implements SortedKeyValueIterator<Key, Value> {
 		// And we are going to re-order such that the first term is not a ! term
 		if (notFlag == null) {
 			notFlag = new boolean[terms.length];
-			for (int i = 0; i < terms.length; i++)
-				notFlag[i] = false;
+			for (int i = 0; i < terms.length; i++) {
+                notFlag[i] = false;
+            }
 		}
 		if (notFlag[0]) {
 			for (int i = 1; i < notFlag.length; i++) {
 				if (notFlag[i] == false) {
-					Text swapFamily = new Text(terms[0]);
+					final Text swapFamily = new Text(terms[0]);
 					terms[0].set(terms[i]);
 					terms[i].set(swapFamily);
 					notFlag[0] = false;
@@ -488,7 +494,7 @@ public class AndingIterator implements SortedKeyValueIterator<Key, Value> {
 	}
 
 	@Override
-	public void seek(Range range, Collection<ByteSequence> seekColumnFamilies, boolean inclusive) throws IOException {
+	public void seek(final Range range, final Collection<ByteSequence> seekColumnFamilies, final boolean inclusive) throws IOException {
 		overallRange = new Range(range);
 		currentPartition = new Text();
 		currentDocID.set(emptyByteArray);
@@ -512,16 +518,16 @@ public class AndingIterator implements SortedKeyValueIterator<Key, Value> {
 		advanceToIntersection();
 	}
 
-	public void addSource(SortedKeyValueIterator<Key, Value> source, IteratorEnvironment env, Text term, boolean notFlag) {
+	public void addSource(final SortedKeyValueIterator<Key, Value> source, final IteratorEnvironment env, final Text term, final boolean notFlag) {
 		// Check if we have space for the added Source
 		if (sources == null) {
 			sources = new TermSource[1];
 		} else {
 			// allocate space for node, and copy current tree.
 			// TODO: Should we change this to an ArrayList so that we can just add() ?
-			TermSource[] localSources = new TermSource[sources.length + 1];
+			final TermSource[] localSources = new TermSource[sources.length + 1];
 			int currSource = 0;
-			for (TermSource myTerm : sources) {
+			for (final TermSource myTerm : sources) {
 				// TODO: Do I need to call new here? or can I just re-use the term?
 				localSources[currSource] = new TermSource(myTerm);
 				currSource++;
@@ -534,29 +540,32 @@ public class AndingIterator implements SortedKeyValueIterator<Key, Value> {
 
 	/**
 	 * Encode the columns to be used when iterating.
-	 * 
+	 *
 	 * @param cfg
 	 * @param columns
 	 */
-	public static void setColumnFamilies(IteratorSetting cfg, Text[] columns) {
-		if (columns.length < 2)
-			throw new IllegalArgumentException("Must supply at least two terms to intersect");
+	public static void setColumnFamilies(final IteratorSetting cfg, final Text[] columns) {
+		if (columns.length < 2) {
+            throw new IllegalArgumentException("Must supply at least two terms to intersect");
+        }
 		cfg.addOption(AndingIterator.columnFamiliesOptionName, AndingIterator.encodeColumns(columns));
 	}
 
 	/**
 	 * Encode columns and NOT flags indicating which columns should be negated (docIDs will be excluded if matching negated columns, instead
 	 * of included).
-	 * 
+	 *
 	 * @param cfg
 	 * @param columns
 	 * @param notFlags
 	 */
-	public static void setColumnFamilies(IteratorSetting cfg, Text[] columns, boolean[] notFlags) {
-		if (columns.length < 2)
-			throw new IllegalArgumentException("Must supply at least two terms to intersect");
-		if (columns.length != notFlags.length)
-			throw new IllegalArgumentException("columns and notFlags arrays must be the same length");
+	public static void setColumnFamilies(final IteratorSetting cfg, final Text[] columns, final boolean[] notFlags) {
+		if (columns.length < 2) {
+            throw new IllegalArgumentException("Must supply at least two terms to intersect");
+        }
+		if (columns.length != notFlags.length) {
+            throw new IllegalArgumentException("columns and notFlags arrays must be the same length");
+        }
 		setColumnFamilies(cfg, columns);
 		cfg.addOption(AndingIterator.notFlagOptionName, AndingIterator.encodeBooleans(notFlags));
 	}

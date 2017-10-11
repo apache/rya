@@ -21,6 +21,7 @@ package org.apache.rya.prospector.plans.impl;
 import static org.apache.rya.prospector.utils.ProspectorConstants.COUNT;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -62,7 +63,7 @@ import org.openrdf.model.vocabulary.XMLSchema;
 public class CountPlan implements IndexWorkPlan {
 
     @Override
-    public Collection<Map.Entry<IntermediateProspect, LongWritable>> map(RyaStatement ryaStatement) {
+    public Collection<Map.Entry<IntermediateProspect, LongWritable>> map(final RyaStatement ryaStatement) {
         final RyaURI subject = ryaStatement.getSubject();
         final RyaURI predicate = ryaStatement.getPredicate();
         final String subjpred = ryaStatement.getSubject().getData() + DELIM + ryaStatement.getPredicate().getData();
@@ -71,7 +72,7 @@ public class CountPlan implements IndexWorkPlan {
         final RyaType object = ryaStatement.getObject();
         final int localIndex = URIUtil.getLocalNameIndex(subject.getData());
         final String namespace = subject.getData().substring(0, localIndex - 1);
-        final String visibility = new String(ryaStatement.getColumnVisibility());
+        final String visibility = new String(ryaStatement.getColumnVisibility(), StandardCharsets.UTF_8);
 
         final List<Map.Entry<IntermediateProspect, LongWritable>> entries = new ArrayList<>(7);
 
@@ -149,7 +150,7 @@ public class CountPlan implements IndexWorkPlan {
     }
 
     @Override
-    public Collection<Map.Entry<IntermediateProspect, LongWritable>> combine(IntermediateProspect prospect, Iterable<LongWritable> counts) {
+    public Collection<Map.Entry<IntermediateProspect, LongWritable>> combine(final IntermediateProspect prospect, final Iterable<LongWritable> counts) {
         long sum = 0;
         for(final LongWritable count : counts) {
             sum += count.get();
@@ -158,7 +159,7 @@ public class CountPlan implements IndexWorkPlan {
     }
 
     @Override
-    public void reduce(IntermediateProspect prospect, Iterable<LongWritable> counts, Date timestamp, Reducer.Context context) throws IOException, InterruptedException {
+    public void reduce(final IntermediateProspect prospect, final Iterable<LongWritable> counts, final Date timestamp, final Reducer.Context context) throws IOException, InterruptedException {
         long sum = 0;
         for(final LongWritable count : counts) {
             sum += count.get();
@@ -172,7 +173,7 @@ public class CountPlan implements IndexWorkPlan {
 
             final String dataType = prospect.getDataType();
             final ColumnVisibility visibility = new ColumnVisibility(prospect.getVisibility());
-            final Value sumValue = new Value(("" + sum).getBytes());
+            final Value sumValue = new Value(("" + sum).getBytes(StandardCharsets.UTF_8));
             m.put(COUNT, prospect.getDataType(), visibility, timestamp.getTime(), sumValue);
 
             context.write(null, m);
@@ -185,7 +186,7 @@ public class CountPlan implements IndexWorkPlan {
     }
 
     @Override
-    public String getCompositeValue(List<String> indices){
+    public String getCompositeValue(final List<String> indices){
         final Iterator<String> indexIt = indices.iterator();
         String compositeIndex = indexIt.next();
         while (indexIt.hasNext()){
@@ -196,7 +197,7 @@ public class CountPlan implements IndexWorkPlan {
     }
 
     @Override
-    public List<IndexEntry> query(Connector connector, String tableName, List<Long> prospectTimes, String type, String compositeIndex, String dataType, String[] auths) throws TableNotFoundException {
+    public List<IndexEntry> query(final Connector connector, final String tableName, final List<Long> prospectTimes, final String type, final String compositeIndex, final String dataType, final String[] auths) throws TableNotFoundException {
         assert connector != null && tableName != null && type != null && compositeIndex != null;
 
         final BatchScanner bs = connector.createBatchScanner(tableName, new Authorizations(auths), 4);
@@ -242,7 +243,7 @@ public class CountPlan implements IndexWorkPlan {
             // Create an entry using the values that were found.
             final String entryDataType = k.getColumnQualifier().toString();
             final String entryVisibility = k.getColumnVisibility().toString();
-            final Long entryCount = Long.parseLong(new String(v.get()));
+            final Long entryCount = Long.parseLong(new String(v.get(), StandardCharsets.UTF_8));
 
             indexEntries.add(
                     IndexEntry.builder()

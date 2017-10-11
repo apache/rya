@@ -1,5 +1,3 @@
-package org.apache.rya.api.resolver.impl;
-
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -8,9 +6,9 @@ package org.apache.rya.api.resolver.impl;
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- * 
+ *
  *   http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -18,10 +16,13 @@ package org.apache.rya.api.resolver.impl;
  * specific language governing permissions and limitations
  * under the License.
  */
+package org.apache.rya.api.resolver.impl;
 
+import static org.apache.rya.api.RdfCloudTripleStoreConstants.TYPE_DELIM_BYTE;
+import static org.apache.rya.api.RdfCloudTripleStoreConstants.TYPE_DELIM_BYTES;
 
+import java.nio.charset.StandardCharsets;
 
-import com.google.common.primitives.Bytes;
 import org.apache.rya.api.domain.RyaRange;
 import org.apache.rya.api.domain.RyaType;
 import org.apache.rya.api.resolver.RyaTypeResolver;
@@ -31,8 +32,7 @@ import org.calrissian.mango.types.TypeEncoder;
 import org.openrdf.model.URI;
 import org.openrdf.model.vocabulary.XMLSchema;
 
-import static org.apache.rya.api.RdfCloudTripleStoreConstants.TYPE_DELIM_BYTE;
-import static org.apache.rya.api.RdfCloudTripleStoreConstants.TYPE_DELIM_BYTES;
+import com.google.common.primitives.Bytes;
 
 /**
  * Date: 7/16/12
@@ -51,12 +51,12 @@ public class RyaTypeResolverImpl implements RyaTypeResolver {
         this((byte) PLAIN_LITERAL_MARKER, XMLSchema.STRING);
     }
 
-    public RyaTypeResolverImpl(byte markerByte, URI dataType) {
+    public RyaTypeResolverImpl(final byte markerByte, final URI dataType) {
         setMarkerByte(markerByte);
         setRyaDataType(dataType);
     }
 
-    public void setMarkerByte(byte markerByte) {
+    public void setMarkerByte(final byte markerByte) {
         this.markerByte = markerByte;
         this.markerBytes = new byte[]{markerByte};
     }
@@ -67,19 +67,19 @@ public class RyaTypeResolverImpl implements RyaTypeResolver {
     }
 
     @Override
-    public RyaRange transformRange(RyaRange ryaRange) throws RyaTypeResolverException {
+    public RyaRange transformRange(final RyaRange ryaRange) throws RyaTypeResolverException {
         return ryaRange;
     }
 
     @Override
-    public byte[] serialize(RyaType ryaType) throws RyaTypeResolverException {
-        byte[][] bytes = serializeType(ryaType);
+    public byte[] serialize(final RyaType ryaType) throws RyaTypeResolverException {
+        final byte[][] bytes = serializeType(ryaType);
         return Bytes.concat(bytes[0], bytes[1]);
     }
 
     @Override
-    public byte[][] serializeType(RyaType ryaType) throws RyaTypeResolverException {
-        byte[] bytes = serializeData(ryaType.getData()).getBytes();
+    public byte[][] serializeType(final RyaType ryaType) throws RyaTypeResolverException {
+        final byte[] bytes = serializeData(ryaType.getData()).getBytes(StandardCharsets.UTF_8);
         return new byte[][]{bytes, Bytes.concat(TYPE_DELIM_BYTES, markerBytes)};
     }
 
@@ -88,7 +88,7 @@ public class RyaTypeResolverImpl implements RyaTypeResolver {
         return dataType;
     }
 
-    public void setRyaDataType(URI dataType) {
+    public void setRyaDataType(final URI dataType) {
         this.dataType = dataType;
     }
 
@@ -98,27 +98,27 @@ public class RyaTypeResolverImpl implements RyaTypeResolver {
     }
 
     @Override
-    public boolean deserializable(byte[] bytes) {
+    public boolean deserializable(final byte[] bytes) {
         return bytes != null && bytes.length >= 2 && bytes[bytes.length - 1] == getMarkerByte() && bytes[bytes.length - 2] == TYPE_DELIM_BYTE;
     }
 
-    protected String serializeData(String data) throws RyaTypeResolverException {
+    protected String serializeData(final String data) throws RyaTypeResolverException {
         return STRING_TYPE_ENCODER.encode(data);
     }
 
     @Override
-    public RyaType deserialize(byte[] bytes) throws RyaTypeResolverException {
+    public RyaType deserialize(final byte[] bytes) throws RyaTypeResolverException {
         if (!deserializable(bytes)) {
             throw new RyaTypeResolverException("Bytes not deserializable");
         }
-        RyaType rt = newInstance();
+        final RyaType rt = newInstance();
         rt.setDataType(getRyaDataType());
-        String data = new String(bytes, 0, bytes.length - 2);
+        final String data = new String(bytes, 0, bytes.length - 2, StandardCharsets.UTF_8);
         rt.setData(deserializeData(data));
         return rt;
     }
 
-    protected String deserializeData(String data) throws RyaTypeResolverException {
+    protected String deserializeData(final String data) throws RyaTypeResolverException {
         return STRING_TYPE_ENCODER.decode(data);
     }
 }

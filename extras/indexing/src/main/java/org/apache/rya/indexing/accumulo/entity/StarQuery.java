@@ -1,5 +1,7 @@
 package org.apache.rya.indexing.accumulo.entity;
 
+import java.nio.charset.StandardCharsets;
+
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -25,6 +27,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.accumulo.core.client.TableNotFoundException;
+import org.apache.hadoop.io.Text;
 import org.apache.rya.accumulo.documentIndex.TextColumn;
 import org.apache.rya.api.domain.RyaType;
 import org.apache.rya.api.domain.RyaURI;
@@ -32,9 +36,6 @@ import org.apache.rya.api.resolver.RdfToRyaConversions;
 import org.apache.rya.api.resolver.RyaContext;
 import org.apache.rya.api.resolver.RyaTypeResolverException;
 import org.apache.rya.joinselect.AccumuloSelectivityEvalDAO;
-
-import org.apache.accumulo.core.client.TableNotFoundException;
-import org.apache.hadoop.io.Text;
 import org.openrdf.model.Value;
 import org.openrdf.query.BindingSet;
 import org.openrdf.query.algebra.StatementPattern;
@@ -47,23 +48,23 @@ import com.google.common.primitives.Bytes;
 
 public class StarQuery {
 
-    private List<StatementPattern> nodes;
-    private TextColumn[] nodeColumnCond;
+    private final List<StatementPattern> nodes;
+    private final TextColumn[] nodeColumnCond;
     private String commonVarName;
     private Var commonVar;
     private Var context;
     private String contextURI ="";
-    private Map<String,Integer> varPos = Maps.newHashMap();
+    private final Map<String,Integer> varPos = Maps.newHashMap();
     private boolean isCommonVarURI = false;
 
 
-    public StarQuery(List<StatementPattern> nodes) {
+    public StarQuery(final List<StatementPattern> nodes) {
         this.nodes = nodes;
         if(nodes.size() == 0) {
             throw new IllegalArgumentException("Nodes cannot be empty!");
         }
         nodeColumnCond = new TextColumn[nodes.size()];
-        Var tempContext = nodes.get(0).getContextVar();
+        final Var tempContext = nodes.get(0).getContextVar();
         if(tempContext != null) {
             context = tempContext.clone();
         } else {
@@ -71,13 +72,13 @@ public class StarQuery {
         }
         try {
             this.init();
-        } catch (RyaTypeResolverException e) {
+        } catch (final RyaTypeResolverException e) {
             e.printStackTrace();
         }
     }
 
 
-    public StarQuery(Set<StatementPattern> nodes) {
+    public StarQuery(final Set<StatementPattern> nodes) {
         this(Lists.newArrayList(nodes));
     }
 
@@ -85,7 +86,7 @@ public class StarQuery {
         return nodes.size();
     }
 
-    public StarQuery(StarQuery other) {
+    public StarQuery(final StarQuery other) {
        this(other.nodes);
     }
 
@@ -153,7 +154,7 @@ public class StarQuery {
 
         Set<String> bindingNames = Sets.newHashSet();
 
-        for(StatementPattern sp: nodes) {
+        for(final StatementPattern sp: nodes) {
 
             if(bindingNames.size() == 0) {
                 bindingNames = sp.getBindingNames();
@@ -174,7 +175,7 @@ public class StarQuery {
 
         Set<String> bindingNames = Sets.newHashSet();
 
-        for(StatementPattern sp: nodes) {
+        for(final StatementPattern sp: nodes) {
 
             if(bindingNames.size() == 0) {
                 bindingNames = sp.getAssuredBindingNames();
@@ -194,13 +195,13 @@ public class StarQuery {
 
 
 
-    public CardinalityStatementPattern getMinCardSp(AccumuloSelectivityEvalDAO ase) {
+    public CardinalityStatementPattern getMinCardSp(final AccumuloSelectivityEvalDAO ase) {
 
         StatementPattern minSp = null;
         double cardinality = Double.MAX_VALUE;
         double tempCard = -1;
 
-        for (StatementPattern sp : nodes) {
+        for (final StatementPattern sp : nodes) {
 
             try {
                 tempCard = ase.getCardinality(ase.getConf(), sp);
@@ -209,7 +210,7 @@ public class StarQuery {
                     cardinality = tempCard;
                     minSp = sp;
                 }
-            } catch (TableNotFoundException e) {
+            } catch (final TableNotFoundException e) {
                 e.printStackTrace();
             }
 
@@ -223,10 +224,10 @@ public class StarQuery {
 
     public class CardinalityStatementPattern {
 
-        private StatementPattern sp;
-        private double cardinality;
+        private final StatementPattern sp;
+        private final double cardinality;
 
-        public CardinalityStatementPattern(StatementPattern sp, double cardinality) {
+        public CardinalityStatementPattern(final StatementPattern sp, final double cardinality) {
             this.sp = sp;
             this.cardinality = cardinality;
         }
@@ -242,7 +243,7 @@ public class StarQuery {
     }
 
 
-   public double getCardinality( AccumuloSelectivityEvalDAO ase) {
+   public double getCardinality( final AccumuloSelectivityEvalDAO ase) {
 
         double cardinality = Double.MAX_VALUE;
         double tempCard = -1;
@@ -263,7 +264,7 @@ public class StarQuery {
                 }
             }
 
-        } catch (Exception e) {
+        } catch (final Exception e) {
             e.printStackTrace();
         }
 
@@ -275,15 +276,15 @@ public class StarQuery {
 
 
 
-    public static Set<String> getCommonVars(StarQuery query, BindingSet bs) {
+    public static Set<String> getCommonVars(final StarQuery query, final BindingSet bs) {
 
-        Set<String> starQueryVarNames = Sets.newHashSet();
+        final Set<String> starQueryVarNames = Sets.newHashSet();
 
         if(bs == null || bs.size() == 0) {
             return Sets.newHashSet();
         }
 
-        Set<String> bindingNames = bs.getBindingNames();
+        final Set<String> bindingNames = bs.getBindingNames();
         starQueryVarNames.addAll(query.getUnCommonVars());
         if(!query.commonVarConstant()) {
             starQueryVarNames.add(query.getCommonVarName());
@@ -299,30 +300,30 @@ public class StarQuery {
 
 
 
-    public static StarQuery getConstrainedStarQuery(StarQuery query, BindingSet bs) {
+    public static StarQuery getConstrainedStarQuery(final StarQuery query, final BindingSet bs) {
 
         if(bs.size() == 0) {
             return query;
         }
 
-        Set<String> bindingNames = bs.getBindingNames();
-        Set<String> unCommonVarNames = query.getUnCommonVars();
-        Set<String> intersectVar = Sets.intersection(bindingNames, unCommonVarNames);
+        final Set<String> bindingNames = bs.getBindingNames();
+        final Set<String> unCommonVarNames = query.getUnCommonVars();
+        final Set<String> intersectVar = Sets.intersection(bindingNames, unCommonVarNames);
 
 
         if (!query.commonVarConstant()) {
 
-            Value v = bs.getValue(query.getCommonVarName());
+            final Value v = bs.getValue(query.getCommonVarName());
 
             if (v != null) {
                 query.commonVar.setValue(v);
             }
         }
 
-        for(String s: intersectVar) {
+        for(final String s: intersectVar) {
             try {
                 query.nodeColumnCond[query.varPos.get(s)] = query.setValue(query.nodeColumnCond[query.varPos.get(s)], bs.getValue(s));
-            } catch (RyaTypeResolverException e) {
+            } catch (final RyaTypeResolverException e) {
                 e.printStackTrace();
             }
         }
@@ -331,20 +332,20 @@ public class StarQuery {
     }
 
 
-    private TextColumn setValue(TextColumn tc, Value v) throws RyaTypeResolverException {
+    private TextColumn setValue(final TextColumn tc, final Value v) throws RyaTypeResolverException {
 
-        String cq = tc.getColumnQualifier().toString();
-        String[] cqArray = cq.split("\u0000");
+        final String cq = tc.getColumnQualifier().toString();
+        final String[] cqArray = cq.split("\u0000");
 
         if (cqArray[0].equals("subject")) {
             // RyaURI subjURI = (RyaURI) RdfToRyaConversions.convertValue(v);
             tc.setColumnQualifier(new Text("subject" + "\u0000" + v.stringValue()));
             tc.setIsPrefix(false);
         } else if (cqArray[0].equals("object")) {
-            RyaType objType = RdfToRyaConversions.convertValue(v);
-            byte[][] b1 = RyaContext.getInstance().serializeType(objType);
-            byte[] b2 = Bytes.concat("object".getBytes(),
-                    "\u0000".getBytes(), b1[0], b1[1]);
+            final RyaType objType = RdfToRyaConversions.convertValue(v);
+            final byte[][] b1 = RyaContext.getInstance().serializeType(objType);
+            final byte[] b2 = Bytes.concat("object".getBytes(StandardCharsets.UTF_8),
+                    "\u0000".getBytes(StandardCharsets.UTF_8), b1[0], b1[1]);
             tc.setColumnQualifier(new Text(b2));
             tc.setIsPrefix(false);
         } else {
@@ -359,15 +360,15 @@ public class StarQuery {
 
     //assumes nodes forms valid star query with only one common variable
     //assumes nodes and commonVar has been set
-    private TextColumn nodeToTextColumn(StatementPattern node, int i) throws RyaTypeResolverException {
+    private TextColumn nodeToTextColumn(final StatementPattern node, final int i) throws RyaTypeResolverException {
 
-        RyaContext rc = RyaContext.getInstance();
+        final RyaContext rc = RyaContext.getInstance();
 
-        Var subjVar = node.getSubjectVar();
-        Var predVar = node.getPredicateVar();
-        Var objVar = node.getObjectVar();
+        final Var subjVar = node.getSubjectVar();
+        final Var predVar = node.getPredicateVar();
+        final Var objVar = node.getObjectVar();
 
-        RyaURI predURI = (RyaURI) RdfToRyaConversions.convertValue(node.getPredicateVar().getValue());
+        final RyaURI predURI = (RyaURI) RdfToRyaConversions.convertValue(node.getPredicateVar().getValue());
 
 
         //assumes StatementPattern contains at least on variable
@@ -388,10 +389,10 @@ public class StarQuery {
             } else {
 
                 isCommonVarURI = true;
-                RyaType objType = RdfToRyaConversions.convertValue(objVar.getValue());
-                byte[][] b1 = rc.serializeType(objType);
+                final RyaType objType = RdfToRyaConversions.convertValue(objVar.getValue());
+                final byte[][] b1 = rc.serializeType(objType);
 
-                byte[] b2 = Bytes.concat("object".getBytes(), "\u0000".getBytes(), b1[0], b1[1]);
+                final byte[] b2 = Bytes.concat("object".getBytes(StandardCharsets.UTF_8), "\u0000".getBytes(StandardCharsets.UTF_8), b1[0], b1[1]);
                 return new TextColumn(new Text(predURI.getData()), new Text(b2));
             }
 
@@ -401,7 +402,7 @@ public class StarQuery {
                 isCommonVarURI = true;
                 varPos.put(objVar.getName(), i);
 
-                TextColumn tc = new TextColumn(new Text(predURI.getData()), new Text("object"));
+                final TextColumn tc = new TextColumn(new Text(predURI.getData()), new Text("object"));
                 tc.setIsPrefix(true);
                 return tc;
 
@@ -409,7 +410,7 @@ public class StarQuery {
 
                 varPos.put(subjVar.getName(), i);
 
-                TextColumn tc = new TextColumn(new Text(predURI.getData()), new Text("subject"));
+                final TextColumn tc = new TextColumn(new Text(predURI.getData()), new Text("subject"));
                 tc.setIsPrefix(true);
                 return tc;
 
@@ -437,7 +438,7 @@ public class StarQuery {
         }
 
         if(hasContext()) {
-            RyaURI ctxtURI = (RyaURI) RdfToRyaConversions.convertValue(context.getValue());
+            final RyaURI ctxtURI = (RyaURI) RdfToRyaConversions.convertValue(context.getValue());
             contextURI = ctxtURI.getData();
         }
 
@@ -456,14 +457,14 @@ public class StarQuery {
 
     // called after nodes set
     // assumes nodes forms valid query with single, common variable
-    private Var getCommonVar(List<StatementPattern> nodes) {
+    private Var getCommonVar(final List<StatementPattern> nodes) {
 
         Set<Var> vars = null;
-        List<Var> tempVar;
+        final List<Var> tempVar;
         Set<Var> tempSet;
 
         int i = 0;
-        for (StatementPattern sp : nodes) {
+        for (final StatementPattern sp : nodes) {
 
             if (vars == null) {
                 vars = Sets.newHashSet();
@@ -485,7 +486,7 @@ public class StarQuery {
 
             i = 0;
 
-            for (Var v : vars) {
+            for (final Var v : vars) {
                 i++;
 
                 if (i == 1) {
@@ -507,7 +508,7 @@ public class StarQuery {
 
 
     //assumes bindings is not of size 0
-    private static boolean isBindingsetValid(Set<String> bindings) {
+    private static boolean isBindingsetValid(final Set<String> bindings) {
 
         int varCount = 0;
 
@@ -516,7 +517,7 @@ public class StarQuery {
         } else {
 
 
-            for (String s : bindings) {
+            for (final String s : bindings) {
                 if (!s.startsWith("-const-")) {
                     varCount++;
                 }
@@ -535,7 +536,7 @@ public class StarQuery {
 
 
 
-    public static boolean isValidStarQuery(Collection<StatementPattern> nodes) {
+    public static boolean isValidStarQuery(final Collection<StatementPattern> nodes) {
 
         Set<String> bindings = null;
         boolean contextSet = false;
@@ -545,10 +546,10 @@ public class StarQuery {
             return false;
         }
 
-        for(StatementPattern sp: nodes) {
+        for(final StatementPattern sp: nodes) {
 
-            Var tempContext = sp.getContextVar();
-            Var predVar = sp.getPredicateVar();
+            final Var tempContext = sp.getContextVar();
+            final Var predVar = sp.getPredicateVar();
 
             //does not support variable context
             if(tempContext != null && !tempContext.isConstant()) {
@@ -617,7 +618,7 @@ public class StarQuery {
 
         String s = "Term conditions: " + "\n";
 
-        for (TextColumn element : this.nodeColumnCond) {
+        for (final TextColumn element : this.nodeColumnCond) {
             s = s + element.toString() + "\n";
         }
 

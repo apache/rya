@@ -19,6 +19,7 @@
 package org.apache.rya.periodic.notification.serialization;
 
 import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Map;
 
@@ -43,47 +44,47 @@ public class BindingSetSerDe implements Serializer<BindingSet>, Deserializer<Bin
 
     private static final Logger log = Logger.getLogger(BindingSetSerDe.class);
     private static final AccumuloPcjSerializer serializer =  new AccumuloPcjSerializer();
-    private static final byte[] DELIM_BYTE = "\u0002".getBytes();
-    
-    private byte[] toBytes(BindingSet bindingSet) {
+    private static final byte[] DELIM_BYTE = "\u0002".getBytes(StandardCharsets.UTF_8);
+
+    private byte[] toBytes(final BindingSet bindingSet) {
         try {
             return getBytes(getVarOrder(bindingSet), bindingSet);
-        } catch(Exception e) {
+        } catch(final Exception e) {
             log.trace("Unable to serialize BindingSet: " + bindingSet);
             return new byte[0];
         }
     }
 
-    private BindingSet fromBytes(byte[] bsBytes) {
+    private BindingSet fromBytes(final byte[] bsBytes) {
         try{
-        int firstIndex = Bytes.indexOf(bsBytes, DELIM_BYTE);
-        byte[] varOrderBytes = Arrays.copyOf(bsBytes, firstIndex);
-        byte[] bsBytesNoVarOrder = Arrays.copyOfRange(bsBytes, firstIndex + 1, bsBytes.length);
-        VariableOrder varOrder = new VariableOrder(new String(varOrderBytes,"UTF-8").split(";"));
-        return getBindingSet(varOrder, bsBytesNoVarOrder);
-        } catch(Exception e) {
+            final int firstIndex = Bytes.indexOf(bsBytes, DELIM_BYTE);
+            final byte[] varOrderBytes = Arrays.copyOf(bsBytes, firstIndex);
+            final byte[] bsBytesNoVarOrder = Arrays.copyOfRange(bsBytes, firstIndex + 1, bsBytes.length);
+            final VariableOrder varOrder = new VariableOrder(new String(varOrderBytes,"UTF-8").split(";"));
+            return getBindingSet(varOrder, bsBytesNoVarOrder);
+        } catch(final Exception e) {
             log.trace("Unable to deserialize BindingSet: " + bsBytes);
             return new QueryBindingSet();
         }
     }
-    
-    private VariableOrder getVarOrder(BindingSet bs) {
+
+    private VariableOrder getVarOrder(final BindingSet bs) {
         return new VariableOrder(bs.getBindingNames());
     }
-    
-    private byte[] getBytes(VariableOrder varOrder, BindingSet bs) throws UnsupportedEncodingException, BindingSetConversionException {
-        byte[] bsBytes = serializer.convert(bs, varOrder);
-        String varOrderString = Joiner.on(";").join(varOrder.getVariableOrders());
-        byte[] varOrderBytes = varOrderString.getBytes("UTF-8");
+
+    private byte[] getBytes(final VariableOrder varOrder, final BindingSet bs) throws UnsupportedEncodingException, BindingSetConversionException {
+        final byte[] bsBytes = serializer.convert(bs, varOrder);
+        final String varOrderString = Joiner.on(";").join(varOrder.getVariableOrders());
+        final byte[] varOrderBytes = varOrderString.getBytes("UTF-8");
         return Bytes.concat(varOrderBytes, DELIM_BYTE, bsBytes);
     }
-    
-    private BindingSet getBindingSet(VariableOrder varOrder, byte[] bsBytes) throws BindingSetConversionException {
+
+    private BindingSet getBindingSet(final VariableOrder varOrder, final byte[] bsBytes) throws BindingSetConversionException {
         return serializer.convert(bsBytes, varOrder);
     }
 
     @Override
-    public BindingSet deserialize(String topic, byte[] bytes) {
+    public BindingSet deserialize(final String topic, final byte[] bytes) {
         return fromBytes(bytes);
     }
 
@@ -93,12 +94,12 @@ public class BindingSetSerDe implements Serializer<BindingSet>, Deserializer<Bin
     }
 
     @Override
-    public void configure(Map<String, ?> arg0, boolean arg1) {
+    public void configure(final Map<String, ?> arg0, final boolean arg1) {
         // Do nothing.  Nothing to configure.
     }
 
     @Override
-    public byte[] serialize(String topic, BindingSet bs) {
+    public byte[] serialize(final String topic, final BindingSet bs) {
         return toBytes(bs);
     }
 

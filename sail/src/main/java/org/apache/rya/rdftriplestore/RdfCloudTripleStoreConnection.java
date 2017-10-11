@@ -1,5 +1,3 @@
-package org.apache.rya.rdftriplestore;
-
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -18,13 +16,13 @@ package org.apache.rya.rdftriplestore;
  * specific language governing permissions and limitations
  * under the License.
  */
-
-
+package org.apache.rya.rdftriplestore;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.lang.reflect.Constructor;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -156,7 +154,7 @@ public class RdfCloudTripleStoreConnection extends SailConnectionBase {
                                         final Value object, final Resource... contexts) throws SailException {
         try {
             final String cv_s = conf.getCv();
-            final byte[] cv = cv_s == null ? null : cv_s.getBytes();
+            final byte[] cv = cv_s == null ? null : cv_s.getBytes(StandardCharsets.UTF_8);
             final List<RyaStatement> ryaStatements = new ArrayList<>();
             if (contexts != null && contexts.length > 0) {
                 for (final Resource context : contexts) {

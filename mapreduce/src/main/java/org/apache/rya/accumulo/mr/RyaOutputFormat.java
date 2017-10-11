@@ -22,6 +22,7 @@ package org.apache.rya.accumulo.mr;
 import java.io.Closeable;
 import java.io.Flushable;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.concurrent.TimeUnit;
 
@@ -94,7 +95,7 @@ public class RyaOutputFormat extends OutputFormat<Writable, RyaStatementWritable
      * @param job Job to apply the setting to.
      * @param visibility A comma-separated list of authorizations.
      */
-    public static void setDefaultVisibility(Job job, String visibility) {
+    public static void setDefaultVisibility(final Job job, final String visibility) {
         if (visibility != null) {
             job.getConfiguration().set(CV_PROPERTY, visibility);
         }
@@ -107,7 +108,7 @@ public class RyaOutputFormat extends OutputFormat<Writable, RyaStatementWritable
      * @param job Job to apply the setting to.
      * @param context A context string, should be a syntactically valid URI.
      */
-    public static void setDefaultContext(Job job, String context) {
+    public static void setDefaultContext(final Job job, final String context) {
         if (context != null) {
             job.getConfiguration().set(CONTEXT_PROPERTY, context);
         }
@@ -118,7 +119,7 @@ public class RyaOutputFormat extends OutputFormat<Writable, RyaStatementWritable
      * @param job Job to apply the setting to.
      * @param prefix The common prefix to all rya tables that output will be written to.
      */
-    public static void setTablePrefix(Job job, String prefix) {
+    public static void setTablePrefix(final Job job, final String prefix) {
         job.getConfiguration().set(OUTPUT_PREFIX_PROPERTY, prefix);
     }
 
@@ -127,7 +128,7 @@ public class RyaOutputFormat extends OutputFormat<Writable, RyaStatementWritable
      * @param job Job to apply the setting to.
      * @param enable Whether this job should add its output statements to the free text index.
      */
-    public static void setFreeTextEnabled(Job job, boolean enable) {
+    public static void setFreeTextEnabled(final Job job, final boolean enable) {
         job.getConfiguration().setBoolean(ENABLE_FREETEXT, enable);
     }
 
@@ -136,7 +137,7 @@ public class RyaOutputFormat extends OutputFormat<Writable, RyaStatementWritable
      * @param job Job to apply the setting to.
      * @param enable Whether this job should add its output statements to the temporal index.
      */
-    public static void setTemporalEnabled(Job job, boolean enable) {
+    public static void setTemporalEnabled(final Job job, final boolean enable) {
         job.getConfiguration().setBoolean(ENABLE_TEMPORAL, enable);
     }
 
@@ -145,7 +146,7 @@ public class RyaOutputFormat extends OutputFormat<Writable, RyaStatementWritable
      * @param job Job to apply the setting to.
      * @param enable Whether this job should add its output statements to the entity-centric index.
      */
-    public static void setEntityEnabled(Job job, boolean enable) {
+    public static void setEntityEnabled(final Job job, final boolean enable) {
         job.getConfiguration().setBoolean(ENABLE_ENTITY, enable);
     }
 
@@ -154,7 +155,7 @@ public class RyaOutputFormat extends OutputFormat<Writable, RyaStatementWritable
      * @param job Job to apply the setting to.
      * @param enable Whether this job should output to the core tables.
      */
-    public static void setCoreTablesEnabled(Job job, boolean enable) {
+    public static void setCoreTablesEnabled(final Job job, final boolean enable) {
         job.getConfiguration().setBoolean(ENABLE_CORE, enable);
     }
 
@@ -163,7 +164,7 @@ public class RyaOutputFormat extends OutputFormat<Writable, RyaStatementWritable
      * @param job Job to configure
      * @param instance Name of the mock instance
      */
-    public static void setMockInstance(Job job, String instance) {
+    public static void setMockInstance(final Job job, final String instance) {
         AccumuloOutputFormat.setMockInstance(job, instance);
         job.getConfiguration().setBoolean(ConfigUtils.USE_MOCK_INSTANCE, true);
         job.getConfiguration().setBoolean(MRUtils.AC_MOCK_PROP, true);
@@ -175,8 +176,8 @@ public class RyaOutputFormat extends OutputFormat<Writable, RyaStatementWritable
      * @throws  IOException if initializing the core Rya indexer fails.
      */
     @Override
-    public void checkOutputSpecs(JobContext jobContext) throws IOException {
-        Configuration conf = jobContext.getConfiguration();
+    public void checkOutputSpecs(final JobContext jobContext) throws IOException {
+        final Configuration conf = jobContext.getConfiguration();
         // make sure that all of the indexers can connect
         getFreeTextIndexer(conf);
         getTemporalIndexer(conf);
@@ -189,7 +190,7 @@ public class RyaOutputFormat extends OutputFormat<Writable, RyaStatementWritable
      * @return  A committer whose method implementations are empty.
      */
     @Override
-    public OutputCommitter getOutputCommitter(TaskAttemptContext context) throws IOException, InterruptedException {
+    public OutputCommitter getOutputCommitter(final TaskAttemptContext context) throws IOException, InterruptedException {
         // copied from AccumuloOutputFormat
         return new NullOutputFormat<Text, Mutation>().getOutputCommitter(context);
     }
@@ -201,16 +202,16 @@ public class RyaOutputFormat extends OutputFormat<Writable, RyaStatementWritable
      * @throws  IOException if any enabled indexers can't be initialized
      */
     @Override
-    public RecordWriter<Writable, RyaStatementWritable> getRecordWriter(TaskAttemptContext context) throws IOException {
+    public RecordWriter<Writable, RyaStatementWritable> getRecordWriter(final TaskAttemptContext context) throws IOException {
         return new RyaRecordWriter(context);
     }
 
 
-    private static FreeTextIndexer getFreeTextIndexer(Configuration conf) throws IOException {
+    private static FreeTextIndexer getFreeTextIndexer(final Configuration conf) throws IOException {
         if (!conf.getBoolean(ENABLE_FREETEXT, true)) {
             return null;
         }
-        AccumuloFreeTextIndexer freeText = new AccumuloFreeTextIndexer();
+        final AccumuloFreeTextIndexer freeText = new AccumuloFreeTextIndexer();
         freeText.setConf(conf);
         Connector connector;
         try {
@@ -218,7 +219,7 @@ public class RyaOutputFormat extends OutputFormat<Writable, RyaStatementWritable
         } catch (AccumuloException | AccumuloSecurityException e) {
             throw new IOException("Error when attempting to create a connection for writing the freeText index.", e);
         }
-        MultiTableBatchWriter mtbw = connector.createMultiTableBatchWriter(new BatchWriterConfig());
+        final MultiTableBatchWriter mtbw = connector.createMultiTableBatchWriter(new BatchWriterConfig());
         freeText.setConnector(connector);
         freeText.setMultiTableBatchWriter(mtbw);
         freeText.init();
@@ -226,11 +227,11 @@ public class RyaOutputFormat extends OutputFormat<Writable, RyaStatementWritable
         return freeText;
     }
 
-    private static TemporalIndexer getTemporalIndexer(Configuration conf) throws IOException {
+    private static TemporalIndexer getTemporalIndexer(final Configuration conf) throws IOException {
         if (!conf.getBoolean(ENABLE_TEMPORAL, true)) {
             return null;
         }
-        AccumuloTemporalIndexer temporal = new AccumuloTemporalIndexer();
+        final AccumuloTemporalIndexer temporal = new AccumuloTemporalIndexer();
         temporal.setConf(conf);
         Connector connector;
         try {
@@ -238,34 +239,34 @@ public class RyaOutputFormat extends OutputFormat<Writable, RyaStatementWritable
         } catch (AccumuloException | AccumuloSecurityException e) {
             throw new IOException("Error when attempting to create a connection for writing the temporal index.", e);
         }
-        MultiTableBatchWriter mtbw = connector.createMultiTableBatchWriter(new BatchWriterConfig());
+        final MultiTableBatchWriter mtbw = connector.createMultiTableBatchWriter(new BatchWriterConfig());
         temporal.setConnector(connector);
         temporal.setMultiTableBatchWriter(mtbw);
         temporal.init();
         return temporal;
     }
 
-    private static EntityCentricIndex getEntityIndexer(Configuration conf) {
+    private static EntityCentricIndex getEntityIndexer(final Configuration conf) {
         if (!conf.getBoolean(ENABLE_ENTITY, true)) {
             return null;
         }
-        EntityCentricIndex entity = new EntityCentricIndex();
+        final EntityCentricIndex entity = new EntityCentricIndex();
         entity.setConf(conf);
         return entity;
     }
 
-    private static AccumuloRyaDAO getRyaIndexer(Configuration conf) throws IOException {
+    private static AccumuloRyaDAO getRyaIndexer(final Configuration conf) throws IOException {
         try {
             if (!conf.getBoolean(ENABLE_CORE, true)) {
                 return null;
             }
-            AccumuloRyaDAO ryaIndexer = new AccumuloRyaDAO();
-            Connector conn = ConfigUtils.getConnector(conf);
+            final AccumuloRyaDAO ryaIndexer = new AccumuloRyaDAO();
+            final Connector conn = ConfigUtils.getConnector(conf);
             ryaIndexer.setConnector(conn);
 
-            AccumuloRdfConfiguration ryaConf = new AccumuloRdfConfiguration();
+            final AccumuloRdfConfiguration ryaConf = new AccumuloRdfConfiguration();
 
-            String tablePrefix = conf.get(OUTPUT_PREFIX_PROPERTY, null);
+            final String tablePrefix = conf.get(OUTPUT_PREFIX_PROPERTY, null);
             if (tablePrefix != null) {
                 ryaConf.setTablePrefix(tablePrefix);
             }
@@ -273,13 +274,13 @@ public class RyaOutputFormat extends OutputFormat<Writable, RyaStatementWritable
             ryaIndexer.setConf(ryaConf);
             ryaIndexer.init();
             return ryaIndexer;
-        } catch (AccumuloException e) {
+        } catch (final AccumuloException e) {
             logger.error("Cannot create RyaIndexer", e);
             throw new IOException(e);
-        } catch (AccumuloSecurityException e) {
+        } catch (final AccumuloSecurityException e) {
             logger.error("Cannot create RyaIndexer", e);
             throw new IOException(e);
-        } catch (RyaDAOException e) {
+        } catch (final RyaDAOException e) {
             logger.error("Cannot create RyaIndexer", e);
             throw new IOException(e);
         }
@@ -293,11 +294,11 @@ public class RyaOutputFormat extends OutputFormat<Writable, RyaStatementWritable
             implements Closeable, Flushable {
         private static final Logger logger = Logger.getLogger(RyaRecordWriter.class);
 
-        private FreeTextIndexer freeTextIndexer;
-        private TemporalIndexer temporalIndexer;
-        private EntityCentricIndex entityIndexer;
-        private AccumuloRyaDAO ryaIndexer;
-        private RyaTripleContext tripleContext;
+        private final FreeTextIndexer freeTextIndexer;
+        private final TemporalIndexer temporalIndexer;
+        private final EntityCentricIndex entityIndexer;
+        private final AccumuloRyaDAO ryaIndexer;
+        private final RyaTripleContext tripleContext;
         private MultiTableBatchWriter writer;
         private byte[] cv = AccumuloRdfConstants.EMPTY_CV.getExpression();
         private RyaURI defaultContext = null;
@@ -305,10 +306,10 @@ public class RyaOutputFormat extends OutputFormat<Writable, RyaStatementWritable
         private static final long ONE_MEGABYTE = 1024L * 1024L;
         private static final long AVE_STATEMENT_SIZE = 100L;
 
-        private long bufferSizeLimit;
+        private final long bufferSizeLimit;
         private long bufferCurrentSize = 0;
 
-        private ArrayList<RyaStatement> buffer;
+        private final ArrayList<RyaStatement> buffer;
 
         /**
          * Constructor.
@@ -316,7 +317,7 @@ public class RyaOutputFormat extends OutputFormat<Writable, RyaStatementWritable
          * @throws  IOException if the core Rya indexer or entity indexer can't
          *          be initialized
          */
-        public RyaRecordWriter(TaskAttemptContext context) throws IOException {
+        public RyaRecordWriter(final TaskAttemptContext context) throws IOException {
             this(context.getConfiguration());
         }
 
@@ -326,21 +327,21 @@ public class RyaOutputFormat extends OutputFormat<Writable, RyaStatementWritable
          * @throws  IOException if the core Rya indexer or entity indexer can't
          *          be initialized
          */
-        public RyaRecordWriter(Configuration conf) throws IOException {
+        public RyaRecordWriter(final Configuration conf) throws IOException {
             // set the visibility
-            String visibility = conf.get(CV_PROPERTY);
+            final String visibility = conf.get(CV_PROPERTY);
             if (visibility != null) {
-                cv = visibility.getBytes();
+                cv = visibility.getBytes(StandardCharsets.UTF_8);
             }
             // set the default context
-            String context = conf.get(CONTEXT_PROPERTY, "");
+            final String context = conf.get(CONTEXT_PROPERTY, "");
             if (context != null && !context.isEmpty()) {
                 defaultContext = new RyaURI(context);
             }
 
             // set up the buffer
             bufferSizeLimit = conf.getLong(MAX_MUTATION_BUFFER_SIZE, ONE_MEGABYTE);
-            int bufferCapacity = (int) (bufferSizeLimit / AVE_STATEMENT_SIZE);
+            final int bufferCapacity = (int) (bufferSizeLimit / AVE_STATEMENT_SIZE);
             buffer = new ArrayList<RyaStatement>(bufferCapacity);
 
             // set up the indexers
@@ -358,7 +359,7 @@ public class RyaOutputFormat extends OutputFormat<Writable, RyaStatementWritable
                 } catch (AccumuloException | AccumuloSecurityException e) {
                     throw new IOException("Error connecting to Accumulo for entity index output", e);
                 }
-                BatchWriterConfig batchWriterConfig = new BatchWriterConfig();
+                final BatchWriterConfig batchWriterConfig = new BatchWriterConfig();
                 batchWriterConfig.setMaxMemory(RdfCloudTripleStoreConstants.MAX_MEMORY);
                 batchWriterConfig.setTimeout(RdfCloudTripleStoreConstants.MAX_TIME, TimeUnit.MILLISECONDS);
                 batchWriterConfig.setMaxWriteThreads(RdfCloudTripleStoreConstants.NUM_THREADS);
@@ -396,41 +397,45 @@ public class RyaOutputFormat extends OutputFormat<Writable, RyaStatementWritable
          * @param   paramTaskAttemptContext     Unused.
          */
         @Override
-        public void close(TaskAttemptContext paramTaskAttemptContext) {
+        public void close(final TaskAttemptContext paramTaskAttemptContext) {
             // close everything. log errors
             try {
                 flush();
-            } catch (IOException e) {
+            } catch (final IOException e) {
                 logger.error("Error flushing the buffer on RyaOutputFormat Close", e);
             }
             try {
-                if (freeTextIndexer != null)
+                if (freeTextIndexer != null) {
                     freeTextIndexer.close();
-            } catch (IOException e) {
+                }
+            } catch (final IOException e) {
                 logger.error("Error closing the freetextIndexer on RyaOutputFormat Close", e);
             }
             try {
-                if (temporalIndexer != null)
+                if (temporalIndexer != null) {
                     temporalIndexer.close();
-            } catch (IOException e) {
+                }
+            } catch (final IOException e) {
                 logger.error("Error closing the temporalIndexer on RyaOutputFormat Close", e);
             }
             try {
-                if (entityIndexer != null)
+                if (entityIndexer != null) {
                     entityIndexer.close();
-            } catch (IOException e) {
+                }
+            } catch (final IOException e) {
                 logger.error("Error closing the entityIndexer on RyaOutputFormat Close", e);
             }
             try {
-                if (ryaIndexer != null)
+                if (ryaIndexer != null) {
                     ryaIndexer.destroy();
-            } catch (RyaDAOException e) {
+                }
+            } catch (final RyaDAOException e) {
                 logger.error("Error closing RyaDAO on RyaOutputFormat Close", e);
             }
             if (writer != null) {
                 try {
                     writer.close();
-                } catch (MutationsRejectedException e) {
+                } catch (final MutationsRejectedException e) {
                     logger.error("Error closing MultiTableBatchWriter on RyaOutputFormat Close", e);
                 }
             }
@@ -442,7 +447,7 @@ public class RyaOutputFormat extends OutputFormat<Writable, RyaStatementWritable
          * @param   statement   Statement to insert to Rya.
          * @throws  IOException if writing to Accumulo fails.
          */
-        public void write(Statement statement) throws IOException {
+        public void write(final Statement statement) throws IOException {
             write(RdfToRyaConversions.convertStatement(statement));
         }
 
@@ -452,7 +457,7 @@ public class RyaOutputFormat extends OutputFormat<Writable, RyaStatementWritable
          * @param   ryaStatement   Statement to insert to Rya.
          * @throws  IOException if writing to Accumulo fails.
          */
-        public void write(RyaStatement ryaStatement) throws IOException {
+        public void write(final RyaStatement ryaStatement) throws IOException {
             write(NullWritable.get(), new RyaStatementWritable(ryaStatement, tripleContext));
         }
 
@@ -464,8 +469,8 @@ public class RyaOutputFormat extends OutputFormat<Writable, RyaStatementWritable
          * @throws  IOException if writing to Accumulo fails.
          */
         @Override
-        public void write(Writable key, RyaStatementWritable value) throws IOException {
-            RyaStatement ryaStatement = value.getRyaStatement();
+        public void write(final Writable key, final RyaStatementWritable value) throws IOException {
+            final RyaStatement ryaStatement = value.getRyaStatement();
             if (ryaStatement.getColumnVisibility() == null) {
                 ryaStatement.setColumnVisibility(cv);
             }
@@ -479,11 +484,11 @@ public class RyaOutputFormat extends OutputFormat<Writable, RyaStatementWritable
             }
         }
 
-        private int statementSize(RyaStatement ryaStatement) {
-            RyaURI subject = ryaStatement.getSubject();
-            RyaURI predicate = ryaStatement.getPredicate();
-            RyaType object = ryaStatement.getObject();
-            RyaURI context = ryaStatement.getContext();
+        private int statementSize(final RyaStatement ryaStatement) {
+            final RyaURI subject = ryaStatement.getSubject();
+            final RyaURI predicate = ryaStatement.getPredicate();
+            final RyaType object = ryaStatement.getObject();
+            final RyaURI context = ryaStatement.getContext();
             int size = 3 + subject.getData().length() + predicate.getData().length() + object.getData().length();
             if (!XMLSchema.ANYURI.equals(object.getDataType())) {
                 size += 2 + object.getDataType().toString().length();
@@ -508,15 +513,15 @@ public class RyaOutputFormat extends OutputFormat<Writable, RyaStatementWritable
             totalCommitRecords += buffer.size();
             commitCount++;
 
-            long startCommitTime = System.currentTimeMillis();
+            final long startCommitTime = System.currentTimeMillis();
 
             logger.info(String.format("(C-%d) Flushing buffer with %,d objects and %,d bytes", commitCount, buffer.size(),
                     bufferCurrentSize));
 
-            double readingDuration = (startCommitTime - lastCommitFinishTime) / 1000.;
+            final double readingDuration = (startCommitTime - lastCommitFinishTime) / 1000.;
             totalReadDuration += readingDuration;
-            double currentReadRate = buffer.size() / readingDuration;
-            double totalReadRate = totalCommitRecords / totalReadDuration;
+            final double currentReadRate = buffer.size() / readingDuration;
+            final double totalReadRate = totalCommitRecords / totalReadDuration;
 
             // Print "reading" metrics
             logger.info(String.format("(C-%d) (Reading) Duration, Current Rate, Total Rate: %.2f %.2f %.2f ", commitCount, readingDuration,
@@ -539,7 +544,7 @@ public class RyaOutputFormat extends OutputFormat<Writable, RyaStatementWritable
                 entityIndexer.storeStatements(buffer);
                 try {
                     writer.flush();
-                } catch (MutationsRejectedException e) {
+                } catch (final MutationsRejectedException e) {
                     throw new IOException("Error flushing data to Accumulo for entity indexing", e);
                 }
             }
@@ -549,26 +554,26 @@ public class RyaOutputFormat extends OutputFormat<Writable, RyaStatementWritable
                 if (ryaIndexer != null) {
                     ryaIndexer.add(buffer.iterator());
                 }
-            } catch (RyaDAOException e) {
+            } catch (final RyaDAOException e) {
                 logger.error("Cannot write statement to Rya", e);
                 throw new IOException(e);
             }
 
             lastCommitFinishTime = System.currentTimeMillis();
 
-            double writingDuration = (lastCommitFinishTime - startCommitTime) / 1000.;
+            final double writingDuration = (lastCommitFinishTime - startCommitTime) / 1000.;
             totalWriteDuration += writingDuration;
-            double currentWriteRate = buffer.size() / writingDuration;
-            double totalWriteRate = totalCommitRecords / totalWriteDuration;
+            final double currentWriteRate = buffer.size() / writingDuration;
+            final double totalWriteRate = totalCommitRecords / totalWriteDuration;
 
             // Print "writing" stats
             logger.info(String.format("(C-%d) (Writing) Duration, Current Rate, Total Rate: %.2f %.2f %.2f ", commitCount, writingDuration,
                     currentWriteRate, totalWriteRate));
 
-            double processDuration = writingDuration + readingDuration;
-            double totalProcessDuration = totalWriteDuration + totalReadDuration;
-            double currentProcessRate = buffer.size() / processDuration;
-            double totalProcessRate = totalCommitRecords / (totalProcessDuration);
+            final double processDuration = writingDuration + readingDuration;
+            final double totalProcessDuration = totalWriteDuration + totalReadDuration;
+            final double currentProcessRate = buffer.size() / processDuration;
+            final double totalProcessRate = totalCommitRecords / (totalProcessDuration);
 
             // Print "total" stats
             logger.info(String.format("(C-%d) (Total) Duration, Current Rate, Total Rate: %.2f %.2f %.2f ", commitCount, processDuration,

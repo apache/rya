@@ -1,5 +1,18 @@
 package org.apache.rya.camel.cbsail;
 
+import static org.apache.rya.api.RdfCloudTripleStoreConfiguration.CONF_INFER;
+import static org.apache.rya.api.RdfCloudTripleStoreConfiguration.CONF_QUERY_AUTH;
+import static org.apache.rya.camel.cbsail.CbSailComponent.SPARQL_QUERY_PROP;
+import static org.apache.rya.camel.cbsail.CbSailComponent.valueFactory;
+
+import java.io.ByteArrayOutputStream;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -8,9 +21,9 @@ package org.apache.rya.camel.cbsail;
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- * 
+ *
  *   http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -24,18 +37,17 @@ package org.apache.rya.camel.cbsail;
 import org.apache.camel.Exchange;
 import org.apache.camel.impl.DefaultProducer;
 import org.openrdf.model.Statement;
-import org.openrdf.query.*;
+import org.openrdf.query.BindingSet;
+import org.openrdf.query.MalformedQueryException;
+import org.openrdf.query.QueryEvaluationException;
+import org.openrdf.query.QueryLanguage;
+import org.openrdf.query.TupleQuery;
+import org.openrdf.query.TupleQueryResultHandlerBase;
+import org.openrdf.query.TupleQueryResultHandlerException;
 import org.openrdf.query.resultio.sparqlxml.SPARQLResultsXMLWriter;
 import org.openrdf.repository.RepositoryConnection;
 import org.openrdf.repository.RepositoryException;
 import org.openrdf.rio.RDFHandlerException;
-
-import java.io.ByteArrayOutputStream;
-import java.util.*;
-
-import static org.apache.rya.api.RdfCloudTripleStoreConfiguration.*;
-import static org.apache.rya.camel.cbsail.CbSailComponent.SPARQL_QUERY_PROP;
-import static org.apache.rya.camel.cbsail.CbSailComponent.valueFactory;
 
 /**
  */
@@ -43,9 +55,9 @@ public class CbSailProducer extends DefaultProducer {
 
     private RepositoryConnection connection;
 
-    private CbSailEndpoint.CbSailOutput queryOutput = CbSailEndpoint.CbSailOutput.BINARY;
+    private final CbSailEndpoint.CbSailOutput queryOutput = CbSailEndpoint.CbSailOutput.BINARY;
 
-    public CbSailProducer(CbSailEndpoint endpoint) {
+    public CbSailProducer(final CbSailEndpoint endpoint) {
         super(endpoint);
     }
 
@@ -53,78 +65,83 @@ public class CbSailProducer extends DefaultProducer {
     public void process(final Exchange exchange) throws Exception {
         //If a query is set in the header or uri, use it
         Collection<String> queries = new ArrayList<String>();
-        Collection tmp = exchange.getIn().getHeader(SPARQL_QUERY_PROP, Collection.class);
+        final Collection tmp = exchange.getIn().getHeader(SPARQL_QUERY_PROP, Collection.class);
         if (tmp != null) {
             queries = tmp;
         } else {
-            String query = exchange.getIn().getHeader(SPARQL_QUERY_PROP, String.class);
+            final String query = exchange.getIn().getHeader(SPARQL_QUERY_PROP, String.class);
             if (query != null) {
                 queries.add(query);
             }
         }
 
-        if (queries.size() > 0)
+        if (queries.size() > 0) {
             sparqlQuery(exchange, queries);
-        else
+        } else {
             inputTriples(exchange);
+        }
     }
 
-    protected void inputTriples(Exchange exchange) throws RepositoryException {
-        Object body = exchange.getIn().getBody();
+    protected void inputTriples(final Exchange exchange) throws RepositoryException {
+        final Object body = exchange.getIn().getBody();
         if (body instanceof Statement) {
             //save statement
             inputStatement((Statement) body);
         } else if (body instanceof List) {
             //save list of statements
-            List lst = (List) body;
-            for (Object obj : lst) {
-                if (obj instanceof Statement)
+            final List lst = (List) body;
+            for (final Object obj : lst) {
+                if (obj instanceof Statement) {
                     inputStatement((Statement) obj);
+                }
             }
         }
         connection.commit();
         exchange.getOut().setBody(Boolean.TRUE);
     }
 
-    protected void inputStatement(Statement stmt) throws RepositoryException {
+    protected void inputStatement(final Statement stmt) throws RepositoryException {
         connection.add(stmt.getSubject(), stmt.getPredicate(), stmt.getObject());
     }
 
-    protected void sparqlQuery(Exchange exchange, Collection<String> queries) throws RepositoryException, MalformedQueryException, QueryEvaluationException, TupleQueryResultHandlerException, RDFHandlerException {
+    protected void sparqlQuery(final Exchange exchange, final Collection<String> queries) throws RepositoryException, MalformedQueryException, QueryEvaluationException, TupleQueryResultHandlerException, RDFHandlerException {
 
-        List list = new ArrayList();
-        for (String query : queries) {
+        final List list = new ArrayList();
+        for (final String query : queries) {
 
 //            Long startTime = exchange.getIn().getHeader(START_TIME_QUERY_PROP, Long.class);
 //            Long ttl = exchange.getIn().getHeader(TTL_QUERY_PROP, Long.class);
-            String auth = exchange.getIn().getHeader(CONF_QUERY_AUTH, String.class);
-            Boolean infer = exchange.getIn().getHeader(CONF_INFER, Boolean.class);
+            final String auth = exchange.getIn().getHeader(CONF_QUERY_AUTH, String.class);
+            final Boolean infer = exchange.getIn().getHeader(CONF_INFER, Boolean.class);
 
-            Object output = performSelect(query, auth, infer);
+            final Object output = performSelect(query, auth, infer);
             if (queries.size() == 1) {
                 exchange.getOut().setBody(output);
                 return;
-            } else
+            } else {
                 list.add(output);
+            }
 
         }
         exchange.getOut().setBody(list);
     }
 
-    protected Object performSelect(String query, String auth, Boolean infer) throws RepositoryException, MalformedQueryException, QueryEvaluationException, TupleQueryResultHandlerException {
-        TupleQuery tupleQuery = connection.prepareTupleQuery(
+    protected Object performSelect(final String query, final String auth, final Boolean infer) throws RepositoryException, MalformedQueryException, QueryEvaluationException, TupleQueryResultHandlerException {
+        final TupleQuery tupleQuery = connection.prepareTupleQuery(
                 QueryLanguage.SPARQL, query);
-        if (auth != null && auth.length() > 0)
+        if (auth != null && auth.length() > 0) {
             tupleQuery.setBinding(CONF_QUERY_AUTH, valueFactory.createLiteral(auth));
-        if (infer != null)
+        }
+        if (infer != null) {
             tupleQuery.setBinding(CONF_INFER, valueFactory.createLiteral(infer));
+        }
         if (CbSailEndpoint.CbSailOutput.BINARY.equals(queryOutput)) {
             final List listOutput = new ArrayList();
-            TupleQueryResultHandlerBase handler = new TupleQueryResultHandlerBase() {
+            final TupleQueryResultHandlerBase handler = new TupleQueryResultHandlerBase() {
                 @Override
-                public void handleSolution(BindingSet bindingSet) throws TupleQueryResultHandlerException {
-                    Map<String, String> map = new HashMap<String, String>();
-                    for (String s : bindingSet.getBindingNames()) {
+                public void handleSolution(final BindingSet bindingSet) throws TupleQueryResultHandlerException {
+                    final Map<String, String> map = new HashMap<String, String>();
+                    for (final String s : bindingSet.getBindingNames()) {
                         map.put(s, bindingSet.getBinding(s).getValue().stringValue());
                     }
                     listOutput.add(map);
@@ -133,10 +150,10 @@ public class CbSailProducer extends DefaultProducer {
             tupleQuery.evaluate(handler);
             return listOutput;
         } else if (CbSailEndpoint.CbSailOutput.XML.equals(queryOutput)) {
-            ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            SPARQLResultsXMLWriter sparqlWriter = new SPARQLResultsXMLWriter(baos);
+            final ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            final SPARQLResultsXMLWriter sparqlWriter = new SPARQLResultsXMLWriter(baos);
             tupleQuery.evaluate(sparqlWriter);
-            return new String(baos.toByteArray());
+            return new String(baos.toByteArray(), StandardCharsets.UTF_8);
         } else {
             throw new IllegalArgumentException("Query Output[" + queryOutput + "] is not recognized");
         }
@@ -164,7 +181,7 @@ public class CbSailProducer extends DefaultProducer {
 
     @Override
     protected void doStart() throws Exception {
-        CbSailEndpoint cbSailEndpoint = (CbSailEndpoint) getEndpoint();
+        final CbSailEndpoint cbSailEndpoint = (CbSailEndpoint) getEndpoint();
         connection = cbSailEndpoint.getSailRepository().getConnection();
     }
 

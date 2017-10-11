@@ -1,5 +1,3 @@
-package org.apache.rya.api.query.strategy.wholerow;
-
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -8,9 +6,9 @@ package org.apache.rya.api.query.strategy.wholerow;
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- * 
+ *
  *   http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -18,13 +16,13 @@ package org.apache.rya.api.query.strategy.wholerow;
  * specific language governing permissions and limitations
  * under the License.
  */
-
-
+package org.apache.rya.api.query.strategy.wholerow;
 
 import static org.apache.rya.api.RdfCloudTripleStoreConstants.DELIM_BYTES;
 import static org.apache.rya.api.RdfCloudTripleStoreConstants.LAST_BYTES;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
 import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
@@ -53,33 +51,35 @@ public class OspWholeRowTriplePatternStrategy extends AbstractTriplePatternStrat
 
     @Override
     public Map.Entry<TABLE_LAYOUT,
-            ByteRange> defineRange(RyaURI subject, RyaURI predicate, RyaType object,
-                                   RyaURI context, RdfCloudTripleStoreConfiguration conf) throws IOException {
+            ByteRange> defineRange(final RyaURI subject, final RyaURI predicate, final RyaType object,
+                                   final RyaURI context, final RdfCloudTripleStoreConfiguration conf) throws IOException {
         try {
             //os(ng)
             //o_r(s)(ng)
             //o(ng)
             //r(o)
-            if (!handles(subject, predicate, object, context)) return null;
+            if (!handles(subject, predicate, object, context)) {
+                return null;
+            }
 
-            RyaContext ryaContext = RyaContext.getInstance();
+            final RyaContext ryaContext = RyaContext.getInstance();
 
-            TABLE_LAYOUT table_layout = TABLE_LAYOUT.OSP;
+            final TABLE_LAYOUT table_layout = TABLE_LAYOUT.OSP;
             byte[] start, stop;
             if (subject != null) {
                 if (subject instanceof RyaRange) {
                     //o_r(s)
                     RyaRange ru = (RyaRange) subject;
                     ru = ryaContext.transformRange(ru);
-                    byte[] subjStartBytes = ru.getStart().getData().getBytes();
-                    byte[] subjEndBytes = ru.getStop().getData().getBytes();
-                    byte[] objBytes = ryaContext.serializeType(object)[0];
+                    final byte[] subjStartBytes = ru.getStart().getData().getBytes(StandardCharsets.UTF_8);
+                    final byte[] subjEndBytes = ru.getStop().getData().getBytes(StandardCharsets.UTF_8);
+                    final byte[] objBytes = ryaContext.serializeType(object)[0];
                     start = Bytes.concat(objBytes, DELIM_BYTES, subjStartBytes);
                     stop = Bytes.concat(objBytes, DELIM_BYTES, subjEndBytes, DELIM_BYTES, LAST_BYTES);
                 } else {
                     //os
-                    byte[] objBytes = ryaContext.serializeType(object)[0];
-                    start = Bytes.concat(objBytes, DELIM_BYTES, subject.getData().getBytes(), DELIM_BYTES);
+                    final byte[] objBytes = ryaContext.serializeType(object)[0];
+                    start = Bytes.concat(objBytes, DELIM_BYTES, subject.getData().getBytes(StandardCharsets.UTF_8), DELIM_BYTES);
                     stop = Bytes.concat(start, LAST_BYTES);
                 }
             } else {
@@ -97,13 +97,13 @@ public class OspWholeRowTriplePatternStrategy extends AbstractTriplePatternStrat
             }
             return new RdfCloudTripleStoreUtils.CustomEntry<TABLE_LAYOUT,
                     ByteRange>(table_layout, new ByteRange(start, stop));
-        } catch (RyaTypeResolverException e) {
+        } catch (final RyaTypeResolverException e) {
             throw new IOException(e);
         }
     }
 
     @Override
-    public boolean handles(RyaURI subject, RyaURI predicate, RyaType object, RyaURI context) {
+    public boolean handles(final RyaURI subject, final RyaURI predicate, final RyaType object, final RyaURI context) {
         //os(ng)
         //o_r(s)(ng)
         //o(ng)

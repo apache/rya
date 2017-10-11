@@ -19,6 +19,7 @@
 package org.apache.rya.export.accumulo.util;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
@@ -336,7 +337,7 @@ public final class AccumuloRyaUtils {
     public static Authorizations addUserAuths(final String user, final SecurityOperations secOps, final Authorizations auths) throws AccumuloException, AccumuloSecurityException {
         final List<String> authList = new ArrayList<>();
         for (final byte[] authBytes : auths.getAuthorizations()) {
-            final String auth = new String(authBytes);
+            final String auth = new String(authBytes, StandardCharsets.UTF_8);
             authList.add(auth);
         }
         return addUserAuths(user, secOps, authList.toArray(new String[0]));
@@ -358,7 +359,7 @@ public final class AccumuloRyaUtils {
             authList.add(currentAuth);
         }
         for (final String newAuth : auths) {
-            authList.add(newAuth.getBytes());
+            authList.add(newAuth.getBytes(StandardCharsets.UTF_8));
         }
         final Authorizations result = new Authorizations(authList);
         return result;

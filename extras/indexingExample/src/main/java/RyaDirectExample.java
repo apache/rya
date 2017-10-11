@@ -18,20 +18,16 @@
  */
 
 import java.net.UnknownHostException;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
-import java.util.Map;
 
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
 import org.apache.accumulo.core.client.Connector;
-import org.apache.accumulo.core.client.Scanner;
 import org.apache.accumulo.core.client.TableExistsException;
 import org.apache.accumulo.core.client.TableNotFoundException;
 import org.apache.accumulo.core.client.mock.MockInstance;
 import org.apache.accumulo.core.client.security.tokens.PasswordToken;
-import org.apache.accumulo.core.data.Key;
-import org.apache.accumulo.core.data.Value;
-import org.apache.accumulo.core.security.Authorizations;
 import org.apache.commons.lang.Validate;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.log4j.Logger;
@@ -153,7 +149,7 @@ public class RyaDirectExample {
 
 	private static Configuration getConf() {
 
-		
+
 		return AccumuloIndexingConfiguration.builder()
 			.setUseMockAccumulo(USE_MOCK_INSTANCE)
 			.setAuths(AUTHS)
@@ -165,7 +161,7 @@ public class RyaDirectExample {
 			.setUseAccumuloFreetextIndex(true)
 			.setUseAccumuloTemporalIndex(true)
 			.build();
-		
+
 	}
 
 	public static void testAddAndDelete(final SailRepositoryConnection conn)
@@ -775,7 +771,7 @@ public class RyaDirectExample {
 			final String tablename2 = RYA_TABLE_PREFIX + "INDEX_2";
 
 			final Connector accCon = new MockInstance(INSTANCE).getConnector(
-					"root", new PasswordToken("".getBytes()));
+					"root", new PasswordToken("".getBytes(StandardCharsets.UTF_8)));
 
 			new PcjTables().createAndPopulatePcj(conn, accCon, tablename1,
 					queryString1, new String[] { "e", "c", "l", "o" },
@@ -784,7 +780,7 @@ public class RyaDirectExample {
 			new PcjTables().createAndPopulatePcj(conn, accCon, tablename2,
 					queryString2, new String[] { "e", "c", "l", "o" },
 					Optional.<PcjVarOrderFactory> absent());
-			
+
 		} catch (final RyaDAOException e) {
 			throw new Error("While creating PCJ tables.",e);
 		} finally {

@@ -18,15 +18,32 @@
  */
 package org.apache.rya.accumulo.mr.merge.util;
 
-import java.io.BufferedReader;
-import java.io.FileReader;
+import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.log4j.Logger;
+import org.apache.rya.accumulo.mr.merge.CopyTool;
+import org.apache.rya.accumulo.mr.merge.util.QueryRuleset.QueryRulesetException;
+import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
+import org.apache.rya.rdftriplestore.RdfCloudTripleStore;
+import org.apache.rya.rdftriplestore.inference.InferJoin;
+import org.apache.rya.rdftriplestore.inference.InferUnion;
+import org.apache.rya.rdftriplestore.inference.InferenceEngine;
+import org.apache.rya.rdftriplestore.inference.InverseOfVisitor;
+import org.apache.rya.rdftriplestore.inference.SameAsVisitor;
+import org.apache.rya.rdftriplestore.inference.SubClassOfVisitor;
+import org.apache.rya.rdftriplestore.inference.SubPropertyOfVisitor;
+import org.apache.rya.rdftriplestore.inference.SymmetricPropertyVisitor;
+import org.apache.rya.rdftriplestore.inference.TransitivePropertyVisitor;
+import org.apache.rya.rdftriplestore.utils.FixedStatementPattern;
+import org.apache.rya.rdftriplestore.utils.TransitivePropertySP;
+import org.apache.rya.sail.config.RyaSailFactory;
 import org.openrdf.model.Statement;
 import org.openrdf.model.URI;
 import org.openrdf.model.Value;
@@ -51,22 +68,6 @@ import org.openrdf.query.algebra.helpers.QueryModelVisitorBase;
 import org.openrdf.query.parser.ParsedTupleQuery;
 import org.openrdf.query.parser.QueryParserUtil;
 import org.openrdf.sail.SailException;
-
-import org.apache.rya.accumulo.mr.merge.CopyTool;
-import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
-import org.apache.rya.rdftriplestore.RdfCloudTripleStore;
-import org.apache.rya.rdftriplestore.inference.InferJoin;
-import org.apache.rya.rdftriplestore.inference.InferUnion;
-import org.apache.rya.rdftriplestore.inference.InferenceEngine;
-import org.apache.rya.rdftriplestore.inference.InverseOfVisitor;
-import org.apache.rya.rdftriplestore.inference.SameAsVisitor;
-import org.apache.rya.rdftriplestore.inference.SubClassOfVisitor;
-import org.apache.rya.rdftriplestore.inference.SubPropertyOfVisitor;
-import org.apache.rya.rdftriplestore.inference.SymmetricPropertyVisitor;
-import org.apache.rya.rdftriplestore.inference.TransitivePropertyVisitor;
-import org.apache.rya.rdftriplestore.utils.FixedStatementPattern;
-import org.apache.rya.rdftriplestore.utils.TransitivePropertySP;
-import org.apache.rya.sail.config.RyaSailFactory;
 
 /**
  * Represents a set of {@link CopyRule} instances derived from a query. The ruleset determines a logical
@@ -432,16 +433,7 @@ public class QueryRuleset {
         final String queryFile = conf.get(CopyTool.QUERY_FILE_PROP);
         if (query == null && queryFile != null) {
             try {
-                final FileReader fileReader = new FileReader(queryFile);
-                final BufferedReader reader = new BufferedReader(fileReader);
-                final StringBuilder builder = new StringBuilder();
-                String line = reader.readLine();
-                while (line != null) {
-                    builder.append(line).append("\n");
-                    line = reader.readLine();
-                }
-                query = builder.toString();
-                reader.close();
+                query = FileUtils.readFileToString(new File(queryFile), StandardCharsets.UTF_8);
                 conf.set(CopyTool.QUERY_STRING_PROP, query);
             }
             catch (final IOException e) {

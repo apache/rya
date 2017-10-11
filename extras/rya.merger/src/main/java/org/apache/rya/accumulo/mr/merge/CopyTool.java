@@ -22,6 +22,7 @@ import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Paths;
 import java.text.ParseException;
 import java.util.ArrayList;
@@ -81,9 +82,6 @@ import org.apache.hadoop.util.ToolRunner;
 import org.apache.log4j.BasicConfigurator;
 import org.apache.log4j.Logger;
 import org.apache.log4j.xml.DOMConfigurator;
-
-import com.google.common.base.Joiner;
-
 import org.apache.rya.accumulo.AccumuloRdfConfiguration;
 import org.apache.rya.accumulo.mr.AccumuloHDFSFileInputFormat;
 import org.apache.rya.accumulo.mr.MRUtils;
@@ -104,6 +102,8 @@ import org.apache.rya.api.RdfCloudTripleStoreConstants;
 import org.apache.rya.api.RdfCloudTripleStoreUtils;
 import org.apache.rya.api.layout.TablePrefixLayoutStrategy;
 import org.apache.rya.indexing.accumulo.ConfigUtils;
+
+import com.google.common.base.Joiner;
 
 /**
  * Handles copying data from a parent instance into a child instance.
@@ -589,9 +589,9 @@ public class CopyTool extends AbstractDualInstanceAccumuloMRTool {
         final Path splitsPath = getPath(baseOutputDir, childTableName, "splits.txt");
         final Collection<Text> splits = parentTableOperations.listSplits(parentTableName, 100);
         log.info("Creating splits file at: " + splitsPath);
-        try (PrintStream out = new PrintStream(new BufferedOutputStream(fs.create(splitsPath)))) {
+        try (PrintStream out = new PrintStream(new BufferedOutputStream(fs.create(splitsPath)), false, StandardCharsets.UTF_8.name())) {
             for (final Text split : splits) {
-                final String encoded = new String(Base64.encodeBase64(TextUtil.getBytes(split)));
+                final String encoded = new String(Base64.encodeBase64(TextUtil.getBytes(split)), StandardCharsets.UTF_8);
                 out.println(encoded);
             }
         }
@@ -873,12 +873,7 @@ public class CopyTool extends AbstractDualInstanceAccumuloMRTool {
         }
         log.info("Starting Copy Tool");
 
-        Thread.setDefaultUncaughtExceptionHandler(new Thread.UncaughtExceptionHandler() {
-            @Override
-            public void uncaughtException(final Thread thread, final Throwable throwable) {
-                log.error("Uncaught exception in " + thread.getName(), throwable);
-            }
-        });
+        Thread.setDefaultUncaughtExceptionHandler((thread, throwable) -> log.error("Uncaught exception in " + thread.getName(), throwable));
 
         final CopyTool copyTool = new CopyTool();
         final int returnCode = copyTool.setupAndRun(args);

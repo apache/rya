@@ -18,6 +18,7 @@
  */
 package org.apache.rya.indexing.pcj.fluo.demo;
 
+import java.nio.charset.StandardCharsets;
 import java.util.Set;
 
 import org.apache.accumulo.core.client.Connector;
@@ -96,7 +97,7 @@ public class FluoAndHistoricPcjsDemo implements Demo {
     /**
      * Used to pause the demo waiting for the presenter to hit the Enter key.
      */
-    private final java.util.Scanner keyboard = new java.util.Scanner(System.in);
+    private final java.util.Scanner keyboard = new java.util.Scanner(System.in, StandardCharsets.UTF_8.name());
 
     @Override
     public void execute(

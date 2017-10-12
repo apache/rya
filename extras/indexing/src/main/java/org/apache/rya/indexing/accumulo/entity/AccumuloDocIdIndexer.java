@@ -1,5 +1,3 @@
-package org.apache.rya.indexing.accumulo.entity;
-
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -18,13 +16,13 @@ package org.apache.rya.indexing.accumulo.entity;
  * specific language governing permissions and limitations
  * under the License.
  */
-
+package org.apache.rya.indexing.accumulo.entity;
 
 import static org.apache.rya.api.RdfCloudTripleStoreConstants.DELIM_BYTE;
 import static org.apache.rya.api.RdfCloudTripleStoreConstants.TYPE_DELIM_BYTE;
-import info.aduna.iteration.CloseableIteration;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -34,17 +32,6 @@ import java.util.List;
 import java.util.Map.Entry;
 import java.util.NoSuchElementException;
 import java.util.Set;
-
-import org.apache.rya.accumulo.AccumuloRdfConfiguration;
-import org.apache.rya.accumulo.documentIndex.DocIndexIteratorUtil;
-import org.apache.rya.accumulo.documentIndex.DocumentIndexIntersectingIterator;
-import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
-import org.apache.rya.api.domain.RyaURI;
-import org.apache.rya.api.resolver.RyaContext;
-import org.apache.rya.api.resolver.RyaToRdfConversions;
-import org.apache.rya.api.resolver.RyaTypeResolverException;
-import org.apache.rya.indexing.DocIdIndexer;
-import org.apache.rya.indexing.accumulo.ConfigUtils;
 
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
@@ -57,6 +44,16 @@ import org.apache.accumulo.core.data.Range;
 import org.apache.accumulo.core.data.Value;
 import org.apache.accumulo.core.security.Authorizations;
 import org.apache.hadoop.io.Text;
+import org.apache.rya.accumulo.AccumuloRdfConfiguration;
+import org.apache.rya.accumulo.documentIndex.DocIndexIteratorUtil;
+import org.apache.rya.accumulo.documentIndex.DocumentIndexIntersectingIterator;
+import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
+import org.apache.rya.api.domain.RyaURI;
+import org.apache.rya.api.resolver.RyaContext;
+import org.apache.rya.api.resolver.RyaToRdfConversions;
+import org.apache.rya.api.resolver.RyaTypeResolverException;
+import org.apache.rya.indexing.DocIdIndexer;
+import org.apache.rya.indexing.accumulo.ConfigUtils;
 import org.openrdf.query.BindingSet;
 import org.openrdf.query.MalformedQueryException;
 import org.openrdf.query.QueryEvaluationException;
@@ -72,14 +69,16 @@ import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Sets;
 import com.google.common.primitives.Bytes;
 
+import info.aduna.iteration.CloseableIteration;
+
 public class AccumuloDocIdIndexer implements DocIdIndexer {
 
 
 
     private BatchScanner bs;
-    private AccumuloRdfConfiguration conf;
+    private final AccumuloRdfConfiguration conf;
 
-    public AccumuloDocIdIndexer(RdfCloudTripleStoreConfiguration conf) throws AccumuloException, AccumuloSecurityException {
+    public AccumuloDocIdIndexer(final RdfCloudTripleStoreConfiguration conf) throws AccumuloException, AccumuloSecurityException {
         Preconditions.checkArgument(conf instanceof RdfCloudTripleStoreConfiguration, "conf must be isntance of RdfCloudTripleStoreConfiguration");
         this.conf = (AccumuloRdfConfiguration) conf;
         //Connector conn = ConfigUtils.getConnector(conf);
@@ -88,22 +87,22 @@ public class AccumuloDocIdIndexer implements DocIdIndexer {
 
 
 
-    public CloseableIteration<BindingSet, QueryEvaluationException> queryDocIndex(String sparqlQuery,
-            Collection<BindingSet> constraints) throws TableNotFoundException, QueryEvaluationException {
+    public CloseableIteration<BindingSet, QueryEvaluationException> queryDocIndex(final String sparqlQuery,
+            final Collection<BindingSet> constraints) throws TableNotFoundException, QueryEvaluationException {
 
-        SPARQLParser parser = new SPARQLParser();
+        final SPARQLParser parser = new SPARQLParser();
         ParsedQuery pq1 = null;
         try {
             pq1 = parser.parseQuery(sparqlQuery, null);
-        } catch (MalformedQueryException e) {
+        } catch (final MalformedQueryException e) {
             e.printStackTrace();
         }
 
-        TupleExpr te1 = pq1.getTupleExpr();
-        List<StatementPattern> spList1 = StatementPatternCollector.process(te1);
+        final TupleExpr te1 = pq1.getTupleExpr();
+        final List<StatementPattern> spList1 = StatementPatternCollector.process(te1);
 
         if(StarQuery.isValidStarQuery(spList1)) {
-            StarQuery sq1 = new StarQuery(spList1);
+            final StarQuery sq1 = new StarQuery(spList1);
             return queryDocIndex(sq1, constraints);
         } else {
             throw new IllegalArgumentException("Invalid star query!");
@@ -115,8 +114,8 @@ public class AccumuloDocIdIndexer implements DocIdIndexer {
 
 
     @Override
-    public CloseableIteration<BindingSet, QueryEvaluationException> queryDocIndex(StarQuery query,
-            Collection<BindingSet> constraints) throws TableNotFoundException, QueryEvaluationException {
+    public CloseableIteration<BindingSet, QueryEvaluationException> queryDocIndex(final StarQuery query,
+            final Collection<BindingSet> constraints) throws TableNotFoundException, QueryEvaluationException {
 
         final StarQuery starQ = query;
         final Iterator<BindingSet> bs = constraints.iterator();
@@ -124,7 +123,7 @@ public class AccumuloDocIdIndexer implements DocIdIndexer {
         final Set<String> unCommonVarNames;
         final Set<String> commonVarNames;
         if (bs2.hasNext()) {
-            BindingSet currBs = bs2.next();
+            final BindingSet currBs = bs2.next();
             commonVarNames = StarQuery.getCommonVars(query, currBs);
             unCommonVarNames = Sets.difference(currBs.getBindingNames(), commonVarNames);
         } else {
@@ -138,17 +137,17 @@ public class AccumuloDocIdIndexer implements DocIdIndexer {
             final String commonVar = starQ.getCommonVarName();
             final Iterator<Entry<Key, Value>> intersections;
             final BatchScanner scan;
-            Set<Range> ranges = Sets.newHashSet();
+            final Set<Range> ranges = Sets.newHashSet();
 
             while(bs.hasNext()) {
 
-                BindingSet currentBs = bs.next();
+                final BindingSet currentBs = bs.next();
 
                 if(currentBs.getBinding(commonVar) == null) {
                     continue;
                 }
 
-                String row = currentBs.getBinding(commonVar).getValue().stringValue();
+                final String row = currentBs.getBinding(commonVar).getValue().stringValue();
                 ranges.add(new Range(row));
                 map.put(row, currentBs);
 
@@ -246,7 +245,7 @@ public class AccumuloDocIdIndexer implements DocIdIndexer {
                 private boolean init = false;
                 private BindingSet currentBs;
                 private StarQuery sq = new StarQuery(starQ);
-                private Set<Range> emptyRangeSet = Sets.newHashSet();
+                private final Set<Range> emptyRangeSet = Sets.newHashSet();
                 private BatchScanner scan;
 
                 @Override
@@ -327,16 +326,16 @@ public class AccumuloDocIdIndexer implements DocIdIndexer {
         }
     }
 
-    private QueryBindingSet deserializeKey(Key key, StarQuery sq, BindingSet currentBs, Set<String> unCommonVar) {
+    private QueryBindingSet deserializeKey(final Key key, final StarQuery sq, final BindingSet currentBs, final Set<String> unCommonVar) {
 
 
-        QueryBindingSet currentSolutionBs = new QueryBindingSet();
+        final QueryBindingSet currentSolutionBs = new QueryBindingSet();
 
-        Text row = key.getRow();
-        Text cq = key.getColumnQualifier();
+        final Text row = key.getRow();
+        final Text cq = key.getColumnQualifier();
 
 
-        String[] cqArray = cq.toString().split(DocIndexIteratorUtil.DOC_ID_INDEX_DELIM);
+        final String[] cqArray = cq.toString().split(DocIndexIteratorUtil.DOC_ID_INDEX_DELIM);
 
         boolean commonVarSet = false;
 
@@ -346,63 +345,63 @@ public class AccumuloDocIdIndexer implements DocIdIndexer {
         }
 
         if (!commonVarSet && sq.isCommonVarURI()) {
-            RyaURI rURI = new RyaURI(row.toString());
+            final RyaURI rURI = new RyaURI(row.toString());
             currentSolutionBs.addBinding(sq.getCommonVarName(),
                     RyaToRdfConversions.convertValue(rURI));
             commonVarSet = true;
         }
 
-        for (String s : sq.getUnCommonVars()) {
+        for (final String s : sq.getUnCommonVars()) {
 
-            byte[] cqBytes = cqArray[sq.getVarPos().get(s)].getBytes();
-            int firstIndex = Bytes.indexOf(cqBytes, DELIM_BYTE);
-            int secondIndex = Bytes.lastIndexOf(cqBytes, DELIM_BYTE);
-            int typeIndex = Bytes.indexOf(cqBytes, TYPE_DELIM_BYTE);
-            byte[] tripleComponent = Arrays.copyOfRange(cqBytes, firstIndex + 1, secondIndex);
-            byte[] cqContent = Arrays.copyOfRange(cqBytes, secondIndex + 1, typeIndex);
-            byte[] objType = Arrays.copyOfRange(cqBytes, typeIndex, cqBytes.length);
+            final byte[] cqBytes = cqArray[sq.getVarPos().get(s)].getBytes(StandardCharsets.UTF_8);
+            final int firstIndex = Bytes.indexOf(cqBytes, DELIM_BYTE);
+            final int secondIndex = Bytes.lastIndexOf(cqBytes, DELIM_BYTE);
+            final int typeIndex = Bytes.indexOf(cqBytes, TYPE_DELIM_BYTE);
+            final String tripleComponent = new String(Arrays.copyOfRange(cqBytes, firstIndex + 1, secondIndex), StandardCharsets.UTF_8);
+            final byte[] cqContent = Arrays.copyOfRange(cqBytes, secondIndex + 1, typeIndex);
+            final byte[] objType = Arrays.copyOfRange(cqBytes, typeIndex, cqBytes.length);
 
-            if (new String(tripleComponent).equals("object")) {
-                byte[] object = Bytes.concat(cqContent, objType);
+            if (tripleComponent.equals("object")) {
+                final byte[] object = Bytes.concat(cqContent, objType);
                 org.openrdf.model.Value v = null;
                 try {
                     v = RyaToRdfConversions.convertValue(RyaContext.getInstance().deserialize(
                             object));
-                } catch (RyaTypeResolverException e) {
+                } catch (final RyaTypeResolverException e) {
                     e.printStackTrace();
                 }
                 currentSolutionBs.addBinding(s, v);
 
-            } else if (new String(tripleComponent).equals("subject")) {
+            } else if (tripleComponent.equals("subject")) {
                 if (!commonVarSet) {
-                    byte[] object = Bytes.concat(row.getBytes(), objType);
+                    final byte[] object = Bytes.concat(row.getBytes(), objType);
                     org.openrdf.model.Value v = null;
                     try {
                         v = RyaToRdfConversions.convertValue(RyaContext.getInstance().deserialize(
                                 object));
-                    } catch (RyaTypeResolverException e) {
+                    } catch (final RyaTypeResolverException e) {
                         e.printStackTrace();
                     }
                     currentSolutionBs.addBinding(sq.getCommonVarName(), v);
                     commonVarSet = true;
                 }
-                RyaURI rURI = new RyaURI(new String(cqContent));
+                final RyaURI rURI = new RyaURI(new String(cqContent, StandardCharsets.UTF_8));
                 currentSolutionBs.addBinding(s, RyaToRdfConversions.convertValue(rURI));
             } else {
                 throw new IllegalArgumentException("Invalid row.");
             }
         }
-        for (String s : unCommonVar) {
+        for (final String s : unCommonVar) {
             currentSolutionBs.addBinding(s, currentBs.getValue(s));
         }
         return currentSolutionBs;
     }
 
-    private BatchScanner runQuery(StarQuery query, Collection<Range> ranges) throws QueryEvaluationException {
+    private BatchScanner runQuery(final StarQuery query, Collection<Range> ranges) throws QueryEvaluationException {
 
         try {
             if (ranges.size() == 0) {
-                String rangeText = query.getCommonVarValue();
+                final String rangeText = query.getCommonVarValue();
                 Range r;
                 if (rangeText != null) {
                     r = new Range(new Text(query.getCommonVarValue()));
@@ -412,15 +411,15 @@ public class AccumuloDocIdIndexer implements DocIdIndexer {
                 ranges = Collections.singleton(r);
             }
 
-            Connector accCon = ConfigUtils.getConnector(conf);
-            IteratorSetting is = new IteratorSetting(30, "fii", DocumentIndexIntersectingIterator.class);
+            final Connector accCon = ConfigUtils.getConnector(conf);
+            final IteratorSetting is = new IteratorSetting(30, "fii", DocumentIndexIntersectingIterator.class);
 
             DocumentIndexIntersectingIterator.setColumnFamilies(is, query.getColumnCond());
 
             if (query.hasContext()) {
                 DocumentIndexIntersectingIterator.setContext(is, query.getContextURI());
             }
-            
+
             final Authorizations auths;
             final String authsStr = conf.get(ConfigUtils.CLOUDBASE_AUTHS);
             if(authsStr == null || authsStr.isEmpty()) {
@@ -428,7 +427,7 @@ public class AccumuloDocIdIndexer implements DocIdIndexer {
             } else {
                 auths = new Authorizations(authsStr);
             }
-            
+
             bs = accCon.createBatchScanner(EntityCentricIndex.getTableName(conf), auths, 15);
             bs.addScanIterator(is);
             bs.setRanges(ranges);

@@ -1,5 +1,3 @@
-package org.apache.rya.mongodb.dao;
-
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -18,9 +16,11 @@ package org.apache.rya.mongodb.dao;
  * specific language governing permissions and limitations
  * under the License.
  */
+package org.apache.rya.mongodb.dao;
 
 import static org.openrdf.model.vocabulary.XMLSchema.ANYURI;
 
+import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Map;
@@ -166,7 +166,7 @@ public class SimpleMongoDBStorageStrategy implements MongoDBStorageStrategy<RyaS
         }
         final String id = statement.getSubject().getData() + " " +
                 statement.getPredicate().getData() + " " +  statement.getObject().getData() + " " + context;
-        byte[] bytes = id.getBytes();
+        byte[] bytes = id.getBytes(StandardCharsets.UTF_8);
         try {
             final MessageDigest digest = MessageDigest.getInstance("SHA-1");
             bytes = digest.digest(bytes);

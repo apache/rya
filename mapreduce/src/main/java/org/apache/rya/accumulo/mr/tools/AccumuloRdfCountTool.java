@@ -22,18 +22,8 @@ package org.apache.rya.accumulo.mr.tools;
 
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.Date;
-
-import org.apache.rya.accumulo.AccumuloRdfConfiguration;
-import org.apache.rya.accumulo.AccumuloRdfConstants;
-import org.apache.rya.accumulo.mr.AbstractAccumuloMRTool;
-import org.apache.rya.accumulo.mr.MRUtils;
-import org.apache.rya.api.RdfCloudTripleStoreConstants;
-import org.apache.rya.api.domain.RyaStatement;
-import org.apache.rya.api.domain.RyaURI;
-import org.apache.rya.api.resolver.RyaTripleContext;
-import org.apache.rya.api.resolver.triple.TripleRow;
-import org.apache.rya.api.resolver.triple.TripleRowResolverException;
 
 import org.apache.accumulo.core.client.mapreduce.AccumuloInputFormat;
 import org.apache.accumulo.core.data.Key;
@@ -49,6 +39,16 @@ import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.hadoop.mapreduce.Reducer;
 import org.apache.hadoop.util.Tool;
 import org.apache.hadoop.util.ToolRunner;
+import org.apache.rya.accumulo.AccumuloRdfConfiguration;
+import org.apache.rya.accumulo.AccumuloRdfConstants;
+import org.apache.rya.accumulo.mr.AbstractAccumuloMRTool;
+import org.apache.rya.accumulo.mr.MRUtils;
+import org.apache.rya.api.RdfCloudTripleStoreConstants;
+import org.apache.rya.api.domain.RyaStatement;
+import org.apache.rya.api.domain.RyaURI;
+import org.apache.rya.api.resolver.RyaTripleContext;
+import org.apache.rya.api.resolver.triple.TripleRow;
+import org.apache.rya.api.resolver.triple.TripleRowResolverException;
 import org.openrdf.model.ValueFactory;
 import org.openrdf.model.impl.ValueFactoryImpl;
 
@@ -64,13 +64,14 @@ import com.google.common.io.ByteStreams;
  * Time: 10:39:40 AM
  * @deprecated
  */
+@Deprecated
 public class AccumuloRdfCountTool extends AbstractAccumuloMRTool implements Tool {
 
-    public static void main(String[] args) {
+    public static void main(final String[] args) {
         try {
 
             ToolRunner.run(new Configuration(), new AccumuloRdfCountTool(), args);
-        } catch (Exception e) {
+        } catch (final Exception e) {
             e.printStackTrace();
         }
     }
@@ -80,13 +81,13 @@ public class AccumuloRdfCountTool extends AbstractAccumuloMRTool implements Tool
      */
 
     @Override
-    public int run(String[] strings) throws Exception {
+    public int run(final String[] strings) throws Exception {
         conf.set(MRUtils.JOB_NAME_PROP, "Gather Evaluation Statistics");
 
         //initialize
         init();
 
-        Job job = new Job(conf);
+        final Job job = new Job(conf);
         job.setJarByClass(AccumuloRdfCountTool.class);
         setupAccumuloInput(job);
 
@@ -102,16 +103,16 @@ public class AccumuloRdfCountTool extends AbstractAccumuloMRTool implements Tool
         job.setCombinerClass(CountPiecesCombiner.class);
         job.setReducerClass(CountPiecesReducer.class);
 
-        String outputTable = MRUtils.getTablePrefix(conf) + RdfCloudTripleStoreConstants.TBL_EVAL_SUFFIX;
+        final String outputTable = MRUtils.getTablePrefix(conf) + RdfCloudTripleStoreConstants.TBL_EVAL_SUFFIX;
         setupAccumuloOutput(job, outputTable);
 
         // Submit the job
-        Date startTime = new Date();
+        final Date startTime = new Date();
         System.out.println("Job started: " + startTime);
-        int exitCode = job.waitForCompletion(true) ? 0 : 1;
+        final int exitCode = job.waitForCompletion(true) ? 0 : 1;
 
         if (exitCode == 0) {
-            Date end_time = new Date();
+            final Date end_time = new Date();
             System.out.println("Job ended: " + end_time);
             System.out.println("The job took "
                     + (end_time.getTime() - startTime.getTime()) / 1000
@@ -131,38 +132,39 @@ public class AccumuloRdfCountTool extends AbstractAccumuloMRTool implements Tool
 
         ValueFactoryImpl vf = new ValueFactoryImpl();
 
-        private Text keyOut = new Text();
-        private LongWritable valOut = new LongWritable(1);
+        private final Text keyOut = new Text();
+        private final LongWritable valOut = new LongWritable(1);
         private RyaTripleContext ryaContext;
 
         @Override
-        protected void setup(Context context) throws IOException, InterruptedException {
+        protected void setup(final Context context) throws IOException, InterruptedException {
             super.setup(context);
-            Configuration conf = context.getConfiguration();
+            final Configuration conf = context.getConfiguration();
             tableLayout = RdfCloudTripleStoreConstants.TABLE_LAYOUT.valueOf(
                     conf.get(MRUtils.TABLE_LAYOUT_PROP, RdfCloudTripleStoreConstants.TABLE_LAYOUT.OSP.toString()));
             ryaContext = RyaTripleContext.getInstance(new AccumuloRdfConfiguration(conf));
         }
 
         @Override
-        protected void map(Key key, Value value, Context context) throws IOException, InterruptedException {
+        protected void map(final Key key, final Value value, final Context context) throws IOException, InterruptedException {
             try {
-                RyaStatement statement = ryaContext.deserializeTriple(tableLayout, new TripleRow(key.getRow().getBytes(), key.getColumnFamily().getBytes(), key.getColumnQualifier().getBytes()));
+                final RyaStatement statement = ryaContext.deserializeTriple(tableLayout, new TripleRow(key.getRow().getBytes(), key.getColumnFamily().getBytes(), key.getColumnQualifier().getBytes()));
                 //count each piece subject, pred, object
 
-                String subj = statement.getSubject().getData();
-                String pred = statement.getPredicate().getData();
+                final String subj = statement.getSubject().getData();
+                final String pred = statement.getPredicate().getData();
 //                byte[] objBytes = tripleFormat.getValueFormat().serialize(statement.getObject());
-                RyaURI scontext = statement.getContext();
-                boolean includesContext = scontext != null;
-                String scontext_str = (includesContext) ? scontext.getData() : null;
+                final RyaURI scontext = statement.getContext();
+                final boolean includesContext = scontext != null;
+                final String scontext_str = (includesContext) ? scontext.getData() : null;
 
                 ByteArrayDataOutput output = ByteStreams.newDataOutput();
                 output.writeUTF(subj);
                 output.writeUTF(RdfCloudTripleStoreConstants.SUBJECT_CF);
                 output.writeBoolean(includesContext);
-                if (includesContext)
+                if (includesContext) {
                     output.writeUTF(scontext_str);
+                }
                 keyOut.set(output.toByteArray());
                 context.write(keyOut, valOut);
 
@@ -170,11 +172,12 @@ public class AccumuloRdfCountTool extends AbstractAccumuloMRTool implements Tool
                 output.writeUTF(pred);
                 output.writeUTF(RdfCloudTripleStoreConstants.PRED_CF);
                 output.writeBoolean(includesContext);
-                if (includesContext)
+                if (includesContext) {
                     output.writeUTF(scontext_str);
+                }
                 keyOut.set(output.toByteArray());
                 context.write(keyOut, valOut);
-            } catch (TripleRowResolverException e) {
+            } catch (final TripleRowResolverException e) {
                 throw new IOException(e);
             }
         }
@@ -182,21 +185,22 @@ public class AccumuloRdfCountTool extends AbstractAccumuloMRTool implements Tool
 
     public static class CountPiecesCombiner extends Reducer<Text, LongWritable, Text, LongWritable> {
 
-        private LongWritable valOut = new LongWritable();
+        private final LongWritable valOut = new LongWritable();
 
         // TODO: can still add up to be large I guess
         // any count lower than this does not need to be saved
         public static final int TOO_LOW = 2;
 
         @Override
-        protected void reduce(Text key, Iterable<LongWritable> values, Context context) throws IOException, InterruptedException {
+        protected void reduce(final Text key, final Iterable<LongWritable> values, final Context context) throws IOException, InterruptedException {
             long count = 0;
-            for (LongWritable lw : values) {
+            for (final LongWritable lw : values) {
                 count += lw.get();
             }
 
-            if (count <= TOO_LOW)
+            if (count <= TOO_LOW) {
                 return;
+            }
 
             valOut.set(count);
             context.write(key, valOut);
@@ -218,38 +222,40 @@ public class AccumuloRdfCountTool extends AbstractAccumuloMRTool implements Tool
         private ColumnVisibility cv = AccumuloRdfConstants.EMPTY_CV;
 
         @Override
-        protected void setup(Context context) throws IOException, InterruptedException {
+        protected void setup(final Context context) throws IOException, InterruptedException {
             super.setup(context);
             tablePrefix = context.getConfiguration().get(MRUtils.TABLE_PREFIX_PROPERTY, RdfCloudTripleStoreConstants.TBL_PRFX_DEF);
             table = new Text(tablePrefix + RdfCloudTripleStoreConstants.TBL_EVAL_SUFFIX);
             final String cv_s = context.getConfiguration().get(MRUtils.AC_CV_PROP);
-            if (cv_s != null)
+            if (cv_s != null) {
                 cv = new ColumnVisibility(cv_s);
+            }
         }
 
         @Override
-        protected void reduce(Text key, Iterable<LongWritable> values, Context context) throws IOException, InterruptedException {
+        protected void reduce(final Text key, final Iterable<LongWritable> values, final Context context) throws IOException, InterruptedException {
             long count = 0;
-            for (LongWritable lw : values) {
+            for (final LongWritable lw : values) {
                 count += lw.get();
             }
 
-            if (count <= TOO_LOW)
+            if (count <= TOO_LOW) {
                 return;
+            }
 
-            ByteArrayDataInput badi = ByteStreams.newDataInput(key.getBytes());
-            String v = badi.readUTF();
+            final ByteArrayDataInput badi = ByteStreams.newDataInput(key.getBytes());
+            final String v = badi.readUTF();
             cat_txt.set(badi.readUTF());
 
             Text columnQualifier = RdfCloudTripleStoreConstants.EMPTY_TEXT;
-            boolean includesContext = badi.readBoolean();
+            final boolean includesContext = badi.readBoolean();
             if (includesContext) {
                 columnQualifier = new Text(badi.readUTF());
             }
 
             row.set(v);
-            Mutation m = new Mutation(row);
-            v_out.set((count + "").getBytes());
+            final Mutation m = new Mutation(row);
+            v_out.set((count + "").getBytes(StandardCharsets.UTF_8));
             m.put(cat_txt, columnQualifier, cv, v_out);
             context.write(table, m);
         }

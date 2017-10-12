@@ -19,6 +19,7 @@
 package org.apache.rya.accumulo.mr.merge.util;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -49,13 +50,6 @@ import org.apache.accumulo.core.security.Authorizations;
 import org.apache.commons.lang.StringUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.log4j.Logger;
-import org.openrdf.model.Literal;
-import org.openrdf.model.ValueFactory;
-
-import com.google.common.base.Joiner;
-import com.google.common.collect.ImmutableSet;
-
-import info.aduna.iteration.CloseableIteration;
 import org.apache.rya.accumulo.AccumuloRdfConfiguration;
 import org.apache.rya.accumulo.AccumuloRyaDAO;
 import org.apache.rya.accumulo.mr.MRUtils;
@@ -66,6 +60,13 @@ import org.apache.rya.api.domain.RyaURI;
 import org.apache.rya.api.persist.RyaDAOException;
 import org.apache.rya.api.resolver.RdfToRyaConversions;
 import org.apache.rya.indexing.accumulo.ConfigUtils;
+import org.openrdf.model.Literal;
+import org.openrdf.model.ValueFactory;
+
+import com.google.common.base.Joiner;
+import com.google.common.collect.ImmutableSet;
+
+import info.aduna.iteration.CloseableIteration;
 
 /**
  * Utility methods for an Accumulo Rya instance.
@@ -515,7 +516,7 @@ public final class AccumuloRyaUtils {
     public static Authorizations addUserAuths(final String user, final SecurityOperations secOps, final Authorizations auths) throws AccumuloException, AccumuloSecurityException {
         final List<String> authList = new ArrayList<>();
         for (final byte[] authBytes : auths.getAuthorizations()) {
-            final String auth = new String(authBytes);
+            final String auth = new String(authBytes, StandardCharsets.UTF_8);
             authList.add(auth);
         }
         return addUserAuths(user, secOps, authList.toArray(new String[0]));
@@ -537,7 +538,7 @@ public final class AccumuloRyaUtils {
             authList.add(currentAuth);
         }
         for (final String newAuth : auths) {
-            authList.add(newAuth.getBytes());
+            authList.add(newAuth.getBytes(StandardCharsets.UTF_8));
         }
         final Authorizations result = new Authorizations(authList);
         return result;

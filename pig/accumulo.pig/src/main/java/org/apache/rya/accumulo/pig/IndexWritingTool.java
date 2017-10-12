@@ -8,9 +8,9 @@ package org.apache.rya.accumulo.pig;
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- * 
+ *
  *   http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -23,8 +23,8 @@ package org.apache.rya.accumulo.pig;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
-import java.util.Set;
 import java.util.UUID;
 import java.util.regex.Pattern;
 
@@ -39,7 +39,6 @@ import org.apache.accumulo.core.client.security.tokens.AuthenticationToken;
 import org.apache.accumulo.core.client.security.tokens.PasswordToken;
 import org.apache.accumulo.core.data.Mutation;
 import org.apache.accumulo.core.data.Value;
-import org.apache.accumulo.core.security.Authorizations;
 import org.apache.commons.io.FileUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.conf.Configured;
@@ -48,7 +47,6 @@ import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Counter;
 import org.apache.hadoop.mapreduce.Counters;
 import org.apache.hadoop.mapreduce.Job;
-import org.apache.hadoop.mapreduce.JobContext;
 import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
 import org.apache.hadoop.util.Tool;
@@ -56,8 +54,6 @@ import org.apache.hadoop.util.ToolRunner;
 import org.apache.log4j.Logger;
 import org.openrdf.query.MalformedQueryException;
 import org.openrdf.query.algebra.Projection;
-import org.openrdf.query.algebra.ProjectionElem;
-import org.openrdf.query.algebra.ProjectionElemList;
 import org.openrdf.query.algebra.TupleExpr;
 import org.openrdf.query.parser.sparql.SPARQLParser;
 
@@ -66,15 +62,15 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 
 public class IndexWritingTool extends Configured implements Tool {
-    
+
     private static final String sparql_key = "SPARQL.VALUE";
     private static String cardCounter = "count";
-    
-    
-    public static void main(String[] args) throws Exception {
-        
+
+
+    public static void main(final String[] args) throws Exception {
+
       ToolRunner.run(new Configuration(), new IndexWritingTool(), args);
-       
+
     }
 
     @Override
@@ -90,12 +86,12 @@ public class IndexWritingTool extends Configured implements Tool {
         final String passStr = args[5];
         final String tablePrefix = args[6];
 
-        String sparql = FileUtils.readFileToString(new File(sparqlFile));
+        final String sparql = FileUtils.readFileToString(new File(sparqlFile));
 
-        Job job = new Job(getConf(), "Write HDFS Index to Accumulo");
+        final Job job = new Job(getConf(), "Write HDFS Index to Accumulo");
         job.setJarByClass(this.getClass());
 
-        Configuration jobConf = job.getConfiguration();
+        final Configuration jobConf = job.getConfiguration();
         jobConf.setBoolean("mapred.map.tasks.speculative.execution", false);
         setVarOrders(sparql, jobConf);
 
@@ -120,29 +116,29 @@ public class IndexWritingTool extends Configured implements Tool {
         setAccumuloOutput(instStr, zooStr, userStr, passStr, job, tableName);
 
         jobConf.set(sparql_key, sparql);
-        
-        int complete = job.waitForCompletion(true) ? 0 : -1;
+
+        final int complete = job.waitForCompletion(true) ? 0 : -1;
 
         if (complete == 0) {
-            
-            String[] varOrders = jobConf.getStrings("varOrders");
-            String orders = Joiner.on("\u0000").join(varOrders);
+
+            final String[] varOrders = jobConf.getStrings("varOrders");
+            final String orders = Joiner.on("\u0000").join(varOrders);
             Instance inst;
-            
+
             if (zooStr.equals("mock")) {
                 inst = new MockInstance(instStr);
             } else {
                 inst = new ZooKeeperInstance(instStr, zooStr);
             }
-           
-            Connector conn = inst.getConnector(userStr, passStr.getBytes());
-            BatchWriter bw = conn.createBatchWriter(tableName, 10, 5000, 1);
 
-            Counters counters = job.getCounters();
-            Counter c1 = counters.findCounter(cardCounter, cardCounter);
-            
-            Mutation m = new Mutation("~SPARQL");
-            Value v = new Value(sparql.getBytes());
+            final Connector conn = inst.getConnector(userStr, passStr.getBytes(StandardCharsets.UTF_8));
+            final BatchWriter bw = conn.createBatchWriter(tableName, 10, 5000, 1);
+
+            final Counters counters = job.getCounters();
+            final Counter c1 = counters.findCounter(cardCounter, cardCounter);
+
+            final Mutation m = new Mutation("~SPARQL");
+            final Value v = new Value(sparql.getBytes(StandardCharsets.UTF_8));
             m.put(new Text("" + c1.getValue()), new Text(orders), v);
             bw.addMutation(m);
 
@@ -155,52 +151,52 @@ public class IndexWritingTool extends Configured implements Tool {
 
 
     }
-    
-    
-    public void setVarOrders(String s, Configuration conf) throws MalformedQueryException {
 
-        SPARQLParser parser = new SPARQLParser();
-        TupleExpr query = parser.parseQuery(s, null).getTupleExpr();
 
-        List<String> projList = Lists.newArrayList(((Projection) query).getProjectionElemList().getTargetNames());
-        String projElems = Joiner.on(";").join(projList);
+    public void setVarOrders(final String s, final Configuration conf) throws MalformedQueryException {
+
+        final SPARQLParser parser = new SPARQLParser();
+        final TupleExpr query = parser.parseQuery(s, null).getTupleExpr();
+
+        final List<String> projList = Lists.newArrayList(((Projection) query).getProjectionElemList().getTargetNames());
+        final String projElems = Joiner.on(";").join(projList);
         conf.set("projElems", projElems);
 
-        Pattern splitPattern1 = Pattern.compile("\n");
-        Pattern splitPattern2 = Pattern.compile(",");
-        String[] lines = splitPattern1.split(s);
+        final Pattern splitPattern1 = Pattern.compile("\n");
+        final Pattern splitPattern2 = Pattern.compile(",");
+        final String[] lines = splitPattern1.split(s);
 
-        List<String> varOrders = Lists.newArrayList();
-        List<String> varOrderPos = Lists.newArrayList();
+        final List<String> varOrders = Lists.newArrayList();
+        final List<String> varOrderPos = Lists.newArrayList();
 
         int orderNum = 0;
-        int projSizeSq = projList.size()*projList.size();
-        
+        final int projSizeSq = projList.size()*projList.size();
+
         for (String t : lines) {
 
 
             if(orderNum > projSizeSq){
                 break;
             }
-            
+
             String[] order = null;
             if (t.startsWith("#prefix")) {
                 t = t.substring(7).trim();
                 order = splitPattern2.split(t, projList.size());
             }
 
-            
+
             String tempVarOrder = "";
             String tempVarOrderPos = "";
 
             if (order != null) {
-                for (String u : order) {
+                for (final String u : order) {
                     if (tempVarOrder.length() == 0) {
                         tempVarOrder = u.trim();
                     } else {
                         tempVarOrder = tempVarOrder + ";" + u.trim();
                     }
-                    int pos = projList.indexOf(u.trim());
+                    final int pos = projList.indexOf(u.trim());
                     if (pos < 0) {
                         throw new IllegalArgumentException("Invalid variable order!");
                     } else {
@@ -215,17 +211,17 @@ public class IndexWritingTool extends Configured implements Tool {
                 varOrders.add(tempVarOrder);
                 varOrderPos.add(tempVarOrderPos);
             }
-            
+
             if(tempVarOrder.length() > 0) {
                 orderNum++;
             }
 
         }
-        
+
         if(orderNum ==  0) {
             varOrders.add(projElems);
             String tempVarPos = "";
-            
+
             for(int i = 0; i < projList.size(); i++) {
                 if(i == 0) {
                     tempVarPos = Integer.toString(0);
@@ -234,29 +230,29 @@ public class IndexWritingTool extends Configured implements Tool {
                 }
             }
             varOrderPos.add(tempVarPos);
-            
+
         }
-        
-        String[] vOrders = varOrders.toArray(new String[varOrders.size()]);
-        String[] vOrderPos = varOrderPos.toArray(new String[varOrderPos.size()]);
-        
-        
-        
+
+        final String[] vOrders = varOrders.toArray(new String[varOrders.size()]);
+        final String[] vOrderPos = varOrderPos.toArray(new String[varOrderPos.size()]);
+
+
+
         conf.setStrings("varOrders", vOrders);
         conf.setStrings("varOrderPos", vOrderPos);
 
     }
-    
 
-    private static void setAccumuloOutput(String instStr, String zooStr, String userStr, String passStr, Job job, String tableName)
+
+    private static void setAccumuloOutput(final String instStr, final String zooStr, final String userStr, final String passStr, final Job job, final String tableName)
             throws AccumuloSecurityException {
 
-        AuthenticationToken token = new PasswordToken(passStr);
+        final AuthenticationToken token = new PasswordToken(passStr);
         AccumuloOutputFormat.setConnectorInfo(job, userStr, token);
         AccumuloOutputFormat.setDefaultTableName(job, tableName);
         AccumuloOutputFormat.setCreateTables(job, true);
         //TODO best way to do this?
-        
+
         if (zooStr.equals("mock")) {
             AccumuloOutputFormat.setMockInstance(job, instStr);
         } else {
@@ -270,41 +266,41 @@ public class IndexWritingTool extends Configured implements Tool {
     }
 
     public static class MyMapper extends Mapper<LongWritable, Text, Text, Mutation> {
-        
+
         private static final Logger logger = Logger.getLogger(MyMapper.class);
         final static Text EMPTY_TEXT = new Text();
         final static Value EMPTY_VALUE = new Value(new byte[] {});
         private String[] varOrderPos = null;
         private String[] projElem = null;
         private Pattern splitPattern = null;
-        private List<List<Integer>> varPositions = Lists.newArrayList();
-        
-        
+        private final List<List<Integer>> varPositions = Lists.newArrayList();
+
+
 
         @Override
-        protected void setup(Mapper<LongWritable, Text, Text, Mutation>.Context context) throws IOException,
+        protected void setup(final Mapper<LongWritable, Text, Text, Mutation>.Context context) throws IOException,
                 InterruptedException {
-           
-            Configuration conf = context.getConfiguration();
-            
+
+            final Configuration conf = context.getConfiguration();
+
             varOrderPos = conf.getStrings("varOrderPos");
             splitPattern = Pattern.compile("\t");
-            
-            for (String s : varOrderPos) {
-                String[] pos = s.split(";");
-                List<Integer> intPos = Lists.newArrayList();
+
+            for (final String s : varOrderPos) {
+                final String[] pos = s.split(";");
+                final List<Integer> intPos = Lists.newArrayList();
                 int i = 0;
-                for(String t: pos) {
+                for(final String t: pos) {
                     i = Integer.parseInt(t);
                     intPos.add(i);
                 }
-                
+
                 varPositions.add(intPos);
-                
+
             }
-            
+
             projElem = conf.get("projElems").split(";");
-            
+
             super.setup(context);
         }
 
@@ -314,17 +310,17 @@ public class IndexWritingTool extends Configured implements Tool {
 
 
         @Override
-        public void map(LongWritable key, Text value, Context output) throws IOException, InterruptedException {
+        public void map(final LongWritable key, final Text value, final Context output) throws IOException, InterruptedException {
 
-            String[] result = splitPattern.split(value.toString());
+            final String[] result = splitPattern.split(value.toString());
 
-           
-            for (List<Integer> list : varPositions) {
+
+            for (final List<Integer> list : varPositions) {
 
                 String values = "";
                 String vars = "";
 
-                for (Integer i : list) {
+                for (final Integer i : list) {
 
                     if (values.length() == 0) {
                         values = result[i];
@@ -335,7 +331,7 @@ public class IndexWritingTool extends Configured implements Tool {
                     }
 
                 }
-                Mutation m = new Mutation(new Text(values));
+                final Mutation m = new Mutation(new Text(values));
                 m.put(new Text(vars), EMPTY_TEXT, EMPTY_VALUE);
                 output.write(EMPTY_TEXT, m);
 

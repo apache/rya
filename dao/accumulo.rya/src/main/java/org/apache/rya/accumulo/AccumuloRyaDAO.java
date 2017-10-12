@@ -1,5 +1,3 @@
-package org.apache.rya.accumulo;
-
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -18,8 +16,7 @@ package org.apache.rya.accumulo;
  * specific language governing permissions and limitations
  * under the License.
  */
-
-
+package org.apache.rya.accumulo;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.apache.rya.accumulo.AccumuloRdfConstants.ALL_AUTHORIZATIONS;
@@ -33,6 +30,7 @@ import static org.apache.rya.api.RdfCloudTripleStoreConstants.RTS_VERSION_PREDIC
 import static org.apache.rya.api.RdfCloudTripleStoreConstants.VERSION_RYA;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
@@ -319,7 +317,7 @@ public class AccumuloRyaDAO implements RyaDAO<AccumuloRdfConfiguration>, RyaName
     public void addNamespace(final String pfx, final String namespace) throws RyaDAOException {
         try {
             final Mutation m = new Mutation(new Text(pfx));
-            m.put(INFO_NAMESPACE_TXT, EMPTY_TEXT, new Value(namespace.getBytes()));
+            m.put(INFO_NAMESPACE_TXT, EMPTY_TEXT, new Value(namespace.getBytes(StandardCharsets.UTF_8)));
             bw_ns.addMutation(m);
             if (flushEachUpdate) { mt_bw.flush(); }
         } catch (final Exception e) {
@@ -338,7 +336,7 @@ public class AccumuloRyaDAO implements RyaDAO<AccumuloRdfConfiguration>, RyaName
                     .iterator();
 
             if (iterator.hasNext()) {
-                return new String(iterator.next().getValue().get());
+                return new String(iterator.next().getValue().get(), StandardCharsets.UTF_8);
             }
         } catch (final Exception e) {
             throw new RyaDAOException(e);

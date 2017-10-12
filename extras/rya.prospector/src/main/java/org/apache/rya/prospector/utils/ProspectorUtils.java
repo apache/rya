@@ -24,6 +24,7 @@ import static org.apache.rya.prospector.utils.ProspectorConstants.PASSWORD;
 import static org.apache.rya.prospector.utils.ProspectorConstants.USERNAME;
 import static org.apache.rya.prospector.utils.ProspectorConstants.ZOOKEEPERS;
 
+import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.util.Collection;
 import java.util.Date;
@@ -56,7 +57,7 @@ public class ProspectorUtils {
     public static final long INDEXED_DATE_SORT_VAL = 999999999999999999L; // 18 char long, same length as date format pattern below
     public static final String INDEXED_DATE_FORMAT = "yyyyMMddHHmmsssSSS";
 
-    public static String getReverseIndexDateTime(Date date) {
+    public static String getReverseIndexDateTime(final Date date) {
         Validate.notNull(date);
         final String formattedDateString = new SimpleDateFormat(INDEXED_DATE_FORMAT).format(date);
         final long diff = INDEXED_DATE_SORT_VAL - Long.valueOf(formattedDateString);
@@ -64,7 +65,7 @@ public class ProspectorUtils {
         return Long.toString(diff);
     }
 
-    public static Map<String, IndexWorkPlan> planMap(Collection<IndexWorkPlan> plans) {
+    public static Map<String, IndexWorkPlan> planMap(final Collection<IndexWorkPlan> plans) {
         final Map<String, IndexWorkPlan> planMap = new HashMap<>();
         for(final IndexWorkPlan plan : plans) {
             planMap.put(plan.getIndexType(), plan);
@@ -72,7 +73,7 @@ public class ProspectorUtils {
         return planMap;
     }
 
-    public static void initMRJob(Job job, String table, String outtable, String[] auths) throws AccumuloSecurityException {
+    public static void initMRJob(final Job job, final String table, final String outtable, final String[] auths) throws AccumuloSecurityException {
         final Configuration conf = job.getConfiguration();
         final String username = conf.get(USERNAME);
         final String password = conf.get(PASSWORD);
@@ -91,7 +92,7 @@ public class ProspectorUtils {
             throw new IllegalArgumentException("Must specify either mock or zookeepers");
         }
 
-        AccumuloInputFormat.setConnectorInfo(job, username, new PasswordToken(password.getBytes()));
+        AccumuloInputFormat.setConnectorInfo(job, username, new PasswordToken(password.getBytes(StandardCharsets.UTF_8)));
         AccumuloInputFormat.setInputTableName(job, table);
         job.setInputFormatClass(AccumuloInputFormat.class);
         AccumuloInputFormat.setScanAuthorizations(job, new Authorizations(auths));
@@ -100,11 +101,11 @@ public class ProspectorUtils {
         job.setOutputFormatClass(AccumuloOutputFormat.class);
         job.setOutputKeyClass(Text.class);
         job.setOutputValueClass(Mutation.class);
-        AccumuloOutputFormat.setConnectorInfo(job, username, new PasswordToken(password.getBytes()));
+        AccumuloOutputFormat.setConnectorInfo(job, username, new PasswordToken(password.getBytes(StandardCharsets.UTF_8)));
         AccumuloOutputFormat.setDefaultTableName(job, outtable);
     }
 
-    public static void addMRPerformance(Configuration conf) {
+    public static void addMRPerformance(final Configuration conf) {
         conf.setBoolean("mapred.map.tasks.speculative.execution", false);
         conf.setBoolean("mapred.reduce.tasks.speculative.execution", false);
         conf.set("io.sort.mb", "256");
@@ -112,7 +113,7 @@ public class ProspectorUtils {
         conf.set("mapred.map.output.compression.codec", GzipCodec.class.getName());
     }
 
-    public static Instance instance(Configuration conf) {
+    public static Instance instance(final Configuration conf) {
         assert conf != null;
 
         final String instance_str = conf.get(INSTANCE);
@@ -127,7 +128,7 @@ public class ProspectorUtils {
         }
     }
 
-    public static Connector connector(Instance instance, Configuration conf) throws AccumuloException, AccumuloSecurityException {
+    public static Connector connector(Instance instance, final Configuration conf) throws AccumuloException, AccumuloSecurityException {
         final String username = conf.get(USERNAME);
         final String password = conf.get(PASSWORD);
         if (instance == null) {
@@ -136,7 +137,7 @@ public class ProspectorUtils {
         return instance.getConnector(username, new PasswordToken(password));
     }
 
-    public static void writeMutations(Connector connector, String tableName, Collection<Mutation> mutations) throws TableNotFoundException, MutationsRejectedException {
+    public static void writeMutations(final Connector connector, final String tableName, final Collection<Mutation> mutations) throws TableNotFoundException, MutationsRejectedException {
         final BatchWriter bw = connector.createBatchWriter(tableName, 10000l, 10000l, 4);
         for(final Mutation mutation : mutations) {
             bw.addMutation(mutation);

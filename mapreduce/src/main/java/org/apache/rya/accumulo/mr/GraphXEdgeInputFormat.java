@@ -20,18 +20,11 @@ package org.apache.rya.accumulo.mr;
  */
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.List;
 import java.util.Map.Entry;
-
-import org.apache.rya.accumulo.AccumuloRdfConfiguration;
-import org.apache.rya.api.RdfCloudTripleStoreConstants.TABLE_LAYOUT;
-import org.apache.rya.api.domain.RyaStatement;
-import org.apache.rya.api.domain.RyaType;
-import org.apache.rya.api.resolver.RyaTripleContext;
-import org.apache.rya.api.resolver.triple.TripleRow;
-import org.apache.rya.api.resolver.triple.TripleRowResolverException;
 
 import org.apache.accumulo.core.client.IteratorSetting;
 import org.apache.accumulo.core.client.Scanner;
@@ -43,6 +36,13 @@ import org.apache.hadoop.mapreduce.InputSplit;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.RecordReader;
 import org.apache.hadoop.mapreduce.TaskAttemptContext;
+import org.apache.rya.accumulo.AccumuloRdfConfiguration;
+import org.apache.rya.api.RdfCloudTripleStoreConstants.TABLE_LAYOUT;
+import org.apache.rya.api.domain.RyaStatement;
+import org.apache.rya.api.domain.RyaType;
+import org.apache.rya.api.resolver.RyaTripleContext;
+import org.apache.rya.api.resolver.triple.TripleRow;
+import org.apache.rya.api.resolver.triple.TripleRowResolverException;
 import org.apache.spark.graphx.Edge;
 
 /**
@@ -63,8 +63,8 @@ public class GraphXEdgeInputFormat extends InputFormatBase<Object, Edge> {
 	 * @return A RecordReader that can be used to fetch RyaStatementWritables.
 	 */
 	@Override
-	public RecordReader<Object, Edge> createRecordReader(InputSplit split,
-			TaskAttemptContext context) {
+	public RecordReader<Object, Edge> createRecordReader(final InputSplit split,
+			final TaskAttemptContext context) {
 		return new RyaStatementRecordReader();
 	}
 
@@ -77,7 +77,7 @@ public class GraphXEdgeInputFormat extends InputFormatBase<Object, Edge> {
 	 *            Statements will be read from the Rya table associated with
 	 *            this layout.
 	 */
-	public static void setTableLayout(Job conf, TABLE_LAYOUT layout) {
+	public static void setTableLayout(final Job conf, final TABLE_LAYOUT layout) {
 		conf.getConfiguration().set(MRUtils.TABLE_LAYOUT_PROP, layout.name());
 	}
 
@@ -89,8 +89,8 @@ public class GraphXEdgeInputFormat extends InputFormatBase<Object, Edge> {
 		private RyaTripleContext ryaContext;
 		private TABLE_LAYOUT tableLayout;
 
-		protected void setupIterators(TaskAttemptContext context,
-				Scanner scanner, String tableName, RangeInputSplit split) {
+		protected void setupIterators(final TaskAttemptContext context,
+				final Scanner scanner, final String tableName, final RangeInputSplit split) {
 		}
 
 		/**
@@ -104,7 +104,7 @@ public class GraphXEdgeInputFormat extends InputFormatBase<Object, Edge> {
 		 *             if thrown by the superclass's initialize method.
 		 */
 		@Override
-		public void initialize(InputSplit inSplit, TaskAttemptContext attempt)
+		public void initialize(final InputSplit inSplit, final TaskAttemptContext attempt)
 				throws IOException {
 			super.initialize(inSplit, attempt);
 			this.tableLayout = MRUtils.getTableLayout(
@@ -127,15 +127,16 @@ public class GraphXEdgeInputFormat extends InputFormatBase<Object, Edge> {
 		 */
 		@Override
 		public boolean nextKeyValue() throws IOException {
-			if (!scannerIterator.hasNext())
-				return false;
-			Entry<Key, Value> entry = scannerIterator.next();
+			if (!scannerIterator.hasNext()) {
+                return false;
+            }
+			final Entry<Key, Value> entry = scannerIterator.next();
 			++numKeysRead;
 			currentKey = entry.getKey();
 			try {
 				currentK = currentKey.getRow();
-				RyaTypeWritable rtw = new RyaTypeWritable();
-				RyaStatement stmt = this.ryaContext.deserializeTriple(
+				final RyaTypeWritable rtw = new RyaTypeWritable();
+				final RyaStatement stmt = this.ryaContext.deserializeTriple(
 						this.tableLayout, new TripleRow(entry.getKey().getRow()
 								.getBytes(), entry.getKey().getColumnFamily()
 								.getBytes(), entry.getKey()
@@ -144,28 +145,28 @@ public class GraphXEdgeInputFormat extends InputFormatBase<Object, Edge> {
 								.getColumnVisibility().getBytes(), entry
 								.getValue().get()));
 
-				long subHash = getVertexId(stmt.getSubject());
-				long objHash = getVertexId(stmt.getObject());
+				final long subHash = getVertexId(stmt.getSubject());
+				final long objHash = getVertexId(stmt.getObject());
 				rtw.setRyaType(stmt.getPredicate());
 
-				Edge<RyaTypeWritable> writable = new Edge<RyaTypeWritable>(
+				final Edge<RyaTypeWritable> writable = new Edge<RyaTypeWritable>(
 						subHash, objHash, rtw);
 				currentV = writable;
-			} catch (TripleRowResolverException e) {
+			} catch (final TripleRowResolverException e) {
 				throw new IOException(e);
 			}
 			return true;
 		}
 
 		protected List<IteratorSetting> contextIterators(
-				TaskAttemptContext context, String tableName) {
+				final TaskAttemptContext context, final String tableName) {
 			return getIterators(context);
 		}
 
 		@Override
-		protected void setupIterators(TaskAttemptContext context,
-				Scanner scanner, String tableName,
-				org.apache.accumulo.core.client.mapreduce.RangeInputSplit split) {
+		protected void setupIterators(final TaskAttemptContext context,
+				final Scanner scanner, final String tableName,
+				final org.apache.accumulo.core.client.mapreduce.RangeInputSplit split) {
 			List<IteratorSetting> iterators = null;
 
 			if (null == split) {
@@ -177,13 +178,14 @@ public class GraphXEdgeInputFormat extends InputFormatBase<Object, Edge> {
 				}
 			}
 
-			for (IteratorSetting iterator : iterators)
-				scanner.addScanIterator(iterator);
+			for (final IteratorSetting iterator : iterators) {
+                scanner.addScanIterator(iterator);
+            }
 		}
 
 	}
 
-	public static long getVertexId(RyaType resource) throws IOException {
+	public static long getVertexId(final RyaType resource) throws IOException {
 		String uri = "";
 		if (resource != null) {
 			uri = resource.getData().toString();
@@ -193,20 +195,20 @@ public class GraphXEdgeInputFormat extends InputFormatBase<Object, Edge> {
 			// the digested string, the collision ratio is less than 0.0001%
 			// using custom hash function should significantly reduce the
 			// collision ratio
-			MessageDigest messageDigest = MessageDigest
+			final MessageDigest messageDigest = MessageDigest
 					.getInstance("SHA-256");
-			messageDigest.update(uri.getBytes());
-			String encryptedString = new String(messageDigest.digest());
+			messageDigest.update(uri.getBytes(StandardCharsets.UTF_8));
+			final String encryptedString = new String(messageDigest.digest(), StandardCharsets.UTF_8);
 			return hash(encryptedString);
 		}
-		catch (NoSuchAlgorithmException e) {
+		catch (final NoSuchAlgorithmException e) {
 			throw new IOException(e);
 		}
 	}
 
-	public static long hash(String string) {
+	public static long hash(final String string) {
 		long h = 1125899906842597L; // prime
-		int len = string.length();
+		final int len = string.length();
 
 		for (int i = 0; i < len; i++) {
 			h = 31 * h + string.charAt(i);

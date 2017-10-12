@@ -1,5 +1,3 @@
-package org.apache.rya.api.domain;
-
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -8,9 +6,9 @@ package org.apache.rya.api.domain;
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- * 
+ *
  *   http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -18,9 +16,7 @@ package org.apache.rya.api.domain;
  * specific language governing permissions and limitations
  * under the License.
  */
-
-
-
+package org.apache.rya.api.domain;
 
 import org.openrdf.model.URI;
 import org.openrdf.model.vocabulary.XMLSchema;
@@ -39,12 +35,12 @@ public class RyaType implements Comparable {
         setDataType(XMLSchema.STRING);
     }
 
-    public RyaType(String data) {
+    public RyaType(final String data) {
         this(XMLSchema.STRING, data);
     }
 
 
-    public RyaType(URI dataType, String data) {
+    public RyaType(final URI dataType, final String data) {
         setDataType(dataType);
         setData(data);
     }
@@ -62,11 +58,11 @@ public class RyaType implements Comparable {
         return data;
     }
 
-    public void setDataType(URI dataType) {
+    public void setDataType(final URI dataType) {
         this.dataType = dataType;
     }
 
-    public void setData(String data) {
+    public void setData(final String data) {
         this.data = data;
     }
 
@@ -86,12 +82,20 @@ public class RyaType implements Comparable {
      * @return true if the other object is also a RyaType and both data and datatype match.
      */
     @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || !(o instanceof RyaType)) return false;
-        RyaType ryaType = (RyaType) o;
-        if (data != null ? !data.equals(ryaType.data) : ryaType.data != null) return false;
-        if (dataType != null ? !dataType.equals(ryaType.dataType) : ryaType.dataType != null) return false;
+    public boolean equals(final Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || !(o instanceof RyaType)) {
+            return false;
+        }
+        final RyaType ryaType = (RyaType) o;
+        if (data != null ? !data.equals(ryaType.data) : ryaType.data != null) {
+            return false;
+        }
+        if (dataType != null ? !dataType.equals(ryaType.dataType) : ryaType.dataType != null) {
+            return false;
+        }
         return true;
     }
 
@@ -114,19 +118,27 @@ public class RyaType implements Comparable {
      *          Otherwise, an integer whose sign yields a consistent ordering.
      */
     @Override
-    public int compareTo(Object o) {
+    public int compareTo(final Object o) {
         int result = -1;
         if (o != null && o instanceof RyaType) {
             result = 0;
-            RyaType other = (RyaType) o;
+            final RyaType other = (RyaType) o;
             if (this.data != other.data) {
-                if (this.data == null) return 1;
-                if (other.data == null) return -1;
+                if (this.data == null) {
+                    return 1;
+                }
+                if (other.data == null) {
+                    return -1;
+                }
                 result = this.data.compareTo(other.data);
             }
             if (result == 0 && this.dataType != other.dataType) {
-                if (this.dataType == null) return 1;
-                if (other.dataType == null) return -1;
+                if (this.dataType == null) {
+                    return 1;
+                }
+                if (other.dataType == null) {
+                    return -1;
+                }
                 result = this.dataType.toString().compareTo(other.dataType.toString());
             }
         }

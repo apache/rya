@@ -135,7 +135,6 @@ under the License.
 
         <jsr305.version>1.3.9-1</jsr305.version>
         <jcip.version>1.0-1</jcip.version>
-        <findbugs.plugin.version>3.0.4</findbugs.plugin.version>
         <kafka.version>0.10.0.1</kafka.version>
         <jopt-simple.version>4.9</jopt-simple.version>
         
@@ -150,6 +149,54 @@ under the License.
             <properties>
                 <skip.rya.it>false</skip.rya.it>
             </properties>
+        </profile>
+
+        <!-- Enable this profile to generate a Code Coverage report with jacoco "mvn ... -P coverage" -->
+        <profile>
+            <id>coverage</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.jacoco</groupId>
+                        <artifactId>jacoco-maven-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>default-prepare-agent</id>
+                                <goals>
+                                    <goal>prepare-agent</goal>
+                                </goals>
+                                <configuration>
+                                    <append>true</append>
+                                </configuration>
+                            </execution>
+                            <execution>
+                                <id>default-report</id>
+                                <phase>prepare-package</phase>
+                                <goals>
+                                    <goal>report</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+            <!--  Add a reporting section for usage of jacoco with the maven-site-plugin -->
+            <reporting>
+                <plugins>
+                    <plugin>
+                        <groupId>org.jacoco</groupId>
+                        <artifactId>jacoco-maven-plugin</artifactId>
+                        <reportSets>
+                            <reportSet>
+                                <reports>
+                                    <!-- select non-aggregate reports -->
+                                    <report>report</report>
+                                </reports>
+                            </reportSet>
+                        </reportSets>
+                    </plugin>
+                </plugins>
+            </reporting>
         </profile>
     </profiles>
     
@@ -671,7 +718,6 @@ under the License.
                 <groupId>junit</groupId>
                 <artifactId>junit</artifactId>
                 <version>${junit.version}</version>
-                <scope>test</scope>
             </dependency>
             <dependency>
                 <groupId>org.apache.mrunit</groupId>
@@ -808,7 +854,6 @@ under the License.
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-surefire-plugin</artifactId>
                     <configuration>
-                        <argLine>-Dfile.encoding=${project.build.sourceEncoding}</argLine>
                         <systemPropertyVariables>
                             <java.io.tmpdir>${project.build.directory}</java.io.tmpdir>
                         </systemPropertyVariables>
@@ -946,6 +991,15 @@ under the License.
                     <artifactId>license-maven-plugin</artifactId>
                     <version>3.0</version>
                 </plugin>
+                <plugin>
+                    <groupId>org.codehaus.mojo</groupId>
+                    <artifactId>findbugs-maven-plugin</artifactId>
+                    <version>3.0.5</version>
+                    <configuration>
+                        <effort>Max</effort>
+                        <threshold>Low</threshold>
+                    </configuration>
+                </plugin>
             </plugins>
         </pluginManagement>
 
@@ -1019,6 +1073,23 @@ under the License.
                     </excludes>
                 </configuration>
             </plugin>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>findbugs-maven-plugin</artifactId>
+                <configuration>
+                    <failOnError>true</failOnError>   <!-- These are serious defects that aren't allowed in Rya.  Fail the build. -->
+                    <visitors>DefaultEncodingDetector</visitors>  <!--  Only specify detectors that should not detect any errors. -->
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>analyze-compile</id>
+                        <phase>compile</phase>
+                        <goals>
+                            <goal>check</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
         </plugins>
     </build>
 
@@ -1027,7 +1098,6 @@ under the License.
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>findbugs-maven-plugin</artifactId>
-                <version>${findbugs.plugin.version}</version>
             </plugin>
         </plugins>
     </reporting>

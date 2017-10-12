@@ -1,7 +1,3 @@
-package org.apache.rya.api;
-
-import org.apache.hadoop.io.Text;
-
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -10,9 +6,9 @@ import org.apache.hadoop.io.Text;
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- * 
+ *
  *   http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -20,9 +16,11 @@ import org.apache.hadoop.io.Text;
  * specific language governing permissions and limitations
  * under the License.
  */
+package org.apache.rya.api;
 
+import java.nio.charset.StandardCharsets;
 
-
+import org.apache.hadoop.io.Text;
 import org.apache.rya.api.domain.RyaSchema;
 import org.apache.rya.api.domain.RyaType;
 import org.apache.rya.api.domain.RyaURI;
@@ -89,8 +87,9 @@ public class RdfCloudTripleStoreConstants {
     public static Text TBL_NAMESPACE_TXT = new Text(TBL_NAMESPACE);
 
     public static void prefixTables(String prefix) {
-        if (prefix == null)
+        if (prefix == null) {
             prefix = TBL_PRFX_DEF;
+        }
         TBL_SPO = prefix + TBL_SPO_SUFFIX;
         TBL_PO = prefix + TBL_PO_SUFFIX;
         TBL_OSP = prefix + TBL_OSP_SUFFIX;
@@ -115,9 +114,9 @@ public class RdfCloudTripleStoreConstants {
     public static final String DELIM = "\u0000";
     public static final String DELIM_STOP = "\u0001";
     public static final String LAST = "\uFFDD";
-    public static final String TYPE_DELIM = new String(TYPE_DELIM_BYTES);
-    public static final byte[] DELIM_BYTES = DELIM.getBytes();
-    public static final byte[] DELIM_STOP_BYTES = DELIM_STOP.getBytes();
+    public static final String TYPE_DELIM = new String(TYPE_DELIM_BYTES, StandardCharsets.UTF_8);
+    public static final byte[] DELIM_BYTES = DELIM.getBytes(StandardCharsets.UTF_8);
+    public static final byte[] DELIM_STOP_BYTES = DELIM_STOP.getBytes(StandardCharsets.UTF_8);
 
 
     /* RECORD TYPES */

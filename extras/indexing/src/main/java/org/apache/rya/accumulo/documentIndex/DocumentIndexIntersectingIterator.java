@@ -20,6 +20,7 @@
 package org.apache.rya.accumulo.documentIndex;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
@@ -33,7 +34,6 @@ import org.apache.accumulo.core.data.Range;
 import org.apache.accumulo.core.data.Value;
 import org.apache.accumulo.core.iterators.IteratorEnvironment;
 import org.apache.accumulo.core.iterators.SortedKeyValueIterator;
-import org.apache.accumulo.core.tabletserver.thrift.TabletClientService;
 import org.apache.accumulo.core.util.TextUtil;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.hadoop.io.Text;
@@ -560,9 +560,9 @@ public class DocumentIndexIntersectingIterator implements SortedKeyValueIterator
   protected static String encodeColumns(TextColumn[] columns) {
       StringBuilder sb = new StringBuilder();
       for (int i = 0; i < columns.length; i++) {
-        sb.append(new String(Base64.encodeBase64(TextUtil.getBytes(columns[i].getColumnFamily()))));
+        sb.append(new String(Base64.encodeBase64(TextUtil.getBytes(columns[i].getColumnFamily())), StandardCharsets.UTF_8));
         sb.append('\n');
-        sb.append(new String(Base64.encodeBase64(TextUtil.getBytes(columns[i].getColumnQualifier()))));
+        sb.append(new String(Base64.encodeBase64(TextUtil.getBytes(columns[i].getColumnQualifier())), StandardCharsets.UTF_8));
         sb.append('\u0001');
       }
       return sb.toString();
@@ -575,8 +575,8 @@ public class DocumentIndexIntersectingIterator implements SortedKeyValueIterator
       TextColumn[] columnTexts = new TextColumn[columnStrings.length];
       for (int i = 0; i < columnStrings.length; i++) {
         String[] columnComponents = columnStrings[i].split("\n");
-        columnTexts[i] = new TextColumn(new Text(Base64.decodeBase64(columnComponents[0].getBytes())), 
-                new Text(Base64.decodeBase64(columnComponents[1].getBytes())));
+        columnTexts[i] = new TextColumn(new Text(Base64.decodeBase64(columnComponents[0].getBytes(StandardCharsets.UTF_8))), 
+                new Text(Base64.decodeBase64(columnComponents[1].getBytes(StandardCharsets.UTF_8))));
       }
       return columnTexts;
     }
@@ -591,7 +591,7 @@ public class DocumentIndexIntersectingIterator implements SortedKeyValueIterator
    */
   protected static String encodeContext(String context) {
  
-    return new String(Base64.encodeBase64(context.getBytes()));
+    return new String(Base64.encodeBase64(context.getBytes(StandardCharsets.UTF_8)), StandardCharsets.UTF_8);
   }
   
  
@@ -605,7 +605,7 @@ public class DocumentIndexIntersectingIterator implements SortedKeyValueIterator
         if (context == null) {
             return null;
         } else {
-            return new String(Base64.decodeBase64(context.getBytes()));
+            return new String(Base64.decodeBase64(context.getBytes(StandardCharsets.UTF_8)), StandardCharsets.UTF_8);
         }
     }
   
@@ -621,7 +621,7 @@ public class DocumentIndexIntersectingIterator implements SortedKeyValueIterator
         else
           bytes[i] = 0;
       }
-      return new String(Base64.encodeBase64(bytes));
+      return new String(Base64.encodeBase64(bytes), StandardCharsets.UTF_8);
     }
     
     /**
@@ -633,7 +633,7 @@ public class DocumentIndexIntersectingIterator implements SortedKeyValueIterator
       if (prefixes == null)
         return null;
       
-      byte[] bytes = Base64.decodeBase64(prefixes.getBytes());
+      byte[] bytes = Base64.decodeBase64(prefixes.getBytes(StandardCharsets.UTF_8));
       boolean[] bFlags = new boolean[bytes.length];
       for (int i = 0; i < bytes.length; i++) {
         if (bytes[i] == 1)

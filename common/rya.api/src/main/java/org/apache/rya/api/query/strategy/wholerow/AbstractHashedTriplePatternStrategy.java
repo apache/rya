@@ -1,4 +1,3 @@
-package org.apache.rya.api.query.strategy.wholerow;
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -7,9 +6,9 @@ package org.apache.rya.api.query.strategy.wholerow;
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- * 
+ *
  *   http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -17,24 +16,29 @@ package org.apache.rya.api.query.strategy.wholerow;
  * specific language governing permissions and limitations
  * under the License.
  */
+package org.apache.rya.api.query.strategy.wholerow;
 
-import com.google.common.base.Preconditions;
+import static org.apache.rya.api.RdfCloudTripleStoreConstants.DELIM;
+import static org.apache.rya.api.RdfCloudTripleStoreConstants.TYPE_DELIM;
+
+import java.nio.charset.StandardCharsets;
+
 import org.apache.rya.api.RdfCloudTripleStoreConstants;
 import org.apache.rya.api.query.strategy.AbstractTriplePatternStrategy;
 import org.apache.rya.api.query.strategy.TriplePatternStrategy;
 import org.apache.rya.api.resolver.triple.TripleRowRegex;
 
-import static org.apache.rya.api.RdfCloudTripleStoreConstants.DELIM;
-import static org.apache.rya.api.RdfCloudTripleStoreConstants.TYPE_DELIM;
+import com.google.common.base.Preconditions;
 
 public abstract class AbstractHashedTriplePatternStrategy extends AbstractTriplePatternStrategy implements TriplePatternStrategy {
     public static final String HASHED_ALL_REGEX = "([0-9a-f]{32})\u0000";
 
+    @Override
     public abstract RdfCloudTripleStoreConstants.TABLE_LAYOUT getLayout();
 
     @Override
-    public TripleRowRegex buildRegex(String subject, String predicate, String object, String context, byte[] objectTypeInfo) {
-        RdfCloudTripleStoreConstants.TABLE_LAYOUT table_layout = getLayout();
+    public TripleRowRegex buildRegex(final String subject, final String predicate, final String object, final String context, final byte[] objectTypeInfo) {
+        final RdfCloudTripleStoreConstants.TABLE_LAYOUT table_layout = getLayout();
         Preconditions.checkNotNull(table_layout);
 
         //O is not hashed so kick out to super
@@ -45,7 +49,7 @@ public abstract class AbstractHashedTriplePatternStrategy extends AbstractTriple
         if (subject == null && predicate == null && object == null && context == null && objectTypeInfo == null) {
             return null; //no regex
         }
-        StringBuilder sb = new StringBuilder();
+        final StringBuilder sb = new StringBuilder();
         String first = subject;
         String second = predicate;
         String third = object;
@@ -76,12 +80,12 @@ public abstract class AbstractHashedTriplePatternStrategy extends AbstractTriple
                 sb.append(TYPE_DELIM);
                 sb.append(ALL_REGEX);
             }else {
-                sb.append(new String(objectTypeInfo));
+                sb.append(new String(objectTypeInfo, StandardCharsets.UTF_8));
             }
         }else {
             sb.append(ALL_REGEX);
             if (objectTypeInfo != null) {
-                sb.append(new String(objectTypeInfo));
+                sb.append(new String(objectTypeInfo, StandardCharsets.UTF_8));
             }
         }
 

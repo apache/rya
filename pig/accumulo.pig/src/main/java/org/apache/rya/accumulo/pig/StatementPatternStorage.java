@@ -8,9 +8,9 @@ package org.apache.rya.accumulo.pig;
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- * 
+ *
  *   http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -22,10 +22,21 @@ package org.apache.rya.accumulo.pig;
 
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.accumulo.core.client.ZooKeeperInstance;
+import org.apache.accumulo.core.client.mock.MockInstance;
+import org.apache.accumulo.core.data.Key;
+import org.apache.accumulo.core.data.Range;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.apache.hadoop.io.Text;
+import org.apache.hadoop.mapreduce.Job;
+import org.apache.pig.data.Tuple;
+import org.apache.pig.data.TupleFactory;
 import org.apache.rya.accumulo.AccumuloRdfConfiguration;
 import org.apache.rya.accumulo.AccumuloRyaDAO;
 import org.apache.rya.api.RdfCloudTripleStoreConstants.TABLE_LAYOUT;
@@ -41,17 +52,6 @@ import org.apache.rya.api.resolver.RyaTripleContext;
 import org.apache.rya.api.resolver.triple.TripleRow;
 import org.apache.rya.rdftriplestore.inference.InferenceEngine;
 import org.apache.rya.rdftriplestore.inference.InferenceEngineException;
-
-import org.apache.accumulo.core.client.ZooKeeperInstance;
-import org.apache.accumulo.core.client.mock.MockInstance;
-import org.apache.accumulo.core.data.Key;
-import org.apache.accumulo.core.data.Range;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.apache.hadoop.io.Text;
-import org.apache.hadoop.mapreduce.Job;
-import org.apache.pig.data.Tuple;
-import org.apache.pig.data.TupleFactory;
 import org.openrdf.model.Resource;
 import org.openrdf.model.URI;
 import org.openrdf.model.Value;
@@ -94,7 +94,7 @@ public class StatementPatternStorage extends AccumuloStorage {
     	else {
     		ryaContext = RyaTripleContext.getInstance(new AccumuloRdfConfiguration());
     	}
-    	
+
     }
 
     private Value getValue(Var subjectVar) {
@@ -115,8 +115,9 @@ public class StatementPatternStorage extends AccumuloStorage {
             addInferredRanges(table, job);
         }
 
-        if (layout == null || ranges.size() == 0)
+        if (layout == null || ranges.size() == 0) {
             throw new IllegalArgumentException("Range and/or layout is null. Check the query");
+        }
         table = RdfCloudTripleStoreUtils.layoutPrefixToTable(layout, table);
         tableName = new Text(table);
     }
@@ -195,8 +196,9 @@ public class StatementPatternStorage extends AccumuloStorage {
         RyaURI predicate_rya = RdfToRyaConversions.convertURI((URI) p_v);
         RyaType object_rya = RdfToRyaConversions.convertValue(o_v);
         TriplePatternStrategy strategy = ryaContext.retrieveStrategy(subject_rya, predicate_rya, object_rya, null);
-        if (strategy == null)
+        if (strategy == null) {
             return new RdfCloudTripleStoreUtils.CustomEntry<TABLE_LAYOUT, Range>(TABLE_LAYOUT.SPO, new Range());
+        }
         Map.Entry<TABLE_LAYOUT, ByteRange> entry = strategy.defineRange(subject_rya, predicate_rya, object_rya, null, null);
         ByteRange byteRange = entry.getValue();
         return new RdfCloudTripleStoreUtils.CustomEntry<org.apache.rya.api.RdfCloudTripleStoreConstants.TABLE_LAYOUT, Range>(
@@ -215,9 +217,9 @@ public class StatementPatternStorage extends AccumuloStorage {
             ryaDAO.setConf(rdfConf);
             try {
                 if (!mock) {
-                    ryaDAO.setConnector(new ZooKeeperInstance(inst, zookeepers).getConnector(user, password.getBytes()));
+                    ryaDAO.setConnector(new ZooKeeperInstance(inst, zookeepers).getConnector(user, password.getBytes(StandardCharsets.UTF_8)));
                 } else {
-                    ryaDAO.setConnector(new MockInstance(inst).getConnector(user, password.getBytes()));
+                    ryaDAO.setConnector(new MockInstance(inst).getConnector(user, password.getBytes(StandardCharsets.UTF_8)));
                 }
             } catch (Exception e) {
                 throw new IOException(e);

@@ -1,5 +1,3 @@
-package org.apache.rya.indexing;
-
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -18,8 +16,9 @@ package org.apache.rya.indexing;
  * specific language governing permissions and limitations
  * under the License.
  */
+package org.apache.rya.indexing;
 
-
+import java.nio.charset.StandardCharsets;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -202,7 +201,7 @@ public class KeyParts implements Iterable<KeyParts> {
 			return "KeyParts [contraintPrefix=" + toHumanString(constraintPrefix) + ", instant=" + toHumanString(instant.getAsKeyBytes()) + ", cf=" + cf + ", cq=" + cq + "]";
 		}
 	    private static void appendSubject(final Statement statement, final Text keyText) {
-	        final Value statementValue = new Value(StatementSerializer.writeSubject(statement).getBytes());
+	        final Value statementValue = new Value(StatementSerializer.writeSubject(statement).getBytes(StandardCharsets.UTF_8));
 	        final byte[] hashOfValue = uniqueFromValueForKey(statementValue);
 	        appendBytes(HASH_PREFIX, keyText); // prefix the hash with a zero byte.
 	        appendBytes(hashOfValue, keyText);

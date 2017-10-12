@@ -25,6 +25,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.StringReader;
+import java.nio.charset.StandardCharsets;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -32,10 +33,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
-import org.apache.rya.accumulo.mr.MRUtils;
-import org.apache.rya.reasoning.Fact;
-import org.apache.rya.reasoning.Schema;
 
 import org.apache.accumulo.minicluster.MiniAccumuloCluster;
 import org.apache.hadoop.conf.Configuration;
@@ -45,13 +42,16 @@ import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.util.Tool;
 import org.apache.hadoop.util.ToolRunner;
+import org.apache.rya.accumulo.mr.MRUtils;
+import org.apache.rya.reasoning.Fact;
+import org.apache.rya.reasoning.Schema;
 import org.openrdf.OpenRDFException;
 import org.openrdf.model.Resource;
 import org.openrdf.model.Statement;
 import org.openrdf.model.URI;
 import org.openrdf.model.Value;
-import org.openrdf.model.vocabulary.RDF;
 import org.openrdf.model.vocabulary.OWL;
+import org.openrdf.model.vocabulary.RDF;
 import org.openrdf.query.BindingSet;
 import org.openrdf.query.QueryLanguage;
 import org.openrdf.query.TupleQuery;
@@ -98,7 +98,7 @@ public class ConformanceTest extends Configured implements Tool {
         Set<Statement> inferred = new HashSet<>();
         Set<Statement> error = new HashSet<>();
         @Override
-        public void handleStatement(Statement st) {
+        public void handleStatement(final Statement st) {
             if (types.contains(TEST_ENTAILMENT)) {
                 expected.add(st);
             }
@@ -107,7 +107,7 @@ public class ConformanceTest extends Configured implements Tool {
             }
         }
         String type() {
-            StringBuilder sb = new StringBuilder();
+            final StringBuilder sb = new StringBuilder();
             if (types.contains(TEST_CONSISTENCY)) {
                 sb.append("{Consistency}");
             }
@@ -127,17 +127,17 @@ public class ConformanceTest extends Configured implements Tool {
     private static class OutputCollector extends RDFHandlerBase {
         Set<Statement> triples = new HashSet<>();
         @Override
-        public void handleStatement(Statement st) {
+        public void handleStatement(final Statement st) {
             triples.add(st);
         }
     }
 
-    public static void main(String[] args) throws Exception {
+    public static void main(final String[] args) throws Exception {
         ToolRunner.run(new ConformanceTest(), args);
     }
 
     @Override
-    public int run(String[] args) throws Exception {
+    public int run(final String[] args) throws Exception {
         // Validate command
         if (args.length < 1 || args.length > 2) {
             System.out.println("Usage:\n");
@@ -155,11 +155,11 @@ public class ConformanceTest extends Configured implements Tool {
             System.exit(1);
         }
 
-        Set<Value> conformanceTestURIs = new HashSet<>();
+        final Set<Value> conformanceTestURIs = new HashSet<>();
         Collection<OwlTest> conformanceTests = new LinkedList<>();
-        List<OwlTest> successes = new LinkedList<>();
-        List<OwlTest> failures = new LinkedList<>();
-        Configuration conf = getConf();
+        final List<OwlTest> successes = new LinkedList<>();
+        final List<OwlTest> failures = new LinkedList<>();
+        final Configuration conf = getConf();
         Repository repo;
         File workingDir;
 
@@ -167,13 +167,13 @@ public class ConformanceTest extends Configured implements Tool {
         if (args.length == 2) {
             workingDir = new File(args[1]);
             RDFFormat inputFormat= RDFFormat.RDFXML;
-            String formatString = conf.get(MRUtils.FORMAT_PROP);
+            final String formatString = conf.get(MRUtils.FORMAT_PROP);
             if (formatString != null) {
                 inputFormat = RDFFormat.valueOf(formatString);
             }
             repo = new SailRepository(new MemoryStore());
             repo.initialize();
-            RepositoryConnection conn = repo.getConnection();
+            final RepositoryConnection conn = repo.getConnection();
             conn.add(new FileInputStream(args[0]), "", inputFormat);
             conn.close();
         }
@@ -185,7 +185,7 @@ public class ConformanceTest extends Configured implements Tool {
         }
 
         // Query for the tests we're interested in
-        RepositoryConnection conn = repo.getConnection();
+        final RepositoryConnection conn = repo.getConnection();
         conformanceTestURIs.addAll(getTestURIs(conn, TEST_INCONSISTENCY));
         conformanceTestURIs.addAll(getTestURIs(conn, TEST_CONSISTENCY));
         conformanceTestURIs.addAll(getTestURIs(conn, TEST_ENTAILMENT));
@@ -195,9 +195,9 @@ public class ConformanceTest extends Configured implements Tool {
         repo.shutDown();
 
         // Set up a MiniAccumulo cluster and set up conf to connect to it
-        String username = "root";
-        String password = "root";
-        MiniAccumuloCluster mini = new MiniAccumuloCluster(workingDir, password);
+        final String username = "root";
+        final String password = "root";
+        final MiniAccumuloCluster mini = new MiniAccumuloCluster(workingDir, password);
         mini.start();
         conf.set(MRUtils.AC_INSTANCE_PROP, mini.getInstanceName());
         conf.set(MRUtils.AC_ZK_PROP, mini.getZooKeepers());
@@ -207,7 +207,7 @@ public class ConformanceTest extends Configured implements Tool {
         conf.set(MRUtils.TABLE_PREFIX_PROPERTY, "temp_");
         // Run the conformance tests
         int result;
-        for (OwlTest test : conformanceTests) {
+        for (final OwlTest test : conformanceTests) {
             System.out.println(test.uri);
             result = runTest(conf, args, test);
             if (result != 0) {
@@ -225,14 +225,14 @@ public class ConformanceTest extends Configured implements Tool {
         mini.stop();
 
         System.out.println("\n" + successes.size() + " successful tests:");
-        for (OwlTest test : successes) {
+        for (final OwlTest test : successes) {
             System.out.println("\t[SUCCESS] " + test.type() + " " + test.name);
         }
         System.out.println("\n" + failures.size() + " failed tests:");
-        for (OwlTest test : failures) {
+        for (final OwlTest test : failures) {
             System.out.println("\t[FAIL] " + test.type() + " " + test.name);
             System.out.println("\t\t(" + test.description + ")");
-            for (Statement triple : test.error) {
+            for (final Statement triple : test.error) {
                 if (test.types.contains(TEST_ENTAILMENT)) {
                     System.out.println("\t\tExpected: " + triple);
                 }
@@ -250,23 +250,23 @@ public class ConformanceTest extends Configured implements Tool {
      * @param   OwlTest   Contains premise/conclusion graphs, will store result
      * @return  Return value of the MapReduce job
      */
-    int runTest(Configuration conf, String[] args, OwlTest test)
+    int runTest(final Configuration conf, final String[] args, final OwlTest test)
             throws Exception {
         conf.setInt(MRReasoningUtils.STEP_PROP, 0);
         conf.setInt(MRReasoningUtils.SCHEMA_UPDATE_PROP, 0);
         conf.setBoolean(MRReasoningUtils.DEBUG_FLAG, true);
         conf.setBoolean(MRReasoningUtils.OUTPUT_FLAG, true);
         // Connect to MiniAccumulo and load the test
-        Repository repo = MRReasoningUtils.getRepository(conf);
+        final Repository repo = MRReasoningUtils.getRepository(conf);
         repo.initialize();
-        RepositoryConnection conn = repo.getConnection();
+        final RepositoryConnection conn = repo.getConnection();
         conn.clear();
         conn.add(new StringReader(test.premise), "", RDFFormat.RDFXML);
         conn.close();
         repo.shutDown();
         // Run the reasoner
-        ReasoningDriver reasoner = new ReasoningDriver();
-        int result = ToolRunner.run(conf, reasoner, args);
+        final ReasoningDriver reasoner = new ReasoningDriver();
+        final int result = ToolRunner.run(conf, reasoner, args);
         test.success = (result == 0);
         // Inconsistency test: successful if determined inconsistent
         if (test.types.contains(TEST_INCONSISTENCY)) {
@@ -281,21 +281,21 @@ public class ConformanceTest extends Configured implements Tool {
             || test.types.contains(TEST_ENTAILMENT))  {
             System.out.println("Reading inferred triples...");
             // Read in the inferred triples from HDFS:
-            Schema schema = MRReasoningUtils.loadSchema(conf);
-            FileSystem fs = FileSystem.get(conf);
-            Path path = MRReasoningUtils.getOutputPath(conf, "final");
-            OutputCollector inferred = new OutputCollector();
-            NTriplesParser parser = new NTriplesParser();
+            final Schema schema = MRReasoningUtils.loadSchema(conf);
+            final FileSystem fs = FileSystem.get(conf);
+            final Path path = MRReasoningUtils.getOutputPath(conf, "final");
+            final OutputCollector inferred = new OutputCollector();
+            final NTriplesParser parser = new NTriplesParser();
             parser.setRDFHandler(inferred);
             if (fs.isDirectory(path)) {
-                for (FileStatus status : fs.listStatus(path)) {
-                    String s = status.getPath().getName();
+                for (final FileStatus status : fs.listStatus(path)) {
+                    final String s = status.getPath().getName();
                     if (s.startsWith(MRReasoningUtils.INCONSISTENT_OUT)
                         || s.startsWith(MRReasoningUtils.DEBUG_OUT)) {
                         continue;
                     }
-                    BufferedReader br = new BufferedReader(
-                        new InputStreamReader(fs.open(status.getPath())));
+                    final BufferedReader br = new BufferedReader(
+                        new InputStreamReader(fs.open(status.getPath()), StandardCharsets.UTF_8));
                     parser.parse(br, "");
                     br.close();
                 }
@@ -306,8 +306,8 @@ public class ConformanceTest extends Configured implements Tool {
             if (test.types.contains(TEST_ENTAILMENT)) {
                 // Check expected inferences against the inferred triples and
                 // the schema reasoner
-                for (Statement st : test.expected) {
-                    Fact fact = new Fact(st);
+                for (final Statement st : test.expected) {
+                    final Fact fact = new Fact(st);
                     if (!test.inferred.contains(st)
                             && !triviallyTrue(fact.getTriple(), schema)
                             && !schema.containsTriple(fact.getTriple())) {
@@ -317,8 +317,8 @@ public class ConformanceTest extends Configured implements Tool {
             }
             // Non-entailment test: failure if non-expected triples inferred
             if (test.types.contains(TEST_NONENTAILMENT)) {
-                for (Statement st : test.unexpected) {
-                    Fact fact = new Fact(st);
+                for (final Statement st : test.unexpected) {
+                    final Fact fact = new Fact(st);
                     if (test.inferred.contains(st)
                         || schema.containsTriple(fact.getTriple())) {
                         test.error.add(st);
@@ -336,18 +336,18 @@ public class ConformanceTest extends Configured implements Tool {
      * Query a connection for conformance tests matching a particular
      * test type.
      */
-    Set<Value> getTestURIs(RepositoryConnection conn, String testType)
+    Set<Value> getTestURIs(final RepositoryConnection conn, final String testType)
             throws IOException, OpenRDFException {
-        Set<Value> testURIs = new HashSet<>();
-        TupleQuery query = conn.prepareTupleQuery(QueryLanguage.SPARQL,
+        final Set<Value> testURIs = new HashSet<>();
+        final TupleQuery query = conn.prepareTupleQuery(QueryLanguage.SPARQL,
             "select ?test where { " +
             "?test <" + TYPE + "> <" + testType + "> .\n" +
             "?test <" + TEST_PROFILE + "> <" + TEST_RL + "> .\n" +
             "?test <" + TEST_SEMANTICS + "> <" + TEST_RDFBASED + "> .\n" +
             "}");
-        TupleQueryResult queryResult = query.evaluate();
+        final TupleQueryResult queryResult = query.evaluate();
         while (queryResult.hasNext()) {
-            BindingSet bindings = queryResult.next();
+            final BindingSet bindings = queryResult.next();
             testURIs.add(bindings.getValue("test"));
         }
         queryResult.close();
@@ -357,10 +357,10 @@ public class ConformanceTest extends Configured implements Tool {
     /**
      * Query a connection for conformance test details.
      */
-    Collection<OwlTest> getTests(RepositoryConnection conn, Set<Value> testURIs)
+    Collection<OwlTest> getTests(final RepositoryConnection conn, final Set<Value> testURIs)
             throws IOException, OpenRDFException {
-        Map<Value, OwlTest> tests = new HashMap<>();
-        TupleQuery query = conn.prepareTupleQuery(QueryLanguage.SPARQL,
+        final Map<Value, OwlTest> tests = new HashMap<>();
+        final TupleQuery query = conn.prepareTupleQuery(QueryLanguage.SPARQL,
             "select * where { " +
             "?test <" + TYPE + "> ?testType .\n" +
             "?test <" + TEST_PREMISE + "> ?graph .\n" +
@@ -371,10 +371,10 @@ public class ConformanceTest extends Configured implements Tool {
             "OPTIONAL {?test <" + TEST_CONCLUSION + "> ?conclusion .}\n" +
             "OPTIONAL {?test <" + TEST_NONCONCLUSION + "> ?nonentailed .}\n" +
             "}");
-        TupleQueryResult queryResult = query.evaluate();
+        final TupleQueryResult queryResult = query.evaluate();
         while (queryResult.hasNext()) {
-            BindingSet bindings = queryResult.next();
-            Value uri = bindings.getValue("test");
+            final BindingSet bindings = queryResult.next();
+            final Value uri = bindings.getValue("test");
             if (testURIs.contains(uri)) {
                 OwlTest test;
                 if (tests.containsKey(uri)) {
@@ -397,9 +397,9 @@ public class ConformanceTest extends Configured implements Tool {
                 test.types.add(bindings.getValue("testType").stringValue());
             }
         }
-        for (OwlTest test : tests.values()) {
+        for (final OwlTest test : tests.values()) {
             if (test.compareTo != null) {
-                RDFXMLParser parser = new RDFXMLParser();
+                final RDFXMLParser parser = new RDFXMLParser();
                 parser.setRDFHandler(test);
                 parser.parse(new StringReader(test.compareTo), "");
             }
@@ -413,10 +413,10 @@ public class ConformanceTest extends Configured implements Tool {
      * tests, such as an implicit "[bnode] type Ontology" triple or a
      * "[class] type Class" triple as long as the class exists.
      */
-    boolean triviallyTrue(Statement triple, Schema schema) {
-        Resource s = triple.getSubject();
-        URI p = triple.getPredicate();
-        Value o = triple.getObject();
+    boolean triviallyTrue(final Statement triple, final Schema schema) {
+        final Resource s = triple.getSubject();
+        final URI p = triple.getPredicate();
+        final Value o = triple.getObject();
         if (p.equals(RDF.TYPE)) {
             if (o.equals(OWL.ONTOLOGY)) {
                 return true;

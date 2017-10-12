@@ -18,6 +18,8 @@
  */
 package org.apache.rya.export.client.merge;
 
+import java.nio.charset.StandardCharsets;
+
 import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.export.api.MergerException;
 import org.apache.rya.export.api.StatementMerger;
@@ -41,8 +43,8 @@ public class VisibilityStatementMerger implements StatementMerger {
             final RyaStatement parentStatement = parent.get();
             if(child.isPresent()) {
                 final RyaStatement childStatement = child.get();
-                final String pVis = new String(parentStatement.getColumnVisibility());
-                final String cVis = new String(childStatement.getColumnVisibility());
+                final String pVis = new String(parentStatement.getColumnVisibility(), StandardCharsets.UTF_8);
+                final String cVis = new String(childStatement.getColumnVisibility(), StandardCharsets.UTF_8);
                 String visibility = "";
                 final Joiner join = Joiner.on(")&(");
                 if(pVis.isEmpty() || cVis.isEmpty()) {
@@ -50,7 +52,7 @@ public class VisibilityStatementMerger implements StatementMerger {
                 } else {
                     visibility = "(" + join.join(pVis, cVis) + ")";
                 }
-                parentStatement.setColumnVisibility(visibility.getBytes());
+                parentStatement.setColumnVisibility(visibility.getBytes(StandardCharsets.UTF_8));
                 return Optional.of(parentStatement);
             }
             return parent;

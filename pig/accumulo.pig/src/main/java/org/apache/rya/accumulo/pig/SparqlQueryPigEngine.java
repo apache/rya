@@ -1,5 +1,31 @@
 package org.apache.rya.accumulo.pig;
 
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+
+import org.apache.accumulo.core.client.Connector;
+import org.apache.accumulo.core.client.ZooKeeperInstance;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.apache.pig.ExecType;
+import org.apache.pig.PigServer;
+import org.apache.rya.accumulo.AccumuloRdfConfiguration;
+import org.apache.rya.accumulo.AccumuloRdfEvalStatsDAO;
+import org.apache.rya.accumulo.AccumuloRyaDAO;
+import org.apache.rya.rdftriplestore.evaluation.QueryJoinOptimizer;
+import org.apache.rya.rdftriplestore.evaluation.RdfCloudTripleStoreEvaluationStatistics;
+import org.apache.rya.rdftriplestore.inference.InferenceEngine;
+import org.apache.rya.rdftriplestore.inference.InverseOfVisitor;
+import org.apache.rya.rdftriplestore.inference.SymmetricPropertyVisitor;
+import org.apache.rya.rdftriplestore.inference.TransitivePropertyVisitor;
+import org.openrdf.query.algebra.QueryRoot;
+import org.openrdf.query.parser.ParsedQuery;
+import org.openrdf.query.parser.QueryParser;
+import org.openrdf.query.parser.sparql.SPARQLParser;
+
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -8,9 +34,9 @@ package org.apache.rya.accumulo.pig;
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- * 
+ *
  *   http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -22,31 +48,6 @@ package org.apache.rya.accumulo.pig;
 
 
 import com.google.common.base.Preconditions;
-import com.google.common.io.ByteStreams;
-import org.apache.rya.accumulo.AccumuloRdfConfiguration;
-import org.apache.rya.accumulo.AccumuloRdfEvalStatsDAO;
-import org.apache.rya.accumulo.AccumuloRyaDAO;
-import org.apache.rya.accumulo.pig.optimizer.SimilarVarJoinOptimizer;
-import org.apache.rya.rdftriplestore.evaluation.QueryJoinOptimizer;
-import org.apache.rya.rdftriplestore.evaluation.RdfCloudTripleStoreEvaluationStatistics;
-import org.apache.rya.rdftriplestore.inference.InferenceEngine;
-import org.apache.rya.rdftriplestore.inference.InverseOfVisitor;
-import org.apache.rya.rdftriplestore.inference.SymmetricPropertyVisitor;
-import org.apache.rya.rdftriplestore.inference.TransitivePropertyVisitor;
-import org.apache.accumulo.core.client.Connector;
-import org.apache.accumulo.core.client.ZooKeeperInstance;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.apache.pig.ExecType;
-import org.apache.pig.PigServer;
-import org.openrdf.query.algebra.QueryRoot;
-import org.openrdf.query.parser.ParsedQuery;
-import org.openrdf.query.parser.QueryParser;
-import org.openrdf.query.parser.sparql.SPARQLParser;
-
-import java.io.ByteArrayInputStream;
-import java.io.FileInputStream;
-import java.io.IOException;
 
 /**
  * Created by IntelliJ IDEA.
@@ -74,7 +75,7 @@ public class SparqlQueryPigEngine {
         return conf;
     }
 
-    public void setConf(AccumuloRdfConfiguration conf) {
+    public void setConf(final AccumuloRdfConfiguration conf) {
         this.conf = conf;
     }
 
@@ -92,14 +93,14 @@ public class SparqlQueryPigEngine {
         }
 
         if (inference || stats) {
-            String instance = sparqlToPigTransformVisitor.getInstance();
-            String zoo = sparqlToPigTransformVisitor.getZk();
-            String user = sparqlToPigTransformVisitor.getUser();
-            String pass = sparqlToPigTransformVisitor.getPassword();
+            final String instance = sparqlToPigTransformVisitor.getInstance();
+            final String zoo = sparqlToPigTransformVisitor.getZk();
+            final String user = sparqlToPigTransformVisitor.getUser();
+            final String pass = sparqlToPigTransformVisitor.getPassword();
 
-            Connector connector = new ZooKeeperInstance(instance, zoo).getConnector(user, pass.getBytes());
+            final Connector connector = new ZooKeeperInstance(instance, zoo).getConnector(user, pass.getBytes(StandardCharsets.UTF_8));
 
-            String tablePrefix = sparqlToPigTransformVisitor.getTablePrefix();
+            final String tablePrefix = sparqlToPigTransformVisitor.getTablePrefix();
             conf.setTablePrefix(tablePrefix);
             if (inference) {
                 logger.info("Using inference");
@@ -147,28 +148,28 @@ public class SparqlQueryPigEngine {
      * @param hdfsSaveLocation to save the execution
      * @throws java.io.IOException
      */
-    public void runQuery(String sparql, String hdfsSaveLocation) throws IOException {
+    public void runQuery(final String sparql, final String hdfsSaveLocation) throws IOException {
         Preconditions.checkNotNull(sparql, "Sparql query cannot be null");
         Preconditions.checkNotNull(hdfsSaveLocation, "Hdfs save location cannot be null");
         logger.info("Running query[" + sparql + "]\n to Location[" + hdfsSaveLocation + "]");
         pigServer.deleteFile(hdfsSaveLocation);
         try {
-            String pigScript = generatePigScript(sparql);
+            final String pigScript = generatePigScript(sparql);
             if (logger.isDebugEnabled()) {
                 logger.debug("Pig script [" + pigScript + "]");
             }
-            pigServer.registerScript(new ByteArrayInputStream(pigScript.getBytes()));
+            pigServer.registerScript(new ByteArrayInputStream(pigScript.getBytes(StandardCharsets.UTF_8)));
             pigServer.store("PROJ", hdfsSaveLocation); //TODO: Make this a constant
-        } catch (Exception e) {
+        } catch (final Exception e) {
             throw new IOException(e);
         }
     }
 
-    public String generatePigScript(String sparql) throws Exception {
+    public String generatePigScript(final String sparql) throws Exception {
         Preconditions.checkNotNull(sparql, "Sparql query cannot be null");
-        QueryParser parser = new SPARQLParser();
-        ParsedQuery parsedQuery = parser.parseQuery(sparql, null);
-        QueryRoot tupleExpr = new QueryRoot(parsedQuery.getTupleExpr());
+        final QueryParser parser = new SPARQLParser();
+        final ParsedQuery parsedQuery = parser.parseQuery(sparql, null);
+        final QueryRoot tupleExpr = new QueryRoot(parsedQuery.getTupleExpr());
 
 //        SimilarVarJoinOptimizer similarVarJoinOptimizer = new SimilarVarJoinOptimizer();
 //        similarVarJoinOptimizer.optimize(tupleExpr, null, null);
@@ -189,31 +190,31 @@ public class SparqlQueryPigEngine {
     }
 
 
-    public static void main(String[] args) {
+    public static void main(final String[] args) {
         try {
             Preconditions.checkArgument(args.length == 7, "Usage: java -cp <jar>:$PIG_LIB <class> sparqlFile hdfsSaveLocation cbinstance cbzk cbuser cbpassword rdfTablePrefix.\n " +
                     "Sample command: java -cp java -cp cloudbase.pig-2.0.0-SNAPSHOT-shaded.jar:/usr/local/hadoop-etc/hadoop-0.20.2/hadoop-0.20.2-core.jar:/srv_old/hdfs-tmp/pig/pig-0.9.2/pig-0.9.2.jar:$HADOOP_HOME/conf org.apache.rya.accumulo.pig.SparqlQueryPigEngine " +
                     "tstSpqrl.query temp/engineTest stratus stratus13:2181 root password l_");
-            String sparql = new String(ByteStreams.toByteArray(new FileInputStream(args[0])));
-            String hdfsSaveLocation = args[1];
-            SparqlToPigTransformVisitor visitor = new SparqlToPigTransformVisitor();
+            final String sparql = FileUtils.readFileToString(new File(args[0]), StandardCharsets.UTF_8);
+            final String hdfsSaveLocation = args[1];
+            final SparqlToPigTransformVisitor visitor = new SparqlToPigTransformVisitor();
             visitor.setTablePrefix(args[6]);
             visitor.setInstance(args[2]);
             visitor.setZk(args[3]);
             visitor.setUser(args[4]);
             visitor.setPassword(args[5]);
 
-            SparqlQueryPigEngine engine = new SparqlQueryPigEngine();
+            final SparqlQueryPigEngine engine = new SparqlQueryPigEngine();
             engine.setSparqlToPigTransformVisitor(visitor);
             engine.setInference(false);
             engine.setStats(false);
-            
+
             engine.init();
 
             engine.runQuery(sparql, hdfsSaveLocation);
 
             engine.destroy();
-        } catch (Exception e) {
+        } catch (final Exception e) {
             e.printStackTrace();
         }
     }
@@ -222,7 +223,7 @@ public class SparqlQueryPigEngine {
         return hadoopDir;
     }
 
-    public void setHadoopDir(String hadoopDir) {
+    public void setHadoopDir(final String hadoopDir) {
         this.hadoopDir = hadoopDir;
     }
 
@@ -230,7 +231,7 @@ public class SparqlQueryPigEngine {
         return pigServer;
     }
 
-    public void setPigServer(PigServer pigServer) {
+    public void setPigServer(final PigServer pigServer) {
         this.pigServer = pigServer;
     }
 
@@ -238,7 +239,7 @@ public class SparqlQueryPigEngine {
         return execType;
     }
 
-    public void setExecType(ExecType execType) {
+    public void setExecType(final ExecType execType) {
         this.execType = execType;
     }
 
@@ -246,7 +247,7 @@ public class SparqlQueryPigEngine {
         return inference;
     }
 
-    public void setInference(boolean inference) {
+    public void setInference(final boolean inference) {
         this.inference = inference;
     }
 
@@ -254,7 +255,7 @@ public class SparqlQueryPigEngine {
         return stats;
     }
 
-    public void setStats(boolean stats) {
+    public void setStats(final boolean stats) {
         this.stats = stats;
     }
 
@@ -262,7 +263,7 @@ public class SparqlQueryPigEngine {
         return sparqlToPigTransformVisitor;
     }
 
-    public void setSparqlToPigTransformVisitor(SparqlToPigTransformVisitor sparqlToPigTransformVisitor) {
+    public void setSparqlToPigTransformVisitor(final SparqlToPigTransformVisitor sparqlToPigTransformVisitor) {
         this.sparqlToPigTransformVisitor = sparqlToPigTransformVisitor;
     }
 }

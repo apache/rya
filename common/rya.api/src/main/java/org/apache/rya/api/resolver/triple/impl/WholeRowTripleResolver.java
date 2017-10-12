@@ -1,5 +1,3 @@
-package org.apache.rya.api.resolver.triple.impl;
-
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -8,9 +6,9 @@ package org.apache.rya.api.resolver.triple.impl;
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- * 
+ *
  *   http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -18,10 +16,19 @@ package org.apache.rya.api.resolver.triple.impl;
  * specific language governing permissions and limitations
  * under the License.
  */
+package org.apache.rya.api.resolver.triple.impl;
 
+import static org.apache.rya.api.RdfCloudTripleStoreConstants.DELIM_BYTE;
+import static org.apache.rya.api.RdfCloudTripleStoreConstants.DELIM_BYTES;
+import static org.apache.rya.api.RdfCloudTripleStoreConstants.EMPTY_BYTES;
+import static org.apache.rya.api.RdfCloudTripleStoreConstants.TYPE_DELIM_BYTE;
 
+import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 
-import com.google.common.primitives.Bytes;
+import org.apache.rya.api.RdfCloudTripleStoreConstants.TABLE_LAYOUT;
 import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.domain.RyaType;
 import org.apache.rya.api.domain.RyaURI;
@@ -31,11 +38,7 @@ import org.apache.rya.api.resolver.triple.TripleRow;
 import org.apache.rya.api.resolver.triple.TripleRowResolver;
 import org.apache.rya.api.resolver.triple.TripleRowResolverException;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
-
-import static org.apache.rya.api.RdfCloudTripleStoreConstants.*;
+import com.google.common.primitives.Bytes;
 
 /**
  * Will store triple in spo, po, osp. Storing everything in the whole row.
@@ -45,23 +48,23 @@ import static org.apache.rya.api.RdfCloudTripleStoreConstants.*;
 public class WholeRowTripleResolver implements TripleRowResolver {
 
     @Override
-    public Map<TABLE_LAYOUT, TripleRow> serialize(RyaStatement stmt) throws TripleRowResolverException {
+    public Map<TABLE_LAYOUT, TripleRow> serialize(final RyaStatement stmt) throws TripleRowResolverException {
         try {
-            RyaURI subject = stmt.getSubject();
-            RyaURI predicate = stmt.getPredicate();
-            RyaType object = stmt.getObject();
-            RyaURI context = stmt.getContext();
-            Long timestamp = stmt.getTimestamp();
-            byte[] columnVisibility = stmt.getColumnVisibility();
-            String qualifer = stmt.getQualifer();
-            byte[] qualBytes = qualifer == null ? EMPTY_BYTES : qualifer.getBytes();
-            byte[] value = stmt.getValue();
+            final RyaURI subject = stmt.getSubject();
+            final RyaURI predicate = stmt.getPredicate();
+            final RyaType object = stmt.getObject();
+            final RyaURI context = stmt.getContext();
+            final Long timestamp = stmt.getTimestamp();
+            final byte[] columnVisibility = stmt.getColumnVisibility();
+            final String qualifer = stmt.getQualifer();
+            final byte[] qualBytes = qualifer == null ? EMPTY_BYTES : qualifer.getBytes(StandardCharsets.UTF_8);
+            final byte[] value = stmt.getValue();
             assert subject != null && predicate != null && object != null;
-            byte[] cf = (context == null) ? EMPTY_BYTES : context.getData().getBytes();
-            Map<TABLE_LAYOUT, TripleRow> tripleRowMap = new HashMap<TABLE_LAYOUT, TripleRow>();
-            byte[] subjBytes = subject.getData().getBytes();
-            byte[] predBytes = predicate.getData().getBytes();
-            byte[][] objBytes = RyaContext.getInstance().serializeType(object);
+            final byte[] cf = (context == null) ? EMPTY_BYTES : context.getData().getBytes(StandardCharsets.UTF_8);
+            final Map<TABLE_LAYOUT, TripleRow> tripleRowMap = new HashMap<TABLE_LAYOUT, TripleRow>();
+            final byte[] subjBytes = subject.getData().getBytes(StandardCharsets.UTF_8);
+            final byte[] predBytes = predicate.getData().getBytes(StandardCharsets.UTF_8);
+            final byte[][] objBytes = RyaContext.getInstance().serializeType(object);
             tripleRowMap.put(TABLE_LAYOUT.SPO,
                     new TripleRow(Bytes.concat(subjBytes, DELIM_BYTES,
                             predBytes, DELIM_BYTES,
@@ -78,59 +81,59 @@ public class WholeRowTripleResolver implements TripleRowResolver {
                             predBytes, objBytes[1]), cf, qualBytes,
                             timestamp, columnVisibility, value));
             return tripleRowMap;
-        } catch (RyaTypeResolverException e) {
+        } catch (final RyaTypeResolverException e) {
             throw new TripleRowResolverException(e);
         }
     }
 
     @Override
-    public RyaStatement deserialize(TABLE_LAYOUT table_layout, TripleRow tripleRow) throws TripleRowResolverException {
+    public RyaStatement deserialize(final TABLE_LAYOUT table_layout, final TripleRow tripleRow) throws TripleRowResolverException {
         try {
             assert tripleRow != null && table_layout != null;
-            byte[] row = tripleRow.getRow();
-            int firstIndex = Bytes.indexOf(row, DELIM_BYTE);
-            int secondIndex = Bytes.lastIndexOf(row, DELIM_BYTE);
-            int typeIndex = Bytes.indexOf(row, TYPE_DELIM_BYTE);
-            byte[] first = Arrays.copyOf(row, firstIndex);
-            byte[] second = Arrays.copyOfRange(row, firstIndex + 1, secondIndex);
-            byte[] third = Arrays.copyOfRange(row, secondIndex + 1, typeIndex);
-            byte[] type = Arrays.copyOfRange(row, typeIndex, row.length);
-            byte[] columnFamily = tripleRow.getColumnFamily();
-            boolean contextExists = columnFamily != null && columnFamily.length > 0;
-            RyaURI context = (contextExists) ? (new RyaURI(new String(columnFamily))) : null;
-            byte[] columnQualifier = tripleRow.getColumnQualifier();
-            String qualifier = columnQualifier != null && columnQualifier.length > 0 ? new String(columnQualifier) : null;
-            Long timestamp = tripleRow.getTimestamp();
-            byte[] columnVisibility = tripleRow.getColumnVisibility();
-            byte[] value = tripleRow.getValue();
+            final byte[] row = tripleRow.getRow();
+            final int firstIndex = Bytes.indexOf(row, DELIM_BYTE);
+            final int secondIndex = Bytes.lastIndexOf(row, DELIM_BYTE);
+            final int typeIndex = Bytes.indexOf(row, TYPE_DELIM_BYTE);
+            final byte[] first = Arrays.copyOf(row, firstIndex);
+            final byte[] second = Arrays.copyOfRange(row, firstIndex + 1, secondIndex);
+            final byte[] third = Arrays.copyOfRange(row, secondIndex + 1, typeIndex);
+            final byte[] type = Arrays.copyOfRange(row, typeIndex, row.length);
+            final byte[] columnFamily = tripleRow.getColumnFamily();
+            final boolean contextExists = columnFamily != null && columnFamily.length > 0;
+            final RyaURI context = (contextExists) ? (new RyaURI(new String(columnFamily, StandardCharsets.UTF_8))) : null;
+            final byte[] columnQualifier = tripleRow.getColumnQualifier();
+            final String qualifier = columnQualifier != null && columnQualifier.length > 0 ? new String(columnQualifier, StandardCharsets.UTF_8) : null;
+            final Long timestamp = tripleRow.getTimestamp();
+            final byte[] columnVisibility = tripleRow.getColumnVisibility();
+            final byte[] value = tripleRow.getValue();
 
             switch (table_layout) {
                 case SPO: {
-                    byte[] obj = Bytes.concat(third, type);
+                    final byte[] obj = Bytes.concat(third, type);
                     return new RyaStatement(
-                            new RyaURI(new String(first)),
-                            new RyaURI(new String(second)),
+                            new RyaURI(new String(first, StandardCharsets.UTF_8)),
+                            new RyaURI(new String(second, StandardCharsets.UTF_8)),
                             RyaContext.getInstance().deserialize(obj),
                             context, qualifier, columnVisibility, value, timestamp);
                 }
                 case PO: {
-                    byte[] obj = Bytes.concat(second, type);
+                    final byte[] obj = Bytes.concat(second, type);
                     return new RyaStatement(
-                            new RyaURI(new String(third)),
-                            new RyaURI(new String(first)),
+                            new RyaURI(new String(third, StandardCharsets.UTF_8)),
+                            new RyaURI(new String(first, StandardCharsets.UTF_8)),
                             RyaContext.getInstance().deserialize(obj),
                             context, qualifier, columnVisibility, value, timestamp);
                 }
                 case OSP: {
-                    byte[] obj = Bytes.concat(first, type);
+                    final byte[] obj = Bytes.concat(first, type);
                     return new RyaStatement(
-                            new RyaURI(new String(second)),
-                            new RyaURI(new String(third)),
+                            new RyaURI(new String(second, StandardCharsets.UTF_8)),
+                            new RyaURI(new String(third, StandardCharsets.UTF_8)),
                             RyaContext.getInstance().deserialize(obj),
                             context, qualifier, columnVisibility, value, timestamp);
                 }
             }
-        } catch (RyaTypeResolverException e) {
+        } catch (final RyaTypeResolverException e) {
             throw new TripleRowResolverException(e);
         }
         throw new TripleRowResolverException("TripleRow[" + tripleRow + "] with Table layout[" + table_layout + "] is not deserializable");

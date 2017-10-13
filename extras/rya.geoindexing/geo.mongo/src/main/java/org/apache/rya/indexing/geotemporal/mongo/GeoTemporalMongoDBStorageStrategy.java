@@ -62,8 +62,6 @@ import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.io.ParseException;
 import com.vividsolutions.jts.io.WKTReader;
 
-import jline.internal.Log;
-
 /**
  * Storage adapter for serializing Geo Temporal statements into mongo objects.
  * This includes adapting the {@link IndexingExpr}s for the GeoTemporal indexer.
@@ -152,7 +150,7 @@ public class GeoTemporalMongoDBStorageStrategy extends IndexingMongoDBStorageStr
                 final Geometry geo = reader.read(geoStr);
                 objs.add(getGeoObject(geo, policy));
             } catch (final GeoTemporalIndexException | UnsupportedOperationException | ParseException e) {
-                Log.error("Unable to parse '" + geoStr + "'.", e);
+                LOG.error("Unable to parse '" + geoStr + "'.", e);
             }
         });
         return objs.toArray(new DBObject[]{});
@@ -170,7 +168,7 @@ public class GeoTemporalMongoDBStorageStrategy extends IndexingMongoDBStorageStr
                    policy == TemporalPolicy.INSTANT_BEFORE_INSTANT ||
                    policy == TemporalPolicy.INSTANT_EQUALS_INSTANT) {
                      if(interval == null) {
-                         Log.error("Cannot perform temporal interval based queries on an instant.");
+                         LOG.error("Cannot perform temporal interval based queries on an instant.");
                      }
                  }
                 objs.add(getTemporalObject(interval, policy));
@@ -179,7 +177,7 @@ public class GeoTemporalMongoDBStorageStrategy extends IndexingMongoDBStorageStr
                 if(policy != TemporalPolicy.INSTANT_AFTER_INSTANT  &&
                    policy != TemporalPolicy.INSTANT_BEFORE_INSTANT &&
                    policy != TemporalPolicy.INSTANT_EQUALS_INSTANT) {
-                    Log.error("Cannot perform temporal instant based queries on an interval.");
+                    LOG.error("Cannot perform temporal instant based queries on an interval.");
                 }
                 objs.add(getTemporalObject(instant, policy));
             }

@@ -72,6 +72,7 @@ public class FreeTextTupleSet extends ExternalTupleSet {
      * Note that we need a deep copy for everything that (during optimizations)
      * can be altered via {@link #visitChildren(QueryModelVisitor)}
      */
+    @Override
     public FreeTextTupleSet clone() {
         return new FreeTextTupleSet(filterInfo, freeTextIndexer);
     }

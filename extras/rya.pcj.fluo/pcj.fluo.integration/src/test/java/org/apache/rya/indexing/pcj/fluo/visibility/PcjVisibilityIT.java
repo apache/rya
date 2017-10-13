@@ -67,8 +67,8 @@ import org.openrdf.query.impl.MapBindingSet;
 import org.openrdf.repository.RepositoryConnection;
 import org.openrdf.sail.Sail;
 
-import com.beust.jcommander.internal.Sets;
 import com.google.common.base.Optional;
+import com.google.common.collect.Sets;
 
 /**
  * Integration tests that ensure the Fluo Application properly exports PCJ

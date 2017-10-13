@@ -32,7 +32,7 @@ import org.apache.fluo.api.client.Transaction;
 import org.apache.rya.pcj.fluo.test.base.RyaExportITBase;
 import org.junit.Test;
 
-import com.beust.jcommander.internal.Lists;
+import com.google.common.collect.Lists;
 
 /**
  * Integration tests the methods of {@link ListQueryIds}.

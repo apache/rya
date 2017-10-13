@@ -38,7 +38,7 @@ import org.openrdf.model.impl.ValueFactoryImpl;
 import org.openrdf.sail.Sail;
 import org.openrdf.sail.SailConnection;
 
-import com.beust.jcommander.internal.Lists;
+import com.google.common.collect.Lists;
 
 /**
  * Demonstrates how you can use the {@link Prospector} to count values that appear within an instance of Rya and

@@ -8,9 +8,9 @@ package org.apache.rya.indexing.IndexPlanValidator;
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- * 
+ *
  *   http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -27,7 +27,6 @@ import java.util.NoSuchElementException;
 import java.util.Set;
 
 import org.apache.rya.indexing.external.tupleSet.ExternalTupleSet;
-
 import org.openrdf.query.algebra.BindingSetAssignment;
 import org.openrdf.query.algebra.Filter;
 import org.openrdf.query.algebra.Join;
@@ -37,19 +36,19 @@ import org.openrdf.query.algebra.StatementPattern;
 import org.openrdf.query.algebra.TupleExpr;
 import org.openrdf.query.algebra.helpers.QueryModelVisitorBase;
 
-import com.beust.jcommander.internal.Lists;
 import com.google.common.collect.Collections2;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
 public class TupleExecutionPlanGenerator implements IndexTupleGenerator {
 
-    
-    
+
+
     @Override
-    public Iterator<TupleExpr> getPlans(Iterator<TupleExpr> indexPlans) {
+    public Iterator<TupleExpr> getPlans(final Iterator<TupleExpr> indexPlans) {
 
         final Iterator<TupleExpr> iter = indexPlans;
-        
+
         return new Iterator<TupleExpr>() {
 
             private TupleExpr next = null;
@@ -104,31 +103,31 @@ public class TupleExecutionPlanGenerator implements IndexTupleGenerator {
                 }
 
             }
-            
+
             @Override
             public void remove() {
                 throw new UnsupportedOperationException("Cannot delete from iterator!");
             }
 
         };
-              
+
     }
 
-    private List<TupleExpr> getPlans(TupleExpr te) {
+    private List<TupleExpr> getPlans(final TupleExpr te) {
 
-        
-        NodeCollector nc = new NodeCollector();
+
+        final NodeCollector nc = new NodeCollector();
         te.visit(nc);
 
-        Set<QueryModelNode> nodeSet = nc.getNodeSet();
-        List<Filter> filterList = nc.getFilterSet();
-        Projection projection = nc.getProjection().clone();
-  
-        List<TupleExpr> queryPlans = Lists.newArrayList();
+        final Set<QueryModelNode> nodeSet = nc.getNodeSet();
+        final List<Filter> filterList = nc.getFilterSet();
+        final Projection projection = nc.getProjection().clone();
 
-        Collection<List<QueryModelNode>> plans = Collections2.permutations(nodeSet);
+        final List<TupleExpr> queryPlans = Lists.newArrayList();
 
-        for (List<QueryModelNode> p : plans) {
+        final Collection<List<QueryModelNode>> plans = Collections2.permutations(nodeSet);
+
+        for (final List<QueryModelNode> p : plans) {
             if (p.size() == 0) {
                 throw new IllegalArgumentException("Tuple must contain at least one node!");
             } else if (p.size() == 1) {
@@ -141,9 +140,9 @@ public class TupleExecutionPlanGenerator implements IndexTupleGenerator {
         return queryPlans;
     }
 
-    private TupleExpr buildTuple(List<QueryModelNode> nodes, List<Filter> filters, Projection projection) {
+    private TupleExpr buildTuple(final List<QueryModelNode> nodes, final List<Filter> filters, final Projection projection) {
 
-        Projection proj = (Projection)projection.clone();
+        final Projection proj = projection.clone();
         Join join = null;
 
         join = new Join((TupleExpr) nodes.get(0).clone(), (TupleExpr) nodes.get(1).clone());
@@ -157,8 +156,8 @@ public class TupleExecutionPlanGenerator implements IndexTupleGenerator {
             return proj;
         } else {
             TupleExpr queryPlan = join;
-            for (Filter f : filters) {
-                Filter filt = (Filter) f.clone();
+            for (final Filter f : filters) {
+                final Filter filt = f.clone();
                 filt.setArg(queryPlan);
                 queryPlan = filt;
             }
@@ -170,8 +169,8 @@ public class TupleExecutionPlanGenerator implements IndexTupleGenerator {
 
     public static class NodeCollector extends QueryModelVisitorBase<RuntimeException> {
 
-        private Set<QueryModelNode> nodeSet = Sets.newHashSet();
-        private List<Filter> filterSet = Lists.newArrayList();
+        private final Set<QueryModelNode> nodeSet = Sets.newHashSet();
+        private final List<Filter> filterSet = Lists.newArrayList();
         private Projection projection;
 
         public Projection getProjection() {
@@ -187,13 +186,13 @@ public class TupleExecutionPlanGenerator implements IndexTupleGenerator {
         }
 
         @Override
-        public void meet(Projection node) {
+        public void meet(final Projection node) {
             projection = node;
             node.getArg().visit(this);
         }
 
         @Override
-        public void meetNode(QueryModelNode node) throws RuntimeException {
+        public void meetNode(final QueryModelNode node) throws RuntimeException {
             if (node instanceof ExternalTupleSet || node instanceof BindingSetAssignment
                     || node instanceof StatementPattern) {
                 nodeSet.add(node);
@@ -202,14 +201,11 @@ public class TupleExecutionPlanGenerator implements IndexTupleGenerator {
         }
 
         @Override
-        public void meet(Filter node) {
+        public void meet(final Filter node) {
             filterSet.add(node);
             node.getArg().visit(this);
         }
 
     }
-    
-    
-    
 
 }

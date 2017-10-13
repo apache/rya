@@ -52,6 +52,8 @@ import org.openrdf.query.algebra.Var;
 import org.openrdf.query.algebra.evaluation.impl.ExternalSet;
 import org.openrdf.query.algebra.evaluation.iterator.CollectionIteration;
 import org.openrdf.query.impl.MapBindingSet;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableMap;
@@ -60,7 +62,6 @@ import com.google.common.collect.ImmutableMap.Builder;
 import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
 import edu.umd.cs.findbugs.annotations.NonNull;
 import info.aduna.iteration.CloseableIteration;
-import jline.internal.Log;
 
 /**
  * Indexing Node for {@link Entity} expressions to be inserted into execution plan
@@ -68,6 +69,8 @@ import jline.internal.Log;
  */
 @DefaultAnnotation(NonNull.class)
 public class EntityQueryNode extends ExternalSet implements ExternalBatchingIterator {
+
+    private static final Logger LOG = LoggerFactory.getLogger(EntityQueryNode.class);
 
     /**
      * The RyaURI that when used as the Predicate of a Statement Pattern indicates the Type of the Entities.
@@ -258,7 +261,7 @@ public class EntityQueryNode extends ExternalSet implements ExternalBatchingIter
             try {
                 list.addAll(findBindings(bindingSet));
             } catch (final Exception e) {
-                Log.error("Unable to evaluate bindingset.", e);
+                LOG.error("Unable to evaluate bindingset.", e);
             }
         });
 

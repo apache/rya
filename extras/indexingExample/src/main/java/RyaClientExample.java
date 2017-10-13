@@ -62,12 +62,12 @@ import org.openrdf.queryrender.sparql.SPARQLQueryRenderer;
 import org.openrdf.sail.Sail;
 import org.openrdf.sail.SailConnection;
 
-import com.beust.jcommander.internal.Lists;
+import com.google.common.collect.Lists;
 import com.google.common.io.Files;
 
 import info.aduna.iteration.CloseableIteration;
 
-/**  
+/**
  * Demonstrates how a {@link RyaClient} may be used to interact with an instance
  * of Accumulo to install and manage a Rya instance.
  */
@@ -130,17 +130,17 @@ public class RyaClientExample {
                      "}";
 
             // Load some statements into the Rya instance.
-            
-            AccumuloIndexingConfiguration conf = AccumuloIndexingConfiguration.builder()
-        			.setAuths("U")
-        			.setAccumuloUser(accumuloUsername)
-        			.setAccumuloPassword(accumuloPassword)
-        			.setAccumuloInstance(cluster.getInstanceName())
-        			.setAccumuloZooKeepers(cluster.getZooKeepers())
-        			.setRyaPrefix(ryaInstanceName)
-        			.setPcjUpdaterFluoAppName(fluoAppName)
-        			.build();
-            
+
+            final AccumuloIndexingConfiguration conf = AccumuloIndexingConfiguration.builder()
+                    .setAuths("U")
+                    .setAccumuloUser(accumuloUsername)
+                    .setAccumuloPassword(accumuloPassword)
+                    .setAccumuloInstance(cluster.getInstanceName())
+                    .setAccumuloZooKeepers(cluster.getZooKeepers())
+                    .setRyaPrefix(ryaInstanceName)
+                    .setPcjUpdaterFluoAppName(fluoAppName)
+                    .build();
+
             ryaSail = RyaSailFactory.getInstance(conf);
 
             final ValueFactory vf = ryaSail.getValueFactory();

@@ -893,6 +893,14 @@ under the License.
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-checkstyle-plugin</artifactId>
+                    <version>2.17</version>
+                    <dependencies>
+                        <dependency>
+                            <groupId>com.puppycrawl.tools</groupId>
+                            <artifactId>checkstyle</artifactId>
+                            <version>8.3</version>
+                        </dependency>
+                    </dependencies>
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
@@ -1101,6 +1109,76 @@ under the License.
                     </execution>
                 </executions>
             </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-checkstyle-plugin</artifactId>
+                <configuration>
+                    <checkstyleRules>
+                        <module name="Checker">
+                            <property name="charset" value="UTF-8" />
+                            <property name="severity" value="warning" />
+                            <!--
+                            <module name="FileTabCharacter">
+                                <property name="eachLine" value="true" />
+                            </module>
+                            -->
+                            
+                            <module name="TreeWalker">
+                                <module name="OneTopLevelClass" />
+                                <!--
+                                <module name="RegexpSinglelineJava">
+                                    <property name="format" value="\s+$" />
+                                    <property name="message"
+                                        value="Line has trailing whitespace." />
+                                </module>
+                                -->
+                                <!-- 
+                                <module name="RegexpSinglelineJava">
+                                    <property name="format"
+                                        value="[@]see\s+[{][@]link" />
+                                    <property name="message"
+                                        value="Javadoc @see does not need @link: pick one or the other." />
+                                </module>
+                                -->
+                                <module name="RegexpSinglelineJava">
+                                    <property name="format"
+                                        value="jline[.]internal[.]" />
+                                    <property name="message"
+                                        value="Please use Guava imports instead of jline.internal.*" />
+                                </module>
+                                <module name="RegexpSinglelineJava">
+                                    <property name="format"
+                                        value="com[.]beust[.]jcommander[.]internal[.]" />
+                                    <property name="message"
+                                        value="Please use Guava imports instead of com.beust.jcommander.internal.*" />
+                                </module>
+                                <!-- 
+                                <module name="RegexpSinglelineJava">
+                                    <property name="format"
+                                        value="junit[.]framework[.]" />
+                                    <property name="message"
+                                        value="Please use JUnit 4 APIs instead of Junit 3" />
+                                </module>
+                                -->
+                                <!-- <module name="SingleLineJavadoc" /> -->
+                                <module name="MissingOverrideCheck" />
+                                <module name="AnnotationLocation" />
+                            </module>
+                        </module>
+                    </checkstyleRules>
+                    <violationSeverity>warning</violationSeverity>
+                    <includeTestSourceDirectory>true</includeTestSourceDirectory>
+                    <!-- <excludes>**/thrift/*.java,**/proto/*.java,**/HelpMojo.java</excludes> -->
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>check-style</id>
+                        <goals>
+                            <goal>check</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
         </plugins>
     </build>
 
@@ -1117,14 +1195,32 @@ under the License.
         <repository>
             <id>LocationTech - SNAPSHOT</id>
             <url>https://repo.locationtech.org/content/repositories/snapshots/</url>
+            <releases>
+                <enabled>false</enabled>
+            </releases>
+            <snapshots>
+                <enabled>false</enabled>  <!--  disable snapshot repositories while there are no snapshot dependencies -->
+            </snapshots>
         </repository>
         <repository>
             <id>LocationTech - RELEASE</id>
             <url>https://repo.locationtech.org/content/repositories/releases/</url>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
         </repository>
         <repository>
             <id>LocationTech - Third Party</id>
             <url>https://repo.locationtech.org/content/repositories/thirdparty/</url>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
         </repository>
         <repository>
             <id>geowave-maven-releases</id>
@@ -1145,18 +1241,30 @@ under the License.
                 <enabled>false</enabled>
             </releases>
             <snapshots>
-                <enabled>true</enabled>
+                <enabled>false</enabled>  <!--  disable snapshot repositories while there are no snapshot dependencies -->
             </snapshots>
         </repository>
         <repository>
             <id>osgeo</id>
             <name>Open Source Geospatial Foundation Repository</name>
             <url>http://download.osgeo.org/webdav/geotools/</url>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
         </repository>
         <repository>
             <id>boundlessgeo</id>
             <name>Boundless Geospatial Software and Open Source GIS‎ Repository</name>
             <url>https://repo.boundlessgeo.com/main/</url>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
         </repository>
     </repositories>
 

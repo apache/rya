@@ -76,7 +76,7 @@ import org.openrdf.model.impl.ValueFactoryImpl;
 import org.openrdf.model.vocabulary.RDFS;
 import org.openrdf.query.QueryEvaluationException;
 
-import com.beust.jcommander.internal.Lists;
+import com.google.common.collect.Lists;
 
 import info.aduna.iteration.CloseableIteration;
 

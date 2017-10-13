@@ -25,7 +25,7 @@ import java.util.Set;
 import org.junit.Test;
 import org.openrdf.query.MalformedQueryException;
 
-import com.beust.jcommander.internal.Sets;
+import com.google.common.collect.Sets;
 
 /**
  * Tests the methods of {@link ShiftVarOrderFactory}.

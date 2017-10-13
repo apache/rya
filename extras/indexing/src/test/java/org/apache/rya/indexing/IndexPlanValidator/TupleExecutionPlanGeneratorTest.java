@@ -32,8 +32,8 @@ import org.openrdf.query.algebra.TupleExpr;
 import org.openrdf.query.parser.ParsedQuery;
 import org.openrdf.query.parser.sparql.SPARQLParser;
 
-import com.beust.jcommander.internal.Lists;
-import com.beust.jcommander.internal.Sets;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 
 public class TupleExecutionPlanGeneratorTest {
 

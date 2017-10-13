@@ -69,8 +69,8 @@ import org.openrdf.query.algebra.evaluation.QueryBindingSet;
 import org.openrdf.query.algebra.helpers.StatementPatternCollector;
 import org.openrdf.query.parser.sparql.SPARQLParser;
 
-import com.beust.jcommander.internal.Lists;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Lists;
 
 import info.aduna.iteration.CloseableIteration;
 

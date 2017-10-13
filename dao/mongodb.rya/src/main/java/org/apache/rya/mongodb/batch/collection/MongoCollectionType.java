@@ -25,6 +25,7 @@ import java.util.List;
 import org.bson.Document;
 
 import com.mongodb.client.MongoCollection;
+import com.mongodb.client.model.InsertManyOptions;
 
 /**
  * Provides access to the {@link MongoCollection} type.
@@ -47,6 +48,6 @@ public class MongoCollectionType implements CollectionType<Document> {
 
     @Override
     public void insertMany(final List<Document> items) {
-        collection.insertMany(items);
+        collection.insertMany(items, new InsertManyOptions().ordered(false));
     }
 }

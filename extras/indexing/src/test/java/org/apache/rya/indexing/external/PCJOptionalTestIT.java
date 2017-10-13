@@ -55,8 +55,8 @@ import org.openrdf.repository.sail.SailRepository;
 import org.openrdf.repository.sail.SailRepositoryConnection;
 import org.openrdf.sail.SailException;
 
-import com.beust.jcommander.internal.Lists;
 import com.google.common.base.Optional;
+import com.google.common.collect.Lists;
 
 import org.apache.rya.api.persist.RyaDAOException;
 import org.apache.rya.indexing.external.PrecompJoinOptimizerIT.CountingResultHandler;

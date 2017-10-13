@@ -60,9 +60,9 @@ import org.openrdf.repository.sail.SailRepository;
 import org.openrdf.repository.sail.SailRepositoryConnection;
 import org.openrdf.sail.SailException;
 
-import com.beust.jcommander.internal.Sets;
 import com.google.common.base.Optional;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 
 import org.apache.rya.accumulo.AccumuloRdfConfiguration;
 import org.apache.rya.api.RdfCloudTripleStoreConfiguration;

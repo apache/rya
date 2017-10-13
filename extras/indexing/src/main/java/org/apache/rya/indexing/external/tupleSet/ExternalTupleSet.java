@@ -37,13 +37,13 @@ import org.openrdf.query.algebra.Var;
 import org.openrdf.query.algebra.evaluation.impl.ExternalSet;
 import org.openrdf.query.algebra.helpers.QueryModelVisitorBase;
 
-import com.beust.jcommander.internal.Sets;
 import com.google.common.base.Joiner;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 
 /**
  * This is an abstract class of delegating the evaluation of part

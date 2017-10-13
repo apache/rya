@@ -35,7 +35,7 @@ import org.openrdf.query.algebra.helpers.StatementPatternCollector;
 import org.openrdf.query.parser.ParsedQuery;
 import org.openrdf.query.parser.sparql.SPARQLParser;
 
-import com.beust.jcommander.internal.Lists;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
 import org.apache.rya.indexing.external.tupleSet.ExternalTupleSet;

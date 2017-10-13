@@ -7,9 +7,9 @@ package org.apache.rya.indexing.statement.metadata.matching;
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- * 
+ *
  *   http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -28,17 +28,16 @@ import org.openrdf.query.algebra.Filter;
 import org.openrdf.query.algebra.QueryModelNode;
 import org.openrdf.query.algebra.ValueExpr;
 
-import com.beust.jcommander.internal.Lists;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
 public class MetadataNodeToSegmentConverter implements ExternalSetConverter<StatementMetadataNode<?>> {
 
     @Override
-    public QuerySegment<StatementMetadataNode<?>> setToSegment(StatementMetadataNode<?> set) {
-        Set<QueryModelNode> patterns = Sets.newHashSet(set.getReifiedStatementPatterns());
-        List<QueryModelNode> patternList = Lists.newArrayList(patterns);
+    public QuerySegment<StatementMetadataNode<?>> setToSegment(final StatementMetadataNode<?> set) {
+        final Set<QueryModelNode> patterns = Sets.newHashSet(set.getReifiedStatementPatterns());
+        final List<QueryModelNode> patternList = Lists.newArrayList(patterns);
         return new JoinSegment<StatementMetadataNode<?>>(patterns, patternList, new HashMap<ValueExpr, Filter>());
-        
     }
 
 }

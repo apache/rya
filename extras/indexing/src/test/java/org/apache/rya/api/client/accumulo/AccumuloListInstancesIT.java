@@ -28,16 +28,15 @@ import org.apache.accumulo.core.client.AccumuloSecurityException;
 import org.apache.accumulo.core.client.admin.SecurityOperations;
 import org.apache.accumulo.core.client.admin.TableOperations;
 import org.apache.accumulo.core.security.SystemPermission;
-import org.junit.Before;
-import org.junit.Test;
-
-import com.beust.jcommander.internal.Lists;
-
 import org.apache.rya.accumulo.AccumuloITBase;
 import org.apache.rya.api.client.Install;
 import org.apache.rya.api.client.Install.InstallConfiguration;
 import org.apache.rya.api.client.ListInstances;
 import org.apache.rya.api.client.RyaClientException;
+import org.junit.Before;
+import org.junit.Test;
+
+import com.google.common.collect.Lists;
 
 /**
  * Integration tests the methods of {@link AccumuloListInstances}.
@@ -48,11 +47,11 @@ public class AccumuloListInstancesIT extends AccumuloITBase {
     public void setup() throws Exception {
         // this is a bit of a hack to clear any existing instances before
         // adding the instances we want to exist for testing the list command
-        TableOperations tableOps = getConnector().tableOperations();
-        SecurityOperations secOps = getConnector().securityOperations();
+        final TableOperations tableOps = getConnector().tableOperations();
+        final SecurityOperations secOps = getConnector().securityOperations();
         secOps.grantSystemPermission("root", SystemPermission.DROP_TABLE);
 
-        for (String tableName : getConnector().tableOperations().list()) {
+        for (final String tableName : getConnector().tableOperations().list()) {
             if (!tableName.startsWith("accumulo.")) {
                 tableOps.delete(tableName);
             }

@@ -45,7 +45,7 @@ import org.openrdf.query.algebra.StatementPattern;
 import org.openrdf.query.algebra.Var;
 import org.openrdf.query.algebra.evaluation.QueryBindingSet;
 
-import com.beust.jcommander.internal.Lists;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
 /**

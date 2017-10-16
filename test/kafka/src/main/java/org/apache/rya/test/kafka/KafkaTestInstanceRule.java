@@ -21,6 +21,7 @@ package org.apache.rya.test.kafka;
 import java.util.Properties;
 
 import org.I0Itec.zkclient.ZkClient;
+import org.apache.kafka.clients.CommonClientConfigs;
 import org.junit.rules.ExternalResource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -95,4 +96,11 @@ public class KafkaTestInstanceRule extends ExternalResource {
         }
     }
 
+    /**
+     * @return A new Property object containing the correct value for Kafka's
+     *         {@link CommonClientConfigs#BOOTSTRAP_SERVERS_CONFIG}.
+     */
+    public Properties createBootstrapServerConfig() {
+        return kafkaInstance.createBootstrapServerConfig();
+    }
 }

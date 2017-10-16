@@ -22,9 +22,15 @@ import static java.util.Objects.requireNonNull;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Properties;
 
+import org.apache.kafka.clients.producer.KafkaProducer;
+import org.apache.kafka.clients.producer.Producer;
+import org.apache.kafka.clients.producer.ProducerConfig;
+import org.apache.rya.api.model.VisibilityStatement;
 import org.apache.rya.streams.api.interactor.LoadStatements;
 import org.apache.rya.streams.client.RyaStreamsCommand;
+import org.apache.rya.streams.kafka.interactor.KafkaLoadStatements;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -41,8 +47,8 @@ import edu.umd.cs.findbugs.annotations.NonNull;
  * application.
  */
 @DefaultAnnotation(NonNull.class)
-public class LoadTriplesCommand implements RyaStreamsCommand {
-    private static final Logger log = LoggerFactory.getLogger(LoadTriplesCommand.class);
+public class LoadStatementsCommand implements RyaStreamsCommand {
+    private static final Logger log = LoggerFactory.getLogger(LoadStatementsCommand.class);
 
     /**
      * Command line parameters that are used by this command to configure itself.
@@ -56,10 +62,6 @@ public class LoadTriplesCommand implements RyaStreamsCommand {
         private short kafkaPort;
         @Parameter(names= {"--kafkaHostname", "-i"}, required = true, description = "The IP or Hostname to use to connect to Kafka.")
         private String kafkaIP;
-        @Parameter(names= {"--zookeeperPort", "-q"}, required = true, description = "The port to use to connect to Zookeeper.")
-        private short zookeeperPort;
-        @Parameter(names= {"--zookeeperHostname", "-z"}, required = true, description = "The IP or Hostname to use to connect to Zookeeper.")
-        private String zookeeperIP;
         @Parameter(names= {"--visibilities", "-v"}, required = true, description = "The visibilities to assign to the statements being loaded in.")
         private String visibilities;
 
@@ -83,14 +85,6 @@ public class LoadTriplesCommand implements RyaStreamsCommand {
                 parameters.append("\tKafka Location: " + kafkaIP);
                 if (kafkaPort > 0) {
                     parameters.append(":" + kafkaPort);
-                }
-                parameters.append("\n");
-            }
-
-            if (Strings.isNullOrEmpty(zookeeperIP)) {
-                parameters.append("\tZookeeper Location: " + zookeeperIP);
-                if (zookeeperPort > 0) {
-                    parameters.append(":" + zookeeperPort);
                 }
                 parameters.append("\n");
             }
@@ -140,13 +134,21 @@ public class LoadTriplesCommand implements RyaStreamsCommand {
         log.trace("Loading RDF Statements from the Triples file '" + params.triplesFile + "'.");
         final Path triplesPath = Paths.get( params.triplesFile );
 
-        final LoadStatements statements = null;
-        try {
+        final Properties producerProps = buildProperties(params);
+        try (final Producer<Object, VisibilityStatement> producer = new KafkaProducer<>(producerProps)) {
+            final LoadStatements statements = new KafkaLoadStatements(params.topicName, producer);
             statements.load(triplesPath, params.visibilities);
         } catch (final Exception e) {
             log.error("Unable to parse statement file: " + triplesPath.toString(), e);
         }
 
         log.trace("Finished executing the Load Triples Command.");
+    }
+
+    private Properties buildProperties(final Parameters params) {
+        requireNonNull(params);
+        final Properties props = new Properties();
+        props.setProperty(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, params.kafkaIP + ":" + params.kafkaPort);
+        return props;
     }
 }

@@ -43,6 +43,10 @@ under the License.
             <groupId>org.apache.rya</groupId>
             <artifactId>rya.streams.api</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.apache.rya</groupId>
+            <artifactId>rya.api</artifactId>
+        </dependency>
 
         <!-- Kafka dependencies -->
         <dependency>
@@ -54,7 +58,7 @@ under the License.
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
         </dependency>
-
+        
         <!-- Test dependencies -->
         <dependency>
             <groupId>junit</groupId>

@@ -26,7 +26,7 @@ import java.util.Set;
 
 import org.apache.rya.streams.client.RyaStreamsCommand.ArgumentsException;
 import org.apache.rya.streams.client.RyaStreamsCommand.ExecutionException;
-import org.apache.rya.streams.client.command.LoadTriplesCommand;
+import org.apache.rya.streams.client.command.LoadStatementsCommand;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -53,7 +53,7 @@ public class CLIDriver {
     private static final ImmutableMap<String, RyaStreamsCommand> COMMANDS;
     static {
         final Set<Class<? extends RyaStreamsCommand>> commandClasses = new HashSet<>();
-        commandClasses.add(LoadTriplesCommand.class);
+        commandClasses.add(LoadStatementsCommand.class);
         final ImmutableMap.Builder<String, RyaStreamsCommand> builder = ImmutableMap.builder();
         for(final Class<? extends RyaStreamsCommand> commandClass : commandClasses) {
             try {

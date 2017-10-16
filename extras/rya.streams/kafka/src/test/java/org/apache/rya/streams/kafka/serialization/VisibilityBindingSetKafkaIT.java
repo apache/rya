@@ -32,17 +32,18 @@ import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.kafka.common.serialization.StringSerializer;
-import org.apache.rya.api.model.VisibilityStatement;
+import org.apache.rya.api.model.VisibilityBindingSet;
 import org.apache.rya.test.kafka.KafkaTestInstanceRule;
 import org.junit.Rule;
 import org.junit.Test;
 import org.openrdf.model.ValueFactory;
 import org.openrdf.model.impl.ValueFactoryImpl;
+import org.openrdf.query.impl.MapBindingSet;
 
 /**
- * Integration tests the {@link VisibilityStatementSerde} class' methods.
+ * Integration tests the {@link VisibilityBindingSetSerde} class' methods.
  */
-public class VisibilityStatementIT {
+public class VisibilityBindingSetKafkaIT {
 
     @Rule
     public KafkaTestInstanceRule kafka = new KafkaTestInstanceRule(true);
@@ -51,35 +52,33 @@ public class VisibilityStatementIT {
     public void readAndWrite() {
         // Create the object that will be written to the topic.
         final ValueFactory vf = new ValueFactoryImpl();
-        final VisibilityStatement original = new VisibilityStatement(
-                vf.createStatement(
-                        vf.createURI("urn:alice"),
-                        vf.createURI("urn:age"),
-                        vf.createLiteral(32),
-                        vf.createURI("urn:context")),
-                "a|b|c");
 
-        // Write a VisibilityStatement to the test topic.
+        final MapBindingSet bs = new MapBindingSet();
+        bs.addBinding("urn:name", vf.createURI("urn:alice"));
+        bs.addBinding("urn:age", vf.createLiteral(32));
+        final VisibilityBindingSet original = new VisibilityBindingSet(bs, "a|b|c");
+
+        // Write a VisibilityBindingSet to the test topic.
         final Properties producerProps = kafka.createBootstrapServerConfig();
         producerProps.setProperty(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
-        producerProps.setProperty(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, VisibilityStatementSerializer.class.getName());
+        producerProps.setProperty(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, VisibilityBindingSetSerializer.class.getName());
 
-        try(final KafkaProducer<String, VisibilityStatement> producer = new KafkaProducer<>(producerProps)) {
-            producer.send( new ProducerRecord<String, VisibilityStatement>(kafka.getKafkaTopicName(), original) );
+        try(final KafkaProducer<String, VisibilityBindingSet> producer = new KafkaProducer<>(producerProps)) {
+            producer.send( new ProducerRecord<String, VisibilityBindingSet>(kafka.getKafkaTopicName(), original) );
         }
 
-        // Read a VisibilityStatement from the test topic.
-        VisibilityStatement read;
+        // Read a VisibilityBindingSet from the test topic.
+        VisibilityBindingSet read;
 
         final Properties consumerProps = kafka.createBootstrapServerConfig();
         consumerProps.setProperty(ConsumerConfig.GROUP_ID_CONFIG, UUID.randomUUID().toString());
         consumerProps.setProperty(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
         consumerProps.setProperty(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
-        consumerProps.setProperty(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, VisibilityStatementDeserializer.class.getName());
+        consumerProps.setProperty(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, VisibilityBindingSetDeserializer.class.getName());
 
-        try(final KafkaConsumer<String, VisibilityStatement> consumer = new KafkaConsumer<>(consumerProps)) {
+        try(final KafkaConsumer<String, VisibilityBindingSet> consumer = new KafkaConsumer<>(consumerProps)) {
             consumer.subscribe(Arrays.asList(kafka.getKafkaTopicName()));
-            final ConsumerRecords<String, VisibilityStatement> records = consumer.poll(1000);
+            final ConsumerRecords<String, VisibilityBindingSet> records = consumer.poll(1000);
 
             assertEquals(1, records.count());
             read = records.iterator().next().value();

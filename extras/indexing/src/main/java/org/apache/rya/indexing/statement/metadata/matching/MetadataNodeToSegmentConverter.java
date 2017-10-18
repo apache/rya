@@ -17,19 +17,19 @@ package org.apache.rya.indexing.statement.metadata.matching;
  * specific language governing permissions and limitations
  * under the License.
  */
+
 import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
 
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import org.apache.rya.indexing.external.matching.ExternalSetConverter;
 import org.apache.rya.indexing.external.matching.JoinSegment;
 import org.apache.rya.indexing.external.matching.QuerySegment;
-import org.openrdf.query.algebra.Filter;
-import org.openrdf.query.algebra.QueryModelNode;
-import org.openrdf.query.algebra.ValueExpr;
-
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
+import org.eclipse.rdf4j.query.algebra.Filter;
+import org.eclipse.rdf4j.query.algebra.QueryModelNode;
+import org.eclipse.rdf4j.query.algebra.ValueExpr;
 
 public class MetadataNodeToSegmentConverter implements ExternalSetConverter<StatementMetadataNode<?>> {
 

@@ -17,6 +17,7 @@ package org.apache.rya.indexing.pcj.fluo.app.batch;
  * specific language governing permissions and limitations
  * under the License.
  */
+
 import java.util.Objects;
 
 import org.apache.fluo.api.data.Column;
@@ -24,7 +25,7 @@ import org.apache.fluo.api.data.Span;
 import org.apache.rya.api.function.join.LazyJoiningIterator.Side;
 import org.apache.rya.api.model.VisibilityBindingSet;
 import org.apache.rya.indexing.pcj.fluo.app.query.JoinMetadata.JoinType;
-import org.openrdf.query.Binding;
+import org.eclipse.rdf4j.query.Binding;
 
 /**
  * This class updates join results based on parameters specified for the join's

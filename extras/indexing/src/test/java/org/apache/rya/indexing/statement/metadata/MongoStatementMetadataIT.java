@@ -35,21 +35,22 @@ import org.apache.rya.mongodb.MongoDBRdfConfiguration;
 import org.apache.rya.mongodb.MongoDBRyaDAO;
 import org.apache.rya.mongodb.MongoITBase;
 import org.apache.rya.sail.config.RyaSailFactory;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
+import org.eclipse.rdf4j.model.vocabulary.XMLSchema;
+import org.eclipse.rdf4j.query.BindingSet;
+import org.eclipse.rdf4j.query.MalformedQueryException;
+import org.eclipse.rdf4j.query.QueryEvaluationException;
+import org.eclipse.rdf4j.query.QueryLanguage;
+import org.eclipse.rdf4j.query.TupleQueryResult;
+import org.eclipse.rdf4j.query.algebra.evaluation.QueryBindingSet;
+import org.eclipse.rdf4j.repository.sail.SailRepository;
+import org.eclipse.rdf4j.repository.sail.SailRepositoryConnection;
+import org.eclipse.rdf4j.sail.Sail;
 import org.junit.Test;
-import org.openrdf.model.impl.LiteralImpl;
-import org.openrdf.model.impl.URIImpl;
-import org.openrdf.model.vocabulary.XMLSchema;
-import org.openrdf.query.BindingSet;
-import org.openrdf.query.MalformedQueryException;
-import org.openrdf.query.QueryEvaluationException;
-import org.openrdf.query.QueryLanguage;
-import org.openrdf.query.TupleQueryResult;
-import org.openrdf.query.algebra.evaluation.QueryBindingSet;
-import org.openrdf.repository.sail.SailRepository;
-import org.openrdf.repository.sail.SailRepositoryConnection;
-import org.openrdf.sail.Sail;
 
 public class MongoStatementMetadataIT extends MongoITBase {
+    private static final ValueFactory VF = SimpleValueFactory.getInstance();
 
     private final String query1 = "prefix owl: <http://www.w3.org/2002/07/owl#> prefix ano: <http://www.w3.org/2002/07/owl#annotated> prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> select ?x ?y where {_:blankNode rdf:type owl:Annotation; ano:Source <http://Joe>; "
             + "ano:Property <http://worksAt>; ano:Target ?x; <http://createdBy> ?y; <http://createdOn> \'2017-01-04\'^^xsd:date }";
@@ -86,8 +87,8 @@ public class MongoStatementMetadataIT extends MongoITBase {
             final TupleQueryResult result = conn.prepareTupleQuery(QueryLanguage.SPARQL, query1).evaluate();
 
             final QueryBindingSet bs = new QueryBindingSet();
-            bs.addBinding("x", new LiteralImpl("CoffeeShop"));
-            bs.addBinding("y", new LiteralImpl("Joe"));
+            bs.addBinding("x", VF.createLiteral("CoffeeShop"));
+            bs.addBinding("y", VF.createLiteral("Joe"));
 
             final List<BindingSet> bsList = new ArrayList<>();
             while (result.hasNext()) {
@@ -165,11 +166,11 @@ public class MongoStatementMetadataIT extends MongoITBase {
 
             final Set<BindingSet> expected = new HashSet<>();
             final QueryBindingSet expected1 = new QueryBindingSet();
-            expected1.addBinding("x", new LiteralImpl("CoffeeShop"));
-            expected1.addBinding("y", new LiteralImpl("Joe"));
+            expected1.addBinding("x", VF.createLiteral("CoffeeShop"));
+            expected1.addBinding("y", VF.createLiteral("Joe"));
             final QueryBindingSet expected2 = new QueryBindingSet();
-            expected2.addBinding("x", new LiteralImpl("HardwareStore"));
-            expected2.addBinding("y", new LiteralImpl("Joe"));
+            expected2.addBinding("x", VF.createLiteral("HardwareStore"));
+            expected2.addBinding("y", VF.createLiteral("Joe"));
             expected.add(expected1);
             expected.add(expected2);
 
@@ -233,9 +234,9 @@ public class MongoStatementMetadataIT extends MongoITBase {
 
             final Set<BindingSet> expected = new HashSet<>();
             final QueryBindingSet expected1 = new QueryBindingSet();
-            expected1.addBinding("b", new URIImpl("http://Betty"));
-            expected1.addBinding("a", new URIImpl("http://Joe"));
-            expected1.addBinding("c", new URIImpl("http://Doug"));
+            expected1.addBinding("b", VF.createIRI("http://Betty"));
+            expected1.addBinding("a", VF.createIRI("http://Joe"));
+            expected1.addBinding("c", VF.createIRI("http://Doug"));
             expected.add(expected1);
 
             final Set<BindingSet> bsSet = new HashSet<>();

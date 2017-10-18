@@ -19,8 +19,6 @@ package org.apache.rya.accumulo.pcj.iterators;
  * under the License.
  */
 
-import info.aduna.iteration.CloseableIteration;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -31,11 +29,12 @@ import java.util.Map.Entry;
 import java.util.NoSuchElementException;
 import java.util.Set;
 
+import org.apache.rya.api.domain.VarNameUtils;
 import org.apache.rya.indexing.external.tupleSet.ExternalTupleSet;
-
-import org.openrdf.query.BindingSet;
-import org.openrdf.query.QueryEvaluationException;
-import org.openrdf.query.algebra.evaluation.QueryBindingSet;
+import org.eclipse.rdf4j.common.iteration.CloseableIteration;
+import org.eclipse.rdf4j.query.BindingSet;
+import org.eclipse.rdf4j.query.QueryEvaluationException;
+import org.eclipse.rdf4j.query.algebra.evaluation.QueryBindingSet;
 
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
@@ -74,9 +73,9 @@ public class BindingSetHashJoinIterator implements
 	 */
 	public enum HashJoinType {
 		CONSTANT_JOIN_VAR, VARIABLE_JOIN_VAR
-	};
+	}
 
-	public BindingSetHashJoinIterator(
+    public BindingSetHashJoinIterator(
 			Multimap<String, BindingSet> bindingJoinVarHash,
 			CloseableIteration<Map.Entry<String, BindingSet>, QueryEvaluationException> joinIter,
 			Set<String> unAssuredVariables, HashJoinType type) {
@@ -104,10 +103,8 @@ public class BindingSetHashJoinIterator implements
 
 			isEmpty = true;
 			return false;
-		} else if (isEmpty) {
-			return false;
 		} else {
-			return true;
+			return !isEmpty;
 		}
 	}
 
@@ -213,7 +210,7 @@ public class BindingSetHashJoinIterator implements
 	private BindingSet removeConstants(BindingSet bs) {
 		QueryBindingSet bSet = new QueryBindingSet();
 		for (String s : bs.getBindingNames()) {
-			if (!s.startsWith(ExternalTupleSet.CONST_PREFIX)) {
+			if (!VarNameUtils.isConstant(s)) {
 				bSet.addBinding(bs.getBinding(s));
 			}
 		}
@@ -291,10 +288,8 @@ public class BindingSetHashJoinIterator implements
 				}
 				isEmpty = true;
 				return false;
-			} else if (isEmpty) {
-				return false;
 			} else {
-				return true;
+				return !isEmpty;
 			}
 		}
 

@@ -22,10 +22,10 @@ import static java.util.Objects.requireNonNull;
 
 import java.util.Objects;
 
-import org.openrdf.model.Resource;
-import org.openrdf.model.Statement;
-import org.openrdf.model.URI;
-import org.openrdf.model.Value;
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.Resource;
+import org.eclipse.rdf4j.model.Statement;
+import org.eclipse.rdf4j.model.Value;
 
 import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
 import edu.umd.cs.findbugs.annotations.NonNull;
@@ -61,7 +61,7 @@ public abstract class StatementDecorator implements Statement {
     }
 
     @Override
-    public URI getPredicate() {
+    public IRI getPredicate() {
         return statement.getPredicate();
     }
 

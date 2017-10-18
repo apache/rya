@@ -23,23 +23,25 @@ import static org.junit.Assert.assertEquals;
 
 import org.apache.rya.api.model.VisibilityBindingSet;
 import org.apache.rya.indexing.pcj.storage.accumulo.BindingSetConverter.BindingSetConversionException;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
+import org.eclipse.rdf4j.query.BindingSet;
+import org.eclipse.rdf4j.query.impl.MapBindingSet;
 import org.junit.Test;
-import org.openrdf.model.impl.URIImpl;
-import org.openrdf.query.BindingSet;
-import org.openrdf.query.impl.MapBindingSet;
 
 /**
  * Tests the methods of {@link BindingSetStringConverter}.
  */
 public class VisibilityBindingSetStringConverterTest {
+    private static final ValueFactory VF = SimpleValueFactory.getInstance();
 
     @Test
     public void toString_URIs() throws BindingSetConversionException {
         // Setup the binding set that will be converted.
         final MapBindingSet originalBindingSet = new MapBindingSet();
-        originalBindingSet.addBinding("x", new URIImpl("http://a"));
-        originalBindingSet.addBinding("y", new URIImpl("http://b"));
-        originalBindingSet.addBinding("z", new URIImpl("http://c"));
+        originalBindingSet.addBinding("x", VF.createIRI("http://a"));
+        originalBindingSet.addBinding("y", VF.createIRI("http://b"));
+        originalBindingSet.addBinding("z", VF.createIRI("http://c"));
 
         final VisibilityBindingSet visiSet = new VisibilityBindingSet(originalBindingSet, "A&B&C");
 
@@ -74,9 +76,9 @@ public class VisibilityBindingSetStringConverterTest {
 
         // Ensure it converted to the expected result.
         final MapBindingSet expected = new MapBindingSet();
-        expected.addBinding("z", new URIImpl("http://c"));
-        expected.addBinding("y", new URIImpl("http://b"));
-        expected.addBinding("x", new URIImpl("http://a"));
+        expected.addBinding("z", VF.createIRI("http://c"));
+        expected.addBinding("y", VF.createIRI("http://b"));
+        expected.addBinding("x", VF.createIRI("http://a"));
         final VisibilityBindingSet visiSet = new VisibilityBindingSet(expected, "A&B");
 
         assertEquals(visiSet, bindingSet);
@@ -86,9 +88,9 @@ public class VisibilityBindingSetStringConverterTest {
     public void toString_URIs_noVisi() throws BindingSetConversionException {
         // Setup the binding set that will be converted.
         final MapBindingSet originalBindingSet = new MapBindingSet();
-        originalBindingSet.addBinding("x", new URIImpl("http://a"));
-        originalBindingSet.addBinding("y", new URIImpl("http://b"));
-        originalBindingSet.addBinding("z", new URIImpl("http://c"));
+        originalBindingSet.addBinding("x", VF.createIRI("http://a"));
+        originalBindingSet.addBinding("y", VF.createIRI("http://b"));
+        originalBindingSet.addBinding("z", VF.createIRI("http://c"));
 
         final VisibilityBindingSet visiSet = new VisibilityBindingSet(originalBindingSet);
 
@@ -121,9 +123,9 @@ public class VisibilityBindingSetStringConverterTest {
 
         // Ensure it converted to the expected result.
         final MapBindingSet expected = new MapBindingSet();
-        expected.addBinding("z", new URIImpl("http://c"));
-        expected.addBinding("y", new URIImpl("http://b"));
-        expected.addBinding("x", new URIImpl("http://a"));
+        expected.addBinding("z", VF.createIRI("http://c"));
+        expected.addBinding("y", VF.createIRI("http://b"));
+        expected.addBinding("x", VF.createIRI("http://a"));
         final VisibilityBindingSet visiSet = new VisibilityBindingSet(expected);
 
         assertEquals(visiSet, bindingSet);

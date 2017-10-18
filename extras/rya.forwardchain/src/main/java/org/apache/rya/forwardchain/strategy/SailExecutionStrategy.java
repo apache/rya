@@ -36,16 +36,16 @@ import org.apache.rya.indexing.accumulo.ConfigUtils;
 import org.apache.rya.mongodb.MongoDBRdfConfiguration;
 import org.apache.rya.sail.config.RyaSailFactory;
 import org.calrissian.mango.collect.CloseableIterable;
-import org.openrdf.model.Statement;
-import org.openrdf.query.GraphQuery;
-import org.openrdf.query.QueryEvaluationException;
-import org.openrdf.query.parser.ParsedGraphQuery;
-import org.openrdf.repository.RepositoryException;
-import org.openrdf.repository.sail.SailGraphQuery;
-import org.openrdf.repository.sail.SailRepository;
-import org.openrdf.repository.sail.SailRepositoryConnection;
-import org.openrdf.rio.RDFHandlerException;
-import org.openrdf.rio.helpers.RDFHandlerBase;
+import org.eclipse.rdf4j.model.Statement;
+import org.eclipse.rdf4j.query.GraphQuery;
+import org.eclipse.rdf4j.query.QueryEvaluationException;
+import org.eclipse.rdf4j.query.parser.ParsedGraphQuery;
+import org.eclipse.rdf4j.repository.RepositoryException;
+import org.eclipse.rdf4j.repository.sail.SailGraphQuery;
+import org.eclipse.rdf4j.repository.sail.SailRepository;
+import org.eclipse.rdf4j.repository.sail.SailRepositoryConnection;
+import org.eclipse.rdf4j.rio.RDFHandlerException;
+import org.eclipse.rdf4j.rio.helpers.AbstractRDFHandler;
 
 import com.google.common.base.Preconditions;
 
@@ -186,7 +186,7 @@ public class SailExecutionStrategy extends AbstractRuleExecutionStrategy {
         }
     }
 
-    private static class InferredStatementHandler<T extends RdfCloudTripleStoreConfiguration> extends RDFHandlerBase {
+    private static class InferredStatementHandler<T extends RdfCloudTripleStoreConfiguration> extends AbstractRDFHandler {
         private RyaDAO<T> dao;
         private RyaQueryEngine<T> engine;
         private long numStatementsAdded = 0;

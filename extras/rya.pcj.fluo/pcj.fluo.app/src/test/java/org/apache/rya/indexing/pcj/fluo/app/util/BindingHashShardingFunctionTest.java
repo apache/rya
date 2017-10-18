@@ -25,22 +25,22 @@ import org.apache.rya.api.model.VisibilityBindingSet;
 import org.apache.rya.indexing.pcj.fluo.app.BindingSetRow;
 import org.apache.rya.indexing.pcj.fluo.app.NodeType;
 import org.apache.rya.indexing.pcj.storage.accumulo.VariableOrder;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
+import org.eclipse.rdf4j.query.algebra.evaluation.QueryBindingSet;
 import org.junit.Assert;
 import org.junit.Test;
-import org.openrdf.model.ValueFactory;
-import org.openrdf.model.impl.ValueFactoryImpl;
-import org.openrdf.query.algebra.evaluation.QueryBindingSet;
 
 public class BindingHashShardingFunctionTest {
 
-    private static final ValueFactory vf = new ValueFactoryImpl();
+    private static final ValueFactory VF = SimpleValueFactory.getInstance();
 
     @Test
     public void shardAddAndRemoveTest() {
         String nodeId = NodeType.generateNewFluoIdForType(NodeType.STATEMENT_PATTERN);
         QueryBindingSet bs = new QueryBindingSet();
-        bs.addBinding("entity", vf.createURI("urn:entity"));
-        bs.addBinding("location", vf.createLiteral("location_1"));
+        bs.addBinding("entity", VF.createIRI("urn:entity"));
+        bs.addBinding("location", VF.createLiteral("location_1"));
         VisibilityBindingSet vBs = new VisibilityBindingSet(bs);
         VariableOrder varOrder = new VariableOrder("entity","location");
         Bytes row = RowKeyUtil.makeRowKey(nodeId, varOrder, vBs);
@@ -53,8 +53,8 @@ public class BindingHashShardingFunctionTest {
     public void bindingSetRowTest() {
         String nodeId = NodeType.generateNewFluoIdForType(NodeType.STATEMENT_PATTERN);
         QueryBindingSet bs = new QueryBindingSet();
-        bs.addBinding("entity", vf.createURI("urn:entity"));
-        bs.addBinding("location", vf.createLiteral("location_1"));
+        bs.addBinding("entity", VF.createIRI("urn:entity"));
+        bs.addBinding("location", VF.createLiteral("location_1"));
         VisibilityBindingSet vBs = new VisibilityBindingSet(bs);
         VariableOrder varOrder = new VariableOrder("entity","location");
         Bytes row = RowKeyUtil.makeRowKey(nodeId, varOrder, vBs);

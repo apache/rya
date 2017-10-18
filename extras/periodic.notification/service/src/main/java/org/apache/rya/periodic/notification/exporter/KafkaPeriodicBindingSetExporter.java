@@ -31,8 +31,8 @@ import org.apache.rya.indexing.pcj.fluo.app.IncrementalUpdateConstants;
 import org.apache.rya.periodic.notification.api.BindingSetExporter;
 import org.apache.rya.periodic.notification.api.BindingSetRecord;
 import org.apache.rya.periodic.notification.api.BindingSetRecordExportException;
-import org.openrdf.model.Literal;
-import org.openrdf.query.BindingSet;
+import org.eclipse.rdf4j.model.Literal;
+import org.eclipse.rdf4j.query.BindingSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

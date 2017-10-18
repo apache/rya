@@ -202,7 +202,7 @@ public final class PathUtils {
                     final UserPrincipal owner = Files.getOwner(partialPath);
                     if (!user.equals(owner) && !root.equals(owner)) {
                         // dir owned by someone else, not secure
-                        return false;
+                        return SystemUtils.IS_OS_UNIX ? false : Files.isWritable(partialPath);
                     }
                 }
             } catch (final IOException x) {

@@ -21,9 +21,10 @@ package org.apache.rya.indexing.geotemporal;
 import org.apache.rya.api.persist.index.RyaSecondaryIndexer;
 import org.apache.rya.indexing.GeoConstants;
 import org.apache.rya.indexing.geotemporal.storage.EventStorage;
-import org.openrdf.model.Statement;
-import org.openrdf.model.URI;
-import org.openrdf.model.impl.URIImpl;
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.Statement;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 
 /**
  * A repository to store, index, and retrieve {@link Statement}s based on geotemporal features.
@@ -88,17 +89,17 @@ public interface GeoTemporalIndexer extends RyaSecondaryIndexer {
          */
         OVERLAPS(GeoConstants.GEO_SF_OVERLAPS);
 
-        private final URI uri;
+        private final IRI uri;
 
-        private GeoPolicy(final URI uri) {
+        private GeoPolicy(final IRI uri) {
             this.uri = uri;
         }
 
-        public URI getURI() {
+        public IRI getURI() {
             return uri;
         }
 
-        public static GeoPolicy fromURI(final URI uri) {
+        public static GeoPolicy fromURI(final IRI uri) {
             for(final GeoPolicy policy : GeoPolicy.values()) {
                 if(policy.getURI().equals(uri)) {
                     return policy;
@@ -109,6 +110,7 @@ public interface GeoTemporalIndexer extends RyaSecondaryIndexer {
     }
 
     static final String TEMPORAL_NS = "tag:rya-rdf.org,2015:temporal#";
+
     /**
      * Used to indicate which temporal filter functions to use in a query.
      */
@@ -116,62 +118,62 @@ public interface GeoTemporalIndexer extends RyaSecondaryIndexer {
         /**
          * The provided instant in time equals the instant the event took place.
          */
-        INSTANT_EQUALS_INSTANT(true, new URIImpl(TEMPORAL_NS+"equals")),
+        INSTANT_EQUALS_INSTANT(true, SimpleValueFactory.getInstance().createIRI(TEMPORAL_NS+"equals")),
 
         /**
          * The provided instant in time was before when the event took place.
          */
-        INSTANT_BEFORE_INSTANT(true, new URIImpl(TEMPORAL_NS+"before")),
+        INSTANT_BEFORE_INSTANT(true, SimpleValueFactory.getInstance().createIRI(TEMPORAL_NS+"before")),
 
         /**
          * The provided instant in time was after when the event took place.
          */
-        INSTANT_AFTER_INSTANT(true, new URIImpl(TEMPORAL_NS+"after")),
+        INSTANT_AFTER_INSTANT(true, SimpleValueFactory.getInstance().createIRI(TEMPORAL_NS+"after")),
 
         /**
          * The provided instant in time was before a time period.
          */
-        INSTANT_BEFORE_INTERVAL(false, new URIImpl(TEMPORAL_NS+"beforeInterval")),
+        INSTANT_BEFORE_INTERVAL(false, SimpleValueFactory.getInstance().createIRI(TEMPORAL_NS+"beforeInterval")),
 
         /**
          * The provided instant in time took place within a set of time.
          */
-        INSTANT_IN_INTERVAL(false, new URIImpl(TEMPORAL_NS+"insideInterval")),
+        INSTANT_IN_INTERVAL(false, SimpleValueFactory.getInstance().createIRI(TEMPORAL_NS+"insideInterval")),
 
         /**
          * The provided instant in time took place after a time period.
          */
-        INSTANT_AFTER_INTERVAL(false, new URIImpl(TEMPORAL_NS+"afterInterval")),
+        INSTANT_AFTER_INTERVAL(false, SimpleValueFactory.getInstance().createIRI(TEMPORAL_NS+"afterInterval")),
 
         /**
          * The provided instant in time equals the start of the interval in which the event took place.
          */
-        INSTANT_START_INTERVAL(false, new URIImpl(TEMPORAL_NS+"hasBeginningInterval")),
+        INSTANT_START_INTERVAL(false, SimpleValueFactory.getInstance().createIRI(TEMPORAL_NS+"hasBeginningInterval")),
 
         /**
          * The provided instant in time equals the end of the interval in which the event took place.
          */
-        INSTANT_END_INTERVAL(false, new URIImpl(TEMPORAL_NS+"hasEndInterval")),
+        INSTANT_END_INTERVAL(false, SimpleValueFactory.getInstance().createIRI(TEMPORAL_NS+"hasEndInterval")),
 
         /**
          * The provided interval equals the interval in which the event took place.
          */
-        INTERVAL_EQUALS(false, new URIImpl(TEMPORAL_NS+"intervalEquals")),
+        INTERVAL_EQUALS(false, SimpleValueFactory.getInstance().createIRI(TEMPORAL_NS+"intervalEquals")),
 
         /**
          * The provided interval is before the interval in which the event took place.
          */
-        INTERVAL_BEFORE(false, new URIImpl(TEMPORAL_NS+"intervalBefore")),
+        INTERVAL_BEFORE(false, SimpleValueFactory.getInstance().createIRI(TEMPORAL_NS+"intervalBefore")),
 
         /**
          * The provided interval is after the interval in which the event took place.
          */
-        INTERVAL_AFTER(false, new URIImpl(TEMPORAL_NS+"intervalAfter"));
+        INTERVAL_AFTER(false, SimpleValueFactory.getInstance().createIRI(TEMPORAL_NS+"intervalAfter"));
 
         private final boolean isInstant;
-        private final URI uri;
+        private final IRI uri;
 
-        TemporalPolicy(final boolean isInstant, final URI uri) {
+        TemporalPolicy(final boolean isInstant, final IRI uri) {
             this.isInstant = isInstant;
             this.uri = uri;
         }
@@ -180,11 +182,11 @@ public interface GeoTemporalIndexer extends RyaSecondaryIndexer {
             return isInstant;
         }
 
-        public URI getURI() {
+        public IRI getURI() {
             return uri;
         }
 
-        public static TemporalPolicy fromURI(final URI uri) {
+        public static TemporalPolicy fromURI(final IRI uri) {
             for(final TemporalPolicy policy : TemporalPolicy.values()) {
                 if(policy.getURI().equals(uri)) {
                     return policy;

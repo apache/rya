@@ -23,9 +23,9 @@ import java.util.List;
 import java.util.Set;
 
 import org.apache.rya.indexing.external.matching.QueryNodesToTupleExpr.TupleExprAndNodes;
-import org.openrdf.query.algebra.Filter;
-import org.openrdf.query.algebra.QueryModelNode;
-import org.openrdf.query.algebra.evaluation.impl.ExternalSet;
+import org.eclipse.rdf4j.query.algebra.Filter;
+import org.eclipse.rdf4j.query.algebra.QueryModelNode;
+import org.eclipse.rdf4j.query.algebra.evaluation.impl.ExternalSet;
 
 /**
  * A QuerySegment represents a subset of a query to be compared to ExternalSets for

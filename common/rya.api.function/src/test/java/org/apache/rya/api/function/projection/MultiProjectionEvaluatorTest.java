@@ -27,18 +27,18 @@ import java.util.UUID;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.apache.rya.api.model.VisibilityBindingSet;
+import org.eclipse.rdf4j.model.BNode;
+import org.eclipse.rdf4j.model.Value;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
+import org.eclipse.rdf4j.model.vocabulary.RDF;
+import org.eclipse.rdf4j.model.vocabulary.XMLSchema;
+import org.eclipse.rdf4j.query.algebra.MultiProjection;
+import org.eclipse.rdf4j.query.algebra.helpers.AbstractQueryModelVisitor;
+import org.eclipse.rdf4j.query.impl.MapBindingSet;
+import org.eclipse.rdf4j.query.parser.ParsedQuery;
+import org.eclipse.rdf4j.query.parser.sparql.SPARQLParser;
 import org.junit.Test;
-import org.openrdf.model.BNode;
-import org.openrdf.model.Value;
-import org.openrdf.model.ValueFactory;
-import org.openrdf.model.impl.ValueFactoryImpl;
-import org.openrdf.model.vocabulary.RDF;
-import org.openrdf.model.vocabulary.XMLSchema;
-import org.openrdf.query.algebra.MultiProjection;
-import org.openrdf.query.algebra.helpers.QueryModelVisitorBase;
-import org.openrdf.query.impl.MapBindingSet;
-import org.openrdf.query.parser.ParsedQuery;
-import org.openrdf.query.parser.sparql.SPARQLParser;
 
 import edu.umd.cs.findbugs.annotations.Nullable;
 
@@ -62,7 +62,7 @@ public class MultiProjectionEvaluatorTest {
                 "}");
 
         // Create a Binding Set that contains the result of the WHERE clause.
-        final ValueFactory vf = new ValueFactoryImpl();
+        final ValueFactory vf = SimpleValueFactory.getInstance();
         MapBindingSet bs = new MapBindingSet();
         bs.addBinding("location", vf.createLiteral("South St and 5th St"));
         bs.addBinding("direction", vf.createLiteral("NW"));
@@ -76,18 +76,18 @@ public class MultiProjectionEvaluatorTest {
         bs = new MapBindingSet();
         bs.addBinding("subject", blankNode);
         bs.addBinding("predicate", RDF.TYPE);
-        bs.addBinding("object", vf.createURI("urn:movementObservation"));
+        bs.addBinding("object", vf.createIRI("urn:movementObservation"));
         expected.add( new VisibilityBindingSet(bs, "a|b") );
 
         bs = new MapBindingSet();
         bs.addBinding("subject", blankNode);
-        bs.addBinding("predicate", vf.createURI("urn:location"));
+        bs.addBinding("predicate", vf.createIRI("urn:location"));
         bs.addBinding("object", vf.createLiteral("South St and 5th St"));
         expected.add( new VisibilityBindingSet(bs, "a|b") );
 
         bs = new MapBindingSet();
         bs.addBinding("subject", blankNode);
-        bs.addBinding("predicate", vf.createURI("urn:direction"));
+        bs.addBinding("predicate", vf.createIRI("urn:direction"));
         bs.addBinding("object", vf.createLiteral("NW"));
         expected.add( new VisibilityBindingSet(bs, "a|b") );
 
@@ -116,12 +116,12 @@ public class MultiProjectionEvaluatorTest {
                 "}");
 
         // Create a Binding Set that contains the result of the WHERE clause.
-        final ValueFactory vf = new ValueFactoryImpl();
+        final ValueFactory vf = SimpleValueFactory.getInstance();
         MapBindingSet bs = new MapBindingSet();
         bs.addBinding("vehicle", vf.createLiteral("Alice's car"));
-        bs.addBinding("owner", vf.createURI("urn:Alice"));
+        bs.addBinding("owner", vf.createIRI("urn:Alice"));
         bs.addBinding("plates", vf.createLiteral("XXXXXXX"));
-        bs.addBinding("pet", vf.createURI("urn:Kitty"));
+        bs.addBinding("pet", vf.createIRI("urn:Kitty"));
         final VisibilityBindingSet original = new VisibilityBindingSet(bs, "a|b");
 
         // Run the projection evaluator.
@@ -132,9 +132,9 @@ public class MultiProjectionEvaluatorTest {
         Value petBNode = null;
         for(final VisibilityBindingSet result : results) {
             final Value object = result.getValue("object");
-            if(object.equals(vf.createURI("urn:vehicle"))) {
+            if(object.equals(vf.createIRI("urn:vehicle"))) {
                 vehicalBNode = result.getValue("subject");
-            } else if(object.equals(vf.createURI("urn:pet"))) {
+            } else if(object.equals(vf.createIRI("urn:pet"))) {
                 petBNode = result.getValue("subject");
             }
         }
@@ -145,24 +145,24 @@ public class MultiProjectionEvaluatorTest {
         bs = new MapBindingSet();
         bs.addBinding("subject", vehicalBNode);
         bs.addBinding("predicate", RDF.TYPE);
-        bs.addBinding("object", vf.createURI("urn:vehicle"));
+        bs.addBinding("object", vf.createIRI("urn:vehicle"));
         expected.add( new VisibilityBindingSet(bs, "a|b") );
 
         bs = new MapBindingSet();
         bs.addBinding("subject", vehicalBNode);
-        bs.addBinding("predicate", vf.createURI("urn:tiresCount"));
+        bs.addBinding("predicate", vf.createIRI("urn:tiresCount"));
         bs.addBinding("object", vf.createLiteral("4", XMLSchema.INTEGER));
         expected.add( new VisibilityBindingSet(bs, "a|b") );
 
         bs = new MapBindingSet();
         bs.addBinding("subject", petBNode);
         bs.addBinding("predicate", RDF.TYPE);
-        bs.addBinding("object", vf.createURI("urn:pet"));
+        bs.addBinding("object", vf.createIRI("urn:pet"));
         expected.add( new VisibilityBindingSet(bs, "a|b") );
 
         bs = new MapBindingSet();
         bs.addBinding("subject", petBNode);
-        bs.addBinding("predicate", vf.createURI("urn:isDead"));
+        bs.addBinding("predicate", vf.createIRI("urn:isDead"));
         bs.addBinding("object", vf.createLiteral(false));
         expected.add( new VisibilityBindingSet(bs, "a|b") );
 
@@ -181,7 +181,7 @@ public class MultiProjectionEvaluatorTest {
 
         final AtomicReference<MultiProjection> multiProjection = new AtomicReference<>();
         final ParsedQuery parsed = new SPARQLParser().parseQuery(sparql, null);
-        parsed.getTupleExpr().visit(new QueryModelVisitorBase<Exception>() {
+        parsed.getTupleExpr().visit(new AbstractQueryModelVisitor<Exception>() {
             @Override
             public void meet(final MultiProjection node) throws Exception {
                 multiProjection.set(node);

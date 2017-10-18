@@ -27,14 +27,14 @@ import org.apache.rya.indexing.TemporalInstant;
 import org.apache.rya.indexing.TemporalInstantRfc3339;
 import org.apache.rya.indexing.external.matching.QuerySegment;
 import org.apache.rya.indexing.geotemporal.model.EventQueryNode;
+import org.eclipse.rdf4j.query.algebra.FunctionCall;
+import org.eclipse.rdf4j.query.algebra.QueryModelNode;
+import org.eclipse.rdf4j.query.algebra.StatementPattern;
+import org.eclipse.rdf4j.query.algebra.helpers.AbstractQueryModelVisitor;
+import org.eclipse.rdf4j.query.algebra.helpers.StatementPatternCollector;
+import org.eclipse.rdf4j.query.parser.sparql.SPARQLParser;
 import org.junit.ComparisonFailure;
 import org.mockito.Mockito;
-import org.openrdf.query.algebra.FunctionCall;
-import org.openrdf.query.algebra.QueryModelNode;
-import org.openrdf.query.algebra.StatementPattern;
-import org.openrdf.query.algebra.helpers.QueryModelVisitorBase;
-import org.openrdf.query.algebra.helpers.StatementPatternCollector;
-import org.openrdf.query.parser.sparql.SPARQLParser;
 
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.GeometryFactory;
@@ -112,7 +112,7 @@ public final class GeoTemporalTestUtils {
         return collector.getTupleExpr();
     }
 
-    private static class NodeCollector extends QueryModelVisitorBase<RuntimeException> {
+    private static class NodeCollector extends AbstractQueryModelVisitor<RuntimeException> {
         private final List<QueryModelNode> stPatterns = new ArrayList<>();
 
         public List<QueryModelNode> getTupleExpr() {
@@ -130,7 +130,7 @@ public final class GeoTemporalTestUtils {
         }
     }
 
-    private static class FunctionCallCollector extends QueryModelVisitorBase<RuntimeException> {
+    private static class FunctionCallCollector extends AbstractQueryModelVisitor<RuntimeException> {
         private final List<FunctionCall> filters = new ArrayList<>();
 
         public List<FunctionCall> getTupleExpr() {

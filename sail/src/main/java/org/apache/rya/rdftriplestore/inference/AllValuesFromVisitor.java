@@ -25,12 +25,12 @@ import java.util.UUID;
 import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
 import org.apache.rya.api.utils.NullableStatementImpl;
 import org.apache.rya.rdftriplestore.utils.FixedStatementPattern;
-import org.openrdf.model.Resource;
-import org.openrdf.model.URI;
-import org.openrdf.model.vocabulary.OWL;
-import org.openrdf.model.vocabulary.RDF;
-import org.openrdf.query.algebra.StatementPattern;
-import org.openrdf.query.algebra.Var;
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.Resource;
+import org.eclipse.rdf4j.model.vocabulary.OWL;
+import org.eclipse.rdf4j.model.vocabulary.RDF;
+import org.eclipse.rdf4j.query.algebra.StatementPattern;
+import org.eclipse.rdf4j.query.algebra.Var;
 
 /**
  * Expands the query tree to account for any universal class expressions (property restrictions
@@ -80,7 +80,7 @@ public class AllValuesFromVisitor extends AbstractInferVisitor {
         // Only applies to type queries where the type is defined
         if (predVar != null && RDF.TYPE.equals(predVar.getValue()) && objVar != null && objVar.getValue() instanceof Resource) {
             final Resource typeToInfer = (Resource) objVar.getValue();
-            Map<Resource, Set<URI>> relevantAvfRestrictions = inferenceEngine.getAllValuesFromByValueType(typeToInfer);
+            Map<Resource, Set<IRI>> relevantAvfRestrictions = inferenceEngine.getAllValuesFromByValueType(typeToInfer);
             if (!relevantAvfRestrictions.isEmpty()) {
                 // We can infer the queried type if, for an allValuesFrom restriction type
                 // associated  with the queried type, some anonymous neighboring node belongs to the
@@ -99,7 +99,7 @@ public class AllValuesFromVisitor extends AbstractInferVisitor {
                 final FixedStatementPattern avfPropertyTypes = new FixedStatementPattern(avfTypeVar,
                         new Var(OWL.ONPROPERTY.stringValue(), OWL.ONPROPERTY), avfPredVar);
                 for (Resource avfRestrictionType : relevantAvfRestrictions.keySet()) {
-                    for (URI avfProperty : relevantAvfRestrictions.get(avfRestrictionType)) {
+                    for (IRI avfProperty : relevantAvfRestrictions.get(avfRestrictionType)) {
                         avfPropertyTypes.statements.add(new NullableStatementImpl(avfRestrictionType,
                                 OWL.ONPROPERTY, avfProperty));
                     }

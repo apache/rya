@@ -45,8 +45,8 @@ import org.apache.rya.prospector.domain.IndexEntry;
 import org.apache.rya.prospector.domain.TripleValueType;
 import org.apache.rya.prospector.service.ProspectorService;
 import org.apache.rya.prospector.utils.ProspectorConstants;
+import org.eclipse.rdf4j.model.vocabulary.XMLSchema;
 import org.junit.Test;
-import org.openrdf.model.vocabulary.XMLSchema;
 
 import com.google.common.collect.Lists;
 
@@ -239,7 +239,7 @@ public class ProspectorTest {
      * debugging the test.
      */
     private void debugTable(Connector connector, String table) throws TableNotFoundException {
-        final Iterator<Entry<Key, Value>> it = connector.createScanner(table, new Authorizations(new String[]{"U", "FOUO"})).iterator();
+        final Iterator<Entry<Key, Value>> it = connector.createScanner(table, new Authorizations("U", "FOUO")).iterator();
         while(it.hasNext()) {
             final Entry<Key, Value> entry = it.next();
             System.out.println( entry );

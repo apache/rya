@@ -21,7 +21,7 @@ package org.apache.rya.api.domain;
 
 
 
-import org.openrdf.model.URI;
+import org.eclipse.rdf4j.model.IRI;
 
 /**
  * Date: 7/17/12
@@ -56,7 +56,7 @@ public class RyaTypeRange extends RyaType implements RyaRange {
     }
 
     @Override
-    public URI getDataType() {
+    public IRI getDataType() {
         return start.getDataType();
     }
 
@@ -84,9 +84,7 @@ public class RyaTypeRange extends RyaType implements RyaRange {
         RyaTypeRange that = (RyaTypeRange) o;
 
         if (start != null ? !start.equals(that.start) : that.start != null) return false;
-        if (stop != null ? !stop.equals(that.stop) : that.stop != null) return false;
-
-        return true;
+        return stop != null ? stop.equals(that.stop) : that.stop == null;
     }
 
     @Override

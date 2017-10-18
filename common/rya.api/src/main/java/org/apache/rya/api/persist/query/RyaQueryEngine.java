@@ -19,10 +19,6 @@ package org.apache.rya.api.persist.query;
  * under the License.
  */
 
-
-
-import info.aduna.iteration.CloseableIteration;
-
 import java.io.Closeable;
 import java.util.Collection;
 import java.util.Map;
@@ -31,9 +27,9 @@ import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
 import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.persist.RyaConfigured;
 import org.apache.rya.api.persist.RyaDAOException;
-
 import org.calrissian.mango.collect.CloseableIterable;
-import org.openrdf.query.BindingSet;
+import org.eclipse.rdf4j.common.iteration.CloseableIteration;
+import org.eclipse.rdf4j.query.BindingSet;
 
 /**
  * Rya Query Engine to perform queries against the Rya triple store.

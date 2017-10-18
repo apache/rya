@@ -21,13 +21,11 @@ package org.apache.rya.mongodb.iter;
 import java.util.Iterator;
 import java.util.Map.Entry;
 
+import com.google.common.base.Throwables;
 import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.persist.RyaDAOException;
-import org.openrdf.query.BindingSet;
-
-import com.google.common.base.Throwables;
-
-import info.aduna.iteration.CloseableIteration;
+import org.eclipse.rdf4j.common.iteration.CloseableIteration;
+import org.eclipse.rdf4j.query.BindingSet;
 
 public class RyaStatementCursorIterator implements Iterator<RyaStatement>, CloseableIteration<RyaStatement, RyaDAOException> {
     private final CloseableIteration<? extends Entry<RyaStatement, BindingSet>, RyaDAOException> iterator;

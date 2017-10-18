@@ -22,21 +22,22 @@ import java.util.Collection;
 import java.util.Set;
 
 import org.apache.rya.api.domain.StatementMetadata;
+import org.apache.rya.api.domain.VarNameUtils;
 import org.apache.rya.forwardchain.ForwardChainException;
 import org.apache.rya.forwardchain.strategy.AbstractRuleExecutionStrategy;
+import org.eclipse.rdf4j.model.Value;
+import org.eclipse.rdf4j.model.vocabulary.RDF;
+import org.eclipse.rdf4j.model.vocabulary.RDFS;
+import org.eclipse.rdf4j.query.algebra.StatementPattern;
+import org.eclipse.rdf4j.query.algebra.Var;
 import org.junit.Assert;
 import org.junit.Test;
-import org.openrdf.model.Value;
-import org.openrdf.model.vocabulary.RDF;
-import org.openrdf.model.vocabulary.RDFS;
-import org.openrdf.query.algebra.StatementPattern;
-import org.openrdf.query.algebra.Var;
 
 import com.google.common.collect.Sets;
 
 public class RulesetTest {
     private static Var c(Value val) {
-        Var v = new Var("-const-" + val.stringValue(), val);
+        final Var v = VarNameUtils.createUniqueConstVar(val);
         v.setAnonymous(true);
         return v;
     }

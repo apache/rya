@@ -30,11 +30,11 @@ import org.apache.rya.api.client.InstanceDoesNotExistException;
 import org.apache.rya.api.client.RyaClient;
 import org.apache.rya.mongodb.MongoITBase;
 import org.bson.Document;
+import org.eclipse.rdf4j.model.Statement;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
+import org.eclipse.rdf4j.rio.RDFFormat;
 import org.junit.Test;
-import org.openrdf.model.Statement;
-import org.openrdf.model.ValueFactory;
-import org.openrdf.model.impl.ValueFactoryImpl;
-import org.openrdf.rio.RDFFormat;
 
 import com.mongodb.client.MongoCursor;
 /**
@@ -72,12 +72,12 @@ public class MongoLoadStatementsFileIT extends MongoITBase {
                 RDFFormat.TURTLE);
 
         // Verify that the statements were loaded.
-        final ValueFactory vf = new ValueFactoryImpl();
+        final ValueFactory vf = SimpleValueFactory.getInstance();
 
         final Set<Statement> expected = new HashSet<>();
-        expected.add(vf.createStatement(vf.createURI("http://example#alice"), vf.createURI("http://example#talksTo"), vf.createURI("http://example#bob")));
-        expected.add(vf.createStatement(vf.createURI("http://example#bob"), vf.createURI("http://example#talksTo"), vf.createURI("http://example#charlie")));
-        expected.add(vf.createStatement(vf.createURI("http://example#charlie"), vf.createURI("http://example#likes"), vf.createURI("http://example#icecream")));
+        expected.add(vf.createStatement(vf.createIRI("http://example#alice"), vf.createIRI("http://example#talksTo"), vf.createIRI("http://example#bob")));
+        expected.add(vf.createStatement(vf.createIRI("http://example#bob"), vf.createIRI("http://example#talksTo"), vf.createIRI("http://example#charlie")));
+        expected.add(vf.createStatement(vf.createIRI("http://example#charlie"), vf.createIRI("http://example#likes"), vf.createIRI("http://example#icecream")));
 
         final Set<Statement> statements = new HashSet<>();
         final MongoCursor<Document> triplesIterator = getMongoClient()
@@ -87,9 +87,9 @@ public class MongoLoadStatementsFileIT extends MongoITBase {
         while (triplesIterator.hasNext()) {
             final Document triple = triplesIterator.next();
             statements.add(vf.createStatement(
-                    vf.createURI(triple.getString("subject")),
-                    vf.createURI(triple.getString("predicate")),
-                    vf.createURI(triple.getString("object"))));
+                    vf.createIRI(triple.getString("subject")),
+                    vf.createIRI(triple.getString("predicate")),
+                    vf.createIRI(triple.getString("object"))));
         }
 
         assertEquals(expected, statements);

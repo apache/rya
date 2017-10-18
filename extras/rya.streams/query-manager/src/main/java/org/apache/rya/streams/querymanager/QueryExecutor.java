@@ -22,7 +22,7 @@ import java.util.Set;
 import java.util.UUID;
 
 import org.apache.rya.streams.api.entity.StreamsQuery;
-import org.openrdf.model.Statement;
+import org.eclipse.rdf4j.model.Statement;
 
 import com.google.common.util.concurrent.Service;
 

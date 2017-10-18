@@ -24,17 +24,17 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.rya.api.domain.VarNameUtils;
 import org.apache.rya.rdftriplestore.inference.DoNotExpandSP;
 import org.apache.rya.rdftriplestore.utils.FixedStatementPattern;
-
-import org.openrdf.query.algebra.Filter;
-import org.openrdf.query.algebra.Join;
-import org.openrdf.query.algebra.LeftJoin;
-import org.openrdf.query.algebra.QueryModelNodeBase;
-import org.openrdf.query.algebra.QueryModelVisitor;
-import org.openrdf.query.algebra.TupleExpr;
-import org.openrdf.query.algebra.ValueExpr;
-import org.openrdf.query.algebra.Var;
+import org.eclipse.rdf4j.query.algebra.AbstractQueryModelNode;
+import org.eclipse.rdf4j.query.algebra.Filter;
+import org.eclipse.rdf4j.query.algebra.Join;
+import org.eclipse.rdf4j.query.algebra.LeftJoin;
+import org.eclipse.rdf4j.query.algebra.QueryModelVisitor;
+import org.eclipse.rdf4j.query.algebra.TupleExpr;
+import org.eclipse.rdf4j.query.algebra.ValueExpr;
+import org.eclipse.rdf4j.query.algebra.Var;
 
 import com.google.common.collect.Sets;
 
@@ -51,7 +51,7 @@ import com.google.common.collect.Sets;
  * bound and unbound variables do not change.
  *
  */
-public class FlattenedOptional extends QueryModelNodeBase implements TupleExpr {
+public class FlattenedOptional extends AbstractQueryModelNode implements TupleExpr {
 
     private Set<TupleExpr> rightArgs;
     private Set<String> boundVars;
@@ -124,11 +124,7 @@ public class FlattenedOptional extends QueryModelNodeBase implements TupleExpr {
         // unbound vars
         if (te instanceof FlattenedOptional) {
             FlattenedOptional lj = (FlattenedOptional) te;
-            if (Sets.intersection(lj.rightArg.getBindingNames(), unboundVars).size() > 0) {
-                return false;
-            } else {
-                return true;
-            }
+            return Sets.intersection(lj.rightArg.getBindingNames(), unboundVars).size() <= 0;
         }
 
         return Sets.intersection(te.getBindingNames(), unboundVars).size() == 0;
@@ -246,11 +242,7 @@ public class FlattenedOptional extends QueryModelNodeBase implements TupleExpr {
         // unbound vars
         if (te instanceof FlattenedOptional) {
             FlattenedOptional lj = (FlattenedOptional) te;
-            if (Sets.intersection(lj.getRightArg().getBindingNames(), unboundVars).size() > 0) {
-                return false;
-            } else {
-                return true;
-            }
+            return Sets.intersection(lj.getRightArg().getBindingNames(), unboundVars).size() <= 0;
         }
         Set<String> vars = te.getBindingNames();
         Set<String> intersection = Sets.intersection(vars, boundVars);
@@ -267,9 +259,9 @@ public class FlattenedOptional extends QueryModelNodeBase implements TupleExpr {
 
     private void incrementVarCounts(Set<String> vars) {
         for (String s : vars) {
-            if (!s.startsWith("-const-") && leftArgVarCounts.containsKey(s)) {
+            if (!VarNameUtils.isConstant(s) && leftArgVarCounts.containsKey(s)) {
                 leftArgVarCounts.put(s, leftArgVarCounts.get(s) + 1);
-            } else if (!s.startsWith("-const-")) {
+            } else if (!VarNameUtils.isConstant(s)) {
                 leftArgVarCounts.put(s, 1);
             }
         }
@@ -295,7 +287,7 @@ public class FlattenedOptional extends QueryModelNodeBase implements TupleExpr {
     private Set<String> setWithOutConstants(Set<String> vars) {
         Set<String> copy = new HashSet<>();
         for (String s : vars) {
-            if (!s.startsWith("-const-")) {
+            if (!VarNameUtils.isConstant(s)) {
                 copy.add(s);
             }
         }

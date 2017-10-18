@@ -22,15 +22,15 @@ import org.apache.rya.api.RdfCloudTripleStoreConstants;
 import org.apache.rya.api.domain.RyaSchema;
 import org.apache.rya.api.domain.RyaURI;
 import org.apache.rya.api.resolver.RdfToRyaConversions;
-import org.openrdf.model.URI;
-import org.openrdf.model.ValueFactory;
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.ValueFactory;
 
 public class ForwardChainConstants {
     private static final ValueFactory VF = RdfCloudTripleStoreConstants.VALUE_FACTORY;
     private static final String NAMESPACE = RyaSchema.NAMESPACE;
 
-    public static final URI DERIVATION_TIME = VF.createURI(NAMESPACE, "forwardChainIteration");
-    public static final URI DERIVATION_RULE = VF.createURI(NAMESPACE, "forwardChainRule");
+    public static final IRI DERIVATION_TIME = VF.createIRI(NAMESPACE, "forwardChainIteration");
+    public static final IRI DERIVATION_RULE = VF.createIRI(NAMESPACE, "forwardChainRule");
 
     public static final RyaURI RYA_DERIVATION_RULE = RdfToRyaConversions.convertURI(DERIVATION_RULE);
     public static final RyaURI RYA_DERIVATION_TIME = RdfToRyaConversions.convertURI(DERIVATION_TIME);

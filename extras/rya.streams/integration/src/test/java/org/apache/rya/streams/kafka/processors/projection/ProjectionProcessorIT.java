@@ -34,11 +34,11 @@ import org.apache.rya.streams.kafka.processors.StatementPatternProcessorSupplier
 import org.apache.rya.streams.kafka.serialization.VisibilityBindingSetDeserializer;
 import org.apache.rya.streams.kafka.topology.TopologyFactory;
 import org.apache.rya.test.kafka.KafkaTestInstanceRule;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
+import org.eclipse.rdf4j.query.impl.MapBindingSet;
 import org.junit.Rule;
 import org.junit.Test;
-import org.openrdf.model.ValueFactory;
-import org.openrdf.model.impl.ValueFactoryImpl;
-import org.openrdf.query.impl.MapBindingSet;
 
 import com.google.common.collect.Sets;
 
@@ -68,16 +68,16 @@ public class ProjectionProcessorIT {
         final TopologyBuilder builder = new TopologyFactory().build(sparql, statementsTopic, resultsTopic, new RandomUUIDFactory());
 
         // Load some data into the input topic.
-        final ValueFactory vf = new ValueFactoryImpl();
+        final ValueFactory vf = SimpleValueFactory.getInstance();
         final List<VisibilityStatement> statements = new ArrayList<>();
-        statements.add( new VisibilityStatement(vf.createStatement(vf.createURI("urn:Alice"), vf.createURI("urn:talksTo"), vf.createURI("urn:Bob")), "a") );
+        statements.add( new VisibilityStatement(vf.createStatement(vf.createIRI("urn:Alice"), vf.createIRI("urn:talksTo"), vf.createIRI("urn:Bob")), "a") );
 
         // Show the correct binding set results from the job.
         final Set<VisibilityBindingSet> expected = new HashSet<>();
 
         final MapBindingSet expectedBs = new MapBindingSet();
-        expectedBs.addBinding("p", vf.createURI("urn:Alice"));
-        expectedBs.addBinding("otherPerson", vf.createURI("urn:Bob"));
+        expectedBs.addBinding("p", vf.createIRI("urn:Alice"));
+        expectedBs.addBinding("otherPerson", vf.createIRI("urn:Bob"));
         expected.add(new VisibilityBindingSet(expectedBs, "a"));
 
         RyaStreamsTestUtil.runStreamProcessingTest(kafka, statementsTopic, resultsTopic, builder, statements, Sets.newHashSet(expected), VisibilityBindingSetDeserializer.class);

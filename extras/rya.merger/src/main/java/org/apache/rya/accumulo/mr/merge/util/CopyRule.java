@@ -22,30 +22,29 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
-import org.openrdf.model.Statement;
-import org.openrdf.model.impl.ValueFactoryImpl;
-import org.openrdf.query.QueryEvaluationException;
-import org.openrdf.query.algebra.And;
-import org.openrdf.query.algebra.QueryModelNode;
-import org.openrdf.query.algebra.QueryModelNodeBase;
-import org.openrdf.query.algebra.QueryModelVisitor;
-import org.openrdf.query.algebra.StatementPattern;
-import org.openrdf.query.algebra.ValueConstant;
-import org.openrdf.query.algebra.ValueExpr;
-import org.openrdf.query.algebra.Var;
-import org.openrdf.query.algebra.evaluation.EvaluationStrategy;
-import org.openrdf.query.algebra.evaluation.QueryBindingSet;
-import org.openrdf.query.algebra.evaluation.ValueExprEvaluationException;
-import org.openrdf.query.algebra.helpers.QueryModelVisitorBase;
-
 import org.apache.rya.accumulo.mr.merge.util.QueryRuleset.QueryRulesetException;
+import org.eclipse.rdf4j.model.Statement;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
+import org.eclipse.rdf4j.query.QueryEvaluationException;
+import org.eclipse.rdf4j.query.algebra.AbstractQueryModelNode;
+import org.eclipse.rdf4j.query.algebra.And;
+import org.eclipse.rdf4j.query.algebra.QueryModelNode;
+import org.eclipse.rdf4j.query.algebra.QueryModelVisitor;
+import org.eclipse.rdf4j.query.algebra.StatementPattern;
+import org.eclipse.rdf4j.query.algebra.ValueConstant;
+import org.eclipse.rdf4j.query.algebra.ValueExpr;
+import org.eclipse.rdf4j.query.algebra.Var;
+import org.eclipse.rdf4j.query.algebra.evaluation.EvaluationStrategy;
+import org.eclipse.rdf4j.query.algebra.evaluation.QueryBindingSet;
+import org.eclipse.rdf4j.query.algebra.evaluation.ValueExprEvaluationException;
+import org.eclipse.rdf4j.query.algebra.helpers.AbstractQueryModelVisitor;
 
 /**
  * A rule that defines a subset of statements to copy at the RDF level. Consists of a
  * statement pattern and an optional filter expression.
  */
-public class CopyRule extends QueryModelNodeBase {
-    private static final ValueConstant TRUE = new ValueConstant(ValueFactoryImpl.getInstance().createLiteral(true));
+public class CopyRule extends AbstractQueryModelNode {
+    private static final ValueConstant TRUE = new ValueConstant(SimpleValueFactory.getInstance().createLiteral(true));
 
     private static final String SUFFIX = UUID.randomUUID().toString();
     private static final Var SUBJ_VAR = new Var("subject_" + SUFFIX);
@@ -101,7 +100,7 @@ public class CopyRule extends QueryModelNodeBase {
     /**
      * Visitor that checks a tree for the existence of a given variable name.
      */
-    private static class VarSearchVisitor extends QueryModelVisitorBase<RuntimeException> {
+    private static class VarSearchVisitor extends AbstractQueryModelVisitor<RuntimeException> {
         boolean found = false;
         private final String queryVar;
         public VarSearchVisitor(final String queryVar) {
@@ -126,7 +125,7 @@ public class CopyRule extends QueryModelNodeBase {
      * operators to preserve meaningful expressions while eliminating undefined
      * conditions.
      */
-    private static class RuleVisitor extends QueryModelVisitorBase<RuntimeException> {
+    private static class RuleVisitor extends AbstractQueryModelVisitor<RuntimeException> {
         private final CopyRule rule;
         RuleVisitor(final CopyRule rule) {
             this.rule = rule;
@@ -335,11 +334,8 @@ public class CopyRule extends QueryModelNodeBase {
                 || (statement == null && other.statement != null)) {
             return false;
         }
-        if ((condition != null && !condition.equals(other.condition))
-                || (condition == null && other.condition != null)) {
-            return false;
-        }
-        return true;
+        return (condition == null || condition.equals(other.condition))
+                && (condition != null || other.condition == null);
     }
 
     @Override

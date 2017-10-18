@@ -26,15 +26,15 @@ import java.math.BigInteger;
 import java.util.Map;
 
 import org.apache.rya.api.model.VisibilityBindingSet;
-import org.openrdf.model.Literal;
-import org.openrdf.model.Value;
-import org.openrdf.model.datatypes.XMLDatatypeUtil;
-import org.openrdf.model.impl.DecimalLiteralImpl;
-import org.openrdf.model.impl.IntegerLiteralImpl;
-import org.openrdf.query.algebra.MathExpr.MathOp;
-import org.openrdf.query.algebra.evaluation.ValueExprEvaluationException;
-import org.openrdf.query.algebra.evaluation.util.MathUtil;
-import org.openrdf.query.impl.MapBindingSet;
+import org.eclipse.rdf4j.model.Literal;
+import org.eclipse.rdf4j.model.Value;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.model.datatypes.XMLDatatypeUtil;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
+import org.eclipse.rdf4j.query.algebra.MathExpr.MathOp;
+import org.eclipse.rdf4j.query.algebra.evaluation.ValueExprEvaluationException;
+import org.eclipse.rdf4j.query.algebra.evaluation.util.MathUtil;
+import org.eclipse.rdf4j.query.impl.MapBindingSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -48,6 +48,7 @@ import edu.umd.cs.findbugs.annotations.NonNull;
 @DefaultAnnotation(NonNull.class)
 public final class AverageFunction implements AggregationFunction {
     private static final Logger log = LoggerFactory.getLogger(AverageFunction.class);
+    private static final ValueFactory VF = SimpleValueFactory.getInstance();
 
     @Override
     public void update(final AggregationElement aggregation, final AggregationState state, final VisibilityBindingSet childBindingSet) {
@@ -73,15 +74,15 @@ public final class AverageFunction implements AggregationFunction {
                 if (childLiteral.getDatatype() != null && XMLDatatypeUtil.isNumericDatatype(childLiteral.getDatatype())) {
                     try {
                         // Update the sum.
-                        final Literal oldSum = new DecimalLiteralImpl(averageState.getSum());
+                        final Literal oldSum = VF.createLiteral(averageState.getSum());
                         final BigDecimal sum = MathUtil.compute(oldSum, childLiteral, MathOp.PLUS).decimalValue();
 
                         // Update the count.
                         final BigInteger count = averageState.getCount().add( BigInteger.ONE );
 
                         // Update the BindingSet to include the new average.
-                        final Literal sumLiteral = new DecimalLiteralImpl(sum);
-                        final Literal countLiteral = new IntegerLiteralImpl(count);
+                        final Literal sumLiteral = VF.createLiteral(sum);
+                        final Literal countLiteral = VF.createLiteral(count);
                         final Literal average = MathUtil.compute(sumLiteral, countLiteral, MathOp.DIVIDE);
                         result.addBinding(resultName, average);
 

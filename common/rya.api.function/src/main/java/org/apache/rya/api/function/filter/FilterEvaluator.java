@@ -21,24 +21,24 @@ package org.apache.rya.api.function.filter;
 import static java.util.Objects.requireNonNull;
 
 import org.apache.rya.api.model.VisibilityBindingSet;
-import org.openrdf.model.Resource;
-import org.openrdf.model.Statement;
-import org.openrdf.model.URI;
-import org.openrdf.model.Value;
-import org.openrdf.model.ValueFactory;
-import org.openrdf.model.impl.ValueFactoryImpl;
-import org.openrdf.query.QueryEvaluationException;
-import org.openrdf.query.algebra.Filter;
-import org.openrdf.query.algebra.ValueExpr;
-import org.openrdf.query.algebra.evaluation.TripleSource;
-import org.openrdf.query.algebra.evaluation.impl.EvaluationStrategyImpl;
-import org.openrdf.query.algebra.evaluation.util.QueryEvaluationUtil;
+import org.eclipse.rdf4j.common.iteration.CloseableIteration;
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.Resource;
+import org.eclipse.rdf4j.model.Statement;
+import org.eclipse.rdf4j.model.Value;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
+import org.eclipse.rdf4j.query.QueryEvaluationException;
+import org.eclipse.rdf4j.query.algebra.Filter;
+import org.eclipse.rdf4j.query.algebra.ValueExpr;
+import org.eclipse.rdf4j.query.algebra.evaluation.TripleSource;
+import org.eclipse.rdf4j.query.algebra.evaluation.impl.StrictEvaluationStrategy;
+import org.eclipse.rdf4j.query.algebra.evaluation.util.QueryEvaluationUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
 import edu.umd.cs.findbugs.annotations.NonNull;
-import info.aduna.iteration.CloseableIteration;
 
 /**
  * Processes a {@link Filter} node from a SPARQL query.
@@ -50,9 +50,9 @@ public class FilterEvaluator {
     /**
      * Is used to evaluate the conditions of a {@link Filter}.
      */
-    private static final EvaluationStrategyImpl EVALUATOR = new EvaluationStrategyImpl(
+    private static final StrictEvaluationStrategy EVALUATOR = new StrictEvaluationStrategy(
             new TripleSource() {
-                private final ValueFactory valueFactory = new ValueFactoryImpl();
+                private final ValueFactory valueFactory = SimpleValueFactory.getInstance();
 
                 @Override
                 public ValueFactory getValueFactory() {
@@ -62,12 +62,13 @@ public class FilterEvaluator {
                 @Override
                 public CloseableIteration<? extends Statement, QueryEvaluationException> getStatements(
                         final Resource arg0,
-                        final URI arg1,
+                        final IRI arg1,
                         final Value arg2,
                         final Resource... arg3) throws QueryEvaluationException {
                     throw new UnsupportedOperationException();
                 }
-            });
+            },
+            null);
 
     private final ValueExpr condition;
 

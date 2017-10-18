@@ -1,0 +1,7 @@
+-classpath= target/rdf4j-runtime-osgi.jar
+-output= target/rdf4j-runtime-osgi-2.3.1.jar
+Import-Package= *;resolution:=optional
+Export-Package= *
+Bundle-Version= 2.3.1
+Bundle-SymbolicName= rdf4j-runtime-osgi
+DynamicImport-Package= *

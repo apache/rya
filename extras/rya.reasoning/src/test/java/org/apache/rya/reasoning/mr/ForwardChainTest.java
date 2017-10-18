@@ -24,17 +24,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.rya.accumulo.mr.RyaStatementWritable;
-import org.apache.rya.api.RdfCloudTripleStoreConstants.TABLE_LAYOUT;
-import org.apache.rya.api.domain.RyaStatement;
-import org.apache.rya.api.resolver.triple.TripleRow;
-import org.apache.rya.api.resolver.triple.TripleRowResolver;
-import org.apache.rya.api.resolver.triple.impl.WholeRowTripleResolver;
-import org.apache.rya.reasoning.OwlRule;
-import org.apache.rya.reasoning.Fact;
-import org.apache.rya.reasoning.Schema;
-import org.apache.rya.reasoning.TestUtils;
-
 import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Value;
 import org.apache.hadoop.io.LongWritable;
@@ -44,13 +33,23 @@ import org.apache.hadoop.mrunit.mapreduce.ReduceDriver;
 import org.apache.hadoop.mrunit.mapreduce.ReduceFeeder;
 import org.apache.hadoop.mrunit.types.KeyValueReuseList;
 import org.apache.hadoop.mrunit.types.Pair;
+import org.apache.rya.accumulo.mr.RyaStatementWritable;
+import org.apache.rya.api.RdfCloudTripleStoreConstants.TABLE_LAYOUT;
+import org.apache.rya.api.domain.RyaStatement;
+import org.apache.rya.api.resolver.triple.TripleRow;
+import org.apache.rya.api.resolver.triple.TripleRowResolver;
+import org.apache.rya.api.resolver.triple.impl.WholeRowTripleResolver;
+import org.apache.rya.reasoning.Fact;
+import org.apache.rya.reasoning.OwlRule;
+import org.apache.rya.reasoning.Schema;
+import org.apache.rya.reasoning.TestUtils;
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.vocabulary.OWL;
+import org.eclipse.rdf4j.model.vocabulary.RDF;
+import org.eclipse.rdf4j.model.vocabulary.RDFS;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.openrdf.model.URI;
-import org.openrdf.model.vocabulary.OWL;
-import org.openrdf.model.vocabulary.RDF;
-import org.openrdf.model.vocabulary.RDFS;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
@@ -187,7 +186,7 @@ public class ForwardChainTest {
     public void testTransitiveChain() throws Exception {
         int max = 8;
         int n = 4;
-        URI prop = TestUtils.uri("subOrganizationOf");
+        IRI prop = TestUtils.uri("subOrganizationOf");
         Map<Integer, Map<Integer, Pair<Fact, NullWritable>>> connections
             = new HashMap<>();
         for (int i = 0; i <= max; i++) {
@@ -195,8 +194,8 @@ public class ForwardChainTest {
         }
         // Initial input: make a chain from org0 to org8
         for (int i = 0; i < max; i++) {
-            URI orgI = TestUtils.uri("org" + i);
-            URI orgJ = TestUtils.uri("org" + (i + 1));
+            IRI orgI = TestUtils.uri("org" + i);
+            IRI orgJ = TestUtils.uri("org" + (i + 1));
             Fact triple = new Fact(orgI, prop, orgJ);
             connections.get(i).put(i+1, new Pair<>(triple, NullWritable.get()));
         }
@@ -232,8 +231,8 @@ public class ForwardChainTest {
                 // This includes any path of length k for appropriate k:
                 for (int k = minSpan; k <= maxSpan && j+k <= max; k++) {
                     int middle = j + minSpan - 1;
-                    URI left = TestUtils.uri("org" + j);
-                    URI right = TestUtils.uri("org" + (j + k));
+                    IRI left = TestUtils.uri("org" + j);
+                    IRI right = TestUtils.uri("org" + (j + k));
                     Fact triple = new Fact(left, prop,
                         right, i, OwlRule.PRP_TRP, TestUtils.uri("org" + middle));
                     triple.addSource(connections.get(j).get(middle).getFirst());

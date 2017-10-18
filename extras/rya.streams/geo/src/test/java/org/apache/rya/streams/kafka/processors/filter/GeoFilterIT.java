@@ -38,18 +38,17 @@ import org.apache.rya.streams.kafka.processors.filter.FilterProcessorSupplier.Fi
 import org.apache.rya.streams.kafka.serialization.VisibilityBindingSetDeserializer;
 import org.apache.rya.streams.kafka.topology.TopologyFactory;
 import org.apache.rya.test.kafka.KafkaTestInstanceRule;
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.Resource;
+import org.eclipse.rdf4j.model.Statement;
+import org.eclipse.rdf4j.model.Value;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
+import org.eclipse.rdf4j.query.algebra.evaluation.function.Function;
+import org.eclipse.rdf4j.query.algebra.evaluation.function.FunctionRegistry;
+import org.eclipse.rdf4j.query.impl.MapBindingSet;
 import org.junit.Rule;
 import org.junit.Test;
-import org.openrdf.model.Resource;
-import org.openrdf.model.Statement;
-import org.openrdf.model.URI;
-import org.openrdf.model.Value;
-import org.openrdf.model.ValueFactory;
-import org.openrdf.model.impl.StatementImpl;
-import org.openrdf.model.impl.ValueFactoryImpl;
-import org.openrdf.query.algebra.evaluation.function.Function;
-import org.openrdf.query.algebra.evaluation.function.FunctionRegistry;
-import org.openrdf.query.impl.MapBindingSet;
 
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.Geometry;
@@ -104,7 +103,7 @@ public class GeoFilterIT {
         final TopologyBuilder builder = new TopologyFactory().build(sparql, statementsTopic, resultsTopic, new RandomUUIDFactory());
 
         // Create the statements that will be input into the query.
-        final ValueFactory vf = new ValueFactoryImpl();
+        final ValueFactory vf = SimpleValueFactory.getInstance();
         final List<VisibilityStatement> statements = getStatements();
 
         // Make the expected results.
@@ -127,11 +126,11 @@ public class GeoFilterIT {
     }
 
     private static Statement statement(final Geometry geo) {
-        final ValueFactory vf = new ValueFactoryImpl();
-        final Resource subject = vf.createURI("urn:event1");
-        final URI predicate = GeoConstants.GEO_AS_WKT;
+        final ValueFactory vf = SimpleValueFactory.getInstance();
+        final Resource subject = vf.createIRI("urn:event1");
+        final IRI predicate = GeoConstants.GEO_AS_WKT;
         final WKTWriter w = new WKTWriter();
         final Value object = vf.createLiteral(w.write(geo), GeoConstants.XMLSCHEMA_OGC_WKT);
-        return new StatementImpl(subject, predicate, object);
+        return vf.createStatement(subject, predicate, object);
     }
 }

@@ -20,10 +20,10 @@ package org.apache.rya.indexing.pcj.storage.accumulo;
 
 import java.util.Set;
 
+import org.eclipse.rdf4j.query.MalformedQueryException;
+
 import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
 import edu.umd.cs.findbugs.annotations.NonNull;
-
-import org.openrdf.query.MalformedQueryException;
 
 /**
  * Create alternative variable orders for a SPARQL query based on

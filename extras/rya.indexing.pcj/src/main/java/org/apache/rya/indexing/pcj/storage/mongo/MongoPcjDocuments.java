@@ -40,18 +40,19 @@ import org.apache.rya.indexing.pcj.storage.accumulo.ShiftVarOrderFactory;
 import org.apache.rya.indexing.pcj.storage.accumulo.VariableOrder;
 import org.bson.Document;
 import org.bson.conversions.Bson;
-import org.openrdf.model.URI;
-import org.openrdf.model.Value;
-import org.openrdf.model.impl.URIImpl;
-import org.openrdf.query.BindingSet;
-import org.openrdf.query.MalformedQueryException;
-import org.openrdf.query.QueryEvaluationException;
-import org.openrdf.query.QueryLanguage;
-import org.openrdf.query.TupleQuery;
-import org.openrdf.query.TupleQueryResult;
-import org.openrdf.query.impl.MapBindingSet;
-import org.openrdf.repository.RepositoryConnection;
-import org.openrdf.repository.RepositoryException;
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.Value;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
+import org.eclipse.rdf4j.query.BindingSet;
+import org.eclipse.rdf4j.query.MalformedQueryException;
+import org.eclipse.rdf4j.query.QueryEvaluationException;
+import org.eclipse.rdf4j.query.QueryLanguage;
+import org.eclipse.rdf4j.query.TupleQuery;
+import org.eclipse.rdf4j.query.TupleQueryResult;
+import org.eclipse.rdf4j.query.impl.MapBindingSet;
+import org.eclipse.rdf4j.repository.RepositoryConnection;
+import org.eclipse.rdf4j.repository.RepositoryException;
 
 import com.mongodb.MongoClient;
 import com.mongodb.client.FindIterable;
@@ -107,6 +108,7 @@ public class MongoPcjDocuments {
 
     private final MongoCollection<Document> pcjCollection;
     private static final PcjVarOrderFactory pcjVarOrderFactory = new ShiftVarOrderFactory();
+    private static final ValueFactory VF = SimpleValueFactory.getInstance();
 
     /**
      * Creates a new {@link MongoPcjDocuments}.
@@ -418,7 +420,7 @@ public class MongoPcjDocuments {
                     } else if (!key.equals("_id") && !key.equals(PCJ_ID)) {
                         // is the binding value.
                         final Document typeDoc = (Document) bs.get(key);
-                        final URI dataType = new URIImpl(typeDoc.getString(BINDING_TYPE));
+                        final IRI dataType = VF.createIRI(typeDoc.getString(BINDING_TYPE));
                         final RyaType type = new RyaType(dataType, typeDoc.getString(BINDING_VALUE));
                         final Value value = RyaToRdfConversions.convertValue(type);
                         binding.addBinding(key, value);

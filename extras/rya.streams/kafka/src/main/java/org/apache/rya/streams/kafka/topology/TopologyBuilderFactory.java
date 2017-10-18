@@ -20,7 +20,7 @@ package org.apache.rya.streams.kafka.topology;
 
 import org.apache.kafka.streams.processor.TopologyBuilder;
 import org.apache.rya.api.function.projection.BNodeIdFactory;
-import org.openrdf.query.MalformedQueryException;
+import org.eclipse.rdf4j.query.MalformedQueryException;
 
 import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
 import edu.umd.cs.findbugs.annotations.NonNull;

@@ -17,31 +17,32 @@ package org.apache.rya.indexing.statement.metadata.matching;
  * specific language governing permissions and limitations
  * under the License.
  */
-import org.openrdf.model.URI;
-import org.openrdf.model.ValueFactory;
-import org.openrdf.model.impl.ValueFactoryImpl;
-import org.openrdf.model.vocabulary.OWL;
+
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
+import org.eclipse.rdf4j.model.vocabulary.OWL;
 
 public class OWLReify {
 
     /** http://www.w3.org/2002/07/owl#Annotation*/
-    public final static URI ANNOTATION;
+    public final static IRI ANNOTATION;
 
     /** http://www.w3.org/2002/07/owl#annotatedSource*/
-    public static final URI SOURCE;
+    public static final IRI SOURCE;
     
     /** http://www.w3.org/2002/07/owl#annotatedProperty*/
-    public static final URI PROPERTY;
+    public static final IRI PROPERTY;
     
     /** http://www.w3.org/2002/07/owl#annotatedTarget*/
-    public static final URI TARGET;
+    public static final IRI TARGET;
 
     static {
-        ValueFactory factory = ValueFactoryImpl.getInstance();
-        ANNOTATION = factory.createURI(OWL.NAMESPACE, "Annotation");
-        PROPERTY = factory.createURI(OWL.NAMESPACE, "annotatedProperty");
-        SOURCE = factory.createURI(OWL.NAMESPACE, "annotatedSource");
-        TARGET = factory.createURI(OWL.NAMESPACE, "annotatedTarget");
+        ValueFactory factory = SimpleValueFactory.getInstance();
+        ANNOTATION = factory.createIRI(OWL.NAMESPACE, "Annotation");
+        PROPERTY = factory.createIRI(OWL.NAMESPACE, "annotatedProperty");
+        SOURCE = factory.createIRI(OWL.NAMESPACE, "annotatedSource");
+        TARGET = factory.createIRI(OWL.NAMESPACE, "annotatedTarget");
     }
 }
     

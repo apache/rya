@@ -19,9 +19,10 @@ package org.apache.rya.api.persist.query.join;
  * under the License.
  */
 
+import java.util.Enumeration;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
-
-import info.aduna.iteration.CloseableIteration;
 import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
 import org.apache.rya.api.RdfCloudTripleStoreUtils;
 import org.apache.rya.api.domain.RyaStatement;
@@ -31,10 +32,7 @@ import org.apache.rya.api.persist.RyaDAOException;
 import org.apache.rya.api.persist.query.RyaQueryEngine;
 import org.apache.rya.api.resolver.RyaContext;
 import org.apache.rya.api.utils.EnumerationWrapper;
-
-import java.util.Enumeration;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+import org.eclipse.rdf4j.common.iteration.CloseableIteration;
 
 /**
  * Use HashTable to do a HashJoin.

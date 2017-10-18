@@ -1,15 +1,3 @@
-package org.apache.rya.reasoning;
-
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.DataInputStream;
-import java.io.DataOutput;
-import java.io.DataOutputStream;
-import java.io.ObjectOutputStream;
-import java.io.Serializable;
-
-import org.apache.rya.reasoning.mr.SchemaWritable;
-
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -28,20 +16,31 @@ import org.apache.rya.reasoning.mr.SchemaWritable;
  * specific language governing permissions and limitations
  * under the License.
  */
+package org.apache.rya.reasoning;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.DataInputStream;
+import java.io.DataOutput;
+import java.io.DataOutputStream;
+import java.io.ObjectOutputStream;
+import java.io.Serializable;
+
+import org.apache.rya.reasoning.mr.SchemaWritable;
+
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.Resource;
+import org.eclipse.rdf4j.model.vocabulary.OWL;
+import org.eclipse.rdf4j.model.vocabulary.RDF;
+import org.eclipse.rdf4j.model.vocabulary.RDFS;
+import org.eclipse.rdf4j.model.vocabulary.SKOS;
 import org.junit.Assert;
 import org.junit.Test;
-import org.openrdf.model.Resource;
-import org.openrdf.model.URI;
-import org.openrdf.model.vocabulary.OWL;
-import org.openrdf.model.vocabulary.RDF;
-import org.openrdf.model.vocabulary.RDFS;
-import org.openrdf.model.vocabulary.SKOS;
 
 public class SchemaTest implements Serializable {
     private static final long serialVersionUID = -3616030386119902719L;
 
-    URI lubm(String s) {
+    IRI lubm(String s) {
         return TestUtils.uri("http://swat.cse.lehigh.edu/onto/univ-bench.owl", s);
     }
 
@@ -320,8 +319,8 @@ public class SchemaTest implements Serializable {
     @Test
     public void testInputMaxCardinality() throws Exception {
         Schema schema = new Schema();
-        URI s = TestUtils.uri("x");
-        URI p = OWL.MAXCARDINALITY;
+        IRI s = TestUtils.uri("x");
+        IRI p = OWL.MAXCARDINALITY;
         schema.processTriple(TestUtils.statement(s, p, TestUtils.stringLiteral("7")));
         schema.processTriple(TestUtils.statement(s, p, TestUtils.stringLiteral("4")));
         schema.processTriple(TestUtils.statement(s, p, TestUtils.stringLiteral("-1")));
@@ -334,8 +333,8 @@ public class SchemaTest implements Serializable {
     @Test
     public void testInputMaxQualifiedCardinality() throws Exception {
         Schema schema = new Schema();
-        URI s = TestUtils.uri("x");
-        URI p = OWL2.MAXQUALIFIEDCARDINALITY;
+        IRI s = TestUtils.uri("x");
+        IRI p = OWL2.MAXQUALIFIEDCARDINALITY;
         schema.processTriple(TestUtils.statement(s, p, TestUtils.stringLiteral("-20")));
         schema.processTriple(TestUtils.statement(s, p, TestUtils.stringLiteral("100")));
         schema.processTriple(TestUtils.statement(s, p, TestUtils.stringLiteral("0")));

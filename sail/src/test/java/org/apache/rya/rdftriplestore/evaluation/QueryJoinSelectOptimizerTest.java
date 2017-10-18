@@ -19,22 +19,11 @@ package org.apache.rya.rdftriplestore.evaluation;
  * under the License.
  */
 
-
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
-
-import org.apache.rya.accumulo.AccumuloRdfConfiguration;
-import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
-import org.apache.rya.api.layout.TablePrefixLayoutStrategy;
-import org.apache.rya.api.persist.RdfEvalStatsDAO;
-import org.apache.rya.joinselect.AccumuloSelectivityEvalDAO;
-import org.apache.rya.prospector.service.ProspectorServiceEvalStatsDAO;
-import org.apache.rya.rdftriplestore.evaluation.QueryJoinSelectOptimizer;
-import org.apache.rya.rdftriplestore.evaluation.RdfCloudTripleStoreSelectivityEvaluationStatistics;
 
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
@@ -53,14 +42,20 @@ import org.apache.accumulo.core.data.Range;
 import org.apache.accumulo.core.data.Value;
 import org.apache.accumulo.core.security.Authorizations;
 import org.apache.hadoop.io.Text;
+import org.apache.rya.accumulo.AccumuloRdfConfiguration;
+import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
+import org.apache.rya.api.layout.TablePrefixLayoutStrategy;
+import org.apache.rya.api.persist.RdfEvalStatsDAO;
+import org.apache.rya.joinselect.AccumuloSelectivityEvalDAO;
+import org.apache.rya.prospector.service.ProspectorServiceEvalStatsDAO;
+import org.eclipse.rdf4j.query.MalformedQueryException;
+import org.eclipse.rdf4j.query.algebra.TupleExpr;
+import org.eclipse.rdf4j.query.algebra.evaluation.impl.FilterOptimizer;
+import org.eclipse.rdf4j.query.parser.ParsedQuery;
+import org.eclipse.rdf4j.query.parser.sparql.SPARQLParser;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.openrdf.query.MalformedQueryException;
-import org.openrdf.query.algebra.TupleExpr;
-import org.openrdf.query.algebra.evaluation.impl.FilterOptimizer;
-import org.openrdf.query.parser.ParsedQuery;
-import org.openrdf.query.parser.sparql.SPARQLParser;
 
 public class QueryJoinSelectOptimizerTest {
 
@@ -950,7 +945,7 @@ public class QueryJoinSelectOptimizerTest {
     }
 
     TupleExpr te = getTupleExpr(q6);
-    TupleExpr te2 = (TupleExpr) te.clone();
+    TupleExpr te2 = te.clone();
     System.out.println("Bindings are " + te.getBindingNames());
     RdfCloudTripleStoreSelectivityEvaluationStatistics ars = new RdfCloudTripleStoreSelectivityEvaluationStatistics(arc, res, accc);
     QueryJoinSelectOptimizer qjs = new QueryJoinSelectOptimizer(ars, accc);

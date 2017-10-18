@@ -35,11 +35,11 @@ import org.apache.rya.streams.kafka.serialization.VisibilityStatementDeserialize
 import org.apache.rya.streams.kafka.serialization.VisibilityStatementSerializer;
 import org.apache.rya.test.kafka.KafkaTestInstanceRule;
 import org.apache.rya.test.kafka.KafkaTestUtil;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
+import org.eclipse.rdf4j.rio.UnsupportedRDFormatException;
 import org.junit.Rule;
 import org.junit.Test;
-import org.openrdf.model.ValueFactory;
-import org.openrdf.model.impl.ValueFactoryImpl;
-import org.openrdf.rio.UnsupportedRDFormatException;
 
 /**
  * Integration tests the {@link KafkaLoadStatements} command
@@ -81,16 +81,16 @@ public class KafkaLoadStatementsIT {
         }
 
         final List<VisibilityStatement> original = new ArrayList<>();
-        final ValueFactory VF = ValueFactoryImpl.getInstance();
+        final ValueFactory vf = SimpleValueFactory.getInstance();
 
         original.add(new VisibilityStatement(
-                VF.createStatement(VF.createURI("http://example#alice"), VF.createURI("http://example#talksTo"), VF.createURI("http://example#bob")),
+                vf.createStatement(vf.createIRI("http://example#alice"), vf.createIRI("http://example#talksTo"), vf.createIRI("http://example#bob")),
                 visibilities));
         original.add(new VisibilityStatement(
-                VF.createStatement(VF.createURI("http://example#bob"), VF.createURI("http://example#talksTo"), VF.createURI("http://example#charlie")),
+                vf.createStatement(vf.createIRI("http://example#bob"), vf.createIRI("http://example#talksTo"), vf.createIRI("http://example#charlie")),
                 visibilities));
         original.add(new VisibilityStatement(
-                VF.createStatement(VF.createURI("http://example#charlie"), VF.createURI("http://example#likes"), VF.createURI("http://example#icecream")),
+                vf.createStatement(vf.createIRI("http://example#charlie"), vf.createIRI("http://example#likes"), vf.createIRI("http://example#icecream")),
                 visibilities));
         // Show the written statement matches the read one.
         assertEquals(original, read);

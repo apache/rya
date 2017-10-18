@@ -19,10 +19,20 @@ package org.apache.rya.api.resolver;
  * under the License.
  */
 
-
-
-import org.apache.rya.api.domain.*;
-import org.openrdf.model.*;
+import org.apache.rya.api.domain.RangeURI;
+import org.apache.rya.api.domain.RangeValue;
+import org.apache.rya.api.domain.RyaSchema;
+import org.apache.rya.api.domain.RyaStatement;
+import org.apache.rya.api.domain.RyaType;
+import org.apache.rya.api.domain.RyaTypeRange;
+import org.apache.rya.api.domain.RyaURI;
+import org.apache.rya.api.domain.RyaURIRange;
+import org.eclipse.rdf4j.model.BNode;
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.Literal;
+import org.eclipse.rdf4j.model.Resource;
+import org.eclipse.rdf4j.model.Statement;
+import org.eclipse.rdf4j.model.Value;
 
 /**
  * Date: 7/17/12
@@ -30,7 +40,7 @@ import org.openrdf.model.*;
  */
 public class RdfToRyaConversions {
 
-    public static RyaURI convertURI(URI uri) {
+    public static RyaURI convertURI(IRI uri) {
         if (uri == null) return null;
         if (uri instanceof RangeURI) {
             RangeURI ruri = (RangeURI) uri;
@@ -59,8 +69,8 @@ public class RdfToRyaConversions {
         }
         if (value instanceof RangeValue) {
             RangeValue rv = (RangeValue) value;
-            if (rv.getStart() instanceof URI) {
-                return new RyaURIRange(convertURI((URI) rv.getStart()), convertURI((URI) rv.getEnd()));
+            if (rv.getStart() instanceof IRI) {
+                return new RyaURIRange(convertURI((IRI) rv.getStart()), convertURI((IRI) rv.getEnd()));
             } else {
                 //literal
                 return new RyaTypeRange(convertLiteral((Literal) rv.getStart()), convertLiteral((Literal) rv.getEnd()));
@@ -74,13 +84,13 @@ public class RdfToRyaConversions {
         if (subject instanceof BNode) {
             return new RyaURI(RyaSchema.BNODE_NAMESPACE + ((BNode) subject).getID());
         }
-        return convertURI((URI) subject);
+        return convertURI((IRI) subject);
     }
 
     public static RyaStatement convertStatement(Statement statement) {
         if (statement == null) return null;
         Resource subject = statement.getSubject();
-        URI predicate = statement.getPredicate();
+        IRI predicate = statement.getPredicate();
         Value object = statement.getObject();
         Resource context = statement.getContext();
         return new RyaStatement(

@@ -19,7 +19,7 @@
 package org.apache.rya.indexing.smarturi.duplication;
 
 import org.apache.rya.indexing.smarturi.SmartUriException;
-import org.openrdf.model.URI;
+import org.eclipse.rdf4j.model.IRI;
 
 /**
  * Interface for detecting if two objects of type {@code T} are considered
@@ -57,10 +57,10 @@ public interface ApproxEqualsDetector<T> {
     public Class<?> getTypeClass();
 
     /**
-     * @return the {@link URI} for the XML schema type this detector is used
+     * @return the {@link IRI} for the XML schema type this detector is used
      * for.
      */
-    public URI getXmlSchemaUri();
+    public IRI getXmlSchemaUri();
 
     /**
      * Checks if two string representations of objects are approximately equal.

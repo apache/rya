@@ -31,26 +31,26 @@ import org.apache.rya.indexing.pcj.fluo.app.IncrementalUpdateConstants;
 import org.apache.rya.indexing.pcj.fluo.app.NodeType;
 import org.apache.rya.indexing.pcj.fluo.app.query.FluoQueryColumns;
 import org.apache.rya.indexing.pcj.fluo.app.query.PeriodicQueryNode;
-import org.openrdf.model.Literal;
-import org.openrdf.model.URI;
-import org.openrdf.model.Value;
-import org.openrdf.model.ValueFactory;
-import org.openrdf.model.impl.ValueFactoryImpl;
-import org.openrdf.model.vocabulary.XMLSchema;
-import org.openrdf.query.MalformedQueryException;
-import org.openrdf.query.algebra.Filter;
-import org.openrdf.query.algebra.FunctionCall;
-import org.openrdf.query.algebra.Group;
-import org.openrdf.query.algebra.Projection;
-import org.openrdf.query.algebra.QueryModelNode;
-import org.openrdf.query.algebra.Reduced;
-import org.openrdf.query.algebra.TupleExpr;
-import org.openrdf.query.algebra.UnaryTupleOperator;
-import org.openrdf.query.algebra.ValueConstant;
-import org.openrdf.query.algebra.ValueExpr;
-import org.openrdf.query.algebra.Var;
-import org.openrdf.query.algebra.helpers.QueryModelVisitorBase;
-import org.openrdf.query.parser.sparql.SPARQLParser;
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.Literal;
+import org.eclipse.rdf4j.model.Value;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
+import org.eclipse.rdf4j.model.vocabulary.XMLSchema;
+import org.eclipse.rdf4j.query.MalformedQueryException;
+import org.eclipse.rdf4j.query.algebra.Filter;
+import org.eclipse.rdf4j.query.algebra.FunctionCall;
+import org.eclipse.rdf4j.query.algebra.Group;
+import org.eclipse.rdf4j.query.algebra.Projection;
+import org.eclipse.rdf4j.query.algebra.QueryModelNode;
+import org.eclipse.rdf4j.query.algebra.Reduced;
+import org.eclipse.rdf4j.query.algebra.TupleExpr;
+import org.eclipse.rdf4j.query.algebra.UnaryTupleOperator;
+import org.eclipse.rdf4j.query.algebra.ValueConstant;
+import org.eclipse.rdf4j.query.algebra.ValueExpr;
+import org.eclipse.rdf4j.query.algebra.Var;
+import org.eclipse.rdf4j.query.algebra.helpers.AbstractQueryModelVisitor;
+import org.eclipse.rdf4j.query.parser.sparql.SPARQLParser;
 
 import com.google.common.base.Preconditions;
 
@@ -60,12 +60,12 @@ import com.google.common.base.Preconditions;
  */
 public class PeriodicQueryUtil {
 
-    private static final ValueFactory vf = new ValueFactoryImpl();
+    private static final ValueFactory VF = SimpleValueFactory.getInstance();
     public static final String PeriodicQueryURI = "http://org.apache.rya/function#periodic";
     public static final String temporalNameSpace = "http://www.w3.org/2006/time#";
-    public static final URI DAYS = vf.createURI("http://www.w3.org/2006/time#days");
-    public static final URI HOURS = vf.createURI("http://www.w3.org/2006/time#hours");
-    public static final URI MINUTES = vf.createURI("http://www.w3.org/2006/time#minutes");
+    public static final IRI DAYS = VF.createIRI("http://www.w3.org/2006/time#days");
+    public static final IRI HOURS = VF.createIRI("http://www.w3.org/2006/time#hours");
+    public static final IRI MINUTES = VF.createIRI("http://www.w3.org/2006/time#minutes");
 
     /**
      * Returns a PeriodicQueryNode for all {@link FunctionCall}s that represent PeriodicQueryNodes, otherwise
@@ -105,7 +105,7 @@ public class PeriodicQueryUtil {
      * Locates Filter containing FunctionCall with PeriodicQuery info and
      * replaces that Filter with a PeriodicQueryNode.
      */
-    public static class PeriodicQueryNodeVisitor extends QueryModelVisitorBase<RuntimeException> {
+    public static class PeriodicQueryNodeVisitor extends AbstractQueryModelVisitor<RuntimeException> {
 
         private int count = 0;
         private PeriodicQueryNode periodicNode;
@@ -145,7 +145,7 @@ public class PeriodicQueryUtil {
      * whose variable order needs to be changed when the PeriodicQueryMetadata
      * is added.
      */
-    public static class PeriodicQueryNodeRelocator extends QueryModelVisitorBase<RuntimeException> {
+    public static class PeriodicQueryNodeRelocator extends AbstractQueryModelVisitor<RuntimeException> {
 
         private UnaryTupleOperator relocationParent;
 
@@ -261,8 +261,8 @@ public class PeriodicQueryUtil {
     }
 
     private static TimeUnit getTimeUnit(ValueConstant val) {
-        Preconditions.checkArgument(val.getValue() instanceof URI);
-        URI uri = (URI) val.getValue();
+        Preconditions.checkArgument(val.getValue() instanceof IRI);
+        IRI uri = (IRI) val.getValue();
         Preconditions.checkArgument(uri.getNamespace().equals(temporalNameSpace));
 
         switch (uri.getLocalName()) {
@@ -282,7 +282,7 @@ public class PeriodicQueryUtil {
         Preconditions.checkArgument(val instanceof Literal);
         Literal literal = (Literal) val;
         String stringVal = literal.getLabel();
-        URI dataType = literal.getDatatype();
+        IRI dataType = literal.getDatatype();
         Preconditions.checkArgument(dataType.equals(XMLSchema.DECIMAL) || dataType.equals(XMLSchema.DOUBLE)
                 || dataType.equals(XMLSchema.FLOAT) || dataType.equals(XMLSchema.INTEGER) || dataType.equals(XMLSchema.INT));
         return Double.parseDouble(stringVal);

@@ -28,46 +28,46 @@ import java.util.Set;
 import org.apache.rya.accumulo.AccumuloRdfConfiguration;
 import org.apache.rya.api.utils.NullableStatementImpl;
 import org.apache.rya.rdftriplestore.utils.FixedStatementPattern;
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.Resource;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
+import org.eclipse.rdf4j.model.vocabulary.OWL;
+import org.eclipse.rdf4j.model.vocabulary.RDF;
+import org.eclipse.rdf4j.query.algebra.Join;
+import org.eclipse.rdf4j.query.algebra.Projection;
+import org.eclipse.rdf4j.query.algebra.ProjectionElem;
+import org.eclipse.rdf4j.query.algebra.ProjectionElemList;
+import org.eclipse.rdf4j.query.algebra.StatementPattern;
+import org.eclipse.rdf4j.query.algebra.TupleExpr;
+import org.eclipse.rdf4j.query.algebra.Union;
+import org.eclipse.rdf4j.query.algebra.Var;
 import org.junit.Assert;
 import org.junit.Test;
-import org.openrdf.model.Resource;
-import org.openrdf.model.URI;
-import org.openrdf.model.ValueFactory;
-import org.openrdf.model.impl.ValueFactoryImpl;
-import org.openrdf.model.vocabulary.OWL;
-import org.openrdf.model.vocabulary.RDF;
-import org.openrdf.query.algebra.Join;
-import org.openrdf.query.algebra.Projection;
-import org.openrdf.query.algebra.ProjectionElem;
-import org.openrdf.query.algebra.ProjectionElemList;
-import org.openrdf.query.algebra.StatementPattern;
-import org.openrdf.query.algebra.TupleExpr;
-import org.openrdf.query.algebra.Union;
-import org.openrdf.query.algebra.Var;
 
 import com.google.common.collect.Sets;
 
 public class SomeValuesFromVisitorTest {
     private static final AccumuloRdfConfiguration conf = new AccumuloRdfConfiguration();
-    private static final ValueFactory vf = new ValueFactoryImpl();
+    private static final ValueFactory VF = SimpleValueFactory.getInstance();
 
     // Value types
-    private final URI course = vf.createURI("lubm:Course");
-    private final URI gradCourse = vf.createURI("lubm:GraduateCourse");
-    private final URI department = vf.createURI("lubm:Department");
-    private final URI organization = vf.createURI("lubm:Organization");
+    private final IRI course = VF.createIRI("lubm:Course");
+    private final IRI gradCourse = VF.createIRI("lubm:GraduateCourse");
+    private final IRI department = VF.createIRI("lubm:Department");
+    private final IRI organization = VF.createIRI("lubm:Organization");
     // Predicates
-    private final URI takesCourse = vf.createURI("lubm:takesCourse");
-    private final URI headOf = vf.createURI("lubm:headOf");
-    private final URI worksFor = vf.createURI("lubm:worksFor");
+    private final IRI takesCourse = VF.createIRI("lubm:takesCourse");
+    private final IRI headOf = VF.createIRI("lubm:headOf");
+    private final IRI worksFor = VF.createIRI("lubm:worksFor");
     // Supertype of restriction types
-    private final URI person = vf.createURI("lubm:Person");
+    private final IRI person = VF.createIRI("lubm:Person");
 
     @Test
     public void testSomeValuesFrom() throws Exception {
         // Configure a mock instance engine with an ontology:
         final InferenceEngine inferenceEngine = mock(InferenceEngine.class);
-        Map<Resource, Set<URI>> personSVF = new HashMap<>();
+        Map<Resource, Set<IRI>> personSVF = new HashMap<>();
         personSVF.put(gradCourse, Sets.newHashSet(takesCourse));
         personSVF.put(course, Sets.newHashSet(takesCourse));
         personSVF.put(department, Sets.newHashSet(headOf));
@@ -136,7 +136,7 @@ public class SomeValuesFromVisitorTest {
         disabledConf.setInferSomeValuesFrom(false);
         // Configure a mock instance engine with an ontology:
         final InferenceEngine inferenceEngine = mock(InferenceEngine.class);
-        Map<Resource, Set<URI>> personSVF = new HashMap<>();
+        Map<Resource, Set<IRI>> personSVF = new HashMap<>();
         personSVF.put(gradCourse, Sets.newHashSet(takesCourse));
         personSVF.put(course, Sets.newHashSet(takesCourse));
         personSVF.put(department, Sets.newHashSet(headOf));

@@ -21,7 +21,7 @@
 -->
 # Sparql Update
 
-OpenRDF supports the Sparql Update functionality. Here are a few samples:
+RDF4J supports the Sparql Update functionality. Here are a few samples:
 
 Remember, you have to use `RepositoryConnection.prepareUpdate(..)` to perform these queries
 

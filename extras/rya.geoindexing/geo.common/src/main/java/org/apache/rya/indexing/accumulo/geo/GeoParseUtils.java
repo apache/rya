@@ -28,13 +28,13 @@ import javax.xml.parsers.ParserConfigurationException;
 
 import org.apache.log4j.Logger;
 import org.apache.rya.indexing.GeoConstants;
-import org.openrdf.model.Literal;
-import org.openrdf.model.Statement;
-import org.openrdf.model.Value;
-import org.openrdf.query.algebra.FunctionCall;
-import org.openrdf.query.algebra.ValueConstant;
-import org.openrdf.query.algebra.ValueExpr;
-import org.openrdf.query.algebra.Var;
+import org.eclipse.rdf4j.model.Literal;
+import org.eclipse.rdf4j.model.Statement;
+import org.eclipse.rdf4j.model.Value;
+import org.eclipse.rdf4j.query.algebra.FunctionCall;
+import org.eclipse.rdf4j.query.algebra.ValueConstant;
+import org.eclipse.rdf4j.query.algebra.ValueExpr;
+import org.eclipse.rdf4j.query.algebra.Var;
 import org.xml.sax.SAXException;
 
 import com.vividsolutions.jts.geom.Geometry;
@@ -67,7 +67,7 @@ public class GeoParseUtils {
 	}
 
     public static Literal getLiteral(final Statement statement) throws ParseException {
-        final org.openrdf.model.Value v = statement.getObject();
+        final Value v = statement.getObject();
         if (!(v instanceof Literal)) {
             throw new ParseException("Statement does not contain Literal: " + statement.toString());
         }

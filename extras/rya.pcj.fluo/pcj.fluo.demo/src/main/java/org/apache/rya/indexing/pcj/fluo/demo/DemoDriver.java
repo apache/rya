@@ -23,7 +23,6 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 
@@ -34,6 +33,7 @@ import org.apache.accumulo.core.client.Instance;
 import org.apache.accumulo.core.client.ZooKeeperInstance;
 import org.apache.accumulo.core.client.security.tokens.PasswordToken;
 import org.apache.accumulo.minicluster.MiniAccumuloCluster;
+import org.apache.fluo.api.client.FluoAdmin.AlreadyInitializedException;
 import org.apache.fluo.api.client.FluoClient;
 import org.apache.fluo.api.client.FluoFactory;
 import org.apache.fluo.api.config.FluoConfiguration;
@@ -56,7 +56,6 @@ import org.apache.rya.api.instance.RyaDetails.PCJIndexDetails;
 import org.apache.rya.api.instance.RyaDetails.ProspectorDetails;
 import org.apache.rya.api.instance.RyaDetails.TemporalIndexDetails;
 import org.apache.rya.api.instance.RyaDetailsRepository;
-import org.apache.rya.api.instance.RyaDetailsRepository.AlreadyInitializedException;
 import org.apache.rya.api.instance.RyaDetailsRepository.RyaDetailsRepositoryException;
 import org.apache.rya.indexing.pcj.fluo.app.export.rya.RyaExportParameters;
 import org.apache.rya.indexing.pcj.fluo.app.observers.FilterObserver;
@@ -67,8 +66,8 @@ import org.apache.rya.indexing.pcj.fluo.app.observers.TripleObserver;
 import org.apache.rya.indexing.pcj.fluo.demo.Demo.DemoExecutionException;
 import org.apache.rya.rdftriplestore.RdfCloudTripleStore;
 import org.apache.rya.rdftriplestore.RyaSailRepository;
-import org.openrdf.repository.RepositoryConnection;
-import org.openrdf.repository.RepositoryException;
+import org.eclipse.rdf4j.repository.RepositoryConnection;
+import org.eclipse.rdf4j.repository.RepositoryException;
 
 import com.google.common.base.Optional;
 import com.google.common.io.Files;
@@ -277,8 +276,8 @@ public class DemoDriver {
                 .setPCJIndexDetails(
                         PCJIndexDetails.builder()
                             .setEnabled(true) )
-                .setJoinSelectivityDetails( new JoinSelectivityDetails( Optional.<Date>absent() ) )
-                .setProspectorDetails( new ProspectorDetails( Optional.<Date>absent() ))
+                .setJoinSelectivityDetails( new JoinSelectivityDetails( Optional.absent() ) )
+                .setProspectorDetails( new ProspectorDetails( Optional.absent() ))
                 .build();
 
         detailsRepo.initialize(details);

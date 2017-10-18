@@ -28,15 +28,17 @@ import java.util.Collection;
 import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.rya.api.model.VisibilityStatement;
+import org.apache.rya.rdftriplestore.utils.RdfFormatUtils;
 import org.apache.rya.streams.api.exception.RyaStreamsException;
 import org.apache.rya.streams.api.interactor.LoadStatements;
-import org.openrdf.model.Statement;
-import org.openrdf.rio.RDFFormat;
-import org.openrdf.rio.RDFHandlerException;
-import org.openrdf.rio.RDFParseException;
-import org.openrdf.rio.RDFParser;
-import org.openrdf.rio.Rio;
-import org.openrdf.rio.helpers.RDFHandlerBase;
+import org.eclipse.rdf4j.model.Statement;
+import org.eclipse.rdf4j.rio.RDFFormat;
+import org.eclipse.rdf4j.rio.RDFHandlerException;
+import org.eclipse.rdf4j.rio.RDFParseException;
+import org.eclipse.rdf4j.rio.RDFParser;
+import org.eclipse.rdf4j.rio.Rio;
+import org.eclipse.rdf4j.rio.UnsupportedRDFormatException;
+import org.eclipse.rdf4j.rio.helpers.AbstractRDFHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -75,11 +77,15 @@ public class KafkaLoadStatements implements LoadStatements {
         }
 
         // Create an RDF Parser whose format is derived from the statementPath's file extension.
-        final RDFFormat format = RDFFormat.forFileName(statementsPath.getFileName().toString());
+        final String filename = statementsPath.getFileName().toString();
+        final RDFFormat format = RdfFormatUtils.forFileName(filename);
+        if (format == null) {
+            throw new UnsupportedRDFormatException("Unknown RDF format for the file: " + filename);
+        }
         final RDFParser parser = Rio.createParser(format);
 
         // Set a handler that writes the statements to the specified kafka topic.
-        parser.setRDFHandler(new RDFHandlerBase() {
+        parser.setRDFHandler(new AbstractRDFHandler() {
             @Override
             public void startRDF() throws RDFHandlerException {
                 log.trace("Starting loading statements.");

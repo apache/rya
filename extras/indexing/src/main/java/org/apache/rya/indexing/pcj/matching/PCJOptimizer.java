@@ -37,14 +37,13 @@ import org.apache.rya.indexing.mongodb.pcj.MongoPcjIndexSetProvider;
 import org.apache.rya.indexing.pcj.matching.provider.AbstractPcjIndexSetProvider;
 import org.apache.rya.indexing.pcj.matching.provider.AccumuloIndexSetProvider;
 import org.apache.rya.mongodb.StatefulMongoDBRdfConfiguration;
-import org.openrdf.query.BindingSet;
-import org.openrdf.query.Dataset;
-import org.openrdf.query.algebra.QueryModelNode;
-import org.openrdf.query.algebra.TupleExpr;
-import org.openrdf.query.algebra.evaluation.QueryOptimizer;
+import org.eclipse.rdf4j.query.BindingSet;
+import org.eclipse.rdf4j.query.Dataset;
+import org.eclipse.rdf4j.query.algebra.QueryModelNode;
+import org.eclipse.rdf4j.query.algebra.TupleExpr;
+import org.eclipse.rdf4j.query.algebra.evaluation.QueryOptimizer;
 
-import com.google.common.base.Optional;;
-
+import com.google.common.base.Optional;
 
 /**
  * {@link QueryOptimizer} which matches {@link TupleExpr}s associated with

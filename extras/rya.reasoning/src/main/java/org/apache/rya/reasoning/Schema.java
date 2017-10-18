@@ -19,18 +19,18 @@ package org.apache.rya.reasoning;
  * under the License.
  */
 
-import java.util.HashSet;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import org.openrdf.model.Resource;
-import org.openrdf.model.Statement;
-import org.openrdf.model.URI;
-import org.openrdf.model.Value;
-import org.openrdf.model.vocabulary.RDF;
-import org.openrdf.model.vocabulary.RDFS;
-import org.openrdf.model.vocabulary.OWL;
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.Resource;
+import org.eclipse.rdf4j.model.Statement;
+import org.eclipse.rdf4j.model.Value;
+import org.eclipse.rdf4j.model.vocabulary.OWL;
+import org.eclipse.rdf4j.model.vocabulary.RDF;
+import org.eclipse.rdf4j.model.vocabulary.RDFS;
 
 /**
  * Hold on to facts about the schema (TBox/RBox) and perform what reasoning we
@@ -56,8 +56,8 @@ import org.openrdf.model.vocabulary.OWL;
 public class Schema {
     // Statements using these predicates are automatically relevant schema
     // information.
-    private static final Set<URI> schemaPredicates = new HashSet<>();
-    private static final URI[] schemaPredicateURIs = {
+    private static final Set<IRI> schemaPredicates = new HashSet<>();
+    private static final IRI[] schemaPredicateURIs = {
         RDFS.SUBCLASSOF,
         RDFS.SUBPROPERTYOF,
         RDFS.DOMAIN,
@@ -89,7 +89,7 @@ public class Schema {
     };
 
     static {
-        for (URI uri : schemaPredicateURIs) {
+        for (IRI uri : schemaPredicateURIs) {
             schemaPredicates.add(uri);
         }
         for (Resource uri : schemaTypeURIs) {
@@ -102,7 +102,7 @@ public class Schema {
      * information?
      */
     public static boolean isSchemaTriple(Statement triple) {
-        URI pred = triple.getPredicate();
+        IRI pred = triple.getPredicate();
         // Triples with certain predicates are schema triples,
         if (schemaPredicates.contains(pred)) {
             return true;
@@ -119,7 +119,7 @@ public class Schema {
     /**
      * Map URIs to schema information about a property
      */
-    protected Map<URI, OwlProperty> properties = new HashMap<>();
+    protected Map<IRI, OwlProperty> properties = new HashMap<>();
 
     /**
      * Map Resources to schema information about a class/restriction
@@ -149,7 +149,7 @@ public class Schema {
      * Get schema information for a property, for reading and writing.
      * Instantiates OwlProperty if it doesn't yet exist.
      */
-    public OwlProperty getProperty(URI p) {
+    public OwlProperty getProperty(IRI p) {
         if (!properties.containsKey(p)) {
             properties.put(p, new OwlProperty(p));
         }
@@ -161,13 +161,13 @@ public class Schema {
      * Assumes this Value refers to a property URI.
      */
     public OwlProperty getProperty(Value p) {
-        return getProperty((URI) p);
+        return getProperty((IRI) p);
     }
 
     /**
      * Return whether this resource corresponds to a property.
      */
-    public boolean hasProperty(URI r) {
+    public boolean hasProperty(IRI r) {
         return properties.containsKey(r);
     }
 
@@ -193,14 +193,14 @@ public class Schema {
      */
     public void processTriple(Statement triple) {
         Resource s = triple.getSubject();
-        URI p = triple.getPredicate();
+        IRI p = triple.getPredicate();
         Value o = triple.getObject();
         if (isSchemaTriple(triple)) {
             // For a type statement to be schema information, it must yield
             // some boolean information about a property.
             if (p.equals(RDF.TYPE)) {
                 if (schemaTypes.contains(o)) {
-                    addPropertyType((URI) s, (Resource) o);
+                    addPropertyType((IRI) s, (Resource) o);
                 }
             }
 
@@ -288,7 +288,7 @@ public class Schema {
     /**
      * Add a particular characteristic to a property.
      */
-    private void addPropertyType(URI p, Resource t) {
+    private void addPropertyType(IRI p, Resource t) {
         OwlProperty prop = getProperty(p);
         if (t.equals(OWL.TRANSITIVEPROPERTY)) {
             prop.setTransitive();
@@ -367,7 +367,7 @@ public class Schema {
         // schema-relevant triple at all.
         if (isSchemaTriple(triple)) {
             Resource s = triple.getSubject();
-            URI p = triple.getPredicate();
+            IRI p = triple.getPredicate();
             Value o = triple.getObject();
             // If this is telling us something about a property:
             if (properties.containsKey(s)) {
@@ -509,7 +509,7 @@ public class Schema {
         if (classes.containsKey(type)) {
             OwlClass pr = classes.get(type);
             sb.append("owl:Restriction");
-            for (URI p : pr.getOnProperty()) {
+            for (IRI p : pr.getOnProperty()) {
                 sb.append(" (owl:onProperty ").append(p.toString()).append(")");
             }
             for (Value v : pr.hasValue()) {

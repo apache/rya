@@ -19,19 +19,9 @@ package org.apache.rya.accumulo.pig;
  * under the License.
  */
 
-
-
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-
-import junit.framework.TestCase;
-import org.apache.rya.accumulo.AccumuloRdfConfiguration;
-import org.apache.rya.accumulo.AccumuloRyaDAO;
-import org.apache.rya.api.RdfCloudTripleStoreConstants;
-import org.apache.rya.api.domain.RyaStatement;
-import org.apache.rya.api.domain.RyaType;
-import org.apache.rya.api.domain.RyaURI;
 
 import org.apache.accumulo.core.Constants;
 import org.apache.accumulo.core.client.Connector;
@@ -48,8 +38,14 @@ import org.apache.hadoop.mapreduce.TaskAttemptContext;
 import org.apache.hadoop.mapreduce.TaskAttemptID;
 import org.apache.hadoop.mapreduce.task.TaskAttemptContextImpl;
 import org.apache.pig.data.Tuple;
-import org.openrdf.model.ValueFactory;
-import org.openrdf.model.impl.ValueFactoryImpl;
+import org.apache.rya.accumulo.AccumuloRdfConfiguration;
+import org.apache.rya.accumulo.AccumuloRyaDAO;
+import org.apache.rya.api.RdfCloudTripleStoreConstants;
+import org.apache.rya.api.domain.RyaStatement;
+import org.apache.rya.api.domain.RyaType;
+import org.apache.rya.api.domain.RyaURI;
+
+import junit.framework.TestCase;
 
 /**
  * Created by IntelliJ IDEA.
@@ -66,7 +62,6 @@ public class StatementPatternStorageTest extends TestCase {
     private Authorizations auths = Constants.NO_AUTHS;
     private Connector connector;
     private AccumuloRyaDAO ryaDAO;
-    private ValueFactory vf = new ValueFactoryImpl();
     private String namespace = "urn:test#";
     private AccumuloRdfConfiguration conf;
 

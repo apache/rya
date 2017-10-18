@@ -18,8 +18,6 @@ package org.apache.rya.indexing.pcj.matching;
  * specific language governing permissions and limitations
  * under the License.
  */
-
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -29,20 +27,19 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 
-import org.openrdf.model.Literal;
-import org.openrdf.model.Value;
-import org.openrdf.model.impl.ValueFactoryImpl;
-import org.openrdf.query.algebra.Filter;
-import org.openrdf.query.algebra.NAryValueOperator;
-import org.openrdf.query.algebra.ProjectionElem;
-import org.openrdf.query.algebra.ProjectionElemList;
-import org.openrdf.query.algebra.QueryModelNode;
-import org.openrdf.query.algebra.StatementPattern;
-import org.openrdf.query.algebra.TupleExpr;
-import org.openrdf.query.algebra.ValueConstant;
-import org.openrdf.query.algebra.ValueExpr;
-import org.openrdf.query.algebra.Var;
-import org.openrdf.query.algebra.helpers.QueryModelVisitorBase;
+import org.apache.rya.api.domain.VarNameUtils;
+import org.eclipse.rdf4j.model.Value;
+import org.eclipse.rdf4j.query.algebra.Filter;
+import org.eclipse.rdf4j.query.algebra.NAryValueOperator;
+import org.eclipse.rdf4j.query.algebra.ProjectionElem;
+import org.eclipse.rdf4j.query.algebra.ProjectionElemList;
+import org.eclipse.rdf4j.query.algebra.QueryModelNode;
+import org.eclipse.rdf4j.query.algebra.StatementPattern;
+import org.eclipse.rdf4j.query.algebra.TupleExpr;
+import org.eclipse.rdf4j.query.algebra.ValueConstant;
+import org.eclipse.rdf4j.query.algebra.ValueExpr;
+import org.eclipse.rdf4j.query.algebra.Var;
+import org.eclipse.rdf4j.query.algebra.helpers.AbstractQueryModelVisitor;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -72,7 +69,7 @@ public class QueryVariableNormalizer {
 
         // if tuples are equal, no need to do anything
         if (tuple1.equals(tuple2)) {
-            tupleList.add((TupleExpr) tuple1.clone());
+            tupleList.add(tuple1.clone());
             return tupleList;
         }
 
@@ -399,11 +396,7 @@ public class QueryVariableNormalizer {
             if ((vars1.get(i) instanceof ValueConstant) && (vars2.get(i) instanceof Var)) {
                 
                 ValueConstant vc = (ValueConstant) vars1.get(i);
-                String s = vc.getValue().toString();
-                if(vc.getValue() instanceof Literal) {
-                    s = s.substring(1, s.length() - 1);
-                } 
-                s = "-const-" + s;
+                final String s = VarNameUtils.createUniqueConstVarName(vc.getValue());
                 varList1.add(s);
                 varList2.add(((Var)vars2.get(i)).getName());
             } else if(!(vars1.get(i) instanceof ValueConstant)){
@@ -482,10 +475,7 @@ public class QueryVariableNormalizer {
             return false;
         } else {
 
-            if (hMap.get(key).equals(val)) {
-                return true;
-            } else
-                return false;
+            return hMap.get(key).equals(val);
 
         }
 
@@ -728,7 +718,7 @@ public class QueryVariableNormalizer {
 
     
 
-    public static class ValueMapVisitor extends QueryModelVisitorBase<Exception> {
+    public static class ValueMapVisitor extends AbstractQueryModelVisitor<Exception> {
 
         
         private Map<String, Value> valMap = Maps.newHashMap();
@@ -749,13 +739,7 @@ public class QueryVariableNormalizer {
 
         public void meet(ValueConstant val) {
 
-            String s = val.getValue().toString();
-            
-            if (val.getValue() instanceof Literal) {
-                s = s.substring(1, s.length() - 1);
-            }
-            
-            s = "-const-" + s;
+            final String s = VarNameUtils.createUniqueConstVarName(val.getValue());
             valMap.put(s, val.getValue());
         }
 
@@ -767,7 +751,7 @@ public class QueryVariableNormalizer {
     
     
     
-    public static class NodeCollector extends QueryModelVisitorBase<Exception> {
+    public static class NodeCollector extends AbstractQueryModelVisitor<Exception> {
 
         
         private List<QueryModelNode> nodes = Lists.newArrayList();
@@ -784,11 +768,10 @@ public class QueryVariableNormalizer {
 
     }
 
-    public static class SpVarReNamer extends QueryModelVisitorBase<RuntimeException> {
+    public static class SpVarReNamer extends AbstractQueryModelVisitor<RuntimeException> {
 
         private final HashMap<String, String> hMap;
         private Map<String, Value> valMap;
-        private final ValueFactoryImpl vf = new ValueFactoryImpl();
 
         public SpVarReNamer(HashMap<String, String> hMap, Map<String, Value> valMap) {
             this.valMap = valMap;
@@ -798,7 +781,7 @@ public class QueryVariableNormalizer {
         public void meet(Var var) {
             if (!var.isConstant() && hMap.containsKey(var.getName())) {
                 String val = hMap.get(var.getName());
-                if (val.startsWith("-const-")) {
+                if (VarNameUtils.isConstant(val)) {
                    var.setName(val);
                    var.setValue(valMap.get(val));
                    var.setAnonymous(true); //TODO this might be a hack -- when are Vars not anonymous?
@@ -813,11 +796,10 @@ public class QueryVariableNormalizer {
     
     
     
-    public static class FilterVarReNamer extends QueryModelVisitorBase<RuntimeException> {
+    public static class FilterVarReNamer extends AbstractQueryModelVisitor<RuntimeException> {
 
         private final HashMap<String, String> hMap;
         private Map<String, Value> valMap;
-        private final ValueFactoryImpl vf = new ValueFactoryImpl();
 
         public FilterVarReNamer(HashMap<String, String> hMap, Map<String, Value> valMap) {
             this.valMap = valMap;
@@ -830,7 +812,7 @@ public class QueryVariableNormalizer {
             if (!(var.getParentNode() instanceof NAryValueOperator)) {
                 if (!var.isConstant() && hMap.containsKey(var.getName())) {
                     String val = hMap.get(var.getName());
-                    if (val.startsWith("-const-")) {
+                    if (VarNameUtils.isConstant(val)) {
                         var.replaceWith(new ValueConstant(valMap.get(val)));
                     } else {
                         var.setName(val);
@@ -852,7 +834,7 @@ public class QueryVariableNormalizer {
                     Var var = (Var) v;
                     if (!(var.isConstant() && hMap.containsKey(var.getName()))) {
                         String val = hMap.get(var.getName());
-                        if (val.startsWith("-const-")) {
+                        if (VarNameUtils.isConstant(val)) {
                             newValues.add(new ValueConstant(valMap.get(val)));
                         } else {
                             var.setName(val);
@@ -874,7 +856,7 @@ public class QueryVariableNormalizer {
     
     
 
-    public static class TupleVarRenamer extends QueryModelVisitorBase<RuntimeException> {
+    public static class TupleVarRenamer extends AbstractQueryModelVisitor<RuntimeException> {
 
         private final HashMap<String, String> varChanges;
         private Map<String, Value> valMap;
@@ -918,7 +900,7 @@ public class QueryVariableNormalizer {
 
     }
 
-    public static class VarCollector extends QueryModelVisitorBase<RuntimeException> {
+    public static class VarCollector extends AbstractQueryModelVisitor<RuntimeException> {
 
         public static List<String> process(QueryModelNode node) {
             VarCollector collector = new VarCollector();
@@ -952,7 +934,7 @@ public class QueryVariableNormalizer {
         }
     }
     
-    public static class FilterVarValueCollector extends QueryModelVisitorBase<RuntimeException> {
+    public static class FilterVarValueCollector extends AbstractQueryModelVisitor<RuntimeException> {
 
         public static List<QueryModelNode> process(QueryModelNode node) {
             FilterVarValueCollector collector = new FilterVarValueCollector();
@@ -986,7 +968,7 @@ public class QueryVariableNormalizer {
     
     
 
-    public static class NormalizeQueryVisitor extends QueryModelVisitorBase<Exception> {
+    public static class NormalizeQueryVisitor extends AbstractQueryModelVisitor<Exception> {
 
         private TreeMap<String, List<QueryModelNode>> map = new TreeMap<String, List<QueryModelNode>>();
         private TreeMap<String, Integer> varMap = new TreeMap<String, Integer>();

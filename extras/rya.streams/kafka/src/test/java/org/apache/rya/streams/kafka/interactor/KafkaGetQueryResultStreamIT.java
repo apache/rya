@@ -39,11 +39,11 @@ import org.apache.rya.streams.kafka.serialization.VisibilityStatementDeserialize
 import org.apache.rya.streams.kafka.serialization.VisibilityStatementSerializer;
 import org.apache.rya.test.kafka.KafkaTestInstanceRule;
 import org.apache.rya.test.kafka.KafkaTestUtil;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
+import org.eclipse.rdf4j.query.impl.MapBindingSet;
 import org.junit.Rule;
 import org.junit.Test;
-import org.openrdf.model.ValueFactory;
-import org.openrdf.model.impl.ValueFactoryImpl;
-import org.openrdf.query.impl.MapBindingSet;
 
 /**
  * Integration tests the methods of {@link KafkaGetQueryResultStream}.
@@ -91,7 +91,7 @@ public class KafkaGetQueryResultStreamIT {
         // Create a list of test VisibilityBindingSets.
         final List<VisibilityBindingSet> original = new ArrayList<>();
 
-        final ValueFactory vf = new ValueFactoryImpl();
+        final ValueFactory vf = SimpleValueFactory.getInstance();
         MapBindingSet bs = new MapBindingSet();
         bs.addBinding("urn:name", vf.createLiteral("Alice"));
         original.add(new VisibilityBindingSet(bs, "a|b|c"));
@@ -133,7 +133,7 @@ public class KafkaGetQueryResultStreamIT {
             final String resultTopic = KafkaTopics.queryResultsTopic(ryaInstance, queryId);
 
             // Write a single visibility binding set to the query's result topic. This will not appear in the expected results.
-            final ValueFactory vf = new ValueFactoryImpl();
+            final ValueFactory vf = SimpleValueFactory.getInstance();
             MapBindingSet bs = new MapBindingSet();
             bs.addBinding("urn:name", vf.createLiteral("Alice"));
             producer.send(new ProducerRecord<>(resultTopic, new VisibilityBindingSet(bs, "a|b|c")));
@@ -201,10 +201,10 @@ public class KafkaGetQueryResultStreamIT {
 
         // Create some statements that will be written to the result topic.
         final List<VisibilityStatement> original = new ArrayList<>();
-        final ValueFactory vf = new ValueFactoryImpl();
-        original.add( new VisibilityStatement(vf.createStatement(vf.createURI("urn:Alice"), vf.createURI("urn:talksTo"), vf.createURI("urn:Bob")), "a") );
-        original.add( new VisibilityStatement(vf.createStatement(vf.createURI("urn:Bob"), vf.createURI("urn:age"), vf.createLiteral(63)), "b") );
-        original.add( new VisibilityStatement(vf.createStatement(vf.createURI("urn:Alice"), vf.createURI("urn:age"), vf.createLiteral("urn:34")), "") );
+        final ValueFactory vf = SimpleValueFactory.getInstance();
+        original.add( new VisibilityStatement(vf.createStatement(vf.createIRI("urn:Alice"), vf.createIRI("urn:talksTo"), vf.createIRI("urn:Bob")), "a") );
+        original.add( new VisibilityStatement(vf.createStatement(vf.createIRI("urn:Bob"), vf.createIRI("urn:age"), vf.createLiteral(63)), "b") );
+        original.add( new VisibilityStatement(vf.createStatement(vf.createIRI("urn:Alice"), vf.createIRI("urn:age"), vf.createLiteral("urn:34")), "") );
 
         // Write the entries to the query result topic in Kafka.
         try(final Producer<?, VisibilityStatement> producer =

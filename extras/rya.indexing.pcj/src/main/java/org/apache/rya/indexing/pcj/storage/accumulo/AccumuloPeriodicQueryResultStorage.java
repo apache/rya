@@ -44,16 +44,17 @@ import org.apache.rya.indexing.pcj.storage.PeriodicQueryResultStorage;
 import org.apache.rya.indexing.pcj.storage.PeriodicQueryStorageException;
 import org.apache.rya.indexing.pcj.storage.PeriodicQueryStorageMetadata;
 import org.apache.rya.indexing.pcj.storage.accumulo.BindingSetConverter.BindingSetConversionException;
-import org.openrdf.model.impl.LiteralImpl;
-import org.openrdf.model.vocabulary.XMLSchema;
-import org.openrdf.query.BindingSet;
-import org.openrdf.query.MalformedQueryException;
-import org.openrdf.query.algebra.AggregateOperatorBase;
-import org.openrdf.query.algebra.ExtensionElem;
-import org.openrdf.query.algebra.TupleExpr;
-import org.openrdf.query.algebra.evaluation.QueryBindingSet;
-import org.openrdf.query.algebra.helpers.QueryModelVisitorBase;
-import org.openrdf.query.parser.sparql.SPARQLParser;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
+import org.eclipse.rdf4j.model.vocabulary.XMLSchema;
+import org.eclipse.rdf4j.query.BindingSet;
+import org.eclipse.rdf4j.query.MalformedQueryException;
+import org.eclipse.rdf4j.query.algebra.AbstractAggregateOperator;
+import org.eclipse.rdf4j.query.algebra.ExtensionElem;
+import org.eclipse.rdf4j.query.algebra.TupleExpr;
+import org.eclipse.rdf4j.query.algebra.evaluation.QueryBindingSet;
+import org.eclipse.rdf4j.query.algebra.helpers.AbstractQueryModelVisitor;
+import org.eclipse.rdf4j.query.parser.sparql.SPARQLParser;
 
 import com.google.common.base.Preconditions;
 
@@ -215,8 +216,9 @@ public class AccumuloPeriodicQueryResultStorage implements PeriodicQueryResultSt
     }
 
     private Text getRowPrefix(final long binId) throws BindingSetConversionException {
+        final ValueFactory vf = SimpleValueFactory.getInstance();
         final QueryBindingSet bs = new QueryBindingSet();
-        bs.addBinding(PeriodicQueryResultStorage.PeriodicBinId, new LiteralImpl(Long.toString(binId), XMLSchema.LONG));
+        bs.addBinding(PeriodicQueryResultStorage.PeriodicBinId, vf.createLiteral(Long.toString(binId), XMLSchema.LONG));
 
         return new Text(converter.convert(bs, new VariableOrder(PeriodicQueryResultStorage.PeriodicBinId)));
     }
@@ -257,7 +259,7 @@ public class AccumuloPeriodicQueryResultStorage implements PeriodicQueryResultSt
      * written to the table.
      *
      */
-    static class AggregateVariableRemover extends QueryModelVisitorBase<RuntimeException> {
+    static class AggregateVariableRemover extends AbstractQueryModelVisitor<RuntimeException> {
 
         private Set<String> bindingNames;
 
@@ -270,7 +272,7 @@ public class AccumuloPeriodicQueryResultStorage implements PeriodicQueryResultSt
 
         @Override
         public void meet(final ExtensionElem node) {
-            if(node.getExpr() instanceof AggregateOperatorBase) {
+            if(node.getExpr() instanceof AbstractAggregateOperator) {
                 bindingNames.remove(node.getName());
             }
         }

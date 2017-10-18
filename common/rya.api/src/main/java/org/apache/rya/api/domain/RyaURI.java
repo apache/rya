@@ -19,11 +19,9 @@ package org.apache.rya.api.domain;
  * under the License.
  */
 
-
-
-import org.openrdf.model.URI;
-import org.openrdf.model.util.URIUtil;
-import org.openrdf.model.vocabulary.XMLSchema;
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.util.URIUtil;
+import org.eclipse.rdf4j.model.vocabulary.XMLSchema;
 
 
 /**
@@ -44,7 +42,7 @@ public class RyaURI extends RyaType {
         super(XMLSchema.ANYURI, namespace + data);
     }
 
-    protected RyaURI(URI datatype, String data) {
+    protected RyaURI(IRI datatype, String data) {
         super(datatype, data);
     }
 

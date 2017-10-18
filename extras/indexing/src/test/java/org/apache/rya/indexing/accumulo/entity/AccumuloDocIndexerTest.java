@@ -19,13 +19,16 @@ package org.apache.rya.indexing.accumulo.entity;
  * under the License.
  */
 
-
-import info.aduna.iteration.CloseableIteration;
-
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.accumulo.core.client.BatchWriter;
+import org.apache.accumulo.core.client.Connector;
+import org.apache.accumulo.core.client.mock.MockInstance;
+import org.apache.accumulo.core.client.security.tokens.PasswordToken;
+import org.apache.accumulo.core.data.Mutation;
+import org.apache.hadoop.conf.Configuration;
 import org.apache.rya.accumulo.AccumuloRdfConfiguration;
 import org.apache.rya.accumulo.RyaTableMutationsFactory;
 import org.apache.rya.api.RdfCloudTripleStoreConstants;
@@ -35,31 +38,23 @@ import org.apache.rya.api.domain.RyaURI;
 import org.apache.rya.api.resolver.RyaToRdfConversions;
 import org.apache.rya.api.resolver.RyaTripleContext;
 import org.apache.rya.indexing.accumulo.ConfigUtils;
-
-import org.apache.accumulo.core.client.BatchWriter;
-import org.apache.accumulo.core.client.Connector;
-import org.apache.accumulo.core.client.admin.TableOperations;
-import org.apache.accumulo.core.client.mock.MockInstance;
-import org.apache.accumulo.core.client.security.tokens.AuthenticationToken;
-import org.apache.accumulo.core.client.security.tokens.PasswordToken;
-import org.apache.accumulo.core.data.Mutation;
-import org.apache.hadoop.conf.Configuration;
+import org.eclipse.rdf4j.common.iteration.CloseableIteration;
+import org.eclipse.rdf4j.model.Value;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
+import org.eclipse.rdf4j.model.vocabulary.XMLSchema;
+import org.eclipse.rdf4j.query.BindingSet;
+import org.eclipse.rdf4j.query.QueryEvaluationException;
+import org.eclipse.rdf4j.query.algebra.StatementPattern;
+import org.eclipse.rdf4j.query.algebra.TupleExpr;
+import org.eclipse.rdf4j.query.algebra.evaluation.QueryBindingSet;
+import org.eclipse.rdf4j.query.algebra.helpers.StatementPatternCollector;
+import org.eclipse.rdf4j.query.parser.ParsedQuery;
+import org.eclipse.rdf4j.query.parser.sparql.SPARQLParser;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.openrdf.model.Value;
-import org.openrdf.model.ValueFactory;
-import org.openrdf.model.impl.ValueFactoryImpl;
-import org.openrdf.model.vocabulary.XMLSchema;
-import org.openrdf.query.BindingSet;
-import org.openrdf.query.QueryEvaluationException;
-import org.openrdf.query.algebra.StatementPattern;
-import org.openrdf.query.algebra.TupleExpr;
-import org.openrdf.query.algebra.evaluation.QueryBindingSet;
-import org.openrdf.query.algebra.helpers.StatementPatternCollector;
-import org.openrdf.query.parser.ParsedQuery;
-import org.openrdf.query.parser.sparql.SPARQLParser;
 
 import com.google.common.collect.Lists;
 
@@ -68,7 +63,7 @@ public class AccumuloDocIndexerTest {
     private MockInstance mockInstance;
     private Connector accCon;
     AccumuloRdfConfiguration conf = new AccumuloRdfConfiguration();
-    ValueFactory vf = new ValueFactoryImpl();
+    ValueFactory vf = SimpleValueFactory.getInstance();
     
     private String tableName;
     
@@ -321,11 +316,11 @@ public class AccumuloDocIndexerTest {
                 
                 List<BindingSet> bsList = Lists.newArrayList();
 //                QueryBindingSet b1 = (new QueryBindingSet());
-//                b1.addBinding("X", vf.createURI("uri:5"));
+//                b1.addBinding("X", vf.createIRI("uri:5"));
 //                QueryBindingSet b2 = (new QueryBindingSet());
-//                b2.addBinding("X", vf.createURI("uri:15"));
+//                b2.addBinding("X", vf.createIRI("uri:15"));
 //                QueryBindingSet b3 = (new QueryBindingSet());
-//                b3.addBinding("X", vf.createURI("uri:25"));
+//                b3.addBinding("X", vf.createIRI("uri:25"));
 //                bsList.add(b1);
 //                bsList.add(b2);
 //                bsList.add(b3);
@@ -445,11 +440,11 @@ public class AccumuloDocIndexerTest {
                 
                 List<BindingSet> bsList = Lists.newArrayList();
                 QueryBindingSet b1 = (new QueryBindingSet());
-                b1.addBinding("X", vf.createURI("uri:5"));
+                b1.addBinding("X", vf.createIRI("uri:5"));
                 QueryBindingSet b2 = (new QueryBindingSet());
-                b2.addBinding("X", vf.createURI("uri:15"));
+                b2.addBinding("X", vf.createIRI("uri:15"));
                 QueryBindingSet b3 = (new QueryBindingSet());
-                b3.addBinding("X", vf.createURI("uri:25"));
+                b3.addBinding("X", vf.createIRI("uri:25"));
                 bsList.add(b1);
                 bsList.add(b2);
                 bsList.add(b3);
@@ -671,11 +666,11 @@ public class AccumuloDocIndexerTest {
                 
                 List<BindingSet> bsList = Lists.newArrayList();
                 QueryBindingSet b1 = (new QueryBindingSet());
-                b1.addBinding("X", vf.createURI("uri:5"));
+                b1.addBinding("X", vf.createIRI("uri:5"));
                 QueryBindingSet b2 = (new QueryBindingSet());
-                b2.addBinding("X", vf.createURI("uri:15"));
+                b2.addBinding("X", vf.createIRI("uri:15"));
                 QueryBindingSet b3 = (new QueryBindingSet());
-                b3.addBinding("X", vf.createURI("uri:25"));
+                b3.addBinding("X", vf.createIRI("uri:25"));
                 bsList.add(b1);
                 bsList.add(b2);
                 bsList.add(b3);
@@ -784,11 +779,11 @@ public class AccumuloDocIndexerTest {
                 
                 List<BindingSet> bsList = Lists.newArrayList();
                 QueryBindingSet b1 = (new QueryBindingSet());
-                b1.addBinding("X", vf.createURI("uri:5"));
+                b1.addBinding("X", vf.createIRI("uri:5"));
                 QueryBindingSet b2 = (new QueryBindingSet());
-                b2.addBinding("X", vf.createURI("uri:15"));
+                b2.addBinding("X", vf.createIRI("uri:15"));
                 QueryBindingSet b3 = (new QueryBindingSet());
-                b3.addBinding("X", vf.createURI("uri:25"));
+                b3.addBinding("X", vf.createIRI("uri:25"));
                 bsList.add(b1);
                 bsList.add(b2);
                 bsList.add(b3);
@@ -939,11 +934,11 @@ public class AccumuloDocIndexerTest {
                 
                 List<BindingSet> bsList = Lists.newArrayList();
 //                QueryBindingSet b1 = (new QueryBindingSet());
-//                b1.addBinding("X", vf.createURI("uri:5"));
+//                b1.addBinding("X", vf.createIRI("uri:5"));
 //                QueryBindingSet b2 = (new QueryBindingSet());
-//                b2.addBinding("X", vf.createURI("uri:15"));
+//                b2.addBinding("X", vf.createIRI("uri:15"));
 //                QueryBindingSet b3 = (new QueryBindingSet());
-//                b3.addBinding("X", vf.createURI("uri:25"));
+//                b3.addBinding("X", vf.createIRI("uri:25"));
 //                bsList.add(b1);
 //                bsList.add(b2);
 //                bsList.add(b3);
@@ -1116,11 +1111,11 @@ public class AccumuloDocIndexerTest {
                 
                 List<BindingSet> bsList = Lists.newArrayList();
                 QueryBindingSet b1 = (new QueryBindingSet());
-                b1.addBinding("X", vf.createURI("uri:5"));
+                b1.addBinding("X", vf.createIRI("uri:5"));
                 QueryBindingSet b2 = (new QueryBindingSet());
-                b2.addBinding("X", vf.createURI("uri:15"));
+                b2.addBinding("X", vf.createIRI("uri:15"));
                 QueryBindingSet b3 = (new QueryBindingSet());
-                b3.addBinding("X", vf.createURI("uri:25"));
+                b3.addBinding("X", vf.createIRI("uri:25"));
                 bsList.add(b1);
                 bsList.add(b2);
                 bsList.add(b3);
@@ -1653,11 +1648,11 @@ public class AccumuloDocIndexerTest {
                 
                 List<BindingSet> bsList = Lists.newArrayList();
                 QueryBindingSet b1 = (new QueryBindingSet());
-                b1.addBinding("X", vf.createURI("uri:5"));
+                b1.addBinding("X", vf.createIRI("uri:5"));
                 QueryBindingSet b2 = (new QueryBindingSet());
-                b2.addBinding("X", vf.createURI("uri:15"));
+                b2.addBinding("X", vf.createIRI("uri:15"));
                 QueryBindingSet b3 = (new QueryBindingSet());
-                b3.addBinding("X", vf.createURI("uri:25"));
+                b3.addBinding("X", vf.createIRI("uri:25"));
                 bsList.add(b1);
                 bsList.add(b2);
                 bsList.add(b3);
@@ -1855,10 +1850,10 @@ public class AccumuloDocIndexerTest {
                 
                 List<BindingSet> bsList = Lists.newArrayList();
                 QueryBindingSet b1 = new QueryBindingSet();
-                b1.addBinding("X", vf.createURI("uri:5"));
+                b1.addBinding("X", vf.createIRI("uri:5"));
                 b1.addBinding("Y3", v1);
                 QueryBindingSet b2 = new QueryBindingSet();
-                b2.addBinding("X", vf.createURI("uri:25"));
+                b2.addBinding("X", vf.createIRI("uri:25"));
                 b2.addBinding("Y3", v2);
                 bsList.add(b1);
                 bsList.add(b2);
@@ -2040,11 +2035,11 @@ public class AccumuloDocIndexerTest {
                 
                 List<BindingSet> bsList = Lists.newArrayList();
 //                QueryBindingSet b1 = (new QueryBindingSet());
-//                b1.addBinding("X", vf.createURI("uri:5"));
+//                b1.addBinding("X", vf.createIRI("uri:5"));
 //                QueryBindingSet b2 = (new QueryBindingSet());
-//                b2.addBinding("X", vf.createURI("uri:15"));
+//                b2.addBinding("X", vf.createIRI("uri:15"));
 //                QueryBindingSet b3 = (new QueryBindingSet());
-//                b3.addBinding("X", vf.createURI("uri:25"));
+//                b3.addBinding("X", vf.createIRI("uri:25"));
 //                bsList.add(b1);
 //                bsList.add(b2);
 //                bsList.add(b3);

@@ -22,16 +22,16 @@
 //
 //import RdfCloudTripleStoreConstants;
 //import RdfCloudTripleStoreConstants;
-//import org.openrdf.model.ValueFactory;
-//import org.openrdf.model.impl.ValueFactoryImpl;
-//import org.openrdf.query.GraphQuery;
-//import org.openrdf.query.QueryLanguage;
-//import org.openrdf.query.TupleQuery;
-//import org.openrdf.query.resultio.sparqlxml.SPARQLResultsXMLWriter;
-//import org.openrdf.repository.Repository;
-//import org.openrdf.repository.RepositoryConnection;
-//import org.openrdf.repository.RepositoryException;
-//import org.openrdf.rio.rdfxml.RDFXMLWriter;
+//import org.eclipse.rdf4j.model.ValueFactory;
+//import org.eclipse.rdf4j.model.impl.ValueFactoryImpl;
+//import org.eclipse.rdf4j.query.GraphQuery;
+//import org.eclipse.rdf4j.query.QueryLanguage;
+//import org.eclipse.rdf4j.query.TupleQuery;
+//import org.eclipse.rdf4j.query.resultio.sparqlxml.SPARQLResultsXMLWriter;
+//import org.eclipse.rdf4j.repository.Repository;
+//import org.eclipse.rdf4j.repository.RepositoryConnection;
+//import org.eclipse.rdf4j.repository.RepositoryException;
+//import org.eclipse.rdf4j.rio.rdfxml.RDFXMLWriter;
 //
 //import javax.servlet.ServletException;
 //import javax.servlet.ServletOutputStream;
@@ -42,7 +42,7 @@
 //
 //public class QueryDataServlet extends AbstractRDFWebServlet {
 //
-//    private ValueFactory vf = new ValueFactoryImpl();
+//    private static final ValueFactory VF = SimpleValueFactory.getInstance();
 //
 //    @Override
 //    protected void doGet(HttpServletRequest req, HttpServletResponse resp)
@@ -99,17 +99,17 @@
 //            GraphQuery graphQuery = conn.prepareGraphQuery(
 //                    QueryLanguage.SPARQL, query);
 //            if (ttl != null && ttl.length() > 0)
-//                graphQuery.setBinding("ttl", vf.createLiteral(Long.parseLong(ttl)));
+//                graphQuery.setBinding("ttl", VF.createLiteral(Long.parseLong(ttl)));
 //            if (startTime != null && startTime.length() > 0)
-//                graphQuery.setBinding("startTime", vf.createLiteral(Long.parseLong(startTime)));
+//                graphQuery.setBinding("startTime", VF.createLiteral(Long.parseLong(startTime)));
 //            if (performant != null && performant.length() > 0)
-//                graphQuery.setBinding("performant", vf.createLiteral(Boolean.parseBoolean(performant)));
+//                graphQuery.setBinding("performant", VF.createLiteral(Boolean.parseBoolean(performant)));
 //            if (infer != null && infer.length() > 0)
-//                graphQuery.setBinding("infer", vf.createLiteral(Boolean.parseBoolean(infer)));
+//                graphQuery.setBinding("infer", VF.createLiteral(Boolean.parseBoolean(infer)));
 //            if (useStats != null && useStats.length() > 0)
-//                graphQuery.setBinding("useStats", vf.createLiteral(Boolean.parseBoolean(useStats)));
+//                graphQuery.setBinding("useStats", VF.createLiteral(Boolean.parseBoolean(useStats)));
 //            if (timeUris != null && timeUris.length() > 0)
-//                graphQuery.setBinding("timeUris", vf.createURI(timeUris));
+//                graphQuery.setBinding("timeUris", VF.createIRI(timeUris));
 //            if (tablePrefix != null && tablePrefix.length() > 0)
 //                RdfCloudTripleStoreConstants.prefixTables(tablePrefix);
 //            RDFXMLWriter rdfWriter = new RDFXMLWriter(os);
@@ -143,17 +143,17 @@
 //            TupleQuery tupleQuery = conn.prepareTupleQuery(
 //                    QueryLanguage.SPARQL, query);
 //            if (ttl != null && ttl.length() > 0)
-//                tupleQuery.setBinding("ttl", vf.createLiteral(Long.parseLong(ttl)));
+//                tupleQuery.setBinding("ttl", VF.createLiteral(Long.parseLong(ttl)));
 //            if (startTime != null && startTime.length() > 0)
-//                tupleQuery.setBinding("startTime", vf.createLiteral(Long.parseLong(startTime)));
+//                tupleQuery.setBinding("startTime", VF.createLiteral(Long.parseLong(startTime)));
 //            if (performant != null && performant.length() > 0)
-//                tupleQuery.setBinding("performant", vf.createLiteral(Boolean.parseBoolean(performant)));
+//                tupleQuery.setBinding("performant", VF.createLiteral(Boolean.parseBoolean(performant)));
 //            if (infer != null && infer.length() > 0)
-//                tupleQuery.setBinding("infer", vf.createLiteral(Boolean.parseBoolean(infer)));
+//                tupleQuery.setBinding("infer", VF.createLiteral(Boolean.parseBoolean(infer)));
 //            if (useStats != null && useStats.length() > 0)
-//                tupleQuery.setBinding("useStats", vf.createLiteral(Boolean.parseBoolean(useStats)));
+//                tupleQuery.setBinding("useStats", VF.createLiteral(Boolean.parseBoolean(useStats)));
 //            if (timeUris != null && timeUris.length() > 0)
-//                tupleQuery.setBinding("timeUris", vf.createURI(timeUris));
+//                tupleQuery.setBinding("timeUris", VF.createIRI(timeUris));
 //            if (tablePrefix != null && tablePrefix.length() > 0)
 //                RdfCloudTripleStoreConstants.prefixTables(tablePrefix);
 //            SPARQLResultsXMLWriter sparqlWriter = new SPARQLResultsXMLWriter(os);

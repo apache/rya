@@ -46,8 +46,8 @@ import org.apache.rya.mongodb.dao.SimpleMongoDBStorageStrategy;
 import org.apache.rya.sail.config.RyaSailFactory;
 import org.bson.Document;
 import org.bson.conversions.Bson;
-import org.openrdf.query.algebra.QueryRoot;
-import org.openrdf.query.algebra.TupleExpr;
+import org.eclipse.rdf4j.query.algebra.QueryRoot;
+import org.eclipse.rdf4j.query.algebra.TupleExpr;
 
 import com.google.common.base.Preconditions;
 import com.mongodb.Block;

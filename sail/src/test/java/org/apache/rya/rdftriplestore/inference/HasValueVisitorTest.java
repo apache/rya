@@ -23,50 +23,51 @@ import static org.mockito.Mockito.when;
 
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import org.apache.rya.accumulo.AccumuloRdfConfiguration;
-import org.apache.rya.rdftriplestore.inference.HasValueVisitor;
-import org.apache.rya.rdftriplestore.inference.InferenceEngine;
+import org.apache.rya.api.utils.NullableStatementImpl;
 import org.apache.rya.rdftriplestore.utils.FixedStatementPattern;
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.Resource;
+import org.eclipse.rdf4j.model.Statement;
+import org.eclipse.rdf4j.model.Value;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
+import org.eclipse.rdf4j.model.vocabulary.RDF;
+import org.eclipse.rdf4j.query.algebra.Join;
+import org.eclipse.rdf4j.query.algebra.Projection;
+import org.eclipse.rdf4j.query.algebra.ProjectionElem;
+import org.eclipse.rdf4j.query.algebra.ProjectionElemList;
+import org.eclipse.rdf4j.query.algebra.StatementPattern;
+import org.eclipse.rdf4j.query.algebra.TupleExpr;
+import org.eclipse.rdf4j.query.algebra.Union;
+import org.eclipse.rdf4j.query.algebra.Var;
 import org.junit.Assert;
 import org.junit.Test;
-import org.openrdf.model.Resource;
-import org.openrdf.model.Statement;
-import org.openrdf.model.URI;
-import org.openrdf.model.Value;
-import org.openrdf.model.ValueFactory;
-import org.openrdf.model.impl.ValueFactoryImpl;
-import org.openrdf.model.vocabulary.RDF;
-import org.openrdf.query.algebra.Join;
-import org.openrdf.query.algebra.Projection;
-import org.openrdf.query.algebra.ProjectionElem;
-import org.openrdf.query.algebra.ProjectionElemList;
-import org.openrdf.query.algebra.StatementPattern;
-import org.openrdf.query.algebra.TupleExpr;
-import org.openrdf.query.algebra.Union;
-import org.openrdf.query.algebra.Var;
 
 public class HasValueVisitorTest {
     private final AccumuloRdfConfiguration conf = new AccumuloRdfConfiguration();
-    private final ValueFactory vf = new ValueFactoryImpl();
+    private static final ValueFactory VF = SimpleValueFactory.getInstance();
 
-    private final URI chordate = vf.createURI("urn:Chordate");
-    private final URI vertebrate = vf.createURI("urn:Vertebrate");
-    private final URI mammal = vf.createURI("urn:Mammal");
-    private final URI tunicate = vf.createURI("urn:Tunicate");
-    private final URI hasCharacteristic = vf.createURI("urn:anatomicalCharacteristic");
-    private final URI notochord = vf.createURI("urn:notochord");
-    private final URI skull = vf.createURI("urn:skull");
-    private final URI belongsTo = vf.createURI("urn:belongsToTaxon");
-    private final URI chordata = vf.createURI("urn:Chordata");
+    private final IRI chordate = VF.createIRI("urn:Chordate");
+    private final IRI vertebrate = VF.createIRI("urn:Vertebrate");
+    private final IRI mammal = VF.createIRI("urn:Mammal");
+    private final IRI tunicate = VF.createIRI("urn:Tunicate");
+    private final IRI hasCharacteristic = VF.createIRI("urn:anatomicalCharacteristic");
+    private final IRI notochord = VF.createIRI("urn:notochord");
+    private final IRI skull = VF.createIRI("urn:skull");
+    private final IRI belongsTo = VF.createIRI("urn:belongsToTaxon");
+    private final IRI chordata = VF.createIRI("urn:Chordata");
 
     @Test
     public void testRewriteTypePattern() throws Exception {
         // Configure a mock instance engine with an ontology:
         final InferenceEngine inferenceEngine = mock(InferenceEngine.class);
-        Map<URI, Set<Value>> vertebrateValues = new HashMap<>();
+        Map<IRI, Set<Value>> vertebrateValues = new HashMap<>();
         vertebrateValues.put(hasCharacteristic, new HashSet<>());
         vertebrateValues.put(belongsTo, new HashSet<>());
         vertebrateValues.get(hasCharacteristic).add(notochord);
@@ -133,10 +134,10 @@ public class HasValueVisitorTest {
         Assert.assertNotNull(belongsToFSP);
         // Verify the expected FSPs for the appropriate properties:
         Assert.assertEquals(2, hasCharacteristicFSP.statements.size());
-        Assert.assertTrue(hasCharacteristicFSP.statements.contains(vf.createStatement(vertebrate, hasCharacteristic, skull)));
-        Assert.assertTrue(hasCharacteristicFSP.statements.contains(vf.createStatement(vertebrate, hasCharacteristic, notochord)));
+        Assert.assertTrue(hasCharacteristicFSP.statements.contains(VF.createStatement(vertebrate, hasCharacteristic, skull)));
+        Assert.assertTrue(hasCharacteristicFSP.statements.contains(VF.createStatement(vertebrate, hasCharacteristic, notochord)));
         Assert.assertEquals(1, belongsToFSP.statements.size());
-        Assert.assertTrue(belongsToFSP.statements.contains(vf.createStatement(vertebrate, belongsTo, chordata)));
+        Assert.assertTrue(belongsToFSP.statements.contains(VF.createStatement(vertebrate, belongsTo, chordata)));
     }
 
     @Test
@@ -183,15 +184,24 @@ public class HasValueVisitorTest {
         Assert.assertEquals(fsp.getSubjectVar(), sp.getObjectVar());
         Assert.assertEquals(originalSP.getObjectVar(), fsp.getObjectVar());
         // Verify FSP: should provide (type, value) pairs
-        final Set<Statement> expectedStatements = new HashSet<>();
-        final URI fspPred = (URI) fsp.getPredicateVar().getValue();
-        expectedStatements.add(vf.createStatement(chordate, fspPred, notochord));
-        expectedStatements.add(vf.createStatement(tunicate, fspPred, notochord));
-        expectedStatements.add(vf.createStatement(vertebrate, fspPred, notochord));
-        expectedStatements.add(vf.createStatement(mammal, fspPred, notochord));
-        expectedStatements.add(vf.createStatement(vertebrate, fspPred, skull));
-        expectedStatements.add(vf.createStatement(mammal, fspPred, skull));
-        final Set<Statement> actualStatements = new HashSet<>(fsp.statements);
-        Assert.assertEquals(expectedStatements, actualStatements);
+        final List<Statement> expectedStatements = new LinkedList<>();
+        final IRI fspPred = (IRI) fsp.getPredicateVar().getValue();
+        expectedStatements.add(new NullableStatementImpl(chordate, fspPred, notochord));
+        expectedStatements.add(new NullableStatementImpl(tunicate, fspPred, notochord));
+        expectedStatements.add(new NullableStatementImpl(vertebrate, fspPred, notochord));
+        expectedStatements.add(new NullableStatementImpl(mammal, fspPred, notochord));
+        expectedStatements.add(new NullableStatementImpl(vertebrate, fspPred, skull));
+        expectedStatements.add(new NullableStatementImpl(mammal, fspPred, skull));
+        final List<Statement> actualStatements = new LinkedList<>(fsp.statements);
+        Assert.assertTrue(containsAll(expectedStatements, actualStatements));
+
+    }
+    private boolean containsAll(List<Statement> expected, List<Statement> actual){
+        for( Statement a : actual){
+            if (!expected.contains(a)){
+                return false;
+            }
+        }
+        return true;
     }
 }

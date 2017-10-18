@@ -24,14 +24,14 @@ import static org.junit.Assert.assertEquals;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.apache.rya.api.model.VisibilityBindingSet;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
+import org.eclipse.rdf4j.query.algebra.Projection;
+import org.eclipse.rdf4j.query.algebra.helpers.AbstractQueryModelVisitor;
+import org.eclipse.rdf4j.query.impl.MapBindingSet;
+import org.eclipse.rdf4j.query.parser.ParsedQuery;
+import org.eclipse.rdf4j.query.parser.sparql.SPARQLParser;
 import org.junit.Test;
-import org.openrdf.model.ValueFactory;
-import org.openrdf.model.impl.ValueFactoryImpl;
-import org.openrdf.query.algebra.Projection;
-import org.openrdf.query.algebra.helpers.QueryModelVisitorBase;
-import org.openrdf.query.impl.MapBindingSet;
-import org.openrdf.query.parser.ParsedQuery;
-import org.openrdf.query.parser.sparql.SPARQLParser;
 
 import edu.umd.cs.findbugs.annotations.Nullable;
 
@@ -55,11 +55,11 @@ public class ProjectionEvaluatorTest {
                 "}");
 
         // Create a Binding Set that contains the result of the WHERE clause.
-        final ValueFactory vf = new ValueFactoryImpl();
+        final ValueFactory vf = SimpleValueFactory.getInstance();
         final MapBindingSet bs = new MapBindingSet();
-        bs.addBinding("person", vf.createURI("urn:Alice"));
-        bs.addBinding("employee", vf.createURI("urn:Bob"));
-        bs.addBinding("business", vf.createURI("urn:TacoJoint"));
+        bs.addBinding("person", vf.createIRI("urn:Alice"));
+        bs.addBinding("employee", vf.createIRI("urn:Bob"));
+        bs.addBinding("business", vf.createIRI("urn:TacoJoint"));
         final VisibilityBindingSet original = new VisibilityBindingSet(bs, "a|b");
 
         // Execute the projection.
@@ -81,18 +81,18 @@ public class ProjectionEvaluatorTest {
                 "}");
 
         // Create a Binding Set that contains the result of the WHERE clause.
-        final ValueFactory vf = new ValueFactoryImpl();
+        final ValueFactory vf = SimpleValueFactory.getInstance();
         MapBindingSet bs = new MapBindingSet();
-        bs.addBinding("person", vf.createURI("urn:Alice"));
-        bs.addBinding("employee", vf.createURI("urn:Bob"));
-        bs.addBinding("business", vf.createURI("urn:TacoJoint"));
+        bs.addBinding("person", vf.createIRI("urn:Alice"));
+        bs.addBinding("employee", vf.createIRI("urn:Bob"));
+        bs.addBinding("business", vf.createIRI("urn:TacoJoint"));
         final VisibilityBindingSet original = new VisibilityBindingSet(bs, "a|b");
 
         // The expected binding set changes the "person" binding name to "p" and "employee" to "e".
         bs = new MapBindingSet();
-        bs.addBinding("p", vf.createURI("urn:Alice"));
-        bs.addBinding("e", vf.createURI("urn:Bob"));
-        bs.addBinding("business", vf.createURI("urn:TacoJoint"));
+        bs.addBinding("p", vf.createIRI("urn:Alice"));
+        bs.addBinding("e", vf.createIRI("urn:Bob"));
+        bs.addBinding("business", vf.createIRI("urn:TacoJoint"));
         final VisibilityBindingSet expected = new VisibilityBindingSet(bs, "a|b");
 
         // Execute the projection.
@@ -114,16 +114,16 @@ public class ProjectionEvaluatorTest {
                 "}");
 
         // Create a Binding Set that contains the result of the WHERE clause.
-        final ValueFactory vf = new ValueFactoryImpl();
+        final ValueFactory vf = SimpleValueFactory.getInstance();
         MapBindingSet bs = new MapBindingSet();
-        bs.addBinding("person", vf.createURI("urn:Alice"));
-        bs.addBinding("employee", vf.createURI("urn:Bob"));
-        bs.addBinding("business", vf.createURI("urn:TacoJoint"));
+        bs.addBinding("person", vf.createIRI("urn:Alice"));
+        bs.addBinding("employee", vf.createIRI("urn:Bob"));
+        bs.addBinding("business", vf.createIRI("urn:TacoJoint"));
         final VisibilityBindingSet original = new VisibilityBindingSet(bs, "a|b");
 
         // The expected binding set only has the "person" binding.
         bs = new MapBindingSet();
-        bs.addBinding("person", vf.createURI("urn:Alice"));
+        bs.addBinding("person", vf.createIRI("urn:Alice"));
         final VisibilityBindingSet expected = new VisibilityBindingSet(bs, "a|b");
 
         // Execute the projection.
@@ -145,18 +145,18 @@ public class ProjectionEvaluatorTest {
                  "}");
 
         // Create a Binding Set that contains the result of the WHERE clause.
-        final ValueFactory vf = new ValueFactoryImpl();
+        final ValueFactory vf = SimpleValueFactory.getInstance();
         MapBindingSet bs = new MapBindingSet();
-        bs.addBinding("person", vf.createURI("urn:Alice"));
-        bs.addBinding("child", vf.createURI("urn:Bob"));
-        bs.addBinding("grandchild", vf.createURI("urn:Charlie"));
+        bs.addBinding("person", vf.createIRI("urn:Alice"));
+        bs.addBinding("child", vf.createIRI("urn:Bob"));
+        bs.addBinding("grandchild", vf.createIRI("urn:Charlie"));
         final VisibilityBindingSet original = new VisibilityBindingSet(bs, "a|b");
 
         // The expected binding set represents a statement.
         bs = new MapBindingSet();
-        bs.addBinding("subject", vf.createURI("urn:Alice"));
-        bs.addBinding("predicate", vf.createURI("urn:hasGrandchild"));
-        bs.addBinding("object", vf.createURI("urn:Charlie"));
+        bs.addBinding("subject", vf.createIRI("urn:Alice"));
+        bs.addBinding("predicate", vf.createIRI("urn:hasGrandchild"));
+        bs.addBinding("object", vf.createIRI("urn:Charlie"));
         final VisibilityBindingSet expected = new VisibilityBindingSet(bs, "a|b");
 
         // Execute the projection.
@@ -177,10 +177,10 @@ public class ProjectionEvaluatorTest {
                  "}");
 
         // Create a Binding Set that contains the result of the WHERE clause.
-        final ValueFactory vf = new ValueFactoryImpl();
+        final ValueFactory vf = SimpleValueFactory.getInstance();
         MapBindingSet bs = new MapBindingSet();
-        bs.addBinding("person", vf.createURI("urn:Alice"));
-        bs.addBinding("hasGrandchild", vf.createURI("urn:Bob"));
+        bs.addBinding("person", vf.createIRI("urn:Alice"));
+        bs.addBinding("hasGrandchild", vf.createIRI("urn:Bob"));
         final VisibilityBindingSet original = new VisibilityBindingSet(bs, "a|b");
 
         // Execute the projection.
@@ -189,8 +189,8 @@ public class ProjectionEvaluatorTest {
         // The expected binding set represents a statement. We need to get the blank node's id from the
         // result since that is different every time.
         bs = new MapBindingSet();
-        bs.addBinding("subject", vf.createURI("urn:Alice"));
-        bs.addBinding("predicate", vf.createURI("urn:hasChild"));
+        bs.addBinding("subject", vf.createIRI("urn:Alice"));
+        bs.addBinding("predicate", vf.createIRI("urn:hasChild"));
         bs.addBinding("object", result.getValue("object"));
         final VisibilityBindingSet expected = new VisibilityBindingSet(bs, "a|b");
 
@@ -209,7 +209,7 @@ public class ProjectionEvaluatorTest {
 
         final AtomicReference<Projection> projection = new AtomicReference<>();
         final ParsedQuery parsed = new SPARQLParser().parseQuery(sparql, null);
-        parsed.getTupleExpr().visit(new QueryModelVisitorBase<Exception>() {
+        parsed.getTupleExpr().visit(new AbstractQueryModelVisitor<Exception>() {
             @Override
             public void meet(final Projection node) throws Exception {
                 projection.set(node);

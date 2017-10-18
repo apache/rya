@@ -1,21 +1,3 @@
-package org.apache.rya.indexing.mongodb.geo;
-
-import java.util.Map;
-import java.util.Set;
-
-import org.apache.hadoop.conf.Configuration;
-import org.openrdf.model.Statement;
-import org.openrdf.model.URI;
-import org.openrdf.model.Value;
-import org.openrdf.query.BindingSet;
-import org.openrdf.query.QueryEvaluationException;
-
-import com.google.common.base.Joiner;
-import com.google.common.collect.Maps;
-import com.vividsolutions.jts.geom.Geometry;
-import com.vividsolutions.jts.io.ParseException;
-import com.vividsolutions.jts.io.WKTReader;
-
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -34,9 +16,12 @@ import com.vividsolutions.jts.io.WKTReader;
  * specific language governing permissions and limitations
  * under the License.
  */
+package org.apache.rya.indexing.mongodb.geo;
 
+import java.util.Map;
+import java.util.Set;
 
-import info.aduna.iteration.CloseableIteration;
+import org.apache.hadoop.conf.Configuration;
 import org.apache.rya.indexing.GeoConstants;
 import org.apache.rya.indexing.GeoIndexer;
 import org.apache.rya.indexing.IndexingExpr;
@@ -45,6 +30,18 @@ import org.apache.rya.indexing.SearchFunction;
 import org.apache.rya.indexing.StatementConstraints;
 import org.apache.rya.indexing.accumulo.geo.GeoTupleSet;
 import org.apache.rya.indexing.external.tupleSet.ExternalTupleSet;
+import org.eclipse.rdf4j.common.iteration.CloseableIteration;
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.Statement;
+import org.eclipse.rdf4j.model.Value;
+import org.eclipse.rdf4j.query.BindingSet;
+import org.eclipse.rdf4j.query.QueryEvaluationException;
+
+import com.google.common.base.Joiner;
+import com.google.common.collect.Maps;
+import com.vividsolutions.jts.geom.Geometry;
+import com.vividsolutions.jts.io.ParseException;
+import com.vividsolutions.jts.io.WKTReader;
 
 public class MongoGeoTupleSet extends ExternalTupleSet {
 
@@ -114,7 +111,7 @@ public class MongoGeoTupleSet extends ExternalTupleSet {
             throws QueryEvaluationException {
         
       
-        URI funcURI = filterInfo.getFunction();
+        IRI funcURI = filterInfo.getFunction();
         SearchFunction searchFunction = (new MongoGeoSearchFunctionFactory(conf)).getSearchFunction(funcURI);
         if(filterInfo.getArguments().length > 1) {
             throw new IllegalArgumentException("Index functions do not support more than two arguments.");
@@ -133,7 +130,7 @@ public class MongoGeoTupleSet extends ExternalTupleSet {
         
         Configuration conf;
         
-        private final Map<URI, SearchFunction> SEARCH_FUNCTION_MAP = Maps.newHashMap();
+        private final Map<IRI, SearchFunction> SEARCH_FUNCTION_MAP = Maps.newHashMap();
 
         public MongoGeoSearchFunctionFactory(Configuration conf) {
             this.conf = conf;
@@ -146,7 +143,7 @@ public class MongoGeoTupleSet extends ExternalTupleSet {
          * @param searchFunction
          * @return
          */
-        public SearchFunction getSearchFunction(final URI searchFunction) {
+        public SearchFunction getSearchFunction(final IRI searchFunction) {
 
             SearchFunction geoFunc = null;
 
@@ -159,7 +156,7 @@ public class MongoGeoTupleSet extends ExternalTupleSet {
             return geoFunc;
         }
 
-        private SearchFunction getSearchFunctionInternal(final URI searchFunction) throws QueryEvaluationException {
+        private SearchFunction getSearchFunctionInternal(final IRI searchFunction) throws QueryEvaluationException {
             SearchFunction sf = SEARCH_FUNCTION_MAP.get(searchFunction);
 
             if (sf != null) {

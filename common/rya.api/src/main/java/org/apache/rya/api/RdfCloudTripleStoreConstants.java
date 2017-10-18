@@ -24,19 +24,19 @@ import org.apache.hadoop.io.Text;
 import org.apache.rya.api.domain.RyaSchema;
 import org.apache.rya.api.domain.RyaType;
 import org.apache.rya.api.domain.RyaURI;
-import org.openrdf.model.Literal;
-import org.openrdf.model.URI;
-import org.openrdf.model.Value;
-import org.openrdf.model.ValueFactory;
-import org.openrdf.model.impl.ValueFactoryImpl;
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.Literal;
+import org.eclipse.rdf4j.model.Value;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 
 public class RdfCloudTripleStoreConstants {
 
     public static final String NAMESPACE = RyaSchema.NAMESPACE;
     public static final String AUTH_NAMESPACE = RyaSchema.AUTH_NAMESPACE;
-    public static ValueFactory VALUE_FACTORY = ValueFactoryImpl.getInstance();
-    public static URI RANGE = VALUE_FACTORY.createURI(NAMESPACE, "range");
-    public static URI PARTITION_TIMERANGE = VALUE_FACTORY.createURI("urn:org.apache.mmrts.partition.rdf/08/2011#", "timeRange");
+    public static ValueFactory VALUE_FACTORY = SimpleValueFactory.getInstance();
+    public static IRI RANGE = VALUE_FACTORY.createIRI(NAMESPACE, "range");
+    public static IRI PARTITION_TIMERANGE = VALUE_FACTORY.createIRI("urn:org.apache.mmrts.partition.rdf/08/2011#", "timeRange");
     public static Literal EMPTY_LITERAL = VALUE_FACTORY.createLiteral(0);
     public static final byte EMPTY_BYTES[] = new byte[0];
     public static final Text EMPTY_TEXT = new Text();
@@ -135,14 +135,14 @@ public class RdfCloudTripleStoreConstants {
     //	public static final Authorizations ALL_AUTHORIZATIONS = new Authorizations(
     //	"_");
 
-    public static enum TABLE_LAYOUT {
+    public enum TABLE_LAYOUT {
         SPO, PO, OSP
     }
 
     //TODO: This should be in a version file somewhere
-    public static URI RTS_SUBJECT = VALUE_FACTORY.createURI(NAMESPACE, "rts");
+    public static IRI RTS_SUBJECT = VALUE_FACTORY.createIRI(NAMESPACE, "rts");
     public static RyaURI RTS_SUBJECT_RYA = new RyaURI(RTS_SUBJECT.stringValue());
-    public static URI RTS_VERSION_PREDICATE = VALUE_FACTORY.createURI(NAMESPACE, "version");
+    public static IRI RTS_VERSION_PREDICATE = VALUE_FACTORY.createIRI(NAMESPACE, "version");
     public static RyaURI RTS_VERSION_PREDICATE_RYA = new RyaURI(RTS_VERSION_PREDICATE.stringValue());
     public static final Value VERSION = VALUE_FACTORY.createLiteral("3.0.0");
     public static RyaType VERSION_RYA = new RyaType(VERSION.stringValue());

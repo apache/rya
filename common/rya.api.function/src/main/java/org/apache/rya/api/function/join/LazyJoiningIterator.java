@@ -24,9 +24,9 @@ import java.util.Iterator;
 
 import org.apache.rya.api.model.VisibilityBindingSet;
 import org.apache.rya.api.model.visibility.VisibilitySimplifier;
-import org.openrdf.query.Binding;
-import org.openrdf.query.BindingSet;
-import org.openrdf.query.impl.MapBindingSet;
+import org.eclipse.rdf4j.query.Binding;
+import org.eclipse.rdf4j.query.BindingSet;
+import org.eclipse.rdf4j.query.impl.MapBindingSet;
 
 import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
 import edu.umd.cs.findbugs.annotations.NonNull;

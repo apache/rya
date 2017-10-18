@@ -1,18 +1,3 @@
-package org.apache.rya.camel.cbsail;
-
-import static org.apache.rya.api.RdfCloudTripleStoreConfiguration.CONF_INFER;
-import static org.apache.rya.api.RdfCloudTripleStoreConfiguration.CONF_QUERY_AUTH;
-import static org.apache.rya.camel.cbsail.CbSailComponent.SPARQL_QUERY_PROP;
-import static org.apache.rya.camel.cbsail.CbSailComponent.valueFactory;
-
-import java.io.ByteArrayOutputStream;
-import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -31,23 +16,35 @@ import java.util.Map;
  * specific language governing permissions and limitations
  * under the License.
  */
+package org.apache.rya.camel.cbsail;
 
+import static org.apache.rya.api.RdfCloudTripleStoreConfiguration.CONF_INFER;
+import static org.apache.rya.api.RdfCloudTripleStoreConfiguration.CONF_QUERY_AUTH;
+import static org.apache.rya.camel.cbsail.CbSailComponent.SPARQL_QUERY_PROP;
+import static org.apache.rya.camel.cbsail.CbSailComponent.VALUE_FACTORY;
 
+import java.io.ByteArrayOutputStream;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import org.apache.camel.Exchange;
 import org.apache.camel.impl.DefaultProducer;
-import org.openrdf.model.Statement;
-import org.openrdf.query.BindingSet;
-import org.openrdf.query.MalformedQueryException;
-import org.openrdf.query.QueryEvaluationException;
-import org.openrdf.query.QueryLanguage;
-import org.openrdf.query.TupleQuery;
-import org.openrdf.query.TupleQueryResultHandlerBase;
-import org.openrdf.query.TupleQueryResultHandlerException;
-import org.openrdf.query.resultio.sparqlxml.SPARQLResultsXMLWriter;
-import org.openrdf.repository.RepositoryConnection;
-import org.openrdf.repository.RepositoryException;
-import org.openrdf.rio.RDFHandlerException;
+import org.eclipse.rdf4j.model.Statement;
+import org.eclipse.rdf4j.query.AbstractTupleQueryResultHandler;
+import org.eclipse.rdf4j.query.BindingSet;
+import org.eclipse.rdf4j.query.MalformedQueryException;
+import org.eclipse.rdf4j.query.QueryEvaluationException;
+import org.eclipse.rdf4j.query.QueryLanguage;
+import org.eclipse.rdf4j.query.TupleQuery;
+import org.eclipse.rdf4j.query.TupleQueryResultHandlerException;
+import org.eclipse.rdf4j.query.resultio.sparqlxml.SPARQLResultsXMLWriter;
+import org.eclipse.rdf4j.repository.RepositoryConnection;
+import org.eclipse.rdf4j.repository.RepositoryException;
+import org.eclipse.rdf4j.rio.RDFHandlerException;
 
 /**
  */
@@ -130,14 +127,14 @@ public class CbSailProducer extends DefaultProducer {
         final TupleQuery tupleQuery = connection.prepareTupleQuery(
                 QueryLanguage.SPARQL, query);
         if (auth != null && auth.length() > 0) {
-            tupleQuery.setBinding(CONF_QUERY_AUTH, valueFactory.createLiteral(auth));
+            tupleQuery.setBinding(CONF_QUERY_AUTH, VALUE_FACTORY.createLiteral(auth));
         }
         if (infer != null) {
-            tupleQuery.setBinding(CONF_INFER, valueFactory.createLiteral(infer));
+            tupleQuery.setBinding(CONF_INFER, VALUE_FACTORY.createLiteral(infer));
         }
         if (CbSailEndpoint.CbSailOutput.BINARY.equals(queryOutput)) {
             final List listOutput = new ArrayList();
-            final TupleQueryResultHandlerBase handler = new TupleQueryResultHandlerBase() {
+            final AbstractTupleQueryResultHandler handler = new AbstractTupleQueryResultHandler() {
                 @Override
                 public void handleSolution(final BindingSet bindingSet) throws TupleQueryResultHandlerException {
                     final Map<String, String> map = new HashMap<String, String>();

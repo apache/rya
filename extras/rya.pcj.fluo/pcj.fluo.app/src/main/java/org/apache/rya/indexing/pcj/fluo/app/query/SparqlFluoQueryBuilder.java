@@ -31,6 +31,7 @@ import static org.apache.rya.indexing.pcj.fluo.app.IncrementalUpdateConstants.SP
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -42,6 +43,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import org.apache.rya.api.client.CreatePCJ.ExportStrategy;
 import org.apache.rya.api.client.CreatePCJ.QueryType;
+import org.apache.rya.api.domain.VarNameUtils;
 import org.apache.rya.api.function.aggregation.AggregationElement;
 import org.apache.rya.api.function.aggregation.AggregationType;
 import org.apache.rya.indexing.pcj.fluo.app.ConstructGraph;
@@ -56,33 +58,34 @@ import org.apache.rya.indexing.pcj.fluo.app.util.FluoQueryUtils;
 import org.apache.rya.indexing.pcj.fluo.app.util.PeriodicQueryUtil;
 import org.apache.rya.indexing.pcj.fluo.app.util.VariableOrderUpdateVisitor.UpdateAction;
 import org.apache.rya.indexing.pcj.storage.accumulo.VariableOrder;
-import org.openrdf.model.Value;
-import org.openrdf.model.impl.BNodeImpl;
-import org.openrdf.query.MalformedQueryException;
-import org.openrdf.query.algebra.AggregateOperator;
-import org.openrdf.query.algebra.BNodeGenerator;
-import org.openrdf.query.algebra.Extension;
-import org.openrdf.query.algebra.ExtensionElem;
-import org.openrdf.query.algebra.Filter;
-import org.openrdf.query.algebra.Group;
-import org.openrdf.query.algebra.GroupElem;
-import org.openrdf.query.algebra.Join;
-import org.openrdf.query.algebra.LeftJoin;
-import org.openrdf.query.algebra.MultiProjection;
-import org.openrdf.query.algebra.Projection;
-import org.openrdf.query.algebra.ProjectionElem;
-import org.openrdf.query.algebra.ProjectionElemList;
-import org.openrdf.query.algebra.QueryModelNode;
-import org.openrdf.query.algebra.Reduced;
-import org.openrdf.query.algebra.StatementPattern;
-import org.openrdf.query.algebra.TupleExpr;
-import org.openrdf.query.algebra.UnaryTupleOperator;
-import org.openrdf.query.algebra.ValueConstant;
-import org.openrdf.query.algebra.ValueExpr;
-import org.openrdf.query.algebra.Var;
-import org.openrdf.query.algebra.helpers.QueryModelVisitorBase;
-import org.openrdf.query.parser.ParsedQuery;
-import org.openrdf.query.parser.sparql.SPARQLParser;
+import org.eclipse.rdf4j.model.Value;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
+import org.eclipse.rdf4j.query.MalformedQueryException;
+import org.eclipse.rdf4j.query.algebra.AggregateOperator;
+import org.eclipse.rdf4j.query.algebra.BNodeGenerator;
+import org.eclipse.rdf4j.query.algebra.Extension;
+import org.eclipse.rdf4j.query.algebra.ExtensionElem;
+import org.eclipse.rdf4j.query.algebra.Filter;
+import org.eclipse.rdf4j.query.algebra.Group;
+import org.eclipse.rdf4j.query.algebra.GroupElem;
+import org.eclipse.rdf4j.query.algebra.Join;
+import org.eclipse.rdf4j.query.algebra.LeftJoin;
+import org.eclipse.rdf4j.query.algebra.MultiProjection;
+import org.eclipse.rdf4j.query.algebra.Projection;
+import org.eclipse.rdf4j.query.algebra.ProjectionElem;
+import org.eclipse.rdf4j.query.algebra.ProjectionElemList;
+import org.eclipse.rdf4j.query.algebra.QueryModelNode;
+import org.eclipse.rdf4j.query.algebra.Reduced;
+import org.eclipse.rdf4j.query.algebra.StatementPattern;
+import org.eclipse.rdf4j.query.algebra.TupleExpr;
+import org.eclipse.rdf4j.query.algebra.UnaryTupleOperator;
+import org.eclipse.rdf4j.query.algebra.ValueConstant;
+import org.eclipse.rdf4j.query.algebra.ValueExpr;
+import org.eclipse.rdf4j.query.algebra.Var;
+import org.eclipse.rdf4j.query.algebra.helpers.AbstractQueryModelVisitor;
+import org.eclipse.rdf4j.query.parser.ParsedQuery;
+import org.eclipse.rdf4j.query.parser.sparql.SPARQLParser;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
@@ -103,6 +106,7 @@ public class SparqlFluoQueryBuilder {
     private String queryId;
     private NodeIds nodeIds;
     private Optional<Integer> joinBatchSize = Optional.empty();
+    private static final ValueFactory VF = SimpleValueFactory.getInstance();
 
     //Default behavior is to export to Kafka - subject to change when user can
     //specify their own export strategy
@@ -283,7 +287,7 @@ public class SparqlFluoQueryBuilder {
      * the node to a {@link FluoQuery.Builder}. This information is used by the
      * application's observers to incrementally update a PCJ.
      */
-    public static class NewQueryVisitor extends QueryModelVisitorBase<RuntimeException> {
+    public static class NewQueryVisitor extends AbstractQueryModelVisitor<RuntimeException> {
 
         private final NodeIds nodeIds;
         private final FluoQuery.Builder fluoQueryBuilder;
@@ -291,8 +295,6 @@ public class SparqlFluoQueryBuilder {
         /**
          * Constructs an instance of {@link NewQueryVisitor}.
          *
-         * @param sparql - The SPARQL query whose structure will be represented
-         *   within a Fluo application. (not null)
          * @param fluoQueryBuilder - The builder that will be updated by this
          *   vistior to include metadata about each of the query nodes. (not null)
          * @param nodeIds - The NodeIds object is passed in so that other parts
@@ -341,7 +343,7 @@ public class SparqlFluoQueryBuilder {
                         final String resultBindingName = groupElem.getName();
 
                         final AtomicReference<String> aggregatedBindingName = new AtomicReference<>();
-                        groupElem.visitChildren(new QueryModelVisitorBase<RuntimeException>() {
+                        groupElem.visitChildren(new AbstractQueryModelVisitor<RuntimeException>() {
                             @Override
                             public void meet(final Var node) {
                                 aggregatedBindingName.set( node.getName() );
@@ -529,7 +531,8 @@ public class SparqlFluoQueryBuilder {
                 // update variable order of this node and all ancestors to
                 // include BIN_ID binding as
                 // first variable in the ordering
-                FluoQueryUtils.updateVarOrders(fluoQueryBuilder, UpdateAction.AddVariable, Arrays.asList(IncrementalUpdateConstants.PERIODIC_BIN_ID), periodicId);
+                FluoQueryUtils.updateVarOrders(fluoQueryBuilder, UpdateAction.AddVariable,
+                        Collections.singletonList(IncrementalUpdateConstants.PERIODIC_BIN_ID), periodicId);
                 // Walk to the next node.
                 node.getArg().visit(this);
             }
@@ -633,7 +636,7 @@ public class SparqlFluoQueryBuilder {
                     final Value value = ((ValueConstant) expr).getValue();
                     valueMap.put(name, value);
                 } else if(expr instanceof BNodeGenerator) {
-                    valueMap.put(name, new BNodeImpl(UUID.randomUUID().toString()));
+                    valueMap.put(name, VF.createBNode(UUID.randomUUID().toString()));
                 }
             }
 
@@ -683,7 +686,7 @@ public class SparqlFluoQueryBuilder {
             final Set<String> vars = Sets.newHashSet();
 
             for(final String bindingName : node.getBindingNames()) {
-                if(!bindingName.startsWith("-const-")) {
+                if (!VarNameUtils.isConstant(bindingName)) {
                     vars.add(bindingName);
                 }
             }
@@ -784,7 +787,7 @@ public class SparqlFluoQueryBuilder {
         builder.setQueryType(locator.getQueryType());
     }
 
-    public static class QueryMetadataLocator extends QueryModelVisitorBase<Exception> {
+    public static class QueryMetadataLocator extends AbstractQueryModelVisitor<Exception> {
 
         private VariableOrder varOrder;
         private QueryType queryType;
@@ -850,13 +853,13 @@ public class SparqlFluoQueryBuilder {
           return getConstructGraphVarOrder(projections);
       }
 
-    private static VariableOrder getConstructGraphVarOrder(final List<ProjectionElemList> projections) {
+    private static VariableOrder getConstructGraphVarOrder(List<ProjectionElemList> projections) {
         final Set<String> varOrders = new HashSet<>();
 
         for(final ProjectionElemList elems: projections) {
             for(final ProjectionElem elem: elems.getElements()) {
                 final String name = elem.getSourceName();
-                if(!name.startsWith("-const-") && !name.startsWith("-anon-")) {
+                if (!VarNameUtils.isConstant(name) && !VarNameUtils.isAnonymous(name)) {
                     varOrders.add(name);
                 }
             }

@@ -21,7 +21,7 @@ package org.apache.rya.api.domain;
 
 
 
-import org.openrdf.model.URI;
+import org.eclipse.rdf4j.model.IRI;
 
 import static org.apache.rya.api.RdfCloudTripleStoreConstants.DELIM;
 import static org.apache.rya.api.RdfCloudTripleStoreConstants.LAST;
@@ -32,7 +32,7 @@ import static org.apache.rya.api.RdfCloudTripleStoreConstants.LAST;
  */
 public class RyaTypePrefix extends RyaTypeRange {
 
-    public RyaTypePrefix(URI datatype, String prefix) {
+    public RyaTypePrefix(IRI datatype, String prefix) {
         super();
         setPrefix(datatype, prefix);
     }
@@ -47,7 +47,7 @@ public class RyaTypePrefix extends RyaTypeRange {
         setStop(new RyaType(prefix + LAST));
     }
 
-    public void setPrefix(URI datatype, String prefix) {
+    public void setPrefix(IRI datatype, String prefix) {
         setStart(new RyaType(datatype, prefix + DELIM));
         setStop(new RyaType(datatype, prefix + LAST));
     }

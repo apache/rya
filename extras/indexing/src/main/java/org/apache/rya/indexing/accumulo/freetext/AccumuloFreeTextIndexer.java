@@ -75,15 +75,14 @@ import org.apache.rya.indexing.accumulo.freetext.query.QueryParser;
 import org.apache.rya.indexing.accumulo.freetext.query.QueryParserTreeConstants;
 import org.apache.rya.indexing.accumulo.freetext.query.SimpleNode;
 import org.apache.rya.indexing.accumulo.freetext.query.TokenMgrError;
-import org.openrdf.model.Literal;
-import org.openrdf.model.Statement;
-import org.openrdf.model.URI;
-import org.openrdf.query.QueryEvaluationException;
+import org.eclipse.rdf4j.common.iteration.CloseableIteration;
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.Literal;
+import org.eclipse.rdf4j.model.Statement;
+import org.eclipse.rdf4j.query.QueryEvaluationException;
 
 import com.google.common.base.Charsets;
 import com.google.common.collect.Lists;
-
-import info.aduna.iteration.CloseableIteration;
 
 /**
  * The {@link AccumuloFreeTextIndexer} stores and queries "free text" data from statements into tables in Accumulo. Specifically, this class
@@ -208,7 +207,7 @@ public class AccumuloFreeTextIndexer extends AbstractAccumuloIndexer implements 
 
     private int docTableNumPartitions;
 
-    private Set<URI> validPredicates;
+    private Set<IRI> validPredicates;
 
     private Configuration conf;
 
@@ -393,7 +392,7 @@ public class AccumuloFreeTextIndexer extends AbstractAccumuloIndexer implements 
     }
 
     @Override
-    public Set<URI> getIndexablePredicates() {
+    public Set<IRI> getIndexablePredicates() {
         return validPredicates;
     }
 
@@ -530,7 +529,7 @@ public class AccumuloFreeTextIndexer extends AbstractAccumuloIndexer implements 
         if (contraints.hasPredicates()) {
             constrainedQuery.append(" AND (");
             final List<String> predicates = new ArrayList<String>();
-            for (final URI u : contraints.getPredicates()) {
+            for (final IRI u : contraints.getPredicates()) {
                 predicates.add(ColumnPrefixes.getPredColFam(u.stringValue()).toString());
             }
             constrainedQuery.append(StringUtils.join(predicates, " OR "));

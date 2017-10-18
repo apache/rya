@@ -32,17 +32,17 @@ import org.apache.rya.accumulo.AccumuloRdfConfiguration;
 import org.apache.rya.accumulo.AccumuloRyaDAO;
 import org.apache.rya.rdftriplestore.RdfCloudTripleStore;
 import org.apache.tinkerpop.gremlin.structure.Graph;
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.Resource;
+import org.eclipse.rdf4j.model.Value;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
+import org.eclipse.rdf4j.query.QueryLanguage;
+import org.eclipse.rdf4j.repository.sail.SailRepository;
+import org.eclipse.rdf4j.repository.sail.SailRepositoryConnection;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Test;
-import org.openrdf.model.Resource;
-import org.openrdf.model.URI;
-import org.openrdf.model.Value;
-import org.openrdf.model.ValueFactory;
-import org.openrdf.model.impl.ValueFactoryImpl;
-import org.openrdf.query.QueryLanguage;
-import org.openrdf.repository.sail.SailRepository;
-import org.openrdf.repository.sail.SailRepositoryConnection;
 
 import com.google.common.collect.Sets;
 
@@ -51,7 +51,7 @@ import junit.framework.TestCase;
 public class InferenceEngineTest extends TestCase {
     private Connector connector;
     private AccumuloRyaDAO dao;
-    private final ValueFactory vf = new ValueFactoryImpl();
+    private static final ValueFactory VF = SimpleValueFactory.getInstance();
     private AccumuloRdfConfiguration conf;
     private RdfCloudTripleStore store;
     private InferenceEngine inferenceEngine;
@@ -102,19 +102,19 @@ public class InferenceEngineTest extends TestCase {
                 + "}}";
         conn.prepareUpdate(QueryLanguage.SPARQL, insert).execute();
         inferenceEngine.refreshGraph();
-        final URI a = vf.createURI("urn:A");
-        final URI b = vf.createURI("urn:B");
-        final URI c = vf.createURI("urn:C");
-        final URI d = vf.createURI("urn:D");
-        final URI e = vf.createURI("urn:E");
-        final URI f = vf.createURI("urn:F");
-        final URI g = vf.createURI("urn:G");
-        final URI z = vf.createURI("urn:Z");
-        final URI missing = vf.createURI("urn:Missing");
-        final Set<URI> empty = new HashSet<>();
-        final Set<URI> belowLevel2 = new HashSet<>(Arrays.asList(new URI[] { a, b }));
-        final Set<URI> belowLevel3 = new HashSet<>(Arrays.asList(new URI[] { a, b, c, d, e }));
-        final Set<URI> belowLevel4 = new HashSet<>(Arrays.asList(new URI[] { a, b, c, d, e, f, g }));
+        final IRI a = VF.createIRI("urn:A");
+        final IRI b = VF.createIRI("urn:B");
+        final IRI c = VF.createIRI("urn:C");
+        final IRI d = VF.createIRI("urn:D");
+        final IRI e = VF.createIRI("urn:E");
+        final IRI f = VF.createIRI("urn:F");
+        final IRI g = VF.createIRI("urn:G");
+        final IRI z = VF.createIRI("urn:Z");
+        final IRI missing = VF.createIRI("urn:Missing");
+        final Set<IRI> empty = new HashSet<>();
+        final Set<IRI> belowLevel2 = new HashSet<>(Arrays.asList(a, b));
+        final Set<IRI> belowLevel3 = new HashSet<>(Arrays.asList(a, b, c, d, e));
+        final Set<IRI> belowLevel4 = new HashSet<>(Arrays.asList(a, b, c, d, e, f, g));
         Assert.assertEquals(empty, inferenceEngine.getSubClasses(a));
         Assert.assertEquals(empty, inferenceEngine.getSubClasses(b));
         Assert.assertEquals(empty, inferenceEngine.getSubClasses(z));
@@ -141,20 +141,20 @@ public class InferenceEngineTest extends TestCase {
         conn.prepareUpdate(QueryLanguage.SPARQL, insert).execute();
         inferenceEngine.refreshGraph();
         final Graph graph = inferenceEngine.getSubPropertyOfGraph();
-        final URI p = vf.createURI("urn:p");
-        final URI q = vf.createURI("urn:q");
-        final URI r = vf.createURI("urn:r");
-        final URI s = vf.createURI("urn:s");
-        final URI t = vf.createURI("urn:t");
-        final URI u = vf.createURI("urn:u");
-        final URI v = vf.createURI("urn:v");
-        final URI w = vf.createURI("urn:w");
-        final URI missing = vf.createURI("urn:Missing");
-        final Set<URI> empty = new HashSet<>();
-        final Set<URI> belowQ = new HashSet<>(Arrays.asList(new URI[] { p }));
-        final Set<URI> belowR = new HashSet<>(Arrays.asList(new URI[] { p, r, s }));
-        final Set<URI> belowT = new HashSet<>(Arrays.asList(new URI[] { p, q }));
-        final Set<URI> belowU = new HashSet<>(Arrays.asList(new URI[] { p, q, r, s, t, u, v }));
+        final IRI p = VF.createIRI("urn:p");
+        final IRI q = VF.createIRI("urn:q");
+        final IRI r = VF.createIRI("urn:r");
+        final IRI s = VF.createIRI("urn:s");
+        final IRI t = VF.createIRI("urn:t");
+        final IRI u = VF.createIRI("urn:u");
+        final IRI v = VF.createIRI("urn:v");
+        final IRI w = VF.createIRI("urn:w");
+        final IRI missing = VF.createIRI("urn:Missing");
+        final Set<IRI> empty = new HashSet<>();
+        final Set<IRI> belowQ = new HashSet<>(Arrays.asList(p));
+        final Set<IRI> belowR = new HashSet<>(Arrays.asList(p, r, s));
+        final Set<IRI> belowT = new HashSet<>(Arrays.asList(p, q));
+        final Set<IRI> belowU = new HashSet<>(Arrays.asList(p, q, r, s, t, u, v));
         Assert.assertEquals(empty, InferenceEngine.findParents(graph, p));
         Assert.assertEquals(empty, InferenceEngine.findParents(graph, w));
         Assert.assertEquals(empty, InferenceEngine.findParents(graph, missing));
@@ -189,29 +189,29 @@ public class InferenceEngineTest extends TestCase {
                 + "}}";
         conn.prepareUpdate(QueryLanguage.SPARQL, insert).execute();
         inferenceEngine.refreshGraph();
-        final Set<URI> hasDomainD1 = inferenceEngine.getPropertiesWithDomain(vf.createURI("urn:D1"));
-        final Set<URI> hasDomainD2 = inferenceEngine.getPropertiesWithDomain(vf.createURI("urn:D2"));
-        final Set<URI> hasDomainD3 = inferenceEngine.getPropertiesWithDomain(vf.createURI("urn:D3"));
-        final Set<URI> hasRangeD1 = inferenceEngine.getPropertiesWithRange(vf.createURI("urn:D1"));
-        final Set<URI> hasRangeD2 = inferenceEngine.getPropertiesWithRange(vf.createURI("urn:D2"));
-        final Set<URI> hasRangeD3 = inferenceEngine.getPropertiesWithRange(vf.createURI("urn:D3"));
-        final Set<URI> hasDomainR1 = inferenceEngine.getPropertiesWithDomain(vf.createURI("urn:R1"));
-        final Set<URI> hasDomainR2 = inferenceEngine.getPropertiesWithDomain(vf.createURI("urn:R2"));
-        final Set<URI> hasDomainR3 = inferenceEngine.getPropertiesWithDomain(vf.createURI("urn:R3"));
-        final Set<URI> hasRangeR1 = inferenceEngine.getPropertiesWithRange(vf.createURI("urn:R1"));
-        final Set<URI> hasRangeR2 = inferenceEngine.getPropertiesWithRange(vf.createURI("urn:R2"));
-        final Set<URI> hasRangeR3 = inferenceEngine.getPropertiesWithRange(vf.createURI("urn:R3"));
-        final Set<URI> empty = new HashSet<>();
-        final Set<URI> expectedForward = new HashSet<>();
-        expectedForward.add(vf.createURI("urn:p2"));
-        expectedForward.add(vf.createURI("urn:p1"));
-        expectedForward.add(vf.createURI("urn:q2"));
-        expectedForward.add(vf.createURI("urn:q1"));
-        final Set<URI> expectedInverse = new HashSet<>();
-        expectedInverse.add(vf.createURI("urn:i1"));
-        expectedInverse.add(vf.createURI("urn:i2"));
-        expectedInverse.add(vf.createURI("urn:j1"));
-        expectedInverse.add(vf.createURI("urn:j2"));
+        final Set<IRI> hasDomainD1 = inferenceEngine.getPropertiesWithDomain(VF.createIRI("urn:D1"));
+        final Set<IRI> hasDomainD2 = inferenceEngine.getPropertiesWithDomain(VF.createIRI("urn:D2"));
+        final Set<IRI> hasDomainD3 = inferenceEngine.getPropertiesWithDomain(VF.createIRI("urn:D3"));
+        final Set<IRI> hasRangeD1 = inferenceEngine.getPropertiesWithRange(VF.createIRI("urn:D1"));
+        final Set<IRI> hasRangeD2 = inferenceEngine.getPropertiesWithRange(VF.createIRI("urn:D2"));
+        final Set<IRI> hasRangeD3 = inferenceEngine.getPropertiesWithRange(VF.createIRI("urn:D3"));
+        final Set<IRI> hasDomainR1 = inferenceEngine.getPropertiesWithDomain(VF.createIRI("urn:R1"));
+        final Set<IRI> hasDomainR2 = inferenceEngine.getPropertiesWithDomain(VF.createIRI("urn:R2"));
+        final Set<IRI> hasDomainR3 = inferenceEngine.getPropertiesWithDomain(VF.createIRI("urn:R3"));
+        final Set<IRI> hasRangeR1 = inferenceEngine.getPropertiesWithRange(VF.createIRI("urn:R1"));
+        final Set<IRI> hasRangeR2 = inferenceEngine.getPropertiesWithRange(VF.createIRI("urn:R2"));
+        final Set<IRI> hasRangeR3 = inferenceEngine.getPropertiesWithRange(VF.createIRI("urn:R3"));
+        final Set<IRI> empty = new HashSet<>();
+        final Set<IRI> expectedForward = new HashSet<>();
+        expectedForward.add(VF.createIRI("urn:p2"));
+        expectedForward.add(VF.createIRI("urn:p1"));
+        expectedForward.add(VF.createIRI("urn:q2"));
+        expectedForward.add(VF.createIRI("urn:q1"));
+        final Set<IRI> expectedInverse = new HashSet<>();
+        expectedInverse.add(VF.createIRI("urn:i1"));
+        expectedInverse.add(VF.createIRI("urn:i2"));
+        expectedInverse.add(VF.createIRI("urn:j1"));
+        expectedInverse.add(VF.createIRI("urn:j2"));
         Assert.assertEquals(empty, hasDomainD1);
         Assert.assertEquals(empty, hasRangeD1);
         Assert.assertEquals(empty, hasDomainR1);
@@ -248,24 +248,24 @@ public class InferenceEngineTest extends TestCase {
                 + "}}";
         conn.prepareUpdate(QueryLanguage.SPARQL, insert).execute();
         inferenceEngine.refreshGraph();
-        final Set<URI> properties = new HashSet<>();
-        properties.add(vf.createURI("urn:headOf"));
-        properties.add(vf.createURI("urn:temporaryHeadOf"));
-        final Map<Resource, Set<URI>> chairDerivations = new HashMap<>();
-        chairDerivations.put(vf.createURI("urn:Department"), properties);
-        chairDerivations.put(vf.createURI("urn:ScienceDepartment"), properties);
-        chairDerivations.put(vf.createURI("urn:HumanitiesDepartment"), properties);
-        final Map<Resource, Set<URI>> deanDerivations = new HashMap<>();
-        deanDerivations.put(vf.createURI("urn:College"), properties);
-        final Map<Resource, Set<URI>> combinedDerivations = new HashMap<>(chairDerivations);
-        combinedDerivations.put(vf.createURI("urn:College"), properties);
+        final Set<IRI> properties = new HashSet<>();
+        properties.add(VF.createIRI("urn:headOf"));
+        properties.add(VF.createIRI("urn:temporaryHeadOf"));
+        final Map<Resource, Set<IRI>> chairDerivations = new HashMap<>();
+        chairDerivations.put(VF.createIRI("urn:Department"), properties);
+        chairDerivations.put(VF.createIRI("urn:ScienceDepartment"), properties);
+        chairDerivations.put(VF.createIRI("urn:HumanitiesDepartment"), properties);
+        final Map<Resource, Set<IRI>> deanDerivations = new HashMap<>();
+        deanDerivations.put(VF.createIRI("urn:College"), properties);
+        final Map<Resource, Set<IRI>> combinedDerivations = new HashMap<>(chairDerivations);
+        combinedDerivations.put(VF.createIRI("urn:College"), properties);
         // Get someValuesFrom restrictions given the direct types
-        Assert.assertEquals(deanDerivations, inferenceEngine.getSomeValuesFromByRestrictionType(vf.createURI("urn:Dean")));
-        Assert.assertEquals(chairDerivations, inferenceEngine.getSomeValuesFromByRestrictionType(vf.createURI("urn:Chair")));
+        Assert.assertEquals(deanDerivations, inferenceEngine.getSomeValuesFromByRestrictionType(VF.createIRI("urn:Dean")));
+        Assert.assertEquals(chairDerivations, inferenceEngine.getSomeValuesFromByRestrictionType(VF.createIRI("urn:Chair")));
         // Finds the subtype's restrictions given the supertype
-        Assert.assertEquals(combinedDerivations, inferenceEngine.getSomeValuesFromByRestrictionType(vf.createURI("urn:Person")));
+        Assert.assertEquals(combinedDerivations, inferenceEngine.getSomeValuesFromByRestrictionType(VF.createIRI("urn:Person")));
         // Finds nothing if given a subtype which is not a restriction
-        Assert.assertEquals(new HashMap<>(), inferenceEngine.getSomeValuesFromByRestrictionType(vf.createURI("urn:ScienceDepartmentChair")));
+        Assert.assertEquals(new HashMap<>(), inferenceEngine.getSomeValuesFromByRestrictionType(VF.createIRI("urn:ScienceDepartmentChair")));
     }
 
     @Test
@@ -283,20 +283,20 @@ public class InferenceEngineTest extends TestCase {
                 + "}}";
         conn.prepareUpdate(QueryLanguage.SPARQL, insert).execute();
         inferenceEngine.refreshGraph();
-        final Map<Resource, Set<URI>> restrictionsImplyingTerrier = new HashMap<>();
-        final Set<URI> properties = new HashSet<>();
-        properties.add(vf.createURI("urn:parent"));
-        properties.add(vf.createURI("urn:relative"));
-        restrictionsImplyingTerrier.put(vf.createURI("urn:Terrier"), properties);
-        restrictionsImplyingTerrier.put(vf.createURI("urn:Cairn_Terrier"), properties);
-        Assert.assertEquals(restrictionsImplyingTerrier, inferenceEngine.getAllValuesFromByValueType(vf.createURI("urn:Terrier")));
-        final Map<Resource, Set<URI>> restrictionsImplyingDog = new HashMap<>(restrictionsImplyingTerrier);
-        restrictionsImplyingDog.put(vf.createURI("urn:Dog"), properties);
-        restrictionsImplyingDog.put(vf.createURI("urn:Retriever"), properties);
-        Assert.assertEquals(restrictionsImplyingDog, inferenceEngine.getAllValuesFromByValueType(vf.createURI("urn:Dog")));
-        final Map<Resource, Set<URI>> restrictionsImplyingMammal = new HashMap<>(restrictionsImplyingDog);
-        restrictionsImplyingMammal.put(vf.createURI("urn:Person"), properties);
-        Assert.assertEquals(restrictionsImplyingMammal, inferenceEngine.getAllValuesFromByValueType(vf.createURI("urn:Mammal")));
+        final Map<Resource, Set<IRI>> restrictionsImplyingTerrier = new HashMap<>();
+        final Set<IRI> properties = new HashSet<>();
+        properties.add(VF.createIRI("urn:parent"));
+        properties.add(VF.createIRI("urn:relative"));
+        restrictionsImplyingTerrier.put(VF.createIRI("urn:Terrier"), properties);
+        restrictionsImplyingTerrier.put(VF.createIRI("urn:Cairn_Terrier"), properties);
+        Assert.assertEquals(restrictionsImplyingTerrier, inferenceEngine.getAllValuesFromByValueType(VF.createIRI("urn:Terrier")));
+        final Map<Resource, Set<IRI>> restrictionsImplyingDog = new HashMap<>(restrictionsImplyingTerrier);
+        restrictionsImplyingDog.put(VF.createIRI("urn:Dog"), properties);
+        restrictionsImplyingDog.put(VF.createIRI("urn:Retriever"), properties);
+        Assert.assertEquals(restrictionsImplyingDog, inferenceEngine.getAllValuesFromByValueType(VF.createIRI("urn:Dog")));
+        final Map<Resource, Set<IRI>> restrictionsImplyingMammal = new HashMap<>(restrictionsImplyingDog);
+        restrictionsImplyingMammal.put(VF.createIRI("urn:Person"), properties);
+        Assert.assertEquals(restrictionsImplyingMammal, inferenceEngine.getAllValuesFromByValueType(VF.createIRI("urn:Mammal")));
     }
 
     @Test
@@ -320,14 +320,14 @@ public class InferenceEngineTest extends TestCase {
         final Map<Resource, Set<Value>> typeToValueImplications = new HashMap<>();
         final Set<Value> vertebrateTaxa = new HashSet<>();
         final Set<Value> tunicateTaxa = new HashSet<>();
-        vertebrateTaxa.add(vf.createURI("urn:Vertebrata"));
-        tunicateTaxa.add(vf.createURI("urn:Tunicata"));
+        vertebrateTaxa.add(VF.createIRI("urn:Vertebrata"));
+        tunicateTaxa.add(VF.createIRI("urn:Tunicata"));
         final Set<Value> mammalTaxa = new HashSet<>(vertebrateTaxa);
-        mammalTaxa.add(vf.createURI("urn:Mammalia"));
-        typeToValueImplications.put(vf.createURI("urn:Vertebrate"), vertebrateTaxa);
-        typeToValueImplications.put(vf.createURI("urn:Tunicate"), tunicateTaxa);
-        typeToValueImplications.put(vf.createURI("urn:Mammal"), mammalTaxa);
-        Assert.assertEquals(typeToValueImplications, inferenceEngine.getHasValueByProperty(vf.createURI("urn:taxon")));
+        mammalTaxa.add(VF.createIRI("urn:Mammalia"));
+        typeToValueImplications.put(VF.createIRI("urn:Vertebrate"), vertebrateTaxa);
+        typeToValueImplications.put(VF.createIRI("urn:Tunicate"), tunicateTaxa);
+        typeToValueImplications.put(VF.createIRI("urn:Mammal"), mammalTaxa);
+        Assert.assertEquals(typeToValueImplications, inferenceEngine.getHasValueByProperty(VF.createIRI("urn:taxon")));
     }
 
     @Test
@@ -350,35 +350,35 @@ public class InferenceEngineTest extends TestCase {
                 + "}}";
         conn.prepareUpdate(QueryLanguage.SPARQL, insert).execute();
         inferenceEngine.refreshGraph();
-        final URI legs = vf.createURI("urn:walksUsingLegs");
-        final URI taxon = vf.createURI("urn:taxon");
+        final IRI legs = VF.createIRI("urn:walksUsingLegs");
+        final IRI taxon = VF.createIRI("urn:taxon");
         // Verify direct restrictions:
-        final Map<URI, Set<Value>> valuesImplyingBiped = new HashMap<>();
+        final Map<IRI, Set<Value>> valuesImplyingBiped = new HashMap<>();
         valuesImplyingBiped.put(legs, new HashSet<>());
-        valuesImplyingBiped.get(legs).add(vf.createLiteral("2"));
-        Assert.assertEquals(valuesImplyingBiped, inferenceEngine.getHasValueByType(vf.createURI("urn:Biped")));
-        final Map<URI, Set<Value>> valuesImplyingMammal = new HashMap<>();
+        valuesImplyingBiped.get(legs).add(VF.createLiteral("2"));
+        Assert.assertEquals(valuesImplyingBiped, inferenceEngine.getHasValueByType(VF.createIRI("urn:Biped")));
+        final Map<IRI, Set<Value>> valuesImplyingMammal = new HashMap<>();
         valuesImplyingMammal.put(taxon, new HashSet<>());
-        valuesImplyingMammal.get(taxon).add(vf.createURI("urn:Mammalia"));
-        Assert.assertEquals(valuesImplyingMammal, inferenceEngine.getHasValueByType(vf.createURI("urn:Mammal")));
-        final Map<URI, Set<Value>> valuesImplyingTunicate = new HashMap<>();
+        valuesImplyingMammal.get(taxon).add(VF.createIRI("urn:Mammalia"));
+        Assert.assertEquals(valuesImplyingMammal, inferenceEngine.getHasValueByType(VF.createIRI("urn:Mammal")));
+        final Map<IRI, Set<Value>> valuesImplyingTunicate = new HashMap<>();
         valuesImplyingTunicate.put(taxon, new HashSet<>());
-        valuesImplyingTunicate.get(taxon).add(vf.createURI("urn:Tunicata"));
-        Assert.assertEquals(valuesImplyingTunicate, inferenceEngine.getHasValueByType(vf.createURI("urn:Tunicate")));
-        final Map<URI, Set<Value>> valuesImplyingPlant = new HashMap<>();
+        valuesImplyingTunicate.get(taxon).add(VF.createIRI("urn:Tunicata"));
+        Assert.assertEquals(valuesImplyingTunicate, inferenceEngine.getHasValueByType(VF.createIRI("urn:Tunicate")));
+        final Map<IRI, Set<Value>> valuesImplyingPlant = new HashMap<>();
         valuesImplyingPlant.put(taxon, new HashSet<>());
-        valuesImplyingPlant.get(taxon).add(vf.createURI("urn:Plantae"));
-        Assert.assertEquals(valuesImplyingPlant, inferenceEngine.getHasValueByType(vf.createURI("urn:Plant")));
+        valuesImplyingPlant.get(taxon).add(VF.createIRI("urn:Plantae"));
+        Assert.assertEquals(valuesImplyingPlant, inferenceEngine.getHasValueByType(VF.createIRI("urn:Plant")));
         // Verify indirect restrictions given a supertype, including multiple properties where relevant:
-        final Map<URI, Set<Value>> valuesImplyingVertebrate = new HashMap<>();
+        final Map<IRI, Set<Value>> valuesImplyingVertebrate = new HashMap<>();
         valuesImplyingVertebrate.put(taxon, new HashSet<>(valuesImplyingMammal.get(taxon)));
-        valuesImplyingVertebrate.get(taxon).add(vf.createURI("urn:Vertebrata"));
-        Assert.assertEquals(valuesImplyingVertebrate, inferenceEngine.getHasValueByType(vf.createURI("urn:Vertebrate")));
-        final Map<URI, Set<Value>> valuesImplyingAnimal = new HashMap<>();
+        valuesImplyingVertebrate.get(taxon).add(VF.createIRI("urn:Vertebrata"));
+        Assert.assertEquals(valuesImplyingVertebrate, inferenceEngine.getHasValueByType(VF.createIRI("urn:Vertebrate")));
+        final Map<IRI, Set<Value>> valuesImplyingAnimal = new HashMap<>();
         valuesImplyingAnimal.put(legs, valuesImplyingBiped.get(legs));
         valuesImplyingAnimal.put(taxon, new HashSet<>(valuesImplyingVertebrate.get(taxon)));
         valuesImplyingAnimal.get(taxon).addAll(valuesImplyingTunicate.get(taxon));
-        Assert.assertEquals(valuesImplyingAnimal, inferenceEngine.getHasValueByType(vf.createURI("urn:Animal")));
+        Assert.assertEquals(valuesImplyingAnimal, inferenceEngine.getHasValueByType(VF.createIRI("urn:Animal")));
     }
 
     @Test
@@ -396,15 +396,15 @@ public class InferenceEngineTest extends TestCase {
                 + "}}";
         conn.prepareUpdate(QueryLanguage.SPARQL, ontology).execute();
         inferenceEngine.refreshGraph();
-        final Set<URI> subClassesA = inferenceEngine.getSubClasses(vf.createURI("urn:A"));
-        final Set<URI> subClassesB = inferenceEngine.getSubClasses(vf.createURI("urn:B"));
-        final Set<URI> expectedA = new HashSet<>();
-        final Set<URI> expectedB = new HashSet<>();
-        expectedB.add(vf.createURI("urn:Y"));
-        expectedB.add(vf.createURI("urn:SubY"));
-        expectedB.add(vf.createURI("urn:Z"));
+        final Set<IRI> subClassesA = inferenceEngine.getSubClasses(VF.createIRI("urn:A"));
+        final Set<IRI> subClassesB = inferenceEngine.getSubClasses(VF.createIRI("urn:B"));
+        final Set<IRI> expectedA = new HashSet<>();
+        final Set<IRI> expectedB = new HashSet<>();
+        expectedB.add(VF.createIRI("urn:Y"));
+        expectedB.add(VF.createIRI("urn:SubY"));
+        expectedB.add(VF.createIRI("urn:Z"));
         expectedA.addAll(expectedB);
-        expectedA.add(vf.createURI("urn:X"));
+        expectedA.add(VF.createIRI("urn:X"));
         Assert.assertEquals(expectedA, subClassesA);
         Assert.assertEquals(expectedB, subClassesB);
     }
@@ -433,14 +433,14 @@ public class InferenceEngineTest extends TestCase {
         conn.prepareUpdate(QueryLanguage.SPARQL, ontology).execute();
         inferenceEngine.refreshGraph();
 
-        final URI mother = vf.createURI("urn:Mother");
-        final URI father = vf.createURI("urn:Father");
-        final URI woman = vf.createURI("urn:Woman");
-        final URI parent = vf.createURI("urn:Parent");
-        final URI man = vf.createURI("urn:Man");
-        final URI mom = vf.createURI("urn:Mom");
-        final URI immediateFamilyMember = vf.createURI("urn:ImmediateFamilyMember");
-        final URI relative = vf.createURI("urn:Relative");
+        final IRI mother = VF.createIRI("urn:Mother");
+        final IRI father = VF.createIRI("urn:Father");
+        final IRI woman = VF.createIRI("urn:Woman");
+        final IRI parent = VF.createIRI("urn:Parent");
+        final IRI man = VF.createIRI("urn:Man");
+        final IRI mom = VF.createIRI("urn:Mom");
+        final IRI immediateFamilyMember = VF.createIRI("urn:ImmediateFamilyMember");
+        final IRI relative = VF.createIRI("urn:Relative");
 
         final List<Set<Resource>> intersectionsImplyingMother = Arrays.asList(Sets.newHashSet(woman, parent));
         Assert.assertEquals(intersectionsImplyingMother, inferenceEngine.getIntersectionsImplying(mother));
@@ -450,7 +450,7 @@ public class InferenceEngineTest extends TestCase {
         // Check that Mother is a subclassOf Parent and Woman and
         // ImmediateFamilyMember and Relative. Also, Mother is a subclassOf
         // Mother and Mom through inferring equivalentClass.
-        final Set<URI> motherSuperClassUris = inferenceEngine.getSuperClasses(mother);
+        final Set<IRI> motherSuperClassUris = inferenceEngine.getSuperClasses(mother);
         Assert.assertNotNull(motherSuperClassUris);
         Assert.assertEquals(6, motherSuperClassUris.size());
         Assert.assertTrue(motherSuperClassUris.contains(parent));
@@ -460,7 +460,7 @@ public class InferenceEngineTest extends TestCase {
         Assert.assertTrue(motherSuperClassUris.contains(mother));
         Assert.assertTrue(motherSuperClassUris.contains(mom));
         // Check that Father is a subclassOf Parent and Man
-        final Set<URI> fatherSuperClassUris = inferenceEngine.getSuperClasses(father);
+        final Set<IRI> fatherSuperClassUris = inferenceEngine.getSuperClasses(father);
         Assert.assertNotNull(fatherSuperClassUris);
         Assert.assertEquals(2, fatherSuperClassUris.size());
         Assert.assertTrue(fatherSuperClassUris.contains(parent));
@@ -470,7 +470,7 @@ public class InferenceEngineTest extends TestCase {
         // ImmediateFamilyMember and Relative. The last 2 should be inferred
         // from having the same intersection as Mother. Also, Mom is a
         // subclassOf Mother and Mom through inferring equivalentClass.
-        final Set<URI> momSuperClassUris = inferenceEngine.getSuperClasses(mom);
+        final Set<IRI> momSuperClassUris = inferenceEngine.getSuperClasses(mom);
         Assert.assertNotNull(momSuperClassUris);
         Assert.assertEquals(6, momSuperClassUris.size());
         Assert.assertTrue(momSuperClassUris.contains(parent));
@@ -525,29 +525,29 @@ public class InferenceEngineTest extends TestCase {
         conn.prepareUpdate(QueryLanguage.SPARQL, ontology).execute();
         inferenceEngine.refreshGraph();
 
-        final URI suits = vf.createURI("urn:Suits");
-        final URI ranks = vf.createURI("urn:Ranks");
+        final IRI suits = VF.createIRI("urn:Suits");
+        final IRI ranks = VF.createIRI("urn:Ranks");
 
-        final URI clubs = vf.createURI("urn:Clubs");
-        final URI diamonds = vf.createURI("urn:Diamonds");
-        final URI hearts = vf.createURI("urn:Hearts");
-        final URI spades = vf.createURI("urn:Spades");
+        final IRI clubs = VF.createIRI("urn:Clubs");
+        final IRI diamonds = VF.createIRI("urn:Diamonds");
+        final IRI hearts = VF.createIRI("urn:Hearts");
+        final IRI spades = VF.createIRI("urn:Spades");
 
-        final URI ace = vf.createURI("urn:Ace");
-        final URI two = vf.createURI("urn:2");
-        final URI three = vf.createURI("urn:3");
-        final URI four = vf.createURI("urn:4");
-        final URI five = vf.createURI("urn:5");
-        final URI six = vf.createURI("urn:6");
-        final URI seven = vf.createURI("urn:7");
-        final URI eight = vf.createURI("urn:8");
-        final URI nine = vf.createURI("urn:9");
-        final URI ten = vf.createURI("urn:10");
-        final URI jack = vf.createURI("urn:Jack");
-        final URI queen = vf.createURI("urn:Queen");
-        final URI king = vf.createURI("urn:King");
+        final IRI ace = VF.createIRI("urn:Ace");
+        final IRI two = VF.createIRI("urn:2");
+        final IRI three = VF.createIRI("urn:3");
+        final IRI four = VF.createIRI("urn:4");
+        final IRI five = VF.createIRI("urn:5");
+        final IRI six = VF.createIRI("urn:6");
+        final IRI seven = VF.createIRI("urn:7");
+        final IRI eight = VF.createIRI("urn:8");
+        final IRI nine = VF.createIRI("urn:9");
+        final IRI ten = VF.createIRI("urn:10");
+        final IRI jack = VF.createIRI("urn:Jack");
+        final IRI queen = VF.createIRI("urn:Queen");
+        final IRI king = VF.createIRI("urn:King");
 
-        final URI joker = vf.createURI("urn:Joker");
+        final IRI joker = VF.createIRI("urn:Joker");
 
         final boolean isJokerEnumeratedType = inferenceEngine.isEnumeratedType(joker);
         Assert.assertFalse(isJokerEnumeratedType);
@@ -572,12 +572,12 @@ public class InferenceEngineTest extends TestCase {
         conn.prepareUpdate(QueryLanguage.SPARQL, ontology).execute();
         inferenceEngine.refreshGraph();
         final Set<Resource> expectedTypes = new HashSet<>();
-        expectedTypes.add(vf.createURI("urn:Narcissist"));
-        Assert.assertEquals(expectedTypes, inferenceEngine.getHasSelfImplyingProperty(vf.createURI("urn:love")));
+        expectedTypes.add(VF.createIRI("urn:Narcissist"));
+        Assert.assertEquals(expectedTypes, inferenceEngine.getHasSelfImplyingProperty(VF.createIRI("urn:love")));
 
-        final Set<URI> expectedProperties = new HashSet<>();
-        expectedProperties.add(vf.createURI("urn:love"));
-        Assert.assertEquals(expectedProperties, inferenceEngine.getHasSelfImplyingType(vf.createURI("urn:Narcissist")));
+        final Set<IRI> expectedProperties = new HashSet<>();
+        expectedProperties.add(VF.createIRI("urn:love"));
+        Assert.assertEquals(expectedProperties, inferenceEngine.getHasSelfImplyingType(VF.createIRI("urn:Narcissist")));
     }
 
     @Test
@@ -592,12 +592,12 @@ public class InferenceEngineTest extends TestCase {
                 + "}}";
         conn.prepareUpdate(QueryLanguage.SPARQL, ontology).execute();
         inferenceEngine.refreshGraph();
-        final URI comment = vf.createURI("urn:comment"); // none of the three supported types
-        final URI older = vf.createURI("urn:olderThan"); // transitive only
-        final URI notYounger = vf.createURI("urn:notYoungerThan"); // transitive and reflexive
-        final URI related = vf.createURI("urn:related"); // transitive and symmetric
-        final URI knows = vf.createURI("urn:knows"); // reflexive and symmetric
-        final URI sameAge = vf.createURI("urn:sameAgeAs"); // all three
+        final IRI comment = VF.createIRI("urn:comment"); // none of the three supported types
+        final IRI older = VF.createIRI("urn:olderThan"); // transitive only
+        final IRI notYounger = VF.createIRI("urn:notYoungerThan"); // transitive and reflexive
+        final IRI related = VF.createIRI("urn:related"); // transitive and symmetric
+        final IRI knows = VF.createIRI("urn:knows"); // reflexive and symmetric
+        final IRI sameAge = VF.createIRI("urn:sameAgeAs"); // all three
         // symmetry
         Assert.assertFalse(inferenceEngine.isSymmetricProperty(comment));
         Assert.assertFalse(inferenceEngine.isSymmetricProperty(older));

@@ -19,13 +19,17 @@ package org.apache.rya.accumulo.mr.tools;
  * under the License.
  */
 
+import static org.junit.Assert.assertEquals;
 
+import org.apache.rya.accumulo.mr.tools.Upgrade322Tool.UpgradeObjectSerialization;
 
-import org.apache.rya.api.resolver.impl.*;
+import org.apache.rya.api.resolver.impl.BooleanRyaTypeResolver;
+import org.apache.rya.api.resolver.impl.ByteRyaTypeResolver;
+import org.apache.rya.api.resolver.impl.DateTimeRyaTypeResolver;
+import org.apache.rya.api.resolver.impl.DoubleRyaTypeResolver;
+import org.apache.rya.api.resolver.impl.IntegerRyaTypeResolver;
+import org.apache.rya.api.resolver.impl.LongRyaTypeResolver;
 import org.junit.Test;
-
-import static org.apache.rya.accumulo.mr.tools.Upgrade322Tool.UpgradeObjectSerialization;
-import static org.junit.Assert.*;
 
 public class UpgradeObjectSerializationTest {
 

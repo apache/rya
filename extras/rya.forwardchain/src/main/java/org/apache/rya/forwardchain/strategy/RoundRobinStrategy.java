@@ -32,7 +32,7 @@ import org.apache.rya.forwardchain.ForwardChainConstants;
 import org.apache.rya.forwardchain.ForwardChainException;
 import org.apache.rya.forwardchain.rule.Rule;
 import org.apache.rya.forwardchain.rule.Ruleset;
-import org.openrdf.model.vocabulary.XMLSchema;
+import org.eclipse.rdf4j.model.vocabulary.XMLSchema;
 
 import com.google.common.base.Preconditions;
 

@@ -19,20 +19,18 @@ package org.apache.rya.indexing.IndexPlanValidator;
  * under the License.
  */
 
-
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 import java.util.Set;
 
 import org.apache.rya.indexing.external.tupleSet.ExternalTupleSet;
-
-import org.openrdf.query.algebra.BindingSetAssignment;
-import org.openrdf.query.algebra.Filter;
-import org.openrdf.query.algebra.Join;
-import org.openrdf.query.algebra.Projection;
-import org.openrdf.query.algebra.StatementPattern;
-import org.openrdf.query.algebra.TupleExpr;
-import org.openrdf.query.algebra.helpers.QueryModelVisitorBase;
+import org.eclipse.rdf4j.query.algebra.BindingSetAssignment;
+import org.eclipse.rdf4j.query.algebra.Filter;
+import org.eclipse.rdf4j.query.algebra.Join;
+import org.eclipse.rdf4j.query.algebra.Projection;
+import org.eclipse.rdf4j.query.algebra.StatementPattern;
+import org.eclipse.rdf4j.query.algebra.TupleExpr;
+import org.eclipse.rdf4j.query.algebra.helpers.AbstractQueryModelVisitor;
 
 import com.google.common.collect.Sets;
 
@@ -106,10 +104,8 @@ public class IndexPlanValidator implements TupleValidator {
                     }
                     isEmpty = true;
                     return false;
-                } else if(isEmpty) {
-                    return false;
-                }else {
-                    return true;
+                } else {
+                    return !isEmpty;
                 }
             }
 
@@ -150,17 +146,10 @@ public class IndexPlanValidator implements TupleValidator {
         //System.out.println("Left binding names are " + leftBindingNames + " and right binding names are " + rightBindingNames);
         
         if (Sets.intersection(leftBindingNames, rightBindingNames).size() == 0) {
-            if (omitCrossProd) {
-                return false;
-            } else {
-                return true;
-            }
-
+            return !omitCrossProd;
         } else {
             if (join.getRightArg() instanceof ExternalTupleSet) {
-
                 return ((ExternalTupleSet) join.getRightArg()).supportsBindingSet(leftBindingNames);
-
             } else {
                 return true;
             }
@@ -168,7 +157,7 @@ public class IndexPlanValidator implements TupleValidator {
 
     }
 
-    public class TupleValidateVisitor extends QueryModelVisitorBase<RuntimeException> {
+    public class TupleValidateVisitor extends AbstractQueryModelVisitor<RuntimeException> {
 
         private boolean isValid = true;
 

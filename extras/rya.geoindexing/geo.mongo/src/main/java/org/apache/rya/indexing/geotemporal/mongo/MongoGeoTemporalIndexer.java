@@ -46,8 +46,8 @@ import org.apache.rya.indexing.mongodb.IndexingException;
 import org.apache.rya.indexing.mongodb.geo.GmlParser;
 import org.apache.rya.mongodb.StatefulMongoDBRdfConfiguration;
 import org.joda.time.DateTime;
-import org.openrdf.model.Statement;
-import org.openrdf.model.URI;
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.Statement;
 
 import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.io.ParseException;
@@ -126,7 +126,7 @@ public class MongoGeoTemporalIndexer extends AbstractMongoIndexer<GeoTemporalMon
                 }
 
                 final Event currentEvent = updated.build();
-                final URI pred = statement.getObject().getDataType();
+                final IRI pred = statement.getObject().getDataType();
                 if((pred.equals(GeoConstants.GEO_AS_WKT) || pred.equals(GeoConstants.GEO_AS_GML) ||
                    pred.equals(GeoConstants.XMLSCHEMA_OGC_WKT) || pred.equals(GeoConstants.XMLSCHEMA_OGC_GML))
                    && currentEvent.getGeometry().isPresent()) {
@@ -174,7 +174,7 @@ public class MongoGeoTemporalIndexer extends AbstractMongoIndexer<GeoTemporalMon
                 updated = Event.builder(old.get());
             }
 
-            final URI pred = statement.getObject().getDataType();
+            final IRI pred = statement.getObject().getDataType();
             if(pred.equals(GeoConstants.GEO_AS_WKT) || pred.equals(GeoConstants.GEO_AS_GML) ||
                pred.equals(GeoConstants.XMLSCHEMA_OGC_WKT) || pred.equals(GeoConstants.XMLSCHEMA_OGC_GML)) {
                 //is geo

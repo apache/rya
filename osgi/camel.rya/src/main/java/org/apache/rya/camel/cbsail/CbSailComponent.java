@@ -19,18 +19,16 @@ package org.apache.rya.camel.cbsail;
  * under the License.
  */
 
-
-
-import org.apache.camel.Endpoint;
-import org.apache.camel.impl.DefaultComponent;
-import org.openrdf.model.ValueFactory;
-import org.openrdf.model.impl.ValueFactoryImpl;
-import org.openrdf.repository.Repository;
-import org.openrdf.repository.sail.SailRepository;
+import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.Map;
 
-import static com.google.common.base.Preconditions.*;
+import org.apache.camel.Endpoint;
+import org.apache.camel.impl.DefaultComponent;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
+import org.eclipse.rdf4j.repository.Repository;
+
 /**
  * Save and retrieve triples
  */
@@ -41,7 +39,7 @@ public class CbSailComponent extends DefaultComponent {
     public static final String SPARQL_QUERY_PROP = "cbsail.sparql";
     public static final String START_TIME_QUERY_PROP = "cbsail.startTime";
     public static final String TTL_QUERY_PROP = "cbsail.ttl";
-    public static final ValueFactory valueFactory = new ValueFactoryImpl();
+    public static final ValueFactory VALUE_FACTORY = SimpleValueFactory.getInstance();
 
     @Override
     protected Endpoint createEndpoint(String uri, String remaining, Map<String, Object> parameters) throws Exception {

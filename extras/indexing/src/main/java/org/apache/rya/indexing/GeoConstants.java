@@ -19,29 +19,32 @@ package org.apache.rya.indexing;
  * under the License.
  */
 
-import org.openrdf.model.URI;
-import org.openrdf.model.impl.URIImpl;
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 
 /**
  * A set of URIs used in GeoSPARQL
  */
 public class GeoConstants {
+    private static final ValueFactory VF = SimpleValueFactory.getInstance();
+
     public static final String NS_GEO = "http://www.opengis.net/ont/geosparql#";
     public static final String NS_GEOF = "http://www.opengis.net/def/function/geosparql/";
 
-    public static final URI XMLSCHEMA_OGC_WKT = new URIImpl(NS_GEO + "wktLiteral");
-    public static final URI GEO_AS_WKT = new URIImpl(NS_GEO + "asWKT");
+    public static final IRI XMLSCHEMA_OGC_WKT = VF.createIRI(NS_GEO + "wktLiteral");
+    public static final IRI GEO_AS_WKT = VF.createIRI(NS_GEO + "asWKT");
 
-    public static final URI XMLSCHEMA_OGC_GML = new URIImpl(NS_GEO + "gmlLiteral");
-    public static final URI GEO_AS_GML = new URIImpl(NS_GEO + "asGML");
+    public static final IRI XMLSCHEMA_OGC_GML = VF.createIRI(NS_GEO + "gmlLiteral");
+    public static final IRI GEO_AS_GML = VF.createIRI(NS_GEO + "asGML");
 
-    public static final URI GEO_SF_EQUALS = new URIImpl(NS_GEOF + "sfEquals");
-    public static final URI GEO_SF_DISJOINT = new URIImpl(NS_GEOF + "sfDisjoint");
-    public static final URI GEO_SF_INTERSECTS = new URIImpl(NS_GEOF + "sfIntersects");
-    public static final URI GEO_SF_TOUCHES = new URIImpl(NS_GEOF + "sfTouches");
-    public static final URI GEO_SF_CROSSES = new URIImpl(NS_GEOF + "sfCrosses");
-    public static final URI GEO_SF_WITHIN = new URIImpl(NS_GEOF + "sfWithin");
-    public static final URI GEO_SF_CONTAINS = new URIImpl(NS_GEOF + "sfContains");
-    public static final URI GEO_SF_OVERLAPS = new URIImpl(NS_GEOF + "sfOverlaps");
-    public static final URI GEO_SF_NEAR = new URIImpl(NS_GEOF + "sfNear");
+    public static final IRI GEO_SF_EQUALS = VF.createIRI(NS_GEOF + "sfEquals");
+    public static final IRI GEO_SF_DISJOINT = VF.createIRI(NS_GEOF + "sfDisjoint");
+    public static final IRI GEO_SF_INTERSECTS = VF.createIRI(NS_GEOF + "sfIntersects");
+    public static final IRI GEO_SF_TOUCHES = VF.createIRI(NS_GEOF + "sfTouches");
+    public static final IRI GEO_SF_CROSSES = VF.createIRI(NS_GEOF + "sfCrosses");
+    public static final IRI GEO_SF_WITHIN = VF.createIRI(NS_GEOF + "sfWithin");
+    public static final IRI GEO_SF_CONTAINS = VF.createIRI(NS_GEOF + "sfContains");
+    public static final IRI GEO_SF_OVERLAPS = VF.createIRI(NS_GEOF + "sfOverlaps");
+    public static final IRI GEO_SF_NEAR = VF.createIRI(NS_GEOF + "sfNear");
 }

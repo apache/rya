@@ -1,16 +1,3 @@
-package org.apache.rya.sail.config;
-
-import org.openrdf.model.Graph;
-import org.openrdf.model.Literal;
-import org.openrdf.model.Resource;
-import org.openrdf.model.URI;
-import org.openrdf.model.ValueFactory;
-import org.openrdf.model.impl.ValueFactoryImpl;
-import org.openrdf.model.util.GraphUtil;
-import org.openrdf.model.util.GraphUtilException;
-import org.openrdf.sail.config.SailConfigException;
-import org.openrdf.sail.config.SailImplConfigBase;
-
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -29,30 +16,41 @@ import org.openrdf.sail.config.SailImplConfigBase;
  * specific language governing permissions and limitations
  * under the License.
  */
+package org.apache.rya.sail.config;
 
 import org.apache.rya.accumulo.AccumuloRdfConfiguration;
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.Literal;
+import org.eclipse.rdf4j.model.Model;
+import org.eclipse.rdf4j.model.Resource;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
+import org.eclipse.rdf4j.model.util.GraphUtil;
+import org.eclipse.rdf4j.model.util.GraphUtilException;
+import org.eclipse.rdf4j.sail.config.AbstractSailImplConfig;
+import org.eclipse.rdf4j.sail.config.SailConfigException;
 
 /**
  * @deprecated Use {@link AccumuloRdfConfiguration} instead.
  */
 @Deprecated
-public class RyaAccumuloSailConfig extends SailImplConfigBase {
+public class RyaAccumuloSailConfig extends AbstractSailImplConfig {
 
     public static final String NAMESPACE = "http://rya.apache.org/RyaAccumuloSail/Config#";
 
-    public static final URI INSTANCE;
-    public static final URI USER;
-    public static final URI PASSWORD;
-    public static final URI ZOOKEEPERS;
-    public static final URI IS_MOCK;
+    public static final IRI INSTANCE;
+    public static final IRI USER;
+    public static final IRI PASSWORD;
+    public static final IRI ZOOKEEPERS;
+    public static final IRI IS_MOCK;
 
     static {
-        final ValueFactory factory = ValueFactoryImpl.getInstance();
-        USER = factory.createURI(NAMESPACE, "user");
-        PASSWORD = factory.createURI(NAMESPACE, "password");
-        INSTANCE = factory.createURI(NAMESPACE, "instance");
-        ZOOKEEPERS = factory.createURI(NAMESPACE, "zookeepers");
-        IS_MOCK = factory.createURI(NAMESPACE, "isMock");
+        final ValueFactory factory = SimpleValueFactory.getInstance();
+        USER = factory.createIRI(NAMESPACE, "user");
+        PASSWORD = factory.createIRI(NAMESPACE, "password");
+        INSTANCE = factory.createIRI(NAMESPACE, "instance");
+        ZOOKEEPERS = factory.createIRI(NAMESPACE, "zookeepers");
+        IS_MOCK = factory.createIRI(NAMESPACE, "isMock");
     }
 
     private String user = "root";
@@ -116,45 +114,45 @@ public class RyaAccumuloSailConfig extends SailImplConfigBase {
     }
 
     @Override
-    public Resource export(final Graph graph) {
-        final Resource implNode = super.export(graph);
+    public Resource export(final Model model) {
+        final Resource implNode = super.export(model);
 
         @SuppressWarnings("deprecation")
         final
-        ValueFactory v = graph.getValueFactory();
+        ValueFactory v = model.getValueFactory();
 
-        graph.add(implNode, USER, v.createLiteral(user));
-        graph.add(implNode, PASSWORD, v.createLiteral(password));
-        graph.add(implNode, INSTANCE, v.createLiteral(instance));
-        graph.add(implNode, ZOOKEEPERS, v.createLiteral(zookeepers));
-        graph.add(implNode, IS_MOCK, v.createLiteral(isMock));
+        model.add(implNode, USER, v.createLiteral(user));
+        model.add(implNode, PASSWORD, v.createLiteral(password));
+        model.add(implNode, INSTANCE, v.createLiteral(instance));
+        model.add(implNode, ZOOKEEPERS, v.createLiteral(zookeepers));
+        model.add(implNode, IS_MOCK, v.createLiteral(isMock));
 
         return implNode;
     }
 
     @Override
-    public void parse(final Graph graph, final Resource implNode) throws SailConfigException {
-        super.parse(graph, implNode);
+    public void parse(final Model model, final Resource implNode) throws SailConfigException {
+        super.parse(model, implNode);
         System.out.println("parsing");
 
         try {
-            final Literal userLit = GraphUtil.getOptionalObjectLiteral(graph, implNode, USER);
+            final Literal userLit = GraphUtil.getOptionalObjectLiteral(model, implNode, USER);
             if (userLit != null) {
                 setUser(userLit.getLabel());
             }
-            final Literal pwdLit = GraphUtil.getOptionalObjectLiteral(graph, implNode, PASSWORD);
+            final Literal pwdLit = GraphUtil.getOptionalObjectLiteral(model, implNode, PASSWORD);
             if (pwdLit != null) {
                 setPassword(pwdLit.getLabel());
             }
-            final Literal instLit = GraphUtil.getOptionalObjectLiteral(graph, implNode, INSTANCE);
+            final Literal instLit = GraphUtil.getOptionalObjectLiteral(model, implNode, INSTANCE);
             if (instLit != null) {
                 setInstance(instLit.getLabel());
             }
-            final Literal zooLit = GraphUtil.getOptionalObjectLiteral(graph, implNode, ZOOKEEPERS);
+            final Literal zooLit = GraphUtil.getOptionalObjectLiteral(model, implNode, ZOOKEEPERS);
             if (zooLit != null) {
                 setZookeepers(zooLit.getLabel());
             }
-            final Literal mockLit = GraphUtil.getOptionalObjectLiteral(graph, implNode, IS_MOCK);
+            final Literal mockLit = GraphUtil.getOptionalObjectLiteral(model, implNode, IS_MOCK);
             if (mockLit != null) {
                 setMock(Boolean.parseBoolean(mockLit.getLabel()));
             }

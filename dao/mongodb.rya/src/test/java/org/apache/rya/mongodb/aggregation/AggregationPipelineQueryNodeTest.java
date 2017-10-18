@@ -23,23 +23,23 @@ import java.util.LinkedList;
 import java.util.List;
 
 import org.bson.Document;
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
+import org.eclipse.rdf4j.model.vocabulary.RDF;
+import org.eclipse.rdf4j.query.algebra.Compare;
+import org.eclipse.rdf4j.query.algebra.ExtensionElem;
+import org.eclipse.rdf4j.query.algebra.IsLiteral;
+import org.eclipse.rdf4j.query.algebra.Not;
+import org.eclipse.rdf4j.query.algebra.ProjectionElem;
+import org.eclipse.rdf4j.query.algebra.ProjectionElemList;
+import org.eclipse.rdf4j.query.algebra.StatementPattern;
+import org.eclipse.rdf4j.query.algebra.ValueConstant;
+import org.eclipse.rdf4j.query.algebra.Var;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
-import org.openrdf.model.URI;
-import org.openrdf.model.ValueFactory;
-import org.openrdf.model.impl.ValueFactoryImpl;
-import org.openrdf.model.vocabulary.RDF;
-import org.openrdf.query.algebra.Compare;
-import org.openrdf.query.algebra.ExtensionElem;
-import org.openrdf.query.algebra.IsLiteral;
-import org.openrdf.query.algebra.Not;
-import org.openrdf.query.algebra.ProjectionElem;
-import org.openrdf.query.algebra.ProjectionElemList;
-import org.openrdf.query.algebra.StatementPattern;
-import org.openrdf.query.algebra.ValueConstant;
-import org.openrdf.query.algebra.Var;
 
 import com.google.common.collect.HashBiMap;
 import com.google.common.collect.Sets;
@@ -47,13 +47,13 @@ import com.mongodb.MongoNamespace;
 import com.mongodb.client.MongoCollection;
 
 public class AggregationPipelineQueryNodeTest {
-    private static final ValueFactory VF = ValueFactoryImpl.getInstance();
+    private static final ValueFactory VF = SimpleValueFactory.getInstance();
 
     private static final String LUBM = "urn:lubm";
-    private static final URI UNDERGRAD = VF.createURI(LUBM, "UndergraduateStudent");
-    private static final URI TAKES = VF.createURI(LUBM, "takesCourse");
+    private static final IRI UNDERGRAD = VF.createIRI(LUBM, "UndergraduateStudent");
+    private static final IRI TAKES = VF.createIRI(LUBM, "takesCourse");
 
-    private static Var constant(URI value) {
+    private static Var constant(IRI value) {
         return new Var(value.stringValue(), value);
     }
 
@@ -137,7 +137,7 @@ public class AggregationPipelineQueryNodeTest {
         Assert.assertEquals(Sets.newHashSet("s", "p", "o"), node.getAssuredBindingNames());
         Assert.assertEquals(2, node.getPipeline().size());
         // All constants
-        sp = new StatementPattern(constant(VF.createURI("urn:Alice")), constant(RDF.TYPE), constant(UNDERGRAD));
+        sp = new StatementPattern(constant(VF.createIRI("urn:Alice")), constant(RDF.TYPE), constant(UNDERGRAD));
         node = new AggregationPipelineQueryNode(collection, sp);
         Assert.assertEquals(Sets.newHashSet(), node.getBindingNames());
         Assert.assertEquals(Sets.newHashSet(), node.getAssuredBindingNames());

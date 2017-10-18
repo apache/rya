@@ -32,41 +32,40 @@ import org.apache.rya.mongodb.MongoITBase;
 import org.apache.rya.mongodb.dao.SimpleMongoDBStorageStrategy;
 import org.bson.Document;
 import org.bson.conversions.Bson;
+import org.eclipse.rdf4j.common.iteration.CloseableIteration;
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.Literal;
+import org.eclipse.rdf4j.model.Resource;
+import org.eclipse.rdf4j.model.Statement;
+import org.eclipse.rdf4j.model.Value;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
+import org.eclipse.rdf4j.model.vocabulary.FOAF;
+import org.eclipse.rdf4j.model.vocabulary.OWL;
+import org.eclipse.rdf4j.model.vocabulary.RDF;
+import org.eclipse.rdf4j.model.vocabulary.RDFS;
+import org.eclipse.rdf4j.model.vocabulary.XMLSchema;
+import org.eclipse.rdf4j.query.BindingSet;
+import org.eclipse.rdf4j.query.QueryEvaluationException;
+import org.eclipse.rdf4j.query.algebra.Projection;
+import org.eclipse.rdf4j.query.algebra.QueryRoot;
+import org.eclipse.rdf4j.query.algebra.evaluation.QueryBindingSet;
+import org.eclipse.rdf4j.query.impl.EmptyBindingSet;
+import org.eclipse.rdf4j.query.impl.ListBindingSet;
+import org.eclipse.rdf4j.query.parser.sparql.SPARQLParser;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.openrdf.model.Literal;
-import org.openrdf.model.Resource;
-import org.openrdf.model.Statement;
-import org.openrdf.model.URI;
-import org.openrdf.model.Value;
-import org.openrdf.model.ValueFactory;
-import org.openrdf.model.impl.ValueFactoryImpl;
-import org.openrdf.model.vocabulary.FOAF;
-import org.openrdf.model.vocabulary.OWL;
-import org.openrdf.model.vocabulary.RDF;
-import org.openrdf.model.vocabulary.RDFS;
-import org.openrdf.model.vocabulary.XMLSchema;
-import org.openrdf.query.BindingSet;
-import org.openrdf.query.QueryEvaluationException;
-import org.openrdf.query.algebra.Projection;
-import org.openrdf.query.algebra.QueryRoot;
-import org.openrdf.query.algebra.evaluation.QueryBindingSet;
-import org.openrdf.query.impl.EmptyBindingSet;
-import org.openrdf.query.impl.ListBindingSet;
-import org.openrdf.query.parser.sparql.SPARQLParser;
 
 import com.google.common.collect.HashMultiset;
 import com.google.common.collect.Multiset;
 import com.mongodb.DBObject;
 import com.mongodb.util.JSON;
 
-import info.aduna.iteration.CloseableIteration;
-
 public class PipelineQueryIT extends MongoITBase {
 
-    private static ValueFactory VF = ValueFactoryImpl.getInstance();
-    private static SPARQLParser PARSER = new SPARQLParser();
+    private static final ValueFactory VF = SimpleValueFactory.getInstance();
+    private static final SPARQLParser PARSER = new SPARQLParser();
 
     private MongoDBRyaDAO dao;
 
@@ -79,11 +78,11 @@ public class PipelineQueryIT extends MongoITBase {
         dao.init();
     }
 
-    private void insert(Resource subject, URI predicate, Value object) throws RyaDAOException {
+    private void insert(Resource subject, IRI predicate, Value object) throws RyaDAOException {
         insert(subject, predicate, object, 0);
     }
 
-    private void insert(Resource subject, URI predicate, Value object, int derivationLevel) throws RyaDAOException {
+    private void insert(Resource subject, IRI predicate, Value object, int derivationLevel) throws RyaDAOException {
         final RyaStatementBuilder builder = new RyaStatementBuilder();
         builder.setSubject(RdfToRyaConversions.convertResource(subject));
         builder.setPredicate(RdfToRyaConversions.convertURI(predicate));
@@ -121,7 +120,7 @@ public class PipelineQueryIT extends MongoITBase {
         insert(OWL.THING, RDF.TYPE, OWL.CLASS);
         insert(FOAF.PERSON, RDF.TYPE, OWL.CLASS, 1);
         insert(FOAF.PERSON, RDFS.SUBCLASSOF, OWL.THING);
-        insert(VF.createURI("urn:Alice"), RDF.TYPE, FOAF.PERSON);
+        insert(VF.createIRI("urn:Alice"), RDF.TYPE, FOAF.PERSON);
         dao.flush();
         // Define query and expected results
         final String query = "SELECT * WHERE {\n"
@@ -131,7 +130,7 @@ public class PipelineQueryIT extends MongoITBase {
         Multiset<BindingSet> expectedSolutions = HashMultiset.create();
         expectedSolutions.add(new ListBindingSet(varNames, OWL.THING, OWL.CLASS));
         expectedSolutions.add(new ListBindingSet(varNames, FOAF.PERSON, OWL.CLASS));
-        expectedSolutions.add(new ListBindingSet(varNames, VF.createURI("urn:Alice"), FOAF.PERSON));
+        expectedSolutions.add(new ListBindingSet(varNames, VF.createIRI("urn:Alice"), FOAF.PERSON));
         // Execute pipeline and verify results
         testPipelineQuery(query, expectedSolutions);
     }
@@ -142,7 +141,7 @@ public class PipelineQueryIT extends MongoITBase {
         insert(OWL.THING, RDF.TYPE, OWL.CLASS);
         insert(FOAF.PERSON, RDF.TYPE, OWL.CLASS, 1);
         insert(FOAF.PERSON, RDFS.SUBCLASSOF, OWL.THING);
-        insert(VF.createURI("urn:Alice"), RDF.TYPE, FOAF.PERSON);
+        insert(VF.createIRI("urn:Alice"), RDF.TYPE, FOAF.PERSON);
         dao.flush();
         // Define query and expected results
         final String query = "SELECT * WHERE {\n"
@@ -169,11 +168,11 @@ public class PipelineQueryIT extends MongoITBase {
     @Test
     public void testJoinTwoSharedVariables() throws Exception {
         // Insert data
-        URI person = VF.createURI("urn:Person");
-        URI livingThing = VF.createURI("urn:LivingThing");
-        URI human = VF.createURI("urn:Human");
-        URI programmer = VF.createURI("urn:Programmer");
-        URI thing = VF.createURI("urn:Thing");
+        IRI person = VF.createIRI("urn:Person");
+        IRI livingThing = VF.createIRI("urn:LivingThing");
+        IRI human = VF.createIRI("urn:Human");
+        IRI programmer = VF.createIRI("urn:Programmer");
+        IRI thing = VF.createIRI("urn:Thing");
         insert(programmer, RDFS.SUBCLASSOF, person);
         insert(person, RDFS.SUBCLASSOF, FOAF.PERSON);
         insert(FOAF.PERSON, RDFS.SUBCLASSOF, person);
@@ -201,12 +200,12 @@ public class PipelineQueryIT extends MongoITBase {
     @Test
     public void testVariableRename() throws Exception {
         // Insert data
-        URI alice = VF.createURI("urn:Alice");
-        URI bob = VF.createURI("urn:Bob");
-        URI carol = VF.createURI("urn:Carol");
-        URI dan = VF.createURI("urn:Dan");
-        URI eve = VF.createURI("urn:Eve");
-        URI friend = VF.createURI("urn:friend");
+        IRI alice = VF.createIRI("urn:Alice");
+        IRI bob = VF.createIRI("urn:Bob");
+        IRI carol = VF.createIRI("urn:Carol");
+        IRI dan = VF.createIRI("urn:Dan");
+        IRI eve = VF.createIRI("urn:Eve");
+        IRI friend = VF.createIRI("urn:friend");
         insert(alice, friend, bob);
         insert(alice, friend, carol);
         insert(bob, friend, eve);
@@ -247,10 +246,10 @@ public class PipelineQueryIT extends MongoITBase {
     @Test
     public void testFilterQuery() throws Exception {
         // Insert data
-        URI alice = VF.createURI("urn:Alice");
-        URI bob = VF.createURI("urn:Bob");
-        URI eve = VF.createURI("urn:Eve");
-        URI relatedTo = VF.createURI("urn:relatedTo");
+        IRI alice = VF.createIRI("urn:Alice");
+        IRI bob = VF.createIRI("urn:Bob");
+        IRI eve = VF.createIRI("urn:Eve");
+        IRI relatedTo = VF.createIRI("urn:relatedTo");
         insert(alice, FOAF.KNOWS, bob);
         insert(alice, FOAF.KNOWS, alice);
         insert(alice, FOAF.KNOWS, eve);
@@ -285,12 +284,12 @@ public class PipelineQueryIT extends MongoITBase {
     @Test
     public void testMultiConstruct() throws Exception {
         // Insert data
-        URI alice = VF.createURI("urn:Alice");
-        URI bob = VF.createURI("urn:Bob");
-        URI eve = VF.createURI("urn:Eve");
-        URI friend = VF.createURI("urn:friend");
-        URI knows = VF.createURI("urn:knows");
-        URI person = VF.createURI("urn:Person");
+        IRI alice = VF.createIRI("urn:Alice");
+        IRI bob = VF.createIRI("urn:Bob");
+        IRI eve = VF.createIRI("urn:Eve");
+        IRI friend = VF.createIRI("urn:friend");
+        IRI knows = VF.createIRI("urn:knows");
+        IRI person = VF.createIRI("urn:Person");
         insert(alice, friend, bob);
         insert(bob, knows, eve);
         insert(eve, knows, alice);
@@ -311,12 +310,12 @@ public class PipelineQueryIT extends MongoITBase {
 
     @Test
     public void testTriplePipeline() throws Exception {
-        URI alice = VF.createURI("urn:Alice");
-        URI bob = VF.createURI("urn:Bob");
-        URI eve = VF.createURI("urn:Eve");
-        URI friend = VF.createURI("urn:friend");
-        URI knows = VF.createURI("urn:knows");
-        URI year = VF.createURI("urn:year");
+        IRI alice = VF.createIRI("urn:Alice");
+        IRI bob = VF.createIRI("urn:Bob");
+        IRI eve = VF.createIRI("urn:Eve");
+        IRI friend = VF.createIRI("urn:friend");
+        IRI knows = VF.createIRI("urn:knows");
+        IRI year = VF.createIRI("urn:year");
         Literal yearLiteral = VF.createLiteral("2017", XMLSchema.GYEAR);
         final String query = "CONSTRUCT {\n"
                 + "    ?x <urn:knows> ?y .\n"
@@ -350,11 +349,11 @@ public class PipelineQueryIT extends MongoITBase {
     @Test
     public void testRequiredDerivationLevel() throws Exception {
         // Insert data
-        URI person = VF.createURI("urn:Person");
-        URI livingThing = VF.createURI("urn:LivingThing");
-        URI human = VF.createURI("urn:Human");
-        URI programmer = VF.createURI("urn:Programmer");
-        URI thing = VF.createURI("urn:Thing");
+        IRI person = VF.createIRI("urn:Person");
+        IRI livingThing = VF.createIRI("urn:LivingThing");
+        IRI human = VF.createIRI("urn:Human");
+        IRI programmer = VF.createIRI("urn:Programmer");
+        IRI thing = VF.createIRI("urn:Thing");
         insert(programmer, RDFS.SUBCLASSOF, person);
         insert(person, RDFS.SUBCLASSOF, FOAF.PERSON);
         insert(FOAF.PERSON, RDFS.SUBCLASSOF, person);
@@ -405,11 +404,11 @@ public class PipelineQueryIT extends MongoITBase {
     @Test
     public void testRequiredTimestamp() throws Exception {
         // Insert data
-        URI person = VF.createURI("urn:Person");
-        URI livingThing = VF.createURI("urn:LivingThing");
-        URI human = VF.createURI("urn:Human");
-        URI programmer = VF.createURI("urn:Programmer");
-        URI thing = VF.createURI("urn:Thing");
+        IRI person = VF.createIRI("urn:Person");
+        IRI livingThing = VF.createIRI("urn:LivingThing");
+        IRI human = VF.createIRI("urn:Human");
+        IRI programmer = VF.createIRI("urn:Programmer");
+        IRI thing = VF.createIRI("urn:Thing");
         insert(programmer, RDFS.SUBCLASSOF, person);
         insert(person, RDFS.SUBCLASSOF, FOAF.PERSON, 2);
         insert(FOAF.PERSON, RDFS.SUBCLASSOF, person);

@@ -19,10 +19,8 @@ package org.apache.rya.rdftriplestore.utils;
  * under the License.
  */
 
-
-
-import org.openrdf.query.algebra.StatementPattern;
-import org.openrdf.query.algebra.Var;
+import org.eclipse.rdf4j.query.algebra.StatementPattern;
+import org.eclipse.rdf4j.query.algebra.Var;
 
 /**
  * Class TransitivePropertySP

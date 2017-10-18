@@ -25,10 +25,9 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.util.Tool;
 import org.apache.hadoop.util.ToolRunner;
-import org.openrdf.rio.RDFFormat;
-
 import org.apache.rya.accumulo.mr.AbstractAccumuloMRTool;
 import org.apache.rya.accumulo.mr.MRUtils;
+import org.eclipse.rdf4j.rio.RDFFormat;
 
 /**
  * Reads RDF data from one or more file(s) and inserts statements into Rya.

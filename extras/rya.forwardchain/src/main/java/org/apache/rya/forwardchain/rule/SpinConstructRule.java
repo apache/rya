@@ -26,42 +26,43 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.apache.log4j.Logger;
 import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
 import org.apache.rya.api.domain.StatementMetadata;
+import org.apache.rya.api.domain.VarNameUtils;
 import org.apache.rya.api.resolver.RdfToRyaConversions;
 import org.apache.rya.forwardchain.ForwardChainConstants;
 import org.apache.rya.forwardchain.ForwardChainException;
 import org.apache.rya.forwardchain.strategy.AbstractRuleExecutionStrategy;
 import org.apache.rya.sail.config.RyaSailFactory;
-import org.openrdf.model.Literal;
-import org.openrdf.model.Resource;
-import org.openrdf.model.Value;
-import org.openrdf.model.vocabulary.OWL;
-import org.openrdf.model.vocabulary.RDF;
-import org.openrdf.model.vocabulary.RDFS;
-import org.openrdf.model.vocabulary.SP;
-import org.openrdf.model.vocabulary.SPIN;
-import org.openrdf.query.BindingSet;
-import org.openrdf.query.MalformedQueryException;
-import org.openrdf.query.QueryEvaluationException;
-import org.openrdf.query.QueryLanguage;
-import org.openrdf.query.TupleQuery;
-import org.openrdf.query.TupleQueryResultHandlerBase;
-import org.openrdf.query.TupleQueryResultHandlerException;
-import org.openrdf.query.algebra.Extension;
-import org.openrdf.query.algebra.Join;
-import org.openrdf.query.algebra.QueryModelNode;
-import org.openrdf.query.algebra.SingletonSet;
-import org.openrdf.query.algebra.StatementPattern;
-import org.openrdf.query.algebra.TupleExpr;
-import org.openrdf.query.algebra.UnaryTupleOperator;
-import org.openrdf.query.algebra.ValueExpr;
-import org.openrdf.query.algebra.Var;
-import org.openrdf.query.algebra.helpers.QueryModelVisitorBase;
-import org.openrdf.query.parser.ParsedGraphQuery;
-import org.openrdf.query.parser.ParsedQuery;
-import org.openrdf.query.parser.sparql.SPARQLParser;
-import org.openrdf.repository.RepositoryException;
-import org.openrdf.repository.sail.SailRepository;
-import org.openrdf.repository.sail.SailRepositoryConnection;
+import org.eclipse.rdf4j.model.Literal;
+import org.eclipse.rdf4j.model.Resource;
+import org.eclipse.rdf4j.model.Value;
+import org.eclipse.rdf4j.model.vocabulary.OWL;
+import org.eclipse.rdf4j.model.vocabulary.RDF;
+import org.eclipse.rdf4j.model.vocabulary.RDFS;
+import org.eclipse.rdf4j.model.vocabulary.SP;
+import org.eclipse.rdf4j.model.vocabulary.SPIN;
+import org.eclipse.rdf4j.query.AbstractTupleQueryResultHandler;
+import org.eclipse.rdf4j.query.BindingSet;
+import org.eclipse.rdf4j.query.MalformedQueryException;
+import org.eclipse.rdf4j.query.QueryEvaluationException;
+import org.eclipse.rdf4j.query.QueryLanguage;
+import org.eclipse.rdf4j.query.TupleQuery;
+import org.eclipse.rdf4j.query.TupleQueryResultHandlerException;
+import org.eclipse.rdf4j.query.algebra.Extension;
+import org.eclipse.rdf4j.query.algebra.Join;
+import org.eclipse.rdf4j.query.algebra.QueryModelNode;
+import org.eclipse.rdf4j.query.algebra.SingletonSet;
+import org.eclipse.rdf4j.query.algebra.StatementPattern;
+import org.eclipse.rdf4j.query.algebra.TupleExpr;
+import org.eclipse.rdf4j.query.algebra.UnaryTupleOperator;
+import org.eclipse.rdf4j.query.algebra.ValueExpr;
+import org.eclipse.rdf4j.query.algebra.Var;
+import org.eclipse.rdf4j.query.algebra.helpers.AbstractQueryModelVisitor;
+import org.eclipse.rdf4j.query.parser.ParsedGraphQuery;
+import org.eclipse.rdf4j.query.parser.ParsedQuery;
+import org.eclipse.rdf4j.query.parser.sparql.SPARQLParser;
+import org.eclipse.rdf4j.repository.RepositoryException;
+import org.eclipse.rdf4j.repository.sail.SailRepository;
+import org.eclipse.rdf4j.repository.sail.SailRepositoryConnection;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Sets;
@@ -176,8 +177,8 @@ public class SpinConstructRule extends AbstractConstructRule {
         return var == null ? null : var.getValue();
     }
 
-    private static class TypeRequirementVisitor extends QueryModelVisitorBase<RuntimeException> {
-        private static final Var RDF_TYPE_VAR = new Var("-const-" + RDF.TYPE.stringValue(), RDF.TYPE);
+    private static class TypeRequirementVisitor extends AbstractQueryModelVisitor<RuntimeException> {
+        private static final Var RDF_TYPE_VAR = VarNameUtils.createUniqueConstVar(RDF.TYPE);
         private static final Set<Resource> BASE_TYPES = Sets.newHashSet(RDFS.RESOURCE, OWL.THING);
         static {
             RDF_TYPE_VAR.setConstant(true);
@@ -186,7 +187,7 @@ public class SpinConstructRule extends AbstractConstructRule {
         private final String varName;
         private final StatementPattern typeRequirement;
         public TypeRequirementVisitor(String varName, Resource requiredType) {
-            final Var typeVar = new Var("-const-" + requiredType.stringValue(), requiredType);
+            final Var typeVar = VarNameUtils.createUniqueConstVar(requiredType);
             typeVar.setConstant(true);
             this.varName = varName;
             if (BASE_TYPES.contains(requiredType)) {
@@ -285,7 +286,7 @@ public class SpinConstructRule extends AbstractConstructRule {
         try {
             conn = repository.getConnection();
             TupleQuery ruleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, ruleQueryString);
-            ruleQuery.evaluate(new TupleQueryResultHandlerBase() {
+            ruleQuery.evaluate(new AbstractTupleQueryResultHandler() {
                 @Override
                 public void handleSolution(BindingSet bs) throws TupleQueryResultHandlerException {
                 // For each rule identifier found, instantiate a SpinRule

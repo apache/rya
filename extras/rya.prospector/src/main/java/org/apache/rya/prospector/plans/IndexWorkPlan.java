@@ -33,7 +33,7 @@ import org.apache.rya.prospector.domain.IndexEntry;
 import org.apache.rya.prospector.domain.IntermediateProspect;
 import org.apache.rya.prospector.mr.ProspectorCombiner;
 import org.apache.rya.prospector.mr.ProspectorMapper;
-import org.openrdf.model.vocabulary.XMLSchema;
+import org.eclipse.rdf4j.model.vocabulary.XMLSchema;
 
 /**
  * Contains the methods that perform each of the Map Reduce functions that result

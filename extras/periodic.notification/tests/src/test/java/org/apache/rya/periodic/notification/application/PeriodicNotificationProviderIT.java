@@ -31,9 +31,9 @@ import org.apache.rya.indexing.pcj.fluo.app.util.FluoQueryUtils;
 import org.apache.rya.periodic.notification.coordinator.PeriodicNotificationCoordinatorExecutor;
 import org.apache.rya.periodic.notification.notification.TimestampedNotification;
 import org.apache.rya.periodic.notification.recovery.PeriodicNotificationProvider;
+import org.eclipse.rdf4j.query.MalformedQueryException;
 import org.junit.Assert;
 import org.junit.Test;
-import org.openrdf.query.MalformedQueryException;
 
 import com.google.common.collect.Sets;
 

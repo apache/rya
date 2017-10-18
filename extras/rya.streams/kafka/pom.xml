@@ -68,6 +68,10 @@ under the License.
             <groupId>org.apache.rya</groupId>
             <artifactId>rya.api</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.apache.rya</groupId>
+            <artifactId>rya.sail</artifactId>
+        </dependency>
 
         <!-- Kafka dependencies -->
         <dependency>

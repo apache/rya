@@ -17,6 +17,7 @@ package org.apache.rya.indexing.statement.metadata.matching;
  * specific language governing permissions and limitations
  * under the License.
  */
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -30,11 +31,11 @@ import org.apache.rya.api.domain.RyaURI;
 import org.apache.rya.api.resolver.RdfToRyaConversions;
 import org.apache.rya.indexing.external.matching.ExternalSetProvider;
 import org.apache.rya.indexing.external.matching.QuerySegment;
-import org.openrdf.model.URI;
-import org.openrdf.model.vocabulary.RDF;
-import org.openrdf.query.algebra.QueryModelNode;
-import org.openrdf.query.algebra.StatementPattern;
-import org.openrdf.query.algebra.Var;
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.vocabulary.RDF;
+import org.eclipse.rdf4j.query.algebra.QueryModelNode;
+import org.eclipse.rdf4j.query.algebra.StatementPattern;
+import org.eclipse.rdf4j.query.algebra.Var;
 
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
@@ -100,8 +101,8 @@ public class StatementMetadataExternalSetProvider implements ExternalSetProvider
         
         for (StatementPattern pattern : patterns) {
             Var var = pattern.getPredicateVar();
-            if (var.getValue() != null && var.getValue() instanceof URI) {
-                RyaURI uri = RdfToRyaConversions.convertURI((URI) var.getValue());
+            if (var.getValue() != null && var.getValue() instanceof IRI) {
+                RyaURI uri = RdfToRyaConversions.convertURI((IRI) var.getValue());
                 if(expectedURI.contains(uri) || metadataProperties.contains(uri)) {
                     finalPatterns.add(pattern);
                 }

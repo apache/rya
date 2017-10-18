@@ -20,34 +20,35 @@ package org.apache.rya.forwardchain.rule;
 
 import java.util.Set;
 
+import org.apache.rya.api.domain.VarNameUtils;
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.Value;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
+import org.eclipse.rdf4j.model.vocabulary.FOAF;
+import org.eclipse.rdf4j.model.vocabulary.RDF;
+import org.eclipse.rdf4j.model.vocabulary.RDFS;
+import org.eclipse.rdf4j.query.algebra.StatementPattern;
+import org.eclipse.rdf4j.query.algebra.StatementPattern.Scope;
+import org.eclipse.rdf4j.query.algebra.Var;
+import org.eclipse.rdf4j.query.parser.ParsedQuery;
+import org.eclipse.rdf4j.query.parser.sparql.SPARQLParser;
 import org.junit.Assert;
 import org.junit.Test;
-import org.openrdf.model.URI;
-import org.openrdf.model.Value;
-import org.openrdf.model.ValueFactory;
-import org.openrdf.model.impl.ValueFactoryImpl;
-import org.openrdf.model.vocabulary.FOAF;
-import org.openrdf.model.vocabulary.RDF;
-import org.openrdf.model.vocabulary.RDFS;
-import org.openrdf.query.algebra.StatementPattern;
-import org.openrdf.query.algebra.Var;
-import org.openrdf.query.algebra.StatementPattern.Scope;
-import org.openrdf.query.parser.ParsedQuery;
-import org.openrdf.query.parser.sparql.SPARQLParser;
 
 import com.google.common.collect.Sets;
 
 public class AntecedentVisitorTest {
     private static Var c(Value val) {
-        Var v = new Var("-const-" + val.stringValue(), val);
+        final Var v = VarNameUtils.createUniqueConstVar(val);
         v.setAnonymous(true);
         return v;
     }
 
-    private static ValueFactory VF = ValueFactoryImpl.getInstance();
-    private static String EX = "http://example.org/";
-    private static URI G1 = VF.createURI(EX, "Graph1");
-    private static URI G2 = VF.createURI(EX, "Graph2");
+    private static final ValueFactory VF = SimpleValueFactory.getInstance();
+    private static final String EX = "http://example.org/";
+    private static final IRI G1 = VF.createIRI(EX, "Graph1");
+    private static final IRI G2 = VF.createIRI(EX, "Graph2");
 
     @Test
     public void testSelectQuery() throws Exception {

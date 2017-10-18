@@ -23,24 +23,24 @@ import java.util.HashMap;
 import java.util.Iterator;
 
 import org.bson.Document;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
+import org.eclipse.rdf4j.query.BindingSet;
+import org.eclipse.rdf4j.query.QueryEvaluationException;
+import org.eclipse.rdf4j.query.algebra.evaluation.QueryBindingSet;
+import org.eclipse.rdf4j.query.impl.ListBindingSet;
 import org.junit.Assert;
 import org.junit.Test;
 import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
-import org.openrdf.model.ValueFactory;
-import org.openrdf.model.impl.ValueFactoryImpl;
-import org.openrdf.query.BindingSet;
-import org.openrdf.query.QueryEvaluationException;
-import org.openrdf.query.algebra.evaluation.QueryBindingSet;
-import org.openrdf.query.impl.ListBindingSet;
 
 import com.google.common.collect.Sets;
 import com.mongodb.client.AggregateIterable;
 import com.mongodb.client.MongoCursor;
 
 public class PipelineResultIterationTest {
-    ValueFactory VF = ValueFactoryImpl.getInstance();
+    private static final ValueFactory VF = SimpleValueFactory.getInstance();
 
     @SuppressWarnings("unchecked")
     private AggregateIterable<Document> documentIterator(Document ... documents) {
@@ -107,7 +107,7 @@ public class PipelineResultIterationTest {
     @Test
     public void testIterationGivenBindingSet() throws QueryEvaluationException {
         BindingSet solution = new ListBindingSet(Arrays.asList("b", "c"),
-                VF.createURI("urn:Bob"), VF.createURI("urn:Charlie"));
+                VF.createIRI("urn:Bob"), VF.createIRI("urn:Charlie"));
         HashMap<String, String> nameMap = new HashMap<>();
         nameMap.put("bName", "b");
         nameMap.put("cName", "c");

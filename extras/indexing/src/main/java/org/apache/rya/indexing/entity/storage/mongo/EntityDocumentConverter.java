@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -29,7 +29,7 @@ import org.apache.rya.indexing.entity.model.Entity;
 import org.apache.rya.indexing.entity.model.Property;
 import org.apache.rya.indexing.entity.storage.mongo.key.MongoDbSafeKey;
 import org.bson.Document;
-import org.openrdf.model.impl.URIImpl;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 
 import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
 import edu.umd.cs.findbugs.annotations.NonNull;
@@ -130,7 +130,7 @@ public class EntityDocumentConverter implements DocumentConverter<Entity> {
 
         builder.setVersion( document.getInteger(VERSION) );
 
-        builder.setSmartUri( new URIImpl(document.getString(SMART_URI)) );
+        builder.setSmartUri( SimpleValueFactory.getInstance().createIRI(document.getString(SMART_URI)) );
 
         return builder.build();
     }

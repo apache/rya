@@ -19,8 +19,6 @@ package org.apache.rya.rdftriplestore.evaluation;
  * under the License.
  */
 
-
-
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
@@ -28,8 +26,8 @@ import org.apache.rya.api.persist.RdfEvalStatsDAO;
 import org.apache.rya.api.persist.joinselect.SelectivityEvalDAO;
 import org.apache.rya.rdftriplestore.inference.DoNotExpandSP;
 import org.apache.rya.rdftriplestore.utils.FixedStatementPattern;
-import org.openrdf.query.algebra.Join;
-import org.openrdf.query.algebra.StatementPattern;
+import org.eclipse.rdf4j.query.algebra.Join;
+import org.eclipse.rdf4j.query.algebra.StatementPattern;
 
 public class RdfCloudTripleStoreSelectivityEvaluationStatistics<C extends RdfCloudTripleStoreConfiguration> extends RdfCloudTripleStoreEvaluationStatistics {
 

@@ -42,10 +42,10 @@ import org.apache.zookeeper.ClientCnxn;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.openrdf.model.ValueFactory;
-import org.openrdf.sail.Sail;
-import org.openrdf.sail.SailConnection;
-import org.openrdf.sail.SailException;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.sail.Sail;
+import org.eclipse.rdf4j.sail.SailConnection;
+import org.eclipse.rdf4j.sail.SailException;
 
 /**
  * Integration tests {@link QueryBenchmarkRun}.
@@ -121,23 +121,23 @@ public class QueryBenchmarkRunIT {
 
         final SailConnection sailConn = sail.getConnection();
         sailConn.begin();
-        sailConn.addStatement(vf.createURI("urn:Alice"), vf.createURI("urn:likes"), vf.createURI("urn:icecream"));
-        sailConn.addStatement(vf.createURI("urn:Bob"), vf.createURI("urn:likes"), vf.createURI("urn:icecream"));
-        sailConn.addStatement(vf.createURI("urn:Charlie"), vf.createURI("urn:likes"), vf.createURI("urn:icecream"));
-        sailConn.addStatement(vf.createURI("urn:David"), vf.createURI("urn:likes"), vf.createURI("urn:icecream"));
-        sailConn.addStatement(vf.createURI("urn:Eve"), vf.createURI("urn:likes"), vf.createURI("urn:icecream"));
-        sailConn.addStatement(vf.createURI("urn:Frank"), vf.createURI("urn:likes"), vf.createURI("urn:icecream"));
-        sailConn.addStatement(vf.createURI("urn:George"), vf.createURI("urn:likes"), vf.createURI("urn:icecream"));
-        sailConn.addStatement(vf.createURI("urn:Hillary"), vf.createURI("urn:likes"), vf.createURI("urn:icecream"));
+        sailConn.addStatement(vf.createIRI("urn:Alice"), vf.createIRI("urn:likes"), vf.createIRI("urn:icecream"));
+        sailConn.addStatement(vf.createIRI("urn:Bob"), vf.createIRI("urn:likes"), vf.createIRI("urn:icecream"));
+        sailConn.addStatement(vf.createIRI("urn:Charlie"), vf.createIRI("urn:likes"), vf.createIRI("urn:icecream"));
+        sailConn.addStatement(vf.createIRI("urn:David"), vf.createIRI("urn:likes"), vf.createIRI("urn:icecream"));
+        sailConn.addStatement(vf.createIRI("urn:Eve"), vf.createIRI("urn:likes"), vf.createIRI("urn:icecream"));
+        sailConn.addStatement(vf.createIRI("urn:Frank"), vf.createIRI("urn:likes"), vf.createIRI("urn:icecream"));
+        sailConn.addStatement(vf.createIRI("urn:George"), vf.createIRI("urn:likes"), vf.createIRI("urn:icecream"));
+        sailConn.addStatement(vf.createIRI("urn:Hillary"), vf.createIRI("urn:likes"), vf.createIRI("urn:icecream"));
 
-        sailConn.addStatement(vf.createURI("urn:Alice"), vf.createURI("urn:hasEyeColor"), vf.createURI("urn:blue"));
-        sailConn.addStatement(vf.createURI("urn:Bob"), vf.createURI("urn:hasEyeColor"), vf.createURI("urn:blue"));
-        sailConn.addStatement(vf.createURI("urn:Charlie"), vf.createURI("urn:hasEyeColor"), vf.createURI("urn:blue"));
-        sailConn.addStatement(vf.createURI("urn:David"), vf.createURI("urn:hasEyeColor"), vf.createURI("urn:blue"));
-        sailConn.addStatement(vf.createURI("urn:Eve"), vf.createURI("urn:hasEyeColor"), vf.createURI("urn:blue"));
-        sailConn.addStatement(vf.createURI("urn:Frank"), vf.createURI("urn:hasEyeColor"), vf.createURI("urn:blue"));
-        sailConn.addStatement(vf.createURI("urn:George"), vf.createURI("urn:hasEyeColor"), vf.createURI("urn:green"));
-        sailConn.addStatement(vf.createURI("urn:Hillary"), vf.createURI("urn:hasEyeColor"), vf.createURI("urn:brown"));
+        sailConn.addStatement(vf.createIRI("urn:Alice"), vf.createIRI("urn:hasEyeColor"), vf.createIRI("urn:blue"));
+        sailConn.addStatement(vf.createIRI("urn:Bob"), vf.createIRI("urn:hasEyeColor"), vf.createIRI("urn:blue"));
+        sailConn.addStatement(vf.createIRI("urn:Charlie"), vf.createIRI("urn:hasEyeColor"), vf.createIRI("urn:blue"));
+        sailConn.addStatement(vf.createIRI("urn:David"), vf.createIRI("urn:hasEyeColor"), vf.createIRI("urn:blue"));
+        sailConn.addStatement(vf.createIRI("urn:Eve"), vf.createIRI("urn:hasEyeColor"), vf.createIRI("urn:blue"));
+        sailConn.addStatement(vf.createIRI("urn:Frank"), vf.createIRI("urn:hasEyeColor"), vf.createIRI("urn:blue"));
+        sailConn.addStatement(vf.createIRI("urn:George"), vf.createIRI("urn:hasEyeColor"), vf.createIRI("urn:green"));
+        sailConn.addStatement(vf.createIRI("urn:Hillary"), vf.createIRI("urn:hasEyeColor"), vf.createIRI("urn:brown"));
         sailConn.commit();
         sailConn.close();
     }

@@ -19,15 +19,13 @@ package org.apache.rya.rdftriplestore.provenance;
  * under the License.
  */
 
-
 import java.util.List;
 
 import org.apache.rya.rdftriplestore.provenance.rdf.BaseProvenanceModel;
 import org.apache.rya.rdftriplestore.provenance.rdf.RDFProvenanceModel;
-
-import org.openrdf.model.Statement;
-import org.openrdf.repository.RepositoryException;
-import org.openrdf.repository.sail.SailRepository;
+import org.eclipse.rdf4j.model.Statement;
+import org.eclipse.rdf4j.repository.RepositoryException;
+import org.eclipse.rdf4j.repository.sail.SailRepository;
 
 /**
  * Records provenance data to an external rdf triplestore

@@ -29,9 +29,8 @@ import org.apache.rya.indexing.pcj.fluo.app.batch.SpanBatchDeleteInformation;
 import org.apache.rya.indexing.pcj.fluo.app.util.BindingHashShardingFunction;
 import org.apache.rya.periodic.notification.api.BinPruner;
 import org.apache.rya.periodic.notification.api.NodeBin;
-import org.openrdf.model.ValueFactory;
-import org.openrdf.model.impl.ValueFactoryImpl;
-import org.openrdf.query.BindingSet;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -43,7 +42,7 @@ import com.google.common.base.Optional;
 public class FluoBinPruner implements BinPruner {
 
     private static final Logger log = LoggerFactory.getLogger(FluoBinPruner.class);
-    private static final ValueFactory vf = new ValueFactoryImpl();
+    private static final ValueFactory VF = SimpleValueFactory.getInstance();
     private final FluoClient client;
 
     public FluoBinPruner(final FluoClient client) {
@@ -54,10 +53,8 @@ public class FluoBinPruner implements BinPruner {
      * This method deletes BindingSets in the specified bin from the BindingSet
      * Column of the indicated Fluo nodeId
      *
-     * @param id
+     * @param nodeBin
      *            - Fluo nodeId
-     * @param bin
-     *            - bin id
      */
     @Override
     public void pruneBindingSetBin(final NodeBin nodeBin) {
@@ -70,7 +67,7 @@ public class FluoBinPruner implements BinPruner {
                 throw new RuntimeException();
             }
             final Column batchInfoColumn = type.get().getResultColumn();
-            final Bytes batchInfoSpanPrefix = BindingHashShardingFunction.getShardedScanPrefix(id, vf.createLiteral(bin));
+            final Bytes batchInfoSpanPrefix = BindingHashShardingFunction.getShardedScanPrefix(id, VF.createLiteral(bin));
             final SpanBatchDeleteInformation batchInfo = SpanBatchDeleteInformation.builder().setColumn(batchInfoColumn)
                     .setSpan(Span.prefix(batchInfoSpanPrefix)).build();
             BatchInformationDAO.addBatch(tx, id, batchInfo);

@@ -28,22 +28,22 @@ import java.util.Iterator;
 import java.util.Set;
 
 import org.apache.rya.accumulo.AccumuloRdfConfiguration;
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.Resource;
+import org.eclipse.rdf4j.model.Value;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
+import org.eclipse.rdf4j.model.vocabulary.RDF;
+import org.eclipse.rdf4j.query.Binding;
+import org.eclipse.rdf4j.query.BindingSet;
+import org.eclipse.rdf4j.query.algebra.BindingSetAssignment;
+import org.eclipse.rdf4j.query.algebra.Projection;
+import org.eclipse.rdf4j.query.algebra.ProjectionElem;
+import org.eclipse.rdf4j.query.algebra.ProjectionElemList;
+import org.eclipse.rdf4j.query.algebra.StatementPattern;
+import org.eclipse.rdf4j.query.algebra.Var;
+import org.eclipse.rdf4j.query.algebra.evaluation.QueryBindingSet;
 import org.junit.Test;
-import org.openrdf.model.Resource;
-import org.openrdf.model.URI;
-import org.openrdf.model.Value;
-import org.openrdf.model.ValueFactory;
-import org.openrdf.model.impl.ValueFactoryImpl;
-import org.openrdf.model.vocabulary.RDF;
-import org.openrdf.query.Binding;
-import org.openrdf.query.BindingSet;
-import org.openrdf.query.algebra.BindingSetAssignment;
-import org.openrdf.query.algebra.Projection;
-import org.openrdf.query.algebra.ProjectionElem;
-import org.openrdf.query.algebra.ProjectionElemList;
-import org.openrdf.query.algebra.StatementPattern;
-import org.openrdf.query.algebra.Var;
-import org.openrdf.query.algebra.evaluation.QueryBindingSet;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -53,31 +53,31 @@ import com.google.common.collect.Sets;
  */
 public class OneOfVisitorTest {
     private final AccumuloRdfConfiguration conf = new AccumuloRdfConfiguration();
-    private static final ValueFactory VF = new ValueFactoryImpl();
+    private static final ValueFactory VF = SimpleValueFactory.getInstance();
 
-    private static final URI SUITS = VF.createURI("urn:Suits");
-    private static final URI RANKS = VF.createURI("urn:Ranks");
+    private static final IRI SUITS = VF.createIRI("urn:Suits");
+    private static final IRI RANKS = VF.createIRI("urn:Ranks");
 
     // Definition #1: :Suits owl:oneOf(:Clubs, :Diamonds, :Hearts, :Spades)
-    private static final URI CLUBS = VF.createURI("urn:Clubs");
-    private static final URI DIAMONDS = VF.createURI("urn:Diamonds");
-    private static final URI HEARTS = VF.createURI("urn:Hearts");
-    private static final URI SPADES = VF.createURI("urn:Spades");
+    private static final IRI CLUBS = VF.createIRI("urn:Clubs");
+    private static final IRI DIAMONDS = VF.createIRI("urn:Diamonds");
+    private static final IRI HEARTS = VF.createIRI("urn:Hearts");
+    private static final IRI SPADES = VF.createIRI("urn:Spades");
 
     // Definition #2: :Ranks owl:oneOf(:Ace, :2, :3, :4, :5, :6, :7, :8, :9, :10, :Jack, :Queen, :King)
-    private static final URI ACE = VF.createURI("urn:Ace");
-    private static final URI TWO = VF.createURI("urn:2");
-    private static final URI THREE = VF.createURI("urn:3");
-    private static final URI FOUR = VF.createURI("urn:4");
-    private static final URI FIVE = VF.createURI("urn:5");
-    private static final URI SIX = VF.createURI("urn:6");
-    private static final URI SEVEN = VF.createURI("urn:7");
-    private static final URI EIGHT = VF.createURI("urn:8");
-    private static final URI NINE = VF.createURI("urn:9");
-    private static final URI TEN = VF.createURI("urn:10");
-    private static final URI JACK = VF.createURI("urn:Jack");
-    private static final URI QUEEN = VF.createURI("urn:Queen");
-    private static final URI KING = VF.createURI("urn:King");
+    private static final IRI ACE = VF.createIRI("urn:Ace");
+    private static final IRI TWO = VF.createIRI("urn:2");
+    private static final IRI THREE = VF.createIRI("urn:3");
+    private static final IRI FOUR = VF.createIRI("urn:4");
+    private static final IRI FIVE = VF.createIRI("urn:5");
+    private static final IRI SIX = VF.createIRI("urn:6");
+    private static final IRI SEVEN = VF.createIRI("urn:7");
+    private static final IRI EIGHT = VF.createIRI("urn:8");
+    private static final IRI NINE = VF.createIRI("urn:9");
+    private static final IRI TEN = VF.createIRI("urn:10");
+    private static final IRI JACK = VF.createIRI("urn:Jack");
+    private static final IRI QUEEN = VF.createIRI("urn:Queen");
+    private static final IRI KING = VF.createIRI("urn:King");
 
     private static final Set<Resource> CARD_SUIT_ENUMERATION =
         Sets.newLinkedHashSet(

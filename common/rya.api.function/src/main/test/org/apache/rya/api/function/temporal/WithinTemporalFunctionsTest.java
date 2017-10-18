@@ -22,18 +22,18 @@ import static org.junit.Assert.assertEquals;
 
 import java.time.ZonedDateTime;
 
+import org.eclipse.rdf4j.model.Value;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
+import org.eclipse.rdf4j.query.algebra.evaluation.ValueExprEvaluationException;
 import org.junit.Test;
-import org.openrdf.model.Value;
-import org.openrdf.model.ValueFactory;
-import org.openrdf.model.impl.ValueFactoryImpl;
-import org.openrdf.query.algebra.evaluation.ValueExprEvaluationException;
 
 public class WithinTemporalFunctionsTest {
     private static final ZonedDateTime TIME = ZonedDateTime.parse("2015-12-30T12:00:00Z");
     private static final ZonedDateTime TIME_10 = ZonedDateTime.parse("2015-12-30T12:00:10Z");
     private static final ZonedDateTime TIME_20 = ZonedDateTime.parse("2015-12-30T12:00:20Z");
 
-    final ValueFactory VF = ValueFactoryImpl.getInstance();
+    final ValueFactory VF = SimpleValueFactory.getInstance();
 
     @Test(expected = ValueExprEvaluationException.class)
     public void within_NotInterval() throws Exception {

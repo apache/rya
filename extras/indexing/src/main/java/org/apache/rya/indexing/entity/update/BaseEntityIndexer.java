@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -49,8 +49,8 @@ import org.apache.rya.indexing.entity.storage.mongo.ConvertingCursor;
 import org.apache.rya.indexing.mongodb.IndexingException;
 import org.apache.rya.mongodb.MongoSecondaryIndex;
 import org.apache.rya.mongodb.StatefulMongoDBRdfConfiguration;
-import org.openrdf.model.URI;
-import org.openrdf.model.vocabulary.RDF;
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.vocabulary.RDF;
 
 import com.google.common.base.Objects;
 
@@ -260,7 +260,7 @@ public abstract class BaseEntityIndexer implements EntityIndexer, MongoSecondary
     }
 
     @Override
-    public Set<URI> getIndexablePredicates() {
+    public Set<IRI> getIndexablePredicates() {
         // This isn't used anywhere in Rya, so it will not be implemented.
         return null;
     }

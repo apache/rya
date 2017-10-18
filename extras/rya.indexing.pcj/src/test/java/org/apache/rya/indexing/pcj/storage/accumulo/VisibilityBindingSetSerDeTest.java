@@ -28,12 +28,12 @@ import java.util.ArrayList;
 
 import org.apache.fluo.api.data.Bytes;
 import org.apache.rya.api.model.VisibilityBindingSet;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
+import org.eclipse.rdf4j.query.impl.MapBindingSet;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
-import org.openrdf.model.ValueFactory;
-import org.openrdf.model.impl.ValueFactoryImpl;
-import org.openrdf.query.impl.MapBindingSet;
 
 /**
  * Tests the methods of {@link VisibilityBindingSetSerDe}.
@@ -42,7 +42,7 @@ public class VisibilityBindingSetSerDeTest {
 
     @Test
     public void rountTrip() throws Exception {
-        final ValueFactory vf = new ValueFactoryImpl();
+        final ValueFactory vf = SimpleValueFactory.getInstance();
 
         final MapBindingSet bs = new MapBindingSet();
         bs.addBinding("name", vf.createLiteral("Alice"));

@@ -20,17 +20,20 @@ package org.apache.rya.mongodb.aggregation;
 
 import java.util.Arrays;
 
+import org.apache.rya.mongodb.MongoDBRdfConfiguration;
 import org.apache.rya.mongodb.StatefulMongoDBRdfConfiguration;
 import org.bson.Document;
-import org.openrdf.query.algebra.Distinct;
-import org.openrdf.query.algebra.Extension;
-import org.openrdf.query.algebra.Filter;
-import org.openrdf.query.algebra.Join;
-import org.openrdf.query.algebra.MultiProjection;
-import org.openrdf.query.algebra.Projection;
-import org.openrdf.query.algebra.Reduced;
-import org.openrdf.query.algebra.StatementPattern;
-import org.openrdf.query.algebra.helpers.QueryModelVisitorBase;
+import org.eclipse.rdf4j.query.algebra.Distinct;
+import org.eclipse.rdf4j.query.algebra.Extension;
+import org.eclipse.rdf4j.query.algebra.Filter;
+import org.eclipse.rdf4j.query.algebra.Join;
+import org.eclipse.rdf4j.query.algebra.MultiProjection;
+import org.eclipse.rdf4j.query.algebra.Projection;
+import org.eclipse.rdf4j.query.algebra.Reduced;
+import org.eclipse.rdf4j.query.algebra.StatementPattern;
+import org.eclipse.rdf4j.query.algebra.TupleExpr;
+import org.eclipse.rdf4j.query.algebra.ValueExpr;
+import org.eclipse.rdf4j.query.algebra.helpers.AbstractQueryModelVisitor;
 
 import com.google.common.base.Preconditions;
 import com.mongodb.MongoClient;
@@ -73,7 +76,7 @@ import com.mongodb.client.MongoDatabase;
  * {@code AggregationPipelineQueryNode}.
  * </ul>
  */
-public class SparqlToPipelineTransformVisitor extends QueryModelVisitorBase<Exception> {
+public class SparqlToPipelineTransformVisitor extends AbstractQueryModelVisitor<Exception> {
     private final MongoCollection<Document> inputCollection;
 
     /**

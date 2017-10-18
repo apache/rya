@@ -28,12 +28,12 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import org.apache.rya.api.model.VisibilityBindingSet;
 import org.apache.rya.api.model.visibility.VisibilitySimplifier;
-import org.openrdf.query.algebra.AggregateOperator;
-import org.openrdf.query.algebra.Group;
-import org.openrdf.query.algebra.GroupElem;
-import org.openrdf.query.algebra.Var;
-import org.openrdf.query.algebra.helpers.QueryModelVisitorBase;
-import org.openrdf.query.impl.MapBindingSet;
+import org.eclipse.rdf4j.query.algebra.AggregateOperator;
+import org.eclipse.rdf4j.query.algebra.Group;
+import org.eclipse.rdf4j.query.algebra.GroupElem;
+import org.eclipse.rdf4j.query.algebra.Var;
+import org.eclipse.rdf4j.query.algebra.helpers.AbstractQueryModelVisitor;
+import org.eclipse.rdf4j.query.impl.MapBindingSet;
 
 import com.google.common.collect.ImmutableMap;
 
@@ -113,7 +113,7 @@ public class AggregationsEvaluator {
                 final String resultBindingName = groupElem.getName();
 
                 final AtomicReference<String> aggregatedBindingName = new AtomicReference<>();
-                groupElem.visitChildren(new QueryModelVisitorBase<RuntimeException>() {
+                groupElem.visitChildren(new AbstractQueryModelVisitor<RuntimeException>() {
                     @Override
                     public void meet(final Var node) {
                         aggregatedBindingName.set( node.getName() );

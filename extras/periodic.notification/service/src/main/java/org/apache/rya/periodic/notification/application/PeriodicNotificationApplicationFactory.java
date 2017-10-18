@@ -18,13 +18,10 @@
  */
 package org.apache.rya.periodic.notification.application;
 
-import java.io.File;
-import java.io.FileInputStream;
 import java.util.Optional;
 import java.util.Properties;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.TimeUnit;
 
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
@@ -54,9 +51,7 @@ import org.apache.rya.periodic.notification.recovery.PeriodicNotificationProvide
 import org.apache.rya.periodic.notification.registration.kafka.KafkaNotificationProvider;
 import org.apache.rya.periodic.notification.serialization.BindingSetSerDe;
 import org.apache.rya.periodic.notification.serialization.CommandNotificationSerializer;
-import org.openrdf.query.BindingSet;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.eclipse.rdf4j.query.BindingSet;
 
 
 /**

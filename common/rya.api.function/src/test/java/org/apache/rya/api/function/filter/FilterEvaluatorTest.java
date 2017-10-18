@@ -24,16 +24,15 @@ import static org.junit.Assert.assertTrue;
 
 import java.util.concurrent.atomic.AtomicReference;
 
-import org.apache.rya.api.function.filter.FilterEvaluator;
 import org.apache.rya.api.model.VisibilityBindingSet;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
+import org.eclipse.rdf4j.query.algebra.Filter;
+import org.eclipse.rdf4j.query.algebra.helpers.AbstractQueryModelVisitor;
+import org.eclipse.rdf4j.query.impl.MapBindingSet;
+import org.eclipse.rdf4j.query.parser.ParsedQuery;
+import org.eclipse.rdf4j.query.parser.sparql.SPARQLParser;
 import org.junit.Test;
-import org.openrdf.model.ValueFactory;
-import org.openrdf.model.impl.ValueFactoryImpl;
-import org.openrdf.query.algebra.Filter;
-import org.openrdf.query.algebra.helpers.QueryModelVisitorBase;
-import org.openrdf.query.impl.MapBindingSet;
-import org.openrdf.query.parser.ParsedQuery;
-import org.openrdf.query.parser.sparql.SPARQLParser;
 
 import edu.umd.cs.findbugs.annotations.Nullable;
 
@@ -53,9 +52,9 @@ public class FilterEvaluatorTest {
                 "}");
 
         // Create the input binding set.
-        final ValueFactory vf = new ValueFactoryImpl();
+        final ValueFactory vf = SimpleValueFactory.getInstance();
         final MapBindingSet bs = new MapBindingSet();
-        bs.addBinding("person", vf.createURI("urn:Alice"));
+        bs.addBinding("person", vf.createIRI("urn:Alice"));
         bs.addBinding("age", vf.createLiteral(9));
         final VisibilityBindingSet visBs = new VisibilityBindingSet(bs);
 
@@ -74,9 +73,9 @@ public class FilterEvaluatorTest {
                 "}");
 
         // Create the input binding set.
-        final ValueFactory vf = new ValueFactoryImpl();
+        final ValueFactory vf = SimpleValueFactory.getInstance();
         final MapBindingSet bs = new MapBindingSet();
-        bs.addBinding("person", vf.createURI("urn:Alice"));
+        bs.addBinding("person", vf.createIRI("urn:Alice"));
         bs.addBinding("age", vf.createLiteral(11));
         final VisibilityBindingSet visBs = new VisibilityBindingSet(bs);
 
@@ -96,7 +95,7 @@ public class FilterEvaluatorTest {
 
         final AtomicReference<Filter> filter = new AtomicReference<>();
         final ParsedQuery parsed = new SPARQLParser().parseQuery(sparql, null);
-        parsed.getTupleExpr().visit(new QueryModelVisitorBase<Exception>() {
+        parsed.getTupleExpr().visit(new AbstractQueryModelVisitor<Exception>() {
             @Override
             public void meet(final Filter node) throws Exception {
                 filter.set(node);

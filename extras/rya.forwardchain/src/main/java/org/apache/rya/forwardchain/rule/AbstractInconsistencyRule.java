@@ -24,7 +24,7 @@ import java.util.Collection;
 import org.apache.rya.api.domain.StatementMetadata;
 import org.apache.rya.forwardchain.ForwardChainException;
 import org.apache.rya.forwardchain.strategy.AbstractRuleExecutionStrategy;
-import org.openrdf.query.algebra.StatementPattern;
+import org.eclipse.rdf4j.query.algebra.StatementPattern;
 
 /**
  * A rule that identifies an inconsistency in the data, but does not add or

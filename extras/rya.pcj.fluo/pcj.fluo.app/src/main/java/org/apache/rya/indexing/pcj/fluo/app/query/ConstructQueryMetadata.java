@@ -1,5 +1,3 @@
-package org.apache.rya.indexing.pcj.fluo.app.query;
-
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -18,10 +16,12 @@ package org.apache.rya.indexing.pcj.fluo.app.query;
  * specific language governing permissions and limitations
  * under the License.
  */
+package org.apache.rya.indexing.pcj.fluo.app.query;
+
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.rya.indexing.pcj.fluo.app.ConstructGraph;
 import org.apache.rya.indexing.pcj.storage.accumulo.VariableOrder;
-import org.openrdf.query.BindingSet;
+import org.eclipse.rdf4j.query.BindingSet;
 
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;

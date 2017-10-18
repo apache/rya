@@ -23,38 +23,37 @@ import static org.apache.rya.indexing.pcj.fluo.app.IncrementalUpdateConstants.DE
 import static org.apache.rya.indexing.pcj.fluo.app.IncrementalUpdateConstants.TYPE_DELIM;
 import static org.apache.rya.indexing.pcj.fluo.app.IncrementalUpdateConstants.URI_TYPE;
 
-import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
-import edu.umd.cs.findbugs.annotations.NonNull;
-
-import org.openrdf.model.BNode;
-import org.openrdf.model.Literal;
-import org.openrdf.model.URI;
-import org.openrdf.model.Value;
-import org.openrdf.model.impl.BNodeImpl;
-import org.openrdf.model.impl.LiteralImpl;
-import org.openrdf.model.impl.URIImpl;
-import org.openrdf.query.BindingSet;
-import org.openrdf.query.algebra.StatementPattern;
-import org.openrdf.query.algebra.Var;
+import org.apache.rya.api.domain.RyaSchema;
+import org.apache.rya.api.domain.RyaType;
+import org.apache.rya.api.domain.VarNameUtils;
+import org.apache.rya.api.resolver.RdfToRyaConversions;
+import org.eclipse.rdf4j.model.BNode;
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.Literal;
+import org.eclipse.rdf4j.model.Value;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
+import org.eclipse.rdf4j.query.BindingSet;
+import org.eclipse.rdf4j.query.algebra.StatementPattern;
+import org.eclipse.rdf4j.query.algebra.Var;
 
 import com.google.common.base.Preconditions;
 
-import org.apache.rya.api.domain.RyaSchema;
-import org.apache.rya.api.domain.RyaType;
-import org.apache.rya.api.resolver.RdfToRyaConversions;
+import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
+import edu.umd.cs.findbugs.annotations.NonNull;
 
 /**
- * Contains method that convert between the Sesame representations of RDF
+ * Contains method that convert between the RDF4J representations of RDF
  * components and the Strings that are used by the Fluo PCJ application.
  */
 @DefaultAnnotation(NonNull.class)
 public class FluoStringConverter {
 
     /**
-     * Extract the {@link Binding} strings from a {@link BindingSet}'s string form.
+     * Extract the {@link BindingSet} strings from a {@link BindingSet}'s string form.
      *
      * @param bindingSetString - A {@link BindingSet} in its Fluo String form. (not null)
-     * @return The set's {@link Binding}s in Fluo String form. (not null)
+     * @return The set's {@link BindingSet}s in Fluo String form. (not null)
      */
     public static String[] toBindingStrings(final String bindingSetString) {
         checkNotNull(bindingSetString);
@@ -66,7 +65,7 @@ public class FluoStringConverter {
      * into the object version.
      *
      * @param patternString - The {@link StatementPattern} represented as a String. (not null)
-     * @return A {@link StatementPatter} built from the string.
+     * @return A {@link StatementPattern} built from the string.
      */
     public static StatementPattern toStatementPattern(final String patternString) {
         checkNotNull(patternString);
@@ -93,29 +92,30 @@ public class FluoStringConverter {
         checkNotNull(varString);
         final String[] varParts = varString.split(TYPE_DELIM);
         final String name = varParts[0];
-        
+        final ValueFactory vf = SimpleValueFactory.getInstance();
+
         // The variable is a constant value.
         if(varParts.length > 1) {
             final String dataTypeString = varParts[1];
             if(dataTypeString.equals(URI_TYPE)) {
                 // Handle a URI object.
                 Preconditions.checkArgument(varParts.length == 2);
-                final String valueString = name.substring("-const-".length());
-                final Var var = new Var(name, new URIImpl(valueString));
+                final String valueString = VarNameUtils.removeConstant(name);
+                final Var var = new Var(name, vf.createIRI(valueString));
                 var.setConstant(true);
                 return var;
-            } else if(dataTypeString.equals(RyaSchema.BNODE_NAMESPACE)) { 
+            } else if(dataTypeString.equals(RyaSchema.BNODE_NAMESPACE)) {
                 // Handle a BNode object
                 Preconditions.checkArgument(varParts.length == 3);
-                Var var = new Var(name);
-                var.setValue(new BNodeImpl(varParts[2]));
+                final Var var = new Var(name);
+                var.setValue(vf.createBNode(varParts[2]));
                 return var;
             } else {
                 // Handle a Literal Value.
                 Preconditions.checkArgument(varParts.length == 2);
-                final String valueString = name.substring("-const-".length());
-                final URI dataType = new URIImpl(dataTypeString);
-                final Literal value = new LiteralImpl(valueString, dataType);
+                final String valueString = VarNameUtils.removeConstant(name);
+                final IRI dataType = vf.createIRI(dataTypeString);
+                final Literal value = vf.createLiteral(valueString, dataType);
                 final Var var = new Var(name, value);
                 var.setConstant(true);
                 return var;
@@ -141,24 +141,28 @@ public class FluoStringConverter {
         final Var subjVar = sp.getSubjectVar();
         String subj = subjVar.getName();
         if(subjVar.getValue() != null) {
-            Value subjValue = subjVar.getValue();
+            final Value subjValue = subjVar.getValue();
+            subj = VarNameUtils.createSimpleConstVarName(subjVar);
             if (subjValue instanceof BNode ) {
-                subj = subj + TYPE_DELIM + RyaSchema.BNODE_NAMESPACE + TYPE_DELIM + ((BNode) subjValue).getID(); 
+                subj = subj + TYPE_DELIM + RyaSchema.BNODE_NAMESPACE + TYPE_DELIM + ((BNode) subjValue).getID();
             } else {
                 subj = subj + TYPE_DELIM + URI_TYPE;
             }
-        } 
+        }
 
         final Var predVar = sp.getPredicateVar();
         String pred = predVar.getName();
         if(predVar.getValue() != null) {
+            pred = VarNameUtils.createSimpleConstVarName(predVar);
             pred = pred + TYPE_DELIM + URI_TYPE;
         }
 
         final Var objVar = sp.getObjectVar();
         String obj = objVar.getName();
         if (objVar.getValue() != null) {
-            final RyaType rt = RdfToRyaConversions.convertValue(objVar.getValue());
+            final Value objValue = objVar.getValue();
+            obj = VarNameUtils.createSimpleConstVarName(objVar);
+            final RyaType rt = RdfToRyaConversions.convertValue(objValue);
             obj =  obj + TYPE_DELIM + rt.getDataType().stringValue();
         }
 

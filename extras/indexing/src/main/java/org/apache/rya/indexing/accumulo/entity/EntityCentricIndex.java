@@ -58,7 +58,7 @@ import org.apache.rya.api.resolver.RyaContext;
 import org.apache.rya.api.resolver.RyaTypeResolverException;
 import org.apache.rya.api.resolver.triple.TripleRow;
 import org.apache.rya.indexing.accumulo.ConfigUtils;
-import org.openrdf.model.URI;
+import org.eclipse.rdf4j.model.IRI;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
@@ -384,7 +384,7 @@ public class EntityCentricIndex extends AbstractAccumuloIndexer {
     }
 
     @Override
-    public Set<URI> getIndexablePredicates() {
+    public Set<IRI> getIndexablePredicates() {
         return null;
     }
 }

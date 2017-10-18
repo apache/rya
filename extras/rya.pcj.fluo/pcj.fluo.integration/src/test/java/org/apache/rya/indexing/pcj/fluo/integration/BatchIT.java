@@ -60,11 +60,11 @@ import org.apache.rya.indexing.pcj.fluo.app.util.FluoQueryUtils;
 import org.apache.rya.indexing.pcj.storage.PrecomputedJoinStorage;
 import org.apache.rya.indexing.pcj.storage.accumulo.AccumuloPcjStorage;
 import org.apache.rya.pcj.fluo.test.base.RyaExportITBase;
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
+import org.eclipse.rdf4j.query.algebra.evaluation.QueryBindingSet;
 import org.junit.Test;
-import org.openrdf.model.URI;
-import org.openrdf.model.ValueFactory;
-import org.openrdf.model.impl.ValueFactoryImpl;
-import org.openrdf.query.algebra.evaluation.QueryBindingSet;
 
 import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
@@ -72,8 +72,8 @@ import com.google.common.base.Preconditions;
 public class BatchIT extends RyaExportITBase {
 
     private static final Logger log = Logger.getLogger(BatchIT.class);
+    private static final ValueFactory VF = SimpleValueFactory.getInstance();
     private static final FluoQueryMetadataDAO dao = new FluoQueryMetadataDAO();
-    private static final ValueFactory vf = new ValueFactoryImpl();
 
     @Test
     public void simpleScanDelete() throws Exception {
@@ -140,12 +140,12 @@ public class BatchIT extends RyaExportITBase {
             String joinId = ids.get(2);
             String rightSp = ids.get(4);
             QueryBindingSet bs = new QueryBindingSet();
-            bs.addBinding("subject", vf.createURI("urn:subject_1"));
-            bs.addBinding("object1", vf.createURI("urn:object_0"));
+            bs.addBinding("subject", VF.createIRI("urn:subject_1"));
+            bs.addBinding("object1", VF.createIRI("urn:object_0"));
             VisibilityBindingSet vBs = new VisibilityBindingSet(bs);
 
             //create sharded span for deletion
-            URI uri = vf.createURI("urn:subject_1");
+            IRI uri = VF.createIRI("urn:subject_1");
             Bytes prefixBytes = BindingHashShardingFunction.getShardedScanPrefix(rightSp, uri);
             Span span = Span.prefix(prefixBytes);
 
@@ -190,11 +190,11 @@ public class BatchIT extends RyaExportITBase {
             String joinId = ids.get(2);
             String rightSp = ids.get(4);
             QueryBindingSet bs = new QueryBindingSet();
-            bs.addBinding("subject", vf.createURI("urn:subject_1"));
-            bs.addBinding("object1", vf.createURI("urn:object_0"));
+            bs.addBinding("subject", VF.createIRI("urn:subject_1"));
+            bs.addBinding("object1", VF.createIRI("urn:object_0"));
             VisibilityBindingSet vBs = new VisibilityBindingSet(bs);
 
-            URI uri = vf.createURI("urn:subject_1");
+            IRI uri = VF.createIRI("urn:subject_1");
             Bytes prefixBytes = BindingHashShardingFunction.getShardedScanPrefix(rightSp, uri);
             Span span = Span.prefix(prefixBytes);
 
@@ -368,7 +368,7 @@ public class BatchIT extends RyaExportITBase {
             for (int i = 0; i < ids.size(); i++) {
                 String id = ids.get(i);
                 String bsPrefix = prefixes.get(i);
-                URI uri = vf.createURI(bsPrefix);
+                IRI uri = VF.createIRI(bsPrefix);
                 Bytes prefixBytes = BindingHashShardingFunction.getShardedScanPrefix(id, uri);
                 NodeType type = NodeType.fromNodeId(id).get();
                 Column bsCol = type.getResultColumn();

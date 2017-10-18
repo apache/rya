@@ -24,11 +24,11 @@ import java.util.UUID;
 import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
 import org.apache.rya.api.utils.NullableStatementImpl;
 import org.apache.rya.rdftriplestore.utils.FixedStatementPattern;
-import org.openrdf.model.URI;
-import org.openrdf.model.vocabulary.RDF;
-import org.openrdf.model.vocabulary.RDFS;
-import org.openrdf.query.algebra.StatementPattern;
-import org.openrdf.query.algebra.Var;
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.vocabulary.RDF;
+import org.eclipse.rdf4j.model.vocabulary.RDFS;
+import org.eclipse.rdf4j.query.algebra.StatementPattern;
+import org.eclipse.rdf4j.query.algebra.Var;
 
 /**
  * Class SubClassOfVisitor
@@ -61,14 +61,14 @@ public class SubClassOfVisitor extends AbstractInferVisitor {
 //            join.getProperties().put(InferConstants.INFERRED, InferConstants.TRUE);
 //            node.replaceWith(join);
 
-            final URI subclassof_uri = (URI) objVar.getValue();
-            final Collection<URI> parents = InferenceEngine.findParents(inferenceEngine.getSubClassOfGraph(), subclassof_uri);
+            final IRI subclassof_uri = (IRI) objVar.getValue();
+            final Collection<IRI> parents = InferenceEngine.findParents(inferenceEngine.getSubClassOfGraph(), subclassof_uri);
             if (parents != null && parents.size() > 0) {
                 final String s = UUID.randomUUID().toString();
                 final Var typeVar = new Var(s);
                 final FixedStatementPattern fsp = new FixedStatementPattern(typeVar, new Var("c-" + s, RDFS.SUBCLASSOF), objVar, conVar);
                 parents.add(subclassof_uri);
-                for (final URI u : parents) {
+                for (final IRI u : parents) {
                     fsp.statements.add(new NullableStatementImpl(u, RDFS.SUBCLASSOF, subclassof_uri));
                 }
 

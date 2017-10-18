@@ -20,47 +20,47 @@ under the License.
 -->
 
 <features name="alx.rya">
-    <feature name='org.openrdf.sesame.runtime' version="2.6.4">
-        <bundle>wrap:mvn:org.openrdf.sesame/sesame-model/2.6.4</bundle>
-        <bundle>wrap:mvn:org.openrdf.sesame/sesame-runtime/2.6.4</bundle>
-        <bundle>wrap:mvn:org.openrdf.sesame/sesame-query/2.6.4</bundle>
-        <bundle>wrap:mvn:org.openrdf.sesame/sesame-queryalgebra-model/2.6.4</bundle>
-        <bundle>wrap:mvn:org.openrdf.sesame/sesame-queryparser-api/2.6.4</bundle>
-        <bundle>wrap:mvn:org.openrdf.sesame/sesame-queryparser-serql/2.6.4</bundle>
-        <bundle>wrap:mvn:org.openrdf.sesame/sesame-queryparser-sparql/2.6.4</bundle>
-        <bundle>wrap:mvn:org.openrdf.sesame/sesame-queryresultio-api/2.6.4</bundle>
-        <bundle>wrap:mvn:org.openrdf.sesame/sesame-queryresultio-binary/2.6.4</bundle>
-        <bundle>wrap:mvn:org.openrdf.sesame/sesame-queryresultio-sparqljson/2.6.4</bundle>
-        <bundle>wrap:mvn:org.openrdf.sesame/sesame-queryresultio-text/2.6.4</bundle>
+    <feature name='org.eclipse.rdf4j.runtime' version="2.3.1">
+        <bundle>wrap:mvn:org.eclipse.rdf4j/rdf4j-model/2.3.1</bundle>
+        <bundle>wrap:mvn:org.eclipse.rdf4j/rdf4j-runtime/2.3.1</bundle>
+        <bundle>wrap:mvn:org.eclipse.rdf4j/rdf4j-query/2.3.1</bundle>
+        <bundle>wrap:mvn:org.eclipse.rdf4j/rdf4j-queryalgebra-model/2.3.1</bundle>
+        <bundle>wrap:mvn:org.eclipse.rdf4j/rdf4j-queryparser-api/2.3.1</bundle>
+        <bundle>wrap:mvn:org.eclipse.rdf4j/rdf4j-queryparser-serql/2.3.1</bundle>
+        <bundle>wrap:mvn:org.eclipse.rdf4j/rdf4j-queryparser-sparql/2.3.1</bundle>
+        <bundle>wrap:mvn:org.eclipse.rdf4j/rdf4j-queryresultio-api/2.3.1</bundle>
+        <bundle>wrap:mvn:org.eclipse.rdf4j/rdf4j-queryresultio-binary/2.3.1</bundle>
+        <bundle>wrap:mvn:org.eclipse.rdf4j/rdf4j-queryresultio-sparqljson/2.3.1</bundle>
+        <bundle>wrap:mvn:org.eclipse.rdf4j/rdf4j-queryresultio-text/2.3.1</bundle>
         <bundle>wrap:mvn:net.sf.opencsv/opencsv/2.0</bundle>
-        <bundle>wrap:mvn:org.openrdf.sesame/sesame-repository-api/2.6.4</bundle>
-        <bundle>wrap:mvn:org.openrdf.sesame/sesame-repository-manager/2.6.4</bundle>
-        <bundle>wrap:mvn:org.openrdf.sesame/sesame-repository-event/2.6.4</bundle>
-        <bundle>wrap:mvn:org.openrdf.sesame/sesame-repository-sail/2.6.4</bundle>
-        <bundle>wrap:mvn:org.openrdf.sesame/sesame-sail-memory/2.6.4</bundle>
-        <bundle>wrap:mvn:org.openrdf.sesame/sesame-sail-inferencer/2.6.4</bundle>
-        <bundle>wrap:mvn:org.openrdf.sesame/sesame-queryalgebra-evaluation/2.6.4</bundle>
-        <bundle>wrap:mvn:org.openrdf.sesame/sesame-repository-sparql/2.6.4</bundle>
-        <bundle>wrap:mvn:org.openrdf.sesame/sesame-repository-http/2.6.4</bundle>
-        <bundle>wrap:mvn:org.openrdf.sesame/sesame-http-client/2.6.4</bundle>
-        <bundle>wrap:mvn:org.openrdf.sesame/sesame-repository-dataset/2.6.4</bundle>
-        <bundle>wrap:mvn:org.openrdf.sesame/sesame-repository-contextaware/2.6.4</bundle>
-        <bundle>wrap:mvn:org.openrdf.sesame/sesame-http-protocol/2.6.4</bundle>
-        <bundle>wrap:mvn:org.openrdf.sesame/sesame-rio-ntriples/2.6.4</bundle>
-        <bundle>wrap:mvn:org.openrdf.sesame/sesame-rio-api/2.6.4</bundle>
-        <bundle>wrap:mvn:org.openrdf.sesame/sesame-rio-binary/2.6.4</bundle>
-        <bundle>wrap:mvn:org.openrdf.sesame/sesame-rio-n3/2.6.4</bundle>
-        <bundle>wrap:mvn:org.openrdf.sesame/sesame-rio-trix/2.6.4</bundle>
-        <bundle>wrap:mvn:org.openrdf.sesame/sesame-rio-turtle/2.6.4</bundle>
-        <bundle>wrap:mvn:org.openrdf.sesame/sesame-rio-trig/2.6.4</bundle>
-        <bundle>wrap:mvn:org.openrdf.sesame/sesame-sail-api/2.6.4</bundle>
-        <bundle>wrap:mvn:org.openrdf.sesame/sesame-sail-nativerdf/2.6.4</bundle>
-        <!--bundle>wrap:mvn:org.openrdf.sesame/sesame-sail-rdbms/2.6.4</bundle>
+        <bundle>wrap:mvn:org.eclipse.rdf4j/rdf4j-repository-api/2.3.1</bundle>
+        <bundle>wrap:mvn:org.eclipse.rdf4j/rdf4j-repository-manager/2.3.1</bundle>
+        <bundle>wrap:mvn:org.eclipse.rdf4j/rdf4j-repository-event/2.3.1</bundle>
+        <bundle>wrap:mvn:org.eclipse.rdf4j/rdf4j-repository-sail/2.3.1</bundle>
+        <bundle>wrap:mvn:org.eclipse.rdf4j/rdf4j-sail-memory/2.3.1</bundle>
+        <bundle>wrap:mvn:org.eclipse.rdf4j/rdf4j-sail-inferencer/2.3.1</bundle>
+        <bundle>wrap:mvn:org.eclipse.rdf4j/rdf4j-queryalgebra-evaluation/2.3.1</bundle>
+        <bundle>wrap:mvn:org.eclipse.rdf4j/rdf4j-repository-sparql/2.3.1</bundle>
+        <bundle>wrap:mvn:org.eclipse.rdf4j/rdf4j-repository-http/2.3.1</bundle>
+        <bundle>wrap:mvn:org.eclipse.rdf4j/rdf4j-http-client/2.3.1</bundle>
+        <bundle>wrap:mvn:org.eclipse.rdf4j/rdf4j-repository-dataset/2.3.1</bundle>
+        <bundle>wrap:mvn:org.eclipse.rdf4j/rdf4j-repository-contextaware/2.3.1</bundle>
+        <bundle>wrap:mvn:org.eclipse.rdf4j/rdf4j-http-protocol/2.3.1</bundle>
+        <bundle>wrap:mvn:org.eclipse.rdf4j/rdf4j-rio-ntriples/2.3.1</bundle>
+        <bundle>wrap:mvn:org.eclipse.rdf4j/rdf4j-rio-api/2.3.1</bundle>
+        <bundle>wrap:mvn:org.eclipse.rdf4j/rdf4j-rio-binary/2.3.1</bundle>
+        <bundle>wrap:mvn:org.eclipse.rdf4j/rdf4j-rio-n3/2.3.1</bundle>
+        <bundle>wrap:mvn:org.eclipse.rdf4j/rdf4j-rio-trix/2.3.1</bundle>
+        <bundle>wrap:mvn:org.eclipse.rdf4j/rdf4j-rio-turtle/2.3.1</bundle>
+        <bundle>wrap:mvn:org.eclipse.rdf4j/rdf4j-rio-trig/2.3.1</bundle>
+        <bundle>wrap:mvn:org.eclipse.rdf4j/rdf4j-sail-api/2.3.1</bundle>
+        <bundle>wrap:mvn:org.eclipse.rdf4j/rdf4j-sail-nativerdf/2.3.1</bundle>
+        <!--bundle>wrap:mvn:org.eclipse.rdf4j/rdf4j-sail-rdbms/2.3.1</bundle>
         <bundle>wrap:mvn:commons-dbcp/commons-dbcp/1.3</bundle>
         <bundle>wrap:mvn:commons-pool/commons-pool/1.3</bundle-->
-        <bundle>wrap:mvn:org.openrdf.sesame/sesame-queryresultio-sparqlxml/2.6.4</bundle>
-        <bundle>wrap:mvn:org.openrdf.sesame/sesame-util/2.6.4</bundle>
-        <bundle>wrap:mvn:org.openrdf.sesame/sesame-rio-rdfxml/2.6.4</bundle>
+        <bundle>wrap:mvn:org.eclipse.rdf4j/rdf4j-queryresultio-sparqlxml/2.3.1</bundle>
+        <bundle>wrap:mvn:org.eclipse.rdf4j/rdf4j-util/2.3.1</bundle>
+        <bundle>wrap:mvn:org.eclipse.rdf4j/rdf4j-rio-rdfxml/2.3.1</bundle>
     </feature>
     <feature name='tinkerpop.blueprints' version='1.2'>
         <bundle>wrap:mvn:com.tinkerpop.blueprints/blueprints-core/1.2</bundle>
@@ -71,10 +71,10 @@ under the License.
         <bundle>mvn:org.codehaus.jackson/jackson-mapper-asl/1.8.5</bundle>
     </feature>
     <feature name='rya.sail' version='3.0.4'>
-        <!--<feature version="[2.6,3.0)">org.openrdf.sesame.runtime</feature>-->
+        <!--<feature version="[2.3,3.0)">org.eclipse.rdf4j.runtime</feature>-->
         <feature version="1.2">tinkerpop.blueprints</feature>
         <feature version="[10,12)">google.guava</feature>
-        <bundle>mvn:org.apache.rya/sesame-runtime-osgi/2.6.4</bundle>
+        <bundle>mvn:org.apache.rya/rdf4j-runtime-osgi/2.3.1s</bundle>
         <bundle>wrap:mvn:org.apache.rya/rya.api/3.0.4-SNAPSHOT</bundle>
         <bundle>wrap:mvn:org.apache.rya/rya.sail.impl/3.0.4-SNAPSHOT</bundle>
     </feature>

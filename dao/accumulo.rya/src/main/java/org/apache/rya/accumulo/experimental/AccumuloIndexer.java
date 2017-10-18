@@ -19,12 +19,10 @@ package org.apache.rya.accumulo.experimental;
  * under the License.
  */
 
-
 import java.io.IOException;
 
 import org.apache.accumulo.core.client.Connector;
 import org.apache.accumulo.core.client.MultiTableBatchWriter;
-
 import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
 import org.apache.rya.api.persist.index.RyaSecondaryIndexer;
 

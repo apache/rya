@@ -17,6 +17,7 @@ package org.apache.rya.indexing.pcj.fluo.app;
  * specific language governing permissions and limitations
  * under the License.
  */
+
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -27,10 +28,10 @@ import java.util.UUID;
 
 import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.model.VisibilityBindingSet;
-import org.openrdf.model.BNode;
-import org.openrdf.model.Value;
-import org.openrdf.model.impl.BNodeImpl;
-import org.openrdf.query.algebra.StatementPattern;
+import org.eclipse.rdf4j.model.BNode;
+import org.eclipse.rdf4j.model.Value;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
+import org.eclipse.rdf4j.query.algebra.StatementPattern;
 
 import com.google.common.base.Preconditions;
 
@@ -85,7 +86,7 @@ public class ConstructGraph {
     private Map<String, BNode> getBNodeMap() {
         Map<String, BNode> bNodeMap = new HashMap<>();
         for(String name: bNodeNames) {
-            bNodeMap.put(name, new BNodeImpl(UUID.randomUUID().toString()));
+            bNodeMap.put(name, SimpleValueFactory.getInstance().createBNode(UUID.randomUUID().toString()));
         }
         return bNodeMap;
     }
@@ -100,7 +101,7 @@ public class ConstructGraph {
     
     /**
      * Creates a construct query graph represented as a Set of {@link RyaStatement}s 
-     * @param bs - VisiblityBindingSet used to build statement BindingSets
+     * @param bs - VisibilityBindingSet used to build statement BindingSets
      * @return - Set of RyaStatements that represent a construct query graph.  
      */
     public Set<RyaStatement> createGraphFromBindingSet(VisibilityBindingSet bs) {

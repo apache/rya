@@ -31,34 +31,34 @@ import org.apache.rya.indexing.pcj.fluo.app.util.PeriodicQueryUtil;
 import org.apache.rya.indexing.pcj.fluo.app.util.PeriodicQueryUtil.PeriodicQueryNodeRelocator;
 import org.apache.rya.indexing.pcj.fluo.app.util.PeriodicQueryUtil.PeriodicQueryNodeVisitor;
 import org.apache.rya.indexing.pcj.storage.accumulo.VariableOrder;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
+import org.eclipse.rdf4j.query.MalformedQueryException;
+import org.eclipse.rdf4j.query.algebra.Filter;
+import org.eclipse.rdf4j.query.algebra.FunctionCall;
+import org.eclipse.rdf4j.query.algebra.Join;
+import org.eclipse.rdf4j.query.algebra.Projection;
+import org.eclipse.rdf4j.query.algebra.QueryModelNode;
+import org.eclipse.rdf4j.query.algebra.TupleExpr;
+import org.eclipse.rdf4j.query.algebra.ValueConstant;
+import org.eclipse.rdf4j.query.algebra.ValueExpr;
+import org.eclipse.rdf4j.query.algebra.Var;
+import org.eclipse.rdf4j.query.algebra.helpers.AbstractQueryModelVisitor;
+import org.eclipse.rdf4j.query.parser.ParsedQuery;
+import org.eclipse.rdf4j.query.parser.sparql.SPARQLParser;
 import org.junit.Assert;
 import org.junit.Test;
-import org.openrdf.model.ValueFactory;
-import org.openrdf.model.impl.ValueFactoryImpl;
-import org.openrdf.query.MalformedQueryException;
-import org.openrdf.query.algebra.Filter;
-import org.openrdf.query.algebra.FunctionCall;
-import org.openrdf.query.algebra.Join;
-import org.openrdf.query.algebra.Projection;
-import org.openrdf.query.algebra.QueryModelNode;
-import org.openrdf.query.algebra.TupleExpr;
-import org.openrdf.query.algebra.ValueConstant;
-import org.openrdf.query.algebra.ValueExpr;
-import org.openrdf.query.algebra.Var;
-import org.openrdf.query.algebra.helpers.QueryModelVisitorBase;
-import org.openrdf.query.parser.ParsedQuery;
-import org.openrdf.query.parser.sparql.SPARQLParser;
 
 public class PeriodicQueryUtilTest {
 
-    private static final ValueFactory vf = new ValueFactoryImpl();
+    private static final ValueFactory VF = SimpleValueFactory.getInstance();
 
    
     
     @Test
     public void periodicNodeNotPresentTest() throws Exception {
         
-        List<ValueExpr> values = Arrays.asList(new Var("time"), new ValueConstant(vf.createLiteral(12.0)), new ValueConstant(vf.createLiteral(6.0)), new ValueConstant(vf.createURI(PeriodicQueryUtil.temporalNameSpace + "hours")));
+        List<ValueExpr> values = Arrays.asList(new Var("time"), new ValueConstant(VF.createLiteral(12.0)), new ValueConstant(VF.createLiteral(6.0)), new ValueConstant(VF.createIRI(PeriodicQueryUtil.temporalNameSpace + "hours")));
         FunctionCall func = new FunctionCall("uri:func", values);
         Optional<PeriodicQueryNode> node1 = PeriodicQueryUtil.getPeriodicQueryNode(func, new Join());
         Assert.assertEquals(false, node1.isPresent());
@@ -69,7 +69,7 @@ public class PeriodicQueryUtilTest {
     @Test
     public void periodicNodePresentTest() throws Exception {
         
-        List<ValueExpr> values = Arrays.asList(new Var("time"), new ValueConstant(vf.createLiteral(12.0)), new ValueConstant(vf.createLiteral(6.0)), new ValueConstant(vf.createURI(PeriodicQueryUtil.temporalNameSpace + "hours")));
+        List<ValueExpr> values = Arrays.asList(new Var("time"), new ValueConstant(VF.createLiteral(12.0)), new ValueConstant(VF.createLiteral(6.0)), new ValueConstant(VF.createIRI(PeriodicQueryUtil.temporalNameSpace + "hours")));
         FunctionCall func = new FunctionCall(PeriodicQueryUtil.PeriodicQueryURI, values);
         Optional<PeriodicQueryNode> node1 = PeriodicQueryUtil.getPeriodicQueryNode(func, new Join());
         Assert.assertEquals(true, node1.isPresent());
@@ -83,7 +83,7 @@ public class PeriodicQueryUtilTest {
     @Test
     public void periodicNodeFractionalDurationTest() throws Exception {
         
-        List<ValueExpr> values = Arrays.asList(new Var("time"), new ValueConstant(vf.createLiteral(1)), new ValueConstant(vf.createLiteral(.5)), new ValueConstant(vf.createURI(PeriodicQueryUtil.temporalNameSpace + "hours")));
+        List<ValueExpr> values = Arrays.asList(new Var("time"), new ValueConstant(VF.createLiteral(1)), new ValueConstant(VF.createLiteral(.5)), new ValueConstant(VF.createIRI(PeriodicQueryUtil.temporalNameSpace + "hours")));
         FunctionCall func = new FunctionCall(PeriodicQueryUtil.PeriodicQueryURI, values);
         Optional<PeriodicQueryNode> node1 = PeriodicQueryUtil.getPeriodicQueryNode(func, new Join());
         Assert.assertEquals(true, node1.isPresent());
@@ -190,7 +190,7 @@ public class PeriodicQueryUtilTest {
                 .append(node1.getTemporalVariable(), node2.getTemporalVariable()).append(node1.getUnit(), node2.getUnit()).build();
     }
     
-    private static class PeriodicNodeCollector extends QueryModelVisitorBase<RuntimeException>{
+    private static class PeriodicNodeCollector extends AbstractQueryModelVisitor<RuntimeException> {
         
         private PeriodicQueryNode periodicNode;
         int count = 0;

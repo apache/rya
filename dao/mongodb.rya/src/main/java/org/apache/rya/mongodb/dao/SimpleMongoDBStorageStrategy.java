@@ -18,7 +18,7 @@
  */
 package org.apache.rya.mongodb.dao;
 
-import static org.openrdf.model.vocabulary.XMLSchema.ANYURI;
+import static org.eclipse.rdf4j.model.vocabulary.XMLSchema.ANYURI;
 
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
@@ -36,8 +36,8 @@ import org.apache.rya.api.persist.query.RyaQuery;
 import org.apache.rya.mongodb.document.visibility.DocumentVisibility;
 import org.apache.rya.mongodb.document.visibility.DocumentVisibilityAdapter;
 import org.apache.rya.mongodb.document.visibility.DocumentVisibilityAdapter.MalformedDocumentVisibilityException;
-import org.openrdf.model.impl.ValueFactoryImpl;
-import org.openrdf.model.vocabulary.XMLSchema;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
+import org.eclipse.rdf4j.model.vocabulary.XMLSchema;
 
 import com.mongodb.BasicDBObject;
 import com.mongodb.DBCollection;
@@ -72,7 +72,7 @@ public class SimpleMongoDBStorageStrategy implements MongoDBStorageStrategy<RyaS
         return DigestUtils.sha256Hex(value);
     }
 
-    protected ValueFactoryImpl factory = new ValueFactoryImpl();
+    protected SimpleValueFactory factory = SimpleValueFactory.getInstance();
 
     @Override
     public void createIndices(final DBCollection coll){
@@ -136,7 +136,7 @@ public class SimpleMongoDBStorageStrategy implements MongoDBStorageStrategy<RyaS
             objectRya = new RyaURI(object);
         }
         else {
-            objectRya = new RyaType(factory.createURI(objectType), object);
+            objectRya = new RyaType(factory.createIRI(objectType), object);
         }
 
         final RyaStatement statement;

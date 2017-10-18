@@ -20,8 +20,8 @@ package org.apache.rya.api.client;
 
 import java.io.Closeable;
 
-import org.openrdf.query.BindingSet;
-import org.openrdf.query.TupleQueryResult;
+import org.eclipse.rdf4j.query.BindingSet;
+import org.eclipse.rdf4j.query.TupleQueryResult;
 
 import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
 import edu.umd.cs.findbugs.annotations.NonNull;

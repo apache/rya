@@ -20,10 +20,10 @@ package org.apache.rya.api.model;
 
 import static org.junit.Assert.assertNotEquals;
 
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
+import org.eclipse.rdf4j.query.impl.MapBindingSet;
 import org.junit.Test;
-import org.openrdf.model.ValueFactory;
-import org.openrdf.model.impl.ValueFactoryImpl;
-import org.openrdf.query.impl.MapBindingSet;
 
 /**
  * Unit tests the methods of {@link VisibilityBindingSet}.
@@ -33,7 +33,7 @@ public class VisibilityBindingSetTest {
     @Test
     public void hashcode() {
         // Create a BindingSet, decorate it, and grab its hash code.
-        final ValueFactory vf = new ValueFactoryImpl();
+        final ValueFactory vf = SimpleValueFactory.getInstance();
         final MapBindingSet bSet = new MapBindingSet();
         bSet.addBinding("name", vf.createLiteral("alice"));
 

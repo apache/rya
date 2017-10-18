@@ -18,11 +18,11 @@
  */
 package org.apache.rya.indexing.pcj.storage.accumulo;
 
+import org.apache.rya.api.model.VisibilityBindingSet;
+import org.eclipse.rdf4j.query.BindingSet;
+
 import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
 import edu.umd.cs.findbugs.annotations.NonNull;
-
-import org.apache.rya.api.model.VisibilityBindingSet;
-import org.openrdf.query.BindingSet;
 
 /**
  * Converts {@link BindingSet}s to Strings and back again. The Strings do not

@@ -43,7 +43,7 @@ import org.apache.rya.indexing.pcj.storage.PrecomputedJoinStorage.PCJStorageExce
 import org.apache.rya.indexing.pcj.storage.accumulo.AccumuloPcjStorage;
 import org.apache.rya.indexing.pcj.update.PrecomputedJoinUpdater;
 import org.apache.rya.indexing.pcj.update.PrecomputedJoinUpdater.PcjUpdateException;
-import org.openrdf.model.URI;
+import org.eclipse.rdf4j.model.IRI;
 
 import com.google.common.base.Optional;
 import com.google.common.base.Supplier;
@@ -274,7 +274,7 @@ public class PrecomputedJoinIndexer extends AbstractAccumuloIndexer {
     }
 
     @Override
-    public Set<URI> getIndexablePredicates() {
+    public Set<IRI> getIndexablePredicates() {
         return new HashSet<>();
     }
 }

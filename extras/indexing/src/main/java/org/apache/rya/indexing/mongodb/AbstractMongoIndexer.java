@@ -39,10 +39,11 @@ import org.apache.rya.mongodb.batch.MongoDbBatchWriterConfig;
 import org.apache.rya.mongodb.batch.MongoDbBatchWriterException;
 import org.apache.rya.mongodb.batch.MongoDbBatchWriterUtils;
 import org.apache.rya.mongodb.batch.collection.DbCollectionType;
-import org.openrdf.model.Literal;
-import org.openrdf.model.Statement;
-import org.openrdf.model.URI;
-import org.openrdf.query.QueryEvaluationException;
+import org.eclipse.rdf4j.common.iteration.CloseableIteration;
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.Literal;
+import org.eclipse.rdf4j.model.Statement;
+import org.eclipse.rdf4j.query.QueryEvaluationException;
 
 import com.mongodb.DB;
 import com.mongodb.DBCollection;
@@ -50,8 +51,6 @@ import com.mongodb.DBCursor;
 import com.mongodb.DBObject;
 import com.mongodb.MongoClient;
 import com.mongodb.QueryBuilder;
-
-import info.aduna.iteration.CloseableIteration;
 
 /**
  * Secondary Indexer using MondoDB
@@ -68,7 +67,7 @@ public abstract class AbstractMongoIndexer<T extends IndexingMongoDBStorageStrat
     protected String dbName;
     protected DB db;
     protected DBCollection collection;
-    protected Set<URI> predicates;
+    protected Set<IRI> predicates;
 
     protected T storageStrategy;
 
@@ -129,7 +128,7 @@ public abstract class AbstractMongoIndexer<T extends IndexingMongoDBStorageStrat
     }
 
     @Override
-    public Set<URI> getIndexablePredicates() {
+    public Set<IRI> getIndexablePredicates() {
         return predicates;
     }
 

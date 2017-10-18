@@ -32,12 +32,12 @@ import org.apache.rya.streams.kafka.processors.projection.MultiProjectionProcess
 import org.apache.rya.streams.kafka.serialization.VisibilityStatementDeserializer;
 import org.apache.rya.streams.kafka.topology.TopologyFactory;
 import org.apache.rya.test.kafka.KafkaTestInstanceRule;
+import org.eclipse.rdf4j.model.BNode;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
+import org.eclipse.rdf4j.model.vocabulary.RDF;
 import org.junit.Rule;
 import org.junit.Test;
-import org.openrdf.model.BNode;
-import org.openrdf.model.ValueFactory;
-import org.openrdf.model.impl.ValueFactoryImpl;
-import org.openrdf.model.vocabulary.RDF;
 
 /**
  * Integration tests the methods of {@link MultiProjectionProcessor}.
@@ -71,20 +71,20 @@ public class MultiProjectionProcessorIT {
         final TopologyBuilder builder = new TopologyFactory().build(sparql, statementsTopic, resultsTopic, () -> bNodeId);
 
         // Create the statements that will be input into the query.
-        final ValueFactory vf = new ValueFactoryImpl();
+        final ValueFactory vf = SimpleValueFactory.getInstance();
         final List<VisibilityStatement> statements = new ArrayList<>();
         statements.add( new VisibilityStatement(
-                vf.createStatement(vf.createURI("urn:car1"), vf.createURI("urn:compass"), vf.createURI("urn:NW")), "a") );
+                vf.createStatement(vf.createIRI("urn:car1"), vf.createIRI("urn:compass"), vf.createIRI("urn:NW")), "a") );
         statements.add( new VisibilityStatement(
-                vf.createStatement(vf.createURI("urn:car1"), vf.createURI("urn:corner"), vf.createURI("urn:corner1")), "a") );
+                vf.createStatement(vf.createIRI("urn:car1"), vf.createIRI("urn:corner"), vf.createIRI("urn:corner1")), "a") );
 
         // Make the expected results.
         final Set<VisibilityStatement> expected = new HashSet<>();
         final BNode blankNode = vf.createBNode(bNodeId);
 
-        expected.add(new VisibilityStatement(vf.createStatement(blankNode, RDF.TYPE, vf.createURI("urn:movementObservation")), "a"));
-        expected.add(new VisibilityStatement(vf.createStatement(blankNode, vf.createURI("urn:direction"), vf.createURI("urn:NW")), "a"));
-        expected.add(new VisibilityStatement(vf.createStatement(blankNode, vf.createURI("urn:location"), vf.createURI("urn:corner1")), "a"));
+        expected.add(new VisibilityStatement(vf.createStatement(blankNode, RDF.TYPE, vf.createIRI("urn:movementObservation")), "a"));
+        expected.add(new VisibilityStatement(vf.createStatement(blankNode, vf.createIRI("urn:direction"), vf.createIRI("urn:NW")), "a"));
+        expected.add(new VisibilityStatement(vf.createStatement(blankNode, vf.createIRI("urn:location"), vf.createIRI("urn:corner1")), "a"));
 
         // Run the test.
         RyaStreamsTestUtil.runStreamProcessingTest(kafka, statementsTopic, resultsTopic, builder, statements, expected, VisibilityStatementDeserializer.class);

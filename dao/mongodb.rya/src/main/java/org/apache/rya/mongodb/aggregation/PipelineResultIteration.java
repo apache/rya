@@ -21,20 +21,19 @@ package org.apache.rya.mongodb.aggregation;
 import java.util.Map;
 
 import org.bson.Document;
-import org.openrdf.model.Value;
-import org.openrdf.model.ValueFactory;
-import org.openrdf.model.impl.ValueFactoryImpl;
-import org.openrdf.model.vocabulary.XMLSchema;
-import org.openrdf.query.Binding;
-import org.openrdf.query.BindingSet;
-import org.openrdf.query.QueryEvaluationException;
-import org.openrdf.query.algebra.evaluation.QueryBindingSet;
+import org.eclipse.rdf4j.common.iteration.CloseableIteration;
+import org.eclipse.rdf4j.model.Value;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
+import org.eclipse.rdf4j.model.vocabulary.XMLSchema;
+import org.eclipse.rdf4j.query.Binding;
+import org.eclipse.rdf4j.query.BindingSet;
+import org.eclipse.rdf4j.query.QueryEvaluationException;
+import org.eclipse.rdf4j.query.algebra.evaluation.QueryBindingSet;
 
 import com.google.common.base.Preconditions;
 import com.mongodb.client.AggregateIterable;
 import com.mongodb.client.MongoCursor;
-
-import info.aduna.iteration.CloseableIteration;
 
 /**
  * An iterator that converts the documents resulting from an
@@ -42,7 +41,7 @@ import info.aduna.iteration.CloseableIteration;
  */
 public class PipelineResultIteration implements CloseableIteration<BindingSet, QueryEvaluationException> {
     private static final int BATCH_SIZE = 1000;
-    private static final ValueFactory VF = ValueFactoryImpl.getInstance();
+    private static final ValueFactory VF = SimpleValueFactory.getInstance();
 
     private final MongoCursor<Document> cursor;
     private final Map<String, String> varToOriginalName;
@@ -114,10 +113,10 @@ public class PipelineResultIteration implements CloseableIteration<BindingSet, Q
                 String varName = varToOriginalName.getOrDefault(fieldName, fieldName);
                 Value varValue;
                 if (typeString == null || typeString.equals(XMLSchema.ANYURI.stringValue())) {
-                    varValue = VF.createURI(valueString);
+                    varValue = VF.createIRI(valueString);
                 }
                 else {
-                    varValue = VF.createLiteral(valueString, VF.createURI(typeString));
+                    varValue = VF.createLiteral(valueString, VF.createIRI(typeString));
                 }
                 Binding existingBinding = bindingSet.getBinding(varName);
                 // If this variable is not already bound, add it.

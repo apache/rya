@@ -41,7 +41,7 @@ under the License.
         <module>alx.rya.console</module>
         <module>camel.rya</module>
         <!-- Disabling and documented in RYA-8 -->
-        <!--   <module>sesame-runtime-osgi</module> -->
+        <!--   <module>rdf4j-runtime-osgi</module> -->
     </modules>
     <build>
         <pluginManagement>
@@ -53,7 +53,7 @@ under the License.
                         <excludes>
                             <!-- Services Files -->
                             <exclude>**/resources/META-INF/services/**</exclude>
-                            <exclude>sesame-runtime-osgi/openrdf-sesame-osgi.bnd</exclude>
+                            <exclude>rdf4j-runtime-osgi/eclipse-rdf4j-osgi.bnd</exclude>
                         </excludes>
                     </configuration>
                 </plugin>

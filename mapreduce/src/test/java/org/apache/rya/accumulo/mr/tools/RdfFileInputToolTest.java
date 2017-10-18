@@ -19,23 +19,21 @@ package org.apache.rya.accumulo.mr.tools;
  * under the License.
  */
 
+import junit.framework.TestCase;
 import org.apache.accumulo.core.client.Connector;
 import org.apache.accumulo.core.client.admin.SecurityOperations;
 import org.apache.accumulo.core.client.mock.MockInstance;
 import org.apache.accumulo.core.client.security.tokens.PasswordToken;
 import org.apache.accumulo.core.security.Authorizations;
 import org.apache.accumulo.core.security.TablePermission;
-import org.junit.Test;
-import org.openrdf.rio.RDFFormat;
-
-import junit.framework.TestCase;
 import org.apache.rya.accumulo.AccumuloRdfConfiguration;
 import org.apache.rya.accumulo.mr.TestUtils;
-import org.apache.rya.accumulo.mr.tools.RdfFileInputTool;
 import org.apache.rya.api.RdfCloudTripleStoreConstants;
 import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.domain.RyaType;
 import org.apache.rya.api.domain.RyaURI;
+import org.eclipse.rdf4j.rio.RDFFormat;
+import org.junit.Test;
 
 /**
  * Created by IntelliJ IDEA.

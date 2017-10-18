@@ -99,7 +99,7 @@ under the License.
         <constructor-arg ref="indexerSettings"/>
     </bean>
 
-    <bean id="indexingSailRepo" class="org.openrdf.repository.sail.SailRepository" init-method="initialize" destroy-method="shutDown">
+    <bean id="indexingSailRepo" class="org.eclipse.rdf4j.repository.sail.SailRepository" init-method="initialize" destroy-method="shutDown">
         <constructor-arg ref="ryaIndexingSail"/>
     </bean>
 </beans>

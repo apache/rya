@@ -21,13 +21,13 @@ package org.apache.rya.sail.config;
 import static org.junit.Assert.assertFalse;
 
 import org.apache.rya.mongodb.MongoITBase;
+import org.eclipse.rdf4j.model.Statement;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.repository.sail.SailRepository;
+import org.eclipse.rdf4j.repository.sail.SailRepositoryConnection;
+import org.eclipse.rdf4j.sail.Sail;
 import org.junit.Assert;
 import org.junit.Test;
-import org.openrdf.model.Statement;
-import org.openrdf.model.ValueFactory;
-import org.openrdf.repository.sail.SailRepository;
-import org.openrdf.repository.sail.SailRepositoryConnection;
-import org.openrdf.sail.Sail;
 
 /**
  * Tests {@link RyaSailFactory} with a MongoDB backend.
@@ -66,7 +66,7 @@ public class RyaMongoDbSailFactoryTest extends MongoITBase {
             conn = repo.getConnection();
 
             final ValueFactory vf = conn.getValueFactory();
-            final Statement s = vf.createStatement(vf.createURI("u:a"), vf.createURI("u:b"), vf.createURI("u:c"));
+            final Statement s = vf.createStatement(vf.createIRI("u:a"), vf.createIRI("u:b"), vf.createIRI("u:c"));
 
             assertFalse(conn.hasStatement(s, false));
 
@@ -97,7 +97,7 @@ public class RyaMongoDbSailFactoryTest extends MongoITBase {
             conn = repo.getConnection();
 
             final ValueFactory vf = conn.getValueFactory();
-            final Statement s = vf.createStatement(vf.createURI("u:a"), vf.createURI("u:b"), vf.createURI("u:c"));
+            final Statement s = vf.createStatement(vf.createIRI("u:a"), vf.createIRI("u:b"), vf.createIRI("u:c"));
 
             assertFalse(conn.hasStatement(s, false));
 
@@ -127,7 +127,7 @@ public class RyaMongoDbSailFactoryTest extends MongoITBase {
             conn = repo.getConnection();
 
             final ValueFactory vf = conn.getValueFactory();
-            final Statement s = vf.createStatement(vf.createURI("u:a"), vf.createURI("u:b"), vf.createURI("u:c"));
+            final Statement s = vf.createStatement(vf.createIRI("u:a"), vf.createIRI("u:b"), vf.createIRI("u:c"));
 
             assertFalse(conn.hasStatement(s, false));
 

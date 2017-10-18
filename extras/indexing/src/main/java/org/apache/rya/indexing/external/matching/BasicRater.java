@@ -40,12 +40,13 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import org.openrdf.query.algebra.QueryModelNode;
-import org.openrdf.query.algebra.TupleExpr;
-
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
+
+import org.apache.rya.api.domain.VarNameUtils;
+import org.eclipse.rdf4j.query.algebra.QueryModelNode;
+import org.eclipse.rdf4j.query.algebra.TupleExpr;
 
 /**
  * This implementation of the QueryNodeListRater assigns a score to a specified
@@ -84,7 +85,7 @@ public class BasicRater implements QueryNodeListRater {
                 TupleExpr tup = (TupleExpr) node;
                 Set<String> bindingNames = tup.getAssuredBindingNames();
                 for (String name : bindingNames) {
-                    if (!name.startsWith("-const-")) {
+                    if (!VarNameUtils.isConstant(name)) {
                         commonVarBin.put(name, i);
                     }
                 }

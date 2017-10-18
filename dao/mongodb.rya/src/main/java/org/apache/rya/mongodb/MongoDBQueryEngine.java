@@ -41,16 +41,15 @@ import org.apache.rya.mongodb.iter.RyaStatementCursorIterator;
 import org.bson.Document;
 import org.calrissian.mango.collect.CloseableIterable;
 import org.calrissian.mango.collect.CloseableIterables;
-import org.openrdf.query.BindingSet;
-import org.openrdf.query.impl.MapBindingSet;
+import org.eclipse.rdf4j.common.iteration.CloseableIteration;
+import org.eclipse.rdf4j.query.BindingSet;
+import org.eclipse.rdf4j.query.impl.MapBindingSet;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
-
-import info.aduna.iteration.CloseableIteration;
 
 /**
  * Date: 7/17/12
@@ -144,7 +143,7 @@ public class MongoDBQueryEngine implements RyaQueryEngine<StatefulMongoDBRdfConf
         }
 
         Iterator<RyaStatement> iterator = new RyaStatementCursorIterator(queryWithBindingSet(queries.entrySet(), getConf()));
-        return CloseableIterables.wrap((Iterable<RyaStatement>) () -> iterator);
+        return CloseableIterables.wrap(() -> iterator);
     }
 
     private MongoCollection<Document> getCollection(final StatefulMongoDBRdfConfiguration conf) {

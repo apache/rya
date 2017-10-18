@@ -19,10 +19,7 @@ package org.apache.rya.rdftriplestore.evaluation;
  * under the License.
  */
 
-
-
 import static com.google.common.base.Preconditions.checkNotNull;
-//import static RdfCloudTripleStoreUtils.getTtlValueConverter;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -35,21 +32,21 @@ import org.apache.rya.api.persist.RdfEvalStatsDAO;
 import org.apache.rya.api.persist.RdfEvalStatsDAO.CARDINALITY_OF;
 import org.apache.rya.rdftriplestore.inference.DoNotExpandSP;
 import org.apache.rya.rdftriplestore.utils.FixedStatementPattern;
-import org.openrdf.model.Resource;
-import org.openrdf.model.Statement;
-import org.openrdf.model.URI;
-import org.openrdf.model.Value;
-import org.openrdf.model.vocabulary.RDF;
-import org.openrdf.query.algebra.BinaryTupleOperator;
-import org.openrdf.query.algebra.Filter;
-import org.openrdf.query.algebra.Join;
-import org.openrdf.query.algebra.Projection;
-import org.openrdf.query.algebra.Slice;
-import org.openrdf.query.algebra.StatementPattern;
-import org.openrdf.query.algebra.TupleExpr;
-import org.openrdf.query.algebra.UnaryTupleOperator;
-import org.openrdf.query.algebra.Var;
-import org.openrdf.query.algebra.evaluation.impl.EvaluationStatistics;
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.Resource;
+import org.eclipse.rdf4j.model.Statement;
+import org.eclipse.rdf4j.model.Value;
+import org.eclipse.rdf4j.model.vocabulary.RDF;
+import org.eclipse.rdf4j.query.algebra.BinaryTupleOperator;
+import org.eclipse.rdf4j.query.algebra.Filter;
+import org.eclipse.rdf4j.query.algebra.Join;
+import org.eclipse.rdf4j.query.algebra.Projection;
+import org.eclipse.rdf4j.query.algebra.Slice;
+import org.eclipse.rdf4j.query.algebra.StatementPattern;
+import org.eclipse.rdf4j.query.algebra.TupleExpr;
+import org.eclipse.rdf4j.query.algebra.UnaryTupleOperator;
+import org.eclipse.rdf4j.query.algebra.Var;
+import org.eclipse.rdf4j.query.algebra.evaluation.impl.EvaluationStatistics;
 
 /**
  * Class RdfCloudTripleStoreEvaluationStatistics
@@ -113,7 +110,7 @@ public class RdfCloudTripleStoreEvaluationStatistics<C extends RdfCloudTripleSto
             final Var subjectVar = sp.getSubjectVar();
             final Resource subj = (Resource) getConstantValue(subjectVar);
             final Var predicateVar = sp.getPredicateVar();
-            final URI pred = (URI) getConstantValue(predicateVar);
+            final IRI pred = (IRI) getConstantValue(predicateVar);
             final Var objectVar = sp.getObjectVar();
             final Value obj = getConstantValue(objectVar);
             final Resource context = (Resource) getConstantValue(sp.getContextVar());

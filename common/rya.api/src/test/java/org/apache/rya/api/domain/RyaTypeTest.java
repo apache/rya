@@ -19,9 +19,9 @@ package org.apache.rya.api.domain;
  * under the License.
  */
 
+import org.eclipse.rdf4j.model.vocabulary.XMLSchema;
 import org.junit.Assert;
 import org.junit.Test;
-import org.openrdf.model.vocabulary.XMLSchema;
 
 public class RyaTypeTest {
     static RyaType a = new RyaType(XMLSchema.STRING, "http://www.example.com/Alice");

@@ -28,13 +28,13 @@ import org.apache.rya.api.persist.joinselect.SelectivityEvalDAO;
 import org.apache.rya.rdftriplestore.inference.InferenceEngine;
 import org.apache.rya.rdftriplestore.namespace.NamespaceManager;
 import org.apache.rya.rdftriplestore.provenance.ProvenanceCollector;
-import org.openrdf.model.ValueFactory;
-import org.openrdf.model.impl.ValueFactoryImpl;
-import org.openrdf.sail.SailConnection;
-import org.openrdf.sail.SailException;
-import org.openrdf.sail.helpers.SailBase;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
+import org.eclipse.rdf4j.sail.SailConnection;
+import org.eclipse.rdf4j.sail.SailException;
+import org.eclipse.rdf4j.sail.helpers.AbstractSail;
 
-public class RdfCloudTripleStore<C extends RdfCloudTripleStoreConfiguration> extends SailBase {
+public class RdfCloudTripleStore<C extends RdfCloudTripleStoreConfiguration> extends AbstractSail {
 
     private C conf;
 
@@ -45,7 +45,7 @@ public class RdfCloudTripleStore<C extends RdfCloudTripleStoreConfiguration> ext
     private NamespaceManager namespaceManager;
     protected ProvenanceCollector provenanceCollector;
 
-    private static final ValueFactory VF = new ValueFactoryImpl();
+    private static final ValueFactory VF = SimpleValueFactory.getInstance();
 
     @Override
     protected SailConnection getConnectionInternal() throws SailException {

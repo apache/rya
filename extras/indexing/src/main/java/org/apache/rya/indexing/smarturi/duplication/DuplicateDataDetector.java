@@ -44,10 +44,10 @@ import org.apache.rya.indexing.smarturi.SmartUriAdapter;
 import org.apache.rya.indexing.smarturi.SmartUriException;
 import org.apache.rya.indexing.smarturi.duplication.conf.DuplicateDataConfig;
 import org.calrissian.mango.types.exception.TypeEncodingException;
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
+import org.eclipse.rdf4j.model.vocabulary.XMLSchema;
 import org.joda.time.DateTime;
-import org.openrdf.model.URI;
-import org.openrdf.model.impl.URIImpl;
-import org.openrdf.model.vocabulary.XMLSchema;
 
 import com.google.common.collect.ImmutableMap;
 
@@ -63,7 +63,7 @@ import com.google.common.collect.ImmutableMap;
  * compared.
  */
 public class DuplicateDataDetector {
-    private final Map<URI, ApproxEqualsDetector<?>> uriMap = new HashMap<>();
+    private final Map<IRI, ApproxEqualsDetector<?>> uriMap = new HashMap<>();
     private final Map<Class<?>, ApproxEqualsDetector<?>> classMap = new HashMap<>();
 
     private boolean isDetectionEnabled;
@@ -137,7 +137,7 @@ public class DuplicateDataDetector {
      * if not specified.
      * @param stringTolerance the {@link String} tolerance value or {@code null}
      * if not specified.
-     * @param uriTolerance the {@link URI} tolerance value or {@code null} if
+     * @param uriTolerance the {@link IRI} tolerance value or {@code null} if
      * not specified.
      * @param equivalentTermsMap the {@link Map} of terms that are considered
      * equivalent to each other. (not {@code null})
@@ -224,13 +224,13 @@ public class DuplicateDataDetector {
 
     /**
      * Compares two Smart URI's to determine if they have nearly identical data.
-     * @param uri1 the first Smart {@link URI}. (not {@code null})
-     * @param uri2 the second Smart {@link URI}. (not {@code null})
+     * @param uri1 the first Smart {@link IRI}. (not {@code null})
+     * @param uri2 the second Smart {@link IRI}. (not {@code null})
      * @return {@code true} if the two Smart URI's have nearly identical data.
      * {@code false} otherwise.
      * @throws SmartUriException
      */
-    public boolean compareSmartUris(final URI uri1, final URI uri2) throws SmartUriException {
+    public boolean compareSmartUris(final IRI uri1, final IRI uri2) throws SmartUriException {
         requireNonNull(uri1);
         requireNonNull(uri2);
         final Entity entity1 = SmartUriAdapter.deserializeUriEntity(uri1);
@@ -270,7 +270,7 @@ public class DuplicateDataDetector {
                     final RyaType value2 = property2.getValue();
                     final String data1 = value1.getData();
                     final String data2 = value2.getData();
-                    final URI xmlSchemaUri1 = value1.getDataType();
+                    final IRI xmlSchemaUri1 = value1.getDataType();
                     final ApproxEqualsDetector<?> approxEqualsDetector = uriMap.get(xmlSchemaUri1);
                     if (approxEqualsDetector == null) {
                         throw new SmartUriException("No appropriate detector found for the type: " + xmlSchemaUri1);
@@ -328,7 +328,7 @@ public class DuplicateDataDetector {
         public boolean areObjectsApproxEquals(final Boolean lhs, final Boolean rhs) {
             // Should never be almost equals when tolerance is 0, only exactly equals
             // Otherwise if there's any tolerance specified everything is equal
-            return tolerance.getValue() == 0 ? Objects.equals(lhs, rhs) : true;
+            return tolerance.getValue() != 0 || Objects.equals(lhs, rhs);
         }
 
         @Override
@@ -347,7 +347,7 @@ public class DuplicateDataDetector {
         }
 
         @Override
-        public URI getXmlSchemaUri() {
+        public IRI getXmlSchemaUri() {
             return XMLSchema.BOOLEAN;
         }
     }
@@ -412,7 +412,7 @@ public class DuplicateDataDetector {
         }
 
         @Override
-        public URI getXmlSchemaUri() {
+        public IRI getXmlSchemaUri() {
             return XMLSchema.BYTE;
         }
     }
@@ -486,7 +486,7 @@ public class DuplicateDataDetector {
         }
 
         @Override
-        public URI getXmlSchemaUri() {
+        public IRI getXmlSchemaUri() {
             return XMLSchema.DATE;
         }
     }
@@ -559,7 +559,7 @@ public class DuplicateDataDetector {
         }
 
         @Override
-        public URI getXmlSchemaUri() {
+        public IRI getXmlSchemaUri() {
             return XMLSchema.DATETIME;
         }
     }
@@ -638,7 +638,7 @@ public class DuplicateDataDetector {
         }
 
         @Override
-        public URI getXmlSchemaUri() {
+        public IRI getXmlSchemaUri() {
             return XMLSchema.DOUBLE;
         }
     }
@@ -718,7 +718,7 @@ public class DuplicateDataDetector {
         }
 
         @Override
-        public URI getXmlSchemaUri() {
+        public IRI getXmlSchemaUri() {
             return XMLSchema.FLOAT;
         }
     }
@@ -783,7 +783,7 @@ public class DuplicateDataDetector {
         }
 
         @Override
-        public URI getXmlSchemaUri() {
+        public IRI getXmlSchemaUri() {
             return XMLSchema.INTEGER;
         }
     }
@@ -848,7 +848,7 @@ public class DuplicateDataDetector {
         }
 
         @Override
-        public URI getXmlSchemaUri() {
+        public IRI getXmlSchemaUri() {
             return XMLSchema.LONG;
         }
     }
@@ -913,7 +913,7 @@ public class DuplicateDataDetector {
         }
 
         @Override
-        public URI getXmlSchemaUri() {
+        public IRI getXmlSchemaUri() {
             return XMLSchema.SHORT;
         }
     }
@@ -988,7 +988,7 @@ public class DuplicateDataDetector {
         }
 
         @Override
-        public URI getXmlSchemaUri() {
+        public IRI getXmlSchemaUri() {
             return XMLSchema.STRING;
         }
     }
@@ -997,7 +997,7 @@ public class DuplicateDataDetector {
      * Class to detect if two URIs are considered approximately equal to each
      * other.
      */
-    public static class UriApproxEqualsDetector implements ApproxEqualsDetector<URI> {
+    public static class UriApproxEqualsDetector implements ApproxEqualsDetector<IRI> {
         private static final Tolerance DEFAULT_TOLERANCE = new Tolerance(1.0, ToleranceType.DIFFERENCE);
         private final Tolerance tolerance;
 
@@ -1010,7 +1010,7 @@ public class DuplicateDataDetector {
         }
 
         @Override
-        public boolean areObjectsApproxEquals(final URI lhs, final URI rhs) {
+        public boolean areObjectsApproxEquals(final IRI lhs, final IRI rhs) {
             if (isOnlyOneNull(lhs, rhs)) {
                 return false;
             }
@@ -1049,17 +1049,17 @@ public class DuplicateDataDetector {
         }
 
         @Override
-        public URI convertStringToObject(final String string) throws SmartUriException {
-            return new URIImpl(string);
+        public IRI convertStringToObject(final String string) throws SmartUriException {
+            return SimpleValueFactory.getInstance().createIRI(string);
         }
 
         @Override
         public Class<?> getTypeClass() {
-            return URI.class;
+            return IRI.class;
         }
 
         @Override
-        public URI getXmlSchemaUri() {
+        public IRI getXmlSchemaUri() {
             return XMLSchema.ANYURI;
         }
     }

@@ -34,7 +34,7 @@ import org.apache.rya.indexing.external.matching.QuerySegment;
 import org.apache.rya.indexing.external.tupleSet.ExternalTupleSet;
 import org.apache.rya.indexing.pcj.matching.PCJOptimizerUtilities;
 import org.apache.rya.indexing.pcj.matching.PCJToSegmentConverter;
-import org.openrdf.query.algebra.TupleExpr;
+import org.eclipse.rdf4j.query.algebra.TupleExpr;
 
 import com.google.common.annotations.VisibleForTesting;
 

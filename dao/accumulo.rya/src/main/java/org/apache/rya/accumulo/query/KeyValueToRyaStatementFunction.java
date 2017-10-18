@@ -19,21 +19,16 @@ package org.apache.rya.accumulo.query;
  * under the License.
  */
 
-
-
 import java.util.Map;
 
-import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
+import com.google.common.base.Function;
+import org.apache.accumulo.core.data.Key;
+import org.apache.accumulo.core.data.Value;
 import org.apache.rya.api.RdfCloudTripleStoreConstants.TABLE_LAYOUT;
 import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.resolver.RyaTripleContext;
 import org.apache.rya.api.resolver.triple.TripleRow;
 import org.apache.rya.api.resolver.triple.TripleRowResolverException;
-
-import org.apache.accumulo.core.data.Key;
-import org.apache.accumulo.core.data.Value;
-
-import com.google.common.base.Function;
 
 /**
  * Date: 1/30/13

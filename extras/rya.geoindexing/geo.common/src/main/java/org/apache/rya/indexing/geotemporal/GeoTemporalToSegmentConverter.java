@@ -28,9 +28,9 @@ import org.apache.rya.indexing.external.matching.ExternalSetConverter;
 import org.apache.rya.indexing.external.matching.JoinSegment;
 import org.apache.rya.indexing.external.matching.QuerySegment;
 import org.apache.rya.indexing.geotemporal.model.EventQueryNode;
-import org.openrdf.query.algebra.Filter;
-import org.openrdf.query.algebra.QueryModelNode;
-import org.openrdf.query.algebra.ValueExpr;
+import org.eclipse.rdf4j.query.algebra.Filter;
+import org.eclipse.rdf4j.query.algebra.QueryModelNode;
+import org.eclipse.rdf4j.query.algebra.ValueExpr;
 
 import com.google.common.base.Preconditions;
 

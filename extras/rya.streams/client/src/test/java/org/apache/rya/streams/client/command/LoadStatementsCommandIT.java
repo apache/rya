@@ -36,15 +36,16 @@ import org.apache.rya.streams.kafka.KafkaTopics;
 import org.apache.rya.streams.kafka.serialization.VisibilityStatementDeserializer;
 import org.apache.rya.test.kafka.KafkaTestInstanceRule;
 import org.apache.rya.test.kafka.KafkaTestUtil;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 import org.junit.Rule;
 import org.junit.Test;
-import org.openrdf.model.ValueFactory;
-import org.openrdf.model.impl.ValueFactoryImpl;
 
 /**
  * Integration tests the methods of {@link LoadStatementsCommand}.
  */
 public class LoadStatementsCommandIT {
+    private static final ValueFactory VF = SimpleValueFactory.getInstance();
 
     private static final Path TURTLE_FILE = Paths.get("src/test/resources/statements.ttl");
 
@@ -83,16 +84,15 @@ public class LoadStatementsCommandIT {
             }
         }
 
-        final ValueFactory VF = ValueFactoryImpl.getInstance();
         final List<VisibilityStatement> expected = new ArrayList<>();
         expected.add(new VisibilityStatement(
-                VF.createStatement(VF.createURI("http://example#alice"), VF.createURI("http://example#talksTo"), VF.createURI("http://example#bob")),
+                VF.createStatement(VF.createIRI("http://example#alice"), VF.createIRI("http://example#talksTo"), VF.createIRI("http://example#bob")),
                 visibilities));
         expected.add(new VisibilityStatement(
-                VF.createStatement(VF.createURI("http://example#bob"), VF.createURI("http://example#talksTo"), VF.createURI("http://example#charlie")),
+                VF.createStatement(VF.createIRI("http://example#bob"), VF.createIRI("http://example#talksTo"), VF.createIRI("http://example#charlie")),
                 visibilities));
         expected.add(new VisibilityStatement(
-                VF.createStatement(VF.createURI("http://example#charlie"), VF.createURI("http://example#likes"), VF.createURI("http://example#icecream")),
+                VF.createStatement(VF.createIRI("http://example#charlie"), VF.createIRI("http://example#likes"), VF.createIRI("http://example#icecream")),
                 visibilities));
 
         // Show the written statements matches the read ones.
@@ -129,16 +129,15 @@ public class LoadStatementsCommandIT {
             }
         }
 
-        final ValueFactory VF = ValueFactoryImpl.getInstance();
         final List<VisibilityStatement> expected = new ArrayList<>();
         expected.add(new VisibilityStatement(
-                VF.createStatement(VF.createURI("http://example#alice"), VF.createURI("http://example#talksTo"), VF.createURI("http://example#bob")),
+                VF.createStatement(VF.createIRI("http://example#alice"), VF.createIRI("http://example#talksTo"), VF.createIRI("http://example#bob")),
                 visibilities));
         expected.add(new VisibilityStatement(
-                VF.createStatement(VF.createURI("http://example#bob"), VF.createURI("http://example#talksTo"), VF.createURI("http://example#charlie")),
+                VF.createStatement(VF.createIRI("http://example#bob"), VF.createIRI("http://example#talksTo"), VF.createIRI("http://example#charlie")),
                 visibilities));
         expected.add(new VisibilityStatement(
-                VF.createStatement(VF.createURI("http://example#charlie"), VF.createURI("http://example#likes"), VF.createURI("http://example#icecream")),
+                VF.createStatement(VF.createIRI("http://example#charlie"), VF.createIRI("http://example#likes"), VF.createIRI("http://example#icecream")),
                 visibilities));
 
         // Show the written statements matches the read ones.

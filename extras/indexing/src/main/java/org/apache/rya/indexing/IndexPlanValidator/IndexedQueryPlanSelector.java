@@ -19,14 +19,13 @@ package org.apache.rya.indexing.IndexPlanValidator;
  * under the License.
  */
 
-
 import java.util.Iterator;
 
-import org.openrdf.query.algebra.TupleExpr;
+import org.eclipse.rdf4j.query.algebra.TupleExpr;
 
 public interface IndexedQueryPlanSelector {
     
-    public TupleExpr getThreshholdQueryPlan(Iterator<TupleExpr> tupleList, double threshhold, 
+    TupleExpr getThreshholdQueryPlan(Iterator<TupleExpr> tupleList, double threshhold,
             double indexWeight, double commonVarWeight, double dirProdWeight);
 
 }

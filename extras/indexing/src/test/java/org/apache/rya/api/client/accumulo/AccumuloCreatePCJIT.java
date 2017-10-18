@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -34,14 +34,13 @@ import org.apache.rya.api.instance.RyaDetails;
 import org.apache.rya.api.instance.RyaDetails.PCJIndexDetails.PCJDetails;
 import org.apache.rya.api.instance.RyaDetails.PCJIndexDetails.PCJDetails.PCJUpdateStrategy;
 import org.apache.rya.indexing.pcj.fluo.api.ListQueryIds;
-import org.apache.rya.indexing.pcj.fluo.app.IncUpdateDAO;
 import org.apache.rya.indexing.pcj.storage.PcjMetadata;
 import org.apache.rya.indexing.pcj.storage.PrecomputedJoinStorage;
 import org.apache.rya.indexing.pcj.storage.accumulo.AccumuloPcjStorage;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.query.BindingSet;
+import org.eclipse.rdf4j.query.impl.MapBindingSet;
 import org.junit.Test;
-import org.openrdf.model.ValueFactory;
-import org.openrdf.query.BindingSet;
-import org.openrdf.query.impl.MapBindingSet;
 
 import com.google.common.base.Optional;
 import com.google.common.collect.Sets;
@@ -88,16 +87,16 @@ public class AccumuloCreatePCJIT extends FluoITBase {
 
             // Insert some statements into Rya.
             final ValueFactory vf = ryaRepo.getValueFactory();
-            ryaConn.add(vf.createURI("http://Alice"), vf.createURI("http://talksTo"), vf.createURI("http://Eve"));
-            ryaConn.add(vf.createURI("http://Bob"), vf.createURI("http://talksTo"), vf.createURI("http://Eve"));
-            ryaConn.add(vf.createURI("http://Charlie"), vf.createURI("http://talksTo"), vf.createURI("http://Eve"));
+            ryaConn.add(vf.createIRI("http://Alice"), vf.createIRI("http://talksTo"), vf.createIRI("http://Eve"));
+            ryaConn.add(vf.createIRI("http://Bob"), vf.createIRI("http://talksTo"), vf.createIRI("http://Eve"));
+            ryaConn.add(vf.createIRI("http://Charlie"), vf.createIRI("http://talksTo"), vf.createIRI("http://Eve"));
 
-            ryaConn.add(vf.createURI("http://Eve"), vf.createURI("http://helps"), vf.createURI("http://Kevin"));
+            ryaConn.add(vf.createIRI("http://Eve"), vf.createIRI("http://helps"), vf.createIRI("http://Kevin"));
 
-            ryaConn.add(vf.createURI("http://Bob"), vf.createURI("http://worksAt"), vf.createURI("http://TacoJoint"));
-            ryaConn.add(vf.createURI("http://Charlie"), vf.createURI("http://worksAt"), vf.createURI("http://TacoJoint"));
-            ryaConn.add(vf.createURI("http://Eve"), vf.createURI("http://worksAt"), vf.createURI("http://TacoJoint"));
-            ryaConn.add(vf.createURI("http://David"), vf.createURI("http://worksAt"), vf.createURI("http://TacoJoint"));
+            ryaConn.add(vf.createIRI("http://Bob"), vf.createIRI("http://worksAt"), vf.createIRI("http://TacoJoint"));
+            ryaConn.add(vf.createIRI("http://Charlie"), vf.createIRI("http://worksAt"), vf.createIRI("http://TacoJoint"));
+            ryaConn.add(vf.createIRI("http://Eve"), vf.createIRI("http://worksAt"), vf.createIRI("http://TacoJoint"));
+            ryaConn.add(vf.createIRI("http://David"), vf.createIRI("http://worksAt"), vf.createIRI("http://TacoJoint"));
 
             // Verify the correct results were exported.
             fluo.waitForObservers();
@@ -105,12 +104,12 @@ public class AccumuloCreatePCJIT extends FluoITBase {
             final Set<BindingSet> results = Sets.newHashSet( pcjStorage.listResults(pcjId) );
 
             final MapBindingSet bob = new MapBindingSet();
-            bob.addBinding("x", vf.createURI("http://Bob"));
+            bob.addBinding("x", vf.createIRI("http://Bob"));
 
             final MapBindingSet charlie = new MapBindingSet();
-            charlie.addBinding("x", vf.createURI("http://Charlie"));
+            charlie.addBinding("x", vf.createIRI("http://Charlie"));
 
-            final Set<BindingSet> expected = Sets.<BindingSet>newHashSet(bob, charlie);
+            final Set<BindingSet> expected = Sets.newHashSet(bob, charlie);
 
             assertEquals(expected, results);
         }

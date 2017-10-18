@@ -19,10 +19,6 @@ package org.apache.rya.indexing.IndexPlanValidator;
  * under the License.
  */
 
-
-
-
-
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
@@ -30,17 +26,16 @@ import java.util.Set;
 
 import org.apache.rya.indexing.external.tupleSet.ExternalTupleSet;
 import org.apache.rya.indexing.pcj.matching.QueryVariableNormalizer.VarCollector;
-
-import org.openrdf.query.algebra.BindingSetAssignment;
-import org.openrdf.query.algebra.Filter;
-import org.openrdf.query.algebra.Join;
-import org.openrdf.query.algebra.Projection;
-import org.openrdf.query.algebra.QueryModelNode;
-import org.openrdf.query.algebra.StatementPattern;
-import org.openrdf.query.algebra.TupleExpr;
-import org.openrdf.query.algebra.Var;
-import org.openrdf.query.algebra.helpers.QueryModelVisitorBase;
-import org.openrdf.query.algebra.helpers.StatementPatternCollector;
+import org.eclipse.rdf4j.query.algebra.BindingSetAssignment;
+import org.eclipse.rdf4j.query.algebra.Filter;
+import org.eclipse.rdf4j.query.algebra.Join;
+import org.eclipse.rdf4j.query.algebra.Projection;
+import org.eclipse.rdf4j.query.algebra.QueryModelNode;
+import org.eclipse.rdf4j.query.algebra.StatementPattern;
+import org.eclipse.rdf4j.query.algebra.TupleExpr;
+import org.eclipse.rdf4j.query.algebra.Var;
+import org.eclipse.rdf4j.query.algebra.helpers.AbstractQueryModelVisitor;
+import org.eclipse.rdf4j.query.algebra.helpers.StatementPatternCollector;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -186,7 +181,7 @@ public class GeneralizedExternalProcessor {
 
     // moves StatementPatterns in query that also occur in index to bottom of
     // query tree.
-    private static class SPBubbleDownVisitor extends QueryModelVisitorBase<RuntimeException> {
+    private static class SPBubbleDownVisitor extends AbstractQueryModelVisitor<RuntimeException> {
 
         private TupleExpr tuple;
         private QueryModelNode indexQNode;
@@ -266,7 +261,7 @@ public class GeneralizedExternalProcessor {
     // element in the query tree that occurs in compSet with replacement and
     // returns
     // the element that was replaced.
-    private static class QNodeExchanger extends QueryModelVisitorBase<RuntimeException> {
+    private static class QNodeExchanger extends AbstractQueryModelVisitor<RuntimeException> {
 
         private QueryModelNode toBeReplaced;
         private QueryModelNode replacement;
@@ -308,7 +303,7 @@ public class GeneralizedExternalProcessor {
     // SPBubbleDownVisitor has been called to position index StatementPatterns
     // within query tree.
     //could lead to problems if filter optimizer called before external processor
-    private static class FilterBubbleDownVisitor extends QueryModelVisitorBase<RuntimeException> {
+    private static class FilterBubbleDownVisitor extends AbstractQueryModelVisitor<RuntimeException> {
 
         private QueryModelNode filter;
         private Set<QueryModelNode> compSet;
@@ -380,7 +375,7 @@ public class GeneralizedExternalProcessor {
 
     // visitor which determines whether or not to reposition a filter by calling
     // FilterBubbleDownVisitor
-    private static class FilterBubbleManager extends QueryModelVisitorBase<RuntimeException> {
+    private static class FilterBubbleManager extends AbstractQueryModelVisitor<RuntimeException> {
 
         private TupleExpr tuple;
         private QueryModelNode indexQNode;
@@ -436,7 +431,7 @@ public class GeneralizedExternalProcessor {
     // calling this method is that both SPBubbleDownVisitor and
     // FilterBubbleManager have been called
     // to position the StatementPatterns and Filters.
-    private static class SubsetEqualsVisitor extends QueryModelVisitorBase<RuntimeException> {
+    private static class SubsetEqualsVisitor extends AbstractQueryModelVisitor<RuntimeException> {
 
         private TupleExpr tuple;
         private QueryModelNode indexQNode;
@@ -524,7 +519,7 @@ public class GeneralizedExternalProcessor {
     // visitor which determines whether a query is valid (i.e. it does not
     // contain nodes other than
     // Projection, Join, Filter, StatementPattern )
-    private static class ValidQueryVisitor extends QueryModelVisitorBase<RuntimeException> {
+    private static class ValidQueryVisitor extends AbstractQueryModelVisitor<RuntimeException> {
 
         private boolean isValid = true;
 
@@ -561,7 +556,7 @@ public class GeneralizedExternalProcessor {
     }
 
     // repositions ExternalTuples above StatementPatterns within query tree
-    private static class ExtTupleExchangeVisitor extends QueryModelVisitorBase<RuntimeException> {
+    private static class ExtTupleExchangeVisitor extends AbstractQueryModelVisitor<RuntimeException> {
 
         private Set<QueryModelNode> extTuples;
 
@@ -597,7 +592,7 @@ public class GeneralizedExternalProcessor {
 
     }
 
-    private static class ExternalTupleCollector extends QueryModelVisitorBase<RuntimeException> {
+    private static class ExternalTupleCollector extends AbstractQueryModelVisitor<RuntimeException> {
 
         private Set<QueryModelNode> eSet = new HashSet<QueryModelNode>();
 
@@ -615,7 +610,7 @@ public class GeneralizedExternalProcessor {
 
     }
 
-    private static class FilterCollector extends QueryModelVisitorBase<RuntimeException> {
+    private static class FilterCollector extends AbstractQueryModelVisitor<RuntimeException> {
 
         private List<QueryModelNode> filterList = Lists.newArrayList();
 
@@ -644,7 +639,7 @@ public class GeneralizedExternalProcessor {
     }
 
     // repositions ExternalTuples above StatementPatterns within query tree
-    private static class BindingSetAssignmentExchangeVisitor extends QueryModelVisitorBase<RuntimeException> {
+    private static class BindingSetAssignmentExchangeVisitor extends AbstractQueryModelVisitor<RuntimeException> {
 
         private Set<QueryModelNode> bsas;
 
@@ -672,7 +667,7 @@ public class GeneralizedExternalProcessor {
     }
 
 
-    public static class BindingSetAssignmentCollector extends QueryModelVisitorBase<RuntimeException> {
+    public static class BindingSetAssignmentCollector extends AbstractQueryModelVisitor<RuntimeException> {
 
         private Set<QueryModelNode> bindingSetList = Sets.newHashSet();
 
@@ -694,7 +689,7 @@ public class GeneralizedExternalProcessor {
 
 
 
-    public static class QueryNodeCount extends QueryModelVisitorBase<RuntimeException> {
+    public static class QueryNodeCount extends AbstractQueryModelVisitor<RuntimeException> {
 
         private int nodeCount;
 

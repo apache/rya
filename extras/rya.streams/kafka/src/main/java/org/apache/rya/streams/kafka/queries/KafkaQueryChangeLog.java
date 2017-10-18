@@ -35,12 +35,12 @@ import org.apache.kafka.common.TopicPartition;
 import org.apache.rya.streams.api.queries.ChangeLogEntry;
 import org.apache.rya.streams.api.queries.QueryChange;
 import org.apache.rya.streams.api.queries.QueryChangeLog;
+import org.eclipse.rdf4j.common.iteration.CloseableIteration;
 
 import com.google.common.collect.Lists;
 
 import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
 import edu.umd.cs.findbugs.annotations.NonNull;
-import info.aduna.iteration.CloseableIteration;
 
 /**
  * A Kafka implementation of a {@link QueryChangeLog}.

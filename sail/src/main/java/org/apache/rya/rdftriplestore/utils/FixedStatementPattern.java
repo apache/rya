@@ -21,9 +21,9 @@ package org.apache.rya.rdftriplestore.utils;
 import java.util.ArrayList;
 import java.util.Collection;
 
-import org.openrdf.model.Statement;
-import org.openrdf.query.algebra.StatementPattern;
-import org.openrdf.query.algebra.Var;
+import org.eclipse.rdf4j.model.Statement;
+import org.eclipse.rdf4j.query.algebra.StatementPattern;
+import org.eclipse.rdf4j.query.algebra.Var;
 
 /**
  * StatementPattern gives fixed statements back

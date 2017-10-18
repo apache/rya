@@ -32,11 +32,13 @@ import org.apache.rya.indexing.pcj.fluo.app.batch.JoinBatchInformation;
 import org.apache.rya.indexing.pcj.fluo.app.batch.SpanBatchDeleteInformation;
 import org.apache.rya.indexing.pcj.fluo.app.query.FluoQueryColumns;
 import org.apache.rya.indexing.pcj.fluo.app.query.JoinMetadata.JoinType;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
+import org.eclipse.rdf4j.query.algebra.evaluation.QueryBindingSet;
 import org.junit.Test;
-import org.openrdf.model.impl.URIImpl;
-import org.openrdf.query.algebra.evaluation.QueryBindingSet;
 
 public class BatchInformationSerializerTest {
+    private static final ValueFactory VF = SimpleValueFactory.getInstance();
 
     @Test
     public void testSpanBatchInformationSerialization() {
@@ -54,8 +56,8 @@ public class BatchInformationSerializerTest {
     public void testJoinBatchInformationSerialization() {
 
         QueryBindingSet bs = new QueryBindingSet();
-        bs.addBinding("a", new URIImpl("urn:123"));
-        bs.addBinding("b", new URIImpl("urn:456"));
+        bs.addBinding("a", VF.createIRI("urn:123"));
+        bs.addBinding("b", VF.createIRI("urn:456"));
         VisibilityBindingSet vBis = new VisibilityBindingSet(bs, "FOUO");
         
         JoinBatchInformation batch = JoinBatchInformation.builder().setBatchSize(1000).setTask(Task.Update)

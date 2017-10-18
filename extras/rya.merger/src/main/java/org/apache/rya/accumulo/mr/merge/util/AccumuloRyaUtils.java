@@ -60,13 +60,12 @@ import org.apache.rya.api.domain.RyaURI;
 import org.apache.rya.api.persist.RyaDAOException;
 import org.apache.rya.api.resolver.RdfToRyaConversions;
 import org.apache.rya.indexing.accumulo.ConfigUtils;
-import org.openrdf.model.Literal;
-import org.openrdf.model.ValueFactory;
+import org.eclipse.rdf4j.common.iteration.CloseableIteration;
+import org.eclipse.rdf4j.model.Literal;
+import org.eclipse.rdf4j.model.ValueFactory;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableSet;
-
-import info.aduna.iteration.CloseableIteration;
 
 /**
  * Utility methods for an Accumulo Rya instance.
@@ -123,7 +122,7 @@ public final class AccumuloRyaUtils {
      * @return the {@link RyraURI}.
      */
     public static RyaURI createRyaUri(final String namespace, final String localName) {
-        return RdfToRyaConversions.convertURI(VALUE_FACTORY.createURI(namespace, localName));
+        return RdfToRyaConversions.convertURI(VALUE_FACTORY.createIRI(namespace, localName));
     }
 
     /**

@@ -63,14 +63,13 @@ import org.apache.rya.api.utils.CloseableIterableIteration;
 import org.calrissian.mango.collect.CloseableIterable;
 import org.calrissian.mango.collect.CloseableIterables;
 import org.calrissian.mango.collect.FluentCloseableIterable;
-import org.openrdf.query.BindingSet;
+import org.eclipse.rdf4j.common.iteration.CloseableIteration;
+import org.eclipse.rdf4j.query.BindingSet;
 
 import com.google.common.base.Function;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.Iterators;
-
-import info.aduna.iteration.CloseableIteration;
 
 /**
  * Date: 7/17/12 Time: 9:28 AM

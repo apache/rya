@@ -19,11 +19,9 @@ package org.apache.rya.api.date;
  * under the License.
  */
 
-
-
-import org.openrdf.model.Value;
-import org.openrdf.model.ValueFactory;
-import org.openrdf.model.impl.ValueFactoryImpl;
+import org.eclipse.rdf4j.model.Value;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 
 /**
  * Class TtlValueConverter
@@ -31,7 +29,7 @@ import org.openrdf.model.impl.ValueFactoryImpl;
  */
 public interface TtlValueConverter {
 
-    ValueFactory vf = ValueFactoryImpl.getInstance();
+    ValueFactory vf = SimpleValueFactory.getInstance();
 
     public void convert(String ttl, String startTime);
 

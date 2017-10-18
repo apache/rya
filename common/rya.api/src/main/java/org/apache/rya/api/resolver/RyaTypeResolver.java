@@ -23,8 +23,7 @@ package org.apache.rya.api.resolver;
 
 import org.apache.rya.api.domain.RyaRange;
 import org.apache.rya.api.domain.RyaType;
-import org.apache.rya.api.domain.RyaTypeRange;
-import org.openrdf.model.URI;
+import org.eclipse.rdf4j.model.IRI;
 
 /**
  * Date: 7/16/12
@@ -44,9 +43,9 @@ public interface RyaTypeResolver {
      */
     public boolean deserializable(byte[] bytes);
 
-    public URI getRyaDataType();
+    public IRI getRyaDataType();
 
-    byte getMarkerByte();
+    public byte getMarkerByte();
 
     /**
      * This will allow a resolver to modify a range. For example, a date time resolver, with a reverse index,

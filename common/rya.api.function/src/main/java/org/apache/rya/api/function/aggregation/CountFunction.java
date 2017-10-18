@@ -24,9 +24,10 @@ import static java.util.Objects.requireNonNull;
 import java.math.BigInteger;
 
 import org.apache.rya.api.model.VisibilityBindingSet;
-import org.openrdf.model.Literal;
-import org.openrdf.model.impl.IntegerLiteralImpl;
-import org.openrdf.query.impl.MapBindingSet;
+import org.eclipse.rdf4j.model.Literal;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
+import org.eclipse.rdf4j.query.impl.MapBindingSet;
 
 import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
 import edu.umd.cs.findbugs.annotations.NonNull;
@@ -37,6 +38,8 @@ import edu.umd.cs.findbugs.annotations.NonNull;
  */
 @DefaultAnnotation(NonNull.class)
 public final class CountFunction implements AggregationFunction {
+    private static final ValueFactory VF = SimpleValueFactory.getInstance();
+
     @Override
     public void update(final AggregationElement aggregation, final AggregationState state, final VisibilityBindingSet childBindingSet) {
         checkArgument(aggregation.getAggregationType() == AggregationType.COUNT, "The CountFunction only accepts COUNT AggregationElements.");
@@ -52,12 +55,12 @@ public final class CountFunction implements AggregationFunction {
 
             if(newBinding) {
                 // Initialize the binding.
-                result.addBinding(resultName, new IntegerLiteralImpl(BigInteger.ONE));
+                result.addBinding(resultName, VF.createLiteral(BigInteger.ONE));
             } else {
                 // Update the existing binding.
                 final Literal count = (Literal) result.getValue(resultName);
                 final BigInteger updatedCount = count.integerValue().add( BigInteger.ONE );
-                result.addBinding(resultName, new IntegerLiteralImpl(updatedCount));
+                result.addBinding(resultName, VF.createLiteral(updatedCount));
             }
         }
     }

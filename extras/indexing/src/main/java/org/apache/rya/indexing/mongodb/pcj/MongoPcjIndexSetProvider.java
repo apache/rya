@@ -31,7 +31,7 @@ import org.apache.rya.indexing.pcj.storage.mongo.MongoPcjDocuments;
 import org.apache.rya.indexing.pcj.storage.mongo.MongoPcjStorage;
 import org.apache.rya.mongodb.StatefulMongoDBRdfConfiguration;
 import org.apache.rya.mongodb.instance.MongoRyaInstanceDetailsRepository;
-import org.openrdf.query.MalformedQueryException;
+import org.eclipse.rdf4j.query.MalformedQueryException;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;

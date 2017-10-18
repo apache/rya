@@ -34,12 +34,12 @@ import org.apache.rya.streams.kafka.processors.aggregation.AggregationProcessorS
 import org.apache.rya.streams.kafka.serialization.VisibilityBindingSetDeserializer;
 import org.apache.rya.streams.kafka.topology.TopologyFactory;
 import org.apache.rya.test.kafka.KafkaTestInstanceRule;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
+import org.eclipse.rdf4j.model.vocabulary.XMLSchema;
+import org.eclipse.rdf4j.query.impl.MapBindingSet;
 import org.junit.Rule;
 import org.junit.Test;
-import org.openrdf.model.ValueFactory;
-import org.openrdf.model.impl.ValueFactoryImpl;
-import org.openrdf.model.vocabulary.XMLSchema;
-import org.openrdf.query.impl.MapBindingSet;
 
 /**
  * Integration tests {@link AggregationProcessor}.
@@ -59,29 +59,29 @@ public class AggregationProcessorIT {
                 "} GROUP BY ?person";
 
         // Create the statements that will be input into the query..
-        final ValueFactory vf = new ValueFactoryImpl();
+        final ValueFactory vf = SimpleValueFactory.getInstance();
         final List<VisibilityStatement> statements = new ArrayList<>();
         statements.add(new VisibilityStatement(
-                vf.createStatement(vf.createURI("urn:Alice"), vf.createURI("urn:hasBook"), vf.createLiteral("Book 1")), "a"));
+                vf.createStatement(vf.createIRI("urn:Alice"), vf.createIRI("urn:hasBook"), vf.createLiteral("Book 1")), "a"));
         statements.add(new VisibilityStatement(
-                vf.createStatement(vf.createURI("urn:Bob"), vf.createURI("urn:hasBook"), vf.createLiteral("Book 1")), ""));
+                vf.createStatement(vf.createIRI("urn:Bob"), vf.createIRI("urn:hasBook"), vf.createLiteral("Book 1")), ""));
         statements.add(new VisibilityStatement(
-                vf.createStatement(vf.createURI("urn:Alice"), vf.createURI("urn:hasBook"), vf.createLiteral("Book 2")), "b"));
+                vf.createStatement(vf.createIRI("urn:Alice"), vf.createIRI("urn:hasBook"), vf.createLiteral("Book 2")), "b"));
 
         // Make the expected results.
         final Set<VisibilityBindingSet> expected = new HashSet<>();
         MapBindingSet bs = new MapBindingSet();
-        bs.addBinding("person", vf.createURI("urn:Alice"));
+        bs.addBinding("person", vf.createIRI("urn:Alice"));
         bs.addBinding("bookCount", vf.createLiteral("1", XMLSchema.INTEGER));
         expected.add(new VisibilityBindingSet(bs, "a"));
 
         bs = new MapBindingSet();
-        bs.addBinding("person", vf.createURI("urn:Bob"));
+        bs.addBinding("person", vf.createIRI("urn:Bob"));
         bs.addBinding("bookCount", vf.createLiteral("1", XMLSchema.INTEGER));
         expected.add(new VisibilityBindingSet(bs, ""));
 
         bs = new MapBindingSet();
-        bs.addBinding("person", vf.createURI("urn:Alice"));
+        bs.addBinding("person", vf.createIRI("urn:Alice"));
         bs.addBinding("bookCount", vf.createLiteral("2", XMLSchema.INTEGER));
         expected.add(new VisibilityBindingSet(bs, "a&b"));
 
@@ -109,26 +109,26 @@ public class AggregationProcessorIT {
                 "} GROUP BY ?person";
 
         // Create the statements that will be input into the query..
-        final ValueFactory vf = new ValueFactoryImpl();
+        final ValueFactory vf = SimpleValueFactory.getInstance();
         final List<VisibilityStatement> statements = new ArrayList<>();
         statements.add(new VisibilityStatement(
-                vf.createStatement(vf.createURI("urn:Alice"), vf.createURI("urn:hasFoodType"), vf.createURI("urn:corn")), ""));
+                vf.createStatement(vf.createIRI("urn:Alice"), vf.createIRI("urn:hasFoodType"), vf.createIRI("urn:corn")), ""));
         statements.add(new VisibilityStatement(
-                vf.createStatement(vf.createURI("urn:Alice"), vf.createURI("urn:hasFoodType"), vf.createURI("urn:apple")), ""));
+                vf.createStatement(vf.createIRI("urn:Alice"), vf.createIRI("urn:hasFoodType"), vf.createIRI("urn:apple")), ""));
         statements.add(new VisibilityStatement(
-                vf.createStatement(vf.createURI("urn:corn"), vf.createURI("urn:count"), vf.createLiteral(4)), ""));
+                vf.createStatement(vf.createIRI("urn:corn"), vf.createIRI("urn:count"), vf.createLiteral(4)), ""));
         statements.add(new VisibilityStatement(
-                vf.createStatement(vf.createURI("urn:apple"), vf.createURI("urn:count"), vf.createLiteral(3)), ""));
+                vf.createStatement(vf.createIRI("urn:apple"), vf.createIRI("urn:count"), vf.createLiteral(3)), ""));
 
         // Make the expected results.
         final Set<VisibilityBindingSet> expected = new HashSet<>();
         MapBindingSet bs = new MapBindingSet();
-        bs.addBinding("person", vf.createURI("urn:Alice"));
+        bs.addBinding("person", vf.createIRI("urn:Alice"));
         bs.addBinding("totalFood", vf.createLiteral("4", XMLSchema.INTEGER));
         expected.add(new VisibilityBindingSet(bs, ""));
 
         bs = new MapBindingSet();
-        bs.addBinding("person", vf.createURI("urn:Alice"));
+        bs.addBinding("person", vf.createIRI("urn:Alice"));
         bs.addBinding("totalFood", vf.createLiteral("7", XMLSchema.INTEGER));
         expected.add(new VisibilityBindingSet(bs, ""));
 
@@ -155,14 +155,14 @@ public class AggregationProcessorIT {
                 "}";
 
         // Create the statements that will be input into the query..
-        final ValueFactory vf = new ValueFactoryImpl();
+        final ValueFactory vf = SimpleValueFactory.getInstance();
         final List<VisibilityStatement> statements = new ArrayList<>();
         statements.add(new VisibilityStatement(
-                vf.createStatement(vf.createURI("urn:Alice"), vf.createURI("urn:age"), vf.createLiteral(3)), ""));
+                vf.createStatement(vf.createIRI("urn:Alice"), vf.createIRI("urn:age"), vf.createLiteral(3)), ""));
         statements.add(new VisibilityStatement(
-                vf.createStatement(vf.createURI("urn:Bob"), vf.createURI("urn:age"), vf.createLiteral(7)), ""));
+                vf.createStatement(vf.createIRI("urn:Bob"), vf.createIRI("urn:age"), vf.createLiteral(7)), ""));
         statements.add(new VisibilityStatement(
-                vf.createStatement(vf.createURI("urn:Charlie"), vf.createURI("urn:age"), vf.createLiteral(2)), ""));
+                vf.createStatement(vf.createIRI("urn:Charlie"), vf.createIRI("urn:age"), vf.createLiteral(2)), ""));
 
         // Make the expected results.
         final Set<VisibilityBindingSet> expected = new HashSet<>();
@@ -201,18 +201,18 @@ public class AggregationProcessorIT {
                 "}";
 
         // Create the statements that will be input into the query..
-        final ValueFactory vf = new ValueFactoryImpl();
+        final ValueFactory vf = SimpleValueFactory.getInstance();
         final List<VisibilityStatement> statements = new ArrayList<>();
         statements.add(new VisibilityStatement(
-                vf.createStatement(vf.createURI("urn:Alice"), vf.createURI("urn:age"), vf.createLiteral(13)), ""));
+                vf.createStatement(vf.createIRI("urn:Alice"), vf.createIRI("urn:age"), vf.createLiteral(13)), ""));
         statements.add(new VisibilityStatement(
-                vf.createStatement(vf.createURI("urn:Bob"), vf.createURI("urn:age"), vf.createLiteral(14)), ""));
+                vf.createStatement(vf.createIRI("urn:Bob"), vf.createIRI("urn:age"), vf.createLiteral(14)), ""));
         statements.add(new VisibilityStatement(
-                vf.createStatement(vf.createURI("urn:Charlie"), vf.createURI("urn:age"), vf.createLiteral(7)), ""));
+                vf.createStatement(vf.createIRI("urn:Charlie"), vf.createIRI("urn:age"), vf.createLiteral(7)), ""));
         statements.add(new VisibilityStatement(
-                vf.createStatement(vf.createURI("urn:David"), vf.createURI("urn:age"), vf.createLiteral(5)), ""));
+                vf.createStatement(vf.createIRI("urn:David"), vf.createIRI("urn:age"), vf.createLiteral(5)), ""));
         statements.add(new VisibilityStatement(
-                vf.createStatement(vf.createURI("urn:Eve"), vf.createURI("urn:age"), vf.createLiteral(25)), ""));
+                vf.createStatement(vf.createIRI("urn:Eve"), vf.createIRI("urn:age"), vf.createLiteral(25)), ""));
 
         // Make the expected results.
         final Set<VisibilityBindingSet> expected = new HashSet<>();
@@ -251,18 +251,18 @@ public class AggregationProcessorIT {
                 "}";
 
         // Create the statements that will be input into the query..
-        final ValueFactory vf = new ValueFactoryImpl();
+        final ValueFactory vf = SimpleValueFactory.getInstance();
         final List<VisibilityStatement> statements = new ArrayList<>();
         statements.add(new VisibilityStatement(
-                vf.createStatement(vf.createURI("urn:Alice"), vf.createURI("urn:age"), vf.createLiteral(13)), ""));
+                vf.createStatement(vf.createIRI("urn:Alice"), vf.createIRI("urn:age"), vf.createLiteral(13)), ""));
         statements.add(new VisibilityStatement(
-                vf.createStatement(vf.createURI("urn:Bob"), vf.createURI("urn:age"), vf.createLiteral(14)), ""));
+                vf.createStatement(vf.createIRI("urn:Bob"), vf.createIRI("urn:age"), vf.createLiteral(14)), ""));
         statements.add(new VisibilityStatement(
-                vf.createStatement(vf.createURI("urn:Charlie"), vf.createURI("urn:age"), vf.createLiteral(7)), ""));
+                vf.createStatement(vf.createIRI("urn:Charlie"), vf.createIRI("urn:age"), vf.createLiteral(7)), ""));
         statements.add(new VisibilityStatement(
-                vf.createStatement(vf.createURI("urn:David"), vf.createURI("urn:age"), vf.createLiteral(5)), ""));
+                vf.createStatement(vf.createIRI("urn:David"), vf.createIRI("urn:age"), vf.createLiteral(5)), ""));
         statements.add(new VisibilityStatement(
-                vf.createStatement(vf.createURI("urn:Eve"), vf.createURI("urn:age"), vf.createLiteral(25)), ""));
+                vf.createStatement(vf.createIRI("urn:Eve"), vf.createIRI("urn:age"), vf.createLiteral(25)), ""));
 
         // Make the expected results.
         final Set<VisibilityBindingSet> expected = new HashSet<>();
@@ -304,65 +304,65 @@ public class AggregationProcessorIT {
                 "} GROUP BY ?business ?employee";
 
         // Create the statements that will be input into the query.
-        final ValueFactory vf = new ValueFactoryImpl();
+        final ValueFactory vf = SimpleValueFactory.getInstance();
         final List<VisibilityStatement> statements = new ArrayList<>();
         statements.add(new VisibilityStatement(
-                vf.createStatement(vf.createURI("urn:Alice"), vf.createURI("urn:worksAt"), vf.createURI("urn:TacoJoint")), ""));
+                vf.createStatement(vf.createIRI("urn:Alice"), vf.createIRI("urn:worksAt"), vf.createIRI("urn:TacoJoint")), ""));
         statements.add(new VisibilityStatement(
-                vf.createStatement(vf.createURI("urn:TacoJoint"), vf.createURI("urn:hasTimecardId"), vf.createURI("urn:timecard1")), ""));
+                vf.createStatement(vf.createIRI("urn:TacoJoint"), vf.createIRI("urn:hasTimecardId"), vf.createIRI("urn:timecard1")), ""));
         statements.add(new VisibilityStatement(
-                vf.createStatement(vf.createURI("urn:Alice"), vf.createURI("urn:hasTimecardId"), vf.createURI("urn:timecard1")), ""));
+                vf.createStatement(vf.createIRI("urn:Alice"), vf.createIRI("urn:hasTimecardId"), vf.createIRI("urn:timecard1")), ""));
         statements.add(new VisibilityStatement(
-                vf.createStatement(vf.createURI("urn:timecard1"), vf.createURI("urn:hours"), vf.createLiteral(40)), ""));
+                vf.createStatement(vf.createIRI("urn:timecard1"), vf.createIRI("urn:hours"), vf.createLiteral(40)), ""));
 
         statements.add(new VisibilityStatement(
-                vf.createStatement(vf.createURI("urn:TacoJoint"), vf.createURI("urn:hasTimecardId"), vf.createURI("urn:timecard2")), ""));
+                vf.createStatement(vf.createIRI("urn:TacoJoint"), vf.createIRI("urn:hasTimecardId"), vf.createIRI("urn:timecard2")), ""));
         statements.add(new VisibilityStatement(
-                vf.createStatement(vf.createURI("urn:Alice"), vf.createURI("urn:hasTimecardId"), vf.createURI("urn:timecard2")), ""));
+                vf.createStatement(vf.createIRI("urn:Alice"), vf.createIRI("urn:hasTimecardId"), vf.createIRI("urn:timecard2")), ""));
         statements.add(new VisibilityStatement(
-                vf.createStatement(vf.createURI("urn:timecard2"), vf.createURI("urn:hours"), vf.createLiteral(25)), ""));
+                vf.createStatement(vf.createIRI("urn:timecard2"), vf.createIRI("urn:hours"), vf.createLiteral(25)), ""));
 
         statements.add(new VisibilityStatement(
-                vf.createStatement(vf.createURI("urn:Bob"), vf.createURI("urn:worksAt"), vf.createURI("urn:TacoJoint")), ""));
+                vf.createStatement(vf.createIRI("urn:Bob"), vf.createIRI("urn:worksAt"), vf.createIRI("urn:TacoJoint")), ""));
         statements.add(new VisibilityStatement(
-                vf.createStatement(vf.createURI("urn:TacoJoint"), vf.createURI("urn:hasTimecardId"), vf.createURI("urn:timecard3")), ""));
+                vf.createStatement(vf.createIRI("urn:TacoJoint"), vf.createIRI("urn:hasTimecardId"), vf.createIRI("urn:timecard3")), ""));
         statements.add(new VisibilityStatement(
-                vf.createStatement(vf.createURI("urn:Bob"), vf.createURI("urn:hasTimecardId"), vf.createURI("urn:timecard3")), ""));
+                vf.createStatement(vf.createIRI("urn:Bob"), vf.createIRI("urn:hasTimecardId"), vf.createIRI("urn:timecard3")), ""));
         statements.add(new VisibilityStatement(
-                vf.createStatement(vf.createURI("urn:timecard3"), vf.createURI("urn:hours"), vf.createLiteral(28)), ""));
+                vf.createStatement(vf.createIRI("urn:timecard3"), vf.createIRI("urn:hours"), vf.createLiteral(28)), ""));
 
         statements.add(new VisibilityStatement(
-                vf.createStatement(vf.createURI("urn:Alice"), vf.createURI("urn:worksAt"), vf.createURI("urn:CoffeeShop")), ""));
+                vf.createStatement(vf.createIRI("urn:Alice"), vf.createIRI("urn:worksAt"), vf.createIRI("urn:CoffeeShop")), ""));
         statements.add(new VisibilityStatement(
-                vf.createStatement(vf.createURI("urn:CoffeeShop"), vf.createURI("urn:hasTimecardId"), vf.createURI("urn:timecard5")), ""));
+                vf.createStatement(vf.createIRI("urn:CoffeeShop"), vf.createIRI("urn:hasTimecardId"), vf.createIRI("urn:timecard5")), ""));
         statements.add(new VisibilityStatement(
-                vf.createStatement(vf.createURI("urn:Alice"), vf.createURI("urn:hasTimecardId"), vf.createURI("urn:timecard5")), ""));
+                vf.createStatement(vf.createIRI("urn:Alice"), vf.createIRI("urn:hasTimecardId"), vf.createIRI("urn:timecard5")), ""));
         statements.add(new VisibilityStatement(
-                vf.createStatement(vf.createURI("urn:timecard5"), vf.createURI("urn:hours"), vf.createLiteral(12)), ""));
+                vf.createStatement(vf.createIRI("urn:timecard5"), vf.createIRI("urn:hours"), vf.createLiteral(12)), ""));
 
         // Make the expected results.
         final Set<VisibilityBindingSet> expected = new HashSet<>();
         MapBindingSet bs = new MapBindingSet();
-        bs.addBinding("business", vf.createURI("urn:TacoJoint"));
-        bs.addBinding("employee", vf.createURI("urn:Alice"));
+        bs.addBinding("business", vf.createIRI("urn:TacoJoint"));
+        bs.addBinding("employee", vf.createIRI("urn:Alice"));
         bs.addBinding("totalHours", vf.createLiteral("40", XMLSchema.INTEGER));
         expected.add(new VisibilityBindingSet(bs, ""));
 
         bs = new MapBindingSet();
-        bs.addBinding("business", vf.createURI("urn:TacoJoint"));
-        bs.addBinding("employee", vf.createURI("urn:Alice"));
+        bs.addBinding("business", vf.createIRI("urn:TacoJoint"));
+        bs.addBinding("employee", vf.createIRI("urn:Alice"));
         bs.addBinding("totalHours", vf.createLiteral("65", XMLSchema.INTEGER));
         expected.add(new VisibilityBindingSet(bs, ""));
 
         bs = new MapBindingSet();
-        bs.addBinding("business", vf.createURI("urn:TacoJoint"));
-        bs.addBinding("employee", vf.createURI("urn:Bob"));
+        bs.addBinding("business", vf.createIRI("urn:TacoJoint"));
+        bs.addBinding("employee", vf.createIRI("urn:Bob"));
         bs.addBinding("totalHours", vf.createLiteral("28", XMLSchema.INTEGER));
         expected.add(new VisibilityBindingSet(bs, ""));
 
         bs = new MapBindingSet();
-        bs.addBinding("business", vf.createURI("urn:CoffeeShop"));
-        bs.addBinding("employee", vf.createURI("urn:Alice"));
+        bs.addBinding("business", vf.createIRI("urn:CoffeeShop"));
+        bs.addBinding("employee", vf.createIRI("urn:Alice"));
         bs.addBinding("totalHours", vf.createLiteral("12", XMLSchema.INTEGER));
         expected.add(new VisibilityBindingSet(bs, ""));
 
@@ -389,18 +389,18 @@ public class AggregationProcessorIT {
                 "}";
 
         // Create the statements that will be input into the query..
-        final ValueFactory vf = new ValueFactoryImpl();
+        final ValueFactory vf = SimpleValueFactory.getInstance();
         final List<VisibilityStatement> statements = new ArrayList<>();
         statements.add(new VisibilityStatement(
-                vf.createStatement(vf.createURI("urn:Alice"), vf.createURI("urn:age"), vf.createLiteral(13)), ""));
+                vf.createStatement(vf.createIRI("urn:Alice"), vf.createIRI("urn:age"), vf.createLiteral(13)), ""));
         statements.add(new VisibilityStatement(
-                vf.createStatement(vf.createURI("urn:Bob"), vf.createURI("urn:age"), vf.createLiteral(14)), ""));
+                vf.createStatement(vf.createIRI("urn:Bob"), vf.createIRI("urn:age"), vf.createLiteral(14)), ""));
         statements.add(new VisibilityStatement(
-                vf.createStatement(vf.createURI("urn:Charlie"), vf.createURI("urn:age"), vf.createLiteral(7)), ""));
+                vf.createStatement(vf.createIRI("urn:Charlie"), vf.createIRI("urn:age"), vf.createLiteral(7)), ""));
         statements.add(new VisibilityStatement(
-                vf.createStatement(vf.createURI("urn:David"), vf.createURI("urn:age"), vf.createLiteral(5)), ""));
+                vf.createStatement(vf.createIRI("urn:David"), vf.createIRI("urn:age"), vf.createLiteral(5)), ""));
         statements.add(new VisibilityStatement(
-                vf.createStatement(vf.createURI("urn:Eve"), vf.createURI("urn:age"), vf.createLiteral(25)), ""));
+                vf.createStatement(vf.createIRI("urn:Eve"), vf.createIRI("urn:age"), vf.createLiteral(25)), ""));
 
         // Make the expected results.
         final Set<VisibilityBindingSet> expected = new HashSet<>();

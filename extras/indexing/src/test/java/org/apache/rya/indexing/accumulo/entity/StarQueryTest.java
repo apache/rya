@@ -28,26 +28,26 @@ import org.apache.rya.api.domain.RyaType;
 import org.apache.rya.api.resolver.RdfToRyaConversions;
 import org.apache.rya.api.resolver.RyaContext;
 import org.apache.rya.api.resolver.RyaTypeResolverException;
+import org.eclipse.rdf4j.model.Value;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
+import org.eclipse.rdf4j.query.MalformedQueryException;
+import org.eclipse.rdf4j.query.algebra.StatementPattern;
+import org.eclipse.rdf4j.query.algebra.TupleExpr;
+import org.eclipse.rdf4j.query.algebra.Var;
+import org.eclipse.rdf4j.query.algebra.evaluation.QueryBindingSet;
+import org.eclipse.rdf4j.query.algebra.helpers.StatementPatternCollector;
+import org.eclipse.rdf4j.query.parser.ParsedQuery;
+import org.eclipse.rdf4j.query.parser.sparql.SPARQLParser;
 import org.junit.Assert;
 import org.junit.Test;
-import org.openrdf.model.Value;
-import org.openrdf.model.ValueFactory;
-import org.openrdf.model.impl.ValueFactoryImpl;
-import org.openrdf.query.MalformedQueryException;
-import org.openrdf.query.algebra.StatementPattern;
-import org.openrdf.query.algebra.TupleExpr;
-import org.openrdf.query.algebra.Var;
-import org.openrdf.query.algebra.evaluation.QueryBindingSet;
-import org.openrdf.query.algebra.helpers.StatementPatternCollector;
-import org.openrdf.query.parser.ParsedQuery;
-import org.openrdf.query.parser.sparql.SPARQLParser;
 
 import com.google.common.collect.Sets;
 import com.google.common.primitives.Bytes;
 
 public class StarQueryTest {
 
-    ValueFactory vf = new ValueFactoryImpl();
+    ValueFactory vf = SimpleValueFactory.getInstance();
     
     
     @Test
@@ -115,8 +115,8 @@ public class StarQueryTest {
         QueryBindingSet bs1 = new QueryBindingSet();
         QueryBindingSet bs2 = new QueryBindingSet();
         
-        Value v1 = vf.createURI("uri:hank");
-        Value v2 = vf.createURI("uri:bob");
+        Value v1 = vf.createIRI("uri:hank");
+        Value v2 = vf.createIRI("uri:bob");
         
         bs1.addBinding("X",v1);
         bs2.addBinding("X", v1);
@@ -176,8 +176,8 @@ public class StarQueryTest {
         QueryBindingSet bs1 = new QueryBindingSet();
         QueryBindingSet bs2 = new QueryBindingSet();
         
-        Value v1 = vf.createURI("uri:hank");
-        Value v2 = vf.createURI("uri:bob");
+        Value v1 = vf.createIRI("uri:hank");
+        Value v2 = vf.createIRI("uri:bob");
         
         bs1.addBinding("X",v1);
         bs2.addBinding("X", v1);

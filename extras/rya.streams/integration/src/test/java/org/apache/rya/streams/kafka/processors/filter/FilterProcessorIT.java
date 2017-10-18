@@ -34,11 +34,11 @@ import org.apache.rya.streams.kafka.processors.filter.FilterProcessorSupplier.Fi
 import org.apache.rya.streams.kafka.serialization.VisibilityBindingSetDeserializer;
 import org.apache.rya.streams.kafka.topology.TopologyFactory;
 import org.apache.rya.test.kafka.KafkaTestInstanceRule;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
+import org.eclipse.rdf4j.query.impl.MapBindingSet;
 import org.junit.Rule;
 import org.junit.Test;
-import org.openrdf.model.ValueFactory;
-import org.openrdf.model.impl.ValueFactoryImpl;
-import org.openrdf.query.impl.MapBindingSet;
 
 /**
  * Integration tests the methods of {@link FilterProcessor}.
@@ -68,15 +68,15 @@ public class FilterProcessorIT {
         final TopologyBuilder builder = new TopologyFactory().build(sparql, statementsTopic, resultsTopic, new RandomUUIDFactory());
 
         // Create the statements that will be input into the query.
-        final ValueFactory vf = new ValueFactoryImpl();
+        final ValueFactory vf = SimpleValueFactory.getInstance();
         final List<VisibilityStatement> statements = new ArrayList<>();
-        statements.add(new VisibilityStatement(vf.createStatement(vf.createURI("urn:Bob"), vf.createURI("urn:age"), vf.createLiteral(11)), "a"));
-        statements.add(new VisibilityStatement(vf.createStatement(vf.createURI("urn:Alice"), vf.createURI("urn:age"), vf.createLiteral(9)), "a"));
+        statements.add(new VisibilityStatement(vf.createStatement(vf.createIRI("urn:Bob"), vf.createIRI("urn:age"), vf.createLiteral(11)), "a"));
+        statements.add(new VisibilityStatement(vf.createStatement(vf.createIRI("urn:Alice"), vf.createIRI("urn:age"), vf.createLiteral(9)), "a"));
 
         // Make the expected results.
         final Set<VisibilityBindingSet> expected = new HashSet<>();
         final MapBindingSet bs = new MapBindingSet();
-        bs.addBinding("person", vf.createURI("urn:Alice"));
+        bs.addBinding("person", vf.createIRI("urn:Alice"));
         bs.addBinding("age", vf.createLiteral(9));
         expected.add( new VisibilityBindingSet(bs, "a") );
 

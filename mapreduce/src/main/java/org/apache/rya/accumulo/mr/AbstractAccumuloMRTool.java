@@ -19,13 +19,6 @@ package org.apache.rya.accumulo.mr;
  * under the License.
  */
 
-import org.apache.rya.accumulo.AccumuloRdfConstants;
-import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
-import org.apache.rya.api.RdfCloudTripleStoreConstants;
-import org.apache.rya.api.RdfCloudTripleStoreConstants.TABLE_LAYOUT;
-import org.apache.rya.api.RdfCloudTripleStoreUtils;
-import org.apache.rya.indexing.accumulo.ConfigUtils;
-
 import java.io.IOException;
 
 import org.apache.accumulo.core.client.AccumuloException;
@@ -45,7 +38,13 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.util.Tool;
-import org.openrdf.rio.RDFFormat;
+import org.apache.rya.accumulo.AccumuloRdfConstants;
+import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
+import org.apache.rya.api.RdfCloudTripleStoreConstants;
+import org.apache.rya.api.RdfCloudTripleStoreConstants.TABLE_LAYOUT;
+import org.apache.rya.api.RdfCloudTripleStoreUtils;
+import org.apache.rya.indexing.accumulo.ConfigUtils;
+import org.eclipse.rdf4j.rio.RDFFormat;
 
 import com.google.common.base.Preconditions;
 

@@ -28,17 +28,17 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.setup.MockMvcBuilders.standaloneSetup;
 
 import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.Literal;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.repository.Repository;
+import org.eclipse.rdf4j.repository.RepositoryConnection;
+import org.eclipse.rdf4j.rio.RDFFormat;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
-import org.openrdf.model.Literal;
-import org.openrdf.model.URI;
-import org.openrdf.model.ValueFactory;
-import org.openrdf.repository.Repository;
-import org.openrdf.repository.RepositoryConnection;
-import org.openrdf.rio.RDFFormat;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ContextConfiguration;
@@ -170,8 +170,8 @@ public class RdfControllerTest {
         ValueFactory vf = repository.getValueFactory();
         RepositoryConnection con = repository.getConnection();
 
-        URI s = vf.createURI("http://mynamespace/ProductType1");
-        URI p = vf.createURI("http://mynamespace#pred1");
+        IRI s = vf.createIRI("http://mynamespace/ProductType1");
+        IRI p = vf.createIRI("http://mynamespace#pred1");
         Literal o = vf.createLiteral("test");
 
         assertTrue(con.getStatements(s, p, o, false).hasNext());

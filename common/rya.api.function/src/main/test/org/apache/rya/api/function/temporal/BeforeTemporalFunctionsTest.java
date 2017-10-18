@@ -22,17 +22,17 @@ import static org.junit.Assert.assertEquals;
 
 import java.time.ZonedDateTime;
 
+import org.eclipse.rdf4j.model.Value;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 import org.junit.Test;
-import org.openrdf.model.Value;
-import org.openrdf.model.ValueFactory;
-import org.openrdf.model.impl.ValueFactoryImpl;
 
 public class BeforeTemporalFunctionsTest {
     private static final ZonedDateTime TIME = ZonedDateTime.parse("2015-12-30T12:00:00Z");
     private static final ZonedDateTime TIME_10 = ZonedDateTime.parse("2015-12-30T12:00:10Z");
     private static final ZonedDateTime TIME_20 = ZonedDateTime.parse("2015-12-30T12:00:20Z");
 
-    final ValueFactory VF = ValueFactoryImpl.getInstance();
+    final ValueFactory VF = SimpleValueFactory.getInstance();
 
     @Test
     public void testBefore_same() throws Exception {

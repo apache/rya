@@ -19,20 +19,19 @@ package org.apache.rya.indexing.IndexPlanValidator;
  * under the License.
  */
 
-
 import java.util.Iterator;
 import java.util.Set;
 
+import org.apache.rya.api.domain.VarNameUtils;
 import org.apache.rya.indexing.external.tupleSet.ExternalTupleSet;
-
-import org.openrdf.query.algebra.BindingSetAssignment;
-import org.openrdf.query.algebra.Filter;
-import org.openrdf.query.algebra.Join;
-import org.openrdf.query.algebra.Projection;
-import org.openrdf.query.algebra.QueryModelNode;
-import org.openrdf.query.algebra.StatementPattern;
-import org.openrdf.query.algebra.TupleExpr;
-import org.openrdf.query.algebra.helpers.QueryModelVisitorBase;
+import org.eclipse.rdf4j.query.algebra.BindingSetAssignment;
+import org.eclipse.rdf4j.query.algebra.Filter;
+import org.eclipse.rdf4j.query.algebra.Join;
+import org.eclipse.rdf4j.query.algebra.Projection;
+import org.eclipse.rdf4j.query.algebra.QueryModelNode;
+import org.eclipse.rdf4j.query.algebra.StatementPattern;
+import org.eclipse.rdf4j.query.algebra.TupleExpr;
+import org.eclipse.rdf4j.query.algebra.helpers.AbstractQueryModelVisitor;
 
 import com.google.common.collect.Sets;
 
@@ -111,9 +110,9 @@ public class ThreshholdPlanSelector implements IndexedQueryPlanSelector {
         double dirProductScale;
         
         if(queryNodeCount > nodeCount) {
-            dirProductScale = 1/((double)(queryNodeCount - nodeCount));
+            dirProductScale = 1/ (queryNodeCount - nodeCount);
         } else {
-            dirProductScale = 1/((double)(queryNodeCount - nodeCount + 1));
+            dirProductScale = 1/ (queryNodeCount - nodeCount + 1);
         }
         
         double joinVarRatio;
@@ -143,7 +142,7 @@ public class ThreshholdPlanSelector implements IndexedQueryPlanSelector {
         return cost;
     }
 
-    public static class QueryNodeCount extends QueryModelVisitorBase<RuntimeException> {
+    public static class QueryNodeCount extends AbstractQueryModelVisitor<RuntimeException> {
 
         private int nodeCount = 0;
         private int commonJoinVars = 0;
@@ -210,13 +209,13 @@ public class ThreshholdPlanSelector implements IndexedQueryPlanSelector {
             Set<String> rNames = node.getRightArg().getAssuredBindingNames();
             
             for(String s: node.getLeftArg().getBindingNames()) {
-                if(s.startsWith("-const-")) {
+                if (VarNameUtils.isConstant(s)) {
                     lNames.remove(s);
                 }
             }
             
             for(String s: node.getRightArg().getBindingNames()) {
-                if(s.startsWith("-const-")) {
+                if (VarNameUtils.isConstant(s)) {
                     rNames.remove(s);
                 }
             }

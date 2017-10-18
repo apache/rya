@@ -19,13 +19,11 @@ package org.apache.rya.rdftriplestore.inference;
  * under the License.
  */
 
-
-
-import org.openrdf.query.algebra.TupleExpr;
-import org.openrdf.query.algebra.Union;
-
 import java.util.HashMap;
 import java.util.Map;
+
+import org.eclipse.rdf4j.query.algebra.TupleExpr;
+import org.eclipse.rdf4j.query.algebra.Union;
 
 /**
  * Class InferUnion

@@ -1,13 +1,3 @@
-package org.apache.rya.api.query.strategy.wholerow;
-
-import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
-import org.apache.hadoop.io.Text;
-import org.junit.Before;
-import org.openrdf.model.impl.URIImpl;
-
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -16,9 +6,9 @@ import org.openrdf.model.impl.URIImpl;
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- * 
+ *
  *   http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -26,10 +16,13 @@ import org.openrdf.model.impl.URIImpl;
  * specific language governing permissions and limitations
  * under the License.
  */
+package org.apache.rya.api.query.strategy.wholerow;
 
+import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
-
-import junit.framework.TestCase;
+import org.apache.hadoop.io.Text;
 import org.apache.rya.api.RdfCloudTripleStoreConstants;
 import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.domain.RyaType;
@@ -43,12 +36,18 @@ import org.apache.rya.api.resolver.RyaTripleContext;
 import org.apache.rya.api.resolver.triple.TripleRow;
 import org.apache.rya.api.resolver.triple.TripleRowRegex;
 import org.apache.rya.api.resolver.triple.impl.WholeRowHashedTripleResolver;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
+import org.junit.Before;
+
+import junit.framework.TestCase;
 
 /**
  * Date: 7/14/12
  * Time: 11:46 AM
  */
 public class HashedPoWholeRowTriplePatternStrategyTest extends TestCase {
+    private static final ValueFactory VF = SimpleValueFactory.getInstance();
 
     RyaURI uri = new RyaURI("urn:test#1234");
     RyaURI uri2 = new RyaURI("urn:test#1235");
@@ -58,16 +57,16 @@ public class HashedPoWholeRowTriplePatternStrategyTest extends TestCase {
     RyaContext ryaContext = RyaContext.getInstance();
     RyaTripleContext ryaTripleContext;
 
-    RyaType customType1 = new RyaType(new URIImpl("urn:custom#type"), "1234");
-    RyaType customType2 = new RyaType(new URIImpl("urn:custom#type"), "1235");
-    RyaType customType3 = new RyaType(new URIImpl("urn:custom#type"), "1236");
+    RyaType customType1 = new RyaType(VF.createIRI("urn:custom#type"), "1234");
+    RyaType customType2 = new RyaType(VF.createIRI("urn:custom#type"), "1235");
+    RyaType customType3 = new RyaType(VF.createIRI("urn:custom#type"), "1236");
     RyaTypeRange customTypeRange1 = new RyaTypeRange(customType1, customType2);
     RyaTypeRange customTypeRange2 = new RyaTypeRange(customType2, customType3);
 
     @Before
     public void setUp() {
-    	MockRdfCloudConfiguration config = new MockRdfCloudConfiguration();
-    	config.set(MockRdfCloudConfiguration.CONF_PREFIX_ROW_WITH_HASH, Boolean.TRUE.toString());
+    	MockRdfConfiguration config = new MockRdfConfiguration();
+    	config.set(MockRdfConfiguration.CONF_PREFIX_ROW_WITH_HASH, Boolean.TRUE.toString());
     	ryaTripleContext = RyaTripleContext.getInstance(config);
     }
 

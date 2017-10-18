@@ -35,7 +35,7 @@ import org.apache.rya.streams.kafka.processors.ProcessorResult.ResultType;
 import org.apache.rya.streams.kafka.processors.ProcessorResultFactory;
 import org.apache.rya.streams.kafka.processors.RyaStreamsProcessor;
 import org.apache.rya.streams.kafka.processors.RyaStreamsProcessorSupplier;
-import org.openrdf.query.algebra.Group;
+import org.eclipse.rdf4j.query.algebra.Group;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

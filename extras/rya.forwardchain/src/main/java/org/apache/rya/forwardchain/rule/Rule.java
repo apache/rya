@@ -23,7 +23,7 @@ import java.util.Collection;
 import org.apache.rya.api.domain.StatementMetadata;
 import org.apache.rya.forwardchain.ForwardChainException;
 import org.apache.rya.forwardchain.strategy.AbstractRuleExecutionStrategy;
-import org.openrdf.query.algebra.StatementPattern;
+import org.eclipse.rdf4j.query.algebra.StatementPattern;
 
 /**
  * Represents a forward-chaining inference rule. A rule is triggered by some

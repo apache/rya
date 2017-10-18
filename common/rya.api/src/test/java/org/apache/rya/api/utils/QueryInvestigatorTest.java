@@ -21,8 +21,8 @@ package org.apache.rya.api.utils;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
+import org.eclipse.rdf4j.query.MalformedQueryException;
 import org.junit.Test;
-import org.openrdf.query.MalformedQueryException;
 
 /**
  * Unit tests the methods of {@link QueryInvestigator}.

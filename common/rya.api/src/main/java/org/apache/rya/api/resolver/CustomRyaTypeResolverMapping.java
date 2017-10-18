@@ -21,7 +21,7 @@ package org.apache.rya.api.resolver;
 
 
 
-import org.openrdf.model.URI;
+import org.eclipse.rdf4j.model.IRI;
 
 /**
  * Date: 7/16/12
@@ -29,24 +29,24 @@ import org.openrdf.model.URI;
  */
 public class CustomRyaTypeResolverMapping extends RyaTypeResolverMapping {
 
-    protected URI ryaDataType;
+    protected IRI ryaDataType;
     protected byte markerByte;
 
     public CustomRyaTypeResolverMapping() {
     }
 
-    public CustomRyaTypeResolverMapping(URI ryaDataType, byte markerByte) {
+    public CustomRyaTypeResolverMapping(IRI ryaDataType, byte markerByte) {
         this(null, ryaDataType, markerByte);
     }
 
-    public CustomRyaTypeResolverMapping(RyaTypeResolver ryaTypeResolver, URI ryaDataType, byte markerByte) {
+    public CustomRyaTypeResolverMapping(RyaTypeResolver ryaTypeResolver, IRI ryaDataType, byte markerByte) {
         super(ryaTypeResolver);
         this.ryaDataType = ryaDataType;
         this.markerByte = markerByte;
     }
 
     @Override
-    public URI getRyaDataType() {
+    public IRI getRyaDataType() {
         return ryaDataType;
     }
 

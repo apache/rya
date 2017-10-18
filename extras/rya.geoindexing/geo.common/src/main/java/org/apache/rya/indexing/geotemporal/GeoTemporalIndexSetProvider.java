@@ -39,13 +39,14 @@ import org.apache.rya.indexing.external.matching.QuerySegment;
 import org.apache.rya.indexing.geotemporal.model.EventQueryNode;
 import org.apache.rya.indexing.geotemporal.model.EventQueryNode.EventQueryNodeBuilder;
 import org.apache.rya.indexing.geotemporal.storage.EventStorage;
-import org.openrdf.model.URI;
-import org.openrdf.model.impl.URIImpl;
-import org.openrdf.query.algebra.FunctionCall;
-import org.openrdf.query.algebra.QueryModelNode;
-import org.openrdf.query.algebra.StatementPattern;
-import org.openrdf.query.algebra.Var;
-import org.openrdf.query.algebra.helpers.QueryModelVisitorBase;
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
+import org.eclipse.rdf4j.query.algebra.FunctionCall;
+import org.eclipse.rdf4j.query.algebra.QueryModelNode;
+import org.eclipse.rdf4j.query.algebra.StatementPattern;
+import org.eclipse.rdf4j.query.algebra.Var;
+import org.eclipse.rdf4j.query.algebra.helpers.AbstractQueryModelVisitor;
 
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
@@ -55,6 +56,7 @@ import com.google.common.collect.Multimap;
  */
 public class GeoTemporalIndexSetProvider implements ExternalSetProvider<EventQueryNode> {
     private static final Logger LOG = Logger.getLogger(GeoTemporalIndexSetProvider.class);
+    private static final ValueFactory VF = SimpleValueFactory.getInstance();
 
     //organzied by object var.  Each object is a filter, or set of filters
     private Multimap<Var, IndexingExpr> filterMap;
@@ -71,7 +73,7 @@ public class GeoTemporalIndexSetProvider implements ExternalSetProvider<EventQue
     private Map<Var, StatementPattern> objectPatterns;
 
 
-    private static URI filterURI;
+    private static IRI filterURI;
 
     private final EventStorage eventStorage;
 
@@ -117,7 +119,7 @@ public class GeoTemporalIndexSetProvider implements ExternalSetProvider<EventQue
         for(final StatementPattern sp : patterns) {
             final Var obj = sp.getObjectVar();
 
-            ///filter map does not have -const-
+            ///filter map does not have _const_
 
 
             if(filterMap.containsKey(obj)) {
@@ -211,7 +213,7 @@ public class GeoTemporalIndexSetProvider implements ExternalSetProvider<EventQue
     }
 
     private void addFilter(final FunctionCall call) {
-        filterURI = new URIImpl(call.getURI());
+        filterURI = VF.createIRI(call.getURI());
         final Var objVar = IndexingFunctionRegistry.getResultVarFromFunctionCall(filterURI, call.getArgs());
         filterMap.put(objVar, new IndexingExpr(filterURI, objectPatterns.get(objVar), GeoParseUtils.extractArguments(objVar.getName(), call)));
     }
@@ -220,10 +222,10 @@ public class GeoTemporalIndexSetProvider implements ExternalSetProvider<EventQue
      * Finds the object/function in a Filter.  If the associated statement pattern
      * has been found, creates the {@link IndexingExpr} and adds it to the map.
      */
-    private class FilterVisitor extends QueryModelVisitorBase<Exception> {
+    private class FilterVisitor extends AbstractQueryModelVisitor<Exception> {
         @Override
         public void meet(final FunctionCall call) throws Exception {
-            filterURI = new URIImpl(call.getURI());
+            filterURI = VF.createIRI(call.getURI());
             final FUNCTION_TYPE type = IndexingFunctionRegistry.getFunctionType(filterURI);
             if(type == FUNCTION_TYPE.GEO || type == FUNCTION_TYPE.TEMPORAL) {
                 final Var objVar = IndexingFunctionRegistry.getResultVarFromFunctionCall(filterURI, call.getArgs());

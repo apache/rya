@@ -31,10 +31,10 @@ import org.apache.kafka.common.serialization.StringSerializer;
 import org.apache.rya.api.model.VisibilityStatement;
 import org.apache.rya.test.kafka.KafkaTestInstanceRule;
 import org.apache.rya.test.kafka.KafkaTestUtil;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 import org.junit.Rule;
 import org.junit.Test;
-import org.openrdf.model.ValueFactory;
-import org.openrdf.model.impl.ValueFactoryImpl;
 
 /**
  * Integration tests the {@link VisibilityStatementSerde} class' methods.
@@ -47,13 +47,13 @@ public class VisibilityStatementKafkaIT {
     @Test
     public void readAndWrite() throws Exception {
         // Create the object that will be written to the topic.
-        final ValueFactory vf = new ValueFactoryImpl();
+        final ValueFactory vf = SimpleValueFactory.getInstance();
         final VisibilityStatement original = new VisibilityStatement(
                 vf.createStatement(
-                        vf.createURI("urn:alice"),
-                        vf.createURI("urn:age"),
+                        vf.createIRI("urn:alice"),
+                        vf.createIRI("urn:age"),
                         vf.createLiteral(32),
-                        vf.createURI("urn:context")),
+                        vf.createIRI("urn:context")),
                 "a|b|c");
 
         // Write a VisibilityStatement to the test topic.

@@ -31,13 +31,13 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import org.apache.rya.api.model.VisibilityBindingSet;
 import org.apache.rya.api.model.VisibilityStatement;
 import org.apache.rya.streams.api.entity.QueryResultStream;
+import org.eclipse.rdf4j.model.Statement;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
+import org.eclipse.rdf4j.query.algebra.TupleExpr;
+import org.eclipse.rdf4j.query.impl.MapBindingSet;
+import org.eclipse.rdf4j.query.parser.sparql.SPARQLParser;
 import org.junit.Test;
-import org.openrdf.model.Statement;
-import org.openrdf.model.ValueFactory;
-import org.openrdf.model.impl.ValueFactoryImpl;
-import org.openrdf.query.algebra.TupleExpr;
-import org.openrdf.query.impl.MapBindingSet;
-import org.openrdf.query.parser.sparql.SPARQLParser;
 
 import com.google.common.base.Charsets;
 
@@ -46,7 +46,7 @@ import com.google.common.base.Charsets;
  */
 public class QueryResultsOutputUtilTest {
 
-    private static final ValueFactory VF = new ValueFactoryImpl();
+    private static final ValueFactory VF = SimpleValueFactory.getInstance();
 
     @Test
     public void toNtriplesFile() throws Exception {
@@ -58,10 +58,10 @@ public class QueryResultsOutputUtilTest {
 
             final List<VisibilityStatement> results = new ArrayList<>();
 
-            Statement stmt = VF.createStatement(VF.createURI("urn:alice"), VF.createURI("urn:age"), VF.createLiteral(23));
+            Statement stmt = VF.createStatement(VF.createIRI("urn:alice"), VF.createIRI("urn:age"), VF.createLiteral(23));
             results.add( new VisibilityStatement(stmt) );
 
-            stmt = VF.createStatement(VF.createURI("urn:bob"), VF.createURI("urn:worksAt"), VF.createLiteral("Taco Shop"));
+            stmt = VF.createStatement(VF.createIRI("urn:bob"), VF.createIRI("urn:worksAt"), VF.createLiteral("Taco Shop"));
             results.add( new VisibilityStatement(stmt) );
             return results;
         });
@@ -103,7 +103,7 @@ public class QueryResultsOutputUtilTest {
             MapBindingSet bs = new MapBindingSet();
             bs.addBinding("name", VF.createLiteral("alice"));
             bs.addBinding("company", VF.createLiteral("Taco Shop"));
-            bs.addBinding("ssn", VF.createURI("urn:111-11-1111"));
+            bs.addBinding("ssn", VF.createIRI("urn:111-11-1111"));
             results.add(new VisibilityBindingSet(bs, ""));
 
 

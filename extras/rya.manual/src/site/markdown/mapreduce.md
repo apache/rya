@@ -37,7 +37,7 @@ Input formats are provided for reading triple data from Rya or from RDF files:
 
 - *RdfFileInputFormat* will read and parse RDF files of any format. Format must
   be explicitly specified. Reading and parsing is done asynchronously, enabling
-  large input files depending on how much information the openrdf parser itself
+  large input files depending on how much information the RDF4J parser itself
   needs to hold in memory in order to parse the file. (For example, large
   N-Triples files can be handled easily, but large XML files might require you
   to allocate more memory for the Map task.) Handles multiple files if given a

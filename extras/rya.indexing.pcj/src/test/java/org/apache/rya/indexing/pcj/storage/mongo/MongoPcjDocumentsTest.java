@@ -28,14 +28,17 @@ import org.apache.rya.indexing.pcj.storage.PcjMetadata;
 import org.apache.rya.indexing.pcj.storage.accumulo.VariableOrder;
 import org.apache.rya.mongodb.MongoITBase;
 import org.bson.Document;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
+import org.eclipse.rdf4j.query.impl.MapBindingSet;
 import org.junit.Test;
-import org.openrdf.model.impl.URIImpl;
-import org.openrdf.query.impl.MapBindingSet;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
 public class MongoPcjDocumentsTest extends MongoITBase {
+    private static final ValueFactory VF = SimpleValueFactory.getInstance();
+
     @Test
     public void pcjToMetadata() throws Exception {
         final MongoPcjDocuments docConverter = new MongoPcjDocuments(getMongoClient(), conf.getRyaInstanceName());
@@ -62,16 +65,16 @@ public class MongoPcjDocumentsTest extends MongoITBase {
 
         // Setup the binding set that will be converted.
         final MapBindingSet originalBindingSet1 = new MapBindingSet();
-        originalBindingSet1.addBinding("x", new URIImpl("http://a"));
-        originalBindingSet1.addBinding("y", new URIImpl("http://b"));
-        originalBindingSet1.addBinding("z", new URIImpl("http://c"));
+        originalBindingSet1.addBinding("x", VF.createIRI("http://a"));
+        originalBindingSet1.addBinding("y", VF.createIRI("http://b"));
+        originalBindingSet1.addBinding("z", VF.createIRI("http://c"));
         final VisibilityBindingSet results1 = new VisibilityBindingSet(originalBindingSet1, "A&B&C");
 
         // Setup the binding set that will be converted.
         final MapBindingSet originalBindingSet2 = new MapBindingSet();
-        originalBindingSet2.addBinding("x", new URIImpl("http://1"));
-        originalBindingSet2.addBinding("y", new URIImpl("http://2"));
-        originalBindingSet2.addBinding("z", new URIImpl("http://3"));
+        originalBindingSet2.addBinding("x", VF.createIRI("http://1"));
+        originalBindingSet2.addBinding("y", VF.createIRI("http://2"));
+        originalBindingSet2.addBinding("z", VF.createIRI("http://3"));
         final VisibilityBindingSet results2 = new VisibilityBindingSet(originalBindingSet2, "A&B&C");
 
         final List<VisibilityBindingSet> bindingSets = new ArrayList<>();

@@ -19,40 +19,37 @@ package org.apache.rya.api.resolver;
  * under the License.
  */
 
-
-
 import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.domain.RyaType;
 import org.apache.rya.api.domain.RyaURI;
-import org.openrdf.model.Literal;
-import org.openrdf.model.Statement;
-import org.openrdf.model.URI;
-import org.openrdf.model.Value;
-import org.openrdf.model.impl.ContextStatementImpl;
-import org.openrdf.model.impl.LiteralImpl;
-import org.openrdf.model.impl.StatementImpl;
-import org.openrdf.model.impl.URIImpl;
-import org.openrdf.model.vocabulary.XMLSchema;
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.Literal;
+import org.eclipse.rdf4j.model.Statement;
+import org.eclipse.rdf4j.model.Value;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
+import org.eclipse.rdf4j.model.vocabulary.XMLSchema;
 
 /**
  * Date: 7/17/12
  * Time: 8:34 AM
  */
 public class RyaToRdfConversions {
+    private static final ValueFactory VF = SimpleValueFactory.getInstance();
 
-    public static URI convertURI(RyaURI uri) {
-        return new URIImpl(uri.getData());
+    public static IRI convertURI(RyaURI uri) {
+        return VF.createIRI(uri.getData());
     }
     
-    private static URI convertURI(RyaType value) {
-        return new URIImpl(value.getData());
+    private static IRI convertURI(RyaType value) {
+        return VF.createIRI(value.getData());
     }
 
     public static Literal convertLiteral(RyaType literal) {
         if (XMLSchema.STRING.equals(literal.getDataType())) {
-            return new LiteralImpl(literal.getData());
+            return VF.createLiteral(literal.getData());
         } else {
-            return new LiteralImpl(literal.getData(), literal.getDataType());
+            return VF.createLiteral(literal.getData(), literal.getDataType());
         }
         //TODO: No Language support yet
     }
@@ -65,12 +62,12 @@ public class RyaToRdfConversions {
     public static Statement convertStatement(RyaStatement statement) {
         assert statement != null;
         if (statement.getContext() != null) {
-            return new ContextStatementImpl(convertURI(statement.getSubject()),
+            return VF.createStatement(convertURI(statement.getSubject()),
                     convertURI(statement.getPredicate()),
                     convertValue(statement.getObject()),
                     convertURI(statement.getContext()));
         } else {
-            return new StatementImpl(convertURI(statement.getSubject()),
+            return VF.createStatement(convertURI(statement.getSubject()),
                     convertURI(statement.getPredicate()),
                     convertValue(statement.getObject()));
         }

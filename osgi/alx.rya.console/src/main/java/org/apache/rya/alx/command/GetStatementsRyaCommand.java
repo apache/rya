@@ -19,17 +19,15 @@ package org.apache.rya.alx.command;
  * under the License.
  */
 
-
-
 import org.apache.felix.gogo.commands.Command;
 import org.apache.felix.gogo.commands.Option;
-import org.openrdf.model.Resource;
-import org.openrdf.model.Statement;
-import org.openrdf.model.URI;
-import org.openrdf.repository.RepositoryConnection;
-import org.openrdf.repository.RepositoryResult;
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.Resource;
+import org.eclipse.rdf4j.model.Statement;
+import org.eclipse.rdf4j.repository.RepositoryConnection;
+import org.eclipse.rdf4j.repository.RepositoryResult;
 
-import static org.apache.rya.api.RdfCloudTripleStoreUtils.*;
+import static org.apache.rya.api.RdfCloudTripleStoreUtils.createValue;
 
 /**
  * Date: 5/16/12
@@ -62,7 +60,7 @@ public class GetStatementsRyaCommand extends AbstractRyaCommand {
             connection = repository.getConnection();
             RepositoryResult<Statement> statements = connection.getStatements(
                     (subject != null) ? (Resource) createValue(subject) : null,
-                    (predicate != null) ? (URI) createValue(predicate) : null,
+                    (predicate != null) ? (IRI) createValue(predicate) : null,
                     (object != null) ? createValue(object) : null,
                     false,
                     (context != null) ? new Resource[]{(Resource) createValue(context)} : new Resource[0]);

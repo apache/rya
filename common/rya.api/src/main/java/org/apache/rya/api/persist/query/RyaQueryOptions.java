@@ -19,13 +19,11 @@ package org.apache.rya.api.persist.query;
  * under the License.
  */
 
-
+import java.util.Arrays;
 
 import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.Arrays;
 
 /**
  */
@@ -225,9 +223,7 @@ public class RyaQueryOptions {
         if (regexPredicate != null ? !regexPredicate.equals(that.regexPredicate) : that.regexPredicate != null)
             return false;
         if (regexSubject != null ? !regexSubject.equals(that.regexSubject) : that.regexSubject != null) return false;
-        if (ttl != null ? !ttl.equals(that.ttl) : that.ttl != null) return false;
-
-        return true;
+        return ttl != null ? ttl.equals(that.ttl) : that.ttl == null;
     }
 
     @Override

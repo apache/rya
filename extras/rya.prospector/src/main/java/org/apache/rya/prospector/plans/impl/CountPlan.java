@@ -53,8 +53,8 @@ import org.apache.rya.prospector.domain.TripleValueType;
 import org.apache.rya.prospector.plans.IndexWorkPlan;
 import org.apache.rya.prospector.utils.CustomEntry;
 import org.apache.rya.prospector.utils.ProspectorUtils;
-import org.openrdf.model.util.URIUtil;
-import org.openrdf.model.vocabulary.XMLSchema;
+import org.eclipse.rdf4j.model.util.URIUtil;
+import org.eclipse.rdf4j.model.vocabulary.XMLSchema;
 
 /**
  * An implementation of {@link IndexWorkPlan} that counts the number of times

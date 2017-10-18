@@ -18,12 +18,13 @@ package org.apache.rya.rdftriplestore.evaluation;
  * specific language governing permissions and limitations
  * under the License.
  */
-import org.openrdf.query.algebra.Filter;
-import org.openrdf.query.algebra.Join;
-import org.openrdf.query.algebra.StatementPattern;
-import org.openrdf.query.algebra.TupleExpr;
-import org.openrdf.query.algebra.ValueExpr;
-import org.openrdf.query.algebra.helpers.QueryModelVisitorBase;
+
+import org.eclipse.rdf4j.query.algebra.Filter;
+import org.eclipse.rdf4j.query.algebra.Join;
+import org.eclipse.rdf4j.query.algebra.StatementPattern;
+import org.eclipse.rdf4j.query.algebra.TupleExpr;
+import org.eclipse.rdf4j.query.algebra.ValueExpr;
+import org.eclipse.rdf4j.query.algebra.helpers.AbstractQueryModelVisitor;
 
 /**
  * TODO: This might be a very bad thing. It may force all AND and not allow ORs?. Depends on how they do the bindings.
@@ -31,7 +32,7 @@ import org.openrdf.query.algebra.helpers.QueryModelVisitorBase;
  * Date: Apr 11, 2011
  * Time: 10:16:15 PM
  */
-public class SeparateFilterJoinsVisitor extends QueryModelVisitorBase<Exception> {
+public class SeparateFilterJoinsVisitor extends AbstractQueryModelVisitor<Exception> {
     @Override
     public void meet(final Filter node) throws Exception {
         super.meet(node);

@@ -24,8 +24,8 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 
-import org.openrdf.query.algebra.QueryModelNode;
-import org.openrdf.query.algebra.evaluation.impl.ExternalSet;
+import org.eclipse.rdf4j.query.algebra.QueryModelNode;
+import org.eclipse.rdf4j.query.algebra.evaluation.impl.ExternalSet;
 
 import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
@@ -38,7 +38,6 @@ import com.google.common.base.Preconditions;
  * the QueryModelNodes in the JoinSegment.
  *
  */
-
 public class JoinSegmentMatcher<T extends ExternalSet> extends AbstractExternalSetMatcher<T> {
 
     private ExternalSetConverter<T> converter;

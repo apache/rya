@@ -19,10 +19,12 @@ package org.apache.rya.api.query.strategy.wholerow;
  * under the License.
  */
 
+import static org.apache.rya.api.RdfCloudTripleStoreConstants.LAST_BYTES;
+
 import java.io.IOException;
 import java.util.Map;
+
 import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
-import static org.apache.rya.api.RdfCloudTripleStoreConstants.*;
 import org.apache.rya.api.RdfCloudTripleStoreConstants.TABLE_LAYOUT;
 import org.apache.rya.api.RdfCloudTripleStoreUtils;
 import org.apache.rya.api.domain.RyaType;

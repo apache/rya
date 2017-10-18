@@ -20,6 +20,7 @@ package org.apache.rya.indexing.pcj.storage.mongo;
 
 import static org.junit.Assert.assertEquals;
 
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
@@ -45,17 +46,14 @@ import org.apache.rya.mongodb.MongoITBase;
 import org.apache.rya.mongodb.StatefulMongoDBRdfConfiguration;
 import org.apache.rya.rdftriplestore.RdfCloudTripleStore;
 import org.apache.rya.rdftriplestore.RyaSailRepository;
+import org.eclipse.rdf4j.model.Statement;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
+import org.eclipse.rdf4j.query.BindingSet;
+import org.eclipse.rdf4j.query.impl.MapBindingSet;
+import org.eclipse.rdf4j.repository.RepositoryConnection;
+import org.eclipse.rdf4j.repository.sail.SailRepositoryConnection;
 import org.junit.Test;
-import org.openrdf.model.Statement;
-import org.openrdf.model.impl.LiteralImpl;
-import org.openrdf.model.impl.NumericLiteralImpl;
-import org.openrdf.model.impl.StatementImpl;
-import org.openrdf.model.impl.URIImpl;
-import org.openrdf.model.vocabulary.XMLSchema;
-import org.openrdf.query.BindingSet;
-import org.openrdf.query.impl.MapBindingSet;
-import org.openrdf.repository.RepositoryConnection;
-import org.openrdf.repository.sail.SailRepositoryConnection;
 
 import com.google.common.base.Optional;
 import com.google.common.collect.Sets;
@@ -65,6 +63,8 @@ import com.google.common.collect.Sets;
  * functions of {@link PcjTables} work within a cluster setting.
  */
 public class PcjDocumentsIntegrationTest extends MongoITBase {
+    private static final ValueFactory VF = SimpleValueFactory.getInstance();
+
     @Override
     protected void updateConfiguration(final MongoDBRdfConfiguration conf) {
         conf.setDisplayQueryPlan(true);
@@ -119,16 +119,16 @@ public class PcjDocumentsIntegrationTest extends MongoITBase {
 
         // Add a few results to the PCJ table.
         final MapBindingSet alice = new MapBindingSet();
-        alice.addBinding("name", new URIImpl("http://Alice"));
-        alice.addBinding("age", new NumericLiteralImpl(14, XMLSchema.INTEGER));
+        alice.addBinding("name", VF.createIRI("http://Alice"));
+        alice.addBinding("age", VF.createLiteral(BigInteger.valueOf(14)));
 
         final MapBindingSet bob = new MapBindingSet();
-        bob.addBinding("name", new URIImpl("http://Bob"));
-        bob.addBinding("age", new NumericLiteralImpl(16, XMLSchema.INTEGER));
+        bob.addBinding("name", VF.createIRI("http://Bob"));
+        bob.addBinding("age", VF.createLiteral(BigInteger.valueOf(16)));
 
         final MapBindingSet charlie = new MapBindingSet();
-        charlie.addBinding("name", new URIImpl("http://Charlie"));
-        charlie.addBinding("age", new NumericLiteralImpl(12, XMLSchema.INTEGER));
+        charlie.addBinding("name", VF.createIRI("http://Charlie"));
+        charlie.addBinding("age", VF.createLiteral(BigInteger.valueOf(12)));
 
         final Set<BindingSet> expected = Sets.<BindingSet>newHashSet(alice, bob, charlie);
         pcjs.addResults(pcjTableName, Sets.<VisibilityBindingSet>newHashSet(
@@ -161,16 +161,16 @@ public class PcjDocumentsIntegrationTest extends MongoITBase {
 
         // Add a few results to the PCJ table.
         final MapBindingSet alice = new MapBindingSet();
-        alice.addBinding("name", new URIImpl("http://Alice"));
-        alice.addBinding("age", new NumericLiteralImpl(14, XMLSchema.INTEGER));
+        alice.addBinding("name", VF.createIRI("http://Alice"));
+        alice.addBinding("age", VF.createLiteral(BigInteger.valueOf(14)));
 
         final MapBindingSet bob = new MapBindingSet();
-        bob.addBinding("name", new URIImpl("http://Bob"));
-        bob.addBinding("age", new NumericLiteralImpl(16, XMLSchema.INTEGER));
+        bob.addBinding("name", VF.createIRI("http://Bob"));
+        bob.addBinding("age", VF.createLiteral(BigInteger.valueOf(16)));
 
         final MapBindingSet charlie = new MapBindingSet();
-        charlie.addBinding("name", new URIImpl("http://Charlie"));
-        charlie.addBinding("age", new NumericLiteralImpl(12, XMLSchema.INTEGER));
+        charlie.addBinding("name", VF.createIRI("http://Charlie"));
+        charlie.addBinding("age", VF.createLiteral(BigInteger.valueOf(12)));
 
         pcjs.addResults(pcjTableName, Sets.<VisibilityBindingSet>newHashSet(
                 new VisibilityBindingSet(alice),
@@ -214,14 +214,14 @@ public class PcjDocumentsIntegrationTest extends MongoITBase {
         try {
             // Load some Triples into Rya.
             final Set<Statement> triples = new HashSet<>();
-            triples.add( new StatementImpl(new URIImpl("http://Alice"), new URIImpl("http://hasAge"), new NumericLiteralImpl(14, XMLSchema.INTEGER)) );
-            triples.add( new StatementImpl(new URIImpl("http://Alice"), new URIImpl("http://playsSport"), new LiteralImpl("Soccer")) );
-            triples.add( new StatementImpl(new URIImpl("http://Bob"), new URIImpl("http://hasAge"), new NumericLiteralImpl(16, XMLSchema.INTEGER)) );
-            triples.add( new StatementImpl(new URIImpl("http://Bob"), new URIImpl("http://playsSport"), new LiteralImpl("Soccer")) );
-            triples.add( new StatementImpl(new URIImpl("http://Charlie"), new URIImpl("http://hasAge"), new NumericLiteralImpl(12, XMLSchema.INTEGER)) );
-            triples.add( new StatementImpl(new URIImpl("http://Charlie"), new URIImpl("http://playsSport"), new LiteralImpl("Soccer")) );
-            triples.add( new StatementImpl(new URIImpl("http://Eve"), new URIImpl("http://hasAge"), new NumericLiteralImpl(43, XMLSchema.INTEGER)) );
-            triples.add( new StatementImpl(new URIImpl("http://Eve"), new URIImpl("http://playsSport"), new LiteralImpl("Soccer")) );
+            triples.add( VF.createStatement(VF.createIRI("http://Alice"), VF.createIRI("http://hasAge"), VF.createLiteral(BigInteger.valueOf(14))) );
+            triples.add( VF.createStatement(VF.createIRI("http://Alice"), VF.createIRI("http://playsSport"), VF.createLiteral("Soccer")) );
+            triples.add( VF.createStatement(VF.createIRI("http://Bob"), VF.createIRI("http://hasAge"), VF.createLiteral(BigInteger.valueOf(16))) );
+            triples.add( VF.createStatement(VF.createIRI("http://Bob"), VF.createIRI("http://playsSport"), VF.createLiteral("Soccer")) );
+            triples.add( VF.createStatement(VF.createIRI("http://Charlie"), VF.createIRI("http://hasAge"), VF.createLiteral(BigInteger.valueOf(12))) );
+            triples.add( VF.createStatement(VF.createIRI("http://Charlie"), VF.createIRI("http://playsSport"), VF.createLiteral("Soccer")) );
+            triples.add( VF.createStatement(VF.createIRI("http://Eve"), VF.createIRI("http://hasAge"), VF.createLiteral(BigInteger.valueOf(43))) );
+            triples.add( VF.createStatement(VF.createIRI("http://Eve"), VF.createIRI("http://playsSport"), VF.createLiteral("Soccer")) );
 
             for(final Statement triple : triples) {
                 ryaConn.add(triple);
@@ -251,16 +251,16 @@ public class PcjDocumentsIntegrationTest extends MongoITBase {
 
             // Ensure the expected results match those that were stored.
             final MapBindingSet alice = new MapBindingSet();
-            alice.addBinding("name", new URIImpl("http://Alice"));
-            alice.addBinding("age", new NumericLiteralImpl(14, XMLSchema.INTEGER));
+            alice.addBinding("name", VF.createIRI("http://Alice"));
+            alice.addBinding("age", VF.createLiteral(BigInteger.valueOf(14)));
 
             final MapBindingSet bob = new MapBindingSet();
-            bob.addBinding("name", new URIImpl("http://Bob"));
-            bob.addBinding("age", new NumericLiteralImpl(16, XMLSchema.INTEGER));
+            bob.addBinding("name", VF.createIRI("http://Bob"));
+            bob.addBinding("age", VF.createLiteral(BigInteger.valueOf(16)));
 
             final MapBindingSet charlie = new MapBindingSet();
-            charlie.addBinding("name", new URIImpl("http://Charlie"));
-            charlie.addBinding("age", new NumericLiteralImpl(12, XMLSchema.INTEGER));
+            charlie.addBinding("name", VF.createIRI("http://Charlie"));
+            charlie.addBinding("age", VF.createLiteral(BigInteger.valueOf(12)));
 
             final Set<BindingSet> expected = Sets.<BindingSet>newHashSet(alice, bob, charlie);
 
@@ -291,14 +291,14 @@ public class PcjDocumentsIntegrationTest extends MongoITBase {
         try {
             // Load some Triples into Rya.
             final Set<Statement> triples = new HashSet<>();
-            triples.add( new StatementImpl(new URIImpl("http://Alice"), new URIImpl("http://hasAge"), new NumericLiteralImpl(14, XMLSchema.INTEGER)) );
-            triples.add( new StatementImpl(new URIImpl("http://Alice"), new URIImpl("http://playsSport"), new LiteralImpl("Soccer")) );
-            triples.add( new StatementImpl(new URIImpl("http://Bob"), new URIImpl("http://hasAge"), new NumericLiteralImpl(16, XMLSchema.INTEGER)) );
-            triples.add( new StatementImpl(new URIImpl("http://Bob"), new URIImpl("http://playsSport"), new LiteralImpl("Soccer")) );
-            triples.add( new StatementImpl(new URIImpl("http://Charlie"), new URIImpl("http://hasAge"), new NumericLiteralImpl(12, XMLSchema.INTEGER)) );
-            triples.add( new StatementImpl(new URIImpl("http://Charlie"), new URIImpl("http://playsSport"), new LiteralImpl("Soccer")) );
-            triples.add( new StatementImpl(new URIImpl("http://Eve"), new URIImpl("http://hasAge"), new NumericLiteralImpl(43, XMLSchema.INTEGER)) );
-            triples.add( new StatementImpl(new URIImpl("http://Eve"), new URIImpl("http://playsSport"), new LiteralImpl("Soccer")) );
+            triples.add( VF.createStatement(VF.createIRI("http://Alice"), VF.createIRI("http://hasAge"), VF.createLiteral(BigInteger.valueOf(14))) );
+            triples.add( VF.createStatement(VF.createIRI("http://Alice"), VF.createIRI("http://playsSport"), VF.createLiteral("Soccer")) );
+            triples.add( VF.createStatement(VF.createIRI("http://Bob"), VF.createIRI("http://hasAge"), VF.createLiteral(BigInteger.valueOf(16))) );
+            triples.add( VF.createStatement(VF.createIRI("http://Bob"), VF.createIRI("http://playsSport"), VF.createLiteral("Soccer")) );
+            triples.add( VF.createStatement(VF.createIRI("http://Charlie"), VF.createIRI("http://hasAge"), VF.createLiteral(BigInteger.valueOf(12))) );
+            triples.add( VF.createStatement(VF.createIRI("http://Charlie"), VF.createIRI("http://playsSport"), VF.createLiteral("Soccer")) );
+            triples.add( VF.createStatement(VF.createIRI("http://Eve"), VF.createIRI("http://hasAge"), VF.createLiteral(BigInteger.valueOf(43))) );
+            triples.add( VF.createStatement(VF.createIRI("http://Eve"), VF.createIRI("http://playsSport"), VF.createLiteral("Soccer")) );
 
             for(final Statement triple : triples) {
                 ryaConn.add(triple);
@@ -328,16 +328,16 @@ public class PcjDocumentsIntegrationTest extends MongoITBase {
 
             // Ensure the expected results match those that were stored.
             final MapBindingSet alice = new MapBindingSet();
-            alice.addBinding("name", new URIImpl("http://Alice"));
-            alice.addBinding("age", new NumericLiteralImpl(14, XMLSchema.INTEGER));
+            alice.addBinding("name", VF.createIRI("http://Alice"));
+            alice.addBinding("age", VF.createLiteral(BigInteger.valueOf(14)));
 
             final MapBindingSet bob = new MapBindingSet();
-            bob.addBinding("name", new URIImpl("http://Bob"));
-            bob.addBinding("age", new NumericLiteralImpl(16, XMLSchema.INTEGER));
+            bob.addBinding("name", VF.createIRI("http://Bob"));
+            bob.addBinding("age", VF.createLiteral(BigInteger.valueOf(16)));
 
             final MapBindingSet charlie = new MapBindingSet();
-            charlie.addBinding("name", new URIImpl("http://Charlie"));
-            charlie.addBinding("age", new NumericLiteralImpl(12, XMLSchema.INTEGER));
+            charlie.addBinding("name", VF.createIRI("http://Charlie"));
+            charlie.addBinding("age", VF.createLiteral(BigInteger.valueOf(12)));
 
             final Set<BindingSet> expected = Sets.<BindingSet>newHashSet(alice, bob, charlie);
 
@@ -397,16 +397,16 @@ public class PcjDocumentsIntegrationTest extends MongoITBase {
 
         // Add a few results to the PCJ table.
         final MapBindingSet alice = new MapBindingSet();
-        alice.addBinding("name", new URIImpl("http://Alice"));
-        alice.addBinding("age", new NumericLiteralImpl(14, XMLSchema.INTEGER));
+        alice.addBinding("name", VF.createIRI("http://Alice"));
+        alice.addBinding("age", VF.createLiteral(BigInteger.valueOf(14)));
 
         final MapBindingSet bob = new MapBindingSet();
-        bob.addBinding("name", new URIImpl("http://Bob"));
-        bob.addBinding("age", new NumericLiteralImpl(16, XMLSchema.INTEGER));
+        bob.addBinding("name", VF.createIRI("http://Bob"));
+        bob.addBinding("age", VF.createLiteral(BigInteger.valueOf(16)));
 
         final MapBindingSet charlie = new MapBindingSet();
-        charlie.addBinding("name", new URIImpl("http://Charlie"));
-        charlie.addBinding("age", new NumericLiteralImpl(12, XMLSchema.INTEGER));
+        charlie.addBinding("name", VF.createIRI("http://Charlie"));
+        charlie.addBinding("age", VF.createLiteral(BigInteger.valueOf(12)));
 
         pcjs.addResults(pcjTableName, Sets.<VisibilityBindingSet>newHashSet(
                 new VisibilityBindingSet(alice),

@@ -19,68 +19,63 @@ package org.apache.rya.indexing.accumulo;
  * under the License.
  */
 
-
-
-import junit.framework.Assert;
 import org.apache.rya.indexing.StatementSerializer;
-
+import org.eclipse.rdf4j.model.Statement;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
+import org.junit.Assert;
 import org.junit.Test;
-import org.openrdf.model.Statement;
-import org.openrdf.model.ValueFactory;
-import org.openrdf.model.impl.ContextStatementImpl;
-import org.openrdf.model.impl.StatementImpl;
-import org.openrdf.model.impl.ValueFactoryImpl;
 
 public class StatementSerializerTest {
 
     @Test
     public void testSimpleStatementObjectUri() throws Exception {
-        ValueFactory vf = new ValueFactoryImpl();
+        ValueFactory vf = SimpleValueFactory.getInstance();
         Statement s;
 
-        s = new StatementImpl(vf.createURI("foo:subject"), vf.createURI("foo:predicate"), vf.createURI("foo:object"));
+        s = vf.createStatement(vf.createIRI("foo:subject"), vf.createIRI("foo:predicate"), vf.createIRI("foo:object"));
         Assert.assertEquals(s, StatementSerializer.readStatement(StatementSerializer.writeStatement(s)));
 
-        s = new ContextStatementImpl(vf.createURI("foo:subject"), vf.createURI("foo:predicate"), vf.createURI("foo:object"),
-                vf.createURI("foo:context"));
+        s = vf.createStatement(vf.createIRI("foo:subject"), vf.createIRI("foo:predicate"), vf.createIRI("foo:object"),
+                vf.createIRI("foo:context"));
         Assert.assertEquals(s, StatementSerializer.readStatement(StatementSerializer.writeStatement(s)));
     }
 
     @Test
     public void testSimpleObjectLiteral() throws Exception {
-        ValueFactory vf = new ValueFactoryImpl();
+        ValueFactory vf = SimpleValueFactory.getInstance();
         Statement s;
         String str;
 
-        s = new StatementImpl(vf.createURI("foo:subject"), vf.createURI("foo:predicate"), vf.createURI("foo:object"));
+        s = vf.createStatement(vf.createIRI("foo:subject"), vf.createIRI("foo:predicate"), vf.createIRI("foo:object"));
         Assert.assertEquals(s, StatementSerializer.readStatement(StatementSerializer.writeStatement(s)));
 
         str = "Alice Palace";
-        s = new StatementImpl(vf.createURI("foo:subject"), vf.createURI("foo:predicate"), vf.createLiteral(str));
+        s = vf.createStatement(vf.createIRI("foo:subject"), vf.createIRI("foo:predicate"), vf.createLiteral(str));
         Assert.assertEquals(s, StatementSerializer.readStatement(StatementSerializer.writeStatement(s)));
 
-        s = new StatementImpl(vf.createURI("foo:subject"), vf.createURI("foo:predicate"), vf.createLiteral(str, "en"));
+        s = vf.createStatement(vf.createIRI("foo:subject"), vf.createIRI("foo:predicate"), vf.createLiteral(str, "en"));
         Assert.assertEquals(s, StatementSerializer.readStatement(StatementSerializer.writeStatement(s)));
 
-        s = new StatementImpl(vf.createURI("foo:subject"), vf.createURI("foo:predicate"), vf.createLiteral(str, vf.createURI("xsd:string")));
+        s = vf.createStatement(vf.createIRI("foo:subject"), vf.createIRI("foo:predicate"), vf.createLiteral(str, vf.createIRI("xsd:string")));
         Assert.assertEquals(s, StatementSerializer.readStatement(StatementSerializer.writeStatement(s)));
     }
 
     @Test
     public void testObjectLiteralWithDataTypeGarbage() throws Exception {
         // test with some garbage in the literal that may throw off the parser
-        ValueFactory vf = new ValueFactoryImpl();
+        ValueFactory vf = SimpleValueFactory.getInstance();
         Statement s;
         String str;
 
         str = "Alice ^^<Palace>\"";
-        s = new StatementImpl(vf.createURI("foo:subject"), vf.createURI("foo:predicate"), vf.createLiteral(str));
+        s = vf.createStatement(vf.createIRI("foo:subject"), vf.createIRI("foo:predicate"), vf.createLiteral(str));
         Assert.assertEquals(s, StatementSerializer.readStatement(StatementSerializer.writeStatement(s)));
 
-        s = new StatementImpl(vf.createURI("foo:subject"), vf.createURI("foo:predicate"), vf.createLiteral(str, "en"));
+        s = vf.createStatement(vf.createIRI("foo:subject"), vf.createIRI("foo:predicate"), vf.createLiteral(str, "en"));
         Assert.assertEquals(s, StatementSerializer.readStatement(StatementSerializer.writeStatement(s)));
 
-        s = new StatementImpl(vf.createURI("foo:subject"), vf.createURI("foo:predicate"), vf.createLiteral(str, vf.createURI("xsd:string")));
+        s = vf.createStatement(vf.createIRI("foo:subject"), vf.createIRI("foo:predicate"), vf.createLiteral(str, vf.createIRI("xsd:string")));
         Assert.assertEquals(s, StatementSerializer.readStatement(StatementSerializer.writeStatement(s)));
 
     }
@@ -88,18 +83,18 @@ public class StatementSerializerTest {
     @Test
     public void testObjectLiteralWithAtSignGarbage() throws Exception {
         // test with some garbage in the literal that may throw off the parser
-        ValueFactory vf = new ValueFactoryImpl();
+        ValueFactory vf = SimpleValueFactory.getInstance();
         Statement s;
         String str;
 
         str = "Alice @en";
-        s = new StatementImpl(vf.createURI("foo:subject"), vf.createURI("foo:predicate"), vf.createLiteral(str));
+        s = vf.createStatement(vf.createIRI("foo:subject"), vf.createIRI("foo:predicate"), vf.createLiteral(str));
         Assert.assertEquals(s, StatementSerializer.readStatement(StatementSerializer.writeStatement(s)));
 
-        s = new StatementImpl(vf.createURI("foo:subject"), vf.createURI("foo:predicate"), vf.createLiteral(str, "en"));
+        s = vf.createStatement(vf.createIRI("foo:subject"), vf.createIRI("foo:predicate"), vf.createLiteral(str, "en"));
         Assert.assertEquals(s, StatementSerializer.readStatement(StatementSerializer.writeStatement(s)));
 
-        s = new StatementImpl(vf.createURI("foo:subject"), vf.createURI("foo:predicate"), vf.createLiteral(str, vf.createURI("xsd:string")));
+        s = vf.createStatement(vf.createIRI("foo:subject"), vf.createIRI("foo:predicate"), vf.createLiteral(str, vf.createIRI("xsd:string")));
         Assert.assertEquals(s, StatementSerializer.readStatement(StatementSerializer.writeStatement(s)));
     }
 

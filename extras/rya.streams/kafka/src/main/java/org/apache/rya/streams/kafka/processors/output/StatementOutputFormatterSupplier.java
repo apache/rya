@@ -26,12 +26,12 @@ import org.apache.kafka.streams.processor.ProcessorSupplier;
 import org.apache.rya.api.model.VisibilityBindingSet;
 import org.apache.rya.api.model.VisibilityStatement;
 import org.apache.rya.streams.kafka.processors.ProcessorResult;
-import org.openrdf.model.Resource;
-import org.openrdf.model.Statement;
-import org.openrdf.model.URI;
-import org.openrdf.model.Value;
-import org.openrdf.model.ValueFactory;
-import org.openrdf.model.impl.ValueFactoryImpl;
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.Resource;
+import org.eclipse.rdf4j.model.Statement;
+import org.eclipse.rdf4j.model.Value;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 
 import com.google.common.collect.Sets;
 
@@ -56,7 +56,7 @@ public class StatementOutputFormatterSupplier implements ProcessorSupplier<Objec
     @DefaultAnnotation(NonNull.class)
     public static final class StatementOutputFormatter implements Processor<Object, ProcessorResult> {
 
-        private static final ValueFactory VF = new ValueFactoryImpl();
+        private static final ValueFactory VF = SimpleValueFactory.getInstance();
         private static final Collection<String> REQURIED_BINDINGS = Sets.newHashSet("subject", "predicate", "object");
 
         private ProcessorContext processorContext;
@@ -88,14 +88,14 @@ public class StatementOutputFormatterSupplier implements ProcessorSupplier<Objec
 
                 // Make sure the Predicate is the correct type.
                 final Value predVal = result.getValue("predicate");
-                if(!(predVal instanceof URI)) {
+                if(!(predVal instanceof IRI)) {
                     return;
                 }
 
                 // Forward the visibility statement.
                 final Statement statement = VF.createStatement(
                         (Resource) subjVal,
-                        (URI) predVal,
+                        (IRI) predVal,
                         result.getValue("object"));
                 processorContext.forward(key, new VisibilityStatement(statement, result.getVisibility()));
             }

@@ -18,7 +18,7 @@
  */
 package org.apache.rya.periodic.notification.api;
 
-import org.openrdf.query.BindingSet;
+import org.eclipse.rdf4j.query.BindingSet;
 
 import com.google.common.base.Objects;
 

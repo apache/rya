@@ -19,7 +19,7 @@ under the License. -->
 
 ## Overview
 
-[Apache Rya] is a scalable RDF Store that is built on top of a Columnar Index Store (such as Accumulo). It is implemented as an extension to OpenRdf to provide easy query mechanisms (SPARQL, SERQL, etc) and Rdf data storage (RDF/XML, NTriples, etc).
+[Apache Rya] is a scalable RDF Store that is built on top of a Columnar Index Store (such as Accumulo). It is implemented as an extension to RDF4J to provide easy query mechanisms (SPARQL, SERQL, etc) and Rdf data storage (RDF/XML, NTriples, etc).
 
 Rya stands for RDF y(and) Accumulo.
 
@@ -125,6 +125,47 @@ Start the Tomcat server. `./bin/startup.sh`
 
 ### Load Data
 
+#### Direct Code
+
+Here is a code snippet for directly running against Accumulo with the code. You will need at least accumulo.rya.jar, rya.api, rya.sail.impl on the classpath and transitive dependencies. I find that Maven is the easiest way to get a project dependency tree set up.
+
+``` JAVA
+Connector connector = new ZooKeeperInstance("instance", "zoo1,zoo2,zoo3").getConnector("user", "password");
+
+final RdfCloudTripleStore store = new RdfCloudTripleStore();
+AccumuloRyaDAO crdfdao = new AccumuloRyaDAO();
+crdfdao.setConnector(connector);
+
+AccumuloRdfConfiguration conf = new AccumuloRdfConfiguration();
+conf.setTablePrefix("rya_");
+conf.setDisplayQueryPlan(true);
+crdfdao.setConf(conf);
+store.setRyaDAO(crdfdao);
+
+InferenceEngine inferenceEngine = new InferenceEngine();
+inferenceEngine.setRyaDAO(crdfdao);
+inferenceEngine.setConf(conf);
+store.setInferenceEngine(inferenceEngine);
+
+Repository myRepository = new RyaSailRepository(store);
+myRepository.initialize();
+
+String query = "select * where {\n" +
+                    "<http://mynamespace/ProductType1> ?p ?o.\n" +
+                    "}";
+RepositoryConnection conn = myRepository.getConnection();
+System.out.println(query);
+TupleQuery tupleQuery = conn.prepareTupleQuery(
+        QueryLanguage.SPARQL, query);
+ValueFactory vf = ValueFactoryImpl.getInstance();
+
+TupleQueryResultHandler writer = new SPARQLResultsXMLWriter(System.out);
+tupleQuery.evaluate(writer);
+
+conn.close();
+myRepository.shutDown();
+```
+
 #### Web REST endpoint
 
 The War sets up a Web REST endpoint at `http://server/web.rya/loadrdf` that allows POST data to get loaded into the Rdf Store. This short tutorial will use Java code to post data.
@@ -208,14 +249,14 @@ Options:
 
 * rdf.tablePrefix : The tables (spo, po, osp) are prefixed with this qualifier. The tables become: (rdf.tablePrefix)spo,(rdf.tablePrefix)po,(rdf.tablePrefix)osp
 * ac.* : Accumulo connection parameters
-* rdf.format : See RDFFormat from openrdf, samples include (Trig, N-Triples, RDF/XML)
+* rdf.format : See RDFFormat from RDF4J, samples include (Trig, N-Triples, RDF/XML)
 * io.sort.mb : Higher the value, the faster the job goes. Just remember that you will need this much ram at least per mapper
 
 The argument is the directory/file to load. This file needs to be loaded into HDFS before running.
 
-#### Direct OpenRDF API
+#### Direct RDF4J API
 
-Here is some sample code to load data directly through the OpenRDF API. (Loading N-Triples data)
+Here is some sample code to load data directly through the RDF4J API. (Loading N-Triples data)
 You will need at least accumulo.rya-<version>, rya.api, rya.sail.impl on the classpath and transitive dependencies. I find that Maven is the easiest way to get a project dependency tree set up.
 
 ``` JAVA
@@ -296,47 +337,6 @@ public class QueryDataServletRun {
 ```
 
 Compile and run this code above, changing the url that your Rdf War is running at.
-
-#### Direct Code
-
-Here is a code snippet for directly running against Accumulo with the code. You will need at least accumulo.rya.jar, rya.api, rya.sail.impl on the classpath and transitive dependencies. I find that Maven is the easiest way to get a project dependency tree set up.
-
-``` JAVA
-Connector connector = new ZooKeeperInstance("instance", "zoo1,zoo2,zoo3").getConnector("user", "password");
-
-final RdfCloudTripleStore store = new RdfCloudTripleStore();
-AccumuloRyaDAO crdfdao = new AccumuloRyaDAO();
-crdfdao.setConnector(connector);
-
-AccumuloRdfConfiguration conf = new AccumuloRdfConfiguration();
-conf.setTablePrefix("rya_");
-conf.setDisplayQueryPlan(true);
-crdfdao.setConf(conf);
-store.setRyaDAO(crdfdao);
-
-InferenceEngine inferenceEngine = new InferenceEngine();
-inferenceEngine.setRyaDAO(crdfdao);
-inferenceEngine.setConf(conf);
-store.setInferenceEngine(inferenceEngine);
-
-Repository myRepository = new RyaSailRepository(store);
-myRepository.initialize();
-
-String query = "select * where {\n" +
-                    "<http://mynamespace/ProductType1> ?p ?o.\n" +
-                    "}";
-RepositoryConnection conn = myRepository.getConnection();
-System.out.println(query);
-TupleQuery tupleQuery = conn.prepareTupleQuery(
-        QueryLanguage.SPARQL, query);
-ValueFactory vf = ValueFactoryImpl.getInstance();
-
-TupleQueryResultHandler writer = new SPARQLResultsXMLWriter(System.out);
-tupleQuery.evaluate(writer);
-
-conn.close();
-myRepository.shutDown();
-```
 
 
 [Apache Rya]: http://rya.incubator.apache.org/ 

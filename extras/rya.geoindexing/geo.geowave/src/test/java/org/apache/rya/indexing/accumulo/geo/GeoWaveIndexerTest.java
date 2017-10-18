@@ -37,19 +37,17 @@ import org.apache.rya.indexing.GeoConstants;
 import org.apache.rya.indexing.GeoIndexerType;
 import org.apache.rya.indexing.StatementConstraints;
 import org.apache.rya.indexing.accumulo.ConfigUtils;
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.Resource;
+import org.eclipse.rdf4j.model.Statement;
+import org.eclipse.rdf4j.model.Value;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.openrdf.model.Resource;
-import org.openrdf.model.Statement;
-import org.openrdf.model.URI;
-import org.openrdf.model.Value;
-import org.openrdf.model.ValueFactory;
-import org.openrdf.model.impl.ContextStatementImpl;
-import org.openrdf.model.impl.StatementImpl;
-import org.openrdf.model.impl.ValueFactoryImpl;
 
 import com.google.common.collect.Sets;
 import com.google.common.io.Files;
@@ -140,30 +138,30 @@ public class GeoWaveIndexerTest {
             f.setConf(conf);
             f.purge(conf);
 
-            final ValueFactory vf = new ValueFactoryImpl();
+            final ValueFactory vf = SimpleValueFactory.getInstance();
 
             final Point point = gf.createPoint(new Coordinate(10, 10));
             final Value pointValue = vf.createLiteral("Point(10 10)", GeoConstants.XMLSCHEMA_OGC_WKT);
-            final URI invalidPredicate = GeoConstants.GEO_AS_WKT;
+            final IRI invalidPredicate = GeoConstants.GEO_AS_WKT;
 
             // These should not be stored because they are not in the predicate list
-            f.storeStatement(convertStatement(new StatementImpl(vf.createURI("foo:subj1"), invalidPredicate, pointValue)));
-            f.storeStatement(convertStatement(new StatementImpl(vf.createURI("foo:subj2"), invalidPredicate, pointValue)));
+            f.storeStatement(convertStatement(vf.createStatement(vf.createIRI("foo:subj1"), invalidPredicate, pointValue)));
+            f.storeStatement(convertStatement(vf.createStatement(vf.createIRI("foo:subj2"), invalidPredicate, pointValue)));
 
-            final URI pred1 = vf.createURI("pred:1");
-            final URI pred2 = vf.createURI("pred:2");
+            final IRI pred1 = vf.createIRI("pred:1");
+            final IRI pred2 = vf.createIRI("pred:2");
 
             // These should be stored because they are in the predicate list
-            final Statement s3 = new StatementImpl(vf.createURI("foo:subj3"), pred1, pointValue);
-            final Statement s4 = new StatementImpl(vf.createURI("foo:subj4"), pred2, pointValue);
+            final Statement s3 = vf.createStatement(vf.createIRI("foo:subj3"), pred1, pointValue);
+            final Statement s4 = vf.createStatement(vf.createIRI("foo:subj4"), pred2, pointValue);
             f.storeStatement(convertStatement(s3));
             f.storeStatement(convertStatement(s4));
 
             // This should not be stored because the object is not valid wkt
-            f.storeStatement(convertStatement(new StatementImpl(vf.createURI("foo:subj5"), pred1, vf.createLiteral("soint(10 10)"))));
+            f.storeStatement(convertStatement(vf.createStatement(vf.createIRI("foo:subj5"), pred1, vf.createLiteral("soint(10 10)"))));
 
             // This should not be stored because the object is not a literal
-            f.storeStatement(convertStatement(new StatementImpl(vf.createURI("foo:subj6"), pred1, vf.createURI("p:Point(10 10)"))));
+            f.storeStatement(convertStatement(vf.createStatement(vf.createIRI("foo:subj6"), pred1, vf.createIRI("p:Point(10 10)"))));
 
             f.flush();
 
@@ -180,13 +178,13 @@ public class GeoWaveIndexerTest {
             f.setConf(conf);
             f.purge(conf);
 
-            final ValueFactory vf = new ValueFactoryImpl();
-            final Resource subject = vf.createURI("foo:subj");
-            final URI predicate = GeoConstants.GEO_AS_WKT;
+            final ValueFactory vf = SimpleValueFactory.getInstance();
+            final Resource subject = vf.createIRI("foo:subj");
+            final IRI predicate = GeoConstants.GEO_AS_WKT;
             final Value object = vf.createLiteral("Point(0 0)", GeoConstants.XMLSCHEMA_OGC_WKT);
-            final Resource context = vf.createURI("foo:context");
+            final Resource context = vf.createIRI("foo:context");
 
-            final Statement statement = new ContextStatementImpl(subject, predicate, object, context);
+            final Statement statement = vf.createStatement(subject, predicate, object, context);
             f.storeStatement(convertStatement(statement));
             f.flush();
 
@@ -225,13 +223,13 @@ public class GeoWaveIndexerTest {
             f.setConf(conf);
             f.purge(conf);
 
-            final ValueFactory vf = new ValueFactoryImpl();
-            final Resource subject = vf.createURI("foo:subj");
-            final URI predicate = GeoConstants.GEO_AS_WKT;
+            final ValueFactory vf = SimpleValueFactory.getInstance();
+            final Resource subject = vf.createIRI("foo:subj");
+            final IRI predicate = GeoConstants.GEO_AS_WKT;
             final Value object = vf.createLiteral("Point(-77.03524 38.889468)", GeoConstants.XMLSCHEMA_OGC_WKT);
-            final Resource context = vf.createURI("foo:context");
+            final Resource context = vf.createIRI("foo:context");
 
-            final Statement statement = new ContextStatementImpl(subject, predicate, object, context);
+            final Statement statement = vf.createStatement(subject, predicate, object, context);
             f.storeStatement(convertStatement(statement));
             f.flush();
 
@@ -255,13 +253,13 @@ public class GeoWaveIndexerTest {
             f.setConf(conf);
             f.purge(conf);
 
-            final ValueFactory vf = new ValueFactoryImpl();
-            final Resource subject = vf.createURI("foo:subj");
-            final URI predicate = GeoConstants.GEO_AS_WKT;
+            final ValueFactory vf = SimpleValueFactory.getInstance();
+            final Resource subject = vf.createIRI("foo:subj");
+            final IRI predicate = GeoConstants.GEO_AS_WKT;
             final Value object = vf.createLiteral("Point(-77.03524 38.889468)", GeoConstants.XMLSCHEMA_OGC_WKT);
-            final Resource context = vf.createURI("foo:context");
+            final Resource context = vf.createIRI("foo:context");
 
-            final Statement statement = new ContextStatementImpl(subject, predicate, object, context);
+            final Statement statement = vf.createStatement(subject, predicate, object, context);
             f.storeStatement(convertStatement(statement));
             f.flush();
 
@@ -294,13 +292,13 @@ public class GeoWaveIndexerTest {
             f.setConf(conf);
             f.purge(conf);
 
-            final ValueFactory vf = new ValueFactoryImpl();
-            final Resource subject = vf.createURI("foo:subj");
-            final URI predicate = GeoConstants.GEO_AS_WKT;
+            final ValueFactory vf = SimpleValueFactory.getInstance();
+            final Resource subject = vf.createIRI("foo:subj");
+            final IRI predicate = GeoConstants.GEO_AS_WKT;
             final Value object = vf.createLiteral("Point(-77.03524 38.889468)", GeoConstants.XMLSCHEMA_OGC_WKT);
-            final Resource context = vf.createURI("foo:context");
+            final Resource context = vf.createIRI("foo:context");
 
-            final Statement statement = new ContextStatementImpl(subject, predicate, object, context);
+            final Statement statement = vf.createStatement(subject, predicate, object, context);
             f.storeStatement(convertStatement(statement));
             f.flush();
 
@@ -313,7 +311,7 @@ public class GeoWaveIndexerTest {
 
             // query with wrong context
             Assert.assertEquals(Sets.newHashSet(),
-                    getSet(f.queryWithin(p1, new StatementConstraints().setContext(vf.createURI("foo:context2")))));
+                    getSet(f.queryWithin(p1, new StatementConstraints().setContext(vf.createIRI("foo:context2")))));
         }
     }
 
@@ -324,13 +322,13 @@ public class GeoWaveIndexerTest {
             f.setConf(conf);
             f.purge(conf);
 
-            final ValueFactory vf = new ValueFactoryImpl();
-            final Resource subject = vf.createURI("foo:subj");
-            final URI predicate = GeoConstants.GEO_AS_WKT;
+            final ValueFactory vf = SimpleValueFactory.getInstance();
+            final Resource subject = vf.createIRI("foo:subj");
+            final IRI predicate = GeoConstants.GEO_AS_WKT;
             final Value object = vf.createLiteral("Point(-77.03524 38.889468)", GeoConstants.XMLSCHEMA_OGC_WKT);
-            final Resource context = vf.createURI("foo:context");
+            final Resource context = vf.createIRI("foo:context");
 
-            final Statement statement = new ContextStatementImpl(subject, predicate, object, context);
+            final Statement statement = vf.createStatement(subject, predicate, object, context);
             f.storeStatement(convertStatement(statement));
             f.flush();
 
@@ -342,7 +340,7 @@ public class GeoWaveIndexerTest {
             Assert.assertEquals(Sets.newHashSet(statement), getSet(f.queryWithin(p1, new StatementConstraints().setSubject(subject))));
 
             // query with wrong subject
-            Assert.assertEquals(Sets.newHashSet(), getSet(f.queryWithin(p1, new StatementConstraints().setSubject(vf.createURI("foo:subj2")))));
+            Assert.assertEquals(Sets.newHashSet(), getSet(f.queryWithin(p1, new StatementConstraints().setSubject(vf.createIRI("foo:subj2")))));
         }
     }
 
@@ -353,13 +351,13 @@ public class GeoWaveIndexerTest {
             f.setConf(conf);
             f.purge(conf);
 
-            final ValueFactory vf = new ValueFactoryImpl();
-            final Resource subject = vf.createURI("foo:subj");
-            final URI predicate = GeoConstants.GEO_AS_WKT;
+            final ValueFactory vf = SimpleValueFactory.getInstance();
+            final Resource subject = vf.createIRI("foo:subj");
+            final IRI predicate = GeoConstants.GEO_AS_WKT;
             final Value object = vf.createLiteral("Point(-77.03524 38.889468)", GeoConstants.XMLSCHEMA_OGC_WKT);
-            final Resource context = vf.createURI("foo:context");
+            final Resource context = vf.createIRI("foo:context");
 
-            final Statement statement = new ContextStatementImpl(subject, predicate, object, context);
+            final Statement statement = vf.createStatement(subject, predicate, object, context);
             f.storeStatement(convertStatement(statement));
             f.flush();
 
@@ -373,10 +371,10 @@ public class GeoWaveIndexerTest {
 
             // query with wrong context
             Assert.assertEquals(Sets.newHashSet(),
-                    getSet(f.queryWithin(p1, new StatementConstraints().setContext(vf.createURI("foo:context2")))));
+                    getSet(f.queryWithin(p1, new StatementConstraints().setContext(vf.createIRI("foo:context2")))));
 
             // query with wrong subject
-            Assert.assertEquals(Sets.newHashSet(), getSet(f.queryWithin(p1, new StatementConstraints().setSubject(vf.createURI("foo:subj2")))));
+            Assert.assertEquals(Sets.newHashSet(), getSet(f.queryWithin(p1, new StatementConstraints().setSubject(vf.createIRI("foo:subj2")))));
         }
     }
 
@@ -387,13 +385,13 @@ public class GeoWaveIndexerTest {
             f.setConf(conf);
             f.purge(conf);
 
-            final ValueFactory vf = new ValueFactoryImpl();
-            final Resource subject = vf.createURI("foo:subj");
-            final URI predicate = GeoConstants.GEO_AS_WKT;
+            final ValueFactory vf = SimpleValueFactory.getInstance();
+            final Resource subject = vf.createIRI("foo:subj");
+            final IRI predicate = GeoConstants.GEO_AS_WKT;
             final Value object = vf.createLiteral("Point(-77.03524 38.889468)", GeoConstants.XMLSCHEMA_OGC_WKT);
-            final Resource context = vf.createURI("foo:context");
+            final Resource context = vf.createIRI("foo:context");
 
-            final Statement statement = new ContextStatementImpl(subject, predicate, object, context);
+            final Statement statement = vf.createStatement(subject, predicate, object, context);
             f.storeStatement(convertStatement(statement));
             f.flush();
 
@@ -407,7 +405,7 @@ public class GeoWaveIndexerTest {
 
             // query with wrong predicate
             Assert.assertEquals(Sets.newHashSet(),
-                    getSet(f.queryWithin(p1, new StatementConstraints().setPredicates(Collections.singleton(vf.createURI("other:pred"))))));
+                    getSet(f.queryWithin(p1, new StatementConstraints().setPredicates(Collections.singleton(vf.createIRI("other:pred"))))));
         }
     }
 
@@ -418,19 +416,19 @@ public class GeoWaveIndexerTest {
             f.setConf(conf);
             f.purge(conf);
 
-            final ValueFactory vf = new ValueFactoryImpl();
-            final Resource context = vf.createURI("foo:context");
+            final ValueFactory vf = SimpleValueFactory.getInstance();
+            final Resource context = vf.createIRI("foo:context");
 
-            final Resource subjectEast = vf.createURI("foo:subj:east");
-            final URI predicateEast = GeoConstants.GEO_AS_WKT;
+            final Resource subjectEast = vf.createIRI("foo:subj:east");
+            final IRI predicateEast = GeoConstants.GEO_AS_WKT;
             final Value objectEast = vf.createLiteral("Point(179 0)", GeoConstants.XMLSCHEMA_OGC_WKT);
-            final Statement statementEast = new ContextStatementImpl(subjectEast, predicateEast, objectEast, context);
+            final Statement statementEast = vf.createStatement(subjectEast, predicateEast, objectEast, context);
             f.storeStatement(convertStatement(statementEast));
 
-            final Resource subjectWest = vf.createURI("foo:subj:west");
-            final URI predicateWest = GeoConstants.GEO_AS_WKT;
+            final Resource subjectWest = vf.createIRI("foo:subj:west");
+            final IRI predicateWest = GeoConstants.GEO_AS_WKT;
             final Value objectWest = vf.createLiteral("Point(-179 0)", GeoConstants.XMLSCHEMA_OGC_WKT);
-            final Statement statementWest = new ContextStatementImpl(subjectWest, predicateWest, objectWest, context);
+            final Statement statementWest = vf.createStatement(subjectWest, predicateWest, objectWest, context);
             f.storeStatement(convertStatement(statementWest));
 
             f.flush();

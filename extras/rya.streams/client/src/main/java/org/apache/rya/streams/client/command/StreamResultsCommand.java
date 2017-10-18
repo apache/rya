@@ -37,10 +37,10 @@ import org.apache.rya.streams.kafka.interactor.KafkaGetQueryResultStream;
 import org.apache.rya.streams.kafka.queries.KafkaQueryChangeLogFactory;
 import org.apache.rya.streams.kafka.serialization.VisibilityBindingSetDeserializer;
 import org.apache.rya.streams.kafka.serialization.VisibilityStatementDeserializer;
-import org.openrdf.query.MalformedQueryException;
-import org.openrdf.query.algebra.Reduced;
-import org.openrdf.query.algebra.TupleExpr;
-import org.openrdf.query.parser.sparql.SPARQLParser;
+import org.eclipse.rdf4j.query.MalformedQueryException;
+import org.eclipse.rdf4j.query.algebra.Reduced;
+import org.eclipse.rdf4j.query.algebra.TupleExpr;
+import org.eclipse.rdf4j.query.parser.sparql.SPARQLParser;
 
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;

@@ -22,8 +22,8 @@ import static java.util.Objects.requireNonNull;
 
 import java.util.regex.Pattern;
 
-import org.openrdf.query.MalformedQueryException;
-import org.openrdf.query.parser.sparql.SPARQLParser;
+import org.eclipse.rdf4j.query.MalformedQueryException;
+import org.eclipse.rdf4j.query.parser.sparql.SPARQLParser;
 
 import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
 import edu.umd.cs.findbugs.annotations.NonNull;

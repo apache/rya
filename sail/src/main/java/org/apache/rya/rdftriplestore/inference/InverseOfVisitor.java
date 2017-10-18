@@ -19,16 +19,14 @@ package org.apache.rya.rdftriplestore.inference;
  * under the License.
  */
 
-
-
 import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
-import org.openrdf.model.URI;
-import org.openrdf.model.vocabulary.RDF;
-import org.openrdf.model.vocabulary.RDFS;
-import org.openrdf.model.vocabulary.SESAME;
-import org.openrdf.query.algebra.StatementPattern;
-import org.openrdf.query.algebra.Union;
-import org.openrdf.query.algebra.Var;
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.vocabulary.RDF;
+import org.eclipse.rdf4j.model.vocabulary.RDFS;
+import org.eclipse.rdf4j.model.vocabulary.SESAME;
+import org.eclipse.rdf4j.query.algebra.StatementPattern;
+import org.eclipse.rdf4j.query.algebra.Union;
+import org.eclipse.rdf4j.query.algebra.Var;
 
 /**
  * All predicates are changed
@@ -48,7 +46,7 @@ public class InverseOfVisitor extends AbstractInferVisitor {
         StatementPattern sp = node.clone();
         final Var predVar = sp.getPredicateVar();
 
-        URI pred = (URI) predVar.getValue();
+        IRI pred = (IRI) predVar.getValue();
         String predNamespace = pred.getNamespace();
 
         final Var objVar = sp.getObjectVar();
@@ -65,8 +63,8 @@ public class InverseOfVisitor extends AbstractInferVisitor {
              "      { ?b ?pred ?a }
              */
 
-            URI predUri = (URI) predVar.getValue();
-            URI invPropUri = inferenceEngine.findInverseOf(predUri);
+            IRI predUri = (IRI) predVar.getValue();
+            IRI invPropUri = inferenceEngine.findInverseOf(predUri);
             if (invPropUri != null) {
                 Var subjVar = sp.getSubjectVar();
                 Union union = new InferUnion();

@@ -38,13 +38,13 @@ import org.apache.rya.periodic.notification.api.BindingSetRecord;
 import org.apache.rya.periodic.notification.serialization.BindingSetSerDe;
 import org.apache.rya.test.kafka.KafkaITBase;
 import org.apache.rya.test.kafka.KafkaTestInstanceRule;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
+import org.eclipse.rdf4j.query.BindingSet;
+import org.eclipse.rdf4j.query.algebra.evaluation.QueryBindingSet;
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
-import org.openrdf.model.ValueFactory;
-import org.openrdf.model.impl.ValueFactoryImpl;
-import org.openrdf.query.BindingSet;
-import org.openrdf.query.algebra.evaluation.QueryBindingSet;
 
 public class PeriodicNotificationExporterIT extends KafkaITBase {
 
@@ -53,7 +53,7 @@ public class PeriodicNotificationExporterIT extends KafkaITBase {
     public KafkaTestInstanceRule kafkaTestInstanceRule = new KafkaTestInstanceRule(false);
 
 
-    private static final ValueFactory vf = new ValueFactoryImpl();
+    private static final ValueFactory VF = SimpleValueFactory.getInstance();
 
     @Test
     public void testExporter() throws InterruptedException {
@@ -69,13 +69,13 @@ public class PeriodicNotificationExporterIT extends KafkaITBase {
         final KafkaExporterExecutor exporter = new KafkaExporterExecutor(new KafkaProducer<String, BindingSet>(createKafkaProducerConfig()), 1, records);
         exporter.start();
         final QueryBindingSet bs1 = new QueryBindingSet();
-        bs1.addBinding(PeriodicQueryResultStorage.PeriodicBinId, vf.createLiteral(1L));
-        bs1.addBinding("name", vf.createURI("uri:Bob"));
+        bs1.addBinding(PeriodicQueryResultStorage.PeriodicBinId, VF.createLiteral(1L));
+        bs1.addBinding("name", VF.createIRI("uri:Bob"));
         final BindingSetRecord record1 = new BindingSetRecord(bs1, topic1);
 
         final QueryBindingSet bs2 = new QueryBindingSet();
-        bs2.addBinding(PeriodicQueryResultStorage.PeriodicBinId, vf.createLiteral(2L));
-        bs2.addBinding("name", vf.createURI("uri:Joe"));
+        bs2.addBinding(PeriodicQueryResultStorage.PeriodicBinId, VF.createLiteral(2L));
+        bs2.addBinding("name", VF.createIRI("uri:Joe"));
         final BindingSetRecord record2 = new BindingSetRecord(bs2, topic2);
 
         records.add(record1);

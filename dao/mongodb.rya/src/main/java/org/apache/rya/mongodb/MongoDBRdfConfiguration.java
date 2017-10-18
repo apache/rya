@@ -27,7 +27,7 @@ import org.apache.accumulo.core.security.Authorizations;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
 import org.apache.rya.mongodb.aggregation.AggregationPipelineQueryOptimizer;
-import org.openrdf.query.algebra.evaluation.QueryOptimizer;
+import org.eclipse.rdf4j.query.algebra.evaluation.QueryOptimizer;
 
 import edu.umd.cs.findbugs.annotations.Nullable;
 

@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -37,8 +37,8 @@ import org.apache.rya.indexing.entity.storage.EntityStorage.EntityAlreadyExistsE
 import org.apache.rya.indexing.entity.storage.EntityStorage.EntityStorageException;
 import org.apache.rya.indexing.entity.storage.EntityStorage.StaleUpdateException;
 import org.apache.rya.mongodb.MongoITBase;
+import org.eclipse.rdf4j.model.vocabulary.XMLSchema;
 import org.junit.Test;
-import org.openrdf.model.vocabulary.XMLSchema;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;

@@ -1,5 +1,5 @@
 /*
-* * Licensed to the Apache Software Foundation (ASF) under one
+ * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
  * regarding copyright ownership.  The ASF licenses this file
@@ -20,25 +20,6 @@ package org.apache.rya.mongodb;
 
 import static org.junit.Assert.assertEquals;
 
-/*
- * Licensed to the Apache Software Foundation (ASF) under one
- * or more contributor license agreements.  See the NOTICE file
- * distributed with this work for additional information
- * regarding copyright ownership.  The ASF licenses this file
- * to you under the Apache License, Version 2.0 (the
- * "License"); you may not use this file except in compliance
- * with the License.  You may obtain a copy of the License at
- *
- *   http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing,
- * software distributed under the License is distributed on an
- * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
- * KIND, either express or implied.  See the License for the
- * specific language governing permissions and limitations
- * under the License.
- */
-
 import java.util.Collection;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -47,18 +28,20 @@ import org.apache.rya.api.RdfCloudTripleStoreUtils;
 import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.domain.RyaStatement.RyaStatementBuilder;
 import org.apache.rya.api.domain.RyaURI;
+import org.eclipse.rdf4j.common.iteration.CloseableIteration;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
+import org.eclipse.rdf4j.query.BindingSet;
+import org.eclipse.rdf4j.query.impl.MapBindingSet;
 import org.junit.Test;
-import org.openrdf.model.impl.URIImpl;
-import org.openrdf.query.BindingSet;
-import org.openrdf.query.impl.MapBindingSet;
 
 import com.google.common.collect.Lists;
 
-import info.aduna.iteration.CloseableIteration;
 /**
  * Integration tests the methods of {@link MongoDBQueryEngine}.
  */
 public class MongoDBQueryEngineIT extends MongoITBase {
+    private static final ValueFactory VF = SimpleValueFactory.getInstance();
 
     private RyaStatement getStatement(final String s, final String p, final String o) {
         final RyaStatementBuilder builder = new RyaStatementBuilder();
@@ -119,7 +102,7 @@ public class MongoDBQueryEngineIT extends MongoITBase {
             final RyaStatement s1 = getStatement(null, null, "u:b");
 
             final MapBindingSet bs1 = new MapBindingSet();
-            bs1.addBinding("foo", new URIImpl("u:x"));
+            bs1.addBinding("foo", VF.createIRI("u:x"));
 
             final Map.Entry<RyaStatement, BindingSet> e1 = new RdfCloudTripleStoreUtils.CustomEntry<>(s1, bs1);
             final Collection<Entry<RyaStatement, BindingSet>> stmts1 = Lists.newArrayList(e1);
@@ -127,7 +110,7 @@ public class MongoDBQueryEngineIT extends MongoITBase {
 
 
             final MapBindingSet bs2 = new MapBindingSet();
-            bs2.addBinding("foo", new URIImpl("u:y"));
+            bs2.addBinding("foo", VF.createIRI("u:y"));
 
             final RyaStatement s2 = getStatement(null, null, "u:c");
 
@@ -164,7 +147,7 @@ public class MongoDBQueryEngineIT extends MongoITBase {
             final RyaStatement s = getStatement("u:a", null, null);
 
             final MapBindingSet bs1 = new MapBindingSet();
-            bs1.addBinding("foo", new URIImpl("u:x"));
+            bs1.addBinding("foo", VF.createIRI("u:x"));
 
             final Map.Entry<RyaStatement, BindingSet> e1 = new RdfCloudTripleStoreUtils.CustomEntry<>(s, bs1);
             final Collection<Entry<RyaStatement, BindingSet>> stmts1 = Lists.newArrayList(e1);
@@ -172,7 +155,7 @@ public class MongoDBQueryEngineIT extends MongoITBase {
 
 
             final MapBindingSet bs2 = new MapBindingSet();
-            bs2.addBinding("foo", new URIImpl("u:y"));
+            bs2.addBinding("foo", VF.createIRI("u:y"));
 
             final Map.Entry<RyaStatement, BindingSet> e2 = new RdfCloudTripleStoreUtils.CustomEntry<>(s, bs2);
 

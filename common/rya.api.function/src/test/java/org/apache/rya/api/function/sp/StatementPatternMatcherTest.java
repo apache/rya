@@ -25,16 +25,16 @@ import static org.junit.Assert.assertFalse;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 
+import org.eclipse.rdf4j.model.Statement;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
+import org.eclipse.rdf4j.query.BindingSet;
+import org.eclipse.rdf4j.query.algebra.StatementPattern;
+import org.eclipse.rdf4j.query.algebra.evaluation.QueryBindingSet;
+import org.eclipse.rdf4j.query.algebra.helpers.AbstractQueryModelVisitor;
+import org.eclipse.rdf4j.query.parser.ParsedQuery;
+import org.eclipse.rdf4j.query.parser.sparql.SPARQLParser;
 import org.junit.Test;
-import org.openrdf.model.Statement;
-import org.openrdf.model.ValueFactory;
-import org.openrdf.model.impl.ValueFactoryImpl;
-import org.openrdf.query.BindingSet;
-import org.openrdf.query.algebra.StatementPattern;
-import org.openrdf.query.algebra.evaluation.QueryBindingSet;
-import org.openrdf.query.algebra.helpers.QueryModelVisitorBase;
-import org.openrdf.query.parser.ParsedQuery;
-import org.openrdf.query.parser.sparql.SPARQLParser;
 
 import edu.umd.cs.findbugs.annotations.Nullable;
 
@@ -52,13 +52,13 @@ public class StatementPatternMatcherTest {
                 "}"));
 
         // Create a statement that matches the pattern.
-        final ValueFactory vf = new ValueFactoryImpl();
-        final Statement statement = vf.createStatement(vf.createURI("urn:Alice"), vf.createURI("urn:talksTo"), vf.createURI("urn:Bob"), vf.createURI("urn:testGraph"));
+        final ValueFactory vf = SimpleValueFactory.getInstance();
+        final Statement statement = vf.createStatement(vf.createIRI("urn:Alice"), vf.createIRI("urn:talksTo"), vf.createIRI("urn:Bob"), vf.createIRI("urn:testGraph"));
 
         // Create the expected resulting Binding Set.
         final QueryBindingSet expected = new QueryBindingSet();
-        expected.addBinding("p", vf.createURI("urn:talksTo"));
-        expected.addBinding("o", vf.createURI("urn:Bob"));
+        expected.addBinding("p", vf.createIRI("urn:talksTo"));
+        expected.addBinding("o", vf.createIRI("urn:Bob"));
 
         // Show the expected Binding Set matches the resulting Binding Set.
         final Optional<BindingSet> bs = matcher.match(statement);
@@ -74,8 +74,8 @@ public class StatementPatternMatcherTest {
                 "}"));
 
         // Create a statement that does not match the pattern.
-        final ValueFactory vf = new ValueFactoryImpl();
-        final Statement statement = vf.createStatement(vf.createURI("urn:Charlie"), vf.createURI("urn:talksTo"), vf.createURI("urn:Bob"), vf.createURI("urn:testGraph"));
+        final ValueFactory vf = SimpleValueFactory.getInstance();
+        final Statement statement = vf.createStatement(vf.createIRI("urn:Charlie"), vf.createIRI("urn:talksTo"), vf.createIRI("urn:Bob"), vf.createIRI("urn:testGraph"));
 
         // Show the statement did not match.
         final Optional<BindingSet> bs = matcher.match(statement);
@@ -91,13 +91,13 @@ public class StatementPatternMatcherTest {
                 "}"));
 
         // Create a statement that matches the pattern.
-        final ValueFactory vf = new ValueFactoryImpl();
-        final Statement statement = vf.createStatement(vf.createURI("urn:Alice"), vf.createURI("urn:talksTo"), vf.createURI("urn:Bob"), vf.createURI("urn:testGraph"));
+        final ValueFactory vf = SimpleValueFactory.getInstance();
+        final Statement statement = vf.createStatement(vf.createIRI("urn:Alice"), vf.createIRI("urn:talksTo"), vf.createIRI("urn:Bob"), vf.createIRI("urn:testGraph"));
 
         // Create the expected resulting Binding Set.
         final QueryBindingSet expected = new QueryBindingSet();
-        expected.addBinding("s", vf.createURI("urn:Alice"));
-        expected.addBinding("o", vf.createURI("urn:Bob"));
+        expected.addBinding("s", vf.createIRI("urn:Alice"));
+        expected.addBinding("o", vf.createIRI("urn:Bob"));
 
         // Show the expected Binding Set matches the resulting Binding Set.
         final Optional<BindingSet> bs = matcher.match(statement);
@@ -113,8 +113,8 @@ public class StatementPatternMatcherTest {
                 "}"));
 
         // Create a statement that does not match the pattern.
-        final ValueFactory vf = new ValueFactoryImpl();
-        final Statement statement = vf.createStatement(vf.createURI("urn:Charlie"), vf.createURI("urn:knows"), vf.createURI("urn:Bob"), vf.createURI("urn:testGraph"));
+        final ValueFactory vf = SimpleValueFactory.getInstance();
+        final Statement statement = vf.createStatement(vf.createIRI("urn:Charlie"), vf.createIRI("urn:knows"), vf.createIRI("urn:Bob"), vf.createIRI("urn:testGraph"));
 
         // Show the statement did not match.
         final Optional<BindingSet> bs = matcher.match(statement);
@@ -130,13 +130,13 @@ public class StatementPatternMatcherTest {
                 "}"));
 
         // Create a statement that matches the pattern.
-        final ValueFactory vf = new ValueFactoryImpl();
-        final Statement statement = vf.createStatement(vf.createURI("urn:Alice"), vf.createURI("urn:talksTo"), vf.createURI("urn:Bob"), vf.createURI("urn:testGraph"));
+        final ValueFactory vf = SimpleValueFactory.getInstance();
+        final Statement statement = vf.createStatement(vf.createIRI("urn:Alice"), vf.createIRI("urn:talksTo"), vf.createIRI("urn:Bob"), vf.createIRI("urn:testGraph"));
 
         // Create the expected resulting Binding Set.
         final QueryBindingSet expected = new QueryBindingSet();
-        expected.addBinding("s", vf.createURI("urn:Alice"));
-        expected.addBinding("p", vf.createURI("urn:talksTo"));
+        expected.addBinding("s", vf.createIRI("urn:Alice"));
+        expected.addBinding("p", vf.createIRI("urn:talksTo"));
 
         // Show the expected Binding Set matches the resulting Binding Set.
         final Optional<BindingSet> bs = matcher.match(statement);
@@ -152,8 +152,8 @@ public class StatementPatternMatcherTest {
                 "}"));
 
         // Create a statement that does not match the pattern.
-        final ValueFactory vf = new ValueFactoryImpl();
-        final Statement statement = vf.createStatement(vf.createURI("urn:Charlie"), vf.createURI("urn:knows"), vf.createURI("urn:Alice"), vf.createURI("urn:testGraph"));
+        final ValueFactory vf = SimpleValueFactory.getInstance();
+        final Statement statement = vf.createStatement(vf.createIRI("urn:Charlie"), vf.createIRI("urn:knows"), vf.createIRI("urn:Alice"), vf.createIRI("urn:testGraph"));
 
         // Show the statement did not match.
         final Optional<BindingSet> bs = matcher.match(statement);
@@ -171,14 +171,14 @@ public class StatementPatternMatcherTest {
                 "}"));
 
         // Create a statement that matches the pattern.
-        final ValueFactory vf = new ValueFactoryImpl();
-        final Statement statement = vf.createStatement(vf.createURI("urn:Alice"), vf.createURI("urn:talksTo"), vf.createURI("urn:Bob"), vf.createURI("urn:testGraph"));
+        final ValueFactory vf = SimpleValueFactory.getInstance();
+        final Statement statement = vf.createStatement(vf.createIRI("urn:Alice"), vf.createIRI("urn:talksTo"), vf.createIRI("urn:Bob"), vf.createIRI("urn:testGraph"));
 
         // Create the expected resulting Binding Set.
         final QueryBindingSet expected = new QueryBindingSet();
-        expected.addBinding("s", vf.createURI("urn:Alice"));
-        expected.addBinding("p", vf.createURI("urn:talksTo"));
-        expected.addBinding("o", vf.createURI("urn:Bob"));
+        expected.addBinding("s", vf.createIRI("urn:Alice"));
+        expected.addBinding("p", vf.createIRI("urn:talksTo"));
+        expected.addBinding("o", vf.createIRI("urn:Bob"));
 
         // Show the expected Binding Set matches the resulting Binding Set.
         final Optional<BindingSet> bs = matcher.match(statement);
@@ -196,8 +196,8 @@ public class StatementPatternMatcherTest {
                 "}"));
 
         // Create a statement that does not match the pattern.
-        final ValueFactory vf = new ValueFactoryImpl();
-        final Statement statement = vf.createStatement(vf.createURI("urn:Alice"), vf.createURI("urn:talksTo"), vf.createURI("urn:Bob"), vf.createURI("urn:wrong"));
+        final ValueFactory vf = SimpleValueFactory.getInstance();
+        final Statement statement = vf.createStatement(vf.createIRI("urn:Alice"), vf.createIRI("urn:talksTo"), vf.createIRI("urn:Bob"), vf.createIRI("urn:wrong"));
 
         // Show the statement did not match.
         final Optional<BindingSet> bs = matcher.match(statement);
@@ -215,15 +215,15 @@ public class StatementPatternMatcherTest {
                 "}"));
 
         // Create a statement that matches the pattern.
-        final ValueFactory vf = new ValueFactoryImpl();
-        final Statement statement = vf.createStatement(vf.createURI("urn:Alice"), vf.createURI("urn:talksTo"), vf.createURI("urn:Bob"), vf.createURI("urn:testGraph"));
+        final ValueFactory vf = SimpleValueFactory.getInstance();
+        final Statement statement = vf.createStatement(vf.createIRI("urn:Alice"), vf.createIRI("urn:talksTo"), vf.createIRI("urn:Bob"), vf.createIRI("urn:testGraph"));
 
         // Create the expected resulting Binding Set.
         final QueryBindingSet expected = new QueryBindingSet();
-        expected.addBinding("s", vf.createURI("urn:Alice"));
-        expected.addBinding("p", vf.createURI("urn:talksTo"));
-        expected.addBinding("o", vf.createURI("urn:Bob"));
-        expected.addBinding("c", vf.createURI("urn:testGraph"));
+        expected.addBinding("s", vf.createIRI("urn:Alice"));
+        expected.addBinding("p", vf.createIRI("urn:talksTo"));
+        expected.addBinding("o", vf.createIRI("urn:Bob"));
+        expected.addBinding("c", vf.createIRI("urn:testGraph"));
 
         // Show the expected Binding Set matches the resulting Binding Set.
         final Optional<BindingSet> bs = matcher.match(statement);
@@ -241,8 +241,8 @@ public class StatementPatternMatcherTest {
                 "}"));
 
         // Create a statement that does not have a context value.
-        final ValueFactory vf = new ValueFactoryImpl();
-        final Statement statement = vf.createStatement(vf.createURI("urn:Alice"), vf.createURI("urn:talksTo"), vf.createURI("urn:Bob"));
+        final ValueFactory vf = SimpleValueFactory.getInstance();
+        final Statement statement = vf.createStatement(vf.createIRI("urn:Alice"), vf.createIRI("urn:talksTo"), vf.createIRI("urn:Bob"));
 
         // Show the statement did not match.
         final Optional<BindingSet> bs = matcher.match(statement);
@@ -261,7 +261,7 @@ public class StatementPatternMatcherTest {
 
         final AtomicReference<StatementPattern> statementPattern = new AtomicReference<>();
         final ParsedQuery parsed = new SPARQLParser().parseQuery(sparql, null);
-        parsed.getTupleExpr().visitChildren(new QueryModelVisitorBase<Exception>() {
+        parsed.getTupleExpr().visitChildren(new AbstractQueryModelVisitor<Exception>() {
             @Override
             public void meet(final StatementPattern node) throws Exception {
                 statementPattern.set(node);

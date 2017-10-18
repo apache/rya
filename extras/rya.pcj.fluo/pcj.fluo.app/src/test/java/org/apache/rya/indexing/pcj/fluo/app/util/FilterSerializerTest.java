@@ -20,11 +20,11 @@ package org.apache.rya.indexing.pcj.fluo.app.util;
 
 import static org.junit.Assert.assertEquals;
 
+import org.eclipse.rdf4j.query.algebra.Filter;
+import org.eclipse.rdf4j.query.algebra.Projection;
+import org.eclipse.rdf4j.query.parser.ParsedQuery;
+import org.eclipse.rdf4j.query.parser.sparql.SPARQLParser;
 import org.junit.Test;
-import org.openrdf.query.algebra.Filter;
-import org.openrdf.query.algebra.Projection;
-import org.openrdf.query.parser.ParsedQuery;
-import org.openrdf.query.parser.sparql.SPARQLParser;
 
 public class FilterSerializerTest {
 

@@ -32,10 +32,10 @@ import org.apache.rya.streams.kafka.processors.ProcessorResult.BinaryResult;
 import org.apache.rya.streams.kafka.processors.ProcessorResult.BinaryResult.Side;
 import org.apache.rya.streams.kafka.processors.ProcessorResult.UnaryResult;
 import org.apache.rya.streams.kafka.processors.output.StatementOutputFormatterSupplier.StatementOutputFormatter;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
+import org.eclipse.rdf4j.query.impl.MapBindingSet;
 import org.junit.Test;
-import org.openrdf.model.ValueFactory;
-import org.openrdf.model.impl.ValueFactoryImpl;
-import org.openrdf.query.impl.MapBindingSet;
 
 /**
  * Unit tests the methods of {@link StatementOutputFormatter}.
@@ -45,10 +45,10 @@ public class StatementOutputFormatterTest {
     @Test
     public void unaryResult() {
         // Create the input binding set.
-        final ValueFactory vf = new ValueFactoryImpl();
+        final ValueFactory vf = SimpleValueFactory.getInstance();
         final MapBindingSet bindingSet = new MapBindingSet();
-        bindingSet.addBinding("subject", vf.createURI("urn:Alice"));
-        bindingSet.addBinding("predicate", vf.createURI("urn:age"));
+        bindingSet.addBinding("subject", vf.createIRI("urn:Alice"));
+        bindingSet.addBinding("predicate", vf.createIRI("urn:age"));
         bindingSet.addBinding("object", vf.createLiteral(34));
         final VisibilityBindingSet visBs = new VisibilityBindingSet(bindingSet, "a");
 
@@ -62,8 +62,8 @@ public class StatementOutputFormatterTest {
 
         // Verify the mock was invoked with the expected output.
         final VisibilityStatement expectedStmt = new VisibilityStatement(vf.createStatement(
-                vf.createURI("urn:Alice"),
-                vf.createURI("urn:age"),
+                vf.createIRI("urn:Alice"),
+                vf.createIRI("urn:age"),
                 vf.createLiteral(34)), "a");
         verify(context, times(1)).forward(eq("key"), eq(expectedStmt));
     }
@@ -71,10 +71,10 @@ public class StatementOutputFormatterTest {
     @Test
     public void binaryResult() {
         // Create the input binding set.
-        final ValueFactory vf = new ValueFactoryImpl();
+        final ValueFactory vf = SimpleValueFactory.getInstance();
         final MapBindingSet bindingSet = new MapBindingSet();
-        bindingSet.addBinding("subject", vf.createURI("urn:Alice"));
-        bindingSet.addBinding("predicate", vf.createURI("urn:age"));
+        bindingSet.addBinding("subject", vf.createIRI("urn:Alice"));
+        bindingSet.addBinding("predicate", vf.createIRI("urn:age"));
         bindingSet.addBinding("object", vf.createLiteral(34));
         final VisibilityBindingSet visBs = new VisibilityBindingSet(bindingSet, "a");
 
@@ -88,8 +88,8 @@ public class StatementOutputFormatterTest {
 
         // Verify the mock was invoked with the expected output.
         final VisibilityStatement expectedStmt = new VisibilityStatement(vf.createStatement(
-                vf.createURI("urn:Alice"),
-                vf.createURI("urn:age"),
+                vf.createIRI("urn:Alice"),
+                vf.createIRI("urn:age"),
                 vf.createLiteral(34)), "a");
         verify(context, times(1)).forward(eq("key"), eq(expectedStmt));
     }
@@ -97,9 +97,9 @@ public class StatementOutputFormatterTest {
     @Test
     public void missingSubject() {
         // Create the input binding set.
-        final ValueFactory vf = new ValueFactoryImpl();
+        final ValueFactory vf = SimpleValueFactory.getInstance();
         final MapBindingSet bindingSet = new MapBindingSet();
-        bindingSet.addBinding("predicate", vf.createURI("urn:age"));
+        bindingSet.addBinding("predicate", vf.createIRI("urn:age"));
         bindingSet.addBinding("object", vf.createLiteral(34));
         final VisibilityBindingSet visBs = new VisibilityBindingSet(bindingSet, "a");
 
@@ -118,10 +118,10 @@ public class StatementOutputFormatterTest {
     @Test
     public void subjectWrongType() {
         // Create the input binding set.
-        final ValueFactory vf = new ValueFactoryImpl();
+        final ValueFactory vf = SimpleValueFactory.getInstance();
         final MapBindingSet bindingSet = new MapBindingSet();
         bindingSet.addBinding("subject", vf.createLiteral("Alice"));
-        bindingSet.addBinding("predicate", vf.createURI("urn:age"));
+        bindingSet.addBinding("predicate", vf.createIRI("urn:age"));
         bindingSet.addBinding("object", vf.createLiteral(34));
         final VisibilityBindingSet visBs = new VisibilityBindingSet(bindingSet, "a");
 
@@ -140,9 +140,9 @@ public class StatementOutputFormatterTest {
     @Test
     public void missingPredicate() {
         // Create the input binding set.
-        final ValueFactory vf = new ValueFactoryImpl();
+        final ValueFactory vf = SimpleValueFactory.getInstance();
         final MapBindingSet bindingSet = new MapBindingSet();
-        bindingSet.addBinding("subject", vf.createURI("urn:Alice"));
+        bindingSet.addBinding("subject", vf.createIRI("urn:Alice"));
         bindingSet.addBinding("object", vf.createLiteral(34));
         final VisibilityBindingSet visBs = new VisibilityBindingSet(bindingSet, "a");
 
@@ -161,9 +161,9 @@ public class StatementOutputFormatterTest {
     @Test
     public void predicateWrongType() {
         // Create the input binding set.
-        final ValueFactory vf = new ValueFactoryImpl();
+        final ValueFactory vf = SimpleValueFactory.getInstance();
         final MapBindingSet bindingSet = new MapBindingSet();
-        bindingSet.addBinding("subject", vf.createURI("urn:Alice"));
+        bindingSet.addBinding("subject", vf.createIRI("urn:Alice"));
         bindingSet.addBinding("predicate", vf.createLiteral("age"));
         bindingSet.addBinding("object", vf.createLiteral(34));
         final VisibilityBindingSet visBs = new VisibilityBindingSet(bindingSet, "a");
@@ -183,10 +183,10 @@ public class StatementOutputFormatterTest {
     @Test
     public void missingObject() {
         // Create the input binding set.
-        final ValueFactory vf = new ValueFactoryImpl();
+        final ValueFactory vf = SimpleValueFactory.getInstance();
         final MapBindingSet bindingSet = new MapBindingSet();
-        bindingSet.addBinding("subject", vf.createURI("urn:Alice"));
-        bindingSet.addBinding("predicate", vf.createURI("urn:age"));
+        bindingSet.addBinding("subject", vf.createIRI("urn:Alice"));
+        bindingSet.addBinding("predicate", vf.createIRI("urn:age"));
         final VisibilityBindingSet visBs = new VisibilityBindingSet(bindingSet, "a");
 
         // Mock the processor context that will be invoked.

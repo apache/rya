@@ -19,11 +19,9 @@ package org.apache.rya.api.resolver.impl;
  * under the License.
  */
 
-
-
 import org.apache.rya.api.domain.RyaType;
 import org.apache.rya.api.domain.RyaURI;
-import org.openrdf.model.vocabulary.XMLSchema;
+import org.eclipse.rdf4j.model.vocabulary.XMLSchema;
 
 /**
  * Date: 7/16/12

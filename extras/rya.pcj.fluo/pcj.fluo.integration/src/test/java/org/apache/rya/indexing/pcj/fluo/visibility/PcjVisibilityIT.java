@@ -58,14 +58,14 @@ import org.apache.rya.indexing.pcj.storage.accumulo.PcjTableNameFactory;
 import org.apache.rya.pcj.fluo.test.base.RyaExportITBase;
 import org.apache.rya.rdftriplestore.RyaSailRepository;
 import org.apache.rya.sail.config.RyaSailFactory;
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
+import org.eclipse.rdf4j.query.BindingSet;
+import org.eclipse.rdf4j.query.impl.MapBindingSet;
+import org.eclipse.rdf4j.repository.RepositoryConnection;
+import org.eclipse.rdf4j.sail.Sail;
 import org.junit.Test;
-import org.openrdf.model.URI;
-import org.openrdf.model.ValueFactory;
-import org.openrdf.model.impl.ValueFactoryImpl;
-import org.openrdf.query.BindingSet;
-import org.openrdf.query.impl.MapBindingSet;
-import org.openrdf.repository.RepositoryConnection;
-import org.openrdf.sail.Sail;
 
 import com.google.common.base.Optional;
 import com.google.common.collect.Sets;
@@ -76,16 +76,16 @@ import com.google.common.collect.Sets;
  */
 public class PcjVisibilityIT extends RyaExportITBase {
 
-    private static final ValueFactory VF = new ValueFactoryImpl();
+    private static final ValueFactory VF = SimpleValueFactory.getInstance();
 
     // Constants used within the test.
-    private static final URI ALICE = VF.createURI("urn:Alice");
-    private static final URI BOB = VF.createURI("urn:Bob");
-    private static final URI TALKS_TO = VF.createURI("urn:talksTo");
-    private static final URI LIVES_IN = VF.createURI("urn:livesIn");
-    private static final URI WORKS_AT = VF.createURI("urn:worksAt");
-    private static final URI HAPPYVILLE = VF.createURI("urn:Happyville");
-    private static final URI BURGER_JOINT = VF.createURI("urn:BurgerJoint");
+    private static final IRI ALICE = VF.createIRI("urn:Alice");
+    private static final IRI BOB = VF.createIRI("urn:Bob");
+    private static final IRI TALKS_TO = VF.createIRI("urn:talksTo");
+    private static final IRI LIVES_IN = VF.createIRI("urn:livesIn");
+    private static final IRI WORKS_AT = VF.createIRI("urn:worksAt");
+    private static final IRI HAPPYVILLE = VF.createIRI("urn:Happyville");
+    private static final IRI BURGER_JOINT = VF.createIRI("urn:BurgerJoint");
 
     @Test
     public void visibilitySimplified() throws Exception {
@@ -239,27 +239,27 @@ public class PcjVisibilityIT extends RyaExportITBase {
 
         final Set<BindingSet> rootExpected = Sets.newHashSet();
         MapBindingSet bs = new MapBindingSet();
-        bs.addBinding("customer", VF.createURI("http://Alice"));
-        bs.addBinding("worker", VF.createURI("http://Bob"));
-        bs.addBinding("city", VF.createURI("http://London"));
+        bs.addBinding("customer", VF.createIRI("http://Alice"));
+        bs.addBinding("worker", VF.createIRI("http://Bob"));
+        bs.addBinding("city", VF.createIRI("http://London"));
         rootExpected.add(bs);
 
         bs = new MapBindingSet();
-        bs.addBinding("customer", VF.createURI("http://Alice"));
-        bs.addBinding("worker", VF.createURI("http://Charlie"));
-        bs.addBinding("city", VF.createURI("http://London"));
+        bs.addBinding("customer", VF.createIRI("http://Alice"));
+        bs.addBinding("worker", VF.createIRI("http://Charlie"));
+        bs.addBinding("city", VF.createIRI("http://London"));
         rootExpected.add(bs);
 
         bs = new MapBindingSet();
-        bs.addBinding("customer", VF.createURI("http://Alice"));
-        bs.addBinding("worker", VF.createURI("http://Eve"));
-        bs.addBinding("city", VF.createURI("http://Leeds"));
+        bs.addBinding("customer", VF.createIRI("http://Alice"));
+        bs.addBinding("worker", VF.createIRI("http://Eve"));
+        bs.addBinding("city", VF.createIRI("http://Leeds"));
         rootExpected.add(bs);
 
         bs = new MapBindingSet();
-        bs.addBinding("customer", VF.createURI("http://Alice"));
-        bs.addBinding("worker", VF.createURI("http://David"));
-        bs.addBinding("city", VF.createURI("http://London"));
+        bs.addBinding("customer", VF.createIRI("http://Alice"));
+        bs.addBinding("worker", VF.createIRI("http://David"));
+        bs.addBinding("city", VF.createIRI("http://London"));
         rootExpected.add(bs);
 
         assertEquals(rootExpected, rootResults);
@@ -273,9 +273,9 @@ public class PcjVisibilityIT extends RyaExportITBase {
 
             final Set<BindingSet> abExpected = Sets.newHashSet();
             bs = new MapBindingSet();
-            bs.addBinding("customer", VF.createURI("http://Alice"));
-            bs.addBinding("worker", VF.createURI("http://Bob"));
-            bs.addBinding("city", VF.createURI("http://London"));
+            bs.addBinding("customer", VF.createIRI("http://Alice"));
+            bs.addBinding("worker", VF.createIRI("http://Bob"));
+            bs.addBinding("city", VF.createIRI("http://London"));
             abExpected.add(bs);
 
             assertEquals(abExpected, abResults);
@@ -288,15 +288,15 @@ public class PcjVisibilityIT extends RyaExportITBase {
 
             final Set<BindingSet> abcExpected = Sets.newHashSet();
             bs = new MapBindingSet();
-            bs.addBinding("customer", VF.createURI("http://Alice"));
-            bs.addBinding("worker", VF.createURI("http://Bob"));
-            bs.addBinding("city", VF.createURI("http://London"));
+            bs.addBinding("customer", VF.createIRI("http://Alice"));
+            bs.addBinding("worker", VF.createIRI("http://Bob"));
+            bs.addBinding("city", VF.createIRI("http://London"));
             abcExpected.add(bs);
 
             bs = new MapBindingSet();
-            bs.addBinding("customer", VF.createURI("http://Alice"));
-            bs.addBinding("worker", VF.createURI("http://Charlie"));
-            bs.addBinding("city", VF.createURI("http://London"));
+            bs.addBinding("customer", VF.createIRI("http://Alice"));
+            bs.addBinding("worker", VF.createIRI("http://Charlie"));
+            bs.addBinding("city", VF.createIRI("http://London"));
             abcExpected.add(bs);
 
             assertEquals(abcExpected, abcResults);
@@ -309,9 +309,9 @@ public class PcjVisibilityIT extends RyaExportITBase {
 
             final Set<BindingSet> adeExpected = Sets.newHashSet();
             bs = new MapBindingSet();
-            bs.addBinding("customer", VF.createURI("http://Alice"));
-            bs.addBinding("worker", VF.createURI("http://Eve"));
-            bs.addBinding("city", VF.createURI("http://Leeds"));
+            bs.addBinding("customer", VF.createIRI("http://Alice"));
+            bs.addBinding("worker", VF.createIRI("http://Eve"));
+            bs.addBinding("city", VF.createIRI("http://Leeds"));
             adeExpected.add(bs);
 
             assertEquals(adeExpected, adeResults);

@@ -34,11 +34,11 @@ import org.apache.rya.streams.kafka.processors.StatementPatternProcessorSupplier
 import org.apache.rya.streams.kafka.serialization.VisibilityBindingSetDeserializer;
 import org.apache.rya.streams.kafka.topology.TopologyFactory;
 import org.apache.rya.test.kafka.KafkaTestInstanceRule;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
+import org.eclipse.rdf4j.query.algebra.evaluation.QueryBindingSet;
 import org.junit.Rule;
 import org.junit.Test;
-import org.openrdf.model.ValueFactory;
-import org.openrdf.model.impl.ValueFactoryImpl;
-import org.openrdf.query.algebra.evaluation.QueryBindingSet;
 
 /**
  * Integration tests the methods of {@link StatementPatternProcessor}.
@@ -62,16 +62,16 @@ public class StatementPatternProcessorIT {
         final TopologyBuilder builder = factory.build(query, statementsTopic, resultsTopic, new RandomUUIDFactory());
 
         // Create a statement that generate an SP result.
-        final ValueFactory vf = new ValueFactoryImpl();
+        final ValueFactory vf = SimpleValueFactory.getInstance();
         final List<VisibilityStatement> statements = new ArrayList<>();
-        statements.add( new VisibilityStatement(vf.createStatement(vf.createURI("urn:Alice"), vf.createURI("urn:talksTo"), vf.createURI("urn:Bob")), "a") );
+        statements.add( new VisibilityStatement(vf.createStatement(vf.createIRI("urn:Alice"), vf.createIRI("urn:talksTo"), vf.createIRI("urn:Bob")), "a") );
 
         // Show the correct binding set results from the job.
         final Set<VisibilityBindingSet> expected = new HashSet<>();
 
         final QueryBindingSet bs = new QueryBindingSet();
-        bs.addBinding("person", vf.createURI("urn:Alice"));
-        bs.addBinding("otherPerson", vf.createURI("urn:Bob"));
+        bs.addBinding("person", vf.createIRI("urn:Alice"));
+        bs.addBinding("otherPerson", vf.createIRI("urn:Bob"));
         expected.add( new VisibilityBindingSet(bs, "a") );
 
         // Run the test.
@@ -92,24 +92,24 @@ public class StatementPatternProcessorIT {
         final TopologyBuilder builder = factory.build(query, statementsTopic, resultsTopic, new RandomUUIDFactory());
 
         // Create some statements where some generates SP results and others do not.
-        final ValueFactory vf = new ValueFactoryImpl();
+        final ValueFactory vf = SimpleValueFactory.getInstance();
         final List<VisibilityStatement> statements = new ArrayList<>();
-        statements.add( new VisibilityStatement(vf.createStatement(vf.createURI("urn:Alice"), vf.createURI("urn:talksTo"), vf.createURI("urn:Bob")), "a") );
-        statements.add( new VisibilityStatement(vf.createStatement(vf.createURI("urn:Alice"), vf.createURI("urn:worksAt"), vf.createURI("urn:TacoJoin")), "b") );
-        statements.add( new VisibilityStatement(vf.createStatement(vf.createURI("urn:Bob"), vf.createURI("urn:talksTo"), vf.createURI("urn:Alice")), "a|b") );
-        statements.add( new VisibilityStatement(vf.createStatement(vf.createURI("urn:Bob"), vf.createURI("urn:worksAt"), vf.createURI("urn:BurgerJoint")), "c") );
+        statements.add( new VisibilityStatement(vf.createStatement(vf.createIRI("urn:Alice"), vf.createIRI("urn:talksTo"), vf.createIRI("urn:Bob")), "a") );
+        statements.add( new VisibilityStatement(vf.createStatement(vf.createIRI("urn:Alice"), vf.createIRI("urn:worksAt"), vf.createIRI("urn:TacoJoin")), "b") );
+        statements.add( new VisibilityStatement(vf.createStatement(vf.createIRI("urn:Bob"), vf.createIRI("urn:talksTo"), vf.createIRI("urn:Alice")), "a|b") );
+        statements.add( new VisibilityStatement(vf.createStatement(vf.createIRI("urn:Bob"), vf.createIRI("urn:worksAt"), vf.createIRI("urn:BurgerJoint")), "c") );
 
         // Show the correct binding set results from the job.
         final Set<VisibilityBindingSet> expected = new HashSet<>();
 
         QueryBindingSet bs = new QueryBindingSet();
-        bs.addBinding("person", vf.createURI("urn:Alice"));
-        bs.addBinding("otherPerson", vf.createURI("urn:Bob"));
+        bs.addBinding("person", vf.createIRI("urn:Alice"));
+        bs.addBinding("otherPerson", vf.createIRI("urn:Bob"));
         expected.add( new VisibilityBindingSet(bs, "a") );
 
         bs = new QueryBindingSet();
-        bs.addBinding("person", vf.createURI("urn:Bob"));
-        bs.addBinding("otherPerson", vf.createURI("urn:Alice"));
+        bs.addBinding("person", vf.createIRI("urn:Bob"));
+        bs.addBinding("otherPerson", vf.createIRI("urn:Alice"));
         expected.add( new VisibilityBindingSet(bs, "a|b") );
 
         // Run the test.
@@ -133,17 +133,17 @@ public class StatementPatternProcessorIT {
         final TopologyBuilder builder = factory.build(query, statementsTopic, resultsTopic, new RandomUUIDFactory());
 
         // Create some statements where some generates SP results and others do not.
-        final ValueFactory vf = new ValueFactoryImpl();
+        final ValueFactory vf = SimpleValueFactory.getInstance();
         final List<VisibilityStatement> statements = new ArrayList<>();
-        statements.add( new VisibilityStatement(vf.createStatement(vf.createURI("urn:Alice"), vf.createURI("urn:talksTo"), vf.createURI("urn:Bob")), "a") );
+        statements.add( new VisibilityStatement(vf.createStatement(vf.createIRI("urn:Alice"), vf.createIRI("urn:talksTo"), vf.createIRI("urn:Bob")), "a") );
 
         // Show the correct binding set results from the job.
         final Set<VisibilityBindingSet> expected = new HashSet<>();
 
         final QueryBindingSet bs = new QueryBindingSet();
-        bs.addBinding("person", vf.createURI("urn:Alice"));
-        bs.addBinding("action", vf.createURI("urn:talksTo"));
-        bs.addBinding("otherPerson", vf.createURI("urn:Bob"));
+        bs.addBinding("person", vf.createIRI("urn:Alice"));
+        bs.addBinding("action", vf.createIRI("urn:talksTo"));
+        bs.addBinding("otherPerson", vf.createIRI("urn:Bob"));
         expected.add( new VisibilityBindingSet(bs, "a") );
 
         // Run the test.
@@ -167,26 +167,26 @@ public class StatementPatternProcessorIT {
         final TopologyBuilder builder = factory.build(query, statementsTopic, resultsTopic, new RandomUUIDFactory());
 
         // Create some statements where some generates SP results and others do not.
-        final ValueFactory vf = new ValueFactoryImpl();
+        final ValueFactory vf = SimpleValueFactory.getInstance();
         final List<VisibilityStatement> statements = new ArrayList<>();
-        statements.add( new VisibilityStatement(vf.createStatement(vf.createURI("urn:Alice"), vf.createURI("urn:talksTo"), vf.createURI("urn:Bob")), "a") );
-        statements.add( new VisibilityStatement(vf.createStatement(vf.createURI("urn:Alice"), vf.createURI("urn:talksTo"), vf.createURI("urn:Charlie")), "a|b") );
-        statements.add( new VisibilityStatement(vf.createStatement(vf.createURI("urn:Charlie"), vf.createURI("urn:walksWith"), vf.createURI("urn:Bob")), "b") );
+        statements.add( new VisibilityStatement(vf.createStatement(vf.createIRI("urn:Alice"), vf.createIRI("urn:talksTo"), vf.createIRI("urn:Bob")), "a") );
+        statements.add( new VisibilityStatement(vf.createStatement(vf.createIRI("urn:Alice"), vf.createIRI("urn:talksTo"), vf.createIRI("urn:Charlie")), "a|b") );
+        statements.add( new VisibilityStatement(vf.createStatement(vf.createIRI("urn:Charlie"), vf.createIRI("urn:walksWith"), vf.createIRI("urn:Bob")), "b") );
 
         // Show the correct binding set results from the job.
         final Set<VisibilityBindingSet> expected = new HashSet<>();
 
         QueryBindingSet bs = new QueryBindingSet();
         bs = new QueryBindingSet();
-        bs.addBinding("person", vf.createURI("urn:Alice"));
-        bs.addBinding("action", vf.createURI("urn:talksTo"));
-        bs.addBinding("otherPerson", vf.createURI("urn:Charlie"));
+        bs.addBinding("person", vf.createIRI("urn:Alice"));
+        bs.addBinding("action", vf.createIRI("urn:talksTo"));
+        bs.addBinding("otherPerson", vf.createIRI("urn:Charlie"));
         expected.add(new VisibilityBindingSet(bs, "a&(a|b)"));
 
         bs = new QueryBindingSet();
-        bs.addBinding("person", vf.createURI("urn:Alice"));
-        bs.addBinding("action", vf.createURI("urn:talksTo"));
-        bs.addBinding("otherPerson", vf.createURI("urn:Bob"));
+        bs.addBinding("person", vf.createIRI("urn:Alice"));
+        bs.addBinding("action", vf.createIRI("urn:talksTo"));
+        bs.addBinding("otherPerson", vf.createIRI("urn:Bob"));
         expected.add(new VisibilityBindingSet(bs, "a"));
 
         // Run the test.

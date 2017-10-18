@@ -19,14 +19,12 @@ package org.apache.rya.joinselect;
  * under the License.
  */
 
-
-
 import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.accumulo.core.data.Key;
-import org.openrdf.query.algebra.StatementPattern;
-import org.openrdf.query.algebra.Var;
+import org.eclipse.rdf4j.query.algebra.StatementPattern;
+import org.eclipse.rdf4j.query.algebra.Var;
 
 public class CardinalityCalcUtil {
 

@@ -19,16 +19,15 @@ package org.apache.rya.reasoning;
  * under the License.
  */
 
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.Resource;
+import org.eclipse.rdf4j.model.vocabulary.OWL;
+import org.eclipse.rdf4j.model.vocabulary.RDF;
+import org.eclipse.rdf4j.model.vocabulary.RDFS;
+import org.eclipse.rdf4j.model.vocabulary.SKOS;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-
-import org.openrdf.model.Resource;
-import org.openrdf.model.URI;
-import org.openrdf.model.vocabulary.RDF;
-import org.openrdf.model.vocabulary.RDFS;
-import org.openrdf.model.vocabulary.OWL;
-import org.openrdf.model.vocabulary.SKOS;
 
 public class LocalReasonerTest {
     private LocalReasoner reasoner;
@@ -479,8 +478,8 @@ public class LocalReasonerTest {
      */
     @Test
     public void testMaxCardinalityZero() throws Exception {
-        URI r = TestUtils.uri("restriction");
-        URI p = TestUtils.uri("impossiblePredicate1");
+        IRI r = TestUtils.uri("restriction");
+        IRI p = TestUtils.uri("impossiblePredicate1");
         schema.processTriple(TestUtils.statement(r, OWL.MAXCARDINALITY,
             TestUtils.intLiteral("0")));
         schema.processTriple(TestUtils.statement(r, OWL.ONPROPERTY, p));
@@ -497,7 +496,7 @@ public class LocalReasonerTest {
     @Test
     public void testMaxQCardinalityZeroThings() throws Exception {
         Resource r = TestUtils.bnode("restriction");
-        URI p = TestUtils.uri("impossiblePredicate2");
+        IRI p = TestUtils.uri("impossiblePredicate2");
         schema.processTriple(TestUtils.statement(r, OWL2.MAXQUALIFIEDCARDINALITY,
             TestUtils.intLiteral("0")));
         schema.processTriple(TestUtils.statement(r, OWL.ONPROPERTY, p));

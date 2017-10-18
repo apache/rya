@@ -28,7 +28,7 @@ import org.apache.kafka.streams.state.KeyValueStore;
 import org.apache.rya.api.function.aggregation.AggregationState;
 import org.apache.rya.api.function.aggregation.AggregationStateStore;
 import org.apache.rya.api.model.VisibilityBindingSet;
-import org.openrdf.query.BindingSet;
+import org.eclipse.rdf4j.query.BindingSet;
 
 import com.google.common.base.Joiner;
 

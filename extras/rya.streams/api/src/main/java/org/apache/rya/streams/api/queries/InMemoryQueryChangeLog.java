@@ -25,11 +25,12 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.locks.ReentrantLock;
 
+import org.eclipse.rdf4j.common.iteration.CloseableIteration;
+
 import com.google.common.collect.Lists;
 
 import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
 import edu.umd.cs.findbugs.annotations.NonNull;
-import info.aduna.iteration.CloseableIteration;
 
 /**
  * An in memory implementation of {@link QueryChangeLog}. Anything that is stored in this change log will be

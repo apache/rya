@@ -36,12 +36,12 @@ import org.apache.rya.indexing.pcj.storage.PrecomputedJoinStorage;
 import org.apache.rya.indexing.pcj.storage.mongo.MongoPcjStorage;
 import org.apache.rya.mongodb.MongoDBRdfConfiguration;
 import org.apache.rya.mongodb.MongoITBase;
+import org.eclipse.rdf4j.model.Statement;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
+import org.eclipse.rdf4j.query.BindingSet;
+import org.eclipse.rdf4j.query.impl.MapBindingSet;
 import org.junit.Test;
-import org.openrdf.model.Statement;
-import org.openrdf.model.ValueFactory;
-import org.openrdf.model.impl.ValueFactoryImpl;
-import org.openrdf.query.BindingSet;
-import org.openrdf.query.impl.MapBindingSet;
 
 /**
  * Integration tests the methods of {@link AccumuloBatchUpdatePCJ}.
@@ -68,25 +68,25 @@ public class MongoBatchUpdatePCJIT extends MongoITBase {
                 .build());
 
         // Load some statements into the Rya instance.
-        final ValueFactory vf = ValueFactoryImpl.getInstance();
+        final ValueFactory vf = SimpleValueFactory.getInstance();
         final Collection<Statement> statements = new ArrayList<>();
-        statements.add(vf.createStatement(vf.createURI("urn:Alice"), vf.createURI("urn:likes"), vf.createURI("urn:icecream")));
-        statements.add(vf.createStatement(vf.createURI("urn:Bob"), vf.createURI("urn:likes"), vf.createURI("urn:icecream")));
-        statements.add(vf.createStatement(vf.createURI("urn:Charlie"), vf.createURI("urn:likes"), vf.createURI("urn:icecream")));
-        statements.add(vf.createStatement(vf.createURI("urn:David"), vf.createURI("urn:likes"), vf.createURI("urn:icecream")));
-        statements.add(vf.createStatement(vf.createURI("urn:Eve"), vf.createURI("urn:likes"), vf.createURI("urn:icecream")));
-        statements.add(vf.createStatement(vf.createURI("urn:Frank"), vf.createURI("urn:likes"), vf.createURI("urn:icecream")));
-        statements.add(vf.createStatement(vf.createURI("urn:George"), vf.createURI("urn:likes"), vf.createURI("urn:icecream")));
-        statements.add(vf.createStatement(vf.createURI("urn:Hillary"), vf.createURI("urn:likes"), vf.createURI("urn:icecream")));
+        statements.add(vf.createStatement(vf.createIRI("urn:Alice"), vf.createIRI("urn:likes"), vf.createIRI("urn:icecream")));
+        statements.add(vf.createStatement(vf.createIRI("urn:Bob"), vf.createIRI("urn:likes"), vf.createIRI("urn:icecream")));
+        statements.add(vf.createStatement(vf.createIRI("urn:Charlie"), vf.createIRI("urn:likes"), vf.createIRI("urn:icecream")));
+        statements.add(vf.createStatement(vf.createIRI("urn:David"), vf.createIRI("urn:likes"), vf.createIRI("urn:icecream")));
+        statements.add(vf.createStatement(vf.createIRI("urn:Eve"), vf.createIRI("urn:likes"), vf.createIRI("urn:icecream")));
+        statements.add(vf.createStatement(vf.createIRI("urn:Frank"), vf.createIRI("urn:likes"), vf.createIRI("urn:icecream")));
+        statements.add(vf.createStatement(vf.createIRI("urn:George"), vf.createIRI("urn:likes"), vf.createIRI("urn:icecream")));
+        statements.add(vf.createStatement(vf.createIRI("urn:Hillary"), vf.createIRI("urn:likes"), vf.createIRI("urn:icecream")));
 
-        statements.add(vf.createStatement(vf.createURI("urn:Alice"), vf.createURI("urn:hasEyeColor"), vf.createURI("urn:blue")));
-        statements.add(vf.createStatement(vf.createURI("urn:Bob"), vf.createURI("urn:hasEyeColor"), vf.createURI("urn:blue")));
-        statements.add(vf.createStatement(vf.createURI("urn:Charlie"), vf.createURI("urn:hasEyeColor"), vf.createURI("urn:blue")));
-        statements.add(vf.createStatement(vf.createURI("urn:David"), vf.createURI("urn:hasEyeColor"), vf.createURI("urn:blue")));
-        statements.add(vf.createStatement(vf.createURI("urn:Eve"), vf.createURI("urn:hasEyeColor"), vf.createURI("urn:blue")));
-        statements.add(vf.createStatement(vf.createURI("urn:Frank"), vf.createURI("urn:hasEyeColor"), vf.createURI("urn:blue")));
-        statements.add(vf.createStatement(vf.createURI("urn:George"), vf.createURI("urn:hasEyeColor"), vf.createURI("urn:green")));
-        statements.add(vf.createStatement(vf.createURI("urn:Hillary"), vf.createURI("urn:hasEyeColor"), vf.createURI("urn:brown")));
+        statements.add(vf.createStatement(vf.createIRI("urn:Alice"), vf.createIRI("urn:hasEyeColor"), vf.createIRI("urn:blue")));
+        statements.add(vf.createStatement(vf.createIRI("urn:Bob"), vf.createIRI("urn:hasEyeColor"), vf.createIRI("urn:blue")));
+        statements.add(vf.createStatement(vf.createIRI("urn:Charlie"), vf.createIRI("urn:hasEyeColor"), vf.createIRI("urn:blue")));
+        statements.add(vf.createStatement(vf.createIRI("urn:David"), vf.createIRI("urn:hasEyeColor"), vf.createIRI("urn:blue")));
+        statements.add(vf.createStatement(vf.createIRI("urn:Eve"), vf.createIRI("urn:hasEyeColor"), vf.createIRI("urn:blue")));
+        statements.add(vf.createStatement(vf.createIRI("urn:Frank"), vf.createIRI("urn:hasEyeColor"), vf.createIRI("urn:blue")));
+        statements.add(vf.createStatement(vf.createIRI("urn:George"), vf.createIRI("urn:hasEyeColor"), vf.createIRI("urn:green")));
+        statements.add(vf.createStatement(vf.createIRI("urn:Hillary"), vf.createIRI("urn:hasEyeColor"), vf.createIRI("urn:brown")));
         ryaClient.getLoadStatements().loadStatements(conf.getRyaInstanceName(), statements);
 
         try(final PrecomputedJoinStorage pcjStorage = new MongoPcjStorage(getMongoClient(), conf.getRyaInstanceName())) {
@@ -101,27 +101,27 @@ public class MongoBatchUpdatePCJIT extends MongoITBase {
             final Set<BindingSet> expectedResults = new HashSet<>();
 
             MapBindingSet bs = new MapBindingSet();
-            bs.addBinding("name", vf.createURI("urn:Alice"));
+            bs.addBinding("name", vf.createIRI("urn:Alice"));
             expectedResults.add(bs);
 
             bs = new MapBindingSet();
-            bs.addBinding("name", vf.createURI("urn:Bob"));
+            bs.addBinding("name", vf.createIRI("urn:Bob"));
             expectedResults.add(bs);
 
             bs = new MapBindingSet();
-            bs.addBinding("name", vf.createURI("urn:Charlie"));
+            bs.addBinding("name", vf.createIRI("urn:Charlie"));
             expectedResults.add(bs);
 
             bs = new MapBindingSet();
-            bs.addBinding("name", vf.createURI("urn:David"));
+            bs.addBinding("name", vf.createIRI("urn:David"));
             expectedResults.add(bs);
 
             bs = new MapBindingSet();
-            bs.addBinding("name", vf.createURI("urn:Eve"));
+            bs.addBinding("name", vf.createIRI("urn:Eve"));
             expectedResults.add(bs);
 
             bs = new MapBindingSet();
-            bs.addBinding("name", vf.createURI("urn:Frank"));
+            bs.addBinding("name", vf.createIRI("urn:Frank"));
             expectedResults.add(bs);
 
             final Set<BindingSet> results = new HashSet<>();

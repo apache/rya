@@ -21,7 +21,7 @@ package org.apache.rya.indexing;
 import java.util.HashSet;
 import java.util.Set;
 
-import info.aduna.iteration.CloseableIteration;
+import org.eclipse.rdf4j.common.iteration.CloseableIteration;
 
 /**
  * Utility methods to help test geo indexing methods.

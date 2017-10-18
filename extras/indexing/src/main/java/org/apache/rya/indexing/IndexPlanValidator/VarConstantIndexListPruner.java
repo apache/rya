@@ -19,20 +19,18 @@ package org.apache.rya.indexing.IndexPlanValidator;
  * under the License.
  */
 
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import org.apache.rya.indexing.external.tupleSet.ExternalTupleSet;
-
-import org.openrdf.query.algebra.Filter;
-import org.openrdf.query.algebra.StatementPattern;
-import org.openrdf.query.algebra.TupleExpr;
-import org.openrdf.query.algebra.ValueConstant;
-import org.openrdf.query.algebra.Var;
-import org.openrdf.query.algebra.helpers.QueryModelVisitorBase;
+import org.eclipse.rdf4j.query.algebra.Filter;
+import org.eclipse.rdf4j.query.algebra.StatementPattern;
+import org.eclipse.rdf4j.query.algebra.TupleExpr;
+import org.eclipse.rdf4j.query.algebra.ValueConstant;
+import org.eclipse.rdf4j.query.algebra.Var;
+import org.eclipse.rdf4j.query.algebra.helpers.AbstractQueryModelVisitor;
 
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
@@ -96,7 +94,7 @@ public class VarConstantIndexListPruner implements IndexListPruner {
     }
 
 
-    private static class ConstantCollector extends QueryModelVisitorBase<RuntimeException> {
+    private static class ConstantCollector extends AbstractQueryModelVisitor<RuntimeException> {
 
         private Map<String, Integer> constantMap = Maps.newHashMap();
         private int spCount = 0;

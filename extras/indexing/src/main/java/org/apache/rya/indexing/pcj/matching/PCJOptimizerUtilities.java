@@ -27,21 +27,21 @@ import java.util.Set;
 import org.apache.rya.indexing.external.matching.QuerySegment;
 import org.apache.rya.indexing.external.tupleSet.ExternalTupleSet;
 import org.apache.rya.indexing.pcj.matching.QueryVariableNormalizer.VarCollector;
-import org.openrdf.query.algebra.Difference;
-import org.openrdf.query.algebra.EmptySet;
-import org.openrdf.query.algebra.Filter;
-import org.openrdf.query.algebra.Intersection;
-import org.openrdf.query.algebra.Join;
-import org.openrdf.query.algebra.LeftJoin;
-import org.openrdf.query.algebra.Projection;
-import org.openrdf.query.algebra.QueryModelNode;
-import org.openrdf.query.algebra.StatementPattern;
-import org.openrdf.query.algebra.TupleExpr;
-import org.openrdf.query.algebra.UnaryTupleOperator;
-import org.openrdf.query.algebra.Union;
-import org.openrdf.query.algebra.Var;
-import org.openrdf.query.algebra.helpers.QueryModelVisitorBase;
-import org.openrdf.query.algebra.helpers.VarNameCollector;
+import org.eclipse.rdf4j.query.algebra.Difference;
+import org.eclipse.rdf4j.query.algebra.EmptySet;
+import org.eclipse.rdf4j.query.algebra.Filter;
+import org.eclipse.rdf4j.query.algebra.Intersection;
+import org.eclipse.rdf4j.query.algebra.Join;
+import org.eclipse.rdf4j.query.algebra.LeftJoin;
+import org.eclipse.rdf4j.query.algebra.Projection;
+import org.eclipse.rdf4j.query.algebra.QueryModelNode;
+import org.eclipse.rdf4j.query.algebra.StatementPattern;
+import org.eclipse.rdf4j.query.algebra.TupleExpr;
+import org.eclipse.rdf4j.query.algebra.UnaryTupleOperator;
+import org.eclipse.rdf4j.query.algebra.Union;
+import org.eclipse.rdf4j.query.algebra.Var;
+import org.eclipse.rdf4j.query.algebra.helpers.AbstractQueryModelVisitor;
+import org.eclipse.rdf4j.query.algebra.helpers.VarNameCollector;
 
 import com.google.common.collect.Sets;
 
@@ -114,7 +114,7 @@ public class PCJOptimizerUtilities {
 		return visitor.node;
 	}
 
-	static class ProjectionVisitor extends QueryModelVisitorBase<RuntimeException> {
+	static class ProjectionVisitor extends AbstractQueryModelVisitor<RuntimeException> {
 
 		Projection node = null;
 
@@ -155,7 +155,7 @@ public class PCJOptimizerUtilities {
 	 *
 	 */
 	private static class ValidQueryVisitor extends
-			QueryModelVisitorBase<RuntimeException> {
+            AbstractQueryModelVisitor<RuntimeException> {
 
 		private boolean isValid = true;
 		private final Set<QueryModelNode> filterSet = Sets.newHashSet();
@@ -232,7 +232,7 @@ public class PCJOptimizerUtilities {
 	 */
 
 	protected static class FilterRelocator extends
-			QueryModelVisitorBase<RuntimeException> {
+            AbstractQueryModelVisitor<RuntimeException> {
 
 		protected Filter filter;
 		protected Set<String> filterVars;
@@ -356,7 +356,7 @@ public class PCJOptimizerUtilities {
         return lj.containsLeftJoin;
     }
 
-    protected static class LeftJoinVisitor extends QueryModelVisitorBase<RuntimeException> {
+    protected static class LeftJoinVisitor extends AbstractQueryModelVisitor<RuntimeException> {
 
         boolean containsLeftJoin = false;
 

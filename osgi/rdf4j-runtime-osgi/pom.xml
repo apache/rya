@@ -24,18 +24,18 @@ under the License.
     <parent>
         <groupId>org.apache.rya</groupId>
         <artifactId>rya.osgi</artifactId>
-        <version>3.2.10-incubating-SNAPSHOT</version>
+        <version>3.2.13-incubating-SNAPSHOT</version>
     </parent>
 
-    <artifactId>sesame-runtime-osgi</artifactId>
-    <name>Sesame Runtime for OSGI</name>
+    <artifactId>rdf4j-runtime-osgi</artifactId>
+    <name>RDF4J Runtime for OSGI</name>
 
     <packaging>pom</packaging>
 
     <dependencies>
         <dependency>
-            <groupId>org.openrdf.sesame</groupId>
-            <artifactId>sesame-runtime-osgi</artifactId>
+            <groupId>org.eclipse.rdf4j</groupId>
+            <artifactId>rdf4j-runtime-osgi</artifactId>
         </dependency>
         <dependency>
             <groupId>biz.aQute</groupId>
@@ -58,11 +58,11 @@ under the License.
                         <configuration>
                             <artifactItems>
                                 <artifactItem>
-                                    <groupId>org.openrdf.sesame</groupId>
-                                    <artifactId>sesame-runtime-osgi</artifactId>
+                                    <groupId>org.eclipse.rdf4j</groupId>
+                                    <artifactId>rdf4j-runtime-osgi</artifactId>
                                     <version>${project.version}</version>
                                     <outputDirectory>${project.build.directory}</outputDirectory>
-                                    <destFileName>sesame-runtime-osgi.jar</destFileName>
+                                    <destFileName>rdf4j-runtime-osgi.jar</destFileName>
                                 </artifactItem>
                                 <artifactItem>
                                     <groupId>biz.aQute</groupId>
@@ -95,7 +95,7 @@ under the License.
                         <argument>-jar</argument>
                         <argument>target/bnd.jar</argument>
                         <argument>build</argument>
-                        <argument>openrdf-sesame-osgi.bnd</argument>
+                        <argument>eclipse-rdf4j-osgi.bnd</argument>
                     </arguments>
                 </configuration>
             </plugin>
@@ -114,7 +114,7 @@ under the License.
                         <configuration>
                             <artifacts>
                                 <artifact>
-                                    <file>${project.build.directory}/sesame-runtime-osgi-${project.version}.jar</file>
+                                    <file>${project.build.directory}/rdf4j-runtime-osgi-${project.version}.jar</file>
                                 </artifact>
                             </artifacts>
                         </configuration>

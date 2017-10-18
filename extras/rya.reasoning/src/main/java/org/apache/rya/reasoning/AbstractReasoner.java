@@ -22,9 +22,9 @@ package org.apache.rya.reasoning;
 import java.util.HashSet;
 import java.util.Set;
 
-import org.openrdf.model.Resource;
-import org.openrdf.model.URI;
-import org.openrdf.model.Value;
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.Resource;
+import org.eclipse.rdf4j.model.Value;
 
 /**
  * Abstract class for reasoning in the neighborhood of a particular resource.
@@ -162,7 +162,7 @@ public abstract class AbstractReasoner {
      * @param   rule    The specific rule rule that yielded the inference
      * @param   source  One (might be the only) fact used in the derivation
      */
-    protected Fact triple(Resource s, URI p, Value o, OwlRule rule,
+    protected Fact triple(Resource s, IRI p, Value o, OwlRule rule,
             Fact source) {
         Fact fact = new Fact(s, p, o, this.currentIteration,
             rule, this.node);

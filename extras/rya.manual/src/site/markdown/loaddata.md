@@ -106,7 +106,7 @@ Options:
 
 - rdf.tablePrefix : The tables (spo, po, osp) are prefixed with this qualifier. The tables become: (rdf.tablePrefix)spo,(rdf.tablePrefix)po,(rdf.tablePrefix)osp
 - ac.* : Accumulo connection parameters
-- rdf.format : See RDFFormat from openrdf, samples include (Trig, N-Triples, RDF/XML)
+- rdf.format : See RDFFormat from RDF4J, samples include (Trig, N-Triples, RDF/XML)
 - sc.use_freetext, sc.use_geo, sc.use_temporal, sc.use_entity : If any of these are set to true, statements will also be
     added to the enabled secondary indices.
 - sc.freetext.predicates, sc.geo.predicates, sc.temporal.predicates: If the associated indexer is enabled, these options specify
@@ -116,9 +116,9 @@ Options:
 The argument is the directory/file to load. This file needs to be loaded into HDFS before running. If loading a directory, all files should have the same RDF
 format.
 
-## Direct OpenRDF API
+## Direct RDF4J API
 
-Here is some sample code to load data directly through the OpenRDF API. (Loading N-Triples data)
+Here is some sample code to load data directly through the RDF4J API. (Loading N-Triples data)
 You will need at least `accumulo.rya-<version>`, `rya.api`, `rya.sail.impl` on the classpath and transitive dependencies. I find that Maven is the easiest way to get a project dependency tree set up.
 
 ``` JAVA

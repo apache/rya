@@ -28,8 +28,8 @@ import org.apache.kafka.streams.processor.ProcessorSupplier;
 import org.apache.rya.api.function.sp.StatementPatternMatcher;
 import org.apache.rya.api.model.VisibilityBindingSet;
 import org.apache.rya.api.model.VisibilityStatement;
-import org.openrdf.query.BindingSet;
-import org.openrdf.query.algebra.StatementPattern;
+import org.eclipse.rdf4j.query.BindingSet;
+import org.eclipse.rdf4j.query.algebra.StatementPattern;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

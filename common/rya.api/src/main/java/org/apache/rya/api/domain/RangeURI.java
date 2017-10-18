@@ -21,8 +21,7 @@ package org.apache.rya.api.domain;
 
 
 
-import org.openrdf.model.URI;
-import org.openrdf.model.Value;
+import org.eclipse.rdf4j.model.IRI;
 
 /**
  * Created by IntelliJ IDEA.
@@ -30,14 +29,14 @@ import org.openrdf.model.Value;
  * Time: 1:03 PM
  * To change this template use File | Settings | File Templates.
  */
-public class RangeURI extends RangeValue<URI> implements URI {
+public class RangeURI extends RangeValue<IRI> implements IRI {
 
-    public RangeURI(URI start, URI end) {
+    public RangeURI(IRI start, IRI end) {
         super(start, end);
     }
 
     public RangeURI(RangeValue rangeValue) {
-        super((URI) rangeValue.getStart(), (URI) rangeValue.getEnd());
+        super((IRI) rangeValue.getStart(), (IRI) rangeValue.getEnd());
     }
 
     @Override

@@ -1,7 +1,0 @@
--classpath= target/sesame-runtime-osgi.jar
--output= target/sesame-runtime-osgi-2.6.4.jar
-Import-Package= *;resolution:=optional
-Export-Package= *
-Bundle-Version= 2.6.4
-Bundle-SymbolicName= sesame-runtime-osgi
-DynamicImport-Package= *

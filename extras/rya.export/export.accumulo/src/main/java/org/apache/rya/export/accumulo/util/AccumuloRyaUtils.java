@@ -61,7 +61,7 @@ import org.apache.rya.api.resolver.RyaTripleContext;
 import org.apache.rya.api.resolver.triple.TripleRow;
 import org.apache.rya.api.resolver.triple.TripleRowResolverException;
 import org.apache.rya.indexing.accumulo.ConfigUtils;
-import org.openrdf.model.ValueFactory;
+import org.eclipse.rdf4j.model.ValueFactory;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableSet;
@@ -104,7 +104,7 @@ public final class AccumuloRyaUtils {
      * @return the {@link RyaURI}.
      */
     public static RyaURI createRyaUri(final String namespace, final String localName) {
-        return RdfToRyaConversions.convertURI(VALUE_FACTORY.createURI(namespace, localName));
+        return RdfToRyaConversions.convertURI(VALUE_FACTORY.createIRI(namespace, localName));
     }
 
     /**

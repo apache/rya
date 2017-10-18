@@ -27,13 +27,13 @@ import org.apache.rya.api.client.ExecuteSparqlQuery;
 import org.apache.rya.api.client.Install.InstallConfiguration;
 import org.apache.rya.api.client.RyaClient;
 import org.apache.rya.mongodb.MongoITBase;
+import org.eclipse.rdf4j.model.Statement;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
+import org.eclipse.rdf4j.query.BindingSet;
+import org.eclipse.rdf4j.query.TupleQueryResult;
+import org.eclipse.rdf4j.query.impl.MapBindingSet;
 import org.junit.Test;
-import org.openrdf.model.Statement;
-import org.openrdf.model.ValueFactory;
-import org.openrdf.model.impl.ValueFactoryImpl;
-import org.openrdf.query.BindingSet;
-import org.openrdf.query.TupleQueryResult;
-import org.openrdf.query.impl.MapBindingSet;
 
 /**
  * Integration tests the methods of {@link }.
@@ -82,36 +82,36 @@ public class MongoExecuteSparqlQueryIT extends MongoITBase {
      */
     private List<Statement> makeTestStatements() {
         final List<Statement> loadMe = new ArrayList<>();
-        final ValueFactory vf = new ValueFactoryImpl();
+        final ValueFactory vf = SimpleValueFactory.getInstance();
 
-        loadMe.add(vf.createStatement(vf.createURI("http://example#alice"), vf.createURI("http://example#talksTo"), vf
-                .createURI("http://example#bob")));
-        loadMe.add(vf.createStatement(vf.createURI("http://example#bob"), vf.createURI("http://example#talksTo"), vf
-                .createURI("http://example#charlie")));
-        loadMe.add(vf.createStatement(vf.createURI("http://example#charlie"), vf.createURI("http://example#likes"), vf
-                .createURI("http://example#icecream")));
+        loadMe.add(vf.createStatement(vf.createIRI("http://example#alice"), vf.createIRI("http://example#talksTo"), vf
+                .createIRI("http://example#bob")));
+        loadMe.add(vf.createStatement(vf.createIRI("http://example#bob"), vf.createIRI("http://example#talksTo"), vf
+                .createIRI("http://example#charlie")));
+        loadMe.add(vf.createStatement(vf.createIRI("http://example#charlie"), vf.createIRI("http://example#likes"), vf
+                .createIRI("http://example#icecream")));
         return loadMe;
     }
 
     private List<BindingSet> makeExpectedResults() {
         final List<BindingSet> expected = new ArrayList<>();
-        final ValueFactory vf = new ValueFactoryImpl();
+        final ValueFactory vf = SimpleValueFactory.getInstance();
         MapBindingSet bs = new MapBindingSet();
-        bs.addBinding("a", vf.createURI("http://example#alice"));
-        bs.addBinding("b", vf.createURI("http://example#talksTo"));
-        bs.addBinding("c", vf.createURI("http://example#bob"));
+        bs.addBinding("a", vf.createIRI("http://example#alice"));
+        bs.addBinding("b", vf.createIRI("http://example#talksTo"));
+        bs.addBinding("c", vf.createIRI("http://example#bob"));
         expected.add(bs);
 
         bs = new MapBindingSet();
-        bs.addBinding("a", vf.createURI("http://example#bob"));
-        bs.addBinding("b", vf.createURI("http://example#talksTo"));
-        bs.addBinding("c", vf.createURI("http://example#charlie"));
+        bs.addBinding("a", vf.createIRI("http://example#bob"));
+        bs.addBinding("b", vf.createIRI("http://example#talksTo"));
+        bs.addBinding("c", vf.createIRI("http://example#charlie"));
         expected.add(bs);
 
         bs = new MapBindingSet();
-        bs.addBinding("a", vf.createURI("http://example#charlie"));
-        bs.addBinding("b", vf.createURI("http://example#likes"));
-        bs.addBinding("c", vf.createURI("http://example#icecream"));
+        bs.addBinding("a", vf.createIRI("http://example#charlie"));
+        bs.addBinding("b", vf.createIRI("http://example#likes"));
+        bs.addBinding("c", vf.createIRI("http://example#icecream"));
         expected.add(bs);
 
         return expected;

@@ -31,11 +31,11 @@ import org.apache.kafka.common.serialization.StringSerializer;
 import org.apache.rya.api.model.VisibilityBindingSet;
 import org.apache.rya.test.kafka.KafkaTestInstanceRule;
 import org.apache.rya.test.kafka.KafkaTestUtil;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
+import org.eclipse.rdf4j.query.impl.MapBindingSet;
 import org.junit.Rule;
 import org.junit.Test;
-import org.openrdf.model.ValueFactory;
-import org.openrdf.model.impl.ValueFactoryImpl;
-import org.openrdf.query.impl.MapBindingSet;
 
 /**
  * Integration tests the {@link VisibilityBindingSetSerde} class' methods.
@@ -48,10 +48,10 @@ public class VisibilityBindingSetKafkaIT {
     @Test
     public void readAndWrite() throws Exception {
         // Create the object that will be written to the topic.
-        final ValueFactory vf = new ValueFactoryImpl();
+        final ValueFactory vf = SimpleValueFactory.getInstance();
 
         final MapBindingSet bs = new MapBindingSet();
-        bs.addBinding("urn:name", vf.createURI("urn:alice"));
+        bs.addBinding("urn:name", vf.createIRI("urn:alice"));
         bs.addBinding("urn:age", vf.createLiteral(32));
         final VisibilityBindingSet original = new VisibilityBindingSet(bs, "a|b|c");
 

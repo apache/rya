@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -46,10 +46,10 @@ import org.apache.rya.indexing.pcj.storage.PcjException;
 import org.apache.rya.indexing.pcj.storage.PrecomputedJoinStorage;
 import org.apache.rya.indexing.pcj.storage.PrecomputedJoinStorage.PCJStorageException;
 import org.apache.rya.indexing.pcj.storage.accumulo.AccumuloPcjStorage;
-import org.openrdf.query.MalformedQueryException;
-import org.openrdf.query.QueryEvaluationException;
-import org.openrdf.repository.RepositoryException;
-import org.openrdf.sail.SailException;
+import org.eclipse.rdf4j.query.MalformedQueryException;
+import org.eclipse.rdf4j.query.QueryEvaluationException;
+import org.eclipse.rdf4j.repository.RepositoryException;
+import org.eclipse.rdf4j.sail.SailException;
 
 import com.google.common.base.Optional;
 import com.google.common.collect.Sets;
@@ -160,7 +160,7 @@ public class AccumuloCreatePCJ extends AccumuloCommand implements CreatePCJ {
                 new String(cd.getUserPass()),
                 cd.getInstanceName(),
                 cd.getZookeepers(),
-                fluoAppName);) {
+                fluoAppName)) {
             // Initialize the PCJ within the Fluo application.
             final CreateFluoPcj fluoCreatePcj = new CreateFluoPcj();
             fluoCreatePcj.withRyaIntegration(pcjId, sparql, strategies, fluoClient, getConnector(), ryaInstance);

@@ -19,24 +19,22 @@ package org.apache.rya.indexing;
  * under the License.
  */
 
-
-
 import java.util.Set;
 
-import org.openrdf.model.Resource;
-import org.openrdf.model.URI;
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.Resource;
 
 public class StatementConstraints {
 	private Resource context = null;
 	private Resource subject = null;
-	private Set<URI> predicates = null;
+	private Set<IRI> predicates = null;
 
 	public StatementConstraints setContext(Resource context) {
 		this.context = context;
 		return this;
 	}
 
-	public StatementConstraints setPredicates(Set<URI> predicates) {
+	public StatementConstraints setPredicates(Set<IRI> predicates) {
 		this.predicates = predicates;
 		return this;
 	}
@@ -50,7 +48,7 @@ public class StatementConstraints {
 		return context;
 	}
 
-	public Set<URI> getPredicates() {
+	public Set<IRI> getPredicates() {
 		return predicates;
 	}
 

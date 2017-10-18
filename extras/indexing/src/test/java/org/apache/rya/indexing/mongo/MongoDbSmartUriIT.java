@@ -52,34 +52,31 @@ import org.apache.rya.indexing.mongodb.MongoDbSmartUri;
 import org.apache.rya.indexing.smarturi.SmartUriAdapter;
 import org.apache.rya.indexing.smarturi.SmartUriException;
 import org.apache.rya.mongodb.MongoITBase;
+import org.eclipse.rdf4j.common.iteration.CloseableIteration;
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.Value;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
+import org.eclipse.rdf4j.model.vocabulary.RDF;
+import org.eclipse.rdf4j.query.BindingSet;
+import org.eclipse.rdf4j.query.QueryEvaluationException;
+import org.eclipse.rdf4j.query.algebra.StatementPattern;
+import org.eclipse.rdf4j.query.algebra.evaluation.QueryBindingSet;
+import org.eclipse.rdf4j.query.algebra.helpers.StatementPatternCollector;
+import org.eclipse.rdf4j.query.parser.sparql.SPARQLParser;
 import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.Test;
-import org.openrdf.model.URI;
-import org.openrdf.model.Value;
-import org.openrdf.model.ValueFactory;
-import org.openrdf.model.impl.URIImpl;
-import org.openrdf.model.impl.ValueFactoryImpl;
-import org.openrdf.model.vocabulary.RDF;
-import org.openrdf.query.BindingSet;
-import org.openrdf.query.MalformedQueryException;
-import org.openrdf.query.QueryEvaluationException;
-import org.openrdf.query.algebra.StatementPattern;
-import org.openrdf.query.algebra.evaluation.QueryBindingSet;
-import org.openrdf.query.algebra.helpers.StatementPatternCollector;
-import org.openrdf.query.parser.sparql.SPARQLParser;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
-
-import info.aduna.iteration.CloseableIteration;
 
 /**
  * Tests for MongoDB based Smart URI.
  */
 public class MongoDbSmartUriIT extends MongoITBase {
     private static final String NAMESPACE = RyaSchema.NAMESPACE;
-    private static final ValueFactory VALUE_FACTORY = ValueFactoryImpl.getInstance();
+    private static final ValueFactory VF = SimpleValueFactory.getInstance();
 
     // People
     private static final RyaURI BOB = createRyaUri("Bob");
@@ -142,7 +139,7 @@ public class MongoDbSmartUriIT extends MongoITBase {
      * @return the {@link RyraURI}.
      */
     private static RyaURI createRyaUri(final String namespace, final String localName) {
-        return RdfToRyaConversions.convertURI(VALUE_FACTORY.createURI(namespace, localName));
+        return RdfToRyaConversions.convertURI(VF.createIRI(namespace, localName));
     }
 
     private static Entity createBobEntity() {
@@ -162,7 +159,7 @@ public class MongoDbSmartUriIT extends MongoITBase {
             .setProperty(PERSON_TYPE_URI, new Property(HAS_DATE_OF_BIRTH, dateRyaType(new DateTime().minusYears(40))))
             .setProperty(PERSON_TYPE_URI, new Property(HAS_EXPIRATION_DATE, dateRyaType(new Date())))
             .setProperty(PERSON_TYPE_URI, new Property(HAS_GLASSES, booleanRyaType(true)))
-            .setProperty(PERSON_TYPE_URI, new Property(HAS_EMAIL_ADDRESS, uriRyaType(new URIImpl("mailto:bob.smitch00@gmail.com"))))
+            .setProperty(PERSON_TYPE_URI, new Property(HAS_EMAIL_ADDRESS, uriRyaType(VF.createIRI("mailto:bob.smitch00@gmail.com"))))
             .setProperty(PERSON_TYPE_URI, new Property(HAS_ATTRIBUTE_SPACE, stringRyaType("attribute space")))
             .setProperty(PERSON_TYPE_URI, new Property(HAS_MOTTO, stringRyaType("!@#*\\&%20^ smörgåsbord")))
             .setProperty(PERSON_TYPE_URI, new Property(HAS_BLOOD_TYPE, stringRyaType("A+ blood type")))
@@ -214,18 +211,18 @@ public class MongoDbSmartUriIT extends MongoITBase {
     }
 
     private static String getRyaUriLocalName(final RyaURI ryaUri) {
-        return new URIImpl(ryaUri.getData()).getLocalName();
+        return VF.createIRI(ryaUri.getData()).getLocalName();
     }
 
     @Test
     public void testSerializeDeserialize() throws SmartUriException, URISyntaxException {
-        final URI smartUri = SmartUriAdapter.serializeUriEntity(BOB_ENTITY);
+        final IRI smartUri = SmartUriAdapter.serializeUriEntity(BOB_ENTITY);
         final Entity resultEntity = SmartUriAdapter.deserializeUriEntity(smartUri);
         assertEquals(BOB_ENTITY.getSubject(), resultEntity.getSubject());
     }
 
     @Test
-    public void testStorage() throws SmartUriException, MalformedQueryException, RuntimeException, QueryEvaluationException {
+    public void testStorage() throws SmartUriException, RuntimeException {
         smartUriConverter.storeEntity(BOB_ENTITY);
 
         final String sparql = "SELECT * WHERE { " +
@@ -295,7 +292,7 @@ public class MongoDbSmartUriIT extends MongoITBase {
         // Look up Person Type Entities that match Bob's SSN property
         final Set<Property> properties = new LinkedHashSet<>();
         properties.add(BOB_ENTITY.lookupTypeProperty(PERSON_TYPE, HAS_SSN).get());
-        final Map<URI, Value> map = SmartUriAdapter.propertiesToMap(properties);
+        final Map<IRI, Value> map = SmartUriAdapter.propertiesToMap(properties);
 
         final ConvertingCursor<TypedEntity> cursor = smartUriConverter.queryEntity(PERSON_TYPE, map);
         int count = 0;

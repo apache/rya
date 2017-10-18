@@ -38,42 +38,44 @@ import org.apache.rya.mongodb.MongoDBRdfConfiguration;
 import org.apache.rya.mongodb.MongoITBase;
 import org.apache.rya.mongodb.StatefulMongoDBRdfConfiguration;
 import org.apache.rya.sail.config.RyaSailFactory;
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
+import org.eclipse.rdf4j.model.vocabulary.RDF;
+import org.eclipse.rdf4j.model.vocabulary.RDFS;
+import org.eclipse.rdf4j.query.BindingSet;
+import org.eclipse.rdf4j.query.QueryLanguage;
+import org.eclipse.rdf4j.query.QueryResultHandlerException;
+import org.eclipse.rdf4j.query.TupleQueryResultHandler;
+import org.eclipse.rdf4j.query.TupleQueryResultHandlerException;
+import org.eclipse.rdf4j.query.algebra.TupleExpr;
+import org.eclipse.rdf4j.query.parser.ParsedQuery;
+import org.eclipse.rdf4j.query.parser.sparql.SPARQLParser;
+import org.eclipse.rdf4j.repository.sail.SailRepository;
+import org.eclipse.rdf4j.repository.sail.SailRepositoryConnection;
+import org.eclipse.rdf4j.sail.Sail;
 import org.junit.Test;
-import org.openrdf.model.URI;
-import org.openrdf.model.impl.LiteralImpl;
-import org.openrdf.model.impl.URIImpl;
-import org.openrdf.model.vocabulary.RDF;
-import org.openrdf.model.vocabulary.RDFS;
-import org.openrdf.query.BindingSet;
-import org.openrdf.query.QueryLanguage;
-import org.openrdf.query.QueryResultHandlerException;
-import org.openrdf.query.TupleQueryResultHandler;
-import org.openrdf.query.TupleQueryResultHandlerException;
-import org.openrdf.query.algebra.TupleExpr;
-import org.openrdf.query.parser.ParsedQuery;
-import org.openrdf.query.parser.sparql.SPARQLParser;
-import org.openrdf.repository.sail.SailRepository;
-import org.openrdf.repository.sail.SailRepositoryConnection;
-import org.openrdf.sail.Sail;
 
 import com.google.common.collect.Lists;
 
 public class MongoPcjIntegrationTest extends MongoITBase {
-    private static final URI talksTo = new URIImpl("uri:talksTo");
-    private static final URI sub = new URIImpl("uri:entity");
-    private static final URI sub2 = new URIImpl("uri:entity2");
-    private static final URI subclass = new URIImpl("uri:class");
-    private static final URI subclass2 = new URIImpl("uri:class2");
-    private static final URI obj = new URIImpl("uri:obj");
-    private static final URI obj2 = new URIImpl("uri:obj2");
+    private static final ValueFactory VF = SimpleValueFactory.getInstance();
+
+    private static final IRI talksTo = VF.createIRI("uri:talksTo");
+    private static final IRI sub = VF.createIRI("uri:entity");
+    private static final IRI sub2 = VF.createIRI("uri:entity2");
+    private static final IRI subclass = VF.createIRI("uri:class");
+    private static final IRI subclass2 = VF.createIRI("uri:class2");
+    private static final IRI obj = VF.createIRI("uri:obj");
+    private static final IRI obj2 = VF.createIRI("uri:obj2");
 
     private void addPCJS(final SailRepositoryConnection conn) throws Exception {
         conn.add(sub, RDF.TYPE, subclass);
-        conn.add(sub, RDFS.LABEL, new LiteralImpl("label"));
+        conn.add(sub, RDFS.LABEL, VF.createLiteral("label"));
         conn.add(sub, talksTo, obj);
 
         conn.add(sub2, RDF.TYPE, subclass2);
-        conn.add(sub2, RDFS.LABEL, new LiteralImpl("label2"));
+        conn.add(sub2, RDFS.LABEL, VF.createLiteral("label2"));
         conn.add(sub2, talksTo, obj2);
     }
 
@@ -135,13 +137,13 @@ public class MongoPcjIntegrationTest extends MongoITBase {
         final SailRepositoryConnection pcjConn = new SailRepository(pcjSail).getConnection();
         addPCJS(pcjConn);
         try {
-            final URI superclass = new URIImpl("uri:superclass");
-            final URI superclass2 = new URIImpl("uri:superclass2");
+            final IRI superclass = VF.createIRI("uri:superclass");
+            final IRI superclass2 = VF.createIRI("uri:superclass2");
 
             conn.add(subclass, RDF.TYPE, superclass);
             conn.add(subclass2, RDF.TYPE, superclass2);
-            conn.add(obj, RDFS.LABEL, new LiteralImpl("label"));
-            conn.add(obj2, RDFS.LABEL, new LiteralImpl("label2"));
+            conn.add(obj, RDFS.LABEL, VF.createLiteral("label"));
+            conn.add(obj2, RDFS.LABEL, VF.createLiteral("label2"));
 
             final String indexSparqlString = ""//
                     + "SELECT ?dog ?pig ?duck  " //
@@ -178,13 +180,13 @@ public class MongoPcjIntegrationTest extends MongoITBase {
         final SailRepositoryConnection pcjConn = new SailRepository(pcjSail).getConnection();
         addPCJS(pcjConn);
         try {
-            final URI superclass = new URIImpl("uri:superclass");
-            final URI superclass2 = new URIImpl("uri:superclass2");
+            final IRI superclass = VF.createIRI("uri:superclass");
+            final IRI superclass2 = VF.createIRI("uri:superclass2");
 
             conn.add(subclass, RDF.TYPE, superclass);
             conn.add(subclass2, RDF.TYPE, superclass2);
-            conn.add(obj, RDFS.LABEL, new LiteralImpl("label"));
-            conn.add(obj2, RDFS.LABEL, new LiteralImpl("label2"));
+            conn.add(obj, RDFS.LABEL, VF.createLiteral("label"));
+            conn.add(obj2, RDFS.LABEL, VF.createLiteral("label2"));
 
             final String indexSparqlString = ""//
                     + "SELECT ?dog ?pig ?duck  " //
@@ -252,17 +254,17 @@ public class MongoPcjIntegrationTest extends MongoITBase {
         final SailRepositoryConnection pcjConn = new SailRepository(pcjSail).getConnection();
         addPCJS(pcjConn);
         try {
-            final URI superclass = new URIImpl("uri:superclass");
-            final URI superclass2 = new URIImpl("uri:superclass2");
+            final IRI superclass = VF.createIRI("uri:superclass");
+            final IRI superclass2 = VF.createIRI("uri:superclass2");
 
-            final URI howlsAt = new URIImpl("uri:howlsAt");
-            final URI subType = new URIImpl("uri:subType");
-            final URI superSuperclass = new URIImpl("uri:super_superclass");
+            final IRI howlsAt = VF.createIRI("uri:howlsAt");
+            final IRI subType = VF.createIRI("uri:subType");
+            final IRI superSuperclass = VF.createIRI("uri:super_superclass");
 
             conn.add(subclass, RDF.TYPE, superclass);
             conn.add(subclass2, RDF.TYPE, superclass2);
-            conn.add(obj, RDFS.LABEL, new LiteralImpl("label"));
-            conn.add(obj2, RDFS.LABEL, new LiteralImpl("label2"));
+            conn.add(obj, RDFS.LABEL, VF.createLiteral("label"));
+            conn.add(obj2, RDFS.LABEL, VF.createLiteral("label2"));
             conn.add(sub, howlsAt, superclass);
             conn.add(superclass, subType, superSuperclass);
 

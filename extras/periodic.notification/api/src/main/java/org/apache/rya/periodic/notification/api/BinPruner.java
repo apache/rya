@@ -18,8 +18,8 @@
  */
 package org.apache.rya.periodic.notification.api;
 
-import org.openrdf.query.Binding;
-import org.openrdf.query.BindingSet;
+import org.eclipse.rdf4j.query.Binding;
+import org.eclipse.rdf4j.query.BindingSet;
 
 /**
  * Object that cleans up old {@link BindingSet}s corresponding to the specified

@@ -27,10 +27,10 @@
 //import org.apache.rya.accumulo.DefineTripleQueryRangeFactory;
 //import org.apache.rya.api.domain.RangeValue;
 //import org.apache.accumulo.core.data.Range;
-//import org.openrdf.model.URI;
-//import org.openrdf.model.Value;
-//import org.openrdf.model.ValueFactory;
-//import org.openrdf.model.impl.ValueFactoryImpl;
+//import org.eclipse.rdf4j.model.IRI;
+//import org.eclipse.rdf4j.model.Value;
+//import org.eclipse.rdf4j.model.ValueFactory;
+//import org.eclipse.rdf4j.model.impl.ValueFactoryImpl;
 //
 //import java.util.Map;
 //
@@ -50,9 +50,9 @@
 //    private AccumuloRdfConfiguration conf = new AccumuloRdfConfiguration();
 //
 //    public void testSPOCases() throws Exception {
-//        URI cpu = vf.createURI(litdupsNS, "cpu");
-//        URI loadPerc = vf.createURI(litdupsNS, "loadPerc");
-//        URI obj = vf.createURI(litdupsNS, "uri1");
+//        URI cpu = vf.createIRI(litdupsNS, "cpu");
+//        URI loadPerc = vf.createIRI(litdupsNS, "loadPerc");
+//        URI obj = vf.createIRI(litdupsNS, "uri1");
 //
 //        //spo
 //        Map.Entry<TABLE_LAYOUT, Range> entry =
@@ -96,12 +96,12 @@
 //    }
 //
 //    public void testSPOCasesWithRanges() throws Exception {
-//        URI subj_start = vf.createURI(litdupsNS, "subj_start");
-//        URI subj_end = vf.createURI(litdupsNS, "subj_stop");
-//        URI pred_start = vf.createURI(litdupsNS, "pred_start");
-//        URI pred_end = vf.createURI(litdupsNS, "pred_stop");
-//        URI obj_start = vf.createURI(litdupsNS, "obj_start");
-//        URI obj_end = vf.createURI(litdupsNS, "obj_stop");
+//        URI subj_start = vf.createIRI(litdupsNS, "subj_start");
+//        URI subj_end = vf.createIRI(litdupsNS, "subj_stop");
+//        URI pred_start = vf.createIRI(litdupsNS, "pred_start");
+//        URI pred_end = vf.createIRI(litdupsNS, "pred_stop");
+//        URI obj_start = vf.createIRI(litdupsNS, "obj_start");
+//        URI obj_end = vf.createIRI(litdupsNS, "obj_stop");
 //
 //        Value subj = new RangeValue(subj_start, subj_end);
 //        Value pred = new RangeValue(pred_start, pred_end);
@@ -146,8 +146,8 @@
 //    }
 //
 //    public void testPOCases() throws Exception {
-//        URI loadPerc = vf.createURI(litdupsNS, "loadPerc");
-//        URI obj = vf.createURI(litdupsNS, "uri1");
+//        URI loadPerc = vf.createIRI(litdupsNS, "loadPerc");
+//        URI obj = vf.createIRI(litdupsNS, "uri1");
 //
 //        //po
 //        Map.Entry<TABLE_LAYOUT, Range> entry =
@@ -171,10 +171,10 @@
 //    }
 //
 //    public void testPOCasesWithRanges() throws Exception {
-//        URI pred_start = vf.createURI(litdupsNS, "pred_start");
-//        URI pred_end = vf.createURI(litdupsNS, "pred_stop");
-//        URI obj_start = vf.createURI(litdupsNS, "obj_start");
-//        URI obj_end = vf.createURI(litdupsNS, "obj_stop");
+//        URI pred_start = vf.createIRI(litdupsNS, "pred_start");
+//        URI pred_end = vf.createIRI(litdupsNS, "pred_stop");
+//        URI obj_start = vf.createIRI(litdupsNS, "obj_start");
+//        URI obj_end = vf.createIRI(litdupsNS, "obj_stop");
 //
 //        Value pred = new RangeValue(pred_start, pred_end);
 //        Value obj = new RangeValue(obj_start, obj_end);
@@ -204,8 +204,8 @@
 //    }
 //
 //    public void testOSPCases() throws Exception {
-//        URI cpu = vf.createURI(litdupsNS, "cpu");
-//        URI obj = vf.createURI(litdupsNS, "uri1");
+//        URI cpu = vf.createIRI(litdupsNS, "cpu");
+//        URI obj = vf.createIRI(litdupsNS, "uri1");
 //
 //        //so
 //        Map.Entry<TABLE_LAYOUT, Range> entry =
@@ -230,10 +230,10 @@
 //
 //
 //    public void testOSPCasesWithRanges() throws Exception {
-//        URI subj_start = vf.createURI(litdupsNS, "subj_start");
-//        URI subj_end = vf.createURI(litdupsNS, "subj_stop");
-//        URI obj_start = vf.createURI(litdupsNS, "obj_start");
-//        URI obj_end = vf.createURI(litdupsNS, "obj_stop");
+//        URI subj_start = vf.createIRI(litdupsNS, "subj_start");
+//        URI subj_end = vf.createIRI(litdupsNS, "subj_stop");
+//        URI obj_start = vf.createIRI(litdupsNS, "obj_start");
+//        URI obj_end = vf.createIRI(litdupsNS, "obj_stop");
 //
 //        Value subj = new RangeValue(subj_start, subj_end);
 //        Value obj = new RangeValue(obj_start, obj_end);

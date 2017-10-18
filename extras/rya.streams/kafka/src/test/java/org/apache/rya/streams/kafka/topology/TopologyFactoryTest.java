@@ -23,16 +23,17 @@ import static org.junit.Assert.assertTrue;
 
 import java.util.List;
 
+import org.apache.rya.api.domain.VarNameUtils;
 import org.apache.rya.api.function.projection.RandomUUIDFactory;
 import org.apache.rya.streams.kafka.topology.TopologyFactory.ProcessorEntry;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
+import org.eclipse.rdf4j.query.algebra.Join;
+import org.eclipse.rdf4j.query.algebra.Projection;
+import org.eclipse.rdf4j.query.algebra.StatementPattern;
+import org.eclipse.rdf4j.query.algebra.Var;
 import org.junit.Before;
 import org.junit.Test;
-import org.openrdf.model.ValueFactory;
-import org.openrdf.model.impl.ValueFactoryImpl;
-import org.openrdf.query.algebra.Join;
-import org.openrdf.query.algebra.Projection;
-import org.openrdf.query.algebra.StatementPattern;
-import org.openrdf.query.algebra.Var;
 
 /**
  * Unit tests the methods of {@link TopologyFactory}.
@@ -40,9 +41,9 @@ import org.openrdf.query.algebra.Var;
 public class TopologyFactoryTest {
     private static TopologyFactory FACTORY;
 
-    private static final ValueFactory VF = ValueFactoryImpl.getInstance();
-    private static final Var TALKS_TO = new Var("-const-urn:talksTo", VF.createURI("urn:talksTo"));
-    private static final Var CHEWS = new Var("-const-urn:chews", VF.createURI("urn:chews"));
+    private static final ValueFactory VF = SimpleValueFactory.getInstance();
+    private static final Var TALKS_TO = VarNameUtils.createUniqueConstVar(VF.createIRI("urn:talksTo"));
+    private static final Var CHEWS = VarNameUtils.createUniqueConstVar(VF.createIRI("urn:chews"));
 
     static {
         TALKS_TO.setAnonymous(true);

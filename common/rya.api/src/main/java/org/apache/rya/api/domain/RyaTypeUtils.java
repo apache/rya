@@ -20,12 +20,12 @@ package org.apache.rya.api.domain;
 
 import java.util.Date;
 
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.impl.SimpleIRI;
+import org.eclipse.rdf4j.model.vocabulary.XMLSchema;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.format.ISODateTimeFormat;
-import org.openrdf.model.URI;
-import org.openrdf.model.impl.URIImpl;
-import org.openrdf.model.vocabulary.XMLSchema;
 
 import com.google.common.collect.ImmutableMap;
 
@@ -45,8 +45,8 @@ public final class RyaTypeUtils {
             .put(Long.class, (v) -> longRyaType((Long) v))
             .put(Short.class, (v) -> shortRyaType((Short) v))
             .put(String.class, (v) -> stringRyaType((String) v))
-            .put(URI.class, (v) -> uriRyaType((URI) v))
-            .put(URIImpl.class, (v) -> uriRyaType((URIImpl) v))
+            .put(IRI.class, (v) -> uriRyaType((IRI) v))
+            .put(SimpleIRI.class, (v) -> uriRyaType((SimpleIRI) v))
             .build();
 
     /**
@@ -182,11 +182,11 @@ public final class RyaTypeUtils {
     /**
      *
      * Creates a URI {@link RyaType} object.
-     * @param value the {@link URI} object.
+     * @param value the {@link IRI} object.
      * @return the {@link RyaType} with the data type set to
      * {@link XMLSchema#ANYURI} and the data set to the specified {@code value}.
      */
-    public static RyaType uriRyaType(final URI value) {
+    public static RyaType uriRyaType(final IRI value) {
         return new RyaType(XMLSchema.ANYURI, value.stringValue());
     }
 

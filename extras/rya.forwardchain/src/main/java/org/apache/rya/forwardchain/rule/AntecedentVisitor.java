@@ -21,8 +21,8 @@ package org.apache.rya.forwardchain.rule;
 import java.util.HashSet;
 import java.util.Set;
 
-import org.openrdf.query.algebra.StatementPattern;
-import org.openrdf.query.algebra.helpers.QueryModelVisitorBase;
+import org.eclipse.rdf4j.query.algebra.StatementPattern;
+import org.eclipse.rdf4j.query.algebra.helpers.AbstractQueryModelVisitor;
 
 /**
  * Query visitor that identifies all triple patterns represented as
@@ -33,7 +33,7 @@ import org.openrdf.query.algebra.helpers.QueryModelVisitorBase;
  * This means relying on this analysis to determine whether a fact can be part
  * of a solution can yield false positives, but not false negatives.
  */
-class AntecedentVisitor extends QueryModelVisitorBase<RuntimeException> {
+class AntecedentVisitor extends AbstractQueryModelVisitor<RuntimeException> {
     private Set<StatementPattern> antecedentStatementPatterns = new HashSet<>();
 
     /**

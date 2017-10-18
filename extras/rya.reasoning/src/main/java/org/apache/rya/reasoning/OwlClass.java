@@ -23,10 +23,10 @@ import java.io.Serializable;
 import java.util.HashSet;
 import java.util.Set;
 
-import org.openrdf.model.Resource;
-import org.openrdf.model.URI;
-import org.openrdf.model.Value;
-import org.openrdf.model.vocabulary.OWL;
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.Resource;
+import org.eclipse.rdf4j.model.Value;
+import org.eclipse.rdf4j.model.vocabulary.OWL;
 
 /**
  * Contains all the schema information we might need about a class.
@@ -318,8 +318,8 @@ public class OwlClass implements Serializable {
     /**
      * Get the onProperty relation(s) for this property restriction.
      */
-    public Set<URI> getOnProperty() {
-        Set<URI> onp = new HashSet<>();
+    public Set<IRI> getOnProperty() {
+        Set<IRI> onp = new HashSet<>();
         for (OwlProperty prop : properties) {
             onp.add(prop.getURI());
         }
@@ -411,9 +411,9 @@ public class OwlClass implements Serializable {
      * is a subproperty of the other's.
      */
     boolean onSubProperty(OwlClass other) {
-        Set<URI> otherProp = other.getOnProperty();
+        Set<IRI> otherProp = other.getOnProperty();
         for (OwlProperty prop : this.properties) {
-            Set<URI> intersection = prop.getSuperProperties();
+            Set<IRI> intersection = prop.getSuperProperties();
             intersection.retainAll(otherProp);
             if (!intersection.isEmpty()) {
                 return true;

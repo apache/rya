@@ -668,12 +668,12 @@ processType(fact):
 The main reasoning logic is located in **org.apache.rya.reasoning**, while MapReduce
 tools and utilities for interacting with Accumulo are located in
 **org.apache.rya.reasoning.mr**. Reasoning logic makes use of RDF constructs in the
-**org.openrdf.model** API, in particular: Statement, URI, Resource, and Value.
+**org.eclipse.rdf4j.model** API, in particular: Statement, URI, Resource, and Value.
 
 ### org.apache.rya.reasoning
 
 - **OWL2**:
-    In general, the Sesame/openrdf API is used to represent RDF constructs and
+    In general, the RDF4J API is used to represent RDF constructs and
     refer to the RDF, RDFS, and OWL vocabularies. However, the API only covers
     OWL 1 constructs. The OWL2 class contains static URIs for new OWL 2
     vocabulary resources: owl:IrreflexiveProperty, owl:propertyDisjointWith,
@@ -710,7 +710,7 @@ tools and utilities for interacting with Accumulo are located in
 
 - An **OwlProperty** or **OwlClass** represents a property or a class, respectively.
     Each object holds a reference to the RDF entity that identifies it (using to
-    the openrdf api): a URI for each OwlProperty, and a Resource for each class
+    the RDF4J api): a URI for each OwlProperty, and a Resource for each class
     (because a class is more general; it can be a URI or a bnode).
 
     Both maintain connections to other schema constructs, according to the
@@ -850,7 +850,7 @@ output/input, takes in `<Fact, NullWritable>` or `<Derivation, NullWritable>`).
     jobs (using those parameters).
 
 - **ResourceWritable**:
-    WritableComparable wrapper for org.openrdf.model.Resource, so it can be used as
+    WritableComparable wrapper for org.eclipse.rdf4j.model.Resource, so it can be used as
     a key/value in MapReduce tasks. Also contains an integer field to enable
     arbitrary secondary sort. Provides static classes **PrimaryComparator** to use
     the Resource alone, and **SecondaryComparator** to use resource followed by key.

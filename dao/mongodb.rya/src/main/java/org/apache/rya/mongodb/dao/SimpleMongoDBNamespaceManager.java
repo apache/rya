@@ -26,14 +26,13 @@ import java.util.Map;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.rya.api.persist.RyaDAOException;
 import org.apache.rya.mongodb.StatefulMongoDBRdfConfiguration;
-import org.openrdf.model.Namespace;
+import org.eclipse.rdf4j.common.iteration.CloseableIteration;
+import org.eclipse.rdf4j.model.Namespace;
 
 import com.mongodb.BasicDBObject;
 import com.mongodb.DBCollection;
 import com.mongodb.DBCursor;
 import com.mongodb.DBObject;
-
-import info.aduna.iteration.CloseableIteration;
 
 public class SimpleMongoDBNamespaceManager implements MongoDBNamespaceManager {
 

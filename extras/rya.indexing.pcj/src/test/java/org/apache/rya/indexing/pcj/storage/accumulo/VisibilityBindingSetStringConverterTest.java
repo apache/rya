@@ -18,14 +18,14 @@
  */
 package org.apache.rya.indexing.pcj.storage.accumulo;
 
+import org.apache.rya.indexing.pcj.storage.accumulo.BindingSetConverter.BindingSetConversionException;
+import org.eclipse.rdf4j.model.impl.URIImpl;
+import org.eclipse.rdf4j.query.BindingSet;
+import org.eclipse.rdf4j.query.impl.MapBindingSet;
+import org.junit.Test;
+
 import static org.apache.rya.indexing.pcj.storage.accumulo.VisibilityBindingSetStringConverter.VISIBILITY_DELIM;
 import static org.junit.Assert.assertEquals;
-
-import org.apache.rya.indexing.pcj.storage.accumulo.BindingSetConverter.BindingSetConversionException;
-import org.junit.Test;
-import org.openrdf.model.impl.URIImpl;
-import org.openrdf.query.BindingSet;
-import org.openrdf.query.impl.MapBindingSet;
 
 /**
  * Tests the methods of {@link BindingSetStringConverter}.

@@ -19,20 +19,18 @@ package org.apache.rya.api.resolver;
  * under the License.
  */
 
-
-
 import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.domain.RyaType;
 import org.apache.rya.api.domain.RyaURI;
-import org.openrdf.model.Literal;
-import org.openrdf.model.Statement;
-import org.openrdf.model.URI;
-import org.openrdf.model.Value;
-import org.openrdf.model.impl.ContextStatementImpl;
-import org.openrdf.model.impl.LiteralImpl;
-import org.openrdf.model.impl.StatementImpl;
-import org.openrdf.model.impl.URIImpl;
-import org.openrdf.model.vocabulary.XMLSchema;
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.Literal;
+import org.eclipse.rdf4j.model.Statement;
+import org.eclipse.rdf4j.model.Value;
+import org.eclipse.rdf4j.model.impl.ContextStatementImpl;
+import org.eclipse.rdf4j.model.impl.LiteralImpl;
+import org.eclipse.rdf4j.model.impl.StatementImpl;
+import org.eclipse.rdf4j.model.impl.URIImpl;
+import org.eclipse.rdf4j.model.vocabulary.XMLSchema;
 
 /**
  * Date: 7/17/12
@@ -40,7 +38,7 @@ import org.openrdf.model.vocabulary.XMLSchema;
  */
 public class RyaToRdfConversions {
 
-    public static URI convertURI(RyaURI uri) {
+    public static IRI convertURI(RyaURI uri) {
         return new URIImpl(uri.getData());
     }
 

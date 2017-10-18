@@ -18,66 +18,58 @@
  */
 package org.apache.rya.rdftriplestore.inference;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
 import java.util.Iterator;
 import java.util.Set;
 
-import org.apache.rya.accumulo.AccumuloRdfConfiguration;
-import org.junit.Test;
-import org.openrdf.model.Resource;
-import org.openrdf.model.URI;
-import org.openrdf.model.Value;
-import org.openrdf.model.ValueFactory;
-import org.openrdf.model.impl.ValueFactoryImpl;
-import org.openrdf.model.vocabulary.RDF;
-import org.openrdf.query.Binding;
-import org.openrdf.query.BindingSet;
-import org.openrdf.query.algebra.BindingSetAssignment;
-import org.openrdf.query.algebra.Projection;
-import org.openrdf.query.algebra.ProjectionElem;
-import org.openrdf.query.algebra.ProjectionElemList;
-import org.openrdf.query.algebra.StatementPattern;
-import org.openrdf.query.algebra.Var;
-import org.openrdf.query.algebra.evaluation.QueryBindingSet;
-
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import org.apache.rya.accumulo.AccumuloRdfConfiguration;
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.Resource;
+import org.eclipse.rdf4j.model.Value;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
+import org.eclipse.rdf4j.model.vocabulary.RDF;
+import org.eclipse.rdf4j.query.Binding;
+import org.eclipse.rdf4j.query.BindingSet;
+import org.eclipse.rdf4j.query.algebra.*;
+import org.eclipse.rdf4j.query.algebra.evaluation.QueryBindingSet;
+import org.junit.Test;
+
+import static org.junit.Assert.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /**
  * Tests the methods of {@link OneOfVisitor}.
  */
 public class OneOfVisitorTest {
     private final AccumuloRdfConfiguration conf = new AccumuloRdfConfiguration();
-    private static final ValueFactory VF = new ValueFactoryImpl();
+    private static final ValueFactory VF = SimpleValueFactory.getInstance();
 
-    private static final URI SUITS = VF.createURI("urn:Suits");
-    private static final URI RANKS = VF.createURI("urn:Ranks");
+    private static final IRI SUITS = vf.createIRI("urn:Suits");
+    private static final IRI RANKS = vf.createIRI("urn:Ranks");
 
     // Definition #1: :Suits owl:oneOf(:Clubs, :Diamonds, :Hearts, :Spades)
-    private static final URI CLUBS = VF.createURI("urn:Clubs");
-    private static final URI DIAMONDS = VF.createURI("urn:Diamonds");
-    private static final URI HEARTS = VF.createURI("urn:Hearts");
-    private static final URI SPADES = VF.createURI("urn:Spades");
+    private static final IRI CLUBS = vf.createIRI("urn:Clubs");
+    private static final IRI DIAMONDS = vf.createIRI("urn:Diamonds");
+    private static final IRI HEARTS = vf.createIRI("urn:Hearts");
+    private static final IRI SPADES = vf.createIRI("urn:Spades");
 
     // Definition #2: :Ranks owl:oneOf(:Ace, :2, :3, :4, :5, :6, :7, :8, :9, :10, :Jack, :Queen, :King)
-    private static final URI ACE = VF.createURI("urn:Ace");
-    private static final URI TWO = VF.createURI("urn:2");
-    private static final URI THREE = VF.createURI("urn:3");
-    private static final URI FOUR = VF.createURI("urn:4");
-    private static final URI FIVE = VF.createURI("urn:5");
-    private static final URI SIX = VF.createURI("urn:6");
-    private static final URI SEVEN = VF.createURI("urn:7");
-    private static final URI EIGHT = VF.createURI("urn:8");
-    private static final URI NINE = VF.createURI("urn:9");
-    private static final URI TEN = VF.createURI("urn:10");
-    private static final URI JACK = VF.createURI("urn:Jack");
-    private static final URI QUEEN = VF.createURI("urn:Queen");
-    private static final URI KING = VF.createURI("urn:King");
+    private static final IRI ACE = vf.createIRI("urn:Ace");
+    private static final IRI TWO = vf.createIRI("urn:2");
+    private static final IRI THREE = vf.createIRI("urn:3");
+    private static final IRI FOUR = vf.createIRI("urn:4");
+    private static final IRI FIVE = vf.createIRI("urn:5");
+    private static final IRI SIX = vf.createIRI("urn:6");
+    private static final IRI SEVEN = vf.createIRI("urn:7");
+    private static final IRI EIGHT = vf.createIRI("urn:8");
+    private static final IRI NINE = vf.createIRI("urn:9");
+    private static final IRI TEN = vf.createIRI("urn:10");
+    private static final IRI JACK = vf.createIRI("urn:Jack");
+    private static final IRI QUEEN = vf.createIRI("urn:Queen");
+    private static final IRI KING = vf.createIRI("urn:King");
 
     private static final Set<Resource> CARD_SUIT_ENUMERATION =
         Sets.newLinkedHashSet(

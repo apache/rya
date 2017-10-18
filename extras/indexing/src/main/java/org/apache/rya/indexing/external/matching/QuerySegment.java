@@ -23,9 +23,9 @@ import java.util.List;
 import java.util.Set;
 
 import org.apache.rya.indexing.external.matching.QueryNodesToTupleExpr.TupleExprAndNodes;
-import org.openrdf.query.algebra.Filter;
-import org.openrdf.query.algebra.QueryModelNode;
-import org.openrdf.query.algebra.evaluation.impl.ExternalSet;
+import org.eclipse.rdf4j.query.algebra.Filter;
+import org.eclipse.rdf4j.query.algebra.QueryModelNode;
+import org.eclipse.rdf4j.query.algebra.evaluation.impl.ExternalSet;
 
 /**
  * A QuerySegment represents a subset of a query to be compared to ExternalSets for
@@ -41,15 +41,15 @@ public interface QuerySegment<T extends ExternalSet> extends Cloneable{
      *
      * @return - an unordered view of the {@link QueryModelNode}s in the segment
      */
-    public Set<QueryModelNode> getUnOrderedNodes();
+    Set<QueryModelNode> getUnOrderedNodes();
 
     /**
      *
      * @return - an ordered view of the {@link QueryModelNode}s in the segment.
      */
-    public List<QueryModelNode> getOrderedNodes();
+    List<QueryModelNode> getOrderedNodes();
 
-    public Set<Filter> getFilters();
+    Set<Filter> getFilters();
 
     /**
      *
@@ -58,7 +58,7 @@ public interface QuerySegment<T extends ExternalSet> extends Cloneable{
      *            contained in this segment
      * @return - true if contained and false otherwise
      */
-    public boolean containsQuerySegment(QuerySegment<T> segment);
+    boolean containsQuerySegment(QuerySegment<T> segment);
 
     /**
      * Sets List of {@link QueryModelNode}s representing this QuerySegment to
@@ -67,7 +67,7 @@ public interface QuerySegment<T extends ExternalSet> extends Cloneable{
      * @param nodes
      *            - nodes to set
      */
-    public void setNodes(List<QueryModelNode> nodes);
+    void setNodes(List<QueryModelNode> nodes);
 
     /**
      * @param nodeToReplace
@@ -78,8 +78,8 @@ public interface QuerySegment<T extends ExternalSet> extends Cloneable{
      *            occurs
      * @return - true if match occurs and false otherwise
      */
-    public boolean replaceWithExternalSet(QuerySegment<T> nodeToReplace, T set);
+    boolean replaceWithExternalSet(QuerySegment<T> nodeToReplace, T set);
 
-    public TupleExprAndNodes getQuery();
+    TupleExprAndNodes getQuery();
 
 }

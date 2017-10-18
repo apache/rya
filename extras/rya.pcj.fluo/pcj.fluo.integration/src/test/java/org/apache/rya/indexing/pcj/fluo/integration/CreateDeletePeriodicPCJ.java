@@ -18,22 +18,12 @@
  */
 package org.apache.rya.indexing.pcj.fluo.integration;
 
-import static java.util.Objects.requireNonNull;
-import static org.junit.Assert.assertEquals;
-
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Properties;
-import java.util.Set;
+import java.util.*;
 
+import com.google.common.collect.Sets;
 import javax.xml.datatype.DatatypeFactory;
-
 import org.apache.fluo.api.client.FluoClient;
 import org.apache.fluo.api.client.FluoFactory;
 import org.apache.fluo.api.client.Snapshot;
@@ -60,12 +50,13 @@ import org.apache.rya.periodic.notification.notification.CommandNotification;
 import org.apache.rya.periodic.notification.notification.CommandNotification.Command;
 import org.apache.rya.periodic.notification.registration.KafkaNotificationRegistrationClient;
 import org.apache.rya.periodic.notification.serialization.CommandNotificationSerializer;
+import org.eclipse.rdf4j.model.Statement;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 import org.junit.Test;
-import org.openrdf.model.Statement;
-import org.openrdf.model.ValueFactory;
-import org.openrdf.model.impl.ValueFactoryImpl;
 
-import com.google.common.collect.Sets;
+import static java.util.Objects.requireNonNull;
+import static org.junit.Assert.assertEquals;
 
 public class CreateDeletePeriodicPCJ extends KafkaExportITBase {
 
@@ -79,7 +70,7 @@ public class CreateDeletePeriodicPCJ extends KafkaExportITBase {
                 + "?obs <uri:hasId> ?id }"; // n
 
         // Create the Statements that will be loaded into Rya.
-        final ValueFactory vf = new ValueFactoryImpl();
+        final ValueFactory vf = SimpleValueFactory.getInstance();
         final DatatypeFactory dtf = DatatypeFactory.newInstance();
         ZonedDateTime time = ZonedDateTime.now();
 
@@ -96,18 +87,18 @@ public class CreateDeletePeriodicPCJ extends KafkaExportITBase {
         String time4 = zTime4.format(DateTimeFormatter.ISO_INSTANT);
 
         final Collection<Statement> statements = Sets.newHashSet(
-                vf.createStatement(vf.createURI("urn:obs_1"), vf.createURI("uri:hasTime"),
+                vf.createStatement(vf.createIRI("urn:obs_1"), vf.createIRI("uri:hasTime"),
                         vf.createLiteral(dtf.newXMLGregorianCalendar(time1))),
-                vf.createStatement(vf.createURI("urn:obs_1"), vf.createURI("uri:hasId"), vf.createLiteral("id_1")),
-                vf.createStatement(vf.createURI("urn:obs_2"), vf.createURI("uri:hasTime"),
+                vf.createStatement(vf.createIRI("urn:obs_1"), vf.createIRI("uri:hasId"), vf.createLiteral("id_1")),
+                vf.createStatement(vf.createIRI("urn:obs_2"), vf.createIRI("uri:hasTime"),
                         vf.createLiteral(dtf.newXMLGregorianCalendar(time2))),
-                vf.createStatement(vf.createURI("urn:obs_2"), vf.createURI("uri:hasId"), vf.createLiteral("id_2")),
-                vf.createStatement(vf.createURI("urn:obs_3"), vf.createURI("uri:hasTime"),
+                vf.createStatement(vf.createIRI("urn:obs_2"), vf.createIRI("uri:hasId"), vf.createLiteral("id_2")),
+                vf.createStatement(vf.createIRI("urn:obs_3"), vf.createIRI("uri:hasTime"),
                         vf.createLiteral(dtf.newXMLGregorianCalendar(time3))),
-                vf.createStatement(vf.createURI("urn:obs_3"), vf.createURI("uri:hasId"), vf.createLiteral("id_3")),
-                vf.createStatement(vf.createURI("urn:obs_4"), vf.createURI("uri:hasTime"),
+                vf.createStatement(vf.createIRI("urn:obs_3"), vf.createIRI("uri:hasId"), vf.createLiteral("id_3")),
+                vf.createStatement(vf.createIRI("urn:obs_4"), vf.createIRI("uri:hasTime"),
                         vf.createLiteral(dtf.newXMLGregorianCalendar(time4))),
-                vf.createStatement(vf.createURI("urn:obs_4"), vf.createURI("uri:hasId"), vf.createLiteral("id_4")));
+                vf.createStatement(vf.createIRI("urn:obs_4"), vf.createIRI("uri:hasId"), vf.createLiteral("id_4")));
 
         runTest(query, statements, 29);
 

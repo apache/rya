@@ -4,11 +4,11 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.hadoop.conf.Configuration;
-import org.openrdf.model.Statement;
-import org.openrdf.model.URI;
-import org.openrdf.model.Value;
-import org.openrdf.query.BindingSet;
-import org.openrdf.query.QueryEvaluationException;
+import  org.eclipse.rdf4j.model.Statement;
+import  org.eclipse.rdf4j.model.URI;
+import  org.eclipse.rdf4j.model.Value;
+import  org.eclipse.rdf4j.query.BindingSet;
+import  org.eclipse.rdf4j.query.QueryEvaluationException;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.Maps;
@@ -36,7 +36,7 @@ import com.vividsolutions.jts.io.WKTReader;
  */
 
 
-import info.aduna.iteration.CloseableIteration;
+import org.eclipse.rdf4j.common.iteration.CloseableIteration;
 import org.apache.rya.indexing.GeoConstants;
 import org.apache.rya.indexing.GeoIndexer;
 import org.apache.rya.indexing.IndexingExpr;

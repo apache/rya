@@ -18,8 +18,6 @@
  */
 package org.apache.rya.prospector.service;
 
-import static java.util.Objects.requireNonNull;
-
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -31,30 +29,32 @@ import org.apache.accumulo.core.client.TableNotFoundException;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.rya.accumulo.AccumuloRdfConfiguration;
 import org.apache.rya.accumulo.utils.ConnectorFactory;
-import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
+import org.apache.rya.api.RdfTripleStoreConfiguration;
 import org.apache.rya.api.persist.RdfDAOException;
 import org.apache.rya.api.persist.RdfEvalStatsDAO;
 import org.apache.rya.prospector.domain.IndexEntry;
 import org.apache.rya.prospector.domain.TripleValueType;
 import org.apache.rya.prospector.utils.ProspectorConstants;
-import org.openrdf.model.Resource;
-import org.openrdf.model.Value;
+import org.eclipse.rdf4j.model.Resource;
+import org.eclipse.rdf4j.model.Value;
+
+import static java.util.Objects.requireNonNull;
 
 /**
  * An ${@link org.apache.rya.api.persist.RdfEvalStatsDAO} that uses the Prospector Service underneath return counts.
  */
-public class ProspectorServiceEvalStatsDAO implements RdfEvalStatsDAO<RdfCloudTripleStoreConfiguration> {
+public class ProspectorServiceEvalStatsDAO implements RdfEvalStatsDAO<RdfTripleStoreConfiguration> {
 
     private ProspectorService prospectorService;
 
     public ProspectorServiceEvalStatsDAO() {
     }
 
-    public ProspectorServiceEvalStatsDAO(ProspectorService prospectorService, RdfCloudTripleStoreConfiguration conf) {
+    public ProspectorServiceEvalStatsDAO(ProspectorService prospectorService, RdfTripleStoreConfiguration conf) {
         this.prospectorService = prospectorService;
     }
 
-    public ProspectorServiceEvalStatsDAO(Connector connector, RdfCloudTripleStoreConfiguration conf) throws AccumuloException, AccumuloSecurityException {
+    public ProspectorServiceEvalStatsDAO(Connector connector, RdfTripleStoreConfiguration conf) throws AccumuloException, AccumuloSecurityException {
         this.prospectorService = new ProspectorService(connector, getProspectTableName(conf));
     }
 
@@ -89,7 +89,7 @@ public class ProspectorServiceEvalStatsDAO implements RdfEvalStatsDAO<RdfCloudTr
     }
 
     @Override
-    public double getCardinality(RdfCloudTripleStoreConfiguration conf, CARDINALITY_OF card, List<Value> val) throws RdfDAOException {
+    public double getCardinality(RdfTripleStoreConfiguration conf, CARDINALITY_OF card, List<Value> val) throws RdfDAOException {
         assert conf != null && card != null && val != null;
 
         String triplePart = null;
@@ -134,20 +134,20 @@ public class ProspectorServiceEvalStatsDAO implements RdfEvalStatsDAO<RdfCloudTr
     }
 
     @Override
-    public double getCardinality(RdfCloudTripleStoreConfiguration conf, CARDINALITY_OF card, List<Value> val, Resource context) {
+    public double getCardinality(RdfTripleStoreConfiguration conf, CARDINALITY_OF card, List<Value> val, Resource context) {
         return getCardinality(conf, card, val); //TODO: Not sure about the context yet
     }
 
     @Override
-    public void setConf(RdfCloudTripleStoreConfiguration conf) {
+    public void setConf(RdfTripleStoreConfiguration conf) {
     }
 
     @Override
-    public RdfCloudTripleStoreConfiguration getConf() {
+    public RdfTripleStoreConfiguration getConf() {
         return null;
     }
 
-    public static String getProspectTableName(RdfCloudTripleStoreConfiguration conf) {
+    public static String getProspectTableName(RdfTripleStoreConfiguration conf) {
         return conf.getTablePrefix() + "prospects";
     }
 

@@ -1,10 +1,19 @@
 package org.apache.rya.rdftriplestore.evaluation;
 
-import static org.apache.rya.api.RdfCloudTripleStoreConstants.RANGE;
-
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import org.apache.rya.api.RdfTripleStoreConfiguration;
+import org.apache.rya.api.domain.RangeURI;
+import org.apache.rya.api.domain.RangeValue;
+import org.eclipse.rdf4j.model.Value;
+import org.eclipse.rdf4j.model.impl.BooleanLiteralImpl;
+import org.eclipse.rdf4j.query.QueryEvaluationException;
+import org.eclipse.rdf4j.query.algebra.*;
+import org.eclipse.rdf4j.query.algebra.helpers.QueryModelVisitorBase;
+
+import static org.apache.rya.api.RdfCloudTripleStoreConstants.RANGE;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -25,22 +34,6 @@ import java.util.Map;
  * under the License.
  */
 
-
-
-import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
-import org.apache.rya.api.domain.RangeURI;
-import org.apache.rya.api.domain.RangeValue;
-import org.openrdf.model.Value;
-import org.openrdf.model.impl.BooleanLiteralImpl;
-import org.openrdf.query.QueryEvaluationException;
-import org.openrdf.query.algebra.Filter;
-import org.openrdf.query.algebra.FunctionCall;
-import org.openrdf.query.algebra.StatementPattern;
-import org.openrdf.query.algebra.ValueConstant;
-import org.openrdf.query.algebra.ValueExpr;
-import org.openrdf.query.algebra.Var;
-import org.openrdf.query.algebra.helpers.QueryModelVisitorBase;
-
 /**
  * Class FilterTimeIndexVisitor
  * Date: Apr 11, 2011
@@ -48,10 +41,10 @@ import org.openrdf.query.algebra.helpers.QueryModelVisitorBase;
  */
 public class FilterRangeVisitor extends QueryModelVisitorBase<Exception> {
 
-    private final RdfCloudTripleStoreConfiguration conf;
+    private final RdfTripleStoreConfiguration conf;
     private final Map<Var, RangeValue> rangeValues = new HashMap<Var, RangeValue>();
 
-    public FilterRangeVisitor(final RdfCloudTripleStoreConfiguration conf) {
+    public FilterRangeVisitor(final RdfTripleStoreConfiguration conf) {
         this.conf = conf;
     }
 

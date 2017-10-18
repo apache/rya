@@ -1,7 +1,7 @@
 package org.apache.rya.indexing;
 
-import org.openrdf.model.Statement;
-import org.openrdf.query.QueryEvaluationException;
+import  org.eclipse.rdf4j.model.Statement;
+import  org.eclipse.rdf4j.query.QueryEvaluationException;
 
 import com.vividsolutions.jts.geom.Geometry;
 
@@ -26,7 +26,7 @@ import com.vividsolutions.jts.geom.Geometry;
 
 
 
-import info.aduna.iteration.CloseableIteration;
+import org.eclipse.rdf4j.common.iteration.CloseableIteration;
 import org.apache.rya.api.persist.index.RyaSecondaryIndexer;
 import org.apache.rya.indexing.accumulo.geo.GeoTupleSet.GeoSearchFunctionFactory.NearQuery;
 

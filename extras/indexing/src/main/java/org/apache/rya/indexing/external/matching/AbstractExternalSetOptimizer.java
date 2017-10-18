@@ -22,22 +22,15 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import com.google.common.base.Optional;
 import org.apache.rya.indexing.external.matching.QueryNodesToTupleExpr.TupleExprAndNodes;
 import org.apache.rya.indexing.pcj.matching.PCJOptimizerUtilities;
-import org.openrdf.query.BindingSet;
-import org.openrdf.query.Dataset;
-import org.openrdf.query.algebra.BinaryTupleOperator;
-import org.openrdf.query.algebra.Filter;
-import org.openrdf.query.algebra.Join;
-import org.openrdf.query.algebra.LeftJoin;
-import org.openrdf.query.algebra.QueryModelNode;
-import org.openrdf.query.algebra.TupleExpr;
-import org.openrdf.query.algebra.UnaryTupleOperator;
-import org.openrdf.query.algebra.evaluation.QueryOptimizer;
-import org.openrdf.query.algebra.evaluation.impl.ExternalSet;
-import org.openrdf.query.algebra.helpers.QueryModelVisitorBase;
-
-import com.google.common.base.Optional;
+import org.eclipse.rdf4j.query.BindingSet;
+import org.eclipse.rdf4j.query.Dataset;
+import org.eclipse.rdf4j.query.algebra.*;
+import org.eclipse.rdf4j.query.algebra.evaluation.QueryOptimizer;
+import org.eclipse.rdf4j.query.algebra.evaluation.impl.ExternalSet;
+import org.eclipse.rdf4j.query.algebra.helpers.QueryModelVisitorBase;
 
 /**
  * Abstract base class meant to be extended by any QueryOptimizer that matches ExternalSets

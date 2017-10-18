@@ -19,30 +19,29 @@ package org.apache.rya.rdftriplestore.provenance.rdf;
  * under the License.
  */
 
-
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 
-import org.openrdf.model.Resource;
-import org.openrdf.model.Statement;
-import org.openrdf.model.URI;
-import org.openrdf.model.ValueFactory;
-import org.openrdf.model.impl.ValueFactoryImpl;
-import org.openrdf.model.vocabulary.RDF;
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.Resource;
+import org.eclipse.rdf4j.model.Statement;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
+import org.eclipse.rdf4j.model.vocabulary.RDF;
 
 /**
  * Basic representation of Provenance data capture in RDF.
  */
 public class BaseProvenanceModel implements RDFProvenanceModel {
 	
-	private static final ValueFactory vf = ValueFactoryImpl.getInstance();
-	private static final Resource queryEventType = vf.createURI("http://rya.com/provenance#QueryEvent");
-	private static final URI atTimeProperty = vf.createURI("http://www.w3.org/ns/prov#atTime");
-	private static final URI associatedWithUser = vf.createURI("http://rya.com/provenance#associatedWithUser");
-	private static final URI queryTypeProp = vf.createURI("http://rya.com/provenance#queryType");
-	private static final URI executedQueryProperty = vf.createURI("http://rya.com/provenance#executedQuery");
+	private static final ValueFactory vf = SimpleValueFactory.getInstance();
+	private static final Resource queryEventType = vf.createIRI("http://rya.com/provenance#QueryEvent");
+	private static final IRI atTimeProperty = vf.createIRI("http://www.w3.org/ns/prov#atTime");
+	private static final IRI associatedWithUser = vf.createIRI("http://rya.com/provenance#associatedWithUser");
+	private static final IRI queryTypeProp = vf.createIRI("http://rya.com/provenance#queryType");
+	private static final IRI executedQueryProperty = vf.createIRI("http://rya.com/provenance#executedQuery");
 	private static final String queryNameSpace = "http://rya.com/provenance#queryEvent";
 
 	/* (non-Javadoc)
@@ -51,7 +50,7 @@ public class BaseProvenanceModel implements RDFProvenanceModel {
 	public List<Statement> getStatementsForQuery(String query, String user, String queryType) {
 		List<Statement> statements = new ArrayList<Statement>();
 		// create some statements for the query
-		Resource queryEventResource = vf.createURI(queryNameSpace + UUID.randomUUID().toString());
+		Resource queryEventResource = vf.createIRI(queryNameSpace + UUID.randomUUID().toString());
 		Statement queryEventDecl = vf.createStatement(queryEventResource, RDF.TYPE, queryEventType);
 		statements.add(queryEventDecl);
 		Statement queryEventTime = vf.createStatement(queryEventResource, atTimeProperty, vf.createLiteral(new Date()));

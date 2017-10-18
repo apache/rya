@@ -18,10 +18,13 @@ package org.apache.rya.indexing.pcj.fluo.app;
  * specific language governing permissions and limitations
  * under the License.
  */
+
 import java.io.UnsupportedEncodingException;
 import java.util.Map;
 import java.util.Optional;
 
+import com.google.common.base.Objects;
+import com.google.common.base.Preconditions;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.log4j.Logger;
 import org.apache.rya.api.domain.RyaStatement;
@@ -29,17 +32,14 @@ import org.apache.rya.api.domain.RyaType;
 import org.apache.rya.api.domain.RyaURI;
 import org.apache.rya.api.resolver.RdfToRyaConversions;
 import org.apache.rya.indexing.pcj.storage.accumulo.VisibilityBindingSet;
-import org.openrdf.model.BNode;
-import org.openrdf.model.Resource;
-import org.openrdf.model.URI;
-import org.openrdf.model.Value;
-import org.openrdf.model.impl.BNodeImpl;
-import org.openrdf.query.BindingSet;
-import org.openrdf.query.algebra.StatementPattern;
-import org.openrdf.query.algebra.Var;
-
-import com.google.common.base.Objects;
-import com.google.common.base.Preconditions;
+import org.eclipse.rdf4j.model.BNode;
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.Resource;
+import org.eclipse.rdf4j.model.Value;
+import org.eclipse.rdf4j.model.impl.BNodeImpl;
+import org.eclipse.rdf4j.query.BindingSet;
+import org.eclipse.rdf4j.query.algebra.StatementPattern;
+import org.eclipse.rdf4j.query.algebra.Var;
 
 /**
  * This class projects a VisibilityBindingSet onto a RyaStatement. The Binding
@@ -93,12 +93,12 @@ public class ConstructProjection {
 
     /**
      * Returns a Var with info about the Value projected onto the RyaStatement
-     * subject. If the org.openrdf.query.algebra.Var returned by this method is
+     * subject. If the  org.eclipse.rdf4j.query.algebra.Var returned by this method is
      * not constant (as indicated by {@link Var#isConstant()}, then
      * {@link Var#getName()} is the Binding name that gets projected. If the Var
      * is constant, then {@link Var#getValue()} is assigned to the subject
      * 
-     * @return {@link org.openrdf.query.algebra.Var} containing info about
+     * @return {@link  org.eclipse.rdf4j.query.algebra.Var} containing info about
      *         Binding that gets projected onto the subject
      */
     public String getSubjectSourceName() {
@@ -107,12 +107,12 @@ public class ConstructProjection {
 
     /**
      * Returns a Var with info about the Value projected onto the RyaStatement
-     * predicate. If the org.openrdf.query.algebra.Var returned by this method
+     * predicate. If the  org.eclipse.rdf4j.query.algebra.Var returned by this method
      * is not constant (as indicated by {@link Var#isConstant()}, then
      * {@link Var#getName()} is the Binding name that gets projected. If the Var
      * is constant, then {@link Var#getValue()} is assigned to the predicate
      * 
-     * @return {@link org.openrdf.query.algebra.Var} containing info about
+     * @return {@link  org.eclipse.rdf4j.query.algebra.Var} containing info about
      *         Binding that gets projected onto the predicate
      */
     public String getPredicateSourceName() {
@@ -121,12 +121,12 @@ public class ConstructProjection {
 
     /**
      * Returns a Var with info about the Value projected onto the RyaStatement
-     * object. If the org.openrdf.query.algebra.Var returned by this method is
+     * object. If the  org.eclipse.rdf4j.query.algebra.Var returned by this method is
      * not constant (as indicated by {@link Var#isConstant()}, then
      * {@link Var#getName()} is the Binding name that gets projected. If the Var
      * is constant, then {@link Var#getValue()} is assigned to the object
      * 
-     * @return {@link org.openrdf.query.algebra.Var} containing info about
+     * @return {@link  org.eclipse.rdf4j.query.algebra.Var} containing info about
      *         Binding that gets projected onto the object
      */
     public String getObjectSourceName() {
@@ -199,10 +199,10 @@ public class ConstructProjection {
         Preconditions.checkNotNull(pred);
         Preconditions.checkNotNull(obj);
         Preconditions.checkArgument(subj instanceof Resource);
-        Preconditions.checkArgument(pred instanceof URI);
+        Preconditions.checkArgument(pred instanceof IRI);
 
         RyaURI subjType = RdfToRyaConversions.convertResource((Resource) subj);
-        RyaURI predType = RdfToRyaConversions.convertURI((URI) pred);
+        RyaURI predType = RdfToRyaConversions.convertURI((IRI) pred);
         RyaType objectType = RdfToRyaConversions.convertValue(obj);
 
         RyaStatement statement = new RyaStatement(subjType, predType, objectType);

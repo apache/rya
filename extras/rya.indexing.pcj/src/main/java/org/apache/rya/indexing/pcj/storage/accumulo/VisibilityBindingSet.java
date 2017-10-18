@@ -18,14 +18,13 @@
  */
 package org.apache.rya.indexing.pcj.storage.accumulo;
 
-import static java.util.Objects.requireNonNull;
-
 import java.util.Objects;
-
-import org.openrdf.query.BindingSet;
 
 import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
 import edu.umd.cs.findbugs.annotations.NonNull;
+import org.eclipse.rdf4j.query.BindingSet;
+
+import static java.util.Objects.requireNonNull;
 
 /**
  * Decorates a {@link BindingSet} with a collection of visibilities.

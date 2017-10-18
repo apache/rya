@@ -18,28 +18,26 @@
  */
 package org.apache.rya.indexing.pcj.storage.accumulo;
 
-import static com.google.common.base.Preconditions.checkArgument;
-import static java.util.Objects.requireNonNull;
-
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.rya.api.domain.RyaType;
-import org.apache.rya.api.resolver.RdfToRyaConversions;
-import org.openrdf.model.URI;
-import org.openrdf.model.Value;
-import org.openrdf.model.ValueFactory;
-import org.openrdf.model.impl.URIImpl;
-import org.openrdf.model.impl.ValueFactoryImpl;
-import org.openrdf.model.vocabulary.XMLSchema;
-import org.openrdf.query.BindingSet;
-import org.openrdf.query.algebra.evaluation.QueryBindingSet;
-import org.openrdf.query.impl.MapBindingSet;
-
 import com.google.common.base.Joiner;
-
 import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
 import edu.umd.cs.findbugs.annotations.NonNull;
+import org.apache.rya.api.domain.RyaType;
+import org.apache.rya.api.resolver.RdfToRyaConversions;
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.Value;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
+import org.eclipse.rdf4j.model.impl.URIImpl;
+import org.eclipse.rdf4j.model.vocabulary.XMLSchema;
+import org.eclipse.rdf4j.query.BindingSet;
+import org.eclipse.rdf4j.query.algebra.evaluation.QueryBindingSet;
+import org.eclipse.rdf4j.query.impl.MapBindingSet;
+
+import static com.google.common.base.Preconditions.checkArgument;
+import static java.util.Objects.requireNonNull;
 
 /**
  * Converts {@link BindingSet}s to Strings and back again. The Strings do not
@@ -52,7 +50,7 @@ public class BindingSetStringConverter implements BindingSetConverter<String> {
     public static final String TYPE_DELIM = "<<~>>";
     public static final String NULL_VALUE_STRING = Character.toString( '\0' );
 
-    private static final ValueFactory valueFactory = new ValueFactoryImpl();
+    private static final ValueFactory valueFactory = SimpleValueFactory.getInstance();
 
     @Override
     public String convert(final BindingSet bindingSet, final VariableOrder varOrder) {
@@ -124,11 +122,11 @@ public class BindingSetStringConverter implements BindingSetConverter<String> {
         final String typeString = valueAndType[1];
 
         // Convert the String Type into a URI that describes the type.
-        final URI typeURI = valueFactory.createURI(typeString);
+        final IRI typeURI = valueFactory.createIRI(typeString);
 
         // Convert the String Value into a Value.
         final Value value = typeURI.equals(XMLSchema.ANYURI) ?
-                valueFactory.createURI(dataString) :
+                valueFactory.createIRI(dataString) :
                 valueFactory.createLiteral(dataString, new URIImpl(typeString));
 
         return value;

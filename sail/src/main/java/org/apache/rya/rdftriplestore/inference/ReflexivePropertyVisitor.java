@@ -18,11 +18,11 @@ package org.apache.rya.rdftriplestore.inference;
  * under the License.
  */
 
-import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
-import org.openrdf.model.URI;
-import org.openrdf.query.algebra.StatementPattern;
-import org.openrdf.query.algebra.Var;
-import org.openrdf.query.algebra.ZeroLengthPath;
+import org.apache.rya.api.RdfTripleStoreConfiguration;
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.query.algebra.StatementPattern;
+import org.eclipse.rdf4j.query.algebra.Var;
+import org.eclipse.rdf4j.query.algebra.ZeroLengthPath;
 
 /**
  * Expands the query tree to account for any relevant reflexive properties
@@ -42,10 +42,10 @@ import org.openrdf.query.algebra.ZeroLengthPath;
 public class ReflexivePropertyVisitor extends AbstractInferVisitor {
     /**
      * Creates a new {@link ReflexivePropertyVisitor}.
-     * @param conf The {@link RdfCloudTripleStoreConfiguration}.
+     * @param conf The {@link RdfTripleStoreConfiguration}.
      * @param inferenceEngine The InferenceEngine containing the relevant ontology.
      */
-    public ReflexivePropertyVisitor(RdfCloudTripleStoreConfiguration conf, InferenceEngine inferenceEngine) {
+    public ReflexivePropertyVisitor(RdfTripleStoreConfiguration conf, InferenceEngine inferenceEngine) {
         super(conf, inferenceEngine);
         include = conf.isInferReflexiveProperty();
     }
@@ -59,7 +59,7 @@ public class ReflexivePropertyVisitor extends AbstractInferVisitor {
     protected void meetSP(StatementPattern node) throws Exception {
         // Only applies when the predicate is defined and reflexive
         final Var predVar = node.getPredicateVar();
-        if (predVar.getValue() != null && inferenceEngine.isReflexiveProperty((URI) predVar.getValue())) {
+        if (predVar.getValue() != null && inferenceEngine.isReflexiveProperty((IRI) predVar.getValue())) {
             final StatementPattern originalSP = node.clone();
             // The reflexive solution is a ZeroLengthPath between subject and
             // object: they can be matched to one another, whether constants or

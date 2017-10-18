@@ -22,15 +22,15 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
-import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
+import org.apache.rya.api.RdfTripleStoreConfiguration;
 import org.apache.rya.api.utils.NullableStatementImpl;
 import org.apache.rya.rdftriplestore.utils.FixedStatementPattern;
-import org.openrdf.model.Resource;
-import org.openrdf.model.URI;
-import org.openrdf.model.vocabulary.OWL;
-import org.openrdf.model.vocabulary.RDF;
-import org.openrdf.query.algebra.StatementPattern;
-import org.openrdf.query.algebra.Var;
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.Resource;
+import org.eclipse.rdf4j.model.vocabulary.OWL;
+import org.eclipse.rdf4j.model.vocabulary.RDF;
+import org.eclipse.rdf4j.query.algebra.StatementPattern;
+import org.eclipse.rdf4j.query.algebra.Var;
 
 /**
  * Expands the query tree to account for any existential class expressions (property restrictions
@@ -57,10 +57,10 @@ import org.openrdf.query.algebra.Var;
 public class SomeValuesFromVisitor extends AbstractInferVisitor {
     /**
      * Creates a new {@link SomeValuesFromVisitor}.
-     * @param conf The {@link RdfCloudTripleStoreConfiguration}.
+     * @param conf The {@link RdfTripleStoreConfiguration}.
      * @param inferenceEngine The InferenceEngine containing the relevant ontology.
      */
-    public SomeValuesFromVisitor(RdfCloudTripleStoreConfiguration conf, InferenceEngine inferenceEngine) {
+    public SomeValuesFromVisitor(RdfTripleStoreConfiguration conf, InferenceEngine inferenceEngine) {
         super(conf, inferenceEngine);
         include = conf.isInferSomeValuesFrom();
     }
@@ -78,7 +78,7 @@ public class SomeValuesFromVisitor extends AbstractInferVisitor {
         // Only applies to type queries where the type is defined
         if (predVar != null && RDF.TYPE.equals(predVar.getValue()) && objVar != null && objVar.getValue() instanceof Resource) {
             final Resource typeToInfer = (Resource) objVar.getValue();
-            Map<Resource, Set<URI>> relevantSvfRestrictions = inferenceEngine.getSomeValuesFromByRestrictionType(typeToInfer);
+            Map<Resource, Set<IRI>> relevantSvfRestrictions = inferenceEngine.getSomeValuesFromByRestrictionType(typeToInfer);
             if (!relevantSvfRestrictions.isEmpty()) {
                 // We can infer the queried type if it is to a someValuesFrom restriction (or a
                 // supertype of one), and the node in question (subjVar) is the subject of a triple
@@ -97,7 +97,7 @@ public class SomeValuesFromVisitor extends AbstractInferVisitor {
                 final FixedStatementPattern svfPropertyTypes = new FixedStatementPattern(svfPredVar,
                         new Var(OWL.SOMEVALUESFROM.stringValue(), OWL.SOMEVALUESFROM), valueTypeVar);
                 for (Resource svfValueType : relevantSvfRestrictions.keySet()) {
-                    for (URI svfProperty : relevantSvfRestrictions.get(svfValueType)) {
+                    for (IRI svfProperty : relevantSvfRestrictions.get(svfValueType)) {
                         svfPropertyTypes.statements.add(new NullableStatementImpl(svfProperty,
                                 OWL.SOMEVALUESFROM, svfValueType));
                     }

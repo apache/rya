@@ -31,10 +31,10 @@ import org.apache.rya.indexing.geotemporal.model.EventQueryNode;
 import org.apache.rya.indexing.geotemporal.storage.EventStorage;
 import org.junit.Before;
 import org.junit.Test;
-import org.openrdf.model.URI;
-import org.openrdf.model.Value;
-import org.openrdf.model.ValueFactory;
-import org.openrdf.model.impl.ValueFactoryImpl;
+import  org.eclipse.rdf4j.model.URI;
+import  org.eclipse.rdf4j.model.Value;
+import  org.eclipse.rdf4j.model.ValueFactory;
+import  org.eclipse.rdf4j.model.impl.ValueFactoryImpl;
 
 public class GeoTemporalProviderTest extends GeoTemporalTestBase {
     private static final String URI_PROPERTY_AT_TIME = "Property:atTime";
@@ -51,10 +51,10 @@ public class GeoTemporalProviderTest extends GeoTemporalTestBase {
      */
     @Test
     public void twoPatternsTwoFilters_test() throws Exception {
-        final ValueFactory vf = new ValueFactoryImpl();
+        final ValueFactory vf = SimpleValueFactory.getInstance();
         final Value geo = vf.createLiteral("Point(0 0)", GeoConstants.XMLSCHEMA_OGC_WKT);
         final Value temp = vf.createLiteral(new TemporalInstantRfc3339(2015, 12, 30, 12, 00, 0).toString());
-        final URI tempPred = vf.createURI(URI_PROPERTY_AT_TIME);
+        final URI tempPred = vf.createIRI(URI_PROPERTY_AT_TIME);
         final String query =
             "PREFIX geo: <http://www.opengis.net/ont/geosparql#>" +
             "PREFIX geos: <http://www.opengis.net/def/function/geosparql/>" +
@@ -72,10 +72,10 @@ public class GeoTemporalProviderTest extends GeoTemporalTestBase {
 
     @Test
     public void onePatternTwoFilters_test() throws Exception {
-        final ValueFactory vf = new ValueFactoryImpl();
+        final ValueFactory vf = SimpleValueFactory.getInstance();
         final Value geo = vf.createLiteral("Point(0 0)", GeoConstants.XMLSCHEMA_OGC_WKT);
         final Value temp = vf.createLiteral(new TemporalInstantRfc3339(2015, 12, 30, 12, 00, 0).toString());
-        final URI tempPred = vf.createURI(URI_PROPERTY_AT_TIME);
+        final URI tempPred = vf.createIRI(URI_PROPERTY_AT_TIME);
         final String query =
             "PREFIX geo: <http://www.opengis.net/ont/geosparql#>" +
             "PREFIX geos: <http://www.opengis.net/def/function/geosparql/>" +
@@ -92,10 +92,10 @@ public class GeoTemporalProviderTest extends GeoTemporalTestBase {
 
     @Test
     public void twoPatternsOneFilter_test() throws Exception {
-        final ValueFactory vf = new ValueFactoryImpl();
+        final ValueFactory vf = SimpleValueFactory.getInstance();
         final Value geo = vf.createLiteral("Point(0 0)", GeoConstants.XMLSCHEMA_OGC_WKT);
         final Value temp = vf.createLiteral(new TemporalInstantRfc3339(2015, 12, 30, 12, 00, 0).toString());
-        final URI tempPred = vf.createURI(URI_PROPERTY_AT_TIME);
+        final URI tempPred = vf.createIRI(URI_PROPERTY_AT_TIME);
         final String query =
             "PREFIX geo: <http://www.opengis.net/ont/geosparql#>" +
             "PREFIX geos: <http://www.opengis.net/def/function/geosparql/>" +
@@ -112,8 +112,8 @@ public class GeoTemporalProviderTest extends GeoTemporalTestBase {
 
     @Test
     public void twoPatternsNoFilter_test() throws Exception {
-        final ValueFactory vf = new ValueFactoryImpl();
-        final URI tempPred = vf.createURI(URI_PROPERTY_AT_TIME);
+        final ValueFactory vf = SimpleValueFactory.getInstance();
+        final URI tempPred = vf.createIRI(URI_PROPERTY_AT_TIME);
         final String query =
             "PREFIX geo: <http://www.opengis.net/ont/geosparql#>" +
             "PREFIX geos: <http://www.opengis.net/def/function/geosparql/>" +
@@ -129,10 +129,10 @@ public class GeoTemporalProviderTest extends GeoTemporalTestBase {
 
     @Test
     public void twoPatternsTwoFiltersNotValid_test() throws Exception {
-        final ValueFactory vf = new ValueFactoryImpl();
+        final ValueFactory vf = SimpleValueFactory.getInstance();
         final Value geo = vf.createLiteral("Point(0 0)", GeoConstants.XMLSCHEMA_OGC_WKT);
         final Value temp = vf.createLiteral(new TemporalInstantRfc3339(2015, 12, 30, 12, 00, 0).toString());
-        final URI tempPred = vf.createURI(URI_PROPERTY_AT_TIME);
+        final URI tempPred = vf.createIRI(URI_PROPERTY_AT_TIME);
         //Only handles geo and temporal filters
         final String query =
             "PREFIX geo: <http://www.opengis.net/ont/geosparql#>" +
@@ -151,10 +151,10 @@ public class GeoTemporalProviderTest extends GeoTemporalTestBase {
 
     @Test
     public void twoSubjOneFilter_test() throws Exception {
-        final ValueFactory vf = new ValueFactoryImpl();
+        final ValueFactory vf = SimpleValueFactory.getInstance();
         final Value geo = vf.createLiteral("Point(0 0)", GeoConstants.XMLSCHEMA_OGC_WKT);
         final Value temp = vf.createLiteral(new TemporalInstantRfc3339(2015, 12, 30, 12, 00, 0).toString());
-        final URI tempPred = vf.createURI(URI_PROPERTY_AT_TIME);
+        final URI tempPred = vf.createIRI(URI_PROPERTY_AT_TIME);
         final String query =
             "PREFIX geo: <http://www.opengis.net/ont/geosparql#>" +
             "PREFIX geos: <http://www.opengis.net/def/function/geosparql/>" +
@@ -174,10 +174,10 @@ public class GeoTemporalProviderTest extends GeoTemporalTestBase {
 
     @Test
     public void twoNode_test() throws Exception {
-        final ValueFactory vf = new ValueFactoryImpl();
+        final ValueFactory vf = SimpleValueFactory.getInstance();
         final Value geo = vf.createLiteral("Point(0 0)", GeoConstants.XMLSCHEMA_OGC_WKT);
         final Value temp = vf.createLiteral(new TemporalInstantRfc3339(2015, 12, 30, 12, 00, 0).toString());
-        final URI tempPred = vf.createURI(URI_PROPERTY_AT_TIME);
+        final URI tempPred = vf.createIRI(URI_PROPERTY_AT_TIME);
         final String query =
             "PREFIX geo: <http://www.opengis.net/ont/geosparql#>" +
             "PREFIX geos: <http://www.opengis.net/def/function/geosparql/>" +
@@ -199,10 +199,10 @@ public class GeoTemporalProviderTest extends GeoTemporalTestBase {
 
     @Test
     public void twoSubjectMultiFilter_test() throws Exception {
-        final ValueFactory vf = new ValueFactoryImpl();
+        final ValueFactory vf = SimpleValueFactory.getInstance();
         final Value geo = vf.createLiteral("Point(0 0)", GeoConstants.XMLSCHEMA_OGC_WKT);
         final Value temp = vf.createLiteral(new TemporalInstantRfc3339(2015, 12, 30, 12, 00, 0).toString());
-        final URI tempPred = vf.createURI(URI_PROPERTY_AT_TIME);
+        final URI tempPred = vf.createIRI(URI_PROPERTY_AT_TIME);
         final String query =
             "PREFIX geo: <http://www.opengis.net/ont/geosparql#>" +
             "PREFIX geos: <http://www.opengis.net/def/function/geosparql/>" +

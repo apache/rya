@@ -18,27 +18,16 @@
  */
 package org.apache.rya.indexing.accumulo.entity;
 
-import static org.apache.rya.api.RdfCloudTripleStoreConstants.DELIM_BYTE;
-import static org.apache.rya.api.RdfCloudTripleStoreConstants.TYPE_DELIM_BYTE;
-
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.NoSuchElementException;
-import java.util.Set;
 
-import org.apache.accumulo.core.client.AccumuloException;
-import org.apache.accumulo.core.client.AccumuloSecurityException;
-import org.apache.accumulo.core.client.BatchScanner;
-import org.apache.accumulo.core.client.Connector;
-import org.apache.accumulo.core.client.IteratorSetting;
-import org.apache.accumulo.core.client.TableNotFoundException;
+import com.google.common.base.Preconditions;
+import com.google.common.collect.HashMultimap;
+import com.google.common.collect.Sets;
+import com.google.common.primitives.Bytes;
+import org.apache.accumulo.core.client.*;
 import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Range;
 import org.apache.accumulo.core.data.Value;
@@ -47,29 +36,26 @@ import org.apache.hadoop.io.Text;
 import org.apache.rya.accumulo.AccumuloRdfConfiguration;
 import org.apache.rya.accumulo.documentIndex.DocIndexIteratorUtil;
 import org.apache.rya.accumulo.documentIndex.DocumentIndexIntersectingIterator;
-import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
+import org.apache.rya.api.RdfTripleStoreConfiguration;
 import org.apache.rya.api.domain.RyaURI;
 import org.apache.rya.api.resolver.RyaContext;
 import org.apache.rya.api.resolver.RyaToRdfConversions;
 import org.apache.rya.api.resolver.RyaTypeResolverException;
 import org.apache.rya.indexing.DocIdIndexer;
 import org.apache.rya.indexing.accumulo.ConfigUtils;
-import org.openrdf.query.BindingSet;
-import org.openrdf.query.MalformedQueryException;
-import org.openrdf.query.QueryEvaluationException;
-import org.openrdf.query.algebra.StatementPattern;
-import org.openrdf.query.algebra.TupleExpr;
-import org.openrdf.query.algebra.evaluation.QueryBindingSet;
-import org.openrdf.query.algebra.helpers.StatementPatternCollector;
-import org.openrdf.query.parser.ParsedQuery;
-import org.openrdf.query.parser.sparql.SPARQLParser;
+import org.eclipse.rdf4j.common.iteration.CloseableIteration;
+import org.eclipse.rdf4j.query.BindingSet;
+import org.eclipse.rdf4j.query.MalformedQueryException;
+import org.eclipse.rdf4j.query.QueryEvaluationException;
+import org.eclipse.rdf4j.query.algebra.StatementPattern;
+import org.eclipse.rdf4j.query.algebra.TupleExpr;
+import org.eclipse.rdf4j.query.algebra.evaluation.QueryBindingSet;
+import org.eclipse.rdf4j.query.algebra.helpers.StatementPatternCollector;
+import org.eclipse.rdf4j.query.parser.ParsedQuery;
+import org.eclipse.rdf4j.query.parser.sparql.SPARQLParser;
 
-import com.google.common.base.Preconditions;
-import com.google.common.collect.HashMultimap;
-import com.google.common.collect.Sets;
-import com.google.common.primitives.Bytes;
-
-import info.aduna.iteration.CloseableIteration;
+import static org.apache.rya.api.RdfCloudTripleStoreConstants.DELIM_BYTE;
+import static org.apache.rya.api.RdfCloudTripleStoreConstants.TYPE_DELIM_BYTE;
 
 public class AccumuloDocIdIndexer implements DocIdIndexer {
 
@@ -78,8 +64,8 @@ public class AccumuloDocIdIndexer implements DocIdIndexer {
     private BatchScanner bs;
     private final AccumuloRdfConfiguration conf;
 
-    public AccumuloDocIdIndexer(final RdfCloudTripleStoreConfiguration conf) throws AccumuloException, AccumuloSecurityException {
-        Preconditions.checkArgument(conf instanceof RdfCloudTripleStoreConfiguration, "conf must be isntance of RdfCloudTripleStoreConfiguration");
+    public AccumuloDocIdIndexer(final RdfTripleStoreConfiguration conf) throws AccumuloException, AccumuloSecurityException {
+        Preconditions.checkArgument(conf instanceof RdfTripleStoreConfiguration, "conf must be isntance of RdfTripleStoreConfiguration");
         this.conf = (AccumuloRdfConfiguration) conf;
         //Connector conn = ConfigUtils.getConnector(conf);
     }
@@ -189,11 +175,8 @@ public class AccumuloDocIdIndexer implements DocIdIndexer {
                         isEmpty = true;
                         return false;
 
-                    } else if (isEmpty) {
-                        return false;
-                    } else {
-                        return true;
-                    }
+                    } else
+                        return !isEmpty;
 
                 }
 
@@ -311,11 +294,8 @@ public class AccumuloDocIdIndexer implements DocIdIndexer {
                         isEmpty = true;
                         return false;
 
-                    } else if (isEmpty) {
-                        return false;
-                    } else {
-                        return true;
-                    }
+                    } else
+                        return !isEmpty;
                 }
 
                 @Override
@@ -363,7 +343,7 @@ public class AccumuloDocIdIndexer implements DocIdIndexer {
 
             if (tripleComponent.equals("object")) {
                 final byte[] object = Bytes.concat(cqContent, objType);
-                org.openrdf.model.Value v = null;
+                 org.eclipse.rdf4j.model.Value v = null;
                 try {
                     v = RyaToRdfConversions.convertValue(RyaContext.getInstance().deserialize(
                             object));
@@ -375,7 +355,7 @@ public class AccumuloDocIdIndexer implements DocIdIndexer {
             } else if (tripleComponent.equals("subject")) {
                 if (!commonVarSet) {
                     final byte[] object = Bytes.concat(row.getBytes(), objType);
-                    org.openrdf.model.Value v = null;
+                     org.eclipse.rdf4j.model.Value v = null;
                     try {
                         v = RyaToRdfConversions.convertValue(RyaContext.getInstance().deserialize(
                                 object));

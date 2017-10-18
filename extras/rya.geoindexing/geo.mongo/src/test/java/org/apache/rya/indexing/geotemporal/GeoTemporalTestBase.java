@@ -29,12 +29,12 @@ import org.apache.rya.indexing.external.matching.QuerySegment;
 import org.apache.rya.indexing.geotemporal.model.EventQueryNode;
 import org.junit.ComparisonFailure;
 import org.mockito.Mockito;
-import org.openrdf.query.algebra.FunctionCall;
-import org.openrdf.query.algebra.QueryModelNode;
-import org.openrdf.query.algebra.StatementPattern;
-import org.openrdf.query.algebra.helpers.QueryModelVisitorBase;
-import org.openrdf.query.algebra.helpers.StatementPatternCollector;
-import org.openrdf.query.parser.sparql.SPARQLParser;
+import  org.eclipse.rdf4j.query.algebra.FunctionCall;
+import  org.eclipse.rdf4j.query.algebra.QueryModelNode;
+import  org.eclipse.rdf4j.query.algebra.StatementPattern;
+import  org.eclipse.rdf4j.query.algebra.helpers.QueryModelVisitorBase;
+import  org.eclipse.rdf4j.query.algebra.helpers.StatementPatternCollector;
+import  org.eclipse.rdf4j.query.parser.sparql.SPARQLParser;
 
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.GeometryFactory;

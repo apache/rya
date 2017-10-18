@@ -44,14 +44,14 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
-import org.openrdf.model.Resource;
-import org.openrdf.model.Statement;
-import org.openrdf.model.URI;
-import org.openrdf.model.Value;
-import org.openrdf.model.ValueFactory;
-import org.openrdf.model.impl.StatementImpl;
-import org.openrdf.model.impl.URIImpl;
-import org.openrdf.model.impl.ValueFactoryImpl;
+import  org.eclipse.rdf4j.model.Resource;
+import  org.eclipse.rdf4j.model.Statement;
+import  org.eclipse.rdf4j.model.URI;
+import  org.eclipse.rdf4j.model.Value;
+import  org.eclipse.rdf4j.model.ValueFactory;
+import  org.eclipse.rdf4j.model.impl.StatementImpl;
+import  org.eclipse.rdf4j.model.impl.URIImpl;
+import  org.eclipse.rdf4j.model.impl.ValueFactoryImpl;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Sets;
@@ -67,7 +67,7 @@ import com.vividsolutions.jts.geom.impl.PackedCoordinateSequence;
 import com.vividsolutions.jts.io.ParseException;
 import com.vividsolutions.jts.io.gml2.GMLWriter;
 
-import info.aduna.iteration.CloseableIteration;
+import org.eclipse.rdf4j.common.iteration.CloseableIteration;
 
 /**
  * Tests all of the "simple functions" of the geoindexer specific to GML.
@@ -199,16 +199,16 @@ public class GeoIndexerSfTest {
     }
 
     private static Statement genericStatementWkt(final Geometry geo) {
-        final ValueFactory vf = new ValueFactoryImpl();
-        final Resource subject = vf.createURI("uri:" + NAMES.get(geo));
+        final ValueFactory vf = SimpleValueFactory.getInstance();
+        final Resource subject = vf.createIRI("uri:" + NAMES.get(geo));
         final URI predicate = GeoConstants.GEO_AS_WKT;
         final Value object = vf.createLiteral(geo.toString(), GeoConstants.XMLSCHEMA_OGC_WKT);
         return new StatementImpl(subject, predicate, object);
     }
 
     private static Statement genericStatementGml(final Geometry geo, final URI encodingMethod) {
-        final ValueFactory vf = new ValueFactoryImpl();
-        final Resource subject = vf.createURI("uri:" + NAMES.get(geo));
+        final ValueFactory vf = SimpleValueFactory.getInstance();
+        final Resource subject = vf.createIRI("uri:" + NAMES.get(geo));
         final URI predicate = GeoConstants.GEO_AS_GML;
 
         final String gml ;

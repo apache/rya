@@ -19,23 +19,16 @@ package org.apache.rya.indexing.external.matching;
  * under the License.
  */
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import org.apache.rya.indexing.external.matching.QueryNodesToTupleExpr.TupleExprAndNodes;
-import org.openrdf.query.algebra.Filter;
-import org.openrdf.query.algebra.QueryModelNode;
-import org.openrdf.query.algebra.ValueExpr;
-import org.openrdf.query.algebra.evaluation.impl.ExternalSet;
+import java.util.*;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
+import org.apache.rya.indexing.external.matching.QueryNodesToTupleExpr.TupleExprAndNodes;
+import org.eclipse.rdf4j.query.algebra.Filter;
+import org.eclipse.rdf4j.query.algebra.QueryModelNode;
+import org.eclipse.rdf4j.query.algebra.ValueExpr;
+import org.eclipse.rdf4j.query.algebra.evaluation.impl.ExternalSet;
 
 /**
  * This class provides implementations of methods common to implementations of

@@ -18,24 +18,20 @@
 
 package org.apache.rya.giraph.format;
 
-import static org.junit.Assert.assertTrue;
-
 import java.io.IOException;
 
 import org.apache.giraph.BspCase;
 import org.apache.giraph.conf.GiraphConfiguration;
 import org.apache.giraph.graph.BasicComputation;
 import org.apache.giraph.graph.Vertex;
-import org.apache.giraph.io.accumulo.AccumuloVertexInputFormat;
 import org.apache.giraph.job.GiraphJob;
 import org.apache.hadoop.io.Text;
 import org.apache.log4j.Logger;
 import org.apache.rya.accumulo.AccumuloRdfConfiguration;
 import org.apache.rya.accumulo.AccumuloRyaDAO;
-import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
+import org.apache.rya.api.RdfTripleStoreConfiguration;
 import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.domain.RyaURI;
-import org.apache.rya.giraph.format.RyaVertexInputFormat;
 import org.apache.rya.indexing.accumulo.ConfigUtils;
 import org.apache.rya.sail.config.RyaSailFactory;
 import org.junit.Test;
@@ -63,7 +59,7 @@ public class TestVertexFormat extends BspCase {
         conf.set(ConfigUtils.USE_PCJ, "false");
         conf.set(ConfigUtils.USE_FREETEXT, "false");
         conf.set(ConfigUtils.USE_TEMPORAL, "false");
-        conf.set(RdfCloudTripleStoreConfiguration.CONF_TBL_PREFIX, "rya_");
+        conf.set(RdfTripleStoreConfiguration.CONF_TBL_PREFIX, "rya_");
         conf.set(ConfigUtils.CLOUDBASE_USER, "root");
         conf.set(ConfigUtils.CLOUDBASE_PASSWORD, "");
         conf.set(ConfigUtils.CLOUDBASE_INSTANCE, "test");

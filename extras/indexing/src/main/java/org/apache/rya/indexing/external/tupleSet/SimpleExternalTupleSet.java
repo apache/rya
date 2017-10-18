@@ -21,14 +21,12 @@ package org.apache.rya.indexing.external.tupleSet;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.openrdf.query.BindingSet;
-import org.openrdf.query.QueryEvaluationException;
-import org.openrdf.query.algebra.Projection;
-import org.openrdf.query.algebra.QueryModelVisitor;
-
 import com.google.common.base.Joiner;
-
-import info.aduna.iteration.CloseableIteration;
+import org.eclipse.rdf4j.common.iteration.CloseableIteration;
+import org.eclipse.rdf4j.query.BindingSet;
+import org.eclipse.rdf4j.query.QueryEvaluationException;
+import org.eclipse.rdf4j.query.algebra.Projection;
+import org.eclipse.rdf4j.query.algebra.QueryModelVisitor;
 
 /**
  *  This a testing class to create mock pre-computed join nodes in order to

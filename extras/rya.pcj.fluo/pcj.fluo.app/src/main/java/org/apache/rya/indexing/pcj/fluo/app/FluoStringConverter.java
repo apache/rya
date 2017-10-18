@@ -18,30 +18,25 @@
  */
 package org.apache.rya.indexing.pcj.fluo.app;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-import static org.apache.rya.indexing.pcj.fluo.app.IncrementalUpdateConstants.DELIM;
-import static org.apache.rya.indexing.pcj.fluo.app.IncrementalUpdateConstants.TYPE_DELIM;
-import static org.apache.rya.indexing.pcj.fluo.app.IncrementalUpdateConstants.URI_TYPE;
-
+import com.google.common.base.Preconditions;
 import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
 import edu.umd.cs.findbugs.annotations.NonNull;
-
-import org.openrdf.model.BNode;
-import org.openrdf.model.Literal;
-import org.openrdf.model.URI;
-import org.openrdf.model.Value;
-import org.openrdf.model.impl.BNodeImpl;
-import org.openrdf.model.impl.LiteralImpl;
-import org.openrdf.model.impl.URIImpl;
-import org.openrdf.query.BindingSet;
-import org.openrdf.query.algebra.StatementPattern;
-import org.openrdf.query.algebra.Var;
-
-import com.google.common.base.Preconditions;
-
 import org.apache.rya.api.domain.RyaSchema;
 import org.apache.rya.api.domain.RyaType;
 import org.apache.rya.api.resolver.RdfToRyaConversions;
+import org.eclipse.rdf4j.model.BNode;
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.Literal;
+import org.eclipse.rdf4j.model.Value;
+import org.eclipse.rdf4j.model.impl.BNodeImpl;
+import org.eclipse.rdf4j.model.impl.LiteralImpl;
+import org.eclipse.rdf4j.model.impl.URIImpl;
+import org.eclipse.rdf4j.query.BindingSet;
+import org.eclipse.rdf4j.query.algebra.StatementPattern;
+import org.eclipse.rdf4j.query.algebra.Var;
+
+import static com.google.common.base.Preconditions.checkNotNull;
+import static org.apache.rya.indexing.pcj.fluo.app.IncrementalUpdateConstants.*;
 
 /**
  * Contains method that convert between the Sesame representations of RDF
@@ -114,7 +109,7 @@ public class FluoStringConverter {
                 // Handle a Literal Value.
                 Preconditions.checkArgument(varParts.length == 2);
                 final String valueString = name.substring("-const-".length());
-                final URI dataType = new URIImpl(dataTypeString);
+                final IRI dataType = new URIImpl(dataTypeString);
                 final Literal value = new LiteralImpl(valueString, dataType);
                 final Var var = new Var(name, value);
                 var.setConstant(true);

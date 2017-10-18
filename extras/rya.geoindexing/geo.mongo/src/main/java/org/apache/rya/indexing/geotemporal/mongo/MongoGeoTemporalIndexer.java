@@ -46,8 +46,8 @@ import org.apache.rya.indexing.mongodb.geo.GmlParser;
 import org.apache.rya.mongodb.MongoConnectorFactory;
 import org.apache.rya.mongodb.MongoDBRdfConfiguration;
 import org.joda.time.DateTime;
-import org.openrdf.model.Statement;
-import org.openrdf.model.URI;
+import  org.eclipse.rdf4j.model.Statement;
+import  org.eclipse.rdf4j.model.URI;
 
 import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.io.ParseException;

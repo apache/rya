@@ -20,6 +20,12 @@ package org.apache.rya.indexing.external.matching;
 
 import java.util.Collection;
 import java.util.Iterator;
+import java.util.List;
+import java.util.Set;
+
+import com.google.common.base.Optional;
+import org.eclipse.rdf4j.query.algebra.*;
+import org.eclipse.rdf4j.query.algebra.evaluation.impl.ExternalSet;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -40,18 +46,6 @@ import java.util.Iterator;
  * under the License.
  */
 
-import java.util.List;
-import java.util.Set;
-
-import org.openrdf.query.algebra.Filter;
-import org.openrdf.query.algebra.Join;
-import org.openrdf.query.algebra.LeftJoin;
-import org.openrdf.query.algebra.QueryModelNode;
-import org.openrdf.query.algebra.TupleExpr;
-import org.openrdf.query.algebra.evaluation.impl.ExternalSet;
-
-import com.google.common.base.Optional;
-
 /**
  * This interface provides a framework for matching {@link ExternalSet}s to
  * subsets of a given {@link QuerySegment}.
@@ -70,7 +64,7 @@ public interface ExternalSetMatcher<T extends ExternalSet> {
      *            match occurs
      * @return - true is match and replace occurs and false otherwise
      */
-    public boolean match(T set);
+    boolean match(T set);
     
     /**
      *Matches specified ExternalSets to underlying QuerySegment and returns
@@ -78,7 +72,7 @@ public interface ExternalSetMatcher<T extends ExternalSet> {
      * 
      * @param sets - Collection of ExternalSets to be matched to QuerySegment
      */
-    public QuerySegment<T> match(Collection<T> sets);
+    QuerySegment<T> match(Collection<T> sets);
     
     /**
      * Allows Matcher to iterate over different Collections of ExternalSets to find an optimal combination of matching ExternalSets.
@@ -88,13 +82,13 @@ public interface ExternalSetMatcher<T extends ExternalSet> {
      * @param rater - Class that rates the resulting QuerySegment after each collection is matched for the purpose
      * of finding an optimal ExternalSet combination.  If the rater is not provided, the {@link BasicRater} is used.
      */
-    public QuerySegment<T> match(Iterator<List<T>> sets, Optional<QueryNodeListRater> rater);
+    QuerySegment<T> match(Iterator<List<T>> sets, Optional<QueryNodeListRater> rater);
 
     /**
      * @return - TupleExpr constructed from {@link QuerySegment} with matched
      *         nodes
      */
-    public TupleExpr getQuery();
+    TupleExpr getQuery();
 
     /**
      * Converts TupleExpr starting with given node to a {@link QuerySegment}.
@@ -103,12 +97,12 @@ public interface ExternalSetMatcher<T extends ExternalSet> {
      * @param node
      * @return
      */
-    public QuerySegment<T> nodeToQuerySegment(QueryModelNode node);
+    QuerySegment<T> nodeToQuerySegment(QueryModelNode node);
 
     /**
      * @return - all {@link TupleExpr} that haven't been matched to a PCJ
      */
-    public Set<TupleExpr> getUnmatchedArgNodes();
+    Set<TupleExpr> getUnmatchedArgNodes();
 
     /**
      * Similar to {@link #getUnmatchedArgs()}, except does not ignore no arg
@@ -116,18 +110,18 @@ public interface ExternalSetMatcher<T extends ExternalSet> {
      * 
      * @return a list of all unmatched nodes.
      */
-    public List<QueryModelNode> getAllUnmatchedNodes();
+    List<QueryModelNode> getAllUnmatchedNodes();
 
     /**
      *
      * @return - provided ordered view of QuerySegment nodes
      */
-    public List<QueryModelNode> getOrderedNodes();
+    List<QueryModelNode> getOrderedNodes();
 
     /**
      *
      * @return - Set of {@link Filter}s of given QuerySegment
      */
-    public Set<Filter> getFilters();
+    Set<Filter> getFilters();
 
 }

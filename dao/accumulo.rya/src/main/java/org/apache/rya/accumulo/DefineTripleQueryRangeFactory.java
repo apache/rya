@@ -26,9 +26,9 @@
 //import org.apache.rya.api.domain.RangeValue;
 //import org.apache.accumulo.core.data.Range;
 //import org.apache.hadoop.io.Text;
-//import org.openrdf.model.Value;
-//import org.openrdf.model.ValueFactory;
-//import org.openrdf.model.impl.ValueFactoryImpl;
+//import  org.eclipse.rdf4j.model.Value;
+//import  org.eclipse.rdf4j.model.ValueFactory;
+//import  org.eclipse.rdf4j.model.impl.ValueFactoryImpl;
 //
 //import java.io.IOException;
 //import java.util.Map;

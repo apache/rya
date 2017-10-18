@@ -18,20 +18,14 @@
  */
 package org.apache.rya.indexing.entity.update;
 
-import static com.google.common.base.Preconditions.checkState;
-import static java.util.Collections.singleton;
-import static java.util.Objects.requireNonNull;
-import static java.util.stream.Collectors.groupingBy;
-
 import java.io.IOException;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.Optional;
-import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 
+import com.google.common.base.Objects;
+import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
+import edu.umd.cs.findbugs.annotations.NonNull;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.log4j.Logger;
 import org.apache.rya.api.domain.RyaStatement;
@@ -48,13 +42,13 @@ import org.apache.rya.indexing.entity.storage.mongo.ConvertingCursor;
 import org.apache.rya.indexing.mongodb.IndexingException;
 import org.apache.rya.mongodb.MongoDBRdfConfiguration;
 import org.apache.rya.mongodb.MongoSecondaryIndex;
-import org.openrdf.model.URI;
-import org.openrdf.model.vocabulary.RDF;
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.vocabulary.RDF;
 
-import com.google.common.base.Objects;
-
-import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
-import edu.umd.cs.findbugs.annotations.NonNull;
+import static com.google.common.base.Preconditions.checkState;
+import static java.util.Collections.singleton;
+import static java.util.Objects.requireNonNull;
+import static java.util.stream.Collectors.groupingBy;
 
 /**
  * A base class that may be used to update an {@link EntityStorage} as new
@@ -251,7 +245,7 @@ public abstract class BaseEntityIndexer implements EntityIndexer, MongoSecondary
     }
 
     @Override
-    public Set<URI> getIndexablePredicates() {
+    public Set<IRI> getIndexablePredicates() {
         // This isn't used anywhere in Rya, so it will not be implemented.
         return null;
     }

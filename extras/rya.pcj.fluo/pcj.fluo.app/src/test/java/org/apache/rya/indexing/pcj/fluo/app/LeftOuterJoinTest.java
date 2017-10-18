@@ -18,32 +18,31 @@
  */
 package org.apache.rya.indexing.pcj.fluo.app;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
 
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import org.apache.rya.indexing.pcj.fluo.app.JoinResultUpdater.IterativeJoin;
 import org.apache.rya.indexing.pcj.fluo.app.JoinResultUpdater.LeftOuterJoin;
 import org.apache.rya.indexing.pcj.storage.accumulo.VisibilityBindingSet;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
+import org.eclipse.rdf4j.query.BindingSet;
+import org.eclipse.rdf4j.query.impl.MapBindingSet;
 import org.junit.Test;
-import org.openrdf.model.ValueFactory;
-import org.openrdf.model.impl.ValueFactoryImpl;
-import org.openrdf.query.BindingSet;
-import org.openrdf.query.impl.MapBindingSet;
 
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 
 /**
  * Tests the methods of {@link LeftOuterJoin}.
  */
 public class LeftOuterJoinTest {
 
-    private final ValueFactory vf = new ValueFactoryImpl();
+    private final ValueFactory vf = SimpleValueFactory.getInstance();
 
     @Test
     public void newLeftResult_noRightMatches() {
@@ -91,7 +90,7 @@ public class LeftOuterJoinTest {
         nameHair.addBinding("hairColor", vf.createLiteral("Brown"));
         final VisibilityBindingSet visiHair = new VisibilityBindingSet(nameHair);
 
-        final Iterator<VisibilityBindingSet> rightResults = Lists.<VisibilityBindingSet>newArrayList(visiAge, visiHair).iterator();
+        final Iterator<VisibilityBindingSet> rightResults = Lists.newArrayList(visiAge, visiHair).iterator();
 
         // Therefore, there are a few new join results that mix the two together.
         final Iterator<VisibilityBindingSet> newJoinResultsIt = leftOuterJoin.newLeftResult(newLeftResult, rightResults);
@@ -101,7 +100,7 @@ public class LeftOuterJoinTest {
             newJoinResults.add( newJoinResultsIt.next() );
         }
 
-        final Set<BindingSet> expected = Sets.<BindingSet>newHashSet();
+        final Set<BindingSet> expected = Sets.newHashSet();
         final MapBindingSet nameHeightAge = new MapBindingSet();
         nameHeightAge.addBinding("name", vf.createLiteral("Bob"));
         nameHeightAge.addBinding("height", vf.createLiteral("5'9\""));
@@ -146,7 +145,7 @@ public class LeftOuterJoinTest {
         nameHair.addBinding("name", vf.createLiteral("Bob"));
         nameHair.addBinding("hairColor", vf.createLiteral("Brown"));
 
-        final Iterator<VisibilityBindingSet> leftResults = Lists.<VisibilityBindingSet>newArrayList(
+        final Iterator<VisibilityBindingSet> leftResults = Lists.newArrayList(
                 new VisibilityBindingSet(nameAge),
                 new VisibilityBindingSet(nameHair)).iterator();
 
@@ -163,7 +162,7 @@ public class LeftOuterJoinTest {
             newJoinResults.add( newJoinResultsIt.next() );
         }
 
-        final Set<BindingSet> expected = Sets.<BindingSet>newHashSet();
+        final Set<BindingSet> expected = Sets.newHashSet();
         final MapBindingSet nameHeightAge = new MapBindingSet();
         nameHeightAge.addBinding("name", vf.createLiteral("Bob"));
         nameHeightAge.addBinding("height", vf.createLiteral("5'9\""));

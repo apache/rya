@@ -20,17 +20,15 @@ package org.apache.rya.indexing.mongodb.freetext;
 
 import java.io.IOException;
 
+import com.mongodb.QueryBuilder;
 import org.apache.log4j.Logger;
 import org.apache.rya.indexing.FreeTextIndexer;
 import org.apache.rya.indexing.StatementConstraints;
 import org.apache.rya.indexing.accumulo.ConfigUtils;
 import org.apache.rya.indexing.mongodb.AbstractMongoIndexer;
-import org.openrdf.model.Statement;
-import org.openrdf.query.QueryEvaluationException;
-
-import com.mongodb.QueryBuilder;
-
-import info.aduna.iteration.CloseableIteration;
+import org.eclipse.rdf4j.common.iteration.CloseableIteration;
+import org.eclipse.rdf4j.model.Statement;
+import org.eclipse.rdf4j.query.QueryEvaluationException;
 
 public class MongoFreeTextIndexer extends AbstractMongoIndexer<TextMongoDBStorageStrategy> implements FreeTextIndexer {
     private static final String COLLECTION_SUFFIX = "freetext";

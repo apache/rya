@@ -18,11 +18,11 @@ package org.apache.rya.mongodb;
  * under the License.
  */
 
-import static org.junit.Assert.assertEquals;
-import static org.openrdf.model.vocabulary.XMLSchema.ANYURI;
-
 import java.io.IOException;
 
+import com.mongodb.BasicDBObject;
+import com.mongodb.DBObject;
+import com.mongodb.MongoException;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.domain.RyaStatement.RyaStatementBuilder;
@@ -34,9 +34,8 @@ import org.apache.rya.mongodb.document.util.DocumentVisibilityUtil;
 import org.apache.rya.mongodb.document.visibility.DocumentVisibility;
 import org.junit.Test;
 
-import com.mongodb.BasicDBObject;
-import com.mongodb.DBObject;
-import com.mongodb.MongoException;
+import static org.eclipse.rdf4j.model.vocabulary.XMLSchema.ANYURI;
+import static org.junit.Assert.assertEquals;
 
 public class SimpleMongoDBStorageStrategyTest {
     private static final String SUBJECT = "http://subject.com";

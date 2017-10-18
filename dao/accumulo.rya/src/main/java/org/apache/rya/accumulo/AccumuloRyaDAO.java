@@ -18,36 +18,15 @@
  */
 package org.apache.rya.accumulo;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-import static org.apache.rya.accumulo.AccumuloRdfConstants.ALL_AUTHORIZATIONS;
-import static org.apache.rya.api.RdfCloudTripleStoreConstants.EMPTY_TEXT;
-import static org.apache.rya.api.RdfCloudTripleStoreConstants.INFO_NAMESPACE_TXT;
-import static org.apache.rya.api.RdfCloudTripleStoreConstants.MAX_MEMORY;
-import static org.apache.rya.api.RdfCloudTripleStoreConstants.MAX_TIME;
-import static org.apache.rya.api.RdfCloudTripleStoreConstants.NUM_THREADS;
-import static org.apache.rya.api.RdfCloudTripleStoreConstants.RTS_SUBJECT_RYA;
-import static org.apache.rya.api.RdfCloudTripleStoreConstants.RTS_VERSION_PREDICATE_RYA;
-import static org.apache.rya.api.RdfCloudTripleStoreConstants.VERSION_RYA;
-
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
-import org.apache.accumulo.core.client.AccumuloException;
-import org.apache.accumulo.core.client.AccumuloSecurityException;
-import org.apache.accumulo.core.client.BatchDeleter;
-import org.apache.accumulo.core.client.BatchWriter;
-import org.apache.accumulo.core.client.BatchWriterConfig;
-import org.apache.accumulo.core.client.Connector;
-import org.apache.accumulo.core.client.MultiTableBatchWriter;
-import org.apache.accumulo.core.client.MutationsRejectedException;
+import com.google.common.collect.Iterators;
+import com.google.common.collect.Lists;
+import org.apache.accumulo.core.client.*;
 import org.apache.accumulo.core.client.Scanner;
-import org.apache.accumulo.core.client.TableNotFoundException;
 import org.apache.accumulo.core.client.admin.TableOperations;
 import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Mutation;
@@ -59,8 +38,8 @@ import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.io.Text;
 import org.apache.rya.accumulo.experimental.AccumuloIndexer;
 import org.apache.rya.accumulo.query.AccumuloRyaQueryEngine;
-import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
-import org.apache.rya.api.RdfCloudTripleStoreConstants.TABLE_LAYOUT;
+import org.apache.rya.api.RdfCloudTripleStoreConstants.*;
+import org.apache.rya.api.RdfTripleStoreConfiguration;
 import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.domain.RyaURI;
 import org.apache.rya.api.layout.TableLayoutStrategy;
@@ -68,12 +47,12 @@ import org.apache.rya.api.persist.RyaDAO;
 import org.apache.rya.api.persist.RyaDAOException;
 import org.apache.rya.api.persist.RyaNamespaceManager;
 import org.apache.rya.api.resolver.RyaTripleContext;
-import org.openrdf.model.Namespace;
+import org.eclipse.rdf4j.common.iteration.CloseableIteration;
+import org.eclipse.rdf4j.model.Namespace;
 
-import com.google.common.collect.Iterators;
-import com.google.common.collect.Lists;
-
-import info.aduna.iteration.CloseableIteration;
+import static com.google.common.base.Preconditions.checkNotNull;
+import static org.apache.rya.accumulo.AccumuloRdfConstants.ALL_AUTHORIZATIONS;
+import static org.apache.rya.api.RdfCloudTripleStoreConstants.*;
 
 public class AccumuloRyaDAO implements RyaDAO<AccumuloRdfConfiguration>, RyaNamespaceManager<AccumuloRdfConfiguration> {
     private static final Log logger = LogFactory.getLog(AccumuloRyaDAO.class);
@@ -376,7 +355,7 @@ public class AccumuloRyaDAO implements RyaDAO<AccumuloRdfConfiguration>, RyaName
     }
 
     @Override
-    public void purge(final RdfCloudTripleStoreConfiguration configuration) {
+    public void purge(final RdfTripleStoreConfiguration configuration) {
         for (final String tableName : getTables()) {
             try {
                 purge(tableName, configuration.getAuths());

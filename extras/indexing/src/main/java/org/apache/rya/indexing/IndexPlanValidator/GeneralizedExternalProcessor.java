@@ -19,31 +19,18 @@ package org.apache.rya.indexing.IndexPlanValidator;
  * under the License.
  */
 
-
-
-
-
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import org.apache.rya.indexing.external.tupleSet.ExternalTupleSet;
-import org.apache.rya.indexing.pcj.matching.QueryVariableNormalizer.VarCollector;
-
-import org.openrdf.query.algebra.BindingSetAssignment;
-import org.openrdf.query.algebra.Filter;
-import org.openrdf.query.algebra.Join;
-import org.openrdf.query.algebra.Projection;
-import org.openrdf.query.algebra.QueryModelNode;
-import org.openrdf.query.algebra.StatementPattern;
-import org.openrdf.query.algebra.TupleExpr;
-import org.openrdf.query.algebra.Var;
-import org.openrdf.query.algebra.helpers.QueryModelVisitorBase;
-import org.openrdf.query.algebra.helpers.StatementPatternCollector;
-
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import org.apache.rya.indexing.external.tupleSet.ExternalTupleSet;
+import org.apache.rya.indexing.pcj.matching.QueryVariableNormalizer.VarCollector;
+import org.eclipse.rdf4j.query.algebra.*;
+import org.eclipse.rdf4j.query.algebra.helpers.QueryModelVisitorBase;
+import org.eclipse.rdf4j.query.algebra.helpers.StatementPatternCollector;
 
 /**
  * Processes a {@link TupleExpr} and replaces sets of elements in the tree with {@link ExternalTupleSet} objects.

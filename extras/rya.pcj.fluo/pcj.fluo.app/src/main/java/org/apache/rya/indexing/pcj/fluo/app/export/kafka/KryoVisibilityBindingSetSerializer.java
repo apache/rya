@@ -23,25 +23,24 @@ import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
 import java.util.Map;
 
+import com.esotericsoftware.kryo.Kryo;
+import com.esotericsoftware.kryo.io.Input;
+import com.esotericsoftware.kryo.io.Output;
 import org.apache.kafka.common.serialization.Deserializer;
 import org.apache.kafka.common.serialization.Serializer;
 import org.apache.log4j.Logger;
 import org.apache.rya.api.domain.RyaType;
 import org.apache.rya.api.resolver.RdfToRyaConversions;
 import org.apache.rya.indexing.pcj.storage.accumulo.VisibilityBindingSet;
-import org.openrdf.model.URI;
-import org.openrdf.model.Value;
-import org.openrdf.model.ValueFactory;
-import org.openrdf.model.impl.URIImpl;
-import org.openrdf.model.impl.ValueFactoryImpl;
-import org.openrdf.model.vocabulary.XMLSchema;
-import org.openrdf.query.Binding;
-import org.openrdf.query.BindingSet;
-import org.openrdf.query.impl.ListBindingSet;
-
-import com.esotericsoftware.kryo.Kryo;
-import com.esotericsoftware.kryo.io.Input;
-import com.esotericsoftware.kryo.io.Output;
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.Value;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
+import org.eclipse.rdf4j.model.impl.URIImpl;
+import org.eclipse.rdf4j.model.vocabulary.XMLSchema;
+import org.eclipse.rdf4j.query.Binding;
+import org.eclipse.rdf4j.query.BindingSet;
+import org.eclipse.rdf4j.query.impl.ListBindingSet;
 
 /**
  * Serialize and deserialize a VisibilityBindingSet using Kyro lib. Great for exporting results of queries.
@@ -53,7 +52,7 @@ public class KryoVisibilityBindingSetSerializer implements Serializer<Visibility
         protected Kryo initialValue() {
             Kryo kryo = new Kryo();
             return kryo;
-        };
+        }
     };
 
     /**
@@ -112,11 +111,11 @@ public class KryoVisibilityBindingSetSerializer implements Serializer<Visibility
         // Do nothing.
     }
 
-    private static Value makeValue(final String valueString, final URI typeURI) {
+    private static Value makeValue(final String valueString, final IRI typeURI) {
         // Convert the String Value into a Value.
-        final ValueFactory valueFactory = ValueFactoryImpl.getInstance();
+        final ValueFactory valueFactory = SimpleValueFactory.getInstance();
         if (typeURI.equals(XMLSchema.ANYURI)) {
-            return valueFactory.createURI(valueString);
+            return valueFactory.createIRI(valueString);
         } else {
             return valueFactory.createLiteral(valueString, typeURI);
         }
@@ -138,7 +137,7 @@ public class KryoVisibilityBindingSetSerializer implements Serializer<Visibility
                 output.writeString(binding.getName());
                 final RyaType ryaValue = RdfToRyaConversions.convertValue(binding.getValue());
                 final String valueString = ryaValue.getData();
-                final URI type = ryaValue.getDataType();
+                final IRI type = ryaValue.getDataType();
                 output.writeString(valueString);
                 output.writeString(type.toString());
             }
@@ -154,7 +153,7 @@ public class KryoVisibilityBindingSetSerializer implements Serializer<Visibility
             for (int i = bindingCount; i > 0; i--) {
                 namesList.add(input.readString());
                 String valueString = input.readString();
-                final URI type = new URIImpl(input.readString());
+                final IRI type = new URIImpl(input.readString());
                 valuesList.add(makeValue(valueString, type));
             }
             BindingSet bindingSet = new ListBindingSet(namesList, valuesList);

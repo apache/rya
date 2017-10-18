@@ -18,8 +18,6 @@
  */
 package org.apache.rya.export.accumulo;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 import java.io.IOException;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -27,6 +25,8 @@ import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.Set;
 
+import com.google.common.base.Function;
+import com.google.common.collect.Iterators;
 import org.apache.accumulo.core.client.IteratorSetting;
 import org.apache.accumulo.core.client.Scanner;
 import org.apache.accumulo.core.data.Key;
@@ -44,17 +44,10 @@ import org.apache.rya.export.accumulo.util.AccumuloRyaUtils;
 import org.apache.rya.export.api.MergerException;
 import org.apache.rya.export.api.metadata.MergeParentMetadata;
 import org.apache.rya.export.api.metadata.ParentMetadataExistsException;
-import org.apache.rya.export.api.store.AddStatementException;
-import org.apache.rya.export.api.store.ContainsStatementException;
-import org.apache.rya.export.api.store.FetchStatementException;
-import org.apache.rya.export.api.store.RemoveStatementException;
-import org.apache.rya.export.api.store.RyaStatementStore;
-import org.apache.rya.export.api.store.UpdateStatementException;
+import org.apache.rya.export.api.store.*;
+import org.eclipse.rdf4j.common.iteration.CloseableIteration;
 
-import com.google.common.base.Function;
-import com.google.common.collect.Iterators;
-
-import info.aduna.iteration.CloseableIteration;
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * Allows specific CRUD operations an Accumulo {@link RyaStatement} storage

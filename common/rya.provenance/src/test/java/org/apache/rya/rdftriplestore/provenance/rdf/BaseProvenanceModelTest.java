@@ -19,13 +19,12 @@ package org.apache.rya.rdftriplestore.provenance.rdf;
  * under the License.
  */
 
-
-import static org.junit.Assert.assertTrue;
-
 import java.util.List;
 
+import org.eclipse.rdf4j.model.Statement;
 import org.junit.Test;
-import org.openrdf.model.Statement;
+
+import static org.junit.Assert.assertTrue;
 
 public class BaseProvenanceModelTest {
 

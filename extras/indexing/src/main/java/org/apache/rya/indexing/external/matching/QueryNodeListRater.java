@@ -38,7 +38,7 @@ package org.apache.rya.indexing.external.matching;
 
 import java.util.List;
 
-import org.openrdf.query.algebra.QueryModelNode;
+import org.eclipse.rdf4j.query.algebra.QueryModelNode;
 
 /**
  * Class used for determining an optimal query plan.  It assigns a score
@@ -52,6 +52,6 @@ import org.openrdf.query.algebra.QueryModelNode;
  */
 public interface QueryNodeListRater {
 
-    public double rateQuerySegment(List<QueryModelNode> eNodes);
+    double rateQuerySegment(List<QueryModelNode> eNodes);
 
 }

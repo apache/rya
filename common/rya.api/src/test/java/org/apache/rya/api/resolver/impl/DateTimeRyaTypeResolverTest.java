@@ -19,24 +19,20 @@ package org.apache.rya.api.resolver.impl;
  * under the License.
  */
 
-
-
-import static org.junit.Assert.*;
-
 import java.util.Date;
 import java.util.GregorianCalendar;
 
 import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.XMLGregorianCalendar;
-
 import org.apache.rya.api.domain.RyaType;
 import org.apache.rya.api.resolver.RdfToRyaConversions;
 import org.apache.rya.api.resolver.RyaTypeResolverException;
-
-import org.junit.Ignore;
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.impl.CalendarLiteralImpl;
+import org.eclipse.rdf4j.model.vocabulary.XMLSchema;
 import org.junit.Test;
-import org.openrdf.model.impl.CalendarLiteralImpl;
-import org.openrdf.model.vocabulary.XMLSchema;
+
+import static org.junit.Assert.*;
 
 /**
  * Test serializing and deserializing.
@@ -167,7 +163,7 @@ public class DateTimeRyaTypeResolverTest {
 	 * @return
 	 * @throws RyaTypeResolverException
 	 */
-	private RyaType serializeAndDeserialize(String dateTimeString, org.openrdf.model.URI type ) throws RyaTypeResolverException {
+	private RyaType serializeAndDeserialize(String dateTimeString,  IRI type ) throws RyaTypeResolverException {
 		if (type == null) 
 			type = XMLSchema.DATETIME;
 		RyaType ryaType = new RyaType(type, dateTimeString ); 

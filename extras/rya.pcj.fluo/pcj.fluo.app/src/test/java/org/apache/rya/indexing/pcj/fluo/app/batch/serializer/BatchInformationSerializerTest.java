@@ -18,8 +18,6 @@
  */
 package org.apache.rya.indexing.pcj.fluo.app.batch.serializer;
 
-import static org.junit.Assert.assertEquals;
-
 import java.util.Optional;
 
 import org.apache.fluo.api.data.Bytes;
@@ -32,9 +30,11 @@ import org.apache.rya.indexing.pcj.fluo.app.batch.SpanBatchDeleteInformation;
 import org.apache.rya.indexing.pcj.fluo.app.query.FluoQueryColumns;
 import org.apache.rya.indexing.pcj.fluo.app.query.JoinMetadata.JoinType;
 import org.apache.rya.indexing.pcj.storage.accumulo.VisibilityBindingSet;
+import org.eclipse.rdf4j.model.impl.URIImpl;
+import org.eclipse.rdf4j.query.algebra.evaluation.QueryBindingSet;
 import org.junit.Test;
-import org.openrdf.model.impl.URIImpl;
-import org.openrdf.query.algebra.evaluation.QueryBindingSet;
+
+import static org.junit.Assert.assertEquals;
 
 public class BatchInformationSerializerTest {
 

@@ -23,16 +23,14 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
+import com.google.common.collect.Sets;
 import org.apache.rya.indexing.external.tupleSet.ExternalTupleSet;
 import org.apache.rya.indexing.external.tupleSet.SimpleExternalTupleSet;
-
+import org.eclipse.rdf4j.query.algebra.Projection;
+import org.eclipse.rdf4j.query.parser.ParsedQuery;
+import org.eclipse.rdf4j.query.parser.sparql.SPARQLParser;
 import org.junit.Assert;
 import org.junit.Test;
-import org.openrdf.query.algebra.Projection;
-import org.openrdf.query.parser.ParsedQuery;
-import org.openrdf.query.parser.sparql.SPARQLParser;
-
-import com.google.common.collect.Sets;
 
 public class VarConstantIndexListPrunerTest {
 
@@ -207,8 +205,8 @@ public class VarConstantIndexListPrunerTest {
 		indexSet.add(extTup2);
 		indexSet.add(extTup4);
 
-		Assert.assertTrue(Sets.intersection(indexSet, Sets.<ExternalTupleSet> newHashSet(processedIndexSet))
-				.equals(Sets.<ExternalTupleSet> newHashSet(processedIndexSet)));
+		Assert.assertTrue(Sets.intersection(indexSet, Sets.newHashSet(processedIndexSet))
+				.equals(Sets.newHashSet(processedIndexSet)));
 
 	}
 
@@ -245,8 +243,8 @@ public class VarConstantIndexListPrunerTest {
 		indexSet.add(extTup2);
 
 		Assert.assertTrue(Sets.intersection(indexSet,
-				Sets.<ExternalTupleSet> newHashSet(processedIndexSet)).equals(
-						Sets.<ExternalTupleSet> newHashSet(processedIndexSet)));
+				Sets.newHashSet(processedIndexSet)).equals(
+						Sets.newHashSet(processedIndexSet)));
 
 	}
 

@@ -12,20 +12,19 @@ import org.apache.hadoop.mapreduce.TaskAttemptContext;
 import org.apache.hadoop.mapreduce.TaskAttemptID;
 import org.apache.hadoop.mapreduce.lib.input.FileSplit;
 import org.apache.hadoop.mapreduce.task.TaskAttemptContextImpl;
+import org.apache.rya.api.resolver.RyaToRdfConversions;
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.Statement;
+import org.eclipse.rdf4j.model.impl.ContextStatementImpl;
+import org.eclipse.rdf4j.model.impl.LiteralImpl;
+import org.eclipse.rdf4j.model.impl.StatementImpl;
+import org.eclipse.rdf4j.model.impl.URIImpl;
+import org.eclipse.rdf4j.rio.RDFFormat;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
-import org.openrdf.model.Statement;
-import org.openrdf.model.URI;
-import org.openrdf.model.impl.ContextStatementImpl;
-import org.openrdf.model.impl.LiteralImpl;
-import org.openrdf.model.impl.StatementImpl;
-import org.openrdf.model.impl.URIImpl;
-import org.openrdf.rio.RDFFormat;
-
-import org.apache.rya.api.resolver.RyaToRdfConversions;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -81,13 +80,13 @@ public class RdfFileInputFormatTest {
         RdfFileInputFormat.setRDFFormat(job, RDFFormat.NTRIPLES);
         init(NT_INPUT);
         String prefix = "urn:lubm:rdfts#";
-        URI[] gs = {
+        IRI[] gs = {
                 new URIImpl(prefix + "GraduateStudent01"),
                 new URIImpl(prefix + "GraduateStudent02"),
                 new URIImpl(prefix + "GraduateStudent03"),
                 new URIImpl(prefix + "GraduateStudent04")
         };
-        URI hasFriend = new URIImpl(prefix + "hasFriend");
+        IRI hasFriend = new URIImpl(prefix + "hasFriend");
         Statement[] statements = {
                 new StatementImpl(gs[0], hasFriend, gs[1]),
                 new StatementImpl(gs[1], hasFriend, gs[2]),

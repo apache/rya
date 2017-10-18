@@ -18,8 +18,6 @@
  */
 package org.apache.rya.shell;
 
-import static java.util.Objects.requireNonNull;
-
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -27,12 +25,13 @@ import java.nio.file.Files;
 import java.text.DecimalFormat;
 import java.util.Objects;
 
+import com.google.common.base.Optional;
 import org.apache.rya.api.client.RyaClient;
 import org.apache.rya.api.client.RyaClientException;
 import org.apache.rya.shell.SharedShellState.ShellState;
 import org.apache.rya.shell.util.ConsolePrinter;
 import org.apache.rya.shell.util.SparqlPrompt;
-import org.openrdf.rio.RDFFormat;
+import org.eclipse.rdf4j.rio.RDFFormat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,7 +41,7 @@ import org.springframework.shell.core.annotation.CliCommand;
 import org.springframework.shell.core.annotation.CliOption;
 import org.springframework.stereotype.Component;
 
-import com.google.common.base.Optional;
+import static java.util.Objects.requireNonNull;
 
 /**
  * Rya Shell commands that have to do with common tasks (loading and querying data)

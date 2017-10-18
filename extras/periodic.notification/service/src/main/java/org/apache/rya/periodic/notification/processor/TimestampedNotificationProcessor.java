@@ -22,6 +22,7 @@ import java.util.Optional;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import com.google.common.base.Preconditions;
 import org.apache.log4j.Logger;
 import org.apache.rya.indexing.pcj.storage.PeriodicQueryResultStorage;
 import org.apache.rya.indexing.pcj.storage.PrecomputedJoinStorage.CloseableIterator;
@@ -31,9 +32,7 @@ import org.apache.rya.periodic.notification.api.NodeBin;
 import org.apache.rya.periodic.notification.api.NotificationProcessor;
 import org.apache.rya.periodic.notification.exporter.KafkaPeriodicBindingSetExporter;
 import org.apache.rya.periodic.notification.notification.TimestampedNotification;
-import org.openrdf.query.BindingSet;
-
-import com.google.common.base.Preconditions;
+import org.eclipse.rdf4j.query.BindingSet;
 
 /**
  * Implementation of {@link NotificationProcessor} that uses the id indicated by
@@ -83,7 +82,7 @@ public class TimestampedNotificationProcessor implements NotificationProcessor, 
         long bin = getBinFromTimestamp(ts, period);
         NodeBin nodeBin = new NodeBin(id, bin);
 
-        try (CloseableIterator<BindingSet> iter = periodicStorage.listResults(id, Optional.of(bin));) {
+        try (CloseableIterator<BindingSet> iter = periodicStorage.listResults(id, Optional.of(bin))) {
 
             while(iter.hasNext()) {
                 bindingSets.add(new BindingSetRecord(iter.next(), id));

@@ -19,17 +19,15 @@ package org.apache.rya.rdftriplestore.evaluation;
  * under the License.
  */
 
-
-
-import static com.google.common.base.Preconditions.checkNotNull;
-import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
+import org.apache.rya.api.RdfTripleStoreConfiguration;
 import org.apache.rya.api.persist.RdfEvalStatsDAO;
 import org.apache.rya.api.persist.joinselect.SelectivityEvalDAO;
 import org.apache.rya.rdftriplestore.inference.DoNotExpandSP;
 import org.apache.rya.rdftriplestore.utils.FixedStatementPattern;
+import org.eclipse.rdf4j.query.algebra.Join;
+import org.eclipse.rdf4j.query.algebra.StatementPattern;
 
-import org.openrdf.query.algebra.Join;
-import org.openrdf.query.algebra.StatementPattern;
+import static com.google.common.base.Preconditions.checkNotNull;
 
 public class RdfCloudTripleStoreSelectivityEvaluationStatistics extends RdfCloudTripleStoreEvaluationStatistics {
 
@@ -38,10 +36,10 @@ public class RdfCloudTripleStoreSelectivityEvaluationStatistics extends RdfCloud
                                                  // RdfEvalStatsDAO object
 
   protected double filterCard;
-  RdfCloudTripleStoreConfiguration config; // TODO redundancy here as RdfCloudTripleStoreEvalStats object contains conf as well
+  RdfTripleStoreConfiguration config; // TODO redundancy here as RdfCloudTripleStoreEvalStats object contains conf as well
 
-  public RdfCloudTripleStoreSelectivityEvaluationStatistics(RdfCloudTripleStoreConfiguration conf,
-      RdfEvalStatsDAO<RdfCloudTripleStoreConfiguration> prospector, SelectivityEvalDAO selectEvalStatsDAO) {
+  public RdfCloudTripleStoreSelectivityEvaluationStatistics(RdfTripleStoreConfiguration conf,
+      RdfEvalStatsDAO<RdfTripleStoreConfiguration> prospector, SelectivityEvalDAO selectEvalStatsDAO) {
 
     super(conf, prospector);
     checkNotNull(selectEvalStatsDAO);

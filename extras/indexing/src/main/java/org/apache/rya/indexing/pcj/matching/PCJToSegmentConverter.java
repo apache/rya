@@ -36,18 +36,17 @@ package org.apache.rya.indexing.pcj.matching;
  * under the License.
  */
 
+import com.google.common.base.Preconditions;
 import org.apache.rya.indexing.external.matching.ExternalSetConverter;
 import org.apache.rya.indexing.external.matching.JoinSegment;
 import org.apache.rya.indexing.external.matching.OptionalJoinSegment;
 import org.apache.rya.indexing.external.matching.QuerySegment;
 import org.apache.rya.indexing.external.tupleSet.ExternalTupleSet;
-import org.openrdf.query.algebra.Filter;
-import org.openrdf.query.algebra.Join;
-import org.openrdf.query.algebra.LeftJoin;
-import org.openrdf.query.algebra.TupleExpr;
-import org.openrdf.query.algebra.helpers.QueryModelVisitorBase;
-
-import com.google.common.base.Preconditions;
+import org.eclipse.rdf4j.query.algebra.Filter;
+import org.eclipse.rdf4j.query.algebra.Join;
+import org.eclipse.rdf4j.query.algebra.LeftJoin;
+import org.eclipse.rdf4j.query.algebra.TupleExpr;
+import org.eclipse.rdf4j.query.algebra.helpers.QueryModelVisitorBase;
 
 /**
  * Implementation of {@link ExternalSetConverter} to convert {@link ExternalTupleSet}s
@@ -79,7 +78,7 @@ public class PCJToSegmentConverter implements ExternalSetConverter<ExternalTuple
 
         private JoinSegment<ExternalTupleSet> segment;
 
-        private PCJToJoinSegment(){};
+        private PCJToJoinSegment(){}
 
         public QuerySegment<ExternalTupleSet> getSegment(final ExternalTupleSet pcj) {
             segment = null;
@@ -107,7 +106,7 @@ public class PCJToSegmentConverter implements ExternalSetConverter<ExternalTuple
 
         private OptionalJoinSegment<ExternalTupleSet> segment;
 
-        private PCJToOptionalJoinSegment(){};
+        private PCJToOptionalJoinSegment(){}
 
         public QuerySegment<ExternalTupleSet> getSegment(final ExternalTupleSet pcj) {
             segment = null;

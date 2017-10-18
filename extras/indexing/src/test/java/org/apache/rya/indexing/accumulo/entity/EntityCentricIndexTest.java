@@ -19,27 +19,25 @@ package org.apache.rya.indexing.accumulo.entity;
  * under the License.
  */
 
-import static org.apache.rya.api.RdfCloudTripleStoreConstants.DELIM_BYTES;
+import java.io.IOException;
+import java.util.Collection;
 
+import com.google.common.primitives.Bytes;
 import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Mutation;
 import org.apache.accumulo.core.data.Value;
 import org.apache.accumulo.core.security.ColumnVisibility;
-import org.junit.Assert;
-import org.junit.BeforeClass;
-
-import java.io.IOException;
-import java.util.Collection;
-import org.junit.Test;
-import org.openrdf.model.vocabulary.XMLSchema;
-
-import com.google.common.primitives.Bytes;
-
 import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.domain.RyaType;
 import org.apache.rya.api.domain.RyaURI;
 import org.apache.rya.api.resolver.RyaContext;
 import org.apache.rya.api.resolver.RyaTypeResolverException;
+import org.eclipse.rdf4j.model.vocabulary.XMLSchema;
+import org.junit.Assert;
+import org.junit.BeforeClass;
+import org.junit.Test;
+
+import static org.apache.rya.api.RdfCloudTripleStoreConstants.DELIM_BYTES;
 
 public class EntityCentricIndexTest {
     private static RyaStatement ryaStatement;

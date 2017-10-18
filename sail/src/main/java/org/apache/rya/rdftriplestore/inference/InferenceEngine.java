@@ -18,27 +18,14 @@
  */
 package org.apache.rya.rdftriplestore.inference;
 
-import static com.google.common.base.Preconditions.checkArgument;
-import static com.google.common.base.Preconditions.checkNotNull;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.Set;
-import java.util.Stack;
-import java.util.Timer;
-import java.util.TimerTask;
-import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
 
+import com.google.common.collect.Sets;
 import org.apache.commons.lang3.mutable.MutableObject;
 import org.apache.log4j.Logger;
-import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
+import org.apache.rya.api.RdfTripleStoreConfiguration;
 import org.apache.rya.api.persist.RyaDAO;
 import org.apache.rya.api.persist.RyaDAOException;
 import org.apache.rya.api.persist.utils.RyaDAOHelper;
@@ -48,23 +35,19 @@ import org.apache.tinkerpop.gremlin.structure.Graph;
 import org.apache.tinkerpop.gremlin.structure.T;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.apache.tinkerpop.gremlin.tinkergraph.structure.TinkerGraph;
-import org.openrdf.model.Resource;
-import org.openrdf.model.Statement;
-import org.openrdf.model.URI;
-import org.openrdf.model.Value;
-import org.openrdf.model.ValueFactory;
-import org.openrdf.model.impl.StatementImpl;
-import org.openrdf.model.impl.ValueFactoryImpl;
-import org.openrdf.model.vocabulary.OWL;
-import org.openrdf.model.vocabulary.RDF;
-import org.openrdf.model.vocabulary.RDFS;
-import org.openrdf.query.QueryEvaluationException;
-import org.openrdf.rio.RDFHandlerException;
-import org.openrdf.rio.helpers.RDFHandlerBase;
+import org.eclipse.rdf4j.common.iteration.CloseableIteration;
+import org.eclipse.rdf4j.model.*;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
+import org.eclipse.rdf4j.model.impl.StatementImpl;
+import org.eclipse.rdf4j.model.vocabulary.OWL;
+import org.eclipse.rdf4j.model.vocabulary.RDF;
+import org.eclipse.rdf4j.model.vocabulary.RDFS;
+import org.eclipse.rdf4j.query.QueryEvaluationException;
+import org.eclipse.rdf4j.rio.RDFHandlerException;
+import org.eclipse.rdf4j.rio.helpers.RDFHandlerBase;
 
-import com.google.common.collect.Sets;
-
-import info.aduna.iteration.CloseableIteration;
+import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * Will pull down inference relationships from dao every x seconds. <br>
@@ -73,37 +56,37 @@ import info.aduna.iteration.CloseableIteration;
  */
 public class InferenceEngine {
     private static final Logger log = Logger.getLogger(InferenceEngine.class);
-    private static final ValueFactory VF = ValueFactoryImpl.getInstance();
-    private static final URI HAS_SELF = VF.createURI(OWL.NAMESPACE, "hasSelf");
-    private static final URI REFLEXIVE_PROPERTY = VF.createURI(OWL.NAMESPACE, "ReflexiveProperty");
+    private static final ValueFactory vf = SimpleValueFactory.getInstance();
+    private static final IRI HAS_SELF = vf.createIRI(OWL.NAMESPACE, "hasSelf");
+    private static final IRI REFLEXIVE_PROPERTY = vf.createIRI(OWL.NAMESPACE, "ReflexiveProperty");
 
     private Graph subClassOfGraph;
     private Graph subPropertyOfGraph;
-    private Set<URI> symmetricPropertySet;
-    private Map<URI, URI> inverseOfMap;
-    private Set<URI> transitivePropertySet;
-    private Set<URI> reflexivePropertySet;
-    private Map<URI, Set<URI>> domainByType;
-    private Map<URI, Set<URI>> rangeByType;
-    private Map<Resource, Map<URI, Value>> hasValueByType;
-    private Map<URI, Map<Resource, Value>> hasValueByProperty;
-    private Map<Resource, Map<Resource, URI>> someValuesFromByRestrictionType;
-    private Map<Resource, Map<Resource, URI>> allValuesFromByValueType;
+    private Set<IRI> symmetricPropertySet;
+    private Map<IRI, IRI> inverseOfMap;
+    private Set<IRI> transitivePropertySet;
+    private Set<IRI> reflexivePropertySet;
+    private Map<IRI, Set<IRI>> domainByType;
+    private Map<IRI, Set<IRI>> rangeByType;
+    private Map<Resource, Map<IRI, Value>> hasValueByType;
+    private Map<IRI, Map<Resource, Value>> hasValueByProperty;
+    private Map<Resource, Map<Resource, IRI>> someValuesFromByRestrictionType;
+    private Map<Resource, Map<Resource, IRI>> allValuesFromByValueType;
     private final ConcurrentHashMap<Resource, List<Set<Resource>>> intersections = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<Resource, Set<Resource>> enumerations = new ConcurrentHashMap<>();
     // hasSelf maps.
-    private Map<URI, Set<Resource>> hasSelfByProperty;
-    private Map<Resource, Set<URI>> hasSelfByType;
+    private Map<IRI, Set<Resource>> hasSelfByProperty;
+    private Map<Resource, Set<IRI>> hasSelfByType;
 
     private RyaDAO<?> ryaDAO;
-    private RdfCloudTripleStoreConfiguration conf;
+    private RdfTripleStoreConfiguration conf;
     private RyaDaoQueryWrapper ryaDaoQueryWrapper;
     private boolean initialized = false;
     private boolean schedule = true;
 
     private long refreshGraphSchedule = 5 * 60 * 1000; //5 min
     private Timer timer;
-    private HashMap<URI, List<URI>> propertyChainPropertyToChain = new HashMap<>();
+    private HashMap<IRI, List<IRI>> propertyChainPropertyToChain = new HashMap<>();
     public static final String URI_PROP = "uri";
 
     public void init() throws InferenceEngineException {
@@ -176,7 +159,7 @@ public class InferenceEngine {
                                 final Statement firstStatement = listIter.next();
                                 if (firstStatement.getObject() instanceof Resource) {
                                     final Resource subclass = (Resource) firstStatement.getObject();
-                                    final Statement subclassStatement = VF.createStatement(subclass, RDFS.SUBCLASSOF, unionType);
+                                    final Statement subclassStatement = vf.createStatement(subclass, RDFS.SUBCLASSOF, unionType);
                                     addStatementEdge(graph, RDFS.SUBCLASSOF.stringValue(), subclassStatement);
                                 }
                             }
@@ -218,12 +201,12 @@ public class InferenceEngine {
             reflexivePropertySet = fetchInstances(REFLEXIVE_PROPERTY);
 
             iter = RyaDAOHelper.query(ryaDAO, null, OWL.INVERSEOF, null, conf);
-            final Map<URI, URI> invProp = new HashMap<>();
+            final Map<IRI, IRI> invProp = new HashMap<>();
             try {
                 while (iter.hasNext()) {
                     final Statement st = iter.next();
-                    invProp.put((URI) st.getSubject(), (URI) st.getObject());
-                    invProp.put((URI) st.getObject(), (URI) st.getSubject());
+                    invProp.put((IRI) st.getSubject(), (IRI) st.getObject());
+                    invProp.put((IRI) st.getObject(), (IRI) st.getSubject());
                 }
             } finally {
                 if (iter != null) {
@@ -233,14 +216,14 @@ public class InferenceEngine {
             inverseOfMap = invProp;
 
             iter = RyaDAOHelper.query(ryaDAO, null,
-                    VF.createURI("http://www.w3.org/2002/07/owl#propertyChainAxiom"),
+                    vf.createIRI("http://www.w3.org/2002/07/owl#propertyChainAxiom"),
                     null, conf);
-            final Map<URI,URI> propertyChainPropertiesToBNodes = new HashMap<>();
+            final Map<IRI,IRI> propertyChainPropertiesToBNodes = new HashMap<>();
             propertyChainPropertyToChain = new HashMap<>();
             try {
                 while (iter.hasNext()){
                     final Statement st = iter.next();
-                    propertyChainPropertiesToBNodes.put((URI)st.getSubject(), (URI)st.getObject());
+                    propertyChainPropertiesToBNodes.put((IRI)st.getSubject(), (IRI)st.getObject());
                 }
             } finally {
                 if (iter != null) {
@@ -248,19 +231,19 @@ public class InferenceEngine {
                 }
             }
             // now for each property chain bNode, get the indexed list of properties associated with that chain
-            for (final URI propertyChainProperty : propertyChainPropertiesToBNodes.keySet()){
-                final URI bNode = propertyChainPropertiesToBNodes.get(propertyChainProperty);
+            for (final IRI propertyChainProperty : propertyChainPropertiesToBNodes.keySet()){
+                final IRI bNode = propertyChainPropertiesToBNodes.get(propertyChainProperty);
                 // query for the list of indexed properties
-                iter = RyaDAOHelper.query(ryaDAO, bNode, VF.createURI("http://www.w3.org/2000/10/swap/list#index"),
+                iter = RyaDAOHelper.query(ryaDAO, bNode, vf.createIRI("http://www.w3.org/2000/10/swap/list#index"),
                         null, conf);
-                final TreeMap<Integer, URI> orderedProperties = new TreeMap<>();
+                final TreeMap<Integer, IRI> orderedProperties = new TreeMap<>();
                 // TODO refactor this.  Wish I could execute sparql
                 try {
                     while (iter.hasNext()){
                         final Statement st = iter.next();
                         final String indexedElement = st.getObject().stringValue();
                         log.info(indexedElement);
-                        CloseableIteration<Statement, QueryEvaluationException>  iter2 = RyaDAOHelper.query(ryaDAO, VF.createURI(st.getObject().stringValue()), RDF.FIRST,
+                        CloseableIteration<Statement, QueryEvaluationException>  iter2 = RyaDAOHelper.query(ryaDAO, vf.createIRI(st.getObject().stringValue()), RDF.FIRST,
                                 null, conf);
                         String integerValue = "";
                         Value anonPropNode = null;
@@ -273,7 +256,7 @@ public class InferenceEngine {
                             }
                             iter2.close();
                         }
-                        iter2 = RyaDAOHelper.query(ryaDAO, VF.createURI(st.getObject().stringValue()), RDF.REST,
+                        iter2 = RyaDAOHelper.query(ryaDAO, vf.createIRI(st.getObject().stringValue()), RDF.REST,
                                 null, conf);
                         if (iter2 != null){
                             while (iter2.hasNext()){
@@ -283,7 +266,7 @@ public class InferenceEngine {
                             }
                             iter2.close();
                             if (anonPropNode != null){
-                                iter2 = RyaDAOHelper.query(ryaDAO, VF.createURI(anonPropNode.stringValue()), RDF.FIRST,
+                                iter2 = RyaDAOHelper.query(ryaDAO, vf.createIRI(anonPropNode.stringValue()), RDF.FIRST,
                                         null, conf);
                                 while (iter2.hasNext()){
                                     final Statement iter2Statement = iter2.next();
@@ -296,7 +279,7 @@ public class InferenceEngine {
                         if (!integerValue.isEmpty() && propURI!=null) {
                             try {
                                 final int indexValue = Integer.parseInt(integerValue);
-                                final URI chainPropURI = VF.createURI(propURI.stringValue());
+                                final IRI chainPropURI = vf.createIRI(propURI.stringValue());
                                 orderedProperties.put(indexValue, chainPropURI);
                             }
                             catch (final Exception ex){
@@ -310,44 +293,44 @@ public class InferenceEngine {
                         iter.close();
                     }
                 }
-                final List<URI> properties = new ArrayList<>();
-                for (final Map.Entry<Integer, URI> entry : orderedProperties.entrySet()){
+                final List<IRI> properties = new ArrayList<>();
+                for (final Map.Entry<Integer, IRI> entry : orderedProperties.entrySet()){
                     properties.add(entry.getValue());
                 }
                 propertyChainPropertyToChain.put(propertyChainProperty, properties);
             }
 
             // could also be represented as a list of properties (some of which may be blank nodes)
-            for (final URI propertyChainProperty : propertyChainPropertiesToBNodes.keySet()){
-                final List<URI> existingChain = propertyChainPropertyToChain.get(propertyChainProperty);
+            for (final IRI propertyChainProperty : propertyChainPropertiesToBNodes.keySet()){
+                final List<IRI> existingChain = propertyChainPropertyToChain.get(propertyChainProperty);
                 // if we didn't get a chain, try to get it through following the collection
                 if ((existingChain == null) || existingChain.isEmpty()) {
 
                     CloseableIteration<Statement, QueryEvaluationException>  iter2 = RyaDAOHelper.query(ryaDAO, propertyChainPropertiesToBNodes.get(propertyChainProperty), RDF.FIRST,
                             null, conf);
-                    final List<URI> properties = new ArrayList<>();
-                    URI previousBNode = propertyChainPropertiesToBNodes.get(propertyChainProperty);
+                    final List<IRI> properties = new ArrayList<>();
+                    IRI previousBNode = propertyChainPropertiesToBNodes.get(propertyChainProperty);
                     if (iter2.hasNext()) {
                         Statement iter2Statement = iter2.next();
                         Value currentPropValue = iter2Statement.getObject();
                         while ((currentPropValue != null) && (!currentPropValue.stringValue().equalsIgnoreCase(RDF.NIL.stringValue()))){
-                            if (currentPropValue instanceof URI){
-                                iter2 = RyaDAOHelper.query(ryaDAO, VF.createURI(currentPropValue.stringValue()), RDF.FIRST,
+                            if (currentPropValue instanceof IRI){
+                                iter2 = RyaDAOHelper.query(ryaDAO, vf.createIRI(currentPropValue.stringValue()), RDF.FIRST,
                                         null, conf);
                                 if (iter2.hasNext()){
                                     iter2Statement = iter2.next();
-                                    if (iter2Statement.getObject() instanceof URI){
-                                        properties.add((URI)iter2Statement.getObject());
+                                    if (iter2Statement.getObject() instanceof IRI){
+                                        properties.add((IRI)iter2Statement.getObject());
                                     }
                                 }
                                 // otherwise see if there is an inverse declaration
                                 else {
-                                    iter2 = RyaDAOHelper.query(ryaDAO, VF.createURI(currentPropValue.stringValue()), OWL.INVERSEOF,
+                                    iter2 = RyaDAOHelper.query(ryaDAO, vf.createIRI(currentPropValue.stringValue()), OWL.INVERSEOF,
                                             null, conf);
                                     if (iter2.hasNext()){
                                         iter2Statement = iter2.next();
-                                        if (iter2Statement.getObject() instanceof URI){
-                                            properties.add(new InverseURI((URI)iter2Statement.getObject()));
+                                        if (iter2Statement.getObject() instanceof IRI){
+                                            properties.add(new InverseURI((IRI)iter2Statement.getObject()));
                                         }
                                     }
                                 }
@@ -356,7 +339,7 @@ public class InferenceEngine {
                                         null, conf);
                                 if (iter2.hasNext()){
                                     iter2Statement = iter2.next();
-                                    previousBNode = (URI)currentPropValue;
+                                    previousBNode = (IRI)currentPropValue;
                                     currentPropValue = iter2Statement.getObject();
                                 }
                                 else {
@@ -387,13 +370,13 @@ public class InferenceEngine {
      * to have few members, such as ontology vocabulary terms, as instances will be collected in
      * memory.
      */
-    private Set<URI> fetchInstances(final URI type) throws QueryEvaluationException {
-        final Set<URI> instances = new HashSet<>();
+    private Set<IRI> fetchInstances(final IRI type) throws QueryEvaluationException {
+        final Set<IRI> instances = new HashSet<>();
         ryaDaoQueryWrapper.queryAll(null, RDF.TYPE, type, new RDFHandlerBase() {
             @Override
             public void handleStatement(final Statement st) throws RDFHandlerException {
-                if (st.getSubject() instanceof URI) {
-                    instances.add((URI) st.getSubject());
+                if (st.getSubject() instanceof IRI) {
+                    instances.add((IRI) st.getSubject());
                 }
             }
         });
@@ -411,7 +394,7 @@ public class InferenceEngine {
      * @param edgeName Label that will be given to all added edges
      * @throws QueryEvaluationException
      */
-    private void addPredicateEdges(final URI predicate, final Direction dir, final Graph graph, final String edgeName)
+    private void addPredicateEdges(final IRI predicate, final Direction dir, final Graph graph, final String edgeName)
             throws QueryEvaluationException {
         final CloseableIteration<Statement, QueryEvaluationException> iter = RyaDAOHelper.query(ryaDAO,
                 null, predicate, null, conf);
@@ -449,8 +432,8 @@ public class InferenceEngine {
      * @throws QueryEvaluationException
      */
     private void refreshDomainRange() throws QueryEvaluationException {
-        final Map<URI, Set<URI>> domainByTypePartial = new ConcurrentHashMap<>();
-        final Map<URI, Set<URI>> rangeByTypePartial = new ConcurrentHashMap<>();
+        final Map<IRI, Set<IRI>> domainByTypePartial = new ConcurrentHashMap<>();
+        final Map<IRI, Set<IRI>> rangeByTypePartial = new ConcurrentHashMap<>();
         // First, populate domain and range based on direct domain/range triples.
         CloseableIteration<Statement, QueryEvaluationException> iter = RyaDAOHelper.query(ryaDAO, null, RDFS.DOMAIN, null, conf);
         try {
@@ -458,11 +441,11 @@ public class InferenceEngine {
                 final Statement st = iter.next();
                 final Resource property = st.getSubject();
                 final Value domainType = st.getObject();
-                if (domainType instanceof URI && property instanceof URI) {
+                if (domainType instanceof IRI && property instanceof IRI) {
                     if (!domainByTypePartial.containsKey(domainType)) {
-                        domainByTypePartial.put((URI) domainType, new HashSet<>());
+                        domainByTypePartial.put((IRI) domainType, new HashSet<>());
                     }
-                    domainByTypePartial.get(domainType).add((URI) property);
+                    domainByTypePartial.get(domainType).add((IRI) property);
                 }
             }
         } finally {
@@ -476,11 +459,11 @@ public class InferenceEngine {
                 final Statement st = iter.next();
                 final Resource property = st.getSubject();
                 final Value rangeType = st.getObject();
-                if (rangeType instanceof URI && property instanceof URI) {
+                if (rangeType instanceof IRI && property instanceof IRI) {
                     if (!rangeByTypePartial.containsKey(rangeType)) {
-                        rangeByTypePartial.put((URI) rangeType, new HashSet<>());
+                        rangeByTypePartial.put((IRI) rangeType, new HashSet<>());
                     }
-                    rangeByTypePartial.get(rangeType).add((URI) property);
+                    rangeByTypePartial.get(rangeType).add((IRI) property);
                 }
             }
         } finally {
@@ -490,26 +473,26 @@ public class InferenceEngine {
         }
         // Then combine with the subclass/subproperty graphs and the inverse property map to compute
         // the closure of domain and range per class.
-        final Set<URI> domainRangeTypeSet = new HashSet<>(domainByTypePartial.keySet());
+        final Set<IRI> domainRangeTypeSet = new HashSet<>(domainByTypePartial.keySet());
         domainRangeTypeSet.addAll(rangeByTypePartial.keySet());
         // Extend to subproperties: make sure that using a more specific form of a property
         // still triggers its domain/range inferences.
         // Mirror for inverse properties: make sure that using the inverse form of a property
         // triggers the inverse domain/range inferences.
         // These two rules can recursively trigger one another.
-        for (final URI domainRangeType : domainRangeTypeSet) {
-            final Set<URI> propertiesWithDomain = domainByTypePartial.getOrDefault(domainRangeType, new HashSet<>());
-            final Set<URI> propertiesWithRange = rangeByTypePartial.getOrDefault(domainRangeType, new HashSet<>());
+        for (final IRI domainRangeType : domainRangeTypeSet) {
+            final Set<IRI> propertiesWithDomain = domainByTypePartial.getOrDefault(domainRangeType, new HashSet<>());
+            final Set<IRI> propertiesWithRange = rangeByTypePartial.getOrDefault(domainRangeType, new HashSet<>());
             // Since findParents will traverse the subproperty graph and find all indirect
             // subproperties, the subproperty rule does not need to trigger itself directly.
             // And since no more than one inverseOf relationship is stored for any property, the
             // inverse property rule does not need to trigger itself directly. However, each rule
             // can trigger the other, so keep track of how the inferred domains/ranges were
             // discovered so we can apply only those rules that might yield new information.
-            final Stack<URI> domainViaSuperProperty  = new Stack<>();
-            final Stack<URI> rangeViaSuperProperty  = new Stack<>();
-            final Stack<URI> domainViaInverseProperty  = new Stack<>();
-            final Stack<URI> rangeViaInverseProperty  = new Stack<>();
+            final Stack<IRI> domainViaSuperProperty  = new Stack<>();
+            final Stack<IRI> rangeViaSuperProperty  = new Stack<>();
+            final Stack<IRI> domainViaInverseProperty  = new Stack<>();
+            final Stack<IRI> rangeViaInverseProperty  = new Stack<>();
             // Start with the direct domain/range assertions, which can trigger any rule.
             domainViaSuperProperty.addAll(propertiesWithDomain);
             domainViaInverseProperty.addAll(propertiesWithDomain);
@@ -522,8 +505,8 @@ public class InferenceEngine {
                 // For a type c and property p, if c is a domain of p, then c is the range of any
                 // inverse of p. Would be redundant for properties discovered via inverseOf.
                 while (!domainViaSuperProperty.isEmpty()) {
-                    final URI property = domainViaSuperProperty.pop();
-                    final URI inverseProperty = findInverseOf(property);
+                    final IRI property = domainViaSuperProperty.pop();
+                    final IRI inverseProperty = findInverseOf(property);
                     if (inverseProperty != null && propertiesWithRange.add(inverseProperty)) {
                         rangeViaInverseProperty.push(inverseProperty);
                     }
@@ -531,8 +514,8 @@ public class InferenceEngine {
                 // For a type c and property p, if c is a range of p, then c is the domain of any
                 // inverse of p. Would be redundant for properties discovered via inverseOf.
                 while (!rangeViaSuperProperty.isEmpty()) {
-                    final URI property = rangeViaSuperProperty.pop();
-                    final URI inverseProperty = findInverseOf(property);
+                    final IRI property = rangeViaSuperProperty.pop();
+                    final IRI inverseProperty = findInverseOf(property);
                     if (inverseProperty != null && propertiesWithDomain.add(inverseProperty)) {
                         domainViaInverseProperty.push(inverseProperty);
                     }
@@ -540,8 +523,8 @@ public class InferenceEngine {
                 // For a type c and property p, if c is a domain of p, then c is also a domain of
                 // p's subproperties. Would be redundant for properties discovered via this rule.
                 while (!domainViaInverseProperty.isEmpty()) {
-                    final URI property = domainViaInverseProperty.pop();
-                    final Set<URI> subProperties = getSubProperties(property);
+                    final IRI property = domainViaInverseProperty.pop();
+                    final Set<IRI> subProperties = getSubProperties(property);
                     subProperties.removeAll(propertiesWithDomain);
                     propertiesWithDomain.addAll(subProperties);
                     domainViaSuperProperty.addAll(subProperties);
@@ -549,8 +532,8 @@ public class InferenceEngine {
                 // For a type c and property p, if c is a range of p, then c is also a range of
                 // p's subproperties. Would be redundant for properties discovered via this rule.
                 while (!rangeViaInverseProperty.isEmpty()) {
-                    final URI property = rangeViaInverseProperty.pop();
-                    final Set<URI> subProperties = getSubProperties(property);
+                    final IRI property = rangeViaInverseProperty.pop();
+                    final Set<IRI> subProperties = getSubProperties(property);
                     subProperties.removeAll(propertiesWithRange);
                     propertiesWithRange.addAll(subProperties);
                     rangeViaSuperProperty.addAll(subProperties);
@@ -566,23 +549,23 @@ public class InferenceEngine {
         // Once all properties have been found for each domain/range class, extend to superclasses:
         // make sure that the consequent of a domain/range inference goes on to apply any more
         // general classes as well.
-        for (final URI subtype : domainRangeTypeSet) {
-            final Set<URI> supertypes = getSuperClasses(subtype);
-            final Set<URI> propertiesWithDomain = domainByTypePartial.getOrDefault(subtype, new HashSet<>());
-            final Set<URI> propertiesWithRange = rangeByTypePartial.getOrDefault(subtype, new HashSet<>());
-            for (final URI supertype : supertypes) {
+        for (final IRI subtype : domainRangeTypeSet) {
+            final Set<IRI> supertypes = getSuperClasses(subtype);
+            final Set<IRI> propertiesWithDomain = domainByTypePartial.getOrDefault(subtype, new HashSet<>());
+            final Set<IRI> propertiesWithRange = rangeByTypePartial.getOrDefault(subtype, new HashSet<>());
+            for (final IRI supertype : supertypes) {
                 // For a property p and its domain c: all of c's superclasses are also domains of p.
                 if (!propertiesWithDomain.isEmpty() && !domainByTypePartial.containsKey(supertype)) {
                     domainByTypePartial.put(supertype, new HashSet<>());
                 }
-                for (final URI property : propertiesWithDomain) {
+                for (final IRI property : propertiesWithDomain) {
                     domainByTypePartial.get(supertype).add(property);
                 }
                 // For a property p and its range c: all of c's superclasses are also ranges of p.
                 if (!propertiesWithRange.isEmpty() && !rangeByTypePartial.containsKey(supertype)) {
                     rangeByTypePartial.put(supertype, new HashSet<>());
                 }
-                for (final URI property : propertiesWithRange) {
+                for (final IRI property : propertiesWithRange) {
                     rangeByTypePartial.get(supertype).add(property);
                 }
             }
@@ -594,11 +577,11 @@ public class InferenceEngine {
     private void refreshPropertyRestrictions() throws QueryEvaluationException {
         // Get a set of all property restrictions of any type
         final CloseableIteration<Statement, QueryEvaluationException> iter = RyaDAOHelper.query(ryaDAO, null, OWL.ONPROPERTY, null, conf);
-        final Map<Resource, URI> restrictions = new HashMap<>();
+        final Map<Resource, IRI> restrictions = new HashMap<>();
         try {
             while (iter.hasNext()) {
                 final Statement st = iter.next();
-                restrictions.put(st.getSubject(), (URI) st.getObject());
+                restrictions.put(st.getSubject(), (IRI) st.getObject());
             }
         } finally {
             if (iter != null) {
@@ -612,7 +595,7 @@ public class InferenceEngine {
         refreshHasSelfRestrictions(restrictions);
     }
 
-    private void refreshHasValueRestrictions(final Map<Resource, URI> restrictions) throws QueryEvaluationException {
+    private void refreshHasValueRestrictions(final Map<Resource, IRI> restrictions) throws QueryEvaluationException {
         hasValueByType = new HashMap<>();
         hasValueByProperty = new HashMap<>();
         final CloseableIteration<Statement, QueryEvaluationException> iter = RyaDAOHelper.query(ryaDAO, null, OWL.HASVALUE, null, conf);
@@ -621,7 +604,7 @@ public class InferenceEngine {
                 final Statement st = iter.next();
                 final Resource restrictionClass = st.getSubject();
                 if (restrictions.containsKey(restrictionClass)) {
-                    final URI property = restrictions.get(restrictionClass);
+                    final IRI property = restrictions.get(restrictionClass);
                     final Value value = st.getObject();
                     if (!hasValueByType.containsKey(restrictionClass)) {
                         hasValueByType.put(restrictionClass, new HashMap<>());
@@ -640,20 +623,20 @@ public class InferenceEngine {
         }
     }
 
-    private void refreshSomeValuesFromRestrictions(final Map<Resource, URI> restrictions) throws QueryEvaluationException {
+    private void refreshSomeValuesFromRestrictions(final Map<Resource, IRI> restrictions) throws QueryEvaluationException {
         someValuesFromByRestrictionType = new ConcurrentHashMap<>();
         ryaDaoQueryWrapper.queryAll(null, OWL.SOMEVALUESFROM, null, new RDFHandlerBase() {
             @Override
             public void handleStatement(final Statement statement) throws RDFHandlerException {
                 final Resource restrictionClass = statement.getSubject();
                 if (restrictions.containsKey(restrictionClass) && statement.getObject() instanceof Resource) {
-                    final URI property = restrictions.get(restrictionClass);
+                    final IRI property = restrictions.get(restrictionClass);
                     final Resource valueClass = (Resource) statement.getObject();
                     // Should also be triggered by subclasses of the value class
                     final Set<Resource> valueClasses = new HashSet<>();
                     valueClasses.add(valueClass);
-                    if (valueClass instanceof URI) {
-                        valueClasses.addAll(getSubClasses((URI) valueClass));
+                    if (valueClass instanceof IRI) {
+                        valueClasses.addAll(getSubClasses((IRI) valueClass));
                     }
                     for (final Resource valueSubClass : valueClasses) {
                         if (!someValuesFromByRestrictionType.containsKey(restrictionClass)) {
@@ -666,20 +649,20 @@ public class InferenceEngine {
         });
     }
 
-    private void refreshAllValuesFromRestrictions(final Map<Resource, URI> restrictions) throws QueryEvaluationException {
+    private void refreshAllValuesFromRestrictions(final Map<Resource, IRI> restrictions) throws QueryEvaluationException {
         allValuesFromByValueType = new ConcurrentHashMap<>();
         ryaDaoQueryWrapper.queryAll(null, OWL.ALLVALUESFROM, null, new RDFHandlerBase() {
             @Override
             public void handleStatement(final Statement statement) throws RDFHandlerException {
                 final Resource directRestrictionClass = statement.getSubject();
                 if (restrictions.containsKey(directRestrictionClass) && statement.getObject() instanceof Resource) {
-                    final URI property = restrictions.get(directRestrictionClass);
+                    final IRI property = restrictions.get(directRestrictionClass);
                     final Resource valueClass = (Resource) statement.getObject();
                     // Should also be triggered by subclasses of the property restriction
                     final Set<Resource> restrictionClasses = new HashSet<>();
                     restrictionClasses.add(directRestrictionClass);
-                    if (directRestrictionClass instanceof URI) {
-                        restrictionClasses.addAll(getSubClasses((URI) directRestrictionClass));
+                    if (directRestrictionClass instanceof IRI) {
+                        restrictionClasses.addAll(getSubClasses((IRI) directRestrictionClass));
                     }
                     for (final Resource restrictionClass : restrictionClasses) {
                         if (!allValuesFromByValueType.containsKey(valueClass)) {
@@ -692,16 +675,16 @@ public class InferenceEngine {
         });
     }
 
-    private void refreshHasSelfRestrictions(final Map<Resource, URI> restrictions) throws QueryEvaluationException {
+    private void refreshHasSelfRestrictions(final Map<Resource, IRI> restrictions) throws QueryEvaluationException {
         hasSelfByType = new HashMap<>();
         hasSelfByProperty = new HashMap<>();
 
         for(final Resource type : restrictions.keySet()) {
-            final URI property = restrictions.get(type);
+            final IRI property = restrictions.get(type);
             final CloseableIteration<Statement, QueryEvaluationException> iter = RyaDAOHelper.query(ryaDAO, type, HAS_SELF, null, conf);
             try {
                 if (iter.hasNext()) {
-                    Set<URI> typeSet = hasSelfByType.get(type);
+                    Set<IRI> typeSet = hasSelfByType.get(type);
                     Set<Resource> propSet = hasSelfByProperty.get(property);
 
                     if (typeSet == null) {
@@ -742,7 +725,7 @@ public class InferenceEngine {
             public void handleStatement(final Statement statement) throws RDFHandlerException {
                 final Resource type = statement.getSubject();
                 // head will point to a type that is part of the intersection.
-                final URI head = (URI) statement.getObject();
+                final IRI head = (IRI) statement.getObject();
                 if (!intersectionsProp.containsKey(type)) {
                     intersectionsProp.put(type, new ArrayList<Set<Resource>>());
                 }
@@ -793,8 +776,8 @@ public class InferenceEngine {
             final Resource type = entry.getKey();
             final List<Set<Resource>> intersectionList = entry.getValue();
 
-            final Set<URI> superClasses = getSuperClasses((URI) type);
-            for (final URI superClass : superClasses) {
+            final Set<IRI> superClasses = getSuperClasses((IRI) type);
+            for (final IRI superClass : superClasses) {
                 // Add intersections to super classes if applicable.
                 // IF:
                 // :A intersectionOf[:B, :C]
@@ -839,7 +822,7 @@ public class InferenceEngine {
             public void handleStatement(final Statement statement) throws RDFHandlerException {
                 final Resource enumType = statement.getSubject();
                 // listHead will point to a type class of the enumeration.
-                final URI listHead = (URI) statement.getObject();
+                final IRI listHead = (IRI) statement.getObject();
                 if (!enumTypes.containsKey(enumType)) {
                     enumTypes.put(enumType, new LinkedHashSet<Resource>());
                 }
@@ -877,17 +860,17 @@ public class InferenceEngine {
      *         resource has that value for that property, it is implied to
      *         belong to the type.
      */
-    public Set<URI> getHasSelfImplyingType(final Resource type){
+    public Set<IRI> getHasSelfImplyingType(final Resource type){
         // return properties that imply this type if reflexive
-        final Set<URI> properties = new HashSet<>();
-        Set<URI> tempProperties = hasSelfByType.get(type);
+        final Set<IRI> properties = new HashSet<>();
+        Set<IRI> tempProperties = hasSelfByType.get(type);
 
         if (tempProperties != null) {
             properties.addAll(tempProperties);
         }
         //findParent gets all subclasses, add self.
-        if (type instanceof URI) {
-            for (final URI subtype : findParents(subClassOfGraph, (URI) type)) {
+        if (type instanceof IRI) {
+            for (final IRI subtype : findParents(subClassOfGraph, (IRI) type)) {
                 tempProperties = hasSelfByType.get(subtype);
                 if (tempProperties != null) {
                     properties.addAll(tempProperties);
@@ -908,7 +891,7 @@ public class InferenceEngine {
      * @param property The property whose owl:hasSelf restrictions to return
      * @return A set of types that possess the implied property.
      */
-    public Set<Resource> getHasSelfImplyingProperty(final URI property) {
+    public Set<Resource> getHasSelfImplyingProperty(final IRI property) {
         // return types that imply this type if reflexive
         final Set<Resource> types = new HashSet<>();
         final Set<Resource> baseTypes = hasSelfByProperty.get(property);
@@ -918,8 +901,8 @@ public class InferenceEngine {
 
             // findParent gets all subclasses, add self.
             for (final Resource baseType : baseTypes) {
-                if (baseType instanceof URI) {
-                    types.addAll(findParents(subClassOfGraph, (URI) baseType));
+                if (baseType instanceof IRI) {
+                    types.addAll(findParents(subClassOfGraph, (IRI) baseType));
                 }
             }
         }
@@ -944,8 +927,8 @@ public class InferenceEngine {
      * @return the {@link List} of {@link Resource}s.
      * @throws QueryEvaluationException
      */
-    private List<Resource> getList(final URI firstItem) throws QueryEvaluationException {
-        URI head = firstItem;
+    private List<Resource> getList(final IRI firstItem) throws QueryEvaluationException {
+        IRI head = firstItem;
         final List<Resource> list = new ArrayList<>();
         // Go through and find all bnodes that are part of the defined list.
         while (!RDF.NIL.equals(head)) {
@@ -955,17 +938,17 @@ public class InferenceEngine {
                 public void handleStatement(final Statement statement) throws RDFHandlerException {
                     // The object found in the query represents a type
                     // that should be included in the list.
-                    final URI object = (URI) statement.getObject();
+                    final IRI object = (IRI) statement.getObject();
                     list.add(object);
                 }
             });
-            final MutableObject<URI> headHolder = new MutableObject<>();
+            final MutableObject<IRI> headHolder = new MutableObject<>();
             // rdf.rest will point to the next bnode that's part of the list.
             ryaDaoQueryWrapper.queryFirst(head, RDF.REST, null, new RDFHandlerBase() {
                 @Override
                 public void handleStatement(final Statement statement) throws RDFHandlerException {
                     // This object is the next bnode head to look for.
-                    final URI object = (URI) statement.getObject();
+                    final IRI object = (IRI) statement.getObject();
                     headHolder.setValue(object);
                 }
             });
@@ -1026,48 +1009,48 @@ public class InferenceEngine {
     /**
      * Returns all super class types of the specified type based on the
      * internal subclass graph.
-     * @param type the type {@link URI} to find super classes for.
-     * @return the {@link Set} of {@link URI} types that are super classes types
+     * @param type the type {@link IRI} to find super classes for.
+     * @return the {@link Set} of {@link IRI} types that are super classes types
      * of the specified {@code type}. Returns an empty set if nothing was found,
      * or if either type or the subclass graph is {@code null}.
      */
-    public Set<URI> getSuperClasses(final URI type) {
+    public Set<IRI> getSuperClasses(final IRI type) {
         return findChildren(subClassOfGraph, type);
     }
 
     /**
      * Returns all sub class types of the specified type based on the
      * internal subclass graph.
-     * @param type the type {@link URI} to find sub classes for.
-     * @return the {@link Set} of {@link URI} types that are sub classes types
+     * @param type the type {@link IRI} to find sub classes for.
+     * @return the {@link Set} of {@link IRI} types that are sub classes types
      * of the specified {@code type}. Returns an empty set if nothing was found,
      * or if either type or the subclass graph is {@code null}.
      */
-    public Set<URI> getSubClasses(final URI type) {
+    public Set<IRI> getSubClasses(final IRI type) {
         return findParents(subClassOfGraph, type);
     }
 
     /**
      * Returns all superproperties of the specified property based on the
      * internal subproperty graph.
-     * @param property the property {@link URI} to find superproperties for.
-     * @return the {@link Set} of {@link URI} properties that are superproperties
+     * @param property the property {@link IRI} to find superproperties for.
+     * @return the {@link Set} of {@link IRI} properties that are superproperties
      * of the specified {@code property}. Returns an empty set if nothing was found,
      * or if either property or the subproperty graph is {@code null}.
      */
-    public Set<URI> getSuperProperties(final URI property) {
+    public Set<IRI> getSuperProperties(final IRI property) {
         return findChildren(subPropertyOfGraph, property);
     }
 
     /**
      * Returns all subproperties of the specified property based on the
      * internal subproperty graph.
-     * @param property the property {@link URI} to find subproperties for.
-     * @return the {@link Set} of {@link URI} properties that are subproperties
+     * @param property the property {@link IRI} to find subproperties for.
+     * @return the {@link Set} of {@link IRI} properties that are subproperties
      * of the specified {@code property}. Returns an empty set if nothing was found,
      * or if either property or the subproperty graph is {@code null}.
      */
-    public Set<URI> getSubProperties(final URI property) {
+    public Set<IRI> getSubProperties(final IRI property) {
         return findParents(subPropertyOfGraph, property);
     }
 
@@ -1079,7 +1062,7 @@ public class InferenceEngine {
      * @return The set of predecessors, or an empty set if none are found or if
      *      either argument is {@code null}
      */
-    public static Set<URI> findParents(final Graph graph, final URI vertexId) {
+    public static Set<IRI> findParents(final Graph graph, final IRI vertexId) {
         return findParents(graph, vertexId, true);
     }
 
@@ -1092,7 +1075,7 @@ public class InferenceEngine {
      * @return The set of predecessors, or an empty set if none are found or if
      *      either argument is {@code null}
      */
-    public static Set<URI> findParents(final Graph graph, final URI vertexId, final boolean isRecursive) {
+    public static Set<IRI> findParents(final Graph graph, final IRI vertexId, final boolean isRecursive) {
         return findConnected(graph, vertexId, Direction.IN, isRecursive);
     }
 
@@ -1104,7 +1087,7 @@ public class InferenceEngine {
      * @return The set of successors, or an empty set if none are found or if
      *      either argument is {@code null}
      */
-    public static Set<URI> findChildren(final Graph graph, final URI vertexId) {
+    public static Set<IRI> findChildren(final Graph graph, final IRI vertexId) {
         return findChildren(graph, vertexId, true);
     }
 
@@ -1117,7 +1100,7 @@ public class InferenceEngine {
      * @return The set of successors, or an empty set if none are found or if
      *      either argument is {@code null}
      */
-    public static Set<URI> findChildren(final Graph graph, final URI vertexId, final boolean isRecursive) {
+    public static Set<IRI> findChildren(final Graph graph, final IRI vertexId, final boolean isRecursive) {
         return findConnected(graph, vertexId, Direction.OUT, isRecursive);
     }
 
@@ -1133,8 +1116,8 @@ public class InferenceEngine {
      * @return The set of connected nodes, or an empty set if none are found, or
      *      if either the graph or the starting vertex are {@code null}.
      */
-    private static Set<URI> findConnected(final Graph graph, final URI vertexId, final Direction traversal, final boolean isRecursive) {
-        final Set<URI> connected = new HashSet<>();
+    private static Set<IRI> findConnected(final Graph graph, final IRI vertexId, final Direction traversal, final boolean isRecursive) {
+        final Set<IRI> connected = new HashSet<>();
         if (graph == null || vertexId == null) {
             return connected;
         }
@@ -1146,14 +1129,14 @@ public class InferenceEngine {
         return connected;
     }
 
-    private static void addConnected(final Vertex v, final Set<URI> connected, final Direction traversal, final boolean isRecursive) {
+    private static void addConnected(final Vertex v, final Set<IRI> connected, final Direction traversal, final boolean isRecursive) {
         v.edges(traversal).forEachRemaining(edge -> {
             final Vertex ov = edge.vertices(traversal.opposite()).next();
             final Object o = ov.property(URI_PROP).value();
-            if (o != null && o instanceof URI) {
+            if (o != null && o instanceof IRI) {
                 final boolean contains = connected.contains(o);
                 if (!contains) {
-                    connected.add((URI) o);
+                    connected.add((IRI) o);
                     if (isRecursive) {
                         addConnected(ov, connected, traversal, isRecursive);
                     }
@@ -1162,15 +1145,15 @@ public class InferenceEngine {
         });
     }
 
-    public boolean isSymmetricProperty(final URI prop) {
+    public boolean isSymmetricProperty(final IRI prop) {
         return (symmetricPropertySet != null) && symmetricPropertySet.contains(prop);
     }
 
-    public URI findInverseOf(final URI prop) {
+    public IRI findInverseOf(final IRI prop) {
         return (inverseOfMap != null) ? inverseOfMap.get(prop) : (null);
     }
 
-    public boolean isTransitiveProperty(final URI prop) {
+    public boolean isTransitiveProperty(final IRI prop) {
         return (transitivePropertySet != null) && transitivePropertySet.contains(prop);
     }
 
@@ -1179,14 +1162,14 @@ public class InferenceEngine {
      * @param prop A URI
      * @return True if the given URI corresponds to an owl:ReflexiveProperty
      */
-    public boolean isReflexiveProperty(final URI prop) {
+    public boolean isReflexiveProperty(final IRI prop) {
         return (reflexivePropertySet != null) && reflexivePropertySet.contains(prop);
     }
 
     /**
      * TODO: This chaining can be slow at query execution. the other option is to perform this in the query itself, but that will be constrained to how many levels we decide to go
      */
-    public Set<Statement> findTransitiveProperty(final Resource subj, final URI prop, final Value obj, final Resource... contxts) throws InferenceEngineException {
+    public Set<Statement> findTransitiveProperty(final Resource subj, final IRI prop, final Value obj, final Resource... contxts) throws InferenceEngineException {
         if (transitivePropertySet.contains(prop)) {
             final Set<Statement> sts = new HashSet<>();
             final boolean goUp = subj == null;
@@ -1207,7 +1190,7 @@ public class InferenceEngine {
         return sameAs;
     }
 
-    public CloseableIteration<Statement, QueryEvaluationException> queryDao(final Resource subject, final URI predicate, final Value object, final Resource... contexts) throws QueryEvaluationException {
+    public CloseableIteration<Statement, QueryEvaluationException> queryDao(final Resource subject, final IRI predicate, final Value object, final Resource... contexts) throws QueryEvaluationException {
         return RyaDAOHelper.query(ryaDAO, subject, predicate, object, conf, contexts);
     }
 
@@ -1256,7 +1239,7 @@ public class InferenceEngine {
         }
     }
 
-    protected void chainTransitiveProperty(final Resource subj, final URI prop, final Value obj, final Value core, final Set<Statement> sts, final boolean goUp, final Resource[] contxts) throws InferenceEngineException {
+    protected void chainTransitiveProperty(final Resource subj, final IRI prop, final Value obj, final Value core, final Set<Statement> sts, final boolean goUp, final Resource[] contxts) throws InferenceEngineException {
         CloseableIteration<Statement, QueryEvaluationException> iter = null;
         try {
             iter = queryDao(subj, prop, obj, contxts);
@@ -1299,11 +1282,11 @@ public class InferenceEngine {
         ryaDaoQueryWrapper = new RyaDaoQueryWrapper(ryaDAO);
     }
 
-    public RdfCloudTripleStoreConfiguration getConf() {
+    public RdfTripleStoreConfiguration getConf() {
         return conf;
     }
 
-    public void setConf(final RdfCloudTripleStoreConfiguration conf) {
+    public void setConf(final RdfTripleStoreConfiguration conf) {
         this.conf = conf;
     }
 
@@ -1311,15 +1294,15 @@ public class InferenceEngine {
         return subClassOfGraph;
     }
 
-    public Map<URI, List<URI>> getPropertyChainMap() {
+    public Map<IRI, List<IRI>> getPropertyChainMap() {
         return propertyChainPropertyToChain;
     }
 
-    public List<URI> getPropertyChain(final URI chainProp) {
+    public List<IRI> getPropertyChain(final IRI chainProp) {
         if (propertyChainPropertyToChain.containsKey(chainProp)){
             return propertyChainPropertyToChain.get(chainProp);
         }
-        return new ArrayList<URI>();
+        return new ArrayList<IRI>();
     }
 
     public Graph getSubPropertyOfGraph() {
@@ -1334,27 +1317,27 @@ public class InferenceEngine {
         this.refreshGraphSchedule = refreshGraphSchedule;
     }
 
-    public Set<URI> getSymmetricPropertySet() {
+    public Set<IRI> getSymmetricPropertySet() {
         return symmetricPropertySet;
     }
 
-    public void setSymmetricPropertySet(final Set<URI> symmetricPropertySet) {
+    public void setSymmetricPropertySet(final Set<IRI> symmetricPropertySet) {
         this.symmetricPropertySet = symmetricPropertySet;
     }
 
-    public Map<URI, URI> getInverseOfMap() {
+    public Map<IRI, IRI> getInverseOfMap() {
         return inverseOfMap;
     }
 
-    public void setInverseOfMap(final Map<URI, URI> inverseOfMap) {
+    public void setInverseOfMap(final Map<IRI, IRI> inverseOfMap) {
         this.inverseOfMap = inverseOfMap;
     }
 
-    public Set<URI> getTransitivePropertySet() {
+    public Set<IRI> getTransitivePropertySet() {
         return transitivePropertySet;
     }
 
-    public void setTransitivePropertySet(final Set<URI> transitivePropertySet) {
+    public void setTransitivePropertySet(final Set<IRI> transitivePropertySet) {
         this.transitivePropertySet = transitivePropertySet;
     }
 
@@ -1376,17 +1359,17 @@ public class InferenceEngine {
      * @return For each relevant property, a set of values such that whenever a resource has that
      *      value for that property, it is implied to belong to the type.
      */
-    public Map<URI, Set<Value>> getHasValueByType(final Resource type) {
-        final Map<URI, Set<Value>> implications = new HashMap<>();
+    public Map<IRI, Set<Value>> getHasValueByType(final Resource type) {
+        final Map<IRI, Set<Value>> implications = new HashMap<>();
         if (hasValueByType != null) {
             final Set<Resource> types = new HashSet<>();
             types.add(type);
-            if (type instanceof URI) {
-                types.addAll(getSubClasses((URI) type));
+            if (type instanceof IRI) {
+                types.addAll(getSubClasses((IRI) type));
             }
             for (final Resource relevantType : types) {
                 if (hasValueByType.containsKey(relevantType)) {
-                    for (final Map.Entry<URI, Value> propertyToValue : hasValueByType.get(relevantType).entrySet()) {
+                    for (final Map.Entry<IRI, Value> propertyToValue : hasValueByType.get(relevantType).entrySet()) {
                         if (!implications.containsKey(propertyToValue.getKey())) {
                             implications.put(propertyToValue.getKey(), new HashSet<>());
                         }
@@ -1409,7 +1392,7 @@ public class InferenceEngine {
      * @return A mapping from type (URIs or bnodes) to the set of any values that belonging to that
      *      type implies.
      */
-    public Map<Resource, Set<Value>> getHasValueByProperty(final URI property) {
+    public Map<Resource, Set<Value>> getHasValueByProperty(final IRI property) {
         final Map<Resource, Set<Value>> implications = new HashMap<>();
         if (hasValueByProperty != null && hasValueByProperty.containsKey(property)) {
             for (final Map.Entry<Resource, Value> typeToValue : hasValueByProperty.get(property).entrySet()) {
@@ -1418,8 +1401,8 @@ public class InferenceEngine {
                     implications.put(type, new HashSet<>());
                 }
                 implications.get(type).add(typeToValue.getValue());
-                if (type instanceof URI) {
-                    for (final URI subtype : getSubClasses((URI) type)) {
+                if (type instanceof IRI) {
+                    for (final IRI subtype : getSubClasses((IRI) type)) {
                         if (!implications.containsKey(subtype)) {
                             implications.put(subtype, new HashSet<>());
                         }
@@ -1441,8 +1424,8 @@ public class InferenceEngine {
      * @return The set of properties with domain of that type, meaning that any triple whose
      *      predicate belongs to that set implies that the triple's subject belongs to the type.
      */
-    public Set<URI> getPropertiesWithDomain(final URI domainType) {
-        final Set<URI> properties = new HashSet<>();
+    public Set<IRI> getPropertiesWithDomain(final IRI domainType) {
+        final Set<IRI> properties = new HashSet<>();
         if (domainByType.containsKey(domainType)) {
             properties.addAll(domainByType.get(domainType));
         }
@@ -1459,8 +1442,8 @@ public class InferenceEngine {
      * @return The set of properties with range of that type, meaning that any triple whose
      *      predicate belongs to that set implies that the triple's object belongs to the type.
      */
-    public Set<URI> getPropertiesWithRange(final URI rangeType) {
-        final Set<URI> properties = new HashSet<>();
+    public Set<IRI> getPropertiesWithRange(final IRI rangeType) {
+        final Set<IRI> properties = new HashSet<>();
         if (rangeByType.containsKey(rangeType)) {
             properties.addAll(rangeByType.get(rangeType));
         }
@@ -1483,23 +1466,23 @@ public class InferenceEngine {
      *      individual type/property combination is sufficient. Returns an empty map if either
      *      parameter is {@code null}.
      */
-    private Map<Resource, Set<URI>> getTypePropertyImplyingType(final Resource queryType, final Map<Resource, Map<Resource, URI>> schemaMap) {
-        final Map<Resource, Set<URI>> implications = new HashMap<>();
+    private Map<Resource, Set<IRI>> getTypePropertyImplyingType(final Resource queryType, final Map<Resource, Map<Resource, IRI>> schemaMap) {
+        final Map<Resource, Set<IRI>> implications = new HashMap<>();
         if (schemaMap != null && queryType != null) {
             // Check for any subtypes which would in turn imply the type being queried for
             final HashSet<Resource> queryTypes = new HashSet<>();
             queryTypes.add(queryType);
-            if (queryType instanceof URI) {
-                queryTypes.addAll(getSubClasses((URI) queryType));
+            if (queryType instanceof IRI) {
+                queryTypes.addAll(getSubClasses((IRI) queryType));
             }
             for (final Resource querySubType : queryTypes) {
                 if (schemaMap.containsKey(querySubType)) {
-                    final Map<Resource, URI> otherTypeToProperty = schemaMap.get(querySubType);
+                    final Map<Resource, IRI> otherTypeToProperty = schemaMap.get(querySubType);
                     for (final Resource otherType : otherTypeToProperty.keySet()) {
                         if (!implications.containsKey(otherType)) {
                             implications.put(otherType, new HashSet<>());
                         }
-                        final URI property = otherTypeToProperty.get(otherType);
+                        final IRI property = otherTypeToProperty.get(otherType);
                         if (property != null) {
                             implications.get(otherType).add(property);
                             // Also add subproperties that would in turn imply the property
@@ -1532,7 +1515,7 @@ public class InferenceEngine {
      *      to the restriction type. Empty map if the parameter is {@code null} or if the
      *      someValuesFrom schema has not been populated.
      */
-    public Map<Resource, Set<URI>> getSomeValuesFromByRestrictionType(Resource restrictionType) {
+    public Map<Resource, Set<IRI>> getSomeValuesFromByRestrictionType(Resource restrictionType) {
         return getTypePropertyImplyingType(restrictionType, someValuesFromByRestrictionType);
     }
 
@@ -1553,7 +1536,7 @@ public class InferenceEngine {
      *      values it has for any of those properties belong to the value type. Empty map if the
      *      parameter is {@code null} or if the allValuesFrom schema has not been populated.
      */
-    public Map<Resource, Set<URI>> getAllValuesFromByValueType(final Resource valueType) {
+    public Map<Resource, Set<IRI>> getAllValuesFromByValueType(final Resource valueType) {
         return getTypePropertyImplyingType(valueType, allValuesFromByValueType);
     }
 

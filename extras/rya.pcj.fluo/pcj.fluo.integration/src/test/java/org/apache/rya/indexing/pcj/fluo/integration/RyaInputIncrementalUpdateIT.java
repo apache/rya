@@ -18,11 +18,10 @@
  */
 package org.apache.rya.indexing.pcj.fluo.integration;
 
-import static org.junit.Assert.assertEquals;
-
 import java.util.HashSet;
 import java.util.Set;
 
+import com.google.common.collect.Sets;
 import org.apache.accumulo.core.client.Connector;
 import org.apache.fluo.api.client.FluoClient;
 import org.apache.fluo.api.client.FluoFactory;
@@ -34,16 +33,16 @@ import org.apache.rya.indexing.pcj.storage.PrecomputedJoinStorage.CloseableItera
 import org.apache.rya.indexing.pcj.storage.accumulo.AccumuloPcjStorage;
 import org.apache.rya.indexing.pcj.update.PrecomputedJoinUpdater;
 import org.apache.rya.pcj.fluo.test.base.RyaExportITBase;
+import org.eclipse.rdf4j.model.Statement;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
+import org.eclipse.rdf4j.query.BindingSet;
+import org.eclipse.rdf4j.query.impl.MapBindingSet;
+import org.eclipse.rdf4j.repository.RepositoryConnection;
+import org.eclipse.rdf4j.repository.sail.SailRepositoryConnection;
 import org.junit.Test;
-import org.openrdf.model.Statement;
-import org.openrdf.model.ValueFactory;
-import org.openrdf.model.impl.ValueFactoryImpl;
-import org.openrdf.query.BindingSet;
-import org.openrdf.query.impl.MapBindingSet;
-import org.openrdf.repository.RepositoryConnection;
-import org.openrdf.repository.sail.SailRepositoryConnection;
 
-import com.google.common.collect.Sets;
+import static org.junit.Assert.assertEquals;
 
 /**
  * This test ensures that the correct updates are pushed by Fluo to the external PCJ table as triples are added to Rya
@@ -67,29 +66,29 @@ public class RyaInputIncrementalUpdateIT extends RyaExportITBase {
                 "}";
 
         // Triples that are loaded into Rya before the PCJ is created.
-        final ValueFactory vf = new ValueFactoryImpl();
+        final ValueFactory vf = SimpleValueFactory.getInstance();
         final Set<Statement> historicTriples = Sets.newHashSet(
-                vf.createStatement(vf.createURI("http://Alice"), vf.createURI("http://talksTo"), vf.createURI("http://Eve")),
-                vf.createStatement(vf.createURI("http://Bob"), vf.createURI("http://talksTo"), vf.createURI("http://Eve")),
-                vf.createStatement(vf.createURI("http://Charlie"), vf.createURI("http://talksTo"), vf.createURI("http://Eve")),
+                vf.createStatement(vf.createIRI("http://Alice"), vf.createIRI("http://talksTo"), vf.createIRI("http://Eve")),
+                vf.createStatement(vf.createIRI("http://Bob"), vf.createIRI("http://talksTo"), vf.createIRI("http://Eve")),
+                vf.createStatement(vf.createIRI("http://Charlie"), vf.createIRI("http://talksTo"), vf.createIRI("http://Eve")),
 
-                vf.createStatement(vf.createURI("http://Eve"), vf.createURI("http://helps"), vf.createURI("http://Kevin")),
+                vf.createStatement(vf.createIRI("http://Eve"), vf.createIRI("http://helps"), vf.createIRI("http://Kevin")),
 
-                vf.createStatement(vf.createURI("http://Bob"), vf.createURI("http://worksAt"), vf.createURI("http://Chipotle")),
-                vf.createStatement(vf.createURI("http://Charlie"), vf.createURI("http://worksAt"), vf.createURI("http://Chipotle")),
-                vf.createStatement(vf.createURI("http://Eve"), vf.createURI("http://worksAt"), vf.createURI("http://Chipotle")),
-                vf.createStatement(vf.createURI("http://David"), vf.createURI("http://worksAt"), vf.createURI("http://Chipotle")));
+                vf.createStatement(vf.createIRI("http://Bob"), vf.createIRI("http://worksAt"), vf.createIRI("http://Chipotle")),
+                vf.createStatement(vf.createIRI("http://Charlie"), vf.createIRI("http://worksAt"), vf.createIRI("http://Chipotle")),
+                vf.createStatement(vf.createIRI("http://Eve"), vf.createIRI("http://worksAt"), vf.createIRI("http://Chipotle")),
+                vf.createStatement(vf.createIRI("http://David"), vf.createIRI("http://worksAt"), vf.createIRI("http://Chipotle")));
 
         // The expected results of the SPARQL query once the PCJ has been
         // computed.
         final Set<BindingSet> expected = new HashSet<>();
 
         MapBindingSet bs = new MapBindingSet();
-        bs.addBinding("x", vf.createURI("http://Bob"));
+        bs.addBinding("x", vf.createIRI("http://Bob"));
         expected.add(bs);
 
         bs = new MapBindingSet();
-        bs.addBinding("x", vf.createURI("http://Charlie"));
+        bs.addBinding("x", vf.createIRI("http://Charlie"));
         expected.add(bs);
 
         // Create the PCJ table.
@@ -140,17 +139,17 @@ public class RyaInputIncrementalUpdateIT extends RyaExportITBase {
                 "}";
 
         // Triples that are loaded into Rya before the PCJ is created.
-        final ValueFactory vf = new ValueFactoryImpl();
+        final ValueFactory vf = SimpleValueFactory.getInstance();
         final Set<Statement> historicTriples = Sets.newHashSet(
-                vf.createStatement(vf.createURI("http://Alice"), vf.createURI("http://talksTo"), vf.createURI("http://Eve")),
-                vf.createStatement(vf.createURI("http://Alice"), vf.createURI("http://worksAt"), vf.createURI("http://Chipotle")),
-                vf.createStatement(vf.createURI("http://Joe"), vf.createURI("http://worksAt"), vf.createURI("http://Chipotle")));
+                vf.createStatement(vf.createIRI("http://Alice"), vf.createIRI("http://talksTo"), vf.createIRI("http://Eve")),
+                vf.createStatement(vf.createIRI("http://Alice"), vf.createIRI("http://worksAt"), vf.createIRI("http://Chipotle")),
+                vf.createStatement(vf.createIRI("http://Joe"), vf.createIRI("http://worksAt"), vf.createIRI("http://Chipotle")));
 
         // Triples that will be streamed into Fluo after the PCJ has been
         final Set<Statement> streamedTriples = Sets.newHashSet(
-                vf.createStatement(vf.createURI("http://Frank"), vf.createURI("http://talksTo"), vf.createURI("http://Eve")),
-                vf.createStatement(vf.createURI("http://Joe"), vf.createURI("http://talksTo"), vf.createURI("http://Eve")),
-                vf.createStatement(vf.createURI("http://Frank"), vf.createURI("http://worksAt"), vf.createURI("http://Chipotle")));
+                vf.createStatement(vf.createIRI("http://Frank"), vf.createIRI("http://talksTo"), vf.createIRI("http://Eve")),
+                vf.createStatement(vf.createIRI("http://Joe"), vf.createIRI("http://talksTo"), vf.createIRI("http://Eve")),
+                vf.createStatement(vf.createIRI("http://Frank"), vf.createIRI("http://worksAt"), vf.createIRI("http://Chipotle")));
 
         // Load the historic data into Rya.
         final SailRepositoryConnection ryaConn = super.getRyaSailRepository().getConnection();
@@ -179,15 +178,15 @@ public class RyaInputIncrementalUpdateIT extends RyaExportITBase {
 
             final Set<BindingSet> expected = new HashSet<>();
             MapBindingSet bs = new MapBindingSet();
-            bs.addBinding("x", vf.createURI("http://Alice"));
+            bs.addBinding("x", vf.createIRI("http://Alice"));
             expected.add(bs);
 
             bs = new MapBindingSet();
-            bs.addBinding("x", vf.createURI("http://Frank"));
+            bs.addBinding("x", vf.createIRI("http://Frank"));
             expected.add(bs);
 
             bs = new MapBindingSet();
-            bs.addBinding("x", vf.createURI("http://Joe"));
+            bs.addBinding("x", vf.createIRI("http://Joe"));
             expected.add(bs);
 
             final Set<BindingSet> results = new HashSet<>();
@@ -211,17 +210,17 @@ public class RyaInputIncrementalUpdateIT extends RyaExportITBase {
                  "}";
 
         // Triples that are loaded into Rya before the PCJ is created.
-        final ValueFactory vf = new ValueFactoryImpl();
+        final ValueFactory vf = SimpleValueFactory.getInstance();
         final Set<Statement> historicTriples = Sets.newHashSet(
-                vf.createStatement(vf.createURI("http://Alice"), vf.createURI("http://talksTo"), vf.createURI("http://Eve")),
-                vf.createStatement(vf.createURI("http://Alice"), vf.createURI("http://worksAt"), vf.createURI("http://Chipotle")),
-                vf.createStatement(vf.createURI("http://Joe"), vf.createURI("http://worksAt"), vf.createURI("http://Chipotle")));
+                vf.createStatement(vf.createIRI("http://Alice"), vf.createIRI("http://talksTo"), vf.createIRI("http://Eve")),
+                vf.createStatement(vf.createIRI("http://Alice"), vf.createIRI("http://worksAt"), vf.createIRI("http://Chipotle")),
+                vf.createStatement(vf.createIRI("http://Joe"), vf.createIRI("http://worksAt"), vf.createIRI("http://Chipotle")));
 
         // Triples that will be streamed into Fluo after the PCJ has been
         final Set<Statement> streamedTriples = Sets.newHashSet(
-                vf.createStatement(vf.createURI("http://Frank"), vf.createURI("http://talksTo"), vf.createURI("http://Betty")),
-                vf.createStatement(vf.createURI("http://Joe"), vf.createURI("http://talksTo"), vf.createURI("http://Alice")),
-                vf.createStatement(vf.createURI("http://Frank"), vf.createURI("http://worksAt"), vf.createURI("http://Chipotle")));
+                vf.createStatement(vf.createIRI("http://Frank"), vf.createIRI("http://talksTo"), vf.createIRI("http://Betty")),
+                vf.createStatement(vf.createIRI("http://Joe"), vf.createIRI("http://talksTo"), vf.createIRI("http://Alice")),
+                vf.createStatement(vf.createIRI("http://Frank"), vf.createIRI("http://worksAt"), vf.createIRI("http://Chipotle")));
 
         // Load the historic data into Rya.
         final SailRepositoryConnection ryaConn = super.getRyaSailRepository().getConnection();
@@ -251,18 +250,18 @@ public class RyaInputIncrementalUpdateIT extends RyaExportITBase {
             final Set<BindingSet> expected = new HashSet<>();
 
             MapBindingSet bs = new MapBindingSet();
-            bs.addBinding("x", vf.createURI("http://Alice"));
-            bs.addBinding("y", vf.createURI("http://Eve"));
+            bs.addBinding("x", vf.createIRI("http://Alice"));
+            bs.addBinding("y", vf.createIRI("http://Eve"));
             expected.add(bs);
 
             bs = new MapBindingSet();
-            bs.addBinding("x", vf.createURI("http://Frank"));
-            bs.addBinding("y", vf.createURI("http://Betty"));
+            bs.addBinding("x", vf.createIRI("http://Frank"));
+            bs.addBinding("y", vf.createIRI("http://Betty"));
             expected.add(bs);
 
             bs = new MapBindingSet();
-            bs.addBinding("x", vf.createURI("http://Joe"));
-            bs.addBinding("y", vf.createURI("http://Alice"));
+            bs.addBinding("x", vf.createIRI("http://Joe"));
+            bs.addBinding("y", vf.createIRI("http://Alice"));
             expected.add(bs);
 
             final Set<BindingSet> results = new HashSet<>();

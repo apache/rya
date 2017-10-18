@@ -18,17 +18,9 @@
  */
 package org.apache.rya.indexing.pcj.fluo.integration;
 
-import static java.util.Objects.requireNonNull;
-import static org.junit.Assert.assertEquals;
+import java.util.*;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
-
+import com.google.common.collect.Sets;
 import org.apache.fluo.api.client.FluoClient;
 import org.apache.fluo.core.client.FluoClientImpl;
 import org.apache.fluo.recipes.test.FluoITHelper;
@@ -38,15 +30,16 @@ import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.rya.indexing.pcj.storage.accumulo.VariableOrder;
 import org.apache.rya.indexing.pcj.storage.accumulo.VisibilityBindingSet;
 import org.apache.rya.pcj.fluo.test.base.KafkaExportITBase;
+import org.eclipse.rdf4j.model.Statement;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
+import org.eclipse.rdf4j.model.vocabulary.XMLSchema;
+import org.eclipse.rdf4j.query.BindingSet;
+import org.eclipse.rdf4j.query.impl.MapBindingSet;
 import org.junit.Test;
-import org.openrdf.model.Statement;
-import org.openrdf.model.ValueFactory;
-import org.openrdf.model.impl.ValueFactoryImpl;
-import org.openrdf.model.vocabulary.XMLSchema;
-import org.openrdf.query.BindingSet;
-import org.openrdf.query.impl.MapBindingSet;
 
-import com.google.common.collect.Sets;
+import static java.util.Objects.requireNonNull;
+import static org.junit.Assert.assertEquals;
 
 /**
  * Performs integration tests over the Fluo application geared towards Kafka PCJ exporting.
@@ -70,24 +63,24 @@ public class KafkaExportIT extends KafkaExportITBase {
                 "}";
 
         // Triples that will be streamed into Fluo after the PCJ has been created.
-        final ValueFactory vf = new ValueFactoryImpl();
+        final ValueFactory vf = SimpleValueFactory.getInstance();
         final Collection<Statement> statements =
                 Sets.newHashSet(
-                        vf.createStatement(vf.createURI("http://Alice"), vf.createURI("http://talksTo"), vf.createURI("http://Bob")),
-                        vf.createStatement(vf.createURI("http://Bob"), vf.createURI("http://livesIn"), vf.createURI("http://London")),
-                        vf.createStatement(vf.createURI("http://Bob"), vf.createURI("http://worksAt"), vf.createURI("http://Chipotle")),
-                        vf.createStatement(vf.createURI("http://Alice"), vf.createURI("http://talksTo"), vf.createURI("http://Charlie")),
-                        vf.createStatement(vf.createURI("http://Charlie"), vf.createURI("http://livesIn"), vf.createURI("http://London")),
-                        vf.createStatement(vf.createURI("http://Charlie"), vf.createURI("http://worksAt"), vf.createURI("http://Chipotle")),
-                        vf.createStatement(vf.createURI("http://Alice"), vf.createURI("http://talksTo"), vf.createURI("http://David")),
-                        vf.createStatement(vf.createURI("http://David"), vf.createURI("http://livesIn"), vf.createURI("http://London")),
-                        vf.createStatement(vf.createURI("http://David"), vf.createURI("http://worksAt"), vf.createURI("http://Chipotle")),
-                        vf.createStatement(vf.createURI("http://Alice"), vf.createURI("http://talksTo"), vf.createURI("http://Eve")),
-                        vf.createStatement(vf.createURI("http://Eve"), vf.createURI("http://livesIn"), vf.createURI("http://Leeds")),
-                        vf.createStatement(vf.createURI("http://Eve"), vf.createURI("http://worksAt"), vf.createURI("http://Chipotle")),
-                        vf.createStatement(vf.createURI("http://Frank"), vf.createURI("http://talksTo"), vf.createURI("http://Alice")),
-                        vf.createStatement(vf.createURI("http://Frank"), vf.createURI("http://livesIn"), vf.createURI("http://London")),
-                        vf.createStatement(vf.createURI("http://Frank"), vf.createURI("http://worksAt"), vf.createURI("http://Chipotle")));
+                        vf.createStatement(vf.createIRI("http://Alice"), vf.createIRI("http://talksTo"), vf.createIRI("http://Bob")),
+                        vf.createStatement(vf.createIRI("http://Bob"), vf.createIRI("http://livesIn"), vf.createIRI("http://London")),
+                        vf.createStatement(vf.createIRI("http://Bob"), vf.createIRI("http://worksAt"), vf.createIRI("http://Chipotle")),
+                        vf.createStatement(vf.createIRI("http://Alice"), vf.createIRI("http://talksTo"), vf.createIRI("http://Charlie")),
+                        vf.createStatement(vf.createIRI("http://Charlie"), vf.createIRI("http://livesIn"), vf.createIRI("http://London")),
+                        vf.createStatement(vf.createIRI("http://Charlie"), vf.createIRI("http://worksAt"), vf.createIRI("http://Chipotle")),
+                        vf.createStatement(vf.createIRI("http://Alice"), vf.createIRI("http://talksTo"), vf.createIRI("http://David")),
+                        vf.createStatement(vf.createIRI("http://David"), vf.createIRI("http://livesIn"), vf.createIRI("http://London")),
+                        vf.createStatement(vf.createIRI("http://David"), vf.createIRI("http://worksAt"), vf.createIRI("http://Chipotle")),
+                        vf.createStatement(vf.createIRI("http://Alice"), vf.createIRI("http://talksTo"), vf.createIRI("http://Eve")),
+                        vf.createStatement(vf.createIRI("http://Eve"), vf.createIRI("http://livesIn"), vf.createIRI("http://Leeds")),
+                        vf.createStatement(vf.createIRI("http://Eve"), vf.createIRI("http://worksAt"), vf.createIRI("http://Chipotle")),
+                        vf.createStatement(vf.createIRI("http://Frank"), vf.createIRI("http://talksTo"), vf.createIRI("http://Alice")),
+                        vf.createStatement(vf.createIRI("http://Frank"), vf.createIRI("http://livesIn"), vf.createIRI("http://London")),
+                        vf.createStatement(vf.createIRI("http://Frank"), vf.createIRI("http://worksAt"), vf.createIRI("http://Chipotle")));
 
         // Create the PCJ in Fluo and load the statements into Rya.
         final String pcjId = loadDataAndCreateQuery(sparql, statements);
@@ -98,21 +91,21 @@ public class KafkaExportIT extends KafkaExportITBase {
         final Set<BindingSet> expectedResult = new HashSet<>();
 
         MapBindingSet bs = new MapBindingSet();
-        bs.addBinding("customer", vf.createURI("http://Alice"));
-        bs.addBinding("worker", vf.createURI("http://Bob"));
-        bs.addBinding("city", vf.createURI("http://London"));
+        bs.addBinding("customer", vf.createIRI("http://Alice"));
+        bs.addBinding("worker", vf.createIRI("http://Bob"));
+        bs.addBinding("city", vf.createIRI("http://London"));
         expectedResult.add( new VisibilityBindingSet(bs) );
 
         bs = new MapBindingSet();
-        bs.addBinding("customer", vf.createURI("http://Alice"));
-        bs.addBinding("worker", vf.createURI("http://Charlie"));
-        bs.addBinding("city", vf.createURI("http://London"));
+        bs.addBinding("customer", vf.createIRI("http://Alice"));
+        bs.addBinding("worker", vf.createIRI("http://Charlie"));
+        bs.addBinding("city", vf.createIRI("http://London"));
         expectedResult.add( new VisibilityBindingSet(bs) );
 
         bs = new MapBindingSet();
-        bs.addBinding("customer", vf.createURI("http://Alice"));
-        bs.addBinding("worker", vf.createURI("http://David"));
-        bs.addBinding("city", vf.createURI("http://London"));
+        bs.addBinding("customer", vf.createIRI("http://Alice"));
+        bs.addBinding("worker", vf.createIRI("http://David"));
+        bs.addBinding("city", vf.createIRI("http://London"));
         expectedResult.add( new VisibilityBindingSet(bs) );
 
         // Ensure the last result matches the expected result.
@@ -129,11 +122,11 @@ public class KafkaExportIT extends KafkaExportITBase {
                 "}";
 
         // Create the Statements that will be loaded into Rya.
-        final ValueFactory vf = new ValueFactoryImpl();
+        final ValueFactory vf = SimpleValueFactory.getInstance();
         final Collection<Statement> statements = Sets.newHashSet(
-                vf.createStatement(vf.createURI("urn:apple"), vf.createURI("urn:price"), vf.createLiteral(2.50)),
-                vf.createStatement(vf.createURI("urn:gum"), vf.createURI("urn:price"), vf.createLiteral(0.99)),
-                vf.createStatement(vf.createURI("urn:sandwich"), vf.createURI("urn:price"), vf.createLiteral(4.99)));
+                vf.createStatement(vf.createIRI("urn:apple"), vf.createIRI("urn:price"), vf.createLiteral(2.50)),
+                vf.createStatement(vf.createIRI("urn:gum"), vf.createIRI("urn:price"), vf.createLiteral(0.99)),
+                vf.createStatement(vf.createIRI("urn:sandwich"), vf.createIRI("urn:price"), vf.createLiteral(4.99)));
 
         // Create the PCJ in Fluo and load the statements into Rya.
         final String pcjId = loadDataAndCreateQuery(sparql, statements);
@@ -156,11 +149,11 @@ public class KafkaExportIT extends KafkaExportITBase {
                 "}";
 
         // Create the Statements that will be loaded into Rya.
-        final ValueFactory vf = new ValueFactoryImpl();
+        final ValueFactory vf = SimpleValueFactory.getInstance();
         final Collection<Statement> statements = Sets.newHashSet(
-                vf.createStatement(vf.createURI("urn:apple"), vf.createURI("urn:price"), vf.createLiteral(2.50)),
-                vf.createStatement(vf.createURI("urn:gum"), vf.createURI("urn:price"), vf.createLiteral(0.99)),
-                vf.createStatement(vf.createURI("urn:sandwich"), vf.createURI("urn:price"), vf.createLiteral(4.99)));
+                vf.createStatement(vf.createIRI("urn:apple"), vf.createIRI("urn:price"), vf.createLiteral(2.50)),
+                vf.createStatement(vf.createIRI("urn:gum"), vf.createIRI("urn:price"), vf.createLiteral(0.99)),
+                vf.createStatement(vf.createIRI("urn:sandwich"), vf.createIRI("urn:price"), vf.createLiteral(4.99)));
 
         // Create the PCJ in Fluo and load the statements into Rya.
         final String pcjId = loadDataAndCreateQuery(sparql, statements);
@@ -183,15 +176,15 @@ public class KafkaExportIT extends KafkaExportITBase {
                 "}";
 
         // Create the Statements that will be loaded into Rya.
-        final ValueFactory vf = new ValueFactoryImpl();
+        final ValueFactory vf = SimpleValueFactory.getInstance();
         final Collection<Statement> statements = Sets.newHashSet(
                 // Three that are part of the count.
-                vf.createStatement(vf.createURI("urn:apple"), vf.createURI("urn:id"), vf.createLiteral(UUID.randomUUID().toString())),
-                vf.createStatement(vf.createURI("urn:gum"), vf.createURI("urn:id"), vf.createLiteral(UUID.randomUUID().toString())),
-                vf.createStatement(vf.createURI("urn:sandwich"), vf.createURI("urn:id"), vf.createLiteral(UUID.randomUUID().toString())),
+                vf.createStatement(vf.createIRI("urn:apple"), vf.createIRI("urn:id"), vf.createLiteral(UUID.randomUUID().toString())),
+                vf.createStatement(vf.createIRI("urn:gum"), vf.createIRI("urn:id"), vf.createLiteral(UUID.randomUUID().toString())),
+                vf.createStatement(vf.createIRI("urn:sandwich"), vf.createIRI("urn:id"), vf.createLiteral(UUID.randomUUID().toString())),
 
                 // One that is not.
-                vf.createStatement(vf.createURI("urn:sandwich"), vf.createURI("urn:price"), vf.createLiteral(3.99)));
+                vf.createStatement(vf.createIRI("urn:sandwich"), vf.createIRI("urn:price"), vf.createLiteral(3.99)));
 
         // Create the PCJ in Fluo and load the statements into Rya.
         final String pcjId = loadDataAndCreateQuery(sparql, statements);
@@ -214,11 +207,11 @@ public class KafkaExportIT extends KafkaExportITBase {
                 "}";
 
         // Create the Statements that will be loaded into Rya.
-        final ValueFactory vf = new ValueFactoryImpl();
+        final ValueFactory vf = SimpleValueFactory.getInstance();
         final Collection<Statement> statements = Sets.newHashSet(
-                vf.createStatement(vf.createURI("urn:apple"), vf.createURI("urn:count"), vf.createLiteral(5)),
-                vf.createStatement(vf.createURI("urn:gum"), vf.createURI("urn:count"), vf.createLiteral(7)),
-                vf.createStatement(vf.createURI("urn:sandwich"), vf.createURI("urn:count"), vf.createLiteral(2)));
+                vf.createStatement(vf.createIRI("urn:apple"), vf.createIRI("urn:count"), vf.createLiteral(5)),
+                vf.createStatement(vf.createIRI("urn:gum"), vf.createIRI("urn:count"), vf.createLiteral(7)),
+                vf.createStatement(vf.createIRI("urn:sandwich"), vf.createIRI("urn:count"), vf.createLiteral(2)));
 
         // Create the PCJ in Fluo and load the statements into Rya.
         final String pcjId = loadDataAndCreateQuery(sparql, statements);
@@ -241,11 +234,11 @@ public class KafkaExportIT extends KafkaExportITBase {
                 "}";
 
         // Create the Statements that will be loaded into Rya.
-        final ValueFactory vf = new ValueFactoryImpl();
+        final ValueFactory vf = SimpleValueFactory.getInstance();
         final Collection<Statement> statements = Sets.newHashSet(
-                vf.createStatement(vf.createURI("urn:apple"), vf.createURI("urn:price"), vf.createLiteral(3)),
-                vf.createStatement(vf.createURI("urn:gum"), vf.createURI("urn:price"), vf.createLiteral(4)),
-                vf.createStatement(vf.createURI("urn:sandwich"), vf.createURI("urn:price"), vf.createLiteral(8)));
+                vf.createStatement(vf.createIRI("urn:apple"), vf.createIRI("urn:price"), vf.createLiteral(3)),
+                vf.createStatement(vf.createIRI("urn:gum"), vf.createIRI("urn:price"), vf.createLiteral(4)),
+                vf.createStatement(vf.createIRI("urn:sandwich"), vf.createIRI("urn:price"), vf.createLiteral(8)));
 
         // Create the PCJ in Fluo and load the statements into Rya.
         final String pcjId = loadDataAndCreateQuery(sparql, statements);
@@ -273,11 +266,11 @@ public class KafkaExportIT extends KafkaExportITBase {
                 "}";
 
         // Create the Statements that will be loaded into Rya.
-        final ValueFactory vf = new ValueFactoryImpl();
+        final ValueFactory vf = SimpleValueFactory.getInstance();
         final Collection<Statement> statements = Sets.newHashSet(
-                vf.createStatement(vf.createURI("urn:apple"), vf.createURI("urn:price"), vf.createLiteral(2.50)),
-                vf.createStatement(vf.createURI("urn:gum"), vf.createURI("urn:price"), vf.createLiteral(0.99)),
-                vf.createStatement(vf.createURI("urn:sandwich"), vf.createURI("urn:price"), vf.createLiteral(4.99)));
+                vf.createStatement(vf.createIRI("urn:apple"), vf.createIRI("urn:price"), vf.createLiteral(2.50)),
+                vf.createStatement(vf.createIRI("urn:gum"), vf.createIRI("urn:price"), vf.createLiteral(0.99)),
+                vf.createStatement(vf.createIRI("urn:sandwich"), vf.createIRI("urn:price"), vf.createLiteral(4.99)));
 
         // Create the PCJ in Fluo and load the statements into Rya.
         final String pcjId = loadDataAndCreateQuery(sparql, statements);
@@ -300,11 +293,11 @@ public class KafkaExportIT extends KafkaExportITBase {
                 "}";
 
         // Create the Statements that will be loaded into Rya.
-        final ValueFactory vf = new ValueFactoryImpl();
+        final ValueFactory vf = SimpleValueFactory.getInstance();
         final Collection<Statement> statements = Sets.newHashSet(
-                vf.createStatement(vf.createURI("urn:apple"), vf.createURI("urn:price"), vf.createLiteral(5.25)),
-                vf.createStatement(vf.createURI("urn:gum"), vf.createURI("urn:price"), vf.createLiteral(7)),
-                vf.createStatement(vf.createURI("urn:sandwich"), vf.createURI("urn:price"), vf.createLiteral(2.75)));
+                vf.createStatement(vf.createIRI("urn:apple"), vf.createIRI("urn:price"), vf.createLiteral(5.25)),
+                vf.createStatement(vf.createIRI("urn:gum"), vf.createIRI("urn:price"), vf.createLiteral(7)),
+                vf.createStatement(vf.createIRI("urn:sandwich"), vf.createIRI("urn:price"), vf.createLiteral(2.75)));
 
         // Create the PCJ in Fluo and load the statements into Rya.
         final String pcjId = loadDataAndCreateQuery(sparql, statements);
@@ -329,13 +322,13 @@ public class KafkaExportIT extends KafkaExportITBase {
                 "GROUP BY ?item";
 
         // Create the Statements that will be loaded into Rya.
-        final ValueFactory vf = new ValueFactoryImpl();
+        final ValueFactory vf = SimpleValueFactory.getInstance();
         final Collection<Statement> statements = Sets.newHashSet(
-                vf.createStatement(vf.createURI("urn:apple"), vf.createURI("urn:price"), vf.createLiteral(5.25)),
-                vf.createStatement(vf.createURI("urn:apple"), vf.createURI("urn:price"), vf.createLiteral(7)),
-                vf.createStatement(vf.createURI("urn:apple"), vf.createURI("urn:price"), vf.createLiteral(2.75)),
-                vf.createStatement(vf.createURI("urn:banana"), vf.createURI("urn:price"), vf.createLiteral(2.75)),
-                vf.createStatement(vf.createURI("urn:banana"), vf.createURI("urn:price"), vf.createLiteral(1.99)));
+                vf.createStatement(vf.createIRI("urn:apple"), vf.createIRI("urn:price"), vf.createLiteral(5.25)),
+                vf.createStatement(vf.createIRI("urn:apple"), vf.createIRI("urn:price"), vf.createLiteral(7)),
+                vf.createStatement(vf.createIRI("urn:apple"), vf.createIRI("urn:price"), vf.createLiteral(2.75)),
+                vf.createStatement(vf.createIRI("urn:banana"), vf.createIRI("urn:price"), vf.createLiteral(2.75)),
+                vf.createStatement(vf.createIRI("urn:banana"), vf.createIRI("urn:price"), vf.createLiteral(1.99)));
 
         // Create the PCJ in Fluo and load the statements into Rya.
         final String pcjId = loadDataAndCreateQuery(sparql, statements);
@@ -344,12 +337,12 @@ public class KafkaExportIT extends KafkaExportITBase {
         final Set<VisibilityBindingSet> expectedResults = new HashSet<>();
 
         MapBindingSet bs = new MapBindingSet();
-        bs.addBinding("item", vf.createURI("urn:apple"));
+        bs.addBinding("item", vf.createIRI("urn:apple"));
         bs.addBinding("averagePrice", vf.createLiteral("5.0", XMLSchema.DECIMAL));
         expectedResults.add( new VisibilityBindingSet(bs) );
 
         bs = new MapBindingSet();
-        bs.addBinding("item", vf.createURI("urn:banana"));
+        bs.addBinding("item", vf.createIRI("urn:banana"));
         bs.addBinding("averagePrice", vf.createLiteral("2.37", XMLSchema.DECIMAL));
         expectedResults.add( new VisibilityBindingSet(bs) );
 
@@ -370,33 +363,33 @@ public class KafkaExportIT extends KafkaExportITBase {
                 "GROUP BY ?type ?location";
 
         // Create the Statements that will be loaded into Rya.
-        final ValueFactory vf = new ValueFactoryImpl();
+        final ValueFactory vf = SimpleValueFactory.getInstance();
         final Collection<Statement> statements = Sets.newHashSet(
                 // American items that will be averaged.
-                vf.createStatement(vf.createURI("urn:1"), vf.createURI("urn:type"), vf.createLiteral("apple")),
-                vf.createStatement(vf.createURI("urn:1"), vf.createURI("urn:location"), vf.createLiteral("USA")),
-                vf.createStatement(vf.createURI("urn:1"), vf.createURI("urn:price"), vf.createLiteral(2.50)),
+                vf.createStatement(vf.createIRI("urn:1"), vf.createIRI("urn:type"), vf.createLiteral("apple")),
+                vf.createStatement(vf.createIRI("urn:1"), vf.createIRI("urn:location"), vf.createLiteral("USA")),
+                vf.createStatement(vf.createIRI("urn:1"), vf.createIRI("urn:price"), vf.createLiteral(2.50)),
 
-                vf.createStatement(vf.createURI("urn:2"), vf.createURI("urn:type"), vf.createLiteral("cheese")),
-                vf.createStatement(vf.createURI("urn:2"), vf.createURI("urn:location"), vf.createLiteral("USA")),
-                vf.createStatement(vf.createURI("urn:2"), vf.createURI("urn:price"), vf.createLiteral(.99)),
+                vf.createStatement(vf.createIRI("urn:2"), vf.createIRI("urn:type"), vf.createLiteral("cheese")),
+                vf.createStatement(vf.createIRI("urn:2"), vf.createIRI("urn:location"), vf.createLiteral("USA")),
+                vf.createStatement(vf.createIRI("urn:2"), vf.createIRI("urn:price"), vf.createLiteral(.99)),
 
-                vf.createStatement(vf.createURI("urn:3"), vf.createURI("urn:type"), vf.createLiteral("cheese")),
-                vf.createStatement(vf.createURI("urn:3"), vf.createURI("urn:location"), vf.createLiteral("USA")),
-                vf.createStatement(vf.createURI("urn:3"), vf.createURI("urn:price"), vf.createLiteral(5.25)),
+                vf.createStatement(vf.createIRI("urn:3"), vf.createIRI("urn:type"), vf.createLiteral("cheese")),
+                vf.createStatement(vf.createIRI("urn:3"), vf.createIRI("urn:location"), vf.createLiteral("USA")),
+                vf.createStatement(vf.createIRI("urn:3"), vf.createIRI("urn:price"), vf.createLiteral(5.25)),
 
                 // French items that will be averaged.
-                vf.createStatement(vf.createURI("urn:4"), vf.createURI("urn:type"), vf.createLiteral("cheese")),
-                vf.createStatement(vf.createURI("urn:4"), vf.createURI("urn:location"), vf.createLiteral("France")),
-                vf.createStatement(vf.createURI("urn:4"), vf.createURI("urn:price"), vf.createLiteral(8.5)),
+                vf.createStatement(vf.createIRI("urn:4"), vf.createIRI("urn:type"), vf.createLiteral("cheese")),
+                vf.createStatement(vf.createIRI("urn:4"), vf.createIRI("urn:location"), vf.createLiteral("France")),
+                vf.createStatement(vf.createIRI("urn:4"), vf.createIRI("urn:price"), vf.createLiteral(8.5)),
 
-                vf.createStatement(vf.createURI("urn:5"), vf.createURI("urn:type"), vf.createLiteral("cigarettes")),
-                vf.createStatement(vf.createURI("urn:5"), vf.createURI("urn:location"), vf.createLiteral("France")),
-                vf.createStatement(vf.createURI("urn:5"), vf.createURI("urn:price"), vf.createLiteral(3.99)),
+                vf.createStatement(vf.createIRI("urn:5"), vf.createIRI("urn:type"), vf.createLiteral("cigarettes")),
+                vf.createStatement(vf.createIRI("urn:5"), vf.createIRI("urn:location"), vf.createLiteral("France")),
+                vf.createStatement(vf.createIRI("urn:5"), vf.createIRI("urn:price"), vf.createLiteral(3.99)),
 
-                vf.createStatement(vf.createURI("urn:6"), vf.createURI("urn:type"), vf.createLiteral("cigarettes")),
-                vf.createStatement(vf.createURI("urn:6"), vf.createURI("urn:location"), vf.createLiteral("France")),
-                vf.createStatement(vf.createURI("urn:6"), vf.createURI("urn:price"), vf.createLiteral(4.99)));
+                vf.createStatement(vf.createIRI("urn:6"), vf.createIRI("urn:type"), vf.createLiteral("cigarettes")),
+                vf.createStatement(vf.createIRI("urn:6"), vf.createIRI("urn:location"), vf.createLiteral("France")),
+                vf.createStatement(vf.createIRI("urn:6"), vf.createIRI("urn:price"), vf.createLiteral(4.99)));
 
         // Create the PCJ in Fluo and load the statements into Rya.
         final String pcjId = loadDataAndCreateQuery(sparql, statements);
@@ -448,33 +441,33 @@ public class KafkaExportIT extends KafkaExportITBase {
                 "GROUP BY ?type ?location }}";
 
         // Create the Statements that will be loaded into Rya.
-        final ValueFactory vf = new ValueFactoryImpl();
+        final ValueFactory vf = SimpleValueFactory.getInstance();
         final Collection<Statement> statements = Sets.newHashSet(
                 // American items that will be averaged.
-                vf.createStatement(vf.createURI("urn:1"), vf.createURI("urn:type"), vf.createLiteral("apple")),
-                vf.createStatement(vf.createURI("urn:1"), vf.createURI("urn:location"), vf.createLiteral("USA")),
-                vf.createStatement(vf.createURI("urn:1"), vf.createURI("urn:price"), vf.createLiteral(2.50)),
+                vf.createStatement(vf.createIRI("urn:1"), vf.createIRI("urn:type"), vf.createLiteral("apple")),
+                vf.createStatement(vf.createIRI("urn:1"), vf.createIRI("urn:location"), vf.createLiteral("USA")),
+                vf.createStatement(vf.createIRI("urn:1"), vf.createIRI("urn:price"), vf.createLiteral(2.50)),
 
-                vf.createStatement(vf.createURI("urn:2"), vf.createURI("urn:type"), vf.createLiteral("cheese")),
-                vf.createStatement(vf.createURI("urn:2"), vf.createURI("urn:location"), vf.createLiteral("USA")),
-                vf.createStatement(vf.createURI("urn:2"), vf.createURI("urn:price"), vf.createLiteral(4.25)),
+                vf.createStatement(vf.createIRI("urn:2"), vf.createIRI("urn:type"), vf.createLiteral("cheese")),
+                vf.createStatement(vf.createIRI("urn:2"), vf.createIRI("urn:location"), vf.createLiteral("USA")),
+                vf.createStatement(vf.createIRI("urn:2"), vf.createIRI("urn:price"), vf.createLiteral(4.25)),
 
-                vf.createStatement(vf.createURI("urn:3"), vf.createURI("urn:type"), vf.createLiteral("cheese")),
-                vf.createStatement(vf.createURI("urn:3"), vf.createURI("urn:location"), vf.createLiteral("USA")),
-                vf.createStatement(vf.createURI("urn:3"), vf.createURI("urn:price"), vf.createLiteral(5.25)),
+                vf.createStatement(vf.createIRI("urn:3"), vf.createIRI("urn:type"), vf.createLiteral("cheese")),
+                vf.createStatement(vf.createIRI("urn:3"), vf.createIRI("urn:location"), vf.createLiteral("USA")),
+                vf.createStatement(vf.createIRI("urn:3"), vf.createIRI("urn:price"), vf.createLiteral(5.25)),
 
                 // French items that will be averaged.
-                vf.createStatement(vf.createURI("urn:4"), vf.createURI("urn:type"), vf.createLiteral("cheese")),
-                vf.createStatement(vf.createURI("urn:4"), vf.createURI("urn:location"), vf.createLiteral("France")),
-                vf.createStatement(vf.createURI("urn:4"), vf.createURI("urn:price"), vf.createLiteral(8.5)),
+                vf.createStatement(vf.createIRI("urn:4"), vf.createIRI("urn:type"), vf.createLiteral("cheese")),
+                vf.createStatement(vf.createIRI("urn:4"), vf.createIRI("urn:location"), vf.createLiteral("France")),
+                vf.createStatement(vf.createIRI("urn:4"), vf.createIRI("urn:price"), vf.createLiteral(8.5)),
 
-                vf.createStatement(vf.createURI("urn:5"), vf.createURI("urn:type"), vf.createLiteral("cigarettes")),
-                vf.createStatement(vf.createURI("urn:5"), vf.createURI("urn:location"), vf.createLiteral("France")),
-                vf.createStatement(vf.createURI("urn:5"), vf.createURI("urn:price"), vf.createLiteral(3.99)),
+                vf.createStatement(vf.createIRI("urn:5"), vf.createIRI("urn:type"), vf.createLiteral("cigarettes")),
+                vf.createStatement(vf.createIRI("urn:5"), vf.createIRI("urn:location"), vf.createLiteral("France")),
+                vf.createStatement(vf.createIRI("urn:5"), vf.createIRI("urn:price"), vf.createLiteral(3.99)),
 
-                vf.createStatement(vf.createURI("urn:6"), vf.createURI("urn:type"), vf.createLiteral("cigarettes")),
-                vf.createStatement(vf.createURI("urn:6"), vf.createURI("urn:location"), vf.createLiteral("France")),
-                vf.createStatement(vf.createURI("urn:6"), vf.createURI("urn:price"), vf.createLiteral(4.99)));
+                vf.createStatement(vf.createIRI("urn:6"), vf.createIRI("urn:type"), vf.createLiteral("cigarettes")),
+                vf.createStatement(vf.createIRI("urn:6"), vf.createIRI("urn:location"), vf.createLiteral("France")),
+                vf.createStatement(vf.createIRI("urn:6"), vf.createIRI("urn:price"), vf.createLiteral(4.99)));
 
         // Create the PCJ in Fluo and load the statements into Rya.
         final String pcjId = loadDataAndCreateQuery(sparql, statements);
@@ -522,36 +515,36 @@ public class KafkaExportIT extends KafkaExportITBase {
                 "GROUP BY ?type ?location }}";
 
         // Create the Statements that will be loaded into Rya.
-        final ValueFactory vf = new ValueFactoryImpl();
+        final ValueFactory vf = SimpleValueFactory.getInstance();
         final Collection<Statement> statements = Sets.newHashSet(
                
-                vf.createStatement(vf.createURI("urn:1"), vf.createURI("urn:type"), vf.createURI("urn:blue")),
-                vf.createStatement(vf.createURI("urn:1"), vf.createURI("urn:location"), vf.createLiteral("France")),
-                vf.createStatement(vf.createURI("urn:1"), vf.createURI("urn:price"), vf.createLiteral(8.5)),
-                vf.createStatement(vf.createURI("urn:blue"), vf.createURI("urn:hasMilkType"), vf.createLiteral("cow", XMLSchema.STRING)),
+                vf.createStatement(vf.createIRI("urn:1"), vf.createIRI("urn:type"), vf.createIRI("urn:blue")),
+                vf.createStatement(vf.createIRI("urn:1"), vf.createIRI("urn:location"), vf.createLiteral("France")),
+                vf.createStatement(vf.createIRI("urn:1"), vf.createIRI("urn:price"), vf.createLiteral(8.5)),
+                vf.createStatement(vf.createIRI("urn:blue"), vf.createIRI("urn:hasMilkType"), vf.createLiteral("cow", XMLSchema.STRING)),
 
-                vf.createStatement(vf.createURI("urn:2"), vf.createURI("urn:type"), vf.createURI("urn:american")),
-                vf.createStatement(vf.createURI("urn:2"), vf.createURI("urn:location"), vf.createLiteral("USA")),
-                vf.createStatement(vf.createURI("urn:2"), vf.createURI("urn:price"), vf.createLiteral(.99)),
+                vf.createStatement(vf.createIRI("urn:2"), vf.createIRI("urn:type"), vf.createIRI("urn:american")),
+                vf.createStatement(vf.createIRI("urn:2"), vf.createIRI("urn:location"), vf.createLiteral("USA")),
+                vf.createStatement(vf.createIRI("urn:2"), vf.createIRI("urn:price"), vf.createLiteral(.99)),
 
-                vf.createStatement(vf.createURI("urn:3"), vf.createURI("urn:type"), vf.createURI("urn:cheddar")),
-                vf.createStatement(vf.createURI("urn:3"), vf.createURI("urn:location"), vf.createLiteral("USA")),
-                vf.createStatement(vf.createURI("urn:3"), vf.createURI("urn:price"), vf.createLiteral(5.25)),
+                vf.createStatement(vf.createIRI("urn:3"), vf.createIRI("urn:type"), vf.createIRI("urn:cheddar")),
+                vf.createStatement(vf.createIRI("urn:3"), vf.createIRI("urn:location"), vf.createLiteral("USA")),
+                vf.createStatement(vf.createIRI("urn:3"), vf.createIRI("urn:price"), vf.createLiteral(5.25)),
 
                 // French items that will be averaged.
-                vf.createStatement(vf.createURI("urn:4"), vf.createURI("urn:type"), vf.createURI("urn:goat")),
-                vf.createStatement(vf.createURI("urn:4"), vf.createURI("urn:location"), vf.createLiteral("France")),
-                vf.createStatement(vf.createURI("urn:4"), vf.createURI("urn:price"), vf.createLiteral(6.5)),
-                vf.createStatement(vf.createURI("urn:goat"), vf.createURI("urn:hasMilkType"), vf.createLiteral("goat", XMLSchema.STRING)),
+                vf.createStatement(vf.createIRI("urn:4"), vf.createIRI("urn:type"), vf.createIRI("urn:goat")),
+                vf.createStatement(vf.createIRI("urn:4"), vf.createIRI("urn:location"), vf.createLiteral("France")),
+                vf.createStatement(vf.createIRI("urn:4"), vf.createIRI("urn:price"), vf.createLiteral(6.5)),
+                vf.createStatement(vf.createIRI("urn:goat"), vf.createIRI("urn:hasMilkType"), vf.createLiteral("goat", XMLSchema.STRING)),
                 
-                vf.createStatement(vf.createURI("urn:5"), vf.createURI("urn:type"), vf.createURI("urn:fontina")),
-                vf.createStatement(vf.createURI("urn:5"), vf.createURI("urn:location"), vf.createLiteral("Italy")),
-                vf.createStatement(vf.createURI("urn:5"), vf.createURI("urn:price"), vf.createLiteral(3.99)),
-                vf.createStatement(vf.createURI("urn:fontina"), vf.createURI("urn:hasMilkType"), vf.createLiteral("cow", XMLSchema.STRING)),
+                vf.createStatement(vf.createIRI("urn:5"), vf.createIRI("urn:type"), vf.createIRI("urn:fontina")),
+                vf.createStatement(vf.createIRI("urn:5"), vf.createIRI("urn:location"), vf.createLiteral("Italy")),
+                vf.createStatement(vf.createIRI("urn:5"), vf.createIRI("urn:price"), vf.createLiteral(3.99)),
+                vf.createStatement(vf.createIRI("urn:fontina"), vf.createIRI("urn:hasMilkType"), vf.createLiteral("cow", XMLSchema.STRING)),
 
-                vf.createStatement(vf.createURI("urn:6"), vf.createURI("urn:type"), vf.createURI("urn:fontina")),
-                vf.createStatement(vf.createURI("urn:6"), vf.createURI("urn:location"), vf.createLiteral("Italy")),
-                vf.createStatement(vf.createURI("urn:6"), vf.createURI("urn:price"), vf.createLiteral(4.99)));
+                vf.createStatement(vf.createIRI("urn:6"), vf.createIRI("urn:type"), vf.createIRI("urn:fontina")),
+                vf.createStatement(vf.createIRI("urn:6"), vf.createIRI("urn:location"), vf.createLiteral("Italy")),
+                vf.createStatement(vf.createIRI("urn:6"), vf.createIRI("urn:price"), vf.createLiteral(4.99)));
 
         // Create the PCJ in Fluo and load the statements into Rya.
         final String pcjId = loadDataAndCreateQuery(sparql, statements);
@@ -560,21 +553,21 @@ public class KafkaExportIT extends KafkaExportITBase {
         final Set<VisibilityBindingSet> expectedResults = new HashSet<>();
 
         MapBindingSet bs = new MapBindingSet();
-        bs.addBinding("type", vf.createURI("urn:blue"));
+        bs.addBinding("type", vf.createIRI("urn:blue"));
         bs.addBinding("location", vf.createLiteral("France", XMLSchema.STRING));
         bs.addBinding("averagePrice", vf.createLiteral("8.5", XMLSchema.DECIMAL));
         bs.addBinding("milkType", vf.createLiteral("cow", XMLSchema.STRING));
         expectedResults.add( new VisibilityBindingSet(bs));
 
         bs = new MapBindingSet();
-        bs.addBinding("type", vf.createURI("urn:goat"));
+        bs.addBinding("type", vf.createIRI("urn:goat"));
         bs.addBinding("location", vf.createLiteral("France", XMLSchema.STRING));
         bs.addBinding("averagePrice", vf.createLiteral("6.5", XMLSchema.DECIMAL));
         bs.addBinding("milkType", vf.createLiteral("goat", XMLSchema.STRING));
         expectedResults.add( new VisibilityBindingSet(bs) );
         
         bs = new MapBindingSet();
-        bs.addBinding("type", vf.createURI("urn:fontina"));
+        bs.addBinding("type", vf.createIRI("urn:fontina"));
         bs.addBinding("location", vf.createLiteral("Italy", XMLSchema.STRING));
         bs.addBinding("averagePrice", vf.createLiteral("4.49", XMLSchema.DECIMAL));
         bs.addBinding("milkType", vf.createLiteral("cow", XMLSchema.STRING));

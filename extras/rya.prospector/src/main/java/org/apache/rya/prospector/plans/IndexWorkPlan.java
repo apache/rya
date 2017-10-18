@@ -33,7 +33,7 @@ import org.apache.rya.prospector.domain.IndexEntry;
 import org.apache.rya.prospector.domain.IntermediateProspect;
 import org.apache.rya.prospector.mr.ProspectorCombiner;
 import org.apache.rya.prospector.mr.ProspectorMapper;
-import org.openrdf.model.vocabulary.XMLSchema;
+import org.eclipse.rdf4j.model.vocabulary.XMLSchema;
 
 /**
  * Contains the methods that perform each of the Map Reduce functions that result
@@ -42,9 +42,9 @@ import org.openrdf.model.vocabulary.XMLSchema;
  */
 public interface IndexWorkPlan {
 
-    public static final String URITYPE = XMLSchema.ANYURI.stringValue();
-    public static final LongWritable ONE = new LongWritable(1);
-    public static final String DELIM = "\u0000";
+    String URITYPE = XMLSchema.ANYURI.stringValue();
+    LongWritable ONE = new LongWritable(1);
+    String DELIM = "\u0000";
 
     /**
      * This method is invoked by {@link ProspectorMapper}. It's used to pull
@@ -59,7 +59,7 @@ public interface IndexWorkPlan {
      * @param ryaStatement - The RDF Statement that needs to be mapped.
      * @return A collection of intermediate keys and counts.
      */
-    public Collection<Map.Entry<IntermediateProspect, LongWritable>> map(RyaStatement ryaStatement);
+    Collection<Map.Entry<IntermediateProspect, LongWritable>> map(RyaStatement ryaStatement);
 
     /**
      * This method is invoked by {@link ProspectorCombiner}. It is used by to
@@ -70,7 +70,7 @@ public interface IndexWorkPlan {
      * @param counts - The counts that need to be combined together.
      * @return A collection containing the combined results.
      */
-    public Collection<Map.Entry<IntermediateProspect, LongWritable>> combine(IntermediateProspect prospect, Iterable<LongWritable> counts);
+    Collection<Map.Entry<IntermediateProspect, LongWritable>> combine(IntermediateProspect prospect, Iterable<LongWritable> counts);
 
     /**
      * This method is invoked by {@link ProsectorReducer}. It is used to reduce
@@ -84,19 +84,19 @@ public interface IndexWorkPlan {
      * @throws IOException A problem was encountered while writing to the context.
      * @throws InterruptedException Writes to the context were interrupted.
      */
-    public void reduce(IntermediateProspect prospect, Iterable<LongWritable> counts, Date timestamp, Reducer.Context context) throws IOException, InterruptedException;
+    void reduce(IntermediateProspect prospect, Iterable<LongWritable> counts, Date timestamp, Reducer.Context context) throws IOException, InterruptedException;
 
     /**
      * @return A unique name that indicates which {@link IndexEntry}s came from this plan.
      */
-    public String getIndexType();
+    String getIndexType();
 
     /**
      * TODO Not sure what this generically is for. It is used by the count job to
      *      place a null delimiter between any {@link IndexEntry}s whose data
      *      section is two difference pieces of information together.
      */
-    public String getCompositeValue(List<String> indices);
+    String getCompositeValue(List<String> indices);
 
     /**
      * Search for {@link IndexEntry}s that have values matching the provided parameters.
@@ -111,5 +111,5 @@ public interface IndexWorkPlan {
      * @return The {@link IndexEntries} that match the provided values.
      * @throws TableNotFoundException No table exists for {@code tableName}.
      */
-    public List<IndexEntry> query(Connector connector, String tableName, List<Long> prospectTimes, String type, String index, String dataType, String[] auths) throws TableNotFoundException;
+    List<IndexEntry> query(Connector connector, String tableName, List<Long> prospectTimes, String type, String index, String dataType, String[] auths) throws TableNotFoundException;
 }

@@ -19,11 +19,9 @@ package org.apache.rya.api.utils;
  * under the License.
  */
 
-
-
-import info.aduna.iteration.CloseableIteration;
-
 import java.util.Iterator;
+
+import org.eclipse.rdf4j.common.iteration.CloseableIteration;
 
 /**
  * Date: 7/26/12

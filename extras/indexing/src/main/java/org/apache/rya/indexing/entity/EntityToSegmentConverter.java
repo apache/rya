@@ -18,21 +18,16 @@
  */
 package org.apache.rya.indexing.entity;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
+import com.google.common.base.Preconditions;
 import org.apache.rya.indexing.entity.query.EntityQueryNode;
 import org.apache.rya.indexing.external.matching.ExternalSetConverter;
 import org.apache.rya.indexing.external.matching.JoinSegment;
 import org.apache.rya.indexing.external.matching.QuerySegment;
-import org.openrdf.query.algebra.Filter;
-import org.openrdf.query.algebra.QueryModelNode;
-import org.openrdf.query.algebra.ValueExpr;
-
-import com.google.common.base.Preconditions;
+import org.eclipse.rdf4j.query.algebra.Filter;
+import org.eclipse.rdf4j.query.algebra.QueryModelNode;
+import org.eclipse.rdf4j.query.algebra.ValueExpr;
 
 /**
  * Implementation of {@link ExternalSetConverter} to convert {@link EntityQueryNode}s

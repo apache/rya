@@ -18,11 +18,10 @@
  */
 package org.apache.rya.sail.config;
 
-import static java.util.Objects.requireNonNull;
-
 import java.net.UnknownHostException;
 import java.util.Objects;
 
+import com.mongodb.MongoClient;
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
 import org.apache.accumulo.core.client.Connector;
@@ -44,12 +43,12 @@ import org.apache.rya.mongodb.instance.MongoRyaInstanceDetailsRepository;
 import org.apache.rya.rdftriplestore.RdfCloudTripleStore;
 import org.apache.rya.rdftriplestore.inference.InferenceEngine;
 import org.apache.rya.rdftriplestore.inference.InferenceEngineException;
-import org.openrdf.sail.Sail;
-import org.openrdf.sail.SailException;
+import org.eclipse.rdf4j.sail.Sail;
+import org.eclipse.rdf4j.sail.SailException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.mongodb.MongoClient;
+import static java.util.Objects.requireNonNull;
 
 public class RyaSailFactory {
     private static final Logger LOG = LoggerFactory.getLogger(RyaSailFactory.class);

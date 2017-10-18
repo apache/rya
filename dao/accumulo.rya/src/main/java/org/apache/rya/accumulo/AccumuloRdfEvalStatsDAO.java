@@ -18,21 +18,8 @@
  */
 package org.apache.rya.accumulo;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-import static org.apache.rya.api.RdfCloudTripleStoreConstants.DELIM;
-import static org.apache.rya.api.RdfCloudTripleStoreConstants.EMPTY_TEXT;
-import static org.apache.rya.api.RdfCloudTripleStoreConstants.PREDOBJECT_CF_TXT;
-import static org.apache.rya.api.RdfCloudTripleStoreConstants.PRED_CF_TXT;
-import static org.apache.rya.api.RdfCloudTripleStoreConstants.SUBJECTOBJECT_CF_TXT;
-import static org.apache.rya.api.RdfCloudTripleStoreConstants.SUBJECTPRED_CF_TXT;
-import static org.apache.rya.api.RdfCloudTripleStoreConstants.SUBJECT_CF_TXT;
-
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import org.apache.accumulo.core.client.Connector;
 import org.apache.accumulo.core.client.Scanner;
@@ -45,8 +32,11 @@ import org.apache.rya.api.RdfCloudTripleStoreStatement;
 import org.apache.rya.api.layout.TableLayoutStrategy;
 import org.apache.rya.api.persist.RdfDAOException;
 import org.apache.rya.api.persist.RdfEvalStatsDAO;
-import org.openrdf.model.Resource;
-import org.openrdf.model.Value;
+import org.eclipse.rdf4j.model.Resource;
+import org.eclipse.rdf4j.model.Value;
+
+import static com.google.common.base.Preconditions.checkNotNull;
+import static org.apache.rya.api.RdfCloudTripleStoreConstants.*;
 
 /**
  * Class AccumuloRdfEvalStatsDAO
@@ -72,8 +62,8 @@ public class AccumuloRdfEvalStatsDAO implements RdfEvalStatsDAO<AccumuloRdfConfi
             }
             checkNotNull(connector);
             tableLayoutStrategy = conf.getTableLayoutStrategy();
-//            evalTable = conf.get(RdfCloudTripleStoreConfiguration.CONF_TBL_EVAL, evalTable);
-//            conf.set(RdfCloudTripleStoreConfiguration.CONF_TBL_EVAL, evalTable);
+//            evalTable = conf.get(RdfTripleStoreConfiguration.CONF_TBL_EVAL, evalTable);
+//            conf.set(RdfTripleStoreConfiguration.CONF_TBL_EVAL, evalTable);
 
             final TableOperations tos = connector.tableOperations();
             AccumuloRdfUtils.createTableIfNotExist(tos, tableLayoutStrategy.getEval());

@@ -21,11 +21,8 @@ import java.net.UnknownHostException;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 
-import org.apache.accumulo.core.client.AccumuloException;
-import org.apache.accumulo.core.client.AccumuloSecurityException;
-import org.apache.accumulo.core.client.Connector;
-import org.apache.accumulo.core.client.TableExistsException;
-import org.apache.accumulo.core.client.TableNotFoundException;
+import com.google.common.base.Optional;
+import org.apache.accumulo.core.client.*;
 import org.apache.accumulo.core.client.mock.MockInstance;
 import org.apache.accumulo.core.client.security.tokens.PasswordToken;
 import org.apache.commons.lang.Validate;
@@ -39,32 +36,20 @@ import org.apache.rya.indexing.external.PrecomputedJoinIndexerConfig;
 import org.apache.rya.indexing.external.PrecomputedJoinIndexerConfig.PrecomputedJoinStorageType;
 import org.apache.rya.indexing.pcj.storage.PcjException;
 import org.apache.rya.indexing.pcj.storage.accumulo.PcjTables;
-import org.apache.rya.indexing.pcj.storage.accumulo.PcjVarOrderFactory;
 import org.apache.rya.rdftriplestore.inference.InferenceEngineException;
 import org.apache.rya.sail.config.RyaSailFactory;
-import org.openrdf.model.URI;
-import org.openrdf.model.ValueFactory;
-import org.openrdf.model.impl.LiteralImpl;
-import org.openrdf.model.impl.URIImpl;
-import org.openrdf.model.vocabulary.RDF;
-import org.openrdf.model.vocabulary.RDFS;
-import org.openrdf.query.BindingSet;
-import org.openrdf.query.MalformedQueryException;
-import org.openrdf.query.QueryEvaluationException;
-import org.openrdf.query.QueryLanguage;
-import org.openrdf.query.QueryResultHandlerException;
-import org.openrdf.query.TupleQuery;
-import org.openrdf.query.TupleQueryResultHandler;
-import org.openrdf.query.TupleQueryResultHandlerException;
-import org.openrdf.query.Update;
-import org.openrdf.query.UpdateExecutionException;
-import org.openrdf.repository.RepositoryException;
-import org.openrdf.repository.sail.SailRepository;
-import org.openrdf.repository.sail.SailRepositoryConnection;
-import org.openrdf.sail.Sail;
-import org.openrdf.sail.SailException;
-
-import com.google.common.base.Optional;
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.model.impl.LiteralImpl;
+import org.eclipse.rdf4j.model.impl.URIImpl;
+import org.eclipse.rdf4j.model.vocabulary.RDF;
+import org.eclipse.rdf4j.model.vocabulary.RDFS;
+import org.eclipse.rdf4j.query.*;
+import org.eclipse.rdf4j.repository.RepositoryException;
+import org.eclipse.rdf4j.repository.sail.SailRepository;
+import org.eclipse.rdf4j.repository.sail.SailRepositoryConnection;
+import org.eclipse.rdf4j.sail.Sail;
+import org.eclipse.rdf4j.sail.SailException;
 
 public class RyaDirectExample {
 	private static final Logger log = Logger.getLogger(RyaDirectExample.class);
@@ -335,18 +320,18 @@ public class RyaDirectExample {
 			final SailRepositoryConnection conn) throws Exception {
 		// add data to the repository using the SailRepository add methods
 		final ValueFactory f = conn.getValueFactory();
-		final URI person = f.createURI("http://example.org/ontology/Person");
+		final IRI person = f.createIRI("http://example.org/ontology/Person");
 
 		String uuid;
 
 		uuid = "urn:people:alice";
-		conn.add(f.createURI(uuid), RDF.TYPE, person);
-		conn.add(f.createURI(uuid), RDFS.LABEL,
-				f.createLiteral("Alice Palace Hose", f.createURI("xsd:string")));
+		conn.add(f.createIRI(uuid), RDF.TYPE, person);
+		conn.add(f.createIRI(uuid), RDFS.LABEL,
+				f.createLiteral("Alice Palace Hose", f.createIRI("xsd:string")));
 
 		uuid = "urn:people:bobss";
-		conn.add(f.createURI(uuid), RDF.TYPE, person);
-		conn.add(f.createURI(uuid), RDFS.LABEL,
+		conn.add(f.createIRI(uuid), RDF.TYPE, person);
+		conn.add(f.createIRI(uuid), RDFS.LABEL,
 				f.createLiteral("Bob Snob Hose", "en"));
 
 		String queryString;
@@ -645,18 +630,18 @@ public class RyaDirectExample {
 		// Delete data from the repository using the SailRepository remove
 		// methods
 		final ValueFactory f = conn.getValueFactory();
-		final URI person = f.createURI("http://example.org/ontology/Person");
+		final IRI person = f.createIRI("http://example.org/ontology/Person");
 
 		String uuid;
 
 		uuid = "urn:people:alice";
-		conn.remove(f.createURI(uuid), RDF.TYPE, person);
-		conn.remove(f.createURI(uuid), RDFS.LABEL,
-				f.createLiteral("Alice Palace Hose", f.createURI("xsd:string")));
+		conn.remove(f.createIRI(uuid), RDF.TYPE, person);
+		conn.remove(f.createIRI(uuid), RDFS.LABEL,
+				f.createLiteral("Alice Palace Hose", f.createIRI("xsd:string")));
 
 		uuid = "urn:people:bobss";
-		conn.remove(f.createURI(uuid), RDF.TYPE, person);
-		conn.remove(f.createURI(uuid), RDFS.LABEL,
+		conn.remove(f.createIRI(uuid), RDF.TYPE, person);
+		conn.remove(f.createIRI(uuid), RDFS.LABEL,
 				f.createLiteral("Bob Snob Hose", "en"));
 
 		conn.remove(person, RDFS.LABEL, f.createLiteral("label", "en"));
@@ -753,10 +738,10 @@ public class RyaDirectExample {
 					+ "  ?e <uri:talksTo> ?o . "//
 					+ "}";//
 
-			URI obj, subclass, talksTo;
-			final URI person = new URIImpl("urn:people:alice");
-			final URI feature = new URIImpl("urn:feature");
-			final URI sub = new URIImpl("uri:entity");
+			IRI obj, subclass, talksTo;
+			final IRI person = new URIImpl("urn:people:alice");
+			final IRI feature = new URIImpl("urn:feature");
+			final IRI sub = new URIImpl("uri:entity");
 			subclass = new URIImpl("uri:class");
 			obj = new URIImpl("uri:obj");
 			talksTo = new URIImpl("uri:talksTo");
@@ -775,11 +760,11 @@ public class RyaDirectExample {
 
 			new PcjTables().createAndPopulatePcj(conn, accCon, tablename1,
 					queryString1, new String[] { "e", "c", "l", "o" },
-					Optional.<PcjVarOrderFactory> absent());
+					Optional.absent());
 
 			new PcjTables().createAndPopulatePcj(conn, accCon, tablename2,
 					queryString2, new String[] { "e", "c", "l", "o" },
-					Optional.<PcjVarOrderFactory> absent());
+					Optional.absent());
 
 		} catch (final RyaDAOException e) {
 			throw new Error("While creating PCJ tables.",e);

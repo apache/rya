@@ -1,6 +1,18 @@
 package org.apache.rya.api;
 
 import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
+import com.google.common.base.Joiner;
+import com.google.common.base.Preconditions;
+import com.google.common.collect.Lists;
+import org.apache.hadoop.conf.Configuration;
+import org.apache.rya.api.domain.RyaURI;
+import org.apache.rya.api.layout.TableLayoutStrategy;
+import org.apache.rya.api.layout.TablePrefixLayoutStrategy;
+import org.apache.rya.api.persist.RdfEvalStatsDAO;
+import org.eclipse.rdf4j.query.algebra.evaluation.QueryOptimizer;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -20,22 +32,6 @@ import java.util.HashSet;
  * specific language governing permissions and limitations
  * under the License.
  */
-
-
-
-import java.util.List;
-import java.util.Set;
-
-import org.apache.hadoop.conf.Configuration;
-import org.apache.rya.api.domain.RyaURI;
-import org.apache.rya.api.layout.TableLayoutStrategy;
-import org.apache.rya.api.layout.TablePrefixLayoutStrategy;
-import org.apache.rya.api.persist.RdfEvalStatsDAO;
-import org.openrdf.query.algebra.evaluation.QueryOptimizer;
-
-import com.google.common.base.Joiner;
-import com.google.common.base.Preconditions;
-import com.google.common.collect.Lists;
 
 /**
  * Rdf triple store specific configuration
@@ -369,7 +365,7 @@ public abstract class RdfCloudTripleStoreConfiguration extends Configuration {
 
     /**
      * Sets whether rdfs:domain and rdfs:range inferencing is enabled or disabled.
-     * @param value {@code true} if rdfs:domain/range inferencing is enabled.
+     * @param val {@code true} if rdfs:domain/range inferencing is enabled.
      * {@code false} otherwise.
      */
     public void setInferDomainRange(final Boolean val) {
@@ -388,7 +384,7 @@ public abstract class RdfCloudTripleStoreConfiguration extends Configuration {
 
     /**
      * Sets whether owl:hasSelf inferencing is enabled or disabled.
-     * @param value {@code true} if owl:hasSelf inferencing is enabled.
+     * @param val {@code true} if owl:hasSelf inferencing is enabled.
      * {@code false} otherwise.
      */
     public void setInferHasSelf(final Boolean val) {
@@ -445,7 +441,7 @@ public abstract class RdfCloudTripleStoreConfiguration extends Configuration {
 
     /**
      * Sets whether owl:inverseOf inferencing is enabled or disabled.
-     * @param value {@code true} if owl:inverseOf inferencing is enabled.
+     * @param val {@code true} if owl:inverseOf inferencing is enabled.
      * {@code false} otherwise.
      */
     public void setInferInverseOf(final Boolean val) {
@@ -559,7 +555,7 @@ public abstract class RdfCloudTripleStoreConfiguration extends Configuration {
 
     /**
      * Sets whether rdfs:subClassOf inferencing is enabled or disabled.
-     * @param value {@code true} if rdfs:subClassOf inferencing is enabled.
+     * @param val {@code true} if rdfs:subClassOf inferencing is enabled.
      * {@code false} otherwise.
      */
     public void setInferSubClassOf(final Boolean val) {
@@ -578,7 +574,7 @@ public abstract class RdfCloudTripleStoreConfiguration extends Configuration {
 
     /**
      * Sets whether rdfs:subPropertyOf inferencing is enabled or disabled.
-     * @param value {@code true} if rdfs:subPropertyOf inferencing is enabled.
+     * @param val {@code true} if rdfs:subPropertyOf inferencing is enabled.
      * {@code false} otherwise.
      */
     public void setInferSubPropertyOf(final Boolean val) {
@@ -597,7 +593,7 @@ public abstract class RdfCloudTripleStoreConfiguration extends Configuration {
 
     /**
      * Sets whether owl:SymmetricProperty inferencing is enabled or disabled.
-     * @param value {@code true} if owl:SymmetricProperty inferencing is enabled.
+     * @param val {@code true} if owl:SymmetricProperty inferencing is enabled.
      * {@code false} otherwise.
      */
     public void setInferSymmetricProperty(final Boolean val) {
@@ -616,7 +612,7 @@ public abstract class RdfCloudTripleStoreConfiguration extends Configuration {
 
     /**
      * Sets whether owl:TransitiveProperty inferencing is enabled or disabled.
-     * @param value {@code true} if owl:TransitiveProperty inferencing is enabled.
+     * @param val {@code true} if owl:TransitiveProperty inferencing is enabled.
      * {@code false} otherwise.
      */
     public void setInferTransitiveProperty(final Boolean val) {

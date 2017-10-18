@@ -4,9 +4,19 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import junit.framework.TestCase;
 import org.apache.hadoop.io.Text;
+import org.apache.rya.api.RdfCloudTripleStoreConstants;
+import org.apache.rya.api.domain.*;
+import org.apache.rya.api.query.strategy.ByteRange;
+import org.apache.rya.api.query.strategy.TriplePatternStrategy;
+import org.apache.rya.api.resolver.RyaContext;
+import org.apache.rya.api.resolver.RyaTripleContext;
+import org.apache.rya.api.resolver.triple.TripleRow;
+import org.apache.rya.api.resolver.triple.TripleRowRegex;
+import org.apache.rya.api.resolver.triple.impl.WholeRowHashedTripleResolver;
+import org.eclipse.rdf4j.model.impl.URIImpl;
 import org.junit.Before;
-import org.openrdf.model.impl.URIImpl;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -16,9 +26,9 @@ import org.openrdf.model.impl.URIImpl;
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- * 
+ *
  *   http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -26,23 +36,6 @@ import org.openrdf.model.impl.URIImpl;
  * specific language governing permissions and limitations
  * under the License.
  */
-
-
-
-import junit.framework.TestCase;
-import org.apache.rya.api.RdfCloudTripleStoreConstants;
-import org.apache.rya.api.domain.RyaStatement;
-import org.apache.rya.api.domain.RyaType;
-import org.apache.rya.api.domain.RyaTypeRange;
-import org.apache.rya.api.domain.RyaURI;
-import org.apache.rya.api.domain.RyaURIRange;
-import org.apache.rya.api.query.strategy.ByteRange;
-import org.apache.rya.api.query.strategy.TriplePatternStrategy;
-import org.apache.rya.api.resolver.RyaContext;
-import org.apache.rya.api.resolver.RyaTripleContext;
-import org.apache.rya.api.resolver.triple.TripleRow;
-import org.apache.rya.api.resolver.triple.TripleRowRegex;
-import org.apache.rya.api.resolver.triple.impl.WholeRowHashedTripleResolver;
 
 /**
  * Date: 7/14/12
@@ -66,8 +59,8 @@ public class HashedPoWholeRowTriplePatternStrategyTest extends TestCase {
 
     @Before
     public void setUp() {
-    	MockRdfCloudConfiguration config = new MockRdfCloudConfiguration();
-    	config.set(MockRdfCloudConfiguration.CONF_PREFIX_ROW_WITH_HASH, Boolean.TRUE.toString());
+    	MockRdfConfiguration config = new MockRdfConfiguration();
+    	config.set(MockRdfConfiguration.CONF_PREFIX_ROW_WITH_HASH, Boolean.TRUE.toString());
     	ryaTripleContext = RyaTripleContext.getInstance(config);
     }
 

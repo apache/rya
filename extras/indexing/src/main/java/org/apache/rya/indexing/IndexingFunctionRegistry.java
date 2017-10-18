@@ -19,23 +19,21 @@ package org.apache.rya.indexing;
  * under the License.
  */
 
-
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.openrdf.model.URI;
-import org.openrdf.model.impl.URIImpl;
-import org.openrdf.query.algebra.ValueConstant;
-import org.openrdf.query.algebra.ValueExpr;
-import org.openrdf.query.algebra.Var;
-
 import com.google.common.collect.Maps;
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.impl.URIImpl;
+import org.eclipse.rdf4j.query.algebra.ValueConstant;
+import org.eclipse.rdf4j.query.algebra.ValueExpr;
+import org.eclipse.rdf4j.query.algebra.Var;
 
 public class IndexingFunctionRegistry {
 
     
-    private static final Map<URI, FUNCTION_TYPE> SEARCH_FUNCTIONS = Maps.newHashMap();
+    private static final Map<IRI, FUNCTION_TYPE> SEARCH_FUNCTIONS = Maps.newHashMap();
     
     static {
         
@@ -65,15 +63,14 @@ public class IndexingFunctionRegistry {
 
     }
     
-    public enum FUNCTION_TYPE {GEO, TEMPORAL, FREETEXT};
-    
-    
-    public static Set<URI> getFunctions() {
+    public enum FUNCTION_TYPE {GEO, TEMPORAL, FREETEXT}
+
+    public static Set<IRI> getFunctions() {
         return SEARCH_FUNCTIONS.keySet();
     }
     
     
-    public static Var getResultVarFromFunctionCall(URI function, List<ValueExpr> args) {
+    public static Var getResultVarFromFunctionCall(IRI function, List<ValueExpr> args) {
         
         FUNCTION_TYPE type = SEARCH_FUNCTIONS.get(function);
         
@@ -91,7 +88,7 @@ public class IndexingFunctionRegistry {
     }
     
     
-    public static FUNCTION_TYPE getFunctionType(URI func) {
+    public static FUNCTION_TYPE getFunctionType(IRI func) {
         return SEARCH_FUNCTIONS.get(func);
     }
     

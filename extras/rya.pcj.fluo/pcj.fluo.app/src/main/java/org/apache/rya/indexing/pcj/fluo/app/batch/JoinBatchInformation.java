@@ -17,17 +17,16 @@ package org.apache.rya.indexing.pcj.fluo.app.batch;
  * specific language governing permissions and limitations
  * under the License.
  */
+
 import java.util.Objects;
 
+import com.google.common.base.Preconditions;
 import org.apache.fluo.api.data.Column;
 import org.apache.fluo.api.data.Span;
 import org.apache.rya.indexing.pcj.fluo.app.JoinResultUpdater.Side;
 import org.apache.rya.indexing.pcj.fluo.app.query.JoinMetadata.JoinType;
-import org.apache.rya.indexing.pcj.storage.accumulo.VariableOrder;
 import org.apache.rya.indexing.pcj.storage.accumulo.VisibilityBindingSet;
-import org.openrdf.query.Binding;
-
-import com.google.common.base.Preconditions;
+import org.eclipse.rdf4j.query.Binding;
 
 /**
  * This class updates join results based on parameters specified for the join's

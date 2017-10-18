@@ -17,21 +17,21 @@
  * under the License.
  */package org.apache.rya.api.functions;
 
-import static com.google.common.base.Preconditions.checkArgument;
-import static com.google.common.base.Preconditions.checkNotNull;
-
 import java.time.Duration;
 import java.time.Instant;
 
-import org.openrdf.model.Literal;
-import org.openrdf.model.URI;
-import org.openrdf.model.Value;
-import org.openrdf.model.ValueFactory;
-import org.openrdf.model.datatypes.XMLDatatypeUtil;
-import org.openrdf.model.vocabulary.FN;
-import org.openrdf.model.vocabulary.XMLSchema;
-import org.openrdf.query.algebra.evaluation.ValueExprEvaluationException;
-import org.openrdf.query.algebra.evaluation.function.Function;
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.Literal;
+import org.eclipse.rdf4j.model.Value;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.model.datatypes.XMLDatatypeUtil;
+import org.eclipse.rdf4j.model.vocabulary.FN;
+import org.eclipse.rdf4j.model.vocabulary.XMLSchema;
+import org.eclipse.rdf4j.query.algebra.evaluation.ValueExprEvaluationException;
+import org.eclipse.rdf4j.query.algebra.evaluation.function.Function;
+
+import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * This {@link Function} determines whether two {@link XMLSchema#DATETIME}s occur within a specified period of time of
@@ -83,11 +83,11 @@ public class DateTimeWithinPeriod implements Function {
             checkArgument(values[0] instanceof Literal);
             checkArgument(values[1] instanceof Literal);
             checkArgument(values[2] instanceof Literal);
-            checkArgument(values[3] instanceof URI);
+            checkArgument(values[3] instanceof IRI);
 
             Instant dateTime1 = convertToInstant((Literal) values[0]);
             Instant dateTime2 = convertToInstant((Literal) values[1]);
-            long periodMillis = convertPeriodToMillis((Literal) values[2], (URI) values[3]);
+            long periodMillis = convertPeriodToMillis((Literal) values[2], (IRI) values[3]);
             long timeBetween = Math.abs(Duration.between(dateTime1, dateTime2).toMillis());
 
             return valueFactory.createLiteral(timeBetween < periodMillis);
@@ -98,16 +98,16 @@ public class DateTimeWithinPeriod implements Function {
 
     private Instant convertToInstant(Literal literal) {
         String stringVal = literal.getLabel();
-        URI dataType = literal.getDatatype();
+        IRI dataType = literal.getDatatype();
         checkArgument(dataType.equals(XMLSchema.DATETIME) || dataType.equals(XMLSchema.DATE),
                 String.format("Invalid data type for date time. Data Type must be of type %s or %s .", XMLSchema.DATETIME, XMLSchema.DATE));
         checkArgument(XMLDatatypeUtil.isValidDateTime(stringVal) || XMLDatatypeUtil.isValidDate(stringVal), "Invalid date time value.");
         return literal.calendarValue().toGregorianCalendar().toInstant();
     }
 
-    private long convertPeriodToMillis(Literal literal, URI unit) {
+    private long convertPeriodToMillis(Literal literal, IRI unit) {
         String stringVal = literal.getLabel();
-        URI dataType = literal.getDatatype();
+        IRI dataType = literal.getDatatype();
         checkArgument(dataType.equals(XMLSchema.INTEGER) || dataType.equals(XMLSchema.INT), String
                 .format("Invalid data type for period duration. Data Type must be of type %s or %s .", XMLSchema.INTEGER, XMLSchema.INT));
         checkArgument(XMLDatatypeUtil.isValidInteger(stringVal) || XMLDatatypeUtil.isValidInt(stringVal), "Invalid duration value.");
@@ -122,7 +122,7 @@ public class DateTimeWithinPeriod implements Function {
      *            indicated by the namespace <http://www.w3.org/2006/time#>)
      * @return - duration in milliseconds
      */
-    private long convertToMillis(int duration, URI unit) {
+    private long convertToMillis(int duration, IRI unit) {
         checkArgument(duration > 0);
         return OWLTime.getMillis(duration, unit);
     }

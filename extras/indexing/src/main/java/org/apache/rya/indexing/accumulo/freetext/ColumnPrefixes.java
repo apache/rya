@@ -19,16 +19,13 @@ package org.apache.rya.indexing.accumulo.freetext;
  * under the License.
  */
 
-
-
 import java.nio.ByteBuffer;
 import java.nio.charset.CharacterCodingException;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.hadoop.io.Text;
-import org.openrdf.model.Statement;
-
 import org.apache.rya.indexing.StatementSerializer;
+import org.eclipse.rdf4j.model.Statement;
 
 /**
  * Row ID: shardId

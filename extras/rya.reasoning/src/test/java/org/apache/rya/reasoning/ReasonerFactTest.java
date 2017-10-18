@@ -25,20 +25,19 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.util.ArrayList;
 
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.Statement;
+import org.eclipse.rdf4j.model.impl.StatementImpl;
+import org.eclipse.rdf4j.model.vocabulary.OWL;
+import org.eclipse.rdf4j.model.vocabulary.RDFS;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-import org.openrdf.model.Statement;
-import org.openrdf.model.URI;
-import org.openrdf.model.impl.StatementImpl;
-import org.openrdf.model.vocabulary.OWL;
-import org.openrdf.model.vocabulary.RDFS;
-
 public class ReasonerFactTest {
     static final String wordnet = "http://www.w3.org/2006/03/wn/wn20/instances/";
     static final String wnSchema = "http://www.w3.org/2006/03/wn/wn20/schema/";
-    static final URI[] nodes = {
+    static final IRI[] nodes = {
         TestUtils.uri(wordnet, "synset-entity-noun-1"),
         TestUtils.uri(wordnet, "synset-physical_entity-noun-1"),
         TestUtils.uri(wordnet, "synset-object-noun-1"),
@@ -49,7 +48,7 @@ public class ReasonerFactTest {
         TestUtils.uri(wordnet, "synset-engineer-noun-1"),
         TestUtils.uri(wordnet, "synset-programmer-noun-1")
     };
-    static final URI hyper = TestUtils.uri(wnSchema, "hypernymOf");
+    static final IRI hyper = TestUtils.uri(wnSchema, "hypernymOf");
     static final Schema schema = new Schema();
     static final ArrayList<ArrayList<Fact>> hierarchy = new ArrayList<>();
     static final int MAX_LEVEL = 3;

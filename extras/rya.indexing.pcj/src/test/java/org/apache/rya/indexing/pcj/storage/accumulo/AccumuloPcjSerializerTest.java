@@ -18,20 +18,16 @@
  */
 package org.apache.rya.indexing.pcj.storage.accumulo;
 
-import static org.junit.Assert.assertEquals;
-
-import org.apache.rya.indexing.pcj.storage.accumulo.AccumuloPcjSerializer;
-import org.apache.rya.indexing.pcj.storage.accumulo.BindingSetConverter;
-import org.apache.rya.indexing.pcj.storage.accumulo.BindingSetConverter.BindingSetConversionException;
-import org.apache.rya.indexing.pcj.storage.accumulo.VariableOrder;
-import org.junit.Test;
-import org.openrdf.model.impl.LiteralImpl;
-import org.openrdf.model.impl.URIImpl;
-import org.openrdf.query.BindingSet;
-import org.openrdf.query.algebra.evaluation.QueryBindingSet;
-import org.openrdf.query.impl.MapBindingSet;
-
 import org.apache.rya.api.resolver.RyaTypeResolverException;
+import org.apache.rya.indexing.pcj.storage.accumulo.BindingSetConverter.BindingSetConversionException;
+import org.eclipse.rdf4j.model.impl.LiteralImpl;
+import org.eclipse.rdf4j.model.impl.URIImpl;
+import org.eclipse.rdf4j.query.BindingSet;
+import org.eclipse.rdf4j.query.algebra.evaluation.QueryBindingSet;
+import org.eclipse.rdf4j.query.impl.MapBindingSet;
+import org.junit.Test;
+
+import static org.junit.Assert.assertEquals;
 
 /**
  * Tests the methods of {@link AccumuloPcjSerialzer}.

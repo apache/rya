@@ -30,11 +30,11 @@ import org.apache.rya.indexing.pcj.fluo.app.query.PeriodicQueryMetadata;
 import org.apache.rya.indexing.pcj.fluo.app.util.RowKeyUtil;
 import org.apache.rya.indexing.pcj.storage.accumulo.VisibilityBindingSet;
 import org.apache.rya.indexing.pcj.storage.accumulo.VisibilityBindingSetSerDe;
-import org.openrdf.model.Literal;
-import org.openrdf.model.Value;
-import org.openrdf.model.ValueFactory;
-import org.openrdf.model.impl.ValueFactoryImpl;
-import org.openrdf.query.algebra.evaluation.QueryBindingSet;
+import org.eclipse.rdf4j.model.Literal;
+import org.eclipse.rdf4j.model.Value;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
+import org.eclipse.rdf4j.query.algebra.evaluation.QueryBindingSet;
 
 /**
  * This class adds the appropriate BinId Binding to each BindingSet that it processes.  The BinIds
@@ -45,7 +45,7 @@ import org.openrdf.query.algebra.evaluation.QueryBindingSet;
 public class PeriodicQueryUpdater {
 
     private static final Logger log = Logger.getLogger(PeriodicQueryUpdater.class);
-    private static final ValueFactory vf = new ValueFactoryImpl();
+    private static final ValueFactory vf = SimpleValueFactory.getInstance();
     private static final VisibilityBindingSetSerDe BS_SERDE = new VisibilityBindingSetSerDe();
 
     /**

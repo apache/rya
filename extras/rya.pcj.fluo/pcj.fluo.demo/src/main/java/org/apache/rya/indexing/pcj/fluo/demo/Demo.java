@@ -20,11 +20,10 @@ package org.apache.rya.indexing.pcj.fluo.demo;
 
 import org.apache.accumulo.core.client.Connector;
 import org.apache.accumulo.minicluster.MiniAccumuloCluster;
-import org.openrdf.repository.RepositoryConnection;
-
 import org.apache.fluo.api.client.FluoClient;
 import org.apache.fluo.api.mini.MiniFluo;
 import org.apache.rya.rdftriplestore.RyaSailRepository;
+import org.eclipse.rdf4j.repository.RepositoryConnection;
 
 /**
  * Represents a demonstration that uses Rya and Fluo on top of Accumulo.
@@ -34,7 +33,7 @@ public interface Demo {
     /**
      * Run the demo.
      */
-    public void execute(
+    void execute(
             MiniAccumuloCluster accumulo,
             Connector accumuloConn,
             String ryaTablePrefix,
@@ -47,7 +46,7 @@ public interface Demo {
      * A {@link Demo}'s execution could not be completed because of a non-recoverable
      * problem while running.
      */
-    public static class DemoExecutionException extends Exception {
+    class DemoExecutionException extends Exception {
         private static final long serialVersionUID = 1L;
 
         /**

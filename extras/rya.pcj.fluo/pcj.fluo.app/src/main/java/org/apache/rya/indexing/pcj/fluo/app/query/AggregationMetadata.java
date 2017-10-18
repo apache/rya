@@ -18,30 +18,18 @@
  */
 package org.apache.rya.indexing.pcj.fluo.app.query;
 
-import static java.util.Objects.requireNonNull;
-
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
-
-import org.apache.rya.indexing.pcj.storage.accumulo.VariableOrder;
-import org.openrdf.query.algebra.AggregateOperator;
-import org.openrdf.query.algebra.Avg;
-import org.openrdf.query.algebra.Count;
-import org.openrdf.query.algebra.Max;
-import org.openrdf.query.algebra.Min;
-import org.openrdf.query.algebra.Sum;
+import java.util.*;
 
 import com.google.common.collect.ImmutableMap;
-
 import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
 import edu.umd.cs.findbugs.annotations.NonNull;
 import edu.umd.cs.findbugs.annotations.Nullable;
 import net.jcip.annotations.Immutable;
+import org.apache.rya.indexing.pcj.storage.accumulo.VariableOrder;
+import org.eclipse.rdf4j.query.algebra.*;
+
+import static java.util.Objects.requireNonNull;
 
 /**
  * Metadata that is relevant to Aggregate nodes.
@@ -53,7 +41,7 @@ public class AggregationMetadata extends CommonNodeMetadata {
     /**
      * The different types of Aggregation functions that an aggregate node may perform.
      */
-    public static enum AggregationType {
+    public enum AggregationType {
         MIN(Min.class),
         MAX(Max.class),
         COUNT(Count.class),
@@ -62,7 +50,7 @@ public class AggregationMetadata extends CommonNodeMetadata {
 
         private final Class<? extends AggregateOperator> operatorClass;
 
-        private AggregationType(final Class<? extends AggregateOperator> operatorClass) {
+        AggregationType(final Class<? extends AggregateOperator> operatorClass) {
             this.operatorClass = requireNonNull(operatorClass);
         }
 

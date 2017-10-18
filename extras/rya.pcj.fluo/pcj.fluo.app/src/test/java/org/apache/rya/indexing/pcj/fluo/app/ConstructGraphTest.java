@@ -17,32 +17,32 @@ package org.apache.rya.indexing.pcj.fluo.app;
  * specific language governing permissions and limitations
  * under the License.
  */
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 
 import java.io.UnsupportedEncodingException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 
+import com.google.common.collect.Sets;
 import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.domain.RyaURI;
 import org.apache.rya.indexing.pcj.storage.accumulo.VisibilityBindingSet;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
+import org.eclipse.rdf4j.query.MalformedQueryException;
+import org.eclipse.rdf4j.query.algebra.StatementPattern;
+import org.eclipse.rdf4j.query.algebra.evaluation.QueryBindingSet;
+import org.eclipse.rdf4j.query.algebra.helpers.StatementPatternCollector;
+import org.eclipse.rdf4j.query.parser.ParsedQuery;
+import org.eclipse.rdf4j.query.parser.sparql.SPARQLParser;
 import org.junit.Test;
-import org.openrdf.model.ValueFactory;
-import org.openrdf.model.impl.ValueFactoryImpl;
-import org.openrdf.query.MalformedQueryException;
-import org.openrdf.query.algebra.StatementPattern;
-import org.openrdf.query.algebra.evaluation.QueryBindingSet;
-import org.openrdf.query.algebra.helpers.StatementPatternCollector;
-import org.openrdf.query.parser.ParsedQuery;
-import org.openrdf.query.parser.sparql.SPARQLParser;
 
-import com.google.common.collect.Sets;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 public class ConstructGraphTest {
 
-    private ValueFactory vf = new ValueFactoryImpl();
+    private ValueFactory vf = SimpleValueFactory.getInstance();
     
     @Test
     public void testConstructGraph() throws MalformedQueryException, UnsupportedEncodingException {
@@ -54,9 +54,9 @@ public class ConstructGraphTest {
         ConstructGraph graph = new ConstructGraph(patterns);
 
         QueryBindingSet bs = new QueryBindingSet();
-        bs.addBinding("x", vf.createURI("uri:Joe"));
-        bs.addBinding("y", vf.createURI("uri:Bob"));
-        bs.addBinding("z", vf.createURI("uri:BurgerShack"));
+        bs.addBinding("x", vf.createIRI("uri:Joe"));
+        bs.addBinding("y", vf.createIRI("uri:Bob"));
+        bs.addBinding("z", vf.createIRI("uri:BurgerShack"));
         VisibilityBindingSet vBs = new VisibilityBindingSet(bs,"FOUO");
         Set<RyaStatement> statements = graph.createGraphFromBindingSet(vBs);
         
@@ -77,8 +77,8 @@ public class ConstructGraphTest {
         ConstructGraph graph = new ConstructGraph(patterns);
 
         QueryBindingSet bs = new QueryBindingSet();
-        bs.addBinding("x", vf.createURI("uri:Joe"));
-        bs.addBinding("z", vf.createURI("uri:BurgerShack"));
+        bs.addBinding("x", vf.createIRI("uri:Joe"));
+        bs.addBinding("z", vf.createIRI("uri:BurgerShack"));
         VisibilityBindingSet vBs = new VisibilityBindingSet(bs, "FOUO");
         Set<RyaStatement> statements = graph.createGraphFromBindingSet(vBs);
         Set<RyaStatement> statements2 = graph.createGraphFromBindingSet(vBs);

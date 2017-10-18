@@ -19,14 +19,14 @@ package org.apache.rya.accumulo.pig;
  * under the License.
  */
 
-
-
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
 
+import com.google.common.io.ByteArrayDataInput;
+import com.google.common.io.ByteStreams;
 import org.apache.accumulo.core.client.ZooKeeperInstance;
 import org.apache.accumulo.core.client.mock.MockInstance;
 import org.apache.accumulo.core.data.Key;
@@ -52,20 +52,17 @@ import org.apache.rya.api.resolver.RyaTripleContext;
 import org.apache.rya.api.resolver.triple.TripleRow;
 import org.apache.rya.rdftriplestore.inference.InferenceEngine;
 import org.apache.rya.rdftriplestore.inference.InferenceEngineException;
-import org.openrdf.model.Resource;
-import org.openrdf.model.URI;
-import org.openrdf.model.Value;
-import org.openrdf.model.vocabulary.RDF;
-import org.openrdf.query.MalformedQueryException;
-import org.openrdf.query.algebra.StatementPattern;
-import org.openrdf.query.algebra.Var;
-import org.openrdf.query.algebra.helpers.QueryModelVisitorBase;
-import org.openrdf.query.parser.ParsedQuery;
-import org.openrdf.query.parser.QueryParser;
-import org.openrdf.query.parser.sparql.SPARQLParser;
-
-import com.google.common.io.ByteArrayDataInput;
-import com.google.common.io.ByteStreams;
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.Resource;
+import org.eclipse.rdf4j.model.Value;
+import org.eclipse.rdf4j.model.vocabulary.RDF;
+import org.eclipse.rdf4j.query.MalformedQueryException;
+import org.eclipse.rdf4j.query.algebra.StatementPattern;
+import org.eclipse.rdf4j.query.algebra.Var;
+import org.eclipse.rdf4j.query.algebra.helpers.QueryModelVisitorBase;
+import org.eclipse.rdf4j.query.parser.ParsedQuery;
+import org.eclipse.rdf4j.query.parser.QueryParser;
+import org.eclipse.rdf4j.query.parser.sparql.SPARQLParser;
 
 /**
  */
@@ -193,7 +190,7 @@ public class StatementPatternStorage extends AccumuloStorage {
 
     protected Map.Entry<TABLE_LAYOUT, Range> createRange(Value s_v, Value p_v, Value o_v) throws IOException {
         RyaURI subject_rya = RdfToRyaConversions.convertResource((Resource) s_v);
-        RyaURI predicate_rya = RdfToRyaConversions.convertURI((URI) p_v);
+        RyaURI predicate_rya = RdfToRyaConversions.convertURI((IRI) p_v);
         RyaType object_rya = RdfToRyaConversions.convertValue(o_v);
         TriplePatternStrategy strategy = ryaContext.retrieveStrategy(subject_rya, predicate_rya, object_rya, null);
         if (strategy == null) {
@@ -232,12 +229,12 @@ public class StatementPatternStorage extends AccumuloStorage {
             //is it subclassof or subpropertyof
             if (RDF.TYPE.equals(predicate_value)) {
                 //try subclassof
-                Collection<URI> parents = inferenceEngine.findParents(inferenceEngine.getSubClassOfGraph(), (URI) object_value);
+                Collection<IRI> parents = InferenceEngine.findParents(inferenceEngine.getSubClassOfGraph(), (IRI) object_value);
                 if (parents != null && parents.size() > 0) {
                     //subclassof relationships found
                     //don't add self, that will happen anyway later
                     //add all relationships
-                    for (URI parent : parents) {
+                    for (IRI parent : parents) {
                         Map.Entry<TABLE_LAYOUT, Range> temp =
                                 createRange(subject_value, predicate_value, parent);
                         Range range = temp.getValue();
@@ -249,8 +246,8 @@ public class StatementPatternStorage extends AccumuloStorage {
                 }
             } else if (predicate_value != null) {
                 //subpropertyof check
-                Set<URI> parents = inferenceEngine.findParents(inferenceEngine.getSubPropertyOfGraph(), (URI) predicate_value);
-                for (URI parent : parents) {
+                Set<IRI> parents = InferenceEngine.findParents(inferenceEngine.getSubPropertyOfGraph(), (IRI) predicate_value);
+                for (IRI parent : parents) {
                     Map.Entry<TABLE_LAYOUT, Range> temp =
                             createRange(subject_value, parent, object_value);
                     Range range = temp.getValue();
@@ -285,8 +282,8 @@ public class StatementPatternStorage extends AccumuloStorage {
     public Tuple getNext() throws IOException {
         try {
             if (reader.nextKeyValue()) {
-                Key key = (Key) reader.getCurrentKey();
-                org.apache.accumulo.core.data.Value value = (org.apache.accumulo.core.data.Value) reader.getCurrentValue();
+                Key key = reader.getCurrentKey();
+                org.apache.accumulo.core.data.Value value = reader.getCurrentValue();
                 ByteArrayDataInput input = ByteStreams.newDataInput(key.getRow().getBytes());
                 RyaStatement ryaStatement = ryaContext.deserializeTriple(layout, new TripleRow(key.getRow().getBytes(),
                         key.getColumnFamily().getBytes(), key.getColumnQualifier().getBytes()));

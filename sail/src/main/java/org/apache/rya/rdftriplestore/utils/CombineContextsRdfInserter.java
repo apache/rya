@@ -19,17 +19,15 @@ package org.apache.rya.rdftriplestore.utils;
  * under the License.
  */
 
-
-
-import org.openrdf.OpenRDFUtil;
-import org.openrdf.model.*;
-import org.openrdf.repository.RepositoryConnection;
-import org.openrdf.repository.RepositoryException;
-import org.openrdf.rio.RDFHandlerException;
-import org.openrdf.rio.helpers.RDFHandlerBase;
-
 import java.util.HashMap;
 import java.util.Map;
+
+import org.eclipse.rdf4j.OpenRDFUtil;
+import org.eclipse.rdf4j.model.*;
+import org.eclipse.rdf4j.repository.RepositoryConnection;
+import org.eclipse.rdf4j.repository.RepositoryException;
+import org.eclipse.rdf4j.rio.RDFHandlerException;
+import org.eclipse.rdf4j.rio.helpers.RDFHandlerBase;
 
 /**
  * Created by IntelliJ IDEA.
@@ -108,7 +106,7 @@ public class CombineContextsRdfInserter extends RDFHandlerBase {
     public void handleStatement(Statement st)
             throws RDFHandlerException {
         Resource subj = st.getSubject();
-        URI pred = st.getPredicate();
+        IRI pred = st.getPredicate();
         Value obj = st.getObject();
         Resource ctxt = st.getContext();
 

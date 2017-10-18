@@ -18,8 +18,6 @@
  */
 package org.apache.rya.indexing.pcj.fluo.client.util;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 import java.text.NumberFormat;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -28,9 +26,11 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.rya.indexing.pcj.fluo.client.util.Report.ReportItem;
 import org.apache.rya.indexing.pcj.storage.PcjMetadata;
 import org.apache.rya.indexing.pcj.storage.accumulo.VariableOrder;
-import org.openrdf.query.parser.ParsedQuery;
-import org.openrdf.query.parser.sparql.SPARQLParser;
-import org.openrdf.queryrender.sparql.SPARQLQueryRenderer;
+import org.eclipse.rdf4j.query.parser.ParsedQuery;
+import org.eclipse.rdf4j.query.parser.sparql.SPARQLParser;
+import org.eclipse.rdf4j.queryrender.sparql.SPARQLQueryRenderer;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * Pretty renders the state of a query's {@link PcjMetadata}.

@@ -23,7 +23,16 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
+import com.google.common.primitives.Bytes;
 import junit.framework.Assert;
+import org.apache.accumulo.core.client.*;
+import org.apache.accumulo.core.client.mock.MockInstance;
+import org.apache.accumulo.core.data.Key;
+import org.apache.accumulo.core.data.Mutation;
+import org.apache.accumulo.core.data.Range;
+import org.apache.accumulo.core.data.Value;
+import org.apache.accumulo.core.security.Authorizations;
+import org.apache.hadoop.io.Text;
 import org.apache.rya.accumulo.AccumuloRdfConfiguration;
 import org.apache.rya.accumulo.RyaTableMutationsFactory;
 import org.apache.rya.api.domain.RyaStatement;
@@ -34,35 +43,18 @@ import org.apache.rya.api.resolver.RyaContext;
 import org.apache.rya.api.resolver.RyaToRdfConversions;
 import org.apache.rya.api.resolver.RyaTripleContext;
 import org.apache.rya.indexing.accumulo.entity.EntityCentricIndex;
-
-import org.apache.accumulo.core.client.AccumuloException;
-import org.apache.accumulo.core.client.AccumuloSecurityException;
-import org.apache.accumulo.core.client.BatchWriter;
-import org.apache.accumulo.core.client.Connector;
-import org.apache.accumulo.core.client.IteratorSetting;
-import org.apache.accumulo.core.client.Scanner;
-import org.apache.accumulo.core.client.TableExistsException;
-import org.apache.accumulo.core.client.mock.MockInstance;
-import org.apache.accumulo.core.data.Key;
-import org.apache.accumulo.core.data.Mutation;
-import org.apache.accumulo.core.data.Range;
-import org.apache.accumulo.core.data.Value;
-import org.apache.accumulo.core.security.Authorizations;
-import org.apache.hadoop.io.Text;
+import org.eclipse.rdf4j.model.vocabulary.XMLSchema;
+import org.eclipse.rdf4j.query.MalformedQueryException;
+import org.eclipse.rdf4j.query.QueryEvaluationException;
+import org.eclipse.rdf4j.query.TupleQueryResultHandlerException;
+import org.eclipse.rdf4j.query.algebra.StatementPattern;
+import org.eclipse.rdf4j.query.algebra.TupleExpr;
+import org.eclipse.rdf4j.query.algebra.helpers.StatementPatternCollector;
+import org.eclipse.rdf4j.query.parser.ParsedQuery;
+import org.eclipse.rdf4j.query.parser.sparql.SPARQLParser;
+import org.eclipse.rdf4j.repository.RepositoryException;
 import org.junit.Before;
 import org.junit.Test;
-import org.openrdf.model.vocabulary.XMLSchema;
-import org.openrdf.query.MalformedQueryException;
-import org.openrdf.query.QueryEvaluationException;
-import org.openrdf.query.TupleQueryResultHandlerException;
-import org.openrdf.query.algebra.StatementPattern;
-import org.openrdf.query.algebra.TupleExpr;
-import org.openrdf.query.algebra.helpers.StatementPatternCollector;
-import org.openrdf.query.parser.ParsedQuery;
-import org.openrdf.query.parser.sparql.SPARQLParser;
-import org.openrdf.repository.RepositoryException;
-
-import com.google.common.primitives.Bytes;
 
 
 public class DocumentIndexIntersectingIteratorTest {
@@ -121,7 +113,7 @@ public class DocumentIndexIntersectingIteratorTest {
 
             IteratorSetting is = new IteratorSetting(30, "fii", DocumentIndexIntersectingIterator.class);
 
-            dii.setColumnFamilies(is, tc);
+            DocumentIndexIntersectingIterator.setColumnFamilies(is, tc);
 
             Scanner scan = accCon.createScanner(tablename, new Authorizations("auths"));
             scan.addScanIterator(is);
@@ -184,7 +176,7 @@ public class DocumentIndexIntersectingIteratorTest {
 
             IteratorSetting is = new IteratorSetting(30, "fii", DocumentIndexIntersectingIterator.class);
 
-            dii.setColumnFamilies(is, tc);
+            DocumentIndexIntersectingIterator.setColumnFamilies(is, tc);
 
             Scanner scan = accCon.createScanner(tablename, new Authorizations("auths"));
             scan.addScanIterator(is);
@@ -249,7 +241,7 @@ public class DocumentIndexIntersectingIteratorTest {
 
             IteratorSetting is = new IteratorSetting(30, "fii", DocumentIndexIntersectingIterator.class);
 
-            dii.setColumnFamilies(is, tc);
+            DocumentIndexIntersectingIterator.setColumnFamilies(is, tc);
 
             Scanner scan = accCon.createScanner(tablename, new Authorizations("auths"));
             scan.addScanIterator(is);
@@ -314,7 +306,7 @@ public class DocumentIndexIntersectingIteratorTest {
 
             IteratorSetting is = new IteratorSetting(30, "fii", DocumentIndexIntersectingIterator.class);
 
-            dii.setColumnFamilies(is, tc);
+            DocumentIndexIntersectingIterator.setColumnFamilies(is, tc);
 
             Scanner scan = accCon.createScanner(tablename, new Authorizations("auths"));
             scan.addScanIterator(is);
@@ -379,7 +371,7 @@ public class DocumentIndexIntersectingIteratorTest {
 
             IteratorSetting is = new IteratorSetting(30, "fii", DocumentIndexIntersectingIterator.class);
 
-            dii.setColumnFamilies(is, tc);
+            DocumentIndexIntersectingIterator.setColumnFamilies(is, tc);
 
             Scanner scan = accCon.createScanner(tablename, new Authorizations("auths"));
             scan.addScanIterator(is);
@@ -448,7 +440,7 @@ public class DocumentIndexIntersectingIteratorTest {
 
             IteratorSetting is = new IteratorSetting(30, "fii", DocumentIndexIntersectingIterator.class);
 
-            dii.setColumnFamilies(is, tc);
+            DocumentIndexIntersectingIterator.setColumnFamilies(is, tc);
 
             Scanner scan = accCon.createScanner(tablename, new Authorizations("auths"));
             scan.addScanIterator(is);
@@ -515,7 +507,7 @@ public void testOneHundredColumnSubjObjPrefix() throws Exception {
 
         IteratorSetting is = new IteratorSetting(30, "fii", DocumentIndexIntersectingIterator.class);
 
-        dii.setColumnFamilies(is, tc);
+        DocumentIndexIntersectingIterator.setColumnFamilies(is, tc);
 
         Scanner scan = accCon.createScanner(tablename, new Authorizations("auths"));
         scan.addScanIterator(is);
@@ -586,7 +578,7 @@ public void testOneHundredColumnSubjObjPrefixFourTerms() throws Exception {
 
         IteratorSetting is = new IteratorSetting(30, "fii", DocumentIndexIntersectingIterator.class);
 
-        dii.setColumnFamilies(is, tc);
+        DocumentIndexIntersectingIterator.setColumnFamilies(is, tc);
 
         Scanner scan = accCon.createScanner(tablename, new Authorizations("auths"));
         scan.addScanIterator(is);
@@ -648,7 +640,7 @@ public void testOneHundredColumnSameCf() throws Exception {
 
         IteratorSetting is = new IteratorSetting(30, "fii", DocumentIndexIntersectingIterator.class);
 
-        dii.setColumnFamilies(is, tc);
+        DocumentIndexIntersectingIterator.setColumnFamilies(is, tc);
 
         Scanner scan = accCon.createScanner(tablename, new Authorizations("auths"));
         scan.addScanIterator(is);
@@ -716,7 +708,7 @@ public void testGeneralStarQuery() throws Exception {
 
       IteratorSetting is = new IteratorSetting(30, "fii", DocumentIndexIntersectingIterator.class);
 
-      dii.setColumnFamilies(is, tc);
+      DocumentIndexIntersectingIterator.setColumnFamilies(is, tc);
 
       Scanner scan = accCon.createScanner(tablename, new Authorizations("auths"));
       scan.addScanIterator(is);
@@ -787,7 +779,7 @@ public void testGeneralStarQuerySubjPrefix() throws Exception {
 
       IteratorSetting is = new IteratorSetting(30, "fii", DocumentIndexIntersectingIterator.class);
 
-      dii.setColumnFamilies(is, tc);
+      DocumentIndexIntersectingIterator.setColumnFamilies(is, tc);
 
       Scanner scan = accCon.createScanner(tablename, new Authorizations("auths"));
       scan.addScanIterator(is);
@@ -1844,7 +1836,7 @@ public void testSerialization1() throws Exception {
             String[] s1 = s[2].split("\u0000");
             RyaType rt = rc.deserialize(s1[2].getBytes());
             System.out.println("Rya type is " + rt);
-            org.openrdf.model.Value v = RyaToRdfConversions.convertValue(rt);
+             org.eclipse.rdf4j.model.Value v = RyaToRdfConversions.convertValue(rt);
             Assert.assertTrue(v.equals(spList1.get(2).getObjectVar().getValue()));
 
             tc1 = new TextColumn(new Text(predURI1.getData()), new Text("object"));

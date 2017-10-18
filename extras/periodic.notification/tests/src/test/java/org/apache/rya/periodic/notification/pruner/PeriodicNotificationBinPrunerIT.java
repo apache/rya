@@ -20,16 +20,12 @@ package org.apache.rya.periodic.notification.pruner;
 
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
+import com.google.common.collect.Sets;
 import javax.xml.datatype.DatatypeFactory;
-
 import org.apache.fluo.api.client.FluoClient;
 import org.apache.fluo.api.client.Snapshot;
 import org.apache.fluo.api.client.scanner.ColumnScanner;
@@ -47,24 +43,21 @@ import org.apache.rya.indexing.pcj.fluo.app.util.FluoQueryUtils;
 import org.apache.rya.indexing.pcj.fluo.app.util.PeriodicQueryUtil;
 import org.apache.rya.indexing.pcj.fluo.app.util.RowKeyUtil;
 import org.apache.rya.indexing.pcj.storage.PeriodicQueryResultStorage;
-import org.apache.rya.indexing.pcj.storage.PeriodicQueryStorageException;
 import org.apache.rya.indexing.pcj.storage.PrecomputedJoinStorage.CloseableIterator;
 import org.apache.rya.indexing.pcj.storage.accumulo.AccumuloPeriodicQueryResultStorage;
 import org.apache.rya.indexing.pcj.storage.accumulo.VariableOrder;
 import org.apache.rya.pcj.fluo.test.base.RyaExportITBase;
 import org.apache.rya.periodic.notification.api.NodeBin;
+import org.eclipse.rdf4j.model.Statement;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.model.impl.LiteralImpl;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
+import org.eclipse.rdf4j.model.vocabulary.XMLSchema;
+import org.eclipse.rdf4j.query.BindingSet;
+import org.eclipse.rdf4j.query.algebra.evaluation.QueryBindingSet;
+import org.eclipse.rdf4j.query.impl.MapBindingSet;
 import org.junit.Assert;
 import org.junit.Test;
-import org.openrdf.model.Statement;
-import org.openrdf.model.ValueFactory;
-import org.openrdf.model.impl.LiteralImpl;
-import org.openrdf.model.impl.ValueFactoryImpl;
-import org.openrdf.model.vocabulary.XMLSchema;
-import org.openrdf.query.BindingSet;
-import org.openrdf.query.algebra.evaluation.QueryBindingSet;
-import org.openrdf.query.impl.MapBindingSet;
-
-import com.google.common.collect.Sets;
 
 public class PeriodicNotificationBinPrunerIT extends RyaExportITBase {
 
@@ -88,7 +81,7 @@ public class PeriodicNotificationBinPrunerIT extends RyaExportITBase {
         String queryId = FluoQueryUtils.convertFluoQueryIdToPcjId(createPeriodicQuery.createPeriodicQuery(sparql).getQueryId());
 
         // create statements to ingest into Fluo
-        final ValueFactory vf = new ValueFactoryImpl();
+        final ValueFactory vf = SimpleValueFactory.getInstance();
         final DatatypeFactory dtf = DatatypeFactory.newInstance();
         ZonedDateTime time = ZonedDateTime.now();
         long currentTime = time.toInstant().toEpochMilli();
@@ -106,24 +99,24 @@ public class PeriodicNotificationBinPrunerIT extends RyaExportITBase {
         String time4 = zTime4.format(DateTimeFormatter.ISO_INSTANT);
 
         final Collection<Statement> statements = Sets.newHashSet(
-                vf.createStatement(vf.createURI("urn:obs_1"), vf.createURI("uri:hasTime"),
+                vf.createStatement(vf.createIRI("urn:obs_1"), vf.createIRI("uri:hasTime"),
                         vf.createLiteral(dtf.newXMLGregorianCalendar(time1))),
-                vf.createStatement(vf.createURI("urn:obs_1"), vf.createURI("uri:hasId"), vf.createLiteral("id_1")),
-                vf.createStatement(vf.createURI("urn:obs_2"), vf.createURI("uri:hasTime"),
+                vf.createStatement(vf.createIRI("urn:obs_1"), vf.createIRI("uri:hasId"), vf.createLiteral("id_1")),
+                vf.createStatement(vf.createIRI("urn:obs_2"), vf.createIRI("uri:hasTime"),
                         vf.createLiteral(dtf.newXMLGregorianCalendar(time2))),
-                vf.createStatement(vf.createURI("urn:obs_2"), vf.createURI("uri:hasId"), vf.createLiteral("id_2")),
-                vf.createStatement(vf.createURI("urn:obs_3"), vf.createURI("uri:hasTime"),
+                vf.createStatement(vf.createIRI("urn:obs_2"), vf.createIRI("uri:hasId"), vf.createLiteral("id_2")),
+                vf.createStatement(vf.createIRI("urn:obs_3"), vf.createIRI("uri:hasTime"),
                         vf.createLiteral(dtf.newXMLGregorianCalendar(time3))),
-                vf.createStatement(vf.createURI("urn:obs_3"), vf.createURI("uri:hasId"), vf.createLiteral("id_3")),
-                vf.createStatement(vf.createURI("urn:obs_4"), vf.createURI("uri:hasTime"),
+                vf.createStatement(vf.createIRI("urn:obs_3"), vf.createIRI("uri:hasId"), vf.createLiteral("id_3")),
+                vf.createStatement(vf.createIRI("urn:obs_4"), vf.createIRI("uri:hasTime"),
                         vf.createLiteral(dtf.newXMLGregorianCalendar(time4))),
-                vf.createStatement(vf.createURI("urn:obs_4"), vf.createURI("uri:hasId"), vf.createLiteral("id_4")),
-                vf.createStatement(vf.createURI("urn:obs_1"), vf.createURI("uri:hasTime"),
+                vf.createStatement(vf.createIRI("urn:obs_4"), vf.createIRI("uri:hasId"), vf.createLiteral("id_4")),
+                vf.createStatement(vf.createIRI("urn:obs_1"), vf.createIRI("uri:hasTime"),
                         vf.createLiteral(dtf.newXMLGregorianCalendar(time4))),
-                vf.createStatement(vf.createURI("urn:obs_1"), vf.createURI("uri:hasId"), vf.createLiteral("id_1")),
-                vf.createStatement(vf.createURI("urn:obs_2"), vf.createURI("uri:hasTime"),
+                vf.createStatement(vf.createIRI("urn:obs_1"), vf.createIRI("uri:hasId"), vf.createLiteral("id_1")),
+                vf.createStatement(vf.createIRI("urn:obs_2"), vf.createIRI("uri:hasTime"),
                         vf.createLiteral(dtf.newXMLGregorianCalendar(time3))),
-                vf.createStatement(vf.createURI("urn:obs_2"), vf.createURI("uri:hasId"), vf.createLiteral("id_2")));
+                vf.createStatement(vf.createIRI("urn:obs_2"), vf.createIRI("uri:hasId"), vf.createLiteral("id_2")));
 
         // add statements to Fluo
         InsertTriples inserter = new InsertTriples();
@@ -239,7 +232,8 @@ public class PeriodicNotificationBinPrunerIT extends RyaExportITBase {
 
     }
     
-    private void compareResults(PeriodicQueryResultStorage periodicStorage, String queryId, long bin, Set<BindingSet> expected) throws PeriodicQueryStorageException, Exception {
+    private void compareResults(PeriodicQueryResultStorage periodicStorage, String queryId, long bin, Set<BindingSet> expected) throws
+            Exception {
         try(CloseableIterator<BindingSet> iter = periodicStorage.listResults(queryId, Optional.of(bin))) {
             Set<BindingSet> actual = new HashSet<>();
             while(iter.hasNext()) {

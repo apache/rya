@@ -21,15 +21,15 @@ package org.apache.rya.indexing.pcj.fluo.app.util;
 import java.util.HashSet;
 import java.util.Set;
 
-import org.openrdf.query.algebra.Filter;
-import org.openrdf.query.algebra.SingletonSet;
-import org.openrdf.query.algebra.evaluation.function.Function;
-import org.openrdf.query.algebra.evaluation.function.FunctionRegistry;
-import org.openrdf.query.algebra.helpers.QueryModelVisitorBase;
-import org.openrdf.query.parser.ParsedQuery;
-import org.openrdf.query.parser.ParsedTupleQuery;
-import org.openrdf.query.parser.sparql.SPARQLParser;
-import org.openrdf.queryrender.sparql.SPARQLQueryRenderer;
+import org.eclipse.rdf4j.query.algebra.Filter;
+import org.eclipse.rdf4j.query.algebra.SingletonSet;
+import org.eclipse.rdf4j.query.algebra.evaluation.function.Function;
+import org.eclipse.rdf4j.query.algebra.evaluation.function.FunctionRegistry;
+import org.eclipse.rdf4j.query.algebra.helpers.QueryModelVisitorBase;
+import org.eclipse.rdf4j.query.parser.ParsedQuery;
+import org.eclipse.rdf4j.query.parser.ParsedTupleQuery;
+import org.eclipse.rdf4j.query.parser.sparql.SPARQLParser;
+import org.eclipse.rdf4j.queryrender.sparql.SPARQLQueryRenderer;
 
 /**
  * Class for creating a String representation a given Filter, and for

@@ -18,10 +18,9 @@
  */
 package org.apache.rya.api.client.accumulo;
 
-import static java.util.Objects.requireNonNull;
-
 import java.util.Properties;
 
+import com.google.common.base.Optional;
 import org.apache.accumulo.core.client.Connector;
 import org.apache.fluo.api.client.FluoClient;
 import org.apache.kafka.clients.producer.KafkaProducer;
@@ -43,11 +42,11 @@ import org.apache.rya.periodic.notification.api.PeriodicNotificationClient;
 import org.apache.rya.periodic.notification.notification.CommandNotification;
 import org.apache.rya.periodic.notification.registration.KafkaNotificationRegistrationClient;
 import org.apache.rya.periodic.notification.serialization.CommandNotificationSerializer;
-import org.openrdf.query.MalformedQueryException;
+import org.eclipse.rdf4j.query.MalformedQueryException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.base.Optional;
+import static java.util.Objects.requireNonNull;
 
 /**
  * Class used by the RyaClient and Rya Shell for deleting Periodic PCJ.
@@ -70,7 +69,8 @@ public class AccumuloDeletePeriodicPCJ extends AccumuloCommand implements Delete
     }
 
     @Override
-    public void deletePeriodicPCJ(final String instanceName, final String pcjId, String topic, String brokers) throws InstanceDoesNotExistException, RyaClientException {
+    public void deletePeriodicPCJ(final String instanceName, final String pcjId, String topic, String brokers) throws
+            RyaClientException {
         requireNonNull(instanceName);
         requireNonNull(pcjId);
 

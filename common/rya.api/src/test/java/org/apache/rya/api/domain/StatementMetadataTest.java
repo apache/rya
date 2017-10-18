@@ -20,7 +20,6 @@ package org.apache.rya.api.domain;
 
 import org.junit.Assert;
 import org.junit.Test;
-import org.openrdf.model.impl.URIImpl;
 
 public class StatementMetadataTest {
 

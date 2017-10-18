@@ -26,12 +26,12 @@ import java.util.List;
 import org.apache.accumulo.core.data.Value;
 import org.apache.commons.codec.binary.StringUtils;
 import org.apache.hadoop.io.Text;
-import org.openrdf.model.Resource;
-import org.openrdf.model.Statement;
-import org.openrdf.model.URI;
-import org.openrdf.model.impl.ContextStatementImpl;
-import org.openrdf.model.impl.StatementImpl;
-import org.openrdf.model.impl.URIImpl;
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.Resource;
+import org.eclipse.rdf4j.model.Statement;
+import org.eclipse.rdf4j.model.impl.ContextStatementImpl;
+import org.eclipse.rdf4j.model.impl.StatementImpl;
+import org.eclipse.rdf4j.model.impl.URIImpl;
 
 /**
  * Store and format the various temporal index keys.
@@ -179,9 +179,9 @@ public class KeyParts implements Iterable<KeyParts> {
 		 */
 	public Text getQueryKey() {
 		return getQueryKey(instant);
-	};
+	}
 
-	/**
+    /**
 	 * Query key is the prefix plus the datetime, but no uniqueness at the end.
 	 *
 	 * @return the row key for range queries.
@@ -194,9 +194,9 @@ public class KeyParts implements Iterable<KeyParts> {
         }
 		appendInstant(theInstant, keyText);
 		return keyText;
-	};
+	}
 
-		@Override
+    @Override
 		public String toString() {
 			return "KeyParts [contraintPrefix=" + toHumanString(constraintPrefix) + ", instant=" + toHumanString(instant.getAsKeyBytes()) + ", cf=" + cf + ", cq=" + cq + "]";
 		}
@@ -270,11 +270,11 @@ public class KeyParts implements Iterable<KeyParts> {
 		 */
 		static public List<KeyParts> keyPartsForQuery(final TemporalInstant queryInstant, final StatementConstraints contraints) {
 			final List<KeyParts> keys = new LinkedList<KeyParts>();
-			final URI urlNull = new URIImpl("urn:null");
+			final IRI urlNull = new URIImpl("urn:null");
 			final Resource currentContext = contraints.getContext();
 			final boolean hasSubj = contraints.hasSubject();
 			if (contraints.hasPredicates()) {
-				for (final URI nextPredicate : contraints.getPredicates()) {
+				for (final IRI nextPredicate : contraints.getPredicates()) {
 					final Text contraintPrefix  = new Text();
 					final Statement statement = new ContextStatementImpl(hasSubj ? contraints.getSubject() : urlNull, nextPredicate, urlNull, contraints.getContext());
 					if (hasSubj) {

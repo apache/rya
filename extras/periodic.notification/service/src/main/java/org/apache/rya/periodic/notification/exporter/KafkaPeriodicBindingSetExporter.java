@@ -18,13 +18,10 @@
  */
 package org.apache.rya.periodic.notification.exporter;
 
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
+import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import com.google.common.base.Preconditions;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.clients.producer.RecordMetadata;
@@ -33,10 +30,8 @@ import org.apache.rya.indexing.pcj.fluo.app.IncrementalUpdateConstants;
 import org.apache.rya.periodic.notification.api.BindingSetExporter;
 import org.apache.rya.periodic.notification.api.BindingSetRecord;
 import org.apache.rya.periodic.notification.api.BindingSetRecordExportException;
-import org.openrdf.model.Literal;
-import org.openrdf.query.BindingSet;
-
-import com.google.common.base.Preconditions;
+import org.eclipse.rdf4j.model.Literal;
+import org.eclipse.rdf4j.query.BindingSet;
 
 /**
  * Object that exports {@link BindingSet}s to the Kafka topic indicated by

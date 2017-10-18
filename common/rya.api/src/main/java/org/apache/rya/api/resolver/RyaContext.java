@@ -19,31 +19,17 @@ package org.apache.rya.api.resolver;
  * under the License.
  */
 
-
-
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.rya.api.domain.RyaRange;
-import org.apache.rya.api.domain.RyaType;
-import org.apache.rya.api.resolver.impl.BooleanRyaTypeResolver;
-import org.apache.rya.api.resolver.impl.ByteRyaTypeResolver;
-import org.apache.rya.api.resolver.impl.CustomDatatypeResolver;
-import org.apache.rya.api.resolver.impl.DateTimeRyaTypeResolver;
-import org.apache.rya.api.resolver.impl.DoubleRyaTypeResolver;
-import org.apache.rya.api.resolver.impl.FloatRyaTypeResolver;
-import org.apache.rya.api.resolver.impl.IntegerRyaTypeResolver;
-import org.apache.rya.api.resolver.impl.LongRyaTypeResolver;
-import org.apache.rya.api.resolver.impl.RyaTypeResolverImpl;
-import org.apache.rya.api.resolver.impl.RyaURIResolver;
-import org.apache.rya.api.resolver.impl.ServiceBackedRyaTypeResolverMappings;
-import org.apache.rya.api.resolver.impl.ShortRyaTypeResolver;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.openrdf.model.URI;
-import org.openrdf.model.vocabulary.XMLSchema;
+import org.apache.rya.api.domain.RyaRange;
+import org.apache.rya.api.domain.RyaType;
+import org.apache.rya.api.resolver.impl.*;
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.vocabulary.XMLSchema;
 
 /**
  * Date: 7/16/12
@@ -53,7 +39,7 @@ public class RyaContext {
 
     public Log logger = LogFactory.getLog(RyaContext.class);
 
-    private Map<URI, RyaTypeResolver> uriToResolver = new HashMap<URI, RyaTypeResolver>();
+    private Map<IRI, RyaTypeResolver> uriToResolver = new HashMap<IRI, RyaTypeResolver>();
     private Map<Byte, RyaTypeResolver> byteToResolver = new HashMap<Byte, RyaTypeResolver>();
     private RyaTypeResolver defaultResolver = new CustomDatatypeResolver();
 
@@ -94,7 +80,7 @@ public class RyaContext {
     
 
     //need to go from datatype->resolver
-    public RyaTypeResolver retrieveResolver(URI datatype) {
+    public RyaTypeResolver retrieveResolver(IRI datatype) {
         RyaTypeResolver ryaTypeResolver = uriToResolver.get(datatype);
         if (ryaTypeResolver == null) return defaultResolver;
         return ryaTypeResolver;
@@ -149,7 +135,7 @@ public class RyaContext {
         }
     }
 
-    public RyaTypeResolver removeRyaTypeResolver(URI dataType) {
+    public RyaTypeResolver removeRyaTypeResolver(IRI dataType) {
         RyaTypeResolver ryaTypeResolver = uriToResolver.remove(dataType);
         if (ryaTypeResolver != null) {
             if (logger.isDebugEnabled()) {

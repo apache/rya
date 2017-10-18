@@ -18,23 +18,13 @@
  */
 package org.apache.rya.indexing.accumulo;
 
-import static java.util.Objects.requireNonNull;
-
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import org.apache.accumulo.core.client.AccumuloException;
-import org.apache.accumulo.core.client.AccumuloSecurityException;
-import org.apache.accumulo.core.client.BatchScanner;
-import org.apache.accumulo.core.client.BatchWriter;
-import org.apache.accumulo.core.client.Connector;
-import org.apache.accumulo.core.client.Instance;
-import org.apache.accumulo.core.client.MultiTableBatchWriter;
-import org.apache.accumulo.core.client.Scanner;
-import org.apache.accumulo.core.client.TableExistsException;
-import org.apache.accumulo.core.client.TableNotFoundException;
-import org.apache.accumulo.core.client.ZooKeeperInstance;
+import com.google.common.base.Optional;
+import com.google.common.collect.Lists;
+import org.apache.accumulo.core.client.*;
 import org.apache.accumulo.core.client.admin.TableOperations;
 import org.apache.accumulo.core.client.mock.MockInstance;
 import org.apache.accumulo.core.security.Authorizations;
@@ -44,7 +34,7 @@ import org.apache.hadoop.util.ReflectionUtils;
 import org.apache.log4j.Logger;
 import org.apache.rya.accumulo.AccumuloRdfConfiguration;
 import org.apache.rya.accumulo.utils.ConnectorFactory;
-import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
+import org.apache.rya.api.RdfTripleStoreConfiguration;
 import org.apache.rya.api.instance.RyaDetails;
 import org.apache.rya.indexing.FilterFunctionOptimizer;
 import org.apache.rya.indexing.accumulo.entity.EntityCentricIndex;
@@ -60,11 +50,10 @@ import org.apache.rya.indexing.mongodb.freetext.MongoFreeTextIndexer;
 import org.apache.rya.indexing.mongodb.temporal.MongoTemporalIndexer;
 import org.apache.rya.indexing.pcj.matching.PCJOptimizer;
 import org.apache.rya.indexing.statement.metadata.matching.StatementMetadataOptimizer;
-import org.openrdf.model.URI;
-import org.openrdf.model.impl.URIImpl;
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.impl.URIImpl;
 
-import com.google.common.base.Optional;
-import com.google.common.collect.Lists;
+import static java.util.Objects.requireNonNull;
 
 /**
  * A set of configuration utils to read a Hadoop {@link Configuration} object and create Cloudbase/Accumulo objects.
@@ -76,10 +65,10 @@ public class ConfigUtils {
     private static final Logger logger = Logger.getLogger(ConfigUtils.class);
 
     /**
-     * @Deprecated use {@link RdfCloudTripleStoreConfiguration#CONF_TBL_PREFIX} instead.
+     * @Deprecated use {@link RdfTripleStoreConfiguration#CONF_TBL_PREFIX} instead.
      */
     @Deprecated
-    public static final String CLOUDBASE_TBL_PREFIX = RdfCloudTripleStoreConfiguration.CONF_TBL_PREFIX;
+    public static final String CLOUDBASE_TBL_PREFIX = RdfTripleStoreConfiguration.CONF_TBL_PREFIX;
     
     /**
      * @Deprecated use {@link AccumuloRdfConfiguration#CLOUDBASE_INSTANCE} instead.
@@ -105,10 +94,10 @@ public class ConfigUtils {
     @Deprecated
     public static final String CLOUDBASE_PASSWORD = AccumuloRdfConfiguration.CLOUDBASE_PASSWORD;
     /**
-     * @Deprecated use {@link RdfCloudTripleStoreConfiguration#CONF_QUERY_AUTH} instead.
+     * @Deprecated use {@link RdfTripleStoreConfiguration#CONF_QUERY_AUTH} instead.
      */
     @Deprecated
-    public static final String CLOUDBASE_AUTHS = RdfCloudTripleStoreConfiguration.CONF_QUERY_AUTH;
+    public static final String CLOUDBASE_AUTHS = RdfTripleStoreConfiguration.CONF_QUERY_AUTH;
 
     public static final String CLOUDBASE_WRITER_MAX_WRITE_THREADS = "sc.cloudbase.writer.maxwritethreads";
     public static final String CLOUDBASE_WRITER_MAX_LATENCY = "sc.cloudbase.writer.maxlatency";
@@ -200,9 +189,9 @@ public class ConfigUtils {
      */
     public static String getTablePrefix(final Configuration conf) {
         final String tablePrefix;
-        tablePrefix = conf.get(RdfCloudTripleStoreConfiguration.CONF_TBL_PREFIX);
+        tablePrefix = conf.get(RdfTripleStoreConfiguration.CONF_TBL_PREFIX);
         requireNonNull(tablePrefix,
-                "Configuration key: " + RdfCloudTripleStoreConfiguration.CONF_TBL_PREFIX + " not set.  Cannot generate table name.");
+                "Configuration key: " + RdfTripleStoreConfiguration.CONF_TBL_PREFIX + " not set.  Cannot generate table name.");
         return tablePrefix;
     }
 
@@ -210,11 +199,11 @@ public class ConfigUtils {
         return conf.getInt(FREE_TEXT_QUERY_TERM_LIMIT, 100);
     }
 
-    public static Set<URI> getFreeTextPredicates(final Configuration conf) {
+    public static Set<IRI> getFreeTextPredicates(final Configuration conf) {
         return getPredicates(conf, FREETEXT_PREDICATES_LIST);
     }
 
-    public static Set<URI> getGeoPredicates(final Configuration conf) {
+    public static Set<IRI> getGeoPredicates(final Configuration conf) {
         return getPredicates(conf, GEO_PREDICATES_LIST);
     }
 
@@ -225,13 +214,13 @@ public class ConfigUtils {
      * @return Set of predicate URI's whose objects should be date time
      *         literals.
      */
-    public static Set<URI> getTemporalPredicates(final Configuration conf) {
+    public static Set<IRI> getTemporalPredicates(final Configuration conf) {
         return getPredicates(conf, TEMPORAL_PREDICATES_LIST);
     }
 
-    protected static Set<URI> getPredicates(final Configuration conf, final String confName) {
+    protected static Set<IRI> getPredicates(final Configuration conf, final String confName) {
         final String[] validPredicateStrings = conf.getStrings(confName, new String[] {});
-        final Set<URI> predicates = new HashSet<>();
+        final Set<IRI> predicates = new HashSet<>();
         for (final String prediateString : validPredicateStrings) {
             predicates.add(new URIImpl(prediateString));
         }
@@ -274,10 +263,10 @@ public class ConfigUtils {
         final Connector connector = ConfigUtils.getConnector(conf);
         final Authorizations auths = ConfigUtils.getAuthorizations(conf);
         Integer numThreads = null;
-        if (conf instanceof RdfCloudTripleStoreConfiguration) {
-            numThreads = ((RdfCloudTripleStoreConfiguration) conf).getNumThreads();
+        if (conf instanceof RdfTripleStoreConfiguration) {
+            numThreads = ((RdfTripleStoreConfiguration) conf).getNumThreads();
         } else {
-            numThreads = conf.getInt(RdfCloudTripleStoreConfiguration.CONF_NUM_THREADS, 2);
+            numThreads = conf.getInt(RdfTripleStoreConfiguration.CONF_NUM_THREADS, 2);
         }
         return connector.createBatchScanner(tablename, auths, numThreads);
     }
@@ -314,7 +303,7 @@ public class ConfigUtils {
     }
 
     public static Authorizations getAuthorizations(final Configuration conf) {
-        final String authString = conf.get(RdfCloudTripleStoreConfiguration.CONF_QUERY_AUTH, "");
+        final String authString = conf.get(RdfTripleStoreConfiguration.CONF_QUERY_AUTH, "");
         if (authString.isEmpty()) {
             return new Authorizations();
         }
@@ -444,7 +433,7 @@ public class ConfigUtils {
     }
 
 
-    public static void setIndexers(final RdfCloudTripleStoreConfiguration conf) {
+    public static void setIndexers(final RdfTripleStoreConfiguration conf) {
 
         final List<String> indexList = Lists.newArrayList();
         final List<String> optimizers = Lists.newArrayList();
@@ -500,6 +489,6 @@ public class ConfigUtils {
         }
 
         conf.setStrings(AccumuloRdfConfiguration.CONF_ADDITIONAL_INDEXERS, indexList.toArray(new String[] {}));
-        conf.setStrings(RdfCloudTripleStoreConfiguration.CONF_OPTIMIZERS, optimizers.toArray(new String[] {}));
+        conf.setStrings(RdfTripleStoreConfiguration.CONF_OPTIMIZERS, optimizers.toArray(new String[] {}));
     }
 }

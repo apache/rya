@@ -19,12 +19,10 @@ package org.apache.rya.rdftriplestore.evaluation;
  * under the License.
  */
 
-
-
-import org.openrdf.query.algebra.Join;
-import org.openrdf.query.algebra.StatementPattern;
-import org.openrdf.query.algebra.TupleExpr;
-import org.openrdf.query.algebra.helpers.QueryModelVisitorBase;
+import org.eclipse.rdf4j.query.algebra.Join;
+import org.eclipse.rdf4j.query.algebra.StatementPattern;
+import org.eclipse.rdf4j.query.algebra.TupleExpr;
+import org.eclipse.rdf4j.query.algebra.helpers.QueryModelVisitorBase;
 
 /**
  * Class ReorderJoinVisitor

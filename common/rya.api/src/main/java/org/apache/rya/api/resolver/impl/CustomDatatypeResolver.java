@@ -18,16 +18,15 @@
  */
 package org.apache.rya.api.resolver.impl;
 
-import static org.apache.rya.api.RdfCloudTripleStoreConstants.TYPE_DELIM_BYTE;
-import static org.apache.rya.api.RdfCloudTripleStoreConstants.TYPE_DELIM_BYTES;
-
 import java.nio.charset.StandardCharsets;
 
+import com.google.common.primitives.Bytes;
 import org.apache.rya.api.domain.RyaType;
 import org.apache.rya.api.resolver.RyaTypeResolverException;
-import org.openrdf.model.impl.URIImpl;
+import org.eclipse.rdf4j.model.impl.URIImpl;
 
-import com.google.common.primitives.Bytes;
+import static org.apache.rya.api.RdfCloudTripleStoreConstants.TYPE_DELIM_BYTE;
+import static org.apache.rya.api.RdfCloudTripleStoreConstants.TYPE_DELIM_BYTES;
 
 /**
  * Date: 7/16/12

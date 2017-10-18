@@ -31,19 +31,19 @@ import org.apache.rya.indexing.geotemporal.GeoTemporalIndexer.TemporalPolicy;
 import org.apache.rya.indexing.geotemporal.GeoTemporalTestBase;
 import org.junit.Before;
 import org.junit.Test;
-import org.openrdf.model.Resource;
-import org.openrdf.model.Statement;
-import org.openrdf.model.URI;
-import org.openrdf.model.Value;
-import org.openrdf.model.ValueFactory;
-import org.openrdf.model.impl.ContextStatementImpl;
-import org.openrdf.model.impl.URIImpl;
-import org.openrdf.model.impl.ValueFactoryImpl;
-import org.openrdf.query.algebra.FunctionCall;
-import org.openrdf.query.algebra.StatementPattern;
-import org.openrdf.query.algebra.ValueConstant;
-import org.openrdf.query.algebra.ValueExpr;
-import org.openrdf.query.algebra.Var;
+import  org.eclipse.rdf4j.model.Resource;
+import  org.eclipse.rdf4j.model.Statement;
+import  org.eclipse.rdf4j.model.URI;
+import  org.eclipse.rdf4j.model.Value;
+import  org.eclipse.rdf4j.model.ValueFactory;
+import  org.eclipse.rdf4j.model.impl.ContextStatementImpl;
+import  org.eclipse.rdf4j.model.impl.URIImpl;
+import  org.eclipse.rdf4j.model.impl.ValueFactoryImpl;
+import  org.eclipse.rdf4j.query.algebra.FunctionCall;
+import  org.eclipse.rdf4j.query.algebra.StatementPattern;
+import  org.eclipse.rdf4j.query.algebra.ValueConstant;
+import  org.eclipse.rdf4j.query.algebra.ValueExpr;
+import  org.eclipse.rdf4j.query.algebra.Var;
 
 import com.mongodb.DBObject;
 import com.mongodb.util.JSON;
@@ -409,9 +409,9 @@ public class GeoTemporalMongoDBStorageStrategyTest extends GeoTemporalTestBase {
 
     @Test
     public void serializeTest() {
-        final ValueFactory vf = new ValueFactoryImpl();
-        final Resource subject = vf.createURI("foo:subj");
-        final Resource context = vf.createURI("foo:context");
+        final ValueFactory vf = SimpleValueFactory.getInstance();
+        final Resource subject = vf.createIRI("foo:subj");
+        final Resource context = vf.createIRI("foo:context");
 
         //GEO
         URI predicate = GeoConstants.GEO_AS_WKT;

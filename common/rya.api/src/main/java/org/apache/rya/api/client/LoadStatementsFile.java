@@ -20,10 +20,9 @@ package org.apache.rya.api.client;
 
 import java.nio.file.Path;
 
-import org.openrdf.rio.RDFFormat;
-
 import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
 import edu.umd.cs.findbugs.annotations.NonNull;
+import org.eclipse.rdf4j.rio.RDFFormat;
 
 /**
  * Loads a local file of RDF statements into an instance of Rya.
@@ -40,5 +39,5 @@ public interface LoadStatementsFile {
      * @throws InstanceDoesNotExistException No instance of Rya exists for the provided name.
      * @throws RyaClientException Something caused the command to fail.
      */
-    public void loadStatements(String ryaInstanceName, Path statementsFile, RDFFormat format) throws InstanceDoesNotExistException, RyaClientException;
+    void loadStatements(String ryaInstanceName, Path statementsFile, RDFFormat format) throws RyaClientException;
 }

@@ -1,12 +1,20 @@
 package org.apache.rya.rdftriplestore;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import org.apache.rya.api.RdfTripleStoreConfiguration;
+import org.apache.rya.api.persist.RdfEvalStatsDAO;
+import org.apache.rya.api.persist.RyaDAO;
+import org.apache.rya.api.persist.RyaDAOException;
+import org.apache.rya.api.persist.joinselect.SelectivityEvalDAO;
+import org.apache.rya.rdftriplestore.inference.InferenceEngine;
+import org.apache.rya.rdftriplestore.namespace.NamespaceManager;
+import org.apache.rya.rdftriplestore.provenance.ProvenanceCollector;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
+import org.eclipse.rdf4j.sail.SailConnection;
+import org.eclipse.rdf4j.sail.SailException;
+import org.eclipse.rdf4j.sail.helpers.SailBase;
 
-import org.openrdf.model.ValueFactory;
-import org.openrdf.model.impl.ValueFactoryImpl;
-import org.openrdf.sail.SailConnection;
-import org.openrdf.sail.SailException;
-import org.openrdf.sail.helpers.SailBase;
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -27,20 +35,9 @@ import org.openrdf.sail.helpers.SailBase;
  * under the License.
  */
 
-
-
-import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
-import org.apache.rya.api.persist.RdfEvalStatsDAO;
-import org.apache.rya.api.persist.RyaDAO;
-import org.apache.rya.api.persist.RyaDAOException;
-import org.apache.rya.api.persist.joinselect.SelectivityEvalDAO;
-import org.apache.rya.rdftriplestore.inference.InferenceEngine;
-import org.apache.rya.rdftriplestore.namespace.NamespaceManager;
-import org.apache.rya.rdftriplestore.provenance.ProvenanceCollector;
-
 public class RdfCloudTripleStore extends SailBase {
 
-    private RdfCloudTripleStoreConfiguration conf;
+    private RdfTripleStoreConfiguration conf;
 
     protected RyaDAO ryaDAO;
     protected InferenceEngine inferenceEngine;
@@ -49,7 +46,7 @@ public class RdfCloudTripleStore extends SailBase {
     private NamespaceManager namespaceManager;
     protected ProvenanceCollector provenanceCollector;
 
-    private ValueFactory vf = new ValueFactoryImpl();
+    private ValueFactory vf = SimpleValueFactory.getInstance();
 
     @Override
     protected SailConnection getConnectionInternal() throws SailException {
@@ -114,11 +111,11 @@ public class RdfCloudTripleStore extends SailBase {
         return true;
     }
 
-    public RdfCloudTripleStoreConfiguration getConf() {
+    public RdfTripleStoreConfiguration getConf() {
         return conf;
     }
 
-    public void setConf(RdfCloudTripleStoreConfiguration conf) {
+    public void setConf(RdfTripleStoreConfiguration conf) {
         this.conf = conf;
     }
 

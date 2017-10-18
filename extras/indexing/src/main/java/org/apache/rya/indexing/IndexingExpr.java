@@ -19,29 +19,26 @@ package org.apache.rya.indexing;
  * under the License.
  */
 
-
 import java.util.Set;
 
-import org.openrdf.model.URI;
-import org.openrdf.model.Value;
-import org.openrdf.query.algebra.StatementPattern;
-import org.openrdf.query.algebra.Var;
-
 import com.google.common.collect.Sets;
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.query.algebra.StatementPattern;
+import org.eclipse.rdf4j.query.algebra.Var;
 
 public class IndexingExpr {
 
-    private final URI function;
+    private final IRI function;
     private final Object[] arguments;
     private final StatementPattern spConstraint;
 
-    public IndexingExpr(URI function, StatementPattern spConstraint, Object... arguments) {
+    public IndexingExpr(IRI function, StatementPattern spConstraint, Object... arguments) {
         this.function = function;
         this.arguments = arguments;
         this.spConstraint = spConstraint;
     }
 
-    public URI getFunction() {
+    public IRI getFunction() {
         return function;
     }
 

@@ -28,7 +28,7 @@ import org.apache.log4j.Logger;
 import org.apache.zookeeper.ClientCnxn;
 import org.junit.Before;
 import org.junit.Test;
-import org.openrdf.query.algebra.evaluation.function.FunctionRegistry;
+import  org.eclipse.rdf4j.query.algebra.evaluation.function.FunctionRegistry;
 
 /**
  * Verifies that the geoFunctions are registered via SPI.
@@ -45,7 +45,7 @@ public class GeoFunctionsTest {
     /**
      * Thirty-some functions are registered via SPI. Make sure they are registered.
      * This file lists functions to load:
-     * src/main/resources/META-INF/services/org.openrdf.query.algebra.evaluation.function.Function
+     * src/main/resources/META-INF/services/ org.eclipse.rdf4j.query.algebra.evaluation.function.Function
      */
     @Test
     public void verifySpiLoadedGeoFunctions() {

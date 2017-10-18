@@ -18,21 +18,17 @@
  */
 package org.apache.rya.rdftriplestore.inference;
 
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Set;
-import java.util.TreeSet;
+import java.util.*;
 
 import org.apache.log4j.Logger;
-import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
-import org.openrdf.model.Resource;
-import org.openrdf.model.URI;
-import org.openrdf.model.vocabulary.RDF;
-import org.openrdf.query.algebra.StatementPattern;
-import org.openrdf.query.algebra.TupleExpr;
-import org.openrdf.query.algebra.Union;
-import org.openrdf.query.algebra.Var;
+import org.apache.rya.api.RdfTripleStoreConfiguration;
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.Resource;
+import org.eclipse.rdf4j.model.vocabulary.RDF;
+import org.eclipse.rdf4j.query.algebra.StatementPattern;
+import org.eclipse.rdf4j.query.algebra.TupleExpr;
+import org.eclipse.rdf4j.query.algebra.Union;
+import org.eclipse.rdf4j.query.algebra.Var;
 
 /**
  * Visitor for handling owl:intersectionOf inferencing on a node.
@@ -45,7 +41,7 @@ public class IntersectionOfVisitor extends AbstractInferVisitor {
      * @param conf the {@link RdfCloudeTripleStoreConfiguration}.
      * @param inferenceEngine the {@link InferenceEngine}.
      */
-    public IntersectionOfVisitor(final RdfCloudTripleStoreConfiguration conf, final InferenceEngine inferenceEngine) {
+    public IntersectionOfVisitor(final RdfTripleStoreConfiguration conf, final InferenceEngine inferenceEngine) {
         super(conf, inferenceEngine);
         include = conf.isInferIntersectionOf();
     }
@@ -58,7 +54,7 @@ public class IntersectionOfVisitor extends AbstractInferVisitor {
         final Var objVar = node.getObjectVar();
         final Var conVar = node.getContextVar();
         if (predVar != null && objVar != null && objVar.getValue() != null && RDF.TYPE.equals(predVar.getValue()) && !EXPANDED.equals(conVar)) {
-            final List<Set<Resource>> intersections = inferenceEngine.getIntersectionsImplying((URI) objVar.getValue());
+            final List<Set<Resource>> intersections = inferenceEngine.getIntersectionsImplying((IRI) objVar.getValue());
             if (intersections != null && !intersections.isEmpty()) {
                 final List<TupleExpr> joins = new ArrayList<>();
                 for (final Set<Resource> intersection : intersections) {

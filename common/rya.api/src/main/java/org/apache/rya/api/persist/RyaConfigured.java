@@ -21,15 +21,15 @@ package org.apache.rya.api.persist;
 
 
 
-import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
+import org.apache.rya.api.RdfTripleStoreConfiguration;
 
 /**
  * Date: 7/17/12
  * Time: 8:24 AM
  */
-public interface RyaConfigured<C extends RdfCloudTripleStoreConfiguration> {
+public interface RyaConfigured<C extends RdfTripleStoreConfiguration> {
 
-    public void setConf(C conf);
+    void setConf(C conf);
 
-    public C getConf();
+    C getConf();
 }

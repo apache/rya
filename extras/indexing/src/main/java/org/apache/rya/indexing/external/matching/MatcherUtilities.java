@@ -36,11 +36,7 @@ package org.apache.rya.indexing.external.matching;
  * under the License.
  */
 
-import org.openrdf.query.algebra.Filter;
-import org.openrdf.query.algebra.Join;
-import org.openrdf.query.algebra.LeftJoin;
-import org.openrdf.query.algebra.Projection;
-import org.openrdf.query.algebra.TupleExpr;
+import org.eclipse.rdf4j.query.algebra.*;
 
 public class MatcherUtilities {
 

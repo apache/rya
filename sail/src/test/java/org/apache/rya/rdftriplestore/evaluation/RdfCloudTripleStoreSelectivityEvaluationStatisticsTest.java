@@ -19,45 +19,30 @@ package org.apache.rya.rdftriplestore.evaluation;
  * under the License.
  */
 
-
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
+import org.apache.accumulo.core.client.*;
+import org.apache.accumulo.core.client.mock.MockInstance;
+import org.apache.accumulo.core.client.security.tokens.PasswordToken;
+import org.apache.accumulo.core.data.Mutation;
+import org.apache.accumulo.core.data.Value;
+import org.apache.hadoop.io.Text;
 import org.apache.rya.accumulo.AccumuloRdfConfiguration;
-import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
+import org.apache.rya.api.RdfTripleStoreConfiguration;
 import org.apache.rya.api.layout.TablePrefixLayoutStrategy;
 import org.apache.rya.api.persist.RdfEvalStatsDAO;
 import org.apache.rya.joinselect.AccumuloSelectivityEvalDAO;
 import org.apache.rya.prospector.service.ProspectorServiceEvalStatsDAO;
-
-import org.apache.accumulo.core.client.AccumuloException;
-import org.apache.accumulo.core.client.AccumuloSecurityException;
-import org.apache.accumulo.core.client.BatchWriter;
-import org.apache.accumulo.core.client.BatchWriterConfig;
-import org.apache.accumulo.core.client.Connector;
-import org.apache.accumulo.core.client.Instance;
-import org.apache.accumulo.core.client.Scanner;
-import org.apache.accumulo.core.client.TableExistsException;
-import org.apache.accumulo.core.client.TableNotFoundException;
-import org.apache.accumulo.core.client.mock.MockInstance;
-import org.apache.accumulo.core.client.security.tokens.PasswordToken;
-import org.apache.accumulo.core.data.Key;
-import org.apache.accumulo.core.data.Mutation;
-import org.apache.accumulo.core.data.Range;
-import org.apache.accumulo.core.data.Value;
-import org.apache.accumulo.core.security.Authorizations;
-import org.apache.hadoop.io.Text;
+import org.eclipse.rdf4j.query.MalformedQueryException;
+import org.eclipse.rdf4j.query.algebra.TupleExpr;
+import org.eclipse.rdf4j.query.parser.ParsedQuery;
+import org.eclipse.rdf4j.query.parser.sparql.SPARQLParser;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.openrdf.query.MalformedQueryException;
-import org.openrdf.query.algebra.TupleExpr;
-import org.openrdf.query.parser.ParsedQuery;
-import org.openrdf.query.parser.sparql.SPARQLParser;
 
 public class RdfCloudTripleStoreSelectivityEvaluationStatisticsTest {
 
@@ -108,7 +93,7 @@ public class RdfCloudTripleStoreSelectivityEvaluationStatisticsTest {
     @Test
     public void testOptimizeQ1() throws Exception {
 
-        RdfEvalStatsDAO<RdfCloudTripleStoreConfiguration> res = new ProspectorServiceEvalStatsDAO(conn, arc);
+        RdfEvalStatsDAO<RdfTripleStoreConfiguration> res = new ProspectorServiceEvalStatsDAO(conn, arc);
         AccumuloSelectivityEvalDAO accc = new AccumuloSelectivityEvalDAO();
         accc.setConf(arc);
         accc.setRdfEvalDAO(res);
@@ -202,7 +187,7 @@ public class RdfCloudTripleStoreSelectivityEvaluationStatisticsTest {
     @Test
     public void testOptimizeQ1ZeroCard() throws Exception {
 
-        RdfEvalStatsDAO<RdfCloudTripleStoreConfiguration> res = new ProspectorServiceEvalStatsDAO(conn, arc);
+        RdfEvalStatsDAO<RdfTripleStoreConfiguration> res = new ProspectorServiceEvalStatsDAO(conn, arc);
         AccumuloSelectivityEvalDAO accc = new AccumuloSelectivityEvalDAO();
         accc.setConf(arc);
         accc.setConnector(conn);

@@ -18,14 +18,6 @@
  */
 package org.apache.rya.accumulo.mr.merge;
 
-import static org.apache.rya.accumulo.mr.merge.util.TestUtils.LAST_MONTH;
-import static org.apache.rya.accumulo.mr.merge.util.TestUtils.TODAY;
-import static org.apache.rya.accumulo.mr.merge.util.TestUtils.YESTERDAY;
-import static org.apache.rya.accumulo.mr.merge.util.TestUtils.createRyaStatement;
-import static org.apache.rya.accumulo.mr.merge.util.ToolConfigUtils.makeArgument;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
-
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
@@ -43,13 +35,6 @@ import org.apache.accumulo.core.security.Authorizations;
 import org.apache.accumulo.core.security.ColumnVisibility;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.log4j.Logger;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
-
-import info.aduna.iteration.CloseableIteration;
 import org.apache.rya.accumulo.AccumuloRdfConfiguration;
 import org.apache.rya.accumulo.AccumuloRyaDAO;
 import org.apache.rya.accumulo.mr.MRUtils;
@@ -58,11 +43,18 @@ import org.apache.rya.accumulo.mr.merge.driver.AccumuloDualInstanceDriver;
 import org.apache.rya.accumulo.mr.merge.util.AccumuloRyaUtils;
 import org.apache.rya.accumulo.mr.merge.util.TestUtils;
 import org.apache.rya.accumulo.mr.merge.util.TimeUtils;
-import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
 import org.apache.rya.api.RdfCloudTripleStoreConstants;
+import org.apache.rya.api.RdfTripleStoreConfiguration;
 import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.persist.RyaDAOException;
 import org.apache.rya.indexing.accumulo.ConfigUtils;
+import org.eclipse.rdf4j.common.iteration.CloseableIteration;
+import org.junit.*;
+
+import static org.apache.rya.accumulo.mr.merge.util.TestUtils.*;
+import static org.apache.rya.accumulo.mr.merge.util.ToolConfigUtils.makeArgument;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
 
 /**
  * Tests for {@link CopyTool}.
@@ -269,14 +261,14 @@ public class CopyToolTest {
         assertStatementInChild("Child missing statement with child visibility", 1, ryaStatementVisibilityDifferent);
 
         // Check that it can be queried with parent's visibility
-        childConfig.set(RdfCloudTripleStoreConfiguration.CONF_QUERY_AUTH, PARENT_AUTH);
+        childConfig.set(RdfTripleStoreConfiguration.CONF_QUERY_AUTH, PARENT_AUTH);
         final SecurityOperations secOps = IS_MOCK ? accumuloDualInstanceDriver.getChildSecOps() : childSecOps;
         newChildAuths = AccumuloRyaUtils.addUserAuths(accumuloDualInstanceDriver.getChildUser(), secOps, PARENT_AUTH);
         secOps.changeUserAuthorizations(accumuloDualInstanceDriver.getChildUser(), newChildAuths);
         assertStatementInChild("Child missing statement with parent visibility", 1, ryaStatementVisibilityDifferent);
 
         // Check that it can NOT be queried with some other visibility
-        childConfig.set(RdfCloudTripleStoreConfiguration.CONF_QUERY_AUTH, "bad_auth");
+        childConfig.set(RdfTripleStoreConfiguration.CONF_QUERY_AUTH, "bad_auth");
         final CloseableIteration<RyaStatement, RyaDAOException> iter = childDao.getQueryEngine().query(ryaStatementVisibilityDifferent, childConfig);
         count = 0;
         try {
@@ -294,7 +286,7 @@ public class CopyToolTest {
         assertEquals(0, count);
 
         // reset auth
-        childConfig.set(RdfCloudTripleStoreConfiguration.CONF_QUERY_AUTH, childAuthString);
+        childConfig.set(RdfTripleStoreConfiguration.CONF_QUERY_AUTH, childAuthString);
 
         log.info("DONE");
     }

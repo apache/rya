@@ -19,15 +19,9 @@ package org.apache.rya.accumulo.mr.tools;
  * under the License.
  */
 
+import java.util.HashMap;
+import java.util.Map;
 
-
-import org.apache.rya.accumulo.AccumuloRdfConfiguration;
-import org.apache.rya.accumulo.AccumuloRyaDAO;
-import org.apache.rya.accumulo.mr.tools.AccumuloRdfCountTool;
-import org.apache.rya.api.RdfCloudTripleStoreConstants;
-import org.apache.rya.api.domain.RyaStatement;
-import org.apache.rya.api.domain.RyaURI;
-import org.apache.rya.api.resolver.RdfToRyaConversions;
 import org.apache.accumulo.core.Constants;
 import org.apache.accumulo.core.client.Connector;
 import org.apache.accumulo.core.client.Scanner;
@@ -40,15 +34,17 @@ import org.apache.accumulo.core.data.Value;
 import org.apache.accumulo.core.security.Authorizations;
 import org.apache.accumulo.core.security.TablePermission;
 import org.apache.hadoop.io.Text;
+import org.apache.rya.accumulo.AccumuloRdfConfiguration;
+import org.apache.rya.accumulo.AccumuloRyaDAO;
+import org.apache.rya.api.RdfCloudTripleStoreConstants;
+import org.apache.rya.api.domain.RyaStatement;
+import org.apache.rya.api.domain.RyaURI;
+import org.apache.rya.api.resolver.RdfToRyaConversions;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
-import org.openrdf.model.ValueFactory;
-import org.openrdf.model.impl.ValueFactoryImpl;
-
-import java.util.HashMap;
-import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -70,7 +66,7 @@ public class AccumuloRdfCountToolTest {
     private Connector connector;
 
     private AccumuloRyaDAO dao;
-    private ValueFactory vf = new ValueFactoryImpl();
+    private ValueFactory vf = SimpleValueFactory.getInstance();
     private AccumuloRdfConfiguration conf = new AccumuloRdfConfiguration();
     static String litdupsNS = "urn:test:litdups#";
 
@@ -110,8 +106,8 @@ public class AccumuloRdfCountToolTest {
 
     @Test
     public void testMR() throws Exception {
-        RyaURI test1 = RdfToRyaConversions.convertURI(vf.createURI(litdupsNS, "test1"));
-        RyaURI pred1 = RdfToRyaConversions.convertURI(vf.createURI(litdupsNS, "pred1"));
+        RyaURI test1 = RdfToRyaConversions.convertURI(vf.createIRI(litdupsNS, "test1"));
+        RyaURI pred1 = RdfToRyaConversions.convertURI(vf.createIRI(litdupsNS, "pred1"));
         dao.add(new RyaStatement(test1, pred1, RdfToRyaConversions.convertLiteral(vf.createLiteral(0))));
         dao.add(new RyaStatement(test1, pred1, RdfToRyaConversions.convertLiteral(vf.createLiteral(1))));
         dao.add(new RyaStatement(test1, pred1, RdfToRyaConversions.convertLiteral(vf.createLiteral(2))));
@@ -155,19 +151,19 @@ public class AccumuloRdfCountToolTest {
     }
 
 //    public void testMRObject() throws Exception {
-//        URI pred1 = vf.createURI(litdupsNS, "pred1");
+//        URI pred1 = vf.createIRI(litdupsNS, "pred1");
 //        Literal literal = vf.createLiteral(0);
-//        dao.add(new StatementImpl(vf.createURI(litdupsNS, "test0"), pred1, literal));
-//        dao.add(new StatementImpl(vf.createURI(litdupsNS, "test1"), pred1, literal));
-//        dao.add(new StatementImpl(vf.createURI(litdupsNS, "test2"), pred1, literal));
-//        dao.add(new StatementImpl(vf.createURI(litdupsNS, "test3"), pred1, literal));
-//        dao.add(new StatementImpl(vf.createURI(litdupsNS, "test4"), pred1, literal));
-//        dao.add(new StatementImpl(vf.createURI(litdupsNS, "test5"), pred1, literal));
-//        dao.add(new StatementImpl(vf.createURI(litdupsNS, "test6"), pred1, literal));
-//        dao.add(new StatementImpl(vf.createURI(litdupsNS, "test7"), pred1, literal));
-//        dao.add(new StatementImpl(vf.createURI(litdupsNS, "test8"), pred1, literal));
-//        dao.add(new StatementImpl(vf.createURI(litdupsNS, "test9"), pred1, literal));
-//        dao.add(new StatementImpl(vf.createURI(litdupsNS, "test10"), pred1, literal));
+//        dao.add(new StatementImpl(vf.createIRI(litdupsNS, "test0"), pred1, literal));
+//        dao.add(new StatementImpl(vf.createIRI(litdupsNS, "test1"), pred1, literal));
+//        dao.add(new StatementImpl(vf.createIRI(litdupsNS, "test2"), pred1, literal));
+//        dao.add(new StatementImpl(vf.createIRI(litdupsNS, "test3"), pred1, literal));
+//        dao.add(new StatementImpl(vf.createIRI(litdupsNS, "test4"), pred1, literal));
+//        dao.add(new StatementImpl(vf.createIRI(litdupsNS, "test5"), pred1, literal));
+//        dao.add(new StatementImpl(vf.createIRI(litdupsNS, "test6"), pred1, literal));
+//        dao.add(new StatementImpl(vf.createIRI(litdupsNS, "test7"), pred1, literal));
+//        dao.add(new StatementImpl(vf.createIRI(litdupsNS, "test8"), pred1, literal));
+//        dao.add(new StatementImpl(vf.createIRI(litdupsNS, "test9"), pred1, literal));
+//        dao.add(new StatementImpl(vf.createIRI(litdupsNS, "test10"), pred1, literal));
 //        dao.commit();
 //
 //        AccumuloRdfCountTool.main(new String[]{
@@ -202,8 +198,8 @@ public class AccumuloRdfCountToolTest {
 
     @Test
     public void testTTL() throws Exception {
-        RyaURI test1 = RdfToRyaConversions.convertURI(vf.createURI(litdupsNS, "test1"));
-        RyaURI pred1 = RdfToRyaConversions.convertURI(vf.createURI(litdupsNS, "pred1"));
+        RyaURI test1 = RdfToRyaConversions.convertURI(vf.createIRI(litdupsNS, "test1"));
+        RyaURI pred1 = RdfToRyaConversions.convertURI(vf.createIRI(litdupsNS, "pred1"));
         dao.add(new RyaStatement(test1, pred1, RdfToRyaConversions.convertLiteral(vf.createLiteral(0))));
         dao.add(new RyaStatement(test1, pred1, RdfToRyaConversions.convertLiteral(vf.createLiteral(1))));
         dao.add(new RyaStatement(test1, pred1, RdfToRyaConversions.convertLiteral(vf.createLiteral(2))));
@@ -236,9 +232,9 @@ public class AccumuloRdfCountToolTest {
 
     @Test
     public void testContext() throws Exception {
-        RyaURI test1 = RdfToRyaConversions.convertURI(vf.createURI(litdupsNS, "test1"));
-        RyaURI pred1 = RdfToRyaConversions.convertURI(vf.createURI(litdupsNS, "pred1"));
-        RyaURI cntxt = RdfToRyaConversions.convertURI(vf.createURI(litdupsNS, "cntxt"));
+        RyaURI test1 = RdfToRyaConversions.convertURI(vf.createIRI(litdupsNS, "test1"));
+        RyaURI pred1 = RdfToRyaConversions.convertURI(vf.createIRI(litdupsNS, "pred1"));
+        RyaURI cntxt = RdfToRyaConversions.convertURI(vf.createIRI(litdupsNS, "cntxt"));
         dao.add(new RyaStatement(test1, pred1, RdfToRyaConversions.convertLiteral(vf.createLiteral(0)), cntxt));
         dao.add(new RyaStatement(test1, pred1, RdfToRyaConversions.convertLiteral(vf.createLiteral(1)), cntxt));
         dao.add(new RyaStatement(test1, pred1, RdfToRyaConversions.convertLiteral(vf.createLiteral(2)), cntxt));

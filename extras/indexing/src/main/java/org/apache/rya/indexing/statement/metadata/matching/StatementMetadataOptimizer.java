@@ -17,33 +17,28 @@ package org.apache.rya.indexing.statement.metadata.matching;
  * specific language governing permissions and limitations
  * under the License.
  */
-import static com.google.common.base.Preconditions.checkNotNull;
-
-import org.apache.hadoop.conf.Configurable;
-import org.apache.hadoop.conf.Configuration;
-import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
-import org.apache.rya.indexing.external.matching.AbstractExternalSetOptimizer;
-import org.apache.rya.indexing.external.matching.BasicRater;
-import org.apache.rya.indexing.external.matching.ExternalSetMatcher;
-import org.apache.rya.indexing.external.matching.ExternalSetProvider;
-import org.apache.rya.indexing.external.matching.QueryNodeListRater;
-import org.apache.rya.indexing.external.matching.QuerySegment;
-import org.openrdf.query.BindingSet;
-import org.openrdf.query.Dataset;
-import org.openrdf.query.algebra.TupleExpr;
 
 import com.google.common.base.Optional;
+import org.apache.hadoop.conf.Configurable;
+import org.apache.hadoop.conf.Configuration;
+import org.apache.rya.api.RdfTripleStoreConfiguration;
+import org.apache.rya.indexing.external.matching.*;
+import org.eclipse.rdf4j.query.BindingSet;
+import org.eclipse.rdf4j.query.Dataset;
+import org.eclipse.rdf4j.query.algebra.TupleExpr;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 public class StatementMetadataOptimizer extends AbstractExternalSetOptimizer<StatementMetadataNode<?>>implements Configurable {
 
     private StatementMetadataExternalSetMatcherFactory factory = new StatementMetadataExternalSetMatcherFactory();
-    private RdfCloudTripleStoreConfiguration conf;
+    private RdfTripleStoreConfiguration conf;
     public boolean init = false;
     public StatementMetadataExternalSetProvider provider;
 
     public StatementMetadataOptimizer() {}
     
-    public StatementMetadataOptimizer(RdfCloudTripleStoreConfiguration conf) {
+    public StatementMetadataOptimizer(RdfTripleStoreConfiguration conf) {
         setConf(conf);
     }
 
@@ -52,7 +47,7 @@ public class StatementMetadataOptimizer extends AbstractExternalSetOptimizer<Sta
         checkNotNull(conf);
         if (!init) {
             try {
-                this.conf = (RdfCloudTripleStoreConfiguration) conf;
+                this.conf = (RdfTripleStoreConfiguration) conf;
                 provider = new StatementMetadataExternalSetProvider(this.conf);
             } catch (Exception e) {
                 throw new RuntimeException(e);

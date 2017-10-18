@@ -18,8 +18,6 @@
  */
 package org.apache.rya.indexing.pcj.fluo.app.query;
 
-import static org.junit.Assert.assertEquals;
-
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
@@ -38,13 +36,15 @@ import org.apache.rya.indexing.pcj.fluo.app.query.AggregationMetadata.Aggregatio
 import org.apache.rya.indexing.pcj.fluo.app.query.JoinMetadata.JoinType;
 import org.apache.rya.indexing.pcj.storage.accumulo.VariableOrder;
 import org.apache.rya.pcj.fluo.test.base.RyaExportITBase;
+import org.eclipse.rdf4j.query.MalformedQueryException;
+import org.eclipse.rdf4j.query.algebra.StatementPattern;
+import org.eclipse.rdf4j.query.algebra.helpers.StatementPatternCollector;
+import org.eclipse.rdf4j.query.parser.ParsedQuery;
+import org.eclipse.rdf4j.query.parser.sparql.SPARQLParser;
+import org.eclipse.rdf4j.repository.RepositoryException;
 import org.junit.Test;
-import org.openrdf.query.MalformedQueryException;
-import org.openrdf.query.algebra.StatementPattern;
-import org.openrdf.query.algebra.helpers.StatementPatternCollector;
-import org.openrdf.query.parser.ParsedQuery;
-import org.openrdf.query.parser.sparql.SPARQLParser;
-import org.openrdf.repository.RepositoryException;
+
+import static org.junit.Assert.assertEquals;
 
 /**
  * Integration tests the methods of {@link FluoQueryMetadataDAO}.

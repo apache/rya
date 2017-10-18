@@ -24,51 +24,48 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import com.google.common.base.Optional;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
 import org.apache.accumulo.core.client.Connector;
 import org.apache.accumulo.core.client.TableNotFoundException;
 import org.apache.accumulo.core.client.admin.TableOperations;
 import org.apache.hadoop.conf.Configuration;
-import org.apache.rya.indexing.pcj.storage.PcjException;
-import org.apache.rya.indexing.pcj.storage.accumulo.PcjTableNameFactory;
-import org.apache.rya.indexing.pcj.storage.accumulo.PcjVarOrderFactory;
-import org.junit.After;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
-import org.openrdf.model.Statement;
-import org.openrdf.model.impl.LiteralImpl;
-import org.openrdf.model.impl.NumericLiteralImpl;
-import org.openrdf.model.impl.StatementImpl;
-import org.openrdf.model.impl.URIImpl;
-import org.openrdf.model.vocabulary.XMLSchema;
-import org.openrdf.query.BindingSet;
-import org.openrdf.query.MalformedQueryException;
-import org.openrdf.query.QueryEvaluationException;
-import org.openrdf.query.algebra.Projection;
-import org.openrdf.query.algebra.evaluation.QueryBindingSet;
-import org.openrdf.query.parser.ParsedQuery;
-import org.openrdf.query.parser.sparql.SPARQLParser;
-import org.openrdf.repository.RepositoryConnection;
-import org.openrdf.repository.RepositoryException;
-import org.openrdf.sail.SailException;
-
-import com.google.common.base.Optional;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
-
-import info.aduna.iteration.CloseableIteration;
 import org.apache.rya.accumulo.AccumuloRdfConfiguration;
-import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
+import org.apache.rya.api.RdfTripleStoreConfiguration;
 import org.apache.rya.api.persist.RyaDAOException;
 import org.apache.rya.api.resolver.RyaTypeResolverException;
 import org.apache.rya.indexing.accumulo.ConfigUtils;
 import org.apache.rya.indexing.external.PcjIntegrationTestingUtil;
 import org.apache.rya.indexing.pcj.matching.QueryVariableNormalizer;
+import org.apache.rya.indexing.pcj.storage.PcjException;
+import org.apache.rya.indexing.pcj.storage.accumulo.PcjTableNameFactory;
 import org.apache.rya.rdftriplestore.RyaSailRepository;
 import org.apache.rya.rdftriplestore.inference.InferenceEngineException;
 import org.apache.rya.sail.config.RyaSailFactory;
+import org.eclipse.rdf4j.common.iteration.CloseableIteration;
+import org.eclipse.rdf4j.model.Statement;
+import org.eclipse.rdf4j.model.impl.LiteralImpl;
+import org.eclipse.rdf4j.model.impl.NumericLiteralImpl;
+import org.eclipse.rdf4j.model.impl.StatementImpl;
+import org.eclipse.rdf4j.model.impl.URIImpl;
+import org.eclipse.rdf4j.model.vocabulary.XMLSchema;
+import org.eclipse.rdf4j.query.BindingSet;
+import org.eclipse.rdf4j.query.MalformedQueryException;
+import org.eclipse.rdf4j.query.QueryEvaluationException;
+import org.eclipse.rdf4j.query.algebra.Projection;
+import org.eclipse.rdf4j.query.algebra.evaluation.QueryBindingSet;
+import org.eclipse.rdf4j.query.parser.ParsedQuery;
+import org.eclipse.rdf4j.query.parser.sparql.SPARQLParser;
+import org.eclipse.rdf4j.repository.RepositoryConnection;
+import org.eclipse.rdf4j.repository.RepositoryException;
+import org.eclipse.rdf4j.sail.SailException;
+import org.junit.After;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Test;
 
 public class AccumuloIndexSetTest {
 
@@ -128,7 +125,7 @@ public class AccumuloIndexSetTest {
 
         final String pcjTableName = new PcjTableNameFactory().makeTableName(prefix, "testPcj");
         // Create and populate the PCJ table.
-        PcjIntegrationTestingUtil.createAndPopulatePcj(ryaConn, accumuloConn, pcjTableName, sparql, new String[]{"name", "age"}, Optional.<PcjVarOrderFactory>absent());
+        PcjIntegrationTestingUtil.createAndPopulatePcj(ryaConn, accumuloConn, pcjTableName, sparql, new String[]{"name", "age"}, Optional.absent());
 
         final AccumuloIndexSet ais = new AccumuloIndexSet(conf, pcjTableName);
 
@@ -150,7 +147,7 @@ public class AccumuloIndexSetTest {
         charlie.addBinding("name", new URIImpl("http://Charlie"));
         charlie.addBinding("age", new NumericLiteralImpl(12, XMLSchema.INTEGER));
 
-        final Set<BindingSet> expectedResults = Sets.<BindingSet>newHashSet(alice, bob, charlie);
+        final Set<BindingSet> expectedResults = Sets.newHashSet(alice, bob, charlie);
         Assert.assertEquals(expectedResults, fetchedResults);
     }
 
@@ -192,7 +189,7 @@ public class AccumuloIndexSetTest {
         final String pcjTableName = new PcjTableNameFactory().makeTableName(prefix, "testPcj");
 
         // Create and populate the PCJ table.
-        PcjIntegrationTestingUtil.createAndPopulatePcj(ryaConn, accumuloConn, pcjTableName, sparql, new String[]{"name", "age"}, Optional.<PcjVarOrderFactory>absent());
+        PcjIntegrationTestingUtil.createAndPopulatePcj(ryaConn, accumuloConn, pcjTableName, sparql, new String[]{"name", "age"}, Optional.absent());
 
         final AccumuloIndexSet ais = new AccumuloIndexSet(conf, pcjTableName);
 
@@ -236,7 +233,7 @@ public class AccumuloIndexSetTest {
         final String pcjTableName = new PcjTableNameFactory().makeTableName(prefix, "testPcj");
 
         // Create and populate the PCJ table.
-        PcjIntegrationTestingUtil.createAndPopulatePcj(ryaConn, accumuloConn, pcjTableName, sparql, new String[]{"name", "age"}, Optional.<PcjVarOrderFactory>absent());
+        PcjIntegrationTestingUtil.createAndPopulatePcj(ryaConn, accumuloConn, pcjTableName, sparql, new String[]{"name", "age"}, Optional.absent());
 
         final AccumuloIndexSet ais = new AccumuloIndexSet(conf, pcjTableName);
 
@@ -248,7 +245,7 @@ public class AccumuloIndexSetTest {
         bs2.addBinding("birthDate",new LiteralImpl("1983-04-18",new URIImpl("http://www.w3.org/2001/XMLSchema#date")));
         bs2.addBinding("name",new URIImpl("http://Bob"));
 
-        final Set<BindingSet> bSets = Sets.<BindingSet>newHashSet(bs,bs2);
+        final Set<BindingSet> bSets = Sets.newHashSet(bs,bs2);
 
         final CloseableIteration<BindingSet, QueryEvaluationException> results = ais.evaluate(bSets);
 
@@ -302,7 +299,7 @@ public class AccumuloIndexSetTest {
         final String pcjTableName = new PcjTableNameFactory().makeTableName(prefix, "testPcj");
 
         // Create and populate the PCJ table.
-        PcjIntegrationTestingUtil.createAndPopulatePcj(ryaConn, accumuloConn, pcjTableName, sparql, new String[]{"name", "age"}, Optional.<PcjVarOrderFactory>absent());
+        PcjIntegrationTestingUtil.createAndPopulatePcj(ryaConn, accumuloConn, pcjTableName, sparql, new String[]{"name", "age"}, Optional.absent());
 
         final AccumuloIndexSet ais = new AccumuloIndexSet(conf, pcjTableName);
 
@@ -342,7 +339,7 @@ public class AccumuloIndexSetTest {
         final String pcjTableName = new PcjTableNameFactory().makeTableName(prefix, "testPcj");
 
         // Create and populate the PCJ table.
-        PcjIntegrationTestingUtil.createAndPopulatePcj(ryaConn, accumuloConn, pcjTableName, sparql, new String[]{"name", "age"}, Optional.<PcjVarOrderFactory>absent());
+        PcjIntegrationTestingUtil.createAndPopulatePcj(ryaConn, accumuloConn, pcjTableName, sparql, new String[]{"name", "age"}, Optional.absent());
 
         final AccumuloIndexSet ais = new AccumuloIndexSet(conf, pcjTableName);
 
@@ -405,7 +402,7 @@ public class AccumuloIndexSetTest {
         final String pcjTableName = new PcjTableNameFactory().makeTableName(prefix, "testPcj");
 
         // Create and populate the PCJ table.
-        PcjIntegrationTestingUtil.createAndPopulatePcj(ryaConn, accumuloConn, pcjTableName, sparql, new String[]{"name", "age"}, Optional.<PcjVarOrderFactory>absent());
+        PcjIntegrationTestingUtil.createAndPopulatePcj(ryaConn, accumuloConn, pcjTableName, sparql, new String[]{"name", "age"}, Optional.absent());
 
         final AccumuloIndexSet ais = new AccumuloIndexSet(conf, pcjTableName);
 
@@ -417,7 +414,7 @@ public class AccumuloIndexSetTest {
         bs2.addBinding("birthDate",new LiteralImpl("1983-04-18",new URIImpl("http://www.w3.org/2001/XMLSchema#date")));
         bs2.addBinding("location",new URIImpl("http://Georgia"));
 
-        final Set<BindingSet> bSets = Sets.<BindingSet>newHashSet(bs,bs2);
+        final Set<BindingSet> bSets = Sets.newHashSet(bs,bs2);
 
         final CloseableIteration<BindingSet, QueryEvaluationException> results = ais.evaluate(bSets);
 
@@ -491,7 +488,7 @@ public class AccumuloIndexSetTest {
         final String pcjTableName = new PcjTableNameFactory().makeTableName(prefix, "testPcj");
 
         // Create and populate the PCJ table.
-        PcjIntegrationTestingUtil.createAndPopulatePcj(ryaConn, accumuloConn, pcjTableName, sparql, new String[]{"name", "age"}, Optional.<PcjVarOrderFactory>absent());
+        PcjIntegrationTestingUtil.createAndPopulatePcj(ryaConn, accumuloConn, pcjTableName, sparql, new String[]{"name", "age"}, Optional.absent());
 
         final String sparql2 =
                 "SELECT ?x ?y " +
@@ -510,7 +507,7 @@ public class AccumuloIndexSetTest {
         final AccumuloIndexSet ais = new AccumuloIndexSet(conf, pcjTableName);
         ais.setProjectionExpr((Projection) pq.getTupleExpr());
         ais.setTableVarMap(map);
-        ais.setSupportedVariableOrderMap(Lists.<String>newArrayList("x;y","y;x"));
+        ais.setSupportedVariableOrderMap(Lists.newArrayList("x;y","y;x"));
 
         final QueryBindingSet bs = new QueryBindingSet();
         bs.addBinding("birthDate",new LiteralImpl("1983-03-17",new URIImpl("http://www.w3.org/2001/XMLSchema#date")));
@@ -520,7 +517,7 @@ public class AccumuloIndexSetTest {
         bs2.addBinding("birthDate",new LiteralImpl("1983-04-18",new URIImpl("http://www.w3.org/2001/XMLSchema#date")));
         bs2.addBinding("x",new URIImpl("http://Bob"));
 
-        final Set<BindingSet> bSets = Sets.<BindingSet>newHashSet(bs,bs2);
+        final Set<BindingSet> bSets = Sets.newHashSet(bs,bs2);
 
         final CloseableIteration<BindingSet, QueryEvaluationException> results = ais.evaluate(bSets);
 
@@ -573,7 +570,7 @@ public class AccumuloIndexSetTest {
         final String pcjTableName = new PcjTableNameFactory().makeTableName(prefix, "testPcj");
 
         // Create and populate the PCJ table.
-        PcjIntegrationTestingUtil.createAndPopulatePcj(ryaConn, accumuloConn, pcjTableName, sparql, new String[]{"name", "age"}, Optional.<PcjVarOrderFactory>absent());
+        PcjIntegrationTestingUtil.createAndPopulatePcj(ryaConn, accumuloConn, pcjTableName, sparql, new String[]{"name", "age"}, Optional.absent());
 
         final String sparql2 =
                 "SELECT ?x " +
@@ -597,7 +594,7 @@ public class AccumuloIndexSetTest {
         bs2.addBinding("birthDate",new LiteralImpl("1983-04-18",new URIImpl("http://www.w3.org/2001/XMLSchema#date")));
         bs2.addBinding("x",new URIImpl("http://Bob"));
 
-        final Set<BindingSet> bSets = Sets.<BindingSet>newHashSet(bs,bs2);
+        final Set<BindingSet> bSets = Sets.newHashSet(bs,bs2);
 
         final CloseableIteration<BindingSet, QueryEvaluationException> results = ais.evaluate(bSets);
 
@@ -634,7 +631,7 @@ public class AccumuloIndexSetTest {
         final String pcjTableName = new PcjTableNameFactory().makeTableName(prefix, "testPcj");
 
         // Create and populate the PCJ table.
-        PcjIntegrationTestingUtil.createAndPopulatePcj(ryaConn, accumuloConn, pcjTableName, sparql, new String[]{"name", "age"}, Optional.<PcjVarOrderFactory>absent());
+        PcjIntegrationTestingUtil.createAndPopulatePcj(ryaConn, accumuloConn, pcjTableName, sparql, new String[]{"name", "age"}, Optional.absent());
         final AccumuloIndexSet ais = new AccumuloIndexSet(conf,pcjTableName);
 
         final QueryBindingSet bs1 = new QueryBindingSet();
@@ -642,7 +639,7 @@ public class AccumuloIndexSetTest {
         final QueryBindingSet bs2 = new QueryBindingSet();
         bs2.addBinding("age",new NumericLiteralImpl(14, XMLSchema.INTEGER));
 
-        final Set<BindingSet> bSets = Sets.<BindingSet>newHashSet(bs1,bs2);
+        final Set<BindingSet> bSets = Sets.newHashSet(bs1,bs2);
 
         final CloseableIteration<BindingSet, QueryEvaluationException> results = ais.evaluate(bSets);
 
@@ -665,7 +662,7 @@ public class AccumuloIndexSetTest {
     private static Configuration getConf() {
         final AccumuloRdfConfiguration conf = new AccumuloRdfConfiguration();
         conf.setBoolean(ConfigUtils.USE_MOCK_INSTANCE, true);
-        conf.set(RdfCloudTripleStoreConfiguration.CONF_TBL_PREFIX, "rya_");
+        conf.set(RdfTripleStoreConfiguration.CONF_TBL_PREFIX, "rya_");
         conf.set(ConfigUtils.CLOUDBASE_USER, "root");
         conf.set(ConfigUtils.CLOUDBASE_PASSWORD, "");
         conf.set(ConfigUtils.CLOUDBASE_INSTANCE, "instance");

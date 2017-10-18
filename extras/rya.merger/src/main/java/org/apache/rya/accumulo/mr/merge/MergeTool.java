@@ -28,12 +28,10 @@ import java.util.List;
 import java.util.Map.Entry;
 import java.util.Set;
 
-import org.apache.accumulo.core.client.AccumuloException;
-import org.apache.accumulo.core.client.AccumuloSecurityException;
-import org.apache.accumulo.core.client.ClientConfiguration;
-import org.apache.accumulo.core.client.Connector;
-import org.apache.accumulo.core.client.IteratorSetting;
-import org.apache.accumulo.core.client.TableExistsException;
+import com.google.common.base.Joiner;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
+import org.apache.accumulo.core.client.*;
 import org.apache.accumulo.core.client.admin.SecurityOperations;
 import org.apache.accumulo.core.client.admin.TableOperations;
 import org.apache.accumulo.core.client.mapreduce.AbstractInputFormat;
@@ -57,11 +55,6 @@ import org.apache.hadoop.util.ToolRunner;
 import org.apache.log4j.BasicConfigurator;
 import org.apache.log4j.Logger;
 import org.apache.log4j.xml.DOMConfigurator;
-
-import com.google.common.base.Joiner;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
-
 import org.apache.rya.accumulo.AccumuloRdfConfiguration;
 import org.apache.rya.accumulo.mr.AccumuloHDFSFileInputFormat;
 import org.apache.rya.accumulo.mr.MRUtils;
@@ -69,9 +62,9 @@ import org.apache.rya.accumulo.mr.merge.mappers.MergeToolMapper;
 import org.apache.rya.accumulo.mr.merge.util.AccumuloRyaUtils;
 import org.apache.rya.accumulo.mr.merge.util.TimeUtils;
 import org.apache.rya.accumulo.mr.merge.util.ToolConfigUtils;
-import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
 import org.apache.rya.api.RdfCloudTripleStoreConstants;
 import org.apache.rya.api.RdfCloudTripleStoreUtils;
+import org.apache.rya.api.RdfTripleStoreConfiguration;
 import org.apache.rya.indexing.accumulo.ConfigUtils;
 
 /**
@@ -133,16 +126,16 @@ public class MergeTool extends AbstractDualInstanceAccumuloMRTool {
         .put(MRUtils.AC_INSTANCE_PROP, ImmutableList.of(ConfigUtils.CLOUDBASE_INSTANCE))
         .put(MRUtils.AC_USERNAME_PROP, ImmutableList.of(ConfigUtils.CLOUDBASE_USER))
         .put(MRUtils.AC_PWD_PROP, ImmutableList.of(ConfigUtils.CLOUDBASE_PASSWORD))
-        .put(MRUtils.AC_AUTH_PROP, ImmutableList.of(ConfigUtils.CLOUDBASE_AUTHS, RdfCloudTripleStoreConfiguration.CONF_QUERY_AUTH))
+        .put(MRUtils.AC_AUTH_PROP, ImmutableList.of(ConfigUtils.CLOUDBASE_AUTHS, RdfTripleStoreConfiguration.CONF_QUERY_AUTH))
         .put(MRUtils.AC_ZK_PROP, ImmutableList.of(ConfigUtils.CLOUDBASE_ZOOKEEPERS))
-        .put(MRUtils.TABLE_PREFIX_PROPERTY, ImmutableList.of(RdfCloudTripleStoreConfiguration.CONF_TBL_PREFIX))
+        .put(MRUtils.TABLE_PREFIX_PROPERTY, ImmutableList.of(RdfTripleStoreConfiguration.CONF_TBL_PREFIX))
         .put(MRUtils.AC_MOCK_PROP + CHILD_SUFFIX, ImmutableList.of(ConfigUtils.USE_MOCK_INSTANCE + CHILD_SUFFIX))
         .put(MRUtils.AC_INSTANCE_PROP + CHILD_SUFFIX, ImmutableList.of(ConfigUtils.CLOUDBASE_INSTANCE + CHILD_SUFFIX))
         .put(MRUtils.AC_USERNAME_PROP + CHILD_SUFFIX, ImmutableList.of(ConfigUtils.CLOUDBASE_USER + CHILD_SUFFIX))
         .put(MRUtils.AC_PWD_PROP + CHILD_SUFFIX, ImmutableList.of(ConfigUtils.CLOUDBASE_PASSWORD + CHILD_SUFFIX))
-        .put(MRUtils.AC_AUTH_PROP + CHILD_SUFFIX, ImmutableList.of(ConfigUtils.CLOUDBASE_AUTHS + CHILD_SUFFIX, RdfCloudTripleStoreConfiguration.CONF_QUERY_AUTH + CHILD_SUFFIX))
+        .put(MRUtils.AC_AUTH_PROP + CHILD_SUFFIX, ImmutableList.of(ConfigUtils.CLOUDBASE_AUTHS + CHILD_SUFFIX, RdfTripleStoreConfiguration.CONF_QUERY_AUTH + CHILD_SUFFIX))
         .put(MRUtils.AC_ZK_PROP + CHILD_SUFFIX, ImmutableList.of(ConfigUtils.CLOUDBASE_ZOOKEEPERS + CHILD_SUFFIX))
-        .put(MRUtils.TABLE_PREFIX_PROPERTY + CHILD_SUFFIX, ImmutableList.of(RdfCloudTripleStoreConfiguration.CONF_TBL_PREFIX + CHILD_SUFFIX))
+        .put(MRUtils.TABLE_PREFIX_PROPERTY + CHILD_SUFFIX, ImmutableList.of(RdfTripleStoreConfiguration.CONF_TBL_PREFIX + CHILD_SUFFIX))
         .build();
 
 
@@ -397,7 +390,7 @@ public class MergeTool extends AbstractDualInstanceAccumuloMRTool {
         copyParentPropToChild(config, MRUtils.AC_PWD_PROP);
         //copyParentPropToChild(config, MRUtils.TABLE_PREFIX_PROPERTY);
         //copyParentPropToChild(config, MRUtils.AC_AUTH_PROP);
-        //copyParentPropToChild(config, RdfCloudTripleStoreConfiguration.CONF_QUERY_AUTH);
+        //copyParentPropToChild(config, RdfTripleStoreConfiguration.CONF_QUERY_AUTH);
         copyParentPropToChild(config, MRUtils.AC_ZK_PROP);
 
         MergeTool.setDuplicateKeys(config);

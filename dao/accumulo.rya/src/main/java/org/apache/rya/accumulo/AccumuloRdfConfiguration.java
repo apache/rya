@@ -18,13 +18,11 @@
  */
 package org.apache.rya.accumulo;
 
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.Properties;
 
+import com.google.common.base.Preconditions;
+import com.google.common.collect.Lists;
 import org.apache.accumulo.core.client.Connector;
 import org.apache.accumulo.core.client.IteratorSetting;
 import org.apache.accumulo.core.security.Authorizations;
@@ -32,10 +30,7 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.rya.accumulo.experimental.AccumuloIndexer;
 import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
 
-import com.google.common.base.Preconditions;
-import com.google.common.collect.Lists;
-
-public class AccumuloRdfConfiguration extends RdfCloudTripleStoreConfiguration {
+public class AccumuloRdfConfiguration extends RdfCloudTripleStoreConfiguration   {
 
     public static final String USE_MOCK_INSTANCE = ".useMockInstance";
     public static final String CLOUDBASE_INSTANCE = "sc.cloudbase.instancename";

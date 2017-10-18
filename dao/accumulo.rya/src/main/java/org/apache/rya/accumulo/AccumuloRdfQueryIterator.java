@@ -23,7 +23,7 @@
 //import com.google.common.collect.Iterators;
 //import com.google.common.io.ByteArrayDataInput;
 //import com.google.common.io.ByteStreams;
-//import info.aduna.iteration.CloseableIteration;
+//import org.eclipse.rdf4j.common.iteration.CloseableIteration;
 //import org.apache.rya.api.RdfCloudTripleStoreConstants;
 //import org.apache.rya.api.RdfCloudTripleStoreUtils;
 //import org.apache.rya.api.persist.RdfDAOException;
@@ -35,11 +35,11 @@
 //import org.apache.accumulo.core.iterators.user.TimestampFilter;
 //import org.apache.accumulo.core.security.Authorizations;
 //import org.apache.hadoop.io.Text;
-//import org.openrdf.model.Resource;
-//import org.openrdf.model.Statement;
-//import org.openrdf.model.URI;
-//import org.openrdf.model.Value;
-//import org.openrdf.query.BindingSet;
+//import  org.eclipse.rdf4j.model.Resource;
+//import  org.eclipse.rdf4j.model.Statement;
+//import  org.eclipse.rdf4j.model.URI;
+//import  org.eclipse.rdf4j.model.Value;
+//import  org.eclipse.rdf4j.query.BindingSet;
 //import org.slf4j.Logger;
 //import org.slf4j.LoggerFactory;
 //

@@ -18,19 +18,19 @@
  */
 package org.apache.rya.indexing.pcj.storage.accumulo;
 
-import static org.junit.Assert.assertEquals;
-
 import java.math.BigDecimal;
 import java.math.BigInteger;
 
 import org.apache.rya.indexing.pcj.storage.accumulo.BindingSetConverter.BindingSetConversionException;
+import org.eclipse.rdf4j.model.impl.BooleanLiteralImpl;
+import org.eclipse.rdf4j.model.impl.DecimalLiteralImpl;
+import org.eclipse.rdf4j.model.impl.IntegerLiteralImpl;
+import org.eclipse.rdf4j.model.impl.URIImpl;
+import org.eclipse.rdf4j.query.BindingSet;
+import org.eclipse.rdf4j.query.impl.MapBindingSet;
 import org.junit.Test;
-import org.openrdf.model.impl.BooleanLiteralImpl;
-import org.openrdf.model.impl.DecimalLiteralImpl;
-import org.openrdf.model.impl.IntegerLiteralImpl;
-import org.openrdf.model.impl.URIImpl;
-import org.openrdf.query.BindingSet;
-import org.openrdf.query.impl.MapBindingSet;
+
+import static org.junit.Assert.assertEquals;
 
 /**
  * Tests the methods of {@link BindingSetStringConverter}.

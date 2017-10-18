@@ -17,30 +17,27 @@
  * under the License.
  */
 package org.apache.rya.shell;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Paths;
 
+import com.google.common.base.Optional;
 import org.apache.commons.io.FileUtils;
 import org.apache.rya.api.client.ExecuteSparqlQuery;
-import org.apache.rya.api.client.InstanceDoesNotExistException;
 import org.apache.rya.api.client.LoadStatementsFile;
 import org.apache.rya.api.client.RyaClient;
 import org.apache.rya.api.client.RyaClientException;
 import org.apache.rya.api.client.accumulo.AccumuloConnectionDetails;
 import org.apache.rya.shell.util.ConsolePrinter;
 import org.apache.rya.shell.util.SparqlPrompt;
+import org.eclipse.rdf4j.rio.RDFFormat;
 import org.junit.Test;
-import org.openrdf.rio.RDFFormat;
 
-import com.google.common.base.Optional;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.*;
 
 /**
  * Unit tests the methods of {@link RyaAdminCommands}.
@@ -48,7 +45,7 @@ import com.google.common.base.Optional;
 public class RyaCommandsTest {
 
     @Test
-    public void testLoadData() throws InstanceDoesNotExistException, RyaClientException, IOException {
+    public void testLoadData() throws RyaClientException, IOException {
         // Mock the object that performs the create operation.
         final String instanceName = "unitTest";
         final String statementsFile = "/path/to/statements.nt";
@@ -79,7 +76,7 @@ public class RyaCommandsTest {
     }
 
     @Test
-    public void testLoadData_specifyFormat() throws InstanceDoesNotExistException, RyaClientException, IOException {
+    public void testLoadData_specifyFormat() throws RyaClientException, IOException {
         // Mock the object that performs the create operation.
         final String instanceName = "unitTest";
         final String statementsFile = "/path/to/statements.nt";
@@ -110,7 +107,7 @@ public class RyaCommandsTest {
     }
 
     @Test(expected = RuntimeException.class)
-    public void testLoadData_specifyInvalidFormat() throws InstanceDoesNotExistException, RyaClientException, IOException {
+    public void testLoadData_specifyInvalidFormat() throws RyaClientException, IOException {
         // Mock the object that performs the create operation.
         final String instanceName = "unitTest";
         final String statementsFile = "/path/to/statements.nt";
@@ -135,7 +132,7 @@ public class RyaCommandsTest {
     }
 
     @Test(expected = RuntimeException.class)
-    public void testLoadData_specifyInvalidFilenameFormat() throws InstanceDoesNotExistException, RyaClientException, IOException {
+    public void testLoadData_specifyInvalidFilenameFormat() throws RyaClientException, IOException {
         // Mock the object that performs the create operation.
         final String instanceName = "unitTest";
         final String statementsFile = "/path/to/statements.invalidFormat";
@@ -160,7 +157,7 @@ public class RyaCommandsTest {
     }
 
     @Test
-    public void testSparqlQuery() throws InstanceDoesNotExistException, RyaClientException, IOException {
+    public void testSparqlQuery() throws RyaClientException, IOException {
         // Mock the object that performs the create operation.
         final String instanceName = "unitTest";
         final String queryFile = "src/test/resources/Query1.sparql";
@@ -194,7 +191,7 @@ public class RyaCommandsTest {
     }
 
     @Test(expected = RuntimeException.class)
-    public void testSparqlQuery_nonexistentFile() throws InstanceDoesNotExistException, RyaClientException, IOException {
+    public void testSparqlQuery_nonexistentFile() throws RyaClientException, IOException {
         // Mock the object that performs the create operation.
         final String instanceName = "unitTest";
         final String queryFile = "src/test/resources/Nonexistent.sparql";
@@ -215,7 +212,7 @@ public class RyaCommandsTest {
     }
 
     @Test
-    public void testSparqlQuery_fromPrompt() throws InstanceDoesNotExistException, RyaClientException, IOException {
+    public void testSparqlQuery_fromPrompt() throws RyaClientException, IOException {
         // Mock the object that performs the create operation.
         final String instanceName = "unitTest";
         final String queryContent = "SELECT * WHERE { ?person <http://isA> ?noun }";
@@ -250,7 +247,7 @@ public class RyaCommandsTest {
     }
 
     @Test
-    public void testSparqlQuery_fromPrompt_cancelled() throws InstanceDoesNotExistException, RyaClientException, IOException {
+    public void testSparqlQuery_fromPrompt_cancelled() throws RyaClientException, IOException {
         // Mock the object that performs the create operation.
         final String instanceName = "unitTest";
         final String queryFile = null;

@@ -21,13 +21,6 @@ package org.apache.rya.reasoning.mr;
 
 import java.io.IOException;
 
-import org.apache.rya.accumulo.mr.RyaStatementWritable;
-import org.apache.rya.accumulo.mr.RdfFileInputFormat;
-import org.apache.rya.accumulo.mr.MRUtils;
-import org.apache.rya.reasoning.Derivation;
-import org.apache.rya.reasoning.Fact;
-import org.apache.rya.reasoning.Schema;
-
 import org.apache.accumulo.core.client.AccumuloSecurityException;
 import org.apache.accumulo.core.client.mapreduce.AccumuloInputFormat;
 import org.apache.accumulo.core.data.Key;
@@ -41,11 +34,7 @@ import org.apache.hadoop.fs.PathFilter;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.io.Text;
-import org.apache.hadoop.mapreduce.Job;
-import org.apache.hadoop.mapreduce.JobID;
-import org.apache.hadoop.mapreduce.Mapper;
-import org.apache.hadoop.mapreduce.TaskAttemptContext;
-import org.apache.hadoop.mapreduce.TaskCounter;
+import org.apache.hadoop.mapreduce.*;
 import org.apache.hadoop.mapreduce.lib.input.CombineSequenceFileInputFormat;
 import org.apache.hadoop.mapreduce.lib.input.MultipleInputs;
 import org.apache.hadoop.mapreduce.lib.output.LazyOutputFormat;
@@ -53,7 +42,13 @@ import org.apache.hadoop.mapreduce.lib.output.MultipleOutputs;
 import org.apache.hadoop.mapreduce.lib.output.SequenceFileOutputFormat;
 import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
 import org.apache.hadoop.util.Tool;
-import org.openrdf.rio.RDFFormat;
+import org.apache.rya.accumulo.mr.MRUtils;
+import org.apache.rya.accumulo.mr.RdfFileInputFormat;
+import org.apache.rya.accumulo.mr.RyaStatementWritable;
+import org.apache.rya.reasoning.Derivation;
+import org.apache.rya.reasoning.Fact;
+import org.apache.rya.reasoning.Schema;
+import org.eclipse.rdf4j.rio.RDFFormat;
 
 /**
  * Contains common functionality for MapReduce jobs involved in reasoning. A
@@ -62,7 +57,7 @@ import org.openrdf.rio.RDFFormat;
  */
 abstract public class AbstractReasoningTool extends Configured implements Tool {
     // Keep track of statistics about the input
-    protected static enum COUNTERS { ABOX, TBOX, USEFUL };
+    protected enum COUNTERS { ABOX, TBOX, USEFUL }
 
     // MapReduce job, to be configured by subclasses
     protected Job job;

@@ -19,26 +19,16 @@ package org.apache.rya.accumulo.pcj.iterators;
  * under the License.
  */
 
-import info.aduna.iteration.CloseableIteration;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.NoSuchElementException;
-import java.util.Set;
-
-import org.apache.rya.indexing.external.tupleSet.ExternalTupleSet;
-
-import org.openrdf.query.BindingSet;
-import org.openrdf.query.QueryEvaluationException;
-import org.openrdf.query.algebra.evaluation.QueryBindingSet;
 
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
+import org.apache.rya.indexing.external.tupleSet.ExternalTupleSet;
+import org.eclipse.rdf4j.common.iteration.CloseableIteration;
+import org.eclipse.rdf4j.query.BindingSet;
+import org.eclipse.rdf4j.query.QueryEvaluationException;
+import org.eclipse.rdf4j.query.algebra.evaluation.QueryBindingSet;
 
 /**
  * This {@link CloseableIteration} performs a hash join by joining each
@@ -74,9 +64,9 @@ public class BindingSetHashJoinIterator implements
 	 */
 	public enum HashJoinType {
 		CONSTANT_JOIN_VAR, VARIABLE_JOIN_VAR
-	};
+	}
 
-	public BindingSetHashJoinIterator(
+    public BindingSetHashJoinIterator(
 			Multimap<String, BindingSet> bindingJoinVarHash,
 			CloseableIteration<Map.Entry<String, BindingSet>, QueryEvaluationException> joinIter,
 			Set<String> unAssuredVariables, HashJoinType type) {
@@ -104,11 +94,8 @@ public class BindingSetHashJoinIterator implements
 
 			isEmpty = true;
 			return false;
-		} else if (isEmpty) {
-			return false;
-		} else {
-			return true;
-		}
+		} else
+            return !isEmpty;
 	}
 
 	@Override
@@ -291,11 +278,8 @@ public class BindingSetHashJoinIterator implements
 				}
 				isEmpty = true;
 				return false;
-			} else if (isEmpty) {
-				return false;
-			} else {
-				return true;
-			}
+			} else
+                return !isEmpty;
 		}
 
 		@Override

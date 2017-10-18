@@ -22,9 +22,9 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.rya.api.persist.index.RyaSecondaryIndexer;
 import org.apache.rya.indexing.GeoConstants;
 import org.apache.rya.indexing.geotemporal.storage.EventStorage;
-import org.openrdf.model.Statement;
-import org.openrdf.model.URI;
-import org.openrdf.model.impl.URIImpl;
+import  org.eclipse.rdf4j.model.Statement;
+import  org.eclipse.rdf4j.model.URI;
+import  org.eclipse.rdf4j.model.impl.URIImpl;
 
 /**
  * A repository to store, index, and retrieve {@link Statement}s based on geotemporal features.

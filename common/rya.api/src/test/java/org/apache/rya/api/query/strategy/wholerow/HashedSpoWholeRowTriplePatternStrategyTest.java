@@ -21,23 +21,19 @@ package org.apache.rya.api.query.strategy.wholerow;
 
 
 //
+
 import java.util.Map;
 
 import junit.framework.TestCase;
+import org.apache.hadoop.io.Text;
 import org.apache.rya.api.RdfCloudTripleStoreConstants;
-import org.apache.rya.api.domain.RyaStatement;
-import org.apache.rya.api.domain.RyaType;
-import org.apache.rya.api.domain.RyaTypeRange;
-import org.apache.rya.api.domain.RyaURI;
-import org.apache.rya.api.domain.RyaURIRange;
+import org.apache.rya.api.domain.*;
 import org.apache.rya.api.query.strategy.ByteRange;
 import org.apache.rya.api.resolver.RyaContext;
 import org.apache.rya.api.resolver.RyaTripleContext;
 import org.apache.rya.api.resolver.triple.TripleRow;
-
-import org.apache.hadoop.io.Text;
+import org.eclipse.rdf4j.model.impl.URIImpl;
 import org.junit.Before;
-import org.openrdf.model.impl.URIImpl;
 
 /**
  * Date: 7/14/12
@@ -61,8 +57,8 @@ public class HashedSpoWholeRowTriplePatternStrategyTest extends TestCase {
 
     @Before
     public void setUp() {
-    	MockRdfCloudConfiguration config = new MockRdfCloudConfiguration();
-    	config.set(MockRdfCloudConfiguration.CONF_PREFIX_ROW_WITH_HASH, Boolean.TRUE.toString());
+    	MockRdfConfiguration config = new MockRdfConfiguration();
+    	config.set(MockRdfConfiguration.CONF_PREFIX_ROW_WITH_HASH, Boolean.TRUE.toString());
     	ryaTripleContext = RyaTripleContext.getInstance(config);
     }
     

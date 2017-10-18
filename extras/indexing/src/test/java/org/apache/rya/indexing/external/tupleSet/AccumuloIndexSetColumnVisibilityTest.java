@@ -19,20 +19,15 @@
 
 package org.apache.rya.indexing.external.tupleSet;
 
-import static org.junit.Assert.assertEquals;
-
 import java.io.File;
 import java.io.IOException;
-import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 
-import org.apache.accumulo.core.client.AccumuloException;
-import org.apache.accumulo.core.client.AccumuloSecurityException;
-import org.apache.accumulo.core.client.Connector;
-import org.apache.accumulo.core.client.Instance;
-import org.apache.accumulo.core.client.TableNotFoundException;
-import org.apache.accumulo.core.client.ZooKeeperInstance;
+import com.google.common.base.Optional;
+import com.google.common.collect.Sets;
+import com.google.common.io.Files;
+import org.apache.accumulo.core.client.*;
 import org.apache.accumulo.core.client.security.tokens.PasswordToken;
 import org.apache.accumulo.core.security.Authorizations;
 import org.apache.accumulo.minicluster.MiniAccumuloCluster;
@@ -40,38 +35,29 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.log4j.Logger;
 import org.apache.rya.accumulo.AccumuloRdfConfiguration;
 import org.apache.rya.accumulo.instance.AccumuloRyaInstanceDetailsRepository;
-import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
+import org.apache.rya.api.RdfTripleStoreConfiguration;
 import org.apache.rya.api.instance.RyaDetails;
-import org.apache.rya.api.instance.RyaDetails.EntityCentricIndexDetails;
-import org.apache.rya.api.instance.RyaDetails.FreeTextIndexDetails;
-import org.apache.rya.api.instance.RyaDetails.JoinSelectivityDetails;
-import org.apache.rya.api.instance.RyaDetails.PCJIndexDetails;
-import org.apache.rya.api.instance.RyaDetails.ProspectorDetails;
-import org.apache.rya.api.instance.RyaDetails.TemporalIndexDetails;
+import org.apache.rya.api.instance.RyaDetails.*;
 import org.apache.rya.api.instance.RyaDetailsRepository;
-import org.apache.rya.api.instance.RyaDetailsRepository.AlreadyInitializedException;
 import org.apache.rya.api.instance.RyaDetailsRepository.RyaDetailsRepositoryException;
 import org.apache.rya.indexing.accumulo.ConfigUtils;
 import org.apache.rya.indexing.pcj.storage.PrecomputedJoinStorage.PCJStorageException;
 import org.apache.rya.indexing.pcj.storage.accumulo.AccumuloPcjStorage;
 import org.apache.rya.indexing.pcj.storage.accumulo.PcjTableNameFactory;
 import org.apache.rya.indexing.pcj.storage.accumulo.VisibilityBindingSet;
+import org.eclipse.rdf4j.common.iteration.CloseableIteration;
+import org.eclipse.rdf4j.model.impl.NumericLiteralImpl;
+import org.eclipse.rdf4j.model.impl.URIImpl;
+import org.eclipse.rdf4j.model.vocabulary.XMLSchema;
+import org.eclipse.rdf4j.query.BindingSet;
+import org.eclipse.rdf4j.query.QueryEvaluationException;
+import org.eclipse.rdf4j.query.algebra.evaluation.QueryBindingSet;
+import org.eclipse.rdf4j.repository.RepositoryException;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.openrdf.model.impl.NumericLiteralImpl;
-import org.openrdf.model.impl.URIImpl;
-import org.openrdf.model.vocabulary.XMLSchema;
-import org.openrdf.query.BindingSet;
-import org.openrdf.query.QueryEvaluationException;
-import org.openrdf.query.algebra.evaluation.QueryBindingSet;
-import org.openrdf.repository.RepositoryException;
 
-import com.google.common.base.Optional;
-import com.google.common.collect.Sets;
-import com.google.common.io.Files;
-
-import info.aduna.iteration.CloseableIteration;
+import static org.junit.Assert.assertEquals;
 
 /**
  * Tests the evaluation of {@link AccumuloIndexSet}.
@@ -96,7 +82,8 @@ public class AccumuloIndexSetColumnVisibilityTest {
     private static QueryBindingSet pcjBs2;
 
     @BeforeClass
-    public static void init() throws AccumuloException, AccumuloSecurityException, PCJStorageException, IOException, InterruptedException, TableNotFoundException, AlreadyInitializedException, RyaDetailsRepositoryException {
+    public static void init() throws AccumuloException, AccumuloSecurityException, PCJStorageException, IOException, InterruptedException, TableNotFoundException,
+            RyaDetailsRepositoryException {
         // Setup the mini accumulo instance used by the test.
         accumulo = startMiniAccumulo();
         accumulo.getZooKeepers();
@@ -165,7 +152,7 @@ public class AccumuloIndexSetColumnVisibilityTest {
         return accumulo;
     }
 
-    private static void initRyaDetails() throws AlreadyInitializedException, RyaDetailsRepositoryException {
+    private static void initRyaDetails() throws RyaDetailsRepositoryException {
         // Initialize the Rya Details for the instance.
         final RyaDetailsRepository detailsRepo = new AccumuloRyaInstanceDetailsRepository(accCon, ryaInstanceName);
 
@@ -179,8 +166,8 @@ public class AccumuloIndexSetColumnVisibilityTest {
                 .setPCJIndexDetails(
                         PCJIndexDetails.builder()
                             .setEnabled(true) )
-                .setJoinSelectivityDetails( new JoinSelectivityDetails( Optional.<Date>absent() ) )
-                .setProspectorDetails( new ProspectorDetails( Optional.<Date>absent() ))
+                .setJoinSelectivityDetails( new JoinSelectivityDetails( Optional.absent() ) )
+                .setProspectorDetails( new ProspectorDetails( Optional.absent() ))
                 .build();
 
         detailsRepo.initialize(details);
@@ -188,12 +175,12 @@ public class AccumuloIndexSetColumnVisibilityTest {
 
     private static Configuration getConf() {
         final AccumuloRdfConfiguration conf = new AccumuloRdfConfiguration();
-        conf.set(RdfCloudTripleStoreConfiguration.CONF_TBL_PREFIX, ryaInstanceName);
+        conf.set(RdfTripleStoreConfiguration.CONF_TBL_PREFIX, ryaInstanceName);
         conf.set(ConfigUtils.CLOUDBASE_USER, "root");
         conf.set(ConfigUtils.CLOUDBASE_PASSWORD, "password");
         conf.set(ConfigUtils.CLOUDBASE_INSTANCE, instance);
         conf.set(ConfigUtils.CLOUDBASE_ZOOKEEPERS, zooKeepers);
-        conf.set(RdfCloudTripleStoreConfiguration.CONF_QUERY_AUTH, "U,USA");
+        conf.set(RdfTripleStoreConfiguration.CONF_QUERY_AUTH, "U,USA");
         return conf;
     }
 
@@ -209,7 +196,7 @@ public class AccumuloIndexSetColumnVisibilityTest {
         final QueryBindingSet bs2 = new QueryBindingSet();
         bs2.addBinding("name", new URIImpl("http://Bob"));
 
-        final Set<BindingSet> bSets = Sets.<BindingSet> newHashSet(bs, bs2);
+        final Set<BindingSet> bSets = Sets.newHashSet(bs, bs2);
         final CloseableIteration<BindingSet, QueryEvaluationException> results = ais.evaluate(bSets);
 
         final Set<BindingSet> fetchedResults = new HashSet<>();
@@ -218,7 +205,7 @@ public class AccumuloIndexSetColumnVisibilityTest {
             fetchedResults.add(next);
         }
 
-        final Set<BindingSet> expected = Sets.<BindingSet>newHashSet(pcjBs1, pcjBs2);
+        final Set<BindingSet> expected = Sets.newHashSet(pcjBs1, pcjBs2);
         assertEquals(expected, fetchedResults);
     }
 
@@ -234,7 +221,7 @@ public class AccumuloIndexSetColumnVisibilityTest {
         final QueryBindingSet bs2 = new QueryBindingSet();
         bs2.addBinding("age", new NumericLiteralImpl(14, XMLSchema.INTEGER));
 
-        final Set<BindingSet> bSets = Sets.<BindingSet> newHashSet(bs1, bs2);
+        final Set<BindingSet> bSets = Sets.newHashSet(bs1, bs2);
         final CloseableIteration<BindingSet, QueryEvaluationException> results = ais.evaluate(bSets);
 
         final Set<BindingSet> fetchedResults = new HashSet<>();
@@ -243,7 +230,7 @@ public class AccumuloIndexSetColumnVisibilityTest {
             fetchedResults.add(next);
         }
 
-        final Set<BindingSet> expected = Sets.<BindingSet>newHashSet(pcjBs1, pcjBs2);
+        final Set<BindingSet> expected = Sets.newHashSet(pcjBs1, pcjBs2);
         assertEquals(expected, fetchedResults);
     }
 }

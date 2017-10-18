@@ -18,12 +18,10 @@
  */
 package org.apache.rya.api.client.accumulo;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-
 import java.util.List;
 import java.util.Set;
 
+import com.google.common.collect.Sets;
 import org.apache.rya.api.client.CreatePCJ;
 import org.apache.rya.api.client.DeletePCJ;
 import org.apache.rya.api.client.InstanceDoesNotExistException;
@@ -32,13 +30,14 @@ import org.apache.rya.indexing.pcj.fluo.api.ListQueryIds;
 import org.apache.rya.indexing.pcj.storage.PrecomputedJoinStorage;
 import org.apache.rya.indexing.pcj.storage.PrecomputedJoinStorage.PCJStorageException;
 import org.apache.rya.indexing.pcj.storage.accumulo.AccumuloPcjStorage;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.query.BindingSet;
+import org.eclipse.rdf4j.query.impl.MapBindingSet;
+import org.eclipse.rdf4j.repository.RepositoryException;
 import org.junit.Test;
-import org.openrdf.model.ValueFactory;
-import org.openrdf.query.BindingSet;
-import org.openrdf.query.impl.MapBindingSet;
-import org.openrdf.repository.RepositoryException;
 
-import com.google.common.collect.Sets;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 /**
  * Integration tests the methods of {@link AccumuloCreatePCJ}.
@@ -46,7 +45,7 @@ import com.google.common.collect.Sets;
 public class AccumuloDeletePCJIT extends FluoITBase {
 
     @Test
-    public void deletePCJ() throws InstanceDoesNotExistException, RyaClientException, PCJStorageException, RepositoryException {
+    public void deletePCJ() throws RyaClientException, PCJStorageException, RepositoryException {
         // Initialize the commands that will be used by this test.
         final CreatePCJ createPCJ = new AccumuloCreatePCJ(createConnectionDetails(), accumuloConn);
 
@@ -65,16 +64,16 @@ public class AccumuloDeletePCJIT extends FluoITBase {
 
         // Insert some statements into Rya.
         final ValueFactory vf = ryaRepo.getValueFactory();
-        ryaConn.add(vf.createURI("http://Alice"), vf.createURI("http://talksTo"), vf.createURI("http://Eve"));
-        ryaConn.add(vf.createURI("http://Bob"), vf.createURI("http://talksTo"), vf.createURI("http://Eve"));
-        ryaConn.add(vf.createURI("http://Charlie"), vf.createURI("http://talksTo"), vf.createURI("http://Eve"));
+        ryaConn.add(vf.createIRI("http://Alice"), vf.createIRI("http://talksTo"), vf.createIRI("http://Eve"));
+        ryaConn.add(vf.createIRI("http://Bob"), vf.createIRI("http://talksTo"), vf.createIRI("http://Eve"));
+        ryaConn.add(vf.createIRI("http://Charlie"), vf.createIRI("http://talksTo"), vf.createIRI("http://Eve"));
 
-        ryaConn.add(vf.createURI("http://Eve"), vf.createURI("http://helps"), vf.createURI("http://Kevin"));
+        ryaConn.add(vf.createIRI("http://Eve"), vf.createIRI("http://helps"), vf.createIRI("http://Kevin"));
 
-        ryaConn.add(vf.createURI("http://Bob"), vf.createURI("http://worksAt"), vf.createURI("http://TacoJoint"));
-        ryaConn.add(vf.createURI("http://Charlie"), vf.createURI("http://worksAt"), vf.createURI("http://TacoJoint"));
-        ryaConn.add(vf.createURI("http://Eve"), vf.createURI("http://worksAt"), vf.createURI("http://TacoJoint"));
-        ryaConn.add(vf.createURI("http://David"), vf.createURI("http://worksAt"), vf.createURI("http://TacoJoint"));
+        ryaConn.add(vf.createIRI("http://Bob"), vf.createIRI("http://worksAt"), vf.createIRI("http://TacoJoint"));
+        ryaConn.add(vf.createIRI("http://Charlie"), vf.createIRI("http://worksAt"), vf.createIRI("http://TacoJoint"));
+        ryaConn.add(vf.createIRI("http://Eve"), vf.createIRI("http://worksAt"), vf.createIRI("http://TacoJoint"));
+        ryaConn.add(vf.createIRI("http://David"), vf.createIRI("http://worksAt"), vf.createIRI("http://TacoJoint"));
 
         // Verify the correct results were exported.
         fluo.waitForObservers();
@@ -84,12 +83,12 @@ public class AccumuloDeletePCJIT extends FluoITBase {
             final Set<BindingSet> results = Sets.newHashSet( pcjStorage.listResults(pcjId) );
 
             final MapBindingSet bob = new MapBindingSet();
-            bob.addBinding("x", vf.createURI("http://Bob"));
+            bob.addBinding("x", vf.createIRI("http://Bob"));
 
             final MapBindingSet charlie = new MapBindingSet();
-            charlie.addBinding("x", vf.createURI("http://Charlie"));
+            charlie.addBinding("x", vf.createIRI("http://Charlie"));
 
-            final Set<BindingSet> expected = Sets.<BindingSet>newHashSet(bob, charlie);
+            final Set<BindingSet> expected = Sets.newHashSet(bob, charlie);
             assertEquals(expected, results);
 
 
@@ -110,14 +109,14 @@ public class AccumuloDeletePCJIT extends FluoITBase {
     }
 
     @Test(expected = InstanceDoesNotExistException.class)
-    public void deletePCJ_instanceDoesNotExist() throws InstanceDoesNotExistException, RyaClientException {
+    public void deletePCJ_instanceDoesNotExist() throws RyaClientException {
         // Delete a PCJ for a Rya instance that doesn't exist.
         final DeletePCJ deletePCJ = new AccumuloDeletePCJ(createConnectionDetails(), accumuloConn);
         deletePCJ.deletePCJ("doesNotExist", "randomID");
     }
 
     @Test(expected = RyaClientException.class)
-    public void deletePCJ_pcjDoesNotExist() throws InstanceDoesNotExistException, RyaClientException {
+    public void deletePCJ_pcjDoesNotExist() throws RyaClientException {
         // Delete the PCJ.
         final DeletePCJ deletePCJ = new AccumuloDeletePCJ(createConnectionDetails(), accumuloConn);
         deletePCJ.deletePCJ(getRyaInstanceName(), "randomID");

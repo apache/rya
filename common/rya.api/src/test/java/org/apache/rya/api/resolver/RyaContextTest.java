@@ -19,8 +19,6 @@ package org.apache.rya.api.resolver;
  * under the License.
  */
 
-
-
 import java.util.Map;
 
 import junit.framework.TestCase;
@@ -28,11 +26,9 @@ import org.apache.rya.api.RdfCloudTripleStoreConstants.TABLE_LAYOUT;
 import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.domain.RyaType;
 import org.apache.rya.api.domain.RyaURI;
-import org.apache.rya.api.query.strategy.AbstractTriplePatternStrategyTest.MockRdfConfiguration;
-import org.apache.rya.api.query.strategy.wholerow.MockRdfCloudConfiguration;
+import org.apache.rya.api.query.strategy.wholerow.MockRdfConfiguration;
 import org.apache.rya.api.resolver.triple.TripleRow;
-
-import org.openrdf.model.impl.URIImpl;
+import org.eclipse.rdf4j.model.impl.URIImpl;
 
 /**
  */
@@ -62,7 +58,7 @@ public class RyaContextTest extends TestCase {
         RyaURI pred = new RyaURI("urn:test#pred");
         RyaType obj = new RyaType("mydata");
         RyaStatement statement = new RyaStatement(subj, pred, obj);
-        RyaTripleContext instance = RyaTripleContext.getInstance(new MockRdfCloudConfiguration());
+        RyaTripleContext instance = RyaTripleContext.getInstance(new MockRdfConfiguration());
 
         Map<TABLE_LAYOUT, TripleRow> map = instance.serializeTriple(statement);
         TripleRow tripleRow = map.get(TABLE_LAYOUT.SPO);
@@ -74,8 +70,8 @@ public class RyaContextTest extends TestCase {
         RyaURI pred = new RyaURI("urn:test#pred");
         RyaType obj = new RyaType("mydata");
         RyaStatement statement = new RyaStatement(subj, pred, obj);
-    	MockRdfCloudConfiguration config = new MockRdfCloudConfiguration();
-    	config.set(MockRdfCloudConfiguration.CONF_PREFIX_ROW_WITH_HASH, Boolean.TRUE.toString());
+    	MockRdfConfiguration config = new MockRdfConfiguration();
+    	config.set(MockRdfConfiguration.CONF_PREFIX_ROW_WITH_HASH, Boolean.TRUE.toString());
        RyaTripleContext instance = RyaTripleContext.getInstance(config);
 
         Map<TABLE_LAYOUT, TripleRow> map = instance.serializeTriple(statement);

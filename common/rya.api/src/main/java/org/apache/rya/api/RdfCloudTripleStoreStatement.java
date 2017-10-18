@@ -19,27 +19,25 @@ package org.apache.rya.api;
  * under the License.
  */
 
-
-
-import org.openrdf.model.Resource;
-import org.openrdf.model.Statement;
-import org.openrdf.model.URI;
-import org.openrdf.model.Value;
-import org.openrdf.model.impl.ContextStatementImpl;
-import org.openrdf.model.impl.StatementImpl;
-
 import java.util.ArrayList;
 import java.util.Collection;
+
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.Resource;
+import org.eclipse.rdf4j.model.Statement;
+import org.eclipse.rdf4j.model.Value;
+import org.eclipse.rdf4j.model.impl.ContextStatementImpl;
+import org.eclipse.rdf4j.model.impl.StatementImpl;
 
 public class RdfCloudTripleStoreStatement extends StatementImpl {
 
     private Resource[] contexts; //TODO: no blank nodes
 
-    public RdfCloudTripleStoreStatement(Resource subject, URI predicate, Value object) {
+    public RdfCloudTripleStoreStatement(Resource subject, IRI predicate, Value object) {
         super(subject, predicate, object);
     }
 
-    public RdfCloudTripleStoreStatement(Resource subject, URI predicate, Value object,
+    public RdfCloudTripleStoreStatement(Resource subject, IRI predicate, Value object,
                                         Resource... contexts) {
         super(subject, predicate, object);
         this.contexts = contexts;

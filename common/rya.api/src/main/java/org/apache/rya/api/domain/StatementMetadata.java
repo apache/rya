@@ -23,26 +23,16 @@ import java.lang.reflect.Type;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.apache.rya.api.persist.RdfDAOException;
-import org.openrdf.model.impl.URIImpl;
-
 import com.google.common.base.Preconditions;
 import com.google.common.reflect.TypeToken;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.JsonDeserializationContext;
-import com.google.gson.JsonDeserializer;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParseException;
-import com.google.gson.JsonPrimitive;
-import com.google.gson.JsonSerializationContext;
-import com.google.gson.JsonSerializer;
+import com.google.gson.*;
+import org.apache.rya.api.persist.RdfDAOException;
+import org.eclipse.rdf4j.model.impl.URIImpl;
 
 public class StatementMetadata {
 
     private static Gson gson = new GsonBuilder().enableComplexMapKeySerialization()
-    .registerTypeHierarchyAdapter(RyaType.class, new RyaTypeAdapter()).create();;
+    .registerTypeHierarchyAdapter(RyaType.class, new RyaTypeAdapter()).create();
     public static StatementMetadata EMPTY_METADATA = new StatementMetadata();
 
     private Map<RyaURI, RyaType> metadataMap = new HashMap<>();

@@ -19,33 +19,15 @@ package org.apache.rya.indexing.pcj.matching;
  * under the License.
  */
 
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.TreeMap;
-
-import org.openrdf.model.Literal;
-import org.openrdf.model.Value;
-import org.openrdf.model.impl.ValueFactoryImpl;
-import org.openrdf.query.algebra.Filter;
-import org.openrdf.query.algebra.NAryValueOperator;
-import org.openrdf.query.algebra.ProjectionElem;
-import org.openrdf.query.algebra.ProjectionElemList;
-import org.openrdf.query.algebra.QueryModelNode;
-import org.openrdf.query.algebra.StatementPattern;
-import org.openrdf.query.algebra.TupleExpr;
-import org.openrdf.query.algebra.ValueConstant;
-import org.openrdf.query.algebra.ValueExpr;
-import org.openrdf.query.algebra.Var;
-import org.openrdf.query.algebra.helpers.QueryModelVisitorBase;
+import java.util.*;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import org.eclipse.rdf4j.model.Literal;
+import org.eclipse.rdf4j.model.Value;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
+import org.eclipse.rdf4j.query.algebra.*;
+import org.eclipse.rdf4j.query.algebra.helpers.QueryModelVisitorBase;
 
 public class QueryVariableNormalizer {
 
@@ -72,7 +54,7 @@ public class QueryVariableNormalizer {
 
         // if tuples are equal, no need to do anything
         if (tuple1.equals(tuple2)) {
-            tupleList.add((TupleExpr) tuple1.clone());
+            tupleList.add(tuple1.clone());
             return tupleList;
         }
 
@@ -482,10 +464,7 @@ public class QueryVariableNormalizer {
             return false;
         } else {
 
-            if (hMap.get(key).equals(val)) {
-                return true;
-            } else
-                return false;
+            return hMap.get(key).equals(val);
 
         }
 
@@ -788,7 +767,7 @@ public class QueryVariableNormalizer {
 
         private final HashMap<String, String> hMap;
         private Map<String, Value> valMap;
-        private final ValueFactoryImpl vf = new ValueFactoryImpl();
+        private final SimpleValueFactory vf = SimpleValueFactory.getInstance();
 
         public SpVarReNamer(HashMap<String, String> hMap, Map<String, Value> valMap) {
             this.valMap = valMap;
@@ -817,7 +796,7 @@ public class QueryVariableNormalizer {
 
         private final HashMap<String, String> hMap;
         private Map<String, Value> valMap;
-        private final ValueFactoryImpl vf = new ValueFactoryImpl();
+        private final SimpleValueFactory vf = SimpleValueFactory.getInstance();
 
         public FilterVarReNamer(HashMap<String, String> hMap, Map<String, Value> valMap) {
             this.valMap = valMap;

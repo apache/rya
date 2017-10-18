@@ -20,14 +20,14 @@
 //package org.apache.cloud.rdf.web.cloudbase.sail;
 
 //
-//import org.openrdf.query.GraphQuery;
-//import org.openrdf.query.QueryLanguage;
-//import org.openrdf.query.TupleQuery;
-//import org.openrdf.query.resultio.sparqlxml.SPARQLResultsXMLWriter;
-//import org.openrdf.repository.Repository;
-//import org.openrdf.repository.RepositoryConnection;
-//import org.openrdf.repository.RepositoryException;
-//import org.openrdf.rio.rdfxml.RDFXMLWriter;
+//import  org.eclipse.rdf4j.query.GraphQuery;
+//import  org.eclipse.rdf4j.query.QueryLanguage;
+//import  org.eclipse.rdf4j.query.TupleQuery;
+//import  org.eclipse.rdf4j.query.resultio.sparqlxml.SPARQLResultsXMLWriter;
+//import  org.eclipse.rdf4j.repository.Repository;
+//import  org.eclipse.rdf4j.repository.RepositoryConnection;
+//import  org.eclipse.rdf4j.repository.RepositoryException;
+//import  org.eclipse.rdf4j.rio.rdfxml.RDFXMLWriter;
 //
 //import javax.servlet.ServletException;
 //import javax.servlet.ServletOutputStream;

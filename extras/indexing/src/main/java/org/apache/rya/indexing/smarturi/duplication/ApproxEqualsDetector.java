@@ -19,7 +19,7 @@
 package org.apache.rya.indexing.smarturi.duplication;
 
 import org.apache.rya.indexing.smarturi.SmartUriException;
-import org.openrdf.model.URI;
+import org.eclipse.rdf4j.model.IRI;
 
 /**
  * Interface for detecting if two objects of type {@code T} are considered
@@ -35,12 +35,12 @@ public interface ApproxEqualsDetector<T> {
      * @return {@code true} if the two objects are considered approximately
      * equals. {@code false} otherwise.
      */
-    public boolean areObjectsApproxEquals(final T lhs, final T rhs);
+    boolean areObjectsApproxEquals(final T lhs, final T rhs);
 
     /**
      * @return the default tolerance for the type.
      */
-    public Tolerance getDefaultTolerance();
+    Tolerance getDefaultTolerance();
 
     /**
      * Converts a string representation of the object into the object
@@ -49,18 +49,18 @@ public interface ApproxEqualsDetector<T> {
      * @return the object.
      * @throws SmartUriException
      */
-    public T convertStringToObject(final String string) throws SmartUriException;
+    T convertStringToObject(final String string) throws SmartUriException;
 
     /**
      * @return the object {@link Class} this detector is used for.
      */
-    public Class<?> getTypeClass();
+    Class<?> getTypeClass();
 
     /**
-     * @return the {@link URI} for the XML schema type this detector is used
+     * @return the {@link IRI} for the XML schema type this detector is used
      * for.
      */
-    public URI getXmlSchemaUri();
+    IRI getXmlSchemaUri();
 
     /**
      * Checks if two string representations of objects are approximately equal.
@@ -70,7 +70,7 @@ public interface ApproxEqualsDetector<T> {
      * considered approximately equals. {@code false} otherwise.
      * @throws SmartUriException
      */
-    public default boolean areApproxEquals(final String lhs, final String rhs) throws SmartUriException {
+    default boolean areApproxEquals(final String lhs, final String rhs) throws SmartUriException {
         final T object1 = convertStringToObject(lhs);
         final T object2 = convertStringToObject(rhs);
         return areObjectsApproxEquals(object1, object2);

@@ -28,8 +28,8 @@ import org.apache.rya.api.resolver.RyaToRdfConversions;
 import org.apache.rya.indexing.accumulo.geo.GeoParseUtils;
 import org.apache.rya.indexing.mongodb.IndexingMongoDBStorageStrategy;
 import org.bson.Document;
-import org.openrdf.model.Statement;
-import org.openrdf.query.MalformedQueryException;
+import  org.eclipse.rdf4j.model.Statement;
+import  org.eclipse.rdf4j.query.MalformedQueryException;
 
 import com.mongodb.BasicDBObject;
 import com.mongodb.BasicDBObjectBuilder;

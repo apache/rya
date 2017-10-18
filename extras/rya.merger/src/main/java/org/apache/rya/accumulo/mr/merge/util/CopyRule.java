@@ -22,30 +22,22 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
-import org.openrdf.model.Statement;
-import org.openrdf.model.impl.ValueFactoryImpl;
-import org.openrdf.query.QueryEvaluationException;
-import org.openrdf.query.algebra.And;
-import org.openrdf.query.algebra.QueryModelNode;
-import org.openrdf.query.algebra.QueryModelNodeBase;
-import org.openrdf.query.algebra.QueryModelVisitor;
-import org.openrdf.query.algebra.StatementPattern;
-import org.openrdf.query.algebra.ValueConstant;
-import org.openrdf.query.algebra.ValueExpr;
-import org.openrdf.query.algebra.Var;
-import org.openrdf.query.algebra.evaluation.EvaluationStrategy;
-import org.openrdf.query.algebra.evaluation.QueryBindingSet;
-import org.openrdf.query.algebra.evaluation.ValueExprEvaluationException;
-import org.openrdf.query.algebra.helpers.QueryModelVisitorBase;
-
 import org.apache.rya.accumulo.mr.merge.util.QueryRuleset.QueryRulesetException;
+import org.eclipse.rdf4j.model.Statement;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
+import org.eclipse.rdf4j.query.QueryEvaluationException;
+import org.eclipse.rdf4j.query.algebra.*;
+import org.eclipse.rdf4j.query.algebra.evaluation.EvaluationStrategy;
+import org.eclipse.rdf4j.query.algebra.evaluation.QueryBindingSet;
+import org.eclipse.rdf4j.query.algebra.evaluation.ValueExprEvaluationException;
+import org.eclipse.rdf4j.query.algebra.helpers.QueryModelVisitorBase;
 
 /**
  * A rule that defines a subset of statements to copy at the RDF level. Consists of a
  * statement pattern and an optional filter expression.
  */
 public class CopyRule extends QueryModelNodeBase {
-    private static final ValueConstant TRUE = new ValueConstant(ValueFactoryImpl.getInstance().createLiteral(true));
+    private static final ValueConstant TRUE = new ValueConstant(SimpleValueFactory.getInstance().createLiteral(true));
 
     private static final String SUFFIX = UUID.randomUUID().toString();
     private static final Var SUBJ_VAR = new Var("subject_" + SUFFIX);
@@ -65,7 +57,7 @@ public class CopyRule extends QueryModelNodeBase {
      * @throws QueryEvaluationException
      */
     public static boolean accept(final Statement stmt, final ValueExpr condition, final EvaluationStrategy strategy)
-            throws ValueExprEvaluationException, QueryEvaluationException {
+            throws QueryEvaluationException {
         final QueryBindingSet bindings = new QueryBindingSet();
         bindings.addBinding(SUBJ_VAR.getName(), stmt.getSubject());
         bindings.addBinding(PRED_VAR.getName(), stmt.getPredicate());
@@ -335,11 +327,8 @@ public class CopyRule extends QueryModelNodeBase {
                 || (statement == null && other.statement != null)) {
             return false;
         }
-        if ((condition != null && !condition.equals(other.condition))
-                || (condition == null && other.condition != null)) {
-            return false;
-        }
-        return true;
+        return (condition == null || condition.equals(other.condition))
+                && (condition != null || other.condition == null);
     }
 
     @Override

@@ -19,36 +19,34 @@ package org.apache.rya.api.persist;
  * under the License.
  */
 
-
-
 import java.util.List;
 
-import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
-import org.openrdf.model.Resource;
-import org.openrdf.model.Value;
+import org.apache.rya.api.RdfTripleStoreConfiguration;
+import org.eclipse.rdf4j.model.Resource;
+import org.eclipse.rdf4j.model.Value;
 
 /**
  * Class RdfEvalStatsDAO
  * Date: Feb 28, 2012
  * Time: 4:17:05 PM
  */
-public interface RdfEvalStatsDAO<C extends RdfCloudTripleStoreConfiguration> {
-    public enum CARDINALITY_OF {
+public interface RdfEvalStatsDAO<C extends RdfTripleStoreConfiguration> {
+    enum CARDINALITY_OF {
         SUBJECT, PREDICATE, OBJECT, SUBJECTPREDICATE, SUBJECTOBJECT, PREDICATEOBJECT
     }
 
-    public void init() throws RdfDAOException;
+    void init() throws RdfDAOException;
 
-    public boolean isInitialized() throws RdfDAOException;
+    boolean isInitialized() throws RdfDAOException;
 
-    public void destroy() throws RdfDAOException;
+    void destroy() throws RdfDAOException;
 
     // XXX returns -1 if no cardinality could be found.
-    public double getCardinality(C conf, CARDINALITY_OF card, List<Value> val) throws RdfDAOException;
-	public double getCardinality(C conf, CARDINALITY_OF card, List<Value> val, Resource context) throws RdfDAOException;
+    double getCardinality(C conf, CARDINALITY_OF card, List<Value> val) throws RdfDAOException;
+	double getCardinality(C conf, CARDINALITY_OF card, List<Value> val, Resource context) throws RdfDAOException;
 
-    public void setConf(C conf);
+    void setConf(C conf);
 
-    public C getConf();
+    C getConf();
 
 }

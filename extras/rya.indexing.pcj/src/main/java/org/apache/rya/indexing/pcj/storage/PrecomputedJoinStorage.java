@@ -22,11 +22,10 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 
-import org.apache.rya.indexing.pcj.storage.accumulo.VisibilityBindingSet;
-import org.openrdf.query.BindingSet;
-
 import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
 import edu.umd.cs.findbugs.annotations.NonNull;
+import org.apache.rya.indexing.pcj.storage.accumulo.VisibilityBindingSet;
+import org.eclipse.rdf4j.query.BindingSet;
 
 /**
  * Functions that create and maintain the PCJ tables that are used by Rya.
@@ -39,7 +38,7 @@ public interface PrecomputedJoinStorage extends AutoCloseable {
      *
      * @return The list of managed Precomputed Join IDs.
      */
-    public List<String> listPcjs() throws PCJStorageException;
+    List<String> listPcjs() throws PCJStorageException;
 
     /**
      * Create a new Precomputed Join index.
@@ -48,7 +47,7 @@ public interface PrecomputedJoinStorage extends AutoCloseable {
      * @param varOrders - The variable orders the results within the table will be written to. (not null)
      * @return A unique identifier for the index.
      */
-    public String createPcj(final String sparql) throws PCJStorageException;
+    String createPcj(final String sparql) throws PCJStorageException;
 
     /**
      * Get metadata about the Precomputed Join index.
@@ -56,7 +55,7 @@ public interface PrecomputedJoinStorage extends AutoCloseable {
      * @param pcjId - Identifies the index the metadata will be read from. (not null)
      * @return The metadata stored within the index.
      */
-    public PcjMetadata getPcjMetadata(final String pcjId) throws PCJStorageException;
+    PcjMetadata getPcjMetadata(final String pcjId) throws PCJStorageException;
 
     /**
      * Adds new join results to a Precomputed Join index.
@@ -65,7 +64,7 @@ public interface PrecomputedJoinStorage extends AutoCloseable {
      * @param results - The results that will be added to the index. (not null)
      * @throws PCJStorageException Indicates the results could not be added to the index.
      */
-    public void addResults(final String pcjId, final Collection<VisibilityBindingSet> results) throws PCJStorageException;
+    void addResults(final String pcjId, final Collection<VisibilityBindingSet> results) throws PCJStorageException;
 
     /**
      * Get an {@link Iterator} over the {@link BindingSet}s that are stored in the PCJ table.
@@ -75,7 +74,7 @@ public interface PrecomputedJoinStorage extends AutoCloseable {
      *   results for the PCJ.
      * @throws PCJStorageException The scan couldn't be performed.
      */
-    public CloseableIterator<BindingSet> listResults(String pcjId) throws PCJStorageException;
+    CloseableIterator<BindingSet> listResults(String pcjId) throws PCJStorageException;
 
     /**
      * Clears all values from a Precomputed Join index. The index will remain,
@@ -84,7 +83,7 @@ public interface PrecomputedJoinStorage extends AutoCloseable {
      * @param pcjId - Identifies the index to purge. (not null)
      * @throws PCJStorageException Indicates the values from the index could not be purged.
      */
-    public void purge(final String pcjId) throws PCJStorageException;
+    void purge(final String pcjId) throws PCJStorageException;
 
     /**
      * Completely removes a Precomputed Join index from the system.
@@ -92,7 +91,7 @@ public interface PrecomputedJoinStorage extends AutoCloseable {
      * @param pcjId - Identifies the index to drop. (not null)
      * @throws PCJStorageException Indicates the index could not be dropped.
      */
-    public void dropPcj(final String pcjId) throws PCJStorageException;
+    void dropPcj(final String pcjId) throws PCJStorageException;
 
     /**
      * Releases and resources that are being used by the storage.
@@ -100,7 +99,7 @@ public interface PrecomputedJoinStorage extends AutoCloseable {
      * @throws PCJStorageException Indicates the resources could not be released.
      */
     @Override
-    public void close() throws PCJStorageException;
+    void close() throws PCJStorageException;
 
     /**
      * An {@link Iterator} that also extends {@link AutoCloseable} because it has reference to resources
@@ -108,14 +107,14 @@ public interface PrecomputedJoinStorage extends AutoCloseable {
      *
      * @param <T> The type of object that is iterated over.
      */
-    public static interface CloseableIterator<T> extends Iterator<T>, AutoCloseable {
+    interface CloseableIterator<T> extends Iterator<T>, AutoCloseable {
 
     }
 
     /**
      * An operation of {@link PrecomputedJoinStorage} failed.
      */
-    public static class PCJStorageException extends PcjException {
+    class PCJStorageException extends PcjException {
         private static final long serialVersionUID = 1L;
 
         /**

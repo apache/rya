@@ -18,34 +18,27 @@
  */
 package org.apache.rya.rdftriplestore.inference;
 
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
 import org.apache.rya.accumulo.AccumuloRdfConfiguration;
-import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
+import org.apache.rya.api.RdfTripleStoreConfiguration;
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
+import org.eclipse.rdf4j.query.algebra.*;
 import org.junit.Assert;
 import org.junit.Test;
-import org.openrdf.model.URI;
-import org.openrdf.model.ValueFactory;
-import org.openrdf.model.impl.ValueFactoryImpl;
-import org.openrdf.query.algebra.Projection;
-import org.openrdf.query.algebra.ProjectionElem;
-import org.openrdf.query.algebra.ProjectionElemList;
-import org.openrdf.query.algebra.StatementPattern;
-import org.openrdf.query.algebra.TupleExpr;
-import org.openrdf.query.algebra.Union;
-import org.openrdf.query.algebra.Var;
-import org.openrdf.query.algebra.ZeroLengthPath;
+
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /**
  * Tests the methods of {@link ReflexivePropertyVisitor}.
  */
 public class ReflexivePropertyVisitorTest {
     private final AccumuloRdfConfiguration conf = new AccumuloRdfConfiguration();
-    private static final ValueFactory VF = new ValueFactoryImpl();
+    private static final ValueFactory VF = SimpleValueFactory.getInstance();
 
-    private static final URI ALICE = VF.createURI("urn:Alice");
-    private static final URI HAS_FAMILY = VF.createURI("urn:hasFamilyMember");
+    private static final IRI ALICE = vf.createIRI("urn:Alice");
+    private static final IRI HAS_FAMILY = vf.createIRI("urn:hasFamilyMember");
 
     @Test
     public void testReflexiveProperty() throws Exception {
@@ -74,7 +67,7 @@ public class ReflexivePropertyVisitorTest {
     @Test
     public void testReflexivePropertyDisabled() throws Exception {
         // Disable inference
-        final RdfCloudTripleStoreConfiguration disabledConf = conf.clone();
+        final RdfTripleStoreConfiguration disabledConf = conf.clone();
         disabledConf.setInferReflexiveProperty(false);
         // Define a reflexive property
         final InferenceEngine inferenceEngine = mock(InferenceEngine.class);

@@ -668,7 +668,7 @@ processType(fact):
 The main reasoning logic is located in **org.apache.rya.reasoning**, while MapReduce
 tools and utilities for interacting with Accumulo are located in
 **org.apache.rya.reasoning.mr**. Reasoning logic makes use of RDF constructs in the
-**org.openrdf.model** API, in particular: Statement, URI, Resource, and Value.
+** org.eclipse.rdf4j.model** API, in particular: Statement, URI, Resource, and Value.
 
 ### org.apache.rya.reasoning
 
@@ -850,7 +850,7 @@ output/input, takes in `<Fact, NullWritable>` or `<Derivation, NullWritable>`).
     jobs (using those parameters).
 
 - **ResourceWritable**:
-    WritableComparable wrapper for org.openrdf.model.Resource, so it can be used as
+    WritableComparable wrapper for  org.eclipse.rdf4j.model.Resource, so it can be used as
     a key/value in MapReduce tasks. Also contains an integer field to enable
     arbitrary secondary sort. Provides static classes **PrimaryComparator** to use
     the Resource alone, and **SecondaryComparator** to use resource followed by key.

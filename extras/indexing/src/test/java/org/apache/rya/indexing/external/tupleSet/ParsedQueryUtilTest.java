@@ -18,15 +18,14 @@
  */
 package org.apache.rya.indexing.external.tupleSet;
 
-import static org.junit.Assert.assertTrue;
-
-import org.junit.Test;
-import org.openrdf.query.MalformedQueryException;
-import org.openrdf.query.algebra.Projection;
-import org.openrdf.query.parser.ParsedQuery;
-import org.openrdf.query.parser.sparql.SPARQLParser;
-
 import com.google.common.base.Optional;
+import org.eclipse.rdf4j.query.MalformedQueryException;
+import org.eclipse.rdf4j.query.algebra.Projection;
+import org.eclipse.rdf4j.query.parser.ParsedQuery;
+import org.eclipse.rdf4j.query.parser.sparql.SPARQLParser;
+import org.junit.Test;
+
+import static org.junit.Assert.assertTrue;
 
 /**
  * Tests the methods of {@link ParsedQueryUtil}.

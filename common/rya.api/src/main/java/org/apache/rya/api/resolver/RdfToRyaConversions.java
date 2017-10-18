@@ -19,10 +19,8 @@ package org.apache.rya.api.resolver;
  * under the License.
  */
 
-
-
 import org.apache.rya.api.domain.*;
-import org.openrdf.model.*;
+import org.eclipse.rdf4j.model.*;
 
 /**
  * Date: 7/17/12
@@ -30,7 +28,7 @@ import org.openrdf.model.*;
  */
 public class RdfToRyaConversions {
 
-    public static RyaURI convertURI(URI uri) {
+    public static RyaURI convertURI(IRI uri) {
         if (uri == null) return null;
         if (uri instanceof RangeURI) {
             RangeURI ruri = (RangeURI) uri;
@@ -59,8 +57,8 @@ public class RdfToRyaConversions {
         }
         if (value instanceof RangeValue) {
             RangeValue rv = (RangeValue) value;
-            if (rv.getStart() instanceof URI) {
-                return new RyaURIRange(convertURI((URI) rv.getStart()), convertURI((URI) rv.getEnd()));
+            if (rv.getStart() instanceof IRI) {
+                return new RyaURIRange(convertURI((IRI) rv.getStart()), convertURI((IRI) rv.getEnd()));
             } else {
                 //literal
                 return new RyaTypeRange(convertLiteral((Literal) rv.getStart()), convertLiteral((Literal) rv.getEnd()));
@@ -74,13 +72,13 @@ public class RdfToRyaConversions {
         if (subject instanceof BNode) {
             return new RyaURI(RyaSchema.BNODE_NAMESPACE + ((BNode) subject).getID());
         }
-        return convertURI((URI) subject);
+        return convertURI((IRI) subject);
     }
 
     public static RyaStatement convertStatement(Statement statement) {
         if (statement == null) return null;
         Resource subject = statement.getSubject();
-        URI predicate = statement.getPredicate();
+        IRI predicate = statement.getPredicate();
         Value object = statement.getObject();
         Resource context = statement.getContext();
         return new RyaStatement(

@@ -86,8 +86,8 @@
         </dependency>
         <!-- OpenRDF -->
         <dependency>
-            <groupId>org.openrdf.sesame</groupId>
-            <artifactId>sesame-queryresultio-text</artifactId>
+            <groupId>org.eclipse.rdf4j</groupId>
+            <artifactId>rdf4j-queryresultio-text</artifactId>
         </dependency>
 
         <!--  testing dependencies -->

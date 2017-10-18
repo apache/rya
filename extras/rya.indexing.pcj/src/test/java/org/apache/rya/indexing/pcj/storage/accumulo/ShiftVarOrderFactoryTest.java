@@ -18,14 +18,13 @@
  */
 package org.apache.rya.indexing.pcj.storage.accumulo;
 
-import static org.junit.Assert.assertEquals;
-
 import java.util.Set;
 
-import org.junit.Test;
-import org.openrdf.query.MalformedQueryException;
-
 import com.google.common.collect.Sets;
+import org.eclipse.rdf4j.query.MalformedQueryException;
+import org.junit.Test;
+
+import static org.junit.Assert.assertEquals;
 
 /**
  * Tests the methods of {@link ShiftVarOrderFactory}.

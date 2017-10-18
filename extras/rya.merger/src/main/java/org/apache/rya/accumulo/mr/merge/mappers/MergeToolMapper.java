@@ -19,30 +19,20 @@
 package org.apache.rya.accumulo.mr.merge.mappers;
 
 import java.io.IOException;
-import java.util.Collection;
-import java.util.Date;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
 
+import com.google.common.base.Charsets;
 import org.apache.accumulo.core.client.Connector;
 import org.apache.accumulo.core.client.MutationsRejectedException;
 import org.apache.accumulo.core.client.Scanner;
 import org.apache.accumulo.core.client.mapreduce.RangeInputSplit;
-import org.apache.accumulo.core.data.ColumnUpdate;
-import org.apache.accumulo.core.data.Key;
-import org.apache.accumulo.core.data.Mutation;
-import org.apache.accumulo.core.data.Range;
-import org.apache.accumulo.core.data.Value;
+import org.apache.accumulo.core.data.*;
 import org.apache.accumulo.core.security.ColumnVisibility;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.log4j.Logger;
-
-import com.google.common.base.Charsets;
-
 import org.apache.rya.accumulo.AccumuloRdfConfiguration;
 import org.apache.rya.accumulo.AccumuloRdfConstants;
 import org.apache.rya.accumulo.AccumuloRyaDAO;
@@ -52,9 +42,9 @@ import org.apache.rya.accumulo.mr.merge.CopyTool;
 import org.apache.rya.accumulo.mr.merge.MergeTool;
 import org.apache.rya.accumulo.mr.merge.util.AccumuloRyaUtils;
 import org.apache.rya.accumulo.mr.merge.util.TimeUtils;
-import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
 import org.apache.rya.api.RdfCloudTripleStoreConstants;
 import org.apache.rya.api.RdfCloudTripleStoreConstants.TABLE_LAYOUT;
+import org.apache.rya.api.RdfTripleStoreConfiguration;
 import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.persist.RyaDAOException;
 import org.apache.rya.api.resolver.RyaTripleContext;
@@ -116,7 +106,7 @@ public class MergeToolMapper extends Mapper<Key, Value, Text, Mutation> {
     /**
      * The result of comparing a child key and parent key which determines what should be done with them.
      */
-    private static enum CompareKeysResult {
+    private enum CompareKeysResult {
         /**
          * Indicates that the child iterator should move to the next key in the child
          * table in order to be compared to the current key in the parent table.
@@ -147,7 +137,7 @@ public class MergeToolMapper extends Mapper<Key, Value, Text, Mutation> {
         /**
          * Indicates that there are no more keys to compare in the child and parent tables.
          */
-        FINISHED;
+        FINISHED
     }
 
     /**
@@ -353,7 +343,7 @@ public class MergeToolMapper extends Mapper<Key, Value, Text, Mutation> {
         convertChildPropToParentProp(childConfig, parentConfig, MRUtils.AC_PWD_PROP);
         convertChildPropToParentProp(childConfig, parentConfig, MRUtils.TABLE_PREFIX_PROPERTY);
         convertChildPropToParentProp(childConfig, parentConfig, MRUtils.AC_AUTH_PROP);
-        convertChildPropToParentProp(childConfig, parentConfig, RdfCloudTripleStoreConfiguration.CONF_QUERY_AUTH);
+        convertChildPropToParentProp(childConfig, parentConfig, RdfTripleStoreConfiguration.CONF_QUERY_AUTH);
         convertChildPropToParentProp(childConfig, parentConfig, MRUtils.AC_ZK_PROP);
 
         MergeTool.setDuplicateKeys(childConfig);

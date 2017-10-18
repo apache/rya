@@ -18,11 +18,11 @@
  */
 package org.apache.rya.api.client.accumulo;
 
-import static java.util.Objects.requireNonNull;
-
 import java.io.IOException;
 import java.nio.file.Path;
 
+import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
+import edu.umd.cs.findbugs.annotations.NonNull;
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
 import org.apache.accumulo.core.client.Connector;
@@ -35,17 +35,16 @@ import org.apache.rya.api.client.RyaClientException;
 import org.apache.rya.api.persist.RyaDAOException;
 import org.apache.rya.rdftriplestore.inference.InferenceEngineException;
 import org.apache.rya.sail.config.RyaSailFactory;
-import org.openrdf.repository.RepositoryException;
-import org.openrdf.repository.sail.SailRepository;
-import org.openrdf.repository.sail.SailRepositoryConnection;
-import org.openrdf.rio.RDFFormat;
-import org.openrdf.rio.RDFParseException;
-import org.openrdf.rio.UnsupportedRDFormatException;
-import org.openrdf.sail.Sail;
-import org.openrdf.sail.SailException;
+import org.eclipse.rdf4j.repository.RepositoryException;
+import org.eclipse.rdf4j.repository.sail.SailRepository;
+import org.eclipse.rdf4j.repository.sail.SailRepositoryConnection;
+import org.eclipse.rdf4j.rio.RDFFormat;
+import org.eclipse.rdf4j.rio.RDFParseException;
+import org.eclipse.rdf4j.rio.UnsupportedRDFormatException;
+import org.eclipse.rdf4j.sail.Sail;
+import org.eclipse.rdf4j.sail.SailException;
 
-import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
-import edu.umd.cs.findbugs.annotations.NonNull;
+import static java.util.Objects.requireNonNull;
 
 /**
  * An Accumulo implementation of the {@link LoadStatementsFile} command.
@@ -70,7 +69,8 @@ public class AccumuloLoadStatementsFile extends AccumuloCommand implements LoadS
     }
 
     @Override
-    public void loadStatements(final String ryaInstanceName, final Path statementsFile, final RDFFormat format) throws InstanceDoesNotExistException, RyaClientException {
+    public void loadStatements(final String ryaInstanceName, final Path statementsFile, final RDFFormat format) throws
+            RyaClientException {
         requireNonNull(ryaInstanceName);
         requireNonNull(statementsFile);
         requireNonNull(format);

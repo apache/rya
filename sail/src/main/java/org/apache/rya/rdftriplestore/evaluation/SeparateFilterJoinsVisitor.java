@@ -18,12 +18,9 @@ package org.apache.rya.rdftriplestore.evaluation;
  * specific language governing permissions and limitations
  * under the License.
  */
-import org.openrdf.query.algebra.Filter;
-import org.openrdf.query.algebra.Join;
-import org.openrdf.query.algebra.StatementPattern;
-import org.openrdf.query.algebra.TupleExpr;
-import org.openrdf.query.algebra.ValueExpr;
-import org.openrdf.query.algebra.helpers.QueryModelVisitorBase;
+
+import org.eclipse.rdf4j.query.algebra.*;
+import org.eclipse.rdf4j.query.algebra.helpers.QueryModelVisitorBase;
 
 /**
  * TODO: This might be a very bad thing. It may force all AND and not allow ORs?. Depends on how they do the bindings.

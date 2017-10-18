@@ -22,13 +22,14 @@ import java.io.UnsupportedEncodingException;
 import java.util.HashSet;
 import java.util.Set;
 
+import com.google.common.collect.Sets;
 import org.apache.accumulo.core.client.Connector;
 import org.apache.accumulo.core.security.Authorizations;
 import org.apache.fluo.api.client.FluoClient;
 import org.apache.fluo.api.client.FluoFactory;
 import org.apache.rya.accumulo.AccumuloRdfConfiguration;
 import org.apache.rya.accumulo.AccumuloRyaDAO;
-import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
+import org.apache.rya.api.RdfTripleStoreConfiguration;
 import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.resolver.RdfToRyaConversions;
 import org.apache.rya.indexing.accumulo.ConfigUtils;
@@ -36,15 +37,13 @@ import org.apache.rya.indexing.pcj.fluo.api.CreateFluoPcj;
 import org.apache.rya.indexing.pcj.storage.PrecomputedJoinStorage;
 import org.apache.rya.indexing.pcj.storage.accumulo.AccumuloPcjStorage;
 import org.apache.rya.pcj.fluo.test.base.RyaExportITBase;
+import org.eclipse.rdf4j.model.Statement;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
+import org.eclipse.rdf4j.query.BindingSet;
+import org.eclipse.rdf4j.query.impl.MapBindingSet;
 import org.junit.Assert;
 import org.junit.Test;
-import org.openrdf.model.Statement;
-import org.openrdf.model.ValueFactory;
-import org.openrdf.model.impl.ValueFactoryImpl;
-import org.openrdf.query.BindingSet;
-import org.openrdf.query.impl.MapBindingSet;
-
-import com.google.common.collect.Sets;
 
 /**
  * Performs integration tests over the Fluo application geared towards various types of input.
@@ -74,19 +73,19 @@ public class HistoricStreamingVisibilityIT extends RyaExportITBase {
         dao.init();
 
         // Triples that are loaded into Rya before the PCJ is created.
-        final ValueFactory vf = new ValueFactoryImpl();
+        final ValueFactory vf = SimpleValueFactory.getInstance();
 
         final Set<RyaStatement> historicTriples = Sets.newHashSet(
-                makeRyaStatement(vf.createStatement(vf.createURI("http://Alice"), vf.createURI("http://talksTo"), vf.createURI("http://Eve")),"U"),
-                makeRyaStatement(vf.createStatement(vf.createURI("http://Bob"), vf.createURI("http://talksTo"), vf.createURI("http://Eve")),"V"),
-                makeRyaStatement(vf.createStatement(vf.createURI("http://Charlie"), vf.createURI("http://talksTo"), vf.createURI("http://Eve")),"W"),
+                makeRyaStatement(vf.createStatement(vf.createIRI("http://Alice"), vf.createIRI("http://talksTo"), vf.createIRI("http://Eve")),"U"),
+                makeRyaStatement(vf.createStatement(vf.createIRI("http://Bob"), vf.createIRI("http://talksTo"), vf.createIRI("http://Eve")),"V"),
+                makeRyaStatement(vf.createStatement(vf.createIRI("http://Charlie"), vf.createIRI("http://talksTo"), vf.createIRI("http://Eve")),"W"),
 
-                makeRyaStatement(vf.createStatement(vf.createURI("http://Eve"), vf.createURI("http://helps"), vf.createURI("http://Kevin")), "U"),
+                makeRyaStatement(vf.createStatement(vf.createIRI("http://Eve"), vf.createIRI("http://helps"), vf.createIRI("http://Kevin")), "U"),
 
-                makeRyaStatement(vf.createStatement(vf.createURI("http://Bob"), vf.createURI("http://worksAt"), vf.createURI("http://Chipotle")), "W"),
-                makeRyaStatement(vf.createStatement(vf.createURI("http://Charlie"), vf.createURI("http://worksAt"), vf.createURI("http://Chipotle")), "V"),
-                makeRyaStatement(vf.createStatement(vf.createURI("http://Eve"), vf.createURI("http://worksAt"), vf.createURI("http://Chipotle")), "U"),
-                makeRyaStatement(vf.createStatement(vf.createURI("http://David"), vf.createURI("http://worksAt"), vf.createURI("http://Chipotle")), "V"));
+                makeRyaStatement(vf.createStatement(vf.createIRI("http://Bob"), vf.createIRI("http://worksAt"), vf.createIRI("http://Chipotle")), "W"),
+                makeRyaStatement(vf.createStatement(vf.createIRI("http://Charlie"), vf.createIRI("http://worksAt"), vf.createIRI("http://Chipotle")), "V"),
+                makeRyaStatement(vf.createStatement(vf.createIRI("http://Eve"), vf.createIRI("http://worksAt"), vf.createIRI("http://Chipotle")), "U"),
+                makeRyaStatement(vf.createStatement(vf.createIRI("http://David"), vf.createIRI("http://worksAt"), vf.createIRI("http://Chipotle")), "V"));
 
         dao.add(historicTriples.iterator());
         dao.flush();
@@ -95,11 +94,11 @@ public class HistoricStreamingVisibilityIT extends RyaExportITBase {
         final Set<BindingSet> expected = new HashSet<>();
 
         MapBindingSet bs = new MapBindingSet();
-        bs.addBinding("x", vf.createURI("http://Bob"));
+        bs.addBinding("x", vf.createIRI("http://Bob"));
         expected.add(bs);
 
         bs = new MapBindingSet();
-        bs.addBinding("x", vf.createURI("http://Charlie"));
+        bs.addBinding("x", vf.createIRI("http://Charlie"));
         expected.add(bs);
 
         // Create the PCJ table.
@@ -125,7 +124,7 @@ public class HistoricStreamingVisibilityIT extends RyaExportITBase {
         conf.set(ConfigUtils.CLOUDBASE_PASSWORD, getPassword());
         conf.set(ConfigUtils.CLOUDBASE_INSTANCE, super.getMiniAccumuloCluster().getInstanceName());
         conf.set(ConfigUtils.CLOUDBASE_ZOOKEEPERS, super.getMiniAccumuloCluster().getZooKeepers());
-        conf.set(RdfCloudTripleStoreConfiguration.CONF_QUERY_AUTH, "U,V,W");
+        conf.set(RdfTripleStoreConfiguration.CONF_QUERY_AUTH, "U,V,W");
 
         return conf;
     }

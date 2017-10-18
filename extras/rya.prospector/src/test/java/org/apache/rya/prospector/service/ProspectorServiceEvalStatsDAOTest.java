@@ -18,8 +18,6 @@
  */
 package org.apache.rya.prospector.service;
 
-import static org.junit.Assert.assertEquals;
-
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -43,11 +41,13 @@ import org.apache.rya.api.domain.RyaURI;
 import org.apache.rya.api.persist.RdfEvalStatsDAO;
 import org.apache.rya.api.persist.RdfEvalStatsDAO.CARDINALITY_OF;
 import org.apache.rya.prospector.mr.Prospector;
+import org.eclipse.rdf4j.model.Value;
+import org.eclipse.rdf4j.model.impl.LiteralImpl;
+import org.eclipse.rdf4j.model.impl.URIImpl;
+import org.eclipse.rdf4j.model.vocabulary.XMLSchema;
 import org.junit.Test;
-import org.openrdf.model.Value;
-import org.openrdf.model.impl.LiteralImpl;
-import org.openrdf.model.impl.URIImpl;
-import org.openrdf.model.vocabulary.XMLSchema;
+
+import static org.junit.Assert.assertEquals;
 
 /**
  * Tests that show when the {@link Prospector} job is run, the
@@ -173,7 +173,9 @@ public class ProspectorServiceEvalStatsDAOTest {
      * debugging the test.
      */
     private void debugTable(Connector connector, String table) throws TableNotFoundException {
-        final Iterator<Entry<Key, org.apache.accumulo.core.data.Value>> it = connector.createScanner(table, new Authorizations(new String[]{"U", "FOUO"})).iterator();
+        final Iterator<Entry<Key, org.apache.accumulo.core.data.Value>> it = connector.createScanner(table, new Authorizations(
+                "U",
+                "FOUO")).iterator();
         while(it.hasNext()) {
             System.out.println( it.next() );
         }

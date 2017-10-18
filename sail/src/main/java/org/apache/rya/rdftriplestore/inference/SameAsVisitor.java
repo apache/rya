@@ -19,25 +19,23 @@ package org.apache.rya.rdftriplestore.inference;
  * under the License.
  */
 
-
-
-import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
-import org.apache.rya.api.utils.NullableStatementImpl;
-import org.apache.rya.rdftriplestore.utils.FixedStatementPattern;
-import org.apache.rya.rdftriplestore.utils.TransitivePropertySP;
-import org.openrdf.model.Resource;
-import org.openrdf.model.URI;
-import org.openrdf.model.Value;
-import org.openrdf.model.vocabulary.OWL;
-import org.openrdf.model.vocabulary.RDF;
-import org.openrdf.model.vocabulary.RDFS;
-import org.openrdf.model.vocabulary.SESAME;
-import org.openrdf.query.algebra.StatementPattern;
-import org.openrdf.query.algebra.Var;
-
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
+
+import org.apache.rya.api.RdfTripleStoreConfiguration;
+import org.apache.rya.api.utils.NullableStatementImpl;
+import org.apache.rya.rdftriplestore.utils.FixedStatementPattern;
+import org.apache.rya.rdftriplestore.utils.TransitivePropertySP;
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.Resource;
+import org.eclipse.rdf4j.model.Value;
+import org.eclipse.rdf4j.model.vocabulary.OWL;
+import org.eclipse.rdf4j.model.vocabulary.RDF;
+import org.eclipse.rdf4j.model.vocabulary.RDFS;
+import org.eclipse.rdf4j.model.vocabulary.SESAME;
+import org.eclipse.rdf4j.query.algebra.StatementPattern;
+import org.eclipse.rdf4j.query.algebra.Var;
 
 /**
  * All predicates are changed
@@ -47,7 +45,7 @@ import java.util.UUID;
  */
 public class SameAsVisitor extends AbstractInferVisitor {
 
-    public SameAsVisitor(RdfCloudTripleStoreConfiguration conf, InferenceEngine inferenceEngine) {
+    public SameAsVisitor(RdfTripleStoreConfiguration conf, InferenceEngine inferenceEngine) {
         super(conf, inferenceEngine);
         include = conf.isInferSameAs();
     }
@@ -74,7 +72,7 @@ public class SameAsVisitor extends AbstractInferVisitor {
 
         boolean shouldExpand = true;
         if (predVar.hasValue()){
-            URI pred = (URI) predVar.getValue();
+            IRI pred = (IRI) predVar.getValue();
             String predNamespace = pred.getNamespace();
             shouldExpand = !pred.equals(OWL.SAMEAS) && 
             !RDF.NAMESPACE.equals(predNamespace) &&
@@ -136,7 +134,8 @@ public class SameAsVisitor extends AbstractInferVisitor {
             			StatementPattern origDummyStatement = new DoNotExpandSP(origStatement.getSubjectVar(), origStatement.getPredicateVar(), dummyVar, cntxtVar);
             	        FixedStatementPattern fsp = new FixedStatementPattern(dummyVar, new Var("c-" + s, OWL.SAMEAS), objVar, cntxtVar);
             	        for (Resource sameAs : objURIs){
-            	    		NullableStatementImpl newStatement = new NullableStatementImpl(sameAs, OWL.SAMEAS, (Resource)objVar.getValue(), getVarValue(cntxtVar));
+            	    		NullableStatementImpl newStatement = new NullableStatementImpl(sameAs, OWL.SAMEAS,
+                                    objVar.getValue(), getVarValue(cntxtVar));
             	            fsp.statements.add(newStatement);        		
             	    	}
             	        InferJoin interimJoin = new InferJoin(fsp, origDummyStatement);
@@ -169,7 +168,8 @@ public class SameAsVisitor extends AbstractInferVisitor {
        }
         FixedStatementPattern fsp = new FixedStatementPattern(dummyVar, new Var("c-" + s, OWL.SAMEAS), subVar, cntxtVar);
         for (Resource sameAs : uris){
-    		NullableStatementImpl newStatement = new NullableStatementImpl(sameAs, OWL.SAMEAS, (Resource)subVar.getValue(), getVarValue(cntxtVar));
+    		NullableStatementImpl newStatement = new NullableStatementImpl(sameAs, OWL.SAMEAS,
+                    subVar.getValue(), getVarValue(cntxtVar));
             fsp.statements.add(newStatement);        		
     	}
         InferJoin join = new InferJoin(fsp, origStatement);

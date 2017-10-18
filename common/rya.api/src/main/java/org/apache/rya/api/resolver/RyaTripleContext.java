@@ -19,28 +19,20 @@ package org.apache.rya.api.resolver;
  * under the License.
  */
 
-
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
-import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
 import org.apache.rya.api.RdfCloudTripleStoreConstants;
 import org.apache.rya.api.RdfCloudTripleStoreConstants.TABLE_LAYOUT;
+import org.apache.rya.api.RdfTripleStoreConfiguration;
 import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.domain.RyaType;
 import org.apache.rya.api.domain.RyaURI;
 import org.apache.rya.api.query.strategy.TriplePatternStrategy;
-import org.apache.rya.api.query.strategy.wholerow.HashedPoWholeRowTriplePatternStrategy;
-import org.apache.rya.api.query.strategy.wholerow.HashedSpoWholeRowTriplePatternStrategy;
-import org.apache.rya.api.query.strategy.wholerow.NullRowTriplePatternStrategy;
-import org.apache.rya.api.query.strategy.wholerow.OspWholeRowTriplePatternStrategy;
-import org.apache.rya.api.query.strategy.wholerow.PoWholeRowTriplePatternStrategy;
-import org.apache.rya.api.query.strategy.wholerow.SpoWholeRowTriplePatternStrategy;
+import org.apache.rya.api.query.strategy.wholerow.*;
 import org.apache.rya.api.resolver.triple.TripleRow;
 import org.apache.rya.api.resolver.triple.TripleRowResolver;
 import org.apache.rya.api.resolver.triple.TripleRowResolverException;
@@ -74,7 +66,7 @@ public class RyaTripleContext {
         public static final RyaTripleContext HASHED_INSTANCE = new RyaTripleContext(true);
     }
 
-    public synchronized static RyaTripleContext getInstance(final RdfCloudTripleStoreConfiguration conf) {
+    public synchronized static RyaTripleContext getInstance(final RdfTripleStoreConfiguration conf) {
     	if (conf.isPrefixRowsWithHash()){
     		return RyaTripleContextHolder.HASHED_INSTANCE;
     	}

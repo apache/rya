@@ -18,24 +18,23 @@
  */
 package org.apache.rya.api.functions;
 
-import static org.junit.Assert.assertEquals;
-
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
-
+import org.eclipse.rdf4j.model.Literal;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
+import org.eclipse.rdf4j.query.algebra.evaluation.ValueExprEvaluationException;
 import org.junit.Test;
-import org.openrdf.model.Literal;
-import org.openrdf.model.ValueFactory;
-import org.openrdf.model.impl.ValueFactoryImpl;
-import org.openrdf.query.algebra.evaluation.ValueExprEvaluationException;
+
+import static org.junit.Assert.assertEquals;
 
 public class DateTimeWithinPeriodTest {
 
-    private static final ValueFactory vf = new ValueFactoryImpl();
+    private static final ValueFactory vf = SimpleValueFactory.getInstance();
     private static final Literal TRUE = vf.createLiteral(true);
     private static final Literal FALSE = vf.createLiteral(false);
 

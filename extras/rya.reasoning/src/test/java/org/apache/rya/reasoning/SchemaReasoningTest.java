@@ -19,14 +19,13 @@ package org.apache.rya.reasoning;
  * under the License.
  */
 
+import org.eclipse.rdf4j.model.Resource;
+import org.eclipse.rdf4j.model.vocabulary.FOAF;
+import org.eclipse.rdf4j.model.vocabulary.OWL;
+import org.eclipse.rdf4j.model.vocabulary.RDFS;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-
-import org.openrdf.model.Resource;
-import org.openrdf.model.vocabulary.FOAF;
-import org.openrdf.model.vocabulary.OWL;
-import org.openrdf.model.vocabulary.RDFS;
 
 /**
  * Test the application of the OWL RL/RDF schema ("scm-") rules.

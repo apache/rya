@@ -1,6 +1,29 @@
 package org.apache.rya.indexing.external;
 
 import java.net.UnknownHostException;
+import java.util.List;
+
+import com.google.common.base.Optional;
+import org.apache.accumulo.core.client.*;
+import org.apache.accumulo.core.client.mock.MockInstance;
+import org.apache.accumulo.core.client.security.tokens.PasswordToken;
+import org.apache.rya.api.persist.RyaDAOException;
+import org.apache.rya.indexing.pcj.storage.PcjException;
+import org.apache.rya.rdftriplestore.inference.InferenceEngineException;
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.impl.LiteralImpl;
+import org.eclipse.rdf4j.model.impl.URIImpl;
+import org.eclipse.rdf4j.model.vocabulary.RDF;
+import org.eclipse.rdf4j.model.vocabulary.RDFS;
+import org.eclipse.rdf4j.query.*;
+import org.eclipse.rdf4j.repository.RepositoryException;
+import org.eclipse.rdf4j.repository.sail.SailRepository;
+import org.eclipse.rdf4j.repository.sail.SailRepositoryConnection;
+import org.eclipse.rdf4j.sail.SailException;
+import org.junit.After;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Test;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -21,43 +44,6 @@ import java.net.UnknownHostException;
  * under the License.
  */
 
-import java.util.List;
-
-import org.apache.accumulo.core.client.AccumuloException;
-import org.apache.accumulo.core.client.AccumuloSecurityException;
-import org.apache.accumulo.core.client.Connector;
-import org.apache.accumulo.core.client.TableExistsException;
-import org.apache.accumulo.core.client.TableNotFoundException;
-import org.apache.accumulo.core.client.mock.MockInstance;
-import org.apache.accumulo.core.client.security.tokens.PasswordToken;
-import org.apache.rya.indexing.pcj.storage.PcjException;
-import org.apache.rya.indexing.pcj.storage.accumulo.PcjVarOrderFactory;
-import org.junit.After;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
-import org.openrdf.model.URI;
-import org.openrdf.model.impl.LiteralImpl;
-import org.openrdf.model.impl.URIImpl;
-import org.openrdf.model.vocabulary.RDF;
-import org.openrdf.model.vocabulary.RDFS;
-import org.openrdf.query.BindingSet;
-import org.openrdf.query.MalformedQueryException;
-import org.openrdf.query.QueryEvaluationException;
-import org.openrdf.query.QueryLanguage;
-import org.openrdf.query.QueryResultHandlerException;
-import org.openrdf.query.TupleQueryResultHandler;
-import org.openrdf.query.TupleQueryResultHandlerException;
-import org.openrdf.repository.RepositoryException;
-import org.openrdf.repository.sail.SailRepository;
-import org.openrdf.repository.sail.SailRepositoryConnection;
-import org.openrdf.sail.SailException;
-
-import com.google.common.base.Optional;
-
-import org.apache.rya.api.persist.RyaDAOException;
-import org.apache.rya.rdftriplestore.inference.InferenceEngineException;
-
 public class AccumuloConstantPcjIT {
 
 	private SailRepositoryConnection conn, pcjConn;
@@ -65,7 +51,7 @@ public class AccumuloConstantPcjIT {
 	private Connector accCon;
 	String prefix = "table_";
 	String tablename = "table_INDEX_";
-	URI obj, obj2, subclass, subclass2, talksTo;
+	IRI obj, obj2, subclass, subclass2, talksTo;
 
 	@Before
 	public void init() throws RepositoryException,
@@ -81,7 +67,7 @@ public class AccumuloConstantPcjIT {
 		pcjRepo = PcjIntegrationTestingUtil.getPcjRepo(prefix, "instance");
 		pcjConn = pcjRepo.getConnection();
 
-		final URI sub = new URIImpl("uri:entity");
+		final IRI sub = new URIImpl("uri:entity");
 		subclass = new URIImpl("uri:class");
 		obj = new URIImpl("uri:obj");
 		talksTo = new URIImpl("uri:talksTo");
@@ -90,7 +76,7 @@ public class AccumuloConstantPcjIT {
 		conn.add(sub, RDFS.LABEL, new LiteralImpl("label"));
 		conn.add(sub, talksTo, obj);
 
-		final URI sub2 = new URIImpl("uri:entity2");
+		final IRI sub2 = new URIImpl("uri:entity2");
 		subclass2 = new URIImpl("uri:class2");
 		obj2 = new URIImpl("uri:obj2");
 
@@ -120,8 +106,8 @@ public class AccumuloConstantPcjIT {
 			MalformedQueryException, SailException, QueryEvaluationException,
 			TupleQueryResultHandlerException {
 
-		final URI superclass = new URIImpl("uri:superclass");
-		final URI superclass2 = new URIImpl("uri:superclass2");
+		final IRI superclass = new URIImpl("uri:superclass");
+		final IRI superclass2 = new URIImpl("uri:superclass2");
 
 		conn.add(subclass, RDF.TYPE, superclass);
 		conn.add(subclass2, RDF.TYPE, superclass2);
@@ -158,10 +144,10 @@ public class AccumuloConstantPcjIT {
 
 		PcjIntegrationTestingUtil.createAndPopulatePcj(conn, accCon, tablename + 1,
 				indexSparqlString, new String[] { "dog", "pig", "duck" },
-				Optional.<PcjVarOrderFactory> absent());
+				Optional.absent());
 		PcjIntegrationTestingUtil.createAndPopulatePcj(conn, accCon, tablename + 2,
 				indexSparqlString2, new String[] { "o", "f", "e", "c", "l" },
-				Optional.<PcjVarOrderFactory> absent());
+				Optional.absent());
 
 		final CountingResultHandler crh1 = new CountingResultHandler();
 		final CountingResultHandler crh2 = new CountingResultHandler();
@@ -182,16 +168,16 @@ public class AccumuloConstantPcjIT {
 			MalformedQueryException, SailException, QueryEvaluationException,
 			TupleQueryResultHandlerException {
 
-		final URI superclass = new URIImpl("uri:superclass");
-		final URI superclass2 = new URIImpl("uri:superclass2");
+		final IRI superclass = new URIImpl("uri:superclass");
+		final IRI superclass2 = new URIImpl("uri:superclass2");
 
-		final URI sub = new URIImpl("uri:entity");
+		final IRI sub = new URIImpl("uri:entity");
 		subclass = new URIImpl("uri:class");
 		obj = new URIImpl("uri:obj");
 		talksTo = new URIImpl("uri:talksTo");
 
-		final URI howlsAt = new URIImpl("uri:howlsAt");
-		final URI subType = new URIImpl("uri:subType");
+		final IRI howlsAt = new URIImpl("uri:howlsAt");
+		final IRI subType = new URIImpl("uri:subType");
 
 		conn.add(subclass, RDF.TYPE, superclass);
 		conn.add(subclass2, RDF.TYPE, superclass2);
@@ -239,14 +225,14 @@ public class AccumuloConstantPcjIT {
 
 		PcjIntegrationTestingUtil.createAndPopulatePcj(conn, accCon, tablename + 1,
 				indexSparqlString, new String[] { "dog", "pig", "duck" },
-				Optional.<PcjVarOrderFactory> absent());
+				Optional.absent());
 		PcjIntegrationTestingUtil.createAndPopulatePcj(conn, accCon, tablename + 2,
 				indexSparqlString2, new String[] { "o", "f", "e", "c", "l" },
-				Optional.<PcjVarOrderFactory> absent());
+				Optional.absent());
 		PcjIntegrationTestingUtil.createAndPopulatePcj(conn, accCon, tablename + 3,
 				indexSparqlString3,
 				new String[] { "wolf", "sheep", "chicken" },
-				Optional.<PcjVarOrderFactory> absent());
+				Optional.absent());
 
 		final CountingResultHandler crh1 = new CountingResultHandler();
 		final CountingResultHandler crh2 = new CountingResultHandler();
@@ -269,15 +255,15 @@ public class AccumuloConstantPcjIT {
 			TupleQueryResultHandlerException, AccumuloException,
 			AccumuloSecurityException {
 
-		final URI e1 = new URIImpl("uri:e1");
-		final URI e2 = new URIImpl("uri:e2");
-		final URI e3 = new URIImpl("uri:e3");
-		final URI f1 = new URIImpl("uri:f1");
-		final URI f2 = new URIImpl("uri:f2");
-		final URI f3 = new URIImpl("uri:f3");
-		final URI g1 = new URIImpl("uri:g1");
-		final URI g2 = new URIImpl("uri:g2");
-		final URI g3 = new URIImpl("uri:g3");
+		final IRI e1 = new URIImpl("uri:e1");
+		final IRI e2 = new URIImpl("uri:e2");
+		final IRI e3 = new URIImpl("uri:e3");
+		final IRI f1 = new URIImpl("uri:f1");
+		final IRI f2 = new URIImpl("uri:f2");
+		final IRI f3 = new URIImpl("uri:f3");
+		final IRI g1 = new URIImpl("uri:g1");
+		final IRI g2 = new URIImpl("uri:g2");
+		final IRI g3 = new URIImpl("uri:g3");
 
 		conn.add(e1, talksTo, f1);
 		conn.add(f1, talksTo, g1);
@@ -309,7 +295,7 @@ public class AccumuloConstantPcjIT {
 
 		PcjIntegrationTestingUtil.createAndPopulatePcj(conn, accCon, tablename + 1,
 				indexSparqlString, new String[] { "a", "b", "c", "d" },
-				Optional.<PcjVarOrderFactory> absent());
+				Optional.absent());
 
 		final CountingResultHandler crh1 = new CountingResultHandler();
 		final CountingResultHandler crh2 = new CountingResultHandler();
@@ -330,8 +316,8 @@ public class AccumuloConstantPcjIT {
 			TableNotFoundException,
 			TupleQueryResultHandlerException, AccumuloException, AccumuloSecurityException {
 
-		final URI e1 = new URIImpl("uri:e1");
-		final URI f1 = new URIImpl("uri:f1");
+		final IRI e1 = new URIImpl("uri:e1");
+		final IRI f1 = new URIImpl("uri:f1");
 
 		conn.add(e1, talksTo, e1);
 		conn.add(e1, talksTo, f1);
@@ -357,7 +343,7 @@ public class AccumuloConstantPcjIT {
 
 		PcjIntegrationTestingUtil.createAndPopulatePcj(conn, accCon, tablename + 1,
 				indexSparqlString, new String[] { "a", "b", "c", "d" },
-				Optional.<PcjVarOrderFactory> absent());
+				Optional.absent());
 
 		final CountingResultHandler crh1 = new CountingResultHandler();
 		final CountingResultHandler crh2 = new CountingResultHandler();

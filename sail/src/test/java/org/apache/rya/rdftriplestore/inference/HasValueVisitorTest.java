@@ -18,55 +18,42 @@ package org.apache.rya.rdftriplestore.inference;
  * under the License.
  */
 
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
 import org.apache.rya.accumulo.AccumuloRdfConfiguration;
-import org.apache.rya.rdftriplestore.inference.HasValueVisitor;
-import org.apache.rya.rdftriplestore.inference.InferenceEngine;
 import org.apache.rya.rdftriplestore.utils.FixedStatementPattern;
+import org.eclipse.rdf4j.model.*;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
+import org.eclipse.rdf4j.model.vocabulary.RDF;
+import org.eclipse.rdf4j.query.algebra.*;
 import org.junit.Assert;
 import org.junit.Test;
-import org.openrdf.model.Resource;
-import org.openrdf.model.Statement;
-import org.openrdf.model.URI;
-import org.openrdf.model.Value;
-import org.openrdf.model.ValueFactory;
-import org.openrdf.model.impl.ValueFactoryImpl;
-import org.openrdf.model.vocabulary.RDF;
-import org.openrdf.query.algebra.Join;
-import org.openrdf.query.algebra.Projection;
-import org.openrdf.query.algebra.ProjectionElem;
-import org.openrdf.query.algebra.ProjectionElemList;
-import org.openrdf.query.algebra.StatementPattern;
-import org.openrdf.query.algebra.TupleExpr;
-import org.openrdf.query.algebra.Union;
-import org.openrdf.query.algebra.Var;
+
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class HasValueVisitorTest {
     private final AccumuloRdfConfiguration conf = new AccumuloRdfConfiguration();
-    private final ValueFactory vf = new ValueFactoryImpl();
+    private final ValueFactory vf = SimpleValueFactory.getInstance();
 
-    private final URI chordate = vf.createURI("urn:Chordate");
-    private final URI vertebrate = vf.createURI("urn:Vertebrate");
-    private final URI mammal = vf.createURI("urn:Mammal");
-    private final URI tunicate = vf.createURI("urn:Tunicate");
-    private final URI hasCharacteristic = vf.createURI("urn:anatomicalCharacteristic");
-    private final URI notochord = vf.createURI("urn:notochord");
-    private final URI skull = vf.createURI("urn:skull");
-    private final URI belongsTo = vf.createURI("urn:belongsToTaxon");
-    private final URI chordata = vf.createURI("urn:Chordata");
+    private final IRI chordate = vf.createIRI("urn:Chordate");
+    private final IRI vertebrate = vf.createIRI("urn:Vertebrate");
+    private final IRI mammal = vf.createIRI("urn:Mammal");
+    private final IRI tunicate = vf.createIRI("urn:Tunicate");
+    private final IRI hasCharacteristic = vf.createIRI("urn:anatomicalCharacteristic");
+    private final IRI notochord = vf.createIRI("urn:notochord");
+    private final IRI skull = vf.createIRI("urn:skull");
+    private final IRI belongsTo = vf.createIRI("urn:belongsToTaxon");
+    private final IRI chordata = vf.createIRI("urn:Chordata");
 
     @Test
     public void testRewriteTypePattern() throws Exception {
         // Configure a mock instance engine with an ontology:
         final InferenceEngine inferenceEngine = mock(InferenceEngine.class);
-        Map<URI, Set<Value>> vertebrateValues = new HashMap<>();
+        Map<IRI, Set<Value>> vertebrateValues = new HashMap<>();
         vertebrateValues.put(hasCharacteristic, new HashSet<>());
         vertebrateValues.put(belongsTo, new HashSet<>());
         vertebrateValues.get(hasCharacteristic).add(notochord);
@@ -184,7 +171,7 @@ public class HasValueVisitorTest {
         Assert.assertEquals(originalSP.getObjectVar(), fsp.getObjectVar());
         // Verify FSP: should provide (type, value) pairs
         final Set<Statement> expectedStatements = new HashSet<>();
-        final URI fspPred = (URI) fsp.getPredicateVar().getValue();
+        final IRI fspPred = (IRI) fsp.getPredicateVar().getValue();
         expectedStatements.add(vf.createStatement(chordate, fspPred, notochord));
         expectedStatements.add(vf.createStatement(tunicate, fspPred, notochord));
         expectedStatements.add(vf.createStatement(vertebrate, fspPred, notochord));

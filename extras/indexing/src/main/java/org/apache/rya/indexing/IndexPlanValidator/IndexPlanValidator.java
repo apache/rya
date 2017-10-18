@@ -19,22 +19,14 @@ package org.apache.rya.indexing.IndexPlanValidator;
  * under the License.
  */
 
-
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 import java.util.Set;
 
-import org.apache.rya.indexing.external.tupleSet.ExternalTupleSet;
-
-import org.openrdf.query.algebra.BindingSetAssignment;
-import org.openrdf.query.algebra.Filter;
-import org.openrdf.query.algebra.Join;
-import org.openrdf.query.algebra.Projection;
-import org.openrdf.query.algebra.StatementPattern;
-import org.openrdf.query.algebra.TupleExpr;
-import org.openrdf.query.algebra.helpers.QueryModelVisitorBase;
-
 import com.google.common.collect.Sets;
+import org.apache.rya.indexing.external.tupleSet.ExternalTupleSet;
+import org.eclipse.rdf4j.query.algebra.*;
+import org.eclipse.rdf4j.query.algebra.helpers.QueryModelVisitorBase;
 
 
 
@@ -106,11 +98,8 @@ public class IndexPlanValidator implements TupleValidator {
                     }
                     isEmpty = true;
                     return false;
-                } else if(isEmpty) {
-                    return false;
-                }else {
-                    return true;
-                }
+                } else
+                    return !isEmpty;
             }
 
             @Override
@@ -150,11 +139,7 @@ public class IndexPlanValidator implements TupleValidator {
         //System.out.println("Left binding names are " + leftBindingNames + " and right binding names are " + rightBindingNames);
         
         if (Sets.intersection(leftBindingNames, rightBindingNames).size() == 0) {
-            if (omitCrossProd) {
-                return false;
-            } else {
-                return true;
-            }
+            return !omitCrossProd;
 
         } else {
             if (join.getRightArg() instanceof ExternalTupleSet) {

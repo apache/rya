@@ -36,26 +36,26 @@ import org.apache.rya.indexing.geotemporal.mongo.MongoEventStorage;
 import org.apache.rya.indexing.geotemporal.mongo.MongoITBase;
 import org.apache.rya.indexing.geotemporal.storage.EventStorage;
 import org.junit.Test;
-import org.openrdf.model.URI;
-import org.openrdf.model.Value;
-import org.openrdf.model.ValueFactory;
-import org.openrdf.model.impl.URIImpl;
-import org.openrdf.model.impl.ValueFactoryImpl;
-import org.openrdf.query.BindingSet;
-import org.openrdf.query.QueryEvaluationException;
-import org.openrdf.query.algebra.FunctionCall;
-import org.openrdf.query.algebra.StatementPattern;
-import org.openrdf.query.algebra.ValueConstant;
-import org.openrdf.query.algebra.ValueExpr;
-import org.openrdf.query.algebra.Var;
-import org.openrdf.query.impl.MapBindingSet;
+import  org.eclipse.rdf4j.model.URI;
+import  org.eclipse.rdf4j.model.Value;
+import  org.eclipse.rdf4j.model.ValueFactory;
+import  org.eclipse.rdf4j.model.impl.URIImpl;
+import  org.eclipse.rdf4j.model.impl.ValueFactoryImpl;
+import  org.eclipse.rdf4j.query.BindingSet;
+import  org.eclipse.rdf4j.query.QueryEvaluationException;
+import  org.eclipse.rdf4j.query.algebra.FunctionCall;
+import  org.eclipse.rdf4j.query.algebra.StatementPattern;
+import  org.eclipse.rdf4j.query.algebra.ValueConstant;
+import  org.eclipse.rdf4j.query.algebra.ValueExpr;
+import  org.eclipse.rdf4j.query.algebra.Var;
+import  org.eclipse.rdf4j.query.impl.MapBindingSet;
 
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.GeometryFactory;
 import com.vividsolutions.jts.geom.PrecisionModel;
 
-import info.aduna.iteration.CloseableIteration;
+import org.eclipse.rdf4j.common.iteration.CloseableIteration;
 
 /**
  * Unit tests the methods of {@link EventQueryNode}.
@@ -67,12 +67,12 @@ public class EventQueryNodeTest extends MongoITBase {
     @Test(expected = IllegalStateException.class)
     public void constructor_differentSubjects() throws Exception {
         final Var geoSubj = new Var("point");
-        final Var geoPred = new Var("-const-http://www.opengis.net/ont/geosparql#asWKT", ValueFactoryImpl.getInstance().createURI("http://www.opengis.net/ont/geosparql#asWKT"));
+        final Var geoPred = new Var("-const-http://www.opengis.net/ont/geosparql#asWKT", ValueFactoryImpl.getInstance().createIRI("http://www.opengis.net/ont/geosparql#asWKT"));
         final Var geoObj = new Var("wkt");
         final StatementPattern geoSP = new StatementPattern(geoSubj, geoPred, geoObj);
 
         final Var timeSubj = new Var("time");
-        final Var timePred = new Var("-const-http://www.w3.org/2006/time#inXSDDateTime", ValueFactoryImpl.getInstance().createURI("-const-http://www.w3.org/2006/time#inXSDDateTime"));
+        final Var timePred = new Var("-const-http://www.w3.org/2006/time#inXSDDateTime", ValueFactoryImpl.getInstance().createIRI("-const-http://www.w3.org/2006/time#inXSDDateTime"));
         final Var timeObj = new Var("time");
         final StatementPattern timeSP = new StatementPattern(timeSubj, timePred, timeObj);
         // This will fail.
@@ -95,7 +95,7 @@ public class EventQueryNodeTest extends MongoITBase {
         final StatementPattern geoSP = new StatementPattern(geoSubj, geoPred, geoObj);
 
         final Var timeSubj = new Var("time");
-        final Var timePred = new Var("-const-http://www.w3.org/2006/time#inXSDDateTime", ValueFactoryImpl.getInstance().createURI("-const-http://www.w3.org/2006/time#inXSDDateTime"));
+        final Var timePred = new Var("-const-http://www.w3.org/2006/time#inXSDDateTime", ValueFactoryImpl.getInstance().createIRI("-const-http://www.w3.org/2006/time#inXSDDateTime"));
         final Var timeObj = new Var("time");
         final StatementPattern timeSP = new StatementPattern(timeSubj, timePred, timeObj);
         // This will fail.
@@ -250,7 +250,7 @@ public class EventQueryNodeTest extends MongoITBase {
 
         final EventQueryNode node = buildNode(storage, query);
         final MapBindingSet existingBindings = new MapBindingSet();
-        existingBindings.addBinding("event", VF.createURI("urn:event-2222"));
+        existingBindings.addBinding("event", vf.createIRI("urn:event-2222"));
         final CloseableIteration<BindingSet, QueryEvaluationException> rez = node.evaluate(existingBindings);
         final MapBindingSet expected = new MapBindingSet();
         expected.addBinding("wkt", VF.createLiteral("POINT (-1 -1)"));
@@ -302,7 +302,7 @@ public class EventQueryNodeTest extends MongoITBase {
 
         final EventQueryNode node = buildNode(storage, query);
         final MapBindingSet existingBindings = new MapBindingSet();
-        existingBindings.addBinding("event", VF.createURI("urn:event-2222"));
+        existingBindings.addBinding("event", vf.createIRI("urn:event-2222"));
         final CloseableIteration<BindingSet, QueryEvaluationException> rez = node.evaluate(existingBindings);
         final MapBindingSet expected = new MapBindingSet();
         expected.addBinding("wkt", VF.createLiteral("POINT (-1 -1)"));

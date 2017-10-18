@@ -19,20 +19,18 @@ package org.apache.rya.api.resolver.impl;
  * under the License.
  */
 
-
+import java.util.Date;
 
 import org.apache.rya.api.resolver.RyaTypeResolverException;
 import org.calrissian.mango.types.LexiTypeEncoders;
 import org.calrissian.mango.types.TypeEncoder;
 import org.calrissian.mango.types.exception.TypeDecodingException;
 import org.calrissian.mango.types.exception.TypeEncodingException;
+import org.eclipse.rdf4j.model.vocabulary.XMLSchema;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.format.DateTimeFormatter;
 import org.joda.time.format.ISODateTimeFormat;
-import org.openrdf.model.vocabulary.XMLSchema;
-
-import java.util.Date;
 
 /**
  * Reverse index xml datetime strings

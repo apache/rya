@@ -18,13 +18,14 @@
  */
 package org.apache.rya.indexing.pcj.matching;
 
-import static java.util.Objects.requireNonNull;
-
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import com.google.common.base.Preconditions;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
 import org.apache.accumulo.core.client.Connector;
@@ -32,7 +33,7 @@ import org.apache.accumulo.core.client.TableNotFoundException;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.log4j.Logger;
 import org.apache.rya.accumulo.instance.AccumuloRyaInstanceDetailsRepository;
-import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
+import org.apache.rya.api.RdfTripleStoreConfiguration;
 import org.apache.rya.api.instance.RyaDetailsRepository;
 import org.apache.rya.api.instance.RyaDetailsRepository.RyaDetailsRepositoryException;
 import org.apache.rya.indexing.IndexPlanValidator.IndexedExecutionPlanGenerator;
@@ -47,14 +48,12 @@ import org.apache.rya.indexing.pcj.storage.PrecomputedJoinStorage;
 import org.apache.rya.indexing.pcj.storage.accumulo.AccumuloPcjStorage;
 import org.apache.rya.indexing.pcj.storage.accumulo.PcjTableNameFactory;
 import org.apache.rya.indexing.pcj.storage.accumulo.PcjTables;
-import org.openrdf.query.MalformedQueryException;
-import org.openrdf.query.QueryEvaluationException;
-import org.openrdf.query.algebra.TupleExpr;
-import org.openrdf.sail.SailException;
+import org.eclipse.rdf4j.query.MalformedQueryException;
+import org.eclipse.rdf4j.query.QueryEvaluationException;
+import org.eclipse.rdf4j.query.algebra.TupleExpr;
+import org.eclipse.rdf4j.sail.SailException;
 
-import com.google.common.base.Preconditions;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
+import static java.util.Objects.requireNonNull;
 
 /**
  * Implementation of {@link ExternalSetProvider} that provides {@link ExternalTupleSet}s.
@@ -156,12 +155,12 @@ public class AccumuloIndexSetProvider implements ExternalSetProvider<ExternalTup
     private List<ExternalTupleSet> getAccIndices() throws Exception {
 
         requireNonNull(conf);
-        final String tablePrefix = requireNonNull(conf.get(RdfCloudTripleStoreConfiguration.CONF_TBL_PREFIX));
+        final String tablePrefix = requireNonNull(conf.get(RdfTripleStoreConfiguration.CONF_TBL_PREFIX));
         final Connector conn = requireNonNull(ConfigUtils.getConnector(conf));
         List<String> tables = null;
 
-        if (conf instanceof RdfCloudTripleStoreConfiguration) {
-            tables = ((RdfCloudTripleStoreConfiguration) conf).getPcjTables();
+        if (conf instanceof RdfTripleStoreConfiguration) {
+            tables = ((RdfTripleStoreConfiguration) conf).getPcjTables();
         }
         // this maps associates pcj table name with pcj sparql query
         final Map<String, String> indexTables = Maps.newLinkedHashMap();

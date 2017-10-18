@@ -21,38 +21,31 @@ package org.apache.rya.reasoning;
 
 import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.domain.RyaURI;
-
-import org.openrdf.model.BNode;
-import org.openrdf.model.Literal;
-import org.openrdf.model.Resource;
-import org.openrdf.model.Statement;
-import org.openrdf.model.URI;
-import org.openrdf.model.Value;
-import org.openrdf.model.ValueFactory;
-import org.openrdf.model.impl.ValueFactoryImpl;
-import org.openrdf.model.vocabulary.XMLSchema;
+import org.eclipse.rdf4j.model.*;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
+import org.eclipse.rdf4j.model.vocabulary.XMLSchema;
 
 public class TestUtils {
-    private static final ValueFactory VALUE_FACTORY = new ValueFactoryImpl();
+    private static final ValueFactory VALUE_FACTORY = SimpleValueFactory.getInstance();
     public static final String TEST_PREFIX = "http://test.test";
-    public static final URI NODE = uri("http://thisnode.test", "x");
+    public static final IRI NODE = uri("http://thisnode.test", "x");
 
-    public static URI uri(String prefix, String u) {
+    public static IRI uri(String prefix, String u) {
         if (prefix.length() > 0) {
             u = prefix + "#" + u;
         }
-        return VALUE_FACTORY.createURI(u);
+        return VALUE_FACTORY.createIRI(u);
     }
 
-    public static URI uri(String u) {
+    public static IRI uri(String u) {
         return uri(TEST_PREFIX, u);
     }
 
-    public static Fact fact(Resource s, URI p, Value o) {
+    public static Fact fact(Resource s, IRI p, Value o) {
         return new Fact(s, p, o);
     }
 
-    public static Statement statement(Resource s, URI p, Value o) {
+    public static Statement statement(Resource s, IRI p, Value o) {
         return VALUE_FACTORY.createStatement(s, p, o);
     }
 

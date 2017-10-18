@@ -19,23 +19,16 @@ package org.apache.rya.indexing.IndexPlanValidator;
  * under the License.
  */
 
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.apache.rya.indexing.external.tupleSet.ExternalTupleSet;
-
-import org.openrdf.query.algebra.Filter;
-import org.openrdf.query.algebra.StatementPattern;
-import org.openrdf.query.algebra.TupleExpr;
-import org.openrdf.query.algebra.ValueConstant;
-import org.openrdf.query.algebra.Var;
-import org.openrdf.query.algebra.helpers.QueryModelVisitorBase;
-
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
+import org.apache.rya.indexing.external.tupleSet.ExternalTupleSet;
+import org.eclipse.rdf4j.query.algebra.*;
+import org.eclipse.rdf4j.query.algebra.helpers.QueryModelVisitorBase;
 
 
 

@@ -19,14 +19,12 @@ package org.apache.rya.api.resolver.impl;
  * under the License.
  */
 
-
-
 import org.apache.rya.api.resolver.RyaTypeResolverException;
 import org.calrissian.mango.types.LexiTypeEncoders;
 import org.calrissian.mango.types.TypeEncoder;
 import org.calrissian.mango.types.exception.TypeDecodingException;
 import org.calrissian.mango.types.exception.TypeEncodingException;
-import org.openrdf.model.vocabulary.XMLSchema;
+import org.eclipse.rdf4j.model.vocabulary.XMLSchema;
 
 /**
  */

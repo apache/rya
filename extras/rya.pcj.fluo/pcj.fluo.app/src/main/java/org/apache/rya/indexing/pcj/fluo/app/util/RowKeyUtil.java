@@ -18,18 +18,16 @@
  */
 package org.apache.rya.indexing.pcj.fluo.app.util;
 
-import static java.util.Objects.requireNonNull;
-
+import com.google.common.base.Charsets;
+import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
+import edu.umd.cs.findbugs.annotations.NonNull;
 import org.apache.fluo.api.data.Bytes;
 import org.apache.rya.indexing.pcj.fluo.app.IncrementalUpdateConstants;
 import org.apache.rya.indexing.pcj.storage.accumulo.BindingSetStringConverter;
 import org.apache.rya.indexing.pcj.storage.accumulo.VariableOrder;
-import org.openrdf.query.BindingSet;
+import org.eclipse.rdf4j.query.BindingSet;
 
-import com.google.common.base.Charsets;
-
-import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
-import edu.umd.cs.findbugs.annotations.NonNull;
+import static java.util.Objects.requireNonNull;
 
 /**
  * TODO doc that this implements utility functions used to create the Fluo Row Keys used when referencing the binding

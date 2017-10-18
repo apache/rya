@@ -19,14 +19,12 @@ package org.apache.rya.api.utils;
  * under the License.
  */
 
+import java.util.Map;
 
-
-import info.aduna.iteration.CloseableIteration;
 import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.persist.RyaDAOException;
-import org.openrdf.query.BindingSet;
-
-import java.util.Map;
+import org.eclipse.rdf4j.common.iteration.CloseableIteration;
+import org.eclipse.rdf4j.query.BindingSet;
 
 /**
  * Date: 1/18/13

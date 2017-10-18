@@ -19,21 +19,18 @@ package org.apache.rya.alx.util;
  * under the License.
  */
 
-
+import java.util.Map;
 
 import org.apache.rya.accumulo.AccumuloRdfConfiguration;
-import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
-import org.apache.hadoop.conf.Configuration;
-
-import java.util.Map;
+import org.apache.rya.api.RdfTripleStoreConfiguration;
 
 /**
  */
 public class ConfigurationFactory {
     private Map<String, String> properties;
 
-    public RdfCloudTripleStoreConfiguration getConfiguration() {
-        RdfCloudTripleStoreConfiguration conf = new AccumuloRdfConfiguration();
+    public RdfTripleStoreConfiguration getConfiguration() {
+        RdfTripleStoreConfiguration conf = new AccumuloRdfConfiguration();
         if (properties != null) {
             for (Map.Entry<String, String> prop : properties.entrySet()) {
                 conf.set(prop.getKey(), prop.getValue());

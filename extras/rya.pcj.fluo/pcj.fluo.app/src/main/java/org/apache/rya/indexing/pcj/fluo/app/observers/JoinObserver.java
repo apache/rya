@@ -18,8 +18,6 @@
  */
 package org.apache.rya.indexing.pcj.fluo.app.observers;
 
-import static java.util.Objects.requireNonNull;
-
 import org.apache.fluo.api.client.TransactionBase;
 import org.apache.fluo.api.data.Bytes;
 import org.apache.rya.indexing.pcj.fluo.app.BindingSetRow;
@@ -27,7 +25,9 @@ import org.apache.rya.indexing.pcj.fluo.app.query.FluoQueryColumns;
 import org.apache.rya.indexing.pcj.fluo.app.query.JoinMetadata;
 import org.apache.rya.indexing.pcj.storage.accumulo.VisibilityBindingSet;
 import org.apache.rya.indexing.pcj.storage.accumulo.VisibilityBindingSetSerDe;
-import org.openrdf.query.BindingSet;
+import org.eclipse.rdf4j.query.BindingSet;
+
+import static java.util.Objects.requireNonNull;
 
 /**
  * Notified when the results of a Join have been updated to include a new

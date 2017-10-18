@@ -19,22 +19,13 @@ package org.apache.rya.indexing.IndexPlanValidator;
  * under the License.
  */
 
-
 import java.util.Iterator;
 import java.util.Set;
 
-import org.apache.rya.indexing.external.tupleSet.ExternalTupleSet;
-
-import org.openrdf.query.algebra.BindingSetAssignment;
-import org.openrdf.query.algebra.Filter;
-import org.openrdf.query.algebra.Join;
-import org.openrdf.query.algebra.Projection;
-import org.openrdf.query.algebra.QueryModelNode;
-import org.openrdf.query.algebra.StatementPattern;
-import org.openrdf.query.algebra.TupleExpr;
-import org.openrdf.query.algebra.helpers.QueryModelVisitorBase;
-
 import com.google.common.collect.Sets;
+import org.apache.rya.indexing.external.tupleSet.ExternalTupleSet;
+import org.eclipse.rdf4j.query.algebra.*;
+import org.eclipse.rdf4j.query.algebra.helpers.QueryModelVisitorBase;
 
 public class ThreshholdPlanSelector implements IndexedQueryPlanSelector {
 
@@ -111,9 +102,9 @@ public class ThreshholdPlanSelector implements IndexedQueryPlanSelector {
         double dirProductScale;
         
         if(queryNodeCount > nodeCount) {
-            dirProductScale = 1/((double)(queryNodeCount - nodeCount));
+            dirProductScale = 1/ (queryNodeCount - nodeCount);
         } else {
-            dirProductScale = 1/((double)(queryNodeCount - nodeCount + 1));
+            dirProductScale = 1/ (queryNodeCount - nodeCount + 1);
         }
         
         double joinVarRatio;

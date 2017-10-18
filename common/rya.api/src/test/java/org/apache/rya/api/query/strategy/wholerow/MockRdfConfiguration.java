@@ -20,12 +20,12 @@ package org.apache.rya.api.query.strategy.wholerow;
  */
 
 
-import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
+import org.apache.rya.api.RdfTripleStoreConfiguration;
 
-public class MockRdfCloudConfiguration extends RdfCloudTripleStoreConfiguration {
+public class MockRdfConfiguration extends RdfTripleStoreConfiguration {
 
 	@Override
-	public RdfCloudTripleStoreConfiguration clone() {
+	public RdfTripleStoreConfiguration clone() {
 		return this;
 	}
 

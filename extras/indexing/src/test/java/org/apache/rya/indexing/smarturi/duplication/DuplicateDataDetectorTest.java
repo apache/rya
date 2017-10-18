@@ -18,30 +18,11 @@
  */
 package org.apache.rya.indexing.smarturi.duplication;
 
-import static java.util.Objects.requireNonNull;
-import static org.apache.rya.api.domain.RyaTypeUtils.booleanRyaType;
-import static org.apache.rya.api.domain.RyaTypeUtils.byteRyaType;
-import static org.apache.rya.api.domain.RyaTypeUtils.dateRyaType;
-import static org.apache.rya.api.domain.RyaTypeUtils.doubleRyaType;
-import static org.apache.rya.api.domain.RyaTypeUtils.floatRyaType;
-import static org.apache.rya.api.domain.RyaTypeUtils.intRyaType;
-import static org.apache.rya.api.domain.RyaTypeUtils.longRyaType;
-import static org.apache.rya.api.domain.RyaTypeUtils.shortRyaType;
-import static org.apache.rya.api.domain.RyaTypeUtils.stringRyaType;
-import static org.apache.rya.api.domain.RyaTypeUtils.uriRyaType;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import java.util.*;
 
-import java.util.Date;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Lists;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.lang.builder.ReflectionToStringBuilder;
 import org.apache.rya.api.domain.RyaSchema;
@@ -54,7 +35,6 @@ import org.apache.rya.indexing.entity.model.Entity.Builder;
 import org.apache.rya.indexing.entity.model.Property;
 import org.apache.rya.indexing.entity.model.Type;
 import org.apache.rya.indexing.entity.storage.EntityStorage;
-import org.apache.rya.indexing.entity.storage.EntityStorage.EntityStorageException;
 import org.apache.rya.indexing.entity.storage.TypeStorage;
 import org.apache.rya.indexing.entity.storage.TypeStorage.TypeStorageException;
 import org.apache.rya.indexing.entity.storage.mongo.MongoEntityStorage;
@@ -63,15 +43,15 @@ import org.apache.rya.indexing.mongodb.update.RyaObjectStorage.ObjectStorageExce
 import org.apache.rya.indexing.smarturi.SmartUriException;
 import org.apache.rya.indexing.smarturi.duplication.conf.DuplicateDataConfig;
 import org.apache.rya.mongodb.MongoTestBase;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
+import org.eclipse.rdf4j.model.impl.URIImpl;
 import org.joda.time.DateTime;
 import org.junit.Test;
-import org.openrdf.model.ValueFactory;
-import org.openrdf.model.impl.URIImpl;
-import org.openrdf.model.impl.ValueFactoryImpl;
 
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Lists;
+import static java.util.Objects.requireNonNull;
+import static org.apache.rya.api.domain.RyaTypeUtils.*;
+import static org.junit.Assert.*;
 
 /**
  * Tests the methods of {@link DuplicateDataDetector}.
@@ -80,7 +60,7 @@ public class DuplicateDataDetectorTest extends MongoTestBase {
     private static final String RYA_INSTANCE_NAME = "testInstance";
 
     private static final String NAMESPACE = RyaSchema.NAMESPACE;
-    private static final ValueFactory VALUE_FACTORY = ValueFactoryImpl.getInstance();
+    private static final ValueFactory VALUE_FACTORY = SimpleValueFactory.getInstance();
 
     // People
     private static final RyaURI BOB = createRyaUri("Bob");
@@ -131,7 +111,7 @@ public class DuplicateDataDetectorTest extends MongoTestBase {
      * @return the {@link RyraURI}.
      */
     private static RyaURI createRyaUri(final String namespace, final String localName) {
-        return RdfToRyaConversions.convertURI(VALUE_FACTORY.createURI(namespace, localName));
+        return RdfToRyaConversions.convertURI(VALUE_FACTORY.createIRI(namespace, localName));
     }
 
     private static Entity createBobEntity() {
@@ -291,7 +271,7 @@ public class DuplicateDataDetectorTest extends MongoTestBase {
     @Test
     public void testBooleanProperty() throws SmartUriException {
         System.out.println("Boolean Property Test");
-        final ImmutableList.Builder<TestInput> builder = ImmutableList.<TestInput>builder();
+        final ImmutableList.Builder<TestInput> builder = ImmutableList.builder();
         // Tolerance 0.0
         Tolerance tolerance = new Tolerance(0.0, ToleranceType.DIFFERENCE);
         builder.add(new TestInput(false, tolerance, false));
@@ -326,7 +306,7 @@ public class DuplicateDataDetectorTest extends MongoTestBase {
     @Test
     public void testByteProperty() throws SmartUriException {
         System.out.println("Byte Property Test");
-        final ImmutableList.Builder<TestInput> builder = ImmutableList.<TestInput>builder();
+        final ImmutableList.Builder<TestInput> builder = ImmutableList.builder();
         // Tolerance 0.0
         Tolerance tolerance = new Tolerance(0.0, ToleranceType.DIFFERENCE);
         builder.add(new TestInput(Byte.MIN_VALUE, tolerance, false));
@@ -410,7 +390,7 @@ public class DuplicateDataDetectorTest extends MongoTestBase {
     public void testDateProperty() throws SmartUriException {
         System.out.println("Date Property Test");
         final long ONE_YEAR_IN_MILLIS = 1000L * 60L * 60L * 24L * 365L;
-        final ImmutableList.Builder<TestInput> builder = ImmutableList.<TestInput>builder();
+        final ImmutableList.Builder<TestInput> builder = ImmutableList.builder();
         // Tolerance 0.0
         Tolerance tolerance = new Tolerance(0.0, ToleranceType.DIFFERENCE);
         builder.add(new TestInput(new Date(0L), tolerance, false));
@@ -591,7 +571,7 @@ public class DuplicateDataDetectorTest extends MongoTestBase {
         System.out.println("DateTime Property Test");
         final DateTime dob = new DateTime(NOW).minusYears(40);
         final long ONE_YEAR_IN_MILLIS = 1000L * 60L * 60L * 24L * 365L;
-        final ImmutableList.Builder<TestInput> builder = ImmutableList.<TestInput>builder();
+        final ImmutableList.Builder<TestInput> builder = ImmutableList.builder();
         // Tolerance 0.0
         Tolerance tolerance = new Tolerance(0.0, ToleranceType.DIFFERENCE);
         builder.add(new TestInput(new DateTime(0L), tolerance, false));
@@ -770,7 +750,7 @@ public class DuplicateDataDetectorTest extends MongoTestBase {
     @Test
     public void testDoubleProperty() throws SmartUriException {
         System.out.println("Double Property Test");
-        final ImmutableList.Builder<TestInput> builder = ImmutableList.<TestInput>builder();
+        final ImmutableList.Builder<TestInput> builder = ImmutableList.builder();
         // Tolerance 0.0
         Tolerance tolerance = new Tolerance(0.0, ToleranceType.DIFFERENCE);
         builder.add(new TestInput(Double.MIN_VALUE, tolerance, false));
@@ -950,7 +930,7 @@ public class DuplicateDataDetectorTest extends MongoTestBase {
     @Test
     public void testFloatProperty() throws SmartUriException {
         System.out.println("Float Property Test");
-        final ImmutableList.Builder<TestInput> builder = ImmutableList.<TestInput>builder();
+        final ImmutableList.Builder<TestInput> builder = ImmutableList.builder();
         // Tolerance 0.0
         Tolerance tolerance = new Tolerance(0.0, ToleranceType.DIFFERENCE);
         builder.add(new TestInput(Float.MIN_VALUE, tolerance, false));
@@ -1117,7 +1097,7 @@ public class DuplicateDataDetectorTest extends MongoTestBase {
     @Test
     public void testIntegerProperty() throws SmartUriException {
         System.out.println("Integer Property Test");
-        final ImmutableList.Builder<TestInput> builder = ImmutableList.<TestInput>builder();
+        final ImmutableList.Builder<TestInput> builder = ImmutableList.builder();
         // Tolerance 0.0
         Tolerance tolerance = new Tolerance(0.0, ToleranceType.DIFFERENCE);
         builder.add(new TestInput(Integer.MIN_VALUE, tolerance, false));
@@ -1254,7 +1234,7 @@ public class DuplicateDataDetectorTest extends MongoTestBase {
     @Test
     public void testLongProperty() throws SmartUriException {
         System.out.println("Long Property Test");
-        final ImmutableList.Builder<TestInput> builder = ImmutableList.<TestInput>builder();
+        final ImmutableList.Builder<TestInput> builder = ImmutableList.builder();
         // Tolerance 0.0
         Tolerance tolerance = new Tolerance(0.0, ToleranceType.DIFFERENCE);
         builder.add(new TestInput(Long.MIN_VALUE, tolerance, false));
@@ -1373,7 +1353,7 @@ public class DuplicateDataDetectorTest extends MongoTestBase {
     @Test
     public void testShortProperty() throws SmartUriException {
         System.out.println("Short Property Test");
-        final ImmutableList.Builder<TestInput> builder = ImmutableList.<TestInput>builder();
+        final ImmutableList.Builder<TestInput> builder = ImmutableList.builder();
         // Tolerance 0.0
         Tolerance tolerance = new Tolerance(0.0, ToleranceType.DIFFERENCE);
         builder.add(new TestInput(Short.MIN_VALUE, tolerance, false));
@@ -1482,7 +1462,7 @@ public class DuplicateDataDetectorTest extends MongoTestBase {
     @Test
     public void testStringProperty() throws SmartUriException {
         System.out.println("String Property Test");
-        final ImmutableList.Builder<TestInput> builder = ImmutableList.<TestInput>builder();
+        final ImmutableList.Builder<TestInput> builder = ImmutableList.builder();
         // Tolerance 0.0
         Tolerance tolerance = new Tolerance(0.0, ToleranceType.DIFFERENCE);
         builder.add(new TestInput("123 Wrong St. Washington, DC 20024", tolerance, false));
@@ -1553,7 +1533,7 @@ public class DuplicateDataDetectorTest extends MongoTestBase {
     @Test
     public void testUriProperty() throws SmartUriException {
         System.out.println("URI Property Test");
-        final ImmutableList.Builder<TestInput> builder = ImmutableList.<TestInput>builder();
+        final ImmutableList.Builder<TestInput> builder = ImmutableList.builder();
         // Tolerance 0.0
         Tolerance tolerance = new Tolerance(0.0, ToleranceType.DIFFERENCE);
         builder.add(new TestInput(new URIImpl("mailto:bob.smitch01@gmail.com"), tolerance, false));
@@ -1691,7 +1671,7 @@ public class DuplicateDataDetectorTest extends MongoTestBase {
                 "blue"
             )
         );
-        final ImmutableList.Builder<TestInput> builder = ImmutableList.<TestInput>builder();
+        final ImmutableList.Builder<TestInput> builder = ImmutableList.builder();
         // Tolerance 1.0 - tolerance doesn't apply to equivalents but is still needed for the test
         final Tolerance tolerance = new Tolerance(1.0, ToleranceType.DIFFERENCE);
         // Color equivalents
@@ -1766,7 +1746,7 @@ public class DuplicateDataDetectorTest extends MongoTestBase {
     }
 
     @Test
-    public void testCreateEntityNearDuplicate() throws EntityStorageException, TypeStorageException, ObjectStorageException {
+    public void testCreateEntityNearDuplicate() throws TypeStorageException, ObjectStorageException {
         // Create the types the Entity uses.
         final TypeStorage typeStorage = new MongoTypeStorage(super.getMongoClient(), RYA_INSTANCE_NAME);
         final Type personType = createPersonType();
@@ -1857,7 +1837,7 @@ public class DuplicateDataDetectorTest extends MongoTestBase {
     }
 
     @Test
-    public void testCreateEntityNearDuplicateConfigDisabled() throws EntityStorageException, TypeStorageException, ConfigurationException, ObjectStorageException {
+    public void testCreateEntityNearDuplicateConfigDisabled() throws TypeStorageException, ConfigurationException, ObjectStorageException {
         // Create the types the Entity uses.
         final TypeStorage typeStorage = new MongoTypeStorage(super.getMongoClient(), RYA_INSTANCE_NAME);
         final Type personType = createPersonType();

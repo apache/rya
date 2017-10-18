@@ -15,12 +15,12 @@ import org.apache.rya.indexing.IteratorFactory;
 import org.apache.rya.indexing.SearchFunction;
 import org.apache.rya.indexing.StatementConstraints;
 import org.apache.rya.indexing.external.tupleSet.ExternalTupleSet;
-import org.openrdf.model.Statement;
-import org.openrdf.model.URI;
-import org.openrdf.model.Value;
-import org.openrdf.query.BindingSet;
-import org.openrdf.query.QueryEvaluationException;
-import org.openrdf.query.algebra.Var;
+import  org.eclipse.rdf4j.model.Statement;
+import  org.eclipse.rdf4j.model.URI;
+import  org.eclipse.rdf4j.model.Value;
+import  org.eclipse.rdf4j.query.BindingSet;
+import  org.eclipse.rdf4j.query.QueryEvaluationException;
+import  org.eclipse.rdf4j.query.algebra.Var;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.Maps;
@@ -48,7 +48,7 @@ import com.vividsolutions.jts.io.WKTReader;
  */
 
 
-import info.aduna.iteration.CloseableIteration;
+import org.eclipse.rdf4j.common.iteration.CloseableIteration;
 
 //Indexing Node for geo expressions to be inserted into execution plan
 //to delegate geo portion of query to geo index

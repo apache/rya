@@ -18,19 +18,16 @@
  */
 package org.apache.rya.indexing.pcj.storage.accumulo;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-
 import java.io.IOException;
 import java.util.HashSet;
 import java.util.Map.Entry;
 import java.util.Set;
 
-import org.apache.accumulo.core.client.AccumuloException;
-import org.apache.accumulo.core.client.AccumuloSecurityException;
-import org.apache.accumulo.core.client.Connector;
-import org.apache.accumulo.core.client.Scanner;
-import org.apache.accumulo.core.client.TableNotFoundException;
+import com.google.common.base.Optional;
+import com.google.common.collect.HashMultimap;
+import com.google.common.collect.Multimap;
+import com.google.common.collect.Sets;
+import org.apache.accumulo.core.client.*;
 import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Value;
 import org.apache.accumulo.core.security.Authorizations;
@@ -38,12 +35,8 @@ import org.apache.accumulo.minicluster.MiniAccumuloCluster;
 import org.apache.hadoop.io.Text;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
-import org.apache.rya.accumulo.AccumuloRdfConfiguration;
-import org.apache.rya.accumulo.AccumuloRyaDAO;
-import org.apache.rya.accumulo.MiniAccumuloClusterInstance;
-import org.apache.rya.accumulo.MiniAccumuloSingleton;
-import org.apache.rya.accumulo.RyaTestInstanceRule;
-import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
+import org.apache.rya.accumulo.*;
+import org.apache.rya.api.RdfTripleStoreConfiguration;
 import org.apache.rya.indexing.pcj.storage.PcjException;
 import org.apache.rya.indexing.pcj.storage.PcjMetadata;
 import org.apache.rya.indexing.pcj.storage.PrecomputedJoinStorage.CloseableIterator;
@@ -52,26 +45,20 @@ import org.apache.rya.indexing.pcj.storage.accumulo.BindingSetConverter.BindingS
 import org.apache.rya.rdftriplestore.RdfCloudTripleStore;
 import org.apache.rya.rdftriplestore.RyaSailRepository;
 import org.apache.zookeeper.ClientCnxn;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Rule;
-import org.junit.Test;
-import org.openrdf.model.Statement;
-import org.openrdf.model.impl.LiteralImpl;
-import org.openrdf.model.impl.NumericLiteralImpl;
-import org.openrdf.model.impl.StatementImpl;
-import org.openrdf.model.impl.URIImpl;
-import org.openrdf.model.vocabulary.XMLSchema;
-import org.openrdf.query.BindingSet;
-import org.openrdf.query.impl.MapBindingSet;
-import org.openrdf.repository.RepositoryConnection;
-import org.openrdf.repository.RepositoryException;
+import org.eclipse.rdf4j.model.Statement;
+import org.eclipse.rdf4j.model.impl.LiteralImpl;
+import org.eclipse.rdf4j.model.impl.NumericLiteralImpl;
+import org.eclipse.rdf4j.model.impl.StatementImpl;
+import org.eclipse.rdf4j.model.impl.URIImpl;
+import org.eclipse.rdf4j.model.vocabulary.XMLSchema;
+import org.eclipse.rdf4j.query.BindingSet;
+import org.eclipse.rdf4j.query.impl.MapBindingSet;
+import org.eclipse.rdf4j.repository.RepositoryConnection;
+import org.eclipse.rdf4j.repository.RepositoryException;
+import org.junit.*;
 
-import com.google.common.base.Optional;
-import com.google.common.collect.HashMultimap;
-import com.google.common.collect.Multimap;
-import com.google.common.collect.Sets;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 /**
  * Performs integration test using {@link MiniAccumuloCluster} to ensure the
@@ -137,7 +124,7 @@ public class PcjTablesIT {
         conf.setDisplayQueryPlan(true);
 
         conf.setBoolean(USE_MOCK_INSTANCE, false);
-        conf.set(RdfCloudTripleStoreConfiguration.CONF_TBL_PREFIX, getRyaInstanceName());
+        conf.set(RdfTripleStoreConfiguration.CONF_TBL_PREFIX, getRyaInstanceName());
         conf.set(CLOUDBASE_USER, cluster.getUsername());
         conf.set(CLOUDBASE_PASSWORD, cluster.getPassword());
         conf.set(CLOUDBASE_INSTANCE, cluster.getInstanceName());
@@ -219,8 +206,8 @@ public class PcjTablesIT {
         charlie.addBinding("name", new URIImpl("http://Charlie"));
         charlie.addBinding("age", new NumericLiteralImpl(12, XMLSchema.INTEGER));
 
-        final Set<BindingSet> results = Sets.<BindingSet>newHashSet(alice, bob, charlie);
-        pcjs.addResults(accumuloConn, pcjTableName, Sets.<VisibilityBindingSet>newHashSet(
+        final Set<BindingSet> results = Sets.newHashSet(alice, bob, charlie);
+        pcjs.addResults(accumuloConn, pcjTableName, Sets.newHashSet(
                 new VisibilityBindingSet(alice),
                 new VisibilityBindingSet(bob),
                 new VisibilityBindingSet(charlie)));
@@ -270,7 +257,7 @@ public class PcjTablesIT {
         charlie.addBinding("name", new URIImpl("http://Charlie"));
         charlie.addBinding("age", new NumericLiteralImpl(12, XMLSchema.INTEGER));
 
-        pcjs.addResults(accumuloConn, pcjTableName, Sets.<VisibilityBindingSet>newHashSet(
+        pcjs.addResults(accumuloConn, pcjTableName, Sets.newHashSet(
                 new VisibilityBindingSet(alice),
                 new VisibilityBindingSet(bob),
                 new VisibilityBindingSet(charlie)));
@@ -288,7 +275,7 @@ public class PcjTablesIT {
         }
 
         // Verify the fetched results match the expected ones.
-        final Set<BindingSet> expected = Sets.<BindingSet>newHashSet(alice, bob, charlie);
+        final Set<BindingSet> expected = Sets.newHashSet(alice, bob, charlie);
         assertEquals(expected, results);
     }
 
@@ -354,7 +341,7 @@ public class PcjTablesIT {
         charlie.addBinding("name", new URIImpl("http://Charlie"));
         charlie.addBinding("age", new NumericLiteralImpl(12, XMLSchema.INTEGER));
 
-        final Set<BindingSet> results = Sets.<BindingSet>newHashSet(alice, bob, charlie);
+        final Set<BindingSet> results = Sets.newHashSet(alice, bob, charlie);
 
         final Multimap<String, BindingSet> expectedResults = HashMultimap.create();
         expectedResults.putAll("name;age", results);
@@ -400,7 +387,7 @@ public class PcjTablesIT {
 
         // Create and populate the PCJ table.
         final PcjTables pcjs = new PcjTables();
-        pcjs.createAndPopulatePcj(ryaConn, accumuloConn, pcjTableName, sparql, new String[]{"name", "age"}, Optional.<PcjVarOrderFactory>absent());
+        pcjs.createAndPopulatePcj(ryaConn, accumuloConn, pcjTableName, sparql, new String[]{"name", "age"}, Optional.absent());
 
         // Make sure the cardinality was updated.
         final PcjMetadata metadata = pcjs.getPcjMetadata(accumuloConn, pcjTableName);
@@ -422,7 +409,7 @@ public class PcjTablesIT {
         charlie.addBinding("name", new URIImpl("http://Charlie"));
         charlie.addBinding("age", new NumericLiteralImpl(12, XMLSchema.INTEGER));
 
-        final Set<BindingSet> results = Sets.<BindingSet>newHashSet(alice, bob, charlie);
+        final Set<BindingSet> results = Sets.newHashSet(alice, bob, charlie);
 
         final Multimap<String, BindingSet> expectedResults = HashMultimap.create();
         expectedResults.putAll("name;age", results);
@@ -497,7 +484,7 @@ public class PcjTablesIT {
         charlie.addBinding("name", new URIImpl("http://Charlie"));
         charlie.addBinding("age", new NumericLiteralImpl(12, XMLSchema.INTEGER));
 
-        pcjs.addResults(accumuloConn, pcjTableName, Sets.<VisibilityBindingSet>newHashSet(
+        pcjs.addResults(accumuloConn, pcjTableName, Sets.newHashSet(
                 new VisibilityBindingSet(alice),
                 new VisibilityBindingSet(bob),
                 new VisibilityBindingSet(charlie)));

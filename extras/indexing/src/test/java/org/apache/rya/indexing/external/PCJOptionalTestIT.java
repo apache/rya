@@ -22,49 +22,38 @@ import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.accumulo.core.client.AccumuloException;
-import org.apache.accumulo.core.client.AccumuloSecurityException;
-import org.apache.accumulo.core.client.Connector;
-import org.apache.accumulo.core.client.TableExistsException;
-import org.apache.accumulo.core.client.TableNotFoundException;
-import org.apache.accumulo.core.client.mock.MockInstance;
-import org.apache.accumulo.core.client.security.tokens.PasswordToken;
-import org.apache.rya.indexing.pcj.storage.PcjException;
-import org.apache.rya.indexing.pcj.storage.accumulo.PcjVarOrderFactory;
-import org.junit.After;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
-import org.openrdf.model.URI;
-import org.openrdf.model.impl.LiteralImpl;
-import org.openrdf.model.impl.URIImpl;
-import org.openrdf.model.vocabulary.RDF;
-import org.openrdf.model.vocabulary.RDFS;
-import org.openrdf.query.MalformedQueryException;
-import org.openrdf.query.QueryEvaluationException;
-import org.openrdf.query.QueryLanguage;
-import org.openrdf.query.TupleQuery;
-import org.openrdf.query.TupleQueryResultHandlerException;
-import org.openrdf.query.algebra.Projection;
-import org.openrdf.query.algebra.QueryModelNode;
-import org.openrdf.query.algebra.TupleExpr;
-import org.openrdf.query.parser.ParsedQuery;
-import org.openrdf.query.parser.sparql.SPARQLParser;
-import org.openrdf.repository.RepositoryException;
-import org.openrdf.repository.sail.SailRepository;
-import org.openrdf.repository.sail.SailRepositoryConnection;
-import org.openrdf.sail.SailException;
-
 import com.google.common.base.Optional;
 import com.google.common.collect.Lists;
-
+import org.apache.accumulo.core.client.*;
+import org.apache.accumulo.core.client.mock.MockInstance;
+import org.apache.accumulo.core.client.security.tokens.PasswordToken;
 import org.apache.rya.api.persist.RyaDAOException;
 import org.apache.rya.indexing.external.PrecompJoinOptimizerIT.CountingResultHandler;
 import org.apache.rya.indexing.external.PrecompJoinOptimizerTest.NodeCollector;
 import org.apache.rya.indexing.external.tupleSet.ExternalTupleSet;
 import org.apache.rya.indexing.external.tupleSet.SimpleExternalTupleSet;
 import org.apache.rya.indexing.pcj.matching.PCJOptimizer;
+import org.apache.rya.indexing.pcj.storage.PcjException;
 import org.apache.rya.rdftriplestore.inference.InferenceEngineException;
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.impl.LiteralImpl;
+import org.eclipse.rdf4j.model.impl.URIImpl;
+import org.eclipse.rdf4j.model.vocabulary.RDF;
+import org.eclipse.rdf4j.model.vocabulary.RDFS;
+import org.eclipse.rdf4j.query.*;
+import org.eclipse.rdf4j.query.algebra.Projection;
+import org.eclipse.rdf4j.query.algebra.QueryModelNode;
+import org.eclipse.rdf4j.query.algebra.TupleExpr;
+import org.eclipse.rdf4j.query.parser.ParsedQuery;
+import org.eclipse.rdf4j.query.parser.sparql.SPARQLParser;
+import org.eclipse.rdf4j.repository.RepositoryException;
+import org.eclipse.rdf4j.repository.sail.SailRepository;
+import org.eclipse.rdf4j.repository.sail.SailRepositoryConnection;
+import org.eclipse.rdf4j.sail.SailException;
+import org.junit.After;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Test;
 
 public class PCJOptionalTestIT {
 
@@ -73,7 +62,7 @@ public class PCJOptionalTestIT {
     private SailRepository repo, pcjRepo;
     private Connector accCon;
     String tablePrefix = "table_";
-    URI sub, sub2, obj, obj2, subclass, subclass2, talksTo, sub3, subclass3;
+    IRI sub, sub2, obj, obj2, subclass, subclass2, talksTo, sub3, subclass3;
 
     @Before
     public void init() throws RepositoryException,
@@ -146,7 +135,7 @@ public class PCJOptionalTestIT {
 
         PcjIntegrationTestingUtil.createAndPopulatePcj(conn, accCon, tablePrefix
                 + "INDEX_1", indexSparqlString, new String[] { "e", "c", "l", "o" },
-                Optional.<PcjVarOrderFactory> absent());
+                Optional.absent());
         final String queryString = ""//
                 + "SELECT ?e ?c ?l ?o " //
                 + "{" //
@@ -183,7 +172,7 @@ public class PCJOptionalTestIT {
 
         PcjIntegrationTestingUtil.createAndPopulatePcj(conn, accCon, tablePrefix
                 + "INDEX_1", indexSparqlString, new String[] { "e", "l", "o" },
-                Optional.<PcjVarOrderFactory> absent());
+                Optional.absent());
         final String queryString = ""//
                 + "SELECT ?e ?c ?l ?o " //
                 + "{" //

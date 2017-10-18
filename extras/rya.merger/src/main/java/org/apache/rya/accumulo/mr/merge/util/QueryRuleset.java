@@ -29,45 +29,27 @@ import java.util.Set;
 import org.apache.commons.io.FileUtils;
 import org.apache.log4j.Logger;
 import org.apache.rya.accumulo.mr.merge.CopyTool;
-import org.apache.rya.accumulo.mr.merge.util.QueryRuleset.QueryRulesetException;
-import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
+import org.apache.rya.api.RdfTripleStoreConfiguration;
 import org.apache.rya.rdftriplestore.RdfCloudTripleStore;
-import org.apache.rya.rdftriplestore.inference.InferJoin;
-import org.apache.rya.rdftriplestore.inference.InferUnion;
-import org.apache.rya.rdftriplestore.inference.InferenceEngine;
-import org.apache.rya.rdftriplestore.inference.InverseOfVisitor;
-import org.apache.rya.rdftriplestore.inference.SameAsVisitor;
-import org.apache.rya.rdftriplestore.inference.SubClassOfVisitor;
-import org.apache.rya.rdftriplestore.inference.SubPropertyOfVisitor;
-import org.apache.rya.rdftriplestore.inference.SymmetricPropertyVisitor;
-import org.apache.rya.rdftriplestore.inference.TransitivePropertyVisitor;
+import org.apache.rya.rdftriplestore.inference.*;
 import org.apache.rya.rdftriplestore.utils.FixedStatementPattern;
 import org.apache.rya.rdftriplestore.utils.TransitivePropertySP;
 import org.apache.rya.sail.config.RyaSailFactory;
-import org.openrdf.model.Statement;
-import org.openrdf.model.URI;
-import org.openrdf.model.Value;
-import org.openrdf.model.vocabulary.OWL;
-import org.openrdf.model.vocabulary.RDF;
-import org.openrdf.model.vocabulary.RDFS;
-import org.openrdf.query.MalformedQueryException;
-import org.openrdf.query.QueryLanguage;
-import org.openrdf.query.UnsupportedQueryLanguageException;
-import org.openrdf.query.algebra.Filter;
-import org.openrdf.query.algebra.FunctionCall;
-import org.openrdf.query.algebra.Join;
-import org.openrdf.query.algebra.ListMemberOperator;
-import org.openrdf.query.algebra.Or;
-import org.openrdf.query.algebra.StatementPattern;
-import org.openrdf.query.algebra.TupleExpr;
-import org.openrdf.query.algebra.Union;
-import org.openrdf.query.algebra.ValueExpr;
-import org.openrdf.query.algebra.Var;
-import org.openrdf.query.algebra.evaluation.function.FunctionRegistry;
-import org.openrdf.query.algebra.helpers.QueryModelVisitorBase;
-import org.openrdf.query.parser.ParsedTupleQuery;
-import org.openrdf.query.parser.QueryParserUtil;
-import org.openrdf.sail.SailException;
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.Statement;
+import org.eclipse.rdf4j.model.Value;
+import org.eclipse.rdf4j.model.vocabulary.OWL;
+import org.eclipse.rdf4j.model.vocabulary.RDF;
+import org.eclipse.rdf4j.model.vocabulary.RDFS;
+import org.eclipse.rdf4j.query.MalformedQueryException;
+import org.eclipse.rdf4j.query.QueryLanguage;
+import org.eclipse.rdf4j.query.UnsupportedQueryLanguageException;
+import org.eclipse.rdf4j.query.algebra.*;
+import org.eclipse.rdf4j.query.algebra.evaluation.function.FunctionRegistry;
+import org.eclipse.rdf4j.query.algebra.helpers.QueryModelVisitorBase;
+import org.eclipse.rdf4j.query.parser.ParsedTupleQuery;
+import org.eclipse.rdf4j.query.parser.QueryParserUtil;
+import org.eclipse.rdf4j.sail.SailException;
 
 /**
  * Represents a set of {@link CopyRule} instances derived from a query. The ruleset determines a logical
@@ -261,7 +243,7 @@ public class QueryRuleset {
                     @Override
                     public void meet(final StatementPattern node) {
                         if (node.getPredicateVar().hasValue()) {
-                            final URI predValue = (URI) node.getPredicateVar().getValue();
+                            final IRI predValue = (IRI) node.getPredicateVar().getValue();
                             final String ns = predValue.getNamespace();
                             if (node instanceof FixedStatementPattern
                                     && (RDFS.SUBPROPERTYOF.equals(predValue) || OWL.EQUIVALENTPROPERTY.equals(predValue))) {
@@ -341,7 +323,7 @@ public class QueryRuleset {
          * @param objValues Either null or a Set of Values that the object variable can have, tested using a filter
          * @throws QueryRulesetException if the rule can't be created
          */
-        private void addListRule(final Var subjVar, final Set<Value> subjValues, final URI predicate,
+        private void addListRule(final Var subjVar, final Set<Value> subjValues, final IRI predicate,
                 final Var objVar, final Set<Value> objValues) throws QueryRulesetException {
             ListMemberOperator subjCondition = null;
             ListMemberOperator objCondition = null;
@@ -387,14 +369,14 @@ public class QueryRuleset {
     /**
      * A Rya configuration.
      */
-    protected RdfCloudTripleStoreConfiguration conf;
+    protected RdfTripleStoreConfiguration conf;
 
     /**
      * Extract a set of rules from a query found in a Configuration.
      * @param conf Configuration containing either the query string, or name of a file containing the query, plus inference parameters.
      * @throws QueryRulesetException if the query can't be read, parsed, and resolved to valid rules
      */
-    public QueryRuleset(final RdfCloudTripleStoreConfiguration conf) throws QueryRulesetException {
+    public QueryRuleset(final RdfTripleStoreConfiguration conf) throws QueryRulesetException {
         this.conf = conf;
         setQuery();
         setRules();

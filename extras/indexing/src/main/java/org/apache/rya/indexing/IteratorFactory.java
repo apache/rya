@@ -19,24 +19,18 @@ package org.apache.rya.indexing;
  * under the License.
  */
 
+import java.util.*;
 
-import info.aduna.iteration.CloseableIteration;
-
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.NoSuchElementException;
-import java.util.Set;
-
-import org.openrdf.model.Resource;
-import org.openrdf.model.Statement;
-import org.openrdf.model.URI;
-import org.openrdf.query.BindingSet;
-import org.openrdf.query.QueryEvaluationException;
-import org.openrdf.query.algebra.QueryModelNode;
-import org.openrdf.query.algebra.StatementPattern;
-import org.openrdf.query.algebra.Var;
-import org.openrdf.query.impl.MapBindingSet;
+import org.eclipse.rdf4j.common.iteration.CloseableIteration;
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.Resource;
+import org.eclipse.rdf4j.model.Statement;
+import org.eclipse.rdf4j.query.BindingSet;
+import org.eclipse.rdf4j.query.QueryEvaluationException;
+import org.eclipse.rdf4j.query.algebra.QueryModelNode;
+import org.eclipse.rdf4j.query.algebra.StatementPattern;
+import org.eclipse.rdf4j.query.algebra.Var;
+import org.eclipse.rdf4j.query.impl.MapBindingSet;
 
 
 //Given StatementPattern constraint and SearchFunction associated with an Indexing Node,
@@ -87,12 +81,12 @@ public class IteratorFactory {
                 // get the predicate constraint
                 if (match.getPredicateVar().isConstant()) {
                     // get the predicate binding from the filter/statement pair
-                    Set<URI> predicates = new HashSet<URI>(getPredicateRestrictions(match.getPredicateVar()));
+                    Set<IRI> predicates = new HashSet<IRI>(getPredicateRestrictions(match.getPredicateVar()));
                     contraints.setPredicates(predicates);
                 } else if (bindings.hasBinding(predicateBinding)) {
                     // get the predicate binding from the passed in bindings (eg from other statements/parts of the tree)
-                    URI predicateUri = (URI) bindings.getValue(predicateBinding);
-                    Set<URI> predicates = Collections.singleton(predicateUri);
+                    IRI predicateUri = (IRI) bindings.getValue(predicateBinding);
+                    Set<IRI> predicates = Collections.singleton(predicateUri);
                     contraints.setPredicates(predicates);
                 }
 
@@ -151,9 +145,9 @@ public class IteratorFactory {
 
     }
    
-    public static Collection<URI> getPredicateRestrictions(Var predicate) {
+    public static Collection<IRI> getPredicateRestrictions(Var predicate) {
         if (predicate.hasValue())
-            return Collections.singleton((URI) predicate.getValue());
+            return Collections.singleton((IRI) predicate.getValue());
         return Collections.emptyList();
     }
 }

@@ -18,29 +18,18 @@
  */
 package org.apache.rya.periodic.notification.application;
 
-import static org.apache.rya.periodic.notification.application.PeriodicNotificationApplicationConfiguration.KAFKA_BOOTSTRAP_SERVERS;
-import static org.apache.rya.periodic.notification.application.PeriodicNotificationApplicationConfiguration.NOTIFICATION_TOPIC;
-
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Properties;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
+import com.google.common.collect.HashMultimap;
+import com.google.common.collect.Multimap;
+import com.google.common.collect.Sets;
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
-
 import org.apache.accumulo.core.client.Connector;
 import org.apache.fluo.api.client.FluoClient;
 import org.apache.fluo.api.config.FluoConfiguration;
@@ -71,25 +60,18 @@ import org.apache.rya.periodic.notification.serialization.CommandNotificationSer
 import org.apache.rya.test.kafka.EmbeddedKafkaInstance;
 import org.apache.rya.test.kafka.EmbeddedKafkaSingleton;
 import org.apache.rya.test.kafka.KafkaTestInstanceRule;
-import org.junit.After;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Rule;
-import org.junit.Test;
-import org.openrdf.model.Statement;
-import org.openrdf.model.Value;
-import org.openrdf.model.ValueFactory;
-import org.openrdf.model.impl.LiteralImpl;
-import org.openrdf.model.impl.ValueFactoryImpl;
-import org.openrdf.model.vocabulary.XMLSchema;
-import org.openrdf.query.BindingSet;
-import org.openrdf.query.algebra.evaluation.QueryBindingSet;
+import org.eclipse.rdf4j.model.Statement;
+import org.eclipse.rdf4j.model.Value;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.model.impl.LiteralImpl;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
+import org.eclipse.rdf4j.model.vocabulary.XMLSchema;
+import org.eclipse.rdf4j.query.BindingSet;
+import org.eclipse.rdf4j.query.algebra.evaluation.QueryBindingSet;
+import org.junit.*;
 
-import com.google.common.collect.HashMultimap;
-import com.google.common.collect.Multimap;
-import com.google.common.collect.Sets;;
-
+import static org.apache.rya.periodic.notification.application.PeriodicNotificationApplicationConfiguration.KAFKA_BOOTSTRAP_SERVERS;
+import static org.apache.rya.periodic.notification.application.PeriodicNotificationApplicationConfiguration.NOTIFICATION_TOPIC;
 
 public class PeriodicNotificationApplicationIT extends RyaExportITBase {
 
@@ -142,12 +124,11 @@ public class PeriodicNotificationApplicationIT extends RyaExportITBase {
 
         //make data
         final int periodMult = 15;
-        final ValueFactory vf = new ValueFactoryImpl();
+        final ValueFactory vf = SimpleValueFactory.getInstance();
         final DatatypeFactory dtf = DatatypeFactory.newInstance();
         //Sleep until current time aligns nicely with period to makell
         //results more predictable
         while(System.currentTimeMillis() % (periodMult*1000) > 500) {
-            ;
         }
         final ZonedDateTime time = ZonedDateTime.now();
 
@@ -161,21 +142,21 @@ public class PeriodicNotificationApplicationIT extends RyaExportITBase {
         final String time3 = zTime3.format(DateTimeFormatter.ISO_INSTANT);
 
         final Collection<Statement> statements = Sets.newHashSet(
-                vf.createStatement(vf.createURI("urn:obs_1"), vf.createURI("uri:hasTime"),
+                vf.createStatement(vf.createIRI("urn:obs_1"), vf.createIRI("uri:hasTime"),
                         vf.createLiteral(dtf.newXMLGregorianCalendar(time1))),
-                vf.createStatement(vf.createURI("urn:obs_1"), vf.createURI("uri:hasObsType"), vf.createLiteral("ship")),
-                vf.createStatement(vf.createURI("urn:obs_2"), vf.createURI("uri:hasTime"),
+                vf.createStatement(vf.createIRI("urn:obs_1"), vf.createIRI("uri:hasObsType"), vf.createLiteral("ship")),
+                vf.createStatement(vf.createIRI("urn:obs_2"), vf.createIRI("uri:hasTime"),
                         vf.createLiteral(dtf.newXMLGregorianCalendar(time1))),
-                vf.createStatement(vf.createURI("urn:obs_2"), vf.createURI("uri:hasObsType"), vf.createLiteral("airplane")),
-                vf.createStatement(vf.createURI("urn:obs_3"), vf.createURI("uri:hasTime"),
+                vf.createStatement(vf.createIRI("urn:obs_2"), vf.createIRI("uri:hasObsType"), vf.createLiteral("airplane")),
+                vf.createStatement(vf.createIRI("urn:obs_3"), vf.createIRI("uri:hasTime"),
                         vf.createLiteral(dtf.newXMLGregorianCalendar(time2))),
-                vf.createStatement(vf.createURI("urn:obs_3"), vf.createURI("uri:hasObsType"), vf.createLiteral("ship")),
-                vf.createStatement(vf.createURI("urn:obs_4"), vf.createURI("uri:hasTime"),
+                vf.createStatement(vf.createIRI("urn:obs_3"), vf.createIRI("uri:hasObsType"), vf.createLiteral("ship")),
+                vf.createStatement(vf.createIRI("urn:obs_4"), vf.createIRI("uri:hasTime"),
                         vf.createLiteral(dtf.newXMLGregorianCalendar(time2))),
-                vf.createStatement(vf.createURI("urn:obs_4"), vf.createURI("uri:hasObsType"), vf.createLiteral("airplane")),
-                vf.createStatement(vf.createURI("urn:obs_5"), vf.createURI("uri:hasTime"),
+                vf.createStatement(vf.createIRI("urn:obs_4"), vf.createIRI("uri:hasObsType"), vf.createLiteral("airplane")),
+                vf.createStatement(vf.createIRI("urn:obs_5"), vf.createIRI("uri:hasTime"),
                         vf.createLiteral(dtf.newXMLGregorianCalendar(time3))),
-                vf.createStatement(vf.createURI("urn:obs_5"), vf.createURI("uri:hasObsType"), vf.createLiteral("automobile")));
+                vf.createStatement(vf.createIRI("urn:obs_5"), vf.createIRI("uri:hasObsType"), vf.createLiteral("automobile")));
 
         try (FluoClient fluo = FluoClientFactory.getFluoClient(conf.getFluoAppName(), Optional.of(conf.getFluoTableName()), conf)) {
             final Connector connector = ConfigUtils.getConnector(conf);
@@ -286,12 +267,11 @@ public class PeriodicNotificationApplicationIT extends RyaExportITBase {
 
         //make data
         final int periodMult = 15;
-        final ValueFactory vf = new ValueFactoryImpl();
+        final ValueFactory vf = SimpleValueFactory.getInstance();
         final DatatypeFactory dtf = DatatypeFactory.newInstance();
         //Sleep until current time aligns nicely with period to make
         //results more predictable
         while(System.currentTimeMillis() % (periodMult*1000) > 500) {
-            ;
         }
         final ZonedDateTime time = ZonedDateTime.now();
 
@@ -305,15 +285,15 @@ public class PeriodicNotificationApplicationIT extends RyaExportITBase {
         final String time3 = zTime3.format(DateTimeFormatter.ISO_INSTANT);
 
         final Collection<Statement> statements = Sets.newHashSet(
-                vf.createStatement(vf.createURI("urn:obs_1"), vf.createURI("uri:hasTime"),
+                vf.createStatement(vf.createIRI("urn:obs_1"), vf.createIRI("uri:hasTime"),
                         vf.createLiteral(dtf.newXMLGregorianCalendar(time1))),
-                vf.createStatement(vf.createURI("urn:obs_1"), vf.createURI("uri:hasId"), vf.createLiteral("id_1")),
-                vf.createStatement(vf.createURI("urn:obs_2"), vf.createURI("uri:hasTime"),
+                vf.createStatement(vf.createIRI("urn:obs_1"), vf.createIRI("uri:hasId"), vf.createLiteral("id_1")),
+                vf.createStatement(vf.createIRI("urn:obs_2"), vf.createIRI("uri:hasTime"),
                         vf.createLiteral(dtf.newXMLGregorianCalendar(time2))),
-                vf.createStatement(vf.createURI("urn:obs_2"), vf.createURI("uri:hasId"), vf.createLiteral("id_2")),
-                vf.createStatement(vf.createURI("urn:obs_3"), vf.createURI("uri:hasTime"),
+                vf.createStatement(vf.createIRI("urn:obs_2"), vf.createIRI("uri:hasId"), vf.createLiteral("id_2")),
+                vf.createStatement(vf.createIRI("urn:obs_3"), vf.createIRI("uri:hasTime"),
                         vf.createLiteral(dtf.newXMLGregorianCalendar(time3))),
-                vf.createStatement(vf.createURI("urn:obs_3"), vf.createURI("uri:hasId"), vf.createLiteral("id_3")));
+                vf.createStatement(vf.createIRI("urn:obs_3"), vf.createIRI("uri:hasId"), vf.createLiteral("id_3")));
 
         try (FluoClient fluo = FluoClientFactory.getFluoClient(conf.getFluoAppName(), Optional.of(conf.getFluoTableName()), conf)) {
             final Connector connector = ConfigUtils.getConnector(conf);
@@ -378,12 +358,11 @@ public class PeriodicNotificationApplicationIT extends RyaExportITBase {
 
         //make data
         final int periodMult = 15;
-        final ValueFactory vf = new ValueFactoryImpl();
+        final ValueFactory vf = SimpleValueFactory.getInstance();
         final DatatypeFactory dtf = DatatypeFactory.newInstance();
         //Sleep until current time aligns nicely with period to make
         //results more predictable
         while(System.currentTimeMillis() % (periodMult*1000) > 500) {
-            ;
         }
         final ZonedDateTime time = ZonedDateTime.now();
 
@@ -397,15 +376,15 @@ public class PeriodicNotificationApplicationIT extends RyaExportITBase {
         final String time3 = zTime3.format(DateTimeFormatter.ISO_INSTANT);
 
         final Collection<Statement> statements = Sets.newHashSet(
-                vf.createStatement(vf.createURI("urn:obs_1"), vf.createURI("uri:hasTime"),
+                vf.createStatement(vf.createIRI("urn:obs_1"), vf.createIRI("uri:hasTime"),
                         vf.createLiteral(dtf.newXMLGregorianCalendar(time1))),
-                vf.createStatement(vf.createURI("urn:obs_1"), vf.createURI("uri:hasId"), vf.createLiteral("id_1")),
-                vf.createStatement(vf.createURI("urn:obs_2"), vf.createURI("uri:hasTime"),
+                vf.createStatement(vf.createIRI("urn:obs_1"), vf.createIRI("uri:hasId"), vf.createLiteral("id_1")),
+                vf.createStatement(vf.createIRI("urn:obs_2"), vf.createIRI("uri:hasTime"),
                         vf.createLiteral(dtf.newXMLGregorianCalendar(time2))),
-                vf.createStatement(vf.createURI("urn:obs_2"), vf.createURI("uri:hasId"), vf.createLiteral("id_2")),
-                vf.createStatement(vf.createURI("urn:obs_3"), vf.createURI("uri:hasTime"),
+                vf.createStatement(vf.createIRI("urn:obs_2"), vf.createIRI("uri:hasId"), vf.createLiteral("id_2")),
+                vf.createStatement(vf.createIRI("urn:obs_3"), vf.createIRI("uri:hasTime"),
                         vf.createLiteral(dtf.newXMLGregorianCalendar(time3))),
-                vf.createStatement(vf.createURI("urn:obs_3"), vf.createURI("uri:hasId"), vf.createLiteral("id_3")));
+                vf.createStatement(vf.createIRI("urn:obs_3"), vf.createIRI("uri:hasId"), vf.createLiteral("id_3")));
 
         try (FluoClient fluo = FluoClientFactory.getFluoClient(conf.getFluoAppName(), Optional.of(conf.getFluoTableName()), conf)) {
             final Connector connector = ConfigUtils.getConnector(conf);

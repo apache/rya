@@ -27,15 +27,15 @@ under the License.
         <version>3.2.10-incubating-SNAPSHOT</version>
     </parent>
 
-    <artifactId>sesame-runtime-osgi</artifactId>
+    <artifactId>rdf4j-runtime-osgi</artifactId>
     <name>Sesame Runtime for OSGI</name>
 
     <packaging>pom</packaging>
 
     <dependencies>
         <dependency>
-            <groupId>org.openrdf.sesame</groupId>
-            <artifactId>sesame-runtime-osgi</artifactId>
+            <groupId>org.eclipse.rdf4j</groupId>
+            <artifactId>rdf4j-runtime-osgi</artifactId>
         </dependency>
         <dependency>
             <groupId>biz.aQute</groupId>
@@ -58,8 +58,8 @@ under the License.
                         <configuration>
                             <artifactItems>
                                 <artifactItem>
-                                    <groupId>org.openrdf.sesame</groupId>
-                                    <artifactId>sesame-runtime-osgi</artifactId>
+                                    <groupId>org.eclipse.rdf4j</groupId>
+                                    <artifactId>rdf4j-runtime-osgi</artifactId>
                                     <version>${project.version}</version>
                                     <outputDirectory>${project.build.directory}</outputDirectory>
                                     <destFileName>sesame-runtime-osgi.jar</destFileName>

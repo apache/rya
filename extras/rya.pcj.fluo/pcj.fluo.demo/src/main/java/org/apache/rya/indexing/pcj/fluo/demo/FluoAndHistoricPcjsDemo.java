@@ -21,6 +21,8 @@ package org.apache.rya.indexing.pcj.fluo.demo;
 import java.nio.charset.StandardCharsets;
 import java.util.Set;
 
+import com.google.common.base.Optional;
+import com.google.common.collect.Sets;
 import org.apache.accumulo.core.client.Connector;
 import org.apache.accumulo.minicluster.MiniAccumuloCluster;
 import org.apache.commons.lang3.StringUtils;
@@ -41,17 +43,14 @@ import org.apache.rya.indexing.pcj.storage.PrecomputedJoinStorage;
 import org.apache.rya.indexing.pcj.storage.PrecomputedJoinStorage.CloseableIterator;
 import org.apache.rya.indexing.pcj.storage.accumulo.AccumuloPcjStorage;
 import org.apache.rya.rdftriplestore.RyaSailRepository;
-import org.openrdf.model.Statement;
-import org.openrdf.query.BindingSet;
-import org.openrdf.query.MalformedQueryException;
-import org.openrdf.query.parser.ParsedQuery;
-import org.openrdf.query.parser.sparql.SPARQLParser;
-import org.openrdf.queryrender.sparql.SPARQLQueryRenderer;
-import org.openrdf.repository.RepositoryConnection;
-import org.openrdf.repository.RepositoryException;
-
-import com.google.common.base.Optional;
-import com.google.common.collect.Sets;
+import org.eclipse.rdf4j.model.Statement;
+import org.eclipse.rdf4j.query.BindingSet;
+import org.eclipse.rdf4j.query.MalformedQueryException;
+import org.eclipse.rdf4j.query.parser.ParsedQuery;
+import org.eclipse.rdf4j.query.parser.sparql.SPARQLParser;
+import org.eclipse.rdf4j.queryrender.sparql.SPARQLQueryRenderer;
+import org.eclipse.rdf4j.repository.RepositoryConnection;
+import org.eclipse.rdf4j.repository.RepositoryException;
 
 /**
  * Demonstrates historicly added Rya statements that are stored within the core
@@ -287,7 +286,7 @@ public class FluoAndHistoricPcjsDemo implements Demo {
     private static void loadDataIntoFluo(final FluoClient fluoClient, final Set<RyaStatement> statements) {
         final InsertTriples insertTriples = new InsertTriples();
         for(final RyaStatement statement : statements) {
-            insertTriples.insert(fluoClient, statement, Optional.<String>absent());
+            insertTriples.insert(fluoClient, statement, Optional.absent());
         }
     }
 

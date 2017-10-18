@@ -19,16 +19,14 @@ package org.apache.rya.accumulo.pcj.iterators;
  * under the License.
  */
 
-import info.aduna.iteration.CloseableIteration;
-
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 
-import org.openrdf.query.BindingSet;
-import org.openrdf.query.QueryEvaluationException;
-
 import com.google.common.base.Preconditions;
+import org.eclipse.rdf4j.common.iteration.CloseableIteration;
+import org.eclipse.rdf4j.query.BindingSet;
+import org.eclipse.rdf4j.query.QueryEvaluationException;
 
 /**
  *	This {@link CloseableIteration} takes in a list of CloseableIterations
@@ -69,11 +67,8 @@ public class IteratorCombiner implements
 			}
 			isEmpty = true;
 			return false;
-		} else if (isEmpty) {
-			return false;
-		} else {
-			return true;
-		}
+		} else
+            return !isEmpty;
 	}
 
 	@Override

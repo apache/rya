@@ -2,8 +2,10 @@ package org.apache.rya.indexing;
 
 import java.io.IOException;
 
-import org.openrdf.model.Statement;
-import org.openrdf.query.QueryEvaluationException;
+import org.apache.rya.api.persist.index.RyaSecondaryIndexer;
+import org.eclipse.rdf4j.common.iteration.CloseableIteration;
+import org.eclipse.rdf4j.model.Statement;
+import org.eclipse.rdf4j.query.QueryEvaluationException;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -24,11 +26,6 @@ import org.openrdf.query.QueryEvaluationException;
  * under the License.
  */
 
-
-
-import info.aduna.iteration.CloseableIteration;
-import org.apache.rya.api.persist.index.RyaSecondaryIndexer;
-
 /**
  * A repository to store, index, and retrieve {@link Statement}s based on freetext features.
  */
@@ -44,5 +41,5 @@ public interface FreeTextIndexer extends RyaSecondaryIndexer {
 	 * @return the set of statements that meet the query and other constraints.
 	 * @throws IOException
 	 */
-	public abstract CloseableIteration<Statement, QueryEvaluationException> queryText(String query, StatementConstraints contraints) throws IOException;
+    CloseableIteration<Statement, QueryEvaluationException> queryText(String query, StatementConstraints contraints) throws IOException;
 }

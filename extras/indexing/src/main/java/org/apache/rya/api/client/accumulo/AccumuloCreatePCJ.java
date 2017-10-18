@@ -18,10 +18,12 @@
  */
 package org.apache.rya.api.client.accumulo;
 
-import static java.util.Objects.requireNonNull;
-
 import java.util.Set;
 
+import com.google.common.base.Optional;
+import com.google.common.collect.Sets;
+import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
+import edu.umd.cs.findbugs.annotations.NonNull;
 import org.apache.accumulo.core.client.Connector;
 import org.apache.fluo.api.client.FluoClient;
 import org.apache.rya.accumulo.instance.AccumuloRyaInstanceDetailsRepository;
@@ -46,16 +48,12 @@ import org.apache.rya.indexing.pcj.storage.PcjException;
 import org.apache.rya.indexing.pcj.storage.PrecomputedJoinStorage;
 import org.apache.rya.indexing.pcj.storage.PrecomputedJoinStorage.PCJStorageException;
 import org.apache.rya.indexing.pcj.storage.accumulo.AccumuloPcjStorage;
-import org.openrdf.query.MalformedQueryException;
-import org.openrdf.query.QueryEvaluationException;
-import org.openrdf.repository.RepositoryException;
-import org.openrdf.sail.SailException;
+import org.eclipse.rdf4j.query.MalformedQueryException;
+import org.eclipse.rdf4j.query.QueryEvaluationException;
+import org.eclipse.rdf4j.repository.RepositoryException;
+import org.eclipse.rdf4j.sail.SailException;
 
-import com.google.common.base.Optional;
-import com.google.common.collect.Sets;
-
-import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
-import edu.umd.cs.findbugs.annotations.NonNull;
+import static java.util.Objects.requireNonNull;
 
 /**
  * An Accumulo implementation of the {@link CreatePCJ} command.
@@ -77,7 +75,8 @@ public class AccumuloCreatePCJ extends AccumuloCommand implements CreatePCJ {
     }
 
     @Override
-    public String createPCJ(final String instanceName, final String sparql, Set<ExportStrategy> strategies) throws InstanceDoesNotExistException, RyaClientException {
+    public String createPCJ(final String instanceName, final String sparql, Set<ExportStrategy> strategies) throws
+            RyaClientException {
         requireNonNull(instanceName);
         requireNonNull(sparql);
 
@@ -143,7 +142,7 @@ public class AccumuloCreatePCJ extends AccumuloCommand implements CreatePCJ {
     }
 
     @Override
-    public String createPCJ(String instanceName, String sparql) throws InstanceDoesNotExistException, RyaClientException {
+    public String createPCJ(String instanceName, String sparql) throws RyaClientException {
         return createPCJ(instanceName, sparql, Sets.newHashSet(ExportStrategy.RYA));
     }
     
@@ -160,7 +159,7 @@ public class AccumuloCreatePCJ extends AccumuloCommand implements CreatePCJ {
                 new String(cd.getPassword()),
                 cd.getInstanceName(),
                 cd.getZookeepers(),
-                fluoAppName);) {
+                fluoAppName)) {
             // Initialize the PCJ within the Fluo application.
             final CreateFluoPcj fluoCreatePcj = new CreateFluoPcj();
             fluoCreatePcj.withRyaIntegration(pcjId, sparql, strategies, fluoClient, getConnector(), ryaInstance);

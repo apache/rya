@@ -5,17 +5,16 @@ import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
-import org.openrdf.model.vocabulary.XMLSchema;
-import org.junit.Assert;
-import org.junit.Rule;
-
 import org.apache.rya.accumulo.AccumuloRdfConfiguration;
 import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.domain.RyaType;
 import org.apache.rya.api.domain.RyaURI;
 import org.apache.rya.api.resolver.RyaTripleContext;
+import org.eclipse.rdf4j.model.vocabulary.XMLSchema;
+import org.junit.Assert;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.ExpectedException;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one

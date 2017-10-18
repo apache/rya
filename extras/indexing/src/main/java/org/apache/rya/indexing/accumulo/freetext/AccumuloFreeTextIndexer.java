@@ -18,32 +18,15 @@
  */
 package org.apache.rya.indexing.accumulo.freetext;
 
-import static java.util.Objects.requireNonNull;
-import static org.apache.rya.indexing.accumulo.freetext.query.ASTNodeUtils.getNodeIterator;
-
 import java.io.IOException;
 import java.nio.charset.CharacterCodingException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.Objects;
-import java.util.Set;
-import java.util.SortedSet;
-import java.util.TreeSet;
 
-import org.apache.accumulo.core.client.AccumuloException;
-import org.apache.accumulo.core.client.AccumuloSecurityException;
-import org.apache.accumulo.core.client.BatchWriter;
-import org.apache.accumulo.core.client.Connector;
-import org.apache.accumulo.core.client.IteratorSetting;
-import org.apache.accumulo.core.client.MultiTableBatchWriter;
-import org.apache.accumulo.core.client.MutationsRejectedException;
+import com.google.common.base.Charsets;
+import com.google.common.collect.Lists;
+import org.apache.accumulo.core.client.*;
 import org.apache.accumulo.core.client.Scanner;
-import org.apache.accumulo.core.client.TableExistsException;
-import org.apache.accumulo.core.client.TableNotFoundException;
 import org.apache.accumulo.core.client.admin.TableOperations;
 import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Mutation;
@@ -57,7 +40,7 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.Text;
 import org.apache.log4j.Logger;
 import org.apache.rya.accumulo.experimental.AbstractAccumuloIndexer;
-import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
+import org.apache.rya.api.RdfTripleStoreConfiguration;
 import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.resolver.RyaToRdfConversions;
 import org.apache.rya.indexing.FreeTextIndexer;
@@ -66,24 +49,15 @@ import org.apache.rya.indexing.StatementConstraints;
 import org.apache.rya.indexing.StatementSerializer;
 import org.apache.rya.indexing.accumulo.ConfigUtils;
 import org.apache.rya.indexing.accumulo.freetext.iterators.BooleanTreeIterator;
-import org.apache.rya.indexing.accumulo.freetext.query.ASTExpression;
-import org.apache.rya.indexing.accumulo.freetext.query.ASTNodeUtils;
-import org.apache.rya.indexing.accumulo.freetext.query.ASTSimpleNode;
-import org.apache.rya.indexing.accumulo.freetext.query.ASTTerm;
-import org.apache.rya.indexing.accumulo.freetext.query.ParseException;
-import org.apache.rya.indexing.accumulo.freetext.query.QueryParser;
-import org.apache.rya.indexing.accumulo.freetext.query.QueryParserTreeConstants;
-import org.apache.rya.indexing.accumulo.freetext.query.SimpleNode;
-import org.apache.rya.indexing.accumulo.freetext.query.TokenMgrError;
-import org.openrdf.model.Literal;
-import org.openrdf.model.Statement;
-import org.openrdf.model.URI;
-import org.openrdf.query.QueryEvaluationException;
+import org.apache.rya.indexing.accumulo.freetext.query.*;
+import org.eclipse.rdf4j.common.iteration.CloseableIteration;
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.Literal;
+import org.eclipse.rdf4j.model.Statement;
+import org.eclipse.rdf4j.query.QueryEvaluationException;
 
-import com.google.common.base.Charsets;
-import com.google.common.collect.Lists;
-
-import info.aduna.iteration.CloseableIteration;
+import static java.util.Objects.requireNonNull;
+import static org.apache.rya.indexing.accumulo.freetext.query.ASTNodeUtils.getNodeIterator;
 
 /**
  * The {@link AccumuloFreeTextIndexer} stores and queries "free text" data from statements into tables in Accumulo. Specifically, this class
@@ -208,7 +182,7 @@ public class AccumuloFreeTextIndexer extends AbstractAccumuloIndexer implements 
 
     private int docTableNumPartitions;
 
-    private Set<URI> validPredicates;
+    private Set<IRI> validPredicates;
 
     private Configuration conf;
 
@@ -393,7 +367,7 @@ public class AccumuloFreeTextIndexer extends AbstractAccumuloIndexer implements 
     }
 
     @Override
-    public Set<URI> getIndexablePredicates() {
+    public Set<IRI> getIndexablePredicates() {
         return validPredicates;
     }
 
@@ -530,7 +504,7 @@ public class AccumuloFreeTextIndexer extends AbstractAccumuloIndexer implements 
         if (contraints.hasPredicates()) {
             constrainedQuery.append(" AND (");
             final List<String> predicates = new ArrayList<String>();
-            for (final URI u : contraints.getPredicates()) {
+            for (final IRI u : contraints.getPredicates()) {
                 predicates.add(ColumnPrefixes.getPredColFam(u.stringValue()).toString());
             }
             constrainedQuery.append(StringUtils.join(predicates, " OR "));
@@ -856,7 +830,7 @@ public class AccumuloFreeTextIndexer extends AbstractAccumuloIndexer implements 
 
 
 	@Override
-	public void purge(final RdfCloudTripleStoreConfiguration configuration) {
+	public void purge(final RdfTripleStoreConfiguration configuration) {
 		// TODO Auto-generated method stub
 
 	}

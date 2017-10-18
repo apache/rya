@@ -19,19 +19,17 @@ package org.apache.rya.api.persist.joinselect;
  * under the License.
  */
 
-
-
-import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
+import org.apache.rya.api.RdfTripleStoreConfiguration;
 import org.apache.rya.api.persist.RdfEvalStatsDAO;
-import org.openrdf.query.algebra.StatementPattern;
-import org.openrdf.query.algebra.TupleExpr;
+import org.eclipse.rdf4j.query.algebra.StatementPattern;
+import org.eclipse.rdf4j.query.algebra.TupleExpr;
 
-public interface SelectivityEvalDAO<C extends RdfCloudTripleStoreConfiguration> extends RdfEvalStatsDAO<C> {
+public interface SelectivityEvalDAO<C extends RdfTripleStoreConfiguration> extends RdfEvalStatsDAO<C> {
 
-  public double getJoinSelect(C conf, TupleExpr te1, TupleExpr te2) throws Exception;
+  double getJoinSelect(C conf, TupleExpr te1, TupleExpr te2) throws Exception;
 
-  public long getCardinality(C conf, StatementPattern sp) throws Exception;
+  long getCardinality(C conf, StatementPattern sp) throws Exception;
   
-  public int getTableSize(C conf) throws Exception;
+  int getTableSize(C conf) throws Exception;
 
 }

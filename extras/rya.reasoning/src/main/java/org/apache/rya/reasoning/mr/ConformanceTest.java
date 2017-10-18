@@ -19,20 +19,9 @@ package org.apache.rya.reasoning.mr;
  * under the License.
  */
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.StringReader;
+import java.io.*;
 import java.nio.charset.StandardCharsets;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import org.apache.accumulo.minicluster.MiniAccumuloCluster;
 import org.apache.hadoop.conf.Configuration;
@@ -45,25 +34,25 @@ import org.apache.hadoop.util.ToolRunner;
 import org.apache.rya.accumulo.mr.MRUtils;
 import org.apache.rya.reasoning.Fact;
 import org.apache.rya.reasoning.Schema;
-import org.openrdf.OpenRDFException;
-import org.openrdf.model.Resource;
-import org.openrdf.model.Statement;
-import org.openrdf.model.URI;
-import org.openrdf.model.Value;
-import org.openrdf.model.vocabulary.OWL;
-import org.openrdf.model.vocabulary.RDF;
-import org.openrdf.query.BindingSet;
-import org.openrdf.query.QueryLanguage;
-import org.openrdf.query.TupleQuery;
-import org.openrdf.query.TupleQueryResult;
-import org.openrdf.repository.Repository;
-import org.openrdf.repository.RepositoryConnection;
-import org.openrdf.repository.sail.SailRepository;
-import org.openrdf.rio.RDFFormat;
-import org.openrdf.rio.helpers.RDFHandlerBase;
-import org.openrdf.rio.ntriples.NTriplesParser;
-import org.openrdf.rio.rdfxml.RDFXMLParser;
-import org.openrdf.sail.memory.MemoryStore;
+import org.eclipse.rdf4j.OpenRDFException;
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.Resource;
+import org.eclipse.rdf4j.model.Statement;
+import org.eclipse.rdf4j.model.Value;
+import org.eclipse.rdf4j.model.vocabulary.OWL;
+import org.eclipse.rdf4j.model.vocabulary.RDF;
+import org.eclipse.rdf4j.query.BindingSet;
+import org.eclipse.rdf4j.query.QueryLanguage;
+import org.eclipse.rdf4j.query.TupleQuery;
+import org.eclipse.rdf4j.query.TupleQueryResult;
+import org.eclipse.rdf4j.repository.Repository;
+import org.eclipse.rdf4j.repository.RepositoryConnection;
+import org.eclipse.rdf4j.repository.sail.SailRepository;
+import org.eclipse.rdf4j.rio.RDFFormat;
+import org.eclipse.rdf4j.rio.helpers.RDFHandlerBase;
+import org.eclipse.rdf4j.rio.ntriples.NTriplesParser;
+import org.eclipse.rdf4j.rio.rdfxml.RDFXMLParser;
+import org.eclipse.rdf4j.sail.memory.MemoryStore;
 
 /**
  * Test the reasoner against Owl conformance tests in the database.
@@ -415,7 +404,7 @@ public class ConformanceTest extends Configured implements Tool {
      */
     boolean triviallyTrue(final Statement triple, final Schema schema) {
         final Resource s = triple.getSubject();
-        final URI p = triple.getPredicate();
+        final IRI p = triple.getPredicate();
         final Value o = triple.getObject();
         if (p.equals(RDF.TYPE)) {
             if (o.equals(OWL.ONTOLOGY)) {
@@ -426,9 +415,9 @@ public class ConformanceTest extends Configured implements Tool {
             }
             else if ((o.equals(OWL.OBJECTPROPERTY)
                 || o.equals(OWL.DATATYPEPROPERTY))
-                && s instanceof URI) {
+                && s instanceof IRI) {
                 // Distinction not maintained, irrelevant to RL rules
-                return schema.hasProperty((URI) s);
+                return schema.hasProperty((IRI) s);
             }
         }
         return false;

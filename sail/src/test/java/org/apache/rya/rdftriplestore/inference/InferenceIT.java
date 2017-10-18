@@ -18,13 +18,9 @@ package org.apache.rya.rdftriplestore.inference;
  * under the License.
  */
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
+import junit.framework.TestCase;
 import org.apache.accumulo.core.client.Connector;
 import org.apache.accumulo.core.client.mock.MockInstance;
 import org.apache.accumulo.core.client.security.tokens.PasswordToken;
@@ -32,32 +28,26 @@ import org.apache.rya.accumulo.AccumuloRdfConfiguration;
 import org.apache.rya.accumulo.AccumuloRyaDAO;
 import org.apache.rya.api.RdfCloudTripleStoreConstants;
 import org.apache.rya.rdftriplestore.RdfCloudTripleStore;
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.Value;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
+import org.eclipse.rdf4j.model.vocabulary.FOAF;
+import org.eclipse.rdf4j.model.vocabulary.OWL;
+import org.eclipse.rdf4j.query.*;
+import org.eclipse.rdf4j.query.impl.ListBindingSet;
+import org.eclipse.rdf4j.repository.sail.SailRepository;
+import org.eclipse.rdf4j.repository.sail.SailRepositoryConnection;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Test;
-import org.openrdf.model.URI;
-import org.openrdf.model.Value;
-import org.openrdf.model.ValueFactory;
-import org.openrdf.model.impl.ValueFactoryImpl;
-import org.openrdf.model.vocabulary.FOAF;
-import org.openrdf.model.vocabulary.OWL;
-import org.openrdf.query.BindingSet;
-import org.openrdf.query.QueryLanguage;
-import org.openrdf.query.QueryResultHandlerException;
-import org.openrdf.query.TupleQueryResultHandler;
-import org.openrdf.query.TupleQueryResultHandlerException;
-import org.openrdf.query.impl.ListBindingSet;
-import org.openrdf.repository.sail.SailRepository;
-import org.openrdf.repository.sail.SailRepositoryConnection;
-
-import junit.framework.TestCase;
 
 public class InferenceIT extends TestCase {
     private final static String LUBM = "http://swat.cse.lehigh.edu/onto/univ-bench.owl#";
 
     private Connector connector;
     private AccumuloRyaDAO dao;
-    private final ValueFactory vf = new ValueFactoryImpl();
+    private final ValueFactory vf = SimpleValueFactory.getInstance();
     private AccumuloRdfConfiguration conf;
     private RdfCloudTripleStore store;
     private InferenceEngine inferenceEngine;
@@ -142,9 +132,9 @@ public class InferenceIT extends TestCase {
         conn.prepareUpdate(QueryLanguage.SPARQL, instances).execute();
         conn.prepareTupleQuery(QueryLanguage.SPARQL, query).evaluate(resultHandler);
         final Set<Value> expected = new HashSet<>();
-        expected.add(vf.createURI("urn:Alice"));
-        expected.add(vf.createURI("urn:Bob"));
-        expected.add(vf.createURI("urn:Eve"));
+        expected.add(vf.createIRI("urn:Alice"));
+        expected.add(vf.createIRI("urn:Bob"));
+        expected.add(vf.createIRI("urn:Eve"));
         final Set<Value> returned = new HashSet<>();
         for (final BindingSet bs : solutions) {
             returned.add(bs.getBinding("x").getValue());
@@ -185,10 +175,10 @@ public class InferenceIT extends TestCase {
         conn.prepareUpdate(QueryLanguage.SPARQL, instances).execute();
         conn.prepareTupleQuery(QueryLanguage.SPARQL, query).evaluate(resultHandler);
         final Set<Value> expected = new HashSet<>();
-        expected.add(vf.createURI("urn:Professor1"));
-        expected.add(vf.createURI("urn:Professor2"));
-        expected.add(vf.createURI("urn:Professor3"));
-        expected.add(vf.createURI("urn:Professor4"));
+        expected.add(vf.createIRI("urn:Professor1"));
+        expected.add(vf.createIRI("urn:Professor2"));
+        expected.add(vf.createIRI("urn:Professor3"));
+        expected.add(vf.createIRI("urn:Professor4"));
         final Set<Value> returned = new HashSet<>();
         for (final BindingSet bs : solutions) {
             returned.add(bs.getBinding("x").getValue());
@@ -244,9 +234,9 @@ public class InferenceIT extends TestCase {
         conn.prepareUpdate(QueryLanguage.SPARQL, instances).execute();
         conn.prepareTupleQuery(QueryLanguage.SPARQL, query).evaluate(resultHandler);
         Map<Value, Integer> expected = new HashMap<>();
-        expected.put(vf.createURI("urn:Alice"), 2); // from both courses
-        expected.put(vf.createURI("urn:Bob"), 1); // from course
-        expected.put(vf.createURI("urn:Carol"), 2); // from course and explicit type
+        expected.put(vf.createIRI("urn:Alice"), 2); // from both courses
+        expected.put(vf.createIRI("urn:Bob"), 1); // from course
+        expected.put(vf.createIRI("urn:Carol"), 2); // from course and explicit type
         Map<Value, Integer> returned = new HashMap<>();
         for (BindingSet bs : solutions) {
             Value v = bs.getBinding("individual").getValue();
@@ -281,15 +271,15 @@ public class InferenceIT extends TestCase {
         for (final BindingSet solution : solutions) {
             answers.add(solution.getBinding("x").getValue());
         }
-        Assert.assertTrue(answers.contains(vf.createURI("urn:Terry")));
-        Assert.assertTrue(answers.contains(vf.createURI("urn:Rommy")));
+        Assert.assertTrue(answers.contains(vf.createIRI("urn:Terry")));
+        Assert.assertTrue(answers.contains(vf.createIRI("urn:Rommy")));
         // If allValuesFrom inference were applied recursively, this triple wouldn't be needed:
         conn.prepareUpdate(QueryLanguage.SPARQL, "INSERT DATA { GRAPH <http://updated/test> {\n"
                 + "  <urn:Terry> a <urn:Cairn_Terrier> .\n"
                 + "}}").execute();
         conn.prepareTupleQuery(QueryLanguage.SPARQL, "SELECT ?x { ?x a <urn:FictionalDog> }").evaluate(resultHandler);
         Assert.assertEquals(1, solutions.size());
-        Assert.assertEquals(vf.createURI("urn:Toto"), solutions.get(0).getBinding("x").getValue());
+        Assert.assertEquals(vf.createIRI("urn:Toto"), solutions.get(0).getBinding("x").getValue());
     }
 
     @Test
@@ -318,11 +308,11 @@ public class InferenceIT extends TestCase {
         conn.prepareUpdate(QueryLanguage.SPARQL, instances).execute();
         conn.prepareTupleQuery(QueryLanguage.SPARQL, query).evaluate(resultHandler);
         final Set<Value> expected = new HashSet<>();
-        expected.add(vf.createURI("urn:Alice"));
-        expected.add(vf.createURI("urn:Bob"));
-        expected.add(vf.createURI("urn:Carol"));
-        expected.add(vf.createURI("urn:Dan"));
-        expected.add(vf.createURI("urn:Lucy"));
+        expected.add(vf.createIRI("urn:Alice"));
+        expected.add(vf.createIRI("urn:Bob"));
+        expected.add(vf.createIRI("urn:Carol"));
+        expected.add(vf.createIRI("urn:Dan"));
+        expected.add(vf.createIRI("urn:Lucy"));
         final Set<Value> returned = new HashSet<>();
         for (final BindingSet bs : solutions) {
             returned.add(bs.getBinding("x").getValue());
@@ -358,12 +348,12 @@ public class InferenceIT extends TestCase {
         final List<String> varNames = new LinkedList<>();
         varNames.add("individual");
         varNames.add("taxon");
-        expected.add(new ListBindingSet(varNames, vf.createURI("urn:Alice"), vf.createURI("urn:Hominidae")));
-        expected.add(new ListBindingSet(varNames, vf.createURI("urn:Alice"), vf.createURI("urn:Mammalia")));
-        expected.add(new ListBindingSet(varNames, vf.createURI("urn:Bigfoot"), vf.createURI("urn:Mammalia")));
-        expected.add(new ListBindingSet(varNames, vf.createURI("urn:Carol"), vf.createURI("urn:Hominidae")));
-        expected.add(new ListBindingSet(varNames, vf.createURI("urn:Hank"), vf.createURI("urn:Carnivora")));
-        expected.add(new ListBindingSet(varNames, vf.createURI("urn:Hank"), vf.createURI("urn:Mammalia")));
+        expected.add(new ListBindingSet(varNames, vf.createIRI("urn:Alice"), vf.createIRI("urn:Hominidae")));
+        expected.add(new ListBindingSet(varNames, vf.createIRI("urn:Alice"), vf.createIRI("urn:Mammalia")));
+        expected.add(new ListBindingSet(varNames, vf.createIRI("urn:Bigfoot"), vf.createIRI("urn:Mammalia")));
+        expected.add(new ListBindingSet(varNames, vf.createIRI("urn:Carol"), vf.createIRI("urn:Hominidae")));
+        expected.add(new ListBindingSet(varNames, vf.createIRI("urn:Hank"), vf.createIRI("urn:Carnivora")));
+        expected.add(new ListBindingSet(varNames, vf.createIRI("urn:Hank"), vf.createIRI("urn:Mammalia")));
         Assert.assertEquals(expected, new HashSet<>(solutions));
     }
 
@@ -393,9 +383,9 @@ public class InferenceIT extends TestCase {
         conn.prepareUpdate(QueryLanguage.SPARQL, instances).execute();
         conn.prepareTupleQuery(QueryLanguage.SPARQL, query).evaluate(resultHandler);
         final Set<Value> expected = new HashSet<>();
-        expected.add(vf.createURI("urn:Bob"));
-        expected.add(vf.createURI("urn:Carol"));
-        expected.add(vf.createURI("urn:Eve"));
+        expected.add(vf.createIRI("urn:Bob"));
+        expected.add(vf.createIRI("urn:Carol"));
+        expected.add(vf.createIRI("urn:Eve"));
         final Set<Value> returned = new HashSet<>();
         for (final BindingSet bs : solutions) {
             returned.add(bs.getBinding("x").getValue());
@@ -433,36 +423,36 @@ public class InferenceIT extends TestCase {
         final String motherQuery = "SELECT ?individual { GRAPH <http://updated/test> { ?individual rdf:type <urn:Mother> } } \n";
         conn.prepareTupleQuery(QueryLanguage.SPARQL, motherQuery).evaluate(resultHandler);
         final Set<BindingSet> expectedMothers = new HashSet<>();
-        expectedMothers.add(new ListBindingSet(varNames, vf.createURI("urn:Susan")));
+        expectedMothers.add(new ListBindingSet(varNames, vf.createIRI("urn:Susan")));
         Assert.assertEquals(expectedMothers, new HashSet<>(solutions));
 
         // Find all <urn:Father> types (expect 1 result)
         final String fatherQuery = "SELECT ?individual { GRAPH <http://updated/test> { ?individual rdf:type <urn:Father> } } \n";
         conn.prepareTupleQuery(QueryLanguage.SPARQL, fatherQuery).evaluate(resultHandler);
         final Set<BindingSet> expectedFathers = new HashSet<>();
-        expectedFathers.add(new ListBindingSet(varNames, vf.createURI("urn:Bob")));
+        expectedFathers.add(new ListBindingSet(varNames, vf.createIRI("urn:Bob")));
         Assert.assertEquals(expectedFathers, new HashSet<>(solutions));
 
         // Find all <urn:Parent> types (expect 2 results)
         final String parentQuery = "SELECT ?individual { GRAPH <http://updated/test> { ?individual rdf:type <urn:Parent> } } \n";
         conn.prepareTupleQuery(QueryLanguage.SPARQL, parentQuery).evaluate(resultHandler);
         final Set<BindingSet> expectedParents = new HashSet<>();
-        expectedParents.add(new ListBindingSet(varNames, vf.createURI("urn:Bob")));
-        expectedParents.add(new ListBindingSet(varNames, vf.createURI("urn:Susan")));
+        expectedParents.add(new ListBindingSet(varNames, vf.createIRI("urn:Bob")));
+        expectedParents.add(new ListBindingSet(varNames, vf.createIRI("urn:Susan")));
         Assert.assertEquals(expectedParents, new HashSet<>(solutions));
 
         // Find all <urn:Woman> types (expect 1 result)
         final String womanQuery = "SELECT ?individual { GRAPH <http://updated/test> { ?individual rdf:type <urn:Woman> } } \n";
         conn.prepareTupleQuery(QueryLanguage.SPARQL, womanQuery).evaluate(resultHandler);
         final Set<BindingSet> expectedWomen = new HashSet<>();
-        expectedWomen.add(new ListBindingSet(varNames, vf.createURI("urn:Susan")));
+        expectedWomen.add(new ListBindingSet(varNames, vf.createIRI("urn:Susan")));
         Assert.assertEquals(expectedWomen, new HashSet<>(solutions));
 
         // Find all <urn:Man> types (expect 1 result)
         final String manQuery = "SELECT ?individual { GRAPH <http://updated/test> { ?individual rdf:type <urn:Man> } } \n";
         conn.prepareTupleQuery(QueryLanguage.SPARQL, manQuery).evaluate(resultHandler);
         final Set<BindingSet> expectedMen = new HashSet<>();
-        expectedMen.add(new ListBindingSet(varNames, vf.createURI("urn:Bob")));
+        expectedMen.add(new ListBindingSet(varNames, vf.createIRI("urn:Bob")));
         Assert.assertEquals(expectedMen, new HashSet<>(solutions));
     }
 
@@ -540,11 +530,11 @@ public class InferenceIT extends TestCase {
         final String cardSuitQuery = "SELECT ?card { GRAPH <http://updated/test> { ?card a <urn:Card> . ?suit a <urn:Suits> . ?card <urn:HasSuit> ?suit} } \n";
         conn.prepareTupleQuery(QueryLanguage.SPARQL, cardSuitQuery).evaluate(resultHandler);
         final Set<BindingSet> expectedCardSuits = new HashSet<>();
-        expectedCardSuits.add(new ListBindingSet(varNames, vf.createURI("urn:FlopCard1")));
-        expectedCardSuits.add(new ListBindingSet(varNames, vf.createURI("urn:FlopCard2")));
-        expectedCardSuits.add(new ListBindingSet(varNames, vf.createURI("urn:FlopCard3")));
-        expectedCardSuits.add(new ListBindingSet(varNames, vf.createURI("urn:TurnCard")));
-        expectedCardSuits.add(new ListBindingSet(varNames, vf.createURI("urn:RiverCard")));
+        expectedCardSuits.add(new ListBindingSet(varNames, vf.createIRI("urn:FlopCard1")));
+        expectedCardSuits.add(new ListBindingSet(varNames, vf.createIRI("urn:FlopCard2")));
+        expectedCardSuits.add(new ListBindingSet(varNames, vf.createIRI("urn:FlopCard3")));
+        expectedCardSuits.add(new ListBindingSet(varNames, vf.createIRI("urn:TurnCard")));
+        expectedCardSuits.add(new ListBindingSet(varNames, vf.createIRI("urn:RiverCard")));
         Assert.assertEquals(expectedCardSuits.size(), solutions.size());
         Assert.assertEquals(expectedCardSuits, new HashSet<>(solutions));
 
@@ -552,11 +542,11 @@ public class InferenceIT extends TestCase {
         final String cardRankQuery = "SELECT ?card { GRAPH <http://updated/test> { ?card a <urn:Card> . ?rank a <urn:Ranks> . ?card <urn:HasRank> ?rank} } \n";
         conn.prepareTupleQuery(QueryLanguage.SPARQL, cardRankQuery).evaluate(resultHandler);
         final Set<BindingSet> expectedCardRanks = new HashSet<>();
-        expectedCardRanks.add(new ListBindingSet(varNames, vf.createURI("urn:FlopCard1")));
-        expectedCardRanks.add(new ListBindingSet(varNames, vf.createURI("urn:FlopCard2")));
-        expectedCardRanks.add(new ListBindingSet(varNames, vf.createURI("urn:FlopCard3")));
-        expectedCardRanks.add(new ListBindingSet(varNames, vf.createURI("urn:TurnCard")));
-        expectedCardRanks.add(new ListBindingSet(varNames, vf.createURI("urn:RiverCard")));
+        expectedCardRanks.add(new ListBindingSet(varNames, vf.createIRI("urn:FlopCard1")));
+        expectedCardRanks.add(new ListBindingSet(varNames, vf.createIRI("urn:FlopCard2")));
+        expectedCardRanks.add(new ListBindingSet(varNames, vf.createIRI("urn:FlopCard3")));
+        expectedCardRanks.add(new ListBindingSet(varNames, vf.createIRI("urn:TurnCard")));
+        expectedCardRanks.add(new ListBindingSet(varNames, vf.createIRI("urn:RiverCard")));
         Assert.assertEquals(expectedCardRanks.size(), solutions.size());
         Assert.assertEquals(expectedCardRanks, new HashSet<>(solutions));
     }
@@ -580,8 +570,8 @@ public class InferenceIT extends TestCase {
         final List<String> varNames = new LinkedList<>();
         varNames.add("who");
         varNames.add("self");
-        expected.add(new ListBindingSet(varNames, vf.createURI("urn:Alice"), vf.createURI("urn:Alice")));
-        expected.add(new ListBindingSet(varNames, vf.createURI("urn:Narcissus"), vf.createURI("urn:Narcissus")));
+        expected.add(new ListBindingSet(varNames, vf.createIRI("urn:Alice"), vf.createIRI("urn:Alice")));
+        expected.add(new ListBindingSet(varNames, vf.createIRI("urn:Narcissus"), vf.createIRI("urn:Narcissus")));
         Assert.assertEquals(expected, new HashSet<>(solutions));
 
         query = "SELECT ?self { GRAPH <http://updated/test> { <urn:Alice> <urn:love> ?self } } \n";
@@ -589,7 +579,7 @@ public class InferenceIT extends TestCase {
         expected.clear();
         varNames.clear();
         varNames.add("self");
-        expected.add(new ListBindingSet(varNames, vf.createURI("urn:Alice")));
+        expected.add(new ListBindingSet(varNames, vf.createIRI("urn:Alice")));
         Assert.assertEquals(expected, new HashSet<>(solutions));
 
         query = "SELECT ?who { GRAPH <http://updated/test> { ?who <urn:love> <urn:Alice> } } \n";
@@ -597,7 +587,7 @@ public class InferenceIT extends TestCase {
         expected.clear();
         varNames.clear();
         varNames.add("who");
-        expected.add(new ListBindingSet(varNames, vf.createURI("urn:Alice")));
+        expected.add(new ListBindingSet(varNames, vf.createIRI("urn:Alice")));
         Assert.assertEquals(expected, new HashSet<>(solutions));
 
         query = "SELECT ?who { GRAPH <http://updated/test> { ?who a <urn:Narcissist> } } \n";
@@ -605,8 +595,8 @@ public class InferenceIT extends TestCase {
         expected.clear();
         varNames.clear();
         varNames.add("who");
-        expected.add(new ListBindingSet(varNames, vf.createURI("urn:Narcissus")));
-        expected.add(new ListBindingSet(varNames, vf.createURI("urn:Alice")));
+        expected.add(new ListBindingSet(varNames, vf.createIRI("urn:Narcissus")));
+        expected.add(new ListBindingSet(varNames, vf.createIRI("urn:Alice")));
         Assert.assertEquals(expected, new HashSet<>(solutions));
     }
 
@@ -622,10 +612,10 @@ public class InferenceIT extends TestCase {
         conn.prepareUpdate(QueryLanguage.SPARQL, ontology).execute();
         conn.prepareUpdate(QueryLanguage.SPARQL, instances).execute();
         inferenceEngine.refreshGraph();
-        final URI alice = vf.createURI("urn:Alice");
-        final URI bob = vf.createURI("urn:Bob");
-        final URI carol = vf.createURI("urn:Carol");
-        final URI eve = vf.createURI("urn:Eve");
+        final IRI alice = vf.createIRI("urn:Alice");
+        final IRI bob = vf.createIRI("urn:Bob");
+        final IRI carol = vf.createIRI("urn:Carol");
+        final IRI eve = vf.createIRI("urn:Eve");
         final List<String> varNames = new LinkedList<>();
         varNames.add("x");
         final Set<BindingSet> aliceAndBob = new HashSet<>();
@@ -665,8 +655,8 @@ public class InferenceIT extends TestCase {
 
         // Query where subject and object are unrestricted variables: match
         // every known node (dangerous, but correct)
-        final URI hasFamily = vf.createURI("urn:hasFamilyMember");
-        final URI rp = vf.createURI(OWL.NAMESPACE, "ReflexiveProperty");
+        final IRI hasFamily = vf.createIRI("urn:hasFamilyMember");
+        final IRI rp = vf.createIRI(OWL.NAMESPACE, "ReflexiveProperty");
         final Set<BindingSet> everything = new HashSet<>();
         everything.add(new ListBindingSet(varNames, alice, alice));
         everything.add(new ListBindingSet(varNames, bob, bob));

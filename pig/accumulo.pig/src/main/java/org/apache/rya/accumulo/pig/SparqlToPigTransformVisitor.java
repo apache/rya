@@ -19,15 +19,13 @@ package org.apache.rya.accumulo.pig;
  * under the License.
  */
 
-
-
-import org.openrdf.model.Literal;
-import org.openrdf.model.URI;
-import org.openrdf.model.Value;
-import org.openrdf.query.algebra.*;
-import org.openrdf.query.algebra.helpers.QueryModelVisitorBase;
-
 import java.util.*;
+
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.Literal;
+import org.eclipse.rdf4j.model.Value;
+import org.eclipse.rdf4j.query.algebra.*;
+import org.eclipse.rdf4j.query.algebra.helpers.QueryModelVisitorBase;
 
 /**
  * Created by IntelliJ IDEA.
@@ -328,7 +326,7 @@ public class SparqlToPigTransformVisitor extends QueryModelVisitorBase<RuntimeEx
             if (value == null) {
                 return "";
             }
-            if (value instanceof URI) {
+            if (value instanceof IRI) {
                 return "<" + value.stringValue() + ">";
             }
             if (value instanceof Literal) {

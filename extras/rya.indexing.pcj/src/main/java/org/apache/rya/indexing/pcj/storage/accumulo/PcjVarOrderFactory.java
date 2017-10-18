@@ -22,8 +22,7 @@ import java.util.Set;
 
 import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
 import edu.umd.cs.findbugs.annotations.NonNull;
-
-import org.openrdf.query.MalformedQueryException;
+import org.eclipse.rdf4j.query.MalformedQueryException;
 
 /**
  * Create alternative variable orders for a SPARQL query based on
@@ -39,7 +38,7 @@ public interface PcjVarOrderFactory {
      * @return @return A set of variable orders for the SPARQL query.
      * @throws MalformedQueryException The SPARQL query was malformed and could not be parsed.
      */
-    public Set<VariableOrder> makeVarOrders(String sparql) throws MalformedQueryException;
+    Set<VariableOrder> makeVarOrders(String sparql) throws MalformedQueryException;
 
     /**
      * Create alternative variable orders for a SPARQL query based on
@@ -48,5 +47,5 @@ public interface PcjVarOrderFactory {
      * @param varOrder - The initial variable order of a SPARQL query. (not null)
      * @return A set of alternative variable orders for the original.
      */
-    public Set<VariableOrder> makeVarOrders(VariableOrder varOrder);
+    Set<VariableOrder> makeVarOrders(VariableOrder varOrder);
 }

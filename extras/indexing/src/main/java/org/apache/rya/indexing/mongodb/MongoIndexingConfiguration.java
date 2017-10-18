@@ -20,6 +20,7 @@ package org.apache.rya.indexing.mongodb;
 
 import java.util.Properties;
 
+import com.google.common.base.Preconditions;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.rya.indexing.accumulo.ConfigUtils;
 import org.apache.rya.indexing.accumulo.entity.EntityCentricIndex;
@@ -28,9 +29,7 @@ import org.apache.rya.indexing.mongodb.temporal.MongoTemporalIndexer;
 import org.apache.rya.mongodb.AbstractMongoDBRdfConfigurationBuilder;
 import org.apache.rya.mongodb.MongoDBRdfConfiguration;
 import org.apache.rya.mongodb.MongoDBRdfConfigurationBuilder;
-import org.openrdf.sail.Sail;
-
-import com.google.common.base.Preconditions;
+import org.eclipse.rdf4j.sail.Sail;
 
 /**
  * This class is an extension of the MongoDBRdfConfiguration object used to to
@@ -43,7 +42,7 @@ import com.google.common.base.Preconditions;
 public class MongoIndexingConfiguration extends MongoDBRdfConfiguration {
 
     private MongoIndexingConfiguration() {
-    };
+    }
 
     private MongoIndexingConfiguration(Configuration conf) {
         super(conf);

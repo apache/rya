@@ -45,32 +45,32 @@ import org.apache.rya.indexing.accumulo.geo.OptionalConfigUtils;
 import org.apache.rya.indexing.accumulo.temporal.AccumuloTemporalIndexer;
 import org.apache.rya.indexing.mongodb.freetext.MongoFreeTextIndexer;
 import org.apache.rya.indexing.mongodb.temporal.MongoTemporalIndexer;
-import org.openrdf.model.Resource;
-import org.openrdf.model.URI;
-import org.openrdf.model.Value;
-import org.openrdf.model.ValueFactory;
-import org.openrdf.model.impl.URIImpl;
-import org.openrdf.model.impl.ValueFactoryImpl;
-import org.openrdf.query.BindingSet;
-import org.openrdf.query.Dataset;
-import org.openrdf.query.algebra.And;
-import org.openrdf.query.algebra.Filter;
-import org.openrdf.query.algebra.FunctionCall;
-import org.openrdf.query.algebra.Join;
-import org.openrdf.query.algebra.LeftJoin;
-import org.openrdf.query.algebra.QueryModelNode;
-import org.openrdf.query.algebra.StatementPattern;
-import org.openrdf.query.algebra.TupleExpr;
-import org.openrdf.query.algebra.ValueConstant;
-import org.openrdf.query.algebra.Var;
-import org.openrdf.query.algebra.evaluation.QueryOptimizer;
-import org.openrdf.query.algebra.helpers.QueryModelVisitorBase;
+import  org.eclipse.rdf4j.model.Resource;
+import  org.eclipse.rdf4j.model.URI;
+import  org.eclipse.rdf4j.model.Value;
+import  org.eclipse.rdf4j.model.ValueFactory;
+import  org.eclipse.rdf4j.model.impl.URIImpl;
+import  org.eclipse.rdf4j.model.impl.ValueFactoryImpl;
+import  org.eclipse.rdf4j.query.BindingSet;
+import  org.eclipse.rdf4j.query.Dataset;
+import  org.eclipse.rdf4j.query.algebra.And;
+import  org.eclipse.rdf4j.query.algebra.Filter;
+import  org.eclipse.rdf4j.query.algebra.FunctionCall;
+import  org.eclipse.rdf4j.query.algebra.Join;
+import  org.eclipse.rdf4j.query.algebra.LeftJoin;
+import  org.eclipse.rdf4j.query.algebra.QueryModelNode;
+import  org.eclipse.rdf4j.query.algebra.StatementPattern;
+import  org.eclipse.rdf4j.query.algebra.TupleExpr;
+import  org.eclipse.rdf4j.query.algebra.ValueConstant;
+import  org.eclipse.rdf4j.query.algebra.Var;
+import  org.eclipse.rdf4j.query.algebra.evaluation.QueryOptimizer;
+import  org.eclipse.rdf4j.query.algebra.helpers.QueryModelVisitorBase;
 
 import com.google.common.collect.Lists;
 
 public class GeoEnabledFilterFunctionOptimizer implements QueryOptimizer, Configurable {
     private static final Logger LOG = Logger.getLogger(GeoEnabledFilterFunctionOptimizer.class);
-    private final ValueFactory valueFactory = new ValueFactoryImpl();
+    private final ValueFactory valueFactory = SimpleValueFactory.getInstance();
 
     private Configuration conf;
     private GeoIndexer geoIndexer;
@@ -249,10 +249,10 @@ public class GeoEnabledFilterFunctionOptimizer implements QueryOptimizer, Config
 
         @Override
         public void meet(final FunctionCall call) {
-            final URI fnUri = valueFactory.createURI(call.getURI());
+            final URI fnUri = valueFactory.createIRI(call.getURI());
             final Var resultVar = IndexingFunctionRegistry.getResultVarFromFunctionCall(fnUri, call.getArgs());
             if (resultVar != null && resultVar.getName().equals(matchVar)) {
-                addFilter(valueFactory.createURI(call.getURI()), GeoParseUtils.extractArguments(matchVar, call));
+                addFilter(valueFactory.createIRI(call.getURI()), GeoParseUtils.extractArguments(matchVar, call));
                 if (call.getParentNode() instanceof Filter || call.getParentNode() instanceof And || call.getParentNode() instanceof LeftJoin) {
                     call.replaceWith(new ValueConstant(valueFactory.createLiteral(true)));
                 } else {

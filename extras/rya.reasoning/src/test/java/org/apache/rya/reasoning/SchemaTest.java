@@ -19,16 +19,16 @@ package org.apache.rya.reasoning;
  * under the License.
  */
 
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.vocabulary.OWL;
+import org.eclipse.rdf4j.model.vocabulary.RDF;
+import org.eclipse.rdf4j.model.vocabulary.RDFS;
+import org.eclipse.rdf4j.model.vocabulary.SKOS;
 import org.junit.Assert;
 import org.junit.Test;
-import org.openrdf.model.URI;
-import org.openrdf.model.vocabulary.OWL;
-import org.openrdf.model.vocabulary.RDF;
-import org.openrdf.model.vocabulary.RDFS;
-import org.openrdf.model.vocabulary.SKOS;
 
 public class SchemaTest {
-    URI lubm(String s) {
+    IRI lubm(String s) {
         return TestUtils.uri("http://swat.cse.lehigh.edu/onto/univ-bench.owl", s);
     }
 
@@ -258,8 +258,8 @@ public class SchemaTest {
     @Test
     public void testInputMaxCardinality() throws Exception {
         Schema schema = new Schema();
-        URI s = TestUtils.uri("x");
-        URI p = OWL.MAXCARDINALITY;
+        IRI s = TestUtils.uri("x");
+        IRI p = OWL.MAXCARDINALITY;
         schema.processTriple(TestUtils.statement(s, p, TestUtils.stringLiteral("7")));
         schema.processTriple(TestUtils.statement(s, p, TestUtils.stringLiteral("4")));
         schema.processTriple(TestUtils.statement(s, p, TestUtils.stringLiteral("-1")));
@@ -272,8 +272,8 @@ public class SchemaTest {
     @Test
     public void testInputMaxQualifiedCardinality() throws Exception {
         Schema schema = new Schema();
-        URI s = TestUtils.uri("x");
-        URI p = OWL2.MAXQUALIFIEDCARDINALITY;
+        IRI s = TestUtils.uri("x");
+        IRI p = OWL2.MAXQUALIFIEDCARDINALITY;
         schema.processTriple(TestUtils.statement(s, p, TestUtils.stringLiteral("-20")));
         schema.processTriple(TestUtils.statement(s, p, TestUtils.stringLiteral("100")));
         schema.processTriple(TestUtils.statement(s, p, TestUtils.stringLiteral("0")));

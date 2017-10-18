@@ -19,29 +19,26 @@ package org.apache.rya.indexing;
  * under the License.
  */
 
-
-import info.aduna.iteration.CloseableIteration;
-
 import java.io.Closeable;
 import java.io.IOException;
 import java.util.Collection;
 
-import org.apache.rya.indexing.accumulo.entity.StarQuery;
-
 import org.apache.accumulo.core.client.TableNotFoundException;
-import org.openrdf.query.BindingSet;
-import org.openrdf.query.QueryEvaluationException;
+import org.apache.rya.indexing.accumulo.entity.StarQuery;
+import org.eclipse.rdf4j.common.iteration.CloseableIteration;
+import org.eclipse.rdf4j.query.BindingSet;
+import org.eclipse.rdf4j.query.QueryEvaluationException;
 
 public interface DocIdIndexer extends Closeable {
 
   
 
-    public abstract CloseableIteration<BindingSet, QueryEvaluationException> queryDocIndex(StarQuery query,
+    CloseableIteration<BindingSet, QueryEvaluationException> queryDocIndex(StarQuery query,
             Collection<BindingSet> constraints) throws TableNotFoundException, QueryEvaluationException;
 
    
 
     @Override
-    public abstract void close() throws IOException;
+    void close() throws IOException;
     
 }

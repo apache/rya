@@ -22,7 +22,7 @@ package org.apache.rya.api.utils;
 
 
 import com.google.common.base.Preconditions;
-import info.aduna.iteration.CloseableIteration;
+import org.eclipse.rdf4j.common.iteration.CloseableIteration;
 
 /**
  * Date: 7/24/12

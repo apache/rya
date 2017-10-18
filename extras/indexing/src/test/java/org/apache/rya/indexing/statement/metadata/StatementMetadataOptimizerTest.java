@@ -17,18 +17,11 @@ package org.apache.rya.indexing.statement.metadata;
  * specific language governing permissions and limitations
  * under the License.
  */
-import static org.junit.Assert.assertEquals;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 import org.apache.rya.accumulo.AccumuloRdfConfiguration;
-import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
+import org.apache.rya.api.RdfTripleStoreConfiguration;
 import org.apache.rya.api.domain.RyaURI;
 import org.apache.rya.indexing.accumulo.ConfigUtils;
 import org.apache.rya.indexing.external.matching.JoinSegment;
@@ -36,20 +29,18 @@ import org.apache.rya.indexing.statement.metadata.matching.StatementMetadataExte
 import org.apache.rya.indexing.statement.metadata.matching.StatementMetadataNode;
 import org.apache.rya.indexing.statement.metadata.matching.StatementMetadataOptimizer;
 import org.apache.rya.mongodb.MongoDBRdfConfiguration;
+import org.eclipse.rdf4j.query.MalformedQueryException;
+import org.eclipse.rdf4j.query.algebra.*;
+import org.eclipse.rdf4j.query.algebra.helpers.StatementPatternCollector;
+import org.eclipse.rdf4j.query.parser.ParsedQuery;
+import org.eclipse.rdf4j.query.parser.sparql.SPARQLParser;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
-import org.openrdf.query.MalformedQueryException;
-import org.openrdf.query.algebra.Filter;
-import org.openrdf.query.algebra.QueryModelNode;
-import org.openrdf.query.algebra.StatementPattern;
-import org.openrdf.query.algebra.TupleExpr;
-import org.openrdf.query.algebra.ValueExpr;
-import org.openrdf.query.algebra.helpers.StatementPatternCollector;
-import org.openrdf.query.parser.ParsedQuery;
-import org.openrdf.query.parser.sparql.SPARQLParser;
+
+import static org.junit.Assert.assertEquals;
 
 @RunWith(value = Parameterized.class)
 public class StatementMetadataOptimizerTest {
@@ -90,8 +81,8 @@ public class StatementMetadataOptimizerTest {
 
     @Before
     public void init() {
-        RdfCloudTripleStoreConfiguration mongoConf = (RdfCloudTripleStoreConfiguration) getConf(true);
-        RdfCloudTripleStoreConfiguration accumuloConf = (RdfCloudTripleStoreConfiguration) getConf(false);
+        RdfTripleStoreConfiguration mongoConf = getConf(true);
+        RdfTripleStoreConfiguration accumuloConf = getConf(false);
         mongoOptimizer = new StatementMetadataOptimizer(mongoConf);
         accumuloOptimizer = new StatementMetadataOptimizer(accumuloConf);
     }
@@ -124,9 +115,9 @@ public class StatementMetadataOptimizerTest {
         assertEquals(expected, StatementMetadataTestUtils.getMetadataNodes(te));
     }
 
-    private static RdfCloudTripleStoreConfiguration getConf(boolean useMongo) {
+    private static RdfTripleStoreConfiguration getConf(boolean useMongo) {
 
-        RdfCloudTripleStoreConfiguration conf;
+        RdfTripleStoreConfiguration conf;
         Set<RyaURI> propertySet = new HashSet<RyaURI>(
                 Arrays.asList(new RyaURI("http://createdBy"), new RyaURI("http://createdOn")));
         if (useMongo) {
@@ -139,7 +130,7 @@ public class StatementMetadataOptimizerTest {
         } else {
             conf = new AccumuloRdfConfiguration();
             conf.setBoolean(ConfigUtils.USE_MOCK_INSTANCE, true);
-            conf.set(RdfCloudTripleStoreConfiguration.CONF_TBL_PREFIX, "rya_");
+            conf.set(RdfTripleStoreConfiguration.CONF_TBL_PREFIX, "rya_");
             conf.set(ConfigUtils.CLOUDBASE_USER, "root");
             conf.set(ConfigUtils.CLOUDBASE_PASSWORD, "");
             conf.set(ConfigUtils.CLOUDBASE_INSTANCE, "instance");
@@ -152,7 +143,7 @@ public class StatementMetadataOptimizerTest {
     private static Set<StatementMetadataNode<?>> getExpected(String query) throws MalformedQueryException {
         ParsedQuery pq = parser.parseQuery(query, null);
         StatementMetadataExternalSetProvider provider = new StatementMetadataExternalSetProvider(
-                (RdfCloudTripleStoreConfiguration) getConf(false));
+                getConf(false));
         List<StatementPattern> patterns = StatementPatternCollector.process(pq.getTupleExpr());
         JoinSegment<StatementMetadataNode<?>> segment = new JoinSegment<StatementMetadataNode<?>>(
                 new HashSet<QueryModelNode>(patterns), new ArrayList<QueryModelNode>(patterns),

@@ -18,13 +18,12 @@
  */
 package org.apache.rya.prospector.mr;
 
-import static org.junit.Assert.assertEquals;
-
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map.Entry;
 
+import com.google.common.collect.Lists;
 import org.apache.accumulo.core.client.Connector;
 import org.apache.accumulo.core.client.Instance;
 import org.apache.accumulo.core.client.TableNotFoundException;
@@ -45,10 +44,10 @@ import org.apache.rya.prospector.domain.IndexEntry;
 import org.apache.rya.prospector.domain.TripleValueType;
 import org.apache.rya.prospector.service.ProspectorService;
 import org.apache.rya.prospector.utils.ProspectorConstants;
+import org.eclipse.rdf4j.model.vocabulary.XMLSchema;
 import org.junit.Test;
-import org.openrdf.model.vocabulary.XMLSchema;
 
-import com.google.common.collect.Lists;
+import static org.junit.Assert.assertEquals;
 
 /**
  * Tests that show when the {@link Prospector} job is run, it creates a table
@@ -239,7 +238,7 @@ public class ProspectorTest {
      * debugging the test.
      */
     private void debugTable(Connector connector, String table) throws TableNotFoundException {
-        final Iterator<Entry<Key, Value>> it = connector.createScanner(table, new Authorizations(new String[]{"U", "FOUO"})).iterator();
+        final Iterator<Entry<Key, Value>> it = connector.createScanner(table, new Authorizations("U", "FOUO")).iterator();
         while(it.hasNext()) {
             final Entry<Key, Value> entry = it.next();
             System.out.println( entry );

@@ -19,22 +19,17 @@ package org.apache.rya.indexing.IndexPlanValidator;
  * under the License.
  */
 
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.List;
-import java.util.NoSuchElementException;
-import java.util.Set;
-
-import org.apache.rya.indexing.external.tupleSet.ExternalTupleSet;
-import org.openrdf.query.algebra.Filter;
-import org.openrdf.query.algebra.QueryModelNode;
-import org.openrdf.query.algebra.StatementPattern;
-import org.openrdf.query.algebra.TupleExpr;
-import org.openrdf.query.algebra.helpers.QueryModelVisitorBase;
+import java.util.*;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import org.apache.rya.indexing.external.tupleSet.ExternalTupleSet;
+import org.eclipse.rdf4j.query.algebra.Filter;
+import org.eclipse.rdf4j.query.algebra.QueryModelNode;
+import org.eclipse.rdf4j.query.algebra.StatementPattern;
+import org.eclipse.rdf4j.query.algebra.TupleExpr;
+import org.eclipse.rdf4j.query.algebra.helpers.QueryModelVisitorBase;
 
 public class ValidIndexCombinationGenerator {
 
@@ -86,11 +81,8 @@ public class ValidIndexCombinationGenerator {
 
 					}
 
-				} else if (isEmpty) {
-					return false;
-				} else {
-					return true;
-				}
+				} else
+                    return !isEmpty;
 			}
 
 			@Override
@@ -153,11 +145,8 @@ public class ValidIndexCombinationGenerator {
 					isEmpty = true;
 					return false;
 
-				} else if (isEmpty) {
-					return false;
-				} else {
-					return true;
-				}
+				} else
+                    return !isEmpty;
 			}
 
 			@Override
@@ -228,11 +217,8 @@ public class ValidIndexCombinationGenerator {
 						return true;
 
 					}
-				} else if (isEmpty) {
-					return false;
-				} else {
-					return true;
-				}
+				} else
+                    return !isEmpty;
 			}
 
 			@Override
@@ -304,11 +290,8 @@ public class ValidIndexCombinationGenerator {
 						}
 
 					}
-				} else if (isEmpty) {
-					return false;
-				} else {
-					return true;
-				}
+				} else
+                    return !isEmpty;
 
 			}
 

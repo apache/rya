@@ -18,26 +18,27 @@
  */
 package org.apache.rya.indexing.external.tupleSet;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.NoSuchElementException;
-import java.util.Set;
+import java.util.*;
 
-import org.apache.accumulo.core.client.AccumuloException;
-import org.apache.accumulo.core.client.AccumuloSecurityException;
-import org.apache.accumulo.core.client.BatchScanner;
-import org.apache.accumulo.core.client.Connector;
+import com.google.common.base.Joiner;
+import com.google.common.base.Optional;
+import com.google.common.base.Preconditions;
+import com.google.common.collect.*;
+import org.apache.accumulo.core.client.*;
 import org.apache.accumulo.core.client.Scanner;
-import org.apache.accumulo.core.client.TableNotFoundException;
 import org.apache.accumulo.core.data.Range;
 import org.apache.accumulo.core.security.Authorizations;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.Text;
+import org.apache.rya.accumulo.pcj.iterators.BindingSetHashJoinIterator;
+import org.apache.rya.accumulo.pcj.iterators.BindingSetHashJoinIterator.HashJoinType;
+import org.apache.rya.accumulo.pcj.iterators.IteratorCombiner;
+import org.apache.rya.accumulo.pcj.iterators.PCJKeyToCrossProductBindingSetIterator;
+import org.apache.rya.accumulo.pcj.iterators.PCJKeyToJoinBindingSetIterator;
+import org.apache.rya.api.RdfTripleStoreConfiguration;
+import org.apache.rya.api.utils.IteratorWrapper;
+import org.apache.rya.indexing.accumulo.ConfigUtils;
+import org.apache.rya.indexing.pcj.matching.PCJOptimizerUtilities;
 import org.apache.rya.indexing.pcj.storage.PcjException;
 import org.apache.rya.indexing.pcj.storage.PcjMetadata;
 import org.apache.rya.indexing.pcj.storage.PrecomputedJoinStorage.PCJStorageException;
@@ -45,39 +46,20 @@ import org.apache.rya.indexing.pcj.storage.accumulo.AccumuloPcjSerializer;
 import org.apache.rya.indexing.pcj.storage.accumulo.BindingSetConverter.BindingSetConversionException;
 import org.apache.rya.indexing.pcj.storage.accumulo.PcjTables;
 import org.apache.rya.indexing.pcj.storage.accumulo.VariableOrder;
-import org.openrdf.model.Value;
-import org.openrdf.query.Binding;
-import org.openrdf.query.BindingSet;
-import org.openrdf.query.MalformedQueryException;
-import org.openrdf.query.QueryEvaluationException;
-import org.openrdf.query.algebra.Projection;
-import org.openrdf.query.algebra.TupleExpr;
-import org.openrdf.query.algebra.evaluation.QueryBindingSet;
-import org.openrdf.query.impl.BindingImpl;
-import org.openrdf.query.parser.ParsedTupleQuery;
-import org.openrdf.query.parser.sparql.SPARQLParser;
-import org.openrdf.sail.SailException;
-
-import com.google.common.base.Joiner;
-import com.google.common.base.Optional;
-import com.google.common.base.Preconditions;
-import com.google.common.collect.HashBiMap;
-import com.google.common.collect.HashMultimap;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Multimap;
-import com.google.common.collect.Sets;
-
-import info.aduna.iteration.CloseableIteration;
-import org.apache.rya.accumulo.pcj.iterators.BindingSetHashJoinIterator;
-import org.apache.rya.accumulo.pcj.iterators.BindingSetHashJoinIterator.HashJoinType;
-import org.apache.rya.accumulo.pcj.iterators.IteratorCombiner;
-import org.apache.rya.accumulo.pcj.iterators.PCJKeyToCrossProductBindingSetIterator;
-import org.apache.rya.accumulo.pcj.iterators.PCJKeyToJoinBindingSetIterator;
-import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
-import org.apache.rya.api.utils.IteratorWrapper;
-import org.apache.rya.indexing.accumulo.ConfigUtils;
-import org.apache.rya.indexing.pcj.matching.PCJOptimizerUtilities;
 import org.apache.rya.rdftriplestore.evaluation.ExternalBatchingIterator;
+import org.eclipse.rdf4j.common.iteration.CloseableIteration;
+import org.eclipse.rdf4j.model.Value;
+import org.eclipse.rdf4j.query.Binding;
+import org.eclipse.rdf4j.query.BindingSet;
+import org.eclipse.rdf4j.query.MalformedQueryException;
+import org.eclipse.rdf4j.query.QueryEvaluationException;
+import org.eclipse.rdf4j.query.algebra.Projection;
+import org.eclipse.rdf4j.query.algebra.TupleExpr;
+import org.eclipse.rdf4j.query.algebra.evaluation.QueryBindingSet;
+import org.eclipse.rdf4j.query.impl.BindingImpl;
+import org.eclipse.rdf4j.query.parser.ParsedTupleQuery;
+import org.eclipse.rdf4j.query.parser.sparql.SPARQLParser;
+import org.eclipse.rdf4j.sail.SailException;
 
 /**
  * During query planning, this node is inserted into the parsed query to
@@ -216,7 +198,7 @@ public class AccumuloIndexSet extends ExternalTupleSet implements
 
 
 	private Authorizations getAuthorizations(final Configuration conf) {
-		final String authString = conf.get(RdfCloudTripleStoreConfiguration.CONF_QUERY_AUTH, "");
+		final String authString = conf.get(RdfTripleStoreConfiguration.CONF_QUERY_AUTH, "");
         if (authString.isEmpty()) {
             return new Authorizations();
         }
@@ -295,7 +277,7 @@ public class AccumuloIndexSet extends ExternalTupleSet implements
 		}
 
 		final List<BindingSet> crossProductBs = new ArrayList<>();
-		final Map<String, org.openrdf.model.Value> constantConstraints = new HashMap<>();
+		final Map<String,  org.eclipse.rdf4j.model.Value> constantConstraints = new HashMap<>();
 		final Set<Range> hashJoinRanges = new HashSet<>();
 		final Range EMPTY_RANGE = new Range("", true, "~", false);
 		Range crossProductRange = EMPTY_RANGE;

@@ -19,14 +19,12 @@ package org.apache.rya.api.utils;
  * under the License.
  */
 
-
+import java.util.Map;
 
 import com.google.common.base.Function;
 import org.apache.rya.api.RdfCloudTripleStoreUtils;
 import org.apache.rya.api.domain.RyaStatement;
-import org.openrdf.query.BindingSet;
-
-import java.util.Map;
+import org.eclipse.rdf4j.query.BindingSet;
 
 /**
  * Date: 1/18/13
@@ -35,6 +33,6 @@ import java.util.Map;
 public class RyaStatementAddBindingSetFunction implements Function<RyaStatement, Map.Entry<RyaStatement, BindingSet>> {
     @Override
     public Map.Entry<RyaStatement, BindingSet> apply(RyaStatement ryaStatement) {
-        return new RdfCloudTripleStoreUtils.CustomEntry<org.apache.rya.api.domain.RyaStatement, org.openrdf.query.BindingSet>(ryaStatement, null);
+        return new RdfCloudTripleStoreUtils.CustomEntry<org.apache.rya.api.domain.RyaStatement,  org.eclipse.rdf4j.query.BindingSet>(ryaStatement, null);
     }
 }

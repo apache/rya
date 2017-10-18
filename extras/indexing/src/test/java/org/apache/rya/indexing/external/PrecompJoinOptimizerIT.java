@@ -1,6 +1,29 @@
 package org.apache.rya.indexing.external;
 
 import java.net.UnknownHostException;
+import java.util.List;
+
+import com.google.common.base.Optional;
+import org.apache.accumulo.core.client.*;
+import org.apache.accumulo.core.client.mock.MockInstance;
+import org.apache.accumulo.core.client.security.tokens.PasswordToken;
+import org.apache.rya.api.persist.RyaDAOException;
+import org.apache.rya.indexing.pcj.storage.PcjException;
+import org.apache.rya.rdftriplestore.inference.InferenceEngineException;
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.impl.LiteralImpl;
+import org.eclipse.rdf4j.model.impl.URIImpl;
+import org.eclipse.rdf4j.model.vocabulary.RDF;
+import org.eclipse.rdf4j.model.vocabulary.RDFS;
+import org.eclipse.rdf4j.query.*;
+import org.eclipse.rdf4j.repository.RepositoryException;
+import org.eclipse.rdf4j.repository.sail.SailRepository;
+import org.eclipse.rdf4j.repository.sail.SailRepositoryConnection;
+import org.eclipse.rdf4j.sail.SailException;
+import org.junit.After;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Test;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -21,50 +44,13 @@ import java.net.UnknownHostException;
  * under the License.
  */
 
-import java.util.List;
-
-import org.apache.accumulo.core.client.AccumuloException;
-import org.apache.accumulo.core.client.AccumuloSecurityException;
-import org.apache.accumulo.core.client.Connector;
-import org.apache.accumulo.core.client.TableExistsException;
-import org.apache.accumulo.core.client.TableNotFoundException;
-import org.apache.accumulo.core.client.mock.MockInstance;
-import org.apache.accumulo.core.client.security.tokens.PasswordToken;
-import org.apache.rya.indexing.pcj.storage.PcjException;
-import org.apache.rya.indexing.pcj.storage.accumulo.PcjVarOrderFactory;
-import org.junit.After;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
-import org.openrdf.model.URI;
-import org.openrdf.model.impl.LiteralImpl;
-import org.openrdf.model.impl.URIImpl;
-import org.openrdf.model.vocabulary.RDF;
-import org.openrdf.model.vocabulary.RDFS;
-import org.openrdf.query.BindingSet;
-import org.openrdf.query.MalformedQueryException;
-import org.openrdf.query.QueryEvaluationException;
-import org.openrdf.query.QueryLanguage;
-import org.openrdf.query.QueryResultHandlerException;
-import org.openrdf.query.TupleQueryResultHandler;
-import org.openrdf.query.TupleQueryResultHandlerException;
-import org.openrdf.repository.RepositoryException;
-import org.openrdf.repository.sail.SailRepository;
-import org.openrdf.repository.sail.SailRepositoryConnection;
-import org.openrdf.sail.SailException;
-
-import com.google.common.base.Optional;
-
-import org.apache.rya.api.persist.RyaDAOException;
-import org.apache.rya.rdftriplestore.inference.InferenceEngineException;
-
 public class PrecompJoinOptimizerIT {
 
 	private SailRepositoryConnection conn, pcjConn;
 	private SailRepository repo, pcjRepo;
 	private Connector accCon;
 	String tablePrefix = "table_";
-	URI sub, sub2, obj, obj2, subclass, subclass2, talksTo;
+	IRI sub, sub2, obj, obj2, subclass, subclass2, talksTo;
 
 	@Before
 	public void init() throws RepositoryException,
@@ -130,7 +116,7 @@ public class PrecompJoinOptimizerIT {
 
 		PcjIntegrationTestingUtil.createAndPopulatePcj(conn, accCon, tablePrefix
 				+ "INDEX_1", indexSparqlString, new String[] { "e", "l", "c" },
-				Optional.<PcjVarOrderFactory> absent());
+				Optional.absent());
 		final String queryString = ""//
 				+ "SELECT ?e ?c ?l ?o " //
 				+ "{" //
@@ -187,10 +173,10 @@ public class PrecompJoinOptimizerIT {
 
 		PcjIntegrationTestingUtil.createAndPopulatePcj(conn, accCon, tablePrefix
 				+ "INDEX_1", indexSparqlString, new String[] { "e", "l", "c" },
-				Optional.<PcjVarOrderFactory> absent());
+				Optional.absent());
 		PcjIntegrationTestingUtil.createAndPopulatePcj(conn, accCon, tablePrefix
 				+ "INDEX_2", indexSparqlString2, new String[] { "e", "l", "o" },
-				Optional.<PcjVarOrderFactory> absent());
+				Optional.absent());
 		final CountingResultHandler crh = new CountingResultHandler();
 		PcjIntegrationTestingUtil.deleteCoreRyaTables(accCon, tablePrefix);
 		pcjConn.prepareTupleQuery(QueryLanguage.SPARQL, queryString).evaluate(
@@ -218,7 +204,7 @@ public class PrecompJoinOptimizerIT {
 
 		PcjIntegrationTestingUtil.createAndPopulatePcj(conn, accCon, tablePrefix
 				+ "INDEX_1", indexSparqlString, new String[] { "e", "l", "c" },
-				Optional.<PcjVarOrderFactory> absent());
+				Optional.absent());
 		final String queryString = ""//
 				+ "SELECT ?e ?c ?l ?o " //
 				+ "{" //
@@ -260,7 +246,7 @@ public class PrecompJoinOptimizerIT {
 
 		PcjIntegrationTestingUtil.createAndPopulatePcj(conn, accCon, tablePrefix
 				+ "INDEX_2", indexSparqlString2, new String[] { "e", "l", "c" },
-				Optional.<PcjVarOrderFactory> absent());
+				Optional.absent());
 
 		final String queryString = ""//
 				+ "SELECT ?e ?c ?o ?m ?l" //
@@ -301,14 +287,14 @@ public class PrecompJoinOptimizerIT {
 				+ "  ?e <http://www.w3.org/2000/01/rdf-schema#label> ?l "//
 				+ "}";//
 
-		final URI sub3 = new URIImpl("uri:entity3");
-		final URI subclass3 = new URIImpl("uri:class3");
+		final IRI sub3 = new URIImpl("uri:entity3");
+		final IRI subclass3 = new URIImpl("uri:class3");
 		conn.add(sub3, RDF.TYPE, subclass3);
 		conn.add(sub3, RDFS.LABEL, new LiteralImpl("label3"));
 
 		PcjIntegrationTestingUtil.createAndPopulatePcj(conn, accCon, tablePrefix
 				+ "INDEX_1", indexSparqlString1, new String[] { "e", "l", "c" },
-				Optional.<PcjVarOrderFactory> absent());
+				Optional.absent());
 		final String queryString = ""//
 				+ "SELECT ?e ?c ?o ?m ?l" //
 				+ "{" //
@@ -372,10 +358,10 @@ public class PrecompJoinOptimizerIT {
 
 		PcjIntegrationTestingUtil.createAndPopulatePcj(conn, accCon, tablePrefix
 				+ "INDEX_1", indexSparqlString, new String[] { "e", "l", "o" },
-				Optional.<PcjVarOrderFactory> absent());
+				Optional.absent());
 		PcjIntegrationTestingUtil.createAndPopulatePcj(conn, accCon, tablePrefix
 				+ "INDEX_2", indexSparqlString2, new String[] { "e", "l", "o" },
-				Optional.<PcjVarOrderFactory> absent());
+				Optional.absent());
 
 		PcjIntegrationTestingUtil.deleteCoreRyaTables(accCon, tablePrefix);
 		PcjIntegrationTestingUtil.closeAndShutdown(conn, repo);
@@ -404,10 +390,10 @@ public class PrecompJoinOptimizerIT {
 		conn.add(sub, RDF.TYPE, obj);
 		conn.add(sub2, RDF.TYPE, obj2);
 
-		final URI livesIn = new URIImpl("uri:livesIn");
-		final URI city = new URIImpl("uri:city");
-		final URI city2 = new URIImpl("uri:city2");
-		final URI city3 = new URIImpl("uri:city3");
+		final IRI livesIn = new URIImpl("uri:livesIn");
+		final IRI city = new URIImpl("uri:city");
+		final IRI city2 = new URIImpl("uri:city2");
+		final IRI city3 = new URIImpl("uri:city3");
 		conn.add(sub, livesIn, city);
 		conn.add(sub2, livesIn, city2);
 		conn.add(sub2, livesIn, city3);
@@ -438,10 +424,10 @@ public class PrecompJoinOptimizerIT {
 
 		PcjIntegrationTestingUtil.createAndPopulatePcj(conn, accCon, tablePrefix
 				+ "INDEX_1", indexSparqlString, new String[] { "e", "l", "o" },
-				Optional.<PcjVarOrderFactory> absent());
+				Optional.absent());
 		PcjIntegrationTestingUtil.createAndPopulatePcj(conn, accCon, tablePrefix
 				+ "INDEX_2", indexSparqlString2, new String[] { "e", "l", "o" },
-				Optional.<PcjVarOrderFactory> absent());
+				Optional.absent());
 
 		PcjIntegrationTestingUtil.deleteCoreRyaTables(accCon, tablePrefix);
 		PcjIntegrationTestingUtil.closeAndShutdown(conn, repo);

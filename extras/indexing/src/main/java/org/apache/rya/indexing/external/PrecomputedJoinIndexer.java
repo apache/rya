@@ -18,38 +18,35 @@
  */
 package org.apache.rya.indexing.external;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 import java.io.IOException;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
+import com.google.common.base.Optional;
+import com.google.common.base.Supplier;
 import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
 import edu.umd.cs.findbugs.annotations.NonNull;
-
 import org.apache.accumulo.core.client.Connector;
 import org.apache.accumulo.core.client.MultiTableBatchWriter;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.log4j.Logger;
-import org.apache.rya.indexing.pcj.storage.PrecomputedJoinStorage;
-import org.apache.rya.indexing.pcj.storage.PrecomputedJoinStorage.PCJStorageException;
-import org.apache.rya.indexing.pcj.storage.accumulo.AccumuloPcjStorage;
-import org.apache.rya.indexing.pcj.update.PrecomputedJoinUpdater;
-import org.apache.rya.indexing.pcj.update.PrecomputedJoinUpdater.PcjUpdateException;
-import org.openrdf.model.URI;
-
-import com.google.common.base.Optional;
-import com.google.common.base.Supplier;
-
 import org.apache.rya.accumulo.experimental.AbstractAccumuloIndexer;
-import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
+import org.apache.rya.api.RdfTripleStoreConfiguration;
 import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.domain.RyaURI;
 import org.apache.rya.api.persist.RyaDAO;
 import org.apache.rya.indexing.external.accumulo.AccumuloPcjStorageSupplier;
 import org.apache.rya.indexing.external.fluo.PcjUpdaterSupplierFactory;
+import org.apache.rya.indexing.pcj.storage.PrecomputedJoinStorage;
+import org.apache.rya.indexing.pcj.storage.PrecomputedJoinStorage.PCJStorageException;
+import org.apache.rya.indexing.pcj.storage.accumulo.AccumuloPcjStorage;
+import org.apache.rya.indexing.pcj.update.PrecomputedJoinUpdater;
+import org.apache.rya.indexing.pcj.update.PrecomputedJoinUpdater.PcjUpdateException;
+import org.eclipse.rdf4j.model.IRI;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * Updates the state of the Precomputed Join indices that are used by Rya.
@@ -211,7 +208,7 @@ public class PrecomputedJoinIndexer extends AbstractAccumuloIndexer {
      * {@link PrecomputedJoinStorage}.
      */
     @Override
-    public void purge(final RdfCloudTripleStoreConfiguration configuration) {
+    public void purge(final RdfTripleStoreConfiguration configuration) {
 
         try {
             for (final String pcjId : pcjStorage.listPcjs()) {
@@ -274,7 +271,7 @@ public class PrecomputedJoinIndexer extends AbstractAccumuloIndexer {
     }
 
     @Override
-    public Set<URI> getIndexablePredicates() {
+    public Set<IRI> getIndexablePredicates() {
         return new HashSet<>();
     }
 }

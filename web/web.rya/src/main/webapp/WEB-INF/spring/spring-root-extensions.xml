@@ -20,13 +20,12 @@ under the License.
 -->
 
 <beans xmlns="http://www.springframework.org/schema/beans"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:p="http://www.springframework.org/schema/p"
-	xmlns:context="http://www.springframework.org/schema/context"
-	xmlns:util="http://www.springframework.org/schema/util"
-    xmlns:hdp="http://www.springframework.org/schema/hadoop"
-	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.1.xsd
+	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	   xmlns:context="http://www.springframework.org/schema/context"
+	   xmlns:hdp="http://www.springframework.org/schema/hadoop"
+	   xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.1.xsd
 				http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.1.xsd
-				http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-3.1.xsd
+
                 http://www.springframework.org/schema/hadoop http://www.springframework.org/schema/hadoop/spring-hadoop.xsd">
 
     <bean id="environmentProperties" class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
@@ -99,7 +98,7 @@ under the License.
         <constructor-arg ref="indexerSettings"/>
     </bean>
 
-    <bean id="indexingSailRepo" class="org.openrdf.repository.sail.SailRepository" init-method="initialize" destroy-method="shutDown">
+    <bean id="indexingSailRepo" class=" org.eclipse.rdf4j.repository.sail.SailRepository" init-method="initialize" destroy-method="shutDown">
         <constructor-arg ref="ryaIndexingSail"/>
     </bean>
 </beans>

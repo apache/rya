@@ -24,19 +24,10 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import com.google.common.collect.Sets;
 import org.apache.rya.rdftriplestore.inference.DoNotExpandSP;
 import org.apache.rya.rdftriplestore.utils.FixedStatementPattern;
-
-import org.openrdf.query.algebra.Filter;
-import org.openrdf.query.algebra.Join;
-import org.openrdf.query.algebra.LeftJoin;
-import org.openrdf.query.algebra.QueryModelNodeBase;
-import org.openrdf.query.algebra.QueryModelVisitor;
-import org.openrdf.query.algebra.TupleExpr;
-import org.openrdf.query.algebra.ValueExpr;
-import org.openrdf.query.algebra.Var;
-
-import com.google.common.collect.Sets;
+import org.eclipse.rdf4j.query.algebra.*;
 
 /**
  * This class is essentially a wrapper for {@link LeftJoin}. It provides a
@@ -124,11 +115,7 @@ public class FlattenedOptional extends QueryModelNodeBase implements TupleExpr {
         // unbound vars
         if (te instanceof FlattenedOptional) {
             FlattenedOptional lj = (FlattenedOptional) te;
-            if (Sets.intersection(lj.rightArg.getBindingNames(), unboundVars).size() > 0) {
-                return false;
-            } else {
-                return true;
-            }
+            return Sets.intersection(lj.rightArg.getBindingNames(), unboundVars).size() <= 0;
         }
 
         return Sets.intersection(te.getBindingNames(), unboundVars).size() == 0;
@@ -246,11 +233,7 @@ public class FlattenedOptional extends QueryModelNodeBase implements TupleExpr {
         // unbound vars
         if (te instanceof FlattenedOptional) {
             FlattenedOptional lj = (FlattenedOptional) te;
-            if (Sets.intersection(lj.getRightArg().getBindingNames(), unboundVars).size() > 0) {
-                return false;
-            } else {
-                return true;
-            }
+            return Sets.intersection(lj.getRightArg().getBindingNames(), unboundVars).size() <= 0;
         }
         Set<String> vars = te.getBindingNames();
         Set<String> intersection = Sets.intersection(vars, boundVars);

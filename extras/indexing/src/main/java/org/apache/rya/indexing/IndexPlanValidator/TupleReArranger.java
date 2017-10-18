@@ -19,25 +19,22 @@ package org.apache.rya.indexing.IndexPlanValidator;
  * under the License.
  */
 
-
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
 
-import org.apache.rya.indexing.external.tupleSet.ExternalTupleSet;
-import org.apache.rya.rdftriplestore.inference.DoNotExpandSP;
-import org.apache.rya.rdftriplestore.utils.FixedStatementPattern;
-
-import org.openrdf.query.algebra.Filter;
-import org.openrdf.query.algebra.Join;
-import org.openrdf.query.algebra.StatementPattern;
-import org.openrdf.query.algebra.TupleExpr;
-import org.openrdf.query.algebra.helpers.QueryModelVisitorBase;
-
 import com.google.common.collect.Collections2;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import org.apache.rya.indexing.external.tupleSet.ExternalTupleSet;
+import org.apache.rya.rdftriplestore.inference.DoNotExpandSP;
+import org.apache.rya.rdftriplestore.utils.FixedStatementPattern;
+import org.eclipse.rdf4j.query.algebra.Filter;
+import org.eclipse.rdf4j.query.algebra.Join;
+import org.eclipse.rdf4j.query.algebra.StatementPattern;
+import org.eclipse.rdf4j.query.algebra.TupleExpr;
+import org.eclipse.rdf4j.query.algebra.helpers.QueryModelVisitorBase;
 
 
 //A given TupleExpr can be broken up into "join segments", which are sections of the TupleExpr where nodes can
@@ -81,11 +78,8 @@ public class TupleReArranger {
                         isEmpty = true;
                         return false;
                     }
-                } else if (isEmpty) {
-                    return false;
-                } else {
-                    return true;
-                }
+                } else
+                    return !isEmpty;
             }
 
             @Override

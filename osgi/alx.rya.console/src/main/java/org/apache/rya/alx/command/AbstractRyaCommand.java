@@ -19,11 +19,9 @@ package org.apache.rya.alx.command;
  * under the License.
  */
 
-
-
-import org.apache.rya.api.persist.RyaDAO;
 import org.apache.karaf.shell.console.OsgiCommandSupport;
-import org.openrdf.repository.Repository;
+import org.apache.rya.api.persist.RyaDAO;
+import org.eclipse.rdf4j.repository.Repository;
 import org.osgi.util.tracker.ServiceTracker;
 
 public abstract class AbstractRyaCommand extends OsgiCommandSupport {

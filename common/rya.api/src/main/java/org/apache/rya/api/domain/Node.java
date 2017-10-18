@@ -21,14 +21,14 @@ package org.apache.rya.api.domain;
 
 
 
-import org.openrdf.model.impl.URIImpl;
+import org.eclipse.rdf4j.model.impl.SimpleIRI;
 
 /**
  * A Node is an expected node in the global graph. This typing of the URI allows us to dictate the difference between a
  * URI that is just an Attribute on the subject vs. a URI that is another subject Node in the global graph. It does not
  * guarantee that the subject exists, just that there is an Edge to it.
  */
-public class Node extends URIImpl {
+public class Node extends SimpleIRI {
     public Node() {
     }
 

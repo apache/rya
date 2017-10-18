@@ -42,17 +42,17 @@ import org.apache.rya.indexing.geotemporal.storage.EventStorage;
 import org.apache.rya.mongodb.MongoDBRdfConfiguration;
 import org.junit.Before;
 import org.junit.Test;
-import org.openrdf.model.URI;
-import org.openrdf.model.Value;
-import org.openrdf.model.ValueFactory;
-import org.openrdf.model.impl.ValueFactoryImpl;
-import org.openrdf.query.BindingSet;
-import org.openrdf.query.QueryLanguage;
-import org.openrdf.query.TupleQueryResult;
-import org.openrdf.query.impl.MapBindingSet;
-import org.openrdf.repository.sail.SailRepository;
-import org.openrdf.repository.sail.SailRepositoryConnection;
-import org.openrdf.sail.Sail;
+import  org.eclipse.rdf4j.model.URI;
+import  org.eclipse.rdf4j.model.Value;
+import  org.eclipse.rdf4j.model.ValueFactory;
+import  org.eclipse.rdf4j.model.impl.ValueFactoryImpl;
+import  org.eclipse.rdf4j.query.BindingSet;
+import  org.eclipse.rdf4j.query.QueryLanguage;
+import  org.eclipse.rdf4j.query.TupleQueryResult;
+import  org.eclipse.rdf4j.query.impl.MapBindingSet;
+import  org.eclipse.rdf4j.repository.sail.SailRepository;
+import  org.eclipse.rdf4j.repository.sail.SailRepositoryConnection;
+import  org.eclipse.rdf4j.sail.Sail;
 
 import com.mongodb.MongoClient;
 
@@ -158,15 +158,15 @@ public class MongoGeoTemporalIndexIT extends MongoITBase {
     }
 
     private void addStatements() throws Exception {
-        URI subject = VF.createURI("urn:event1");
-        final URI predicate = VF.createURI(URI_PROPERTY_AT_TIME);
+        URI subject = vf.createIRI("urn:event1");
+        final URI predicate = vf.createIRI(URI_PROPERTY_AT_TIME);
         Value object = VF.createLiteral(new TemporalInstantRfc3339(2015, 12, 30, 12, 00, 0).toString());
         conn.add(VF.createStatement(subject, predicate, object));
 
         object = VF.createLiteral("Point(0 0)", GeoConstants.XMLSCHEMA_OGC_WKT);
         conn.add(VF.createStatement(subject, GeoConstants.GEO_AS_WKT, object));
 
-        subject = VF.createURI("urn:event2");
+        subject = vf.createIRI("urn:event2");
         object = VF.createLiteral(new TemporalInstantRfc3339(2015, 12, 30, 12, 00, 0).toString());
         conn.add(VF.createStatement(subject, predicate, object));
 

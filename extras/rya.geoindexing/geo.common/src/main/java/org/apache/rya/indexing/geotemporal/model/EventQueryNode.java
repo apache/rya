@@ -40,20 +40,20 @@ import org.apache.rya.indexing.mongodb.update.RyaObjectStorage.ObjectStorageExce
 import org.apache.rya.rdftriplestore.evaluation.ExternalBatchingIterator;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
-import org.openrdf.model.Value;
-import org.openrdf.model.impl.ValueFactoryImpl;
-import org.openrdf.query.BindingSet;
-import org.openrdf.query.QueryEvaluationException;
-import org.openrdf.query.algebra.FunctionCall;
-import org.openrdf.query.algebra.StatementPattern;
-import org.openrdf.query.algebra.Var;
-import org.openrdf.query.algebra.evaluation.impl.ExternalSet;
-import org.openrdf.query.algebra.evaluation.iterator.CollectionIteration;
-import org.openrdf.query.impl.MapBindingSet;
+import  org.eclipse.rdf4j.model.Value;
+import  org.eclipse.rdf4j.model.impl.ValueFactoryImpl;
+import  org.eclipse.rdf4j.query.BindingSet;
+import  org.eclipse.rdf4j.query.QueryEvaluationException;
+import  org.eclipse.rdf4j.query.algebra.FunctionCall;
+import  org.eclipse.rdf4j.query.algebra.StatementPattern;
+import  org.eclipse.rdf4j.query.algebra.Var;
+import  org.eclipse.rdf4j.query.algebra.evaluation.impl.ExternalSet;
+import  org.eclipse.rdf4j.query.algebra.evaluation.iterator.CollectionIteration;
+import  org.eclipse.rdf4j.query.impl.MapBindingSet;
 
 import com.vividsolutions.jts.geom.Geometry;
 
-import info.aduna.iteration.CloseableIteration;
+import org.eclipse.rdf4j.common.iteration.CloseableIteration;
 
 public class EventQueryNode extends ExternalSet implements ExternalBatchingIterator {
     private final Collection<FunctionCall> usedFilters;

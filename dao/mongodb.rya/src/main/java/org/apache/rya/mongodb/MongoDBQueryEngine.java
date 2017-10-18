@@ -18,17 +18,16 @@ package org.apache.rya.mongodb;
  * under the License.
  */
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 import java.io.IOException;
-import java.util.AbstractMap;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
 
+import com.google.common.base.Preconditions;
+import com.google.common.collect.HashMultimap;
+import com.google.common.collect.Multimap;
+import com.mongodb.MongoClient;
+import com.mongodb.client.MongoCollection;
+import com.mongodb.client.MongoDatabase;
 import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.persist.RyaDAOException;
 import org.apache.rya.api.persist.query.BatchRyaQuery;
@@ -41,17 +40,11 @@ import org.apache.rya.mongodb.iter.RyaStatementCursorIterator;
 import org.bson.Document;
 import org.calrissian.mango.collect.CloseableIterable;
 import org.calrissian.mango.collect.CloseableIterables;
-import org.openrdf.query.BindingSet;
-import org.openrdf.query.impl.MapBindingSet;
+import org.eclipse.rdf4j.common.iteration.CloseableIteration;
+import org.eclipse.rdf4j.query.BindingSet;
+import org.eclipse.rdf4j.query.impl.MapBindingSet;
 
-import com.google.common.base.Preconditions;
-import com.google.common.collect.HashMultimap;
-import com.google.common.collect.Multimap;
-import com.mongodb.MongoClient;
-import com.mongodb.client.MongoCollection;
-import com.mongodb.client.MongoDatabase;
-
-import info.aduna.iteration.CloseableIteration;
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * Date: 7/17/12
@@ -152,7 +145,7 @@ public class MongoDBQueryEngine implements RyaQueryEngine<MongoDBRdfConfiguratio
         }
 
         Iterator<RyaStatement> iterator = new RyaStatementCursorIterator(queryWithBindingSet(queries.entrySet(), getConf()));
-        return CloseableIterables.wrap((Iterable<RyaStatement>) () -> iterator);
+        return CloseableIterables.wrap(() -> iterator);
     }
 
     private MongoCollection<Document> getCollection(final MongoDBRdfConfiguration conf) {

@@ -18,16 +18,9 @@
  */
 package org.apache.rya.accumulo.mr.merge;
 
-import static org.apache.rya.accumulo.mr.merge.util.TestUtils.YESTERDAY;
-import static org.apache.rya.accumulo.mr.merge.util.ToolConfigUtils.makeArgument;
+import java.util.*;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
+import junit.framework.Assert;
 import org.apache.accumulo.core.client.Connector;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.log4j.Logger;
@@ -40,7 +33,7 @@ import org.apache.rya.accumulo.mr.merge.demo.util.DemoUtilities.LoggingDetail;
 import org.apache.rya.accumulo.mr.merge.driver.AccumuloDualInstanceDriver;
 import org.apache.rya.accumulo.mr.merge.util.AccumuloRyaUtils;
 import org.apache.rya.accumulo.mr.merge.util.TestUtils;
-import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
+import org.apache.rya.api.RdfTripleStoreConfiguration;
 import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.domain.RyaType;
 import org.apache.rya.api.domain.RyaURI;
@@ -48,31 +41,23 @@ import org.apache.rya.api.persist.RyaDAOException;
 import org.apache.rya.api.resolver.RyaToRdfConversions;
 import org.apache.rya.indexing.accumulo.ConfigUtils;
 import org.apache.rya.sail.config.RyaSailFactory;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
-import org.openrdf.model.Namespace;
-import org.openrdf.model.Statement;
-import org.openrdf.model.URI;
-import org.openrdf.model.impl.URIImpl;
-import org.openrdf.model.vocabulary.OWL;
-import org.openrdf.model.vocabulary.RDF;
-import org.openrdf.model.vocabulary.RDFS;
-import org.openrdf.model.vocabulary.XMLSchema;
-import org.openrdf.query.BindingSet;
-import org.openrdf.query.QueryLanguage;
-import org.openrdf.query.QueryResultHandlerException;
-import org.openrdf.query.TupleQuery;
-import org.openrdf.query.TupleQueryResultHandler;
-import org.openrdf.query.TupleQueryResultHandlerException;
-import org.openrdf.repository.sail.SailRepository;
-import org.openrdf.repository.sail.SailRepositoryConnection;
-import org.openrdf.sail.Sail;
+import org.eclipse.rdf4j.common.iteration.CloseableIteration;
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.Namespace;
+import org.eclipse.rdf4j.model.Statement;
+import org.eclipse.rdf4j.model.impl.URIImpl;
+import org.eclipse.rdf4j.model.vocabulary.OWL;
+import org.eclipse.rdf4j.model.vocabulary.RDF;
+import org.eclipse.rdf4j.model.vocabulary.RDFS;
+import org.eclipse.rdf4j.model.vocabulary.XMLSchema;
+import org.eclipse.rdf4j.query.*;
+import org.eclipse.rdf4j.repository.sail.SailRepository;
+import org.eclipse.rdf4j.repository.sail.SailRepositoryConnection;
+import org.eclipse.rdf4j.sail.Sail;
+import org.junit.*;
 
-import info.aduna.iteration.CloseableIteration;
-import junit.framework.Assert;
+import static org.apache.rya.accumulo.mr.merge.util.TestUtils.YESTERDAY;
+import static org.apache.rya.accumulo.mr.merge.util.ToolConfigUtils.makeArgument;
 
 public class RulesetCopyIT {
     private static final Logger log = Logger.getLogger(RulesetCopyIT.class);
@@ -140,7 +125,7 @@ public class RulesetCopyIT {
         return new RyaType(lit);
     }
 
-    private static RyaType literal(final String lit, final URI type) {
+    private static RyaType literal(final String lit, final IRI type) {
         return new RyaType(type, lit);
     }
 
@@ -188,8 +173,8 @@ public class RulesetCopyIT {
             AccumuloRyaUtils.printTablePretty(table, parentConfig, false);
         }
 
-        parentConfig.set(RdfCloudTripleStoreConfiguration.CONF_INFER, Boolean.toString(infer));
-        childConfig.set(RdfCloudTripleStoreConfiguration.CONF_INFER, Boolean.toString(infer));
+        parentConfig.set(RdfTripleStoreConfiguration.CONF_INFER, Boolean.toString(infer));
+        childConfig.set(RdfTripleStoreConfiguration.CONF_INFER, Boolean.toString(infer));
 
         rulesetTool = new CopyTool();
         rulesetTool.setupAndRun(new String[] {
@@ -206,13 +191,13 @@ public class RulesetCopyIT {
                 makeArgument(MRUtils.AC_USERNAME_PROP + CHILD_SUFFIX, accumuloDualInstanceDriver.getChildUser()),
                 makeArgument(MRUtils.AC_PWD_PROP + CHILD_SUFFIX, CHILD_PASSWORD),
                 makeArgument(MRUtils.TABLE_PREFIX_PROPERTY + CHILD_SUFFIX, CHILD_TABLE_PREFIX),
-                makeArgument(MRUtils.AC_AUTH_PROP + CHILD_SUFFIX, accumuloDualInstanceDriver.getChildAuth() != null ? accumuloDualInstanceDriver.getChildAuth() : null),
+                makeArgument(MRUtils.AC_AUTH_PROP + CHILD_SUFFIX, accumuloDualInstanceDriver.getChildAuth()),
                 makeArgument(MRUtils.AC_ZK_PROP + CHILD_SUFFIX, accumuloDualInstanceDriver.getChildZooKeepers() != null ? accumuloDualInstanceDriver.getChildZooKeepers() : "localhost"),
                 makeArgument(CopyTool.CHILD_TOMCAT_URL_PROP, CHILD_TOMCAT_URL),
                 makeArgument(CopyTool.CREATE_CHILD_INSTANCE_TYPE_PROP, (IS_MOCK ? InstanceType.MOCK : InstanceType.MINI).toString()),
                 makeArgument(CopyTool.QUERY_STRING_PROP, query),
                 makeArgument(CopyTool.USE_COPY_QUERY_SPARQL, "true"),
-                makeArgument(RdfCloudTripleStoreConfiguration.CONF_INFER, Boolean.toString(infer))
+                makeArgument(RdfTripleStoreConfiguration.CONF_INFER, Boolean.toString(infer))
         });
 
         final Configuration toolConfig = rulesetTool.getConf();

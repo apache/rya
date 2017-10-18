@@ -19,16 +19,11 @@ package org.apache.rya.camel.cbsail;
  * under the License.
  */
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
-
-import org.apache.rya.accumulo.AccumuloRdfConfiguration;
-import org.apache.rya.accumulo.AccumuloRyaDAO;
-import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
-import org.apache.rya.api.RdfCloudTripleStoreConstants;
-import org.apache.rya.rdftriplestore.RdfCloudTripleStore;
-import org.apache.rya.rdftriplestore.RyaSailRepository;
-import org.apache.rya.rdftriplestore.inference.InferenceEngine;
-import org.apache.rya.rdftriplestore.namespace.NamespaceManager;
 import org.apache.accumulo.core.client.Connector;
 import org.apache.accumulo.core.client.Instance;
 import org.apache.accumulo.core.client.mock.MockInstance;
@@ -39,17 +34,20 @@ import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.component.mock.MockEndpoint;
 import org.apache.camel.impl.JndiRegistry;
 import org.apache.camel.test.CamelTestSupport;
-import org.openrdf.model.Statement;
-import org.openrdf.model.URI;
-import org.openrdf.model.ValueFactory;
-import org.openrdf.model.impl.StatementImpl;
-import org.openrdf.repository.Repository;
-import org.openrdf.repository.RepositoryConnection;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import org.apache.rya.accumulo.AccumuloRdfConfiguration;
+import org.apache.rya.accumulo.AccumuloRyaDAO;
+import org.apache.rya.api.RdfCloudTripleStoreConstants;
+import org.apache.rya.api.RdfTripleStoreConfiguration;
+import org.apache.rya.rdftriplestore.RdfCloudTripleStore;
+import org.apache.rya.rdftriplestore.RyaSailRepository;
+import org.apache.rya.rdftriplestore.inference.InferenceEngine;
+import org.apache.rya.rdftriplestore.namespace.NamespaceManager;
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.Statement;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.model.impl.StatementImpl;
+import org.eclipse.rdf4j.repository.Repository;
+import org.eclipse.rdf4j.repository.RepositoryConnection;
 
 /**
  */
@@ -108,9 +106,9 @@ public class CbSailTest extends CamelTestSupport {
     
     public void testSimpleQuery() throws Exception {
         RepositoryConnection conn = repository.getConnection();
-        URI cpu = vf.createURI(litdupsNS, "cpu");
-        URI loadPerc = vf.createURI(litdupsNS, "loadPerc");
-        URI uri1 = vf.createURI(litdupsNS, "uri1");
+        IRI cpu = vf.createIRI(litdupsNS, "cpu");
+        IRI loadPerc = vf.createIRI(litdupsNS, "loadPerc");
+        IRI uri1 = vf.createIRI(litdupsNS, "uri1");
         conn.add(cpu, loadPerc, uri1);
         conn.commit();
         conn.close();
@@ -128,11 +126,11 @@ public class CbSailTest extends CamelTestSupport {
 
     public void testSimpleQueryAuth() throws Exception {
         RepositoryConnection conn = repository.getConnection();
-        URI cpu = vf.createURI(litdupsNS, "cpu");
-        URI loadPerc = vf.createURI(litdupsNS, "loadPerc");
-        URI uri1 = vf.createURI(litdupsNS, "uri1");
-        URI uri2 = vf.createURI(litdupsNS, "uri2");
-        URI auth1 = vf.createURI(RdfCloudTripleStoreConstants.AUTH_NAMESPACE, "auth1");
+        IRI cpu = vf.createIRI(litdupsNS, "cpu");
+        IRI loadPerc = vf.createIRI(litdupsNS, "loadPerc");
+        IRI uri1 = vf.createIRI(litdupsNS, "uri1");
+        IRI uri2 = vf.createIRI(litdupsNS, "uri2");
+        IRI auth1 = vf.createIRI(RdfCloudTripleStoreConstants.AUTH_NAMESPACE, "auth1");
         conn.add(cpu, loadPerc, uri1, auth1);
         conn.add(cpu, loadPerc, uri2);
         conn.commit();
@@ -155,17 +153,17 @@ public class CbSailTest extends CamelTestSupport {
                 "}";
         Map<String, Object> headers = new HashMap<String, Object>();
         headers.put(CbSailComponent.SPARQL_QUERY_PROP, query);
-        headers.put(RdfCloudTripleStoreConfiguration.CONF_QUERY_AUTH, "auth1");
+        headers.put(RdfTripleStoreConfiguration.CONF_QUERY_AUTH, "auth1");
         template.sendBodyAndHeaders(null, headers);
 
         assertMockEndpointsSatisfied();
     }
     
     public void testInsertData() throws Exception {
-        URI cpu = vf.createURI(litdupsNS, "cpu");
-        URI loadPerc = vf.createURI(litdupsNS, "loadPerc");
-        URI uri1 = vf.createURI(litdupsNS, "uri1");
-        URI uri2 = vf.createURI(litdupsNS, "uri2");
+        IRI cpu = vf.createIRI(litdupsNS, "cpu");
+        IRI loadPerc = vf.createIRI(litdupsNS, "loadPerc");
+        IRI uri1 = vf.createIRI(litdupsNS, "uri1");
+        IRI uri2 = vf.createIRI(litdupsNS, "uri2");
         List<Statement> insert = new ArrayList<Statement>();
         insert.add(new StatementImpl(cpu, loadPerc, uri1));
         insert.add(new StatementImpl(cpu, loadPerc, uri2));

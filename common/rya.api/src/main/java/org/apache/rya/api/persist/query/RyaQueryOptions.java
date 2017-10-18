@@ -19,13 +19,11 @@ package org.apache.rya.api.persist.query;
  * under the License.
  */
 
+import java.util.Arrays;
 
-
-import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
+import org.apache.rya.api.RdfTripleStoreConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.Arrays;
 
 /**
  */
@@ -41,7 +39,7 @@ public class RyaQueryOptions {
     protected String regexSubject;
     protected String regexPredicate;
     protected String regexObject;
-    protected RdfCloudTripleStoreConfiguration conf;
+    protected RdfTripleStoreConfiguration conf;
 
     public static class RyaOptionsBuilder<T extends RyaOptionsBuilder> {
         private RyaQueryOptions options;
@@ -50,7 +48,7 @@ public class RyaQueryOptions {
             this.options = query;
         }
 
-        public T load(RdfCloudTripleStoreConfiguration conf) {
+        public T load(RdfTripleStoreConfiguration conf) {
         	options.setConf(conf);
             return (T) this.setAuths(conf.getAuths())
                     .setBatchSize(conf.getBatchSize())
@@ -109,11 +107,11 @@ public class RyaQueryOptions {
         }
     }
 
-    public RdfCloudTripleStoreConfiguration getConf() {
+    public RdfTripleStoreConfiguration getConf() {
     	return conf;
     }
 
-    public void setConf(RdfCloudTripleStoreConfiguration conf) {
+    public void setConf(RdfTripleStoreConfiguration conf) {
     	this.conf = conf;
     }
 
@@ -225,9 +223,7 @@ public class RyaQueryOptions {
         if (regexPredicate != null ? !regexPredicate.equals(that.regexPredicate) : that.regexPredicate != null)
             return false;
         if (regexSubject != null ? !regexSubject.equals(that.regexSubject) : that.regexSubject != null) return false;
-        if (ttl != null ? !ttl.equals(that.ttl) : that.ttl != null) return false;
-
-        return true;
+        return ttl != null ? ttl.equals(that.ttl) : that.ttl == null;
     }
 
     @Override

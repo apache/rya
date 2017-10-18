@@ -17,26 +17,22 @@ package org.apache.rya.indexing.statement.metadata.matching;
  * specific language governing permissions and limitations
  * under the License.
  */
-import org.apache.accumulo.core.client.AccumuloException;
-import org.apache.accumulo.core.client.AccumuloSecurityException;
-import org.apache.accumulo.core.client.Connector;
-import org.apache.accumulo.core.client.Instance;
-import org.apache.accumulo.core.client.ZooKeeperInstance;
+
+import com.mongodb.MongoClient;
+import org.apache.accumulo.core.client.*;
 import org.apache.accumulo.core.client.mock.MockInstance;
 import org.apache.accumulo.core.client.security.tokens.PasswordToken;
 import org.apache.rya.accumulo.AccumuloRdfConfiguration;
 import org.apache.rya.accumulo.query.AccumuloRyaQueryEngine;
-import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
+import org.apache.rya.api.RdfTripleStoreConfiguration;
 import org.apache.rya.api.persist.query.RyaQueryEngine;
 import org.apache.rya.mongodb.MongoConnectorFactory;
 import org.apache.rya.mongodb.MongoDBQueryEngine;
 import org.apache.rya.mongodb.MongoDBRdfConfiguration;
 
-import com.mongodb.MongoClient;
-
 /**
  * THis class creates the appropriate {@link RyaQueryEngine} based on the type of
- * {@link RdfCloudTripleStoreConfiguration} object that is passed in and whether or not
+ * {@link RdfTripleStoreConfiguration} object that is passed in and whether or not
  * Rya is configured to use Mongo.
  *
  */
@@ -44,7 +40,7 @@ public class RyaQueryEngineFactory {
 
     
     @SuppressWarnings("unchecked")
-    public static <C extends RdfCloudTripleStoreConfiguration> RyaQueryEngine<C> getQueryEngine(RdfCloudTripleStoreConfiguration conf) { 
+    public static <C extends RdfTripleStoreConfiguration> RyaQueryEngine<C> getQueryEngine(RdfTripleStoreConfiguration conf) {
         if(conf instanceof AccumuloRdfConfiguration) {
             AccumuloRdfConfiguration aConf = (AccumuloRdfConfiguration) conf;
             Instance instance;

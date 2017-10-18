@@ -18,14 +18,10 @@
  */
 package org.apache.rya.indexing.pcj.fluo.integration;
 
-import static org.junit.Assert.assertEquals;
+import java.util.*;
 
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
-
+import com.google.common.base.Optional;
+import com.google.common.base.Preconditions;
 import org.apache.fluo.api.client.FluoClient;
 import org.apache.fluo.api.client.Snapshot;
 import org.apache.fluo.api.client.Transaction;
@@ -59,12 +55,11 @@ import org.apache.rya.indexing.pcj.storage.PrecomputedJoinStorage;
 import org.apache.rya.indexing.pcj.storage.accumulo.AccumuloPcjStorage;
 import org.apache.rya.indexing.pcj.storage.accumulo.VisibilityBindingSet;
 import org.apache.rya.pcj.fluo.test.base.RyaExportITBase;
+import org.eclipse.rdf4j.model.impl.URIImpl;
+import org.eclipse.rdf4j.query.algebra.evaluation.QueryBindingSet;
 import org.junit.Test;
-import org.openrdf.model.impl.URIImpl;
-import org.openrdf.query.algebra.evaluation.QueryBindingSet;
 
-import com.google.common.base.Optional;
-import com.google.common.base.Preconditions;
+import static org.junit.Assert.assertEquals;
 
 public class BatchIT extends RyaExportITBase {
 
@@ -97,8 +92,8 @@ public class BatchIT extends RyaExportITBase {
 
             // Stream the data into Fluo.
             InsertTriples inserter = new InsertTriples();
-            inserter.insert(fluoClient, statements1, Optional.<String> absent());
-            inserter.insert(fluoClient, statements2, Optional.<String> absent());
+            inserter.insert(fluoClient, statements1, Optional.absent());
+            inserter.insert(fluoClient, statements2, Optional.absent());
 
             // Verify the end results of the query match the expected results.
             getMiniFluo().waitForObservers();
@@ -143,8 +138,8 @@ public class BatchIT extends RyaExportITBase {
 
             // Stream the data into Fluo.
             InsertTriples inserter = new InsertTriples();
-            inserter.insert(fluoClient, statements1, Optional.<String> absent());
-            inserter.insert(fluoClient, statements2, Optional.<String> absent());
+            inserter.insert(fluoClient, statements1, Optional.absent());
+            inserter.insert(fluoClient, statements2, Optional.absent());
 
             getMiniFluo().waitForObservers();
             verifyCounts(fluoClient, ids, Arrays.asList(25, 25, 25, 5, 5));
@@ -189,7 +184,7 @@ public class BatchIT extends RyaExportITBase {
 
             // Stream the data into Fluo.
             InsertTriples inserter = new InsertTriples();
-            inserter.insert(fluoClient, statements2, Optional.<String> absent());
+            inserter.insert(fluoClient, statements2, Optional.absent());
 
             getMiniFluo().waitForObservers();
             verifyCounts(fluoClient, ids, Arrays.asList(0, 0, 0, 0, 5));
@@ -231,8 +226,8 @@ public class BatchIT extends RyaExportITBase {
 
             // Stream the data into Fluo.
             InsertTriples inserter = new InsertTriples();
-            inserter.insert(fluoClient, statements1, Optional.<String> absent());
-            inserter.insert(fluoClient, statements2, Optional.<String> absent());
+            inserter.insert(fluoClient, statements1, Optional.absent());
+            inserter.insert(fluoClient, statements2, Optional.absent());
 
             getMiniFluo().waitForObservers();
             verifyCounts(fluoClient, ids, Arrays.asList(225, 225, 225, 15, 15));
@@ -270,9 +265,9 @@ public class BatchIT extends RyaExportITBase {
 
             // Stream the data into Fluo.
             InsertTriples inserter = new InsertTriples();
-            inserter.insert(fluoClient, statements1, Optional.<String> absent());
-            inserter.insert(fluoClient, statements2, Optional.<String> absent());
-            inserter.insert(fluoClient, statements3, Optional.<String> absent());
+            inserter.insert(fluoClient, statements1, Optional.absent());
+            inserter.insert(fluoClient, statements2, Optional.absent());
+            inserter.insert(fluoClient, statements3, Optional.absent());
 
             getMiniFluo().waitForObservers();
             verifyCounts(fluoClient, ids, Arrays.asList(110, 110, 110, 20, 10));
@@ -311,9 +306,9 @@ public class BatchIT extends RyaExportITBase {
 
             // Stream the data into Fluo.
             InsertTriples inserter = new InsertTriples();
-            inserter.insert(fluoClient, statements1, Optional.<String> absent());
-            inserter.insert(fluoClient, statements2, Optional.<String> absent());
-            inserter.insert(fluoClient, statements3, Optional.<String> absent());
+            inserter.insert(fluoClient, statements1, Optional.absent());
+            inserter.insert(fluoClient, statements2, Optional.absent());
+            inserter.insert(fluoClient, statements3, Optional.absent());
 
             getMiniFluo().waitForObservers();
             verifyCounts(fluoClient, ids, Arrays.asList(100, 100, 100, 100, 10, 10, 10));

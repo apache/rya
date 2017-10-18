@@ -18,20 +18,15 @@
  */
 package org.apache.rya.indexing.pcj.fluo.demo;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 
-import org.apache.accumulo.core.client.AccumuloException;
-import org.apache.accumulo.core.client.AccumuloSecurityException;
-import org.apache.accumulo.core.client.Connector;
-import org.apache.accumulo.core.client.Instance;
-import org.apache.accumulo.core.client.ZooKeeperInstance;
+import com.google.common.base.Optional;
+import com.google.common.io.Files;
+import org.apache.accumulo.core.client.*;
 import org.apache.accumulo.core.client.security.tokens.PasswordToken;
 import org.apache.accumulo.minicluster.MiniAccumuloCluster;
 import org.apache.fluo.api.client.FluoClient;
@@ -39,39 +34,24 @@ import org.apache.fluo.api.client.FluoFactory;
 import org.apache.fluo.api.config.FluoConfiguration;
 import org.apache.fluo.api.config.ObserverSpecification;
 import org.apache.fluo.api.mini.MiniFluo;
-import org.apache.log4j.ConsoleAppender;
-import org.apache.log4j.Level;
-import org.apache.log4j.LogManager;
-import org.apache.log4j.Logger;
-import org.apache.log4j.PatternLayout;
+import org.apache.log4j.*;
 import org.apache.rya.accumulo.AccumuloRdfConfiguration;
 import org.apache.rya.accumulo.AccumuloRyaDAO;
 import org.apache.rya.accumulo.instance.AccumuloRyaInstanceDetailsRepository;
-import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
+import org.apache.rya.api.RdfTripleStoreConfiguration;
 import org.apache.rya.api.instance.RyaDetails;
-import org.apache.rya.api.instance.RyaDetails.EntityCentricIndexDetails;
-import org.apache.rya.api.instance.RyaDetails.FreeTextIndexDetails;
-import org.apache.rya.api.instance.RyaDetails.JoinSelectivityDetails;
-import org.apache.rya.api.instance.RyaDetails.PCJIndexDetails;
-import org.apache.rya.api.instance.RyaDetails.ProspectorDetails;
-import org.apache.rya.api.instance.RyaDetails.TemporalIndexDetails;
+import org.apache.rya.api.instance.RyaDetails.*;
 import org.apache.rya.api.instance.RyaDetailsRepository;
-import org.apache.rya.api.instance.RyaDetailsRepository.AlreadyInitializedException;
 import org.apache.rya.api.instance.RyaDetailsRepository.RyaDetailsRepositoryException;
 import org.apache.rya.indexing.pcj.fluo.app.export.rya.RyaExportParameters;
-import org.apache.rya.indexing.pcj.fluo.app.observers.FilterObserver;
-import org.apache.rya.indexing.pcj.fluo.app.observers.JoinObserver;
-import org.apache.rya.indexing.pcj.fluo.app.observers.QueryResultObserver;
-import org.apache.rya.indexing.pcj.fluo.app.observers.StatementPatternObserver;
-import org.apache.rya.indexing.pcj.fluo.app.observers.TripleObserver;
+import org.apache.rya.indexing.pcj.fluo.app.observers.*;
 import org.apache.rya.indexing.pcj.fluo.demo.Demo.DemoExecutionException;
 import org.apache.rya.rdftriplestore.RdfCloudTripleStore;
 import org.apache.rya.rdftriplestore.RyaSailRepository;
-import org.openrdf.repository.RepositoryConnection;
-import org.openrdf.repository.RepositoryException;
+import org.eclipse.rdf4j.repository.RepositoryConnection;
+import org.eclipse.rdf4j.repository.RepositoryException;
 
-import com.google.common.base.Optional;
-import com.google.common.io.Files;
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * Runs {@link Demo}s that require Rya and Fluo.
@@ -237,7 +217,8 @@ public class DemoDriver {
      * @param accumulo - The Mini Accumulo cluster Rya will sit on top of. (not null)
      * @return The Rya repository sitting on top of the Mini Accumulo.
      */
-    private static RyaSailRepository setupRya(final MiniAccumuloCluster accumulo) throws AccumuloException, AccumuloSecurityException, RepositoryException, AlreadyInitializedException, RyaDetailsRepositoryException {
+    private static RyaSailRepository setupRya(final MiniAccumuloCluster accumulo) throws AccumuloException, AccumuloSecurityException, RepositoryException,
+            RyaDetailsRepositoryException {
         checkNotNull(accumulo);
 
         // Setup the Rya Repository that will be used to create Repository Connections.
@@ -253,7 +234,7 @@ public class DemoDriver {
         conf.setDisplayQueryPlan(true);
 
         conf.setBoolean(USE_MOCK_INSTANCE, true);
-        conf.set(RdfCloudTripleStoreConfiguration.CONF_TBL_PREFIX, RYA_TABLE_PREFIX);
+        conf.set(RdfTripleStoreConfiguration.CONF_TBL_PREFIX, RYA_TABLE_PREFIX);
         conf.set(CLOUDBASE_USER, "root");
         conf.set(CLOUDBASE_PASSWORD, "password");
         conf.set(CLOUDBASE_INSTANCE, accumulo.getInstanceName());
@@ -277,8 +258,8 @@ public class DemoDriver {
                 .setPCJIndexDetails(
                         PCJIndexDetails.builder()
                             .setEnabled(true) )
-                .setJoinSelectivityDetails( new JoinSelectivityDetails( Optional.<Date>absent() ) )
-                .setProspectorDetails( new ProspectorDetails( Optional.<Date>absent() ))
+                .setJoinSelectivityDetails( new JoinSelectivityDetails( Optional.absent() ) )
+                .setProspectorDetails( new ProspectorDetails( Optional.absent() ))
                 .build();
 
         detailsRepo.initialize(details);

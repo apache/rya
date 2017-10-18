@@ -18,24 +18,16 @@
  */
 package org.apache.rya.indexing.pcj.fluo.app;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-import static org.apache.rya.indexing.pcj.fluo.app.IncrementalUpdateConstants.DELIM;
-import static org.apache.rya.indexing.pcj.fluo.app.IncrementalUpdateConstants.NODEID_BS_DELIM;
+import java.util.*;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
-
+import com.google.common.base.Optional;
+import com.google.common.collect.Lists;
+import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
+import edu.umd.cs.findbugs.annotations.NonNull;
 import org.apache.fluo.api.client.TransactionBase;
 import org.apache.fluo.api.client.scanner.ColumnScanner;
 import org.apache.fluo.api.client.scanner.RowScanner;
-import org.apache.fluo.api.data.Bytes;
-import org.apache.fluo.api.data.Column;
-import org.apache.fluo.api.data.ColumnValue;
-import org.apache.fluo.api.data.RowColumn;
-import org.apache.fluo.api.data.Span;
+import org.apache.fluo.api.data.*;
 import org.apache.log4j.Logger;
 import org.apache.rya.accumulo.utils.VisibilitySimplifier;
 import org.apache.rya.indexing.pcj.fluo.app.batch.AbstractBatchBindingSetUpdater;
@@ -50,15 +42,13 @@ import org.apache.rya.indexing.pcj.storage.accumulo.VariableOrder;
 import org.apache.rya.indexing.pcj.storage.accumulo.VisibilityBindingSet;
 import org.apache.rya.indexing.pcj.storage.accumulo.VisibilityBindingSetSerDe;
 import org.apache.rya.indexing.pcj.storage.accumulo.VisibilityBindingSetStringConverter;
-import org.openrdf.query.Binding;
-import org.openrdf.query.BindingSet;
-import org.openrdf.query.impl.MapBindingSet;
+import org.eclipse.rdf4j.query.Binding;
+import org.eclipse.rdf4j.query.BindingSet;
+import org.eclipse.rdf4j.query.impl.MapBindingSet;
 
-import com.google.common.base.Optional;
-import com.google.common.collect.Lists;
-
-import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
-import edu.umd.cs.findbugs.annotations.NonNull;
+import static com.google.common.base.Preconditions.checkNotNull;
+import static org.apache.rya.indexing.pcj.fluo.app.IncrementalUpdateConstants.DELIM;
+import static org.apache.rya.indexing.pcj.fluo.app.IncrementalUpdateConstants.NODEID_BS_DELIM;
 
 /**
  * Updates the results of a Join node when one of its children has added a
@@ -180,8 +170,8 @@ public class JoinResultUpdater {
     /**
      * The different sides a new binding set may appear on.
      */
-    public static enum Side {
-        LEFT, RIGHT;
+    public enum Side {
+        LEFT, RIGHT
     }
     
     
@@ -371,7 +361,7 @@ public class JoinResultUpdater {
      * Defines each of the cases that may generate new join results when
      * iteratively computing a query's join node.
      */
-    public static interface IterativeJoin {
+    public interface IterativeJoin {
 
         /**
          * Invoked when a new {@link VisibilityBindingSet} is emitted from the left child
@@ -384,7 +374,7 @@ public class JoinResultUpdater {
          *   be joined with the new left result. (not null)
          * @return The new BindingSet results for the join.
          */
-        public Iterator<VisibilityBindingSet> newLeftResult(VisibilityBindingSet newLeftResult, Iterator<VisibilityBindingSet> rightResults);
+        Iterator<VisibilityBindingSet> newLeftResult(VisibilityBindingSet newLeftResult, Iterator<VisibilityBindingSet> rightResults);
 
         /**
          * Invoked when a new {@link VisibilityBindingSet} is emitted from the right child
@@ -397,7 +387,7 @@ public class JoinResultUpdater {
          *   the right child node.
          * @return The new BindingSet results for the join.
          */
-        public Iterator<VisibilityBindingSet> newRightResult(Iterator<VisibilityBindingSet> leftResults, VisibilityBindingSet newRightResult);
+        Iterator<VisibilityBindingSet> newRightResult(Iterator<VisibilityBindingSet> leftResults, VisibilityBindingSet newRightResult);
     }
 
     /**

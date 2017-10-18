@@ -29,8 +29,8 @@ import org.apache.accumulo.core.client.Connector;
 import org.apache.accumulo.core.client.Instance;
 import org.apache.accumulo.core.client.security.tokens.PasswordToken;
 import org.apache.hadoop.conf.Configuration;
-import org.openrdf.sail.Sail;
-import org.openrdf.sail.SailException;
+import  org.eclipse.rdf4j.sail.Sail;
+import  org.eclipse.rdf4j.sail.SailException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

@@ -39,7 +39,7 @@ package org.apache.rya.indexing.external.matching;
 import java.util.Iterator;
 import java.util.List;
 
-import org.openrdf.query.algebra.evaluation.impl.ExternalSet;
+import org.eclipse.rdf4j.query.algebra.evaluation.impl.ExternalSet;
 
 /**
  * Interface for extracting {@link ExternalSet}s from specified {@link QuerySegment}s.
@@ -54,7 +54,7 @@ public interface ExternalSetProvider<T extends ExternalSet> {
      * @param segment
      * @return - List of ExternalSets
      */
-    public List<T> getExternalSets(QuerySegment<T> segment);
+    List<T> getExternalSets(QuerySegment<T> segment);
 
     /**
      * Extract an Iterator over Lists of ExternalSets. This allows an ExtenalSetProvider to pass back
@@ -63,6 +63,6 @@ public interface ExternalSetProvider<T extends ExternalSet> {
      * @param segment
      * @return - Iterator over different combinations of ExternalSets
      */
-    public Iterator<List<T>> getExternalSetCombos(QuerySegment<T> segment);
+    Iterator<List<T>> getExternalSetCombos(QuerySegment<T> segment);
 
 }

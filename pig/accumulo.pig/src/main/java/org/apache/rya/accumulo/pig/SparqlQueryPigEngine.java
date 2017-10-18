@@ -5,6 +5,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 
+import com.google.common.base.Preconditions;
 import org.apache.accumulo.core.client.Connector;
 import org.apache.accumulo.core.client.ZooKeeperInstance;
 import org.apache.commons.io.FileUtils;
@@ -21,10 +22,10 @@ import org.apache.rya.rdftriplestore.inference.InferenceEngine;
 import org.apache.rya.rdftriplestore.inference.InverseOfVisitor;
 import org.apache.rya.rdftriplestore.inference.SymmetricPropertyVisitor;
 import org.apache.rya.rdftriplestore.inference.TransitivePropertyVisitor;
-import org.openrdf.query.algebra.QueryRoot;
-import org.openrdf.query.parser.ParsedQuery;
-import org.openrdf.query.parser.QueryParser;
-import org.openrdf.query.parser.sparql.SPARQLParser;
+import org.eclipse.rdf4j.query.algebra.QueryRoot;
+import org.eclipse.rdf4j.query.parser.ParsedQuery;
+import org.eclipse.rdf4j.query.parser.QueryParser;
+import org.eclipse.rdf4j.query.parser.sparql.SPARQLParser;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -44,10 +45,6 @@ import org.openrdf.query.parser.sparql.SPARQLParser;
  * specific language governing permissions and limitations
  * under the License.
  */
-
-
-
-import com.google.common.base.Preconditions;
 
 /**
  * Created by IntelliJ IDEA.

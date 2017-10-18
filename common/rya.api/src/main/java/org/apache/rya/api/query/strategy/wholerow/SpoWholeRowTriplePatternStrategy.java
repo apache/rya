@@ -18,17 +18,14 @@
  */
 package org.apache.rya.api.query.strategy.wholerow;
 
-import static org.apache.rya.api.RdfCloudTripleStoreConstants.DELIM_BYTES;
-import static org.apache.rya.api.RdfCloudTripleStoreConstants.LAST_BYTES;
-import static org.apache.rya.api.RdfCloudTripleStoreConstants.TYPE_DELIM_BYTES;
-
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
-import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
-import org.apache.rya.api.RdfCloudTripleStoreConstants.TABLE_LAYOUT;
+import com.google.common.primitives.Bytes;
+import org.apache.rya.api.RdfCloudTripleStoreConstants.*;
 import org.apache.rya.api.RdfCloudTripleStoreUtils;
+import org.apache.rya.api.RdfTripleStoreConfiguration;
 import org.apache.rya.api.domain.RyaRange;
 import org.apache.rya.api.domain.RyaType;
 import org.apache.rya.api.domain.RyaURI;
@@ -38,7 +35,7 @@ import org.apache.rya.api.query.strategy.ByteRange;
 import org.apache.rya.api.resolver.RyaContext;
 import org.apache.rya.api.resolver.RyaTypeResolverException;
 
-import com.google.common.primitives.Bytes;
+import static org.apache.rya.api.RdfCloudTripleStoreConstants.*;
 
 /**
  * Date: 7/14/12
@@ -53,7 +50,7 @@ public class SpoWholeRowTriplePatternStrategy extends AbstractTriplePatternStrat
 
     @Override
     public Map.Entry<TABLE_LAYOUT, ByteRange> defineRange(final RyaURI subject, final RyaURI predicate, final RyaType object,
-                                                          final RyaURI context, final RdfCloudTripleStoreConfiguration conf) throws IOException {
+                                                          final RyaURI context, final RdfTripleStoreConfiguration conf) throws IOException {
         try {
             //spo(ng)
             //sp(ng)

@@ -19,45 +19,39 @@ package org.apache.rya.indexing.accumulo.entity;
  * under the License.
  */
 
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
+import com.google.common.collect.HashMultimap;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
 import org.apache.hadoop.conf.Configurable;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.rya.accumulo.AccumuloRdfConfiguration;
-import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
+import org.apache.rya.api.RdfTripleStoreConfiguration;
 import org.apache.rya.api.persist.joinselect.SelectivityEvalDAO;
 import org.apache.rya.indexing.accumulo.ConfigUtils;
 import org.apache.rya.joinselect.AccumuloSelectivityEvalDAO;
 import org.apache.rya.prospector.service.ProspectorServiceEvalStatsDAO;
 import org.apache.rya.rdftriplestore.inference.DoNotExpandSP;
 import org.apache.rya.rdftriplestore.utils.FixedStatementPattern;
-import org.openrdf.query.BindingSet;
-import org.openrdf.query.Dataset;
-import org.openrdf.query.algebra.Filter;
-import org.openrdf.query.algebra.Join;
-import org.openrdf.query.algebra.QueryModelNode;
-import org.openrdf.query.algebra.StatementPattern;
-import org.openrdf.query.algebra.TupleExpr;
-import org.openrdf.query.algebra.evaluation.QueryOptimizer;
-import org.openrdf.query.algebra.helpers.QueryModelVisitorBase;
+import org.eclipse.rdf4j.query.BindingSet;
+import org.eclipse.rdf4j.query.Dataset;
+import org.eclipse.rdf4j.query.algebra.*;
+import org.eclipse.rdf4j.query.algebra.evaluation.QueryOptimizer;
+import org.eclipse.rdf4j.query.algebra.helpers.QueryModelVisitorBase;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.google.common.collect.HashMultimap;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 
 public class EntityOptimizer implements QueryOptimizer, Configurable {
     private static final Logger LOG = LoggerFactory.getLogger(EntityTupleSet.class);
 
-    private SelectivityEvalDAO<RdfCloudTripleStoreConfiguration> eval;
-    private RdfCloudTripleStoreConfiguration conf;
+    private SelectivityEvalDAO<RdfTripleStoreConfiguration> eval;
+    private RdfTripleStoreConfiguration conf;
     private boolean isEvalDaoSet = false;
 
 
@@ -65,7 +59,7 @@ public class EntityOptimizer implements QueryOptimizer, Configurable {
 
     }
 
-    public EntityOptimizer(RdfCloudTripleStoreConfiguration conf) {
+    public EntityOptimizer(RdfTripleStoreConfiguration conf) {
         if(conf.isUseStats() && conf.isUseSelectivity()) {
             try {
                 eval = new AccumuloSelectivityEvalDAO(conf, ConfigUtils.getConnector(conf));
@@ -83,7 +77,7 @@ public class EntityOptimizer implements QueryOptimizer, Configurable {
         this.conf = conf;
     }
 
-    public EntityOptimizer(SelectivityEvalDAO<RdfCloudTripleStoreConfiguration> eval) {
+    public EntityOptimizer(SelectivityEvalDAO<RdfTripleStoreConfiguration> eval) {
         this.eval = eval;
         this.conf = eval.getConf();
         isEvalDaoSet = true;
@@ -91,8 +85,8 @@ public class EntityOptimizer implements QueryOptimizer, Configurable {
 
     @Override
     public void setConf(Configuration conf) {
-        if(conf instanceof RdfCloudTripleStoreConfiguration) {
-            this.conf = (RdfCloudTripleStoreConfiguration) conf;
+        if(conf instanceof RdfTripleStoreConfiguration) {
+            this.conf = (RdfTripleStoreConfiguration) conf;
         } else {
             this.conf = new AccumuloRdfConfiguration(conf);
         }

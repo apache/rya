@@ -33,7 +33,7 @@ import org.apache.rya.indexing.GeoIndexerType;
 import org.apache.rya.indexing.GeoTemporalIndexerType;
 import org.apache.rya.indexing.accumulo.ConfigUtils;
 import org.apache.rya.indexing.geotemporal.GeoTemporalOptimizer;
-import org.openrdf.model.URI;
+import  org.eclipse.rdf4j.model.URI;
 
 import com.google.common.collect.Lists;
 

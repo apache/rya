@@ -18,56 +18,43 @@
  */
 package org.apache.rya.rdftriplestore.inference;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import org.apache.rya.accumulo.AccumuloRdfConfiguration;
-import org.junit.Test;
-import org.openrdf.model.Resource;
-import org.openrdf.model.URI;
-import org.openrdf.model.ValueFactory;
-import org.openrdf.model.impl.ValueFactoryImpl;
-import org.openrdf.model.vocabulary.RDF;
-import org.openrdf.query.algebra.Join;
-import org.openrdf.query.algebra.Projection;
-import org.openrdf.query.algebra.ProjectionElem;
-import org.openrdf.query.algebra.ProjectionElemList;
-import org.openrdf.query.algebra.StatementPattern;
-import org.openrdf.query.algebra.Union;
-import org.openrdf.query.algebra.Var;
+import java.util.*;
 
 import com.google.common.collect.Sets;
+import org.apache.rya.accumulo.AccumuloRdfConfiguration;
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.Resource;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
+import org.eclipse.rdf4j.model.vocabulary.RDF;
+import org.eclipse.rdf4j.query.algebra.*;
+import org.junit.Test;
+
+import static org.junit.Assert.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /**
  * Tests the methods of {@link IntersectionOfVisitor}.
  */
 public class IntersectionOfVisitorTest {
     private final AccumuloRdfConfiguration conf = new AccumuloRdfConfiguration();
-    private static final ValueFactory VF = new ValueFactoryImpl();
+    private static final ValueFactory VF = SimpleValueFactory.getInstance();
 
-    private static final URI MOTHER = VF.createURI("urn:Mother");
-    private static final URI FATHER = VF.createURI("urn:Father");
+    private static final IRI MOTHER = vf.createIRI("urn:Mother");
+    private static final IRI FATHER = vf.createIRI("urn:Father");
 
     // Definition #1: :Mother owl:intersectionOf(:Animal, :Female, :Parent)
-    private static final URI ANIMAL = VF.createURI("urn:Animal");
-    private static final URI FEMALE = VF.createURI("urn:Female");
-    private static final URI PARENT = VF.createURI("urn:Parent");
+    private static final IRI ANIMAL = vf.createIRI("urn:Animal");
+    private static final IRI FEMALE = vf.createIRI("urn:Female");
+    private static final IRI PARENT = vf.createIRI("urn:Parent");
 
     // Definition #2: :Mother owl:intersectionOf(:Female, :Leader, :Nun)
-    private static final URI NUN = VF.createURI("urn:Nun");
-    private static final URI LEADER = VF.createURI("urn:Leader");
+    private static final IRI NUN = vf.createIRI("urn:Nun");
+    private static final IRI LEADER = vf.createIRI("urn:Leader");
 
     // Definition #3: :Father owl:intersectionOf(:Man, :Parent)
-    private static final URI MAN = VF.createURI("urn:Man");
+    private static final IRI MAN = vf.createIRI("urn:Man");
 
     @Test
     public void testIntersectionOf() throws Exception {
@@ -226,7 +213,7 @@ public class IntersectionOfVisitorTest {
         assertEquals(expectedFatherSp, actualFatherSp);
     }
 
-    private static void assertStatementPattern(final StatementPattern statementPattern, final URI uri) {
+    private static void assertStatementPattern(final StatementPattern statementPattern, final IRI uri) {
         assertNotNull(statementPattern.getPredicateVar());
         assertEquals(RDF.TYPE, statementPattern.getPredicateVar().getValue());
         assertNotNull(statementPattern.getObjectVar());

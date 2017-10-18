@@ -18,56 +18,48 @@ package org.apache.rya.rdftriplestore.inference;
  * under the License.
  */
 
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
+import com.google.common.collect.Sets;
 import org.apache.rya.accumulo.AccumuloRdfConfiguration;
 import org.apache.rya.api.utils.NullableStatementImpl;
 import org.apache.rya.rdftriplestore.utils.FixedStatementPattern;
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.Resource;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
+import org.eclipse.rdf4j.model.vocabulary.OWL;
+import org.eclipse.rdf4j.model.vocabulary.RDF;
+import org.eclipse.rdf4j.query.algebra.*;
 import org.junit.Assert;
 import org.junit.Test;
-import org.openrdf.model.Resource;
-import org.openrdf.model.URI;
-import org.openrdf.model.ValueFactory;
-import org.openrdf.model.impl.ValueFactoryImpl;
-import org.openrdf.model.vocabulary.OWL;
-import org.openrdf.model.vocabulary.RDF;
-import org.openrdf.query.algebra.Join;
-import org.openrdf.query.algebra.Projection;
-import org.openrdf.query.algebra.ProjectionElem;
-import org.openrdf.query.algebra.ProjectionElemList;
-import org.openrdf.query.algebra.StatementPattern;
-import org.openrdf.query.algebra.TupleExpr;
-import org.openrdf.query.algebra.Union;
-import org.openrdf.query.algebra.Var;
 
-import com.google.common.collect.Sets;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class SomeValuesFromVisitorTest {
     private static final AccumuloRdfConfiguration conf = new AccumuloRdfConfiguration();
-    private static final ValueFactory vf = new ValueFactoryImpl();
+    private static final ValueFactory vf = SimpleValueFactory.getInstance();
 
     // Value types
-    private final URI course = vf.createURI("lubm:Course");
-    private final URI gradCourse = vf.createURI("lubm:GraduateCourse");
-    private final URI department = vf.createURI("lubm:Department");
-    private final URI organization = vf.createURI("lubm:Organization");
+    private final IRI course = vf.createIRI("lubm:Course");
+    private final IRI gradCourse = vf.createIRI("lubm:GraduateCourse");
+    private final IRI department = vf.createIRI("lubm:Department");
+    private final IRI organization = vf.createIRI("lubm:Organization");
     // Predicates
-    private final URI takesCourse = vf.createURI("lubm:takesCourse");
-    private final URI headOf = vf.createURI("lubm:headOf");
-    private final URI worksFor = vf.createURI("lubm:worksFor");
+    private final IRI takesCourse = vf.createIRI("lubm:takesCourse");
+    private final IRI headOf = vf.createIRI("lubm:headOf");
+    private final IRI worksFor = vf.createIRI("lubm:worksFor");
     // Supertype of restriction types
-    private final URI person = vf.createURI("lubm:Person");
+    private final IRI person = vf.createIRI("lubm:Person");
 
     @Test
     public void testSomeValuesFrom() throws Exception {
         // Configure a mock instance engine with an ontology:
         final InferenceEngine inferenceEngine = mock(InferenceEngine.class);
-        Map<Resource, Set<URI>> personSVF = new HashMap<>();
+        Map<Resource, Set<IRI>> personSVF = new HashMap<>();
         personSVF.put(gradCourse, Sets.newHashSet(takesCourse));
         personSVF.put(course, Sets.newHashSet(takesCourse));
         personSVF.put(department, Sets.newHashSet(headOf));
@@ -136,7 +128,7 @@ public class SomeValuesFromVisitorTest {
         disabledConf.setInferSomeValuesFrom(false);
         // Configure a mock instance engine with an ontology:
         final InferenceEngine inferenceEngine = mock(InferenceEngine.class);
-        Map<Resource, Set<URI>> personSVF = new HashMap<>();
+        Map<Resource, Set<IRI>> personSVF = new HashMap<>();
         personSVF.put(gradCourse, Sets.newHashSet(takesCourse));
         personSVF.put(course, Sets.newHashSet(takesCourse));
         personSVF.put(department, Sets.newHashSet(headOf));

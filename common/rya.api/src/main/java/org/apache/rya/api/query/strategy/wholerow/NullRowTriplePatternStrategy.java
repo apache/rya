@@ -21,14 +21,16 @@ package org.apache.rya.api.query.strategy.wholerow;
 
 import java.io.IOException;
 import java.util.Map;
-import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
-import static org.apache.rya.api.RdfCloudTripleStoreConstants.*;
+
 import org.apache.rya.api.RdfCloudTripleStoreConstants.TABLE_LAYOUT;
 import org.apache.rya.api.RdfCloudTripleStoreUtils;
+import org.apache.rya.api.RdfTripleStoreConfiguration;
 import org.apache.rya.api.domain.RyaType;
 import org.apache.rya.api.domain.RyaURI;
 import org.apache.rya.api.query.strategy.AbstractTriplePatternStrategy;
 import org.apache.rya.api.query.strategy.ByteRange;
+
+import static org.apache.rya.api.RdfCloudTripleStoreConstants.LAST_BYTES;
 
 public class NullRowTriplePatternStrategy extends AbstractTriplePatternStrategy {
 
@@ -39,7 +41,7 @@ public class NullRowTriplePatternStrategy extends AbstractTriplePatternStrategy 
 
     @Override
     public Map.Entry<TABLE_LAYOUT, ByteRange> defineRange(RyaURI subject, RyaURI predicate, RyaType object,
-                                                          RyaURI context, RdfCloudTripleStoreConfiguration conf) throws IOException {
+                                                          RyaURI context, RdfTripleStoreConfiguration conf) throws IOException {
       byte[] start = new byte[]{ /* empty array */ }; // Scan from the beginning of the Accumulo Table
       byte[] stop = LAST_BYTES;  // Scan to the end, up through things beginning with 0xff.
       return new RdfCloudTripleStoreUtils.CustomEntry<>(TABLE_LAYOUT.SPO, new ByteRange(start, stop));

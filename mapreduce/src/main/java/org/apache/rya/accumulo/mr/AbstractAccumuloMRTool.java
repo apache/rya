@@ -19,22 +19,10 @@ package org.apache.rya.accumulo.mr;
  * under the License.
  */
 
-import org.apache.rya.accumulo.AccumuloRdfConstants;
-import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
-import org.apache.rya.api.RdfCloudTripleStoreConstants;
-import org.apache.rya.api.RdfCloudTripleStoreConstants.TABLE_LAYOUT;
-import org.apache.rya.api.RdfCloudTripleStoreUtils;
-import org.apache.rya.indexing.accumulo.ConfigUtils;
-
 import java.io.IOException;
 
-import org.apache.accumulo.core.client.AccumuloException;
-import org.apache.accumulo.core.client.AccumuloSecurityException;
-import org.apache.accumulo.core.client.ClientConfiguration;
-import org.apache.accumulo.core.client.Connector;
-import org.apache.accumulo.core.client.Instance;
-import org.apache.accumulo.core.client.IteratorSetting;
-import org.apache.accumulo.core.client.ZooKeeperInstance;
+import com.google.common.base.Preconditions;
+import org.apache.accumulo.core.client.*;
 import org.apache.accumulo.core.client.mapreduce.AccumuloInputFormat;
 import org.apache.accumulo.core.client.mapreduce.AccumuloOutputFormat;
 import org.apache.accumulo.core.client.mock.MockInstance;
@@ -45,9 +33,13 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.util.Tool;
-import org.openrdf.rio.RDFFormat;
-
-import com.google.common.base.Preconditions;
+import org.apache.rya.accumulo.AccumuloRdfConstants;
+import org.apache.rya.api.RdfCloudTripleStoreConstants;
+import org.apache.rya.api.RdfCloudTripleStoreConstants.TABLE_LAYOUT;
+import org.apache.rya.api.RdfCloudTripleStoreUtils;
+import org.apache.rya.api.RdfTripleStoreConfiguration;
+import org.apache.rya.indexing.accumulo.ConfigUtils;
+import org.eclipse.rdf4j.rio.RDFFormat;
 
 /**
  * Base class for MapReduce tools that interact with Accumulo-backed Rya. Holds
@@ -151,7 +143,7 @@ public abstract class AbstractAccumuloMRTool implements Tool {
         conf.set(ConfigUtils.CLOUDBASE_USER, userName);
         conf.set(ConfigUtils.CLOUDBASE_PASSWORD, pwd);
         conf.setBoolean(ConfigUtils.USE_MOCK_INSTANCE, mock);
-        conf.set(RdfCloudTripleStoreConfiguration.CONF_TBL_PREFIX, tablePrefix);
+        conf.set(RdfTripleStoreConfiguration.CONF_TBL_PREFIX, tablePrefix);
     }
 
     /**

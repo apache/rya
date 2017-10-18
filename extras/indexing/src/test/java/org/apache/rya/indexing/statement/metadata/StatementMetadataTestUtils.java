@@ -17,6 +17,7 @@ package org.apache.rya.indexing.statement.metadata;
  * specific language governing permissions and limitations
  * under the License.
  */
+
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
@@ -24,15 +25,15 @@ import java.util.Set;
 
 import org.apache.rya.api.domain.RyaURI;
 import org.apache.rya.indexing.statement.metadata.matching.OWLReify;
-import org.openrdf.model.URI;
-import org.openrdf.model.Value;
-import org.openrdf.model.vocabulary.RDF;
-import org.openrdf.query.algebra.QueryModelNode;
-import org.openrdf.query.algebra.StatementPattern;
-import org.openrdf.query.algebra.TupleExpr;
-import org.openrdf.query.algebra.Var;
-import org.openrdf.query.algebra.evaluation.impl.ExternalSet;
-import org.openrdf.query.algebra.helpers.QueryModelVisitorBase;
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.Value;
+import org.eclipse.rdf4j.model.vocabulary.RDF;
+import org.eclipse.rdf4j.query.algebra.QueryModelNode;
+import org.eclipse.rdf4j.query.algebra.StatementPattern;
+import org.eclipse.rdf4j.query.algebra.TupleExpr;
+import org.eclipse.rdf4j.query.algebra.Var;
+import org.eclipse.rdf4j.query.algebra.evaluation.impl.ExternalSet;
+import org.eclipse.rdf4j.query.algebra.helpers.QueryModelVisitorBase;
 
 public class StatementMetadataTestUtils {
 
@@ -84,7 +85,7 @@ public class StatementMetadataTestUtils {
         public void meet(StatementPattern node) {
             Var predicate = node.getPredicateVar();
             Value val = predicate.getValue();
-            if (val != null && val instanceof URI) {
+            if (val != null && val instanceof IRI) {
                 RyaURI ryaVal = new RyaURI(val.stringValue());
                 if (uriList.contains(ryaVal) || properties.contains(ryaVal)) {
                     nodes.add(node);

@@ -17,25 +17,20 @@ package org.apache.rya.indexing.pcj.matching;
  * specific language governing permissions and limitations
  * under the License.
  */
+
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.rya.indexing.external.matching.OptionalJoinSegment;
 import org.apache.rya.indexing.external.matching.QueryNodeConsolidator;
 import org.apache.rya.indexing.external.matching.QuerySegment;
 import org.apache.rya.indexing.external.matching.QuerySegmentFactory;
 import org.apache.rya.indexing.external.matching.TopOfQueryFilterRelocator;
 import org.apache.rya.indexing.external.tupleSet.ExternalTupleSet;
+import org.eclipse.rdf4j.query.algebra.*;
+import org.eclipse.rdf4j.query.parser.ParsedQuery;
+import org.eclipse.rdf4j.query.parser.sparql.SPARQLParser;
 import org.junit.Assert;
 import org.junit.Test;
-import org.openrdf.query.algebra.Filter;
-import org.openrdf.query.algebra.Join;
-import org.openrdf.query.algebra.LeftJoin;
-import org.openrdf.query.algebra.Projection;
-import org.openrdf.query.algebra.QueryModelNode;
-import org.openrdf.query.algebra.TupleExpr;
-import org.openrdf.query.parser.ParsedQuery;
-import org.openrdf.query.parser.sparql.SPARQLParser;
 
 public class PCJNodeConsolidatorTest {
 

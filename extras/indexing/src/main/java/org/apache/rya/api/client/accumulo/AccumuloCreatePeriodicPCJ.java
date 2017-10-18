@@ -18,10 +18,9 @@
  */
 package org.apache.rya.api.client.accumulo;
 
-import static java.util.Objects.requireNonNull;
-
 import java.util.Properties;
 
+import com.google.common.base.Optional;
 import org.apache.accumulo.core.client.Connector;
 import org.apache.fluo.api.client.FluoClient;
 import org.apache.kafka.clients.producer.KafkaProducer;
@@ -45,12 +44,12 @@ import org.apache.rya.periodic.notification.api.PeriodicNotificationClient;
 import org.apache.rya.periodic.notification.notification.CommandNotification;
 import org.apache.rya.periodic.notification.registration.KafkaNotificationRegistrationClient;
 import org.apache.rya.periodic.notification.serialization.CommandNotificationSerializer;
-import org.openrdf.query.MalformedQueryException;
-import org.openrdf.query.QueryEvaluationException;
-import org.openrdf.repository.RepositoryException;
-import org.openrdf.sail.SailException;
+import org.eclipse.rdf4j.query.MalformedQueryException;
+import org.eclipse.rdf4j.query.QueryEvaluationException;
+import org.eclipse.rdf4j.repository.RepositoryException;
+import org.eclipse.rdf4j.sail.SailException;
 
-import com.google.common.base.Optional;
+import static java.util.Objects.requireNonNull;
 
 /**
  * Class used by the RyaClient for creating Periodic PCJ.
@@ -125,7 +124,7 @@ public class AccumuloCreatePeriodicPCJ extends AccumuloCommand implements Create
                 new String(cd.getPassword()),
                 cd.getInstanceName(),
                 cd.getZookeepers(),
-                fluoAppName);) {
+                fluoAppName)) {
             // Initialize the PCJ within the Fluo application.
             final CreatePeriodicQuery periodicPcj = new CreatePeriodicQuery(fluoClient, periodicStorage);
             PeriodicNotificationClient periodicClient = new KafkaNotificationRegistrationClient(periodicTopic, createProducer(bootStrapServers));

@@ -18,10 +18,9 @@ package org.apache.rya.indexing.mongodb.temporal;
  * under the License.
  */
 
-import static org.apache.rya.indexing.mongodb.temporal.TemporalMongoDBStorageStrategy.INSTANT;
-import static org.apache.rya.indexing.mongodb.temporal.TemporalMongoDBStorageStrategy.INTERVAL_END;
-import static org.apache.rya.indexing.mongodb.temporal.TemporalMongoDBStorageStrategy.INTERVAL_START;
-
+import com.google.common.annotations.VisibleForTesting;
+import com.mongodb.DBCollection;
+import com.mongodb.QueryBuilder;
 import org.apache.log4j.Logger;
 import org.apache.rya.indexing.StatementConstraints;
 import org.apache.rya.indexing.TemporalIndexer;
@@ -29,14 +28,11 @@ import org.apache.rya.indexing.TemporalInstant;
 import org.apache.rya.indexing.TemporalInterval;
 import org.apache.rya.indexing.accumulo.ConfigUtils;
 import org.apache.rya.indexing.mongodb.AbstractMongoIndexer;
-import org.openrdf.model.Statement;
-import org.openrdf.query.QueryEvaluationException;
+import org.eclipse.rdf4j.common.iteration.CloseableIteration;
+import org.eclipse.rdf4j.model.Statement;
+import org.eclipse.rdf4j.query.QueryEvaluationException;
 
-import com.google.common.annotations.VisibleForTesting;
-import com.mongodb.DBCollection;
-import com.mongodb.QueryBuilder;
-
-import info.aduna.iteration.CloseableIteration;
+import static org.apache.rya.indexing.mongodb.temporal.TemporalMongoDBStorageStrategy.*;
 
 /**
  * Indexes MongoDB based on time instants or intervals.

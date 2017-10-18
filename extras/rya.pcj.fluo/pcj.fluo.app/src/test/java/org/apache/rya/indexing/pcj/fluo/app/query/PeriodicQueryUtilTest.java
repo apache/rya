@@ -31,34 +31,26 @@ import org.apache.rya.indexing.pcj.fluo.app.util.PeriodicQueryUtil;
 import org.apache.rya.indexing.pcj.fluo.app.util.PeriodicQueryUtil.PeriodicQueryNodeRelocator;
 import org.apache.rya.indexing.pcj.fluo.app.util.PeriodicQueryUtil.PeriodicQueryNodeVisitor;
 import org.apache.rya.indexing.pcj.storage.accumulo.VariableOrder;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
+import org.eclipse.rdf4j.query.MalformedQueryException;
+import org.eclipse.rdf4j.query.algebra.*;
+import org.eclipse.rdf4j.query.algebra.helpers.QueryModelVisitorBase;
+import org.eclipse.rdf4j.query.parser.ParsedQuery;
+import org.eclipse.rdf4j.query.parser.sparql.SPARQLParser;
 import org.junit.Assert;
 import org.junit.Test;
-import org.openrdf.model.ValueFactory;
-import org.openrdf.model.impl.ValueFactoryImpl;
-import org.openrdf.query.MalformedQueryException;
-import org.openrdf.query.algebra.Filter;
-import org.openrdf.query.algebra.FunctionCall;
-import org.openrdf.query.algebra.Join;
-import org.openrdf.query.algebra.Projection;
-import org.openrdf.query.algebra.QueryModelNode;
-import org.openrdf.query.algebra.TupleExpr;
-import org.openrdf.query.algebra.ValueConstant;
-import org.openrdf.query.algebra.ValueExpr;
-import org.openrdf.query.algebra.Var;
-import org.openrdf.query.algebra.helpers.QueryModelVisitorBase;
-import org.openrdf.query.parser.ParsedQuery;
-import org.openrdf.query.parser.sparql.SPARQLParser;
 
 public class PeriodicQueryUtilTest {
 
-    private static final ValueFactory vf = new ValueFactoryImpl();
+    private static final ValueFactory vf = SimpleValueFactory.getInstance();
 
    
     
     @Test
     public void periodicNodeNotPresentTest() throws Exception {
         
-        List<ValueExpr> values = Arrays.asList(new Var("time"), new ValueConstant(vf.createLiteral(12.0)), new ValueConstant(vf.createLiteral(6.0)), new ValueConstant(vf.createURI(PeriodicQueryUtil.temporalNameSpace + "hours")));
+        List<ValueExpr> values = Arrays.asList(new Var("time"), new ValueConstant(vf.createLiteral(12.0)), new ValueConstant(vf.createLiteral(6.0)), new ValueConstant(vf.createIRI(PeriodicQueryUtil.temporalNameSpace + "hours")));
         FunctionCall func = new FunctionCall("uri:func", values);
         Optional<PeriodicQueryNode> node1 = PeriodicQueryUtil.getPeriodicQueryNode(func, new Join());
         Assert.assertEquals(false, node1.isPresent());
@@ -69,7 +61,7 @@ public class PeriodicQueryUtilTest {
     @Test
     public void periodicNodePresentTest() throws Exception {
         
-        List<ValueExpr> values = Arrays.asList(new Var("time"), new ValueConstant(vf.createLiteral(12.0)), new ValueConstant(vf.createLiteral(6.0)), new ValueConstant(vf.createURI(PeriodicQueryUtil.temporalNameSpace + "hours")));
+        List<ValueExpr> values = Arrays.asList(new Var("time"), new ValueConstant(vf.createLiteral(12.0)), new ValueConstant(vf.createLiteral(6.0)), new ValueConstant(vf.createIRI(PeriodicQueryUtil.temporalNameSpace + "hours")));
         FunctionCall func = new FunctionCall(PeriodicQueryUtil.PeriodicQueryURI, values);
         Optional<PeriodicQueryNode> node1 = PeriodicQueryUtil.getPeriodicQueryNode(func, new Join());
         Assert.assertEquals(true, node1.isPresent());
@@ -83,7 +75,7 @@ public class PeriodicQueryUtilTest {
     @Test
     public void periodicNodeFractionalDurationTest() throws Exception {
         
-        List<ValueExpr> values = Arrays.asList(new Var("time"), new ValueConstant(vf.createLiteral(1)), new ValueConstant(vf.createLiteral(.5)), new ValueConstant(vf.createURI(PeriodicQueryUtil.temporalNameSpace + "hours")));
+        List<ValueExpr> values = Arrays.asList(new Var("time"), new ValueConstant(vf.createLiteral(1)), new ValueConstant(vf.createLiteral(.5)), new ValueConstant(vf.createIRI(PeriodicQueryUtil.temporalNameSpace + "hours")));
         FunctionCall func = new FunctionCall(PeriodicQueryUtil.PeriodicQueryURI, values);
         Optional<PeriodicQueryNode> node1 = PeriodicQueryUtil.getPeriodicQueryNode(func, new Join());
         Assert.assertEquals(true, node1.isPresent());

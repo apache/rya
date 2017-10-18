@@ -19,10 +19,9 @@ package org.apache.rya.rdftriplestore.provenance.rdf;
  * under the License.
  */
 
-
 import java.util.List;
 
-import org.openrdf.model.Statement;
+import org.eclipse.rdf4j.model.Statement;
 
 
 public interface RDFProvenanceModel {

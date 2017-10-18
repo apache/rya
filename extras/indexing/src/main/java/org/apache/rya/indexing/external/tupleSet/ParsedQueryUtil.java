@@ -18,18 +18,16 @@
  */
 package org.apache.rya.indexing.external.tupleSet;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 import java.util.concurrent.atomic.AtomicReference;
 
+import com.google.common.base.Optional;
 import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
 import edu.umd.cs.findbugs.annotations.NonNull;
+import org.eclipse.rdf4j.query.algebra.Projection;
+import org.eclipse.rdf4j.query.algebra.helpers.QueryModelVisitorBase;
+import org.eclipse.rdf4j.query.parser.ParsedQuery;
 
-import org.openrdf.query.algebra.Projection;
-import org.openrdf.query.algebra.helpers.QueryModelVisitorBase;
-import org.openrdf.query.parser.ParsedQuery;
-
-import com.google.common.base.Optional;
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * Utilities that help applications inspect {@link ParsedQuery} objects.

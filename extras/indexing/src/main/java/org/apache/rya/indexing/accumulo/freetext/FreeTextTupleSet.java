@@ -19,28 +19,20 @@ package org.apache.rya.indexing.accumulo.freetext;
  * under the License.
  */
 
-
-import info.aduna.iteration.CloseableIteration;
-
 import java.io.IOException;
 import java.util.Set;
 
-import org.apache.rya.indexing.FreeTextIndexer;
-import org.apache.rya.indexing.IndexingExpr;
-import org.apache.rya.indexing.IteratorFactory;
-import org.apache.rya.indexing.SearchFunction;
-import org.apache.rya.indexing.StatementConstraints;
-import org.apache.rya.indexing.external.tupleSet.ExternalTupleSet;
-
-import org.apache.hadoop.conf.Configuration;
-import org.openrdf.model.Statement;
-import org.openrdf.model.URI;
-import org.openrdf.model.Value;
-import org.openrdf.query.BindingSet;
-import org.openrdf.query.QueryEvaluationException;
-import org.openrdf.query.algebra.QueryModelVisitor;
-
 import com.google.common.base.Joiner;
+import org.apache.hadoop.conf.Configuration;
+import org.apache.rya.indexing.*;
+import org.apache.rya.indexing.external.tupleSet.ExternalTupleSet;
+import org.eclipse.rdf4j.common.iteration.CloseableIteration;
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.Statement;
+import org.eclipse.rdf4j.model.Value;
+import org.eclipse.rdf4j.query.BindingSet;
+import org.eclipse.rdf4j.query.QueryEvaluationException;
+import org.eclipse.rdf4j.query.algebra.QueryModelVisitor;
 
 
 //Indexing Node for freetext expressions to be inserted into execution plan 
@@ -128,7 +120,7 @@ public class FreeTextTupleSet extends ExternalTupleSet {
             throws QueryEvaluationException {
         
       
-        URI funcURI = filterInfo.getFunction();
+        IRI funcURI = filterInfo.getFunction();
         
         SearchFunction searchFunction = new SearchFunction() {
 
@@ -147,7 +139,7 @@ public class FreeTextTupleSet extends ExternalTupleSet {
             @Override
             public String toString() {
                 return "TEXT";
-            };
+            }
         };
 
         if (filterInfo.getArguments().length > 1) {

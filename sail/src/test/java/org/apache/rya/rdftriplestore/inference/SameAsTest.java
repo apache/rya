@@ -19,30 +19,26 @@ package org.apache.rya.rdftriplestore.inference;
  * under the License.
  */
 
-
-
-import info.aduna.iteration.Iterations;
 import junit.framework.TestCase;
-import org.apache.rya.accumulo.AccumuloRdfConfiguration;
-import org.apache.rya.accumulo.AccumuloRyaDAO;
-import org.apache.rya.api.RdfCloudTripleStoreConstants;
-import org.apache.rya.api.resolver.RdfToRyaConversions;
-import org.apache.rya.rdftriplestore.RdfCloudTripleStore;
-import org.apache.rya.rdftriplestore.inference.InferenceEngine;
-
 import org.apache.accumulo.core.Constants;
 import org.apache.accumulo.core.client.Connector;
 import org.apache.accumulo.core.client.admin.SecurityOperations;
 import org.apache.accumulo.core.client.mock.MockInstance;
 import org.apache.accumulo.core.security.Authorizations;
 import org.apache.accumulo.core.security.TablePermission;
+import org.apache.rya.accumulo.AccumuloRdfConfiguration;
+import org.apache.rya.accumulo.AccumuloRyaDAO;
+import org.apache.rya.api.RdfCloudTripleStoreConstants;
+import org.apache.rya.api.resolver.RdfToRyaConversions;
+import org.apache.rya.rdftriplestore.RdfCloudTripleStore;
+import org.eclipse.rdf4j.common.iteration.Iterations;
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.Resource;
+import org.eclipse.rdf4j.model.Statement;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
+import org.eclipse.rdf4j.model.impl.StatementImpl;
 import org.junit.Test;
-import org.openrdf.model.Resource;
-import org.openrdf.model.Statement;
-import org.openrdf.model.URI;
-import org.openrdf.model.ValueFactory;
-import org.openrdf.model.impl.StatementImpl;
-import org.openrdf.model.impl.ValueFactoryImpl;
 
 public class SameAsTest extends TestCase {
     private String user = "user";
@@ -52,7 +48,7 @@ public class SameAsTest extends TestCase {
     private Authorizations auths = Constants.NO_AUTHS;
     private Connector connector;
     private AccumuloRyaDAO ryaDAO;
-    private ValueFactory vf = new ValueFactoryImpl();
+    private ValueFactory vf = SimpleValueFactory.getInstance();
     private String namespace = "urn:test#";
     private AccumuloRdfConfiguration conf;
 
@@ -91,13 +87,13 @@ public class SameAsTest extends TestCase {
     @Test
     //This isn't a good test.  It's simply a cut-and-paste from a test that was failing in a different package in the SameAsVisitor.
     public void testGraphConfiguration() throws Exception {
-        URI a = vf.createURI(namespace, "a");
-        Statement statement = new StatementImpl(a, vf.createURI(namespace, "p"), vf.createLiteral("l"));
-        Statement statement2 = new StatementImpl(a, vf.createURI(namespace, "p2"), vf.createLiteral("l"));
+        IRI a = vf.createIRI(namespace, "a");
+        Statement statement = new StatementImpl(a, vf.createIRI(namespace, "p"), vf.createLiteral("l"));
+        Statement statement2 = new StatementImpl(a, vf.createIRI(namespace, "p2"), vf.createLiteral("l"));
         ryaDAO.add(RdfToRyaConversions.convertStatement(statement));
         ryaDAO.add(RdfToRyaConversions.convertStatement(statement2));
-        ryaDAO.add(RdfToRyaConversions.convertStatement(new StatementImpl(vf.createURI(namespace, "b"), vf.createURI(namespace, "p"), vf.createLiteral("l"))));
-        ryaDAO.add(RdfToRyaConversions.convertStatement(new StatementImpl(vf.createURI(namespace, "c"), vf.createURI(namespace, "n"), vf.createLiteral("l"))));
+        ryaDAO.add(RdfToRyaConversions.convertStatement(new StatementImpl(vf.createIRI(namespace, "b"), vf.createIRI(namespace, "p"), vf.createLiteral("l"))));
+        ryaDAO.add(RdfToRyaConversions.convertStatement(new StatementImpl(vf.createIRI(namespace, "c"), vf.createIRI(namespace, "n"), vf.createLiteral("l"))));
 
         // build a connection
         RdfCloudTripleStore store = new RdfCloudTripleStore();
@@ -110,6 +106,6 @@ public class SameAsTest extends TestCase {
         
         store.initialize();
 
-        System.out.println(Iterations.asList(store.getConnection().getStatements(a, vf.createURI(namespace, "p"), vf.createLiteral("l"), false, new Resource[0])).size());
+        System.out.println(Iterations.asList(store.getConnection().getStatements(a, vf.createIRI(namespace, "p"), vf.createLiteral("l"), false, new Resource[0])).size());
     }
 }

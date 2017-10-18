@@ -21,15 +21,15 @@ package org.apache.rya.rdftriplestore.inference;
 import java.util.Set;
 import java.util.UUID;
 
-import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
+import org.apache.rya.api.RdfTripleStoreConfiguration;
 import org.apache.rya.api.utils.NullableStatementImpl;
 import org.apache.rya.rdftriplestore.utils.FixedStatementPattern;
-import org.openrdf.model.URI;
-import org.openrdf.model.vocabulary.RDF;
-import org.openrdf.model.vocabulary.RDFS;
-import org.openrdf.model.vocabulary.SESAME;
-import org.openrdf.query.algebra.StatementPattern;
-import org.openrdf.query.algebra.Var;
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.vocabulary.RDF;
+import org.eclipse.rdf4j.model.vocabulary.RDFS;
+import org.eclipse.rdf4j.model.vocabulary.SESAME;
+import org.eclipse.rdf4j.query.algebra.StatementPattern;
+import org.eclipse.rdf4j.query.algebra.Var;
 
 /**
  * All predicates are changed
@@ -39,7 +39,7 @@ import org.openrdf.query.algebra.Var;
  */
 public class SubPropertyOfVisitor extends AbstractInferVisitor {
 
-    public SubPropertyOfVisitor(final RdfCloudTripleStoreConfiguration conf, final InferenceEngine inferenceEngine) {
+    public SubPropertyOfVisitor(final RdfTripleStoreConfiguration conf, final InferenceEngine inferenceEngine) {
         super(conf, inferenceEngine);
         include = conf.isInferSubPropertyOf();
     }
@@ -49,7 +49,7 @@ public class SubPropertyOfVisitor extends AbstractInferVisitor {
         final StatementPattern sp = node.clone();
         final Var predVar = sp.getPredicateVar();
 
-        final URI pred = (URI) predVar.getValue();
+        final IRI pred = (IRI) predVar.getValue();
         final String predNamespace = pred.getNamespace();
 
         final Var objVar = sp.getObjectVar();
@@ -94,8 +94,8 @@ public class SubPropertyOfVisitor extends AbstractInferVisitor {
 //                node.replaceWith(new StatementPattern(subjVar, vc, objVar, node.getContextVar()));
 //            }
 
-            final URI subprop_uri = (URI) predVar.getValue();
-            final Set<URI> parents = InferenceEngine.findParents(inferenceEngine.getSubPropertyOfGraph(), subprop_uri);
+            final IRI subprop_uri = (IRI) predVar.getValue();
+            final Set<IRI> parents = InferenceEngine.findParents(inferenceEngine.getSubPropertyOfGraph(), subprop_uri);
             if (parents != null && parents.size() > 0) {
                 final String s = UUID.randomUUID().toString();
                 final Var typeVar = new Var(s);
@@ -103,7 +103,7 @@ public class SubPropertyOfVisitor extends AbstractInferVisitor {
 //                fsp.statements.add(new NullableStatementImpl(subprop_uri, RDFS.SUBPROPERTYOF, subprop_uri));
                 //add self
                 parents.add(subprop_uri);
-                for (final URI u : parents) {
+                for (final IRI u : parents) {
                     fsp.statements.add(new NullableStatementImpl(u, RDFS.SUBPROPERTYOF, subprop_uri));
                 }
 

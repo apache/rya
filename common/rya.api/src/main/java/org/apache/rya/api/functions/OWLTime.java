@@ -18,17 +18,17 @@
  */
 package org.apache.rya.api.functions;
 
-import static com.google.common.base.Preconditions.checkArgument;
-import static com.google.common.base.Preconditions.checkNotNull;
-
 import java.time.temporal.ChronoUnit;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
-import org.openrdf.model.URI;
-import org.openrdf.model.ValueFactory;
-import org.openrdf.model.impl.ValueFactoryImpl;
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
+
+import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * Constants for OWL-Time primitives in the OWL-Time namespace.
@@ -36,7 +36,7 @@ import org.openrdf.model.impl.ValueFactoryImpl;
  */
 public class OWLTime {
 
-    private static final ValueFactory FACTORY = ValueFactoryImpl.getInstance();
+    private static final ValueFactory vf = SimpleValueFactory.getInstance();
 
     /**
      * Indicates namespace of OWL-Time ontology
@@ -45,25 +45,25 @@ public class OWLTime {
     /**
      * Seconds class of type DurationDescription in OWL-Time ontology
      */
-    public static final URI SECONDS_URI = FACTORY.createURI(NAMESPACE, "seconds");
+    public static final IRI SECONDS_URI = vf.createIRI(NAMESPACE, "seconds");
     /**
      * Minutes class of type DurationDescription in OWL-Time ontology
      */
-    public static final URI MINUTES_URI = FACTORY.createURI(NAMESPACE, "minutes");
+    public static final IRI MINUTES_URI = vf.createIRI(NAMESPACE, "minutes");
     /**
      * Hours class of type DurationDescription in OWL-Time ontology
      */
-    public static final URI HOURS_URI = FACTORY.createURI(NAMESPACE, "hours");
+    public static final IRI HOURS_URI = vf.createIRI(NAMESPACE, "hours");
     /**
      * Days class of type DurationDescription in OWL-Time ontology
      */
-    public static final URI DAYS_URI = FACTORY.createURI(NAMESPACE, "days");
+    public static final IRI DAYS_URI = vf.createIRI(NAMESPACE, "days");
     /**
      * Weeks class of type DurationDescription in OWL-Time ontology
      */
-    public static final URI WEEKS_URI = FACTORY.createURI(NAMESPACE, "weeks");
+    public static final IRI WEEKS_URI = vf.createIRI(NAMESPACE, "weeks");
 
-    private static final Map<URI, ChronoUnit> DURATION_MAP = new HashMap<>();
+    private static final Map<IRI, ChronoUnit> DURATION_MAP = new HashMap<>();
 
     static {
         DURATION_MAP.put(SECONDS_URI, ChronoUnit.SECONDS);
@@ -78,7 +78,7 @@ public class OWLTime {
      * @param durationURI - OWLTime URI indicating the time unit (not null)
      * @return - {@code true} if this URI indicates a supported OWLTime time unit
      */
-    public static boolean isValidDurationType(URI durationURI) {
+    public static boolean isValidDurationType(IRI durationURI) {
         checkNotNull(durationURI);
         return DURATION_MAP.containsKey(durationURI);
     }
@@ -89,9 +89,9 @@ public class OWLTime {
      * @param duration - amount of time in the units indicated by the provided {@link OWLTime} URI
      * @param uri - OWLTime URI indicating the time unit of duration (not null)
      * @return - the amount of time in milliseconds
-     * @throws IllegalArgumentException if provided {@link URI} is not a valid, supported OWL-Time time unit.
+     * @throws IllegalArgumentException if provided {@link IRI} is not a valid, supported OWL-Time time unit.
      */
-    public static long getMillis(int duration, URI uri) throws IllegalArgumentException {
+    public static long getMillis(int duration, IRI uri) throws IllegalArgumentException {
         Optional<ChronoUnit> unit = getChronoUnitFromURI(uri);
         checkArgument(unit.isPresent(),
                 String.format("URI %s does not indicate a valid OWLTime time unit.  URI must of be of type %s, %s, %s, %s, or %s .", uri,
@@ -105,7 +105,7 @@ public class OWLTime {
      * @param durationURI - OWLTime time unit URI (not null)
      * @return - corresponding ChronoUnit time unit
      */
-    public static Optional<ChronoUnit> getChronoUnitFromURI(URI durationURI) {
+    public static Optional<ChronoUnit> getChronoUnitFromURI(IRI durationURI) {
         return Optional.ofNullable(DURATION_MAP.get(durationURI));
     }
 }

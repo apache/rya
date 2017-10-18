@@ -18,9 +18,6 @@ package org.apache.rya.rdftriplestore.inference;
  * under the License.
  */
 
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -29,44 +26,40 @@ import java.util.Set;
 import org.apache.rya.accumulo.AccumuloRdfConfiguration;
 import org.apache.rya.api.utils.NullableStatementImpl;
 import org.apache.rya.rdftriplestore.utils.FixedStatementPattern;
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.Resource;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
+import org.eclipse.rdf4j.model.vocabulary.OWL;
+import org.eclipse.rdf4j.model.vocabulary.RDF;
+import org.eclipse.rdf4j.query.algebra.*;
 import org.junit.Assert;
 import org.junit.Test;
-import org.openrdf.model.Resource;
-import org.openrdf.model.URI;
-import org.openrdf.model.ValueFactory;
-import org.openrdf.model.impl.ValueFactoryImpl;
-import org.openrdf.model.vocabulary.OWL;
-import org.openrdf.model.vocabulary.RDF;
-import org.openrdf.query.algebra.Join;
-import org.openrdf.query.algebra.Projection;
-import org.openrdf.query.algebra.ProjectionElem;
-import org.openrdf.query.algebra.ProjectionElemList;
-import org.openrdf.query.algebra.StatementPattern;
-import org.openrdf.query.algebra.TupleExpr;
-import org.openrdf.query.algebra.Union;
-import org.openrdf.query.algebra.Var;
+
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class AllValuesFromVisitorTest {
     private final AccumuloRdfConfiguration conf = new AccumuloRdfConfiguration();
-    private final ValueFactory vf = new ValueFactoryImpl();
+    private final ValueFactory vf = SimpleValueFactory.getInstance();
 
     // Value types
-    private final URI person = vf.createURI("urn:Person");
-    private final URI dog = vf.createURI("urn:Dog");
+    private final IRI person = vf.createIRI("urn:Person");
+    private final IRI dog = vf.createIRI("urn:Dog");
     // Predicates
-    private final URI parent = vf.createURI("urn:parent");
-    private final URI relative = vf.createURI("urn:relative");
+    private final IRI parent = vf.createIRI("urn:parent");
+    private final IRI relative = vf.createIRI("urn:relative");
     // Restriction types
-    private final URI parentsAreTallPeople = vf.createURI("urn:parentsAreTallPeople");
-    private final URI parentsArePeople = vf.createURI("urn:parentsArePeople");
-    private final URI relativesArePeople = vf.createURI("urn:relativesArePeople");
-    private final URI parentsAreDogs = vf.createURI("urn:parentsAreDogs");
+    private final IRI parentsAreTallPeople = vf.createIRI("urn:parentsAreTallPeople");
+    private final IRI parentsArePeople = vf.createIRI("urn:parentsArePeople");
+    private final IRI relativesArePeople = vf.createIRI("urn:relativesArePeople");
+    private final IRI parentsAreDogs = vf.createIRI("urn:parentsAreDogs");
 
     @Test
     public void testRewriteTypePattern() throws Exception {
         // Configure a mock instance engine with an ontology:
         final InferenceEngine inferenceEngine = mock(InferenceEngine.class);
-        Map<Resource, Set<URI>> personAVF = new HashMap<>();
+        Map<Resource, Set<IRI>> personAVF = new HashMap<>();
         personAVF.put(parentsAreTallPeople, new HashSet<>());
         personAVF.put(parentsArePeople, new HashSet<>());
         personAVF.put(relativesArePeople, new HashSet<>());
@@ -74,7 +67,7 @@ public class AllValuesFromVisitorTest {
         personAVF.get(parentsArePeople).add(parent);
         personAVF.get(relativesArePeople).add(relative);
         personAVF.get(relativesArePeople).add(parent);
-        Map<Resource, Set<URI>> dogAVF = new HashMap<>();
+        Map<Resource, Set<IRI>> dogAVF = new HashMap<>();
         dogAVF.put(parentsAreDogs, new HashSet<>());
         dogAVF.get(parentsAreDogs).add(parent);
         when(inferenceEngine.getAllValuesFromByValueType(person)).thenReturn(personAVF);

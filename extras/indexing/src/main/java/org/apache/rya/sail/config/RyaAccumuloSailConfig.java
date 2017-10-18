@@ -1,15 +1,12 @@
 package org.apache.rya.sail.config;
 
-import org.openrdf.model.Graph;
-import org.openrdf.model.Literal;
-import org.openrdf.model.Resource;
-import org.openrdf.model.URI;
-import org.openrdf.model.ValueFactory;
-import org.openrdf.model.impl.ValueFactoryImpl;
-import org.openrdf.model.util.GraphUtil;
-import org.openrdf.model.util.GraphUtilException;
-import org.openrdf.sail.config.SailConfigException;
-import org.openrdf.sail.config.SailImplConfigBase;
+import org.apache.rya.accumulo.AccumuloRdfConfiguration;
+import org.eclipse.rdf4j.model.*;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
+import org.eclipse.rdf4j.model.util.GraphUtil;
+import org.eclipse.rdf4j.model.util.GraphUtilException;
+import org.eclipse.rdf4j.sail.base.config.BaseSailConfig;
+import org.eclipse.rdf4j.sail.config.SailConfigException;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -30,29 +27,27 @@ import org.openrdf.sail.config.SailImplConfigBase;
  * under the License.
  */
 
-import org.apache.rya.accumulo.AccumuloRdfConfiguration;
-
 /**
  * @deprecated Use {@link AccumuloRdfConfiguration} instead.
  */
 @Deprecated
-public class RyaAccumuloSailConfig extends SailImplConfigBase {
+public class RyaAccumuloSailConfig extends BaseSailConfig {
 
     public static final String NAMESPACE = "http://rya.apache.org/RyaAccumuloSail/Config#";
 
-    public static final URI INSTANCE;
-    public static final URI USER;
-    public static final URI PASSWORD;
-    public static final URI ZOOKEEPERS;
-    public static final URI IS_MOCK;
+    public static final IRI INSTANCE;
+    public static final IRI USER;
+    public static final IRI PASSWORD;
+    public static final IRI ZOOKEEPERS;
+    public static final IRI IS_MOCK;
 
     static {
-        final ValueFactory factory = ValueFactoryImpl.getInstance();
-        USER = factory.createURI(NAMESPACE, "user");
-        PASSWORD = factory.createURI(NAMESPACE, "password");
-        INSTANCE = factory.createURI(NAMESPACE, "instance");
-        ZOOKEEPERS = factory.createURI(NAMESPACE, "zookeepers");
-        IS_MOCK = factory.createURI(NAMESPACE, "isMock");
+        final ValueFactory factory = SimpleValueFactory.getInstance();
+        USER = factory.createIRI(NAMESPACE, "user");
+        PASSWORD = factory.createIRI(NAMESPACE, "password");
+        INSTANCE = factory.createIRI(NAMESPACE, "instance");
+        ZOOKEEPERS = factory.createIRI(NAMESPACE, "zookeepers");
+        IS_MOCK = factory.createIRI(NAMESPACE, "isMock");
     }
 
     private String user = "root";

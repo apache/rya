@@ -19,23 +19,21 @@ package org.apache.rya.api.persist;
  * under the License.
  */
 
-
-
-import info.aduna.iteration.CloseableIteration;
-import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
-import org.openrdf.model.Namespace;
+import org.apache.rya.api.RdfTripleStoreConfiguration;
+import org.eclipse.rdf4j.common.iteration.CloseableIteration;
+import org.eclipse.rdf4j.model.Namespace;
 
 /**
  * Date: 7/17/12
  * Time: 8:23 AM
  */
-public interface RyaNamespaceManager<C extends RdfCloudTripleStoreConfiguration> extends RyaConfigured<C> {
+public interface RyaNamespaceManager<C extends RdfTripleStoreConfiguration> extends RyaConfigured<C> {
 
-    public void addNamespace(String pfx, String namespace) throws RyaDAOException;
+    void addNamespace(String pfx, String namespace) throws RyaDAOException;
 
-    public String getNamespace(String pfx) throws RyaDAOException;
+    String getNamespace(String pfx) throws RyaDAOException;
 
-    public void removeNamespace(String pfx) throws RyaDAOException;
+    void removeNamespace(String pfx) throws RyaDAOException;
 
-    public CloseableIteration<? extends Namespace, RyaDAOException> iterateNamespace() throws RyaDAOException;
+    CloseableIteration<? extends Namespace, RyaDAOException> iterateNamespace() throws RyaDAOException;
 }

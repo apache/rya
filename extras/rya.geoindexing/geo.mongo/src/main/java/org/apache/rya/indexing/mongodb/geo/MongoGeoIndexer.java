@@ -31,14 +31,14 @@ import org.apache.rya.indexing.accumulo.geo.GeoTupleSet.GeoSearchFunctionFactory
 import org.apache.rya.indexing.mongodb.AbstractMongoIndexer;
 import org.apache.rya.indexing.mongodb.geo.GeoMongoDBStorageStrategy.GeoQuery;
 import org.apache.rya.mongodb.MongoDBRdfConfiguration;
-import org.openrdf.model.Statement;
-import org.openrdf.query.MalformedQueryException;
-import org.openrdf.query.QueryEvaluationException;
+import  org.eclipse.rdf4j.model.Statement;
+import  org.eclipse.rdf4j.query.MalformedQueryException;
+import  org.eclipse.rdf4j.query.QueryEvaluationException;
 
 import com.mongodb.DBObject;
 import com.vividsolutions.jts.geom.Geometry;
 
-import info.aduna.iteration.CloseableIteration;
+import org.eclipse.rdf4j.common.iteration.CloseableIteration;
 
 public class MongoGeoIndexer extends AbstractMongoIndexer<GeoMongoDBStorageStrategy> implements GeoIndexer {
     private static final String COLLECTION_SUFFIX = "geo";

@@ -34,16 +34,16 @@ import org.apache.rya.periodic.notification.api.BindingSetRecord;
 import org.apache.rya.periodic.notification.api.NodeBin;
 import org.apache.rya.periodic.notification.notification.PeriodicNotification;
 import org.apache.rya.periodic.notification.notification.TimestampedNotification;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
+import org.eclipse.rdf4j.query.BindingSet;
+import org.eclipse.rdf4j.query.algebra.evaluation.QueryBindingSet;
 import org.junit.Assert;
 import org.junit.Test;
-import org.openrdf.model.ValueFactory;
-import org.openrdf.model.impl.ValueFactoryImpl;
-import org.openrdf.query.BindingSet;
-import org.openrdf.query.algebra.evaluation.QueryBindingSet;
 
 public class PeriodicNotificationProcessorIT extends AccumuloExportITBase {
 
-    private static final ValueFactory vf = new ValueFactoryImpl();
+    private static final ValueFactory vf = SimpleValueFactory.getInstance();
     private static final String RYA_INSTANCE_NAME = "rya_";
     
     @Test

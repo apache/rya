@@ -36,13 +36,12 @@ package org.apache.rya.indexing.external.matching;
  * under the License.
  */
 
-import org.openrdf.query.algebra.Filter;
-import org.openrdf.query.algebra.Join;
-import org.openrdf.query.algebra.LeftJoin;
-import org.openrdf.query.algebra.QueryModelNode;
-import org.openrdf.query.algebra.evaluation.impl.ExternalSet;
-
 import com.google.common.base.Preconditions;
+import org.eclipse.rdf4j.query.algebra.Filter;
+import org.eclipse.rdf4j.query.algebra.Join;
+import org.eclipse.rdf4j.query.algebra.LeftJoin;
+import org.eclipse.rdf4j.query.algebra.QueryModelNode;
+import org.eclipse.rdf4j.query.algebra.evaluation.impl.ExternalSet;
 
 /**
  * Factory class for producing {@link QuerySegment}s from {@link QueryModelNode}s.

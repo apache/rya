@@ -17,32 +17,28 @@ package org.apache.rya.indexing.statement.metadata;
  * specific language governing permissions and limitations
  * under the License.
  */
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
+
+import java.util.*;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.rya.accumulo.AccumuloRdfConfiguration;
-import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
+import org.apache.rya.api.RdfTripleStoreConfiguration;
 import org.apache.rya.api.domain.RyaURI;
 import org.apache.rya.indexing.accumulo.ConfigUtils;
 import org.apache.rya.indexing.external.matching.JoinSegment;
 import org.apache.rya.indexing.statement.metadata.matching.StatementMetadataExternalSetProvider;
 import org.apache.rya.indexing.statement.metadata.matching.StatementMetadataNode;
 import org.apache.rya.mongodb.MongoDBRdfConfiguration;
+import org.eclipse.rdf4j.query.MalformedQueryException;
+import org.eclipse.rdf4j.query.algebra.Filter;
+import org.eclipse.rdf4j.query.algebra.QueryModelNode;
+import org.eclipse.rdf4j.query.algebra.StatementPattern;
+import org.eclipse.rdf4j.query.algebra.ValueExpr;
+import org.eclipse.rdf4j.query.algebra.helpers.StatementPatternCollector;
+import org.eclipse.rdf4j.query.parser.ParsedQuery;
+import org.eclipse.rdf4j.query.parser.sparql.SPARQLParser;
 import org.junit.Assert;
 import org.junit.Test;
-import org.openrdf.query.MalformedQueryException;
-import org.openrdf.query.algebra.Filter;
-import org.openrdf.query.algebra.QueryModelNode;
-import org.openrdf.query.algebra.StatementPattern;
-import org.openrdf.query.algebra.ValueExpr;
-import org.openrdf.query.algebra.helpers.StatementPatternCollector;
-import org.openrdf.query.parser.ParsedQuery;
-import org.openrdf.query.parser.sparql.SPARQLParser;
 
 public class StatementMetadataExternalSetProviderTest {
 
@@ -155,7 +151,7 @@ public class StatementMetadataExternalSetProviderTest {
 
             AccumuloRdfConfiguration conf = new AccumuloRdfConfiguration();
             conf.setBoolean(ConfigUtils.USE_MOCK_INSTANCE, true);
-            conf.set(RdfCloudTripleStoreConfiguration.CONF_TBL_PREFIX, "rya_");
+            conf.set(RdfTripleStoreConfiguration.CONF_TBL_PREFIX, "rya_");
             conf.set(ConfigUtils.CLOUDBASE_USER, "root");
             conf.set(ConfigUtils.CLOUDBASE_PASSWORD, "");
             conf.set(ConfigUtils.CLOUDBASE_INSTANCE, "instance");

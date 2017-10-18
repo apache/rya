@@ -17,19 +17,19 @@ package org.apache.rya.indexing.pcj.fluo.app;
  * specific language governing permissions and limitations
  * under the License.
  */
+
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import com.google.common.base.Objects;
 import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.domain.RyaSubGraph;
 import org.apache.rya.api.domain.RyaURI;
 import org.apache.rya.api.resolver.RyaToRdfConversions;
+import org.eclipse.rdf4j.model.Statement;
 import org.junit.Assert;
-import org.openrdf.model.Statement;
-
-import com.google.common.base.Objects;
 
 public class ConstructGraphTestUtils {
 

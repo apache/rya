@@ -18,8 +18,6 @@
  */
 package org.apache.rya.indexing.pcj.fluo.integration;
 
-import static org.junit.Assert.assertEquals;
-
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
@@ -33,13 +31,14 @@ import org.apache.rya.indexing.pcj.storage.PrecomputedJoinStorage;
 import org.apache.rya.indexing.pcj.storage.PrecomputedJoinStorage.CloseableIterator;
 import org.apache.rya.indexing.pcj.storage.accumulo.AccumuloPcjStorage;
 import org.apache.rya.pcj.fluo.test.base.RyaExportITBase;
+import org.eclipse.rdf4j.model.Statement;
+import org.eclipse.rdf4j.model.impl.LiteralImpl;
+import org.eclipse.rdf4j.model.impl.StatementImpl;
+import org.eclipse.rdf4j.model.impl.URIImpl;
+import org.eclipse.rdf4j.query.BindingSet;
 import org.junit.Test;
-import org.openrdf.model.Resource;
-import org.openrdf.model.Statement;
-import org.openrdf.model.impl.LiteralImpl;
-import org.openrdf.model.impl.StatementImpl;
-import org.openrdf.model.impl.URIImpl;
-import org.openrdf.query.BindingSet;
+
+import static org.junit.Assert.assertEquals;
 
 public class StreamingTestIT extends RyaExportITBase {
 
@@ -91,7 +90,7 @@ public class StreamingTestIT extends RyaExportITBase {
 			statementPairs.add(statement1);
 			statementPairs.add(statement2);
 		}
-		super.getRyaSailRepository().getConnection().add(statementPairs, new Resource[0]);
+		super.getRyaSailRepository().getConnection().add(statementPairs);
 		super.getMiniFluo().waitForObservers();
 	}
 }

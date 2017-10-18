@@ -17,22 +17,16 @@ package org.apache.rya.indexing.pcj.fluo.app;
  * specific language governing permissions and limitations
  * under the License.
  */
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.UUID;
 
-import org.apache.rya.api.domain.RyaStatement;
-import org.apache.rya.indexing.pcj.storage.accumulo.VisibilityBindingSet;
-import org.openrdf.model.BNode;
-import org.openrdf.model.Value;
-import org.openrdf.model.impl.BNodeImpl;
-import org.openrdf.query.algebra.StatementPattern;
+import java.util.*;
 
 import com.google.common.base.Preconditions;
+import org.apache.rya.api.domain.RyaStatement;
+import org.apache.rya.indexing.pcj.storage.accumulo.VisibilityBindingSet;
+import org.eclipse.rdf4j.model.BNode;
+import org.eclipse.rdf4j.model.Value;
+import org.eclipse.rdf4j.model.impl.BNodeImpl;
+import org.eclipse.rdf4j.query.algebra.StatementPattern;
 
 /**
  * Creates a construct query graph (represented as a Set of

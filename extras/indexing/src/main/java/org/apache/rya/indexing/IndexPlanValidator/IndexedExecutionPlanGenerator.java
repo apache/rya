@@ -19,18 +19,15 @@ package org.apache.rya.indexing.IndexPlanValidator;
  * under the License.
  */
 
-
 import java.util.Iterator;
 import java.util.List;
 import java.util.NoSuchElementException;
 
+import com.google.common.collect.Lists;
 import org.apache.rya.indexing.external.tupleSet.ExternalTupleSet;
 import org.apache.rya.indexing.pcj.matching.QueryVariableNormalizer;
-
-import org.openrdf.query.algebra.Projection;
-import org.openrdf.query.algebra.TupleExpr;
-
-import com.google.common.collect.Lists;
+import org.eclipse.rdf4j.query.algebra.Projection;
+import org.eclipse.rdf4j.query.algebra.TupleExpr;
 
 public class IndexedExecutionPlanGenerator implements ExternalIndexMatcher {
 
@@ -71,11 +68,8 @@ public class IndexedExecutionPlanGenerator implements ExternalIndexMatcher {
                     }
                     isEmpty = true;
                     return false;
-                } else if(isEmpty) {
-                    return false;
-                } else {
-                    return true;
-                }
+                } else
+                    return !isEmpty;
             }
 
             @Override

@@ -19,11 +19,9 @@ package org.apache.rya.api.resolver.impl;
  * under the License.
  */
 
-
-
 import junit.framework.TestCase;
 import org.apache.rya.api.domain.RyaType;
-import org.openrdf.model.impl.URIImpl;
+import org.eclipse.rdf4j.model.impl.URIImpl;
 
 /**
  * Date: 7/16/12

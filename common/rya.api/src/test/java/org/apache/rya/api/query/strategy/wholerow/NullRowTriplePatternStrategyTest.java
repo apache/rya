@@ -20,26 +20,24 @@ package org.apache.rya.api.query.strategy.wholerow;
 
 import java.util.Arrays;
 import java.util.Map;
-import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
+
 import org.apache.rya.api.RdfCloudTripleStoreConstants;
-import static org.apache.rya.api.RdfCloudTripleStoreConstants.LAST_BYTES;
 import org.apache.rya.api.RdfCloudTripleStoreUtils;
+import org.apache.rya.api.RdfTripleStoreConfiguration;
 import org.apache.rya.api.domain.RyaType;
 import org.apache.rya.api.domain.RyaURI;
 import org.apache.rya.api.query.strategy.ByteRange;
-import org.junit.After;
-import org.junit.AfterClass;
+import org.junit.*;
+
+import static org.apache.rya.api.RdfCloudTripleStoreConstants.LAST_BYTES;
 import static org.junit.Assert.*;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
 
 public class NullRowTriplePatternStrategyTest {
 
-  public class MockRdfConfiguration extends RdfCloudTripleStoreConfiguration {
+  public class MockRdfConfiguration extends RdfTripleStoreConfiguration {
 
     @Override
-    public RdfCloudTripleStoreConfiguration clone() {
+    public RdfTripleStoreConfiguration clone() {
       return new MockRdfConfiguration();
     }
 
@@ -85,7 +83,7 @@ public class NullRowTriplePatternStrategyTest {
     RyaURI predicate = null;
     RyaType object = null;
     RyaURI context = null;
-    RdfCloudTripleStoreConfiguration conf = new MockRdfConfiguration();
+    RdfTripleStoreConfiguration conf = new MockRdfConfiguration();
     NullRowTriplePatternStrategy instance = new NullRowTriplePatternStrategy();
     Map.Entry<RdfCloudTripleStoreConstants.TABLE_LAYOUT, ByteRange> expResult = new RdfCloudTripleStoreUtils.CustomEntry<>(RdfCloudTripleStoreConstants.TABLE_LAYOUT.SPO, new ByteRange(new byte[]{}, LAST_BYTES));
     Map.Entry<RdfCloudTripleStoreConstants.TABLE_LAYOUT, ByteRange> result = instance.defineRange(subject, predicate, object, context, conf);

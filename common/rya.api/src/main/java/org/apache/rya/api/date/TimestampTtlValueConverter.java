@@ -19,9 +19,7 @@ package org.apache.rya.api.date;
  * under the License.
  */
 
-
-
-import org.openrdf.model.Value;
+import org.eclipse.rdf4j.model.Value;
 
 /**
  * Class TimestampTtlValueConverter

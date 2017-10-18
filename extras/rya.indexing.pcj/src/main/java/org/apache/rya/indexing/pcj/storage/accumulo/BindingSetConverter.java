@@ -18,11 +18,10 @@
  */
 package org.apache.rya.indexing.pcj.storage.accumulo;
 
-import org.openrdf.query.Binding;
-import org.openrdf.query.BindingSet;
-
 import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
 import edu.umd.cs.findbugs.annotations.NonNull;
+import org.eclipse.rdf4j.query.Binding;
+import org.eclipse.rdf4j.query.BindingSet;
 
 /**
  * Converts {@link BindingSet}s into other representations. This library is
@@ -55,7 +54,7 @@ public interface BindingSetConverter<T> {
     *   converted into the target model. This will happen if one of the values
     *   could not be converted into the target model.
     */
-   public T convert(BindingSet bindingSet, VariableOrder varOrder) throws BindingSetConversionException;
+   T convert(BindingSet bindingSet, VariableOrder varOrder) throws BindingSetConversionException;
 
    /**
     * Converts the target model representation of a {@link BindingSet} as is
@@ -75,13 +74,13 @@ public interface BindingSetConverter<T> {
     * @throws BindingSetConversionException The target model was unable to be
     *   converted back into a BindingSet.
     */
-   public BindingSet convert(T bindingSet, VariableOrder varOrder) throws BindingSetConversionException;
+   BindingSet convert(T bindingSet, VariableOrder varOrder) throws BindingSetConversionException;
 
    /**
     * One of the conversion methods of {@link BindingSetConverter} was unable to
     * to convert the {@link BindingSet} to/from the converted model.
     */
-   public static class BindingSetConversionException extends Exception {
+   class BindingSetConversionException extends Exception {
        private static final long serialVersionUID = 1L;
 
        /**

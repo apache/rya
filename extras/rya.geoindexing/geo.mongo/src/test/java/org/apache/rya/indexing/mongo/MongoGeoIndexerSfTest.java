@@ -35,13 +35,13 @@ import org.apache.rya.indexing.mongodb.geo.MongoGeoIndexer;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.openrdf.model.Resource;
-import org.openrdf.model.Statement;
-import org.openrdf.model.URI;
-import org.openrdf.model.Value;
-import org.openrdf.model.ValueFactory;
-import org.openrdf.model.impl.StatementImpl;
-import org.openrdf.model.impl.ValueFactoryImpl;
+import  org.eclipse.rdf4j.model.Resource;
+import  org.eclipse.rdf4j.model.Statement;
+import  org.eclipse.rdf4j.model.URI;
+import  org.eclipse.rdf4j.model.Value;
+import  org.eclipse.rdf4j.model.ValueFactory;
+import  org.eclipse.rdf4j.model.impl.StatementImpl;
+import  org.eclipse.rdf4j.model.impl.ValueFactoryImpl;
 
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
@@ -52,7 +52,7 @@ import com.vividsolutions.jts.geom.Point;
 import com.vividsolutions.jts.geom.Polygon;
 import com.vividsolutions.jts.geom.PrecisionModel;
 
-import info.aduna.iteration.CloseableIteration;
+import org.eclipse.rdf4j.common.iteration.CloseableIteration;
 
 /**
  * Tests all of the "simple functions" of the geoindexer.
@@ -115,8 +115,8 @@ public class MongoGeoIndexerSfTest extends MongoITBase {
     }
 
     private static RyaStatement statement(final Geometry geo) {
-        final ValueFactory vf = new ValueFactoryImpl();
-        final Resource subject = vf.createURI("uri:" + names.get(geo));
+        final ValueFactory vf = SimpleValueFactory.getInstance();
+        final Resource subject = vf.createIRI("uri:" + names.get(geo));
         final URI predicate = GeoConstants.GEO_AS_WKT;
         final Value object = vf.createLiteral(geo.toString(), GeoConstants.XMLSCHEMA_OGC_WKT);
         return RdfToRyaConversions.convertStatement(new StatementImpl(subject, predicate, object));

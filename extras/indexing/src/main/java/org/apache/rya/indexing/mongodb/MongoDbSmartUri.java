@@ -18,13 +18,13 @@
  */
 package org.apache.rya.indexing.mongodb;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 import java.net.UnknownHostException;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
+import com.mongodb.MongoClient;
+import com.mongodb.MongoException;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.rya.api.domain.RyaURI;
 import org.apache.rya.indexing.entity.model.Entity;
@@ -41,11 +41,10 @@ import org.apache.rya.indexing.smarturi.SmartUriException;
 import org.apache.rya.indexing.smarturi.SmartUriStorage;
 import org.apache.rya.mongodb.MongoConnectorFactory;
 import org.apache.rya.mongodb.MongoDBRdfConfiguration;
-import org.openrdf.model.URI;
-import org.openrdf.model.Value;
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.Value;
 
-import com.mongodb.MongoClient;
-import com.mongodb.MongoException;
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * MongoDB implementation of the Smart URI.
@@ -65,10 +64,10 @@ public class MongoDbSmartUri implements SmartUriStorage {
     }
 
     @Override
-    public void storeEntity(final RyaURI subject, final Map<URI, Value> map) throws SmartUriException {
+    public void storeEntity(final RyaURI subject, final Map<IRI, Value> map) throws SmartUriException {
         checkInit();
 
-        final URI uri = SmartUriAdapter.serializeUri(subject, map);
+        final IRI uri = SmartUriAdapter.serializeUri(subject, map);
         final Entity entity = SmartUriAdapter.deserializeUriEntity(uri);
 
         // Create it.
@@ -117,7 +116,7 @@ public class MongoDbSmartUri implements SmartUriStorage {
     }
 
     @Override
-    public ConvertingCursor<TypedEntity> queryEntity(final Type type, final Map<URI, Value> map) throws SmartUriException {
+    public ConvertingCursor<TypedEntity> queryEntity(final Type type, final Map<IRI, Value> map) throws SmartUriException {
         checkInit();
 
         // Query it.

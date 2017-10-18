@@ -18,12 +18,11 @@
  */
 package org.apache.rya.api.client.accumulo;
 
-import static java.util.Objects.requireNonNull;
-
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import com.google.common.base.Optional;
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
 import org.apache.accumulo.core.client.Connector;
@@ -52,18 +51,17 @@ import org.apache.rya.indexing.pcj.storage.accumulo.AccumuloPcjStorage;
 import org.apache.rya.indexing.pcj.storage.accumulo.VisibilityBindingSet;
 import org.apache.rya.rdftriplestore.inference.InferenceEngineException;
 import org.apache.rya.sail.config.RyaSailFactory;
-import org.openrdf.query.BindingSet;
-import org.openrdf.query.MalformedQueryException;
-import org.openrdf.query.QueryEvaluationException;
-import org.openrdf.query.parser.ParsedQuery;
-import org.openrdf.query.parser.sparql.SPARQLParser;
-import org.openrdf.sail.Sail;
-import org.openrdf.sail.SailConnection;
-import org.openrdf.sail.SailException;
+import org.eclipse.rdf4j.common.iteration.CloseableIteration;
+import org.eclipse.rdf4j.query.BindingSet;
+import org.eclipse.rdf4j.query.MalformedQueryException;
+import org.eclipse.rdf4j.query.QueryEvaluationException;
+import org.eclipse.rdf4j.query.parser.ParsedQuery;
+import org.eclipse.rdf4j.query.parser.sparql.SPARQLParser;
+import org.eclipse.rdf4j.sail.Sail;
+import org.eclipse.rdf4j.sail.SailConnection;
+import org.eclipse.rdf4j.sail.SailException;
 
-import com.google.common.base.Optional;
-
-import info.aduna.iteration.CloseableIteration;
+import static java.util.Objects.requireNonNull;
 
 /**
  * Uses an in memory Rya Client to batch update a PCJ index.
@@ -83,7 +81,8 @@ public class AccumuloBatchUpdatePCJ extends AccumuloCommand implements BatchUpda
     }
 
     @Override
-    public void batchUpdate(final String ryaInstanceName, final String pcjId) throws InstanceDoesNotExistException, PCJDoesNotExistException, RyaClientException {
+    public void batchUpdate(final String ryaInstanceName, final String pcjId) throws
+            RyaClientException {
         requireNonNull(ryaInstanceName);
         requireNonNull(pcjId);
         verifyPCJState(ryaInstanceName, pcjId);
@@ -120,7 +119,8 @@ public class AccumuloBatchUpdatePCJ extends AccumuloCommand implements BatchUpda
         }
     }
 
-    private void updatePCJResults(final String ryaInstanceName, final String pcjId) throws InstanceDoesNotExistException, PCJDoesNotExistException, RyaClientException {
+    private void updatePCJResults(final String ryaInstanceName, final String pcjId) throws
+            RyaClientException {
         // Things that have to be closed before we exit.
         Sail sail = null;
         SailConnection sailConn = null;

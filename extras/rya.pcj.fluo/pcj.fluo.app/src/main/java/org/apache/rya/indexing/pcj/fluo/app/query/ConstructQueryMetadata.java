@@ -18,16 +18,15 @@ package org.apache.rya.indexing.pcj.fluo.app.query;
  * specific language governing permissions and limitations
  * under the License.
  */
-import org.apache.commons.lang3.builder.EqualsBuilder;
-import org.apache.rya.indexing.pcj.fluo.app.ConstructGraph;
-import org.apache.rya.indexing.pcj.storage.accumulo.VariableOrder;
-import org.openrdf.query.BindingSet;
 
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
-
 import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
 import edu.umd.cs.findbugs.annotations.NonNull;
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.rya.indexing.pcj.fluo.app.ConstructGraph;
+import org.apache.rya.indexing.pcj.storage.accumulo.VariableOrder;
+import org.eclipse.rdf4j.query.BindingSet;
 
 /**
  * Metadata object used to store metadata for Construct Query Nodes found in

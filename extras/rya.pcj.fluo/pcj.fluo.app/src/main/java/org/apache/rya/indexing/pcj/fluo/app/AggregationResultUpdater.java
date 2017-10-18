@@ -18,15 +18,7 @@
  */
 package org.apache.rya.indexing.pcj.fluo.app;
 
-import static com.google.common.base.Preconditions.checkArgument;
-import static java.util.Objects.requireNonNull;
-
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-import java.io.Serializable;
+import java.io.*;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.HashMap;
@@ -34,6 +26,9 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 
+import com.google.common.collect.ImmutableMap;
+import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
+import edu.umd.cs.findbugs.annotations.NonNull;
 import org.apache.fluo.api.client.TransactionBase;
 import org.apache.fluo.api.data.Bytes;
 import org.apache.log4j.Logger;
@@ -45,21 +40,19 @@ import org.apache.rya.indexing.pcj.fluo.app.query.FluoQueryColumns;
 import org.apache.rya.indexing.pcj.fluo.app.util.RowKeyUtil;
 import org.apache.rya.indexing.pcj.storage.accumulo.VariableOrder;
 import org.apache.rya.indexing.pcj.storage.accumulo.VisibilityBindingSet;
-import org.openrdf.model.Literal;
-import org.openrdf.model.Value;
-import org.openrdf.model.datatypes.XMLDatatypeUtil;
-import org.openrdf.model.impl.DecimalLiteralImpl;
-import org.openrdf.model.impl.IntegerLiteralImpl;
-import org.openrdf.query.algebra.MathExpr.MathOp;
-import org.openrdf.query.algebra.evaluation.ValueExprEvaluationException;
-import org.openrdf.query.algebra.evaluation.util.MathUtil;
-import org.openrdf.query.algebra.evaluation.util.ValueComparator;
-import org.openrdf.query.impl.MapBindingSet;
+import org.eclipse.rdf4j.model.Literal;
+import org.eclipse.rdf4j.model.Value;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.model.datatypes.XMLDatatypeUtil;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
+import org.eclipse.rdf4j.query.algebra.MathExpr.MathOp;
+import org.eclipse.rdf4j.query.algebra.evaluation.ValueExprEvaluationException;
+import org.eclipse.rdf4j.query.algebra.evaluation.util.MathUtil;
+import org.eclipse.rdf4j.query.algebra.evaluation.util.ValueComparator;
+import org.eclipse.rdf4j.query.impl.MapBindingSet;
 
-import com.google.common.collect.ImmutableMap;
-
-import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
-import edu.umd.cs.findbugs.annotations.NonNull;
+import static com.google.common.base.Preconditions.checkArgument;
+import static java.util.Objects.requireNonNull;
 
 /**
  * Updates the results of an Aggregate node when its child has added a new Binding Set to its results.
@@ -156,7 +149,7 @@ public class AggregationResultUpdater {
     /**
      * A function that updates an {@link AggregationState}.
      */
-    public static interface AggregationFunction {
+    public interface AggregationFunction {
 
         /**
          * Updates an {@link AggregationState} based on the values of a child Binding Set.
@@ -166,7 +159,7 @@ public class AggregationResultUpdater {
          * @param state - The state that will be updated. (not null)
          * @param childBindingSet - The Binding Set whose values will be used to update the state.
          */
-        public void update(AggregationElement aggregation, AggregationState state, VisibilityBindingSet childBindingSet);
+        void update(AggregationElement aggregation, AggregationState state, VisibilityBindingSet childBindingSet);
     }
 
     /**
@@ -184,15 +177,15 @@ public class AggregationResultUpdater {
                 final MapBindingSet result = state.getBindingSet();
                 final String resultName = aggregation.getResultBindingName();
                 final boolean newBinding = !result.hasBinding(resultName);
-
+                final ValueFactory vf = SimpleValueFactory.getInstance();
                 if(newBinding) {
                     // Initialize the binding.
-                    result.addBinding(resultName, new IntegerLiteralImpl(BigInteger.ONE));
+                    result.addBinding(resultName, vf.createLiteral(BigInteger.ONE));
                 } else {
                     // Update the existing binding.
                     final Literal count = (Literal) result.getValue(resultName);
                     final BigInteger updatedCount = count.integerValue().add( BigInteger.ONE );
-                    result.addBinding(resultName, new IntegerLiteralImpl(updatedCount));
+                    result.addBinding(resultName, vf.createLiteral(updatedCount));
                 }
             }
         }
@@ -213,11 +206,12 @@ public class AggregationResultUpdater {
                 final MapBindingSet result = state.getBindingSet();
                 final String resultName = aggregation.getResultBindingName();
                 final boolean newBinding = !result.hasBinding(resultName);
+                final ValueFactory vf = SimpleValueFactory.getInstance();
 
                 // Get the starting number for the sum.
                 Literal sum;
                 if(newBinding) {
-                    sum = new IntegerLiteralImpl(BigInteger.ZERO);
+                    sum = vf.createLiteral(BigInteger.ZERO);
                 } else {
                     sum = (Literal) state.getBindingSet().getValue(resultName);
                 }
@@ -269,15 +263,16 @@ public class AggregationResultUpdater {
                     if (childLiteral.getDatatype() != null && XMLDatatypeUtil.isNumericDatatype(childLiteral.getDatatype())) {
                         try {
                             // Update the sum.
-                            final Literal oldSum = new DecimalLiteralImpl(averageState.getSum());
+                            final ValueFactory vf = SimpleValueFactory.getInstance();
+                            final Literal oldSum = vf.createLiteral(averageState.getSum());
                             final BigDecimal sum = MathUtil.compute(oldSum, childLiteral, MathOp.PLUS).decimalValue();
 
                             // Update the count.
                             final BigInteger count = averageState.getCount().add( BigInteger.ONE );
 
                             // Update the BindingSet to include the new average.
-                            final Literal sumLiteral = new DecimalLiteralImpl(sum);
-                            final Literal countLiteral = new IntegerLiteralImpl(count);
+                            final Literal sumLiteral = vf.createLiteral(sum);
+                            final Literal countLiteral = vf.createLiteral(count);
                             final Literal average = MathUtil.compute(sumLiteral, countLiteral, MathOp.DIVIDE);
                             result.addBinding(resultName, average);
 
@@ -363,19 +358,19 @@ public class AggregationResultUpdater {
     /**
      * Reads/Writes instances of {@link AggregationState} to/from bytes.
      */
-    public static interface AggregationStateSerDe {
+    public interface AggregationStateSerDe {
 
         /**
          * @param state - The state that will be serialized. (not null)
          * @return The state serialized to a byte[].
          */
-        public byte[] serialize(AggregationState state);
+        byte[] serialize(AggregationState state);
 
         /**
          * @param bytes - The bytes that will be deserialized. (not null)
          * @return The {@link AggregationState} that was read from the bytes.
          */
-        public AggregationState deserialize(byte[] bytes);
+        AggregationState deserialize(byte[] bytes);
     }
 
     /**

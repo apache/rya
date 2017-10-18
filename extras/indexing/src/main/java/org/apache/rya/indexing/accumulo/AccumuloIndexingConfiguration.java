@@ -18,26 +18,22 @@
  */
 package org.apache.rya.indexing.accumulo;
 
-import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Properties;
 import java.util.Set;
 
+import com.google.common.base.Preconditions;
+import com.google.common.collect.Lists;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.rya.accumulo.AbstractAccumuloRdfConfigurationBuilder;
 import org.apache.rya.accumulo.AccumuloRdfConfiguration;
 import org.apache.rya.accumulo.AccumuloRdfConfigurationBuilder;
-import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
 import org.apache.rya.api.domain.RyaURI;
 import org.apache.rya.indexing.accumulo.entity.EntityCentricIndex;
 import org.apache.rya.indexing.accumulo.freetext.AccumuloFreeTextIndexer;
 import org.apache.rya.indexing.accumulo.temporal.AccumuloTemporalIndexer;
 import org.apache.rya.indexing.external.PrecomputedJoinIndexer;
-import org.openrdf.sail.Sail;
-
-import com.google.common.base.Preconditions;
-import com.google.common.collect.Lists;
+import org.eclipse.rdf4j.sail.Sail;
 
 /**
  * This class is an extension of the AccumuloRdfConfiguration object used to to

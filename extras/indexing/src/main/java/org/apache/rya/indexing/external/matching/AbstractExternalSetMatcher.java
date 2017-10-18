@@ -36,7 +36,11 @@ package org.apache.rya.indexing.external.matching;
  * under the License.
  */
 
-import java.util.ArrayList;
+import java.util.*;
+
+import org.apache.rya.indexing.external.matching.QueryNodesToTupleExpr.TupleExprAndNodes;
+import org.eclipse.rdf4j.query.algebra.*;
+import org.eclipse.rdf4j.query.algebra.evaluation.impl.ExternalSet;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -56,19 +60,6 @@ import java.util.ArrayList;
  * specific language governing permissions and limitations
  * under the License.
  */
-
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
-import org.apache.rya.indexing.external.matching.QueryNodesToTupleExpr.TupleExprAndNodes;
-import org.openrdf.query.algebra.BinaryTupleOperator;
-import org.openrdf.query.algebra.Filter;
-import org.openrdf.query.algebra.QueryModelNode;
-import org.openrdf.query.algebra.TupleExpr;
-import org.openrdf.query.algebra.UnaryTupleOperator;
-import org.openrdf.query.algebra.evaluation.impl.ExternalSet;
 
 /**
  * This class provides implementations of methods common to all implementations

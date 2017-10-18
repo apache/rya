@@ -18,8 +18,14 @@ package org.apache.rya.indexing.external.matching;
  * under the License.
  */
 
-import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.*;
+
+import com.google.common.base.Preconditions;
+import com.google.common.collect.Sets;
+import org.apache.rya.rdftriplestore.inference.DoNotExpandSP;
+import org.apache.rya.rdftriplestore.utils.FixedStatementPattern;
+import org.eclipse.rdf4j.query.algebra.*;
+import org.eclipse.rdf4j.query.algebra.evaluation.impl.ExternalSet;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -39,23 +45,6 @@ import java.util.HashMap;
  * specific language governing permissions and limitations
  * under the License.
  */
-
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import org.apache.rya.indexing.pcj.matching.PCJOptimizerUtilities;
-import org.apache.rya.rdftriplestore.inference.DoNotExpandSP;
-import org.apache.rya.rdftriplestore.utils.FixedStatementPattern;
-import org.openrdf.query.algebra.Filter;
-import org.openrdf.query.algebra.Join;
-import org.openrdf.query.algebra.QueryModelNode;
-import org.openrdf.query.algebra.TupleExpr;
-import org.openrdf.query.algebra.ValueExpr;
-import org.openrdf.query.algebra.evaluation.impl.ExternalSet;
-
-import com.google.common.base.Preconditions;
-import com.google.common.collect.Sets;
 
 /**
  * This class represents a portion of a {@link TupleExpr} query that PCJ queries

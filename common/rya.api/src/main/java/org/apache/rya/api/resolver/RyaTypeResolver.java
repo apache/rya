@@ -23,28 +23,27 @@ package org.apache.rya.api.resolver;
 
 import org.apache.rya.api.domain.RyaRange;
 import org.apache.rya.api.domain.RyaType;
-import org.apache.rya.api.domain.RyaTypeRange;
-import org.openrdf.model.URI;
+import org.eclipse.rdf4j.model.IRI;
 
 /**
  * Date: 7/16/12
  * Time: 12:08 PM
  */
 public interface RyaTypeResolver {
-    public byte[] serialize(RyaType ryaType) throws RyaTypeResolverException;
-    public byte[][] serializeType(RyaType ryaType) throws RyaTypeResolverException;
+    byte[] serialize(RyaType ryaType) throws RyaTypeResolverException;
+    byte[][] serializeType(RyaType ryaType) throws RyaTypeResolverException;
 
-    public RyaType deserialize(byte[] bytes) throws RyaTypeResolverException;
+    RyaType deserialize(byte[] bytes) throws RyaTypeResolverException;
 
-    public RyaType newInstance();
+    RyaType newInstance();
 
     /**
      * @param bytes
      * @return true if this byte[] is deserializable by this resolver
      */
-    public boolean deserializable(byte[] bytes);
+    boolean deserializable(byte[] bytes);
 
-    public URI getRyaDataType();
+    IRI getRyaDataType();
 
     byte getMarkerByte();
 
@@ -55,6 +54,6 @@ public interface RyaTypeResolver {
      * @return
      * @throws RyaTypeResolverException
      */
-    public RyaRange transformRange(RyaRange ryaRange) throws RyaTypeResolverException;
+    RyaRange transformRange(RyaRange ryaRange) throws RyaTypeResolverException;
 
 }

@@ -19,31 +19,19 @@ package org.apache.rya.indexing.external.tupleSet;
  * under the License.
  */
 
-
-
-import info.aduna.iteration.CloseableIteration;
-
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import org.openrdf.query.BindingSet;
-import org.openrdf.query.QueryEvaluationException;
-import org.openrdf.query.algebra.Projection;
-import org.openrdf.query.algebra.TupleExpr;
-import org.openrdf.query.algebra.Var;
-import org.openrdf.query.algebra.evaluation.impl.ExternalSet;
-import org.openrdf.query.algebra.helpers.QueryModelVisitorBase;
+import java.util.*;
 
 import com.google.common.base.Joiner;
 import com.google.common.base.Preconditions;
-import com.google.common.collect.BiMap;
-import com.google.common.collect.HashBiMap;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
+import com.google.common.collect.*;
+import org.eclipse.rdf4j.common.iteration.CloseableIteration;
+import org.eclipse.rdf4j.query.BindingSet;
+import org.eclipse.rdf4j.query.QueryEvaluationException;
+import org.eclipse.rdf4j.query.algebra.Projection;
+import org.eclipse.rdf4j.query.algebra.TupleExpr;
+import org.eclipse.rdf4j.query.algebra.Var;
+import org.eclipse.rdf4j.query.algebra.evaluation.impl.ExternalSet;
+import org.eclipse.rdf4j.query.algebra.helpers.QueryModelVisitorBase;
 
 /**
  * This is an abstract class of delegating the evaluation of part
@@ -63,7 +51,7 @@ public abstract class ExternalTupleSet extends ExternalSet {
 	private Projection tupleExpr;
     private Map<String, String> tableVarMap = Maps.newHashMap();  //maps vars in tupleExpr to var in stored binding sets
     private Map<String, Set<String>> supportedVarOrders = Maps.newHashMap(); //indicates supported var orders
-    private Map<String, org.openrdf.model.Value> valMap;
+    private Map<String,  org.eclipse.rdf4j.model.Value> valMap;
 
     public ExternalTupleSet() {
     }
@@ -134,7 +122,7 @@ public abstract class ExternalTupleSet extends ExternalSet {
         return supportedVarOrders;
     }
 
-    public Map<String, org.openrdf.model.Value> getConstantValueMap() {
+    public Map<String,  org.eclipse.rdf4j.model.Value> getConstantValueMap() {
     	return valMap;
     }
 
@@ -202,8 +190,8 @@ public abstract class ExternalTupleSet extends ExternalSet {
 	 */
 	private void updateSupportedVarOrderMap() {
 
-		Preconditions.checkArgument(supportedVarOrders.size() != 0);;
-		final Map<String, Set<String>> newSupportedOrders = Maps.newHashMap();
+		Preconditions.checkArgument(supportedVarOrders.size() != 0);
+        final Map<String, Set<String>> newSupportedOrders = Maps.newHashMap();
 		final BiMap<String, String> biMap = HashBiMap.create(tableVarMap)
 				.inverse();
 		Set<String> temp = null;
@@ -262,11 +250,7 @@ public abstract class ExternalTupleSet extends ExternalSet {
             return false;
         } else {
             final ExternalTupleSet arg = (ExternalTupleSet) other;
-            if (this.getTupleExpr().equals(arg.getTupleExpr())) {
-                return true;
-            } else {
-                return false;
-            }
+            return this.getTupleExpr().equals(arg.getTupleExpr());
         }
     }
 
@@ -277,7 +261,7 @@ public abstract class ExternalTupleSet extends ExternalSet {
         return result;
     }
 
-    private Map<String, org.openrdf.model.Value> getValMap() {
+    private Map<String,  org.eclipse.rdf4j.model.Value> getValMap() {
 		ValueMapVisitor valMapVis = new ValueMapVisitor();
 		tupleExpr.visit(valMapVis);
 		return valMapVis.getValMap();
@@ -291,9 +275,9 @@ public abstract class ExternalTupleSet extends ExternalSet {
 	 */
 	private class ValueMapVisitor extends
 			QueryModelVisitorBase<RuntimeException> {
-		Map<String, org.openrdf.model.Value> valMap = Maps.newHashMap();
+		Map<String,  org.eclipse.rdf4j.model.Value> valMap = Maps.newHashMap();
 
-		public Map<String, org.openrdf.model.Value> getValMap() {
+		public Map<String,  org.eclipse.rdf4j.model.Value> getValMap() {
 			return valMap;
 		}
 

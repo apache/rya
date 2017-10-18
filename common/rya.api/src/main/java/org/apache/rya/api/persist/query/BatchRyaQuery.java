@@ -23,7 +23,6 @@ package org.apache.rya.api.persist.query;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Iterables;
-import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
 import org.apache.rya.api.domain.RyaStatement;
 
 /**
@@ -92,9 +91,7 @@ public class BatchRyaQuery extends RyaQueryOptions {
 
         BatchRyaQuery that = (BatchRyaQuery) o;
 
-        if (queries != null ? !queries.equals(that.queries) : that.queries != null) return false;
-
-        return true;
+        return queries != null ? queries.equals(that.queries) : that.queries == null;
     }
 
     @Override

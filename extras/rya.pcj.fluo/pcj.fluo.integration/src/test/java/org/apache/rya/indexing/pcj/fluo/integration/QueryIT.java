@@ -18,9 +18,6 @@
  */
 package org.apache.rya.indexing.pcj.fluo.integration;
 
-import static java.util.Objects.requireNonNull;
-import static org.junit.Assert.assertEquals;
-
 import java.math.BigDecimal;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
@@ -29,8 +26,8 @@ import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
 
+import com.google.common.collect.Sets;
 import javax.xml.datatype.DatatypeFactory;
-
 import org.apache.accumulo.core.client.Connector;
 import org.apache.fluo.api.client.FluoClient;
 import org.apache.fluo.core.client.FluoClientImpl;
@@ -47,26 +44,22 @@ import org.apache.rya.indexing.pcj.storage.PrecomputedJoinStorage.CloseableItera
 import org.apache.rya.indexing.pcj.storage.accumulo.AccumuloPcjStorage;
 import org.apache.rya.indexing.pcj.storage.accumulo.AccumuloPeriodicQueryResultStorage;
 import org.apache.rya.pcj.fluo.test.base.RyaExportITBase;
+import org.eclipse.rdf4j.model.*;
+import org.eclipse.rdf4j.model.datatypes.XMLDatatypeUtil;
+import org.eclipse.rdf4j.model.impl.BooleanLiteralImpl;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
+import org.eclipse.rdf4j.model.vocabulary.FN;
+import org.eclipse.rdf4j.model.vocabulary.XMLSchema;
+import org.eclipse.rdf4j.query.BindingSet;
+import org.eclipse.rdf4j.query.algebra.evaluation.ValueExprEvaluationException;
+import org.eclipse.rdf4j.query.algebra.evaluation.function.Function;
+import org.eclipse.rdf4j.query.algebra.evaluation.function.FunctionRegistry;
+import org.eclipse.rdf4j.query.impl.MapBindingSet;
+import org.eclipse.rdf4j.repository.sail.SailRepositoryConnection;
 import org.junit.Test;
-import org.openrdf.model.Literal;
-import org.openrdf.model.Statement;
-import org.openrdf.model.URI;
-import org.openrdf.model.Value;
-import org.openrdf.model.ValueFactory;
-import org.openrdf.model.datatypes.XMLDatatypeUtil;
-import org.openrdf.model.impl.BooleanLiteralImpl;
-import org.openrdf.model.impl.ValueFactoryImpl;
-import org.openrdf.model.vocabulary.FN;
-import org.openrdf.model.vocabulary.XMLSchema;
-import org.openrdf.query.BindingSet;
-import org.openrdf.query.algebra.evaluation.ValueExprEvaluationException;
-import org.openrdf.query.algebra.evaluation.function.Function;
-import org.openrdf.query.algebra.evaluation.function.FunctionRegistry;
-import org.openrdf.query.impl.MapBindingSet;
-import org.openrdf.repository.RepositoryException;
-import org.openrdf.repository.sail.SailRepositoryConnection;
 
-import com.google.common.collect.Sets;
+import static java.util.Objects.requireNonNull;
+import static org.junit.Assert.assertEquals;
 
 /**
  * Performs integration tests over the Fluo application geared towards various query structures.
@@ -82,32 +75,32 @@ public class QueryIT extends RyaExportITBase {
                 + "OPTIONAL {?person <http://passedExam> ?exam } . " + "}";
 
         // Create the Statements that will be loaded into Rya.
-        final ValueFactory vf = new ValueFactoryImpl();
+        final ValueFactory vf = SimpleValueFactory.getInstance();
         final Collection<Statement> statements = Sets.newHashSet(
-                vf.createStatement(vf.createURI("http://Alice"), vf.createURI("http://hasDegreeIn"),
-                        vf.createURI("http://Computer Science")),
-                vf.createStatement(vf.createURI("http://Alice"), vf.createURI("http://passedExam"),
-                        vf.createURI("http://Certified Ethical Hacker")),
-                vf.createStatement(vf.createURI("http://Bob"), vf.createURI("http://hasDegreeIn"), vf.createURI("http://Law")),
-                vf.createStatement(vf.createURI("http://Bob"), vf.createURI("http://passedExam"), vf.createURI("http://MBE")),
-                vf.createStatement(vf.createURI("http://Bob"), vf.createURI("http://passedExam"), vf.createURI("http://BAR-Kansas")),
-                vf.createStatement(vf.createURI("http://Charlie"), vf.createURI("http://hasDegreeIn"), vf.createURI("http://Law")));
+                vf.createStatement(vf.createIRI("http://Alice"), vf.createIRI("http://hasDegreeIn"),
+                        vf.createIRI("http://Computer Science")),
+                vf.createStatement(vf.createIRI("http://Alice"), vf.createIRI("http://passedExam"),
+                        vf.createIRI("http://Certified Ethical Hacker")),
+                vf.createStatement(vf.createIRI("http://Bob"), vf.createIRI("http://hasDegreeIn"), vf.createIRI("http://Law")),
+                vf.createStatement(vf.createIRI("http://Bob"), vf.createIRI("http://passedExam"), vf.createIRI("http://MBE")),
+                vf.createStatement(vf.createIRI("http://Bob"), vf.createIRI("http://passedExam"), vf.createIRI("http://BAR-Kansas")),
+                vf.createStatement(vf.createIRI("http://Charlie"), vf.createIRI("http://hasDegreeIn"), vf.createIRI("http://Law")));
 
         // Create the expected results of the SPARQL query once the PCJ has been computed.
         final Set<BindingSet> expectedResults = new HashSet<>();
 
         MapBindingSet bs = new MapBindingSet();
-        bs.addBinding("person", vf.createURI("http://Bob"));
-        bs.addBinding("exam", vf.createURI("http://MBE"));
+        bs.addBinding("person", vf.createIRI("http://Bob"));
+        bs.addBinding("exam", vf.createIRI("http://MBE"));
         expectedResults.add(bs);
 
         bs = new MapBindingSet();
-        bs.addBinding("person", vf.createURI("http://Bob"));
-        bs.addBinding("exam", vf.createURI("http://BAR-Kansas"));
+        bs.addBinding("person", vf.createIRI("http://Bob"));
+        bs.addBinding("exam", vf.createIRI("http://BAR-Kansas"));
         expectedResults.add(bs);
 
         bs = new MapBindingSet();
-        bs.addBinding("person", vf.createURI("http://Charlie"));
+        bs.addBinding("person", vf.createIRI("http://Charlie"));
         expectedResults.add(bs);
 
         // Verify the end results of the query match the expected results.
@@ -128,61 +121,61 @@ public class QueryIT extends RyaExportITBase {
                 + "?candidate <http://talksTo> ?leader. " + "}";
 
         // Create the Statements that will be loaded into Rya.
-        final ValueFactory vf = new ValueFactoryImpl();
+        final ValueFactory vf = SimpleValueFactory.getInstance();
         final Collection<Statement> statements = Sets.newHashSet(
                 // Leaders
-                vf.createStatement(vf.createURI("http://Alice"), vf.createURI("http://leaderOf"), vf.createURI("http://GeekSquad")),
-                vf.createStatement(vf.createURI("http://Bob"), vf.createURI("http://leaderOf"), vf.createURI("http://GeekSquad")),
+                vf.createStatement(vf.createIRI("http://Alice"), vf.createIRI("http://leaderOf"), vf.createIRI("http://GeekSquad")),
+                vf.createStatement(vf.createIRI("http://Bob"), vf.createIRI("http://leaderOf"), vf.createIRI("http://GeekSquad")),
 
         // Recruiters
-                vf.createStatement(vf.createURI("http://Charlie"), vf.createURI("http://recruiterFor"), vf.createURI("http://GeekSquad")),
-                vf.createStatement(vf.createURI("http://David"), vf.createURI("http://recruiterFor"), vf.createURI("http://GeekSquad")),
+                vf.createStatement(vf.createIRI("http://Charlie"), vf.createIRI("http://recruiterFor"), vf.createIRI("http://GeekSquad")),
+                vf.createStatement(vf.createIRI("http://David"), vf.createIRI("http://recruiterFor"), vf.createIRI("http://GeekSquad")),
 
         // Candidates
-                vf.createStatement(vf.createURI("http://Eve"), vf.createURI("http://skilledWith"), vf.createURI("http://Computers")),
-                vf.createStatement(vf.createURI("http://Eve"), vf.createURI("http://livesIn"), vf.createLiteral("USA")),
-                vf.createStatement(vf.createURI("http://Frank"), vf.createURI("http://skilledWith"), vf.createURI("http://Computers")),
-                vf.createStatement(vf.createURI("http://Frank"), vf.createURI("http://livesIn"), vf.createLiteral("USA")),
-                vf.createStatement(vf.createURI("http://George"), vf.createURI("http://skilledWith"), vf.createURI("http://Computers")),
-                vf.createStatement(vf.createURI("http://George"), vf.createURI("http://livesIn"), vf.createLiteral("Germany")),
-                vf.createStatement(vf.createURI("http://Harry"), vf.createURI("http://skilledWith"), vf.createURI("http://Negotiating")),
-                vf.createStatement(vf.createURI("http://Harry"), vf.createURI("http://livesIn"), vf.createLiteral("USA")),
-                vf.createStatement(vf.createURI("http://Ivan"), vf.createURI("http://skilledWith"), vf.createURI("http://Computers")),
-                vf.createStatement(vf.createURI("http://Ivan"), vf.createURI("http://livesIn"), vf.createLiteral("USA")),
+                vf.createStatement(vf.createIRI("http://Eve"), vf.createIRI("http://skilledWith"), vf.createIRI("http://Computers")),
+                vf.createStatement(vf.createIRI("http://Eve"), vf.createIRI("http://livesIn"), vf.createLiteral("USA")),
+                vf.createStatement(vf.createIRI("http://Frank"), vf.createIRI("http://skilledWith"), vf.createIRI("http://Computers")),
+                vf.createStatement(vf.createIRI("http://Frank"), vf.createIRI("http://livesIn"), vf.createLiteral("USA")),
+                vf.createStatement(vf.createIRI("http://George"), vf.createIRI("http://skilledWith"), vf.createIRI("http://Computers")),
+                vf.createStatement(vf.createIRI("http://George"), vf.createIRI("http://livesIn"), vf.createLiteral("Germany")),
+                vf.createStatement(vf.createIRI("http://Harry"), vf.createIRI("http://skilledWith"), vf.createIRI("http://Negotiating")),
+                vf.createStatement(vf.createIRI("http://Harry"), vf.createIRI("http://livesIn"), vf.createLiteral("USA")),
+                vf.createStatement(vf.createIRI("http://Ivan"), vf.createIRI("http://skilledWith"), vf.createIRI("http://Computers")),
+                vf.createStatement(vf.createIRI("http://Ivan"), vf.createIRI("http://livesIn"), vf.createLiteral("USA")),
 
         // Candidates the recruiters talk to.
-                vf.createStatement(vf.createURI("http://Charlie"), vf.createURI("http://talksTo"), vf.createURI("http://Eve")),
-                vf.createStatement(vf.createURI("http://Charlie"), vf.createURI("http://talksTo"), vf.createURI("http://George")),
-                vf.createStatement(vf.createURI("http://Charlie"), vf.createURI("http://talksTo"), vf.createURI("http://Harry")),
-                vf.createStatement(vf.createURI("http://David"), vf.createURI("http://talksTo"), vf.createURI("http://Eve")),
-                vf.createStatement(vf.createURI("http://David"), vf.createURI("http://talksTo"), vf.createURI("http://Frank")),
-                vf.createStatement(vf.createURI("http://David"), vf.createURI("http://talksTo"), vf.createURI("http://Ivan")),
+                vf.createStatement(vf.createIRI("http://Charlie"), vf.createIRI("http://talksTo"), vf.createIRI("http://Eve")),
+                vf.createStatement(vf.createIRI("http://Charlie"), vf.createIRI("http://talksTo"), vf.createIRI("http://George")),
+                vf.createStatement(vf.createIRI("http://Charlie"), vf.createIRI("http://talksTo"), vf.createIRI("http://Harry")),
+                vf.createStatement(vf.createIRI("http://David"), vf.createIRI("http://talksTo"), vf.createIRI("http://Eve")),
+                vf.createStatement(vf.createIRI("http://David"), vf.createIRI("http://talksTo"), vf.createIRI("http://Frank")),
+                vf.createStatement(vf.createIRI("http://David"), vf.createIRI("http://talksTo"), vf.createIRI("http://Ivan")),
 
         // Recruits that talk to leaders.
-                vf.createStatement(vf.createURI("http://Eve"), vf.createURI("http://talksTo"), vf.createURI("http://Alice")),
-                vf.createStatement(vf.createURI("http://George"), vf.createURI("http://talksTo"), vf.createURI("http://Alice")),
-                vf.createStatement(vf.createURI("http://Harry"), vf.createURI("http://talksTo"), vf.createURI("http://Bob")),
-                vf.createStatement(vf.createURI("http://Ivan"), vf.createURI("http://talksTo"), vf.createURI("http://Bob")));
+                vf.createStatement(vf.createIRI("http://Eve"), vf.createIRI("http://talksTo"), vf.createIRI("http://Alice")),
+                vf.createStatement(vf.createIRI("http://George"), vf.createIRI("http://talksTo"), vf.createIRI("http://Alice")),
+                vf.createStatement(vf.createIRI("http://Harry"), vf.createIRI("http://talksTo"), vf.createIRI("http://Bob")),
+                vf.createStatement(vf.createIRI("http://Ivan"), vf.createIRI("http://talksTo"), vf.createIRI("http://Bob")));
 
         // Create the expected results of the SPARQL query once the PCJ has been computed.
         final Set<BindingSet> expectedResults = new HashSet<>();
 
         MapBindingSet bs = new MapBindingSet();
-        bs.addBinding("recruiter", vf.createURI("http://Charlie"));
-        bs.addBinding("candidate", vf.createURI("http://Eve"));
-        bs.addBinding("leader", vf.createURI("http://Alice"));
+        bs.addBinding("recruiter", vf.createIRI("http://Charlie"));
+        bs.addBinding("candidate", vf.createIRI("http://Eve"));
+        bs.addBinding("leader", vf.createIRI("http://Alice"));
         expectedResults.add(bs);
 
         bs = new MapBindingSet();
-        bs.addBinding("recruiter", vf.createURI("http://David"));
-        bs.addBinding("candidate", vf.createURI("http://Eve"));
-        bs.addBinding("leader", vf.createURI("http://Alice"));
+        bs.addBinding("recruiter", vf.createIRI("http://David"));
+        bs.addBinding("candidate", vf.createIRI("http://Eve"));
+        bs.addBinding("leader", vf.createIRI("http://Alice"));
         expectedResults.add(bs);
 
         bs = new MapBindingSet();
-        bs.addBinding("recruiter", vf.createURI("http://David"));
-        bs.addBinding("candidate", vf.createURI("http://Ivan"));
-        bs.addBinding("leader", vf.createURI("http://Bob"));
+        bs.addBinding("recruiter", vf.createIRI("http://David"));
+        bs.addBinding("candidate", vf.createIRI("http://Ivan"));
+        bs.addBinding("leader", vf.createIRI("http://Bob"));
         expectedResults.add(bs);
 
         // Verify the end results of the query match the expected results.
@@ -196,47 +189,47 @@ public class QueryIT extends RyaExportITBase {
                 + "?worker <http://worksAt> <http://Chipotle>. " + "}";
 
         // Create the Statements that will be loaded into Rya.
-        final ValueFactory vf = new ValueFactoryImpl();
+        final ValueFactory vf = SimpleValueFactory.getInstance();
         final Collection<Statement> statements = Sets.newHashSet(
-                vf.createStatement(vf.createURI("http://Alice"), vf.createURI("http://talksTo"), vf.createURI("http://Bob")),
-                vf.createStatement(vf.createURI("http://Bob"), vf.createURI("http://livesIn"), vf.createURI("http://London")),
-                vf.createStatement(vf.createURI("http://Bob"), vf.createURI("http://worksAt"), vf.createURI("http://Chipotle")),
+                vf.createStatement(vf.createIRI("http://Alice"), vf.createIRI("http://talksTo"), vf.createIRI("http://Bob")),
+                vf.createStatement(vf.createIRI("http://Bob"), vf.createIRI("http://livesIn"), vf.createIRI("http://London")),
+                vf.createStatement(vf.createIRI("http://Bob"), vf.createIRI("http://worksAt"), vf.createIRI("http://Chipotle")),
 
-        vf.createStatement(vf.createURI("http://Alice"), vf.createURI("http://talksTo"), vf.createURI("http://Charlie")),
-                vf.createStatement(vf.createURI("http://Charlie"), vf.createURI("http://livesIn"), vf.createURI("http://London")),
-                vf.createStatement(vf.createURI("http://Charlie"), vf.createURI("http://worksAt"), vf.createURI("http://Chipotle")),
+        vf.createStatement(vf.createIRI("http://Alice"), vf.createIRI("http://talksTo"), vf.createIRI("http://Charlie")),
+                vf.createStatement(vf.createIRI("http://Charlie"), vf.createIRI("http://livesIn"), vf.createIRI("http://London")),
+                vf.createStatement(vf.createIRI("http://Charlie"), vf.createIRI("http://worksAt"), vf.createIRI("http://Chipotle")),
 
-        vf.createStatement(vf.createURI("http://Alice"), vf.createURI("http://talksTo"), vf.createURI("http://David")),
-                vf.createStatement(vf.createURI("http://David"), vf.createURI("http://livesIn"), vf.createURI("http://London")),
-                vf.createStatement(vf.createURI("http://David"), vf.createURI("http://worksAt"), vf.createURI("http://Chipotle")),
+        vf.createStatement(vf.createIRI("http://Alice"), vf.createIRI("http://talksTo"), vf.createIRI("http://David")),
+                vf.createStatement(vf.createIRI("http://David"), vf.createIRI("http://livesIn"), vf.createIRI("http://London")),
+                vf.createStatement(vf.createIRI("http://David"), vf.createIRI("http://worksAt"), vf.createIRI("http://Chipotle")),
 
-        vf.createStatement(vf.createURI("http://Alice"), vf.createURI("http://talksTo"), vf.createURI("http://Eve")),
-                vf.createStatement(vf.createURI("http://Eve"), vf.createURI("http://livesIn"), vf.createURI("http://Leeds")),
-                vf.createStatement(vf.createURI("http://Eve"), vf.createURI("http://worksAt"), vf.createURI("http://Chipotle")),
+        vf.createStatement(vf.createIRI("http://Alice"), vf.createIRI("http://talksTo"), vf.createIRI("http://Eve")),
+                vf.createStatement(vf.createIRI("http://Eve"), vf.createIRI("http://livesIn"), vf.createIRI("http://Leeds")),
+                vf.createStatement(vf.createIRI("http://Eve"), vf.createIRI("http://worksAt"), vf.createIRI("http://Chipotle")),
 
-        vf.createStatement(vf.createURI("http://Frank"), vf.createURI("http://talksTo"), vf.createURI("http://Alice")),
-                vf.createStatement(vf.createURI("http://Frank"), vf.createURI("http://livesIn"), vf.createURI("http://London")),
-                vf.createStatement(vf.createURI("http://Frank"), vf.createURI("http://worksAt"), vf.createURI("http://Chipotle")));
+        vf.createStatement(vf.createIRI("http://Frank"), vf.createIRI("http://talksTo"), vf.createIRI("http://Alice")),
+                vf.createStatement(vf.createIRI("http://Frank"), vf.createIRI("http://livesIn"), vf.createIRI("http://London")),
+                vf.createStatement(vf.createIRI("http://Frank"), vf.createIRI("http://worksAt"), vf.createIRI("http://Chipotle")));
 
         // Create the expected results of the SPARQL query once the PCJ has been computed.
         final Set<BindingSet> expectedResults = new HashSet<>();
 
         MapBindingSet bs = new MapBindingSet();
-        bs.addBinding("customer", vf.createURI("http://Alice"));
-        bs.addBinding("worker", vf.createURI("http://Bob"));
-        bs.addBinding("city", vf.createURI("http://London"));
+        bs.addBinding("customer", vf.createIRI("http://Alice"));
+        bs.addBinding("worker", vf.createIRI("http://Bob"));
+        bs.addBinding("city", vf.createIRI("http://London"));
         expectedResults.add(bs);
 
         bs = new MapBindingSet();
-        bs.addBinding("customer", vf.createURI("http://Alice"));
-        bs.addBinding("worker", vf.createURI("http://Charlie"));
-        bs.addBinding("city", vf.createURI("http://London"));
+        bs.addBinding("customer", vf.createIRI("http://Alice"));
+        bs.addBinding("worker", vf.createIRI("http://Charlie"));
+        bs.addBinding("city", vf.createIRI("http://London"));
         expectedResults.add(bs);
 
         bs = new MapBindingSet();
-        bs.addBinding("customer", vf.createURI("http://Alice"));
-        bs.addBinding("worker", vf.createURI("http://David"));
-        bs.addBinding("city", vf.createURI("http://London"));
+        bs.addBinding("customer", vf.createIRI("http://Alice"));
+        bs.addBinding("worker", vf.createIRI("http://David"));
+        bs.addBinding("city", vf.createIRI("http://London"));
         expectedResults.add(bs);
 
         // Verify the end results of the query match the expected results.
@@ -249,30 +242,30 @@ public class QueryIT extends RyaExportITBase {
                 + "?name <http://playsSport> \"Soccer\" " + "}";
 
         // Create the Statements that will be loaded into Rya.
-        final ValueFactory vf = new ValueFactoryImpl();
+        final ValueFactory vf = SimpleValueFactory.getInstance();
         final Collection<Statement> statements = Sets.newHashSet(
-                vf.createStatement(vf.createURI("http://Alice"), vf.createURI("http://hasAge"), vf.createLiteral(18)),
-                vf.createStatement(vf.createURI("http://Bob"), vf.createURI("http://hasAge"), vf.createLiteral(30)),
-                vf.createStatement(vf.createURI("http://Charlie"), vf.createURI("http://hasAge"), vf.createLiteral(14)),
-                vf.createStatement(vf.createURI("http://David"), vf.createURI("http://hasAge"), vf.createLiteral(16)),
-                vf.createStatement(vf.createURI("http://Eve"), vf.createURI("http://hasAge"), vf.createLiteral(35)),
+                vf.createStatement(vf.createIRI("http://Alice"), vf.createIRI("http://hasAge"), vf.createLiteral(18)),
+                vf.createStatement(vf.createIRI("http://Bob"), vf.createIRI("http://hasAge"), vf.createLiteral(30)),
+                vf.createStatement(vf.createIRI("http://Charlie"), vf.createIRI("http://hasAge"), vf.createLiteral(14)),
+                vf.createStatement(vf.createIRI("http://David"), vf.createIRI("http://hasAge"), vf.createLiteral(16)),
+                vf.createStatement(vf.createIRI("http://Eve"), vf.createIRI("http://hasAge"), vf.createLiteral(35)),
 
-        vf.createStatement(vf.createURI("http://Alice"), vf.createURI("http://playsSport"), vf.createLiteral("Soccer")),
-                vf.createStatement(vf.createURI("http://Bob"), vf.createURI("http://playsSport"), vf.createLiteral("Soccer")),
-                vf.createStatement(vf.createURI("http://Charlie"), vf.createURI("http://playsSport"), vf.createLiteral("Basketball")),
-                vf.createStatement(vf.createURI("http://Charlie"), vf.createURI("http://playsSport"), vf.createLiteral("Soccer")),
-                vf.createStatement(vf.createURI("http://David"), vf.createURI("http://playsSport"), vf.createLiteral("Basketball")));
+        vf.createStatement(vf.createIRI("http://Alice"), vf.createIRI("http://playsSport"), vf.createLiteral("Soccer")),
+                vf.createStatement(vf.createIRI("http://Bob"), vf.createIRI("http://playsSport"), vf.createLiteral("Soccer")),
+                vf.createStatement(vf.createIRI("http://Charlie"), vf.createIRI("http://playsSport"), vf.createLiteral("Basketball")),
+                vf.createStatement(vf.createIRI("http://Charlie"), vf.createIRI("http://playsSport"), vf.createLiteral("Soccer")),
+                vf.createStatement(vf.createIRI("http://David"), vf.createIRI("http://playsSport"), vf.createLiteral("Basketball")));
 
         // Create the expected results of the SPARQL query once the PCJ has been computed.
         final Set<BindingSet> expectedResults = new HashSet<>();
 
         MapBindingSet bs = new MapBindingSet();
-        bs.addBinding("name", vf.createURI("http://Alice"));
+        bs.addBinding("name", vf.createIRI("http://Alice"));
         bs.addBinding("age", vf.createLiteral("18", XMLSchema.INTEGER));
         expectedResults.add(bs);
 
         bs = new MapBindingSet();
-        bs.addBinding("name", vf.createURI("http://Charlie"));
+        bs.addBinding("name", vf.createIRI("http://Charlie"));
         bs.addBinding("age", vf.createLiteral("14", XMLSchema.INTEGER));
         expectedResults.add(bs);
 
@@ -302,7 +295,7 @@ public class QueryIT extends RyaExportITBase {
 
                 if (args[0] instanceof Literal) {
                     final Literal literal = (Literal) args[0];
-                    final URI datatype = literal.getDatatype();
+                    final IRI datatype = literal.getDatatype();
 
                     // ABS function accepts only numeric literals
                     if (datatype != null && XMLDatatypeUtil.isNumericDatatype(datatype)) {
@@ -330,30 +323,30 @@ public class QueryIT extends RyaExportITBase {
         FunctionRegistry.getInstance().add(fooFunction);
 
         // Create the Statements that will be loaded into Rya.
-        final ValueFactory vf = new ValueFactoryImpl();
+        final ValueFactory vf = SimpleValueFactory.getInstance();
         final Collection<Statement> statements = Sets.newHashSet(
-                vf.createStatement(vf.createURI("http://Alice"), vf.createURI("http://hasAge"), vf.createLiteral(18)),
-                vf.createStatement(vf.createURI("http://Bob"), vf.createURI("http://hasAge"), vf.createLiteral(30)),
-                vf.createStatement(vf.createURI("http://Charlie"), vf.createURI("http://hasAge"), vf.createLiteral(14)),
-                vf.createStatement(vf.createURI("http://David"), vf.createURI("http://hasAge"), vf.createLiteral(16)),
-                vf.createStatement(vf.createURI("http://Eve"), vf.createURI("http://hasAge"), vf.createLiteral(35)),
+                vf.createStatement(vf.createIRI("http://Alice"), vf.createIRI("http://hasAge"), vf.createLiteral(18)),
+                vf.createStatement(vf.createIRI("http://Bob"), vf.createIRI("http://hasAge"), vf.createLiteral(30)),
+                vf.createStatement(vf.createIRI("http://Charlie"), vf.createIRI("http://hasAge"), vf.createLiteral(14)),
+                vf.createStatement(vf.createIRI("http://David"), vf.createIRI("http://hasAge"), vf.createLiteral(16)),
+                vf.createStatement(vf.createIRI("http://Eve"), vf.createIRI("http://hasAge"), vf.createLiteral(35)),
 
-        vf.createStatement(vf.createURI("http://Alice"), vf.createURI("http://playsSport"), vf.createLiteral("Soccer")),
-                vf.createStatement(vf.createURI("http://Bob"), vf.createURI("http://playsSport"), vf.createLiteral("Soccer")),
-                vf.createStatement(vf.createURI("http://Charlie"), vf.createURI("http://playsSport"), vf.createLiteral("Basketball")),
-                vf.createStatement(vf.createURI("http://Charlie"), vf.createURI("http://playsSport"), vf.createLiteral("Soccer")),
-                vf.createStatement(vf.createURI("http://David"), vf.createURI("http://playsSport"), vf.createLiteral("Basketball")));
+        vf.createStatement(vf.createIRI("http://Alice"), vf.createIRI("http://playsSport"), vf.createLiteral("Soccer")),
+                vf.createStatement(vf.createIRI("http://Bob"), vf.createIRI("http://playsSport"), vf.createLiteral("Soccer")),
+                vf.createStatement(vf.createIRI("http://Charlie"), vf.createIRI("http://playsSport"), vf.createLiteral("Basketball")),
+                vf.createStatement(vf.createIRI("http://Charlie"), vf.createIRI("http://playsSport"), vf.createLiteral("Soccer")),
+                vf.createStatement(vf.createIRI("http://David"), vf.createIRI("http://playsSport"), vf.createLiteral("Basketball")));
 
         // Create the expected results of the SPARQL query once the PCJ has been computed.
         final Set<BindingSet> expectedResults = new HashSet<>();
 
         MapBindingSet bs = new MapBindingSet();
-        bs.addBinding("name", vf.createURI("http://Alice"));
+        bs.addBinding("name", vf.createIRI("http://Alice"));
         bs.addBinding("age", vf.createLiteral("18", XMLSchema.INTEGER));
         expectedResults.add(bs);
 
         bs = new MapBindingSet();
-        bs.addBinding("name", vf.createURI("http://Charlie"));
+        bs.addBinding("name", vf.createIRI("http://Charlie"));
         bs.addBinding("age", vf.createLiteral("14", XMLSchema.INTEGER));
         expectedResults.add(bs);
 
@@ -372,53 +365,53 @@ public class QueryIT extends RyaExportITBase {
                 + "FILTER(?time > '2001-01-01T01:01:03-08:00'^^xml:dateTime) " + "}";
 
         // Create the Statements that will be loaded into Rya.
-        final ValueFactory vf = new ValueFactoryImpl();
+        final ValueFactory vf = SimpleValueFactory.getInstance();
         final DatatypeFactory dtf = DatatypeFactory.newInstance();
         final Collection<Statement> statements = Sets.newHashSet(
-                vf.createStatement(vf.createURI("http://eventz"), vf.createURI("http://www.w3.org/1999/02/22-rdf-syntax-ns#type"),
-                        vf.createURI("http://www.w3.org/2006/time#Instant")),
-                vf.createStatement(vf.createURI("http://eventz"), vf.createURI(dtPredUri),
+                vf.createStatement(vf.createIRI("http://eventz"), vf.createIRI("http://www.w3.org/1999/02/22-rdf-syntax-ns#type"),
+                        vf.createIRI("http://www.w3.org/2006/time#Instant")),
+                vf.createStatement(vf.createIRI("http://eventz"), vf.createIRI(dtPredUri),
                         vf.createLiteral(dtf.newXMLGregorianCalendar("2001-01-01T01:01:01-08:00"))), // 1 second
-                vf.createStatement(vf.createURI("http://eventz"), vf.createURI(dtPredUri),
+                vf.createStatement(vf.createIRI("http://eventz"), vf.createIRI(dtPredUri),
                         vf.createLiteral(dtf.newXMLGregorianCalendar("2001-01-01T04:01:02.000-05:00"))), // 2 second
-                vf.createStatement(vf.createURI("http://eventz"), vf.createURI(dtPredUri),
+                vf.createStatement(vf.createIRI("http://eventz"), vf.createIRI(dtPredUri),
                         vf.createLiteral(dtf.newXMLGregorianCalendar("2001-01-01T01:01:03-08:00"))), // 3 seconds
-                vf.createStatement(vf.createURI("http://eventz"), vf.createURI(dtPredUri),
+                vf.createStatement(vf.createIRI("http://eventz"), vf.createIRI(dtPredUri),
                         vf.createLiteral(dtf.newXMLGregorianCalendar("2001-01-01T01:01:04-08:00"))), // 4 seconds
-                vf.createStatement(vf.createURI("http://eventz"), vf.createURI(dtPredUri),
+                vf.createStatement(vf.createIRI("http://eventz"), vf.createIRI(dtPredUri),
                         vf.createLiteral(dtf.newXMLGregorianCalendar("2001-01-01T09:01:05Z"))), // 5 seconds
-                vf.createStatement(vf.createURI("http://eventz"), vf.createURI(dtPredUri),
+                vf.createStatement(vf.createIRI("http://eventz"), vf.createIRI(dtPredUri),
                         vf.createLiteral(dtf.newXMLGregorianCalendar("2006-01-01T05:00:00.000Z"))),
-                vf.createStatement(vf.createURI("http://eventz"), vf.createURI(dtPredUri),
+                vf.createStatement(vf.createIRI("http://eventz"), vf.createIRI(dtPredUri),
                         vf.createLiteral(dtf.newXMLGregorianCalendar("2007-01-01T05:00:00.000Z"))),
-                vf.createStatement(vf.createURI("http://eventz"), vf.createURI(dtPredUri),
+                vf.createStatement(vf.createIRI("http://eventz"), vf.createIRI(dtPredUri),
                         vf.createLiteral(dtf.newXMLGregorianCalendar("2008-01-01T05:00:00.000Z"))));
 
         // Create the expected results of the SPARQL query once the PCJ has been computed.
         final Set<BindingSet> expectedResults = new HashSet<>();
 
         MapBindingSet bs = new MapBindingSet();
-        bs.addBinding("event", vf.createURI("http://eventz"));
+        bs.addBinding("event", vf.createIRI("http://eventz"));
         bs.addBinding("time", vf.createLiteral(dtf.newXMLGregorianCalendar("2001-01-01T09:01:04.000Z")));
         expectedResults.add(bs);
 
         bs = new MapBindingSet();
-        bs.addBinding("event", vf.createURI("http://eventz"));
+        bs.addBinding("event", vf.createIRI("http://eventz"));
         bs.addBinding("time", vf.createLiteral(dtf.newXMLGregorianCalendar("2001-01-01T09:01:05.000Z")));
         expectedResults.add(bs);
 
         bs = new MapBindingSet();
-        bs.addBinding("event", vf.createURI("http://eventz"));
+        bs.addBinding("event", vf.createIRI("http://eventz"));
         bs.addBinding("time", vf.createLiteral(dtf.newXMLGregorianCalendar("2006-01-01T05:00:00.000Z")));
         expectedResults.add(bs);
 
         bs = new MapBindingSet();
-        bs.addBinding("event", vf.createURI("http://eventz"));
+        bs.addBinding("event", vf.createIRI("http://eventz"));
         bs.addBinding("time", vf.createLiteral(dtf.newXMLGregorianCalendar("2007-01-01T05:00:00.000Z")));
         expectedResults.add(bs);
 
         bs = new MapBindingSet();
-        bs.addBinding("event", vf.createURI("http://eventz"));
+        bs.addBinding("event", vf.createIRI("http://eventz"));
         bs.addBinding("time", vf.createLiteral(dtf.newXMLGregorianCalendar("2008-01-01T05:00:00.000Z")));
         expectedResults.add(bs);
 
@@ -430,7 +423,7 @@ public class QueryIT extends RyaExportITBase {
     @Test
     public void dateTimeWithin() throws Exception {
         
-        final ValueFactory vf = new ValueFactoryImpl();
+        final ValueFactory vf = SimpleValueFactory.getInstance();
         DatatypeFactory dtf = DatatypeFactory.newInstance();
         FunctionRegistry.getInstance().add(new DateTimeWithinPeriod());
 
@@ -453,17 +446,17 @@ public class QueryIT extends RyaExportITBase {
 
         // Create the Statements that will be loaded into Rya.
         final Collection<Statement> statements = Sets.newHashSet(
-                vf.createStatement(vf.createURI("uri:event1"), vf.createURI("uri:startTime"), lit),
-                vf.createStatement(vf.createURI("uri:event1"), vf.createURI("uri:endTime"), lit1),
-                vf.createStatement(vf.createURI("uri:event2"), vf.createURI("uri:startTime"), lit),
-                vf.createStatement(vf.createURI("uri:event2"), vf.createURI("uri:endTime"), lit2)
+                vf.createStatement(vf.createIRI("uri:event1"), vf.createIRI("uri:startTime"), lit),
+                vf.createStatement(vf.createIRI("uri:event1"), vf.createIRI("uri:endTime"), lit1),
+                vf.createStatement(vf.createIRI("uri:event2"), vf.createIRI("uri:startTime"), lit),
+                vf.createStatement(vf.createIRI("uri:event2"), vf.createIRI("uri:endTime"), lit2)
                );
 
         // Create the expected results of the SPARQL query once the PCJ has been computed.
         final Set<BindingSet> expectedResults = new HashSet<>();
 
         MapBindingSet bs = new MapBindingSet();
-        bs.addBinding("event", vf.createURI("uri:event1"));
+        bs.addBinding("event", vf.createIRI("uri:event1"));
         bs.addBinding("startTime", lit);
         bs.addBinding("endTime", lit1);
         expectedResults.add(bs);
@@ -475,7 +468,7 @@ public class QueryIT extends RyaExportITBase {
     @Test
     public void dateTimeWithinNow() throws Exception {
         
-        final ValueFactory vf = new ValueFactoryImpl();
+        final ValueFactory vf = SimpleValueFactory.getInstance();
         DatatypeFactory dtf = DatatypeFactory.newInstance();
         FunctionRegistry.getInstance().add(new DateTimeWithinPeriod());
 
@@ -494,15 +487,15 @@ public class QueryIT extends RyaExportITBase {
 
         // Create the Statements that will be loaded into Rya.
         final Collection<Statement> statements = Sets.newHashSet(
-                vf.createStatement(vf.createURI("uri:event1"), vf.createURI("uri:startTime"), lit),
-                vf.createStatement(vf.createURI("uri:event2"), vf.createURI("uri:startTime"), lit1)
+                vf.createStatement(vf.createIRI("uri:event1"), vf.createIRI("uri:startTime"), lit),
+                vf.createStatement(vf.createIRI("uri:event2"), vf.createIRI("uri:startTime"), lit1)
                );
 
         // Create the expected results of the SPARQL query once the PCJ has been computed.
         final Set<BindingSet> expectedResults = new HashSet<>();
 
         MapBindingSet bs = new MapBindingSet();
-        bs.addBinding("event", vf.createURI("uri:event1"));
+        bs.addBinding("event", vf.createIRI("uri:event1"));
         bs.addBinding("startTime", lit);
         expectedResults.add(bs);
 
@@ -522,7 +515,7 @@ public class QueryIT extends RyaExportITBase {
                 + "?obs <uri:hasId> ?id }"; // n
 
         // Create the Statements that will be loaded into Rya.
-        final ValueFactory vf = new ValueFactoryImpl();
+        final ValueFactory vf = SimpleValueFactory.getInstance();
         final DatatypeFactory dtf = DatatypeFactory.newInstance();
         ZonedDateTime time = ZonedDateTime.now();
         long currentTime = time.toInstant().toEpochMilli();
@@ -540,18 +533,18 @@ public class QueryIT extends RyaExportITBase {
         String time4 = zTime4.format(DateTimeFormatter.ISO_INSTANT);
 
         final Collection<Statement> statements = Sets.newHashSet(
-                vf.createStatement(vf.createURI("urn:obs_1"), vf.createURI("uri:hasTime"),
+                vf.createStatement(vf.createIRI("urn:obs_1"), vf.createIRI("uri:hasTime"),
                         vf.createLiteral(dtf.newXMLGregorianCalendar(time1))),
-                vf.createStatement(vf.createURI("urn:obs_1"), vf.createURI("uri:hasId"), vf.createLiteral("id_1")),
-                vf.createStatement(vf.createURI("urn:obs_2"), vf.createURI("uri:hasTime"),
+                vf.createStatement(vf.createIRI("urn:obs_1"), vf.createIRI("uri:hasId"), vf.createLiteral("id_1")),
+                vf.createStatement(vf.createIRI("urn:obs_2"), vf.createIRI("uri:hasTime"),
                         vf.createLiteral(dtf.newXMLGregorianCalendar(time2))),
-                vf.createStatement(vf.createURI("urn:obs_2"), vf.createURI("uri:hasId"), vf.createLiteral("id_2")),
-                vf.createStatement(vf.createURI("urn:obs_3"), vf.createURI("uri:hasTime"),
+                vf.createStatement(vf.createIRI("urn:obs_2"), vf.createIRI("uri:hasId"), vf.createLiteral("id_2")),
+                vf.createStatement(vf.createIRI("urn:obs_3"), vf.createIRI("uri:hasTime"),
                         vf.createLiteral(dtf.newXMLGregorianCalendar(time3))),
-                vf.createStatement(vf.createURI("urn:obs_3"), vf.createURI("uri:hasId"), vf.createLiteral("id_3")),
-                vf.createStatement(vf.createURI("urn:obs_4"), vf.createURI("uri:hasTime"),
+                vf.createStatement(vf.createIRI("urn:obs_3"), vf.createIRI("uri:hasId"), vf.createLiteral("id_3")),
+                vf.createStatement(vf.createIRI("urn:obs_4"), vf.createIRI("uri:hasTime"),
                         vf.createLiteral(dtf.newXMLGregorianCalendar(time4))),
-                vf.createStatement(vf.createURI("urn:obs_4"), vf.createURI("uri:hasId"), vf.createLiteral("id_4")));
+                vf.createStatement(vf.createIRI("urn:obs_4"), vf.createIRI("uri:hasId"), vf.createLiteral("id_4")));
 
         // Create the expected results of the SPARQL query once the PCJ has been computed.
         final Set<BindingSet> expectedResults = new HashSet<>();
@@ -623,7 +616,7 @@ public class QueryIT extends RyaExportITBase {
                 + "?obs <uri:hasId> ?id }"; // n
 
         // Create the Statements that will be loaded into Rya.
-        final ValueFactory vf = new ValueFactoryImpl();
+        final ValueFactory vf = SimpleValueFactory.getInstance();
         final DatatypeFactory dtf = DatatypeFactory.newInstance();
         ZonedDateTime time = ZonedDateTime.now();
         long currentTime = time.toInstant().toEpochMilli();
@@ -641,18 +634,18 @@ public class QueryIT extends RyaExportITBase {
         String time4 = zTime4.format(DateTimeFormatter.ISO_INSTANT);
 
         final Collection<Statement> statements = Sets.newHashSet(
-                vf.createStatement(vf.createURI("urn:obs_1"), vf.createURI("uri:hasTime"),
+                vf.createStatement(vf.createIRI("urn:obs_1"), vf.createIRI("uri:hasTime"),
                         vf.createLiteral(dtf.newXMLGregorianCalendar(time1))),
-                vf.createStatement(vf.createURI("urn:obs_1"), vf.createURI("uri:hasId"), vf.createLiteral("id_1")),
-                vf.createStatement(vf.createURI("urn:obs_2"), vf.createURI("uri:hasTime"),
+                vf.createStatement(vf.createIRI("urn:obs_1"), vf.createIRI("uri:hasId"), vf.createLiteral("id_1")),
+                vf.createStatement(vf.createIRI("urn:obs_2"), vf.createIRI("uri:hasTime"),
                         vf.createLiteral(dtf.newXMLGregorianCalendar(time2))),
-                vf.createStatement(vf.createURI("urn:obs_2"), vf.createURI("uri:hasId"), vf.createLiteral("id_2")),
-                vf.createStatement(vf.createURI("urn:obs_3"), vf.createURI("uri:hasTime"),
+                vf.createStatement(vf.createIRI("urn:obs_2"), vf.createIRI("uri:hasId"), vf.createLiteral("id_2")),
+                vf.createStatement(vf.createIRI("urn:obs_3"), vf.createIRI("uri:hasTime"),
                         vf.createLiteral(dtf.newXMLGregorianCalendar(time3))),
-                vf.createStatement(vf.createURI("urn:obs_3"), vf.createURI("uri:hasId"), vf.createLiteral("id_3")),
-                vf.createStatement(vf.createURI("urn:obs_4"), vf.createURI("uri:hasTime"),
+                vf.createStatement(vf.createIRI("urn:obs_3"), vf.createIRI("uri:hasId"), vf.createLiteral("id_3")),
+                vf.createStatement(vf.createIRI("urn:obs_4"), vf.createIRI("uri:hasTime"),
                         vf.createLiteral(dtf.newXMLGregorianCalendar(time4))),
-                vf.createStatement(vf.createURI("urn:obs_4"), vf.createURI("uri:hasId"), vf.createLiteral("id_4")));
+                vf.createStatement(vf.createIRI("urn:obs_4"), vf.createIRI("uri:hasId"), vf.createLiteral("id_4")));
 
         // Create the expected results of the SPARQL query once the PCJ has been computed.
         final Set<BindingSet> expectedResults = new HashSet<>();
@@ -694,7 +687,7 @@ public class QueryIT extends RyaExportITBase {
                 + "?obs <uri:hasId> ?id } group by ?id"; // n
 
         // Create the Statements that will be loaded into Rya.
-        final ValueFactory vf = new ValueFactoryImpl();
+        final ValueFactory vf = SimpleValueFactory.getInstance();
         final DatatypeFactory dtf = DatatypeFactory.newInstance();
         ZonedDateTime time = ZonedDateTime.now();
         long currentTime = time.toInstant().toEpochMilli();
@@ -712,24 +705,24 @@ public class QueryIT extends RyaExportITBase {
         String time4 = zTime4.format(DateTimeFormatter.ISO_INSTANT);
 
         final Collection<Statement> statements = Sets.newHashSet(
-                vf.createStatement(vf.createURI("urn:obs_1"), vf.createURI("uri:hasTime"),
+                vf.createStatement(vf.createIRI("urn:obs_1"), vf.createIRI("uri:hasTime"),
                         vf.createLiteral(dtf.newXMLGregorianCalendar(time1))),
-                vf.createStatement(vf.createURI("urn:obs_1"), vf.createURI("uri:hasId"), vf.createLiteral("id_1")),
-                vf.createStatement(vf.createURI("urn:obs_2"), vf.createURI("uri:hasTime"),
+                vf.createStatement(vf.createIRI("urn:obs_1"), vf.createIRI("uri:hasId"), vf.createLiteral("id_1")),
+                vf.createStatement(vf.createIRI("urn:obs_2"), vf.createIRI("uri:hasTime"),
                         vf.createLiteral(dtf.newXMLGregorianCalendar(time2))),
-                vf.createStatement(vf.createURI("urn:obs_2"), vf.createURI("uri:hasId"), vf.createLiteral("id_2")),
-                vf.createStatement(vf.createURI("urn:obs_3"), vf.createURI("uri:hasTime"),
+                vf.createStatement(vf.createIRI("urn:obs_2"), vf.createIRI("uri:hasId"), vf.createLiteral("id_2")),
+                vf.createStatement(vf.createIRI("urn:obs_3"), vf.createIRI("uri:hasTime"),
                         vf.createLiteral(dtf.newXMLGregorianCalendar(time3))),
-                vf.createStatement(vf.createURI("urn:obs_3"), vf.createURI("uri:hasId"), vf.createLiteral("id_3")),
-                vf.createStatement(vf.createURI("urn:obs_4"), vf.createURI("uri:hasTime"),
+                vf.createStatement(vf.createIRI("urn:obs_3"), vf.createIRI("uri:hasId"), vf.createLiteral("id_3")),
+                vf.createStatement(vf.createIRI("urn:obs_4"), vf.createIRI("uri:hasTime"),
                         vf.createLiteral(dtf.newXMLGregorianCalendar(time4))),
-                vf.createStatement(vf.createURI("urn:obs_4"), vf.createURI("uri:hasId"), vf.createLiteral("id_4")),
-                vf.createStatement(vf.createURI("urn:obs_1"), vf.createURI("uri:hasTime"),
+                vf.createStatement(vf.createIRI("urn:obs_4"), vf.createIRI("uri:hasId"), vf.createLiteral("id_4")),
+                vf.createStatement(vf.createIRI("urn:obs_1"), vf.createIRI("uri:hasTime"),
                         vf.createLiteral(dtf.newXMLGregorianCalendar(time4))),
-                vf.createStatement(vf.createURI("urn:obs_1"), vf.createURI("uri:hasId"), vf.createLiteral("id_1")),
-                vf.createStatement(vf.createURI("urn:obs_2"), vf.createURI("uri:hasTime"),
+                vf.createStatement(vf.createIRI("urn:obs_1"), vf.createIRI("uri:hasId"), vf.createLiteral("id_1")),
+                vf.createStatement(vf.createIRI("urn:obs_2"), vf.createIRI("uri:hasTime"),
                         vf.createLiteral(dtf.newXMLGregorianCalendar(time3))),
-                vf.createStatement(vf.createURI("urn:obs_2"), vf.createURI("uri:hasId"), vf.createLiteral("id_2")));
+                vf.createStatement(vf.createIRI("urn:obs_2"), vf.createIRI("uri:hasId"), vf.createLiteral("id_2")));
 
         // Create the expected results of the SPARQL query once the PCJ has been computed.
         final Set<BindingSet> expectedResults = new HashSet<>();
@@ -814,7 +807,7 @@ public class QueryIT extends RyaExportITBase {
                 + "?obs <uri:hasLoc> ?location } group by ?location }}"; // n
 
         // Create the Statements that will be loaded into Rya.
-        final ValueFactory vf = new ValueFactoryImpl();
+        final ValueFactory vf = SimpleValueFactory.getInstance();
         final DatatypeFactory dtf = DatatypeFactory.newInstance();
         ZonedDateTime time = ZonedDateTime.now();
         long currentTime = time.toInstant().toEpochMilli();
@@ -832,24 +825,24 @@ public class QueryIT extends RyaExportITBase {
         String time4 = zTime4.format(DateTimeFormatter.ISO_INSTANT);
 
         final Collection<Statement> statements = Sets.newHashSet(
-                vf.createStatement(vf.createURI("urn:obs_1"), vf.createURI("uri:hasTime"),
+                vf.createStatement(vf.createIRI("urn:obs_1"), vf.createIRI("uri:hasTime"),
                         vf.createLiteral(dtf.newXMLGregorianCalendar(time1))),
-                vf.createStatement(vf.createURI("urn:obs_1"), vf.createURI("uri:hasLoc"), vf.createLiteral("loc_1")),
-                vf.createStatement(vf.createURI("urn:obs_2"), vf.createURI("uri:hasTime"),
+                vf.createStatement(vf.createIRI("urn:obs_1"), vf.createIRI("uri:hasLoc"), vf.createLiteral("loc_1")),
+                vf.createStatement(vf.createIRI("urn:obs_2"), vf.createIRI("uri:hasTime"),
                         vf.createLiteral(dtf.newXMLGregorianCalendar(time2))),
-                vf.createStatement(vf.createURI("urn:obs_2"), vf.createURI("uri:hasLoc"), vf.createLiteral("loc_2")),
-                vf.createStatement(vf.createURI("urn:obs_3"), vf.createURI("uri:hasTime"),
+                vf.createStatement(vf.createIRI("urn:obs_2"), vf.createIRI("uri:hasLoc"), vf.createLiteral("loc_2")),
+                vf.createStatement(vf.createIRI("urn:obs_3"), vf.createIRI("uri:hasTime"),
                         vf.createLiteral(dtf.newXMLGregorianCalendar(time3))),
-                vf.createStatement(vf.createURI("urn:obs_3"), vf.createURI("uri:hasLoc"), vf.createLiteral("loc_3")),
-                vf.createStatement(vf.createURI("urn:obs_4"), vf.createURI("uri:hasTime"),
+                vf.createStatement(vf.createIRI("urn:obs_3"), vf.createIRI("uri:hasLoc"), vf.createLiteral("loc_3")),
+                vf.createStatement(vf.createIRI("urn:obs_4"), vf.createIRI("uri:hasTime"),
                         vf.createLiteral(dtf.newXMLGregorianCalendar(time4))),
-                vf.createStatement(vf.createURI("urn:obs_4"), vf.createURI("uri:hasLoc"), vf.createLiteral("loc_4")),
-                vf.createStatement(vf.createURI("urn:obs_5"), vf.createURI("uri:hasTime"),
+                vf.createStatement(vf.createIRI("urn:obs_4"), vf.createIRI("uri:hasLoc"), vf.createLiteral("loc_4")),
+                vf.createStatement(vf.createIRI("urn:obs_5"), vf.createIRI("uri:hasTime"),
                         vf.createLiteral(dtf.newXMLGregorianCalendar(time4))),
-                vf.createStatement(vf.createURI("urn:obs_5"), vf.createURI("uri:hasLoc"), vf.createLiteral("loc_1")),
-                vf.createStatement(vf.createURI("urn:obs_6"), vf.createURI("uri:hasTime"),
+                vf.createStatement(vf.createIRI("urn:obs_5"), vf.createIRI("uri:hasLoc"), vf.createLiteral("loc_1")),
+                vf.createStatement(vf.createIRI("urn:obs_6"), vf.createIRI("uri:hasTime"),
                         vf.createLiteral(dtf.newXMLGregorianCalendar(time3))),
-                vf.createStatement(vf.createURI("urn:obs_6"), vf.createURI("uri:hasLoc"), vf.createLiteral("loc_2")));
+                vf.createStatement(vf.createIRI("urn:obs_6"), vf.createIRI("uri:hasLoc"), vf.createLiteral("loc_2")));
 
         // Create the expected results of the SPARQL query once the PCJ has been computed.
         final Set<BindingSet> expectedResults = new HashSet<>();
@@ -893,7 +886,7 @@ public class QueryIT extends RyaExportITBase {
                 + "?obs <uri:hasLoc> ?location } group by ?location }}"; // n
 
         // Create the Statements that will be loaded into Rya.
-        final ValueFactory vf = new ValueFactoryImpl();
+        final ValueFactory vf = SimpleValueFactory.getInstance();
         final DatatypeFactory dtf = DatatypeFactory.newInstance();
         ZonedDateTime time = ZonedDateTime.now();
         long currentTime = time.toInstant().toEpochMilli();
@@ -911,26 +904,26 @@ public class QueryIT extends RyaExportITBase {
         String time4 = zTime4.format(DateTimeFormatter.ISO_INSTANT);
 
         final Collection<Statement> statements = Sets.newHashSet(
-                vf.createStatement(vf.createURI("urn:obs_1"), vf.createURI("uri:hasTime"),
+                vf.createStatement(vf.createIRI("urn:obs_1"), vf.createIRI("uri:hasTime"),
                         vf.createLiteral(dtf.newXMLGregorianCalendar(time1))),
-                vf.createStatement(vf.createURI("urn:obs_1"), vf.createURI("uri:hasLoc"), vf.createURI("uri:loc_1")),
-                vf.createStatement(vf.createURI("uri:loc_1"), vf.createURI("uri:hasPopulation"), vf.createLiteral(3500)),
-                vf.createStatement(vf.createURI("uri:loc_2"), vf.createURI("uri:hasPopulation"), vf.createLiteral(8000)),
-                vf.createStatement(vf.createURI("urn:obs_2"), vf.createURI("uri:hasTime"),
+                vf.createStatement(vf.createIRI("urn:obs_1"), vf.createIRI("uri:hasLoc"), vf.createIRI("uri:loc_1")),
+                vf.createStatement(vf.createIRI("uri:loc_1"), vf.createIRI("uri:hasPopulation"), vf.createLiteral(3500)),
+                vf.createStatement(vf.createIRI("uri:loc_2"), vf.createIRI("uri:hasPopulation"), vf.createLiteral(8000)),
+                vf.createStatement(vf.createIRI("urn:obs_2"), vf.createIRI("uri:hasTime"),
                         vf.createLiteral(dtf.newXMLGregorianCalendar(time2))),
-                vf.createStatement(vf.createURI("urn:obs_2"), vf.createURI("uri:hasLoc"), vf.createURI("uri:loc_2")),
-                vf.createStatement(vf.createURI("urn:obs_3"), vf.createURI("uri:hasTime"),
+                vf.createStatement(vf.createIRI("urn:obs_2"), vf.createIRI("uri:hasLoc"), vf.createIRI("uri:loc_2")),
+                vf.createStatement(vf.createIRI("urn:obs_3"), vf.createIRI("uri:hasTime"),
                         vf.createLiteral(dtf.newXMLGregorianCalendar(time3))),
-                vf.createStatement(vf.createURI("urn:obs_3"), vf.createURI("uri:hasLoc"), vf.createURI("uri:loc_3")),
-                vf.createStatement(vf.createURI("urn:obs_4"), vf.createURI("uri:hasTime"),
+                vf.createStatement(vf.createIRI("urn:obs_3"), vf.createIRI("uri:hasLoc"), vf.createIRI("uri:loc_3")),
+                vf.createStatement(vf.createIRI("urn:obs_4"), vf.createIRI("uri:hasTime"),
                         vf.createLiteral(dtf.newXMLGregorianCalendar(time4))),
-                vf.createStatement(vf.createURI("urn:obs_4"), vf.createURI("uri:hasLoc"), vf.createURI("uri:loc_4")),
-                vf.createStatement(vf.createURI("urn:obs_5"), vf.createURI("uri:hasTime"),
+                vf.createStatement(vf.createIRI("urn:obs_4"), vf.createIRI("uri:hasLoc"), vf.createIRI("uri:loc_4")),
+                vf.createStatement(vf.createIRI("urn:obs_5"), vf.createIRI("uri:hasTime"),
                         vf.createLiteral(dtf.newXMLGregorianCalendar(time4))),
-                vf.createStatement(vf.createURI("urn:obs_5"), vf.createURI("uri:hasLoc"), vf.createURI("uri:loc_1")),
-                vf.createStatement(vf.createURI("urn:obs_6"), vf.createURI("uri:hasTime"),
+                vf.createStatement(vf.createIRI("urn:obs_5"), vf.createIRI("uri:hasLoc"), vf.createIRI("uri:loc_1")),
+                vf.createStatement(vf.createIRI("urn:obs_6"), vf.createIRI("uri:hasTime"),
                         vf.createLiteral(dtf.newXMLGregorianCalendar(time3))),
-                vf.createStatement(vf.createURI("urn:obs_6"), vf.createURI("uri:hasLoc"), vf.createURI("uri:loc_2")));
+                vf.createStatement(vf.createIRI("urn:obs_6"), vf.createIRI("uri:hasLoc"), vf.createIRI("uri:loc_2")));
 
         // Create the expected results of the SPARQL query once the PCJ has been computed.
         final Set<BindingSet> expectedResults = new HashSet<>();
@@ -940,14 +933,14 @@ public class QueryIT extends RyaExportITBase {
 
         MapBindingSet bs = new MapBindingSet();
         bs.addBinding("total", vf.createLiteral("2", XMLSchema.INTEGER));
-        bs.addBinding("location", vf.createURI("uri:loc_1"));
+        bs.addBinding("location", vf.createIRI("uri:loc_1"));
         bs.addBinding("population", vf.createLiteral("3500", XMLSchema.INTEGER));
         bs.addBinding("periodicBinId", vf.createLiteral(binId));
         expectedResults.add(bs);
 
         bs = new MapBindingSet();
         bs.addBinding("total", vf.createLiteral("2", XMLSchema.INTEGER));
-        bs.addBinding("location", vf.createURI("uri:loc_2"));
+        bs.addBinding("location", vf.createIRI("uri:loc_2"));
         bs.addBinding("population", vf.createLiteral("8000", XMLSchema.INTEGER));
         bs.addBinding("periodicBinId", vf.createLiteral(binId));
         expectedResults.add(bs);
@@ -955,7 +948,7 @@ public class QueryIT extends RyaExportITBase {
 
         bs = new MapBindingSet();
         bs.addBinding("total", vf.createLiteral("2", XMLSchema.INTEGER));
-        bs.addBinding("location", vf.createURI("uri:loc_2"));
+        bs.addBinding("location", vf.createIRI("uri:loc_2"));
         bs.addBinding("population", vf.createLiteral("8000", XMLSchema.INTEGER));
         bs.addBinding("periodicBinId", vf.createLiteral(binId + period));
         expectedResults.add(bs);
@@ -1028,7 +1021,7 @@ public class QueryIT extends RyaExportITBase {
         }
     }
 
-    private void addStatementsAndWait(final Collection<Statement> statements) throws RepositoryException, Exception {
+    private void addStatementsAndWait(final Collection<Statement> statements) throws Exception {
         // Write the data to Rya.
         final SailRepositoryConnection ryaConn = super.getRyaSailRepository().getConnection();
         ryaConn.begin();

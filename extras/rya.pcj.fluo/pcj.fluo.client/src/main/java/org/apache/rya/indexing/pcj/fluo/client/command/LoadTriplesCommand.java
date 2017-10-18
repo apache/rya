@@ -18,36 +18,33 @@
  */
 package org.apache.rya.indexing.pcj.fluo.client.command;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
+import com.beust.jcommander.JCommander;
+import com.beust.jcommander.Parameter;
+import com.beust.jcommander.ParameterException;
 import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
 import edu.umd.cs.findbugs.annotations.NonNull;
-
 import org.apache.accumulo.core.client.Connector;
 import org.apache.commons.io.FilenameUtils;
+import org.apache.fluo.api.client.FluoClient;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.rya.indexing.pcj.fluo.api.InsertTriples;
 import org.apache.rya.indexing.pcj.fluo.client.PcjAdminClientCommand;
 import org.apache.rya.indexing.pcj.fluo.client.util.FluoLoader;
-import org.openrdf.rio.RDFHandlerException;
-import org.openrdf.rio.RDFParseException;
-import org.openrdf.rio.RDFParser;
-import org.openrdf.rio.ntriples.NTriplesParser;
-import org.openrdf.rio.trig.TriGParser;
-import org.openrdf.rio.turtle.TurtleParser;
-
-import com.beust.jcommander.JCommander;
-import com.beust.jcommander.Parameter;
-import com.beust.jcommander.ParameterException;
-
-import org.apache.fluo.api.client.FluoClient;
 import org.apache.rya.rdftriplestore.RyaSailRepository;
+import org.eclipse.rdf4j.rio.RDFHandlerException;
+import org.eclipse.rdf4j.rio.RDFParseException;
+import org.eclipse.rdf4j.rio.RDFParser;
+import org.eclipse.rdf4j.rio.ntriples.NTriplesParser;
+import org.eclipse.rdf4j.rio.trig.TriGParser;
+import org.eclipse.rdf4j.rio.turtle.TurtleParser;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * A command that loads the contents of an NTriple file into the Fluo application.

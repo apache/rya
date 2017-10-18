@@ -19,48 +19,38 @@ package org.apache.rya.sail.config;
  * under the License.
  */
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-
 import java.io.InputStream;
 import java.io.StringReader;
-import java.util.HashMap;
 import java.util.Map;
-
-import org.apache.rya.sail.config.RyaAccumuloSailConfig;
-import org.apache.rya.sail.config.RyaAccumuloSailFactory;
-
-import org.apache.commons.io.IOUtils;
-import org.junit.Assert;
-import org.junit.Ignore;
-import org.junit.Test;
-import org.openrdf.model.Graph;
-import org.openrdf.model.Resource;
-import org.openrdf.model.Statement;
-import org.openrdf.model.ValueFactory;
-import org.openrdf.model.impl.LinkedHashModel;
-import org.openrdf.model.util.GraphUtil;
-import org.openrdf.model.vocabulary.RDF;
-import org.openrdf.repository.Repository;
-import org.openrdf.repository.RepositoryConnection;
-import org.openrdf.repository.config.ConfigTemplate;
-import org.openrdf.repository.config.RepositoryConfig;
-import org.openrdf.repository.config.RepositoryConfigSchema;
-import org.openrdf.repository.config.RepositoryConfigUtil;
-import org.openrdf.repository.config.RepositoryImplConfig;
-import org.openrdf.repository.config.RepositoryRegistry;
-import org.openrdf.repository.manager.LocalRepositoryManager;
-import org.openrdf.repository.sail.config.SailRepositoryConfig;
-import org.openrdf.repository.sail.config.SailRepositoryFactory;
-import org.openrdf.rio.RDFFormat;
-import org.openrdf.rio.RDFParser;
-import org.openrdf.rio.Rio;
-import org.openrdf.rio.helpers.StatementCollector;
-import org.openrdf.sail.config.SailFactory;
-import org.openrdf.sail.config.SailRegistry;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.io.Files;
+import org.apache.commons.io.IOUtils;
+import org.eclipse.rdf4j.model.Graph;
+import org.eclipse.rdf4j.model.Resource;
+import org.eclipse.rdf4j.model.Statement;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.model.impl.LinkedHashModel;
+import org.eclipse.rdf4j.model.util.GraphUtil;
+import org.eclipse.rdf4j.model.vocabulary.RDF;
+import org.eclipse.rdf4j.repository.Repository;
+import org.eclipse.rdf4j.repository.RepositoryConnection;
+import org.eclipse.rdf4j.repository.config.*;
+import org.eclipse.rdf4j.repository.manager.LocalRepositoryManager;
+import org.eclipse.rdf4j.repository.sail.config.SailRepositoryConfig;
+import org.eclipse.rdf4j.repository.sail.config.SailRepositoryFactory;
+import org.eclipse.rdf4j.rio.RDFFormat;
+import org.eclipse.rdf4j.rio.RDFParser;
+import org.eclipse.rdf4j.rio.Rio;
+import org.eclipse.rdf4j.rio.helpers.StatementCollector;
+import org.eclipse.rdf4j.sail.config.SailFactory;
+import org.eclipse.rdf4j.sail.config.SailRegistry;
+import org.junit.Assert;
+import org.junit.Ignore;
+import org.junit.Test;
+
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 public class RyaAccumuloSailFactoryTest {
 
@@ -92,7 +82,7 @@ public class RyaAccumuloSailFactoryTest {
         RepositoryConnection rc = r.getConnection();
 
         ValueFactory vf = rc.getValueFactory();
-        Statement s = vf.createStatement(vf.createURI("u:a"), vf.createURI("u:b"), vf.createURI("u:c"));
+        Statement s = vf.createStatement(vf.createIRI("u:a"), vf.createIRI("u:b"), vf.createIRI("u:c"));
 
         assertFalse(rc.hasStatement(s, false));
 

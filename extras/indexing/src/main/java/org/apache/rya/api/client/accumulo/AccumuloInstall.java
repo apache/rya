@@ -18,10 +18,9 @@
  */
 package org.apache.rya.api.client.accumulo;
 
-import static java.util.Objects.requireNonNull;
-
-import java.util.Date;
-
+import com.google.common.base.Optional;
+import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
+import edu.umd.cs.findbugs.annotations.NonNull;
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
 import org.apache.accumulo.core.client.Connector;
@@ -31,13 +30,8 @@ import org.apache.rya.api.client.Install;
 import org.apache.rya.api.client.InstanceExists;
 import org.apache.rya.api.client.RyaClientException;
 import org.apache.rya.api.instance.RyaDetails;
-import org.apache.rya.api.instance.RyaDetails.EntityCentricIndexDetails;
-import org.apache.rya.api.instance.RyaDetails.FreeTextIndexDetails;
-import org.apache.rya.api.instance.RyaDetails.JoinSelectivityDetails;
-import org.apache.rya.api.instance.RyaDetails.PCJIndexDetails;
+import org.apache.rya.api.instance.RyaDetails.*;
 import org.apache.rya.api.instance.RyaDetails.PCJIndexDetails.FluoDetails;
-import org.apache.rya.api.instance.RyaDetails.ProspectorDetails;
-import org.apache.rya.api.instance.RyaDetails.TemporalIndexDetails;
 import org.apache.rya.api.instance.RyaDetailsRepository;
 import org.apache.rya.api.instance.RyaDetailsRepository.AlreadyInitializedException;
 import org.apache.rya.api.instance.RyaDetailsRepository.RyaDetailsRepositoryException;
@@ -47,13 +41,10 @@ import org.apache.rya.indexing.external.PrecomputedJoinIndexerConfig.Precomputed
 import org.apache.rya.indexing.external.PrecomputedJoinIndexerConfig.PrecomputedJoinUpdaterType;
 import org.apache.rya.rdftriplestore.inference.InferenceEngineException;
 import org.apache.rya.sail.config.RyaSailFactory;
-import org.openrdf.sail.Sail;
-import org.openrdf.sail.SailException;
+import org.eclipse.rdf4j.sail.Sail;
+import org.eclipse.rdf4j.sail.SailException;
 
-import com.google.common.base.Optional;
-
-import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
-import edu.umd.cs.findbugs.annotations.NonNull;
+import static java.util.Objects.requireNonNull;
 
 /**
  * An Accumulo implementation of the {@link Install} command.
@@ -76,7 +67,7 @@ public class AccumuloInstall extends AccumuloCommand implements Install {
     }
 
     @Override
-    public void install(final String instanceName, final InstallConfiguration installConfig) throws DuplicateInstanceNameException, RyaClientException {
+    public void install(final String instanceName, final InstallConfiguration installConfig) throws RyaClientException {
         requireNonNull(instanceName);
         requireNonNull(installConfig);
 
@@ -131,7 +122,7 @@ public class AccumuloInstall extends AccumuloCommand implements Install {
      *   operation to fail.
      */
     private RyaDetails initializeRyaDetails(final String instanceName, final InstallConfiguration installConfig, final String installUser)
-            throws AlreadyInitializedException, RyaDetailsRepositoryException {
+            throws RyaDetailsRepositoryException {
         requireNonNull(instanceName);
         requireNonNull(installConfig);
         requireNonNull(installUser);
@@ -164,9 +155,9 @@ public class AccumuloInstall extends AccumuloCommand implements Install {
 
                 // Statistics values.
                 .setProspectorDetails(
-                        new ProspectorDetails(Optional.<Date>absent()) )
+                        new ProspectorDetails(Optional.absent()) )
                 .setJoinSelectivityDetails(
-                        new JoinSelectivityDetails(Optional.<Date>absent()) )
+                        new JoinSelectivityDetails(Optional.absent()) )
                 .build();
 
         // Initialize the table.

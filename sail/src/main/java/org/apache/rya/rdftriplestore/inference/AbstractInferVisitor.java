@@ -19,14 +19,14 @@ package org.apache.rya.rdftriplestore.inference;
  * under the License.
  */
 
-import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
+import org.apache.rya.api.RdfTripleStoreConfiguration;
 import org.apache.rya.rdftriplestore.utils.FixedStatementPattern;
 import org.apache.rya.rdftriplestore.utils.TransitivePropertySP;
-import org.openrdf.query.algebra.Join;
-import org.openrdf.query.algebra.StatementPattern;
-import org.openrdf.query.algebra.Union;
-import org.openrdf.query.algebra.Var;
-import org.openrdf.query.algebra.helpers.QueryModelVisitorBase;
+import org.eclipse.rdf4j.query.algebra.Join;
+import org.eclipse.rdf4j.query.algebra.StatementPattern;
+import org.eclipse.rdf4j.query.algebra.Union;
+import org.eclipse.rdf4j.query.algebra.Var;
+import org.eclipse.rdf4j.query.algebra.helpers.QueryModelVisitorBase;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -41,10 +41,10 @@ public class AbstractInferVisitor extends QueryModelVisitorBase<Exception> {
 
     boolean include = true;
 
-    RdfCloudTripleStoreConfiguration conf;
+    RdfTripleStoreConfiguration conf;
     InferenceEngine inferenceEngine;
 
-    public AbstractInferVisitor(RdfCloudTripleStoreConfiguration conf, InferenceEngine inferenceEngine) {
+    public AbstractInferVisitor(RdfTripleStoreConfiguration conf, InferenceEngine inferenceEngine) {
         checkNotNull(conf, "Configuration cannot be null");
         checkNotNull(inferenceEngine, "Inference Engine cannot be null");
         this.conf = conf;
@@ -86,11 +86,11 @@ public class AbstractInferVisitor extends QueryModelVisitorBase<Exception> {
         }
     }
 
-    public RdfCloudTripleStoreConfiguration getConf() {
+    public RdfTripleStoreConfiguration getConf() {
         return conf;
     }
 
-    public void setConf(RdfCloudTripleStoreConfiguration conf) {
+    public void setConf(RdfTripleStoreConfiguration conf) {
         this.conf = conf;
     }
 

@@ -34,7 +34,7 @@ import org.apache.hadoop.util.ReflectionUtils;
 import org.apache.log4j.Logger;
 import org.apache.rya.accumulo.AccumuloRdfConfiguration;
 import org.apache.rya.accumulo.utils.ConnectorFactory;
-import org.apache.rya.api.RdfTripleStoreConfiguration;
+import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
 import org.apache.rya.api.instance.RyaDetails;
 import org.apache.rya.indexing.FilterFunctionOptimizer;
 import org.apache.rya.indexing.accumulo.entity.EntityCentricIndex;
@@ -65,10 +65,10 @@ public class ConfigUtils {
     private static final Logger logger = Logger.getLogger(ConfigUtils.class);
 
     /**
-     * @Deprecated use {@link RdfTripleStoreConfiguration#CONF_TBL_PREFIX} instead.
+     * @Deprecated use {@link RdfCloudTripleStoreConfiguration#CONF_TBL_PREFIX} instead.
      */
     @Deprecated
-    public static final String CLOUDBASE_TBL_PREFIX = RdfTripleStoreConfiguration.CONF_TBL_PREFIX;
+    public static final String CLOUDBASE_TBL_PREFIX = RdfCloudTripleStoreConfiguration.CONF_TBL_PREFIX;
     
     /**
      * @Deprecated use {@link AccumuloRdfConfiguration#CLOUDBASE_INSTANCE} instead.
@@ -94,10 +94,10 @@ public class ConfigUtils {
     @Deprecated
     public static final String CLOUDBASE_PASSWORD = AccumuloRdfConfiguration.CLOUDBASE_PASSWORD;
     /**
-     * @Deprecated use {@link RdfTripleStoreConfiguration#CONF_QUERY_AUTH} instead.
+     * @Deprecated use {@link RdfCloudTripleStoreConfiguration#CONF_QUERY_AUTH} instead.
      */
     @Deprecated
-    public static final String CLOUDBASE_AUTHS = RdfTripleStoreConfiguration.CONF_QUERY_AUTH;
+    public static final String CLOUDBASE_AUTHS = RdfCloudTripleStoreConfiguration.CONF_QUERY_AUTH;
 
     public static final String CLOUDBASE_WRITER_MAX_WRITE_THREADS = "sc.cloudbase.writer.maxwritethreads";
     public static final String CLOUDBASE_WRITER_MAX_LATENCY = "sc.cloudbase.writer.maxlatency";
@@ -189,9 +189,9 @@ public class ConfigUtils {
      */
     public static String getTablePrefix(final Configuration conf) {
         final String tablePrefix;
-        tablePrefix = conf.get(RdfTripleStoreConfiguration.CONF_TBL_PREFIX);
+        tablePrefix = conf.get(RdfCloudTripleStoreConfiguration.CONF_TBL_PREFIX);
         requireNonNull(tablePrefix,
-                "Configuration key: " + RdfTripleStoreConfiguration.CONF_TBL_PREFIX + " not set.  Cannot generate table name.");
+                "Configuration key: " + RdfCloudTripleStoreConfiguration.CONF_TBL_PREFIX + " not set.  Cannot generate table name.");
         return tablePrefix;
     }
 
@@ -263,10 +263,10 @@ public class ConfigUtils {
         final Connector connector = ConfigUtils.getConnector(conf);
         final Authorizations auths = ConfigUtils.getAuthorizations(conf);
         Integer numThreads = null;
-        if (conf instanceof RdfTripleStoreConfiguration) {
-            numThreads = ((RdfTripleStoreConfiguration) conf).getNumThreads();
+        if (conf instanceof RdfCloudTripleStoreConfiguration) {
+            numThreads = ((RdfCloudTripleStoreConfiguration) conf).getNumThreads();
         } else {
-            numThreads = conf.getInt(RdfTripleStoreConfiguration.CONF_NUM_THREADS, 2);
+            numThreads = conf.getInt(RdfCloudTripleStoreConfiguration.CONF_NUM_THREADS, 2);
         }
         return connector.createBatchScanner(tablename, auths, numThreads);
     }
@@ -303,7 +303,7 @@ public class ConfigUtils {
     }
 
     public static Authorizations getAuthorizations(final Configuration conf) {
-        final String authString = conf.get(RdfTripleStoreConfiguration.CONF_QUERY_AUTH, "");
+        final String authString = conf.get(RdfCloudTripleStoreConfiguration.CONF_QUERY_AUTH, "");
         if (authString.isEmpty()) {
             return new Authorizations();
         }
@@ -433,7 +433,7 @@ public class ConfigUtils {
     }
 
 
-    public static void setIndexers(final RdfTripleStoreConfiguration conf) {
+    public static void setIndexers(final RdfCloudTripleStoreConfiguration conf) {
 
         final List<String> indexList = Lists.newArrayList();
         final List<String> optimizers = Lists.newArrayList();
@@ -489,6 +489,6 @@ public class ConfigUtils {
         }
 
         conf.setStrings(AccumuloRdfConfiguration.CONF_ADDITIONAL_INDEXERS, indexList.toArray(new String[] {}));
-        conf.setStrings(RdfTripleStoreConfiguration.CONF_OPTIMIZERS, optimizers.toArray(new String[] {}));
+        conf.setStrings(RdfCloudTripleStoreConfiguration.CONF_OPTIMIZERS, optimizers.toArray(new String[] {}));
     }
 }

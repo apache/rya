@@ -24,8 +24,8 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.NoSuchElementException;
 
+import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
 import org.apache.rya.api.RdfCloudTripleStoreUtils;
-import org.apache.rya.api.RdfTripleStoreConfiguration;
 import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.persist.RyaDAO;
 import org.apache.rya.api.persist.RyaDAOException;
@@ -46,11 +46,11 @@ import org.eclipse.rdf4j.query.QueryEvaluationException;
  */
 public class RyaDAOHelper {
 
-    public static CloseableIteration<Statement, QueryEvaluationException> query(RyaDAO ryaDAO, Resource subject, IRI predicate, Value object, RdfTripleStoreConfiguration conf, Resource... contexts) throws QueryEvaluationException {
+    public static CloseableIteration<Statement, QueryEvaluationException> query(RyaDAO ryaDAO, Resource subject, IRI predicate, Value object, RdfCloudTripleStoreConfiguration conf, Resource... contexts) throws QueryEvaluationException {
         return query(ryaDAO, new NullableStatementImpl(subject, predicate, object, contexts), conf);
     }
 
-    public static CloseableIteration<Statement, QueryEvaluationException> query(RyaDAO ryaDAO, Statement stmt, RdfTripleStoreConfiguration conf) throws QueryEvaluationException {
+    public static CloseableIteration<Statement, QueryEvaluationException> query(RyaDAO ryaDAO, Statement stmt, RdfCloudTripleStoreConfiguration conf) throws QueryEvaluationException {
         final CloseableIteration<RyaStatement, RyaDAOException> query;
         try {
             query = ryaDAO.getQueryEngine().query(RdfToRyaConversions.convertStatement(stmt),
@@ -109,7 +109,7 @@ public class RyaDAOHelper {
         };
     }
 
-    public static CloseableIteration<? extends Map.Entry<Statement, BindingSet>, QueryEvaluationException> query(RyaDAO ryaDAO, Collection<Map.Entry<Statement, BindingSet>> statements, RdfTripleStoreConfiguration conf) throws QueryEvaluationException {
+    public static CloseableIteration<? extends Map.Entry<Statement, BindingSet>, QueryEvaluationException> query(RyaDAO ryaDAO, Collection<Map.Entry<Statement, BindingSet>> statements, RdfCloudTripleStoreConfiguration conf) throws QueryEvaluationException {
         Collection<Map.Entry<RyaStatement, BindingSet>> ryaStatements = new ArrayList<Map.Entry<RyaStatement, BindingSet>>(statements.size());
         for (Map.Entry<Statement, BindingSet> entry : statements) {
             ryaStatements.add(new RdfCloudTripleStoreUtils.CustomEntry<RyaStatement, BindingSet>

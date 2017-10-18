@@ -20,6 +20,7 @@ package org.apache.rya.reasoning.mr;
  */
 
 import java.io.*;
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 
@@ -39,6 +40,7 @@ import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Resource;
 import org.eclipse.rdf4j.model.Statement;
 import org.eclipse.rdf4j.model.Value;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 import org.eclipse.rdf4j.model.vocabulary.OWL;
 import org.eclipse.rdf4j.model.vocabulary.RDF;
 import org.eclipse.rdf4j.query.BindingSet;
@@ -53,6 +55,9 @@ import org.eclipse.rdf4j.rio.helpers.RDFHandlerBase;
 import org.eclipse.rdf4j.rio.ntriples.NTriplesParser;
 import org.eclipse.rdf4j.rio.rdfxml.RDFXMLParser;
 import org.eclipse.rdf4j.sail.memory.MemoryStore;
+
+import static org.eclipse.rdf4j.rio.RDFFormat.NO_CONTEXTS;
+import static org.eclipse.rdf4j.rio.RDFFormat.NO_NAMESPACES;
 
 /**
  * Test the reasoner against Owl conformance tests in the database.
@@ -158,7 +163,11 @@ public class ConformanceTest extends Configured implements Tool {
             RDFFormat inputFormat= RDFFormat.RDFXML;
             final String formatString = conf.get(MRUtils.FORMAT_PROP);
             if (formatString != null) {
-                inputFormat = RDFFormat.valueOf(formatString);
+                inputFormat = new RDFFormat(formatString,
+                        Arrays.asList("application/n-triples", "text/plain"), Charset.forName("UTF-8"),
+                        Collections.singletonList("nt"),
+                        SimpleValueFactory.getInstance().createIRI("http://www.w3.org/ns/formats/"+formatString),
+                        NO_NAMESPACES, NO_CONTEXTS);
             }
             repo = new SailRepository(new MemoryStore());
             repo.initialize();
@@ -236,7 +245,7 @@ public class ConformanceTest extends Configured implements Tool {
     /**
      * Verify that we can infer the correct triples or detect an inconsistency.
      * @param   conf    Specifies working directory, etc.
-     * @param   OwlTest   Contains premise/conclusion graphs, will store result
+     * @param   test   Contains premise/conclusion graphs, will store result
      * @return  Return value of the MapReduce job
      */
     int runTest(final Configuration conf, final String[] args, final OwlTest test)

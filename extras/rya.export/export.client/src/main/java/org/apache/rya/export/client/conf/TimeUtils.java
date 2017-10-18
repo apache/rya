@@ -19,11 +19,7 @@
 package org.apache.rya.export.client.conf;
 
 import java.io.IOException;
-import java.net.HttpURLConnection;
-import java.net.InetAddress;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.net.UnknownHostException;
+import java.net.*;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -31,13 +27,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
+import com.google.common.net.HttpHeaders;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.net.ntp.NTPUDPClient;
 import org.apache.commons.net.ntp.TimeInfo;
 import org.apache.log4j.Logger;
-import org.codehaus.plexus.util.StringUtils;
 import org.mortbay.jetty.HttpMethods;
-
-import com.google.common.net.HttpHeaders;
 
 /**
  * Utility methods for time.

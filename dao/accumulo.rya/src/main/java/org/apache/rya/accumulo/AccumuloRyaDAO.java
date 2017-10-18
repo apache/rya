@@ -38,8 +38,8 @@ import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.io.Text;
 import org.apache.rya.accumulo.experimental.AccumuloIndexer;
 import org.apache.rya.accumulo.query.AccumuloRyaQueryEngine;
+import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
 import org.apache.rya.api.RdfCloudTripleStoreConstants.*;
-import org.apache.rya.api.RdfTripleStoreConfiguration;
 import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.domain.RyaURI;
 import org.apache.rya.api.layout.TableLayoutStrategy;
@@ -355,7 +355,7 @@ public class AccumuloRyaDAO implements RyaDAO<AccumuloRdfConfiguration>, RyaName
     }
 
     @Override
-    public void purge(final RdfTripleStoreConfiguration configuration) {
+    public void purge(final RdfCloudTripleStoreConfiguration configuration) {
         for (final String tableName : getTables()) {
             try {
                 purge(tableName, configuration.getAuths());

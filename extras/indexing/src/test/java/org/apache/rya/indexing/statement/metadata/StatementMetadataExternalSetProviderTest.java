@@ -22,7 +22,7 @@ import java.util.*;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.rya.accumulo.AccumuloRdfConfiguration;
-import org.apache.rya.api.RdfTripleStoreConfiguration;
+import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
 import org.apache.rya.api.domain.RyaURI;
 import org.apache.rya.indexing.accumulo.ConfigUtils;
 import org.apache.rya.indexing.external.matching.JoinSegment;
@@ -151,7 +151,7 @@ public class StatementMetadataExternalSetProviderTest {
 
             AccumuloRdfConfiguration conf = new AccumuloRdfConfiguration();
             conf.setBoolean(ConfigUtils.USE_MOCK_INSTANCE, true);
-            conf.set(RdfTripleStoreConfiguration.CONF_TBL_PREFIX, "rya_");
+            conf.set(RdfCloudTripleStoreConfiguration.CONF_TBL_PREFIX, "rya_");
             conf.set(ConfigUtils.CLOUDBASE_USER, "root");
             conf.set(ConfigUtils.CLOUDBASE_PASSWORD, "");
             conf.set(ConfigUtils.CLOUDBASE_INSTANCE, "instance");

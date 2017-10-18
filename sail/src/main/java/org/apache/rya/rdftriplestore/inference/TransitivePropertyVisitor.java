@@ -18,7 +18,7 @@
  */
 package org.apache.rya.rdftriplestore.inference;
 
-import org.apache.rya.api.RdfTripleStoreConfiguration;
+import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
 import org.apache.rya.rdftriplestore.utils.TransitivePropertySP;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.vocabulary.RDF;
@@ -35,7 +35,7 @@ import org.eclipse.rdf4j.query.algebra.Var;
  */
 public class TransitivePropertyVisitor extends AbstractInferVisitor {
 
-    public TransitivePropertyVisitor(final RdfTripleStoreConfiguration conf, final InferenceEngine inferenceEngine) {
+    public TransitivePropertyVisitor(final RdfCloudTripleStoreConfiguration conf, final InferenceEngine inferenceEngine) {
         super(conf, inferenceEngine);
         include = conf.isInferTransitiveProperty();
     }

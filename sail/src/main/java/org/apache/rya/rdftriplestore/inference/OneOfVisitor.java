@@ -22,7 +22,7 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 
 import org.apache.log4j.Logger;
-import org.apache.rya.api.RdfTripleStoreConfiguration;
+import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
 import org.eclipse.rdf4j.model.Resource;
 import org.eclipse.rdf4j.model.vocabulary.RDF;
 import org.eclipse.rdf4j.query.BindingSet;
@@ -42,7 +42,7 @@ public class OneOfVisitor extends AbstractInferVisitor {
      * @param conf the {@link RdfCloudeTripleStoreConfiguration}.
      * @param inferenceEngine the {@link InferenceEngine}.
      */
-    public OneOfVisitor(final RdfTripleStoreConfiguration conf, final InferenceEngine inferenceEngine) {
+    public OneOfVisitor(final RdfCloudTripleStoreConfiguration conf, final InferenceEngine inferenceEngine) {
         super(conf, inferenceEngine);
         include = conf.isInferOneOf();
     }

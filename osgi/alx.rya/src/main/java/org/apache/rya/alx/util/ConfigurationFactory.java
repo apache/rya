@@ -22,15 +22,15 @@ package org.apache.rya.alx.util;
 import java.util.Map;
 
 import org.apache.rya.accumulo.AccumuloRdfConfiguration;
-import org.apache.rya.api.RdfTripleStoreConfiguration;
+import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
 
 /**
  */
 public class ConfigurationFactory {
     private Map<String, String> properties;
 
-    public RdfTripleStoreConfiguration getConfiguration() {
-        RdfTripleStoreConfiguration conf = new AccumuloRdfConfiguration();
+    public RdfCloudTripleStoreConfiguration getConfiguration() {
+        RdfCloudTripleStoreConfiguration conf = new AccumuloRdfConfiguration();
         if (properties != null) {
             for (Map.Entry<String, String> prop : properties.entrySet()) {
                 conf.set(prop.getKey(), prop.getValue());

@@ -33,7 +33,7 @@ import org.apache.rya.accumulo.mr.merge.demo.util.DemoUtilities.LoggingDetail;
 import org.apache.rya.accumulo.mr.merge.driver.AccumuloDualInstanceDriver;
 import org.apache.rya.accumulo.mr.merge.util.AccumuloRyaUtils;
 import org.apache.rya.accumulo.mr.merge.util.TestUtils;
-import org.apache.rya.api.RdfTripleStoreConfiguration;
+import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
 import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.domain.RyaType;
 import org.apache.rya.api.domain.RyaURI;
@@ -173,8 +173,8 @@ public class RulesetCopyIT {
             AccumuloRyaUtils.printTablePretty(table, parentConfig, false);
         }
 
-        parentConfig.set(RdfTripleStoreConfiguration.CONF_INFER, Boolean.toString(infer));
-        childConfig.set(RdfTripleStoreConfiguration.CONF_INFER, Boolean.toString(infer));
+        parentConfig.set(RdfCloudTripleStoreConfiguration.CONF_INFER, Boolean.toString(infer));
+        childConfig.set(RdfCloudTripleStoreConfiguration.CONF_INFER, Boolean.toString(infer));
 
         rulesetTool = new CopyTool();
         rulesetTool.setupAndRun(new String[] {
@@ -197,7 +197,7 @@ public class RulesetCopyIT {
                 makeArgument(CopyTool.CREATE_CHILD_INSTANCE_TYPE_PROP, (IS_MOCK ? InstanceType.MOCK : InstanceType.MINI).toString()),
                 makeArgument(CopyTool.QUERY_STRING_PROP, query),
                 makeArgument(CopyTool.USE_COPY_QUERY_SPARQL, "true"),
-                makeArgument(RdfTripleStoreConfiguration.CONF_INFER, Boolean.toString(infer))
+                makeArgument(RdfCloudTripleStoreConfiguration.CONF_INFER, Boolean.toString(infer))
         });
 
         final Configuration toolConfig = rulesetTool.getConf();

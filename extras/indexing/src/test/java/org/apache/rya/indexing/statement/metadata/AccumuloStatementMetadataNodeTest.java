@@ -25,7 +25,7 @@ import java.util.List;
 import org.apache.accumulo.core.client.Connector;
 import org.apache.rya.accumulo.AccumuloRdfConfiguration;
 import org.apache.rya.accumulo.AccumuloRyaDAO;
-import org.apache.rya.api.RdfTripleStoreConfiguration;
+import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
 import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.domain.RyaType;
 import org.apache.rya.api.domain.RyaURI;
@@ -87,7 +87,7 @@ public class AccumuloStatementMetadataNodeTest {
         SPARQLParser parser = new SPARQLParser();
         ParsedQuery pq = parser.parseQuery(query, null);
         List<StatementPattern> spList = StatementPatternCollector.process(pq.getTupleExpr());
-        // RyaQueryEngine<RdfTripleStoreConfiguration> engine =
+        // RyaQueryEngine<RdfCloudTripleStoreConfiguration> engine =
         // (RyaQueryEngine<>) dao.getQueryEngine();
 
         StatementMetadataNode<?> node = new StatementMetadataNode<>(spList, conf);
@@ -620,7 +620,7 @@ public class AccumuloStatementMetadataNodeTest {
         final AccumuloRdfConfiguration conf = new AccumuloRdfConfiguration();
 
         conf.setBoolean(ConfigUtils.USE_MOCK_INSTANCE, true);
-        conf.set(RdfTripleStoreConfiguration.CONF_TBL_PREFIX, "rya_");
+        conf.set(RdfCloudTripleStoreConfiguration.CONF_TBL_PREFIX, "rya_");
         conf.set(ConfigUtils.CLOUDBASE_USER, "root");
         conf.set(ConfigUtils.CLOUDBASE_PASSWORD, "");
         conf.set(ConfigUtils.CLOUDBASE_INSTANCE, "instance");

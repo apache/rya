@@ -25,8 +25,8 @@ import java.util.Map.Entry;
 
 import com.google.common.base.Joiner;
 import com.google.common.base.Preconditions;
+import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
 import org.apache.rya.api.RdfCloudTripleStoreUtils;
-import org.apache.rya.api.RdfTripleStoreConfiguration;
 import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.domain.RyaType;
 import org.apache.rya.api.domain.RyaURI;
@@ -90,7 +90,7 @@ import static java.util.Objects.requireNonNull;
  * @param <C>
  *            - Configuration object
  */
-public class StatementMetadataNode<C extends RdfTripleStoreConfiguration> extends ExternalSet
+public class StatementMetadataNode<C extends RdfCloudTripleStoreConfiguration> extends ExternalSet
         implements ExternalBatchingIterator {
 
     private static final RyaURI TYPE_ID_URI = new RyaURI(RDF.TYPE.toString());

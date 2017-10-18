@@ -19,7 +19,7 @@ package org.apache.rya.rdftriplestore.inference;
  * under the License.
  */
 
-import org.apache.rya.api.RdfTripleStoreConfiguration;
+import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
 import org.apache.rya.rdftriplestore.utils.FixedStatementPattern;
 import org.apache.rya.rdftriplestore.utils.TransitivePropertySP;
 import org.eclipse.rdf4j.query.algebra.Join;
@@ -41,10 +41,10 @@ public class AbstractInferVisitor extends QueryModelVisitorBase<Exception> {
 
     boolean include = true;
 
-    RdfTripleStoreConfiguration conf;
+    RdfCloudTripleStoreConfiguration conf;
     InferenceEngine inferenceEngine;
 
-    public AbstractInferVisitor(RdfTripleStoreConfiguration conf, InferenceEngine inferenceEngine) {
+    public AbstractInferVisitor(RdfCloudTripleStoreConfiguration conf, InferenceEngine inferenceEngine) {
         checkNotNull(conf, "Configuration cannot be null");
         checkNotNull(inferenceEngine, "Inference Engine cannot be null");
         this.conf = conf;
@@ -86,11 +86,11 @@ public class AbstractInferVisitor extends QueryModelVisitorBase<Exception> {
         }
     }
 
-    public RdfTripleStoreConfiguration getConf() {
+    public RdfCloudTripleStoreConfiguration getConf() {
         return conf;
     }
 
-    public void setConf(RdfTripleStoreConfiguration conf) {
+    public void setConf(RdfCloudTripleStoreConfiguration conf) {
         this.conf = conf;
     }
 

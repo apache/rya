@@ -18,7 +18,7 @@
  */
 package org.apache.rya.rdftriplestore.inference;
 
-import org.apache.rya.api.RdfTripleStoreConfiguration;
+import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Resource;
 import org.eclipse.rdf4j.model.vocabulary.RDF;
@@ -51,10 +51,10 @@ public class HasSelfVisitor extends AbstractInferVisitor {
 
     /**
      * Creates a new {@link HasSelfVisitor}.
-     * @param conf The {@link RdfTripleStoreConfiguration}.
+     * @param conf The {@link RdfCloudTripleStoreConfiguration}.
      * @param inferenceEngine The InferenceEngine containing the relevant ontology.
      */
-    public HasSelfVisitor(final RdfTripleStoreConfiguration conf, final InferenceEngine inferenceEngine) {
+    public HasSelfVisitor(final RdfCloudTripleStoreConfiguration conf, final InferenceEngine inferenceEngine) {
         super(conf, inferenceEngine);
         include = conf.isInferHasSelf();
     }

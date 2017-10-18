@@ -32,7 +32,7 @@ import org.apache.accumulo.core.data.Value;
 import org.apache.accumulo.core.security.Authorizations;
 import org.apache.hadoop.io.Text;
 import org.apache.rya.accumulo.AccumuloRdfUtils;
-import org.apache.rya.api.RdfTripleStoreConfiguration;
+import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
 import org.apache.rya.api.layout.TableLayoutStrategy;
 import org.apache.rya.api.persist.RdfDAOException;
 import org.apache.rya.api.persist.RdfEvalStatsDAO;
@@ -52,10 +52,10 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 
 
-public class AccumuloSelectivityEvalDAO implements SelectivityEvalDAO<RdfTripleStoreConfiguration> {
+public class AccumuloSelectivityEvalDAO implements SelectivityEvalDAO<RdfCloudTripleStoreConfiguration> {
 
   private boolean initialized = false;
-  private RdfTripleStoreConfiguration conf;
+  private RdfCloudTripleStoreConfiguration conf;
   private Connector connector;
   private TableLayoutStrategy tableLayoutStrategy;
   private boolean filtered = false;
@@ -63,7 +63,7 @@ public class AccumuloSelectivityEvalDAO implements SelectivityEvalDAO<RdfTripleS
   private int FullTableCardinality = 0;
   private static final String DELIM = "\u0000";
   private Map<String,Long> joinMap = new HashMap<String,Long>();
-    private RdfEvalStatsDAO<RdfTripleStoreConfiguration> resd;
+    private RdfEvalStatsDAO<RdfCloudTripleStoreConfiguration> resd;
 
   @Override
   public void init() throws RdfDAOException {
@@ -91,13 +91,13 @@ public class AccumuloSelectivityEvalDAO implements SelectivityEvalDAO<RdfTripleS
   }
   
 
-  public AccumuloSelectivityEvalDAO(RdfTripleStoreConfiguration conf, Connector connector) {
+  public AccumuloSelectivityEvalDAO(RdfCloudTripleStoreConfiguration conf, Connector connector) {
 
     this.conf = conf;
     this.connector = connector;
   }
 
-  public AccumuloSelectivityEvalDAO(RdfTripleStoreConfiguration conf) {
+  public AccumuloSelectivityEvalDAO(RdfCloudTripleStoreConfiguration conf) {
       
       this.conf = conf;
       Instance inst = new ZooKeeperInstance(conf.get("sc.cloudbase.instancename"), conf.get("sc.cloudbase.zookeepers"));
@@ -132,20 +132,20 @@ public class AccumuloSelectivityEvalDAO implements SelectivityEvalDAO<RdfTripleS
   }
 
   @Override
-  public RdfTripleStoreConfiguration getConf() {
+  public RdfCloudTripleStoreConfiguration getConf() {
     return conf;
   }
 
   @Override
-  public void setConf(RdfTripleStoreConfiguration conf) {
+  public void setConf(RdfCloudTripleStoreConfiguration conf) {
     this.conf = conf;
   }
 
-  public RdfEvalStatsDAO<RdfTripleStoreConfiguration> getRdfEvalDAO() {
+  public RdfEvalStatsDAO<RdfCloudTripleStoreConfiguration> getRdfEvalDAO() {
     return resd;
   }
 
-  public void setRdfEvalDAO(RdfEvalStatsDAO<RdfTripleStoreConfiguration> resd) {
+  public void setRdfEvalDAO(RdfEvalStatsDAO<RdfCloudTripleStoreConfiguration> resd) {
     this.resd = resd;
   }
 
@@ -158,7 +158,7 @@ public class AccumuloSelectivityEvalDAO implements SelectivityEvalDAO<RdfTripleS
       this.denormalized = denormalize;
   }
 
-  private double getJoinSelect(RdfTripleStoreConfiguration conf, StatementPattern sp1, StatementPattern sp2) throws TableNotFoundException {
+  private double getJoinSelect(RdfCloudTripleStoreConfiguration conf, StatementPattern sp1, StatementPattern sp2) throws TableNotFoundException {
 
     if (FullTableCardinality == 0) {
       this.getTableSize(conf);
@@ -349,7 +349,7 @@ public class AccumuloSelectivityEvalDAO implements SelectivityEvalDAO<RdfTripleS
   }
 
   // TODO currently computes average selectivity of sp1 with each node in TupleExpr te (is this best?)
-    private double getSpJoinSelect(RdfTripleStoreConfiguration conf, TupleExpr te, StatementPattern sp1)
+    private double getSpJoinSelect(RdfCloudTripleStoreConfiguration conf, TupleExpr te, StatementPattern sp1)
             throws TableNotFoundException {
 
         // System.out.println("Tuple is " + te + " and sp is " + sp1);
@@ -392,7 +392,7 @@ public class AccumuloSelectivityEvalDAO implements SelectivityEvalDAO<RdfTripleS
         }
     }
 
-  public double getJoinSelect(RdfTripleStoreConfiguration conf, TupleExpr te1, TupleExpr te2) throws TableNotFoundException {
+  public double getJoinSelect(RdfCloudTripleStoreConfiguration conf, TupleExpr te1, TupleExpr te2) throws TableNotFoundException {
 
       SpExternalCollector spe = new SpExternalCollector();
       te2.visit(spe);
@@ -413,7 +413,7 @@ public class AccumuloSelectivityEvalDAO implements SelectivityEvalDAO<RdfTripleS
   
   
   
-  private double getSelectivity(RdfTripleStoreConfiguration conf, TupleExpr te, QueryModelNode node) throws TableNotFoundException {
+  private double getSelectivity(RdfCloudTripleStoreConfiguration conf, TupleExpr te, QueryModelNode node) throws TableNotFoundException {
       
         if ((node instanceof StatementPattern)) {
             return getSpJoinSelect(conf, te, (StatementPattern) node);
@@ -456,7 +456,7 @@ public class AccumuloSelectivityEvalDAO implements SelectivityEvalDAO<RdfTripleS
   // if no instances of constants occur in table.
   // assumes composite cardinalities will be used.
   @Override
-  public long getCardinality(RdfTripleStoreConfiguration conf, StatementPattern sp) throws TableNotFoundException {
+  public long getCardinality(RdfCloudTripleStoreConfiguration conf, StatementPattern sp) throws TableNotFoundException {
 
     Var subjectVar = sp.getSubjectVar();
     Resource subj = (Resource) getConstantValue(subjectVar);
@@ -543,17 +543,17 @@ public class AccumuloSelectivityEvalDAO implements SelectivityEvalDAO<RdfTripleS
       return null;
   }
 
-  public double getCardinality(RdfTripleStoreConfiguration conf, CARDINALITY_OF card, List< org.eclipse.rdf4j.model.Value> val) throws RdfDAOException {
+  public double getCardinality(RdfCloudTripleStoreConfiguration conf, CARDINALITY_OF card, List< org.eclipse.rdf4j.model.Value> val) throws RdfDAOException {
     return resd.getCardinality(conf, card, val);
   }
 
-  public double getCardinality(RdfTripleStoreConfiguration conf, CARDINALITY_OF card, List< org.eclipse.rdf4j.model.Value> val, Resource context) throws RdfDAOException {
+  public double getCardinality(RdfCloudTripleStoreConfiguration conf, CARDINALITY_OF card, List< org.eclipse.rdf4j.model.Value> val, Resource context) throws RdfDAOException {
 
     return resd.getCardinality(conf, card, val, context);
 
   }
 
-  public int getTableSize(RdfTripleStoreConfiguration conf) throws TableNotFoundException {
+  public int getTableSize(RdfCloudTripleStoreConfiguration conf) throws TableNotFoundException {
 
       Authorizations authorizations = getAuths(conf);
     
@@ -585,7 +585,7 @@ public class AccumuloSelectivityEvalDAO implements SelectivityEvalDAO<RdfTripleS
   }
   
   
-  private Authorizations getAuths(RdfTripleStoreConfiguration conf) {
+  private Authorizations getAuths(RdfCloudTripleStoreConfiguration conf) {
       String[] auths = conf.getAuths();
       Authorizations authorizations = null;
       if (auths == null || auths.length == 0) {

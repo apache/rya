@@ -22,7 +22,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
-import org.apache.rya.api.RdfTripleStoreConfiguration;
+import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
 import org.apache.rya.api.utils.NullableStatementImpl;
 import org.apache.rya.rdftriplestore.utils.FixedStatementPattern;
 import org.eclipse.rdf4j.model.IRI;
@@ -59,10 +59,10 @@ public class AllValuesFromVisitor extends AbstractInferVisitor {
 
     /**
      * Creates a new {@link AllValuesFromVisitor}.
-     * @param conf The {@link RdfTripleStoreConfiguration}.
+     * @param conf The {@link RdfCloudTripleStoreConfiguration}.
      * @param inferenceEngine The InferenceEngine containing the relevant ontology.
      */
-    public AllValuesFromVisitor(RdfTripleStoreConfiguration conf, InferenceEngine inferenceEngine) {
+    public AllValuesFromVisitor(RdfCloudTripleStoreConfiguration conf, InferenceEngine inferenceEngine) {
         super(conf, inferenceEngine);
         include = conf.isInferAllValuesFrom();
     }

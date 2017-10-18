@@ -38,7 +38,7 @@ import org.apache.log4j.*;
 import org.apache.rya.accumulo.AccumuloRdfConfiguration;
 import org.apache.rya.accumulo.AccumuloRyaDAO;
 import org.apache.rya.accumulo.instance.AccumuloRyaInstanceDetailsRepository;
-import org.apache.rya.api.RdfTripleStoreConfiguration;
+import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
 import org.apache.rya.api.instance.RyaDetails;
 import org.apache.rya.api.instance.RyaDetails.*;
 import org.apache.rya.api.instance.RyaDetailsRepository;
@@ -234,7 +234,7 @@ public class DemoDriver {
         conf.setDisplayQueryPlan(true);
 
         conf.setBoolean(USE_MOCK_INSTANCE, true);
-        conf.set(RdfTripleStoreConfiguration.CONF_TBL_PREFIX, RYA_TABLE_PREFIX);
+        conf.set(RdfCloudTripleStoreConfiguration.CONF_TBL_PREFIX, RYA_TABLE_PREFIX);
         conf.set(CLOUDBASE_USER, "root");
         conf.set(CLOUDBASE_PASSWORD, "password");
         conf.set(CLOUDBASE_INSTANCE, accumulo.getInstanceName());

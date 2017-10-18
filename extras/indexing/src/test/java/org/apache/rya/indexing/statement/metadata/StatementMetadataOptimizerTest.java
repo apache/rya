@@ -21,7 +21,7 @@ package org.apache.rya.indexing.statement.metadata;
 import java.util.*;
 
 import org.apache.rya.accumulo.AccumuloRdfConfiguration;
-import org.apache.rya.api.RdfTripleStoreConfiguration;
+import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
 import org.apache.rya.api.domain.RyaURI;
 import org.apache.rya.indexing.accumulo.ConfigUtils;
 import org.apache.rya.indexing.external.matching.JoinSegment;
@@ -81,8 +81,8 @@ public class StatementMetadataOptimizerTest {
 
     @Before
     public void init() {
-        RdfTripleStoreConfiguration mongoConf = getConf(true);
-        RdfTripleStoreConfiguration accumuloConf = getConf(false);
+        RdfCloudTripleStoreConfiguration mongoConf = getConf(true);
+        RdfCloudTripleStoreConfiguration accumuloConf = getConf(false);
         mongoOptimizer = new StatementMetadataOptimizer(mongoConf);
         accumuloOptimizer = new StatementMetadataOptimizer(accumuloConf);
     }
@@ -115,9 +115,9 @@ public class StatementMetadataOptimizerTest {
         assertEquals(expected, StatementMetadataTestUtils.getMetadataNodes(te));
     }
 
-    private static RdfTripleStoreConfiguration getConf(boolean useMongo) {
+    private static RdfCloudTripleStoreConfiguration getConf(boolean useMongo) {
 
-        RdfTripleStoreConfiguration conf;
+        RdfCloudTripleStoreConfiguration conf;
         Set<RyaURI> propertySet = new HashSet<RyaURI>(
                 Arrays.asList(new RyaURI("http://createdBy"), new RyaURI("http://createdOn")));
         if (useMongo) {
@@ -130,7 +130,7 @@ public class StatementMetadataOptimizerTest {
         } else {
             conf = new AccumuloRdfConfiguration();
             conf.setBoolean(ConfigUtils.USE_MOCK_INSTANCE, true);
-            conf.set(RdfTripleStoreConfiguration.CONF_TBL_PREFIX, "rya_");
+            conf.set(RdfCloudTripleStoreConfiguration.CONF_TBL_PREFIX, "rya_");
             conf.set(ConfigUtils.CLOUDBASE_USER, "root");
             conf.set(ConfigUtils.CLOUDBASE_PASSWORD, "");
             conf.set(ConfigUtils.CLOUDBASE_INSTANCE, "instance");

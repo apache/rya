@@ -33,7 +33,7 @@ import org.apache.accumulo.core.client.MultiTableBatchWriter;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.log4j.Logger;
 import org.apache.rya.accumulo.experimental.AbstractAccumuloIndexer;
-import org.apache.rya.api.RdfTripleStoreConfiguration;
+import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
 import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.domain.RyaURI;
 import org.apache.rya.api.persist.RyaDAO;
@@ -208,7 +208,7 @@ public class PrecomputedJoinIndexer extends AbstractAccumuloIndexer {
      * {@link PrecomputedJoinStorage}.
      */
     @Override
-    public void purge(final RdfTripleStoreConfiguration configuration) {
+    public void purge(final RdfCloudTripleStoreConfiguration configuration) {
 
         try {
             for (final String pcjId : pcjStorage.listPcjs()) {

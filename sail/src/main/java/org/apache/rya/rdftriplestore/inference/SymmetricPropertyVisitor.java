@@ -19,7 +19,7 @@ package org.apache.rya.rdftriplestore.inference;
  * under the License.
  */
 
-import org.apache.rya.api.RdfTripleStoreConfiguration;
+import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.vocabulary.RDF;
 import org.eclipse.rdf4j.model.vocabulary.RDFS;
@@ -36,7 +36,7 @@ import org.eclipse.rdf4j.query.algebra.Var;
  */
 public class SymmetricPropertyVisitor extends AbstractInferVisitor {
 
-    public SymmetricPropertyVisitor(RdfTripleStoreConfiguration conf, InferenceEngine inferenceEngine) {
+    public SymmetricPropertyVisitor(RdfCloudTripleStoreConfiguration conf, InferenceEngine inferenceEngine) {
         super(conf, inferenceEngine);
         include = conf.isInferSymmetricProperty();
     }

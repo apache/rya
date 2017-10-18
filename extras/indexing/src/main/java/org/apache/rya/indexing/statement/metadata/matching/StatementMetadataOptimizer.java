@@ -21,7 +21,7 @@ package org.apache.rya.indexing.statement.metadata.matching;
 import com.google.common.base.Optional;
 import org.apache.hadoop.conf.Configurable;
 import org.apache.hadoop.conf.Configuration;
-import org.apache.rya.api.RdfTripleStoreConfiguration;
+import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
 import org.apache.rya.indexing.external.matching.*;
 import org.eclipse.rdf4j.query.BindingSet;
 import org.eclipse.rdf4j.query.Dataset;
@@ -32,13 +32,13 @@ import static com.google.common.base.Preconditions.checkNotNull;
 public class StatementMetadataOptimizer extends AbstractExternalSetOptimizer<StatementMetadataNode<?>>implements Configurable {
 
     private StatementMetadataExternalSetMatcherFactory factory = new StatementMetadataExternalSetMatcherFactory();
-    private RdfTripleStoreConfiguration conf;
+    private RdfCloudTripleStoreConfiguration conf;
     public boolean init = false;
     public StatementMetadataExternalSetProvider provider;
 
     public StatementMetadataOptimizer() {}
     
-    public StatementMetadataOptimizer(RdfTripleStoreConfiguration conf) {
+    public StatementMetadataOptimizer(RdfCloudTripleStoreConfiguration conf) {
         setConf(conf);
     }
 
@@ -47,7 +47,7 @@ public class StatementMetadataOptimizer extends AbstractExternalSetOptimizer<Sta
         checkNotNull(conf);
         if (!init) {
             try {
-                this.conf = (RdfTripleStoreConfiguration) conf;
+                this.conf = (RdfCloudTripleStoreConfiguration) conf;
                 provider = new StatementMetadataExternalSetProvider(this.conf);
             } catch (Exception e) {
                 throw new RuntimeException(e);

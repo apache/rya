@@ -111,45 +111,45 @@ public class RyaAccumuloSailConfig extends BaseSailConfig {
     }
 
     @Override
-    public Resource export(final Graph graph) {
-        final Resource implNode = super.export(graph);
+    public Resource export(final Model model) {
+        final Resource implNode = super.export(model);
 
         @SuppressWarnings("deprecation")
         final
-        ValueFactory v = graph.getValueFactory();
+        ValueFactory v = model.getValueFactory();
 
-        graph.add(implNode, USER, v.createLiteral(user));
-        graph.add(implNode, PASSWORD, v.createLiteral(password));
-        graph.add(implNode, INSTANCE, v.createLiteral(instance));
-        graph.add(implNode, ZOOKEEPERS, v.createLiteral(zookeepers));
-        graph.add(implNode, IS_MOCK, v.createLiteral(isMock));
+        model.add(implNode, USER, v.createLiteral(user));
+        model.add(implNode, PASSWORD, v.createLiteral(password));
+        model.add(implNode, INSTANCE, v.createLiteral(instance));
+        model.add(implNode, ZOOKEEPERS, v.createLiteral(zookeepers));
+        model.add(implNode, IS_MOCK, v.createLiteral(isMock));
 
         return implNode;
     }
 
     @Override
-    public void parse(final Graph graph, final Resource implNode) throws SailConfigException {
-        super.parse(graph, implNode);
+    public void parse(final Model model, final Resource implNode) throws SailConfigException {
+        super.parse(model, implNode);
         System.out.println("parsing");
 
         try {
-            final Literal userLit = GraphUtil.getOptionalObjectLiteral(graph, implNode, USER);
+            final Literal userLit = GraphUtil.getOptionalObjectLiteral(model, implNode, USER);
             if (userLit != null) {
                 setUser(userLit.getLabel());
             }
-            final Literal pwdLit = GraphUtil.getOptionalObjectLiteral(graph, implNode, PASSWORD);
+            final Literal pwdLit = GraphUtil.getOptionalObjectLiteral(model, implNode, PASSWORD);
             if (pwdLit != null) {
                 setPassword(pwdLit.getLabel());
             }
-            final Literal instLit = GraphUtil.getOptionalObjectLiteral(graph, implNode, INSTANCE);
+            final Literal instLit = GraphUtil.getOptionalObjectLiteral(model, implNode, INSTANCE);
             if (instLit != null) {
                 setInstance(instLit.getLabel());
             }
-            final Literal zooLit = GraphUtil.getOptionalObjectLiteral(graph, implNode, ZOOKEEPERS);
+            final Literal zooLit = GraphUtil.getOptionalObjectLiteral(model, implNode, ZOOKEEPERS);
             if (zooLit != null) {
                 setZookeepers(zooLit.getLabel());
             }
-            final Literal mockLit = GraphUtil.getOptionalObjectLiteral(graph, implNode, IS_MOCK);
+            final Literal mockLit = GraphUtil.getOptionalObjectLiteral(model, implNode, IS_MOCK);
             if (mockLit != null) {
                 setMock(Boolean.parseBoolean(mockLit.getLabel()));
             }

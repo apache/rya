@@ -18,7 +18,7 @@
  */
 package org.apache.rya.api.persist.utils;
 
-import org.apache.rya.api.RdfTripleStoreConfiguration;
+import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
 import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.persist.RyaDAO;
 import org.apache.rya.api.resolver.RyaToRdfConversions;
@@ -41,15 +41,15 @@ import static com.google.common.base.Preconditions.checkNotNull;
  */
 public class RyaDaoQueryWrapper {
     private final RyaDAO<?> ryaDao;
-    private final RdfTripleStoreConfiguration conf;
+    private final RdfCloudTripleStoreConfiguration conf;
 
     /**
      * Creates a new instance of {@link RyaDaoQueryWrapper}.
      * @param ryaDao the {@link RyaDAO}. (not {@code null})
-     * @param conf the {@link RdfTripleStoreConfiguration}.
+     * @param conf the {@link RdfCloudTripleStoreConfiguration}.
      * (not {@code null})
      */
-    public RyaDaoQueryWrapper(final RyaDAO<?> ryaDao, final RdfTripleStoreConfiguration conf) {
+    public RyaDaoQueryWrapper(final RyaDAO<?> ryaDao, final RdfCloudTripleStoreConfiguration conf) {
         this.ryaDao = checkNotNull(ryaDao);
         this.conf = checkNotNull(conf);
     }

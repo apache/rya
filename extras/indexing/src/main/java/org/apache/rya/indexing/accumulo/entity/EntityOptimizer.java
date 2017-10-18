@@ -32,7 +32,7 @@ import org.apache.accumulo.core.client.AccumuloSecurityException;
 import org.apache.hadoop.conf.Configurable;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.rya.accumulo.AccumuloRdfConfiguration;
-import org.apache.rya.api.RdfTripleStoreConfiguration;
+import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
 import org.apache.rya.api.persist.joinselect.SelectivityEvalDAO;
 import org.apache.rya.indexing.accumulo.ConfigUtils;
 import org.apache.rya.joinselect.AccumuloSelectivityEvalDAO;
@@ -50,8 +50,8 @@ import org.slf4j.LoggerFactory;
 public class EntityOptimizer implements QueryOptimizer, Configurable {
     private static final Logger LOG = LoggerFactory.getLogger(EntityTupleSet.class);
 
-    private SelectivityEvalDAO<RdfTripleStoreConfiguration> eval;
-    private RdfTripleStoreConfiguration conf;
+    private SelectivityEvalDAO<RdfCloudTripleStoreConfiguration> eval;
+    private RdfCloudTripleStoreConfiguration conf;
     private boolean isEvalDaoSet = false;
 
 
@@ -59,7 +59,7 @@ public class EntityOptimizer implements QueryOptimizer, Configurable {
 
     }
 
-    public EntityOptimizer(RdfTripleStoreConfiguration conf) {
+    public EntityOptimizer(RdfCloudTripleStoreConfiguration conf) {
         if(conf.isUseStats() && conf.isUseSelectivity()) {
             try {
                 eval = new AccumuloSelectivityEvalDAO(conf, ConfigUtils.getConnector(conf));
@@ -77,7 +77,7 @@ public class EntityOptimizer implements QueryOptimizer, Configurable {
         this.conf = conf;
     }
 
-    public EntityOptimizer(SelectivityEvalDAO<RdfTripleStoreConfiguration> eval) {
+    public EntityOptimizer(SelectivityEvalDAO<RdfCloudTripleStoreConfiguration> eval) {
         this.eval = eval;
         this.conf = eval.getConf();
         isEvalDaoSet = true;
@@ -85,8 +85,8 @@ public class EntityOptimizer implements QueryOptimizer, Configurable {
 
     @Override
     public void setConf(Configuration conf) {
-        if(conf instanceof RdfTripleStoreConfiguration) {
-            this.conf = (RdfTripleStoreConfiguration) conf;
+        if(conf instanceof RdfCloudTripleStoreConfiguration) {
+            this.conf = (RdfCloudTripleStoreConfiguration) conf;
         } else {
             this.conf = new AccumuloRdfConfiguration(conf);
         }

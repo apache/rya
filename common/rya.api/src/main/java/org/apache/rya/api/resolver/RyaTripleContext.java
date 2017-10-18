@@ -25,9 +25,9 @@ import java.util.Map;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
 import org.apache.rya.api.RdfCloudTripleStoreConstants;
 import org.apache.rya.api.RdfCloudTripleStoreConstants.TABLE_LAYOUT;
-import org.apache.rya.api.RdfTripleStoreConfiguration;
 import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.domain.RyaType;
 import org.apache.rya.api.domain.RyaURI;
@@ -66,7 +66,7 @@ public class RyaTripleContext {
         public static final RyaTripleContext HASHED_INSTANCE = new RyaTripleContext(true);
     }
 
-    public synchronized static RyaTripleContext getInstance(final RdfTripleStoreConfiguration conf) {
+    public synchronized static RyaTripleContext getInstance(final RdfCloudTripleStoreConfiguration conf) {
     	if (conf.isPrefixRowsWithHash()){
     		return RyaTripleContextHolder.HASHED_INSTANCE;
     	}

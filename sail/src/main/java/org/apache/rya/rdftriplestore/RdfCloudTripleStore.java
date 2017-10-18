@@ -1,6 +1,6 @@
 package org.apache.rya.rdftriplestore;
 
-import org.apache.rya.api.RdfTripleStoreConfiguration;
+import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
 import org.apache.rya.api.persist.RdfEvalStatsDAO;
 import org.apache.rya.api.persist.RyaDAO;
 import org.apache.rya.api.persist.RyaDAOException;
@@ -37,7 +37,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 public class RdfCloudTripleStore extends SailBase {
 
-    private RdfTripleStoreConfiguration conf;
+    private RdfCloudTripleStoreConfiguration conf;
 
     protected RyaDAO ryaDAO;
     protected InferenceEngine inferenceEngine;
@@ -111,11 +111,11 @@ public class RdfCloudTripleStore extends SailBase {
         return true;
     }
 
-    public RdfTripleStoreConfiguration getConf() {
+    public RdfCloudTripleStoreConfiguration getConf() {
         return conf;
     }
 
-    public void setConf(RdfTripleStoreConfiguration conf) {
+    public void setConf(RdfCloudTripleStoreConfiguration conf) {
         this.conf = conf;
     }
 

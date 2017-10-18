@@ -29,7 +29,7 @@ import com.mongodb.*;
 import org.apache.accumulo.core.security.Authorizations;
 import org.apache.commons.io.IOUtils;
 import org.apache.log4j.Logger;
-import org.apache.rya.api.RdfTripleStoreConfiguration;
+import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
 import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.domain.RyaURI;
 import org.apache.rya.api.persist.RyaDAO;
@@ -295,7 +295,7 @@ public final class MongoDBRyaDAO implements RyaDAO<MongoDBRdfConfiguration>{
     }
 
     @Override
-    public void purge(final RdfTripleStoreConfiguration configuration) {
+    public void purge(final RdfCloudTripleStoreConfiguration configuration) {
 
     }
 

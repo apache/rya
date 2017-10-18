@@ -19,7 +19,7 @@
 package org.apache.rya.rdftriplestore.inference;
 
 import org.apache.rya.accumulo.AccumuloRdfConfiguration;
-import org.apache.rya.api.RdfTripleStoreConfiguration;
+import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.ValueFactory;
 import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
@@ -67,7 +67,7 @@ public class ReflexivePropertyVisitorTest {
     @Test
     public void testReflexivePropertyDisabled() throws Exception {
         // Disable inference
-        final RdfTripleStoreConfiguration disabledConf = conf.clone();
+        final RdfCloudTripleStoreConfiguration disabledConf = conf.clone();
         disabledConf.setInferReflexiveProperty(false);
         // Define a reflexive property
         final InferenceEngine inferenceEngine = mock(InferenceEngine.class);

@@ -27,8 +27,8 @@ import org.apache.accumulo.core.client.Instance;
 import org.apache.accumulo.core.client.mock.MockInstance;
 import org.apache.rya.accumulo.AccumuloRdfConfiguration;
 import org.apache.rya.accumulo.AccumuloRyaDAO;
+import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
 import org.apache.rya.api.RdfCloudTripleStoreConstants;
-import org.apache.rya.api.RdfTripleStoreConfiguration;
 import org.apache.rya.rdftriplestore.RdfCloudTripleStore;
 import org.apache.rya.rdftriplestore.RyaSailRepository;
 import org.apache.rya.rdftriplestore.inference.InferenceEngine;
@@ -144,7 +144,7 @@ public class RdfCloudTripleStoreConnectionTest extends TestCase {
 //                "<" + cpu.toString() + "> ?p ?o1." +
 //                "}";
 //        TupleQuery tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, query);
-//        tupleQuery.setBinding(RdfTripleStoreConfiguration.CONF_QUERY_AUTH, vf.createLiteral("2"));
+//        tupleQuery.setBinding(RdfCloudTripleStoreConfiguration.CONF_QUERY_AUTH, vf.createLiteral("2"));
 //        CountTupleHandler cth = new CountTupleHandler();
 //        tupleQuery.evaluate(cth);
 //        assertEquals(2, cth.getCount());
@@ -184,7 +184,7 @@ public class RdfCloudTripleStoreConnectionTest extends TestCase {
                 "?x <" + pred2.stringValue() + "> ?o2." +
                 "}";
         TupleQuery tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, query);
-        tupleQuery.setBinding(RdfTripleStoreConfiguration.CONF_QUERYPLAN_FLAG, RdfCloudTripleStoreConstants.VALUE_FACTORY.createLiteral(true));
+        tupleQuery.setBinding(RdfCloudTripleStoreConfiguration.CONF_QUERYPLAN_FLAG, RdfCloudTripleStoreConstants.VALUE_FACTORY.createLiteral(true));
         CountTupleHandler cth = new CountTupleHandler();
         tupleQuery.evaluate(cth);
         conn.close();
@@ -990,7 +990,7 @@ public class RdfCloudTripleStoreConnectionTest extends TestCase {
 //                "  } .\n" +
 //                "}";
 //        TupleQuery tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, query);
-//        tupleQuery.setBinding(RdfTripleStoreConfiguration.CONF_QUERY_AUTH, vf.createLiteral("1"));
+//        tupleQuery.setBinding(RdfCloudTripleStoreConfiguration.CONF_QUERY_AUTH, vf.createLiteral("1"));
 //        CountTupleHandler tupleHandler = new CountTupleHandler();
 //        tupleQuery.evaluate(tupleHandler);
 //        assertEquals(1, tupleHandler.getCount());
@@ -1094,7 +1094,7 @@ public class RdfCloudTripleStoreConnectionTest extends TestCase {
                 "  } .\n" +
                 "}";
         TupleQuery tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, query);
-        tupleQuery.setBinding(RdfTripleStoreConfiguration.CONF_QUERY_AUTH, vf.createLiteral("2"));
+        tupleQuery.setBinding(RdfCloudTripleStoreConfiguration.CONF_QUERY_AUTH, vf.createLiteral("2"));
         CountTupleHandler tupleHandler = new CountTupleHandler();
         tupleQuery.evaluate(tupleHandler);
         assertEquals(1, tupleHandler.getCount());
@@ -1144,7 +1144,7 @@ public class RdfCloudTripleStoreConnectionTest extends TestCase {
                 "  } .\n" +
                 "}";
         TupleQuery tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, query);
-        tupleQuery.setBinding(RdfTripleStoreConfiguration.CONF_QUERY_AUTH, vf.createLiteral("2"));
+        tupleQuery.setBinding(RdfCloudTripleStoreConfiguration.CONF_QUERY_AUTH, vf.createLiteral("2"));
         CountTupleHandler tupleHandler = new CountTupleHandler();
         tupleQuery.evaluate(tupleHandler);
         assertEquals(1, tupleHandler.getCount());

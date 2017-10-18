@@ -35,7 +35,7 @@ import org.apache.rya.accumulo.pcj.iterators.BindingSetHashJoinIterator.HashJoin
 import org.apache.rya.accumulo.pcj.iterators.IteratorCombiner;
 import org.apache.rya.accumulo.pcj.iterators.PCJKeyToCrossProductBindingSetIterator;
 import org.apache.rya.accumulo.pcj.iterators.PCJKeyToJoinBindingSetIterator;
-import org.apache.rya.api.RdfTripleStoreConfiguration;
+import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
 import org.apache.rya.api.utils.IteratorWrapper;
 import org.apache.rya.indexing.accumulo.ConfigUtils;
 import org.apache.rya.indexing.pcj.matching.PCJOptimizerUtilities;
@@ -198,7 +198,7 @@ public class AccumuloIndexSet extends ExternalTupleSet implements
 
 
 	private Authorizations getAuthorizations(final Configuration conf) {
-		final String authString = conf.get(RdfTripleStoreConfiguration.CONF_QUERY_AUTH, "");
+		final String authString = conf.get(RdfCloudTripleStoreConfiguration.CONF_QUERY_AUTH, "");
         if (authString.isEmpty()) {
             return new Authorizations();
         }

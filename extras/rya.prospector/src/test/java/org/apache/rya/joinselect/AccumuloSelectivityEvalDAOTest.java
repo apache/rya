@@ -39,7 +39,7 @@ import org.apache.accumulo.core.data.Value;
 import org.apache.accumulo.core.security.Authorizations;
 import org.apache.hadoop.io.Text;
 import org.apache.rya.accumulo.AccumuloRdfConfiguration;
-import org.apache.rya.api.RdfTripleStoreConfiguration;
+import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
 import org.apache.rya.api.layout.TablePrefixLayoutStrategy;
 import org.apache.rya.api.persist.RdfEvalStatsDAO;
 import org.apache.rya.prospector.service.ProspectorServiceEvalStatsDAO;
@@ -88,7 +88,7 @@ public class AccumuloSelectivityEvalDAOTest {
 
     private Connector conn;
     AccumuloRdfConfiguration arc;
-    RdfEvalStatsDAO<RdfTripleStoreConfiguration> res;
+    RdfEvalStatsDAO<RdfCloudTripleStoreConfiguration> res;
     BatchWriterConfig config;
     Instance mock;
 

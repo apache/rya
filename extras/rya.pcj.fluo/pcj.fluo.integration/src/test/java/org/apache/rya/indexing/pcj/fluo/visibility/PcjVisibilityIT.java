@@ -41,7 +41,7 @@ import org.apache.fluo.api.client.FluoClient;
 import org.apache.fluo.api.client.FluoFactory;
 import org.apache.hadoop.io.Text;
 import org.apache.rya.accumulo.AccumuloRdfConfiguration;
-import org.apache.rya.api.RdfTripleStoreConfiguration;
+import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
 import org.apache.rya.api.client.RyaClient;
 import org.apache.rya.api.client.accumulo.AccumuloRyaClientFactory;
 import org.apache.rya.api.domain.RyaStatement;
@@ -120,7 +120,7 @@ public class PcjVisibilityIT extends RyaExportITBase {
         ryaConf.setAccumuloInstance(super.getAccumuloConnector().getInstance().getInstanceName());
         ryaConf.setAccumuloZookeepers(super.getAccumuloConnector().getInstance().getZooKeepers());
         ryaConf.set(ConfigUtils.CLOUDBASE_AUTHS, "u");
-        ryaConf.set(RdfTripleStoreConfiguration.CONF_CV, "u");
+        ryaConf.set(RdfCloudTripleStoreConfiguration.CONF_CV, "u");
 
         // PCJ configuration information.
         ryaConf.set(ConfigUtils.USE_PCJ, "true");

@@ -13,8 +13,8 @@ import org.eclipse.rdf4j.repository.RepositoryConnection;
 import org.eclipse.rdf4j.repository.RepositoryException;
 import org.eclipse.rdf4j.rio.RDFHandlerException;
 
-import static org.apache.rya.api.RdfTripleStoreConfiguration.CONF_INFER;
-import static org.apache.rya.api.RdfTripleStoreConfiguration.CONF_QUERY_AUTH;
+import static org.apache.rya.api.RdfCloudTripleStoreConfiguration.CONF_INFER;
+import static org.apache.rya.api.RdfCloudTripleStoreConfiguration.CONF_QUERY_AUTH;
 import static org.apache.rya.camel.cbsail.CbSailComponent.SPARQL_QUERY_PROP;
 import static org.apache.rya.camel.cbsail.CbSailComponent.valueFactory;
 

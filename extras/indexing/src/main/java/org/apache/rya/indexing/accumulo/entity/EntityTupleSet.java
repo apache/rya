@@ -31,7 +31,7 @@ import org.apache.accumulo.core.client.Connector;
 import org.apache.commons.io.IOUtils;
 import org.apache.rya.accumulo.AccumuloRdfConfiguration;
 import org.apache.rya.accumulo.AccumuloRyaDAO;
-import org.apache.rya.api.RdfTripleStoreConfiguration;
+import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
 import org.apache.rya.indexing.accumulo.ConfigUtils;
 import org.apache.rya.indexing.accumulo.entity.StarQuery.CardinalityStatementPattern;
 import org.apache.rya.joinselect.AccumuloSelectivityEvalDAO;
@@ -54,7 +54,7 @@ public class EntityTupleSet extends ExternalSet implements ExternalBatchingItera
     private static final Logger LOG = LoggerFactory.getLogger(EntityTupleSet.class);
 
     private StarQuery starQuery;
-    private RdfTripleStoreConfiguration conf;
+    private RdfCloudTripleStoreConfiguration conf;
     private Set<String> variables;
     private double cardinality = -1;
     private StatementPattern minSp;
@@ -66,7 +66,7 @@ public class EntityTupleSet extends ExternalSet implements ExternalBatchingItera
 
     }
 
-    public EntityTupleSet(StarQuery sq, RdfTripleStoreConfiguration conf) {
+    public EntityTupleSet(StarQuery sq, RdfCloudTripleStoreConfiguration conf) {
         this.starQuery = sq;
         this.conf = conf;
 
@@ -80,7 +80,7 @@ public class EntityTupleSet extends ExternalSet implements ExternalBatchingItera
 
     }
 
-    public EntityTupleSet(StarQuery sq, RdfTripleStoreConfiguration conf, boolean evalOptUsed) {
+    public EntityTupleSet(StarQuery sq, RdfCloudTripleStoreConfiguration conf, boolean evalOptUsed) {
         this(sq,conf);
         this.evalOptUsed = evalOptUsed;
     }

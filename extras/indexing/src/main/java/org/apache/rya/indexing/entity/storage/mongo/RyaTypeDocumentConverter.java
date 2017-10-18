@@ -62,7 +62,7 @@ public class RyaTypeDocumentConverter implements DocumentConverter<RyaType> {
         }
 
         return new RyaType(
-                vf.createIRI( document.getString(DATA_TYPE) ),
+                SimpleValueFactory.getInstance().createIRI( document.getString(DATA_TYPE) ),
                 document.getString(VALUE));
     }
 }

@@ -29,7 +29,7 @@ import java.util.Set;
 import org.apache.commons.io.FileUtils;
 import org.apache.log4j.Logger;
 import org.apache.rya.accumulo.mr.merge.CopyTool;
-import org.apache.rya.api.RdfTripleStoreConfiguration;
+import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
 import org.apache.rya.rdftriplestore.RdfCloudTripleStore;
 import org.apache.rya.rdftriplestore.inference.*;
 import org.apache.rya.rdftriplestore.utils.FixedStatementPattern;
@@ -369,14 +369,14 @@ public class QueryRuleset {
     /**
      * A Rya configuration.
      */
-    protected RdfTripleStoreConfiguration conf;
+    protected RdfCloudTripleStoreConfiguration conf;
 
     /**
      * Extract a set of rules from a query found in a Configuration.
      * @param conf Configuration containing either the query string, or name of a file containing the query, plus inference parameters.
      * @throws QueryRulesetException if the query can't be read, parsed, and resolved to valid rules
      */
-    public QueryRuleset(final RdfTripleStoreConfiguration conf) throws QueryRulesetException {
+    public QueryRuleset(final RdfCloudTripleStoreConfiguration conf) throws QueryRulesetException {
         this.conf = conf;
         setQuery();
         setRules();

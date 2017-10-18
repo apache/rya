@@ -40,8 +40,8 @@ import org.apache.rya.accumulo.mr.merge.util.AccumuloInstanceDriver;
 import org.apache.rya.accumulo.mr.merge.util.AccumuloRyaUtils;
 import org.apache.rya.accumulo.mr.merge.util.TestUtils;
 import org.apache.rya.accumulo.mr.merge.util.TimeUtils;
+import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
 import org.apache.rya.api.RdfCloudTripleStoreConstants;
-import org.apache.rya.api.RdfTripleStoreConfiguration;
 import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.persist.RyaDAOException;
 import org.eclipse.rdf4j.common.iteration.CloseableIteration;
@@ -253,13 +253,13 @@ public class MergeToolTest {
         assertStatementInParent("Parent missing statement with parent visibility", 1, ryaStatementVisibilityDifferent);
 
         // Check that it can be queried with child's visibility
-        parentConfig.set(RdfTripleStoreConfiguration.CONF_QUERY_AUTH, CHILD_AUTH);
+        parentConfig.set(RdfCloudTripleStoreConfiguration.CONF_QUERY_AUTH, CHILD_AUTH);
         final Authorizations newParentAuths = AccumuloRyaUtils.addUserAuths(accumuloDualInstanceDriver.getParentUser(), accumuloDualInstanceDriver.getParentSecOps(), CHILD_AUTH);
         accumuloDualInstanceDriver.getParentSecOps().changeUserAuthorizations(accumuloDualInstanceDriver.getParentUser(), newParentAuths);
         assertStatementInParent("Parent missing statement with child visibility", 1, ryaStatementVisibilityDifferent);
 
         // Check that it can NOT be queried with some other visibility
-        parentConfig.set(RdfTripleStoreConfiguration.CONF_QUERY_AUTH, "bad_auth");
+        parentConfig.set(RdfCloudTripleStoreConfiguration.CONF_QUERY_AUTH, "bad_auth");
         final CloseableIteration<RyaStatement, RyaDAOException> iter = parentDao.getQueryEngine().query(ryaStatementVisibilityDifferent, parentConfig);
         count = 0;
         try {
@@ -277,7 +277,7 @@ public class MergeToolTest {
         assertEquals(0, count);
 
         // reset auth
-        parentConfig.set(RdfTripleStoreConfiguration.CONF_QUERY_AUTH, PARENT_AUTH);
+        parentConfig.set(RdfCloudTripleStoreConfiguration.CONF_QUERY_AUTH, PARENT_AUTH);
 
         assertStatementInParent("Parent has statement it deleted later", 0, ryaStatementParentDeletedAfter);
 

@@ -23,8 +23,8 @@ import java.util.Enumeration;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
 import org.apache.rya.api.RdfCloudTripleStoreUtils;
-import org.apache.rya.api.RdfTripleStoreConfiguration;
 import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.domain.RyaType;
 import org.apache.rya.api.domain.RyaURI;
@@ -41,7 +41,7 @@ import org.eclipse.rdf4j.common.iteration.CloseableIteration;
  * Date: 7/26/12
  * Time: 8:58 AM
  */
-public class HashJoin<C extends RdfTripleStoreConfiguration> implements Join<C> {
+public class HashJoin<C extends RdfCloudTripleStoreConfiguration> implements Join<C> {
 
     private RyaContext ryaContext = RyaContext.getInstance();
     private RyaQueryEngine ryaQueryEngine;

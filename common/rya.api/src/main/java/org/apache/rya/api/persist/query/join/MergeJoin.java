@@ -24,7 +24,7 @@ import java.util.List;
 import java.util.Map;
 
 import com.google.common.base.Preconditions;
-import org.apache.rya.api.RdfTripleStoreConfiguration;
+import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
 import org.apache.rya.api.domain.*;
 import org.apache.rya.api.persist.RyaDAOException;
 import org.apache.rya.api.persist.query.RyaQueryEngine;
@@ -37,7 +37,7 @@ import org.eclipse.rdf4j.common.iteration.EmptyIteration;
  * Date: 7/24/12
  * Time: 8:52 AM
  */
-public class MergeJoin<C extends RdfTripleStoreConfiguration> implements Join<C> {
+public class MergeJoin<C extends RdfCloudTripleStoreConfiguration> implements Join<C> {
 
     private RyaContext ryaContext = RyaContext.getInstance();
     private RyaQueryEngine ryaQueryEngine;

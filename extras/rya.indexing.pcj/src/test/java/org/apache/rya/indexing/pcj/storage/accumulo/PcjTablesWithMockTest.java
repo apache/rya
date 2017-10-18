@@ -30,7 +30,7 @@ import org.apache.accumulo.core.client.security.tokens.PasswordToken;
 import org.apache.log4j.Logger;
 import org.apache.rya.accumulo.AccumuloRdfConfiguration;
 import org.apache.rya.accumulo.AccumuloRyaDAO;
-import org.apache.rya.api.RdfTripleStoreConfiguration;
+import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
 import org.apache.rya.indexing.pcj.storage.PcjException;
 import org.apache.rya.indexing.pcj.storage.PcjMetadata;
 import org.apache.rya.indexing.pcj.storage.accumulo.BindingSetConverter.BindingSetConversionException;
@@ -147,7 +147,7 @@ public class PcjTablesWithMockTest {
 		conf.setDisplayQueryPlan(false);
 
 		conf.setBoolean(USE_MOCK_INSTANCE, true);
-		conf.set(RdfTripleStoreConfiguration.CONF_TBL_PREFIX, RYA_TABLE_PREFIX);
+		conf.set(RdfCloudTripleStoreConfiguration.CONF_TBL_PREFIX, RYA_TABLE_PREFIX);
 		conf.set(CLOUDBASE_USER, "root");
 		conf.set(CLOUDBASE_PASSWORD, "");
 		conf.set(CLOUDBASE_INSTANCE, "instance");

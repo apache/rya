@@ -23,13 +23,13 @@ import java.io.IOException;
 
 import org.apache.accumulo.core.client.Connector;
 import org.apache.accumulo.core.client.MultiTableBatchWriter;
-import org.apache.rya.api.RdfTripleStoreConfiguration;
+import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
 import org.apache.rya.api.persist.index.RyaSecondaryIndexer;
 
 public interface AccumuloIndexer extends RyaSecondaryIndexer {
     void setMultiTableBatchWriter(MultiTableBatchWriter writer) throws IOException;
     void setConnector(Connector connector);
     void destroy();
-    void purge(RdfTripleStoreConfiguration configuration);
+    void purge(RdfCloudTripleStoreConfiguration configuration);
     void dropAndDestroy();
 }

@@ -22,7 +22,7 @@ package org.apache.rya.alx.command;
 import java.util.Map;
 
 import org.apache.felix.gogo.commands.Command;
-import org.apache.rya.api.RdfTripleStoreConfiguration;
+import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
 
 /**
  * Date: 5/16/12
@@ -34,7 +34,7 @@ public class InfoRyaCommand extends AbstractRyaCommand {
     @Override
     protected Object doRyaExecute() throws Exception {
         System.out.println("******************RYA Configuration******************");
-        RdfTripleStoreConfiguration conf = rdfDAO.getConf();
+        RdfCloudTripleStoreConfiguration conf = rdfDAO.getConf();
         for (Map.Entry<String, String> next : conf) {
             System.out.println(next.getKey() + ":\t\t" + next.getValue());
         }

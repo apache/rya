@@ -19,7 +19,7 @@ package org.apache.rya.api.persist;
  * under the License.
  */
 
-import org.apache.rya.api.RdfTripleStoreConfiguration;
+import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
 import org.eclipse.rdf4j.common.iteration.CloseableIteration;
 import org.eclipse.rdf4j.model.Namespace;
 
@@ -27,7 +27,7 @@ import org.eclipse.rdf4j.model.Namespace;
  * Date: 7/17/12
  * Time: 8:23 AM
  */
-public interface RyaNamespaceManager<C extends RdfTripleStoreConfiguration> extends RyaConfigured<C> {
+public interface RyaNamespaceManager<C extends RdfCloudTripleStoreConfiguration> extends RyaConfigured<C> {
 
     void addNamespace(String pfx, String namespace) throws RyaDAOException;
 

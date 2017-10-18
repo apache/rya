@@ -34,7 +34,7 @@ import org.apache.accumulo.core.client.TableNotFoundException;
 import org.apache.accumulo.core.client.admin.TableOperations;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.rya.accumulo.AccumuloRdfConfiguration;
-import org.apache.rya.api.RdfTripleStoreConfiguration;
+import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
 import org.apache.rya.api.persist.RyaDAOException;
 import org.apache.rya.api.resolver.RyaTypeResolverException;
 import org.apache.rya.indexing.accumulo.ConfigUtils;
@@ -662,7 +662,7 @@ public class AccumuloIndexSetTest {
     private static Configuration getConf() {
         final AccumuloRdfConfiguration conf = new AccumuloRdfConfiguration();
         conf.setBoolean(ConfigUtils.USE_MOCK_INSTANCE, true);
-        conf.set(RdfTripleStoreConfiguration.CONF_TBL_PREFIX, "rya_");
+        conf.set(RdfCloudTripleStoreConfiguration.CONF_TBL_PREFIX, "rya_");
         conf.set(ConfigUtils.CLOUDBASE_USER, "root");
         conf.set(ConfigUtils.CLOUDBASE_PASSWORD, "");
         conf.set(ConfigUtils.CLOUDBASE_INSTANCE, "instance");

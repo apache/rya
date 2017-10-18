@@ -26,9 +26,9 @@ import java.util.Map;
 
 import com.google.common.primitives.Bytes;
 import org.apache.commons.codec.binary.Hex;
+import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
 import org.apache.rya.api.RdfCloudTripleStoreConstants.*;
 import org.apache.rya.api.RdfCloudTripleStoreUtils;
-import org.apache.rya.api.RdfTripleStoreConfiguration;
 import org.apache.rya.api.domain.RyaRange;
 import org.apache.rya.api.domain.RyaType;
 import org.apache.rya.api.domain.RyaURI;
@@ -53,7 +53,7 @@ public class HashedSpoWholeRowTriplePatternStrategy extends AbstractHashedTriple
 
     @Override
     public Map.Entry<TABLE_LAYOUT, ByteRange> defineRange(final RyaURI subject, final RyaURI predicate, final RyaType object,
-                                                          final RyaURI context, final RdfTripleStoreConfiguration conf) throws IOException {
+                                                          final RyaURI context, final RdfCloudTripleStoreConfiguration conf) throws IOException {
         try {
             //spo(ng)
             //sp(ng)

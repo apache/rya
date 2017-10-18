@@ -22,6 +22,9 @@ package org.apache.rya.accumulo.mr;
 import java.io.IOException;
 import java.io.PipedReader;
 import java.io.PipedWriter;
+import java.nio.charset.Charset;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
@@ -38,7 +41,11 @@ import org.apache.rya.accumulo.AccumuloRdfConfiguration;
 import org.apache.rya.api.resolver.RdfToRyaConversions;
 import org.apache.rya.api.resolver.RyaTripleContext;
 import org.eclipse.rdf4j.model.Statement;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 import org.eclipse.rdf4j.rio.*;
+
+import static org.eclipse.rdf4j.rio.RDFFormat.NO_CONTEXTS;
+import static org.eclipse.rdf4j.rio.RDFFormat.NO_NAMESPACES;
 
 /**
  * {@link FileInputFormat} that can read multiple RDF files and convert into
@@ -114,7 +121,11 @@ public class RdfFileInputFormat extends FileInputFormat<LongWritable, RyaStateme
 
     private RDFFormat getRDFFormat(JobContext context) {
         String name = context.getConfiguration().get(FORMAT_PROP);
-        return RDFFormat.valueOf(name);
+        return  new RDFFormat(name,
+                Arrays.asList("application/n-triples", "text/plain"), Charset.forName("UTF-8"),
+                Collections.singletonList("nt"),
+                SimpleValueFactory.getInstance().createIRI("http://www.w3.org/ns/formats/"+name),
+                NO_NAMESPACES, NO_CONTEXTS);
     }
 
     /**

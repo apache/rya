@@ -22,7 +22,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-import org.apache.rya.api.RdfTripleStoreConfiguration;
+import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.vocabulary.RDF;
 import org.eclipse.rdf4j.model.vocabulary.RDFS;
@@ -40,7 +40,7 @@ import org.eclipse.rdf4j.query.algebra.Var;
  */
 public class PropertyChainVisitor extends AbstractInferVisitor {
 
-    public PropertyChainVisitor(final RdfTripleStoreConfiguration conf, final InferenceEngine inferenceEngine) {
+    public PropertyChainVisitor(final RdfCloudTripleStoreConfiguration conf, final InferenceEngine inferenceEngine) {
         super(conf, inferenceEngine);
         include = conf.isInferPropertyChain();
     }

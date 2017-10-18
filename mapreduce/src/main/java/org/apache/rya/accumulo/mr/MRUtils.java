@@ -19,6 +19,13 @@ package org.apache.rya.accumulo.mr;
  * under the License.
  */
 
+import java.nio.charset.Charset;
+import java.util.Arrays;
+import java.util.Collections;
+
+import org.apache.accumulo.core.client.AccumuloException;
+import org.apache.accumulo.core.client.AccumuloSecurityException;
+import org.apache.accumulo.core.client.Connector;
 import org.apache.accumulo.core.client.Instance;
 import org.apache.accumulo.core.client.mapreduce.InputFormatBase;
 import org.apache.accumulo.core.client.security.tokens.AuthenticationToken;
@@ -31,6 +38,9 @@ import org.apache.rya.api.RdfCloudTripleStoreConstants.TABLE_LAYOUT;
 import org.eclipse.rdf4j.model.ValueFactory;
 import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 import org.eclipse.rdf4j.rio.RDFFormat;
+
+import static org.eclipse.rdf4j.rio.RDFFormat.NO_CONTEXTS;
+import static org.eclipse.rdf4j.rio.RDFFormat.NO_NAMESPACES;
 
 /**
  * Contains constants and static methods for interacting with a
@@ -199,7 +209,11 @@ public class MRUtils {
      * @return  The configured RDFFormat, or null if not set.
      */
     public static RDFFormat getRDFFormat(Configuration conf) {
-        return RDFFormat.valueOf(conf.get(FORMAT_PROP));
+        return  new RDFFormat(conf.get(FORMAT_PROP),
+                Arrays.asList("application/n-triples", "text/plain"), Charset.forName("UTF-8"),
+                Collections.singletonList("nt"),
+                SimpleValueFactory.getInstance().createIRI("http://www.w3.org/ns/formats/"+conf.get(FORMAT_PROP)),
+                NO_NAMESPACES, NO_CONTEXTS);
     }
 
     /**
@@ -311,6 +325,12 @@ public class MRUtils {
         }
         public static String getTablename(JobContext conf) {
             return InputFormatBase.getInputTableName(conf);
+        }
+
+        public static Connector getConnector(TaskAttemptContext taskAttemptContext)
+                throws AccumuloSecurityException, AccumuloException
+        {
+            return getInstance(taskAttemptContext).getConnector(getUsername(taskAttemptContext),getPassword(taskAttemptContext));
         }
     }
 }

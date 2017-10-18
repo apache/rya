@@ -32,10 +32,10 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.rya.accumulo.AccumuloRdfConstants;
 import org.apache.rya.accumulo.mr.*;
+import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
 import org.apache.rya.api.RdfCloudTripleStoreConstants;
 import org.apache.rya.api.RdfCloudTripleStoreConstants.TABLE_LAYOUT;
 import org.apache.rya.api.RdfCloudTripleStoreUtils;
-import org.apache.rya.api.RdfTripleStoreConfiguration;
 import org.apache.rya.indexing.accumulo.ConfigUtils;
 import org.apache.rya.indexing.accumulo.entity.EntityCentricIndex;
 import org.apache.spark.SparkContext;
@@ -94,7 +94,7 @@ public class GraphXGraphGenerator {
         conf.set(ConfigUtils.CLOUDBASE_USER, userName);
         conf.set(ConfigUtils.CLOUDBASE_PASSWORD, pwd);
         conf.setBoolean(ConfigUtils.USE_MOCK_INSTANCE, mock);
-        conf.set(RdfTripleStoreConfiguration.CONF_TBL_PREFIX, tablePrefix);
+        conf.set(RdfCloudTripleStoreConfiguration.CONF_TBL_PREFIX, tablePrefix);
 
         Job job = Job.getInstance(conf, sc.appName());
 
@@ -143,7 +143,7 @@ public class GraphXGraphGenerator {
         conf.set(ConfigUtils.CLOUDBASE_USER, userName);
         conf.set(ConfigUtils.CLOUDBASE_PASSWORD, pwd);
         conf.setBoolean(ConfigUtils.USE_MOCK_INSTANCE, mock);
-        conf.set(RdfTripleStoreConfiguration.CONF_TBL_PREFIX, tablePrefix);
+        conf.set(RdfCloudTripleStoreConfiguration.CONF_TBL_PREFIX, tablePrefix);
 
         Job job = Job.getInstance(conf, sc.appName());
 

@@ -36,8 +36,8 @@ import org.apache.camel.impl.JndiRegistry;
 import org.apache.camel.test.CamelTestSupport;
 import org.apache.rya.accumulo.AccumuloRdfConfiguration;
 import org.apache.rya.accumulo.AccumuloRyaDAO;
+import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
 import org.apache.rya.api.RdfCloudTripleStoreConstants;
-import org.apache.rya.api.RdfTripleStoreConfiguration;
 import org.apache.rya.rdftriplestore.RdfCloudTripleStore;
 import org.apache.rya.rdftriplestore.RyaSailRepository;
 import org.apache.rya.rdftriplestore.inference.InferenceEngine;
@@ -153,7 +153,7 @@ public class CbSailTest extends CamelTestSupport {
                 "}";
         Map<String, Object> headers = new HashMap<String, Object>();
         headers.put(CbSailComponent.SPARQL_QUERY_PROP, query);
-        headers.put(RdfTripleStoreConfiguration.CONF_QUERY_AUTH, "auth1");
+        headers.put(RdfCloudTripleStoreConfiguration.CONF_QUERY_AUTH, "auth1");
         template.sendBodyAndHeaders(null, headers);
 
         assertMockEndpointsSatisfied();

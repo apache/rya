@@ -25,32 +25,29 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.accumulo.core.client.Connector;
-import org.apache.accumulo.core.client.Instance;
-import org.apache.accumulo.core.client.Scanner;
+import org.apache.accumulo.core.client.*;
 import org.apache.accumulo.core.client.admin.TableOperations;
 import org.apache.accumulo.core.client.security.tokens.AuthenticationToken;
+import org.apache.accumulo.core.conf.DefaultConfiguration;
 import org.apache.accumulo.core.data.ByteSequence;
 import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Range;
 import org.apache.accumulo.core.data.Value;
+import org.apache.accumulo.core.file.FileOperations;
 import org.apache.accumulo.core.file.FileSKVIterator;
 import org.apache.accumulo.core.file.rfile.RFileOperations;
 import org.apache.accumulo.core.security.Authorizations;
-import org.apache.accumulo.core.util.ArgumentChecker;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.BlockLocation;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.Text;
-import org.apache.hadoop.mapreduce.InputSplit;
-import org.apache.hadoop.mapreduce.JobContext;
-import org.apache.hadoop.mapreduce.Mapper;
-import org.apache.hadoop.mapreduce.RecordReader;
-import org.apache.hadoop.mapreduce.TaskAttemptContext;
+import org.apache.hadoop.mapreduce.*;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.input.FileSplit;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * {@link FileInputFormat} that finds the Accumulo tablet files on the HDFS
@@ -68,8 +65,8 @@ public class AccumuloHDFSFileInputFormat extends FileInputFormat<Key, Value> {
         String user = MRUtils.AccumuloProps.getUsername(jobContext);
         AuthenticationToken password = MRUtils.AccumuloProps.getPassword(jobContext);
         String table = MRUtils.AccumuloProps.getTablename(jobContext);
-        ArgumentChecker.notNull(instance);
-        ArgumentChecker.notNull(table);
+        checkNotNull(instance);
+        checkNotNull(table);
 
         //find the files necessary
         try {
@@ -112,9 +109,23 @@ public class AccumuloHDFSFileInputFormat extends FileInputFormat<Key, Value> {
                 Path file = split.getPath();
                 FileSystem fs = file.getFileSystem(job);
                 Instance instance = MRUtils.AccumuloProps.getInstance(taskAttemptContext);
+                FileOperations fileOperations = RFileOperations.getInstance();
+                Connector conn = null;
+                try {
+                    conn = MRUtils.AccumuloProps.getConnector(taskAttemptContext);
+                } catch (AccumuloSecurityException e) {
+                    throw new InterruptedException(e.getMessage());
 
-                fileSKVIterator = RFileOperations.getInstance().openReader(file.toString(), ALLRANGE,
-                        new HashSet<ByteSequence>(), false, fs, job, instance.getConfiguration());
+                } catch (AccumuloException e) {
+                    e.printStackTrace();
+                    throw  new InterruptedException(e.getMessage());
+                }
+
+                fileSKVIterator= fileOperations.newScanReaderBuilder()
+                        .forFile(file.toString(),fs,job)
+                        .withTableConfiguration(DefaultConfiguration.getDefaultConfiguration())
+                        .overRange(ALLRANGE, new HashSet<ByteSequence>(),false)
+                        .build();
             }
 
             @Override

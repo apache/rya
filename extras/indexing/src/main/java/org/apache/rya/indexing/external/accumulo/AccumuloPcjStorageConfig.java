@@ -19,7 +19,7 @@
 package org.apache.rya.indexing.external.accumulo;
 
 import org.apache.hadoop.conf.Configuration;
-import org.apache.rya.api.RdfTripleStoreConfiguration;
+import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
 import org.apache.rya.indexing.pcj.storage.accumulo.AccumuloPcjStorage;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -29,7 +29,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
  */
 public class AccumuloPcjStorageConfig {
 
-    private final RdfTripleStoreConfiguration config;
+    private final RdfCloudTripleStoreConfiguration config;
 
     /**
      * Constructs an instance of {@link AccumuloPcjStorageConfig}.
@@ -40,9 +40,9 @@ public class AccumuloPcjStorageConfig {
         checkNotNull(config);
 
         // Wrapping the config with this class so that we can use it's getTablePrefix() method.
-        this.config = new RdfTripleStoreConfiguration(config) {
+        this.config = new RdfCloudTripleStoreConfiguration(config) {
             @Override
-            public RdfTripleStoreConfiguration clone() {
+            public RdfCloudTripleStoreConfiguration clone() {
                 return null;
             }
         };

@@ -29,8 +29,8 @@ import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Value;
 import org.apache.accumulo.core.security.ColumnVisibility;
 import org.apache.hadoop.io.Text;
+import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
 import org.apache.rya.api.RdfCloudTripleStoreConstants;
-import org.apache.rya.api.RdfTripleStoreConfiguration;
 import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.resolver.RyaTripleContext;
 import org.apache.rya.api.resolver.triple.TripleRow;
@@ -49,7 +49,7 @@ public class RyaTableKeyValues {
     private Collection<Map.Entry<Key, Value>> po = new ArrayList<Map.Entry<Key, Value>>();
     private Collection<Map.Entry<Key, Value>> osp = new ArrayList<Map.Entry<Key, Value>>();
 
-    public RyaTableKeyValues(RyaStatement stmt, RdfTripleStoreConfiguration conf) {
+    public RyaTableKeyValues(RyaStatement stmt, RdfCloudTripleStoreConfiguration conf) {
         this.stmt = stmt;
         this.instance = RyaTripleContext.getInstance(conf);
     }

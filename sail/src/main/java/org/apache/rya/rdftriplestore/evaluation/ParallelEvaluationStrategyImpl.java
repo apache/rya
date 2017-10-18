@@ -25,8 +25,8 @@ import java.util.concurrent.Executors;
 
 import com.google.common.collect.Lists;
 import org.apache.log4j.Logger;
+import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
 import org.apache.rya.api.RdfCloudTripleStoreUtils;
-import org.apache.rya.api.RdfTripleStoreConfiguration;
 import org.apache.rya.api.utils.NullableStatementImpl;
 import org.apache.rya.rdftriplestore.RdfCloudTripleStoreConnection;
 import org.apache.rya.rdftriplestore.RdfCloudTripleStoreConnection.StoreTripleSource;
@@ -60,7 +60,7 @@ public class ParallelEvaluationStrategyImpl extends EvaluationStrategyImpl {
     private InferenceEngine inferenceEngine;
 
     public ParallelEvaluationStrategyImpl(StoreTripleSource tripleSource, InferenceEngine inferenceEngine,
-                                          Dataset dataset, RdfTripleStoreConfiguration conf) {
+                                          Dataset dataset, RdfCloudTripleStoreConfiguration conf) {
         super(tripleSource, dataset, null);
         Integer nthreads = conf.getNumThreads();
         this.numOfThreads = (nthreads != null) ? nthreads : this.numOfThreads;

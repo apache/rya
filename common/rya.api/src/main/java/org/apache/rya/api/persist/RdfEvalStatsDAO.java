@@ -21,7 +21,7 @@ package org.apache.rya.api.persist;
 
 import java.util.List;
 
-import org.apache.rya.api.RdfTripleStoreConfiguration;
+import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
 import org.eclipse.rdf4j.model.Resource;
 import org.eclipse.rdf4j.model.Value;
 
@@ -30,7 +30,7 @@ import org.eclipse.rdf4j.model.Value;
  * Date: Feb 28, 2012
  * Time: 4:17:05 PM
  */
-public interface RdfEvalStatsDAO<C extends RdfTripleStoreConfiguration> {
+public interface RdfEvalStatsDAO<C extends RdfCloudTripleStoreConfiguration> {
     enum CARDINALITY_OF {
         SUBJECT, PREDICATE, OBJECT, SUBJECTPREDICATE, SUBJECTOBJECT, PREDICATEOBJECT
     }

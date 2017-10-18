@@ -29,7 +29,7 @@ import org.apache.fluo.api.client.FluoClient;
 import org.apache.fluo.api.client.FluoFactory;
 import org.apache.rya.accumulo.AccumuloRdfConfiguration;
 import org.apache.rya.accumulo.AccumuloRyaDAO;
-import org.apache.rya.api.RdfTripleStoreConfiguration;
+import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
 import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.resolver.RdfToRyaConversions;
 import org.apache.rya.indexing.accumulo.ConfigUtils;
@@ -124,7 +124,7 @@ public class HistoricStreamingVisibilityIT extends RyaExportITBase {
         conf.set(ConfigUtils.CLOUDBASE_PASSWORD, getPassword());
         conf.set(ConfigUtils.CLOUDBASE_INSTANCE, super.getMiniAccumuloCluster().getInstanceName());
         conf.set(ConfigUtils.CLOUDBASE_ZOOKEEPERS, super.getMiniAccumuloCluster().getZooKeepers());
-        conf.set(RdfTripleStoreConfiguration.CONF_QUERY_AUTH, "U,V,W");
+        conf.set(RdfCloudTripleStoreConfiguration.CONF_QUERY_AUTH, "U,V,W");
 
         return conf;
     }

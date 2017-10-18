@@ -21,7 +21,7 @@ package org.apache.rya.rdftriplestore.evaluation;
 
 import java.util.*;
 
-import org.apache.rya.api.RdfTripleStoreConfiguration;
+import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
 import org.apache.rya.api.persist.RdfEvalStatsDAO;
 import org.apache.rya.api.persist.RdfEvalStatsDAO.CARDINALITY_OF;
 import org.apache.rya.rdftriplestore.inference.DoNotExpandSP;
@@ -45,12 +45,12 @@ import static com.google.common.base.Preconditions.checkNotNull;
  */
 public class RdfCloudTripleStoreEvaluationStatistics extends EvaluationStatistics {
 
-    private RdfTripleStoreConfiguration conf;
+    private RdfCloudTripleStoreConfiguration conf;
     private RdfEvalStatsDAO rdfEvalStatsDAO;
     protected boolean pushEmptyRdfTypeDown = true;
     protected boolean useCompositeCardinalities = true;
 
-    public RdfCloudTripleStoreEvaluationStatistics(RdfTripleStoreConfiguration conf, RdfEvalStatsDAO rdfEvalStatsDAO) {
+    public RdfCloudTripleStoreEvaluationStatistics(RdfCloudTripleStoreConfiguration conf, RdfEvalStatsDAO rdfEvalStatsDAO) {
         checkNotNull(conf);
         checkNotNull(rdfEvalStatsDAO);
         try {

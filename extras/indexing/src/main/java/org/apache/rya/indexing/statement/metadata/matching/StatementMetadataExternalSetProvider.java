@@ -22,7 +22,7 @@ import java.util.*;
 
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
-import org.apache.rya.api.RdfTripleStoreConfiguration;
+import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
 import org.apache.rya.api.domain.RyaURI;
 import org.apache.rya.api.resolver.RdfToRyaConversions;
 import org.apache.rya.indexing.external.matching.ExternalSetProvider;
@@ -44,9 +44,9 @@ public class StatementMetadataExternalSetProvider implements ExternalSetProvider
             RdfToRyaConversions.convertURI(RDF.TYPE));
     private Multimap<Var, StatementPattern> reifiedQueries;
     private Set<RyaURI> metadataProperties;
-    private RdfTripleStoreConfiguration conf;
+    private RdfCloudTripleStoreConfiguration conf;
 
-    public StatementMetadataExternalSetProvider(RdfTripleStoreConfiguration conf) {
+    public StatementMetadataExternalSetProvider(RdfCloudTripleStoreConfiguration conf) {
         this.metadataProperties = conf.getStatementMetadataProperties();
         this.conf = conf;
     }

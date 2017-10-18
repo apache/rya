@@ -18,7 +18,7 @@ package org.apache.rya.rdftriplestore.inference;
  * under the License.
  */
 
-import org.apache.rya.api.RdfTripleStoreConfiguration;
+import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.query.algebra.StatementPattern;
 import org.eclipse.rdf4j.query.algebra.Var;
@@ -42,10 +42,10 @@ import org.eclipse.rdf4j.query.algebra.ZeroLengthPath;
 public class ReflexivePropertyVisitor extends AbstractInferVisitor {
     /**
      * Creates a new {@link ReflexivePropertyVisitor}.
-     * @param conf The {@link RdfTripleStoreConfiguration}.
+     * @param conf The {@link RdfCloudTripleStoreConfiguration}.
      * @param inferenceEngine The InferenceEngine containing the relevant ontology.
      */
-    public ReflexivePropertyVisitor(RdfTripleStoreConfiguration conf, InferenceEngine inferenceEngine) {
+    public ReflexivePropertyVisitor(RdfCloudTripleStoreConfiguration conf, InferenceEngine inferenceEngine) {
         super(conf, inferenceEngine);
         include = conf.isInferReflexiveProperty();
     }

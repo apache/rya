@@ -25,7 +25,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import com.google.common.collect.Sets;
 import org.apache.commons.lang3.mutable.MutableObject;
 import org.apache.log4j.Logger;
-import org.apache.rya.api.RdfTripleStoreConfiguration;
+import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
 import org.apache.rya.api.persist.RyaDAO;
 import org.apache.rya.api.persist.RyaDAOException;
 import org.apache.rya.api.persist.utils.RyaDAOHelper;
@@ -79,7 +79,7 @@ public class InferenceEngine {
     private Map<Resource, Set<IRI>> hasSelfByType;
 
     private RyaDAO<?> ryaDAO;
-    private RdfTripleStoreConfiguration conf;
+    private RdfCloudTripleStoreConfiguration conf;
     private RyaDaoQueryWrapper ryaDaoQueryWrapper;
     private boolean initialized = false;
     private boolean schedule = true;
@@ -1282,11 +1282,11 @@ public class InferenceEngine {
         ryaDaoQueryWrapper = new RyaDaoQueryWrapper(ryaDAO);
     }
 
-    public RdfTripleStoreConfiguration getConf() {
+    public RdfCloudTripleStoreConfiguration getConf() {
         return conf;
     }
 
-    public void setConf(final RdfTripleStoreConfiguration conf) {
+    public void setConf(final RdfCloudTripleStoreConfiguration conf) {
         this.conf = conf;
     }
 

@@ -35,7 +35,7 @@ import org.apache.accumulo.core.data.Value;
 import org.apache.accumulo.core.security.Authorizations;
 import org.apache.hadoop.io.Text;
 import org.apache.rya.accumulo.AccumuloRdfConfiguration;
-import org.apache.rya.api.RdfTripleStoreConfiguration;
+import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
 import org.apache.rya.api.layout.TablePrefixLayoutStrategy;
 import org.apache.rya.api.persist.RdfEvalStatsDAO;
 import org.apache.rya.joinselect.AccumuloSelectivityEvalDAO;
@@ -143,7 +143,7 @@ public class QueryJoinSelectOptimizerTest {
   private Connector conn;
   AccumuloRdfConfiguration arc;
   BatchWriterConfig config;
-  RdfEvalStatsDAO<RdfTripleStoreConfiguration> res;
+  RdfEvalStatsDAO<RdfCloudTripleStoreConfiguration> res;
   Instance mock;
 
   @Before
@@ -175,7 +175,7 @@ public class QueryJoinSelectOptimizerTest {
   @Test
   public void testOptimizeQ1() throws Exception {
 
-    RdfEvalStatsDAO<RdfTripleStoreConfiguration> res = new ProspectorServiceEvalStatsDAO(conn, arc);
+    RdfEvalStatsDAO<RdfCloudTripleStoreConfiguration> res = new ProspectorServiceEvalStatsDAO(conn, arc);
     AccumuloSelectivityEvalDAO accc = new AccumuloSelectivityEvalDAO();
     accc.setConf(arc);
     accc.setConnector(conn);
@@ -270,7 +270,7 @@ public class QueryJoinSelectOptimizerTest {
 
     System.out.println("*********************QUERY2********************");
 
-    RdfEvalStatsDAO<RdfTripleStoreConfiguration> res = new ProspectorServiceEvalStatsDAO(conn, arc);
+    RdfEvalStatsDAO<RdfCloudTripleStoreConfiguration> res = new ProspectorServiceEvalStatsDAO(conn, arc);
     AccumuloSelectivityEvalDAO accc = new AccumuloSelectivityEvalDAO();
     accc.setConf(arc);
     accc.setConnector(conn);
@@ -380,7 +380,7 @@ public class QueryJoinSelectOptimizerTest {
   @Test
   public void testOptimizeQ3() throws Exception {
 
-    RdfEvalStatsDAO<RdfTripleStoreConfiguration> res = new ProspectorServiceEvalStatsDAO(conn, arc);
+    RdfEvalStatsDAO<RdfCloudTripleStoreConfiguration> res = new ProspectorServiceEvalStatsDAO(conn, arc);
     AccumuloSelectivityEvalDAO accc = new AccumuloSelectivityEvalDAO();
     accc.setConf(arc);
     accc.setConnector(conn);
@@ -529,7 +529,7 @@ public class QueryJoinSelectOptimizerTest {
   @Test
   public void testOptimizeQ4() throws Exception {
 
-    RdfEvalStatsDAO<RdfTripleStoreConfiguration> res = new ProspectorServiceEvalStatsDAO(conn, arc);
+    RdfEvalStatsDAO<RdfCloudTripleStoreConfiguration> res = new ProspectorServiceEvalStatsDAO(conn, arc);
     AccumuloSelectivityEvalDAO accc = new AccumuloSelectivityEvalDAO();
     accc.setConf(arc);
     accc.setConnector(conn);
@@ -642,7 +642,7 @@ public class QueryJoinSelectOptimizerTest {
   @Test
   public void testOptimizeQ5() throws Exception {
 
-    RdfEvalStatsDAO<RdfTripleStoreConfiguration> res = new ProspectorServiceEvalStatsDAO(conn, arc);
+    RdfEvalStatsDAO<RdfCloudTripleStoreConfiguration> res = new ProspectorServiceEvalStatsDAO(conn, arc);
     AccumuloSelectivityEvalDAO accc = new AccumuloSelectivityEvalDAO();
     accc.setConf(arc);
     accc.setConnector(conn);
@@ -800,7 +800,7 @@ public class QueryJoinSelectOptimizerTest {
   @Test
   public void testOptimizeQ6() throws Exception {
 
-    RdfEvalStatsDAO<RdfTripleStoreConfiguration> res = new ProspectorServiceEvalStatsDAO(conn, arc);
+    RdfEvalStatsDAO<RdfCloudTripleStoreConfiguration> res = new ProspectorServiceEvalStatsDAO(conn, arc);
     AccumuloSelectivityEvalDAO accc = new AccumuloSelectivityEvalDAO();
     accc.setConf(arc);
     accc.setConnector(conn);

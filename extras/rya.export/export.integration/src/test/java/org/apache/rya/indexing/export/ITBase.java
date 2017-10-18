@@ -28,7 +28,7 @@ import de.flapdoodle.embed.mongo.tests.MongodForTestsFactory;
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
 import org.apache.log4j.Logger;
-import org.apache.rya.api.RdfTripleStoreConfiguration;
+import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
 import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.domain.RyaStatement.RyaStatementBuilder;
 import org.apache.rya.api.domain.RyaType;
@@ -256,7 +256,7 @@ public abstract class ITBase {
         conf.set(MongoDBRdfConfiguration.MONGO_DB_NAME, "test");
         conf.set(MongoDBRdfConfiguration.MONGO_COLLECTION_PREFIX, "rya_");
 
-        conf.set(RdfTripleStoreConfiguration.CONF_TBL_PREFIX, "rya_");
+        conf.set(RdfCloudTripleStoreConfiguration.CONF_TBL_PREFIX, "rya_");
 
         conf.setMongoPort(""+port);
         conf.setMongoInstance(hostname);

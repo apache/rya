@@ -34,7 +34,7 @@ import org.apache.accumulo.core.data.Value;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.Text;
 import org.apache.rya.accumulo.AccumuloRdfConfiguration;
-import org.apache.rya.api.RdfTripleStoreConfiguration;
+import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
 import org.apache.rya.api.layout.TablePrefixLayoutStrategy;
 import org.apache.rya.api.persist.RdfEvalStatsDAO;
 import org.apache.rya.indexing.accumulo.ConfigUtils;
@@ -180,7 +180,7 @@ public class EntityOptimizerTest {
     private Connector accCon;
     AccumuloRdfConfiguration conf;
     BatchWriterConfig config;
-    RdfEvalStatsDAO<RdfTripleStoreConfiguration> res;
+    RdfEvalStatsDAO<RdfCloudTripleStoreConfiguration> res;
     
     
     

@@ -22,7 +22,7 @@ package org.apache.rya.api.query.strategy;
 import java.io.IOException;
 import java.util.Map;
 
-import org.apache.rya.api.RdfTripleStoreConfiguration;
+import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
 import org.apache.rya.api.domain.RyaType;
 import org.apache.rya.api.domain.RyaURI;
 import org.apache.rya.api.resolver.triple.TripleRowRegex;
@@ -36,7 +36,7 @@ import static org.apache.rya.api.RdfCloudTripleStoreConstants.TABLE_LAYOUT;
 public interface TriplePatternStrategy {
 
     Map.Entry<TABLE_LAYOUT, ByteRange> defineRange(RyaURI subject, RyaURI predicate, RyaType object, RyaURI context,
-            RdfTripleStoreConfiguration conf) throws IOException;
+            RdfCloudTripleStoreConfiguration conf) throws IOException;
 
     TABLE_LAYOUT getLayout();
 

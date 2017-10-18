@@ -36,7 +36,7 @@ import org.apache.hadoop.io.Text;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.apache.rya.accumulo.*;
-import org.apache.rya.api.RdfTripleStoreConfiguration;
+import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
 import org.apache.rya.indexing.pcj.storage.PcjException;
 import org.apache.rya.indexing.pcj.storage.PcjMetadata;
 import org.apache.rya.indexing.pcj.storage.PrecomputedJoinStorage.CloseableIterator;
@@ -124,7 +124,7 @@ public class PcjTablesIT {
         conf.setDisplayQueryPlan(true);
 
         conf.setBoolean(USE_MOCK_INSTANCE, false);
-        conf.set(RdfTripleStoreConfiguration.CONF_TBL_PREFIX, getRyaInstanceName());
+        conf.set(RdfCloudTripleStoreConfiguration.CONF_TBL_PREFIX, getRyaInstanceName());
         conf.set(CLOUDBASE_USER, cluster.getUsername());
         conf.set(CLOUDBASE_PASSWORD, cluster.getPassword());
         conf.set(CLOUDBASE_INSTANCE, cluster.getInstanceName());

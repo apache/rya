@@ -38,7 +38,7 @@ import org.apache.hadoop.io.Text;
 import org.apache.log4j.Logger;
 import org.apache.rya.accumulo.AccumuloRdfConfiguration;
 import org.apache.rya.accumulo.experimental.AbstractAccumuloIndexer;
-import org.apache.rya.api.RdfTripleStoreConfiguration;
+import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
 import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.domain.RyaType;
 import org.apache.rya.api.domain.RyaURI;
@@ -365,7 +365,7 @@ public class EntityCentricIndex extends AbstractAccumuloIndexer {
     }
 
     @Override
-    public void purge(final RdfTripleStoreConfiguration configuration) {
+    public void purge(final RdfCloudTripleStoreConfiguration configuration) {
     }
 
     @Override

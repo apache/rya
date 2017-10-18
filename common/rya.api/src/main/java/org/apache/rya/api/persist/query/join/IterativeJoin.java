@@ -24,8 +24,8 @@ import java.util.Collection;
 import java.util.Map;
 
 import com.google.common.base.Preconditions;
+import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
 import org.apache.rya.api.RdfCloudTripleStoreUtils;
-import org.apache.rya.api.RdfTripleStoreConfiguration;
 import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.domain.RyaType;
 import org.apache.rya.api.domain.RyaURI;
@@ -40,7 +40,7 @@ import org.eclipse.rdf4j.query.BindingSet;
  * Date: 7/24/12
  * Time: 8:52 AM
  */
-public class IterativeJoin<C extends RdfTripleStoreConfiguration> implements Join<C> {
+public class IterativeJoin<C extends RdfCloudTripleStoreConfiguration> implements Join<C> {
 
     private RyaContext ryaContext = RyaContext.getInstance();
     private RyaQueryEngine ryaQueryEngine;

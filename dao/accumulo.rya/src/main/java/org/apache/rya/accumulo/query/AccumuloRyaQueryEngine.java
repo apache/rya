@@ -37,9 +37,9 @@ import org.apache.accumulo.core.iterators.user.TimestampFilter;
 import org.apache.accumulo.core.security.Authorizations;
 import org.apache.hadoop.io.Text;
 import org.apache.rya.accumulo.AccumuloRdfConfiguration;
+import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
 import org.apache.rya.api.RdfCloudTripleStoreConstants;
 import org.apache.rya.api.RdfCloudTripleStoreConstants.TABLE_LAYOUT;
-import org.apache.rya.api.RdfTripleStoreConfiguration;
 import org.apache.rya.api.domain.RyaRange;
 import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.domain.RyaType;
@@ -374,7 +374,7 @@ public class AccumuloRyaQueryEngine implements RyaQueryEngine<AccumuloRdfConfigu
                         .transform(keyValueToRyaStatementFunctionMap.get(layout));
             } else {
                 final RyaURI fcontext = context;
-                final RdfTripleStoreConfiguration fconf = ryaQuery.getConf();
+                final RdfCloudTripleStoreConfiguration fconf = ryaQuery.getConf();
                 FluentIterable<RyaStatement> fluent = FluentIterable.from(ranges)
                         .transformAndConcat(new Function<Range, Iterable<Map.Entry<Key, Value>>>() {
                             @Override
@@ -402,7 +402,7 @@ public class AccumuloRyaQueryEngine implements RyaQueryEngine<AccumuloRdfConfigu
     }
 
     protected void fillScanner(ScannerBase scanner, RyaURI context, String qualifier, Long ttl, Long currentTime,
-            TripleRowRegex tripleRowRegex, RdfTripleStoreConfiguration conf) throws IOException {
+            TripleRowRegex tripleRowRegex, RdfCloudTripleStoreConfiguration conf) throws IOException {
         if (context != null && qualifier != null) {
             scanner.fetchColumn(new Text(context.getData()), new Text(qualifier));
         } else if (context != null) {

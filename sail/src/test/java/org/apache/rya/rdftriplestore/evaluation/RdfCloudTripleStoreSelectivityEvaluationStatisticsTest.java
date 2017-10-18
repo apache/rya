@@ -31,7 +31,7 @@ import org.apache.accumulo.core.data.Mutation;
 import org.apache.accumulo.core.data.Value;
 import org.apache.hadoop.io.Text;
 import org.apache.rya.accumulo.AccumuloRdfConfiguration;
-import org.apache.rya.api.RdfTripleStoreConfiguration;
+import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
 import org.apache.rya.api.layout.TablePrefixLayoutStrategy;
 import org.apache.rya.api.persist.RdfEvalStatsDAO;
 import org.apache.rya.joinselect.AccumuloSelectivityEvalDAO;
@@ -93,7 +93,7 @@ public class RdfCloudTripleStoreSelectivityEvaluationStatisticsTest {
     @Test
     public void testOptimizeQ1() throws Exception {
 
-        RdfEvalStatsDAO<RdfTripleStoreConfiguration> res = new ProspectorServiceEvalStatsDAO(conn, arc);
+        RdfEvalStatsDAO<RdfCloudTripleStoreConfiguration> res = new ProspectorServiceEvalStatsDAO(conn, arc);
         AccumuloSelectivityEvalDAO accc = new AccumuloSelectivityEvalDAO();
         accc.setConf(arc);
         accc.setRdfEvalDAO(res);
@@ -187,7 +187,7 @@ public class RdfCloudTripleStoreSelectivityEvaluationStatisticsTest {
     @Test
     public void testOptimizeQ1ZeroCard() throws Exception {
 
-        RdfEvalStatsDAO<RdfTripleStoreConfiguration> res = new ProspectorServiceEvalStatsDAO(conn, arc);
+        RdfEvalStatsDAO<RdfCloudTripleStoreConfiguration> res = new ProspectorServiceEvalStatsDAO(conn, arc);
         AccumuloSelectivityEvalDAO accc = new AccumuloSelectivityEvalDAO();
         accc.setConf(arc);
         accc.setConnector(conn);

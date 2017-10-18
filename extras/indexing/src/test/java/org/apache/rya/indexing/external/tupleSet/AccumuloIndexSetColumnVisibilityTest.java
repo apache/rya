@@ -35,7 +35,7 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.log4j.Logger;
 import org.apache.rya.accumulo.AccumuloRdfConfiguration;
 import org.apache.rya.accumulo.instance.AccumuloRyaInstanceDetailsRepository;
-import org.apache.rya.api.RdfTripleStoreConfiguration;
+import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
 import org.apache.rya.api.instance.RyaDetails;
 import org.apache.rya.api.instance.RyaDetails.*;
 import org.apache.rya.api.instance.RyaDetailsRepository;
@@ -175,12 +175,12 @@ public class AccumuloIndexSetColumnVisibilityTest {
 
     private static Configuration getConf() {
         final AccumuloRdfConfiguration conf = new AccumuloRdfConfiguration();
-        conf.set(RdfTripleStoreConfiguration.CONF_TBL_PREFIX, ryaInstanceName);
+        conf.set(RdfCloudTripleStoreConfiguration.CONF_TBL_PREFIX, ryaInstanceName);
         conf.set(ConfigUtils.CLOUDBASE_USER, "root");
         conf.set(ConfigUtils.CLOUDBASE_PASSWORD, "password");
         conf.set(ConfigUtils.CLOUDBASE_INSTANCE, instance);
         conf.set(ConfigUtils.CLOUDBASE_ZOOKEEPERS, zooKeepers);
-        conf.set(RdfTripleStoreConfiguration.CONF_QUERY_AUTH, "U,USA");
+        conf.set(RdfCloudTripleStoreConfiguration.CONF_QUERY_AUTH, "U,USA");
         return conf;
     }
 

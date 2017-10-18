@@ -24,7 +24,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.rya.api.RdfTripleStoreConfiguration;
+import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
 import org.apache.rya.api.persist.joinselect.SelectivityEvalDAO;
 import org.apache.rya.rdftriplestore.inference.DoNotExpandSP;
 import org.apache.rya.rdftriplestore.utils.FixedStatementPattern;
@@ -40,7 +40,7 @@ public class QueryJoinSelectOptimizer implements QueryOptimizer {
 
   private final EvaluationStatistics statistics;
   private final SelectivityEvalDAO eval;
-  private final RdfTripleStoreConfiguration config;
+  private final RdfCloudTripleStoreConfiguration config;
 
   public QueryJoinSelectOptimizer(EvaluationStatistics statistics, SelectivityEvalDAO eval) {
     System.out.println("Entering join optimizer!");

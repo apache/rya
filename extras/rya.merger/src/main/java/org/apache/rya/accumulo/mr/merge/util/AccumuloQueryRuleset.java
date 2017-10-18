@@ -28,9 +28,9 @@ import org.apache.accumulo.core.client.mapreduce.InputTableConfig;
 import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Range;
 import org.apache.hadoop.io.Text;
+import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
 import org.apache.rya.api.RdfCloudTripleStoreConstants.TABLE_LAYOUT;
 import org.apache.rya.api.RdfCloudTripleStoreUtils;
-import org.apache.rya.api.RdfTripleStoreConfiguration;
 import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.query.strategy.ByteRange;
 import org.apache.rya.api.query.strategy.TriplePatternStrategy;
@@ -58,7 +58,7 @@ public class AccumuloQueryRuleset extends QueryRuleset {
      * @throws IOException if the range can't be resolved
      * @throws QueryRulesetException if the query can't be translated to valid rules
      */
-    public AccumuloQueryRuleset(final RdfTripleStoreConfiguration conf) throws IOException, QueryRulesetException {
+    public AccumuloQueryRuleset(final RdfCloudTripleStoreConfiguration conf) throws IOException, QueryRulesetException {
         // Extract StatementPatterns and conditions from the query
         super(conf);
         // Turn StatementPatterns into Ranges

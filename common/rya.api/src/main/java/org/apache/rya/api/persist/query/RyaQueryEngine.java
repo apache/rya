@@ -23,7 +23,7 @@ import java.io.Closeable;
 import java.util.Collection;
 import java.util.Map;
 
-import org.apache.rya.api.RdfTripleStoreConfiguration;
+import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
 import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.persist.RyaConfigured;
 import org.apache.rya.api.persist.RyaDAOException;
@@ -37,7 +37,7 @@ import org.eclipse.rdf4j.query.BindingSet;
  * Date: 7/17/12
  * Time: 8:25 AM
  */
-public interface RyaQueryEngine<C extends RdfTripleStoreConfiguration> extends RyaConfigured<C>, Closeable {
+public interface RyaQueryEngine<C extends RdfCloudTripleStoreConfiguration> extends RyaConfigured<C>, Closeable {
 
     /**
      * Query the Rya store using the RyaStatement. The Configuration object provides information such as auths, ttl, etc

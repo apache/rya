@@ -27,7 +27,7 @@ import org.apache.accumulo.core.client.mock.MockInstance;
 import org.apache.accumulo.core.client.security.tokens.PasswordToken;
 import org.apache.rya.accumulo.AccumuloRdfConfiguration;
 import org.apache.rya.accumulo.AccumuloRyaDAO;
-import org.apache.rya.api.RdfTripleStoreConfiguration;
+import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
 import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.domain.RyaType;
 import org.apache.rya.api.domain.RyaURI;
@@ -309,7 +309,7 @@ public class StatementPatternEvalTest {
 
         final AccumuloRdfConfiguration conf = new AccumuloRdfConfiguration();
 
-        conf.set(RdfTripleStoreConfiguration.CONF_TBL_PREFIX, "rya_");
+        conf.set(RdfCloudTripleStoreConfiguration.CONF_TBL_PREFIX, "rya_");
         conf.set("sc.cloudbase.username", "root");
         conf.set("sc.cloudbase.password", "");
         conf.set("sc.cloudbase.instancename", "instance");

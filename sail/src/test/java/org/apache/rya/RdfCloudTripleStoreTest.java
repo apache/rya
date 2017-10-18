@@ -512,7 +512,7 @@ public class RdfCloudTripleStoreTest extends TestCase {
                 "}\n";
 //        System.out.println(query);
         TupleQuery tupleQuery = connection.prepareTupleQuery(QueryLanguage.SPARQL, query);
-//        tupleQuery.setBinding(RdfTripleStoreConfiguration.CONF_QUERYPLAN_FLAG, vf.createLiteral(true));
+//        tupleQuery.setBinding(RdfCloudTripleStoreConfiguration.CONF_QUERYPLAN_FLAG, vf.createLiteral(true));
 //        tupleQuery.evaluate(new PrintTupleHandler());
         CountTupleHandler tupleHandler = new CountTupleHandler();
         tupleQuery.evaluate(tupleHandler);

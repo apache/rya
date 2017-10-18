@@ -23,7 +23,7 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 
-import org.apache.rya.api.RdfTripleStoreConfiguration;
+import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
 import org.apache.rya.api.utils.NullableStatementImpl;
 import org.apache.rya.rdftriplestore.utils.FixedStatementPattern;
 import org.apache.rya.rdftriplestore.utils.TransitivePropertySP;
@@ -45,7 +45,7 @@ import org.eclipse.rdf4j.query.algebra.Var;
  */
 public class SameAsVisitor extends AbstractInferVisitor {
 
-    public SameAsVisitor(RdfTripleStoreConfiguration conf, InferenceEngine inferenceEngine) {
+    public SameAsVisitor(RdfCloudTripleStoreConfiguration conf, InferenceEngine inferenceEngine) {
         super(conf, inferenceEngine);
         include = conf.isInferSameAs();
     }

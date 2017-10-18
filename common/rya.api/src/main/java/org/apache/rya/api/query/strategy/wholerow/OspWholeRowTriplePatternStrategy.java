@@ -23,9 +23,9 @@ import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
 import com.google.common.primitives.Bytes;
+import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
 import org.apache.rya.api.RdfCloudTripleStoreConstants.TABLE_LAYOUT;
 import org.apache.rya.api.RdfCloudTripleStoreUtils;
-import org.apache.rya.api.RdfTripleStoreConfiguration;
 import org.apache.rya.api.domain.RyaRange;
 import org.apache.rya.api.domain.RyaType;
 import org.apache.rya.api.domain.RyaURI;
@@ -51,7 +51,7 @@ public class OspWholeRowTriplePatternStrategy extends AbstractTriplePatternStrat
     @Override
     public Map.Entry<TABLE_LAYOUT,
             ByteRange> defineRange(final RyaURI subject, final RyaURI predicate, final RyaType object,
-                                   final RyaURI context, final RdfTripleStoreConfiguration conf) throws IOException {
+                                   final RyaURI context, final RdfCloudTripleStoreConfiguration conf) throws IOException {
         try {
             //os(ng)
             //o_r(s)(ng)

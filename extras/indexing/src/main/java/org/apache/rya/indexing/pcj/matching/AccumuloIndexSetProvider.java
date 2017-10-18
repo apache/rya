@@ -33,7 +33,7 @@ import org.apache.accumulo.core.client.TableNotFoundException;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.log4j.Logger;
 import org.apache.rya.accumulo.instance.AccumuloRyaInstanceDetailsRepository;
-import org.apache.rya.api.RdfTripleStoreConfiguration;
+import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
 import org.apache.rya.api.instance.RyaDetailsRepository;
 import org.apache.rya.api.instance.RyaDetailsRepository.RyaDetailsRepositoryException;
 import org.apache.rya.indexing.IndexPlanValidator.IndexedExecutionPlanGenerator;
@@ -155,12 +155,12 @@ public class AccumuloIndexSetProvider implements ExternalSetProvider<ExternalTup
     private List<ExternalTupleSet> getAccIndices() throws Exception {
 
         requireNonNull(conf);
-        final String tablePrefix = requireNonNull(conf.get(RdfTripleStoreConfiguration.CONF_TBL_PREFIX));
+        final String tablePrefix = requireNonNull(conf.get(RdfCloudTripleStoreConfiguration.CONF_TBL_PREFIX));
         final Connector conn = requireNonNull(ConfigUtils.getConnector(conf));
         List<String> tables = null;
 
-        if (conf instanceof RdfTripleStoreConfiguration) {
-            tables = ((RdfTripleStoreConfiguration) conf).getPcjTables();
+        if (conf instanceof RdfCloudTripleStoreConfiguration) {
+            tables = ((RdfCloudTripleStoreConfiguration) conf).getPcjTables();
         }
         // this maps associates pcj table name with pcj sparql query
         final Map<String, String> indexTables = Maps.newLinkedHashMap();

@@ -20,20 +20,19 @@ package org.apache.rya.accumulo.mr;
  */
 
 import java.io.IOException;
+import java.util.List;
 import java.util.Map.Entry;
 
-import org.apache.accumulo.core.client.Scanner;
+import org.apache.accumulo.core.client.IteratorSetting;
 import org.apache.accumulo.core.client.mapreduce.AbstractInputFormat;
-import org.apache.accumulo.core.client.mapreduce.RangeInputSplit;
+import org.apache.accumulo.core.client.mapreduce.lib.impl.InputConfigurator;
 import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Value;
-import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.InputSplit;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.RecordReader;
 import org.apache.hadoop.mapreduce.TaskAttemptContext;
-
 import org.apache.rya.accumulo.AccumuloRdfConfiguration;
 import org.apache.rya.api.RdfCloudTripleStoreConstants.TABLE_LAYOUT;
 import org.apache.rya.api.domain.RyaStatement;
@@ -77,8 +76,8 @@ public class RyaInputFormat extends AbstractInputFormat<Text, RyaStatementWritab
         private TABLE_LAYOUT tableLayout;
 
         @Override
-        protected void setupIterators(TaskAttemptContext context, Scanner scanner, String tableName,
-                RangeInputSplit split) {
+        protected List<IteratorSetting> contextIterators(TaskAttemptContext context, String tableName) {
+            return InputConfigurator.getIterators(CLASS,context.getConfiguration());
         }
 
         /**
@@ -88,7 +87,8 @@ public class RyaInputFormat extends AbstractInputFormat<Text, RyaStatementWritab
          * @throws IOException if thrown by the superclass's initialize method.
          */
         @Override
-        public void initialize(InputSplit inSplit, TaskAttemptContext attempt) throws IOException {
+        public void initialize(InputSplit inSplit, TaskAttemptContext attempt) throws IOException
+        {
             super.initialize(inSplit, attempt);
             this.tableLayout = MRUtils.getTableLayout(attempt.getConfiguration(), TABLE_LAYOUT.OSP);
             //TODO verify that this is correct

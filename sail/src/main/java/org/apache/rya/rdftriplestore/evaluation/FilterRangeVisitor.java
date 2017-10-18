@@ -4,7 +4,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.rya.api.RdfTripleStoreConfiguration;
+import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
 import org.apache.rya.api.domain.RangeURI;
 import org.apache.rya.api.domain.RangeValue;
 import org.eclipse.rdf4j.model.Value;
@@ -41,10 +41,10 @@ import static org.apache.rya.api.RdfCloudTripleStoreConstants.RANGE;
  */
 public class FilterRangeVisitor extends QueryModelVisitorBase<Exception> {
 
-    private final RdfTripleStoreConfiguration conf;
+    private final RdfCloudTripleStoreConfiguration conf;
     private final Map<Var, RangeValue> rangeValues = new HashMap<Var, RangeValue>();
 
-    public FilterRangeVisitor(final RdfTripleStoreConfiguration conf) {
+    public FilterRangeVisitor(final RdfCloudTripleStoreConfiguration conf) {
         this.conf = conf;
     }
 

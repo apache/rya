@@ -34,10 +34,10 @@ import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.util.Tool;
 import org.apache.rya.accumulo.AccumuloRdfConstants;
+import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
 import org.apache.rya.api.RdfCloudTripleStoreConstants;
 import org.apache.rya.api.RdfCloudTripleStoreConstants.TABLE_LAYOUT;
 import org.apache.rya.api.RdfCloudTripleStoreUtils;
-import org.apache.rya.api.RdfTripleStoreConfiguration;
 import org.apache.rya.indexing.accumulo.ConfigUtils;
 import org.eclipse.rdf4j.rio.RDFFormat;
 
@@ -143,7 +143,7 @@ public abstract class AbstractAccumuloMRTool implements Tool {
         conf.set(ConfigUtils.CLOUDBASE_USER, userName);
         conf.set(ConfigUtils.CLOUDBASE_PASSWORD, pwd);
         conf.setBoolean(ConfigUtils.USE_MOCK_INSTANCE, mock);
-        conf.set(RdfTripleStoreConfiguration.CONF_TBL_PREFIX, tablePrefix);
+        conf.set(RdfCloudTripleStoreConfiguration.CONF_TBL_PREFIX, tablePrefix);
     }
 
     /**

@@ -42,7 +42,7 @@ public class RyaAccumuloSailFactory implements SailFactory {
 
     @Override
     public SailImplConfig getConfig() {
-        return new AccumuloRdfConfiguration();
+        return new RyaAccumuloSailConfig();
     }
 
     @Override

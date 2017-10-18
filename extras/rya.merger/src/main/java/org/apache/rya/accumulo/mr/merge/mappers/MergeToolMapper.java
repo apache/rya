@@ -42,9 +42,9 @@ import org.apache.rya.accumulo.mr.merge.CopyTool;
 import org.apache.rya.accumulo.mr.merge.MergeTool;
 import org.apache.rya.accumulo.mr.merge.util.AccumuloRyaUtils;
 import org.apache.rya.accumulo.mr.merge.util.TimeUtils;
+import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
 import org.apache.rya.api.RdfCloudTripleStoreConstants;
 import org.apache.rya.api.RdfCloudTripleStoreConstants.TABLE_LAYOUT;
-import org.apache.rya.api.RdfTripleStoreConfiguration;
 import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.persist.RyaDAOException;
 import org.apache.rya.api.resolver.RyaTripleContext;
@@ -343,7 +343,7 @@ public class MergeToolMapper extends Mapper<Key, Value, Text, Mutation> {
         convertChildPropToParentProp(childConfig, parentConfig, MRUtils.AC_PWD_PROP);
         convertChildPropToParentProp(childConfig, parentConfig, MRUtils.TABLE_PREFIX_PROPERTY);
         convertChildPropToParentProp(childConfig, parentConfig, MRUtils.AC_AUTH_PROP);
-        convertChildPropToParentProp(childConfig, parentConfig, RdfTripleStoreConfiguration.CONF_QUERY_AUTH);
+        convertChildPropToParentProp(childConfig, parentConfig, RdfCloudTripleStoreConfiguration.CONF_QUERY_AUTH);
         convertChildPropToParentProp(childConfig, parentConfig, MRUtils.AC_ZK_PROP);
 
         MergeTool.setDuplicateKeys(childConfig);

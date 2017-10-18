@@ -21,7 +21,7 @@ package org.apache.rya.api.persist.query;
 
 import java.util.Arrays;
 
-import org.apache.rya.api.RdfTripleStoreConfiguration;
+import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -39,7 +39,7 @@ public class RyaQueryOptions {
     protected String regexSubject;
     protected String regexPredicate;
     protected String regexObject;
-    protected RdfTripleStoreConfiguration conf;
+    protected RdfCloudTripleStoreConfiguration conf;
 
     public static class RyaOptionsBuilder<T extends RyaOptionsBuilder> {
         private RyaQueryOptions options;
@@ -48,7 +48,7 @@ public class RyaQueryOptions {
             this.options = query;
         }
 
-        public T load(RdfTripleStoreConfiguration conf) {
+        public T load(RdfCloudTripleStoreConfiguration conf) {
         	options.setConf(conf);
             return (T) this.setAuths(conf.getAuths())
                     .setBatchSize(conf.getBatchSize())
@@ -107,11 +107,11 @@ public class RyaQueryOptions {
         }
     }
 
-    public RdfTripleStoreConfiguration getConf() {
+    public RdfCloudTripleStoreConfiguration getConf() {
     	return conf;
     }
 
-    public void setConf(RdfTripleStoreConfiguration conf) {
+    public void setConf(RdfCloudTripleStoreConfiguration conf) {
     	this.conf = conf;
     }
 

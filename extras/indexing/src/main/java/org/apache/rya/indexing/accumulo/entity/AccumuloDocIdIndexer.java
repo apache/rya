@@ -36,7 +36,7 @@ import org.apache.hadoop.io.Text;
 import org.apache.rya.accumulo.AccumuloRdfConfiguration;
 import org.apache.rya.accumulo.documentIndex.DocIndexIteratorUtil;
 import org.apache.rya.accumulo.documentIndex.DocumentIndexIntersectingIterator;
-import org.apache.rya.api.RdfTripleStoreConfiguration;
+import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
 import org.apache.rya.api.domain.RyaURI;
 import org.apache.rya.api.resolver.RyaContext;
 import org.apache.rya.api.resolver.RyaToRdfConversions;
@@ -64,8 +64,8 @@ public class AccumuloDocIdIndexer implements DocIdIndexer {
     private BatchScanner bs;
     private final AccumuloRdfConfiguration conf;
 
-    public AccumuloDocIdIndexer(final RdfTripleStoreConfiguration conf) throws AccumuloException, AccumuloSecurityException {
-        Preconditions.checkArgument(conf instanceof RdfTripleStoreConfiguration, "conf must be isntance of RdfTripleStoreConfiguration");
+    public AccumuloDocIdIndexer(final RdfCloudTripleStoreConfiguration conf) throws AccumuloException, AccumuloSecurityException {
+        Preconditions.checkArgument(conf instanceof RdfCloudTripleStoreConfiguration, "conf must be isntance of RdfCloudTripleStoreConfiguration");
         this.conf = (AccumuloRdfConfiguration) conf;
         //Connector conn = ConfigUtils.getConnector(conf);
     }

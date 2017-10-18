@@ -43,8 +43,8 @@ import org.apache.rya.accumulo.mr.merge.driver.AccumuloDualInstanceDriver;
 import org.apache.rya.accumulo.mr.merge.util.AccumuloRyaUtils;
 import org.apache.rya.accumulo.mr.merge.util.TestUtils;
 import org.apache.rya.accumulo.mr.merge.util.TimeUtils;
+import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
 import org.apache.rya.api.RdfCloudTripleStoreConstants;
-import org.apache.rya.api.RdfTripleStoreConfiguration;
 import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.persist.RyaDAOException;
 import org.apache.rya.indexing.accumulo.ConfigUtils;
@@ -261,14 +261,14 @@ public class CopyToolTest {
         assertStatementInChild("Child missing statement with child visibility", 1, ryaStatementVisibilityDifferent);
 
         // Check that it can be queried with parent's visibility
-        childConfig.set(RdfTripleStoreConfiguration.CONF_QUERY_AUTH, PARENT_AUTH);
+        childConfig.set(RdfCloudTripleStoreConfiguration.CONF_QUERY_AUTH, PARENT_AUTH);
         final SecurityOperations secOps = IS_MOCK ? accumuloDualInstanceDriver.getChildSecOps() : childSecOps;
         newChildAuths = AccumuloRyaUtils.addUserAuths(accumuloDualInstanceDriver.getChildUser(), secOps, PARENT_AUTH);
         secOps.changeUserAuthorizations(accumuloDualInstanceDriver.getChildUser(), newChildAuths);
         assertStatementInChild("Child missing statement with parent visibility", 1, ryaStatementVisibilityDifferent);
 
         // Check that it can NOT be queried with some other visibility
-        childConfig.set(RdfTripleStoreConfiguration.CONF_QUERY_AUTH, "bad_auth");
+        childConfig.set(RdfCloudTripleStoreConfiguration.CONF_QUERY_AUTH, "bad_auth");
         final CloseableIteration<RyaStatement, RyaDAOException> iter = childDao.getQueryEngine().query(ryaStatementVisibilityDifferent, childConfig);
         count = 0;
         try {
@@ -286,7 +286,7 @@ public class CopyToolTest {
         assertEquals(0, count);
 
         // reset auth
-        childConfig.set(RdfTripleStoreConfiguration.CONF_QUERY_AUTH, childAuthString);
+        childConfig.set(RdfCloudTripleStoreConfiguration.CONF_QUERY_AUTH, childAuthString);
 
         log.info("DONE");
     }

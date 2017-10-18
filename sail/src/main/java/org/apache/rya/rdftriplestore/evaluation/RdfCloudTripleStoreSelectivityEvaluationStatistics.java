@@ -19,7 +19,7 @@ package org.apache.rya.rdftriplestore.evaluation;
  * under the License.
  */
 
-import org.apache.rya.api.RdfTripleStoreConfiguration;
+import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
 import org.apache.rya.api.persist.RdfEvalStatsDAO;
 import org.apache.rya.api.persist.joinselect.SelectivityEvalDAO;
 import org.apache.rya.rdftriplestore.inference.DoNotExpandSP;
@@ -36,10 +36,10 @@ public class RdfCloudTripleStoreSelectivityEvaluationStatistics extends RdfCloud
                                                  // RdfEvalStatsDAO object
 
   protected double filterCard;
-  RdfTripleStoreConfiguration config; // TODO redundancy here as RdfCloudTripleStoreEvalStats object contains conf as well
+  RdfCloudTripleStoreConfiguration config; // TODO redundancy here as RdfCloudTripleStoreEvalStats object contains conf as well
 
-  public RdfCloudTripleStoreSelectivityEvaluationStatistics(RdfTripleStoreConfiguration conf,
-      RdfEvalStatsDAO<RdfTripleStoreConfiguration> prospector, SelectivityEvalDAO selectEvalStatsDAO) {
+  public RdfCloudTripleStoreSelectivityEvaluationStatistics(RdfCloudTripleStoreConfiguration conf,
+      RdfEvalStatsDAO<RdfCloudTripleStoreConfiguration> prospector, SelectivityEvalDAO selectEvalStatsDAO) {
 
     super(conf, prospector);
     checkNotNull(selectEvalStatsDAO);

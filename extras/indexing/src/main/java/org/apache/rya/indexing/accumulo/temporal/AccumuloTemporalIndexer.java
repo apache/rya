@@ -37,7 +37,7 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.Text;
 import org.apache.log4j.Logger;
 import org.apache.rya.accumulo.experimental.AbstractAccumuloIndexer;
-import org.apache.rya.api.RdfTripleStoreConfiguration;
+import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
 import org.apache.rya.api.client.RyaClientException;
 import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.resolver.RyaToRdfConversions;
@@ -951,7 +951,7 @@ public class AccumuloTemporalIndexer extends AbstractAccumuloIndexer implements 
     }
 
     @Override
-    public void purge(final RdfTripleStoreConfiguration configuration) {
+    public void purge(final RdfCloudTripleStoreConfiguration configuration) {
         // TODO Auto-generated method stub
 
     }

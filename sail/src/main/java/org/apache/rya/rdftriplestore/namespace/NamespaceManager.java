@@ -25,7 +25,7 @@ import net.sf.ehcache.Cache;
 import net.sf.ehcache.CacheManager;
 import net.sf.ehcache.Element;
 import net.sf.ehcache.Statistics;
-import org.apache.rya.api.RdfTripleStoreConfiguration;
+import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
 import org.apache.rya.api.persist.RdfDAOException;
 import org.apache.rya.api.persist.RyaDAO;
 import org.apache.rya.api.persist.RyaNamespaceManager;
@@ -42,10 +42,10 @@ public class NamespaceManager {
     CacheManager cacheManager;
     Cache namespaceCache;
     public static final String NAMESPACE_CACHE_NAME = "namespace";
-    private RdfTripleStoreConfiguration conf;
+    private RdfCloudTripleStoreConfiguration conf;
     private RyaNamespaceManager namespaceManager;
 
-    public NamespaceManager(RyaDAO ryaDAO, RdfTripleStoreConfiguration conf) {
+    public NamespaceManager(RyaDAO ryaDAO, RdfCloudTripleStoreConfiguration conf) {
         this.conf = conf;
         initialize(ryaDAO);
     }

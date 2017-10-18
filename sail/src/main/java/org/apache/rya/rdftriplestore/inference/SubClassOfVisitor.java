@@ -21,7 +21,7 @@ package org.apache.rya.rdftriplestore.inference;
 import java.util.Collection;
 import java.util.UUID;
 
-import org.apache.rya.api.RdfTripleStoreConfiguration;
+import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
 import org.apache.rya.api.utils.NullableStatementImpl;
 import org.apache.rya.rdftriplestore.utils.FixedStatementPattern;
 import org.eclipse.rdf4j.model.IRI;
@@ -37,7 +37,7 @@ import org.eclipse.rdf4j.query.algebra.Var;
  */
 public class SubClassOfVisitor extends AbstractInferVisitor {
 
-    public SubClassOfVisitor(final RdfTripleStoreConfiguration conf, final InferenceEngine inferenceEngine) {
+    public SubClassOfVisitor(final RdfCloudTripleStoreConfiguration conf, final InferenceEngine inferenceEngine) {
         super(conf, inferenceEngine);
         include = conf.isInferSubClassOf();
     }

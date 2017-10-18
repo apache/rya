@@ -24,8 +24,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import junit.framework.TestCase;
+import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
 import org.apache.rya.api.RdfCloudTripleStoreConstants;
-import org.apache.rya.api.RdfTripleStoreConfiguration;
 import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.domain.RyaType;
 import org.apache.rya.api.domain.RyaURI;
@@ -46,10 +46,10 @@ import static org.apache.rya.api.RdfCloudTripleStoreConstants.TABLE_LAYOUT.*;
  * Time: 11:41 AM
  */
 public class AbstractTriplePatternStrategyTest extends TestCase {
-    public class MockRdfConfiguration extends RdfTripleStoreConfiguration {
+    public class MockRdfConfiguration extends RdfCloudTripleStoreConfiguration {
 
 		@Override
-		public RdfTripleStoreConfiguration clone() {
+		public RdfCloudTripleStoreConfiguration clone() {
 			return new MockRdfConfiguration();
 		}
 

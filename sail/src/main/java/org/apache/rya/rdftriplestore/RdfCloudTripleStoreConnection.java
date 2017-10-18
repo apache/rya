@@ -24,8 +24,8 @@ import java.util.*;
 import java.util.Map.Entry;
 
 import org.apache.hadoop.conf.Configurable;
+import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
 import org.apache.rya.api.RdfCloudTripleStoreConstants;
-import org.apache.rya.api.RdfTripleStoreConfiguration;
 import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.domain.RyaURI;
 import org.apache.rya.api.domain.StatementMetadata;
@@ -74,12 +74,12 @@ public class RdfCloudTripleStoreConnection extends SailConnectionBase {
     private RyaDAO ryaDAO;
     private InferenceEngine inferenceEngine;
     private NamespaceManager namespaceManager;
-    private final RdfTripleStoreConfiguration conf;
+    private final RdfCloudTripleStoreConfiguration conf;
 
 
     private ProvenanceCollector provenanceCollector;
 
-    public RdfCloudTripleStoreConnection(final RdfCloudTripleStore sailBase, final RdfTripleStoreConfiguration conf, final ValueFactory vf)
+    public RdfCloudTripleStoreConnection(final RdfCloudTripleStore sailBase, final RdfCloudTripleStoreConfiguration conf, final ValueFactory vf)
             throws SailException {
         super(sailBase);
         this.store = sailBase;
@@ -189,49 +189,49 @@ public class RdfCloudTripleStoreConnection extends SailConnectionBase {
         }
         tupleExpr = tupleExpr.clone();
 
-        final RdfTripleStoreConfiguration queryConf = store.getConf().clone();
+        final RdfCloudTripleStoreConfiguration queryConf = store.getConf().clone();
         if (bindings != null) {
-            final Binding dispPlan = bindings.getBinding(RdfTripleStoreConfiguration.CONF_QUERYPLAN_FLAG);
+            final Binding dispPlan = bindings.getBinding(RdfCloudTripleStoreConfiguration.CONF_QUERYPLAN_FLAG);
             if (dispPlan != null) {
                 queryConf.setDisplayQueryPlan(Boolean.parseBoolean(dispPlan.getValue().stringValue()));
             }
 
-            final Binding authBinding = bindings.getBinding(RdfTripleStoreConfiguration.CONF_QUERY_AUTH);
+            final Binding authBinding = bindings.getBinding(RdfCloudTripleStoreConfiguration.CONF_QUERY_AUTH);
             if (authBinding != null) {
                 queryConf.setAuths(authBinding.getValue().stringValue().split(","));
             }
 
-            final Binding ttlBinding = bindings.getBinding(RdfTripleStoreConfiguration.CONF_TTL);
+            final Binding ttlBinding = bindings.getBinding(RdfCloudTripleStoreConfiguration.CONF_TTL);
             if (ttlBinding != null) {
                 queryConf.setTtl(Long.valueOf(ttlBinding.getValue().stringValue()));
             }
 
-            final Binding startTimeBinding = bindings.getBinding(RdfTripleStoreConfiguration.CONF_STARTTIME);
+            final Binding startTimeBinding = bindings.getBinding(RdfCloudTripleStoreConfiguration.CONF_STARTTIME);
             if (startTimeBinding != null) {
                 queryConf.setStartTime(Long.valueOf(startTimeBinding.getValue().stringValue()));
             }
 
-            final Binding performantBinding = bindings.getBinding(RdfTripleStoreConfiguration.CONF_PERFORMANT);
+            final Binding performantBinding = bindings.getBinding(RdfCloudTripleStoreConfiguration.CONF_PERFORMANT);
             if (performantBinding != null) {
-                queryConf.setBoolean(RdfTripleStoreConfiguration.CONF_PERFORMANT, Boolean.parseBoolean(performantBinding.getValue().stringValue()));
+                queryConf.setBoolean(RdfCloudTripleStoreConfiguration.CONF_PERFORMANT, Boolean.parseBoolean(performantBinding.getValue().stringValue()));
             }
 
-            final Binding inferBinding = bindings.getBinding(RdfTripleStoreConfiguration.CONF_INFER);
+            final Binding inferBinding = bindings.getBinding(RdfCloudTripleStoreConfiguration.CONF_INFER);
             if (inferBinding != null) {
                 queryConf.setInfer(Boolean.parseBoolean(inferBinding.getValue().stringValue()));
             }
 
-            final Binding useStatsBinding = bindings.getBinding(RdfTripleStoreConfiguration.CONF_USE_STATS);
+            final Binding useStatsBinding = bindings.getBinding(RdfCloudTripleStoreConfiguration.CONF_USE_STATS);
             if (useStatsBinding != null) {
                 queryConf.setUseStats(Boolean.parseBoolean(useStatsBinding.getValue().stringValue()));
             }
 
-            final Binding offsetBinding = bindings.getBinding(RdfTripleStoreConfiguration.CONF_OFFSET);
+            final Binding offsetBinding = bindings.getBinding(RdfCloudTripleStoreConfiguration.CONF_OFFSET);
             if (offsetBinding != null) {
                 queryConf.setOffset(Long.parseLong(offsetBinding.getValue().stringValue()));
             }
 
-            final Binding limitBinding = bindings.getBinding(RdfTripleStoreConfiguration.CONF_LIMIT);
+            final Binding limitBinding = bindings.getBinding(RdfCloudTripleStoreConfiguration.CONF_LIMIT);
             if (limitBinding != null) {
                 queryConf.setLimit(Long.parseLong(limitBinding.getValue().stringValue()));
             }
@@ -568,10 +568,10 @@ public class RdfCloudTripleStoreConnection extends SailConnectionBase {
 
     public static class StoreTripleSource implements TripleSource {
 
-        private final RdfTripleStoreConfiguration conf;
+        private final RdfCloudTripleStoreConfiguration conf;
         private final RyaDAO<?> ryaDAO;
 
-        public StoreTripleSource(final RdfTripleStoreConfiguration conf, final RyaDAO<?> ryaDAO) {
+        public StoreTripleSource(final RdfCloudTripleStoreConfiguration conf, final RyaDAO<?> ryaDAO) {
             this.conf = conf;
             this.ryaDAO = ryaDAO;
         }
@@ -599,7 +599,7 @@ public class RdfCloudTripleStoreConnection extends SailConnectionBase {
     public InferenceEngine getInferenceEngine() {
         return inferenceEngine;
     }
-    public RdfTripleStoreConfiguration getConf() {
+    public RdfCloudTripleStoreConfiguration getConf() {
         return conf;
     }
 }

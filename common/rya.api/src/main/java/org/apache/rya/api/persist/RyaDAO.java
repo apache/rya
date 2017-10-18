@@ -23,7 +23,7 @@ package org.apache.rya.api.persist;
 
 import java.util.Iterator;
 
-import org.apache.rya.api.RdfTripleStoreConfiguration;
+import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
 import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.domain.RyaURI;
 import org.apache.rya.api.persist.query.RyaQueryEngine;
@@ -34,7 +34,7 @@ import org.apache.rya.api.persist.query.RyaQueryEngine;
  * Date: Feb 28, 2012
  * Time: 3:30:14 PM
  */
-public interface RyaDAO<C extends RdfTripleStoreConfiguration> extends RyaConfigured<C> {
+public interface RyaDAO<C extends RdfCloudTripleStoreConfiguration> extends RyaConfigured<C> {
 
     /**
      * Initialize the RyaDAO. Should only be called once, otherwise, if already initialized, it will
@@ -120,7 +120,7 @@ public interface RyaDAO<C extends RdfTripleStoreConfiguration> extends RyaConfig
      */
     RyaNamespaceManager<C> getNamespaceManager();
 
-    void purge(RdfTripleStoreConfiguration configuration);
+    void purge(RdfCloudTripleStoreConfiguration configuration);
 
     void dropAndDestroy() throws RyaDAOException;
 

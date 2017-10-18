@@ -36,7 +36,7 @@ import org.apache.commons.codec.binary.StringUtils;
 import org.apache.commons.io.output.NullOutputStream;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.Text;
-import org.apache.rya.api.RdfTripleStoreConfiguration;
+import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
 import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.indexing.*;
 import org.apache.rya.indexing.accumulo.ConfigUtils;
@@ -199,7 +199,7 @@ public final class AccumuloTemporalIndexerTest {
     @Before
     public void setUp() throws Exception {
         conf = new Configuration();
-        conf.set(RdfTripleStoreConfiguration.CONF_TBL_PREFIX, "triplestore_");
+        conf.set(RdfCloudTripleStoreConfiguration.CONF_TBL_PREFIX, "triplestore_");
         conf.setBoolean(ConfigUtils.USE_MOCK_INSTANCE, true);
         // The temporal predicates are from http://linkedevents.org/ontology
         // and http://motools.sourceforge.net/event/event.html

@@ -62,8 +62,8 @@ public class AccumuloRdfEvalStatsDAO implements RdfEvalStatsDAO<AccumuloRdfConfi
             }
             checkNotNull(connector);
             tableLayoutStrategy = conf.getTableLayoutStrategy();
-//            evalTable = conf.get(RdfTripleStoreConfiguration.CONF_TBL_EVAL, evalTable);
-//            conf.set(RdfTripleStoreConfiguration.CONF_TBL_EVAL, evalTable);
+//            evalTable = conf.get(RdfCloudTripleStoreConfiguration.CONF_TBL_EVAL, evalTable);
+//            conf.set(RdfCloudTripleStoreConfiguration.CONF_TBL_EVAL, evalTable);
 
             final TableOperations tos = connector.tableOperations();
             AccumuloRdfUtils.createTableIfNotExist(tos, tableLayoutStrategy.getEval());

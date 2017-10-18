@@ -23,7 +23,7 @@ import java.util.*;
 import org.apache.accumulo.core.client.Connector;
 import org.apache.rya.accumulo.AccumuloRdfConfiguration;
 import org.apache.rya.accumulo.AccumuloRyaDAO;
-import org.apache.rya.api.RdfTripleStoreConfiguration;
+import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
 import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.domain.RyaType;
 import org.apache.rya.api.domain.RyaURI;
@@ -46,7 +46,7 @@ import org.junit.Test;
 
 public class AccumuloStatementMetadataOptimizerIT {
 
-    private RdfTripleStoreConfiguration conf;
+    private RdfCloudTripleStoreConfiguration conf;
     private Sail sail;
     private SailRepository repo;
     private SailRepositoryConnection conn;
@@ -232,14 +232,14 @@ public class AccumuloStatementMetadataOptimizerIT {
         dao.delete(statement4, (AccumuloRdfConfiguration) conf);
     }
 
-    private static RdfTripleStoreConfiguration getConf() {
+    private static RdfCloudTripleStoreConfiguration getConf() {
 
-        RdfTripleStoreConfiguration conf;
+        RdfCloudTripleStoreConfiguration conf;
         Set<RyaURI> propertySet = new HashSet<RyaURI>(
                 Arrays.asList(new RyaURI("http://createdBy"), new RyaURI("http://createdOn")));
         conf = new AccumuloRdfConfiguration();
         conf.setBoolean(ConfigUtils.USE_MOCK_INSTANCE, true);
-        conf.set(RdfTripleStoreConfiguration.CONF_TBL_PREFIX, "rya_");
+        conf.set(RdfCloudTripleStoreConfiguration.CONF_TBL_PREFIX, "rya_");
         conf.set(ConfigUtils.CLOUDBASE_USER, "root");
         conf.set(ConfigUtils.CLOUDBASE_PASSWORD, "");
         conf.set(ConfigUtils.CLOUDBASE_INSTANCE, "instance");

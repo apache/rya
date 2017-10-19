@@ -28,14 +28,14 @@ import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 
 /**
- * Metadata that is required for periodic queries in the Rya Fluo Application.  
+ * Metadata that is required for periodic queries in the Rya Fluo Application.
  * If a periodic query is registered with the Rya Fluo application, the BindingSets
  * are placed into temporal bins according to whether they occur within the window of
  * a period's ending time.  This Metadata is used to create a Bin Id, which is equivalent
  * to the period's ending time, to be inserted into each BindingSet that occurs within that
- * bin.  This is to allow the AggregationUpdater to aggregate the bins by grouping on the 
+ * bin.  This is to allow the AggregationUpdater to aggregate the bins by grouping on the
  * Bin Id.
- * 
+ *
  */
 public class PeriodicQueryMetadata extends StateNodeMetadata {
 
@@ -80,15 +80,15 @@ public class PeriodicQueryMetadata extends StateNodeMetadata {
     }
 
     /**
-     * 
+     *
      * @return id of child for navigating query
      */
     public String getChildNodeId() {
         return childNodeId;
     }
-    
+
     /**
-     * 
+     *
      * @return temporal variable used for filtering events
      */
     public String getTemporalVariable() {
@@ -147,7 +147,7 @@ public class PeriodicQueryMetadata extends StateNodeMetadata {
 
         return false;
     }
-    
+
     @Override
     public String toString() {
         return new StringBuilder()
@@ -185,15 +185,16 @@ public class PeriodicQueryMetadata extends StateNodeMetadata {
             this.nodeId = nodeId;
             return this;
         }
-        
+
         /**
-         * 
+         *
          * @return id of of this node
          */
+        @Override
         public String getNodeId() {
             return nodeId;
         }
-        
+
         /**
          * Set the {@link VariableOrder}
          * @param varOrder to indicate order that results will be written in
@@ -203,16 +204,17 @@ public class PeriodicQueryMetadata extends StateNodeMetadata {
             this.varOrder = varOrder;
             return this;
         }
-        
-        
+
+
         /**
-         * Returns {@link VariableOrder} 
-         * @return VariableOrder that indicates order that results are written in 
+         * Returns {@link VariableOrder}
+         * @return VariableOrder that indicates order that results are written in
          */
+        @Override
         public VariableOrder getVariableOrder() {
             return varOrder;
         }
-        
+
         /**
          * Sets id of parent node
          * @param parentNodeId
@@ -222,7 +224,7 @@ public class PeriodicQueryMetadata extends StateNodeMetadata {
             this.parentNodeId = parentNodeId;
             return this;
         }
-      
+
         /**
          * @return id of parent node
          */
@@ -239,11 +241,11 @@ public class PeriodicQueryMetadata extends StateNodeMetadata {
             this.childNodeId = childNodeId;
             return this;
         }
-        
+
         public String getChildNodeId() {
             return childNodeId;
         }
-        
+
         /**
          * Sets window size for periodic query
          * @param windowSize
@@ -273,17 +275,21 @@ public class PeriodicQueryMetadata extends StateNodeMetadata {
             this.unit = unit;
             return this;
         }
-        
+
         /**
          * Sets the Aggregation State.
-         * @param state - Aggregation State indicating current value of Aggregation 
-         * @return This builder so that method invocations may be chained. 
+         * @param state - Aggregation State indicating current value of Aggregation
+         * @return This builder so that method invocations may be chained.
          */
         public Builder setStateMetadata(CommonNodeMetadataImpl state) {
             this.state = state;
             return this;
         }
-        
+
+        /**
+         * Returns the aggregation state metadata for this node if it exists
+         * @return - Optional containing the aggregation station
+         */
         public Optional<CommonNodeMetadataImpl> getStateMetadata() {
             return Optional.ofNullable(state);
         }

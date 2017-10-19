@@ -172,6 +172,7 @@ public class FilterMetadata extends StateNodeMetadata {
         /**
          * @return the ID the Fluo app uses to reference this node.
          */
+        @Override
         public String getNodeId() {
             return nodeId;
         }
@@ -186,7 +187,7 @@ public class FilterMetadata extends StateNodeMetadata {
             this.varOrder = varOrder;
             return this;
         }
-        
+
         @Override
         public VariableOrder getVariableOrder() {
             return varOrder;
@@ -224,21 +225,25 @@ public class FilterMetadata extends StateNodeMetadata {
             this.childNodeId = childNodeId;
             return this;
         }
-        
+
         public String getChildNodeId() {
             return childNodeId;
         }
-        
+
         /**
          * Sets the Aggregation State for this Filter node.
-         * @param state - Aggregation State indicating current value of Aggregation 
-         * @return This builder so that method invocations may be chained. 
+         * @param state - Aggregation State indicating current value of Aggregation
+         * @return This builder so that method invocations may be chained.
          */
         public Builder setStateMetadata(CommonNodeMetadataImpl state) {
             this.state = state;
             return this;
         }
-        
+
+        /**
+         * Returns the aggregation state metadata for this node if it exists
+         * @return - Optional containing the aggregation station
+         */
         public Optional<CommonNodeMetadataImpl> getStateMetadata() {
             return Optional.ofNullable(state);
         }

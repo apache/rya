@@ -53,7 +53,7 @@ public class JoinMetadata extends StateNodeMetadata {
     private final String leftChildNodeId;
     private final String rightChildNodeId;
     private int joinBatchSize;
-    
+
     public static final int DEFAULT_JOIN_BATCH_SIZE = 5000;
 
     /**
@@ -113,7 +113,7 @@ public class JoinMetadata extends StateNodeMetadata {
     public String getRightChildNodeId() {
         return rightChildNodeId;
     }
-    
+
     /**
      * @return - Batch size used to process large joins
      */
@@ -210,6 +210,7 @@ public class JoinMetadata extends StateNodeMetadata {
         /**
          * @return The node ID associated with the Join node this builder makes.
          */
+        @Override
         public String getNodeId() {
             return nodeId;
         }
@@ -229,17 +230,21 @@ public class JoinMetadata extends StateNodeMetadata {
         public VariableOrder getVariableOrder() {
             return varOrder;
         }
-        
+
         /**
          * Sets the Aggregation State.
-         * @param state - Aggregation State indicating current value of Aggregation 
-         * @return This builder so that method invocations may be chained. 
+         * @param state - Aggregation State indicating current value of Aggregation
+         * @return This builder so that method invocations may be chained.
          */
         public Builder setStateMetadata(CommonNodeMetadataImpl state) {
             this.state = state;
             return this;
         }
-        
+
+        /**
+         * Returns the aggregation state metadata for this node if it exists
+         * @return - Optional containing the aggregation station
+         */
         public Optional<CommonNodeMetadataImpl> getStateMetadata() {
             return Optional.ofNullable(state);
         }
@@ -287,7 +292,7 @@ public class JoinMetadata extends StateNodeMetadata {
             this.rightChildNodeId = rightChildNodeId;
             return this;
         }
-        
+
         /**
          * Sets the batch size used to process large joins.
          * @param joinBatchSize - batch size used to process large joins
@@ -297,11 +302,11 @@ public class JoinMetadata extends StateNodeMetadata {
             this.joinBatchSize = joinBatchSize;
             return this;
         }
-        
+
         public String getLeftChildNodeId() {
             return leftChildNodeId;
         }
-        
+
         public String getRightChildNodeId() {
             return rightChildNodeId;
         }

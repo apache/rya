@@ -66,7 +66,7 @@ public class JoinBatchBindingSetUpdater extends AbstractBatchBindingSetUpdater {
      * {@link JoinBatchInformation#getTask()}. In the event that the number of entries that need to be updated exceeds
      * the batch size, the row of the first unprocessed BindingSets is used to create a new JoinBatch job to process the
      * remaining BindingSets.
-     * 
+     *
      * @throws Exception
      */
     @Override
@@ -78,7 +78,7 @@ public class JoinBatchBindingSetUpdater extends AbstractBatchBindingSetUpdater {
         Task task = joinBatch.getTask();
         VisibilityBindingSet bs = joinBatch.getBs();
 
-        // create aggregation state manager is aggregation state metadata exists
+        // create aggregation state manager if aggregation state metadata exists
         Optional<AggregationStateManager> stateManager = Optional.empty();
         if (joinBatch.getAggregationStateMeta().isPresent()) {
             stateManager = Optional.of(new AggregationStateManager(tx, joinBatch.getAggregationStateMeta().get()));
@@ -152,7 +152,7 @@ public class JoinBatchBindingSetUpdater extends AbstractBatchBindingSetUpdater {
     /**
      * Fetches batch to be processed by scanning over the Span specified by the {@link JoinBatchInformation}. The number
      * of results is less than or equal to the batch size specified by the JoinBatchInformation.
-     * 
+     *
      * @param tx - Fluo transaction in which batch operation is performed
      * @param batch - batch order to be processed
      * @param bsSet- set that batch results are added to

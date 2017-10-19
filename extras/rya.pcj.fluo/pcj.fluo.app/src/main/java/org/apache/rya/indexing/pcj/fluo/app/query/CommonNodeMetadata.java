@@ -20,16 +20,14 @@ package org.apache.rya.indexing.pcj.fluo.app.query;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import java.io.Serializable;
-
-import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
-import edu.umd.cs.findbugs.annotations.NonNull;
-import net.jcip.annotations.Immutable;
-
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.rya.indexing.pcj.storage.accumulo.VariableOrder;
 
 import com.google.common.base.Objects;
+
+import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
+import edu.umd.cs.findbugs.annotations.NonNull;
+import net.jcip.annotations.Immutable;
 
 /**
  * Metadata that is common to all nodes that are part of a query.
@@ -67,12 +65,13 @@ public abstract class CommonNodeMetadata {
     public VariableOrder getVariableOrder() {
         return varOrder;
     }
-    
+
     /**
      * Sets the VariableOrder for this node. Allows the VariableOrder to be updated.
      * @param varOrder - VariableOrder for this metadata node.
      */
     public void setVariableOrder(VariableOrder varOrder) {
+        checkNotNull(varOrder);
         this.varOrder = varOrder;
     }
 
@@ -109,7 +108,7 @@ public abstract class CommonNodeMetadata {
                 .append(" }")
                 .toString();
     }
-    
+
     /**
      * Base interface for all metadata Builders.  Using this type def
      * allows for the implementation of a Builder visitor for navigating
@@ -117,10 +116,10 @@ public abstract class CommonNodeMetadata {
      *
      */
     public static interface Builder {
-        
+
         public String getNodeId();
-        
+
         public VariableOrder getVariableOrder();
     }
-    
+
 }

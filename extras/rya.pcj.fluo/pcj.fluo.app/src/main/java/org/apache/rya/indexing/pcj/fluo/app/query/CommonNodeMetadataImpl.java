@@ -37,15 +37,24 @@ import com.google.gson.JsonSerializer;
 
 /**
  * Implementation of {@link CommonNodeMetadata} for storing metadata nodeIds and
- * {@link VariableOrder}s.  This class is used primarily for storing Aggregation State 
+ * {@link VariableOrder}s.  This class is used primarily for storing Aggregation State
  * Metadata.
  */
 public class CommonNodeMetadataImpl extends CommonNodeMetadata {
 
+    /**
+     * Creates an instance of CommonNodeMetadata from the provided nodeId and VariableOrder
+     * @param nodeId - id of the node
+     * @param varOrder - VariableOrder used to order Binding values
+     */
     public CommonNodeMetadataImpl(String nodeId, VariableOrder varOrder) {
         super(nodeId, varOrder);
     }
 
+    /**
+     * Copy constructor for CommonNodeMetadataImpl.
+     * @param metadata - CommonNodeMetadata instance whose values will be copied
+     */
     public CommonNodeMetadataImpl(CommonNodeMetadataImpl metadata) {
         super(metadata.getNodeId(), metadata.getVariableOrder());
     }
@@ -59,6 +68,11 @@ public class CommonNodeMetadataImpl extends CommonNodeMetadata {
         private static Gson gson = new GsonBuilder().registerTypeAdapter(CommonNodeMetadataImpl.class, new CommonNodeTypeAdapter())
                 .create();
 
+        /**
+         * Serializes the CommonNodeMetadata instance to a JSON String
+         * @param metadata - CommonNodeMetadata instance to be serialized
+         * @return - serialized JSON String representation of metadata object
+         */
         public static String serialize(CommonNodeMetadataImpl metadata) {
             try {
                 return gson.toJson(metadata);
@@ -68,6 +82,11 @@ public class CommonNodeMetadataImpl extends CommonNodeMetadata {
             }
         }
 
+        /**
+         * Deserialize CommonNodeMetadata instance from a String
+         * @param json - JSON String representation of CommonNodeMetadata
+         * @return - deserialized CommonNodeMetadata object
+         */
         public static Optional<CommonNodeMetadataImpl> deserialize(String json) {
             try {
                 return Optional.of(gson.fromJson(json, CommonNodeMetadataImpl.class));
@@ -79,7 +98,7 @@ public class CommonNodeMetadataImpl extends CommonNodeMetadata {
     }
 
     /**
-     * Gson Type adapter to be used with {@link CommonNodeMetadataSerDe}. 
+     * Gson Type adapter to be used with {@link CommonNodeMetadataSerDe}.
      */
     public static class CommonNodeTypeAdapter implements JsonSerializer<CommonNodeMetadataImpl>, JsonDeserializer<CommonNodeMetadataImpl> {
 

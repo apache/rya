@@ -27,18 +27,18 @@ import org.apache.rya.indexing.pcj.fluo.app.query.QueryBuilderVisitorBase;
  *  Base class that enables all visitors extending this class to stop traversing
  *  the Builder tree at a prescribed node.  Any visitor extending this class will
  *  traverse the visitor tree and process all nodes up to and including the prescribed stop
- *  node.  
+ *  node.
  */
 public abstract class StopNodeVisitor extends QueryBuilderVisitorBase {
 
     private String stopNodeId;
     private boolean processedStopNode = false;
-    
+
     public StopNodeVisitor(FluoQuery.Builder fluoBuilder,String nodeId) {
         super(fluoBuilder);
         this.stopNodeId = checkNotNull(nodeId);
     }
-    
+
     @Override
     public void visitNode(String nodeId) {
         //process the stop node, then stop traversing
@@ -47,8 +47,13 @@ public abstract class StopNodeVisitor extends QueryBuilderVisitorBase {
             super.visitNode(nodeId);
         }
     }
-    
-    boolean atStopNode(String nodeId) {
+
+    /**
+     * Verifies whether visitor is at the stop node
+     * @param nodeId
+     * @return - true if at stop node and false otherwise
+     */
+    private boolean atStopNode(String nodeId) {
         return nodeId.equals(stopNodeId);
     }
 }

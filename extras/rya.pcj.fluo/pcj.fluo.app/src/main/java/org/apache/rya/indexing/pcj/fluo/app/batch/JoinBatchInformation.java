@@ -1,5 +1,6 @@
 package org.apache.rya.indexing.pcj.fluo.app.batch;
-import static jline.internal.Preconditions.checkNotNull;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one

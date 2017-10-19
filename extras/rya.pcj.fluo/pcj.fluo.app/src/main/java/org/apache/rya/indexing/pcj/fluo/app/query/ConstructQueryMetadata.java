@@ -64,7 +64,7 @@ public class ConstructQueryMetadata extends StateNodeMetadata {
     public String getChildNodeId() {
         return childNodeId;
     }
-    
+
     /**
      * @return The parent of this construct node
      */
@@ -138,7 +138,7 @@ public class ConstructQueryMetadata extends StateNodeMetadata {
 
         /**
          * Set the node Id that identifies this Construct Query Node
-         * 
+         *
          * @param nodeId
          *            id for this node
          * @return This builder so that method invocations may be chained.
@@ -147,14 +147,15 @@ public class ConstructQueryMetadata extends StateNodeMetadata {
             this.nodeId = nodeId;
             return this;
         }
-        
+
         /**
          * @return the node id for this construct query
          */
+        @Override
         public String getNodeId() {
             return nodeId;
         }
-        
+
         /**
          * Sets the VariableOrder that determines how results will be written
          * @param varOrder
@@ -164,7 +165,7 @@ public class ConstructQueryMetadata extends StateNodeMetadata {
             this.varOrder = varOrder;
             return this;
         }
-        
+
         @Override
         public VariableOrder getVariableOrder() {
             return varOrder;
@@ -191,11 +192,11 @@ public class ConstructQueryMetadata extends StateNodeMetadata {
             this.childNodeId = childNodeId;
             return this;
         }
-        
+
         public String getChildNodeId() {
             return childNodeId;
         }
-        
+
         /**
          * Set the parent node of this {@link ConstructGraph}.
          *
@@ -206,7 +207,7 @@ public class ConstructQueryMetadata extends StateNodeMetadata {
             this.parentNodeId = parentNodeId;
             return this;
         }
-        
+
         /**
          * Sets the state metadata of this {@link ConstructQueryMetadata}.
          * @param stateMetadata
@@ -216,7 +217,11 @@ public class ConstructQueryMetadata extends StateNodeMetadata {
             this.state = stateMetadata;
             return this;
         }
-        
+
+        /**
+         * Returns the aggregation state metadata for this node if it exists
+         * @return - Optional containing the aggregation station
+         */
         public Optional<CommonNodeMetadataImpl> getStateMetadata() {
             return Optional.ofNullable(state);
         }

@@ -72,14 +72,14 @@ public class ProjectionMetadata extends StateNodeMetadata {
     public String getChildNodeId() {
         return childNodeId;
     }
-    
+
     /**
      * @return The parent node of this projection node
      */
     public String getParentNodeId() {
         return parentNodeId;
     }
-    
+
     /**
      * @return The variables that results are projected onto
      */
@@ -164,11 +164,12 @@ public class ProjectionMetadata extends StateNodeMetadata {
         public Builder(final String nodeId) {
             this.nodeId = checkNotNull(nodeId);
         }
-        
+
+        @Override
         public String getNodeId() {
             return nodeId;
         }
-        
+
         /**
          * Set the variable order of binding sets that are emitted by this node.
          *
@@ -179,10 +180,11 @@ public class ProjectionMetadata extends StateNodeMetadata {
             this.varOrder = varOrder;
             return this;
         }
-        
+
         /**
          * @return the variable order of binding sets that are emitted by this node
          */
+        @Override
         public VariableOrder getVariableOrder() {
             return varOrder;
         }
@@ -197,11 +199,11 @@ public class ProjectionMetadata extends StateNodeMetadata {
             this.childNodeId = childNodeId;
             return this;
         }
-        
+
         public String getChildNodeId() {
             return childNodeId;
         }
-        
+
         /**
          * Set the the parent node of this projection node.
          *
@@ -212,11 +214,11 @@ public class ProjectionMetadata extends StateNodeMetadata {
             this.parentNodeId = parentNodeId;
             return this;
         }
-        
+
         public String getParentNodeId() {
             return parentNodeId;
         }
-        
+
         /**
          * @param varOrder - Variables that results are projected onto
          * @return This builder so that method invocations may be chained.
@@ -225,24 +227,28 @@ public class ProjectionMetadata extends StateNodeMetadata {
             this.projectedVars = projectedVars;
             return this;
         }
-        
+
         /**
          * @return The variables that results are projected onto
          */
         public VariableOrder getProjectionVars() {
             return projectedVars;
         }
-        
+
         /**
          * Sets the Aggregation State.
-         * @param state - Aggregation State indicating current value of Aggregation 
-         * @return This builder so that method invocations may be chained. 
+         * @param state - Aggregation State indicating current value of Aggregation
+         * @return This builder so that method invocations may be chained.
          */
         public Builder setStateMetadata(CommonNodeMetadataImpl state) {
             this.state = state;
             return this;
         }
-        
+
+        /**
+         * Returns the aggregation state metadata for this node if it exists
+         * @return - Optional containing the aggregation station
+         */
         public Optional<CommonNodeMetadataImpl> getStateMetadata() {
             return Optional.ofNullable(state);
         }

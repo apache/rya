@@ -18,7 +18,8 @@
  */
 package org.apache.rya.indexing.pcj.fluo.app.util;
 
-import static jline.internal.Preconditions.checkNotNull;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 import org.apache.rya.indexing.pcj.fluo.app.query.CommonNodeMetadataImpl;
 import org.apache.rya.indexing.pcj.fluo.app.query.ConstructQueryMetadata;
@@ -36,37 +37,43 @@ import org.apache.rya.indexing.pcj.fluo.app.query.QueryMetadata;
 public class AggregationStateMetadataVisitor extends StopNodeVisitor {
 
     private CommonNodeMetadataImpl aggStateMeta;
-    
+
     public AggregationStateMetadataVisitor(FluoQuery.Builder fluoQueryBuilder, String stopNodeId, CommonNodeMetadataImpl aggStateMeta) {
         super(fluoQueryBuilder, stopNodeId);
         this.aggStateMeta = checkNotNull(aggStateMeta);
     }
-    
+
+    @Override
     public void visit(QueryMetadata.Builder builder) {
         builder.setStateMetadata(new CommonNodeMetadataImpl(aggStateMeta));
         super.visit(builder);
     }
 
+    @Override
     public void visit(ProjectionMetadata.Builder builder) {
         builder.setStateMetadata(new CommonNodeMetadataImpl(aggStateMeta));
         super.visit(builder);
     }
 
+    @Override
     public void visit(ConstructQueryMetadata.Builder builder) {
         builder.setStateMetadata(new CommonNodeMetadataImpl(aggStateMeta));
         super.visit(builder);
     }
 
+    @Override
     public void visit(FilterMetadata.Builder builder) {
         builder.setStateMetadata(new CommonNodeMetadataImpl(aggStateMeta));
         super.visit(builder);
     }
 
+    @Override
     public void visit(PeriodicQueryMetadata.Builder builder) {
         builder.setStateMetadata(new CommonNodeMetadataImpl(aggStateMeta));
         super.visit(builder);
     }
 
+    @Override
     public void visit(JoinMetadata.Builder builder) {
         builder.setStateMetadata(new CommonNodeMetadataImpl(aggStateMeta));
         super.visit(builder);

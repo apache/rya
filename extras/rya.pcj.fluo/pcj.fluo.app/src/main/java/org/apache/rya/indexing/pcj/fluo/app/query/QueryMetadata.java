@@ -49,7 +49,7 @@ public class QueryMetadata extends StateNodeMetadata {
     private final Set<ExportStrategy> exportStrategy;
     private final QueryType queryType;
     private final String exportId;
-    
+
 
     /**
      * Constructs an instance of {@link QueryMetadata}.
@@ -80,7 +80,7 @@ public class QueryMetadata extends StateNodeMetadata {
         }
         this.exportId = idSplit[1];
     }
-    
+
     public String getExportId() {
         return exportId;
     }
@@ -98,22 +98,22 @@ public class QueryMetadata extends StateNodeMetadata {
     public String getChildNodeId() {
         return childNodeId;
     }
-    
+
     /**
      * @return strategies used for exporting results from Rya-Fluo Application
      */
     public Set<ExportStrategy> getExportStrategies() {
         return exportStrategy;
     }
-    
+
     /**
      * @return the {@link QueryType} of this query
      */
     public QueryType getQueryType() {
         return queryType;
     }
-    
-    
+
+
     @Override
     public int hashCode() {
         return Objects.hashCode(
@@ -187,7 +187,7 @@ public class QueryMetadata extends StateNodeMetadata {
         private Set<ExportStrategy> exportStrategies;
         private QueryType queryType;
         private Optional<Integer> joinBatchSize = Optional.empty();
-        
+
 
         /**
          * Constructs an instance of {@link Builder}.
@@ -197,12 +197,13 @@ public class QueryMetadata extends StateNodeMetadata {
         public Builder(final String nodeId) {
             this.nodeId = checkNotNull(nodeId);
         }
-        
+
+        @Override
         public String getNodeId() {
             return nodeId;
         }
 
-        
+
         /**
          * Set the variable order of binding sets that are emitted by this node.
          *
@@ -213,24 +214,29 @@ public class QueryMetadata extends StateNodeMetadata {
             this.varOrder = varOrder;
             return this;
         }
-        
+
         /**
          * @return the variable order of binding sets that are emitted by this node
          */
+        @Override
         public VariableOrder getVariableOrder() {
             return varOrder;
         }
-        
+
         /**
          * Sets the Aggregation State.
-         * @param state - Aggregation State indicating current value of Aggregation 
-         * @return This builder so that method invocations may be chained. 
+         * @param state - Aggregation State indicating current value of Aggregation
+         * @return This builder so that method invocations may be chained.
          */
         public Builder setStateMetadata(CommonNodeMetadataImpl state) {
             this.state = state;
             return this;
         }
-        
+
+        /**
+         * Returns the aggregation state metadata for this node if it exists
+         * @return - Optional containing the aggregation station
+         */
         public Optional<CommonNodeMetadataImpl> getStateMetadata() {
             return Optional.ofNullable(state);
         }
@@ -256,7 +262,7 @@ public class QueryMetadata extends StateNodeMetadata {
             this.childNodeId = childNodeId;
             return this;
         }
-        
+
         /**
          * Sets export strategies used for emitting results form Rya Fluo app
          * @param export - Set of export strategies
@@ -266,7 +272,7 @@ public class QueryMetadata extends StateNodeMetadata {
             this.exportStrategies = export;
             return this;
         }
-        
+
         /**
          * Set query type for the given query
          * @param queryType - {@link QueryType} of the given query
@@ -276,22 +282,22 @@ public class QueryMetadata extends StateNodeMetadata {
             this.queryType = queryType;
             return this;
         }
-        
+
         /**
          * @return QueryType for the given query
          */
         public QueryType getQueryType() {
             return queryType;
         }
-        
-        
+
+
         /**
          * @return id of the child node of this node
          */
         public String getChildNodeId() {
             return childNodeId;
         }
-        
+
         /**
          * Sets batch size used to process joins for this query
          * @param joinBatchSize - batch size used to process joins
@@ -300,7 +306,7 @@ public class QueryMetadata extends StateNodeMetadata {
             this.joinBatchSize = joinBatchSize;
             return this;
         }
-        
+
         /**
          * @return Optional containing the batch size used to process large joins
          */

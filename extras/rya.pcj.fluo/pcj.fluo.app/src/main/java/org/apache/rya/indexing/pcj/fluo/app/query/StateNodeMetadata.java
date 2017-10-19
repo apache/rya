@@ -20,7 +20,6 @@ package org.apache.rya.indexing.pcj.fluo.app.query;
 
 import java.util.Optional;
 
-import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.rya.indexing.pcj.storage.accumulo.VariableOrder;
 
 import com.google.common.base.Objects;
@@ -35,7 +34,7 @@ public class StateNodeMetadata extends CommonNodeMetadata {
 
     /**
      * Creates a StateNodeMetadata object with empty aggregation metadata.
-     * @param nodeId 
+     * @param nodeId
      * @param varOrder
      */
     public StateNodeMetadata(String nodeId, VariableOrder varOrder) {
@@ -45,7 +44,7 @@ public class StateNodeMetadata extends CommonNodeMetadata {
     /**
      * Creates a StateNodeMetadata object with indicated aggregation metadata.
      * @param nodeId
-     * @param varOrder 
+     * @param varOrder
      * @param aggregationStateMetadata - aggregation metadata to look up aggregation state
      */
     public StateNodeMetadata(String nodeId, VariableOrder varOrder, Optional<CommonNodeMetadataImpl> aggregationStateMetadata) {
@@ -74,7 +73,7 @@ public class StateNodeMetadata extends CommonNodeMetadata {
         if (o instanceof StateNodeMetadata) {
             if (super.equals(o)) {
                 final StateNodeMetadata metadata = (StateNodeMetadata) o;
-                return new EqualsBuilder().append(stateMetadata, metadata.stateMetadata).isEquals();
+                return Objects.equal(this, metadata);
             }
         }
 
@@ -83,7 +82,7 @@ public class StateNodeMetadata extends CommonNodeMetadata {
 
     @Override
     public String toString() {
-        return new StringBuilder().append("Filter Metadata {\n").append("    Node ID: " + super.getNodeId() + "\n")
+        return new StringBuilder().append("State Metadata {\n").append("    Node ID: " + super.getNodeId() + "\n")
                 .append("    Variable Order: " + super.getVariableOrder() + "\n").append("    State Metadata: " + stateMetadata + "\n")
                 .append("}").toString();
     }

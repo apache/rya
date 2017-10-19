@@ -8,9 +8,9 @@ package org.apache.rya.accumulo.query;
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- * 
+ *
  *   http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -20,35 +20,15 @@ package org.apache.rya.accumulo.query;
  */
 
 import static org.apache.rya.api.RdfCloudTripleStoreUtils.layoutToTable;
-import info.aduna.iteration.CloseableIteration;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
-
-import org.apache.rya.accumulo.AccumuloRdfConfiguration;
-import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
-import org.apache.rya.api.RdfCloudTripleStoreConstants;
-import org.apache.rya.api.RdfCloudTripleStoreConstants.TABLE_LAYOUT;
-import org.apache.rya.api.RdfCloudTripleStoreUtils;
-import org.apache.rya.api.domain.RyaRange;
-import org.apache.rya.api.domain.RyaStatement;
-import org.apache.rya.api.domain.RyaType;
-import org.apache.rya.api.domain.RyaURI;
-import org.apache.rya.api.layout.TableLayoutStrategy;
-import org.apache.rya.api.persist.RyaDAOException;
-import org.apache.rya.api.persist.query.BatchRyaQuery;
-import org.apache.rya.api.persist.query.RyaQuery;
-import org.apache.rya.api.persist.query.RyaQueryEngine;
-import org.apache.rya.api.query.strategy.ByteRange;
-import org.apache.rya.api.query.strategy.TriplePatternStrategy;
-import org.apache.rya.api.resolver.RyaContext;
-import org.apache.rya.api.resolver.RyaTripleContext;
-import org.apache.rya.api.resolver.triple.TripleRowRegex;
-import org.apache.rya.api.utils.CloseableIterableIteration;
+import java.util.Optional;
 
 import org.apache.accumulo.core.client.BatchScanner;
 import org.apache.accumulo.core.client.Connector;
@@ -63,6 +43,26 @@ import org.apache.accumulo.core.iterators.user.RegExFilter;
 import org.apache.accumulo.core.iterators.user.TimestampFilter;
 import org.apache.accumulo.core.security.Authorizations;
 import org.apache.hadoop.io.Text;
+import org.apache.rya.accumulo.AccumuloRdfConfiguration;
+import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
+import org.apache.rya.api.RdfCloudTripleStoreConstants;
+import org.apache.rya.api.RdfCloudTripleStoreConstants.TABLE_LAYOUT;
+import org.apache.rya.api.domain.RyaRange;
+import org.apache.rya.api.domain.RyaStatement;
+import org.apache.rya.api.domain.RyaType;
+import org.apache.rya.api.domain.RyaURI;
+import org.apache.rya.api.layout.TableLayoutStrategy;
+import org.apache.rya.api.persist.RyaDAOException;
+import org.apache.rya.api.persist.query.BatchRyaQuery;
+import org.apache.rya.api.persist.query.RyaQuery;
+import org.apache.rya.api.persist.query.RyaQueryEngine;
+import org.apache.rya.api.query.strategy.ByteRange;
+import org.apache.rya.api.query.strategy.TriplePatternStrategy;
+import org.apache.rya.api.resolver.RyaContext;
+import org.apache.rya.api.resolver.RyaTripleContext;
+import org.apache.rya.api.resolver.RyaTypeResolverException;
+import org.apache.rya.api.resolver.triple.TripleRowRegex;
+import org.apache.rya.api.utils.CloseableIterableIteration;
 import org.calrissian.mango.collect.CloseableIterable;
 import org.calrissian.mango.collect.CloseableIterables;
 import org.calrissian.mango.collect.FluentCloseableIterable;
@@ -72,6 +72,9 @@ import com.google.common.base.Function;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.Iterators;
+import com.google.common.primitives.Bytes;
+
+import info.aduna.iteration.CloseableIteration;
 
 /**
  * Date: 7/17/12 Time: 9:28 AM
@@ -162,6 +165,10 @@ public class AccumuloRyaQueryEngine implements RyaQueryEngine<AccumuloRdfConfigu
                 layout = entry.getKey();
                 ByteRange byteRange = entry.getValue();
                 Range range = new Range(new Text(byteRange.getStart()), new Text(byteRange.getEnd()));
+                if ((stmt.getSubject() != null) && (stmt.getPredicate() != null) && (stmt.getObject() != null)) {
+                    range = Range.exact(appendType(byteRange.getStart(), stmt.getObject()));
+                    range = addMaxColumnBoundToRange(range, Optional.empty());
+                }
                 Range rangeMapRange = range;
                 // if context != null, bind context info to Range so that
                 // ColumnFamily Keys returned by Scanner
@@ -171,8 +178,7 @@ public class AccumuloRyaQueryEngine implements RyaQueryEngine<AccumuloRdfConfigu
                 // as the Value specified in the BindingSet
                 if (context != null) {
                     byte[] contextBytes = context.getData().getBytes("UTF-8");
-                    rangeMapRange = range.bound(new Column(contextBytes, new byte[] { (byte) 0x00 }, new byte[] { (byte) 0x00 }),
-                            new Column(contextBytes, new byte[] { (byte) 0xff }, new byte[] { (byte) 0xff }));
+                    rangeMapRange = addMaxColumnBoundToRange(range, Optional.of(contextBytes));
                 }
                 // ranges gets a Range that has no Column bounds, but
                 // rangeMap gets a Range that does have Column bounds
@@ -283,7 +289,10 @@ public class AccumuloRyaQueryEngine implements RyaQueryEngine<AccumuloRdfConfigu
                 layout = entry.getKey();
                 ByteRange byteRange = entry.getValue();
                 range = new Range(new Text(byteRange.getStart()), new Text(byteRange.getEnd()));
-
+                if ((stmt.getSubject() != null) && (stmt.getPredicate() != null) && (stmt.getObject() != null)) {
+                    range = Range.exact(appendType(byteRange.getStart(), stmt.getObject()));
+                    range = addMaxColumnBoundToRange(range, Optional.empty());
+                }
             } else {
                 range = new Range();
                 layout = TABLE_LAYOUT.SPO;
@@ -365,6 +374,10 @@ public class AccumuloRyaQueryEngine implements RyaQueryEngine<AccumuloRdfConfigu
                 layout = entry.getKey();
                 ByteRange byteRange = entry.getValue();
                 Range range = new Range(new Text(byteRange.getStart()), new Text(byteRange.getEnd()));
+                if ((stmt.getSubject() != null) && (stmt.getPredicate() != null) && (stmt.getObject() != null)) {
+                    range = Range.exact(appendType(byteRange.getStart(), stmt.getObject()));
+                    range = addMaxColumnBoundToRange(range, Optional.empty());
+                }
                 ranges.add(range);
             }
             // no ranges
@@ -459,4 +472,39 @@ public class AccumuloRyaQueryEngine implements RyaQueryEngine<AccumuloRdfConfigu
     @Override
     public void close() throws IOException {
     }
+
+    /**
+     * Append a type extracted from {@link RyaType} to the end of the data
+     *
+     * @param data The data where a type is appended to
+     * @param ryaType The {@link RyaType} where a byte type is retrieved so the value can be appended to the data
+     * @return the appended data as a {@link Text} type
+     * @throws RyaTypeResolverException when there is an error occurred in getting the type
+     */
+    private static Text appendType(final byte[] data, final RyaType ryaType) throws RyaTypeResolverException {
+        final RyaContext realRyaContext = RyaContext.getInstance();
+
+        byte[] type = realRyaContext.serializeType(ryaType)[1];
+        type = Arrays.copyOfRange(type, 1, type.length);
+
+        return new Text(Bytes.concat(data, type));
+    }
+
+    /**
+     * Add column bounds to a given Range. The column bounds indicate the range of Columns contained between the Column
+     * with all empty bytes to the Column whose values are equal to the byte array of size two filled with the byte
+     * 0xff. This column range is meant to capture all possible column values stored in Rya.
+     *
+     * @param range
+     * @return range whose column bounds include all possible columns
+     */
+    private static Range addMaxColumnBoundToRange(Range range, Optional<byte[]> contextBytes) {
+        if(contextBytes.isPresent()) {
+            return range.bound(new Column(contextBytes.get(), new byte[0], new byte[0]), new Column(contextBytes.get(),
+                    new byte[] { (byte) 0xff, (byte) 0xff }, new byte[] { (byte) 0xff, (byte) 0xff }));
+        }
+        return range.bound(new Column(new byte[0], new byte[0], new byte[0]), new Column(new byte[] { (byte) 0xff, (byte) 0xff },
+                new byte[] { (byte) 0xff, (byte) 0xff }, new byte[] { (byte) 0xff, (byte) 0xff }));
+    }
+
 }

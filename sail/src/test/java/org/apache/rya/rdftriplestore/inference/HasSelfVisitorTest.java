@@ -36,7 +36,7 @@ import static org.mockito.Mockito.when;
 
 public class HasSelfVisitorTest {
     private final AccumuloRdfConfiguration conf = new AccumuloRdfConfiguration();
-    private static final ValueFactory VF = SimpleValueFactory.getInstance();
+    private static final ValueFactory vf = SimpleValueFactory.getInstance();
 
     private static final IRI narcissist = vf.createIRI("urn:Narcissist");
     private static final IRI love = vf.createIRI("urn:love");

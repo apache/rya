@@ -39,7 +39,7 @@ import static org.mockito.Mockito.when;
  */
 public class IntersectionOfVisitorTest {
     private final AccumuloRdfConfiguration conf = new AccumuloRdfConfiguration();
-    private static final ValueFactory VF = SimpleValueFactory.getInstance();
+    private static final ValueFactory vf = SimpleValueFactory.getInstance();
 
     private static final IRI MOTHER = vf.createIRI("urn:Mother");
     private static final IRI FATHER = vf.createIRI("urn:Father");

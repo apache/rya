@@ -35,7 +35,7 @@ import static org.mockito.Mockito.when;
  */
 public class ReflexivePropertyVisitorTest {
     private final AccumuloRdfConfiguration conf = new AccumuloRdfConfiguration();
-    private static final ValueFactory VF = SimpleValueFactory.getInstance();
+    private static final ValueFactory vf = SimpleValueFactory.getInstance();
 
     private static final IRI ALICE = vf.createIRI("urn:Alice");
     private static final IRI HAS_FAMILY = vf.createIRI("urn:hasFamilyMember");

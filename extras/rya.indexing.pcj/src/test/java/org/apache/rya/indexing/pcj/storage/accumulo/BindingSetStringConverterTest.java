@@ -22,9 +22,7 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 
 import org.apache.rya.indexing.pcj.storage.accumulo.BindingSetConverter.BindingSetConversionException;
-import org.eclipse.rdf4j.model.impl.BooleanLiteralImpl;
-import org.eclipse.rdf4j.model.impl.DecimalLiteralImpl;
-import org.eclipse.rdf4j.model.impl.IntegerLiteralImpl;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 import org.eclipse.rdf4j.model.impl.URIImpl;
 import org.eclipse.rdf4j.query.BindingSet;
 import org.eclipse.rdf4j.query.impl.MapBindingSet;
@@ -80,7 +78,7 @@ public class BindingSetStringConverterTest {
     public void toString_Decimal() throws BindingSetConversionException {
         // Setup the binding set that will be converted.
         final MapBindingSet originalBindingSet = new MapBindingSet();
-        originalBindingSet.addBinding("x", new DecimalLiteralImpl(new BigDecimal(2.5)));
+        originalBindingSet.addBinding("x", SimpleValueFactory.getInstance().createLiteral(new BigDecimal(2.5)));
 
         // Convert it to a String.
         final VariableOrder varOrder = new VariableOrder("x");
@@ -96,7 +94,7 @@ public class BindingSetStringConverterTest {
     public void toString_Boolean() throws BindingSetConversionException {
         // Setup the binding set that will be converted.
         final MapBindingSet originalBindingSet = new MapBindingSet();
-        originalBindingSet.addBinding("x", new BooleanLiteralImpl(true));
+        originalBindingSet.addBinding("x", SimpleValueFactory.getInstance().createLiteral((true)));
 
         // Convert it to a String.
         final VariableOrder varOrder = new VariableOrder("x");
@@ -112,7 +110,8 @@ public class BindingSetStringConverterTest {
     public void toString_Integer() throws BindingSetConversionException {
         // Setup the binding set that will be converted.
         final MapBindingSet originalBindingSet = new MapBindingSet();
-        originalBindingSet.addBinding("x", new IntegerLiteralImpl(BigInteger.valueOf(5)));
+        originalBindingSet.addBinding("x", SimpleValueFactory.getInstance()
+                .createLiteral((BigInteger.valueOf(5))));
 
         // Convert it to a String.
         final VariableOrder varOrder = new VariableOrder("x");
@@ -236,7 +235,7 @@ public class BindingSetStringConverterTest {
 
         // Ensure it converted to the expected result.
         final MapBindingSet expected = new MapBindingSet();
-        expected.addBinding("x", new DecimalLiteralImpl(new BigDecimal(2.5)));
+        expected.addBinding("x", SimpleValueFactory.getInstance().createLiteral((new BigDecimal(2.5))));
 
         assertEquals(expected, bindingSet);
     }
@@ -252,7 +251,7 @@ public class BindingSetStringConverterTest {
 
         // Ensure it converted to the expected result.
         final MapBindingSet expected = new MapBindingSet();
-        expected.addBinding("x", new BooleanLiteralImpl(true));
+        expected.addBinding("x", SimpleValueFactory.getInstance().createLiteral((true)));
 
         assertEquals(expected, bindingSet);
     }
@@ -268,7 +267,7 @@ public class BindingSetStringConverterTest {
 
         // Ensure it converted to the expected result.
         final MapBindingSet expected = new MapBindingSet();
-        expected.addBinding("x", new IntegerLiteralImpl(BigInteger.valueOf(5)));
+        expected.addBinding("x", SimpleValueFactory.getInstance().createLiteral((BigInteger.valueOf(5))));
 
         assertEquals(expected, bindingSet);
     }

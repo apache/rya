@@ -45,7 +45,7 @@ import static org.mockito.Mockito.when;
  */
 public class OneOfVisitorTest {
     private final AccumuloRdfConfiguration conf = new AccumuloRdfConfiguration();
-    private static final ValueFactory VF = SimpleValueFactory.getInstance();
+    private static final ValueFactory vf = SimpleValueFactory.getInstance();
 
     private static final IRI SUITS = vf.createIRI("urn:Suits");
     private static final IRI RANKS = vf.createIRI("urn:Ranks");

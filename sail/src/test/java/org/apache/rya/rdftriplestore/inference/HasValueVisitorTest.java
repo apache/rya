@@ -18,10 +18,7 @@ package org.apache.rya.rdftriplestore.inference;
  * under the License.
  */
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import org.apache.rya.accumulo.AccumuloRdfConfiguration;
 import org.apache.rya.rdftriplestore.utils.FixedStatementPattern;
@@ -170,7 +167,7 @@ public class HasValueVisitorTest {
         Assert.assertEquals(fsp.getSubjectVar(), sp.getObjectVar());
         Assert.assertEquals(originalSP.getObjectVar(), fsp.getObjectVar());
         // Verify FSP: should provide (type, value) pairs
-        final Set<Statement> expectedStatements = new HashSet<>();
+        final List<Statement> expectedStatements = new LinkedList<>();
         final IRI fspPred = (IRI) fsp.getPredicateVar().getValue();
         expectedStatements.add(vf.createStatement(chordate, fspPred, notochord));
         expectedStatements.add(vf.createStatement(tunicate, fspPred, notochord));
@@ -178,7 +175,17 @@ public class HasValueVisitorTest {
         expectedStatements.add(vf.createStatement(mammal, fspPred, notochord));
         expectedStatements.add(vf.createStatement(vertebrate, fspPred, skull));
         expectedStatements.add(vf.createStatement(mammal, fspPred, skull));
-        final Set<Statement> actualStatements = new HashSet<>(fsp.statements);
-        Assert.assertEquals(expectedStatements, actualStatements);
+        final List<Statement> actualStatements = new LinkedList<>(fsp.statements);
+        Assert.assertTrue(containsAll(expectedStatements,actualStatements));
+    }
+
+
+    private boolean containsAll(List<Statement> expected, List<Statement> actual){
+        for( Statement a : actual){
+            if (!expected.contains(a)){
+                return false;
+            }
+        }
+        return true;
     }
 }

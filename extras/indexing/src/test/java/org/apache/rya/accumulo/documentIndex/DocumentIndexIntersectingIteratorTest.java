@@ -65,12 +65,12 @@ import org.junit.runners.JUnit4;
 @RunWith(JUnit4.class)
 public class DocumentIndexIntersectingIteratorTest {
 
-    
- 
+
+
     private Connector accCon;
     private MiniAccumuloCluster accMiniCluster;
-    String tablename = "table";
-    
+    private String tablename = "table";
+
 
     @Before
     public void init() throws RepositoryException, TupleQueryResultHandlerException, QueryEvaluationException,
@@ -78,7 +78,7 @@ public class DocumentIndexIntersectingIteratorTest {
             InterruptedException
     {
 
-        File loc = new File("./minicluster");
+        File loc = new File("./target/minicluster");
         FileUtils.deleteDirectory(loc);
         loc.mkdir();
         loc.deleteOnExit();
@@ -90,18 +90,10 @@ public class DocumentIndexIntersectingIteratorTest {
 
     }
     
-    
-    
-    
-    
-    
-    
 @Test
     public void testBasicColumnObj() throws Exception {
 
-        BatchWriter bw = null;
-
-            bw = accCon.createBatchWriter(tablename, 500L * 1024L * 1024L, Long.MAX_VALUE, 30);
+        BatchWriter bw = accCon.createBatchWriter(tablename, 500L * 1024L * 1024L, Long.MAX_VALUE, 30);
 
             for (int i = 0; i < 100; i++) {
 

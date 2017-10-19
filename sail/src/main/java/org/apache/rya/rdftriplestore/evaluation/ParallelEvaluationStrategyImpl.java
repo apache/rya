@@ -44,13 +44,13 @@ import org.eclipse.rdf4j.query.Dataset;
 import org.eclipse.rdf4j.query.QueryEvaluationException;
 import org.eclipse.rdf4j.query.algebra.*;
 import org.eclipse.rdf4j.query.algebra.evaluation.QueryBindingSet;
-import org.eclipse.rdf4j.query.algebra.evaluation.impl.EvaluationStrategyImpl;
+import org.eclipse.rdf4j.query.algebra.evaluation.impl.StrictEvaluationStrategy;
 import org.eclipse.rdf4j.query.algebra.evaluation.iterator.FilterIterator;
 import org.eclipse.rdf4j.query.algebra.evaluation.iterator.JoinIterator;
 
 /**
  */
-public class ParallelEvaluationStrategyImpl extends EvaluationStrategyImpl {
+public class ParallelEvaluationStrategyImpl extends StrictEvaluationStrategy {
     private static Logger logger = Logger.getLogger(ParallelEvaluationStrategyImpl.class);
     
     private int numOfThreads = 10;

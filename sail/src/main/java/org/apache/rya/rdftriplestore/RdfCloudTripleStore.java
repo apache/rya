@@ -12,7 +12,7 @@ import org.eclipse.rdf4j.model.ValueFactory;
 import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 import org.eclipse.rdf4j.sail.SailConnection;
 import org.eclipse.rdf4j.sail.SailException;
-import org.eclipse.rdf4j.sail.helpers.SailBase;
+import org.eclipse.rdf4j.sail.helpers.AbstractSail;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -35,7 +35,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
  * under the License.
  */
 
-public class RdfCloudTripleStore extends SailBase {
+public class RdfCloudTripleStore extends AbstractSail {
 
     private RdfCloudTripleStoreConfiguration conf;
 

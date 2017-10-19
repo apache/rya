@@ -34,7 +34,7 @@ import org.eclipse.rdf4j.query.algebra.Join;
 import org.eclipse.rdf4j.query.algebra.TupleExpr;
 import org.eclipse.rdf4j.query.algebra.evaluation.QueryOptimizer;
 import org.eclipse.rdf4j.query.algebra.evaluation.impl.EvaluationStatistics;
-import org.eclipse.rdf4j.query.algebra.helpers.QueryModelVisitorBase;
+import org.eclipse.rdf4j.query.algebra.helpers.AbstractQueryModelVisitor;
 
 public class QueryJoinSelectOptimizer implements QueryOptimizer {
 
@@ -58,7 +58,7 @@ public class QueryJoinSelectOptimizer implements QueryOptimizer {
     tupleExpr.visit(new JoinVisitor());
   }
 
-  protected class JoinVisitor extends QueryModelVisitorBase<RuntimeException> {
+  protected class JoinVisitor extends AbstractQueryModelVisitor<RuntimeException> {
 
     @Override
     public void meet(Join node) {

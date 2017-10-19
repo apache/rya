@@ -33,7 +33,7 @@ import org.eclipse.rdf4j.query.algebra.Projection;
 import org.eclipse.rdf4j.query.algebra.QueryModelNode;
 import org.eclipse.rdf4j.query.algebra.StatementPattern;
 import org.eclipse.rdf4j.query.algebra.TupleExpr;
-import org.eclipse.rdf4j.query.algebra.helpers.QueryModelVisitorBase;
+import org.eclipse.rdf4j.query.algebra.helpers.AbstractQueryModelVisitor;
 import org.eclipse.rdf4j.query.algebra.helpers.StatementPatternCollector;
 import org.eclipse.rdf4j.query.parser.ParsedQuery;
 import org.eclipse.rdf4j.query.parser.sparql.SPARQLParser;
@@ -404,7 +404,7 @@ public class PrecompJoinOptimizerTest {
 	}
 
 	public static class NodeCollector extends
-			QueryModelVisitorBase<RuntimeException> {
+            AbstractQueryModelVisitor<RuntimeException> {
 
 		Set<QueryModelNode> qNodes = new HashSet<>();
 

@@ -24,13 +24,8 @@ import edu.umd.cs.findbugs.annotations.NonNull;
 import org.apache.rya.api.domain.RyaSchema;
 import org.apache.rya.api.domain.RyaType;
 import org.apache.rya.api.resolver.RdfToRyaConversions;
-import org.eclipse.rdf4j.model.BNode;
-import org.eclipse.rdf4j.model.IRI;
-import org.eclipse.rdf4j.model.Literal;
-import org.eclipse.rdf4j.model.Value;
-import org.eclipse.rdf4j.model.impl.BNodeImpl;
-import org.eclipse.rdf4j.model.impl.LiteralImpl;
-import org.eclipse.rdf4j.model.impl.URIImpl;
+import org.eclipse.rdf4j.model.*;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 import org.eclipse.rdf4j.query.BindingSet;
 import org.eclipse.rdf4j.query.algebra.StatementPattern;
 import org.eclipse.rdf4j.query.algebra.Var;
@@ -46,10 +41,10 @@ import static org.apache.rya.indexing.pcj.fluo.app.IncrementalUpdateConstants.*;
 public class FluoStringConverter {
 
     /**
-     * Extract the {@link Binding} strings from a {@link BindingSet}'s string form.
+     * Extract the {@link BindingSet} strings from a {@link BindingSet}'s string form.
      *
      * @param bindingSetString - A {@link BindingSet} in its Fluo String form. (not null)
-     * @return The set's {@link Binding}s in Fluo String form. (not null)
+     * @return The set's {@link BindingSet}s in Fluo String form. (not null)
      */
     public static String[] toBindingStrings(final String bindingSetString) {
         checkNotNull(bindingSetString);
@@ -61,7 +56,7 @@ public class FluoStringConverter {
      * into the object version.
      *
      * @param patternString - The {@link StatementPattern} represented as a String. (not null)
-     * @return A {@link StatementPatter} built from the string.
+     * @return A {@link StatementPattern} built from the string.
      */
     public static StatementPattern toStatementPattern(final String patternString) {
         checkNotNull(patternString);
@@ -88,6 +83,7 @@ public class FluoStringConverter {
         checkNotNull(varString);
         final String[] varParts = varString.split(TYPE_DELIM);
         final String name = varParts[0];
+        final ValueFactory vf = SimpleValueFactory.getInstance();
         
         // The variable is a constant value.
         if(varParts.length > 1) {
@@ -96,21 +92,21 @@ public class FluoStringConverter {
                 // Handle a URI object.
                 Preconditions.checkArgument(varParts.length == 2);
                 final String valueString = name.substring("-const-".length());
-                final Var var = new Var(name, new URIImpl(valueString));
+                final Var var = new Var(name, vf.createIRI(dataTypeString,valueString));
                 var.setConstant(true);
                 return var;
             } else if(dataTypeString.equals(RyaSchema.BNODE_NAMESPACE)) { 
                 // Handle a BNode object
                 Preconditions.checkArgument(varParts.length == 3);
                 Var var = new Var(name);
-                var.setValue(new BNodeImpl(varParts[2]));
+                var.setValue(vf.createBNode(varParts[2]));
                 return var;
             } else {
                 // Handle a Literal Value.
                 Preconditions.checkArgument(varParts.length == 2);
                 final String valueString = name.substring("-const-".length());
-                final IRI dataType = new URIImpl(dataTypeString);
-                final Literal value = new LiteralImpl(valueString, dataType);
+                final IRI dataType = vf.createIRI(dataTypeString);
+                final Literal value = vf.createLiteral(valueString, dataType);
                 final Var var = new Var(name, value);
                 var.setConstant(true);
                 return var;

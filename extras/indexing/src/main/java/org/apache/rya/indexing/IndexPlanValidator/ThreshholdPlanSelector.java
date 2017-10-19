@@ -25,7 +25,7 @@ import java.util.Set;
 import com.google.common.collect.Sets;
 import org.apache.rya.indexing.external.tupleSet.ExternalTupleSet;
 import org.eclipse.rdf4j.query.algebra.*;
-import org.eclipse.rdf4j.query.algebra.helpers.QueryModelVisitorBase;
+import org.eclipse.rdf4j.query.algebra.helpers.AbstractQueryModelVisitor;
 
 public class ThreshholdPlanSelector implements IndexedQueryPlanSelector {
 
@@ -134,7 +134,7 @@ public class ThreshholdPlanSelector implements IndexedQueryPlanSelector {
         return cost;
     }
 
-    public static class QueryNodeCount extends QueryModelVisitorBase<RuntimeException> {
+    public static class QueryNodeCount extends AbstractQueryModelVisitor<RuntimeException> {
 
         private int nodeCount = 0;
         private int commonJoinVars = 0;

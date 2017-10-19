@@ -29,7 +29,7 @@ import org.apache.rya.indexing.external.matching.QuerySegment;
 import org.apache.rya.indexing.external.tupleSet.ExternalTupleSet;
 import org.apache.rya.indexing.pcj.matching.QueryVariableNormalizer.VarCollector;
 import org.eclipse.rdf4j.query.algebra.*;
-import org.eclipse.rdf4j.query.algebra.helpers.QueryModelVisitorBase;
+import org.eclipse.rdf4j.query.algebra.helpers.AbstractQueryModelVisitor;
 import org.eclipse.rdf4j.query.algebra.helpers.VarNameCollector;
 
 public class PCJOptimizerUtilities {
@@ -101,7 +101,7 @@ public class PCJOptimizerUtilities {
 		return visitor.node;
 	}
 
-	static class ProjectionVisitor extends QueryModelVisitorBase<RuntimeException> {
+	static class ProjectionVisitor extends AbstractQueryModelVisitor<RuntimeException> {
 
 		Projection node = null;
 
@@ -142,7 +142,7 @@ public class PCJOptimizerUtilities {
 	 *
 	 */
 	private static class ValidQueryVisitor extends
-			QueryModelVisitorBase<RuntimeException> {
+            AbstractQueryModelVisitor<RuntimeException> {
 
 		private boolean isValid = true;
 		private Set<QueryModelNode> filterSet = Sets.newHashSet();
@@ -219,7 +219,7 @@ public class PCJOptimizerUtilities {
 	 */
 
 	protected static class FilterRelocator extends
-			QueryModelVisitorBase<RuntimeException> {
+            AbstractQueryModelVisitor<RuntimeException> {
 
 		protected Filter filter;
 		protected Set<String> filterVars;
@@ -345,7 +345,7 @@ public class PCJOptimizerUtilities {
         return lj.containsLeftJoin;
     }
 
-    protected static class LeftJoinVisitor extends QueryModelVisitorBase<RuntimeException> {
+    protected static class LeftJoinVisitor extends AbstractQueryModelVisitor<RuntimeException> {
 
         boolean containsLeftJoin = false;
 

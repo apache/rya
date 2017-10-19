@@ -34,8 +34,7 @@ import org.eclipse.rdf4j.query.algebra.Filter;
 import org.eclipse.rdf4j.query.algebra.Join;
 import org.eclipse.rdf4j.query.algebra.StatementPattern;
 import org.eclipse.rdf4j.query.algebra.TupleExpr;
-import org.eclipse.rdf4j.query.algebra.helpers.QueryModelVisitorBase;
-
+import org.eclipse.rdf4j.query.algebra.helpers.AbstractQueryModelVisitor;
 
 //A given TupleExpr can be broken up into "join segments", which are sections of the TupleExpr where nodes can
 //be freely exchanged.  This class creates a list of permuted TupleExpr from a specified TupleExpr by permuting the nodes
@@ -180,7 +179,7 @@ public class TupleReArranger {
    //creates a map which associates each first join of a TupleExpr join segment with all permutations of
     //the non-join nodes after it.  More specifically, each join is associated with a list of TupleExpr
     //lists, where each list represents an ordering of the non-join nodes following the associated join
-    private static class NodeCollector extends QueryModelVisitorBase<RuntimeException> {
+    private static class NodeCollector extends AbstractQueryModelVisitor<RuntimeException> {
 
         private static List<Filter> filterList;
 
@@ -235,7 +234,7 @@ public class TupleReArranger {
 
     //for a given reOrder map, searches through TupleExpr and places each reordered collection
     //of nodes at appropriate join
-    private static class PermInserter extends QueryModelVisitorBase<RuntimeException> {
+    private static class PermInserter extends AbstractQueryModelVisitor<RuntimeException> {
 
         private Map<Join, List<TupleExpr>> reOrderMap = Maps.newHashMap();
 

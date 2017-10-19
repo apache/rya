@@ -26,7 +26,7 @@ import java.util.Set;
 import com.google.common.collect.Sets;
 import org.apache.rya.indexing.external.tupleSet.ExternalTupleSet;
 import org.eclipse.rdf4j.query.algebra.*;
-import org.eclipse.rdf4j.query.algebra.helpers.QueryModelVisitorBase;
+import org.eclipse.rdf4j.query.algebra.helpers.AbstractQueryModelVisitor;
 
 
 
@@ -153,7 +153,7 @@ public class IndexPlanValidator implements TupleValidator {
 
     }
 
-    public class TupleValidateVisitor extends QueryModelVisitorBase<RuntimeException> {
+    public class TupleValidateVisitor extends AbstractQueryModelVisitor<RuntimeException> {
 
         private boolean isValid = true;
 

@@ -44,7 +44,7 @@ import org.eclipse.rdf4j.query.algebra.StatementPattern;
 import org.eclipse.rdf4j.query.algebra.TupleExpr;
 import org.eclipse.rdf4j.query.algebra.Var;
 import org.eclipse.rdf4j.query.algebra.evaluation.impl.ExternalSet;
-import org.eclipse.rdf4j.query.algebra.helpers.QueryModelVisitorBase;
+import org.eclipse.rdf4j.query.algebra.helpers.AbstractQueryModelVisitor;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -599,7 +599,7 @@ public class AccumuloSelectivityEvalDAO implements SelectivityEvalDAO<RdfCloudTr
   
   
   
-  private static class SpExternalCollector extends QueryModelVisitorBase<RuntimeException> {
+  private static class SpExternalCollector extends AbstractQueryModelVisitor<RuntimeException> {
 
       private List<QueryModelNode> eSet = Lists.newArrayList();
         

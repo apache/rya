@@ -46,7 +46,7 @@ import org.eclipse.rdf4j.query.algebra.Filter;
 import org.eclipse.rdf4j.query.algebra.Join;
 import org.eclipse.rdf4j.query.algebra.LeftJoin;
 import org.eclipse.rdf4j.query.algebra.TupleExpr;
-import org.eclipse.rdf4j.query.algebra.helpers.QueryModelVisitorBase;
+import org.eclipse.rdf4j.query.algebra.helpers.AbstractQueryModelVisitor;
 
 /**
  * Implementation of {@link ExternalSetConverter} to convert {@link ExternalTupleSet}s
@@ -74,7 +74,7 @@ public class PCJToSegmentConverter implements ExternalSetConverter<ExternalTuple
      * specified PCJ.
      *
      */
-    static class PCJToJoinSegment extends QueryModelVisitorBase<RuntimeException> {
+    static class PCJToJoinSegment extends AbstractQueryModelVisitor<RuntimeException> {
 
         private JoinSegment<ExternalTupleSet> segment;
 
@@ -102,7 +102,7 @@ public class PCJToSegmentConverter implements ExternalSetConverter<ExternalTuple
      * This class extracts the {@link OptionalJoinSegment} of PCJ query.
      *
      */
-    static class PCJToOptionalJoinSegment extends QueryModelVisitorBase<RuntimeException> {
+    static class PCJToOptionalJoinSegment extends AbstractQueryModelVisitor<RuntimeException> {
 
         private OptionalJoinSegment<ExternalTupleSet> segment;
 

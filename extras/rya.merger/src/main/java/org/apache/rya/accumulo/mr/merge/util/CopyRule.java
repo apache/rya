@@ -30,7 +30,7 @@ import org.eclipse.rdf4j.query.algebra.*;
 import org.eclipse.rdf4j.query.algebra.evaluation.EvaluationStrategy;
 import org.eclipse.rdf4j.query.algebra.evaluation.QueryBindingSet;
 import org.eclipse.rdf4j.query.algebra.evaluation.ValueExprEvaluationException;
-import org.eclipse.rdf4j.query.algebra.helpers.QueryModelVisitorBase;
+import org.eclipse.rdf4j.query.algebra.helpers.AbstractQueryModelVisitor;
 
 /**
  * A rule that defines a subset of statements to copy at the RDF level. Consists of a
@@ -93,7 +93,7 @@ public class CopyRule extends QueryModelNodeBase {
     /**
      * Visitor that checks a tree for the existence of a given variable name.
      */
-    private static class VarSearchVisitor extends QueryModelVisitorBase<RuntimeException> {
+    private static class VarSearchVisitor extends AbstractQueryModelVisitor<RuntimeException> {
         boolean found = false;
         private final String queryVar;
         public VarSearchVisitor(final String queryVar) {
@@ -118,7 +118,7 @@ public class CopyRule extends QueryModelNodeBase {
      * operators to preserve meaningful expressions while eliminating undefined
      * conditions.
      */
-    private static class RuleVisitor extends QueryModelVisitorBase<RuntimeException> {
+    private static class RuleVisitor extends AbstractQueryModelVisitor<RuntimeException> {
         private final CopyRule rule;
         RuleVisitor(final CopyRule rule) {
             this.rule = rule;

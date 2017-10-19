@@ -31,7 +31,7 @@ import org.eclipse.rdf4j.query.algebra.Projection;
 import org.eclipse.rdf4j.query.algebra.TupleExpr;
 import org.eclipse.rdf4j.query.algebra.Var;
 import org.eclipse.rdf4j.query.algebra.evaluation.impl.ExternalSet;
-import org.eclipse.rdf4j.query.algebra.helpers.QueryModelVisitorBase;
+import org.eclipse.rdf4j.query.algebra.helpers.AbstractQueryModelVisitor;
 
 /**
  * This is an abstract class of delegating the evaluation of part
@@ -274,7 +274,7 @@ public abstract class ExternalTupleSet extends ExternalSet {
 	 * create binding sets from range scan
 	 */
 	private class ValueMapVisitor extends
-			QueryModelVisitorBase<RuntimeException> {
+            AbstractQueryModelVisitor<RuntimeException> {
 		Map<String,  org.eclipse.rdf4j.model.Value> valMap = Maps.newHashMap();
 
 		public Map<String,  org.eclipse.rdf4j.model.Value> getValMap() {

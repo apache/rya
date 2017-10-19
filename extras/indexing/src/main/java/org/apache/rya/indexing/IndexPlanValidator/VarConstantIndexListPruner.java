@@ -28,7 +28,7 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import org.apache.rya.indexing.external.tupleSet.ExternalTupleSet;
 import org.eclipse.rdf4j.query.algebra.*;
-import org.eclipse.rdf4j.query.algebra.helpers.QueryModelVisitorBase;
+import org.eclipse.rdf4j.query.algebra.helpers.AbstractQueryModelVisitor;
 
 
 
@@ -89,7 +89,7 @@ public class VarConstantIndexListPruner implements IndexListPruner {
     }
 
 
-    private static class ConstantCollector extends QueryModelVisitorBase<RuntimeException> {
+    private static class ConstantCollector extends AbstractQueryModelVisitor<RuntimeException> {
 
         private Map<String, Integer> constantMap = Maps.newHashMap();
         private int spCount = 0;

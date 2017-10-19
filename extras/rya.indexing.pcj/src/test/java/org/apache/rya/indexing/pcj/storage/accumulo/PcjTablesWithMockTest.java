@@ -37,11 +37,8 @@ import org.apache.rya.indexing.pcj.storage.accumulo.BindingSetConverter.BindingS
 import org.apache.rya.rdftriplestore.RdfCloudTripleStore;
 import org.apache.rya.rdftriplestore.RyaSailRepository;
 import org.eclipse.rdf4j.model.Statement;
-import org.eclipse.rdf4j.model.impl.LiteralImpl;
-import org.eclipse.rdf4j.model.impl.NumericLiteralImpl;
-import org.eclipse.rdf4j.model.impl.StatementImpl;
-import org.eclipse.rdf4j.model.impl.URIImpl;
-import org.eclipse.rdf4j.model.vocabulary.XMLSchema;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 import org.eclipse.rdf4j.repository.RepositoryException;
 import org.eclipse.rdf4j.repository.sail.SailRepositoryConnection;
 import org.junit.After;
@@ -63,6 +60,7 @@ public class PcjTablesWithMockTest {
 	private Connector accumuloConn;
 	private RyaSailRepository ryaRepo;
 	private SailRepositoryConnection ryaConn;
+	private final ValueFactory vf = SimpleValueFactory.getInstance();
 
 	@Before
 	public void init() throws AccumuloException, AccumuloSecurityException, RepositoryException {
@@ -77,14 +75,14 @@ public class PcjTablesWithMockTest {
 	    public void populatePcj() throws RepositoryException, PcjException, TableNotFoundException, BindingSetConversionException {
 	        // Load some Triples into Rya.
 	        final Set<Statement> triples = new HashSet<>();
-	        triples.add( new StatementImpl(new URIImpl("http://Alice"), new URIImpl("http://hasAge"), new NumericLiteralImpl(14, XMLSchema.INTEGER)) );
-	        triples.add( new StatementImpl(new URIImpl("http://Alice"), new URIImpl("http://playsSport"), new LiteralImpl("Soccer")) );
-	        triples.add( new StatementImpl(new URIImpl("http://Bob"), new URIImpl("http://hasAge"), new NumericLiteralImpl(16, XMLSchema.INTEGER)) );
-	        triples.add( new StatementImpl(new URIImpl("http://Bob"), new URIImpl("http://playsSport"), new LiteralImpl("Soccer")) );
-	        triples.add( new StatementImpl(new URIImpl("http://Charlie"), new URIImpl("http://hasAge"), new NumericLiteralImpl(12, XMLSchema.INTEGER)) );
-	        triples.add( new StatementImpl(new URIImpl("http://Charlie"), new URIImpl("http://playsSport"), new LiteralImpl("Soccer")) );
-	        triples.add( new StatementImpl(new URIImpl("http://Eve"), new URIImpl("http://hasAge"), new NumericLiteralImpl(43, XMLSchema.INTEGER)) );
-	        triples.add( new StatementImpl(new URIImpl("http://Eve"), new URIImpl("http://playsSport"), new LiteralImpl("Soccer")) );
+	        triples.add( vf.createStatement(vf.createIRI("http://Alice"), vf.createIRI("http://hasAge"),vf.createLiteral(14)));
+	        triples.add( vf.createStatement(vf.createIRI("http://Alice"), vf.createIRI("http://playsSport"), vf.createLiteral("Soccer")) );
+	        triples.add( vf.createStatement(vf.createIRI("http://Bob"), vf.createIRI("http://hasAge"),vf.createLiteral(16)) );
+	        triples.add( vf.createStatement(vf.createIRI("http://Bob"), vf.createIRI("http://playsSport"), vf.createLiteral("Soccer")) );
+	        triples.add( vf.createStatement(vf.createIRI("http://Charlie"), vf.createIRI("http://hasAge"), vf.createLiteral(12)) );
+	        triples.add( vf.createStatement(vf.createIRI("http://Charlie"), vf.createIRI("http://playsSport"), vf.createLiteral("Soccer")) );
+	        triples.add( vf.createStatement(vf.createIRI("http://Eve"), vf.createIRI("http://hasAge"), vf.createLiteral((43))));
+	        triples.add( vf.createStatement(vf.createIRI("http://Eve"), vf.createIRI("http://playsSport"), vf.createLiteral("Soccer")) );
 
 	        for(final Statement triple : triples) {
 	            ryaConn.add(triple);

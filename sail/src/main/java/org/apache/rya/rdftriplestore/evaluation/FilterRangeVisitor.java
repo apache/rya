@@ -11,7 +11,7 @@ import org.eclipse.rdf4j.model.Value;
 import org.eclipse.rdf4j.model.impl.BooleanLiteralImpl;
 import org.eclipse.rdf4j.query.QueryEvaluationException;
 import org.eclipse.rdf4j.query.algebra.*;
-import org.eclipse.rdf4j.query.algebra.helpers.QueryModelVisitorBase;
+import org.eclipse.rdf4j.query.algebra.helpers.AbstractQueryModelVisitor;
 
 import static org.apache.rya.api.RdfCloudTripleStoreConstants.RANGE;
 
@@ -39,7 +39,7 @@ import static org.apache.rya.api.RdfCloudTripleStoreConstants.RANGE;
  * Date: Apr 11, 2011
  * Time: 10:16:15 PM
  */
-public class FilterRangeVisitor extends QueryModelVisitorBase<Exception> {
+public class FilterRangeVisitor extends AbstractQueryModelVisitor<Exception> {
 
     private final RdfCloudTripleStoreConfiguration conf;
     private final Map<Var, RangeValue> rangeValues = new HashMap<Var, RangeValue>();

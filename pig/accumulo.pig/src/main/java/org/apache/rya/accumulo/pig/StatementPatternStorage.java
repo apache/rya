@@ -59,7 +59,7 @@ import org.eclipse.rdf4j.model.vocabulary.RDF;
 import org.eclipse.rdf4j.query.MalformedQueryException;
 import org.eclipse.rdf4j.query.algebra.StatementPattern;
 import org.eclipse.rdf4j.query.algebra.Var;
-import org.eclipse.rdf4j.query.algebra.helpers.QueryModelVisitorBase;
+import org.eclipse.rdf4j.query.algebra.helpers.AbstractQueryModelVisitor;
 import org.eclipse.rdf4j.query.parser.ParsedQuery;
 import org.eclipse.rdf4j.query.parser.QueryParser;
 import org.eclipse.rdf4j.query.parser.sparql.SPARQLParser;
@@ -166,7 +166,7 @@ public class StatementPatternStorage extends AccumuloStorage {
         } catch (MalformedQueryException e) {
             throw new IOException(e);
         }
-        parsedQuery.getTupleExpr().visitChildren(new QueryModelVisitorBase<IOException>() {
+        parsedQuery.getTupleExpr().visitChildren(new AbstractQueryModelVisitor<IOException>() {
             @Override
             public void meet(StatementPattern node) throws IOException {
                 Var subjectVar = node.getSubjectVar();

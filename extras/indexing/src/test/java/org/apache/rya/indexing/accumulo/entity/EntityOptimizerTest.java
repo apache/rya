@@ -46,7 +46,7 @@ import org.eclipse.rdf4j.query.TupleQueryResultHandlerException;
 import org.eclipse.rdf4j.query.algebra.QueryModelNode;
 import org.eclipse.rdf4j.query.algebra.TupleExpr;
 import org.eclipse.rdf4j.query.algebra.evaluation.impl.FilterOptimizer;
-import org.eclipse.rdf4j.query.algebra.helpers.QueryModelVisitorBase;
+import org.eclipse.rdf4j.query.algebra.helpers.AbstractQueryModelVisitor;
 import org.eclipse.rdf4j.query.parser.ParsedQuery;
 import org.eclipse.rdf4j.query.parser.sparql.SPARQLParser;
 import org.eclipse.rdf4j.repository.RepositoryException;
@@ -1312,7 +1312,7 @@ public class EntityOptimizerTest {
     
     
     
-    private class EntityCentricVisitor extends QueryModelVisitorBase<RuntimeException> {
+    private class EntityCentricVisitor extends AbstractQueryModelVisitor<RuntimeException> {
         
         private Set<QueryModelNode> ccNodes = Sets.newHashSet();
         

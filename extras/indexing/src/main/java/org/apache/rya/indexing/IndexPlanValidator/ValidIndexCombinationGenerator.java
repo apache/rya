@@ -29,7 +29,7 @@ import org.eclipse.rdf4j.query.algebra.Filter;
 import org.eclipse.rdf4j.query.algebra.QueryModelNode;
 import org.eclipse.rdf4j.query.algebra.StatementPattern;
 import org.eclipse.rdf4j.query.algebra.TupleExpr;
-import org.eclipse.rdf4j.query.algebra.helpers.QueryModelVisitorBase;
+import org.eclipse.rdf4j.query.algebra.helpers.AbstractQueryModelVisitor;
 
 public class ValidIndexCombinationGenerator {
 
@@ -415,7 +415,7 @@ public class ValidIndexCombinationGenerator {
 	}
 
 	private static class SpFilterCollector extends
-			QueryModelVisitorBase<RuntimeException> {
+            AbstractQueryModelVisitor<RuntimeException> {
 
 		private Set<QueryModelNode> spFilterSet = Sets.newHashSet();
 

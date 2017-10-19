@@ -21,14 +21,14 @@ package org.apache.rya.rdftriplestore.evaluation;
 
 import org.eclipse.rdf4j.query.algebra.Join;
 import org.eclipse.rdf4j.query.algebra.TupleExpr;
-import org.eclipse.rdf4j.query.algebra.helpers.QueryModelVisitorBase;
+import org.eclipse.rdf4j.query.algebra.helpers.AbstractQueryModelVisitor;
 
 /**
  * Class ReorderJoinVisitor
  * Date: Apr 11, 2011
  * Time: 10:16:15 PM
  */
-public class PushJoinDownVisitor extends QueryModelVisitorBase<Exception> {
+public class PushJoinDownVisitor extends AbstractQueryModelVisitor<Exception> {
     @Override
     public void meet(final Join node) throws Exception {
         super.meet(node);

@@ -33,7 +33,7 @@ import org.eclipse.rdf4j.query.algebra.StatementPattern;
 import org.eclipse.rdf4j.query.algebra.TupleExpr;
 import org.eclipse.rdf4j.query.algebra.Var;
 import org.eclipse.rdf4j.query.algebra.evaluation.impl.ExternalSet;
-import org.eclipse.rdf4j.query.algebra.helpers.QueryModelVisitorBase;
+import org.eclipse.rdf4j.query.algebra.helpers.AbstractQueryModelVisitor;
 
 public class StatementMetadataTestUtils {
 
@@ -47,7 +47,7 @@ public class StatementMetadataTestUtils {
         return collector.getNodes();
     }
 
-    public static class MetadataNodeCollector extends QueryModelVisitorBase<RuntimeException> {
+    public static class MetadataNodeCollector extends AbstractQueryModelVisitor<RuntimeException> {
 
         Set<QueryModelNode> qNodes = new HashSet<>();
 
@@ -71,7 +71,7 @@ public class StatementMetadataTestUtils {
 
     }
 
-    public static class MetadataStatementPatternCollector extends QueryModelVisitorBase<RuntimeException> {
+    public static class MetadataStatementPatternCollector extends AbstractQueryModelVisitor<RuntimeException> {
 
         private Set<StatementPattern> nodes;
         private Set<RyaURI> properties;

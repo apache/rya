@@ -28,7 +28,7 @@ import org.eclipse.rdf4j.query.algebra.Filter;
 import org.eclipse.rdf4j.query.algebra.Projection;
 import org.eclipse.rdf4j.query.algebra.TupleExpr;
 import org.eclipse.rdf4j.query.algebra.ValueExpr;
-import org.eclipse.rdf4j.query.algebra.helpers.QueryModelVisitorBase;
+import org.eclipse.rdf4j.query.algebra.helpers.AbstractQueryModelVisitor;
 
 /**
  * Class consisting of a single utility method for relocating filters.
@@ -73,7 +73,7 @@ public class TopOfQueryFilterRelocator {
 
     }
 
-    static class ProjectionAndFilterGatherer extends QueryModelVisitorBase<RuntimeException> {
+    static class ProjectionAndFilterGatherer extends AbstractQueryModelVisitor<RuntimeException> {
 
         Set<ValueExpr> filterCond = new HashSet<>();
         Projection projection;

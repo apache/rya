@@ -46,9 +46,8 @@ import org.apache.rya.indexing.pcj.storage.accumulo.AccumuloPcjStorage;
 import org.apache.rya.indexing.pcj.storage.accumulo.PcjTableNameFactory;
 import org.apache.rya.indexing.pcj.storage.accumulo.VisibilityBindingSet;
 import org.eclipse.rdf4j.common.iteration.CloseableIteration;
-import org.eclipse.rdf4j.model.impl.NumericLiteralImpl;
-import org.eclipse.rdf4j.model.impl.URIImpl;
-import org.eclipse.rdf4j.model.vocabulary.XMLSchema;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 import org.eclipse.rdf4j.query.BindingSet;
 import org.eclipse.rdf4j.query.QueryEvaluationException;
 import org.eclipse.rdf4j.query.algebra.evaluation.QueryBindingSet;
@@ -80,6 +79,7 @@ public class AccumuloIndexSetColumnVisibilityTest {
     private static String pcjId;
     private static QueryBindingSet pcjBs1;
     private static QueryBindingSet pcjBs2;
+    private static ValueFactory vf = SimpleValueFactory.getInstance();
 
     @BeforeClass
     public static void init() throws AccumuloException, AccumuloSecurityException, PCJStorageException, IOException, InterruptedException, TableNotFoundException,
@@ -106,12 +106,12 @@ public class AccumuloIndexSetColumnVisibilityTest {
 
         // Store the PCJ's results.
         pcjBs1 = new QueryBindingSet();
-        pcjBs1.addBinding("age", new NumericLiteralImpl(14, XMLSchema.INTEGER));
-        pcjBs1.addBinding("name", new URIImpl("http://Alice"));
+        pcjBs1.addBinding("age", vf.createLiteral(14));
+        pcjBs1.addBinding("name", vf.createIRI("http://Alice"));
 
         pcjBs2 = new QueryBindingSet();
-        pcjBs2.addBinding("age", new NumericLiteralImpl(16, XMLSchema.INTEGER));
-        pcjBs2.addBinding("name", new URIImpl("http://Bob"));
+        pcjBs2.addBinding("age", vf.createLiteral(16));
+        pcjBs2.addBinding("name", vf.createIRI("http://Bob"));
 
         final Set<VisibilityBindingSet> visBs = new HashSet<>();
         for (final BindingSet bs : Sets.<BindingSet>newHashSet(pcjBs1, pcjBs2)) {
@@ -192,9 +192,9 @@ public class AccumuloIndexSetColumnVisibilityTest {
 
         // Setup the binding sets that will be evaluated.
         final QueryBindingSet bs = new QueryBindingSet();
-        bs.addBinding("name", new URIImpl("http://Alice"));
+        bs.addBinding("name", vf.createIRI("http://Alice"));
         final QueryBindingSet bs2 = new QueryBindingSet();
-        bs2.addBinding("name", new URIImpl("http://Bob"));
+        bs2.addBinding("name", vf.createIRI("http://Bob"));
 
         final Set<BindingSet> bSets = Sets.newHashSet(bs, bs2);
         final CloseableIteration<BindingSet, QueryEvaluationException> results = ais.evaluate(bSets);
@@ -217,9 +217,9 @@ public class AccumuloIndexSetColumnVisibilityTest {
 
         // Setup the binding sets that will be evaluated.
         final QueryBindingSet bs1 = new QueryBindingSet();
-        bs1.addBinding("age", new NumericLiteralImpl(16, XMLSchema.INTEGER));
+        bs1.addBinding("age", vf.createLiteral(16));
         final QueryBindingSet bs2 = new QueryBindingSet();
-        bs2.addBinding("age", new NumericLiteralImpl(14, XMLSchema.INTEGER));
+        bs2.addBinding("age", vf.createLiteral(14));
 
         final Set<BindingSet> bSets = Sets.newHashSet(bs1, bs2);
         final CloseableIteration<BindingSet, QueryEvaluationException> results = ais.evaluate(bSets);

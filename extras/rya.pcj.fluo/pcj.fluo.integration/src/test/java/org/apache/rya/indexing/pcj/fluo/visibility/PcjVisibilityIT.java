@@ -75,7 +75,7 @@ import static org.junit.Assert.assertTrue;
  */
 public class PcjVisibilityIT extends RyaExportITBase {
 
-    private static final ValueFactory VF = SimpleValueFactory.getInstance();
+    private static final ValueFactory vf = SimpleValueFactory.getInstance();
 
     // Constants used within the test.
     private static final IRI ALICE = vf.createIRI("urn:Alice");
@@ -141,9 +141,9 @@ public class PcjVisibilityIT extends RyaExportITBase {
             ryaConn = ryaRepo.getConnection();
 
             // Load a few Statements into Rya.
-            ryaConn.add(VF.createStatement(ALICE, TALKS_TO, BOB));
-            ryaConn.add(VF.createStatement(BOB, LIVES_IN, HAPPYVILLE));
-            ryaConn.add(VF.createStatement(BOB, WORKS_AT, BURGER_JOINT));
+            ryaConn.add(vf.createStatement(ALICE, TALKS_TO, BOB));
+            ryaConn.add(vf.createStatement(BOB, LIVES_IN, HAPPYVILLE));
+            ryaConn.add(vf.createStatement(BOB, WORKS_AT, BURGER_JOINT));
 
             // Wait for Fluo to finish processing.
             super.getMiniFluo().waitForObservers();

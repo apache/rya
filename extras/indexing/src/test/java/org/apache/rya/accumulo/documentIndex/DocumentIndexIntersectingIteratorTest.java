@@ -19,6 +19,8 @@ package org.apache.rya.accumulo.documentIndex;
  * under the License.
  */
 
+import java.io.File;
+import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -26,12 +28,14 @@ import java.util.Map;
 import com.google.common.primitives.Bytes;
 import junit.framework.Assert;
 import org.apache.accumulo.core.client.*;
-import org.apache.accumulo.core.client.mock.MockInstance;
 import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Mutation;
 import org.apache.accumulo.core.data.Range;
 import org.apache.accumulo.core.data.Value;
 import org.apache.accumulo.core.security.Authorizations;
+import org.apache.accumulo.minicluster.MiniAccumuloCluster;
+import org.apache.accumulo.minicluster.MiniAccumuloConfig;
+import org.apache.commons.io.FileUtils;
 import org.apache.hadoop.io.Text;
 import org.apache.rya.accumulo.AccumuloRdfConfiguration;
 import org.apache.rya.accumulo.RyaTableMutationsFactory;
@@ -55,21 +59,33 @@ import org.eclipse.rdf4j.query.parser.sparql.SPARQLParser;
 import org.eclipse.rdf4j.repository.RepositoryException;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.JUnit4;
 
-
+@RunWith(JUnit4.class)
 public class DocumentIndexIntersectingIteratorTest {
 
     
  
     private Connector accCon;
+    private MiniAccumuloCluster accMiniCluster;
     String tablename = "table";
     
 
     @Before
     public void init() throws RepositoryException, TupleQueryResultHandlerException, QueryEvaluationException,
-            MalformedQueryException, AccumuloException, AccumuloSecurityException, TableExistsException {
+            MalformedQueryException, AccumuloException, AccumuloSecurityException, TableExistsException, IOException,
+            InterruptedException
+    {
 
-        accCon = new MockInstance().getConnector("root", "".getBytes());
+        File loc = new File("./minicluster");
+        FileUtils.deleteDirectory(loc);
+        loc.mkdir();
+        loc.deleteOnExit();
+
+        accMiniCluster = new MiniAccumuloCluster(new MiniAccumuloConfig(loc,"root"));
+        accMiniCluster.start();
+        accCon = accMiniCluster.getConnector("root","root");
         accCon.tableOperations().create(tablename);
 
     }

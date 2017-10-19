@@ -20,7 +20,7 @@ package org.apache.rya.rdftriplestore.evaluation;
  */
 
 import org.eclipse.rdf4j.query.algebra.*;
-import org.eclipse.rdf4j.query.algebra.helpers.QueryModelVisitorBase;
+import org.eclipse.rdf4j.query.algebra.helpers.AbstractQueryModelVisitor;
 
 /**
  * TODO: This might be a very bad thing. It may force all AND and not allow ORs?. Depends on how they do the bindings.
@@ -28,7 +28,7 @@ import org.eclipse.rdf4j.query.algebra.helpers.QueryModelVisitorBase;
  * Date: Apr 11, 2011
  * Time: 10:16:15 PM
  */
-public class SeparateFilterJoinsVisitor extends QueryModelVisitorBase<Exception> {
+public class SeparateFilterJoinsVisitor extends AbstractQueryModelVisitor<Exception> {
     @Override
     public void meet(final Filter node) throws Exception {
         super.meet(node);

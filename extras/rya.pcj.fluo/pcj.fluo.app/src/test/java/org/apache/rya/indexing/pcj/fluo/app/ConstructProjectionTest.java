@@ -100,7 +100,7 @@ public class ConstructProjectionTest {
         VisibilityBindingSet vBs = new VisibilityBindingSet(bs);
         BNode bNode = vf.createBNode();
         Map<String, BNode> bNodeMap = new HashMap<>();
-        bNodeMap.put("-anon-1", bNode);
+        bNodeMap.put("_anon_1", bNode);
         RyaStatement statement = projection.projectBindingSet(vBs,bNodeMap);
         
         RyaStatement expected = new RyaStatement(RdfToRyaConversions.convertResource(bNode), new RyaURI("uri:talksTo"), new RyaURI("uri:Bob"));

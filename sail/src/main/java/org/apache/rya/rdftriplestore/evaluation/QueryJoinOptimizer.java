@@ -8,7 +8,7 @@ import org.eclipse.rdf4j.query.Dataset;
 import org.eclipse.rdf4j.query.algebra.*;
 import org.eclipse.rdf4j.query.algebra.evaluation.QueryOptimizer;
 import org.eclipse.rdf4j.query.algebra.evaluation.impl.EvaluationStatistics;
-import org.eclipse.rdf4j.query.algebra.helpers.QueryModelVisitorBase;
+import org.eclipse.rdf4j.query.algebra.helpers.AbstractQueryModelVisitor;
 import org.eclipse.rdf4j.query.algebra.helpers.StatementPatternCollector;
 
 /*
@@ -60,7 +60,7 @@ public class QueryJoinOptimizer implements QueryOptimizer {
         }
     }
 
-    protected class JoinVisitor extends QueryModelVisitorBase<RuntimeException> {
+    protected class JoinVisitor extends AbstractQueryModelVisitor<RuntimeException> {
 
         Set<String> boundVars = new HashSet<String>();
 

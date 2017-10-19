@@ -30,7 +30,7 @@ import org.eclipse.rdf4j.query.Dataset;
 import org.eclipse.rdf4j.query.algebra.*;
 import org.eclipse.rdf4j.query.algebra.evaluation.QueryOptimizer;
 import org.eclipse.rdf4j.query.algebra.evaluation.impl.ExternalSet;
-import org.eclipse.rdf4j.query.algebra.helpers.QueryModelVisitorBase;
+import org.eclipse.rdf4j.query.algebra.helpers.AbstractQueryModelVisitor;
 
 /**
  * Abstract base class meant to be extended by any QueryOptimizer that matches ExternalSets
@@ -60,7 +60,7 @@ public abstract class AbstractExternalSetOptimizer<T extends ExternalSet> implem
      * the nodes returned by {@link ExternalSetMatcher#getUnmatchedArgs()}.
      *
      */
-    protected class QuerySegmentMatchVisitor extends QueryModelVisitorBase<RuntimeException> {
+    protected class QuerySegmentMatchVisitor extends AbstractQueryModelVisitor<RuntimeException> {
 
         private final QuerySegmentFactory<T> factory = new QuerySegmentFactory<T>();
 

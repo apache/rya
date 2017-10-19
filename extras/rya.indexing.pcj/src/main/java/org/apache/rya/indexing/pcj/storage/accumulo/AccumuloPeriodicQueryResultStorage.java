@@ -40,7 +40,7 @@ import org.eclipse.rdf4j.query.algebra.AggregateOperatorBase;
 import org.eclipse.rdf4j.query.algebra.ExtensionElem;
 import org.eclipse.rdf4j.query.algebra.TupleExpr;
 import org.eclipse.rdf4j.query.algebra.evaluation.QueryBindingSet;
-import org.eclipse.rdf4j.query.algebra.helpers.QueryModelVisitorBase;
+import org.eclipse.rdf4j.query.algebra.helpers.AbstractQueryModelVisitor;
 import org.eclipse.rdf4j.query.parser.sparql.SPARQLParser;
 
 import static java.util.Objects.requireNonNull;
@@ -236,7 +236,7 @@ public class AccumuloPeriodicQueryResultStorage implements PeriodicQueryResultSt
      * written to the table.
      *
      */
-    static class AggregateVariableRemover extends QueryModelVisitorBase<RuntimeException> {
+    static class AggregateVariableRemover extends AbstractQueryModelVisitor<RuntimeException> {
         
         private Set<String> bindingNames;
         

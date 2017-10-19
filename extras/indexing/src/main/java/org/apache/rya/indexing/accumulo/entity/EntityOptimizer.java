@@ -43,7 +43,7 @@ import org.eclipse.rdf4j.query.BindingSet;
 import org.eclipse.rdf4j.query.Dataset;
 import org.eclipse.rdf4j.query.algebra.*;
 import org.eclipse.rdf4j.query.algebra.evaluation.QueryOptimizer;
-import org.eclipse.rdf4j.query.algebra.helpers.QueryModelVisitorBase;
+import org.eclipse.rdf4j.query.algebra.helpers.AbstractQueryModelVisitor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -126,7 +126,7 @@ public class EntityOptimizer implements QueryOptimizer, Configurable {
         tupleExpr.visit(new JoinVisitor());
     }
 
-    protected class JoinVisitor extends QueryModelVisitorBase<RuntimeException> {
+    protected class JoinVisitor extends AbstractQueryModelVisitor<RuntimeException> {
 
         @Override
         public void meet(Join node) {

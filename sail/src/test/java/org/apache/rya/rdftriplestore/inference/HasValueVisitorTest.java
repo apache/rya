@@ -21,6 +21,7 @@ package org.apache.rya.rdftriplestore.inference;
 import java.util.*;
 
 import org.apache.rya.accumulo.AccumuloRdfConfiguration;
+import org.apache.rya.api.utils.NullableStatementImpl;
 import org.apache.rya.rdftriplestore.utils.FixedStatementPattern;
 import org.eclipse.rdf4j.model.*;
 import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
@@ -169,17 +170,16 @@ public class HasValueVisitorTest {
         // Verify FSP: should provide (type, value) pairs
         final List<Statement> expectedStatements = new LinkedList<>();
         final IRI fspPred = (IRI) fsp.getPredicateVar().getValue();
-        expectedStatements.add(vf.createStatement(chordate, fspPred, notochord));
-        expectedStatements.add(vf.createStatement(tunicate, fspPred, notochord));
-        expectedStatements.add(vf.createStatement(vertebrate, fspPred, notochord));
-        expectedStatements.add(vf.createStatement(mammal, fspPred, notochord));
-        expectedStatements.add(vf.createStatement(vertebrate, fspPred, skull));
-        expectedStatements.add(vf.createStatement(mammal, fspPred, skull));
+        expectedStatements.add(new NullableStatementImpl(chordate, fspPred, notochord));
+        expectedStatements.add(new NullableStatementImpl(tunicate, fspPred, notochord));
+        expectedStatements.add(new NullableStatementImpl(vertebrate, fspPred, notochord));
+        expectedStatements.add(new NullableStatementImpl(mammal, fspPred, notochord));
+        expectedStatements.add(new NullableStatementImpl(vertebrate, fspPred, skull));
+        expectedStatements.add(new NullableStatementImpl(mammal, fspPred, skull));
         final List<Statement> actualStatements = new LinkedList<>(fsp.statements);
-        Assert.assertTrue(containsAll(expectedStatements,actualStatements));
+        Assert.assertTrue(containsAll(expectedStatements, actualStatements));
+
     }
-
-
     private boolean containsAll(List<Statement> expected, List<Statement> actual){
         for( Statement a : actual){
             if (!expected.contains(a)){

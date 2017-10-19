@@ -38,7 +38,7 @@ import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 import org.eclipse.rdf4j.model.vocabulary.XMLSchema;
 import org.eclipse.rdf4j.query.MalformedQueryException;
 import org.eclipse.rdf4j.query.algebra.*;
-import org.eclipse.rdf4j.query.algebra.helpers.QueryModelVisitorBase;
+import org.eclipse.rdf4j.query.algebra.helpers.AbstractQueryModelVisitor;
 import org.eclipse.rdf4j.query.parser.sparql.SPARQLParser;
 
 import static com.google.common.base.Preconditions.checkArgument;
@@ -94,7 +94,7 @@ public class PeriodicQueryUtil {
      * Locates Filter containing FunctionCall with PeriodicQuery info and
      * replaces that Filter with a PeriodicQueryNode.
      */
-    public static class PeriodicQueryNodeVisitor extends QueryModelVisitorBase<RuntimeException> {
+    public static class PeriodicQueryNodeVisitor extends AbstractQueryModelVisitor<RuntimeException> {
 
         private int count = 0;
         private PeriodicQueryNode periodicNode;
@@ -134,7 +134,7 @@ public class PeriodicQueryUtil {
      * whose variable order needs to be changed when the PeriodicQueryMetadata
      * is added.
      */
-    public static class PeriodicQueryNodeRelocator extends QueryModelVisitorBase<RuntimeException> {
+    public static class PeriodicQueryNodeRelocator extends AbstractQueryModelVisitor<RuntimeException> {
 
         private UnaryTupleOperator relocationParent;
 

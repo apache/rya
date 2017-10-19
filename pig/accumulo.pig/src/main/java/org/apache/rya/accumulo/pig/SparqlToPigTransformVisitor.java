@@ -25,7 +25,7 @@ import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Literal;
 import org.eclipse.rdf4j.model.Value;
 import org.eclipse.rdf4j.query.algebra.*;
-import org.eclipse.rdf4j.query.algebra.helpers.QueryModelVisitorBase;
+import org.eclipse.rdf4j.query.algebra.helpers.AbstractQueryModelVisitor;
 
 /**
  * Created by IntelliJ IDEA.
@@ -33,7 +33,7 @@ import org.eclipse.rdf4j.query.algebra.helpers.QueryModelVisitorBase;
  * Time: 10:17 AM
  * To change this template use File | Settings | File Templates.
  */
-public class SparqlToPigTransformVisitor extends QueryModelVisitorBase<RuntimeException> {
+public class SparqlToPigTransformVisitor extends AbstractQueryModelVisitor<RuntimeException> {
     private StringBuilder pigScriptBuilder = new StringBuilder();
     private String tablePrefix;
     private String instance, zk, user, password; //TODO: use a Configuration object to get these

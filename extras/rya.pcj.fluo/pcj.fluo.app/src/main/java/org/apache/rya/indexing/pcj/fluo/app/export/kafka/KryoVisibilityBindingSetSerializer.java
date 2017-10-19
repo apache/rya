@@ -36,7 +36,6 @@ import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Value;
 import org.eclipse.rdf4j.model.ValueFactory;
 import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
-import org.eclipse.rdf4j.model.impl.URIImpl;
 import org.eclipse.rdf4j.model.vocabulary.XMLSchema;
 import org.eclipse.rdf4j.query.Binding;
 import org.eclipse.rdf4j.query.BindingSet;
@@ -54,6 +53,7 @@ public class KryoVisibilityBindingSetSerializer implements Serializer<Visibility
             return kryo;
         }
     };
+    private static final ValueFactory vf = SimpleValueFactory.getInstance();
 
     /**
      * Deserialize a VisibilityBindingSet using Kyro lib. Exporting results of queries.
@@ -153,7 +153,7 @@ public class KryoVisibilityBindingSetSerializer implements Serializer<Visibility
             for (int i = bindingCount; i > 0; i--) {
                 namesList.add(input.readString());
                 String valueString = input.readString();
-                final IRI type = new URIImpl(input.readString());
+                final IRI type = vf.createIRI(input.readString());
                 valuesList.add(makeValue(valueString, type));
             }
             BindingSet bindingSet = new ListBindingSet(namesList, valuesList);

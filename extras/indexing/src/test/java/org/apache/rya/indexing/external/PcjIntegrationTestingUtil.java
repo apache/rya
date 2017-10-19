@@ -44,7 +44,7 @@ import org.eclipse.rdf4j.query.*;
 import org.eclipse.rdf4j.query.algebra.BindingSetAssignment;
 import org.eclipse.rdf4j.query.algebra.QueryModelNode;
 import org.eclipse.rdf4j.query.algebra.TupleExpr;
-import org.eclipse.rdf4j.query.algebra.helpers.QueryModelVisitorBase;
+import org.eclipse.rdf4j.query.algebra.helpers.AbstractQueryModelVisitor;
 import org.eclipse.rdf4j.repository.RepositoryConnection;
 import org.eclipse.rdf4j.repository.RepositoryException;
 import org.eclipse.rdf4j.repository.sail.SailRepository;
@@ -134,7 +134,7 @@ public class PcjIntegrationTestingUtil {
     }
 
     public static class BindingSetAssignmentCollector extends
-            QueryModelVisitorBase<RuntimeException> {
+            AbstractQueryModelVisitor<RuntimeException> {
 
         private final Set<QueryModelNode> bindingSetList = Sets.newHashSet();
 
@@ -155,7 +155,7 @@ public class PcjIntegrationTestingUtil {
     }
 
     public static class ExternalTupleVisitor extends
-            QueryModelVisitorBase<RuntimeException> {
+            AbstractQueryModelVisitor<RuntimeException> {
 
         private final Set<QueryModelNode> eSet = new HashSet<>();
 

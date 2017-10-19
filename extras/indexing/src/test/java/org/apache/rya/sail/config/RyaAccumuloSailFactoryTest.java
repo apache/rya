@@ -26,12 +26,12 @@ import java.util.Map;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.io.Files;
 import org.apache.commons.io.IOUtils;
-import org.eclipse.rdf4j.model.Graph;
+import org.eclipse.rdf4j.model.Model;
 import org.eclipse.rdf4j.model.Resource;
 import org.eclipse.rdf4j.model.Statement;
 import org.eclipse.rdf4j.model.ValueFactory;
 import org.eclipse.rdf4j.model.impl.LinkedHashModel;
-import org.eclipse.rdf4j.model.util.GraphUtil;
+import org.eclipse.rdf4j.model.util.Models;
 import org.eclipse.rdf4j.model.vocabulary.RDF;
 import org.eclipse.rdf4j.repository.Repository;
 import org.eclipse.rdf4j.repository.RepositoryConnection;
@@ -116,13 +116,13 @@ public class RyaAccumuloSailFactoryTest {
             final String configString = configTemplate.render(valueMap);
             
 //            final Repository systemRepo = this.state.getManager().getSystemRepository();
-            final Graph graph = new LinkedHashModel();
+            final Model model = new LinkedHashModel();
             final RDFParser rdfParser = Rio.createParser(RDFFormat.TURTLE);
-            rdfParser.setRDFHandler(new StatementCollector(graph));
+            rdfParser.setRDFHandler(new StatementCollector(model));
             rdfParser.parse(new StringReader(configString), RepositoryConfigSchema.NAMESPACE);
-            final Resource repositoryNode = GraphUtil.getUniqueSubject(graph, RDF.TYPE,
-                    RepositoryConfigSchema.REPOSITORY);
-            final RepositoryConfig repConfig = RepositoryConfig.create(graph, repositoryNode);
+            final Resource repositoryNode = Models.getPropertyResource(model, RDF.TYPE,
+                    RepositoryConfigSchema.REPOSITORY).get();
+            final RepositoryConfig repConfig = RepositoryConfig.create(model, repositoryNode);
             repConfig.validate();
 
             
@@ -151,7 +151,7 @@ public class RyaAccumuloSailFactoryTest {
 
         assertTrue("Connot find RyaAccumuloSailFactory in Registry", SailRegistry.getInstance().has(ryaSailKey));
 
-        SailFactory factory = SailRegistry.getInstance().get(ryaSailKey);
+        SailFactory factory = SailRegistry.getInstance().get(ryaSailKey).get();
         Assert.assertNotNull("Cannot create RyaAccumuloSailFactory", factory);
         
         

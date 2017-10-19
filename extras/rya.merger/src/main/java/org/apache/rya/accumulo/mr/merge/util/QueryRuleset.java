@@ -46,7 +46,7 @@ import org.eclipse.rdf4j.query.QueryLanguage;
 import org.eclipse.rdf4j.query.UnsupportedQueryLanguageException;
 import org.eclipse.rdf4j.query.algebra.*;
 import org.eclipse.rdf4j.query.algebra.evaluation.function.FunctionRegistry;
-import org.eclipse.rdf4j.query.algebra.helpers.QueryModelVisitorBase;
+import org.eclipse.rdf4j.query.algebra.helpers.AbstractQueryModelVisitor;
 import org.eclipse.rdf4j.query.parser.ParsedTupleQuery;
 import org.eclipse.rdf4j.query.parser.QueryParserUtil;
 import org.eclipse.rdf4j.sail.SailException;
@@ -75,7 +75,7 @@ public class QueryRuleset {
     /**
      * Takes in a parsed query tree and extracts the rules defining relevant statements.
      */
-    private static class RulesetVisitor extends QueryModelVisitorBase<QueryRulesetException> {
+    private static class RulesetVisitor extends AbstractQueryModelVisitor<QueryRulesetException> {
         List<CopyRule> rules = new LinkedList<>();
         private final Set<Value> superclasses = new HashSet<>();
         private final Set<Value> superproperties = new HashSet<>();
@@ -239,7 +239,7 @@ public class QueryRuleset {
             if (node instanceof InferUnion) {
                 // If this is the result of inference, search each tree for (non-standard) properties and add them
                 // to the set of properties for which to include schema information.
-                final QueryModelVisitorBase<QueryRulesetException> propertyVisitor = new QueryModelVisitorBase<QueryRulesetException>() {
+                final AbstractQueryModelVisitor<QueryRulesetException> propertyVisitor = new AbstractQueryModelVisitor<QueryRulesetException>() {
                     @Override
                     public void meet(final StatementPattern node) {
                         if (node.getPredicateVar().hasValue()) {
@@ -445,7 +445,7 @@ public class QueryRuleset {
         // consist of only variables (this would result in a rule  that matches every triple).
         // Needs to be done before inference, since inference rules may create such statement patterns
         // that are OK because they won'd be converted to rules directly.
-        te.visit(new QueryModelVisitorBase<QueryRulesetException>() {
+        te.visit(new AbstractQueryModelVisitor<QueryRulesetException>() {
             @Override
             public void meet(final StatementPattern node) throws QueryRulesetException {
                 if (!(node.getSubjectVar().hasValue() || node.getPredicateVar().hasValue() || node.getObjectVar().hasValue())) {

@@ -51,7 +51,7 @@ import org.eclipse.rdf4j.query.BindingSet;
 import org.eclipse.rdf4j.query.Dataset;
 import org.eclipse.rdf4j.query.algebra.*;
 import org.eclipse.rdf4j.query.algebra.evaluation.QueryOptimizer;
-import org.eclipse.rdf4j.query.algebra.helpers.QueryModelVisitorBase;
+import org.eclipse.rdf4j.query.algebra.helpers.AbstractQueryModelVisitor;
 
 public class FilterFunctionOptimizer implements QueryOptimizer, Configurable {
     private static final Logger LOG = Logger.getLogger(FilterFunctionOptimizer.class);
@@ -147,7 +147,7 @@ public class FilterFunctionOptimizer implements QueryOptimizer, Configurable {
     }
 
     //find vars contained in filters
-    private static class SearchVarVisitor extends QueryModelVisitorBase<RuntimeException> {
+    private static class SearchVarVisitor extends AbstractQueryModelVisitor<RuntimeException> {
         private final Collection<Var> searchProperties = new ArrayList<Var>();
 
         @Override
@@ -161,7 +161,7 @@ public class FilterFunctionOptimizer implements QueryOptimizer, Configurable {
     }
 
     //find StatementPatterns containing filter variables
-    private static class MatchStatementVisitor extends QueryModelVisitorBase<RuntimeException> {
+    private static class MatchStatementVisitor extends AbstractQueryModelVisitor<RuntimeException> {
         private final Collection<Var> propertyVars;
         private final Collection<Var> usedVars = new ArrayList<Var>();
         private final List<StatementPattern> matchStatements = new ArrayList<StatementPattern>();
@@ -183,7 +183,7 @@ public class FilterFunctionOptimizer implements QueryOptimizer, Configurable {
         }
     }
 
-    private abstract class AbstractEnhanceVisitor extends QueryModelVisitorBase<RuntimeException> {
+    private abstract class AbstractEnhanceVisitor extends AbstractQueryModelVisitor<RuntimeException> {
         final String matchVar;
         List<IRI> func = Lists.newArrayList();
         List<Value[]> args = Lists.newArrayList();
@@ -301,7 +301,7 @@ public class FilterFunctionOptimizer implements QueryOptimizer, Configurable {
         }
     }
 
-    private static class VarExchangeVisitor extends QueryModelVisitorBase<RuntimeException> {
+    private static class VarExchangeVisitor extends AbstractQueryModelVisitor<RuntimeException> {
         private final  StatementPattern exchangeVar;
         public VarExchangeVisitor(final StatementPattern sp) {
             exchangeVar = sp;

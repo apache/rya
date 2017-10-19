@@ -29,7 +29,7 @@ import org.apache.rya.indexing.external.tupleSet.ExternalTupleSet;
 import org.apache.rya.indexing.external.tupleSet.SimpleExternalTupleSet;
 import org.eclipse.rdf4j.query.MalformedQueryException;
 import org.eclipse.rdf4j.query.algebra.*;
-import org.eclipse.rdf4j.query.algebra.helpers.QueryModelVisitorBase;
+import org.eclipse.rdf4j.query.algebra.helpers.AbstractQueryModelVisitor;
 import org.eclipse.rdf4j.query.parser.ParsedQuery;
 import org.eclipse.rdf4j.query.parser.sparql.SPARQLParser;
 import org.junit.Assert;
@@ -133,7 +133,7 @@ public class JoinSegmentPCJMatcherTest {
 
 
 
-	static class QueryNodeGatherer extends QueryModelVisitorBase<RuntimeException> {
+	static class QueryNodeGatherer extends AbstractQueryModelVisitor<RuntimeException> {
 
 		private static Set<QueryModelNode> nodes;
 

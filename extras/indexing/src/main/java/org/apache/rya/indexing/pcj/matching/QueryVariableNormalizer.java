@@ -27,7 +27,7 @@ import org.eclipse.rdf4j.model.Literal;
 import org.eclipse.rdf4j.model.Value;
 import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 import org.eclipse.rdf4j.query.algebra.*;
-import org.eclipse.rdf4j.query.algebra.helpers.QueryModelVisitorBase;
+import org.eclipse.rdf4j.query.algebra.helpers.AbstractQueryModelVisitor;
 
 public class QueryVariableNormalizer {
 
@@ -707,7 +707,7 @@ public class QueryVariableNormalizer {
 
     
 
-    public static class ValueMapVisitor extends QueryModelVisitorBase<Exception> {
+    public static class ValueMapVisitor extends AbstractQueryModelVisitor<Exception> {
 
         
         private Map<String, Value> valMap = Maps.newHashMap();
@@ -746,7 +746,7 @@ public class QueryVariableNormalizer {
     
     
     
-    public static class NodeCollector extends QueryModelVisitorBase<Exception> {
+    public static class NodeCollector extends AbstractQueryModelVisitor<Exception> {
 
         
         private List<QueryModelNode> nodes = Lists.newArrayList();
@@ -763,7 +763,7 @@ public class QueryVariableNormalizer {
 
     }
 
-    public static class SpVarReNamer extends QueryModelVisitorBase<RuntimeException> {
+    public static class SpVarReNamer extends AbstractQueryModelVisitor<RuntimeException> {
 
         private final HashMap<String, String> hMap;
         private Map<String, Value> valMap;
@@ -792,7 +792,7 @@ public class QueryVariableNormalizer {
     
     
     
-    public static class FilterVarReNamer extends QueryModelVisitorBase<RuntimeException> {
+    public static class FilterVarReNamer extends AbstractQueryModelVisitor<RuntimeException> {
 
         private final HashMap<String, String> hMap;
         private Map<String, Value> valMap;
@@ -853,7 +853,7 @@ public class QueryVariableNormalizer {
     
     
 
-    public static class TupleVarRenamer extends QueryModelVisitorBase<RuntimeException> {
+    public static class TupleVarRenamer extends AbstractQueryModelVisitor<RuntimeException> {
 
         private final HashMap<String, String> varChanges;
         private Map<String, Value> valMap;
@@ -897,7 +897,7 @@ public class QueryVariableNormalizer {
 
     }
 
-    public static class VarCollector extends QueryModelVisitorBase<RuntimeException> {
+    public static class VarCollector extends AbstractQueryModelVisitor<RuntimeException> {
 
         public static List<String> process(QueryModelNode node) {
             VarCollector collector = new VarCollector();
@@ -931,7 +931,7 @@ public class QueryVariableNormalizer {
         }
     }
     
-    public static class FilterVarValueCollector extends QueryModelVisitorBase<RuntimeException> {
+    public static class FilterVarValueCollector extends AbstractQueryModelVisitor<RuntimeException> {
 
         public static List<QueryModelNode> process(QueryModelNode node) {
             FilterVarValueCollector collector = new FilterVarValueCollector();
@@ -965,7 +965,7 @@ public class QueryVariableNormalizer {
     
     
 
-    public static class NormalizeQueryVisitor extends QueryModelVisitorBase<Exception> {
+    public static class NormalizeQueryVisitor extends AbstractQueryModelVisitor<Exception> {
 
         private TreeMap<String, List<QueryModelNode>> map = new TreeMap<String, List<QueryModelNode>>();
         private TreeMap<String, Integer> varMap = new TreeMap<String, Integer>();

@@ -153,7 +153,7 @@ public class RdfControllerAccumuloTest {
     private static void validateCount(MockHttpServletResponse response, int count) throws Exception {
 
         String rstString = response.getContentAsString();
-        TupleQueryResult result = QueryResultIO.parse(new ByteArrayInputStream(rstString.getBytes()), TupleQueryResultFormat.SPARQL);
+        TupleQueryResult result = QueryResultIO.parseTuple(new ByteArrayInputStream(rstString.getBytes()), TupleQueryResultFormat.SPARQL);
         
         assertEquals(1, result.getBindingNames().size());
         String binding = result.getBindingNames().get(0);

@@ -40,10 +40,11 @@ import org.apache.rya.indexing.pcj.fluo.app.util.PeriodicQueryUtil;
 import org.apache.rya.indexing.pcj.fluo.app.util.VariableOrderUpdateVisitor.UpdateAction;
 import org.apache.rya.indexing.pcj.storage.accumulo.VariableOrder;
 import org.eclipse.rdf4j.model.Value;
-import org.eclipse.rdf4j.model.impl.BNodeImpl;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 import org.eclipse.rdf4j.query.MalformedQueryException;
 import org.eclipse.rdf4j.query.algebra.*;
-import org.eclipse.rdf4j.query.algebra.helpers.QueryModelVisitorBase;
+import org.eclipse.rdf4j.query.algebra.helpers.AbstractQueryModelVisitor;
 import org.eclipse.rdf4j.query.parser.ParsedQuery;
 import org.eclipse.rdf4j.query.parser.sparql.SPARQLParser;
 
@@ -62,6 +63,7 @@ public class SparqlFluoQueryBuilder {
     private String queryId;
     private NodeIds nodeIds;
     private Optional<Integer> joinBatchSize = Optional.empty();
+    private static final ValueFactory vf = SimpleValueFactory.getInstance(); 
   
     //Default behavior is to export to Kafka - subject to change when user can 
     //specify their own export strategy
@@ -242,7 +244,7 @@ public class SparqlFluoQueryBuilder {
      * the node to a {@link FluoQuery.Builder}. This information is used by the
      * application's observers to incrementally update a PCJ.
      */
-    public static class NewQueryVisitor extends QueryModelVisitorBase<RuntimeException> {
+    public static class NewQueryVisitor extends AbstractQueryModelVisitor<RuntimeException> {
 
         private final NodeIds nodeIds;
         private final FluoQuery.Builder fluoQueryBuilder;
@@ -250,8 +252,6 @@ public class SparqlFluoQueryBuilder {
         /**
          * Constructs an instance of {@link NewQueryVisitor}.
          *
-         * @param sparql - The SPARQL query whose structure will be represented
-         *   within a Fluo application. (not null)
          * @param fluoQueryBuilder - The builder that will be updated by this
          *   vistior to include metadata about each of the query nodes. (not null)
          * @param nodeIds - The NodeIds object is passed in so that other parts
@@ -300,7 +300,7 @@ public class SparqlFluoQueryBuilder {
                         final String resultBindingName = groupElem.getName();
 
                         final AtomicReference<String> aggregatedBindingName = new AtomicReference<>();
-                        groupElem.visitChildren(new QueryModelVisitorBase<RuntimeException>() {
+                        groupElem.visitChildren(new AbstractQueryModelVisitor<RuntimeException>() {
                             @Override
                             public void meet(final Var node) {
                                 aggregatedBindingName.set( node.getName() );
@@ -487,7 +487,8 @@ public class SparqlFluoQueryBuilder {
                 // update variable order of this node and all ancestors to
                 // include BIN_ID binding as
                 // first variable in the ordering
-                FluoQueryUtils.updateVarOrders(fluoQueryBuilder, UpdateAction.AddVariable, Arrays.asList(IncrementalUpdateConstants.PERIODIC_BIN_ID), periodicId);
+                FluoQueryUtils.updateVarOrders(fluoQueryBuilder, UpdateAction.AddVariable,
+                        Collections.singletonList(IncrementalUpdateConstants.PERIODIC_BIN_ID), periodicId);
                 // Walk to the next node.
                 node.getArg().visit(this);
             } 
@@ -590,7 +591,7 @@ public class SparqlFluoQueryBuilder {
                     Value value = ((ValueConstant) expr).getValue();
                     valueMap.put(name, value);
                 } else if(expr instanceof BNodeGenerator) {
-                    valueMap.put(name, new BNodeImpl(UUID.randomUUID().toString()));
+                    valueMap.put(name, vf.createBNode(UUID.randomUUID().toString()));
                 }
             }
             
@@ -741,7 +742,7 @@ public class SparqlFluoQueryBuilder {
         builder.setQueryType(locator.getQueryType());
     }
     
-    public static class QueryMetadataLocator extends QueryModelVisitorBase<Exception> {
+    public static class QueryMetadataLocator extends AbstractQueryModelVisitor<Exception> {
         
         private VariableOrder varOrder;
         private QueryType queryType;

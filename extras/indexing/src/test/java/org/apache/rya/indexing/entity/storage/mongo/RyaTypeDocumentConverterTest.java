@@ -36,7 +36,7 @@ public class RyaTypeDocumentConverterTest {
     @Test
     public void toDocument() {
         // Convert the RyaType into a Document.
-        final RyaType ryaType = RdfToRyaConversions.convertLiteral( new SimpleValueFactory().createLiteral( 4.5 ) );
+        final RyaType ryaType = RdfToRyaConversions.convertLiteral( SimpleValueFactory.getInstance().createLiteral( 4.5 ) );
         final Document document = new RyaTypeDocumentConverter().toDocument( ryaType );
 
         // Show the document has the correct structure.
@@ -55,7 +55,7 @@ public class RyaTypeDocumentConverterTest {
         final RyaType ryaType = new RyaTypeDocumentConverter().fromDocument( document );
 
         // Show the converted value has the expected structure.
-        final RyaType expected = RdfToRyaConversions.convertLiteral( new SimpleValueFactory().createLiteral( 4.5 ) );
+        final RyaType expected = RdfToRyaConversions.convertLiteral( SimpleValueFactory.getInstance().createLiteral( 4.5 ) );
         assertEquals(expected, ryaType);
     }
 

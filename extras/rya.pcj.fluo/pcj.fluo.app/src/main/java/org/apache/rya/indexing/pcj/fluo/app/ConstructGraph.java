@@ -25,7 +25,7 @@ import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.indexing.pcj.storage.accumulo.VisibilityBindingSet;
 import org.eclipse.rdf4j.model.BNode;
 import org.eclipse.rdf4j.model.Value;
-import org.eclipse.rdf4j.model.impl.BNodeImpl;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 import org.eclipse.rdf4j.query.algebra.StatementPattern;
 
 /**
@@ -79,7 +79,7 @@ public class ConstructGraph {
     private Map<String, BNode> getBNodeMap() {
         Map<String, BNode> bNodeMap = new HashMap<>();
         for(String name: bNodeNames) {
-            bNodeMap.put(name, new BNodeImpl(UUID.randomUUID().toString()));
+            bNodeMap.put(name, SimpleValueFactory.getInstance().createBNode(UUID.randomUUID().toString()));
         }
         return bNodeMap;
     }
@@ -94,7 +94,7 @@ public class ConstructGraph {
     
     /**
      * Creates a construct query graph represented as a Set of {@link RyaStatement}s 
-     * @param bs - VisiblityBindingSet used to build statement BindingSets
+     * @param bs - VisibilityBindingSet used to build statement BindingSets
      * @return - Set of RyaStatements that represent a construct query graph.  
      */
     public Set<RyaStatement> createGraphFromBindingSet(VisibilityBindingSet bs) {

@@ -52,7 +52,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 public class MongoEntityIndexIT extends MongoTestBase {
-    private static final ValueFactory VF = SimpleValueFactory.getInstance();
+    private static final ValueFactory vf = SimpleValueFactory.getInstance();
     private SailRepositoryConnection conn;
     private MongoEntityIndexer indexer;
 
@@ -187,120 +187,120 @@ public class MongoEntityIndexIT extends MongoTestBase {
         //alice
         IRI subject = vf.createIRI("urn:alice");
         IRI predicate = vf.createIRI("urn:name");
-        Value object = VF.createLiteral("Alice");
-        conn.add(VF.createStatement(subject, predicate, object));
+        Value object = vf.createLiteral("Alice");
+        conn.add(vf.createStatement(subject, predicate, object));
         predicate = vf.createIRI("urn:eye");
-        object = VF.createLiteral("blue");
-        conn.add(VF.createStatement(subject, predicate, object));
+        object = vf.createLiteral("blue");
+        conn.add(vf.createStatement(subject, predicate, object));
         predicate = vf.createIRI("urn:age");
-        object = VF.createLiteral(30);
-        conn.add(VF.createStatement(subject, predicate, object));
-        conn.add(VF.createStatement(subject, RDF.TYPE, vf.createIRI("urn:person")));
+        object = vf.createLiteral(30);
+        conn.add(vf.createStatement(subject, predicate, object));
+        conn.add(vf.createStatement(subject, RDF.TYPE, vf.createIRI("urn:person")));
 
         //bob
         subject = vf.createIRI("urn:bob");
         predicate = vf.createIRI("urn:name");
-        object = VF.createLiteral("Bob");
-        conn.add(VF.createStatement(subject, predicate, object));
+        object = vf.createLiteral("Bob");
+        conn.add(vf.createStatement(subject, predicate, object));
         predicate = vf.createIRI("urn:eye");
-        object = VF.createLiteral("brown");
-        conn.add(VF.createStatement(subject, predicate, object));
+        object = vf.createLiteral("brown");
+        conn.add(vf.createStatement(subject, predicate, object));
         predicate = vf.createIRI("urn:age");
-        object = VF.createLiteral(57);
-        conn.add(VF.createStatement(subject, predicate, object));
-        conn.add(VF.createStatement(subject, RDF.TYPE, vf.createIRI("urn:person")));
+        object = vf.createLiteral(57);
+        conn.add(vf.createStatement(subject, predicate, object));
+        conn.add(vf.createStatement(subject, RDF.TYPE, vf.createIRI("urn:person")));
 
         //charlie
         subject = vf.createIRI("urn:charlie");
         predicate = vf.createIRI("urn:name");
-        object = VF.createLiteral("Charlie");
-        conn.add(VF.createStatement(subject, predicate, object));
+        object = vf.createLiteral("Charlie");
+        conn.add(vf.createStatement(subject, predicate, object));
         predicate = vf.createIRI("urn:eye");
-        object = VF.createLiteral("hazel");
-        conn.add(VF.createStatement(subject, predicate, object));
+        object = vf.createLiteral("hazel");
+        conn.add(vf.createStatement(subject, predicate, object));
         predicate = vf.createIRI("urn:age");
-        object = VF.createLiteral(25);
-        conn.add(VF.createStatement(subject, predicate, object));
-        conn.add(VF.createStatement(subject, RDF.TYPE, vf.createIRI("urn:person")));
+        object = vf.createLiteral(25);
+        conn.add(vf.createStatement(subject, predicate, object));
+        conn.add(vf.createStatement(subject, RDF.TYPE, vf.createIRI("urn:person")));
 
         //david
         subject = vf.createIRI("urn:david");
         predicate = vf.createIRI("urn:name");
-        object = VF.createLiteral("David");
-        conn.add(VF.createStatement(subject, predicate, object));
+        object = vf.createLiteral("David");
+        conn.add(vf.createStatement(subject, predicate, object));
         predicate = vf.createIRI("urn:eye");
-        object = VF.createLiteral("brown");
-        conn.add(VF.createStatement(subject, predicate, object));
+        object = vf.createLiteral("brown");
+        conn.add(vf.createStatement(subject, predicate, object));
         predicate = vf.createIRI("urn:age");
-        object = VF.createLiteral(30);
-        conn.add(VF.createStatement(subject, predicate, object));
-        conn.add(VF.createStatement(subject, RDF.TYPE, vf.createIRI("urn:person")));
+        object = vf.createLiteral(30);
+        conn.add(vf.createStatement(subject, predicate, object));
+        conn.add(vf.createStatement(subject, RDF.TYPE, vf.createIRI("urn:person")));
 
         //eve
         subject = vf.createIRI("urn:eve");
         predicate = vf.createIRI("urn:name");
-        object = VF.createLiteral("Bob");
-        conn.add(VF.createStatement(subject, predicate, object));
+        object = vf.createLiteral("Bob");
+        conn.add(vf.createStatement(subject, predicate, object));
         predicate = vf.createIRI("urn:age");
-        object = VF.createLiteral(25);
-        conn.add(VF.createStatement(subject, predicate, object));
-        conn.add(VF.createStatement(subject, RDF.TYPE, vf.createIRI("urn:person")));
+        object = vf.createLiteral(25);
+        conn.add(vf.createStatement(subject, predicate, object));
+        conn.add(vf.createStatement(subject, RDF.TYPE, vf.createIRI("urn:person")));
 
         //frank
         subject = vf.createIRI("urn:frank");
         predicate = vf.createIRI("urn:name");
-        object = VF.createLiteral("Frank");
-        conn.add(VF.createStatement(subject, predicate, object));
+        object = vf.createLiteral("Frank");
+        conn.add(vf.createStatement(subject, predicate, object));
         predicate = vf.createIRI("urn:eye");
-        object = VF.createLiteral("Hazel");
-        conn.add(VF.createStatement(subject, predicate, object));
+        object = vf.createLiteral("Hazel");
+        conn.add(vf.createStatement(subject, predicate, object));
         predicate = vf.createIRI("urn:age");
-        object = VF.createLiteral(57);
-        conn.add(VF.createStatement(subject, predicate, object));
-        conn.add(VF.createStatement(subject, RDF.TYPE, vf.createIRI("urn:person")));
+        object = vf.createLiteral(57);
+        conn.add(vf.createStatement(subject, predicate, object));
+        conn.add(vf.createStatement(subject, RDF.TYPE, vf.createIRI("urn:person")));
 
         //george
         subject = vf.createIRI("urn:george");
         predicate = vf.createIRI("urn:name");
-        object = VF.createLiteral("George");
-        conn.add(VF.createStatement(subject, predicate, object));
+        object = vf.createLiteral("George");
+        conn.add(vf.createStatement(subject, predicate, object));
         predicate = vf.createIRI("urn:eye");
-        object = VF.createLiteral("blue");
-        conn.add(VF.createStatement(subject, predicate, object));
+        object = vf.createLiteral("blue");
+        conn.add(vf.createStatement(subject, predicate, object));
         predicate = vf.createIRI("urn:age");
-        object = VF.createLiteral(30);
-        conn.add(VF.createStatement(subject, predicate, object));
-        conn.add(VF.createStatement(subject, RDF.TYPE, vf.createIRI("urn:person")));
+        object = vf.createLiteral(30);
+        conn.add(vf.createStatement(subject, predicate, object));
+        conn.add(vf.createStatement(subject, RDF.TYPE, vf.createIRI("urn:person")));
 
         // Some Icecream typed objects.
         //chocolate
         subject = vf.createIRI("urn:chocolate");
         predicate = vf.createIRI("urn:brand");
-        object = VF.createLiteral("Awesome Icecream");
-        conn.add(VF.createStatement(subject, predicate, object));
+        object = vf.createLiteral("Awesome Icecream");
+        conn.add(vf.createStatement(subject, predicate, object));
         predicate = vf.createIRI("urn:flavor");
-        object = VF.createLiteral("Chocolate");
-        conn.add(VF.createStatement(subject, predicate, object));
-        conn.add(VF.createStatement(subject, RDF.TYPE, vf.createIRI("urn:icecream")));
+        object = vf.createLiteral("Chocolate");
+        conn.add(vf.createStatement(subject, predicate, object));
+        conn.add(vf.createStatement(subject, RDF.TYPE, vf.createIRI("urn:icecream")));
 
         //vanilla
         subject = vf.createIRI("urn:vanilla");
         predicate = vf.createIRI("urn:brand");
-        object = VF.createLiteral("Awesome Icecream");
-        conn.add(VF.createStatement(subject, predicate, object));
+        object = vf.createLiteral("Awesome Icecream");
+        conn.add(vf.createStatement(subject, predicate, object));
         predicate = vf.createIRI("urn:flavor");
-        object = VF.createLiteral("Vanilla");
-        conn.add(VF.createStatement(subject, predicate, object));
-        conn.add(VF.createStatement(subject, RDF.TYPE, vf.createIRI("urn:icecream")));
+        object = vf.createLiteral("Vanilla");
+        conn.add(vf.createStatement(subject, predicate, object));
+        conn.add(vf.createStatement(subject, RDF.TYPE, vf.createIRI("urn:icecream")));
 
         //strawberry
         subject = vf.createIRI("urn:strawberry");
         predicate = vf.createIRI("urn:brand");
-        object = VF.createLiteral("Awesome Icecream");
-        conn.add(VF.createStatement(subject, predicate, object));
+        object = vf.createLiteral("Awesome Icecream");
+        conn.add(vf.createStatement(subject, predicate, object));
         predicate = vf.createIRI("urn:flavor");
-        object = VF.createLiteral("Strawberry");
-        conn.add(VF.createStatement(subject, predicate, object));
-        conn.add(VF.createStatement(subject, RDF.TYPE, vf.createIRI("urn:icecream")));
+        object = vf.createLiteral("Strawberry");
+        conn.add(vf.createStatement(subject, predicate, object));
+        conn.add(vf.createStatement(subject, RDF.TYPE, vf.createIRI("urn:icecream")));
     }
 }

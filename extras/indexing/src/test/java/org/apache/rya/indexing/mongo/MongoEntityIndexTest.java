@@ -36,7 +36,7 @@ import org.eclipse.rdf4j.query.MalformedQueryException;
 import org.eclipse.rdf4j.query.algebra.QueryModelNode;
 import org.eclipse.rdf4j.query.algebra.StatementPattern;
 import org.eclipse.rdf4j.query.algebra.TupleExpr;
-import org.eclipse.rdf4j.query.algebra.helpers.QueryModelVisitorBase;
+import org.eclipse.rdf4j.query.algebra.helpers.AbstractQueryModelVisitor;
 import org.eclipse.rdf4j.query.algebra.helpers.StatementPatternCollector;
 import org.eclipse.rdf4j.query.parser.sparql.SPARQLParser;
 import org.junit.Assert;
@@ -228,7 +228,7 @@ public class MongoEntityIndexTest extends MongoTestBase {
         expr.visit(new EntityFetchingAsserterVisitor(expected));
     }
 
-    private class EntityFetchingAsserterVisitor extends QueryModelVisitorBase<Exception> {
+    private class EntityFetchingAsserterVisitor extends AbstractQueryModelVisitor<Exception> {
         private final EntityQueryNode expected;
         public EntityFetchingAsserterVisitor(final EntityQueryNode expected) {
             this.expected = expected;

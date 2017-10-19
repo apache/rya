@@ -35,7 +35,7 @@ import org.eclipse.rdf4j.model.ValueFactory;
 import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 import org.eclipse.rdf4j.query.MalformedQueryException;
 import org.eclipse.rdf4j.query.algebra.*;
-import org.eclipse.rdf4j.query.algebra.helpers.QueryModelVisitorBase;
+import org.eclipse.rdf4j.query.algebra.helpers.AbstractQueryModelVisitor;
 import org.eclipse.rdf4j.query.parser.ParsedQuery;
 import org.eclipse.rdf4j.query.parser.sparql.SPARQLParser;
 import org.junit.Assert;
@@ -182,7 +182,7 @@ public class PeriodicQueryUtilTest {
                 .append(node1.getTemporalVariable(), node2.getTemporalVariable()).append(node1.getUnit(), node2.getUnit()).build();
     }
     
-    private static class PeriodicNodeCollector extends QueryModelVisitorBase<RuntimeException>{
+    private static class PeriodicNodeCollector extends AbstractQueryModelVisitor<RuntimeException> {
         
         private PeriodicQueryNode periodicNode;
         int count = 0;

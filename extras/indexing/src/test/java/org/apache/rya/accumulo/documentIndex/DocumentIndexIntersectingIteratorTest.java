@@ -61,60 +61,42 @@ import org.eclipse.rdf4j.query.algebra.helpers.StatementPatternCollector;
 import org.eclipse.rdf4j.query.parser.ParsedQuery;
 import org.eclipse.rdf4j.query.parser.sparql.SPARQLParser;
 import org.eclipse.rdf4j.repository.RepositoryException;
+import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
+import org.junit.runners.Suite;
 
-@RunWith(JUnit4.class)
 public class DocumentIndexIntersectingIteratorTest {
 
-
-
-    private Connector userConn;
-    private Connector adminConn;
-    private MiniAccumuloCluster accMiniCluster;
     private String tablename = "table1";
-    private Boolean needsInit= true;
     private static final BatchWriterConfig bwCfg= new BatchWriterConfig();
-    private static final Authorizations auths = new Authorizations("auths");
+    private static final Authorizations auths = new Authorizations("auths","public");
+    private static RyaMiniAccumuloCluster ryaMiniAccumuloCluster;
+    private Connector userConn = null;
 
-
-
-
-
-    @Before
-    public void init() throws RepositoryException, TupleQueryResultHandlerException, QueryEvaluationException,
-            MalformedQueryException, AccumuloException, AccumuloSecurityException, TableExistsException, IOException,
-            InterruptedException
+    public DocumentIndexIntersectingIteratorTest()
+            throws IOException, InterruptedException, AccumuloSecurityException, AccumuloException, TableExistsException
     {
-        if (needsInit) {
-            File loc = new File("./target/minicluster");
-            FileUtils.deleteDirectory(loc);
-            loc.mkdir();
-            loc.deleteOnExit();
-            MiniAccumuloConfig accMiniClusterConfig =  new MiniAccumuloConfig(loc, "safe");
-            accMiniClusterConfig.setZooKeeperStartupTime(30000);
-            accMiniCluster = new MiniAccumuloCluster(accMiniClusterConfig);
-            accMiniCluster.start();
-            adminConn = accMiniCluster.getConnector("root", "safe");
-            adminConn.tableOperations().create(tablename);
-            adminConn.securityOperations().createLocalUser("user1",new PasswordToken("user1"));
-            adminConn.securityOperations().changeUserAuthorizations("user1",auths);
-            adminConn.securityOperations().grantTablePermission("user1",tablename,TablePermission.WRITE);
-            adminConn.securityOperations().grantTablePermission("user1",tablename,TablePermission.READ);
+            ryaMiniAccumuloCluster = RyaMiniAccumuloClusterSingleton.getInstance();
+            ryaMiniAccumuloCluster.createTableAndUsers(tablename,auths);
+            Connector adminConn = ryaMiniAccumuloCluster.getAdminConn();
             userConn = adminConn.getInstance().getConnector("user1", new PasswordToken("user1"));
             bwCfg.setMaxWriteThreads(10);
             bwCfg.setMaxLatency(Long.MAX_VALUE, TimeUnit.MILLISECONDS);
             bwCfg.setMaxMemory(500L * 1024L * 1024L);
-            needsInit=false;
-        }
+    }
 
+    @AfterClass
+    public static void stop() throws IOException, InterruptedException, AccumuloSecurityException, AccumuloException {
+        RyaMiniAccumuloClusterSingleton.getInstance().stop();
     }
     
-@Test
+    @Test
     public void testBasicColumnObj() throws Exception {
-        BatchWriter bw = userConn.createBatchWriter(tablename,bwCfg);
+
+        BatchWriter bw = userConn.createBatchWriter(tablename, bwCfg);
 
             for (int i = 0; i < 100; i++) {
 

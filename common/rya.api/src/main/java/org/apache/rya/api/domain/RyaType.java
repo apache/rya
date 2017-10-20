@@ -18,6 +18,7 @@
  */
 package org.apache.rya.api.domain;
 
+import org.apache.commons.lang.builder.EqualsBuilder;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.vocabulary.XMLSchema;
 
@@ -89,11 +90,11 @@ public class RyaType implements Comparable {
         if (o == null || !(o instanceof RyaType)) {
             return false;
         }
-        final RyaType ryaType = (RyaType) o;
-        if (data != null ? !data.equals(ryaType.data) : ryaType.data != null) {
-            return false;
-        }
-        return dataType != null ? dataType.equals(ryaType.dataType) : ryaType.dataType == null;
+        final RyaType other = (RyaType) o;
+        final EqualsBuilder builder = new EqualsBuilder()
+                .append(getData(), other.getData())
+                .append(getDataType(), other.getDataType());
+        return builder.isEquals();
     }
 
     /**

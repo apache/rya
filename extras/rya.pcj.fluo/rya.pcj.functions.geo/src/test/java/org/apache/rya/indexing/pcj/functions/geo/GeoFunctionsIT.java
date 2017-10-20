@@ -37,6 +37,7 @@ import org.apache.rya.api.client.accumulo.AccumuloRyaClientFactory;
 import org.apache.rya.indexing.pcj.storage.PrecomputedJoinStorage;
 import org.apache.rya.indexing.pcj.storage.accumulo.AccumuloPcjStorage;
 import org.apache.rya.pcj.fluo.test.base.RyaExportITBase;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 import org.junit.Test;
 import  org.eclipse.rdf4j.model.Statement;
 import  org.eclipse.rdf4j.model.URI;

@@ -123,7 +123,7 @@ public abstract class RdfCloudTripleStoreConfigurationBuilder<B extends RdfCloud
 
     /**
      * 
-     * @return {@link RdfCloudTripleStoreUtils} object with specified parameters set
+     * @return {@link RdfCloudTripleStoreConfiguration} object with specified parameters set
      */
     public C build() {
         return getConf(createConf());

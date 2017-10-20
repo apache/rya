@@ -24,15 +24,19 @@ import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 import com.google.common.primitives.Bytes;
 import junit.framework.Assert;
 import org.apache.accumulo.core.client.*;
+import org.apache.accumulo.core.client.security.tokens.PasswordToken;
 import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Mutation;
 import org.apache.accumulo.core.data.Range;
 import org.apache.accumulo.core.data.Value;
 import org.apache.accumulo.core.security.Authorizations;
+import org.apache.accumulo.core.security.ColumnVisibility;
+import org.apache.accumulo.core.security.TablePermission;
 import org.apache.accumulo.minicluster.MiniAccumuloCluster;
 import org.apache.accumulo.minicluster.MiniAccumuloConfig;
 import org.apache.commons.io.FileUtils;
@@ -67,9 +71,16 @@ public class DocumentIndexIntersectingIteratorTest {
 
 
 
-    private Connector accCon;
+    private Connector userConn;
+    private Connector adminConn;
     private MiniAccumuloCluster accMiniCluster;
-    private String tablename = "table";
+    private String tablename = "table1";
+    private Boolean needsInit= true;
+    private static final BatchWriterConfig bwCfg= new BatchWriterConfig();
+    private static final Authorizations auths = new Authorizations("auths");
+
+
+
 
 
     @Before
@@ -77,28 +88,38 @@ public class DocumentIndexIntersectingIteratorTest {
             MalformedQueryException, AccumuloException, AccumuloSecurityException, TableExistsException, IOException,
             InterruptedException
     {
-
-        File loc = new File("./target/minicluster");
-        FileUtils.deleteDirectory(loc);
-        loc.mkdir();
-        loc.deleteOnExit();
-
-        accMiniCluster = new MiniAccumuloCluster(new MiniAccumuloConfig(loc,"root"));
-        accMiniCluster.start();
-        accCon = accMiniCluster.getConnector("root","root");
-        accCon.tableOperations().create(tablename);
+        if (needsInit) {
+            File loc = new File("./target/minicluster");
+            FileUtils.deleteDirectory(loc);
+            loc.mkdir();
+            loc.deleteOnExit();
+            MiniAccumuloConfig accMiniClusterConfig =  new MiniAccumuloConfig(loc, "safe");
+            accMiniClusterConfig.setZooKeeperStartupTime(30000);
+            accMiniCluster = new MiniAccumuloCluster(accMiniClusterConfig);
+            accMiniCluster.start();
+            adminConn = accMiniCluster.getConnector("root", "safe");
+            adminConn.tableOperations().create(tablename);
+            adminConn.securityOperations().createLocalUser("user1",new PasswordToken("user1"));
+            adminConn.securityOperations().changeUserAuthorizations("user1",auths);
+            adminConn.securityOperations().grantTablePermission("user1",tablename,TablePermission.WRITE);
+            adminConn.securityOperations().grantTablePermission("user1",tablename,TablePermission.READ);
+            userConn = adminConn.getInstance().getConnector("user1", new PasswordToken("user1"));
+            bwCfg.setMaxWriteThreads(10);
+            bwCfg.setMaxLatency(Long.MAX_VALUE, TimeUnit.MILLISECONDS);
+            bwCfg.setMaxMemory(500L * 1024L * 1024L);
+            needsInit=false;
+        }
 
     }
     
 @Test
     public void testBasicColumnObj() throws Exception {
-
-        BatchWriter bw = accCon.createBatchWriter(tablename, 500L * 1024L * 1024L, Long.MAX_VALUE, 30);
+        BatchWriter bw = userConn.createBatchWriter(tablename,bwCfg);
 
             for (int i = 0; i < 100; i++) {
 
                 Mutation m = new Mutation(new Text("" + i));
-                m.put(new Text("cf"), new Text(null + "\u0000" + "obj" + "\u0000" + "cq"), new Value(new byte[0]));
+                m.put(new Text("cf"), new Text(null + "\u0000" + "obj" + "\u0000" + "cq"),new ColumnVisibility("auths"), new Value(new byte[0]));
                 m.put(new Text("cF"), new Text(null + "\u0000" +"obj" + "\u0000" + "cQ"), new Value(new byte[0]));
 
                 if (i == 30 || i == 60) {
@@ -123,7 +144,7 @@ public class DocumentIndexIntersectingIteratorTest {
 
             DocumentIndexIntersectingIterator.setColumnFamilies(is, tc);
 
-            Scanner scan = accCon.createScanner(tablename, new Authorizations("auths"));
+            Scanner scan = userConn.createScanner(tablename, new Authorizations("auths"));
             scan.addScanIterator(is);
 
             int results = 0;
@@ -132,12 +153,8 @@ public class DocumentIndexIntersectingIteratorTest {
                 System.out.println(e);
                 results++;
             }
-            
-            
-            Assert.assertEquals(2, results);
 
-            
-            
+            Assert.assertEquals(2, results);
 
     }
     
@@ -150,9 +167,9 @@ public class DocumentIndexIntersectingIteratorTest {
 @Test
     public void testBasicColumnObjPrefix()  throws Exception {
 
-        BatchWriter bw = null;
+            BatchWriter bw = null;
 
-            bw = accCon.createBatchWriter(tablename, 500L * 1024L * 1024L, Long.MAX_VALUE, 30);
+            bw = userConn.createBatchWriter(tablename,bwCfg);
 
             for (int i = 0; i < 100; i++) {
 
@@ -186,7 +203,7 @@ public class DocumentIndexIntersectingIteratorTest {
 
             DocumentIndexIntersectingIterator.setColumnFamilies(is, tc);
 
-            Scanner scan = accCon.createScanner(tablename, new Authorizations("auths"));
+            Scanner scan = userConn.createScanner(tablename, new Authorizations("public"));
             scan.addScanIterator(is);
 
             int results = 0;
@@ -212,7 +229,7 @@ public class DocumentIndexIntersectingIteratorTest {
 
         BatchWriter bw = null;
 
-            bw = accCon.createBatchWriter(tablename, 500L * 1024L * 1024L, Long.MAX_VALUE, 30);
+            bw = userConn.createBatchWriter(tablename, 500L * 1024L * 1024L, Long.MAX_VALUE, 30);
 
             for (int i = 0; i < 100; i++) {
 
@@ -251,7 +268,7 @@ public class DocumentIndexIntersectingIteratorTest {
 
             DocumentIndexIntersectingIterator.setColumnFamilies(is, tc);
 
-            Scanner scan = accCon.createScanner(tablename, new Authorizations("auths"));
+            Scanner scan = userConn.createScanner(tablename, new Authorizations("auths"));
             scan.addScanIterator(is);
 
             int results = 0;
@@ -277,7 +294,7 @@ public class DocumentIndexIntersectingIteratorTest {
 
         BatchWriter bw = null;
 
-            bw = accCon.createBatchWriter(tablename, 500L * 1024L * 1024L, Long.MAX_VALUE, 30);
+            bw = userConn.createBatchWriter(tablename, 500L * 1024L * 1024L, Long.MAX_VALUE, 30);
 
             for (int i = 0; i < 100; i++) {
 
@@ -316,7 +333,7 @@ public class DocumentIndexIntersectingIteratorTest {
 
             DocumentIndexIntersectingIterator.setColumnFamilies(is, tc);
 
-            Scanner scan = accCon.createScanner(tablename, new Authorizations("auths"));
+            Scanner scan = userConn.createScanner(tablename, new Authorizations("auths"));
             scan.addScanIterator(is);
 
             int results = 0;
@@ -342,7 +359,7 @@ public class DocumentIndexIntersectingIteratorTest {
 
         BatchWriter bw = null;
 
-            bw = accCon.createBatchWriter(tablename, 500L * 1024L * 1024L, Long.MAX_VALUE, 30);
+            bw = userConn.createBatchWriter(tablename, 500L * 1024L * 1024L, Long.MAX_VALUE, 30);
 
             for (int i = 0; i < 100; i++) {
 
@@ -381,7 +398,7 @@ public class DocumentIndexIntersectingIteratorTest {
 
             DocumentIndexIntersectingIterator.setColumnFamilies(is, tc);
 
-            Scanner scan = accCon.createScanner(tablename, new Authorizations("auths"));
+            Scanner scan = userConn.createScanner(tablename, new Authorizations("auths"));
             scan.addScanIterator(is);
 
             int results = 0;
@@ -410,7 +427,7 @@ public class DocumentIndexIntersectingIteratorTest {
 
         BatchWriter bw = null;
 
-            bw = accCon.createBatchWriter(tablename, 500L * 1024L * 1024L, Long.MAX_VALUE, 30);
+            bw = userConn.createBatchWriter(tablename, 500L * 1024L * 1024L, Long.MAX_VALUE, 30);
 
             for (int i = 0; i < 100; i++) {
 
@@ -450,7 +467,7 @@ public class DocumentIndexIntersectingIteratorTest {
 
             DocumentIndexIntersectingIterator.setColumnFamilies(is, tc);
 
-            Scanner scan = accCon.createScanner(tablename, new Authorizations("auths"));
+            Scanner scan = userConn.createScanner(tablename, new Authorizations("auths"));
             scan.addScanIterator(is);
 
             int results = 0;
@@ -477,7 +494,7 @@ public void testOneHundredColumnSubjObjPrefix() throws Exception {
 
     BatchWriter bw = null;
 
-        bw = accCon.createBatchWriter(tablename, 500L * 1024L * 1024L, Long.MAX_VALUE, 30);
+        bw = userConn.createBatchWriter(tablename, 500L * 1024L * 1024L, Long.MAX_VALUE, 30);
 
         for (int i = 0; i < 100; i++) {
 
@@ -517,7 +534,7 @@ public void testOneHundredColumnSubjObjPrefix() throws Exception {
 
         DocumentIndexIntersectingIterator.setColumnFamilies(is, tc);
 
-        Scanner scan = accCon.createScanner(tablename, new Authorizations("auths"));
+        Scanner scan = userConn.createScanner(tablename, new Authorizations("auths"));
         scan.addScanIterator(is);
 
         int results = 0;
@@ -545,7 +562,7 @@ public void testOneHundredColumnSubjObjPrefixFourTerms() throws Exception {
 
     BatchWriter bw = null;
 
-        bw = accCon.createBatchWriter(tablename, 500L * 1024L * 1024L, Long.MAX_VALUE, 30);
+        bw = userConn.createBatchWriter(tablename, 500L * 1024L * 1024L, Long.MAX_VALUE, 30);
 
         for (int i = 0; i < 100; i++) {
 
@@ -588,7 +605,7 @@ public void testOneHundredColumnSubjObjPrefixFourTerms() throws Exception {
 
         DocumentIndexIntersectingIterator.setColumnFamilies(is, tc);
 
-        Scanner scan = accCon.createScanner(tablename, new Authorizations("auths"));
+        Scanner scan = userConn.createScanner(tablename, new Authorizations("auths"));
         scan.addScanIterator(is);
 
         int results = 0;
@@ -616,7 +633,7 @@ public void testOneHundredColumnSameCf() throws Exception {
 
     BatchWriter bw = null;
 
-        bw = accCon.createBatchWriter(tablename, 500L * 1024L * 1024L, Long.MAX_VALUE, 30);
+        bw = userConn.createBatchWriter(tablename, 500L * 1024L * 1024L, Long.MAX_VALUE, 30);
 
         for (int i = 0; i < 100; i++) {
 
@@ -650,7 +667,7 @@ public void testOneHundredColumnSameCf() throws Exception {
 
         DocumentIndexIntersectingIterator.setColumnFamilies(is, tc);
 
-        Scanner scan = accCon.createScanner(tablename, new Authorizations("auths"));
+        Scanner scan = userConn.createScanner(tablename, new Authorizations("auths"));
         scan.addScanIterator(is);
 
         int results = 0;
@@ -677,7 +694,7 @@ public void testGeneralStarQuery() throws Exception {
 
   BatchWriter bw = null;
 
-      bw = accCon.createBatchWriter(tablename, 500L * 1024L * 1024L, Long.MAX_VALUE, 30);
+      bw = userConn.createBatchWriter(tablename, 500L * 1024L * 1024L, Long.MAX_VALUE, 30);
 
      
       
@@ -718,7 +735,7 @@ public void testGeneralStarQuery() throws Exception {
 
       DocumentIndexIntersectingIterator.setColumnFamilies(is, tc);
 
-      Scanner scan = accCon.createScanner(tablename, new Authorizations("auths"));
+      Scanner scan = userConn.createScanner(tablename, new Authorizations("auths"));
       scan.addScanIterator(is);
 
       int results = 0;
@@ -747,7 +764,7 @@ public void testGeneralStarQuerySubjPrefix() throws Exception {
 
   BatchWriter bw = null;
 
-      bw = accCon.createBatchWriter(tablename, 500L * 1024L * 1024L, Long.MAX_VALUE, 30);
+      bw = userConn.createBatchWriter(tablename, 500L * 1024L * 1024L, Long.MAX_VALUE, 30);
 
      
       
@@ -789,7 +806,7 @@ public void testGeneralStarQuerySubjPrefix() throws Exception {
 
       DocumentIndexIntersectingIterator.setColumnFamilies(is, tc);
 
-      Scanner scan = accCon.createScanner(tablename, new Authorizations("auths"));
+      Scanner scan = userConn.createScanner(tablename, new Authorizations("auths"));
       scan.addScanIterator(is);
 
       int results = 0;
@@ -816,7 +833,7 @@ public void testGeneralStarQueryMultipleSubjPrefix() throws Exception {
 
   BatchWriter bw = null;
 
-      bw = accCon.createBatchWriter(tablename, 500L * 1024L * 1024L, Long.MAX_VALUE, 30);
+      bw = userConn.createBatchWriter(tablename, 500L * 1024L * 1024L, Long.MAX_VALUE, 30);
 
      
       
@@ -862,7 +879,7 @@ public void testGeneralStarQueryMultipleSubjPrefix() throws Exception {
 
       DocumentIndexIntersectingIterator.setColumnFamilies(is, tc);
 
-      Scanner scan = accCon.createScanner(tablename, new Authorizations("auths"));
+      Scanner scan = userConn.createScanner(tablename, new Authorizations("auths"));
       scan.addScanIterator(is);
 
       int results = 0;
@@ -888,7 +905,7 @@ public void testFixedRangeColumnValidateExact() throws Exception {
 
   BatchWriter bw = null;
 
-      bw = accCon.createBatchWriter(tablename, 500L * 1024L * 1024L, Long.MAX_VALUE, 30);
+      bw = userConn.createBatchWriter(tablename, 500L * 1024L * 1024L, Long.MAX_VALUE, 30);
 
      
       
@@ -938,7 +955,7 @@ public void testFixedRangeColumnValidateExact() throws Exception {
 
       DocumentIndexIntersectingIterator.setColumnFamilies(is, tc);
 
-      Scanner scan = accCon.createScanner(tablename, new Authorizations("auths"));
+      Scanner scan = userConn.createScanner(tablename, new Authorizations("auths"));
       scan.setRange(Range.exact(new Text("" + 30)));
       scan.addScanIterator(is);
 
@@ -967,7 +984,7 @@ public void testLubmLikeTest() throws Exception {
 
   BatchWriter bw = null;
 
-      bw = accCon.createBatchWriter(tablename, 500L * 1024L * 1024L, Long.MAX_VALUE, 30);
+      bw = userConn.createBatchWriter(tablename, 500L * 1024L * 1024L, Long.MAX_VALUE, 30);
 
      
       
@@ -1010,7 +1027,7 @@ public void testLubmLikeTest() throws Exception {
 
       DocumentIndexIntersectingIterator.setColumnFamilies(is, tc);
 
-      Scanner scan = accCon.createScanner(tablename, new Authorizations("auths"));
+      Scanner scan = userConn.createScanner(tablename, new Authorizations("auths"));
       scan.addScanIterator(is);
 
       int results = 0;
@@ -1049,7 +1066,7 @@ public void testFixedRangeColumnValidateSubjPrefix() throws Exception {
 
   BatchWriter bw = null;
 
-      bw = accCon.createBatchWriter(tablename, 500L * 1024L * 1024L, Long.MAX_VALUE, 30);
+      bw = userConn.createBatchWriter(tablename, 500L * 1024L * 1024L, Long.MAX_VALUE, 30);
 
      
       
@@ -1095,7 +1112,7 @@ public void testFixedRangeColumnValidateSubjPrefix() throws Exception {
 
       DocumentIndexIntersectingIterator.setColumnFamilies(is, tc);
 
-      Scanner scan = accCon.createScanner(tablename, new Authorizations("auths"));
+      Scanner scan = userConn.createScanner(tablename, new Authorizations("auths"));
       scan.setRange(Range.exact(new Text("" + 30)));
       scan.addScanIterator(is);
 
@@ -1157,7 +1174,7 @@ public void testFixedRangeColumnValidateSubjPrefix() throws Exception {
 //     Text cf = new Text("cf" + 3); 
 //     Text cq = new Text("obj" + "\u0000" + "cq" + 3);
 //    
-//      Scanner scan = accCon.createScanner(tablename, new Authorizations("auths"));
+//      Scanner scan = userConn.createScanner(tablename, new Authorizations("auths"));
 //      scan.fetchColumn(cf, cq );
 //      scan.setRange(new Range());
 //      
@@ -1193,7 +1210,7 @@ public void testContext1() throws Exception {
 
   BatchWriter bw = null;
 
-      bw = accCon.createBatchWriter(tablename, 500L * 1024L * 1024L, Long.MAX_VALUE, 30);
+      bw = userConn.createBatchWriter(tablename, 500L * 1024L * 1024L, Long.MAX_VALUE, 30);
 
      
       
@@ -1235,7 +1252,7 @@ public void testContext1() throws Exception {
       DocumentIndexIntersectingIterator.setColumnFamilies(is, tc);
       DocumentIndexIntersectingIterator.setContext(is, "context1");
 
-      Scanner scan = accCon.createScanner(tablename, new Authorizations("auths"));
+      Scanner scan = userConn.createScanner(tablename, new Authorizations("auths"));
      
       scan.addScanIterator(is);
 
@@ -1265,7 +1282,7 @@ public void testContext2() throws Exception {
 
   BatchWriter bw = null;
 
-      bw = accCon.createBatchWriter(tablename, 500L * 1024L * 1024L, Long.MAX_VALUE, 30);
+      bw = userConn.createBatchWriter(tablename, 500L * 1024L * 1024L, Long.MAX_VALUE, 30);
 
      
       
@@ -1308,7 +1325,7 @@ public void testContext2() throws Exception {
       DocumentIndexIntersectingIterator.setColumnFamilies(is, tc);
       DocumentIndexIntersectingIterator.setContext(is, "context2");
 
-      Scanner scan = accCon.createScanner(tablename, new Authorizations("auths"));
+      Scanner scan = userConn.createScanner(tablename, new Authorizations("auths"));
      
       scan.addScanIterator(is);
 
@@ -1339,7 +1356,7 @@ public void testContext3() throws Exception {
 
   BatchWriter bw = null;
 
-      bw = accCon.createBatchWriter(tablename, 500L * 1024L * 1024L, Long.MAX_VALUE, 30);
+      bw = userConn.createBatchWriter(tablename, 500L * 1024L * 1024L, Long.MAX_VALUE, 30);
 
      
       
@@ -1383,7 +1400,7 @@ public void testContext3() throws Exception {
       DocumentIndexIntersectingIterator.setColumnFamilies(is, tc);
       DocumentIndexIntersectingIterator.setContext(is, "context2");
 
-      Scanner scan = accCon.createScanner(tablename, new Authorizations("auths"));
+      Scanner scan = userConn.createScanner(tablename, new Authorizations("auths"));
      
       scan.addScanIterator(is);
 
@@ -1415,7 +1432,7 @@ public void testContext4() throws Exception {
 
   BatchWriter bw = null;
 
-      bw = accCon.createBatchWriter(tablename, 500L * 1024L * 1024L, Long.MAX_VALUE, 30);
+      bw = userConn.createBatchWriter(tablename, 500L * 1024L * 1024L, Long.MAX_VALUE, 30);
 
      
       
@@ -1459,7 +1476,7 @@ public void testContext4() throws Exception {
       DocumentIndexIntersectingIterator.setColumnFamilies(is, tc);
      
 
-      Scanner scan = accCon.createScanner(tablename, new Authorizations("auths"));
+      Scanner scan = userConn.createScanner(tablename, new Authorizations("auths"));
      
       scan.addScanIterator(is);
 
@@ -1488,7 +1505,7 @@ public void testContext5() throws Exception {
 
   BatchWriter bw = null;
 
-      bw = accCon.createBatchWriter(tablename, 500L * 1024L * 1024L, Long.MAX_VALUE, 30);
+      bw = userConn.createBatchWriter(tablename, 500L * 1024L * 1024L, Long.MAX_VALUE, 30);
 
      
       
@@ -1535,7 +1552,7 @@ public void testContext5() throws Exception {
       DocumentIndexIntersectingIterator.setColumnFamilies(is, tc);
      
 
-      Scanner scan = accCon.createScanner(tablename, new Authorizations("auths"));
+      Scanner scan = userConn.createScanner(tablename, new Authorizations("auths"));
      
       scan.addScanIterator(is);
 
@@ -1564,7 +1581,7 @@ public void testContext6() throws Exception {
 
   BatchWriter bw = null;
 
-      bw = accCon.createBatchWriter(tablename, 500L * 1024L * 1024L, Long.MAX_VALUE, 30);
+      bw = userConn.createBatchWriter(tablename, 500L * 1024L * 1024L, Long.MAX_VALUE, 30);
 
      
       
@@ -1604,7 +1621,7 @@ public void testContext6() throws Exception {
       DocumentIndexIntersectingIterator.setColumnFamilies(is, tc);
       DocumentIndexIntersectingIterator.setContext(is, "context2");
 
-      Scanner scan = accCon.createScanner(tablename, new Authorizations("auths"));
+      Scanner scan = userConn.createScanner(tablename, new Authorizations("auths"));
      
       scan.addScanIterator(is);
 
@@ -1630,7 +1647,7 @@ public void testContext7() throws Exception {
 
   BatchWriter bw = null;
 
-      bw = accCon.createBatchWriter(tablename, 500L * 1024L * 1024L, Long.MAX_VALUE, 30);
+      bw = userConn.createBatchWriter(tablename, 500L * 1024L * 1024L, Long.MAX_VALUE, 30);
 
      
       
@@ -1672,7 +1689,7 @@ public void testContext7() throws Exception {
       DocumentIndexIntersectingIterator.setColumnFamilies(is, tc);
       
 
-      Scanner scan = accCon.createScanner(tablename, new Authorizations("auths"));
+      Scanner scan = userConn.createScanner(tablename, new Authorizations("auths"));
      
       scan.addScanIterator(is);
 
@@ -1705,7 +1722,7 @@ public void testSerialization1() throws Exception {
   acc.set(AccumuloRdfConfiguration.CONF_ADDITIONAL_INDEXERS, EntityCentricIndex.class.getName());
   RyaTableMutationsFactory rtm = new RyaTableMutationsFactory(RyaTripleContext.getInstance(acc));
 
-      bw = accCon.createBatchWriter(tablename, 500L * 1024L * 1024L, Long.MAX_VALUE, 30);
+      bw = userConn.createBatchWriter(tablename, 500L * 1024L * 1024L, Long.MAX_VALUE, 30);
 
      
       
@@ -1826,7 +1843,7 @@ public void testSerialization1() throws Exception {
 
             DocumentIndexIntersectingIterator.setColumnFamilies(is, tc);
 
-            Scanner scan = accCon.createScanner(tablename, new Authorizations("auths"));
+            Scanner scan = userConn.createScanner(tablename, new Authorizations("auths"));
 
             scan.addScanIterator(is);
 
@@ -1863,7 +1880,7 @@ public void testSerialization1() throws Exception {
 
             DocumentIndexIntersectingIterator.setColumnFamilies(is, tc);
 
-            scan = accCon.createScanner(tablename, new Authorizations("auths"));
+            scan = userConn.createScanner(tablename, new Authorizations("auths"));
 
             scan.addScanIterator(is);
 

@@ -19,6 +19,8 @@ package org.apache.rya.indexing.IndexPlanValidator;
  * under the License.
  */
 
+
+
 import java.util.*;
 
 import com.google.common.base.Joiner;
@@ -81,8 +83,9 @@ public class ValidIndexCombinationGenerator {
 
 					}
 
-				} else
+				} else {
                     return !isEmpty;
+                }
 			}
 
 			@Override

@@ -20,9 +20,8 @@ package org.apache.rya.indexing.pcj.fluo.app.util;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.Callable;
 
 import org.apache.fluo.api.client.TransactionBase;
 import org.apache.fluo.api.data.Bytes;
@@ -30,6 +29,9 @@ import org.apache.rya.indexing.pcj.fluo.app.query.CommonNodeMetadataImpl;
 import org.apache.rya.indexing.pcj.storage.accumulo.VariableOrder;
 import org.apache.rya.indexing.pcj.storage.accumulo.VisibilityBindingSet;
 import org.openrdf.query.BindingSet;
+
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
 
 /**
  * Class that performs aggregation state lookups while maintaining a cache
@@ -41,9 +43,9 @@ public class AggregationStateManager {
     private String nodeId;
     private VariableOrder varOrder;
     private TransactionBase tx;
-    private Map<Bytes, BindingSet> aggregationStateMap = new HashMap<>();
-    
-    
+    private Cache<Bytes, BindingSet> aggregationStateCache;
+
+
     /**
      * Creates a new instance of AggregationStateManager
      * @param tx - Transaction for interacting with Fluo
@@ -55,8 +57,9 @@ public class AggregationStateManager {
         this.tx = tx;
         this.nodeId = checkNotNull(aggregationStateMeta.getNodeId());
         this.varOrder = checkNotNull(aggregationStateMeta.getVariableOrder());
+        this.aggregationStateCache = CacheBuilder.newBuilder().maximumSize(1000).build();
     }
-    
+
     /**
      * Fetches the aggregation state.
      * @param childBindingSet - BindingSet used to build rowId for aggregation state lookup
@@ -65,19 +68,25 @@ public class AggregationStateManager {
      */
     public Optional<BindingSet> fetchAggregationStateBs(VisibilityBindingSet childBindingSet) {
         checkNotNull(childBindingSet);
-        
         Bytes rowId = RowKeyUtil.makeRowKey(nodeId, varOrder, childBindingSet);
-        if(aggregationStateMap.containsKey(rowId)) {
-            return Optional.of(aggregationStateMap.get(rowId));
-        } else {
-            Optional<BindingSet> stateBs = AggregationStateUtil.fetchAggregationState(tx, nodeId, varOrder, childBindingSet);
-            if(stateBs.isPresent()) {
-                aggregationStateMap.put(rowId, stateBs.get());
-            }
-            return stateBs;
+        try {
+            BindingSet bs = aggregationStateCache.get(rowId, new Callable<BindingSet>() {
+                @Override
+                public BindingSet call() throws Exception {
+                    Optional<BindingSet> stateBs = AggregationStateUtil.fetchAggregationState(tx, nodeId, varOrder, childBindingSet);
+                    if (stateBs.isPresent()) {
+                        return stateBs.get();
+                    } else {
+                        throw new Exception("Unable to find aggregation state for row key: " + rowId);
+                    }
+                }
+            });
+            return Optional.of(bs);
+        } catch (Exception e) {
+            return Optional.empty();
         }
     }
-    
+
     /**
      * Verifies that the childBindingSet matches the aggregation state
      * @param childBindingSet - BindingSet whose aggregation state will be verified
@@ -86,12 +95,12 @@ public class AggregationStateManager {
      */
     public boolean checkAggregationState(VisibilityBindingSet childBindingSet) {
         checkNotNull(childBindingSet);
-        
+
         Optional<BindingSet> stateBs = fetchAggregationStateBs(childBindingSet);
         if(stateBs.isPresent()) {
             return AggregationStateUtil.checkAggregationState(stateBs.get(), childBindingSet);
         }
         return true;
     }
-    
+
 }

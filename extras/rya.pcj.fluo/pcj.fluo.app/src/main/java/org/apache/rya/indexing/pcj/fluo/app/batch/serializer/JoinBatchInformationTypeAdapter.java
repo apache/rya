@@ -25,6 +25,7 @@ import org.apache.fluo.api.data.Span;
 import org.apache.rya.indexing.pcj.fluo.app.JoinResultUpdater.Side;
 import org.apache.rya.indexing.pcj.fluo.app.batch.BatchInformation.Task;
 import org.apache.rya.indexing.pcj.fluo.app.batch.JoinBatchInformation;
+import org.apache.rya.indexing.pcj.fluo.app.query.CommonNodeMetadataImpl;
 import org.apache.rya.indexing.pcj.fluo.app.query.JoinMetadata.JoinType;
 import org.apache.rya.indexing.pcj.storage.accumulo.VariableOrder;
 import org.apache.rya.indexing.pcj.storage.accumulo.VisibilityBindingSet;
@@ -47,6 +48,7 @@ import com.google.gson.JsonSerializer;
 public class JoinBatchInformationTypeAdapter implements JsonSerializer<JoinBatchInformation>, JsonDeserializer<JoinBatchInformation> {
 
     private static final VisibilityBindingSetStringConverter converter = new VisibilityBindingSetStringConverter();
+    private static final String DELIM = "\u0000";
 
     @Override
     public JsonElement serialize(JoinBatchInformation batch, Type typeOfSrc, JsonSerializationContext context) {
@@ -55,11 +57,15 @@ public class JoinBatchInformationTypeAdapter implements JsonSerializer<JoinBatch
         result.add("batchSize", new JsonPrimitive(batch.getBatchSize()));
         result.add("task", new JsonPrimitive(batch.getTask().name()));
         Column column = batch.getColumn();
-        result.add("column", new JsonPrimitive(column.getsFamily() + "\u0000" + column.getsQualifier()));
+        result.add("column", new JsonPrimitive(column.getsFamily() + DELIM + column.getsQualifier()));
         Span span = batch.getSpan();
-        result.add("span", new JsonPrimitive(span.getStart().getsRow() + "\u0000" + span.getEnd().getsRow()));
+        result.add("span", new JsonPrimitive(span.getStart().getsRow() + DELIM + span.getEnd().getsRow()));
         result.add("startInc", new JsonPrimitive(span.isStartInclusive()));
         result.add("endInc", new JsonPrimitive(span.isEndInclusive()));
+        if(batch.getAggregationStateMeta().isPresent()) {
+            CommonNodeMetadataImpl stateMeta = batch.getAggregationStateMeta().get();
+            result.add("aggStateMeta", new JsonPrimitive(stateMeta.getNodeId() + DELIM + stateMeta.getVariableOrder().toString()));
+        }
         result.add("side", new JsonPrimitive(batch.getSide().name()));
         result.add("joinType", new JsonPrimitive(batch.getJoinType().name()));
         String updateVarOrderString = Joiner.on(";").join(batch.getBs().getBindingNames());
@@ -75,9 +81,14 @@ public class JoinBatchInformationTypeAdapter implements JsonSerializer<JoinBatch
         JsonObject json = element.getAsJsonObject();
         int batchSize = json.get("batchSize").getAsInt();
         Task task = Task.valueOf(json.get("task").getAsString());
-        String[] colArray = json.get("column").getAsString().split("\u0000");
+        String[] colArray = json.get("column").getAsString().split(DELIM);
         Column column = new Column(colArray[0], colArray[1]);
-        String[] rows = json.get("span").getAsString().split("\u0000");
+        String[] rows = json.get("span").getAsString().split(DELIM);
+        CommonNodeMetadataImpl aggStateMeta = null;
+        if(json.get("aggStateMeta") != null) {
+            String[] aggStateMetaArray = json.get("aggStateMeta").getAsString().split(DELIM);
+            aggStateMeta = new CommonNodeMetadataImpl(aggStateMetaArray[0], new VariableOrder(aggStateMetaArray[1]));
+        }
         boolean startInc = json.get("startInc").getAsBoolean();
         boolean endInc = json.get("endInc").getAsBoolean();
         Span span = new Span(new RowColumn(rows[0]), startInc, new RowColumn(rows[1]), endInc);
@@ -86,7 +97,7 @@ public class JoinBatchInformationTypeAdapter implements JsonSerializer<JoinBatch
         Side side = Side.valueOf(json.get("side").getAsString());
         JoinType join = JoinType.valueOf(json.get("joinType").getAsString());
         return JoinBatchInformation.builder().setBatchSize(batchSize).setTask(task).setSpan(span).setColumn(column).setBs(bs)
-               .setSide(side).setJoinType(join).build();
+               .setSide(side).setJoinType(join).setAggregationStateMeta(aggStateMeta).build();
     }
 
 }

@@ -121,6 +121,7 @@ public class FluoQueryMetadataDAOIT extends RyaExportITBase {
         builder.setParentNodeId("parentNodeId");
         builder.setLeftChildNodeId("leftChildNodeId");
         builder.setRightChildNodeId("rightChildNodeId");
+        builder.setStateMetadata(new CommonNodeMetadataImpl("nodeId", new VariableOrder("a","b","c")));
         final JoinMetadata originalMetadata = builder.build();
 
         try(FluoClient fluoClient = FluoFactory.newClient(super.getFluoConfiguration())) {
@@ -152,6 +153,7 @@ public class FluoQueryMetadataDAOIT extends RyaExportITBase {
         builder.setVarOrder(new VariableOrder("y;s;d"));
         builder.setSparql("sparql string");
         builder.setChildNodeId("childNodeId");
+        builder.setStateMetadata(new CommonNodeMetadataImpl("nodeId", new VariableOrder("a","b","c")));
         builder.setExportStrategies(new HashSet<>(Arrays.asList(ExportStrategy.KAFKA)));
         final QueryMetadata originalMetadata = builder.build();
 
@@ -183,6 +185,7 @@ public class FluoQueryMetadataDAOIT extends RyaExportITBase {
         builder.setProjectedVars(new VariableOrder("x;y;z"));
         builder.setChildNodeId("childNodeId");
         builder.setParentNodeId("parentNodeId");
+        builder.setStateMetadata(new CommonNodeMetadataImpl("nodeId", new VariableOrder("a","b","c")));
         final ProjectionMetadata originalMetadata = builder.build();
 
         try(FluoClient fluoClient = FluoFactory.newClient(super.getFluoConfiguration())) {
@@ -220,6 +223,7 @@ public class FluoQueryMetadataDAOIT extends RyaExportITBase {
         builder.setParentNodeId("parentNodeId");
         builder.setVarOrder(new VariableOrder("a;b;c"));
         builder.setConstructGraph(new ConstructGraph(patterns));
+        builder.setStateMetadata(new CommonNodeMetadataImpl("nodeId", new VariableOrder("a","b","c")));
         final ConstructQueryMetadata originalMetadata = builder.build();
 
         try(FluoClient fluoClient = FluoFactory.newClient(super.getFluoConfiguration())) {
@@ -316,6 +320,7 @@ public class FluoQueryMetadataDAOIT extends RyaExportITBase {
             .setWindowSize(20)
             .setUnit(TimeUnit.DAYS)
             .setTemporalVariable("a")
+            .setStateMetadata(new CommonNodeMetadataImpl("nodeId", new VariableOrder("a","b","c")))
             .build();
             
 

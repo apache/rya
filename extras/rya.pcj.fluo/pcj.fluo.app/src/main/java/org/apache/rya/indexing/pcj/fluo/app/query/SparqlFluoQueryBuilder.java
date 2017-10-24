@@ -364,13 +364,12 @@ public class SparqlFluoQueryBuilder {
                 
                 Set<String> aggregationVars = getVarsToDelete(groupByVariableOrder.getVariableOrders(), aggregationBuilder.getVariableOrder().getVariableOrders());
                 FluoQueryUtils.updateVarOrders(fluoQueryBuilder, UpdateAction.DeleteVariable, Lists.newArrayList(aggregationVars), aggregationId);
+                FluoQueryUtils.addAggregationStateMetadata(fluoQueryBuilder, aggregationId, new CommonNodeMetadataImpl(aggregationId, groupByVariableOrder));
                 
                 for(final AggregationElement aggregation : aggregations) {
                     aggregationBuilder.addAggregation(aggregation);
                 }
                 
-                
-
                 // Update the child node's metadata.
                 final Set<String> childVars = getVars(child);
                 final VariableOrder childVarOrder = new VariableOrder(childVars);

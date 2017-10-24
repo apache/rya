@@ -42,20 +42,21 @@ import net.jcip.annotations.Immutable;
  */
 @Immutable
 @DefaultAnnotation(NonNull.class)
-public class QueryMetadata extends CommonNodeMetadata {
+public class QueryMetadata extends StateNodeMetadata {
 
     private final String sparql;
     private final String childNodeId;
     private final Set<ExportStrategy> exportStrategy;
     private final QueryType queryType;
     private final String exportId;
-    
+
 
     /**
      * Constructs an instance of {@link QueryMetadata}.
      *
      * @param nodeId - The ID the Fluo app uses to reference this node. (not null)
      * @param varOrder - The variable order of binding sets that are emitted by this node. (not null)
+     * @param stateMetadata - Optional containing information about the aggregation state that this node depends on. (not null)
      * @param sparql - The SPARQL query whose results are being updated by the Fluo app. (not null)
      * @param childNodeId - The node whose results are projected to the query's SELECT variables. (not null)
      * @param exportStrategy - Set of export strategies used for emiting results from Rya-Fluo app
@@ -63,11 +64,12 @@ public class QueryMetadata extends CommonNodeMetadata {
     public QueryMetadata(
             final String nodeId,
             final VariableOrder varOrder,
+            final Optional<CommonNodeMetadataImpl> stateMetadata,
             final String sparql,
             final String childNodeId,
             final Set<ExportStrategy> exportStrategy,
             final QueryType queryType) {
-        super(nodeId, varOrder);
+        super(nodeId, varOrder, stateMetadata);
         this.sparql = checkNotNull(sparql);
         this.childNodeId = checkNotNull(childNodeId);
         this.exportStrategy = checkNotNull(exportStrategy);
@@ -78,7 +80,7 @@ public class QueryMetadata extends CommonNodeMetadata {
         }
         this.exportId = idSplit[1];
     }
-    
+
     public String getExportId() {
         return exportId;
     }
@@ -96,27 +98,28 @@ public class QueryMetadata extends CommonNodeMetadata {
     public String getChildNodeId() {
         return childNodeId;
     }
-    
+
     /**
      * @return strategies used for exporting results from Rya-Fluo Application
      */
     public Set<ExportStrategy> getExportStrategies() {
         return exportStrategy;
     }
-    
+
     /**
      * @return the {@link QueryType} of this query
      */
     public QueryType getQueryType() {
         return queryType;
     }
-    
-    
+
+
     @Override
     public int hashCode() {
         return Objects.hashCode(
                 super.getNodeId(),
                 super.getVariableOrder(),
+                super.getStateMetadata(),
                 sparql,
                 childNodeId,
                 exportStrategy,
@@ -151,6 +154,7 @@ public class QueryMetadata extends CommonNodeMetadata {
                 .append("QueryMetadata {\n")
                 .append("    Node ID: " + super.getNodeId() + "\n")
                 .append("    Variable Order: " + super.getVariableOrder() + "\n")
+                .append("    State Metadata: " + super.getStateMetadata() + "\n")
                 .append("    Child Node ID: " + childNodeId + "\n")
                 .append("    SPARQL: " + sparql + "\n")
                 .append("    Query Type: " + queryType + "\n")
@@ -177,12 +181,13 @@ public class QueryMetadata extends CommonNodeMetadata {
 
         private String nodeId;
         private VariableOrder varOrder;
+        private CommonNodeMetadataImpl state;
         private String sparql;
         private String childNodeId;
         private Set<ExportStrategy> exportStrategies;
         private QueryType queryType;
         private Optional<Integer> joinBatchSize = Optional.empty();
-        
+
 
         /**
          * Constructs an instance of {@link Builder}.
@@ -192,12 +197,13 @@ public class QueryMetadata extends CommonNodeMetadata {
         public Builder(final String nodeId) {
             this.nodeId = checkNotNull(nodeId);
         }
-        
+
+        @Override
         public String getNodeId() {
             return nodeId;
         }
 
-        
+
         /**
          * Set the variable order of binding sets that are emitted by this node.
          *
@@ -208,12 +214,31 @@ public class QueryMetadata extends CommonNodeMetadata {
             this.varOrder = varOrder;
             return this;
         }
-        
+
         /**
          * @return the variable order of binding sets that are emitted by this node
          */
+        @Override
         public VariableOrder getVariableOrder() {
             return varOrder;
+        }
+
+        /**
+         * Sets the Aggregation State.
+         * @param state - Aggregation State indicating current value of Aggregation
+         * @return This builder so that method invocations may be chained.
+         */
+        public Builder setStateMetadata(CommonNodeMetadataImpl state) {
+            this.state = state;
+            return this;
+        }
+
+        /**
+         * Returns the aggregation state metadata for this node if it exists
+         * @return - Optional containing the aggregation station
+         */
+        public Optional<CommonNodeMetadataImpl> getStateMetadata() {
+            return Optional.ofNullable(state);
         }
 
         /**
@@ -237,7 +262,7 @@ public class QueryMetadata extends CommonNodeMetadata {
             this.childNodeId = childNodeId;
             return this;
         }
-        
+
         /**
          * Sets export strategies used for emitting results form Rya Fluo app
          * @param export - Set of export strategies
@@ -247,7 +272,7 @@ public class QueryMetadata extends CommonNodeMetadata {
             this.exportStrategies = export;
             return this;
         }
-        
+
         /**
          * Set query type for the given query
          * @param queryType - {@link QueryType} of the given query
@@ -257,22 +282,22 @@ public class QueryMetadata extends CommonNodeMetadata {
             this.queryType = queryType;
             return this;
         }
-        
+
         /**
          * @return QueryType for the given query
          */
         public QueryType getQueryType() {
             return queryType;
         }
-        
-        
+
+
         /**
          * @return id of the child node of this node
          */
         public String getChildNodeId() {
             return childNodeId;
         }
-        
+
         /**
          * Sets batch size used to process joins for this query
          * @param joinBatchSize - batch size used to process joins
@@ -281,7 +306,7 @@ public class QueryMetadata extends CommonNodeMetadata {
             this.joinBatchSize = joinBatchSize;
             return this;
         }
-        
+
         /**
          * @return Optional containing the batch size used to process large joins
          */
@@ -293,7 +318,7 @@ public class QueryMetadata extends CommonNodeMetadata {
          * @return An instance of {@link QueryMetadata} build using this builder's values.
          */
         public QueryMetadata build() {
-            return new QueryMetadata(nodeId, varOrder, sparql, childNodeId, exportStrategies, queryType);
+            return new QueryMetadata(nodeId, varOrder, Optional.ofNullable(state), sparql, childNodeId, exportStrategies, queryType);
         }
     }
 }

@@ -963,7 +963,8 @@ public class QueryIT extends RyaExportITBase {
         // Verify the end results of the query match the expected results.
         runTest(query, statements, expectedResults, ExportStrategy.PERIODIC);
     }
-
+    
+    
     @Test(expected= UnsupportedQueryException.class)
     public void nestedConstructPeriodicQueryWithAggregationAndGroupBy() throws Exception {
         String query = "prefix function: <http://org.apache.rya/function#> " // n

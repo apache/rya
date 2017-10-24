@@ -18,12 +18,14 @@
  */
 package org.apache.rya.indexing.pcj.fluo.app.batch;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import java.util.Objects;
+import java.util.Optional;
 
 import org.apache.fluo.api.data.Column;
 import org.apache.fluo.api.data.Span;
-
-import com.google.common.base.Preconditions;
+import org.apache.rya.indexing.pcj.fluo.app.query.CommonNodeMetadataImpl;
 
 /**
  * Abstract class for generating span based notifications.  A spanned notification
@@ -33,21 +35,42 @@ import com.google.common.base.Preconditions;
 public abstract class AbstractSpanBatchInformation extends BasicBatchInformation {
 
     private Span span;
+    private Optional<CommonNodeMetadataImpl> aggregationStateMeta;
 
     /**
      * Create AbstractBatchInformation
      * @param batchSize - size of batch to be processed
      * @param task - type of task processed (Add, Delete, Udpate)
-     * @param column - Cpolumn that Span notification is applied
+     * @param column - Column that Span notification is applied
      * @param span - span used to indicate where processing should begin
      */
     public AbstractSpanBatchInformation(int batchSize, Task task, Column column, Span span) {
-        super(batchSize, task, column);
-        this.span = Preconditions.checkNotNull(span);
+        this(batchSize, task, column, span, Optional.empty());
     }
 
-    public AbstractSpanBatchInformation(Task task, Column column, Span span) {
-        this(DEFAULT_BATCH_SIZE, task, column, span);
+    /**
+     * Create AbstractBatchInformation
+     * @param batchSize - size of batch to be processed
+     * @param task - type of task processed (Add, Delete, Udpate)
+     * @param column - Column that Span notification is applied
+     * @param span - span used to indicate where processing should begin
+     * @param aggregationStateMeta - meta used to look up aggregation state
+     */
+    public AbstractSpanBatchInformation(int batchSize, Task task, Column column, Span span, Optional<CommonNodeMetadataImpl> aggregationStateMeta) {
+        super(batchSize, task, column);
+        this.span = checkNotNull(span);
+        this.aggregationStateMeta = checkNotNull(aggregationStateMeta);
+    }
+
+    /**
+     * Create AbstractBatchInformation
+     * @param task - type of task processed (Add, Delete, Udpate)
+     * @param column - Column that Span notification is applied
+     * @param span - span used to indicate where processing should begin
+     * @param aggregationStateMeta - meta used to look up aggregation state
+     */
+    public AbstractSpanBatchInformation(Task task, Column column, Span span, Optional<CommonNodeMetadataImpl> aggregationStateMeta) {
+        this(DEFAULT_BATCH_SIZE, task, column, span, aggregationStateMeta);
     }
 
     /**
@@ -64,19 +87,27 @@ public abstract class AbstractSpanBatchInformation extends BasicBatchInformation
     public void setSpan(Span span) {
         this.span = span;
     }
-    
+
+    /**
+     * @return - optional metadata used to verify aggregation state
+     */
+    public Optional<CommonNodeMetadataImpl> getAggregationStateMeta() {
+        return aggregationStateMeta;
+    }
+
     @Override
     public String toString() {
         return new StringBuilder()
                 .append("Span Batch Information {\n")
                 .append("    Span: " + span + "\n")
+                .append("    Aggregation State Metadata: " + aggregationStateMeta + "\n")
                 .append("    Batch Size: " + super.getBatchSize() + "\n")
                 .append("    Task: " + super.getTask() + "\n")
                 .append("    Column: " + super.getColumn() + "\n")
                 .append("}")
                 .toString();
     }
-    
+
     @Override
     public boolean equals(Object other) {
         if (this == other) {
@@ -89,13 +120,13 @@ public abstract class AbstractSpanBatchInformation extends BasicBatchInformation
 
         AbstractSpanBatchInformation batch = (AbstractSpanBatchInformation) other;
         return (super.getBatchSize() == batch.getBatchSize()) && Objects.equals(super.getColumn(), batch.getColumn()) && Objects.equals(this.span, batch.span)
-                && Objects.equals(super.getTask(), batch.getTask());
+                && Objects.equals(super.getTask(), batch.getTask()) && Objects.equals(aggregationStateMeta, batch.aggregationStateMeta);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(super.getBatchSize(), span, super.getColumn(), super.getTask());
+        return Objects.hash(super.getBatchSize(), span, super.getColumn(), super.getTask(), aggregationStateMeta);
     }
-    
+
 
 }

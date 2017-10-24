@@ -1,4 +1,7 @@
 package org.apache.rya.indexing.pcj.fluo.app.batch;
+
+import static com.google.common.base.Preconditions.checkNotNull;
+
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -18,16 +21,15 @@ package org.apache.rya.indexing.pcj.fluo.app.batch;
  * under the License.
  */
 import java.util.Objects;
+import java.util.Optional;
 
 import org.apache.fluo.api.data.Column;
 import org.apache.fluo.api.data.Span;
 import org.apache.rya.indexing.pcj.fluo.app.JoinResultUpdater.Side;
+import org.apache.rya.indexing.pcj.fluo.app.query.CommonNodeMetadataImpl;
 import org.apache.rya.indexing.pcj.fluo.app.query.JoinMetadata.JoinType;
-import org.apache.rya.indexing.pcj.storage.accumulo.VariableOrder;
 import org.apache.rya.indexing.pcj.storage.accumulo.VisibilityBindingSet;
 import org.openrdf.query.Binding;
-
-import com.google.common.base.Preconditions;
 
 /**
  * This class updates join results based on parameters specified for the join's
@@ -55,6 +57,25 @@ public class JoinBatchInformation extends AbstractSpanBatchInformation {
     private VisibilityBindingSet bs; //update for join child indicated by side
     private Side side;  //join child that was updated by bs
     private JoinType join;
+
+    /**
+     * @param batchSize - batch size that Tasks are performed in
+     * @param task - Add, Delete, or Update
+     * @param column - Column of join child to be scanned
+     * @param span - span of join child to be scanned (derived from common variables of left and right join children)
+     * @param aggregationStateMeta - metadata for checking aggregation state before writing
+     * @param bs - BindingSet to be joined with results of child scan
+     * @param side - The side of the child that the VisibilityBindingSet update occurred at
+     * @param join - JoinType (left, right, natural inner)
+     */
+    public JoinBatchInformation(int batchSize, Task task, Column column, Span span, Optional<CommonNodeMetadataImpl> aggregationStateMeta, VisibilityBindingSet bs, Side side, JoinType join) {
+        super(batchSize, task, column, span, aggregationStateMeta);
+        this.bs = checkNotNull(bs);
+        this.side = checkNotNull(side);
+        this.join = checkNotNull(join);
+    }
+
+
     /**
      * @param batchSize - batch size that Tasks are performed in
      * @param task - Add, Delete, or Update
@@ -65,16 +86,21 @@ public class JoinBatchInformation extends AbstractSpanBatchInformation {
      * @param join - JoinType (left, right, natural inner)
      */
     public JoinBatchInformation(int batchSize, Task task, Column column, Span span, VisibilityBindingSet bs, Side side, JoinType join) {
-        super(batchSize, task, column, span);
-        this.bs = Preconditions.checkNotNull(bs);
-        this.side = Preconditions.checkNotNull(side);
-        this.join = Preconditions.checkNotNull(join);
+        this(batchSize, task, column, span, Optional.empty(), bs, side, join);
     }
-    
+
+    /**
+     * @param task - Add, Delete, or Update
+     * @param column - Column of join child to be scanned
+     * @param span - span of join child to be scanned (derived from common variables of left and right join children)
+     * @param bs - BindingSet to be joined with results of child scan
+     * @param side - The side of the child that the VisibilityBindingSet update occurred at
+     * @param join - JoinType (left, right, natural inner)
+     */
     public JoinBatchInformation(Task task, Column column, Span span, VisibilityBindingSet bs, Side side, JoinType join) {
         this(DEFAULT_BATCH_SIZE, task, column, span, bs, side, join);
     }
-    
+
     /**
      * Indicates the join child that the BindingSet result {@link JoinBatchInformation#getBs()} updated.
      * This BindingSet is join with the results obtained by scanning over the value of {@link JoinBatchInformation#getSpan()}.
@@ -83,14 +109,14 @@ public class JoinBatchInformation extends AbstractSpanBatchInformation {
     public Side getSide() {
         return side;
     }
-    
+
     /**
      * @return {@link JoinType} indicating type of join (left join, right join, natural inner join,...)
      */
     public JoinType getJoinType() {
         return join;
     }
-    
+
 
    /**
     * Sets the VisibilityBindingSet that represents an update to the join child.  The join child
@@ -101,7 +127,7 @@ public class JoinBatchInformation extends AbstractSpanBatchInformation {
    public VisibilityBindingSet getBs() {
         return bs;
     }
-    
+
    /**
     * @return BatchBindingSetUpdater used to apply {@link Task} to results formed by joining the given
     * VisibilityBindingSet with the results returned by scanned over the Span.
@@ -110,21 +136,23 @@ public class JoinBatchInformation extends AbstractSpanBatchInformation {
     public BatchBindingSetUpdater getBatchUpdater() {
         return updater;
     }
-    
+
     @Override
     public String toString() {
         return new StringBuilder()
-                .append("Span Batch Information {\n")
+                .append("Join Batch Information {\n")
                 .append("    Batch Size: " + super.getBatchSize() + "\n")
                 .append("    Task: " + super.getTask() + "\n")
                 .append("    Column: " + super.getColumn() + "\n")
+                .append("    Span: " + super.getSpan() + "\n")
+                .append("    Aggregation State Metadata: " + super.getAggregationStateMeta() + "\n")
                 .append("    Join Type: " + join + "\n")
                 .append("    Join Side: " + side + "\n")
                 .append("    Binding Set: " + bs + "\n")
                 .append("}")
                 .toString();
     }
-    
+
     @Override
     public boolean equals(Object other) {
         if (this == other) {
@@ -142,10 +170,10 @@ public class JoinBatchInformation extends AbstractSpanBatchInformation {
 
     @Override
     public int hashCode() {
-        return Objects.hash(super.getBatchSize(), super.getColumn(), super.getSpan(), super.getTask(), bs, join, side);
+        return Objects.hash(super.getBatchSize(), super.getColumn(), super.getSpan(), super.getTask(), super.getAggregationStateMeta(), bs, join, side);
     }
-    
-    
+
+
     public static Builder builder() {
         return new Builder();
     }
@@ -156,10 +184,11 @@ public class JoinBatchInformation extends AbstractSpanBatchInformation {
         private Task task;
         private Column column;
         private Span span;
+        private CommonNodeMetadataImpl aggregationStateMeta;
         private VisibilityBindingSet bs;
         private JoinType join;
         private Side side;
-   
+
         /**
          * @param batchSize - batch size that {@link Task}s are performed in
          */
@@ -167,7 +196,7 @@ public class JoinBatchInformation extends AbstractSpanBatchInformation {
             this.batchSize = batchSize;
             return this;
         }
-     
+
         /**
          * @param task - Task performed (Add, Delete, Update)
          */
@@ -175,7 +204,7 @@ public class JoinBatchInformation extends AbstractSpanBatchInformation {
             this.task = task;
             return this;
         }
-        
+
         /**
          * @param column - Column of join child to be scanned
          */
@@ -183,9 +212,9 @@ public class JoinBatchInformation extends AbstractSpanBatchInformation {
             this.column = column;
             return this;
         }
-        
+
         /**
-         * Span to scan results for one child of the join. The Span corresponds to the side of 
+         * Span to scan results for one child of the join. The Span corresponds to the side of
          * the join that is not indicated by Side.  So if Side is Left, then the
          * Span will scan the right child of the join.  It is assumed that the span is derived from
          * the common variables of the left and right join children.
@@ -195,17 +224,17 @@ public class JoinBatchInformation extends AbstractSpanBatchInformation {
             this.span = span;
             return this;
         }
-      
+
         /**
          * Sets the BindingSet that corresponds to an update to the join child indicated
-         * by Side.  
+         * by Side.
          * @param bs - BindingSet update of join child to be joined with results of scan
          */
         public Builder setBs(VisibilityBindingSet bs) {
             this.bs = bs;
             return this;
         }
-        
+
         /**
          * @param join - JoinType (left, right, natural inner)
          */
@@ -213,7 +242,7 @@ public class JoinBatchInformation extends AbstractSpanBatchInformation {
             this.join = join;
             return this;
         }
-        
+
         /**
          * Indicates the join child corresponding to the VisibilityBindingSet update
          * @param side - side of join the child BindingSet update appeared at
@@ -222,12 +251,22 @@ public class JoinBatchInformation extends AbstractSpanBatchInformation {
             this.side = side;
             return this;
         }
-   
+
+        /**
+         * Sets the aggregation state metadata for checking aggregation state before writing
+         * @param aggregationStateMeta - metadata containing info for checking aggregation state
+         * @return - this Builder for chaining method calls
+         */
+        public Builder setAggregationStateMeta(CommonNodeMetadataImpl aggregationStateMeta) {
+            this.aggregationStateMeta = aggregationStateMeta;
+            return this;
+        }
+
         /**
          * @return an instance of {@link JoinBatchInformation} constructed from the parameters passed to this Builder
          */
         public JoinBatchInformation build() {
-            return new JoinBatchInformation(batchSize, task, column, span, bs, side, join); 
+            return new JoinBatchInformation(batchSize, task, column, span, Optional.ofNullable(aggregationStateMeta), bs, side, join);
         }
     }
 }

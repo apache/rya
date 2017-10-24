@@ -18,6 +18,7 @@
  */
 package org.apache.rya.indexing.pcj.fluo.app.query;
 
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.lang3.builder.EqualsBuilder;
@@ -27,16 +28,16 @@ import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 
 /**
- * Metadata that is required for periodic queries in the Rya Fluo Application.  
+ * Metadata that is required for periodic queries in the Rya Fluo Application.
  * If a periodic query is registered with the Rya Fluo application, the BindingSets
  * are placed into temporal bins according to whether they occur within the window of
  * a period's ending time.  This Metadata is used to create a Bin Id, which is equivalent
  * to the period's ending time, to be inserted into each BindingSet that occurs within that
- * bin.  This is to allow the AggregationUpdater to aggregate the bins by grouping on the 
+ * bin.  This is to allow the AggregationUpdater to aggregate the bins by grouping on the
  * Bin Id.
- * 
+ *
  */
-public class PeriodicQueryMetadata extends CommonNodeMetadata {
+public class PeriodicQueryMetadata extends StateNodeMetadata {
 
     private String parentNodeId;
     private String childNodeId;
@@ -49,6 +50,7 @@ public class PeriodicQueryMetadata extends CommonNodeMetadata {
      * Constructs an instance of PeriodicQueryMetadata
      * @param nodeId - id of periodic query node
      * @param varOrder - variable order indicating the order the BindingSet results are written in
+     * @param stateMetadata - Optional containing information about the aggregation state that this node depends on
      * @param parentNodeId - id of parent node
      * @param childNodeId - id of child node
      * @param windowSize - size of window used for filtering
@@ -56,9 +58,9 @@ public class PeriodicQueryMetadata extends CommonNodeMetadata {
      * @param unit - TimeUnit corresponding to window and period
      * @param temporalVariable - temporal variable that periodic conditions are applied to
      */
-    public PeriodicQueryMetadata(String nodeId, VariableOrder varOrder, String parentNodeId, String childNodeId, long windowSize, long period,
+    public PeriodicQueryMetadata(String nodeId, VariableOrder varOrder, Optional<CommonNodeMetadataImpl> stateMetadata, String parentNodeId, String childNodeId, long windowSize, long period,
             TimeUnit unit, String temporalVariable) {
-        super(nodeId, varOrder);
+        super(nodeId, varOrder, stateMetadata);
         this.parentNodeId = Preconditions.checkNotNull(parentNodeId);
         this.childNodeId = Preconditions.checkNotNull(childNodeId);
         this.temporalVariable = Preconditions.checkNotNull(temporalVariable);
@@ -78,15 +80,15 @@ public class PeriodicQueryMetadata extends CommonNodeMetadata {
     }
 
     /**
-     * 
+     *
      * @return id of child for navigating query
      */
     public String getChildNodeId() {
         return childNodeId;
     }
-    
+
     /**
-     * 
+     *
      * @return temporal variable used for filtering events
      */
     public String getTemporalVariable() {
@@ -124,7 +126,7 @@ public class PeriodicQueryMetadata extends CommonNodeMetadata {
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(super.getNodeId(), super.getVariableOrder(), childNodeId, parentNodeId, temporalVariable, period, windowSize, unit);
+        return Objects.hashCode(super.getNodeId(), super.getVariableOrder(), super.getStateMetadata(), childNodeId, parentNodeId, temporalVariable, period, windowSize, unit);
     }
 
     @Override
@@ -145,13 +147,14 @@ public class PeriodicQueryMetadata extends CommonNodeMetadata {
 
         return false;
     }
-    
+
     @Override
     public String toString() {
         return new StringBuilder()
                 .append("PeriodicQueryMetadata {\n")
                 .append("    Node ID: " + super.getNodeId() + "\n")
                 .append("    Variable Order: " + super.getVariableOrder() + "\n")
+                .append("    State Metadata: " + super.getStateMetadata() + "\n")
                 .append("    Parent Node ID: " + parentNodeId + "\n")
                 .append("    Child Node ID: " + childNodeId + "\n")
                 .append("    Period: " + period + "\n")
@@ -170,6 +173,7 @@ public class PeriodicQueryMetadata extends CommonNodeMetadata {
 
         private String nodeId;
         private VariableOrder varOrder;
+        private CommonNodeMetadataImpl state;
         private String parentNodeId;
         private String childNodeId;
         private long windowSize;
@@ -181,15 +185,16 @@ public class PeriodicQueryMetadata extends CommonNodeMetadata {
             this.nodeId = nodeId;
             return this;
         }
-        
+
         /**
-         * 
+         *
          * @return id of of this node
          */
+        @Override
         public String getNodeId() {
             return nodeId;
         }
-        
+
         /**
          * Set the {@link VariableOrder}
          * @param varOrder to indicate order that results will be written in
@@ -199,16 +204,17 @@ public class PeriodicQueryMetadata extends CommonNodeMetadata {
             this.varOrder = varOrder;
             return this;
         }
-        
-        
+
+
         /**
-         * Returns {@link VariableOrder} 
-         * @return VariableOrder that indicates order that results are written in 
+         * Returns {@link VariableOrder}
+         * @return VariableOrder that indicates order that results are written in
          */
+        @Override
         public VariableOrder getVariableOrder() {
             return varOrder;
         }
-        
+
         /**
          * Sets id of parent node
          * @param parentNodeId
@@ -218,7 +224,7 @@ public class PeriodicQueryMetadata extends CommonNodeMetadata {
             this.parentNodeId = parentNodeId;
             return this;
         }
-      
+
         /**
          * @return id of parent node
          */
@@ -235,11 +241,11 @@ public class PeriodicQueryMetadata extends CommonNodeMetadata {
             this.childNodeId = childNodeId;
             return this;
         }
-        
+
         public String getChildNodeId() {
             return childNodeId;
         }
-        
+
         /**
          * Sets window size for periodic query
          * @param windowSize
@@ -269,7 +275,25 @@ public class PeriodicQueryMetadata extends CommonNodeMetadata {
             this.unit = unit;
             return this;
         }
-        
+
+        /**
+         * Sets the Aggregation State.
+         * @param state - Aggregation State indicating current value of Aggregation
+         * @return This builder so that method invocations may be chained.
+         */
+        public Builder setStateMetadata(CommonNodeMetadataImpl state) {
+            this.state = state;
+            return this;
+        }
+
+        /**
+         * Returns the aggregation state metadata for this node if it exists
+         * @return - Optional containing the aggregation station
+         */
+        public Optional<CommonNodeMetadataImpl> getStateMetadata() {
+            return Optional.ofNullable(state);
+        }
+
         /**
          * Indicate which variable in BindingSet results is the temporal variable that periodic
          * Conditions should be applied to
@@ -285,7 +309,7 @@ public class PeriodicQueryMetadata extends CommonNodeMetadata {
          * @return PeriodicQueryMetadata constructed from parameters passed to this Builder
          */
         public PeriodicQueryMetadata build() {
-            return new PeriodicQueryMetadata(nodeId, varOrder, parentNodeId, childNodeId, windowSize, period, unit, temporalVariable);
+            return new PeriodicQueryMetadata(nodeId, varOrder, Optional.ofNullable(state), parentNodeId, childNodeId, windowSize, period, unit, temporalVariable);
         }
     }
 

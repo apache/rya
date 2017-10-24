@@ -1,4 +1,6 @@
 package org.apache.rya.indexing.pcj.fluo.app.batch;
+import java.util.Optional;
+
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -19,6 +21,7 @@ package org.apache.rya.indexing.pcj.fluo.app.batch;
  */
 import org.apache.fluo.api.data.Column;
 import org.apache.fluo.api.data.Span;
+import org.apache.rya.indexing.pcj.fluo.app.query.CommonNodeMetadataImpl;
 
 /**
  * This class represents a batch order to delete all entries in the Fluo table indicated
@@ -32,7 +35,11 @@ public class SpanBatchDeleteInformation extends AbstractSpanBatchInformation {
     private static final BatchBindingSetUpdater updater = new SpanBatchBindingSetUpdater();
     
     public SpanBatchDeleteInformation(int batchSize, Column column, Span span) {
-        super(batchSize, Task.Delete, column, span);
+        super(batchSize, Task.Delete, column, span, Optional.empty());
+    }
+    
+    public SpanBatchDeleteInformation(int batchSize, Column column, Span span, Optional<CommonNodeMetadataImpl> aggregationStateMeta) {
+        super(batchSize, Task.Delete, column, span, aggregationStateMeta);
     }
     
     /**
@@ -53,6 +60,7 @@ public class SpanBatchDeleteInformation extends AbstractSpanBatchInformation {
         private int batchSize = DEFAULT_BATCH_SIZE;
         private Column column;
         private Span span;
+        private CommonNodeMetadataImpl aggregationStateMetadata;
 
         /**
          * @param batchSize - {@link Task}s are applied in batches of this size
@@ -80,13 +88,21 @@ public class SpanBatchDeleteInformation extends AbstractSpanBatchInformation {
             this.span = span;
             return this;
         }
+        
+        /**
+         * @param aggregationStateMetadata - metadata for checking aggregation state before writing or deleting
+         */
+        public Builder setAggregationStateMetadata(CommonNodeMetadataImpl aggregationStateMetadata) {
+            this.aggregationStateMetadata = aggregationStateMetadata;
+            return this;
+        }
 
 
         /**
          * @return an instance of {@link SpanBatchDeleteInformation} constructed from parameters passed to this Builder
          */
         public SpanBatchDeleteInformation build() {
-            return new SpanBatchDeleteInformation(batchSize, column, span);
+            return new SpanBatchDeleteInformation(batchSize, column, span, Optional.ofNullable(aggregationStateMetadata));
         }
 
     }

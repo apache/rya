@@ -61,7 +61,7 @@ public class StateNodeMetadata extends CommonNodeMetadata {
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(super.getNodeId(), super.getVariableOrder(), stateMetadata);
+        return Objects.hashCode(super.hashCode(), stateMetadata);
     }
 
     @Override
@@ -73,7 +73,7 @@ public class StateNodeMetadata extends CommonNodeMetadata {
         if (o instanceof StateNodeMetadata) {
             if (super.equals(o)) {
                 final StateNodeMetadata metadata = (StateNodeMetadata) o;
-                return Objects.equal(this, metadata);
+                return Objects.equal(this.stateMetadata, metadata.stateMetadata);
             }
         }
 

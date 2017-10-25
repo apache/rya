@@ -54,8 +54,8 @@ public class LoadStatementsCommand implements RyaStreamsCommand {
      * Command line parameters that are used by this command to configure itself.
      */
     private static final class Parameters {
-        @Parameter(names = {"--triplesFile", "-f"}, required = true, description = "The RDF file of statements to load into RYA Streams.")
-        private String triplesFile;
+        @Parameter(names = {"--statementsFile", "-f"}, required = true, description = "The file of RDF statements to load into Rya Streams.")
+        private String statementsFile;
         @Parameter(names= {"--topic", "-t"}, required = true, description = "The kafka topic to load the statements into.")
         private String topicName;
         @Parameter(names= {"--kafkaPort", "-p"}, required = true, description = "The port to use to connect to Kafka.")
@@ -71,8 +71,8 @@ public class LoadStatementsCommand implements RyaStreamsCommand {
             parameters.append("Parameters");
             parameters.append("\n");
 
-            if (Strings.isNullOrEmpty(triplesFile)) {
-                parameters.append("\tTriples File: " + triplesFile);
+            if (Strings.isNullOrEmpty(statementsFile)) {
+                parameters.append("\tStatements File: " + statementsFile);
                 parameters.append("\n");
             }
 
@@ -100,12 +100,12 @@ public class LoadStatementsCommand implements RyaStreamsCommand {
 
     @Override
     public String getCommand() {
-        return "load-triples";
+        return "load-statements";
     }
 
     @Override
     public String getDescription() {
-        return "Load RDF Triples into the Fluo app";
+        return "Load RDF Statements into Rya Streams";
     }
 
     @Override
@@ -127,22 +127,22 @@ public class LoadStatementsCommand implements RyaStreamsCommand {
         try {
             new JCommander(params, args);
         } catch(final ParameterException e) {
-            throw new ArgumentsException("Could not load the Triples file because of invalid command line parameters.", e);
+            throw new ArgumentsException("Could not load the Statements file because of invalid command line parameters.", e);
         }
-        log.trace("Executing the Load Triples Command\n" + params.toString());
+        log.trace("Executing the Load Statements Command\n" + params.toString());
 
-        log.trace("Loading RDF Statements from the Triples file '" + params.triplesFile + "'.");
-        final Path triplesPath = Paths.get( params.triplesFile );
+        log.trace("Loading Statements from the file '" + params.statementsFile + "'.");
+        final Path statementsPath = Paths.get(params.statementsFile);
 
         final Properties producerProps = buildProperties(params);
         try (final Producer<Object, VisibilityStatement> producer = new KafkaProducer<>(producerProps)) {
             final LoadStatements statements = new KafkaLoadStatements(params.topicName, producer);
-            statements.load(triplesPath, params.visibilities);
+            statements.load(statementsPath, params.visibilities);
         } catch (final Exception e) {
-            log.error("Unable to parse statement file: " + triplesPath.toString(), e);
+            log.error("Unable to parse statements file: " + statementsPath.toString(), e);
         }
 
-        log.trace("Finished executing the Load Triples Command.");
+        log.trace("Finished executing the Load Statements Command.");
     }
 
     private Properties buildProperties(final Parameters params) {

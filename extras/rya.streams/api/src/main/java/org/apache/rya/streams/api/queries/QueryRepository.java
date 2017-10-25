@@ -18,7 +18,7 @@
  */
 package org.apache.rya.streams.api.queries;
 
-import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 import org.apache.rya.streams.api.entity.StreamsQuery;
@@ -56,7 +56,7 @@ public interface QueryRepository {
      * @throws QueryRepositoryException The {@link StreamsQuery}s could not be
      *         listed.
      */
-    public List<StreamsQuery> list() throws QueryRepositoryException;
+    public Set<StreamsQuery> list() throws QueryRepositoryException;
 
     /**
      * A function of {@link QueryRepository} was unable to perform a function.

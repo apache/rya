@@ -16,21 +16,42 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.apache.rya.streams.kafka.serialization;
+package org.apache.rya.streams.kafka.serialization.queries;
+
+import java.util.Map;
 
 import org.apache.kafka.common.serialization.Deserializer;
-import org.apache.rya.api.model.VisibilityBindingSet;
+import org.apache.kafka.common.serialization.Serde;
+import org.apache.kafka.common.serialization.Serializer;
+import org.apache.rya.streams.api.queries.QueryChange;
 
 import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
 import edu.umd.cs.findbugs.annotations.NonNull;
 
 /**
- * A Kafka {@link Deserializer} that is able to deserialize Java object serialized {@link VisibilityBindingSet}s.
+ * Provides a {@link Serializer} and {@link Deserializer} for
+ * {@link QueryChange}s.
  */
 @DefaultAnnotation(NonNull.class)
-public class VisibilityBindingSetDeserializer extends ObjectDeserializer<VisibilityBindingSet> {
+public class QueryChangeSerde implements Serde<QueryChange> {
+
     @Override
-    protected Class<VisibilityBindingSet> getDeserializedClass() {
-        return VisibilityBindingSet.class;
+    public void configure(final Map<String, ?> configs, final boolean isKey) {
+        // Nothing to do.
+    }
+
+    @Override
+    public Serializer<QueryChange> serializer() {
+        return new QueryChangeSerializer();
+    }
+
+    @Override
+    public Deserializer<QueryChange> deserializer() {
+        return new QueryChangeDeserializer();
+    }
+
+    @Override
+    public void close() {
+        // Nothing to do.
     }
 }

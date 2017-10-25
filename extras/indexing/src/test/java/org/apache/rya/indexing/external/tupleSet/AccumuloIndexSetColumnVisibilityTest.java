@@ -19,15 +19,20 @@
 
 package org.apache.rya.indexing.external.tupleSet;
 
+import static org.junit.Assert.assertEquals;
+
 import java.io.File;
 import java.io.IOException;
+import java.math.BigInteger;
 import java.util.HashSet;
 import java.util.Set;
 
-import com.google.common.base.Optional;
-import com.google.common.collect.Sets;
-import com.google.common.io.Files;
-import org.apache.accumulo.core.client.*;
+import org.apache.accumulo.core.client.AccumuloException;
+import org.apache.accumulo.core.client.AccumuloSecurityException;
+import org.apache.accumulo.core.client.Connector;
+import org.apache.accumulo.core.client.Instance;
+import org.apache.accumulo.core.client.TableNotFoundException;
+import org.apache.accumulo.core.client.ZooKeeperInstance;
 import org.apache.accumulo.core.client.security.tokens.PasswordToken;
 import org.apache.accumulo.core.security.Authorizations;
 import org.apache.accumulo.minicluster.MiniAccumuloCluster;
@@ -37,7 +42,12 @@ import org.apache.rya.accumulo.AccumuloRdfConfiguration;
 import org.apache.rya.accumulo.instance.AccumuloRyaInstanceDetailsRepository;
 import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
 import org.apache.rya.api.instance.RyaDetails;
-import org.apache.rya.api.instance.RyaDetails.*;
+import org.apache.rya.api.instance.RyaDetails.EntityCentricIndexDetails;
+import org.apache.rya.api.instance.RyaDetails.FreeTextIndexDetails;
+import org.apache.rya.api.instance.RyaDetails.JoinSelectivityDetails;
+import org.apache.rya.api.instance.RyaDetails.PCJIndexDetails;
+import org.apache.rya.api.instance.RyaDetails.ProspectorDetails;
+import org.apache.rya.api.instance.RyaDetails.TemporalIndexDetails;
 import org.apache.rya.api.instance.RyaDetailsRepository;
 import org.apache.rya.api.instance.RyaDetailsRepository.RyaDetailsRepositoryException;
 import org.apache.rya.indexing.accumulo.ConfigUtils;
@@ -56,7 +66,9 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import static org.junit.Assert.assertEquals;
+import com.google.common.base.Optional;
+import com.google.common.collect.Sets;
+import com.google.common.io.Files;
 
 /**
  * Tests the evaluation of {@link AccumuloIndexSet}.
@@ -106,11 +118,11 @@ public class AccumuloIndexSetColumnVisibilityTest {
 
         // Store the PCJ's results.
         pcjBs1 = new QueryBindingSet();
-        pcjBs1.addBinding("age", vf.createLiteral(14));
+        pcjBs1.addBinding("age", vf.createLiteral(BigInteger.valueOf(14)));
         pcjBs1.addBinding("name", vf.createIRI("http://Alice"));
 
         pcjBs2 = new QueryBindingSet();
-        pcjBs2.addBinding("age", vf.createLiteral(16));
+        pcjBs2.addBinding("age", vf.createLiteral(BigInteger.valueOf(16)));
         pcjBs2.addBinding("name", vf.createIRI("http://Bob"));
 
         final Set<VisibilityBindingSet> visBs = new HashSet<>();
@@ -217,9 +229,9 @@ public class AccumuloIndexSetColumnVisibilityTest {
 
         // Setup the binding sets that will be evaluated.
         final QueryBindingSet bs1 = new QueryBindingSet();
-        bs1.addBinding("age", vf.createLiteral(16));
+        bs1.addBinding("age", vf.createLiteral(BigInteger.valueOf(16)));
         final QueryBindingSet bs2 = new QueryBindingSet();
-        bs2.addBinding("age", vf.createLiteral(14));
+        bs2.addBinding("age", vf.createLiteral(BigInteger.valueOf(14)));
 
         final Set<BindingSet> bSets = Sets.newHashSet(bs1, bs2);
         final CloseableIteration<BindingSet, QueryEvaluationException> results = ais.evaluate(bSets);

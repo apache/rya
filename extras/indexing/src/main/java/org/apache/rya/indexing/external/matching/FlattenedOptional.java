@@ -25,6 +25,8 @@ import java.util.Map;
 import java.util.Set;
 
 import com.google.common.collect.Sets;
+
+import org.apache.rya.api.domain.VarNameUtils;
 import org.apache.rya.rdftriplestore.inference.DoNotExpandSP;
 import org.apache.rya.rdftriplestore.utils.FixedStatementPattern;
 import org.eclipse.rdf4j.query.algebra.*;
@@ -250,9 +252,9 @@ public class FlattenedOptional extends QueryModelNodeBase implements TupleExpr {
 
     private void incrementVarCounts(Set<String> vars) {
         for (String s : vars) {
-            if (!s.startsWith("-const-") && leftArgVarCounts.containsKey(s)) {
+            if (!VarNameUtils.isConstant(s) && leftArgVarCounts.containsKey(s)) {
                 leftArgVarCounts.put(s, leftArgVarCounts.get(s) + 1);
-            } else if (!s.startsWith("-const-")) {
+            } else if (!VarNameUtils.isConstant(s)) {
                 leftArgVarCounts.put(s, 1);
             }
         }
@@ -278,7 +280,7 @@ public class FlattenedOptional extends QueryModelNodeBase implements TupleExpr {
     private Set<String> setWithOutConstants(Set<String> vars) {
         Set<String> copy = new HashSet<>();
         for (String s : vars) {
-            if (!s.startsWith("-const-")) {
+            if (!VarNameUtils.isConstant(s)) {
                 copy.add(s);
             }
         }

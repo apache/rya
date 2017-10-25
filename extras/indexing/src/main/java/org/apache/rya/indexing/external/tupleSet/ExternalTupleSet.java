@@ -18,13 +18,15 @@ package org.apache.rya.indexing.external.tupleSet;
  * specific language governing permissions and limitations
  * under the License.
  */
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
-import java.util.*;
-
-import com.google.common.base.Joiner;
-import com.google.common.base.Preconditions;
-import com.google.common.collect.*;
+import org.apache.rya.api.domain.VarNameUtils;
 import org.eclipse.rdf4j.common.iteration.CloseableIteration;
+import org.eclipse.rdf4j.model.Value;
 import org.eclipse.rdf4j.query.BindingSet;
 import org.eclipse.rdf4j.query.QueryEvaluationException;
 import org.eclipse.rdf4j.query.algebra.Projection;
@@ -32,6 +34,14 @@ import org.eclipse.rdf4j.query.algebra.TupleExpr;
 import org.eclipse.rdf4j.query.algebra.Var;
 import org.eclipse.rdf4j.query.algebra.evaluation.impl.ExternalSet;
 import org.eclipse.rdf4j.query.algebra.helpers.AbstractQueryModelVisitor;
+
+import com.google.common.base.Joiner;
+import com.google.common.base.Preconditions;
+import com.google.common.collect.BiMap;
+import com.google.common.collect.HashBiMap;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 
 /**
  * This is an abstract class of delegating the evaluation of part
@@ -46,12 +56,16 @@ import org.eclipse.rdf4j.query.algebra.helpers.AbstractQueryModelVisitor;
 public abstract class ExternalTupleSet extends ExternalSet {
 
 	public static final String VAR_ORDER_DELIM = ";";
-	public static final String CONST_PREFIX = "-const-";
+	/**
+	 * @deprecated use {@link VarNameUtils#CONSTANT_PREFIX}.
+	 */
+	@Deprecated
+	public static final String CONST_PREFIX = VarNameUtils.CONSTANT_PREFIX;
 	public static final String VALUE_DELIM = "\u0000";
 	private Projection tupleExpr;
     private Map<String, String> tableVarMap = Maps.newHashMap();  //maps vars in tupleExpr to var in stored binding sets
     private Map<String, Set<String>> supportedVarOrders = Maps.newHashMap(); //indicates supported var orders
-    private Map<String,  org.eclipse.rdf4j.model.Value> valMap;
+    private Map<String, Value> valMap;
 
     public ExternalTupleSet() {
     }
@@ -122,7 +136,7 @@ public abstract class ExternalTupleSet extends ExternalSet {
         return supportedVarOrders;
     }
 
-    public Map<String,  org.eclipse.rdf4j.model.Value> getConstantValueMap() {
+    public Map<String, Value> getConstantValueMap() {
     	return valMap;
     }
 
@@ -154,7 +168,7 @@ public abstract class ExternalTupleSet extends ExternalSet {
 			if (bindingNames.contains(s)) {
 				bNames.add(s);
 				bNamesWithConstants.add(s);
-			} else if(s.startsWith(CONST_PREFIX)) {
+			} else if(VarNameUtils.isConstant(s)) {
 				bNamesWithConstants.add(s);
 			}
 		}
@@ -261,7 +275,7 @@ public abstract class ExternalTupleSet extends ExternalSet {
         return result;
     }
 
-    private Map<String,  org.eclipse.rdf4j.model.Value> getValMap() {
+    private Map<String, Value> getValMap() {
 		ValueMapVisitor valMapVis = new ValueMapVisitor();
 		tupleExpr.visit(valMapVis);
 		return valMapVis.getValMap();
@@ -275,15 +289,15 @@ public abstract class ExternalTupleSet extends ExternalSet {
 	 */
 	private class ValueMapVisitor extends
             AbstractQueryModelVisitor<RuntimeException> {
-		Map<String,  org.eclipse.rdf4j.model.Value> valMap = Maps.newHashMap();
+		Map<String, Value> valMap = Maps.newHashMap();
 
-		public Map<String,  org.eclipse.rdf4j.model.Value> getValMap() {
+		public Map<String, Value> getValMap() {
 			return valMap;
 		}
 
 		@Override
 		public void meet(Var node) {
-			if (node.getName().startsWith("-const-")) {
+			if (VarNameUtils.isConstant(node.getName())) {
 				valMap.put(node.getName(), node.getValue());
 			}
 		}

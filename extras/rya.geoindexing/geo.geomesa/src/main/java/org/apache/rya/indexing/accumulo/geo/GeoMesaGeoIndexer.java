@@ -69,10 +69,10 @@ import org.opengis.feature.simple.SimpleFeatureType;
 import org.opengis.filter.Filter;
 import org.opengis.filter.FilterFactory;
 import org.opengis.filter.identity.Identifier;
-import  org.eclipse.rdf4j.model.Literal;
-import  org.eclipse.rdf4j.model.Statement;
-import  org.eclipse.rdf4j.model.URI;
-import  org.eclipse.rdf4j.query.QueryEvaluationException;
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.Literal;
+import org.eclipse.rdf4j.model.Statement;
+import org.eclipse.rdf4j.query.QueryEvaluationException;
 
 import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.io.ParseException;
@@ -134,7 +134,7 @@ public class GeoMesaGeoIndexer extends AbstractAccumuloIndexer implements GeoInd
     private static final String CONTEXT_ATTRIBUTE = "C";
     private static final String GEOMETRY_ATTRIBUTE = Constants.SF_PROPERTY_GEOMETRY;
 
-    private Set<URI> validPredicates;
+    private Set<IRI> validPredicates;
     private Configuration conf;
     private FeatureStore<SimpleFeatureType, SimpleFeature> featureStore;
     private FeatureSource<SimpleFeatureType, SimpleFeature> featureSource;
@@ -304,7 +304,7 @@ public class GeoMesaGeoIndexer extends AbstractAccumuloIndexer implements GeoInd
         }
         if (contraints.hasPredicates()) {
             final List<String> predicates = new ArrayList<String>();
-            for (final URI u : contraints.getPredicates()) {
+            for (final IRI u : contraints.getPredicates()) {
                 predicates.add("( " + PREDICATE_ATTRIBUTE + "= '" + u.stringValue() + "') ");
             }
             filterParms.add("(" + StringUtils.join(predicates, " OR ") + ")");
@@ -418,7 +418,7 @@ public class GeoMesaGeoIndexer extends AbstractAccumuloIndexer implements GeoInd
     }
 
     @Override
-    public Set<URI> getIndexablePredicates() {
+    public Set<IRI> getIndexablePredicates() {
         return validPredicates;
     }
 

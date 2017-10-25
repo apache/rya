@@ -15,12 +15,12 @@ import org.apache.rya.indexing.IteratorFactory;
 import org.apache.rya.indexing.SearchFunction;
 import org.apache.rya.indexing.StatementConstraints;
 import org.apache.rya.indexing.external.tupleSet.ExternalTupleSet;
-import  org.eclipse.rdf4j.model.Statement;
-import  org.eclipse.rdf4j.model.URI;
-import  org.eclipse.rdf4j.model.Value;
-import  org.eclipse.rdf4j.query.BindingSet;
-import  org.eclipse.rdf4j.query.QueryEvaluationException;
-import  org.eclipse.rdf4j.query.algebra.Var;
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.Statement;
+import org.eclipse.rdf4j.model.Value;
+import org.eclipse.rdf4j.query.BindingSet;
+import org.eclipse.rdf4j.query.QueryEvaluationException;
+import org.eclipse.rdf4j.query.algebra.Var;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.Maps;
@@ -120,7 +120,7 @@ public class GeoTupleSet extends ExternalTupleSet {
     public CloseableIteration<BindingSet, QueryEvaluationException> evaluate(final BindingSet bindings)
             throws QueryEvaluationException {
 
-        final URI funcURI = filterInfo.getFunction();
+        final IRI funcURI = filterInfo.getFunction();
         final SearchFunction searchFunction = new GeoSearchFunctionFactory(conf, geoIndexer).getSearchFunction(funcURI);
 
         String queryText;
@@ -170,7 +170,7 @@ public class GeoTupleSet extends ExternalTupleSet {
 
         Configuration conf;
 
-        private final Map<URI, SearchFunction> SEARCH_FUNCTION_MAP = Maps.newHashMap();
+        private final Map<IRI, SearchFunction> SEARCH_FUNCTION_MAP = Maps.newHashMap();
 
         private final GeoIndexer geoIndexer;
 
@@ -186,7 +186,7 @@ public class GeoTupleSet extends ExternalTupleSet {
          * @param searchFunction
          * @return
          */
-        public SearchFunction getSearchFunction(final URI searchFunction) {
+        public SearchFunction getSearchFunction(final IRI searchFunction) {
 
             SearchFunction geoFunc = null;
 
@@ -199,7 +199,7 @@ public class GeoTupleSet extends ExternalTupleSet {
             return geoFunc;
         }
 
-        private SearchFunction getSearchFunctionInternal(final URI searchFunction) throws QueryEvaluationException {
+        private SearchFunction getSearchFunctionInternal(final IRI searchFunction) throws QueryEvaluationException {
             final SearchFunction sf = SEARCH_FUNCTION_MAP.get(searchFunction);
 
             if (sf != null) {

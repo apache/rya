@@ -33,6 +33,6 @@ import org.eclipse.rdf4j.query.BindingSet;
 public class RyaStatementAddBindingSetFunction implements Function<RyaStatement, Map.Entry<RyaStatement, BindingSet>> {
     @Override
     public Map.Entry<RyaStatement, BindingSet> apply(RyaStatement ryaStatement) {
-        return new RdfCloudTripleStoreUtils.CustomEntry<org.apache.rya.api.domain.RyaStatement,  org.eclipse.rdf4j.query.BindingSet>(ryaStatement, null);
+        return new RdfCloudTripleStoreUtils.CustomEntry<RyaStatement, BindingSet>(ryaStatement, null);
     }
 }

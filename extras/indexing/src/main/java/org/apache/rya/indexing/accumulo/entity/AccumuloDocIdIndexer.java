@@ -343,7 +343,7 @@ public class AccumuloDocIdIndexer implements DocIdIndexer {
 
             if (tripleComponent.equals("object")) {
                 final byte[] object = Bytes.concat(cqContent, objType);
-                 org.eclipse.rdf4j.model.Value v = null;
+                org.eclipse.rdf4j.model.Value v = null;
                 try {
                     v = RyaToRdfConversions.convertValue(RyaContext.getInstance().deserialize(
                             object));
@@ -355,7 +355,7 @@ public class AccumuloDocIdIndexer implements DocIdIndexer {
             } else if (tripleComponent.equals("subject")) {
                 if (!commonVarSet) {
                     final byte[] object = Bytes.concat(row.getBytes(), objType);
-                     org.eclipse.rdf4j.model.Value v = null;
+                    org.eclipse.rdf4j.model.Value v = null;
                     try {
                         v = RyaToRdfConversions.convertValue(RyaContext.getInstance().deserialize(
                                 object));

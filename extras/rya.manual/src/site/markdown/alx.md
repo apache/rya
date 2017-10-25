@@ -57,8 +57,8 @@ The bundle registers a Sail Repository, so you can interact with it directly as 
 
 ``` JAVA
 import org.springframework.osgi.extensions.annotation.*;
-import  org.eclipse.rdf4j.repository.*;
-import  org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.repository.*;
+import org.eclipse.rdf4j.model.ValueFactory;
 import static org.apache.rya.api.RdfCloudTripleStoreConstants.*;
 
 class TstRepo {

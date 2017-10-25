@@ -27,10 +27,10 @@
 //import org.apache.rya.accumulo.DefineTripleQueryRangeFactory;
 //import org.apache.rya.api.domain.RangeValue;
 //import org.apache.accumulo.core.data.Range;
-//import  org.eclipse.rdf4j.model.URI;
-//import  org.eclipse.rdf4j.model.Value;
-//import  org.eclipse.rdf4j.model.ValueFactory;
-//import  org.eclipse.rdf4j.model.impl.ValueFactoryImpl;
+//import org.eclipse.rdf4j.model.IRI;
+//import org.eclipse.rdf4j.model.Value;
+//import org.eclipse.rdf4j.model.ValueFactory;
+//import org.eclipse.rdf4j.model.impl.ValueFactoryImpl;
 //
 //import java.util.Map;
 //

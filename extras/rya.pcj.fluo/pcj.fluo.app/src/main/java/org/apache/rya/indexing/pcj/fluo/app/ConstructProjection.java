@@ -30,6 +30,7 @@ import org.apache.log4j.Logger;
 import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.domain.RyaType;
 import org.apache.rya.api.domain.RyaURI;
+import org.apache.rya.api.domain.VarNameUtils;
 import org.apache.rya.api.resolver.RdfToRyaConversions;
 import org.apache.rya.indexing.pcj.storage.accumulo.VisibilityBindingSet;
 import org.eclipse.rdf4j.model.*;
@@ -76,7 +77,7 @@ public class ConstructProjection {
         this.subjVar = subjectVar;
         this.predVar = predicateVar;
         this.objVar = objectVar;
-        if((subjVar.isAnonymous() || subjName.startsWith("-anon-")) && subjectVar.getValue() == null) {
+        if ((subjVar.isAnonymous() || VarNameUtils.isAnonymous(subjName)) && subjectVar.getValue() == null) {
             subjValue = Optional.of(vf.createBNode());
         } else {
             subjValue = Optional.ofNullable(subjectVar.getValue());
@@ -91,12 +92,12 @@ public class ConstructProjection {
 
     /**
      * Returns a Var with info about the Value projected onto the RyaStatement
-     * subject. If the  org.eclipse.rdf4j.query.algebra.Var returned by this method is
+     * subject. If the org.eclipse.rdf4j.query.algebra.Var returned by this method is
      * not constant (as indicated by {@link Var#isConstant()}, then
      * {@link Var#getName()} is the Binding name that gets projected. If the Var
      * is constant, then {@link Var#getValue()} is assigned to the subject
      * 
-     * @return {@link  org.eclipse.rdf4j.query.algebra.Var} containing info about
+     * @return {@link org.eclipse.rdf4j.query.algebra.Var} containing info about
      *         Binding that gets projected onto the subject
      */
     public String getSubjectSourceName() {
@@ -105,12 +106,12 @@ public class ConstructProjection {
 
     /**
      * Returns a Var with info about the Value projected onto the RyaStatement
-     * predicate. If the  org.eclipse.rdf4j.query.algebra.Var returned by this method
+     * predicate. If the org.eclipse.rdf4j.query.algebra.Var returned by this method
      * is not constant (as indicated by {@link Var#isConstant()}, then
      * {@link Var#getName()} is the Binding name that gets projected. If the Var
      * is constant, then {@link Var#getValue()} is assigned to the predicate
      * 
-     * @return {@link  org.eclipse.rdf4j.query.algebra.Var} containing info about
+     * @return {@link org.eclipse.rdf4j.query.algebra.Var} containing info about
      *         Binding that gets projected onto the predicate
      */
     public String getPredicateSourceName() {
@@ -119,12 +120,12 @@ public class ConstructProjection {
 
     /**
      * Returns a Var with info about the Value projected onto the RyaStatement
-     * object. If the  org.eclipse.rdf4j.query.algebra.Var returned by this method is
+     * object. If the org.eclipse.rdf4j.query.algebra.Var returned by this method is
      * not constant (as indicated by {@link Var#isConstant()}, then
      * {@link Var#getName()} is the Binding name that gets projected. If the Var
      * is constant, then {@link Var#getValue()} is assigned to the object
      * 
-     * @return {@link  org.eclipse.rdf4j.query.algebra.Var} containing info about
+     * @return {@link org.eclipse.rdf4j.query.algebra.Var} containing info about
      *         Binding that gets projected onto the object
      */
     public String getObjectSourceName() {

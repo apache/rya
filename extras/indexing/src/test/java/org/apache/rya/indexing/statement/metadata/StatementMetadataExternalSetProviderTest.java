@@ -24,6 +24,7 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.rya.accumulo.AccumuloRdfConfiguration;
 import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
 import org.apache.rya.api.domain.RyaURI;
+import org.apache.rya.api.domain.VarNameUtils;
 import org.apache.rya.indexing.accumulo.ConfigUtils;
 import org.apache.rya.indexing.external.matching.JoinSegment;
 import org.apache.rya.indexing.statement.metadata.matching.StatementMetadataExternalSetProvider;
@@ -125,7 +126,7 @@ public class StatementMetadataExternalSetProviderTest {
         Set<StatementPattern> sp3 = StatementMetadataTestUtils.getMetadataStatementPatterns(pq3.getTupleExpr(), propertySet);
         //added extra blankNode into query3 to make blankNode names line up with query2.  Need to remove it now so that
         //StatementMetadataNode doesn't blow up because all subjects aren't the same.
-        removePatternWithGivenSubject("-anon-1", sp3);
+        removePatternWithGivenSubject(VarNameUtils.prependAnonymous("1"), sp3);
 
         patterns.addAll(StatementPatternCollector.process(pq2.getTupleExpr()));
         JoinSegment<StatementMetadataNode<?>> segment = new JoinSegment<>(

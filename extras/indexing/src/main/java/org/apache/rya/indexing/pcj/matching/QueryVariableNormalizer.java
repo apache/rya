@@ -23,6 +23,8 @@ import java.util.*;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+
+import org.apache.rya.api.domain.VarNameUtils;
 import org.eclipse.rdf4j.model.Literal;
 import org.eclipse.rdf4j.model.Value;
 import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
@@ -385,7 +387,7 @@ public class QueryVariableNormalizer {
                 if(vc.getValue() instanceof Literal) {
                     s = s.substring(1, s.length() - 1);
                 } 
-                s = "-const-" + s;
+                s = VarNameUtils.prependConstant(s);
                 varList1.add(s);
                 varList2.add(((Var)vars2.get(i)).getName());
             } else if(!(vars1.get(i) instanceof ValueConstant)){
@@ -734,7 +736,7 @@ public class QueryVariableNormalizer {
                 s = s.substring(1, s.length() - 1);
             }
             
-            s = "-const-" + s;
+            s = VarNameUtils.prependConstant(s);
             valMap.put(s, val.getValue());
         }
 
@@ -777,7 +779,7 @@ public class QueryVariableNormalizer {
         public void meet(Var var) {
             if (!var.isConstant() && hMap.containsKey(var.getName())) {
                 String val = hMap.get(var.getName());
-                if (val.startsWith("-const-")) {
+                if (VarNameUtils.isConstant(val)) {
                    var.setName(val);
                    var.setValue(valMap.get(val));
                    var.setAnonymous(true); //TODO this might be a hack -- when are Vars not anonymous?
@@ -809,7 +811,7 @@ public class QueryVariableNormalizer {
             if (!(var.getParentNode() instanceof NAryValueOperator)) {
                 if (!var.isConstant() && hMap.containsKey(var.getName())) {
                     String val = hMap.get(var.getName());
-                    if (val.startsWith("-const-")) {
+                    if (VarNameUtils.isConstant(val)) {
                         var.replaceWith(new ValueConstant(valMap.get(val)));
                     } else {
                         var.setName(val);
@@ -831,7 +833,7 @@ public class QueryVariableNormalizer {
                     Var var = (Var) v;
                     if (!(var.isConstant() && hMap.containsKey(var.getName()))) {
                         String val = hMap.get(var.getName());
-                        if (val.startsWith("-const-")) {
+                        if (VarNameUtils.isConstant(val)) {
                             newValues.add(new ValueConstant(valMap.get(val)));
                         } else {
                             var.setName(val);

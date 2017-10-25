@@ -22,7 +22,6 @@ import java.util.List;
 import java.util.Set;
 
 import org.apache.hadoop.conf.Configuration;
-import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.apache.rya.accumulo.AccumuloRdfConfiguration;
 import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
@@ -32,8 +31,7 @@ import org.apache.rya.indexing.GeoEnabledFilterFunctionOptimizer;
 import org.apache.rya.indexing.GeoIndexerType;
 import org.apache.rya.indexing.GeoTemporalIndexerType;
 import org.apache.rya.indexing.accumulo.ConfigUtils;
-import org.apache.rya.indexing.geotemporal.GeoTemporalOptimizer;
-import  org.eclipse.rdf4j.model.URI;
+import org.eclipse.rdf4j.model.IRI;
 
 import com.google.common.collect.Lists;
 
@@ -60,7 +58,7 @@ public class OptionalConfigUtils extends ConfigUtils {
     public static final String GEO_PREDICATES_LIST = "sc.geo.predicates";
     public static final String GEO_INDEXER_TYPE = "sc.geo.geo_indexer_type";
 
-    public static Set<URI> getGeoPredicates(final Configuration conf) {
+    public static Set<IRI> getGeoPredicates(final Configuration conf) {
         return getPredicates(conf, GEO_PREDICATES_LIST);
     }
 

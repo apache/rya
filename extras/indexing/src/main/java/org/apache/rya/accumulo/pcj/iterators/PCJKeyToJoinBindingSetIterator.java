@@ -31,6 +31,7 @@ import org.apache.accumulo.core.client.BatchScanner;
 import org.apache.accumulo.core.client.Scanner;
 import org.apache.accumulo.core.data.Key;
 import org.apache.rya.api.RdfCloudTripleStoreUtils;
+import org.apache.rya.api.domain.VarNameUtils;
 import org.apache.rya.indexing.external.tupleSet.ExternalTupleSet;
 import org.apache.rya.indexing.pcj.storage.accumulo.AccumuloPcjSerializer;
 import org.apache.rya.indexing.pcj.storage.accumulo.BindingSetConverter.BindingSetConversionException;
@@ -167,7 +168,7 @@ public class PCJKeyToJoinBindingSetIterator
 		QueryBindingSet bs = new QueryBindingSet();
 		for (String var : bindingSet.getBindingNames()) {
 			String mappedVar = pcjVarMap.get(var);
-			if (mappedVar.startsWith(ExternalTupleSet.CONST_PREFIX)
+			if (VarNameUtils.isConstant(mappedVar)
 					&& constantConstraints.containsKey(mappedVar)
 					&& !constantConstraints.get(mappedVar).equals(
 							bindingSet.getValue(var))) {

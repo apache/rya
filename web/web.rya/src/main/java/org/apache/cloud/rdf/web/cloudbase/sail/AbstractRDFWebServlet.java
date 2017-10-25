@@ -25,9 +25,9 @@
 //import org.apache.rya.cloudbase.CloudbaseRdfDAO;
 //import org.apache.rya.cloudbase.CloudbaseRdfEvalStatsDAO;
 //import RdfCloudTripleStore;
-//import  org.eclipse.rdf4j.repository.Repository;
-//import  org.eclipse.rdf4j.repository.RepositoryException;
-//import  org.eclipse.rdf4j.repository.sail.SailRepository;
+//import org.eclipse.rdf4j.repository.Repository;
+//import org.eclipse.rdf4j.repository.RepositoryException;
+//import org.eclipse.rdf4j.repository.sail.SailRepository;
 //
 //import javax.servlet.ServletConfig;
 //import javax.servlet.ServletException;

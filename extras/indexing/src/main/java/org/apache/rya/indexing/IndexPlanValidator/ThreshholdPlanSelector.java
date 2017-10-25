@@ -23,6 +23,8 @@ import java.util.Iterator;
 import java.util.Set;
 
 import com.google.common.collect.Sets;
+
+import org.apache.rya.api.domain.VarNameUtils;
 import org.apache.rya.indexing.external.tupleSet.ExternalTupleSet;
 import org.eclipse.rdf4j.query.algebra.*;
 import org.eclipse.rdf4j.query.algebra.helpers.AbstractQueryModelVisitor;
@@ -201,13 +203,13 @@ public class ThreshholdPlanSelector implements IndexedQueryPlanSelector {
             Set<String> rNames = node.getRightArg().getAssuredBindingNames();
             
             for(String s: node.getLeftArg().getBindingNames()) {
-                if(s.startsWith("-const-")) {
+                if (VarNameUtils.isConstant(s)) {
                     lNames.remove(s);
                 }
             }
             
             for(String s: node.getRightArg().getBindingNames()) {
-                if(s.startsWith("-const-")) {
+                if (VarNameUtils.isConstant(s)) {
                     rNames.remove(s);
                 }
             }

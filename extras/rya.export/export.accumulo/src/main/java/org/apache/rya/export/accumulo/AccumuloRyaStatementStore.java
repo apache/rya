@@ -38,7 +38,6 @@ import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.persist.RyaDAOException;
 import org.apache.rya.api.resolver.RyaTripleContext;
 import org.apache.rya.api.resolver.triple.TripleRowResolverException;
-import org.apache.rya.export.InstanceType;
 import org.apache.rya.export.accumulo.parent.AccumuloParentMetadataRepository;
 import org.apache.rya.export.accumulo.util.AccumuloRyaUtils;
 import org.apache.rya.export.api.MergerException;
@@ -71,16 +70,10 @@ public class AccumuloRyaStatementStore implements RyaStatementStore {
     private final AccumuloParentMetadataRepository metadataRepo;
 
     /**
-     * Creates a new instance of {@link AccumuloRyaStatementStore}.
-     * @param instanceName the Accumulo instance name.
-     * @param username the Accumulo user name.
-     * @param password the Accumulo user's password.
-     * @param instanceType the {@link InstanceType}.
-     * @param tablePrefix the Rya instance's table prefix.
-     * @param auths the comma-separated list of Accumulo authorizations for the
-     * user.
-     * @param zooKeepers the comma-separated list of zoo keeper host names.
-     * @throws MergerException
+     *
+     * @param dao the dao
+     * @param tablePrefix table prefix
+     * @param ryaInstance a rya instance
      */
     public AccumuloRyaStatementStore(final AccumuloRyaDAO dao, final String tablePrefix, final String ryaInstance) {
         this.tablePrefix = tablePrefix;

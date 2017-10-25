@@ -444,13 +444,6 @@ public class AccumuloSelectivityEvalDAO implements SelectivityEvalDAO<RdfCloudTr
   
   
   
-  
-  
-  
-  
-  
-  
-  
 
   // obtains cardinality for StatementPattern. Returns cardinality of 0
   // if no instances of constants occur in table.

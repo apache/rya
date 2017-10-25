@@ -18,31 +18,22 @@
  */
 package org.apache.rya.streams.api.interactor;
 
-import java.nio.file.Path;
-
-import org.apache.rya.api.model.VisibilityStatement;
+import java.util.UUID;
 
 import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
 import edu.umd.cs.findbugs.annotations.NonNull;
 
 /**
- * An interactor that is used to load {@link VisibilityStatement}s into a Rya Streaming program.
+ * Deletes a SPARQL Query that is being processed by Rya Streams from the system. That query will no longer be processed.
  */
 @DefaultAnnotation(NonNull.class)
-public interface LoadStatements {
+public interface DeleteQuery {
 
     /**
-     * Loads a series of statements from a RDF File into the Rya Streams system.
+     * Delete a SPARQL Query that is being processed by Rya Streams from the system.
      *
-     * @param statementsPath - The {@link Path} that will be loaded. (not null)
-     * @param visibilities - The visibilities of the statements to load into Rya
-     *        Streams. (not null)
-     *        <p>
-     *        <b>NOTE:</b> The file extension is used to determine the format of
-     *        the RDF file.
-     *
-     * @throws RyaStreamsException Thrown when the format of the file provided is unknown,
-     *         or not a valid RDF format.
+     * @param queryId - Identifies which query will be removed. (not null)
+     * @throws RyaStreamsException The query could not be removed from the system.
      */
-    public void load(final Path statementsPath, final String visibilities) throws RyaStreamsException;
+    public void delete(final UUID queryId) throws RyaStreamsException;
 }

@@ -20,6 +20,7 @@ package org.apache.rya.streams.kafka.interactor;
 
 import static java.util.Objects.requireNonNull;
 
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
@@ -27,9 +28,11 @@ import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.rya.api.model.VisibilityStatement;
 import org.apache.rya.streams.api.interactor.LoadStatements;
+import org.apache.rya.streams.api.interactor.RyaStreamsException;
 import org.openrdf.model.Statement;
 import org.openrdf.rio.RDFFormat;
 import org.openrdf.rio.RDFHandlerException;
+import org.openrdf.rio.RDFParseException;
 import org.openrdf.rio.RDFParser;
 import org.openrdf.rio.Rio;
 import org.openrdf.rio.helpers.RDFHandlerBase;
@@ -46,7 +49,6 @@ import edu.umd.cs.findbugs.annotations.NonNull;
 public class KafkaLoadStatements implements LoadStatements {
     private static final Logger log = LoggerFactory.getLogger(KafkaLoadStatements.class);
 
-    private static final String KAFKA_CLIENT = "Load Statements";
     private final String topic;
     private final Producer<?, VisibilityStatement> producer;
 
@@ -63,11 +65,14 @@ public class KafkaLoadStatements implements LoadStatements {
 
 
     @Override
-    public void load(final Path statementsPath, final String visibilities) throws Exception {
+    public void load(final Path statementsPath, final String visibilities) throws RyaStreamsException {
         requireNonNull(statementsPath);
         requireNonNull(visibilities);
 
+        // Create an RDF Parser whose format is derived from the statementPath's file extension.
         final RDFParser parser = Rio.createParser(RDFFormat.forFileName(statementsPath.getFileName().toString()));
+
+        // Set a handler that writes the statements to the specified kafka topic.
         parser.setRDFHandler(new RDFHandlerBase() {
             @Override
             public void startRDF() throws RDFHandlerException {
@@ -86,6 +91,12 @@ public class KafkaLoadStatements implements LoadStatements {
                 log.trace("done.");
             }
         });
-        parser.parse(Files.newInputStream(statementsPath), "");
+
+        // Do the parse and load.
+        try {
+            parser.parse(Files.newInputStream(statementsPath), "");
+        } catch (RDFParseException | RDFHandlerException | IOException e) {
+            throw new RyaStreamsException("Could not load the RDF file's Statements into Rya Streams.", e);
+        }
     }
 }

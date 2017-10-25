@@ -20,9 +20,11 @@ package org.apache.rya.streams.api.queries;
 
 import static java.util.Objects.requireNonNull;
 
+import java.io.Serializable;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.UUID;
+
+import com.google.common.base.Optional;
 
 import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
 import edu.umd.cs.findbugs.annotations.NonNull;
@@ -33,8 +35,8 @@ import edu.umd.cs.findbugs.annotations.NonNull;
  * Immutable.
  */
 @DefaultAnnotation(NonNull.class)
-public final class QueryChange {
-
+public final class QueryChange implements Serializable {
+    private static final long serialVersionUID = 1L;
     private final UUID queryId;
     private final ChangeType changeType;
     private final Optional<String> sparql;
@@ -111,7 +113,7 @@ public final class QueryChange {
      * @return A {@link QueryChange} built using the provided values.
      */
     public static QueryChange delete(final UUID queryId) {
-        return new QueryChange(queryId, ChangeType.DELETE, Optional.empty());
+        return new QueryChange(queryId, ChangeType.DELETE, Optional.absent());
     }
 
     /**

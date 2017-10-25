@@ -18,13 +18,8 @@
  */
 package org.apache.rya.streams.kafka.serialization;
 
-import java.io.IOException;
-import java.util.Map;
-
 import org.apache.kafka.common.serialization.Serializer;
 import org.apache.rya.api.model.VisibilityStatement;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
 import edu.umd.cs.findbugs.annotations.NonNull;
@@ -33,33 +28,9 @@ import edu.umd.cs.findbugs.annotations.NonNull;
  * A Kafka {@link Serializer} that is able to serialize {@link VisibilityStatement}s using Java object serialization.
  */
 @DefaultAnnotation(NonNull.class)
-public class VisibilityStatementSerializer implements Serializer<VisibilityStatement> {
-
-    private static final Logger log = LoggerFactory.getLogger(VisibilityStatementSerializer.class);
-
+public class VisibilityStatementSerializer extends ObjectSerializer<VisibilityStatement> {
     @Override
-    public void configure(final Map<String, ?> configs, final boolean isKey) {
-        // Nothing to do.
-    }
-
-    @Override
-    public byte[] serialize(final String topic, final VisibilityStatement data) {
-        if(data == null) {
-            return null;
-        }
-
-        try {
-            return ObjectSerialization.serialize(data);
-        } catch (final IOException e) {
-            log.error("Unable to serialize a " + VisibilityStatement.class.getName() + ".", e);
-
-            // Return null when there is an error since that is the contract of this method.
-            return null;
-        }
-    }
-
-    @Override
-    public void close() {
-        // Nothing to do.
+    protected Class<VisibilityStatement> getSerializedClass() {
+        return VisibilityStatement.class;
     }
 }

@@ -18,13 +18,8 @@
  */
 package org.apache.rya.streams.kafka.serialization;
 
-import java.io.IOException;
-import java.util.Map;
-
 import org.apache.kafka.common.serialization.Deserializer;
 import org.apache.rya.api.model.VisibilityStatement;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
 import edu.umd.cs.findbugs.annotations.NonNull;
@@ -33,34 +28,9 @@ import edu.umd.cs.findbugs.annotations.NonNull;
  * A Kafka {@link Deserializer} that is able to deserialize Java object serialized {@link VisibilityStatement}s.
  */
 @DefaultAnnotation(NonNull.class)
-public class VisibilityStatementDeserializer implements Deserializer<VisibilityStatement> {
-
-    private static final Logger log = LoggerFactory.getLogger(VisibilityStatement.class);
-
+public class VisibilityStatementDeserializer extends ObjectDeserializer<VisibilityStatement> {
     @Override
-    public void configure(final Map<String, ?> configs, final boolean isKey) {
-        // Nothing to do.
-    }
-
-    @Override
-    public VisibilityStatement deserialize(final String topic, final byte[] data) {
-        if(data == null || data.length == 0) {
-            // Returning null because that is the contract of this method.
-            return null;
-        }
-
-        try {
-            return ObjectSerialization.deserialize(data, VisibilityStatement.class);
-        } catch (final ClassNotFoundException | ClassCastException | IOException e) {
-            log.error("Could not deserialize some data into a " + VisibilityStatement.class.getName() + ". This data will be skipped.", e);
-
-            // Returning null because that is the contract of this method.
-            return null;
-        }
-    }
-
-    @Override
-    public void close() {
-        // Nothing to do.
+    protected Class<VisibilityStatement> getDeserializedClass() {
+        return VisibilityStatement.class;
     }
 }

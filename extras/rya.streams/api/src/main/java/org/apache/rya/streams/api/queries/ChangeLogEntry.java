@@ -35,7 +35,7 @@ import edu.umd.cs.findbugs.annotations.NonNull;
 @DefaultAnnotation(NonNull.class)
 public class ChangeLogEntry<T> {
 
-    private final int position;
+    private final long position;
     private final T entry;
 
     /**
@@ -44,7 +44,7 @@ public class ChangeLogEntry<T> {
      * @param position - The position of this entry within the change log.
      * @param entry - The value that is stored at this position within the change log. (not null)
      */
-    public ChangeLogEntry(final int position, final T entry) {
+    public ChangeLogEntry(final long position, final T entry) {
         this.position = position;
         this.entry = requireNonNull(entry);
     }
@@ -52,7 +52,7 @@ public class ChangeLogEntry<T> {
     /**
      * @return The position of this entry within the change log.
      */
-    public int getPosition() {
+    public long getPosition() {
         return position;
     }
 

@@ -16,21 +16,23 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.apache.rya.streams.kafka.serialization;
+package org.apache.rya.streams.kafka.serialization.queries;
 
 import org.apache.kafka.common.serialization.Deserializer;
-import org.apache.rya.api.model.VisibilityBindingSet;
+import org.apache.rya.streams.api.queries.QueryChange;
+import org.apache.rya.streams.kafka.serialization.ObjectDeserializer;
 
 import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
 import edu.umd.cs.findbugs.annotations.NonNull;
 
 /**
- * A Kafka {@link Deserializer} that is able to deserialize Java object serialized {@link VisibilityBindingSet}s.
+ * A Kafka {@link Deserializer} that is able to deserialize Java object serialized {@link QueryChange}s.
  */
 @DefaultAnnotation(NonNull.class)
-public class VisibilityBindingSetDeserializer extends ObjectDeserializer<VisibilityBindingSet> {
+public class QueryChangeDeserializer extends ObjectDeserializer<QueryChange> {
+
     @Override
-    protected Class<VisibilityBindingSet> getDeserializedClass() {
-        return VisibilityBindingSet.class;
+    protected Class<QueryChange> getDeserializedClass() {
+        return QueryChange.class;
     }
 }

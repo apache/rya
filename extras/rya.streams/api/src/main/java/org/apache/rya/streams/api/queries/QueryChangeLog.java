@@ -51,7 +51,7 @@ public interface QueryChangeLog {
      * @return The entries that are at and after the specified position.
      * @throws QueryChangeLogException The entries could not be fetched.
      */
-    public CloseableIteration<ChangeLogEntry<QueryChange>, QueryChangeLogException> readFromPosition(int position) throws QueryChangeLogException;
+    public CloseableIteration<ChangeLogEntry<QueryChange>, QueryChangeLogException> readFromPosition(long position) throws QueryChangeLogException;
 
     /**
      * One of the {@link QueryChangeLog} functions failed.

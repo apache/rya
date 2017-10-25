@@ -18,13 +18,8 @@
  */
 package org.apache.rya.streams.kafka.serialization;
 
-import java.io.IOException;
-import java.util.Map;
-
 import org.apache.kafka.common.serialization.Serializer;
 import org.apache.rya.api.model.VisibilityBindingSet;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
 import edu.umd.cs.findbugs.annotations.NonNull;
@@ -33,33 +28,9 @@ import edu.umd.cs.findbugs.annotations.NonNull;
  * A Kafka {@link Serializer} that is able to serialize {@link VisibilityBinidngSet}s using Java object serialization.
  */
 @DefaultAnnotation(NonNull.class)
-public class VisibilityBindingSetSerializer implements Serializer<VisibilityBindingSet> {
-
-    private static final Logger log = LoggerFactory.getLogger(VisibilityBindingSetDeserializer.class);
-
+public class VisibilityBindingSetSerializer extends ObjectSerializer<VisibilityBindingSet> {
     @Override
-    public void configure(final Map<String, ?> configs, final boolean isKey) {
-        // Nothing to do.
-    }
-
-    @Override
-    public byte[] serialize(final String topic, final VisibilityBindingSet data) {
-        if(data == null) {
-            return null;
-        }
-
-        try {
-            return ObjectSerialization.serialize(data);
-        } catch (final IOException e) {
-            log.error("Unable to serialize a " + VisibilityBindingSet.class.getName() + ".", e);
-
-            // Return null when there is an error since that is the contract of this method.
-            return null;
-        }
-    }
-
-    @Override
-    public void close() {
-        // Nothing to do.
+    protected Class<VisibilityBindingSet> getSerializedClass() {
+        return VisibilityBindingSet.class;
     }
 }

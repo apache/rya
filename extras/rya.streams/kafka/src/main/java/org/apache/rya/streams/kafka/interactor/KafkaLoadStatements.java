@@ -20,7 +20,7 @@ package org.apache.rya.streams.kafka.interactor;
 
 import static java.util.Objects.requireNonNull;
 
-import java.io.FileReader;
+import java.nio.file.Files;
 import java.nio.file.Path;
 
 import org.apache.kafka.clients.producer.Producer;
@@ -86,6 +86,6 @@ public class KafkaLoadStatements implements LoadStatements {
                 log.trace("done.");
             }
         });
-        parser.parse(new FileReader(statementsPath.toFile()), "");
+        parser.parse(Files.newInputStream(statementsPath), "");
     }
 }

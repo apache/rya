@@ -16,7 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.apache.rya.streams.api.interactor;
+package org.apache.rya.streams.api.exception;
 
 /**
  * An interactor of the Rya Streams system was unable to perform an operation.

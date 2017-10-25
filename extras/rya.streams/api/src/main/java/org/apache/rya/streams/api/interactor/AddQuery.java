@@ -18,7 +18,8 @@
  */
 package org.apache.rya.streams.api.interactor;
 
-import java.util.UUID;
+import org.apache.rya.streams.api.entity.StreamsQuery;
+import org.apache.rya.streams.api.exception.RyaStreamsException;
 
 import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
 import edu.umd.cs.findbugs.annotations.NonNull;
@@ -33,8 +34,8 @@ public interface AddQuery {
      * Adds a query to the Rya Streams system.
      *
      * @param query - The SPARQL query that will be added. (not null)
-     * @return The {@link UUID} of the query in Rya Streams.
+     * @return The {@link StreamsQuery} used by Rya Streams for this query.
      * @throws RyaStreamsException The query could not be added to Rya Streams.
      */
-    public UUID addQuery(final String query) throws RyaStreamsException;
+    public StreamsQuery addQuery(final String query) throws RyaStreamsException;
 }

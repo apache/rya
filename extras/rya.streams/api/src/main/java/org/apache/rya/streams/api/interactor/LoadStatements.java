@@ -21,6 +21,7 @@ package org.apache.rya.streams.api.interactor;
 import java.nio.file.Path;
 
 import org.apache.rya.api.model.VisibilityStatement;
+import org.apache.rya.streams.api.exception.RyaStreamsException;
 
 import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
 import edu.umd.cs.findbugs.annotations.NonNull;

@@ -39,7 +39,6 @@ import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.apache.rya.api.model.VisibilityStatement;
-import org.apache.rya.streams.kafka.interactor.KafkaLoadStatements;
 import org.apache.rya.streams.kafka.serialization.VisibilityStatementDeserializer;
 import org.apache.rya.streams.kafka.serialization.VisibilityStatementSerializer;
 import org.apache.rya.test.kafka.KafkaITBase;
@@ -97,7 +96,7 @@ public class KafkaLoadStatementsIT extends KafkaITBase {
 
         try (final KafkaConsumer<String, VisibilityStatement> consumer = new KafkaConsumer<>(consumerProps)) {
             consumer.subscribe(Arrays.asList(rule.getKafkaTopicName()));
-            final ConsumerRecords<String, VisibilityStatement> records = consumer.poll(1000);
+            final ConsumerRecords<String, VisibilityStatement> records = consumer.poll(2000);
 
             assertEquals(3, records.count());
             final Iterator<ConsumerRecord<String, VisibilityStatement>> iter = records.iterator();

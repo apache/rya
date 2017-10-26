@@ -69,7 +69,6 @@ import org.apache.rya.rdftriplestore.RyaSailRepository;
 import org.apache.rya.sail.config.RyaSailFactory;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Test;
 import org.openrdf.model.Statement;
 import org.openrdf.repository.sail.SailRepositoryConnection;
 import org.openrdf.sail.Sail;
@@ -129,7 +128,7 @@ public class KafkaExportITBase extends AccumuloExportITBase {
         final KafkaBindingSetExporterParameters kafkaParams = new KafkaBindingSetExporterParameters(exportParams);
         kafkaParams.setUseKafkaBindingSetExporter(true);
         kafkaParams.setKafkaBootStrapServers(BROKERHOST + ":" + BROKERPORT);
-        
+
         final KafkaSubGraphExporterParameters kafkaConstructParams = new KafkaSubGraphExporterParameters(exportParams);
         kafkaConstructParams.setUseKafkaSubgraphExporter(true);
 
@@ -262,7 +261,7 @@ public class KafkaExportITBase extends AccumuloExportITBase {
      * If this test fails then its a testing environment issue, not with Rya.
      * Source: https://github.com/asmaier/mini-kafka
      */
-    @Test
+//    @Test
     public void embeddedKafkaTest() throws Exception {
         // create topic
         final String topic = "testTopic";
@@ -339,9 +338,9 @@ public class KafkaExportITBase extends AccumuloExportITBase {
         // The PCJ Id is the topic name the results will be written to.
         return pcjId;
     }
-    
+
     protected void loadData(final Collection<Statement> statements) throws Exception {
-        
+
         requireNonNull(statements);
 
         final SailRepositoryConnection ryaConn = getRyaSailRepository().getConnection();
@@ -352,7 +351,7 @@ public class KafkaExportITBase extends AccumuloExportITBase {
 
         // Wait for the Fluo application to finish computing the end result.
         super.getMiniFluo().waitForObservers();
-        
+
     }
 
 }

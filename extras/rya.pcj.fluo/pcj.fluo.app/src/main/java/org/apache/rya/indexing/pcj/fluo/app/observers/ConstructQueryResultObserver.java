@@ -29,6 +29,8 @@ import org.apache.rya.indexing.pcj.fluo.app.IncrementalUpdateConstants;
 import org.apache.rya.indexing.pcj.fluo.app.NodeType;
 import org.apache.rya.indexing.pcj.fluo.app.export.IncrementalRyaSubGraphExporter;
 import org.apache.rya.indexing.pcj.fluo.app.query.FluoQueryColumns;
+import org.apache.rya.indexing.pcj.fluo.app.query.FluoQueryMetadataCache;
+import org.apache.rya.indexing.pcj.fluo.app.query.MetadataCacheSupplier;
 
 /**
  * Monitors the Column {@link FluoQueryColumns#CONSTRUCT_STATEMENTS} for new
@@ -40,6 +42,7 @@ import org.apache.rya.indexing.pcj.fluo.app.query.FluoQueryColumns;
 public class ConstructQueryResultObserver extends AbstractObserver {
 
     private static final Logger log = Logger.getLogger(ConstructQueryResultObserver.class);
+    protected final FluoQueryMetadataCache queryDao = MetadataCacheSupplier.getOrCreateCache();
 
     @Override
     public ObservedColumn getObservedColumn() {
@@ -48,14 +51,14 @@ public class ConstructQueryResultObserver extends AbstractObserver {
 
     @Override
     public void process(TransactionBase tx, Bytes row, Column col) throws Exception {
-        
+
         //Build row for parent that result will be written to
         BindingSetRow bsRow = BindingSetRow.make(row);
         String constructNodeId = bsRow.getNodeId();
         String bsString= bsRow.getBindingSetString();
-        String parentNodeId = tx.get(Bytes.of(constructNodeId), FluoQueryColumns.CONSTRUCT_PARENT_NODE_ID).toString();
+        String parentNodeId = queryDao.readMetadadataEntry(tx, constructNodeId, FluoQueryColumns.CONSTRUCT_PARENT_NODE_ID).toString();
         String rowString = parentNodeId + IncrementalUpdateConstants.NODEID_BS_DELIM + bsString;
-        
+
         //Get NodeType of the parent node
         NodeType parentType = NodeType.fromNodeId(parentNodeId).get();
         //Get data for the ConstructQuery result
@@ -63,5 +66,5 @@ public class ConstructQueryResultObserver extends AbstractObserver {
         //Write result to parent
         tx.set(Bytes.of(rowString), parentType.getResultColumn(), bytes);
     }
-   
+
 }

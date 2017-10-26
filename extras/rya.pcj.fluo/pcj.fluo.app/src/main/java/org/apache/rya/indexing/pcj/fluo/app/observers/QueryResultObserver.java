@@ -35,7 +35,8 @@ import org.apache.rya.indexing.pcj.fluo.app.export.kafka.KafkaRyaSubGraphExporte
 import org.apache.rya.indexing.pcj.fluo.app.export.rya.PeriodicBindingSetExporterFactory;
 import org.apache.rya.indexing.pcj.fluo.app.export.rya.RyaBindingSetExporterFactory;
 import org.apache.rya.indexing.pcj.fluo.app.export.rya.RyaSubGraphExporterFactory;
-import org.apache.rya.indexing.pcj.fluo.app.query.FluoQueryMetadataDAO;
+import org.apache.rya.indexing.pcj.fluo.app.query.FluoQueryMetadataCache;
+import org.apache.rya.indexing.pcj.fluo.app.query.MetadataCacheSupplier;
 import org.apache.rya.indexing.pcj.fluo.app.query.QueryMetadata;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -49,8 +50,7 @@ import com.google.common.collect.ImmutableSet;
 public class QueryResultObserver extends AbstractObserver {
 
     private static final Logger log = LoggerFactory.getLogger(QueryResultObserver.class);
-    private static final FluoQueryMetadataDAO DAO = new FluoQueryMetadataDAO();
-
+    protected final FluoQueryMetadataCache queryDao = MetadataCacheSupplier.getOrCreateCache();
     /**
      * Builders for each type of {@link IncrementalBindingSetExporter} we support.
      */
@@ -101,7 +101,7 @@ public class QueryResultObserver extends AbstractObserver {
 
         // Read the queryId from the row and get the QueryMetadata.
         final String queryId = row.split(NODEID_BS_DELIM)[0];
-        final QueryMetadata metadata = DAO.readQueryMetadata(tx, queryId);
+        final QueryMetadata metadata = queryDao.readQueryMetadata(tx, queryId);
 
         // Read the Child Binding Set that will be exported.
         final Bytes valueBytes = tx.get(brow, col);

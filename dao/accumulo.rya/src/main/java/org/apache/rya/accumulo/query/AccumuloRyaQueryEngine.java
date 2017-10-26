@@ -165,8 +165,13 @@ public class AccumuloRyaQueryEngine implements RyaQueryEngine<AccumuloRdfConfigu
                 layout = entry.getKey();
                 ByteRange byteRange = entry.getValue();
                 Range range = new Range(new Text(byteRange.getStart()), new Text(byteRange.getEnd()));
+                // if all the parts are specified, use exact range to potentially make use of a bloom filter
                 if ((stmt.getSubject() != null) && (stmt.getPredicate() != null) && (stmt.getObject() != null)) {
-                    range = Range.exact(appendType(byteRange.getStart(), stmt.getObject()));
+                    try {
+                        range = Range.exact(appendType(byteRange.getStart(), stmt.getObject()));
+                    } catch (UnsupportedOperationException e) {
+                        // if we can't use exact (as in RyaTypeRange), default to the regular range above.
+                    }
                 }
                 Range rangeMapRange = range;
                 // if context != null, bind context info to Range so that

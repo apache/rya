@@ -1,5 +1,3 @@
-package org.apache.rya.indexing.accumulo.temporal;
-
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -18,16 +16,34 @@ package org.apache.rya.indexing.accumulo.temporal;
  * specific language governing permissions and limitations
  * under the License.
  */
+package org.apache.rya.indexing.accumulo.temporal;
+
+import static org.apache.rya.api.resolver.RdfToRyaConversions.convertStatement;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
 import java.io.PrintStream;
 import java.security.NoSuchAlgorithmException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 
-import com.google.common.collect.Lists;
-import org.apache.accumulo.core.client.*;
+import org.apache.accumulo.core.client.AccumuloException;
+import org.apache.accumulo.core.client.AccumuloSecurityException;
+import org.apache.accumulo.core.client.BatchWriterConfig;
+import org.apache.accumulo.core.client.Connector;
+import org.apache.accumulo.core.client.MultiTableBatchWriter;
 import org.apache.accumulo.core.client.Scanner;
+import org.apache.accumulo.core.client.TableExistsException;
+import org.apache.accumulo.core.client.TableNotFoundException;
 import org.apache.accumulo.core.client.admin.TableOperations;
 import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Value;
@@ -38,20 +54,27 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.Text;
 import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
 import org.apache.rya.api.domain.RyaStatement;
-import org.apache.rya.indexing.*;
+import org.apache.rya.indexing.StatementConstraints;
+import org.apache.rya.indexing.StatementSerializer;
+import org.apache.rya.indexing.TemporalInstant;
+import org.apache.rya.indexing.TemporalInstantRfc3339;
+import org.apache.rya.indexing.TemporalInterval;
 import org.apache.rya.indexing.accumulo.ConfigUtils;
 import org.eclipse.rdf4j.common.iteration.CloseableIteration;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Statement;
 import org.eclipse.rdf4j.model.ValueFactory;
 import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
-import org.eclipse.rdf4j.model.impl.StatementImpl;
 import org.eclipse.rdf4j.model.vocabulary.RDFS;
 import org.eclipse.rdf4j.query.QueryEvaluationException;
-import org.junit.*;
+import org.junit.After;
+import org.junit.AfterClass;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Test;
 
-import static org.apache.rya.api.resolver.RdfToRyaConversions.convertStatement;
-import static org.junit.Assert.*;
+import com.google.common.collect.Lists;
 
 /**
  * JUnit tests for TemporalIndexer and it's implementation AccumuloTemporalIndexer
@@ -162,19 +185,19 @@ public final class AccumuloTemporalIndexerTest {
         IRI pred1_atTime = vf.createIRI(URI_PROPERTY_AT_TIME);
         // tiB03_E20 read as: time interval that Begins 3 seconds, ends at 20 seconds,
         // Each time element the same, except seconds. year, month, .... minute are the same for each statement below.
-        spo_B00_E01 = new StatementImpl(vf.createIRI("foo:event0"), pred1_atTime, vf.createLiteral(tvB00_E01.toString()));
-        spo_B02_E29 = new StatementImpl(vf.createIRI("foo:event2"), pred1_atTime, vf.createLiteral(tvB02_E29.toString()));
-        spo_B02_E30 = new StatementImpl(vf.createIRI("foo:event2"), pred1_atTime, vf.createLiteral(tvB02_E30.toString()));
-        spo_B02_E31 = new StatementImpl(vf.createIRI("foo:event3"), pred1_atTime, vf.createLiteral(tvB02_E31.toString()));
-        spo_B02_E40 = new StatementImpl(vf.createIRI("foo:event4"), pred1_atTime, vf.createLiteral(tvB02_E40.toString()));
-        spo_B03_E20 = new StatementImpl(vf.createIRI("foo:event5"), pred1_atTime, vf.createLiteral(tvB03_E20.toString()));
-        spo_B29_E30 = new StatementImpl(vf.createIRI("foo:event1"), pred1_atTime, vf.createLiteral(tvB29_E30.toString()));
-        spo_B30_E32 = new StatementImpl(vf.createIRI("foo:event1"), pred1_atTime, vf.createLiteral(tvB30_E32.toString()));
-        spo_B02 = new StatementImpl(vf.createIRI("foo:event6"), pred1_atTime, vf.createLiteral(tsB02.getAsReadable()));
+        spo_B00_E01 = vf.createStatement(vf.createIRI("foo:event0"), pred1_atTime, vf.createLiteral(tvB00_E01.toString()));
+        spo_B02_E29 = vf.createStatement(vf.createIRI("foo:event2"), pred1_atTime, vf.createLiteral(tvB02_E29.toString()));
+        spo_B02_E30 = vf.createStatement(vf.createIRI("foo:event2"), pred1_atTime, vf.createLiteral(tvB02_E30.toString()));
+        spo_B02_E31 = vf.createStatement(vf.createIRI("foo:event3"), pred1_atTime, vf.createLiteral(tvB02_E31.toString()));
+        spo_B02_E40 = vf.createStatement(vf.createIRI("foo:event4"), pred1_atTime, vf.createLiteral(tvB02_E40.toString()));
+        spo_B03_E20 = vf.createStatement(vf.createIRI("foo:event5"), pred1_atTime, vf.createLiteral(tvB03_E20.toString()));
+        spo_B29_E30 = vf.createStatement(vf.createIRI("foo:event1"), pred1_atTime, vf.createLiteral(tvB29_E30.toString()));
+        spo_B30_E32 = vf.createStatement(vf.createIRI("foo:event1"), pred1_atTime, vf.createLiteral(tvB30_E32.toString()));
+        spo_B02 = vf.createStatement(vf.createIRI("foo:event6"), pred1_atTime, vf.createLiteral(tsB02.getAsReadable()));
 
         // Create statements about time instants 0 - 40 seconds
         for (int i = 0; i < seriesTs.length; i++) {
-            seriesSpo[i] = new StatementImpl(vf.createIRI("foo:event0" + i), pred1_atTime, vf.createLiteral(seriesTs[i].getAsReadable()));
+            seriesSpo[i] = vf.createStatement(vf.createIRI("foo:event0" + i), pred1_atTime, vf.createLiteral(seriesTs[i].getAsReadable()));
         }
 
     }
@@ -262,14 +285,14 @@ public final class AccumuloTemporalIndexerTest {
 
         // Should not be stored because they are not in the predicate list
         String validDateStringWithThirteens = "1313-12-13T13:13:13Z";
-        tIndexer.storeStatement(convertStatement(new StatementImpl(vf.createIRI("foo:subj1"), RDFS.LABEL, vf.createLiteral(validDateStringWithThirteens))));
+        tIndexer.storeStatement(convertStatement(vf.createStatement(vf.createIRI("foo:subj1"), RDFS.LABEL, vf.createLiteral(validDateStringWithThirteens))));
 
         // Test: Should not store an improper date, and log a warning (log warning not tested).
         final String invalidDateString = "ThisIsAnInvalidDate";
 //        // Silently logs a warning for bad dates.  Old: Set true when we catch the error:
 //        boolean catchErrorThrownCorrectly = false;
 //        try {
-            tIndexer.storeStatement(convertStatement(new StatementImpl(vf.createIRI("foo:subj2"), pred1_atTime, vf.createLiteral(invalidDateString))));
+            tIndexer.storeStatement(convertStatement(vf.createStatement(vf.createIRI("foo:subj2"), pred1_atTime, vf.createLiteral(invalidDateString))));
 //        } catch (IllegalArgumentException e) {
 //            catchErrorThrownCorrectly = true;
 //            Assert.assertTrue(
@@ -287,15 +310,15 @@ public final class AccumuloTemporalIndexerTest {
 
         // These should be stored because they are in the predicate list.
         // BUT they will get converted to the same exact datetime in UTC.
-        Statement s3 = new StatementImpl(vf.createIRI("foo:subj3"), pred1_atTime, vf.createLiteral(testDate2014InBRST));
-        Statement s4 = new StatementImpl(vf.createIRI("foo:subj4"), pred2_circa, vf.createLiteral(testDate2016InET));
+        Statement s3 = vf.createStatement(vf.createIRI("foo:subj3"), pred1_atTime, vf.createLiteral(testDate2014InBRST));
+        Statement s4 = vf.createStatement(vf.createIRI("foo:subj4"), pred2_circa, vf.createLiteral(testDate2016InET));
         tIndexer.storeStatement(convertStatement(s3));
         rowsStoredExpected++;
         tIndexer.storeStatement(convertStatement(s4));
         rowsStoredExpected++;
 
         // This should not be stored because the object is not a literal
-        tIndexer.storeStatement(convertStatement(new StatementImpl(vf.createIRI("foo:subj5"), pred1_atTime, vf.createIRI("in:valid"))));
+        tIndexer.storeStatement(convertStatement(vf.createStatement(vf.createIRI("foo:subj5"), pred1_atTime, vf.createIRI("in:valid"))));
 
         tIndexer.flush();
 
@@ -319,8 +342,8 @@ public final class AccumuloTemporalIndexerTest {
 
         // These should be stored because they are in the predicate list.
         // BUT they will get converted to the same exact datetime in UTC.
-        Statement s1 = new StatementImpl(vf.createIRI("foo:subj3"), pred1_atTime, vf.createLiteral(testDate2014InBRST));
-        Statement s2 = new StatementImpl(vf.createIRI("foo:subj4"), pred2_circa, vf.createLiteral(testDate2016InET));
+        Statement s1 = vf.createStatement(vf.createIRI("foo:subj3"), pred1_atTime, vf.createLiteral(testDate2014InBRST));
+        Statement s2 = vf.createStatement(vf.createIRI("foo:subj4"), pred2_circa, vf.createLiteral(testDate2016InET));
         tIndexer.storeStatement(convertStatement(s1));
         rowsStoredExpected++;
         tIndexer.storeStatement(convertStatement(s2));
@@ -344,7 +367,7 @@ public final class AccumuloTemporalIndexerTest {
 
         IRI pred1_atTime = vf.createIRI(URI_PROPERTY_AT_TIME);
 
-        tIndexer.storeStatement(convertStatement(new StatementImpl(
+        tIndexer.storeStatement(convertStatement(vf.createStatement(
                 vf.createIRI("foo:subj2"),
                 pred1_atTime,
                 vf.createLiteral("A number of organizations located, gathered, or classed together. [Derived from Concise Oxford English Dictionary, 11th Edition, 2008]"))));
@@ -369,10 +392,10 @@ public final class AccumuloTemporalIndexerTest {
         // Test: Should not store an improper date interval, and log a warning (log warning not tested).
         final String invalidDateIntervalString="[bad,interval]";
         // Silently logs a warning for bad dates.
-        tIndexer.storeStatement(convertStatement(new StatementImpl(vf.createIRI("foo:subj1"), pred1_atTime, vf.createLiteral(invalidDateIntervalString))));
+        tIndexer.storeStatement(convertStatement(vf.createStatement(vf.createIRI("foo:subj1"), pred1_atTime, vf.createLiteral(invalidDateIntervalString))));
 
         final String validDateIntervalString="[2016-12-31T20:59:59-05:00,2016-12-31T21:00:00-05:00]";
-        tIndexer.storeStatement(convertStatement(new StatementImpl(vf.createIRI("foo:subj2"), pred1_atTime, vf.createLiteral(validDateIntervalString))));
+        tIndexer.storeStatement(convertStatement(vf.createStatement(vf.createIRI("foo:subj2"), pred1_atTime, vf.createLiteral(validDateIntervalString))));
         rowsStoredExpected++;
 
         tIndexer.flush();
@@ -397,9 +420,9 @@ public final class AccumuloTemporalIndexerTest {
         // These all should be stored because they are in the predicate list.
         // BUT they will get converted to the same exact datetime in UTC.
         // So we have to make the key distinct! Good luck indexer!
-        Statement s1 = new StatementImpl(vf.createIRI("foo:subj1"), pred2_circa, vf.createLiteral(ZONETestDateInET));
-        Statement s2 = new StatementImpl(vf.createIRI("foo:subj2"), pred1_atTime, vf.createLiteral(ZONETestDateInZulu));
-        Statement s3 = new StatementImpl(vf.createIRI("foo:subj3"), pred1_atTime, vf.createLiteral(ZONETestDateInBRST));
+        Statement s1 = vf.createStatement(vf.createIRI("foo:subj1"), pred2_circa, vf.createLiteral(ZONETestDateInET));
+        Statement s2 = vf.createStatement(vf.createIRI("foo:subj2"), pred1_atTime, vf.createLiteral(ZONETestDateInZulu));
+        Statement s3 = vf.createStatement(vf.createIRI("foo:subj3"), pred1_atTime, vf.createLiteral(ZONETestDateInBRST));
         int rowsStoredExpected = 0;
         tIndexer.storeStatement(convertStatement(s1));
         rowsStoredExpected++;
@@ -875,14 +898,14 @@ public final class AccumuloTemporalIndexerTest {
         // add the predicate = EventTime ; Store in an array for verification.
         Statement[] SeriesTs_EventTime = new Statement[expectedResultCount+1];
         for (int s = 0; s <= searchForSeconds + expectedResultCount; s++) { // <== logic here
-            Statement statement = new StatementImpl(vf.createIRI("foo:EventTimeSubj0" + s), pred2_eventTime, vf.createLiteral(seriesTs[s].getAsReadable()));
+            Statement statement = vf.createStatement(vf.createIRI("foo:EventTimeSubj0" + s), pred2_eventTime, vf.createLiteral(seriesTs[s].getAsReadable()));
             tIndexer.storeStatement(convertStatement(statement));
             if (s>searchForSeconds)
                 SeriesTs_EventTime[s - searchForSeconds -1 ] = statement;
         }
         // add the predicate = CIRCA ; to be ignored because it is not in the constraints.
         for (int s = 0; s <= searchForSeconds + expectedResultCount; s++) { // <== logic here
-            Statement statement = new StatementImpl(vf.createIRI("foo:CircaEventSubj0" + s), pred3_CIRCA_, vf.createLiteral(seriesTs[s].getAsReadable()));
+            Statement statement = vf.createStatement(vf.createIRI("foo:CircaEventSubj0" + s), pred3_CIRCA_, vf.createLiteral(seriesTs[s].getAsReadable()));
             tIndexer.storeStatement(convertStatement(statement));
         }
         tIndexer.flush();

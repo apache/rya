@@ -45,7 +45,7 @@ import org.apache.rya.rdftriplestore.namespace.NamespaceManager;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Statement;
 import org.eclipse.rdf4j.model.ValueFactory;
-import org.eclipse.rdf4j.model.impl.StatementImpl;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 import org.eclipse.rdf4j.repository.Repository;
 import org.eclipse.rdf4j.repository.RepositoryConnection;
 
@@ -57,7 +57,7 @@ public class CbSailTest extends CamelTestSupport {
 
     private RdfCloudTripleStore store;
     private Repository repository;
-    private ValueFactory vf = RdfCloudTripleStoreConstants.VALUE_FACTORY;
+    private static final ValueFactory VF = SimpleValueFactory.getInstance();
 
     @EndpointInject(uri = "mock:results")
     protected MockEndpoint resultEndpoint;
@@ -106,9 +106,9 @@ public class CbSailTest extends CamelTestSupport {
     
     public void testSimpleQuery() throws Exception {
         RepositoryConnection conn = repository.getConnection();
-        IRI cpu = vf.createIRI(litdupsNS, "cpu");
-        IRI loadPerc = vf.createIRI(litdupsNS, "loadPerc");
-        IRI uri1 = vf.createIRI(litdupsNS, "uri1");
+        IRI cpu = VF.createIRI(litdupsNS, "cpu");
+        IRI loadPerc = VF.createIRI(litdupsNS, "loadPerc");
+        IRI uri1 = VF.createIRI(litdupsNS, "uri1");
         conn.add(cpu, loadPerc, uri1);
         conn.commit();
         conn.close();
@@ -126,11 +126,11 @@ public class CbSailTest extends CamelTestSupport {
 
     public void testSimpleQueryAuth() throws Exception {
         RepositoryConnection conn = repository.getConnection();
-        IRI cpu = vf.createIRI(litdupsNS, "cpu");
-        IRI loadPerc = vf.createIRI(litdupsNS, "loadPerc");
-        IRI uri1 = vf.createIRI(litdupsNS, "uri1");
-        IRI uri2 = vf.createIRI(litdupsNS, "uri2");
-        IRI auth1 = vf.createIRI(RdfCloudTripleStoreConstants.AUTH_NAMESPACE, "auth1");
+        IRI cpu = VF.createIRI(litdupsNS, "cpu");
+        IRI loadPerc = VF.createIRI(litdupsNS, "loadPerc");
+        IRI uri1 = VF.createIRI(litdupsNS, "uri1");
+        IRI uri2 = VF.createIRI(litdupsNS, "uri2");
+        IRI auth1 = VF.createIRI(RdfCloudTripleStoreConstants.AUTH_NAMESPACE, "auth1");
         conn.add(cpu, loadPerc, uri1, auth1);
         conn.add(cpu, loadPerc, uri2);
         conn.commit();
@@ -160,13 +160,13 @@ public class CbSailTest extends CamelTestSupport {
     }
     
     public void testInsertData() throws Exception {
-        IRI cpu = vf.createIRI(litdupsNS, "cpu");
-        IRI loadPerc = vf.createIRI(litdupsNS, "loadPerc");
-        IRI uri1 = vf.createIRI(litdupsNS, "uri1");
-        IRI uri2 = vf.createIRI(litdupsNS, "uri2");
+        IRI cpu = VF.createIRI(litdupsNS, "cpu");
+        IRI loadPerc = VF.createIRI(litdupsNS, "loadPerc");
+        IRI uri1 = VF.createIRI(litdupsNS, "uri1");
+        IRI uri2 = VF.createIRI(litdupsNS, "uri2");
         List<Statement> insert = new ArrayList<Statement>();
-        insert.add(new StatementImpl(cpu, loadPerc, uri1));
-        insert.add(new StatementImpl(cpu, loadPerc, uri2));
+        insert.add(VF.createStatement(cpu, loadPerc, uri1));
+        insert.add(VF.createStatement(cpu, loadPerc, uri2));
 
         resultEndpoint.expectedBodiesReceived(true);
         template.sendBody(insert);

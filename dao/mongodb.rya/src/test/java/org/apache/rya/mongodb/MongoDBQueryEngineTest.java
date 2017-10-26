@@ -23,21 +23,25 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import com.google.common.collect.Lists;
-import com.mongodb.MongoClient;
 import org.apache.rya.api.RdfCloudTripleStoreUtils;
 import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.domain.RyaStatement.RyaStatementBuilder;
 import org.apache.rya.api.domain.RyaURI;
 import org.eclipse.rdf4j.common.iteration.CloseableIteration;
-import org.eclipse.rdf4j.model.impl.URIImpl;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 import org.eclipse.rdf4j.query.BindingSet;
 import org.eclipse.rdf4j.query.impl.MapBindingSet;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
+import com.google.common.collect.Lists;
+import com.mongodb.MongoClient;
+
 public class MongoDBQueryEngineTest extends MongoTestBase {
+    private static final ValueFactory VF = SimpleValueFactory.getInstance();
+
     private MongoClient client;
     private MongoDBRyaDAO dao;
 
@@ -93,7 +97,7 @@ public class MongoDBQueryEngineTest extends MongoTestBase {
         final RyaStatement s1 = getStatement(null, null, "u:b");
 
         final MapBindingSet bs1 = new MapBindingSet();
-        bs1.addBinding("foo", new URIImpl("u:x"));
+        bs1.addBinding("foo", VF.createIRI("u:x"));
 
         final Map.Entry<RyaStatement, BindingSet> e1 = new RdfCloudTripleStoreUtils.CustomEntry<RyaStatement, BindingSet>(s1, bs1);
         final Collection<Entry<RyaStatement, BindingSet>> stmts1 = Lists.newArrayList(e1);
@@ -101,7 +105,7 @@ public class MongoDBQueryEngineTest extends MongoTestBase {
 
 
         final MapBindingSet bs2 = new MapBindingSet();
-        bs2.addBinding("foo", new URIImpl("u:y"));
+        bs2.addBinding("foo", VF.createIRI("u:y"));
 
         final RyaStatement s2 = getStatement(null, null, "u:c");
 
@@ -123,7 +127,7 @@ public class MongoDBQueryEngineTest extends MongoTestBase {
         final RyaStatement s = getStatement("u:a", null, null);
 
         final MapBindingSet bs1 = new MapBindingSet();
-        bs1.addBinding("foo", new URIImpl("u:x"));
+        bs1.addBinding("foo", VF.createIRI("u:x"));
 
         final Map.Entry<RyaStatement, BindingSet> e1 = new RdfCloudTripleStoreUtils.CustomEntry<RyaStatement, BindingSet>(s, bs1);
         final Collection<Entry<RyaStatement, BindingSet>> stmts1 = Lists.newArrayList(e1);
@@ -131,7 +135,7 @@ public class MongoDBQueryEngineTest extends MongoTestBase {
 
 
         final MapBindingSet bs2 = new MapBindingSet();
-        bs2.addBinding("foo", new URIImpl("u:y"));
+        bs2.addBinding("foo", VF.createIRI("u:y"));
 
         final Map.Entry<RyaStatement, BindingSet> e2 = new RdfCloudTripleStoreUtils.CustomEntry<RyaStatement, BindingSet>(s, bs2);
 

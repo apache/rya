@@ -27,7 +27,7 @@ import java.util.ArrayList;
 
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Statement;
-import org.eclipse.rdf4j.model.impl.StatementImpl;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 import org.eclipse.rdf4j.model.vocabulary.OWL;
 import org.eclipse.rdf4j.model.vocabulary.RDFS;
 import org.junit.Assert;
@@ -139,7 +139,7 @@ public class ReasonerFactTest {
     public void testTripleInequality() {
         Fact a = hierarchy.get(2).get(0);
         Fact b = a.clone();
-        Statement stmt = new StatementImpl(TestUtils.uri(a.getSubject().stringValue()),
+        Statement stmt = SimpleValueFactory.getInstance().createStatement(TestUtils.uri(a.getSubject().stringValue()),
             a.getPredicate(), a.getObject()); // subject will have extra prefix
         b.setTriple(stmt);
         Assert.assertFalse("Triple equality should be based on (s, p, o)", a.equals(b));

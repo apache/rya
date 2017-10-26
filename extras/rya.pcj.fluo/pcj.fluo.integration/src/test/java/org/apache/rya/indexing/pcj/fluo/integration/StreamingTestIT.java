@@ -18,6 +18,8 @@
  */
 package org.apache.rya.indexing.pcj.fluo.integration;
 
+import static org.junit.Assert.assertEquals;
+
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
@@ -32,17 +34,15 @@ import org.apache.rya.indexing.pcj.storage.PrecomputedJoinStorage.CloseableItera
 import org.apache.rya.indexing.pcj.storage.accumulo.AccumuloPcjStorage;
 import org.apache.rya.pcj.fluo.test.base.RyaExportITBase;
 import org.eclipse.rdf4j.model.Statement;
-import org.eclipse.rdf4j.model.impl.LiteralImpl;
-import org.eclipse.rdf4j.model.impl.StatementImpl;
-import org.eclipse.rdf4j.model.impl.URIImpl;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 import org.eclipse.rdf4j.query.BindingSet;
 import org.junit.Test;
-
-import static org.junit.Assert.assertEquals;
 
 public class StreamingTestIT extends RyaExportITBase {
 
 	private static final Logger log = Logger.getLogger(StreamingTestIT.class);
+	private static final ValueFactory VF = SimpleValueFactory.getInstance();
 
 	@Test
 	public void testRandomStreamingIngest() throws Exception {
@@ -84,9 +84,9 @@ public class StreamingTestIT extends RyaExportITBase {
 		final Set<Statement> statementPairs = new HashSet<>();
 		for (int i = 0; i < numPairs; i++) {
 			final String uri = "http://uuid_" + UUID.randomUUID().toString();
-			final Statement statement1 = new StatementImpl(new URIImpl(uri), new URIImpl("http://pred1"),
-					new LiteralImpl("number_" + (i + 1)));
-			final Statement statement2 = new StatementImpl(new URIImpl(uri), new URIImpl("http://pred2"), new LiteralImpl("literal"));
+			final Statement statement1 = VF.createStatement(VF.createIRI(uri), VF.createIRI("http://pred1"),
+					VF.createLiteral("number_" + (i + 1)));
+			final Statement statement2 = VF.createStatement(VF.createIRI(uri), VF.createIRI("http://pred2"), VF.createLiteral("literal"));
 			statementPairs.add(statement1);
 			statementPairs.add(statement2);
 		}

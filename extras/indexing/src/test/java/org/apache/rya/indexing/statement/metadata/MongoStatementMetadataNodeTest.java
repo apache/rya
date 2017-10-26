@@ -18,7 +18,11 @@ package org.apache.rya.indexing.statement.metadata;
  * under the License.
  */
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.domain.RyaType;
@@ -30,8 +34,8 @@ import org.apache.rya.mongodb.MongoDBRdfConfiguration;
 import org.apache.rya.mongodb.MongoDBRyaDAO;
 import org.apache.rya.mongodb.MongoTestBase;
 import org.eclipse.rdf4j.common.iteration.CloseableIteration;
-import org.eclipse.rdf4j.model.impl.LiteralImpl;
-import org.eclipse.rdf4j.model.impl.URIImpl;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 import org.eclipse.rdf4j.model.vocabulary.XMLSchema;
 import org.eclipse.rdf4j.query.BindingSet;
 import org.eclipse.rdf4j.query.MalformedQueryException;
@@ -46,6 +50,8 @@ import org.junit.Before;
 import org.junit.Test;
 
 public class MongoStatementMetadataNodeTest extends MongoTestBase {
+    private static final ValueFactory VF = SimpleValueFactory.getInstance();
+
     private MongoDBRyaDAO dao;
     private final String query = "prefix owl: <http://www.w3.org/2002/07/owl#> prefix ano: <http://www.w3.org/2002/07/owl#annotated> prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> select ?x ?y where {_:blankNode rdf:type owl:Annotation; ano:Source <http://Joe>; "
             + "ano:Property <http://worksAt>; ano:Target ?x; <http://createdBy> ?y; <http://createdOn> \'2017-01-04\'^^xsd:date }";
@@ -81,8 +87,8 @@ public class MongoStatementMetadataNodeTest extends MongoTestBase {
         CloseableIteration<BindingSet, QueryEvaluationException> iteration = node.evaluate(new QueryBindingSet());
 
         QueryBindingSet bs = new QueryBindingSet();
-        bs.addBinding("x", new LiteralImpl("CoffeeShop"));
-        bs.addBinding("y", new LiteralImpl("Joe"));
+        bs.addBinding("x", VF.createLiteral("CoffeeShop"));
+        bs.addBinding("y", VF.createLiteral("Joe"));
 
         List<BindingSet> bsList = new ArrayList<>();
         while (iteration.hasNext()) {
@@ -148,15 +154,15 @@ public class MongoStatementMetadataNodeTest extends MongoTestBase {
         StatementMetadataNode<MongoDBRdfConfiguration> node = new StatementMetadataNode<>(spList, conf);
 
         QueryBindingSet bsConstraint = new QueryBindingSet();
-        bsConstraint.addBinding("x", new LiteralImpl("CoffeeShop"));
-        bsConstraint.addBinding("z", new LiteralImpl("Virginia"));
+        bsConstraint.addBinding("x", VF.createLiteral("CoffeeShop"));
+        bsConstraint.addBinding("z", VF.createLiteral("Virginia"));
 
         CloseableIteration<BindingSet, QueryEvaluationException> iteration = node.evaluate(bsConstraint);
 
         QueryBindingSet expected = new QueryBindingSet();
-        expected.addBinding("x", new LiteralImpl("CoffeeShop"));
-        expected.addBinding("y", new LiteralImpl("Joe"));
-        expected.addBinding("z", new LiteralImpl("Virginia"));
+        expected.addBinding("x", VF.createLiteral("CoffeeShop"));
+        expected.addBinding("y", VF.createLiteral("Joe"));
+        expected.addBinding("z", VF.createLiteral("Virginia"));
 
         List<BindingSet> bsList = new ArrayList<>();
         while (iteration.hasNext()) {
@@ -205,21 +211,21 @@ public class MongoStatementMetadataNodeTest extends MongoTestBase {
 
         List<BindingSet> bsCollection = new ArrayList<>();
         QueryBindingSet bsConstraint1 = new QueryBindingSet();
-        bsConstraint1.addBinding("y", new LiteralImpl("CoffeeShop"));
-        bsConstraint1.addBinding("z", new LiteralImpl("Virginia"));
+        bsConstraint1.addBinding("y", VF.createLiteral("CoffeeShop"));
+        bsConstraint1.addBinding("z", VF.createLiteral("Virginia"));
 
         QueryBindingSet bsConstraint2 = new QueryBindingSet();
-        bsConstraint2.addBinding("y", new LiteralImpl("HardwareStore"));
-        bsConstraint2.addBinding("z", new LiteralImpl("Maryland"));
+        bsConstraint2.addBinding("y", VF.createLiteral("HardwareStore"));
+        bsConstraint2.addBinding("z", VF.createLiteral("Maryland"));
         bsCollection.add(bsConstraint1);
         bsCollection.add(bsConstraint2);
 
         CloseableIteration<BindingSet, QueryEvaluationException> iteration = node.evaluate(bsCollection);
 
         QueryBindingSet expected = new QueryBindingSet();
-        expected.addBinding("y", new LiteralImpl("CoffeeShop"));
-        expected.addBinding("x", new URIImpl("http://Joe"));
-        expected.addBinding("z", new LiteralImpl("Virginia"));
+        expected.addBinding("y", VF.createLiteral("CoffeeShop"));
+        expected.addBinding("x", VF.createIRI("http://Joe"));
+        expected.addBinding("z", VF.createLiteral("Virginia"));
 
         List<BindingSet> bsList = new ArrayList<>();
         while (iteration.hasNext()) {
@@ -263,8 +269,8 @@ public class MongoStatementMetadataNodeTest extends MongoTestBase {
         StatementMetadataNode<MongoDBRdfConfiguration> node = new StatementMetadataNode<>(spList, conf);
 
         QueryBindingSet bsConstraint = new QueryBindingSet();
-        bsConstraint.addBinding("x", new LiteralImpl("CoffeeShop"));
-        bsConstraint.addBinding("y", new LiteralImpl("Doug"));
+        bsConstraint.addBinding("x", VF.createLiteral("CoffeeShop"));
+        bsConstraint.addBinding("y", VF.createLiteral("Doug"));
 
         CloseableIteration<BindingSet, QueryEvaluationException> iteration = node.evaluate(bsConstraint);
 
@@ -310,16 +316,16 @@ public class MongoStatementMetadataNodeTest extends MongoTestBase {
 
         List<BindingSet> bsCollection = new ArrayList<>();
         QueryBindingSet bsConstraint1 = new QueryBindingSet();
-        bsConstraint1.addBinding("x", new LiteralImpl("CoffeeShop"));
-        bsConstraint1.addBinding("z", new LiteralImpl("Virginia"));
+        bsConstraint1.addBinding("x", VF.createLiteral("CoffeeShop"));
+        bsConstraint1.addBinding("z", VF.createLiteral("Virginia"));
 
         QueryBindingSet bsConstraint2 = new QueryBindingSet();
-        bsConstraint2.addBinding("x", new LiteralImpl("HardwareStore"));
-        bsConstraint2.addBinding("z", new LiteralImpl("Maryland"));
+        bsConstraint2.addBinding("x", VF.createLiteral("HardwareStore"));
+        bsConstraint2.addBinding("z", VF.createLiteral("Maryland"));
 
         QueryBindingSet bsConstraint3 = new QueryBindingSet();
-        bsConstraint3.addBinding("x", new LiteralImpl("BurgerShack"));
-        bsConstraint3.addBinding("z", new LiteralImpl("Delaware"));
+        bsConstraint3.addBinding("x", VF.createLiteral("BurgerShack"));
+        bsConstraint3.addBinding("z", VF.createLiteral("Delaware"));
         bsCollection.add(bsConstraint1);
         bsCollection.add(bsConstraint2);
         bsCollection.add(bsConstraint3);
@@ -328,14 +334,14 @@ public class MongoStatementMetadataNodeTest extends MongoTestBase {
 
         Set<BindingSet> expected = new HashSet<>();
         QueryBindingSet expected1 = new QueryBindingSet();
-        expected1.addBinding("x", new LiteralImpl("CoffeeShop"));
-        expected1.addBinding("y", new LiteralImpl("Joe"));
-        expected1.addBinding("z", new LiteralImpl("Virginia"));
+        expected1.addBinding("x", VF.createLiteral("CoffeeShop"));
+        expected1.addBinding("y", VF.createLiteral("Joe"));
+        expected1.addBinding("z", VF.createLiteral("Virginia"));
 
         QueryBindingSet expected2 = new QueryBindingSet();
-        expected2.addBinding("x", new LiteralImpl("HardwareStore"));
-        expected2.addBinding("y", new LiteralImpl("Joe"));
-        expected2.addBinding("z", new LiteralImpl("Maryland"));
+        expected2.addBinding("x", VF.createLiteral("HardwareStore"));
+        expected2.addBinding("y", VF.createLiteral("Joe"));
+        expected2.addBinding("z", VF.createLiteral("Maryland"));
         expected.add(expected1);
         expected.add(expected2);
 

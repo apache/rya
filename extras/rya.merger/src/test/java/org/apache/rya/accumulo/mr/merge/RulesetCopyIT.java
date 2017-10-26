@@ -18,9 +18,16 @@
  */
 package org.apache.rya.accumulo.mr.merge;
 
-import java.util.*;
+import static org.apache.rya.accumulo.mr.merge.util.TestUtils.YESTERDAY;
+import static org.apache.rya.accumulo.mr.merge.util.ToolConfigUtils.makeArgument;
 
-import junit.framework.Assert;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
 import org.apache.accumulo.core.client.Connector;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.log4j.Logger;
@@ -45,22 +52,33 @@ import org.eclipse.rdf4j.common.iteration.CloseableIteration;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Namespace;
 import org.eclipse.rdf4j.model.Statement;
-import org.eclipse.rdf4j.model.impl.URIImpl;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 import org.eclipse.rdf4j.model.vocabulary.OWL;
 import org.eclipse.rdf4j.model.vocabulary.RDF;
 import org.eclipse.rdf4j.model.vocabulary.RDFS;
 import org.eclipse.rdf4j.model.vocabulary.XMLSchema;
-import org.eclipse.rdf4j.query.*;
+import org.eclipse.rdf4j.query.BindingSet;
+import org.eclipse.rdf4j.query.QueryLanguage;
+import org.eclipse.rdf4j.query.QueryResultHandlerException;
+import org.eclipse.rdf4j.query.TupleQuery;
+import org.eclipse.rdf4j.query.TupleQueryResultHandler;
+import org.eclipse.rdf4j.query.TupleQueryResultHandlerException;
 import org.eclipse.rdf4j.repository.sail.SailRepository;
 import org.eclipse.rdf4j.repository.sail.SailRepositoryConnection;
 import org.eclipse.rdf4j.sail.Sail;
-import org.junit.*;
+import org.junit.After;
+import org.junit.AfterClass;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Test;
 
-import static org.apache.rya.accumulo.mr.merge.util.TestUtils.YESTERDAY;
-import static org.apache.rya.accumulo.mr.merge.util.ToolConfigUtils.makeArgument;
+import junit.framework.Assert;
 
 public class RulesetCopyIT {
     private static final Logger log = Logger.getLogger(RulesetCopyIT.class);
+
+    private static final ValueFactory VF = SimpleValueFactory.getInstance();
 
     private static final boolean IS_MOCK = false;
     private static final String CHILD_SUFFIX = MergeTool.CHILD_SUFFIX;
@@ -312,7 +330,7 @@ public class RulesetCopyIT {
             statement("test:University1", "test:telephone", literal("555")),
             statement("test:FullProfessor1", "test:worksFor", "test:University1"),
             statement("test:FullProfessor1", "test:hired", literal("2001-01-01T04:01:02.000Z", XMLSchema.DATETIME)),
-            statement("test:University1", "geo:asWKT", literal("Point(-77.03524 38.889468)", new URIImpl("http://www.opengis.net/ont/geosparql#wktLiteral")))
+            statement("test:University1", "geo:asWKT", literal("Point(-77.03524 38.889468)", VF.createIRI("http://www.opengis.net/ont/geosparql#wktLiteral")))
         };
         // These aren't solutions but should be copied:
         final RyaStatement[] copyStatements = {

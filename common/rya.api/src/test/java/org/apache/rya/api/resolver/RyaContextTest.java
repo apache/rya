@@ -21,14 +21,15 @@ package org.apache.rya.api.resolver;
 
 import java.util.Map;
 
-import junit.framework.TestCase;
 import org.apache.rya.api.RdfCloudTripleStoreConstants.TABLE_LAYOUT;
 import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.domain.RyaType;
 import org.apache.rya.api.domain.RyaURI;
 import org.apache.rya.api.query.strategy.wholerow.MockRdfConfiguration;
 import org.apache.rya.api.resolver.triple.TripleRow;
-import org.eclipse.rdf4j.model.impl.URIImpl;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
+
+import junit.framework.TestCase;
 
 /**
  */
@@ -48,7 +49,7 @@ public class RyaContextTest extends TestCase {
         assertEquals(ryaURI, deserialize);
 
         //custom type
-        ryaType = new RyaType(new URIImpl("urn:test#customDataType"), "mydata");
+        ryaType = new RyaType(SimpleValueFactory.getInstance().createIRI("urn:test#customDataType"), "mydata");
         serialize = instance.serialize(ryaType);
         assertEquals(ryaType, instance.deserialize(serialize));
     }

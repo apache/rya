@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -18,20 +18,21 @@
  */
 package org.apache.rya.indexing.entity.storage.mongo;
 
+import static java.util.Objects.requireNonNull;
+
 import java.util.List;
 import java.util.stream.Collectors;
 
-import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
-import edu.umd.cs.findbugs.annotations.NonNull;
 import org.apache.rya.api.domain.RyaType;
 import org.apache.rya.api.domain.RyaURI;
 import org.apache.rya.indexing.entity.model.Entity;
 import org.apache.rya.indexing.entity.model.Property;
 import org.apache.rya.indexing.entity.storage.mongo.key.MongoDbSafeKey;
 import org.bson.Document;
-import org.eclipse.rdf4j.model.impl.URIImpl;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 
-import static java.util.Objects.requireNonNull;
+import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
+import edu.umd.cs.findbugs.annotations.NonNull;
 
 /**
  * Converts between {@link Entity} and {@link Document}.
@@ -129,7 +130,7 @@ public class EntityDocumentConverter implements DocumentConverter<Entity> {
 
         builder.setVersion( document.getInteger(VERSION) );
 
-        builder.setSmartUri( new URIImpl(document.getString(SMART_URI)) );
+        builder.setSmartUri( SimpleValueFactory.getInstance().createIRI(document.getString(SMART_URI)) );
 
         return builder.build();
     }

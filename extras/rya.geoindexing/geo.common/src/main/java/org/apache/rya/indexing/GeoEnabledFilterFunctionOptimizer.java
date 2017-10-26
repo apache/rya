@@ -63,7 +63,6 @@ import org.eclipse.rdf4j.query.algebra.ValueConstant;
 import org.eclipse.rdf4j.query.algebra.Var;
 import org.eclipse.rdf4j.query.algebra.evaluation.QueryOptimizer;
 import org.eclipse.rdf4j.query.algebra.helpers.AbstractQueryModelVisitor;
-import org.eclipse.rdf4j.query.algebra.helpers.QueryModelVisitorBase;
 
 import com.google.common.collect.Lists;
 
@@ -188,7 +187,7 @@ public class GeoEnabledFilterFunctionOptimizer implements QueryOptimizer, Config
     }
 
     //find vars contained in filters
-    private static class SearchVarVisitor extends QueryModelVisitorBase<RuntimeException> {
+    private static class SearchVarVisitor extends AbstractQueryModelVisitor<RuntimeException> {
         private final Collection<Var> searchProperties = new ArrayList<Var>();
 
         @Override
@@ -202,7 +201,7 @@ public class GeoEnabledFilterFunctionOptimizer implements QueryOptimizer, Config
     }
 
     //find StatementPatterns containing filter variables
-    private static class MatchStatementVisitor extends QueryModelVisitorBase<RuntimeException> {
+    private static class MatchStatementVisitor extends AbstractQueryModelVisitor<RuntimeException> {
         private final Collection<Var> propertyVars;
         private final Collection<Var> usedVars = new ArrayList<Var>();
         private final List<StatementPattern> matchStatements = new ArrayList<StatementPattern>();
@@ -327,7 +326,7 @@ public class GeoEnabledFilterFunctionOptimizer implements QueryOptimizer, Config
         }
     }
 
-    private static class VarExchangeVisitor extends QueryModelVisitorBase<RuntimeException> {
+    private static class VarExchangeVisitor extends AbstractQueryModelVisitor<RuntimeException> {
         private final  StatementPattern exchangeVar;
         public VarExchangeVisitor(final StatementPattern sp) {
             exchangeVar = sp;

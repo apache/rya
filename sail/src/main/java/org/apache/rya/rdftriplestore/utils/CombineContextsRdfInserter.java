@@ -1,5 +1,3 @@
-package org.apache.rya.rdftriplestore.utils;
-
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -18,16 +16,21 @@ package org.apache.rya.rdftriplestore.utils;
  * specific language governing permissions and limitations
  * under the License.
  */
+package org.apache.rya.rdftriplestore.utils;
 
 import java.util.HashMap;
 import java.util.Map;
 
 import org.eclipse.rdf4j.OpenRDFUtil;
-import org.eclipse.rdf4j.model.*;
+import org.eclipse.rdf4j.model.BNode;
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.Resource;
+import org.eclipse.rdf4j.model.Statement;
+import org.eclipse.rdf4j.model.Value;
 import org.eclipse.rdf4j.repository.RepositoryConnection;
 import org.eclipse.rdf4j.repository.RepositoryException;
 import org.eclipse.rdf4j.rio.RDFHandlerException;
-import org.eclipse.rdf4j.rio.helpers.RDFHandlerBase;
+import org.eclipse.rdf4j.rio.helpers.AbstractRDFHandler;
 
 /**
  * Created by IntelliJ IDEA.
@@ -36,7 +39,7 @@ import org.eclipse.rdf4j.rio.helpers.RDFHandlerBase;
  * Time: 9:50 AM
  * To change this template use File | Settings | File Templates.
  */
-public class CombineContextsRdfInserter extends RDFHandlerBase {
+public class CombineContextsRdfInserter extends AbstractRDFHandler {
 
     private final RepositoryConnection con;
     private Resource[] contexts = new Resource[0];

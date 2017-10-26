@@ -18,10 +18,11 @@
  */
 package org.apache.rya;
 
+import static org.apache.rya.api.RdfCloudTripleStoreConstants.NAMESPACE;
+
 import java.io.InputStream;
 import java.util.List;
 
-import junit.framework.TestCase;
 import org.apache.accumulo.core.client.Connector;
 import org.apache.accumulo.core.client.Instance;
 import org.apache.accumulo.core.client.mock.MockInstance;
@@ -33,14 +34,22 @@ import org.apache.rya.rdftriplestore.RdfCloudTripleStore;
 import org.apache.rya.rdftriplestore.RyaSailRepository;
 import org.apache.rya.rdftriplestore.inference.InferenceEngine;
 import org.apache.rya.rdftriplestore.namespace.NamespaceManager;
-import org.eclipse.rdf4j.model.*;
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.Literal;
+import org.eclipse.rdf4j.model.Model;
+import org.eclipse.rdf4j.model.Statement;
+import org.eclipse.rdf4j.model.Value;
 import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
-import org.eclipse.rdf4j.model.impl.StatementImpl;
-import org.eclipse.rdf4j.model.impl.URIImpl;
 import org.eclipse.rdf4j.model.vocabulary.OWL;
 import org.eclipse.rdf4j.model.vocabulary.RDF;
 import org.eclipse.rdf4j.model.vocabulary.RDFS;
-import org.eclipse.rdf4j.query.*;
+import org.eclipse.rdf4j.query.BindingSet;
+import org.eclipse.rdf4j.query.QueryLanguage;
+import org.eclipse.rdf4j.query.QueryResultHandlerException;
+import org.eclipse.rdf4j.query.TupleQuery;
+import org.eclipse.rdf4j.query.TupleQueryResultHandler;
+import org.eclipse.rdf4j.query.TupleQueryResultHandlerException;
+import org.eclipse.rdf4j.query.Update;
 import org.eclipse.rdf4j.repository.Repository;
 import org.eclipse.rdf4j.repository.RepositoryConnection;
 import org.eclipse.rdf4j.repository.RepositoryResult;
@@ -48,7 +57,7 @@ import org.eclipse.rdf4j.repository.sail.SailRepository;
 import org.eclipse.rdf4j.rio.RDFFormat;
 import org.eclipse.rdf4j.rio.Rio;
 
-import static org.apache.rya.api.RdfCloudTripleStoreConstants.NAMESPACE;
+import junit.framework.TestCase;
 
 /**
  * Class RdfCloudTripleStoreConnectionTest
@@ -57,11 +66,11 @@ import static org.apache.rya.api.RdfCloudTripleStoreConstants.NAMESPACE;
  */
 public class RdfCloudTripleStoreConnectionTest extends TestCase {
     private Repository repository;
-    SimpleValueFactory vf = SimpleValueFactory.getInstance();
+    private static final SimpleValueFactory VF = SimpleValueFactory.getInstance();
     private InferenceEngine internalInferenceEngine;
 
     static String litdupsNS = "urn:test:litdups#";
-    IRI cpu = vf.createIRI(litdupsNS, "cpu");
+    IRI cpu = VF.createIRI(litdupsNS, "cpu");
     protected RdfCloudTripleStore store;
 
     @Override
@@ -85,8 +94,8 @@ public class RdfCloudTripleStoreConnectionTest extends TestCase {
     public void testAddStatement() throws Exception {
         RepositoryConnection conn = repository.getConnection();
 
-        IRI loadPerc = vf.createIRI(litdupsNS, "loadPerc");
-        IRI uri1 = vf.createIRI(litdupsNS, "uri1");
+        IRI loadPerc = VF.createIRI(litdupsNS, "loadPerc");
+        IRI uri1 = VF.createIRI(litdupsNS, "uri1");
         conn.add(cpu, loadPerc, uri1);
         conn.commit();
 
@@ -154,8 +163,8 @@ public class RdfCloudTripleStoreConnectionTest extends TestCase {
 
     public void testEvaluate() throws Exception {
         RepositoryConnection conn = repository.getConnection();
-        IRI loadPerc = vf.createIRI(litdupsNS, "loadPerc");
-        IRI uri1 = vf.createIRI(litdupsNS, "uri1");
+        IRI loadPerc = VF.createIRI(litdupsNS, "loadPerc");
+        IRI uri1 = VF.createIRI(litdupsNS, "uri1");
         conn.add(cpu, loadPerc, uri1);
         conn.commit();
 
@@ -171,10 +180,10 @@ public class RdfCloudTripleStoreConnectionTest extends TestCase {
 
     public void testEvaluateMultiLine() throws Exception {
         RepositoryConnection conn = repository.getConnection();
-        IRI loadPerc = vf.createIRI(litdupsNS, "loadPerc");
-        IRI uri1 = vf.createIRI(litdupsNS, "uri1");
-        IRI pred2 = vf.createIRI(litdupsNS, "pred2");
-        IRI uri2 = vf.createIRI(litdupsNS, "uri2");
+        IRI loadPerc = VF.createIRI(litdupsNS, "loadPerc");
+        IRI uri1 = VF.createIRI(litdupsNS, "uri1");
+        IRI pred2 = VF.createIRI(litdupsNS, "pred2");
+        IRI uri2 = VF.createIRI(litdupsNS, "uri2");
         conn.add(cpu, loadPerc, uri1);
         conn.add(cpu, pred2, uri2);
         conn.commit();
@@ -193,10 +202,10 @@ public class RdfCloudTripleStoreConnectionTest extends TestCase {
 
     public void testPOObjRange() throws Exception {
         RepositoryConnection conn = repository.getConnection();
-        IRI loadPerc = vf.createIRI(litdupsNS, "loadPerc");
-        Literal six = vf.createLiteral("6");
-        Literal sev = vf.createLiteral("7");
-        Literal ten = vf.createLiteral("10");
+        IRI loadPerc = VF.createIRI(litdupsNS, "loadPerc");
+        Literal six = VF.createLiteral("6");
+        Literal sev = VF.createLiteral("7");
+        Literal ten = VF.createLiteral("10");
         conn.add(cpu, loadPerc, six);
         conn.add(cpu, loadPerc, sev);
         conn.add(cpu, loadPerc, ten);
@@ -216,13 +225,13 @@ public class RdfCloudTripleStoreConnectionTest extends TestCase {
 
     public void testPOPredRange() throws Exception {
         RepositoryConnection conn = repository.getConnection();
-        IRI loadPerc = vf.createIRI(litdupsNS, "loadPerc1");
-        IRI loadPerc2 = vf.createIRI(litdupsNS, "loadPerc2");
-        IRI loadPerc3 = vf.createIRI(litdupsNS, "loadPerc3");
-        IRI loadPerc4 = vf.createIRI(litdupsNS, "loadPerc4");
-        Literal six = vf.createLiteral("6");
-        Literal sev = vf.createLiteral("7");
-        Literal ten = vf.createLiteral("10");
+        IRI loadPerc = VF.createIRI(litdupsNS, "loadPerc1");
+        IRI loadPerc2 = VF.createIRI(litdupsNS, "loadPerc2");
+        IRI loadPerc3 = VF.createIRI(litdupsNS, "loadPerc3");
+        IRI loadPerc4 = VF.createIRI(litdupsNS, "loadPerc4");
+        Literal six = VF.createLiteral("6");
+        Literal sev = VF.createLiteral("7");
+        Literal ten = VF.createLiteral("10");
         conn.add(cpu, loadPerc, six);
         conn.add(cpu, loadPerc2, sev);
         conn.add(cpu, loadPerc4, ten);
@@ -242,13 +251,13 @@ public class RdfCloudTripleStoreConnectionTest extends TestCase {
 
     public void testSPOPredRange() throws Exception {
         RepositoryConnection conn = repository.getConnection();
-        IRI loadPerc = vf.createIRI(litdupsNS, "loadPerc1");
-        IRI loadPerc2 = vf.createIRI(litdupsNS, "loadPerc2");
-        IRI loadPerc3 = vf.createIRI(litdupsNS, "loadPerc3");
-        IRI loadPerc4 = vf.createIRI(litdupsNS, "loadPerc4");
-        Literal six = vf.createLiteral("6");
-        Literal sev = vf.createLiteral("7");
-        Literal ten = vf.createLiteral("10");
+        IRI loadPerc = VF.createIRI(litdupsNS, "loadPerc1");
+        IRI loadPerc2 = VF.createIRI(litdupsNS, "loadPerc2");
+        IRI loadPerc3 = VF.createIRI(litdupsNS, "loadPerc3");
+        IRI loadPerc4 = VF.createIRI(litdupsNS, "loadPerc4");
+        Literal six = VF.createLiteral("6");
+        Literal sev = VF.createLiteral("7");
+        Literal ten = VF.createLiteral("10");
         conn.add(cpu, loadPerc, six);
         conn.add(cpu, loadPerc2, sev);
         conn.add(cpu, loadPerc4, ten);
@@ -268,12 +277,12 @@ public class RdfCloudTripleStoreConnectionTest extends TestCase {
 
     public void testSPOSubjRange() throws Exception {
         RepositoryConnection conn = repository.getConnection();
-        IRI cpu2 = vf.createIRI(litdupsNS, "cpu2");
-        IRI cpu3 = vf.createIRI(litdupsNS, "cpu3");
-        IRI loadPerc = vf.createIRI(litdupsNS, "loadPerc");
-        Literal six = vf.createLiteral("6");
-        Literal sev = vf.createLiteral("7");
-        Literal ten = vf.createLiteral("10");
+        IRI cpu2 = VF.createIRI(litdupsNS, "cpu2");
+        IRI cpu3 = VF.createIRI(litdupsNS, "cpu3");
+        IRI loadPerc = VF.createIRI(litdupsNS, "loadPerc");
+        Literal six = VF.createLiteral("6");
+        Literal sev = VF.createLiteral("7");
+        Literal ten = VF.createLiteral("10");
         conn.add(cpu, loadPerc, six);
         conn.add(cpu2, loadPerc, sev);
         conn.add(cpu3, loadPerc, ten);
@@ -293,10 +302,10 @@ public class RdfCloudTripleStoreConnectionTest extends TestCase {
 
     public void testSPOObjRange() throws Exception {
         RepositoryConnection conn = repository.getConnection();
-        IRI loadPerc = vf.createIRI(litdupsNS, "loadPerc");
-        Literal six = vf.createLiteral("6");
-        Literal sev = vf.createLiteral("7");
-        Literal ten = vf.createLiteral("10");
+        IRI loadPerc = VF.createIRI(litdupsNS, "loadPerc");
+        Literal six = VF.createLiteral("6");
+        Literal sev = VF.createLiteral("7");
+        Literal ten = VF.createLiteral("10");
         conn.add(cpu, loadPerc, six);
         conn.add(cpu, loadPerc, sev);
         conn.add(cpu, loadPerc, ten);
@@ -316,10 +325,10 @@ public class RdfCloudTripleStoreConnectionTest extends TestCase {
 
     public void testOSPObjRange() throws Exception {
         RepositoryConnection conn = repository.getConnection();
-        IRI loadPerc = vf.createIRI(litdupsNS, "loadPerc");
-        Literal six = vf.createLiteral("6");
-        Literal sev = vf.createLiteral("7");
-        Literal ten = vf.createLiteral("10");
+        IRI loadPerc = VF.createIRI(litdupsNS, "loadPerc");
+        Literal six = VF.createLiteral("6");
+        Literal sev = VF.createLiteral("7");
+        Literal ten = VF.createLiteral("10");
         conn.add(cpu, loadPerc, six);
         conn.add(cpu, loadPerc, sev);
         conn.add(cpu, loadPerc, ten);
@@ -339,11 +348,11 @@ public class RdfCloudTripleStoreConnectionTest extends TestCase {
 
     public void testRegexFilter() throws Exception {
         RepositoryConnection conn = repository.getConnection();
-        IRI loadPerc = vf.createIRI(litdupsNS, "loadPerc");
-        IRI testClass = vf.createIRI(litdupsNS, "test");
-        Literal six = vf.createLiteral("6");
-        Literal sev = vf.createLiteral("7");
-        Literal ten = vf.createLiteral("10");
+        IRI loadPerc = VF.createIRI(litdupsNS, "loadPerc");
+        IRI testClass = VF.createIRI(litdupsNS, "test");
+        Literal six = VF.createLiteral("6");
+        Literal sev = VF.createLiteral("7");
+        Literal ten = VF.createLiteral("10");
         conn.add(cpu, loadPerc, six);
         conn.add(cpu, loadPerc, sev);
         conn.add(cpu, loadPerc, ten);
@@ -364,8 +373,8 @@ public class RdfCloudTripleStoreConnectionTest extends TestCase {
 
     public void testMMRTS152() throws Exception {
         RepositoryConnection conn = repository.getConnection();
-        IRI loadPerc = vf.createIRI(litdupsNS, "testPred");
-        IRI uri1 = vf.createIRI(litdupsNS, "uri1");
+        IRI loadPerc = VF.createIRI(litdupsNS, "testPred");
+        IRI uri1 = VF.createIRI(litdupsNS, "uri1");
         conn.add(cpu, loadPerc, uri1);
         conn.commit();
 
@@ -385,10 +394,10 @@ public class RdfCloudTripleStoreConnectionTest extends TestCase {
     public void testDuplicateLiterals() throws Exception {
         RepositoryConnection conn = repository.getConnection();
 
-        IRI loadPerc = vf.createIRI(litdupsNS, "loadPerc");
-        Literal lit1 = vf.createLiteral(0.0);
-        Literal lit2 = vf.createLiteral(0.0);
-        Literal lit3 = vf.createLiteral(0.0);
+        IRI loadPerc = VF.createIRI(litdupsNS, "loadPerc");
+        Literal lit1 = VF.createLiteral(0.0);
+        Literal lit2 = VF.createLiteral(0.0);
+        Literal lit3 = VF.createLiteral(0.0);
 
         conn.add(cpu, loadPerc, lit1);
         conn.add(cpu, loadPerc, lit2);
@@ -412,10 +421,10 @@ public class RdfCloudTripleStoreConnectionTest extends TestCase {
     public void testNotDuplicateUris() throws Exception {
         RepositoryConnection conn = repository.getConnection();
 
-        IRI loadPerc = vf.createIRI(litdupsNS, "loadPerc");
-        IRI uri1 = vf.createIRI(litdupsNS, "uri1");
-        IRI uri2 = vf.createIRI(litdupsNS, "uri1");
-        IRI uri3 = vf.createIRI(litdupsNS, "uri1");
+        IRI loadPerc = VF.createIRI(litdupsNS, "loadPerc");
+        IRI uri1 = VF.createIRI(litdupsNS, "uri1");
+        IRI uri2 = VF.createIRI(litdupsNS, "uri1");
+        IRI uri3 = VF.createIRI(litdupsNS, "uri1");
 
         conn.add(cpu, loadPerc, uri1);
         conn.add(cpu, loadPerc, uri2);
@@ -439,8 +448,8 @@ public class RdfCloudTripleStoreConnectionTest extends TestCase {
     public void testNamespaceUsage() throws Exception {
         RepositoryConnection conn = repository.getConnection();
         conn.setNamespace("lit", litdupsNS);
-        IRI loadPerc = vf.createIRI(litdupsNS, "loadPerc");
-        final IRI uri1 = vf.createIRI(litdupsNS, "uri1");
+        IRI loadPerc = VF.createIRI(litdupsNS, "loadPerc");
+        final IRI uri1 = VF.createIRI(litdupsNS, "uri1");
         conn.add(cpu, loadPerc, uri1);
         conn.commit();
 
@@ -481,13 +490,13 @@ public class RdfCloudTripleStoreConnectionTest extends TestCase {
 		}
 
         RepositoryConnection conn = repository.getConnection();
-        conn.add(new StatementImpl(vf.createIRI(litdupsNS, "undergradDegreeFrom"), RDFS.SUBPROPERTYOF, vf.createIRI(litdupsNS, "degreeFrom")));
-        conn.add(new StatementImpl(vf.createIRI(litdupsNS, "gradDegreeFrom"), RDFS.SUBPROPERTYOF, vf.createIRI(litdupsNS, "degreeFrom")));
-        conn.add(new StatementImpl(vf.createIRI(litdupsNS, "degreeFrom"), RDFS.SUBPROPERTYOF, vf.createIRI(litdupsNS, "memberOf")));
-        conn.add(new StatementImpl(vf.createIRI(litdupsNS, "memberOf"), RDFS.SUBPROPERTYOF, vf.createIRI(litdupsNS, "associatedWith")));
-        conn.add(new StatementImpl(vf.createIRI(litdupsNS, "UgradA"), vf.createIRI(litdupsNS, "undergradDegreeFrom"), vf.createIRI(litdupsNS, "Harvard")));
-        conn.add(new StatementImpl(vf.createIRI(litdupsNS, "GradB"), vf.createIRI(litdupsNS, "gradDegreeFrom"), vf.createIRI(litdupsNS, "Yale")));
-        conn.add(new StatementImpl(vf.createIRI(litdupsNS, "ProfessorC"), vf.createIRI(litdupsNS, "memberOf"), vf.createIRI(litdupsNS, "Harvard")));
+        conn.add(VF.createStatement(VF.createIRI(litdupsNS, "undergradDegreeFrom"), RDFS.SUBPROPERTYOF, VF.createIRI(litdupsNS, "degreeFrom")));
+        conn.add(VF.createStatement(VF.createIRI(litdupsNS, "gradDegreeFrom"), RDFS.SUBPROPERTYOF, VF.createIRI(litdupsNS, "degreeFrom")));
+        conn.add(VF.createStatement(VF.createIRI(litdupsNS, "degreeFrom"), RDFS.SUBPROPERTYOF, VF.createIRI(litdupsNS, "memberOf")));
+        conn.add(VF.createStatement(VF.createIRI(litdupsNS, "memberOf"), RDFS.SUBPROPERTYOF, VF.createIRI(litdupsNS, "associatedWith")));
+        conn.add(VF.createStatement(VF.createIRI(litdupsNS, "UgradA"), VF.createIRI(litdupsNS, "undergradDegreeFrom"), VF.createIRI(litdupsNS, "Harvard")));
+        conn.add(VF.createStatement(VF.createIRI(litdupsNS, "GradB"), VF.createIRI(litdupsNS, "gradDegreeFrom"), VF.createIRI(litdupsNS, "Yale")));
+        conn.add(VF.createStatement(VF.createIRI(litdupsNS, "ProfessorC"), VF.createIRI(litdupsNS, "memberOf"), VF.createIRI(litdupsNS, "Harvard")));
         conn.commit();
         conn.close();
 
@@ -545,10 +554,10 @@ public class RdfCloudTripleStoreConnectionTest extends TestCase {
 		}
 
         RepositoryConnection conn = repository.getConnection();
-        conn.add(new StatementImpl(vf.createIRI(litdupsNS, "undergradDegreeFrom"), OWL.EQUIVALENTPROPERTY, vf.createIRI(litdupsNS, "ugradDegreeFrom")));
-        conn.add(new StatementImpl(vf.createIRI(litdupsNS, "UgradA"), vf.createIRI(litdupsNS, "undergradDegreeFrom"), vf.createIRI(litdupsNS, "Harvard")));
-        conn.add(new StatementImpl(vf.createIRI(litdupsNS, "GradB"), vf.createIRI(litdupsNS, "ugradDegreeFrom"), vf.createIRI(litdupsNS, "Harvard")));
-        conn.add(new StatementImpl(vf.createIRI(litdupsNS, "GradC"), vf.createIRI(litdupsNS, "ugraduateDegreeFrom"), vf.createIRI(litdupsNS, "Harvard")));
+        conn.add(VF.createStatement(VF.createIRI(litdupsNS, "undergradDegreeFrom"), OWL.EQUIVALENTPROPERTY, VF.createIRI(litdupsNS, "ugradDegreeFrom")));
+        conn.add(VF.createStatement(VF.createIRI(litdupsNS, "UgradA"), VF.createIRI(litdupsNS, "undergradDegreeFrom"), VF.createIRI(litdupsNS, "Harvard")));
+        conn.add(VF.createStatement(VF.createIRI(litdupsNS, "GradB"), VF.createIRI(litdupsNS, "ugradDegreeFrom"), VF.createIRI(litdupsNS, "Harvard")));
+        conn.add(VF.createStatement(VF.createIRI(litdupsNS, "GradC"), VF.createIRI(litdupsNS, "ugraduateDegreeFrom"), VF.createIRI(litdupsNS, "Harvard")));
         conn.commit();
         conn.close();
 
@@ -576,9 +585,9 @@ public class RdfCloudTripleStoreConnectionTest extends TestCase {
 		}
 
         RepositoryConnection conn = repository.getConnection();
-        conn.add(new StatementImpl(vf.createIRI(litdupsNS, "friendOf"), RDF.TYPE, OWL.SYMMETRICPROPERTY));
-        conn.add(new StatementImpl(vf.createIRI(litdupsNS, "Bob"), vf.createIRI(litdupsNS, "friendOf"), vf.createIRI(litdupsNS, "Jeff")));
-        conn.add(new StatementImpl(vf.createIRI(litdupsNS, "James"), vf.createIRI(litdupsNS, "friendOf"), vf.createIRI(litdupsNS, "Jeff")));
+        conn.add(VF.createStatement(VF.createIRI(litdupsNS, "friendOf"), RDF.TYPE, OWL.SYMMETRICPROPERTY));
+        conn.add(VF.createStatement(VF.createIRI(litdupsNS, "Bob"), VF.createIRI(litdupsNS, "friendOf"), VF.createIRI(litdupsNS, "Jeff")));
+        conn.add(VF.createStatement(VF.createIRI(litdupsNS, "James"), VF.createIRI(litdupsNS, "friendOf"), VF.createIRI(litdupsNS, "Jeff")));
         conn.commit();
         conn.close();
 
@@ -626,12 +635,12 @@ public class RdfCloudTripleStoreConnectionTest extends TestCase {
 		}
 
         RepositoryConnection conn = repository.getConnection();
-        conn.add(new StatementImpl(vf.createIRI(litdupsNS, "subRegionOf"), RDF.TYPE, OWL.TRANSITIVEPROPERTY));
-        conn.add(new StatementImpl(vf.createIRI(litdupsNS, "Queens"), vf.createIRI(litdupsNS, "subRegionOf"), vf.createIRI(litdupsNS, "NYC")));
-        conn.add(new StatementImpl(vf.createIRI(litdupsNS, "NYC"), vf.createIRI(litdupsNS, "subRegionOf"), vf.createIRI(litdupsNS, "NY")));
-        conn.add(new StatementImpl(vf.createIRI(litdupsNS, "NY"), vf.createIRI(litdupsNS, "subRegionOf"), vf.createIRI(litdupsNS, "US")));
-        conn.add(new StatementImpl(vf.createIRI(litdupsNS, "US"), vf.createIRI(litdupsNS, "subRegionOf"), vf.createIRI(litdupsNS, "NorthAmerica")));
-        conn.add(new StatementImpl(vf.createIRI(litdupsNS, "NorthAmerica"), vf.createIRI(litdupsNS, "subRegionOf"), vf.createIRI(litdupsNS, "World")));
+        conn.add(VF.createStatement(VF.createIRI(litdupsNS, "subRegionOf"), RDF.TYPE, OWL.TRANSITIVEPROPERTY));
+        conn.add(VF.createStatement(VF.createIRI(litdupsNS, "Queens"), VF.createIRI(litdupsNS, "subRegionOf"), VF.createIRI(litdupsNS, "NYC")));
+        conn.add(VF.createStatement(VF.createIRI(litdupsNS, "NYC"), VF.createIRI(litdupsNS, "subRegionOf"), VF.createIRI(litdupsNS, "NY")));
+        conn.add(VF.createStatement(VF.createIRI(litdupsNS, "NY"), VF.createIRI(litdupsNS, "subRegionOf"), VF.createIRI(litdupsNS, "US")));
+        conn.add(VF.createStatement(VF.createIRI(litdupsNS, "US"), VF.createIRI(litdupsNS, "subRegionOf"), VF.createIRI(litdupsNS, "NorthAmerica")));
+        conn.add(VF.createStatement(VF.createIRI(litdupsNS, "NorthAmerica"), VF.createIRI(litdupsNS, "subRegionOf"), VF.createIRI(litdupsNS, "World")));
         conn.commit();
         conn.close();
 
@@ -689,10 +698,10 @@ public class RdfCloudTripleStoreConnectionTest extends TestCase {
 		}
 
         RepositoryConnection conn = repository.getConnection();
-        conn.add(new StatementImpl(vf.createIRI(litdupsNS, "degreeFrom"), OWL.INVERSEOF, vf.createIRI(litdupsNS, "hasAlumnus")));
-        conn.add(new StatementImpl(vf.createIRI(litdupsNS, "UgradA"), vf.createIRI(litdupsNS, "degreeFrom"), vf.createIRI(litdupsNS, "Harvard")));
-        conn.add(new StatementImpl(vf.createIRI(litdupsNS, "GradB"), vf.createIRI(litdupsNS, "degreeFrom"), vf.createIRI(litdupsNS, "Harvard")));
-        conn.add(new StatementImpl(vf.createIRI(litdupsNS, "Harvard"), vf.createIRI(litdupsNS, "hasAlumnus"), vf.createIRI(litdupsNS, "AlumC")));
+        conn.add(VF.createStatement(VF.createIRI(litdupsNS, "degreeFrom"), OWL.INVERSEOF, VF.createIRI(litdupsNS, "hasAlumnus")));
+        conn.add(VF.createStatement(VF.createIRI(litdupsNS, "UgradA"), VF.createIRI(litdupsNS, "degreeFrom"), VF.createIRI(litdupsNS, "Harvard")));
+        conn.add(VF.createStatement(VF.createIRI(litdupsNS, "GradB"), VF.createIRI(litdupsNS, "degreeFrom"), VF.createIRI(litdupsNS, "Harvard")));
+        conn.add(VF.createStatement(VF.createIRI(litdupsNS, "Harvard"), VF.createIRI(litdupsNS, "hasAlumnus"), VF.createIRI(litdupsNS, "AlumC")));
         conn.commit();
         conn.close();
 
@@ -730,11 +739,11 @@ public class RdfCloudTripleStoreConnectionTest extends TestCase {
 		}
 
         RepositoryConnection conn = repository.getConnection();
-        conn.add(new StatementImpl(vf.createIRI(litdupsNS, "UndergraduateStudent"), RDFS.SUBCLASSOF, vf.createIRI(litdupsNS, "Student")));
-        conn.add(new StatementImpl(vf.createIRI(litdupsNS, "Student"), RDFS.SUBCLASSOF, vf.createIRI(litdupsNS, "Person")));
-        conn.add(new StatementImpl(vf.createIRI(litdupsNS, "UgradA"), RDF.TYPE, vf.createIRI(litdupsNS, "UndergraduateStudent")));
-        conn.add(new StatementImpl(vf.createIRI(litdupsNS, "StudentB"), RDF.TYPE, vf.createIRI(litdupsNS, "Student")));
-        conn.add(new StatementImpl(vf.createIRI(litdupsNS, "PersonC"), RDF.TYPE, vf.createIRI(litdupsNS, "Person")));
+        conn.add(VF.createStatement(VF.createIRI(litdupsNS, "UndergraduateStudent"), RDFS.SUBCLASSOF, VF.createIRI(litdupsNS, "Student")));
+        conn.add(VF.createStatement(VF.createIRI(litdupsNS, "Student"), RDFS.SUBCLASSOF, VF.createIRI(litdupsNS, "Person")));
+        conn.add(VF.createStatement(VF.createIRI(litdupsNS, "UgradA"), RDF.TYPE, VF.createIRI(litdupsNS, "UndergraduateStudent")));
+        conn.add(VF.createStatement(VF.createIRI(litdupsNS, "StudentB"), RDF.TYPE, VF.createIRI(litdupsNS, "Student")));
+        conn.add(VF.createStatement(VF.createIRI(litdupsNS, "PersonC"), RDF.TYPE, VF.createIRI(litdupsNS, "Person")));
         conn.commit();
         conn.close();
 
@@ -743,7 +752,7 @@ public class RdfCloudTripleStoreConnectionTest extends TestCase {
         conn = repository.getConnection();
 
         //simple api first
-        RepositoryResult<Statement> person = conn.getStatements(null, RDF.TYPE, vf.createIRI(litdupsNS, "Person"), true);
+        RepositoryResult<Statement> person = conn.getStatements(null, RDF.TYPE, VF.createIRI(litdupsNS, "Person"), true);
         int count = 0;
         while (person.hasNext()) {
             count++;
@@ -792,12 +801,12 @@ public class RdfCloudTripleStoreConnectionTest extends TestCase {
 		}
 
         RepositoryConnection conn = repository.getConnection();
-        conn.add(new StatementImpl(vf.createIRI(litdupsNS, "StudentA1"), OWL.SAMEAS, vf.createIRI(litdupsNS, "StudentA2")));
-        conn.add(new StatementImpl(vf.createIRI(litdupsNS, "StudentA2"), OWL.SAMEAS, vf.createIRI(litdupsNS, "StudentA3")));
-        conn.add(new StatementImpl(vf.createIRI(litdupsNS, "StudentB1"), OWL.SAMEAS, vf.createIRI(litdupsNS, "StudentB2")));
-        conn.add(new StatementImpl(vf.createIRI(litdupsNS, "StudentB2"), OWL.SAMEAS, vf.createIRI(litdupsNS, "StudentB3")));
-        conn.add(new StatementImpl(vf.createIRI(litdupsNS, "StudentA1"), vf.createIRI(litdupsNS, "pred1"), vf.createIRI(litdupsNS, "StudentB3")));
-        conn.add(new StatementImpl(vf.createIRI(litdupsNS, "StudentB1"), vf.createIRI(litdupsNS, "pred2"), vf.createIRI(litdupsNS, "StudentA3")));
+        conn.add(VF.createStatement(VF.createIRI(litdupsNS, "StudentA1"), OWL.SAMEAS, VF.createIRI(litdupsNS, "StudentA2")));
+        conn.add(VF.createStatement(VF.createIRI(litdupsNS, "StudentA2"), OWL.SAMEAS, VF.createIRI(litdupsNS, "StudentA3")));
+        conn.add(VF.createStatement(VF.createIRI(litdupsNS, "StudentB1"), OWL.SAMEAS, VF.createIRI(litdupsNS, "StudentB2")));
+        conn.add(VF.createStatement(VF.createIRI(litdupsNS, "StudentB2"), OWL.SAMEAS, VF.createIRI(litdupsNS, "StudentB3")));
+        conn.add(VF.createStatement(VF.createIRI(litdupsNS, "StudentA1"), VF.createIRI(litdupsNS, "pred1"), VF.createIRI(litdupsNS, "StudentB3")));
+        conn.add(VF.createStatement(VF.createIRI(litdupsNS, "StudentB1"), VF.createIRI(litdupsNS, "pred2"), VF.createIRI(litdupsNS, "StudentA3")));
         conn.commit();
         conn.close();
 
@@ -951,7 +960,7 @@ public class RdfCloudTripleStoreConnectionTest extends TestCase {
         conn.add(stream, "", RDFFormat.TRIG);
         conn.commit();
 
-        RepositoryResult<Statement> statements = conn.getStatements(null, vf.createIRI("http://www.example.org/vocabulary#name"), null, true, vf.createIRI("http://www.example.org/exampleDocument#G1"));
+        RepositoryResult<Statement> statements = conn.getStatements(null, VF.createIRI("http://www.example.org/vocabulary#name"), null, true, VF.createIRI("http://www.example.org/exampleDocument#G1"));
         int count = 0;
         while (statements.hasNext()) {
             statements.next();
@@ -1094,7 +1103,7 @@ public class RdfCloudTripleStoreConnectionTest extends TestCase {
                 "  } .\n" +
                 "}";
         TupleQuery tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, query);
-        tupleQuery.setBinding(RdfCloudTripleStoreConfiguration.CONF_QUERY_AUTH, vf.createLiteral("2"));
+        tupleQuery.setBinding(RdfCloudTripleStoreConfiguration.CONF_QUERY_AUTH, VF.createLiteral("2"));
         CountTupleHandler tupleHandler = new CountTupleHandler();
         tupleQuery.evaluate(tupleHandler);
         assertEquals(1, tupleHandler.getCount());
@@ -1144,7 +1153,7 @@ public class RdfCloudTripleStoreConnectionTest extends TestCase {
                 "  } .\n" +
                 "}";
         TupleQuery tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, query);
-        tupleQuery.setBinding(RdfCloudTripleStoreConfiguration.CONF_QUERY_AUTH, vf.createLiteral("2"));
+        tupleQuery.setBinding(RdfCloudTripleStoreConfiguration.CONF_QUERY_AUTH, VF.createLiteral("2"));
         CountTupleHandler tupleHandler = new CountTupleHandler();
         tupleQuery.evaluate(tupleHandler);
         assertEquals(1, tupleHandler.getCount());
@@ -1274,12 +1283,12 @@ public class RdfCloudTripleStoreConnectionTest extends TestCase {
         assertEquals(4, tupleHandler.getCount());
 
         tupleHandler = new CountTupleHandler();
-        conn.clear(new URIImpl("http://example/addresses#G2"));
+        conn.clear(VF.createIRI("http://example/addresses#G2"));
         tupleQuery.evaluate(tupleHandler);
         assertEquals(2, tupleHandler.getCount());
 
         tupleHandler = new CountTupleHandler();
-        conn.clear(new URIImpl("http://example/addresses#G1"));
+        conn.clear(VF.createIRI("http://example/addresses#G1"));
         tupleQuery.evaluate(tupleHandler);
         assertEquals(0, tupleHandler.getCount());
 

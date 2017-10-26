@@ -18,21 +18,22 @@
  */
 package org.apache.rya.indexing.pcj.storage.accumulo;
 
+import static org.junit.Assert.assertEquals;
+
 import org.apache.rya.api.resolver.RyaTypeResolverException;
 import org.apache.rya.indexing.pcj.storage.accumulo.BindingSetConverter.BindingSetConversionException;
-import org.eclipse.rdf4j.model.impl.LiteralImpl;
-import org.eclipse.rdf4j.model.impl.URIImpl;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 import org.eclipse.rdf4j.query.BindingSet;
 import org.eclipse.rdf4j.query.algebra.evaluation.QueryBindingSet;
 import org.eclipse.rdf4j.query.impl.MapBindingSet;
 import org.junit.Test;
 
-import static org.junit.Assert.assertEquals;
-
 /**
  * Tests the methods of {@link AccumuloPcjSerialzer}.
  */
 public class AccumuloPcjSerializerTest {
+    private static final ValueFactory VF = SimpleValueFactory.getInstance();
 
     /**
      * The BindingSet has fewer Bindings than there are variables in the variable
@@ -43,8 +44,8 @@ public class AccumuloPcjSerializerTest {
     public void serialize_bindingsSubsetOfVarOrder() throws BindingSetConversionException {
         // Setup the Binding Set.
         final MapBindingSet originalBindingSet = new MapBindingSet();
-        originalBindingSet.addBinding("x", new URIImpl("http://a"));
-        originalBindingSet.addBinding("y", new URIImpl("http://b"));
+        originalBindingSet.addBinding("x", VF.createIRI("http://a"));
+        originalBindingSet.addBinding("y", VF.createIRI("http://b"));
 
         // Setup the variable order.
         final VariableOrder varOrder = new VariableOrder("x", "a", "y", "b");
@@ -69,9 +70,9 @@ public class AccumuloPcjSerializerTest {
     public void serialize_bindingNotInVariableOrder() throws RyaTypeResolverException, BindingSetConversionException {
         // Setup the Binding Set.
         final MapBindingSet originalBindingSet = new MapBindingSet();
-        originalBindingSet.addBinding("x", new URIImpl("http://a"));
-        originalBindingSet.addBinding("y", new URIImpl("http://b"));
-        originalBindingSet.addBinding("z", new URIImpl("http://d"));
+        originalBindingSet.addBinding("x", VF.createIRI("http://a"));
+        originalBindingSet.addBinding("y", VF.createIRI("http://b"));
+        originalBindingSet.addBinding("z", VF.createIRI("http://d"));
 
         // Setup the variable order.
         final VariableOrder varOrder = new VariableOrder("x", "y");
@@ -85,8 +86,8 @@ public class AccumuloPcjSerializerTest {
         
         // Show that it only contains the bindings that were part of the Variable Order.
         MapBindingSet expected = new MapBindingSet();
-        expected.addBinding("x", new URIImpl("http://a"));
-        expected.addBinding("y", new URIImpl("http://b"));
+        expected.addBinding("x", VF.createIRI("http://a"));
+        expected.addBinding("y", VF.createIRI("http://b"));
         
         assertEquals(expected, deserialized);
     }
@@ -94,8 +95,8 @@ public class AccumuloPcjSerializerTest {
 	@Test
 	public void basicShortUriBsTest() throws BindingSetConversionException {
 		final QueryBindingSet bs = new QueryBindingSet();
-		bs.addBinding("X",new URIImpl("http://uri1"));
-		bs.addBinding("Y",new URIImpl("http://uri2"));
+		bs.addBinding("X", VF.createIRI("http://uri1"));
+		bs.addBinding("Y", VF.createIRI("http://uri2"));
 		final VariableOrder varOrder = new VariableOrder("X","Y");
 
 		BindingSetConverter<byte[]> converter = new AccumuloPcjSerializer();
@@ -107,11 +108,11 @@ public class AccumuloPcjSerializerTest {
 	@Test
 	public void basicLongUriBsTest() throws BindingSetConversionException {
 		final QueryBindingSet bs = new QueryBindingSet();
-		bs.addBinding("X",new URIImpl("http://uri1"));
-		bs.addBinding("Y",new URIImpl("http://uri2"));
-		bs.addBinding("Z",new URIImpl("http://uri3"));
-		bs.addBinding("A",new URIImpl("http://uri4"));
-		bs.addBinding("B",new URIImpl("http://uri5"));
+		bs.addBinding("X", VF.createIRI("http://uri1"));
+		bs.addBinding("Y", VF.createIRI("http://uri2"));
+		bs.addBinding("Z",VF.createIRI("http://uri3"));
+		bs.addBinding("A", VF.createIRI("http://uri4"));
+		bs.addBinding("B", VF.createIRI("http://uri5"));
 		final VariableOrder varOrder = new VariableOrder("X","Y","Z","A","B");
 
 		BindingSetConverter<byte[]> converter = new AccumuloPcjSerializer();
@@ -123,8 +124,8 @@ public class AccumuloPcjSerializerTest {
 	@Test
 	public void basicShortStringLiteralBsTest() throws BindingSetConversionException {
 		final QueryBindingSet bs = new QueryBindingSet();
-		bs.addBinding("X",new LiteralImpl("literal1"));
-		bs.addBinding("Y",new LiteralImpl("literal2"));
+		bs.addBinding("X", VF.createLiteral("literal1"));
+		bs.addBinding("Y", VF.createLiteral("literal2"));
 		final VariableOrder varOrder = new VariableOrder("X","Y");
 
 		BindingSetConverter<byte[]> converter = new AccumuloPcjSerializer();
@@ -136,8 +137,8 @@ public class AccumuloPcjSerializerTest {
 	@Test
 	public void basicShortMixLiteralBsTest() throws BindingSetConversionException {
 		final QueryBindingSet bs = new QueryBindingSet();
-		bs.addBinding("X",new LiteralImpl("literal1"));
-		bs.addBinding("Y",new LiteralImpl("5", new URIImpl("http://www.w3.org/2001/XMLSchema#integer")));
+		bs.addBinding("X",VF.createLiteral("literal1"));
+		bs.addBinding("Y",VF.createLiteral("5", VF.createIRI("http://www.w3.org/2001/XMLSchema#integer")));
 		final VariableOrder varOrder = new VariableOrder("X","Y");
 
 		BindingSetConverter<byte[]> converter = new AccumuloPcjSerializer();
@@ -149,10 +150,10 @@ public class AccumuloPcjSerializerTest {
 	@Test
 	public void basicLongMixLiteralBsTest() throws BindingSetConversionException {
 		final QueryBindingSet bs = new QueryBindingSet();
-		bs.addBinding("X",new LiteralImpl("literal1"));
-		bs.addBinding("Y",new LiteralImpl("5", new URIImpl("http://www.w3.org/2001/XMLSchema#integer")));
-		bs.addBinding("Z",new LiteralImpl("5.0", new URIImpl("http://www.w3.org/2001/XMLSchema#double")));
-		bs.addBinding("W",new LiteralImpl("1000", new URIImpl("http://www.w3.org/2001/XMLSchema#long")));
+		bs.addBinding("X", VF.createLiteral("literal1"));
+		bs.addBinding("Y", VF.createLiteral("5", VF.createIRI("http://www.w3.org/2001/XMLSchema#integer")));
+		bs.addBinding("Z", VF.createLiteral("5.0", VF.createIRI("http://www.w3.org/2001/XMLSchema#double")));
+		bs.addBinding("W", VF.createLiteral("1000", VF.createIRI("http://www.w3.org/2001/XMLSchema#long")));
 		final VariableOrder varOrder = new VariableOrder("W","X","Y","Z");
 
 		BindingSetConverter<byte[]> converter = new AccumuloPcjSerializer();
@@ -164,13 +165,13 @@ public class AccumuloPcjSerializerTest {
 	@Test
 	public void basicMixUriLiteralBsTest() throws BindingSetConversionException {
 		final QueryBindingSet bs = new QueryBindingSet();
-		bs.addBinding("X",new LiteralImpl("literal1"));
-		bs.addBinding("Y",new LiteralImpl("5", new URIImpl("http://www.w3.org/2001/XMLSchema#integer")));
-		bs.addBinding("Z",new LiteralImpl("5.0", new URIImpl("http://www.w3.org/2001/XMLSchema#double")));
-		bs.addBinding("W",new LiteralImpl("1000", new URIImpl("http://www.w3.org/2001/XMLSchema#long")));
-		bs.addBinding("A",new URIImpl("http://uri1"));
-		bs.addBinding("B",new URIImpl("http://uri2"));
-		bs.addBinding("C",new URIImpl("http://uri3"));
+		bs.addBinding("X", VF.createLiteral("literal1"));
+		bs.addBinding("Y", VF.createLiteral("5", VF.createIRI("http://www.w3.org/2001/XMLSchema#integer")));
+		bs.addBinding("Z", VF.createLiteral("5.0", VF.createIRI("http://www.w3.org/2001/XMLSchema#double")));
+		bs.addBinding("W", VF.createLiteral("1000", VF.createIRI("http://www.w3.org/2001/XMLSchema#long")));
+		bs.addBinding("A", VF.createIRI("http://uri1"));
+		bs.addBinding("B", VF.createIRI("http://uri2"));
+		bs.addBinding("C", VF.createIRI("http://uri3"));
 		final VariableOrder varOrder = new VariableOrder("A","W","X","Y","Z","B","C");
 
 		BindingSetConverter<byte[]> converter = new AccumuloPcjSerializer();

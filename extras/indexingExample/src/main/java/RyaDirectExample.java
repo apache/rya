@@ -21,8 +21,11 @@ import java.net.UnknownHostException;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 
-import com.google.common.base.Optional;
-import org.apache.accumulo.core.client.*;
+import org.apache.accumulo.core.client.AccumuloException;
+import org.apache.accumulo.core.client.AccumuloSecurityException;
+import org.apache.accumulo.core.client.Connector;
+import org.apache.accumulo.core.client.TableExistsException;
+import org.apache.accumulo.core.client.TableNotFoundException;
 import org.apache.accumulo.core.client.mock.MockInstance;
 import org.apache.accumulo.core.client.security.tokens.PasswordToken;
 import org.apache.commons.lang.Validate;
@@ -40,16 +43,26 @@ import org.apache.rya.rdftriplestore.inference.InferenceEngineException;
 import org.apache.rya.sail.config.RyaSailFactory;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.ValueFactory;
-import org.eclipse.rdf4j.model.impl.LiteralImpl;
-import org.eclipse.rdf4j.model.impl.URIImpl;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 import org.eclipse.rdf4j.model.vocabulary.RDF;
 import org.eclipse.rdf4j.model.vocabulary.RDFS;
-import org.eclipse.rdf4j.query.*;
+import org.eclipse.rdf4j.query.BindingSet;
+import org.eclipse.rdf4j.query.MalformedQueryException;
+import org.eclipse.rdf4j.query.QueryEvaluationException;
+import org.eclipse.rdf4j.query.QueryLanguage;
+import org.eclipse.rdf4j.query.QueryResultHandlerException;
+import org.eclipse.rdf4j.query.TupleQuery;
+import org.eclipse.rdf4j.query.TupleQueryResultHandler;
+import org.eclipse.rdf4j.query.TupleQueryResultHandlerException;
+import org.eclipse.rdf4j.query.Update;
+import org.eclipse.rdf4j.query.UpdateExecutionException;
 import org.eclipse.rdf4j.repository.RepositoryException;
 import org.eclipse.rdf4j.repository.sail.SailRepository;
 import org.eclipse.rdf4j.repository.sail.SailRepositoryConnection;
 import org.eclipse.rdf4j.sail.Sail;
 import org.eclipse.rdf4j.sail.SailException;
+
+import com.google.common.base.Optional;
 
 public class RyaDirectExample {
 	private static final Logger log = Logger.getLogger(RyaDirectExample.class);
@@ -738,18 +751,19 @@ public class RyaDirectExample {
 					+ "  ?e <uri:talksTo> ?o . "//
 					+ "}";//
 
+			ValueFactory vf = SimpleValueFactory.getInstance();
 			IRI obj, subclass, talksTo;
-			final IRI person = new URIImpl("urn:people:alice");
-			final IRI feature = new URIImpl("urn:feature");
-			final IRI sub = new URIImpl("uri:entity");
-			subclass = new URIImpl("uri:class");
-			obj = new URIImpl("uri:obj");
-			talksTo = new URIImpl("uri:talksTo");
+			final IRI person = vf.createIRI("urn:people:alice");
+			final IRI feature = vf.createIRI("urn:feature");
+			final IRI sub = vf.createIRI("uri:entity");
+			subclass = vf.createIRI("uri:class");
+			obj = vf.createIRI("uri:obj");
+			talksTo = vf.createIRI("uri:talksTo");
 
 			conn.add(person, RDF.TYPE, sub);
 			conn.add(feature, RDF.TYPE, sub);
 			conn.add(sub, RDF.TYPE, subclass);
-			conn.add(sub, RDFS.LABEL, new LiteralImpl("label"));
+			conn.add(sub, RDFS.LABEL, vf.createLiteral("label"));
 			conn.add(sub, talksTo, obj);
 
 			final String tablename1 = RYA_TABLE_PREFIX + "INDEX_1";

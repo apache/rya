@@ -3,19 +3,28 @@ package org.apache.rya.indexing.external;
 import java.net.UnknownHostException;
 import java.util.List;
 
-import com.google.common.base.Optional;
-import org.apache.accumulo.core.client.*;
+import org.apache.accumulo.core.client.AccumuloException;
+import org.apache.accumulo.core.client.AccumuloSecurityException;
+import org.apache.accumulo.core.client.Connector;
+import org.apache.accumulo.core.client.TableExistsException;
+import org.apache.accumulo.core.client.TableNotFoundException;
 import org.apache.accumulo.core.client.mock.MockInstance;
 import org.apache.accumulo.core.client.security.tokens.PasswordToken;
 import org.apache.rya.api.persist.RyaDAOException;
 import org.apache.rya.indexing.pcj.storage.PcjException;
 import org.apache.rya.rdftriplestore.inference.InferenceEngineException;
 import org.eclipse.rdf4j.model.IRI;
-import org.eclipse.rdf4j.model.impl.LiteralImpl;
-import org.eclipse.rdf4j.model.impl.URIImpl;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 import org.eclipse.rdf4j.model.vocabulary.RDF;
 import org.eclipse.rdf4j.model.vocabulary.RDFS;
-import org.eclipse.rdf4j.query.*;
+import org.eclipse.rdf4j.query.BindingSet;
+import org.eclipse.rdf4j.query.MalformedQueryException;
+import org.eclipse.rdf4j.query.QueryEvaluationException;
+import org.eclipse.rdf4j.query.QueryLanguage;
+import org.eclipse.rdf4j.query.QueryResultHandlerException;
+import org.eclipse.rdf4j.query.TupleQueryResultHandler;
+import org.eclipse.rdf4j.query.TupleQueryResultHandlerException;
 import org.eclipse.rdf4j.repository.RepositoryException;
 import org.eclipse.rdf4j.repository.sail.SailRepository;
 import org.eclipse.rdf4j.repository.sail.SailRepositoryConnection;
@@ -24,6 +33,8 @@ import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+
+import com.google.common.base.Optional;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -45,6 +56,7 @@ import org.junit.Test;
  */
 
 public class PrecompJoinOptimizerIT {
+    private static final ValueFactory VF = SimpleValueFactory.getInstance();
 
 	private SailRepositoryConnection conn, pcjConn;
 	private SailRepository repo, pcjRepo;
@@ -66,21 +78,21 @@ public class PrecompJoinOptimizerIT {
 		pcjRepo = PcjIntegrationTestingUtil.getPcjRepo(tablePrefix, "instance");
 		pcjConn = pcjRepo.getConnection();
 
-		sub = new URIImpl("uri:entity");
-		subclass = new URIImpl("uri:class");
-		obj = new URIImpl("uri:obj");
-		talksTo = new URIImpl("uri:talksTo");
+		sub = VF.createIRI("uri:entity");
+		subclass = VF.createIRI("uri:class");
+		obj = VF.createIRI("uri:obj");
+		talksTo = VF.createIRI("uri:talksTo");
 
 		conn.add(sub, RDF.TYPE, subclass);
-		conn.add(sub, RDFS.LABEL, new LiteralImpl("label"));
+		conn.add(sub, RDFS.LABEL, VF.createLiteral("label"));
 		conn.add(sub, talksTo, obj);
 
-		sub2 = new URIImpl("uri:entity2");
-		subclass2 = new URIImpl("uri:class2");
-		obj2 = new URIImpl("uri:obj2");
+		sub2 = VF.createIRI("uri:entity2");
+		subclass2 = VF.createIRI("uri:class2");
+		obj2 = VF.createIRI("uri:obj2");
 
 		conn.add(sub2, RDF.TYPE, subclass2);
-		conn.add(sub2, RDFS.LABEL, new LiteralImpl("label2"));
+		conn.add(sub2, RDFS.LABEL, VF.createLiteral("label2"));
 		conn.add(sub2, talksTo, obj2);
 
 		accCon = new MockInstance("instance").getConnector("root",
@@ -145,8 +157,8 @@ public class PrecompJoinOptimizerIT {
 			QueryEvaluationException, TableNotFoundException,
 			TupleQueryResultHandlerException, RyaDAOException, PcjException {
 
-		conn.add(obj, RDFS.LABEL, new LiteralImpl("label"));
-		conn.add(obj2, RDFS.LABEL, new LiteralImpl("label2"));
+		conn.add(obj, RDFS.LABEL, VF.createLiteral("label"));
+		conn.add(obj2, RDFS.LABEL, VF.createLiteral("label2"));
 
 		final String indexSparqlString = ""//
 				+ "SELECT ?e ?l ?c " //
@@ -287,10 +299,10 @@ public class PrecompJoinOptimizerIT {
 				+ "  ?e <http://www.w3.org/2000/01/rdf-schema#label> ?l "//
 				+ "}";//
 
-		final IRI sub3 = new URIImpl("uri:entity3");
-		final IRI subclass3 = new URIImpl("uri:class3");
+		final IRI sub3 = VF.createIRI("uri:entity3");
+		final IRI subclass3 = VF.createIRI("uri:class3");
 		conn.add(sub3, RDF.TYPE, subclass3);
-		conn.add(sub3, RDFS.LABEL, new LiteralImpl("label3"));
+		conn.add(sub3, RDFS.LABEL, VF.createLiteral("label3"));
 
 		PcjIntegrationTestingUtil.createAndPopulatePcj(conn, accCon, tablePrefix
 				+ "INDEX_1", indexSparqlString1, new String[] { "e", "l", "c" },
@@ -310,7 +322,7 @@ public class PrecompJoinOptimizerIT {
 		repo = PcjIntegrationTestingUtil.getPcjRepo(tablePrefix, "instance");
 		conn = repo.getConnection();
 		conn.add(sub, talksTo, obj);
-		conn.add(sub, RDFS.LABEL, new LiteralImpl("label"));
+		conn.add(sub, RDFS.LABEL, VF.createLiteral("label"));
 		pcjConn.prepareTupleQuery(QueryLanguage.SPARQL, queryString).evaluate(
 				crh);
 
@@ -326,8 +338,8 @@ public class PrecompJoinOptimizerIT {
 			TupleQueryResultHandlerException, RyaDAOException, PcjException, InferenceEngineException,
 			NumberFormatException, UnknownHostException {
 
-		conn.add(obj, RDFS.LABEL, new LiteralImpl("label"));
-		conn.add(obj2, RDFS.LABEL, new LiteralImpl("label2"));
+		conn.add(obj, RDFS.LABEL, VF.createLiteral("label"));
+		conn.add(obj2, RDFS.LABEL, VF.createLiteral("label2"));
 		conn.add(sub, RDF.TYPE, obj);
 		conn.add(sub2, RDF.TYPE, obj2);
 
@@ -385,15 +397,15 @@ public class PrecompJoinOptimizerIT {
 			TupleQueryResultHandlerException, RyaDAOException, PcjException, InferenceEngineException,
 			NumberFormatException, UnknownHostException {
 
-		conn.add(obj, RDFS.LABEL, new LiteralImpl("label"));
-		conn.add(obj2, RDFS.LABEL, new LiteralImpl("label2"));
+		conn.add(obj, RDFS.LABEL, VF.createLiteral("label"));
+		conn.add(obj2, RDFS.LABEL, VF.createLiteral("label2"));
 		conn.add(sub, RDF.TYPE, obj);
 		conn.add(sub2, RDF.TYPE, obj2);
 
-		final IRI livesIn = new URIImpl("uri:livesIn");
-		final IRI city = new URIImpl("uri:city");
-		final IRI city2 = new URIImpl("uri:city2");
-		final IRI city3 = new URIImpl("uri:city3");
+		final IRI livesIn = VF.createIRI("uri:livesIn");
+		final IRI city = VF.createIRI("uri:city");
+		final IRI city2 = VF.createIRI("uri:city2");
+		final IRI city3 = VF.createIRI("uri:city3");
 		conn.add(sub, livesIn, city);
 		conn.add(sub2, livesIn, city2);
 		conn.add(sub2, livesIn, city3);

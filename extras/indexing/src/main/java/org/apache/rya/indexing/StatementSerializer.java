@@ -24,10 +24,13 @@ import java.util.Set;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
-import org.eclipse.rdf4j.model.*;
-import org.eclipse.rdf4j.model.impl.ContextStatementImpl;
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.Literal;
+import org.eclipse.rdf4j.model.Resource;
+import org.eclipse.rdf4j.model.Statement;
+import org.eclipse.rdf4j.model.Value;
+import org.eclipse.rdf4j.model.ValueFactory;
 import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
-import org.eclipse.rdf4j.model.impl.StatementImpl;
 
 /**
  * A set of Utilities to serialize {@link Statement}s to/from {@link String}s.
@@ -35,7 +38,7 @@ import org.eclipse.rdf4j.model.impl.StatementImpl;
 public class StatementSerializer {
     private static String SEP = "\u0000";
 
-    private static ValueFactory VALUE_FACTORY = SimpleValueFactory.getInstance();
+    private static final ValueFactory VF = SimpleValueFactory.getInstance();
 
     /**
      * Read a {@link Statement} from a {@link String}
@@ -64,7 +67,7 @@ public class StatementSerializer {
 
     public static Statement readStatement(String subjectString, String predicateString, String objectString, String contextString) {
         Resource subject = createResource(subjectString);
-        IRI predicate = VALUE_FACTORY.createIRI(predicateString);
+        IRI predicate = VF.createIRI(predicateString);
 
         boolean isObjectLiteral = objectString.startsWith("\"");
 
@@ -76,18 +79,18 @@ public class StatementSerializer {
         }
 
         if (contextString == null || contextString.isEmpty()) {
-            return new StatementImpl(subject, predicate, object);
+            return VF.createStatement(subject, predicate, object);
         } else {
-            Resource context = VALUE_FACTORY.createIRI(contextString);
-            return new ContextStatementImpl(subject, predicate, object, context);
+            Resource context = VF.createIRI(contextString);
+            return VF.createStatement(subject, predicate, object, context);
         }
     }
 
     private static Resource createResource(String str) {
         if (str.startsWith("_")) {
-            return VALUE_FACTORY.createBNode(str.substring(2));
+            return VF.createBNode(str.substring(2));
         }
-        return VALUE_FACTORY.createIRI(str);
+        return VF.createIRI(str);
 
     }
 
@@ -97,7 +100,7 @@ public class StatementSerializer {
 
         if (fullLiteralString.endsWith("\"")) {
             String fullLiteralWithoutQuotes = fullLiteralString.substring(1, fullLiteralString.length() - 1);
-            return VALUE_FACTORY.createLiteral(fullLiteralWithoutQuotes, (String) null);
+            return VF.createLiteral(fullLiteralWithoutQuotes, (String) null);
         } else {
 
             // find the closing quote
@@ -110,12 +113,12 @@ public class StatementSerializer {
             if (data.startsWith("@")) {
                 // the data is "language"
                 String lang = data.substring(1);
-                return VALUE_FACTORY.createLiteral(label, lang);
+                return VF.createLiteral(label, lang);
             } else if (data.startsWith("^^<")) {
                 // the data is a "datatype"
                 String datatype = data.substring(3, data.length() - 1);
-                IRI datatypeUri = VALUE_FACTORY.createIRI(datatype);
-                return VALUE_FACTORY.createLiteral(label, datatypeUri);
+                IRI datatypeUri = VF.createIRI(datatype);
+                return VF.createLiteral(label, datatypeUri);
             }
         }
         return null;

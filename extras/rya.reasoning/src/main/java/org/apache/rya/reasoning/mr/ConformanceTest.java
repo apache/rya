@@ -1,5 +1,3 @@
-package org.apache.rya.reasoning.mr;
-
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -18,11 +16,28 @@ package org.apache.rya.reasoning.mr;
  * specific language governing permissions and limitations
  * under the License.
  */
+package org.apache.rya.reasoning.mr;
 
-import java.io.*;
+import static org.eclipse.rdf4j.rio.RDFFormat.NO_CONTEXTS;
+import static org.eclipse.rdf4j.rio.RDFFormat.NO_NAMESPACES;
+
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.StringReader;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import org.apache.accumulo.minicluster.MiniAccumuloCluster;
 import org.apache.hadoop.conf.Configuration;
@@ -35,7 +50,7 @@ import org.apache.hadoop.util.ToolRunner;
 import org.apache.rya.accumulo.mr.MRUtils;
 import org.apache.rya.reasoning.Fact;
 import org.apache.rya.reasoning.Schema;
-import org.eclipse.rdf4j.OpenRDFException;
+import org.eclipse.rdf4j.RDF4JException;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Resource;
 import org.eclipse.rdf4j.model.Statement;
@@ -51,13 +66,10 @@ import org.eclipse.rdf4j.repository.Repository;
 import org.eclipse.rdf4j.repository.RepositoryConnection;
 import org.eclipse.rdf4j.repository.sail.SailRepository;
 import org.eclipse.rdf4j.rio.RDFFormat;
-import org.eclipse.rdf4j.rio.helpers.RDFHandlerBase;
+import org.eclipse.rdf4j.rio.helpers.AbstractRDFHandler;
 import org.eclipse.rdf4j.rio.ntriples.NTriplesParser;
 import org.eclipse.rdf4j.rio.rdfxml.RDFXMLParser;
 import org.eclipse.rdf4j.sail.memory.MemoryStore;
-
-import static org.eclipse.rdf4j.rio.RDFFormat.NO_CONTEXTS;
-import static org.eclipse.rdf4j.rio.RDFFormat.NO_NAMESPACES;
 
 /**
  * Test the reasoner against Owl conformance tests in the database.
@@ -79,7 +91,7 @@ public class ConformanceTest extends Configured implements Tool {
     static String TEST_SEMANTICS = TEST + "semantics";
     static String TEST_RDFBASED = TEST + "RDF-BASED";
 
-    private static class OwlTest extends RDFHandlerBase {
+    private static class OwlTest extends AbstractRDFHandler {
         Value uri;
         String name;
         String description;
@@ -118,7 +130,7 @@ public class ConformanceTest extends Configured implements Tool {
         }
     }
 
-    private static class OutputCollector extends RDFHandlerBase {
+    private static class OutputCollector extends AbstractRDFHandler {
         Set<Statement> triples = new HashSet<>();
         @Override
         public void handleStatement(final Statement st) {
@@ -335,7 +347,7 @@ public class ConformanceTest extends Configured implements Tool {
      * test type.
      */
     Set<Value> getTestURIs(final RepositoryConnection conn, final String testType)
-            throws IOException, OpenRDFException {
+            throws IOException, RDF4JException {
         final Set<Value> testURIs = new HashSet<>();
         final TupleQuery query = conn.prepareTupleQuery(QueryLanguage.SPARQL,
             "select ?test where { " +
@@ -356,7 +368,7 @@ public class ConformanceTest extends Configured implements Tool {
      * Query a connection for conformance test details.
      */
     Collection<OwlTest> getTests(final RepositoryConnection conn, final Set<Value> testURIs)
-            throws IOException, OpenRDFException {
+            throws IOException, RDF4JException {
         final Map<Value, OwlTest> tests = new HashMap<>();
         final TupleQuery query = conn.prepareTupleQuery(QueryLanguage.SPARQL,
             "select * where { " +

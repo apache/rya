@@ -20,13 +20,14 @@ package org.apache.rya.api.domain;
 
 import java.util.Date;
 
-import com.google.common.collect.ImmutableMap;
 import org.eclipse.rdf4j.model.IRI;
-import org.eclipse.rdf4j.model.impl.URIImpl;
+import org.eclipse.rdf4j.model.impl.SimpleIRI;
 import org.eclipse.rdf4j.model.vocabulary.XMLSchema;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.format.ISODateTimeFormat;
+
+import com.google.common.collect.ImmutableMap;
 
 /**
  * Utility methods for using {@link RyaType}.
@@ -45,7 +46,7 @@ public final class RyaTypeUtils {
             .put(Short.class, (v) -> shortRyaType((Short) v))
             .put(String.class, (v) -> stringRyaType((String) v))
             .put(IRI.class, (v) -> uriRyaType((IRI) v))
-            .put(URIImpl.class, (v) -> uriRyaType((URIImpl) v))
+            .put(SimpleIRI.class, (v) -> uriRyaType((SimpleIRI) v))
             .build();
 
     /**

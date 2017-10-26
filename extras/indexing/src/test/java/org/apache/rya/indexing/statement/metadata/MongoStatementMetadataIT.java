@@ -18,7 +18,11 @@
  */
 package org.apache.rya.indexing.statement.metadata;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.domain.RyaType;
@@ -28,10 +32,14 @@ import org.apache.rya.api.persist.RyaDAOException;
 import org.apache.rya.mongodb.MongoDBRyaDAO;
 import org.apache.rya.mongodb.MongoTestBase;
 import org.apache.rya.sail.config.RyaSailFactory;
-import org.eclipse.rdf4j.model.impl.LiteralImpl;
-import org.eclipse.rdf4j.model.impl.URIImpl;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 import org.eclipse.rdf4j.model.vocabulary.XMLSchema;
-import org.eclipse.rdf4j.query.*;
+import org.eclipse.rdf4j.query.BindingSet;
+import org.eclipse.rdf4j.query.MalformedQueryException;
+import org.eclipse.rdf4j.query.QueryEvaluationException;
+import org.eclipse.rdf4j.query.QueryLanguage;
+import org.eclipse.rdf4j.query.TupleQueryResult;
 import org.eclipse.rdf4j.query.algebra.evaluation.QueryBindingSet;
 import org.eclipse.rdf4j.repository.sail.SailRepository;
 import org.eclipse.rdf4j.repository.sail.SailRepositoryConnection;
@@ -41,6 +49,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 public class MongoStatementMetadataIT extends MongoTestBase {
+    private static final ValueFactory VF = SimpleValueFactory.getInstance();
 
     private Sail sail;
     private SailRepository repo;
@@ -81,8 +90,8 @@ public class MongoStatementMetadataIT extends MongoTestBase {
         final TupleQueryResult result = conn.prepareTupleQuery(QueryLanguage.SPARQL, query1).evaluate();
 
         final QueryBindingSet bs = new QueryBindingSet();
-        bs.addBinding("x", new LiteralImpl("CoffeeShop"));
-        bs.addBinding("y", new LiteralImpl("Joe"));
+        bs.addBinding("x", VF.createLiteral("CoffeeShop"));
+        bs.addBinding("y", VF.createLiteral("Joe"));
 
         final List<BindingSet> bsList = new ArrayList<>();
         while (result.hasNext()) {
@@ -142,11 +151,11 @@ public class MongoStatementMetadataIT extends MongoTestBase {
 
         final Set<BindingSet> expected = new HashSet<>();
         final QueryBindingSet expected1 = new QueryBindingSet();
-        expected1.addBinding("x", new LiteralImpl("CoffeeShop"));
-        expected1.addBinding("y", new LiteralImpl("Joe"));
+        expected1.addBinding("x", VF.createLiteral("CoffeeShop"));
+        expected1.addBinding("y", VF.createLiteral("Joe"));
         final QueryBindingSet expected2 = new QueryBindingSet();
-        expected2.addBinding("x", new LiteralImpl("HardwareStore"));
-        expected2.addBinding("y", new LiteralImpl("Joe"));
+        expected2.addBinding("x", VF.createLiteral("HardwareStore"));
+        expected2.addBinding("y", VF.createLiteral("Joe"));
         expected.add(expected1);
         expected.add(expected2);
 
@@ -201,9 +210,9 @@ public class MongoStatementMetadataIT extends MongoTestBase {
 
         final Set<BindingSet> expected = new HashSet<>();
         final QueryBindingSet expected1 = new QueryBindingSet();
-        expected1.addBinding("b", new URIImpl("http://Betty"));
-        expected1.addBinding("a", new URIImpl("http://Joe"));
-        expected1.addBinding("c", new URIImpl("http://Doug"));
+        expected1.addBinding("b", VF.createIRI("http://Betty"));
+        expected1.addBinding("a", VF.createIRI("http://Joe"));
+        expected1.addBinding("c", VF.createIRI("http://Doug"));
         expected.add(expected1);
 
         final Set<BindingSet> bsSet = new HashSet<>();

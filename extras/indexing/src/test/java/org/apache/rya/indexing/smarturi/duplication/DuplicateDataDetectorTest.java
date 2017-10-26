@@ -18,11 +18,30 @@
  */
 package org.apache.rya.indexing.smarturi.duplication;
 
-import java.util.*;
+import static java.util.Objects.requireNonNull;
+import static org.apache.rya.api.domain.RyaTypeUtils.booleanRyaType;
+import static org.apache.rya.api.domain.RyaTypeUtils.byteRyaType;
+import static org.apache.rya.api.domain.RyaTypeUtils.dateRyaType;
+import static org.apache.rya.api.domain.RyaTypeUtils.doubleRyaType;
+import static org.apache.rya.api.domain.RyaTypeUtils.floatRyaType;
+import static org.apache.rya.api.domain.RyaTypeUtils.intRyaType;
+import static org.apache.rya.api.domain.RyaTypeUtils.longRyaType;
+import static org.apache.rya.api.domain.RyaTypeUtils.shortRyaType;
+import static org.apache.rya.api.domain.RyaTypeUtils.stringRyaType;
+import static org.apache.rya.api.domain.RyaTypeUtils.uriRyaType;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Lists;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.lang.builder.ReflectionToStringBuilder;
 import org.apache.rya.api.domain.RyaSchema;
@@ -45,13 +64,12 @@ import org.apache.rya.indexing.smarturi.duplication.conf.DuplicateDataConfig;
 import org.apache.rya.mongodb.MongoTestBase;
 import org.eclipse.rdf4j.model.ValueFactory;
 import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
-import org.eclipse.rdf4j.model.impl.URIImpl;
 import org.joda.time.DateTime;
 import org.junit.Test;
 
-import static java.util.Objects.requireNonNull;
-import static org.apache.rya.api.domain.RyaTypeUtils.*;
-import static org.junit.Assert.*;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Lists;
 
 /**
  * Tests the methods of {@link DuplicateDataDetector}.
@@ -60,7 +78,7 @@ public class DuplicateDataDetectorTest extends MongoTestBase {
     private static final String RYA_INSTANCE_NAME = "testInstance";
 
     private static final String NAMESPACE = RyaSchema.NAMESPACE;
-    private static final ValueFactory VALUE_FACTORY = SimpleValueFactory.getInstance();
+    private static final ValueFactory VF = SimpleValueFactory.getInstance();
 
     // People
     private static final RyaURI BOB = createRyaUri("Bob");
@@ -111,7 +129,7 @@ public class DuplicateDataDetectorTest extends MongoTestBase {
      * @return the {@link RyraURI}.
      */
     private static RyaURI createRyaUri(final String namespace, final String localName) {
-        return RdfToRyaConversions.convertURI(VALUE_FACTORY.createIRI(namespace, localName));
+        return RdfToRyaConversions.convertURI(VF.createIRI(namespace, localName));
     }
 
     private static Entity createBobEntity() {
@@ -131,7 +149,7 @@ public class DuplicateDataDetectorTest extends MongoTestBase {
             .setProperty(PERSON_TYPE_URI, new Property(HAS_DATE_OF_BIRTH, dateRyaType(new DateTime(NOW.getTime()).minusYears(40))))
             .setProperty(PERSON_TYPE_URI, new Property(HAS_EXPIRATION_DATE, dateRyaType(NOW)))
             .setProperty(PERSON_TYPE_URI, new Property(HAS_GLASSES, booleanRyaType(true)))
-            .setProperty(PERSON_TYPE_URI, new Property(HAS_EMAIL_ADDRESS, uriRyaType(new URIImpl("mailto:bob.smitch00@gmail.com"))))
+            .setProperty(PERSON_TYPE_URI, new Property(HAS_EMAIL_ADDRESS, uriRyaType(VF.createIRI("mailto:bob.smitch00@gmail.com"))))
             .setProperty(PERSON_TYPE_URI, new Property(HAS_ATTRIBUTE_SPACE, stringRyaType("attribute space")))
             .setProperty(PERSON_TYPE_URI, new Property(HAS_MOTTO, stringRyaType("!@#*\\&%20^ smörgåsbord")))
             .setProperty(PERSON_TYPE_URI, new Property(HAS_BLOOD_TYPE, stringRyaType("A+ blood type")))
@@ -1536,71 +1554,71 @@ public class DuplicateDataDetectorTest extends MongoTestBase {
         final ImmutableList.Builder<TestInput> builder = ImmutableList.builder();
         // Tolerance 0.0
         Tolerance tolerance = new Tolerance(0.0, ToleranceType.DIFFERENCE);
-        builder.add(new TestInput(new URIImpl("mailto:bob.smitch01@gmail.com"), tolerance, false));
-        builder.add(new TestInput(new URIImpl("mailto:bobsmitch00@gmail.com"), tolerance, false));
-        builder.add(new TestInput(new URIImpl("mailto:bob.smitch00@yahoo.com"), tolerance, false));
-        builder.add(new TestInput(new URIImpl("mailto:bob.smitch00@hotmail.com"), tolerance, false));
-        builder.add(new TestInput(new URIImpl("mailto:susan.smitch00@gmail.com"), tolerance, false));
-        builder.add(new TestInput(new URIImpl("mailto:ron.smitch00@gmail.com"), tolerance, false));
-        builder.add(new TestInput(new URIImpl("mailto:bob.smitch00@gmail.org"), tolerance, false));
-        builder.add(new TestInput(new URIImpl("mailto:susan.dillon@yahoo.org"), tolerance, false));
-        builder.add(new TestInput(new URIImpl("mailto:bob.smitch00@gmail.com"), tolerance, true)); // Equals value
+        builder.add(new TestInput(VF.createIRI("mailto:bob.smitch01@gmail.com"), tolerance, false));
+        builder.add(new TestInput(VF.createIRI("mailto:bobsmitch00@gmail.com"), tolerance, false));
+        builder.add(new TestInput(VF.createIRI("mailto:bob.smitch00@yahoo.com"), tolerance, false));
+        builder.add(new TestInput(VF.createIRI("mailto:bob.smitch00@hotmail.com"), tolerance, false));
+        builder.add(new TestInput(VF.createIRI("mailto:susan.smitch00@gmail.com"), tolerance, false));
+        builder.add(new TestInput(VF.createIRI("mailto:ron.smitch00@gmail.com"), tolerance, false));
+        builder.add(new TestInput(VF.createIRI("mailto:bob.smitch00@gmail.org"), tolerance, false));
+        builder.add(new TestInput(VF.createIRI("mailto:susan.dillon@yahoo.org"), tolerance, false));
+        builder.add(new TestInput(VF.createIRI("mailto:bob.smitch00@gmail.com"), tolerance, true)); // Equals value
         // Tolerance 1.0
         tolerance = new Tolerance(1.0, ToleranceType.DIFFERENCE);
-        builder.add(new TestInput(new URIImpl("mailto:bob.smitch01@gmail.com"), tolerance, true));
-        builder.add(new TestInput(new URIImpl("mailto:bobsmitch00@gmail.com"), tolerance, true));
-        builder.add(new TestInput(new URIImpl("mailto:bob.smitch00@yahoo.com"), tolerance, false));
-        builder.add(new TestInput(new URIImpl("mailto:bob.smitch00@hotmail.com"), tolerance, false));
-        builder.add(new TestInput(new URIImpl("mailto:susan.smitch00@gmail.com"), tolerance, false));
-        builder.add(new TestInput(new URIImpl("mailto:ron.smitch00@gmail.com"), tolerance, false));
-        builder.add(new TestInput(new URIImpl("mailto:bob.smitch00@gmail.org"), tolerance, false));
-        builder.add(new TestInput(new URIImpl("mailto:susan.dillon@yahoo.org"), tolerance, false));
-        builder.add(new TestInput(new URIImpl("mailto:bob.smitch00@gmail.com"), tolerance, true)); // Equals value
+        builder.add(new TestInput(VF.createIRI("mailto:bob.smitch01@gmail.com"), tolerance, true));
+        builder.add(new TestInput(VF.createIRI("mailto:bobsmitch00@gmail.com"), tolerance, true));
+        builder.add(new TestInput(VF.createIRI("mailto:bob.smitch00@yahoo.com"), tolerance, false));
+        builder.add(new TestInput(VF.createIRI("mailto:bob.smitch00@hotmail.com"), tolerance, false));
+        builder.add(new TestInput(VF.createIRI("mailto:susan.smitch00@gmail.com"), tolerance, false));
+        builder.add(new TestInput(VF.createIRI("mailto:ron.smitch00@gmail.com"), tolerance, false));
+        builder.add(new TestInput(VF.createIRI("mailto:bob.smitch00@gmail.org"), tolerance, false));
+        builder.add(new TestInput(VF.createIRI("mailto:susan.dillon@yahoo.org"), tolerance, false));
+        builder.add(new TestInput(VF.createIRI("mailto:bob.smitch00@gmail.com"), tolerance, true)); // Equals value
         // Tolerance 2.0
         tolerance = new Tolerance(2.0, ToleranceType.DIFFERENCE);
-        builder.add(new TestInput(new URIImpl("mailto:bob.smitch01@gmail.com"), tolerance, true));
-        builder.add(new TestInput(new URIImpl("mailto:bobsmitch00@gmail.com"), tolerance, true));
-        builder.add(new TestInput(new URIImpl("mailto:bob.smitch00@yahoo.com"), tolerance, false));
-        builder.add(new TestInput(new URIImpl("mailto:bob.smitch00@hotmail.com"), tolerance, false));
-        builder.add(new TestInput(new URIImpl("mailto:susan.smitch00@gmail.com"), tolerance, false));
-        builder.add(new TestInput(new URIImpl("mailto:ron.smitch00@gmail.com"), tolerance, true));
-        builder.add(new TestInput(new URIImpl("mailto:bob.smitch00@gmail.org"), tolerance, false));
-        builder.add(new TestInput(new URIImpl("mailto:susan.dillon@yahoo.org"), tolerance, false));
-        builder.add(new TestInput(new URIImpl("mailto:bob.smitch00@gmail.com"), tolerance, true)); // Equals value
+        builder.add(new TestInput(VF.createIRI("mailto:bob.smitch01@gmail.com"), tolerance, true));
+        builder.add(new TestInput(VF.createIRI("mailto:bobsmitch00@gmail.com"), tolerance, true));
+        builder.add(new TestInput(VF.createIRI("mailto:bob.smitch00@yahoo.com"), tolerance, false));
+        builder.add(new TestInput(VF.createIRI("mailto:bob.smitch00@hotmail.com"), tolerance, false));
+        builder.add(new TestInput(VF.createIRI("mailto:susan.smitch00@gmail.com"), tolerance, false));
+        builder.add(new TestInput(VF.createIRI("mailto:ron.smitch00@gmail.com"), tolerance, true));
+        builder.add(new TestInput(VF.createIRI("mailto:bob.smitch00@gmail.org"), tolerance, false));
+        builder.add(new TestInput(VF.createIRI("mailto:susan.dillon@yahoo.org"), tolerance, false));
+        builder.add(new TestInput(VF.createIRI("mailto:bob.smitch00@gmail.com"), tolerance, true)); // Equals value
 
         // Tolerance 0.0%
         tolerance = new Tolerance(0.00, ToleranceType.PERCENTAGE);
-        builder.add(new TestInput(new URIImpl("mailto:bob.smitch01@gmail.com"), tolerance, false));
-        builder.add(new TestInput(new URIImpl("mailto:bobsmitch00@gmail.com"), tolerance, false));
-        builder.add(new TestInput(new URIImpl("mailto:bob.smitch00@yahoo.com"), tolerance, false));
-        builder.add(new TestInput(new URIImpl("mailto:bob.smitch00@hotmail.com"), tolerance, false));
-        builder.add(new TestInput(new URIImpl("mailto:susan.smitch00@gmail.com"), tolerance, false));
-        builder.add(new TestInput(new URIImpl("mailto:ron.smitch00@gmail.com"), tolerance, false));
-        builder.add(new TestInput(new URIImpl("mailto:bob.smitch00@gmail.org"), tolerance, false));
-        builder.add(new TestInput(new URIImpl("mailto:susan.dillon@yahoo.org"), tolerance, false));
-        builder.add(new TestInput(new URIImpl("mailto:bob.smitch00@gmail.com"), tolerance, true)); // Equals value
+        builder.add(new TestInput(VF.createIRI("mailto:bob.smitch01@gmail.com"), tolerance, false));
+        builder.add(new TestInput(VF.createIRI("mailto:bobsmitch00@gmail.com"), tolerance, false));
+        builder.add(new TestInput(VF.createIRI("mailto:bob.smitch00@yahoo.com"), tolerance, false));
+        builder.add(new TestInput(VF.createIRI("mailto:bob.smitch00@hotmail.com"), tolerance, false));
+        builder.add(new TestInput(VF.createIRI("mailto:susan.smitch00@gmail.com"), tolerance, false));
+        builder.add(new TestInput(VF.createIRI("mailto:ron.smitch00@gmail.com"), tolerance, false));
+        builder.add(new TestInput(VF.createIRI("mailto:bob.smitch00@gmail.org"), tolerance, false));
+        builder.add(new TestInput(VF.createIRI("mailto:susan.dillon@yahoo.org"), tolerance, false));
+        builder.add(new TestInput(VF.createIRI("mailto:bob.smitch00@gmail.com"), tolerance, true)); // Equals value
         // Tolerance 5.0%
         tolerance = new Tolerance(0.05, ToleranceType.PERCENTAGE);
-        builder.add(new TestInput(new URIImpl("mailto:bob.smitch01@gmail.com"), tolerance, true));
-        builder.add(new TestInput(new URIImpl("mailto:bobsmitch00@gmail.com"), tolerance, true));
-        builder.add(new TestInput(new URIImpl("mailto:bob.smitch00@yahoo.com"), tolerance, false));
-        builder.add(new TestInput(new URIImpl("mailto:bob.smitch00@hotmail.com"), tolerance, false));
-        builder.add(new TestInput(new URIImpl("mailto:susan.smitch00@gmail.com"), tolerance, false));
-        builder.add(new TestInput(new URIImpl("mailto:ron.smitch00@gmail.com"), tolerance, false));
-        builder.add(new TestInput(new URIImpl("mailto:bob.smitch00@gmail.org"), tolerance, false));
-        builder.add(new TestInput(new URIImpl("mailto:susan.dillon@yahoo.org"), tolerance, false));
-        builder.add(new TestInput(new URIImpl("mailto:bob.smitch00@gmail.com"), tolerance, true)); // Equals value
+        builder.add(new TestInput(VF.createIRI("mailto:bob.smitch01@gmail.com"), tolerance, true));
+        builder.add(new TestInput(VF.createIRI("mailto:bobsmitch00@gmail.com"), tolerance, true));
+        builder.add(new TestInput(VF.createIRI("mailto:bob.smitch00@yahoo.com"), tolerance, false));
+        builder.add(new TestInput(VF.createIRI("mailto:bob.smitch00@hotmail.com"), tolerance, false));
+        builder.add(new TestInput(VF.createIRI("mailto:susan.smitch00@gmail.com"), tolerance, false));
+        builder.add(new TestInput(VF.createIRI("mailto:ron.smitch00@gmail.com"), tolerance, false));
+        builder.add(new TestInput(VF.createIRI("mailto:bob.smitch00@gmail.org"), tolerance, false));
+        builder.add(new TestInput(VF.createIRI("mailto:susan.dillon@yahoo.org"), tolerance, false));
+        builder.add(new TestInput(VF.createIRI("mailto:bob.smitch00@gmail.com"), tolerance, true)); // Equals value
         // Tolerance 100.0%
         tolerance = new Tolerance(1.00, ToleranceType.PERCENTAGE);
-        builder.add(new TestInput(new URIImpl("mailto:bob.smitch01@gmail.com"), tolerance, true));
-        builder.add(new TestInput(new URIImpl("mailto:bobsmitch00@gmail.com"), tolerance, true));
-        builder.add(new TestInput(new URIImpl("mailto:bob.smitch00@yahoo.com"), tolerance, true));
-        builder.add(new TestInput(new URIImpl("mailto:bob.smitch00@hotmail.com"), tolerance, true));
-        builder.add(new TestInput(new URIImpl("mailto:susan.smitch00@gmail.com"), tolerance, true));
-        builder.add(new TestInput(new URIImpl("mailto:ron.smitch00@gmail.com"), tolerance, true));
-        builder.add(new TestInput(new URIImpl("mailto:bob.smitch00@gmail.org"), tolerance, true));
-        builder.add(new TestInput(new URIImpl("mailto:susan.dillon@yahoo.org"), tolerance, true));
-        builder.add(new TestInput(new URIImpl("mailto:bob.smitch00@gmail.com"), tolerance, true)); // Equals value
+        builder.add(new TestInput(VF.createIRI("mailto:bob.smitch01@gmail.com"), tolerance, true));
+        builder.add(new TestInput(VF.createIRI("mailto:bobsmitch00@gmail.com"), tolerance, true));
+        builder.add(new TestInput(VF.createIRI("mailto:bob.smitch00@yahoo.com"), tolerance, true));
+        builder.add(new TestInput(VF.createIRI("mailto:bob.smitch00@hotmail.com"), tolerance, true));
+        builder.add(new TestInput(VF.createIRI("mailto:susan.smitch00@gmail.com"), tolerance, true));
+        builder.add(new TestInput(VF.createIRI("mailto:ron.smitch00@gmail.com"), tolerance, true));
+        builder.add(new TestInput(VF.createIRI("mailto:bob.smitch00@gmail.org"), tolerance, true));
+        builder.add(new TestInput(VF.createIRI("mailto:susan.dillon@yahoo.org"), tolerance, true));
+        builder.add(new TestInput(VF.createIRI("mailto:bob.smitch00@gmail.com"), tolerance, true)); // Equals value
 
         final ImmutableList<TestInput> testInputs = builder.build();
 
@@ -1793,7 +1811,7 @@ public class DuplicateDataDetectorTest extends MongoTestBase {
         duplicateBobBuilder.setProperty(PERSON_TYPE_URI, new Property(HAS_DATE_OF_BIRTH, dateRyaType(new DateTime(NOW.getTime() - 1).minusYears(40))));
         duplicateBobBuilder.setProperty(PERSON_TYPE_URI, new Property(HAS_EXPIRATION_DATE, dateRyaType(new Date(NOW.getTime() - 1))));
         duplicateBobBuilder.setProperty(PERSON_TYPE_URI, new Property(HAS_GLASSES, booleanRyaType(true)));
-        duplicateBobBuilder.setProperty(PERSON_TYPE_URI, new Property(HAS_EMAIL_ADDRESS, uriRyaType(new URIImpl("mailto:bob.smitch01@gmail.com"))));
+        duplicateBobBuilder.setProperty(PERSON_TYPE_URI, new Property(HAS_EMAIL_ADDRESS, uriRyaType(VF.createIRI("mailto:bob.smitch01@gmail.com"))));
         duplicateBobBuilder.setProperty(PERSON_TYPE_URI, new Property(HAS_ADDRESS, stringRyaType("124 Fake St. Washington, DC 20024")));
         duplicateBobBuilder.setProperty(EMPLOYEE_TYPE_URI, new Property(HAS_EXTENSION, shortRyaType((short) 556)));
         final Entity duplicateBobEntity = duplicateBobBuilder.build();
@@ -1821,7 +1839,7 @@ public class DuplicateDataDetectorTest extends MongoTestBase {
         notDuplicateBobBuilder.setProperty(PERSON_TYPE_URI, new Property(HAS_DATE_OF_BIRTH, dateRyaType(new DateTime(NOW.getTime() - 10000000L).minusYears(40))));
         notDuplicateBobBuilder.setProperty(PERSON_TYPE_URI, new Property(HAS_EXPIRATION_DATE, dateRyaType(new Date(NOW.getTime() - 10000000L))));
         notDuplicateBobBuilder.setProperty(PERSON_TYPE_URI, new Property(HAS_GLASSES, booleanRyaType(false)));
-        notDuplicateBobBuilder.setProperty(PERSON_TYPE_URI, new Property(HAS_EMAIL_ADDRESS, uriRyaType(new URIImpl("mailto:bad.email.address@gmail.com"))));
+        notDuplicateBobBuilder.setProperty(PERSON_TYPE_URI, new Property(HAS_EMAIL_ADDRESS, uriRyaType(VF.createIRI("mailto:bad.email.address@gmail.com"))));
         notDuplicateBobBuilder.setProperty(PERSON_TYPE_URI, new Property(HAS_ADDRESS, stringRyaType("123456789 Fake St. Washington, DC 20024")));
         notDuplicateBobBuilder.setProperty(EMPLOYEE_TYPE_URI, new Property(HAS_EXTENSION, shortRyaType((short) 1000)));
         final Entity notDuplicateBobEntity = notDuplicateBobBuilder.build();
@@ -1884,7 +1902,7 @@ public class DuplicateDataDetectorTest extends MongoTestBase {
         duplicateBobBuilder.setProperty(PERSON_TYPE_URI, new Property(HAS_DATE_OF_BIRTH, dateRyaType(new DateTime(NOW.getTime() - 1).minusYears(40))));
         duplicateBobBuilder.setProperty(PERSON_TYPE_URI, new Property(HAS_EXPIRATION_DATE, dateRyaType(new Date(NOW.getTime() - 1))));
         duplicateBobBuilder.setProperty(PERSON_TYPE_URI, new Property(HAS_GLASSES, booleanRyaType(true)));
-        duplicateBobBuilder.setProperty(PERSON_TYPE_URI, new Property(HAS_EMAIL_ADDRESS, uriRyaType(new URIImpl("mailto:bob.smitch01@gmail.com"))));
+        duplicateBobBuilder.setProperty(PERSON_TYPE_URI, new Property(HAS_EMAIL_ADDRESS, uriRyaType(VF.createIRI("mailto:bob.smitch01@gmail.com"))));
         duplicateBobBuilder.setProperty(PERSON_TYPE_URI, new Property(HAS_ADDRESS, stringRyaType("124 Fake St. Washington, DC 20024")));
         duplicateBobBuilder.setProperty(EMPLOYEE_TYPE_URI, new Property(HAS_EXTENSION, shortRyaType((short) 556)));
         final Entity duplicateBobEntity = duplicateBobBuilder.build();
@@ -1910,7 +1928,7 @@ public class DuplicateDataDetectorTest extends MongoTestBase {
         notDuplicateBobBuilder.setProperty(PERSON_TYPE_URI, new Property(HAS_DATE_OF_BIRTH, dateRyaType(new DateTime(NOW.getTime() - 10000000L).minusYears(40))));
         notDuplicateBobBuilder.setProperty(PERSON_TYPE_URI, new Property(HAS_EXPIRATION_DATE, dateRyaType(new Date(NOW.getTime() - 10000000L))));
         notDuplicateBobBuilder.setProperty(PERSON_TYPE_URI, new Property(HAS_GLASSES, booleanRyaType(false)));
-        notDuplicateBobBuilder.setProperty(PERSON_TYPE_URI, new Property(HAS_EMAIL_ADDRESS, uriRyaType(new URIImpl("mailto:bad.email.address@gmail.com"))));
+        notDuplicateBobBuilder.setProperty(PERSON_TYPE_URI, new Property(HAS_EMAIL_ADDRESS, uriRyaType(VF.createIRI("mailto:bad.email.address@gmail.com"))));
         notDuplicateBobBuilder.setProperty(PERSON_TYPE_URI, new Property(HAS_ADDRESS, stringRyaType("123456789 Fake St. Washington, DC 20024")));
         notDuplicateBobBuilder.setProperty(EMPLOYEE_TYPE_URI, new Property(HAS_EXTENSION, shortRyaType((short) 1000)));
         final Entity notDuplicateBobEntity = notDuplicateBobBuilder.build();

@@ -102,8 +102,6 @@ public class RyaAccumuloSailFactoryTest {
         LocalRepositoryManager repoman = new LocalRepositoryManager(Files.createTempDir());
         repoman.initialize();
 
-        SailRegistry.getInstance().add(new RyaAccumuloSailFactory());
-
         try(InputStream templateStream = RepositoryConfig.class.getResourceAsStream("RyaAccumuloSail.ttl")) {
             String template = IOUtils.toString(templateStream);
 
@@ -151,7 +149,6 @@ public class RyaAccumuloSailFactoryTest {
 
         String ryaSailKey = RyaAccumuloSailFactory.SAIL_TYPE;
 
-        SailRegistry.getInstance().add(new RyaAccumuloSailFactory());
         assertTrue("Cannot find RyaAccumuloSailFactory in Registry", SailRegistry.getInstance().has(ryaSailKey));
 
         SailFactory factory = SailRegistry.getInstance().get(ryaSailKey).get();

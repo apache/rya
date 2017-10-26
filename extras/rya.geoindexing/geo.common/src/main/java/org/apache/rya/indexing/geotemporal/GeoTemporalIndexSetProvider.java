@@ -46,7 +46,7 @@ import org.eclipse.rdf4j.query.algebra.FunctionCall;
 import org.eclipse.rdf4j.query.algebra.QueryModelNode;
 import org.eclipse.rdf4j.query.algebra.StatementPattern;
 import org.eclipse.rdf4j.query.algebra.Var;
-import org.eclipse.rdf4j.query.algebra.helpers.QueryModelVisitorBase;
+import org.eclipse.rdf4j.query.algebra.helpers.AbstractQueryModelVisitor;
 
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
@@ -222,7 +222,7 @@ public class GeoTemporalIndexSetProvider implements ExternalSetProvider<EventQue
      * Finds the object/function in a Filter.  If the associated statement pattern
      * has been found, creates the {@link IndexingExpr} and adds it to the map.
      */
-    private class FilterVisitor extends QueryModelVisitorBase<Exception> {
+    private class FilterVisitor extends AbstractQueryModelVisitor<Exception> {
         @Override
         public void meet(final FunctionCall call) throws Exception {
             filterURI = VF.createIRI(call.getURI());

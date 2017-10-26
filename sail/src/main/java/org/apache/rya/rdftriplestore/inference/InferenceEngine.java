@@ -18,11 +18,24 @@
  */
 package org.apache.rya.rdftriplestore.inference;
 
-import java.util.*;
+import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkNotNull;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
+import java.util.Stack;
+import java.util.Timer;
+import java.util.TimerTask;
+import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
 
-import com.google.common.collect.Sets;
 import org.apache.commons.lang3.mutable.MutableObject;
 import org.apache.log4j.Logger;
 import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
@@ -36,18 +49,20 @@ import org.apache.tinkerpop.gremlin.structure.T;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
 import org.apache.tinkerpop.gremlin.tinkergraph.structure.TinkerGraph;
 import org.eclipse.rdf4j.common.iteration.CloseableIteration;
-import org.eclipse.rdf4j.model.*;
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.Resource;
+import org.eclipse.rdf4j.model.Statement;
+import org.eclipse.rdf4j.model.Value;
+import org.eclipse.rdf4j.model.ValueFactory;
 import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
-import org.eclipse.rdf4j.model.impl.StatementImpl;
 import org.eclipse.rdf4j.model.vocabulary.OWL;
 import org.eclipse.rdf4j.model.vocabulary.RDF;
 import org.eclipse.rdf4j.model.vocabulary.RDFS;
 import org.eclipse.rdf4j.query.QueryEvaluationException;
 import org.eclipse.rdf4j.rio.RDFHandlerException;
-import org.eclipse.rdf4j.rio.helpers.RDFHandlerBase;
+import org.eclipse.rdf4j.rio.helpers.AbstractRDFHandler;
 
-import static com.google.common.base.Preconditions.checkArgument;
-import static com.google.common.base.Preconditions.checkNotNull;
+import com.google.common.collect.Sets;
 
 /**
  * Will pull down inference relationships from dao every x seconds. <br>
@@ -56,9 +71,9 @@ import static com.google.common.base.Preconditions.checkNotNull;
  */
 public class InferenceEngine {
     private static final Logger log = Logger.getLogger(InferenceEngine.class);
-    private static final ValueFactory vf = SimpleValueFactory.getInstance();
-    private static final IRI HAS_SELF = vf.createIRI(OWL.NAMESPACE, "hasSelf");
-    private static final IRI REFLEXIVE_PROPERTY = vf.createIRI(OWL.NAMESPACE, "ReflexiveProperty");
+    private static final ValueFactory VF = SimpleValueFactory.getInstance();
+    private static final IRI HAS_SELF = VF.createIRI(OWL.NAMESPACE, "hasSelf");
+    private static final IRI REFLEXIVE_PROPERTY = VF.createIRI(OWL.NAMESPACE, "ReflexiveProperty");
 
     private Graph subClassOfGraph;
     private Graph subPropertyOfGraph;
@@ -159,7 +174,7 @@ public class InferenceEngine {
                                 final Statement firstStatement = listIter.next();
                                 if (firstStatement.getObject() instanceof Resource) {
                                     final Resource subclass = (Resource) firstStatement.getObject();
-                                    final Statement subclassStatement = vf.createStatement(subclass, RDFS.SUBCLASSOF, unionType);
+                                    final Statement subclassStatement = VF.createStatement(subclass, RDFS.SUBCLASSOF, unionType);
                                     addStatementEdge(graph, RDFS.SUBCLASSOF.stringValue(), subclassStatement);
                                 }
                             }
@@ -216,7 +231,7 @@ public class InferenceEngine {
             inverseOfMap = invProp;
 
             iter = RyaDAOHelper.query(ryaDAO, null,
-                    vf.createIRI("http://www.w3.org/2002/07/owl#propertyChainAxiom"),
+                    VF.createIRI("http://www.w3.org/2002/07/owl#propertyChainAxiom"),
                     null, conf);
             final Map<IRI,IRI> propertyChainPropertiesToBNodes = new HashMap<>();
             propertyChainPropertyToChain = new HashMap<>();
@@ -234,7 +249,7 @@ public class InferenceEngine {
             for (final IRI propertyChainProperty : propertyChainPropertiesToBNodes.keySet()){
                 final IRI bNode = propertyChainPropertiesToBNodes.get(propertyChainProperty);
                 // query for the list of indexed properties
-                iter = RyaDAOHelper.query(ryaDAO, bNode, vf.createIRI("http://www.w3.org/2000/10/swap/list#index"),
+                iter = RyaDAOHelper.query(ryaDAO, bNode, VF.createIRI("http://www.w3.org/2000/10/swap/list#index"),
                         null, conf);
                 final TreeMap<Integer, IRI> orderedProperties = new TreeMap<>();
                 // TODO refactor this.  Wish I could execute sparql
@@ -243,7 +258,7 @@ public class InferenceEngine {
                         final Statement st = iter.next();
                         final String indexedElement = st.getObject().stringValue();
                         log.info(indexedElement);
-                        CloseableIteration<Statement, QueryEvaluationException>  iter2 = RyaDAOHelper.query(ryaDAO, vf.createIRI(st.getObject().stringValue()), RDF.FIRST,
+                        CloseableIteration<Statement, QueryEvaluationException>  iter2 = RyaDAOHelper.query(ryaDAO, VF.createIRI(st.getObject().stringValue()), RDF.FIRST,
                                 null, conf);
                         String integerValue = "";
                         Value anonPropNode = null;
@@ -256,7 +271,7 @@ public class InferenceEngine {
                             }
                             iter2.close();
                         }
-                        iter2 = RyaDAOHelper.query(ryaDAO, vf.createIRI(st.getObject().stringValue()), RDF.REST,
+                        iter2 = RyaDAOHelper.query(ryaDAO, VF.createIRI(st.getObject().stringValue()), RDF.REST,
                                 null, conf);
                         if (iter2 != null){
                             while (iter2.hasNext()){
@@ -266,7 +281,7 @@ public class InferenceEngine {
                             }
                             iter2.close();
                             if (anonPropNode != null){
-                                iter2 = RyaDAOHelper.query(ryaDAO, vf.createIRI(anonPropNode.stringValue()), RDF.FIRST,
+                                iter2 = RyaDAOHelper.query(ryaDAO, VF.createIRI(anonPropNode.stringValue()), RDF.FIRST,
                                         null, conf);
                                 while (iter2.hasNext()){
                                     final Statement iter2Statement = iter2.next();
@@ -279,7 +294,7 @@ public class InferenceEngine {
                         if (!integerValue.isEmpty() && propURI!=null) {
                             try {
                                 final int indexValue = Integer.parseInt(integerValue);
-                                final IRI chainPropURI = vf.createIRI(propURI.stringValue());
+                                final IRI chainPropURI = VF.createIRI(propURI.stringValue());
                                 orderedProperties.put(indexValue, chainPropURI);
                             }
                             catch (final Exception ex){
@@ -315,7 +330,7 @@ public class InferenceEngine {
                         Value currentPropValue = iter2Statement.getObject();
                         while ((currentPropValue != null) && (!currentPropValue.stringValue().equalsIgnoreCase(RDF.NIL.stringValue()))){
                             if (currentPropValue instanceof IRI){
-                                iter2 = RyaDAOHelper.query(ryaDAO, vf.createIRI(currentPropValue.stringValue()), RDF.FIRST,
+                                iter2 = RyaDAOHelper.query(ryaDAO, VF.createIRI(currentPropValue.stringValue()), RDF.FIRST,
                                         null, conf);
                                 if (iter2.hasNext()){
                                     iter2Statement = iter2.next();
@@ -325,7 +340,7 @@ public class InferenceEngine {
                                 }
                                 // otherwise see if there is an inverse declaration
                                 else {
-                                    iter2 = RyaDAOHelper.query(ryaDAO, vf.createIRI(currentPropValue.stringValue()), OWL.INVERSEOF,
+                                    iter2 = RyaDAOHelper.query(ryaDAO, VF.createIRI(currentPropValue.stringValue()), OWL.INVERSEOF,
                                             null, conf);
                                     if (iter2.hasNext()){
                                         iter2Statement = iter2.next();
@@ -372,7 +387,7 @@ public class InferenceEngine {
      */
     private Set<IRI> fetchInstances(final IRI type) throws QueryEvaluationException {
         final Set<IRI> instances = new HashSet<>();
-        ryaDaoQueryWrapper.queryAll(null, RDF.TYPE, type, new RDFHandlerBase() {
+        ryaDaoQueryWrapper.queryAll(null, RDF.TYPE, type, new AbstractRDFHandler() {
             @Override
             public void handleStatement(final Statement st) throws RDFHandlerException {
                 if (st.getSubject() instanceof IRI) {
@@ -405,7 +420,7 @@ public class InferenceEngine {
                     addStatementEdge(graph, edgeName, st);
                 }
                 if (Direction.IN.equals(dir) || Direction.BOTH.equals(dir)) {
-                    addStatementEdge(graph, edgeName, new StatementImpl((Resource) st.getObject(),
+                    addStatementEdge(graph, edgeName, VF.createStatement((Resource) st.getObject(),
                             st.getPredicate(), st.getSubject()));
                 }
             }
@@ -625,7 +640,7 @@ public class InferenceEngine {
 
     private void refreshSomeValuesFromRestrictions(final Map<Resource, IRI> restrictions) throws QueryEvaluationException {
         someValuesFromByRestrictionType = new ConcurrentHashMap<>();
-        ryaDaoQueryWrapper.queryAll(null, OWL.SOMEVALUESFROM, null, new RDFHandlerBase() {
+        ryaDaoQueryWrapper.queryAll(null, OWL.SOMEVALUESFROM, null, new AbstractRDFHandler() {
             @Override
             public void handleStatement(final Statement statement) throws RDFHandlerException {
                 final Resource restrictionClass = statement.getSubject();
@@ -651,7 +666,7 @@ public class InferenceEngine {
 
     private void refreshAllValuesFromRestrictions(final Map<Resource, IRI> restrictions) throws QueryEvaluationException {
         allValuesFromByValueType = new ConcurrentHashMap<>();
-        ryaDaoQueryWrapper.queryAll(null, OWL.ALLVALUESFROM, null, new RDFHandlerBase() {
+        ryaDaoQueryWrapper.queryAll(null, OWL.ALLVALUESFROM, null, new AbstractRDFHandler() {
             @Override
             public void handleStatement(final Statement statement) throws RDFHandlerException {
                 final Resource directRestrictionClass = statement.getSubject();
@@ -720,7 +735,7 @@ public class InferenceEngine {
         //  _:bnode1 rdf:rest _:bnode2 .
         // _:bnode2 rdf:first <:C> .
         // _:bnode2 rdf:rest rdf:nil .
-        ryaDaoQueryWrapper.queryAll(null, OWL.INTERSECTIONOF, null, new RDFHandlerBase() {
+        ryaDaoQueryWrapper.queryAll(null, OWL.INTERSECTIONOF, null, new AbstractRDFHandler() {
             @Override
             public void handleStatement(final Statement statement) throws RDFHandlerException {
                 final Resource type = statement.getSubject();
@@ -817,7 +832,7 @@ public class InferenceEngine {
         //  _:bnode1 rdf:rest _:bnode2 .
         // _:bnode2 rdf:first <:C> .
         // _:bnode2 rdf:rest rdf:nil .
-        ryaDaoQueryWrapper.queryAll(null, OWL.ONEOF, null, new RDFHandlerBase() {
+        ryaDaoQueryWrapper.queryAll(null, OWL.ONEOF, null, new AbstractRDFHandler() {
             @Override
             public void handleStatement(final Statement statement) throws RDFHandlerException {
                 final Resource enumType = statement.getSubject();
@@ -933,7 +948,7 @@ public class InferenceEngine {
         // Go through and find all bnodes that are part of the defined list.
         while (!RDF.NIL.equals(head)) {
             // rdf.first will point to a type item that is in the list.
-            ryaDaoQueryWrapper.queryFirst(head, RDF.FIRST, null, new RDFHandlerBase() {
+            ryaDaoQueryWrapper.queryFirst(head, RDF.FIRST, null, new AbstractRDFHandler() {
                 @Override
                 public void handleStatement(final Statement statement) throws RDFHandlerException {
                     // The object found in the query represents a type
@@ -944,7 +959,7 @@ public class InferenceEngine {
             });
             final MutableObject<IRI> headHolder = new MutableObject<>();
             // rdf.rest will point to the next bnode that's part of the list.
-            ryaDaoQueryWrapper.queryFirst(head, RDF.REST, null, new RDFHandlerBase() {
+            ryaDaoQueryWrapper.queryFirst(head, RDF.REST, null, new AbstractRDFHandler() {
                 @Override
                 public void handleStatement(final Statement statement) throws RDFHandlerException {
                     // This object is the next bnode head to look for.
@@ -964,7 +979,7 @@ public class InferenceEngine {
     }
 
     private void addSubClassOf(final Resource s, final Resource o) {
-        final Statement statement = new StatementImpl(s, RDFS.SUBCLASSOF, o);
+        final Statement statement = VF.createStatement(s, RDFS.SUBCLASSOF, o);
         final String edgeName = RDFS.SUBCLASSOF.stringValue();
         addStatementEdge(subClassOfGraph, edgeName, statement);
     }
@@ -1245,7 +1260,7 @@ public class InferenceEngine {
             iter = queryDao(subj, prop, obj, contxts);
             while (iter.hasNext()) {
                 final Statement st = iter.next();
-                sts.add(new StatementImpl((goUp) ? (st.getSubject()) : (Resource) (core), prop, (!goUp) ? (st.getObject()) : (core)));
+                sts.add(VF.createStatement((goUp) ? (st.getSubject()) : (Resource) (core), prop, (!goUp) ? (st.getObject()) : (core)));
                 if (goUp) {
                     chainTransitiveProperty(null, prop, st.getSubject(), core, sts, goUp, contxts);
                 } else {

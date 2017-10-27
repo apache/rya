@@ -62,10 +62,10 @@ public class InMemoryQueryChangeLog implements QueryChangeLog {
     }
 
     @Override
-    public CloseableIteration<ChangeLogEntry<QueryChange>, QueryChangeLogException> readFromPosition(final int position) throws QueryChangeLogException {
+    public CloseableIteration<ChangeLogEntry<QueryChange>, QueryChangeLogException> readFromPosition(final long position) throws QueryChangeLogException {
         lock.lock();
         try {
-            return new ListIteration<>(entries.subList(position, entries.size()));
+            return new ListIteration<>(entries.subList((int) position, entries.size()));
         } finally {
             lock.unlock();
         }

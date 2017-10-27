@@ -18,14 +18,15 @@
  */
 package org.apache.rya.indexing.entity.storage.mongo;
 
-import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
-import edu.umd.cs.findbugs.annotations.NonNull;
+import static java.util.Objects.requireNonNull;
+
 import org.apache.rya.api.domain.RyaType;
 import org.bson.Document;
 import org.eclipse.rdf4j.model.ValueFactory;
 import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 
-import static java.util.Objects.requireNonNull;
+import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
+import edu.umd.cs.findbugs.annotations.NonNull;
 
 /**
  * Converts between {@link RyaType} and {@link Document}.
@@ -62,7 +63,7 @@ public class RyaTypeDocumentConverter implements DocumentConverter<RyaType> {
         }
 
         return new RyaType(
-                SimpleValueFactory.getInstance().createIRI( document.getString(DATA_TYPE) ),
+                VF.createIRI( document.getString(DATA_TYPE) ),
                 document.getString(VALUE));
     }
 }

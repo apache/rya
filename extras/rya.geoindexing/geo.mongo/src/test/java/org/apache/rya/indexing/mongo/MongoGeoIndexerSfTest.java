@@ -35,13 +35,12 @@ import org.apache.rya.indexing.mongodb.geo.MongoGeoIndexer;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import  org.eclipse.rdf4j.model.Resource;
-import  org.eclipse.rdf4j.model.Statement;
-import  org.eclipse.rdf4j.model.URI;
-import  org.eclipse.rdf4j.model.Value;
-import  org.eclipse.rdf4j.model.ValueFactory;
-import  org.eclipse.rdf4j.model.impl.StatementImpl;
-import  org.eclipse.rdf4j.model.impl.ValueFactoryImpl;
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.Resource;
+import org.eclipse.rdf4j.model.Statement;
+import org.eclipse.rdf4j.model.Value;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
@@ -117,9 +116,9 @@ public class MongoGeoIndexerSfTest extends MongoITBase {
     private static RyaStatement statement(final Geometry geo) {
         final ValueFactory vf = SimpleValueFactory.getInstance();
         final Resource subject = vf.createIRI("uri:" + names.get(geo));
-        final URI predicate = GeoConstants.GEO_AS_WKT;
+        final IRI predicate = GeoConstants.GEO_AS_WKT;
         final Value object = vf.createLiteral(geo.toString(), GeoConstants.XMLSCHEMA_OGC_WKT);
-        return RdfToRyaConversions.convertStatement(new StatementImpl(subject, predicate, object));
+        return RdfToRyaConversions.convertStatement(vf.createStatement(subject, predicate, object));
 
     }
 

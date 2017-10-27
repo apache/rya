@@ -1,7 +1,7 @@
 package org.apache.rya.indexing;
 
-import  org.eclipse.rdf4j.model.Statement;
-import  org.eclipse.rdf4j.query.QueryEvaluationException;
+import org.eclipse.rdf4j.model.Statement;
+import org.eclipse.rdf4j.query.QueryEvaluationException;
 
 import com.vividsolutions.jts.geom.Geometry;
 

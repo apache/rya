@@ -18,20 +18,29 @@
  */
 package org.apache.rya.indexing.pcj.fluo.app;
 
-import com.google.common.base.Preconditions;
-import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
-import edu.umd.cs.findbugs.annotations.NonNull;
+import static com.google.common.base.Preconditions.checkNotNull;
+import static org.apache.rya.indexing.pcj.fluo.app.IncrementalUpdateConstants.DELIM;
+import static org.apache.rya.indexing.pcj.fluo.app.IncrementalUpdateConstants.TYPE_DELIM;
+import static org.apache.rya.indexing.pcj.fluo.app.IncrementalUpdateConstants.URI_TYPE;
+
 import org.apache.rya.api.domain.RyaSchema;
 import org.apache.rya.api.domain.RyaType;
+import org.apache.rya.api.domain.VarNameUtils;
 import org.apache.rya.api.resolver.RdfToRyaConversions;
-import org.eclipse.rdf4j.model.*;
+import org.eclipse.rdf4j.model.BNode;
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.Literal;
+import org.eclipse.rdf4j.model.Value;
+import org.eclipse.rdf4j.model.ValueFactory;
 import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 import org.eclipse.rdf4j.query.BindingSet;
 import org.eclipse.rdf4j.query.algebra.StatementPattern;
 import org.eclipse.rdf4j.query.algebra.Var;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-import static org.apache.rya.indexing.pcj.fluo.app.IncrementalUpdateConstants.*;
+import com.google.common.base.Preconditions;
+
+import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
+import edu.umd.cs.findbugs.annotations.NonNull;
 
 /**
  * Contains method that convert between the Sesame representations of RDF
@@ -84,27 +93,27 @@ public class FluoStringConverter {
         final String[] varParts = varString.split(TYPE_DELIM);
         final String name = varParts[0];
         final ValueFactory vf = SimpleValueFactory.getInstance();
-        
+
         // The variable is a constant value.
         if(varParts.length > 1) {
             final String dataTypeString = varParts[1];
             if(dataTypeString.equals(URI_TYPE)) {
                 // Handle a URI object.
                 Preconditions.checkArgument(varParts.length == 2);
-                final String valueString = name.substring("-const-".length());
+                final String valueString = VarNameUtils.removeConstant(name);
                 final Var var = new Var(name, vf.createIRI(dataTypeString,valueString));
                 var.setConstant(true);
                 return var;
-            } else if(dataTypeString.equals(RyaSchema.BNODE_NAMESPACE)) { 
+            } else if(dataTypeString.equals(RyaSchema.BNODE_NAMESPACE)) {
                 // Handle a BNode object
                 Preconditions.checkArgument(varParts.length == 3);
-                Var var = new Var(name);
+                final Var var = new Var(name);
                 var.setValue(vf.createBNode(varParts[2]));
                 return var;
             } else {
                 // Handle a Literal Value.
                 Preconditions.checkArgument(varParts.length == 2);
-                final String valueString = name.substring("-const-".length());
+                final String valueString = VarNameUtils.removeConstant(name);
                 final IRI dataType = vf.createIRI(dataTypeString);
                 final Literal value = vf.createLiteral(valueString, dataType);
                 final Var var = new Var(name, value);
@@ -132,13 +141,13 @@ public class FluoStringConverter {
         final Var subjVar = sp.getSubjectVar();
         String subj = subjVar.getName();
         if(subjVar.getValue() != null) {
-            Value subjValue = subjVar.getValue();
+            final Value subjValue = subjVar.getValue();
             if (subjValue instanceof BNode ) {
-                subj = subj + TYPE_DELIM + RyaSchema.BNODE_NAMESPACE + TYPE_DELIM + ((BNode) subjValue).getID(); 
+                subj = subj + TYPE_DELIM + RyaSchema.BNODE_NAMESPACE + TYPE_DELIM + ((BNode) subjValue).getID();
             } else {
                 subj = subj + TYPE_DELIM + URI_TYPE;
             }
-        } 
+        }
 
         final Var predVar = sp.getPredicateVar();
         String pred = predVar.getName();

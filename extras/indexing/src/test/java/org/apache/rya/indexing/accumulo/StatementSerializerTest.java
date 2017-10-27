@@ -19,13 +19,11 @@ package org.apache.rya.indexing.accumulo;
  * under the License.
  */
 
-import junit.framework.Assert;
 import org.apache.rya.indexing.StatementSerializer;
 import org.eclipse.rdf4j.model.Statement;
 import org.eclipse.rdf4j.model.ValueFactory;
-import org.eclipse.rdf4j.model.impl.ContextStatementImpl;
 import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
-import org.eclipse.rdf4j.model.impl.StatementImpl;
+import org.junit.Assert;
 import org.junit.Test;
 
 public class StatementSerializerTest {
@@ -35,10 +33,10 @@ public class StatementSerializerTest {
         ValueFactory vf = SimpleValueFactory.getInstance();
         Statement s;
 
-        s = new StatementImpl(vf.createIRI("foo:subject"), vf.createIRI("foo:predicate"), vf.createIRI("foo:object"));
+        s = vf.createStatement(vf.createIRI("foo:subject"), vf.createIRI("foo:predicate"), vf.createIRI("foo:object"));
         Assert.assertEquals(s, StatementSerializer.readStatement(StatementSerializer.writeStatement(s)));
 
-        s = new ContextStatementImpl(vf.createIRI("foo:subject"), vf.createIRI("foo:predicate"), vf.createIRI("foo:object"),
+        s = vf.createStatement(vf.createIRI("foo:subject"), vf.createIRI("foo:predicate"), vf.createIRI("foo:object"),
                 vf.createIRI("foo:context"));
         Assert.assertEquals(s, StatementSerializer.readStatement(StatementSerializer.writeStatement(s)));
     }
@@ -49,17 +47,17 @@ public class StatementSerializerTest {
         Statement s;
         String str;
 
-        s = new StatementImpl(vf.createIRI("foo:subject"), vf.createIRI("foo:predicate"), vf.createIRI("foo:object"));
+        s = vf.createStatement(vf.createIRI("foo:subject"), vf.createIRI("foo:predicate"), vf.createIRI("foo:object"));
         Assert.assertEquals(s, StatementSerializer.readStatement(StatementSerializer.writeStatement(s)));
 
         str = "Alice Palace";
-        s = new StatementImpl(vf.createIRI("foo:subject"), vf.createIRI("foo:predicate"), vf.createLiteral(str));
+        s = vf.createStatement(vf.createIRI("foo:subject"), vf.createIRI("foo:predicate"), vf.createLiteral(str));
         Assert.assertEquals(s, StatementSerializer.readStatement(StatementSerializer.writeStatement(s)));
 
-        s = new StatementImpl(vf.createIRI("foo:subject"), vf.createIRI("foo:predicate"), vf.createLiteral(str, "en"));
+        s = vf.createStatement(vf.createIRI("foo:subject"), vf.createIRI("foo:predicate"), vf.createLiteral(str, "en"));
         Assert.assertEquals(s, StatementSerializer.readStatement(StatementSerializer.writeStatement(s)));
 
-        s = new StatementImpl(vf.createIRI("foo:subject"), vf.createIRI("foo:predicate"), vf.createLiteral(str, vf.createIRI("xsd:string")));
+        s = vf.createStatement(vf.createIRI("foo:subject"), vf.createIRI("foo:predicate"), vf.createLiteral(str, vf.createIRI("xsd:string")));
         Assert.assertEquals(s, StatementSerializer.readStatement(StatementSerializer.writeStatement(s)));
     }
 
@@ -71,13 +69,13 @@ public class StatementSerializerTest {
         String str;
 
         str = "Alice ^^<Palace>\"";
-        s = new StatementImpl(vf.createIRI("foo:subject"), vf.createIRI("foo:predicate"), vf.createLiteral(str));
+        s = vf.createStatement(vf.createIRI("foo:subject"), vf.createIRI("foo:predicate"), vf.createLiteral(str));
         Assert.assertEquals(s, StatementSerializer.readStatement(StatementSerializer.writeStatement(s)));
 
-        s = new StatementImpl(vf.createIRI("foo:subject"), vf.createIRI("foo:predicate"), vf.createLiteral(str, "en"));
+        s = vf.createStatement(vf.createIRI("foo:subject"), vf.createIRI("foo:predicate"), vf.createLiteral(str, "en"));
         Assert.assertEquals(s, StatementSerializer.readStatement(StatementSerializer.writeStatement(s)));
 
-        s = new StatementImpl(vf.createIRI("foo:subject"), vf.createIRI("foo:predicate"), vf.createLiteral(str, vf.createIRI("xsd:string")));
+        s = vf.createStatement(vf.createIRI("foo:subject"), vf.createIRI("foo:predicate"), vf.createLiteral(str, vf.createIRI("xsd:string")));
         Assert.assertEquals(s, StatementSerializer.readStatement(StatementSerializer.writeStatement(s)));
 
     }
@@ -90,13 +88,13 @@ public class StatementSerializerTest {
         String str;
 
         str = "Alice @en";
-        s = new StatementImpl(vf.createIRI("foo:subject"), vf.createIRI("foo:predicate"), vf.createLiteral(str));
+        s = vf.createStatement(vf.createIRI("foo:subject"), vf.createIRI("foo:predicate"), vf.createLiteral(str));
         Assert.assertEquals(s, StatementSerializer.readStatement(StatementSerializer.writeStatement(s)));
 
-        s = new StatementImpl(vf.createIRI("foo:subject"), vf.createIRI("foo:predicate"), vf.createLiteral(str, "en"));
+        s = vf.createStatement(vf.createIRI("foo:subject"), vf.createIRI("foo:predicate"), vf.createLiteral(str, "en"));
         Assert.assertEquals(s, StatementSerializer.readStatement(StatementSerializer.writeStatement(s)));
 
-        s = new StatementImpl(vf.createIRI("foo:subject"), vf.createIRI("foo:predicate"), vf.createLiteral(str, vf.createIRI("xsd:string")));
+        s = vf.createStatement(vf.createIRI("foo:subject"), vf.createIRI("foo:predicate"), vf.createLiteral(str, vf.createIRI("xsd:string")));
         Assert.assertEquals(s, StatementSerializer.readStatement(StatementSerializer.writeStatement(s)));
     }
 

@@ -1,5 +1,3 @@
-package org.apache.rya.rdftriplestore.inference;
-
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -18,8 +16,8 @@ package org.apache.rya.rdftriplestore.inference;
  * specific language governing permissions and limitations
  * under the License.
  */
+package org.apache.rya.rdftriplestore.inference;
 
-import junit.framework.TestCase;
 import org.apache.accumulo.core.Constants;
 import org.apache.accumulo.core.client.Connector;
 import org.apache.accumulo.core.client.admin.SecurityOperations;
@@ -37,8 +35,9 @@ import org.eclipse.rdf4j.model.Resource;
 import org.eclipse.rdf4j.model.Statement;
 import org.eclipse.rdf4j.model.ValueFactory;
 import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
-import org.eclipse.rdf4j.model.impl.StatementImpl;
 import org.junit.Test;
+
+import junit.framework.TestCase;
 
 public class SameAsTest extends TestCase {
     private String user = "user";
@@ -48,7 +47,7 @@ public class SameAsTest extends TestCase {
     private Authorizations auths = Constants.NO_AUTHS;
     private Connector connector;
     private AccumuloRyaDAO ryaDAO;
-    private ValueFactory vf = SimpleValueFactory.getInstance();
+    private static final ValueFactory VF = SimpleValueFactory.getInstance();
     private String namespace = "urn:test#";
     private AccumuloRdfConfiguration conf;
 
@@ -87,13 +86,13 @@ public class SameAsTest extends TestCase {
     @Test
     //This isn't a good test.  It's simply a cut-and-paste from a test that was failing in a different package in the SameAsVisitor.
     public void testGraphConfiguration() throws Exception {
-        IRI a = vf.createIRI(namespace, "a");
-        Statement statement = new StatementImpl(a, vf.createIRI(namespace, "p"), vf.createLiteral("l"));
-        Statement statement2 = new StatementImpl(a, vf.createIRI(namespace, "p2"), vf.createLiteral("l"));
+        IRI a = VF.createIRI(namespace, "a");
+        Statement statement = VF.createStatement(a, VF.createIRI(namespace, "p"), VF.createLiteral("l"));
+        Statement statement2 = VF.createStatement(a, VF.createIRI(namespace, "p2"), VF.createLiteral("l"));
         ryaDAO.add(RdfToRyaConversions.convertStatement(statement));
         ryaDAO.add(RdfToRyaConversions.convertStatement(statement2));
-        ryaDAO.add(RdfToRyaConversions.convertStatement(new StatementImpl(vf.createIRI(namespace, "b"), vf.createIRI(namespace, "p"), vf.createLiteral("l"))));
-        ryaDAO.add(RdfToRyaConversions.convertStatement(new StatementImpl(vf.createIRI(namespace, "c"), vf.createIRI(namespace, "n"), vf.createLiteral("l"))));
+        ryaDAO.add(RdfToRyaConversions.convertStatement(VF.createStatement(VF.createIRI(namespace, "b"), VF.createIRI(namespace, "p"), VF.createLiteral("l"))));
+        ryaDAO.add(RdfToRyaConversions.convertStatement(VF.createStatement(VF.createIRI(namespace, "c"), VF.createIRI(namespace, "n"), VF.createLiteral("l"))));
 
         // build a connection
         RdfCloudTripleStore store = new RdfCloudTripleStore();
@@ -106,6 +105,6 @@ public class SameAsTest extends TestCase {
         
         store.initialize();
 
-        System.out.println(Iterations.asList(store.getConnection().getStatements(a, vf.createIRI(namespace, "p"), vf.createLiteral("l"), false, new Resource[0])).size());
+        System.out.println(Iterations.asList(store.getConnection().getStatements(a, VF.createIRI(namespace, "p"), VF.createLiteral("l"), false, new Resource[0])).size());
     }
 }

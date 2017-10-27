@@ -1,30 +1,3 @@
-package org.apache.rya.indexing.external;
-
-import java.net.UnknownHostException;
-import java.util.List;
-
-import com.google.common.base.Optional;
-import org.apache.accumulo.core.client.*;
-import org.apache.accumulo.core.client.mock.MockInstance;
-import org.apache.accumulo.core.client.security.tokens.PasswordToken;
-import org.apache.rya.api.persist.RyaDAOException;
-import org.apache.rya.indexing.pcj.storage.PcjException;
-import org.apache.rya.rdftriplestore.inference.InferenceEngineException;
-import org.eclipse.rdf4j.model.IRI;
-import org.eclipse.rdf4j.model.impl.LiteralImpl;
-import org.eclipse.rdf4j.model.impl.URIImpl;
-import org.eclipse.rdf4j.model.vocabulary.RDF;
-import org.eclipse.rdf4j.model.vocabulary.RDFS;
-import org.eclipse.rdf4j.query.*;
-import org.eclipse.rdf4j.repository.RepositoryException;
-import org.eclipse.rdf4j.repository.sail.SailRepository;
-import org.eclipse.rdf4j.repository.sail.SailRepositoryConnection;
-import org.eclipse.rdf4j.sail.SailException;
-import org.junit.After;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
-
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -43,8 +16,46 @@ import org.junit.Test;
  * specific language governing permissions and limitations
  * under the License.
  */
+package org.apache.rya.indexing.external;
+
+import java.net.UnknownHostException;
+import java.util.List;
+
+import org.apache.accumulo.core.client.AccumuloException;
+import org.apache.accumulo.core.client.AccumuloSecurityException;
+import org.apache.accumulo.core.client.Connector;
+import org.apache.accumulo.core.client.TableExistsException;
+import org.apache.accumulo.core.client.TableNotFoundException;
+import org.apache.accumulo.core.client.mock.MockInstance;
+import org.apache.accumulo.core.client.security.tokens.PasswordToken;
+import org.apache.rya.api.persist.RyaDAOException;
+import org.apache.rya.indexing.pcj.storage.PcjException;
+import org.apache.rya.rdftriplestore.inference.InferenceEngineException;
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
+import org.eclipse.rdf4j.model.vocabulary.RDF;
+import org.eclipse.rdf4j.model.vocabulary.RDFS;
+import org.eclipse.rdf4j.query.BindingSet;
+import org.eclipse.rdf4j.query.MalformedQueryException;
+import org.eclipse.rdf4j.query.QueryEvaluationException;
+import org.eclipse.rdf4j.query.QueryLanguage;
+import org.eclipse.rdf4j.query.QueryResultHandlerException;
+import org.eclipse.rdf4j.query.TupleQueryResultHandler;
+import org.eclipse.rdf4j.query.TupleQueryResultHandlerException;
+import org.eclipse.rdf4j.repository.RepositoryException;
+import org.eclipse.rdf4j.repository.sail.SailRepository;
+import org.eclipse.rdf4j.repository.sail.SailRepositoryConnection;
+import org.eclipse.rdf4j.sail.SailException;
+import org.junit.After;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Test;
+
+import com.google.common.base.Optional;
 
 public class AccumuloConstantPcjIT {
+    private static final ValueFactory VF = SimpleValueFactory.getInstance();
 
 	private SailRepositoryConnection conn, pcjConn;
 	private SailRepository repo, pcjRepo;
@@ -67,21 +78,21 @@ public class AccumuloConstantPcjIT {
 		pcjRepo = PcjIntegrationTestingUtil.getPcjRepo(prefix, "instance");
 		pcjConn = pcjRepo.getConnection();
 
-		final IRI sub = new URIImpl("uri:entity");
-		subclass = new URIImpl("uri:class");
-		obj = new URIImpl("uri:obj");
-		talksTo = new URIImpl("uri:talksTo");
+		final IRI sub = VF.createIRI("uri:entity");
+		subclass = VF.createIRI("uri:class");
+		obj = VF.createIRI("uri:obj");
+		talksTo = VF.createIRI("uri:talksTo");
 
 		conn.add(sub, RDF.TYPE, subclass);
-		conn.add(sub, RDFS.LABEL, new LiteralImpl("label"));
+		conn.add(sub, RDFS.LABEL, VF.createLiteral("label"));
 		conn.add(sub, talksTo, obj);
 
-		final IRI sub2 = new URIImpl("uri:entity2");
-		subclass2 = new URIImpl("uri:class2");
-		obj2 = new URIImpl("uri:obj2");
+		final IRI sub2 = VF.createIRI("uri:entity2");
+		subclass2 = VF.createIRI("uri:class2");
+		obj2 = VF.createIRI("uri:obj2");
 
 		conn.add(sub2, RDF.TYPE, subclass2);
-		conn.add(sub2, RDFS.LABEL, new LiteralImpl("label2"));
+		conn.add(sub2, RDFS.LABEL, VF.createLiteral("label2"));
 		conn.add(sub2, talksTo, obj2);
 
 		accCon = new MockInstance("instance").getConnector("root",new PasswordToken(""));
@@ -106,16 +117,16 @@ public class AccumuloConstantPcjIT {
 			MalformedQueryException, SailException, QueryEvaluationException,
 			TupleQueryResultHandlerException {
 
-		final IRI superclass = new URIImpl("uri:superclass");
-		final IRI superclass2 = new URIImpl("uri:superclass2");
+		final IRI superclass = VF.createIRI("uri:superclass");
+		final IRI superclass2 = VF.createIRI("uri:superclass2");
 
 		conn.add(subclass, RDF.TYPE, superclass);
 		conn.add(subclass2, RDF.TYPE, superclass2);
-		conn.add(obj, RDFS.LABEL, new LiteralImpl("label"));
-		conn.add(obj2, RDFS.LABEL, new LiteralImpl("label2"));
+		conn.add(obj, RDFS.LABEL, VF.createLiteral("label"));
+		conn.add(obj2, RDFS.LABEL, VF.createLiteral("label2"));
 
-		conn.add(obj, RDFS.LABEL, new LiteralImpl("label"));
-		conn.add(obj2, RDFS.LABEL, new LiteralImpl("label2"));
+		conn.add(obj, RDFS.LABEL, VF.createLiteral("label"));
+		conn.add(obj2, RDFS.LABEL, VF.createLiteral("label2"));
 
 		final String indexSparqlString = ""//
 				+ "SELECT ?dog ?pig ?duck  " //
@@ -168,26 +179,26 @@ public class AccumuloConstantPcjIT {
 			MalformedQueryException, SailException, QueryEvaluationException,
 			TupleQueryResultHandlerException {
 
-		final IRI superclass = new URIImpl("uri:superclass");
-		final IRI superclass2 = new URIImpl("uri:superclass2");
+		final IRI superclass = VF.createIRI("uri:superclass");
+		final IRI superclass2 = VF.createIRI("uri:superclass2");
 
-		final IRI sub = new URIImpl("uri:entity");
-		subclass = new URIImpl("uri:class");
-		obj = new URIImpl("uri:obj");
-		talksTo = new URIImpl("uri:talksTo");
+		final IRI sub = VF.createIRI("uri:entity");
+		subclass = VF.createIRI("uri:class");
+		obj = VF.createIRI("uri:obj");
+		talksTo = VF.createIRI("uri:talksTo");
 
-		final IRI howlsAt = new URIImpl("uri:howlsAt");
-		final IRI subType = new URIImpl("uri:subType");
+		final IRI howlsAt = VF.createIRI("uri:howlsAt");
+		final IRI subType = VF.createIRI("uri:subType");
 
 		conn.add(subclass, RDF.TYPE, superclass);
 		conn.add(subclass2, RDF.TYPE, superclass2);
-		conn.add(obj, RDFS.LABEL, new LiteralImpl("label"));
-		conn.add(obj2, RDFS.LABEL, new LiteralImpl("label2"));
+		conn.add(obj, RDFS.LABEL, VF.createLiteral("label"));
+		conn.add(obj2, RDFS.LABEL, VF.createLiteral("label2"));
 		conn.add(sub, howlsAt, superclass);
 		conn.add(superclass, subType, obj);
 
-		conn.add(obj, RDFS.LABEL, new LiteralImpl("label"));
-		conn.add(obj2, RDFS.LABEL, new LiteralImpl("label2"));
+		conn.add(obj, RDFS.LABEL, VF.createLiteral("label"));
+		conn.add(obj2, RDFS.LABEL, VF.createLiteral("label2"));
 
 		final String indexSparqlString = ""//
 				+ "SELECT ?dog ?pig ?duck  " //
@@ -255,15 +266,15 @@ public class AccumuloConstantPcjIT {
 			TupleQueryResultHandlerException, AccumuloException,
 			AccumuloSecurityException {
 
-		final IRI e1 = new URIImpl("uri:e1");
-		final IRI e2 = new URIImpl("uri:e2");
-		final IRI e3 = new URIImpl("uri:e3");
-		final IRI f1 = new URIImpl("uri:f1");
-		final IRI f2 = new URIImpl("uri:f2");
-		final IRI f3 = new URIImpl("uri:f3");
-		final IRI g1 = new URIImpl("uri:g1");
-		final IRI g2 = new URIImpl("uri:g2");
-		final IRI g3 = new URIImpl("uri:g3");
+		final IRI e1 = VF.createIRI("uri:e1");
+		final IRI e2 = VF.createIRI("uri:e2");
+		final IRI e3 = VF.createIRI("uri:e3");
+		final IRI f1 = VF.createIRI("uri:f1");
+		final IRI f2 = VF.createIRI("uri:f2");
+		final IRI f3 = VF.createIRI("uri:f3");
+		final IRI g1 = VF.createIRI("uri:g1");
+		final IRI g2 = VF.createIRI("uri:g2");
+		final IRI g3 = VF.createIRI("uri:g3");
 
 		conn.add(e1, talksTo, f1);
 		conn.add(f1, talksTo, g1);
@@ -316,8 +327,8 @@ public class AccumuloConstantPcjIT {
 			TableNotFoundException,
 			TupleQueryResultHandlerException, AccumuloException, AccumuloSecurityException {
 
-		final IRI e1 = new URIImpl("uri:e1");
-		final IRI f1 = new URIImpl("uri:f1");
+		final IRI e1 = VF.createIRI("uri:e1");
+		final IRI f1 = VF.createIRI("uri:f1");
 
 		conn.add(e1, talksTo, e1);
 		conn.add(e1, talksTo, f1);

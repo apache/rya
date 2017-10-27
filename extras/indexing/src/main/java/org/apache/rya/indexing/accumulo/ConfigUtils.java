@@ -18,13 +18,23 @@
  */
 package org.apache.rya.indexing.accumulo;
 
+import static java.util.Objects.requireNonNull;
+
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import com.google.common.base.Optional;
-import com.google.common.collect.Lists;
-import org.apache.accumulo.core.client.*;
+import org.apache.accumulo.core.client.AccumuloException;
+import org.apache.accumulo.core.client.AccumuloSecurityException;
+import org.apache.accumulo.core.client.BatchScanner;
+import org.apache.accumulo.core.client.BatchWriter;
+import org.apache.accumulo.core.client.Connector;
+import org.apache.accumulo.core.client.Instance;
+import org.apache.accumulo.core.client.MultiTableBatchWriter;
+import org.apache.accumulo.core.client.Scanner;
+import org.apache.accumulo.core.client.TableExistsException;
+import org.apache.accumulo.core.client.TableNotFoundException;
+import org.apache.accumulo.core.client.ZooKeeperInstance;
 import org.apache.accumulo.core.client.admin.TableOperations;
 import org.apache.accumulo.core.client.mock.MockInstance;
 import org.apache.accumulo.core.security.Authorizations;
@@ -51,9 +61,10 @@ import org.apache.rya.indexing.mongodb.temporal.MongoTemporalIndexer;
 import org.apache.rya.indexing.pcj.matching.PCJOptimizer;
 import org.apache.rya.indexing.statement.metadata.matching.StatementMetadataOptimizer;
 import org.eclipse.rdf4j.model.IRI;
-import org.eclipse.rdf4j.model.impl.URIImpl;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 
-import static java.util.Objects.requireNonNull;
+import com.google.common.base.Optional;
+import com.google.common.collect.Lists;
 
 /**
  * A set of configuration utils to read a Hadoop {@link Configuration} object and create Cloudbase/Accumulo objects.
@@ -222,7 +233,7 @@ public class ConfigUtils {
         final String[] validPredicateStrings = conf.getStrings(confName, new String[] {});
         final Set<IRI> predicates = new HashSet<>();
         for (final String prediateString : validPredicateStrings) {
-            predicates.add(new URIImpl(prediateString));
+            predicates.add(SimpleValueFactory.getInstance().createIRI(prediateString));
         }
         return predicates;
     }

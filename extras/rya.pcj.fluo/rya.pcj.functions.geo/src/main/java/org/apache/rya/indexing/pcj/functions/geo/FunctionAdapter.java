@@ -19,13 +19,13 @@
 package org.apache.rya.indexing.pcj.functions.geo;
 
 import org.eclipse.rdf4j.model.IRI;
-import  org.eclipse.rdf4j.model.Literal;
-import  org.eclipse.rdf4j.model.Value;
-import  org.eclipse.rdf4j.model.ValueFactory;
-import  org.eclipse.rdf4j.model.impl.BooleanLiteralImpl;
-import  org.eclipse.rdf4j.model.impl.URIImpl;
-import  org.eclipse.rdf4j.query.algebra.evaluation.ValueExprEvaluationException;
-import  org.eclipse.rdf4j.query.algebra.evaluation.function.Function;
+import org.eclipse.rdf4j.model.Literal;
+import org.eclipse.rdf4j.model.Value;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.model.impl.BooleanLiteralImpl;
+import org.eclipse.rdf4j.model.impl.URIImpl;
+import org.eclipse.rdf4j.query.algebra.evaluation.ValueExprEvaluationException;
+import org.eclipse.rdf4j.query.algebra.evaluation.function.Function;
 
 /**
  * Make a RDF4J Function look like an openRDF Function.
@@ -58,8 +58,8 @@ class FunctionAdapter implements Function {
             return valueFactory.createLiteral(((org.eclipse.rdf4j.model.impl.BooleanLiteral) v).booleanValue());
         else if (v instanceof org.eclipse.rdf4j.model.Literal) {
             org.eclipse.rdf4j.model.Literal vLiteral = (org.eclipse.rdf4j.model.Literal) v;
-             org.eclipse.rdf4j.model.URI vType = valueFactory.createIRI(vLiteral.getDatatype().stringValue());
-             org.eclipse.rdf4j.model.Literal theReturnValue = valueFactory.createLiteral(vLiteral.getLabel(), vType);
+            org.eclipse.rdf4j.model.URI vType = valueFactory.createIRI(vLiteral.getDatatype().stringValue());
+            org.eclipse.rdf4j.model.Literal theReturnValue = valueFactory.createLiteral(vLiteral.getLabel(), vType);
             return theReturnValue;
         }
         //

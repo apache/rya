@@ -26,10 +26,14 @@ import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Resource;
 import org.eclipse.rdf4j.model.Statement;
 import org.eclipse.rdf4j.model.Value;
-import org.eclipse.rdf4j.model.impl.ContextStatementImpl;
-import org.eclipse.rdf4j.model.impl.StatementImpl;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.model.impl.SimpleStatement;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 
-public class RdfCloudTripleStoreStatement extends StatementImpl {
+public class RdfCloudTripleStoreStatement extends SimpleStatement {
+    private static final long serialVersionUID = 1L;
+
+    private static final ValueFactory VF = SimpleValueFactory.getInstance();
 
     private Resource[] contexts; //TODO: no blank nodes
 
@@ -52,7 +56,7 @@ public class RdfCloudTripleStoreStatement extends StatementImpl {
 
         if (getContexts() != null && getContexts().length > 1) {
             for (Resource contxt : getContexts()) {
-                statements.add(new ContextStatementImpl(getSubject(),
+                statements.add(VF.createStatement(getSubject(),
                         getPredicate(), getObject(), contxt));
             }
         } else

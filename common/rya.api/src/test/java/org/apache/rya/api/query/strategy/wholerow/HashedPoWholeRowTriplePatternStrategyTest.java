@@ -4,10 +4,13 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import junit.framework.TestCase;
 import org.apache.hadoop.io.Text;
 import org.apache.rya.api.RdfCloudTripleStoreConstants;
-import org.apache.rya.api.domain.*;
+import org.apache.rya.api.domain.RyaStatement;
+import org.apache.rya.api.domain.RyaType;
+import org.apache.rya.api.domain.RyaTypeRange;
+import org.apache.rya.api.domain.RyaURI;
+import org.apache.rya.api.domain.RyaURIRange;
 import org.apache.rya.api.query.strategy.ByteRange;
 import org.apache.rya.api.query.strategy.TriplePatternStrategy;
 import org.apache.rya.api.resolver.RyaContext;
@@ -15,8 +18,11 @@ import org.apache.rya.api.resolver.RyaTripleContext;
 import org.apache.rya.api.resolver.triple.TripleRow;
 import org.apache.rya.api.resolver.triple.TripleRowRegex;
 import org.apache.rya.api.resolver.triple.impl.WholeRowHashedTripleResolver;
-import org.eclipse.rdf4j.model.impl.URIImpl;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 import org.junit.Before;
+
+import junit.framework.TestCase;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -42,6 +48,7 @@ import org.junit.Before;
  * Time: 11:46 AM
  */
 public class HashedPoWholeRowTriplePatternStrategyTest extends TestCase {
+    private static final ValueFactory VF = SimpleValueFactory.getInstance();
 
     RyaURI uri = new RyaURI("urn:test#1234");
     RyaURI uri2 = new RyaURI("urn:test#1235");
@@ -51,9 +58,9 @@ public class HashedPoWholeRowTriplePatternStrategyTest extends TestCase {
     RyaContext ryaContext = RyaContext.getInstance();
     RyaTripleContext ryaTripleContext;
 
-    RyaType customType1 = new RyaType(new URIImpl("urn:custom#type"), "1234");
-    RyaType customType2 = new RyaType(new URIImpl("urn:custom#type"), "1235");
-    RyaType customType3 = new RyaType(new URIImpl("urn:custom#type"), "1236");
+    RyaType customType1 = new RyaType(VF.createIRI("urn:custom#type"), "1234");
+    RyaType customType2 = new RyaType(VF.createIRI("urn:custom#type"), "1235");
+    RyaType customType3 = new RyaType(VF.createIRI("urn:custom#type"), "1236");
     RyaTypeRange customTypeRange1 = new RyaTypeRange(customType1, customType2);
     RyaTypeRange customTypeRange2 = new RyaTypeRange(customType2, customType3);
 

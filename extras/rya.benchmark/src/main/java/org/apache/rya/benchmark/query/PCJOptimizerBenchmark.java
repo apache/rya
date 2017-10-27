@@ -41,10 +41,10 @@ import org.openjdk.jmh.runner.RunnerException;
 import org.openjdk.jmh.runner.options.CommandLineOptionException;
 import org.openjdk.jmh.runner.options.CommandLineOptions;
 import org.openjdk.jmh.runner.options.OptionsBuilder;
-import  org.eclipse.rdf4j.query.MalformedQueryException;
-import  org.eclipse.rdf4j.query.algebra.Projection;
-import  org.eclipse.rdf4j.query.algebra.TupleExpr;
-import  org.eclipse.rdf4j.query.parser.sparql.SPARQLParser;
+import org.eclipse.rdf4j.query.MalformedQueryException;
+import org.eclipse.rdf4j.query.algebra.Projection;
+import org.eclipse.rdf4j.query.algebra.TupleExpr;
+import org.eclipse.rdf4j.query.parser.sparql.SPARQLParser;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;

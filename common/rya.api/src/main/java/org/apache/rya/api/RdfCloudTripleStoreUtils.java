@@ -23,22 +23,18 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.apache.rya.api.RdfCloudTripleStoreConstants.TABLE_LAYOUT;
 import org.apache.rya.api.layout.TableLayoutStrategy;
 import org.apache.rya.api.layout.TablePrefixLayoutStrategy;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Literal;
 import org.eclipse.rdf4j.model.Value;
 import org.eclipse.rdf4j.model.ValueFactory;
-import org.eclipse.rdf4j.model.impl.BNodeImpl;
-import org.eclipse.rdf4j.model.impl.LiteralImpl;
 import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
-import org.eclipse.rdf4j.model.impl.URIImpl;
-
-import static org.apache.rya.api.RdfCloudTripleStoreConstants.TABLE_LAYOUT;
 
 public class RdfCloudTripleStoreUtils {
 
-    public static ValueFactory valueFactory = SimpleValueFactory.getInstance();
+    public static final ValueFactory VF = SimpleValueFactory.getInstance();
     public static final Pattern literalPattern = Pattern.compile("^\"(.*?)\"((\\^\\^<(.+?)>)$|(@(.{2}))$)");
 
 //    public static byte[] writeValue(Value value) throws IOException {
@@ -267,12 +263,12 @@ public class RdfCloudTripleStoreUtils {
             return null;
         IRI subjUri;
         try {
-            subjUri = valueFactory.createIRI(value);
+            subjUri = VF.createIRI(value);
         } catch (Exception e) {
             //not uri
             if (namespace == null)
                 return null;
-            subjUri = valueFactory.createIRI(namespace, value);
+            subjUri = VF.createIRI(namespace, value);
         }
         return subjUri;
     }
@@ -289,7 +285,7 @@ public class RdfCloudTripleStoreUtils {
             }
 
             String dataType = s.substring(dt_i_start, dt_i_end);
-            return valueFactory.createLiteral(val, valueFactory.createIRI(dataType));
+            return VF.createLiteral(val, VF.createIRI(dataType));
         }
         return null;
     }
@@ -301,7 +297,7 @@ public class RdfCloudTripleStoreUtils {
     public static boolean isUri(String uri) {
         if (uri == null) return false;
         try {
-            valueFactory.createIRI(uri);
+            VF.createIRI(uri);
         } catch (Exception e) {
             return false;
         }
@@ -377,12 +373,12 @@ public class RdfCloudTripleStoreUtils {
     //helper methods to createValue
     public static Value createValue(String resource) {
         if (isBNode(resource))
-            return new BNodeImpl(resource.substring(2));
+            return VF.createBNode(resource.substring(2));
         Literal literal;
         if ((literal = makeLiteral(resource)) != null)
             return literal;
         if (resource.contains(":") || resource.contains("/") || resource.contains("#")) {
-            return new URIImpl(resource);
+            return VF.createIRI(resource);
         } else {
             throw new RuntimeException((new StringBuilder()).append(resource).append(" is not a valid URI, blank node, or literal value").toString());
         }
@@ -404,11 +400,11 @@ public class RdfCloudTripleStoreUtils {
         Matcher matcher = literalPattern.matcher(resource);
         if (matcher.matches())
             if (null != matcher.group(4))
-                return new LiteralImpl(matcher.group(1), new URIImpl(matcher.group(4)));
+                return VF.createLiteral(matcher.group(1), VF.createIRI(matcher.group(4)));
             else
-                return new LiteralImpl(matcher.group(1), matcher.group(6));
+                return VF.createLiteral(matcher.group(1), matcher.group(6));
         if (resource.startsWith("\"") && resource.endsWith("\"") && resource.length() > 1)
-            return new LiteralImpl(resource.substring(1, resource.length() - 1));
+            return VF.createLiteral(resource.substring(1, resource.length() - 1));
         else
             return null;
     }

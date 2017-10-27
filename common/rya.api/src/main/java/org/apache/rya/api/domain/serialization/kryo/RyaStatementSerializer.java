@@ -18,23 +18,26 @@ package org.apache.rya.api.domain.serialization.kryo;
  * under the License.
  */
 
+import org.apache.rya.api.domain.RyaStatement;
+import org.apache.rya.api.domain.RyaType;
+import org.apache.rya.api.domain.RyaURI;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
+import org.eclipse.rdf4j.model.vocabulary.XMLSchema;
+
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.Serializer;
 import com.esotericsoftware.kryo.io.Input;
 import com.esotericsoftware.kryo.io.Output;
 import com.google.common.base.Preconditions;
-import org.apache.rya.api.domain.RyaStatement;
-import org.apache.rya.api.domain.RyaType;
-import org.apache.rya.api.domain.RyaURI;
-import org.eclipse.rdf4j.model.impl.URIImpl;
-import org.eclipse.rdf4j.model.vocabulary.XMLSchema;
 
 /**
  * Kryo Serializer for {@link RyaStatement}s
  *
  */
 public class RyaStatementSerializer extends Serializer<RyaStatement> {
-    
+    private static final ValueFactory VF = SimpleValueFactory.getInstance();
+
     /**
      * Uses Kryo to write RyaStatement to {@lin Output}
      * @param kryo - writes statement to output
@@ -115,7 +118,7 @@ public class RyaStatementSerializer extends Serializer<RyaStatement> {
             value = new RyaURI(objectValue);
         }
         else {
-            value = new RyaType(new URIImpl(objectType), objectValue);
+            value = new RyaType(VF.createIRI(objectType), objectValue);
         }
         RyaStatement statement = new RyaStatement(new RyaURI(subject), new RyaURI(predicate), value);
         int length = 0;

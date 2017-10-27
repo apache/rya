@@ -22,9 +22,11 @@ import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.google.common.base.Optional;
-import com.google.common.collect.Lists;
-import org.apache.accumulo.core.client.*;
+import org.apache.accumulo.core.client.AccumuloException;
+import org.apache.accumulo.core.client.AccumuloSecurityException;
+import org.apache.accumulo.core.client.Connector;
+import org.apache.accumulo.core.client.TableExistsException;
+import org.apache.accumulo.core.client.TableNotFoundException;
 import org.apache.accumulo.core.client.mock.MockInstance;
 import org.apache.accumulo.core.client.security.tokens.PasswordToken;
 import org.apache.rya.api.persist.RyaDAOException;
@@ -36,11 +38,15 @@ import org.apache.rya.indexing.pcj.matching.PCJOptimizer;
 import org.apache.rya.indexing.pcj.storage.PcjException;
 import org.apache.rya.rdftriplestore.inference.InferenceEngineException;
 import org.eclipse.rdf4j.model.IRI;
-import org.eclipse.rdf4j.model.impl.LiteralImpl;
-import org.eclipse.rdf4j.model.impl.URIImpl;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 import org.eclipse.rdf4j.model.vocabulary.RDF;
 import org.eclipse.rdf4j.model.vocabulary.RDFS;
-import org.eclipse.rdf4j.query.*;
+import org.eclipse.rdf4j.query.MalformedQueryException;
+import org.eclipse.rdf4j.query.QueryEvaluationException;
+import org.eclipse.rdf4j.query.QueryLanguage;
+import org.eclipse.rdf4j.query.TupleQuery;
+import org.eclipse.rdf4j.query.TupleQueryResultHandlerException;
 import org.eclipse.rdf4j.query.algebra.Projection;
 import org.eclipse.rdf4j.query.algebra.QueryModelNode;
 import org.eclipse.rdf4j.query.algebra.TupleExpr;
@@ -55,8 +61,11 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-public class PCJOptionalTestIT {
+import com.google.common.base.Optional;
+import com.google.common.collect.Lists;
 
+public class PCJOptionalTestIT {
+    private static final ValueFactory VF = SimpleValueFactory.getInstance();
 
     private SailRepositoryConnection conn, pcjConn;
     private SailRepository repo, pcjRepo;
@@ -78,27 +87,27 @@ public class PCJOptionalTestIT {
         pcjRepo = PcjIntegrationTestingUtil.getPcjRepo(tablePrefix, "instance");
         pcjConn = pcjRepo.getConnection();
 
-        sub = new URIImpl("uri:entity");
-        subclass = new URIImpl("uri:class");
-        obj = new URIImpl("uri:obj");
-        talksTo = new URIImpl("uri:talksTo");
+        sub = VF.createIRI("uri:entity");
+        subclass = VF.createIRI("uri:class");
+        obj = VF.createIRI("uri:obj");
+        talksTo = VF.createIRI("uri:talksTo");
 
         conn.add(sub, RDF.TYPE, subclass);
-        conn.add(sub, RDFS.LABEL, new LiteralImpl("label"));
+        conn.add(sub, RDFS.LABEL, VF.createLiteral("label"));
         conn.add(sub, talksTo, obj);
 
-        sub2 = new URIImpl("uri:entity2");
-        subclass2 = new URIImpl("uri:class2");
-        obj2 = new URIImpl("uri:obj2");
-        sub3 = new URIImpl("uri:entity3");
-        subclass3 = new URIImpl("uri:class3");
+        sub2 = VF.createIRI("uri:entity2");
+        subclass2 = VF.createIRI("uri:class2");
+        obj2 = VF.createIRI("uri:obj2");
+        sub3 = VF.createIRI("uri:entity3");
+        subclass3 = VF.createIRI("uri:class3");
 
 
         conn.add(sub2, RDF.TYPE, subclass2);
-        conn.add(sub2, RDFS.LABEL, new LiteralImpl("label2"));
+        conn.add(sub2, RDFS.LABEL, VF.createLiteral("label2"));
         conn.add(sub2, talksTo, obj2);
         conn.add(sub3, RDF.TYPE, subclass3);
-        conn.add(sub3, RDFS.LABEL, new LiteralImpl("label3"));
+        conn.add(sub3, RDFS.LABEL, VF.createLiteral("label3"));
 
 
         accCon = new MockInstance("instance").getConnector("root",

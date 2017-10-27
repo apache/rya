@@ -19,13 +19,17 @@ package org.apache.rya.accumulo.mr;
  * under the License.
  */
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.accumulo.core.client.*;
+import org.apache.accumulo.core.client.Connector;
+import org.apache.accumulo.core.client.Instance;
+import org.apache.accumulo.core.client.Scanner;
 import org.apache.accumulo.core.client.admin.TableOperations;
 import org.apache.accumulo.core.client.security.tokens.AuthenticationToken;
 import org.apache.accumulo.core.conf.DefaultConfiguration;
@@ -43,11 +47,13 @@ import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.Text;
-import org.apache.hadoop.mapreduce.*;
+import org.apache.hadoop.mapreduce.InputSplit;
+import org.apache.hadoop.mapreduce.JobContext;
+import org.apache.hadoop.mapreduce.Mapper;
+import org.apache.hadoop.mapreduce.RecordReader;
+import org.apache.hadoop.mapreduce.TaskAttemptContext;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.input.FileSplit;
-
-import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * {@link FileInputFormat} that finds the Accumulo tablet files on the HDFS
@@ -109,23 +115,9 @@ public class AccumuloHDFSFileInputFormat extends FileInputFormat<Key, Value> {
                 Path file = split.getPath();
                 FileSystem fs = file.getFileSystem(job);
                 Instance instance = MRUtils.AccumuloProps.getInstance(taskAttemptContext);
-                FileOperations fileOperations = RFileOperations.getInstance();
-                Connector conn = null;
-                try {
-                    conn = MRUtils.AccumuloProps.getConnector(taskAttemptContext);
-                } catch (AccumuloSecurityException e) {
-                    throw new InterruptedException(e.getMessage());
 
-                } catch (AccumuloException e) {
-                    e.printStackTrace();
-                    throw  new InterruptedException(e.getMessage());
-                }
-
-                fileSKVIterator= fileOperations.newScanReaderBuilder()
-                        .forFile(file.toString(),fs,job)
-                        .withTableConfiguration(DefaultConfiguration.getDefaultConfiguration())
-                        .overRange(ALLRANGE, new HashSet<ByteSequence>(),false)
-                        .build();
+                fileSKVIterator = RFileOperations.getInstance().openReader(file.toString(), ALLRANGE,
+                        new HashSet<ByteSequence>(), false, fs, job, instance.getConfiguration());
             }
 
             @Override

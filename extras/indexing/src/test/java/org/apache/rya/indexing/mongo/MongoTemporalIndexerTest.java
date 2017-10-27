@@ -1,5 +1,3 @@
-package org.apache.rya.indexing.mongo;
-
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -18,13 +16,18 @@ package org.apache.rya.indexing.mongo;
  * specific language governing permissions and limitations
  * under the License.
  */
+package org.apache.rya.indexing.mongo;
+
+import static org.apache.rya.api.resolver.RdfToRyaConversions.convertStatement;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 import java.util.HashSet;
 
-import com.mongodb.*;
 import org.apache.accumulo.core.client.TableExistsException;
 import org.apache.accumulo.core.client.TableNotFoundException;
 import org.apache.rya.indexing.StatementConstraints;
@@ -40,14 +43,17 @@ import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Statement;
 import org.eclipse.rdf4j.model.ValueFactory;
 import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
-import org.eclipse.rdf4j.model.impl.StatementImpl;
 import org.eclipse.rdf4j.model.vocabulary.RDFS;
 import org.eclipse.rdf4j.query.QueryEvaluationException;
 import org.junit.Before;
 import org.junit.Test;
 
-import static org.apache.rya.api.resolver.RdfToRyaConversions.convertStatement;
-import static org.junit.Assert.*;
+import com.mongodb.DB;
+import com.mongodb.DBCollection;
+import com.mongodb.DBCursor;
+import com.mongodb.DBObject;
+import com.mongodb.MongoException;
+import com.mongodb.MongoSecurityException;
 
 /**
  * JUnit tests for TemporalIndexer and it's implementation MongoTemporalIndexer
@@ -136,19 +142,19 @@ public final class MongoTemporalIndexerTest extends MongoTestBase {
         final IRI pred1_atTime = vf.createIRI(URI_PROPERTY_AT_TIME);
         // tiB03_E20 read as: time interval that Begins 3 seconds, ends at 20 seconds,
         // Each time element the same, except seconds. year, month, .... minute are the same for each statement below.
-        spo_B00_E01 = new StatementImpl(vf.createIRI("foo:event0"), pred1_atTime, vf.createLiteral(tvB00_E01.toString()));
-        spo_B02_E29 = new StatementImpl(vf.createIRI("foo:event2"), pred1_atTime, vf.createLiteral(tvB02_E29.toString()));
-        spo_B02_E30 = new StatementImpl(vf.createIRI("foo:event2"), pred1_atTime, vf.createLiteral(tvB02_E30.toString()));
-        spo_B02_E31 = new StatementImpl(vf.createIRI("foo:event3"), pred1_atTime, vf.createLiteral(tvB02_E31.toString()));
-        spo_B02_E40 = new StatementImpl(vf.createIRI("foo:event4"), pred1_atTime, vf.createLiteral(tvB02_E40.toString()));
-        spo_B03_E20 = new StatementImpl(vf.createIRI("foo:event5"), pred1_atTime, vf.createLiteral(tvB03_E20.toString()));
-        spo_B29_E30 = new StatementImpl(vf.createIRI("foo:event1"), pred1_atTime, vf.createLiteral(tvB29_E30.toString()));
-        spo_B30_E32 = new StatementImpl(vf.createIRI("foo:event1"), pred1_atTime, vf.createLiteral(tvB30_E32.toString()));
-        spo_B02 = new StatementImpl(vf.createIRI("foo:event6"), pred1_atTime, vf.createLiteral(tsB02.getAsReadable()));
+        spo_B00_E01 = vf.createStatement(vf.createIRI("foo:event0"), pred1_atTime, vf.createLiteral(tvB00_E01.toString()));
+        spo_B02_E29 = vf.createStatement(vf.createIRI("foo:event2"), pred1_atTime, vf.createLiteral(tvB02_E29.toString()));
+        spo_B02_E30 = vf.createStatement(vf.createIRI("foo:event2"), pred1_atTime, vf.createLiteral(tvB02_E30.toString()));
+        spo_B02_E31 = vf.createStatement(vf.createIRI("foo:event3"), pred1_atTime, vf.createLiteral(tvB02_E31.toString()));
+        spo_B02_E40 = vf.createStatement(vf.createIRI("foo:event4"), pred1_atTime, vf.createLiteral(tvB02_E40.toString()));
+        spo_B03_E20 = vf.createStatement(vf.createIRI("foo:event5"), pred1_atTime, vf.createLiteral(tvB03_E20.toString()));
+        spo_B29_E30 = vf.createStatement(vf.createIRI("foo:event1"), pred1_atTime, vf.createLiteral(tvB29_E30.toString()));
+        spo_B30_E32 = vf.createStatement(vf.createIRI("foo:event1"), pred1_atTime, vf.createLiteral(tvB30_E32.toString()));
+        spo_B02 = vf.createStatement(vf.createIRI("foo:event6"), pred1_atTime, vf.createLiteral(tsB02.getAsReadable()));
 
         // Create statements about time instants 0 - 40 seconds
         for (int i = 0; i < seriesTs.length; i++) {
-            seriesSpo[i] = new StatementImpl(vf.createIRI("foo:event0" + i), pred1_atTime, vf.createLiteral(seriesTs[i].getAsReadable()));
+            seriesSpo[i] = vf.createStatement(vf.createIRI("foo:event0" + i), pred1_atTime, vf.createLiteral(seriesTs[i].getAsReadable()));
         }
     }
 
@@ -181,10 +187,10 @@ public final class MongoTemporalIndexerTest extends MongoTestBase {
 
         // Should not be stored because they are not in the predicate list
         final String validDateStringWithThirteens = "1313-12-13T13:13:13Z";
-        tIndexer.storeStatement(convertStatement(new StatementImpl(vf.createIRI("foo:subj1"), RDFS.LABEL, vf.createLiteral(validDateStringWithThirteens))));
+        tIndexer.storeStatement(convertStatement(vf.createStatement(vf.createIRI("foo:subj1"), RDFS.LABEL, vf.createLiteral(validDateStringWithThirteens))));
 
         final String invalidDateString = "ThisIsAnInvalidDate";
-        tIndexer.storeStatement(convertStatement(new StatementImpl(vf.createIRI("foo:subj2"), pred1_atTime, vf.createLiteral(invalidDateString))));
+        tIndexer.storeStatement(convertStatement(vf.createStatement(vf.createIRI("foo:subj2"), pred1_atTime, vf.createLiteral(invalidDateString))));
 
         // These are different datetimes instant but from different time zones.
         // This is an arbitrary zone, BRST=Brazil, better if not local.
@@ -195,13 +201,13 @@ public final class MongoTemporalIndexerTest extends MongoTestBase {
 
         // These should be stored because they are in the predicate list.
         // BUT they will get converted to the same exact datetime in UTC.
-        final Statement s3 = new StatementImpl(vf.createIRI("foo:subj3"), pred1_atTime, vf.createLiteral(testDate2014InBRST));
-        final Statement s4 = new StatementImpl(vf.createIRI("foo:subj4"), pred2_circa, vf.createLiteral(testDate2016InET));
+        final Statement s3 = vf.createStatement(vf.createIRI("foo:subj3"), pred1_atTime, vf.createLiteral(testDate2014InBRST));
+        final Statement s4 = vf.createStatement(vf.createIRI("foo:subj4"), pred2_circa, vf.createLiteral(testDate2016InET));
         tIndexer.storeStatement(convertStatement(s3));
         tIndexer.storeStatement(convertStatement(s4));
 
         // This should not be stored because the object is not a literal
-        tIndexer.storeStatement(convertStatement(new StatementImpl(vf.createIRI("foo:subj5"), pred1_atTime, vf.createIRI("in:valid"))));
+        tIndexer.storeStatement(convertStatement(vf.createStatement(vf.createIRI("foo:subj5"), pred1_atTime, vf.createIRI("in:valid"))));
 
         printTables("junit testing: Temporal entities stored in testStoreStatement");
         assertEquals(2, tIndexer.getCollection().find().count());
@@ -219,8 +225,8 @@ public final class MongoTemporalIndexerTest extends MongoTestBase {
 
         // These should be stored because they are in the predicate list.
         // BUT they will get converted to the same exact datetime in UTC.
-        final Statement s1 = new StatementImpl(vf.createIRI("foo:subj3"), pred1_atTime, vf.createLiteral(testDate2014InBRST));
-        final Statement s2 = new StatementImpl(vf.createIRI("foo:subj4"), pred2_circa, vf.createLiteral(testDate2016InET));
+        final Statement s1 = vf.createStatement(vf.createIRI("foo:subj3"), pred1_atTime, vf.createLiteral(testDate2014InBRST));
+        final Statement s2 = vf.createStatement(vf.createIRI("foo:subj4"), pred2_circa, vf.createLiteral(testDate2016InET));
         tIndexer.storeStatement(convertStatement(s1));
         tIndexer.storeStatement(convertStatement(s2));
 
@@ -590,7 +596,7 @@ public final class MongoTemporalIndexerTest extends MongoTestBase {
         // add the predicate = EventTime ; Store in an array for verification.
         final Statement[] SeriesTs_EventTime = new Statement[expectedResultCount+1];
         for (int s = 0; s <= searchForSeconds + expectedResultCount; s++) { // <== logic here
-            final Statement statement = new StatementImpl(vf.createIRI("foo:EventTimeSubj0" + s), pred2_eventTime, vf.createLiteral(seriesTs[s].getAsReadable()));
+            final Statement statement = vf.createStatement(vf.createIRI("foo:EventTimeSubj0" + s), pred2_eventTime, vf.createLiteral(seriesTs[s].getAsReadable()));
             tIndexer.storeStatement(convertStatement(statement));
             if (s>searchForSeconds) {
                 SeriesTs_EventTime[s - searchForSeconds -1 ] = statement;
@@ -598,7 +604,7 @@ public final class MongoTemporalIndexerTest extends MongoTestBase {
         }
         // add the predicate = CIRCA ; to be ignored because it is not in the constraints.
         for (int s = 0; s <= searchForSeconds + expectedResultCount; s++) { // <== logic here
-            final Statement statement = new StatementImpl(vf.createIRI("foo:CircaEventSubj0" + s), pred3_CIRCA_, vf.createLiteral(seriesTs[s].getAsReadable()));
+            final Statement statement = vf.createStatement(vf.createIRI("foo:CircaEventSubj0" + s), pred3_CIRCA_, vf.createLiteral(seriesTs[s].getAsReadable()));
             tIndexer.storeStatement(convertStatement(statement));
         }
 

@@ -42,10 +42,10 @@ import org.apache.zookeeper.ClientCnxn;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import  org.eclipse.rdf4j.model.ValueFactory;
-import  org.eclipse.rdf4j.sail.Sail;
-import  org.eclipse.rdf4j.sail.SailConnection;
-import  org.eclipse.rdf4j.sail.SailException;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.sail.Sail;
+import org.eclipse.rdf4j.sail.SailConnection;
+import org.eclipse.rdf4j.sail.SailException;
 
 /**
  * Integration tests {@link QueryBenchmarkRun}.

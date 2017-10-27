@@ -24,6 +24,8 @@ import java.util.Map.Entry;
 
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
+
+import org.apache.rya.api.domain.VarNameUtils;
 import org.apache.rya.indexing.external.tupleSet.ExternalTupleSet;
 import org.eclipse.rdf4j.common.iteration.CloseableIteration;
 import org.eclipse.rdf4j.query.BindingSet;
@@ -200,7 +202,7 @@ public class BindingSetHashJoinIterator implements
 	private BindingSet removeConstants(BindingSet bs) {
 		QueryBindingSet bSet = new QueryBindingSet();
 		for (String s : bs.getBindingNames()) {
-			if (!s.startsWith(ExternalTupleSet.CONST_PREFIX)) {
+			if (!VarNameUtils.isConstant(s)) {
 				bSet.addBinding(bs.getBinding(s));
 			}
 		}

@@ -36,22 +36,21 @@ import org.apache.rya.indexing.mongodb.MongoIndexingConfiguration;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import  org.eclipse.rdf4j.model.Resource;
-import  org.eclipse.rdf4j.model.Statement;
-import  org.eclipse.rdf4j.model.URI;
-import  org.eclipse.rdf4j.model.Value;
-import  org.eclipse.rdf4j.model.ValueFactory;
-import  org.eclipse.rdf4j.model.impl.StatementImpl;
-import  org.eclipse.rdf4j.model.impl.ValueFactoryImpl;
-import  org.eclipse.rdf4j.query.BindingSet;
-import  org.eclipse.rdf4j.query.MalformedQueryException;
-import  org.eclipse.rdf4j.query.QueryEvaluationException;
-import  org.eclipse.rdf4j.query.QueryLanguage;
-import  org.eclipse.rdf4j.query.TupleQueryResult;
-import  org.eclipse.rdf4j.repository.RepositoryException;
-import  org.eclipse.rdf4j.repository.sail.SailRepository;
-import  org.eclipse.rdf4j.repository.sail.SailRepositoryConnection;
-import  org.eclipse.rdf4j.sail.Sail;
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.Resource;
+import org.eclipse.rdf4j.model.Statement;
+import org.eclipse.rdf4j.model.Value;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
+import org.eclipse.rdf4j.query.BindingSet;
+import org.eclipse.rdf4j.query.MalformedQueryException;
+import org.eclipse.rdf4j.query.QueryEvaluationException;
+import org.eclipse.rdf4j.query.QueryLanguage;
+import org.eclipse.rdf4j.query.TupleQueryResult;
+import org.eclipse.rdf4j.repository.RepositoryException;
+import org.eclipse.rdf4j.repository.sail.SailRepository;
+import org.eclipse.rdf4j.repository.sail.SailRepositoryConnection;
+import org.eclipse.rdf4j.sail.Sail;
 
 import com.mongodb.MongoClient;
 import com.vividsolutions.jts.geom.Coordinate;
@@ -289,10 +288,10 @@ public class MongoGeoIndexerFilterIT extends MongoITBase {
     private static RyaStatement statement(final Geometry geo) {
         final ValueFactory vf = SimpleValueFactory.getInstance();
         final Resource subject = vf.createIRI("urn:geo");
-        final URI predicate = GeoConstants.GEO_AS_WKT;
+        final IRI predicate = GeoConstants.GEO_AS_WKT;
         final WKTWriter w = new WKTWriter();
         final Value object = vf.createLiteral(w.write(geo), GeoConstants.XMLSCHEMA_OGC_WKT);
-        return RdfToRyaConversions.convertStatement(new StatementImpl(subject, predicate, object));
+        return RdfToRyaConversions.convertStatement(vf.createStatement(subject, predicate, object));
     }
 
 }

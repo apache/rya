@@ -18,18 +18,37 @@
  */
 package org.apache.rya.indexing.pcj.fluo.app.query;
 
-import java.util.*;
+import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkNotNull;
+import static org.apache.rya.indexing.pcj.fluo.app.IncrementalUpdateConstants.AGGREGATION_PREFIX;
+import static org.apache.rya.indexing.pcj.fluo.app.IncrementalUpdateConstants.CONSTRUCT_PREFIX;
+import static org.apache.rya.indexing.pcj.fluo.app.IncrementalUpdateConstants.FILTER_PREFIX;
+import static org.apache.rya.indexing.pcj.fluo.app.IncrementalUpdateConstants.JOIN_PREFIX;
+import static org.apache.rya.indexing.pcj.fluo.app.IncrementalUpdateConstants.PERIODIC_QUERY_PREFIX;
+import static org.apache.rya.indexing.pcj.fluo.app.IncrementalUpdateConstants.PROJECTION_PREFIX;
+import static org.apache.rya.indexing.pcj.fluo.app.IncrementalUpdateConstants.SP_PREFIX;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.atomic.AtomicReference;
 
-import com.google.common.base.Preconditions;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
-import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
-import edu.umd.cs.findbugs.annotations.NonNull;
-import net.jcip.annotations.Immutable;
 import org.apache.rya.api.client.CreatePCJ.ExportStrategy;
 import org.apache.rya.api.client.CreatePCJ.QueryType;
-import org.apache.rya.indexing.pcj.fluo.app.*;
+import org.apache.rya.api.domain.VarNameUtils;
+import org.apache.rya.indexing.pcj.fluo.app.ConstructGraph;
+import org.apache.rya.indexing.pcj.fluo.app.ConstructProjection;
+import org.apache.rya.indexing.pcj.fluo.app.FluoStringConverter;
+import org.apache.rya.indexing.pcj.fluo.app.IncrementalUpdateConstants;
+import org.apache.rya.indexing.pcj.fluo.app.NodeType;
 import org.apache.rya.indexing.pcj.fluo.app.query.AggregationMetadata.AggregationElement;
 import org.apache.rya.indexing.pcj.fluo.app.query.AggregationMetadata.AggregationType;
 import org.apache.rya.indexing.pcj.fluo.app.query.JoinMetadata.JoinType;
@@ -43,14 +62,38 @@ import org.eclipse.rdf4j.model.Value;
 import org.eclipse.rdf4j.model.ValueFactory;
 import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 import org.eclipse.rdf4j.query.MalformedQueryException;
-import org.eclipse.rdf4j.query.algebra.*;
+import org.eclipse.rdf4j.query.algebra.AggregateOperator;
+import org.eclipse.rdf4j.query.algebra.BNodeGenerator;
+import org.eclipse.rdf4j.query.algebra.Extension;
+import org.eclipse.rdf4j.query.algebra.ExtensionElem;
+import org.eclipse.rdf4j.query.algebra.Filter;
+import org.eclipse.rdf4j.query.algebra.Group;
+import org.eclipse.rdf4j.query.algebra.GroupElem;
+import org.eclipse.rdf4j.query.algebra.Join;
+import org.eclipse.rdf4j.query.algebra.LeftJoin;
+import org.eclipse.rdf4j.query.algebra.MultiProjection;
+import org.eclipse.rdf4j.query.algebra.Projection;
+import org.eclipse.rdf4j.query.algebra.ProjectionElem;
+import org.eclipse.rdf4j.query.algebra.ProjectionElemList;
+import org.eclipse.rdf4j.query.algebra.QueryModelNode;
+import org.eclipse.rdf4j.query.algebra.Reduced;
+import org.eclipse.rdf4j.query.algebra.StatementPattern;
+import org.eclipse.rdf4j.query.algebra.TupleExpr;
+import org.eclipse.rdf4j.query.algebra.UnaryTupleOperator;
+import org.eclipse.rdf4j.query.algebra.ValueConstant;
+import org.eclipse.rdf4j.query.algebra.ValueExpr;
+import org.eclipse.rdf4j.query.algebra.Var;
 import org.eclipse.rdf4j.query.algebra.helpers.AbstractQueryModelVisitor;
 import org.eclipse.rdf4j.query.parser.ParsedQuery;
 import org.eclipse.rdf4j.query.parser.sparql.SPARQLParser;
 
-import static com.google.common.base.Preconditions.checkArgument;
-import static com.google.common.base.Preconditions.checkNotNull;
-import static org.apache.rya.indexing.pcj.fluo.app.IncrementalUpdateConstants.*;
+import com.google.common.base.Preconditions;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
+
+import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
+import edu.umd.cs.findbugs.annotations.NonNull;
+import net.jcip.annotations.Immutable;
 
 /**
  * Creates the {@link FluoQuery} metadata that is required by the Fluo
@@ -63,22 +106,22 @@ public class SparqlFluoQueryBuilder {
     private String queryId;
     private NodeIds nodeIds;
     private Optional<Integer> joinBatchSize = Optional.empty();
-    private static final ValueFactory vf = SimpleValueFactory.getInstance(); 
-  
-    //Default behavior is to export to Kafka - subject to change when user can 
+    private static final ValueFactory vf = SimpleValueFactory.getInstance();
+
+    //Default behavior is to export to Kafka - subject to change when user can
     //specify their own export strategy
     private Set<ExportStrategy> exportStrategies = new HashSet<>(Arrays.asList(ExportStrategy.KAFKA));
-    
+
     public SparqlFluoQueryBuilder setSparql(String sparql) {
         this.sparql = Preconditions.checkNotNull(sparql);
         return this;
     }
-    
+
     public SparqlFluoQueryBuilder setTupleExpr(TupleExpr te) {
         this.te = Preconditions.checkNotNull(te);
         return this;
     }
-    
+
     /**
      * Sets the FluoQuery id as generated by {@link NodeType#generateNewFluoIdForType(NodeType)} or
      * {@link NodeType#generateNewIdForType(NodeType, String)}, where NodeType is of type Query.
@@ -89,32 +132,32 @@ public class SparqlFluoQueryBuilder {
         this.queryId = Preconditions.checkNotNull(queryId);
         return this;
     }
-    
+
     public SparqlFluoQueryBuilder setNodeIds(NodeIds nodeIds) {
         this.nodeIds = Preconditions.checkNotNull(nodeIds);
         return this;
     }
-    
+
     public SparqlFluoQueryBuilder setExportStrategies(Set<ExportStrategy> exportStrategies) {
         this.exportStrategies = exportStrategies;
         return this;
     }
-    
+
     public SparqlFluoQueryBuilder setJoinBatchSize(int joinBatchSize) {
-        Preconditions.checkArgument(joinBatchSize > 0); 
+        Preconditions.checkArgument(joinBatchSize > 0);
         this.joinBatchSize = Optional.of(joinBatchSize);
         return this;
     }
-    
+
     public FluoQuery build() throws UnsupportedQueryException {
         Preconditions.checkNotNull(sparql);
         Preconditions.checkNotNull(queryId);
         Preconditions.checkNotNull(exportStrategies);
-      
+
         if(nodeIds == null) {
             nodeIds = new NodeIds();
         }
-        
+
         if(te == null) {
             SPARQLParser parser = new SPARQLParser();
             ParsedQuery pq;
@@ -125,10 +168,10 @@ public class SparqlFluoQueryBuilder {
             }
             te = pq.getTupleExpr();
         }
-        
+
         PeriodicQueryUtil.placePeriodicQueryNode(te);
         String childNodeId = nodeIds.getOrMakeId(te);
-        
+
         final FluoQuery.Builder fluoQueryBuilder = FluoQuery.builder();
         QueryMetadata.Builder queryBuilder = QueryMetadata.builder(queryId);
         //sets {@link QueryType} and VariableOrder
@@ -138,18 +181,18 @@ public class SparqlFluoQueryBuilder {
             .setChildNodeId(childNodeId)
             .setExportStrategies(exportStrategies)
             .setJoinBatchSize(joinBatchSize);
-        
+
         fluoQueryBuilder.setQueryMetadata(queryBuilder);
-        
+
         setChildMetadata(fluoQueryBuilder, childNodeId, queryBuilder.getVariableOrder(), queryId);
-        
+
         final NewQueryVisitor visitor = new NewQueryVisitor(fluoQueryBuilder, nodeIds);
         te.visit( visitor );
-        
+
         final FluoQuery fluoQuery = fluoQueryBuilder.build();
         return fluoQuery;
     }
-    
+
     /**
      * A data structure that creates and keeps track of Node IDs for the nodes
      * of a {@link ParsedQuery}. This structure should only be used while creating
@@ -236,7 +279,7 @@ public class SparqlFluoQueryBuilder {
             // Put them together to create the Node ID.
             return prefix + "_" + unique;
         }
-        
+
     }
 
     /**
@@ -286,7 +329,7 @@ public class SparqlFluoQueryBuilder {
                 } else {
                     groupByVariableOrder = new VariableOrder();
                 }
-                
+
 
                 // The aggregations that need to be performed are the Group Elements.
                 final List<AggregationElement> aggregations = new ArrayList<>();
@@ -320,15 +363,15 @@ public class SparqlFluoQueryBuilder {
 
                 aggregationBuilder.setChildNodeId(childNodeId);
                 aggregationBuilder.setGroupByVariableOrder(groupByVariableOrder);
-                
+
                 Set<String> aggregationVars = getVarsToDelete(groupByVariableOrder.getVariableOrders(), aggregationBuilder.getVariableOrder().getVariableOrders());
                 FluoQueryUtils.updateVarOrders(fluoQueryBuilder, UpdateAction.DeleteVariable, Lists.newArrayList(aggregationVars), aggregationId);
-                
+
                 for(final AggregationElement aggregation : aggregations) {
                     aggregationBuilder.addAggregation(aggregation);
                 }
-                
-                
+
+
 
                 // Update the child node's metadata.
                 final Set<String> childVars = getVars(child);
@@ -418,7 +461,7 @@ public class SparqlFluoQueryBuilder {
 
         @Override
         public void meet(final Filter node) {
-            
+
             // Get or create a builder for this node populated with the known metadata.
             final String filterId = nodeIds.getOrMakeId(node);
 
@@ -452,7 +495,8 @@ public class SparqlFluoQueryBuilder {
             // Walk to the next node.
             super.meet(node);
         }
-        
+
+        @Override
         public void meetOther(final QueryModelNode qNode) {
             if (qNode instanceof PeriodicQueryNode) {
                 PeriodicQueryNode node = (PeriodicQueryNode) qNode;
@@ -491,9 +535,9 @@ public class SparqlFluoQueryBuilder {
                         Collections.singletonList(IncrementalUpdateConstants.PERIODIC_BIN_ID), periodicId);
                 // Walk to the next node.
                 node.getArg().visit(this);
-            } 
+            }
         }
-        
+
 
         @Override
         public void meet(final Projection node) {
@@ -524,25 +568,26 @@ public class SparqlFluoQueryBuilder {
             // Walk to the next node.
             super.meet(node);
         }
-        
-        
+
+
+        @Override
         public void meet(Reduced node) {
-            //create id, initialize ConstructQueryMetadata builder, register ConstructQueryMetadata 
+            //create id, initialize ConstructQueryMetadata builder, register ConstructQueryMetadata
             //builder with FluoQueryBuilder, and add metadata that we currently have
             final String constructId = nodeIds.getOrMakeId(node);
-            
+
             ConstructQueryMetadata.Builder constructBuilder = fluoQueryBuilder.getConstructQueryBuilder().orNull();
             if(constructBuilder == null) {
                 constructBuilder = ConstructQueryMetadata.builder();
                 constructBuilder.setNodeId(constructId);
                 fluoQueryBuilder.setConstructQueryMetadata(constructBuilder);
             }
-            
+
             //get child node
             QueryModelNode child = node.getArg();
             Preconditions.checkArgument(child instanceof Projection || child instanceof MultiProjection);
             UnaryTupleOperator unary = (UnaryTupleOperator) child;
-            
+
             //get ProjectionElemList to build ConstructGraph
             final List<ProjectionElemList> projections = new ArrayList<>();
             if(unary instanceof Projection) {
@@ -550,7 +595,7 @@ public class SparqlFluoQueryBuilder {
             } else {
                 projections.addAll(((MultiProjection)unary).getProjections());
             }
-            
+
             //get ExtensionElems to build ConstructGraph
             QueryModelNode grandChild = unary.getArg();
             Preconditions.checkArgument(grandChild instanceof Extension);
@@ -558,7 +603,7 @@ public class SparqlFluoQueryBuilder {
             final List<ExtensionElem> extensionElems = extension.getElements();
             final ConstructGraph graph = getConstructGraph(projections, extensionElems);
             constructBuilder.setConstructGraph(graph);
-            
+
             //set child to the next node we care about in Fluo
             //if Extension's arg is a Group node, then it is an Aggregation, so set child to Extension
             //otherwise set child to Extension's child (only care about Extensions if they are Aggregations)
@@ -567,20 +612,20 @@ public class SparqlFluoQueryBuilder {
             } else {
                 child = extension.getArg();
             }
-            
+
             //Set the child node in the ConstructQueryMetadataBuilder
             String childNodeId = nodeIds.getOrMakeId(child);
             constructBuilder.setChildNodeId(childNodeId);
-            
+
             // Update the child node's metadata.
             final Set<String> childVars = getVars((TupleExpr)child);
             final VariableOrder childVarOrder = new VariableOrder(childVars);
             setChildMetadata(fluoQueryBuilder, childNodeId, childVarOrder, constructId);
-            
+
             //fast forward visitor to next node we care about
             child.visit(this);
         }
-        
+
         private ConstructGraph getConstructGraph(List<ProjectionElemList> projections, List<ExtensionElem> extensionElems) {
             Map<String, Value> valueMap = new HashMap<>();
             //create valueMap to associate source names with Values
@@ -594,7 +639,7 @@ public class SparqlFluoQueryBuilder {
                     valueMap.put(name, vf.createBNode(UUID.randomUUID().toString()));
                 }
             }
-            
+
             Set<ConstructProjection> constructProj = new HashSet<>();
             //build ConstructProjection for each ProjectionElemList
             for(ProjectionElemList list: projections) {
@@ -610,17 +655,17 @@ public class SparqlFluoQueryBuilder {
                 }
                 constructProj.add(new ConstructProjection(vars.get(0), vars.get(1), vars.get(2)));
             }
-            
+
             return new ConstructGraph(constructProj);
         }
-        
+
         private Set<String> getVarsToDelete(Collection<String> groupByVars, Collection<String> varOrderVars) {
             Set<String> groupBySet = Sets.newHashSet(groupByVars);
             Set<String> varOrderSet = Sets.newHashSet(varOrderVars);
-            
+
             return Sets.difference(varOrderSet, groupBySet);
         }
-        
+
         private void validateProjectionElemList(ProjectionElemList list) {
             List<ProjectionElem> elements = list.getElements();
             checkArgument(elements.size() == 3);
@@ -628,7 +673,7 @@ public class SparqlFluoQueryBuilder {
             checkArgument(elements.get(1).getTargetName().equals("predicate"));
             checkArgument(elements.get(2).getTargetName().equals("object"));
         }
-        
+
         /**
          * Get the non-constant variables from a {@link TupleExpr}.
          *
@@ -641,7 +686,7 @@ public class SparqlFluoQueryBuilder {
             final Set<String> vars = Sets.newHashSet();
 
             for(final String bindingName : node.getBindingNames()) {
-                if(!bindingName.startsWith("-const-")) {
+                if (!VarNameUtils.isConstant(bindingName)) {
                     vars.add(bindingName);
                 }
             }
@@ -729,7 +774,7 @@ public class SparqlFluoQueryBuilder {
             return shifted;
         }
     }
-    
+
     private void setVarOrderAndQueryType(QueryMetadata.Builder builder, TupleExpr te) {
         QueryMetadataLocator locator = new QueryMetadataLocator();
         try {
@@ -737,47 +782,50 @@ public class SparqlFluoQueryBuilder {
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
-        
+
         builder.setVarOrder(locator.getVarOrder());
         builder.setQueryType(locator.getQueryType());
     }
-    
+
     public static class QueryMetadataLocator extends AbstractQueryModelVisitor<Exception> {
-        
+
         private VariableOrder varOrder;
         private QueryType queryType;
-        
+
         public VariableOrder getVarOrder() {
             return varOrder;
         }
-        
+
         public QueryType getQueryType() {
             return queryType;
         }
-        
+
+        @Override
         public void meet(Projection node) throws Exception {
             Set<String> bindingNames = node.getBindingNames();
             if(varOrder == null) {
                 varOrder = new VariableOrder(bindingNames);
             }
-            
+
             if(queryType == null) {
                 queryType = QueryType.PROJECTION;
             }
             super.meet(node);
         }
-        
+
+        @Override
         public void meet(Reduced node) throws Exception {
             if(varOrder == null) {
                 varOrder = getConstructGraphVarOrder(node);
             }
-            
+
             if(queryType == null) {
                 queryType = QueryType.CONSTRUCT;
             }
             super.meet(node);
         }
-        
+
+        @Override
         public void meetOther(final QueryModelNode node) throws Exception {
             if (node instanceof PeriodicQueryNode) {
                 queryType = QueryType.PERIODIC;
@@ -786,14 +834,14 @@ public class SparqlFluoQueryBuilder {
             }
         }
     }
-    
+
     private static VariableOrder getConstructGraphVarOrder(Reduced node) {
-        
+
         //get child node
           QueryModelNode child = node.getArg();
           Preconditions.checkArgument(child instanceof Projection || child instanceof MultiProjection);
           UnaryTupleOperator unary = (UnaryTupleOperator) child;
-          
+
           //get ProjectionElemList to build ConstructGraph
           final List<ProjectionElemList> projections = new ArrayList<>();
           if(unary instanceof Projection) {
@@ -801,26 +849,26 @@ public class SparqlFluoQueryBuilder {
           } else {
               projections.addAll(((MultiProjection)unary).getProjections());
           }
-          
+
           return getConstructGraphVarOrder(projections);
       }
-    
+
     private static VariableOrder getConstructGraphVarOrder(List<ProjectionElemList> projections) {
         Set<String> varOrders = new HashSet<>();
-        
+
         for(ProjectionElemList elems: projections) {
             for(ProjectionElem elem: elems.getElements()) {
                 String name = elem.getSourceName();
-                if(!name.startsWith("-const-") && !name.startsWith("-anon-")) {
+                if (!VarNameUtils.isConstant(name) && !VarNameUtils.isAnonymous(name)) {
                     varOrders.add(name);
                 }
             }
         }
-        
+
         return new VariableOrder(varOrders);
     }
-    
-    
+
+
     /**
      * Update a query node's metadata to include it's binding set variable order
      * and it's parent node id. This information is only known when handling
@@ -881,21 +929,21 @@ public class SparqlFluoQueryBuilder {
             aggregationBuilder.setVarOrder(childVarOrder);
             aggregationBuilder.setParentNodeId(parentNodeId);
             break;
-            
+
         case PROJECTION:
             ProjectionMetadata.Builder projectionBuilder = fluoQueryBuilder.getProjectionBuilder(childNodeId).orNull();
             if(projectionBuilder == null) {
                 projectionBuilder = ProjectionMetadata.builder(childNodeId);
                 fluoQueryBuilder.addProjectionBuilder(projectionBuilder);
             }
-            
+
             projectionBuilder.setVarOrder(childVarOrder);
             projectionBuilder.setParentNodeId(parentNodeId);
             break;
-            
+
         case QUERY:
             throw new IllegalArgumentException("A QUERY node cannot be the child of another node.");
-        
+
         case CONSTRUCT:
             ConstructQueryMetadata.Builder constructBuilder = fluoQueryBuilder.getConstructQueryBuilder().orNull();
             if(constructBuilder == null) {
@@ -903,12 +951,12 @@ public class SparqlFluoQueryBuilder {
                 constructBuilder.setNodeId(childNodeId);
                 fluoQueryBuilder.setConstructQueryMetadata(constructBuilder);
             }
-            
+
             Preconditions.checkArgument(childNodeId.equals(constructBuilder.getNodeId()));
             constructBuilder.setVarOrder(childVarOrder);
             constructBuilder.setParentNodeId(parentNodeId);
             break;
-        
+
         case PERIODIC_QUERY:
             PeriodicQueryMetadata.Builder periodicQueryBuilder = fluoQueryBuilder.getPeriodicQueryBuilder().orNull();
             if (periodicQueryBuilder == null) {
@@ -919,7 +967,7 @@ public class SparqlFluoQueryBuilder {
             periodicQueryBuilder.setVarOrder(childVarOrder);
             periodicQueryBuilder.setParentNodeId(parentNodeId);
             break;
-            
+
         default:
             throw new IllegalArgumentException("Unsupported NodeType: " + childType);
         }

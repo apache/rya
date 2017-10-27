@@ -25,6 +25,7 @@ import java.util.Map;
 
 import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.domain.RyaURI;
+import org.apache.rya.api.domain.VarNameUtils;
 import org.apache.rya.api.resolver.RdfToRyaConversions;
 import org.apache.rya.indexing.pcj.storage.accumulo.VisibilityBindingSet;
 import org.eclipse.rdf4j.model.BNode;
@@ -100,7 +101,7 @@ public class ConstructProjectionTest {
         VisibilityBindingSet vBs = new VisibilityBindingSet(bs);
         BNode bNode = vf.createBNode();
         Map<String, BNode> bNodeMap = new HashMap<>();
-        bNodeMap.put("_anon_1", bNode);
+        bNodeMap.put(VarNameUtils.prependAnonymous("1"), bNode);
         RyaStatement statement = projection.projectBindingSet(vBs,bNodeMap);
         
         RyaStatement expected = new RyaStatement(RdfToRyaConversions.convertResource(bNode), new RyaURI("uri:talksTo"), new RyaURI("uri:Bob"));

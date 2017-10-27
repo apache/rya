@@ -18,22 +18,23 @@
  */
 package org.apache.rya.indexing.pcj.storage.accumulo;
 
+import static org.junit.Assert.assertEquals;
+
 import java.math.BigDecimal;
 import java.math.BigInteger;
 
 import org.apache.rya.indexing.pcj.storage.accumulo.BindingSetConverter.BindingSetConversionException;
+import org.eclipse.rdf4j.model.ValueFactory;
 import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
-import org.eclipse.rdf4j.model.impl.URIImpl;
 import org.eclipse.rdf4j.query.BindingSet;
 import org.eclipse.rdf4j.query.impl.MapBindingSet;
 import org.junit.Test;
-
-import static org.junit.Assert.assertEquals;
 
 /**
  * Tests the methods of {@link BindingSetStringConverter}.
  */
 public class BindingSetStringConverterTest {
+    private static final ValueFactory VF = SimpleValueFactory.getInstance();
 
     @Test
     public void noBindings() throws BindingSetConversionException {
@@ -56,9 +57,9 @@ public class BindingSetStringConverterTest {
     public void toString_URIs() throws BindingSetConversionException {
         // Setup the binding set that will be converted.
         final MapBindingSet originalBindingSet = new MapBindingSet();
-        originalBindingSet.addBinding("x", new URIImpl("http://a"));
-        originalBindingSet.addBinding("y", new URIImpl("http://b"));
-        originalBindingSet.addBinding("z", new URIImpl("http://c"));
+        originalBindingSet.addBinding("x", VF.createIRI("http://a"));
+        originalBindingSet.addBinding("y", VF.createIRI("http://b"));
+        originalBindingSet.addBinding("z", VF.createIRI("http://c"));
 
         // Convert it to a String.
         final VariableOrder varOrder = new VariableOrder("y", "z", "x");
@@ -78,7 +79,7 @@ public class BindingSetStringConverterTest {
     public void toString_Decimal() throws BindingSetConversionException {
         // Setup the binding set that will be converted.
         final MapBindingSet originalBindingSet = new MapBindingSet();
-        originalBindingSet.addBinding("x", SimpleValueFactory.getInstance().createLiteral(new BigDecimal(2.5)));
+        originalBindingSet.addBinding("x", VF.createLiteral(new BigDecimal(2.5)));
 
         // Convert it to a String.
         final VariableOrder varOrder = new VariableOrder("x");
@@ -94,7 +95,7 @@ public class BindingSetStringConverterTest {
     public void toString_Boolean() throws BindingSetConversionException {
         // Setup the binding set that will be converted.
         final MapBindingSet originalBindingSet = new MapBindingSet();
-        originalBindingSet.addBinding("x", SimpleValueFactory.getInstance().createLiteral((true)));
+        originalBindingSet.addBinding("x", VF.createLiteral((true)));
 
         // Convert it to a String.
         final VariableOrder varOrder = new VariableOrder("x");
@@ -110,8 +111,7 @@ public class BindingSetStringConverterTest {
     public void toString_Integer() throws BindingSetConversionException {
         // Setup the binding set that will be converted.
         final MapBindingSet originalBindingSet = new MapBindingSet();
-        originalBindingSet.addBinding("x", SimpleValueFactory.getInstance()
-                .createLiteral((BigInteger.valueOf(5))));
+        originalBindingSet.addBinding("x", VF.createLiteral((BigInteger.valueOf(5))));
 
         // Convert it to a String.
         final VariableOrder varOrder = new VariableOrder("x");
@@ -131,8 +131,8 @@ public class BindingSetStringConverterTest {
     public void toString_bindingsMatchVarOrder() throws BindingSetConversionException {
         // Setup the Binding Set.
         final MapBindingSet originalBindingSet = new MapBindingSet();
-        originalBindingSet.addBinding("x", new URIImpl("http://a"));
-        originalBindingSet.addBinding("y", new URIImpl("http://b"));
+        originalBindingSet.addBinding("x", VF.createIRI("http://a"));
+        originalBindingSet.addBinding("y", VF.createIRI("http://b"));
 
         // Setup the variable order.
         final VariableOrder varOrder = new VariableOrder("x", "y");
@@ -157,8 +157,8 @@ public class BindingSetStringConverterTest {
     public void toString_bindingsSubsetOfVarOrder() throws BindingSetConversionException {
         // Setup the Binding Set.
         final MapBindingSet originalBindingSet = new MapBindingSet();
-        originalBindingSet.addBinding("x", new URIImpl("http://a"));
-        originalBindingSet.addBinding("y", new URIImpl("http://b"));
+        originalBindingSet.addBinding("x", VF.createIRI("http://a"));
+        originalBindingSet.addBinding("y", VF.createIRI("http://b"));
 
         // Setup the variable order.
         final VariableOrder varOrder = new VariableOrder("x", "a", "y", "b");
@@ -191,9 +191,9 @@ public class BindingSetStringConverterTest {
 
         // Ensure it converted to the expected result.
         final MapBindingSet expected = new MapBindingSet();
-        expected.addBinding("x", new URIImpl("http://a"));
-        expected.addBinding("y", new URIImpl("http://b"));
-        expected.addBinding("z", new URIImpl("http://c"));
+        expected.addBinding("x", VF.createIRI("http://a"));
+        expected.addBinding("y", VF.createIRI("http://b"));
+        expected.addBinding("z", VF.createIRI("http://c"));
 
         assertEquals(expected, bindingSet);
     }
@@ -218,8 +218,8 @@ public class BindingSetStringConverterTest {
 
         // Ensure it converted to the expected reuslt.
         final MapBindingSet expected = new MapBindingSet();
-        expected.addBinding("x", new URIImpl("http://value 1"));
-        expected.addBinding("y", new URIImpl("http://value 2"));
+        expected.addBinding("x", VF.createIRI("http://value 1"));
+        expected.addBinding("y", VF.createIRI("http://value 2"));
 
         assertEquals(expected, bindingSet);
     }
@@ -235,7 +235,7 @@ public class BindingSetStringConverterTest {
 
         // Ensure it converted to the expected result.
         final MapBindingSet expected = new MapBindingSet();
-        expected.addBinding("x", SimpleValueFactory.getInstance().createLiteral((new BigDecimal(2.5))));
+        expected.addBinding("x", VF.createLiteral((new BigDecimal(2.5))));
 
         assertEquals(expected, bindingSet);
     }
@@ -251,7 +251,7 @@ public class BindingSetStringConverterTest {
 
         // Ensure it converted to the expected result.
         final MapBindingSet expected = new MapBindingSet();
-        expected.addBinding("x", SimpleValueFactory.getInstance().createLiteral((true)));
+        expected.addBinding("x", VF.createLiteral((true)));
 
         assertEquals(expected, bindingSet);
     }
@@ -267,7 +267,7 @@ public class BindingSetStringConverterTest {
 
         // Ensure it converted to the expected result.
         final MapBindingSet expected = new MapBindingSet();
-        expected.addBinding("x", SimpleValueFactory.getInstance().createLiteral((BigInteger.valueOf(5))));
+        expected.addBinding("x", VF.createLiteral((BigInteger.valueOf(5))));
 
         assertEquals(expected, bindingSet);
     }

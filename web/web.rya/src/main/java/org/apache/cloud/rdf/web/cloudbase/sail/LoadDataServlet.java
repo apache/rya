@@ -20,11 +20,11 @@
 //package org.apache.cloud.rdf.web.cloudbase.sail;
 
 //
-//import  org.eclipse.rdf4j.model.Resource;
-//import  org.eclipse.rdf4j.repository.RepositoryConnection;
-//import  org.eclipse.rdf4j.repository.RepositoryException;
-//import  org.eclipse.rdf4j.rio.RDFFormat;
-//import  org.eclipse.rdf4j.rio.RDFParseException;
+//import org.eclipse.rdf4j.model.Resource;
+//import org.eclipse.rdf4j.repository.RepositoryConnection;
+//import org.eclipse.rdf4j.repository.RepositoryException;
+//import org.eclipse.rdf4j.rio.RDFFormat;
+//import org.eclipse.rdf4j.rio.RDFParseException;
 //
 //import javax.servlet.ServletException;
 //import javax.servlet.ServletInputStream;

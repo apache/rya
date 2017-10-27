@@ -18,16 +18,19 @@
  */
 package org.apache.rya.indexing.pcj.storage.accumulo;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+
 import java.io.IOException;
 import java.util.HashSet;
 import java.util.Map.Entry;
 import java.util.Set;
 
-import com.google.common.base.Optional;
-import com.google.common.collect.HashMultimap;
-import com.google.common.collect.Multimap;
-import com.google.common.collect.Sets;
-import org.apache.accumulo.core.client.*;
+import org.apache.accumulo.core.client.AccumuloException;
+import org.apache.accumulo.core.client.AccumuloSecurityException;
+import org.apache.accumulo.core.client.Connector;
+import org.apache.accumulo.core.client.Scanner;
+import org.apache.accumulo.core.client.TableNotFoundException;
 import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Value;
 import org.apache.accumulo.core.security.Authorizations;
@@ -35,7 +38,11 @@ import org.apache.accumulo.minicluster.MiniAccumuloCluster;
 import org.apache.hadoop.io.Text;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
-import org.apache.rya.accumulo.*;
+import org.apache.rya.accumulo.AccumuloRdfConfiguration;
+import org.apache.rya.accumulo.AccumuloRyaDAO;
+import org.apache.rya.accumulo.MiniAccumuloClusterInstance;
+import org.apache.rya.accumulo.MiniAccumuloSingleton;
+import org.apache.rya.accumulo.RyaTestInstanceRule;
 import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
 import org.apache.rya.indexing.pcj.storage.PcjException;
 import org.apache.rya.indexing.pcj.storage.PcjMetadata;
@@ -48,16 +55,20 @@ import org.apache.zookeeper.ClientCnxn;
 import org.eclipse.rdf4j.model.Statement;
 import org.eclipse.rdf4j.model.ValueFactory;
 import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
-import org.eclipse.rdf4j.model.impl.StatementImpl;
-import org.eclipse.rdf4j.model.impl.URIImpl;
 import org.eclipse.rdf4j.query.BindingSet;
 import org.eclipse.rdf4j.query.impl.MapBindingSet;
 import org.eclipse.rdf4j.repository.RepositoryConnection;
 import org.eclipse.rdf4j.repository.RepositoryException;
-import org.junit.*;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Rule;
+import org.junit.Test;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import com.google.common.base.Optional;
+import com.google.common.collect.HashMultimap;
+import com.google.common.collect.Multimap;
+import com.google.common.collect.Sets;
 
 /**
  * Performs integration test using {@link MiniAccumuloCluster} to ensure the
@@ -69,7 +80,7 @@ public class PcjTablesIT {
     private static final String CLOUDBASE_INSTANCE = "sc.cloudbase.instancename";
     private static final String CLOUDBASE_USER = "sc.cloudbase.username";
     private static final String CLOUDBASE_PASSWORD = "sc.cloudbase.password";
-    private static final ValueFactory vf =  SimpleValueFactory.getInstance();
+    private static final ValueFactory VF =  SimpleValueFactory.getInstance();
 
     private static final AccumuloPcjSerializer converter = new AccumuloPcjSerializer();
 
@@ -195,16 +206,16 @@ public class PcjTablesIT {
 
         // Add a few results to the PCJ table.
         final MapBindingSet alice = new MapBindingSet();
-        alice.addBinding("name", vf.createIRI("http://Alice"));
-        alice.addBinding("age", vf.createLiteral(14));
+        alice.addBinding("name", VF.createIRI("http://Alice"));
+        alice.addBinding("age", VF.createLiteral(14));
 
         final MapBindingSet bob = new MapBindingSet();
-        bob.addBinding("name", new URIImpl("http://Bob"));
-        bob.addBinding("age", vf.createLiteral(16));
+        bob.addBinding("name", VF.createIRI("http://Bob"));
+        bob.addBinding("age", VF.createLiteral(16));
 
         final MapBindingSet charlie = new MapBindingSet();
-        charlie.addBinding("name", new URIImpl("http://Charlie"));
-        charlie.addBinding("age", vf.createLiteral(12));
+        charlie.addBinding("name", VF.createIRI("http://Charlie"));
+        charlie.addBinding("age", VF.createLiteral(12));
 
         final Set<BindingSet> results = Sets.newHashSet(alice, bob, charlie);
         pcjs.addResults(accumuloConn, pcjTableName, Sets.newHashSet(
@@ -246,16 +257,16 @@ public class PcjTablesIT {
 
         // Add a few results to the PCJ table.
         final MapBindingSet alice = new MapBindingSet();
-        alice.addBinding("name", new URIImpl("http://Alice"));
-        alice.addBinding("age", vf.createLiteral(14));
+        alice.addBinding("name", VF.createIRI("http://Alice"));
+        alice.addBinding("age", VF.createLiteral(14));
 
         final MapBindingSet bob = new MapBindingSet();
-        bob.addBinding("name", new URIImpl("http://Bob"));
-        bob.addBinding("age", vf.createLiteral(16));
+        bob.addBinding("name", VF.createIRI("http://Bob"));
+        bob.addBinding("age", VF.createLiteral(16));
 
         final MapBindingSet charlie = new MapBindingSet();
-        charlie.addBinding("name", new URIImpl("http://Charlie"));
-        charlie.addBinding("age", vf.createLiteral(12));
+        charlie.addBinding("name", VF.createIRI("http://Charlie"));
+        charlie.addBinding("age", VF.createLiteral(12));
 
         pcjs.addResults(accumuloConn, pcjTableName, Sets.newHashSet(
                 new VisibilityBindingSet(alice),
@@ -289,14 +300,14 @@ public class PcjTablesIT {
     public void populatePcj() throws RepositoryException, PcjException, TableNotFoundException, BindingSetConversionException, AccumuloException, AccumuloSecurityException {
         // Load some Triples into Rya.
         final Set<Statement> triples = new HashSet<>();
-        triples.add( new StatementImpl(new URIImpl("http://Alice"), new URIImpl("http://hasAge"), vf.createLiteral(14)) );
-        triples.add( new StatementImpl(new URIImpl("http://Alice"), new URIImpl("http://playsSport"), vf.createLiteral("Soccer")) );
-        triples.add( new StatementImpl(new URIImpl("http://Bob"), new URIImpl("http://hasAge"), vf.createLiteral(16)) );
-        triples.add( new StatementImpl(new URIImpl("http://Bob"), new URIImpl("http://playsSport"), vf.createLiteral("Soccer")) );
-        triples.add( new StatementImpl(new URIImpl("http://Charlie"), new URIImpl("http://hasAge"), vf.createLiteral(12)) );
-        triples.add( new StatementImpl(new URIImpl("http://Charlie"), new URIImpl("http://playsSport"), vf.createLiteral("Soccer")) );
-        triples.add( new StatementImpl(new URIImpl("http://Eve"), new URIImpl("http://hasAge"), vf.createLiteral(43)) );
-        triples.add( new StatementImpl(new URIImpl("http://Eve"), new URIImpl("http://playsSport"), vf.createLiteral("Soccer")) );
+        triples.add( VF.createStatement(VF.createIRI("http://Alice"), VF.createIRI("http://hasAge"), VF.createLiteral(14)) );
+        triples.add( VF.createStatement(VF.createIRI("http://Alice"), VF.createIRI("http://playsSport"), VF.createLiteral("Soccer")) );
+        triples.add( VF.createStatement(VF.createIRI("http://Bob"), VF.createIRI("http://hasAge"), VF.createLiteral(16)) );
+        triples.add( VF.createStatement(VF.createIRI("http://Bob"), VF.createIRI("http://playsSport"), VF.createLiteral("Soccer")) );
+        triples.add( VF.createStatement(VF.createIRI("http://Charlie"), VF.createIRI("http://hasAge"), VF.createLiteral(12)) );
+        triples.add( VF.createStatement(VF.createIRI("http://Charlie"), VF.createIRI("http://playsSport"), VF.createLiteral("Soccer")) );
+        triples.add( VF.createStatement(VF.createIRI("http://Eve"), VF.createIRI("http://hasAge"), VF.createLiteral(43)) );
+        triples.add( VF.createStatement(VF.createIRI("http://Eve"), VF.createIRI("http://playsSport"), VF.createLiteral("Soccer")) );
 
         for(final Statement triple : triples) {
             ryaConn.add(triple);
@@ -330,16 +341,16 @@ public class PcjTablesIT {
 
         // Ensure the expected results match those that were stored.
         final MapBindingSet alice = new MapBindingSet();
-        alice.addBinding("name", new URIImpl("http://Alice"));
-        alice.addBinding("age", vf.createLiteral(14));
+        alice.addBinding("name", VF.createIRI("http://Alice"));
+        alice.addBinding("age", VF.createLiteral(14));
 
         final MapBindingSet bob = new MapBindingSet();
-        bob.addBinding("name", new URIImpl("http://Bob"));
-        bob.addBinding("age", vf.createLiteral(16));
+        bob.addBinding("name", VF.createIRI("http://Bob"));
+        bob.addBinding("age", VF.createLiteral(16));
 
         final MapBindingSet charlie = new MapBindingSet();
-        charlie.addBinding("name", new URIImpl("http://Charlie"));
-        charlie.addBinding("age", vf.createLiteral(12));
+        charlie.addBinding("name", VF.createIRI("http://Charlie"));
+        charlie.addBinding("age", VF.createLiteral(12));
 
         final Set<BindingSet> results = Sets.newHashSet(alice, bob, charlie);
 
@@ -359,14 +370,14 @@ public class PcjTablesIT {
     public void createAndPopulatePcj() throws RepositoryException, PcjException, TableNotFoundException, BindingSetConversionException, AccumuloException, AccumuloSecurityException {
         // Load some Triples into Rya.
         final Set<Statement> triples = new HashSet<>();
-        triples.add( new StatementImpl(new URIImpl("http://Alice"), new URIImpl("http://hasAge"), vf.createLiteral(14)) );
-        triples.add( new StatementImpl(new URIImpl("http://Alice"), new URIImpl("http://playsSport"), vf.createLiteral("Soccer")) );
-        triples.add( new StatementImpl(new URIImpl("http://Bob"), new URIImpl("http://hasAge"), vf.createLiteral(16)) );
-        triples.add( new StatementImpl(new URIImpl("http://Bob"), new URIImpl("http://playsSport"), vf.createLiteral("Soccer")) );
-        triples.add( new StatementImpl(new URIImpl("http://Charlie"), new URIImpl("http://hasAge"), vf.createLiteral(12)) );
-        triples.add( new StatementImpl(new URIImpl("http://Charlie"), new URIImpl("http://playsSport"), vf.createLiteral("Soccer")) );
-        triples.add( new StatementImpl(new URIImpl("http://Eve"), new URIImpl("http://hasAge"), vf.createLiteral(43)) );
-        triples.add( new StatementImpl(new URIImpl("http://Eve"), new URIImpl("http://playsSport"), vf.createLiteral("Soccer")) );
+        triples.add( VF.createStatement(VF.createIRI("http://Alice"), VF.createIRI("http://hasAge"), VF.createLiteral(14)) );
+        triples.add( VF.createStatement(VF.createIRI("http://Alice"), VF.createIRI("http://playsSport"), VF.createLiteral("Soccer")) );
+        triples.add( VF.createStatement(VF.createIRI("http://Bob"), VF.createIRI("http://hasAge"), VF.createLiteral(16)) );
+        triples.add( VF.createStatement(VF.createIRI("http://Bob"), VF.createIRI("http://playsSport"), VF.createLiteral("Soccer")) );
+        triples.add( VF.createStatement(VF.createIRI("http://Charlie"), VF.createIRI("http://hasAge"), VF.createLiteral(12)) );
+        triples.add( VF.createStatement(VF.createIRI("http://Charlie"), VF.createIRI("http://playsSport"), VF.createLiteral("Soccer")) );
+        triples.add( VF.createStatement(VF.createIRI("http://Eve"), VF.createIRI("http://hasAge"), VF.createLiteral(43)) );
+        triples.add( VF.createStatement(VF.createIRI("http://Eve"), VF.createIRI("http://playsSport"), VF.createLiteral("Soccer")) );
 
         for(final Statement triple : triples) {
             ryaConn.add(triple);
@@ -398,16 +409,16 @@ public class PcjTablesIT {
 
         // Ensure the expected results match those that were stored.
         final MapBindingSet alice = new MapBindingSet();
-        alice.addBinding("name", new URIImpl("http://Alice"));
-        alice.addBinding("age", vf.createLiteral(14));
+        alice.addBinding("name", VF.createIRI("http://Alice"));
+        alice.addBinding("age", VF.createLiteral(14));
 
         final MapBindingSet bob = new MapBindingSet();
-        bob.addBinding("name", new URIImpl("http://Bob"));
-        bob.addBinding("age", vf.createLiteral(16));
+        bob.addBinding("name", VF.createIRI("http://Bob"));
+        bob.addBinding("age", VF.createLiteral(16));
 
         final MapBindingSet charlie = new MapBindingSet();
-        charlie.addBinding("name", new URIImpl("http://Charlie"));
-        charlie.addBinding("age", vf.createLiteral(12));
+        charlie.addBinding("name", VF.createIRI("http://Charlie"));
+        charlie.addBinding("age", VF.createLiteral(12));
 
         final Set<BindingSet> results = Sets.newHashSet(alice, bob, charlie);
 
@@ -473,16 +484,16 @@ public class PcjTablesIT {
 
         // Add a few results to the PCJ table.
         final MapBindingSet alice = new MapBindingSet();
-        alice.addBinding("name", new URIImpl("http://Alice"));
-        alice.addBinding("age", vf.createLiteral(14));
+        alice.addBinding("name", VF.createIRI("http://Alice"));
+        alice.addBinding("age", VF.createLiteral(14));
 
         final MapBindingSet bob = new MapBindingSet();
-        bob.addBinding("name", new URIImpl("http://Bob"));
-        bob.addBinding("age", vf.createLiteral(16));
+        bob.addBinding("name", VF.createIRI("http://Bob"));
+        bob.addBinding("age", VF.createLiteral(16));
 
         final MapBindingSet charlie = new MapBindingSet();
-        charlie.addBinding("name", new URIImpl("http://Charlie"));
-        charlie.addBinding("age", vf.createLiteral(12));
+        charlie.addBinding("name", VF.createIRI("http://Charlie"));
+        charlie.addBinding("age", VF.createLiteral(12));
 
         pcjs.addResults(accumuloConn, pcjTableName, Sets.newHashSet(
                 new VisibilityBindingSet(alice),

@@ -1,5 +1,8 @@
 package org.apache.rya.api.resolver.impl;
 
+import org.apache.rya.api.domain.RyaType;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
+
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -20,8 +23,6 @@ package org.apache.rya.api.resolver.impl;
  */
 
 import junit.framework.TestCase;
-import org.apache.rya.api.domain.RyaType;
-import org.eclipse.rdf4j.model.impl.URIImpl;
 
 /**
  * Date: 7/16/12
@@ -30,7 +31,7 @@ import org.eclipse.rdf4j.model.impl.URIImpl;
 public class CustomDatatypeResolverTest extends TestCase {
 
     public void testCustomDataTypeSerialization() throws Exception {
-        RyaType ryaType = new RyaType(new URIImpl("urn:test#datatype"), "testdata");
+        RyaType ryaType = new RyaType(SimpleValueFactory.getInstance().createIRI("urn:test#datatype"), "testdata");
         byte[] serialize = new CustomDatatypeResolver().serialize(ryaType);
         RyaType deserialize = new CustomDatatypeResolver().deserialize(serialize);
         assertEquals(ryaType, deserialize);

@@ -21,7 +21,6 @@ package org.apache.rya.indexing.mongo;
 import java.util.HashSet;
 import java.util.Set;
 
-import com.google.common.collect.Sets;
 import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.domain.RyaType;
 import org.apache.rya.api.domain.RyaURI;
@@ -37,10 +36,11 @@ import org.eclipse.rdf4j.model.Statement;
 import org.eclipse.rdf4j.model.Value;
 import org.eclipse.rdf4j.model.ValueFactory;
 import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
-import org.eclipse.rdf4j.model.impl.URIImpl;
 import org.eclipse.rdf4j.model.vocabulary.RDFS;
 import org.junit.Assert;
 import org.junit.Test;
+
+import com.google.common.collect.Sets;
 
 public class MongoFreeTextIndexerTest extends MongoTestBase {
     private static final StatementConstraints EMPTY_CONSTRAINTS = new StatementConstraints();
@@ -52,11 +52,11 @@ public class MongoFreeTextIndexerTest extends MongoTestBase {
 
             final ValueFactory vf = SimpleValueFactory.getInstance();
 
-            final IRI subject = new URIImpl("foo:subj");
+            final IRI subject = vf.createIRI("foo:subj");
             final IRI predicate = RDFS.LABEL;
             final Value object = vf.createLiteral("this is a new hat");
 
-            final IRI context = new URIImpl("foo:context");
+            final IRI context = vf.createIRI("foo:context");
 
             final Statement statement = vf.createStatement(subject, predicate, object, context);
             f.storeStatement(RdfToRyaConversions.convertStatement(statement));
@@ -76,20 +76,20 @@ public class MongoFreeTextIndexerTest extends MongoTestBase {
 
             final ValueFactory vf = SimpleValueFactory.getInstance();
 
-            final IRI subject1 = new URIImpl("foo:subj");
+            final IRI subject1 = vf.createIRI("foo:subj");
             final IRI predicate1 = RDFS.LABEL;
             final Value object1 = vf.createLiteral("this is a new hat");
 
-            final IRI context1 = new URIImpl("foo:context");
+            final IRI context1 = vf.createIRI("foo:context");
 
             final Statement statement1 = vf.createStatement(subject1, predicate1, object1, context1);
             f.storeStatement(RdfToRyaConversions.convertStatement(statement1));
 
-            final IRI subject2 = new URIImpl("foo:subject");
+            final IRI subject2 = vf.createIRI("foo:subject");
             final IRI predicate2 = RDFS.LABEL;
             final Value object2 = vf.createLiteral("Do you like my new hat?");
 
-            final IRI context2 = new URIImpl("foo:context");
+            final IRI context2 = vf.createIRI("foo:context");
 
             final Statement statement2 = vf.createStatement(subject2, predicate2, object2, context2);
             f.storeStatement(RdfToRyaConversions.convertStatement(statement2));
@@ -151,10 +151,10 @@ public class MongoFreeTextIndexerTest extends MongoTestBase {
             f.initIndexer(conf, super.getMongoClient());
 
             final ValueFactory vf = SimpleValueFactory.getInstance();
-            final IRI subject = new URIImpl("foo:subj");
-            final IRI predicate = new URIImpl(RDFS.COMMENT.toString());
+            final IRI subject = vf.createIRI("foo:subj");
+            final IRI predicate = vf.createIRI(RDFS.COMMENT.toString());
             final Value object = vf.createLiteral("this is a new hat");
-            final IRI context = new URIImpl("foo:context");
+            final IRI context = vf.createIRI("foo:context");
 
             final Statement statement = vf.createStatement(subject, predicate, object, context);
             f.storeStatement(RdfToRyaConversions.convertStatement(statement));

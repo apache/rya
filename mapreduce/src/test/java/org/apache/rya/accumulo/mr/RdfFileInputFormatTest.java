@@ -1,31 +1,3 @@
-package org.apache.rya.accumulo.mr;
-
-import java.io.File;
-import java.io.IOException;
-
-import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.FileSystem;
-import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.mapreduce.InputSplit;
-import org.apache.hadoop.mapreduce.Job;
-import org.apache.hadoop.mapreduce.TaskAttemptContext;
-import org.apache.hadoop.mapreduce.TaskAttemptID;
-import org.apache.hadoop.mapreduce.lib.input.FileSplit;
-import org.apache.hadoop.mapreduce.task.TaskAttemptContextImpl;
-import org.apache.rya.api.resolver.RyaToRdfConversions;
-import org.eclipse.rdf4j.model.IRI;
-import org.eclipse.rdf4j.model.Statement;
-import org.eclipse.rdf4j.model.impl.ContextStatementImpl;
-import org.eclipse.rdf4j.model.impl.LiteralImpl;
-import org.eclipse.rdf4j.model.impl.StatementImpl;
-import org.eclipse.rdf4j.model.impl.URIImpl;
-import org.eclipse.rdf4j.rio.RDFFormat;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
-
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -44,8 +16,35 @@ import org.junit.rules.ExpectedException;
  * specific language governing permissions and limitations
  * under the License.
  */
+package org.apache.rya.accumulo.mr;
+
+import java.io.File;
+import java.io.IOException;
+
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.mapreduce.InputSplit;
+import org.apache.hadoop.mapreduce.Job;
+import org.apache.hadoop.mapreduce.TaskAttemptContext;
+import org.apache.hadoop.mapreduce.TaskAttemptID;
+import org.apache.hadoop.mapreduce.lib.input.FileSplit;
+import org.apache.hadoop.mapreduce.task.TaskAttemptContextImpl;
+import org.apache.rya.api.resolver.RyaToRdfConversions;
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.Statement;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
+import org.eclipse.rdf4j.rio.RDFFormat;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.ExpectedException;
 
 public class RdfFileInputFormatTest {
+    private static final ValueFactory VF = SimpleValueFactory.getInstance();
+
     static String NT_INPUT = "src/test/resources/test.ntriples";
     static String TRIG_INPUT = "src/test/resources/namedgraphs.trig";
 
@@ -81,16 +80,16 @@ public class RdfFileInputFormatTest {
         init(NT_INPUT);
         String prefix = "urn:lubm:rdfts#";
         IRI[] gs = {
-                new URIImpl(prefix + "GraduateStudent01"),
-                new URIImpl(prefix + "GraduateStudent02"),
-                new URIImpl(prefix + "GraduateStudent03"),
-                new URIImpl(prefix + "GraduateStudent04")
+                VF.createIRI(prefix + "GraduateStudent01"),
+                VF.createIRI(prefix + "GraduateStudent02"),
+                VF.createIRI(prefix + "GraduateStudent03"),
+                VF.createIRI(prefix + "GraduateStudent04")
         };
-        IRI hasFriend = new URIImpl(prefix + "hasFriend");
+        IRI hasFriend = VF.createIRI(prefix + "hasFriend");
         Statement[] statements = {
-                new StatementImpl(gs[0], hasFriend, gs[1]),
-                new StatementImpl(gs[1], hasFriend, gs[2]),
-                new StatementImpl(gs[2], hasFriend, gs[3])
+                VF.createStatement(gs[0], hasFriend, gs[1]),
+                VF.createStatement(gs[1], hasFriend, gs[2]),
+                VF.createStatement(gs[2], hasFriend, gs[3])
         };
         int count = 0;
         while (reader.nextKeyValue()) {
@@ -108,11 +107,11 @@ public class RdfFileInputFormatTest {
         init(TRIG_INPUT);
         Assert.assertTrue(reader.nextKeyValue());
         Assert.assertEquals(1, reader.getCurrentKey().get());
-        Statement expected = new ContextStatementImpl(
-            new URIImpl("http://www.example.org/exampleDocument#Monica"),
-            new URIImpl("http://www.example.org/vocabulary#name"),
-            new LiteralImpl("Monica Murphy"),
-            new URIImpl("http://www.example.org/exampleDocument#G1"));
+        Statement expected = VF.createStatement(
+            VF.createIRI("http://www.example.org/exampleDocument#Monica"),
+            VF.createIRI("http://www.example.org/vocabulary#name"),
+            VF.createLiteral("Monica Murphy"),
+            VF.createIRI("http://www.example.org/exampleDocument#G1"));
         Statement actual = RyaToRdfConversions.convertStatement(
             reader.getCurrentValue().getRyaStatement());
         Assert.assertEquals(expected, actual);

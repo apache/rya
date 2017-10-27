@@ -36,6 +36,7 @@ import org.apache.rya.accumulo.pcj.iterators.IteratorCombiner;
 import org.apache.rya.accumulo.pcj.iterators.PCJKeyToCrossProductBindingSetIterator;
 import org.apache.rya.accumulo.pcj.iterators.PCJKeyToJoinBindingSetIterator;
 import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
+import org.apache.rya.api.domain.VarNameUtils;
 import org.apache.rya.api.utils.IteratorWrapper;
 import org.apache.rya.indexing.accumulo.ConfigUtils;
 import org.apache.rya.indexing.pcj.matching.PCJOptimizerUtilities;
@@ -277,7 +278,7 @@ public class AccumuloIndexSet extends ExternalTupleSet implements
 		}
 
 		final List<BindingSet> crossProductBs = new ArrayList<>();
-		final Map<String,  org.eclipse.rdf4j.model.Value> constantConstraints = new HashMap<>();
+		final Map<String, Value> constantConstraints = new HashMap<>();
 		final Set<Range> hashJoinRanges = new HashSet<>();
 		final Range EMPTY_RANGE = new Range("", true, "~", false);
 		Range crossProductRange = EMPTY_RANGE;
@@ -533,7 +534,7 @@ public class AccumuloIndexSet extends ExternalTupleSet implements
 
 		final QueryBindingSet constants = new QueryBindingSet();
 		for (final String s : keys) {
-			if (s.startsWith("-const-")) {
+			if (VarNameUtils.isConstant(s)) {
 				constants.addBinding(new BindingImpl(s, getConstantValueMap()
 						.get(s)));
 			}

@@ -18,11 +18,15 @@
  */
 package org.apache.rya.indexing.entity.query;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.mock;
+
 import java.util.ArrayList;
 import java.util.List;
 
-import com.google.common.collect.ImmutableSet;
 import org.apache.rya.api.domain.RyaURI;
+import org.apache.rya.api.domain.VarNameUtils;
 import org.apache.rya.api.resolver.RdfToRyaConversions;
 import org.apache.rya.indexing.entity.model.Entity;
 import org.apache.rya.indexing.entity.model.Property;
@@ -43,9 +47,7 @@ import org.eclipse.rdf4j.query.impl.MapBindingSet;
 import org.eclipse.rdf4j.query.parser.sparql.SPARQLParser;
 import org.junit.Test;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.mock;
+import com.google.common.collect.ImmutableSet;
 
 /**
  * Unit tests the methods of {@link EntityQueryNode}.
@@ -249,7 +251,7 @@ public class EntityQueryNodeTest extends MongoTestBase {
             .build();
 
         storage.create(entity);
-        // A set of patterns that match a sepecific Entity subject.
+        // A set of patterns that match a specific Entity subject.
         final List<StatementPattern> patterns = getSPs(
                 "SELECT * WHERE { " +
                     "<urn:SSN:111-11-1111> <" + RDF.TYPE + "> <urn:person> ."+
@@ -262,7 +264,7 @@ public class EntityQueryNodeTest extends MongoTestBase {
         final CloseableIteration<BindingSet, QueryEvaluationException> rez = node.evaluate(new MapBindingSet());
         final MapBindingSet expected = new MapBindingSet();
         expected.addBinding("age", vf.createLiteral("20"));
-        expected.addBinding("-const-blue", vf.createLiteral("blue"));
+        expected.addBinding(VarNameUtils.createUniqueConstVarName("blue"), vf.createLiteral("blue"));
         expected.addBinding("name", vf.createLiteral("Bob"));
         while(rez.hasNext()) {
             assertEquals(expected, rez.next());

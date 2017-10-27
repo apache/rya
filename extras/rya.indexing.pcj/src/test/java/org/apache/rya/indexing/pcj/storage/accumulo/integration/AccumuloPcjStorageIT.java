@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -18,10 +18,17 @@
  */
 package org.apache.rya.indexing.pcj.storage.accumulo.integration;
 
-import java.util.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
-import com.google.common.collect.ImmutableMap;
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
 import org.apache.accumulo.core.client.Connector;
@@ -38,13 +45,14 @@ import org.apache.rya.indexing.pcj.storage.accumulo.AccumuloPcjStorage;
 import org.apache.rya.indexing.pcj.storage.accumulo.ShiftVarOrderFactory;
 import org.apache.rya.indexing.pcj.storage.accumulo.VariableOrder;
 import org.apache.rya.indexing.pcj.storage.accumulo.VisibilityBindingSet;
-import org.eclipse.rdf4j.model.impl.URIImpl;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 import org.eclipse.rdf4j.query.BindingSet;
 import org.eclipse.rdf4j.query.MalformedQueryException;
 import org.eclipse.rdf4j.query.impl.MapBindingSet;
 import org.junit.Test;
 
-import static org.junit.Assert.*;
+import com.google.common.collect.ImmutableMap;
 
 /**
  * Integration tests the methods of {@link AccumuloPcjStorage}.
@@ -53,6 +61,7 @@ import static org.junit.Assert.*;
  * also update the Rya instance's details.
  */
 public class AccumuloPcjStorageIT extends AccumuloRyaITBase {
+    private static final ValueFactory VF = SimpleValueFactory.getInstance();
 
     @Test
     public void createPCJ() throws AccumuloException, AccumuloSecurityException, PCJStorageException,
@@ -60,7 +69,7 @@ public class AccumuloPcjStorageIT extends AccumuloRyaITBase {
         // Setup the PCJ storage that will be tested against.
         final Connector connector = super.getClusterInstance().getConnector();
         final String ryaInstanceName = super.getRyaInstanceName();
-        try(final PrecomputedJoinStorage pcjStorage =  new AccumuloPcjStorage(connector, ryaInstanceName)) {
+        try(final PrecomputedJoinStorage pcjStorage = new AccumuloPcjStorage(connector, ryaInstanceName)) {
             // Create a PCJ.
             final String pcjId = pcjStorage.createPcj("SELECT * WHERE { ?a <http://isA> ?b } ");
 
@@ -165,13 +174,13 @@ public class AccumuloPcjStorageIT extends AccumuloRyaITBase {
             final Set<VisibilityBindingSet> results = new HashSet<>();
 
             final MapBindingSet aliceBS = new MapBindingSet();
-            aliceBS.addBinding("a", new URIImpl("http://Alice"));
-            aliceBS.addBinding("b", new URIImpl("http://Person"));
+            aliceBS.addBinding("a", VF.createIRI("http://Alice"));
+            aliceBS.addBinding("b", VF.createIRI("http://Person"));
             results.add( new VisibilityBindingSet(aliceBS, "") );
 
             final MapBindingSet charlieBS = new MapBindingSet();
-            charlieBS.addBinding("a", new URIImpl("http://Charlie"));
-            charlieBS.addBinding("b", new URIImpl("http://Comedian"));
+            charlieBS.addBinding("a", VF.createIRI("http://Charlie"));
+            charlieBS.addBinding("b", VF.createIRI("http://Comedian"));
             results.add( new VisibilityBindingSet(charlieBS, "") );
 
             pcjStorage.addResults(pcjId, results);
@@ -199,13 +208,13 @@ public class AccumuloPcjStorageIT extends AccumuloRyaITBase {
             final Set<VisibilityBindingSet> storedResults = new HashSet<>();
 
             final MapBindingSet aliceBS = new MapBindingSet();
-            aliceBS.addBinding("a", new URIImpl("http://Alice"));
-            aliceBS.addBinding("b", new URIImpl("http://Person"));
+            aliceBS.addBinding("a", VF.createIRI("http://Alice"));
+            aliceBS.addBinding("b", VF.createIRI("http://Person"));
             storedResults.add( new VisibilityBindingSet(aliceBS, "") );
 
             final MapBindingSet charlieBS = new MapBindingSet();
-            charlieBS.addBinding("a", new URIImpl("http://Charlie"));
-            charlieBS.addBinding("b", new URIImpl("http://Comedian"));
+            charlieBS.addBinding("a", VF.createIRI("http://Charlie"));
+            charlieBS.addBinding("b", VF.createIRI("http://Comedian"));
             storedResults.add( new VisibilityBindingSet(charlieBS, "") );
 
             pcjStorage.addResults(pcjId, storedResults);
@@ -241,13 +250,13 @@ public class AccumuloPcjStorageIT extends AccumuloRyaITBase {
             final Set<VisibilityBindingSet> expectedResults = new HashSet<>();
 
             final MapBindingSet aliceBS = new MapBindingSet();
-            aliceBS.addBinding("a", new URIImpl("http://Alice"));
-            aliceBS.addBinding("b", new URIImpl("http://Person"));
+            aliceBS.addBinding("a", VF.createIRI("http://Alice"));
+            aliceBS.addBinding("b", VF.createIRI("http://Person"));
             expectedResults.add( new VisibilityBindingSet(aliceBS, "") );
 
             final MapBindingSet charlieBS = new MapBindingSet();
-            charlieBS.addBinding("a", new URIImpl("http://Charlie"));
-            charlieBS.addBinding("b", new URIImpl("http://Comedian"));
+            charlieBS.addBinding("a", VF.createIRI("http://Charlie"));
+            charlieBS.addBinding("b", VF.createIRI("http://Comedian"));
             expectedResults.add( new VisibilityBindingSet(charlieBS, "") );
 
             pcjStorage.addResults(pcjId, expectedResults);

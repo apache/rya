@@ -26,10 +26,8 @@ import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Literal;
 import org.eclipse.rdf4j.model.Statement;
 import org.eclipse.rdf4j.model.Value;
-import org.eclipse.rdf4j.model.impl.ContextStatementImpl;
-import org.eclipse.rdf4j.model.impl.LiteralImpl;
-import org.eclipse.rdf4j.model.impl.StatementImpl;
-import org.eclipse.rdf4j.model.impl.URIImpl;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 import org.eclipse.rdf4j.model.vocabulary.XMLSchema;
 
 /**
@@ -37,16 +35,17 @@ import org.eclipse.rdf4j.model.vocabulary.XMLSchema;
  * Time: 8:34 AM
  */
 public class RyaToRdfConversions {
+    private static final ValueFactory VF = SimpleValueFactory.getInstance();
 
     public static IRI convertURI(RyaURI uri) {
-        return new URIImpl(uri.getData());
+        return VF.createIRI(uri.getData());
     }
 
     public static Literal convertLiteral(RyaType literal) {
         if (XMLSchema.STRING.equals(literal.getDataType())) {
-            return new LiteralImpl(literal.getData());
+            return VF.createLiteral(literal.getData());
         } else {
-            return new LiteralImpl(literal.getData(), literal.getDataType());
+            return VF.createLiteral(literal.getData(), literal.getDataType());
         }
         //TODO: No Language support yet
     }
@@ -59,12 +58,12 @@ public class RyaToRdfConversions {
     public static Statement convertStatement(RyaStatement statement) {
         assert statement != null;
         if (statement.getContext() != null) {
-            return new ContextStatementImpl(convertURI(statement.getSubject()),
+            return VF.createStatement(convertURI(statement.getSubject()),
                     convertURI(statement.getPredicate()),
                     convertValue(statement.getObject()),
                     convertURI(statement.getContext()));
         } else {
-            return new StatementImpl(convertURI(statement.getSubject()),
+            return VF.createStatement(convertURI(statement.getSubject()),
                     convertURI(statement.getPredicate()),
                     convertValue(statement.getObject()));
         }

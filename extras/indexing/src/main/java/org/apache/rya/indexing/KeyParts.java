@@ -29,9 +29,8 @@ import org.apache.hadoop.io.Text;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Resource;
 import org.eclipse.rdf4j.model.Statement;
-import org.eclipse.rdf4j.model.impl.ContextStatementImpl;
-import org.eclipse.rdf4j.model.impl.StatementImpl;
-import org.eclipse.rdf4j.model.impl.URIImpl;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 
 /**
  * Store and format the various temporal index keys.
@@ -52,6 +51,8 @@ import org.eclipse.rdf4j.model.impl.URIImpl;
  *
  */
 public class KeyParts implements Iterable<KeyParts> {
+        private static final ValueFactory VF = SimpleValueFactory.getInstance();
+
     	private static final String CQ_S_P_AT = "spo";
     	private static final String CQ_P_AT = "po";
     	private static final String CQ_S_AT = "so";
@@ -270,13 +271,13 @@ public class KeyParts implements Iterable<KeyParts> {
 		 */
 		static public List<KeyParts> keyPartsForQuery(final TemporalInstant queryInstant, final StatementConstraints contraints) {
 			final List<KeyParts> keys = new LinkedList<KeyParts>();
-			final IRI urlNull = new URIImpl("urn:null");
+			final IRI urlNull = VF.createIRI("urn:null");
 			final Resource currentContext = contraints.getContext();
 			final boolean hasSubj = contraints.hasSubject();
 			if (contraints.hasPredicates()) {
 				for (final IRI nextPredicate : contraints.getPredicates()) {
 					final Text contraintPrefix  = new Text();
-					final Statement statement = new ContextStatementImpl(hasSubj ? contraints.getSubject() : urlNull, nextPredicate, urlNull, contraints.getContext());
+					final Statement statement = VF.createStatement(hasSubj ? contraints.getSubject() : urlNull, nextPredicate, urlNull, contraints.getContext());
 					if (hasSubj) {
                         appendSubjectPredicate(statement, contraintPrefix);
                     } else {
@@ -287,7 +288,7 @@ public class KeyParts implements Iterable<KeyParts> {
 			}
 			else if (contraints.hasSubject()) { // and no predicates
 				final Text contraintPrefix = new Text();
-				final Statement statement = new StatementImpl(contraints.getSubject(), urlNull, urlNull);
+				final Statement statement = VF.createStatement(contraints.getSubject(), urlNull, urlNull);
 				appendSubject(statement, contraintPrefix);
 				keys.add( new KeyParts(contraintPrefix, queryInstant, (currentContext==null)?"":currentContext.toString(), CQ_S_AT) );
 			}

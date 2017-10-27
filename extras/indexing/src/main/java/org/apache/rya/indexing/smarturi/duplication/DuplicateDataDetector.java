@@ -18,11 +18,21 @@
  */
 package org.apache.rya.indexing.smarturi.duplication;
 
-import java.math.BigDecimal;
-import java.util.*;
-import java.util.Map.Entry;
+import static java.util.Objects.requireNonNull;
 
-import com.google.common.collect.ImmutableMap;
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
+import java.util.TreeSet;
+
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.lang.StringUtils;
 import org.apache.rya.api.domain.RyaType;
@@ -35,11 +45,11 @@ import org.apache.rya.indexing.smarturi.SmartUriException;
 import org.apache.rya.indexing.smarturi.duplication.conf.DuplicateDataConfig;
 import org.calrissian.mango.types.exception.TypeEncodingException;
 import org.eclipse.rdf4j.model.IRI;
-import org.eclipse.rdf4j.model.impl.URIImpl;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 import org.eclipse.rdf4j.model.vocabulary.XMLSchema;
 import org.joda.time.DateTime;
 
-import static java.util.Objects.requireNonNull;
+import com.google.common.collect.ImmutableMap;
 
 /**
  * Detects if two entities contain data that's nearly identical based on a set
@@ -1040,7 +1050,7 @@ public class DuplicateDataDetector {
 
         @Override
         public IRI convertStringToObject(final String string) throws SmartUriException {
-            return new URIImpl(string);
+            return SimpleValueFactory.getInstance().createIRI(string);
         }
 
         @Override

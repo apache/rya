@@ -33,6 +33,7 @@ import org.apache.fluo.api.data.Span;
 import org.apache.fluo.api.observer.AbstractObserver;
 import org.apache.log4j.Logger;
 import org.apache.rya.api.domain.RyaStatement;
+import org.apache.rya.api.domain.VarNameUtils;
 import org.apache.rya.indexing.pcj.fluo.app.IncUpdateDAO;
 import org.apache.rya.indexing.pcj.fluo.app.query.FluoQueryColumns;
 import org.apache.rya.indexing.pcj.fluo.app.query.FluoQueryMetadataDAO;
@@ -153,7 +154,7 @@ public class TripleObserver extends AbstractObserver {
 
         // Extract the binding names and values.
         for(int i = 0; i < 3; i ++) {
-            if(patternArray[i].startsWith("-const-")) {
+            if(VarNameUtils.isConstant(patternArray[i])) {
                 // If a constant value does not match, then the triple does not match the pattern.
                 if(!patternArray[i].substring(7).equals(tripleArray[i])) {
                     return "";

@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -18,10 +18,15 @@
  */
 package org.apache.rya.indexing.entity;
 
-import java.util.*;
+import static java.util.Objects.requireNonNull;
 
-import com.google.common.collect.HashMultimap;
-import com.google.common.collect.Multimap;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+
 import org.apache.rya.api.domain.RyaURI;
 import org.apache.rya.indexing.entity.model.Entity;
 import org.apache.rya.indexing.entity.model.Type;
@@ -31,18 +36,21 @@ import org.apache.rya.indexing.entity.storage.TypeStorage;
 import org.apache.rya.indexing.entity.storage.TypeStorage.TypeStorageException;
 import org.apache.rya.indexing.external.matching.ExternalSetProvider;
 import org.apache.rya.indexing.external.matching.QuerySegment;
-import org.eclipse.rdf4j.model.impl.URIImpl;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 import org.eclipse.rdf4j.model.vocabulary.RDF;
 import org.eclipse.rdf4j.query.algebra.QueryModelNode;
 import org.eclipse.rdf4j.query.algebra.StatementPattern;
 import org.eclipse.rdf4j.query.algebra.Var;
 
-import static java.util.Objects.requireNonNull;
+import com.google.common.collect.HashMultimap;
+import com.google.common.collect.Multimap;
 
 /**
  * Provides {@link EntityQueryNodes}s.
  */
 public class EntityIndexSetProvider implements ExternalSetProvider<EntityQueryNode> {
+    private static final ValueFactory VF = SimpleValueFactory.getInstance();
     private Multimap<Type, StatementPattern> typeMap;
     private Map<String, Type> subjectTypeMap;
     private final TypeStorage typeStorage;
@@ -96,7 +104,7 @@ public class EntityIndexSetProvider implements ExternalSetProvider<EntityQueryNo
         final String subjStr = subj.getName();
         final RyaURI predURI = getPredURI(pattern);
         //check to see if current node is type
-        if(new URIImpl(predURI.getData()).equals(RDF.TYPE)) {
+        if(VF.createIRI(predURI.getData()).equals(RDF.TYPE)) {
             final Var obj = pattern.getObjectVar();
             final RyaURI objURI = new RyaURI(obj.getValue().stringValue());
             try {

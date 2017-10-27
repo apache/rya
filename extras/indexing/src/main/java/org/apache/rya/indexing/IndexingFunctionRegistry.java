@@ -23,33 +23,34 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import com.google.common.collect.Maps;
 import org.eclipse.rdf4j.model.IRI;
-import org.eclipse.rdf4j.model.impl.URIImpl;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 import org.eclipse.rdf4j.query.algebra.ValueConstant;
 import org.eclipse.rdf4j.query.algebra.ValueExpr;
 import org.eclipse.rdf4j.query.algebra.Var;
 
-public class IndexingFunctionRegistry {
+import com.google.common.collect.Maps;
 
-    
+public class IndexingFunctionRegistry {
+    private static final ValueFactory VF = SimpleValueFactory.getInstance();
     private static final Map<IRI, FUNCTION_TYPE> SEARCH_FUNCTIONS = Maps.newHashMap();
     
     static {
         
         String TEMPORAL_NS = "tag:rya-rdf.org,2015:temporal#";         
 
-        SEARCH_FUNCTIONS.put(new URIImpl(TEMPORAL_NS+"after"),FUNCTION_TYPE.TEMPORAL);
-        SEARCH_FUNCTIONS.put(new URIImpl(TEMPORAL_NS+"before"), FUNCTION_TYPE.TEMPORAL);
-        SEARCH_FUNCTIONS.put(new URIImpl(TEMPORAL_NS+"equals"), FUNCTION_TYPE.TEMPORAL);
-        SEARCH_FUNCTIONS.put(new URIImpl(TEMPORAL_NS+"beforeInterval"), FUNCTION_TYPE.TEMPORAL);
-        SEARCH_FUNCTIONS.put(new URIImpl(TEMPORAL_NS+"afterInterval"), FUNCTION_TYPE.TEMPORAL);
-        SEARCH_FUNCTIONS.put(new URIImpl(TEMPORAL_NS+"insideInterval"), FUNCTION_TYPE.TEMPORAL);
-        SEARCH_FUNCTIONS.put(new URIImpl(TEMPORAL_NS+"hasBeginningInterval"), FUNCTION_TYPE.TEMPORAL);
-        SEARCH_FUNCTIONS.put(new URIImpl(TEMPORAL_NS+"hasEndInterval"), FUNCTION_TYPE.TEMPORAL);
+        SEARCH_FUNCTIONS.put(VF.createIRI(TEMPORAL_NS+"after"),FUNCTION_TYPE.TEMPORAL);
+        SEARCH_FUNCTIONS.put(VF.createIRI(TEMPORAL_NS+"before"), FUNCTION_TYPE.TEMPORAL);
+        SEARCH_FUNCTIONS.put(VF.createIRI(TEMPORAL_NS+"equals"), FUNCTION_TYPE.TEMPORAL);
+        SEARCH_FUNCTIONS.put(VF.createIRI(TEMPORAL_NS+"beforeInterval"), FUNCTION_TYPE.TEMPORAL);
+        SEARCH_FUNCTIONS.put(VF.createIRI(TEMPORAL_NS+"afterInterval"), FUNCTION_TYPE.TEMPORAL);
+        SEARCH_FUNCTIONS.put(VF.createIRI(TEMPORAL_NS+"insideInterval"), FUNCTION_TYPE.TEMPORAL);
+        SEARCH_FUNCTIONS.put(VF.createIRI(TEMPORAL_NS+"hasBeginningInterval"), FUNCTION_TYPE.TEMPORAL);
+        SEARCH_FUNCTIONS.put(VF.createIRI(TEMPORAL_NS+"hasEndInterval"), FUNCTION_TYPE.TEMPORAL);
         
         
-        SEARCH_FUNCTIONS.put(new URIImpl("http://rdf.useekm.com/fts#text"), FUNCTION_TYPE.FREETEXT);
+        SEARCH_FUNCTIONS.put(VF.createIRI("http://rdf.useekm.com/fts#text"), FUNCTION_TYPE.FREETEXT);
 
         SEARCH_FUNCTIONS.put(GeoConstants.GEO_SF_EQUALS, FUNCTION_TYPE.GEO);
         SEARCH_FUNCTIONS.put(GeoConstants.GEO_SF_DISJOINT, FUNCTION_TYPE.GEO);

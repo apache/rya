@@ -18,6 +18,7 @@
  */
 package org.apache.rya.indexing.external.tupleSet;
 
+import java.math.BigInteger;
 import java.net.UnknownHostException;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -135,15 +136,15 @@ public class AccumuloIndexSetTest {
         // Ensure the expected results match those that were stored.
         final QueryBindingSet alice = new QueryBindingSet();
         alice.addBinding("name", vf.createIRI("http://Alice"));
-        alice.addBinding("age", vf.createLiteral(14));
+        alice.addBinding("age", vf.createLiteral(BigInteger.valueOf(14)));
 
         final QueryBindingSet bob = new QueryBindingSet();
         bob.addBinding("name", vf.createIRI("http://Bob"));
-        bob.addBinding("age", vf.createLiteral(16));
+        bob.addBinding("age", vf.createLiteral(BigInteger.valueOf(16)));
 
         final QueryBindingSet charlie = new QueryBindingSet();
         charlie.addBinding("name", vf.createIRI("http://Charlie"));
-        charlie.addBinding("age", vf.createLiteral(12));
+        charlie.addBinding("age", vf.createLiteral(BigInteger.valueOf(12)));
 
         final Set<BindingSet> expectedResults = Sets.newHashSet(alice, bob, charlie);
         Assert.assertEquals(expectedResults, fetchedResults);
@@ -197,7 +198,7 @@ public class AccumuloIndexSetTest {
 
         final CloseableIteration<BindingSet, QueryEvaluationException> results = ais.evaluate(bs);
 
-        bs.addBinding("age",vf.createLiteral(14));
+        bs.addBinding("age",vf.createLiteral(BigInteger.valueOf(14)));
         Assert.assertEquals(bs, results.next());
     }
 
@@ -249,12 +250,12 @@ public class AccumuloIndexSetTest {
 
         final QueryBindingSet alice = new QueryBindingSet();
         alice.addBinding("name", vf.createIRI("http://Alice"));
-        alice.addBinding("age", vf.createLiteral(14));
+        alice.addBinding("age", vf.createLiteral(BigInteger.valueOf(14)));
         alice.addBinding("birthDate", vf.createLiteral("1983-03-17",vf.createIRI("http://www.w3.org/2001/XMLSchema#date")));
 
         final QueryBindingSet bob = new QueryBindingSet();
         bob.addBinding("name", vf.createIRI("http://Bob"));
-        bob.addBinding("age", vf.createLiteral(16));
+        bob.addBinding("age", vf.createLiteral(BigInteger.valueOf(16)));
         bob.addBinding("birthDate", vf.createLiteral("1983-04-18",vf.createIRI("http://www.w3.org/2001/XMLSchema#date")));
 
         final Set<BindingSet> fetchedResults = new HashSet<>();
@@ -349,17 +350,17 @@ public class AccumuloIndexSetTest {
 
         final QueryBindingSet alice = new QueryBindingSet();
         alice.addBinding("name", vf.createIRI("http://Alice"));
-        alice.addBinding("age", vf.createLiteral(14));
+        alice.addBinding("age", vf.createLiteral(BigInteger.valueOf(14)));
         alice.addAll(bs);
 
         final QueryBindingSet bob = new QueryBindingSet();
         bob.addBinding("name", vf.createIRI("http://Bob"));
-        bob.addBinding("age", vf.createLiteral(16));
+        bob.addBinding("age", vf.createLiteral(BigInteger.valueOf(16)));
         bob.addAll(bs);
 
         final QueryBindingSet charlie = new QueryBindingSet();
         charlie.addBinding("name", vf.createIRI("http://Charlie"));
-        charlie.addBinding("age", vf.createLiteral(12));
+        charlie.addBinding("age", vf.createLiteral(BigInteger.valueOf(12)));
         charlie.addAll(bs);
 
         final Set<BindingSet> fetchedResults = new HashSet<>();
@@ -418,32 +419,32 @@ public class AccumuloIndexSetTest {
 
         final QueryBindingSet alice1 = new QueryBindingSet();
         alice1.addBinding("name", vf.createIRI("http://Alice"));
-        alice1.addBinding("age", vf.createLiteral(14));
+        alice1.addBinding("age", vf.createLiteral(BigInteger.valueOf(14)));
         alice1.addAll(bs);
 
         final QueryBindingSet bob1 = new QueryBindingSet();
         bob1.addBinding("name", vf.createIRI("http://Bob"));
-        bob1.addBinding("age", vf.createLiteral(16));
+        bob1.addBinding("age", vf.createLiteral(BigInteger.valueOf(16)));
         bob1.addAll(bs);
 
         final QueryBindingSet charlie1 = new QueryBindingSet();
         charlie1.addBinding("name", vf.createIRI("http://Charlie"));
-        charlie1.addBinding("age", vf.createLiteral(12));
+        charlie1.addBinding("age", vf.createLiteral(BigInteger.valueOf(12)));
         charlie1.addAll(bs);
 
         final QueryBindingSet alice2 = new QueryBindingSet();
         alice2.addBinding("name", vf.createIRI("http://Alice"));
-        alice2.addBinding("age", vf.createLiteral(14));
+        alice2.addBinding("age", vf.createLiteral(BigInteger.valueOf(14)));
         alice2.addAll(bs2);
 
         final QueryBindingSet bob2 = new QueryBindingSet();
         bob2.addBinding("name", vf.createIRI("http://Bob"));
-        bob2.addBinding("age", vf.createLiteral(16));
+        bob2.addBinding("age", vf.createLiteral(BigInteger.valueOf(16)));
         bob2.addAll(bs2);
 
         final QueryBindingSet charlie2 = new QueryBindingSet();
         charlie2.addBinding("name", vf.createIRI("http://Charlie"));
-        charlie2.addBinding("age", vf.createLiteral(12));
+        charlie2.addBinding("age", vf.createLiteral(BigInteger.valueOf(12)));
         charlie2.addAll(bs2);
 
         final Set<BindingSet> fetchedResults = new HashSet<>();
@@ -521,12 +522,12 @@ public class AccumuloIndexSetTest {
 
         final QueryBindingSet alice = new QueryBindingSet();
         alice.addBinding("x", vf.createIRI("http://Alice"));
-        alice.addBinding("y", vf.createLiteral(14));
+        alice.addBinding("y", vf.createLiteral(BigInteger.valueOf(14)));
         alice.addBinding("birthDate", vf.createLiteral("1983-03-17",vf.createIRI("http://www.w3.org/2001/XMLSchema#date")));
 
         final QueryBindingSet bob = new QueryBindingSet();
         bob.addBinding("x", vf.createIRI("http://Bob"));
-        bob.addBinding("y", vf.createLiteral(16));
+        bob.addBinding("y", vf.createLiteral(BigInteger.valueOf(16)));
         bob.addBinding("birthDate", vf.createLiteral("1983-04-18",vf.createIRI("http://www.w3.org/2001/XMLSchema#date")));
 
 
@@ -606,7 +607,7 @@ public class AccumuloIndexSetTest {
     }
 
     @Test
-    public void accumuloIndexSetTestAttemptJoinAccrossTypes() throws Exception {
+    public void accumuloIndexSetTestAttemptJoinAcrossTypes() throws Exception {
         // Load some Triples into Rya.
         final Set<Statement> triples = new HashSet<>();
         triples.add( vf.createStatement(vf.createIRI("http://Alice"), vf.createIRI("http://hasAge"), vf.createLiteral(14)) );
@@ -633,9 +634,9 @@ public class AccumuloIndexSetTest {
         final AccumuloIndexSet ais = new AccumuloIndexSet(conf,pcjTableName);
 
         final QueryBindingSet bs1 = new QueryBindingSet();
-        bs1.addBinding("age",vf.createLiteral("16"));
+        bs1.addBinding("age", vf.createLiteral("16"));
         final QueryBindingSet bs2 = new QueryBindingSet();
-        bs2.addBinding("age",vf.createLiteral(14));
+        bs2.addBinding("age", vf.createLiteral(BigInteger.valueOf(14)));
 
         final Set<BindingSet> bSets = Sets.newHashSet(bs1,bs2);
 

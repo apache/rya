@@ -18,15 +18,16 @@
  */
 package org.apache.rya.api.resolver.impl;
 
-import java.nio.charset.StandardCharsets;
-
-import com.google.common.primitives.Bytes;
-import org.apache.rya.api.domain.RyaType;
-import org.apache.rya.api.resolver.RyaTypeResolverException;
-import org.eclipse.rdf4j.model.impl.URIImpl;
-
 import static org.apache.rya.api.RdfCloudTripleStoreConstants.TYPE_DELIM_BYTE;
 import static org.apache.rya.api.RdfCloudTripleStoreConstants.TYPE_DELIM_BYTES;
+
+import java.nio.charset.StandardCharsets;
+
+import org.apache.rya.api.domain.RyaType;
+import org.apache.rya.api.resolver.RyaTypeResolverException;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
+
+import com.google.common.primitives.Bytes;
 
 /**
  * Date: 7/16/12
@@ -63,7 +64,7 @@ public class CustomDatatypeResolver extends RyaTypeResolverImpl {
             throw new RyaTypeResolverException("Not a datatype literal");
         }
         final String label = deserializeData(new String(bytes, 0, indexOfType, StandardCharsets.UTF_8));
-        rt.setDataType(new URIImpl(new String(bytes, indexOfType + 1, (length - indexOfType) - 3, StandardCharsets.UTF_8)));
+        rt.setDataType(SimpleValueFactory.getInstance().createIRI(new String(bytes, indexOfType + 1, (length - indexOfType) - 3, StandardCharsets.UTF_8)));
         rt.setData(label);
         return rt;
     }

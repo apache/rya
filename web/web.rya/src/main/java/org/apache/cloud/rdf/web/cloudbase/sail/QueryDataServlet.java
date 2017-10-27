@@ -22,16 +22,16 @@
 //
 //import RdfCloudTripleStoreConstants;
 //import RdfCloudTripleStoreConstants;
-//import  org.eclipse.rdf4j.model.ValueFactory;
-//import  org.eclipse.rdf4j.model.impl.ValueFactoryImpl;
-//import  org.eclipse.rdf4j.query.GraphQuery;
-//import  org.eclipse.rdf4j.query.QueryLanguage;
-//import  org.eclipse.rdf4j.query.TupleQuery;
-//import  org.eclipse.rdf4j.query.resultio.sparqlxml.SPARQLResultsXMLWriter;
-//import  org.eclipse.rdf4j.repository.Repository;
-//import  org.eclipse.rdf4j.repository.RepositoryConnection;
-//import  org.eclipse.rdf4j.repository.RepositoryException;
-//import  org.eclipse.rdf4j.rio.rdfxml.RDFXMLWriter;
+//import org.eclipse.rdf4j.model.ValueFactory;
+//import org.eclipse.rdf4j.model.impl.ValueFactoryImpl;
+//import org.eclipse.rdf4j.query.GraphQuery;
+//import org.eclipse.rdf4j.query.QueryLanguage;
+//import org.eclipse.rdf4j.query.TupleQuery;
+//import org.eclipse.rdf4j.query.resultio.sparqlxml.SPARQLResultsXMLWriter;
+//import org.eclipse.rdf4j.repository.Repository;
+//import org.eclipse.rdf4j.repository.RepositoryConnection;
+//import org.eclipse.rdf4j.repository.RepositoryException;
+//import org.eclipse.rdf4j.rio.rdfxml.RDFXMLWriter;
 //
 //import javax.servlet.ServletException;
 //import javax.servlet.ServletOutputStream;

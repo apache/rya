@@ -456,7 +456,7 @@ public class AccumuloSelectivityEvalDAO implements SelectivityEvalDAO<RdfCloudTr
     Var predicateVar = sp.getPredicateVar();
     IRI pred = (IRI) getConstantValue(predicateVar);
     Var objectVar = sp.getObjectVar();
-     org.eclipse.rdf4j.model.Value obj = getConstantValue(objectVar);
+    org.eclipse.rdf4j.model.Value obj = getConstantValue(objectVar);
     Resource context = (Resource) getConstantValue(sp.getContextVar());
 
     /**
@@ -529,7 +529,7 @@ public class AccumuloSelectivityEvalDAO implements SelectivityEvalDAO<RdfCloudTr
     return (long) cardinality;
   }
 
-  private  org.eclipse.rdf4j.model.Value getConstantValue(Var var) {
+  private org.eclipse.rdf4j.model.Value getConstantValue(Var var) {
     if (var != null)
       return var.getValue();
     else

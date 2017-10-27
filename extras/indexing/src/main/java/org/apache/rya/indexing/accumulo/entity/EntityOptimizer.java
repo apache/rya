@@ -33,6 +33,7 @@ import org.apache.hadoop.conf.Configurable;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.rya.accumulo.AccumuloRdfConfiguration;
 import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
+import org.apache.rya.api.domain.VarNameUtils;
 import org.apache.rya.api.persist.joinselect.SelectivityEvalDAO;
 import org.apache.rya.indexing.accumulo.ConfigUtils;
 import org.apache.rya.joinselect.AccumuloSelectivityEvalDAO;
@@ -326,7 +327,7 @@ public class EntityOptimizer implements QueryOptimizer, Configurable {
 
                 // weight starQuery where common Var is constant slightly more -- this factor is subject
                 // to change
-                if(s.startsWith("-const-")) {
+                if (VarNameUtils.isConstant(s)) {
                     tempPriority *= 10;
                 }
                 if (tempPriority > priority) {

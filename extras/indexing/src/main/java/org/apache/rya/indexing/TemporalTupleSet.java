@@ -1,22 +1,3 @@
-package org.apache.rya.indexing;
-
-import java.util.Map;
-import java.util.Set;
-
-import com.google.common.base.Joiner;
-import com.google.common.collect.Maps;
-import org.apache.hadoop.conf.Configuration;
-import org.apache.rya.indexing.external.tupleSet.ExternalTupleSet;
-import org.eclipse.rdf4j.common.iteration.CloseableIteration;
-import org.eclipse.rdf4j.model.IRI;
-import org.eclipse.rdf4j.model.Statement;
-import org.eclipse.rdf4j.model.Value;
-import org.eclipse.rdf4j.model.impl.URIImpl;
-import org.eclipse.rdf4j.query.BindingSet;
-import org.eclipse.rdf4j.query.QueryEvaluationException;
-import org.eclipse.rdf4j.query.algebra.QueryModelVisitor;
-import org.joda.time.DateTime;
-
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -35,10 +16,35 @@ import org.joda.time.DateTime;
  * specific language governing permissions and limitations
  * under the License.
  */
+package org.apache.rya.indexing;
 
-//Indexing Node for temporal expressions to be inserted into execution plan
-//to delegate temporal portion of query to temporal index
+import java.util.Map;
+import java.util.Set;
+
+import org.apache.hadoop.conf.Configuration;
+import org.apache.rya.indexing.external.tupleSet.ExternalTupleSet;
+import org.eclipse.rdf4j.common.iteration.CloseableIteration;
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.Statement;
+import org.eclipse.rdf4j.model.Value;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
+import org.eclipse.rdf4j.query.BindingSet;
+import org.eclipse.rdf4j.query.QueryEvaluationException;
+import org.eclipse.rdf4j.query.algebra.QueryModelVisitor;
+import org.joda.time.DateTime;
+
+import com.google.common.base.Joiner;
+import com.google.common.collect.Maps;
+
+/**
+ * Indexing Node for temporal expressions to be inserted into execution plan
+ * to delegate temporal portion of query to temporal index
+ */
 public class TemporalTupleSet extends ExternalTupleSet {
+    private static final long serialVersionUID = 1L;
+
+    private static final ValueFactory VF = SimpleValueFactory.getInstance();
 
     private final Configuration conf;
     private final TemporalIndexer temporalIndexer;
@@ -271,16 +277,16 @@ public class TemporalTupleSet extends ExternalTupleSet {
         {
             final String TEMPORAL_NS = "tag:rya-rdf.org,2015:temporal#";
 
-            SEARCH_FUNCTION_MAP.put(new URIImpl(TEMPORAL_NS+"after"), TEMPORAL_InstantAfterInstant);
-            SEARCH_FUNCTION_MAP.put(new URIImpl(TEMPORAL_NS+"before"), TEMPORAL_InstantBeforeInstant);
-            SEARCH_FUNCTION_MAP.put(new URIImpl(TEMPORAL_NS+"equals"), TEMPORAL_InstantEqualsInstant);
+            SEARCH_FUNCTION_MAP.put(VF.createIRI(TEMPORAL_NS+"after"), TEMPORAL_InstantAfterInstant);
+            SEARCH_FUNCTION_MAP.put(VF.createIRI(TEMPORAL_NS+"before"), TEMPORAL_InstantBeforeInstant);
+            SEARCH_FUNCTION_MAP.put(VF.createIRI(TEMPORAL_NS+"equals"), TEMPORAL_InstantEqualsInstant);
 
-            SEARCH_FUNCTION_MAP.put(new URIImpl(TEMPORAL_NS+"beforeInterval"), TEMPORAL_InstantBeforeInterval);
-            SEARCH_FUNCTION_MAP.put(new URIImpl(TEMPORAL_NS+"afterInterval"), TEMPORAL_InstantAfterInterval);
-            SEARCH_FUNCTION_MAP.put(new URIImpl(TEMPORAL_NS+"insideInterval"), TEMPORAL_InstantInsideInterval);
-            SEARCH_FUNCTION_MAP.put(new URIImpl(TEMPORAL_NS+"hasBeginningInterval"),
+            SEARCH_FUNCTION_MAP.put(VF.createIRI(TEMPORAL_NS+"beforeInterval"), TEMPORAL_InstantBeforeInterval);
+            SEARCH_FUNCTION_MAP.put(VF.createIRI(TEMPORAL_NS+"afterInterval"), TEMPORAL_InstantAfterInterval);
+            SEARCH_FUNCTION_MAP.put(VF.createIRI(TEMPORAL_NS+"insideInterval"), TEMPORAL_InstantInsideInterval);
+            SEARCH_FUNCTION_MAP.put(VF.createIRI(TEMPORAL_NS+"hasBeginningInterval"),
                     TEMPORAL_InstantHasBeginningInterval);
-            SEARCH_FUNCTION_MAP.put(new URIImpl(TEMPORAL_NS+"hasEndInterval"), TEMPORAL_InstantHasEndInterval);
+            SEARCH_FUNCTION_MAP.put(VF.createIRI(TEMPORAL_NS+"hasEndInterval"), TEMPORAL_InstantHasEndInterval);
         }
     }
 }

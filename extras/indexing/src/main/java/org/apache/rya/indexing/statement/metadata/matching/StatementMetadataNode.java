@@ -469,7 +469,7 @@ public class StatementMetadataNode<C extends RdfCloudTripleStoreConfiguration> e
      * This is an {@link CloseableIteration} class that serves a number of
      * purposes. It's primary purpose is to filter a CloseableIteration over
      * {@link Map.Entry<RyaStatement,BindingSet>} using a specified property Map
-     * from {@link RyaURI} to {@link  org.eclipse.rdf4j.query.algebra.Var}. This
+     * from {@link RyaURI} to {@link org.eclipse.rdf4j.query.algebra.Var}. This
      * Iteration iterates over the Entries in the user specified Iteration,
      * comparing properties in the {@link StatementMetadata} Map contained in
      * the RyaStatements with the property Map for this class. If the properties
@@ -646,7 +646,7 @@ public class StatementMetadataNode<C extends RdfCloudTripleStoreConfiguration> e
          * Builds the BindingSet from the specified RyaStatement by using the
          * StatementPattern for this class. This method checks whether
          * StatementPattern has a {@link Value} for each position
-         * {@link  org.eclipse.rdf4j.query.algebra.Var} (Subject, Predicate, Object).
+         * {@link org.eclipse.rdf4j.query.algebra.Var} (Subject, Predicate, Object).
          * If it doesn't have a Value, a Binding is created from the
          * RyaStatement using the {@link RyaType} for the corresponding position
          * (Subject, Predicate, Object).

@@ -24,7 +24,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import com.google.common.collect.Lists;
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
 import org.apache.accumulo.core.client.TableExistsException;
@@ -46,16 +45,27 @@ import org.eclipse.rdf4j.model.Resource;
 import org.eclipse.rdf4j.model.Value;
 import org.eclipse.rdf4j.model.ValueFactory;
 import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
-import org.eclipse.rdf4j.model.impl.URIImpl;
 import org.eclipse.rdf4j.query.BindingSet;
 import org.eclipse.rdf4j.query.Dataset;
-import org.eclipse.rdf4j.query.algebra.*;
+import org.eclipse.rdf4j.query.algebra.And;
+import org.eclipse.rdf4j.query.algebra.Filter;
+import org.eclipse.rdf4j.query.algebra.FunctionCall;
+import org.eclipse.rdf4j.query.algebra.Join;
+import org.eclipse.rdf4j.query.algebra.LeftJoin;
+import org.eclipse.rdf4j.query.algebra.QueryModelNode;
+import org.eclipse.rdf4j.query.algebra.StatementPattern;
+import org.eclipse.rdf4j.query.algebra.TupleExpr;
+import org.eclipse.rdf4j.query.algebra.ValueConstant;
+import org.eclipse.rdf4j.query.algebra.ValueExpr;
+import org.eclipse.rdf4j.query.algebra.Var;
 import org.eclipse.rdf4j.query.algebra.evaluation.QueryOptimizer;
 import org.eclipse.rdf4j.query.algebra.helpers.AbstractQueryModelVisitor;
 
+import com.google.common.collect.Lists;
+
 public class FilterFunctionOptimizer implements QueryOptimizer, Configurable {
     private static final Logger LOG = Logger.getLogger(FilterFunctionOptimizer.class);
-    private final ValueFactory valueFactory = SimpleValueFactory.getInstance();
+    private static final ValueFactory VF = SimpleValueFactory.getInstance();
 
     private Configuration conf;
     private FreeTextIndexer freeTextIndexer;
@@ -152,7 +162,7 @@ public class FilterFunctionOptimizer implements QueryOptimizer, Configurable {
 
         @Override
         public void meet(final FunctionCall fn) {
-            final IRI fun = new URIImpl(fn.getURI());
+            final IRI fun = VF.createIRI(fn.getURI());
             final Var result = IndexingFunctionRegistry.getResultVarFromFunctionCall(fun, fn.getArgs());
             if (result != null && !searchProperties.contains(result)) {
                 searchProperties.add(result);
@@ -207,12 +217,12 @@ public class FilterFunctionOptimizer implements QueryOptimizer, Configurable {
 
         @Override
         public void meet(final FunctionCall call) {
-            final IRI fnUri = valueFactory.createIRI(call.getURI());
+            final IRI fnUri = VF.createIRI(call.getURI());
             final Var resultVar = IndexingFunctionRegistry.getResultVarFromFunctionCall(fnUri, call.getArgs());
             if (resultVar != null && resultVar.getName().equals(matchVar)) {
-                addFilter(valueFactory.createIRI(call.getURI()), extractArguments(matchVar, call));
+                addFilter(VF.createIRI(call.getURI()), extractArguments(matchVar, call));
                 if (call.getParentNode() instanceof Filter || call.getParentNode() instanceof And || call.getParentNode() instanceof LeftJoin) {
-                    call.replaceWith(new ValueConstant(valueFactory.createLiteral(true)));
+                    call.replaceWith(new ValueConstant(VF.createLiteral(true)));
                 } else {
                     throw new IllegalArgumentException("Query error: Found " + call + " as part of an expression that is too complex");
                 }

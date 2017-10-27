@@ -24,6 +24,7 @@ import java.util.*;
 import com.google.common.collect.HashBiMap;
 import org.apache.accumulo.core.client.Scanner;
 import org.apache.accumulo.core.data.Key;
+import org.apache.rya.api.domain.VarNameUtils;
 import org.apache.rya.indexing.external.tupleSet.ExternalTupleSet;
 import org.apache.rya.indexing.pcj.storage.accumulo.AccumuloPcjSerializer;
 import org.apache.rya.indexing.pcj.storage.accumulo.BindingSetConverter.BindingSetConversionException;
@@ -175,7 +176,7 @@ public class PCJKeyToCrossProductBindingSetIterator implements
 				throw new QueryEvaluationException("PCJ Variable has no mapping to query variable.");
 			}
 			if (constantConstraintsExist) {
-				if (mappedVar.startsWith(ExternalTupleSet.CONST_PREFIX)
+				if (VarNameUtils.isConstant(mappedVar)
 						&& constantConstraints.containsKey(mappedVar)
 						&& !constantConstraints.get(mappedVar).equals(
 								bindingSet.getValue(var))) {
@@ -183,7 +184,7 @@ public class PCJKeyToCrossProductBindingSetIterator implements
 				}
 			}
 
-			if (!mappedVar.startsWith(ExternalTupleSet.CONST_PREFIX)) {
+			if (!VarNameUtils.isConstant(mappedVar)) {
 					bs.addBinding(mappedVar, bindingSet.getValue(var));
 			}
 		}

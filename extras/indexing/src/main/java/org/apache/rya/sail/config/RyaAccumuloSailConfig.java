@@ -1,13 +1,3 @@
-package org.apache.rya.sail.config;
-
-import org.apache.rya.accumulo.AccumuloRdfConfiguration;
-import org.eclipse.rdf4j.model.*;
-import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
-import org.eclipse.rdf4j.model.util.GraphUtil;
-import org.eclipse.rdf4j.model.util.GraphUtilException;
-import org.eclipse.rdf4j.sail.base.config.BaseSailConfig;
-import org.eclipse.rdf4j.sail.config.SailConfigException;
-
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -26,12 +16,25 @@ import org.eclipse.rdf4j.sail.config.SailConfigException;
  * specific language governing permissions and limitations
  * under the License.
  */
+package org.apache.rya.sail.config;
+
+import org.apache.rya.accumulo.AccumuloRdfConfiguration;
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.Literal;
+import org.eclipse.rdf4j.model.Model;
+import org.eclipse.rdf4j.model.Resource;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
+import org.eclipse.rdf4j.model.util.GraphUtil;
+import org.eclipse.rdf4j.model.util.GraphUtilException;
+import org.eclipse.rdf4j.sail.config.AbstractSailImplConfig;
+import org.eclipse.rdf4j.sail.config.SailConfigException;
 
 /**
  * @deprecated Use {@link AccumuloRdfConfiguration} instead.
  */
 @Deprecated
-public class RyaAccumuloSailConfig extends BaseSailConfig {
+public class RyaAccumuloSailConfig extends AbstractSailImplConfig {
 
     public static final String NAMESPACE = "http://rya.apache.org/RyaAccumuloSail/Config#";
 

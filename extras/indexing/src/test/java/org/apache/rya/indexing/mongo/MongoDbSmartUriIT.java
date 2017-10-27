@@ -18,11 +18,26 @@
  */
 package org.apache.rya.indexing.mongo;
 
-import java.net.URISyntaxException;
-import java.util.*;
+import static org.apache.rya.api.domain.RyaTypeUtils.booleanRyaType;
+import static org.apache.rya.api.domain.RyaTypeUtils.byteRyaType;
+import static org.apache.rya.api.domain.RyaTypeUtils.dateRyaType;
+import static org.apache.rya.api.domain.RyaTypeUtils.doubleRyaType;
+import static org.apache.rya.api.domain.RyaTypeUtils.floatRyaType;
+import static org.apache.rya.api.domain.RyaTypeUtils.intRyaType;
+import static org.apache.rya.api.domain.RyaTypeUtils.longRyaType;
+import static org.apache.rya.api.domain.RyaTypeUtils.shortRyaType;
+import static org.apache.rya.api.domain.RyaTypeUtils.stringRyaType;
+import static org.apache.rya.api.domain.RyaTypeUtils.uriRyaType;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Lists;
+import java.net.URISyntaxException;
+import java.util.Date;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
 import org.apache.rya.api.domain.RyaSchema;
 import org.apache.rya.api.domain.RyaURI;
 import org.apache.rya.api.resolver.RdfToRyaConversions;
@@ -42,7 +57,6 @@ import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Value;
 import org.eclipse.rdf4j.model.ValueFactory;
 import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
-import org.eclipse.rdf4j.model.impl.URIImpl;
 import org.eclipse.rdf4j.model.vocabulary.RDF;
 import org.eclipse.rdf4j.query.BindingSet;
 import org.eclipse.rdf4j.query.QueryEvaluationException;
@@ -54,16 +68,15 @@ import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.Test;
 
-import static org.apache.rya.api.domain.RyaTypeUtils.*;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Lists;
 
 /**
  * Tests for MongoDB based Smart URI.
  */
 public class MongoDbSmartUriIT extends MongoTestBase {
     private static final String NAMESPACE = RyaSchema.NAMESPACE;
-    private static final ValueFactory VALUE_FACTORY = SimpleValueFactory.getInstance();
+    private static final ValueFactory VF = SimpleValueFactory.getInstance();
 
     // People
     private static final RyaURI BOB = createRyaUri("Bob");
@@ -126,7 +139,7 @@ public class MongoDbSmartUriIT extends MongoTestBase {
      * @return the {@link RyraURI}.
      */
     private static RyaURI createRyaUri(final String namespace, final String localName) {
-        return RdfToRyaConversions.convertURI(VALUE_FACTORY.createIRI(namespace, localName));
+        return RdfToRyaConversions.convertURI(VF.createIRI(namespace, localName));
     }
 
     private static Entity createBobEntity() {
@@ -146,7 +159,7 @@ public class MongoDbSmartUriIT extends MongoTestBase {
             .setProperty(PERSON_TYPE_URI, new Property(HAS_DATE_OF_BIRTH, dateRyaType(new DateTime().minusYears(40))))
             .setProperty(PERSON_TYPE_URI, new Property(HAS_EXPIRATION_DATE, dateRyaType(new Date())))
             .setProperty(PERSON_TYPE_URI, new Property(HAS_GLASSES, booleanRyaType(true)))
-            .setProperty(PERSON_TYPE_URI, new Property(HAS_EMAIL_ADDRESS, uriRyaType(new URIImpl("mailto:bob.smitch00@gmail.com"))))
+            .setProperty(PERSON_TYPE_URI, new Property(HAS_EMAIL_ADDRESS, uriRyaType(VF.createIRI("mailto:bob.smitch00@gmail.com"))))
             .setProperty(PERSON_TYPE_URI, new Property(HAS_ATTRIBUTE_SPACE, stringRyaType("attribute space")))
             .setProperty(PERSON_TYPE_URI, new Property(HAS_MOTTO, stringRyaType("!@#*\\&%20^ smörgåsbord")))
             .setProperty(PERSON_TYPE_URI, new Property(HAS_BLOOD_TYPE, stringRyaType("A+ blood type")))
@@ -198,7 +211,7 @@ public class MongoDbSmartUriIT extends MongoTestBase {
     }
 
     private static String getRyaUriLocalName(final RyaURI ryaUri) {
-        return new URIImpl(ryaUri.getData()).getLocalName();
+        return VF.createIRI(ryaUri.getData()).getLocalName();
     }
 
     @Test

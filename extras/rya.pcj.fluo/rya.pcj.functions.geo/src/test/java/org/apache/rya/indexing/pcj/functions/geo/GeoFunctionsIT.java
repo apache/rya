@@ -39,17 +39,16 @@ import org.apache.rya.indexing.pcj.storage.accumulo.AccumuloPcjStorage;
 import org.apache.rya.pcj.fluo.test.base.RyaExportITBase;
 import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 import org.junit.Test;
-import  org.eclipse.rdf4j.model.Statement;
-import  org.eclipse.rdf4j.model.URI;
-import  org.eclipse.rdf4j.model.Value;
-import  org.eclipse.rdf4j.model.ValueFactory;
-import  org.eclipse.rdf4j.model.impl.ValueFactoryImpl;
-import  org.eclipse.rdf4j.query.BindingSet;
-import  org.eclipse.rdf4j.query.algebra.evaluation.ValueExprEvaluationException;
-import  org.eclipse.rdf4j.query.algebra.evaluation.function.Function;
-import  org.eclipse.rdf4j.query.algebra.evaluation.function.FunctionRegistry;
-import  org.eclipse.rdf4j.query.impl.MapBindingSet;
-import  org.eclipse.rdf4j.repository.sail.SailRepositoryConnection;
+import org.eclipse.rdf4j.model.Statement;
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.Value;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.query.BindingSet;
+import org.eclipse.rdf4j.query.algebra.evaluation.ValueExprEvaluationException;
+import org.eclipse.rdf4j.query.algebra.evaluation.function.Function;
+import org.eclipse.rdf4j.query.algebra.evaluation.function.FunctionRegistry;
+import org.eclipse.rdf4j.query.impl.MapBindingSet;
+import org.eclipse.rdf4j.repository.sail.SailRepositoryConnection;
 
 import com.google.common.collect.Sets;
 
@@ -141,8 +140,8 @@ public class GeoFunctionsIT extends RyaExportITBase {
                 "}";
 
         final ValueFactory vf = SimpleValueFactory.getInstance();
-        final URI wktTypeUri = vf.createIRI("http://www.opengis.net/ont/geosparql#wktLiteral");
-        final URI asWKT = vf.createIRI("http://www.opengis.net/ont/geosparql#asWKT");
+        final IRI wktTypeUri = vf.createIRI("http://www.opengis.net/ont/geosparql#wktLiteral");
+        final IRI asWKT = vf.createIRI("http://www.opengis.net/ont/geosparql#asWKT");
         final Set<Statement> statements = Sets.newHashSet(
                 vf.createStatement(vf.createIRI("tag:rya.apache.org,2017:ex#dakar"), asWKT, vf.createLiteral("Point(-17.45 14.69)", wktTypeUri)),
                 vf.createStatement(vf.createIRI("tag:rya.apache.org,2017:ex#dakar2"), asWKT, vf.createLiteral("Point(-17.45 14.69)", wktTypeUri)),
@@ -242,8 +241,8 @@ public class GeoFunctionsIT extends RyaExportITBase {
                 "}";
 
         final ValueFactory vf = SimpleValueFactory.getInstance();
-        final URI wktTypeUri = vf.createIRI("http://www.opengis.net/ont/geosparql#wktLiteral");
-        final URI asWKT = vf.createIRI("http://www.opengis.net/ont/geosparql#asWKT");
+        final IRI wktTypeUri = vf.createIRI("http://www.opengis.net/ont/geosparql#wktLiteral");
+        final IRI asWKT = vf.createIRI("http://www.opengis.net/ont/geosparql#asWKT");
         final Set<Statement> statements = Sets.newHashSet(
                 vf.createStatement(vf.createIRI("tag:rya.apache.org,2017:ex#dakar"), asWKT, vf.createLiteral("Point(-17.45 14.69)", wktTypeUri)),
                 vf.createStatement(vf.createIRI("tag:rya.apache.org,2017:ex#canberra"), asWKT, vf.createLiteral("Point(149.12 -35.31)", wktTypeUri)),
@@ -284,8 +283,8 @@ public class GeoFunctionsIT extends RyaExportITBase {
         final ValueFactory vf = SimpleValueFactory.getInstance();
         final DatatypeFactory dtf = DatatypeFactory.newInstance();
 
-        final URI dtPredUri = vf.createIRI("http://www.w3.org/2006/time#inXSDDateTime");
-        final URI eventz = vf.createIRI("<http://eventz>");
+        final IRI dtPredUri = vf.createIRI("http://www.w3.org/2006/time#inXSDDateTime");
+        final IRI eventz = vf.createIRI("<http://eventz>");
 
         final Set<Statement> statements = Sets.newHashSet(
                 vf.createStatement(eventz, vf.createIRI("http://www.w3.org/1999/02/22-rdf-syntax-ns#type"), vf.createIRI("<http://www.w3.org/2006/time#Instant>")),

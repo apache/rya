@@ -1006,11 +1006,11 @@ public class EntityOptimizerTest {
         Assert.assertEquals(2, nodes.size());
 
         for (QueryModelNode q : nodes) {
-
-            if (((EntityTupleSet) q).getStarQuery().getNodes().size() == 2) {
-                Assert.assertEquals("m", ((EntityTupleSet) q).getStarQuery().getCommonVarName());
-            } else if (((EntityTupleSet) q).getStarQuery().getNodes().size() == 3) {
-                Assert.assertEquals("uri:chickens", ((EntityTupleSet) q).getStarQuery().getCommonVarName());
+            final StarQuery starQuery = ((EntityTupleSet) q).getStarQuery();
+            if (starQuery.getNodes().size() == 2) {
+                Assert.assertEquals("m", starQuery.getCommonVarName());
+            } else if (starQuery.getNodes().size() == 3) {
+                Assert.assertEquals("uri:chickens", starQuery.getCommonVarValue());
             } else {
                 Assert.assertTrue(false);
             }
@@ -1110,11 +1110,11 @@ public class EntityOptimizerTest {
         Assert.assertEquals(2, nodes.size());
 
         for (QueryModelNode q : nodes) {
-
-            if (((EntityTupleSet) q).getStarQuery().getNodes().size() == 2) {
-                Assert.assertEquals("m", ((EntityTupleSet) q).getStarQuery().getCommonVarName());
-            } else if (((EntityTupleSet) q).getStarQuery().getNodes().size() == 3) {
-                Assert.assertEquals("uri:chickens", ((EntityTupleSet) q).getStarQuery().getCommonVarName());
+            final StarQuery starQuery = ((EntityTupleSet) q).getStarQuery();
+            if (starQuery.getNodes().size() == 2) {
+                Assert.assertEquals("m", starQuery.getCommonVarName());
+            } else if (starQuery.getNodes().size() == 3) {
+                Assert.assertEquals("uri:chickens", starQuery.getCommonVarValue());
             } else {
                 Assert.assertTrue(false);
             }

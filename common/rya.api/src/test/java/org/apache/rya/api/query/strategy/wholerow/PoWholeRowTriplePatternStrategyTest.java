@@ -28,7 +28,7 @@
 //import org.apache.accumulo.core.data.Key;
 //import org.apache.accumulo.core.data.Range;
 //import org.apache.hadoop.io.Text;
-//import  org.eclipse.rdf4j.model.impl.URIImpl;
+//import org.eclipse.rdf4j.model.impl.URIImpl;
 //
 //import java.util.Map;
 //

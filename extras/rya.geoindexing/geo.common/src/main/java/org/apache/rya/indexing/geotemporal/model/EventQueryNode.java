@@ -40,22 +40,25 @@ import org.apache.rya.indexing.mongodb.update.RyaObjectStorage.ObjectStorageExce
 import org.apache.rya.rdftriplestore.evaluation.ExternalBatchingIterator;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
-import  org.eclipse.rdf4j.model.Value;
-import  org.eclipse.rdf4j.model.impl.ValueFactoryImpl;
-import  org.eclipse.rdf4j.query.BindingSet;
-import  org.eclipse.rdf4j.query.QueryEvaluationException;
-import  org.eclipse.rdf4j.query.algebra.FunctionCall;
-import  org.eclipse.rdf4j.query.algebra.StatementPattern;
-import  org.eclipse.rdf4j.query.algebra.Var;
-import  org.eclipse.rdf4j.query.algebra.evaluation.impl.ExternalSet;
-import  org.eclipse.rdf4j.query.algebra.evaluation.iterator.CollectionIteration;
-import  org.eclipse.rdf4j.query.impl.MapBindingSet;
+import org.eclipse.rdf4j.model.Value;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
+import org.eclipse.rdf4j.query.BindingSet;
+import org.eclipse.rdf4j.query.QueryEvaluationException;
+import org.eclipse.rdf4j.query.algebra.FunctionCall;
+import org.eclipse.rdf4j.query.algebra.StatementPattern;
+import org.eclipse.rdf4j.query.algebra.Var;
+import org.eclipse.rdf4j.query.algebra.evaluation.impl.ExternalSet;
+import org.eclipse.rdf4j.query.algebra.evaluation.iterator.CollectionIteration;
+import org.eclipse.rdf4j.query.impl.MapBindingSet;
 
 import com.vividsolutions.jts.geom.Geometry;
 
 import org.eclipse.rdf4j.common.iteration.CloseableIteration;
 
 public class EventQueryNode extends ExternalSet implements ExternalBatchingIterator {
+    private static final ValueFactory VF = SimpleValueFactory.getInstance();
+
     private final Collection<FunctionCall> usedFilters;
     private final Collection<IndexingExpr> geoFilters;
     private final Collection<IndexingExpr> temporalFilters;
@@ -186,7 +189,7 @@ public class EventQueryNode extends ExternalSet implements ExternalBatchingItera
                 final MapBindingSet resultSet = new MapBindingSet();
                 if(event.getGeometry().isPresent()) {
                     final Geometry geo = event.getGeometry().get();
-                    final Value geoValue = ValueFactoryImpl.getInstance().createLiteral(geo.toText());
+                    final Value geoValue = VF.createLiteral(geo.toText());
                     final Var geoObj = geoPattern.getObjectVar();
                     resultSet.addBinding(geoObj.getName(), geoValue);
                 }
@@ -197,9 +200,9 @@ public class EventQueryNode extends ExternalSet implements ExternalBatchingItera
                     DateTime dt = opt.get().getAsDateTime();
                     dt = dt.toDateTime(DateTimeZone.UTC);
                     final String str = dt.toString(TemporalInstantRfc3339.FORMATTER);
-                    temporalValue = ValueFactoryImpl.getInstance().createLiteral(str);
+                    temporalValue = VF.createLiteral(str);
                 } else if(event.getInterval().isPresent()) {
-                    temporalValue = ValueFactoryImpl.getInstance().createLiteral(event.getInterval().get().getAsPair());
+                    temporalValue = VF.createLiteral(event.getInterval().get().getAsPair());
                 } else {
                     temporalValue = null;
                 }

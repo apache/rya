@@ -53,43 +53,24 @@ public class LoadStatementsCommand implements RyaStreamsCommand {
     /**
      * Command line parameters that are used by this command to configure itself.
      */
-    private static final class Parameters {
+    private static final class LoadStatementsParameters extends RyaStreamsCommand.Parameters {
         @Parameter(names = {"--statementsFile", "-f"}, required = true, description = "The file of RDF statements to load into Rya Streams.")
         private String statementsFile;
-        @Parameter(names= {"--topic", "-t"}, required = true, description = "The kafka topic to load the statements into.")
-        private String topicName;
-        @Parameter(names= {"--kafkaPort", "-p"}, required = true, description = "The port to use to connect to Kafka.")
-        private short kafkaPort;
-        @Parameter(names= {"--kafkaHostname", "-i"}, required = true, description = "The IP or Hostname to use to connect to Kafka.")
-        private String kafkaIP;
         @Parameter(names= {"--visibilities", "-v"}, required = true, description = "The visibilities to assign to the statements being loaded in.")
         private String visibilities;
 
         @Override
         public String toString() {
             final StringBuilder parameters = new StringBuilder();
-            parameters.append("Parameters");
+            parameters.append(super.toString());
             parameters.append("\n");
 
-            if (Strings.isNullOrEmpty(statementsFile)) {
+            if (!Strings.isNullOrEmpty(statementsFile)) {
                 parameters.append("\tStatements File: " + statementsFile);
                 parameters.append("\n");
             }
 
-            if (Strings.isNullOrEmpty(topicName)) {
-                parameters.append("\tTopic: " + topicName);
-                parameters.append("\n");
-            }
-
-            if (Strings.isNullOrEmpty(kafkaIP)) {
-                parameters.append("\tKafka Location: " + kafkaIP);
-                if (kafkaPort > 0) {
-                    parameters.append(":" + kafkaPort);
-                }
-                parameters.append("\n");
-            }
-
-            if (Strings.isNullOrEmpty(visibilities)) {
+            if (!Strings.isNullOrEmpty(visibilities)) {
                 parameters.append("\tVisibilities: " + visibilities);
                 parameters.append("\n");
             }
@@ -110,7 +91,7 @@ public class LoadStatementsCommand implements RyaStreamsCommand {
 
     @Override
     public String getUsage() {
-        final JCommander parser = new JCommander(new Parameters());
+        final JCommander parser = new JCommander(new LoadStatementsParameters());
 
         final StringBuilder usage = new StringBuilder();
         parser.usage(usage);
@@ -123,7 +104,7 @@ public class LoadStatementsCommand implements RyaStreamsCommand {
 
 
         // Parse the command line arguments.
-        final Parameters params = new Parameters();
+        final LoadStatementsParameters params = new LoadStatementsParameters();
         try {
             new JCommander(params, args);
         } catch(final ParameterException e) {
@@ -145,7 +126,7 @@ public class LoadStatementsCommand implements RyaStreamsCommand {
         log.trace("Finished executing the Load Statements Command.");
     }
 
-    private Properties buildProperties(final Parameters params) {
+    private Properties buildProperties(final LoadStatementsParameters params) {
         requireNonNull(params);
         final Properties props = new Properties();
         props.setProperty(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, params.kafkaIP + ":" + params.kafkaPort);

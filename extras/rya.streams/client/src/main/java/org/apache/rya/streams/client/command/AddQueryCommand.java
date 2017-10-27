@@ -65,39 +65,21 @@ public class AddQueryCommand implements RyaStreamsCommand {
      * Command line parameters that are used by this command to configure
      * itself.
      */
-    private static final class Parameters {
+    private class AddParameters extends RyaStreamsCommand.Parameters {
         @Parameter(names = { "--query",
         "-q" }, required = true, description = "The SPARQL query to add to Rya Streams.")
         private String query;
-        @Parameter(names = { "--topic",
-        "-t" }, required = true, description = "The kafka topic to load the statements into.")
-        private String topicName;
-        @Parameter(names = { "--kafkaPort",
-        "-p" }, required = true, description = "The port to use to connect to Kafka.")
-        private String kafkaPort;
-        @Parameter(names = { "--kafkaHostname",
-        "-i" }, required = true, description = "The IP or Hostname to use to connect to Kafka.")
-        private String kafkaIP;
 
         @Override
         public String toString() {
             final StringBuilder parameters = new StringBuilder();
-            parameters.append("Parameters");
+            parameters.append(super.toString());
             parameters.append("\n");
 
             if (!Strings.isNullOrEmpty(query)) {
                 parameters.append("\tQuery: " + query);
                 parameters.append("\n");
             }
-
-            if (!Strings.isNullOrEmpty(kafkaIP)) {
-                parameters.append("\tKafka Location: " + kafkaIP);
-                if (!Strings.isNullOrEmpty(kafkaPort)) {
-                    parameters.append(":" + kafkaPort);
-                }
-                parameters.append("\n");
-            }
-
             return parameters.toString();
         }
     }
@@ -114,7 +96,7 @@ public class AddQueryCommand implements RyaStreamsCommand {
 
     @Override
     public String getUsage() {
-        final JCommander parser = new JCommander(new Parameters());
+        final JCommander parser = new JCommander(new AddParameters());
 
         final StringBuilder usage = new StringBuilder();
         parser.usage(usage);
@@ -126,7 +108,7 @@ public class AddQueryCommand implements RyaStreamsCommand {
         requireNonNull(args);
 
         // Parse the command line arguments.
-        final Parameters params = new Parameters();
+        final AddParameters params = new AddParameters();
         try {
             new JCommander(params, args);
         } catch(final ParameterException e) {

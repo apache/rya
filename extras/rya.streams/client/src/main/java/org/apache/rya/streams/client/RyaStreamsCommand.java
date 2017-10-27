@@ -18,6 +18,9 @@
  */
 package org.apache.rya.streams.client;
 
+import com.beust.jcommander.Parameter;
+import com.google.common.base.Strings;
+
 import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
 import edu.umd.cs.findbugs.annotations.NonNull;
 
@@ -26,6 +29,42 @@ import edu.umd.cs.findbugs.annotations.NonNull;
  */
 @DefaultAnnotation(NonNull.class)
 public interface RyaStreamsCommand {
+    /**
+     * Command line parameters that are used by this command to configure
+     * itself.
+     */
+    class Parameters {
+        @Parameter(names = { "--topic",
+        "-t" }, required = true, description = "The kafka topic to load the statements into.")
+        public String topicName;
+        @Parameter(names = { "--kafkaPort",
+        "-p" }, required = true, description = "The port to use to connect to Kafka.")
+        public String kafkaPort;
+        @Parameter(names = { "--kafkaHostname",
+        "-i" }, required = true, description = "The IP or Hostname to use to connect to Kafka.")
+        public String kafkaIP;
+
+        @Override
+        public String toString() {
+            final StringBuilder parameters = new StringBuilder();
+            parameters.append("Parameters");
+            parameters.append("\n");
+
+            if (!Strings.isNullOrEmpty(topicName)) {
+                parameters.append("\tTopic: " + topicName);
+            }
+
+            if (!Strings.isNullOrEmpty(kafkaIP)) {
+                parameters.append("\tKafka Location: " + kafkaIP);
+                if (!Strings.isNullOrEmpty(kafkaPort)) {
+                    parameters.append(":" + kafkaPort);
+                }
+                parameters.append("\n");
+            }
+
+            return parameters.toString();
+        }
+    }
 
     /**
      * @return What a user would type into the command line to indicate

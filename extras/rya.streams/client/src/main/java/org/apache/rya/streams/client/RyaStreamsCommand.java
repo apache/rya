@@ -18,6 +18,7 @@
  */
 package org.apache.rya.streams.client;
 
+import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import com.google.common.base.Strings;
 
@@ -80,7 +81,13 @@ public interface RyaStreamsCommand {
     /**
      * @return Describes what arguments may be provided to the command.
      */
-    public String getUsage();
+    default public String getUsage() {
+        final JCommander parser = new JCommander(new Parameters());
+
+        final StringBuilder usage = new StringBuilder();
+        parser.usage(usage);
+        return usage.toString();
+    }
 
     /**
      * Execute the command using the command line arguments.

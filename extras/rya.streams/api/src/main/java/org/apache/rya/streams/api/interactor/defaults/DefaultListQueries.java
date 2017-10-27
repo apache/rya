@@ -16,27 +16,39 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.apache.rya.streams.api.interactor;
+package org.apache.rya.streams.api.interactor.defaults;
+
+import static java.util.Objects.requireNonNull;
 
 import java.util.Set;
 
 import org.apache.rya.streams.api.entity.StreamsQuery;
 import org.apache.rya.streams.api.exception.RyaStreamsException;
+import org.apache.rya.streams.api.interactor.ListQueries;
+import org.apache.rya.streams.api.queries.QueryRepository;
 
 import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
 import edu.umd.cs.findbugs.annotations.NonNull;
 
 /**
- * List the SPARQL Queries that are managed by Rya Streams.
+ * Lists all queries in Rya Streams.
  */
 @DefaultAnnotation(NonNull.class)
-public interface ListQueries {
+public class DefaultListQueries implements ListQueries {
+    private final QueryRepository repository;
 
     /**
-     * List all of the SPARQL Queries that are managed by Rya Streams.
+     * Creates a new {@link DefaultAddQuery}.
      *
-     * @return All of the queries that are managed.
-     * @throws RyaStreamsException The queries could not be listed.
+     * @param repository - The {@link QueryRepository} to add a query to. (not
+     *        null)
      */
-    public Set<StreamsQuery> all() throws RyaStreamsException;
+    public DefaultListQueries(final QueryRepository repository) {
+        this.repository = requireNonNull(repository);
+    }
+
+    @Override
+    public Set<StreamsQuery> all() throws RyaStreamsException {
+        return repository.list();
+    }
 }

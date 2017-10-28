@@ -26,23 +26,22 @@ import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
 import edu.umd.cs.findbugs.annotations.NonNull;
 
 /**
- * A command that may be executed by the {@link PcjAdminClient}.
+ * A command that may be executed by the Rya Streams {@link CLIDriver}.
  */
 @DefaultAnnotation(NonNull.class)
 public interface RyaStreamsCommand {
+
     /**
-     * Command line parameters that are used by this command to configure
-     * itself.
+     * Command line parameters that are used by all commands that interact with Kafka.
      */
-    class Parameters {
-        @Parameter(names = { "--topic",
-        "-t" }, required = true, description = "The kafka topic to load the statements into.")
-        public String topicName;
-        @Parameter(names = { "--kafkaPort",
-        "-p" }, required = true, description = "The port to use to connect to Kafka.")
+    class KafkaParameters {
+        @Parameter(names = {"--ryaInstance", "-r"}, required = true, description = "The name of the Rya Instance the Rya Streams is a part of.")
+        public String ryaInstance;
+
+        @Parameter(names = { "--kafkaPort", "-p" }, required = true, description = "The port to use to connect to Kafka.")
         public String kafkaPort;
-        @Parameter(names = { "--kafkaHostname",
-        "-i" }, required = true, description = "The IP or Hostname to use to connect to Kafka.")
+
+        @Parameter(names = { "--kafkaHostname", "-i" }, required = true, description = "The IP or Hostname to use to connect to Kafka.")
         public String kafkaIP;
 
         @Override
@@ -51,8 +50,8 @@ public interface RyaStreamsCommand {
             parameters.append("Parameters");
             parameters.append("\n");
 
-            if (!Strings.isNullOrEmpty(topicName)) {
-                parameters.append("\tTopic: " + topicName);
+            if(!Strings.isNullOrEmpty(ryaInstance)) {
+                parameters.append("\tRya Instance Name: " + ryaInstance + "\n");
             }
 
             if (!Strings.isNullOrEmpty(kafkaIP)) {
@@ -82,7 +81,7 @@ public interface RyaStreamsCommand {
      * @return Describes what arguments may be provided to the command.
      */
     default public String getUsage() {
-        final JCommander parser = new JCommander(new Parameters());
+        final JCommander parser = new JCommander(new KafkaParameters());
 
         final StringBuilder usage = new StringBuilder();
         parser.usage(usage);

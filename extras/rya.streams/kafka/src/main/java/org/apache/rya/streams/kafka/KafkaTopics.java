@@ -16,38 +16,37 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.apache.rya.streams.api.interactor.defaults;
+package org.apache.rya.streams.kafka;
 
-import static java.util.Objects.requireNonNull;
-
-import java.util.Set;
-
-import org.apache.rya.streams.api.entity.StreamsQuery;
-import org.apache.rya.streams.api.exception.RyaStreamsException;
-import org.apache.rya.streams.api.interactor.ListQueries;
-import org.apache.rya.streams.api.queries.QueryRepository;
+import org.apache.rya.streams.api.queries.QueryChangeLog;
 
 import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
 import edu.umd.cs.findbugs.annotations.NonNull;
 
 /**
- * Lists all queries in Rya Streams.
+ * Creates the Kafka topic names that are used for Rya Streams systems.
  */
 @DefaultAnnotation(NonNull.class)
-public class DefaultListQueries implements ListQueries {
-    private final QueryRepository repository;
+public class KafkaTopics {
 
     /**
-     * Creates a new {@link DefaultListQueries}.
+     * Creates the Kafka topic that will be used for a specific instance of Rya's {@link QueryChangeLog}.
      *
-     * @param repository - The {@link QueryRepository} that hosts the listed queries. (not null)
+     * @param ryaInstance - The Rya instance the change log is for. (not null)
+     * @return The name of the Kafka topic.
      */
-    public DefaultListQueries(final QueryRepository repository) {
-        this.repository = requireNonNull(repository);
+    public static String queryChangeLogTopic(final String ryaInstance) {
+        return ryaInstance + "-QueryChangeLog";
     }
 
-    @Override
-    public Set<StreamsQuery> all() throws RyaStreamsException {
-        return repository.list();
+    /**
+     * Creates the Kafka topic that will be used to load statements into the Rya Streams system for a specific
+     * instance of Rya.
+     *
+     * @param ryaInstance - The Rya instance the statements are for. (not null)
+     * @return The name of the Kafka topic.
+     */
+    public static String statementsTopic(final String ryaInstance) {
+        return ryaInstance + "-Statements";
     }
 }

@@ -40,6 +40,7 @@ import org.apache.rya.streams.api.queries.QueryChange;
 import org.apache.rya.streams.api.queries.QueryChangeLog;
 import org.apache.rya.streams.api.queries.QueryRepository;
 import org.apache.rya.streams.client.RyaStreamsCommand;
+import org.apache.rya.streams.kafka.KafkaTopics;
 import org.apache.rya.streams.kafka.queries.KafkaQueryChangeLog;
 import org.apache.rya.streams.kafka.serialization.queries.QueryChangeDeserializer;
 import org.apache.rya.streams.kafka.serialization.queries.QueryChangeSerializer;
@@ -62,12 +63,10 @@ public class AddQueryCommand implements RyaStreamsCommand {
     private static final Logger log = LoggerFactory.getLogger(AddQueryCommand.class);
 
     /**
-     * Command line parameters that are used by this command to configure
-     * itself.
+     * Command line parameters that are used by this command to configure itself.
      */
-    private class AddParameters extends RyaStreamsCommand.Parameters {
-        @Parameter(names = { "--query",
-        "-q" }, required = true, description = "The SPARQL query to add to Rya Streams.")
+    private class AddParameters extends RyaStreamsCommand.KafkaParameters {
+        @Parameter(names = { "--query", "-q" }, required = true, description = "The SPARQL query to add to Rya Streams.")
         private String query;
 
         @Override
@@ -121,15 +120,19 @@ public class AddQueryCommand implements RyaStreamsCommand {
         producerProperties.setProperty(CommonClientConfigs.BOOTSTRAP_SERVERS_CONFIG, params.kafkaIP + ":" + params.kafkaPort);
         producerProperties.setProperty(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
         producerProperties.setProperty(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, QueryChangeSerializer.class.getName());
+
         final Properties consumerProperties = new Properties();
         consumerProperties.setProperty(CommonClientConfigs.BOOTSTRAP_SERVERS_CONFIG, params.kafkaIP + ":" + params.kafkaPort);
         consumerProperties.setProperty(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
         consumerProperties.setProperty(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, QueryChangeDeserializer.class.getName());
+
         final Producer<?, QueryChange> queryProducer = new KafkaProducer<>(producerProperties);
         final Consumer<?, QueryChange> queryConsumer = new KafkaConsumer<>(consumerProperties);
 
-        final QueryChangeLog changeLog = new KafkaQueryChangeLog(queryProducer, queryConsumer, params.topicName);
+        final QueryChangeLog changeLog = new KafkaQueryChangeLog(queryProducer, queryConsumer, KafkaTopics.queryChangeLogTopic(params.ryaInstance));
         final QueryRepository repo = new InMemoryQueryRepository(changeLog);
+
+        // Execute the add query command.
         final AddQuery addQuery = new DefaultAddQuery(repo);
         try {
             final StreamsQuery query = addQuery.addQuery(params.query);

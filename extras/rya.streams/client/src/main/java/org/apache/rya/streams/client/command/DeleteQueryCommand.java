@@ -40,6 +40,7 @@ import org.apache.rya.streams.api.queries.QueryChange;
 import org.apache.rya.streams.api.queries.QueryChangeLog;
 import org.apache.rya.streams.api.queries.QueryRepository;
 import org.apache.rya.streams.client.RyaStreamsCommand;
+import org.apache.rya.streams.kafka.KafkaTopics;
 import org.apache.rya.streams.kafka.queries.KafkaQueryChangeLog;
 import org.apache.rya.streams.kafka.serialization.queries.QueryChangeDeserializer;
 import org.apache.rya.streams.kafka.serialization.queries.QueryChangeSerializer;
@@ -62,10 +63,9 @@ public class DeleteQueryCommand implements RyaStreamsCommand {
     private static final Logger log = LoggerFactory.getLogger(DeleteQueryCommand.class);
 
     /**
-     * Command line parameters that are used by this command to configure
-     * itself.
+     * Command line parameters that are used by this command to configure itself.
      */
-    private class RemoveParameters extends RyaStreamsCommand.Parameters {
+    private class RemoveParameters extends RyaStreamsCommand.KafkaParameters {
         @Parameter(names = { "--queryID", "-q" }, required = true, description = "The ID of the query to remove from Rya Streams.")
         private String queryId;
 
@@ -73,7 +73,6 @@ public class DeleteQueryCommand implements RyaStreamsCommand {
         public String toString() {
             final StringBuilder parameters = new StringBuilder();
             parameters.append(super.toString());
-            parameters.append("\n");
 
             if (!Strings.isNullOrEmpty(queryId)) {
                 parameters.append("\tQueryID: " + queryId);
@@ -120,23 +119,27 @@ public class DeleteQueryCommand implements RyaStreamsCommand {
         producerProperties.setProperty(CommonClientConfigs.BOOTSTRAP_SERVERS_CONFIG, params.kafkaIP + ":" + params.kafkaPort);
         producerProperties.setProperty(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
         producerProperties.setProperty(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, QueryChangeSerializer.class.getName());
+
         final Properties consumerProperties = new Properties();
         consumerProperties.setProperty(CommonClientConfigs.BOOTSTRAP_SERVERS_CONFIG, params.kafkaIP + ":" + params.kafkaPort);
         consumerProperties.setProperty(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
         consumerProperties.setProperty(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, QueryChangeDeserializer.class.getName());
+
         final Producer<?, QueryChange> queryProducer = new KafkaProducer<>(producerProperties);
         final Consumer<?, QueryChange> queryConsumer = new KafkaConsumer<>(consumerProperties);
 
-        final QueryChangeLog changeLog = new KafkaQueryChangeLog(queryProducer, queryConsumer, params.topicName);
+        final QueryChangeLog changeLog = new KafkaQueryChangeLog(queryProducer, queryConsumer, KafkaTopics.queryChangeLogTopic(params.ryaInstance));
         final QueryRepository repo = new InMemoryQueryRepository(changeLog);
+
+        // Execute the delete query command.
         final DeleteQuery deleteQuery = new DefaultDeleteQuery(repo);
         try {
             deleteQuery.delete(UUID.fromString(params.queryId));
             log.trace("Deleted query: " + params.queryId);
         } catch (final RyaStreamsException e) {
-            log.error("Unable to parse query: " + params.queryId, e);
+            log.error("Unable to delete query with ID: " + params.queryId, e);
         }
 
-        log.trace("Finished executing the Add Query Command.");
+        log.trace("Finished executing the Delete Query Command.");
     }
 }

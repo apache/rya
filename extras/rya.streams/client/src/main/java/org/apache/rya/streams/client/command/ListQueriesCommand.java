@@ -41,6 +41,7 @@ import org.apache.rya.streams.api.queries.QueryChange;
 import org.apache.rya.streams.api.queries.QueryChangeLog;
 import org.apache.rya.streams.api.queries.QueryRepository;
 import org.apache.rya.streams.client.RyaStreamsCommand;
+import org.apache.rya.streams.kafka.KafkaTopics;
 import org.apache.rya.streams.kafka.queries.KafkaQueryChangeLog;
 import org.apache.rya.streams.kafka.serialization.queries.QueryChangeDeserializer;
 import org.apache.rya.streams.kafka.serialization.queries.QueryChangeSerializer;
@@ -75,7 +76,7 @@ public class ListQueriesCommand implements RyaStreamsCommand {
         requireNonNull(args);
 
         // Parse the command line arguments.
-        final Parameters params = new Parameters();
+        final KafkaParameters params = new KafkaParameters();
         try {
             new JCommander(params, args);
         } catch (final ParameterException e) {
@@ -88,25 +89,29 @@ public class ListQueriesCommand implements RyaStreamsCommand {
         producerProperties.setProperty(CommonClientConfigs.BOOTSTRAP_SERVERS_CONFIG, params.kafkaIP + ":" + params.kafkaPort);
         producerProperties.setProperty(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
         producerProperties.setProperty(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, QueryChangeSerializer.class.getName());
+
         final Properties consumerProperties = new Properties();
         consumerProperties.setProperty(CommonClientConfigs.BOOTSTRAP_SERVERS_CONFIG, params.kafkaIP + ":" + params.kafkaPort);
         consumerProperties.setProperty(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
         consumerProperties.setProperty(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, QueryChangeDeserializer.class.getName());
+
         final Producer<?, QueryChange> queryProducer = new KafkaProducer<>(producerProperties);
         final Consumer<?, QueryChange> queryConsumer = new KafkaConsumer<>(consumerProperties);
 
-        final QueryChangeLog changeLog = new KafkaQueryChangeLog(queryProducer, queryConsumer, params.topicName);
+        final QueryChangeLog changeLog = new KafkaQueryChangeLog(queryProducer, queryConsumer, KafkaTopics.queryChangeLogTopic(params.ryaInstance));
         final QueryRepository repo = new InMemoryQueryRepository(changeLog);
+
+        // Execute the list queries command.
         final ListQueries listQueries = new DefaultListQueries(repo);
         try {
             final Set<StreamsQuery> queries = listQueries.all();
-            logQueries(queries);
+            System.out.println( formatQueries(queries) );
         } catch (final RyaStreamsException e) {
             log.error("Unable to retrieve the queries.", e);
         }
     }
 
-    private void logQueries(final Set<StreamsQuery> queries) {
+    private String formatQueries(final Set<StreamsQuery> queries) {
         final StringBuilder sb = new StringBuilder();
         sb.append("\n");
         sb.append("Queries in Rya Streams:\n");
@@ -119,6 +124,6 @@ public class ListQueriesCommand implements RyaStreamsCommand {
             sb.append(query.getSparql());
             sb.append("\n");
         });
-        log.trace(sb.toString());
+        return sb.toString();
     }
 }

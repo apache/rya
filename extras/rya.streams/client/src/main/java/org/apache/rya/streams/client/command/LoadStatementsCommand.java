@@ -27,10 +27,13 @@ import java.util.Properties;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.clients.producer.ProducerConfig;
+import org.apache.kafka.common.serialization.StringSerializer;
 import org.apache.rya.api.model.VisibilityStatement;
 import org.apache.rya.streams.api.interactor.LoadStatements;
 import org.apache.rya.streams.client.RyaStreamsCommand;
+import org.apache.rya.streams.kafka.KafkaTopics;
 import org.apache.rya.streams.kafka.interactor.KafkaLoadStatements;
+import org.apache.rya.streams.kafka.serialization.VisibilityStatementSerializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -53,9 +56,11 @@ public class LoadStatementsCommand implements RyaStreamsCommand {
     /**
      * Command line parameters that are used by this command to configure itself.
      */
-    private static final class LoadStatementsParameters extends RyaStreamsCommand.Parameters {
+    private static final class LoadStatementsParameters extends RyaStreamsCommand.KafkaParameters {
+
         @Parameter(names = {"--statementsFile", "-f"}, required = true, description = "The file of RDF statements to load into Rya Streams.")
         private String statementsFile;
+
         @Parameter(names= {"--visibilities", "-v"}, required = true, description = "The visibilities to assign to the statements being loaded in.")
         private String visibilities;
 
@@ -63,7 +68,6 @@ public class LoadStatementsCommand implements RyaStreamsCommand {
         public String toString() {
             final StringBuilder parameters = new StringBuilder();
             parameters.append(super.toString());
-            parameters.append("\n");
 
             if (!Strings.isNullOrEmpty(statementsFile)) {
                 parameters.append("\tStatements File: " + statementsFile);
@@ -117,7 +121,7 @@ public class LoadStatementsCommand implements RyaStreamsCommand {
 
         final Properties producerProps = buildProperties(params);
         try (final Producer<Object, VisibilityStatement> producer = new KafkaProducer<>(producerProps)) {
-            final LoadStatements statements = new KafkaLoadStatements(params.topicName, producer);
+            final LoadStatements statements = new KafkaLoadStatements(KafkaTopics.statementsTopic(params.ryaInstance), producer);
             statements.load(statementsPath, params.visibilities);
         } catch (final Exception e) {
             log.error("Unable to parse statements file: " + statementsPath.toString(), e);
@@ -130,6 +134,8 @@ public class LoadStatementsCommand implements RyaStreamsCommand {
         requireNonNull(params);
         final Properties props = new Properties();
         props.setProperty(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, params.kafkaIP + ":" + params.kafkaPort);
+        props.setProperty(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
+        props.setProperty(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, VisibilityStatementSerializer.class.getName());
         return props;
     }
 }

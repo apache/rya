@@ -18,18 +18,31 @@ package org.apache.rya.indexing.pcj.matching;
  * specific language governing permissions and limitations
  * under the License.
  */
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeMap;
 
-import java.util.*;
+import org.apache.rya.api.domain.VarNameUtils;
+import org.eclipse.rdf4j.model.Value;
+import org.eclipse.rdf4j.query.algebra.Filter;
+import org.eclipse.rdf4j.query.algebra.NAryValueOperator;
+import org.eclipse.rdf4j.query.algebra.ProjectionElem;
+import org.eclipse.rdf4j.query.algebra.ProjectionElemList;
+import org.eclipse.rdf4j.query.algebra.QueryModelNode;
+import org.eclipse.rdf4j.query.algebra.StatementPattern;
+import org.eclipse.rdf4j.query.algebra.TupleExpr;
+import org.eclipse.rdf4j.query.algebra.ValueConstant;
+import org.eclipse.rdf4j.query.algebra.ValueExpr;
+import org.eclipse.rdf4j.query.algebra.Var;
+import org.eclipse.rdf4j.query.algebra.helpers.AbstractQueryModelVisitor;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-
-import org.apache.rya.api.domain.VarNameUtils;
-import org.eclipse.rdf4j.model.Literal;
-import org.eclipse.rdf4j.model.Value;
-import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
-import org.eclipse.rdf4j.query.algebra.*;
-import org.eclipse.rdf4j.query.algebra.helpers.AbstractQueryModelVisitor;
 
 public class QueryVariableNormalizer {
 
@@ -383,11 +396,7 @@ public class QueryVariableNormalizer {
             if ((vars1.get(i) instanceof ValueConstant) && (vars2.get(i) instanceof Var)) {
                 
                 ValueConstant vc = (ValueConstant) vars1.get(i);
-                String s = vc.getValue().toString();
-                if(vc.getValue() instanceof Literal) {
-                    s = s.substring(1, s.length() - 1);
-                } 
-                s = VarNameUtils.prependConstant(s);
+                final String s = VarNameUtils.createUniqueConstVarName(vc.getValue());
                 varList1.add(s);
                 varList2.add(((Var)vars2.get(i)).getName());
             } else if(!(vars1.get(i) instanceof ValueConstant)){
@@ -730,13 +739,7 @@ public class QueryVariableNormalizer {
 
         public void meet(ValueConstant val) {
 
-            String s = val.getValue().toString();
-            
-            if (val.getValue() instanceof Literal) {
-                s = s.substring(1, s.length() - 1);
-            }
-            
-            s = VarNameUtils.prependConstant(s);
+            final String s = VarNameUtils.createUniqueConstVarName(val.getValue());
             valMap.put(s, val.getValue());
         }
 
@@ -769,7 +772,6 @@ public class QueryVariableNormalizer {
 
         private final HashMap<String, String> hMap;
         private Map<String, Value> valMap;
-        private final SimpleValueFactory vf = SimpleValueFactory.getInstance();
 
         public SpVarReNamer(HashMap<String, String> hMap, Map<String, Value> valMap) {
             this.valMap = valMap;
@@ -798,7 +800,6 @@ public class QueryVariableNormalizer {
 
         private final HashMap<String, String> hMap;
         private Map<String, Value> valMap;
-        private final SimpleValueFactory vf = SimpleValueFactory.getInstance();
 
         public FilterVarReNamer(HashMap<String, String> hMap, Map<String, Value> valMap) {
             this.valMap = valMap;

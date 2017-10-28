@@ -18,20 +18,14 @@
  */
 package org.apache.rya.reasoning.mr;
 
-import static org.eclipse.rdf4j.rio.RDFFormat.NO_CONTEXTS;
-import static org.eclipse.rdf4j.rio.RDFFormat.NO_NAMESPACES;
-
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.StringReader;
-import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -48,6 +42,7 @@ import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.util.Tool;
 import org.apache.hadoop.util.ToolRunner;
 import org.apache.rya.accumulo.mr.MRUtils;
+import org.apache.rya.api.utils.RdfFormatUtils;
 import org.apache.rya.reasoning.Fact;
 import org.apache.rya.reasoning.Schema;
 import org.eclipse.rdf4j.RDF4JException;
@@ -55,7 +50,6 @@ import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Resource;
 import org.eclipse.rdf4j.model.Statement;
 import org.eclipse.rdf4j.model.Value;
-import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 import org.eclipse.rdf4j.model.vocabulary.OWL;
 import org.eclipse.rdf4j.model.vocabulary.RDF;
 import org.eclipse.rdf4j.query.BindingSet;
@@ -175,11 +169,7 @@ public class ConformanceTest extends Configured implements Tool {
             RDFFormat inputFormat= RDFFormat.RDFXML;
             final String formatString = conf.get(MRUtils.FORMAT_PROP);
             if (formatString != null) {
-                inputFormat = new RDFFormat(formatString,
-                        Arrays.asList("application/n-triples", "text/plain"), Charset.forName("UTF-8"),
-                        Collections.singletonList("nt"),
-                        SimpleValueFactory.getInstance().createIRI("http://www.w3.org/ns/formats/"+formatString),
-                        NO_NAMESPACES, NO_CONTEXTS);
+                inputFormat = RdfFormatUtils.getRdfFormatFromName(formatString);
             }
             repo = new SailRepository(new MemoryStore());
             repo.initialize();

@@ -1,5 +1,3 @@
-package org.apache.rya.accumulo.mr;
-
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -18,14 +16,8 @@ package org.apache.rya.accumulo.mr;
  * specific language governing permissions and limitations
  * under the License.
  */
+package org.apache.rya.accumulo.mr;
 
-import java.nio.charset.Charset;
-import java.util.Arrays;
-import java.util.Collections;
-
-import org.apache.accumulo.core.client.AccumuloException;
-import org.apache.accumulo.core.client.AccumuloSecurityException;
-import org.apache.accumulo.core.client.Connector;
 import org.apache.accumulo.core.client.Instance;
 import org.apache.accumulo.core.client.mapreduce.InputFormatBase;
 import org.apache.accumulo.core.client.security.tokens.AuthenticationToken;
@@ -35,12 +27,10 @@ import org.apache.hadoop.mapreduce.JobContext;
 import org.apache.hadoop.mapreduce.RecordReader;
 import org.apache.hadoop.mapreduce.TaskAttemptContext;
 import org.apache.rya.api.RdfCloudTripleStoreConstants.TABLE_LAYOUT;
+import org.apache.rya.api.utils.RdfFormatUtils;
 import org.eclipse.rdf4j.model.ValueFactory;
 import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 import org.eclipse.rdf4j.rio.RDFFormat;
-
-import static org.eclipse.rdf4j.rio.RDFFormat.NO_CONTEXTS;
-import static org.eclipse.rdf4j.rio.RDFFormat.NO_NAMESPACES;
 
 /**
  * Contains constants and static methods for interacting with a
@@ -123,7 +113,7 @@ public class MRUtils {
 
     public static final String AC_TABLE_PROP = "ac.table";
     public static final String HADOOP_IO_SORT_MB = "io.sort.mb";
-    public static final ValueFactory vf = SimpleValueFactory.getInstance();
+    public static final ValueFactory VF = SimpleValueFactory.getInstance();
 
     /**
      * Gets the TTL from a given Configuration.
@@ -209,11 +199,7 @@ public class MRUtils {
      * @return  The configured RDFFormat, or null if not set.
      */
     public static RDFFormat getRDFFormat(Configuration conf) {
-        return  new RDFFormat(conf.get(FORMAT_PROP),
-                Arrays.asList("application/n-triples", "text/plain"), Charset.forName("UTF-8"),
-                Collections.singletonList("nt"),
-                SimpleValueFactory.getInstance().createIRI("http://www.w3.org/ns/formats/"+conf.get(FORMAT_PROP)),
-                NO_NAMESPACES, NO_CONTEXTS);
+        return RdfFormatUtils.getRdfFormatFromName(conf.get(FORMAT_PROP));
     }
 
     /**
@@ -325,12 +311,6 @@ public class MRUtils {
         }
         public static String getTablename(JobContext conf) {
             return InputFormatBase.getInputTableName(conf);
-        }
-
-        public static Connector getConnector(TaskAttemptContext taskAttemptContext)
-                throws AccumuloSecurityException, AccumuloException
-        {
-            return getInstance(taskAttemptContext).getConnector(getUsername(taskAttemptContext),getPassword(taskAttemptContext));
         }
     }
 }

@@ -19,22 +19,41 @@ package org.apache.cloud.rdf.web.sail;
  * under the License.
  */
 
+import static org.apache.rya.api.RdfCloudTripleStoreConstants.VALUE_FACTORY;
+
 import java.io.IOException;
 import java.io.StringReader;
-import java.nio.charset.Charset;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
 import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
 import org.apache.rya.api.security.SecurityProvider;
+import org.apache.rya.api.utils.RdfFormatUtils;
 import org.apache.rya.rdftriplestore.RdfCloudTripleStoreConnection;
 import org.eclipse.rdf4j.model.Resource;
 import org.eclipse.rdf4j.model.Statement;
-import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
-import org.eclipse.rdf4j.query.*;
-import org.eclipse.rdf4j.query.parser.*;
+import org.eclipse.rdf4j.query.BindingSet;
+import org.eclipse.rdf4j.query.GraphQuery;
+import org.eclipse.rdf4j.query.MalformedQueryException;
+import org.eclipse.rdf4j.query.QueryEvaluationException;
+import org.eclipse.rdf4j.query.QueryLanguage;
+import org.eclipse.rdf4j.query.QueryResultHandlerException;
+import org.eclipse.rdf4j.query.TupleQuery;
+import org.eclipse.rdf4j.query.TupleQueryResultHandler;
+import org.eclipse.rdf4j.query.TupleQueryResultHandlerException;
+import org.eclipse.rdf4j.query.Update;
+import org.eclipse.rdf4j.query.UpdateExecutionException;
+import org.eclipse.rdf4j.query.parser.ParsedGraphQuery;
+import org.eclipse.rdf4j.query.parser.ParsedOperation;
+import org.eclipse.rdf4j.query.parser.ParsedTupleQuery;
+import org.eclipse.rdf4j.query.parser.ParsedUpdate;
+import org.eclipse.rdf4j.query.parser.QueryParserUtil;
 import org.eclipse.rdf4j.query.resultio.sparqljson.SPARQLResultsJSONWriter;
 import org.eclipse.rdf4j.query.resultio.sparqlxml.SPARQLResultsXMLWriter;
 import org.eclipse.rdf4j.repository.RepositoryConnection;
@@ -53,10 +72,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
-
-import static org.apache.rya.api.RdfCloudTripleStoreConstants.VALUE_FACTORY;
-import static org.eclipse.rdf4j.rio.RDFFormat.NO_CONTEXTS;
-import static org.eclipse.rdf4j.rio.RDFFormat.NO_NAMESPACES;
 
 /**
  * Class RdfController
@@ -305,14 +320,13 @@ public class RdfController {
         List<Resource> authList = new ArrayList<Resource>();
         RDFFormat format_r = RDFFormat.RDFXML;
         if (format != null) {
-            format_r=  new RDFFormat(format,
-                    Arrays.asList("application/n-triples", "text/plain"), Charset.forName("UTF-8"),
-                    Collections.singletonList("nt"),
-                    SimpleValueFactory.getInstance().createIRI("http://www.w3.org/ns/formats/"+format),
-                    NO_NAMESPACES, NO_CONTEXTS);
+            format_r = RdfFormatUtils.getRdfFormatFromName(format);
+            if (format_r == null) {
+                throw new RuntimeException("RDFFormat[" + format + "] not found");
+            }
         }
         if (graph != null) {
-        	authList.add(VALUE_FACTORY.createIRI(graph));
+            authList.add(VALUE_FACTORY.createIRI(graph));
         }
         SailRepositoryConnection conn = null;
         try {

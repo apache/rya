@@ -22,9 +22,6 @@ package org.apache.rya.accumulo.mr;
 import java.io.IOException;
 import java.io.PipedReader;
 import java.io.PipedWriter;
-import java.nio.charset.Charset;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
@@ -33,19 +30,26 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
-import org.apache.hadoop.mapreduce.*;
+import org.apache.hadoop.mapreduce.InputSplit;
+import org.apache.hadoop.mapreduce.Job;
+import org.apache.hadoop.mapreduce.JobContext;
+import org.apache.hadoop.mapreduce.RecordReader;
+import org.apache.hadoop.mapreduce.TaskAttemptContext;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.input.KeyValueLineRecordReader;
 import org.apache.log4j.Logger;
 import org.apache.rya.accumulo.AccumuloRdfConfiguration;
+import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.resolver.RdfToRyaConversions;
 import org.apache.rya.api.resolver.RyaTripleContext;
+import org.apache.rya.api.utils.RdfFormatUtils;
 import org.eclipse.rdf4j.model.Statement;
-import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
-import org.eclipse.rdf4j.rio.*;
-
-import static org.eclipse.rdf4j.rio.RDFFormat.NO_CONTEXTS;
-import static org.eclipse.rdf4j.rio.RDFFormat.NO_NAMESPACES;
+import org.eclipse.rdf4j.rio.RDFFormat;
+import org.eclipse.rdf4j.rio.RDFHandler;
+import org.eclipse.rdf4j.rio.RDFHandlerException;
+import org.eclipse.rdf4j.rio.RDFParseException;
+import org.eclipse.rdf4j.rio.RDFParser;
+import org.eclipse.rdf4j.rio.Rio;
 
 /**
  * {@link FileInputFormat} that can read multiple RDF files and convert into
@@ -121,11 +125,7 @@ public class RdfFileInputFormat extends FileInputFormat<LongWritable, RyaStateme
 
     private RDFFormat getRDFFormat(JobContext context) {
         String name = context.getConfiguration().get(FORMAT_PROP);
-        return  new RDFFormat(name,
-                Arrays.asList("application/n-triples", "text/plain"), Charset.forName("UTF-8"),
-                Collections.singletonList("nt"),
-                SimpleValueFactory.getInstance().createIRI("http://www.w3.org/ns/formats/"+name),
-                NO_NAMESPACES, NO_CONTEXTS);
+        return RdfFormatUtils.getRdfFormatFromName(name);
     }
 
     /**

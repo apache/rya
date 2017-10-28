@@ -225,8 +225,8 @@ public class TupleExecutionPlanGeneratorTest {
 
         Assert.assertEquals(2, size);
 
-        Assert.assertEquals(pq1.getTupleExpr(), processedTupList.get(1));
-        Assert.assertEquals(pq2.getTupleExpr(), processedTupList.get(0));
+        Assert.assertEquals(pq1.getTupleExpr(), processedTupList.get(0));
+        Assert.assertEquals(pq2.getTupleExpr(), processedTupList.get(1));
 
     }
 
@@ -277,12 +277,12 @@ public class TupleExecutionPlanGeneratorTest {
         Assert.assertTrue(!processedTups.hasNext());
         Assert.assertEquals(6, size);
 
-        Assert.assertEquals(pq1.getTupleExpr(), processedTupList.get(5));
-        Assert.assertEquals(pq2.getTupleExpr(), processedTupList.get(0));
-        Assert.assertEquals(pq3.getTupleExpr(), processedTupList.get(2));
-        Assert.assertEquals(pq4.getTupleExpr(), processedTupList.get(4));
-        Assert.assertEquals(pq5.getTupleExpr(), processedTupList.get(1));
-        Assert.assertEquals(pq6.getTupleExpr(), processedTupList.get(3));
+        Assert.assertEquals(pq1.getTupleExpr(), processedTupList.get(1));
+        Assert.assertEquals(pq2.getTupleExpr(), processedTupList.get(2));
+        Assert.assertEquals(pq3.getTupleExpr(), processedTupList.get(4));
+        Assert.assertEquals(pq4.getTupleExpr(), processedTupList.get(0));
+        Assert.assertEquals(pq5.getTupleExpr(), processedTupList.get(3));
+        Assert.assertEquals(pq6.getTupleExpr(), processedTupList.get(5));
 
     }
 
@@ -338,12 +338,12 @@ public class TupleExecutionPlanGeneratorTest {
         Assert.assertTrue(!processedTups.hasNext());
         Assert.assertEquals(6, size);
 
-        Assert.assertEquals(pq1.getTupleExpr(), processedTupList.get(5));
-        Assert.assertEquals(pq2.getTupleExpr(), processedTupList.get(0));
-        Assert.assertEquals(pq3.getTupleExpr(), processedTupList.get(2));
-        Assert.assertEquals(pq4.getTupleExpr(), processedTupList.get(4));
-        Assert.assertEquals(pq5.getTupleExpr(), processedTupList.get(1));
-        Assert.assertEquals(pq6.getTupleExpr(), processedTupList.get(3));
+        Assert.assertEquals(pq1.getTupleExpr(), processedTupList.get(1));
+        Assert.assertEquals(pq2.getTupleExpr(), processedTupList.get(2));
+        Assert.assertEquals(pq3.getTupleExpr(), processedTupList.get(4));
+        Assert.assertEquals(pq4.getTupleExpr(), processedTupList.get(0));
+        Assert.assertEquals(pq5.getTupleExpr(), processedTupList.get(3));
+        Assert.assertEquals(pq6.getTupleExpr(), processedTupList.get(5));
 
     }
 

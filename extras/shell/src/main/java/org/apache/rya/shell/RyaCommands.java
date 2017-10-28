@@ -18,24 +18,23 @@
  */
 package org.apache.rya.shell;
 
+import static java.util.Objects.requireNonNull;
+
 import java.io.File;
 import java.io.IOException;
-import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.text.DecimalFormat;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.Objects;
 
-import com.google.common.base.Optional;
 import org.apache.rya.api.client.RyaClient;
 import org.apache.rya.api.client.RyaClientException;
+import org.apache.rya.api.utils.RdfFormatUtils;
 import org.apache.rya.shell.SharedShellState.ShellState;
 import org.apache.rya.shell.util.ConsolePrinter;
 import org.apache.rya.shell.util.SparqlPrompt;
-import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 import org.eclipse.rdf4j.rio.RDFFormat;
+import org.eclipse.rdf4j.rio.Rio;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,9 +44,7 @@ import org.springframework.shell.core.annotation.CliCommand;
 import org.springframework.shell.core.annotation.CliOption;
 import org.springframework.stereotype.Component;
 
-import static java.util.Objects.requireNonNull;
-import static org.eclipse.rdf4j.rio.RDFFormat.NO_CONTEXTS;
-import static org.eclipse.rdf4j.rio.RDFFormat.NO_NAMESPACES;
+import com.google.common.base.Optional;
 
 /**
  * Rya Shell commands that have to do with common tasks (loading and querying data)
@@ -109,18 +106,26 @@ public class RyaCommands implements CommandMarker {
 
             RDFFormat rdfFormat = null;
             if (format != null) {
-                rdfFormat = new RDFFormat(format,
-                        Arrays.asList("application/n-triples", "text/plain"), Charset.forName("UTF-8"),
-                        Collections.singletonList("nt"),
-                        SimpleValueFactory.getInstance().createIRI("http://www.w3.org/ns/formats/"+format),
-                        NO_NAMESPACES, NO_CONTEXTS);
+                rdfFormat = RdfFormatUtils.getRdfFormatFromName(format);
+                if (rdfFormat == null) {
+                    throw new RuntimeException("Unsupported RDF Statement data input format: " + format);
+                }
+            }
+            if (rdfFormat == null) {
+                rdfFormat = Rio.getParserFormatForFileName(rdfInputFile.getName()).get();
+                if (rdfFormat == null) {
+                    throw new RuntimeException("Unable to detect RDF Statement data input format for file: " + rdfInputFile);
+                } else {
+                    consolePrinter.println("Detected RDF Format: " + rdfFormat);
+                    consolePrinter.flush();
+                }
             }
             commands.getLoadStatementsFile().loadStatements(ryaInstanceName.get(), rdfInputFile.toPath(), rdfFormat);
 
             final String seconds = new DecimalFormat("0.0##").format((System.currentTimeMillis() - start) / 1000.0);
             return "Loaded the file: '" + file + "' successfully in " + seconds + " seconds.";
 
-        } catch (final RyaClientException e) {
+        } catch (final RyaClientException | IOException e) {
             log.error("Error", e);
             throw new RuntimeException("Can not load the RDF Statement data. Reason: " + e.getMessage(), e);
         }

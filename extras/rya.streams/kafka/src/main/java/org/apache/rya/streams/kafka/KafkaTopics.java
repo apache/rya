@@ -18,6 +18,10 @@
  */
 package org.apache.rya.streams.kafka;
 
+import static java.util.Objects.requireNonNull;
+
+import java.util.UUID;
+
 import org.apache.rya.streams.api.queries.QueryChangeLog;
 
 import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
@@ -30,23 +34,36 @@ import edu.umd.cs.findbugs.annotations.NonNull;
 public class KafkaTopics {
 
     /**
-     * Creates the Kafka topic that will be used for a specific instance of Rya's {@link QueryChangeLog}.
+     * Creates the Kafka topic name that is used for a specific instance of Rya's {@link QueryChangeLog}.
      *
      * @param ryaInstance - The Rya instance the change log is for. (not null)
      * @return The name of the Kafka topic.
      */
     public static String queryChangeLogTopic(final String ryaInstance) {
+        requireNonNull(ryaInstance);
         return ryaInstance + "-QueryChangeLog";
     }
 
     /**
-     * Creates the Kafka topic that will be used to load statements into the Rya Streams system for a specific
+     * Creates the Kafka topic name that is used to load statements into the Rya Streams system for a specific
      * instance of Rya.
      *
      * @param ryaInstance - The Rya instance the statements are for. (not null)
      * @return The name of the Kafka topic.
      */
     public static String statementsTopic(final String ryaInstance) {
+        requireNonNull(ryaInstance);
         return ryaInstance + "-Statements";
+    }
+
+    /**
+     * Creates the Kafka topic name that is used for a specific query that is managed within Rya Streams.
+     *
+     * @param queryId - The id of the query the topic is for.
+     * @return The name of the Kafka topic.
+     */
+    public static String queryResultsTopic(final UUID queryId) {
+        requireNonNull(queryId);
+        return "QueryResults-" + queryId.toString();
     }
 }

@@ -18,7 +18,8 @@
  */
 package org.apache.rya.streams.api.entity;
 
-import java.util.Collection;
+import static java.util.Objects.requireNonNull;
+
 import java.util.UUID;
 
 import org.apache.rya.api.model.VisibilityBindingSet;
@@ -31,12 +32,26 @@ import edu.umd.cs.findbugs.annotations.NonNull;
  * An infinite stream of {@link VisibilityBindingSet}s that are the results of a query within Rya Streams.
  */
 @DefaultAnnotation(NonNull.class)
-public interface QueryResultStream extends AutoCloseable {
+public abstract class QueryResultStream implements AutoCloseable {
+
+    private final UUID queryId;
+
+    /**
+     * Constructs an instance of {@link QueryResultStream}.
+     *
+     * @param queryId - The query whose results this stream iterates over. (not null)
+     */
+    public QueryResultStream(final UUID queryId) {
+        this.queryId = requireNonNull(queryId);
+    }
+
 
     /**
      * @return Identifies which query in Rya Streams this result stream is over.
      */
-    public UUID getQueryId();
+    public UUID getQueryId() {
+        return queryId;
+    }
 
     /**
      * Wait at most {@code timeoutMs} milliseconds for the next collection of results.
@@ -44,7 +59,8 @@ public interface QueryResultStream extends AutoCloseable {
      * @param timeoutMs - The number of milliseconds to at most wait for the next collection of results. (not null)
      * @return The next collection of {@link VisibilityBindingSet}s that are the result of the query. Empty if
      *   there where no new results within the timout period.
+     * @throws IllegalStateException If the stream has been closed.
      * @throws RyaStreamsException Could not fetch the next set of results.
      */
-    public Collection<VisibilityBindingSet> poll(long timeoutMs) throws RyaStreamsException;
+    public abstract Iterable<VisibilityBindingSet> poll(long timeoutMs) throws IllegalStateException, RyaStreamsException;
 }

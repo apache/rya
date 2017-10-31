@@ -103,4 +103,18 @@ public class KafkaTestInstanceRule extends ExternalResource {
     public Properties createBootstrapServerConfig() {
         return kafkaInstance.createBootstrapServerConfig();
     }
+
+    /**
+     * @return The hostname of the Kafka Broker.
+     */
+    public String getKafkaHostname() {
+        return kafkaInstance.getBrokerHost();
+    }
+
+    /**
+     * @return The port of the Kafka Broker.
+     */
+    public String getKafkaPort() {
+        return kafkaInstance.getBrokerPort();
+    }
 }

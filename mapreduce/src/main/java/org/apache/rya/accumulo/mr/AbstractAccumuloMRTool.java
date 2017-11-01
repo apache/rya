@@ -21,8 +21,13 @@ package org.apache.rya.accumulo.mr;
 
 import java.io.IOException;
 
-import com.google.common.base.Preconditions;
-import org.apache.accumulo.core.client.*;
+import org.apache.accumulo.core.client.AccumuloException;
+import org.apache.accumulo.core.client.AccumuloSecurityException;
+import org.apache.accumulo.core.client.ClientConfiguration;
+import org.apache.accumulo.core.client.Connector;
+import org.apache.accumulo.core.client.Instance;
+import org.apache.accumulo.core.client.IteratorSetting;
+import org.apache.accumulo.core.client.ZooKeeperInstance;
 import org.apache.accumulo.core.client.mapreduce.AccumuloInputFormat;
 import org.apache.accumulo.core.client.mapreduce.AccumuloOutputFormat;
 import org.apache.accumulo.core.client.mock.MockInstance;
@@ -40,6 +45,8 @@ import org.apache.rya.api.RdfCloudTripleStoreConstants.TABLE_LAYOUT;
 import org.apache.rya.api.RdfCloudTripleStoreUtils;
 import org.apache.rya.indexing.accumulo.ConfigUtils;
 import org.eclipse.rdf4j.rio.RDFFormat;
+
+import com.google.common.base.Preconditions;
 
 /**
  * Base class for MapReduce tools that interact with Accumulo-backed Rya. Holds

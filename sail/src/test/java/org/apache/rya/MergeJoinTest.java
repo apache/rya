@@ -19,6 +19,10 @@ package org.apache.rya;
  * under the License.
  */
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+
 import java.util.HashSet;
 import java.util.Set;
 
@@ -26,6 +30,7 @@ import org.apache.accumulo.core.client.Connector;
 import org.apache.accumulo.core.client.mock.MockInstance;
 import org.apache.rya.accumulo.AccumuloRdfConfiguration;
 import org.apache.rya.accumulo.AccumuloRyaDAO;
+import org.apache.rya.api.RdfCloudTripleStoreUtils.CustomEntry;
 import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.domain.RyaType;
 import org.apache.rya.api.domain.RyaURI;
@@ -35,9 +40,6 @@ import org.eclipse.rdf4j.common.iteration.CloseableIteration;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-
-import static junit.framework.Assert.*;
-import static org.apache.rya.api.RdfCloudTripleStoreUtils.CustomEntry;
 
 /**
  * TODO: Move to rya.api when we have proper mock ryaDao

@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -18,15 +18,16 @@
  */
 package org.apache.rya.indexing.entity.model;
 
-import java.util.*;
-import java.util.Map.Entry;
+import static java.util.Objects.requireNonNull;
 
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Maps;
-import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
-import edu.umd.cs.findbugs.annotations.NonNull;
-import edu.umd.cs.findbugs.annotations.Nullable;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Objects;
+import java.util.Optional;
+
 import org.apache.http.annotation.Immutable;
 import org.apache.log4j.Logger;
 import org.apache.rya.api.domain.RyaURI;
@@ -35,7 +36,13 @@ import org.apache.rya.indexing.smarturi.SmartUriAdapter;
 import org.apache.rya.indexing.smarturi.SmartUriException;
 import org.eclipse.rdf4j.model.IRI;
 
-import static java.util.Objects.requireNonNull;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Maps;
+
+import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
+import edu.umd.cs.findbugs.annotations.NonNull;
+import edu.umd.cs.findbugs.annotations.Nullable;
 
 /**
  * An {@link Entity} is a named concept that has at least one defined structure

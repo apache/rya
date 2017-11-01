@@ -18,10 +18,13 @@
  */
 package org.apache.rya.rdftriplestore.inference;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
-import com.google.common.collect.Sets;
-import junit.framework.TestCase;
 import org.apache.accumulo.core.client.Connector;
 import org.apache.accumulo.core.client.mock.MockInstance;
 import org.apache.accumulo.core.client.security.tokens.PasswordToken;
@@ -40,6 +43,10 @@ import org.eclipse.rdf4j.repository.sail.SailRepositoryConnection;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Test;
+
+import com.google.common.collect.Sets;
+
+import junit.framework.TestCase;
 
 public class InferenceEngineTest extends TestCase {
     private Connector connector;

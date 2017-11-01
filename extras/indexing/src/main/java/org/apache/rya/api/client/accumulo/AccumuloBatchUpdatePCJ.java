@@ -18,11 +18,12 @@
  */
 package org.apache.rya.api.client.accumulo;
 
+import static java.util.Objects.requireNonNull;
+
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-import com.google.common.base.Optional;
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
 import org.apache.accumulo.core.client.Connector;
@@ -61,7 +62,7 @@ import org.eclipse.rdf4j.sail.Sail;
 import org.eclipse.rdf4j.sail.SailConnection;
 import org.eclipse.rdf4j.sail.SailException;
 
-import static java.util.Objects.requireNonNull;
+import com.google.common.base.Optional;
 
 /**
  * Uses an in memory Rya Client to batch update a PCJ index.
@@ -81,8 +82,7 @@ public class AccumuloBatchUpdatePCJ extends AccumuloCommand implements BatchUpda
     }
 
     @Override
-    public void batchUpdate(final String ryaInstanceName, final String pcjId) throws
-            RyaClientException {
+    public void batchUpdate(final String ryaInstanceName, final String pcjId) throws InstanceDoesNotExistException, PCJDoesNotExistException, RyaClientException {
         requireNonNull(ryaInstanceName);
         requireNonNull(pcjId);
         verifyPCJState(ryaInstanceName, pcjId);
@@ -119,8 +119,7 @@ public class AccumuloBatchUpdatePCJ extends AccumuloCommand implements BatchUpda
         }
     }
 
-    private void updatePCJResults(final String ryaInstanceName, final String pcjId) throws
-            RyaClientException {
+    private void updatePCJResults(final String ryaInstanceName, final String pcjId) throws InstanceDoesNotExistException, PCJDoesNotExistException, RyaClientException {
         // Things that have to be closed before we exit.
         Sail sail = null;
         SailConnection sailConn = null;

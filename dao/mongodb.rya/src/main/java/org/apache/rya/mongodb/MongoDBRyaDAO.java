@@ -25,7 +25,6 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-import com.mongodb.*;
 import org.apache.accumulo.core.security.Authorizations;
 import org.apache.commons.io.IOUtils;
 import org.apache.log4j.Logger;
@@ -47,6 +46,12 @@ import org.apache.rya.mongodb.dao.MongoDBStorageStrategy;
 import org.apache.rya.mongodb.dao.SimpleMongoDBNamespaceManager;
 import org.apache.rya.mongodb.dao.SimpleMongoDBStorageStrategy;
 import org.apache.rya.mongodb.document.util.DocumentVisibilityUtil;
+
+import com.mongodb.DB;
+import com.mongodb.DBCollection;
+import com.mongodb.DBObject;
+import com.mongodb.DuplicateKeyException;
+import com.mongodb.MongoClient;
 
 /**
  * Default DAO for mongo backed RYA allowing for CRUD operations.

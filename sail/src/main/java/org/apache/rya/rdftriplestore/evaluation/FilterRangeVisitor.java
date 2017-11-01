@@ -1,20 +1,3 @@
-package org.apache.rya.rdftriplestore.evaluation;
-
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
-import org.apache.rya.api.domain.RangeURI;
-import org.apache.rya.api.domain.RangeValue;
-import org.eclipse.rdf4j.model.Value;
-import org.eclipse.rdf4j.model.impl.BooleanLiteralImpl;
-import org.eclipse.rdf4j.query.QueryEvaluationException;
-import org.eclipse.rdf4j.query.algebra.*;
-import org.eclipse.rdf4j.query.algebra.helpers.AbstractQueryModelVisitor;
-
-import static org.apache.rya.api.RdfCloudTripleStoreConstants.RANGE;
-
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -33,6 +16,27 @@ import static org.apache.rya.api.RdfCloudTripleStoreConstants.RANGE;
  * specific language governing permissions and limitations
  * under the License.
  */
+package org.apache.rya.rdftriplestore.evaluation;
+
+import static org.apache.rya.api.RdfCloudTripleStoreConstants.RANGE;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
+import org.apache.rya.api.domain.RangeURI;
+import org.apache.rya.api.domain.RangeValue;
+import org.eclipse.rdf4j.model.Value;
+import org.eclipse.rdf4j.model.impl.BooleanLiteral;
+import org.eclipse.rdf4j.query.QueryEvaluationException;
+import org.eclipse.rdf4j.query.algebra.Filter;
+import org.eclipse.rdf4j.query.algebra.FunctionCall;
+import org.eclipse.rdf4j.query.algebra.StatementPattern;
+import org.eclipse.rdf4j.query.algebra.ValueConstant;
+import org.eclipse.rdf4j.query.algebra.ValueExpr;
+import org.eclipse.rdf4j.query.algebra.Var;
+import org.eclipse.rdf4j.query.algebra.helpers.AbstractQueryModelVisitor;
 
 /**
  * Class FilterTimeIndexVisitor
@@ -67,7 +71,7 @@ public class FilterRangeVisitor extends AbstractQueryModelVisitor<Exception> {
                 final Value start = startVc.getValue();
                 final Value end = endVc.getValue();
                 rangeValues.put(var, new RangeValue(start, end));
-                node.setCondition(new ValueConstant(BooleanLiteralImpl.TRUE));
+                node.setCondition(new ValueConstant(BooleanLiteral.TRUE));
             }
         }
     }

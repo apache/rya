@@ -20,11 +20,13 @@
 import java.io.IOException;
 import java.util.List;
 
-import com.mongodb.MongoClient;
-import com.mongodb.ServerAddress;
 import org.apache.commons.lang.Validate;
 import org.apache.hadoop.conf.Configuration;
-import org.apache.log4j.*;
+import org.apache.log4j.ConsoleAppender;
+import org.apache.log4j.Level;
+import org.apache.log4j.LogManager;
+import org.apache.log4j.Logger;
+import org.apache.log4j.PatternLayout;
 import org.apache.rya.indexing.accumulo.ConfigUtils;
 import org.apache.rya.indexing.mongodb.MongoIndexingConfiguration;
 import org.apache.rya.indexing.mongodb.MongoIndexingConfiguration.MongoDBIndexingConfigBuilder;
@@ -41,12 +43,24 @@ import org.eclipse.rdf4j.model.ValueFactory;
 import org.eclipse.rdf4j.model.vocabulary.OWL;
 import org.eclipse.rdf4j.model.vocabulary.RDF;
 import org.eclipse.rdf4j.model.vocabulary.RDFS;
-import org.eclipse.rdf4j.query.*;
+import org.eclipse.rdf4j.query.BindingSet;
+import org.eclipse.rdf4j.query.MalformedQueryException;
+import org.eclipse.rdf4j.query.QueryEvaluationException;
+import org.eclipse.rdf4j.query.QueryLanguage;
+import org.eclipse.rdf4j.query.QueryResultHandlerException;
+import org.eclipse.rdf4j.query.TupleQuery;
+import org.eclipse.rdf4j.query.TupleQueryResultHandler;
+import org.eclipse.rdf4j.query.TupleQueryResultHandlerException;
+import org.eclipse.rdf4j.query.Update;
+import org.eclipse.rdf4j.query.UpdateExecutionException;
 import org.eclipse.rdf4j.repository.RepositoryException;
 import org.eclipse.rdf4j.repository.RepositoryResult;
 import org.eclipse.rdf4j.repository.sail.SailRepository;
 import org.eclipse.rdf4j.repository.sail.SailRepositoryConnection;
 import org.eclipse.rdf4j.sail.Sail;
+
+import com.mongodb.MongoClient;
+import com.mongodb.ServerAddress;
 
 
 public class MongoRyaDirectExample {
@@ -207,15 +221,16 @@ public class MongoRyaDirectExample {
         conn.add(f.createIRI(uuid), RDF.TYPE, person);
         conn.add(f.createIRI(uuid), RDFS.LABEL, f.createLiteral("Alice Palace Hose", f.createIRI("xsd:string")));
 
-        uuid = "urn:people:bobss";
+        uuid = "urn:people:bob";
         conn.add(f.createIRI(uuid), RDF.TYPE, person);
-        conn.add(f.createIRI(uuid), RDFS.LABEL, f.createLiteral("Bob Snob Hose", "en"));
+        conn.add(f.createIRI(uuid), RDFS.LABEL, f.createLiteral("Bob Snob Hose", f.createIRI("xsd:string")));
 
         String queryString;
         TupleQuery tupleQuery;
         CountingResultHandler tupleHandler;
 
-        // ///////////// search for alice
+
+        // ///////////// search for Palace
         queryString = "PREFIX fts: <http://rdf.useekm.com/fts#>  "//
                 + "SELECT ?person ?match ?e ?c ?l ?o " //
                 + "{" //
@@ -229,7 +244,35 @@ public class MongoRyaDirectExample {
         Validate.isTrue(tupleHandler.getCount() == 1);
 
 
-        // ///////////// search for alice and bob
+        // ///////////// search for Snob
+        queryString = "PREFIX fts: <http://rdf.useekm.com/fts#>  "//
+                + "SELECT ?person ?match ?e ?c ?l ?o " //
+                + "{" //
+                + "  ?person <http://www.w3.org/2000/01/rdf-schema#label> ?match . "//
+                + "  FILTER(fts:text(?match, \"Snob\")) " //
+                + "}";//
+        tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, queryString);
+        tupleHandler = new CountingResultHandler();
+        tupleQuery.evaluate(tupleHandler);
+        log.info("Result count : " + tupleHandler.getCount());
+        Validate.isTrue(tupleHandler.getCount() == 1);
+
+
+        // ///////////// search for Hose
+        queryString = "PREFIX fts: <http://rdf.useekm.com/fts#>  "//
+                + "SELECT ?person ?match ?e ?c ?l ?o " //
+                + "{" //
+                + "  ?person <http://www.w3.org/2000/01/rdf-schema#label> ?match . "//
+                + "  FILTER(fts:text(?match, \"Hose\")) " //
+                + "}";//
+        tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, queryString);
+        tupleHandler = new CountingResultHandler();
+        tupleQuery.evaluate(tupleHandler);
+        log.info("Result count : " + tupleHandler.getCount());
+        Validate.isTrue(tupleHandler.getCount() == 2);
+
+
+        // ///////////// search for alice
         queryString = "PREFIX fts: <http://rdf.useekm.com/fts#>  "//
                 + "SELECT ?person ?match " //
                 + "{" //
@@ -243,14 +286,15 @@ public class MongoRyaDirectExample {
         log.info("Result count : " + tupleHandler.getCount());
         Validate.isTrue(tupleHandler.getCount() == 1);
 
-     // ///////////// search for alice and bob
+
+        // ///////////// search for alice and hose
         queryString = "PREFIX fts: <http://rdf.useekm.com/fts#>  "//
                 + "SELECT ?person ?match " //
                 + "{" //
                 + "  ?person a <http://example.org/ontology/Person> . "//
                 + "  ?person <http://www.w3.org/2000/01/rdf-schema#label> ?match . "//
                 + "  FILTER(fts:text(?match, \"alice\")) " //
-                + "  FILTER(fts:text(?match, \"palace\")) " //
+                + "  FILTER(fts:text(?match, \"hose\")) " //
                 + "}";//
         tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, queryString);
         tupleHandler = new CountingResultHandler();
@@ -259,13 +303,13 @@ public class MongoRyaDirectExample {
         Validate.isTrue(tupleHandler.getCount() == 1);
 
 
-        // ///////////// search for bob
+        // ///////////// search for alice or hose
         queryString = "PREFIX fts: <http://rdf.useekm.com/fts#>  "//
                 + "SELECT ?person ?match ?e ?c ?l ?o " //
                 + "{" //
                 + "  ?person a <http://example.org/ontology/Person> . "//
                 + "  ?person <http://www.w3.org/2000/01/rdf-schema#label> ?match . "//
-                // this is an or query in mongo, a and query in accumulo
+                // this is an or query in mongo, an and query in accumulo
                 + "  FILTER(fts:text(?match, \"alice hose\")) " //
                 + "}";//
 
@@ -274,6 +318,56 @@ public class MongoRyaDirectExample {
         tupleQuery.evaluate(tupleHandler);
         log.info("Result count : " + tupleHandler.getCount());
         Validate.isTrue(tupleHandler.getCount() == 2);
+
+
+        // ///////////// search for alice or bob
+        queryString = "PREFIX fts: <http://rdf.useekm.com/fts#>  "//
+                + "SELECT ?person ?match ?e ?c ?l ?o " //
+                + "{" //
+                + "  ?person a <http://example.org/ontology/Person> . "//
+                + "  ?person <http://www.w3.org/2000/01/rdf-schema#label> ?match . "//
+                // this is an or query in mongo, an and query in accumulo
+                + "  FILTER(fts:text(?match, \"alice bob\")) " //
+                + "}";//
+
+        tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, queryString);
+        tupleHandler = new CountingResultHandler();
+        tupleQuery.evaluate(tupleHandler);
+        log.info("Result count : " + tupleHandler.getCount());
+        Validate.isTrue(tupleHandler.getCount() == 2);
+
+
+        // ///////////// search for alice and bob
+        queryString = "PREFIX fts: <http://rdf.useekm.com/fts#>  "//
+                + "SELECT ?person ?match ?e ?c ?l ?o " //
+                + "{" //
+                + "  ?person a <http://example.org/ontology/Person> . "//
+                + "  ?person <http://www.w3.org/2000/01/rdf-schema#label> ?match . "//
+                + "  FILTER(fts:text(?match, \"alice\")) " //
+                + "  FILTER(fts:text(?match, \"bob\")) " //
+                + "}";//
+
+        tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, queryString);
+        tupleHandler = new CountingResultHandler();
+        tupleQuery.evaluate(tupleHandler);
+        log.info("Result count : " + tupleHandler.getCount());
+        Validate.isTrue(tupleHandler.getCount() == 0);
+
+
+        // ///////////// search for bob
+        queryString = "PREFIX fts: <http://rdf.useekm.com/fts#>  "//
+                + "SELECT ?person ?match ?e ?c ?l ?o " //
+                + "{" //
+                + "  ?person a <http://example.org/ontology/Person> . "//
+                + "  ?person <http://www.w3.org/2000/01/rdf-schema#label> ?match . "//
+                + "  FILTER(fts:text(?match, \"bob\")) " //
+                + "}";//
+
+        tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, queryString);
+        tupleHandler = new CountingResultHandler();
+        tupleQuery.evaluate(tupleHandler);
+        log.info("Result count : " + tupleHandler.getCount());
+        Validate.isTrue(tupleHandler.getCount() == 1);
     }
 
     private static Configuration getConf() throws IOException {

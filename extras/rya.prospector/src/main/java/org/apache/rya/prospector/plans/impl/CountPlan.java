@@ -18,9 +18,17 @@
  */
 package org.apache.rya.prospector.plans.impl;
 
+import static org.apache.rya.prospector.utils.ProspectorConstants.COUNT;
+
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Date;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 
 import org.apache.accumulo.core.client.BatchScanner;
@@ -47,8 +55,6 @@ import org.apache.rya.prospector.utils.CustomEntry;
 import org.apache.rya.prospector.utils.ProspectorUtils;
 import org.eclipse.rdf4j.model.util.URIUtil;
 import org.eclipse.rdf4j.model.vocabulary.XMLSchema;
-
-import static org.apache.rya.prospector.utils.ProspectorConstants.COUNT;
 
 /**
  * An implementation of {@link IndexWorkPlan} that counts the number of times

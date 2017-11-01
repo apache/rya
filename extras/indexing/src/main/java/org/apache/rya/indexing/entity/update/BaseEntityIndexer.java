@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -18,14 +18,20 @@
  */
 package org.apache.rya.indexing.entity.update;
 
+import static com.google.common.base.Preconditions.checkState;
+import static java.util.Collections.singleton;
+import static java.util.Objects.requireNonNull;
+import static java.util.stream.Collectors.groupingBy;
+
 import java.io.IOException;
-import java.util.*;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 
-import com.google.common.base.Objects;
-import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
-import edu.umd.cs.findbugs.annotations.NonNull;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.log4j.Logger;
 import org.apache.rya.api.domain.RyaStatement;
@@ -45,10 +51,10 @@ import org.apache.rya.mongodb.MongoSecondaryIndex;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.vocabulary.RDF;
 
-import static com.google.common.base.Preconditions.checkState;
-import static java.util.Collections.singleton;
-import static java.util.Objects.requireNonNull;
-import static java.util.stream.Collectors.groupingBy;
+import com.google.common.base.Objects;
+
+import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
+import edu.umd.cs.findbugs.annotations.NonNull;
 
 /**
  * A base class that may be used to update an {@link EntityStorage} as new

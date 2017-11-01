@@ -20,12 +20,16 @@ package org.apache.rya.periodic.notification.pruner;
 
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.*;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
-import com.google.common.collect.Sets;
 import javax.xml.datatype.DatatypeFactory;
+
 import org.apache.fluo.api.client.FluoClient;
 import org.apache.fluo.api.client.Snapshot;
 import org.apache.fluo.api.client.scanner.ColumnScanner;
@@ -50,7 +54,6 @@ import org.apache.rya.pcj.fluo.test.base.RyaExportITBase;
 import org.apache.rya.periodic.notification.api.NodeBin;
 import org.eclipse.rdf4j.model.Statement;
 import org.eclipse.rdf4j.model.ValueFactory;
-import org.eclipse.rdf4j.model.impl.LiteralImpl;
 import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 import org.eclipse.rdf4j.model.vocabulary.XMLSchema;
 import org.eclipse.rdf4j.query.BindingSet;
@@ -58,6 +61,8 @@ import org.eclipse.rdf4j.query.algebra.evaluation.QueryBindingSet;
 import org.eclipse.rdf4j.query.impl.MapBindingSet;
 import org.junit.Assert;
 import org.junit.Test;
+
+import com.google.common.collect.Sets;
 
 public class PeriodicNotificationBinPrunerIT extends RyaExportITBase {
 
@@ -244,8 +249,9 @@ public class PeriodicNotificationBinPrunerIT extends RyaExportITBase {
     }
     
     private void compareFluoCounts(FluoClient client, String pcjId, long bin) {
+        final ValueFactory vf = SimpleValueFactory.getInstance();
         QueryBindingSet bs = new QueryBindingSet();
-        bs.addBinding(IncrementalUpdateConstants.PERIODIC_BIN_ID, new LiteralImpl(Long.toString(bin), XMLSchema.LONG));
+        bs.addBinding(IncrementalUpdateConstants.PERIODIC_BIN_ID, vf.createLiteral(Long.toString(bin), XMLSchema.LONG));
         
         VariableOrder varOrder = new VariableOrder(IncrementalUpdateConstants.PERIODIC_BIN_ID);
         

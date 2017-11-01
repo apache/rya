@@ -18,18 +18,30 @@
  */
 package org.apache.rya.indexing.pcj.fluo.app.query;
 
+import static java.util.Objects.requireNonNull;
+
 import java.io.Serializable;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
+
+import org.apache.rya.indexing.pcj.storage.accumulo.VariableOrder;
+import org.eclipse.rdf4j.query.algebra.AggregateOperator;
+import org.eclipse.rdf4j.query.algebra.Avg;
+import org.eclipse.rdf4j.query.algebra.Count;
+import org.eclipse.rdf4j.query.algebra.Max;
+import org.eclipse.rdf4j.query.algebra.Min;
+import org.eclipse.rdf4j.query.algebra.Sum;
 
 import com.google.common.collect.ImmutableMap;
+
 import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
 import edu.umd.cs.findbugs.annotations.NonNull;
 import edu.umd.cs.findbugs.annotations.Nullable;
 import net.jcip.annotations.Immutable;
-import org.apache.rya.indexing.pcj.storage.accumulo.VariableOrder;
-import org.eclipse.rdf4j.query.algebra.*;
-
-import static java.util.Objects.requireNonNull;
 
 /**
  * Metadata that is relevant to Aggregate nodes.

@@ -18,8 +18,11 @@ package org.apache.rya.indexing.statement.metadata.matching;
  * under the License.
  */
 
-import com.mongodb.MongoClient;
-import org.apache.accumulo.core.client.*;
+import org.apache.accumulo.core.client.AccumuloException;
+import org.apache.accumulo.core.client.AccumuloSecurityException;
+import org.apache.accumulo.core.client.Connector;
+import org.apache.accumulo.core.client.Instance;
+import org.apache.accumulo.core.client.ZooKeeperInstance;
 import org.apache.accumulo.core.client.mock.MockInstance;
 import org.apache.accumulo.core.client.security.tokens.PasswordToken;
 import org.apache.rya.accumulo.AccumuloRdfConfiguration;
@@ -29,6 +32,8 @@ import org.apache.rya.api.persist.query.RyaQueryEngine;
 import org.apache.rya.mongodb.MongoConnectorFactory;
 import org.apache.rya.mongodb.MongoDBQueryEngine;
 import org.apache.rya.mongodb.MongoDBRdfConfiguration;
+
+import com.mongodb.MongoClient;
 
 /**
  * THis class creates the appropriate {@link RyaQueryEngine} based on the type of

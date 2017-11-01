@@ -19,11 +19,15 @@ package org.apache.rya.accumulo.pcj.iterators;
  * under the License.
  */
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
-
-import com.google.common.collect.Multimap;
-import com.google.common.collect.Sets;
+import java.util.NoSuchElementException;
+import java.util.Set;
 
 import org.apache.rya.api.domain.VarNameUtils;
 import org.apache.rya.indexing.external.tupleSet.ExternalTupleSet;
@@ -31,6 +35,9 @@ import org.eclipse.rdf4j.common.iteration.CloseableIteration;
 import org.eclipse.rdf4j.query.BindingSet;
 import org.eclipse.rdf4j.query.QueryEvaluationException;
 import org.eclipse.rdf4j.query.algebra.evaluation.QueryBindingSet;
+
+import com.google.common.collect.Multimap;
+import com.google.common.collect.Sets;
 
 /**
  * This {@link CloseableIteration} performs a hash join by joining each

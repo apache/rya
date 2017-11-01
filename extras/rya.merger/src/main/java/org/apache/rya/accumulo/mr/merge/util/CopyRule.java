@@ -26,7 +26,14 @@ import org.apache.rya.accumulo.mr.merge.util.QueryRuleset.QueryRulesetException;
 import org.eclipse.rdf4j.model.Statement;
 import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 import org.eclipse.rdf4j.query.QueryEvaluationException;
-import org.eclipse.rdf4j.query.algebra.*;
+import org.eclipse.rdf4j.query.algebra.AbstractQueryModelNode;
+import org.eclipse.rdf4j.query.algebra.And;
+import org.eclipse.rdf4j.query.algebra.QueryModelNode;
+import org.eclipse.rdf4j.query.algebra.QueryModelVisitor;
+import org.eclipse.rdf4j.query.algebra.StatementPattern;
+import org.eclipse.rdf4j.query.algebra.ValueConstant;
+import org.eclipse.rdf4j.query.algebra.ValueExpr;
+import org.eclipse.rdf4j.query.algebra.Var;
 import org.eclipse.rdf4j.query.algebra.evaluation.EvaluationStrategy;
 import org.eclipse.rdf4j.query.algebra.evaluation.QueryBindingSet;
 import org.eclipse.rdf4j.query.algebra.evaluation.ValueExprEvaluationException;
@@ -36,7 +43,7 @@ import org.eclipse.rdf4j.query.algebra.helpers.AbstractQueryModelVisitor;
  * A rule that defines a subset of statements to copy at the RDF level. Consists of a
  * statement pattern and an optional filter expression.
  */
-public class CopyRule extends QueryModelNodeBase {
+public class CopyRule extends AbstractQueryModelNode {
     private static final ValueConstant TRUE = new ValueConstant(SimpleValueFactory.getInstance().createLiteral(true));
 
     private static final String SUFFIX = UUID.randomUUID().toString();

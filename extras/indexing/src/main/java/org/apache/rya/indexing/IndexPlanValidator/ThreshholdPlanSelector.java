@@ -22,12 +22,18 @@ package org.apache.rya.indexing.IndexPlanValidator;
 import java.util.Iterator;
 import java.util.Set;
 
-import com.google.common.collect.Sets;
-
 import org.apache.rya.api.domain.VarNameUtils;
 import org.apache.rya.indexing.external.tupleSet.ExternalTupleSet;
-import org.eclipse.rdf4j.query.algebra.*;
+import org.eclipse.rdf4j.query.algebra.BindingSetAssignment;
+import org.eclipse.rdf4j.query.algebra.Filter;
+import org.eclipse.rdf4j.query.algebra.Join;
+import org.eclipse.rdf4j.query.algebra.Projection;
+import org.eclipse.rdf4j.query.algebra.QueryModelNode;
+import org.eclipse.rdf4j.query.algebra.StatementPattern;
+import org.eclipse.rdf4j.query.algebra.TupleExpr;
 import org.eclipse.rdf4j.query.algebra.helpers.AbstractQueryModelVisitor;
+
+import com.google.common.collect.Sets;
 
 public class ThreshholdPlanSelector implements IndexedQueryPlanSelector {
 

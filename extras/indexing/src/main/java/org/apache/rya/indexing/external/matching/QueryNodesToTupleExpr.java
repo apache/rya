@@ -24,8 +24,13 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.eclipse.rdf4j.query.algebra.Filter;
+import org.eclipse.rdf4j.query.algebra.Join;
+import org.eclipse.rdf4j.query.algebra.LeftJoin;
+import org.eclipse.rdf4j.query.algebra.QueryModelNode;
+import org.eclipse.rdf4j.query.algebra.TupleExpr;
+
 import com.google.common.collect.Lists;
-import org.eclipse.rdf4j.query.algebra.*;
 
 /**
  * This class converts a given collection of {@link QueryModelNode}s into a

@@ -18,10 +18,21 @@
  */
 package org.apache.rya.indexing.pcj.storage.accumulo;
 
-import java.util.*;
+import static java.util.Objects.requireNonNull;
 
-import com.google.common.base.Preconditions;
-import org.apache.accumulo.core.client.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+
+import org.apache.accumulo.core.client.AccumuloException;
+import org.apache.accumulo.core.client.AccumuloSecurityException;
+import org.apache.accumulo.core.client.BatchDeleter;
+import org.apache.accumulo.core.client.BatchWriterConfig;
+import org.apache.accumulo.core.client.Connector;
 import org.apache.accumulo.core.client.Scanner;
 import org.apache.accumulo.core.data.Range;
 import org.apache.accumulo.core.security.Authorizations;
@@ -32,10 +43,12 @@ import org.apache.rya.indexing.pcj.storage.PeriodicQueryStorageException;
 import org.apache.rya.indexing.pcj.storage.PeriodicQueryStorageMetadata;
 import org.apache.rya.indexing.pcj.storage.PrecomputedJoinStorage.CloseableIterator;
 import org.apache.rya.indexing.pcj.storage.accumulo.BindingSetConverter.BindingSetConversionException;
-import org.eclipse.rdf4j.model.impl.LiteralImpl;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 import org.eclipse.rdf4j.model.vocabulary.XMLSchema;
 import org.eclipse.rdf4j.query.BindingSet;
 import org.eclipse.rdf4j.query.MalformedQueryException;
+import org.eclipse.rdf4j.query.algebra.AbstractAggregateOperator;
 import org.eclipse.rdf4j.query.algebra.AggregateOperatorBase;
 import org.eclipse.rdf4j.query.algebra.ExtensionElem;
 import org.eclipse.rdf4j.query.algebra.TupleExpr;
@@ -43,7 +56,7 @@ import org.eclipse.rdf4j.query.algebra.evaluation.QueryBindingSet;
 import org.eclipse.rdf4j.query.algebra.helpers.AbstractQueryModelVisitor;
 import org.eclipse.rdf4j.query.parser.sparql.SPARQLParser;
 
-import static java.util.Objects.requireNonNull;
+import com.google.common.base.Preconditions;
 
 /**
  * This class is the Accumulo implementation of {@link PeriodicQueryResultStorage} for
@@ -194,8 +207,9 @@ public class AccumuloPeriodicQueryResultStorage implements PeriodicQueryResultSt
     }
     
     private Text getRowPrefix(long binId) throws BindingSetConversionException {
+        final ValueFactory vf = SimpleValueFactory.getInstance();
         QueryBindingSet bs = new QueryBindingSet();
-        bs.addBinding(PeriodicQueryResultStorage.PeriodicBinId, new LiteralImpl(Long.toString(binId), XMLSchema.LONG));
+        bs.addBinding(PeriodicQueryResultStorage.PeriodicBinId, vf.createLiteral(Long.toString(binId), XMLSchema.LONG));
         
         return new Text(converter.convert(bs, new VariableOrder(PeriodicQueryResultStorage.PeriodicBinId)));
     }
@@ -249,7 +263,7 @@ public class AccumuloPeriodicQueryResultStorage implements PeriodicQueryResultSt
         
         @Override
         public void meet(ExtensionElem node) {
-            if(node.getExpr() instanceof AggregateOperatorBase) {
+            if(node.getExpr() instanceof AbstractAggregateOperator) {
                 bindingNames.remove(node.getName());
             }
         }

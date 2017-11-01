@@ -18,13 +18,15 @@
  */
 package org.apache.rya.indexing.pcj.fluo.app;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
 
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 import org.apache.rya.indexing.pcj.fluo.app.JoinResultUpdater.IterativeJoin;
 import org.apache.rya.indexing.pcj.fluo.app.JoinResultUpdater.NaturalJoin;
 import org.apache.rya.indexing.pcj.storage.accumulo.VisibilityBindingSet;
@@ -34,15 +36,15 @@ import org.eclipse.rdf4j.query.BindingSet;
 import org.eclipse.rdf4j.query.impl.MapBindingSet;
 import org.junit.Test;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 
 /**
  * Tests the methods of {@link NaturalJoin}.
  */
 public class NaturalJoinTest {
 
-    private final ValueFactory vf = SimpleValueFactory.getInstance();
+    private static final ValueFactory VF = SimpleValueFactory.getInstance();
 
     @Test
     public void newLeftResult_noRightMatches() {
@@ -50,7 +52,7 @@ public class NaturalJoinTest {
 
         // There is a new left result.
         final MapBindingSet newLeftResult = new MapBindingSet();
-        newLeftResult.addBinding("name", vf.createLiteral("Bob"));
+        newLeftResult.addBinding("name", VF.createLiteral("Bob"));
 
         // There are no right results that join with the left result.
         final Iterator<VisibilityBindingSet> rightResults= new ArrayList<VisibilityBindingSet>().iterator();
@@ -66,17 +68,17 @@ public class NaturalJoinTest {
 
         // There is a new left result.
         final MapBindingSet newLeftResult = new MapBindingSet();
-        newLeftResult.addBinding("name", vf.createLiteral("Bob"));
-        newLeftResult.addBinding("height", vf.createLiteral("5'9\""));
+        newLeftResult.addBinding("name", VF.createLiteral("Bob"));
+        newLeftResult.addBinding("height", VF.createLiteral("5'9\""));
 
         // There are a few right results that join with the left result.
         final MapBindingSet nameAge = new MapBindingSet();
-        nameAge.addBinding("name", vf.createLiteral("Bob"));
-        nameAge.addBinding("age", vf.createLiteral(56));
+        nameAge.addBinding("name", VF.createLiteral("Bob"));
+        nameAge.addBinding("age", VF.createLiteral(BigInteger.valueOf(56)));
 
         final MapBindingSet nameHair = new MapBindingSet();
-        nameHair.addBinding("name", vf.createLiteral("Bob"));
-        nameHair.addBinding("hairColor", vf.createLiteral("Brown"));
+        nameHair.addBinding("name", VF.createLiteral("Bob"));
+        nameHair.addBinding("hairColor", VF.createLiteral("Brown"));
 
         final Iterator<VisibilityBindingSet> rightResults = Lists.newArrayList(
                 new VisibilityBindingSet(nameAge),
@@ -92,15 +94,15 @@ public class NaturalJoinTest {
 
         final Set<BindingSet> expected = Sets.newHashSet();
         final MapBindingSet nameHeightAge = new MapBindingSet();
-        nameHeightAge.addBinding("name", vf.createLiteral("Bob"));
-        nameHeightAge.addBinding("height", vf.createLiteral("5'9\""));
-        nameHeightAge.addBinding("age", vf.createLiteral(56));
+        nameHeightAge.addBinding("name", VF.createLiteral("Bob"));
+        nameHeightAge.addBinding("height", VF.createLiteral("5'9\""));
+        nameHeightAge.addBinding("age", VF.createLiteral(BigInteger.valueOf(56)));
         expected.add(new VisibilityBindingSet(nameHeightAge));
 
         final MapBindingSet nameHeightHair = new MapBindingSet();
-        nameHeightHair.addBinding("name", vf.createLiteral("Bob"));
-        nameHeightHair.addBinding("height", vf.createLiteral("5'9\""));
-        nameHeightHair.addBinding("hairColor", vf.createLiteral("Brown"));
+        nameHeightHair.addBinding("name", VF.createLiteral("Bob"));
+        nameHeightHair.addBinding("height", VF.createLiteral("5'9\""));
+        nameHeightHair.addBinding("hairColor", VF.createLiteral("Brown"));
         expected.add(new VisibilityBindingSet(nameHeightHair));
 
         assertEquals(expected, newJoinResults);
@@ -115,7 +117,7 @@ public class NaturalJoinTest {
 
         // There is a new right result.
         final MapBindingSet newRightResult = new MapBindingSet();
-        newRightResult.addBinding("name", vf.createLiteral("Bob"));
+        newRightResult.addBinding("name", VF.createLiteral("Bob"));
 
         // Therefore, there are no new join results.
         final Iterator<VisibilityBindingSet> newJoinResultsIt = naturalJoin.newRightResult(leftResults, new VisibilityBindingSet(newRightResult));
@@ -128,12 +130,12 @@ public class NaturalJoinTest {
 
         // There are a few left results that join with the new right result.
         final MapBindingSet nameAge = new MapBindingSet();
-        nameAge.addBinding("name", vf.createLiteral("Bob"));
-        nameAge.addBinding("age", vf.createLiteral(56));
+        nameAge.addBinding("name", VF.createLiteral("Bob"));
+        nameAge.addBinding("age", VF.createLiteral(BigInteger.valueOf(56)));
 
         final MapBindingSet nameHair = new MapBindingSet();
-        nameHair.addBinding("name", vf.createLiteral("Bob"));
-        nameHair.addBinding("hairColor", vf.createLiteral("Brown"));
+        nameHair.addBinding("name", VF.createLiteral("Bob"));
+        nameHair.addBinding("hairColor", VF.createLiteral("Brown"));
 
         final Iterator<VisibilityBindingSet> leftResults = Lists.newArrayList(
                 new VisibilityBindingSet(nameAge),
@@ -141,8 +143,8 @@ public class NaturalJoinTest {
 
         // There is a new right result.
         final MapBindingSet newRightResult = new MapBindingSet();
-        newRightResult.addBinding("name", vf.createLiteral("Bob"));
-        newRightResult.addBinding("height", vf.createLiteral("5'9\""));
+        newRightResult.addBinding("name", VF.createLiteral("Bob"));
+        newRightResult.addBinding("height", VF.createLiteral("5'9\""));
 
         // Therefore, there are a few new join results that mix the two together.
         final Iterator<VisibilityBindingSet> newJoinResultsIt = naturalJoin.newRightResult(leftResults, new VisibilityBindingSet(newRightResult));
@@ -154,15 +156,15 @@ public class NaturalJoinTest {
 
         final Set<BindingSet> expected = Sets.newHashSet();
         final MapBindingSet nameHeightAge = new MapBindingSet();
-        nameHeightAge.addBinding("name", vf.createLiteral("Bob"));
-        nameHeightAge.addBinding("height", vf.createLiteral("5'9\""));
-        nameHeightAge.addBinding("age", vf.createLiteral(56));
+        nameHeightAge.addBinding("name", VF.createLiteral("Bob"));
+        nameHeightAge.addBinding("height", VF.createLiteral("5'9\""));
+        nameHeightAge.addBinding("age", VF.createLiteral(BigInteger.valueOf(56)));
         expected.add(new VisibilityBindingSet(nameHeightAge));
 
         final MapBindingSet nameHeightHair = new MapBindingSet();
-        nameHeightHair.addBinding("name", vf.createLiteral("Bob"));
-        nameHeightHair.addBinding("height", vf.createLiteral("5'9\""));
-        nameHeightHair.addBinding("hairColor", vf.createLiteral("Brown"));
+        nameHeightHair.addBinding("name", VF.createLiteral("Bob"));
+        nameHeightHair.addBinding("height", VF.createLiteral("5'9\""));
+        nameHeightHair.addBinding("hairColor", VF.createLiteral("Brown"));
         expected.add(new VisibilityBindingSet(nameHeightHair));
 
         assertEquals(expected, newJoinResults);

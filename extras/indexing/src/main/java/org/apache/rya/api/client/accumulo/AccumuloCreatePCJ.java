@@ -75,8 +75,7 @@ public class AccumuloCreatePCJ extends AccumuloCommand implements CreatePCJ {
     }
 
     @Override
-    public String createPCJ(final String instanceName, final String sparql, Set<ExportStrategy> strategies) throws
-            RyaClientException {
+    public String createPCJ(final String instanceName, final String sparql, Set<ExportStrategy> strategies) throws InstanceDoesNotExistException, RyaClientException {
         requireNonNull(instanceName);
         requireNonNull(sparql);
 
@@ -142,7 +141,7 @@ public class AccumuloCreatePCJ extends AccumuloCommand implements CreatePCJ {
     }
 
     @Override
-    public String createPCJ(String instanceName, String sparql) throws RyaClientException {
+    public String createPCJ(String instanceName, String sparql) throws InstanceDoesNotExistException, RyaClientException {
         return createPCJ(instanceName, sparql, Sets.newHashSet(ExportStrategy.RYA));
     }
     

@@ -18,12 +18,22 @@
  */
 package org.apache.rya.indexing.pcj.fluo.integration;
 
+import static java.util.Objects.requireNonNull;
+import static org.junit.Assert.assertEquals;
+
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Properties;
+import java.util.Set;
 
-import com.google.common.collect.Sets;
 import javax.xml.datatype.DatatypeFactory;
+
 import org.apache.fluo.api.client.FluoClient;
 import org.apache.fluo.api.client.FluoFactory;
 import org.apache.fluo.api.client.Snapshot;
@@ -55,8 +65,7 @@ import org.eclipse.rdf4j.model.ValueFactory;
 import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 import org.junit.Test;
 
-import static java.util.Objects.requireNonNull;
-import static org.junit.Assert.assertEquals;
+import com.google.common.collect.Sets;
 
 public class CreateDeletePeriodicPCJ extends KafkaExportITBase {
 

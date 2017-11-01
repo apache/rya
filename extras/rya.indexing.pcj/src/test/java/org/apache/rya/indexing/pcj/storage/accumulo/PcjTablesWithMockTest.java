@@ -16,15 +16,19 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-
-
 package org.apache.rya.indexing.pcj.storage.accumulo;
 
+import static org.junit.Assert.assertEquals;
+
+import java.math.BigInteger;
 import java.util.HashSet;
 import java.util.Set;
 
-import com.google.common.base.Optional;
-import org.apache.accumulo.core.client.*;
+import org.apache.accumulo.core.client.AccumuloException;
+import org.apache.accumulo.core.client.AccumuloSecurityException;
+import org.apache.accumulo.core.client.Connector;
+import org.apache.accumulo.core.client.Instance;
+import org.apache.accumulo.core.client.TableNotFoundException;
 import org.apache.accumulo.core.client.mock.MockInstance;
 import org.apache.accumulo.core.client.security.tokens.PasswordToken;
 import org.apache.log4j.Logger;
@@ -45,7 +49,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import static org.junit.Assert.assertEquals;
+import com.google.common.base.Optional;
 
 public class PcjTablesWithMockTest {
 
@@ -60,7 +64,7 @@ public class PcjTablesWithMockTest {
 	private Connector accumuloConn;
 	private RyaSailRepository ryaRepo;
 	private SailRepositoryConnection ryaConn;
-	private final ValueFactory vf = SimpleValueFactory.getInstance();
+	private static final ValueFactory VF = SimpleValueFactory.getInstance();
 
 	@Before
 	public void init() throws AccumuloException, AccumuloSecurityException, RepositoryException {
@@ -71,39 +75,39 @@ public class PcjTablesWithMockTest {
 	}
 
 
-	 @Test
-	    public void populatePcj() throws RepositoryException, PcjException, TableNotFoundException, BindingSetConversionException {
-	        // Load some Triples into Rya.
-	        final Set<Statement> triples = new HashSet<>();
-	        triples.add( vf.createStatement(vf.createIRI("http://Alice"), vf.createIRI("http://hasAge"),vf.createLiteral(14)));
-	        triples.add( vf.createStatement(vf.createIRI("http://Alice"), vf.createIRI("http://playsSport"), vf.createLiteral("Soccer")) );
-	        triples.add( vf.createStatement(vf.createIRI("http://Bob"), vf.createIRI("http://hasAge"),vf.createLiteral(16)) );
-	        triples.add( vf.createStatement(vf.createIRI("http://Bob"), vf.createIRI("http://playsSport"), vf.createLiteral("Soccer")) );
-	        triples.add( vf.createStatement(vf.createIRI("http://Charlie"), vf.createIRI("http://hasAge"), vf.createLiteral(12)) );
-	        triples.add( vf.createStatement(vf.createIRI("http://Charlie"), vf.createIRI("http://playsSport"), vf.createLiteral("Soccer")) );
-	        triples.add( vf.createStatement(vf.createIRI("http://Eve"), vf.createIRI("http://hasAge"), vf.createLiteral((43))));
-	        triples.add( vf.createStatement(vf.createIRI("http://Eve"), vf.createIRI("http://playsSport"), vf.createLiteral("Soccer")) );
+    @Test
+    public void populatePcj() throws RepositoryException, PcjException, TableNotFoundException, BindingSetConversionException {
+        // Load some Triples into Rya.
+        final Set<Statement> triples = new HashSet<>();
+        triples.add( VF.createStatement(VF.createIRI("http://Alice"), VF.createIRI("http://hasAge"), VF.createLiteral(BigInteger.valueOf(14))) );
+        triples.add( VF.createStatement(VF.createIRI("http://Alice"), VF.createIRI("http://playsSport"), VF.createLiteral("Soccer")) );
+        triples.add( VF.createStatement(VF.createIRI("http://Bob"), VF.createIRI("http://hasAge"), VF.createLiteral(BigInteger.valueOf(16))) );
+        triples.add( VF.createStatement(VF.createIRI("http://Bob"), VF.createIRI("http://playsSport"), VF.createLiteral("Soccer")) );
+        triples.add( VF.createStatement(VF.createIRI("http://Charlie"), VF.createIRI("http://hasAge"), VF.createLiteral(BigInteger.valueOf(12))) );
+        triples.add( VF.createStatement(VF.createIRI("http://Charlie"), VF.createIRI("http://playsSport"), VF.createLiteral("Soccer")) );
+        triples.add( VF.createStatement(VF.createIRI("http://Eve"), VF.createIRI("http://hasAge"), VF.createLiteral((43))));
+        triples.add( VF.createStatement(VF.createIRI("http://Eve"), VF.createIRI("http://playsSport"), VF.createLiteral("Soccer")) );
 
-	        for(final Statement triple : triples) {
-	            ryaConn.add(triple);
-	        }
+        for(final Statement triple : triples) {
+            ryaConn.add(triple);
+        }
 
-	        // Create a PCJ table that will include those triples in its results.
-	        final String sparql =
-	                "SELECT ?name ?age " +
-	                "{" +
-	                  "?name <http://hasAge> ?age." +
-	                  "?name <http://playsSport> \"Soccer\" " +
-	                "}";
+        // Create a PCJ table that will include those triples in its results.
+        final String sparql =
+                "SELECT ?name ?age " +
+                "{" +
+                  "?name <http://hasAge> ?age." +
+                  "?name <http://playsSport> \"Soccer\" " +
+                "}";
 
-	        final String pcjTableName = new PcjTableNameFactory().makeTableName(RYA_TABLE_PREFIX, "testPcj");
-	        final PcjTables pcjs = new PcjTables();
-	        pcjs.createAndPopulatePcj(ryaConn, accumuloConn, pcjTableName, sparql, new String[]{"age","name"}, Optional.absent());
+        final String pcjTableName = new PcjTableNameFactory().makeTableName(RYA_TABLE_PREFIX, "testPcj");
+        final PcjTables pcjs = new PcjTables();
+        pcjs.createAndPopulatePcj(ryaConn, accumuloConn, pcjTableName, sparql, new String[]{"age","name"}, Optional.absent());
 
-	        // Make sure the cardinality was updated.
-	        final PcjMetadata metadata = pcjs.getPcjMetadata(accumuloConn, pcjTableName);
-	        assertEquals(4, metadata.getCardinality());
-	    }
+        // Make sure the cardinality was updated.
+        final PcjMetadata metadata = pcjs.getPcjMetadata(accumuloConn, pcjTableName);
+        assertEquals(4, metadata.getCardinality());
+    }
 
 
 	@After

@@ -19,8 +19,6 @@ package org.apache.rya.indexing.accumulo.freetext;
  * under the License.
  */
 
-
-
 import java.io.IOException;
 import java.io.StringReader;
 import java.util.SortedSet;
@@ -35,13 +33,12 @@ import org.apache.lucene.analysis.tokenattributes.CharTermAttribute;
  * A {@link Tokenizer} that delegates to Lucene functions
  */
 public class LuceneTokenizer implements Tokenizer {
-	private static final Analyzer analyzer = new StandardAnalyzer();
+	private static final Analyzer ANALYZER = new StandardAnalyzer();
 
 	@Override
 	public SortedSet<String> tokenize(String string) {
 		SortedSet<String> set = new TreeSet<String>();
-		try {
-			TokenStream stream = analyzer.tokenStream(null, new StringReader(string));
+		try (final TokenStream stream = ANALYZER.tokenStream(null, new StringReader(string))) {
 			stream.reset();
 			while (stream.incrementToken()) {
 				set.add(stream.getAttribute(CharTermAttribute.class).toString());

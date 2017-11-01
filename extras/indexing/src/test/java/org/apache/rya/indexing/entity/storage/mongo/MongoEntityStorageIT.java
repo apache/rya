@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -18,12 +18,14 @@
  */
 package org.apache.rya.indexing.entity.storage.mongo;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
 
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Sets;
 import org.apache.rya.api.domain.RyaType;
 import org.apache.rya.api.domain.RyaURI;
 import org.apache.rya.indexing.entity.model.Entity;
@@ -38,7 +40,8 @@ import org.apache.rya.mongodb.MongoTestBase;
 import org.eclipse.rdf4j.model.vocabulary.XMLSchema;
 import org.junit.Test;
 
-import static org.junit.Assert.*;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Sets;
 
 /**
  * Integration tests the methods of {@link MongoEntityStorage}.

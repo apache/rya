@@ -20,14 +20,23 @@ package org.apache.rya.export.accumulo.util;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Map.Entry;
 
-import com.google.common.base.Joiner;
-import com.google.common.collect.ImmutableSet;
 import org.apache.accumulo.core.Constants;
-import org.apache.accumulo.core.client.*;
+import org.apache.accumulo.core.client.AccumuloException;
+import org.apache.accumulo.core.client.AccumuloSecurityException;
+import org.apache.accumulo.core.client.ClientConfiguration;
+import org.apache.accumulo.core.client.Connector;
+import org.apache.accumulo.core.client.Instance;
+import org.apache.accumulo.core.client.IteratorSetting;
 import org.apache.accumulo.core.client.Scanner;
+import org.apache.accumulo.core.client.TableNotFoundException;
+import org.apache.accumulo.core.client.ZooKeeperInstance;
 import org.apache.accumulo.core.client.admin.SecurityOperations;
 import org.apache.accumulo.core.client.mock.MockInstance;
 import org.apache.accumulo.core.client.security.tokens.PasswordToken;
@@ -53,6 +62,9 @@ import org.apache.rya.api.resolver.triple.TripleRow;
 import org.apache.rya.api.resolver.triple.TripleRowResolverException;
 import org.apache.rya.indexing.accumulo.ConfigUtils;
 import org.eclipse.rdf4j.model.ValueFactory;
+
+import com.google.common.base.Joiner;
+import com.google.common.collect.ImmutableSet;
 
 /**
  * Utility methods for an Accumulo Rya instance.

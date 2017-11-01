@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -18,8 +18,8 @@
  */
 package org.apache.rya.indexing.entity;
 
-import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Optional;
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import org.apache.hadoop.conf.Configurable;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.log4j.Logger;
@@ -29,12 +29,18 @@ import org.apache.rya.indexing.entity.storage.EntityStorage;
 import org.apache.rya.indexing.entity.storage.EntityStorage.EntityStorageException;
 import org.apache.rya.indexing.entity.storage.TypeStorage;
 import org.apache.rya.indexing.entity.update.mongo.MongoEntityIndexer;
-import org.apache.rya.indexing.external.matching.*;
+import org.apache.rya.indexing.external.matching.AbstractExternalSetOptimizer;
+import org.apache.rya.indexing.external.matching.ExternalSetMatcher;
+import org.apache.rya.indexing.external.matching.ExternalSetProvider;
+import org.apache.rya.indexing.external.matching.QueryNodeListRater;
+import org.apache.rya.indexing.external.matching.QuerySegment;
+import org.apache.rya.indexing.external.matching.TopOfQueryFilterRelocator;
 import org.eclipse.rdf4j.query.BindingSet;
 import org.eclipse.rdf4j.query.Dataset;
 import org.eclipse.rdf4j.query.algebra.TupleExpr;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Optional;
 
 /**
  * Optimizes a query over {@link Entity}s.

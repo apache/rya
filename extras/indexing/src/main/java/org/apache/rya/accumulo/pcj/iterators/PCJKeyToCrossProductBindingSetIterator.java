@@ -19,9 +19,14 @@ package org.apache.rya.accumulo.pcj.iterators;
  * under the License.
  */
 
-import java.util.*;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.NoSuchElementException;
+import java.util.Set;
 
-import com.google.common.collect.HashBiMap;
 import org.apache.accumulo.core.client.Scanner;
 import org.apache.accumulo.core.data.Key;
 import org.apache.rya.api.domain.VarNameUtils;
@@ -34,6 +39,8 @@ import org.eclipse.rdf4j.model.Value;
 import org.eclipse.rdf4j.query.BindingSet;
 import org.eclipse.rdf4j.query.QueryEvaluationException;
 import org.eclipse.rdf4j.query.algebra.evaluation.QueryBindingSet;
+
+import com.google.common.collect.HashBiMap;
 
 /**
  *	This class takes in a {@link Scanner} and a Collection of BindingSets,

@@ -19,15 +19,20 @@ package org.apache.rya.accumulo.query;
  * under the License.
  */
 
-import java.io.IOException;
-import java.util.*;
+import static org.apache.rya.api.RdfCloudTripleStoreUtils.layoutToTable;
 
-import com.google.common.base.Function;
-import com.google.common.base.Preconditions;
-import com.google.common.collect.FluentIterable;
-import com.google.common.collect.Iterators;
-import org.apache.accumulo.core.client.*;
+import java.io.IOException;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Map;
+
+import org.apache.accumulo.core.client.BatchScanner;
+import org.apache.accumulo.core.client.Connector;
+import org.apache.accumulo.core.client.IteratorSetting;
 import org.apache.accumulo.core.client.Scanner;
+import org.apache.accumulo.core.client.ScannerBase;
 import org.apache.accumulo.core.data.Column;
 import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Range;
@@ -61,7 +66,10 @@ import org.calrissian.mango.collect.FluentCloseableIterable;
 import org.eclipse.rdf4j.common.iteration.CloseableIteration;
 import org.eclipse.rdf4j.query.BindingSet;
 
-import static org.apache.rya.api.RdfCloudTripleStoreUtils.layoutToTable;
+import com.google.common.base.Function;
+import com.google.common.base.Preconditions;
+import com.google.common.collect.FluentIterable;
+import com.google.common.collect.Iterators;
 
 /**
  * Date: 7/17/12 Time: 9:28 AM

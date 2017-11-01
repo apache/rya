@@ -49,6 +49,7 @@ import org.apache.rya.api.instance.RyaDetails.PCJIndexDetails;
 import org.apache.rya.api.instance.RyaDetails.ProspectorDetails;
 import org.apache.rya.api.instance.RyaDetails.TemporalIndexDetails;
 import org.apache.rya.api.instance.RyaDetailsRepository;
+import org.apache.rya.api.instance.RyaDetailsRepository.AlreadyInitializedException;
 import org.apache.rya.api.instance.RyaDetailsRepository.RyaDetailsRepositoryException;
 import org.apache.rya.indexing.accumulo.ConfigUtils;
 import org.apache.rya.indexing.pcj.storage.PrecomputedJoinStorage.PCJStorageException;
@@ -94,8 +95,7 @@ public class AccumuloIndexSetColumnVisibilityTest {
     private static ValueFactory vf = SimpleValueFactory.getInstance();
 
     @BeforeClass
-    public static void init() throws AccumuloException, AccumuloSecurityException, PCJStorageException, IOException, InterruptedException, TableNotFoundException,
-            RyaDetailsRepositoryException {
+    public static void init() throws AccumuloException, AccumuloSecurityException, PCJStorageException, IOException, InterruptedException, TableNotFoundException, AlreadyInitializedException, RyaDetailsRepositoryException {
         // Setup the mini accumulo instance used by the test.
         accumulo = startMiniAccumulo();
         accumulo.getZooKeepers();
@@ -164,7 +164,7 @@ public class AccumuloIndexSetColumnVisibilityTest {
         return accumulo;
     }
 
-    private static void initRyaDetails() throws RyaDetailsRepositoryException {
+    private static void initRyaDetails() throws AlreadyInitializedException, RyaDetailsRepositoryException {
         // Initialize the Rya Details for the instance.
         final RyaDetailsRepository detailsRepo = new AccumuloRyaInstanceDetailsRepository(accCon, ryaInstanceName);
 

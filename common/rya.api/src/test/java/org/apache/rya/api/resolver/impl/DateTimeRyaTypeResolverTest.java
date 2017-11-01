@@ -19,13 +19,15 @@ package org.apache.rya.api.resolver.impl;
  * under the License.
  */
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+
 import org.apache.rya.api.domain.RyaType;
 import org.apache.rya.api.resolver.RyaTypeResolverException;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.vocabulary.XMLSchema;
 import org.junit.Test;
-
-import static org.junit.Assert.*;
 
 /**
  * Test serializing and deserializing.

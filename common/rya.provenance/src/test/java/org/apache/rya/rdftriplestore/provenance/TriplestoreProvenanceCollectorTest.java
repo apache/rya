@@ -19,14 +19,18 @@ package org.apache.rya.rdftriplestore.provenance;
  * under the License.
  */
 
-import org.eclipse.rdf4j.query.*;
+import static org.junit.Assert.assertTrue;
+
+import org.eclipse.rdf4j.query.MalformedQueryException;
+import org.eclipse.rdf4j.query.QueryEvaluationException;
+import org.eclipse.rdf4j.query.QueryLanguage;
+import org.eclipse.rdf4j.query.TupleQuery;
+import org.eclipse.rdf4j.query.TupleQueryResult;
 import org.eclipse.rdf4j.repository.RepositoryException;
 import org.eclipse.rdf4j.repository.sail.SailRepository;
 import org.eclipse.rdf4j.sail.Sail;
 import org.eclipse.rdf4j.sail.memory.MemoryStore;
 import org.junit.Test;
-
-import static org.junit.Assert.assertTrue;
 
 public class TriplestoreProvenanceCollectorTest {
 

@@ -18,9 +18,17 @@
  */
 package org.apache.rya.indexing.pcj.fluo.integration;
 
-import java.util.*;
+import static java.util.Objects.requireNonNull;
+import static org.junit.Assert.assertEquals;
 
-import com.google.common.collect.Sets;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
+
 import org.apache.fluo.api.client.FluoClient;
 import org.apache.fluo.core.client.FluoClientImpl;
 import org.apache.fluo.recipes.test.FluoITHelper;
@@ -38,8 +46,7 @@ import org.eclipse.rdf4j.query.BindingSet;
 import org.eclipse.rdf4j.query.impl.MapBindingSet;
 import org.junit.Test;
 
-import static java.util.Objects.requireNonNull;
-import static org.junit.Assert.assertEquals;
+import com.google.common.collect.Sets;
 
 /**
  * Performs integration tests over the Fluo application geared towards Kafka PCJ exporting.

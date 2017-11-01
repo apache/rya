@@ -18,18 +18,29 @@
  */
 package org.apache.rya.periodic.notification.application;
 
+import static org.apache.rya.periodic.notification.application.PeriodicNotificationApplicationConfiguration.KAFKA_BOOTSTRAP_SERVERS;
+import static org.apache.rya.periodic.notification.application.PeriodicNotificationApplicationConfiguration.NOTIFICATION_TOPIC;
+
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Properties;
+import java.util.Set;
+import java.util.UUID;
 
-import com.google.common.collect.HashMultimap;
-import com.google.common.collect.Multimap;
-import com.google.common.collect.Sets;
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
+
 import org.apache.accumulo.core.client.Connector;
 import org.apache.fluo.api.client.FluoClient;
 import org.apache.fluo.api.config.FluoConfiguration;
@@ -63,15 +74,20 @@ import org.apache.rya.test.kafka.KafkaTestInstanceRule;
 import org.eclipse.rdf4j.model.Statement;
 import org.eclipse.rdf4j.model.Value;
 import org.eclipse.rdf4j.model.ValueFactory;
-import org.eclipse.rdf4j.model.impl.LiteralImpl;
 import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 import org.eclipse.rdf4j.model.vocabulary.XMLSchema;
 import org.eclipse.rdf4j.query.BindingSet;
 import org.eclipse.rdf4j.query.algebra.evaluation.QueryBindingSet;
-import org.junit.*;
+import org.junit.After;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Rule;
+import org.junit.Test;
 
-import static org.apache.rya.periodic.notification.application.PeriodicNotificationApplicationConfiguration.KAFKA_BOOTSTRAP_SERVERS;
-import static org.apache.rya.periodic.notification.application.PeriodicNotificationApplicationConfiguration.NOTIFICATION_TOPIC;
+import com.google.common.collect.HashMultimap;
+import com.google.common.collect.Multimap;
+import com.google.common.collect.Sets;
 
 public class PeriodicNotificationApplicationIT extends RyaExportITBase {
 
@@ -191,17 +207,17 @@ public class PeriodicNotificationApplicationIT extends RyaExportITBase {
                 final Set<BindingSet> expected1 = new HashSet<>();
                 final QueryBindingSet bs1 = new QueryBindingSet();
                 bs1.addBinding(IncrementalUpdateConstants.PERIODIC_BIN_ID, vf.createLiteral(ids.get(0)));
-                bs1.addBinding("total", new LiteralImpl("2", XMLSchema.INTEGER));
+                bs1.addBinding("total", vf.createLiteral("2", XMLSchema.INTEGER));
                 bs1.addBinding("type", vf.createLiteral("airplane"));
 
                 final QueryBindingSet bs2 = new QueryBindingSet();
                 bs2.addBinding(IncrementalUpdateConstants.PERIODIC_BIN_ID, vf.createLiteral(ids.get(0)));
-                bs2.addBinding("total", new LiteralImpl("2", XMLSchema.INTEGER));
+                bs2.addBinding("total", vf.createLiteral("2", XMLSchema.INTEGER));
                 bs2.addBinding("type", vf.createLiteral("ship"));
 
                 final QueryBindingSet bs3 = new QueryBindingSet();
                 bs3.addBinding(IncrementalUpdateConstants.PERIODIC_BIN_ID, vf.createLiteral(ids.get(0)));
-                bs3.addBinding("total", new LiteralImpl("1", XMLSchema.INTEGER));
+                bs3.addBinding("total", vf.createLiteral("1", XMLSchema.INTEGER));
                 bs3.addBinding("type", vf.createLiteral("automobile"));
 
                 expected1.add(bs1);
@@ -211,12 +227,12 @@ public class PeriodicNotificationApplicationIT extends RyaExportITBase {
                 final Set<BindingSet> expected2 = new HashSet<>();
                 final QueryBindingSet bs4 = new QueryBindingSet();
                 bs4.addBinding(IncrementalUpdateConstants.PERIODIC_BIN_ID, vf.createLiteral(ids.get(1)));
-                bs4.addBinding("total", new LiteralImpl("2", XMLSchema.INTEGER));
+                bs4.addBinding("total", vf.createLiteral("2", XMLSchema.INTEGER));
                 bs4.addBinding("type", vf.createLiteral("airplane"));
 
                 final QueryBindingSet bs5 = new QueryBindingSet();
                 bs5.addBinding(IncrementalUpdateConstants.PERIODIC_BIN_ID, vf.createLiteral(ids.get(1)));
-                bs5.addBinding("total", new LiteralImpl("2", XMLSchema.INTEGER));
+                bs5.addBinding("total", vf.createLiteral("2", XMLSchema.INTEGER));
                 bs5.addBinding("type", vf.createLiteral("ship"));
 
                 expected2.add(bs4);
@@ -225,12 +241,12 @@ public class PeriodicNotificationApplicationIT extends RyaExportITBase {
                 final Set<BindingSet> expected3 = new HashSet<>();
                 final QueryBindingSet bs6 = new QueryBindingSet();
                 bs6.addBinding(IncrementalUpdateConstants.PERIODIC_BIN_ID, vf.createLiteral(ids.get(2)));
-                bs6.addBinding("total", new LiteralImpl("1", XMLSchema.INTEGER));
+                bs6.addBinding("total", vf.createLiteral("1", XMLSchema.INTEGER));
                 bs6.addBinding("type", vf.createLiteral("ship"));
 
                 final QueryBindingSet bs7 = new QueryBindingSet();
                 bs7.addBinding(IncrementalUpdateConstants.PERIODIC_BIN_ID, vf.createLiteral(ids.get(2)));
-                bs7.addBinding("total", new LiteralImpl("1", XMLSchema.INTEGER));
+                bs7.addBinding("total", vf.createLiteral("1", XMLSchema.INTEGER));
                 bs7.addBinding("type", vf.createLiteral("airplane"));
 
                 expected3.add(bs6);

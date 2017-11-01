@@ -18,10 +18,19 @@ package org.apache.rya.indexing.pcj.fluo.integration;
  * under the License.
  */
 
-import java.util.*;
+import static java.util.Objects.requireNonNull;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Properties;
+import java.util.Set;
 import java.util.stream.Collectors;
 
-import com.google.common.collect.Sets;
 import org.apache.fluo.api.client.FluoClient;
 import org.apache.fluo.api.config.ObserverSpecification;
 import org.apache.fluo.core.client.FluoClientImpl;
@@ -40,7 +49,14 @@ import org.apache.rya.indexing.pcj.fluo.ConstructGraphTestUtils;
 import org.apache.rya.indexing.pcj.fluo.api.CreateFluoPcj;
 import org.apache.rya.indexing.pcj.fluo.app.export.kafka.KafkaSubGraphExporterParameters;
 import org.apache.rya.indexing.pcj.fluo.app.export.kafka.RyaSubGraphKafkaSerDe;
-import org.apache.rya.indexing.pcj.fluo.app.observers.*;
+import org.apache.rya.indexing.pcj.fluo.app.observers.AggregationObserver;
+import org.apache.rya.indexing.pcj.fluo.app.observers.ConstructQueryResultObserver;
+import org.apache.rya.indexing.pcj.fluo.app.observers.FilterObserver;
+import org.apache.rya.indexing.pcj.fluo.app.observers.JoinObserver;
+import org.apache.rya.indexing.pcj.fluo.app.observers.ProjectionObserver;
+import org.apache.rya.indexing.pcj.fluo.app.observers.QueryResultObserver;
+import org.apache.rya.indexing.pcj.fluo.app.observers.StatementPatternObserver;
+import org.apache.rya.indexing.pcj.fluo.app.observers.TripleObserver;
 import org.apache.rya.pcj.fluo.test.base.KafkaExportITBase;
 import org.eclipse.rdf4j.model.Statement;
 import org.eclipse.rdf4j.model.ValueFactory;
@@ -50,7 +66,7 @@ import org.eclipse.rdf4j.model.vocabulary.XMLSchema;
 import org.junit.Assert;
 import org.junit.Test;
 
-import static java.util.Objects.requireNonNull;
+import com.google.common.collect.Sets;
 
 public class KafkaRyaSubGraphExportIT extends KafkaExportITBase {
 

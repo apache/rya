@@ -88,12 +88,13 @@ public class RyaDirectExample {
 		SailRepositoryConnection conn = null;
 
 		try {
+			log.info("Creating PCJ Tables");
+			createPCJ(conf);
+
 			log.info("Connecting to Indexing Sail Repository.");
 			final Sail extSail = RyaSailFactory.getInstance(conf);
 			repository = new SailRepository(extSail);
 			conn = repository.getConnection();
-
-			createPCJ(conf);
 
 			final long start = System.currentTimeMillis();
 			log.info("Running SPARQL Example: Add and Delete");
@@ -342,10 +343,10 @@ public class RyaDirectExample {
 		conn.add(f.createIRI(uuid), RDFS.LABEL,
 				f.createLiteral("Alice Palace Hose", f.createIRI("xsd:string")));
 
-		uuid = "urn:people:bobss";
+		uuid = "urn:people:bob";
 		conn.add(f.createIRI(uuid), RDF.TYPE, person);
 		conn.add(f.createIRI(uuid), RDFS.LABEL,
-				f.createLiteral("Bob Snob Hose", "en"));
+				f.createLiteral("Bob Snob Hose", f.createIRI("xsd:string")));
 
 		String queryString;
 		TupleQuery tupleQuery;
@@ -652,12 +653,12 @@ public class RyaDirectExample {
 		conn.remove(f.createIRI(uuid), RDFS.LABEL,
 				f.createLiteral("Alice Palace Hose", f.createIRI("xsd:string")));
 
-		uuid = "urn:people:bobss";
+		uuid = "urn:people:bob";
 		conn.remove(f.createIRI(uuid), RDF.TYPE, person);
 		conn.remove(f.createIRI(uuid), RDFS.LABEL,
-				f.createLiteral("Bob Snob Hose", "en"));
+				f.createLiteral("Bob Snob Hose", f.createIRI("xsd:string")));
 
-		conn.remove(person, RDFS.LABEL, f.createLiteral("label", "en"));
+		conn.remove(person, RDFS.LABEL, f.createLiteral("label", f.createIRI("xsd:string")));
 
 		String queryString;
 		TupleQuery tupleQuery;

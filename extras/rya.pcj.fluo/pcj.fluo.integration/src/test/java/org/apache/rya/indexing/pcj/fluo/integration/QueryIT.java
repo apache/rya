@@ -18,7 +18,11 @@
  */
 package org.apache.rya.indexing.pcj.fluo.integration;
 
+import static java.util.Objects.requireNonNull;
+import static org.junit.Assert.assertEquals;
+
 import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Collection;
@@ -26,8 +30,8 @@ import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
 
-import com.google.common.collect.Sets;
 import javax.xml.datatype.DatatypeFactory;
+
 import org.apache.accumulo.core.client.Connector;
 import org.apache.fluo.api.client.FluoClient;
 import org.apache.fluo.core.client.FluoClientImpl;
@@ -44,9 +48,13 @@ import org.apache.rya.indexing.pcj.storage.PrecomputedJoinStorage.CloseableItera
 import org.apache.rya.indexing.pcj.storage.accumulo.AccumuloPcjStorage;
 import org.apache.rya.indexing.pcj.storage.accumulo.AccumuloPeriodicQueryResultStorage;
 import org.apache.rya.pcj.fluo.test.base.RyaExportITBase;
-import org.eclipse.rdf4j.model.*;
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.Literal;
+import org.eclipse.rdf4j.model.Statement;
+import org.eclipse.rdf4j.model.Value;
+import org.eclipse.rdf4j.model.ValueFactory;
 import org.eclipse.rdf4j.model.datatypes.XMLDatatypeUtil;
-import org.eclipse.rdf4j.model.impl.BooleanLiteralImpl;
+import org.eclipse.rdf4j.model.impl.BooleanLiteral;
 import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 import org.eclipse.rdf4j.model.vocabulary.FN;
 import org.eclipse.rdf4j.model.vocabulary.XMLSchema;
@@ -58,8 +66,7 @@ import org.eclipse.rdf4j.query.impl.MapBindingSet;
 import org.eclipse.rdf4j.repository.sail.SailRepositoryConnection;
 import org.junit.Test;
 
-import static java.util.Objects.requireNonNull;
-import static org.junit.Assert.assertEquals;
+import com.google.common.collect.Sets;
 
 /**
  * Performs integration tests over the Fluo application geared towards various query structures.
@@ -244,11 +251,11 @@ public class QueryIT extends RyaExportITBase {
         // Create the Statements that will be loaded into Rya.
         final ValueFactory vf = SimpleValueFactory.getInstance();
         final Collection<Statement> statements = Sets.newHashSet(
-                vf.createStatement(vf.createIRI("http://Alice"), vf.createIRI("http://hasAge"), vf.createLiteral(18)),
-                vf.createStatement(vf.createIRI("http://Bob"), vf.createIRI("http://hasAge"), vf.createLiteral(30)),
-                vf.createStatement(vf.createIRI("http://Charlie"), vf.createIRI("http://hasAge"), vf.createLiteral(14)),
-                vf.createStatement(vf.createIRI("http://David"), vf.createIRI("http://hasAge"), vf.createLiteral(16)),
-                vf.createStatement(vf.createIRI("http://Eve"), vf.createIRI("http://hasAge"), vf.createLiteral(35)),
+                vf.createStatement(vf.createIRI("http://Alice"), vf.createIRI("http://hasAge"), vf.createLiteral(BigInteger.valueOf(18))),
+                vf.createStatement(vf.createIRI("http://Bob"), vf.createIRI("http://hasAge"), vf.createLiteral(BigInteger.valueOf(30))),
+                vf.createStatement(vf.createIRI("http://Charlie"), vf.createIRI("http://hasAge"), vf.createLiteral(BigInteger.valueOf(14))),
+                vf.createStatement(vf.createIRI("http://David"), vf.createIRI("http://hasAge"), vf.createLiteral(BigInteger.valueOf(16))),
+                vf.createStatement(vf.createIRI("http://Eve"), vf.createIRI("http://hasAge"), vf.createLiteral(BigInteger.valueOf(35))),
 
         vf.createStatement(vf.createIRI("http://Alice"), vf.createIRI("http://playsSport"), vf.createLiteral("Soccer")),
                 vf.createStatement(vf.createIRI("http://Bob"), vf.createIRI("http://playsSport"), vf.createLiteral("Soccer")),
@@ -301,10 +308,10 @@ public class QueryIT extends RyaExportITBase {
                     if (datatype != null && XMLDatatypeUtil.isNumericDatatype(datatype)) {
                         if (XMLDatatypeUtil.isDecimalDatatype(datatype)) {
                             final BigDecimal bigValue = literal.decimalValue();
-                            return BooleanLiteralImpl.valueOf(bigValue.compareTo(new BigDecimal(TEEN_THRESHOLD)) < 0);
+                            return BooleanLiteral.valueOf(bigValue.compareTo(new BigDecimal(TEEN_THRESHOLD)) < 0);
                         } else if (XMLDatatypeUtil.isFloatingPointDatatype(datatype)) {
                             final double doubleValue = literal.doubleValue();
-                            return BooleanLiteralImpl.valueOf(doubleValue < TEEN_THRESHOLD);
+                            return BooleanLiteral.valueOf(doubleValue < TEEN_THRESHOLD);
                         } else {
                             throw new ValueExprEvaluationException(
                                     "unexpected datatype (expect decimal/int or floating) for function operand: " + args[0]);
@@ -325,11 +332,11 @@ public class QueryIT extends RyaExportITBase {
         // Create the Statements that will be loaded into Rya.
         final ValueFactory vf = SimpleValueFactory.getInstance();
         final Collection<Statement> statements = Sets.newHashSet(
-                vf.createStatement(vf.createIRI("http://Alice"), vf.createIRI("http://hasAge"), vf.createLiteral(18)),
-                vf.createStatement(vf.createIRI("http://Bob"), vf.createIRI("http://hasAge"), vf.createLiteral(30)),
-                vf.createStatement(vf.createIRI("http://Charlie"), vf.createIRI("http://hasAge"), vf.createLiteral(14)),
-                vf.createStatement(vf.createIRI("http://David"), vf.createIRI("http://hasAge"), vf.createLiteral(16)),
-                vf.createStatement(vf.createIRI("http://Eve"), vf.createIRI("http://hasAge"), vf.createLiteral(35)),
+                vf.createStatement(vf.createIRI("http://Alice"), vf.createIRI("http://hasAge"), vf.createLiteral(BigInteger.valueOf(18))),
+                vf.createStatement(vf.createIRI("http://Bob"), vf.createIRI("http://hasAge"), vf.createLiteral(BigInteger.valueOf(30))),
+                vf.createStatement(vf.createIRI("http://Charlie"), vf.createIRI("http://hasAge"), vf.createLiteral(BigInteger.valueOf(14))),
+                vf.createStatement(vf.createIRI("http://David"), vf.createIRI("http://hasAge"), vf.createLiteral(BigInteger.valueOf(16))),
+                vf.createStatement(vf.createIRI("http://Eve"), vf.createIRI("http://hasAge"), vf.createLiteral(BigInteger.valueOf(35))),
 
         vf.createStatement(vf.createIRI("http://Alice"), vf.createIRI("http://playsSport"), vf.createLiteral("Soccer")),
                 vf.createStatement(vf.createIRI("http://Bob"), vf.createIRI("http://playsSport"), vf.createLiteral("Soccer")),

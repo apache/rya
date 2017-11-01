@@ -1,23 +1,3 @@
-package org.apache.rya.camel.cbsail;
-
-import java.io.ByteArrayOutputStream;
-import java.nio.charset.StandardCharsets;
-import java.util.*;
-
-import org.apache.camel.Exchange;
-import org.apache.camel.impl.DefaultProducer;
-import org.eclipse.rdf4j.model.Statement;
-import org.eclipse.rdf4j.query.*;
-import org.eclipse.rdf4j.query.resultio.sparqlxml.SPARQLResultsXMLWriter;
-import org.eclipse.rdf4j.repository.RepositoryConnection;
-import org.eclipse.rdf4j.repository.RepositoryException;
-import org.eclipse.rdf4j.rio.RDFHandlerException;
-
-import static org.apache.rya.api.RdfCloudTripleStoreConfiguration.CONF_INFER;
-import static org.apache.rya.api.RdfCloudTripleStoreConfiguration.CONF_QUERY_AUTH;
-import static org.apache.rya.camel.cbsail.CbSailComponent.SPARQL_QUERY_PROP;
-import static org.apache.rya.camel.cbsail.CbSailComponent.valueFactory;
-
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -36,6 +16,35 @@ import static org.apache.rya.camel.cbsail.CbSailComponent.valueFactory;
  * specific language governing permissions and limitations
  * under the License.
  */
+package org.apache.rya.camel.cbsail;
+
+import static org.apache.rya.api.RdfCloudTripleStoreConfiguration.CONF_INFER;
+import static org.apache.rya.api.RdfCloudTripleStoreConfiguration.CONF_QUERY_AUTH;
+import static org.apache.rya.camel.cbsail.CbSailComponent.SPARQL_QUERY_PROP;
+import static org.apache.rya.camel.cbsail.CbSailComponent.valueFactory;
+
+import java.io.ByteArrayOutputStream;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.camel.Exchange;
+import org.apache.camel.impl.DefaultProducer;
+import org.eclipse.rdf4j.model.Statement;
+import org.eclipse.rdf4j.query.AbstractTupleQueryResultHandler;
+import org.eclipse.rdf4j.query.BindingSet;
+import org.eclipse.rdf4j.query.MalformedQueryException;
+import org.eclipse.rdf4j.query.QueryEvaluationException;
+import org.eclipse.rdf4j.query.QueryLanguage;
+import org.eclipse.rdf4j.query.TupleQuery;
+import org.eclipse.rdf4j.query.TupleQueryResultHandlerException;
+import org.eclipse.rdf4j.query.resultio.sparqlxml.SPARQLResultsXMLWriter;
+import org.eclipse.rdf4j.repository.RepositoryConnection;
+import org.eclipse.rdf4j.repository.RepositoryException;
+import org.eclipse.rdf4j.rio.RDFHandlerException;
 
 /**
  */
@@ -125,7 +134,7 @@ public class CbSailProducer extends DefaultProducer {
         }
         if (CbSailEndpoint.CbSailOutput.BINARY.equals(queryOutput)) {
             final List listOutput = new ArrayList();
-            final TupleQueryResultHandlerBase handler = new TupleQueryResultHandlerBase() {
+            final AbstractTupleQueryResultHandler handler = new AbstractTupleQueryResultHandler() {
                 @Override
                 public void handleSolution(final BindingSet bindingSet) throws TupleQueryResultHandlerException {
                     final Map<String, String> map = new HashMap<String, String>();

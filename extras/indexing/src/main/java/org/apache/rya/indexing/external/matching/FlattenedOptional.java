@@ -24,12 +24,19 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import com.google.common.collect.Sets;
-
 import org.apache.rya.api.domain.VarNameUtils;
 import org.apache.rya.rdftriplestore.inference.DoNotExpandSP;
 import org.apache.rya.rdftriplestore.utils.FixedStatementPattern;
-import org.eclipse.rdf4j.query.algebra.*;
+import org.eclipse.rdf4j.query.algebra.AbstractQueryModelNode;
+import org.eclipse.rdf4j.query.algebra.Filter;
+import org.eclipse.rdf4j.query.algebra.Join;
+import org.eclipse.rdf4j.query.algebra.LeftJoin;
+import org.eclipse.rdf4j.query.algebra.QueryModelVisitor;
+import org.eclipse.rdf4j.query.algebra.TupleExpr;
+import org.eclipse.rdf4j.query.algebra.ValueExpr;
+import org.eclipse.rdf4j.query.algebra.Var;
+
+import com.google.common.collect.Sets;
 
 /**
  * This class is essentially a wrapper for {@link LeftJoin}. It provides a
@@ -44,7 +51,7 @@ import org.eclipse.rdf4j.query.algebra.*;
  * bound and unbound variables do not change.
  *
  */
-public class FlattenedOptional extends QueryModelNodeBase implements TupleExpr {
+public class FlattenedOptional extends AbstractQueryModelNode implements TupleExpr {
 
     private Set<TupleExpr> rightArgs;
     private Set<String> boundVars;

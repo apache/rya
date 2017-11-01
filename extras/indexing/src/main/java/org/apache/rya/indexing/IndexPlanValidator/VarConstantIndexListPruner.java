@@ -24,11 +24,16 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.rya.indexing.external.tupleSet.ExternalTupleSet;
+import org.eclipse.rdf4j.query.algebra.Filter;
+import org.eclipse.rdf4j.query.algebra.StatementPattern;
+import org.eclipse.rdf4j.query.algebra.TupleExpr;
+import org.eclipse.rdf4j.query.algebra.ValueConstant;
+import org.eclipse.rdf4j.query.algebra.Var;
+import org.eclipse.rdf4j.query.algebra.helpers.AbstractQueryModelVisitor;
+
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
-import org.apache.rya.indexing.external.tupleSet.ExternalTupleSet;
-import org.eclipse.rdf4j.query.algebra.*;
-import org.eclipse.rdf4j.query.algebra.helpers.AbstractQueryModelVisitor;
 
 
 

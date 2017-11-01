@@ -18,13 +18,16 @@
  */
 package org.apache.rya.indexing.export;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import java.io.IOException;
 import java.net.UnknownHostException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
-import com.mongodb.MongoClient;
-import com.mongodb.MongoException;
-import de.flapdoodle.embed.mongo.tests.MongodForTestsFactory;
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
 import org.apache.log4j.Logger;
@@ -52,7 +55,10 @@ import org.eclipse.rdf4j.sail.Sail;
 import org.eclipse.rdf4j.sail.SailException;
 import org.junit.AfterClass;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import com.mongodb.MongoClient;
+import com.mongodb.MongoException;
+
+import de.flapdoodle.embed.mongo.tests.MongodForTestsFactory;
 
 /**
  * Integration tests that ensure the import/export process runs correctly.

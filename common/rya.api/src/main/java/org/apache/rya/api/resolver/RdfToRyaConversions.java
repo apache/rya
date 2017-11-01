@@ -18,9 +18,20 @@ package org.apache.rya.api.resolver;
  * specific language governing permissions and limitations
  * under the License.
  */
-
-import org.apache.rya.api.domain.*;
-import org.eclipse.rdf4j.model.*;
+import org.apache.rya.api.domain.RangeURI;
+import org.apache.rya.api.domain.RangeValue;
+import org.apache.rya.api.domain.RyaSchema;
+import org.apache.rya.api.domain.RyaStatement;
+import org.apache.rya.api.domain.RyaType;
+import org.apache.rya.api.domain.RyaTypeRange;
+import org.apache.rya.api.domain.RyaURI;
+import org.apache.rya.api.domain.RyaURIRange;
+import org.eclipse.rdf4j.model.BNode;
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.Literal;
+import org.eclipse.rdf4j.model.Resource;
+import org.eclipse.rdf4j.model.Statement;
+import org.eclipse.rdf4j.model.Value;
 
 /**
  * Date: 7/17/12

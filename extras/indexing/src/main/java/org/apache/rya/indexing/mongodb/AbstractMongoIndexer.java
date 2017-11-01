@@ -23,8 +23,6 @@ import java.io.IOException;
 import java.util.Collection;
 import java.util.Set;
 
-import com.google.common.annotations.VisibleForTesting;
-import com.mongodb.*;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.log4j.Logger;
 import org.apache.rya.api.domain.RyaStatement;
@@ -45,6 +43,15 @@ import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Literal;
 import org.eclipse.rdf4j.model.Statement;
 import org.eclipse.rdf4j.query.QueryEvaluationException;
+
+import com.google.common.annotations.VisibleForTesting;
+import com.mongodb.DB;
+import com.mongodb.DBCollection;
+import com.mongodb.DBCursor;
+import com.mongodb.DBObject;
+import com.mongodb.MongoClient;
+import com.mongodb.QueryBuilder;
+import com.mongodb.ServerAddress;
 
 /**
  * Secondary Indexer using MondoDB

@@ -18,6 +18,11 @@
  */
 package org.apache.rya.api.query.strategy.wholerow;
 
+import static org.apache.rya.api.RdfCloudTripleStoreConstants.LAST_BYTES;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+
 import java.util.Arrays;
 import java.util.Map;
 
@@ -27,10 +32,11 @@ import org.apache.rya.api.RdfCloudTripleStoreUtils;
 import org.apache.rya.api.domain.RyaType;
 import org.apache.rya.api.domain.RyaURI;
 import org.apache.rya.api.query.strategy.ByteRange;
-import org.junit.*;
-
-import static org.apache.rya.api.RdfCloudTripleStoreConstants.LAST_BYTES;
-import static org.junit.Assert.*;
+import org.junit.After;
+import org.junit.AfterClass;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Test;
 
 public class NullRowTriplePatternStrategyTest {
 

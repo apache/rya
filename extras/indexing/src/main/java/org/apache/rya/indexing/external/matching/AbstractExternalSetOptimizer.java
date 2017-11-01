@@ -22,15 +22,22 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import com.google.common.base.Optional;
 import org.apache.rya.indexing.external.matching.QueryNodesToTupleExpr.TupleExprAndNodes;
 import org.apache.rya.indexing.pcj.matching.PCJOptimizerUtilities;
 import org.eclipse.rdf4j.query.BindingSet;
 import org.eclipse.rdf4j.query.Dataset;
-import org.eclipse.rdf4j.query.algebra.*;
+import org.eclipse.rdf4j.query.algebra.BinaryTupleOperator;
+import org.eclipse.rdf4j.query.algebra.Filter;
+import org.eclipse.rdf4j.query.algebra.Join;
+import org.eclipse.rdf4j.query.algebra.LeftJoin;
+import org.eclipse.rdf4j.query.algebra.QueryModelNode;
+import org.eclipse.rdf4j.query.algebra.TupleExpr;
+import org.eclipse.rdf4j.query.algebra.UnaryTupleOperator;
 import org.eclipse.rdf4j.query.algebra.evaluation.QueryOptimizer;
 import org.eclipse.rdf4j.query.algebra.evaluation.impl.ExternalSet;
 import org.eclipse.rdf4j.query.algebra.helpers.AbstractQueryModelVisitor;
+
+import com.google.common.base.Optional;
 
 /**
  * Abstract base class meant to be extended by any QueryOptimizer that matches ExternalSets

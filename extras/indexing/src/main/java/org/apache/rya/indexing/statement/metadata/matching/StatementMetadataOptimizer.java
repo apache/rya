@@ -18,16 +18,22 @@ package org.apache.rya.indexing.statement.metadata.matching;
  * under the License.
  */
 
-import com.google.common.base.Optional;
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import org.apache.hadoop.conf.Configurable;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
-import org.apache.rya.indexing.external.matching.*;
+import org.apache.rya.indexing.external.matching.AbstractExternalSetOptimizer;
+import org.apache.rya.indexing.external.matching.BasicRater;
+import org.apache.rya.indexing.external.matching.ExternalSetMatcher;
+import org.apache.rya.indexing.external.matching.ExternalSetProvider;
+import org.apache.rya.indexing.external.matching.QueryNodeListRater;
+import org.apache.rya.indexing.external.matching.QuerySegment;
 import org.eclipse.rdf4j.query.BindingSet;
 import org.eclipse.rdf4j.query.Dataset;
 import org.eclipse.rdf4j.query.algebra.TupleExpr;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import com.google.common.base.Optional;
 
 public class StatementMetadataOptimizer extends AbstractExternalSetOptimizer<StatementMetadataNode<?>>implements Configurable {
 

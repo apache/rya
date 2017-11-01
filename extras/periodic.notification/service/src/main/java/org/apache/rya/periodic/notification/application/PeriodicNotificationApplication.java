@@ -18,15 +18,20 @@
  */
 package org.apache.rya.periodic.notification.application;
 
-import com.google.common.base.Preconditions;
 import org.apache.log4j.Logger;
 import org.apache.rya.indexing.pcj.fluo.app.util.PeriodicQueryUtil;
-import org.apache.rya.periodic.notification.api.*;
+import org.apache.rya.periodic.notification.api.BinPruner;
+import org.apache.rya.periodic.notification.api.BindingSetRecord;
+import org.apache.rya.periodic.notification.api.LifeCycle;
+import org.apache.rya.periodic.notification.api.NodeBin;
+import org.apache.rya.periodic.notification.api.NotificationCoordinatorExecutor;
 import org.apache.rya.periodic.notification.exporter.KafkaExporterExecutor;
 import org.apache.rya.periodic.notification.processor.NotificationProcessorExecutor;
 import org.apache.rya.periodic.notification.pruner.PeriodicQueryPrunerExecutor;
 import org.apache.rya.periodic.notification.registration.kafka.KafkaNotificationProvider;
 import org.eclipse.rdf4j.query.algebra.evaluation.function.Function;
+
+import com.google.common.base.Preconditions;
 
 /**
  * The PeriodicNotificationApplication runs the key components of the Periodic

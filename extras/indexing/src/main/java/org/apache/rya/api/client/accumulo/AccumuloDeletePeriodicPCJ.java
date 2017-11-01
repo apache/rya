@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -18,9 +18,10 @@
  */
 package org.apache.rya.api.client.accumulo;
 
+import static java.util.Objects.requireNonNull;
+
 import java.util.Properties;
 
-import com.google.common.base.Optional;
 import org.apache.accumulo.core.client.Connector;
 import org.apache.fluo.api.client.FluoClient;
 import org.apache.kafka.clients.producer.KafkaProducer;
@@ -46,7 +47,7 @@ import org.eclipse.rdf4j.query.MalformedQueryException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static java.util.Objects.requireNonNull;
+import com.google.common.base.Optional;
 
 /**
  * Class used by the RyaClient and Rya Shell for deleting Periodic PCJ.
@@ -69,8 +70,7 @@ public class AccumuloDeletePeriodicPCJ extends AccumuloCommand implements Delete
     }
 
     @Override
-    public void deletePeriodicPCJ(final String instanceName, final String pcjId, String topic, String brokers) throws
-            RyaClientException {
+    public void deletePeriodicPCJ(final String instanceName, final String pcjId, String topic, String brokers) throws InstanceDoesNotExistException, RyaClientException {
         requireNonNull(instanceName);
         requireNonNull(pcjId);
 

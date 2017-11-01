@@ -18,6 +18,14 @@
  */
 package org.apache.rya.indexing.accumulo.entity;
 
+import static java.util.Objects.requireNonNull;
+import static org.apache.rya.accumulo.AccumuloRdfConstants.EMPTY_CV;
+import static org.apache.rya.accumulo.AccumuloRdfConstants.EMPTY_VALUE;
+import static org.apache.rya.api.RdfCloudTripleStoreConstants.DELIM_BYTES;
+import static org.apache.rya.api.RdfCloudTripleStoreConstants.EMPTY_BYTES;
+import static org.apache.rya.api.RdfCloudTripleStoreConstants.EMPTY_TEXT;
+import static org.apache.rya.api.RdfCloudTripleStoreConstants.TYPE_DELIM_BYTES;
+
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
@@ -25,10 +33,14 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
-import com.google.common.base.Preconditions;
-import com.google.common.collect.Lists;
-import com.google.common.primitives.Bytes;
-import org.apache.accumulo.core.client.*;
+import org.apache.accumulo.core.client.AccumuloException;
+import org.apache.accumulo.core.client.AccumuloSecurityException;
+import org.apache.accumulo.core.client.BatchWriter;
+import org.apache.accumulo.core.client.Connector;
+import org.apache.accumulo.core.client.MultiTableBatchWriter;
+import org.apache.accumulo.core.client.MutationsRejectedException;
+import org.apache.accumulo.core.client.TableExistsException;
+import org.apache.accumulo.core.client.TableNotFoundException;
 import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Mutation;
 import org.apache.accumulo.core.data.Value;
@@ -48,10 +60,9 @@ import org.apache.rya.api.resolver.triple.TripleRow;
 import org.apache.rya.indexing.accumulo.ConfigUtils;
 import org.eclipse.rdf4j.model.IRI;
 
-import static java.util.Objects.requireNonNull;
-import static org.apache.rya.accumulo.AccumuloRdfConstants.EMPTY_CV;
-import static org.apache.rya.accumulo.AccumuloRdfConstants.EMPTY_VALUE;
-import static org.apache.rya.api.RdfCloudTripleStoreConstants.*;
+import com.google.common.base.Preconditions;
+import com.google.common.collect.Lists;
+import com.google.common.primitives.Bytes;
 
 public class EntityCentricIndex extends AbstractAccumuloIndexer {
 

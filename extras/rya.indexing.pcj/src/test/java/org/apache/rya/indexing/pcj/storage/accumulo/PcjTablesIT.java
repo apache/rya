@@ -22,6 +22,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
 import java.io.IOException;
+import java.math.BigInteger;
 import java.util.HashSet;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -207,15 +208,15 @@ public class PcjTablesIT {
         // Add a few results to the PCJ table.
         final MapBindingSet alice = new MapBindingSet();
         alice.addBinding("name", VF.createIRI("http://Alice"));
-        alice.addBinding("age", VF.createLiteral(14));
+        alice.addBinding("age", VF.createLiteral(BigInteger.valueOf(14)));
 
         final MapBindingSet bob = new MapBindingSet();
         bob.addBinding("name", VF.createIRI("http://Bob"));
-        bob.addBinding("age", VF.createLiteral(16));
+        bob.addBinding("age", VF.createLiteral(BigInteger.valueOf(16)));
 
         final MapBindingSet charlie = new MapBindingSet();
         charlie.addBinding("name", VF.createIRI("http://Charlie"));
-        charlie.addBinding("age", VF.createLiteral(12));
+        charlie.addBinding("age", VF.createLiteral(BigInteger.valueOf(12)));
 
         final Set<BindingSet> results = Sets.newHashSet(alice, bob, charlie);
         pcjs.addResults(accumuloConn, pcjTableName, Sets.newHashSet(
@@ -258,15 +259,15 @@ public class PcjTablesIT {
         // Add a few results to the PCJ table.
         final MapBindingSet alice = new MapBindingSet();
         alice.addBinding("name", VF.createIRI("http://Alice"));
-        alice.addBinding("age", VF.createLiteral(14));
+        alice.addBinding("age", VF.createLiteral(BigInteger.valueOf(14)));
 
         final MapBindingSet bob = new MapBindingSet();
         bob.addBinding("name", VF.createIRI("http://Bob"));
-        bob.addBinding("age", VF.createLiteral(16));
+        bob.addBinding("age", VF.createLiteral(BigInteger.valueOf(16)));
 
         final MapBindingSet charlie = new MapBindingSet();
         charlie.addBinding("name", VF.createIRI("http://Charlie"));
-        charlie.addBinding("age", VF.createLiteral(12));
+        charlie.addBinding("age", VF.createLiteral(BigInteger.valueOf(12)));
 
         pcjs.addResults(accumuloConn, pcjTableName, Sets.newHashSet(
                 new VisibilityBindingSet(alice),
@@ -300,13 +301,13 @@ public class PcjTablesIT {
     public void populatePcj() throws RepositoryException, PcjException, TableNotFoundException, BindingSetConversionException, AccumuloException, AccumuloSecurityException {
         // Load some Triples into Rya.
         final Set<Statement> triples = new HashSet<>();
-        triples.add( VF.createStatement(VF.createIRI("http://Alice"), VF.createIRI("http://hasAge"), VF.createLiteral(14)) );
+        triples.add( VF.createStatement(VF.createIRI("http://Alice"), VF.createIRI("http://hasAge"), VF.createLiteral(BigInteger.valueOf(14))) );
         triples.add( VF.createStatement(VF.createIRI("http://Alice"), VF.createIRI("http://playsSport"), VF.createLiteral("Soccer")) );
-        triples.add( VF.createStatement(VF.createIRI("http://Bob"), VF.createIRI("http://hasAge"), VF.createLiteral(16)) );
+        triples.add( VF.createStatement(VF.createIRI("http://Bob"), VF.createIRI("http://hasAge"), VF.createLiteral(BigInteger.valueOf(16))) );
         triples.add( VF.createStatement(VF.createIRI("http://Bob"), VF.createIRI("http://playsSport"), VF.createLiteral("Soccer")) );
-        triples.add( VF.createStatement(VF.createIRI("http://Charlie"), VF.createIRI("http://hasAge"), VF.createLiteral(12)) );
+        triples.add( VF.createStatement(VF.createIRI("http://Charlie"), VF.createIRI("http://hasAge"), VF.createLiteral(BigInteger.valueOf(12))) );
         triples.add( VF.createStatement(VF.createIRI("http://Charlie"), VF.createIRI("http://playsSport"), VF.createLiteral("Soccer")) );
-        triples.add( VF.createStatement(VF.createIRI("http://Eve"), VF.createIRI("http://hasAge"), VF.createLiteral(43)) );
+        triples.add( VF.createStatement(VF.createIRI("http://Eve"), VF.createIRI("http://hasAge"), VF.createLiteral(BigInteger.valueOf(43))) );
         triples.add( VF.createStatement(VF.createIRI("http://Eve"), VF.createIRI("http://playsSport"), VF.createLiteral("Soccer")) );
 
         for(final Statement triple : triples) {
@@ -342,15 +343,15 @@ public class PcjTablesIT {
         // Ensure the expected results match those that were stored.
         final MapBindingSet alice = new MapBindingSet();
         alice.addBinding("name", VF.createIRI("http://Alice"));
-        alice.addBinding("age", VF.createLiteral(14));
+        alice.addBinding("age", VF.createLiteral(BigInteger.valueOf(14)));
 
         final MapBindingSet bob = new MapBindingSet();
         bob.addBinding("name", VF.createIRI("http://Bob"));
-        bob.addBinding("age", VF.createLiteral(16));
+        bob.addBinding("age", VF.createLiteral(BigInteger.valueOf(16)));
 
         final MapBindingSet charlie = new MapBindingSet();
         charlie.addBinding("name", VF.createIRI("http://Charlie"));
-        charlie.addBinding("age", VF.createLiteral(12));
+        charlie.addBinding("age", VF.createLiteral(BigInteger.valueOf(12)));
 
         final Set<BindingSet> results = Sets.newHashSet(alice, bob, charlie);
 
@@ -410,15 +411,15 @@ public class PcjTablesIT {
         // Ensure the expected results match those that were stored.
         final MapBindingSet alice = new MapBindingSet();
         alice.addBinding("name", VF.createIRI("http://Alice"));
-        alice.addBinding("age", VF.createLiteral(14));
+        alice.addBinding("age", VF.createLiteral(BigInteger.valueOf(14)));
 
         final MapBindingSet bob = new MapBindingSet();
         bob.addBinding("name", VF.createIRI("http://Bob"));
-        bob.addBinding("age", VF.createLiteral(16));
+        bob.addBinding("age", VF.createLiteral(BigInteger.valueOf(16)));
 
         final MapBindingSet charlie = new MapBindingSet();
         charlie.addBinding("name", VF.createIRI("http://Charlie"));
-        charlie.addBinding("age", VF.createLiteral(12));
+        charlie.addBinding("age", VF.createLiteral(BigInteger.valueOf(12)));
 
         final Set<BindingSet> results = Sets.newHashSet(alice, bob, charlie);
 
@@ -485,15 +486,15 @@ public class PcjTablesIT {
         // Add a few results to the PCJ table.
         final MapBindingSet alice = new MapBindingSet();
         alice.addBinding("name", VF.createIRI("http://Alice"));
-        alice.addBinding("age", VF.createLiteral(14));
+        alice.addBinding("age", VF.createLiteral(BigInteger.valueOf(14)));
 
         final MapBindingSet bob = new MapBindingSet();
         bob.addBinding("name", VF.createIRI("http://Bob"));
-        bob.addBinding("age", VF.createLiteral(16));
+        bob.addBinding("age", VF.createLiteral(BigInteger.valueOf(16)));
 
         final MapBindingSet charlie = new MapBindingSet();
         charlie.addBinding("name", VF.createIRI("http://Charlie"));
-        charlie.addBinding("age", VF.createLiteral(12));
+        charlie.addBinding("age", VF.createLiteral(BigInteger.valueOf(12)));
 
         pcjs.addResults(accumuloConn, pcjTableName, Sets.newHashSet(
                 new VisibilityBindingSet(alice),

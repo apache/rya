@@ -22,9 +22,12 @@ package org.apache.rya.indexing.accumulo.freetext;
 import java.io.IOException;
 import java.util.Set;
 
-import com.google.common.base.Joiner;
 import org.apache.hadoop.conf.Configuration;
-import org.apache.rya.indexing.*;
+import org.apache.rya.indexing.FreeTextIndexer;
+import org.apache.rya.indexing.IndexingExpr;
+import org.apache.rya.indexing.IteratorFactory;
+import org.apache.rya.indexing.SearchFunction;
+import org.apache.rya.indexing.StatementConstraints;
 import org.apache.rya.indexing.external.tupleSet.ExternalTupleSet;
 import org.eclipse.rdf4j.common.iteration.CloseableIteration;
 import org.eclipse.rdf4j.model.IRI;
@@ -33,6 +36,8 @@ import org.eclipse.rdf4j.model.Value;
 import org.eclipse.rdf4j.query.BindingSet;
 import org.eclipse.rdf4j.query.QueryEvaluationException;
 import org.eclipse.rdf4j.query.algebra.QueryModelVisitor;
+
+import com.google.common.base.Joiner;
 
 
 //Indexing Node for freetext expressions to be inserted into execution plan 

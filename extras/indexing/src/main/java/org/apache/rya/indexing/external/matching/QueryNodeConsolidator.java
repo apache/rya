@@ -19,12 +19,19 @@ package org.apache.rya.indexing.external.matching;
  * under the License.
  */
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.SortedSet;
+import java.util.TreeSet;
 
-import com.google.common.base.Preconditions;
 import org.eclipse.rdf4j.query.algebra.QueryModelNode;
 import org.eclipse.rdf4j.query.algebra.TupleExpr;
 import org.eclipse.rdf4j.query.algebra.ValueExpr;
+
+import com.google.common.base.Preconditions;
 
 /**
  * Given an order List view of an {@link OptionalJoinSegment} taken from a query

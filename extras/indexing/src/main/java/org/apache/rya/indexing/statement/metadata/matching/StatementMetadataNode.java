@@ -19,12 +19,22 @@ package org.apache.rya.indexing.statement.metadata.matching;
  * under the License.
  */
 
-import java.io.IOException;
-import java.util.*;
-import java.util.Map.Entry;
+import static java.util.Objects.requireNonNull;
 
-import com.google.common.base.Joiner;
-import com.google.common.base.Preconditions;
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.NoSuchElementException;
+import java.util.Optional;
+import java.util.Set;
+
 import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
 import org.apache.rya.api.RdfCloudTripleStoreUtils;
 import org.apache.rya.api.domain.RyaStatement;
@@ -50,7 +60,8 @@ import org.eclipse.rdf4j.query.algebra.Var;
 import org.eclipse.rdf4j.query.algebra.evaluation.QueryBindingSet;
 import org.eclipse.rdf4j.query.algebra.evaluation.impl.ExternalSet;
 
-import static java.util.Objects.requireNonNull;
+import com.google.common.base.Joiner;
+import com.google.common.base.Preconditions;
 
 /**
  * This class provides users with the ability to issue reified queries to Rya.

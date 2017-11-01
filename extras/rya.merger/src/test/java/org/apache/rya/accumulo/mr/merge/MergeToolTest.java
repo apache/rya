@@ -18,6 +18,14 @@
  */
 package org.apache.rya.accumulo.mr.merge;
 
+import static org.apache.rya.accumulo.mr.merge.util.TestUtils.LAST_MONTH;
+import static org.apache.rya.accumulo.mr.merge.util.TestUtils.TODAY;
+import static org.apache.rya.accumulo.mr.merge.util.TestUtils.YESTERDAY;
+import static org.apache.rya.accumulo.mr.merge.util.TestUtils.createRyaStatement;
+import static org.apache.rya.accumulo.mr.merge.util.ToolConfigUtils.makeArgument;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
+
 import java.util.Date;
 import java.util.Iterator;
 import java.util.Map.Entry;
@@ -45,12 +53,11 @@ import org.apache.rya.api.RdfCloudTripleStoreConstants;
 import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.persist.RyaDAOException;
 import org.eclipse.rdf4j.common.iteration.CloseableIteration;
-import org.junit.*;
-
-import static org.apache.rya.accumulo.mr.merge.util.TestUtils.*;
-import static org.apache.rya.accumulo.mr.merge.util.ToolConfigUtils.makeArgument;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
+import org.junit.After;
+import org.junit.AfterClass;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Test;
 
 /**
  * Tests for {@link MergeTool}.

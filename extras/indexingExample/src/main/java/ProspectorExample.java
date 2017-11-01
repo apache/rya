@@ -19,9 +19,12 @@
 
 import java.util.List;
 
-import com.google.common.collect.Lists;
 import org.apache.hadoop.util.ToolRunner;
-import org.apache.log4j.*;
+import org.apache.log4j.ConsoleAppender;
+import org.apache.log4j.Level;
+import org.apache.log4j.LogManager;
+import org.apache.log4j.Logger;
+import org.apache.log4j.PatternLayout;
 import org.apache.rya.accumulo.AccumuloRdfConfiguration;
 import org.apache.rya.accumulo.utils.ConnectorFactory;
 import org.apache.rya.api.persist.RdfEvalStatsDAO.CARDINALITY_OF;
@@ -34,6 +37,8 @@ import org.eclipse.rdf4j.model.ValueFactory;
 import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 import org.eclipse.rdf4j.sail.Sail;
 import org.eclipse.rdf4j.sail.SailConnection;
+
+import com.google.common.collect.Lists;
 
 /**
  * Demonstrates how you can use the {@link Prospector} to count values that appear within an instance of Rya and

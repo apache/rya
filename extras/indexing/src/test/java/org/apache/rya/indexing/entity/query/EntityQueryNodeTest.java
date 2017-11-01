@@ -22,6 +22,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -157,7 +158,7 @@ public class EntityQueryNodeTest extends MongoTestBase {
         final Entity entity = Entity.builder()
             .setSubject(subject)
             .setExplicitType(PERSON_TYPE.getId())
-            .setProperty(PERSON_TYPE.getId(), new Property(new RyaURI("urn:age"), RdfToRyaConversions.convertLiteral(vf.createLiteral(20))))
+            .setProperty(PERSON_TYPE.getId(), new Property(new RyaURI("urn:age"), RdfToRyaConversions.convertLiteral(vf.createLiteral(BigInteger.valueOf(20)))))
             .setProperty(PERSON_TYPE.getId(), new Property(new RyaURI("urn:eye"), RdfToRyaConversions.convertLiteral(vf.createLiteral("blue"))))
             .setProperty(PERSON_TYPE.getId(), new Property(new RyaURI("urn:name"), RdfToRyaConversions.convertLiteral(vf.createLiteral("Bob"))))
             .build();
@@ -192,7 +193,7 @@ public class EntityQueryNodeTest extends MongoTestBase {
         final Entity bob = Entity.builder()
                 .setSubject(subject)
                 .setExplicitType(PERSON_TYPE.getId())
-                .setProperty(PERSON_TYPE.getId(), new Property(new RyaURI("urn:age"), RdfToRyaConversions.convertLiteral(vf.createLiteral(20))))
+                .setProperty(PERSON_TYPE.getId(), new Property(new RyaURI("urn:age"), RdfToRyaConversions.convertLiteral(vf.createLiteral(BigInteger.valueOf(20)))))
                 .setProperty(PERSON_TYPE.getId(), new Property(new RyaURI("urn:eye"), RdfToRyaConversions.convertLiteral(vf.createLiteral("blue"))))
                 .setProperty(PERSON_TYPE.getId(), new Property(new RyaURI("urn:name"), RdfToRyaConversions.convertLiteral(vf.createLiteral("Bob"))))
                 .build();
@@ -201,7 +202,7 @@ public class EntityQueryNodeTest extends MongoTestBase {
         final Entity fred = Entity.builder()
                 .setSubject(subject)
                 .setExplicitType(PERSON_TYPE.getId())
-                .setProperty(PERSON_TYPE.getId(), new Property(new RyaURI("urn:age"), RdfToRyaConversions.convertLiteral(vf.createLiteral(25))))
+                .setProperty(PERSON_TYPE.getId(), new Property(new RyaURI("urn:age"), RdfToRyaConversions.convertLiteral(vf.createLiteral(BigInteger.valueOf(25)))))
                 .setProperty(PERSON_TYPE.getId(), new Property(new RyaURI("urn:eye"), RdfToRyaConversions.convertLiteral(vf.createLiteral("brown"))))
                 .setProperty(PERSON_TYPE.getId(), new Property(new RyaURI("urn:name"), RdfToRyaConversions.convertLiteral(vf.createLiteral("Fred"))))
                 .build();
@@ -245,7 +246,7 @@ public class EntityQueryNodeTest extends MongoTestBase {
         final Entity entity = Entity.builder()
             .setSubject(subject)
             .setExplicitType(PERSON_TYPE.getId())
-            .setProperty(PERSON_TYPE.getId(), new Property(new RyaURI("urn:age"), RdfToRyaConversions.convertLiteral(vf.createLiteral(20))))
+            .setProperty(PERSON_TYPE.getId(), new Property(new RyaURI("urn:age"), RdfToRyaConversions.convertLiteral(vf.createLiteral(BigInteger.valueOf(20)))))
             .setProperty(PERSON_TYPE.getId(), new Property(new RyaURI("urn:eye"), RdfToRyaConversions.convertLiteral(vf.createLiteral("blue"))))
             .setProperty(PERSON_TYPE.getId(), new Property(new RyaURI("urn:name"), RdfToRyaConversions.convertLiteral(vf.createLiteral("Bob"))))
             .build();

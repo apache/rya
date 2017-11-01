@@ -18,16 +18,13 @@
  */
 package org.apache.rya.mongodb.iter;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Map.Entry;
+import java.util.Set;
 
-import com.google.common.collect.HashMultimap;
-import com.google.common.collect.Iterators;
-import com.google.common.collect.Multimap;
-import com.mongodb.DBObject;
-import com.mongodb.client.AggregateIterable;
-import com.mongodb.client.MongoCollection;
-import com.mongodb.util.JSON;
 import org.apache.accumulo.core.security.Authorizations;
 import org.apache.log4j.Logger;
 import org.apache.rya.api.RdfCloudTripleStoreUtils;
@@ -39,6 +36,14 @@ import org.apache.rya.mongodb.document.operators.aggregation.AggregationUtil;
 import org.bson.Document;
 import org.eclipse.rdf4j.common.iteration.CloseableIteration;
 import org.eclipse.rdf4j.query.BindingSet;
+
+import com.google.common.collect.HashMultimap;
+import com.google.common.collect.Iterators;
+import com.google.common.collect.Multimap;
+import com.mongodb.DBObject;
+import com.mongodb.client.AggregateIterable;
+import com.mongodb.client.MongoCollection;
+import com.mongodb.util.JSON;
 
 public class RyaStatementBindingSetCursorIterator implements CloseableIteration<Entry<RyaStatement, BindingSet>, RyaDAOException> {
     private static final Logger log = Logger.getLogger(RyaStatementBindingSetCursorIterator.class);

@@ -36,20 +36,20 @@ public interface PeriodicNotificationClient extends AutoCloseable {
      * Adds a new notification to be registered with the {@link NotificationCoordinatorExecutor}
      * @param notification - notification to be added
      */
-    public void addNotification(PeriodicNotification notification);
-    
+    void addNotification(PeriodicNotification notification);
+
     /**
      * Deletes a notification from the {@link NotificationCoordinatorExecutor}.
      * @param notification - notification to be deleted
      */
-    public void deleteNotification(BasicNotification notification);
-    
+    void deleteNotification(BasicNotification notification);
+
     /**
      * Deletes a notification from the {@link NotificationCoordinatorExecutor}.
      * @param notification - id corresponding to the notification to be deleted
      */
-    public void deleteNotification(String notificationId);
-    
+    void deleteNotification(String notificationId);
+
     /**
      * Adds a new notification with the indicated id and period to the {@link NotificationCoordinatorExecutor}
      * @param id - Periodic Query id
@@ -57,8 +57,5 @@ public interface PeriodicNotificationClient extends AutoCloseable {
      * @param delay - initial delay for starting periodic notifications
      * @param unit - time unit of delay and period
      */
-    public void addNotification(String id, long period, long delay, TimeUnit unit);
-    
-    public void close();
-    
+    void addNotification(String id, long period, long delay, TimeUnit unit);
 }

@@ -23,8 +23,6 @@ import java.util.Objects;
 import org.apache.fluo.api.data.Column;
 import org.apache.fluo.api.data.Span;
 
-import com.google.common.base.Preconditions;
-
 /**
  * Abstract class for generating span based notifications.  A spanned notification
  * uses a {@link Span} to begin processing a Fluo Column at the position designated by the Span.
@@ -43,7 +41,7 @@ public abstract class AbstractSpanBatchInformation extends BasicBatchInformation
      */
     public AbstractSpanBatchInformation(int batchSize, Task task, Column column, Span span) {
         super(batchSize, task, column);
-        this.span = Preconditions.checkNotNull(span);
+        this.span = Objects.requireNonNull(span);
     }
 
     public AbstractSpanBatchInformation(Task task, Column column, Span span) {

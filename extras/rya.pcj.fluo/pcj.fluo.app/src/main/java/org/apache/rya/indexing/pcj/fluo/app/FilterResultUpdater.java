@@ -22,7 +22,6 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import org.apache.fluo.api.client.TransactionBase;
 import org.apache.fluo.api.data.Bytes;
-import org.apache.log4j.Logger;
 import org.apache.rya.indexing.pcj.fluo.app.query.FilterMetadata;
 import org.apache.rya.indexing.pcj.fluo.app.query.FluoQueryColumns;
 import org.apache.rya.indexing.pcj.fluo.app.util.FilterSerializer;
@@ -46,6 +45,8 @@ import org.openrdf.query.algebra.evaluation.ValueExprEvaluationException;
 import org.openrdf.query.algebra.evaluation.function.FunctionRegistry;
 import org.openrdf.query.algebra.evaluation.impl.EvaluationStrategyImpl;
 import org.openrdf.query.algebra.evaluation.util.QueryEvaluationUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
 import edu.umd.cs.findbugs.annotations.NonNull;
@@ -58,7 +59,7 @@ import info.aduna.iteration.CloseableIteration;
 @DefaultAnnotation(NonNull.class)
 public class FilterResultUpdater {
 
-    private static final Logger log = Logger.getLogger(FilterResultUpdater.class);
+    private static final Logger log = LoggerFactory.getLogger(FilterResultUpdater.class);
 
     private static final VisibilityBindingSetSerDe BS_SERDE = new VisibilityBindingSetSerDe();
 
@@ -101,14 +102,11 @@ public class FilterResultUpdater {
         checkNotNull(childBindingSet);
         checkNotNull(filterMetadata);
 
-        log.trace(
-                "Transaction ID: " + tx.getStartTimestamp() + "\n" +
-                "Filter Node ID: " + filterMetadata.getNodeId() + "\n" +
-                "Binding Set:\n" + childBindingSet + "\n");
+        log.trace("Transaction ID: {}\nFilter Node ID: {}\nBinding Set:\n{}\n", tx.getStartTimestamp(), filterMetadata.getNodeId(), childBindingSet);
 
         // Parse the original query and find the Filter that represents filterId.
         final String sparql = filterMetadata.getFilterSparql();
-        Filter filter = FilterSerializer.deserialize(sparql);
+        final Filter filter = FilterSerializer.deserialize(sparql);
 
         // Evaluate whether the child BindingSet satisfies the filter's condition.
         final ValueExpr condition = filter.getCondition();
@@ -120,7 +118,7 @@ public class FilterResultUpdater {
 
             // Serialize and emit BindingSet
             final Bytes nodeValueBytes = BS_SERDE.serialize(childBindingSet);
-            log.trace("Transaction ID: " + tx.getStartTimestamp() + "\n" + "New Binding Set: " + childBindingSet + "\n");
+            log.trace("Transaction ID: {}\nNew Binding Set: {}\n", tx.getStartTimestamp(), childBindingSet);
 
             tx.set(resultRow, FluoQueryColumns.FILTER_BINDING_SET, nodeValueBytes);
         }

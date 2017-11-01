@@ -35,9 +35,7 @@
         A Fluo implementation of Rya Precomputed Join Indexing. This module produces
         a jar that may be executed by the 'fluo' command line tool as a YARN job.
     </description>
-    <properties>
-        <kryo.version>3.0.3</kryo.version>
-    </properties>
+
     <dependencies>
         <dependency>
             <groupId>org.slf4j</groupId>
@@ -81,7 +79,6 @@
         <dependency>
             <groupId>com.esotericsoftware</groupId>
             <artifactId>kryo</artifactId>
-            <version>${kryo.version}</version>
         </dependency>
 
         <!-- Testing dependencies. -->

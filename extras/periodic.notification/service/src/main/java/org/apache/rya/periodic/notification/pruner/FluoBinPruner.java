@@ -23,13 +23,15 @@ import org.apache.fluo.api.client.Transaction;
 import org.apache.fluo.api.data.Bytes;
 import org.apache.fluo.api.data.Column;
 import org.apache.fluo.api.data.Span;
-import org.apache.log4j.Logger;
 import org.apache.rya.indexing.pcj.fluo.app.IncrementalUpdateConstants;
 import org.apache.rya.indexing.pcj.fluo.app.NodeType;
 import org.apache.rya.indexing.pcj.fluo.app.batch.BatchInformationDAO;
 import org.apache.rya.indexing.pcj.fluo.app.batch.SpanBatchDeleteInformation;
 import org.apache.rya.periodic.notification.api.BinPruner;
 import org.apache.rya.periodic.notification.api.NodeBin;
+import org.openrdf.query.BindingSet;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Optional;
 
@@ -38,35 +40,35 @@ import com.google.common.base.Optional;
  */
 public class FluoBinPruner implements BinPruner {
 
-    private static final Logger log = Logger.getLogger(FluoBinPruner.class);
-    private FluoClient client;
+    private static final Logger log = LoggerFactory.getLogger(FluoBinPruner.class);
+    private final FluoClient client;
 
-    public FluoBinPruner(FluoClient client) {
+    public FluoBinPruner(final FluoClient client) {
         this.client = client;
     }
 
     /**
      * This method deletes BindingSets in the specified bin from the BindingSet
      * Column of the indicated Fluo nodeId
-     * 
+     *
      * @param id
      *            - Fluo nodeId
      * @param bin
      *            - bin id
      */
     @Override
-    public void pruneBindingSetBin(NodeBin nodeBin) {
-        String id = nodeBin.getNodeId();
-        long bin = nodeBin.getBin();
+    public void pruneBindingSetBin(final NodeBin nodeBin) {
+        final String id = nodeBin.getNodeId();
+        final long bin = nodeBin.getBin();
         try (Transaction tx = client.newTransaction()) {
-            Optional<NodeType> type = NodeType.fromNodeId(id);
+            final Optional<NodeType> type = NodeType.fromNodeId(id);
             if (!type.isPresent()) {
                 log.trace("Unable to determine NodeType from id: " + id);
                 throw new RuntimeException();
             }
-            Column batchInfoColumn = type.get().getResultColumn();
-            String batchInfoSpanPrefix = id + IncrementalUpdateConstants.NODEID_BS_DELIM + bin;
-            SpanBatchDeleteInformation batchInfo = SpanBatchDeleteInformation.builder().setColumn(batchInfoColumn)
+            final Column batchInfoColumn = type.get().getResultColumn();
+            final String batchInfoSpanPrefix = id + IncrementalUpdateConstants.NODEID_BS_DELIM + bin;
+            final SpanBatchDeleteInformation batchInfo = SpanBatchDeleteInformation.builder().setColumn(batchInfoColumn)
                     .setSpan(Span.prefix(Bytes.of(batchInfoSpanPrefix))).build();
             BatchInformationDAO.addBatch(tx, id, batchInfo);
             tx.commit();

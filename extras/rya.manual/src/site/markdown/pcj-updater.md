@@ -211,14 +211,16 @@ Add the following entries under Observer properties in the
 # fluo.observer.0=com.foo.Observer1
 # Can optionally have configuration key values
 # fluo.observer.1=com.foo.Observer2,configKey1=configVal1,configKey2=configVal2
-fluo.observer.0=org.apache.rya.indexing.pcj.fluo.app.observers.TripleObserver
-fluo.observer.1=org.apache.rya.indexing.pcj.fluo.app.observers.StatementPatternObserver
-fluo.observer.2=org.apache.rya.indexing.pcj.fluo.app.observers.JoinObserver
-fluo.observer.3=org.apache.rya.indexing.pcj.fluo.app.observers.FilterObserver
-fluo.observer.4=org.apache.rya.indexing.pcj.fluo.app.observers.AggregationObserver
-fluo.observer.5=org.apache.rya.indexing.pcj.fluo.app.observers.ProjectionObserver
-#fluo.observer.5=org.apache.rya.indexing.pcj.fluo.app.observers.ConstructQueryResultObserver
-fluo.observer.6=org.apache.rya.indexing.pcj.fluo.app.observers.QueryResultObserver,pcj.fluo.export.rya.enabled=true,pcj.fluo.export.rya.ryaInstanceName=rya_,pcj.fluo.export.rya.accumuloInstanceName=myAccumuloInstance,pcj.fluo.export.rya.zookeeperServers=zoo1;zoo2;zoo3,pcj.fluo.export.rya.exporterUsername=myUserName,pcj.fluo.export.rya.exporterPassword=myPassword,pcj.fluo.export.kafka.enabled=true,bootstrap.servers=myKafkaBroker:9092,key.serializer=org.apache.kafka.common.serialization.ByteArraySerializer,value.serializer=org.apache.rya.indexing.pcj.fluo.app.export.kafka.KryoVisibilityBindingSetSerializer
+fluo.observer.0=org.apache.rya.indexing.pcj.fluo.app.batch.BatchObserver
+fluo.observer.1=org.apache.rya.indexing.pcj.fluo.app.observers.TripleObserver
+fluo.observer.2=org.apache.rya.indexing.pcj.fluo.app.observers.StatementPatternObserver
+fluo.observer.3=org.apache.rya.indexing.pcj.fluo.app.observers.JoinObserver
+fluo.observer.4=org.apache.rya.indexing.pcj.fluo.app.observers.FilterObserver
+fluo.observer.5=org.apache.rya.indexing.pcj.fluo.app.observers.AggregationObserver
+fluo.observer.6=org.apache.rya.indexing.pcj.fluo.app.observers.PeriodicQueryObserver
+fluo.observer.7=org.apache.rya.indexing.pcj.fluo.app.observers.ProjectionObserver
+#fluo.observer.8=org.apache.rya.indexing.pcj.fluo.app.observers.ConstructQueryResultObserver
+fluo.observer.8=org.apache.rya.indexing.pcj.fluo.app.observers.QueryResultObserver,pcj.fluo.export.rya.enabled=true,pcj.fluo.export.rya.ryaInstanceName=rya_,pcj.fluo.export.rya.fluo.application.name=rya_pcj_updater,pcj.fluo.export.rya.accumuloInstanceName=myAccumuloInstance,pcj.fluo.export.rya.zookeeperServers=zoo1;zoo2;zoo3;zoo4;zoo5,pcj.fluo.export.rya.exporterUsername=myUserName,pcj.fluo.export.rya.exporterPassword=myPassword,pcj.fluo.export.rya.bindingset.enabled=true,pcj.fluo.export.periodic.bindingset.enabled=true,pcj.fluo.export.kafka.subgraph.enabled=true,pcj.fluo.export.kafka.bindingset.enabled=true,bootstrap.servers=kafka1:9092
 ```
 
 Description of configuration keys for the 

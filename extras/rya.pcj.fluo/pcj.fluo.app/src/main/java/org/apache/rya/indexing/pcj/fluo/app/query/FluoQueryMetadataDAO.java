@@ -54,6 +54,8 @@ import edu.umd.cs.findbugs.annotations.NonNull;
 /**
  * Reads and writes {@link FluoQuery} instances and their components to/from
  * a Fluo table.
+ * <p>
+ * Note, this class should be implemented in a thread-safe manner due to current usage.
  */
 @DefaultAnnotation(NonNull.class)
 public class FluoQueryMetadataDAO {
@@ -68,8 +70,8 @@ public class FluoQueryMetadataDAO {
         requireNonNull(tx);
         requireNonNull(metadata);
 
-        Joiner joiner = Joiner.on(IncrementalUpdateConstants.VAR_DELIM);
-        
+        final Joiner joiner = Joiner.on(IncrementalUpdateConstants.VAR_DELIM);
+
         final String rowId = metadata.getNodeId();
         tx.set(rowId, FluoQueryColumns.QUERY_NODE_ID, rowId);
         tx.set(rowId, FluoQueryColumns.QUERY_VARIABLE_ORDER, metadata.getVariableOrder().toString());
@@ -111,9 +113,9 @@ public class FluoQueryMetadataDAO {
         final String childNodeId = values.get(FluoQueryColumns.QUERY_CHILD_NODE_ID);
         final String queryType = values.get(FluoQueryColumns.QUERY_TYPE);
         final String[] exportStrategies = values.get(FluoQueryColumns.QUERY_EXPORT_STRATEGIES).split(IncrementalUpdateConstants.VAR_DELIM);
-        
-        Set<ExportStrategy> strategies = new HashSet<>();
-        for (String strategy : exportStrategies) {
+
+        final Set<ExportStrategy> strategies = new HashSet<>();
+        for (final String strategy : exportStrategies) {
             if (!strategy.isEmpty()) {
                 strategies.add(ExportStrategy.valueOf(strategy));
             }
@@ -126,8 +128,8 @@ public class FluoQueryMetadataDAO {
                 .setQueryType(QueryType.valueOf(queryType))
                 .setChildNodeId( childNodeId );
     }
-    
-    
+
+
     /**
      * Write an instance of {@link ProjectionMetadata} to the Fluo table.
      *
@@ -177,15 +179,15 @@ public class FluoQueryMetadataDAO {
         final String childNodeId = values.get(FluoQueryColumns.PROJECTION_CHILD_NODE_ID);
         final String parentNodeId = values.get(FluoQueryColumns.PROJECTION_PARENT_NODE_ID);
 
-        
+
         return ProjectionMetadata.builder(nodeId)
                 .setVarOrder( varOrder )
                 .setProjectedVars(projectedVars)
                 .setParentNodeId(parentNodeId)
                 .setChildNodeId( childNodeId );
     }
-    
-    
+
+
     /**
      * Write an instance of {@link ConstructQueryMetadata} to the Fluo table.
      *
@@ -221,9 +223,9 @@ public class FluoQueryMetadataDAO {
 
         // Fetch the values from the Fluo table.
         final String rowId = nodeId;
-        final Map<Column, String> values = sx.gets(rowId, 
+        final Map<Column, String> values = sx.gets(rowId,
                 FluoQueryColumns.CONSTRUCT_GRAPH,
-                FluoQueryColumns.CONSTRUCT_CHILD_NODE_ID, 
+                FluoQueryColumns.CONSTRUCT_CHILD_NODE_ID,
                 FluoQueryColumns.CONSTRUCT_PARENT_NODE_ID,
                 FluoQueryColumns.CONSTRUCT_VARIABLE_ORDER);
 
@@ -232,7 +234,7 @@ public class FluoQueryMetadataDAO {
         final String childNodeId = values.get(FluoQueryColumns.CONSTRUCT_CHILD_NODE_ID);
         final String parentNodeId = values.get(FluoQueryColumns.CONSTRUCT_PARENT_NODE_ID);
         final String varOrderString = values.get(FluoQueryColumns.CONSTRUCT_VARIABLE_ORDER);
-        
+
 
         return ConstructQueryMetadata.builder()
                 .setNodeId(nodeId)
@@ -241,8 +243,8 @@ public class FluoQueryMetadataDAO {
                 .setVarOrder(new VariableOrder(varOrderString))
                 .setChildNodeId(childNodeId);
     }
-    
-    
+
+
     /**
      * Write an instance of {@link FilterMetadata} to the Fluo table.
      *
@@ -368,8 +370,8 @@ public class FluoQueryMetadataDAO {
                 .setUnit(TimeUnit.valueOf(timeUnit));
 
     }
-    
-    
+
+
 
     /**
      * Write an instance of {@link JoinMetadata} to the Fluo table.
@@ -586,23 +588,23 @@ public class FluoQueryMetadataDAO {
     public void write(final TransactionBase tx, final FluoQuery query) {
         requireNonNull(tx);
         requireNonNull(query);
-        
+
         // The results of the query are eventually exported to an instance
         // of Rya, so store the Rya ID for the PCJ.
         write(tx, query.getQueryMetadata());
 
         // Write the rest of the metadata objects.
-        
+
         if (query.getQueryType() == QueryType.CONSTRUCT) {
-            ConstructQueryMetadata constructMetadata = query.getConstructQueryMetadata().get();
+            final ConstructQueryMetadata constructMetadata = query.getConstructQueryMetadata().get();
             write(tx, constructMetadata);
         }
-        
+
         for(final ProjectionMetadata projection : query.getProjectionMetadata()) {
             write(tx, projection);
         }
-        
-        Optional<PeriodicQueryMetadata> periodicMetadata = query.getPeriodicQueryMetadata();
+
+        final Optional<PeriodicQueryMetadata> periodicMetadata = query.getPeriodicQueryMetadata();
         if(periodicMetadata.isPresent()) {
             write(tx, periodicMetadata.get());
         }
@@ -630,7 +632,7 @@ public class FluoQueryMetadataDAO {
      * @param sx - The snapshot that will be used to read the metadata from the Fluo table. (not null)
      * @param queryId - The ID of the query whose nodes will be read. (not null)
      * @return The {@link FluoQuery} that was read from table.
-     * @throws UnsupportedQueryException 
+     * @throws UnsupportedQueryException
      */
     public FluoQuery readFluoQuery(final SnapshotBase sx, final String queryId) throws UnsupportedQueryException {
         requireNonNull(sx);
@@ -656,20 +658,20 @@ public class FluoQueryMetadataDAO {
             // Add it's child's metadata.
             addChildMetadata(sx, builder, queryBuilder.build().getChildNodeId());
             break;
-            
+
         case PROJECTION:
             //Add this node's metadata
             final ProjectionMetadata.Builder projectionBuilder = readProjectionMetadataBuilder(sx, childNodeId);
             builder.addProjectionBuilder(projectionBuilder);
-            
+
             //Add it's child's metadata
             addChildMetadata(sx, builder, projectionBuilder.build().getChildNodeId());
-            break; 
-            
+            break;
+
         case CONSTRUCT:
             final ConstructQueryMetadata.Builder constructBuilder = readConstructQueryMetadataBuilder(sx, childNodeId);
             builder.setConstructQueryMetadata(constructBuilder);
-            
+
             // Add it's child's metadata.
             addChildMetadata(sx, builder, constructBuilder.build().getChildNodeId());
             break;
@@ -682,16 +684,16 @@ public class FluoQueryMetadataDAO {
             // Add it's child's metadata.
             addChildMetadata(sx, builder, periodicQueryBuilder.build().getChildNodeId());
             break;
-            
+
         case AGGREGATION:
             // Add this node's metadata.
             final AggregationMetadata.Builder aggregationBuilder = readAggregationMetadataBuilder(sx, childNodeId);
             builder.addAggregateMetadata(aggregationBuilder);
-            
+
             // Add it's child's metadata.
             addChildMetadata(sx, builder, aggregationBuilder.build().getChildNodeId());
             break;
-            
+
         case JOIN:
             // Add this node's metadata.
             final JoinMetadata.Builder joinBuilder = readJoinMetadataBuilder(sx, childNodeId);
@@ -719,7 +721,7 @@ public class FluoQueryMetadataDAO {
             break;
         default:
             break;
-        
+
         }
     }
 }

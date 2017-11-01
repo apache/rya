@@ -99,7 +99,8 @@ public class RyaAdminCommands implements CommandMarker {
      */
     @CliAvailabilityIndicator({
         LIST_INSTANCES_CMD,
-        INSTALL_CMD })
+        INSTALL_CMD,
+        INSTALL_PARAMETERS_CMD})
     public boolean areStorageCommandsAvailable() {
         switch(state.getShellState().getConnectionState()) {
             case CONNECTED_TO_STORAGE:

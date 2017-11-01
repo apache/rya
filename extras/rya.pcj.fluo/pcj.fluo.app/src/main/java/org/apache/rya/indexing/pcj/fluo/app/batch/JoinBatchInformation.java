@@ -23,11 +23,8 @@ import org.apache.fluo.api.data.Column;
 import org.apache.fluo.api.data.Span;
 import org.apache.rya.indexing.pcj.fluo.app.JoinResultUpdater.Side;
 import org.apache.rya.indexing.pcj.fluo.app.query.JoinMetadata.JoinType;
-import org.apache.rya.indexing.pcj.storage.accumulo.VariableOrder;
 import org.apache.rya.indexing.pcj.storage.accumulo.VisibilityBindingSet;
 import org.openrdf.query.Binding;
-
-import com.google.common.base.Preconditions;
 
 /**
  * This class updates join results based on parameters specified for the join's
@@ -66,9 +63,9 @@ public class JoinBatchInformation extends AbstractSpanBatchInformation {
      */
     public JoinBatchInformation(int batchSize, Task task, Column column, Span span, VisibilityBindingSet bs, Side side, JoinType join) {
         super(batchSize, task, column, span);
-        this.bs = Preconditions.checkNotNull(bs);
-        this.side = Preconditions.checkNotNull(side);
-        this.join = Preconditions.checkNotNull(join);
+        this.bs = Objects.requireNonNull(bs);
+        this.side = Objects.requireNonNull(side);
+        this.join = Objects.requireNonNull(join);
     }
     
     public JoinBatchInformation(Task task, Column column, Span span, VisibilityBindingSet bs, Side side, JoinType join) {

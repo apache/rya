@@ -26,7 +26,7 @@ import info.aduna.iteration.CloseableIteration;
  * An ordered log of all of the changes that have been applied to the SPARQL Queries that are managed by Rya Streams.
  */
 @DefaultAnnotation(NonNull.class)
-public interface QueryChangeLog {
+public interface QueryChangeLog extends AutoCloseable {
 
     /**
      * Write a new {@link QueryChange} to the end of the change log.

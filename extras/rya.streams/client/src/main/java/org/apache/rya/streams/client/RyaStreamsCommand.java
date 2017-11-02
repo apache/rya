@@ -89,6 +89,14 @@ public interface RyaStreamsCommand {
     }
 
     /**
+     * Validates a set of arguments that may be passed into the command.
+     *
+     * @param args - The arguments that will be validated. (not null)
+     * @return {@code true} if the arguments are valid, otherwise {@code false}.
+     */
+    public boolean validArguments(String[] args);
+
+    /**
      * Execute the command using the command line arguments.
      *
      * @param args - Command line arguments that configure how the command will execute. (not null)

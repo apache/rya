@@ -21,16 +21,13 @@ package org.apache.rya.streams.client.command;
 import static java.util.Objects.requireNonNull;
 
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicBoolean;
 
-import org.apache.rya.streams.api.exception.RyaStreamsException;
-import org.apache.rya.streams.api.interactor.DeleteQuery;
-import org.apache.rya.streams.api.interactor.defaults.DefaultDeleteQuery;
-import org.apache.rya.streams.api.queries.InMemoryQueryRepository;
-import org.apache.rya.streams.api.queries.QueryChangeLog;
-import org.apache.rya.streams.api.queries.QueryRepository;
+import org.apache.rya.api.model.VisibilityBindingSet;
+import org.apache.rya.streams.api.entity.QueryResultStream;
+import org.apache.rya.streams.api.interactor.GetQueryResultStream;
 import org.apache.rya.streams.client.RyaStreamsCommand;
-import org.apache.rya.streams.kafka.KafkaTopics;
-import org.apache.rya.streams.kafka.queries.KafkaQueryChangeLogFactory;
+import org.apache.rya.streams.kafka.interactor.KafkaGetQueryResultStream;
 
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
@@ -41,16 +38,17 @@ import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
 import edu.umd.cs.findbugs.annotations.NonNull;
 
 /**
- * A command that removes a query from Rya Streams.
+ * A command that streams the results of a query to the console.
  */
 @DefaultAnnotation(NonNull.class)
-public class DeleteQueryCommand implements RyaStreamsCommand {
+public class StreamResultsCommand implements RyaStreamsCommand {
 
     /**
      * Command line parameters that are used by this command to configure itself.
      */
-    private class RemoveParameters extends RyaStreamsCommand.KafkaParameters {
-        @Parameter(names = { "--queryID", "-q" }, required = true, description = "The ID of the query to remove from Rya Streams.")
+    private static final class StreamResultsParameters extends RyaStreamsCommand.KafkaParameters {
+
+        @Parameter(names = {"--queryId", "-q"}, required = true, description = "The query whose results will be streamed to the console.")
         private String queryId;
 
         @Override
@@ -59,26 +57,27 @@ public class DeleteQueryCommand implements RyaStreamsCommand {
             parameters.append(super.toString());
 
             if (!Strings.isNullOrEmpty(queryId)) {
-                parameters.append("\tQueryID: " + queryId);
+                parameters.append("\tQuery ID: " + queryId);
                 parameters.append("\n");
             }
+
             return parameters.toString();
         }
     }
 
     @Override
     public String getCommand() {
-        return "remove-query";
+        return "stream-results";
     }
 
     @Override
     public String getDescription() {
-        return "Removes a query from Rya Streams.";
+        return "Stream the results of a query to the console.";
     }
 
     @Override
     public String getUsage() {
-        final JCommander parser = new JCommander(new RemoveParameters());
+        final JCommander parser = new JCommander(new StreamResultsParameters());
 
         final StringBuilder usage = new StringBuilder();
         parser.usage(usage);
@@ -89,7 +88,7 @@ public class DeleteQueryCommand implements RyaStreamsCommand {
     public boolean validArguments(final String[] args) {
         boolean valid = true;
         try {
-            new JCommander(new RemoveParameters(), args);
+            new JCommander(new StreamResultsParameters(), args);
         } catch(final ParameterException e) {
             valid = false;
         }
@@ -101,31 +100,40 @@ public class DeleteQueryCommand implements RyaStreamsCommand {
         requireNonNull(args);
 
         // Parse the command line arguments.
-        final RemoveParameters params = new RemoveParameters();
+        final StreamResultsParameters params = new StreamResultsParameters();
         try {
             new JCommander(params, args);
         } catch(final ParameterException e) {
-            throw new ArgumentsException("Could not add a new query because of invalid command line parameters.", e);
+            throw new ArgumentsException("Could not stream the query's results because of invalid command line parameters.", e);
         }
 
-        // Create the Kafka backed QueryChangeLog.
-        final String bootstrapServers = params.kafkaIP + ":" + params.kafkaPort;
-        final String topic = KafkaTopics.queryChangeLogTopic(params.ryaInstance);
-        final QueryChangeLog queryChangeLog = KafkaQueryChangeLogFactory.make(bootstrapServers, topic);
+        final UUID queryId;
+        try {
+            queryId = UUID.fromString( params.queryId );
+        } catch(final IllegalArgumentException e) {
+            throw new ArgumentsException("Invalid Query ID " + params.queryId);
+        }
 
-        // Execute the delete query command.
-        try(QueryRepository queryRepo = new InMemoryQueryRepository(queryChangeLog)) {
-            final DeleteQuery deleteQuery = new DefaultDeleteQuery(queryRepo);
-            try {
-                deleteQuery.delete(UUID.fromString(params.queryId));
-                System.out.println("Deleted query: " + params.queryId);
-            } catch (final RyaStreamsException e) {
-                System.err.println("Unable to delete query with ID: " + params.queryId);
-                e.printStackTrace();
-                System.exit(1);
+        // This command executes until the application is killed, so create a kill boolean.
+        final AtomicBoolean finished = new AtomicBoolean(false);
+        Runtime.getRuntime().addShutdownHook(new Thread() {
+            @Override
+            public void run() {
+                finished.set(true);
+            }
+        });
+
+        // Execute the command.
+        final GetQueryResultStream getQueryResultStream = new KafkaGetQueryResultStream(params.kafkaIP, params.kafkaPort);
+
+        try (final QueryResultStream stream = getQueryResultStream.fromNow(queryId)) {
+            while(!finished.get()) {
+                for(final VisibilityBindingSet visBs : stream.poll(1000)) {
+                    System.out.println(visBs);
+                }
             }
         } catch (final Exception e) {
-            System.err.println("Problem encountered while closing the QueryRepository.");
+            System.err.println("Error while reading the results from the stream.");
             e.printStackTrace();
             System.exit(1);
         }

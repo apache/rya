@@ -26,9 +26,11 @@ import java.util.Set;
 
 import org.apache.rya.streams.client.RyaStreamsCommand.ArgumentsException;
 import org.apache.rya.streams.client.RyaStreamsCommand.ExecutionException;
+import org.apache.rya.streams.client.command.AddQueryCommand;
+import org.apache.rya.streams.client.command.DeleteQueryCommand;
+import org.apache.rya.streams.client.command.ListQueriesCommand;
 import org.apache.rya.streams.client.command.LoadStatementsCommand;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.rya.streams.client.command.StreamResultsCommand;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
@@ -37,23 +39,31 @@ import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
 import edu.umd.cs.findbugs.annotations.NonNull;
 
 /**
- * CLI tool for interacting with rya streams.
- * <p>
+ * CLI tool for interacting with Rya Streams.
+ * </p>
  * This tool can be used to:
  * <ul>
- * <li>Load a file of statements into rya streams</li>
+ *   <li>Add a Query to Rya Streams</li>
+ *   <li>Delete a Query from Rya Streams</li>
+ *   <li>List the Queries that are being managed by Rya Streams</li>
+ *   <li>Load a file of RDF Statements into Rya Streams</li>
+ *   <li>Stream the results of a Query to the console</li>
  * </ul>
  */
 @DefaultAnnotation(NonNull.class)
 public class CLIDriver {
-    private static final Logger LOG = LoggerFactory.getLogger(CLIDriver.class);
+
     /**
      * Maps from command strings to the object that performs the command.
      */
     private static final ImmutableMap<String, RyaStreamsCommand> COMMANDS;
     static {
         final Set<Class<? extends RyaStreamsCommand>> commandClasses = new HashSet<>();
+        commandClasses.add(AddQueryCommand.class);
+        commandClasses.add(DeleteQueryCommand.class);
+        commandClasses.add(ListQueriesCommand.class);
         commandClasses.add(LoadStatementsCommand.class);
+        commandClasses.add(StreamResultsCommand.class);
         final ImmutableMap.Builder<String, RyaStreamsCommand> builder = ImmutableMap.builder();
         for(final Class<? extends RyaStreamsCommand> commandClass : commandClasses) {
             try {
@@ -70,10 +80,7 @@ public class CLIDriver {
     private static final String USAGE = makeUsage(COMMANDS);
 
     public static void main(final String[] args) {
-        LOG.trace("Starting up the Rya Streams Client.");
-
-        // If no command provided or the command isn't recognized, then print
-        // the usage.
+        // If no command provided or the command isn't recognized, then print the usage.
         if (args.length == 0 || !COMMANDS.containsKey(args[0])) {
             System.out.println(USAGE);
             System.exit(1);
@@ -84,14 +91,19 @@ public class CLIDriver {
         final String[] commandArgs = Arrays.copyOfRange(args, 1, args.length);
         final RyaStreamsCommand streamsCommand = COMMANDS.get(command);
 
+        // Print usage if the arguments are invalid for the command.
+        if(!streamsCommand.validArguments(commandArgs)) {
+            System.out.println(streamsCommand.getUsage());
+            System.exit(1);
+        }
+
         // Execute the command.
         try {
             streamsCommand.execute(commandArgs);
         } catch (ArgumentsException | ExecutionException e) {
-            LOG.error("The command: " + command + " failed to execute properly.", e);
+            System.err.println("The command: " + command + " failed to execute properly.");
+            e.printStackTrace();
             System.exit(2);
-        } finally {
-            LOG.trace("Shutting down the Rya Streams Client.");
         }
     }
 

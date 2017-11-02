@@ -23,11 +23,14 @@ import static java.util.Objects.requireNonNull;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
 
 import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.clients.producer.ProducerRecord;
+import org.apache.kafka.clients.producer.RecordMetadata;
 import org.apache.kafka.common.TopicPartition;
 import org.apache.rya.streams.api.queries.ChangeLogEntry;
 import org.apache.rya.streams.api.queries.QueryChange;
@@ -76,7 +79,17 @@ public class KafkaQueryChangeLog implements QueryChangeLog {
     @Override
     public void write(final QueryChange newChange) throws QueryChangeLogException {
         requireNonNull(newChange);
-        producer.send(new ProducerRecord<>(topic, newChange));
+
+        // Write the change to the log immediately.
+        final Future<RecordMetadata> future = producer.send(new ProducerRecord<>(topic, newChange));
+        producer.flush();
+
+        // Don't return until the write has been completed.
+        try {
+            future.get();
+        } catch (InterruptedException | ExecutionException e) {
+            throw new QueryChangeLogException("Could not record a new query change to the Kafka Query Change Log.", e);
+        }
     }
 
     @Override
@@ -93,6 +106,15 @@ public class KafkaQueryChangeLog implements QueryChangeLog {
         consumer.assign(Lists.newArrayList(part));
         consumer.seek(part, position);
         return new QueryChangeLogEntryIter(consumer);
+    }
+
+    /**
+     * Closing this class will also close the {@link Producer} and {@link Consumer} that were passed into it.
+     */
+    @Override
+    public void close() throws Exception {
+        producer.close();
+        consumer.close();
     }
 
     /**
@@ -149,8 +171,8 @@ public class KafkaQueryChangeLog implements QueryChangeLog {
             final ConsumerRecords<?, QueryChange> records = consumer.poll(3000L);
             final List<ChangeLogEntry<QueryChange>> changes = new ArrayList<>();
             records.forEach(
-                    record -> 
-                        changes.add(new ChangeLogEntry<QueryChange>(record.offset(), record.value()))
+                    record ->
+                        changes.add(new ChangeLogEntry<>(record.offset(), record.value()))
                     );
             iterCache = changes.iterator();
         }

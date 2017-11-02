@@ -71,6 +71,11 @@ public class InMemoryQueryChangeLog implements QueryChangeLog {
         }
     }
 
+    @Override
+    public void close() throws Exception {
+        // Nothing to do here.
+    }
+
     /**
      * A {@link CloseableIteration} that iterates over a list.
      *

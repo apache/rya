@@ -131,6 +131,16 @@ public class InMemoryQueryRepository implements QueryRepository {
         }
     }
 
+    @Override
+    public void close() throws Exception {
+        lock.lock();
+        try {
+            changeLog.close();
+        } finally {
+            lock.unlock();
+        }
+    }
+
     /**
      * A {@link Map} from query id to the {@link StreamsQuery} that is represented by that id based on what
      * is already in a {@link QueryChangeLog}.

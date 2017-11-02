@@ -34,8 +34,6 @@ import org.apache.rya.streams.client.RyaStreamsCommand;
 import org.apache.rya.streams.kafka.KafkaTopics;
 import org.apache.rya.streams.kafka.interactor.KafkaLoadStatements;
 import org.apache.rya.streams.kafka.serialization.VisibilityStatementSerializer;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
@@ -51,7 +49,6 @@ import edu.umd.cs.findbugs.annotations.NonNull;
  */
 @DefaultAnnotation(NonNull.class)
 public class LoadStatementsCommand implements RyaStreamsCommand {
-    private static final Logger log = LoggerFactory.getLogger(LoadStatementsCommand.class);
 
     /**
      * Command line parameters that are used by this command to configure itself.
@@ -90,7 +87,7 @@ public class LoadStatementsCommand implements RyaStreamsCommand {
 
     @Override
     public String getDescription() {
-        return "Load RDF Statements into Rya Streams";
+        return "Load RDF Statements into Rya Streams.";
     }
 
     @Override
@@ -103,9 +100,19 @@ public class LoadStatementsCommand implements RyaStreamsCommand {
     }
 
     @Override
+    public boolean validArguments(final String[] args) {
+        boolean valid = true;
+        try {
+            new JCommander(new LoadStatementsParameters(), args);
+        } catch(final ParameterException e) {
+            valid = false;
+        }
+        return valid;
+    }
+
+    @Override
     public void execute(final String[] args) throws ArgumentsException, ExecutionException {
         requireNonNull(args);
-
 
         // Parse the command line arguments.
         final LoadStatementsParameters params = new LoadStatementsParameters();
@@ -114,9 +121,7 @@ public class LoadStatementsCommand implements RyaStreamsCommand {
         } catch(final ParameterException e) {
             throw new ArgumentsException("Could not load the Statements file because of invalid command line parameters.", e);
         }
-        log.trace("Executing the Load Statements Command\n" + params.toString());
 
-        log.trace("Loading Statements from the file '" + params.statementsFile + "'.");
         final Path statementsPath = Paths.get(params.statementsFile);
 
         final Properties producerProps = buildProperties(params);
@@ -124,10 +129,8 @@ public class LoadStatementsCommand implements RyaStreamsCommand {
             final LoadStatements statements = new KafkaLoadStatements(KafkaTopics.statementsTopic(params.ryaInstance), producer);
             statements.load(statementsPath, params.visibilities);
         } catch (final Exception e) {
-            log.error("Unable to parse statements file: " + statementsPath.toString(), e);
+            System.err.println("Unable to parse statements file: " + statementsPath.toString());
         }
-
-        log.trace("Finished executing the Load Statements Command.");
     }
 
     private Properties buildProperties(final LoadStatementsParameters params) {

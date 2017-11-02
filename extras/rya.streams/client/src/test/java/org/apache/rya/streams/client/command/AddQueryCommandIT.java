@@ -42,7 +42,6 @@ import org.apache.rya.streams.kafka.KafkaTopics;
 import org.apache.rya.streams.kafka.queries.KafkaQueryChangeLog;
 import org.apache.rya.streams.kafka.serialization.queries.QueryChangeDeserializer;
 import org.apache.rya.streams.kafka.serialization.queries.QueryChangeSerializer;
-import org.apache.rya.test.kafka.KafkaITBase;
 import org.apache.rya.test.kafka.KafkaTestInstanceRule;
 import org.junit.After;
 import org.junit.Before;
@@ -52,7 +51,7 @@ import org.junit.Test;
 /**
  * integration Test for adding a new query through a command.
  */
-public class AddQueryCommandIT extends KafkaITBase {
+public class AddQueryCommandIT {
 
     private final String ryaInstance = UUID.randomUUID().toString();
 

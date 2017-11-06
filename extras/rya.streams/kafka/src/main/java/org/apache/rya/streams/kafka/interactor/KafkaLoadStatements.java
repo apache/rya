@@ -23,6 +23,7 @@ import static java.util.Objects.requireNonNull;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Collection;
 
 import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.clients.producer.ProducerRecord;
@@ -65,7 +66,7 @@ public class KafkaLoadStatements implements LoadStatements {
 
 
     @Override
-    public void load(final Path statementsPath, final String visibilities) throws RyaStreamsException {
+    public void fromFile(final Path statementsPath, final String visibilities) throws RyaStreamsException {
         requireNonNull(statementsPath);
         requireNonNull(visibilities);
 
@@ -98,5 +99,15 @@ public class KafkaLoadStatements implements LoadStatements {
         } catch (RDFParseException | RDFHandlerException | IOException e) {
             throw new RyaStreamsException("Could not load the RDF file's Statements into Rya Streams.", e);
         }
+    }
+
+    @Override
+    public void fromCollection(final Collection<VisibilityStatement> statements) throws RyaStreamsException {
+        requireNonNull(statements);
+
+        for(final VisibilityStatement statement : statements) {
+            producer.send(new ProducerRecord<>(topic, statement));
+        }
+        producer.flush();
     }
 }

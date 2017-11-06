@@ -28,22 +28,21 @@ import org.apache.rya.api.domain.RyaSubGraph;
 import org.apache.rya.indexing.pcj.fluo.app.export.kafka.RyaSubGraphKafkaSerDe;
 import org.apache.rya.indexing.pcj.fluo.app.query.ConstructQueryMetadata;
 import org.apache.rya.indexing.pcj.fluo.app.query.FluoQueryColumns;
-import org.apache.rya.indexing.pcj.fluo.app.util.RowKeyUtil;
 import org.apache.rya.indexing.pcj.storage.accumulo.VariableOrder;
 import org.apache.rya.indexing.pcj.storage.accumulo.VisibilityBindingSet;
 
 /**
  * This class creates results for the ConstructQuery.  This class applies the {@link ConstructGraph}
  * associated with the Construct Query to generate a collection of {@link RyaStatement}s.  These statements
- * are then used to form a {@link RyaSubGraph} that is serialized and stored as a value in the Column 
+ * are then used to form a {@link RyaSubGraph} that is serialized and stored as a value in the Column
  * {@link FluoQueryColumns#CONSTRUCT_STATEMENTS}.
  *
  */
-public class ConstructQueryResultUpdater {
+public class ConstructQueryResultUpdater extends AbstractNodeUpdater {
 
     private static final Logger log = Logger.getLogger(ConstructQueryResultUpdater.class);
     private static final RyaSubGraphKafkaSerDe serializer = new RyaSubGraphKafkaSerDe();
-    
+
     /**
      * Updates the Construct Query results by applying the {@link ConnstructGraph} to
      * create a {@link RyaSubGraph} and then writing the subgraph to {@link FluoQueryColumns#CONSTRUCT_STATEMENTS}.
@@ -52,15 +51,15 @@ public class ConstructQueryResultUpdater {
      * @param metadata - metadata that the ConstructProjection is extracted from
      */
     public void updateConstructQueryResults(TransactionBase tx, VisibilityBindingSet bs, ConstructQueryMetadata metadata) {
-        
+
         String nodeId = metadata.getNodeId();
         VariableOrder varOrder = metadata.getVariableOrder();
         Column column = FluoQueryColumns.CONSTRUCT_STATEMENTS;
         ConstructGraph graph = metadata.getConstructGraph();
         String parentId = metadata.getParentNodeId();
-        
+
         // Create the Row Key for the emitted binding set. It does not contain visibilities.
-        final Bytes resultRow = RowKeyUtil.makeRowKey(nodeId, varOrder, bs);
+        final Bytes resultRow = makeRowKey(nodeId, varOrder, bs);
 
         // If this is a new binding set, then emit it.
         if(tx.get(resultRow, column) == null || varOrder.getVariableOrders().size() < bs.size()) {

@@ -508,6 +508,192 @@ will fail.  If that occurs, look up the YARN Application-Id in the YARN UI,
 or with the command `yarn application -list` and then kill it with a command
 similar to: `yarn application -kill application_1503402439867_0009`.
 
+## Performance Optimizations
+There are a number of optimizations that can boost the performance of the Rya PCJ Updater.  The main
+bottleneck that will prevent an instance of the PCJ Updater from scaling is the load that the application
+places on the Accumulo Tablet Servers.  In an effort to mitigate this, there are a number of things that can be done to 
+lighten the scan load on each Tablet Server and cut down on the number of scans overall.
+
+#### Metadata Caching
+The PCJ Updater uses metadata associated with each query node to route and process intermediate query results.  
+New queries can be dynamically added to and deleted from the Rya PCJ Updater, but for the most part this data
+is static and can be cached.  So the PCJ Updater aggressively caches whatever metadata it can to avoid lookups.  In addition,
+each time the Updater processes new statements, it must match the new triples with StatementPatterns registered with the 
+PCJ Updater.  The ids of these StatementPatterns are also cached to avoid costly scans for new StatementPatterns.  All 
+metadata caches are active and utilized by default.
+
+#### Load Balancing and Sharding
+Another important optimization that can drastically boost performance is sharding.  Sharding ensures that
+the processing and scanning load is equally distributed among all Tablet Servers.  By default, the PCJ Updater
+shards its rows.  However, to take advantage of this optimization, the user must pre-split the Fluo table after
+initializing the application.  To do this, add the following properties to the fluo.properties file for the application
+before initializing:
+
+```
+# RowHasher Split Properties
+# -------------------
+fluo.app.recipes.optimizations.SP=org.apache.fluo.recipes.core.data.RowHasher$Optimizer
+fluo.app.recipes.optimizations.J=org.apache.fluo.recipes.core.data.RowHasher$Optimizer
+fluo.app.recipes.optimizations.A=org.apache.fluo.recipes.core.data.RowHasher$Optimizer
+fluo.app.recipes.optimizations.PR=org.apache.fluo.recipes.core.data.RowHasher$Optimizer
+fluo.app.recipes.optimizations.Q=org.apache.fluo.recipes.core.data.RowHasher$Optimizer
+
+fluo.app.recipes.rowHasher.SP.numTablets=8
+fluo.app.recipes.rowHasher.J.numTablets=8
+fluo.app.recipes.rowHasher.A.numTablets=8
+fluo.app.recipes.rowHasher.PR.numTablets=8
+fluo.app.recipes.rowHasher.Q.numTablets=8
+
+```
+
+The above properties are used by the Fluo RowHasher recipe, which splits the Fluo
+table along each specified prefix.  The properties above indicate that the Fluo table
+will be split across 8 tablets along each of the prefixes SP, J, A, PR, and Q.  Each of these
+prefixes correspond to prefixes of distinct result ranges stored in the Rya PCJ Updater. 
+The choice of 8 tablets is arbitrary and should be based on available resources. After
+adding the above properties and initializing the application, execute the following command:
+
+```
+./bin/fluo exec <app_name> org.apache.fluo.recipes.accumulo.cmds.OptimizeTable
+
+```
+
+This command generates and applies the splits indicated by above properties.  See
+the Fluo [row hash prefix recipe](https://fluo.apache.org/docs/fluo-recipes/1.1.0-incubating/row-hasher/) 
+for more details.
+
+#### Compaction Strategies for Garbage Collecting
+The PCJ Updater application retains processed notifications and triples that
+are marked for deletion until a minor or major compaction runs and triggers the
+Fluo Garbage Collection iterator.  Because new Triples are processed by the TripleObserver
+and then immediately marked as deleted, it's quite possible that a large number of "deleted" triples 
+could build up before they are actually removed from the table.  Similarly,
+old notifications that have already been processed and marked as deleted can pile up as well.  As these entries
+build up in the Fluo table, Tablet Servers have to scan over these entries when the
+Fluo NotificationIterator is run, creating extra work for the Tablet Servers.  To count the number
+of "DELETED" notifications and triples that are in the table, run the following commands:
+
+``` 
+ #counts number of old notifications
+ ./bin/fluo scan <app_name> --raw -c ntfy | grep -c 'DELETE'
+ #counts number of deleted triples
+ ./bin/fluo scan <app_name> --raw -c triples | grep -c 'DELETE'
+```
+
+It's good practice to monitor how these quantities grow after starting the application to get 
+a sense of whether or not Accumulo compactions are being executed frequently enough.  One possible
+optimization to increase the compaction rate is to adjust the compaction ratio through the Accumulo shell.
+After initializing the PCJ Updater application, execute the following command in the Accumulo shell:
+
+```
+config -t <app_table_name> -s table.compaction.major.ratio=1.0 
+```
+
+This sets the major compaction ratio of the Fluo table to 1.0, where the lower the ratio, the more frequently
+major compactions will occur.  Another approach is to compact on a specified Range.  Fluo supports 
+periodically compacting on specified ranges.  To do this, add any of the following hex ranges to the
+fluo.properties file before initializing the PCJ Updater.
+
+```
+#Rya PCJ Updater Compaction ranges
+#Compact all triples
+fluo.app.recipes.transientRange.triples=543C3C3A3E3E:543C3C3A3E3EFF
+#Compact all statement pattern results
+fluo.app.recipes.transientRange.statementPattern=53503C3C3A3E3E:53503C3C3A3E3EFF
+#Compact all join results
+fluo.app.recipes.transientRange.join=4A3C3C3A3E3E:4A3C3C3A3E3EFF
+#Compact all aggregation results
+fluo.app.recipes.transientRange.aggregation=413C3C3A3E3E:413C3C3A3E3EFF
+#Compact all projection results
+fluo.app.recipes.transientRange.projection=50523C3C3A3E3E:50523C3C3A3E3EFF
+#Compact full table
+fluo.app.recipes.transientRange.fullTable=:FF
+```
+To apply the above transient range properties, execute the following Fluo command:
+
+```
+./bin/fluo exec <app_name> org.apache.fluo.recipes.accumulo.cmds.CompactTransient <compaction_period> <multiplier>
+```
+
+The above command executes a compaction over each transient range that is included in the fluo.properties file.
+These compactions will run indefinitely and execute every time the compaction period (in ms) elapses.  The multiplier
+is an optional parameter that indicates how much the periodic compaction script will throttle compactions if they
+begin taking too long.  See the Fluo [transient data recipe](https://fluo.apache.org/docs/fluo-recipes/1.1.0-incubating/transient/) 
+for more information.
+
+If running compactions proves to be extremely costly and begins to affect application performance, it's best to 
+only do a range compaction on the triples.  This will clean up old, deleted triples and any notifications related to triples.
+If the Tablet Servers can handle the additional load, try adding additional ranges to clean up
+old data.  Note that when the full table range is added, there is no need to include any of the other
+ranges.  
+
+#### Cheatsheet for Applying the Optimizations
+To apply the above optimizations, 
+
+1. Stop the Rya PCJ Updater app if it is running by
+executing the following command
+```
+./bin/fluo stop <app_name>
+```
+ 2. Once the application is stopped, add any optimization related properties to the fluo.properties file.
+ These properties include the row sharding properties and the range compaction properties outlined
+ above.  Note that it is best to add all of the row shard properties to ensure an even data distribution
+ among all of the Tablet Servers, and start off by adding only the triple transient range property for Range compactions.  
+ 
+ 3. Initialize the Rya PCJ Updater application by executing the following command in Fluo
+ ```
+ ./bin/fluo init <app_name>
+ ```
+ 4. Apply the row shard splits by executing 
+ ```
+ ./bin/fluo exec <app_name> org.apache.fluo.recipes.accumulo.cmds.OptimizeTable
+```
+5. Check the PCJ Updater table in the Accumulo UI to ensure that the table has the
+correct number of Tablet Servers
+
+6. Start the application by executing the following command
+```
+./bin/fluo start <app_name>
+```
+7.  Apply the transient range compactions by executing the following command
+```
+./bin/fluo exec <app_name> org.apache.fluo.recipes.accumulo.cmds.CompactTransient <compaction_period> <multiplier>
+```
+
+#### Monitoring Performance
+Once the application is running, there are a number ways to assess its performance.  The 
+primary method is to track the number of outstanding notifications that are queued and waiting
+to be processed.  This can be done by executing the Fluo wait command
+
+```
+./bin/fluo wait <app_name>
+```
+
+When this script executes, it polls Fluo every ten seconds to determine how many unprocessed notifications
+are queued up.  If this number grows over time then the application needs more workers to handle the ingest load.  
+
+Before deploying more workers, first verify that the Tablet Servers can handle an increased scan load by checking
+the Accumulo UI to see if the Tablet Servers have any queued scans for the PCJ Updater table.  If there are a large
+number of queued scans for the table, adding more workers might not be possible.  It may be necessary to lower the
+ingest rate.  If the Tablet Servers are keeping up, deploy additional workers by stopping the application, updating
+the fluo.properties to use more workers, and re-initializing and starting the application.
+
+Other ways to assess the performance of the application is to monitor the scan rate through the Accumulo UI.  If the scan
+rate is staying approximately constant over time (or increasing very slowly), then the application is performing as expected.
+In general, the scan rate increases because
+ 
+1. The number of intermediate results increases over time
+2. The number of "deleted" notifications that need to flushed increases over time
+3. The number of "deleted" triples that need to be flushed increases over time
+
+The first item is unavoidable if there is no age off policy for the PCJ Updater application (which is currently the case).  
+However, 2 and 3 are avoidable by applying the range compaction optimizations discussed above.  So it's important to monitor the
+scan rate (and the number of old triples and notifications as discussed above) to assess the health of the application.  
+
+Finally an additional item to monitor is which iterators are running in the Fluo table.  This can be done by regularly running the listscans
+command in the Accumulo shell.  This gives a sense of how the Tablet Servers are being used.  It helps determine whether they are
+spending most of their time finding new notifications (internal Fluo work), or issuing scans that are specific to Rya PCJ Updater Observers.
+ 
 
 [Apache Fluo]: https://fluo.apache.org/
 [Apache Fluo 1.0.0-incubating Documentation]: https://fluo.apache.org/docs/fluo/1.0.0-incubating/

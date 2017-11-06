@@ -19,6 +19,7 @@
 package org.apache.rya.indexing.pcj.fluo.app.observers;
 
 import static java.util.Objects.requireNonNull;
+import static org.apache.rya.indexing.pcj.fluo.app.IncrementalUpdateConstants.FILTER_PREFIX;
 
 import org.apache.fluo.api.client.TransactionBase;
 import org.apache.fluo.api.data.Bytes;
@@ -49,7 +50,7 @@ public class FilterObserver extends BindingSetUpdater {
         requireNonNull(row);
 
         // Read the Filter metadata.
-        final String filterNodeId = BindingSetRow.make(row).getNodeId();
+        final String filterNodeId = BindingSetRow.makeFromShardedRow(Bytes.of(FILTER_PREFIX), row).getNodeId();
         final FilterMetadata filterMetadata = queryDao.readFilterMetadata(tx, filterNodeId);
 
         // Read the Visibility Binding Set from the value.

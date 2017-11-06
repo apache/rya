@@ -109,11 +109,11 @@ public class CreateDeletePeriodicPCJ extends KafkaExportITBase {
                         vf.createLiteral(dtf.newXMLGregorianCalendar(time4))),
                 vf.createStatement(vf.createURI("urn:obs_4"), vf.createURI("uri:hasId"), vf.createLiteral("id_4")));
 
-        runTest(query, statements, 29);
+        runTest(query, statements, 30);
 
     }
 
-   
+
 
     private void runTest(String query, Collection<Statement> statements, int expectedEntries) throws Exception {
         try (FluoClient fluoClient = FluoFactory.newClient(super.getFluoConfiguration())) {
@@ -134,10 +134,11 @@ public class CreateDeletePeriodicPCJ extends KafkaExportITBase {
 
             DeletePeriodicQuery deletePeriodic = new DeletePeriodicQuery(fluoClient, storage);
             deletePeriodic.deletePeriodicQuery(FluoQueryUtils.convertFluoQueryIdToPcjId(id), notificationClient);
+            getMiniFluo().waitForObservers();
 
             // Ensure all data related to the query has been removed.
             final List<Bytes> empty_rows = getFluoTableEntries(fluoClient);
-            assertEquals(0, empty_rows.size());
+            assertEquals(1, empty_rows.size());
 
             // Ensure that Periodic Service notified to add and delete PeriodicNotification
             Set<CommandNotification> notifications;

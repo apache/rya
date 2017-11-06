@@ -53,6 +53,7 @@ import org.apache.rya.api.client.accumulo.AccumuloConnectionDetails;
 import org.apache.rya.api.client.accumulo.AccumuloRyaClientFactory;
 import org.apache.rya.indexing.accumulo.ConfigUtils;
 import org.apache.rya.indexing.external.PrecomputedJoinIndexerConfig;
+import org.apache.rya.indexing.pcj.fluo.app.batch.BatchObserver;
 import org.apache.rya.indexing.pcj.fluo.app.export.kafka.KafkaBindingSetExporterParameters;
 import org.apache.rya.indexing.pcj.fluo.app.export.kafka.KafkaSubGraphExporterParameters;
 import org.apache.rya.indexing.pcj.fluo.app.export.kafka.KryoVisibilityBindingSetSerializer;
@@ -64,11 +65,14 @@ import org.apache.rya.indexing.pcj.fluo.app.observers.ProjectionObserver;
 import org.apache.rya.indexing.pcj.fluo.app.observers.QueryResultObserver;
 import org.apache.rya.indexing.pcj.fluo.app.observers.StatementPatternObserver;
 import org.apache.rya.indexing.pcj.fluo.app.observers.TripleObserver;
+import org.apache.rya.indexing.pcj.fluo.app.query.MetadataCacheSupplier;
+import org.apache.rya.indexing.pcj.fluo.app.query.StatementPatternIdCacheSupplier;
 import org.apache.rya.indexing.pcj.storage.accumulo.VisibilityBindingSet;
 import org.apache.rya.rdftriplestore.RyaSailRepository;
 import org.apache.rya.sail.config.RyaSailFactory;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Test;
 import org.openrdf.model.Statement;
 import org.openrdf.repository.sail.SailRepositoryConnection;
 import org.openrdf.sail.Sail;
@@ -115,6 +119,7 @@ public class KafkaExportITBase extends AccumuloExportITBase {
         // Setup the observers that will be used by the Fluo PCJ Application.
         final List<ObserverSpecification> observers = new ArrayList<>();
         observers.add(new ObserverSpecification(TripleObserver.class.getName()));
+        observers.add(new ObserverSpecification(BatchObserver.class.getName()));
         observers.add(new ObserverSpecification(StatementPatternObserver.class.getName()));
         observers.add(new ObserverSpecification(JoinObserver.class.getName()));
         observers.add(new ObserverSpecification(FilterObserver.class.getName()));
@@ -183,6 +188,12 @@ public class KafkaExportITBase extends AccumuloExportITBase {
         } catch (Exception e) {
             System.out.println("Encountered the following Exception when shutting down Rya: " + e.getMessage());
         }
+    }
+
+    @After
+    public void clearCaches() {
+        StatementPatternIdCacheSupplier.clear();
+        MetadataCacheSupplier.clear();
     }
 
     private void installRyaInstance() throws Exception {
@@ -261,7 +272,7 @@ public class KafkaExportITBase extends AccumuloExportITBase {
      * If this test fails then its a testing environment issue, not with Rya.
      * Source: https://github.com/asmaier/mini-kafka
      */
-//    @Test
+    @Test
     public void embeddedKafkaTest() throws Exception {
         // create topic
         final String topic = "testTopic";

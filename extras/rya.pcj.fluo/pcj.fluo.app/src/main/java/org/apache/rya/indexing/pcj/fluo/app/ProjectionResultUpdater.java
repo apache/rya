@@ -26,7 +26,6 @@ import org.apache.log4j.Logger;
 import org.apache.rya.indexing.pcj.fluo.app.query.FluoQueryColumns;
 import org.apache.rya.indexing.pcj.fluo.app.query.ProjectionMetadata;
 import org.apache.rya.indexing.pcj.fluo.app.util.BindingSetUtil;
-import org.apache.rya.indexing.pcj.fluo.app.util.RowKeyUtil;
 import org.apache.rya.indexing.pcj.storage.accumulo.VariableOrder;
 import org.apache.rya.indexing.pcj.storage.accumulo.VisibilityBindingSet;
 import org.apache.rya.indexing.pcj.storage.accumulo.VisibilityBindingSetSerDe;
@@ -40,7 +39,7 @@ import edu.umd.cs.findbugs.annotations.NonNull;
  * new Binding Set to its results.
  */
 @DefaultAnnotation(NonNull.class)
-public class ProjectionResultUpdater {
+public class ProjectionResultUpdater extends AbstractNodeUpdater {
     private static final Logger log = Logger.getLogger(QueryResultUpdater.class);
 
     private static final VisibilityBindingSetSerDe BS_SERDE = new VisibilityBindingSetSerDe();
@@ -65,7 +64,7 @@ public class ProjectionResultUpdater {
         log.trace(
                 "Transaction ID: " + tx.getStartTimestamp() + "\n" +
                 "Node ID: " + projectionMetadata.getNodeId() + "\n" +
-                "Parent Node ID: " + projectionMetadata.getParentNodeId() + "\n" +        
+                "Parent Node ID: " + projectionMetadata.getParentNodeId() + "\n" +
                 "Child Node ID: " + projectionMetadata.getChildNodeId() + "\n" +
                 "Child Binding Set:\n" + childBindingSet + "\n");
 
@@ -73,12 +72,13 @@ public class ProjectionResultUpdater {
         final VariableOrder queryVarOrder = projectionMetadata.getVariableOrder();
         final VariableOrder projectionVarOrder = projectionMetadata.getProjectedVars();
         final BindingSet queryBindingSet = BindingSetUtil.keepBindings(projectionVarOrder, childBindingSet);
+        VisibilityBindingSet projectedBs = new VisibilityBindingSet(queryBindingSet, childBindingSet.getVisibility());
 
         // Create the Row Key for the result. If the child node groups results, then the key must only contain the Group By variables.
-        Bytes resultRow  = RowKeyUtil.makeRowKey(projectionMetadata.getNodeId(), queryVarOrder, queryBindingSet);
+        Bytes resultRow  = makeRowKey(projectionMetadata.getNodeId(), queryVarOrder, projectedBs);
 
         // Create the Binding Set that goes in the Node Value. It does contain visibilities.
-        final Bytes nodeValueBytes = BS_SERDE.serialize(new VisibilityBindingSet(queryBindingSet, childBindingSet.getVisibility()));
+        final Bytes nodeValueBytes = BS_SERDE.serialize(projectedBs);
 
         log.trace(
                 "Transaction ID: " + tx.getStartTimestamp() + "\n" +

@@ -30,8 +30,11 @@ import org.apache.fluo.api.client.Snapshot;
 import org.apache.fluo.api.client.SnapshotBase;
 import org.apache.fluo.api.client.scanner.ColumnScanner;
 import org.apache.fluo.api.client.scanner.RowScanner;
+import org.apache.fluo.api.data.Bytes;
 import org.apache.fluo.api.data.Column;
 import org.apache.fluo.api.data.Span;
+import org.apache.rya.indexing.pcj.fluo.app.BindingSetRow;
+import org.apache.rya.indexing.pcj.fluo.app.NodeType;
 import org.apache.rya.indexing.pcj.fluo.app.query.FilterMetadata;
 import org.apache.rya.indexing.pcj.fluo.app.query.FluoQuery;
 import org.apache.rya.indexing.pcj.fluo.app.query.FluoQueryColumns;
@@ -63,7 +66,7 @@ public class GetQueryReport {
      * @param fluo - The connection to Fluo that will be used to fetch the metadata. (not null)
      * @return A map from Query ID to QueryReport that holds a report for all of
      *   the queries that are being managed within the fluo app.
-     * @throws UnsupportedQueryException 
+     * @throws UnsupportedQueryException
      */
     public Map<String, QueryReport> getAllQueryReports(final FluoClient fluo) throws UnsupportedQueryException {
         checkNotNull(fluo);
@@ -86,7 +89,7 @@ public class GetQueryReport {
      * @param fluo - The connection to Fluo that will be used to fetch the metadata. (not null)
      * @param queryId - The ID of the query to fetch. (not null)
      * @return A report that was built for the query.
-     * @throws UnsupportedQueryException 
+     * @throws UnsupportedQueryException
      */
     public QueryReport getReport(final FluoClient fluo, final String queryId) throws UnsupportedQueryException {
         checkNotNull(fluo);
@@ -132,14 +135,20 @@ public class GetQueryReport {
         checkNotNull(nodeId);
         checkNotNull(bindingSetColumn);
 
+        NodeType type = NodeType.fromNodeId(nodeId).get();
+        Bytes prefixBytes = Bytes.of(type.getNodeTypePrefix());
+
         // Limit the scan to the binding set column and node id.
-        final RowScanner rows = sx.scanner().over(Span.prefix(nodeId)).fetch(bindingSetColumn).byRow().build();
+        final RowScanner rows = sx.scanner().over(Span.prefix(prefixBytes)).fetch(bindingSetColumn).byRow().build();
 
         BigInteger count = BigInteger.valueOf(0L);
         for (ColumnScanner columns : rows) {
-        	 count = count.add( BigInteger.ONE );
-		}
-        
+            String row = BindingSetRow.makeFromShardedRow(prefixBytes, columns.getRow()).getNodeId();
+            if (row.equals(nodeId)) {
+                count = count.add(BigInteger.ONE);
+            }
+        }
+
         return count;
     }
 

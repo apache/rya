@@ -123,9 +123,8 @@ public class QueryIT extends RyaExportITBase {
         // and are skilled with computers. The resulting binding set includes everybody who
         // was involved in the recruitment process.
         final String sparql = "SELECT ?recruiter ?candidate ?leader " + "{ " + "?recruiter <http://recruiterFor> <http://GeekSquad>. "
-                + "?candidate <http://skilledWith> <http://Computers>. " + "?candidate <http://livesIn> \"USA\". "
-                + "?leader <http://leaderOf> <http://GeekSquad>. " + "?recruiter <http://talksTo> ?candidate. "
-                + "?candidate <http://talksTo> ?leader. " + "}";
+                + "?recruiter <http://talksTo> ?candidate. " + "?candidate <http://skilledWith> <http://Computers>. " + "?candidate <http://livesIn> \"USA\". "
+                + "?candidate <http://talksTo> ?leader." + "?leader <http://leaderOf> <http://GeekSquad>. }";
 
         // Create the Statements that will be loaded into Rya.
         final ValueFactory vf = new ValueFactoryImpl();
@@ -426,10 +425,10 @@ public class QueryIT extends RyaExportITBase {
         runTest(sparql, statements, expectedResults, ExportStrategy.RYA);
     }
 
-    
+
     @Test
     public void dateTimeWithin() throws Exception {
-        
+
         final ValueFactory vf = new ValueFactoryImpl();
         DatatypeFactory dtf = DatatypeFactory.newInstance();
         FunctionRegistry.getInstance().add(new DateTimeWithinPeriod());
@@ -437,13 +436,13 @@ public class QueryIT extends RyaExportITBase {
         final String sparql = "PREFIX fn: <" + FN.NAMESPACE +">"
                 + "SELECT ?event ?startTime ?endTime WHERE { ?event <uri:startTime> ?startTime; <uri:endTime> ?endTime. "
                 + "FILTER(fn:dateTimeWithin(?startTime, ?endTime, 2,<" + OWLTime.HOURS_URI + "> ))}";
-        
+
         ZonedDateTime zTime = ZonedDateTime.now();
         String time = zTime.format(DateTimeFormatter.ISO_INSTANT);
 
         ZonedDateTime zTime1 = zTime.minusHours(1);
         String time1 = zTime1.format(DateTimeFormatter.ISO_INSTANT);
-        
+
         ZonedDateTime zTime2 = zTime.minusHours(2);
         String time2 = zTime2.format(DateTimeFormatter.ISO_INSTANT);
 
@@ -471,10 +470,10 @@ public class QueryIT extends RyaExportITBase {
         // Verify the end results of the query match the expected results.
         runTest(sparql, statements, expectedResults, ExportStrategy.RYA);
     }
-    
+
     @Test
     public void dateTimeWithinNow() throws Exception {
-        
+
         final ValueFactory vf = new ValueFactoryImpl();
         DatatypeFactory dtf = DatatypeFactory.newInstance();
         FunctionRegistry.getInstance().add(new DateTimeWithinPeriod());
@@ -482,13 +481,13 @@ public class QueryIT extends RyaExportITBase {
         final String sparql = "PREFIX fn: <" + FN.NAMESPACE +">"
                 + "SELECT ?event ?startTime WHERE { ?event <uri:startTime> ?startTime. "
                 + "FILTER(fn:dateTimeWithin(?startTime, NOW(), 15, <" + OWLTime.SECONDS_URI + "> ))}";
-        
+
         ZonedDateTime zTime = ZonedDateTime.now();
         String time = zTime.format(DateTimeFormatter.ISO_INSTANT);
 
         ZonedDateTime zTime1 = zTime.minusSeconds(30);
         String time1 = zTime1.format(DateTimeFormatter.ISO_INSTANT);
-        
+
         Literal lit = vf.createLiteral(dtf.newXMLGregorianCalendar(time));
         Literal lit1 = vf.createLiteral(dtf.newXMLGregorianCalendar(time1));
 
@@ -511,7 +510,7 @@ public class QueryIT extends RyaExportITBase {
     }
 
 
-    
+
     @Test
     public void periodicQueryTestWithoutAggregation() throws Exception {
         String query = "prefix function: <http://org.apache.rya/function#> " // n
@@ -800,8 +799,8 @@ public class QueryIT extends RyaExportITBase {
         // Verify the end results of the query match the expected results.
         runTest(query, statements, expectedResults, ExportStrategy.PERIODIC);
     }
-    
-    
+
+
     @Test
     public void nestedPeriodicQueryTestWithAggregationAndGroupBy() throws Exception {
         String query = "prefix function: <http://org.apache.rya/function#> " // n
@@ -879,7 +878,7 @@ public class QueryIT extends RyaExportITBase {
         // Verify the end results of the query match the expected results.
         runTest(query, statements, expectedResults, ExportStrategy.PERIODIC);
     }
-    
+
     @Test
     public void nestedJoinPeriodicQueryWithAggregationAndGroupBy() throws Exception {
         String query = "prefix function: <http://org.apache.rya/function#> " // n
@@ -1006,6 +1005,7 @@ public class QueryIT extends RyaExportITBase {
                 // Ensure the result of the query matches the expected result.
                 assertEquals(expectedResults, results);
             }
+
             break;
         case PERIODIC:
             PeriodicQueryResultStorage periodicStorage = new AccumuloPeriodicQueryResultStorage(accumuloConn, getRyaInstanceName());
@@ -1014,7 +1014,7 @@ public class QueryIT extends RyaExportITBase {
                 new CreateFluoPcj().createPcj(periodicId, sparql, Sets.newHashSet(ExportStrategy.PERIODIC), fluo);
             }
             addStatementsAndWait(statements);
-            
+
             final Set<BindingSet> results = Sets.newHashSet();
             try (CloseableIterator<BindingSet> resultIter = periodicStorage.listResults(periodicId, Optional.empty())) {
                 while (resultIter.hasNext()) {

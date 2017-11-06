@@ -22,6 +22,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static org.apache.rya.indexing.pcj.fluo.app.IncrementalUpdateConstants.DELIM;
 import static org.apache.rya.indexing.pcj.fluo.app.IncrementalUpdateConstants.TYPE_DELIM;
 import static org.apache.rya.indexing.pcj.fluo.app.IncrementalUpdateConstants.URI_TYPE;
+import static org.apache.rya.indexing.pcj.fluo.app.util.TriplePrefixUtils.removeTriplePrefixAndConvertToByteArray;
 
 import org.apache.fluo.api.client.FluoClient;
 import org.apache.fluo.api.client.Snapshot;
@@ -41,8 +42,15 @@ public class IncUpdateDAO {
 
     private static final WholeRowTripleResolver tr = new WholeRowTripleResolver();
 
+    /**
+     * Deserializes a triple stored in the Fluo table.
+     * @param row - serialized triple
+     * @return - triple deserialized as a RyaStatement
+     */
     public static RyaStatement deserializeTriple(final Bytes row) {
-        final byte[] rowArray = row.toArray();
+
+        checkNotNull(row);
+        final byte[] rowArray = removeTriplePrefixAndConvertToByteArray(row);
 
         RyaStatement rs = null;
         try {
@@ -55,6 +63,7 @@ public class IncUpdateDAO {
     }
 
     public static String getTripleString(final RyaStatement rs) {
+        checkNotNull(rs);
         final String subj = rs.getSubject().getData() + TYPE_DELIM + URI_TYPE;
         final String pred = rs.getPredicate().getData() + TYPE_DELIM + URI_TYPE;
         final String objData = rs.getObject().getData();

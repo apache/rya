@@ -132,6 +132,8 @@ public class GeoFunctionsIT extends RyaExportITBase {
                 "PREFIX uom: <http://www.opengis.net/def/uom/OGC/1.0/> " +
                 "SELECT ?cityA ?cityB " +
                 "WHERE { " +
+                    "?cityA <urn:containedIn> ?continent. " +
+                    "?cityB <urn:containedIn> ?continent. " +
                     "?cityA geo:asWKT ?coord1 . " +
                     "?cityB geo:asWKT ?coord2 . " +
                     // from brussels 173km to amsterdam
@@ -147,9 +149,13 @@ public class GeoFunctionsIT extends RyaExportITBase {
                 vf.createStatement(vf.createURI("tag:rya.apache.org,2017:ex#dakar2"), asWKT, vf.createLiteral("Point(-17.45 14.69)", wktTypeUri)),
                 vf.createStatement(vf.createURI("tag:rya.apache.org,2017:ex#canberra"), asWKT, vf.createLiteral("Point(149.12 -35.31)", wktTypeUri)),
                 vf.createStatement(vf.createURI("tag:rya.apache.org,2017:ex#brussels"), asWKT, vf.createLiteral("Point(4.35 50.85)", wktTypeUri)),
-                vf.createStatement(vf.createURI("tag:rya.apache.org,2017:ex#amsterdam"), asWKT, vf.createLiteral("Point(4.9 52.37)", wktTypeUri)));
+                vf.createStatement(vf.createURI("tag:rya.apache.org,2017:ex#amsterdam"), asWKT, vf.createLiteral("Point(4.9 52.37)", wktTypeUri)),
+                vf.createStatement(vf.createURI("tag:rya.apache.org,2017:ex#amsterdam"), vf.createURI("urn:containedIn"), vf.createLiteral("Europe")),
+                vf.createStatement(vf.createURI("tag:rya.apache.org,2017:ex#dakar"), vf.createURI("urn:containedIn"), vf.createLiteral("Africa")),
+                vf.createStatement(vf.createURI("tag:rya.apache.org,2017:ex#dakar2"), vf.createURI("urn:containedIn"), vf.createLiteral("Africa")),
+                vf.createStatement(vf.createURI("tag:rya.apache.org,2017:ex#brussels"), vf.createURI("urn:containedIn"), vf.createLiteral("Europe")));
 
-        // The expected results of the SPARQL query once the PCJ has been computed.
+        // The expected results of the SPARQL query once the PCJ has been computed.l
         final Set<BindingSet> expectedResults = new HashSet<>();
 
         MapBindingSet bs = new MapBindingSet();
@@ -234,6 +240,8 @@ public class GeoFunctionsIT extends RyaExportITBase {
                 "PREFIX geof: <http://www.opengis.net/def/function/geosparql/> "  +
                 "PREFIX uom: <http://www.opengis.net/def/uom/OGC/1.0/> "  +
                 "SELECT ?cityA ?cityB { "  +
+                    "?cityA <urn:containedIn> ?continent. " +
+                    "?cityB <urn:containedIn> ?continent. " +
                     "?cityA geo:asWKT ?coord1 . " +
                     "?cityB geo:asWKT ?coord2 . " +
                     " FILTER ( geof:sfIntersects(?coord1, ?coord2) ) " +
@@ -248,6 +256,8 @@ public class GeoFunctionsIT extends RyaExportITBase {
                 vf.createStatement(vf.createURI("tag:rya.apache.org,2017:ex#canberra"), asWKT, vf.createLiteral("Point(149.12 -35.31)", wktTypeUri)),
                 vf.createStatement(vf.createURI("tag:rya.apache.org,2017:ex#brussels"), asWKT, vf.createLiteral("Point(4.35 50.85)", wktTypeUri)),
                 vf.createStatement(vf.createURI("tag:rya.apache.org,2017:ex#amsterdam"), asWKT, vf.createLiteral("Point(4.9 52.37)", wktTypeUri)),
+                vf.createStatement(vf.createURI("tag:rya.apache.org,2017:ex#amsterdam"), vf.createURI("urn:containedIn"), vf.createLiteral("Europe")),
+                vf.createStatement(vf.createURI("tag:rya.apache.org,2017:ex#amsterdam2"), vf.createURI("urn:containedIn"), vf.createLiteral("Europe")),
                 vf.createStatement(vf.createURI("tag:rya.apache.org,2017:ex#amsterdam2"), asWKT, vf.createLiteral("Point(4.9 52.37)", wktTypeUri)));
 
         // The expected results of the SPARQL query once the PCJ has been computed.

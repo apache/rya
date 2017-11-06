@@ -36,7 +36,7 @@ public abstract class AbstractSpanBatchInformation extends BasicBatchInformation
      * Create AbstractBatchInformation
      * @param batchSize - size of batch to be processed
      * @param task - type of task processed (Add, Delete, Udpate)
-     * @param column - Cpolumn that Span notification is applied
+     * @param column - Column that Span notification is applied
      * @param span - span used to indicate where processing should begin
      */
     public AbstractSpanBatchInformation(int batchSize, Task task, Column column, Span span) {
@@ -62,7 +62,7 @@ public abstract class AbstractSpanBatchInformation extends BasicBatchInformation
     public void setSpan(Span span) {
         this.span = span;
     }
-    
+
     @Override
     public String toString() {
         return new StringBuilder()
@@ -74,7 +74,7 @@ public abstract class AbstractSpanBatchInformation extends BasicBatchInformation
                 .append("}")
                 .toString();
     }
-    
+
     @Override
     public boolean equals(Object other) {
         if (this == other) {
@@ -94,6 +94,6 @@ public abstract class AbstractSpanBatchInformation extends BasicBatchInformation
     public int hashCode() {
         return Objects.hash(super.getBatchSize(), span, super.getColumn(), super.getTask());
     }
-    
+
 
 }

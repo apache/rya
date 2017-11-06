@@ -30,18 +30,18 @@ import org.apache.fluo.api.data.ColumnValue;
 import org.apache.fluo.api.data.RowColumn;
 import org.apache.fluo.api.data.Span;
 import org.apache.log4j.Logger;
+import org.apache.rya.indexing.pcj.fluo.app.BindingSetRow;
+import org.apache.rya.indexing.pcj.fluo.app.NodeType;
 import org.apache.rya.indexing.pcj.fluo.app.batch.BatchInformation.Task;
 
 import com.google.common.base.Preconditions;
 
 /**
- * This class processes {@link SpanBatchDeleteInformation} objects by
- * deleting the entries in the Fluo Column corresponding to the {@link Span}
- * of the BatchInformation object.  This class will delete entries until the
- * batch size is met, and then create a new SpanBatchDeleteInformation object
- * with an updated Span whose starting point is the stopping point of this
- * batch.  If the batch limit is not met, then a new batch is not created and
- * the task is complete.
+ * This class processes {@link SpanBatchDeleteInformation} objects by deleting the entries in the Fluo Column
+ * corresponding to the {@link Span} of the BatchInformation object. This class will delete entries until the batch size
+ * is met, and then create a new SpanBatchDeleteInformation object with an updated Span whose starting point is the
+ * stopping point of this batch. If the batch limit is not met, then a new batch is not created and the task is
+ * complete.
  *
  */
 public class SpanBatchBindingSetUpdater extends AbstractBatchBindingSetUpdater {
@@ -49,8 +49,8 @@ public class SpanBatchBindingSetUpdater extends AbstractBatchBindingSetUpdater {
     private static final Logger log = Logger.getLogger(SpanBatchBindingSetUpdater.class);
 
     /**
-     * Process SpanBatchDeleteInformation objects by deleting all entries indicated
-     * by Span until batch limit is met.
+     * Process SpanBatchDeleteInformation objects by deleting all entries indicated by Span until batch limit is met.
+     *
      * @param tx - Fluo Transaction
      * @param row - Byte row identifying BatchInformation
      * @param batch - SpanBatchDeleteInformation object to be processed
@@ -60,6 +60,7 @@ public class SpanBatchBindingSetUpdater extends AbstractBatchBindingSetUpdater {
         super.processBatch(tx, row, batch);
         Preconditions.checkArgument(batch instanceof SpanBatchDeleteInformation);
         SpanBatchDeleteInformation spanBatch = (SpanBatchDeleteInformation) batch;
+        Optional<String> nodeId = spanBatch.getNodeId();
         Task task = spanBatch.getTask();
         int batchSize = spanBatch.getBatchSize();
         Span span = spanBatch.getSpan();
@@ -71,7 +72,7 @@ public class SpanBatchBindingSetUpdater extends AbstractBatchBindingSetUpdater {
             log.trace("The Task Add is not supported for SpanBatchBindingSetUpdater.  Batch " + batch + " will not be processed.");
             break;
         case Delete:
-            rowCol = deleteBatch(tx, span, column, batchSize);
+            rowCol = deleteBatch(tx, nodeId, span, column, batchSize);
             break;
         case Update:
             log.trace("The Task Update is not supported for SpanBatchBindingSetUpdater.  Batch " + batch + " will not be processed.");
@@ -90,7 +91,7 @@ public class SpanBatchBindingSetUpdater extends AbstractBatchBindingSetUpdater {
         }
     }
 
-    private Optional<RowColumn> deleteBatch(TransactionBase tx, Span span, Column column, int batchSize) {
+    private Optional<RowColumn> deleteBatch(TransactionBase tx, Optional<String> nodeId, Span span, Column column, int batchSize) {
 
         log.trace("Deleting batch of size: " + batchSize + " using Span: " + span + " and Column: " + column);
         RowScanner rs = tx.scanner().over(span).fetch(column).byRow().build();
@@ -100,18 +101,39 @@ public class SpanBatchBindingSetUpdater extends AbstractBatchBindingSetUpdater {
             int count = 0;
             boolean batchLimitMet = false;
             Bytes row = span.getStart().getRow();
+
+            //get prefix if nodeId is specified
+            Optional<Bytes> prefixBytes = Optional.empty();
+            if (nodeId.isPresent()) {
+                NodeType type = NodeType.fromNodeId(nodeId.get()).get();
+                prefixBytes = Optional.ofNullable(Bytes.of(type.getNodeTypePrefix()));
+            }
+
             while (colScannerIter.hasNext() && !batchLimitMet) {
                 ColumnScanner colScanner = colScannerIter.next();
                 row = colScanner.getRow();
-                Iterator<ColumnValue> iter = colScanner.iterator();
-                while (iter.hasNext()) {
-                    if (count >= batchSize) {
-                        batchLimitMet = true;
-                        break;
+
+                //extract the nodeId from the returned row if a nodeId was passed
+                //into the SpanBatchInformation.  This is to ensure that the returned
+                //row nodeId is equal to the nodeId passed in to the span batch information
+                Optional<String> rowNodeId = Optional.empty();
+                if (prefixBytes.isPresent()) {
+                    rowNodeId = Optional.of(BindingSetRow.makeFromShardedRow(prefixBytes.get(), row).getNodeId());
+                }
+
+                //if nodeId is present, then results returned by span are filtered
+                //on the nodeId.  This occurs when the hash is not included in the span
+                if (!rowNodeId.isPresent() || rowNodeId.equals(nodeId)) {
+                    Iterator<ColumnValue> iter = colScanner.iterator();
+                    while (iter.hasNext()) {
+                        if (count >= batchSize) {
+                            batchLimitMet = true;
+                            break;
+                        }
+                        ColumnValue colVal = iter.next();
+                        tx.delete(row, colVal.getColumn());
+                        count++;
                     }
-                    ColumnValue colVal = iter.next();
-                    tx.delete(row, colVal.getColumn());
-                    count++;
                 }
             }
 

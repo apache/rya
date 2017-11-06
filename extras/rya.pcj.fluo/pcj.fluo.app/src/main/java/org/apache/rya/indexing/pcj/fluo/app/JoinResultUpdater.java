@@ -19,8 +19,6 @@
 package org.apache.rya.indexing.pcj.fluo.app;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static org.apache.rya.indexing.pcj.fluo.app.IncrementalUpdateConstants.DELIM;
-import static org.apache.rya.indexing.pcj.fluo.app.IncrementalUpdateConstants.NODEID_BS_DELIM;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -43,13 +41,12 @@ import org.apache.rya.indexing.pcj.fluo.app.batch.BatchInformation.Task;
 import org.apache.rya.indexing.pcj.fluo.app.batch.BatchInformationDAO;
 import org.apache.rya.indexing.pcj.fluo.app.batch.JoinBatchInformation;
 import org.apache.rya.indexing.pcj.fluo.app.query.FluoQueryColumns;
-import org.apache.rya.indexing.pcj.fluo.app.query.FluoQueryMetadataDAO;
+import org.apache.rya.indexing.pcj.fluo.app.query.FluoQueryMetadataCache;
 import org.apache.rya.indexing.pcj.fluo.app.query.JoinMetadata;
-import org.apache.rya.indexing.pcj.fluo.app.util.RowKeyUtil;
+import org.apache.rya.indexing.pcj.fluo.app.query.MetadataCacheSupplier;
 import org.apache.rya.indexing.pcj.storage.accumulo.VariableOrder;
 import org.apache.rya.indexing.pcj.storage.accumulo.VisibilityBindingSet;
 import org.apache.rya.indexing.pcj.storage.accumulo.VisibilityBindingSetSerDe;
-import org.apache.rya.indexing.pcj.storage.accumulo.VisibilityBindingSetStringConverter;
 import org.openrdf.query.Binding;
 import org.openrdf.query.BindingSet;
 import org.openrdf.query.impl.MapBindingSet;
@@ -65,14 +62,11 @@ import edu.umd.cs.findbugs.annotations.NonNull;
  * new Binding Set to its results.
  */
 @DefaultAnnotation(NonNull.class)
-public class JoinResultUpdater {
+public class JoinResultUpdater extends AbstractNodeUpdater {
 
     private static final Logger log = Logger.getLogger(JoinResultUpdater.class);
-
     private static final VisibilityBindingSetSerDe BS_SERDE = new VisibilityBindingSetSerDe();
-    private static final VisibilityBindingSetStringConverter VIS_BS_CONVERTER = new VisibilityBindingSetStringConverter();
-
-    private final FluoQueryMetadataDAO queryDao = new FluoQueryMetadataDAO();
+    private final FluoQueryMetadataCache queryDao = MetadataCacheSupplier.getOrCreateCache();
 
     /**
      * Updates the results of a Join node when one of its children has added a
@@ -130,7 +124,7 @@ public class JoinResultUpdater {
         Span siblingSpan = getSpan(tx, childNodeId, childBindingSet, siblingId);
         Column siblingColumn = getScanColumnFamily(siblingId);
         Optional<RowColumn> rowColumn = fillSiblingBatch(tx, siblingSpan, siblingColumn, siblingBindingSets, joinMetadata.getJoinBatchSize());
-        
+
         // Iterates over the resulting BindingSets from the join.
         final Iterator<VisibilityBindingSet> newJoinResults;
         if(emittingSide == Side.LEFT) {
@@ -145,8 +139,8 @@ public class JoinResultUpdater {
             final VisibilityBindingSet newJoinResult = newJoinResults.next();
 
             // Create the Row Key for the emitted binding set. It does not contain visibilities.
-            final Bytes resultRow = RowKeyUtil.makeRowKey(joinMetadata.getNodeId(), joinVarOrder, newJoinResult);
-            
+            final Bytes resultRow = makeRowKey(joinMetadata.getNodeId(), joinVarOrder, newJoinResult);
+
             // Only insert the join Binding Set if it is new or BindingSet contains values not used in resultRow.
             if(tx.get(resultRow, FluoQueryColumns.JOIN_BINDING_SET) == null || joinVarOrder.getVariableOrders().size() < newJoinResult.size()) {
                 // Create the Node Value. It does contain visibilities.
@@ -159,7 +153,7 @@ public class JoinResultUpdater {
                 tx.set(resultRow, FluoQueryColumns.JOIN_BINDING_SET, nodeValueBytes);
             }
         }
-        
+
         // if batch limit met, there are additional entries to process
         // update the span and register updated batch job
         if (rowColumn.isPresent()) {
@@ -183,18 +177,18 @@ public class JoinResultUpdater {
     public static enum Side {
         LEFT, RIGHT;
     }
-    
-    
+
+
     /**
      * Fetches batch to be processed by scanning over the Span specified by the
      * {@link JoinBatchInformation}. The number of results is less than or equal
      * to the batch size specified by the JoinBatchInformation.
-     * 
+     *
      * @param tx - Fluo transaction in which batch operation is performed
      * @param siblingSpan - span of sibling to retrieve elements to join with
      * @param bsSet- set that batch results are added to
      * @return Set - containing results of sibling scan.
-     * @throws Exception 
+     * @throws Exception
      */
     private Optional<RowColumn> fillSiblingBatch(TransactionBase tx, Span siblingSpan, Column siblingColumn, Set<VisibilityBindingSet> bsSet, int batchSize) throws Exception {
 
@@ -222,7 +216,7 @@ public class JoinResultUpdater {
             return Optional.absent();
         }
     }
-    
+
     /**
      * Creates a Span for the sibling node to retrieve BindingSets to join with
      * @param tx
@@ -231,29 +225,19 @@ public class JoinResultUpdater {
      * @param siblingId - Id of the sibling node whose BindingSets will be retrieved and joined with the update
      * @return Span to retrieve sibling node's BindingSets to form join results
      */
-    private Span getSpan(TransactionBase tx, final String childId, final BindingSet childBindingSet, final String siblingId) {
+    private Span getSpan(TransactionBase tx, final String childId, final VisibilityBindingSet childBindingSet, final String siblingId) {
         // Get the common variable orders. These are used to build the prefix.
         final VariableOrder childVarOrder = getVarOrder(tx, childId);
         final VariableOrder siblingVarOrder = getVarOrder(tx, siblingId);
         final List<String> commonVars = getCommonVars(childVarOrder, siblingVarOrder);
 
-        // Get the Binding strings
-        final String childBindingSetString = VIS_BS_CONVERTER.convert(childBindingSet, childVarOrder);
-        final String[] childBindingArray = childBindingSetString.split("\u0001");
-        final String[] childBindingStrings = FluoStringConverter.toBindingStrings(childBindingArray[0]);
-
-        // Create the prefix that will be used to scan for binding sets of the sibling node.
-        // This prefix includes the sibling Node ID and the common variable values from
-        // childBindingSet.
-        String siblingScanPrefix = "";
-        for(int i = 0; i < commonVars.size(); i++) {
-            if(siblingScanPrefix.length() == 0) {
-                siblingScanPrefix = childBindingStrings[i];
-            } else {
-                siblingScanPrefix += DELIM + childBindingStrings[i];
-            }
+        Bytes siblingScanPrefix = null;
+        if(!commonVars.isEmpty()) {
+            siblingScanPrefix = makeRowKey(siblingId, new VariableOrder(commonVars), childBindingSet);
+        } else {
+            siblingScanPrefix = makeRowKey(siblingId, siblingVarOrder, childBindingSet);
         }
-        siblingScanPrefix = siblingId + NODEID_BS_DELIM + siblingScanPrefix;
+
         return Span.prefix(siblingScanPrefix);
     }
 
@@ -277,13 +261,13 @@ public class JoinResultUpdater {
                 return removeBinIdFromVarOrder(queryDao.readFilterMetadata(tx, nodeId).getVariableOrder());
             case JOIN:
                 return removeBinIdFromVarOrder(queryDao.readJoinMetadata(tx, nodeId).getVariableOrder());
-            case PROJECTION: 
+            case PROJECTION:
                 return removeBinIdFromVarOrder(queryDao.readProjectionMetadata(tx, nodeId).getVariableOrder());
             default:
                 throw new IllegalArgumentException("Could not figure out the variable order for node with ID: " + nodeId);
         }
     }
-    
+
     private VariableOrder removeBinIdFromVarOrder(VariableOrder varOrder) {
         List<String> varOrderList = varOrder.getVariableOrders();
         if(varOrderList.get(0).equals(IncrementalUpdateConstants.PERIODIC_BIN_ID)) {
@@ -311,7 +295,7 @@ public class JoinResultUpdater {
 
         final List<String> commonVars = new ArrayList<>();
 
-        // Only need to iteratre through the shorted order's length.
+        // Only need to iterate through the shorted order's length.
         final Iterator<String> vars1It = vars1.iterator();
         final Iterator<String> vars2It = vars2.iterator();
         while(vars1It.hasNext() && vars2It.hasNext()) {

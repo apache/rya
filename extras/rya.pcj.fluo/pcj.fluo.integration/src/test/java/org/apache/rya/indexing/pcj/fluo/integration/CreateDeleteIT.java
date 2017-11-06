@@ -76,17 +76,18 @@ public class CreateDeleteIT extends RyaExportITBase {
         // Create the PCJ in Fluo and load the statements into Rya.
         final String pcjId = loadData(sparql, statements);
 
-        try(FluoClient fluoClient = FluoFactory.newClient(super.getFluoConfiguration())) {
+        try(FluoClient fluoClient = FluoFactory.newClient(getFluoConfiguration())) {
             // Ensure the data was loaded.
             final List<Bytes> rows = getFluoTableEntries(fluoClient);
-            assertEquals(18, rows.size());
+            assertEquals(19, rows.size());
 
             // Delete the PCJ from the Fluo application.
             new DeleteFluoPcj(1).deletePcj(fluoClient, pcjId);
+            getMiniFluo().waitForObservers();
 
             // Ensure all data related to the query has been removed.
             final List<Bytes> empty_rows = getFluoTableEntries(fluoClient);
-            assertEquals(0, empty_rows.size());
+            assertEquals(1, empty_rows.size());
         }
     }
 
@@ -108,20 +109,21 @@ public class CreateDeleteIT extends RyaExportITBase {
         // Create the PCJ in Fluo and load the statements into Rya.
         final String pcjId = loadData(sparql, statements);
 
-        try(FluoClient fluoClient = FluoFactory.newClient(super.getFluoConfiguration())) {
+        try(FluoClient fluoClient = FluoFactory.newClient(getFluoConfiguration())) {
             // Ensure the data was loaded.
             final List<Bytes> rows = getFluoTableEntries(fluoClient);
-            assertEquals(10, rows.size());
+            assertEquals(11, rows.size());
 
             // Delete the PCJ from the Fluo application.
             new DeleteFluoPcj(1).deletePcj(fluoClient, pcjId);
+            getMiniFluo().waitForObservers();
 
             // Ensure all data related to the query has been removed.
             final List<Bytes> empty_rows = getFluoTableEntries(fluoClient);
-            assertEquals(0, empty_rows.size());
+            assertEquals(1, empty_rows.size());
         }
     }
-    
+
 
     private String loadData(final String sparql, final Collection<Statement> statements) throws Exception {
         requireNonNull(sparql);
@@ -133,14 +135,14 @@ public class CreateDeleteIT extends RyaExportITBase {
         final String pcjId = ryaClient.getCreatePCJ().createPCJ(getRyaInstanceName(), sparql, Sets.newHashSet());
 
         // Write the data to Rya.
-        final SailRepositoryConnection ryaConn = super.getRyaSailRepository().getConnection();
+        final SailRepositoryConnection ryaConn = getRyaSailRepository().getConnection();
         ryaConn.begin();
         ryaConn.add(statements);
         ryaConn.commit();
         ryaConn.close();
 
         // Wait for the Fluo application to finish computing the end result.
-        super.getMiniFluo().waitForObservers();
+        getMiniFluo().waitForObservers();
 
         // The PCJ Id is the topic name the results will be written to.
         return pcjId;

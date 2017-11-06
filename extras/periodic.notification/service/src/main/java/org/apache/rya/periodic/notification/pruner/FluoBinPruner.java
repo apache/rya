@@ -23,12 +23,14 @@ import org.apache.fluo.api.client.Transaction;
 import org.apache.fluo.api.data.Bytes;
 import org.apache.fluo.api.data.Column;
 import org.apache.fluo.api.data.Span;
-import org.apache.rya.indexing.pcj.fluo.app.IncrementalUpdateConstants;
 import org.apache.rya.indexing.pcj.fluo.app.NodeType;
 import org.apache.rya.indexing.pcj.fluo.app.batch.BatchInformationDAO;
 import org.apache.rya.indexing.pcj.fluo.app.batch.SpanBatchDeleteInformation;
+import org.apache.rya.indexing.pcj.fluo.app.util.BindingHashShardingFunction;
 import org.apache.rya.periodic.notification.api.BinPruner;
 import org.apache.rya.periodic.notification.api.NodeBin;
+import org.openrdf.model.ValueFactory;
+import org.openrdf.model.impl.ValueFactoryImpl;
 import org.openrdf.query.BindingSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,6 +43,7 @@ import com.google.common.base.Optional;
 public class FluoBinPruner implements BinPruner {
 
     private static final Logger log = LoggerFactory.getLogger(FluoBinPruner.class);
+    private static final ValueFactory vf = new ValueFactoryImpl();
     private final FluoClient client;
 
     public FluoBinPruner(final FluoClient client) {
@@ -67,9 +70,9 @@ public class FluoBinPruner implements BinPruner {
                 throw new RuntimeException();
             }
             final Column batchInfoColumn = type.get().getResultColumn();
-            final String batchInfoSpanPrefix = id + IncrementalUpdateConstants.NODEID_BS_DELIM + bin;
+            final Bytes batchInfoSpanPrefix = BindingHashShardingFunction.getShardedScanPrefix(id, vf.createLiteral(bin));
             final SpanBatchDeleteInformation batchInfo = SpanBatchDeleteInformation.builder().setColumn(batchInfoColumn)
-                    .setSpan(Span.prefix(Bytes.of(batchInfoSpanPrefix))).build();
+                    .setSpan(Span.prefix(batchInfoSpanPrefix)).build();
             BatchInformationDAO.addBatch(tx, id, batchInfo);
             tx.commit();
         }

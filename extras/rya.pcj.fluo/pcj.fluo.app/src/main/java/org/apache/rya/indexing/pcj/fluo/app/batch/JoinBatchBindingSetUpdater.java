@@ -37,9 +37,8 @@ import org.apache.rya.indexing.pcj.fluo.app.JoinResultUpdater.NaturalJoin;
 import org.apache.rya.indexing.pcj.fluo.app.JoinResultUpdater.Side;
 import org.apache.rya.indexing.pcj.fluo.app.batch.BatchInformation.Task;
 import org.apache.rya.indexing.pcj.fluo.app.query.FluoQueryColumns;
-import org.apache.rya.indexing.pcj.fluo.app.query.FluoQueryMetadataDAO;
 import org.apache.rya.indexing.pcj.fluo.app.query.JoinMetadata;
-import org.apache.rya.indexing.pcj.fluo.app.util.RowKeyUtil;
+import org.apache.rya.indexing.pcj.fluo.app.util.BindingHashShardingFunction;
 import org.apache.rya.indexing.pcj.storage.accumulo.VariableOrder;
 import org.apache.rya.indexing.pcj.storage.accumulo.VisibilityBindingSet;
 import org.apache.rya.indexing.pcj.storage.accumulo.VisibilityBindingSetSerDe;
@@ -53,7 +52,6 @@ public class JoinBatchBindingSetUpdater extends AbstractBatchBindingSetUpdater {
 
     private static final Logger log = Logger.getLogger(JoinBatchBindingSetUpdater.class);
     private static final VisibilityBindingSetSerDe BS_SERDE = new VisibilityBindingSetSerDe();
-    private static final FluoQueryMetadataDAO dao = new FluoQueryMetadataDAO();
 
     /**
      * Processes {@link JoinBatchInformation}. Updates the BindingSets
@@ -65,7 +63,7 @@ public class JoinBatchBindingSetUpdater extends AbstractBatchBindingSetUpdater {
      * entries that need to be updated exceeds the batch size, the row of the
      * first unprocessed BindingSets is used to create a new JoinBatch job to
      * process the remaining BindingSets.
-     * @throws Exception 
+     * @throws Exception
      */
     @Override
     public void processBatch(TransactionBase tx, Bytes row, BatchInformation batch) throws Exception {
@@ -100,15 +98,15 @@ public class JoinBatchBindingSetUpdater extends AbstractBatchBindingSetUpdater {
             newJoinResults = joinAlgorithm.newRightResult(bsSet.iterator(), bs);
         }
 
-        // Insert the new join binding sets to the Fluo table.
-        final JoinMetadata joinMetadata = dao.readJoinMetadata(tx, nodeId);
+        // Read join metadata, create new join BindingSets and insert them into the Fluo table.
+        final JoinMetadata joinMetadata = CACHE.readJoinMetadata(tx, nodeId);
         final VariableOrder joinVarOrder = joinMetadata.getVariableOrder();
         while (newJoinResults.hasNext()) {
             final VisibilityBindingSet newJoinResult = newJoinResults.next();
             //create BindingSet value
             Bytes bsBytes = BS_SERDE.serialize(newJoinResult);
             //make rowId
-            Bytes rowKey = RowKeyUtil.makeRowKey(nodeId, joinVarOrder, newJoinResult);
+            Bytes rowKey = BindingHashShardingFunction.addShard(nodeId, joinVarOrder, newJoinResult);
             final Column col = FluoQueryColumns.JOIN_BINDING_SET;
             processTask(tx, task, rowKey, col, bsBytes);
         }
@@ -144,12 +142,12 @@ public class JoinBatchBindingSetUpdater extends AbstractBatchBindingSetUpdater {
      * Fetches batch to be processed by scanning over the Span specified by the
      * {@link JoinBatchInformation}. The number of results is less than or equal
      * to the batch size specified by the JoinBatchInformation.
-     * 
+     *
      * @param tx - Fluo transaction in which batch operation is performed
      * @param batch - batch order to be processed
      * @param bsSet- set that batch results are added to
      * @return Set - containing results of sibling scan.
-     * @throws Exception 
+     * @throws Exception
      */
     private Optional<RowColumn> fillSiblingBatch(TransactionBase tx, JoinBatchInformation batch, Set<VisibilityBindingSet> bsSet) throws Exception {
 

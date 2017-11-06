@@ -30,15 +30,18 @@ public class IncrementalUpdateConstants {
     public static final String TYPE_DELIM = "<<~>>";
 
     //to be used in construction of id for each node
-    public static final String SP_PREFIX = "STATEMENT_PATTERN";
-    public static final String JOIN_PREFIX = "JOIN";
-    public static final String FILTER_PREFIX = "FILTER";
-    public static final String AGGREGATION_PREFIX = "AGGREGATION";
-    public static final String QUERY_PREFIX = "QUERY";
-    public static final String PROJECTION_PREFIX = "PROJECTION";
-    public static final String CONSTRUCT_PREFIX = "CONSTRUCT";
-    public static final String PERIODIC_QUERY_PREFIX = "PERIODIC_QUERY";
-    
+    public static final String TRIPLE_PREFIX = "T";
+    public static final String SP_PREFIX = "SP";
+    public static final String JOIN_PREFIX = "J";
+    public static final String FILTER_PREFIX = "F";
+    public static final String AGGREGATION_PREFIX = "A";
+    public static final String QUERY_PREFIX = "Q";
+    public static final String PROJECTION_PREFIX = "PR";
+    public static final String CONSTRUCT_PREFIX = "C";
+    public static final String PERIODIC_QUERY_PREFIX = "PE";
+
+    public static final String STATEMENT_PATTERN_ID = "SP_ID";
+
     //binding name reserved for periodic bin id for periodic query results
     public static final String PERIODIC_BIN_ID = PeriodicQueryResultStorage.PeriodicBinId;
 

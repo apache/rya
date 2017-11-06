@@ -19,6 +19,7 @@
 package org.apache.rya.indexing.pcj.fluo.app.observers;
 
 import static java.util.Objects.requireNonNull;
+import static org.apache.rya.indexing.pcj.fluo.app.IncrementalUpdateConstants.JOIN_PREFIX;
 
 import org.apache.fluo.api.client.TransactionBase;
 import org.apache.fluo.api.data.Bytes;
@@ -49,7 +50,7 @@ public class JoinObserver extends BindingSetUpdater {
         requireNonNull(row);
 
         // Read the Join metadata.
-        final String joinNodeId = BindingSetRow.make(row).getNodeId();
+        final String joinNodeId = BindingSetRow.makeFromShardedRow(Bytes.of(JOIN_PREFIX), row).getNodeId();
         final JoinMetadata joinMetadata = queryDao.readJoinMetadata(tx, joinNodeId);
 
         // Read the Visibility Binding Set from the value.

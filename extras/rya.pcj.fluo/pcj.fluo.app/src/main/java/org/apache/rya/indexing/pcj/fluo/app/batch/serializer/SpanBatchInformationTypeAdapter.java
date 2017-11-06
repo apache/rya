@@ -1,4 +1,5 @@
 package org.apache.rya.indexing.pcj.fluo.app.batch.serializer;
+
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -18,6 +19,7 @@ package org.apache.rya.indexing.pcj.fluo.app.batch.serializer;
  * under the License.
  */
 import java.lang.reflect.Type;
+import java.util.Optional;
 
 import org.apache.fluo.api.data.Column;
 import org.apache.fluo.api.data.RowColumn;
@@ -37,10 +39,12 @@ import com.google.gson.JsonSerializer;
  * JsonSerializer/JsonDeserializer used to serialize/deserialize {@link SpanBatchDeleteInformation} objects.
  *
  */
-public class SpanBatchInformationTypeAdapter implements JsonSerializer<SpanBatchDeleteInformation>, JsonDeserializer<SpanBatchDeleteInformation> {
+public class SpanBatchInformationTypeAdapter
+        implements JsonSerializer<SpanBatchDeleteInformation>, JsonDeserializer<SpanBatchDeleteInformation> {
 
     @Override
-    public SpanBatchDeleteInformation deserialize(JsonElement element, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
+    public SpanBatchDeleteInformation deserialize(JsonElement element, Type typeOfT, JsonDeserializationContext context)
+            throws JsonParseException {
         JsonObject json = element.getAsJsonObject();
         int batchSize = json.get("batchSize").getAsInt();
         String[] colArray = json.get("column").getAsString().split("\u0000");
@@ -49,7 +53,12 @@ public class SpanBatchInformationTypeAdapter implements JsonSerializer<SpanBatch
         boolean startInc = json.get("startInc").getAsBoolean();
         boolean endInc = json.get("endInc").getAsBoolean();
         Span span = new Span(new RowColumn(rows[0]), startInc, new RowColumn(rows[1]), endInc);
-        return SpanBatchDeleteInformation.builder().setBatchSize(batchSize).setSpan(span).setColumn(column).build();
+        String nodeId = json.get("nodeId").getAsString();
+        Optional<String> id = Optional.empty();
+        if (!nodeId.isEmpty()) {
+            id = Optional.of(nodeId);
+        }
+        return SpanBatchDeleteInformation.builder().setNodeId(id).setBatchSize(batchSize).setSpan(span).setColumn(column).build();
     }
 
     @Override
@@ -63,6 +72,8 @@ public class SpanBatchInformationTypeAdapter implements JsonSerializer<SpanBatch
         result.add("span", new JsonPrimitive(span.getStart().getsRow() + "\u0000" + span.getEnd().getsRow()));
         result.add("startInc", new JsonPrimitive(span.isStartInclusive()));
         result.add("endInc", new JsonPrimitive(span.isEndInclusive()));
+        String nodeId = batch.getNodeId().orElse("");
+        result.add("nodeId", new JsonPrimitive(nodeId));
         return result;
     }
 

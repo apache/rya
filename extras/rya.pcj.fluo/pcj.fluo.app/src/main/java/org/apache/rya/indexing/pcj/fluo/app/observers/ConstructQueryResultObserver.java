@@ -18,6 +18,8 @@
  */
 package org.apache.rya.indexing.pcj.fluo.app.observers;
 
+import static org.apache.rya.indexing.pcj.fluo.app.IncrementalUpdateConstants.CONSTRUCT_PREFIX;
+
 import org.apache.fluo.api.client.TransactionBase;
 import org.apache.fluo.api.data.Bytes;
 import org.apache.fluo.api.data.Column;
@@ -25,12 +27,12 @@ import org.apache.fluo.api.observer.AbstractObserver;
 import org.apache.log4j.Logger;
 import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.indexing.pcj.fluo.app.BindingSetRow;
-import org.apache.rya.indexing.pcj.fluo.app.IncrementalUpdateConstants;
 import org.apache.rya.indexing.pcj.fluo.app.NodeType;
 import org.apache.rya.indexing.pcj.fluo.app.export.IncrementalRyaSubGraphExporter;
 import org.apache.rya.indexing.pcj.fluo.app.query.FluoQueryColumns;
 import org.apache.rya.indexing.pcj.fluo.app.query.FluoQueryMetadataCache;
 import org.apache.rya.indexing.pcj.fluo.app.query.MetadataCacheSupplier;
+import org.apache.rya.indexing.pcj.fluo.app.util.BindingHashShardingFunction;
 
 /**
  * Monitors the Column {@link FluoQueryColumns#CONSTRUCT_STATEMENTS} for new
@@ -42,7 +44,7 @@ import org.apache.rya.indexing.pcj.fluo.app.query.MetadataCacheSupplier;
 public class ConstructQueryResultObserver extends AbstractObserver {
 
     private static final Logger log = Logger.getLogger(ConstructQueryResultObserver.class);
-    protected final FluoQueryMetadataCache queryDao = MetadataCacheSupplier.getOrCreateCache();
+    private final FluoQueryMetadataCache queryDao = MetadataCacheSupplier.getOrCreateCache();
 
     @Override
     public ObservedColumn getObservedColumn() {
@@ -53,18 +55,18 @@ public class ConstructQueryResultObserver extends AbstractObserver {
     public void process(TransactionBase tx, Bytes row, Column col) throws Exception {
 
         //Build row for parent that result will be written to
-        BindingSetRow bsRow = BindingSetRow.make(row);
+        BindingSetRow bsRow = BindingSetRow.makeFromShardedRow(Bytes.of(CONSTRUCT_PREFIX), row);
         String constructNodeId = bsRow.getNodeId();
         String bsString= bsRow.getBindingSetString();
         String parentNodeId = queryDao.readMetadadataEntry(tx, constructNodeId, FluoQueryColumns.CONSTRUCT_PARENT_NODE_ID).toString();
-        String rowString = parentNodeId + IncrementalUpdateConstants.NODEID_BS_DELIM + bsString;
+        Bytes rowBytes = BindingHashShardingFunction.getShardedScanPrefix(parentNodeId, bsString);
 
         //Get NodeType of the parent node
         NodeType parentType = NodeType.fromNodeId(parentNodeId).get();
         //Get data for the ConstructQuery result
         Bytes bytes = tx.get(row, col);
         //Write result to parent
-        tx.set(Bytes.of(rowString), parentType.getResultColumn(), bytes);
+        tx.set(rowBytes, parentType.getResultColumn(), bytes);
     }
 
 }

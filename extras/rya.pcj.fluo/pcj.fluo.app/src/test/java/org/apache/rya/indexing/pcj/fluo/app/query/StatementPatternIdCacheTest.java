@@ -18,35 +18,38 @@
  */
 package org.apache.rya.indexing.pcj.fluo.app.query;
 
-import static org.junit.Assert.assertEquals;
+import static org.apache.rya.indexing.pcj.fluo.app.IncrementalUpdateConstants.STATEMENT_PATTERN_ID;
+import static org.apache.rya.indexing.pcj.fluo.app.query.FluoQueryColumns.STATEMENT_PATTERN_IDS;
+import static org.apache.rya.indexing.pcj.fluo.app.query.FluoQueryColumns.STATEMENT_PATTERN_IDS_HASH;
 import static org.mockito.Mockito.when;
 
+import java.util.Set;
+
 import org.apache.fluo.api.client.Transaction;
+import org.apache.fluo.api.data.Bytes;
 import org.apache.rya.indexing.pcj.fluo.app.NodeType;
-import org.apache.rya.indexing.pcj.storage.accumulo.VariableOrder;
+import org.junit.Assert;
 import org.junit.Test;
 import org.mockito.Mockito;
 
-public class FluoQueryMetadataCacheTest {
+import com.google.common.collect.Sets;
+
+public class StatementPatternIdCacheTest {
 
     @Test
     public void testCache() {
-        FluoQueryMetadataDAO mockDAO = Mockito.mock(FluoQueryMetadataDAO.class);
         Transaction mockTx = Mockito.mock(Transaction.class);
         String nodeId = NodeType.generateNewFluoIdForType(NodeType.STATEMENT_PATTERN);
-        StatementPatternMetadata metadata = StatementPatternMetadata.builder(nodeId).setParentNodeId("parent")
-                .setStatementPattern("pattern").setVarOrder(new VariableOrder("xyz")).build();
-        when(mockDAO.readStatementPatternMetadata(mockTx, nodeId)).thenReturn(metadata);
+        when(mockTx.get(Bytes.of(STATEMENT_PATTERN_ID), STATEMENT_PATTERN_IDS)).thenReturn(Bytes.of(nodeId));
+        when(mockTx.get(Bytes.of(STATEMENT_PATTERN_ID), STATEMENT_PATTERN_IDS_HASH)).thenReturn(Bytes.of("123"));
 
-        FluoQueryMetadataCache cache = new FluoQueryMetadataCache(mockDAO, 20, 2);
+        StatementPatternIdCache cache = new StatementPatternIdCache();
+        Set<String> ids1 = cache.getStatementPatternIds(mockTx);
+        Set<String> ids2 = cache.getStatementPatternIds(mockTx);
 
-        assertEquals(metadata, cache.readStatementPatternMetadata(mockTx, nodeId));
+        Assert.assertEquals(ids1, ids2);
+        Assert.assertEquals(Sets.newHashSet(nodeId), ids1);
 
-        cache.readStatementPatternMetadata(mockTx, nodeId);
-        cache.readStatementPatternMetadata(mockTx, nodeId);
-        cache.readStatementPatternMetadata(mockTx, nodeId);
-        cache.readStatementPatternMetadata(mockTx, nodeId);
-
-        Mockito.verify(mockDAO, Mockito.times(1)).readStatementPatternMetadata(mockTx, nodeId);
+        Mockito.verify(mockTx, Mockito.times(1)).get(Bytes.of(STATEMENT_PATTERN_ID), STATEMENT_PATTERN_IDS);
     }
 }

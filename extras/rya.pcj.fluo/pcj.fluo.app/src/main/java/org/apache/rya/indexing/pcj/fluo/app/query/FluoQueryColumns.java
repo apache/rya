@@ -53,7 +53,7 @@ import edu.umd.cs.findbugs.annotations.NonNull;
  *   <table border="1" style="width:100%">
  *     <tr> <th>Fluo Row</td> <th>Fluo Column</td> <th>Fluo Value</td> </tr>
  *     <tr> <td>Node ID</td> <td>projectionMetadata:nodeId</td> <td>The Node ID of the Query.</td> </tr>
- *     <tr> <td>Node ID</td> <td>projectionMetadata:projectedVars</td> <td>The variables that results are projected onto.</td> </tr>*     
+ *     <tr> <td>Node ID</td> <td>projectionMetadata:projectedVars</td> <td>The variables that results are projected onto.</td> </tr>*
  *     <tr> <td>Node ID</td> <td>projectionMetadata:variableOrder</td> <td>The Variable Order that Binding values are written in in the Row to identify solutions.</td> </tr>
  *     <tr> <td>Node ID</td> <td>projectionMetadata:childNodeId</td> <td>The Node ID of the child who feeds this node.</td> </tr>
  *     <tr> <td>Node ID</td> <td>projectionMetadata:parentNodeId</td> <td>The Node ID of the parent of this node.</td> </tr>
@@ -109,7 +109,7 @@ import edu.umd.cs.findbugs.annotations.NonNull;
  *     <tr> <td>Node ID</td> <td>joinMetadata:parentNodeId</td> <td>The Node ID this join emits Binding Sets to.</td> </tr>
  *     <tr> <td>Node ID</td> <td>joinMetadata:leftChildNodeId</td> <td>A Node ID of the node that feeds this node Binding Sets.</td> </tr>
  *     <tr> <td>Node ID</td> <td>joinMetadata:rightChildNodeId</td> <td>A Node ID of the node that feeds this node Binding Sets.</td> </tr>
- *     <tr> <td>Node ID</td> <td>joinMetadata:joinBatchSize</td> <td>Batch size used for processing joins</td> </tr> 
+ *     <tr> <td>Node ID</td> <td>joinMetadata:joinBatchSize</td> <td>Batch size used for processing joins</td> </tr>
  *     <tr> <td>Node ID + DELIM + Binding Set String</td> <td>joinMetadata:bindingSet</td> <td>A {@link VisibilityBindingSet} object.</td> </tr>
  *   </table>
  * </p>
@@ -171,7 +171,7 @@ public class FluoQueryColumns {
     public static final Column QUERY_BINDING_SET = new Column(QUERY_METADATA_CF, "bindingSet");
     public static final Column QUERY_EXPORT_STRATEGIES = new Column(QUERY_METADATA_CF, "exportStrategies");
     public static final Column QUERY_TYPE = new Column(QUERY_METADATA_CF, "queryType");
-    
+
     // Query Metadata columns.
     public static final Column PROJECTION_NODE_ID = new Column(PROJECTION_METADATA_CF, "nodeId");
     public static final Column PROJECTION_PROJECTED_VARS = new Column(PROJECTION_METADATA_CF, "projectedVars");
@@ -195,7 +195,7 @@ public class FluoQueryColumns {
     public static final Column FILTER_PARENT_NODE_ID = new Column(FILTER_METADATA_CF, "parentNodeId");
     public static final Column FILTER_CHILD_NODE_ID = new Column(FILTER_METADATA_CF, "childNodeId");
     public static final Column FILTER_BINDING_SET = new Column(FILTER_METADATA_CF, "bindingSet");
-    
+
     // Periodic Bin Metadata columns.
     public static final Column PERIODIC_QUERY_NODE_ID = new Column(PERIODIC_QUERY_METADATA_CF, "nodeId");
     public static final Column PERIODIC_QUERY_VARIABLE_ORDER = new Column(PERIODIC_QUERY_METADATA_CF, "variableOrder");
@@ -206,7 +206,7 @@ public class FluoQueryColumns {
     public static final Column PERIODIC_QUERY_WINDOWSIZE = new Column(PERIODIC_QUERY_METADATA_CF, "windowSize");
     public static final Column PERIODIC_QUERY_TIMEUNIT = new Column(PERIODIC_QUERY_METADATA_CF, "timeUnit");
     public static final Column PERIODIC_QUERY_TEMPORAL_VARIABLE = new Column(PERIODIC_QUERY_METADATA_CF, "temporalVariable");
-    
+
     // Join Metadata columns.
     public static final Column JOIN_NODE_ID = new Column(JOIN_METADATA_CF, "nodeId");
     public static final Column JOIN_VARIABLE_ORDER = new Column(JOIN_METADATA_CF, "variableOrder");
@@ -246,6 +246,13 @@ public class FluoQueryColumns {
     public static final Column BATCH_COLUMN = new Column("batch","information");
 
     /**
+     * Column indicating a set of all StatementPattern ids in the Fluo table. This is used
+     * by the Triple of Observer for finding new queries to match incoming triple to.
+     */
+    public static final Column STATEMENT_PATTERN_IDS = new Column("statementPattern", "ids");
+    public static final Column STATEMENT_PATTERN_IDS_HASH = new Column("statementPattern", "hash");
+
+    /**
      * Enumerates the {@link Column}s that hold all of the fields for each type
      * of node that can compose a query.
      */
@@ -261,7 +268,7 @@ public class FluoQueryColumns {
                         QUERY_TYPE,
                         QUERY_EXPORT_STRATEGIES,
                         QUERY_CHILD_NODE_ID)),
-        
+
         /**
          * The columns a {@link ProjectionMetadata} object's fields are stored within.
          */
@@ -271,8 +278,8 @@ public class FluoQueryColumns {
                         PROJECTION_VARIABLE_ORDER,
                         PROJECTION_PARENT_NODE_ID,
                         PROJECTION_CHILD_NODE_ID)),
-        
-        
+
+
         /**
          * The columns a {@link PeriodicBinMetadata} object's fields are stored within.
          */
@@ -297,7 +304,7 @@ public class FluoQueryColumns {
                         CONSTRUCT_PARENT_NODE_ID,
                         CONSTRUCT_STATEMENTS)),
 
-        
+
         /**
          * The columns a {@link FilterMetadata} object's fields are stored within.
          */
@@ -317,7 +324,7 @@ public class FluoQueryColumns {
                         JOIN_TYPE,
                         JOIN_PARENT_NODE_ID,
                         JOIN_LEFT_CHILD_NODE_ID,
-                        JOIN_BATCH_SIZE, 
+                        JOIN_BATCH_SIZE,
                         JOIN_RIGHT_CHILD_NODE_ID)),
 
         /**

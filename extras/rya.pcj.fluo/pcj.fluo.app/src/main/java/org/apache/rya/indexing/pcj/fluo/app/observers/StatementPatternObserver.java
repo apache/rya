@@ -19,6 +19,7 @@
 package org.apache.rya.indexing.pcj.fluo.app.observers;
 
 import static java.util.Objects.requireNonNull;
+import static org.apache.rya.indexing.pcj.fluo.app.IncrementalUpdateConstants.SP_PREFIX;
 
 import org.apache.fluo.api.client.TransactionBase;
 import org.apache.fluo.api.data.Bytes;
@@ -48,8 +49,8 @@ public class StatementPatternObserver extends BindingSetUpdater {
         requireNonNull(tx);
         requireNonNull(row);
 
-        // Read the Statement Pattern metadata.
-        final String spNodeId = BindingSetRow.make(row).getNodeId();
+        // Make nodeId and get the Statement Pattern metadata.
+        final String spNodeId = BindingSetRow.makeFromShardedRow(Bytes.of(SP_PREFIX), row).getNodeId();
         final StatementPatternMetadata spMetadata = queryDao.readStatementPatternMetadata(tx, spNodeId);
 
         // Read the Visibility Binding Set from the value.

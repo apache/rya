@@ -21,15 +21,17 @@ package org.apache.rya.indexing.pcj.fluo.app;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.apache.rya.indexing.pcj.fluo.app.IncrementalUpdateConstants.NODEID_BS_DELIM;
 
+import java.util.Objects;
+
 import org.apache.fluo.api.data.Bytes;
+import org.apache.rya.indexing.pcj.fluo.app.util.BindingHashShardingFunction;
 
 import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
 import edu.umd.cs.findbugs.annotations.NonNull;
 import net.jcip.annotations.Immutable;
 
 /**
- * The values of an Accumulo Row ID for a row that stores a Binding set for
- * a specific Node ID of a query.
+ * The values of an Accumulo Row ID for a row that stores a Binding set for a specific Node ID of a query.
  */
 @Immutable
 @DefaultAnnotation(NonNull.class)
@@ -76,5 +78,40 @@ public class BindingSetRow {
         final String nodeId = rowArray[0];
         final String bindingSetString = rowArray.length == 2 ? rowArray[1] : "";
         return new BindingSetRow(nodeId, bindingSetString);
+    }
+
+    /**
+     * Creates a BindingSetRow from a sharded row entry, where the row is sharded according to
+     * {@link BindingHashShardingFunction}.
+     *
+     * @param prefixBytes - prefix of the node type that the row corresponds to (see prefixes in
+     *            {@link IncrementalUpdateConstants}).
+     * @param row - row that BindingSetRow is created from
+     * @return - BindingSetRow object
+     */
+    public static BindingSetRow makeFromShardedRow(Bytes prefixBytes, Bytes row) {
+        return make(BindingHashShardingFunction.removeHash(prefixBytes, row));
+    }
+
+    @Override
+    public String toString() {
+        return "NodeId: " + nodeId + "\n" + "BindingSet String: " + bindingSetString;
+    }
+
+    @Override
+    public boolean equals(Object other) {
+        if(this == other) { return true;}
+
+        if (other instanceof BindingSetRow) {
+            BindingSetRow row = (BindingSetRow) other;
+            return Objects.equals(nodeId, row.nodeId) && Objects.equals(bindingSetString, row.bindingSetString);
+        }
+
+        return false;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(nodeId, bindingSetString);
     }
 }

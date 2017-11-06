@@ -47,6 +47,7 @@ import org.apache.rya.indexing.pcj.storage.accumulo.VariableOrder;
 import com.google.common.base.Charsets;
 import com.google.common.base.Joiner;
 import com.google.common.base.Optional;
+import com.google.common.collect.Sets;
 
 import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
 import edu.umd.cs.findbugs.annotations.NonNull;
@@ -617,14 +618,18 @@ public class FluoQueryMetadataDAO {
             write(tx, join);
         }
 
+        Set<String> ids = new HashSet<>();
         for(final StatementPatternMetadata statementPattern : query.getStatementPatternMetadata()) {
             write(tx, statementPattern);
+            ids.add(statementPattern.getNodeId());
         }
+        StatementPatternIdManager.addStatementPatternIds(tx, Sets.newHashSet(ids));
 
         for(final AggregationMetadata aggregation : query.getAggregationMetadata()) {
             write(tx, aggregation);
         }
     }
+
 
     /**
      * Read an instance of {@link FluoQuery} from the Fluo table.

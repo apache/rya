@@ -41,6 +41,10 @@ under the License.
         </dependency>
         <dependency>
             <groupId>org.apache.rya</groupId>
+            <artifactId>rya.api.function</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.rya</groupId>
             <artifactId>rya.streams.api</artifactId>
         </dependency>
         <dependency>

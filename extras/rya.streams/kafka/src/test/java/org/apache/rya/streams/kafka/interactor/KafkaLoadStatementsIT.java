@@ -24,21 +24,14 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Properties;
-import java.util.UUID;
 
-import org.apache.kafka.clients.consumer.ConsumerConfig;
-import org.apache.kafka.clients.consumer.ConsumerRecord;
-import org.apache.kafka.clients.consumer.ConsumerRecords;
-import org.apache.kafka.clients.consumer.KafkaConsumer;
-import org.apache.kafka.clients.producer.KafkaProducer;
+import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.clients.producer.Producer;
-import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.apache.rya.api.model.VisibilityStatement;
+import org.apache.rya.streams.kafka.KafkaTestUtil;
 import org.apache.rya.streams.kafka.serialization.VisibilityStatementDeserializer;
 import org.apache.rya.streams.kafka.serialization.VisibilityStatementSerializer;
 import org.apache.rya.test.kafka.KafkaITBase;
@@ -62,48 +55,30 @@ public class KafkaLoadStatementsIT extends KafkaITBase {
 
     @Test(expected = UnsupportedRDFormatException.class)
     public void test_invalidFile() throws Exception {
-        final String topic = rule.getKafkaTopicName();
-        final String visibilities = "a|b|c";
-        final Properties props = rule.createBootstrapServerConfig();
-        props.setProperty(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
-        props.setProperty(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, VisibilityStatementSerializer.class.getName());
-        try (final Producer<Object, VisibilityStatement> producer = new KafkaProducer<>(props)) {
-            final KafkaLoadStatements command = new KafkaLoadStatements(topic, producer);
-            command.load(INVALID, visibilities);
+        try(final Producer<?, VisibilityStatement> producer =
+                KafkaTestUtil.makeProducer(rule, StringSerializer.class, VisibilityStatementSerializer.class)) {
+            final KafkaLoadStatements command = new KafkaLoadStatements(rule.getKafkaTopicName(), producer);
+            command.fromFile(INVALID, "a|b|c");
         }
     }
 
     @Test
     public void testTurtle() throws Exception {
-        final String topic = rule.getKafkaTopicName();
         final String visibilities = "a|b|c";
-        final Properties props = rule.createBootstrapServerConfig();
-        props.setProperty(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
-        props.setProperty(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, VisibilityStatementSerializer.class.getName());
-        try (final Producer<Object, VisibilityStatement> producer = new KafkaProducer<>(props)) {
-            final KafkaLoadStatements command = new KafkaLoadStatements(topic, producer);
-            command.load(TURTLE_FILE, visibilities);
+
+        // Load the statements into the kafka topic.
+        try(final Producer<?, VisibilityStatement> producer =
+                KafkaTestUtil.makeProducer(rule, StringSerializer.class, VisibilityStatementSerializer.class)) {
+            final KafkaLoadStatements command = new KafkaLoadStatements(rule.getKafkaTopicName(), producer);
+            command.fromFile(TURTLE_FILE, visibilities);
         }
 
-        // Read a VisibilityBindingSet from the test topic.
-        final List<VisibilityStatement> read = new ArrayList<>();
-
-        final Properties consumerProps = rule.createBootstrapServerConfig();
-        consumerProps.setProperty(ConsumerConfig.GROUP_ID_CONFIG, UUID.randomUUID().toString());
-        consumerProps.setProperty(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
-        consumerProps.setProperty(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
-        consumerProps.setProperty(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, VisibilityStatementDeserializer.class.getName());
-
-        try (final KafkaConsumer<String, VisibilityStatement> consumer = new KafkaConsumer<>(consumerProps)) {
+        // Read a VisibilityBindingSets from the test topic.
+        final List<VisibilityStatement> read;// = new ArrayList<>();
+        try(Consumer<String, VisibilityStatement> consumer =
+                KafkaTestUtil.fromStartConsumer(rule, StringDeserializer.class, VisibilityStatementDeserializer.class)) {
             consumer.subscribe(Arrays.asList(rule.getKafkaTopicName()));
-            final ConsumerRecords<String, VisibilityStatement> records = consumer.poll(2000);
-
-            assertEquals(3, records.count());
-            final Iterator<ConsumerRecord<String, VisibilityStatement>> iter = records.iterator();
-            while(iter.hasNext()) {
-                final VisibilityStatement visiSet = iter.next().value();
-                read.add(visiSet);
-            }
+            read = KafkaTestUtil.pollForResults(500, 6, 3, consumer);
         }
 
         final List<VisibilityStatement> original = new ArrayList<>();

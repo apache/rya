@@ -19,6 +19,7 @@
 package org.apache.rya.streams.api.interactor;
 
 import java.nio.file.Path;
+import java.util.Collection;
 
 import org.apache.rya.api.model.VisibilityStatement;
 import org.apache.rya.streams.api.exception.RyaStreamsException;
@@ -45,5 +46,13 @@ public interface LoadStatements {
      * @throws RyaStreamsException Thrown when the format of the file provided is unknown,
      *         or not a valid RDF format.
      */
-    public void load(final Path statementsPath, final String visibilities) throws RyaStreamsException;
+    public void fromFile(final Path statementsPath, final String visibilities) throws RyaStreamsException;
+
+    /**
+     * Loads a series of {@link VisibilityStatement}s from a collection into the RyaStreams system.
+     *
+     * @param statements - The statements that will be loaded. (not null)
+     * @throws RyaStreamsException The statements could not be loaded.
+     */
+    public void fromCollection(Collection<VisibilityStatement> statements) throws RyaStreamsException;
 }

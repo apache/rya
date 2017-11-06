@@ -22,22 +22,18 @@ import static org.junit.Assert.assertEquals;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Properties;
 import java.util.UUID;
 
 import org.apache.kafka.clients.consumer.Consumer;
-import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
-import org.apache.kafka.clients.consumer.KafkaConsumer;
-import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.Producer;
-import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.apache.rya.streams.api.queries.ChangeLogEntry;
 import org.apache.rya.streams.api.queries.QueryChange;
 import org.apache.rya.streams.api.queries.QueryChangeLog.QueryChangeLogException;
+import org.apache.rya.streams.kafka.KafkaTestUtil;
 import org.apache.rya.streams.kafka.serialization.queries.QueryChangeDeserializer;
 import org.apache.rya.streams.kafka.serialization.queries.QueryChangeSerializer;
 import org.apache.rya.test.kafka.KafkaITBase;
@@ -55,11 +51,10 @@ import info.aduna.iteration.CloseableIteration;
  * Integration tests the {@link KafkaQueryChangeLog}.
  */
 public class KafkaQueryChangeLogIT extends KafkaITBase {
-    KafkaQueryChangeLog changeLog;
 
+    private KafkaQueryChangeLog changeLog;
     private Producer<?, QueryChange> producer;
     private Consumer<?, QueryChange> consumer;
-
     private String topic;
 
     @Rule
@@ -68,25 +63,14 @@ public class KafkaQueryChangeLogIT extends KafkaITBase {
     @Before
     public void setup() {
         topic = rule.getKafkaTopicName();
-        final Properties producerProperties = rule.createBootstrapServerConfig();
-        producerProperties.setProperty(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
-        producerProperties.setProperty(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, QueryChangeSerializer.class.getName());
-
-        final Properties consumerProperties = rule.createBootstrapServerConfig();
-        consumerProperties.setProperty(ConsumerConfig.GROUP_ID_CONFIG, UUID.randomUUID().toString());
-        consumerProperties.setProperty(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
-        consumerProperties.setProperty(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
-        consumerProperties.setProperty(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, QueryChangeDeserializer.class.getName());
-        producer = new KafkaProducer<>(producerProperties);
-        consumer = new KafkaConsumer<>(consumerProperties);
+        producer = KafkaTestUtil.makeProducer(rule, StringSerializer.class, QueryChangeSerializer.class);
+        consumer = KafkaTestUtil.fromStartConsumer(rule, StringDeserializer.class, QueryChangeDeserializer.class);
         changeLog = new KafkaQueryChangeLog(producer, consumer, topic);
     }
 
     @After
     public void cleanup() {
-        producer.flush();
         producer.close();
-
         consumer.close();
     }
 

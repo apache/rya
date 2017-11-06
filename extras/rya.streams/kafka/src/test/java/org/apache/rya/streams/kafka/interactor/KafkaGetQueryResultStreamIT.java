@@ -23,17 +23,15 @@ import static org.junit.Assert.assertTrue;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Properties;
 import java.util.UUID;
 
-import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.Producer;
-import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.apache.rya.api.model.VisibilityBindingSet;
 import org.apache.rya.streams.api.entity.QueryResultStream;
 import org.apache.rya.streams.api.interactor.GetQueryResultStream;
+import org.apache.rya.streams.kafka.KafkaTestUtil;
 import org.apache.rya.streams.kafka.KafkaTopics;
 import org.apache.rya.streams.kafka.serialization.VisibilityBindingSetSerializer;
 import org.apache.rya.test.kafka.KafkaTestInstanceRule;
@@ -50,16 +48,6 @@ public class KafkaGetQueryResultStreamIT {
 
     @Rule
     public KafkaTestInstanceRule kafka = new KafkaTestInstanceRule(true);
-
-    /**
-     * @return A {@link Producer} that is able to write {@link VisibilityBindingSet}s.
-     */
-    private Producer<?, VisibilityBindingSet> makeProducer() {
-        final Properties producerProps = kafka.createBootstrapServerConfig();
-        producerProps.setProperty(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
-        producerProps.setProperty(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, VisibilityBindingSetSerializer.class.getName());
-        return new KafkaProducer<>(producerProps);
-    }
 
     /**
      * Polls a {@link QueryResultStream} until it has either polled too many times without hitting
@@ -112,7 +100,8 @@ public class KafkaGetQueryResultStreamIT {
         original.add(new VisibilityBindingSet(bs, "b|c"));
 
         // Write some entries to the query result topic in Kafka.
-        try(final Producer<?, VisibilityBindingSet> producer = makeProducer()) {
+        try(final Producer<?, VisibilityBindingSet> producer =
+                KafkaTestUtil.makeProducer(kafka, StringSerializer.class, VisibilityBindingSetSerializer.class)) {
             final String resultTopic = KafkaTopics.queryResultsTopic(queryId);
             for(final VisibilityBindingSet visBs : original) {
                 producer.send(new ProducerRecord<>(resultTopic, visBs));
@@ -132,7 +121,8 @@ public class KafkaGetQueryResultStreamIT {
         // Create an ID for the query.
         final UUID queryId = UUID.randomUUID();
 
-        try(final Producer<?, VisibilityBindingSet> producer = makeProducer()) {
+        try(final Producer<?, VisibilityBindingSet> producer =
+                KafkaTestUtil.makeProducer(kafka, StringSerializer.class, VisibilityBindingSetSerializer.class)) {
             final String resultTopic = KafkaTopics.queryResultsTopic(queryId);
 
             // Write a single visibility binding set to the query's result topic. This will not appear in the expected results.

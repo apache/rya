@@ -27,18 +27,16 @@ under the License.
         <version>3.2.12-incubating-SNAPSHOT</version>
     </parent>
 
-    <artifactId>rya.api.model</artifactId>
-    <name>Apache Rya Common API - Models</name>
+    <artifactId>rya.api.function</artifactId>
+    <name>Apache Rya Common API - Functions</name>
 
     <dependencies>
         <dependency>
-            <groupId>org.openrdf.sesame</groupId>
-            <artifactId>sesame-model</artifactId>
+            <groupId>org.apache.rya</groupId>
+            <artifactId>rya.api.model</artifactId>
         </dependency>
-        <dependency>
-            <groupId>org.openrdf.sesame</groupId>
-            <artifactId>sesame-query</artifactId>
-        </dependency>
+
+        <!-- Third Party Dependencies -->
         <dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>

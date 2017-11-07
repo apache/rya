@@ -16,7 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.apache.rya.indexing.pcj.fluo.app;
+package org.apache.rya.api.function.join;
 
 import static org.junit.Assert.assertEquals;
 
@@ -26,9 +26,6 @@ import java.util.Collections;
 import java.util.Iterator;
 
 import org.apache.rya.api.model.VisibilityBindingSet;
-import org.apache.rya.indexing.pcj.fluo.app.JoinResultUpdater.IterativeJoin;
-import org.apache.rya.indexing.pcj.fluo.app.JoinResultUpdater.LeftOuterJoin;
-import org.apache.rya.indexing.pcj.fluo.app.JoinResultUpdater.NaturalJoin;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;

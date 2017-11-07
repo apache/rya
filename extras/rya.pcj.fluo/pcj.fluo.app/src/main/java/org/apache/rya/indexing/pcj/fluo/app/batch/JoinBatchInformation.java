@@ -21,8 +21,8 @@ import java.util.Objects;
 
 import org.apache.fluo.api.data.Column;
 import org.apache.fluo.api.data.Span;
+import org.apache.rya.api.function.join.LazyJoiningIterator.Side;
 import org.apache.rya.api.model.VisibilityBindingSet;
-import org.apache.rya.indexing.pcj.fluo.app.JoinResultUpdater.Side;
 import org.apache.rya.indexing.pcj.fluo.app.query.JoinMetadata.JoinType;
 import org.openrdf.query.Binding;
 
@@ -49,9 +49,9 @@ import org.openrdf.query.Binding;
 public class JoinBatchInformation extends AbstractSpanBatchInformation {
 
     private static final BatchBindingSetUpdater updater = new JoinBatchBindingSetUpdater();
-    private VisibilityBindingSet bs; //update for join child indicated by side
-    private Side side;  //join child that was updated by bs
-    private JoinType join;
+    private final VisibilityBindingSet bs; //update for join child indicated by side
+    private final Side side;  //join child that was updated by bs
+    private final JoinType join;
     /**
      * @param batchSize - batch size that Tasks are performed in
      * @param task - Add, Delete, or Update
@@ -61,14 +61,14 @@ public class JoinBatchInformation extends AbstractSpanBatchInformation {
      * @param side - The side of the child that the VisibilityBindingSet update occurred at
      * @param join - JoinType (left, right, natural inner)
      */
-    public JoinBatchInformation(int batchSize, Task task, Column column, Span span, VisibilityBindingSet bs, Side side, JoinType join) {
+    public JoinBatchInformation(final int batchSize, final Task task, final Column column, final Span span, final VisibilityBindingSet bs, final Side side, final JoinType join) {
         super(batchSize, task, column, span);
         this.bs = Objects.requireNonNull(bs);
         this.side = Objects.requireNonNull(side);
         this.join = Objects.requireNonNull(join);
     }
 
-    public JoinBatchInformation(Task task, Column column, Span span, VisibilityBindingSet bs, Side side, JoinType join) {
+    public JoinBatchInformation(final Task task, final Column column, final Span span, final VisibilityBindingSet bs, final Side side, final JoinType join) {
         this(DEFAULT_BATCH_SIZE, task, column, span, bs, side, join);
     }
 
@@ -123,7 +123,7 @@ public class JoinBatchInformation extends AbstractSpanBatchInformation {
     }
 
     @Override
-    public boolean equals(Object other) {
+    public boolean equals(final Object other) {
         if (this == other) {
             return true;
         }
@@ -132,9 +132,9 @@ public class JoinBatchInformation extends AbstractSpanBatchInformation {
             return false;
         }
 
-        JoinBatchInformation batch = (JoinBatchInformation) other;
-        return super.equals(other) &&  Objects.equals(this.bs, batch.bs) && Objects.equals(this.join, batch.join)
-                && Objects.equals(this.side, batch.side);
+        final JoinBatchInformation batch = (JoinBatchInformation) other;
+        return super.equals(other) &&  Objects.equals(bs, batch.bs) && Objects.equals(join, batch.join)
+                && Objects.equals(side, batch.side);
     }
 
     @Override
@@ -160,7 +160,7 @@ public class JoinBatchInformation extends AbstractSpanBatchInformation {
         /**
          * @param batchSize - batch size that {@link Task}s are performed in
          */
-        public Builder setBatchSize(int batchSize) {
+        public Builder setBatchSize(final int batchSize) {
             this.batchSize = batchSize;
             return this;
         }
@@ -168,7 +168,7 @@ public class JoinBatchInformation extends AbstractSpanBatchInformation {
         /**
          * @param task - Task performed (Add, Delete, Update)
          */
-        public Builder setTask(Task task) {
+        public Builder setTask(final Task task) {
             this.task = task;
             return this;
         }
@@ -176,7 +176,7 @@ public class JoinBatchInformation extends AbstractSpanBatchInformation {
         /**
          * @param column - Column of join child to be scanned
          */
-        public Builder setColumn(Column column) {
+        public Builder setColumn(final Column column) {
             this.column = column;
             return this;
         }
@@ -188,7 +188,7 @@ public class JoinBatchInformation extends AbstractSpanBatchInformation {
          * the common variables of the left and right join children.
          * @param span - Span over join child to be scanned
          */
-        public Builder setSpan(Span span) {
+        public Builder setSpan(final Span span) {
             this.span = span;
             return this;
         }
@@ -198,7 +198,7 @@ public class JoinBatchInformation extends AbstractSpanBatchInformation {
          * by Side.
          * @param bs - BindingSet update of join child to be joined with results of scan
          */
-        public Builder setBs(VisibilityBindingSet bs) {
+        public Builder setBs(final VisibilityBindingSet bs) {
             this.bs = bs;
             return this;
         }
@@ -206,7 +206,7 @@ public class JoinBatchInformation extends AbstractSpanBatchInformation {
         /**
          * @param join - JoinType (left, right, natural inner)
          */
-        public Builder setJoinType(JoinType join) {
+        public Builder setJoinType(final JoinType join) {
             this.join = join;
             return this;
         }
@@ -215,7 +215,7 @@ public class JoinBatchInformation extends AbstractSpanBatchInformation {
          * Indicates the join child corresponding to the VisibilityBindingSet update
          * @param side - side of join the child BindingSet update appeared at
          */
-        public Builder setSide(Side side) {
+        public Builder setSide(final Side side) {
             this.side = side;
             return this;
         }

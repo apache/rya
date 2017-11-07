@@ -49,11 +49,11 @@ public class ExporterManager implements AutoCloseable {
 
     private static final VisibilityBindingSetSerDe BS_SERDE = new VisibilityBindingSetSerDe();
     private static final RyaSubGraphKafkaSerDe SG_SERDE = new RyaSubGraphKafkaSerDe();
-    private Map<String, String> simplifiedVisibilities = new HashMap<>();
+    private final Map<String, String> simplifiedVisibilities = new HashMap<>();
     
-    private Map<QueryType, Map<ExportStrategy, IncrementalResultExporter>> exporters;
+    private final Map<QueryType, Map<ExportStrategy, IncrementalResultExporter>> exporters;
     
-    private ExporterManager(Map<QueryType, Map<ExportStrategy, IncrementalResultExporter>> exporters) {
+    private ExporterManager(final Map<QueryType, Map<ExportStrategy, IncrementalResultExporter>> exporters) {
         this.exporters = Preconditions.checkNotNull(exporters);
     }
     
@@ -73,9 +73,9 @@ public class ExporterManager implements AutoCloseable {
      * @param data - Serialized result to be exported
      * @throws ResultExportException 
      */
-    public void export(QueryType type, Set<ExportStrategy> strategies, String queryId, Bytes data) throws ResultExportException {
+    public void export(final QueryType type, final Set<ExportStrategy> strategies, final String queryId, final Bytes data) throws ResultExportException {
         
-        String pcjId = FluoQueryUtils.convertFluoQueryIdToPcjId(queryId);
+        final String pcjId = FluoQueryUtils.convertFluoQueryIdToPcjId(queryId);
         
         if(type == QueryType.CONSTRUCT) {
             exportSubGraph(exporters.get(type), strategies, pcjId, data);
@@ -93,21 +93,21 @@ public class ExporterManager implements AutoCloseable {
      * @param data - serialized BindingSet result
      * @throws ResultExportException
      */
-    private void exportBindingSet(Map<ExportStrategy, IncrementalResultExporter> exporters, Set<ExportStrategy> strategies, String pcjId, Bytes data) throws ResultExportException {
+    private void exportBindingSet(final Map<ExportStrategy, IncrementalResultExporter> exporters, final Set<ExportStrategy> strategies, final String pcjId, final Bytes data) throws ResultExportException {
         VisibilityBindingSet bs;
         try {
             bs = BS_SERDE.deserialize(data);
             simplifyVisibilities(bs);
-        } catch (Exception e) {
+        } catch (final Exception e) {
             throw new ResultExportException("Unable to deserialize the given BindingSet.", e);
         }
             
         try{
-            for(ExportStrategy strategy: strategies) {
-                IncrementalBindingSetExporter exporter = (IncrementalBindingSetExporter) exporters.get(strategy);
+            for(final ExportStrategy strategy: strategies) {
+                final IncrementalBindingSetExporter exporter = (IncrementalBindingSetExporter) exporters.get(strategy);
                 exporter.export(pcjId, bs);
             }
-        } catch (Exception e) {
+        } catch (final Exception e) {
             throw new ResultExportException("Unable to export the given BindingSet " + bs + " with the given set of ExportStrategies " + strategies, e);
         }
     }
@@ -120,27 +120,27 @@ public class ExporterManager implements AutoCloseable {
      * @param data - serialized RyaSubGraph result
      * @throws ResultExportException
      */
-    private void exportSubGraph(Map<ExportStrategy, IncrementalResultExporter> exporters, Set<ExportStrategy> strategies, String pcjId, Bytes data) throws ResultExportException {
-        RyaSubGraph subGraph = SG_SERDE.fromBytes(data.toArray());
+    private void exportSubGraph(final Map<ExportStrategy, IncrementalResultExporter> exporters, final Set<ExportStrategy> strategies, final String pcjId, final Bytes data) throws ResultExportException {
+        final RyaSubGraph subGraph = SG_SERDE.fromBytes(data.toArray());
         
         try {
             simplifyVisibilities(subGraph);
-        } catch (UnsupportedEncodingException e) {
+        } catch (final UnsupportedEncodingException e) {
             throw new ResultExportException("Undable to deserialize provided RyaSubgraph", e);
         }
         
         try {
-            for (ExportStrategy strategy : strategies) {
-                IncrementalRyaSubGraphExporter exporter = (IncrementalRyaSubGraphExporter) exporters.get(strategy);
+            for (final ExportStrategy strategy : strategies) {
+                final IncrementalRyaSubGraphExporter exporter = (IncrementalRyaSubGraphExporter) exporters.get(strategy);
                 exporter.export(pcjId, subGraph);
             }
-        } catch (Exception e) {
+        } catch (final Exception e) {
             throw new ResultExportException(
                     "Unable to export the given subgraph " + subGraph + " using all of the ExportStrategies " + strategies);
         }
     }
     
-    private void simplifyVisibilities(VisibilityBindingSet result) {
+    private void simplifyVisibilities(final VisibilityBindingSet result) {
         // Simplify the result's visibilities.
         final String visibility = result.getVisibility();
         if(!simplifiedVisibilities.containsKey(visibility)) {
@@ -150,19 +150,19 @@ public class ExporterManager implements AutoCloseable {
         result.setVisibility( simplifiedVisibilities.get(visibility) );
     }
     
-    private void simplifyVisibilities(RyaSubGraph subgraph) throws UnsupportedEncodingException {
-        Set<RyaStatement> statements = subgraph.getStatements();
+    private void simplifyVisibilities(final RyaSubGraph subgraph) throws UnsupportedEncodingException {
+        final Set<RyaStatement> statements = subgraph.getStatements();
         if (statements.size() > 0) {
-            byte[] visibilityBytes = statements.iterator().next().getColumnVisibility();
+            final byte[] visibilityBytes = statements.iterator().next().getColumnVisibility();
             // Simplify the result's visibilities and cache new simplified
             // visibilities
-            String visibility = new String(visibilityBytes, "UTF-8");
+            final String visibility = new String(visibilityBytes, "UTF-8");
             if (!simplifiedVisibilities.containsKey(visibility)) {
-                String simplified = VisibilitySimplifier.simplify(visibility);
+                final String simplified = VisibilitySimplifier.simplify(visibility);
                 simplifiedVisibilities.put(visibility, simplified);
             }
 
-            for (RyaStatement statement : statements) {
+            for (final RyaStatement statement : statements) {
                 statement.setColumnVisibility(simplifiedVisibilities.get(visibility).getBytes("UTF-8"));
             }
             
@@ -172,25 +172,25 @@ public class ExporterManager implements AutoCloseable {
     
     public static class Builder {
         
-        private Map<QueryType, Map<ExportStrategy, IncrementalResultExporter>> exporters = new HashMap<>();
+        private final Map<QueryType, Map<ExportStrategy, IncrementalResultExporter>> exporters = new HashMap<>();
         
         /**
          * Add an {@link IncrementalResultExporter} to be used by this ExporterManager for exporting results
          * @param exporter - IncrementalResultExporter for exporting query results
          * @return - Builder for chaining method calls
          */
-        public Builder addIncrementalResultExporter(IncrementalResultExporter exporter) {
+        public Builder addIncrementalResultExporter(final IncrementalResultExporter exporter) {
             
-            Set<QueryType> types = exporter.getQueryTypes();
-            ExportStrategy strategy = exporter.getExportStrategy();
+            final Set<QueryType> types = exporter.getQueryTypes();
+            final ExportStrategy strategy = exporter.getExportStrategy();
             
-            for (QueryType type : types) {
+            for (final QueryType type : types) {
                 if (!exporters.containsKey(type)) {
-                    Map<ExportStrategy, IncrementalResultExporter> exportMap = new HashMap<>();
+                    final Map<ExportStrategy, IncrementalResultExporter> exportMap = new HashMap<>();
                     exportMap.put(strategy, exporter);
                     exporters.put(type, exportMap);
                 } else {
-                    Map<ExportStrategy, IncrementalResultExporter> exportMap = exporters.get(type);
+                    final Map<ExportStrategy, IncrementalResultExporter> exportMap = exporters.get(type);
                     if (!exportMap.containsKey(strategy)) {
                         exportMap.put(strategy, exporter);
                     }
@@ -212,10 +212,10 @@ public class ExporterManager implements AutoCloseable {
     @Override
     public void close() throws Exception {
         
-        Collection<Map<ExportStrategy, IncrementalResultExporter>> values = exporters.values();
+        final Collection<Map<ExportStrategy, IncrementalResultExporter>> values = exporters.values();
         
-        for(Map<ExportStrategy, IncrementalResultExporter> map: values) {
-            for(IncrementalResultExporter exporter: map.values()) {
+        for(final Map<ExportStrategy, IncrementalResultExporter> map: values) {
+            for(final IncrementalResultExporter exporter: map.values()) {
                 exporter.close();
             }
         }

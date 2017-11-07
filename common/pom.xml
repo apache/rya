@@ -35,6 +35,7 @@ under the License.
     <modules>
         <module>rya.api</module>
         <module>rya.api.model</module>
+        <module>rya.api.function</module>
         <module>rya.provenance</module>
     </modules>
 </project>

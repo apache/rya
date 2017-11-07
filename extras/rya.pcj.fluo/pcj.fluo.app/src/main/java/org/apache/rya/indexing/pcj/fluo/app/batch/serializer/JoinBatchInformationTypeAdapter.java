@@ -22,8 +22,8 @@ import java.lang.reflect.Type;
 import org.apache.fluo.api.data.Column;
 import org.apache.fluo.api.data.RowColumn;
 import org.apache.fluo.api.data.Span;
+import org.apache.rya.api.function.join.LazyJoiningIterator.Side;
 import org.apache.rya.api.model.VisibilityBindingSet;
-import org.apache.rya.indexing.pcj.fluo.app.JoinResultUpdater.Side;
 import org.apache.rya.indexing.pcj.fluo.app.batch.BatchInformation.Task;
 import org.apache.rya.indexing.pcj.fluo.app.batch.JoinBatchInformation;
 import org.apache.rya.indexing.pcj.fluo.app.query.JoinMetadata.JoinType;
@@ -49,42 +49,42 @@ public class JoinBatchInformationTypeAdapter implements JsonSerializer<JoinBatch
     private static final VisibilityBindingSetStringConverter converter = new VisibilityBindingSetStringConverter();
 
     @Override
-    public JsonElement serialize(JoinBatchInformation batch, Type typeOfSrc, JsonSerializationContext context) {
-        JsonObject result = new JsonObject();
+    public JsonElement serialize(final JoinBatchInformation batch, final Type typeOfSrc, final JsonSerializationContext context) {
+        final JsonObject result = new JsonObject();
         result.add("class", new JsonPrimitive(batch.getClass().getName()));
         result.add("batchSize", new JsonPrimitive(batch.getBatchSize()));
         result.add("task", new JsonPrimitive(batch.getTask().name()));
-        Column column = batch.getColumn();
+        final Column column = batch.getColumn();
         result.add("column", new JsonPrimitive(column.getsFamily() + "\u0000" + column.getsQualifier()));
-        Span span = batch.getSpan();
+        final Span span = batch.getSpan();
         result.add("span", new JsonPrimitive(span.getStart().getsRow() + "\u0000" + span.getEnd().getsRow()));
         result.add("startInc", new JsonPrimitive(span.isStartInclusive()));
         result.add("endInc", new JsonPrimitive(span.isEndInclusive()));
         result.add("side", new JsonPrimitive(batch.getSide().name()));
         result.add("joinType", new JsonPrimitive(batch.getJoinType().name()));
-        String updateVarOrderString = Joiner.on(";").join(batch.getBs().getBindingNames());
-        VariableOrder updateVarOrder = new VariableOrder(updateVarOrderString);
+        final String updateVarOrderString = Joiner.on(";").join(batch.getBs().getBindingNames());
+        final VariableOrder updateVarOrder = new VariableOrder(updateVarOrderString);
         result.add("bindingSet", new JsonPrimitive(converter.convert(batch.getBs(), updateVarOrder)));
         result.add("updateVarOrder", new JsonPrimitive(updateVarOrderString));
         return result;
     }
 
     @Override
-    public JoinBatchInformation deserialize(JsonElement element, Type typeOfT, JsonDeserializationContext context)
+    public JoinBatchInformation deserialize(final JsonElement element, final Type typeOfT, final JsonDeserializationContext context)
             throws JsonParseException {
-        JsonObject json = element.getAsJsonObject();
-        int batchSize = json.get("batchSize").getAsInt();
-        Task task = Task.valueOf(json.get("task").getAsString());
-        String[] colArray = json.get("column").getAsString().split("\u0000");
-        Column column = new Column(colArray[0], colArray[1]);
-        String[] rows = json.get("span").getAsString().split("\u0000");
-        boolean startInc = json.get("startInc").getAsBoolean();
-        boolean endInc = json.get("endInc").getAsBoolean();
-        Span span = new Span(new RowColumn(rows[0]), startInc, new RowColumn(rows[1]), endInc);
-        VariableOrder updateVarOrder = new VariableOrder(json.get("updateVarOrder").getAsString());
-        VisibilityBindingSet bs = converter.convert(json.get("bindingSet").getAsString(), updateVarOrder);
-        Side side = Side.valueOf(json.get("side").getAsString());
-        JoinType join = JoinType.valueOf(json.get("joinType").getAsString());
+        final JsonObject json = element.getAsJsonObject();
+        final int batchSize = json.get("batchSize").getAsInt();
+        final Task task = Task.valueOf(json.get("task").getAsString());
+        final String[] colArray = json.get("column").getAsString().split("\u0000");
+        final Column column = new Column(colArray[0], colArray[1]);
+        final String[] rows = json.get("span").getAsString().split("\u0000");
+        final boolean startInc = json.get("startInc").getAsBoolean();
+        final boolean endInc = json.get("endInc").getAsBoolean();
+        final Span span = new Span(new RowColumn(rows[0]), startInc, new RowColumn(rows[1]), endInc);
+        final VariableOrder updateVarOrder = new VariableOrder(json.get("updateVarOrder").getAsString());
+        final VisibilityBindingSet bs = converter.convert(json.get("bindingSet").getAsString(), updateVarOrder);
+        final Side side = Side.valueOf(json.get("side").getAsString());
+        final JoinType join = JoinType.valueOf(json.get("joinType").getAsString());
         return JoinBatchInformation.builder().setBatchSize(batchSize).setTask(task).setSpan(span).setColumn(column).setBs(bs)
                .setSide(side).setJoinType(join).build();
     }

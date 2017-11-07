@@ -35,7 +35,10 @@ import org.apache.fluo.api.data.ColumnValue;
 import org.apache.fluo.api.data.RowColumn;
 import org.apache.fluo.api.data.Span;
 import org.apache.log4j.Logger;
-import org.apache.rya.accumulo.utils.VisibilitySimplifier;
+import org.apache.rya.api.function.join.IterativeJoin;
+import org.apache.rya.api.function.join.LazyJoiningIterator.Side;
+import org.apache.rya.api.function.join.LeftOuterJoin;
+import org.apache.rya.api.function.join.NaturalJoin;
 import org.apache.rya.api.model.VisibilityBindingSet;
 import org.apache.rya.indexing.pcj.fluo.app.batch.AbstractBatchBindingSetUpdater;
 import org.apache.rya.indexing.pcj.fluo.app.batch.BatchInformation.Task;
@@ -47,9 +50,6 @@ import org.apache.rya.indexing.pcj.fluo.app.query.JoinMetadata;
 import org.apache.rya.indexing.pcj.fluo.app.query.MetadataCacheSupplier;
 import org.apache.rya.indexing.pcj.storage.accumulo.VariableOrder;
 import org.apache.rya.indexing.pcj.storage.accumulo.VisibilityBindingSetSerDe;
-import org.openrdf.query.Binding;
-import org.openrdf.query.BindingSet;
-import org.openrdf.query.impl.MapBindingSet;
 
 import com.google.common.base.Optional;
 import com.google.common.collect.Lists;
@@ -90,21 +90,21 @@ public class JoinResultUpdater extends AbstractNodeUpdater {
 
         log.trace(
                 "Transaction ID: " + tx.getStartTimestamp() + "\n" +
-                "Join Node ID: " + joinMetadata.getNodeId() + "\n" +
-                "Child Node ID: " + childNodeId + "\n" +
-                "Child Binding Set:\n" + childBindingSet + "\n");
+                        "Join Node ID: " + joinMetadata.getNodeId() + "\n" +
+                        "Child Node ID: " + childNodeId + "\n" +
+                        "Child Binding Set:\n" + childBindingSet + "\n");
 
         // Figure out which join algorithm we are going to use.
         final IterativeJoin joinAlgorithm;
         switch(joinMetadata.getJoinType()) {
-        case NATURAL_JOIN:
-            joinAlgorithm = new NaturalJoin();
-            break;
-        case LEFT_OUTER_JOIN:
-            joinAlgorithm = new LeftOuterJoin();
-            break;
-        default:
-            throw new RuntimeException("Unsupported JoinType: " + joinMetadata.getJoinType());
+            case NATURAL_JOIN:
+                joinAlgorithm = new NaturalJoin();
+                break;
+            case LEFT_OUTER_JOIN:
+                joinAlgorithm = new LeftOuterJoin();
+                break;
+            default:
+                throw new RuntimeException("Unsupported JoinType: " + joinMetadata.getJoinType());
         }
 
         // Figure out which side of the join the new binding set appeared on.
@@ -120,10 +120,10 @@ public class JoinResultUpdater extends AbstractNodeUpdater {
         }
 
         // Iterates over the sibling node's BindingSets that join with the new binding set.
-        Set<VisibilityBindingSet> siblingBindingSets = new HashSet<>();
-        Span siblingSpan = getSpan(tx, childNodeId, childBindingSet, siblingId);
-        Column siblingColumn = getScanColumnFamily(siblingId);
-        Optional<RowColumn> rowColumn = fillSiblingBatch(tx, siblingSpan, siblingColumn, siblingBindingSets, joinMetadata.getJoinBatchSize());
+        final Set<VisibilityBindingSet> siblingBindingSets = new HashSet<>();
+        final Span siblingSpan = getSpan(tx, childNodeId, childBindingSet, siblingId);
+        final Column siblingColumn = getScanColumnFamily(siblingId);
+        final Optional<RowColumn> rowColumn = fillSiblingBatch(tx, siblingSpan, siblingColumn, siblingBindingSets, joinMetadata.getJoinBatchSize());
 
         // Iterates over the resulting BindingSets from the join.
         final Iterator<VisibilityBindingSet> newJoinResults;
@@ -148,7 +148,7 @@ public class JoinResultUpdater extends AbstractNodeUpdater {
 
                 log.trace(
                         "Transaction ID: " + tx.getStartTimestamp() + "\n" +
-                        "New Join Result:\n" + newJoinResult + "\n");
+                                "New Join Result:\n" + newJoinResult + "\n");
 
                 tx.set(resultRow, FluoQueryColumns.JOIN_BINDING_SET, nodeValueBytes);
             }
@@ -157,27 +157,19 @@ public class JoinResultUpdater extends AbstractNodeUpdater {
         // if batch limit met, there are additional entries to process
         // update the span and register updated batch job
         if (rowColumn.isPresent()) {
-            Span newSpan = AbstractBatchBindingSetUpdater.getNewSpan(rowColumn.get(), siblingSpan);
-            JoinBatchInformation joinBatch = JoinBatchInformation.builder()
-                .setBatchSize(joinMetadata.getJoinBatchSize())
-                .setBs(childBindingSet)
-                .setColumn(siblingColumn)
-                .setJoinType(joinMetadata.getJoinType())
-                .setSide(emittingSide)
-                .setSpan(newSpan)
-                .setTask(Task.Add)
-                .build();
+            final Span newSpan = AbstractBatchBindingSetUpdater.getNewSpan(rowColumn.get(), siblingSpan);
+            final JoinBatchInformation joinBatch = JoinBatchInformation.builder()
+                    .setBatchSize(joinMetadata.getJoinBatchSize())
+                    .setBs(childBindingSet)
+                    .setColumn(siblingColumn)
+                    .setJoinType(joinMetadata.getJoinType())
+                    .setSide(emittingSide)
+                    .setSpan(newSpan)
+                    .setTask(Task.Add)
+                    .build();
             BatchInformationDAO.addBatch(tx, joinMetadata.getNodeId(), joinBatch);
         }
     }
-
-    /**
-     * The different sides a new binding set may appear on.
-     */
-    public static enum Side {
-        LEFT, RIGHT;
-    }
-
 
     /**
      * Fetches batch to be processed by scanning over the Span specified by the
@@ -190,17 +182,17 @@ public class JoinResultUpdater extends AbstractNodeUpdater {
      * @return Set - containing results of sibling scan.
      * @throws Exception
      */
-    private Optional<RowColumn> fillSiblingBatch(TransactionBase tx, Span siblingSpan, Column siblingColumn, Set<VisibilityBindingSet> bsSet, int batchSize) throws Exception {
+    private Optional<RowColumn> fillSiblingBatch(final TransactionBase tx, final Span siblingSpan, final Column siblingColumn, final Set<VisibilityBindingSet> bsSet, final int batchSize) throws Exception {
 
-        RowScanner rs = tx.scanner().over(siblingSpan).fetch(siblingColumn).byRow().build();
-        Iterator<ColumnScanner> colScannerIter = rs.iterator();
+        final RowScanner rs = tx.scanner().over(siblingSpan).fetch(siblingColumn).byRow().build();
+        final Iterator<ColumnScanner> colScannerIter = rs.iterator();
 
         boolean batchLimitMet = false;
         Bytes row = siblingSpan.getStart().getRow();
         while (colScannerIter.hasNext() && !batchLimitMet) {
-            ColumnScanner colScanner = colScannerIter.next();
+            final ColumnScanner colScanner = colScannerIter.next();
             row = colScanner.getRow();
-            Iterator<ColumnValue> iter = colScanner.iterator();
+            final Iterator<ColumnValue> iter = colScanner.iterator();
             while (iter.hasNext() && !batchLimitMet) {
                 bsSet.add(BS_SERDE.deserialize(iter.next().getValue()));
                 //check if batch size has been met and set flag if it has been met
@@ -271,7 +263,7 @@ public class JoinResultUpdater extends AbstractNodeUpdater {
     private VariableOrder removeBinIdFromVarOrder(VariableOrder varOrder) {
         List<String> varOrderList = varOrder.getVariableOrders();
         if(varOrderList.get(0).equals(IncrementalUpdateConstants.PERIODIC_BIN_ID)) {
-            List<String> updatedVarOrderList = Lists.newArrayList(varOrderList);
+            final List<String> updatedVarOrderList = Lists.newArrayList(varOrderList);
             updatedVarOrderList.remove(0);
             return new VariableOrder(updatedVarOrderList);
         } else {
@@ -350,168 +342,4 @@ public class JoinResultUpdater extends AbstractNodeUpdater {
 
         return column;
     }
-
-    /**
-     * Defines each of the cases that may generate new join results when
-     * iteratively computing a query's join node.
-     */
-    public static interface IterativeJoin {
-
-        /**
-         * Invoked when a new {@link VisibilityBindingSet} is emitted from the left child
-         * node of the join. The Fluo table is scanned for results on the right
-         * side that will be joined with the new result.
-         *
-         * @param newLeftResult - A new VisibilityBindingSet that has been emitted from
-         *   the left child node.
-         * @param rightResults - The right child node's binding sets that will
-         *   be joined with the new left result. (not null)
-         * @return The new BindingSet results for the join.
-         */
-        public Iterator<VisibilityBindingSet> newLeftResult(VisibilityBindingSet newLeftResult, Iterator<VisibilityBindingSet> rightResults);
-
-        /**
-         * Invoked when a new {@link VisibilityBindingSet} is emitted from the right child
-         * node of the join. The Fluo table is scanned for results on the left
-         * side that will be joined with the new result.
-         *
-         * @param leftResults - The left child node's binding sets that will be
-         *   joined with the new right result.
-         * @param newRightResult - A new BindingSet that has been emitted from
-         *   the right child node.
-         * @return The new BindingSet results for the join.
-         */
-        public Iterator<VisibilityBindingSet> newRightResult(Iterator<VisibilityBindingSet> leftResults, VisibilityBindingSet newRightResult);
-    }
-
-    /**
-     * Implements an {@link IterativeJoin} that uses the Natural Join algorithm
-     * defined by Relational Algebra.
-     * <p>
-     * This is how you combine {@code BindnigSet}s that may have common Binding
-     * names. When two Binding Sets are joined, any bindings that appear in both
-     * binding sets are only included once.
-     */
-    public static final class NaturalJoin implements IterativeJoin {
-        @Override
-        public Iterator<VisibilityBindingSet> newLeftResult(final VisibilityBindingSet newLeftResult, final Iterator<VisibilityBindingSet> rightResults) {
-            checkNotNull(newLeftResult);
-            checkNotNull(rightResults);
-
-            // Both sides are required, so if there are no right results, then do not emit anything.
-            return new LazyJoiningIterator(Side.LEFT, newLeftResult, rightResults);
-        }
-
-        @Override
-        public Iterator<VisibilityBindingSet> newRightResult(final Iterator<VisibilityBindingSet> leftResults, final VisibilityBindingSet newRightResult) {
-            checkNotNull(leftResults);
-            checkNotNull(newRightResult);
-
-            // Both sides are required, so if there are no left reuslts, then do not emit anything.
-            return new LazyJoiningIterator(Side.RIGHT, newRightResult, leftResults);
-        }
-    }
-
-    /**
-     * Implements an {@link IterativeJoin} that uses the Left Outer Join
-     * algorithm defined by Relational Algebra.
-     * <p>
-     * This is how you add optional information to a {@link BindingSet}. Left
-     * binding sets are emitted even if they do not join with anything on the right.
-     * However, right binding sets must be joined with a left binding set.
-     */
-    public static final class LeftOuterJoin implements IterativeJoin {
-        @Override
-        public Iterator<VisibilityBindingSet> newLeftResult(final VisibilityBindingSet newLeftResult, final Iterator<VisibilityBindingSet> rightResults) {
-            checkNotNull(newLeftResult);
-            checkNotNull(rightResults);
-
-            // If the required portion does not join with any optional portions,
-            // then emit a BindingSet that matches the new left result.
-            if(!rightResults.hasNext()) {
-                return Lists.<VisibilityBindingSet>newArrayList(newLeftResult).iterator();
-            }
-
-            // Otherwise, return an iterator that holds the new required result
-            // joined with the right results.
-            return new LazyJoiningIterator(Side.LEFT, newLeftResult, rightResults);
-        }
-
-        @Override
-        public Iterator<VisibilityBindingSet> newRightResult(final Iterator<VisibilityBindingSet> leftResults, final VisibilityBindingSet newRightResult) {
-            checkNotNull(leftResults);
-            checkNotNull(newRightResult);
-
-            // The right result is optional, so if it does not join with anything
-            // on the left, then do not emit anything.
-            return new LazyJoiningIterator(Side.RIGHT, newRightResult, leftResults);
-        }
-    }
-
-    /**
-     * Joins a {@link BindingSet} (which is new to the left or right side of a join)
-     * to all binding sets on the other side that join with it.
-     * <p>
-     * This is done lazily so that you don't have to load all of the BindingSets
-     * into memory at once.
-     */
-    private static final class LazyJoiningIterator implements Iterator<VisibilityBindingSet> {
-
-        private final Side newResultSide;
-        private final VisibilityBindingSet newResult;
-        private final Iterator<VisibilityBindingSet> joinedResults;
-
-        /**
-         * Constructs an instance of {@link LazyJoiningIterator}.
-         *
-         * @param newResultSide - Indicates which side of the join the {@code newResult} arrived on. (not null)
-         * @param newResult - A binding set that will be joined with some other binding sets. (not null)
-         * @param joinedResults - The binding sets that will be joined with {@code newResult}. (not null)
-         */
-        public LazyJoiningIterator(final Side newResultSide, final VisibilityBindingSet newResult, final Iterator<VisibilityBindingSet> joinedResults) {
-            this.newResultSide = checkNotNull(newResultSide);
-            this.newResult = checkNotNull(newResult);
-            this.joinedResults = checkNotNull(joinedResults);
-        }
-
-        @Override
-        public boolean hasNext() {
-            return joinedResults.hasNext();
-        }
-
-        @Override
-        public VisibilityBindingSet next() {
-            final MapBindingSet bs = new MapBindingSet();
-
-            for(final Binding binding : newResult) {
-                bs.addBinding(binding);
-            }
-
-            final VisibilityBindingSet joinResult = joinedResults.next();
-            for(final Binding binding : joinResult) {
-                bs.addBinding(binding);
-            }
-
-            // We want to make sure the visibilities are always written the same way,
-            // so figure out which are on the left side and which are on the right side.
-            final String leftVisi;
-            final String rightVisi;
-            if(newResultSide == Side.LEFT) {
-                leftVisi = newResult.getVisibility();
-                rightVisi = joinResult.getVisibility();
-            } else {
-                leftVisi = joinResult.getVisibility();
-                rightVisi = newResult.getVisibility();
-            }
-            final String visibility = VisibilitySimplifier.unionAndSimplify(leftVisi, rightVisi);
-
-            return new VisibilityBindingSet(bs, visibility);
-        }
-
-        @Override
-        public void remove() {
-            throw new UnsupportedOperationException("remove() is unsupported.");
-        }
-    }
-
 }

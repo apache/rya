@@ -24,8 +24,8 @@ import java.util.Optional;
 
 import org.apache.fluo.api.data.Bytes;
 import org.apache.fluo.api.data.Span;
+import org.apache.rya.api.function.join.LazyJoiningIterator.Side;
 import org.apache.rya.api.model.VisibilityBindingSet;
-import org.apache.rya.indexing.pcj.fluo.app.JoinResultUpdater.Side;
 import org.apache.rya.indexing.pcj.fluo.app.batch.BatchInformation;
 import org.apache.rya.indexing.pcj.fluo.app.batch.BatchInformation.Task;
 import org.apache.rya.indexing.pcj.fluo.app.batch.JoinBatchInformation;

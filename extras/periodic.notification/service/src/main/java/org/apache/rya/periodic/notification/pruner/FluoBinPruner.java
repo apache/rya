@@ -29,14 +29,13 @@ import org.apache.rya.indexing.pcj.fluo.app.batch.BatchInformationDAO;
 import org.apache.rya.indexing.pcj.fluo.app.batch.SpanBatchDeleteInformation;
 import org.apache.rya.periodic.notification.api.BinPruner;
 import org.apache.rya.periodic.notification.api.NodeBin;
-import org.openrdf.query.BindingSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Optional;
 
 /**
- * Deletes {@link BindingSet}s from the indicated Fluo table.
+ * Deletes {@link }s from the indicated Fluo table.
  */
 public class FluoBinPruner implements BinPruner {
 
@@ -51,10 +50,8 @@ public class FluoBinPruner implements BinPruner {
      * This method deletes BindingSets in the specified bin from the BindingSet
      * Column of the indicated Fluo nodeId
      *
-     * @param id
+     * @param nodeBin
      *            - Fluo nodeId
-     * @param bin
-     *            - bin id
      */
     @Override
     public void pruneBindingSetBin(final NodeBin nodeBin) {

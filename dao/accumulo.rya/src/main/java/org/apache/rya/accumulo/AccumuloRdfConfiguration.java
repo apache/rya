@@ -35,7 +35,7 @@ import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 
-public class AccumuloRdfConfiguration extends RdfCloudTripleStoreConfiguration   {
+public class AccumuloRdfConfiguration extends RdfCloudTripleStoreConfiguration {
 
     public static final String USE_MOCK_INSTANCE = ".useMockInstance";
     public static final String CLOUDBASE_INSTANCE = "sc.cloudbase.instancename";

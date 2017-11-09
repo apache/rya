@@ -59,10 +59,6 @@ import org.eclipse.rdf4j.query.algebra.helpers.AbstractQueryModelVisitor;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
-
-
-
-
 public class AccumuloSelectivityEvalDAO implements SelectivityEvalDAO<RdfCloudTripleStoreConfiguration> {
 
   private boolean initialized = false;
@@ -74,7 +70,7 @@ public class AccumuloSelectivityEvalDAO implements SelectivityEvalDAO<RdfCloudTr
   private int FullTableCardinality = 0;
   private static final String DELIM = "\u0000";
   private Map<String,Long> joinMap = new HashMap<String,Long>();
-    private RdfEvalStatsDAO<RdfCloudTripleStoreConfiguration> resd;
+  private RdfEvalStatsDAO<RdfCloudTripleStoreConfiguration> resd;
 
   @Override
   public void init() throws RdfDAOException {
@@ -482,7 +478,7 @@ public class AccumuloSelectivityEvalDAO implements SelectivityEvalDAO<RdfCloudTr
     }
     try {
       if (subj != null) {
-        List< org.eclipse.rdf4j.model.Value> values = new ArrayList< org.eclipse.rdf4j.model.Value>();
+        List<org.eclipse.rdf4j.model.Value> values = new ArrayList<org.eclipse.rdf4j.model.Value>();
         CARDINALITY_OF card = RdfEvalStatsDAO.CARDINALITY_OF.SUBJECT;
         values.add(subj);
 
@@ -504,7 +500,7 @@ public class AccumuloSelectivityEvalDAO implements SelectivityEvalDAO<RdfCloudTr
           cardinality = 0;
         }
       } else if (pred != null) {
-        List< org.eclipse.rdf4j.model.Value> values = new ArrayList< org.eclipse.rdf4j.model.Value>();
+        List<org.eclipse.rdf4j.model.Value> values = new ArrayList<org.eclipse.rdf4j.model.Value>();
         CARDINALITY_OF card = RdfEvalStatsDAO.CARDINALITY_OF.PREDICATE;
         values.add(pred);
 
@@ -521,7 +517,7 @@ public class AccumuloSelectivityEvalDAO implements SelectivityEvalDAO<RdfCloudTr
           cardinality = 0;
         }
       } else if (obj != null) {
-        List< org.eclipse.rdf4j.model.Value> values = new ArrayList< org.eclipse.rdf4j.model.Value>();
+        List<org.eclipse.rdf4j.model.Value> values = new ArrayList<org.eclipse.rdf4j.model.Value>();
         values.add(obj);
         double evalCard = this.getCardinality(conf, RdfEvalStatsDAO.CARDINALITY_OF.OBJECT, values, context);
         if (evalCard >= 0) {
@@ -547,11 +543,11 @@ public class AccumuloSelectivityEvalDAO implements SelectivityEvalDAO<RdfCloudTr
       return null;
   }
 
-  public double getCardinality(RdfCloudTripleStoreConfiguration conf, CARDINALITY_OF card, List< org.eclipse.rdf4j.model.Value> val) throws RdfDAOException {
+  public double getCardinality(RdfCloudTripleStoreConfiguration conf, CARDINALITY_OF card, List<org.eclipse.rdf4j.model.Value> val) throws RdfDAOException {
     return resd.getCardinality(conf, card, val);
   }
 
-  public double getCardinality(RdfCloudTripleStoreConfiguration conf, CARDINALITY_OF card, List< org.eclipse.rdf4j.model.Value> val, Resource context) throws RdfDAOException {
+  public double getCardinality(RdfCloudTripleStoreConfiguration conf, CARDINALITY_OF card, List<org.eclipse.rdf4j.model.Value> val, Resource context) throws RdfDAOException {
 
     return resd.getCardinality(conf, card, val, context);
 

@@ -19,10 +19,13 @@ package org.apache.rya.alx.util;
  * under the License.
  */
 
-import java.util.Map;
+
 
 import org.apache.rya.accumulo.AccumuloRdfConfiguration;
 import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
+import org.apache.hadoop.conf.Configuration;
+
+import java.util.Map;
 
 /**
  */

@@ -19,6 +19,8 @@ package org.apache.rya.accumulo;
  * under the License.
  */
 
+import static org.apache.rya.accumulo.AccumuloRdfConstants.EMPTY_VALUE;
+
 import java.io.IOException;
 import java.util.AbstractMap.SimpleEntry;
 import java.util.ArrayList;
@@ -35,8 +37,6 @@ import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.resolver.RyaTripleContext;
 import org.apache.rya.api.resolver.triple.TripleRow;
 import org.apache.rya.api.resolver.triple.TripleRowResolverException;
-
-import static org.apache.rya.accumulo.AccumuloRdfConstants.EMPTY_VALUE;
 
 public class RyaTableKeyValues {
     public static final ColumnVisibility EMPTY_CV = new ColumnVisibility();

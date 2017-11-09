@@ -19,9 +19,6 @@ package org.apache.rya.api.query.strategy.wholerow;
  * under the License.
  */
 
-
-//
-
 import java.util.Map;
 
 import org.apache.hadoop.io.Text;

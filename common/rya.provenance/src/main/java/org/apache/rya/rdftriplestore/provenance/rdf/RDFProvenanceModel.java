@@ -26,7 +26,7 @@ import org.eclipse.rdf4j.model.Statement;
 
 public interface RDFProvenanceModel {
 
-	List<Statement> getStatementsForQuery(String query, String user, String queryType);
+	public List<Statement> getStatementsForQuery(String query, String user, String queryType);
 
 	
 }

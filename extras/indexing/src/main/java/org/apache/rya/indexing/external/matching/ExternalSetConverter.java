@@ -46,6 +46,6 @@ public interface ExternalSetConverter<T extends ExternalSet> {
      * @param set - ExternalSet to be converted
      * @return QuerySegment derived from ExternalSet
      */
-    QuerySegment<T> setToSegment(T set);
+    public QuerySegment<T> setToSegment(T set);
 
 }

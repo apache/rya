@@ -41,15 +41,15 @@ public interface QuerySegment<T extends ExternalSet> extends Cloneable{
      *
      * @return - an unordered view of the {@link QueryModelNode}s in the segment
      */
-    Set<QueryModelNode> getUnOrderedNodes();
+    public Set<QueryModelNode> getUnOrderedNodes();
 
     /**
      *
      * @return - an ordered view of the {@link QueryModelNode}s in the segment.
      */
-    List<QueryModelNode> getOrderedNodes();
+    public List<QueryModelNode> getOrderedNodes();
 
-    Set<Filter> getFilters();
+    public Set<Filter> getFilters();
 
     /**
      *
@@ -58,7 +58,7 @@ public interface QuerySegment<T extends ExternalSet> extends Cloneable{
      *            contained in this segment
      * @return - true if contained and false otherwise
      */
-    boolean containsQuerySegment(QuerySegment<T> segment);
+    public boolean containsQuerySegment(QuerySegment<T> segment);
 
     /**
      * Sets List of {@link QueryModelNode}s representing this QuerySegment to
@@ -67,7 +67,7 @@ public interface QuerySegment<T extends ExternalSet> extends Cloneable{
      * @param nodes
      *            - nodes to set
      */
-    void setNodes(List<QueryModelNode> nodes);
+    public void setNodes(List<QueryModelNode> nodes);
 
     /**
      * @param nodeToReplace
@@ -78,8 +78,8 @@ public interface QuerySegment<T extends ExternalSet> extends Cloneable{
      *            occurs
      * @return - true if match occurs and false otherwise
      */
-    boolean replaceWithExternalSet(QuerySegment<T> nodeToReplace, T set);
+    public boolean replaceWithExternalSet(QuerySegment<T> nodeToReplace, T set);
 
-    TupleExprAndNodes getQuery();
+    public TupleExprAndNodes getQuery();
 
 }

@@ -32,6 +32,6 @@ public interface BindingSetExporter {
      * @param bindingSet - {@link BindingSet} to be exported
      * @throws ResultExportException
      */
-    void exportNotification(BindingSetRecord bindingSet) throws BindingSetRecordExportException;
+    public void exportNotification(BindingSetRecord bindingSet) throws BindingSetRecordExportException;
 
 }

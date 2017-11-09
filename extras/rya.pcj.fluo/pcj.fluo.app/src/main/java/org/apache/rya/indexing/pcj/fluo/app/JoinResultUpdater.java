@@ -371,7 +371,7 @@ public class JoinResultUpdater {
      * Defines each of the cases that may generate new join results when
      * iteratively computing a query's join node.
      */
-    public interface IterativeJoin {
+    public static interface IterativeJoin {
 
         /**
          * Invoked when a new {@link VisibilityBindingSet} is emitted from the left child
@@ -384,7 +384,7 @@ public class JoinResultUpdater {
          *   be joined with the new left result. (not null)
          * @return The new BindingSet results for the join.
          */
-        Iterator<VisibilityBindingSet> newLeftResult(VisibilityBindingSet newLeftResult, Iterator<VisibilityBindingSet> rightResults);
+        public Iterator<VisibilityBindingSet> newLeftResult(VisibilityBindingSet newLeftResult, Iterator<VisibilityBindingSet> rightResults);
 
         /**
          * Invoked when a new {@link VisibilityBindingSet} is emitted from the right child
@@ -397,7 +397,7 @@ public class JoinResultUpdater {
          *   the right child node.
          * @return The new BindingSet results for the join.
          */
-        Iterator<VisibilityBindingSet> newRightResult(Iterator<VisibilityBindingSet> leftResults, VisibilityBindingSet newRightResult);
+        public Iterator<VisibilityBindingSet> newRightResult(Iterator<VisibilityBindingSet> leftResults, VisibilityBindingSet newRightResult);
     }
 
     /**

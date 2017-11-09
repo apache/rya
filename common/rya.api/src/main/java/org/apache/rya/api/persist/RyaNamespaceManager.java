@@ -29,11 +29,11 @@ import org.eclipse.rdf4j.model.Namespace;
  */
 public interface RyaNamespaceManager<C extends RdfCloudTripleStoreConfiguration> extends RyaConfigured<C> {
 
-    void addNamespace(String pfx, String namespace) throws RyaDAOException;
+    public void addNamespace(String pfx, String namespace) throws RyaDAOException;
 
-    String getNamespace(String pfx) throws RyaDAOException;
+    public String getNamespace(String pfx) throws RyaDAOException;
 
-    void removeNamespace(String pfx) throws RyaDAOException;
+    public void removeNamespace(String pfx) throws RyaDAOException;
 
-    CloseableIteration<? extends Namespace, RyaDAOException> iterateNamespace() throws RyaDAOException;
+    public CloseableIteration<? extends Namespace, RyaDAOException> iterateNamespace() throws RyaDAOException;
 }

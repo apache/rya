@@ -21,7 +21,7 @@ package org.apache.rya.camel.cbsail;
 import static org.apache.rya.api.RdfCloudTripleStoreConfiguration.CONF_INFER;
 import static org.apache.rya.api.RdfCloudTripleStoreConfiguration.CONF_QUERY_AUTH;
 import static org.apache.rya.camel.cbsail.CbSailComponent.SPARQL_QUERY_PROP;
-import static org.apache.rya.camel.cbsail.CbSailComponent.valueFactory;
+import static org.apache.rya.camel.cbsail.CbSailComponent.VALUE_FACTORY;
 
 import java.io.ByteArrayOutputStream;
 import java.nio.charset.StandardCharsets;
@@ -127,10 +127,10 @@ public class CbSailProducer extends DefaultProducer {
         final TupleQuery tupleQuery = connection.prepareTupleQuery(
                 QueryLanguage.SPARQL, query);
         if (auth != null && auth.length() > 0) {
-            tupleQuery.setBinding(CONF_QUERY_AUTH, valueFactory.createLiteral(auth));
+            tupleQuery.setBinding(CONF_QUERY_AUTH, VALUE_FACTORY.createLiteral(auth));
         }
         if (infer != null) {
-            tupleQuery.setBinding(CONF_INFER, valueFactory.createLiteral(infer));
+            tupleQuery.setBinding(CONF_INFER, VALUE_FACTORY.createLiteral(infer));
         }
         if (CbSailEndpoint.CbSailOutput.BINARY.equals(queryOutput)) {
             final List listOutput = new ArrayList();

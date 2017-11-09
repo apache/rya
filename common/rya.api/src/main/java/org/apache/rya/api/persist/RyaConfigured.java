@@ -29,7 +29,7 @@ import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
  */
 public interface RyaConfigured<C extends RdfCloudTripleStoreConfiguration> {
 
-    void setConf(C conf);
+    public void setConf(C conf);
 
-    C getConf();
+    public C getConf();
 }

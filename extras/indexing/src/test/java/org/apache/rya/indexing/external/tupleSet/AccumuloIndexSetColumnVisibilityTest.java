@@ -16,7 +16,6 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-
 package org.apache.rya.indexing.external.tupleSet;
 
 import static org.junit.Assert.assertEquals;
@@ -92,7 +91,7 @@ public class AccumuloIndexSetColumnVisibilityTest {
     private static String pcjId;
     private static QueryBindingSet pcjBs1;
     private static QueryBindingSet pcjBs2;
-    private static ValueFactory vf = SimpleValueFactory.getInstance();
+    private static final ValueFactory VF = SimpleValueFactory.getInstance();
 
     @BeforeClass
     public static void init() throws AccumuloException, AccumuloSecurityException, PCJStorageException, IOException, InterruptedException, TableNotFoundException, AlreadyInitializedException, RyaDetailsRepositoryException {
@@ -118,12 +117,12 @@ public class AccumuloIndexSetColumnVisibilityTest {
 
         // Store the PCJ's results.
         pcjBs1 = new QueryBindingSet();
-        pcjBs1.addBinding("age", vf.createLiteral(BigInteger.valueOf(14)));
-        pcjBs1.addBinding("name", vf.createIRI("http://Alice"));
+        pcjBs1.addBinding("age", VF.createLiteral(BigInteger.valueOf(14)));
+        pcjBs1.addBinding("name", VF.createIRI("http://Alice"));
 
         pcjBs2 = new QueryBindingSet();
-        pcjBs2.addBinding("age", vf.createLiteral(BigInteger.valueOf(16)));
-        pcjBs2.addBinding("name", vf.createIRI("http://Bob"));
+        pcjBs2.addBinding("age", VF.createLiteral(BigInteger.valueOf(16)));
+        pcjBs2.addBinding("name", VF.createIRI("http://Bob"));
 
         final Set<VisibilityBindingSet> visBs = new HashSet<>();
         for (final BindingSet bs : Sets.<BindingSet>newHashSet(pcjBs1, pcjBs2)) {
@@ -204,9 +203,9 @@ public class AccumuloIndexSetColumnVisibilityTest {
 
         // Setup the binding sets that will be evaluated.
         final QueryBindingSet bs = new QueryBindingSet();
-        bs.addBinding("name", vf.createIRI("http://Alice"));
+        bs.addBinding("name", VF.createIRI("http://Alice"));
         final QueryBindingSet bs2 = new QueryBindingSet();
-        bs2.addBinding("name", vf.createIRI("http://Bob"));
+        bs2.addBinding("name", VF.createIRI("http://Bob"));
 
         final Set<BindingSet> bSets = Sets.newHashSet(bs, bs2);
         final CloseableIteration<BindingSet, QueryEvaluationException> results = ais.evaluate(bSets);
@@ -229,9 +228,9 @@ public class AccumuloIndexSetColumnVisibilityTest {
 
         // Setup the binding sets that will be evaluated.
         final QueryBindingSet bs1 = new QueryBindingSet();
-        bs1.addBinding("age", vf.createLiteral(BigInteger.valueOf(16)));
+        bs1.addBinding("age", VF.createLiteral(BigInteger.valueOf(16)));
         final QueryBindingSet bs2 = new QueryBindingSet();
-        bs2.addBinding("age", vf.createLiteral(BigInteger.valueOf(14)));
+        bs2.addBinding("age", VF.createLiteral(BigInteger.valueOf(14)));
 
         final Set<BindingSet> bSets = Sets.newHashSet(bs1, bs2);
         final CloseableIteration<BindingSet, QueryEvaluationException> results = ais.evaluate(bSets);

@@ -18,13 +18,13 @@
  */
 package org.apache.rya.indexing.mongodb;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import java.net.UnknownHostException;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
-import com.mongodb.MongoClient;
-import com.mongodb.MongoException;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.rya.api.domain.RyaURI;
 import org.apache.rya.indexing.entity.model.Entity;
@@ -44,7 +44,8 @@ import org.apache.rya.mongodb.MongoDBRdfConfiguration;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Value;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import com.mongodb.MongoClient;
+import com.mongodb.MongoException;
 
 /**
  * MongoDB implementation of the Smart URI.

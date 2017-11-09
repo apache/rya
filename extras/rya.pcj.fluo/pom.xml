@@ -40,7 +40,6 @@
         <module>pcj.fluo.integration</module>
         <module>pcj.fluo.test.base</module>
         <module>pcj.fluo.demo</module>
-		<module>rya.pcj.functions.geo</module>
     </modules>
     <profiles>
         <profile>

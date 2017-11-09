@@ -19,8 +19,6 @@ package org.apache.rya.accumulo.mr;
  * under the License.
  */
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -32,15 +30,14 @@ import org.apache.accumulo.core.client.Instance;
 import org.apache.accumulo.core.client.Scanner;
 import org.apache.accumulo.core.client.admin.TableOperations;
 import org.apache.accumulo.core.client.security.tokens.AuthenticationToken;
-import org.apache.accumulo.core.conf.DefaultConfiguration;
 import org.apache.accumulo.core.data.ByteSequence;
 import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Range;
 import org.apache.accumulo.core.data.Value;
-import org.apache.accumulo.core.file.FileOperations;
 import org.apache.accumulo.core.file.FileSKVIterator;
 import org.apache.accumulo.core.file.rfile.RFileOperations;
 import org.apache.accumulo.core.security.Authorizations;
+import org.apache.accumulo.core.util.ArgumentChecker;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.BlockLocation;
 import org.apache.hadoop.fs.FileStatus;
@@ -71,8 +68,8 @@ public class AccumuloHDFSFileInputFormat extends FileInputFormat<Key, Value> {
         String user = MRUtils.AccumuloProps.getUsername(jobContext);
         AuthenticationToken password = MRUtils.AccumuloProps.getPassword(jobContext);
         String table = MRUtils.AccumuloProps.getTablename(jobContext);
-        checkNotNull(instance);
-        checkNotNull(table);
+        ArgumentChecker.notNull(instance);
+        ArgumentChecker.notNull(table);
 
         //find the files necessary
         try {

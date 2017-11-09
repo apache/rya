@@ -35,6 +35,6 @@ public interface BinPruner {
      * Cleans up all {@link BindingSet}s associated with the indicated {@link NodeBin}.
      * @param bin - NodeBin that indicates which BindingSets to delete..
      */
-    void pruneBindingSetBin(NodeBin bin);
+    public void pruneBindingSetBin(NodeBin bin);
     
 }

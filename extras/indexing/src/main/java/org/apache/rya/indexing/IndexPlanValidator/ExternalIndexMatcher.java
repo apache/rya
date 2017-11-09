@@ -26,7 +26,7 @@ import org.eclipse.rdf4j.query.algebra.TupleExpr;
 public interface ExternalIndexMatcher {
     
     
-    Iterator<TupleExpr> getIndexedTuples();
+    public Iterator<TupleExpr> getIndexedTuples();
    
     
 

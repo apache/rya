@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -18,6 +18,8 @@
  */
 package org.apache.rya.indexing.entity.storage.mongo;
 
+import static org.junit.Assert.assertEquals;
+
 import org.apache.rya.api.domain.RyaType;
 import org.apache.rya.api.domain.RyaURI;
 import org.apache.rya.indexing.entity.model.Entity;
@@ -26,8 +28,6 @@ import org.apache.rya.indexing.entity.storage.mongo.DocumentConverter.DocumentCo
 import org.bson.Document;
 import org.eclipse.rdf4j.model.vocabulary.XMLSchema;
 import org.junit.Test;
-
-import static org.junit.Assert.assertEquals;
 
 /**
  * Tests the methods of {@link EntityDocumentConverter}.

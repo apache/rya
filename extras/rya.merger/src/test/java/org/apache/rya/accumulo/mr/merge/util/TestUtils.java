@@ -18,6 +18,9 @@
  */
 package org.apache.rya.accumulo.mr.merge.util;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
 import java.util.Date;
 
 import org.apache.rya.accumulo.AccumuloRdfConfiguration;
@@ -26,9 +29,6 @@ import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.domain.RyaURI;
 import org.apache.rya.api.persist.RyaDAOException;
 import org.eclipse.rdf4j.common.iteration.CloseableIteration;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 
 /**
  * Utility methods for testing merging/copying.
@@ -64,7 +64,7 @@ public final class TestUtils {
          * Creates a new {@link Occurrence}.
          * @param sign the sign value: positive or negative.
          */
-        Occurrence(final int sign) {
+        private Occurrence(final int sign) {
             this.sign = sign;
         }
 
@@ -98,7 +98,7 @@ public final class TestUtils {
          * Creates a new {@link CalendarUnit}.
          * @param milliseconds the milliseconds value of this unit.
          */
-        CalendarUnit(final long milliseconds) {
+        private CalendarUnit(final long milliseconds) {
             this.milliseconds = milliseconds;
         }
 

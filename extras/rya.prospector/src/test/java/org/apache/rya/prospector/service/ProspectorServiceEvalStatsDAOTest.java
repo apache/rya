@@ -174,9 +174,7 @@ public class ProspectorServiceEvalStatsDAOTest {
      * debugging the test.
      */
     private void debugTable(Connector connector, String table) throws TableNotFoundException {
-        final Iterator<Entry<Key, org.apache.accumulo.core.data.Value>> it = connector.createScanner(table, new Authorizations(
-                "U",
-                "FOUO")).iterator();
+        final Iterator<Entry<Key, org.apache.accumulo.core.data.Value>> it = connector.createScanner(table, new Authorizations("U", "FOUO")).iterator();
         while(it.hasNext()) {
             System.out.println( it.next() );
         }

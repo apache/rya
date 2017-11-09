@@ -1,21 +1,3 @@
-package org.apache.rya.rdftriplestore;
-
-import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
-import org.apache.rya.api.persist.RdfEvalStatsDAO;
-import org.apache.rya.api.persist.RyaDAO;
-import org.apache.rya.api.persist.RyaDAOException;
-import org.apache.rya.api.persist.joinselect.SelectivityEvalDAO;
-import org.apache.rya.rdftriplestore.inference.InferenceEngine;
-import org.apache.rya.rdftriplestore.namespace.NamespaceManager;
-import org.apache.rya.rdftriplestore.provenance.ProvenanceCollector;
-import org.eclipse.rdf4j.model.ValueFactory;
-import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
-import org.eclipse.rdf4j.sail.SailConnection;
-import org.eclipse.rdf4j.sail.SailException;
-import org.eclipse.rdf4j.sail.helpers.AbstractSail;
-
-import static com.google.common.base.Preconditions.checkNotNull;
-
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -34,6 +16,23 @@ import static com.google.common.base.Preconditions.checkNotNull;
  * specific language governing permissions and limitations
  * under the License.
  */
+package org.apache.rya.rdftriplestore;
+
+import static com.google.common.base.Preconditions.checkNotNull;
+
+import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
+import org.apache.rya.api.persist.RdfEvalStatsDAO;
+import org.apache.rya.api.persist.RyaDAO;
+import org.apache.rya.api.persist.RyaDAOException;
+import org.apache.rya.api.persist.joinselect.SelectivityEvalDAO;
+import org.apache.rya.rdftriplestore.inference.InferenceEngine;
+import org.apache.rya.rdftriplestore.namespace.NamespaceManager;
+import org.apache.rya.rdftriplestore.provenance.ProvenanceCollector;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
+import org.eclipse.rdf4j.sail.SailConnection;
+import org.eclipse.rdf4j.sail.SailException;
+import org.eclipse.rdf4j.sail.helpers.AbstractSail;
 
 public class RdfCloudTripleStore extends AbstractSail {
 

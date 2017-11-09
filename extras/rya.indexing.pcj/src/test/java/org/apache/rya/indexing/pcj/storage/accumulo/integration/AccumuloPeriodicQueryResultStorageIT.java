@@ -52,7 +52,7 @@ public class AccumuloPeriodicQueryResultStorageIT extends AccumuloITBase {
     private PeriodicQueryResultStorage periodicStorage;
     private static final String RYA = "rya_";
     private static final PeriodicQueryTableNameFactory nameFactory = new PeriodicQueryTableNameFactory();
-    private static final ValueFactory vf = SimpleValueFactory.getInstance();
+    private static final ValueFactory VF = SimpleValueFactory.getInstance();
     
     @Before
     public void init() throws AccumuloException, AccumuloSecurityException {
@@ -86,15 +86,15 @@ public class AccumuloPeriodicQueryResultStorageIT extends AccumuloITBase {
         
         //add result matching user's visibility
         QueryBindingSet bs = new QueryBindingSet();
-        bs.addBinding("periodicBinId", vf.createLiteral(1L));
-        bs.addBinding("x",vf.createIRI("uri:uri123"));
+        bs.addBinding("periodicBinId", VF.createLiteral(1L));
+        bs.addBinding("x",VF.createIRI("uri:uri123"));
         expected.add(bs);
         storageSet.add(new VisibilityBindingSet(bs,"U"));
         
         //add result with different visibility that is not expected
         bs = new QueryBindingSet();
-        bs.addBinding("periodicBinId", vf.createLiteral(1L));
-        bs.addBinding("x",vf.createIRI("uri:uri456"));
+        bs.addBinding("periodicBinId", VF.createLiteral(1L));
+        bs.addBinding("x",VF.createIRI("uri:uri456"));
         storageSet.add(new VisibilityBindingSet(bs,"V"));
         
         periodicStorage.addPeriodicQueryResults(id, storageSet);

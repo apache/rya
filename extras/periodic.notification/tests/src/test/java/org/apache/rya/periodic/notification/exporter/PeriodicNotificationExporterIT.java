@@ -53,7 +53,7 @@ public class PeriodicNotificationExporterIT extends KafkaITBase {
     public KafkaTestInstanceRule kafkaTestInstanceRule = new KafkaTestInstanceRule(false);
 
 
-    private static final ValueFactory vf = SimpleValueFactory.getInstance();
+    private static final ValueFactory VF = SimpleValueFactory.getInstance();
 
     @Test
     public void testExporter() throws InterruptedException {
@@ -69,13 +69,13 @@ public class PeriodicNotificationExporterIT extends KafkaITBase {
         final KafkaExporterExecutor exporter = new KafkaExporterExecutor(new KafkaProducer<String, BindingSet>(createKafkaProducerConfig()), 1, records);
         exporter.start();
         final QueryBindingSet bs1 = new QueryBindingSet();
-        bs1.addBinding(PeriodicQueryResultStorage.PeriodicBinId, vf.createLiteral(1L));
-        bs1.addBinding("name", vf.createIRI("uri:Bob"));
+        bs1.addBinding(PeriodicQueryResultStorage.PeriodicBinId, VF.createLiteral(1L));
+        bs1.addBinding("name", VF.createIRI("uri:Bob"));
         final BindingSetRecord record1 = new BindingSetRecord(bs1, topic1);
 
         final QueryBindingSet bs2 = new QueryBindingSet();
-        bs2.addBinding(PeriodicQueryResultStorage.PeriodicBinId, vf.createLiteral(2L));
-        bs2.addBinding("name", vf.createIRI("uri:Joe"));
+        bs2.addBinding(PeriodicQueryResultStorage.PeriodicBinId, VF.createLiteral(2L));
+        bs2.addBinding("name", VF.createIRI("uri:Joe"));
         final BindingSetRecord record2 = new BindingSetRecord(bs2, topic2);
 
         records.add(record1);

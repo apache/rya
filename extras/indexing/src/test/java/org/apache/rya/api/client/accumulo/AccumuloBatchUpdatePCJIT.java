@@ -18,6 +18,8 @@
  */
 package org.apache.rya.api.client.accumulo;
 
+import static org.junit.Assert.assertEquals;
+
 import java.util.HashSet;
 import java.util.Set;
 
@@ -38,8 +40,6 @@ import org.eclipse.rdf4j.query.impl.MapBindingSet;
 import org.eclipse.rdf4j.sail.Sail;
 import org.eclipse.rdf4j.sail.SailConnection;
 import org.junit.Test;
-
-import static org.junit.Assert.assertEquals;
 
 /**
  * Integration tests the methods of {@link AccumuloBatchUpdatePCJ}.

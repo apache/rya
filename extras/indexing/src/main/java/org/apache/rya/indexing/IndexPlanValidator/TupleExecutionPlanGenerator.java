@@ -76,8 +76,9 @@ public class TupleExecutionPlanGenerator implements IndexTupleGenerator {
                         isEmpty = true;
                         return false;
                     }
-                } else
+                } else {
                     return !isEmpty;
+                }
             }
 
             @Override

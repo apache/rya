@@ -17,7 +17,6 @@ package org.apache.rya.indexing.statement.metadata.matching;
  * specific language governing permissions and limitations
  * under the License.
  */
-
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
 import org.apache.accumulo.core.client.Connector;
@@ -45,7 +44,7 @@ public class RyaQueryEngineFactory {
 
     
     @SuppressWarnings("unchecked")
-    public static <C extends RdfCloudTripleStoreConfiguration> RyaQueryEngine<C> getQueryEngine(RdfCloudTripleStoreConfiguration conf) {
+    public static <C extends RdfCloudTripleStoreConfiguration> RyaQueryEngine<C> getQueryEngine(RdfCloudTripleStoreConfiguration conf) { 
         if(conf instanceof AccumuloRdfConfiguration) {
             AccumuloRdfConfiguration aConf = (AccumuloRdfConfiguration) conf;
             Instance instance;

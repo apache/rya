@@ -18,10 +18,11 @@
  */
 package org.apache.rya.indexing.pcj.fluo.integration;
 
+import static org.junit.Assert.assertEquals;
+
 import java.util.HashSet;
 import java.util.Set;
 
-import com.google.common.collect.Sets;
 import org.apache.accumulo.core.client.Connector;
 import org.apache.fluo.api.client.FluoClient;
 import org.apache.fluo.api.client.FluoFactory;
@@ -42,7 +43,7 @@ import org.eclipse.rdf4j.repository.RepositoryConnection;
 import org.eclipse.rdf4j.repository.sail.SailRepositoryConnection;
 import org.junit.Test;
 
-import static org.junit.Assert.assertEquals;
+import com.google.common.collect.Sets;
 
 /**
  * This test ensures that the correct updates are pushed by Fluo to the external PCJ table as triples are added to Rya

@@ -36,6 +36,13 @@ import org.apache.rya.indexing.GeoConstants;
 import org.apache.rya.indexing.GeoIndexerType;
 import org.apache.rya.indexing.StatementConstraints;
 import org.apache.rya.indexing.accumulo.ConfigUtils;
+import org.eclipse.rdf4j.common.iteration.CloseableIteration;
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.Resource;
+import org.eclipse.rdf4j.model.Statement;
+import org.eclipse.rdf4j.model.Value;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 import org.geotools.geometry.jts.Geometries;
 import org.junit.Assert;
 import org.junit.Before;
@@ -44,12 +51,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
-import org.eclipse.rdf4j.model.IRI;
-import org.eclipse.rdf4j.model.Resource;
-import org.eclipse.rdf4j.model.Statement;
-import org.eclipse.rdf4j.model.Value;
-import org.eclipse.rdf4j.model.ValueFactory;
-import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Sets;
@@ -64,8 +65,6 @@ import com.vividsolutions.jts.geom.PrecisionModel;
 import com.vividsolutions.jts.geom.impl.PackedCoordinateSequence;
 import com.vividsolutions.jts.io.ParseException;
 import com.vividsolutions.jts.io.gml2.GMLWriter;
-
-import org.eclipse.rdf4j.common.iteration.CloseableIteration;
 
 /**
  * Tests all of the "simple functions" of the geoindexer specific to GML.

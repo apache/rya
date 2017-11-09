@@ -1,8 +1,5 @@
 package org.apache.rya.api.resolver.impl;
 
-import org.apache.rya.api.domain.RyaType;
-import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
-
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -21,6 +18,9 @@ import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
  * specific language governing permissions and limitations
  * under the License.
  */
+
+import org.apache.rya.api.domain.RyaType;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 
 import junit.framework.TestCase;
 

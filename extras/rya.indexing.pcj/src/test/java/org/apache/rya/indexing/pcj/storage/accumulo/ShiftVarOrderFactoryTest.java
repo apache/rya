@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -18,13 +18,14 @@
  */
 package org.apache.rya.indexing.pcj.storage.accumulo;
 
+import static org.junit.Assert.assertEquals;
+
 import java.util.Set;
 
-import com.google.common.collect.Sets;
 import org.eclipse.rdf4j.query.MalformedQueryException;
 import org.junit.Test;
 
-import static org.junit.Assert.assertEquals;
+import com.google.common.collect.Sets;
 
 /**
  * Tests the methods of {@link ShiftVarOrderFactory}.

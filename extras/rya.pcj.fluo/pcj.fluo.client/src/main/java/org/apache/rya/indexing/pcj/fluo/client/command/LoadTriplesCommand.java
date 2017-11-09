@@ -18,16 +18,13 @@
  */
 package org.apache.rya.indexing.pcj.fluo.client.command;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
-import com.beust.jcommander.JCommander;
-import com.beust.jcommander.Parameter;
-import com.beust.jcommander.ParameterException;
-import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
-import edu.umd.cs.findbugs.annotations.NonNull;
 import org.apache.accumulo.core.client.Connector;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.fluo.api.client.FluoClient;
@@ -44,7 +41,12 @@ import org.eclipse.rdf4j.rio.ntriples.NTriplesParser;
 import org.eclipse.rdf4j.rio.trig.TriGParser;
 import org.eclipse.rdf4j.rio.turtle.TurtleParser;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import com.beust.jcommander.JCommander;
+import com.beust.jcommander.Parameter;
+import com.beust.jcommander.ParameterException;
+
+import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
+import edu.umd.cs.findbugs.annotations.NonNull;
 
 /**
  * A command that loads the contents of an NTriple file into the Fluo application.

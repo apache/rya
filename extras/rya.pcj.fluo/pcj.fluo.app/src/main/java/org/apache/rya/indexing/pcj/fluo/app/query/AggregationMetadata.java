@@ -53,7 +53,7 @@ public class AggregationMetadata extends CommonNodeMetadata {
     /**
      * The different types of Aggregation functions that an aggregate node may perform.
      */
-    public enum AggregationType {
+    public static enum AggregationType {
         MIN(Min.class),
         MAX(Max.class),
         COUNT(Count.class),
@@ -62,7 +62,7 @@ public class AggregationMetadata extends CommonNodeMetadata {
 
         private final Class<? extends AggregateOperator> operatorClass;
 
-        AggregationType(final Class<? extends AggregateOperator> operatorClass) {
+        private AggregationType(final Class<? extends AggregateOperator> operatorClass) {
             this.operatorClass = requireNonNull(operatorClass);
         }
 

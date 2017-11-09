@@ -104,8 +104,9 @@ public class IndexPlanValidator implements TupleValidator {
                     }
                     isEmpty = true;
                     return false;
-                } else
+                } else {
                     return !isEmpty;
+                }
             }
 
             @Override
@@ -146,12 +147,9 @@ public class IndexPlanValidator implements TupleValidator {
         
         if (Sets.intersection(leftBindingNames, rightBindingNames).size() == 0) {
             return !omitCrossProd;
-
         } else {
             if (join.getRightArg() instanceof ExternalTupleSet) {
-
                 return ((ExternalTupleSet) join.getRightArg()).supportsBindingSet(leftBindingNames);
-
             } else {
                 return true;
             }

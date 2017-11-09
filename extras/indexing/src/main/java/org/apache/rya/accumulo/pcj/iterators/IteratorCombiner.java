@@ -23,10 +23,11 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 
-import com.google.common.base.Preconditions;
 import org.eclipse.rdf4j.common.iteration.CloseableIteration;
 import org.eclipse.rdf4j.query.BindingSet;
 import org.eclipse.rdf4j.query.QueryEvaluationException;
+
+import com.google.common.base.Preconditions;
 
 /**
  *	This {@link CloseableIteration} takes in a list of CloseableIterations
@@ -67,8 +68,9 @@ public class IteratorCombiner implements
 			}
 			isEmpty = true;
 			return false;
-		} else
-            return !isEmpty;
+		} else {
+			return !isEmpty;
+		}
 	}
 
 	@Override

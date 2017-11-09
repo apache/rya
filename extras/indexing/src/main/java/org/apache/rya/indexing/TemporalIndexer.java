@@ -1,10 +1,3 @@
-package org.apache.rya.indexing;
-
-import org.apache.rya.api.persist.index.RyaSecondaryIndexer;
-import org.eclipse.rdf4j.common.iteration.CloseableIteration;
-import org.eclipse.rdf4j.model.Statement;
-import org.eclipse.rdf4j.query.QueryEvaluationException;
-
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -23,6 +16,12 @@ import org.eclipse.rdf4j.query.QueryEvaluationException;
  * specific language governing permissions and limitations
  * under the License.
  */
+package org.apache.rya.indexing;
+
+import org.apache.rya.api.persist.index.RyaSecondaryIndexer;
+import org.eclipse.rdf4j.common.iteration.CloseableIteration;
+import org.eclipse.rdf4j.model.Statement;
+import org.eclipse.rdf4j.query.QueryEvaluationException;
 
 /**
  * A repository to store, index, and retrieve {@link Statement}s based on time.
@@ -88,35 +87,35 @@ public interface TemporalIndexer extends RyaSecondaryIndexer {
      *    and then the inverses, including after.
      */
 
-    CloseableIteration<Statement, QueryEvaluationException> queryInstantEqualsInstant(
+    public CloseableIteration<Statement, QueryEvaluationException> queryInstantEqualsInstant(
             TemporalInstant queryInstant, StatementConstraints contraints)
             throws QueryEvaluationException;
 
-    CloseableIteration<Statement, QueryEvaluationException> queryInstantBeforeInstant(
+    public CloseableIteration<Statement, QueryEvaluationException> queryInstantBeforeInstant(
             TemporalInstant queryInstant, StatementConstraints contraints)
             throws QueryEvaluationException;
 
-    CloseableIteration<Statement, QueryEvaluationException> queryInstantAfterInstant(
+    public CloseableIteration<Statement, QueryEvaluationException> queryInstantAfterInstant(
             TemporalInstant queryInstant, StatementConstraints contraints)
             throws QueryEvaluationException;
 
-    CloseableIteration<Statement, QueryEvaluationException> queryInstantBeforeInterval(
+    public CloseableIteration<Statement, QueryEvaluationException> queryInstantBeforeInterval(
             TemporalInterval givenInterval, StatementConstraints contraints)
             throws QueryEvaluationException;
 
-    CloseableIteration<Statement, QueryEvaluationException> queryInstantAfterInterval(
+    public CloseableIteration<Statement, QueryEvaluationException> queryInstantAfterInterval(
             TemporalInterval givenInterval, StatementConstraints contraints)
             throws QueryEvaluationException;
 
-    CloseableIteration<Statement, QueryEvaluationException> queryInstantInsideInterval(
+    public CloseableIteration<Statement, QueryEvaluationException> queryInstantInsideInterval(
             TemporalInterval givenInterval, StatementConstraints contraints)
             throws QueryEvaluationException;
 
-    CloseableIteration<Statement, QueryEvaluationException> queryInstantHasBeginningInterval(
+    public CloseableIteration<Statement, QueryEvaluationException> queryInstantHasBeginningInterval(
             TemporalInterval queryInterval, StatementConstraints contraints)
             throws QueryEvaluationException;
 
-    CloseableIteration<Statement, QueryEvaluationException> queryInstantHasEndInterval(
+    public CloseableIteration<Statement, QueryEvaluationException> queryInstantHasEndInterval(
             TemporalInterval queryInterval, StatementConstraints contraints)
             throws QueryEvaluationException;
 
@@ -131,7 +130,7 @@ public interface TemporalIndexer extends RyaSecondaryIndexer {
      * @return
      * @throws QueryEvaluationException
      */
-    CloseableIteration<Statement, QueryEvaluationException> queryIntervalEquals(
+    public CloseableIteration<Statement, QueryEvaluationException> queryIntervalEquals(
             TemporalInterval query, StatementConstraints contraints)
             throws QueryEvaluationException;
 
@@ -145,7 +144,7 @@ public interface TemporalIndexer extends RyaSecondaryIndexer {
      *            the {@link StatementConstraints}
      * @return
      */
-    CloseableIteration<Statement, QueryEvaluationException> queryIntervalBefore(
+    public CloseableIteration<Statement, QueryEvaluationException> queryIntervalBefore(
             TemporalInterval query, StatementConstraints contraints)
             throws QueryEvaluationException;
 
@@ -158,7 +157,7 @@ public interface TemporalIndexer extends RyaSecondaryIndexer {
      *            the {@link StatementConstraints}
      * @return
      */
-    CloseableIteration<Statement, QueryEvaluationException> queryIntervalAfter(
+    public CloseableIteration<Statement, QueryEvaluationException> queryIntervalAfter(
             TemporalInterval query, StatementConstraints contraints)
             throws QueryEvaluationException;
 }

@@ -45,7 +45,7 @@ import org.eclipse.rdf4j.query.algebra.evaluation.QueryBindingSet;
 public class PeriodicQueryUpdater {
 
     private static final Logger log = Logger.getLogger(PeriodicQueryUpdater.class);
-    private static final ValueFactory vf = SimpleValueFactory.getInstance();
+    private static final ValueFactory VF = SimpleValueFactory.getInstance();
     private static final VisibilityBindingSetSerDe BS_SERDE = new VisibilityBindingSetSerDe();
 
     /**
@@ -62,7 +62,7 @@ public class PeriodicQueryUpdater {
         for(Long id: binIds) {
             //create binding set value bytes
             QueryBindingSet binnedBs = new QueryBindingSet(bs);
-            binnedBs.addBinding(IncrementalUpdateConstants.PERIODIC_BIN_ID, vf.createLiteral(id));
+            binnedBs.addBinding(IncrementalUpdateConstants.PERIODIC_BIN_ID, VF.createLiteral(id));
             VisibilityBindingSet visibilityBindingSet = new VisibilityBindingSet(binnedBs, bs.getVisibility());
             Bytes periodicBsBytes = BS_SERDE.serialize(visibilityBindingSet);
             

@@ -40,8 +40,6 @@ import org.apache.rya.indexing.geotemporal.mongo.MongoGeoTemporalIndexer;
 import org.apache.rya.indexing.geotemporal.mongo.MongoITBase;
 import org.apache.rya.indexing.geotemporal.storage.EventStorage;
 import org.apache.rya.mongodb.MongoDBRdfConfiguration;
-import org.junit.Before;
-import org.junit.Test;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Value;
 import org.eclipse.rdf4j.model.ValueFactory;
@@ -53,6 +51,8 @@ import org.eclipse.rdf4j.query.impl.MapBindingSet;
 import org.eclipse.rdf4j.repository.sail.SailRepository;
 import org.eclipse.rdf4j.repository.sail.SailRepositoryConnection;
 import org.eclipse.rdf4j.sail.Sail;
+import org.junit.Before;
+import org.junit.Test;
 
 import com.mongodb.MongoClient;
 
@@ -172,5 +172,6 @@ public class MongoGeoTemporalIndexIT extends MongoITBase {
 
         object = VF.createLiteral("Point(1 1)", GeoConstants.XMLSCHEMA_OGC_WKT);
         conn.add(VF.createStatement(subject, GeoConstants.GEO_AS_WKT, object));
+        conn.commit();
     }
 }

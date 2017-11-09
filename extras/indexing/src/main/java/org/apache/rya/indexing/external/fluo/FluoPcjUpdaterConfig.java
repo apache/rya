@@ -18,12 +18,13 @@
  */
 package org.apache.rya.indexing.external.fluo;
 
-import com.google.common.base.Optional;
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import org.apache.hadoop.conf.Configuration;
 import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
 import org.apache.rya.indexing.accumulo.ConfigUtils;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import com.google.common.base.Optional;
 
 /**
  * Configuration values required to initialize a {@link FluoPcjUpdater}.

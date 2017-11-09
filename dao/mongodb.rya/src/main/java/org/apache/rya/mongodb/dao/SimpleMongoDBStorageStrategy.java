@@ -18,14 +18,13 @@
  */
 package org.apache.rya.mongodb.dao;
 
+import static org.eclipse.rdf4j.model.vocabulary.XMLSchema.ANYURI;
+
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Map;
 
-import com.mongodb.BasicDBObject;
-import com.mongodb.DBCollection;
-import com.mongodb.DBObject;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.log4j.Logger;
@@ -40,7 +39,9 @@ import org.apache.rya.mongodb.document.visibility.DocumentVisibilityAdapter.Malf
 import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 import org.eclipse.rdf4j.model.vocabulary.XMLSchema;
 
-import static org.eclipse.rdf4j.model.vocabulary.XMLSchema.ANYURI;
+import com.mongodb.BasicDBObject;
+import com.mongodb.DBCollection;
+import com.mongodb.DBObject;
 
 /**
  * Defines how {@link RyaStatement}s are stored in MongoDB.

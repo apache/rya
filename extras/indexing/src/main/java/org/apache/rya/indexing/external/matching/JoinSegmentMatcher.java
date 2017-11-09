@@ -24,10 +24,11 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 
-import com.google.common.base.Optional;
-import com.google.common.base.Preconditions;
 import org.eclipse.rdf4j.query.algebra.QueryModelNode;
 import org.eclipse.rdf4j.query.algebra.evaluation.impl.ExternalSet;
+
+import com.google.common.base.Optional;
+import com.google.common.base.Preconditions;
 
 /**
  * This class is responsible for matching PCJ nodes with subsets of the
@@ -37,7 +38,6 @@ import org.eclipse.rdf4j.query.algebra.evaluation.impl.ExternalSet;
  * the QueryModelNodes in the JoinSegment.
  *
  */
-
 public class JoinSegmentMatcher<T extends ExternalSet> extends AbstractExternalSetMatcher<T> {
 
     private ExternalSetConverter<T> converter;

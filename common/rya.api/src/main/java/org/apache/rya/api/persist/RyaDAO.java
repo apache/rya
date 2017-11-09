@@ -42,21 +42,21 @@ public interface RyaDAO<C extends RdfCloudTripleStoreConfiguration> extends RyaC
      *
      * @throws RyaDAOException
      */
-    void init() throws RyaDAOException;
+    public void init() throws RyaDAOException;
 
     /**
      *
      * @return true if the store is already initialized
      * @throws RyaDAOException
      */
-    boolean isInitialized() throws RyaDAOException;
+    public boolean isInitialized() throws RyaDAOException;
 
     /**
      * Shutdown the store. To reinitialize, call the init() method.
      *
      * @throws RyaDAOException
      */
-    void destroy() throws RyaDAOException;
+    public void destroy() throws RyaDAOException;
 
     /**
      * Add and commit a single RyaStatement
@@ -64,7 +64,7 @@ public interface RyaDAO<C extends RdfCloudTripleStoreConfiguration> extends RyaC
      * @param statement
      * @throws RyaDAOException
      */
-    void add(RyaStatement statement) throws RyaDAOException;
+    public void add(RyaStatement statement) throws RyaDAOException;
 
     /**
      * Add and commit a collection of RyaStatements
@@ -72,7 +72,7 @@ public interface RyaDAO<C extends RdfCloudTripleStoreConfiguration> extends RyaC
      * @param statementIter
      * @throws RyaDAOException
      */
-    void add(Iterator<RyaStatement> statementIter) throws RyaDAOException;
+    public void add(Iterator<RyaStatement> statementIter) throws RyaDAOException;
 
     /**
      * Delete a RyaStatement. The Configuration should provide the auths to perform the delete
@@ -81,7 +81,7 @@ public interface RyaDAO<C extends RdfCloudTripleStoreConfiguration> extends RyaC
      * @param conf
      * @throws RyaDAOException
      */
-    void delete(RyaStatement statement, C conf) throws RyaDAOException;
+    public void delete(RyaStatement statement, C conf) throws RyaDAOException;
 
     /**
      * Drop a set of Graphs. The Configuration should provide the auths to perform the delete
@@ -89,7 +89,7 @@ public interface RyaDAO<C extends RdfCloudTripleStoreConfiguration> extends RyaC
      * @param conf
      * @throws RyaDAOException
      */
-    void dropGraph(C conf, RyaURI... graphs) throws RyaDAOException;
+    public void dropGraph(C conf, RyaURI... graphs) throws RyaDAOException;
 
     /**
      * Delete a collection of RyaStatements.
@@ -98,7 +98,7 @@ public interface RyaDAO<C extends RdfCloudTripleStoreConfiguration> extends RyaC
      * @param conf
      * @throws RyaDAOException
      */
-    void delete(Iterator<RyaStatement> statements, C conf) throws RyaDAOException;
+    public void delete(Iterator<RyaStatement> statements, C conf) throws RyaDAOException;
 
     /**
      * Get the version of the store.
@@ -106,28 +106,28 @@ public interface RyaDAO<C extends RdfCloudTripleStoreConfiguration> extends RyaC
      * @return
      * @throws RyaDAOException
      */
-    String getVersion() throws RyaDAOException;
+    public String getVersion() throws RyaDAOException;
 
     /**
      * Get the Rya query engine
      * @return
      */
-    RyaQueryEngine<C> getQueryEngine();
+    public RyaQueryEngine<C> getQueryEngine();
 
     /**
      * Get the Rya Namespace Manager
      * @return
      */
-    RyaNamespaceManager<C> getNamespaceManager();
+    public RyaNamespaceManager<C> getNamespaceManager();
 
-    void purge(RdfCloudTripleStoreConfiguration configuration);
+    public void purge(RdfCloudTripleStoreConfiguration configuration);
 
-    void dropAndDestroy() throws RyaDAOException;
+    public void dropAndDestroy() throws RyaDAOException;
 
     /**
      * Flushes any RyaStatements queued for insertion and writes them to the
      * datastore.
      * @throws RyaDAOException
      */
-    void flush() throws RyaDAOException;
+    public void flush() throws RyaDAOException;
 }

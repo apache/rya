@@ -53,31 +53,31 @@ import com.google.common.collect.Sets;
  */
 public class OneOfVisitorTest {
     private final AccumuloRdfConfiguration conf = new AccumuloRdfConfiguration();
-    private static final ValueFactory vf = SimpleValueFactory.getInstance();
+    private static final ValueFactory VF = SimpleValueFactory.getInstance();
 
-    private static final IRI SUITS = vf.createIRI("urn:Suits");
-    private static final IRI RANKS = vf.createIRI("urn:Ranks");
+    private static final IRI SUITS = VF.createIRI("urn:Suits");
+    private static final IRI RANKS = VF.createIRI("urn:Ranks");
 
     // Definition #1: :Suits owl:oneOf(:Clubs, :Diamonds, :Hearts, :Spades)
-    private static final IRI CLUBS = vf.createIRI("urn:Clubs");
-    private static final IRI DIAMONDS = vf.createIRI("urn:Diamonds");
-    private static final IRI HEARTS = vf.createIRI("urn:Hearts");
-    private static final IRI SPADES = vf.createIRI("urn:Spades");
+    private static final IRI CLUBS = VF.createIRI("urn:Clubs");
+    private static final IRI DIAMONDS = VF.createIRI("urn:Diamonds");
+    private static final IRI HEARTS = VF.createIRI("urn:Hearts");
+    private static final IRI SPADES = VF.createIRI("urn:Spades");
 
     // Definition #2: :Ranks owl:oneOf(:Ace, :2, :3, :4, :5, :6, :7, :8, :9, :10, :Jack, :Queen, :King)
-    private static final IRI ACE = vf.createIRI("urn:Ace");
-    private static final IRI TWO = vf.createIRI("urn:2");
-    private static final IRI THREE = vf.createIRI("urn:3");
-    private static final IRI FOUR = vf.createIRI("urn:4");
-    private static final IRI FIVE = vf.createIRI("urn:5");
-    private static final IRI SIX = vf.createIRI("urn:6");
-    private static final IRI SEVEN = vf.createIRI("urn:7");
-    private static final IRI EIGHT = vf.createIRI("urn:8");
-    private static final IRI NINE = vf.createIRI("urn:9");
-    private static final IRI TEN = vf.createIRI("urn:10");
-    private static final IRI JACK = vf.createIRI("urn:Jack");
-    private static final IRI QUEEN = vf.createIRI("urn:Queen");
-    private static final IRI KING = vf.createIRI("urn:King");
+    private static final IRI ACE = VF.createIRI("urn:Ace");
+    private static final IRI TWO = VF.createIRI("urn:2");
+    private static final IRI THREE = VF.createIRI("urn:3");
+    private static final IRI FOUR = VF.createIRI("urn:4");
+    private static final IRI FIVE = VF.createIRI("urn:5");
+    private static final IRI SIX = VF.createIRI("urn:6");
+    private static final IRI SEVEN = VF.createIRI("urn:7");
+    private static final IRI EIGHT = VF.createIRI("urn:8");
+    private static final IRI NINE = VF.createIRI("urn:9");
+    private static final IRI TEN = VF.createIRI("urn:10");
+    private static final IRI JACK = VF.createIRI("urn:Jack");
+    private static final IRI QUEEN = VF.createIRI("urn:Queen");
+    private static final IRI KING = VF.createIRI("urn:King");
 
     private static final Set<Resource> CARD_SUIT_ENUMERATION =
         Sets.newLinkedHashSet(

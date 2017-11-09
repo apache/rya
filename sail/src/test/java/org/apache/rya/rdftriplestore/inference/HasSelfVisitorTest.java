@@ -43,11 +43,11 @@ import org.junit.Test;
 
 public class HasSelfVisitorTest {
     private final AccumuloRdfConfiguration conf = new AccumuloRdfConfiguration();
-    private static final ValueFactory vf = SimpleValueFactory.getInstance();
+    private static final ValueFactory VF = SimpleValueFactory.getInstance();
 
-    private static final IRI narcissist = vf.createIRI("urn:Narcissist");
-    private static final IRI love = vf.createIRI("urn:love");
-    private static final IRI self = vf.createIRI("urn:self");
+    private static final IRI narcissist = VF.createIRI("urn:Narcissist");
+    private static final IRI love = VF.createIRI("urn:love");
+    private static final IRI self = VF.createIRI("urn:self");
 
     @Test
     public void testTypePattern() throws Exception {

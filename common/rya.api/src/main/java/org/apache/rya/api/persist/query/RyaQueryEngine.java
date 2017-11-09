@@ -48,7 +48,7 @@ public interface RyaQueryEngine<C extends RdfCloudTripleStoreConfiguration> exte
      * @throws RyaDAOException
      * @deprecated
      */
-    CloseableIteration<RyaStatement, RyaDAOException> query(RyaStatement stmt, C conf) throws RyaDAOException;
+    public CloseableIteration<RyaStatement, RyaDAOException> query(RyaStatement stmt, C conf) throws RyaDAOException;
 
     /**
      * Batch query
@@ -58,7 +58,7 @@ public interface RyaQueryEngine<C extends RdfCloudTripleStoreConfiguration> exte
      * @return
      * @throws RyaDAOException
      */
-    CloseableIteration<? extends Map.Entry<RyaStatement, BindingSet>, RyaDAOException>
+    public CloseableIteration<? extends Map.Entry<RyaStatement, BindingSet>, RyaDAOException>
     queryWithBindingSet(Collection<Map.Entry<RyaStatement, BindingSet>> stmts, C conf) throws RyaDAOException;
 
     /**
@@ -70,7 +70,7 @@ public interface RyaQueryEngine<C extends RdfCloudTripleStoreConfiguration> exte
      * @throws RyaDAOException
      * @deprecated
      */
-    CloseableIteration<RyaStatement, RyaDAOException> batchQuery(Collection<RyaStatement> stmts, C conf) throws RyaDAOException;
+    public CloseableIteration<RyaStatement, RyaDAOException> batchQuery(Collection<RyaStatement> stmts, C conf) throws RyaDAOException;
 
     /**
      * Query with a {@link} RyaQuery. A single query that will return a {@link CloseableIterable} of RyaStatements
@@ -79,7 +79,7 @@ public interface RyaQueryEngine<C extends RdfCloudTripleStoreConfiguration> exte
      * @return
      * @throws RyaDAOException
      */
-    CloseableIterable<RyaStatement> query(RyaQuery ryaQuery) throws RyaDAOException;
+    public CloseableIterable<RyaStatement> query(RyaQuery ryaQuery) throws RyaDAOException;
 
     /**
      * Run a batch rya query
@@ -88,6 +88,6 @@ public interface RyaQueryEngine<C extends RdfCloudTripleStoreConfiguration> exte
      * @return
      * @throws RyaDAOException
      */
-    CloseableIterable<RyaStatement> query(BatchRyaQuery batchRyaQuery) throws RyaDAOException;
+    public CloseableIterable<RyaStatement> query(BatchRyaQuery batchRyaQuery) throws RyaDAOException;
 
 }

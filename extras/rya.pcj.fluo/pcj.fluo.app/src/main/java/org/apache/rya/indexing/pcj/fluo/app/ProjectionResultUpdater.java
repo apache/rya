@@ -18,8 +18,8 @@
  */
 package org.apache.rya.indexing.pcj.fluo.app;
 
-import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
-import edu.umd.cs.findbugs.annotations.NonNull;
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import org.apache.fluo.api.client.TransactionBase;
 import org.apache.fluo.api.data.Bytes;
 import org.apache.log4j.Logger;
@@ -32,7 +32,8 @@ import org.apache.rya.indexing.pcj.storage.accumulo.VisibilityBindingSet;
 import org.apache.rya.indexing.pcj.storage.accumulo.VisibilityBindingSetSerDe;
 import org.eclipse.rdf4j.query.BindingSet;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
+import edu.umd.cs.findbugs.annotations.NonNull;
 
 /**
  * Updates the results of a Projection node when one of its children has added a

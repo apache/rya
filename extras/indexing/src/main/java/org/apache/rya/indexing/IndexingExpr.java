@@ -21,10 +21,11 @@ package org.apache.rya.indexing;
 
 import java.util.Set;
 
-import com.google.common.collect.Sets;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.query.algebra.StatementPattern;
 import org.eclipse.rdf4j.query.algebra.Var;
+
+import com.google.common.collect.Sets;
 
 public class IndexingExpr {
 

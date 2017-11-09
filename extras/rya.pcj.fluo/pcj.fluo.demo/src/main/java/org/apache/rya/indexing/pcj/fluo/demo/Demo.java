@@ -33,7 +33,7 @@ public interface Demo {
     /**
      * Run the demo.
      */
-    void execute(
+    public void execute(
             MiniAccumuloCluster accumulo,
             Connector accumuloConn,
             String ryaTablePrefix,
@@ -46,7 +46,7 @@ public interface Demo {
      * A {@link Demo}'s execution could not be completed because of a non-recoverable
      * problem while running.
      */
-    class DemoExecutionException extends Exception {
+    public static class DemoExecutionException extends Exception {
         private static final long serialVersionUID = 1L;
 
         /**

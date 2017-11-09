@@ -26,9 +26,9 @@ import java.util.HashSet;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.apache.zookeeper.ClientCnxn;
+import org.eclipse.rdf4j.query.algebra.evaluation.function.FunctionRegistry;
 import org.junit.Before;
 import org.junit.Test;
-import org.eclipse.rdf4j.query.algebra.evaluation.function.FunctionRegistry;
 
 /**
  * Verifies that the geoFunctions are registered via SPI.

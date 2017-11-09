@@ -21,10 +21,11 @@ package org.apache.rya.api.utils;
 
 import java.util.Map;
 
-import com.google.common.base.Function;
 import org.apache.rya.api.RdfCloudTripleStoreUtils;
 import org.apache.rya.api.domain.RyaStatement;
 import org.eclipse.rdf4j.query.BindingSet;
+
+import com.google.common.base.Function;
 
 /**
  * Date: 1/18/13

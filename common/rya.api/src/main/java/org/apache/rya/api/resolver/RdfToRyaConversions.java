@@ -18,6 +18,7 @@ package org.apache.rya.api.resolver;
  * specific language governing permissions and limitations
  * under the License.
  */
+
 import org.apache.rya.api.domain.RangeURI;
 import org.apache.rya.api.domain.RangeValue;
 import org.apache.rya.api.domain.RyaSchema;

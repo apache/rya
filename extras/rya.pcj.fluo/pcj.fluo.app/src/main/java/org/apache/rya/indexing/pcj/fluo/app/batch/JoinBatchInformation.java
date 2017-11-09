@@ -20,13 +20,14 @@ package org.apache.rya.indexing.pcj.fluo.app.batch;
 
 import java.util.Objects;
 
-import com.google.common.base.Preconditions;
 import org.apache.fluo.api.data.Column;
 import org.apache.fluo.api.data.Span;
 import org.apache.rya.indexing.pcj.fluo.app.JoinResultUpdater.Side;
 import org.apache.rya.indexing.pcj.fluo.app.query.JoinMetadata.JoinType;
 import org.apache.rya.indexing.pcj.storage.accumulo.VisibilityBindingSet;
 import org.eclipse.rdf4j.query.Binding;
+
+import com.google.common.base.Preconditions;
 
 /**
  * This class updates join results based on parameters specified for the join's

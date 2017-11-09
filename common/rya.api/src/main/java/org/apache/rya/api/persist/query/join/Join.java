@@ -34,9 +34,9 @@ import org.eclipse.rdf4j.common.iteration.CloseableIteration;
  */
 public interface Join<C extends RdfCloudTripleStoreConfiguration> {
 
-    CloseableIteration<RyaStatement, RyaDAOException> join(C conf, RyaURI... preds)
+    public CloseableIteration<RyaStatement, RyaDAOException> join(C conf, RyaURI... preds)
             throws RyaDAOException;
 
-    CloseableIteration<RyaURI, RyaDAOException> join(C conf, Map.Entry<RyaURI, RyaType>... predObjs)
+    public CloseableIteration<RyaURI, RyaDAOException> join(C conf, Map.Entry<RyaURI, RyaType>... predObjs)
                     throws RyaDAOException;
 }

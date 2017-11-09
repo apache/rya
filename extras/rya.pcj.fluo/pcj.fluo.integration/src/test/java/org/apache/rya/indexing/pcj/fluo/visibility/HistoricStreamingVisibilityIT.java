@@ -22,7 +22,6 @@ import java.io.UnsupportedEncodingException;
 import java.util.HashSet;
 import java.util.Set;
 
-import com.google.common.collect.Sets;
 import org.apache.accumulo.core.client.Connector;
 import org.apache.accumulo.core.security.Authorizations;
 import org.apache.fluo.api.client.FluoClient;
@@ -44,6 +43,8 @@ import org.eclipse.rdf4j.query.BindingSet;
 import org.eclipse.rdf4j.query.impl.MapBindingSet;
 import org.junit.Assert;
 import org.junit.Test;
+
+import com.google.common.collect.Sets;
 
 /**
  * Performs integration tests over the Fluo application geared towards various types of input.

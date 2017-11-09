@@ -23,8 +23,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import com.google.common.collect.Sets;
-import com.google.common.primitives.Bytes;
 import org.apache.hadoop.io.Text;
 import org.apache.rya.accumulo.documentIndex.TextColumn;
 import org.apache.rya.api.domain.RyaType;
@@ -44,6 +42,9 @@ import org.eclipse.rdf4j.query.parser.ParsedQuery;
 import org.eclipse.rdf4j.query.parser.sparql.SPARQLParser;
 import org.junit.Assert;
 import org.junit.Test;
+
+import com.google.common.collect.Sets;
+import com.google.common.primitives.Bytes;
 
 public class StarQueryTest {
 

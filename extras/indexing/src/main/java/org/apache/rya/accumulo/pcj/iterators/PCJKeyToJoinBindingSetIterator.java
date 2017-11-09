@@ -25,8 +25,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.NoSuchElementException;
 
-import com.google.common.base.Preconditions;
-import com.google.common.collect.HashBiMap;
 import org.apache.accumulo.core.client.BatchScanner;
 import org.apache.accumulo.core.client.Scanner;
 import org.apache.accumulo.core.data.Key;
@@ -41,6 +39,9 @@ import org.eclipse.rdf4j.model.Value;
 import org.eclipse.rdf4j.query.BindingSet;
 import org.eclipse.rdf4j.query.QueryEvaluationException;
 import org.eclipse.rdf4j.query.algebra.evaluation.QueryBindingSet;
+
+import com.google.common.base.Preconditions;
+import com.google.common.collect.HashBiMap;
 
 /**
  * This class takes in a {@link Scanner} and a Collection of BindingSets,
@@ -119,8 +120,9 @@ public class PCJKeyToJoinBindingSetIterator
 			}
 			isEmpty = true;
 			return false;
-		} else
-            return !isEmpty;
+		} else {
+			return !isEmpty;
+		}
 	}
 
 	@Override

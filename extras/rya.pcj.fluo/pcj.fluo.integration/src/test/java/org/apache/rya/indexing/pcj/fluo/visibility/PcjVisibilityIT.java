@@ -18,14 +18,15 @@
  */
 package org.apache.rya.indexing.pcj.fluo.visibility;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
-import com.google.common.base.Optional;
-import com.google.common.collect.Sets;
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
 import org.apache.accumulo.core.client.Connector;
@@ -66,8 +67,8 @@ import org.eclipse.rdf4j.repository.RepositoryConnection;
 import org.eclipse.rdf4j.sail.Sail;
 import org.junit.Test;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import com.google.common.base.Optional;
+import com.google.common.collect.Sets;
 
 /**
  * Integration tests that ensure the Fluo Application properly exports PCJ
@@ -75,16 +76,16 @@ import static org.junit.Assert.assertTrue;
  */
 public class PcjVisibilityIT extends RyaExportITBase {
 
-    private static final ValueFactory vf = SimpleValueFactory.getInstance();
+    private static final ValueFactory VF = SimpleValueFactory.getInstance();
 
     // Constants used within the test.
-    private static final IRI ALICE = vf.createIRI("urn:Alice");
-    private static final IRI BOB = vf.createIRI("urn:Bob");
-    private static final IRI TALKS_TO = vf.createIRI("urn:talksTo");
-    private static final IRI LIVES_IN = vf.createIRI("urn:livesIn");
-    private static final IRI WORKS_AT = vf.createIRI("urn:worksAt");
-    private static final IRI HAPPYVILLE = vf.createIRI("urn:Happyville");
-    private static final IRI BURGER_JOINT = vf.createIRI("urn:BurgerJoint");
+    private static final IRI ALICE = VF.createIRI("urn:Alice");
+    private static final IRI BOB = VF.createIRI("urn:Bob");
+    private static final IRI TALKS_TO = VF.createIRI("urn:talksTo");
+    private static final IRI LIVES_IN = VF.createIRI("urn:livesIn");
+    private static final IRI WORKS_AT = VF.createIRI("urn:worksAt");
+    private static final IRI HAPPYVILLE = VF.createIRI("urn:Happyville");
+    private static final IRI BURGER_JOINT = VF.createIRI("urn:BurgerJoint");
 
     @Test
     public void visibilitySimplified() throws Exception {
@@ -141,9 +142,9 @@ public class PcjVisibilityIT extends RyaExportITBase {
             ryaConn = ryaRepo.getConnection();
 
             // Load a few Statements into Rya.
-            ryaConn.add(vf.createStatement(ALICE, TALKS_TO, BOB));
-            ryaConn.add(vf.createStatement(BOB, LIVES_IN, HAPPYVILLE));
-            ryaConn.add(vf.createStatement(BOB, WORKS_AT, BURGER_JOINT));
+            ryaConn.add(VF.createStatement(ALICE, TALKS_TO, BOB));
+            ryaConn.add(VF.createStatement(BOB, LIVES_IN, HAPPYVILLE));
+            ryaConn.add(VF.createStatement(BOB, WORKS_AT, BURGER_JOINT));
 
             // Wait for Fluo to finish processing.
             super.getMiniFluo().waitForObservers();
@@ -238,27 +239,27 @@ public class PcjVisibilityIT extends RyaExportITBase {
 
         final Set<BindingSet> rootExpected = Sets.newHashSet();
         MapBindingSet bs = new MapBindingSet();
-        bs.addBinding("customer", vf.createIRI("http://Alice"));
-        bs.addBinding("worker", vf.createIRI("http://Bob"));
-        bs.addBinding("city", vf.createIRI("http://London"));
+        bs.addBinding("customer", VF.createIRI("http://Alice"));
+        bs.addBinding("worker", VF.createIRI("http://Bob"));
+        bs.addBinding("city", VF.createIRI("http://London"));
         rootExpected.add(bs);
 
         bs = new MapBindingSet();
-        bs.addBinding("customer", vf.createIRI("http://Alice"));
-        bs.addBinding("worker", vf.createIRI("http://Charlie"));
-        bs.addBinding("city", vf.createIRI("http://London"));
+        bs.addBinding("customer", VF.createIRI("http://Alice"));
+        bs.addBinding("worker", VF.createIRI("http://Charlie"));
+        bs.addBinding("city", VF.createIRI("http://London"));
         rootExpected.add(bs);
 
         bs = new MapBindingSet();
-        bs.addBinding("customer", vf.createIRI("http://Alice"));
-        bs.addBinding("worker", vf.createIRI("http://Eve"));
-        bs.addBinding("city", vf.createIRI("http://Leeds"));
+        bs.addBinding("customer", VF.createIRI("http://Alice"));
+        bs.addBinding("worker", VF.createIRI("http://Eve"));
+        bs.addBinding("city", VF.createIRI("http://Leeds"));
         rootExpected.add(bs);
 
         bs = new MapBindingSet();
-        bs.addBinding("customer", vf.createIRI("http://Alice"));
-        bs.addBinding("worker", vf.createIRI("http://David"));
-        bs.addBinding("city", vf.createIRI("http://London"));
+        bs.addBinding("customer", VF.createIRI("http://Alice"));
+        bs.addBinding("worker", VF.createIRI("http://David"));
+        bs.addBinding("city", VF.createIRI("http://London"));
         rootExpected.add(bs);
 
         assertEquals(rootExpected, rootResults);
@@ -272,9 +273,9 @@ public class PcjVisibilityIT extends RyaExportITBase {
 
             final Set<BindingSet> abExpected = Sets.newHashSet();
             bs = new MapBindingSet();
-            bs.addBinding("customer", vf.createIRI("http://Alice"));
-            bs.addBinding("worker", vf.createIRI("http://Bob"));
-            bs.addBinding("city", vf.createIRI("http://London"));
+            bs.addBinding("customer", VF.createIRI("http://Alice"));
+            bs.addBinding("worker", VF.createIRI("http://Bob"));
+            bs.addBinding("city", VF.createIRI("http://London"));
             abExpected.add(bs);
 
             assertEquals(abExpected, abResults);
@@ -287,15 +288,15 @@ public class PcjVisibilityIT extends RyaExportITBase {
 
             final Set<BindingSet> abcExpected = Sets.newHashSet();
             bs = new MapBindingSet();
-            bs.addBinding("customer", vf.createIRI("http://Alice"));
-            bs.addBinding("worker", vf.createIRI("http://Bob"));
-            bs.addBinding("city", vf.createIRI("http://London"));
+            bs.addBinding("customer", VF.createIRI("http://Alice"));
+            bs.addBinding("worker", VF.createIRI("http://Bob"));
+            bs.addBinding("city", VF.createIRI("http://London"));
             abcExpected.add(bs);
 
             bs = new MapBindingSet();
-            bs.addBinding("customer", vf.createIRI("http://Alice"));
-            bs.addBinding("worker", vf.createIRI("http://Charlie"));
-            bs.addBinding("city", vf.createIRI("http://London"));
+            bs.addBinding("customer", VF.createIRI("http://Alice"));
+            bs.addBinding("worker", VF.createIRI("http://Charlie"));
+            bs.addBinding("city", VF.createIRI("http://London"));
             abcExpected.add(bs);
 
             assertEquals(abcExpected, abcResults);
@@ -308,9 +309,9 @@ public class PcjVisibilityIT extends RyaExportITBase {
 
             final Set<BindingSet> adeExpected = Sets.newHashSet();
             bs = new MapBindingSet();
-            bs.addBinding("customer", vf.createIRI("http://Alice"));
-            bs.addBinding("worker", vf.createIRI("http://Eve"));
-            bs.addBinding("city", vf.createIRI("http://Leeds"));
+            bs.addBinding("customer", VF.createIRI("http://Alice"));
+            bs.addBinding("worker", VF.createIRI("http://Eve"));
+            bs.addBinding("city", VF.createIRI("http://Leeds"));
             adeExpected.add(bs);
 
             assertEquals(adeExpected, adeResults);

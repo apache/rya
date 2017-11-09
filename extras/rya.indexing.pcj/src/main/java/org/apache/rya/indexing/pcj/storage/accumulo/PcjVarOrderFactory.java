@@ -20,9 +20,10 @@ package org.apache.rya.indexing.pcj.storage.accumulo;
 
 import java.util.Set;
 
+import org.eclipse.rdf4j.query.MalformedQueryException;
+
 import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
 import edu.umd.cs.findbugs.annotations.NonNull;
-import org.eclipse.rdf4j.query.MalformedQueryException;
 
 /**
  * Create alternative variable orders for a SPARQL query based on
@@ -38,7 +39,7 @@ public interface PcjVarOrderFactory {
      * @return @return A set of variable orders for the SPARQL query.
      * @throws MalformedQueryException The SPARQL query was malformed and could not be parsed.
      */
-    Set<VariableOrder> makeVarOrders(String sparql) throws MalformedQueryException;
+    public Set<VariableOrder> makeVarOrders(String sparql) throws MalformedQueryException;
 
     /**
      * Create alternative variable orders for a SPARQL query based on
@@ -47,5 +48,5 @@ public interface PcjVarOrderFactory {
      * @param varOrder - The initial variable order of a SPARQL query. (not null)
      * @return A set of alternative variable orders for the original.
      */
-    Set<VariableOrder> makeVarOrders(VariableOrder varOrder);
+    public Set<VariableOrder> makeVarOrders(VariableOrder varOrder);
 }

@@ -22,7 +22,6 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
-import com.google.common.collect.Sets;
 import org.apache.fluo.api.client.FluoClient;
 import org.apache.fluo.core.client.FluoClientImpl;
 import org.apache.fluo.recipes.test.AccumuloExportITBase;
@@ -35,6 +34,8 @@ import org.apache.rya.periodic.notification.recovery.PeriodicNotificationProvide
 import org.eclipse.rdf4j.query.MalformedQueryException;
 import org.junit.Assert;
 import org.junit.Test;
+
+import com.google.common.collect.Sets;
 
 public class PeriodicNotificationProviderIT extends AccumuloExportITBase {
 

@@ -26,5 +26,5 @@ import org.eclipse.rdf4j.query.BindingSet;
 import org.eclipse.rdf4j.query.QueryEvaluationException;
 
 public interface ExternalBatchingIterator {
-    CloseableIteration<BindingSet, QueryEvaluationException> evaluate(Collection<BindingSet> bindingset) throws QueryEvaluationException;
+    public CloseableIteration<BindingSet, QueryEvaluationException> evaluate(Collection<BindingSet> bindingset) throws QueryEvaluationException;
 }

@@ -18,13 +18,13 @@
  */
 package org.apache.rya.indexing.pcj.fluo.app.util;
 
+import static org.junit.Assert.assertEquals;
+
 import org.eclipse.rdf4j.query.algebra.Filter;
 import org.eclipse.rdf4j.query.algebra.Projection;
 import org.eclipse.rdf4j.query.parser.ParsedQuery;
 import org.eclipse.rdf4j.query.parser.sparql.SPARQLParser;
 import org.junit.Test;
-
-import static org.junit.Assert.assertEquals;
 
 public class FilterSerializerTest {
 

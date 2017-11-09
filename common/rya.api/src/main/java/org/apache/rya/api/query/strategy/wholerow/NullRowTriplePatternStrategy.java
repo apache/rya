@@ -19,6 +19,8 @@ package org.apache.rya.api.query.strategy.wholerow;
  * under the License.
  */
 
+import static org.apache.rya.api.RdfCloudTripleStoreConstants.LAST_BYTES;
+
 import java.io.IOException;
 import java.util.Map;
 
@@ -29,8 +31,6 @@ import org.apache.rya.api.domain.RyaType;
 import org.apache.rya.api.domain.RyaURI;
 import org.apache.rya.api.query.strategy.AbstractTriplePatternStrategy;
 import org.apache.rya.api.query.strategy.ByteRange;
-
-import static org.apache.rya.api.RdfCloudTripleStoreConstants.LAST_BYTES;
 
 public class NullRowTriplePatternStrategy extends AbstractTriplePatternStrategy {
 

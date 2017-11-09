@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -20,7 +20,6 @@ package org.apache.rya.indexing.mongo;
 
 import java.util.List;
 
-import com.google.common.collect.ImmutableSet;
 import org.apache.rya.api.domain.RyaType;
 import org.apache.rya.api.domain.RyaURI;
 import org.apache.rya.indexing.entity.EntityIndexOptimizer;
@@ -42,6 +41,8 @@ import org.eclipse.rdf4j.query.parser.sparql.SPARQLParser;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+
+import com.google.common.collect.ImmutableSet;
 
 public class MongoEntityIndexTest extends MongoTestBase {
     private static final Type PERSON_TYPE =

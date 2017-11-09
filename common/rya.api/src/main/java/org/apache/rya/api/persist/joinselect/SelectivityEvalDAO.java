@@ -26,10 +26,10 @@ import org.eclipse.rdf4j.query.algebra.TupleExpr;
 
 public interface SelectivityEvalDAO<C extends RdfCloudTripleStoreConfiguration> extends RdfEvalStatsDAO<C> {
 
-  double getJoinSelect(C conf, TupleExpr te1, TupleExpr te2) throws Exception;
+  public double getJoinSelect(C conf, TupleExpr te1, TupleExpr te2) throws Exception;
 
-  long getCardinality(C conf, StatementPattern sp) throws Exception;
+  public long getCardinality(C conf, StatementPattern sp) throws Exception;
   
-  int getTableSize(C conf) throws Exception;
+  public int getTableSize(C conf) throws Exception;
 
 }

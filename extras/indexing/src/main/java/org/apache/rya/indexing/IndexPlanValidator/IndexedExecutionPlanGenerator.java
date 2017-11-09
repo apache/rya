@@ -23,11 +23,12 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.NoSuchElementException;
 
-import com.google.common.collect.Lists;
 import org.apache.rya.indexing.external.tupleSet.ExternalTupleSet;
 import org.apache.rya.indexing.pcj.matching.QueryVariableNormalizer;
 import org.eclipse.rdf4j.query.algebra.Projection;
 import org.eclipse.rdf4j.query.algebra.TupleExpr;
+
+import com.google.common.collect.Lists;
 
 public class IndexedExecutionPlanGenerator implements ExternalIndexMatcher {
 
@@ -68,8 +69,9 @@ public class IndexedExecutionPlanGenerator implements ExternalIndexMatcher {
                     }
                     isEmpty = true;
                     return false;
-                } else
+                } else {
                     return !isEmpty;
+                }
             }
 
             @Override

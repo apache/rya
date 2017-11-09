@@ -21,10 +21,11 @@ package org.apache.rya.indexing;
 
 import java.util.Map;
 
-import com.google.common.collect.Maps;
 import org.apache.log4j.Logger;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.query.QueryEvaluationException;
+
+import com.google.common.collect.Maps;
 
 public abstract class SearchFunctionFactory {
     

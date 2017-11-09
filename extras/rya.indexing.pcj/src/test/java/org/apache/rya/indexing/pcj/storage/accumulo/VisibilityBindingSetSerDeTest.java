@@ -19,13 +19,13 @@
 
 package org.apache.rya.indexing.pcj.storage.accumulo;
 
+import static org.junit.Assert.assertEquals;
+
 import org.apache.fluo.api.data.Bytes;
 import org.eclipse.rdf4j.model.ValueFactory;
 import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 import org.eclipse.rdf4j.query.impl.MapBindingSet;
 import org.junit.Test;
-
-import static org.junit.Assert.assertEquals;
 
 /**
  * Tests the methods of {@link VisibilityBindingSetSerDe}.

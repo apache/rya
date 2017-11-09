@@ -31,22 +31,22 @@ import org.eclipse.rdf4j.model.Value;
  * Time: 4:17:05 PM
  */
 public interface RdfEvalStatsDAO<C extends RdfCloudTripleStoreConfiguration> {
-    enum CARDINALITY_OF {
+    public enum CARDINALITY_OF {
         SUBJECT, PREDICATE, OBJECT, SUBJECTPREDICATE, SUBJECTOBJECT, PREDICATEOBJECT
     }
 
-    void init() throws RdfDAOException;
+    public void init() throws RdfDAOException;
 
-    boolean isInitialized() throws RdfDAOException;
+    public boolean isInitialized() throws RdfDAOException;
 
-    void destroy() throws RdfDAOException;
+    public void destroy() throws RdfDAOException;
 
     // XXX returns -1 if no cardinality could be found.
-    double getCardinality(C conf, CARDINALITY_OF card, List<Value> val) throws RdfDAOException;
-	double getCardinality(C conf, CARDINALITY_OF card, List<Value> val, Resource context) throws RdfDAOException;
+    public double getCardinality(C conf, CARDINALITY_OF card, List<Value> val) throws RdfDAOException;
+    public double getCardinality(C conf, CARDINALITY_OF card, List<Value> val, Resource context) throws RdfDAOException;
 
-    void setConf(C conf);
+    public void setConf(C conf);
 
-    C getConf();
+    public C getConf();
 
 }

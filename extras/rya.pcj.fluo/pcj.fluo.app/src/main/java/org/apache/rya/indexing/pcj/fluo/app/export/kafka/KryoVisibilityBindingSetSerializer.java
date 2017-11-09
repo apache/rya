@@ -23,9 +23,6 @@ import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
 import java.util.Map;
 
-import com.esotericsoftware.kryo.Kryo;
-import com.esotericsoftware.kryo.io.Input;
-import com.esotericsoftware.kryo.io.Output;
 import org.apache.kafka.common.serialization.Deserializer;
 import org.apache.kafka.common.serialization.Serializer;
 import org.apache.log4j.Logger;
@@ -41,6 +38,10 @@ import org.eclipse.rdf4j.query.Binding;
 import org.eclipse.rdf4j.query.BindingSet;
 import org.eclipse.rdf4j.query.impl.ListBindingSet;
 
+import com.esotericsoftware.kryo.Kryo;
+import com.esotericsoftware.kryo.io.Input;
+import com.esotericsoftware.kryo.io.Output;
+
 /**
  * Serialize and deserialize a VisibilityBindingSet using Kyro lib. Great for exporting results of queries.
  *
@@ -53,7 +54,7 @@ public class KryoVisibilityBindingSetSerializer implements Serializer<Visibility
             return kryo;
         }
     };
-    private static final ValueFactory vf = SimpleValueFactory.getInstance();
+    private static final ValueFactory VF = SimpleValueFactory.getInstance();
 
     /**
      * Deserialize a VisibilityBindingSet using Kyro lib. Exporting results of queries.
@@ -153,7 +154,7 @@ public class KryoVisibilityBindingSetSerializer implements Serializer<Visibility
             for (int i = bindingCount; i > 0; i--) {
                 namesList.add(input.readString());
                 String valueString = input.readString();
-                final IRI type = vf.createIRI(input.readString());
+                final IRI type = VF.createIRI(input.readString());
                 valuesList.add(makeValue(valueString, type));
             }
             BindingSet bindingSet = new ListBindingSet(namesList, valuesList);

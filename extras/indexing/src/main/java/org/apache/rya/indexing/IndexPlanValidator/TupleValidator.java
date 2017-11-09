@@ -25,9 +25,9 @@ import org.eclipse.rdf4j.query.algebra.TupleExpr;
 
 public interface TupleValidator {
 
-    boolean isValid(TupleExpr te);
+    public boolean isValid(TupleExpr te);
     
-    Iterator<TupleExpr> getValidTuples(Iterator<TupleExpr> tupleList);
+    public Iterator<TupleExpr> getValidTuples(Iterator<TupleExpr> tupleList);
     
     
 }

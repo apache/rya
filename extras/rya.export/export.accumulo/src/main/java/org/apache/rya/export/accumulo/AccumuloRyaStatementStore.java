@@ -75,10 +75,10 @@ public class AccumuloRyaStatementStore implements RyaStatementStore {
     private final AccumuloParentMetadataRepository metadataRepo;
 
     /**
-     *
-     * @param dao the dao
-     * @param tablePrefix table prefix
-     * @param ryaInstance a rya instance
+     * Creates a new instance of {@link AccumuloRyaStatementStore}.
+     * @param dao the {@AccumuloRyaDAO}.
+     * @param tablePrefix the Rya instance's table prefix.
+     * @param ryaInstance the Rya instance name.
      */
     public AccumuloRyaStatementStore(final AccumuloRyaDAO dao, final String tablePrefix, final String ryaInstance) {
         this.tablePrefix = tablePrefix;

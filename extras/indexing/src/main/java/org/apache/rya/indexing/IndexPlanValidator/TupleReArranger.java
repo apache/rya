@@ -24,9 +24,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
 
-import com.google.common.collect.Collections2;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import org.apache.rya.indexing.external.tupleSet.ExternalTupleSet;
 import org.apache.rya.rdftriplestore.inference.DoNotExpandSP;
 import org.apache.rya.rdftriplestore.utils.FixedStatementPattern;
@@ -36,9 +33,15 @@ import org.eclipse.rdf4j.query.algebra.StatementPattern;
 import org.eclipse.rdf4j.query.algebra.TupleExpr;
 import org.eclipse.rdf4j.query.algebra.helpers.AbstractQueryModelVisitor;
 
-//A given TupleExpr can be broken up into "join segments", which are sections of the TupleExpr where nodes can
-//be freely exchanged.  This class creates a list of permuted TupleExpr from a specified TupleExpr by permuting the nodes
-//in each join segment.
+import com.google.common.collect.Collections2;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+
+/**
+ * A given TupleExpr can be broken up into "join segments", which are sections of the TupleExpr where nodes can
+ * be freely exchanged.  This class creates a list of permuted TupleExpr from a specified TupleExpr by permuting the nodes
+ * in each join segment.
+ */
 public class TupleReArranger {
 
     private static Map<Join, List<List<TupleExpr>>> joinArgs;
@@ -77,8 +80,9 @@ public class TupleReArranger {
                         isEmpty = true;
                         return false;
                     }
-                } else
+                } else {
                     return !isEmpty;
+                }
             }
 
             @Override

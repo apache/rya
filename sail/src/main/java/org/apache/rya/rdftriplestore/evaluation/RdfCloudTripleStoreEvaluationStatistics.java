@@ -48,8 +48,6 @@ import org.eclipse.rdf4j.query.algebra.UnaryTupleOperator;
 import org.eclipse.rdf4j.query.algebra.Var;
 import org.eclipse.rdf4j.query.algebra.evaluation.impl.EvaluationStatistics;
 
-//import static RdfCloudTripleStoreUtils.getTtlValueConverter;
-
 /**
  * Class RdfCloudTripleStoreEvaluationStatistics
  * Date: Apr 12, 2011

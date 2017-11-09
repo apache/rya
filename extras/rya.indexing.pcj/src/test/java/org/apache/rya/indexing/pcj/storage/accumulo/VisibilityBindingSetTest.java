@@ -18,12 +18,12 @@
  */
 package org.apache.rya.indexing.pcj.storage.accumulo;
 
+import static org.junit.Assert.assertNotEquals;
+
 import org.eclipse.rdf4j.model.ValueFactory;
 import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 import org.eclipse.rdf4j.query.impl.MapBindingSet;
 import org.junit.Test;
-
-import static org.junit.Assert.assertNotEquals;
 
 /**
  * Unit tests the methods of {@link VisibilityBindingSet}.

@@ -18,16 +18,13 @@
  */
 package org.apache.rya.indexing.pcj.fluo.client.command;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
-import com.beust.jcommander.JCommander;
-import com.beust.jcommander.Parameter;
-import com.beust.jcommander.ParameterException;
-import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
-import edu.umd.cs.findbugs.annotations.NonNull;
 import org.apache.accumulo.core.client.Connector;
 import org.apache.commons.io.IOUtils;
 import org.apache.fluo.api.client.FluoClient;
@@ -44,7 +41,12 @@ import org.apache.rya.indexing.pcj.storage.accumulo.AccumuloPcjStorage;
 import org.apache.rya.rdftriplestore.RyaSailRepository;
 import org.eclipse.rdf4j.query.MalformedQueryException;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import com.beust.jcommander.JCommander;
+import com.beust.jcommander.Parameter;
+import com.beust.jcommander.ParameterException;
+
+import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
+import edu.umd.cs.findbugs.annotations.NonNull;
 
 /**
  * A command that creates a creates a new PCJ in the Fluo app and loads historic

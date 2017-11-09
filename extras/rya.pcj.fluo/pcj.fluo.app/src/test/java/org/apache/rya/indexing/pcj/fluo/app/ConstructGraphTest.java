@@ -18,12 +18,14 @@ package org.apache.rya.indexing.pcj.fluo.app;
  * under the License.
  */
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
 import java.io.UnsupportedEncodingException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 
-import com.google.common.collect.Sets;
 import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.domain.RyaURI;
 import org.apache.rya.indexing.pcj.storage.accumulo.VisibilityBindingSet;
@@ -35,15 +37,13 @@ import org.eclipse.rdf4j.query.algebra.evaluation.QueryBindingSet;
 import org.eclipse.rdf4j.query.algebra.helpers.StatementPatternCollector;
 import org.eclipse.rdf4j.query.parser.ParsedQuery;
 import org.eclipse.rdf4j.query.parser.sparql.SPARQLParser;
-import org.junit.Ignore;
 import org.junit.Test;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import com.google.common.collect.Sets;
 
 public class ConstructGraphTest {
 
-    private ValueFactory vf = SimpleValueFactory.getInstance();
+    private static final ValueFactory VF = SimpleValueFactory.getInstance();
     
     @Test
     public void testConstructGraph() throws MalformedQueryException, UnsupportedEncodingException {
@@ -55,9 +55,9 @@ public class ConstructGraphTest {
         ConstructGraph graph = new ConstructGraph(patterns);
 
         QueryBindingSet bs = new QueryBindingSet();
-        bs.addBinding("x", vf.createIRI("uri:Joe"));
-        bs.addBinding("y", vf.createIRI("uri:Bob"));
-        bs.addBinding("z", vf.createIRI("uri:BurgerShack"));
+        bs.addBinding("x", VF.createIRI("uri:Joe"));
+        bs.addBinding("y", VF.createIRI("uri:Bob"));
+        bs.addBinding("z", VF.createIRI("uri:BurgerShack"));
         VisibilityBindingSet vBs = new VisibilityBindingSet(bs,"FOUO");
         Set<RyaStatement> statements = graph.createGraphFromBindingSet(vBs);
         
@@ -78,8 +78,8 @@ public class ConstructGraphTest {
         ConstructGraph graph = new ConstructGraph(patterns);
 
         QueryBindingSet bs = new QueryBindingSet();
-        bs.addBinding("x", vf.createIRI("uri:Joe"));
-        bs.addBinding("z", vf.createIRI("uri:BurgerShack"));
+        bs.addBinding("x", VF.createIRI("uri:Joe"));
+        bs.addBinding("z", VF.createIRI("uri:BurgerShack"));
         VisibilityBindingSet vBs = new VisibilityBindingSet(bs, "FOUO");
         Set<RyaStatement> statements = graph.createGraphFromBindingSet(vBs);
         Set<RyaStatement> statements2 = graph.createGraphFromBindingSet(vBs);
@@ -110,7 +110,6 @@ public class ConstructGraphTest {
     
     
     @Test
-    @Ignore
     public void testConstructGraphSerializer() throws MalformedQueryException {
         
         String query = "select ?x where { ?x <uri:talksTo> <uri:Bob>. ?y <uri:worksAt> ?z }";
@@ -128,7 +127,6 @@ public class ConstructGraphTest {
     }
     
     @Test
-    @Ignore
     public void testConstructGraphSerializerBlankNode() throws MalformedQueryException {
         
         String query = "select ?x where { _:b <uri:talksTo> ?x. _:b <uri:worksAt> ?y }";

@@ -101,7 +101,7 @@ public class FluoStringConverter {
                 // Handle a URI object.
                 Preconditions.checkArgument(varParts.length == 2);
                 final String valueString = VarNameUtils.removeConstant(name);
-                final Var var = new Var(name, vf.createIRI(dataTypeString,valueString));
+                final Var var = new Var(name, vf.createIRI(valueString));
                 var.setConstant(true);
                 return var;
             } else if(dataTypeString.equals(RyaSchema.BNODE_NAMESPACE)) {
@@ -142,6 +142,7 @@ public class FluoStringConverter {
         String subj = subjVar.getName();
         if(subjVar.getValue() != null) {
             final Value subjValue = subjVar.getValue();
+            subj = VarNameUtils.createSimpleConstVarName(subjVar);
             if (subjValue instanceof BNode ) {
                 subj = subj + TYPE_DELIM + RyaSchema.BNODE_NAMESPACE + TYPE_DELIM + ((BNode) subjValue).getID();
             } else {
@@ -152,13 +153,16 @@ public class FluoStringConverter {
         final Var predVar = sp.getPredicateVar();
         String pred = predVar.getName();
         if(predVar.getValue() != null) {
+            pred = VarNameUtils.createSimpleConstVarName(predVar);
             pred = pred + TYPE_DELIM + URI_TYPE;
         }
 
         final Var objVar = sp.getObjectVar();
         String obj = objVar.getName();
         if (objVar.getValue() != null) {
-            final RyaType rt = RdfToRyaConversions.convertValue(objVar.getValue());
+            final Value objValue = objVar.getValue();
+            obj = VarNameUtils.createSimpleConstVarName(objVar);
+            final RyaType rt = RdfToRyaConversions.convertValue(objValue);
             obj =  obj + TYPE_DELIM + rt.getDataType().stringValue();
         }
 

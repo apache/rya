@@ -22,6 +22,7 @@ import org.apache.commons.lang.StringUtils;
 import org.eclipse.rdf4j.model.Value;
 import org.eclipse.rdf4j.model.ValueFactory;
 import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
+import org.eclipse.rdf4j.query.algebra.Var;
 import org.eclipse.rdf4j.query.algebra.helpers.TupleExprs;
 
 /**
@@ -138,15 +139,44 @@ public final class VarNameUtils {
      * @return the unique constant name for the {@code Var}.
      */
     public static String createUniqueConstVarName(final Value value) {
-        return TupleExprs.createConstVar(value).getName();
+        return TupleExprs.getConstVarName(value);
     }
 
     /**
-     * Creates a unique constant name for the {@code Var} with the supplied label.
+     * Creates a unique constant name for the {@code Var} with the supplied
+     * label.
      * @param label the label for the {@code Literal}.
      * @return the unique constant name for the {@code Var}.
      */
     public static String createUniqueConstVarName(final String label) {
         return createUniqueConstVarName(VF.createLiteral(label));
+    }
+
+    /**
+     * Creates a simple constant name for a {@link Var} to replace the unique
+     * hex string constant name. The simple constant name will be one of:
+     * <ul>
+     *   <li>The var's original string value with "_const_" prepended to it if
+     *       it's a constant (i.e. the constant var name was already likely
+     *       derived from {@link TupleExprs#createConstVar(Value)})</li>
+     *   <li>The original var name if it's not a constant or if it has no
+     *       value to generate a simple constant name from</li>
+     *   <li>{@code null} if {@code var} is {@code null}</li>
+     * </ul>
+     * @param var the {@link Var}.
+     * @return the simple constant var name.
+     */
+    public static String createSimpleConstVarName(final Var var) {
+        String varName = null;
+        if (var != null) {
+            if (var.getValue() != null && isConstant(var.getName())) {
+                // Replaces the unique constant hex string name with a simple
+                // readable constant name
+                varName = prependConstant(var.getValue().stringValue());
+            } else {
+                varName = var.getName();
+            }
+        }
+        return varName;
     }
 }

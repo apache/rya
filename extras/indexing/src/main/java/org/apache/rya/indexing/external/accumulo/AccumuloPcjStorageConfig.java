@@ -18,11 +18,11 @@
  */
 package org.apache.rya.indexing.external.accumulo;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import org.apache.hadoop.conf.Configuration;
 import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
 import org.apache.rya.indexing.pcj.storage.accumulo.AccumuloPcjStorage;
-
-import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * Configuration values required to initialize a {@link AccumuloPcjStorage}.

@@ -106,7 +106,7 @@ public class SparqlFluoQueryBuilder {
     private String queryId;
     private NodeIds nodeIds;
     private Optional<Integer> joinBatchSize = Optional.empty();
-    private static final ValueFactory vf = SimpleValueFactory.getInstance();
+    private static final ValueFactory VF = SimpleValueFactory.getInstance();
 
     //Default behavior is to export to Kafka - subject to change when user can
     //specify their own export strategy
@@ -636,7 +636,7 @@ public class SparqlFluoQueryBuilder {
                     Value value = ((ValueConstant) expr).getValue();
                     valueMap.put(name, value);
                 } else if(expr instanceof BNodeGenerator) {
-                    valueMap.put(name, vf.createBNode(UUID.randomUUID().toString()));
+                    valueMap.put(name, VF.createBNode(UUID.randomUUID().toString()));
                 }
             }
 

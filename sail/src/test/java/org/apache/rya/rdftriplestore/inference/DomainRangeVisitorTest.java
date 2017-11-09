@@ -47,10 +47,10 @@ import org.junit.Test;
 
 public class DomainRangeVisitorTest {
     private static final AccumuloRdfConfiguration conf = new AccumuloRdfConfiguration();
-    private static final ValueFactory vf = SimpleValueFactory.getInstance();
-    private static final IRI person = vf.createIRI("lubm:Person");
-    private static final IRI advisor = vf.createIRI("lubm:advisor");
-    private static final IRI takesCourse = vf.createIRI("lubm:takesCourse");
+    private static final ValueFactory VF = SimpleValueFactory.getInstance();
+    private static final IRI person = VF.createIRI("lubm:Person");
+    private static final IRI advisor = VF.createIRI("lubm:advisor");
+    private static final IRI takesCourse = VF.createIRI("lubm:takesCourse");
 
     @Test
     public void testRewriteTypePattern() throws Exception {

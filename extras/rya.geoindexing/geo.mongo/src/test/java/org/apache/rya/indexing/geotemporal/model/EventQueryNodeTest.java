@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -28,7 +28,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.rya.api.domain.RyaURI;
-import org.apache.rya.api.domain.VarNameUtils;
 import org.apache.rya.indexing.IndexingExpr;
 import org.apache.rya.indexing.IndexingFunctionRegistry;
 import org.apache.rya.indexing.IndexingFunctionRegistry.FUNCTION_TYPE;
@@ -37,7 +36,7 @@ import org.apache.rya.indexing.TemporalInstantRfc3339;
 import org.apache.rya.indexing.geotemporal.mongo.MongoEventStorage;
 import org.apache.rya.indexing.geotemporal.mongo.MongoITBase;
 import org.apache.rya.indexing.geotemporal.storage.EventStorage;
-import org.junit.Test;
+import org.eclipse.rdf4j.common.iteration.CloseableIteration;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Value;
 import org.eclipse.rdf4j.model.ValueFactory;
@@ -50,13 +49,12 @@ import org.eclipse.rdf4j.query.algebra.ValueConstant;
 import org.eclipse.rdf4j.query.algebra.ValueExpr;
 import org.eclipse.rdf4j.query.algebra.Var;
 import org.eclipse.rdf4j.query.impl.MapBindingSet;
+import org.junit.Test;
 
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.GeometryFactory;
 import com.vividsolutions.jts.geom.PrecisionModel;
-
-import org.eclipse.rdf4j.common.iteration.CloseableIteration;
 
 /**
  * Unit tests the methods of {@link EventQueryNode}.

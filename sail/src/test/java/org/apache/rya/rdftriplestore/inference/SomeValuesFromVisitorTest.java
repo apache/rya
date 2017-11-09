@@ -49,19 +49,19 @@ import com.google.common.collect.Sets;
 
 public class SomeValuesFromVisitorTest {
     private static final AccumuloRdfConfiguration conf = new AccumuloRdfConfiguration();
-    private static final ValueFactory vf = SimpleValueFactory.getInstance();
+    private static final ValueFactory VF = SimpleValueFactory.getInstance();
 
     // Value types
-    private final IRI course = vf.createIRI("lubm:Course");
-    private final IRI gradCourse = vf.createIRI("lubm:GraduateCourse");
-    private final IRI department = vf.createIRI("lubm:Department");
-    private final IRI organization = vf.createIRI("lubm:Organization");
+    private final IRI course = VF.createIRI("lubm:Course");
+    private final IRI gradCourse = VF.createIRI("lubm:GraduateCourse");
+    private final IRI department = VF.createIRI("lubm:Department");
+    private final IRI organization = VF.createIRI("lubm:Organization");
     // Predicates
-    private final IRI takesCourse = vf.createIRI("lubm:takesCourse");
-    private final IRI headOf = vf.createIRI("lubm:headOf");
-    private final IRI worksFor = vf.createIRI("lubm:worksFor");
+    private final IRI takesCourse = VF.createIRI("lubm:takesCourse");
+    private final IRI headOf = VF.createIRI("lubm:headOf");
+    private final IRI worksFor = VF.createIRI("lubm:worksFor");
     // Supertype of restriction types
-    private final IRI person = vf.createIRI("lubm:Person");
+    private final IRI person = VF.createIRI("lubm:Person");
 
     @Test
     public void testSomeValuesFrom() throws Exception {

@@ -53,13 +53,13 @@ public final class RyaTypeUtils {
      * Represents a method inside the {@link RyaTypeUtils} class that can be
      * called.
      */
-    private interface RyaTypeMethod {
+    private static interface RyaTypeMethod {
         /**
          * Calls the method within {@link RyaTypeUtils} with the supplied value.
          * @param value the object value.
          * @return the {@link RyaType}.
          */
-        RyaType callRyaTypeMethod(final Object value);
+        public RyaType callRyaTypeMethod(final Object value);
     }
 
     /**

@@ -269,7 +269,7 @@ public final class AccumuloTemporalIndexerTest {
     }
 
     /**
-     * Test method for {@link AccumuloTemporalIndexer#storeStatement(convertStatement( org.eclipse.rdf4j.model.Statement)}
+     * Test method for {@link AccumuloTemporalIndexer#storeStatement(convertStatement(org.eclipse.rdf4j.model.Statement)}
      *
      * @throws NoSuchAlgorithmException
      */
@@ -377,7 +377,7 @@ public final class AccumuloTemporalIndexerTest {
     }
 
     /**
-     * Test method for {@link AccumuloTemporalIndexer#storeStatement(convertStatement( org.eclipse.rdf4j.model.Statement)}
+     * Test method for {@link AccumuloTemporalIndexer#storeStatement(convertStatement(org.eclipse.rdf4j.model.Statement)}
      *
      * @throws NoSuchAlgorithmException
      */

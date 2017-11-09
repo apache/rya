@@ -23,11 +23,10 @@ import java.io.IOException;
 import java.util.Map;
 
 import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
+import org.apache.rya.api.RdfCloudTripleStoreConstants.TABLE_LAYOUT;
 import org.apache.rya.api.domain.RyaType;
 import org.apache.rya.api.domain.RyaURI;
 import org.apache.rya.api.resolver.triple.TripleRowRegex;
-
-import static org.apache.rya.api.RdfCloudTripleStoreConstants.TABLE_LAYOUT;
 
 /**
  * Date: 7/14/12
@@ -35,13 +34,13 @@ import static org.apache.rya.api.RdfCloudTripleStoreConstants.TABLE_LAYOUT;
  */
 public interface TriplePatternStrategy {
 
-    Map.Entry<TABLE_LAYOUT, ByteRange> defineRange(RyaURI subject, RyaURI predicate, RyaType object, RyaURI context,
-            RdfCloudTripleStoreConfiguration conf) throws IOException;
+    public Map.Entry<TABLE_LAYOUT, ByteRange> defineRange(RyaURI subject, RyaURI predicate, RyaType object, RyaURI context,
+                                                          RdfCloudTripleStoreConfiguration conf) throws IOException;
 
-    TABLE_LAYOUT getLayout();
+    public TABLE_LAYOUT getLayout();
 
-    boolean handles(RyaURI subject, RyaURI predicate, RyaType object, RyaURI context);
+    public boolean handles(RyaURI subject, RyaURI predicate, RyaType object, RyaURI context);
 
-    TripleRowRegex buildRegex(String subject, String predicate, String object, String context, byte[] objectTypeInfo);
+    public TripleRowRegex buildRegex(String subject, String predicate, String object, String context, byte[] objectTypeInfo);
 
 }

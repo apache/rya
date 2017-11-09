@@ -1,19 +1,3 @@
-package org.apache.rya.api;
-
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
-import com.google.common.base.Joiner;
-import com.google.common.base.Preconditions;
-import com.google.common.collect.Lists;
-import org.apache.hadoop.conf.Configuration;
-import org.apache.rya.api.domain.RyaURI;
-import org.apache.rya.api.layout.TableLayoutStrategy;
-import org.apache.rya.api.layout.TablePrefixLayoutStrategy;
-import org.apache.rya.api.persist.RdfEvalStatsDAO;
-import org.eclipse.rdf4j.query.algebra.evaluation.QueryOptimizer;
-
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -32,6 +16,22 @@ import org.eclipse.rdf4j.query.algebra.evaluation.QueryOptimizer;
  * specific language governing permissions and limitations
  * under the License.
  */
+package org.apache.rya.api;
+
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
+import org.apache.hadoop.conf.Configuration;
+import org.apache.rya.api.domain.RyaURI;
+import org.apache.rya.api.layout.TableLayoutStrategy;
+import org.apache.rya.api.layout.TablePrefixLayoutStrategy;
+import org.apache.rya.api.persist.RdfEvalStatsDAO;
+import org.eclipse.rdf4j.query.algebra.evaluation.QueryOptimizer;
+
+import com.google.common.base.Joiner;
+import com.google.common.base.Preconditions;
+import com.google.common.collect.Lists;
 
 /**
  * Rdf triple store specific configuration

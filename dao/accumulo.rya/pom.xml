@@ -54,11 +54,11 @@ under the License.
             <groupId>org.eclipse.rdf4j</groupId>
             <artifactId>rdf4j-queryalgebra-evaluation</artifactId>
         </dependency>
-		<dependency>
-			<groupId>org.eclipse.rdf4j</groupId>
-			<artifactId>rdf4j-sail-api</artifactId>
-			<version>${org.eclipse.rdf4j.version}</version>
-		</dependency>
+        <dependency>
+            <groupId>org.eclipse.rdf4j</groupId>
+            <artifactId>rdf4j-sail-api</artifactId>
+            <version>${org.eclipse.rdf4j.version}</version>
+        </dependency>
 
         <!--  testing dependencies -->
         <dependency>

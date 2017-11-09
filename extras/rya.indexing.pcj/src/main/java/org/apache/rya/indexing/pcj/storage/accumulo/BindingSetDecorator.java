@@ -18,14 +18,14 @@
  */
 package org.apache.rya.indexing.pcj.storage.accumulo;
 
+import static java.util.Objects.requireNonNull;
+
 import java.util.Iterator;
 import java.util.Set;
 
 import org.eclipse.rdf4j.model.Value;
 import org.eclipse.rdf4j.query.Binding;
 import org.eclipse.rdf4j.query.BindingSet;
-
-import static java.util.Objects.requireNonNull;
 
 /**
  * Abstracts out the decoration of a {@link BindingSet}.

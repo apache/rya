@@ -18,6 +18,8 @@
  */
 package org.apache.rya.indexing.pcj.fluo.app.batch.serializer;
 
+import static org.junit.Assert.assertEquals;
+
 import java.util.Optional;
 
 import org.apache.fluo.api.data.Bytes;
@@ -35,10 +37,8 @@ import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 import org.eclipse.rdf4j.query.algebra.evaluation.QueryBindingSet;
 import org.junit.Test;
 
-import static org.junit.Assert.assertEquals;
-
 public class BatchInformationSerializerTest {
-    private static ValueFactory vf = SimpleValueFactory.getInstance();
+    private static final ValueFactory VF = SimpleValueFactory.getInstance();
 
     @Test
     public void testSpanBatchInformationSerialization() {
@@ -56,8 +56,8 @@ public class BatchInformationSerializerTest {
     public void testJoinBatchInformationSerialization() {
 
         QueryBindingSet bs = new QueryBindingSet();
-        bs.addBinding("a", vf.createIRI("urn:123"));
-        bs.addBinding("b", vf.createIRI("urn:456"));
+        bs.addBinding("a", VF.createIRI("urn:123"));
+        bs.addBinding("b", VF.createIRI("urn:456"));
         VisibilityBindingSet vBis = new VisibilityBindingSet(bs, "FOUO");
         
         JoinBatchInformation batch = JoinBatchInformation.builder().setBatchSize(1000).setTask(Task.Update)

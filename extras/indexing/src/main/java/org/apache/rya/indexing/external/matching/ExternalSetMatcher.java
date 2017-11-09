@@ -50,7 +50,7 @@ public interface ExternalSetMatcher<T extends ExternalSet> {
      *            match occurs
      * @return - true is match and replace occurs and false otherwise
      */
-    boolean match(T set);
+    public boolean match(T set);
     
     /**
      *Matches specified ExternalSets to underlying QuerySegment and returns
@@ -58,7 +58,7 @@ public interface ExternalSetMatcher<T extends ExternalSet> {
      * 
      * @param sets - Collection of ExternalSets to be matched to QuerySegment
      */
-    QuerySegment<T> match(Collection<T> sets);
+    public QuerySegment<T> match(Collection<T> sets);
     
     /**
      * Allows Matcher to iterate over different Collections of ExternalSets to find an optimal combination of matching ExternalSets.
@@ -68,13 +68,13 @@ public interface ExternalSetMatcher<T extends ExternalSet> {
      * @param rater - Class that rates the resulting QuerySegment after each collection is matched for the purpose
      * of finding an optimal ExternalSet combination.  If the rater is not provided, the {@link BasicRater} is used.
      */
-    QuerySegment<T> match(Iterator<List<T>> sets, Optional<QueryNodeListRater> rater);
+    public QuerySegment<T> match(Iterator<List<T>> sets, Optional<QueryNodeListRater> rater);
 
     /**
      * @return - TupleExpr constructed from {@link QuerySegment} with matched
      *         nodes
      */
-    TupleExpr getQuery();
+    public TupleExpr getQuery();
 
     /**
      * Converts TupleExpr starting with given node to a {@link QuerySegment}.
@@ -83,12 +83,12 @@ public interface ExternalSetMatcher<T extends ExternalSet> {
      * @param node
      * @return
      */
-    QuerySegment<T> nodeToQuerySegment(QueryModelNode node);
+    public QuerySegment<T> nodeToQuerySegment(QueryModelNode node);
 
     /**
      * @return - all {@link TupleExpr} that haven't been matched to a PCJ
      */
-    Set<TupleExpr> getUnmatchedArgNodes();
+    public Set<TupleExpr> getUnmatchedArgNodes();
 
     /**
      * Similar to {@link #getUnmatchedArgs()}, except does not ignore no arg
@@ -96,18 +96,18 @@ public interface ExternalSetMatcher<T extends ExternalSet> {
      * 
      * @return a list of all unmatched nodes.
      */
-    List<QueryModelNode> getAllUnmatchedNodes();
+    public List<QueryModelNode> getAllUnmatchedNodes();
 
     /**
      *
      * @return - provided ordered view of QuerySegment nodes
      */
-    List<QueryModelNode> getOrderedNodes();
+    public List<QueryModelNode> getOrderedNodes();
 
     /**
      *
      * @return - Set of {@link Filter}s of given QuerySegment
      */
-    Set<Filter> getFilters();
+    public Set<Filter> getFilters();
 
 }

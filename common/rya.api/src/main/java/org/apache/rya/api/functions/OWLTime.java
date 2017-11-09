@@ -18,6 +18,9 @@
  */
 package org.apache.rya.api.functions;
 
+import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import java.time.temporal.ChronoUnit;
 import java.util.HashMap;
 import java.util.Map;
@@ -27,16 +30,13 @@ import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.ValueFactory;
 import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 
-import static com.google.common.base.Preconditions.checkArgument;
-import static com.google.common.base.Preconditions.checkNotNull;
-
 /**
  * Constants for OWL-Time primitives in the OWL-Time namespace.
  *
  */
 public class OWLTime {
 
-    private static final ValueFactory vf = SimpleValueFactory.getInstance();
+    private static final ValueFactory VF = SimpleValueFactory.getInstance();
 
     /**
      * Indicates namespace of OWL-Time ontology
@@ -45,23 +45,23 @@ public class OWLTime {
     /**
      * Seconds class of type DurationDescription in OWL-Time ontology
      */
-    public static final IRI SECONDS_URI = vf.createIRI(NAMESPACE, "seconds");
+    public static final IRI SECONDS_URI = VF.createIRI(NAMESPACE, "seconds");
     /**
      * Minutes class of type DurationDescription in OWL-Time ontology
      */
-    public static final IRI MINUTES_URI = vf.createIRI(NAMESPACE, "minutes");
+    public static final IRI MINUTES_URI = VF.createIRI(NAMESPACE, "minutes");
     /**
      * Hours class of type DurationDescription in OWL-Time ontology
      */
-    public static final IRI HOURS_URI = vf.createIRI(NAMESPACE, "hours");
+    public static final IRI HOURS_URI = VF.createIRI(NAMESPACE, "hours");
     /**
      * Days class of type DurationDescription in OWL-Time ontology
      */
-    public static final IRI DAYS_URI = vf.createIRI(NAMESPACE, "days");
+    public static final IRI DAYS_URI = VF.createIRI(NAMESPACE, "days");
     /**
      * Weeks class of type DurationDescription in OWL-Time ontology
      */
-    public static final IRI WEEKS_URI = vf.createIRI(NAMESPACE, "weeks");
+    public static final IRI WEEKS_URI = VF.createIRI(NAMESPACE, "weeks");
 
     private static final Map<IRI, ChronoUnit> DURATION_MAP = new HashMap<>();
 

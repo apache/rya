@@ -60,12 +60,12 @@ import com.google.common.base.Preconditions;
  */
 public class PeriodicQueryUtil {
 
-    private static final ValueFactory vf = SimpleValueFactory.getInstance();
+    private static final ValueFactory VF = SimpleValueFactory.getInstance();
     public static final String PeriodicQueryURI = "http://org.apache.rya/function#periodic";
     public static final String temporalNameSpace = "http://www.w3.org/2006/time#";
-    public static final IRI DAYS = vf.createIRI("http://www.w3.org/2006/time#days");
-    public static final IRI HOURS = vf.createIRI("http://www.w3.org/2006/time#hours");
-    public static final IRI MINUTES = vf.createIRI("http://www.w3.org/2006/time#minutes");
+    public static final IRI DAYS = VF.createIRI("http://www.w3.org/2006/time#days");
+    public static final IRI HOURS = VF.createIRI("http://www.w3.org/2006/time#hours");
+    public static final IRI MINUTES = VF.createIRI("http://www.w3.org/2006/time#minutes");
 
     /**
      * Returns a PeriodicQueryNode for all {@link FunctionCall}s that represent PeriodicQueryNodes, otherwise

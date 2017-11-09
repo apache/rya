@@ -18,16 +18,14 @@
  */
 package org.apache.rya.indexing.external;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import java.io.IOException;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
-import com.google.common.base.Optional;
-import com.google.common.base.Supplier;
-import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
-import edu.umd.cs.findbugs.annotations.NonNull;
 import org.apache.accumulo.core.client.Connector;
 import org.apache.accumulo.core.client.MultiTableBatchWriter;
 import org.apache.hadoop.conf.Configuration;
@@ -46,7 +44,11 @@ import org.apache.rya.indexing.pcj.update.PrecomputedJoinUpdater;
 import org.apache.rya.indexing.pcj.update.PrecomputedJoinUpdater.PcjUpdateException;
 import org.eclipse.rdf4j.model.IRI;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import com.google.common.base.Optional;
+import com.google.common.base.Supplier;
+
+import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
+import edu.umd.cs.findbugs.annotations.NonNull;
 
 /**
  * Updates the state of the Precomputed Join indices that are used by Rya.

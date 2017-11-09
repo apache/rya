@@ -54,6 +54,7 @@ import org.apache.rya.indexing.entity.model.Entity.Builder;
 import org.apache.rya.indexing.entity.model.Property;
 import org.apache.rya.indexing.entity.model.Type;
 import org.apache.rya.indexing.entity.storage.EntityStorage;
+import org.apache.rya.indexing.entity.storage.EntityStorage.EntityStorageException;
 import org.apache.rya.indexing.entity.storage.TypeStorage;
 import org.apache.rya.indexing.entity.storage.TypeStorage.TypeStorageException;
 import org.apache.rya.indexing.entity.storage.mongo.MongoEntityStorage;
@@ -1764,7 +1765,7 @@ public class DuplicateDataDetectorTest extends MongoTestBase {
     }
 
     @Test
-    public void testCreateEntityNearDuplicate() throws TypeStorageException, ObjectStorageException {
+    public void testCreateEntityNearDuplicate() throws EntityStorageException, TypeStorageException, ObjectStorageException {
         // Create the types the Entity uses.
         final TypeStorage typeStorage = new MongoTypeStorage(super.getMongoClient(), RYA_INSTANCE_NAME);
         final Type personType = createPersonType();
@@ -1855,7 +1856,7 @@ public class DuplicateDataDetectorTest extends MongoTestBase {
     }
 
     @Test
-    public void testCreateEntityNearDuplicateConfigDisabled() throws TypeStorageException, ConfigurationException, ObjectStorageException {
+    public void testCreateEntityNearDuplicateConfigDisabled() throws EntityStorageException, TypeStorageException, ConfigurationException, ObjectStorageException {
         // Create the types the Entity uses.
         final TypeStorage typeStorage = new MongoTypeStorage(super.getMongoClient(), RYA_INSTANCE_NAME);
         final Type personType = createPersonType();

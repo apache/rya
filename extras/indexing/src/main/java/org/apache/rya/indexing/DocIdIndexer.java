@@ -33,12 +33,12 @@ public interface DocIdIndexer extends Closeable {
 
   
 
-    CloseableIteration<BindingSet, QueryEvaluationException> queryDocIndex(StarQuery query,
+    public CloseableIteration<BindingSet, QueryEvaluationException> queryDocIndex(StarQuery query,
             Collection<BindingSet> constraints) throws TableNotFoundException, QueryEvaluationException;
 
    
 
     @Override
-    void close() throws IOException;
+    public void close() throws IOException;
     
 }

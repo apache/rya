@@ -43,7 +43,7 @@ import org.junit.Test;
 
 public class PeriodicNotificationProcessorIT extends AccumuloExportITBase {
 
-    private static final ValueFactory vf = SimpleValueFactory.getInstance();
+    private static final ValueFactory VF = SimpleValueFactory.getInstance();
     private static final String RYA_INSTANCE_NAME = "rya_";
     
     @Test
@@ -72,26 +72,26 @@ public class PeriodicNotificationProcessorIT extends AccumuloExportITBase {
         Set<VisibilityBindingSet> storageResults = new HashSet<>();
         
         QueryBindingSet bs1 = new QueryBindingSet();
-        bs1.addBinding("periodicBinId", vf.createLiteral(binId1));
-        bs1.addBinding("id", vf.createLiteral(1));
+        bs1.addBinding("periodicBinId", VF.createLiteral(binId1));
+        bs1.addBinding("id", VF.createLiteral(1));
         expected.add(bs1);
         storageResults.add(new VisibilityBindingSet(bs1));
         
         QueryBindingSet bs2 = new QueryBindingSet();
-        bs2.addBinding("periodicBinId", vf.createLiteral(binId1));
-        bs2.addBinding("id", vf.createLiteral(2));
+        bs2.addBinding("periodicBinId", VF.createLiteral(binId1));
+        bs2.addBinding("id", VF.createLiteral(2));
         expected.add(bs2);
         storageResults.add(new VisibilityBindingSet(bs2));
         
         QueryBindingSet bs3 = new QueryBindingSet();
-        bs3.addBinding("periodicBinId", vf.createLiteral(binId2));
-        bs3.addBinding("id", vf.createLiteral(3));
+        bs3.addBinding("periodicBinId", VF.createLiteral(binId2));
+        bs3.addBinding("id", VF.createLiteral(3));
         expected.add(bs3);
         storageResults.add(new VisibilityBindingSet(bs3));
         
         QueryBindingSet bs4 = new QueryBindingSet();
-        bs4.addBinding("periodicBinId", vf.createLiteral(binId2));
-        bs4.addBinding("id", vf.createLiteral(4));
+        bs4.addBinding("periodicBinId", VF.createLiteral(binId2));
+        bs4.addBinding("id", VF.createLiteral(4));
         expected.add(bs4);
         storageResults.add(new VisibilityBindingSet(bs4));
         

@@ -20,6 +20,7 @@ package org.apache.rya.indexing;
  */
 
 import java.io.IOException;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -76,8 +77,7 @@ public class FilterFunctionOptimizer implements QueryOptimizer, Configurable {
     }
 
     public FilterFunctionOptimizer(final AccumuloRdfConfiguration conf) throws AccumuloException, AccumuloSecurityException,
-    TableNotFoundException, IOException, TableExistsException, NumberFormatException
-    {
+    TableNotFoundException, IOException, TableExistsException, NumberFormatException, UnknownHostException {
         this.conf = conf;
         init();
     }

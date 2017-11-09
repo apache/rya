@@ -20,7 +20,6 @@ package org.apache.rya.indexing.pcj.fluo.api;
 
 import java.util.Optional;
 
-import com.google.common.collect.Sets;
 import org.apache.accumulo.core.client.Connector;
 import org.apache.fluo.api.client.FluoClient;
 import org.apache.rya.api.client.CreatePCJ.ExportStrategy;
@@ -35,6 +34,8 @@ import org.apache.rya.periodic.notification.api.PeriodicNotificationClient;
 import org.apache.rya.periodic.notification.notification.PeriodicNotification;
 import org.eclipse.rdf4j.query.MalformedQueryException;
 import org.eclipse.rdf4j.query.algebra.evaluation.function.Function;
+
+import com.google.common.collect.Sets;
 
 
 /**

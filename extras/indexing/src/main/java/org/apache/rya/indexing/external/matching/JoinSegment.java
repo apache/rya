@@ -36,7 +36,6 @@ import org.eclipse.rdf4j.query.algebra.evaluation.impl.ExternalSet;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Sets;
 
-
 /**
  * This class represents a portion of a {@link TupleExpr} query that PCJ queries
  * are compared to. A JoinSegment is comprised of a collection of

@@ -22,7 +22,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
-import com.google.common.base.Preconditions;
 import org.apache.fluo.api.client.FluoClient;
 import org.apache.fluo.api.client.Snapshot;
 import org.apache.rya.api.client.CreatePCJ.ExportStrategy;
@@ -32,6 +31,8 @@ import org.apache.rya.indexing.pcj.fluo.app.query.QueryMetadata;
 import org.eclipse.rdf4j.query.parser.ParsedQuery;
 import org.eclipse.rdf4j.query.parser.sparql.SPARQLParser;
 import org.eclipse.rdf4j.queryrender.sparql.SPARQLQueryRenderer;
+
+import com.google.common.base.Preconditions;
 
 /**
  * Class for retrieving a List containing a String representation of each query maintained by Fluo.

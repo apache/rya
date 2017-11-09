@@ -156,7 +156,7 @@ public class AggregationResultUpdater {
     /**
      * A function that updates an {@link AggregationState}.
      */
-    public interface AggregationFunction {
+    public static interface AggregationFunction {
 
         /**
          * Updates an {@link AggregationState} based on the values of a child Binding Set.
@@ -166,7 +166,7 @@ public class AggregationResultUpdater {
          * @param state - The state that will be updated. (not null)
          * @param childBindingSet - The Binding Set whose values will be used to update the state.
          */
-        void update(AggregationElement aggregation, AggregationState state, VisibilityBindingSet childBindingSet);
+        public void update(AggregationElement aggregation, AggregationState state, VisibilityBindingSet childBindingSet);
     }
 
     /**
@@ -365,19 +365,19 @@ public class AggregationResultUpdater {
     /**
      * Reads/Writes instances of {@link AggregationState} to/from bytes.
      */
-    public interface AggregationStateSerDe {
+    public static interface AggregationStateSerDe {
 
         /**
          * @param state - The state that will be serialized. (not null)
          * @return The state serialized to a byte[].
          */
-        byte[] serialize(AggregationState state);
+        public byte[] serialize(AggregationState state);
 
         /**
          * @param bytes - The bytes that will be deserialized. (not null)
          * @return The {@link AggregationState} that was read from the bytes.
          */
-        AggregationState deserialize(byte[] bytes);
+        public AggregationState deserialize(byte[] bytes);
     }
 
     /**

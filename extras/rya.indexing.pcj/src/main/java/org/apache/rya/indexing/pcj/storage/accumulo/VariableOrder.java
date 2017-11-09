@@ -18,17 +18,20 @@
  */
 package org.apache.rya.indexing.pcj.storage.accumulo;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import java.util.Collection;
 import java.util.Iterator;
 
+import org.eclipse.rdf4j.query.Binding;
+import org.eclipse.rdf4j.query.BindingSet;
+
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
+
 import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
 import edu.umd.cs.findbugs.annotations.NonNull;
 import net.jcip.annotations.Immutable;
-import org.eclipse.rdf4j.query.BindingSet;
-
-import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * An ordered list of {@link BindingSet} variable names. These are used to

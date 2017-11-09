@@ -42,10 +42,10 @@ import org.junit.Test;
  */
 public class ReflexivePropertyVisitorTest {
     private final AccumuloRdfConfiguration conf = new AccumuloRdfConfiguration();
-    private static final ValueFactory vf = SimpleValueFactory.getInstance();
+    private static final ValueFactory VF = SimpleValueFactory.getInstance();
 
-    private static final IRI ALICE = vf.createIRI("urn:Alice");
-    private static final IRI HAS_FAMILY = vf.createIRI("urn:hasFamilyMember");
+    private static final IRI ALICE = VF.createIRI("urn:Alice");
+    private static final IRI HAS_FAMILY = VF.createIRI("urn:hasFamilyMember");
 
     @Test
     public void testReflexiveProperty() throws Exception {

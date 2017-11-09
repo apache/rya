@@ -188,8 +188,9 @@ public class AccumuloDocIdIndexer implements DocIdIndexer {
                         isEmpty = true;
                         return false;
 
-                    } else
+                    } else {
                         return !isEmpty;
+                    }
 
                 }
 
@@ -307,8 +308,9 @@ public class AccumuloDocIdIndexer implements DocIdIndexer {
                         isEmpty = true;
                         return false;
 
-                    } else
+                    } else {
                         return !isEmpty;
+                    }
                 }
 
                 @Override

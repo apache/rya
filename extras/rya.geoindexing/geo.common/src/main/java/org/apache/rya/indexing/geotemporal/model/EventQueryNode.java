@@ -38,8 +38,7 @@ import org.apache.rya.indexing.entity.query.EntityQueryNode;
 import org.apache.rya.indexing.geotemporal.storage.EventStorage;
 import org.apache.rya.indexing.mongodb.update.RyaObjectStorage.ObjectStorageException;
 import org.apache.rya.rdftriplestore.evaluation.ExternalBatchingIterator;
-import org.joda.time.DateTime;
-import org.joda.time.DateTimeZone;
+import org.eclipse.rdf4j.common.iteration.CloseableIteration;
 import org.eclipse.rdf4j.model.Value;
 import org.eclipse.rdf4j.model.ValueFactory;
 import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
@@ -51,10 +50,10 @@ import org.eclipse.rdf4j.query.algebra.Var;
 import org.eclipse.rdf4j.query.algebra.evaluation.impl.ExternalSet;
 import org.eclipse.rdf4j.query.algebra.evaluation.iterator.CollectionIteration;
 import org.eclipse.rdf4j.query.impl.MapBindingSet;
+import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
 
 import com.vividsolutions.jts.geom.Geometry;
-
-import org.eclipse.rdf4j.common.iteration.CloseableIteration;
 
 public class EventQueryNode extends ExternalSet implements ExternalBatchingIterator {
     private static final ValueFactory VF = SimpleValueFactory.getInstance();

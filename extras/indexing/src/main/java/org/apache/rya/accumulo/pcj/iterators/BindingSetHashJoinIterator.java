@@ -103,8 +103,9 @@ public class BindingSetHashJoinIterator implements
 
 			isEmpty = true;
 			return false;
-		} else
-            return !isEmpty;
+		} else {
+			return !isEmpty;
+		}
 	}
 
 	@Override
@@ -287,8 +288,9 @@ public class BindingSetHashJoinIterator implements
 				}
 				isEmpty = true;
 				return false;
-			} else
-                return !isEmpty;
+			} else {
+				return !isEmpty;
+			}
 		}
 
 		@Override

@@ -21,14 +21,6 @@ package org.apache.rya.accumulo.spark;
 
 import java.io.IOException;
 
-import org.apache.accumulo.core.client.AccumuloSecurityException;
-import org.apache.accumulo.core.client.ClientConfiguration;
-import org.apache.accumulo.core.client.ClientConfiguration.ClientProperty;
-import org.apache.accumulo.core.client.mapreduce.InputFormatBase;
-import org.apache.accumulo.core.client.security.tokens.PasswordToken;
-import org.apache.accumulo.core.security.Authorizations;
-import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.mapreduce.Job;
 import org.apache.rya.accumulo.AccumuloRdfConstants;
 import org.apache.rya.accumulo.mr.GraphXEdgeInputFormat;
 import org.apache.rya.accumulo.mr.GraphXInputFormat;
@@ -41,6 +33,15 @@ import org.apache.rya.api.RdfCloudTripleStoreConstants.TABLE_LAYOUT;
 import org.apache.rya.api.RdfCloudTripleStoreUtils;
 import org.apache.rya.indexing.accumulo.ConfigUtils;
 import org.apache.rya.indexing.accumulo.entity.EntityCentricIndex;
+
+import org.apache.accumulo.core.client.AccumuloSecurityException;
+import org.apache.accumulo.core.client.ClientConfiguration;
+import org.apache.accumulo.core.client.ClientConfiguration.ClientProperty;
+import org.apache.accumulo.core.client.security.tokens.PasswordToken;
+import org.apache.accumulo.core.client.mapreduce.InputFormatBase;
+import org.apache.accumulo.core.security.Authorizations;
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.mapreduce.Job;
 import org.apache.spark.SparkContext;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.graphx.Edge;
@@ -48,11 +49,11 @@ import org.apache.spark.graphx.Graph;
 import org.apache.spark.rdd.RDD;
 import org.apache.spark.storage.StorageLevel;
 
-import com.google.common.base.Preconditions;
-
 import scala.Tuple2;
 import scala.reflect.ClassTag;
 import scala.reflect.ClassTag$;
+
+import com.google.common.base.Preconditions;
 
 @SuppressWarnings({ "unchecked", "rawtypes" })
 public class GraphXGraphGenerator {

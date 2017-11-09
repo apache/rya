@@ -63,6 +63,7 @@ import org.eclipse.rdf4j.query.algebra.evaluation.ValueExprEvaluationException;
 import org.eclipse.rdf4j.query.algebra.evaluation.function.Function;
 import org.eclipse.rdf4j.query.algebra.evaluation.function.FunctionRegistry;
 import org.eclipse.rdf4j.query.impl.MapBindingSet;
+import org.eclipse.rdf4j.repository.RepositoryException;
 import org.eclipse.rdf4j.repository.sail.SailRepositoryConnection;
 import org.junit.Test;
 
@@ -1028,7 +1029,7 @@ public class QueryIT extends RyaExportITBase {
         }
     }
 
-    private void addStatementsAndWait(final Collection<Statement> statements) throws Exception {
+    private void addStatementsAndWait(final Collection<Statement> statements) throws RepositoryException, Exception {
         // Write the data to Rya.
         final SailRepositoryConnection ryaConn = super.getRyaSailRepository().getConnection();
         ryaConn.begin();

@@ -34,31 +34,31 @@ public interface RyaSecondaryIndexer extends Closeable, Flushable, Configurable 
 	/**
 	 * initialize after setting configuration.
 	 */
-    void init();
+	public void init();
     /**
      * Returns the table name if the implementation supports it.
      * Note that some indexers use multiple tables, this only returns one.
      * TODO recommend that we deprecate this method because it's a leaky interface. 
      * @return table name as a string.
      */
-    String getTableName();
+    public String getTableName();
 
-    void storeStatements(Collection<RyaStatement> statements) throws IOException;
+    public void storeStatements(Collection<RyaStatement> statements) throws IOException;
 
-    void storeStatement(RyaStatement statement) throws IOException;
+    public void storeStatement(RyaStatement statement) throws IOException;
 
-    void deleteStatement(RyaStatement stmt) throws IOException;
+    public void deleteStatement(RyaStatement stmt) throws IOException;
 
-    void dropGraph(RyaURI... graphs);
+    public void dropGraph(RyaURI... graphs);
 
     /**
      * @return the set of predicates indexed by the indexer.
      */
-    Set<IRI> getIndexablePredicates();
+    public Set<IRI> getIndexablePredicates();
 
     @Override
-    void flush() throws IOException;
+    public void flush() throws IOException;
 
     @Override
-    void close() throws IOException;
+    public void close() throws IOException;
 }

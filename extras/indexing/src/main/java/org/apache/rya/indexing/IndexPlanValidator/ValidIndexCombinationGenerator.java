@@ -87,8 +87,8 @@ public class ValidIndexCombinationGenerator {
 					}
 
 				} else {
-                    return !isEmpty;
-                }
+					return !isEmpty;
+				}
 			}
 
 			@Override
@@ -151,8 +151,9 @@ public class ValidIndexCombinationGenerator {
 					isEmpty = true;
 					return false;
 
-				} else
-                    return !isEmpty;
+				} else {
+					return !isEmpty;
+				}
 			}
 
 			@Override
@@ -223,8 +224,9 @@ public class ValidIndexCombinationGenerator {
 						return true;
 
 					}
-				} else
-                    return !isEmpty;
+				} else {
+					return !isEmpty;
+				}
 			}
 
 			@Override
@@ -296,8 +298,9 @@ public class ValidIndexCombinationGenerator {
 						}
 
 					}
-				} else
-                    return !isEmpty;
+				} else {
+					return !isEmpty;
+				}
 
 			}
 

@@ -30,22 +30,22 @@ import org.eclipse.rdf4j.model.IRI;
  * Time: 12:08 PM
  */
 public interface RyaTypeResolver {
-    byte[] serialize(RyaType ryaType) throws RyaTypeResolverException;
-    byte[][] serializeType(RyaType ryaType) throws RyaTypeResolverException;
+    public byte[] serialize(RyaType ryaType) throws RyaTypeResolverException;
+    public byte[][] serializeType(RyaType ryaType) throws RyaTypeResolverException;
 
-    RyaType deserialize(byte[] bytes) throws RyaTypeResolverException;
+    public RyaType deserialize(byte[] bytes) throws RyaTypeResolverException;
 
-    RyaType newInstance();
+    public RyaType newInstance();
 
     /**
      * @param bytes
      * @return true if this byte[] is deserializable by this resolver
      */
-    boolean deserializable(byte[] bytes);
+    public boolean deserializable(byte[] bytes);
 
-    IRI getRyaDataType();
+    public IRI getRyaDataType();
 
-    byte getMarkerByte();
+    public byte getMarkerByte();
 
     /**
      * This will allow a resolver to modify a range. For example, a date time resolver, with a reverse index,
@@ -54,6 +54,6 @@ public interface RyaTypeResolver {
      * @return
      * @throws RyaTypeResolverException
      */
-    RyaRange transformRange(RyaRange ryaRange) throws RyaTypeResolverException;
+    public RyaRange transformRange(RyaRange ryaRange) throws RyaTypeResolverException;
 
 }

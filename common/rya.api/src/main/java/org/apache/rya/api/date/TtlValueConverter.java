@@ -31,9 +31,9 @@ public interface TtlValueConverter {
 
     ValueFactory vf = SimpleValueFactory.getInstance();
 
-    void convert(String ttl, String startTime);
+    public void convert(String ttl, String startTime);
 
-    Value getStart();
+    public Value getStart();
 
-    Value getStop();
+    public Value getStop();
 }

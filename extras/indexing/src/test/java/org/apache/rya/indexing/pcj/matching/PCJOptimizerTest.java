@@ -24,7 +24,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import com.google.common.collect.Sets;
 import org.apache.rya.indexing.IndexPlanValidator.IndexedExecutionPlanGenerator;
 import org.apache.rya.indexing.external.tupleSet.ExternalTupleSet;
 import org.apache.rya.indexing.external.tupleSet.SimpleExternalTupleSet;
@@ -37,6 +36,8 @@ import org.eclipse.rdf4j.query.parser.ParsedQuery;
 import org.eclipse.rdf4j.query.parser.sparql.SPARQLParser;
 import org.junit.Assert;
 import org.junit.Test;
+
+import com.google.common.collect.Sets;
 
 public class PCJOptimizerTest {
 

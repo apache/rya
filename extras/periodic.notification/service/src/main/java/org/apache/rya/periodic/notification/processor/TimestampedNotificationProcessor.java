@@ -22,7 +22,6 @@ import java.util.Optional;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import com.google.common.base.Preconditions;
 import org.apache.log4j.Logger;
 import org.apache.rya.indexing.pcj.storage.PeriodicQueryResultStorage;
 import org.apache.rya.indexing.pcj.storage.PrecomputedJoinStorage.CloseableIterator;
@@ -33,6 +32,8 @@ import org.apache.rya.periodic.notification.api.NotificationProcessor;
 import org.apache.rya.periodic.notification.exporter.KafkaPeriodicBindingSetExporter;
 import org.apache.rya.periodic.notification.notification.TimestampedNotification;
 import org.eclipse.rdf4j.query.BindingSet;
+
+import com.google.common.base.Preconditions;
 
 /**
  * Implementation of {@link NotificationProcessor} that uses the id indicated by

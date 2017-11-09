@@ -36,6 +36,7 @@ import org.apache.rya.accumulo.AccumuloRyaITBase;
 import org.apache.rya.accumulo.instance.AccumuloRyaInstanceDetailsRepository;
 import org.apache.rya.api.instance.RyaDetails.PCJIndexDetails.PCJDetails;
 import org.apache.rya.api.instance.RyaDetailsRepository;
+import org.apache.rya.api.instance.RyaDetailsRepository.NotInitializedException;
 import org.apache.rya.api.instance.RyaDetailsRepository.RyaDetailsRepositoryException;
 import org.apache.rya.indexing.pcj.storage.PcjMetadata;
 import org.apache.rya.indexing.pcj.storage.PrecomputedJoinStorage;
@@ -64,8 +65,7 @@ public class AccumuloPcjStorageIT extends AccumuloRyaITBase {
     private static final ValueFactory VF = SimpleValueFactory.getInstance();
 
     @Test
-    public void createPCJ() throws AccumuloException, AccumuloSecurityException, PCJStorageException,
-            RyaDetailsRepositoryException {
+    public void createPCJ() throws AccumuloException, AccumuloSecurityException, PCJStorageException, NotInitializedException, RyaDetailsRepositoryException {
         // Setup the PCJ storage that will be tested against.
         final Connector connector = super.getClusterInstance().getConnector();
         final String ryaInstanceName = super.getRyaInstanceName();
@@ -89,8 +89,7 @@ public class AccumuloPcjStorageIT extends AccumuloRyaITBase {
     }
 
     @Test
-    public void dropPCJ() throws AccumuloException, AccumuloSecurityException, PCJStorageException,
-            RyaDetailsRepositoryException {
+    public void dropPCJ() throws AccumuloException, AccumuloSecurityException, PCJStorageException, NotInitializedException, RyaDetailsRepositoryException {
         // Setup the PCJ storage that will be tested against.
         final Connector connector = super.getClusterInstance().getConnector();
         final String ryaInstanceName = super.getRyaInstanceName();

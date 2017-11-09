@@ -34,15 +34,15 @@ import org.junit.Test;
  * Tests the methods of {@link FluoStringConverterTest}.
  */
 public class FluoStringConverterTest {
-    private static ValueFactory vf = SimpleValueFactory.getInstance();
+    private static final ValueFactory VF = SimpleValueFactory.getInstance();
 
 	@Test
 	public void statementPatternToString() throws MalformedQueryException {
         // Setup a StatementPattern that represents "?x <http://worksAt> <http://Chipotle>."
         final Var subject = new Var("x");
-        final Var predicate = new Var(prependConstant("http://worksAt"), vf.createIRI("http://worksAt"));
+        final Var predicate = new Var(prependConstant("http://worksAt"), VF.createIRI("http://worksAt"));
         predicate.setConstant(true);
-        final Var object = new Var(prependConstant("http://Chipotle"), vf.createIRI("http://Chipotle"));
+        final Var object = new Var(prependConstant("http://Chipotle"), VF.createIRI("http://Chipotle"));
         object.setConstant(true);
         final StatementPattern pattern = new StatementPattern(subject, predicate, object);
 
@@ -69,9 +69,9 @@ public class FluoStringConverterTest {
 
         // Enusre it converted to the expected result.
         final Var subject = new Var("x");
-        final Var predicate = new Var(prependConstant("http://worksAt"), vf.createIRI(XMLSchema.ANYURI.toString(),"http://worksAt"));
+        final Var predicate = new Var(prependConstant("http://worksAt"), VF.createIRI("http://worksAt"));
         predicate.setConstant(true);
-        final Var object = new Var(prependConstant("http://Chipotle"), vf.createIRI(XMLSchema.ANYURI.toString(),"http://Chipotle"));
+        final Var object = new Var(prependConstant("http://Chipotle"), VF.createIRI("http://Chipotle"));
         object.setConstant(true);
         final StatementPattern expected = new StatementPattern(subject, predicate, object);
 
@@ -87,7 +87,7 @@ public class FluoStringConverterTest {
         final Var var = FluoStringConverter.toVar(varString);
 
         // Ensure it converted to the expected result.
-        final Var expected = new Var(prependConstant("http://Chipotle"), vf.createIRI(XMLSchema.ANYURI.toString(),"http://Chipotle"));
+        final Var expected = new Var(prependConstant("http://Chipotle"), VF.createIRI("http://Chipotle"));
         expected.setConstant(true);
 
         assertEquals(expected, var);
@@ -102,7 +102,7 @@ public class FluoStringConverterTest {
         final Var result = FluoStringConverter.toVar(varString);
 
         // Ensure it converted to the expected result.
-        final Var expected = new Var(prependConstant("5"), vf.createLiteral("5", XMLSchema.INTEGER));
+        final Var expected = new Var(prependConstant("5"), VF.createLiteral("5", XMLSchema.INTEGER));
         expected.setConstant(true);
 
         assertEquals(expected, result);
@@ -117,7 +117,7 @@ public class FluoStringConverterTest {
         final Var result = FluoStringConverter.toVar(varString);
 
         // Ensure it converted to the expected result.
-        final Var expected = new Var(prependConstant("Chipotle"), vf.createLiteral("Chipotle", XMLSchema.STRING));
+        final Var expected = new Var(prependConstant("Chipotle"), VF.createLiteral("Chipotle", XMLSchema.STRING));
         expected.setConstant(true);
 
         assertEquals(expected, result);

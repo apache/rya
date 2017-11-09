@@ -1,10 +1,3 @@
-package org.apache.rya.indexing;
-
-import org.eclipse.rdf4j.model.Statement;
-import org.eclipse.rdf4j.query.QueryEvaluationException;
-
-import com.vividsolutions.jts.geom.Geometry;
-
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -23,12 +16,15 @@ import com.vividsolutions.jts.geom.Geometry;
  * specific language governing permissions and limitations
  * under the License.
  */
+package org.apache.rya.indexing;
 
-
-
-import org.eclipse.rdf4j.common.iteration.CloseableIteration;
 import org.apache.rya.api.persist.index.RyaSecondaryIndexer;
 import org.apache.rya.indexing.accumulo.geo.GeoTupleSet.GeoSearchFunctionFactory.NearQuery;
+import org.eclipse.rdf4j.common.iteration.CloseableIteration;
+import org.eclipse.rdf4j.model.Statement;
+import org.eclipse.rdf4j.query.QueryEvaluationException;
+
+import com.vividsolutions.jts.geom.Geometry;
 
 /**
  * A repository to store, index, and retrieve {@link Statement}s based on geospatial features.

@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -17,6 +17,8 @@
  * under the License.
  */
 package org.apache.rya.api.client.accumulo;
+
+import static org.junit.Assert.assertEquals;
 
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -43,8 +45,6 @@ import org.eclipse.rdf4j.model.ValueFactory;
 import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 import org.eclipse.rdf4j.rio.RDFFormat;
 import org.junit.Test;
-
-import static org.junit.Assert.assertEquals;
 
 /**
  * Integration tests the methods of {@link AccumuloLoadStatementsFile}.

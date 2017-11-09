@@ -18,6 +18,8 @@
  */
 package org.apache.rya.prospector.service;
 
+import static java.util.Objects.requireNonNull;
+
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -37,8 +39,6 @@ import org.apache.rya.prospector.domain.TripleValueType;
 import org.apache.rya.prospector.utils.ProspectorConstants;
 import org.eclipse.rdf4j.model.Resource;
 import org.eclipse.rdf4j.model.Value;
-
-import static java.util.Objects.requireNonNull;
 
 /**
  * An ${@link org.apache.rya.api.persist.RdfEvalStatsDAO} that uses the Prospector Service underneath return counts.

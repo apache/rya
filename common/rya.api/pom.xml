@@ -74,7 +74,7 @@ under the License.
             <groupId>com.esotericsoftware.kryo</groupId>
             <artifactId>kryo</artifactId>
             <version>2.24.0</version>
-		</dependency>
+        </dependency>
         <dependency>
             <groupId>org.apache.hadoop</groupId>
             <artifactId>hadoop-common</artifactId>
@@ -94,11 +94,11 @@ under the License.
             <artifactId>mockito-all</artifactId>
             <scope>test</scope>
         </dependency>
-		<dependency>
-			<groupId>org.eclipse.rdf4j</groupId>
-			<artifactId>rdf4j-sail-base</artifactId>
-			<version>${org.eclipse.rdf4j.version}</version>
-		</dependency>
+        <dependency>
+            <groupId>org.eclipse.rdf4j</groupId>
+            <artifactId>rdf4j-sail-base</artifactId>
+            <version>${org.eclipse.rdf4j.version}</version>
+        </dependency>
     </dependencies>
 
 </project>

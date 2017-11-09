@@ -1,17 +1,3 @@
-package org.apache.rya.accumulo.query;
-
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Set;
-
-import com.google.common.collect.HashMultimap;
-import com.google.common.collect.Multimap;
-import org.apache.accumulo.core.data.Key;
-import org.apache.accumulo.core.data.Range;
-import org.apache.hadoop.io.Text;
-import org.apache.hadoop.io.WritableComparator;
-import org.eclipse.rdf4j.query.BindingSet;
-
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -30,6 +16,20 @@ import org.eclipse.rdf4j.query.BindingSet;
  * specific language governing permissions and limitations
  * under the License.
  */
+package org.apache.rya.accumulo.query;
+
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Set;
+
+import org.apache.accumulo.core.data.Key;
+import org.apache.accumulo.core.data.Range;
+import org.apache.hadoop.io.Text;
+import org.apache.hadoop.io.WritableComparator;
+import org.eclipse.rdf4j.query.BindingSet;
+
+import com.google.common.collect.HashMultimap;
+import com.google.common.collect.Multimap;
 
 /**
  * Class RangeBindingSetCollection Date: Feb 23, 2011 Time: 10:15:48 AM

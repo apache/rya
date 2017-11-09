@@ -29,18 +29,19 @@ import org.apache.rya.api.resolver.RyaToRdfConversions;
 import org.apache.rya.indexing.GeoConstants;
 import org.apache.rya.indexing.StatementConstraints;
 import org.apache.rya.indexing.accumulo.ConfigUtils;
-import org.apache.rya.indexing.geotemporal.mongo.MongoITBase;
 import org.apache.rya.indexing.accumulo.geo.OptionalConfigUtils;
+import org.apache.rya.indexing.geotemporal.mongo.MongoITBase;
 import org.apache.rya.indexing.mongodb.geo.MongoGeoIndexer;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.eclipse.rdf4j.common.iteration.CloseableIteration;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Resource;
 import org.eclipse.rdf4j.model.Statement;
 import org.eclipse.rdf4j.model.Value;
 import org.eclipse.rdf4j.model.ValueFactory;
 import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Test;
 
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
@@ -50,8 +51,6 @@ import com.vividsolutions.jts.geom.LineString;
 import com.vividsolutions.jts.geom.Point;
 import com.vividsolutions.jts.geom.Polygon;
 import com.vividsolutions.jts.geom.PrecisionModel;
-
-import org.eclipse.rdf4j.common.iteration.CloseableIteration;
 
 /**
  * Tests all of the "simple functions" of the geoindexer.

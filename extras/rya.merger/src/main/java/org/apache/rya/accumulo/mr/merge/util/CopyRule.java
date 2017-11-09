@@ -64,7 +64,7 @@ public class CopyRule extends AbstractQueryModelNode {
      * @throws QueryEvaluationException
      */
     public static boolean accept(final Statement stmt, final ValueExpr condition, final EvaluationStrategy strategy)
-            throws QueryEvaluationException {
+            throws ValueExprEvaluationException, QueryEvaluationException {
         final QueryBindingSet bindings = new QueryBindingSet();
         bindings.addBinding(SUBJ_VAR.getName(), stmt.getSubject());
         bindings.addBinding(PRED_VAR.getName(), stmt.getPredicate());

@@ -40,14 +40,14 @@ public interface SmartUriStorage {
      * @param map the {@link Map} of {@link IRI}s to {@link Value}s.
      * @throws SmartUriException
      */
-    void storeEntity(final RyaURI subject, final Map<IRI, Value> map) throws SmartUriException;
+    public void storeEntity(final RyaURI subject, final Map<IRI, Value> map) throws SmartUriException;
 
     /**
      * Stores the entity into the datastore.
      * @param entity the {@link Entity}.
      * @throws SmartUriException
      */
-    void storeEntity(final Entity entity) throws SmartUriException;
+    public void storeEntity(final Entity entity) throws SmartUriException;
 
     /**
      * Updates the entity.
@@ -55,7 +55,7 @@ public interface SmartUriStorage {
      * @param updatedEntity the new {@link Entity} to replace the old one with.
      * @throws SmartUriException
      */
-    void updateEntity(final Entity oldEntity, final Entity updatedEntity) throws SmartUriException;
+    public void updateEntity(final Entity oldEntity, final Entity updatedEntity) throws SmartUriException;
 
     /**
      * Queries for the entity based on the subject
@@ -64,7 +64,7 @@ public interface SmartUriStorage {
      * @return the {@link Entity} matching the subject.
      * @throws SmartUriException
      */
-    Entity queryEntity(final RyaURI subject) throws SmartUriException;
+    public Entity queryEntity(final RyaURI subject) throws SmartUriException;
 
     /**
      * Queries the datastore for the map.
@@ -74,5 +74,5 @@ public interface SmartUriStorage {
      * match the search parameters.
      * @throws SmartUriException
      */
-    ConvertingCursor<TypedEntity> queryEntity(final Type type, final Map<IRI, Value> map) throws SmartUriException;
+    public ConvertingCursor<TypedEntity> queryEntity(final Type type, final Map<IRI, Value> map) throws SmartUriException;
 }

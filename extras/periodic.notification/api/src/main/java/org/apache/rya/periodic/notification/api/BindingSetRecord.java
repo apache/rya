@@ -18,8 +18,9 @@
  */
 package org.apache.rya.periodic.notification.api;
 
-import com.google.common.base.Objects;
 import org.eclipse.rdf4j.query.BindingSet;
+
+import com.google.common.base.Objects;
 
 /**
  * Object that associates a {@link BindingSet} with a given Kafka topic.

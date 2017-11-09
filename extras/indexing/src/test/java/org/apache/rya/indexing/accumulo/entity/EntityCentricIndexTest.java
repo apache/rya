@@ -19,10 +19,11 @@ package org.apache.rya.indexing.accumulo.entity;
  * under the License.
  */
 
+import static org.apache.rya.api.RdfCloudTripleStoreConstants.DELIM_BYTES;
+
 import java.io.IOException;
 import java.util.Collection;
 
-import com.google.common.primitives.Bytes;
 import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Mutation;
 import org.apache.accumulo.core.data.Value;
@@ -37,7 +38,7 @@ import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import static org.apache.rya.api.RdfCloudTripleStoreConstants.DELIM_BYTES;
+import com.google.common.primitives.Bytes;
 
 public class EntityCentricIndexTest {
     private static RyaStatement ryaStatement;

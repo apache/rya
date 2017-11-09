@@ -18,6 +18,8 @@
  */
 package org.apache.rya.indexing.pcj.fluo.app.query;
 
+import static org.junit.Assert.assertEquals;
+
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
@@ -43,8 +45,6 @@ import org.eclipse.rdf4j.query.parser.ParsedQuery;
 import org.eclipse.rdf4j.query.parser.sparql.SPARQLParser;
 import org.eclipse.rdf4j.repository.RepositoryException;
 import org.junit.Test;
-
-import static org.junit.Assert.assertEquals;
 
 /**
  * Integration tests the methods of {@link FluoQueryMetadataDAO}.

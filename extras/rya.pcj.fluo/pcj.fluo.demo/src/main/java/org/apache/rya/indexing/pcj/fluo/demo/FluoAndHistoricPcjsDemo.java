@@ -21,8 +21,6 @@ package org.apache.rya.indexing.pcj.fluo.demo;
 import java.nio.charset.StandardCharsets;
 import java.util.Set;
 
-import com.google.common.base.Optional;
-import com.google.common.collect.Sets;
 import org.apache.accumulo.core.client.Connector;
 import org.apache.accumulo.minicluster.MiniAccumuloCluster;
 import org.apache.commons.lang3.StringUtils;
@@ -51,6 +49,9 @@ import org.eclipse.rdf4j.query.parser.sparql.SPARQLParser;
 import org.eclipse.rdf4j.queryrender.sparql.SPARQLQueryRenderer;
 import org.eclipse.rdf4j.repository.RepositoryConnection;
 import org.eclipse.rdf4j.repository.RepositoryException;
+
+import com.google.common.base.Optional;
+import com.google.common.collect.Sets;
 
 /**
  * Demonstrates historicly added Rya statements that are stored within the core

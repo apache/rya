@@ -25,13 +25,14 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
-import com.google.common.base.Preconditions;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.log4j.Logger;
 import org.apache.rya.periodic.notification.api.BindingSetExporter;
 import org.apache.rya.periodic.notification.api.BindingSetRecord;
 import org.apache.rya.periodic.notification.api.LifeCycle;
 import org.eclipse.rdf4j.query.BindingSet;
+
+import com.google.common.base.Preconditions;
 
 /**
  * Executor service that runs {@link KafkaPeriodicBindingSetExporter}s.  

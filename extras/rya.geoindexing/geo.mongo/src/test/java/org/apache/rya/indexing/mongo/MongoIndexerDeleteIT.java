@@ -31,9 +31,6 @@ import org.apache.rya.indexing.accumulo.ConfigUtils;
 import org.apache.rya.indexing.accumulo.geo.OptionalConfigUtils;
 import org.apache.rya.indexing.mongodb.MongoIndexingConfiguration;
 import org.apache.rya.mongodb.EmbeddedMongoSingleton;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.Resource;
 import org.eclipse.rdf4j.model.Statement;
@@ -47,6 +44,9 @@ import org.eclipse.rdf4j.query.Update;
 import org.eclipse.rdf4j.repository.sail.SailRepository;
 import org.eclipse.rdf4j.repository.sail.SailRepositoryConnection;
 import org.eclipse.rdf4j.sail.Sail;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
 
 import com.mongodb.MongoClient;
 import com.vividsolutions.jts.geom.Coordinate;
@@ -156,11 +156,12 @@ public class MongoIndexerDeleteIT {
         uuid = "urn:people";
         conn.add(vf.createIRI(uuid), RDF.TYPE, person);
         conn.add(vf.createIRI(uuid), RDFS.LABEL, vf.createLiteral("Alice Palace Hose", vf.createIRI("http://www.w3.org/2001/XMLSchema#string")));
-        conn.add(vf.createIRI(uuid), RDFS.LABEL, vf.createLiteral("Bob Snob Hose", "en"));
+        conn.add(vf.createIRI(uuid), RDFS.LABEL, vf.createLiteral("Bob Snob Hose"));
 
         // temporal
         final TemporalInstant instant = new TemporalInstantRfc3339(1, 2, 3, 4, 5, 6);
         conn.add(vf.createIRI("foo:time"), vf.createIRI("Property:atTime"), vf.createLiteral(instant.toString()));
+        conn.commit();
     }
 
     private static RyaStatement statement(final Geometry geo) {

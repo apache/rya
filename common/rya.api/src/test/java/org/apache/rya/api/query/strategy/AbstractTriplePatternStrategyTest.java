@@ -23,7 +23,6 @@ import static org.apache.rya.api.RdfCloudTripleStoreConstants.TABLE_LAYOUT.OSP;
 import static org.apache.rya.api.RdfCloudTripleStoreConstants.TABLE_LAYOUT.PO;
 import static org.apache.rya.api.RdfCloudTripleStoreConstants.TABLE_LAYOUT.SPO;
 
-
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;

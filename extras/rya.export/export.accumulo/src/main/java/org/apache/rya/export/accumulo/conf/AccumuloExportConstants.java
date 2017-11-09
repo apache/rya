@@ -23,13 +23,15 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map.Entry;
 
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.log4j.Logger;
 import org.apache.rya.accumulo.mr.MRUtils;
 import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
+import org.apache.rya.export.InstanceType;
 import org.apache.rya.indexing.accumulo.ConfigUtils;
+
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 
 /**
  * Constant used for Accumulo merger exports.

@@ -19,6 +19,7 @@ package org.apache.rya.mongodb;
  * under the License.
  */
 
+
 import java.io.IOException;
 import java.net.UnknownHostException;
 import java.util.ArrayList;

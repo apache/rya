@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -18,9 +18,10 @@
  */
 package org.apache.rya.api.client.accumulo;
 
+import static java.util.Objects.requireNonNull;
+
 import java.util.Properties;
 
-import com.google.common.base.Optional;
 import org.apache.accumulo.core.client.Connector;
 import org.apache.fluo.api.client.FluoClient;
 import org.apache.kafka.clients.producer.KafkaProducer;
@@ -49,7 +50,7 @@ import org.eclipse.rdf4j.query.QueryEvaluationException;
 import org.eclipse.rdf4j.repository.RepositoryException;
 import org.eclipse.rdf4j.sail.SailException;
 
-import static java.util.Objects.requireNonNull;
+import com.google.common.base.Optional;
 
 /**
  * Class used by the RyaClient for creating Periodic PCJ.

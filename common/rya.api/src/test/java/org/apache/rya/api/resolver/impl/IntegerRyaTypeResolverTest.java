@@ -21,9 +21,10 @@ package org.apache.rya.api.resolver.impl;
 
 import java.util.Random;
 
-import junit.framework.TestCase;
 import org.apache.rya.api.domain.RyaType;
 import org.eclipse.rdf4j.model.vocabulary.XMLSchema;
+
+import junit.framework.TestCase;
 
 /**
  * Date: 7/20/12

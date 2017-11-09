@@ -205,7 +205,7 @@ public abstract class ExternalTupleSet extends ExternalSet {
 	private void updateSupportedVarOrderMap() {
 
 		Preconditions.checkArgument(supportedVarOrders.size() != 0);
-        final Map<String, Set<String>> newSupportedOrders = Maps.newHashMap();
+		final Map<String, Set<String>> newSupportedOrders = Maps.newHashMap();
 		final BiMap<String, String> biMap = HashBiMap.create(tableVarMap)
 				.inverse();
 		Set<String> temp = null;

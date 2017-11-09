@@ -18,6 +18,8 @@
  */
 package org.apache.rya.api.persist.utils;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
 import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.persist.RyaDAO;
@@ -29,8 +31,6 @@ import org.eclipse.rdf4j.model.Statement;
 import org.eclipse.rdf4j.model.Value;
 import org.eclipse.rdf4j.query.QueryEvaluationException;
 import org.eclipse.rdf4j.rio.RDFHandler;
-
-import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * Wraps Rya DAO queries into a simpler interface that just passes in the

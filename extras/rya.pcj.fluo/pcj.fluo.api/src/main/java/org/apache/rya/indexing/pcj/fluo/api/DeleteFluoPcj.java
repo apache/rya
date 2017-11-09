@@ -18,11 +18,12 @@
  */
 package org.apache.rya.indexing.pcj.fluo.api;
 
+import static com.google.common.base.Preconditions.checkArgument;
+import static java.util.Objects.requireNonNull;
+
 import java.util.Iterator;
 import java.util.List;
 
-import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
-import edu.umd.cs.findbugs.annotations.NonNull;
 import org.apache.fluo.api.client.FluoClient;
 import org.apache.fluo.api.client.Transaction;
 import org.apache.fluo.api.client.scanner.CellScanner;
@@ -37,8 +38,8 @@ import org.apache.rya.indexing.pcj.fluo.app.query.UnsupportedQueryException;
 import org.apache.rya.indexing.pcj.fluo.app.util.FluoQueryUtils;
 import org.eclipse.rdf4j.query.BindingSet;
 
-import static com.google.common.base.Preconditions.checkArgument;
-import static java.util.Objects.requireNonNull;
+import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
+import edu.umd.cs.findbugs.annotations.NonNull;
 
 /**
  * Deletes a Pre-computed Join (PCJ) from Fluo.

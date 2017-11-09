@@ -18,11 +18,11 @@
  */
 package org.apache.rya.indexing.pcj.fluo.integration;
 
+import static org.junit.Assert.assertEquals;
+
 import java.util.HashSet;
 import java.util.Set;
 
-import com.google.common.base.Optional;
-import com.google.common.collect.Sets;
 import org.apache.accumulo.core.client.Connector;
 import org.apache.fluo.api.client.FluoClient;
 import org.apache.fluo.api.client.FluoFactory;
@@ -39,7 +39,8 @@ import org.eclipse.rdf4j.query.BindingSet;
 import org.eclipse.rdf4j.query.impl.MapBindingSet;
 import org.junit.Test;
 
-import static org.junit.Assert.assertEquals;
+import com.google.common.base.Optional;
+import com.google.common.collect.Sets;
 
 /**
  * Performs integration tests over the Fluo application geared towards Rya PCJ exporting.

@@ -26,7 +26,7 @@ import org.eclipse.rdf4j.query.algebra.TupleExpr;
 public interface IndexTupleGenerator {
     
     
-    Iterator<TupleExpr> getPlans(Iterator<TupleExpr> indexPlans);
+    public Iterator<TupleExpr> getPlans(Iterator<TupleExpr> indexPlans);
     
 
 }

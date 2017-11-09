@@ -57,6 +57,11 @@ import org.apache.hadoop.util.ToolRunner;
 import org.apache.log4j.BasicConfigurator;
 import org.apache.log4j.Logger;
 import org.apache.log4j.xml.DOMConfigurator;
+
+import com.google.common.base.Joiner;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
+
 import org.apache.rya.accumulo.AccumuloRdfConfiguration;
 import org.apache.rya.accumulo.mr.AccumuloHDFSFileInputFormat;
 import org.apache.rya.accumulo.mr.MRUtils;
@@ -68,10 +73,6 @@ import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
 import org.apache.rya.api.RdfCloudTripleStoreConstants;
 import org.apache.rya.api.RdfCloudTripleStoreUtils;
 import org.apache.rya.indexing.accumulo.ConfigUtils;
-
-import com.google.common.base.Joiner;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
 
 /**
  * Handles merging a child accumulo instance's data back into its parent's

@@ -18,11 +18,13 @@
  */
 package org.apache.rya.api.query.strategy.wholerow;
 
+import static org.apache.rya.api.RdfCloudTripleStoreConstants.DELIM_BYTES;
+import static org.apache.rya.api.RdfCloudTripleStoreConstants.LAST_BYTES;
+
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
-import com.google.common.primitives.Bytes;
 import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
 import org.apache.rya.api.RdfCloudTripleStoreConstants.TABLE_LAYOUT;
 import org.apache.rya.api.RdfCloudTripleStoreUtils;
@@ -34,8 +36,7 @@ import org.apache.rya.api.query.strategy.ByteRange;
 import org.apache.rya.api.resolver.RyaContext;
 import org.apache.rya.api.resolver.RyaTypeResolverException;
 
-import static org.apache.rya.api.RdfCloudTripleStoreConstants.DELIM_BYTES;
-import static org.apache.rya.api.RdfCloudTripleStoreConstants.LAST_BYTES;
+import com.google.common.primitives.Bytes;
 
 /**
  * Date: 7/14/12

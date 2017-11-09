@@ -42,9 +42,9 @@ import org.eclipse.rdf4j.model.vocabulary.XMLSchema;
  */
 public interface IndexWorkPlan {
 
-    String URITYPE = XMLSchema.ANYURI.stringValue();
-    LongWritable ONE = new LongWritable(1);
-    String DELIM = "\u0000";
+    public static final String URITYPE = XMLSchema.ANYURI.stringValue();
+    public static final LongWritable ONE = new LongWritable(1);
+    public static final String DELIM = "\u0000";
 
     /**
      * This method is invoked by {@link ProspectorMapper}. It's used to pull
@@ -59,7 +59,7 @@ public interface IndexWorkPlan {
      * @param ryaStatement - The RDF Statement that needs to be mapped.
      * @return A collection of intermediate keys and counts.
      */
-    Collection<Map.Entry<IntermediateProspect, LongWritable>> map(RyaStatement ryaStatement);
+    public Collection<Map.Entry<IntermediateProspect, LongWritable>> map(RyaStatement ryaStatement);
 
     /**
      * This method is invoked by {@link ProspectorCombiner}. It is used by to
@@ -70,7 +70,7 @@ public interface IndexWorkPlan {
      * @param counts - The counts that need to be combined together.
      * @return A collection containing the combined results.
      */
-    Collection<Map.Entry<IntermediateProspect, LongWritable>> combine(IntermediateProspect prospect, Iterable<LongWritable> counts);
+    public Collection<Map.Entry<IntermediateProspect, LongWritable>> combine(IntermediateProspect prospect, Iterable<LongWritable> counts);
 
     /**
      * This method is invoked by {@link ProsectorReducer}. It is used to reduce
@@ -84,19 +84,19 @@ public interface IndexWorkPlan {
      * @throws IOException A problem was encountered while writing to the context.
      * @throws InterruptedException Writes to the context were interrupted.
      */
-    void reduce(IntermediateProspect prospect, Iterable<LongWritable> counts, Date timestamp, Reducer.Context context) throws IOException, InterruptedException;
+    public void reduce(IntermediateProspect prospect, Iterable<LongWritable> counts, Date timestamp, Reducer.Context context) throws IOException, InterruptedException;
 
     /**
      * @return A unique name that indicates which {@link IndexEntry}s came from this plan.
      */
-    String getIndexType();
+    public String getIndexType();
 
     /**
      * TODO Not sure what this generically is for. It is used by the count job to
      *      place a null delimiter between any {@link IndexEntry}s whose data
      *      section is two difference pieces of information together.
      */
-    String getCompositeValue(List<String> indices);
+    public String getCompositeValue(List<String> indices);
 
     /**
      * Search for {@link IndexEntry}s that have values matching the provided parameters.
@@ -111,5 +111,5 @@ public interface IndexWorkPlan {
      * @return The {@link IndexEntries} that match the provided values.
      * @throws TableNotFoundException No table exists for {@code tableName}.
      */
-    List<IndexEntry> query(Connector connector, String tableName, List<Long> prospectTimes, String type, String index, String dataType, String[] auths) throws TableNotFoundException;
+    public List<IndexEntry> query(Connector connector, String tableName, List<Long> prospectTimes, String type, String index, String dataType, String[] auths) throws TableNotFoundException;
 }

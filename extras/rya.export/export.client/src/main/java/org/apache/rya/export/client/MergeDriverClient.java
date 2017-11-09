@@ -18,11 +18,13 @@
  */
 package org.apache.rya.export.client;
 
+import static org.apache.rya.export.DBType.ACCUMULO;
+import static org.apache.rya.export.MergePolicy.TIMESTAMP;
+
 import java.io.File;
 import java.io.IOException;
 import java.net.UnknownHostException;
 
-import com.google.common.base.Optional;
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
 import org.apache.commons.cli.ParseException;
@@ -47,8 +49,7 @@ import org.eclipse.rdf4j.query.UpdateExecutionException;
 import org.eclipse.rdf4j.repository.RepositoryException;
 import org.eclipse.rdf4j.sail.SailException;
 
-import static org.apache.rya.export.DBType.ACCUMULO;
-import static org.apache.rya.export.MergePolicy.TIMESTAMP;
+import com.google.common.base.Optional;
 
 /**
  * Drives the MergeTool.

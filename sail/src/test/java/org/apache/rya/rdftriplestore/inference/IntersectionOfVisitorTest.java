@@ -52,22 +52,22 @@ import com.google.common.collect.Sets;
  */
 public class IntersectionOfVisitorTest {
     private final AccumuloRdfConfiguration conf = new AccumuloRdfConfiguration();
-    private static final ValueFactory vf = SimpleValueFactory.getInstance();
+    private static final ValueFactory VF = SimpleValueFactory.getInstance();
 
-    private static final IRI MOTHER = vf.createIRI("urn:Mother");
-    private static final IRI FATHER = vf.createIRI("urn:Father");
+    private static final IRI MOTHER = VF.createIRI("urn:Mother");
+    private static final IRI FATHER = VF.createIRI("urn:Father");
 
     // Definition #1: :Mother owl:intersectionOf(:Animal, :Female, :Parent)
-    private static final IRI ANIMAL = vf.createIRI("urn:Animal");
-    private static final IRI FEMALE = vf.createIRI("urn:Female");
-    private static final IRI PARENT = vf.createIRI("urn:Parent");
+    private static final IRI ANIMAL = VF.createIRI("urn:Animal");
+    private static final IRI FEMALE = VF.createIRI("urn:Female");
+    private static final IRI PARENT = VF.createIRI("urn:Parent");
 
     // Definition #2: :Mother owl:intersectionOf(:Female, :Leader, :Nun)
-    private static final IRI NUN = vf.createIRI("urn:Nun");
-    private static final IRI LEADER = vf.createIRI("urn:Leader");
+    private static final IRI NUN = VF.createIRI("urn:Nun");
+    private static final IRI LEADER = VF.createIRI("urn:Leader");
 
     // Definition #3: :Father owl:intersectionOf(:Man, :Parent)
-    private static final IRI MAN = vf.createIRI("urn:Man");
+    private static final IRI MAN = VF.createIRI("urn:Man");
 
     @Test
     public void testIntersectionOf() throws Exception {

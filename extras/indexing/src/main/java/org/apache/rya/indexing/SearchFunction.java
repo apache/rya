@@ -38,7 +38,7 @@ public interface SearchFunction {
      * @return
      * @throws QueryEvaluationException
      */
-    CloseableIteration<Statement, QueryEvaluationException> performSearch(String searchTerms, StatementConstraints contraints)
+    public CloseableIteration<Statement, QueryEvaluationException> performSearch(String searchTerms, StatementConstraints contraints)
             throws QueryEvaluationException;
 
 }

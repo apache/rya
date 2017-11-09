@@ -127,8 +127,9 @@ public class PCJKeyToCrossProductBindingSetIterator implements
 			}
 			isEmpty = true;
 			return false;
-		} else
-            return !isEmpty;
+		} else {
+			return !isEmpty;
+		}
 	}
 
 	@Override

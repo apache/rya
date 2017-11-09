@@ -31,50 +31,50 @@ import org.apache.rya.periodic.notification.notification.PeriodicNotification;
 
 /**
  *  Implementation of {@link PeriodicNotificaitonClient} used to register new notification
- *  requests with the PeriodicQueryService. 
+ *  requests with the PeriodicQueryService.
  *
  */
 public class KafkaNotificationRegistrationClient implements PeriodicNotificationClient {
 
-    private KafkaProducer<String, CommandNotification> producer;
-    private String topic;
-    
-    public KafkaNotificationRegistrationClient(String topic, KafkaProducer<String, CommandNotification> producer) {
+    private final KafkaProducer<String, CommandNotification> producer;
+    private final String topic;
+
+    public KafkaNotificationRegistrationClient(final String topic, final KafkaProducer<String, CommandNotification> producer) {
         this.topic = topic;
         this.producer = producer;
     }
-    
+
     @Override
-    public void addNotification(PeriodicNotification notification) {
+    public void addNotification(final PeriodicNotification notification) {
         processNotification(new CommandNotification(Command.ADD, notification));
 
     }
 
     @Override
-    public void deleteNotification(BasicNotification notification) {
+    public void deleteNotification(final BasicNotification notification) {
         processNotification(new CommandNotification(Command.DELETE, notification));
     }
 
     @Override
-    public void deleteNotification(String notificationId) {
+    public void deleteNotification(final String notificationId) {
         processNotification(new CommandNotification(Command.DELETE, new BasicNotification(notificationId)));
     }
 
     @Override
-    public void addNotification(String id, long period, long delay, TimeUnit unit) {
-        Notification notification = PeriodicNotification.builder().id(id).period(period).initialDelay(delay).timeUnit(unit).build();
+    public void addNotification(final String id, final long period, final long delay, final TimeUnit unit) {
+        final Notification notification = PeriodicNotification.builder().id(id).period(period).initialDelay(delay).timeUnit(unit).build();
         processNotification(new CommandNotification(Command.ADD, notification));
     }
-    
-   
-    private void processNotification(CommandNotification notification) {
+
+
+    private void processNotification(final CommandNotification notification) {
         producer.send(new ProducerRecord<String, CommandNotification>(topic, notification.getId(), notification));
     }
-    
+
     @Override
     public void close() {
+        // TODO scoping issue.  If we're closing this producer, we should also create it - otherwise other classes may be using it
+        // or we shouldn't implement autocloseable.
         producer.close();
     }
-    
-
 }

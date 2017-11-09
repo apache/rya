@@ -26,10 +26,11 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.fluo.api.client.FluoClient;
-import org.apache.log4j.Logger;
 import org.apache.rya.indexing.pcj.storage.PeriodicQueryResultStorage;
 import org.apache.rya.periodic.notification.api.LifeCycle;
 import org.apache.rya.periodic.notification.api.NodeBin;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Preconditions;
 
@@ -39,17 +40,17 @@ import com.google.common.base.Preconditions;
  */
 public class PeriodicQueryPrunerExecutor implements LifeCycle {
 
-    private static final Logger log = Logger.getLogger(PeriodicQueryPrunerExecutor.class);
-    private FluoClient client;
-    private int numThreads;
-    private ExecutorService executor;
-    private BlockingQueue<NodeBin> bins;
-    private PeriodicQueryResultStorage periodicStorage;
-    private List<PeriodicQueryPruner> pruners;
+    private static final Logger log = LoggerFactory.getLogger(PeriodicQueryPrunerExecutor.class);
+    private final FluoClient client;
+    private final int numThreads;
+    private final ExecutorService executor;
+    private final BlockingQueue<NodeBin> bins;
+    private final PeriodicQueryResultStorage periodicStorage;
+    private final List<PeriodicQueryPruner> pruners;
     private boolean running = false;
 
-    public PeriodicQueryPrunerExecutor(PeriodicQueryResultStorage periodicStorage, FluoClient client, int numThreads,
-            BlockingQueue<NodeBin> bins) {
+    public PeriodicQueryPrunerExecutor(final PeriodicQueryResultStorage periodicStorage, final FluoClient client, final int numThreads,
+            final BlockingQueue<NodeBin> bins) {
         Preconditions.checkArgument(numThreads > 0);
         this.periodicStorage = periodicStorage;
         this.numThreads = numThreads;
@@ -62,11 +63,11 @@ public class PeriodicQueryPrunerExecutor implements LifeCycle {
     @Override
     public void start() {
         if (!running) {
-            AccumuloBinPruner accPruner = new AccumuloBinPruner(periodicStorage);
-            FluoBinPruner fluoPruner = new FluoBinPruner(client);
+            final AccumuloBinPruner accPruner = new AccumuloBinPruner(periodicStorage);
+            final FluoBinPruner fluoPruner = new FluoBinPruner(client);
 
             for (int threadNumber = 0; threadNumber < numThreads; threadNumber++) {
-                PeriodicQueryPruner pruner = new PeriodicQueryPruner(fluoPruner, accPruner, client, bins, threadNumber);
+                final PeriodicQueryPruner pruner = new PeriodicQueryPruner(fluoPruner, accPruner, client, bins, threadNumber);
                 pruners.add(pruner);
                 executor.submit(pruner);
             }
@@ -87,11 +88,11 @@ public class PeriodicQueryPrunerExecutor implements LifeCycle {
             running = false;
         }
         try {
-            if (!executor.awaitTermination(5000, TimeUnit.MILLISECONDS)) {
+            if (!executor.awaitTermination(5, TimeUnit.SECONDS)) {
                 log.info("Timed out waiting for consumer threads to shut down, exiting uncleanly");
                 executor.shutdownNow();
             }
-        } catch (InterruptedException e) {
+        } catch (final InterruptedException e) {
             log.info("Interrupted during shutdown, exiting uncleanly");
         }
     }

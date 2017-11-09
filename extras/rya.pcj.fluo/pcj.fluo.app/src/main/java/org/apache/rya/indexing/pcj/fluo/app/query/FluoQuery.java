@@ -81,7 +81,7 @@ public class FluoQuery {
             final Optional<PeriodicQueryMetadata> periodicQueryMetadata,
             final ImmutableMap<String, StatementPatternMetadata> statementPatternMetadata,
             final ImmutableMap<String, FilterMetadata> filterMetadata,
-            final ImmutableMap<String, JoinMetadata> joinMetadata, 
+            final ImmutableMap<String, JoinMetadata> joinMetadata,
             final ImmutableMap<String, AggregationMetadata> aggregationMetadata) {
                 this.aggregationMetadata = requireNonNull(aggregationMetadata);
         this.queryMetadata = requireNonNull(queryMetadata);
@@ -94,7 +94,7 @@ public class FluoQuery {
         this.joinMetadata = requireNonNull(joinMetadata);
         this.type = queryMetadata.getQueryType();
     }
-    
+
     /**
      * Returns the {@link QueryType} of this query
      * @return the QueryType of this query (either Construct or Projection}
@@ -102,7 +102,7 @@ public class FluoQuery {
     public QueryType getQueryType() {
         return type;
     }
-    
+
     /**
      * @return the unique id of this query
      */
@@ -116,66 +116,66 @@ public class FluoQuery {
     public QueryMetadata getQueryMetadata() {
         return queryMetadata;
     }
-    
+
     /**
      * @param nodeId - node id of the query metadata
      * @return Optional containing the queryMetadata if it matches the specified nodeId
      */
-    public Optional<QueryMetadata> getQueryMetadata(String nodeId) {
+    public Optional<QueryMetadata> getQueryMetadata(final String nodeId) {
         if(queryMetadata.getNodeId().equals(nodeId)) {
             return Optional.of(queryMetadata);
         } else {
             return Optional.absent();
         }
     }
-    
+
     /**
      * @return construct query metadata for generating subgraphs
      */
     public Optional<ConstructQueryMetadata> getConstructQueryMetadata() {
         return constructMetadata;
     }
-    
+
     /**
      * @param nodeId - node id of the ConstructMetadata
      * @return Optional containing the ConstructMetadata if it is present and has the given nodeId
      */
-    public Optional<ConstructQueryMetadata> getConstructQueryMetadata(String nodeId) {
+    public Optional<ConstructQueryMetadata> getConstructQueryMetadata(final String nodeId) {
         if(constructMetadata.isPresent() && constructMetadata.get().getNodeId().equals(nodeId)) {
             return constructMetadata;
         } else {
             return Optional.absent();
         }
     }
-    
+
     /**
      * @param nodeId - id of the Projection metadata you want (not null)
      * @return projection metadata corresponding to give nodeId
      */
-    public Optional<ProjectionMetadata> getProjectionMetadata(String nodeId) {
+    public Optional<ProjectionMetadata> getProjectionMetadata(final String nodeId) {
         return Optional.fromNullable(projectionMetadata.get(nodeId));
     }
-    
+
     /**
      * @return All of the projection metadata that is stored for the query
      */
     public Collection<ProjectionMetadata> getProjectionMetadata() {
         return projectionMetadata.values();
     }
-    
+
     /**
      * @return All of the Periodic Query metadata that is stored for the query.
      */
     public Optional<PeriodicQueryMetadata> getPeriodicQueryMetadata() {
         return periodicQueryMetadata;
     }
-    
+
     /**
      * @param nodeId - id of the PeriodicQueryMetadata
      * @return Optional containing the PeriodicQueryMetadata if it is present and has the given nodeId
      */
-    public Optional<PeriodicQueryMetadata> getPeriodicQueryMetadata(String nodeId) {
-        
+    public Optional<PeriodicQueryMetadata> getPeriodicQueryMetadata(final String nodeId) {
+
         if(periodicQueryMetadata.isPresent() && periodicQueryMetadata.get().getNodeId().equals(nodeId)) {
             return periodicQueryMetadata;
         } else {
@@ -294,17 +294,17 @@ public class FluoQuery {
 
         builder.append(queryMetadata.toString());
         builder.append("\n");
-        
+
         for(final ProjectionMetadata metadata : projectionMetadata.values()) {
             builder.append(metadata);
             builder.append("\n");
         }
-        
+
         if(constructMetadata.isPresent()) {
             builder.append( constructMetadata.get().toString() );
             builder.append("\n");
         }
-        
+
         if(periodicQueryMetadata.isPresent()) {
             builder.append(periodicQueryMetadata.get());
             builder.append("\n");
@@ -372,20 +372,20 @@ public class FluoQuery {
         public QueryMetadata.Builder getQueryBuilder() {
             return queryBuilder;
         }
-        
+
         /**
          * @param nodeId - id of the QueryMetadata.Builder
          * @return Optional containing the QueryMetadata.Builder if it has the specified nodeId
          */
-        public Optional<QueryMetadata.Builder> getQueryBuilder(String nodeId) {
+        public Optional<QueryMetadata.Builder> getQueryBuilder(final String nodeId) {
             if(queryBuilder.getNodeId().equals(nodeId)) {
                 return Optional.of(queryBuilder);
             } else {
                 return Optional.absent();
             }
-            
+
         }
-        
+
         /**
          * Sets the {@link ProjectionMetadata.Builder} that is used by this builder.
          *
@@ -401,11 +401,11 @@ public class FluoQuery {
         /**
          * @return The ProjectionMetadata builder if one has been set.
          */
-        public Optional<ProjectionMetadata.Builder> getProjectionBuilder(String nodeId) {
+        public Optional<ProjectionMetadata.Builder> getProjectionBuilder(final String nodeId) {
             requireNonNull(nodeId);
             return Optional.fromNullable( projectionBuilders.get(nodeId) );
         }
-        
+
         /**
          * Sets the {@link ConstructQueryMetadata.Builder} that is used by this builder.
          *
@@ -421,21 +421,21 @@ public class FluoQuery {
          * @param id of the ConstructQueryMetadata.Builder
          * @return Optional containing the ConstructQueryMetadata.Builder if it has been set and has the given nodeId.
          */
-        public Optional<ConstructQueryMetadata.Builder> getConstructQueryBuilder(String nodeId) {
+        public Optional<ConstructQueryMetadata.Builder> getConstructQueryBuilder(final String nodeId) {
             if(constructBuilder != null && constructBuilder.getNodeId().equals(nodeId)) {
                 return Optional.of(constructBuilder);
             } else {
                 return Optional.absent();
             }
         }
-        
+
         /**
          * @return The Construct Query metadata builder if one has been set.
          */
         public Optional<ConstructQueryMetadata.Builder> getConstructQueryBuilder() {
             return Optional.fromNullable( constructBuilder );
         }
-        
+
 
         /**
          * Adds a new {@link StatementPatternMetadata.Builder} to this builder.
@@ -505,7 +505,7 @@ public class FluoQuery {
             requireNonNull(nodeId);
             return Optional.fromNullable( joinBuilders.get(nodeId) );
         }
-        
+
         /**
          * Get an Aggregate builder from this builder.
          *
@@ -528,7 +528,7 @@ public class FluoQuery {
             this.aggregationBuilders.put(aggregationBuilder.getNodeId(), aggregationBuilder);
             return this;
         }
-        
+
         /**
          * Adds a new {@link PeriodicQueryMetadata.Builder} to this builder.
          *
@@ -549,33 +549,33 @@ public class FluoQuery {
         public Optional<PeriodicQueryMetadata.Builder> getPeriodicQueryBuilder() {
             return Optional.fromNullable( periodicQueryBuilder);
         }
-        
+
         /**
          * @param - id of the PeriodicQueryMetadata.Builder
          * @return - Optional containing the PeriodicQueryMetadata.Builder if one has been set and it has the given nodeId
          */
-        public Optional<PeriodicQueryMetadata.Builder> getPeriodicQueryBuilder(String nodeId) {
-            
+        public Optional<PeriodicQueryMetadata.Builder> getPeriodicQueryBuilder(final String nodeId) {
+
             if(periodicQueryBuilder != null && periodicQueryBuilder.getNodeId().equals(nodeId)) {
                 return Optional.of(periodicQueryBuilder);
             } else {
                 return Optional.absent();
             }
         }
-        
+
         /**
          * @return Creates a {@link FluoQuery} using the values that have been supplied to this builder.
-         * @throws UnsupportedQueryException 
+         * @throws UnsupportedQueryException
          */
         public FluoQuery build() throws UnsupportedQueryException {
             checkArgument((projectionBuilders.size() > 0 || constructBuilder != null));
-            
-            Optional<PeriodicQueryMetadata.Builder> optionalPeriodicQueryBuilder = getPeriodicQueryBuilder();
+
+            final Optional<PeriodicQueryMetadata.Builder> optionalPeriodicQueryBuilder = getPeriodicQueryBuilder();
             PeriodicQueryMetadata periodicQueryMetadata = null;
             if(optionalPeriodicQueryBuilder.isPresent()) {
                 periodicQueryMetadata = optionalPeriodicQueryBuilder.get().build();
             }
-            
+
             final ImmutableMap.Builder<String, ProjectionMetadata> projectionMetadata = ImmutableMap.builder();
             for(final Entry<String, ProjectionMetadata.Builder> entry : projectionBuilders.entrySet()) {
                 projectionMetadata.put(entry.getKey(), entry.getValue().build());
@@ -601,8 +601,8 @@ public class FluoQuery {
                 aggregateMetadata.put(entry.getKey(), entry.getValue().build());
             }
 
-            QueryMetadata qMetadata = queryBuilder.build();
-            
+            final QueryMetadata qMetadata = queryBuilder.build();
+
             if(constructBuilder != null) {
                 if(periodicQueryMetadata != null) {
                     throw new UnsupportedQueryException("Queries containing sliding window filters and construct query patterns are not supported.");
@@ -612,10 +612,10 @@ public class FluoQuery {
                 if(aggregationBuilders.size() > 0 && qMetadata.getQueryType() == QueryType.PROJECTION && qMetadata.getExportStrategies().contains(ExportStrategy.RYA)) {
                     throw new UnsupportedQueryException("Exporting to Rya PCJ tables is currently not supported for queries containing aggregations.");
                 }
-                
-                return new FluoQuery(queryBuilder.build(), projectionMetadata.build(), Optional.absent(), Optional.fromNullable(periodicQueryMetadata), spMetadata.build(), filterMetadata.build(), joinMetadata.build(), aggregateMetadata.build());
+
+                return new FluoQuery(qMetadata, projectionMetadata.build(), Optional.absent(), Optional.fromNullable(periodicQueryMetadata), spMetadata.build(), filterMetadata.build(), joinMetadata.build(), aggregateMetadata.build());
             }
-            
+
         }
     }
 }

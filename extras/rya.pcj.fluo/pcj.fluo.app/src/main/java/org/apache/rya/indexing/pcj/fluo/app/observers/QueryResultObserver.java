@@ -25,7 +25,6 @@ import org.apache.fluo.api.client.TransactionBase;
 import org.apache.fluo.api.data.Bytes;
 import org.apache.fluo.api.data.Column;
 import org.apache.fluo.api.observer.AbstractObserver;
-import org.apache.log4j.Logger;
 import org.apache.rya.indexing.pcj.fluo.app.export.ExporterManager;
 import org.apache.rya.indexing.pcj.fluo.app.export.IncrementalBindingSetExporter;
 import org.apache.rya.indexing.pcj.fluo.app.export.IncrementalResultExporter;
@@ -38,6 +37,8 @@ import org.apache.rya.indexing.pcj.fluo.app.export.rya.RyaBindingSetExporterFact
 import org.apache.rya.indexing.pcj.fluo.app.export.rya.RyaSubGraphExporterFactory;
 import org.apache.rya.indexing.pcj.fluo.app.query.FluoQueryMetadataDAO;
 import org.apache.rya.indexing.pcj.fluo.app.query.QueryMetadata;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableSet;
@@ -46,14 +47,14 @@ import com.google.common.collect.ImmutableSet;
  * Performs incremental result exporting to the configured destinations.
  */
 public class QueryResultObserver extends AbstractObserver {
-    
-    private static final Logger log = Logger.getLogger(QueryResultObserver.class);
-    private static final FluoQueryMetadataDAO dao = new FluoQueryMetadataDAO();
-    
+
+    private static final Logger log = LoggerFactory.getLogger(QueryResultObserver.class);
+    private static final FluoQueryMetadataDAO DAO = new FluoQueryMetadataDAO();
+
     /**
      * Builders for each type of {@link IncrementalBindingSetExporter} we support.
      */
-    private static final ImmutableSet<IncrementalResultExporterFactory> factories =
+    private static final ImmutableSet<IncrementalResultExporterFactory> FACTORIES =
             ImmutableSet.<IncrementalResultExporterFactory>builder()
                 .add(new RyaBindingSetExporterFactory())
                 .add(new KafkaBindingSetExporterFactory())
@@ -61,7 +62,7 @@ public class QueryResultObserver extends AbstractObserver {
                 .add(new RyaSubGraphExporterFactory())
                 .add(new PeriodicBindingSetExporterFactory())
                 .build();
-    
+
     private ExporterManager exporterManager;
 
     @Override
@@ -74,25 +75,25 @@ public class QueryResultObserver extends AbstractObserver {
      */
     @Override
     public void init(final Context context) {
-        
-        ExporterManager.Builder managerBuilder = ExporterManager.builder();
-        
-        for(final IncrementalResultExporterFactory builder : factories) {
-            try {
-                log.debug("QueryResultObserver.init(): for each exportersBuilder=" + builder);
 
+        final ExporterManager.Builder managerBuilder = ExporterManager.builder();
+
+        for(final IncrementalResultExporterFactory builder : FACTORIES) {
+            try {
+                log.debug("Attempting to build exporter from factory: {}", builder);
                 final Optional<IncrementalResultExporter> exporter = builder.build(context);
                 if(exporter.isPresent()) {
+                    log.info("Adding exporter: {}", exporter.get());
                     managerBuilder.addIncrementalResultExporter(exporter.get());
                 }
             } catch (final IncrementalExporterFactoryException e) {
                 log.error("Could not initialize a result exporter.", e);
             }
         }
-        
+
         exporterManager = managerBuilder.build();
     }
-    
+
 
     @Override
     public void process(final TransactionBase tx, final Bytes brow, final Column col) throws Exception {
@@ -100,11 +101,11 @@ public class QueryResultObserver extends AbstractObserver {
 
         // Read the queryId from the row and get the QueryMetadata.
         final String queryId = row.split(NODEID_BS_DELIM)[0];
-        final QueryMetadata metadata = dao.readQueryMetadata(tx, queryId);
+        final QueryMetadata metadata = DAO.readQueryMetadata(tx, queryId);
 
         // Read the Child Binding Set that will be exported.
         final Bytes valueBytes = tx.get(brow, col);
-        
+
         exporterManager.export(metadata.getQueryType(), metadata.getExportStrategies(), queryId, valueBytes);
     }
 
@@ -112,7 +113,7 @@ public class QueryResultObserver extends AbstractObserver {
     public void close() {
         try {
             exporterManager.close();
-        } catch (Exception e) {
+        } catch (final Exception e) {
            log.warn("Encountered problems closing the ExporterManager.");
         }
     }

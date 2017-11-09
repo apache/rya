@@ -62,6 +62,7 @@ public class AccumuloRyaClientFactory {
                 new AccumuloAddUser(connectionDetails, connector),
                 new AccumuloRemoveUser(connectionDetails, connector),
                 new AccumuloUninstall(connectionDetails, connector),
+                new AccumuloLoadStatements(connectionDetails, connector),
                 new AccumuloLoadStatementsFile(connectionDetails, connector),
                 new AccumuloExecuteSparqlQuery(connectionDetails, connector));
     }

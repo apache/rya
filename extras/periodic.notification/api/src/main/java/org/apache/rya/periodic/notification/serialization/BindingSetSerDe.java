@@ -25,12 +25,13 @@ import java.util.Map;
 
 import org.apache.kafka.common.serialization.Deserializer;
 import org.apache.kafka.common.serialization.Serializer;
-import org.apache.log4j.Logger;
 import org.apache.rya.indexing.pcj.storage.accumulo.AccumuloPcjSerializer;
 import org.apache.rya.indexing.pcj.storage.accumulo.BindingSetConverter.BindingSetConversionException;
 import org.apache.rya.indexing.pcj.storage.accumulo.VariableOrder;
 import org.eclipse.rdf4j.query.BindingSet;
 import org.eclipse.rdf4j.query.algebra.evaluation.QueryBindingSet;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Joiner;
 import com.google.common.primitives.Bytes;
@@ -42,7 +43,7 @@ import com.google.common.primitives.Bytes;
  */
 public class BindingSetSerDe implements Serializer<BindingSet>, Deserializer<BindingSet> {
 
-    private static final Logger log = Logger.getLogger(BindingSetSerDe.class);
+    private static final Logger log = LoggerFactory.getLogger(BindingSetSerDe.class);
     private static final AccumuloPcjSerializer serializer =  new AccumuloPcjSerializer();
     private static final byte[] DELIM_BYTE = "\u0002".getBytes(StandardCharsets.UTF_8);
 
@@ -60,7 +61,7 @@ public class BindingSetSerDe implements Serializer<BindingSet>, Deserializer<Bin
             final int firstIndex = Bytes.indexOf(bsBytes, DELIM_BYTE);
             final byte[] varOrderBytes = Arrays.copyOf(bsBytes, firstIndex);
             final byte[] bsBytesNoVarOrder = Arrays.copyOfRange(bsBytes, firstIndex + 1, bsBytes.length);
-            final VariableOrder varOrder = new VariableOrder(new String(varOrderBytes,"UTF-8").split(";"));
+            final VariableOrder varOrder = new VariableOrder(new String(varOrderBytes, StandardCharsets.UTF_8).split(";"));
             return getBindingSet(varOrder, bsBytesNoVarOrder);
         } catch(final Exception e) {
             log.trace("Unable to deserialize BindingSet: " + bsBytes);
@@ -75,7 +76,7 @@ public class BindingSetSerDe implements Serializer<BindingSet>, Deserializer<Bin
     private byte[] getBytes(final VariableOrder varOrder, final BindingSet bs) throws UnsupportedEncodingException, BindingSetConversionException {
         final byte[] bsBytes = serializer.convert(bs, varOrder);
         final String varOrderString = Joiner.on(";").join(varOrder.getVariableOrders());
-        final byte[] varOrderBytes = varOrderString.getBytes("UTF-8");
+        final byte[] varOrderBytes = varOrderString.getBytes(StandardCharsets.UTF_8);
         return Bytes.concat(varOrderBytes, DELIM_BYTE, bsBytes);
     }
 

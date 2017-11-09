@@ -44,6 +44,7 @@ public class RyaClient {
     private final AddUser addUser;
     private final RemoveUser removeUser;
     private final Uninstall uninstall;
+    private final LoadStatements loadStatements;
     private final LoadStatementsFile loadStatementsFile;
     private final ExecuteSparqlQuery executeSparqlQuery;
 
@@ -64,6 +65,7 @@ public class RyaClient {
             final AddUser addUser,
             final RemoveUser removeUser,
             final Uninstall uninstall,
+            final LoadStatements loadStatements,
             final LoadStatementsFile loadStatementsFile,
             final ExecuteSparqlQuery executeSparqlQuery) {
         this.install = requireNonNull(install);
@@ -79,6 +81,7 @@ public class RyaClient {
         this.addUser = requireNonNull(addUser);
         this.removeUser = requireNonNull(removeUser);
         this.uninstall = requireNonNull(uninstall);
+        this.loadStatements = requireNonNull(loadStatements);
         this.loadStatementsFile = requireNonNull(loadStatementsFile);
         this.executeSparqlQuery = requireNonNull(executeSparqlQuery);
     }
@@ -105,10 +108,10 @@ public class RyaClient {
     public DeletePCJ getDeletePCJ() {
         return deletePcj;
     }
-    
+
     /**
      * @return An instance of {@link CreatePeridodicPCJ} that is connected to a Rya Periodic Storage
-     */ 
+     */
     public CreatePeriodicPCJ getCreatePeriodicPCJ() {
         return createPeriodicPcj;
     }
@@ -119,7 +122,7 @@ public class RyaClient {
     public DeletePeriodicPCJ getDeletePeriodicPCJ() {
         return deletePeriodicPcj;
     }
-    
+
     /**
      * @return An instance of {@link ListIncrementalQueries} for displaying queries that are incrementallly
      * maintained by the Rya instance
@@ -127,7 +130,7 @@ public class RyaClient {
     public ListIncrementalQueries getListIncrementalQueries() {
         return listIncrementalQueries;
     }
-    
+
     /**
      * @return An instance of {@link BatchUpdatePCJ} that is connect to a Rya storage
      *   if the Rya instance supports PCJ indexing.
@@ -176,6 +179,13 @@ public class RyaClient {
      */
     public Uninstall getUninstall() {
         return uninstall;
+    }
+
+    /**
+     * @return An instance of {@link LoadStatements} that is connected to a Rya storage.
+     */
+    public LoadStatements getLoadStatements() {
+        return loadStatements;
     }
 
     /**

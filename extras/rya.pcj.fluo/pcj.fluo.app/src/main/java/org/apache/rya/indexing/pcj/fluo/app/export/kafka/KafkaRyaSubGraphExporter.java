@@ -26,37 +26,42 @@ import java.util.concurrent.TimeUnit;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.clients.producer.RecordMetadata;
-import org.apache.log4j.Logger;
 import org.apache.rya.api.client.CreatePCJ.ExportStrategy;
 import org.apache.rya.api.client.CreatePCJ.QueryType;
 import org.apache.rya.api.domain.RyaSubGraph;
 import org.apache.rya.indexing.pcj.fluo.app.export.IncrementalBindingSetExporter.ResultExportException;
+import org.apache.rya.indexing.pcj.fluo.app.export.IncrementalRyaSubGraphExporter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.common.collect.Sets;
 
-import org.apache.rya.indexing.pcj.fluo.app.export.IncrementalRyaSubGraphExporter;
-
 /**
- * Exports {@link RyaSubGraph}s to Kafka from Rya Fluo Application 
+ * Exports {@link RyaSubGraph}s to Kafka from Rya Fluo Application
  *
  */
 public class KafkaRyaSubGraphExporter implements IncrementalRyaSubGraphExporter {
 
     private final KafkaProducer<String, RyaSubGraph> producer;
-    private static final Logger log = Logger.getLogger(KafkaRyaSubGraphExporter.class);
+    private static final Logger log = LoggerFactory.getLogger(KafkaRyaSubGraphExporter.class);
 
-    public KafkaRyaSubGraphExporter(KafkaProducer<String, RyaSubGraph> producer) {
+
+    /**
+     *
+     * @param producer - The producer used by this exporter.
+     */
+    public KafkaRyaSubGraphExporter(final KafkaProducer<String, RyaSubGraph> producer) {
         checkNotNull(producer);
         this.producer = producer;
     }
-    
+
     /**
      * Exports the RyaSubGraph to a Kafka topic equivalent to the result returned by {@link RyaSubGraph#getId()}
      * @param subgraph - RyaSubGraph exported to Kafka
      * @param contructID - rowID of result that is exported. Used for logging purposes.
      */
     @Override
-    public void export(String constructID, RyaSubGraph subGraph) throws ResultExportException {
+    public void export(final String constructID, final RyaSubGraph subGraph) throws ResultExportException {
         checkNotNull(constructID);
         checkNotNull(subGraph);
         try {
@@ -67,7 +72,7 @@ public class KafkaRyaSubGraphExporter implements IncrementalRyaSubGraphExporter 
             // Don't let the export return until the result has been written to the topic. Otherwise we may lose results.
             future.get();
 
-            log.debug("Producer successfully sent record with id: " + constructID + " and statements: " + subGraph.getStatements());
+            log.debug("Producer successfully sent record with id: {} and statements: {}", constructID, subGraph.getStatements());
 
         } catch (final Throwable e) {
             throw new ResultExportException("A result could not be exported to Kafka.", e);

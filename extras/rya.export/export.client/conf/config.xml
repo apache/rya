@@ -16,18 +16,18 @@ KIND, either express or implied.  See the License for the
 specific language governing permissions and limitations
 under the License. -->
 <MergeToolConfiguration xmlns="http://mergeconfig">
-    <parentHostname>10.63.8.102</parentHostname>
-    <parentUsername>SPEAR</parentUsername>
-    <parentPassword>spear</parentPassword>
-    <parentRyaInstanceName>spear_instance</parentRyaInstanceName>
-    <parentTablePrefix>asmith_demo_export_</parentTablePrefix>
-    <parentTomcatUrl>http://10.63.8.102:8080</parentTomcatUrl>
+    <parentHostname>10.10.10.100</parentHostname>
+    <parentUsername>accumuloUsername</parentUsername>
+    <parentPassword>accumuloPassword</parentPassword>
+    <parentRyaInstanceName>accumuloInstance</parentRyaInstanceName>
+    <parentTablePrefix>rya_demo_export_</parentTablePrefix>
+    <parentTomcatUrl>http://10.10.10.100:8080</parentTomcatUrl>
     <parentDBType>accumulo</parentDBType>
     <parentPort>1111</parentPort>
-    <childHostname>localhost</childHostname>
+    <childHostname>10.10.10.101</childHostname>
     <childRyaInstanceName>rya_demo_child</childRyaInstanceName>
-    <childTablePrefix>asmith_demo_export_</childTablePrefix>
-    <childTomcatUrl>http://localhost:8080</childTomcatUrl>
+    <childTablePrefix>rya_demo_export_</childTablePrefix>
+    <childTomcatUrl>http://10.10.10.101:8080</childTomcatUrl>
     <childDBType>mongo</childDBType>
     <childPort>27017</childPort>
     <mergePolicy>timestamp</mergePolicy>

@@ -31,7 +31,6 @@ import org.apache.fluo.api.data.Bytes;
 import org.apache.fluo.api.data.Column;
 import org.apache.fluo.api.data.Span;
 import org.apache.fluo.api.observer.AbstractObserver;
-import org.apache.log4j.Logger;
 import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.domain.VarNameUtils;
 import org.apache.rya.indexing.pcj.fluo.app.IncUpdateDAO;
@@ -42,6 +41,8 @@ import org.apache.rya.indexing.pcj.storage.accumulo.VariableOrder;
 import org.apache.rya.indexing.pcj.storage.accumulo.VisibilityBindingSet;
 import org.apache.rya.indexing.pcj.storage.accumulo.VisibilityBindingSetSerDe;
 import org.apache.rya.indexing.pcj.storage.accumulo.VisibilityBindingSetStringConverter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Charsets;
 import com.google.common.collect.Maps;
@@ -52,7 +53,7 @@ import com.google.common.collect.Maps;
  * the new result is stored as a binding set for the pattern.
  */
 public class TripleObserver extends AbstractObserver {
-    private static final Logger log = Logger.getLogger(TripleObserver.class);
+    private static final Logger log = LoggerFactory.getLogger(TripleObserver.class);
 
     private static final VisibilityBindingSetSerDe BS_SERDE = new VisibilityBindingSetSerDe();
     private static final FluoQueryMetadataDAO QUERY_METADATA_DAO = new FluoQueryMetadataDAO();
@@ -69,9 +70,7 @@ public class TripleObserver extends AbstractObserver {
     public void process(final TransactionBase tx, final Bytes brow, final Column column) {
         // Get string representation of triple.
         final RyaStatement ryaStatement = IncUpdateDAO.deserializeTriple(brow);
-        log.trace(
-                "Transaction ID: " + tx.getStartTimestamp() + "\n" +
-                "Rya Statement: " + ryaStatement + "\n");
+        log.trace("Transaction ID: {}\nRya Statement: {}\n", tx.getStartTimestamp(), ryaStatement);
 
         final String triple = IncUpdateDAO.getTripleString(ryaStatement);
 
@@ -115,10 +114,8 @@ public class TripleObserver extends AbstractObserver {
                     try {
                         final Bytes valueBytes = BS_SERDE.serialize(visBindingSet);
 
-                        log.trace(
-                                "Transaction ID: " + tx.getStartTimestamp() + "\n" +
-                                        "Matched Statement Pattern: " + spID + "\n" +
-                                        "Binding Set: " + visBindingSet + "\n");
+                        log.trace("Transaction ID: {}\nMatched Statement Pattern: {}\nBinding Set: {}\n",
+                                tx.getStartTimestamp(), spID, visBindingSet);
 
                         tx.set(rowBytes, FluoQueryColumns.STATEMENT_PATTERN_BINDING_SET, valueBytes);
                     } catch(final Exception e) {

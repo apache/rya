@@ -18,31 +18,15 @@
  */
 package org.apache.rya.streams.kafka.processors.join;
 
-import org.apache.rya.api.model.VisibilityBindingSet;
-import org.apache.rya.streams.kafka.processors.ProcessorResult.BinaryResult;
+import java.util.Iterator;
 
 import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
 import edu.umd.cs.findbugs.annotations.NonNull;
 
 /**
- * Provides a mechanism for storing {@link VisibilityBindingSet}s that have been emitted from either side of
- * a Join and a way to fetch all {@link VisibilityBindingSet}s that join with it from the other side.
+ * An {@link Iterator} that is also {@link AutoCloseable}.
+ *
+ * @param <T> - The type of elements that will be iterated over.
  */
 @DefaultAnnotation(NonNull.class)
-public interface JoinStateStore {
-
-    /**
-     * Store a {@link VisibilityBindingSet} based on the side it was emitted from.
-     *
-     * @param result - The result whose value will be stored. (not null)
-     */
-    public void store(BinaryResult result);
-
-    /**
-     * Get the previously stored {@link VisibilityBindingSet}s that join with the provided result.
-     *
-     * @param result - The value that will be joined with. (not null)
-     * @return The {@link VisibilityBinidngSet}s that join with {@code result}.
-     */
-    public CloseableIterator<VisibilityBindingSet> getJoinedValues(BinaryResult result);
-}
+public interface CloseableIterator<T> extends Iterator<T>, AutoCloseable { }

@@ -19,10 +19,13 @@
 package org.apache.rya.streams.kafka;
 
 import static java.util.Objects.requireNonNull;
+import static org.junit.Assert.assertEquals;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Properties;
+import java.util.Set;
 import java.util.UUID;
 
 import org.apache.kafka.clients.consumer.Consumer;
@@ -34,7 +37,19 @@ import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.serialization.Deserializer;
 import org.apache.kafka.common.serialization.Serializer;
+import org.apache.kafka.common.serialization.StringDeserializer;
+import org.apache.kafka.common.serialization.StringSerializer;
+import org.apache.kafka.streams.KafkaStreams;
+import org.apache.kafka.streams.StreamsConfig;
+import org.apache.kafka.streams.processor.TopologyBuilder;
+import org.apache.rya.api.model.VisibilityBindingSet;
+import org.apache.rya.api.model.VisibilityStatement;
+import org.apache.rya.streams.kafka.interactor.KafkaLoadStatements;
+import org.apache.rya.streams.kafka.serialization.VisibilityBindingSetDeserializer;
+import org.apache.rya.streams.kafka.serialization.VisibilityStatementSerializer;
 import org.apache.rya.test.kafka.KafkaTestInstanceRule;
+
+import com.google.common.collect.Sets;
 
 import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
 import edu.umd.cs.findbugs.annotations.NonNull;
@@ -123,5 +138,72 @@ public final class KafkaTestUtil {
         }
 
         return values;
+    }
+
+    /**
+     * Runs a Kafka Streams topology, loads statements into the input topic, read the binding sets that come out of
+     * the results topic, and ensures the expected results match the read results.
+     *
+     * @param kafka - The embedded kafka instance that is being tested with. (not null)
+     * @param statementsTopic - The topic statements will be written to. (not null)
+     * @param resultsTopic - The topic results will be read from. (not null)
+     * @param builder - The streams topology that will be executed. (not null)
+     * @param startupMs - How long to wait for the topology to start before writing the statements.
+     * @param statements - The statements that will be loaded into the topic. (not null)
+     * @param expected - The expected results. (not null)
+     * @throws Exception If any exception was thrown while running the test.
+     */
+    public static void runStreamProcessingTest(
+            final KafkaTestInstanceRule kafka,
+            final String statementsTopic,
+            final String resultsTopic,
+            final TopologyBuilder builder,
+            final int startupMs,
+            final List<VisibilityStatement> statements,
+            final Set<VisibilityBindingSet> expected) throws Exception {
+        requireNonNull(kafka);
+        requireNonNull(statementsTopic);
+        requireNonNull(resultsTopic);
+        requireNonNull(builder);
+        requireNonNull(statements);
+        requireNonNull(expected);
+
+        // Explicitly create the topics that are being used.
+        kafka.createTopic(statementsTopic);
+        kafka.createTopic(resultsTopic);
+
+        // Start the streams program.
+        final Properties props = kafka.createBootstrapServerConfig();
+        props.put(StreamsConfig.APPLICATION_ID_CONFIG, "StatementPatternProcessorIT");
+
+        final KafkaStreams streams = new KafkaStreams(builder, new StreamsConfig(props));
+        streams.cleanUp();
+        try {
+            streams.start();
+
+            // Wait for the streams application to start. Streams only see data after their consumers are connected.
+            Thread.sleep(startupMs);
+
+            // Load the statements into the input topic.
+            try(Producer<String, VisibilityStatement> producer = KafkaTestUtil.makeProducer(
+                    kafka, StringSerializer.class, VisibilityStatementSerializer.class)) {
+                new KafkaLoadStatements(statementsTopic, producer).fromCollection(statements);
+            }
+
+            // Wait for the final results to appear in the output topic and verify the expected Binding Sets were found.
+            try(Consumer<String, VisibilityBindingSet> consumer = KafkaTestUtil.fromStartConsumer(
+                    kafka, StringDeserializer.class, VisibilityBindingSetDeserializer.class)) {
+                // Register the topic.
+                consumer.subscribe(Arrays.asList(resultsTopic));
+
+                // Poll for the result.
+                final Set<VisibilityBindingSet> results = Sets.newHashSet( KafkaTestUtil.pollForResults(500, 6, expected.size(), consumer) );
+
+                // Show the correct binding sets results from the job.
+                assertEquals(expected, results);
+            }
+        } finally {
+            streams.close();
+        }
     }
 }

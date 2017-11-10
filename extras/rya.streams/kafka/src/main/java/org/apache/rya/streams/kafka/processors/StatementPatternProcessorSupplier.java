@@ -30,6 +30,8 @@ import org.apache.rya.api.model.VisibilityBindingSet;
 import org.apache.rya.api.model.VisibilityStatement;
 import org.openrdf.query.BindingSet;
 import org.openrdf.query.algebra.StatementPattern;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
 import edu.umd.cs.findbugs.annotations.NonNull;
@@ -70,6 +72,8 @@ public class StatementPatternProcessorSupplier implements ProcessorSupplier<Stri
     @DefaultAnnotation(NonNull.class)
     public static final class StatementPatternProcessor implements Processor<String, VisibilityStatement> {
 
+        private static final Logger log = LoggerFactory.getLogger(StatementPatternProcessor.class);
+
         private final StatementPatternMatcher spMatcher;
         private final ProcessorResultFactory resultFactory;
 
@@ -104,6 +108,7 @@ public class StatementPatternProcessorSupplier implements ProcessorSupplier<Stri
 
                 // Wrap the binding set as a result and forward it to the downstream processor.
                 final ProcessorResult resultValue = resultFactory.make(visBs);
+                log.debug("\nOUTPUT:\n{}", visBs);
                 context.forward(key, resultValue);
             }
         }

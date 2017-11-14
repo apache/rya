@@ -46,6 +46,7 @@ import org.apache.rya.streams.kafka.processors.output.BindingSetOutputFormatterS
 import org.apache.rya.streams.kafka.serialization.VisibilityBindingSetSerde;
 import org.apache.rya.streams.kafka.serialization.VisibilityBindingSetSerializer;
 import org.apache.rya.streams.kafka.serialization.VisibilityStatementDeserializer;
+import org.apache.rya.streams.kafka.topology.TopologyFactory;
 import org.apache.rya.test.kafka.KafkaTestInstanceRule;
 import org.junit.Rule;
 import org.junit.Test;
@@ -82,46 +83,13 @@ public class JoinProcessorIT {
         final String statementsTopic = KafkaTopics.statementsTopic(ryaInstance);
         final String resultsTopic = KafkaTopics.queryResultsTopic(queryId);
 
-        // Get the StatementPatterns that will be evaluated.
-        final StatementPattern leftSp = RdfTestUtil.getSp("SELECT * WHERE { ?person <urn:talksTo> ?employee }");
-        final StatementPattern rightSp = RdfTestUtil.getSp("SELECT * WHERE { ?employee <urn:worksAt> ?business }");
-
         // Setup a topology.
-        final TopologyBuilder builder = new TopologyBuilder();
-
-        // The topic that Statements are written to is used as a source.
-        builder.addSource("STATEMENTS", new StringDeserializer(), new VisibilityStatementDeserializer(), statementsTopic);
-
-        // Add a processor that handles the first statement pattern.
-        builder.addProcessor("LEFT_SP", new StatementPatternProcessorSupplier(leftSp,
-                result -> ProcessorResult.make( new BinaryResult(Side.LEFT, result) )), "STATEMENTS");
-
-        // Add a processor that handles the second statement pattern.
-        builder.addProcessor("RIGHT_SP", new StatementPatternProcessorSupplier(rightSp,
-                result -> ProcessorResult.make( new BinaryResult(Side.RIGHT, result) )), "STATEMENTS");
-
-        // Add a processor that handles a natrual join over the SPs.
-        builder.addProcessor("NATURAL_JOIN", new JoinProcessorSupplier(
-                "NATURAL_JOIN",
-                new NaturalJoin(),
-                Lists.newArrayList("employee"),
-                Lists.newArrayList("employee", "person", "business"),
-                result -> ProcessorResult.make( new UnaryResult(result) )), "LEFT_SP", "RIGHT_SP");
-
-        // Add a state store for the join processor.
-        final StateStoreSupplier joinStoreSupplier =
-                Stores.create( "NATURAL_JOIN" )
-                  .withStringKeys()
-                  .withValues(new VisibilityBindingSetSerde())
-                  .inMemory()
-                  .build();
-        builder.addStateStore(joinStoreSupplier, "NATURAL_JOIN");
-
-        // Add a processor that formats the VisibilityBindingSet for output.
-        builder.addProcessor("SINK_FORMATTER", BindingSetOutputFormatter::new, "NATURAL_JOIN");
-
-        // Add a sink that writes the data out to a new Kafka topic.
-        builder.addSink("QUERY_RESULTS", resultsTopic, new StringSerializer(), new VisibilityBindingSetSerializer(), "SINK_FORMATTER");
+        final String query = "SELECT * WHERE { "
+                + "?person <urn:talksTo> ?employee ."
+                + "?employee <urn:worksAt> ?business"
+                + " }";
+        final TopologyFactory factory = new TopologyFactory();
+        final TopologyBuilder builder = factory.build(query, statementsTopic, resultsTopic);
 
         // Create some statements that generate a bunch of right SP results.
         final ValueFactory vf = new ValueFactoryImpl();
@@ -194,10 +162,10 @@ public class JoinProcessorIT {
         // Add a state store for the join processor.
         final StateStoreSupplier joinStoreSupplier =
                 Stores.create( "NATURAL_JOIN" )
-                  .withStringKeys()
-                  .withValues(new VisibilityBindingSetSerde())
-                  .inMemory()
-                  .build();
+                .withStringKeys()
+                .withValues(new VisibilityBindingSetSerde())
+                .inMemory()
+                .build();
         builder.addStateStore(joinStoreSupplier, "NATURAL_JOIN");
 
         // Add a processor that formats the VisibilityBindingSet for output.
@@ -277,10 +245,10 @@ public class JoinProcessorIT {
         // Add a state store for the join processor.
         final StateStoreSupplier joinStoreSupplier =
                 Stores.create( "NATURAL_JOIN" )
-                  .withStringKeys()
-                  .withValues(new VisibilityBindingSetSerde())
-                  .inMemory()
-                  .build();
+                .withStringKeys()
+                .withValues(new VisibilityBindingSetSerde())
+                .inMemory()
+                .build();
         builder.addStateStore(joinStoreSupplier, "NATURAL_JOIN");
 
         // Add a processor that formats the VisibilityBindingSet for output.
@@ -379,18 +347,18 @@ public class JoinProcessorIT {
         // Setup the join state suppliers.
         final StateStoreSupplier join1StoreSupplier =
                 Stores.create( "JOIN1" )
-                  .withStringKeys()
-                  .withValues(new VisibilityBindingSetSerde())
-                  .inMemory()
-                  .build();
+                .withStringKeys()
+                .withValues(new VisibilityBindingSetSerde())
+                .inMemory()
+                .build();
         builder.addStateStore(join1StoreSupplier, "JOIN1");
 
         final StateStoreSupplier join2StoreSupplier =
                 Stores.create( "JOIN2" )
-                  .withStringKeys()
-                  .withValues(new VisibilityBindingSetSerde())
-                  .inMemory()
-                  .build();
+                .withStringKeys()
+                .withValues(new VisibilityBindingSetSerde())
+                .inMemory()
+                .build();
         builder.addStateStore(join2StoreSupplier, "JOIN2");
 
         // Add a processor that formats the VisibilityBindingSet for output.
@@ -459,10 +427,10 @@ public class JoinProcessorIT {
         // Add a state store for the join processor.
         final StateStoreSupplier joinStoreSupplier =
                 Stores.create( "LEFT_JOIN" )
-                  .withStringKeys()
-                  .withValues(new VisibilityBindingSetSerde())
-                  .inMemory()
-                  .build();
+                .withStringKeys()
+                .withValues(new VisibilityBindingSetSerde())
+                .inMemory()
+                .build();
         builder.addStateStore(joinStoreSupplier, "LEFT_JOIN");
 
         // Add a processor that formats the VisibilityBindingSet for output.

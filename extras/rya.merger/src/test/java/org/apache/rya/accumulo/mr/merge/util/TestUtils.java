@@ -23,12 +23,12 @@ import static org.junit.Assert.assertTrue;
 
 import java.util.Date;
 
-import info.aduna.iteration.CloseableIteration;
 import org.apache.rya.accumulo.AccumuloRdfConfiguration;
 import org.apache.rya.accumulo.AccumuloRyaDAO;
 import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.domain.RyaURI;
 import org.apache.rya.api.persist.RyaDAOException;
+import org.eclipse.rdf4j.common.iteration.CloseableIteration;
 
 /**
  * Utility methods for testing merging/copying.
@@ -54,7 +54,7 @@ public final class TestUtils {
     /**
      * Indicates when something occurred: before or after.
      */
-    public static enum Occurrence {
+    public enum Occurrence {
         BEFORE(-1),
         AFTER(1);
 
@@ -82,7 +82,7 @@ public final class TestUtils {
      * is similar to {@code java.util.concurrent.TimeUnit} but adds the week,
      * month, and year units and only converts to milliseconds.
      */
-    public static enum CalendarUnit {
+    public enum CalendarUnit {
         MILLISECOND(1L),
         SECOND(1000L * MILLISECOND.getMilliseconds()),
         MINUTE(60L * SECOND.getMilliseconds()),

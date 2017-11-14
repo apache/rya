@@ -19,8 +19,7 @@ package org.apache.rya.rdftriplestore.provenance;
  * under the License.
  */
 
-
-import org.openrdf.repository.RepositoryException;
+import org.eclipse.rdf4j.repository.RepositoryException;
 
 /**
  *  Exception for errors in collecting provenance data

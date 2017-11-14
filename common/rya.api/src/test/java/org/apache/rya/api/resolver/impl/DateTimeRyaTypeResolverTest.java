@@ -19,9 +19,9 @@ package org.apache.rya.api.resolver.impl;
  * under the License.
  */
 
-
-
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 import java.util.Date;
 import java.util.GregorianCalendar;
@@ -32,11 +32,12 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import org.apache.rya.api.domain.RyaType;
 import org.apache.rya.api.resolver.RdfToRyaConversions;
 import org.apache.rya.api.resolver.RyaTypeResolverException;
-
-import org.junit.Ignore;
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.Literal;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
+import org.eclipse.rdf4j.model.vocabulary.XMLSchema;
 import org.junit.Test;
-import org.openrdf.model.impl.CalendarLiteralImpl;
-import org.openrdf.model.vocabulary.XMLSchema;
 
 /**
  * Test serializing and deserializing.
@@ -54,14 +55,16 @@ import org.openrdf.model.vocabulary.XMLSchema;
  * 			deserialized= 2000-02-02T05:00:00.000Z   type = XMLSchema.DATETIME
  */
 public class DateTimeRyaTypeResolverTest {
-	@Test
+    private static final ValueFactory VF = SimpleValueFactory.getInstance();
+
+    @Test
     public void testDateTime() throws Exception {
         long currentTime = 1342182689285l;
         Date date = new Date(currentTime);
         GregorianCalendar gc = new GregorianCalendar();
         gc.setTimeInMillis(date.getTime());
         XMLGregorianCalendar xmlGregorianCalendar = DatatypeFactory.newInstance().newXMLGregorianCalendar(gc);
-        CalendarLiteralImpl literal = new CalendarLiteralImpl(xmlGregorianCalendar);
+        Literal literal = VF.createLiteral(xmlGregorianCalendar);
         byte[] serialize = new DateTimeRyaTypeResolver().serialize(RdfToRyaConversions.convertLiteral(literal));
         RyaType deserialize = new DateTimeRyaTypeResolver().deserialize(serialize);
         assertEquals("2012-07-13T12:31:29.285Z", deserialize.getData());
@@ -167,7 +170,7 @@ public class DateTimeRyaTypeResolverTest {
 	 * @return
 	 * @throws RyaTypeResolverException
 	 */
-	private RyaType serializeAndDeserialize(String dateTimeString, org.openrdf.model.URI type ) throws RyaTypeResolverException {
+	private RyaType serializeAndDeserialize(String dateTimeString,  IRI type ) throws RyaTypeResolverException {
 		if (type == null) 
 			type = XMLSchema.DATETIME;
 		RyaType ryaType = new RyaType(type, dateTimeString ); 

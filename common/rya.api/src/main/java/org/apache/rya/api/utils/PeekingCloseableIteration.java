@@ -19,10 +19,9 @@ package org.apache.rya.api.utils;
  * under the License.
  */
 
-
+import org.eclipse.rdf4j.common.iteration.CloseableIteration;
 
 import com.google.common.base.Preconditions;
-import info.aduna.iteration.CloseableIteration;
 
 /**
  * Date: 7/24/12

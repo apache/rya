@@ -29,19 +29,19 @@ import org.apache.rya.api.resolver.RyaToRdfConversions;
 import org.apache.rya.indexing.GeoConstants;
 import org.apache.rya.indexing.StatementConstraints;
 import org.apache.rya.indexing.accumulo.ConfigUtils;
-import org.apache.rya.indexing.geotemporal.mongo.MongoITBase;
 import org.apache.rya.indexing.accumulo.geo.OptionalConfigUtils;
+import org.apache.rya.indexing.geotemporal.mongo.MongoITBase;
 import org.apache.rya.indexing.mongodb.geo.MongoGeoIndexer;
+import org.eclipse.rdf4j.common.iteration.CloseableIteration;
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.Resource;
+import org.eclipse.rdf4j.model.Statement;
+import org.eclipse.rdf4j.model.Value;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.openrdf.model.Resource;
-import org.openrdf.model.Statement;
-import org.openrdf.model.URI;
-import org.openrdf.model.Value;
-import org.openrdf.model.ValueFactory;
-import org.openrdf.model.impl.StatementImpl;
-import org.openrdf.model.impl.ValueFactoryImpl;
 
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
@@ -51,8 +51,6 @@ import com.vividsolutions.jts.geom.LineString;
 import com.vividsolutions.jts.geom.Point;
 import com.vividsolutions.jts.geom.Polygon;
 import com.vividsolutions.jts.geom.PrecisionModel;
-
-import info.aduna.iteration.CloseableIteration;
 
 /**
  * Tests all of the "simple functions" of the geoindexer.
@@ -115,11 +113,11 @@ public class MongoGeoIndexerSfTest extends MongoITBase {
     }
 
     private static RyaStatement statement(final Geometry geo) {
-        final ValueFactory vf = new ValueFactoryImpl();
-        final Resource subject = vf.createURI("uri:" + names.get(geo));
-        final URI predicate = GeoConstants.GEO_AS_WKT;
+        final ValueFactory vf = SimpleValueFactory.getInstance();
+        final Resource subject = vf.createIRI("uri:" + names.get(geo));
+        final IRI predicate = GeoConstants.GEO_AS_WKT;
         final Value object = vf.createLiteral(geo.toString(), GeoConstants.XMLSCHEMA_OGC_WKT);
-        return RdfToRyaConversions.convertStatement(new StatementImpl(subject, predicate, object));
+        return RdfToRyaConversions.convertStatement(vf.createStatement(subject, predicate, object));
 
     }
 

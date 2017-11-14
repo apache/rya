@@ -32,12 +32,12 @@ import org.apache.rya.api.client.RyaClient;
 import org.apache.rya.api.instance.RyaDetails;
 import org.apache.rya.indexing.accumulo.ConfigUtils;
 import org.apache.rya.sail.config.RyaSailFactory;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.sail.Sail;
+import org.eclipse.rdf4j.sail.SailConnection;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.openrdf.model.ValueFactory;
-import org.openrdf.sail.Sail;
-import org.openrdf.sail.SailConnection;
 
 import com.google.common.collect.ImmutableList;
 
@@ -147,7 +147,7 @@ public class AccumuloAddUserIT extends AccumuloITBase {
             sailConn = sail.getConnection();
 
             final ValueFactory vf = sail.getValueFactory();
-            sailConn.addStatement(vf.createURI("urn:Alice"), vf.createURI("urn:talksTo"), vf.createURI("urn:Bob"));
+            sailConn.addStatement(vf.createIRI("urn:Alice"), vf.createIRI("urn:talksTo"), vf.createIRI("urn:Bob"));
 
         } catch(final RuntimeException e) {
             final Throwable cause = e.getCause();
@@ -198,7 +198,7 @@ public class AccumuloAddUserIT extends AccumuloITBase {
 
             final ValueFactory vf = sail.getValueFactory();
             sailConn.begin();
-            sailConn.addStatement(vf.createURI("urn:Alice"), vf.createURI("urn:talksTo"), vf.createURI("urn:Bob"));
+            sailConn.addStatement(vf.createIRI("urn:Alice"), vf.createIRI("urn:talksTo"), vf.createIRI("urn:Bob"));
             sailConn.close();
 
         } finally {

@@ -22,16 +22,16 @@
 //
 //import RdfCloudTripleStoreConstants;
 //import RdfCloudTripleStoreConstants;
-//import org.openrdf.model.ValueFactory;
-//import org.openrdf.model.impl.ValueFactoryImpl;
-//import org.openrdf.query.GraphQuery;
-//import org.openrdf.query.QueryLanguage;
-//import org.openrdf.query.TupleQuery;
-//import org.openrdf.query.resultio.sparqlxml.SPARQLResultsXMLWriter;
-//import org.openrdf.repository.Repository;
-//import org.openrdf.repository.RepositoryConnection;
-//import org.openrdf.repository.RepositoryException;
-//import org.openrdf.rio.rdfxml.RDFXMLWriter;
+//import org.eclipse.rdf4j.model.ValueFactory;
+//import org.eclipse.rdf4j.model.impl.ValueFactoryImpl;
+//import org.eclipse.rdf4j.query.GraphQuery;
+//import org.eclipse.rdf4j.query.QueryLanguage;
+//import org.eclipse.rdf4j.query.TupleQuery;
+//import org.eclipse.rdf4j.query.resultio.sparqlxml.SPARQLResultsXMLWriter;
+//import org.eclipse.rdf4j.repository.Repository;
+//import org.eclipse.rdf4j.repository.RepositoryConnection;
+//import org.eclipse.rdf4j.repository.RepositoryException;
+//import org.eclipse.rdf4j.rio.rdfxml.RDFXMLWriter;
 //
 //import javax.servlet.ServletException;
 //import javax.servlet.ServletOutputStream;
@@ -42,7 +42,7 @@
 //
 //public class QueryDataServlet extends AbstractRDFWebServlet {
 //
-//    private ValueFactory vf = new ValueFactoryImpl();
+//    private ValueFactory vf = SimpleValueFactory.getInstance();
 //
 //    @Override
 //    protected void doGet(HttpServletRequest req, HttpServletResponse resp)
@@ -109,7 +109,7 @@
 //            if (useStats != null && useStats.length() > 0)
 //                graphQuery.setBinding("useStats", vf.createLiteral(Boolean.parseBoolean(useStats)));
 //            if (timeUris != null && timeUris.length() > 0)
-//                graphQuery.setBinding("timeUris", vf.createURI(timeUris));
+//                graphQuery.setBinding("timeUris", vf.createIRI(timeUris));
 //            if (tablePrefix != null && tablePrefix.length() > 0)
 //                RdfCloudTripleStoreConstants.prefixTables(tablePrefix);
 //            RDFXMLWriter rdfWriter = new RDFXMLWriter(os);
@@ -153,7 +153,7 @@
 //            if (useStats != null && useStats.length() > 0)
 //                tupleQuery.setBinding("useStats", vf.createLiteral(Boolean.parseBoolean(useStats)));
 //            if (timeUris != null && timeUris.length() > 0)
-//                tupleQuery.setBinding("timeUris", vf.createURI(timeUris));
+//                tupleQuery.setBinding("timeUris", vf.createIRI(timeUris));
 //            if (tablePrefix != null && tablePrefix.length() > 0)
 //                RdfCloudTripleStoreConstants.prefixTables(tablePrefix);
 //            SPARQLResultsXMLWriter sparqlWriter = new SPARQLResultsXMLWriter(os);

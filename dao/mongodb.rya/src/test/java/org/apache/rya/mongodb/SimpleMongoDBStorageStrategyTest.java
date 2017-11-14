@@ -18,8 +18,8 @@ package org.apache.rya.mongodb;
  * under the License.
  */
 
+import static org.eclipse.rdf4j.model.vocabulary.XMLSchema.ANYURI;
 import static org.junit.Assert.assertEquals;
-import static org.openrdf.model.vocabulary.XMLSchema.ANYURI;
 
 import java.io.IOException;
 

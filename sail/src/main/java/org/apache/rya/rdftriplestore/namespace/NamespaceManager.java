@@ -19,21 +19,19 @@ package org.apache.rya.rdftriplestore.namespace;
  * under the License.
  */
 
+import java.io.InputStream;
 
-
-import info.aduna.iteration.CloseableIteration;
-import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
-import org.apache.rya.api.persist.RdfDAOException;
-import org.apache.rya.api.persist.RyaDAO;
-import org.apache.rya.api.persist.RyaNamespaceManager;
 import net.sf.ehcache.Cache;
 import net.sf.ehcache.CacheManager;
 import net.sf.ehcache.Element;
 import net.sf.ehcache.Statistics;
-import org.openrdf.model.Namespace;
-import org.openrdf.sail.SailException;
-
-import java.io.InputStream;
+import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
+import org.apache.rya.api.persist.RdfDAOException;
+import org.apache.rya.api.persist.RyaDAO;
+import org.apache.rya.api.persist.RyaNamespaceManager;
+import org.eclipse.rdf4j.common.iteration.CloseableIteration;
+import org.eclipse.rdf4j.model.Namespace;
+import org.eclipse.rdf4j.sail.SailException;
 
 /**
  * Class NamespaceManager

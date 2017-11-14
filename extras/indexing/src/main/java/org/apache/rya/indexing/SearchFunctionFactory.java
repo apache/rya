@@ -19,12 +19,11 @@ package org.apache.rya.indexing;
  * under the License.
  */
 
-
 import java.util.Map;
 
 import org.apache.log4j.Logger;
-import org.openrdf.model.URI;
-import org.openrdf.query.QueryEvaluationException;
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.query.QueryEvaluationException;
 
 import com.google.common.collect.Maps;
 
@@ -32,7 +31,7 @@ public abstract class SearchFunctionFactory {
     
     private static final Logger logger = Logger.getLogger(SearchFunctionFactory.class);
 
-    private final Map<URI, SearchFunction> SEARCH_FUNCTION_MAP = Maps.newHashMap();
+    private final Map<IRI, SearchFunction> SEARCH_FUNCTION_MAP = Maps.newHashMap();
 
 
     /**
@@ -41,7 +40,7 @@ public abstract class SearchFunctionFactory {
      * @param searchFunction
      * @return
      */
-    public SearchFunction getSearchFunction(final URI searchFunction) {
+    public SearchFunction getSearchFunction(final IRI searchFunction) {
 
         SearchFunction geoFunc = null;
 
@@ -54,7 +53,7 @@ public abstract class SearchFunctionFactory {
         return geoFunc;
     }
 
-    private SearchFunction getSearchFunctionInternal(final URI searchFunction) throws QueryEvaluationException {
+    private SearchFunction getSearchFunctionInternal(final IRI searchFunction) throws QueryEvaluationException {
         SearchFunction sf = SEARCH_FUNCTION_MAP.get(searchFunction);
 
         if (sf != null) {

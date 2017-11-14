@@ -18,6 +18,7 @@ package org.apache.rya.indexing.statement.metadata.matching;
  * specific language governing permissions and limitations
  * under the License.
  */
+
 import static java.util.Objects.requireNonNull;
 
 import java.io.IOException;
@@ -45,23 +46,22 @@ import org.apache.rya.api.persist.query.RyaQueryEngine;
 import org.apache.rya.api.resolver.RdfToRyaConversions;
 import org.apache.rya.api.resolver.RyaToRdfConversions;
 import org.apache.rya.rdftriplestore.evaluation.ExternalBatchingIterator;
-import org.openrdf.model.BNode;
-import org.openrdf.model.URI;
-import org.openrdf.model.Value;
-import org.openrdf.model.vocabulary.RDF;
-import org.openrdf.query.Binding;
-import org.openrdf.query.BindingSet;
-import org.openrdf.query.QueryEvaluationException;
-import org.openrdf.query.algebra.StatementPattern;
-import org.openrdf.query.algebra.Var;
-import org.openrdf.query.algebra.evaluation.QueryBindingSet;
-import org.openrdf.query.algebra.evaluation.impl.ExternalSet;
+import org.eclipse.rdf4j.common.iteration.CloseableIteration;
+import org.eclipse.rdf4j.common.iteration.EmptyIteration;
+import org.eclipse.rdf4j.model.BNode;
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.Value;
+import org.eclipse.rdf4j.model.vocabulary.RDF;
+import org.eclipse.rdf4j.query.Binding;
+import org.eclipse.rdf4j.query.BindingSet;
+import org.eclipse.rdf4j.query.QueryEvaluationException;
+import org.eclipse.rdf4j.query.algebra.StatementPattern;
+import org.eclipse.rdf4j.query.algebra.Var;
+import org.eclipse.rdf4j.query.algebra.evaluation.QueryBindingSet;
+import org.eclipse.rdf4j.query.algebra.evaluation.impl.ExternalSet;
 
 import com.google.common.base.Joiner;
 import com.google.common.base.Preconditions;
-
-import info.aduna.iteration.CloseableIteration;
-import info.aduna.iteration.EmptyIteration;
 
 /**
  * This class provides users with the ability to issue reified queries to Rya.
@@ -361,13 +361,13 @@ public class StatementMetadataNode<C extends RdfCloudTripleStoreConfiguration> e
         RyaURI context = null;
 
         if (subjValue != null) {
-            Preconditions.checkArgument(subjValue instanceof URI);
-            subj = RdfToRyaConversions.convertURI((URI) subjValue);
+            Preconditions.checkArgument(subjValue instanceof IRI);
+            subj = RdfToRyaConversions.convertURI((IRI) subjValue);
         }
 
         if (predValue != null) {
-            Preconditions.checkArgument(predValue instanceof URI);
-            pred = RdfToRyaConversions.convertURI((URI) predValue);
+            Preconditions.checkArgument(predValue instanceof IRI);
+            pred = RdfToRyaConversions.convertURI((IRI) predValue);
         }
 
         if (objValue != null) {
@@ -375,7 +375,7 @@ public class StatementMetadataNode<C extends RdfCloudTripleStoreConfiguration> e
         }
         
         if(contextValue != null) {
-            context = RdfToRyaConversions.convertURI((URI) contextValue);
+            context = RdfToRyaConversions.convertURI((IRI) contextValue);
         }
         return new RyaStatement(subj, pred, obj, context);
     }
@@ -480,7 +480,7 @@ public class StatementMetadataNode<C extends RdfCloudTripleStoreConfiguration> e
      * This is an {@link CloseableIteration} class that serves a number of
      * purposes. It's primary purpose is to filter a CloseableIteration over
      * {@link Map.Entry<RyaStatement,BindingSet>} using a specified property Map
-     * from {@link RyaURI} to {@link org.openrdf.query.algebra.Var}. This
+     * from {@link RyaURI} to {@link org.eclipse.rdf4j.query.algebra.Var}. This
      * Iteration iterates over the Entries in the user specified Iteration,
      * comparing properties in the {@link StatementMetadata} Map contained in
      * the RyaStatements with the property Map for this class. If the properties
@@ -657,7 +657,7 @@ public class StatementMetadataNode<C extends RdfCloudTripleStoreConfiguration> e
          * Builds the BindingSet from the specified RyaStatement by using the
          * StatementPattern for this class. This method checks whether
          * StatementPattern has a {@link Value} for each position
-         * {@link org.openrdf.query.algebra.Var} (Subject, Predicate, Object).
+         * {@link org.eclipse.rdf4j.query.algebra.Var} (Subject, Predicate, Object).
          * If it doesn't have a Value, a Binding is created from the
          * RyaStatement using the {@link RyaType} for the corresponding position
          * (Subject, Predicate, Object).

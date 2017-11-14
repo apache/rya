@@ -19,8 +19,6 @@ package org.apache.rya.accumulo.pcj.iterators;
  * under the License.
  */
 
-import info.aduna.iteration.CloseableIteration;
-
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -29,17 +27,18 @@ import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Set;
 
-import org.apache.rya.indexing.external.tupleSet.ExternalTupleSet;
-
 import org.apache.accumulo.core.client.Scanner;
 import org.apache.accumulo.core.data.Key;
+import org.apache.rya.api.domain.VarNameUtils;
+import org.apache.rya.indexing.external.tupleSet.ExternalTupleSet;
 import org.apache.rya.indexing.pcj.storage.accumulo.AccumuloPcjSerializer;
 import org.apache.rya.indexing.pcj.storage.accumulo.BindingSetConverter.BindingSetConversionException;
 import org.apache.rya.indexing.pcj.storage.accumulo.VariableOrder;
-import org.openrdf.model.Value;
-import org.openrdf.query.BindingSet;
-import org.openrdf.query.QueryEvaluationException;
-import org.openrdf.query.algebra.evaluation.QueryBindingSet;
+import org.eclipse.rdf4j.common.iteration.CloseableIteration;
+import org.eclipse.rdf4j.model.Value;
+import org.eclipse.rdf4j.query.BindingSet;
+import org.eclipse.rdf4j.query.QueryEvaluationException;
+import org.eclipse.rdf4j.query.algebra.evaluation.QueryBindingSet;
 
 import com.google.common.collect.HashBiMap;
 
@@ -128,10 +127,8 @@ public class PCJKeyToCrossProductBindingSetIterator implements
 			}
 			isEmpty = true;
 			return false;
-		} else if (isEmpty) {
-			return false;
 		} else {
-			return true;
+			return !isEmpty;
 		}
 	}
 
@@ -187,7 +184,7 @@ public class PCJKeyToCrossProductBindingSetIterator implements
 				throw new QueryEvaluationException("PCJ Variable has no mapping to query variable.");
 			}
 			if (constantConstraintsExist) {
-				if (mappedVar.startsWith(ExternalTupleSet.CONST_PREFIX)
+				if (VarNameUtils.isConstant(mappedVar)
 						&& constantConstraints.containsKey(mappedVar)
 						&& !constantConstraints.get(mappedVar).equals(
 								bindingSet.getValue(var))) {
@@ -195,7 +192,7 @@ public class PCJKeyToCrossProductBindingSetIterator implements
 				}
 			}
 
-			if (!mappedVar.startsWith(ExternalTupleSet.CONST_PREFIX)) {
+			if (!VarNameUtils.isConstant(mappedVar)) {
 					bs.addBinding(mappedVar, bindingSet.getValue(var));
 			}
 		}

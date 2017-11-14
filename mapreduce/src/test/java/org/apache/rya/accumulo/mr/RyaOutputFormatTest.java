@@ -36,15 +36,14 @@ import org.apache.rya.indexing.accumulo.freetext.AccumuloFreeTextIndexer;
 import org.apache.rya.indexing.accumulo.freetext.SimpleTokenizer;
 import org.apache.rya.indexing.accumulo.freetext.Tokenizer;
 import org.apache.rya.indexing.accumulo.temporal.AccumuloTemporalIndexer;
+import org.eclipse.rdf4j.common.iteration.CloseableIteration;
+import org.eclipse.rdf4j.model.Statement;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
+import org.eclipse.rdf4j.model.vocabulary.XMLSchema;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.openrdf.model.Statement;
-import org.openrdf.model.ValueFactory;
-import org.openrdf.model.impl.ValueFactoryImpl;
-import org.openrdf.model.vocabulary.XMLSchema;
-
-import info.aduna.iteration.CloseableIteration;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -224,7 +223,7 @@ public class RyaOutputFormatTest {
         RyaOutputFormat.setFreeTextEnabled(job, false);
         RyaOutputFormat.setTemporalEnabled(job, true);
         RyaOutputFormat.setEntityEnabled(job, false);
-        final ValueFactory vf = new ValueFactoryImpl();
+        final ValueFactory vf = SimpleValueFactory.getInstance();
         for (int i = 0; i < instants.length; i++) {
             final RyaType time = RdfToRyaConversions.convertLiteral(vf.createLiteral(instants[i].toString()));
             final RyaStatement input = RyaStatement.builder()

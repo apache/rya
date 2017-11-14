@@ -20,12 +20,12 @@ package org.apache.rya.rdftriplestore.inference;
 
 import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
 import org.apache.rya.rdftriplestore.utils.TransitivePropertySP;
-import org.openrdf.model.URI;
-import org.openrdf.model.vocabulary.RDF;
-import org.openrdf.model.vocabulary.RDFS;
-import org.openrdf.model.vocabulary.SESAME;
-import org.openrdf.query.algebra.StatementPattern;
-import org.openrdf.query.algebra.Var;
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.vocabulary.RDF;
+import org.eclipse.rdf4j.model.vocabulary.RDFS;
+import org.eclipse.rdf4j.model.vocabulary.SESAME;
+import org.eclipse.rdf4j.query.algebra.StatementPattern;
+import org.eclipse.rdf4j.query.algebra.Var;
 
 /**
  * All predicates are changed
@@ -45,7 +45,7 @@ public class TransitivePropertyVisitor extends AbstractInferVisitor {
         final StatementPattern sp = node.clone();
         final Var predVar = sp.getPredicateVar();
 
-        final URI pred = (URI) predVar.getValue();
+        final IRI pred = (IRI) predVar.getValue();
         final String predNamespace = pred.getNamespace();
 
         final Var objVar = sp.getObjectVar();
@@ -56,7 +56,7 @@ public class TransitivePropertyVisitor extends AbstractInferVisitor {
                 !RDFS.NAMESPACE.equals(predNamespace)
                 && !EXPANDED.equals(cntxtVar)) {
 
-            final URI transPropUri = (URI) predVar.getValue();
+            final IRI transPropUri = (IRI) predVar.getValue();
             if (inferenceEngine.isTransitiveProperty(transPropUri)) {
                 node.replaceWith(new TransitivePropertySP(sp.getSubjectVar(), sp.getPredicateVar(), sp.getObjectVar(), sp.getContextVar()));
             }

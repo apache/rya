@@ -24,7 +24,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.rya.api.persist.RdfDAOException;
-import org.openrdf.model.impl.URIImpl;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 
 import com.google.common.base.Preconditions;
 import com.google.common.reflect.TypeToken;
@@ -42,7 +42,7 @@ import com.google.gson.JsonSerializer;
 public class StatementMetadata {
 
     private static Gson gson = new GsonBuilder().enableComplexMapKeySerialization()
-    .registerTypeHierarchyAdapter(RyaType.class, new RyaTypeAdapter()).create();;
+    .registerTypeHierarchyAdapter(RyaType.class, new RyaTypeAdapter()).create();
     public static StatementMetadata EMPTY_METADATA = new StatementMetadata();
 
     private Map<RyaURI, RyaType> metadataMap = new HashMap<>();
@@ -127,7 +127,7 @@ public class StatementMetadata {
             if(type.equals(RyaURI.class.getName())){
                 return new RyaURI(array[0]);
             } else if(type.equals(RyaType.class.getName())){
-                RyaType ryaType = new RyaType(new URIImpl(array[1]), array[0]);
+                RyaType ryaType = new RyaType(SimpleValueFactory.getInstance().createIRI(array[1]), array[0]);
                 return ryaType;
             } else {
                 throw new IllegalArgumentException("Unparseable RyaType.");

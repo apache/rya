@@ -19,7 +19,6 @@ package org.apache.rya.indexing;
  * under the License.
  */
 
-
 import java.io.IOException;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
@@ -34,30 +33,6 @@ import org.apache.commons.lang.Validate;
 import org.apache.hadoop.conf.Configurable;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.log4j.Logger;
-import org.openrdf.model.Resource;
-import org.openrdf.model.URI;
-import org.openrdf.model.Value;
-import org.openrdf.model.ValueFactory;
-import org.openrdf.model.impl.URIImpl;
-import org.openrdf.model.impl.ValueFactoryImpl;
-import org.openrdf.query.BindingSet;
-import org.openrdf.query.Dataset;
-import org.openrdf.query.algebra.And;
-import org.openrdf.query.algebra.Filter;
-import org.openrdf.query.algebra.FunctionCall;
-import org.openrdf.query.algebra.Join;
-import org.openrdf.query.algebra.LeftJoin;
-import org.openrdf.query.algebra.QueryModelNode;
-import org.openrdf.query.algebra.StatementPattern;
-import org.openrdf.query.algebra.TupleExpr;
-import org.openrdf.query.algebra.ValueConstant;
-import org.openrdf.query.algebra.ValueExpr;
-import org.openrdf.query.algebra.Var;
-import org.openrdf.query.algebra.evaluation.QueryOptimizer;
-import org.openrdf.query.algebra.helpers.QueryModelVisitorBase;
-
-import com.google.common.collect.Lists;
-
 import org.apache.rya.accumulo.AccumuloRdfConfiguration;
 import org.apache.rya.indexing.IndexingFunctionRegistry.FUNCTION_TYPE;
 import org.apache.rya.indexing.accumulo.ConfigUtils;
@@ -66,10 +41,32 @@ import org.apache.rya.indexing.accumulo.freetext.FreeTextTupleSet;
 import org.apache.rya.indexing.accumulo.temporal.AccumuloTemporalIndexer;
 import org.apache.rya.indexing.mongodb.freetext.MongoFreeTextIndexer;
 import org.apache.rya.indexing.mongodb.temporal.MongoTemporalIndexer;
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.Resource;
+import org.eclipse.rdf4j.model.Value;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
+import org.eclipse.rdf4j.query.BindingSet;
+import org.eclipse.rdf4j.query.Dataset;
+import org.eclipse.rdf4j.query.algebra.And;
+import org.eclipse.rdf4j.query.algebra.Filter;
+import org.eclipse.rdf4j.query.algebra.FunctionCall;
+import org.eclipse.rdf4j.query.algebra.Join;
+import org.eclipse.rdf4j.query.algebra.LeftJoin;
+import org.eclipse.rdf4j.query.algebra.QueryModelNode;
+import org.eclipse.rdf4j.query.algebra.StatementPattern;
+import org.eclipse.rdf4j.query.algebra.TupleExpr;
+import org.eclipse.rdf4j.query.algebra.ValueConstant;
+import org.eclipse.rdf4j.query.algebra.ValueExpr;
+import org.eclipse.rdf4j.query.algebra.Var;
+import org.eclipse.rdf4j.query.algebra.evaluation.QueryOptimizer;
+import org.eclipse.rdf4j.query.algebra.helpers.AbstractQueryModelVisitor;
+
+import com.google.common.collect.Lists;
 
 public class FilterFunctionOptimizer implements QueryOptimizer, Configurable {
     private static final Logger LOG = Logger.getLogger(FilterFunctionOptimizer.class);
-    private final ValueFactory valueFactory = new ValueFactoryImpl();
+    private static final ValueFactory VF = SimpleValueFactory.getInstance();
 
     private Configuration conf;
     private FreeTextIndexer freeTextIndexer;
@@ -160,12 +157,12 @@ public class FilterFunctionOptimizer implements QueryOptimizer, Configurable {
     }
 
     //find vars contained in filters
-    private static class SearchVarVisitor extends QueryModelVisitorBase<RuntimeException> {
+    private static class SearchVarVisitor extends AbstractQueryModelVisitor<RuntimeException> {
         private final Collection<Var> searchProperties = new ArrayList<Var>();
 
         @Override
         public void meet(final FunctionCall fn) {
-            final URI fun = new URIImpl(fn.getURI());
+            final IRI fun = VF.createIRI(fn.getURI());
             final Var result = IndexingFunctionRegistry.getResultVarFromFunctionCall(fun, fn.getArgs());
             if (result != null && !searchProperties.contains(result)) {
                 searchProperties.add(result);
@@ -174,7 +171,7 @@ public class FilterFunctionOptimizer implements QueryOptimizer, Configurable {
     }
 
     //find StatementPatterns containing filter variables
-    private static class MatchStatementVisitor extends QueryModelVisitorBase<RuntimeException> {
+    private static class MatchStatementVisitor extends AbstractQueryModelVisitor<RuntimeException> {
         private final Collection<Var> propertyVars;
         private final Collection<Var> usedVars = new ArrayList<Var>();
         private final List<StatementPattern> matchStatements = new ArrayList<StatementPattern>();
@@ -196,16 +193,16 @@ public class FilterFunctionOptimizer implements QueryOptimizer, Configurable {
         }
     }
 
-    private abstract class AbstractEnhanceVisitor extends QueryModelVisitorBase<RuntimeException> {
+    private abstract class AbstractEnhanceVisitor extends AbstractQueryModelVisitor<RuntimeException> {
         final String matchVar;
-        List<URI> func = Lists.newArrayList();
+        List<IRI> func = Lists.newArrayList();
         List<Value[]> args = Lists.newArrayList();
 
         public AbstractEnhanceVisitor(final String matchVar) {
             this.matchVar = matchVar;
         }
 
-        protected void addFilter(final URI uri, final Value[] values) {
+        protected void addFilter(final IRI uri, final Value[] values) {
             func.add(uri);
             args.add(values);
         }
@@ -220,12 +217,12 @@ public class FilterFunctionOptimizer implements QueryOptimizer, Configurable {
 
         @Override
         public void meet(final FunctionCall call) {
-            final URI fnUri = valueFactory.createURI(call.getURI());
+            final IRI fnUri = VF.createIRI(call.getURI());
             final Var resultVar = IndexingFunctionRegistry.getResultVarFromFunctionCall(fnUri, call.getArgs());
             if (resultVar != null && resultVar.getName().equals(matchVar)) {
-                addFilter(valueFactory.createURI(call.getURI()), extractArguments(matchVar, call));
+                addFilter(VF.createIRI(call.getURI()), extractArguments(matchVar, call));
                 if (call.getParentNode() instanceof Filter || call.getParentNode() instanceof And || call.getParentNode() instanceof LeftJoin) {
-                    call.replaceWith(new ValueConstant(valueFactory.createLiteral(true)));
+                    call.replaceWith(new ValueConstant(VF.createLiteral(true)));
                 } else {
                     throw new IllegalArgumentException("Query error: Found " + call + " as part of an expression that is too complex");
                 }
@@ -289,7 +286,7 @@ public class FilterFunctionOptimizer implements QueryOptimizer, Configurable {
 
         public IndexerExprReplacer(final List<IndexingExpr> indxExpr) {
             this.indxExpr = indxExpr;
-            final URI func = indxExpr.get(0).getFunction();
+            final IRI func = indxExpr.get(0).getFunction();
             type = IndexingFunctionRegistry.getFunctionType(func);
         }
 
@@ -314,7 +311,7 @@ public class FilterFunctionOptimizer implements QueryOptimizer, Configurable {
         }
     }
 
-    private static class VarExchangeVisitor extends QueryModelVisitorBase<RuntimeException> {
+    private static class VarExchangeVisitor extends AbstractQueryModelVisitor<RuntimeException> {
         private final  StatementPattern exchangeVar;
         public VarExchangeVisitor(final StatementPattern sp) {
             exchangeVar = sp;

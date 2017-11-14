@@ -1,4 +1,5 @@
 package org.apache.rya.indexing.pcj.fluo.app;
+
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -17,6 +18,7 @@ package org.apache.rya.indexing.pcj.fluo.app;
  * specific language governing permissions and limitations
  * under the License.
  */
+
 import static org.junit.Assert.assertEquals;
 
 import java.io.UnsupportedEncodingException;
@@ -26,22 +28,23 @@ import java.util.Map;
 
 import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.domain.RyaURI;
+import org.apache.rya.api.domain.VarNameUtils;
 import org.apache.rya.api.resolver.RdfToRyaConversions;
 import org.apache.rya.indexing.pcj.storage.accumulo.VisibilityBindingSet;
+import org.eclipse.rdf4j.model.BNode;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
+import org.eclipse.rdf4j.query.MalformedQueryException;
+import org.eclipse.rdf4j.query.algebra.StatementPattern;
+import org.eclipse.rdf4j.query.algebra.evaluation.QueryBindingSet;
+import org.eclipse.rdf4j.query.algebra.helpers.StatementPatternCollector;
+import org.eclipse.rdf4j.query.parser.ParsedQuery;
+import org.eclipse.rdf4j.query.parser.sparql.SPARQLParser;
 import org.junit.Test;
-import org.openrdf.model.BNode;
-import org.openrdf.model.ValueFactory;
-import org.openrdf.model.impl.ValueFactoryImpl;
-import org.openrdf.query.MalformedQueryException;
-import org.openrdf.query.algebra.StatementPattern;
-import org.openrdf.query.algebra.evaluation.QueryBindingSet;
-import org.openrdf.query.algebra.helpers.StatementPatternCollector;
-import org.openrdf.query.parser.ParsedQuery;
-import org.openrdf.query.parser.sparql.SPARQLParser;
 
 public class ConstructProjectionTest {
 
-    private static final ValueFactory vf = new ValueFactoryImpl();
+    private static final ValueFactory VF = SimpleValueFactory.getInstance();
     
     @Test
     public void testConstructProjectionProjectSubj() throws MalformedQueryException, UnsupportedEncodingException {
@@ -53,7 +56,7 @@ public class ConstructProjectionTest {
         ConstructProjection projection = new ConstructProjection(patterns.get(0));
         
         QueryBindingSet bs = new QueryBindingSet();
-        bs.addBinding("x", vf.createURI("uri:Joe"));
+        bs.addBinding("x", VF.createIRI("uri:Joe"));
         VisibilityBindingSet vBs = new VisibilityBindingSet(bs, "FOUO");
         RyaStatement statement = projection.projectBindingSet(vBs, new HashMap<>());
         
@@ -74,7 +77,7 @@ public class ConstructProjectionTest {
         ConstructProjection projection = new ConstructProjection(patterns.get(0));
         
         QueryBindingSet bs = new QueryBindingSet();
-        bs.addBinding("p", vf.createURI("uri:worksWith"));
+        bs.addBinding("p", VF.createIRI("uri:worksWith"));
         VisibilityBindingSet vBs = new VisibilityBindingSet(bs);
         RyaStatement statement = projection.projectBindingSet(vBs, new HashMap<>());
         
@@ -95,11 +98,11 @@ public class ConstructProjectionTest {
         ConstructProjection projection = new ConstructProjection(patterns.get(0));
         
         QueryBindingSet bs = new QueryBindingSet();
-        bs.addBinding("o", vf.createURI("uri:Bob"));
+        bs.addBinding("o", VF.createIRI("uri:Bob"));
         VisibilityBindingSet vBs = new VisibilityBindingSet(bs);
-        BNode bNode = vf.createBNode();
+        BNode bNode = VF.createBNode();
         Map<String, BNode> bNodeMap = new HashMap<>();
-        bNodeMap.put("-anon-1", bNode);
+        bNodeMap.put(VarNameUtils.prependAnonymous("1"), bNode);
         RyaStatement statement = projection.projectBindingSet(vBs,bNodeMap);
         
         RyaStatement expected = new RyaStatement(RdfToRyaConversions.convertResource(bNode), new RyaURI("uri:talksTo"), new RyaURI("uri:Bob"));

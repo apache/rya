@@ -26,11 +26,11 @@ import java.util.NoSuchElementException;
 import java.util.Set;
 
 import org.apache.rya.indexing.external.tupleSet.ExternalTupleSet;
-import org.openrdf.query.algebra.Filter;
-import org.openrdf.query.algebra.QueryModelNode;
-import org.openrdf.query.algebra.StatementPattern;
-import org.openrdf.query.algebra.TupleExpr;
-import org.openrdf.query.algebra.helpers.QueryModelVisitorBase;
+import org.eclipse.rdf4j.query.algebra.Filter;
+import org.eclipse.rdf4j.query.algebra.QueryModelNode;
+import org.eclipse.rdf4j.query.algebra.StatementPattern;
+import org.eclipse.rdf4j.query.algebra.TupleExpr;
+import org.eclipse.rdf4j.query.algebra.helpers.AbstractQueryModelVisitor;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
@@ -86,10 +86,8 @@ public class ValidIndexCombinationGenerator {
 
 					}
 
-				} else if (isEmpty) {
-					return false;
 				} else {
-					return true;
+					return !isEmpty;
 				}
 			}
 
@@ -153,10 +151,8 @@ public class ValidIndexCombinationGenerator {
 					isEmpty = true;
 					return false;
 
-				} else if (isEmpty) {
-					return false;
 				} else {
-					return true;
+					return !isEmpty;
 				}
 			}
 
@@ -228,10 +224,8 @@ public class ValidIndexCombinationGenerator {
 						return true;
 
 					}
-				} else if (isEmpty) {
-					return false;
 				} else {
-					return true;
+					return !isEmpty;
 				}
 			}
 
@@ -304,10 +298,8 @@ public class ValidIndexCombinationGenerator {
 						}
 
 					}
-				} else if (isEmpty) {
-					return false;
 				} else {
-					return true;
+					return !isEmpty;
 				}
 
 			}
@@ -432,7 +424,7 @@ public class ValidIndexCombinationGenerator {
 	}
 
 	private static class SpFilterCollector extends
-			QueryModelVisitorBase<RuntimeException> {
+            AbstractQueryModelVisitor<RuntimeException> {
 
 		private Set<QueryModelNode> spFilterSet = Sets.newHashSet();
 

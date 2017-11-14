@@ -22,6 +22,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
 import java.io.IOException;
+import java.math.BigInteger;
 import java.util.HashSet;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -52,21 +53,18 @@ import org.apache.rya.indexing.pcj.storage.accumulo.BindingSetConverter.BindingS
 import org.apache.rya.rdftriplestore.RdfCloudTripleStore;
 import org.apache.rya.rdftriplestore.RyaSailRepository;
 import org.apache.zookeeper.ClientCnxn;
+import org.eclipse.rdf4j.model.Statement;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
+import org.eclipse.rdf4j.query.BindingSet;
+import org.eclipse.rdf4j.query.impl.MapBindingSet;
+import org.eclipse.rdf4j.repository.RepositoryConnection;
+import org.eclipse.rdf4j.repository.RepositoryException;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
-import org.openrdf.model.Statement;
-import org.openrdf.model.impl.LiteralImpl;
-import org.openrdf.model.impl.NumericLiteralImpl;
-import org.openrdf.model.impl.StatementImpl;
-import org.openrdf.model.impl.URIImpl;
-import org.openrdf.model.vocabulary.XMLSchema;
-import org.openrdf.query.BindingSet;
-import org.openrdf.query.impl.MapBindingSet;
-import org.openrdf.repository.RepositoryConnection;
-import org.openrdf.repository.RepositoryException;
 
 import com.google.common.base.Optional;
 import com.google.common.collect.HashMultimap;
@@ -83,6 +81,7 @@ public class PcjTablesIT {
     private static final String CLOUDBASE_INSTANCE = "sc.cloudbase.instancename";
     private static final String CLOUDBASE_USER = "sc.cloudbase.username";
     private static final String CLOUDBASE_PASSWORD = "sc.cloudbase.password";
+    private static final ValueFactory VF =  SimpleValueFactory.getInstance();
 
     private static final AccumuloPcjSerializer converter = new AccumuloPcjSerializer();
 
@@ -208,19 +207,19 @@ public class PcjTablesIT {
 
         // Add a few results to the PCJ table.
         final MapBindingSet alice = new MapBindingSet();
-        alice.addBinding("name", new URIImpl("http://Alice"));
-        alice.addBinding("age", new NumericLiteralImpl(14, XMLSchema.INTEGER));
+        alice.addBinding("name", VF.createIRI("http://Alice"));
+        alice.addBinding("age", VF.createLiteral(BigInteger.valueOf(14)));
 
         final MapBindingSet bob = new MapBindingSet();
-        bob.addBinding("name", new URIImpl("http://Bob"));
-        bob.addBinding("age", new NumericLiteralImpl(16, XMLSchema.INTEGER));
+        bob.addBinding("name", VF.createIRI("http://Bob"));
+        bob.addBinding("age", VF.createLiteral(BigInteger.valueOf(16)));
 
         final MapBindingSet charlie = new MapBindingSet();
-        charlie.addBinding("name", new URIImpl("http://Charlie"));
-        charlie.addBinding("age", new NumericLiteralImpl(12, XMLSchema.INTEGER));
+        charlie.addBinding("name", VF.createIRI("http://Charlie"));
+        charlie.addBinding("age", VF.createLiteral(BigInteger.valueOf(12)));
 
-        final Set<BindingSet> results = Sets.<BindingSet>newHashSet(alice, bob, charlie);
-        pcjs.addResults(accumuloConn, pcjTableName, Sets.<VisibilityBindingSet>newHashSet(
+        final Set<BindingSet> results = Sets.newHashSet(alice, bob, charlie);
+        pcjs.addResults(accumuloConn, pcjTableName, Sets.newHashSet(
                 new VisibilityBindingSet(alice),
                 new VisibilityBindingSet(bob),
                 new VisibilityBindingSet(charlie)));
@@ -259,18 +258,18 @@ public class PcjTablesIT {
 
         // Add a few results to the PCJ table.
         final MapBindingSet alice = new MapBindingSet();
-        alice.addBinding("name", new URIImpl("http://Alice"));
-        alice.addBinding("age", new NumericLiteralImpl(14, XMLSchema.INTEGER));
+        alice.addBinding("name", VF.createIRI("http://Alice"));
+        alice.addBinding("age", VF.createLiteral(BigInteger.valueOf(14)));
 
         final MapBindingSet bob = new MapBindingSet();
-        bob.addBinding("name", new URIImpl("http://Bob"));
-        bob.addBinding("age", new NumericLiteralImpl(16, XMLSchema.INTEGER));
+        bob.addBinding("name", VF.createIRI("http://Bob"));
+        bob.addBinding("age", VF.createLiteral(BigInteger.valueOf(16)));
 
         final MapBindingSet charlie = new MapBindingSet();
-        charlie.addBinding("name", new URIImpl("http://Charlie"));
-        charlie.addBinding("age", new NumericLiteralImpl(12, XMLSchema.INTEGER));
+        charlie.addBinding("name", VF.createIRI("http://Charlie"));
+        charlie.addBinding("age", VF.createLiteral(BigInteger.valueOf(12)));
 
-        pcjs.addResults(accumuloConn, pcjTableName, Sets.<VisibilityBindingSet>newHashSet(
+        pcjs.addResults(accumuloConn, pcjTableName, Sets.newHashSet(
                 new VisibilityBindingSet(alice),
                 new VisibilityBindingSet(bob),
                 new VisibilityBindingSet(charlie)));
@@ -288,7 +287,7 @@ public class PcjTablesIT {
         }
 
         // Verify the fetched results match the expected ones.
-        final Set<BindingSet> expected = Sets.<BindingSet>newHashSet(alice, bob, charlie);
+        final Set<BindingSet> expected = Sets.newHashSet(alice, bob, charlie);
         assertEquals(expected, results);
     }
 
@@ -296,20 +295,20 @@ public class PcjTablesIT {
      * Ensure when results are already stored in Rya, that we are able to populate
      * the PCJ table for a new SPARQL query using those results.
      * <p>
-     * The method being tested is: {@link PcjTables#populatePcj(Connector, String, RepositoryConnection, String)}
+     * The method being tested is: {@link PcjTables#populatePcj(Connector, String, RepositoryConnection)}
      */
     @Test
     public void populatePcj() throws RepositoryException, PcjException, TableNotFoundException, BindingSetConversionException, AccumuloException, AccumuloSecurityException {
         // Load some Triples into Rya.
         final Set<Statement> triples = new HashSet<>();
-        triples.add( new StatementImpl(new URIImpl("http://Alice"), new URIImpl("http://hasAge"), new NumericLiteralImpl(14, XMLSchema.INTEGER)) );
-        triples.add( new StatementImpl(new URIImpl("http://Alice"), new URIImpl("http://playsSport"), new LiteralImpl("Soccer")) );
-        triples.add( new StatementImpl(new URIImpl("http://Bob"), new URIImpl("http://hasAge"), new NumericLiteralImpl(16, XMLSchema.INTEGER)) );
-        triples.add( new StatementImpl(new URIImpl("http://Bob"), new URIImpl("http://playsSport"), new LiteralImpl("Soccer")) );
-        triples.add( new StatementImpl(new URIImpl("http://Charlie"), new URIImpl("http://hasAge"), new NumericLiteralImpl(12, XMLSchema.INTEGER)) );
-        triples.add( new StatementImpl(new URIImpl("http://Charlie"), new URIImpl("http://playsSport"), new LiteralImpl("Soccer")) );
-        triples.add( new StatementImpl(new URIImpl("http://Eve"), new URIImpl("http://hasAge"), new NumericLiteralImpl(43, XMLSchema.INTEGER)) );
-        triples.add( new StatementImpl(new URIImpl("http://Eve"), new URIImpl("http://playsSport"), new LiteralImpl("Soccer")) );
+        triples.add( VF.createStatement(VF.createIRI("http://Alice"), VF.createIRI("http://hasAge"), VF.createLiteral(BigInteger.valueOf(14))) );
+        triples.add( VF.createStatement(VF.createIRI("http://Alice"), VF.createIRI("http://playsSport"), VF.createLiteral("Soccer")) );
+        triples.add( VF.createStatement(VF.createIRI("http://Bob"), VF.createIRI("http://hasAge"), VF.createLiteral(BigInteger.valueOf(16))) );
+        triples.add( VF.createStatement(VF.createIRI("http://Bob"), VF.createIRI("http://playsSport"), VF.createLiteral("Soccer")) );
+        triples.add( VF.createStatement(VF.createIRI("http://Charlie"), VF.createIRI("http://hasAge"), VF.createLiteral(BigInteger.valueOf(12))) );
+        triples.add( VF.createStatement(VF.createIRI("http://Charlie"), VF.createIRI("http://playsSport"), VF.createLiteral("Soccer")) );
+        triples.add( VF.createStatement(VF.createIRI("http://Eve"), VF.createIRI("http://hasAge"), VF.createLiteral(BigInteger.valueOf(43))) );
+        triples.add( VF.createStatement(VF.createIRI("http://Eve"), VF.createIRI("http://playsSport"), VF.createLiteral("Soccer")) );
 
         for(final Statement triple : triples) {
             ryaConn.add(triple);
@@ -343,18 +342,18 @@ public class PcjTablesIT {
 
         // Ensure the expected results match those that were stored.
         final MapBindingSet alice = new MapBindingSet();
-        alice.addBinding("name", new URIImpl("http://Alice"));
-        alice.addBinding("age", new NumericLiteralImpl(14, XMLSchema.INTEGER));
+        alice.addBinding("name", VF.createIRI("http://Alice"));
+        alice.addBinding("age", VF.createLiteral(BigInteger.valueOf(14)));
 
         final MapBindingSet bob = new MapBindingSet();
-        bob.addBinding("name", new URIImpl("http://Bob"));
-        bob.addBinding("age", new NumericLiteralImpl(16, XMLSchema.INTEGER));
+        bob.addBinding("name", VF.createIRI("http://Bob"));
+        bob.addBinding("age", VF.createLiteral(BigInteger.valueOf(16)));
 
         final MapBindingSet charlie = new MapBindingSet();
-        charlie.addBinding("name", new URIImpl("http://Charlie"));
-        charlie.addBinding("age", new NumericLiteralImpl(12, XMLSchema.INTEGER));
+        charlie.addBinding("name", VF.createIRI("http://Charlie"));
+        charlie.addBinding("age", VF.createLiteral(BigInteger.valueOf(12)));
 
-        final Set<BindingSet> results = Sets.<BindingSet>newHashSet(alice, bob, charlie);
+        final Set<BindingSet> results = Sets.newHashSet(alice, bob, charlie);
 
         final Multimap<String, BindingSet> expectedResults = HashMultimap.create();
         expectedResults.putAll("name;age", results);
@@ -372,14 +371,14 @@ public class PcjTablesIT {
     public void createAndPopulatePcj() throws RepositoryException, PcjException, TableNotFoundException, BindingSetConversionException, AccumuloException, AccumuloSecurityException {
         // Load some Triples into Rya.
         final Set<Statement> triples = new HashSet<>();
-        triples.add( new StatementImpl(new URIImpl("http://Alice"), new URIImpl("http://hasAge"), new NumericLiteralImpl(14, XMLSchema.INTEGER)) );
-        triples.add( new StatementImpl(new URIImpl("http://Alice"), new URIImpl("http://playsSport"), new LiteralImpl("Soccer")) );
-        triples.add( new StatementImpl(new URIImpl("http://Bob"), new URIImpl("http://hasAge"), new NumericLiteralImpl(16, XMLSchema.INTEGER)) );
-        triples.add( new StatementImpl(new URIImpl("http://Bob"), new URIImpl("http://playsSport"), new LiteralImpl("Soccer")) );
-        triples.add( new StatementImpl(new URIImpl("http://Charlie"), new URIImpl("http://hasAge"), new NumericLiteralImpl(12, XMLSchema.INTEGER)) );
-        triples.add( new StatementImpl(new URIImpl("http://Charlie"), new URIImpl("http://playsSport"), new LiteralImpl("Soccer")) );
-        triples.add( new StatementImpl(new URIImpl("http://Eve"), new URIImpl("http://hasAge"), new NumericLiteralImpl(43, XMLSchema.INTEGER)) );
-        triples.add( new StatementImpl(new URIImpl("http://Eve"), new URIImpl("http://playsSport"), new LiteralImpl("Soccer")) );
+        triples.add( VF.createStatement(VF.createIRI("http://Alice"), VF.createIRI("http://hasAge"), VF.createLiteral(14)) );
+        triples.add( VF.createStatement(VF.createIRI("http://Alice"), VF.createIRI("http://playsSport"), VF.createLiteral("Soccer")) );
+        triples.add( VF.createStatement(VF.createIRI("http://Bob"), VF.createIRI("http://hasAge"), VF.createLiteral(16)) );
+        triples.add( VF.createStatement(VF.createIRI("http://Bob"), VF.createIRI("http://playsSport"), VF.createLiteral("Soccer")) );
+        triples.add( VF.createStatement(VF.createIRI("http://Charlie"), VF.createIRI("http://hasAge"), VF.createLiteral(12)) );
+        triples.add( VF.createStatement(VF.createIRI("http://Charlie"), VF.createIRI("http://playsSport"), VF.createLiteral("Soccer")) );
+        triples.add( VF.createStatement(VF.createIRI("http://Eve"), VF.createIRI("http://hasAge"), VF.createLiteral(43)) );
+        triples.add( VF.createStatement(VF.createIRI("http://Eve"), VF.createIRI("http://playsSport"), VF.createLiteral("Soccer")) );
 
         for(final Statement triple : triples) {
             ryaConn.add(triple);
@@ -400,7 +399,7 @@ public class PcjTablesIT {
 
         // Create and populate the PCJ table.
         final PcjTables pcjs = new PcjTables();
-        pcjs.createAndPopulatePcj(ryaConn, accumuloConn, pcjTableName, sparql, new String[]{"name", "age"}, Optional.<PcjVarOrderFactory>absent());
+        pcjs.createAndPopulatePcj(ryaConn, accumuloConn, pcjTableName, sparql, new String[]{"name", "age"}, Optional.absent());
 
         // Make sure the cardinality was updated.
         final PcjMetadata metadata = pcjs.getPcjMetadata(accumuloConn, pcjTableName);
@@ -411,18 +410,18 @@ public class PcjTablesIT {
 
         // Ensure the expected results match those that were stored.
         final MapBindingSet alice = new MapBindingSet();
-        alice.addBinding("name", new URIImpl("http://Alice"));
-        alice.addBinding("age", new NumericLiteralImpl(14, XMLSchema.INTEGER));
+        alice.addBinding("name", VF.createIRI("http://Alice"));
+        alice.addBinding("age", VF.createLiteral(BigInteger.valueOf(14)));
 
         final MapBindingSet bob = new MapBindingSet();
-        bob.addBinding("name", new URIImpl("http://Bob"));
-        bob.addBinding("age", new NumericLiteralImpl(16, XMLSchema.INTEGER));
+        bob.addBinding("name", VF.createIRI("http://Bob"));
+        bob.addBinding("age", VF.createLiteral(BigInteger.valueOf(16)));
 
         final MapBindingSet charlie = new MapBindingSet();
-        charlie.addBinding("name", new URIImpl("http://Charlie"));
-        charlie.addBinding("age", new NumericLiteralImpl(12, XMLSchema.INTEGER));
+        charlie.addBinding("name", VF.createIRI("http://Charlie"));
+        charlie.addBinding("age", VF.createLiteral(BigInteger.valueOf(12)));
 
-        final Set<BindingSet> results = Sets.<BindingSet>newHashSet(alice, bob, charlie);
+        final Set<BindingSet> results = Sets.newHashSet(alice, bob, charlie);
 
         final Multimap<String, BindingSet> expectedResults = HashMultimap.create();
         expectedResults.putAll("name;age", results);
@@ -486,18 +485,18 @@ public class PcjTablesIT {
 
         // Add a few results to the PCJ table.
         final MapBindingSet alice = new MapBindingSet();
-        alice.addBinding("name", new URIImpl("http://Alice"));
-        alice.addBinding("age", new NumericLiteralImpl(14, XMLSchema.INTEGER));
+        alice.addBinding("name", VF.createIRI("http://Alice"));
+        alice.addBinding("age", VF.createLiteral(BigInteger.valueOf(14)));
 
         final MapBindingSet bob = new MapBindingSet();
-        bob.addBinding("name", new URIImpl("http://Bob"));
-        bob.addBinding("age", new NumericLiteralImpl(16, XMLSchema.INTEGER));
+        bob.addBinding("name", VF.createIRI("http://Bob"));
+        bob.addBinding("age", VF.createLiteral(BigInteger.valueOf(16)));
 
         final MapBindingSet charlie = new MapBindingSet();
-        charlie.addBinding("name", new URIImpl("http://Charlie"));
-        charlie.addBinding("age", new NumericLiteralImpl(12, XMLSchema.INTEGER));
+        charlie.addBinding("name", VF.createIRI("http://Charlie"));
+        charlie.addBinding("age", VF.createLiteral(BigInteger.valueOf(12)));
 
-        pcjs.addResults(accumuloConn, pcjTableName, Sets.<VisibilityBindingSet>newHashSet(
+        pcjs.addResults(accumuloConn, pcjTableName, Sets.newHashSet(
                 new VisibilityBindingSet(alice),
                 new VisibilityBindingSet(bob),
                 new VisibilityBindingSet(charlie)));

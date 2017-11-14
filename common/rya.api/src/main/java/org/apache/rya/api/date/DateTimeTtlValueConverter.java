@@ -19,14 +19,12 @@ package org.apache.rya.api.date;
  * under the License.
  */
 
-
-
-import org.openrdf.model.Value;
+import java.util.GregorianCalendar;
+import java.util.TimeZone;
 
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
-import java.util.GregorianCalendar;
-import java.util.TimeZone;
+import org.eclipse.rdf4j.model.Value;
 
 /**
  * Class DateTimeTtlValueConverter

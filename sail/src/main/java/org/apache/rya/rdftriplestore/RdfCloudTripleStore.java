@@ -1,13 +1,3 @@
-package org.apache.rya.rdftriplestore;
-
-import static com.google.common.base.Preconditions.checkNotNull;
-
-import org.openrdf.model.ValueFactory;
-import org.openrdf.model.impl.ValueFactoryImpl;
-import org.openrdf.sail.SailConnection;
-import org.openrdf.sail.SailException;
-import org.openrdf.sail.helpers.SailBase;
-
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -26,8 +16,9 @@ import org.openrdf.sail.helpers.SailBase;
  * specific language governing permissions and limitations
  * under the License.
  */
+package org.apache.rya.rdftriplestore;
 
-
+import static com.google.common.base.Preconditions.checkNotNull;
 
 import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
 import org.apache.rya.api.persist.RdfEvalStatsDAO;
@@ -37,8 +28,13 @@ import org.apache.rya.api.persist.joinselect.SelectivityEvalDAO;
 import org.apache.rya.rdftriplestore.inference.InferenceEngine;
 import org.apache.rya.rdftriplestore.namespace.NamespaceManager;
 import org.apache.rya.rdftriplestore.provenance.ProvenanceCollector;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
+import org.eclipse.rdf4j.sail.SailConnection;
+import org.eclipse.rdf4j.sail.SailException;
+import org.eclipse.rdf4j.sail.helpers.AbstractSail;
 
-public class RdfCloudTripleStore extends SailBase {
+public class RdfCloudTripleStore extends AbstractSail {
 
     private RdfCloudTripleStoreConfiguration conf;
 
@@ -49,7 +45,7 @@ public class RdfCloudTripleStore extends SailBase {
     private NamespaceManager namespaceManager;
     protected ProvenanceCollector provenanceCollector;
 
-    private ValueFactory vf = new ValueFactoryImpl();
+    private ValueFactory vf = SimpleValueFactory.getInstance();
 
     @Override
     protected SailConnection getConnectionInternal() throws SailException {

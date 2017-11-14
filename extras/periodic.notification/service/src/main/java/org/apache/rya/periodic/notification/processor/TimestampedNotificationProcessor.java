@@ -30,7 +30,7 @@ import org.apache.rya.periodic.notification.api.NodeBin;
 import org.apache.rya.periodic.notification.api.NotificationProcessor;
 import org.apache.rya.periodic.notification.exporter.KafkaPeriodicBindingSetExporter;
 import org.apache.rya.periodic.notification.notification.TimestampedNotification;
-import org.openrdf.query.BindingSet;
+import org.eclipse.rdf4j.query.BindingSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -95,7 +95,7 @@ public class TimestampedNotificationProcessor implements NotificationProcessor, 
         final long bin = getBinFromTimestamp(ts, period);
         final NodeBin nodeBin = new NodeBin(id, bin);
 
-        try (CloseableIterator<BindingSet> iter = periodicStorage.listResults(id, Optional.of(bin));) {
+        try (CloseableIterator<BindingSet> iter = periodicStorage.listResults(id, Optional.of(bin))) {
 
             while(iter.hasNext()) {
                 bindingSets.add(new BindingSetRecord(iter.next(), id));

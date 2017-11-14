@@ -18,8 +18,9 @@
  */
 package org.apache.rya.api.domain;
 
-import org.openrdf.model.URI;
-import org.openrdf.model.vocabulary.XMLSchema;
+import org.apache.commons.lang.builder.EqualsBuilder;
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.vocabulary.XMLSchema;
 
 /**
  * Base Rya Type
@@ -28,7 +29,7 @@ import org.openrdf.model.vocabulary.XMLSchema;
  */
 public class RyaType implements Comparable {
 
-    private URI dataType;
+    private IRI dataType;
     private String data;
 
     public RyaType() {
@@ -40,7 +41,7 @@ public class RyaType implements Comparable {
     }
 
 
-    public RyaType(final URI dataType, final String data) {
+    public RyaType(final IRI dataType, final String data) {
         setDataType(dataType);
         setData(data);
     }
@@ -50,7 +51,7 @@ public class RyaType implements Comparable {
      *
      * @return
      */
-    public URI getDataType() {
+    public IRI getDataType() {
         return dataType;
     }
 
@@ -58,7 +59,7 @@ public class RyaType implements Comparable {
         return data;
     }
 
-    public void setDataType(final URI dataType) {
+    public void setDataType(final IRI dataType) {
         this.dataType = dataType;
     }
 
@@ -89,14 +90,11 @@ public class RyaType implements Comparable {
         if (o == null || !(o instanceof RyaType)) {
             return false;
         }
-        final RyaType ryaType = (RyaType) o;
-        if (data != null ? !data.equals(ryaType.data) : ryaType.data != null) {
-            return false;
-        }
-        if (dataType != null ? !dataType.equals(ryaType.dataType) : ryaType.dataType != null) {
-            return false;
-        }
-        return true;
+        final RyaType other = (RyaType) o;
+        final EqualsBuilder builder = new EqualsBuilder()
+                .append(getData(), other.getData())
+                .append(getDataType(), other.getDataType());
+        return builder.isEquals();
     }
 
     /**

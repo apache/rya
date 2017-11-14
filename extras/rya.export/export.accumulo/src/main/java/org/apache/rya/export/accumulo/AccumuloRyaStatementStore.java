@@ -38,10 +38,8 @@ import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.persist.RyaDAOException;
 import org.apache.rya.api.resolver.RyaTripleContext;
 import org.apache.rya.api.resolver.triple.TripleRowResolverException;
-import org.apache.rya.export.InstanceType;
 import org.apache.rya.export.accumulo.parent.AccumuloParentMetadataRepository;
 import org.apache.rya.export.accumulo.util.AccumuloRyaUtils;
-import org.apache.rya.export.api.MergerException;
 import org.apache.rya.export.api.metadata.MergeParentMetadata;
 import org.apache.rya.export.api.metadata.ParentMetadataExistsException;
 import org.apache.rya.export.api.store.AddStatementException;
@@ -50,11 +48,10 @@ import org.apache.rya.export.api.store.FetchStatementException;
 import org.apache.rya.export.api.store.RemoveStatementException;
 import org.apache.rya.export.api.store.RyaStatementStore;
 import org.apache.rya.export.api.store.UpdateStatementException;
+import org.eclipse.rdf4j.common.iteration.CloseableIteration;
 
 import com.google.common.base.Function;
 import com.google.common.collect.Iterators;
-
-import info.aduna.iteration.CloseableIteration;
 
 /**
  * Allows specific CRUD operations an Accumulo {@link RyaStatement} storage
@@ -79,15 +76,9 @@ public class AccumuloRyaStatementStore implements RyaStatementStore {
 
     /**
      * Creates a new instance of {@link AccumuloRyaStatementStore}.
-     * @param instanceName the Accumulo instance name.
-     * @param username the Accumulo user name.
-     * @param password the Accumulo user's password.
-     * @param instanceType the {@link InstanceType}.
+     * @param dao the {@AccumuloRyaDAO}.
      * @param tablePrefix the Rya instance's table prefix.
-     * @param auths the comma-separated list of Accumulo authorizations for the
-     * user.
-     * @param zooKeepers the comma-separated list of zoo keeper host names.
-     * @throws MergerException
+     * @param ryaInstance the Rya instance name.
      */
     public AccumuloRyaStatementStore(final AccumuloRyaDAO dao, final String tablePrefix, final String ryaInstance) {
         this.tablePrefix = tablePrefix;

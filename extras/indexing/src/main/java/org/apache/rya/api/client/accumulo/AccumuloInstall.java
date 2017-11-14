@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -19,8 +19,6 @@
 package org.apache.rya.api.client.accumulo;
 
 import static java.util.Objects.requireNonNull;
-
-import java.util.Date;
 
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
@@ -47,8 +45,8 @@ import org.apache.rya.indexing.external.PrecomputedJoinIndexerConfig.Precomputed
 import org.apache.rya.indexing.external.PrecomputedJoinIndexerConfig.PrecomputedJoinUpdaterType;
 import org.apache.rya.rdftriplestore.inference.InferenceEngineException;
 import org.apache.rya.sail.config.RyaSailFactory;
-import org.openrdf.sail.Sail;
-import org.openrdf.sail.SailException;
+import org.eclipse.rdf4j.sail.Sail;
+import org.eclipse.rdf4j.sail.SailException;
 
 import com.google.common.base.Optional;
 
@@ -164,9 +162,9 @@ public class AccumuloInstall extends AccumuloCommand implements Install {
 
                 // Statistics values.
                 .setProspectorDetails(
-                        new ProspectorDetails(Optional.<Date>absent()) )
+                        new ProspectorDetails(Optional.absent()) )
                 .setJoinSelectivityDetails(
-                        new JoinSelectivityDetails(Optional.<Date>absent()) )
+                        new JoinSelectivityDetails(Optional.absent()) )
                 .build();
 
         // Initialize the table.

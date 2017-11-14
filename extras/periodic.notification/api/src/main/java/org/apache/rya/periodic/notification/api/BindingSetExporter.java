@@ -18,7 +18,7 @@
  */
 package org.apache.rya.periodic.notification.api;
 
-import org.openrdf.query.BindingSet;
+import org.eclipse.rdf4j.query.BindingSet;
 
 /**
  * An Object that is used to export {@link BindingSet}s to an external repository or queuing system.

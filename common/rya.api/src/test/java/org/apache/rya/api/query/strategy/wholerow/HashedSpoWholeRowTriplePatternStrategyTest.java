@@ -19,11 +19,9 @@ package org.apache.rya.api.query.strategy.wholerow;
  * under the License.
  */
 
-
-//
 import java.util.Map;
 
-import junit.framework.TestCase;
+import org.apache.hadoop.io.Text;
 import org.apache.rya.api.RdfCloudTripleStoreConstants;
 import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.api.domain.RyaType;
@@ -34,16 +32,18 @@ import org.apache.rya.api.query.strategy.ByteRange;
 import org.apache.rya.api.resolver.RyaContext;
 import org.apache.rya.api.resolver.RyaTripleContext;
 import org.apache.rya.api.resolver.triple.TripleRow;
-
-import org.apache.hadoop.io.Text;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 import org.junit.Before;
-import org.openrdf.model.impl.URIImpl;
+
+import junit.framework.TestCase;
 
 /**
  * Date: 7/14/12
  * Time: 7:47 AM
  */
 public class HashedSpoWholeRowTriplePatternStrategyTest extends TestCase {
+    private static final ValueFactory VF = SimpleValueFactory.getInstance();
 
     RyaURI uri = new RyaURI("urn:test#1234");
     RyaURI uri2 = new RyaURI("urn:test#1235");
@@ -53,16 +53,16 @@ public class HashedSpoWholeRowTriplePatternStrategyTest extends TestCase {
     RyaContext ryaContext = RyaContext.getInstance();
     RyaTripleContext ryaTripleContext;
 
-    RyaType customType1 = new RyaType(new URIImpl("urn:custom#type"), "1234");
-    RyaType customType2 = new RyaType(new URIImpl("urn:custom#type"), "1235");
-    RyaType customType3 = new RyaType(new URIImpl("urn:custom#type"), "1236");
+    RyaType customType1 = new RyaType(VF.createIRI("urn:custom#type"), "1234");
+    RyaType customType2 = new RyaType(VF.createIRI("urn:custom#type"), "1235");
+    RyaType customType3 = new RyaType(VF.createIRI("urn:custom#type"), "1236");
     RyaTypeRange customTypeRange1 = new RyaTypeRange(customType1, customType2);
     RyaTypeRange customTypeRange2 = new RyaTypeRange(customType2, customType3);
 
     @Before
     public void setUp() {
-    	MockRdfCloudConfiguration config = new MockRdfCloudConfiguration();
-    	config.set(MockRdfCloudConfiguration.CONF_PREFIX_ROW_WITH_HASH, Boolean.TRUE.toString());
+    	MockRdfConfiguration config = new MockRdfConfiguration();
+    	config.set(MockRdfConfiguration.CONF_PREFIX_ROW_WITH_HASH, Boolean.TRUE.toString());
     	ryaTripleContext = RyaTripleContext.getInstance(config);
     }
     

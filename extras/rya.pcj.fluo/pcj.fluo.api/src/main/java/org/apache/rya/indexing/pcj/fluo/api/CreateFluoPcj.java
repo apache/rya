@@ -57,11 +57,11 @@ import org.apache.rya.indexing.pcj.storage.PcjException;
 import org.apache.rya.indexing.pcj.storage.PcjMetadata;
 import org.apache.rya.indexing.pcj.storage.PrecomputedJoinStorage;
 import org.calrissian.mango.collect.CloseableIterable;
-import org.openrdf.model.Resource;
-import org.openrdf.model.URI;
-import org.openrdf.model.Value;
-import org.openrdf.query.MalformedQueryException;
-import org.openrdf.query.algebra.StatementPattern;
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.Resource;
+import org.eclipse.rdf4j.model.Value;
+import org.eclipse.rdf4j.query.MalformedQueryException;
+import org.eclipse.rdf4j.query.algebra.StatementPattern;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Sets;
@@ -430,10 +430,10 @@ public class CreateFluoPcj {
         }
 
         if (predVal != null) {
-            if(!(predVal instanceof URI)) {
+            if(!(predVal instanceof IRI)) {
                 throw new AssertionError("Predicate must be a URI.");
             }
-            predURI = RdfToRyaConversions.convertURI((URI) predVal);
+            predURI = RdfToRyaConversions.convertURI((IRI) predVal);
         }
 
         if (objVal != null ) {

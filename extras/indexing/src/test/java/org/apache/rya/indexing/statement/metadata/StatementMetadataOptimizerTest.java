@@ -17,6 +17,7 @@ package org.apache.rya.indexing.statement.metadata;
  * specific language governing permissions and limitations
  * under the License.
  */
+
 import static org.junit.Assert.assertEquals;
 
 import java.util.ArrayList;
@@ -36,20 +37,20 @@ import org.apache.rya.indexing.statement.metadata.matching.StatementMetadataExte
 import org.apache.rya.indexing.statement.metadata.matching.StatementMetadataNode;
 import org.apache.rya.indexing.statement.metadata.matching.StatementMetadataOptimizer;
 import org.apache.rya.mongodb.MongoDBRdfConfiguration;
+import org.eclipse.rdf4j.query.MalformedQueryException;
+import org.eclipse.rdf4j.query.algebra.Filter;
+import org.eclipse.rdf4j.query.algebra.QueryModelNode;
+import org.eclipse.rdf4j.query.algebra.StatementPattern;
+import org.eclipse.rdf4j.query.algebra.TupleExpr;
+import org.eclipse.rdf4j.query.algebra.ValueExpr;
+import org.eclipse.rdf4j.query.algebra.helpers.StatementPatternCollector;
+import org.eclipse.rdf4j.query.parser.ParsedQuery;
+import org.eclipse.rdf4j.query.parser.sparql.SPARQLParser;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
-import org.openrdf.query.MalformedQueryException;
-import org.openrdf.query.algebra.Filter;
-import org.openrdf.query.algebra.QueryModelNode;
-import org.openrdf.query.algebra.StatementPattern;
-import org.openrdf.query.algebra.TupleExpr;
-import org.openrdf.query.algebra.ValueExpr;
-import org.openrdf.query.algebra.helpers.StatementPatternCollector;
-import org.openrdf.query.parser.ParsedQuery;
-import org.openrdf.query.parser.sparql.SPARQLParser;
 
 @RunWith(value = Parameterized.class)
 public class StatementMetadataOptimizerTest {
@@ -90,8 +91,8 @@ public class StatementMetadataOptimizerTest {
 
     @Before
     public void init() {
-        RdfCloudTripleStoreConfiguration mongoConf = (RdfCloudTripleStoreConfiguration) getConf(true);
-        RdfCloudTripleStoreConfiguration accumuloConf = (RdfCloudTripleStoreConfiguration) getConf(false);
+        RdfCloudTripleStoreConfiguration mongoConf = getConf(true);
+        RdfCloudTripleStoreConfiguration accumuloConf = getConf(false);
         mongoOptimizer = new StatementMetadataOptimizer(mongoConf);
         accumuloOptimizer = new StatementMetadataOptimizer(accumuloConf);
     }
@@ -152,7 +153,7 @@ public class StatementMetadataOptimizerTest {
     private static Set<StatementMetadataNode<?>> getExpected(String query) throws MalformedQueryException {
         ParsedQuery pq = parser.parseQuery(query, null);
         StatementMetadataExternalSetProvider provider = new StatementMetadataExternalSetProvider(
-                (RdfCloudTripleStoreConfiguration) getConf(false));
+                getConf(false));
         List<StatementPattern> patterns = StatementPatternCollector.process(pq.getTupleExpr());
         JoinSegment<StatementMetadataNode<?>> segment = new JoinSegment<StatementMetadataNode<?>>(
                 new HashSet<QueryModelNode>(patterns), new ArrayList<QueryModelNode>(patterns),

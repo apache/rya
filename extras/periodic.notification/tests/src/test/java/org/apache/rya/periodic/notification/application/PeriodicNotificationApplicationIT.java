@@ -71,25 +71,23 @@ import org.apache.rya.periodic.notification.serialization.CommandNotificationSer
 import org.apache.rya.test.kafka.EmbeddedKafkaInstance;
 import org.apache.rya.test.kafka.EmbeddedKafkaSingleton;
 import org.apache.rya.test.kafka.KafkaTestInstanceRule;
+import org.eclipse.rdf4j.model.Statement;
+import org.eclipse.rdf4j.model.Value;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
+import org.eclipse.rdf4j.model.vocabulary.XMLSchema;
+import org.eclipse.rdf4j.query.BindingSet;
+import org.eclipse.rdf4j.query.algebra.evaluation.QueryBindingSet;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
-import org.openrdf.model.Statement;
-import org.openrdf.model.Value;
-import org.openrdf.model.ValueFactory;
-import org.openrdf.model.impl.LiteralImpl;
-import org.openrdf.model.impl.ValueFactoryImpl;
-import org.openrdf.model.vocabulary.XMLSchema;
-import org.openrdf.query.BindingSet;
-import org.openrdf.query.algebra.evaluation.QueryBindingSet;
 
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
-import com.google.common.collect.Sets;;
-
+import com.google.common.collect.Sets;
 
 public class PeriodicNotificationApplicationIT extends RyaExportITBase {
 
@@ -142,12 +140,11 @@ public class PeriodicNotificationApplicationIT extends RyaExportITBase {
 
         //make data
         final int periodMult = 15;
-        final ValueFactory vf = new ValueFactoryImpl();
+        final ValueFactory vf = SimpleValueFactory.getInstance();
         final DatatypeFactory dtf = DatatypeFactory.newInstance();
         //Sleep until current time aligns nicely with period to makell
         //results more predictable
         while(System.currentTimeMillis() % (periodMult*1000) > 500) {
-            ;
         }
         final ZonedDateTime time = ZonedDateTime.now();
 
@@ -161,21 +158,21 @@ public class PeriodicNotificationApplicationIT extends RyaExportITBase {
         final String time3 = zTime3.format(DateTimeFormatter.ISO_INSTANT);
 
         final Collection<Statement> statements = Sets.newHashSet(
-                vf.createStatement(vf.createURI("urn:obs_1"), vf.createURI("uri:hasTime"),
+                vf.createStatement(vf.createIRI("urn:obs_1"), vf.createIRI("uri:hasTime"),
                         vf.createLiteral(dtf.newXMLGregorianCalendar(time1))),
-                vf.createStatement(vf.createURI("urn:obs_1"), vf.createURI("uri:hasObsType"), vf.createLiteral("ship")),
-                vf.createStatement(vf.createURI("urn:obs_2"), vf.createURI("uri:hasTime"),
+                vf.createStatement(vf.createIRI("urn:obs_1"), vf.createIRI("uri:hasObsType"), vf.createLiteral("ship")),
+                vf.createStatement(vf.createIRI("urn:obs_2"), vf.createIRI("uri:hasTime"),
                         vf.createLiteral(dtf.newXMLGregorianCalendar(time1))),
-                vf.createStatement(vf.createURI("urn:obs_2"), vf.createURI("uri:hasObsType"), vf.createLiteral("airplane")),
-                vf.createStatement(vf.createURI("urn:obs_3"), vf.createURI("uri:hasTime"),
+                vf.createStatement(vf.createIRI("urn:obs_2"), vf.createIRI("uri:hasObsType"), vf.createLiteral("airplane")),
+                vf.createStatement(vf.createIRI("urn:obs_3"), vf.createIRI("uri:hasTime"),
                         vf.createLiteral(dtf.newXMLGregorianCalendar(time2))),
-                vf.createStatement(vf.createURI("urn:obs_3"), vf.createURI("uri:hasObsType"), vf.createLiteral("ship")),
-                vf.createStatement(vf.createURI("urn:obs_4"), vf.createURI("uri:hasTime"),
+                vf.createStatement(vf.createIRI("urn:obs_3"), vf.createIRI("uri:hasObsType"), vf.createLiteral("ship")),
+                vf.createStatement(vf.createIRI("urn:obs_4"), vf.createIRI("uri:hasTime"),
                         vf.createLiteral(dtf.newXMLGregorianCalendar(time2))),
-                vf.createStatement(vf.createURI("urn:obs_4"), vf.createURI("uri:hasObsType"), vf.createLiteral("airplane")),
-                vf.createStatement(vf.createURI("urn:obs_5"), vf.createURI("uri:hasTime"),
+                vf.createStatement(vf.createIRI("urn:obs_4"), vf.createIRI("uri:hasObsType"), vf.createLiteral("airplane")),
+                vf.createStatement(vf.createIRI("urn:obs_5"), vf.createIRI("uri:hasTime"),
                         vf.createLiteral(dtf.newXMLGregorianCalendar(time3))),
-                vf.createStatement(vf.createURI("urn:obs_5"), vf.createURI("uri:hasObsType"), vf.createLiteral("automobile")));
+                vf.createStatement(vf.createIRI("urn:obs_5"), vf.createIRI("uri:hasObsType"), vf.createLiteral("automobile")));
 
         try (FluoClient fluo = FluoClientFactory.getFluoClient(conf.getFluoAppName(), Optional.of(conf.getFluoTableName()), conf)) {
             final Connector connector = ConfigUtils.getConnector(conf);
@@ -210,17 +207,17 @@ public class PeriodicNotificationApplicationIT extends RyaExportITBase {
                 final Set<BindingSet> expected1 = new HashSet<>();
                 final QueryBindingSet bs1 = new QueryBindingSet();
                 bs1.addBinding(IncrementalUpdateConstants.PERIODIC_BIN_ID, vf.createLiteral(ids.get(0)));
-                bs1.addBinding("total", new LiteralImpl("2", XMLSchema.INTEGER));
+                bs1.addBinding("total", vf.createLiteral("2", XMLSchema.INTEGER));
                 bs1.addBinding("type", vf.createLiteral("airplane"));
 
                 final QueryBindingSet bs2 = new QueryBindingSet();
                 bs2.addBinding(IncrementalUpdateConstants.PERIODIC_BIN_ID, vf.createLiteral(ids.get(0)));
-                bs2.addBinding("total", new LiteralImpl("2", XMLSchema.INTEGER));
+                bs2.addBinding("total", vf.createLiteral("2", XMLSchema.INTEGER));
                 bs2.addBinding("type", vf.createLiteral("ship"));
 
                 final QueryBindingSet bs3 = new QueryBindingSet();
                 bs3.addBinding(IncrementalUpdateConstants.PERIODIC_BIN_ID, vf.createLiteral(ids.get(0)));
-                bs3.addBinding("total", new LiteralImpl("1", XMLSchema.INTEGER));
+                bs3.addBinding("total", vf.createLiteral("1", XMLSchema.INTEGER));
                 bs3.addBinding("type", vf.createLiteral("automobile"));
 
                 expected1.add(bs1);
@@ -230,12 +227,12 @@ public class PeriodicNotificationApplicationIT extends RyaExportITBase {
                 final Set<BindingSet> expected2 = new HashSet<>();
                 final QueryBindingSet bs4 = new QueryBindingSet();
                 bs4.addBinding(IncrementalUpdateConstants.PERIODIC_BIN_ID, vf.createLiteral(ids.get(1)));
-                bs4.addBinding("total", new LiteralImpl("2", XMLSchema.INTEGER));
+                bs4.addBinding("total", vf.createLiteral("2", XMLSchema.INTEGER));
                 bs4.addBinding("type", vf.createLiteral("airplane"));
 
                 final QueryBindingSet bs5 = new QueryBindingSet();
                 bs5.addBinding(IncrementalUpdateConstants.PERIODIC_BIN_ID, vf.createLiteral(ids.get(1)));
-                bs5.addBinding("total", new LiteralImpl("2", XMLSchema.INTEGER));
+                bs5.addBinding("total", vf.createLiteral("2", XMLSchema.INTEGER));
                 bs5.addBinding("type", vf.createLiteral("ship"));
 
                 expected2.add(bs4);
@@ -244,12 +241,12 @@ public class PeriodicNotificationApplicationIT extends RyaExportITBase {
                 final Set<BindingSet> expected3 = new HashSet<>();
                 final QueryBindingSet bs6 = new QueryBindingSet();
                 bs6.addBinding(IncrementalUpdateConstants.PERIODIC_BIN_ID, vf.createLiteral(ids.get(2)));
-                bs6.addBinding("total", new LiteralImpl("1", XMLSchema.INTEGER));
+                bs6.addBinding("total", vf.createLiteral("1", XMLSchema.INTEGER));
                 bs6.addBinding("type", vf.createLiteral("ship"));
 
                 final QueryBindingSet bs7 = new QueryBindingSet();
                 bs7.addBinding(IncrementalUpdateConstants.PERIODIC_BIN_ID, vf.createLiteral(ids.get(2)));
-                bs7.addBinding("total", new LiteralImpl("1", XMLSchema.INTEGER));
+                bs7.addBinding("total", vf.createLiteral("1", XMLSchema.INTEGER));
                 bs7.addBinding("type", vf.createLiteral("airplane"));
 
                 expected3.add(bs6);
@@ -286,12 +283,11 @@ public class PeriodicNotificationApplicationIT extends RyaExportITBase {
 
         //make data
         final int periodMult = 15;
-        final ValueFactory vf = new ValueFactoryImpl();
+        final ValueFactory vf = SimpleValueFactory.getInstance();
         final DatatypeFactory dtf = DatatypeFactory.newInstance();
         //Sleep until current time aligns nicely with period to make
         //results more predictable
         while(System.currentTimeMillis() % (periodMult*1000) > 500) {
-            ;
         }
         final ZonedDateTime time = ZonedDateTime.now();
 
@@ -305,15 +301,15 @@ public class PeriodicNotificationApplicationIT extends RyaExportITBase {
         final String time3 = zTime3.format(DateTimeFormatter.ISO_INSTANT);
 
         final Collection<Statement> statements = Sets.newHashSet(
-                vf.createStatement(vf.createURI("urn:obs_1"), vf.createURI("uri:hasTime"),
+                vf.createStatement(vf.createIRI("urn:obs_1"), vf.createIRI("uri:hasTime"),
                         vf.createLiteral(dtf.newXMLGregorianCalendar(time1))),
-                vf.createStatement(vf.createURI("urn:obs_1"), vf.createURI("uri:hasId"), vf.createLiteral("id_1")),
-                vf.createStatement(vf.createURI("urn:obs_2"), vf.createURI("uri:hasTime"),
+                vf.createStatement(vf.createIRI("urn:obs_1"), vf.createIRI("uri:hasId"), vf.createLiteral("id_1")),
+                vf.createStatement(vf.createIRI("urn:obs_2"), vf.createIRI("uri:hasTime"),
                         vf.createLiteral(dtf.newXMLGregorianCalendar(time2))),
-                vf.createStatement(vf.createURI("urn:obs_2"), vf.createURI("uri:hasId"), vf.createLiteral("id_2")),
-                vf.createStatement(vf.createURI("urn:obs_3"), vf.createURI("uri:hasTime"),
+                vf.createStatement(vf.createIRI("urn:obs_2"), vf.createIRI("uri:hasId"), vf.createLiteral("id_2")),
+                vf.createStatement(vf.createIRI("urn:obs_3"), vf.createIRI("uri:hasTime"),
                         vf.createLiteral(dtf.newXMLGregorianCalendar(time3))),
-                vf.createStatement(vf.createURI("urn:obs_3"), vf.createURI("uri:hasId"), vf.createLiteral("id_3")));
+                vf.createStatement(vf.createIRI("urn:obs_3"), vf.createIRI("uri:hasId"), vf.createLiteral("id_3")));
 
         try (FluoClient fluo = FluoClientFactory.getFluoClient(conf.getFluoAppName(), Optional.of(conf.getFluoTableName()), conf)) {
             final Connector connector = ConfigUtils.getConnector(conf);
@@ -378,12 +374,11 @@ public class PeriodicNotificationApplicationIT extends RyaExportITBase {
 
         //make data
         final int periodMult = 15;
-        final ValueFactory vf = new ValueFactoryImpl();
+        final ValueFactory vf = SimpleValueFactory.getInstance();
         final DatatypeFactory dtf = DatatypeFactory.newInstance();
         //Sleep until current time aligns nicely with period to make
         //results more predictable
         while(System.currentTimeMillis() % (periodMult*1000) > 500) {
-            ;
         }
         final ZonedDateTime time = ZonedDateTime.now();
 
@@ -397,15 +392,15 @@ public class PeriodicNotificationApplicationIT extends RyaExportITBase {
         final String time3 = zTime3.format(DateTimeFormatter.ISO_INSTANT);
 
         final Collection<Statement> statements = Sets.newHashSet(
-                vf.createStatement(vf.createURI("urn:obs_1"), vf.createURI("uri:hasTime"),
+                vf.createStatement(vf.createIRI("urn:obs_1"), vf.createIRI("uri:hasTime"),
                         vf.createLiteral(dtf.newXMLGregorianCalendar(time1))),
-                vf.createStatement(vf.createURI("urn:obs_1"), vf.createURI("uri:hasId"), vf.createLiteral("id_1")),
-                vf.createStatement(vf.createURI("urn:obs_2"), vf.createURI("uri:hasTime"),
+                vf.createStatement(vf.createIRI("urn:obs_1"), vf.createIRI("uri:hasId"), vf.createLiteral("id_1")),
+                vf.createStatement(vf.createIRI("urn:obs_2"), vf.createIRI("uri:hasTime"),
                         vf.createLiteral(dtf.newXMLGregorianCalendar(time2))),
-                vf.createStatement(vf.createURI("urn:obs_2"), vf.createURI("uri:hasId"), vf.createLiteral("id_2")),
-                vf.createStatement(vf.createURI("urn:obs_3"), vf.createURI("uri:hasTime"),
+                vf.createStatement(vf.createIRI("urn:obs_2"), vf.createIRI("uri:hasId"), vf.createLiteral("id_2")),
+                vf.createStatement(vf.createIRI("urn:obs_3"), vf.createIRI("uri:hasTime"),
                         vf.createLiteral(dtf.newXMLGregorianCalendar(time3))),
-                vf.createStatement(vf.createURI("urn:obs_3"), vf.createURI("uri:hasId"), vf.createLiteral("id_3")));
+                vf.createStatement(vf.createIRI("urn:obs_3"), vf.createIRI("uri:hasId"), vf.createLiteral("id_3")));
 
         try (FluoClient fluo = FluoClientFactory.getFluoClient(conf.getFluoAppName(), Optional.of(conf.getFluoTableName()), conf)) {
             final Connector connector = ConfigUtils.getConnector(conf);

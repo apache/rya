@@ -23,11 +23,10 @@ import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
 
-import org.apache.rya.api.domain.RyaType;
-
 import org.apache.hadoop.io.WritableComparable;
-import org.openrdf.model.URI;
-import org.openrdf.model.impl.ValueFactoryImpl;
+import org.apache.rya.api.domain.RyaType;
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 
 public class RyaTypeWritable implements WritableComparable<RyaTypeWritable>{
 
@@ -52,10 +51,10 @@ public class RyaTypeWritable implements WritableComparable<RyaTypeWritable>{
 
     @Override
     public void readFields(DataInput dataInput) throws IOException {
-        ValueFactoryImpl vfi = new ValueFactoryImpl();
+        SimpleValueFactory vfi = SimpleValueFactory.getInstance();
         String data = dataInput.readLine();
         String dataTypeString = dataInput.readLine();
-        URI dataType = vfi.createURI(dataTypeString);
+        IRI dataType = vfi.createIRI(dataTypeString);
         ryatype.setData(data);
         ryatype.setDataType(dataType);
     }

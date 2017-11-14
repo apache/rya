@@ -1,5 +1,3 @@
-package org.apache.rya.reasoning.mr;
-
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -18,6 +16,7 @@ package org.apache.rya.reasoning.mr;
  * specific language governing permissions and limitations
  * under the License.
  */
+package org.apache.rya.reasoning.mr;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -43,27 +42,28 @@ import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.util.Tool;
 import org.apache.hadoop.util.ToolRunner;
 import org.apache.rya.accumulo.mr.MRUtils;
+import org.apache.rya.api.utils.RdfFormatUtils;
 import org.apache.rya.reasoning.Fact;
 import org.apache.rya.reasoning.Schema;
-import org.openrdf.OpenRDFException;
-import org.openrdf.model.Resource;
-import org.openrdf.model.Statement;
-import org.openrdf.model.URI;
-import org.openrdf.model.Value;
-import org.openrdf.model.vocabulary.OWL;
-import org.openrdf.model.vocabulary.RDF;
-import org.openrdf.query.BindingSet;
-import org.openrdf.query.QueryLanguage;
-import org.openrdf.query.TupleQuery;
-import org.openrdf.query.TupleQueryResult;
-import org.openrdf.repository.Repository;
-import org.openrdf.repository.RepositoryConnection;
-import org.openrdf.repository.sail.SailRepository;
-import org.openrdf.rio.RDFFormat;
-import org.openrdf.rio.helpers.RDFHandlerBase;
-import org.openrdf.rio.ntriples.NTriplesParser;
-import org.openrdf.rio.rdfxml.RDFXMLParser;
-import org.openrdf.sail.memory.MemoryStore;
+import org.eclipse.rdf4j.RDF4JException;
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.Resource;
+import org.eclipse.rdf4j.model.Statement;
+import org.eclipse.rdf4j.model.Value;
+import org.eclipse.rdf4j.model.vocabulary.OWL;
+import org.eclipse.rdf4j.model.vocabulary.RDF;
+import org.eclipse.rdf4j.query.BindingSet;
+import org.eclipse.rdf4j.query.QueryLanguage;
+import org.eclipse.rdf4j.query.TupleQuery;
+import org.eclipse.rdf4j.query.TupleQueryResult;
+import org.eclipse.rdf4j.repository.Repository;
+import org.eclipse.rdf4j.repository.RepositoryConnection;
+import org.eclipse.rdf4j.repository.sail.SailRepository;
+import org.eclipse.rdf4j.rio.RDFFormat;
+import org.eclipse.rdf4j.rio.helpers.AbstractRDFHandler;
+import org.eclipse.rdf4j.rio.ntriples.NTriplesParser;
+import org.eclipse.rdf4j.rio.rdfxml.RDFXMLParser;
+import org.eclipse.rdf4j.sail.memory.MemoryStore;
 
 /**
  * Test the reasoner against Owl conformance tests in the database.
@@ -85,7 +85,7 @@ public class ConformanceTest extends Configured implements Tool {
     static String TEST_SEMANTICS = TEST + "semantics";
     static String TEST_RDFBASED = TEST + "RDF-BASED";
 
-    private static class OwlTest extends RDFHandlerBase {
+    private static class OwlTest extends AbstractRDFHandler {
         Value uri;
         String name;
         String description;
@@ -124,7 +124,7 @@ public class ConformanceTest extends Configured implements Tool {
         }
     }
 
-    private static class OutputCollector extends RDFHandlerBase {
+    private static class OutputCollector extends AbstractRDFHandler {
         Set<Statement> triples = new HashSet<>();
         @Override
         public void handleStatement(final Statement st) {
@@ -169,7 +169,7 @@ public class ConformanceTest extends Configured implements Tool {
             RDFFormat inputFormat= RDFFormat.RDFXML;
             final String formatString = conf.get(MRUtils.FORMAT_PROP);
             if (formatString != null) {
-                inputFormat = RDFFormat.valueOf(formatString);
+                inputFormat = RdfFormatUtils.getRdfFormatFromName(formatString);
             }
             repo = new SailRepository(new MemoryStore());
             repo.initialize();
@@ -247,7 +247,7 @@ public class ConformanceTest extends Configured implements Tool {
     /**
      * Verify that we can infer the correct triples or detect an inconsistency.
      * @param   conf    Specifies working directory, etc.
-     * @param   OwlTest   Contains premise/conclusion graphs, will store result
+     * @param   test   Contains premise/conclusion graphs, will store result
      * @return  Return value of the MapReduce job
      */
     int runTest(final Configuration conf, final String[] args, final OwlTest test)
@@ -337,7 +337,7 @@ public class ConformanceTest extends Configured implements Tool {
      * test type.
      */
     Set<Value> getTestURIs(final RepositoryConnection conn, final String testType)
-            throws IOException, OpenRDFException {
+            throws IOException, RDF4JException {
         final Set<Value> testURIs = new HashSet<>();
         final TupleQuery query = conn.prepareTupleQuery(QueryLanguage.SPARQL,
             "select ?test where { " +
@@ -358,7 +358,7 @@ public class ConformanceTest extends Configured implements Tool {
      * Query a connection for conformance test details.
      */
     Collection<OwlTest> getTests(final RepositoryConnection conn, final Set<Value> testURIs)
-            throws IOException, OpenRDFException {
+            throws IOException, RDF4JException {
         final Map<Value, OwlTest> tests = new HashMap<>();
         final TupleQuery query = conn.prepareTupleQuery(QueryLanguage.SPARQL,
             "select * where { " +
@@ -415,7 +415,7 @@ public class ConformanceTest extends Configured implements Tool {
      */
     boolean triviallyTrue(final Statement triple, final Schema schema) {
         final Resource s = triple.getSubject();
-        final URI p = triple.getPredicate();
+        final IRI p = triple.getPredicate();
         final Value o = triple.getObject();
         if (p.equals(RDF.TYPE)) {
             if (o.equals(OWL.ONTOLOGY)) {
@@ -426,9 +426,9 @@ public class ConformanceTest extends Configured implements Tool {
             }
             else if ((o.equals(OWL.OBJECTPROPERTY)
                 || o.equals(OWL.DATATYPEPROPERTY))
-                && s instanceof URI) {
+                && s instanceof IRI) {
                 // Distinction not maintained, irrelevant to RL rules
-                return schema.hasProperty((URI) s);
+                return schema.hasProperty((IRI) s);
             }
         }
         return false;

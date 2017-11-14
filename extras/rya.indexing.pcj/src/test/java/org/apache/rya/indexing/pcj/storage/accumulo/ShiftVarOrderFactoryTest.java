@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -22,8 +22,8 @@ import static org.junit.Assert.assertEquals;
 
 import java.util.Set;
 
+import org.eclipse.rdf4j.query.MalformedQueryException;
 import org.junit.Test;
-import org.openrdf.query.MalformedQueryException;
 
 import com.google.common.collect.Sets;
 

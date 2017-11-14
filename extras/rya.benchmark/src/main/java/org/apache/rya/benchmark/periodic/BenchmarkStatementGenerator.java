@@ -25,10 +25,10 @@ import java.util.List;
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
 
-import org.openrdf.model.Literal;
-import org.openrdf.model.Statement;
-import org.openrdf.model.ValueFactory;
-import org.openrdf.model.impl.ValueFactoryImpl;
+import org.eclipse.rdf4j.model.Literal;
+import org.eclipse.rdf4j.model.Statement;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -41,11 +41,10 @@ public class BenchmarkStatementGenerator {
 
     private static final Logger logger = LoggerFactory.getLogger(BenchmarkStatementGenerator.class);
 
-    private final ValueFactory vf;
+    private static final ValueFactory VF = SimpleValueFactory.getInstance();
     private final DatatypeFactory dtf;
 
     public BenchmarkStatementGenerator() throws DatatypeConfigurationException {
-        vf = new ValueFactoryImpl();
         dtf = DatatypeFactory.newInstance();
     }
 
@@ -69,7 +68,7 @@ public class BenchmarkStatementGenerator {
      */
     public List<Statement> generate(final long numObservationsPerType, final int numTypes, final String typePrefix, final long observationOffset, final ZonedDateTime zonedTime) {
         final String time = zonedTime.format(DateTimeFormatter.ISO_INSTANT);
-        final Literal litTime = vf.createLiteral(dtf.newXMLGregorianCalendar(time));
+        final Literal litTime = VF.createLiteral(dtf.newXMLGregorianCalendar(time));
         final List<Statement> statements = Lists.newArrayList();
 
         for (long i = 0; i < numObservationsPerType; i++) {
@@ -80,8 +79,8 @@ public class BenchmarkStatementGenerator {
                 final String obsId = "urn:obs_" + String.format("%020d", observationId);
                 final String type = typePrefix + j;
                 //logger.info(obsId + " " + type + " " + litTime);
-                statements.add(vf.createStatement(vf.createURI(obsId), vf.createURI("uri:hasTime"), litTime));
-                statements.add(vf.createStatement(vf.createURI(obsId), vf.createURI("uri:hasObsType"), vf.createLiteral(type)));
+                statements.add(VF.createStatement(VF.createIRI(obsId), VF.createIRI("uri:hasTime"), litTime));
+                statements.add(VF.createStatement(VF.createIRI(obsId), VF.createIRI("uri:hasObsType"), VF.createLiteral(type)));
             }
         }
 

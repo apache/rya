@@ -32,8 +32,8 @@ import org.apache.rya.indexing.pcj.storage.PeriodicQueryResultStorage;
 import org.apache.rya.indexing.pcj.storage.PeriodicQueryStorageException;
 import org.apache.rya.periodic.notification.api.PeriodicNotificationClient;
 import org.apache.rya.periodic.notification.notification.PeriodicNotification;
-import org.openrdf.query.MalformedQueryException;
-import org.openrdf.query.algebra.evaluation.function.Function;
+import org.eclipse.rdf4j.query.MalformedQueryException;
+import org.eclipse.rdf4j.query.algebra.evaluation.function.Function;
 
 import com.google.common.collect.Sets;
 

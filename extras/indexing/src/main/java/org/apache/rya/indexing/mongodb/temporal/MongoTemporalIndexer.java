@@ -29,14 +29,13 @@ import org.apache.rya.indexing.TemporalInstant;
 import org.apache.rya.indexing.TemporalInterval;
 import org.apache.rya.indexing.accumulo.ConfigUtils;
 import org.apache.rya.indexing.mongodb.AbstractMongoIndexer;
-import org.openrdf.model.Statement;
-import org.openrdf.query.QueryEvaluationException;
+import org.eclipse.rdf4j.common.iteration.CloseableIteration;
+import org.eclipse.rdf4j.model.Statement;
+import org.eclipse.rdf4j.query.QueryEvaluationException;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.mongodb.DBCollection;
 import com.mongodb.QueryBuilder;
-
-import info.aduna.iteration.CloseableIteration;
 
 /**
  * Indexes MongoDB based on time instants or intervals.

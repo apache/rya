@@ -31,19 +31,17 @@ import org.apache.rya.indexing.geotemporal.GeoTemporalIndexer.TemporalPolicy;
 import org.apache.rya.indexing.geotemporal.GeoTemporalTestBase;
 import org.junit.Before;
 import org.junit.Test;
-import org.openrdf.model.Resource;
-import org.openrdf.model.Statement;
-import org.openrdf.model.URI;
-import org.openrdf.model.Value;
-import org.openrdf.model.ValueFactory;
-import org.openrdf.model.impl.ContextStatementImpl;
-import org.openrdf.model.impl.URIImpl;
-import org.openrdf.model.impl.ValueFactoryImpl;
-import org.openrdf.query.algebra.FunctionCall;
-import org.openrdf.query.algebra.StatementPattern;
-import org.openrdf.query.algebra.ValueConstant;
-import org.openrdf.query.algebra.ValueExpr;
-import org.openrdf.query.algebra.Var;
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.Resource;
+import org.eclipse.rdf4j.model.Statement;
+import org.eclipse.rdf4j.model.Value;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
+import org.eclipse.rdf4j.query.algebra.FunctionCall;
+import org.eclipse.rdf4j.query.algebra.StatementPattern;
+import org.eclipse.rdf4j.query.algebra.ValueConstant;
+import org.eclipse.rdf4j.query.algebra.ValueExpr;
+import org.eclipse.rdf4j.query.algebra.Var;
 
 import com.mongodb.DBObject;
 import com.mongodb.util.JSON;
@@ -57,6 +55,8 @@ import com.mongodb.util.JSON;
  * @see GeoPolicy Geo Filter Functions
  */
 public class GeoTemporalMongoDBStorageStrategyTest extends GeoTemporalTestBase {
+    private static final ValueFactory VF = SimpleValueFactory.getInstance();
+
     private GeoTemporalMongoDBStorageStrategy adapter;
     @Before
     public void setup() {
@@ -89,8 +89,8 @@ public class GeoTemporalMongoDBStorageStrategyTest extends GeoTemporalTestBase {
         final List<FunctionCall> filters = getFilters(query);
         for(final FunctionCall filter : filters) {
             //should only be one.
-            final Var objVar = IndexingFunctionRegistry.getResultVarFromFunctionCall(new URIImpl(filter.getURI()), filter.getArgs());
-            final IndexingExpr expr = new IndexingExpr(new URIImpl(filter.getURI()), sps.get(0), extractArguments(objVar.getName(), filter));
+            final Var objVar = IndexingFunctionRegistry.getResultVarFromFunctionCall(VF.createIRI(filter.getURI()), filter.getArgs());
+            final IndexingExpr expr = new IndexingExpr(VF.createIRI(filter.getURI()), sps.get(0), extractArguments(objVar.getName(), filter));
             geoFilters.add(expr);
         }
         final List<IndexingExpr> temporalFilters = new ArrayList<>();
@@ -131,8 +131,8 @@ public class GeoTemporalMongoDBStorageStrategyTest extends GeoTemporalTestBase {
               final List<StatementPattern> sps = getSps(query);
               final List<FunctionCall> filters = getFilters(query);
               for(final FunctionCall filter : filters) {
-                  final Var objVar = IndexingFunctionRegistry.getResultVarFromFunctionCall(new URIImpl(filter.getURI()), filter.getArgs());
-                  final IndexingExpr expr = new IndexingExpr(new URIImpl(filter.getURI()), sps.get(0), extractArguments(objVar.getName(), filter));
+                  final Var objVar = IndexingFunctionRegistry.getResultVarFromFunctionCall(VF.createIRI(filter.getURI()), filter.getArgs());
+                  final IndexingExpr expr = new IndexingExpr(VF.createIRI(filter.getURI()), sps.get(0), extractArguments(objVar.getName(), filter));
                   geoFilters.add(expr);
               }
               final List<IndexingExpr> temporalFilters = new ArrayList<>();
@@ -175,8 +175,8 @@ public class GeoTemporalMongoDBStorageStrategyTest extends GeoTemporalTestBase {
         final List<FunctionCall> filters = getFilters(query);
         for(final FunctionCall filter : filters) {
             //should only be one.
-            final Var objVar = IndexingFunctionRegistry.getResultVarFromFunctionCall(new URIImpl(filter.getURI()), filter.getArgs());
-            final IndexingExpr expr = new IndexingExpr(new URIImpl(filter.getURI()), sps.get(0), extractArguments(objVar.getName(), filter));
+            final Var objVar = IndexingFunctionRegistry.getResultVarFromFunctionCall(VF.createIRI(filter.getURI()), filter.getArgs());
+            final IndexingExpr expr = new IndexingExpr(VF.createIRI(filter.getURI()), sps.get(0), extractArguments(objVar.getName(), filter));
             temporalFilters.add(expr);
         }
         final DBObject actual = adapter.getFilterQuery(geoFilters, temporalFilters);
@@ -206,8 +206,8 @@ public class GeoTemporalMongoDBStorageStrategyTest extends GeoTemporalTestBase {
               final List<StatementPattern> sps = getSps(query);
               final List<FunctionCall> filters = getFilters(query);
               for(final FunctionCall filter : filters) {
-                  final Var objVar = IndexingFunctionRegistry.getResultVarFromFunctionCall(new URIImpl(filter.getURI()), filter.getArgs());
-                  final IndexingExpr expr = new IndexingExpr(new URIImpl(filter.getURI()), sps.get(0), extractArguments(objVar.getName(), filter));
+                  final Var objVar = IndexingFunctionRegistry.getResultVarFromFunctionCall(VF.createIRI(filter.getURI()), filter.getArgs());
+                  final IndexingExpr expr = new IndexingExpr(VF.createIRI(filter.getURI()), sps.get(0), extractArguments(objVar.getName(), filter));
                   temporalFilters.add(expr);
               }
               final DBObject actual = adapter.getFilterQuery(geoFilters, temporalFilters);
@@ -252,7 +252,7 @@ public class GeoTemporalMongoDBStorageStrategyTest extends GeoTemporalTestBase {
               final List<StatementPattern> sps = getSps(query);
               final List<FunctionCall> filters = getFilters(query);
               for(final FunctionCall filter : filters) {
-                  final URI filterURI = new URIImpl(filter.getURI());
+                  final IRI filterURI = VF.createIRI(filter.getURI());
                   final Var objVar = IndexingFunctionRegistry.getResultVarFromFunctionCall(filterURI, filter.getArgs());
                   final IndexingExpr expr = new IndexingExpr(filterURI, sps.get(0), extractArguments(objVar.getName(), filter));
                   if(IndexingFunctionRegistry.getFunctionType(filterURI) == FUNCTION_TYPE.GEO) {
@@ -306,7 +306,7 @@ public class GeoTemporalMongoDBStorageStrategyTest extends GeoTemporalTestBase {
               final List<StatementPattern> sps = getSps(query);
               final List<FunctionCall> filters = getFilters(query);
               for(final FunctionCall filter : filters) {
-                  final URI filterURI = new URIImpl(filter.getURI());
+                  final IRI filterURI = VF.createIRI(filter.getURI());
                   final Var objVar = IndexingFunctionRegistry.getResultVarFromFunctionCall(filterURI, filter.getArgs());
                   final IndexingExpr expr = new IndexingExpr(filterURI, sps.get(0), extractArguments(objVar.getName(), filter));
                   if(IndexingFunctionRegistry.getFunctionType(filterURI) == FUNCTION_TYPE.GEO) {
@@ -372,7 +372,7 @@ public class GeoTemporalMongoDBStorageStrategyTest extends GeoTemporalTestBase {
         final List<StatementPattern> sps = getSps(query);
         final List<FunctionCall> filters = getFilters(query);
         for(final FunctionCall filter : filters) {
-            final URI filterURI = new URIImpl(filter.getURI());
+            final IRI filterURI = VF.createIRI(filter.getURI());
             final Var objVar = IndexingFunctionRegistry.getResultVarFromFunctionCall(filterURI, filter.getArgs());
             final IndexingExpr expr = new IndexingExpr(filterURI, sps.get(0), extractArguments(objVar.getName(), filter));
             if(IndexingFunctionRegistry.getFunctionType(filterURI) == FUNCTION_TYPE.GEO) {
@@ -409,15 +409,14 @@ public class GeoTemporalMongoDBStorageStrategyTest extends GeoTemporalTestBase {
 
     @Test
     public void serializeTest() {
-        final ValueFactory vf = new ValueFactoryImpl();
-        final Resource subject = vf.createURI("foo:subj");
-        final Resource context = vf.createURI("foo:context");
+        final Resource subject = VF.createIRI("foo:subj");
+        final Resource context = VF.createIRI("foo:context");
 
         //GEO
-        URI predicate = GeoConstants.GEO_AS_WKT;
-        Value object = vf.createLiteral("Point(-77.03524 38.889468)", GeoConstants.XMLSCHEMA_OGC_WKT);
+        IRI predicate = GeoConstants.GEO_AS_WKT;
+        Value object = VF.createLiteral("Point(-77.03524 38.889468)", GeoConstants.XMLSCHEMA_OGC_WKT);
 
-        Statement statement = new ContextStatementImpl(subject, predicate, object, context);
+        Statement statement = VF.createStatement(subject, predicate, object, context);
         DBObject actual = adapter.serialize(RdfToRyaConversions.convertStatement(statement));
         String expectedString =
             "{ "
@@ -431,9 +430,9 @@ public class GeoTemporalMongoDBStorageStrategyTest extends GeoTemporalTestBase {
         assertEqualMongo(expected, actual);
 
         //TIME INSTANT
-        predicate = new URIImpl("Property:event:time");
-        object = vf.createLiteral("2015-12-30T12:00:00Z");
-        statement = new ContextStatementImpl(subject, predicate, object, context);
+        predicate = VF.createIRI("Property:event:time");
+        object = VF.createLiteral("2015-12-30T12:00:00Z");
+        statement = VF.createStatement(subject, predicate, object, context);
         actual = adapter.serialize(RdfToRyaConversions.convertStatement(statement));
         expectedString =
                 "{"
@@ -448,9 +447,9 @@ public class GeoTemporalMongoDBStorageStrategyTest extends GeoTemporalTestBase {
         assertEqualMongo(expected, actual);
 
         //TIME INTERVAL
-        predicate = new URIImpl("Property:circa");
-        object = vf.createLiteral("[1969-12-31T19:00:00-05:00,1969-12-31T19:00:01-05:00]");
-        statement = new ContextStatementImpl(subject, predicate, object, context);
+        predicate = VF.createIRI("Property:circa");
+        object = VF.createLiteral("[1969-12-31T19:00:00-05:00,1969-12-31T19:00:01-05:00]");
+        statement = VF.createStatement(subject, predicate, object, context);
         actual = adapter.serialize(RdfToRyaConversions.convertStatement(statement));
         expectedString =
                 "{"

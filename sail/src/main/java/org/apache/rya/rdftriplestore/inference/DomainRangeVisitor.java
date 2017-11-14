@@ -24,12 +24,12 @@ import java.util.UUID;
 import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
 import org.apache.rya.api.utils.NullableStatementImpl;
 import org.apache.rya.rdftriplestore.utils.FixedStatementPattern;
-import org.openrdf.model.URI;
-import org.openrdf.model.vocabulary.RDF;
-import org.openrdf.model.vocabulary.RDFS;
-import org.openrdf.query.algebra.StatementPattern;
-import org.openrdf.query.algebra.TupleExpr;
-import org.openrdf.query.algebra.Var;
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.vocabulary.RDF;
+import org.eclipse.rdf4j.model.vocabulary.RDFS;
+import org.eclipse.rdf4j.query.algebra.StatementPattern;
+import org.eclipse.rdf4j.query.algebra.TupleExpr;
+import org.eclipse.rdf4j.query.algebra.Var;
 
 /**
  * Expands the query tree to account for any relevant domain and range information known to the
@@ -72,12 +72,12 @@ public class DomainRangeVisitor extends AbstractInferVisitor {
         final Var contextVar = node.getContextVar();
         // Only applies to statement patterns that query for members of a defined type.
         if (predVar != null && RDF.TYPE.equals(predVar.getValue())
-                && objVar != null && objVar.getValue() instanceof URI) {
-            final URI inferredType = (URI) objVar.getValue();
+                && objVar != null && objVar.getValue() instanceof IRI) {
+            final IRI inferredType = (IRI) objVar.getValue();
             // Preserve the original node so explicit type assertions are still matched:
             TupleExpr currentNode = node.clone();
             // If there are any properties with this type as domain, check for appropriate triples:
-            final Set<URI> domainProperties = inferenceEngine.getPropertiesWithDomain(inferredType);
+            final Set<IRI> domainProperties = inferenceEngine.getPropertiesWithDomain(inferredType);
             if (!domainProperties.isEmpty()) {
                 Var domainPredVar = new Var("p-" + UUID.randomUUID());
                 Var domainObjVar = new Var("o-" + UUID.randomUUID());
@@ -86,14 +86,14 @@ public class DomainRangeVisitor extends AbstractInferVisitor {
                 StatementPattern domainSP = new DoNotExpandSP(subjVar, domainPredVar, domainObjVar, contextVar);
                 // Enumerate predicates having this type as domain
                 FixedStatementPattern domainFSP = new FixedStatementPattern(domainPredVar, domainVar, objVar);
-                for (URI property : domainProperties) {
+                for (IRI property : domainProperties) {
                     domainFSP.statements.add(new NullableStatementImpl(property, RDFS.DOMAIN, inferredType));
                 }
                 // For each such predicate, any triple <subjVar predicate _:any> implies the type
                 currentNode = new InferUnion(currentNode, new InferJoin(domainFSP, domainSP));
             }
             // If there are any properties with this type as range, check for appropriate triples:
-            final Set<URI> rangeProperties = inferenceEngine.getPropertiesWithRange(inferredType);
+            final Set<IRI> rangeProperties = inferenceEngine.getPropertiesWithRange(inferredType);
             if (!rangeProperties.isEmpty()) {
                 Var rangePredVar = new Var("p-" + UUID.randomUUID());
                 Var rangeSubjVar = new Var("s-" + UUID.randomUUID());
@@ -102,7 +102,7 @@ public class DomainRangeVisitor extends AbstractInferVisitor {
                 StatementPattern rangeSP = new DoNotExpandSP(rangeSubjVar, rangePredVar, subjVar, contextVar);
                 // Enumerate predicates having this type as range
                 FixedStatementPattern rangeFSP = new FixedStatementPattern(rangePredVar, rangeVar, objVar);
-                for (URI property : rangeProperties) {
+                for (IRI property : rangeProperties) {
                     rangeFSP.statements.add(new NullableStatementImpl(property, RDFS.RANGE, inferredType));
                 }
                 // For each such predicate, any triple <_:any predicate subjVar> implies the type

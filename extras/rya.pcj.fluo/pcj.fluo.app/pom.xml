@@ -67,8 +67,8 @@
             <artifactId>fluo-api</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.openrdf.sesame</groupId>
-            <artifactId>sesame-queryrender</artifactId>
+            <groupId>org.eclipse.rdf4j</groupId>
+            <artifactId>rdf4j-queryrender</artifactId>
         </dependency>
 
         <dependency>

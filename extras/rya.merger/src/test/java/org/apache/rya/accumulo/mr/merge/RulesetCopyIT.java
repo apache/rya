@@ -48,34 +48,37 @@ import org.apache.rya.api.persist.RyaDAOException;
 import org.apache.rya.api.resolver.RyaToRdfConversions;
 import org.apache.rya.indexing.accumulo.ConfigUtils;
 import org.apache.rya.sail.config.RyaSailFactory;
+import org.eclipse.rdf4j.common.iteration.CloseableIteration;
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.Namespace;
+import org.eclipse.rdf4j.model.Statement;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
+import org.eclipse.rdf4j.model.vocabulary.OWL;
+import org.eclipse.rdf4j.model.vocabulary.RDF;
+import org.eclipse.rdf4j.model.vocabulary.RDFS;
+import org.eclipse.rdf4j.model.vocabulary.XMLSchema;
+import org.eclipse.rdf4j.query.BindingSet;
+import org.eclipse.rdf4j.query.QueryLanguage;
+import org.eclipse.rdf4j.query.QueryResultHandlerException;
+import org.eclipse.rdf4j.query.TupleQuery;
+import org.eclipse.rdf4j.query.TupleQueryResultHandler;
+import org.eclipse.rdf4j.query.TupleQueryResultHandlerException;
+import org.eclipse.rdf4j.repository.sail.SailRepository;
+import org.eclipse.rdf4j.repository.sail.SailRepositoryConnection;
+import org.eclipse.rdf4j.sail.Sail;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.openrdf.model.Namespace;
-import org.openrdf.model.Statement;
-import org.openrdf.model.URI;
-import org.openrdf.model.impl.URIImpl;
-import org.openrdf.model.vocabulary.OWL;
-import org.openrdf.model.vocabulary.RDF;
-import org.openrdf.model.vocabulary.RDFS;
-import org.openrdf.model.vocabulary.XMLSchema;
-import org.openrdf.query.BindingSet;
-import org.openrdf.query.QueryLanguage;
-import org.openrdf.query.QueryResultHandlerException;
-import org.openrdf.query.TupleQuery;
-import org.openrdf.query.TupleQueryResultHandler;
-import org.openrdf.query.TupleQueryResultHandlerException;
-import org.openrdf.repository.sail.SailRepository;
-import org.openrdf.repository.sail.SailRepositoryConnection;
-import org.openrdf.sail.Sail;
 
-import info.aduna.iteration.CloseableIteration;
 import junit.framework.Assert;
 
 public class RulesetCopyIT {
     private static final Logger log = Logger.getLogger(RulesetCopyIT.class);
+
+    private static final ValueFactory VF = SimpleValueFactory.getInstance();
 
     private static final boolean IS_MOCK = false;
     private static final String CHILD_SUFFIX = MergeTool.CHILD_SUFFIX;
@@ -140,7 +143,7 @@ public class RulesetCopyIT {
         return new RyaType(lit);
     }
 
-    private static RyaType literal(final String lit, final URI type) {
+    private static RyaType literal(final String lit, final IRI type) {
         return new RyaType(type, lit);
     }
 
@@ -206,7 +209,7 @@ public class RulesetCopyIT {
                 makeArgument(MRUtils.AC_USERNAME_PROP + CHILD_SUFFIX, accumuloDualInstanceDriver.getChildUser()),
                 makeArgument(MRUtils.AC_PWD_PROP + CHILD_SUFFIX, CHILD_PASSWORD),
                 makeArgument(MRUtils.TABLE_PREFIX_PROPERTY + CHILD_SUFFIX, CHILD_TABLE_PREFIX),
-                makeArgument(MRUtils.AC_AUTH_PROP + CHILD_SUFFIX, accumuloDualInstanceDriver.getChildAuth() != null ? accumuloDualInstanceDriver.getChildAuth() : null),
+                makeArgument(MRUtils.AC_AUTH_PROP + CHILD_SUFFIX, accumuloDualInstanceDriver.getChildAuth()),
                 makeArgument(MRUtils.AC_ZK_PROP + CHILD_SUFFIX, accumuloDualInstanceDriver.getChildZooKeepers() != null ? accumuloDualInstanceDriver.getChildZooKeepers() : "localhost"),
                 makeArgument(CopyTool.CHILD_TOMCAT_URL_PROP, CHILD_TOMCAT_URL),
                 makeArgument(CopyTool.CREATE_CHILD_INSTANCE_TYPE_PROP, (IS_MOCK ? InstanceType.MOCK : InstanceType.MINI).toString()),
@@ -327,7 +330,7 @@ public class RulesetCopyIT {
             statement("test:University1", "test:telephone", literal("555")),
             statement("test:FullProfessor1", "test:worksFor", "test:University1"),
             statement("test:FullProfessor1", "test:hired", literal("2001-01-01T04:01:02.000Z", XMLSchema.DATETIME)),
-            statement("test:University1", "geo:asWKT", literal("Point(-77.03524 38.889468)", new URIImpl("http://www.opengis.net/ont/geosparql#wktLiteral")))
+            statement("test:University1", "geo:asWKT", literal("Point(-77.03524 38.889468)", VF.createIRI("http://www.opengis.net/ont/geosparql#wktLiteral")))
         };
         // These aren't solutions but should be copied:
         final RyaStatement[] copyStatements = {

@@ -19,16 +19,6 @@ package org.apache.rya.rdftriplestore.evaluation;
  * under the License.
  */
 
-
-
-import info.aduna.iteration.CloseableIteration;
-import info.aduna.iteration.ConvertingIteration;
-import info.aduna.iteration.EmptyIteration;
-import info.aduna.iteration.Iteration;
-import info.aduna.iteration.IteratorIteration;
-import info.aduna.iteration.LimitIteration;
-import info.aduna.iteration.OffsetIteration;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -38,6 +28,7 @@ import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import org.apache.log4j.Logger;
 import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
 import org.apache.rya.api.RdfCloudTripleStoreUtils;
 import org.apache.rya.api.utils.NullableStatementImpl;
@@ -47,35 +38,37 @@ import org.apache.rya.rdftriplestore.inference.InferenceEngine;
 import org.apache.rya.rdftriplestore.inference.InferenceEngineException;
 import org.apache.rya.rdftriplestore.utils.FixedStatementPattern;
 import org.apache.rya.rdftriplestore.utils.TransitivePropertySP;
-
-import org.apache.log4j.Logger;
-import org.openrdf.model.Resource;
-import org.openrdf.model.Statement;
-import org.openrdf.model.URI;
-import org.openrdf.model.Value;
-import org.openrdf.query.BindingSet;
-import org.openrdf.query.Dataset;
-import org.openrdf.query.QueryEvaluationException;
-import org.openrdf.query.algebra.Filter;
-import org.openrdf.query.algebra.Join;
-import org.openrdf.query.algebra.QueryRoot;
-import org.openrdf.query.algebra.Slice;
-import org.openrdf.query.algebra.StatementPattern;
-import org.openrdf.query.algebra.TupleExpr;
-import org.openrdf.query.algebra.ValueExpr;
-import org.openrdf.query.algebra.Var;
-import org.openrdf.query.algebra.evaluation.QueryBindingSet;
-import org.openrdf.query.algebra.evaluation.ValueExprEvaluationException;
-import org.openrdf.query.algebra.evaluation.impl.EvaluationStrategyImpl;
-import org.openrdf.query.algebra.evaluation.iterator.FilterIterator;
-import org.openrdf.query.algebra.evaluation.iterator.JoinIterator;
-import org.openrdf.query.algebra.evaluation.util.QueryEvaluationUtil;
+import org.eclipse.rdf4j.common.iteration.CloseableIteration;
+import org.eclipse.rdf4j.common.iteration.ConvertingIteration;
+import org.eclipse.rdf4j.common.iteration.EmptyIteration;
+import org.eclipse.rdf4j.common.iteration.Iteration;
+import org.eclipse.rdf4j.common.iteration.IteratorIteration;
+import org.eclipse.rdf4j.common.iteration.LimitIteration;
+import org.eclipse.rdf4j.common.iteration.OffsetIteration;
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.Resource;
+import org.eclipse.rdf4j.model.Statement;
+import org.eclipse.rdf4j.model.Value;
+import org.eclipse.rdf4j.query.BindingSet;
+import org.eclipse.rdf4j.query.Dataset;
+import org.eclipse.rdf4j.query.QueryEvaluationException;
+import org.eclipse.rdf4j.query.algebra.Filter;
+import org.eclipse.rdf4j.query.algebra.Join;
+import org.eclipse.rdf4j.query.algebra.QueryRoot;
+import org.eclipse.rdf4j.query.algebra.Slice;
+import org.eclipse.rdf4j.query.algebra.StatementPattern;
+import org.eclipse.rdf4j.query.algebra.TupleExpr;
+import org.eclipse.rdf4j.query.algebra.Var;
+import org.eclipse.rdf4j.query.algebra.evaluation.QueryBindingSet;
+import org.eclipse.rdf4j.query.algebra.evaluation.impl.StrictEvaluationStrategy;
+import org.eclipse.rdf4j.query.algebra.evaluation.iterator.FilterIterator;
+import org.eclipse.rdf4j.query.algebra.evaluation.iterator.JoinIterator;
 
 import com.google.common.collect.Lists;
 
 /**
  */
-public class ParallelEvaluationStrategyImpl extends EvaluationStrategyImpl {
+public class ParallelEvaluationStrategyImpl extends StrictEvaluationStrategy {
     private static Logger logger = Logger.getLogger(ParallelEvaluationStrategyImpl.class);
     
     private int numOfThreads = 10;
@@ -86,7 +79,7 @@ public class ParallelEvaluationStrategyImpl extends EvaluationStrategyImpl {
 
     public ParallelEvaluationStrategyImpl(StoreTripleSource tripleSource, InferenceEngine inferenceEngine,
                                           Dataset dataset, RdfCloudTripleStoreConfiguration conf) {
-        super(tripleSource, dataset);
+        super(tripleSource, dataset, null);
         Integer nthreads = conf.getNumThreads();
         this.numOfThreads = (nthreads != null) ? nthreads : this.numOfThreads;
         Boolean val = conf.isPerformant();
@@ -185,7 +178,7 @@ public class ParallelEvaluationStrategyImpl extends EvaluationStrategyImpl {
             Set<Statement> sts = null;
             try {
                 sts = inferenceEngine.findTransitiveProperty((Resource) getVarValue(subjVar),
-                        (URI) getVarValue(predVar), getVarValue(objVar), (Resource) getVarValue(cntxtVar));
+                        (IRI) getVarValue(predVar), getVarValue(objVar), (Resource) getVarValue(cntxtVar));
             } catch (InferenceEngineException e) {
                 throw new QueryEvaluationException(e);
             }
@@ -203,11 +196,11 @@ public class ParallelEvaluationStrategyImpl extends EvaluationStrategyImpl {
                 Value objValue = getVarValue(objVar, binding);
                 Resource contxtValue = (Resource) getVarValue(cntxtVar, binding);
                 if ((subjValue != null && !(subjValue instanceof Resource)) ||
-                        (predValue != null && !(predValue instanceof URI))) {
+                        (predValue != null && !(predValue instanceof IRI))) {
                     continue;
                 }
                 stmts.add(new RdfCloudTripleStoreUtils.CustomEntry<Statement, BindingSet>(
-                        new NullableStatementImpl((Resource) subjValue, (URI) predValue, objValue, contxtValue), binding));
+                        new NullableStatementImpl((Resource) subjValue, (IRI) predValue, objValue, contxtValue), binding));
             }
             if (stmts.size() == 0) {
                 return new EmptyIteration();

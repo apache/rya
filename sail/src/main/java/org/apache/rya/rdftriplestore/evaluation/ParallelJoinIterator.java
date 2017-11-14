@@ -19,22 +19,19 @@ package org.apache.rya.rdftriplestore.evaluation;
  * under the License.
  */
 
-
-
-import info.aduna.iteration.CloseableIteration;
-import info.aduna.iteration.LookAheadIteration;
-
 import java.util.NoSuchElementException;
 import java.util.Queue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.LinkedBlockingQueue;
 
-import org.openrdf.query.BindingSet;
-import org.openrdf.query.QueryEvaluationException;
-import org.openrdf.query.algebra.Join;
-import org.openrdf.query.algebra.TupleExpr;
-import org.openrdf.query.algebra.evaluation.EvaluationStrategy;
-import org.openrdf.query.impl.EmptyBindingSet;
+import org.eclipse.rdf4j.common.iteration.CloseableIteration;
+import org.eclipse.rdf4j.common.iteration.LookAheadIteration;
+import org.eclipse.rdf4j.query.BindingSet;
+import org.eclipse.rdf4j.query.QueryEvaluationException;
+import org.eclipse.rdf4j.query.algebra.Join;
+import org.eclipse.rdf4j.query.algebra.TupleExpr;
+import org.eclipse.rdf4j.query.algebra.evaluation.EvaluationStrategy;
+import org.eclipse.rdf4j.query.impl.EmptyBindingSet;
 
 /**
  */
@@ -85,7 +82,7 @@ public class ParallelJoinIterator extends LookAheadIteration<BindingSet, QueryEv
                 try {
                     for (int i = 0; i < batch; i++) {
                         if (leftIter.hasNext()) {
-                            ParallelIteratorWork work = new ParallelIteratorWork((BindingSet) leftIter.next(), join.getRightArg());
+                            ParallelIteratorWork work = new ParallelIteratorWork(leftIter.next(), join.getRightArg());
                             workQueue.add(work);
                             executorService.execute(work);
                         } else

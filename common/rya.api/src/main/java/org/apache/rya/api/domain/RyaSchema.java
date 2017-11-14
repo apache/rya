@@ -22,7 +22,7 @@ package org.apache.rya.api.domain;
 
 
 import org.apache.rya.api.RdfCloudTripleStoreConstants;
-import org.openrdf.model.URI;
+import org.eclipse.rdf4j.model.IRI;
 
 /**
  * Date: 7/16/12
@@ -35,9 +35,9 @@ public class RyaSchema {
     public static final String BNODE_NAMESPACE = "urn:org.apache.rya/bnode/2012/07#";
 
     //datatypes
-    public static final URI NODE = RdfCloudTripleStoreConstants.VALUE_FACTORY.createURI(NAMESPACE, "node");
-    public static final URI LANGUAGE = RdfCloudTripleStoreConstants.VALUE_FACTORY.createURI(NAMESPACE, "lang");
+    public static final IRI NODE = RdfCloudTripleStoreConstants.VALUE_FACTORY.createIRI(NAMESPACE, "node");
+    public static final IRI LANGUAGE = RdfCloudTripleStoreConstants.VALUE_FACTORY.createIRI(NAMESPACE, "lang");
 
     //functions
-    public static final URI RANGE = RdfCloudTripleStoreConstants.VALUE_FACTORY.createURI(NAMESPACE, "range");
+    public static final IRI RANGE = RdfCloudTripleStoreConstants.VALUE_FACTORY.createIRI(NAMESPACE, "range");
 }

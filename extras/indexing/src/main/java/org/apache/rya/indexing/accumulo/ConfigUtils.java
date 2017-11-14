@@ -60,8 +60,8 @@ import org.apache.rya.indexing.mongodb.freetext.MongoFreeTextIndexer;
 import org.apache.rya.indexing.mongodb.temporal.MongoTemporalIndexer;
 import org.apache.rya.indexing.pcj.matching.PCJOptimizer;
 import org.apache.rya.indexing.statement.metadata.matching.StatementMetadataOptimizer;
-import org.openrdf.model.URI;
-import org.openrdf.model.impl.URIImpl;
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 
 import com.google.common.base.Optional;
 import com.google.common.collect.Lists;
@@ -210,11 +210,11 @@ public class ConfigUtils {
         return conf.getInt(FREE_TEXT_QUERY_TERM_LIMIT, 100);
     }
 
-    public static Set<URI> getFreeTextPredicates(final Configuration conf) {
+    public static Set<IRI> getFreeTextPredicates(final Configuration conf) {
         return getPredicates(conf, FREETEXT_PREDICATES_LIST);
     }
 
-    public static Set<URI> getGeoPredicates(final Configuration conf) {
+    public static Set<IRI> getGeoPredicates(final Configuration conf) {
         return getPredicates(conf, GEO_PREDICATES_LIST);
     }
 
@@ -225,15 +225,15 @@ public class ConfigUtils {
      * @return Set of predicate URI's whose objects should be date time
      *         literals.
      */
-    public static Set<URI> getTemporalPredicates(final Configuration conf) {
+    public static Set<IRI> getTemporalPredicates(final Configuration conf) {
         return getPredicates(conf, TEMPORAL_PREDICATES_LIST);
     }
 
-    protected static Set<URI> getPredicates(final Configuration conf, final String confName) {
+    protected static Set<IRI> getPredicates(final Configuration conf, final String confName) {
         final String[] validPredicateStrings = conf.getStrings(confName, new String[] {});
-        final Set<URI> predicates = new HashSet<>();
+        final Set<IRI> predicates = new HashSet<>();
         for (final String prediateString : validPredicateStrings) {
-            predicates.add(new URIImpl(prediateString));
+            predicates.add(SimpleValueFactory.getInstance().createIRI(prediateString));
         }
         return predicates;
     }

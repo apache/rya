@@ -21,14 +21,12 @@ package org.apache.rya.indexing.mongodb;
 
 import java.util.Set;
 
-import org.openrdf.model.URI;
-
 import com.mongodb.BasicDBObject;
 import com.mongodb.DBObject;
 import com.mongodb.QueryBuilder;
-
 import org.apache.rya.indexing.StatementConstraints;
 import org.apache.rya.mongodb.dao.SimpleMongoDBStorageStrategy;
+import org.eclipse.rdf4j.model.IRI;
 
 public class IndexingMongoDBStorageStrategy extends SimpleMongoDBStorageStrategy {
     public DBObject getQuery(final StatementConstraints contraints) {
@@ -38,9 +36,9 @@ public class IndexingMongoDBStorageStrategy extends SimpleMongoDBStorageStrategy
         }
 
         if (contraints.hasPredicates()){
-            final Set<URI> predicates = contraints.getPredicates();
+            final Set<IRI> predicates = contraints.getPredicates();
             if (predicates.size() > 1){
-                for (final URI pred : predicates){
+                for (final IRI pred : predicates){
                     final DBObject currentPred = new BasicDBObject(PREDICATE, pred.toString());
                     queryBuilder.or(currentPred);
                 }

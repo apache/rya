@@ -59,9 +59,10 @@ import org.apache.rya.indexing.pcj.storage.PrecomputedJoinStorage;
 import org.apache.rya.indexing.pcj.storage.accumulo.AccumuloPcjStorage;
 import org.apache.rya.indexing.pcj.storage.accumulo.VisibilityBindingSet;
 import org.apache.rya.pcj.fluo.test.base.RyaExportITBase;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
+import org.eclipse.rdf4j.query.algebra.evaluation.QueryBindingSet;
 import org.junit.Test;
-import org.openrdf.model.impl.URIImpl;
-import org.openrdf.query.algebra.evaluation.QueryBindingSet;
 
 import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
@@ -69,6 +70,7 @@ import com.google.common.base.Preconditions;
 public class BatchIT extends RyaExportITBase {
 
     private static final Logger log = Logger.getLogger(BatchIT.class);
+    private static final ValueFactory VF = SimpleValueFactory.getInstance();
     private static final FluoQueryMetadataDAO dao = new FluoQueryMetadataDAO();
 
     @Test
@@ -97,8 +99,8 @@ public class BatchIT extends RyaExportITBase {
 
             // Stream the data into Fluo.
             InsertTriples inserter = new InsertTriples();
-            inserter.insert(fluoClient, statements1, Optional.<String> absent());
-            inserter.insert(fluoClient, statements2, Optional.<String> absent());
+            inserter.insert(fluoClient, statements1, Optional.absent());
+            inserter.insert(fluoClient, statements2, Optional.absent());
 
             // Verify the end results of the query match the expected results.
             getMiniFluo().waitForObservers();
@@ -136,15 +138,15 @@ public class BatchIT extends RyaExportITBase {
             String joinId = ids.get(2);
             String rightSp = ids.get(4);
             QueryBindingSet bs = new QueryBindingSet();
-            bs.addBinding("subject", new URIImpl("urn:subject_1"));
-            bs.addBinding("object1", new URIImpl("urn:object_0"));
+            bs.addBinding("subject", VF.createIRI("urn:subject_1"));
+            bs.addBinding("object1", VF.createIRI("urn:object_0"));
             VisibilityBindingSet vBs = new VisibilityBindingSet(bs);
             Span span = Span.prefix(Bytes.of(rightSp + IncrementalUpdateConstants.NODEID_BS_DELIM + "urn:subject_1"));
 
             // Stream the data into Fluo.
             InsertTriples inserter = new InsertTriples();
-            inserter.insert(fluoClient, statements1, Optional.<String> absent());
-            inserter.insert(fluoClient, statements2, Optional.<String> absent());
+            inserter.insert(fluoClient, statements1, Optional.absent());
+            inserter.insert(fluoClient, statements2, Optional.absent());
 
             getMiniFluo().waitForObservers();
             verifyCounts(fluoClient, ids, Arrays.asList(25, 25, 25, 5, 5));
@@ -182,14 +184,14 @@ public class BatchIT extends RyaExportITBase {
             String joinId = ids.get(2);
             String rightSp = ids.get(4);
             QueryBindingSet bs = new QueryBindingSet();
-            bs.addBinding("subject", new URIImpl("urn:subject_1"));
-            bs.addBinding("object1", new URIImpl("urn:object_0"));
+            bs.addBinding("subject", VF.createIRI("urn:subject_1"));
+            bs.addBinding("object1", VF.createIRI("urn:object_0"));
             VisibilityBindingSet vBs = new VisibilityBindingSet(bs);
             Span span = Span.prefix(Bytes.of(rightSp + IncrementalUpdateConstants.NODEID_BS_DELIM + "urn:subject_1"));
 
             // Stream the data into Fluo.
             InsertTriples inserter = new InsertTriples();
-            inserter.insert(fluoClient, statements2, Optional.<String> absent());
+            inserter.insert(fluoClient, statements2, Optional.absent());
 
             getMiniFluo().waitForObservers();
             verifyCounts(fluoClient, ids, Arrays.asList(0, 0, 0, 0, 5));
@@ -231,8 +233,8 @@ public class BatchIT extends RyaExportITBase {
 
             // Stream the data into Fluo.
             InsertTriples inserter = new InsertTriples();
-            inserter.insert(fluoClient, statements1, Optional.<String> absent());
-            inserter.insert(fluoClient, statements2, Optional.<String> absent());
+            inserter.insert(fluoClient, statements1, Optional.absent());
+            inserter.insert(fluoClient, statements2, Optional.absent());
 
             getMiniFluo().waitForObservers();
             verifyCounts(fluoClient, ids, Arrays.asList(225, 225, 225, 15, 15));
@@ -270,9 +272,9 @@ public class BatchIT extends RyaExportITBase {
 
             // Stream the data into Fluo.
             InsertTriples inserter = new InsertTriples();
-            inserter.insert(fluoClient, statements1, Optional.<String> absent());
-            inserter.insert(fluoClient, statements2, Optional.<String> absent());
-            inserter.insert(fluoClient, statements3, Optional.<String> absent());
+            inserter.insert(fluoClient, statements1, Optional.absent());
+            inserter.insert(fluoClient, statements2, Optional.absent());
+            inserter.insert(fluoClient, statements3, Optional.absent());
 
             getMiniFluo().waitForObservers();
             verifyCounts(fluoClient, ids, Arrays.asList(110, 110, 110, 20, 10));
@@ -311,9 +313,9 @@ public class BatchIT extends RyaExportITBase {
 
             // Stream the data into Fluo.
             InsertTriples inserter = new InsertTriples();
-            inserter.insert(fluoClient, statements1, Optional.<String> absent());
-            inserter.insert(fluoClient, statements2, Optional.<String> absent());
-            inserter.insert(fluoClient, statements3, Optional.<String> absent());
+            inserter.insert(fluoClient, statements1, Optional.absent());
+            inserter.insert(fluoClient, statements2, Optional.absent());
+            inserter.insert(fluoClient, statements3, Optional.absent());
 
             getMiniFluo().waitForObservers();
             verifyCounts(fluoClient, ids, Arrays.asList(100, 100, 100, 100, 10, 10, 10));

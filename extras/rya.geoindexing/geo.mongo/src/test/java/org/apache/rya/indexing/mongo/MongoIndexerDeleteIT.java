@@ -31,23 +31,22 @@ import org.apache.rya.indexing.accumulo.ConfigUtils;
 import org.apache.rya.indexing.accumulo.geo.OptionalConfigUtils;
 import org.apache.rya.indexing.mongodb.MongoIndexingConfiguration;
 import org.apache.rya.mongodb.EmbeddedMongoSingleton;
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.Resource;
+import org.eclipse.rdf4j.model.Statement;
+import org.eclipse.rdf4j.model.Value;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
+import org.eclipse.rdf4j.model.vocabulary.RDF;
+import org.eclipse.rdf4j.model.vocabulary.RDFS;
+import org.eclipse.rdf4j.query.QueryLanguage;
+import org.eclipse.rdf4j.query.Update;
+import org.eclipse.rdf4j.repository.sail.SailRepository;
+import org.eclipse.rdf4j.repository.sail.SailRepositoryConnection;
+import org.eclipse.rdf4j.sail.Sail;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.openrdf.model.Resource;
-import org.openrdf.model.Statement;
-import org.openrdf.model.URI;
-import org.openrdf.model.Value;
-import org.openrdf.model.ValueFactory;
-import org.openrdf.model.impl.StatementImpl;
-import org.openrdf.model.impl.ValueFactoryImpl;
-import org.openrdf.model.vocabulary.RDF;
-import org.openrdf.model.vocabulary.RDFS;
-import org.openrdf.query.QueryLanguage;
-import org.openrdf.query.Update;
-import org.openrdf.repository.sail.SailRepository;
-import org.openrdf.repository.sail.SailRepositoryConnection;
-import org.openrdf.sail.Sail;
 
 import com.mongodb.MongoClient;
 import com.vividsolutions.jts.geom.Coordinate;
@@ -138,7 +137,7 @@ public class MongoIndexerDeleteIT {
     }
 
     private void populateRya() throws Exception {
-        final ValueFactory VF = new ValueFactoryImpl();
+        final ValueFactory vf = SimpleValueFactory.getInstance();
         // geo 2x2 points
         final GeometryFactory GF = new GeometryFactory();
         for (int x = 0; x <= 1; x++) {
@@ -151,26 +150,27 @@ public class MongoIndexerDeleteIT {
         }
 
         // freetext
-        final URI person = VF.createURI("http://example.org/ontology/Person");
+        final IRI person = vf.createIRI("http://example.org/ontology/Person");
         String uuid;
 
         uuid = "urn:people";
-        conn.add(VF.createURI(uuid), RDF.TYPE, person);
-        conn.add(VF.createURI(uuid), RDFS.LABEL, VF.createLiteral("Alice Palace Hose", VF.createURI("http://www.w3.org/2001/XMLSchema#string")));
-        conn.add(VF.createURI(uuid), RDFS.LABEL, VF.createLiteral("Bob Snob Hose", "en"));
+        conn.add(vf.createIRI(uuid), RDF.TYPE, person);
+        conn.add(vf.createIRI(uuid), RDFS.LABEL, vf.createLiteral("Alice Palace Hose", vf.createIRI("http://www.w3.org/2001/XMLSchema#string")));
+        conn.add(vf.createIRI(uuid), RDFS.LABEL, vf.createLiteral("Bob Snob Hose"));
 
         // temporal
         final TemporalInstant instant = new TemporalInstantRfc3339(1, 2, 3, 4, 5, 6);
-        conn.add(VF.createURI("foo:time"), VF.createURI("Property:atTime"), VF.createLiteral(instant.toString()));
+        conn.add(vf.createIRI("foo:time"), vf.createIRI("Property:atTime"), vf.createLiteral(instant.toString()));
+        conn.commit();
     }
 
     private static RyaStatement statement(final Geometry geo) {
-        final ValueFactory vf = new ValueFactoryImpl();
-        final Resource subject = vf.createURI("urn:geo");
-        final URI predicate = GeoConstants.GEO_AS_WKT;
+        final ValueFactory vf = SimpleValueFactory.getInstance();
+        final Resource subject = vf.createIRI("urn:geo");
+        final IRI predicate = GeoConstants.GEO_AS_WKT;
         final WKTWriter w = new WKTWriter();
         final Value object = vf.createLiteral(w.write(geo), GeoConstants.XMLSCHEMA_OGC_WKT);
-        return RdfToRyaConversions.convertStatement(new StatementImpl(subject, predicate, object));
+        return RdfToRyaConversions.convertStatement(vf.createStatement(subject, predicate, object));
     }
 
 }

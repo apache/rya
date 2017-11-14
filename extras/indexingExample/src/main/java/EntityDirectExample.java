@@ -17,8 +17,6 @@
  * under the License.
  */
 
-
-
 import java.util.List;
 
 import org.apache.accumulo.core.client.AccumuloException;
@@ -27,25 +25,23 @@ import org.apache.accumulo.core.client.TableNotFoundException;
 import org.apache.commons.lang.Validate;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.log4j.Logger;
-import org.openrdf.query.BindingSet;
-import org.openrdf.query.MalformedQueryException;
-import org.openrdf.query.QueryEvaluationException;
-import org.openrdf.query.QueryLanguage;
-import org.openrdf.query.QueryResultHandlerException;
-import org.openrdf.query.TupleQuery;
-import org.openrdf.query.TupleQueryResultHandler;
-import org.openrdf.query.TupleQueryResultHandlerException;
-import org.openrdf.query.Update;
-import org.openrdf.query.UpdateExecutionException;
-import org.openrdf.repository.RepositoryException;
-import org.openrdf.repository.sail.SailRepository;
-import org.openrdf.repository.sail.SailRepositoryConnection;
-import org.openrdf.sail.Sail;
-
-import org.apache.rya.accumulo.AccumuloRdfConfiguration;
 import org.apache.rya.indexing.accumulo.AccumuloIndexingConfiguration;
 import org.apache.rya.indexing.accumulo.ConfigUtils;
 import org.apache.rya.sail.config.RyaSailFactory;
+import org.eclipse.rdf4j.query.BindingSet;
+import org.eclipse.rdf4j.query.MalformedQueryException;
+import org.eclipse.rdf4j.query.QueryEvaluationException;
+import org.eclipse.rdf4j.query.QueryLanguage;
+import org.eclipse.rdf4j.query.QueryResultHandlerException;
+import org.eclipse.rdf4j.query.TupleQuery;
+import org.eclipse.rdf4j.query.TupleQueryResultHandler;
+import org.eclipse.rdf4j.query.TupleQueryResultHandlerException;
+import org.eclipse.rdf4j.query.Update;
+import org.eclipse.rdf4j.query.UpdateExecutionException;
+import org.eclipse.rdf4j.repository.RepositoryException;
+import org.eclipse.rdf4j.repository.sail.SailRepository;
+import org.eclipse.rdf4j.repository.sail.SailRepositoryConnection;
+import org.eclipse.rdf4j.sail.Sail;
 
 public class EntityDirectExample {
     private static final Logger log = Logger.getLogger(EntityDirectExample.class);
@@ -165,6 +161,7 @@ public class EntityDirectExample {
 
         final String sparqlInsert = "PREFIX pref: <http://www.model/pref#> \n"
                 + "INSERT DATA {\n" //
+                + "GRAPH <http://updated/test> {\n"
                 + "<urn:Bob>       a       pref:Person ;\n" //
                 + "     pref:hasProperty1 'property1' ;\n" //  one second
                 + "     pref:hasProperty2 'property2' ;\n" //   2 seconds
@@ -172,7 +169,7 @@ public class EntityDirectExample {
                 + "<urn:Fred>      a       pref:Person ; \n" //
                 + "     pref:hasProperty4 'property4' ; \n" //
                 + "     pref:hasProperty5 'property5' ; \n" //
-                + "}";
+                + "}}";
 
         final Update update = conn.prepareUpdate(QueryLanguage.SPARQL, sparqlInsert);
         update.execute();

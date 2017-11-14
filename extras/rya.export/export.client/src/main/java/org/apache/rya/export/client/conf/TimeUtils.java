@@ -31,10 +31,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.net.ntp.NTPUDPClient;
 import org.apache.commons.net.ntp.TimeInfo;
 import org.apache.log4j.Logger;
-import org.codehaus.plexus.util.StringUtils;
 import org.mortbay.jetty.HttpMethods;
 
 import com.google.common.net.HttpHeaders;

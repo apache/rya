@@ -18,6 +18,7 @@
  */
 package org.apache.rya.indexing.external.tupleSet;
 
+import java.math.BigInteger;
 import java.net.UnknownHostException;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -30,35 +31,6 @@ import org.apache.accumulo.core.client.Connector;
 import org.apache.accumulo.core.client.TableNotFoundException;
 import org.apache.accumulo.core.client.admin.TableOperations;
 import org.apache.hadoop.conf.Configuration;
-import org.apache.rya.indexing.pcj.storage.PcjException;
-import org.apache.rya.indexing.pcj.storage.accumulo.PcjTableNameFactory;
-import org.apache.rya.indexing.pcj.storage.accumulo.PcjVarOrderFactory;
-import org.junit.After;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
-import org.openrdf.model.Statement;
-import org.openrdf.model.impl.LiteralImpl;
-import org.openrdf.model.impl.NumericLiteralImpl;
-import org.openrdf.model.impl.StatementImpl;
-import org.openrdf.model.impl.URIImpl;
-import org.openrdf.model.vocabulary.XMLSchema;
-import org.openrdf.query.BindingSet;
-import org.openrdf.query.MalformedQueryException;
-import org.openrdf.query.QueryEvaluationException;
-import org.openrdf.query.algebra.Projection;
-import org.openrdf.query.algebra.evaluation.QueryBindingSet;
-import org.openrdf.query.parser.ParsedQuery;
-import org.openrdf.query.parser.sparql.SPARQLParser;
-import org.openrdf.repository.RepositoryConnection;
-import org.openrdf.repository.RepositoryException;
-import org.openrdf.sail.SailException;
-
-import com.google.common.base.Optional;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
-
-import info.aduna.iteration.CloseableIteration;
 import org.apache.rya.accumulo.AccumuloRdfConfiguration;
 import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
 import org.apache.rya.api.persist.RyaDAOException;
@@ -66,9 +38,33 @@ import org.apache.rya.api.resolver.RyaTypeResolverException;
 import org.apache.rya.indexing.accumulo.ConfigUtils;
 import org.apache.rya.indexing.external.PcjIntegrationTestingUtil;
 import org.apache.rya.indexing.pcj.matching.QueryVariableNormalizer;
+import org.apache.rya.indexing.pcj.storage.PcjException;
+import org.apache.rya.indexing.pcj.storage.accumulo.PcjTableNameFactory;
 import org.apache.rya.rdftriplestore.RyaSailRepository;
 import org.apache.rya.rdftriplestore.inference.InferenceEngineException;
 import org.apache.rya.sail.config.RyaSailFactory;
+import org.eclipse.rdf4j.common.iteration.CloseableIteration;
+import org.eclipse.rdf4j.model.Statement;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
+import org.eclipse.rdf4j.query.BindingSet;
+import org.eclipse.rdf4j.query.MalformedQueryException;
+import org.eclipse.rdf4j.query.QueryEvaluationException;
+import org.eclipse.rdf4j.query.algebra.Projection;
+import org.eclipse.rdf4j.query.algebra.evaluation.QueryBindingSet;
+import org.eclipse.rdf4j.query.parser.ParsedQuery;
+import org.eclipse.rdf4j.query.parser.sparql.SPARQLParser;
+import org.eclipse.rdf4j.repository.RepositoryConnection;
+import org.eclipse.rdf4j.repository.RepositoryException;
+import org.eclipse.rdf4j.sail.SailException;
+import org.junit.After;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Test;
+
+import com.google.common.base.Optional;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 
 public class AccumuloIndexSetTest {
 
@@ -77,6 +73,7 @@ public class AccumuloIndexSetTest {
      protected RepositoryConnection ryaConn = null;
      protected Configuration conf = getConf();
      protected String prefix = "rya_";
+     private static final ValueFactory VF = SimpleValueFactory.getInstance();
 
     @Before
     public void init() throws AccumuloException, AccumuloSecurityException,
@@ -104,14 +101,14 @@ public class AccumuloIndexSetTest {
     RyaTypeResolverException, MalformedQueryException, SailException, QueryEvaluationException, AccumuloException, AccumuloSecurityException {
         // Load some Triples into Rya.
         final Set<Statement> triples = new HashSet<>();
-        triples.add( new StatementImpl(new URIImpl("http://Alice"), new URIImpl("http://hasAge"), new NumericLiteralImpl(14, XMLSchema.INTEGER)) );
-        triples.add( new StatementImpl(new URIImpl("http://Alice"), new URIImpl("http://playsSport"), new LiteralImpl("Soccer")) );
-        triples.add( new StatementImpl(new URIImpl("http://Bob"), new URIImpl("http://hasAge"), new NumericLiteralImpl(16, XMLSchema.INTEGER)) );
-        triples.add( new StatementImpl(new URIImpl("http://Bob"), new URIImpl("http://playsSport"), new LiteralImpl("Soccer")) );
-        triples.add( new StatementImpl(new URIImpl("http://Charlie"), new URIImpl("http://hasAge"), new NumericLiteralImpl(12, XMLSchema.INTEGER)) );
-        triples.add( new StatementImpl(new URIImpl("http://Charlie"), new URIImpl("http://playsSport"), new LiteralImpl("Soccer")) );
-        triples.add( new StatementImpl(new URIImpl("http://Eve"), new URIImpl("http://hasAge"), new NumericLiteralImpl(43, XMLSchema.INTEGER)) );
-        triples.add( new StatementImpl(new URIImpl("http://Eve"), new URIImpl("http://playsSport"), new LiteralImpl("Soccer")) );
+        triples.add( VF.createStatement(VF.createIRI("http://Alice"), VF.createIRI("http://hasAge"), VF.createLiteral(BigInteger.valueOf(14))) );
+        triples.add( VF.createStatement(VF.createIRI("http://Alice"), VF.createIRI("http://playsSport"), VF.createLiteral("Soccer")) );
+        triples.add( VF.createStatement(VF.createIRI("http://Bob"), VF.createIRI("http://hasAge"), VF.createLiteral(BigInteger.valueOf(16))) );
+        triples.add( VF.createStatement(VF.createIRI("http://Bob"), VF.createIRI("http://playsSport"), VF.createLiteral("Soccer")) );
+        triples.add( VF.createStatement(VF.createIRI("http://Charlie"), VF.createIRI("http://hasAge"), VF.createLiteral(BigInteger.valueOf(12))) );
+        triples.add( VF.createStatement(VF.createIRI("http://Charlie"), VF.createIRI("http://playsSport"), VF.createLiteral("Soccer")) );
+        triples.add( VF.createStatement(VF.createIRI("http://Eve"), VF.createIRI("http://hasAge"), VF.createLiteral(43)) );
+        triples.add( VF.createStatement(VF.createIRI("http://Eve"), VF.createIRI("http://playsSport"), VF.createLiteral("Soccer")) );
 
         for(final Statement triple : triples) {
             ryaConn.add(triple);
@@ -128,7 +125,7 @@ public class AccumuloIndexSetTest {
 
         final String pcjTableName = new PcjTableNameFactory().makeTableName(prefix, "testPcj");
         // Create and populate the PCJ table.
-        PcjIntegrationTestingUtil.createAndPopulatePcj(ryaConn, accumuloConn, pcjTableName, sparql, new String[]{"name", "age"}, Optional.<PcjVarOrderFactory>absent());
+        PcjIntegrationTestingUtil.createAndPopulatePcj(ryaConn, accumuloConn, pcjTableName, sparql, new String[]{"name", "age"}, Optional.absent());
 
         final AccumuloIndexSet ais = new AccumuloIndexSet(conf, pcjTableName);
 
@@ -139,18 +136,18 @@ public class AccumuloIndexSetTest {
         }
         // Ensure the expected results match those that were stored.
         final QueryBindingSet alice = new QueryBindingSet();
-        alice.addBinding("name", new URIImpl("http://Alice"));
-        alice.addBinding("age", new NumericLiteralImpl(14, XMLSchema.INTEGER));
+        alice.addBinding("name", VF.createIRI("http://Alice"));
+        alice.addBinding("age", VF.createLiteral(BigInteger.valueOf(14)));
 
         final QueryBindingSet bob = new QueryBindingSet();
-        bob.addBinding("name", new URIImpl("http://Bob"));
-        bob.addBinding("age", new NumericLiteralImpl(16, XMLSchema.INTEGER));
+        bob.addBinding("name", VF.createIRI("http://Bob"));
+        bob.addBinding("age", VF.createLiteral(BigInteger.valueOf(16)));
 
         final QueryBindingSet charlie = new QueryBindingSet();
-        charlie.addBinding("name", new URIImpl("http://Charlie"));
-        charlie.addBinding("age", new NumericLiteralImpl(12, XMLSchema.INTEGER));
+        charlie.addBinding("name", VF.createIRI("http://Charlie"));
+        charlie.addBinding("age", VF.createLiteral(BigInteger.valueOf(12)));
 
-        final Set<BindingSet> expectedResults = Sets.<BindingSet>newHashSet(alice, bob, charlie);
+        final Set<BindingSet> expectedResults = Sets.newHashSet(alice, bob, charlie);
         Assert.assertEquals(expectedResults, fetchedResults);
     }
 
@@ -167,14 +164,14 @@ public class AccumuloIndexSetTest {
     RyaTypeResolverException, MalformedQueryException, SailException, QueryEvaluationException, AccumuloException, AccumuloSecurityException {
         // Load some Triples into Rya.
         final Set<Statement> triples = new HashSet<>();
-        triples.add( new StatementImpl(new URIImpl("http://Alice"), new URIImpl("http://hasAge"), new NumericLiteralImpl(14, XMLSchema.INTEGER)) );
-        triples.add( new StatementImpl(new URIImpl("http://Alice"), new URIImpl("http://playsSport"), new LiteralImpl("Soccer")) );
-        triples.add( new StatementImpl(new URIImpl("http://Bob"), new URIImpl("http://hasAge"), new NumericLiteralImpl(16, XMLSchema.INTEGER)) );
-        triples.add( new StatementImpl(new URIImpl("http://Bob"), new URIImpl("http://playsSport"), new LiteralImpl("Soccer")) );
-        triples.add( new StatementImpl(new URIImpl("http://Charlie"), new URIImpl("http://hasAge"), new NumericLiteralImpl(12, XMLSchema.INTEGER)) );
-        triples.add( new StatementImpl(new URIImpl("http://Charlie"), new URIImpl("http://playsSport"), new LiteralImpl("Soccer")) );
-        triples.add( new StatementImpl(new URIImpl("http://Eve"), new URIImpl("http://hasAge"), new NumericLiteralImpl(43, XMLSchema.INTEGER)) );
-        triples.add( new StatementImpl(new URIImpl("http://Eve"), new URIImpl("http://playsSport"), new LiteralImpl("Soccer")) );
+        triples.add( VF.createStatement(VF.createIRI("http://Alice"), VF.createIRI("http://hasAge"), VF.createLiteral(BigInteger.valueOf(14))) );
+        triples.add( VF.createStatement(VF.createIRI("http://Alice"), VF.createIRI("http://playsSport"), VF.createLiteral("Soccer")) );
+        triples.add( VF.createStatement(VF.createIRI("http://Bob"), VF.createIRI("http://hasAge"), VF.createLiteral(BigInteger.valueOf(16))) );
+        triples.add( VF.createStatement(VF.createIRI("http://Bob"), VF.createIRI("http://playsSport"), VF.createLiteral("Soccer")) );
+        triples.add( VF.createStatement(VF.createIRI("http://Charlie"), VF.createIRI("http://hasAge"), VF.createLiteral(BigInteger.valueOf(12))) );
+        triples.add( VF.createStatement(VF.createIRI("http://Charlie"), VF.createIRI("http://playsSport"), VF.createLiteral("Soccer")) );
+        triples.add( VF.createStatement(VF.createIRI("http://Eve"), VF.createIRI("http://hasAge"), VF.createLiteral(43)) );
+        triples.add( VF.createStatement(VF.createIRI("http://Eve"), VF.createIRI("http://playsSport"), VF.createLiteral("Soccer")) );
 
         for(final Statement triple : triples) {
             ryaConn.add(triple);
@@ -192,17 +189,17 @@ public class AccumuloIndexSetTest {
         final String pcjTableName = new PcjTableNameFactory().makeTableName(prefix, "testPcj");
 
         // Create and populate the PCJ table.
-        PcjIntegrationTestingUtil.createAndPopulatePcj(ryaConn, accumuloConn, pcjTableName, sparql, new String[]{"name", "age"}, Optional.<PcjVarOrderFactory>absent());
+        PcjIntegrationTestingUtil.createAndPopulatePcj(ryaConn, accumuloConn, pcjTableName, sparql, new String[]{"name", "age"}, Optional.absent());
 
         final AccumuloIndexSet ais = new AccumuloIndexSet(conf, pcjTableName);
 
         final QueryBindingSet bs = new QueryBindingSet();
-        bs.addBinding("name",new URIImpl("http://Alice"));
-        bs.addBinding("location",new URIImpl("http://Virginia"));
+        bs.addBinding("name",VF.createIRI("http://Alice"));
+        bs.addBinding("location",VF.createIRI("http://Virginia"));
 
         final CloseableIteration<BindingSet, QueryEvaluationException> results = ais.evaluate(bs);
 
-        bs.addBinding("age",new NumericLiteralImpl(14, XMLSchema.INTEGER));
+        bs.addBinding("age",VF.createLiteral(BigInteger.valueOf(14)));
         Assert.assertEquals(bs, results.next());
     }
 
@@ -211,14 +208,14 @@ public class AccumuloIndexSetTest {
     RyaTypeResolverException, MalformedQueryException, SailException, QueryEvaluationException, AccumuloException, AccumuloSecurityException {
         // Load some Triples into Rya.
         final Set<Statement> triples = new HashSet<>();
-        triples.add( new StatementImpl(new URIImpl("http://Alice"), new URIImpl("http://hasAge"), new NumericLiteralImpl(14, XMLSchema.INTEGER)) );
-        triples.add( new StatementImpl(new URIImpl("http://Alice"), new URIImpl("http://playsSport"), new LiteralImpl("Soccer")) );
-        triples.add( new StatementImpl(new URIImpl("http://Bob"), new URIImpl("http://hasAge"), new NumericLiteralImpl(16, XMLSchema.INTEGER)) );
-        triples.add( new StatementImpl(new URIImpl("http://Bob"), new URIImpl("http://playsSport"), new LiteralImpl("Soccer")) );
-        triples.add( new StatementImpl(new URIImpl("http://Charlie"), new URIImpl("http://hasAge"), new NumericLiteralImpl(12, XMLSchema.INTEGER)) );
-        triples.add( new StatementImpl(new URIImpl("http://Charlie"), new URIImpl("http://playsSport"), new LiteralImpl("Soccer")) );
-        triples.add( new StatementImpl(new URIImpl("http://Eve"), new URIImpl("http://hasAge"), new NumericLiteralImpl(43, XMLSchema.INTEGER)) );
-        triples.add( new StatementImpl(new URIImpl("http://Eve"), new URIImpl("http://playsSport"), new LiteralImpl("Soccer")) );
+        triples.add( VF.createStatement(VF.createIRI("http://Alice"), VF.createIRI("http://hasAge"), VF.createLiteral(BigInteger.valueOf(14))) );
+        triples.add( VF.createStatement(VF.createIRI("http://Alice"), VF.createIRI("http://playsSport"), VF.createLiteral("Soccer")) );
+        triples.add( VF.createStatement(VF.createIRI("http://Bob"), VF.createIRI("http://hasAge"), VF.createLiteral(BigInteger.valueOf(16))) );
+        triples.add( VF.createStatement(VF.createIRI("http://Bob"), VF.createIRI("http://playsSport"), VF.createLiteral("Soccer")) );
+        triples.add( VF.createStatement(VF.createIRI("http://Charlie"), VF.createIRI("http://hasAge"), VF.createLiteral(BigInteger.valueOf(12))) );
+        triples.add( VF.createStatement(VF.createIRI("http://Charlie"), VF.createIRI("http://playsSport"), VF.createLiteral("Soccer")) );
+        triples.add( VF.createStatement(VF.createIRI("http://Eve"), VF.createIRI("http://hasAge"), VF.createLiteral(43)) );
+        triples.add( VF.createStatement(VF.createIRI("http://Eve"), VF.createIRI("http://playsSport"), VF.createLiteral("Soccer")) );
 
         for(final Statement triple : triples) {
             ryaConn.add(triple);
@@ -236,31 +233,31 @@ public class AccumuloIndexSetTest {
         final String pcjTableName = new PcjTableNameFactory().makeTableName(prefix, "testPcj");
 
         // Create and populate the PCJ table.
-        PcjIntegrationTestingUtil.createAndPopulatePcj(ryaConn, accumuloConn, pcjTableName, sparql, new String[]{"name", "age"}, Optional.<PcjVarOrderFactory>absent());
+        PcjIntegrationTestingUtil.createAndPopulatePcj(ryaConn, accumuloConn, pcjTableName, sparql, new String[]{"name", "age"}, Optional.absent());
 
         final AccumuloIndexSet ais = new AccumuloIndexSet(conf, pcjTableName);
 
         final QueryBindingSet bs = new QueryBindingSet();
-        bs.addBinding("birthDate",new LiteralImpl("1983-03-17",new URIImpl("http://www.w3.org/2001/XMLSchema#date")));
-        bs.addBinding("name",new URIImpl("http://Alice"));
+        bs.addBinding("birthDate",VF.createLiteral("1983-03-17",VF.createIRI("http://www.w3.org/2001/XMLSchema#date")));
+        bs.addBinding("name",VF.createIRI("http://Alice"));
 
         final QueryBindingSet bs2 = new QueryBindingSet();
-        bs2.addBinding("birthDate",new LiteralImpl("1983-04-18",new URIImpl("http://www.w3.org/2001/XMLSchema#date")));
-        bs2.addBinding("name",new URIImpl("http://Bob"));
+        bs2.addBinding("birthDate",VF.createLiteral("1983-04-18",VF.createIRI("http://www.w3.org/2001/XMLSchema#date")));
+        bs2.addBinding("name",VF.createIRI("http://Bob"));
 
-        final Set<BindingSet> bSets = Sets.<BindingSet>newHashSet(bs,bs2);
+        final Set<BindingSet> bSets = Sets.newHashSet(bs,bs2);
 
         final CloseableIteration<BindingSet, QueryEvaluationException> results = ais.evaluate(bSets);
 
         final QueryBindingSet alice = new QueryBindingSet();
-        alice.addBinding("name", new URIImpl("http://Alice"));
-        alice.addBinding("age", new NumericLiteralImpl(14, XMLSchema.INTEGER));
-        alice.addBinding("birthDate", new LiteralImpl("1983-03-17",new URIImpl("http://www.w3.org/2001/XMLSchema#date")));
+        alice.addBinding("name", VF.createIRI("http://Alice"));
+        alice.addBinding("age", VF.createLiteral(BigInteger.valueOf(14)));
+        alice.addBinding("birthDate", VF.createLiteral("1983-03-17",VF.createIRI("http://www.w3.org/2001/XMLSchema#date")));
 
         final QueryBindingSet bob = new QueryBindingSet();
-        bob.addBinding("name", new URIImpl("http://Bob"));
-        bob.addBinding("age", new NumericLiteralImpl(16, XMLSchema.INTEGER));
-        bob.addBinding("birthDate", new LiteralImpl("1983-04-18",new URIImpl("http://www.w3.org/2001/XMLSchema#date")));
+        bob.addBinding("name", VF.createIRI("http://Bob"));
+        bob.addBinding("age", VF.createLiteral(BigInteger.valueOf(16)));
+        bob.addBinding("birthDate", VF.createLiteral("1983-04-18",VF.createIRI("http://www.w3.org/2001/XMLSchema#date")));
 
         final Set<BindingSet> fetchedResults = new HashSet<>();
         while(results.hasNext()) {
@@ -277,14 +274,14 @@ public class AccumuloIndexSetTest {
     RyaTypeResolverException, MalformedQueryException, SailException, QueryEvaluationException, AccumuloException, AccumuloSecurityException {
         // Load some Triples into Rya.
         final Set<Statement> triples = new HashSet<>();
-        triples.add( new StatementImpl(new URIImpl("http://Alice"), new URIImpl("http://hasAge"), new NumericLiteralImpl(14, XMLSchema.INTEGER)) );
-        triples.add( new StatementImpl(new URIImpl("http://Alice"), new URIImpl("http://playsSport"), new LiteralImpl("Soccer")) );
-        triples.add( new StatementImpl(new URIImpl("http://Bob"), new URIImpl("http://hasAge"), new NumericLiteralImpl(16, XMLSchema.INTEGER)) );
-        triples.add( new StatementImpl(new URIImpl("http://Bob"), new URIImpl("http://playsSport"), new LiteralImpl("Soccer")) );
-        triples.add( new StatementImpl(new URIImpl("http://Charlie"), new URIImpl("http://hasAge"), new NumericLiteralImpl(12, XMLSchema.INTEGER)) );
-        triples.add( new StatementImpl(new URIImpl("http://Charlie"), new URIImpl("http://playsSport"), new LiteralImpl("Soccer")) );
-        triples.add( new StatementImpl(new URIImpl("http://Eve"), new URIImpl("http://hasAge"), new NumericLiteralImpl(43, XMLSchema.INTEGER)) );
-        triples.add( new StatementImpl(new URIImpl("http://Eve"), new URIImpl("http://playsSport"), new LiteralImpl("Soccer")) );
+        triples.add( VF.createStatement(VF.createIRI("http://Alice"), VF.createIRI("http://hasAge"), VF.createLiteral(BigInteger.valueOf(14))) );
+        triples.add( VF.createStatement(VF.createIRI("http://Alice"), VF.createIRI("http://playsSport"), VF.createLiteral("Soccer")) );
+        triples.add( VF.createStatement(VF.createIRI("http://Bob"), VF.createIRI("http://hasAge"), VF.createLiteral(BigInteger.valueOf(16))) );
+        triples.add( VF.createStatement(VF.createIRI("http://Bob"), VF.createIRI("http://playsSport"), VF.createLiteral("Soccer")) );
+        triples.add( VF.createStatement(VF.createIRI("http://Charlie"), VF.createIRI("http://hasAge"), VF.createLiteral(BigInteger.valueOf(12))) );
+        triples.add( VF.createStatement(VF.createIRI("http://Charlie"), VF.createIRI("http://playsSport"), VF.createLiteral("Soccer")) );
+        triples.add( VF.createStatement(VF.createIRI("http://Eve"), VF.createIRI("http://hasAge"), VF.createLiteral(43)) );
+        triples.add( VF.createStatement(VF.createIRI("http://Eve"), VF.createIRI("http://playsSport"), VF.createLiteral("Soccer")) );
 
         for(final Statement triple : triples) {
             ryaConn.add(triple);
@@ -302,7 +299,7 @@ public class AccumuloIndexSetTest {
         final String pcjTableName = new PcjTableNameFactory().makeTableName(prefix, "testPcj");
 
         // Create and populate the PCJ table.
-        PcjIntegrationTestingUtil.createAndPopulatePcj(ryaConn, accumuloConn, pcjTableName, sparql, new String[]{"name", "age"}, Optional.<PcjVarOrderFactory>absent());
+        PcjIntegrationTestingUtil.createAndPopulatePcj(ryaConn, accumuloConn, pcjTableName, sparql, new String[]{"name", "age"}, Optional.absent());
 
         final AccumuloIndexSet ais = new AccumuloIndexSet(conf, pcjTableName);
 
@@ -317,14 +314,14 @@ public class AccumuloIndexSetTest {
     RyaTypeResolverException, MalformedQueryException, SailException, QueryEvaluationException, AccumuloException, AccumuloSecurityException {
         // Load some Triples into Rya.
         final Set<Statement> triples = new HashSet<>();
-        triples.add( new StatementImpl(new URIImpl("http://Alice"), new URIImpl("http://hasAge"), new NumericLiteralImpl(14, XMLSchema.INTEGER)) );
-        triples.add( new StatementImpl(new URIImpl("http://Alice"), new URIImpl("http://playsSport"), new LiteralImpl("Soccer")) );
-        triples.add( new StatementImpl(new URIImpl("http://Bob"), new URIImpl("http://hasAge"), new NumericLiteralImpl(16, XMLSchema.INTEGER)) );
-        triples.add( new StatementImpl(new URIImpl("http://Bob"), new URIImpl("http://playsSport"), new LiteralImpl("Soccer")) );
-        triples.add( new StatementImpl(new URIImpl("http://Charlie"), new URIImpl("http://hasAge"), new NumericLiteralImpl(12, XMLSchema.INTEGER)) );
-        triples.add( new StatementImpl(new URIImpl("http://Charlie"), new URIImpl("http://playsSport"), new LiteralImpl("Soccer")) );
-        triples.add( new StatementImpl(new URIImpl("http://Eve"), new URIImpl("http://hasAge"), new NumericLiteralImpl(43, XMLSchema.INTEGER)) );
-        triples.add( new StatementImpl(new URIImpl("http://Eve"), new URIImpl("http://playsSport"), new LiteralImpl("Soccer")) );
+        triples.add( VF.createStatement(VF.createIRI("http://Alice"), VF.createIRI("http://hasAge"), VF.createLiteral(BigInteger.valueOf(14))) );
+        triples.add( VF.createStatement(VF.createIRI("http://Alice"), VF.createIRI("http://playsSport"), VF.createLiteral("Soccer")) );
+        triples.add( VF.createStatement(VF.createIRI("http://Bob"), VF.createIRI("http://hasAge"), VF.createLiteral(BigInteger.valueOf(16))) );
+        triples.add( VF.createStatement(VF.createIRI("http://Bob"), VF.createIRI("http://playsSport"), VF.createLiteral("Soccer")) );
+        triples.add( VF.createStatement(VF.createIRI("http://Charlie"), VF.createIRI("http://hasAge"), VF.createLiteral(BigInteger.valueOf(12))) );
+        triples.add( VF.createStatement(VF.createIRI("http://Charlie"), VF.createIRI("http://playsSport"), VF.createLiteral("Soccer")) );
+        triples.add( VF.createStatement(VF.createIRI("http://Eve"), VF.createIRI("http://hasAge"), VF.createLiteral(43)) );
+        triples.add( VF.createStatement(VF.createIRI("http://Eve"), VF.createIRI("http://playsSport"), VF.createLiteral("Soccer")) );
 
         for(final Statement triple : triples) {
             ryaConn.add(triple);
@@ -342,29 +339,29 @@ public class AccumuloIndexSetTest {
         final String pcjTableName = new PcjTableNameFactory().makeTableName(prefix, "testPcj");
 
         // Create and populate the PCJ table.
-        PcjIntegrationTestingUtil.createAndPopulatePcj(ryaConn, accumuloConn, pcjTableName, sparql, new String[]{"name", "age"}, Optional.<PcjVarOrderFactory>absent());
+        PcjIntegrationTestingUtil.createAndPopulatePcj(ryaConn, accumuloConn, pcjTableName, sparql, new String[]{"name", "age"}, Optional.absent());
 
         final AccumuloIndexSet ais = new AccumuloIndexSet(conf, pcjTableName);
 
         final QueryBindingSet bs = new QueryBindingSet();
-        bs.addBinding("birthDate",new LiteralImpl("1983-03-17",new URIImpl("http://www.w3.org/2001/XMLSchema#date")));
-        bs.addBinding("location",new URIImpl("http://Virginia"));
+        bs.addBinding("birthDate",VF.createLiteral("1983-03-17",VF.createIRI("http://www.w3.org/2001/XMLSchema#date")));
+        bs.addBinding("location",VF.createIRI("http://Virginia"));
 
         final CloseableIteration<BindingSet, QueryEvaluationException> results = ais.evaluate(bs);
 
         final QueryBindingSet alice = new QueryBindingSet();
-        alice.addBinding("name", new URIImpl("http://Alice"));
-        alice.addBinding("age", new NumericLiteralImpl(14, XMLSchema.INTEGER));
+        alice.addBinding("name", VF.createIRI("http://Alice"));
+        alice.addBinding("age", VF.createLiteral(BigInteger.valueOf(14)));
         alice.addAll(bs);
 
         final QueryBindingSet bob = new QueryBindingSet();
-        bob.addBinding("name", new URIImpl("http://Bob"));
-        bob.addBinding("age", new NumericLiteralImpl(16, XMLSchema.INTEGER));
+        bob.addBinding("name", VF.createIRI("http://Bob"));
+        bob.addBinding("age", VF.createLiteral(BigInteger.valueOf(16)));
         bob.addAll(bs);
 
         final QueryBindingSet charlie = new QueryBindingSet();
-        charlie.addBinding("name", new URIImpl("http://Charlie"));
-        charlie.addBinding("age", new NumericLiteralImpl(12, XMLSchema.INTEGER));
+        charlie.addBinding("name", VF.createIRI("http://Charlie"));
+        charlie.addBinding("age", VF.createLiteral(BigInteger.valueOf(12)));
         charlie.addAll(bs);
 
         final Set<BindingSet> fetchedResults = new HashSet<>();
@@ -380,14 +377,14 @@ public class AccumuloIndexSetTest {
     RyaTypeResolverException, MalformedQueryException, SailException, QueryEvaluationException, AccumuloException, AccumuloSecurityException {
         // Load some Triples into Rya.
         final Set<Statement> triples = new HashSet<>();
-        triples.add( new StatementImpl(new URIImpl("http://Alice"), new URIImpl("http://hasAge"), new NumericLiteralImpl(14, XMLSchema.INTEGER)) );
-        triples.add( new StatementImpl(new URIImpl("http://Alice"), new URIImpl("http://playsSport"), new LiteralImpl("Soccer")) );
-        triples.add( new StatementImpl(new URIImpl("http://Bob"), new URIImpl("http://hasAge"), new NumericLiteralImpl(16, XMLSchema.INTEGER)) );
-        triples.add( new StatementImpl(new URIImpl("http://Bob"), new URIImpl("http://playsSport"), new LiteralImpl("Soccer")) );
-        triples.add( new StatementImpl(new URIImpl("http://Charlie"), new URIImpl("http://hasAge"), new NumericLiteralImpl(12, XMLSchema.INTEGER)) );
-        triples.add( new StatementImpl(new URIImpl("http://Charlie"), new URIImpl("http://playsSport"), new LiteralImpl("Soccer")) );
-        triples.add( new StatementImpl(new URIImpl("http://Eve"), new URIImpl("http://hasAge"), new NumericLiteralImpl(43, XMLSchema.INTEGER)) );
-        triples.add( new StatementImpl(new URIImpl("http://Eve"), new URIImpl("http://playsSport"), new LiteralImpl("Soccer")) );
+        triples.add( VF.createStatement(VF.createIRI("http://Alice"), VF.createIRI("http://hasAge"), VF.createLiteral(BigInteger.valueOf(14))) );
+        triples.add( VF.createStatement(VF.createIRI("http://Alice"), VF.createIRI("http://playsSport"), VF.createLiteral("Soccer")) );
+        triples.add( VF.createStatement(VF.createIRI("http://Bob"), VF.createIRI("http://hasAge"), VF.createLiteral(BigInteger.valueOf(16))) );
+        triples.add( VF.createStatement(VF.createIRI("http://Bob"), VF.createIRI("http://playsSport"), VF.createLiteral("Soccer")) );
+        triples.add( VF.createStatement(VF.createIRI("http://Charlie"), VF.createIRI("http://hasAge"), VF.createLiteral(BigInteger.valueOf(12))) );
+        triples.add( VF.createStatement(VF.createIRI("http://Charlie"), VF.createIRI("http://playsSport"), VF.createLiteral("Soccer")) );
+        triples.add( VF.createStatement(VF.createIRI("http://Eve"), VF.createIRI("http://hasAge"), VF.createLiteral(43)) );
+        triples.add( VF.createStatement(VF.createIRI("http://Eve"), VF.createIRI("http://playsSport"), VF.createLiteral("Soccer")) );
 
         for(final Statement triple : triples) {
             ryaConn.add(triple);
@@ -405,50 +402,50 @@ public class AccumuloIndexSetTest {
         final String pcjTableName = new PcjTableNameFactory().makeTableName(prefix, "testPcj");
 
         // Create and populate the PCJ table.
-        PcjIntegrationTestingUtil.createAndPopulatePcj(ryaConn, accumuloConn, pcjTableName, sparql, new String[]{"name", "age"}, Optional.<PcjVarOrderFactory>absent());
+        PcjIntegrationTestingUtil.createAndPopulatePcj(ryaConn, accumuloConn, pcjTableName, sparql, new String[]{"name", "age"}, Optional.absent());
 
         final AccumuloIndexSet ais = new AccumuloIndexSet(conf, pcjTableName);
 
         final QueryBindingSet bs = new QueryBindingSet();
-        bs.addBinding("birthDate",new LiteralImpl("1983-03-17",new URIImpl("http://www.w3.org/2001/XMLSchema#date")));
-        bs.addBinding("location",new URIImpl("http://Virginia"));
+        bs.addBinding("birthDate",VF.createLiteral("1983-03-17",VF.createIRI("http://www.w3.org/2001/XMLSchema#date")));
+        bs.addBinding("location",VF.createIRI("http://Virginia"));
 
         final QueryBindingSet bs2 = new QueryBindingSet();
-        bs2.addBinding("birthDate",new LiteralImpl("1983-04-18",new URIImpl("http://www.w3.org/2001/XMLSchema#date")));
-        bs2.addBinding("location",new URIImpl("http://Georgia"));
+        bs2.addBinding("birthDate",VF.createLiteral("1983-04-18",VF.createIRI("http://www.w3.org/2001/XMLSchema#date")));
+        bs2.addBinding("location",VF.createIRI("http://Georgia"));
 
-        final Set<BindingSet> bSets = Sets.<BindingSet>newHashSet(bs,bs2);
+        final Set<BindingSet> bSets = Sets.newHashSet(bs,bs2);
 
         final CloseableIteration<BindingSet, QueryEvaluationException> results = ais.evaluate(bSets);
 
         final QueryBindingSet alice1 = new QueryBindingSet();
-        alice1.addBinding("name", new URIImpl("http://Alice"));
-        alice1.addBinding("age", new NumericLiteralImpl(14, XMLSchema.INTEGER));
+        alice1.addBinding("name", VF.createIRI("http://Alice"));
+        alice1.addBinding("age", VF.createLiteral(BigInteger.valueOf(14)));
         alice1.addAll(bs);
 
         final QueryBindingSet bob1 = new QueryBindingSet();
-        bob1.addBinding("name", new URIImpl("http://Bob"));
-        bob1.addBinding("age", new NumericLiteralImpl(16, XMLSchema.INTEGER));
+        bob1.addBinding("name", VF.createIRI("http://Bob"));
+        bob1.addBinding("age", VF.createLiteral(BigInteger.valueOf(16)));
         bob1.addAll(bs);
 
         final QueryBindingSet charlie1 = new QueryBindingSet();
-        charlie1.addBinding("name", new URIImpl("http://Charlie"));
-        charlie1.addBinding("age", new NumericLiteralImpl(12, XMLSchema.INTEGER));
+        charlie1.addBinding("name", VF.createIRI("http://Charlie"));
+        charlie1.addBinding("age", VF.createLiteral(BigInteger.valueOf(12)));
         charlie1.addAll(bs);
 
         final QueryBindingSet alice2 = new QueryBindingSet();
-        alice2.addBinding("name", new URIImpl("http://Alice"));
-        alice2.addBinding("age", new NumericLiteralImpl(14, XMLSchema.INTEGER));
+        alice2.addBinding("name", VF.createIRI("http://Alice"));
+        alice2.addBinding("age", VF.createLiteral(BigInteger.valueOf(14)));
         alice2.addAll(bs2);
 
         final QueryBindingSet bob2 = new QueryBindingSet();
-        bob2.addBinding("name", new URIImpl("http://Bob"));
-        bob2.addBinding("age", new NumericLiteralImpl(16, XMLSchema.INTEGER));
+        bob2.addBinding("name", VF.createIRI("http://Bob"));
+        bob2.addBinding("age", VF.createLiteral(BigInteger.valueOf(16)));
         bob2.addAll(bs2);
 
         final QueryBindingSet charlie2 = new QueryBindingSet();
-        charlie2.addBinding("name", new URIImpl("http://Charlie"));
-        charlie2.addBinding("age", new NumericLiteralImpl(12, XMLSchema.INTEGER));
+        charlie2.addBinding("name", VF.createIRI("http://Charlie"));
+        charlie2.addBinding("age", VF.createLiteral(BigInteger.valueOf(12)));
         charlie2.addAll(bs2);
 
         final Set<BindingSet> fetchedResults = new HashSet<>();
@@ -466,14 +463,14 @@ public class AccumuloIndexSetTest {
     RyaTypeResolverException, MalformedQueryException, SailException, QueryEvaluationException, AccumuloException, AccumuloSecurityException {
         // Load some Triples into Rya.
         final Set<Statement> triples = new HashSet<>();
-        triples.add( new StatementImpl(new URIImpl("http://Alice"), new URIImpl("http://hasAge"), new NumericLiteralImpl(14, XMLSchema.INTEGER)) );
-        triples.add( new StatementImpl(new URIImpl("http://Alice"), new URIImpl("http://playsSport"), new LiteralImpl("Soccer")) );
-        triples.add( new StatementImpl(new URIImpl("http://Bob"), new URIImpl("http://hasAge"), new NumericLiteralImpl(16, XMLSchema.INTEGER)) );
-        triples.add( new StatementImpl(new URIImpl("http://Bob"), new URIImpl("http://playsSport"), new LiteralImpl("Soccer")) );
-        triples.add( new StatementImpl(new URIImpl("http://Charlie"), new URIImpl("http://hasAge"), new NumericLiteralImpl(12, XMLSchema.INTEGER)) );
-        triples.add( new StatementImpl(new URIImpl("http://Charlie"), new URIImpl("http://playsSport"), new LiteralImpl("Soccer")) );
-        triples.add( new StatementImpl(new URIImpl("http://Eve"), new URIImpl("http://hasAge"), new NumericLiteralImpl(43, XMLSchema.INTEGER)) );
-        triples.add( new StatementImpl(new URIImpl("http://Eve"), new URIImpl("http://playsSport"), new LiteralImpl("Soccer")) );
+        triples.add( VF.createStatement(VF.createIRI("http://Alice"), VF.createIRI("http://hasAge"), VF.createLiteral(BigInteger.valueOf(14))) );
+        triples.add( VF.createStatement(VF.createIRI("http://Alice"), VF.createIRI("http://playsSport"), VF.createLiteral("Soccer")) );
+        triples.add( VF.createStatement(VF.createIRI("http://Bob"), VF.createIRI("http://hasAge"), VF.createLiteral(BigInteger.valueOf(16))) );
+        triples.add( VF.createStatement(VF.createIRI("http://Bob"), VF.createIRI("http://playsSport"), VF.createLiteral("Soccer")) );
+        triples.add( VF.createStatement(VF.createIRI("http://Charlie"), VF.createIRI("http://hasAge"), VF.createLiteral(BigInteger.valueOf(12))) );
+        triples.add( VF.createStatement(VF.createIRI("http://Charlie"), VF.createIRI("http://playsSport"), VF.createLiteral("Soccer")) );
+        triples.add( VF.createStatement(VF.createIRI("http://Eve"), VF.createIRI("http://hasAge"), VF.createLiteral(43)) );
+        triples.add( VF.createStatement(VF.createIRI("http://Eve"), VF.createIRI("http://playsSport"), VF.createLiteral("Soccer")) );
 
         for(final Statement triple : triples) {
             ryaConn.add(triple);
@@ -491,7 +488,7 @@ public class AccumuloIndexSetTest {
         final String pcjTableName = new PcjTableNameFactory().makeTableName(prefix, "testPcj");
 
         // Create and populate the PCJ table.
-        PcjIntegrationTestingUtil.createAndPopulatePcj(ryaConn, accumuloConn, pcjTableName, sparql, new String[]{"name", "age"}, Optional.<PcjVarOrderFactory>absent());
+        PcjIntegrationTestingUtil.createAndPopulatePcj(ryaConn, accumuloConn, pcjTableName, sparql, new String[]{"name", "age"}, Optional.absent());
 
         final String sparql2 =
                 "SELECT ?x ?y " +
@@ -510,29 +507,29 @@ public class AccumuloIndexSetTest {
         final AccumuloIndexSet ais = new AccumuloIndexSet(conf, pcjTableName);
         ais.setProjectionExpr((Projection) pq.getTupleExpr());
         ais.setTableVarMap(map);
-        ais.setSupportedVariableOrderMap(Lists.<String>newArrayList("x;y","y;x"));
+        ais.setSupportedVariableOrderMap(Lists.newArrayList("x;y","y;x"));
 
         final QueryBindingSet bs = new QueryBindingSet();
-        bs.addBinding("birthDate",new LiteralImpl("1983-03-17",new URIImpl("http://www.w3.org/2001/XMLSchema#date")));
-        bs.addBinding("x",new URIImpl("http://Alice"));
+        bs.addBinding("birthDate",VF.createLiteral("1983-03-17",VF.createIRI("http://www.w3.org/2001/XMLSchema#date")));
+        bs.addBinding("x",VF.createIRI("http://Alice"));
 
         final QueryBindingSet bs2 = new QueryBindingSet();
-        bs2.addBinding("birthDate",new LiteralImpl("1983-04-18",new URIImpl("http://www.w3.org/2001/XMLSchema#date")));
-        bs2.addBinding("x",new URIImpl("http://Bob"));
+        bs2.addBinding("birthDate",VF.createLiteral("1983-04-18",VF.createIRI("http://www.w3.org/2001/XMLSchema#date")));
+        bs2.addBinding("x",VF.createIRI("http://Bob"));
 
-        final Set<BindingSet> bSets = Sets.<BindingSet>newHashSet(bs,bs2);
+        final Set<BindingSet> bSets = Sets.newHashSet(bs,bs2);
 
         final CloseableIteration<BindingSet, QueryEvaluationException> results = ais.evaluate(bSets);
 
         final QueryBindingSet alice = new QueryBindingSet();
-        alice.addBinding("x", new URIImpl("http://Alice"));
-        alice.addBinding("y", new NumericLiteralImpl(14, XMLSchema.INTEGER));
-        alice.addBinding("birthDate", new LiteralImpl("1983-03-17",new URIImpl("http://www.w3.org/2001/XMLSchema#date")));
+        alice.addBinding("x", VF.createIRI("http://Alice"));
+        alice.addBinding("y", VF.createLiteral(BigInteger.valueOf(14)));
+        alice.addBinding("birthDate", VF.createLiteral("1983-03-17",VF.createIRI("http://www.w3.org/2001/XMLSchema#date")));
 
         final QueryBindingSet bob = new QueryBindingSet();
-        bob.addBinding("x", new URIImpl("http://Bob"));
-        bob.addBinding("y", new NumericLiteralImpl(16, XMLSchema.INTEGER));
-        bob.addBinding("birthDate", new LiteralImpl("1983-04-18",new URIImpl("http://www.w3.org/2001/XMLSchema#date")));
+        bob.addBinding("x", VF.createIRI("http://Bob"));
+        bob.addBinding("y", VF.createLiteral(BigInteger.valueOf(16)));
+        bob.addBinding("birthDate", VF.createLiteral("1983-04-18",VF.createIRI("http://www.w3.org/2001/XMLSchema#date")));
 
 
         final Set<BindingSet> fetchedResults = new HashSet<>();
@@ -549,14 +546,14 @@ public class AccumuloIndexSetTest {
     public void accumuloIndexSetTestWithTwoDirectProductBindingSetsWithConstantMapping() throws Exception {
         // Load some Triples into Rya.
         final Set<Statement> triples = new HashSet<>();
-        triples.add( new StatementImpl(new URIImpl("http://Alice"), new URIImpl("http://hasAge"), new NumericLiteralImpl(14, XMLSchema.INTEGER)) );
-        triples.add( new StatementImpl(new URIImpl("http://Alice"), new URIImpl("http://playsSport"), new LiteralImpl("Soccer")) );
-        triples.add( new StatementImpl(new URIImpl("http://Bob"), new URIImpl("http://hasAge"), new NumericLiteralImpl(16, XMLSchema.INTEGER)) );
-        triples.add( new StatementImpl(new URIImpl("http://Bob"), new URIImpl("http://playsSport"), new LiteralImpl("Soccer")) );
-        triples.add( new StatementImpl(new URIImpl("http://Charlie"), new URIImpl("http://hasAge"), new NumericLiteralImpl(12, XMLSchema.INTEGER)) );
-        triples.add( new StatementImpl(new URIImpl("http://Charlie"), new URIImpl("http://playsSport"), new LiteralImpl("Soccer")) );
-        triples.add( new StatementImpl(new URIImpl("http://Eve"), new URIImpl("http://hasAge"), new NumericLiteralImpl(43, XMLSchema.INTEGER)) );
-        triples.add( new StatementImpl(new URIImpl("http://Eve"), new URIImpl("http://playsSport"), new LiteralImpl("Soccer")) );
+        triples.add( VF.createStatement(VF.createIRI("http://Alice"), VF.createIRI("http://hasAge"), VF.createLiteral(BigInteger.valueOf(14))) );
+        triples.add( VF.createStatement(VF.createIRI("http://Alice"), VF.createIRI("http://playsSport"), VF.createLiteral("Soccer")) );
+        triples.add( VF.createStatement(VF.createIRI("http://Bob"), VF.createIRI("http://hasAge"), VF.createLiteral(BigInteger.valueOf(16))) );
+        triples.add( VF.createStatement(VF.createIRI("http://Bob"), VF.createIRI("http://playsSport"), VF.createLiteral("Soccer")) );
+        triples.add( VF.createStatement(VF.createIRI("http://Charlie"), VF.createIRI("http://hasAge"), VF.createLiteral(BigInteger.valueOf(12))) );
+        triples.add( VF.createStatement(VF.createIRI("http://Charlie"), VF.createIRI("http://playsSport"), VF.createLiteral("Soccer")) );
+        triples.add( VF.createStatement(VF.createIRI("http://Eve"), VF.createIRI("http://hasAge"), VF.createLiteral(43)) );
+        triples.add( VF.createStatement(VF.createIRI("http://Eve"), VF.createIRI("http://playsSport"), VF.createLiteral("Soccer")) );
 
         for(final Statement triple : triples) {
             ryaConn.add(triple);
@@ -573,7 +570,7 @@ public class AccumuloIndexSetTest {
         final String pcjTableName = new PcjTableNameFactory().makeTableName(prefix, "testPcj");
 
         // Create and populate the PCJ table.
-        PcjIntegrationTestingUtil.createAndPopulatePcj(ryaConn, accumuloConn, pcjTableName, sparql, new String[]{"name", "age"}, Optional.<PcjVarOrderFactory>absent());
+        PcjIntegrationTestingUtil.createAndPopulatePcj(ryaConn, accumuloConn, pcjTableName, sparql, new String[]{"name", "age"}, Optional.absent());
 
         final String sparql2 =
                 "SELECT ?x " +
@@ -590,14 +587,14 @@ public class AccumuloIndexSetTest {
         ais.setProjectionExpr((Projection) QueryVariableNormalizer.getNormalizedIndex(pq2.getTupleExpr(), pq1.getTupleExpr()).get(0));
 
         final QueryBindingSet bs = new QueryBindingSet();
-        bs.addBinding("birthDate",new LiteralImpl("1983-03-17",new URIImpl("http://www.w3.org/2001/XMLSchema#date")));
-        bs.addBinding("x",new URIImpl("http://Alice"));
+        bs.addBinding("birthDate",VF.createLiteral("1983-03-17",VF.createIRI("http://www.w3.org/2001/XMLSchema#date")));
+        bs.addBinding("x",VF.createIRI("http://Alice"));
 
         final QueryBindingSet bs2 = new QueryBindingSet();
-        bs2.addBinding("birthDate",new LiteralImpl("1983-04-18",new URIImpl("http://www.w3.org/2001/XMLSchema#date")));
-        bs2.addBinding("x",new URIImpl("http://Bob"));
+        bs2.addBinding("birthDate",VF.createLiteral("1983-04-18",VF.createIRI("http://www.w3.org/2001/XMLSchema#date")));
+        bs2.addBinding("x",VF.createIRI("http://Bob"));
 
-        final Set<BindingSet> bSets = Sets.<BindingSet>newHashSet(bs,bs2);
+        final Set<BindingSet> bSets = Sets.newHashSet(bs,bs2);
 
         final CloseableIteration<BindingSet, QueryEvaluationException> results = ais.evaluate(bSets);
 
@@ -611,13 +608,13 @@ public class AccumuloIndexSetTest {
     }
 
     @Test
-    public void accumuloIndexSetTestAttemptJoinAccrossTypes() throws Exception {
+    public void accumuloIndexSetTestAttemptJoinAcrossTypes() throws Exception {
         // Load some Triples into Rya.
         final Set<Statement> triples = new HashSet<>();
-        triples.add( new StatementImpl(new URIImpl("http://Alice"), new URIImpl("http://hasAge"), new NumericLiteralImpl(14, XMLSchema.INTEGER)) );
-        triples.add( new StatementImpl(new URIImpl("http://Alice"), new URIImpl("http://playsSport"), new LiteralImpl("Soccer")) );
-        triples.add( new StatementImpl(new URIImpl("http://Bob"), new URIImpl("http://hasAge"), new NumericLiteralImpl(16, XMLSchema.INTEGER)) );
-        triples.add( new StatementImpl(new URIImpl("http://Bob"), new URIImpl("http://playsSport"), new LiteralImpl("Soccer")) );
+        triples.add( VF.createStatement(VF.createIRI("http://Alice"), VF.createIRI("http://hasAge"), VF.createLiteral(BigInteger.valueOf(14))) );
+        triples.add( VF.createStatement(VF.createIRI("http://Alice"), VF.createIRI("http://playsSport"), VF.createLiteral("Soccer")) );
+        triples.add( VF.createStatement(VF.createIRI("http://Bob"), VF.createIRI("http://hasAge"), VF.createLiteral(BigInteger.valueOf(16))) );
+        triples.add( VF.createStatement(VF.createIRI("http://Bob"), VF.createIRI("http://playsSport"), VF.createLiteral("Soccer")) );
 
         for(final Statement triple : triples) {
             ryaConn.add(triple);
@@ -634,15 +631,15 @@ public class AccumuloIndexSetTest {
         final String pcjTableName = new PcjTableNameFactory().makeTableName(prefix, "testPcj");
 
         // Create and populate the PCJ table.
-        PcjIntegrationTestingUtil.createAndPopulatePcj(ryaConn, accumuloConn, pcjTableName, sparql, new String[]{"name", "age"}, Optional.<PcjVarOrderFactory>absent());
+        PcjIntegrationTestingUtil.createAndPopulatePcj(ryaConn, accumuloConn, pcjTableName, sparql, new String[]{"name", "age"}, Optional.absent());
         final AccumuloIndexSet ais = new AccumuloIndexSet(conf,pcjTableName);
 
         final QueryBindingSet bs1 = new QueryBindingSet();
-        bs1.addBinding("age",new LiteralImpl("16"));
+        bs1.addBinding("age", VF.createLiteral("16"));
         final QueryBindingSet bs2 = new QueryBindingSet();
-        bs2.addBinding("age",new NumericLiteralImpl(14, XMLSchema.INTEGER));
+        bs2.addBinding("age", VF.createLiteral(BigInteger.valueOf(14)));
 
-        final Set<BindingSet> bSets = Sets.<BindingSet>newHashSet(bs1,bs2);
+        final Set<BindingSet> bSets = Sets.newHashSet(bs1,bs2);
 
         final CloseableIteration<BindingSet, QueryEvaluationException> results = ais.evaluate(bSets);
 
@@ -652,7 +649,7 @@ public class AccumuloIndexSetTest {
             fetchedResults.add(next);
         }
 
-        bs2.addBinding("name", new URIImpl("http://Alice"));
+        bs2.addBinding("name", VF.createIRI("http://Alice"));
         Assert.assertEquals(Sets.<BindingSet>newHashSet(bs2), fetchedResults);
     }
 

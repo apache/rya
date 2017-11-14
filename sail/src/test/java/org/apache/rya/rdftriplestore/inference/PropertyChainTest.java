@@ -17,31 +17,30 @@ package org.apache.rya.rdftriplestore.inference;
  * specific language governing permissions and limitations
  * under the License.
  */
+
 import java.util.List;
 
+import junit.framework.TestCase;
 import org.apache.accumulo.core.Constants;
 import org.apache.accumulo.core.client.Connector;
 import org.apache.accumulo.core.client.admin.SecurityOperations;
 import org.apache.accumulo.core.client.mock.MockInstance;
 import org.apache.accumulo.core.security.Authorizations;
 import org.apache.accumulo.core.security.TablePermission;
-import org.junit.Assert;
-import org.junit.Test;
-import org.openrdf.model.URI;
-import org.openrdf.model.ValueFactory;
-import org.openrdf.model.impl.ValueFactoryImpl;
-import org.openrdf.query.QueryLanguage;
-import org.openrdf.query.Update;
-import org.openrdf.repository.sail.SailRepository;
-import org.openrdf.repository.sail.SailRepositoryConnection;
-
-import junit.framework.TestCase;
 import org.apache.rya.accumulo.AccumuloRdfConfiguration;
 import org.apache.rya.accumulo.AccumuloRyaDAO;
 import org.apache.rya.api.RdfCloudTripleStoreConstants;
 import org.apache.rya.rdftriplestore.RdfCloudTripleStore;
-import org.apache.rya.rdftriplestore.inference.InferenceEngine;
-import org.apache.rya.rdftriplestore.inference.InverseURI;
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
+import org.eclipse.rdf4j.query.QueryLanguage;
+import org.eclipse.rdf4j.query.Update;
+import org.eclipse.rdf4j.repository.sail.SailRepository;
+import org.eclipse.rdf4j.repository.sail.SailRepositoryConnection;
+import org.junit.Assert;
+import org.junit.Test;
+
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -68,7 +67,7 @@ public class PropertyChainTest extends TestCase {
     private Authorizations auths = Constants.NO_AUTHS;
     private Connector connector;
     private AccumuloRyaDAO ryaDAO;
-    private ValueFactory vf = new ValueFactoryImpl();
+    private ValueFactory vf = SimpleValueFactory.getInstance();
     private String namespace = "urn:test#";
     private AccumuloRdfConfiguration conf;
 
@@ -131,10 +130,10 @@ public class PropertyChainTest extends TestCase {
     	Update update = conn.prepareUpdate(QueryLanguage.SPARQL, query);
     	update.execute();
         inferenceEngine.refreshGraph();
-       List<URI> chain = inferenceEngine.getPropertyChain(vf.createURI("urn:greatMother"));
+       List<IRI> chain = inferenceEngine.getPropertyChain(vf.createIRI("urn:greatMother"));
        Assert.assertEquals(chain.size(), 2);
-       Assert.assertEquals(chain.get(0), new InverseURI(vf.createURI("urn:isChildOf")));
-       Assert.assertEquals(chain.get(1), vf.createURI("urn:MotherOf"));
+       Assert.assertEquals(chain.get(0), new InverseURI(vf.createIRI("urn:isChildOf")));
+       Assert.assertEquals(chain.get(1), vf.createIRI("urn:MotherOf"));
  
     }
 }

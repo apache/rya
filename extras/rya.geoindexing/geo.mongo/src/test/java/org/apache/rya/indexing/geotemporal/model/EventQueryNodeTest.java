@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -18,6 +18,7 @@
  */
 package org.apache.rya.indexing.geotemporal.model;
 
+import static org.apache.rya.api.domain.VarNameUtils.prependConstant;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -35,44 +36,42 @@ import org.apache.rya.indexing.TemporalInstantRfc3339;
 import org.apache.rya.indexing.geotemporal.mongo.MongoEventStorage;
 import org.apache.rya.indexing.geotemporal.mongo.MongoITBase;
 import org.apache.rya.indexing.geotemporal.storage.EventStorage;
+import org.eclipse.rdf4j.common.iteration.CloseableIteration;
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.Value;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
+import org.eclipse.rdf4j.query.BindingSet;
+import org.eclipse.rdf4j.query.QueryEvaluationException;
+import org.eclipse.rdf4j.query.algebra.FunctionCall;
+import org.eclipse.rdf4j.query.algebra.StatementPattern;
+import org.eclipse.rdf4j.query.algebra.ValueConstant;
+import org.eclipse.rdf4j.query.algebra.ValueExpr;
+import org.eclipse.rdf4j.query.algebra.Var;
+import org.eclipse.rdf4j.query.impl.MapBindingSet;
 import org.junit.Test;
-import org.openrdf.model.URI;
-import org.openrdf.model.Value;
-import org.openrdf.model.ValueFactory;
-import org.openrdf.model.impl.URIImpl;
-import org.openrdf.model.impl.ValueFactoryImpl;
-import org.openrdf.query.BindingSet;
-import org.openrdf.query.QueryEvaluationException;
-import org.openrdf.query.algebra.FunctionCall;
-import org.openrdf.query.algebra.StatementPattern;
-import org.openrdf.query.algebra.ValueConstant;
-import org.openrdf.query.algebra.ValueExpr;
-import org.openrdf.query.algebra.Var;
-import org.openrdf.query.impl.MapBindingSet;
 
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.GeometryFactory;
 import com.vividsolutions.jts.geom.PrecisionModel;
 
-import info.aduna.iteration.CloseableIteration;
-
 /**
  * Unit tests the methods of {@link EventQueryNode}.
  */
 public class EventQueryNodeTest extends MongoITBase {
     private static final GeometryFactory GF = new GeometryFactory(new PrecisionModel(), 4326);
-    private static final ValueFactory VF = ValueFactoryImpl.getInstance();
+    private static final ValueFactory VF = SimpleValueFactory.getInstance();
 
     @Test(expected = IllegalStateException.class)
     public void constructor_differentSubjects() throws Exception {
         final Var geoSubj = new Var("point");
-        final Var geoPred = new Var("-const-http://www.opengis.net/ont/geosparql#asWKT", ValueFactoryImpl.getInstance().createURI("http://www.opengis.net/ont/geosparql#asWKT"));
+        final Var geoPred = new Var(prependConstant("http://www.opengis.net/ont/geosparql#asWKT"), VF.createIRI("http://www.opengis.net/ont/geosparql#asWKT"));
         final Var geoObj = new Var("wkt");
         final StatementPattern geoSP = new StatementPattern(geoSubj, geoPred, geoObj);
 
         final Var timeSubj = new Var("time");
-        final Var timePred = new Var("-const-http://www.w3.org/2006/time#inXSDDateTime", ValueFactoryImpl.getInstance().createURI("-const-http://www.w3.org/2006/time#inXSDDateTime"));
+        final Var timePred = new Var(prependConstant("http://www.w3.org/2006/time#inXSDDateTime"), VF.createIRI(prependConstant("http://www.w3.org/2006/time#inXSDDateTime")));
         final Var timeObj = new Var("time");
         final StatementPattern timeSP = new StatementPattern(timeSubj, timePred, timeObj);
         // This will fail.
@@ -95,7 +94,7 @@ public class EventQueryNodeTest extends MongoITBase {
         final StatementPattern geoSP = new StatementPattern(geoSubj, geoPred, geoObj);
 
         final Var timeSubj = new Var("time");
-        final Var timePred = new Var("-const-http://www.w3.org/2006/time#inXSDDateTime", ValueFactoryImpl.getInstance().createURI("-const-http://www.w3.org/2006/time#inXSDDateTime"));
+        final Var timePred = new Var(prependConstant("http://www.w3.org/2006/time#inXSDDateTime"), VF.createIRI(prependConstant("http://www.w3.org/2006/time#inXSDDateTime")));
         final Var timeObj = new Var("time");
         final StatementPattern timeSP = new StatementPattern(timeSubj, timePred, timeObj);
         // This will fail.
@@ -250,7 +249,7 @@ public class EventQueryNodeTest extends MongoITBase {
 
         final EventQueryNode node = buildNode(storage, query);
         final MapBindingSet existingBindings = new MapBindingSet();
-        existingBindings.addBinding("event", VF.createURI("urn:event-2222"));
+        existingBindings.addBinding("event", VF.createIRI("urn:event-2222"));
         final CloseableIteration<BindingSet, QueryEvaluationException> rez = node.evaluate(existingBindings);
         final MapBindingSet expected = new MapBindingSet();
         expected.addBinding("wkt", VF.createLiteral("POINT (-1 -1)"));
@@ -302,7 +301,7 @@ public class EventQueryNodeTest extends MongoITBase {
 
         final EventQueryNode node = buildNode(storage, query);
         final MapBindingSet existingBindings = new MapBindingSet();
-        existingBindings.addBinding("event", VF.createURI("urn:event-2222"));
+        existingBindings.addBinding("event", VF.createIRI("urn:event-2222"));
         final CloseableIteration<BindingSet, QueryEvaluationException> rez = node.evaluate(existingBindings);
         final MapBindingSet expected = new MapBindingSet();
         expected.addBinding("wkt", VF.createLiteral("POINT (-1 -1)"));
@@ -317,7 +316,7 @@ public class EventQueryNodeTest extends MongoITBase {
         final List<StatementPattern> sps = getSps(query);
         final List<FunctionCall> filters = getFilters(query);
         for(final FunctionCall filter : filters) {
-            final URI filterURI = new URIImpl(filter.getURI());
+            final IRI filterURI = VF.createIRI(filter.getURI());
             final Var objVar = IndexingFunctionRegistry.getResultVarFromFunctionCall(filterURI, filter.getArgs());
             final IndexingExpr expr = new IndexingExpr(filterURI, sps.get(0), extractArguments(objVar.getName(), filter));
             if(IndexingFunctionRegistry.getFunctionType(filterURI) == FUNCTION_TYPE.GEO) {

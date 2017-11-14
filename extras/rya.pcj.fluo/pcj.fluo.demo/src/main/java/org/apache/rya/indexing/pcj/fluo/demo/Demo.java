@@ -20,11 +20,10 @@ package org.apache.rya.indexing.pcj.fluo.demo;
 
 import org.apache.accumulo.core.client.Connector;
 import org.apache.accumulo.minicluster.MiniAccumuloCluster;
-import org.openrdf.repository.RepositoryConnection;
-
 import org.apache.fluo.api.client.FluoClient;
 import org.apache.fluo.api.mini.MiniFluo;
 import org.apache.rya.rdftriplestore.RyaSailRepository;
+import org.eclipse.rdf4j.repository.RepositoryConnection;
 
 /**
  * Represents a demonstration that uses Rya and Fluo on top of Accumulo.

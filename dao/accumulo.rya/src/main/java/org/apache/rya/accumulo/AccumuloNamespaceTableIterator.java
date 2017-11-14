@@ -23,15 +23,13 @@ import java.nio.charset.StandardCharsets;
 import java.util.Iterator;
 import java.util.Map.Entry;
 
+import com.google.common.base.Preconditions;
 import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Value;
 import org.apache.rya.api.persist.RdfDAOException;
-import org.openrdf.model.Namespace;
-import org.openrdf.model.impl.NamespaceImpl;
-
-import com.google.common.base.Preconditions;
-
-import info.aduna.iteration.CloseableIteration;
+import org.eclipse.rdf4j.common.iteration.CloseableIteration;
+import org.eclipse.rdf4j.model.Namespace;
+import org.eclipse.rdf4j.model.impl.NamespaceImpl;
 
 public class AccumuloNamespaceTableIterator<T extends Namespace> implements
         CloseableIteration<Namespace, RdfDAOException> {

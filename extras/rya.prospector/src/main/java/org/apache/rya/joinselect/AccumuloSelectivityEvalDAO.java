@@ -19,8 +19,6 @@ package org.apache.rya.joinselect;
  * under the License.
  */
 
-
-
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.ArrayList;
@@ -29,13 +27,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
-import org.apache.rya.accumulo.AccumuloRdfUtils;
-import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
-import org.apache.rya.api.layout.TableLayoutStrategy;
-import org.apache.rya.api.persist.RdfDAOException;
-import org.apache.rya.api.persist.RdfEvalStatsDAO;
-import org.apache.rya.api.persist.joinselect.SelectivityEvalDAO;
 
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
@@ -50,21 +41,23 @@ import org.apache.accumulo.core.data.Range;
 import org.apache.accumulo.core.data.Value;
 import org.apache.accumulo.core.security.Authorizations;
 import org.apache.hadoop.io.Text;
-import org.openrdf.model.Resource;
-import org.openrdf.model.URI;
-import org.openrdf.query.algebra.QueryModelNode;
-import org.openrdf.query.algebra.StatementPattern;
-import org.openrdf.query.algebra.TupleExpr;
-import org.openrdf.query.algebra.Var;
-import org.openrdf.query.algebra.evaluation.impl.ExternalSet;
-import org.openrdf.query.algebra.helpers.QueryModelVisitorBase;
+import org.apache.rya.accumulo.AccumuloRdfUtils;
+import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
+import org.apache.rya.api.layout.TableLayoutStrategy;
+import org.apache.rya.api.persist.RdfDAOException;
+import org.apache.rya.api.persist.RdfEvalStatsDAO;
+import org.apache.rya.api.persist.joinselect.SelectivityEvalDAO;
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.Resource;
+import org.eclipse.rdf4j.query.algebra.QueryModelNode;
+import org.eclipse.rdf4j.query.algebra.StatementPattern;
+import org.eclipse.rdf4j.query.algebra.TupleExpr;
+import org.eclipse.rdf4j.query.algebra.Var;
+import org.eclipse.rdf4j.query.algebra.evaluation.impl.ExternalSet;
+import org.eclipse.rdf4j.query.algebra.helpers.AbstractQueryModelVisitor;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-
-
-
-
 
 public class AccumuloSelectivityEvalDAO implements SelectivityEvalDAO<RdfCloudTripleStoreConfiguration> {
 
@@ -76,7 +69,7 @@ public class AccumuloSelectivityEvalDAO implements SelectivityEvalDAO<RdfCloudTr
   private boolean denormalized = false;
   private int FullTableCardinality = 0;
   private static final String DELIM = "\u0000";
-  private Map<String,Long> joinMap = new HashMap<String,Long>();;
+  private Map<String,Long> joinMap = new HashMap<String,Long>();
   private RdfEvalStatsDAO<RdfCloudTripleStoreConfiguration> resd;
 
   @Override
@@ -458,13 +451,6 @@ public class AccumuloSelectivityEvalDAO implements SelectivityEvalDAO<RdfCloudTr
   
   
   
-  
-  
-  
-  
-  
-  
-  
 
   // obtains cardinality for StatementPattern. Returns cardinality of 0
   // if no instances of constants occur in table.
@@ -475,9 +461,9 @@ public class AccumuloSelectivityEvalDAO implements SelectivityEvalDAO<RdfCloudTr
     Var subjectVar = sp.getSubjectVar();
     Resource subj = (Resource) getConstantValue(subjectVar);
     Var predicateVar = sp.getPredicateVar();
-    URI pred = (URI) getConstantValue(predicateVar);
+    IRI pred = (IRI) getConstantValue(predicateVar);
     Var objectVar = sp.getObjectVar();
-    org.openrdf.model.Value obj = getConstantValue(objectVar);
+    org.eclipse.rdf4j.model.Value obj = getConstantValue(objectVar);
     Resource context = (Resource) getConstantValue(sp.getContextVar());
 
     /**
@@ -492,7 +478,7 @@ public class AccumuloSelectivityEvalDAO implements SelectivityEvalDAO<RdfCloudTr
     }
     try {
       if (subj != null) {
-        List<org.openrdf.model.Value> values = new ArrayList<org.openrdf.model.Value>();
+        List<org.eclipse.rdf4j.model.Value> values = new ArrayList<org.eclipse.rdf4j.model.Value>();
         CARDINALITY_OF card = RdfEvalStatsDAO.CARDINALITY_OF.SUBJECT;
         values.add(subj);
 
@@ -514,7 +500,7 @@ public class AccumuloSelectivityEvalDAO implements SelectivityEvalDAO<RdfCloudTr
           cardinality = 0;
         }
       } else if (pred != null) {
-        List<org.openrdf.model.Value> values = new ArrayList<org.openrdf.model.Value>();
+        List<org.eclipse.rdf4j.model.Value> values = new ArrayList<org.eclipse.rdf4j.model.Value>();
         CARDINALITY_OF card = RdfEvalStatsDAO.CARDINALITY_OF.PREDICATE;
         values.add(pred);
 
@@ -531,7 +517,7 @@ public class AccumuloSelectivityEvalDAO implements SelectivityEvalDAO<RdfCloudTr
           cardinality = 0;
         }
       } else if (obj != null) {
-        List<org.openrdf.model.Value> values = new ArrayList<org.openrdf.model.Value>();
+        List<org.eclipse.rdf4j.model.Value> values = new ArrayList<org.eclipse.rdf4j.model.Value>();
         values.add(obj);
         double evalCard = this.getCardinality(conf, RdfEvalStatsDAO.CARDINALITY_OF.OBJECT, values, context);
         if (evalCard >= 0) {
@@ -550,18 +536,18 @@ public class AccumuloSelectivityEvalDAO implements SelectivityEvalDAO<RdfCloudTr
     return (long) cardinality;
   }
 
-  private org.openrdf.model.Value getConstantValue(Var var) {
+  private org.eclipse.rdf4j.model.Value getConstantValue(Var var) {
     if (var != null)
       return var.getValue();
     else
       return null;
   }
 
-  public double getCardinality(RdfCloudTripleStoreConfiguration conf, CARDINALITY_OF card, List<org.openrdf.model.Value> val) throws RdfDAOException {
+  public double getCardinality(RdfCloudTripleStoreConfiguration conf, CARDINALITY_OF card, List<org.eclipse.rdf4j.model.Value> val) throws RdfDAOException {
     return resd.getCardinality(conf, card, val);
   }
 
-  public double getCardinality(RdfCloudTripleStoreConfiguration conf, CARDINALITY_OF card, List<org.openrdf.model.Value> val, Resource context) throws RdfDAOException {
+  public double getCardinality(RdfCloudTripleStoreConfiguration conf, CARDINALITY_OF card, List<org.eclipse.rdf4j.model.Value> val, Resource context) throws RdfDAOException {
 
     return resd.getCardinality(conf, card, val, context);
 
@@ -613,7 +599,7 @@ public class AccumuloSelectivityEvalDAO implements SelectivityEvalDAO<RdfCloudTr
   
   
   
-  private static class SpExternalCollector extends QueryModelVisitorBase<RuntimeException> {
+  private static class SpExternalCollector extends AbstractQueryModelVisitor<RuntimeException> {
 
       private List<QueryModelNode> eSet = Lists.newArrayList();
         

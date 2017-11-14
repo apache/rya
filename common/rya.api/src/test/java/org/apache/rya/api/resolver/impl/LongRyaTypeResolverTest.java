@@ -19,15 +19,13 @@ package org.apache.rya.api.resolver.impl;
  * under the License.
  */
 
-
-
-import org.apache.rya.api.domain.RyaType;
-import org.junit.Test;
-import org.openrdf.model.vocabulary.XMLSchema;
+import static org.junit.Assert.assertEquals;
 
 import java.util.Random;
 
-import static junit.framework.Assert.assertEquals;
+import org.apache.rya.api.domain.RyaType;
+import org.eclipse.rdf4j.model.vocabulary.XMLSchema;
+import org.junit.Test;
 
 /**
  * Date: 9/7/12

@@ -8,9 +8,9 @@ package org.apache.rya.api.resolver;
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
+ * 
  *   http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -19,12 +19,12 @@ package org.apache.rya.api.resolver;
  * under the License.
  */
 
-
-
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.apache.rya.api.domain.RyaRange;
 import org.apache.rya.api.domain.RyaType;
 import org.apache.rya.api.resolver.impl.BooleanRyaTypeResolver;
@@ -39,10 +39,8 @@ import org.apache.rya.api.resolver.impl.RyaTypeResolverImpl;
 import org.apache.rya.api.resolver.impl.RyaURIResolver;
 import org.apache.rya.api.resolver.impl.ServiceBackedRyaTypeResolverMappings;
 import org.apache.rya.api.resolver.impl.ShortRyaTypeResolver;
-import org.openrdf.model.URI;
-import org.openrdf.model.vocabulary.XMLSchema;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.vocabulary.XMLSchema;
 
 /**
  * Date: 7/16/12
@@ -50,10 +48,10 @@ import org.slf4j.LoggerFactory;
  */
 public class RyaContext {
 
-    public Logger logger = LoggerFactory.getLogger(RyaContext.class);
+    public Log logger = LogFactory.getLog(RyaContext.class);
 
-    private final Map<URI, RyaTypeResolver> uriToResolver = new HashMap<URI, RyaTypeResolver>();
-    private final Map<Byte, RyaTypeResolver> byteToResolver = new HashMap<Byte, RyaTypeResolver>();
+    private Map<IRI, RyaTypeResolver> uriToResolver = new HashMap<IRI, RyaTypeResolver>();
+    private Map<Byte, RyaTypeResolver> byteToResolver = new HashMap<Byte, RyaTypeResolver>();
     private RyaTypeResolver defaultResolver = new CustomDatatypeResolver();
 
     private RyaContext() {
@@ -90,51 +88,47 @@ public class RyaContext {
     public synchronized static RyaContext getInstance() {
         return RyaContextHolder.INSTANCE;
     }
-
+    
 
     //need to go from datatype->resolver
-    public RyaTypeResolver retrieveResolver(final URI datatype) {
-        final RyaTypeResolver ryaTypeResolver = uriToResolver.get(datatype);
-        if (ryaTypeResolver == null) {
-            return defaultResolver;
-        }
+    public RyaTypeResolver retrieveResolver(IRI datatype) {
+        RyaTypeResolver ryaTypeResolver = uriToResolver.get(datatype);
+        if (ryaTypeResolver == null) return defaultResolver;
         return ryaTypeResolver;
     }
 
     //need to go from byte->resolver
-    public RyaTypeResolver retrieveResolver(final byte markerByte) {
-        final RyaTypeResolver ryaTypeResolver = byteToResolver.get(markerByte);
-        if (ryaTypeResolver == null) {
-            return defaultResolver;
-        }
+    public RyaTypeResolver retrieveResolver(byte markerByte) {
+        RyaTypeResolver ryaTypeResolver = byteToResolver.get(markerByte);
+        if (ryaTypeResolver == null) return defaultResolver;
         return ryaTypeResolver;
     }
 
-    public byte[] serialize(final RyaType ryaType) throws RyaTypeResolverException {
-        final RyaTypeResolver ryaTypeResolver = retrieveResolver(ryaType.getDataType());
+    public byte[] serialize(RyaType ryaType) throws RyaTypeResolverException {
+        RyaTypeResolver ryaTypeResolver = retrieveResolver(ryaType.getDataType());
         if (ryaTypeResolver != null) {
             return ryaTypeResolver.serialize(ryaType);
         }
         return null;
     }
 
-    public byte[][] serializeType(final RyaType ryaType) throws RyaTypeResolverException {
-        final RyaTypeResolver ryaTypeResolver = retrieveResolver(ryaType.getDataType());
+    public byte[][] serializeType(RyaType ryaType) throws RyaTypeResolverException {
+        RyaTypeResolver ryaTypeResolver = retrieveResolver(ryaType.getDataType());
         if (ryaTypeResolver != null) {
             return ryaTypeResolver.serializeType(ryaType);
         }
         return null;
     }
 
-    public RyaType deserialize(final byte[] bytes) throws RyaTypeResolverException {
-        final RyaTypeResolver ryaTypeResolver = retrieveResolver(bytes[bytes.length - 1]);
+    public RyaType deserialize(byte[] bytes) throws RyaTypeResolverException {
+        RyaTypeResolver ryaTypeResolver = retrieveResolver(bytes[bytes.length - 1]);
         if (ryaTypeResolver != null) {
             return ryaTypeResolver.deserialize(bytes);
         }
         return null;
     }
 
-    public void addRyaTypeResolverMapping(final RyaTypeResolverMapping mapping) {
+    public void addRyaTypeResolverMapping(RyaTypeResolverMapping mapping) {
         if (!uriToResolver.containsKey(mapping.getRyaDataType())) {
             if (logger.isDebugEnabled()) {
                 logger.debug("addRyaTypeResolverMapping uri:[" + mapping.getRyaDataType() + "] byte:[" + mapping.getMarkerByte() + "] for mapping[" + mapping + "]");
@@ -146,14 +140,14 @@ public class RyaContext {
         }
     }
 
-    public void addRyaTypeResolverMappings(final List<RyaTypeResolverMapping> mappings) {
-        for (final RyaTypeResolverMapping mapping : mappings) {
+    public void addRyaTypeResolverMappings(List<RyaTypeResolverMapping> mappings) {
+        for (RyaTypeResolverMapping mapping : mappings) {
             addRyaTypeResolverMapping(mapping);
         }
     }
 
-    public RyaTypeResolver removeRyaTypeResolver(final URI dataType) {
-        final RyaTypeResolver ryaTypeResolver = uriToResolver.remove(dataType);
+    public RyaTypeResolver removeRyaTypeResolver(IRI dataType) {
+        RyaTypeResolver ryaTypeResolver = uriToResolver.remove(dataType);
         if (ryaTypeResolver != null) {
             if (logger.isDebugEnabled()) {
                 logger.debug("Removing ryaType Resolver uri[" + dataType + "] + [" + ryaTypeResolver + "]");
@@ -164,8 +158,8 @@ public class RyaContext {
         return null;
     }
 
-    public RyaTypeResolver removeRyaTypeResolver(final byte markerByte) {
-        final RyaTypeResolver ryaTypeResolver = byteToResolver.remove(markerByte);
+    public RyaTypeResolver removeRyaTypeResolver(byte markerByte) {
+        RyaTypeResolver ryaTypeResolver = byteToResolver.remove(markerByte);
         if (ryaTypeResolver != null) {
             if (logger.isDebugEnabled()) {
                 logger.debug("Removing ryaType Resolver byte[" + markerByte + "] + [" + ryaTypeResolver + "]");
@@ -177,8 +171,8 @@ public class RyaContext {
     }
 
     //transform range
-    public RyaRange transformRange(final RyaRange range) throws RyaTypeResolverException {
-        final RyaTypeResolver ryaTypeResolver = retrieveResolver(range.getStart().getDataType());
+    public RyaRange transformRange(RyaRange range) throws RyaTypeResolverException {
+        RyaTypeResolver ryaTypeResolver = retrieveResolver(range.getStart().getDataType());
         if (ryaTypeResolver != null) {
             return ryaTypeResolver.transformRange(range);
         }
@@ -189,7 +183,7 @@ public class RyaContext {
         return defaultResolver;
     }
 
-    public void setDefaultResolver(final RyaTypeResolver defaultResolver) {
+    public void setDefaultResolver(RyaTypeResolver defaultResolver) {
         this.defaultResolver = defaultResolver;
     }
 }

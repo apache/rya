@@ -19,12 +19,10 @@ package org.apache.rya.alx.command;
  * under the License.
  */
 
-
-
-import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
-import org.apache.felix.gogo.commands.Command;
-
 import java.util.Map;
+
+import org.apache.felix.gogo.commands.Command;
+import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
 
 /**
  * Date: 5/16/12

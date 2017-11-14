@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -42,16 +42,17 @@ import org.apache.rya.indexing.entity.storage.EntityStorage.EntityStorageExcepti
 import org.apache.rya.indexing.entity.storage.mongo.ConvertingCursor;
 import org.apache.rya.indexing.entity.update.EntityIndexer;
 import org.apache.rya.rdftriplestore.evaluation.ExternalBatchingIterator;
-import org.openrdf.model.impl.ValueFactoryImpl;
-import org.openrdf.model.vocabulary.RDF;
-import org.openrdf.query.Binding;
-import org.openrdf.query.BindingSet;
-import org.openrdf.query.QueryEvaluationException;
-import org.openrdf.query.algebra.StatementPattern;
-import org.openrdf.query.algebra.Var;
-import org.openrdf.query.algebra.evaluation.impl.ExternalSet;
-import org.openrdf.query.algebra.evaluation.iterator.CollectionIteration;
-import org.openrdf.query.impl.MapBindingSet;
+import org.eclipse.rdf4j.common.iteration.CloseableIteration;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
+import org.eclipse.rdf4j.model.vocabulary.RDF;
+import org.eclipse.rdf4j.query.Binding;
+import org.eclipse.rdf4j.query.BindingSet;
+import org.eclipse.rdf4j.query.QueryEvaluationException;
+import org.eclipse.rdf4j.query.algebra.StatementPattern;
+import org.eclipse.rdf4j.query.algebra.Var;
+import org.eclipse.rdf4j.query.algebra.evaluation.impl.ExternalSet;
+import org.eclipse.rdf4j.query.algebra.evaluation.iterator.CollectionIteration;
+import org.eclipse.rdf4j.query.impl.MapBindingSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -61,7 +62,6 @@ import com.google.common.collect.ImmutableMap.Builder;
 
 import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
 import edu.umd.cs.findbugs.annotations.NonNull;
-import info.aduna.iteration.CloseableIteration;
 
 /**
  * Indexing Node for {@link Entity} expressions to be inserted into execution plan
@@ -133,7 +133,7 @@ public class EntityQueryNode extends ExternalSet implements ExternalBatchingIter
         }
 
         // Any constant that appears in the Object portion of the SP will be used to make sure they match.
-        final Builder<RyaURI, Var> builder = ImmutableMap.<RyaURI, Var>builder();
+        final Builder<RyaURI, Var> builder = ImmutableMap.builder();
         for(final StatementPattern sp : patterns) {
             final Var object = sp.getObjectVar();
             final Var pred = sp.getPredicateVar();
@@ -297,7 +297,7 @@ public class EntityQueryNode extends ExternalSet implements ExternalBatchingIter
                     if(prop.isPresent()) {
                         final RyaType type = prop.get();
                         final String bindingName = objectVariables.get(key).getName();
-                        resultSet.addBinding(bindingName, ValueFactoryImpl.getInstance().createLiteral(type.getData()));
+                        resultSet.addBinding(bindingName, SimpleValueFactory.getInstance().createLiteral(type.getData()));
                     }
                 }
             }

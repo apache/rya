@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -24,9 +24,9 @@ import org.apache.rya.api.domain.RyaType;
 import org.apache.rya.api.resolver.RdfToRyaConversions;
 import org.apache.rya.indexing.entity.storage.mongo.DocumentConverter.DocumentConverterException;
 import org.bson.Document;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
+import org.eclipse.rdf4j.model.vocabulary.XMLSchema;
 import org.junit.Test;
-import org.openrdf.model.impl.ValueFactoryImpl;
-import org.openrdf.model.vocabulary.XMLSchema;
 
 /**
  * Tests the methods of {@link RyaTypeDocumentConverter}.
@@ -36,7 +36,7 @@ public class RyaTypeDocumentConverterTest {
     @Test
     public void toDocument() {
         // Convert the RyaType into a Document.
-        final RyaType ryaType = RdfToRyaConversions.convertLiteral( new ValueFactoryImpl().createLiteral( 4.5 ) );
+        final RyaType ryaType = RdfToRyaConversions.convertLiteral( SimpleValueFactory.getInstance().createLiteral( 4.5 ) );
         final Document document = new RyaTypeDocumentConverter().toDocument( ryaType );
 
         // Show the document has the correct structure.
@@ -55,7 +55,7 @@ public class RyaTypeDocumentConverterTest {
         final RyaType ryaType = new RyaTypeDocumentConverter().fromDocument( document );
 
         // Show the converted value has the expected structure.
-        final RyaType expected = RdfToRyaConversions.convertLiteral( new ValueFactoryImpl().createLiteral( 4.5 ) );
+        final RyaType expected = RdfToRyaConversions.convertLiteral( SimpleValueFactory.getInstance().createLiteral( 4.5 ) );
         assertEquals(expected, ryaType);
     }
 

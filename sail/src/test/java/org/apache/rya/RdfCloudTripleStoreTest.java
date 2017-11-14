@@ -1,5 +1,3 @@
-package org.apache.rya;
-
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -18,32 +16,36 @@ package org.apache.rya;
  * specific language governing permissions and limitations
  * under the License.
  */
+package org.apache.rya;
 
+import java.util.GregorianCalendar;
+import java.util.List;
 
+import javax.xml.datatype.DatatypeConfigurationException;
+import javax.xml.datatype.DatatypeFactory;
 
-import junit.framework.TestCase;
+import org.apache.accumulo.core.client.Connector;
+import org.apache.accumulo.core.client.mock.MockInstance;
 import org.apache.rya.accumulo.AccumuloRdfConfiguration;
 import org.apache.rya.accumulo.AccumuloRyaDAO;
 import org.apache.rya.api.RdfCloudTripleStoreConstants;
 import org.apache.rya.rdftriplestore.RdfCloudTripleStore;
-import org.apache.accumulo.core.client.Connector;
-import org.apache.accumulo.core.client.mock.MockInstance;
-import org.openrdf.model.Namespace;
-import org.openrdf.model.ValueFactory;
-import org.openrdf.model.impl.StatementImpl;
-import org.openrdf.model.impl.ValueFactoryImpl;
-import org.openrdf.query.*;
-import org.openrdf.repository.RepositoryException;
-import org.openrdf.repository.RepositoryResult;
-import org.openrdf.repository.sail.SailRepository;
-import org.openrdf.repository.sail.SailRepositoryConnection;
+import org.eclipse.rdf4j.model.Namespace;
+import org.eclipse.rdf4j.model.Statement;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
+import org.eclipse.rdf4j.query.BindingSet;
+import org.eclipse.rdf4j.query.QueryLanguage;
+import org.eclipse.rdf4j.query.QueryResultHandlerException;
+import org.eclipse.rdf4j.query.TupleQuery;
+import org.eclipse.rdf4j.query.TupleQueryResultHandler;
+import org.eclipse.rdf4j.query.TupleQueryResultHandlerException;
+import org.eclipse.rdf4j.repository.RepositoryException;
+import org.eclipse.rdf4j.repository.RepositoryResult;
+import org.eclipse.rdf4j.repository.sail.SailRepository;
+import org.eclipse.rdf4j.repository.sail.SailRepositoryConnection;
 
-import javax.xml.datatype.DatatypeConfigurationException;
-import javax.xml.datatype.DatatypeFactory;
-import java.util.GregorianCalendar;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import junit.framework.TestCase;
 
 /**
  * Class PartitionConnectionTest
@@ -59,7 +61,7 @@ public class RdfCloudTripleStoreTest extends TestCase {
     private SailRepository repository;
     private SailRepositoryConnection connection;
 
-    ValueFactory vf = ValueFactoryImpl.getInstance();
+    private static final ValueFactory VF = SimpleValueFactory.getInstance();
 
     private String objectUuid = "objectuuid1";
     private String ancestor = "ancestor1";
@@ -90,113 +92,113 @@ public class RdfCloudTripleStoreTest extends TestCase {
     }
 
     private void loadData() throws RepositoryException, DatatypeConfigurationException {
-        connection.add(new StatementImpl(vf.createURI(NAMESPACE, objectUuid), vf.createURI(NAMESPACE, "name"), vf.createLiteral("objUuid")));
+        connection.add(VF.createStatement(VF.createIRI(NAMESPACE, objectUuid), VF.createIRI(NAMESPACE, "name"), VF.createLiteral("objUuid")));
         //created
         String uuid = "uuid1";
-        connection.add(new StatementImpl(vf.createURI(NAMESPACE, uuid), vf.createURI(RDF_NS, "type"), vf.createURI(NAMESPACE, "Created")));
-        connection.add(new StatementImpl(vf.createURI(NAMESPACE, uuid), vf.createURI(NAMESPACE, "createdItem"), vf.createURI(NAMESPACE, objectUuid)));
-        connection.add(new StatementImpl(vf.createURI(NAMESPACE, uuid), vf.createURI(NAMESPACE, "performedBy"), vf.createURI("urn:system:A")));
-        connection.add(new StatementImpl(vf.createURI(NAMESPACE, uuid), vf.createURI(NAMESPACE, "stringLit"), vf.createLiteral("stringLit1")));
-        connection.add(new StatementImpl(vf.createURI(NAMESPACE, uuid), vf.createURI(NAMESPACE, "stringLit"), vf.createLiteral("stringLit2")));
-        connection.add(new StatementImpl(vf.createURI(NAMESPACE, uuid), vf.createURI(NAMESPACE, "stringLit"), vf.createLiteral("stringLit3")));
-        connection.add(new StatementImpl(vf.createURI(NAMESPACE, uuid), vf.createURI(NAMESPACE, "stringLit"), vf.createLiteral("stringLit4")));
-        connection.add(new StatementImpl(vf.createURI(NAMESPACE, uuid), vf.createURI(NAMESPACE, "strLit1"), vf.createLiteral("strLit1")));
-        connection.add(new StatementImpl(vf.createURI(NAMESPACE, uuid), vf.createURI(NAMESPACE, "strLit1"), vf.createLiteral("strLit2")));
-        connection.add(new StatementImpl(vf.createURI(NAMESPACE, uuid), vf.createURI(NAMESPACE, "strLit1"), vf.createLiteral("strLit3")));
-        connection.add(new StatementImpl(vf.createURI(NAMESPACE, uuid), vf.createURI(NAMESPACE, "performedAt"), vf.createLiteral(DatatypeFactory.newInstance().newXMLGregorianCalendar(2011, 7, 12, 6, 0, 0, 0, 0))));
-        connection.add(new StatementImpl(vf.createURI(NAMESPACE, uuid), vf.createURI(NAMESPACE, "reportedAt"), vf.createLiteral(DatatypeFactory.newInstance().newXMLGregorianCalendar(2011, 7, 12, 6, 1, 0, 0, 0))));
+        connection.add(VF.createStatement(VF.createIRI(NAMESPACE, uuid), VF.createIRI(RDF_NS, "type"), VF.createIRI(NAMESPACE, "Created")));
+        connection.add(VF.createStatement(VF.createIRI(NAMESPACE, uuid), VF.createIRI(NAMESPACE, "createdItem"), VF.createIRI(NAMESPACE, objectUuid)));
+        connection.add(VF.createStatement(VF.createIRI(NAMESPACE, uuid), VF.createIRI(NAMESPACE, "performedBy"), VF.createIRI("urn:system:A")));
+        connection.add(VF.createStatement(VF.createIRI(NAMESPACE, uuid), VF.createIRI(NAMESPACE, "stringLit"), VF.createLiteral("stringLit1")));
+        connection.add(VF.createStatement(VF.createIRI(NAMESPACE, uuid), VF.createIRI(NAMESPACE, "stringLit"), VF.createLiteral("stringLit2")));
+        connection.add(VF.createStatement(VF.createIRI(NAMESPACE, uuid), VF.createIRI(NAMESPACE, "stringLit"), VF.createLiteral("stringLit3")));
+        connection.add(VF.createStatement(VF.createIRI(NAMESPACE, uuid), VF.createIRI(NAMESPACE, "stringLit"), VF.createLiteral("stringLit4")));
+        connection.add(VF.createStatement(VF.createIRI(NAMESPACE, uuid), VF.createIRI(NAMESPACE, "strLit1"), VF.createLiteral("strLit1")));
+        connection.add(VF.createStatement(VF.createIRI(NAMESPACE, uuid), VF.createIRI(NAMESPACE, "strLit1"), VF.createLiteral("strLit2")));
+        connection.add(VF.createStatement(VF.createIRI(NAMESPACE, uuid), VF.createIRI(NAMESPACE, "strLit1"), VF.createLiteral("strLit3")));
+        connection.add(VF.createStatement(VF.createIRI(NAMESPACE, uuid), VF.createIRI(NAMESPACE, "performedAt"), VF.createLiteral(DatatypeFactory.newInstance().newXMLGregorianCalendar(2011, 7, 12, 6, 0, 0, 0, 0))));
+        connection.add(VF.createStatement(VF.createIRI(NAMESPACE, uuid), VF.createIRI(NAMESPACE, "reportedAt"), VF.createLiteral(DatatypeFactory.newInstance().newXMLGregorianCalendar(2011, 7, 12, 6, 1, 0, 0, 0))));
         //clicked
         uuid = "uuid2";
-        connection.add(new StatementImpl(vf.createURI(NAMESPACE, uuid), vf.createURI(RDF_NS, "type"), vf.createURI(NAMESPACE, "Clicked")));
-        connection.add(new StatementImpl(vf.createURI(NAMESPACE, uuid), vf.createURI(NAMESPACE, "clickedItem"), vf.createURI(NAMESPACE, objectUuid)));
-        connection.add(new StatementImpl(vf.createURI(NAMESPACE, uuid), vf.createURI(NAMESPACE, "performedBy"), vf.createURI("urn:system:B")));
-        connection.add(new StatementImpl(vf.createURI(NAMESPACE, uuid), vf.createURI(NAMESPACE, "performedAt"), vf.createLiteral(DatatypeFactory.newInstance().newXMLGregorianCalendar(2011, 7, 12, 6, 2, 0, 0, 0))));
-        connection.add(new StatementImpl(vf.createURI(NAMESPACE, uuid), vf.createURI(NAMESPACE, "reportedAt"), vf.createLiteral(DatatypeFactory.newInstance().newXMLGregorianCalendar(2011, 7, 12, 6, 3, 0, 0, 0))));
+        connection.add(VF.createStatement(VF.createIRI(NAMESPACE, uuid), VF.createIRI(RDF_NS, "type"), VF.createIRI(NAMESPACE, "Clicked")));
+        connection.add(VF.createStatement(VF.createIRI(NAMESPACE, uuid), VF.createIRI(NAMESPACE, "clickedItem"), VF.createIRI(NAMESPACE, objectUuid)));
+        connection.add(VF.createStatement(VF.createIRI(NAMESPACE, uuid), VF.createIRI(NAMESPACE, "performedBy"), VF.createIRI("urn:system:B")));
+        connection.add(VF.createStatement(VF.createIRI(NAMESPACE, uuid), VF.createIRI(NAMESPACE, "performedAt"), VF.createLiteral(DatatypeFactory.newInstance().newXMLGregorianCalendar(2011, 7, 12, 6, 2, 0, 0, 0))));
+        connection.add(VF.createStatement(VF.createIRI(NAMESPACE, uuid), VF.createIRI(NAMESPACE, "reportedAt"), VF.createLiteral(DatatypeFactory.newInstance().newXMLGregorianCalendar(2011, 7, 12, 6, 3, 0, 0, 0))));
         //deleted
         uuid = "uuid3";
-        connection.add(new StatementImpl(vf.createURI(NAMESPACE, uuid), vf.createURI(RDF_NS, "type"), vf.createURI(NAMESPACE, "Deleted")));
-        connection.add(new StatementImpl(vf.createURI(NAMESPACE, uuid), vf.createURI(NAMESPACE, "deletedItem"), vf.createURI(NAMESPACE, objectUuid)));
-        connection.add(new StatementImpl(vf.createURI(NAMESPACE, uuid), vf.createURI(NAMESPACE, "performedBy"), vf.createURI("urn:system:C")));
-        connection.add(new StatementImpl(vf.createURI(NAMESPACE, uuid), vf.createURI(NAMESPACE, "performedAt"), vf.createLiteral(DatatypeFactory.newInstance().newXMLGregorianCalendar(2011, 7, 12, 6, 4, 0, 0, 0))));
-        connection.add(new StatementImpl(vf.createURI(NAMESPACE, uuid), vf.createURI(NAMESPACE, "reportedAt"), vf.createLiteral(DatatypeFactory.newInstance().newXMLGregorianCalendar(2011, 7, 12, 6, 5, 0, 0, 0))));
+        connection.add(VF.createStatement(VF.createIRI(NAMESPACE, uuid), VF.createIRI(RDF_NS, "type"), VF.createIRI(NAMESPACE, "Deleted")));
+        connection.add(VF.createStatement(VF.createIRI(NAMESPACE, uuid), VF.createIRI(NAMESPACE, "deletedItem"), VF.createIRI(NAMESPACE, objectUuid)));
+        connection.add(VF.createStatement(VF.createIRI(NAMESPACE, uuid), VF.createIRI(NAMESPACE, "performedBy"), VF.createIRI("urn:system:C")));
+        connection.add(VF.createStatement(VF.createIRI(NAMESPACE, uuid), VF.createIRI(NAMESPACE, "performedAt"), VF.createLiteral(DatatypeFactory.newInstance().newXMLGregorianCalendar(2011, 7, 12, 6, 4, 0, 0, 0))));
+        connection.add(VF.createStatement(VF.createIRI(NAMESPACE, uuid), VF.createIRI(NAMESPACE, "reportedAt"), VF.createLiteral(DatatypeFactory.newInstance().newXMLGregorianCalendar(2011, 7, 12, 6, 5, 0, 0, 0))));
         //dropped
         uuid = "uuid4";
-        connection.add(new StatementImpl(vf.createURI(NAMESPACE, uuid), vf.createURI(RDF_NS, "type"), vf.createURI(NAMESPACE, "Dropped")));
-        connection.add(new StatementImpl(vf.createURI(NAMESPACE, uuid), vf.createURI(NAMESPACE, "droppedItem"), vf.createURI(NAMESPACE, objectUuid)));
-        connection.add(new StatementImpl(vf.createURI(NAMESPACE, uuid), vf.createURI(NAMESPACE, "performedBy"), vf.createURI("urn:system:D")));
-        connection.add(new StatementImpl(vf.createURI(NAMESPACE, uuid), vf.createURI(NAMESPACE, "performedAt"), vf.createLiteral(DatatypeFactory.newInstance().newXMLGregorianCalendar(2011, 7, 12, 6, 6, 0, 0, 0))));
-        connection.add(new StatementImpl(vf.createURI(NAMESPACE, uuid), vf.createURI(NAMESPACE, "reportedAt"), vf.createLiteral(DatatypeFactory.newInstance().newXMLGregorianCalendar(2011, 7, 12, 6, 7, 0, 0, 0))));
+        connection.add(VF.createStatement(VF.createIRI(NAMESPACE, uuid), VF.createIRI(RDF_NS, "type"), VF.createIRI(NAMESPACE, "Dropped")));
+        connection.add(VF.createStatement(VF.createIRI(NAMESPACE, uuid), VF.createIRI(NAMESPACE, "droppedItem"), VF.createIRI(NAMESPACE, objectUuid)));
+        connection.add(VF.createStatement(VF.createIRI(NAMESPACE, uuid), VF.createIRI(NAMESPACE, "performedBy"), VF.createIRI("urn:system:D")));
+        connection.add(VF.createStatement(VF.createIRI(NAMESPACE, uuid), VF.createIRI(NAMESPACE, "performedAt"), VF.createLiteral(DatatypeFactory.newInstance().newXMLGregorianCalendar(2011, 7, 12, 6, 6, 0, 0, 0))));
+        connection.add(VF.createStatement(VF.createIRI(NAMESPACE, uuid), VF.createIRI(NAMESPACE, "reportedAt"), VF.createLiteral(DatatypeFactory.newInstance().newXMLGregorianCalendar(2011, 7, 12, 6, 7, 0, 0, 0))));
         //received
         uuid = "uuid5";
-        connection.add(new StatementImpl(vf.createURI(NAMESPACE, uuid), vf.createURI(RDF_NS, "type"), vf.createURI(NAMESPACE, "Received")));
-        connection.add(new StatementImpl(vf.createURI(NAMESPACE, uuid), vf.createURI(NAMESPACE, "receivedItem"), vf.createURI(NAMESPACE, objectUuid)));
-        connection.add(new StatementImpl(vf.createURI(NAMESPACE, uuid), vf.createURI(NAMESPACE, "performedBy"), vf.createURI("urn:system:E")));
-        connection.add(new StatementImpl(vf.createURI(NAMESPACE, uuid), vf.createURI(NAMESPACE, "performedAt"), vf.createLiteral(DatatypeFactory.newInstance().newXMLGregorianCalendar(2011, 7, 12, 6, 8, 0, 0, 0))));
-        connection.add(new StatementImpl(vf.createURI(NAMESPACE, uuid), vf.createURI(NAMESPACE, "reportedAt"), vf.createLiteral(DatatypeFactory.newInstance().newXMLGregorianCalendar(2011, 7, 12, 6, 9, 0, 0, 0))));
+        connection.add(VF.createStatement(VF.createIRI(NAMESPACE, uuid), VF.createIRI(RDF_NS, "type"), VF.createIRI(NAMESPACE, "Received")));
+        connection.add(VF.createStatement(VF.createIRI(NAMESPACE, uuid), VF.createIRI(NAMESPACE, "receivedItem"), VF.createIRI(NAMESPACE, objectUuid)));
+        connection.add(VF.createStatement(VF.createIRI(NAMESPACE, uuid), VF.createIRI(NAMESPACE, "performedBy"), VF.createIRI("urn:system:E")));
+        connection.add(VF.createStatement(VF.createIRI(NAMESPACE, uuid), VF.createIRI(NAMESPACE, "performedAt"), VF.createLiteral(DatatypeFactory.newInstance().newXMLGregorianCalendar(2011, 7, 12, 6, 8, 0, 0, 0))));
+        connection.add(VF.createStatement(VF.createIRI(NAMESPACE, uuid), VF.createIRI(NAMESPACE, "reportedAt"), VF.createLiteral(DatatypeFactory.newInstance().newXMLGregorianCalendar(2011, 7, 12, 6, 9, 0, 0, 0))));
         //sent
         uuid = "uuid6";
-        connection.add(new StatementImpl(vf.createURI(NAMESPACE, uuid), vf.createURI(RDF_NS, "type"), vf.createURI(NAMESPACE, "Sent")));
-        connection.add(new StatementImpl(vf.createURI(NAMESPACE, uuid), vf.createURI(NAMESPACE, "sentItem"), vf.createURI(NAMESPACE, objectUuid)));
-        connection.add(new StatementImpl(vf.createURI(NAMESPACE, uuid), vf.createURI(NAMESPACE, "performedBy"), vf.createURI("urn:system:F")));
-        connection.add(new StatementImpl(vf.createURI(NAMESPACE, uuid), vf.createURI(NAMESPACE, "performedAt"), vf.createLiteral(DatatypeFactory.newInstance().newXMLGregorianCalendar(2011, 7, 12, 6, 10, 0, 0, 0))));
-        connection.add(new StatementImpl(vf.createURI(NAMESPACE, uuid), vf.createURI(NAMESPACE, "reportedAt"), vf.createLiteral(DatatypeFactory.newInstance().newXMLGregorianCalendar(2011, 7, 12, 6, 11, 0, 0, 0))));
+        connection.add(VF.createStatement(VF.createIRI(NAMESPACE, uuid), VF.createIRI(RDF_NS, "type"), VF.createIRI(NAMESPACE, "Sent")));
+        connection.add(VF.createStatement(VF.createIRI(NAMESPACE, uuid), VF.createIRI(NAMESPACE, "sentItem"), VF.createIRI(NAMESPACE, objectUuid)));
+        connection.add(VF.createStatement(VF.createIRI(NAMESPACE, uuid), VF.createIRI(NAMESPACE, "performedBy"), VF.createIRI("urn:system:F")));
+        connection.add(VF.createStatement(VF.createIRI(NAMESPACE, uuid), VF.createIRI(NAMESPACE, "performedAt"), VF.createLiteral(DatatypeFactory.newInstance().newXMLGregorianCalendar(2011, 7, 12, 6, 10, 0, 0, 0))));
+        connection.add(VF.createStatement(VF.createIRI(NAMESPACE, uuid), VF.createIRI(NAMESPACE, "reportedAt"), VF.createLiteral(DatatypeFactory.newInstance().newXMLGregorianCalendar(2011, 7, 12, 6, 11, 0, 0, 0))));
         //stored
         uuid = "uuid7";
-        connection.add(new StatementImpl(vf.createURI(NAMESPACE, uuid), vf.createURI(RDF_NS, "type"), vf.createURI(NAMESPACE, "Stored")));
-        connection.add(new StatementImpl(vf.createURI(NAMESPACE, uuid), vf.createURI(NAMESPACE, "storedItem"), vf.createURI(NAMESPACE, objectUuid)));
-        connection.add(new StatementImpl(vf.createURI(NAMESPACE, uuid), vf.createURI(NAMESPACE, "performedBy"), vf.createURI("urn:system:G")));
-        connection.add(new StatementImpl(vf.createURI(NAMESPACE, uuid), vf.createURI(NAMESPACE, "performedAt"), vf.createLiteral(DatatypeFactory.newInstance().newXMLGregorianCalendar(2011, 7, 12, 6, 12, 0, 0, 0))));
-        connection.add(new StatementImpl(vf.createURI(NAMESPACE, uuid), vf.createURI(NAMESPACE, "reportedAt"), vf.createLiteral(DatatypeFactory.newInstance().newXMLGregorianCalendar(2011, 7, 12, 6, 13, 0, 0, 0))));
+        connection.add(VF.createStatement(VF.createIRI(NAMESPACE, uuid), VF.createIRI(RDF_NS, "type"), VF.createIRI(NAMESPACE, "Stored")));
+        connection.add(VF.createStatement(VF.createIRI(NAMESPACE, uuid), VF.createIRI(NAMESPACE, "storedItem"), VF.createIRI(NAMESPACE, objectUuid)));
+        connection.add(VF.createStatement(VF.createIRI(NAMESPACE, uuid), VF.createIRI(NAMESPACE, "performedBy"), VF.createIRI("urn:system:G")));
+        connection.add(VF.createStatement(VF.createIRI(NAMESPACE, uuid), VF.createIRI(NAMESPACE, "performedAt"), VF.createLiteral(DatatypeFactory.newInstance().newXMLGregorianCalendar(2011, 7, 12, 6, 12, 0, 0, 0))));
+        connection.add(VF.createStatement(VF.createIRI(NAMESPACE, uuid), VF.createIRI(NAMESPACE, "reportedAt"), VF.createLiteral(DatatypeFactory.newInstance().newXMLGregorianCalendar(2011, 7, 12, 6, 13, 0, 0, 0))));
 
         //derivedFrom
-        connection.add(new StatementImpl(vf.createURI(NAMESPACE, descendant), vf.createURI(NAMESPACE, "derivedFrom"), vf.createURI(NAMESPACE, ancestor)));
-        connection.add(new StatementImpl(vf.createURI(NAMESPACE, descendant), vf.createURI(NAMESPACE, "name"), vf.createLiteral("descendantOne")));
-        connection.add(new StatementImpl(vf.createURI(NAMESPACE, ancestor), vf.createURI(NAMESPACE, "name"), vf.createLiteral("ancestor1")));
+        connection.add(VF.createStatement(VF.createIRI(NAMESPACE, descendant), VF.createIRI(NAMESPACE, "derivedFrom"), VF.createIRI(NAMESPACE, ancestor)));
+        connection.add(VF.createStatement(VF.createIRI(NAMESPACE, descendant), VF.createIRI(NAMESPACE, "name"), VF.createLiteral("descendantOne")));
+        connection.add(VF.createStatement(VF.createIRI(NAMESPACE, ancestor), VF.createIRI(NAMESPACE, "name"), VF.createLiteral("ancestor1")));
 
         //heartbeats
         String hbuuid = "hbuuid1";
-        connection.add(new StatementImpl(vf.createURI(HBNAMESPACE, hbuuid), vf.createURI(RDF_NS, "type"), vf.createURI(HBNAMESPACE, "HeartbeatMeasurement")));
-        connection.add(new StatementImpl(vf.createURI(HBNAMESPACE, hbuuid), vf.createURI(HB_TIMESTAMP), vf.createLiteral((START + 1) + "")));
-        connection.add(new StatementImpl(vf.createURI(HBNAMESPACE, hbuuid), vf.createURI(HBNAMESPACE, "count"), vf.createLiteral(1 + "")));
-        connection.add(new StatementImpl(vf.createURI(HBNAMESPACE, hbuuid), vf.createURI(HBNAMESPACE, "systemName"), vf.createURI("urn:system:A")));
-        connection.add(new StatementImpl(vf.createURI("urn:system:A"), vf.createURI(HBNAMESPACE, "heartbeat"), vf.createURI(HBNAMESPACE, hbuuid)));
+        connection.add(VF.createStatement(VF.createIRI(HBNAMESPACE, hbuuid), VF.createIRI(RDF_NS, "type"), VF.createIRI(HBNAMESPACE, "HeartbeatMeasurement")));
+        connection.add(VF.createStatement(VF.createIRI(HBNAMESPACE, hbuuid), VF.createIRI(HB_TIMESTAMP), VF.createLiteral((START + 1) + "")));
+        connection.add(VF.createStatement(VF.createIRI(HBNAMESPACE, hbuuid), VF.createIRI(HBNAMESPACE, "count"), VF.createLiteral(1 + "")));
+        connection.add(VF.createStatement(VF.createIRI(HBNAMESPACE, hbuuid), VF.createIRI(HBNAMESPACE, "systemName"), VF.createIRI("urn:system:A")));
+        connection.add(VF.createStatement(VF.createIRI("urn:system:A"), VF.createIRI(HBNAMESPACE, "heartbeat"), VF.createIRI(HBNAMESPACE, hbuuid)));
 
         hbuuid = "hbuuid2";
-        connection.add(new StatementImpl(vf.createURI(HBNAMESPACE, hbuuid), vf.createURI(RDF_NS, "type"), vf.createURI(HBNAMESPACE, "HeartbeatMeasurement")));
-        connection.add(new StatementImpl(vf.createURI(HBNAMESPACE, hbuuid), vf.createURI(HB_TIMESTAMP), vf.createLiteral((START + 2) + "")));
-        connection.add(new StatementImpl(vf.createURI(HBNAMESPACE, hbuuid), vf.createURI(HBNAMESPACE, "count"), vf.createLiteral(2 + "")));
-        connection.add(new StatementImpl(vf.createURI(HBNAMESPACE, hbuuid), vf.createURI(HBNAMESPACE, "systemName"), vf.createURI("urn:system:B")));
-        connection.add(new StatementImpl(vf.createURI("urn:system:B"), vf.createURI(HBNAMESPACE, "heartbeat"), vf.createURI(HBNAMESPACE, hbuuid)));
+        connection.add(VF.createStatement(VF.createIRI(HBNAMESPACE, hbuuid), VF.createIRI(RDF_NS, "type"), VF.createIRI(HBNAMESPACE, "HeartbeatMeasurement")));
+        connection.add(VF.createStatement(VF.createIRI(HBNAMESPACE, hbuuid), VF.createIRI(HB_TIMESTAMP), VF.createLiteral((START + 2) + "")));
+        connection.add(VF.createStatement(VF.createIRI(HBNAMESPACE, hbuuid), VF.createIRI(HBNAMESPACE, "count"), VF.createLiteral(2 + "")));
+        connection.add(VF.createStatement(VF.createIRI(HBNAMESPACE, hbuuid), VF.createIRI(HBNAMESPACE, "systemName"), VF.createIRI("urn:system:B")));
+        connection.add(VF.createStatement(VF.createIRI("urn:system:B"), VF.createIRI(HBNAMESPACE, "heartbeat"), VF.createIRI(HBNAMESPACE, hbuuid)));
 
         hbuuid = "hbuuid3";
-        connection.add(new StatementImpl(vf.createURI(HBNAMESPACE, hbuuid), vf.createURI(RDF_NS, "type"), vf.createURI(HBNAMESPACE, "HeartbeatMeasurement")));
-        connection.add(new StatementImpl(vf.createURI(HBNAMESPACE, hbuuid), vf.createURI(HB_TIMESTAMP), vf.createLiteral((START + 3) + "")));
-        connection.add(new StatementImpl(vf.createURI(HBNAMESPACE, hbuuid), vf.createURI(HBNAMESPACE, "count"), vf.createLiteral(3 + "")));
-        connection.add(new StatementImpl(vf.createURI(HBNAMESPACE, hbuuid), vf.createURI(HBNAMESPACE, "systemName"), vf.createURI("urn:system:C")));
-        connection.add(new StatementImpl(vf.createURI("urn:system:C"), vf.createURI(HBNAMESPACE, "heartbeat"), vf.createURI(HBNAMESPACE, hbuuid)));
+        connection.add(VF.createStatement(VF.createIRI(HBNAMESPACE, hbuuid), VF.createIRI(RDF_NS, "type"), VF.createIRI(HBNAMESPACE, "HeartbeatMeasurement")));
+        connection.add(VF.createStatement(VF.createIRI(HBNAMESPACE, hbuuid), VF.createIRI(HB_TIMESTAMP), VF.createLiteral((START + 3) + "")));
+        connection.add(VF.createStatement(VF.createIRI(HBNAMESPACE, hbuuid), VF.createIRI(HBNAMESPACE, "count"), VF.createLiteral(3 + "")));
+        connection.add(VF.createStatement(VF.createIRI(HBNAMESPACE, hbuuid), VF.createIRI(HBNAMESPACE, "systemName"), VF.createIRI("urn:system:C")));
+        connection.add(VF.createStatement(VF.createIRI("urn:system:C"), VF.createIRI(HBNAMESPACE, "heartbeat"), VF.createIRI(HBNAMESPACE, hbuuid)));
 
-        connection.add(new StatementImpl(vf.createURI("urn:subj1"), vf.createURI("urn:pred"), vf.createLiteral("obj1")));
-        connection.add(new StatementImpl(vf.createURI("urn:subj1"), vf.createURI("urn:pred"), vf.createLiteral("obj2")));
-        connection.add(new StatementImpl(vf.createURI("urn:subj1"), vf.createURI("urn:pred"), vf.createLiteral("obj3")));
-        connection.add(new StatementImpl(vf.createURI("urn:subj1"), vf.createURI("urn:pred"), vf.createLiteral("obj4")));
-        connection.add(new StatementImpl(vf.createURI("urn:subj2"), vf.createURI("urn:pred"), vf.createLiteral("obj1")));
-        connection.add(new StatementImpl(vf.createURI("urn:subj2"), vf.createURI("urn:pred"), vf.createLiteral("obj2")));
-        connection.add(new StatementImpl(vf.createURI("urn:subj2"), vf.createURI("urn:pred"), vf.createLiteral("obj3")));
-        connection.add(new StatementImpl(vf.createURI("urn:subj2"), vf.createURI("urn:pred"), vf.createLiteral("obj4")));
-        connection.add(new StatementImpl(vf.createURI("urn:subj3"), vf.createURI("urn:pred"), vf.createLiteral("obj1")));
-        connection.add(new StatementImpl(vf.createURI("urn:subj3"), vf.createURI("urn:pred"), vf.createLiteral("obj4")));
+        connection.add(VF.createStatement(VF.createIRI("urn:subj1"), VF.createIRI("urn:pred"), VF.createLiteral("obj1")));
+        connection.add(VF.createStatement(VF.createIRI("urn:subj1"), VF.createIRI("urn:pred"), VF.createLiteral("obj2")));
+        connection.add(VF.createStatement(VF.createIRI("urn:subj1"), VF.createIRI("urn:pred"), VF.createLiteral("obj3")));
+        connection.add(VF.createStatement(VF.createIRI("urn:subj1"), VF.createIRI("urn:pred"), VF.createLiteral("obj4")));
+        connection.add(VF.createStatement(VF.createIRI("urn:subj2"), VF.createIRI("urn:pred"), VF.createLiteral("obj1")));
+        connection.add(VF.createStatement(VF.createIRI("urn:subj2"), VF.createIRI("urn:pred"), VF.createLiteral("obj2")));
+        connection.add(VF.createStatement(VF.createIRI("urn:subj2"), VF.createIRI("urn:pred"), VF.createLiteral("obj3")));
+        connection.add(VF.createStatement(VF.createIRI("urn:subj2"), VF.createIRI("urn:pred"), VF.createLiteral("obj4")));
+        connection.add(VF.createStatement(VF.createIRI("urn:subj3"), VF.createIRI("urn:pred"), VF.createLiteral("obj1")));
+        connection.add(VF.createStatement(VF.createIRI("urn:subj3"), VF.createIRI("urn:pred"), VF.createLiteral("obj4")));
 
         //Foreign Chars
-        connection.add(new StatementImpl(vf.createURI("urn:subj1"), vf.createURI("urn:pred"), vf.createLiteral(FAN_CH_SIM))); 
-        connection.add(new StatementImpl(vf.createURI("urn:subj1"), vf.createURI("urn:pred"), vf.createLiteral(FAN_CH_TRAD))); 
-        connection.add(new StatementImpl(vf.createURI("urn:subj1"), vf.createURI("urn:pred"), vf.createLiteral(FAN_TH))); 
-        connection.add(new StatementImpl(vf.createURI("urn:subj1"), vf.createURI("urn:pred"), vf.createLiteral(FAN_RN))); 
-        connection.add(new StatementImpl(vf.createURI("urn:subj2"), vf.createURI("urn:pred"), vf.createLiteral(FAN_CH_SIM)));
-        connection.add(new StatementImpl(vf.createURI("urn:subj2"), vf.createURI("urn:pred"), vf.createLiteral(FAN_CH_TRAD)));
-        connection.add(new StatementImpl(vf.createURI("urn:subj2"), vf.createURI("urn:pred"), vf.createLiteral(FAN_TH)));
-        connection.add(new StatementImpl(vf.createURI("urn:subj2"), vf.createURI("urn:pred"), vf.createLiteral(FAN_RN)));
-        connection.add(new StatementImpl(vf.createURI("urn:subj3"), vf.createURI("urn:pred"), vf.createLiteral(FAN_CH_SIM)));
-        connection.add(new StatementImpl(vf.createURI("urn:subj3"), vf.createURI("urn:pred"), vf.createLiteral(FAN_CH_TRAD)));
+        connection.add(VF.createStatement(VF.createIRI("urn:subj1"), VF.createIRI("urn:pred"), VF.createLiteral(FAN_CH_SIM)));
+        connection.add(VF.createStatement(VF.createIRI("urn:subj1"), VF.createIRI("urn:pred"), VF.createLiteral(FAN_CH_TRAD)));
+        connection.add(VF.createStatement(VF.createIRI("urn:subj1"), VF.createIRI("urn:pred"), VF.createLiteral(FAN_TH)));
+        connection.add(VF.createStatement(VF.createIRI("urn:subj1"), VF.createIRI("urn:pred"), VF.createLiteral(FAN_RN)));
+        connection.add(VF.createStatement(VF.createIRI("urn:subj2"), VF.createIRI("urn:pred"), VF.createLiteral(FAN_CH_SIM)));
+        connection.add(VF.createStatement(VF.createIRI("urn:subj2"), VF.createIRI("urn:pred"), VF.createLiteral(FAN_CH_TRAD)));
+        connection.add(VF.createStatement(VF.createIRI("urn:subj2"), VF.createIRI("urn:pred"), VF.createLiteral(FAN_TH)));
+        connection.add(VF.createStatement(VF.createIRI("urn:subj2"), VF.createIRI("urn:pred"), VF.createLiteral(FAN_RN)));
+        connection.add(VF.createStatement(VF.createIRI("urn:subj3"), VF.createIRI("urn:pred"), VF.createLiteral(FAN_CH_SIM)));
+        connection.add(VF.createStatement(VF.createIRI("urn:subj3"), VF.createIRI("urn:pred"), VF.createLiteral(FAN_CH_TRAD)));
         
         connection.commit();
     }
@@ -217,7 +219,7 @@ public class RdfCloudTripleStoreTest extends TestCase {
         GregorianCalendar gregorianCalendar = new GregorianCalendar();
         gregorianCalendar.setTimeInMillis(ts);
         //"2011-07-12T05:12:00.000Z"^^xsd:dateTime
-        return "\"" + vf.createLiteral(DatatypeFactory.newInstance().newXMLGregorianCalendar(gregorianCalendar)).stringValue() + "\"^^xsd:dateTime";
+        return "\"" + VF.createLiteral(DatatypeFactory.newInstance().newXMLGregorianCalendar(gregorianCalendar)).stringValue() + "\"^^xsd:dateTime";
     }
 
 //    public void testScanAll() throws Exception {
@@ -263,7 +265,7 @@ public class RdfCloudTripleStoreTest extends TestCase {
     }
 
     public void testAddCommitStatement() throws Exception {
-        StatementImpl stmt = new StatementImpl(vf.createURI("urn:namespace#subj"), vf.createURI("urn:namespace#pred"), vf.createLiteral("object"));
+        Statement stmt = VF.createStatement(VF.createIRI("urn:namespace#subj"), VF.createIRI("urn:namespace#pred"), VF.createLiteral("object"));
         connection.add(stmt);
         connection.commit();
     }
@@ -404,7 +406,7 @@ public class RdfCloudTripleStoreTest extends TestCase {
         TupleQuery tupleQuery = connection.prepareTupleQuery(QueryLanguage.SPARQL, query);
 //        tupleQuery.setBinding(START_BINDING, vf.createLiteral(START));
 //        tupleQuery.setBinding(END_BINDING, vf.createLiteral(END));
-//        tupleQuery.setBinding(TIME_PREDICATE, vf.createURI(NAMESPACE, "performedAt"));
+//        tupleQuery.setBinding(TIME_PREDICATE, vf.createIRI(NAMESPACE, "performedAt"));
 //                tupleQuery.evaluate(new PrintTupleHandler());
         CountTupleHandler tupleHandler = new CountTupleHandler();
         tupleQuery.evaluate(tupleHandler);
@@ -464,7 +466,7 @@ public class RdfCloudTripleStoreTest extends TestCase {
         TupleQuery tupleQuery = connection.prepareTupleQuery(QueryLanguage.SPARQL, query);
 //        tupleQuery.setBinding(START_BINDING, vf.createLiteral(START));
 //        tupleQuery.setBinding(END_BINDING, vf.createLiteral(END));
-//        tupleQuery.setBinding(TIME_PREDICATE, vf.createURI(NAMESPACE, "performedAt"));
+//        tupleQuery.setBinding(TIME_PREDICATE, vf.createIRI(NAMESPACE, "performedAt"));
 //                tupleQuery.evaluate(new PrintTupleHandler());
         CountTupleHandler tupleHandler = new CountTupleHandler();
         tupleQuery.evaluate(tupleHandler);
@@ -494,7 +496,7 @@ public class RdfCloudTripleStoreTest extends TestCase {
         TupleQuery tupleQuery = connection.prepareTupleQuery(QueryLanguage.SPARQL, query);
 //        tupleQuery.setBinding(START_BINDING, vf.createLiteral(START));
 //        tupleQuery.setBinding(END_BINDING, vf.createLiteral(END));
-//        tupleQuery.setBinding(TIME_PREDICATE, vf.createURI(NAMESPACE, "performedAt"));
+//        tupleQuery.setBinding(TIME_PREDICATE, vf.createIRI(NAMESPACE, "performedAt"));
 //        tupleQuery.evaluate(new PrintTupleHandler());
         CountTupleHandler tupleHandler = new CountTupleHandler();
         tupleQuery.evaluate(tupleHandler);

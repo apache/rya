@@ -19,13 +19,15 @@ package org.apache.rya.camel.cbsail;
  * under the License.
  */
 
+import static com.google.common.base.Preconditions.checkNotNull;
 
-
-import org.apache.camel.*;
+import org.apache.camel.Component;
+import org.apache.camel.Consumer;
+import org.apache.camel.Processor;
+import org.apache.camel.Producer;
+import org.apache.camel.RuntimeCamelException;
 import org.apache.camel.impl.DefaultEndpoint;
-import org.openrdf.repository.Repository;
-
-import static com.google.common.base.Preconditions.*;
+import org.eclipse.rdf4j.repository.Repository;
 
 /**
  * setHeader(SPARQL, sqarlQuery).setHeader(TTL, ttl).to("cbsail:server?port=2181&user=user&pwd=pwd&instanceName=name").getBody(<Triple Map>)

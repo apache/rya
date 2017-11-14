@@ -27,36 +27,36 @@ import java.util.Stack;
 
 import org.apache.rya.accumulo.AccumuloRdfConfiguration;
 import org.apache.rya.rdftriplestore.utils.FixedStatementPattern;
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.Resource;
+import org.eclipse.rdf4j.model.Statement;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
+import org.eclipse.rdf4j.model.vocabulary.RDF;
+import org.eclipse.rdf4j.model.vocabulary.RDFS;
+import org.eclipse.rdf4j.query.algebra.Join;
+import org.eclipse.rdf4j.query.algebra.Projection;
+import org.eclipse.rdf4j.query.algebra.ProjectionElem;
+import org.eclipse.rdf4j.query.algebra.ProjectionElemList;
+import org.eclipse.rdf4j.query.algebra.StatementPattern;
+import org.eclipse.rdf4j.query.algebra.TupleExpr;
+import org.eclipse.rdf4j.query.algebra.Union;
+import org.eclipse.rdf4j.query.algebra.Var;
 import org.junit.Assert;
 import org.junit.Test;
-import org.openrdf.model.Resource;
-import org.openrdf.model.Statement;
-import org.openrdf.model.URI;
-import org.openrdf.model.ValueFactory;
-import org.openrdf.model.impl.ValueFactoryImpl;
-import org.openrdf.model.vocabulary.RDF;
-import org.openrdf.model.vocabulary.RDFS;
-import org.openrdf.query.algebra.Join;
-import org.openrdf.query.algebra.Projection;
-import org.openrdf.query.algebra.ProjectionElem;
-import org.openrdf.query.algebra.ProjectionElemList;
-import org.openrdf.query.algebra.StatementPattern;
-import org.openrdf.query.algebra.TupleExpr;
-import org.openrdf.query.algebra.Union;
-import org.openrdf.query.algebra.Var;
 
 public class DomainRangeVisitorTest {
     private static final AccumuloRdfConfiguration conf = new AccumuloRdfConfiguration();
-    private static final ValueFactory vf = new ValueFactoryImpl();
-    private static final URI person = vf.createURI("lubm:Person");
-    private static final URI advisor = vf.createURI("lubm:advisor");
-    private static final URI takesCourse = vf.createURI("lubm:takesCourse");
+    private static final ValueFactory VF = SimpleValueFactory.getInstance();
+    private static final IRI person = VF.createIRI("lubm:Person");
+    private static final IRI advisor = VF.createIRI("lubm:advisor");
+    private static final IRI takesCourse = VF.createIRI("lubm:takesCourse");
 
     @Test
     public void testRewriteTypePattern() throws Exception {
         final InferenceEngine inferenceEngine = mock(InferenceEngine.class);
-        final Set<URI> domainPredicates = new HashSet<>();
-        final Set<URI> rangePredicates = new HashSet<>();
+        final Set<IRI> domainPredicates = new HashSet<>();
+        final Set<IRI> rangePredicates = new HashSet<>();
         domainPredicates.add(advisor);
         domainPredicates.add(takesCourse);
         rangePredicates.add(advisor);

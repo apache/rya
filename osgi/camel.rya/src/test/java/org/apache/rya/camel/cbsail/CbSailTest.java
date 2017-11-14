@@ -19,16 +19,11 @@ package org.apache.rya.camel.cbsail;
  * under the License.
  */
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
-
-import org.apache.rya.accumulo.AccumuloRdfConfiguration;
-import org.apache.rya.accumulo.AccumuloRyaDAO;
-import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
-import org.apache.rya.api.RdfCloudTripleStoreConstants;
-import org.apache.rya.rdftriplestore.RdfCloudTripleStore;
-import org.apache.rya.rdftriplestore.RyaSailRepository;
-import org.apache.rya.rdftriplestore.inference.InferenceEngine;
-import org.apache.rya.rdftriplestore.namespace.NamespaceManager;
 import org.apache.accumulo.core.client.Connector;
 import org.apache.accumulo.core.client.Instance;
 import org.apache.accumulo.core.client.mock.MockInstance;
@@ -39,17 +34,20 @@ import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.component.mock.MockEndpoint;
 import org.apache.camel.impl.JndiRegistry;
 import org.apache.camel.test.CamelTestSupport;
-import org.openrdf.model.Statement;
-import org.openrdf.model.URI;
-import org.openrdf.model.ValueFactory;
-import org.openrdf.model.impl.StatementImpl;
-import org.openrdf.repository.Repository;
-import org.openrdf.repository.RepositoryConnection;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import org.apache.rya.accumulo.AccumuloRdfConfiguration;
+import org.apache.rya.accumulo.AccumuloRyaDAO;
+import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
+import org.apache.rya.api.RdfCloudTripleStoreConstants;
+import org.apache.rya.rdftriplestore.RdfCloudTripleStore;
+import org.apache.rya.rdftriplestore.RyaSailRepository;
+import org.apache.rya.rdftriplestore.inference.InferenceEngine;
+import org.apache.rya.rdftriplestore.namespace.NamespaceManager;
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.Statement;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
+import org.eclipse.rdf4j.repository.Repository;
+import org.eclipse.rdf4j.repository.RepositoryConnection;
 
 /**
  */
@@ -59,7 +57,7 @@ public class CbSailTest extends CamelTestSupport {
 
     private RdfCloudTripleStore store;
     private Repository repository;
-    private ValueFactory vf = RdfCloudTripleStoreConstants.VALUE_FACTORY;
+    private static final ValueFactory VF = SimpleValueFactory.getInstance();
 
     @EndpointInject(uri = "mock:results")
     protected MockEndpoint resultEndpoint;
@@ -108,9 +106,9 @@ public class CbSailTest extends CamelTestSupport {
     
     public void testSimpleQuery() throws Exception {
         RepositoryConnection conn = repository.getConnection();
-        URI cpu = vf.createURI(litdupsNS, "cpu");
-        URI loadPerc = vf.createURI(litdupsNS, "loadPerc");
-        URI uri1 = vf.createURI(litdupsNS, "uri1");
+        IRI cpu = VF.createIRI(litdupsNS, "cpu");
+        IRI loadPerc = VF.createIRI(litdupsNS, "loadPerc");
+        IRI uri1 = VF.createIRI(litdupsNS, "uri1");
         conn.add(cpu, loadPerc, uri1);
         conn.commit();
         conn.close();
@@ -128,11 +126,11 @@ public class CbSailTest extends CamelTestSupport {
 
     public void testSimpleQueryAuth() throws Exception {
         RepositoryConnection conn = repository.getConnection();
-        URI cpu = vf.createURI(litdupsNS, "cpu");
-        URI loadPerc = vf.createURI(litdupsNS, "loadPerc");
-        URI uri1 = vf.createURI(litdupsNS, "uri1");
-        URI uri2 = vf.createURI(litdupsNS, "uri2");
-        URI auth1 = vf.createURI(RdfCloudTripleStoreConstants.AUTH_NAMESPACE, "auth1");
+        IRI cpu = VF.createIRI(litdupsNS, "cpu");
+        IRI loadPerc = VF.createIRI(litdupsNS, "loadPerc");
+        IRI uri1 = VF.createIRI(litdupsNS, "uri1");
+        IRI uri2 = VF.createIRI(litdupsNS, "uri2");
+        IRI auth1 = VF.createIRI(RdfCloudTripleStoreConstants.AUTH_NAMESPACE, "auth1");
         conn.add(cpu, loadPerc, uri1, auth1);
         conn.add(cpu, loadPerc, uri2);
         conn.commit();
@@ -162,13 +160,13 @@ public class CbSailTest extends CamelTestSupport {
     }
     
     public void testInsertData() throws Exception {
-        URI cpu = vf.createURI(litdupsNS, "cpu");
-        URI loadPerc = vf.createURI(litdupsNS, "loadPerc");
-        URI uri1 = vf.createURI(litdupsNS, "uri1");
-        URI uri2 = vf.createURI(litdupsNS, "uri2");
+        IRI cpu = VF.createIRI(litdupsNS, "cpu");
+        IRI loadPerc = VF.createIRI(litdupsNS, "loadPerc");
+        IRI uri1 = VF.createIRI(litdupsNS, "uri1");
+        IRI uri2 = VF.createIRI(litdupsNS, "uri2");
         List<Statement> insert = new ArrayList<Statement>();
-        insert.add(new StatementImpl(cpu, loadPerc, uri1));
-        insert.add(new StatementImpl(cpu, loadPerc, uri2));
+        insert.add(VF.createStatement(cpu, loadPerc, uri1));
+        insert.add(VF.createStatement(cpu, loadPerc, uri2));
 
         resultEndpoint.expectedBodiesReceived(true);
         template.sendBody(insert);

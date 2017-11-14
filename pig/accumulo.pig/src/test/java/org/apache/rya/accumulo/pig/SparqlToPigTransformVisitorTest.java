@@ -19,15 +19,13 @@ package org.apache.rya.accumulo.pig;
  * under the License.
  */
 
-
-
 import junit.framework.TestCase;
 import org.apache.rya.accumulo.pig.optimizer.SimilarVarJoinOptimizer;
-import org.openrdf.query.algebra.QueryRoot;
-import org.openrdf.query.algebra.TupleExpr;
-import org.openrdf.query.parser.ParsedQuery;
-import org.openrdf.query.parser.QueryParser;
-import org.openrdf.query.parser.sparql.SPARQLParser;
+import org.eclipse.rdf4j.query.algebra.QueryRoot;
+import org.eclipse.rdf4j.query.algebra.TupleExpr;
+import org.eclipse.rdf4j.query.parser.ParsedQuery;
+import org.eclipse.rdf4j.query.parser.QueryParser;
+import org.eclipse.rdf4j.query.parser.sparql.SPARQLParser;
 
 /**
  * Created by IntelliJ IDEA.

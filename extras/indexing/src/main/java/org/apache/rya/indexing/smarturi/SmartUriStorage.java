@@ -26,8 +26,8 @@ import org.apache.rya.indexing.entity.model.Type;
 import org.apache.rya.indexing.entity.model.TypedEntity;
 import org.apache.rya.indexing.entity.storage.mongo.ConvertingCursor;
 import org.calrissian.mango.collect.CloseableIterator;
-import org.openrdf.model.URI;
-import org.openrdf.model.Value;
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.Value;
 
 /**
  * Interface for interacting with a Smart URI's datastore.
@@ -37,10 +37,10 @@ public interface SmartUriStorage {
      * Stores the map into the datastore.
      * @param subject the {@link RyaURI} subject of the Entity. Identifies the
      * thing that is being represented as an Entity.
-     * @param map the {@link Map} of {@link URI}s to {@link Value}s.
+     * @param map the {@link Map} of {@link IRI}s to {@link Value}s.
      * @throws SmartUriException
      */
-    public void storeEntity(final RyaURI subject, final Map<URI, Value> map) throws SmartUriException;
+    public void storeEntity(final RyaURI subject, final Map<IRI, Value> map) throws SmartUriException;
 
     /**
      * Stores the entity into the datastore.
@@ -69,10 +69,10 @@ public interface SmartUriStorage {
     /**
      * Queries the datastore for the map.
      * @param type the type associated with the entity values.
-     * @param map the {@link Map} of {@link URI}s to {@link Value}s.
+     * @param map the {@link Map} of {@link IRI}s to {@link Value}s.
      * @return a {@link CloseableIterator} over the {@link TypedEntity}s that
      * match the search parameters.
      * @throws SmartUriException
      */
-   public ConvertingCursor<TypedEntity> queryEntity(final Type type, final Map<URI, Value> map) throws SmartUriException;
+    public ConvertingCursor<TypedEntity> queryEntity(final Type type, final Map<IRI, Value> map) throws SmartUriException;
 }

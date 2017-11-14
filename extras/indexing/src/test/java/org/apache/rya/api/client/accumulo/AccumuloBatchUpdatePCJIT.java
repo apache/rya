@@ -34,12 +34,12 @@ import org.apache.rya.indexing.pcj.storage.PrecomputedJoinStorage;
 import org.apache.rya.indexing.pcj.storage.PrecomputedJoinStorage.CloseableIterator;
 import org.apache.rya.indexing.pcj.storage.accumulo.AccumuloPcjStorage;
 import org.apache.rya.sail.config.RyaSailFactory;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.query.BindingSet;
+import org.eclipse.rdf4j.query.impl.MapBindingSet;
+import org.eclipse.rdf4j.sail.Sail;
+import org.eclipse.rdf4j.sail.SailConnection;
 import org.junit.Test;
-import org.openrdf.model.ValueFactory;
-import org.openrdf.query.BindingSet;
-import org.openrdf.query.impl.MapBindingSet;
-import org.openrdf.sail.Sail;
-import org.openrdf.sail.SailConnection;
 
 /**
  * Integration tests the methods of {@link AccumuloBatchUpdatePCJ}.
@@ -82,23 +82,23 @@ public class AccumuloBatchUpdatePCJIT extends AccumuloITBase {
 
             final SailConnection sailConn = sail.getConnection();
             sailConn.begin();
-            sailConn.addStatement(vf.createURI("urn:Alice"), vf.createURI("urn:likes"), vf.createURI("urn:icecream"));
-            sailConn.addStatement(vf.createURI("urn:Bob"), vf.createURI("urn:likes"), vf.createURI("urn:icecream"));
-            sailConn.addStatement(vf.createURI("urn:Charlie"), vf.createURI("urn:likes"), vf.createURI("urn:icecream"));
-            sailConn.addStatement(vf.createURI("urn:David"), vf.createURI("urn:likes"), vf.createURI("urn:icecream"));
-            sailConn.addStatement(vf.createURI("urn:Eve"), vf.createURI("urn:likes"), vf.createURI("urn:icecream"));
-            sailConn.addStatement(vf.createURI("urn:Frank"), vf.createURI("urn:likes"), vf.createURI("urn:icecream"));
-            sailConn.addStatement(vf.createURI("urn:George"), vf.createURI("urn:likes"), vf.createURI("urn:icecream"));
-            sailConn.addStatement(vf.createURI("urn:Hillary"), vf.createURI("urn:likes"), vf.createURI("urn:icecream"));
+            sailConn.addStatement(vf.createIRI("urn:Alice"), vf.createIRI("urn:likes"), vf.createIRI("urn:icecream"));
+            sailConn.addStatement(vf.createIRI("urn:Bob"), vf.createIRI("urn:likes"), vf.createIRI("urn:icecream"));
+            sailConn.addStatement(vf.createIRI("urn:Charlie"), vf.createIRI("urn:likes"), vf.createIRI("urn:icecream"));
+            sailConn.addStatement(vf.createIRI("urn:David"), vf.createIRI("urn:likes"), vf.createIRI("urn:icecream"));
+            sailConn.addStatement(vf.createIRI("urn:Eve"), vf.createIRI("urn:likes"), vf.createIRI("urn:icecream"));
+            sailConn.addStatement(vf.createIRI("urn:Frank"), vf.createIRI("urn:likes"), vf.createIRI("urn:icecream"));
+            sailConn.addStatement(vf.createIRI("urn:George"), vf.createIRI("urn:likes"), vf.createIRI("urn:icecream"));
+            sailConn.addStatement(vf.createIRI("urn:Hillary"), vf.createIRI("urn:likes"), vf.createIRI("urn:icecream"));
 
-            sailConn.addStatement(vf.createURI("urn:Alice"), vf.createURI("urn:hasEyeColor"), vf.createURI("urn:blue"));
-            sailConn.addStatement(vf.createURI("urn:Bob"), vf.createURI("urn:hasEyeColor"), vf.createURI("urn:blue"));
-            sailConn.addStatement(vf.createURI("urn:Charlie"), vf.createURI("urn:hasEyeColor"), vf.createURI("urn:blue"));
-            sailConn.addStatement(vf.createURI("urn:David"), vf.createURI("urn:hasEyeColor"), vf.createURI("urn:blue"));
-            sailConn.addStatement(vf.createURI("urn:Eve"), vf.createURI("urn:hasEyeColor"), vf.createURI("urn:blue"));
-            sailConn.addStatement(vf.createURI("urn:Frank"), vf.createURI("urn:hasEyeColor"), vf.createURI("urn:blue"));
-            sailConn.addStatement(vf.createURI("urn:George"), vf.createURI("urn:hasEyeColor"), vf.createURI("urn:green"));
-            sailConn.addStatement(vf.createURI("urn:Hillary"), vf.createURI("urn:hasEyeColor"), vf.createURI("urn:brown"));
+            sailConn.addStatement(vf.createIRI("urn:Alice"), vf.createIRI("urn:hasEyeColor"), vf.createIRI("urn:blue"));
+            sailConn.addStatement(vf.createIRI("urn:Bob"), vf.createIRI("urn:hasEyeColor"), vf.createIRI("urn:blue"));
+            sailConn.addStatement(vf.createIRI("urn:Charlie"), vf.createIRI("urn:hasEyeColor"), vf.createIRI("urn:blue"));
+            sailConn.addStatement(vf.createIRI("urn:David"), vf.createIRI("urn:hasEyeColor"), vf.createIRI("urn:blue"));
+            sailConn.addStatement(vf.createIRI("urn:Eve"), vf.createIRI("urn:hasEyeColor"), vf.createIRI("urn:blue"));
+            sailConn.addStatement(vf.createIRI("urn:Frank"), vf.createIRI("urn:hasEyeColor"), vf.createIRI("urn:blue"));
+            sailConn.addStatement(vf.createIRI("urn:George"), vf.createIRI("urn:hasEyeColor"), vf.createIRI("urn:green"));
+            sailConn.addStatement(vf.createIRI("urn:Hillary"), vf.createIRI("urn:hasEyeColor"), vf.createIRI("urn:brown"));
             sailConn.commit();
             sailConn.close();
 
@@ -113,27 +113,27 @@ public class AccumuloBatchUpdatePCJIT extends AccumuloITBase {
             final Set<BindingSet> expectedResults = new HashSet<>();
 
             MapBindingSet bs = new MapBindingSet();
-            bs.addBinding("name", vf.createURI("urn:Alice"));
+            bs.addBinding("name", vf.createIRI("urn:Alice"));
             expectedResults.add(bs);
 
             bs = new MapBindingSet();
-            bs.addBinding("name", vf.createURI("urn:Bob"));
+            bs.addBinding("name", vf.createIRI("urn:Bob"));
             expectedResults.add(bs);
 
             bs = new MapBindingSet();
-            bs.addBinding("name", vf.createURI("urn:Charlie"));
+            bs.addBinding("name", vf.createIRI("urn:Charlie"));
             expectedResults.add(bs);
 
             bs = new MapBindingSet();
-            bs.addBinding("name", vf.createURI("urn:David"));
+            bs.addBinding("name", vf.createIRI("urn:David"));
             expectedResults.add(bs);
 
             bs = new MapBindingSet();
-            bs.addBinding("name", vf.createURI("urn:Eve"));
+            bs.addBinding("name", vf.createIRI("urn:Eve"));
             expectedResults.add(bs);
 
             bs = new MapBindingSet();
-            bs.addBinding("name", vf.createURI("urn:Frank"));
+            bs.addBinding("name", vf.createIRI("urn:Frank"));
             expectedResults.add(bs);
 
             final Set<BindingSet> results = new HashSet<>();

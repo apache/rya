@@ -19,12 +19,10 @@ package org.apache.rya.api.utils;
  * under the License.
  */
 
-
-
-import org.openrdf.model.Resource;
-import org.openrdf.model.Statement;
-import org.openrdf.model.URI;
-import org.openrdf.model.Value;
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.Resource;
+import org.eclipse.rdf4j.model.Statement;
+import org.eclipse.rdf4j.model.Value;
 
 /**
  * Class NullableStatementImpl
@@ -34,11 +32,11 @@ import org.openrdf.model.Value;
 public class NullableStatementImpl implements Statement {
 
     private Resource subject;
-    private URI predicate;
+    private IRI predicate;
     private Value object;
     private Resource[] contexts;
 
-    public NullableStatementImpl(Resource subject, URI predicate, Value object, Resource... contexts) {
+    public NullableStatementImpl(Resource subject, IRI predicate, Value object, Resource... contexts) {
         this.subject = subject;
         this.predicate = predicate;
         this.object = object;
@@ -81,7 +79,7 @@ public class NullableStatementImpl implements Statement {
         return object;
     }
 
-    public URI getPredicate() {
+    public IRI getPredicate() {
         return predicate;
     }
 

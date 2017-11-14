@@ -17,6 +17,7 @@ package org.apache.rya.indexing.pcj.fluo.integration;
  * specific language governing permissions and limitations
  * under the License.
  */
+
 import static java.util.Objects.requireNonNull;
 
 import java.util.ArrayList;
@@ -33,7 +34,6 @@ import java.util.stream.Collectors;
 import org.apache.fluo.api.client.FluoClient;
 import org.apache.fluo.api.config.ObserverSpecification;
 import org.apache.fluo.core.client.FluoClientImpl;
-import org.apache.fluo.recipes.test.FluoITHelper;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
@@ -58,13 +58,13 @@ import org.apache.rya.indexing.pcj.fluo.app.observers.QueryResultObserver;
 import org.apache.rya.indexing.pcj.fluo.app.observers.StatementPatternObserver;
 import org.apache.rya.indexing.pcj.fluo.app.observers.TripleObserver;
 import org.apache.rya.pcj.fluo.test.base.KafkaExportITBase;
+import org.eclipse.rdf4j.model.Statement;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
+import org.eclipse.rdf4j.model.vocabulary.RDF;
+import org.eclipse.rdf4j.model.vocabulary.XMLSchema;
 import org.junit.Assert;
 import org.junit.Test;
-import org.openrdf.model.Statement;
-import org.openrdf.model.ValueFactory;
-import org.openrdf.model.impl.ValueFactoryImpl;
-import org.openrdf.model.vocabulary.RDF;
-import org.openrdf.model.vocabulary.XMLSchema;
 
 import com.google.common.collect.Sets;
 
@@ -114,11 +114,11 @@ public class KafkaRyaSubGraphExportIT extends KafkaExportITBase {
                 + "?customer <urn:talksTo> ?worker. " + "?worker <urn:livesIn> ?city. " + "?worker <urn:worksAt> <urn:burgerShack>. " + "}";
 
         // Create the Statements that will be loaded into Rya.
-        final ValueFactory vf = new ValueFactoryImpl();
+        final ValueFactory vf = SimpleValueFactory.getInstance();
         final Collection<Statement> statements = Sets.newHashSet(
-                vf.createStatement(vf.createURI("urn:Joe"), vf.createURI("urn:talksTo"), vf.createURI("urn:Bob")),
-                vf.createStatement(vf.createURI("urn:Bob"), vf.createURI("urn:livesIn"), vf.createURI("urn:London")),
-                vf.createStatement(vf.createURI("urn:Bob"), vf.createURI("urn:worksAt"), vf.createURI("urn:burgerShack")));
+                vf.createStatement(vf.createIRI("urn:Joe"), vf.createIRI("urn:talksTo"), vf.createIRI("urn:Bob")),
+                vf.createStatement(vf.createIRI("urn:Bob"), vf.createIRI("urn:livesIn"), vf.createIRI("urn:London")),
+                vf.createStatement(vf.createIRI("urn:Bob"), vf.createIRI("urn:worksAt"), vf.createIRI("urn:burgerShack")));
 
         // Create the PCJ in Fluo and load the statements into Rya.
         final String pcjId = loadStatements(sparql, statements);
@@ -306,24 +306,24 @@ public class KafkaRyaSubGraphExportIT extends KafkaExportITBase {
                 + "}GROUP BY ?location }}";
 
         // Create the Statements that will be loaded into Rya.
-        final ValueFactory vf = new ValueFactoryImpl();
+        final ValueFactory vf = SimpleValueFactory.getInstance();
         final Collection<Statement> statements = Sets.newHashSet(
-                vf.createStatement(vf.createURI("urn:obs1"), vf.createURI("urn:hasVelocity"), vf.createLiteral(77)),
-                vf.createStatement(vf.createURI("urn:obs1"), vf.createURI("urn:hasLocation"), vf.createLiteral("OldTown")),
-                vf.createStatement(vf.createURI("urn:obs2"), vf.createURI("urn:hasVelocity"), vf.createLiteral(81)),
-                vf.createStatement(vf.createURI("urn:obs2"), vf.createURI("urn:hasLocation"), vf.createLiteral("OldTown")),
-                vf.createStatement(vf.createURI("urn:obs3"), vf.createURI("urn:hasVelocity"), vf.createLiteral(70)),
-                vf.createStatement(vf.createURI("urn:obs3"), vf.createURI("urn:hasLocation"), vf.createLiteral("OldTown")),
-                vf.createStatement(vf.createURI("urn:obs5"), vf.createURI("urn:hasVelocity"), vf.createLiteral(87)),
-                vf.createStatement(vf.createURI("urn:obs5"), vf.createURI("urn:hasLocation"), vf.createLiteral("Rosslyn")),
-                vf.createStatement(vf.createURI("urn:obs6"), vf.createURI("urn:hasVelocity"), vf.createLiteral(81)),
-                vf.createStatement(vf.createURI("urn:obs6"), vf.createURI("urn:hasLocation"), vf.createLiteral("Rosslyn")),
-                vf.createStatement(vf.createURI("urn:obs7"), vf.createURI("urn:hasVelocity"), vf.createLiteral(67)),
-                vf.createStatement(vf.createURI("urn:obs7"), vf.createURI("urn:hasLocation"), vf.createLiteral("Clarendon")),
-                vf.createStatement(vf.createURI("urn:obs8"), vf.createURI("urn:hasVelocity"), vf.createLiteral(77)),
-                vf.createStatement(vf.createURI("urn:obs8"), vf.createURI("urn:hasLocation"), vf.createLiteral("Ballston")),
-                vf.createStatement(vf.createURI("urn:obs9"), vf.createURI("urn:hasVelocity"), vf.createLiteral(87)),
-                vf.createStatement(vf.createURI("urn:obs9"), vf.createURI("urn:hasLocation"), vf.createLiteral("FallsChurch")));
+                vf.createStatement(vf.createIRI("urn:obs1"), vf.createIRI("urn:hasVelocity"), vf.createLiteral(77)),
+                vf.createStatement(vf.createIRI("urn:obs1"), vf.createIRI("urn:hasLocation"), vf.createLiteral("OldTown")),
+                vf.createStatement(vf.createIRI("urn:obs2"), vf.createIRI("urn:hasVelocity"), vf.createLiteral(81)),
+                vf.createStatement(vf.createIRI("urn:obs2"), vf.createIRI("urn:hasLocation"), vf.createLiteral("OldTown")),
+                vf.createStatement(vf.createIRI("urn:obs3"), vf.createIRI("urn:hasVelocity"), vf.createLiteral(70)),
+                vf.createStatement(vf.createIRI("urn:obs3"), vf.createIRI("urn:hasLocation"), vf.createLiteral("OldTown")),
+                vf.createStatement(vf.createIRI("urn:obs5"), vf.createIRI("urn:hasVelocity"), vf.createLiteral(87)),
+                vf.createStatement(vf.createIRI("urn:obs5"), vf.createIRI("urn:hasLocation"), vf.createLiteral("Rosslyn")),
+                vf.createStatement(vf.createIRI("urn:obs6"), vf.createIRI("urn:hasVelocity"), vf.createLiteral(81)),
+                vf.createStatement(vf.createIRI("urn:obs6"), vf.createIRI("urn:hasLocation"), vf.createLiteral("Rosslyn")),
+                vf.createStatement(vf.createIRI("urn:obs7"), vf.createIRI("urn:hasVelocity"), vf.createLiteral(67)),
+                vf.createStatement(vf.createIRI("urn:obs7"), vf.createIRI("urn:hasLocation"), vf.createLiteral("Clarendon")),
+                vf.createStatement(vf.createIRI("urn:obs8"), vf.createIRI("urn:hasVelocity"), vf.createLiteral(77)),
+                vf.createStatement(vf.createIRI("urn:obs8"), vf.createIRI("urn:hasLocation"), vf.createLiteral("Ballston")),
+                vf.createStatement(vf.createIRI("urn:obs9"), vf.createIRI("urn:hasVelocity"), vf.createLiteral(87)),
+                vf.createStatement(vf.createIRI("urn:obs9"), vf.createIRI("urn:hasLocation"), vf.createLiteral("FallsChurch")));
 
         // Create the PCJ in Fluo and load the statements into Rya.
         final String pcjId = loadStatements(sparql, statements);
@@ -353,7 +353,7 @@ public class KafkaRyaSubGraphExportIT extends KafkaExportITBase {
         expectedResults.add(subGraph2);
         
         Assert.assertEquals(expectedResults.size(), results.size());
-        ConstructGraphTestUtils.subGraphsEqualIgnoresBlankNode(expectedResults, results);;
+        ConstructGraphTestUtils.subGraphsEqualIgnoresBlankNode(expectedResults, results);
     }
     
     

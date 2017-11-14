@@ -40,6 +40,11 @@ under the License.
             <artifactId>rya.api</artifactId>
         </dependency>
         <dependency>
+            <groupId>org.eclipse.rdf4j</groupId>
+            <artifactId>rdf4j-repository-sail</artifactId>
+            <version>${org.eclipse.rdf4j.version}</version>
+        </dependency>
+        <dependency>
             <groupId>org.apache.rya</groupId>
             <artifactId>rya.pcj.fluo.api</artifactId>
         </dependency>
@@ -121,7 +126,7 @@ under the License.
                     <configuration>
                     <excludes>
                         <!--  Trivial listing of classes to be loaded via SPI -->
-                        <exclude>src/main/resources/META-INF/services/org.openrdf.query.algebra.evaluation.function.Function</exclude>
+                        <exclude>src/main/resources/META-INF/services/org.eclipse.rdf4j.query.algebra.evaluation.function.Function</exclude>
                     </excludes>
                     </configuration>
                 </plugin>

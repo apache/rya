@@ -31,12 +31,11 @@ import org.apache.rya.indexing.geotemporal.model.Event;
 import org.apache.rya.indexing.geotemporal.storage.EventStorage;
 import org.junit.Before;
 import org.junit.Test;
-import org.openrdf.model.Resource;
-import org.openrdf.model.URI;
-import org.openrdf.model.Value;
-import org.openrdf.model.ValueFactory;
-import org.openrdf.model.impl.StatementImpl;
-import org.openrdf.model.impl.ValueFactoryImpl;
+import org.eclipse.rdf4j.model.Resource;
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.Value;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 
 import com.vividsolutions.jts.geom.Geometry;
 
@@ -98,18 +97,18 @@ public class MongoGeoTemporalIndexerIT extends MongoITBase {
     }
 
     private static RyaStatement statement(final Geometry geo) {
-        final ValueFactory vf = new ValueFactoryImpl();
-        final Resource subject = vf.createURI("uri:test");
-        final URI predicate = GeoConstants.GEO_AS_WKT;
+        final ValueFactory vf = SimpleValueFactory.getInstance();
+        final Resource subject = vf.createIRI("uri:test");
+        final IRI predicate = GeoConstants.GEO_AS_WKT;
         final Value object = vf.createLiteral(geo.toString(), GeoConstants.XMLSCHEMA_OGC_WKT);
-        return RdfToRyaConversions.convertStatement(new StatementImpl(subject, predicate, object));
+        return RdfToRyaConversions.convertStatement(vf.createStatement(subject, predicate, object));
     }
 
     private static RyaStatement statement(final TemporalInstant instant) {
-        final ValueFactory vf = new ValueFactoryImpl();
-        final Resource subject = vf.createURI("uri:test");
-        final URI predicate = vf.createURI("Property:atTime");
+        final ValueFactory vf = SimpleValueFactory.getInstance();
+        final Resource subject = vf.createIRI("uri:test");
+        final IRI predicate = vf.createIRI("Property:atTime");
         final Value object = vf.createLiteral(instant.toString());
-        return RdfToRyaConversions.convertStatement(new StatementImpl(subject, predicate, object));
+        return RdfToRyaConversions.convertStatement(vf.createStatement(subject, predicate, object));
     }
 }

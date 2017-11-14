@@ -37,18 +37,18 @@ import org.apache.rya.api.client.accumulo.AccumuloRyaClientFactory;
 import org.apache.rya.indexing.pcj.storage.PrecomputedJoinStorage;
 import org.apache.rya.indexing.pcj.storage.accumulo.AccumuloPcjStorage;
 import org.apache.rya.pcj.fluo.test.base.RyaExportITBase;
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.Statement;
+import org.eclipse.rdf4j.model.Value;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
+import org.eclipse.rdf4j.query.BindingSet;
+import org.eclipse.rdf4j.query.algebra.evaluation.ValueExprEvaluationException;
+import org.eclipse.rdf4j.query.algebra.evaluation.function.Function;
+import org.eclipse.rdf4j.query.algebra.evaluation.function.FunctionRegistry;
+import org.eclipse.rdf4j.query.impl.MapBindingSet;
+import org.eclipse.rdf4j.repository.sail.SailRepositoryConnection;
 import org.junit.Test;
-import org.openrdf.model.Statement;
-import org.openrdf.model.URI;
-import org.openrdf.model.Value;
-import org.openrdf.model.ValueFactory;
-import org.openrdf.model.impl.ValueFactoryImpl;
-import org.openrdf.query.BindingSet;
-import org.openrdf.query.algebra.evaluation.ValueExprEvaluationException;
-import org.openrdf.query.algebra.evaluation.function.Function;
-import org.openrdf.query.algebra.evaluation.function.FunctionRegistry;
-import org.openrdf.query.impl.MapBindingSet;
-import org.openrdf.repository.sail.SailRepositoryConnection;
 
 import com.google.common.collect.Sets;
 
@@ -87,12 +87,12 @@ public class GeoFunctionsIT extends RyaExportITBase {
                     " FILTER(ryageo:ehContains(?wkt, \"POLYGON((-77 39, -76 39, -76 38, -77 38, -77 39))\"^^geo:wktLiteral)) " +
                 "}";
 
-        final ValueFactory vf = new ValueFactoryImpl();
+        final ValueFactory vf = SimpleValueFactory.getInstance();
         final Set<Statement> statements = Sets.newHashSet(
-                vf.createStatement(vf.createURI("tag:rya.apache.org,2017:ex#feature"), vf.createURI("http://www.w3.org/1999/02/22-rdf-syntax-ns#type"), vf.createURI("http://www.opengis.net/ont/geosparql#Feature")),
-                vf.createStatement(vf.createURI("tag:rya.apache.org,2017:ex#feature"), vf.createURI("http://www.opengis.net/ont/geosparql#hasGeometry"), vf.createURI("tag:rya.apache.org,2017:ex#test_point")),
-                vf.createStatement(vf.createURI("tag:rya.apache.org,2017:ex#test_point"), vf.createURI("http://www.w3.org/1999/02/22-rdf-syntax-ns#type"), vf.createURI("http://www.opengis.net/ont/geosparql#Point")),
-                vf.createStatement(vf.createURI("tag:rya.apache.org,2017:ex#test_point"), vf.createURI("http://www.opengis.net/ont/geosparql#asWKT"), vf.createLiteral("Point(-77.03524 38.889468)", vf.createURI("http://www.opengis.net/ont/geosparql#wktLiteral"))));
+                vf.createStatement(vf.createIRI("tag:rya.apache.org,2017:ex#feature"), vf.createIRI("http://www.w3.org/1999/02/22-rdf-syntax-ns#type"), vf.createIRI("http://www.opengis.net/ont/geosparql#Feature")),
+                vf.createStatement(vf.createIRI("tag:rya.apache.org,2017:ex#feature"), vf.createIRI("http://www.opengis.net/ont/geosparql#hasGeometry"), vf.createIRI("tag:rya.apache.org,2017:ex#test_point")),
+                vf.createStatement(vf.createIRI("tag:rya.apache.org,2017:ex#test_point"), vf.createIRI("http://www.w3.org/1999/02/22-rdf-syntax-ns#type"), vf.createIRI("http://www.opengis.net/ont/geosparql#Point")),
+                vf.createStatement(vf.createIRI("tag:rya.apache.org,2017:ex#test_point"), vf.createIRI("http://www.opengis.net/ont/geosparql#asWKT"), vf.createLiteral("Point(-77.03524 38.889468)", vf.createIRI("http://www.opengis.net/ont/geosparql#wktLiteral"))));
 
         // Create a Geo function.
         final Function geoFunction = new Function() {
@@ -116,9 +116,9 @@ public class GeoFunctionsIT extends RyaExportITBase {
         // The expected results of the SPARQL query once the PCJ has been computed.
         final Set<BindingSet> expectedResults = new HashSet<>();
         final MapBindingSet bs = new MapBindingSet();
-        bs.addBinding("wkt", vf.createLiteral("Point(-77.03524 38.889468)", vf.createURI("http://www.opengis.net/ont/geosparql#wktLiteral")));
-        bs.addBinding("feature", vf.createURI("tag:rya.apache.org,2017:ex#feature"));
-        bs.addBinding("point", vf.createURI("tag:rya.apache.org,2017:ex#test_point"));
+        bs.addBinding("wkt", vf.createLiteral("Point(-77.03524 38.889468)", vf.createIRI("http://www.opengis.net/ont/geosparql#wktLiteral")));
+        bs.addBinding("feature", vf.createIRI("tag:rya.apache.org,2017:ex#feature"));
+        bs.addBinding("point", vf.createIRI("tag:rya.apache.org,2017:ex#test_point"));
         expectedResults.add(bs);
 
         runTest(sparql, statements, expectedResults);
@@ -139,37 +139,37 @@ public class GeoFunctionsIT extends RyaExportITBase {
                     " FILTER ( !sameTerm (?cityA, ?cityB) ) " +
                 "}";
 
-        final ValueFactory vf = new ValueFactoryImpl();
-        final URI wktTypeUri = vf.createURI("http://www.opengis.net/ont/geosparql#wktLiteral");
-        final URI asWKT = vf.createURI("http://www.opengis.net/ont/geosparql#asWKT");
+        final ValueFactory vf = SimpleValueFactory.getInstance();
+        final IRI wktTypeUri = vf.createIRI("http://www.opengis.net/ont/geosparql#wktLiteral");
+        final IRI asWKT = vf.createIRI("http://www.opengis.net/ont/geosparql#asWKT");
         final Set<Statement> statements = Sets.newHashSet(
-                vf.createStatement(vf.createURI("tag:rya.apache.org,2017:ex#dakar"), asWKT, vf.createLiteral("Point(-17.45 14.69)", wktTypeUri)),
-                vf.createStatement(vf.createURI("tag:rya.apache.org,2017:ex#dakar2"), asWKT, vf.createLiteral("Point(-17.45 14.69)", wktTypeUri)),
-                vf.createStatement(vf.createURI("tag:rya.apache.org,2017:ex#canberra"), asWKT, vf.createLiteral("Point(149.12 -35.31)", wktTypeUri)),
-                vf.createStatement(vf.createURI("tag:rya.apache.org,2017:ex#brussels"), asWKT, vf.createLiteral("Point(4.35 50.85)", wktTypeUri)),
-                vf.createStatement(vf.createURI("tag:rya.apache.org,2017:ex#amsterdam"), asWKT, vf.createLiteral("Point(4.9 52.37)", wktTypeUri)));
+                vf.createStatement(vf.createIRI("tag:rya.apache.org,2017:ex#dakar"), asWKT, vf.createLiteral("Point(-17.45 14.69)", wktTypeUri)),
+                vf.createStatement(vf.createIRI("tag:rya.apache.org,2017:ex#dakar2"), asWKT, vf.createLiteral("Point(-17.45 14.69)", wktTypeUri)),
+                vf.createStatement(vf.createIRI("tag:rya.apache.org,2017:ex#canberra"), asWKT, vf.createLiteral("Point(149.12 -35.31)", wktTypeUri)),
+                vf.createStatement(vf.createIRI("tag:rya.apache.org,2017:ex#brussels"), asWKT, vf.createLiteral("Point(4.35 50.85)", wktTypeUri)),
+                vf.createStatement(vf.createIRI("tag:rya.apache.org,2017:ex#amsterdam"), asWKT, vf.createLiteral("Point(4.9 52.37)", wktTypeUri)));
 
         // The expected results of the SPARQL query once the PCJ has been computed.
         final Set<BindingSet> expectedResults = new HashSet<>();
 
         MapBindingSet bs = new MapBindingSet();
-        bs.addBinding("cityA", vf.createURI("tag:rya.apache.org,2017:ex#dakar"));
-        bs.addBinding("cityB", vf.createURI("tag:rya.apache.org,2017:ex#dakar2"));
+        bs.addBinding("cityA", vf.createIRI("tag:rya.apache.org,2017:ex#dakar"));
+        bs.addBinding("cityB", vf.createIRI("tag:rya.apache.org,2017:ex#dakar2"));
         expectedResults.add(bs);
 
         bs = new MapBindingSet();
-        bs.addBinding("cityA", vf.createURI("tag:rya.apache.org,2017:ex#dakar2"));
-        bs.addBinding("cityB", vf.createURI("tag:rya.apache.org,2017:ex#dakar"));
+        bs.addBinding("cityA", vf.createIRI("tag:rya.apache.org,2017:ex#dakar2"));
+        bs.addBinding("cityB", vf.createIRI("tag:rya.apache.org,2017:ex#dakar"));
         expectedResults.add(bs);
 
         bs = new MapBindingSet();
-        bs.addBinding("cityA", vf.createURI("tag:rya.apache.org,2017:ex#brussels"));
-        bs.addBinding("cityB", vf.createURI("tag:rya.apache.org,2017:ex#amsterdam"));
+        bs.addBinding("cityA", vf.createIRI("tag:rya.apache.org,2017:ex#brussels"));
+        bs.addBinding("cityB", vf.createIRI("tag:rya.apache.org,2017:ex#amsterdam"));
         expectedResults.add(bs);
 
         bs = new MapBindingSet();
-        bs.addBinding("cityA", vf.createURI("tag:rya.apache.org,2017:ex#amsterdam"));
-        bs.addBinding("cityB", vf.createURI("tag:rya.apache.org,2017:ex#brussels"));
+        bs.addBinding("cityA", vf.createIRI("tag:rya.apache.org,2017:ex#amsterdam"));
+        bs.addBinding("cityB", vf.createIRI("tag:rya.apache.org,2017:ex#brussels"));
         expectedResults.add(bs);
 
         runTest(sparql, statements, expectedResults);
@@ -203,22 +203,22 @@ public class GeoFunctionsIT extends RyaExportITBase {
                     "FILTER(geof:sfWithin(?wkt, \"POLYGON((-78 39, -76 39, -76 38, -78 38, -78 39))\"^^geo:wktLiteral)) " +
                 "}";
 
-        final ValueFactory vf = new ValueFactoryImpl();
+        final ValueFactory vf = SimpleValueFactory.getInstance();
         final Set<Statement> statements = Sets.newHashSet(
-                vf.createStatement(vf.createURI("tag:rya.apache.org,2017:ex#feature"), vf.createURI("http://www.w3.org/1999/02/22-rdf-syntax-ns#type"), vf.createURI("http://www.opengis.net/ont/geosparql#Feature")),
-                vf.createStatement(vf.createURI("tag:rya.apache.org,2017:ex#feature"), vf.createURI("http://www.opengis.net/ont/geosparql#hasGeometry"), vf.createURI("tag:rya.apache.org,2017:ex#test_point")),
-                vf.createStatement(vf.createURI("tag:rya.apache.org,2017:ex#test_point"), vf.createURI("http://www.w3.org/1999/02/22-rdf-syntax-ns#type"), vf.createURI("http://www.opengis.net/ont/geosparql#Point")),
-                vf.createStatement(vf.createURI("tag:rya.apache.org,2017:ex#test_point"), vf.createURI("http://www.opengis.net/ont/geosparql#asWKT"), vf.createLiteral("Point(-77.03524 38.889468)", vf.createURI("http://www.opengis.net/ont/geosparql#wktLiteral"))),
-                vf.createStatement(vf.createURI("tag:rya.apache.org,2017:ex#skip_point"), vf.createURI("http://www.w3.org/1999/02/22-rdf-syntax-ns#type"), vf.createURI("http://www.opengis.net/ont/geosparql#Point")),
-                vf.createStatement(vf.createURI("tag:rya.apache.org,2017:ex#skip_point"), vf.createURI("http://www.opengis.net/ont/geosparql#asWKT"), vf.createLiteral("Point(-10 10)", vf.createURI("http://www.opengis.net/ont/geosparql#wktLiteral"))));
+                vf.createStatement(vf.createIRI("tag:rya.apache.org,2017:ex#feature"), vf.createIRI("http://www.w3.org/1999/02/22-rdf-syntax-ns#type"), vf.createIRI("http://www.opengis.net/ont/geosparql#Feature")),
+                vf.createStatement(vf.createIRI("tag:rya.apache.org,2017:ex#feature"), vf.createIRI("http://www.opengis.net/ont/geosparql#hasGeometry"), vf.createIRI("tag:rya.apache.org,2017:ex#test_point")),
+                vf.createStatement(vf.createIRI("tag:rya.apache.org,2017:ex#test_point"), vf.createIRI("http://www.w3.org/1999/02/22-rdf-syntax-ns#type"), vf.createIRI("http://www.opengis.net/ont/geosparql#Point")),
+                vf.createStatement(vf.createIRI("tag:rya.apache.org,2017:ex#test_point"), vf.createIRI("http://www.opengis.net/ont/geosparql#asWKT"), vf.createLiteral("Point(-77.03524 38.889468)", vf.createIRI("http://www.opengis.net/ont/geosparql#wktLiteral"))),
+                vf.createStatement(vf.createIRI("tag:rya.apache.org,2017:ex#skip_point"), vf.createIRI("http://www.w3.org/1999/02/22-rdf-syntax-ns#type"), vf.createIRI("http://www.opengis.net/ont/geosparql#Point")),
+                vf.createStatement(vf.createIRI("tag:rya.apache.org,2017:ex#skip_point"), vf.createIRI("http://www.opengis.net/ont/geosparql#asWKT"), vf.createLiteral("Point(-10 10)", vf.createIRI("http://www.opengis.net/ont/geosparql#wktLiteral"))));
 
         // Register geo functions from RDF4J is done automatically via SPI.
         // The expected results of the SPARQL query once the PCJ has been computed.
         final Set<BindingSet> expectedResults = new HashSet<>();
         final MapBindingSet bs = new MapBindingSet();
-        bs.addBinding("wkt", vf.createLiteral("Point(-77.03524 38.889468)", vf.createURI("http://www.opengis.net/ont/geosparql#wktLiteral")));
-        bs.addBinding("feature", vf.createURI("tag:rya.apache.org,2017:ex#feature"));
-        bs.addBinding("point", vf.createURI("tag:rya.apache.org,2017:ex#test_point"));
+        bs.addBinding("wkt", vf.createLiteral("Point(-77.03524 38.889468)", vf.createIRI("http://www.opengis.net/ont/geosparql#wktLiteral")));
+        bs.addBinding("feature", vf.createIRI("tag:rya.apache.org,2017:ex#feature"));
+        bs.addBinding("point", vf.createIRI("tag:rya.apache.org,2017:ex#test_point"));
         expectedResults.add(bs);
 
         runTest(sparql, statements, expectedResults);
@@ -240,27 +240,27 @@ public class GeoFunctionsIT extends RyaExportITBase {
                     " FILTER ( !sameTerm (?cityA, ?cityB) ) " +
                 "}";
 
-        final ValueFactory vf = new ValueFactoryImpl();
-        final URI wktTypeUri = vf.createURI("http://www.opengis.net/ont/geosparql#wktLiteral");
-        final URI asWKT = vf.createURI("http://www.opengis.net/ont/geosparql#asWKT");
+        final ValueFactory vf = SimpleValueFactory.getInstance();
+        final IRI wktTypeUri = vf.createIRI("http://www.opengis.net/ont/geosparql#wktLiteral");
+        final IRI asWKT = vf.createIRI("http://www.opengis.net/ont/geosparql#asWKT");
         final Set<Statement> statements = Sets.newHashSet(
-                vf.createStatement(vf.createURI("tag:rya.apache.org,2017:ex#dakar"), asWKT, vf.createLiteral("Point(-17.45 14.69)", wktTypeUri)),
-                vf.createStatement(vf.createURI("tag:rya.apache.org,2017:ex#canberra"), asWKT, vf.createLiteral("Point(149.12 -35.31)", wktTypeUri)),
-                vf.createStatement(vf.createURI("tag:rya.apache.org,2017:ex#brussels"), asWKT, vf.createLiteral("Point(4.35 50.85)", wktTypeUri)),
-                vf.createStatement(vf.createURI("tag:rya.apache.org,2017:ex#amsterdam"), asWKT, vf.createLiteral("Point(4.9 52.37)", wktTypeUri)),
-                vf.createStatement(vf.createURI("tag:rya.apache.org,2017:ex#amsterdam2"), asWKT, vf.createLiteral("Point(4.9 52.37)", wktTypeUri)));
+                vf.createStatement(vf.createIRI("tag:rya.apache.org,2017:ex#dakar"), asWKT, vf.createLiteral("Point(-17.45 14.69)", wktTypeUri)),
+                vf.createStatement(vf.createIRI("tag:rya.apache.org,2017:ex#canberra"), asWKT, vf.createLiteral("Point(149.12 -35.31)", wktTypeUri)),
+                vf.createStatement(vf.createIRI("tag:rya.apache.org,2017:ex#brussels"), asWKT, vf.createLiteral("Point(4.35 50.85)", wktTypeUri)),
+                vf.createStatement(vf.createIRI("tag:rya.apache.org,2017:ex#amsterdam"), asWKT, vf.createLiteral("Point(4.9 52.37)", wktTypeUri)),
+                vf.createStatement(vf.createIRI("tag:rya.apache.org,2017:ex#amsterdam2"), asWKT, vf.createLiteral("Point(4.9 52.37)", wktTypeUri)));
 
         // The expected results of the SPARQL query once the PCJ has been computed.
         final Set<BindingSet> expectedResults = new HashSet<>();
 
         MapBindingSet bs = new MapBindingSet();
-        bs.addBinding("cityA", vf.createURI("tag:rya.apache.org,2017:ex#amsterdam"));
-        bs.addBinding("cityB", vf.createURI("tag:rya.apache.org,2017:ex#amsterdam2"));
+        bs.addBinding("cityA", vf.createIRI("tag:rya.apache.org,2017:ex#amsterdam"));
+        bs.addBinding("cityB", vf.createIRI("tag:rya.apache.org,2017:ex#amsterdam2"));
         expectedResults.add(bs);
 
         bs = new MapBindingSet();
-        bs.addBinding("cityA", vf.createURI("tag:rya.apache.org,2017:ex#amsterdam2"));
-        bs.addBinding("cityB", vf.createURI("tag:rya.apache.org,2017:ex#amsterdam"));
+        bs.addBinding("cityA", vf.createIRI("tag:rya.apache.org,2017:ex#amsterdam2"));
+        bs.addBinding("cityB", vf.createIRI("tag:rya.apache.org,2017:ex#amsterdam"));
         expectedResults.add(bs);
 
         runTest(sparql, statements, expectedResults);
@@ -280,14 +280,14 @@ public class GeoFunctionsIT extends RyaExportITBase {
                 "}";
 
         // create some resources and literals to make statements out of
-        final ValueFactory vf = new ValueFactoryImpl();
+        final ValueFactory vf = SimpleValueFactory.getInstance();
         final DatatypeFactory dtf = DatatypeFactory.newInstance();
 
-        final URI dtPredUri = vf.createURI("http://www.w3.org/2006/time#inXSDDateTime");
-        final URI eventz = vf.createURI("<http://eventz>");
+        final IRI dtPredUri = vf.createIRI("http://www.w3.org/2006/time#inXSDDateTime");
+        final IRI eventz = vf.createIRI("<http://eventz>");
 
         final Set<Statement> statements = Sets.newHashSet(
-                vf.createStatement(eventz, vf.createURI("http://www.w3.org/1999/02/22-rdf-syntax-ns#type"), vf.createURI("<http://www.w3.org/2006/time#Instant>")),
+                vf.createStatement(eventz, vf.createIRI("http://www.w3.org/1999/02/22-rdf-syntax-ns#type"), vf.createIRI("<http://www.w3.org/2006/time#Instant>")),
                 vf.createStatement(eventz, dtPredUri, vf.createLiteral(dtf.newXMLGregorianCalendar("2001-01-01T01:01:01-08:00"))), // 1 second
                 vf.createStatement(eventz, dtPredUri, vf.createLiteral(dtf.newXMLGregorianCalendar("2001-01-01T04:01:02.000-05:00"))), // 2 seconds
                 vf.createStatement(eventz, dtPredUri, vf.createLiteral(dtf.newXMLGregorianCalendar("2001-01-01T01:01:03-08:00"))), // 3 seconds

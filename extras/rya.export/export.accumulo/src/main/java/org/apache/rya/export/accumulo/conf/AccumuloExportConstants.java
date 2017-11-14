@@ -27,6 +27,7 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.log4j.Logger;
 import org.apache.rya.accumulo.mr.MRUtils;
 import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
+import org.apache.rya.export.InstanceType;
 import org.apache.rya.indexing.accumulo.ConfigUtils;
 
 import com.google.common.collect.ImmutableList;

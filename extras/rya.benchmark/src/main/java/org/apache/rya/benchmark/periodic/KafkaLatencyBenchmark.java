@@ -53,8 +53,8 @@ import org.apache.rya.api.client.RyaClientException;
 import org.apache.rya.indexing.pcj.fluo.app.export.kafka.KryoVisibilityBindingSetSerializer;
 import org.apache.rya.indexing.pcj.storage.accumulo.VisibilityBindingSet;
 import org.apache.rya.periodic.notification.serialization.BindingSetSerDe;
-import org.openrdf.model.Statement;
-import org.openrdf.query.BindingSet;
+import org.eclipse.rdf4j.model.Statement;
+import org.eclipse.rdf4j.query.BindingSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

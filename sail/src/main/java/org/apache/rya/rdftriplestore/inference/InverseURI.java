@@ -18,14 +18,14 @@
  */
 package org.apache.rya.rdftriplestore.inference;
 
-import org.openrdf.model.URI;
+import org.eclipse.rdf4j.model.IRI;
 
-public class InverseURI implements URI {
+public class InverseURI implements IRI {
     private static final long serialVersionUID = 1L;
 
-    private final URI impl;
+    private final IRI impl;
 
-    public InverseURI(final URI uri) {
+    public InverseURI(final IRI uri) {
         this.impl = uri;
     }
 

@@ -19,20 +19,20 @@ package org.apache.rya.reasoning;
  * under the License.
  */
 
-import org.openrdf.model.URI;
-import org.openrdf.model.impl.ValueFactoryImpl;
-import org.openrdf.model.vocabulary.OWL;
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
+import org.eclipse.rdf4j.model.vocabulary.OWL;
 
 /**
  * Some useful OWL 2 URIs not in Sesame API.
  */
 public class OWL2 {
-    private static URI uri(String local) {
-        return ValueFactoryImpl.getInstance().createURI(OWL.NAMESPACE, local);
+    private static IRI uri(String local) {
+        return SimpleValueFactory.getInstance().createIRI(OWL.NAMESPACE, local);
     }
-    public static final URI ASYMMETRICPROPERTY = uri("AsymmetricProperty");
-    public static final URI IRREFLEXIVEPROPERTY = uri("IrreflexiveProperty");
-    public static final URI PROPERTYDISJOINTWITH = uri("propertyDisjointWith");
-    public static final URI ONCLASS = uri("onClass");
-    public static final URI MAXQUALIFIEDCARDINALITY = uri("maxQualifiedCardinality");
+    public static final IRI ASYMMETRICPROPERTY = uri("AsymmetricProperty");
+    public static final IRI IRREFLEXIVEPROPERTY = uri("IrreflexiveProperty");
+    public static final IRI PROPERTYDISJOINTWITH = uri("propertyDisjointWith");
+    public static final IRI ONCLASS = uri("onClass");
+    public static final IRI MAXQUALIFIEDCARDINALITY = uri("maxQualifiedCardinality");
 }

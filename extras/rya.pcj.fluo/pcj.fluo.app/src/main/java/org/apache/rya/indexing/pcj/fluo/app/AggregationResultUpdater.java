@@ -45,16 +45,16 @@ import org.apache.rya.indexing.pcj.fluo.app.query.FluoQueryColumns;
 import org.apache.rya.indexing.pcj.fluo.app.util.RowKeyUtil;
 import org.apache.rya.indexing.pcj.storage.accumulo.VariableOrder;
 import org.apache.rya.indexing.pcj.storage.accumulo.VisibilityBindingSet;
-import org.openrdf.model.Literal;
-import org.openrdf.model.Value;
-import org.openrdf.model.datatypes.XMLDatatypeUtil;
-import org.openrdf.model.impl.DecimalLiteralImpl;
-import org.openrdf.model.impl.IntegerLiteralImpl;
-import org.openrdf.query.algebra.MathExpr.MathOp;
-import org.openrdf.query.algebra.evaluation.ValueExprEvaluationException;
-import org.openrdf.query.algebra.evaluation.util.MathUtil;
-import org.openrdf.query.algebra.evaluation.util.ValueComparator;
-import org.openrdf.query.impl.MapBindingSet;
+import org.eclipse.rdf4j.model.Literal;
+import org.eclipse.rdf4j.model.Value;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.model.datatypes.XMLDatatypeUtil;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
+import org.eclipse.rdf4j.query.algebra.MathExpr.MathOp;
+import org.eclipse.rdf4j.query.algebra.evaluation.ValueExprEvaluationException;
+import org.eclipse.rdf4j.query.algebra.evaluation.util.MathUtil;
+import org.eclipse.rdf4j.query.algebra.evaluation.util.ValueComparator;
+import org.eclipse.rdf4j.query.impl.MapBindingSet;
 
 import com.google.common.collect.ImmutableMap;
 
@@ -184,15 +184,15 @@ public class AggregationResultUpdater {
                 final MapBindingSet result = state.getBindingSet();
                 final String resultName = aggregation.getResultBindingName();
                 final boolean newBinding = !result.hasBinding(resultName);
-
+                final ValueFactory vf = SimpleValueFactory.getInstance();
                 if(newBinding) {
                     // Initialize the binding.
-                    result.addBinding(resultName, new IntegerLiteralImpl(BigInteger.ONE));
+                    result.addBinding(resultName, vf.createLiteral(BigInteger.ONE));
                 } else {
                     // Update the existing binding.
                     final Literal count = (Literal) result.getValue(resultName);
                     final BigInteger updatedCount = count.integerValue().add( BigInteger.ONE );
-                    result.addBinding(resultName, new IntegerLiteralImpl(updatedCount));
+                    result.addBinding(resultName, vf.createLiteral(updatedCount));
                 }
             }
         }
@@ -213,11 +213,12 @@ public class AggregationResultUpdater {
                 final MapBindingSet result = state.getBindingSet();
                 final String resultName = aggregation.getResultBindingName();
                 final boolean newBinding = !result.hasBinding(resultName);
+                final ValueFactory vf = SimpleValueFactory.getInstance();
 
                 // Get the starting number for the sum.
                 Literal sum;
                 if(newBinding) {
-                    sum = new IntegerLiteralImpl(BigInteger.ZERO);
+                    sum = vf.createLiteral(BigInteger.ZERO);
                 } else {
                     sum = (Literal) state.getBindingSet().getValue(resultName);
                 }
@@ -269,15 +270,16 @@ public class AggregationResultUpdater {
                     if (childLiteral.getDatatype() != null && XMLDatatypeUtil.isNumericDatatype(childLiteral.getDatatype())) {
                         try {
                             // Update the sum.
-                            final Literal oldSum = new DecimalLiteralImpl(averageState.getSum());
+                            final ValueFactory vf = SimpleValueFactory.getInstance();
+                            final Literal oldSum = vf.createLiteral(averageState.getSum());
                             final BigDecimal sum = MathUtil.compute(oldSum, childLiteral, MathOp.PLUS).decimalValue();
 
                             // Update the count.
                             final BigInteger count = averageState.getCount().add( BigInteger.ONE );
 
                             // Update the BindingSet to include the new average.
-                            final Literal sumLiteral = new DecimalLiteralImpl(sum);
-                            final Literal countLiteral = new IntegerLiteralImpl(count);
+                            final Literal sumLiteral = vf.createLiteral(sum);
+                            final Literal countLiteral = vf.createLiteral(count);
                             final Literal average = MathUtil.compute(sumLiteral, countLiteral, MathOp.DIVIDE);
                             result.addBinding(resultName, average);
 

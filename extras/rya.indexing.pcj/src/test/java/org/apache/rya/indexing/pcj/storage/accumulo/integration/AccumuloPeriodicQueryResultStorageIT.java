@@ -37,22 +37,22 @@ import org.apache.rya.indexing.pcj.storage.accumulo.AccumuloPeriodicQueryResultS
 import org.apache.rya.indexing.pcj.storage.accumulo.PeriodicQueryTableNameFactory;
 import org.apache.rya.indexing.pcj.storage.accumulo.VariableOrder;
 import org.apache.rya.indexing.pcj.storage.accumulo.VisibilityBindingSet;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
+import org.eclipse.rdf4j.model.vocabulary.XMLSchema;
+import org.eclipse.rdf4j.query.BindingSet;
+import org.eclipse.rdf4j.query.algebra.evaluation.QueryBindingSet;
+import org.eclipse.rdf4j.query.impl.MapBindingSet;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.openrdf.model.ValueFactory;
-import org.openrdf.model.impl.ValueFactoryImpl;
-import org.openrdf.model.vocabulary.XMLSchema;
-import org.openrdf.query.BindingSet;
-import org.openrdf.query.algebra.evaluation.QueryBindingSet;
-import org.openrdf.query.impl.MapBindingSet;
 
 public class AccumuloPeriodicQueryResultStorageIT extends AccumuloITBase {
 
     private PeriodicQueryResultStorage periodicStorage;
     private static final String RYA = "rya_";
     private static final PeriodicQueryTableNameFactory nameFactory = new PeriodicQueryTableNameFactory();
-    private static final ValueFactory vf = new ValueFactoryImpl();
+    private static final ValueFactory VF = SimpleValueFactory.getInstance();
     
     @Before
     public void init() throws AccumuloException, AccumuloSecurityException {
@@ -86,15 +86,15 @@ public class AccumuloPeriodicQueryResultStorageIT extends AccumuloITBase {
         
         //add result matching user's visibility
         QueryBindingSet bs = new QueryBindingSet();
-        bs.addBinding("periodicBinId", vf.createLiteral(1L));
-        bs.addBinding("x",vf.createURI("uri:uri123"));
+        bs.addBinding("periodicBinId", VF.createLiteral(1L));
+        bs.addBinding("x",VF.createIRI("uri:uri123"));
         expected.add(bs);
         storageSet.add(new VisibilityBindingSet(bs,"U"));
         
         //add result with different visibility that is not expected
         bs = new QueryBindingSet();
-        bs.addBinding("periodicBinId", vf.createLiteral(1L));
-        bs.addBinding("x",vf.createURI("uri:uri456"));
+        bs.addBinding("periodicBinId", VF.createLiteral(1L));
+        bs.addBinding("x",VF.createIRI("uri:uri456"));
         storageSet.add(new VisibilityBindingSet(bs,"V"));
         
         periodicStorage.addPeriodicQueryResults(id, storageSet);
@@ -119,7 +119,7 @@ public class AccumuloPeriodicQueryResultStorageIT extends AccumuloITBase {
     }
     
     @Test
-    public void multiBinTest() throws PeriodicQueryStorageException, Exception {
+    public void multiBinTest() throws Exception {
         
         String sparql = "prefix function: <http://org.apache.rya/function#> " //n
                 + "prefix time: <http://www.w3.org/2006/time#> " //n
@@ -129,7 +129,7 @@ public class AccumuloPeriodicQueryResultStorageIT extends AccumuloITBase {
                 + "?obs <uri:hasId> ?id } group by ?id"; //n
         
         
-        final ValueFactory vf = new ValueFactoryImpl();
+        final ValueFactory vf = SimpleValueFactory.getInstance();
         long currentTime = System.currentTimeMillis();
         String queryId = UUID.randomUUID().toString().replace("-", "");
         

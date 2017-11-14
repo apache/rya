@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -34,7 +34,7 @@ import org.apache.rya.api.domain.RyaURI;
 import org.apache.rya.indexing.entity.storage.EntityStorage;
 import org.apache.rya.indexing.smarturi.SmartUriAdapter;
 import org.apache.rya.indexing.smarturi.SmartUriException;
-import org.openrdf.model.URI;
+import org.eclipse.rdf4j.model.IRI;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -89,7 +89,7 @@ public class Entity {
 
     private final int version;
 
-    private URI smartUri = null;
+    private IRI smartUri = null;
 
     /**
      * To construct an instance of this class, use {@link Builder}.
@@ -101,7 +101,7 @@ public class Entity {
      * Entity, grouped by Type ID.
      * @param version The version of this Entity. This value is used by the
      * {@link EntityStorage} to prevent stale updates.
-     * @param smartUri the Smart {@link URI} representation of this
+     * @param smartUri the Smart {@link IRI} representation of this
      * {@link Entity}.
      */
     private Entity(
@@ -109,7 +109,7 @@ public class Entity {
             final ImmutableList<RyaURI> explicitTypeIds,
             final ImmutableMap<RyaURI, ImmutableMap<RyaURI, Property>> typeProperties,
             final int version,
-            final URI smartUri) {
+            final IRI smartUri) {
         this.subject = requireNonNull(subject);
         this.explicitTypeIds = requireNonNull(explicitTypeIds);
         properties = requireNonNull(typeProperties);
@@ -175,9 +175,9 @@ public class Entity {
     }
 
     /**
-     * @return the Smart {@link URI} representation of this {@link Entity}.
+     * @return the Smart {@link IRI} representation of this {@link Entity}.
      */
-    public URI getSmartUri() {
+    public IRI getSmartUri() {
         return smartUri;
     }
 
@@ -292,7 +292,7 @@ public class Entity {
         private RyaURI subject = null;
         private final List<RyaURI> explicitTypes = new ArrayList<>();
         private final Map<RyaURI, Map<RyaURI, Property>> properties = new HashMap<>();
-        private URI smartUri = null;
+        private IRI smartUri = null;
 
         private int version = 0;
 
@@ -392,11 +392,11 @@ public class Entity {
         }
 
         /**
-         * @param smartUri - the Smart {@link URI} representation of this
+         * @param smartUri - the Smart {@link IRI} representation of this
          * {@link Entity}.
          * @return This {@link Builder} so that method invocations may be chained.
          */
-        public Builder setSmartUri(final URI smartUri) {
+        public Builder setSmartUri(final IRI smartUri) {
             this.smartUri = smartUri;
             return this;
         }

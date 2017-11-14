@@ -44,10 +44,10 @@ import org.apache.rya.export.client.merge.MemoryTimeMerger;
 import org.apache.rya.export.client.merge.StatementStoreFactory;
 import org.apache.rya.export.client.merge.VisibilityStatementMerger;
 import org.apache.rya.rdftriplestore.inference.InferenceEngineException;
-import org.openrdf.query.MalformedQueryException;
-import org.openrdf.query.UpdateExecutionException;
-import org.openrdf.repository.RepositoryException;
-import org.openrdf.sail.SailException;
+import org.eclipse.rdf4j.query.MalformedQueryException;
+import org.eclipse.rdf4j.query.UpdateExecutionException;
+import org.eclipse.rdf4j.repository.RepositoryException;
+import org.eclipse.rdf4j.sail.SailException;
 
 import com.google.common.base.Optional;
 
@@ -88,7 +88,7 @@ public class MergeDriverClient {
             final String tomcat = configuration.getChildTomcatUrl();
             final String ntpHost = configuration.getNtpServerHost();
             try {
-                offset = Optional.<Long>fromNullable(TimeUtils.getNtpServerAndMachineTimeDifference(ntpHost, tomcat));
+                offset = Optional.fromNullable(TimeUtils.getNtpServerAndMachineTimeDifference(ntpHost, tomcat));
             } catch (final IOException e) {
                 LOG.error("Unable to get time difference between time server: " + ntpHost + " and the server: " + tomcat, e);
             }

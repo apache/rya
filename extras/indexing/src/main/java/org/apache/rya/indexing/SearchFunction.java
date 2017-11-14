@@ -19,10 +19,9 @@ package org.apache.rya.indexing;
  * under the License.
  */
 
-
-import info.aduna.iteration.CloseableIteration;
-import org.openrdf.model.Statement;
-import org.openrdf.query.QueryEvaluationException;
+import org.eclipse.rdf4j.common.iteration.CloseableIteration;
+import org.eclipse.rdf4j.model.Statement;
+import org.eclipse.rdf4j.query.QueryEvaluationException;
 
 /**
  * A function used to perform a search.
@@ -39,7 +38,7 @@ public interface SearchFunction {
      * @return
      * @throws QueryEvaluationException
      */
-    public abstract CloseableIteration<Statement, QueryEvaluationException> performSearch(String searchTerms, StatementConstraints contraints)
+    public CloseableIteration<Statement, QueryEvaluationException> performSearch(String searchTerms, StatementConstraints contraints)
             throws QueryEvaluationException;
 
 }

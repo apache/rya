@@ -29,8 +29,8 @@ import org.apache.rya.api.resolver.RyaTypeResolver;
 import org.apache.rya.api.resolver.RyaTypeResolverException;
 import org.calrissian.mango.types.LexiTypeEncoders;
 import org.calrissian.mango.types.TypeEncoder;
-import org.openrdf.model.URI;
-import org.openrdf.model.vocabulary.XMLSchema;
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.vocabulary.XMLSchema;
 
 import com.google.common.primitives.Bytes;
 
@@ -44,14 +44,14 @@ public class RyaTypeResolverImpl implements RyaTypeResolver {
             .stringEncoder();
 
     protected byte markerByte;
-    protected URI dataType;
+    protected IRI dataType;
     protected byte[] markerBytes;
 
     public RyaTypeResolverImpl() {
         this((byte) PLAIN_LITERAL_MARKER, XMLSchema.STRING);
     }
 
-    public RyaTypeResolverImpl(final byte markerByte, final URI dataType) {
+    public RyaTypeResolverImpl(final byte markerByte, final IRI dataType) {
         setMarkerByte(markerByte);
         setRyaDataType(dataType);
     }
@@ -84,11 +84,11 @@ public class RyaTypeResolverImpl implements RyaTypeResolver {
     }
 
     @Override
-    public URI getRyaDataType() {
+    public IRI getRyaDataType() {
         return dataType;
     }
 
-    public void setRyaDataType(final URI dataType) {
+    public void setRyaDataType(final IRI dataType) {
         this.dataType = dataType;
     }
 

@@ -68,14 +68,13 @@ import org.apache.rya.indexing.TemporalInstant;
 import org.apache.rya.indexing.TemporalInstantRfc3339;
 import org.apache.rya.indexing.TemporalInterval;
 import org.apache.rya.indexing.accumulo.ConfigUtils;
+import org.eclipse.rdf4j.common.iteration.CloseableIteration;
+import org.eclipse.rdf4j.model.IRI;
+import org.eclipse.rdf4j.model.Literal;
+import org.eclipse.rdf4j.model.Resource;
+import org.eclipse.rdf4j.model.Statement;
+import org.eclipse.rdf4j.query.QueryEvaluationException;
 import org.joda.time.DateTime;
-import org.openrdf.model.Literal;
-import org.openrdf.model.Resource;
-import org.openrdf.model.Statement;
-import org.openrdf.model.URI;
-import org.openrdf.query.QueryEvaluationException;
-
-import info.aduna.iteration.CloseableIteration;
 
 public class AccumuloTemporalIndexer extends AbstractAccumuloIndexer implements TemporalIndexer {
 
@@ -98,7 +97,7 @@ public class AccumuloTemporalIndexer extends AbstractAccumuloIndexer implements 
 
     private BatchWriter temporalIndexBatchWriter;
 
-    private Set<URI> validPredicates;
+    private Set<IRI> validPredicates;
     private String temporalIndexTableName;
 
     private boolean isInit = false;
@@ -870,7 +869,7 @@ public class AccumuloTemporalIndexer extends AbstractAccumuloIndexer implements 
     }
 
     @Override
-    public Set<URI> getIndexablePredicates() {
+    public Set<IRI> getIndexablePredicates() {
 
         return validPredicates;
     }

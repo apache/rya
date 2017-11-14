@@ -25,14 +25,14 @@ import java.util.Optional;
 import org.apache.rya.indexing.pcj.storage.PrecomputedJoinStorage.CloseableIterator;
 import org.apache.rya.indexing.pcj.storage.accumulo.VariableOrder;
 import org.apache.rya.indexing.pcj.storage.accumulo.VisibilityBindingSet;
-import org.openrdf.query.BindingSet;
+import org.eclipse.rdf4j.query.BindingSet;
 
 /**
  * Interface for storing and retrieving Periodic Query Results.
  *
  */
 public interface PeriodicQueryResultStorage {
-    
+
     /**
      * Binding name for the periodic bin id
      */
@@ -45,7 +45,7 @@ public interface PeriodicQueryResultStorage {
      * @throws PeriodicQueryStorageException
      */
     public String createPeriodicQuery(String sparql) throws PeriodicQueryStorageException;
-    
+
     /**
      * Creates a PeriodicQuery result storage layer for the given SPARQL query with the given id
      * @param queryId - id of the storage layer for the given SPARQL query
@@ -54,7 +54,7 @@ public interface PeriodicQueryResultStorage {
      * @throws PeriodicQueryStorageException
      */
     public String createPeriodicQuery(String queryId, String sparql) throws PeriodicQueryStorageException;
-    
+
     /**
      * Creates a PeriodicQuery result storage layer for the given SPARQL query with the given id
      * whose results are written in the order indicated by the specified VariableOrder.
@@ -65,38 +65,38 @@ public interface PeriodicQueryResultStorage {
      * @throws PeriodicQueryStorageException
      */
     public void createPeriodicQuery(String queryId, String sparql, VariableOrder varOrder) throws PeriodicQueryStorageException;
-    
+
     /**
      * Retrieve the {@link PeriodicQueryStorageMetdata} for the give query id
      * @param queryID - id of the query whose metadata will be returned
      * @return PeriodicQueryStorageMetadata
      * @throws PeriodicQueryStorageException
      */
-    public PeriodicQueryStorageMetadata getPeriodicQueryMetadata(String queryID) throws PeriodicQueryStorageException;;
-    
+    public PeriodicQueryStorageMetadata getPeriodicQueryMetadata(String queryID) throws PeriodicQueryStorageException;
+
     /**
      * Add periodic query results to the storage layer indicated by the given query id
      * @param queryId - id indicating the storage layer that results will be added to
      * @param results - query results to be added to storage
      * @throws PeriodicQueryStorageException
      */
-    public void addPeriodicQueryResults(String queryId, Collection<VisibilityBindingSet> results) throws PeriodicQueryStorageException;;
-    
+    public void addPeriodicQueryResults(String queryId, Collection<VisibilityBindingSet> results) throws PeriodicQueryStorageException;
+
     /**
      * Deletes periodic query results from the storage layer
      * @param queryId - id indicating the storage layer that results will be deleted from
      * @param binID - bin id indicating the periodic id of results to be deleted
      * @throws PeriodicQueryStorageException
      */
-    public void deletePeriodicQueryResults(String queryId, long binID) throws PeriodicQueryStorageException;;
-    
+    public void deletePeriodicQueryResults(String queryId, long binID) throws PeriodicQueryStorageException;
+
     /**
      * Deletes all results for the storage layer indicated by the given query id 
      * @param queryID - id indicating the storage layer whose results will be deleted
      * @throws PeriodicQueryStorageException
      */
-    public void deletePeriodicQuery(String queryID) throws PeriodicQueryStorageException;;
-    
+    public void deletePeriodicQuery(String queryID) throws PeriodicQueryStorageException;
+
     /**
      * List results in the given storage layer indicated by the query id
      * @param queryId - id indicating the storage layer whose results will be listed
@@ -104,12 +104,12 @@ public interface PeriodicQueryResultStorage {
      * @return
      * @throws PeriodicQueryStorageException
      */
-    public CloseableIterator<BindingSet> listResults(String queryId, Optional<Long> binID) throws PeriodicQueryStorageException;;
-    
+    public CloseableIterator<BindingSet> listResults(String queryId, Optional<Long> binID) throws PeriodicQueryStorageException;
+
     /**
      * List all storage tables containing periodic results.
      * @return List of Strings with names of all tables containing periodic results
      */
     public List<String> listPeriodicTables();
-    
+
 }

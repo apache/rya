@@ -22,8 +22,8 @@
 //
 //import junit.framework.TestCase;
 //import org.apache.rya.api.RdfCloudTripleStoreUtils;
-//import org.openrdf.model.Statement;
-//import org.openrdf.model.impl.StatementImpl;
+//import org.eclipse.rdf4j.model.Statement;
+//import org.eclipse.rdf4j.model.impl.StatementImpl;
 //
 //import static org.apache.rya.api.RdfCloudTripleStoreConstants.*;
 //

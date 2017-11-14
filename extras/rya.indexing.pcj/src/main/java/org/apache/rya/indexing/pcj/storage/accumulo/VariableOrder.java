@@ -23,7 +23,8 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import java.util.Collection;
 import java.util.Iterator;
 
-import org.openrdf.query.BindingSet;
+import org.eclipse.rdf4j.query.Binding;
+import org.eclipse.rdf4j.query.BindingSet;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;

@@ -22,12 +22,10 @@ package org.apache.rya.indexing.pcj.storage.accumulo;
 import static org.junit.Assert.assertEquals;
 
 import org.apache.fluo.api.data.Bytes;
-import org.apache.rya.indexing.pcj.storage.accumulo.VisibilityBindingSet;
-import org.apache.rya.indexing.pcj.storage.accumulo.VisibilityBindingSetSerDe;
+import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
+import org.eclipse.rdf4j.query.impl.MapBindingSet;
 import org.junit.Test;
-import org.openrdf.model.ValueFactory;
-import org.openrdf.model.impl.ValueFactoryImpl;
-import org.openrdf.query.impl.MapBindingSet;
 
 /**
  * Tests the methods of {@link VisibilityBindingSetSerDe}.
@@ -36,7 +34,7 @@ public class VisibilityBindingSetSerDeTest {
 
     @Test
     public void rountTrip() throws Exception {
-        final ValueFactory vf = new ValueFactoryImpl();
+        final ValueFactory vf = SimpleValueFactory.getInstance();
 
         final MapBindingSet bs = new MapBindingSet();
         bs.addBinding("name", vf.createLiteral("Alice"));

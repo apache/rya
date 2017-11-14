@@ -20,57 +20,54 @@ package org.apache.rya.periodic.notification.exporter;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.kafka.clients.producer.KafkaProducer;
-import org.apache.log4j.Logger;
-import org.apache.rya.periodic.notification.api.BindingSetExporter;
 import org.apache.rya.periodic.notification.api.BindingSetRecord;
 import org.apache.rya.periodic.notification.api.LifeCycle;
 import org.eclipse.rdf4j.query.BindingSet;
-
-import com.google.common.base.Preconditions;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
- * Executor service that runs {@link KafkaPeriodicBindingSetExporter}s.  
+ * Executor service that runs {@link KafkaPeriodicBindingSetExporter}s.
  *
  */
 public class KafkaExporterExecutor implements LifeCycle {
 
-    private static final Logger log = Logger.getLogger(BindingSetExporter.class);
-    private KafkaProducer<String, BindingSet> producer;
-    private BlockingQueue<BindingSetRecord> bindingSets;
+    private static final Logger log = LoggerFactory.getLogger(KafkaExporterExecutor.class);
+    private final KafkaProducer<String, BindingSet> producer;
+    private final BlockingQueue<BindingSetRecord> bindingSets;
     private ExecutorService executor;
-    private List<KafkaPeriodicBindingSetExporter> exporters;
-    private int num_Threads;
+    private final List<KafkaPeriodicBindingSetExporter> exporters;
+    private final int numThreads;
     private boolean running = false;
 
     /**
      * Creates a KafkaExporterExecutor for exporting periodic query results to Kafka.
      * @param producer for publishing results to Kafka
-     * @param num_Threads number of threads used to publish results
+     * @param numThreads number of threads used to publish results
      * @param bindingSets - work queue containing {@link BindingSet}s to be published
      */
-    public KafkaExporterExecutor(KafkaProducer<String, BindingSet> producer, int num_Threads, BlockingQueue<BindingSetRecord> bindingSets) {
-        Preconditions.checkNotNull(producer);
-        Preconditions.checkNotNull(bindingSets);
-        this.producer = producer;
-        this.bindingSets = bindingSets;
-        this.num_Threads = num_Threads;
+    public KafkaExporterExecutor(final KafkaProducer<String, BindingSet> producer, final int numThreads, final BlockingQueue<BindingSetRecord> bindingSets) {
+        this.producer = Objects.requireNonNull(producer);
+        this.bindingSets = Objects.requireNonNull(bindingSets);
+        this.numThreads = numThreads;
         this.exporters = new ArrayList<>();
     }
 
     @Override
     public void start() {
         if (!running) {
-            executor = Executors.newFixedThreadPool(num_Threads);
+            executor = Executors.newFixedThreadPool(numThreads);
 
-            for (int threadNumber = 0; threadNumber < num_Threads; threadNumber++) {
-                log.info("Creating exporter:" + threadNumber);
-                KafkaPeriodicBindingSetExporter exporter = new KafkaPeriodicBindingSetExporter(producer, threadNumber, bindingSets);
+            for (int threadNumber = 0; threadNumber < numThreads; threadNumber++) {
+                log.info("Creating exporter: {}", threadNumber);
+                final KafkaPeriodicBindingSetExporter exporter = new KafkaPeriodicBindingSetExporter(producer, threadNumber, bindingSets);
                 exporters.add(exporter);
                 executor.submit(exporter);
             }
@@ -98,7 +95,7 @@ public class KafkaExporterExecutor implements LifeCycle {
                 log.info("Timed out waiting for consumer threads to shut down, exiting uncleanly");
                 executor.shutdownNow();
             }
-        } catch (InterruptedException e) {
+        } catch (final InterruptedException e) {
             log.info("Interrupted during shutdown, exiting uncleanly");
         }
     }

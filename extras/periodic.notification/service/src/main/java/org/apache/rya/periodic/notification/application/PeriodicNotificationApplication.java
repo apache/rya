@@ -18,7 +18,10 @@
  */
 package org.apache.rya.periodic.notification.application;
 
-import org.apache.log4j.Logger;
+import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+
 import org.apache.rya.indexing.pcj.fluo.app.util.PeriodicQueryUtil;
 import org.apache.rya.periodic.notification.api.BinPruner;
 import org.apache.rya.periodic.notification.api.BindingSetRecord;
@@ -30,6 +33,8 @@ import org.apache.rya.periodic.notification.processor.NotificationProcessorExecu
 import org.apache.rya.periodic.notification.pruner.PeriodicQueryPrunerExecutor;
 import org.apache.rya.periodic.notification.registration.kafka.KafkaNotificationProvider;
 import org.eclipse.rdf4j.query.algebra.evaluation.function.Function;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Preconditions;
 
@@ -68,36 +73,40 @@ import com.google.common.base.Preconditions;
  * the period at which the user wants to receive updates, and the time unit. The
  * following query requests all observations that occurred within the last
  * minute and requests updates every 15 seconds. It also performs a count on
- * those observations. <br>
- * <br>
- * <li>prefix function: http://org.apache.rya/function#
- * <li>"prefix time: http://www.w3.org/2006/time#
- * <li>"select (count(?obs) as ?total) where {
- * <li>"Filter(function:periodic(?time, 1, .25, time:minutes))
- * <li>"?obs uri:hasTime ?time.
- * <li>"?obs uri:hasId ?id }
- * <li>
+ * those observations.
+ * <p>
+ * <pre>
+ * PREFIX function: http://org.apache.rya/function#
+ * PREFIX time: http://www.w3.org/2006/time#
+ * SELECT (count(?obs) as ?total) WHERE {
+ *     FILTER (function:periodic(?time, 1, .25, time:minutes))
+ *     ?obs uri:hasTime ?time.
+ *     ?obs uri:hasId ?id
+ * }
+ * </pre>
  */
 public class PeriodicNotificationApplication implements LifeCycle {
 
-    private static final Logger log = Logger.getLogger(PeriodicNotificationApplication.class);
-    private NotificationCoordinatorExecutor coordinator;
-    private KafkaNotificationProvider provider;
-    private PeriodicQueryPrunerExecutor pruner;
-    private NotificationProcessorExecutor processor;
-    private KafkaExporterExecutor exporter;
+    private static final Logger log = LoggerFactory.getLogger(PeriodicNotificationApplication.class);
+    private final NotificationCoordinatorExecutor coordinator;
+    private final KafkaNotificationProvider provider;
+    private final PeriodicQueryPrunerExecutor pruner;
+    private final NotificationProcessorExecutor processor;
+    private final KafkaExporterExecutor exporter;
     private boolean running = false;
+    private Optional<CompletableFuture<Void>> finished = Optional.empty();
+
 
     /**
      * Creates a PeriodicNotificationApplication
-     * @param provider - {@link KafkaNotificationProvider} that retrieves new Notificaiton requests from Kafka
+     * @param provider - {@link KafkaNotificationProvider} that retrieves new Notification requests from Kafka
      * @param coordinator - {NotificationCoordinator} that manages PeriodicNotifications.
      * @param processor - {@link NotificationProcessorExecutor} that processes PeriodicNotifications
      * @param exporter - {@link KafkaExporterExecutor} that exports periodic results
      * @param pruner - {@link PeriodicQueryPrunerExecutor} that cleans up old periodic bins
      */
-    public PeriodicNotificationApplication(KafkaNotificationProvider provider, NotificationCoordinatorExecutor coordinator,
-            NotificationProcessorExecutor processor, KafkaExporterExecutor exporter, PeriodicQueryPrunerExecutor pruner) {
+    public PeriodicNotificationApplication(final KafkaNotificationProvider provider, final NotificationCoordinatorExecutor coordinator,
+            final NotificationProcessorExecutor processor, final KafkaExporterExecutor exporter, final PeriodicQueryPrunerExecutor pruner) {
         this.provider = Preconditions.checkNotNull(provider);
         this.coordinator = Preconditions.checkNotNull(coordinator);
         this.processor = Preconditions.checkNotNull(processor);
@@ -115,18 +124,37 @@ public class PeriodicNotificationApplication implements LifeCycle {
             pruner.start();
             exporter.start();
             running = true;
+            finished = Optional.of(new CompletableFuture<>());
+        }
+    }
+
+    /**
+     * Blocks the current thread until another thread has called the {@link #stop()}.
+     * @throws ExecutionException
+     * @throws InterruptedException
+     * @throws IllegalStateException
+     */
+    public void blockUntilFinished() throws ExecutionException, InterruptedException, IllegalStateException {
+        if(finished.isPresent()) {
+            finished.get().get();
+        } else {
+            throw new IllegalStateException("Cannot block if the application has not been started yet");
         }
     }
 
     @Override
     public void stop() {
         log.info("Stopping PeriodicNotificationApplication.");
+        if(!finished.isPresent()) {
+            throw new IllegalStateException("Cannot stop if the application has not been started yet");
+        }
         provider.stop();
         coordinator.stop();
         processor.stop();
         pruner.stop();
         exporter.stop();
         running = false;
+        finished.get().complete(null);
     }
 
     /**
@@ -154,7 +182,7 @@ public class PeriodicNotificationApplication implements LifeCycle {
          * @param pruner - PeriodicQueryPrunerExecutor for cleaning up old periodic bins
          * @return this Builder for chaining method calls
          */
-        public Builder setPruner(PeriodicQueryPrunerExecutor pruner) {
+        public Builder setPruner(final PeriodicQueryPrunerExecutor pruner) {
             this.pruner = pruner;
             return this;
         }
@@ -164,12 +192,12 @@ public class PeriodicNotificationApplication implements LifeCycle {
          * @param provider - KafkaNotificationProvider for retrieving new periodic notification requests from Kafka
          * @return this Builder for chaining method calls
          */
-        public Builder setProvider(KafkaNotificationProvider provider) {
+        public Builder setProvider(final KafkaNotificationProvider provider) {
             this.provider = provider;
             return this;
         }
 
-        public Builder setProcessor(NotificationProcessorExecutor processor) {
+        public Builder setProcessor(final NotificationProcessorExecutor processor) {
             this.processor = processor;
             return this;
         }
@@ -179,7 +207,7 @@ public class PeriodicNotificationApplication implements LifeCycle {
          * @param exporter for exporting periodic query results to Kafka
          * @return this Builder for chaining method calls
          */
-        public Builder setExporter(KafkaExporterExecutor exporter) {
+        public Builder setExporter(final KafkaExporterExecutor exporter) {
             this.exporter = exporter;
             return this;
         }
@@ -189,7 +217,7 @@ public class PeriodicNotificationApplication implements LifeCycle {
          * @param coordinator for managing and generating periodic notifications
          * @return this Builder for chaining method calls
          */
-        public Builder setCoordinator(NotificationCoordinatorExecutor coordinator) {
+        public Builder setCoordinator(final NotificationCoordinatorExecutor coordinator) {
             this.coordinator = coordinator;
             return this;
         }

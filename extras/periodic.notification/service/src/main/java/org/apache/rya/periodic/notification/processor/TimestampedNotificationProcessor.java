@@ -22,7 +22,6 @@ import java.util.Optional;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import org.apache.log4j.Logger;
 import org.apache.rya.indexing.pcj.storage.PeriodicQueryResultStorage;
 import org.apache.rya.indexing.pcj.storage.PrecomputedJoinStorage.CloseableIterator;
 import org.apache.rya.periodic.notification.api.BinPruner;
@@ -32,6 +31,8 @@ import org.apache.rya.periodic.notification.api.NotificationProcessor;
 import org.apache.rya.periodic.notification.exporter.KafkaPeriodicBindingSetExporter;
 import org.apache.rya.periodic.notification.notification.TimestampedNotification;
 import org.eclipse.rdf4j.query.BindingSet;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Preconditions;
 
@@ -46,19 +47,30 @@ import com.google.common.base.Preconditions;
  */
 public class TimestampedNotificationProcessor implements NotificationProcessor, Runnable {
 
-    private static final Logger log = Logger.getLogger(TimestampedNotificationProcessor.class);
-    private PeriodicQueryResultStorage periodicStorage;
-    private BlockingQueue<TimestampedNotification> notifications; // notifications
-                                                                  // to process
-    private BlockingQueue<NodeBin> bins; // entries to delete from Fluo
-    private BlockingQueue<BindingSetRecord> bindingSets; // query results to export
-    private AtomicBoolean closed = new AtomicBoolean(false);
-    private int threadNumber;
-    
+    private static final Logger log = LoggerFactory.getLogger(TimestampedNotificationProcessor.class);
+    private final PeriodicQueryResultStorage periodicStorage;
 
-    public TimestampedNotificationProcessor(PeriodicQueryResultStorage periodicStorage,
-            BlockingQueue<TimestampedNotification> notifications, BlockingQueue<NodeBin> bins, BlockingQueue<BindingSetRecord> bindingSets,
-            int threadNumber) {
+    /**
+     * notifications to process
+     */
+    private final BlockingQueue<TimestampedNotification> notifications;
+
+    /**
+     * entries to delete from Fluo
+     */
+    private final BlockingQueue<NodeBin> bins;
+
+    /**
+     * query results to export
+     */
+    private final BlockingQueue<BindingSetRecord> bindingSets;
+    private final AtomicBoolean closed = new AtomicBoolean(false);
+    private final int threadNumber;
+
+
+    public TimestampedNotificationProcessor(final PeriodicQueryResultStorage periodicStorage,
+            final BlockingQueue<TimestampedNotification> notifications, final BlockingQueue<NodeBin> bins, final BlockingQueue<BindingSetRecord> bindingSets,
+            final int threadNumber) {
         this.notifications = Preconditions.checkNotNull(notifications);
         this.bins = Preconditions.checkNotNull(bins);
         this.bindingSets = Preconditions.checkNotNull(bindingSets);
@@ -75,13 +87,13 @@ public class TimestampedNotificationProcessor implements NotificationProcessor, 
      * bins can be deleted from Fluo and Accumulo.
      */
     @Override
-    public void processNotification(TimestampedNotification notification) {
+    public void processNotification(final TimestampedNotification notification) {
 
-        String id = notification.getId();
-        long ts = notification.getTimestamp().getTime();
-        long period = notification.getPeriod();
-        long bin = getBinFromTimestamp(ts, period);
-        NodeBin nodeBin = new NodeBin(id, bin);
+        final String id = notification.getId();
+        final long ts = notification.getTimestamp().getTime();
+        final long period = notification.getPeriod();
+        final long bin = getBinFromTimestamp(ts, period);
+        final NodeBin nodeBin = new NodeBin(id, bin);
 
         try (CloseableIterator<BindingSet> iter = periodicStorage.listResults(id, Optional.of(bin))) {
 
@@ -91,20 +103,20 @@ public class TimestampedNotificationProcessor implements NotificationProcessor, 
             // add NodeBin to BinPruner queue so that bin can be deleted from
             // Fluo and Accumulo
             bins.add(nodeBin);
-        } catch (Exception e) {
-            log.debug("Encountered error: " + e.getMessage() + " while accessing periodic results for bin: " + bin + " for query: " + id);
+        } catch (final Exception e) {
+            log.warn("Encountered exception while accessing periodic results for bin: " + bin + " for query: " + id, e);
         }
     }
 
     /**
      * Computes left bin end point containing event time ts
-     * 
+     *
      * @param ts - event time
      * @param start - time that periodic event began
      * @param period - length of period
      * @return left bin end point containing event time ts
      */
-    private long getBinFromTimestamp(long ts, long period) {
+    private long getBinFromTimestamp(final long ts, final long period) {
         Preconditions.checkArgument(period > 0);
         return (ts / period) * period;
     }
@@ -115,13 +127,13 @@ public class TimestampedNotificationProcessor implements NotificationProcessor, 
             while(!closed.get()) {
                 processNotification(notifications.take());
             }
-        } catch (Exception e) {
-            log.trace("Thread_" + threadNumber + " is unable to process next notification.");
+        } catch (final Exception e) {
+            log.warn("Thread {} is unable to process next notification.", threadNumber);
             throw new RuntimeException(e);
         }
 
     }
-    
+
     public void shutdown() {
         closed.set(true);
     }
@@ -130,7 +142,7 @@ public class TimestampedNotificationProcessor implements NotificationProcessor, 
         return new Builder();
     }
 
-  
+
 
     public static class Builder {
 
@@ -138,7 +150,7 @@ public class TimestampedNotificationProcessor implements NotificationProcessor, 
         private BlockingQueue<TimestampedNotification> notifications; // notifications to process
         private BlockingQueue<NodeBin> bins; // entries to delete from Fluo
         private BlockingQueue<BindingSetRecord> bindingSets; // query results to export
-                                                       
+
         private int threadNumber;
 
         /**
@@ -146,7 +158,7 @@ public class TimestampedNotificationProcessor implements NotificationProcessor, 
          * @param notifications - work queue containing notifications to be processed
          * @return this Builder for chaining method calls
          */
-        public Builder setNotifications(BlockingQueue<TimestampedNotification> notifications) {
+        public Builder setNotifications(final BlockingQueue<TimestampedNotification> notifications) {
             this.notifications = notifications;
             return this;
         }
@@ -156,7 +168,7 @@ public class TimestampedNotificationProcessor implements NotificationProcessor, 
          * @param bins - work queue containing NodeBins to be pruned
          * @return this Builder for chaining method calls
          */
-        public Builder setBins(BlockingQueue<NodeBin> bins) {
+        public Builder setBins(final BlockingQueue<NodeBin> bins) {
             this.bins = bins;
             return this;
         }
@@ -166,7 +178,7 @@ public class TimestampedNotificationProcessor implements NotificationProcessor, 
          * @param bindingSets - work queue containing BindingSets to be exported
          * @return this Builder for chaining method calls
          */
-        public Builder setBindingSets(BlockingQueue<BindingSetRecord> bindingSets) {
+        public Builder setBindingSets(final BlockingQueue<BindingSetRecord> bindingSets) {
             this.bindingSets = bindingSets;
             return this;
         }
@@ -176,17 +188,17 @@ public class TimestampedNotificationProcessor implements NotificationProcessor, 
          * @param threadNumber - number of threads used by this processor
          * @return - number of threads used by this processor
          */
-        public Builder setThreadNumber(int threadNumber) {
+        public Builder setThreadNumber(final int threadNumber) {
             this.threadNumber = threadNumber;
             return this;
         }
-        
+
         /**
          * Set the PeriodicStorage layer
          * @param periodicStorage - periodic storage layer that periodic results are read from
          * @return - this Builder for chaining method calls
          */
-        public Builder setPeriodicStorage(PeriodicQueryResultStorage periodicStorage) {
+        public Builder setPeriodicStorage(final PeriodicQueryResultStorage periodicStorage) {
             this.periodicStorage = periodicStorage;
             return this;
         }

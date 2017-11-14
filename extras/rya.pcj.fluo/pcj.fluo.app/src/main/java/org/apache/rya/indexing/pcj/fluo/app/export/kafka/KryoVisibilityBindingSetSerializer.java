@@ -25,7 +25,6 @@ import java.util.Map;
 
 import org.apache.kafka.common.serialization.Deserializer;
 import org.apache.kafka.common.serialization.Serializer;
-import org.apache.log4j.Logger;
 import org.apache.rya.api.domain.RyaType;
 import org.apache.rya.api.resolver.RdfToRyaConversions;
 import org.apache.rya.indexing.pcj.storage.accumulo.VisibilityBindingSet;
@@ -50,9 +49,9 @@ public class KryoVisibilityBindingSetSerializer implements Serializer<Visibility
     private static final ThreadLocal<Kryo> kryos = new ThreadLocal<Kryo>() {
         @Override
         protected Kryo initialValue() {
-            Kryo kryo = new Kryo();
+            final Kryo kryo = new Kryo();
             return kryo;
-        }
+        };
     };
     private static final ValueFactory VF = SimpleValueFactory.getInstance();
 
@@ -60,7 +59,7 @@ public class KryoVisibilityBindingSetSerializer implements Serializer<Visibility
      * Deserialize a VisibilityBindingSet using Kyro lib. Exporting results of queries.
      * If you don't want to use Kyro, here is an alternative:
      * return (new VisibilityBindingSetStringConverter()).convert(new String(data, StandardCharsets.UTF_8), null);
-     * 
+     *
      * @param topic
      *            ignored
      * @param data
@@ -68,9 +67,9 @@ public class KryoVisibilityBindingSetSerializer implements Serializer<Visibility
      * @return deserialized instance of VisibilityBindingSet
      */
     @Override
-    public VisibilityBindingSet deserialize(String topic, byte[] data) {
-        KryoInternalSerializer internalSerializer = new KryoInternalSerializer();
-        Input input = new Input(new ByteArrayInputStream(data));
+    public VisibilityBindingSet deserialize(final String topic, final byte[] data) {
+        final KryoInternalSerializer internalSerializer = new KryoInternalSerializer();
+        final Input input = new Input(new ByteArrayInputStream(data));
         return internalSerializer.read(kryos.get(), input, VisibilityBindingSet.class);
     }
 
@@ -78,7 +77,7 @@ public class KryoVisibilityBindingSetSerializer implements Serializer<Visibility
      * Ignored. Nothing to configure.
      */
     @Override
-    public void configure(Map<String, ?> configs, boolean isKey) {
+    public void configure(final Map<String, ?> configs, final boolean isKey) {
         // Do nothing.
     }
 
@@ -86,7 +85,7 @@ public class KryoVisibilityBindingSetSerializer implements Serializer<Visibility
      * Serialize a VisibilityBindingSet using Kyro lib. Exporting results of queries.
      * If you don't want to use Kyro, here is an alternative:
      * return (new VisibilityBindingSetStringConverter()).convert(data, null).getBytes(StandardCharsets.UTF_8);
-     * 
+     *
      * @param topic
      *            ignored
      * @param data
@@ -94,13 +93,13 @@ public class KryoVisibilityBindingSetSerializer implements Serializer<Visibility
      * @return Serialized form of VisibilityBindingSet
      */
     @Override
-    public byte[] serialize(String topic, VisibilityBindingSet data) {
-        KryoInternalSerializer internalSerializer = new KryoInternalSerializer();
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        Output output = new Output(baos);
+    public byte[] serialize(final String topic, final VisibilityBindingSet data) {
+        final KryoInternalSerializer internalSerializer = new KryoInternalSerializer();
+        final ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        final Output output = new Output(baos);
         internalSerializer.write(kryos.get(), output, data);
         output.flush();
-        byte[] array = baos.toByteArray();
+        final byte[] array = baos.toByteArray();
         return array;
     }
 
@@ -114,11 +113,10 @@ public class KryoVisibilityBindingSetSerializer implements Serializer<Visibility
 
     private static Value makeValue(final String valueString, final IRI typeURI) {
         // Convert the String Value into a Value.
-        final ValueFactory valueFactory = SimpleValueFactory.getInstance();
         if (typeURI.equals(XMLSchema.ANYURI)) {
-            return valueFactory.createIRI(valueString);
+            return VF.createIRI(valueString);
         } else {
-            return valueFactory.createLiteral(valueString, typeURI);
+            return VF.createLiteral(valueString, typeURI);
         }
     }
 
@@ -127,14 +125,12 @@ public class KryoVisibilityBindingSetSerializer implements Serializer<Visibility
      *
      */
     private static class KryoInternalSerializer extends com.esotericsoftware.kryo.Serializer<VisibilityBindingSet> {
-        private static final Logger log = Logger.getLogger(KryoVisibilityBindingSetSerializer.class);
         @Override
-        public void write(Kryo kryo, Output output, VisibilityBindingSet visBindingSet) {
-            log.debug("Serializer writing visBindingSet" + visBindingSet);
+        public void write(final Kryo kryo, final Output output, final VisibilityBindingSet visBindingSet) {
             output.writeString(visBindingSet.getVisibility());
             // write the number count for the reader.
             output.writeInt(visBindingSet.size());
-            for (Binding binding : visBindingSet) {
+            for (final Binding binding : visBindingSet) {
                 output.writeString(binding.getName());
                 final RyaType ryaValue = RdfToRyaConversions.convertValue(binding.getValue());
                 final String valueString = ryaValue.getData();
@@ -145,19 +141,18 @@ public class KryoVisibilityBindingSetSerializer implements Serializer<Visibility
         }
 
         @Override
-        public VisibilityBindingSet read(Kryo kryo, Input input, Class<VisibilityBindingSet> aClass) {
-            log.debug("Serializer reading visBindingSet");
-            String visibility = input.readString();
-            int bindingCount = input.readInt();
-            ArrayList<String> namesList = new ArrayList<String>(bindingCount);
-            ArrayList<Value> valuesList = new ArrayList<Value>(bindingCount);
+        public VisibilityBindingSet read(final Kryo kryo, final Input input, final Class<VisibilityBindingSet> aClass) {
+            final String visibility = input.readString();
+            final int bindingCount = input.readInt();
+            final ArrayList<String> namesList = new ArrayList<String>(bindingCount);
+            final ArrayList<Value> valuesList = new ArrayList<Value>(bindingCount);
             for (int i = bindingCount; i > 0; i--) {
                 namesList.add(input.readString());
-                String valueString = input.readString();
+                final String valueString = input.readString();
                 final IRI type = VF.createIRI(input.readString());
                 valuesList.add(makeValue(valueString, type));
             }
-            BindingSet bindingSet = new ListBindingSet(namesList, valuesList);
+            final BindingSet bindingSet = new ListBindingSet(namesList, valuesList);
             return new VisibilityBindingSet(bindingSet, visibility);
         }
     }

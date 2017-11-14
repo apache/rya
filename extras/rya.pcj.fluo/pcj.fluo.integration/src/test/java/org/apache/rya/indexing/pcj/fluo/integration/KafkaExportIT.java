@@ -29,9 +29,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
-import org.apache.fluo.api.client.FluoClient;
-import org.apache.fluo.core.client.FluoClientImpl;
-import org.apache.fluo.recipes.test.FluoITHelper;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
@@ -92,8 +89,6 @@ public class KafkaExportIT extends KafkaExportITBase {
         // Create the PCJ in Fluo and load the statements into Rya.
         final String pcjId = loadDataAndCreateQuery(sparql, statements);
 
-        FluoITHelper.printFluoTable(super.getFluoConfiguration());
-        
         // The expected results of the SPARQL query once the PCJ has been computed.
         final Set<BindingSet> expectedResult = new HashSet<>();
 
@@ -249,10 +244,6 @@ public class KafkaExportIT extends KafkaExportITBase {
 
         // Create the PCJ in Fluo and load the statements into Rya.
         final String pcjId = loadDataAndCreateQuery(sparql, statements);
-        
-        try(FluoClient fluo = new FluoClientImpl(super.getFluoConfiguration())) {
-            FluoITHelper.printFluoTable(fluo);
-        }
 
         // Create the expected results of the SPARQL query once the PCJ has been computed.
         final MapBindingSet expectedResult = new MapBindingSet();
@@ -433,7 +424,7 @@ public class KafkaExportIT extends KafkaExportITBase {
         assertEquals(expectedResults, results);
     }
 
-    
+
     @Test
     public void nestedGroupByManyBindings_averages() throws Exception {
         // A query that groups what is aggregated by two of the keys.
@@ -493,7 +484,7 @@ public class KafkaExportIT extends KafkaExportITBase {
         bs.addBinding("location", vf.createLiteral("France", XMLSchema.STRING));
         bs.addBinding("averagePrice", vf.createLiteral("4.49", XMLSchema.DECIMAL));
         expectedResults.add( new VisibilityBindingSet(bs) );
-        
+
         bs = new MapBindingSet();
         bs.addBinding("type", vf.createLiteral("cheese", XMLSchema.STRING));
         bs.addBinding("location", vf.createLiteral("USA", XMLSchema.STRING));
@@ -504,11 +495,11 @@ public class KafkaExportIT extends KafkaExportITBase {
         final Set<VisibilityBindingSet> results = readGroupedResults(pcjId, new VariableOrder("type", "location"));
         assertEquals(expectedResults, results);
     }
-    
-    
+
+
     @Test
     public void nestedWithJoinGroupByManyBindings_averages() throws Exception {
-       
+
         // A query that groups what is aggregated by two of the keys.
         final String sparql =
                 "SELECT ?type ?location ?averagePrice ?milkType {" +
@@ -524,7 +515,7 @@ public class KafkaExportIT extends KafkaExportITBase {
         // Create the Statements that will be loaded into Rya.
         final ValueFactory vf = SimpleValueFactory.getInstance();
         final Collection<Statement> statements = Sets.newHashSet(
-               
+
                 vf.createStatement(vf.createIRI("urn:1"), vf.createIRI("urn:type"), vf.createIRI("urn:blue")),
                 vf.createStatement(vf.createIRI("urn:1"), vf.createIRI("urn:location"), vf.createLiteral("France")),
                 vf.createStatement(vf.createIRI("urn:1"), vf.createIRI("urn:price"), vf.createLiteral(8.5)),
@@ -543,7 +534,7 @@ public class KafkaExportIT extends KafkaExportITBase {
                 vf.createStatement(vf.createIRI("urn:4"), vf.createIRI("urn:location"), vf.createLiteral("France")),
                 vf.createStatement(vf.createIRI("urn:4"), vf.createIRI("urn:price"), vf.createLiteral(6.5)),
                 vf.createStatement(vf.createIRI("urn:goat"), vf.createIRI("urn:hasMilkType"), vf.createLiteral("goat", XMLSchema.STRING)),
-                
+
                 vf.createStatement(vf.createIRI("urn:5"), vf.createIRI("urn:type"), vf.createIRI("urn:fontina")),
                 vf.createStatement(vf.createIRI("urn:5"), vf.createIRI("urn:location"), vf.createLiteral("Italy")),
                 vf.createStatement(vf.createIRI("urn:5"), vf.createIRI("urn:price"), vf.createLiteral(3.99)),
@@ -572,7 +563,7 @@ public class KafkaExportIT extends KafkaExportITBase {
         bs.addBinding("averagePrice", vf.createLiteral("6.5", XMLSchema.DECIMAL));
         bs.addBinding("milkType", vf.createLiteral("goat", XMLSchema.STRING));
         expectedResults.add( new VisibilityBindingSet(bs) );
-        
+
         bs = new MapBindingSet();
         bs.addBinding("type", vf.createIRI("urn:fontina"));
         bs.addBinding("location", vf.createLiteral("Italy", XMLSchema.STRING));

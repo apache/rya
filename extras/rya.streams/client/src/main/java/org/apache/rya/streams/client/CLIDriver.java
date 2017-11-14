@@ -30,6 +30,7 @@ import org.apache.rya.streams.client.command.AddQueryCommand;
 import org.apache.rya.streams.client.command.DeleteQueryCommand;
 import org.apache.rya.streams.client.command.ListQueriesCommand;
 import org.apache.rya.streams.client.command.LoadStatementsCommand;
+import org.apache.rya.streams.client.command.RunQueryCommand;
 import org.apache.rya.streams.client.command.StreamResultsCommand;
 
 import com.google.common.collect.ImmutableMap;
@@ -63,6 +64,7 @@ public class CLIDriver {
         commandClasses.add(DeleteQueryCommand.class);
         commandClasses.add(ListQueriesCommand.class);
         commandClasses.add(LoadStatementsCommand.class);
+        commandClasses.add(RunQueryCommand.class);
         commandClasses.add(StreamResultsCommand.class);
         final ImmutableMap.Builder<String, RyaStreamsCommand> builder = ImmutableMap.builder();
         for(final Class<? extends RyaStreamsCommand> commandClass : commandClasses) {

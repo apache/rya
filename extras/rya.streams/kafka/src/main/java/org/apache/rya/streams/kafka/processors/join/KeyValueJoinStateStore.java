@@ -34,6 +34,7 @@ import org.openrdf.query.impl.MapBindingSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.base.Charsets;
 import com.google.common.base.Joiner;
 
 import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
@@ -70,12 +71,12 @@ public class KeyValueJoinStateStore implements JoinStateStore {
     /**
      * This is the minimum value in UTF-8 character.
      */
-    private static final String START_RANGE_SUFFIX = new String(new byte[] { 0x00 } );
+    private static final String START_RANGE_SUFFIX = new String(new byte[] { 0x00 }, Charsets.UTF_8);
 
     /**
      * This is the maximum value of a UTF-8 character.
      */
-    private static final String END_RANGE_SUFFIX = new String(new byte[] { (byte) 0XFF } );
+    private static final String END_RANGE_SUFFIX = new String(new byte[] { (byte) 0XFF }, Charsets.UTF_8);
 
     /**
      * A default empty value that is stored for a start of range or end of range marker.

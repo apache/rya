@@ -64,7 +64,6 @@ public class KafkaLoadStatements implements LoadStatements {
         this.producer = requireNonNull(producer);
     }
 
-
     @Override
     public void fromFile(final Path statementsPath, final String visibilities) throws RyaStreamsException {
         requireNonNull(statementsPath);
@@ -77,7 +76,7 @@ public class KafkaLoadStatements implements LoadStatements {
         parser.setRDFHandler(new RDFHandlerBase() {
             @Override
             public void startRDF() throws RDFHandlerException {
-                log.trace("starting loading statements.");
+                log.trace("Starting loading statements.");
             }
 
             @Override
@@ -89,7 +88,7 @@ public class KafkaLoadStatements implements LoadStatements {
             @Override
             public void endRDF() throws RDFHandlerException {
                 producer.flush();
-                log.trace("done.");
+                log.trace("Done.");
             }
         });
 

@@ -22,6 +22,7 @@ import static java.util.Objects.requireNonNull;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.locks.ReentrantLock;
@@ -63,13 +64,7 @@ public class InMemoryQueryRepository implements QueryRepository {
         this.changeLog = requireNonNull(changeLog);
 
         // Lazily initialize the queries cache the first time you try to use it.
-        queriesCache = Suppliers.memoize(new Supplier<Map<UUID, StreamsQuery>>() {
-            @Override
-            public Map<UUID, StreamsQuery> get() {
-                // Initialize the queries cache using the current state of the change log.
-                return initializeCache(changeLog);
-            }
-        });
+        queriesCache = Suppliers.memoize(() -> initializeCache(changeLog));
     }
 
     @Override
@@ -92,6 +87,18 @@ public class InMemoryQueryRepository implements QueryRepository {
 
         } catch (final QueryChangeLogException e) {
             throw new QueryRepositoryException("Could not create a Rya Streams query for the SPARQL string: " + query, e);
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    @Override
+    public Optional<StreamsQuery> get(final UUID queryId) throws QueryRepositoryException {
+        requireNonNull(queryId);
+
+        lock.lock();
+        try {
+            return Optional.ofNullable( queriesCache.get().get(queryId) );
         } finally {
             lock.unlock();
         }

@@ -49,7 +49,6 @@ public class StatementPatternProcessorSupplier implements ProcessorSupplier<Stri
      * Constructs an instance of {@link StatementPatternProcessorSupplier}.
      *
      * @param sp - The statement pattern that the supplied processors will match against. (not null)
-     * @param keyFactory - The key factory that the supplied processors will use to create result keys. (not null)
      * @param resultFactory - The factory that the supplied processors will use to create results. (not null)
      */
     public StatementPatternProcessorSupplier(
@@ -66,8 +65,7 @@ public class StatementPatternProcessorSupplier implements ProcessorSupplier<Stri
 
     /**
      * Evaluates {@link VisibilityStatement}s against a {@link StatementPattern}. Any who match the pattern
-     * will forward a {@link VisibilityBindingSet} as well as store that new binding set in the local state store
-     * so that downstream join processors may access everything that has ever been emitted for the pattern.
+     * will forward a {@link VisibilityBindingSet} to the downstream processor.
      */
     @DefaultAnnotation(NonNull.class)
     public static final class StatementPatternProcessor implements Processor<String, VisibilityStatement> {

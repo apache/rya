@@ -31,11 +31,10 @@ import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.apache.rya.api.model.VisibilityStatement;
-import org.apache.rya.streams.kafka.KafkaTestUtil;
 import org.apache.rya.streams.kafka.serialization.VisibilityStatementDeserializer;
 import org.apache.rya.streams.kafka.serialization.VisibilityStatementSerializer;
-import org.apache.rya.test.kafka.KafkaITBase;
 import org.apache.rya.test.kafka.KafkaTestInstanceRule;
+import org.apache.rya.test.kafka.KafkaTestUtil;
 import org.junit.Rule;
 import org.junit.Test;
 import org.openrdf.model.ValueFactory;
@@ -45,7 +44,7 @@ import org.openrdf.rio.UnsupportedRDFormatException;
 /**
  * Integration tests the {@link KafkaLoadStatements} command
  */
-public class KafkaLoadStatementsIT extends KafkaITBase {
+public class KafkaLoadStatementsIT {
     private static final Path TURTLE_FILE = Paths.get("src/test/resources/statements.ttl");
 
     private static final Path INVALID = Paths.get("src/test/resources/invalid.INVALID");

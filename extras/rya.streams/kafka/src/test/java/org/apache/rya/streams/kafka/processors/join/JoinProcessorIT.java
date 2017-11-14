@@ -29,8 +29,8 @@ import org.apache.rya.api.function.join.NaturalJoin;
 import org.apache.rya.api.function.projection.RandomUUIDFactory;
 import org.apache.rya.api.model.VisibilityBindingSet;
 import org.apache.rya.api.model.VisibilityStatement;
-import org.apache.rya.streams.kafka.KafkaTestUtil;
 import org.apache.rya.streams.kafka.KafkaTopics;
+import org.apache.rya.streams.kafka.RyaStreamsTestUtil;
 import org.apache.rya.streams.kafka.processors.ProcessorResult;
 import org.apache.rya.streams.kafka.processors.ProcessorResult.UnaryResult;
 import org.apache.rya.streams.kafka.processors.join.JoinProcessorSupplier.JoinProcessor;
@@ -111,7 +111,7 @@ public class JoinProcessorIT {
         expected.add( new VisibilityBindingSet(bs, "c&(b|c)") );
 
         // Run the test.
-        KafkaTestUtil.runStreamProcessingTest(kafka, statementsTopic, resultsTopic, builder, 2000, statements, expected, VisibilityBindingSetDeserializer.class);
+        RyaStreamsTestUtil.runStreamProcessingTest(kafka, statementsTopic, resultsTopic, builder, 2000, statements, expected, VisibilityBindingSetDeserializer.class);
     }
 
     @Test
@@ -162,7 +162,7 @@ public class JoinProcessorIT {
         expected.add( new VisibilityBindingSet(bs, "c&(b|c)") );
 
         // Run the test.
-        KafkaTestUtil.runStreamProcessingTest(kafka, statementsTopic, resultsTopic, builder, 2000, statements, expected, VisibilityBindingSetDeserializer.class);
+        RyaStreamsTestUtil.runStreamProcessingTest(kafka, statementsTopic, resultsTopic, builder, 2000, statements, expected, VisibilityBindingSetDeserializer.class);
     }
 
     @Test
@@ -219,7 +219,7 @@ public class JoinProcessorIT {
         expected.add( new VisibilityBindingSet(bs, "a&c") );
 
         // Run the test.
-        KafkaTestUtil.runStreamProcessingTest(kafka, statementsTopic, resultsTopic, builder, 2000, statements, expected, VisibilityBindingSetDeserializer.class);
+        RyaStreamsTestUtil.runStreamProcessingTest(kafka, statementsTopic, resultsTopic, builder, 2000, statements, expected, VisibilityBindingSetDeserializer.class);
     }
 
     @Test
@@ -260,7 +260,7 @@ public class JoinProcessorIT {
         expected.add( new VisibilityBindingSet(bs, "a") );
 
         // Run the test.
-        KafkaTestUtil.runStreamProcessingTest(kafka, statementsTopic, resultsTopic, builder, 3000, statements, expected, VisibilityBindingSetDeserializer.class);
+        RyaStreamsTestUtil.runStreamProcessingTest(kafka, statementsTopic, resultsTopic, builder, 3000, statements, expected, VisibilityBindingSetDeserializer.class);
     }
 
     @Test
@@ -311,6 +311,6 @@ public class JoinProcessorIT {
         expected.add( new VisibilityBindingSet(bs, "c") );
 
         // Run the test.
-        KafkaTestUtil.runStreamProcessingTest(kafka, statementsTopic, resultsTopic, builder, 2000, statements, expected, VisibilityBindingSetDeserializer.class);
+        RyaStreamsTestUtil.runStreamProcessingTest(kafka, statementsTopic, resultsTopic, builder, 2000, statements, expected, VisibilityBindingSetDeserializer.class);
     }
 }

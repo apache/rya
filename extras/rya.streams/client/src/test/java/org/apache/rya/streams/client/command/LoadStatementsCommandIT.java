@@ -26,21 +26,16 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Properties;
 import java.util.UUID;
 
-import org.apache.kafka.clients.CommonClientConfigs;
 import org.apache.kafka.clients.consumer.Consumer;
-import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
-import org.apache.kafka.clients.consumer.ConsumerRecords;
-import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.rya.api.model.VisibilityStatement;
 import org.apache.rya.streams.kafka.KafkaTopics;
 import org.apache.rya.streams.kafka.serialization.VisibilityStatementDeserializer;
 import org.apache.rya.test.kafka.KafkaTestInstanceRule;
-import org.junit.Before;
+import org.apache.rya.test.kafka.KafkaTestUtil;
 import org.junit.Rule;
 import org.junit.Test;
 import org.openrdf.model.ValueFactory;
@@ -55,21 +50,8 @@ public class LoadStatementsCommandIT {
 
     private final String ryaInstance = UUID.randomUUID().toString();
 
-    private String kafkaIp;
-    private String kafkaPort;
-
     @Rule
-    public KafkaTestInstanceRule rule = new KafkaTestInstanceRule(true);
-
-    @Before
-    public void setup() {
-        final Properties props = rule.createBootstrapServerConfig();
-        final String location = props.getProperty(CommonClientConfigs.BOOTSTRAP_SERVERS_CONFIG);
-        final String[] tokens = location.split(":");
-
-        kafkaIp = tokens[0];
-        kafkaPort = tokens[1];
-    }
+    public KafkaTestInstanceRule kafka = new KafkaTestInstanceRule(true);
 
     @Test
     public void shortParams() throws Exception {
@@ -77,35 +59,27 @@ public class LoadStatementsCommandIT {
         final String visibilities = "a|b|c";
         final String[] args = new String[] {
                 "-r", "" + ryaInstance,
-                "-i", kafkaIp,
-                "-p", kafkaPort,
+                "-i", kafka.getKafkaHostname(),
+                "-p", kafka.getKafkaPort(),
                 "-f", TURTLE_FILE.toString(),
                 "-v", visibilities
         };
 
+        // Load the file of statements into the Statements topic.
         new LoadStatementsCommand().execute(args);
 
         // Show that the statements were loaded into the topic.
-        // Read a VisibilityBindingSet from the test topic.
         final List<VisibilityStatement> read = new ArrayList<>();
 
-        final Properties consumerProps = new Properties();
-        consumerProps.setProperty(CommonClientConfigs.BOOTSTRAP_SERVERS_CONFIG, kafkaIp + ":" + kafkaPort);
-        consumerProps.setProperty(ConsumerConfig.GROUP_ID_CONFIG, UUID.randomUUID().toString());
-        consumerProps.setProperty(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
-        consumerProps.setProperty(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
-        consumerProps.setProperty(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, VisibilityStatementDeserializer.class.getName());
+        try(final Consumer<String, VisibilityStatement> consumer =
+                KafkaTestUtil.fromStartConsumer(kafka, StringDeserializer.class, VisibilityStatementDeserializer.class)) {
+            // Subscribe for messages.
+            consumer.subscribe( Arrays.asList(KafkaTopics.statementsTopic(ryaInstance)) );
 
-        try(final Consumer<String, VisibilityStatement> consumer = new KafkaConsumer<>(consumerProps)) {
-            final String topic = KafkaTopics.statementsTopic(ryaInstance);
-            consumer.subscribe(Arrays.asList(topic));
-            final ConsumerRecords<String, VisibilityStatement> records = consumer.poll(3000);
-
-            assertEquals(3, records.count());
-            final Iterator<ConsumerRecord<String, VisibilityStatement>> iter = records.iterator();
+            // Read the messages and extract their values.
+            final Iterator<ConsumerRecord<String, VisibilityStatement>> iter = consumer.poll(3000).iterator();
             while(iter.hasNext()) {
-                final VisibilityStatement visiSet = iter.next().value();
-                read.add(visiSet);
+                read.add( iter.next().value() );
             }
         }
 
@@ -131,35 +105,27 @@ public class LoadStatementsCommandIT {
         final String visibilities = "a|b|c";
         final String[] args = new String[] {
                 "--ryaInstance", "" + ryaInstance,
-                "--kafkaHostname", kafkaIp,
-                "--kafkaPort", kafkaPort,
+                "--kafkaHostname", kafka.getKafkaHostname(),
+                "--kafkaPort", kafka.getKafkaPort(),
                 "--statementsFile", TURTLE_FILE.toString(),
                 "--visibilities", visibilities
         };
 
+        // Load the file of statements into the Statements topic.
         new LoadStatementsCommand().execute(args);
 
         // Show that the statements were loaded into the topic.
-        // Read a VisibilityBindingSet from the test topic.
         final List<VisibilityStatement> read = new ArrayList<>();
 
-        final Properties consumerProps = new Properties();
-        consumerProps.setProperty(CommonClientConfigs.BOOTSTRAP_SERVERS_CONFIG, kafkaIp + ":" + kafkaPort);
-        consumerProps.setProperty(ConsumerConfig.GROUP_ID_CONFIG, UUID.randomUUID().toString());
-        consumerProps.setProperty(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
-        consumerProps.setProperty(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
-        consumerProps.setProperty(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, VisibilityStatementDeserializer.class.getName());
+        try(final Consumer<String, VisibilityStatement> consumer =
+                KafkaTestUtil.fromStartConsumer(kafka, StringDeserializer.class, VisibilityStatementDeserializer.class)) {
+            // Subscribe for messages.
+            consumer.subscribe( Arrays.asList(KafkaTopics.statementsTopic(ryaInstance)) );
 
-        try(final Consumer<String, VisibilityStatement> consumer = new KafkaConsumer<>(consumerProps)) {
-            final String topic = KafkaTopics.statementsTopic(ryaInstance);
-            consumer.subscribe(Arrays.asList(topic));
-            final ConsumerRecords<String, VisibilityStatement> records = consumer.poll(3000);
-
-            assertEquals(3, records.count());
-            final Iterator<ConsumerRecord<String, VisibilityStatement>> iter = records.iterator();
+            // Read the messages and extract their values.
+            final Iterator<ConsumerRecord<String, VisibilityStatement>> iter = consumer.poll(3000).iterator();
             while(iter.hasNext()) {
-                final VisibilityStatement visiSet = iter.next().value();
-                read.add(visiSet);
+                read.add( iter.next().value() );
             }
         }
 

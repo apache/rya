@@ -18,6 +18,7 @@
  */
 package org.apache.rya.streams.api.queries;
 
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
@@ -32,6 +33,7 @@ import edu.umd.cs.findbugs.annotations.NonNull;
  */
 @DefaultAnnotation(NonNull.class)
 public interface QueryRepository extends AutoCloseable {
+
     /**
      * Adds a new query to Rya Streams.
      *
@@ -40,6 +42,15 @@ public interface QueryRepository extends AutoCloseable {
      * @throws QueryRepositoryException Could not add the query.
      */
     public StreamsQuery add(final String query) throws QueryRepositoryException;
+
+    /**
+     * Get an existing query from Rya Streams.
+     *
+     * @param queryId - Identifies which query will be fetched.
+     * @return the {@link StreamsQuery} for the id if one exists; otherwise empty.
+     * @throws QueryRepositoryException The query could not be fetched.
+     */
+    public Optional<StreamsQuery> get(UUID queryId) throws QueryRepositoryException;
 
     /**
      * Removes an existing query from Rya Streams.
@@ -53,8 +64,7 @@ public interface QueryRepository extends AutoCloseable {
      * Lists all existing queries in Rya Streams.
      *
      * @return - A List of the current {@link StreamsQuery}s
-     * @throws QueryRepositoryException The {@link StreamsQuery}s could not be
-     *         listed.
+     * @throws QueryRepositoryException The {@link StreamsQuery}s could not be listed.
      */
     public Set<StreamsQuery> list() throws QueryRepositoryException;
 

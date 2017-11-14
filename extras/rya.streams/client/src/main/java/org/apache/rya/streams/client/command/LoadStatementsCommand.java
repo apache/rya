@@ -127,6 +127,7 @@ public class LoadStatementsCommand implements RyaStreamsCommand {
         final Properties producerProps = buildProperties(params);
         try (final Producer<Object, VisibilityStatement> producer = new KafkaProducer<>(producerProps)) {
             final LoadStatements statements = new KafkaLoadStatements(KafkaTopics.statementsTopic(params.ryaInstance), producer);
+            System.out.printf("Loading statements from file `%s` using visibilities `%s`.\n", statementsPath, params.visibilities);
             statements.fromFile(statementsPath, params.visibilities);
         } catch (final Exception e) {
             System.err.println("Unable to parse statements file: " + statementsPath.toString());

@@ -126,7 +126,7 @@ public class StreamResultsCommand implements RyaStreamsCommand {
         // Execute the command.
         final GetQueryResultStream getQueryResultStream = new KafkaGetQueryResultStream(params.kafkaIP, params.kafkaPort);
 
-        try (final QueryResultStream stream = getQueryResultStream.fromNow(queryId)) {
+        try (final QueryResultStream stream = getQueryResultStream.fromStart(queryId)) {
             while(!finished.get()) {
                 for(final VisibilityBindingSet visBs : stream.poll(1000)) {
                     System.out.println(visBs);

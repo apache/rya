@@ -105,6 +105,13 @@ public class KafkaTestInstanceRule extends ExternalResource {
     }
 
     /**
+     * @return The hostnames of the Zookeeper servers.
+     */
+    public String getZookeeperServers() {
+        return kafkaInstance.getZookeeperConnect();
+    }
+
+    /**
      * @return The hostname of the Kafka Broker.
      */
     public String getKafkaHostname() {

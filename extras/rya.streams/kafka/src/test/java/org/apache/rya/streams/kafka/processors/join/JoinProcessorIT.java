@@ -40,9 +40,9 @@ import org.apache.rya.streams.kafka.processors.ProcessorResult;
 import org.apache.rya.streams.kafka.processors.ProcessorResult.BinaryResult;
 import org.apache.rya.streams.kafka.processors.ProcessorResult.BinaryResult.Side;
 import org.apache.rya.streams.kafka.processors.ProcessorResult.UnaryResult;
-import org.apache.rya.streams.kafka.processors.RyaStreamsSinkFormatterSupplier.RyaStreamsSinkFormatter;
 import org.apache.rya.streams.kafka.processors.StatementPatternProcessorSupplier;
 import org.apache.rya.streams.kafka.processors.join.JoinProcessorSupplier.JoinProcessor;
+import org.apache.rya.streams.kafka.processors.output.BindingSetOutputFormatterSupplier.BindingSetOutputFormatter;
 import org.apache.rya.streams.kafka.serialization.VisibilityBindingSetSerde;
 import org.apache.rya.streams.kafka.serialization.VisibilityBindingSetSerializer;
 import org.apache.rya.streams.kafka.serialization.VisibilityStatementDeserializer;
@@ -118,7 +118,7 @@ public class JoinProcessorIT {
         builder.addStateStore(joinStoreSupplier, "NATURAL_JOIN");
 
         // Add a processor that formats the VisibilityBindingSet for output.
-        builder.addProcessor("SINK_FORMATTER", RyaStreamsSinkFormatter::new, "NATURAL_JOIN");
+        builder.addProcessor("SINK_FORMATTER", BindingSetOutputFormatter::new, "NATURAL_JOIN");
 
         // Add a sink that writes the data out to a new Kafka topic.
         builder.addSink("QUERY_RESULTS", resultsTopic, new StringSerializer(), new VisibilityBindingSetSerializer(), "SINK_FORMATTER");
@@ -201,7 +201,7 @@ public class JoinProcessorIT {
         builder.addStateStore(joinStoreSupplier, "NATURAL_JOIN");
 
         // Add a processor that formats the VisibilityBindingSet for output.
-        builder.addProcessor("SINK_FORMATTER", RyaStreamsSinkFormatter::new, "NATURAL_JOIN");
+        builder.addProcessor("SINK_FORMATTER", BindingSetOutputFormatter::new, "NATURAL_JOIN");
 
         // Add a sink that writes the data out to a new Kafka topic.
         builder.addSink("QUERY_RESULTS", resultsTopic, new StringSerializer(), new VisibilityBindingSetSerializer(), "SINK_FORMATTER");
@@ -284,7 +284,7 @@ public class JoinProcessorIT {
         builder.addStateStore(joinStoreSupplier, "NATURAL_JOIN");
 
         // Add a processor that formats the VisibilityBindingSet for output.
-        builder.addProcessor("SINK_FORMATTER", RyaStreamsSinkFormatter::new, "NATURAL_JOIN");
+        builder.addProcessor("SINK_FORMATTER", BindingSetOutputFormatter::new, "NATURAL_JOIN");
 
         // Add a sink that writes the data out to a new Kafka topic.
         builder.addSink("QUERY_RESULTS", resultsTopic, new StringSerializer(), new VisibilityBindingSetSerializer(), "SINK_FORMATTER");
@@ -394,7 +394,7 @@ public class JoinProcessorIT {
         builder.addStateStore(join2StoreSupplier, "JOIN2");
 
         // Add a processor that formats the VisibilityBindingSet for output.
-        builder.addProcessor("SINK_FORMATTER", RyaStreamsSinkFormatter::new, "JOIN2");
+        builder.addProcessor("SINK_FORMATTER", BindingSetOutputFormatter::new, "JOIN2");
 
         // Add a sink that writes the data out to a new Kafka topic.
         builder.addSink("QUERY_RESULTS", resultsTopic, new StringSerializer(), new VisibilityBindingSetSerializer(), "SINK_FORMATTER");
@@ -466,7 +466,7 @@ public class JoinProcessorIT {
         builder.addStateStore(joinStoreSupplier, "LEFT_JOIN");
 
         // Add a processor that formats the VisibilityBindingSet for output.
-        builder.addProcessor("SINK_FORMATTER", RyaStreamsSinkFormatter::new, "LEFT_JOIN");
+        builder.addProcessor("SINK_FORMATTER", BindingSetOutputFormatter::new, "LEFT_JOIN");
 
         // Add a sink that writes the data out to a new Kafka topic.
         builder.addSink("QUERY_RESULTS", resultsTopic, new StringSerializer(), new VisibilityBindingSetSerializer(), "SINK_FORMATTER");

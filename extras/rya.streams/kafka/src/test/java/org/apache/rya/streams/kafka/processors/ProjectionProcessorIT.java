@@ -33,8 +33,8 @@ import org.apache.rya.streams.kafka.KafkaTestUtil;
 import org.apache.rya.streams.kafka.KafkaTopics;
 import org.apache.rya.streams.kafka.RdfTestUtil;
 import org.apache.rya.streams.kafka.processors.ProcessorResult.UnaryResult;
-import org.apache.rya.streams.kafka.processors.RyaStreamsSinkFormatterSupplier.RyaStreamsSinkFormatter;
 import org.apache.rya.streams.kafka.processors.StatementPatternProcessorSupplier.StatementPatternProcessor;
+import org.apache.rya.streams.kafka.processors.output.BindingSetOutputFormatterSupplier.BindingSetOutputFormatter;
 import org.apache.rya.streams.kafka.processors.projection.ProjectionProcessorSupplier;
 import org.apache.rya.streams.kafka.serialization.VisibilityBindingSetSerializer;
 import org.apache.rya.streams.kafka.serialization.VisibilityStatementDeserializer;
@@ -85,7 +85,7 @@ public class ProjectionProcessorIT {
         builder.addProcessor("P1", new ProjectionProcessorSupplier(elems, result -> ProcessorResult.make(new UnaryResult(result))), "SP1");
 
         // Add a processor that formats the VisibilityBindingSet for output.
-        builder.addProcessor("SINK_FORMATTER", RyaStreamsSinkFormatter::new, "P1");
+        builder.addProcessor("SINK_FORMATTER", BindingSetOutputFormatter::new, "P1");
 
         // Add a sink that writes the data out to a new Kafka topic.
         builder.addSink("QUERY_RESULTS", resultsTopic, new StringSerializer(), new VisibilityBindingSetSerializer(), "SINK_FORMATTER");
@@ -131,7 +131,7 @@ public class ProjectionProcessorIT {
         builder.addProcessor("P1", new ProjectionProcessorSupplier(elems, result -> ProcessorResult.make(new UnaryResult(result))), "SP1");
 
         // Add a processor that formats the VisibilityBindingSet for output.
-        builder.addProcessor("SINK_FORMATTER", RyaStreamsSinkFormatter::new, "P1");
+        builder.addProcessor("SINK_FORMATTER", BindingSetOutputFormatter::new, "P1");
 
         // Add a sink that writes the data out to a new Kafka topic.
         builder.addSink("QUERY_RESULTS", resultsTopic, new StringSerializer(), new VisibilityBindingSetSerializer(), "SINK_FORMATTER");

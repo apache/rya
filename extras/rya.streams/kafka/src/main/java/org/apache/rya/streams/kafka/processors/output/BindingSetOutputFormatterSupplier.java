@@ -16,25 +16,26 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.apache.rya.streams.kafka.processors;
+package org.apache.rya.streams.kafka.processors.output;
 
 import org.apache.kafka.streams.processor.Processor;
 import org.apache.kafka.streams.processor.ProcessorContext;
 import org.apache.kafka.streams.processor.ProcessorSupplier;
 import org.apache.rya.api.model.VisibilityBindingSet;
+import org.apache.rya.streams.kafka.processors.ProcessorResult;
 
 import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
 import edu.umd.cs.findbugs.annotations.NonNull;
 
 /**
- * Supplies {@link RyaStreamsSinkFormatter} instances.
+ * Supplies {@link BindingSetOutputFormatter} instances.
  */
 @DefaultAnnotation(NonNull.class)
-public class RyaStreamsSinkFormatterSupplier implements ProcessorSupplier<Object, ProcessorResult> {
+public class BindingSetOutputFormatterSupplier implements ProcessorSupplier<Object, ProcessorResult> {
 
     @Override
     public Processor<Object, ProcessorResult> get() {
-        return new RyaStreamsSinkFormatter();
+        return new BindingSetOutputFormatter();
     }
 
     /**
@@ -42,7 +43,7 @@ public class RyaStreamsSinkFormatterSupplier implements ProcessorSupplier<Object
      * written to a sink.
      */
     @DefaultAnnotation(NonNull.class)
-    public static final class RyaStreamsSinkFormatter implements Processor<Object, ProcessorResult> {
+    public static final class BindingSetOutputFormatter implements Processor<Object, ProcessorResult> {
 
         private ProcessorContext processorContext;
 

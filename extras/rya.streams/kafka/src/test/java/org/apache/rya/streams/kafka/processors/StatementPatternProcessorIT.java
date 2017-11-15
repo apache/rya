@@ -33,8 +33,8 @@ import org.apache.rya.streams.kafka.KafkaTestUtil;
 import org.apache.rya.streams.kafka.KafkaTopics;
 import org.apache.rya.streams.kafka.RdfTestUtil;
 import org.apache.rya.streams.kafka.processors.ProcessorResult.UnaryResult;
-import org.apache.rya.streams.kafka.processors.RyaStreamsSinkFormatterSupplier.RyaStreamsSinkFormatter;
 import org.apache.rya.streams.kafka.processors.StatementPatternProcessorSupplier.StatementPatternProcessor;
+import org.apache.rya.streams.kafka.processors.output.BindingSetOutputFormatterSupplier.BindingSetOutputFormatter;
 import org.apache.rya.streams.kafka.serialization.VisibilityBindingSetSerializer;
 import org.apache.rya.streams.kafka.serialization.VisibilityStatementDeserializer;
 import org.apache.rya.test.kafka.KafkaTestInstanceRule;
@@ -74,7 +74,7 @@ public class StatementPatternProcessorIT {
         builder.addProcessor("SP1", new StatementPatternProcessorSupplier(sp, result -> ProcessorResult.make( new UnaryResult(result) )), "STATEMENTS");
 
         // Add a processor that formats the VisibilityBindingSet for output.
-        builder.addProcessor("SINK_FORMATTER", RyaStreamsSinkFormatter::new, "SP1");
+        builder.addProcessor("SINK_FORMATTER", BindingSetOutputFormatter::new, "SP1");
 
         // Add a sink that writes the data out to a new Kafka topic.
         builder.addSink("QUERY_RESULTS", resultsTopic, new StringSerializer(), new VisibilityBindingSetSerializer(), "SINK_FORMATTER");
@@ -117,7 +117,7 @@ public class StatementPatternProcessorIT {
         builder.addProcessor("SP1", new StatementPatternProcessorSupplier(sp, result -> ProcessorResult.make( new UnaryResult(result) )), "STATEMENTS");
 
         // Add a processor that formats the VisibilityBindingSet for output.
-        builder.addProcessor("SINK_FORMATTER", RyaStreamsSinkFormatter::new, "SP1");
+        builder.addProcessor("SINK_FORMATTER", BindingSetOutputFormatter::new, "SP1");
 
         // Add a sink that writes the data out to a new Kafka topic.
         builder.addSink("QUERY_RESULTS", resultsTopic, new StringSerializer(), new VisibilityBindingSetSerializer(), "SINK_FORMATTER");
@@ -172,7 +172,7 @@ public class StatementPatternProcessorIT {
         builder.addProcessor("SP2", new StatementPatternProcessorSupplier(sp2, result -> ProcessorResult.make( new UnaryResult(result) )), "STATEMENTS");
 
         // Add a processor that formats the VisibilityBindingSet for output.
-        builder.addProcessor("SINK_FORMATTER", RyaStreamsSinkFormatter::new, "SP1", "SP2");
+        builder.addProcessor("SINK_FORMATTER", BindingSetOutputFormatter::new, "SP1", "SP2");
 
         // Add a sink that writes the data out to a new Kafka topic.
         builder.addSink("QUERY_RESULTS", resultsTopic, new StringSerializer(), new VisibilityBindingSetSerializer(), "SINK_FORMATTER");
@@ -224,7 +224,7 @@ public class StatementPatternProcessorIT {
         builder.addProcessor("SP2", new StatementPatternProcessorSupplier(sp2, result -> ProcessorResult.make( new UnaryResult(result) )), "STATEMENTS");
 
         // Add a processor that formats the VisibilityBindingSet for output.
-        builder.addProcessor("SINK_FORMATTER", RyaStreamsSinkFormatter::new, "SP1", "SP2");
+        builder.addProcessor("SINK_FORMATTER", BindingSetOutputFormatter::new, "SP1", "SP2");
 
         // Add a sink that writes the data out to a new Kafka topic.
         builder.addSink("QUERY_RESULTS", resultsTopic, new StringSerializer(), new VisibilityBindingSetSerializer(), "SINK_FORMATTER");

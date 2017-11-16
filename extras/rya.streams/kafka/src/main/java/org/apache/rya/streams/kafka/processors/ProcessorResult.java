@@ -21,6 +21,8 @@ package org.apache.rya.streams.kafka.processors;
 import static com.google.common.base.Preconditions.checkState;
 import static java.util.Objects.requireNonNull;
 
+import java.util.Objects;
+
 import org.apache.kafka.streams.processor.Processor;
 import org.apache.rya.api.model.VisibilityBindingSet;
 
@@ -92,6 +94,23 @@ public class ProcessorResult {
         return binary.get();
     }
 
+    @Override
+    public int hashCode() {
+        return Objects.hash(type, unary, binary);
+    }
+
+    @Override
+    public boolean equals(final Object o) {
+        if(o instanceof ProcessorResult) {
+            final ProcessorResult other = (ProcessorResult) o;
+            return Objects.equals(type, other.type) &&
+                    Objects.equals(unary, other.unary) &&
+                    Objects.equals(binary, other.binary);
+        }
+        return false;
+    }
+
+
     /**
      * Creates a {@link ProcessorResult} using the supplied value.
      *
@@ -151,6 +170,20 @@ public class ProcessorResult {
         public VisibilityBindingSet getResult() {
             return result;
         }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(result);
+        }
+
+        @Override
+        public boolean equals(final Object o) {
+            if(o instanceof UnaryResult) {
+                final UnaryResult other = (UnaryResult) o;
+                return Objects.equals(result, other.result);
+            }
+            return false;
+        }
     }
 
     /**
@@ -184,6 +217,21 @@ public class ProcessorResult {
          */
         public VisibilityBindingSet getResult() {
             return result;
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(side, result);
+        }
+
+        @Override
+        public boolean equals(final Object o) {
+            if(o instanceof BinaryResult) {
+                final BinaryResult other = (BinaryResult) o;
+                return Objects.equals(side, other.side) &&
+                        Objects.equals(result, other.result);
+            }
+            return false;
         }
 
         /**

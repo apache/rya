@@ -22,6 +22,8 @@ import static java.util.Objects.requireNonNull;
 
 import java.util.concurrent.atomic.AtomicReference;
 
+import org.openrdf.query.algebra.MultiProjection;
+import org.openrdf.query.algebra.Projection;
 import org.openrdf.query.algebra.StatementPattern;
 import org.openrdf.query.algebra.helpers.QueryModelVisitorBase;
 import org.openrdf.query.parser.ParsedQuery;
@@ -58,5 +60,49 @@ public final class RdfTestUtil {
             }
         });
         return statementPattern.get();
+    }
+
+    /**
+     * Get the first {@link Projection} node from a SPARQL query.
+     *
+     * @param sparql - The query that contains a single Projection node.
+     * @return The first {@link Projection} that is encountered.
+     * @throws Exception The query could not be parsed.
+     */
+    public static @Nullable Projection getProjection(final String sparql) throws Exception {
+        requireNonNull(sparql);
+
+        final AtomicReference<Projection> projection = new AtomicReference<>();
+        final ParsedQuery parsed = new SPARQLParser().parseQuery(sparql, null);
+        parsed.getTupleExpr().visit(new QueryModelVisitorBase<Exception>() {
+            @Override
+            public void meet(final Projection node) throws Exception {
+                projection.set(node);
+            }
+        });
+
+        return projection.get();
+    }
+
+    /**
+     * Get the first {@link MultiProjection} node from a SPARQL query.
+     *
+     * @param sparql - The query that contains a single Projection node.
+     * @return The first {@link MultiProjection} that is encountered.
+     * @throws Exception The query could not be parsed.
+     */
+    public static @Nullable MultiProjection getMultiProjection(final String sparql) throws Exception {
+        requireNonNull(sparql);
+
+        final AtomicReference<MultiProjection> multiProjection = new AtomicReference<>();
+        final ParsedQuery parsed = new SPARQLParser().parseQuery(sparql, null);
+        parsed.getTupleExpr().visit(new QueryModelVisitorBase<Exception>() {
+            @Override
+            public void meet(final MultiProjection node) throws Exception {
+                multiProjection.set(node);
+            }
+        });
+
+        return multiProjection.get();
     }
 }

@@ -97,6 +97,8 @@ public class StatementPatternProcessorSupplier implements ProcessorSupplier<Stri
 
         @Override
         public void process(final String key, final VisibilityStatement statement) {
+            log.debug("\nINPUT:\n{}\n", statement);
+
             // Check to see if the Statement matches the Statement Pattern.
             final Optional<BindingSet> bs = spMatcher.match(statement);
 

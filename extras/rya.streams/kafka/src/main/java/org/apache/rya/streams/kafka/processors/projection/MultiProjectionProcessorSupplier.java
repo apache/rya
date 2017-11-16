@@ -22,7 +22,7 @@ import static java.util.Objects.requireNonNull;
 
 import org.apache.kafka.streams.processor.Processor;
 import org.apache.kafka.streams.processor.ProcessorContext;
-import org.apache.rya.api.function.projection.ProjectionEvaluator;
+import org.apache.rya.api.function.projection.MultiProjectionEvaluator;
 import org.apache.rya.api.model.VisibilityBindingSet;
 import org.apache.rya.streams.kafka.processors.ProcessorResult;
 import org.apache.rya.streams.kafka.processors.ProcessorResult.ResultType;
@@ -36,52 +36,54 @@ import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
 import edu.umd.cs.findbugs.annotations.NonNull;
 
 /**
- * Supplies {@link ProjectionProcessor} instances.
+ * Supplies {@link MultiProjectionProcessor} instances.
  */
 @DefaultAnnotation(NonNull.class)
-public class ProjectionProcessorSupplier extends RyaStreamsProcessorSupplier {
+public class MultiProjectionProcessorSupplier extends RyaStreamsProcessorSupplier {
 
-    private final ProjectionEvaluator projection;
+    private final MultiProjectionEvaluator multiProjection;
 
     /**
-     * Constructs an instance of {@link ProjectionProcessorSupplier}.
+     * Constructs an instance of {@link MultiProjectionProcessorSupplier}.
      *
-     * @param projection - Defines the projection work that will be performed by supplied processors. (not null)
+     * @param multiProjection - Defines the MultiProjection work that will be performed by supplied processors. (not null)
      * @param resultFactory - The factory that the supplied processors will use to create results. (not null)
      */
-    public ProjectionProcessorSupplier(
-            final ProjectionEvaluator projection,
+    public MultiProjectionProcessorSupplier(
+            final MultiProjectionEvaluator multiProjection,
             final ProcessorResultFactory resultFactory) {
         super(resultFactory);
-        this.projection = requireNonNull(projection);
+        this.multiProjection = requireNonNull(multiProjection);
     }
 
     @Override
     public Processor<Object, ProcessorResult> get() {
-        return new ProjectionProcessor(projection, super.getResultFactory());
+        return new MultiProjectionProcessor(multiProjection, super.getResultFactory());
     }
 
     /**
-     * Evaluates {@link ProcessorResult}s against a {@link ProjectionEvaluator} and forwards its result
+     * Evaluates {@link ProcessorResult}s against a {@link MultiProjectionEvaluator} and forwards its results
      * to a downstream processor.
      */
     @DefaultAnnotation(NonNull.class)
-    public static final class ProjectionProcessor extends RyaStreamsProcessor {
-        private static final Logger log = LoggerFactory.getLogger(ProjectionProcessor.class);
+    public static final class MultiProjectionProcessor extends RyaStreamsProcessor {
+        private static final Logger log = LoggerFactory.getLogger(MultiProjectionProcessor.class);
 
-        private final ProjectionEvaluator projection;
+        private final MultiProjectionEvaluator multiProjection;
 
         private ProcessorContext context;
 
         /**
-         * Constructs an instance of {@link ProjectionProcessor}.
+         * Constructs an instance of {@link MultiProjectionProcessor}.
          *
-         * @param projection - Defines the projection work that will be performed by this processor. (not null)
-         * @param resultFactory - The factory that the processor will use to create results. (not null)
+         * @param multiProjection - Defines the MultiProjection work that will be performed by this processor. (not null)
+         * @param resultFactory - The factory that the supplied processors will use to create results. (not null)
          */
-        public ProjectionProcessor(final ProjectionEvaluator projection, final ProcessorResultFactory resultFactory) {
+        public MultiProjectionProcessor(
+                final MultiProjectionEvaluator multiProjection,
+                final ProcessorResultFactory resultFactory) {
             super(resultFactory);
-            this.projection = requireNonNull(projection);
+            this.multiProjection = requireNonNull(multiProjection);
         }
 
         @Override
@@ -90,29 +92,28 @@ public class ProjectionProcessorSupplier extends RyaStreamsProcessorSupplier {
         }
 
         @Override
-        public void process(final Object key, final ProcessorResult result) {
+        public void process(final Object key, final ProcessorResult value) {
             // projections can only be unary
-            if (result.getType() != ResultType.UNARY) {
+            if (value.getType() != ResultType.UNARY) {
                 throw new RuntimeException("The ProcessorResult to be processed must be Unary.");
             }
 
-            // Apply the projection to the binding set.
-            final VisibilityBindingSet bs = result.getUnary().getResult();
-            final VisibilityBindingSet newVisBs = projection.project(bs);
-
-            // Forward the result to the downstream processor.
-            log.debug("\nOUTPUT:\n{}", newVisBs);
-            context.forward(key, super.getResultFactory().make(newVisBs));
+            // Apply the projection to the binding set and forward the results.
+            final VisibilityBindingSet bs = value.getUnary().getResult();
+            for(final VisibilityBindingSet newVisBs : multiProjection.project(bs)) {
+                log.debug("\nOUTPUT:\n{}", newVisBs);
+                context.forward(key, super.getResultFactory().make(newVisBs));
+            }
         }
 
         @Override
         public void punctuate(final long timestamp) {
-            // Nothing to do.
+            // Do nothing.
         }
 
         @Override
         public void close() {
-            // Nothing to do.
+            // Do nothing.
         }
     }
 }

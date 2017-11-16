@@ -84,4 +84,9 @@ public class VisibilityStatement extends StatementDecorator {
     public int hashCode() {
         return Objects.hash(visibility, super.getStatement());
     }
+
+    @Override
+    public String toString() {
+        return "Statement: " + super.getStatement().toString() + ", Visibility: " + visibility;
+    }
 }

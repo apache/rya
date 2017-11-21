@@ -22,6 +22,7 @@ import static java.util.Objects.requireNonNull;
 
 import java.util.concurrent.atomic.AtomicReference;
 
+import org.openrdf.query.algebra.Filter;
 import org.openrdf.query.algebra.MultiProjection;
 import org.openrdf.query.algebra.Projection;
 import org.openrdf.query.algebra.StatementPattern;
@@ -104,5 +105,27 @@ public final class RdfTestUtil {
         });
 
         return multiProjection.get();
+    }
+
+    /**
+     * Get the first {@link Filter} node from a SPARQL query.
+     *
+     * @param sparql - The query that contains a single Projection node.
+     * @return The first {@link Filter} that is encountered.
+     * @throws Exception The query could not be parsed.
+     */
+    public static @Nullable Filter getFilter(final String sparql) throws Exception {
+        requireNonNull(sparql);
+
+        final AtomicReference<Filter> filter = new AtomicReference<>();
+        final ParsedQuery parsed = new SPARQLParser().parseQuery(sparql, null);
+        parsed.getTupleExpr().visit(new QueryModelVisitorBase<Exception>() {
+            @Override
+            public void meet(final Filter node) throws Exception {
+                filter.set(node);
+            }
+        });
+
+        return filter.get();
     }
 }

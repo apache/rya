@@ -38,6 +38,7 @@ import org.apache.kafka.streams.processor.ProcessorSupplier;
 import org.apache.kafka.streams.processor.StateStoreSupplier;
 import org.apache.kafka.streams.processor.TopologyBuilder;
 import org.apache.kafka.streams.state.Stores;
+import org.apache.rya.api.function.Filter.FilterEvaluator;
 import org.apache.rya.api.function.join.IterativeJoin;
 import org.apache.rya.api.function.join.LeftOuterJoin;
 import org.apache.rya.api.function.join.NaturalJoin;
@@ -50,6 +51,7 @@ import org.apache.rya.streams.kafka.processors.ProcessorResult.BinaryResult;
 import org.apache.rya.streams.kafka.processors.ProcessorResult.BinaryResult.Side;
 import org.apache.rya.streams.kafka.processors.ProcessorResult.UnaryResult;
 import org.apache.rya.streams.kafka.processors.StatementPatternProcessorSupplier;
+import org.apache.rya.streams.kafka.processors.filter.FilterProcessorSupplier;
 import org.apache.rya.streams.kafka.processors.join.JoinProcessorSupplier;
 import org.apache.rya.streams.kafka.processors.output.BindingSetOutputFormatterSupplier;
 import org.apache.rya.streams.kafka.processors.output.StatementOutputFormatterSupplier;
@@ -62,6 +64,7 @@ import org.apache.rya.streams.kafka.serialization.VisibilityStatementSerializer;
 import org.openrdf.query.MalformedQueryException;
 import org.openrdf.query.algebra.BinaryTupleOperator;
 import org.openrdf.query.algebra.Extension;
+import org.openrdf.query.algebra.Filter;
 import org.openrdf.query.algebra.Join;
 import org.openrdf.query.algebra.LeftJoin;
 import org.openrdf.query.algebra.MultiProjection;
@@ -90,6 +93,7 @@ public class TopologyFactory implements TopologyBuilderFactory {
     private static final String STATEMENT_PATTERN_PREFIX = "SP_";
     private static final String JOIN_PREFIX = "JOIN_";
     private static final String PROJECTION_PREFIX = "PROJECTION_";
+    private static final String FILTER_PREFIX = "FILTER_";
     private static final String SINK = "SINK";
 
     private List<ProcessorEntry> processorEntryList;
@@ -423,6 +427,20 @@ public class TopologyFactory implements TopologyBuilderFactory {
             }
 
             entries.add(new ProcessorEntry(node, id, side, supplier, Lists.newArrayList(downstreamNode)));
+            idMap.put(node, id);
+            super.meet(node);
+        }
+
+        @Override
+        public void meet(final Filter node) throws TopologyBuilderException {
+            final String id = FILTER_PREFIX + UUID.randomUUID();
+            final Optional<Side> side = getSide(node);
+
+            final FilterProcessorSupplier supplier = new FilterProcessorSupplier(
+                    FilterEvaluator.make(node),
+                    result -> getResult(side, result));
+
+            entries.add(new ProcessorEntry(node, id, side, supplier, Lists.newArrayList(node.getArg())));
             idMap.put(node, id);
             super.meet(node);
         }

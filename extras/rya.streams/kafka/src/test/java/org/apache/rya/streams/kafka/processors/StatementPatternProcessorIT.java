@@ -25,11 +25,13 @@ import java.util.Set;
 import java.util.UUID;
 
 import org.apache.kafka.streams.processor.TopologyBuilder;
+import org.apache.rya.api.function.projection.RandomUUIDFactory;
 import org.apache.rya.api.model.VisibilityBindingSet;
 import org.apache.rya.api.model.VisibilityStatement;
 import org.apache.rya.streams.kafka.KafkaTestUtil;
 import org.apache.rya.streams.kafka.KafkaTopics;
 import org.apache.rya.streams.kafka.processors.StatementPatternProcessorSupplier.StatementPatternProcessor;
+import org.apache.rya.streams.kafka.serialization.VisibilityBindingSetDeserializer;
 import org.apache.rya.streams.kafka.topology.TopologyFactory;
 import org.apache.rya.test.kafka.KafkaTestInstanceRule;
 import org.junit.Rule;
@@ -57,7 +59,7 @@ public class StatementPatternProcessorIT {
         // Setup a topology.
         final String query = "SELECT * WHERE { ?person <urn:talksTo> ?otherPerson }";
         final TopologyFactory factory = new TopologyFactory();
-        final TopologyBuilder builder = factory.build(query, statementsTopic, resultsTopic);
+        final TopologyBuilder builder = factory.build(query, statementsTopic, resultsTopic, new RandomUUIDFactory());
 
         // Create a statement that generate an SP result.
         final ValueFactory vf = new ValueFactoryImpl();
@@ -73,7 +75,7 @@ public class StatementPatternProcessorIT {
         expected.add( new VisibilityBindingSet(bs, "a") );
 
         // Run the test.
-        KafkaTestUtil.runStreamProcessingTest(kafka, statementsTopic, resultsTopic, builder, 2000, statements, expected);
+        KafkaTestUtil.runStreamProcessingTest(kafka, statementsTopic, resultsTopic, builder, 2000, statements, expected, VisibilityBindingSetDeserializer.class);
     }
 
     @Test
@@ -87,7 +89,7 @@ public class StatementPatternProcessorIT {
         // Setup a topology.
         final String query = "SELECT * WHERE { ?person <urn:talksTo> ?otherPerson }";
         final TopologyFactory factory = new TopologyFactory();
-        final TopologyBuilder builder = factory.build(query, statementsTopic, resultsTopic);
+        final TopologyBuilder builder = factory.build(query, statementsTopic, resultsTopic, new RandomUUIDFactory());
 
         // Create some statements where some generates SP results and others do not.
         final ValueFactory vf = new ValueFactoryImpl();
@@ -111,7 +113,7 @@ public class StatementPatternProcessorIT {
         expected.add( new VisibilityBindingSet(bs, "a|b") );
 
         // Run the test.
-        KafkaTestUtil.runStreamProcessingTest(kafka, statementsTopic, resultsTopic, builder, 2000, statements, expected);
+        KafkaTestUtil.runStreamProcessingTest(kafka, statementsTopic, resultsTopic, builder, 2000, statements, expected, VisibilityBindingSetDeserializer.class);
     }
 
     @Test
@@ -128,7 +130,7 @@ public class StatementPatternProcessorIT {
                 + "?person ?action <urn:Bob>"
                 + "}";
         final TopologyFactory factory = new TopologyFactory();
-        final TopologyBuilder builder = factory.build(query, statementsTopic, resultsTopic);
+        final TopologyBuilder builder = factory.build(query, statementsTopic, resultsTopic, new RandomUUIDFactory());
 
         // Create some statements where some generates SP results and others do not.
         final ValueFactory vf = new ValueFactoryImpl();
@@ -145,7 +147,7 @@ public class StatementPatternProcessorIT {
         expected.add( new VisibilityBindingSet(bs, "a") );
 
         // Run the test.
-        KafkaTestUtil.runStreamProcessingTest(kafka, statementsTopic, resultsTopic, builder, 2000, statements, expected);
+        KafkaTestUtil.runStreamProcessingTest(kafka, statementsTopic, resultsTopic, builder, 2000, statements, expected, VisibilityBindingSetDeserializer.class);
     }
 
     @Test
@@ -162,7 +164,7 @@ public class StatementPatternProcessorIT {
                 + "?person ?action <urn:Bob>"
                 + "}";
         final TopologyFactory factory = new TopologyFactory();
-        final TopologyBuilder builder = factory.build(query, statementsTopic, resultsTopic);
+        final TopologyBuilder builder = factory.build(query, statementsTopic, resultsTopic, new RandomUUIDFactory());
 
         // Create some statements where some generates SP results and others do not.
         final ValueFactory vf = new ValueFactoryImpl();
@@ -188,6 +190,6 @@ public class StatementPatternProcessorIT {
         expected.add(new VisibilityBindingSet(bs, "a"));
 
         // Run the test.
-        KafkaTestUtil.runStreamProcessingTest(kafka, statementsTopic, resultsTopic, builder, 2000, statements, expected);
+        KafkaTestUtil.runStreamProcessingTest(kafka, statementsTopic, resultsTopic, builder, 2000, statements, expected, VisibilityBindingSetDeserializer.class);
     }
 }

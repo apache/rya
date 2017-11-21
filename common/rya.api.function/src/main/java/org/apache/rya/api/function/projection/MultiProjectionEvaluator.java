@@ -57,9 +57,9 @@ public class MultiProjectionEvaluator {
     /**
      * Constructs an instance of {@link MultiProjection}.
      *
-     * @param projections - The {@link ProjectionEvaluators} that handle each projection within the multi. (not null)
+     * @param projections - The {@link ProjectionEvaluators} that handle each projection within the MultiProjection. (not null)
      * @param blankNodeSourceNames - If there are blank nodes in the projection, this is a set of their names
-     *   so that they may be re-label to have the same node IDs. (not null)
+     *   so that they may be re-labeled to have the same node IDs. (not null)
      * @param bNodeIdFactory - Creates the IDs for Blank Nodes. (not null)
      */
     public MultiProjectionEvaluator(

@@ -24,30 +24,20 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
-import org.apache.kafka.common.serialization.StringDeserializer;
-import org.apache.kafka.common.serialization.StringSerializer;
 import org.apache.kafka.streams.processor.TopologyBuilder;
-import org.apache.rya.api.function.projection.ProjectionEvaluator;
+import org.apache.rya.api.function.projection.RandomUUIDFactory;
 import org.apache.rya.api.model.VisibilityBindingSet;
 import org.apache.rya.api.model.VisibilityStatement;
 import org.apache.rya.streams.kafka.KafkaTestUtil;
 import org.apache.rya.streams.kafka.KafkaTopics;
-import org.apache.rya.streams.kafka.RdfTestUtil;
-import org.apache.rya.streams.kafka.processors.ProcessorResult;
-import org.apache.rya.streams.kafka.processors.StatementPatternProcessorSupplier;
-import org.apache.rya.streams.kafka.processors.ProcessorResult.UnaryResult;
 import org.apache.rya.streams.kafka.processors.StatementPatternProcessorSupplier.StatementPatternProcessor;
-import org.apache.rya.streams.kafka.processors.output.BindingSetOutputFormatterSupplier.BindingSetOutputFormatter;
-import org.apache.rya.streams.kafka.processors.projection.ProjectionProcessorSupplier;
-import org.apache.rya.streams.kafka.serialization.VisibilityBindingSetSerializer;
-import org.apache.rya.streams.kafka.serialization.VisibilityStatementDeserializer;
+import org.apache.rya.streams.kafka.serialization.VisibilityBindingSetDeserializer;
+import org.apache.rya.streams.kafka.topology.TopologyFactory;
 import org.apache.rya.test.kafka.KafkaTestInstanceRule;
 import org.junit.Rule;
 import org.junit.Test;
 import org.openrdf.model.ValueFactory;
 import org.openrdf.model.impl.ValueFactoryImpl;
-import org.openrdf.query.algebra.Projection;
-import org.openrdf.query.algebra.StatementPattern;
 import org.openrdf.query.impl.MapBindingSet;
 
 import com.google.common.collect.Sets;
@@ -68,34 +58,14 @@ public class ProjectionProcessorIT {
         final String statementsTopic = KafkaTopics.statementsTopic(ryaInstance);
         final String resultsTopic = KafkaTopics.queryResultsTopic(queryId);
 
-        // Get the RDF model objects that will be used to build the query.
+        // Create a topology for the Query that will be tested.
         final String sparql =
                 "SELECT (?person AS ?p) ?otherPerson " +
                 "WHERE { " +
                     "?person <urn:talksTo> ?otherPerson . " +
                 "}";
-        final Projection projection = RdfTestUtil.getProjection(sparql);
-        final StatementPattern sp = RdfTestUtil.getSp(sparql);
 
-        // Setup a topology.
-        final TopologyBuilder builder = new TopologyBuilder();
-
-        // The topic that Statements are written to is used as a source.
-        builder.addSource("STATEMENTS", new StringDeserializer(), new VisibilityStatementDeserializer(), statementsTopic);
-
-        // Add a processor that handles the first statement pattern.
-        builder.addProcessor("SP1", new StatementPatternProcessorSupplier(sp, result -> ProcessorResult.make( new UnaryResult(result) )), "STATEMENTS");
-
-        // Add a processor that handles the projection.
-        builder.addProcessor("P1", new ProjectionProcessorSupplier(
-                ProjectionEvaluator.make(projection),
-                result -> ProcessorResult.make(new UnaryResult(result))), "SP1");
-
-        // Add a processor that formats the VisibilityBindingSet for output.
-        builder.addProcessor("SINK_FORMATTER", BindingSetOutputFormatter::new, "P1");
-
-        // Add a sink that writes the data out to a new Kafka topic.
-        builder.addSink("QUERY_RESULTS", resultsTopic, new StringSerializer(), new VisibilityBindingSetSerializer(), "SINK_FORMATTER");
+        final TopologyBuilder builder = new TopologyFactory().build(sparql, statementsTopic, resultsTopic, new RandomUUIDFactory());
 
         // Load some data into the input topic.
         final ValueFactory vf = new ValueFactoryImpl();
@@ -110,6 +80,6 @@ public class ProjectionProcessorIT {
         expectedBs.addBinding("otherPerson", vf.createURI("urn:Bob"));
         expected.add(new VisibilityBindingSet(expectedBs, "a"));
 
-        KafkaTestUtil.runStreamProcessingTest(kafka, statementsTopic, resultsTopic, builder, 2000, statements, Sets.newHashSet(expected));
+        KafkaTestUtil.runStreamProcessingTest(kafka, statementsTopic, resultsTopic, builder, 2000, statements, Sets.newHashSet(expected), VisibilityBindingSetDeserializer.class);
     }
 }

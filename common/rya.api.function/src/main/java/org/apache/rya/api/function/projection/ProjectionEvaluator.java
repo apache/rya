@@ -179,7 +179,10 @@ public class ProjectionEvaluator {
                 }
             }
 
-            result.addBinding(elem.getTargetName(), value);
+            // Only add the value if there is one. There may not be one if a binding is optional.
+            if(value != null) {
+                result.addBinding(elem.getTargetName(), value);
+            }
         }
 
         return new VisibilityBindingSet(result, bs.getVisibility());

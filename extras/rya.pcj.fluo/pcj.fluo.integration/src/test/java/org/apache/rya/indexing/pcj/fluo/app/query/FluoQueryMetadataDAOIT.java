@@ -31,10 +31,10 @@ import org.apache.fluo.api.client.Snapshot;
 import org.apache.fluo.api.client.Transaction;
 import org.apache.rya.api.client.CreatePCJ.ExportStrategy;
 import org.apache.rya.api.client.CreatePCJ.QueryType;
+import org.apache.rya.api.function.aggregation.AggregationElement;
+import org.apache.rya.api.function.aggregation.AggregationType;
 import org.apache.rya.indexing.pcj.fluo.app.ConstructGraph;
 import org.apache.rya.indexing.pcj.fluo.app.NodeType;
-import org.apache.rya.indexing.pcj.fluo.app.query.AggregationMetadata.AggregationElement;
-import org.apache.rya.indexing.pcj.fluo.app.query.AggregationMetadata.AggregationType;
 import org.apache.rya.indexing.pcj.fluo.app.query.JoinMetadata.JoinType;
 import org.apache.rya.indexing.pcj.storage.accumulo.VariableOrder;
 import org.apache.rya.pcj.fluo.test.base.RyaExportITBase;
@@ -146,7 +146,7 @@ public class FluoQueryMetadataDAOIT extends RyaExportITBase {
         final FluoQueryMetadataDAO dao = new FluoQueryMetadataDAO();
 
         // Create the object that will be serialized.
-        String queryId = NodeType.generateNewFluoIdForType(NodeType.QUERY);
+        final String queryId = NodeType.generateNewFluoIdForType(NodeType.QUERY);
         final QueryMetadata.Builder builder = QueryMetadata.builder(queryId);
         builder.setQueryType(QueryType.PROJECTION);
         builder.setVarOrder(new VariableOrder("y;s;d"));
@@ -172,7 +172,7 @@ public class FluoQueryMetadataDAOIT extends RyaExportITBase {
             assertEquals(originalMetadata, storedMetdata);
         }
     }
-    
+
     @Test
     public void projectionMetadataTest() {
         final FluoQueryMetadataDAO dao = new FluoQueryMetadataDAO();
@@ -202,15 +202,15 @@ public class FluoQueryMetadataDAOIT extends RyaExportITBase {
             assertEquals(originalMetadata, storedMetdata);
         }
     }
-    
+
     @Test
     public void constructQueryMetadataTest() throws MalformedQueryException {
-        
-        String query = "select ?x ?y where {?x <uri:p1> ?y. ?y <uri:p2> <uri:o1> }";
-        SPARQLParser parser = new SPARQLParser();
-        ParsedQuery pq = parser.parseQuery(query, null);
-        List<StatementPattern> patterns = StatementPatternCollector.process(pq.getTupleExpr());
-        
+
+        final String query = "select ?x ?y where {?x <uri:p1> ?y. ?y <uri:p2> <uri:o1> }";
+        final SPARQLParser parser = new SPARQLParser();
+        final ParsedQuery pq = parser.parseQuery(query, null);
+        final List<StatementPattern> patterns = StatementPatternCollector.process(pq.getTupleExpr());
+
         final FluoQueryMetadataDAO dao = new FluoQueryMetadataDAO();
 
         // Create the object that will be serialized.
@@ -301,13 +301,13 @@ public class FluoQueryMetadataDAOIT extends RyaExportITBase {
             assertEquals(originalMetadata, storedMetadata);
         }
     }
-    
+
     @Test
     public void periodicQueryMetadataTest() {
         final FluoQueryMetadataDAO dao = new FluoQueryMetadataDAO();
 
         // Create the object that will be serialized.
-        PeriodicQueryMetadata originalMetadata =  PeriodicQueryMetadata.builder()
+        final PeriodicQueryMetadata originalMetadata =  PeriodicQueryMetadata.builder()
             .setNodeId("nodeId")
             .setParentNodeId("parentNodeId")
             .setVarOrder(new VariableOrder("a","b","c"))
@@ -317,7 +317,7 @@ public class FluoQueryMetadataDAOIT extends RyaExportITBase {
             .setUnit(TimeUnit.DAYS)
             .setTemporalVariable("a")
             .build();
-            
+
 
         try(FluoClient fluoClient = FluoFactory.newClient(super.getFluoConfiguration())) {
             // Write it to the Fluo table.
@@ -352,14 +352,14 @@ public class FluoQueryMetadataDAOIT extends RyaExportITBase {
                   "?worker <http://worksAt> <http://Chipotle>. " +
                 "}";
 
-        SparqlFluoQueryBuilder builder = new SparqlFluoQueryBuilder();
+        final SparqlFluoQueryBuilder builder = new SparqlFluoQueryBuilder();
         builder.setSparql(sparql);
         builder.setFluoQueryId(NodeType.generateNewFluoIdForType(NodeType.QUERY));
         final FluoQuery originalQuery = builder.build();
 
         assertEquals(QueryType.PROJECTION, originalQuery.getQueryType());
         assertEquals(false, originalQuery.getConstructQueryMetadata().isPresent());
-        
+
         try(FluoClient fluoClient = FluoFactory.newClient(super.getFluoConfiguration())) {
             // Write it to the Fluo table.
             try(Transaction tx = fluoClient.newTransaction()) {
@@ -377,7 +377,7 @@ public class FluoQueryMetadataDAOIT extends RyaExportITBase {
             assertEquals(originalQuery, storedQuery);
         }
     }
-    
+
     @Test
     public void fluoConstructQueryTest() throws MalformedQueryException, UnsupportedQueryException {
         final FluoQueryMetadataDAO dao = new FluoQueryMetadataDAO();
@@ -393,11 +393,11 @@ public class FluoQueryMetadataDAOIT extends RyaExportITBase {
                   "?worker <http://worksAt> <http://Chipotle>. " +
                 "}";
 
-        SparqlFluoQueryBuilder builder = new SparqlFluoQueryBuilder();
+        final SparqlFluoQueryBuilder builder = new SparqlFluoQueryBuilder();
         builder.setSparql(sparql);
         builder.setFluoQueryId(NodeType.generateNewFluoIdForType(NodeType.QUERY));
         final FluoQuery originalQuery = builder.build();
-        
+
         assertEquals(QueryType.CONSTRUCT, originalQuery.getQueryType());
         assertEquals(true, originalQuery.getConstructQueryMetadata().isPresent());
 
@@ -418,8 +418,8 @@ public class FluoQueryMetadataDAOIT extends RyaExportITBase {
             assertEquals(originalQuery, storedQuery);
         }
     }
-    
-    
+
+
     @Test
     public void fluoNestedQueryTest() throws MalformedQueryException, UnsupportedQueryException {
         final FluoQueryMetadataDAO dao = new FluoQueryMetadataDAO();
@@ -435,13 +435,13 @@ public class FluoQueryMetadataDAOIT extends RyaExportITBase {
                     "?id <urn:price> ?price ." +
                 "} " +
                 "GROUP BY ?type ?location }}";
-        
-        
-        SparqlFluoQueryBuilder builder = new SparqlFluoQueryBuilder();
+
+
+        final SparqlFluoQueryBuilder builder = new SparqlFluoQueryBuilder();
         builder.setSparql(sparql);
         builder.setFluoQueryId(NodeType.generateNewFluoIdForType(NodeType.QUERY));
         final FluoQuery originalQuery = builder.build();
-        
+
         assertEquals(QueryType.PROJECTION, originalQuery.getQueryType());
 
         try(FluoClient fluoClient = FluoFactory.newClient(super.getFluoConfiguration())) {
@@ -461,7 +461,7 @@ public class FluoQueryMetadataDAOIT extends RyaExportITBase {
             assertEquals(originalQuery, storedQuery);
         }
     }
-    
+
     @Test
     public void fluoNestedConstructQueryTest() throws MalformedQueryException, UnsupportedQueryException {
         final FluoQueryMetadataDAO dao = new FluoQueryMetadataDAO();
@@ -478,16 +478,16 @@ public class FluoQueryMetadataDAOIT extends RyaExportITBase {
                 + "SELECT ?location (count(?obs) AS ?obsCount) (avg(?velocity) AS ?avgVelocity) "
                 + "WHERE { "
                 + "FILTER(?velocity > 75) "
-                + "?obs <urn:hasVelocity> ?velocity. " 
-                + "?obs <urn:hasLocation> ?location. " 
+                + "?obs <urn:hasVelocity> ?velocity. "
+                + "?obs <urn:hasLocation> ?location. "
                 + "}GROUP BY ?location }}";
-        
-        
-        SparqlFluoQueryBuilder builder = new SparqlFluoQueryBuilder();
+
+
+        final SparqlFluoQueryBuilder builder = new SparqlFluoQueryBuilder();
         builder.setSparql(sparql);
         builder.setFluoQueryId(NodeType.generateNewFluoIdForType(NodeType.QUERY));
         final FluoQuery originalQuery = builder.build();
-        
+
         assertEquals(QueryType.CONSTRUCT, originalQuery.getQueryType());
 
         try(FluoClient fluoClient = FluoFactory.newClient(super.getFluoConfiguration())) {
@@ -507,5 +507,5 @@ public class FluoQueryMetadataDAOIT extends RyaExportITBase {
             assertEquals(originalQuery, storedQuery);
         }
     }
-    
+
 }

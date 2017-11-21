@@ -20,23 +20,14 @@ package org.apache.rya.indexing.pcj.fluo.app.query;
 
 import static java.util.Objects.requireNonNull;
 
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 
+import org.apache.rya.api.function.aggregation.AggregationElement;
 import org.apache.rya.indexing.pcj.storage.accumulo.VariableOrder;
-import org.openrdf.query.algebra.AggregateOperator;
-import org.openrdf.query.algebra.Avg;
-import org.openrdf.query.algebra.Count;
-import org.openrdf.query.algebra.Max;
-import org.openrdf.query.algebra.Min;
-import org.openrdf.query.algebra.Sum;
-
-import com.google.common.collect.ImmutableMap;
 
 import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
 import edu.umd.cs.findbugs.annotations.NonNull;
@@ -49,115 +40,6 @@ import net.jcip.annotations.Immutable;
 @Immutable
 @DefaultAnnotation(NonNull.class)
 public class AggregationMetadata extends CommonNodeMetadata {
-
-    /**
-     * The different types of Aggregation functions that an aggregate node may perform.
-     */
-    public static enum AggregationType {
-        MIN(Min.class),
-        MAX(Max.class),
-        COUNT(Count.class),
-        SUM(Sum.class),
-        AVERAGE(Avg.class);
-
-        private final Class<? extends AggregateOperator> operatorClass;
-
-        private AggregationType(final Class<? extends AggregateOperator> operatorClass) {
-            this.operatorClass = requireNonNull(operatorClass);
-        }
-
-        private static final ImmutableMap<Class<? extends AggregateOperator>, AggregationType> byOperatorClass;
-        static {
-            final ImmutableMap.Builder<Class<? extends AggregateOperator>, AggregationType> builder = ImmutableMap.builder();
-            for(final AggregationType type : AggregationType.values()) {
-                builder.put(type.operatorClass, type);
-            }
-            byOperatorClass = builder.build();
-        }
-
-        public static Optional<AggregationType> byOperatorClass(final Class<? extends AggregateOperator> operatorClass) {
-            return Optional.ofNullable( byOperatorClass.get(operatorClass) );
-        }
-    }
-
-    /**
-     * Represents all of the metadata require to perform an Aggregation that is part of a SPARQL query.
-     * </p>
-     * For example, if you have the following in SPARQL:
-     * <pre>
-     * SELECT (avg(?price) as ?avgPrice) {
-     *     ...
-     * }
-     * </pre>
-     * You would construct an instance of this object like so:
-     * <pre>
-     * new AggregationElement(AggregationType.AVERAGE, "price", "avgPrice");
-     * </pre>
-     */
-    @Immutable
-    @DefaultAnnotation(NonNull.class)
-    public static final class AggregationElement implements Serializable {
-        private static final long serialVersionUID = 1L;
-
-        private final AggregationType aggregationType;
-        private final String aggregatedBindingName;
-        private final String resultBindingName;
-
-        /**
-         * Constructs an instance of {@link AggregationElement}.
-         *
-         * @param aggregationType - Defines how the binding values will be aggregated. (not null)
-         * @param aggregatedBindingName - The name of the binding whose values is aggregated. This binding must
-         *   appear within the child node's emitted binding sets. (not null)
-         * @param resultBindingName - The name of the binding this aggregation's results are written to. This binding
-         *   must appeared within the AggregationMetadata's variable order. (not null)
-         */
-        public AggregationElement(
-                final AggregationType aggregationType,
-                final String aggregatedBindingName,
-                final String resultBindingName) {
-            this.aggregationType = requireNonNull(aggregationType);
-            this.aggregatedBindingName = requireNonNull(aggregatedBindingName);
-            this.resultBindingName = requireNonNull(resultBindingName);
-        }
-
-        /**
-         * @return Defines how the binding values will be aggregated.
-         */
-        public AggregationType getAggregationType() {
-            return aggregationType;
-        }
-
-        /**
-         * @return The name of the binding whose values is aggregated. This binding must appear within the child node's emitted binding sets.
-         */
-        public String getAggregatedBindingName() {
-            return aggregatedBindingName;
-        }
-
-        /**
-         * @return The name of the binding this aggregation's results are written to. This binding must appeared within the AggregationMetadata's variable order.
-         */
-        public String getResultBindingName() {
-            return resultBindingName;
-        }
-
-        @Override
-        public int hashCode() {
-            return Objects.hash(aggregationType, aggregatedBindingName, resultBindingName);
-        }
-
-        @Override
-        public boolean equals(final Object o ) {
-            if(o instanceof AggregationElement) {
-                final AggregationElement agg = (AggregationElement) o;
-                return Objects.equals(aggregationType, agg.aggregationType) &&
-                        Objects.equals(aggregatedBindingName, agg.aggregatedBindingName) &&
-                        Objects.equals(resultBindingName, agg.resultBindingName);
-            }
-            return false;
-        }
-    }
 
     private final String parentNodeId;
     private final String childNodeId;
@@ -308,6 +190,7 @@ public class AggregationMetadata extends CommonNodeMetadata {
         /**
          * @return This node's Node ID.
          */
+        @Override
         public String getNodeId() {
             return nodeId;
         }
@@ -321,10 +204,11 @@ public class AggregationMetadata extends CommonNodeMetadata {
             this.varOrder = varOrder;
             return this;
         }
-        
+
         /**
          * @return the variable order of binding sets that are emitted by this node.
          */
+        @Override
         public VariableOrder getVariableOrder() {
             return varOrder;
         }
@@ -337,7 +221,7 @@ public class AggregationMetadata extends CommonNodeMetadata {
             this.parentNodeId = parentNodeId;
             return this;
         }
-       
+
         public String getParentNodeId() {
             return parentNodeId;
         }
@@ -350,7 +234,7 @@ public class AggregationMetadata extends CommonNodeMetadata {
             this.childNodeId = childNodeId;
             return this;
         }
-        
+
         public String getChildNodeId() {
             return childNodeId;
         }
@@ -375,7 +259,7 @@ public class AggregationMetadata extends CommonNodeMetadata {
             this.groupByVariables = groupByVariables;
             return this;
         }
-        
+
         /**
          * @return variable order that defines how data is grouped for the aggregation function
          */

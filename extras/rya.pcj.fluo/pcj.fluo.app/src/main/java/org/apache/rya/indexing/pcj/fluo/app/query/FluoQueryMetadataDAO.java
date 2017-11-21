@@ -37,11 +37,12 @@ import org.apache.fluo.api.data.Bytes;
 import org.apache.fluo.api.data.Column;
 import org.apache.rya.api.client.CreatePCJ.ExportStrategy;
 import org.apache.rya.api.client.CreatePCJ.QueryType;
+import org.apache.rya.api.function.aggregation.AggregationElement;
+import org.apache.rya.api.function.aggregation.AggregationType;
 import org.apache.rya.indexing.pcj.fluo.app.ConstructGraph;
 import org.apache.rya.indexing.pcj.fluo.app.ConstructGraphSerializer;
 import org.apache.rya.indexing.pcj.fluo.app.IncrementalUpdateConstants;
 import org.apache.rya.indexing.pcj.fluo.app.NodeType;
-import org.apache.rya.indexing.pcj.fluo.app.query.AggregationMetadata.AggregationElement;
 import org.apache.rya.indexing.pcj.fluo.app.query.JoinMetadata.JoinType;
 import org.apache.rya.indexing.pcj.storage.accumulo.VariableOrder;
 
@@ -567,10 +568,10 @@ public class FluoQueryMetadataDAO {
         // System.out.println("vois.accept(" + className + ".class, ");};};
         ) {
             // These classes are allowed to be deserialized. Others throw InvalidClassException.
-            vois.accept(java.util.ArrayList.class, //
-                            java.lang.Enum.class, //
-                            org.apache.rya.indexing.pcj.fluo.app.query.AggregationMetadata.AggregationElement.class, //
-                            org.apache.rya.indexing.pcj.fluo.app.query.AggregationMetadata.AggregationType.class);
+            vois.accept(java.util.ArrayList.class,
+                            java.lang.Enum.class,
+                            AggregationElement.class,
+                            AggregationType.class);
             final Object object = vois.readObject();
             if (!(object instanceof Collection<?>)) {
                 throw new InvalidClassException("Object read was not of type Collection. It was: " + object.getClass());

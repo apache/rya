@@ -51,6 +51,7 @@ import org.apache.rya.streams.kafka.processors.ProcessorResult.BinaryResult;
 import org.apache.rya.streams.kafka.processors.ProcessorResult.BinaryResult.Side;
 import org.apache.rya.streams.kafka.processors.ProcessorResult.UnaryResult;
 import org.apache.rya.streams.kafka.processors.StatementPatternProcessorSupplier;
+import org.apache.rya.streams.kafka.processors.aggregation.AggregationProcessorSupplier;
 import org.apache.rya.streams.kafka.processors.filter.FilterProcessorSupplier;
 import org.apache.rya.streams.kafka.processors.join.JoinProcessorSupplier;
 import org.apache.rya.streams.kafka.processors.output.BindingSetOutputFormatterSupplier;
@@ -65,6 +66,7 @@ import org.openrdf.query.MalformedQueryException;
 import org.openrdf.query.algebra.BinaryTupleOperator;
 import org.openrdf.query.algebra.Extension;
 import org.openrdf.query.algebra.Filter;
+import org.openrdf.query.algebra.Group;
 import org.openrdf.query.algebra.Join;
 import org.openrdf.query.algebra.LeftJoin;
 import org.openrdf.query.algebra.MultiProjection;
@@ -94,6 +96,7 @@ public class TopologyFactory implements TopologyBuilderFactory {
     private static final String JOIN_PREFIX = "JOIN_";
     private static final String PROJECTION_PREFIX = "PROJECTION_";
     private static final String FILTER_PREFIX = "FILTER_";
+    private static final String AGGREGATION_PREFIX = "AGGREGATION_";
     private static final String SINK = "SINK";
 
     private List<ProcessorEntry> processorEntryList;
@@ -141,14 +144,15 @@ public class TopologyFactory implements TopologyBuilderFactory {
                 builder.addProcessor(entry.getID(), entry.getSupplier(), parentIDs);
             }
 
-            if (entry.getNode() instanceof Join || entry.getNode() instanceof LeftJoin) {
+            // Add a state store for any node type that requires one.
+            if (entry.getNode() instanceof Join ||  entry.getNode() instanceof LeftJoin || entry.getNode() instanceof Group) {
                 // Add a state store for the join processor.
                 final StateStoreSupplier joinStoreSupplier =
                         Stores.create( entry.getID() )
-                        .withStringKeys()
-                        .withValues(new VisibilityBindingSetSerde())
-                        .persistent()
-                        .build();
+                            .withStringKeys()
+                            .withValues(new VisibilityBindingSetSerde())
+                            .persistent()
+                            .build();
                 builder.addStateStore(joinStoreSupplier, entry.getID());
             }
         }
@@ -456,6 +460,16 @@ public class TopologyFactory implements TopologyBuilderFactory {
         public void meet(final LeftJoin node) throws TopologyBuilderException {
             final String id = JOIN_PREFIX + UUID.randomUUID();
             meetJoin(id, new LeftOuterJoin(), node);
+            super.meet(node);
+        }
+
+        @Override
+        public void meet(final Group node) throws TopologyBuilderException {
+            final String id = AGGREGATION_PREFIX + UUID.randomUUID();
+            final Optional<Side> side = getSide(node);
+            final AggregationProcessorSupplier supplier = new AggregationProcessorSupplier(id, node, (result) -> getResult(side, result));
+            entries.add( new ProcessorEntry(node, id, side, supplier, Lists.newArrayList(node.getArg())) );
+            idMap.put(node, id);
             super.meet(node);
         }
 

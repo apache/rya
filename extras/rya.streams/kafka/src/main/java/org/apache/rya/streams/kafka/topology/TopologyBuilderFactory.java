@@ -19,8 +19,8 @@
 package org.apache.rya.streams.kafka.topology;
 
 import org.apache.kafka.streams.processor.TopologyBuilder;
+import org.apache.rya.api.function.projection.BNodeIdFactory;
 import org.openrdf.query.MalformedQueryException;
-import org.openrdf.query.algebra.TupleExpr;
 
 import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
 import edu.umd.cs.findbugs.annotations.NonNull;
@@ -32,17 +32,33 @@ import edu.umd.cs.findbugs.annotations.NonNull;
 public interface TopologyBuilderFactory {
 
     /**
-     * Builds a {@link TopologyBuilder} based on the provided sparql query where
-     * each {@link TupleExpr} in the parsed query is a processor in the
-     * topology.
+     * Builds a {@link TopologyBuilder} based on the provided SPARQL query that
+     * pulls from {@code statementsTopic} for input and writes the query's results
+     * to {@code resultsTopic}.
      *
      * @param sparqlQuery - The SPARQL query to build a topology for. (not null)
-     * @param statementTopic - The topic for the source to read from. (not null)
-     * @param statementTopic - The topic for the sink to write to. (not null)
-     * @return - The created {@link TopologyBuilder}.
-     * @throws MalformedQueryException - The provided query is not a valid
-     *         SPARQL query.
+     * @param statementsTopic - The topic for the source to read from. (not null)
+     * @param resultsTopic - The topic for the sink to write to. (not null)
+     * @param bNodeIdFactory - A factory that generates Blank Node IDs if any are required. (not null)
+     * @return The created {@link TopologyBuilder}.
+     * @throws MalformedQueryException - The provided query is not a valid SPARQL query.
+     * @throws TopologyBuilderException - A problem occurred while constructing the topology.
      */
-    public TopologyBuilder build(final String sparqlQuery, final String statementTopic, final String resultTopic)
-            throws Exception;
+    public TopologyBuilder build(
+            final String sparqlQuery,
+            final String statementsTopic,
+            final String resultsTopic,
+            final BNodeIdFactory bNodeIdFactory) throws MalformedQueryException, TopologyBuilderException;
+
+    /**
+     * An Exception thrown when a problem occurs when constructing the processor
+     * topology in the {@link TopologyFactory}.
+     */
+    public static class TopologyBuilderException extends Exception {
+        private static final long serialVersionUID = 1L;
+
+        public TopologyBuilderException(final String message, final Throwable cause) {
+            super(message, cause);
+        }
+    }
 }

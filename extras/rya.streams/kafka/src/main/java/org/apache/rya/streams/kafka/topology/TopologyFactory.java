@@ -30,6 +30,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
+import org.apache.kafka.common.serialization.Serializer;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.apache.kafka.streams.processor.Processor;
@@ -40,6 +41,9 @@ import org.apache.kafka.streams.state.Stores;
 import org.apache.rya.api.function.join.IterativeJoin;
 import org.apache.rya.api.function.join.LeftOuterJoin;
 import org.apache.rya.api.function.join.NaturalJoin;
+import org.apache.rya.api.function.projection.BNodeIdFactory;
+import org.apache.rya.api.function.projection.MultiProjectionEvaluator;
+import org.apache.rya.api.function.projection.ProjectionEvaluator;
 import org.apache.rya.api.model.VisibilityBindingSet;
 import org.apache.rya.streams.kafka.processors.ProcessorResult;
 import org.apache.rya.streams.kafka.processors.ProcessorResult.BinaryResult;
@@ -48,17 +52,22 @@ import org.apache.rya.streams.kafka.processors.ProcessorResult.UnaryResult;
 import org.apache.rya.streams.kafka.processors.StatementPatternProcessorSupplier;
 import org.apache.rya.streams.kafka.processors.join.JoinProcessorSupplier;
 import org.apache.rya.streams.kafka.processors.output.BindingSetOutputFormatterSupplier;
+import org.apache.rya.streams.kafka.processors.output.StatementOutputFormatterSupplier;
+import org.apache.rya.streams.kafka.processors.projection.MultiProjectionProcessorSupplier;
 import org.apache.rya.streams.kafka.processors.projection.ProjectionProcessorSupplier;
 import org.apache.rya.streams.kafka.serialization.VisibilityBindingSetSerde;
 import org.apache.rya.streams.kafka.serialization.VisibilityBindingSetSerializer;
 import org.apache.rya.streams.kafka.serialization.VisibilityStatementDeserializer;
+import org.apache.rya.streams.kafka.serialization.VisibilityStatementSerializer;
 import org.openrdf.query.MalformedQueryException;
 import org.openrdf.query.algebra.BinaryTupleOperator;
 import org.openrdf.query.algebra.Extension;
 import org.openrdf.query.algebra.Join;
 import org.openrdf.query.algebra.LeftJoin;
+import org.openrdf.query.algebra.MultiProjection;
 import org.openrdf.query.algebra.Projection;
 import org.openrdf.query.algebra.QueryModelNode;
+import org.openrdf.query.algebra.Reduced;
 import org.openrdf.query.algebra.StatementPattern;
 import org.openrdf.query.algebra.TupleExpr;
 import org.openrdf.query.algebra.helpers.QueryModelVisitorBase;
@@ -85,34 +94,28 @@ public class TopologyFactory implements TopologyBuilderFactory {
 
     private List<ProcessorEntry> processorEntryList;
 
-    /**
-     * Builds a {@link TopologyBuilder} based on the provided sparql query.
-     *
-     * @param sparqlQuery - The SPARQL query to build a topology for. (not null)
-     * @param statementTopic - The topic for the source to read from. (not null)
-     * @param resultTopic - The topic for the sink to write to. (not null)
-     * @return - The created {@link TopologyBuilder}.
-     * @throws MalformedQueryException - The provided query is not a valid SPARQL query.
-     * @throws TopologyBuilderException - A problem occurred while constructing the topology.
-     */
     @Override
-    public TopologyBuilder build(final String sparqlQuery, final String statementTopic, final String resultTopic)
+    public TopologyBuilder build(
+            final String sparqlQuery,
+            final String statementsTopic,
+            final String resultsTopic,
+            final BNodeIdFactory bNodeIdFactory)
             throws MalformedQueryException, TopologyBuilderException {
         requireNonNull(sparqlQuery);
-        requireNonNull(statementTopic);
-        requireNonNull(resultTopic);
+        requireNonNull(statementsTopic);
+        requireNonNull(resultsTopic);
 
         final ParsedQuery parsedQuery = new SPARQLParser().parseQuery(sparqlQuery, null);
         final TopologyBuilder builder = new TopologyBuilder();
 
         final TupleExpr expr = parsedQuery.getTupleExpr();
-        final QueryVisitor visitor = new QueryVisitor();
+        final QueryVisitor visitor = new QueryVisitor(bNodeIdFactory);
         expr.visit(visitor);
 
         processorEntryList = visitor.getProcessorEntryList();
         final Map<TupleExpr, String> idMap = visitor.getIDs();
         // add source node
-        builder.addSource(SOURCE, new StringDeserializer(), new VisibilityStatementDeserializer(), statementTopic);
+        builder.addSource(SOURCE, new StringDeserializer(), new VisibilityStatementDeserializer(), statementsTopic);
 
         // processing the processor entry list in reverse order means we go from leaf
         // nodes -> parent nodes.
@@ -146,11 +149,12 @@ public class TopologyFactory implements TopologyBuilderFactory {
             }
         }
 
-        // convert processing results to visibility binding sets
-        builder.addProcessor("OUTPUT_FORMATTER", new BindingSetOutputFormatterSupplier(), entry.getID());
+        // Add a formatter that converts the ProcessorResults into the output format.
+        final SinkEntry<?,?> sinkEntry = visitor.getSinkEntry();
+        builder.addProcessor("OUTPUT_FORMATTER", sinkEntry.getFormatterSupplier(), entry.getID());
 
-        // add sink
-        builder.addSink(SINK, resultTopic, new StringSerializer(), new VisibilityBindingSetSerializer(), "OUTPUT_FORMATTER");
+        // Add the sink.
+        builder.addSink(SINK, resultsTopic, sinkEntry.getKeySerializer(), sinkEntry.getValueSerializer(), "OUTPUT_FORMATTER");
 
         return builder;
     }
@@ -264,15 +268,81 @@ public class TopologyFactory implements TopologyBuilderFactory {
     }
 
     /**
+     * Information about how key/value pairs need to be written to the sink.
+     *
+     * @param <K> - The type of Key that the sink uses.
+     * @param <V> - The type of Value that the sink uses.
+     */
+    private final static class SinkEntry<K, V> {
+
+        private final ProcessorSupplier<Object, ProcessorResult> formatterSupplier;
+        private final Serializer<K> keySerializer;
+        private final Serializer<V> valueSerializer;
+
+        /**
+         * Constructs an instance of {@link SinkEntry}.
+         *
+         * @param formatterSupplier - Formats {@link ProcessingResult}s for output to the sink. (not null)
+         * @param keySerializer - Serializes keys that are used to write to the sink. (not null)
+         * @param valueSerializer - Serializes values that are used to write to the sink. (not null)
+         */
+        public SinkEntry(
+                final ProcessorSupplier<Object, ProcessorResult> formatterSupplier,
+                final Serializer<K> keySerializer,
+                final Serializer<V> valueSerializer) {
+            this.keySerializer = requireNonNull(keySerializer);
+            this.valueSerializer = requireNonNull(valueSerializer);
+            this.formatterSupplier = requireNonNull(formatterSupplier);
+        }
+
+        /**
+         * @return Formats {@link ProcessingResult}s for output to the sink.
+         */
+        public ProcessorSupplier<Object, ProcessorResult> getFormatterSupplier() {
+            return formatterSupplier;
+        }
+
+        /**
+         * @return Serializes keys that are used to write to the sink.
+         */
+        public Serializer<K> getKeySerializer() {
+            return keySerializer;
+        }
+
+        /**
+         * @return Serializes values that are used to write to the sink.
+         */
+        public Serializer<V> getValueSerializer() {
+            return valueSerializer;
+        }
+    }
+
+    /**
      * Visits each node in a {@link TupleExpr} and creates a
      * {@link ProcessorSupplier} and meta information needed for creating a
      * {@link TopologyBuilder}.
      */
     final static class QueryVisitor extends QueryModelVisitorBase<TopologyBuilderException> {
-        // Each node needs a ProcessorEntry to be a processor node in the
-        // TopologyBuilder.
+        // Each node needs a ProcessorEntry to be a processor node in the TopologyBuilder.
         private final List<ProcessorEntry> entries = new ArrayList<>();
         private final Map<TupleExpr, String> idMap = new HashMap<>();
+
+        // Default to a Binding Set outputting sink entry.
+        private SinkEntry<?, ?> sinkEntry = new SinkEntry<>(
+                new BindingSetOutputFormatterSupplier(),
+                new StringSerializer(),
+                new VisibilityBindingSetSerializer());
+
+        private final BNodeIdFactory bNodeIdFactory;
+
+        /**
+         * Constructs an instance of {@link QueryVisitor}.
+         *
+         * @param bNodeIdFactory - Builds Blank Node IDs for the query's results. (not null)
+         */
+        public QueryVisitor(final BNodeIdFactory bNodeIdFactory) {
+            this.bNodeIdFactory = requireNonNull(bNodeIdFactory);
+        }
 
         /**
          * @return The {@link ProcessorEntry}s used to create a Topology.
@@ -286,6 +356,23 @@ public class TopologyFactory implements TopologyBuilderFactory {
          */
         public Map<TupleExpr, String> getIDs() {
             return idMap;
+        }
+
+        /**
+         * @return Information about how values are to be output by the topology to the results sink.
+         */
+        public SinkEntry<?, ?> getSinkEntry() {
+            return sinkEntry;
+        }
+
+        @Override
+        public void meet(final Reduced node) throws TopologyBuilderException {
+            // This indicates we're outputting VisibilityStatements.
+            sinkEntry = new SinkEntry<>(
+                    new StatementOutputFormatterSupplier(),
+                    new StringSerializer(),
+                    new VisibilityStatementSerializer());
+            super.meet(node);
         }
 
         @Override
@@ -303,14 +390,39 @@ public class TopologyFactory implements TopologyBuilderFactory {
         public void meet(final Projection node) throws TopologyBuilderException {
             final String id = PROJECTION_PREFIX + UUID.randomUUID();
             final Optional<Side> side = getSide(node);
-            TupleExpr arg = node.getArg();
+
             // If the arg is an Extension, there are rebindings that need to be
             // ignored since they do not have a processor node.
-            if (arg instanceof Extension) {
-                arg = ((Extension) arg).getArg();
+            TupleExpr downstreamNode = node.getArg();
+            if (downstreamNode instanceof Extension) {
+                downstreamNode = ((Extension) downstreamNode).getArg();
             }
-            final ProjectionProcessorSupplier supplier = new ProjectionProcessorSupplier(node.getProjectionElemList(), result -> getResult(side, result));
-            entries.add(new ProcessorEntry(node, id, side, supplier, Lists.newArrayList(arg)));
+
+            final ProjectionProcessorSupplier supplier = new ProjectionProcessorSupplier(
+                    ProjectionEvaluator.make(node),
+                    result -> getResult(side, result));
+
+            entries.add(new ProcessorEntry(node, id, side, supplier, Lists.newArrayList(downstreamNode)));
+            idMap.put(node, id);
+            super.meet(node);
+        }
+
+        @Override
+        public void meet(final MultiProjection node) throws TopologyBuilderException {
+            final String id = PROJECTION_PREFIX + UUID.randomUUID();
+            final Optional<Side> side = getSide(node);
+
+            final MultiProjectionProcessorSupplier supplier = new MultiProjectionProcessorSupplier(
+                    MultiProjectionEvaluator.make(node, bNodeIdFactory),
+                    result -> getResult(side, result));
+
+            // If the arg is an Extension, then this node's grandchild is the next processing node.
+            TupleExpr downstreamNode = node.getArg();
+            if (downstreamNode instanceof Extension) {
+                downstreamNode = ((Extension) downstreamNode).getArg();
+            }
+
+            entries.add(new ProcessorEntry(node, id, side, supplier, Lists.newArrayList(downstreamNode)));
             idMap.put(node, id);
             super.meet(node);
         }
@@ -397,18 +509,6 @@ public class TopologyFactory implements TopologyBuilderFactory {
             } else {
                 return ProcessorResult.make(new UnaryResult(result));
             }
-        }
-    }
-
-    /**
-     * An Exception thrown when a problem occurs when constructing the processor
-     * topology in the {@link TopologyFactory}.
-     */
-    public class TopologyBuilderException extends Exception {
-        private static final long serialVersionUID = 1L;
-
-        public TopologyBuilderException(final String message, final Throwable cause) {
-            super(message, cause);
         }
     }
 }

@@ -42,10 +42,8 @@ import org.apache.kafka.common.serialization.StringSerializer;
 import org.apache.kafka.streams.KafkaStreams;
 import org.apache.kafka.streams.StreamsConfig;
 import org.apache.kafka.streams.processor.TopologyBuilder;
-import org.apache.rya.api.model.VisibilityBindingSet;
 import org.apache.rya.api.model.VisibilityStatement;
 import org.apache.rya.streams.kafka.interactor.KafkaLoadStatements;
-import org.apache.rya.streams.kafka.serialization.VisibilityBindingSetDeserializer;
 import org.apache.rya.streams.kafka.serialization.VisibilityStatementSerializer;
 import org.apache.rya.test.kafka.KafkaTestInstanceRule;
 
@@ -144,29 +142,34 @@ public final class KafkaTestUtil {
      * Runs a Kafka Streams topology, loads statements into the input topic, read the binding sets that come out of
      * the results topic, and ensures the expected results match the read results.
      *
-     * @param kafka - The embedded kafka instance that is being tested with. (not null)
+     * @param <T> The type of value that will be consumed from the results topic.
+     * @param kafka - The embedded Kafka instance that is being tested with. (not null)
      * @param statementsTopic - The topic statements will be written to. (not null)
      * @param resultsTopic - The topic results will be read from. (not null)
      * @param builder - The streams topology that will be executed. (not null)
      * @param startupMs - How long to wait for the topology to start before writing the statements.
      * @param statements - The statements that will be loaded into the topic. (not null)
      * @param expected - The expected results. (not null)
+     * @param expectedDeserializerClass - The class of the deserializer that will be used when reading
+     *   values from the results topic. (not null)
      * @throws Exception If any exception was thrown while running the test.
      */
-    public static void runStreamProcessingTest(
+    public static <T> void runStreamProcessingTest(
             final KafkaTestInstanceRule kafka,
             final String statementsTopic,
             final String resultsTopic,
             final TopologyBuilder builder,
             final int startupMs,
             final List<VisibilityStatement> statements,
-            final Set<VisibilityBindingSet> expected) throws Exception {
+            final Set<T> expected,
+            final Class<? extends Deserializer<T>> expectedDeserializerClass) throws Exception {
         requireNonNull(kafka);
         requireNonNull(statementsTopic);
         requireNonNull(resultsTopic);
         requireNonNull(builder);
         requireNonNull(statements);
         requireNonNull(expected);
+        requireNonNull(expectedDeserializerClass);
 
         // Explicitly create the topics that are being used.
         kafka.createTopic(statementsTopic);
@@ -191,13 +194,12 @@ public final class KafkaTestUtil {
             }
 
             // Wait for the final results to appear in the output topic and verify the expected Binding Sets were found.
-            try(Consumer<String, VisibilityBindingSet> consumer = KafkaTestUtil.fromStartConsumer(
-                    kafka, StringDeserializer.class, VisibilityBindingSetDeserializer.class)) {
+            try(Consumer<String, T> consumer = KafkaTestUtil.fromStartConsumer(kafka, StringDeserializer.class, expectedDeserializerClass)) {
                 // Register the topic.
                 consumer.subscribe(Arrays.asList(resultsTopic));
 
                 // Poll for the result.
-                final Set<VisibilityBindingSet> results = Sets.newHashSet( KafkaTestUtil.pollForResults(500, 6, expected.size(), consumer) );
+                final Set<T> results = Sets.newHashSet( KafkaTestUtil.pollForResults(500, 6, expected.size(), consumer) );
 
                 // Show the correct binding sets results from the job.
                 assertEquals(expected, results);

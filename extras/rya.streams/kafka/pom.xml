@@ -33,6 +33,26 @@ under the License.
         This module contains the Rya Streams components that integrate with Kafka.
     </description>
 
+    <profiles>
+        <profile>
+            <id>geoindexing</id>
+                <dependencies>
+                    <!-- Rya dependencies -->
+                    <dependency>
+                        <groupId>org.apache.rya</groupId>
+                        <artifactId>rya.pcj.functions.geo</artifactId>
+                        <version>3.2.12-incubating-SNAPSHOT</version>
+                    </dependency>
+                    <dependency>
+                        <groupId>org.apache.rya</groupId>
+                        <artifactId>rya.geo.common</artifactId>
+                        <version>${project.version}</version>
+                    </dependency>
+                </dependencies>
+        </profile>
+    </profiles>
+
+
     <dependencies>
         <!-- Rya dependencies -->
         <dependency>

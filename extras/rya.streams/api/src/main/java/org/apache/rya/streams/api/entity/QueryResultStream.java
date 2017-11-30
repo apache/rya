@@ -22,17 +22,18 @@ import static java.util.Objects.requireNonNull;
 
 import java.util.UUID;
 
-import org.apache.rya.api.model.VisibilityBindingSet;
 import org.apache.rya.streams.api.exception.RyaStreamsException;
 
 import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
 import edu.umd.cs.findbugs.annotations.NonNull;
 
 /**
- * An infinite stream of {@link VisibilityBindingSet}s that are the results of a query within Rya Streams.
+ * An infinite stream of values that are the results of a query within Rya Streams.
+ *
+ * @param <V> - The query results' value type.
  */
 @DefaultAnnotation(NonNull.class)
-public abstract class QueryResultStream implements AutoCloseable {
+public abstract class QueryResultStream<V> implements AutoCloseable {
 
     private final UUID queryId;
 
@@ -57,10 +58,10 @@ public abstract class QueryResultStream implements AutoCloseable {
      * Wait at most {@code timeoutMs} milliseconds for the next collection of results.
      *
      * @param timeoutMs - The number of milliseconds to at most wait for the next collection of results. (not null)
-     * @return The next collection of {@link VisibilityBindingSet}s that are the result of the query. Empty if
-     *   there where no new results within the timout period.
+     * @return The next collection of values that are the result of the query. Empty if there where no new results
+     *   within the timeout period.
      * @throws IllegalStateException If the stream has been closed.
      * @throws RyaStreamsException Could not fetch the next set of results.
      */
-    public abstract Iterable<VisibilityBindingSet> poll(long timeoutMs) throws IllegalStateException, RyaStreamsException;
+    public abstract Iterable<V> poll(long timeoutMs) throws IllegalStateException, RyaStreamsException;
 }

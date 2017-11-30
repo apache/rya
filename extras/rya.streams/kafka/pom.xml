@@ -41,7 +41,7 @@ under the License.
                     <dependency>
                         <groupId>org.apache.rya</groupId>
                         <artifactId>rya.pcj.functions.geo</artifactId>
-                        <version>3.2.12-incubating-SNAPSHOT</version>
+                        <version>${project.version}</version>
                     </dependency>
                     <dependency>
                         <groupId>org.apache.rya</groupId>

@@ -20,14 +20,26 @@ package org.apache.rya.streams.client.command;
 
 import static java.util.Objects.requireNonNull;
 
+import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import org.apache.rya.api.model.VisibilityBindingSet;
 import org.apache.rya.streams.api.entity.QueryResultStream;
+import org.apache.rya.streams.api.entity.StreamsQuery;
 import org.apache.rya.streams.api.interactor.GetQueryResultStream;
+import org.apache.rya.streams.api.queries.InMemoryQueryRepository;
+import org.apache.rya.streams.api.queries.QueryChangeLog;
+import org.apache.rya.streams.api.queries.QueryRepository;
 import org.apache.rya.streams.client.RyaStreamsCommand;
+import org.apache.rya.streams.kafka.KafkaTopics;
 import org.apache.rya.streams.kafka.interactor.KafkaGetQueryResultStream;
+import org.apache.rya.streams.kafka.queries.KafkaQueryChangeLogFactory;
+import org.apache.rya.streams.kafka.serialization.VisibilityBindingSetDeserializer;
+import org.apache.rya.streams.kafka.serialization.VisibilityStatementDeserializer;
+import org.openrdf.query.MalformedQueryException;
+import org.openrdf.query.algebra.Reduced;
+import org.openrdf.query.algebra.TupleExpr;
+import org.openrdf.query.parser.sparql.SPARQLParser;
 
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
@@ -107,11 +119,30 @@ public class StreamResultsCommand implements RyaStreamsCommand {
             throw new ArgumentsException("Could not stream the query's results because of invalid command line parameters.", e);
         }
 
+        // Create the Kafka backed QueryChangeLog.
+        final String bootstrapServers = params.kafkaIP + ":" + params.kafkaPort;
+        final String topic = KafkaTopics.queryChangeLogTopic(params.ryaInstance);
+        final QueryChangeLog queryChangeLog = KafkaQueryChangeLogFactory.make(bootstrapServers, topic);
+
+        // Parse the Query ID from the command line parameters.
         final UUID queryId;
         try {
             queryId = UUID.fromString( params.queryId );
         } catch(final IllegalArgumentException e) {
             throw new ArgumentsException("Invalid Query ID " + params.queryId);
+        }
+
+        // Fetch the SPARQL of the query whose results will be streamed.
+        final String sparql;
+        try(QueryRepository queryRepo = new InMemoryQueryRepository(queryChangeLog)) {
+            final Optional<StreamsQuery> sQuery = queryRepo.get(queryId);
+            if(!sQuery.isPresent()) {
+                throw new ExecutionException("Could not read the results for query with ID " + queryId +
+                        " because no such query exists.");
+            }
+            sparql = sQuery.get().getSparql();
+        } catch (final Exception e) {
+            throw new ExecutionException("Problem encountered while closing the QueryRepository.", e);
         }
 
         // This command executes until the application is killed, so create a kill boolean.
@@ -123,13 +154,24 @@ public class StreamResultsCommand implements RyaStreamsCommand {
             }
         });
 
-        // Execute the command.
-        final GetQueryResultStream getQueryResultStream = new KafkaGetQueryResultStream(params.kafkaIP, params.kafkaPort);
+        // Build the interactor based on the type of result the query produces.
+        final GetQueryResultStream<?> getQueryResultStream;
+        try {
+            final TupleExpr tupleExpr = new SPARQLParser().parseQuery(sparql, null).getTupleExpr();
+            if(tupleExpr instanceof Reduced) {
+                getQueryResultStream = new KafkaGetQueryResultStream<>(params.kafkaIP, params.kafkaPort, VisibilityStatementDeserializer.class);
+            } else {
+                getQueryResultStream = new KafkaGetQueryResultStream<>(params.kafkaIP, params.kafkaPort, VisibilityBindingSetDeserializer.class);
+            }
+        } catch (final MalformedQueryException e) {
+            throw new ExecutionException("Could not parse the SPARQL for the query: " + sparql, e);
+        }
 
-        try (final QueryResultStream stream = getQueryResultStream.fromStart(queryId)) {
+        // Iterate through the results and print them to the console until the program or the stream ends.
+        try (final QueryResultStream<?> stream = getQueryResultStream.fromStart(queryId)) {
             while(!finished.get()) {
-                for(final VisibilityBindingSet visBs : stream.poll(1000)) {
-                    System.out.println(visBs);
+                for(final Object result : stream.poll(1000)) {
+                    System.out.println(result);
                 }
             }
         } catch (final Exception e) {

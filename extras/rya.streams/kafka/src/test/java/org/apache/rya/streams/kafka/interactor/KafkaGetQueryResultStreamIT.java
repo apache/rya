@@ -29,10 +29,14 @@ import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.apache.rya.api.model.VisibilityBindingSet;
+import org.apache.rya.api.model.VisibilityStatement;
 import org.apache.rya.streams.api.entity.QueryResultStream;
 import org.apache.rya.streams.api.interactor.GetQueryResultStream;
 import org.apache.rya.streams.kafka.KafkaTopics;
+import org.apache.rya.streams.kafka.serialization.VisibilityBindingSetDeserializer;
 import org.apache.rya.streams.kafka.serialization.VisibilityBindingSetSerializer;
+import org.apache.rya.streams.kafka.serialization.VisibilityStatementDeserializer;
+import org.apache.rya.streams.kafka.serialization.VisibilityStatementSerializer;
 import org.apache.rya.test.kafka.KafkaTestInstanceRule;
 import org.apache.rya.test.kafka.KafkaTestUtil;
 import org.junit.Rule;
@@ -54,23 +58,23 @@ public class KafkaGetQueryResultStreamIT {
      * the target number of results, or it hits the target number of results.
      *
      * @param pollMs - How long each poll could take.
-     * @param pollIterations - The maximum nubmer of polls that will be attempted.
+     * @param pollIterations - The maximum number of polls that will be attempted.
      * @param targetSize - The number of results to read before stopping.
      * @param stream - The stream that will be polled.
      * @return The results that were read from the stream.
      * @throws Exception If the poll failed.
      */
-    private List<VisibilityBindingSet> pollForResults(
+    private <T> List<T> pollForResults(
             final int pollMs,
             final int pollIterations,
             final int targetSize,
-            final QueryResultStream stream)  throws Exception{
-        final List<VisibilityBindingSet> read = new ArrayList<>();
+            final QueryResultStream<T> stream)  throws Exception{
+        final List<T> read = new ArrayList<>();
 
         int i = 0;
         while(read.size() < targetSize && i < pollIterations) {
-            for(final VisibilityBindingSet visBs : stream.poll(pollMs)) {
-                read.add( visBs );
+            for(final T result : stream.poll(pollMs)) {
+                read.add( result );
             }
             i++;
         }
@@ -109,7 +113,8 @@ public class KafkaGetQueryResultStreamIT {
         }
 
         // Use the interactor that is being tested to read all of the visibility binding sets.
-        final GetQueryResultStream interactor = new KafkaGetQueryResultStream(kafka.getKafkaHostname(), kafka.getKafkaPort());
+        final GetQueryResultStream<VisibilityBindingSet> interactor =
+                new KafkaGetQueryResultStream<>(kafka.getKafkaHostname(), kafka.getKafkaPort(), VisibilityBindingSetDeserializer.class);
         final List<VisibilityBindingSet> read = pollForResults(500, 3, 3, interactor.fromStart(queryId));
 
         // Show the fetched binding sets match the original, as well as their order.
@@ -133,8 +138,9 @@ public class KafkaGetQueryResultStreamIT {
             producer.flush();
 
             // Use the interactor that is being tested to read all of the visibility binding sets that appear after this point.
-            final GetQueryResultStream interactor = new KafkaGetQueryResultStream(kafka.getKafkaHostname(), kafka.getKafkaPort());
-            try(QueryResultStream results = interactor.fromNow(queryId)) {
+            final GetQueryResultStream<VisibilityBindingSet> interactor =
+                    new KafkaGetQueryResultStream<>(kafka.getKafkaHostname(), kafka.getKafkaPort(), VisibilityBindingSetDeserializer.class);
+            try(QueryResultStream<VisibilityBindingSet> results = interactor.fromNow(queryId)) {
                 // Read results from the stream.
                 List<VisibilityBindingSet> read = new ArrayList<>();
                 for(final VisibilityBindingSet visBs : results.poll(500)) {
@@ -175,11 +181,42 @@ public class KafkaGetQueryResultStreamIT {
         final UUID queryId = UUID.randomUUID();
 
         // Use the interactor that is being tested to create a result stream and immediately close it.
-        final GetQueryResultStream interactor = new KafkaGetQueryResultStream(kafka.getKafkaHostname(), kafka.getKafkaPort());
-        final QueryResultStream results = interactor.fromStart(queryId);
+        final GetQueryResultStream<VisibilityBindingSet> interactor =
+                new KafkaGetQueryResultStream<>(kafka.getKafkaHostname(), kafka.getKafkaPort(), VisibilityBindingSetDeserializer.class);
+        final QueryResultStream<VisibilityBindingSet> results = interactor.fromStart(queryId);
         results.close();
 
         // Try to poll the closed stream.
         results.poll(1);
+    }
+
+    @Test
+    public void fromStart_visibilityStatements() throws Exception {
+        // Create an ID for the query.
+        final UUID queryId = UUID.randomUUID();
+
+        // Create some statements that will be written to the result topic.
+        final List<VisibilityStatement> original = new ArrayList<>();
+        final ValueFactory vf = new ValueFactoryImpl();
+        original.add( new VisibilityStatement(vf.createStatement(vf.createURI("urn:Alice"), vf.createURI("urn:talksTo"), vf.createURI("urn:Bob")), "a") );
+        original.add( new VisibilityStatement(vf.createStatement(vf.createURI("urn:Bob"), vf.createURI("urn:age"), vf.createLiteral(63)), "b") );
+        original.add( new VisibilityStatement(vf.createStatement(vf.createURI("urn:Alice"), vf.createURI("urn:age"), vf.createLiteral("urn:34")), "") );
+
+        // Write the entries to the query result topic in Kafka.
+        try(final Producer<?, VisibilityStatement> producer =
+                KafkaTestUtil.makeProducer(kafka, StringSerializer.class, VisibilityStatementSerializer.class)) {
+            final String resultTopic = KafkaTopics.queryResultsTopic(queryId);
+            for(final VisibilityStatement visStmt : original) {
+                producer.send(new ProducerRecord<>(resultTopic, visStmt));
+            }
+        }
+
+        // Use the interactor that is being tested to read all of the visibility binding sets.
+        final GetQueryResultStream<VisibilityStatement> interactor =
+                new KafkaGetQueryResultStream<>(kafka.getKafkaHostname(), kafka.getKafkaPort(), VisibilityStatementDeserializer.class);
+        final List<VisibilityStatement> read = pollForResults(500, 3, 3, interactor.fromStart(queryId));
+
+        // Show the fetched binding sets match the original, as well as their order.
+        assertEquals(original, read);
     }
 }

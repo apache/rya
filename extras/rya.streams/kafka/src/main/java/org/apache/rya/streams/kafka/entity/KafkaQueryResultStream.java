@@ -26,7 +26,6 @@ import java.util.UUID;
 import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
-import org.apache.rya.api.model.VisibilityBindingSet;
 import org.apache.rya.streams.api.entity.QueryResultStream;
 import org.apache.rya.streams.api.exception.RyaStreamsException;
 
@@ -37,11 +36,13 @@ import edu.umd.cs.findbugs.annotations.NonNull;
  * A Kafka implementation of {@link QueryResultStream}. It delegates the {@link #poll(long)} method to
  * a {@link Consumer}. As a result, the starting point of this stream is whatever position the consumer
  * starts at within the Kafka topic.
+ *
+ * @param <V> - The type of the consumed records' value.
  */
 @DefaultAnnotation(NonNull.class)
-public class KafkaQueryResultStream extends QueryResultStream {
+public class KafkaQueryResultStream<V> extends QueryResultStream<V> {
 
-    private final Consumer<?, VisibilityBindingSet> consumer;
+    private final Consumer<?, V> consumer;
 
     /**
      * Constructs an instance of {@link KafkaQueryResultStream}.
@@ -49,13 +50,13 @@ public class KafkaQueryResultStream extends QueryResultStream {
      * @param queryId - The query the results are for. (not null)
      * @param consumer - The consumer that will be polled by this class. (not null)
      */
-    public KafkaQueryResultStream(final UUID queryId, final Consumer<?, VisibilityBindingSet> consumer) {
+    public KafkaQueryResultStream(final UUID queryId, final Consumer<?, V> consumer) {
         super(queryId);
         this.consumer = requireNonNull(consumer);
     }
 
     @Override
-    public Iterable<VisibilityBindingSet> poll(final long timeoutMs) throws RyaStreamsException {
+    public Iterable<V> poll(final long timeoutMs) throws RyaStreamsException {
         return new RecordEntryIterable<>( consumer.poll(timeoutMs) );
     }
 

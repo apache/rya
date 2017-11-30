@@ -24,6 +24,8 @@ import org.apache.rya.streams.api.entity.StreamsQuery;
 import org.apache.rya.streams.api.exception.RyaStreamsException;
 import org.apache.rya.streams.api.interactor.AddQuery;
 import org.apache.rya.streams.api.queries.QueryRepository;
+import org.openrdf.query.MalformedQueryException;
+import org.openrdf.query.parser.sparql.SPARQLParser;
 
 import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
 import edu.umd.cs.findbugs.annotations.NonNull;
@@ -34,6 +36,8 @@ import edu.umd.cs.findbugs.annotations.NonNull;
 @DefaultAnnotation(NonNull.class)
 public class DefaultAddQuery implements AddQuery {
     private final QueryRepository repository;
+
+    private final SPARQLParser parser = new SPARQLParser();
 
     /**
      * Creates a new {@link DefaultAddQuery}.
@@ -46,6 +50,16 @@ public class DefaultAddQuery implements AddQuery {
 
     @Override
     public StreamsQuery addQuery(final String query) throws RyaStreamsException {
+        requireNonNull(query);
+
+        // Make sure the SPARQL is valid.
+        try {
+            parser.parseQuery(query, null);
+        } catch (final MalformedQueryException e) {
+            throw new RyaStreamsException("Could not add the query because the SPARQL is invalid.", e);
+        }
+
+        // If it is, then store it in the repository.
         return repository.add(query);
     }
 }

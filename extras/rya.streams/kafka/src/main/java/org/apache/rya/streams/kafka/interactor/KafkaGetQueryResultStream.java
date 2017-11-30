@@ -26,40 +26,47 @@ import java.util.UUID;
 
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
+import org.apache.kafka.common.serialization.Deserializer;
 import org.apache.kafka.common.serialization.StringDeserializer;
-import org.apache.rya.api.model.VisibilityBindingSet;
 import org.apache.rya.streams.api.entity.QueryResultStream;
 import org.apache.rya.streams.api.exception.RyaStreamsException;
 import org.apache.rya.streams.api.interactor.GetQueryResultStream;
 import org.apache.rya.streams.kafka.KafkaTopics;
 import org.apache.rya.streams.kafka.entity.KafkaQueryResultStream;
-import org.apache.rya.streams.kafka.serialization.VisibilityBindingSetDeserializer;
 
 import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
 import edu.umd.cs.findbugs.annotations.NonNull;
 
 /**
  * A Kafka topic implementation of {@link GetQueryResultStream}.
+ *
+ * @param <T> - The type of results that are in the result stream.
  */
 @DefaultAnnotation(NonNull.class)
-public class KafkaGetQueryResultStream implements GetQueryResultStream {
+public class KafkaGetQueryResultStream<T> implements GetQueryResultStream<T> {
 
     private final String bootstrapServers;
+    private final Class<? extends Deserializer<T>> deserializerClass;
 
     /**
      * Constructs an instance of {@link KafkaGetQueryResultStream}.
      *
      * @param kafkaHostname - The hostname of the Kafka Broker to connect to. (not null)
      * @param kafkaPort - The port of the Kafka Broker to connect to. (not null)
+     * @param deserializerClass - The value deserializer to use when reading from the Kafka topic. (not null)
      */
-    public KafkaGetQueryResultStream(final String kafkaHostname, final String kafkaPort) {
+    public KafkaGetQueryResultStream(
+            final String kafkaHostname,
+            final String kafkaPort,
+            final Class<? extends Deserializer<T>> deserializerClass) {
         requireNonNull(kafkaHostname);
         requireNonNull(kafkaPort);
         bootstrapServers = kafkaHostname + ":" + kafkaPort;
+        this.deserializerClass = requireNonNull(deserializerClass);
     }
 
     @Override
-    public QueryResultStream fromStart(final UUID queryId) throws RyaStreamsException {
+    public QueryResultStream<T> fromStart(final UUID queryId) throws RyaStreamsException {
         requireNonNull(queryId);
 
         // Always start at the earliest point within the topic.
@@ -67,21 +74,21 @@ public class KafkaGetQueryResultStream implements GetQueryResultStream {
     }
 
     @Override
-    public QueryResultStream fromNow(final UUID queryId) throws RyaStreamsException {
+    public QueryResultStream<T> fromNow(final UUID queryId) throws RyaStreamsException {
         requireNonNull(queryId);
 
         // Always start at the latest point within the topic.
         return makeStream(queryId, "latest");
     }
 
-    private QueryResultStream makeStream(final UUID queryId, final String autoOffsetResetConfig) {
+    private QueryResultStream<T> makeStream(final UUID queryId, final String autoOffsetResetConfig) {
         // Configure which instance of Kafka to connect to.
         final Properties props = new Properties();
         props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
 
         // Nothing meaningful is in the key and the value is a VisibilityBindingSet.
         props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
-        props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, VisibilityBindingSetDeserializer.class);
+        props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, deserializerClass);
 
         // Use a UUID for the Group Id so that we never register as part of the same group as another consumer.
         props.put(ConsumerConfig.GROUP_ID_CONFIG, UUID.randomUUID().toString());
@@ -96,13 +103,13 @@ public class KafkaGetQueryResultStream implements GetQueryResultStream {
 
         // We are not closing the consumer here because the returned QueryResultStream is responsible for closing the
         // underlying resources required to process it.
-        final KafkaConsumer<Object, VisibilityBindingSet> consumer = new KafkaConsumer<>(props);
+        final KafkaConsumer<String, T> consumer = new KafkaConsumer<>(props);
 
         // Register the consumer for the query's results.
         final String resultTopic = KafkaTopics.queryResultsTopic(queryId);
         consumer.subscribe(Arrays.asList(resultTopic));
 
         // Return the result stream.
-        return new KafkaQueryResultStream(queryId, consumer);
+        return new KafkaQueryResultStream<>(queryId, consumer);
     }
 }

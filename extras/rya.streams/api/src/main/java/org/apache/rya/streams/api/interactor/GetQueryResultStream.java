@@ -28,9 +28,11 @@ import edu.umd.cs.findbugs.annotations.NonNull;
 
 /**
  * Get a {@link QueryResultStream} over the results of a query that is being managed by Rya Streams.
+ *
+ * @param <T> - The type of results that are in the result stream.
  */
 @DefaultAnnotation(NonNull.class)
-public interface GetQueryResultStream {
+public interface GetQueryResultStream<T> {
 
     /**
      * Stream all of the results that have been produced by a query.
@@ -39,7 +41,7 @@ public interface GetQueryResultStream {
      * @return A {@link QueryResultStream} that starts with the first result that was ever produced.
      * @throws RyaStreamsException Could not create the result stream.
      */
-    public QueryResultStream fromStart(UUID queryId) throws RyaStreamsException;
+    public QueryResultStream<T> fromStart(UUID queryId) throws RyaStreamsException;
 
     /**
      * Stream results that have been produced by a query after this method was invoked.
@@ -48,5 +50,5 @@ public interface GetQueryResultStream {
      * @return A {@link QueryResultStream} that only returns results that were produced after this method is invoked.
      * @throws RyaStreamsException Could not create the result stream.
      */
-    public QueryResultStream fromNow(UUID queryId) throws RyaStreamsException;
+    public QueryResultStream<T> fromNow(UUID queryId) throws RyaStreamsException;
 }

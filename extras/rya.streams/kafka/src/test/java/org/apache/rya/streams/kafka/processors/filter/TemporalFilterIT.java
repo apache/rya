@@ -20,6 +20,7 @@ package org.apache.rya.streams.kafka.processors.filter;
 
 import static org.junit.Assert.assertEquals;
 
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
@@ -31,7 +32,6 @@ import org.apache.kafka.streams.processor.TopologyBuilder;
 import org.apache.rya.api.function.projection.RandomUUIDFactory;
 import org.apache.rya.api.model.VisibilityBindingSet;
 import org.apache.rya.api.model.VisibilityStatement;
-import org.apache.rya.indexing.GeoConstants;
 import org.apache.rya.streams.kafka.KafkaTopics;
 import org.apache.rya.streams.kafka.RyaStreamsTestUtil;
 import org.apache.rya.streams.kafka.processors.filter.FilterProcessorSupplier.FilterProcessor;
@@ -51,35 +51,30 @@ import org.openrdf.query.algebra.evaluation.function.Function;
 import org.openrdf.query.algebra.evaluation.function.FunctionRegistry;
 import org.openrdf.query.impl.MapBindingSet;
 
-import com.vividsolutions.jts.geom.Coordinate;
-import com.vividsolutions.jts.geom.Geometry;
-import com.vividsolutions.jts.geom.GeometryFactory;
-import com.vividsolutions.jts.io.WKTWriter;
-
 /**
- * Integration tests the geo methods of {@link FilterProcessor}.
+ * Integration tests the temporal methods of {@link FilterProcessor}.
  */
-public class GeoFilterIT {
-    private static final String GEO = "http://www.opengis.net/def/function/geosparql/";
-    private static final GeometryFactory GF = new GeometryFactory();
-    private static final Geometry ZERO = GF.createPoint(new Coordinate(0, 0));
-    private static final Geometry ONE = GF.createPoint(new Coordinate(1, 1));
+public class TemporalFilterIT {
+    private static final ValueFactory vf = new ValueFactoryImpl();
+    private static final String TEMPORAL = "http://rya.apache.org/ns/temporal";
+    private static final ZonedDateTime time1 = ZonedDateTime.parse("2015-12-30T12:00:00Z");
+    private static final ZonedDateTime time2 = ZonedDateTime.parse("2015-12-30T12:00:10Z");
 
     @Rule
-    public KafkaTestInstanceRule kafka = new KafkaTestInstanceRule(true);
+    public KafkaTestInstanceRule kafka = new KafkaTestInstanceRule(false);
 
     @Test
-    public void showGeoFunctionsRegistered() {
+    public void temporalFunctionsRegistered() {
         int count = 0;
         final Collection<Function> funcs = FunctionRegistry.getInstance().getAll();
         for (final Function fun : funcs) {
-            if (fun.getURI().startsWith(GEO)) {
+            if (fun.getURI().startsWith(TEMPORAL)) {
                 count++;
             }
         }
 
-        // There are 30 geo functions registered, ensure that there are 30.
-        assertEquals(30, count);
+        // There are 1 temporal functions registered, ensure that there are 1.
+        assertEquals(1, count);
     }
 
     @Test
@@ -92,14 +87,13 @@ public class GeoFilterIT {
 
         // Get the RDF model objects that will be used to build the query.
         final String sparql =
-                "PREFIX geo: <http://www.opengis.net/ont/geosparql#>\n"
-                        + "PREFIX geof: <" + GEO + ">\n"
+                "PREFIX time: <http://www.w3.org/2006/time/> \n"
+                        + "PREFIX tempf: <http://rya.apache.org/ns/temporal/>\n"
                         + "SELECT * \n"
                         + "WHERE { \n"
-                        + "  <urn:event1> geo:asWKT ?point .\n"
-                        + " FILTER(geof:sfWithin(?point, \"POLYGON((-3 -2, -3 2, 1 2, 1 -2, -3 -2))\"^^geo:wktLiteral)) "
+                        + "  <urn:time> time:atTime ?date .\n"
+                        + " FILTER(tempf:equals(?date, \"" + time1.toString() + "\")) "
                         + "}";
-
         // Setup a topology.
         final TopologyBuilder builder = new TopologyFactory().build(sparql, statementsTopic, resultsTopic, new RandomUUIDFactory());
 
@@ -110,8 +104,7 @@ public class GeoFilterIT {
         // Make the expected results.
         final Set<VisibilityBindingSet> expected = new HashSet<>();
         final MapBindingSet bs = new MapBindingSet();
-        final WKTWriter w = new WKTWriter();
-        bs.addBinding("point", vf.createLiteral(w.write(ZERO), GeoConstants.XMLSCHEMA_OGC_WKT));
+        bs.addBinding("date", vf.createLiteral(time1.toString()));
         expected.add( new VisibilityBindingSet(bs, "a") );
 
         // Run the test.
@@ -120,18 +113,15 @@ public class GeoFilterIT {
 
     private List<VisibilityStatement> getStatements() throws Exception {
         final List<VisibilityStatement> statements = new ArrayList<>();
-        // geo 2x2 points
-        statements.add(new VisibilityStatement(statement(ZERO), "a"));
-        statements.add(new VisibilityStatement(statement(ONE), "a"));
+        statements.add(new VisibilityStatement(statement(time1), "a"));
+        statements.add(new VisibilityStatement(statement(time2), "a"));
         return statements;
     }
 
-    private static Statement statement(final Geometry geo) {
-        final ValueFactory vf = new ValueFactoryImpl();
-        final Resource subject = vf.createURI("urn:event1");
-        final URI predicate = GeoConstants.GEO_AS_WKT;
-        final WKTWriter w = new WKTWriter();
-        final Value object = vf.createLiteral(w.write(geo), GeoConstants.XMLSCHEMA_OGC_WKT);
+    private static Statement statement(final ZonedDateTime time) {
+        final Resource subject = vf.createURI("urn:time");
+        final URI predicate = vf.createURI("http://www.w3.org/2006/time/atTime");
+        final Value object = vf.createLiteral(time.toString());
         return new StatementImpl(subject, predicate, object);
     }
 }

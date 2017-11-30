@@ -32,8 +32,8 @@ import org.apache.rya.api.function.projection.RandomUUIDFactory;
 import org.apache.rya.api.model.VisibilityBindingSet;
 import org.apache.rya.api.model.VisibilityStatement;
 import org.apache.rya.indexing.GeoConstants;
-import org.apache.rya.streams.kafka.KafkaTestUtil;
 import org.apache.rya.streams.kafka.KafkaTopics;
+import org.apache.rya.streams.kafka.RyaStreamsTestUtil;
 import org.apache.rya.streams.kafka.processors.filter.FilterProcessorSupplier.FilterProcessor;
 import org.apache.rya.streams.kafka.serialization.VisibilityBindingSetDeserializer;
 import org.apache.rya.streams.kafka.topology.TopologyFactory;
@@ -117,7 +117,7 @@ public class GeoFilterIT {
         expected.add( new VisibilityBindingSet(bs, "a") );
 
         // Run the test.
-        KafkaTestUtil.runStreamProcessingTest(kafka, statementsTopic, resultsTopic, builder, 2000, statements, expected, VisibilityBindingSetDeserializer.class);
+        RyaStreamsTestUtil.runStreamProcessingTest(kafka, statementsTopic, resultsTopic, builder, 2000, statements, expected, VisibilityBindingSetDeserializer.class);
     }
 
     private List<VisibilityStatement> getStatements() throws Exception {

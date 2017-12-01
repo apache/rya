@@ -30,22 +30,27 @@ import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
 import edu.umd.cs.findbugs.annotations.NonNull;
 
 /**
- * Function for comparing 2 {@link ZonedDateTime} objects in a SPARQL filter.
+ * Function for comparing a {@link ZonedDateTime} with an interval of {@link ZonedDateTime} objects in a SPARQL filter.
  */
 @DefaultAnnotation(NonNull.class)
-abstract class TemporalRelationFunction implements Function {
-    public static final String BASE_URI = "http://rya.apache.org/ns/temporal/";
-
+abstract class TemporalIntervalRelationFunction implements Function {
     @Override
     public Value evaluate(final ValueFactory valueFactory, final Value... args) throws ValueExprEvaluationException {
         if (args.length != 2) {
             throw new ValueExprEvaluationException(getURI() + " requires exactly 2 arguments, got " + args.length);
         }
 
+        final String[] strInterval = args[1].stringValue().split("/");
+        if (strInterval.length != 2) {
+            throw new ValueExprEvaluationException(getURI() + " requires the second argument: " + args[1] + " to be 2 dates seperated by a \'/\'");
+        }
         try {
             final ZonedDateTime date1 = ZonedDateTime.parse(args[0].stringValue());
-            final ZonedDateTime date2 = ZonedDateTime.parse(args[1].stringValue());
-            final boolean result = relation(date1, date2);
+            final ZonedDateTime[] interval = new ZonedDateTime[] {
+                    ZonedDateTime.parse(strInterval[0]),
+                    ZonedDateTime.parse(strInterval[1])
+            };
+            final boolean result = relation(date1, interval);
 
             return valueFactory.createLiteral(result);
         } catch (final DateTimeParseException e) {
@@ -58,8 +63,8 @@ abstract class TemporalRelationFunction implements Function {
      * objects.
      *
      * @param d1 first {@link ZonedDateTime} to compare. (not null)
-     * @param d2 second {@link ZonedDateTime} to compare. (not null)
+     * @param interval The interval represented by 2 {@link ZonedDateTime}s. (not null)
      * @return The result of the comparison between {@link ZonedDateTime}s.
      */
-    protected abstract boolean relation(ZonedDateTime d1, ZonedDateTime d2);
+    protected abstract boolean relation(ZonedDateTime d1, ZonedDateTime[] interval);
 }

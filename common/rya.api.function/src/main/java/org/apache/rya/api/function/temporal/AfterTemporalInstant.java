@@ -29,12 +29,10 @@ import edu.umd.cs.findbugs.annotations.NonNull;
  * Filter function in a SPARQL query used to filter when a point of time is after another.
  */
 @DefaultAnnotation(NonNull.class)
-public class AfterTemporalInstant extends TemporalRelationFunction {
-    public static final String URI = BASE_URI + "after";
-
+public class AfterTemporalInstant extends TemporalInstantRelationFunction {
     @Override
     public String getURI() {
-        return URI;
+        return TemporalURIs.AFTER;
     }
 
     @Override

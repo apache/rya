@@ -26,19 +26,20 @@ import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
 import edu.umd.cs.findbugs.annotations.NonNull;
 
 /**
- * Filter function in a SPARQL query used to filter when a point of time is before another.
+ * Filter function in a SPARQL query used to filter when a point of time is
+ * within an interval.
  */
 @DefaultAnnotation(NonNull.class)
-public class BeforeTemporalInstant extends TemporalInstantRelationFunction {
+public class WithinTemporalInterval extends TemporalIntervalRelationFunction {
     @Override
     public String getURI() {
-        return TemporalURIs.BEFORE;
+        return TemporalURIs.WITHIN;
     }
 
     @Override
-    protected boolean relation(final ZonedDateTime d1, final ZonedDateTime d2) {
+    protected boolean relation(final ZonedDateTime d1, final ZonedDateTime[] interval) {
         Objects.requireNonNull(d1);
-        Objects.requireNonNull(d2);
-        return d1.isBefore(d2);
+        Objects.requireNonNull(interval);
+        return d1.isAfter(interval[0]) && d1.isBefore(interval[1]);
     }
 }

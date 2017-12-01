@@ -27,7 +27,7 @@ import org.openrdf.model.Value;
 import org.openrdf.model.ValueFactory;
 import org.openrdf.model.impl.ValueFactoryImpl;
 
-public class TemporalFunctionsTest {
+public class BeforeTemporalFunctionsTest {
     private static final ZonedDateTime TIME = ZonedDateTime.parse("2015-12-30T12:00:00Z");
     private static final ZonedDateTime TIME_10 = ZonedDateTime.parse("2015-12-30T12:00:10Z");
     private static final ZonedDateTime TIME_20 = ZonedDateTime.parse("2015-12-30T12:00:20Z");
@@ -35,8 +35,8 @@ public class TemporalFunctionsTest {
     final ValueFactory VF = ValueFactoryImpl.getInstance();
 
     @Test
-    public void testEquals_equal() throws Exception {
-        final EqualsTemporal function = new EqualsTemporal();
+    public void testBefore_same() throws Exception {
+        final BeforeTemporalInstant function = new BeforeTemporalInstant();
 
         // 2 times equal
         final Value[] args = new Value[2];
@@ -44,30 +44,30 @@ public class TemporalFunctionsTest {
         args[1] = VF.createLiteral(TIME.toString());
         final Value rez = function.evaluate(VF, args);
 
-        assertEquals(VF.createLiteral(true), rez);
+        assertEquals(VF.createLiteral(false), rez);
     }
 
     @Test
-    public void testEquals_before() throws Exception {
-        final EqualsTemporal function = new EqualsTemporal();
+    public void testBefore_before() throws Exception {
+        final BeforeTemporalInstant function = new BeforeTemporalInstant();
 
-        // first time is before
+        // 2 times equal
         final Value[] args = new Value[2];
         args[0] = VF.createLiteral(TIME.toString());
         args[1] = VF.createLiteral(TIME_10.toString());
         final Value rez = function.evaluate(VF, args);
 
-        assertEquals(VF.createLiteral(false), rez);
+        assertEquals(VF.createLiteral(true), rez);
     }
 
     @Test
-    public void testEquals_after() throws Exception {
-        final EqualsTemporal function = new EqualsTemporal();
+    public void testBefore_after() throws Exception {
+        final BeforeTemporalInstant function = new BeforeTemporalInstant();
 
-        // first time is after
+        // 2 times equal
         final Value[] args = new Value[2];
         args[0] = VF.createLiteral(TIME_20.toString());
-        args[1] = VF.createLiteral(TIME_10.toString());
+        args[1] = VF.createLiteral(TIME.toString());
         final Value rez = function.evaluate(VF, args);
 
         assertEquals(VF.createLiteral(false), rez);

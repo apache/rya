@@ -25,19 +25,14 @@ import java.util.Objects;
 import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
 import edu.umd.cs.findbugs.annotations.NonNull;
 
-import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
-import edu.umd.cs.findbugs.annotations.NonNull;
-
 /**
  * Filter function in a SPARQL query used to filter equality over time.
  */
 @DefaultAnnotation(NonNull.class)
-public class EqualsTemporal extends TemporalRelationFunction {
-    private static final String URI = BASE_URI + "equals";
-
+public class EqualsTemporalInstant extends TemporalInstantRelationFunction {
     @Override
     public String getURI() {
-        return URI;
+        return TemporalURIs.EQUALS;
     }
 
     @Override

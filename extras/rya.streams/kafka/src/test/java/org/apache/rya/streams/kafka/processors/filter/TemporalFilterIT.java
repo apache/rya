@@ -74,8 +74,8 @@ public class TemporalFilterIT {
             }
         }
 
-        // There are 3 temporal functions registered, ensure that there are 3.
-        assertEquals(3, count);
+        // There are 4 temporal functions registered, ensure that there are 4.
+        assertEquals(4, count);
     }
 
     @Test
@@ -89,12 +89,12 @@ public class TemporalFilterIT {
         // Get the RDF model objects that will be used to build the query.
         final String sparql =
                 "PREFIX time: <http://www.w3.org/2006/time/> \n"
-            + "PREFIX tempf: <http://rya.apache.org/ns/temporal/>\n"
-            + "SELECT * \n"
-            + "WHERE { \n"
-            + "  <urn:time> time:atTime ?date .\n"
-            + " FILTER(tempf:equals(?date, \"" + TIME.toString() + "\")) "
-            + "}";
+                        + "PREFIX tempf: <http://rya.apache.org/ns/temporal/>\n"
+                        + "SELECT * \n"
+                        + "WHERE { \n"
+                        + "  <urn:time> time:atTime ?date .\n"
+                        + " FILTER(tempf:equals(?date, \"" + TIME.toString() + "\")) "
+                        + "}";
         // Setup a topology.
         final TopologyBuilder builder = new TopologyFactory().build(sparql, statementsTopic, resultsTopic, new RandomUUIDFactory());
 
@@ -123,12 +123,12 @@ public class TemporalFilterIT {
         // Get the RDF model objects that will be used to build the query.
         final String sparql =
                 "PREFIX time: <http://www.w3.org/2006/time/> \n"
-            + "PREFIX tempf: <http://rya.apache.org/ns/temporal/>\n"
-            + "SELECT * \n"
-            + "WHERE { \n"
-            + "  <urn:time> time:atTime ?date .\n"
-            + " FILTER(tempf:before(?date, \"" + TIME_10.toString() + "\")) "
-            + "}";
+                        + "PREFIX tempf: <http://rya.apache.org/ns/temporal/>\n"
+                        + "SELECT * \n"
+                        + "WHERE { \n"
+                        + "  <urn:time> time:atTime ?date .\n"
+                        + " FILTER(tempf:before(?date, \"" + TIME_10.toString() + "\")) "
+                        + "}";
         // Setup a topology.
         final TopologyBuilder builder = new TopologyFactory().build(sparql, statementsTopic, resultsTopic, new RandomUUIDFactory());
 
@@ -157,12 +157,12 @@ public class TemporalFilterIT {
         // Get the RDF model objects that will be used to build the query.
         final String sparql =
                 "PREFIX time: <http://www.w3.org/2006/time/> \n"
-            + "PREFIX tempf: <http://rya.apache.org/ns/temporal/>\n"
-            + "SELECT * \n"
-            + "WHERE { \n"
-            + "  <urn:time> time:atTime ?date .\n"
-            + " FILTER(tempf:after(?date, \"" + TIME_10.toString() + "\")) "
-            + "}";
+                        + "PREFIX tempf: <http://rya.apache.org/ns/temporal/>\n"
+                        + "SELECT * \n"
+                        + "WHERE { \n"
+                        + "  <urn:time> time:atTime ?date .\n"
+                        + " FILTER(tempf:after(?date, \"" + TIME_10.toString() + "\")) "
+                        + "}";
         // Setup a topology.
         final TopologyBuilder builder = new TopologyFactory().build(sparql, statementsTopic, resultsTopic, new RandomUUIDFactory());
 
@@ -174,6 +174,40 @@ public class TemporalFilterIT {
         final Set<VisibilityBindingSet> expected = new HashSet<>();
         final MapBindingSet bs = new MapBindingSet();
         bs.addBinding("date", vf.createLiteral(TIME_20.toString()));
+        expected.add( new VisibilityBindingSet(bs, "a") );
+
+        // Run the test.
+        RyaStreamsTestUtil.runStreamProcessingTest(kafka, statementsTopic, resultsTopic, builder, statements, expected, VisibilityBindingSetDeserializer.class);
+    }
+
+    @Test
+    public void showWithinWorks() throws Exception {
+        // Enumerate some topics that will be re-used
+        final String ryaInstance = UUID.randomUUID().toString();
+        final UUID queryId = UUID.randomUUID();
+        final String statementsTopic = KafkaTopics.statementsTopic(ryaInstance);
+        final String resultsTopic = KafkaTopics.queryResultsTopic(queryId);
+
+        // Get the RDF model objects that will be used to build the query.
+        final String sparql =
+                "PREFIX time: <http://www.w3.org/2006/time/> \n"
+                        + "PREFIX tempf: <http://rya.apache.org/ns/temporal/>\n"
+                        + "SELECT * \n"
+                        + "WHERE { \n"
+                        + "  <urn:time> time:atTime ?date .\n"
+                        + " FILTER(tempf:within(?date, \"" + TIME.toString() + "/" + TIME_20.toString() + "\")) "
+                        + "}";
+        // Setup a topology.
+        final TopologyBuilder builder = new TopologyFactory().build(sparql, statementsTopic, resultsTopic, new RandomUUIDFactory());
+
+        // Create the statements that will be input into the query.
+        final ValueFactory vf = new ValueFactoryImpl();
+        final List<VisibilityStatement> statements = getStatements();
+
+        // Make the expected results.
+        final Set<VisibilityBindingSet> expected = new HashSet<>();
+        final MapBindingSet bs = new MapBindingSet();
+        bs.addBinding("date", vf.createLiteral(TIME_10.toString()));
         expected.add( new VisibilityBindingSet(bs, "a") );
 
         // Run the test.

@@ -16,6 +16,7 @@
 # specific language governing permissions and limitations
 # under the License.
 #
-org.apache.rya.api.function.temporal.EqualsTemporal
+org.apache.rya.api.function.temporal.EqualsTemporalInstant
 org.apache.rya.api.function.temporal.BeforeTemporalInstant
 org.apache.rya.api.function.temporal.AfterTemporalInstant
+org.apache.rya.api.function.temporal.WithinTemporalInterval

@@ -18,3 +18,4 @@
 #
 org.apache.rya.api.function.temporal.EqualsTemporal
 org.apache.rya.api.function.temporal.BeforeTemporalInstant
+org.apache.rya.api.function.temporal.AfterTemporalInstant

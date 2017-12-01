@@ -57,8 +57,9 @@ import org.openrdf.query.impl.MapBindingSet;
 public class TemporalFilterIT {
     private static final ValueFactory vf = new ValueFactoryImpl();
     private static final String TEMPORAL = "http://rya.apache.org/ns/temporal";
-    private static final ZonedDateTime time1 = ZonedDateTime.parse("2015-12-30T12:00:00Z");
-    private static final ZonedDateTime time2 = ZonedDateTime.parse("2015-12-30T12:00:10Z");
+    private static final ZonedDateTime TIME = ZonedDateTime.parse("2015-12-30T12:00:00Z");
+    private static final ZonedDateTime TIME_10 = ZonedDateTime.parse("2015-12-30T12:00:10Z");
+    private static final ZonedDateTime TIME_20 = ZonedDateTime.parse("2015-12-30T12:00:20Z");
 
     @Rule
     public KafkaTestInstanceRule kafka = new KafkaTestInstanceRule(false);
@@ -73,12 +74,12 @@ public class TemporalFilterIT {
             }
         }
 
-        // There are 1 temporal functions registered, ensure that there are 1.
-        assertEquals(1, count);
+        // There are 2 temporal functions registered, ensure that there are 2.
+        assertEquals(2, count);
     }
 
     @Test
-    public void showProcessorWorks() throws Exception {
+    public void showEqualsWorks() throws Exception {
         // Enumerate some topics that will be re-used
         final String ryaInstance = UUID.randomUUID().toString();
         final UUID queryId = UUID.randomUUID();
@@ -88,12 +89,12 @@ public class TemporalFilterIT {
         // Get the RDF model objects that will be used to build the query.
         final String sparql =
                 "PREFIX time: <http://www.w3.org/2006/time/> \n"
-                        + "PREFIX tempf: <http://rya.apache.org/ns/temporal/>\n"
-                        + "SELECT * \n"
-                        + "WHERE { \n"
-                        + "  <urn:time> time:atTime ?date .\n"
-                        + " FILTER(tempf:equals(?date, \"" + time1.toString() + "\")) "
-                        + "}";
+            + "PREFIX tempf: <http://rya.apache.org/ns/temporal/>\n"
+            + "SELECT * \n"
+            + "WHERE { \n"
+            + "  <urn:time> time:atTime ?date .\n"
+            + " FILTER(tempf:equals(?date, \"" + TIME.toString() + "\")) "
+            + "}";
         // Setup a topology.
         final TopologyBuilder builder = new TopologyFactory().build(sparql, statementsTopic, resultsTopic, new RandomUUIDFactory());
 
@@ -104,7 +105,7 @@ public class TemporalFilterIT {
         // Make the expected results.
         final Set<VisibilityBindingSet> expected = new HashSet<>();
         final MapBindingSet bs = new MapBindingSet();
-        bs.addBinding("date", vf.createLiteral(time1.toString()));
+        bs.addBinding("date", vf.createLiteral(TIME.toString()));
         expected.add( new VisibilityBindingSet(bs, "a") );
 
         // Run the test.
@@ -113,8 +114,9 @@ public class TemporalFilterIT {
 
     private List<VisibilityStatement> getStatements() throws Exception {
         final List<VisibilityStatement> statements = new ArrayList<>();
-        statements.add(new VisibilityStatement(statement(time1), "a"));
-        statements.add(new VisibilityStatement(statement(time2), "a"));
+        statements.add(new VisibilityStatement(statement(TIME), "a"));
+        statements.add(new VisibilityStatement(statement(TIME_10), "a"));
+        statements.add(new VisibilityStatement(statement(TIME_20), "a"));
         return statements;
     }
 

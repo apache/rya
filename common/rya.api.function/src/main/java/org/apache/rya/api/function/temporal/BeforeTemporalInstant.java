@@ -25,15 +25,12 @@ import java.util.Objects;
 import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
 import edu.umd.cs.findbugs.annotations.NonNull;
 
-import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
-import edu.umd.cs.findbugs.annotations.NonNull;
-
 /**
- * Filter function in a SPARQL query used to filter equality over time.
+ * Filter function in a SPARQL query used to filter when a point of time is before another.
  */
 @DefaultAnnotation(NonNull.class)
-public class EqualsTemporal extends TemporalRelationFunction {
-    private static final String URI = BASE_URI + "equals";
+public class BeforeTemporalInstant extends TemporalRelationFunction {
+    public static final String URI = BASE_URI + "before";
 
     @Override
     public String getURI() {
@@ -44,6 +41,6 @@ public class EqualsTemporal extends TemporalRelationFunction {
     protected boolean relation(final ZonedDateTime d1, final ZonedDateTime d2) {
         Objects.requireNonNull(d1);
         Objects.requireNonNull(d2);
-        return d1.isEqual(d2);
+        return d1.isBefore(d2);
     }
 }

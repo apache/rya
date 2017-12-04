@@ -39,7 +39,6 @@ import org.apache.rya.indexing.geotemporal.model.Event;
 import org.apache.rya.indexing.geotemporal.mongo.MongoGeoTemporalIndexer;
 import org.apache.rya.indexing.geotemporal.mongo.MongoITBase;
 import org.apache.rya.indexing.geotemporal.storage.EventStorage;
-import org.apache.rya.mongodb.MockMongoFactory;
 import org.apache.rya.mongodb.MongoDBRdfConfiguration;
 import org.junit.Before;
 import org.junit.Test;

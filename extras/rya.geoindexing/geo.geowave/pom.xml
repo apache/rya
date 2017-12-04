@@ -34,19 +34,24 @@
     <dependencies>
         <dependency>
             <groupId>org.apache.rya</groupId>
+            <artifactId>rya.indexing</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.rya</groupId>
+            <artifactId>accumulo.rya</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.rya</groupId>
             <artifactId>rya.geo.common</artifactId>
-            <version>${project.version}</version>
         </dependency>
 
         <dependency>
             <groupId>mil.nga.giat</groupId>
             <artifactId>geowave-datastore-accumulo</artifactId>
-            <version>${geowave.version}</version>
         </dependency>
         <dependency>
             <groupId>mil.nga.giat</groupId>
             <artifactId>geowave-adapter-vector</artifactId>
-            <version>${geowave.version}</version>
         </dependency>
         <dependency>
             <groupId>org.geotools.xsd</groupId>
@@ -57,6 +62,12 @@
             <groupId>org.geotools</groupId>
             <artifactId>gt-api</artifactId>
             <version>${geotools.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <scope>test</scope>
         </dependency>
     </dependencies>
 </project>

@@ -25,7 +25,6 @@ import org.apache.fluo.api.data.Bytes;
 import org.apache.rya.indexing.pcj.fluo.app.query.FilterMetadata;
 import org.apache.rya.indexing.pcj.fluo.app.query.FluoQueryColumns;
 import org.apache.rya.indexing.pcj.fluo.app.util.FilterSerializer;
-import org.apache.rya.indexing.pcj.fluo.app.util.RowKeyUtil;
 import org.apache.rya.indexing.pcj.storage.accumulo.VariableOrder;
 import org.apache.rya.indexing.pcj.storage.accumulo.VisibilityBindingSet;
 import org.apache.rya.indexing.pcj.storage.accumulo.VisibilityBindingSetSerDe;
@@ -57,7 +56,7 @@ import info.aduna.iteration.CloseableIteration;
  * Set to its results.
  */
 @DefaultAnnotation(NonNull.class)
-public class FilterResultUpdater {
+public class FilterResultUpdater extends AbstractNodeUpdater {
 
     private static final Logger log = LoggerFactory.getLogger(FilterResultUpdater.class);
 
@@ -114,7 +113,7 @@ public class FilterResultUpdater {
 
             // Create the Row Key for the emitted binding set. It does not contain visibilities.
             final VariableOrder filterVarOrder = filterMetadata.getVariableOrder();
-            final Bytes resultRow = RowKeyUtil.makeRowKey(filterMetadata.getNodeId(), filterVarOrder, childBindingSet);
+            final Bytes resultRow = makeRowKey(filterMetadata.getNodeId(), filterVarOrder, childBindingSet);
 
             // Serialize and emit BindingSet
             final Bytes nodeValueBytes = BS_SERDE.serialize(childBindingSet);

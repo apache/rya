@@ -18,13 +18,14 @@
  */
 package org.apache.rya.indexing.pcj.fluo.app.observers;
 
-import static org.apache.rya.indexing.pcj.fluo.app.IncrementalUpdateConstants.NODEID_BS_DELIM;
+import static org.apache.rya.indexing.pcj.fluo.app.IncrementalUpdateConstants.QUERY_PREFIX;
 import static org.apache.rya.indexing.pcj.fluo.app.query.FluoQueryColumns.QUERY_BINDING_SET;
 
 import org.apache.fluo.api.client.TransactionBase;
 import org.apache.fluo.api.data.Bytes;
 import org.apache.fluo.api.data.Column;
 import org.apache.fluo.api.observer.AbstractObserver;
+import org.apache.rya.indexing.pcj.fluo.app.BindingSetRow;
 import org.apache.rya.indexing.pcj.fluo.app.export.ExporterManager;
 import org.apache.rya.indexing.pcj.fluo.app.export.IncrementalBindingSetExporter;
 import org.apache.rya.indexing.pcj.fluo.app.export.IncrementalResultExporter;
@@ -35,7 +36,8 @@ import org.apache.rya.indexing.pcj.fluo.app.export.kafka.KafkaRyaSubGraphExporte
 import org.apache.rya.indexing.pcj.fluo.app.export.rya.PeriodicBindingSetExporterFactory;
 import org.apache.rya.indexing.pcj.fluo.app.export.rya.RyaBindingSetExporterFactory;
 import org.apache.rya.indexing.pcj.fluo.app.export.rya.RyaSubGraphExporterFactory;
-import org.apache.rya.indexing.pcj.fluo.app.query.FluoQueryMetadataDAO;
+import org.apache.rya.indexing.pcj.fluo.app.query.FluoQueryMetadataCache;
+import org.apache.rya.indexing.pcj.fluo.app.query.MetadataCacheSupplier;
 import org.apache.rya.indexing.pcj.fluo.app.query.QueryMetadata;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -49,8 +51,7 @@ import com.google.common.collect.ImmutableSet;
 public class QueryResultObserver extends AbstractObserver {
 
     private static final Logger log = LoggerFactory.getLogger(QueryResultObserver.class);
-    private static final FluoQueryMetadataDAO DAO = new FluoQueryMetadataDAO();
-
+    private final FluoQueryMetadataCache queryDao = MetadataCacheSupplier.getOrCreateCache();
     /**
      * Builders for each type of {@link IncrementalBindingSetExporter} we support.
      */
@@ -97,11 +98,10 @@ public class QueryResultObserver extends AbstractObserver {
 
     @Override
     public void process(final TransactionBase tx, final Bytes brow, final Column col) throws Exception {
-        final String row = brow.toString();
 
         // Read the queryId from the row and get the QueryMetadata.
-        final String queryId = row.split(NODEID_BS_DELIM)[0];
-        final QueryMetadata metadata = DAO.readQueryMetadata(tx, queryId);
+        final String queryId = BindingSetRow.makeFromShardedRow(Bytes.of(QUERY_PREFIX), brow).getNodeId();
+        final QueryMetadata metadata = queryDao.readQueryMetadata(tx, queryId);
 
         // Read the Child Binding Set that will be exported.
         final Bytes valueBytes = tx.get(brow, col);

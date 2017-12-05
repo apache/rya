@@ -19,6 +19,7 @@
 package org.apache.rya.indexing.pcj.fluo.app.observers;
 
 import static java.util.Objects.requireNonNull;
+import static org.apache.rya.indexing.pcj.fluo.app.IncrementalUpdateConstants.PERIODIC_QUERY_PREFIX;
 
 import org.apache.fluo.api.client.TransactionBase;
 import org.apache.fluo.api.data.Bytes;
@@ -53,7 +54,7 @@ public class PeriodicQueryObserver extends BindingSetUpdater {
         requireNonNull(row);
 
         // Read the Join metadata.
-        final String periodicBinNodeId = BindingSetRow.make(row).getNodeId();
+        final String periodicBinNodeId = BindingSetRow.makeFromShardedRow(Bytes.of(PERIODIC_QUERY_PREFIX), row).getNodeId();
         final PeriodicQueryMetadata periodicBinMetadata = queryDao.readPeriodicQueryMetadata(tx, periodicBinNodeId);
 
         // Read the Visibility Binding Set from the Value.
@@ -65,6 +66,6 @@ public class PeriodicQueryObserver extends BindingSetUpdater {
 
         return new Observation(periodicBinNodeId, periodicBinBindingSet, parentNodeId);
     }
-    
+
 
 }

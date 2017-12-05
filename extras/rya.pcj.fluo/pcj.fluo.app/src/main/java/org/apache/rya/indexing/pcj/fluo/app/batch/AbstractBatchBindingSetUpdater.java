@@ -23,12 +23,16 @@ import org.apache.fluo.api.data.Bytes;
 import org.apache.fluo.api.data.RowColumn;
 import org.apache.fluo.api.data.Span;
 import org.apache.rya.indexing.pcj.fluo.app.query.FluoQueryColumns;
+import org.apache.rya.indexing.pcj.fluo.app.query.FluoQueryMetadataCache;
+import org.apache.rya.indexing.pcj.fluo.app.query.MetadataCacheSupplier;
 
 /**
  * This class provides common functionality for implementations of {@link BatchBindingSetUpdater}.
  *
  */
 public abstract class AbstractBatchBindingSetUpdater implements BatchBindingSetUpdater {
+
+    protected static final FluoQueryMetadataCache CACHE = MetadataCacheSupplier.getOrCreateCache();
 
     /**
      * Updates the Span to create a new {@link BatchInformation} object to be fed to the
@@ -41,7 +45,7 @@ public abstract class AbstractBatchBindingSetUpdater implements BatchBindingSetU
     public static Span getNewSpan(RowColumn newStart, Span oldSpan) {
         return new Span(newStart, oldSpan.isStartInclusive(), oldSpan.getEnd(), oldSpan.isEndInclusive());
     }
-    
+
     /**
      * Cleans up old batch job.  This method is meant to be called by any overriding method
      * to clean up old batch tasks.

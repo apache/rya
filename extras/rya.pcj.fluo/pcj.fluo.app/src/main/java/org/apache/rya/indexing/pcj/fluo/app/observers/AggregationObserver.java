@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- * 
+ *
  *   http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -19,6 +19,7 @@
 package org.apache.rya.indexing.pcj.fluo.app.observers;
 
 import static java.util.Objects.requireNonNull;
+import static org.apache.rya.indexing.pcj.fluo.app.IncrementalUpdateConstants.AGGREGATION_PREFIX;
 
 import org.apache.fluo.api.client.TransactionBase;
 import org.apache.fluo.api.data.Bytes;
@@ -54,8 +55,8 @@ public class AggregationObserver extends BindingSetUpdater {
         requireNonNull(tx);
         requireNonNull(row);
 
-        // Fetch the Aggregation node's metadata.
-        final String nodeId = BindingSetRow.make(row).getNodeId();
+        // Make nodeId and fetch the Aggregation node's metadata.
+        final String nodeId = BindingSetRow.makeFromShardedRow(Bytes.of(AGGREGATION_PREFIX), row).getNodeId();
         final AggregationMetadata metadata = queryDao.readAggregationMetadata(tx, nodeId);
 
         // Read the Visibility Binding Set from the value.

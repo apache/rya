@@ -25,7 +25,6 @@ import org.apache.fluo.api.data.Bytes;
 import org.apache.log4j.Logger;
 import org.apache.rya.indexing.pcj.fluo.app.query.FluoQueryColumns;
 import org.apache.rya.indexing.pcj.fluo.app.query.QueryMetadata;
-import org.apache.rya.indexing.pcj.fluo.app.util.RowKeyUtil;
 import org.apache.rya.indexing.pcj.storage.accumulo.VariableOrder;
 import org.apache.rya.indexing.pcj.storage.accumulo.VisibilityBindingSet;
 import org.apache.rya.indexing.pcj.storage.accumulo.VisibilityBindingSetSerDe;
@@ -38,7 +37,7 @@ import edu.umd.cs.findbugs.annotations.NonNull;
  * new Binding Set to its results.
  */
 @DefaultAnnotation(NonNull.class)
-public class QueryResultUpdater {
+public class QueryResultUpdater extends AbstractNodeUpdater {
     private static final Logger log = Logger.getLogger(QueryResultUpdater.class);
 
     private static final VisibilityBindingSetSerDe BS_SERDE = new VisibilityBindingSetSerDe();
@@ -70,7 +69,7 @@ public class QueryResultUpdater {
         final VariableOrder queryVarOrder = queryMetadata.getVariableOrder();
 
         // Create the Row Key for the result. If the child node groups results, then the key must only contain the Group By variables.
-        final Bytes resultRow = RowKeyUtil.makeRowKey(queryMetadata.getNodeId(), queryVarOrder, childBindingSet);
+        final Bytes resultRow = makeRowKey(queryMetadata.getNodeId(), queryVarOrder, childBindingSet);
 
         // Create the Binding Set that goes in the Node Value. It does contain visibilities.
         final Bytes nodeValueBytes = BS_SERDE.serialize(childBindingSet);

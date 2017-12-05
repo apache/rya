@@ -19,23 +19,23 @@
 package org.apache.rya.indexing.pcj.fluo.app.observers;
 
 import static org.apache.rya.indexing.pcj.fluo.app.IncrementalUpdateConstants.DELIM;
-import static org.apache.rya.indexing.pcj.fluo.app.IncrementalUpdateConstants.NODEID_BS_DELIM;
-import static org.apache.rya.indexing.pcj.fluo.app.IncrementalUpdateConstants.SP_PREFIX;
 
 import java.util.Map;
+import java.util.Set;
 
 import org.apache.fluo.api.client.TransactionBase;
-import org.apache.fluo.api.client.scanner.ColumnScanner;
-import org.apache.fluo.api.client.scanner.RowScanner;
 import org.apache.fluo.api.data.Bytes;
 import org.apache.fluo.api.data.Column;
-import org.apache.fluo.api.data.Span;
 import org.apache.fluo.api.observer.AbstractObserver;
 import org.apache.rya.api.domain.RyaStatement;
 import org.apache.rya.indexing.pcj.fluo.app.IncUpdateDAO;
 import org.apache.rya.indexing.pcj.fluo.app.query.FluoQueryColumns;
-import org.apache.rya.indexing.pcj.fluo.app.query.FluoQueryMetadataDAO;
+import org.apache.rya.indexing.pcj.fluo.app.query.FluoQueryMetadataCache;
+import org.apache.rya.indexing.pcj.fluo.app.query.MetadataCacheSupplier;
+import org.apache.rya.indexing.pcj.fluo.app.query.StatementPatternIdCache;
+import org.apache.rya.indexing.pcj.fluo.app.query.StatementPatternIdCacheSupplier;
 import org.apache.rya.indexing.pcj.fluo.app.query.StatementPatternMetadata;
+import org.apache.rya.indexing.pcj.fluo.app.util.BindingHashShardingFunction;
 import org.apache.rya.indexing.pcj.storage.accumulo.VariableOrder;
 import org.apache.rya.indexing.pcj.storage.accumulo.VisibilityBindingSet;
 import org.apache.rya.indexing.pcj.storage.accumulo.VisibilityBindingSetSerDe;
@@ -43,7 +43,6 @@ import org.apache.rya.indexing.pcj.storage.accumulo.VisibilityBindingSetStringCo
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.base.Charsets;
 import com.google.common.collect.Maps;
 
 /**
@@ -55,10 +54,9 @@ public class TripleObserver extends AbstractObserver {
     private static final Logger log = LoggerFactory.getLogger(TripleObserver.class);
 
     private static final VisibilityBindingSetSerDe BS_SERDE = new VisibilityBindingSetSerDe();
-    private static final FluoQueryMetadataDAO QUERY_METADATA_DAO = new FluoQueryMetadataDAO();
+    private final FluoQueryMetadataCache QUERY_METADATA_DAO = MetadataCacheSupplier.getOrCreateCache();
+    private final StatementPatternIdCache SP_ID_CACHE = StatementPatternIdCacheSupplier.getOrCreateCache();
     private static final VisibilityBindingSetStringConverter VIS_BS_CONVERTER = new VisibilityBindingSetStringConverter();
-
-    public TripleObserver() {}
 
     @Override
     public ObservedColumn getObservedColumn() {
@@ -70,53 +68,45 @@ public class TripleObserver extends AbstractObserver {
         // Get string representation of triple.
         final RyaStatement ryaStatement = IncUpdateDAO.deserializeTriple(brow);
         log.trace("Transaction ID: {}\nRya Statement: {}\n", tx.getStartTimestamp(), ryaStatement);
+        log.trace("Beginging to process triple.");
 
         final String triple = IncUpdateDAO.getTripleString(ryaStatement);
 
-        // Iterate over each of the Statement Patterns that are being matched against.
-        final RowScanner spScanner = tx.scanner()
-                .over(Span.prefix(SP_PREFIX))
-
-                // Only fetch rows that have the pattern in them. There will only be a single row with a pattern per SP.
-                .fetch(FluoQueryColumns.STATEMENT_PATTERN_PATTERN)
-                .byRow()
-                .build();
+        Set<String> spIDs = SP_ID_CACHE.getStatementPatternIds(tx);
 
         //see if triple matches conditions of any of the SP
-        for (final ColumnScanner colScanner : spScanner) {
-            // Get the Statement Pattern's node id.
-            final String spID = colScanner.getsRow();
-
+        for (String spID: spIDs) {
             // Fetch its metadata.
             final StatementPatternMetadata spMetadata = QUERY_METADATA_DAO.readStatementPatternMetadata(tx, spID);
+
+            log.trace("Retrieved metadata: {}", spMetadata);
 
             // Attempt to match the triple against the pattern.
             final String pattern = spMetadata.getStatementPattern();
             final VariableOrder varOrder = spMetadata.getVariableOrder();
             final String bindingSetString = getBindingSet(triple, pattern, varOrder);
 
+            log.trace("Created binding set match string: {}", bindingSetString);
+
             // Statement matches to a binding set.
             if(bindingSetString.length() != 0) {
                 // Fetch the triple's visibility label.
                 final String visibility = tx.gets(brow.toString(), FluoQueryColumns.TRIPLES, "");
 
-                // Create the Row ID for the emitted binding set. It does not contain visibilities.
-                final String row = spID + NODEID_BS_DELIM + bindingSetString;
-                final Bytes rowBytes = Bytes.of( row.getBytes(Charsets.UTF_8) );
+                //Make BindingSet and sharded row
+                final VisibilityBindingSet visBindingSet = VIS_BS_CONVERTER.convert(bindingSetString, varOrder);
+                visBindingSet.setVisibility(visibility);
+                Bytes row = BindingHashShardingFunction.addShard(spID, varOrder, visBindingSet);
 
                 // If this is a new Binding Set, then emit it.
-                if(tx.get(rowBytes, FluoQueryColumns.STATEMENT_PATTERN_BINDING_SET) == null) {
-                    // Create the Binding Set that goes in the Node Value. It does contain visibilities.
-                    final VisibilityBindingSet visBindingSet = VIS_BS_CONVERTER.convert(bindingSetString, varOrder);
-                    visBindingSet.setVisibility(visibility);
-
+                if(tx.get(row, FluoQueryColumns.STATEMENT_PATTERN_BINDING_SET) == null) {
                     try {
                         final Bytes valueBytes = BS_SERDE.serialize(visBindingSet);
 
                         log.trace("Transaction ID: {}\nMatched Statement Pattern: {}\nBinding Set: {}\n",
                                 tx.getStartTimestamp(), spID, visBindingSet);
 
-                        tx.set(rowBytes, FluoQueryColumns.STATEMENT_PATTERN_BINDING_SET, valueBytes);
+                        tx.set(row, FluoQueryColumns.STATEMENT_PATTERN_BINDING_SET, valueBytes);
                     } catch(final Exception e) {
                         log.error("Couldn't serialize a Binding Set. This value will be skipped.", e);
                     }

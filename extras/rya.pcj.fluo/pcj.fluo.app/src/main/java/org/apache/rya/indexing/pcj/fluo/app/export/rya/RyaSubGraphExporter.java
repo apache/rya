@@ -19,6 +19,7 @@
 package org.apache.rya.indexing.pcj.fluo.app.export.rya;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.apache.rya.indexing.pcj.fluo.app.util.TriplePrefixUtils.addTriplePrefixAndConvertToBytes;
 
 import java.util.Collection;
 import java.util.Map;
@@ -54,11 +55,11 @@ public class RyaSubGraphExporter implements IncrementalRyaSubGraphExporter {
     private static final Logger log = Logger.getLogger(RyaSubGraphExporter.class);
     private static final WholeRowTripleResolver TRIPLE_RESOLVER = new WholeRowTripleResolver();
     private final FluoClient fluo;
-    
+
     public RyaSubGraphExporter(FluoClient fluo) {
         this.fluo = Preconditions.checkNotNull(fluo);
     }
-    
+
     @Override
     public Set<QueryType> getQueryTypes() {
         return Sets.newHashSet(QueryType.CONSTRUCT);
@@ -78,12 +79,12 @@ public class RyaSubGraphExporter implements IncrementalRyaSubGraphExporter {
     public void export(String constructID, RyaSubGraph subgraph) throws ResultExportException {
         insertTriples(fluo.newTransaction(), subgraph.getStatements());
     }
-    
+
     private void insertTriples(TransactionBase tx, final Collection<RyaStatement> triples) {
         for (final RyaStatement triple : triples) {
             Optional<byte[]> visibility = Optional.fromNullable(triple.getColumnVisibility());
             try {
-                tx.set(Bytes.of(spoFormat(triple)), FluoQueryColumns.TRIPLES, Bytes.of(visibility.or(new byte[0])));
+                tx.set(spoFormat(triple), FluoQueryColumns.TRIPLES, Bytes.of(visibility.or(new byte[0])));
             } catch (final TripleRowResolverException e) {
                 log.error("Could not convert a Triple into the SPO format: " + triple);
             }
@@ -97,10 +98,10 @@ public class RyaSubGraphExporter implements IncrementalRyaSubGraphExporter {
      * @return The Rya SPO representation of the triple.
      * @throws TripleRowResolverException The triple could not be converted.
      */
-    private static byte[] spoFormat(final RyaStatement triple) throws TripleRowResolverException {
+    private static Bytes spoFormat(final RyaStatement triple) throws TripleRowResolverException {
         checkNotNull(triple);
         final Map<TABLE_LAYOUT, TripleRow> serialized = TRIPLE_RESOLVER.serialize(triple);
         final TripleRow spoRow = serialized.get(TABLE_LAYOUT.SPO);
-        return spoRow.getRow();
+        return addTriplePrefixAndConvertToBytes(spoRow.getRow());
     }
 }

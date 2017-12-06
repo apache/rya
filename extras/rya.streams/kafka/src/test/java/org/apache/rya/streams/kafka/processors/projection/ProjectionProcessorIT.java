@@ -80,6 +80,6 @@ public class ProjectionProcessorIT {
         expectedBs.addBinding("otherPerson", vf.createURI("urn:Bob"));
         expected.add(new VisibilityBindingSet(expectedBs, "a"));
 
-        RyaStreamsTestUtil.runStreamProcessingTest(kafka, statementsTopic, resultsTopic, builder, 2000, statements, Sets.newHashSet(expected), VisibilityBindingSetDeserializer.class);
+        RyaStreamsTestUtil.runStreamProcessingTest(kafka, statementsTopic, resultsTopic, builder, statements, Sets.newHashSet(expected), VisibilityBindingSetDeserializer.class);
     }
 }

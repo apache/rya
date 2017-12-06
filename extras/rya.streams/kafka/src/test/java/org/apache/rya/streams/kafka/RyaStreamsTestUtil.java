@@ -60,7 +60,6 @@ public class RyaStreamsTestUtil {
      * @param statementsTopic - The topic statements will be written to. (not null)
      * @param resultsTopic - The topic results will be read from. (not null)
      * @param builder - The streams topology that will be executed. (not null)
-     * @param startupMs - How long to wait for the topology to start before writing the statements.
      * @param statements - The statements that will be loaded into the topic. (not null)
      * @param expected - The expected results. (not null)
      * @param expectedDeserializerClass - The class of the deserializer that will be used when reading
@@ -72,7 +71,6 @@ public class RyaStreamsTestUtil {
             final String statementsTopic,
             final String resultsTopic,
             final TopologyBuilder builder,
-            final int startupMs,
             final List<VisibilityStatement> statements,
             final Set<T> expected,
             final Class<? extends Deserializer<T>> expectedDeserializerClass) throws Exception {
@@ -98,7 +96,7 @@ public class RyaStreamsTestUtil {
             streams.start();
 
             // Wait for the streams application to start. Streams only see data after their consumers are connected.
-            Thread.sleep(startupMs);
+            Thread.sleep(6000);
 
             // Load the statements into the input topic.
             try(Producer<String, VisibilityStatement> producer = KafkaTestUtil.makeProducer(

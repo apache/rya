@@ -109,9 +109,9 @@ public class TemporalFilterIT {
         expected.add( new VisibilityBindingSet(bs, "a") );
 
         // Run the test.
-        RyaStreamsTestUtil.runStreamProcessingTest(kafka, statementsTopic, resultsTopic, builder, 2000, statements, expected, VisibilityBindingSetDeserializer.class);
+        RyaStreamsTestUtil.runStreamProcessingTest(kafka, statementsTopic, resultsTopic, builder, statements, expected, VisibilityBindingSetDeserializer.class);
     }
-    
+
     @Test
     public void showBeforeWorks() throws Exception {
         // Enumerate some topics that will be re-used
@@ -143,9 +143,9 @@ public class TemporalFilterIT {
         expected.add( new VisibilityBindingSet(bs, "a") );
 
         // Run the test.
-        RyaStreamsTestUtil.runStreamProcessingTest(kafka, statementsTopic, resultsTopic, builder, 2000, statements, expected, VisibilityBindingSetDeserializer.class);
+        RyaStreamsTestUtil.runStreamProcessingTest(kafka, statementsTopic, resultsTopic, builder, statements, expected, VisibilityBindingSetDeserializer.class);
     }
-    
+
     @Test
     public void showAfterWorks() throws Exception {
         // Enumerate some topics that will be re-used
@@ -177,7 +177,7 @@ public class TemporalFilterIT {
         expected.add( new VisibilityBindingSet(bs, "a") );
 
         // Run the test.
-        RyaStreamsTestUtil.runStreamProcessingTest(kafka, statementsTopic, resultsTopic, builder, 2000, statements, expected, VisibilityBindingSetDeserializer.class);
+        RyaStreamsTestUtil.runStreamProcessingTest(kafka, statementsTopic, resultsTopic, builder, statements, expected, VisibilityBindingSetDeserializer.class);
     }
 
     private List<VisibilityStatement> getStatements() throws Exception {

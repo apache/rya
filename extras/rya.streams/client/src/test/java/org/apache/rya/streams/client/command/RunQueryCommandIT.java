@@ -102,7 +102,8 @@ public class RunQueryCommandIT {
                 "--ryaInstance", "" + ryaInstance,
                 "--kafkaHostname", kafka.getKafkaHostname(),
                 "--kafkaPort", kafka.getKafkaPort(),
-                "--queryID", UUID.randomUUID().toString()
+                "--queryID", UUID.randomUUID().toString(),
+                "--zookeepers", kafka.getZookeeperServers()
         };
 
         // Run the test. This will throw an exception.

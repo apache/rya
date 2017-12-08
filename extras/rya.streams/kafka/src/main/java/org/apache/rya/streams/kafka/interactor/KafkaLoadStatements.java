@@ -69,8 +69,14 @@ public class KafkaLoadStatements implements LoadStatements {
         requireNonNull(statementsPath);
         requireNonNull(visibilities);
 
+        if(!statementsPath.toFile().exists()) {
+            throw new RyaStreamsException("Could not load statements at path '" + statementsPath + "' because that " +
+                    "does not exist. Make sure you've entered the correct path.");
+        }
+
         // Create an RDF Parser whose format is derived from the statementPath's file extension.
-        final RDFParser parser = Rio.createParser(RDFFormat.forFileName(statementsPath.getFileName().toString()));
+        final RDFFormat format = RDFFormat.forFileName(statementsPath.getFileName().toString());
+        final RDFParser parser = Rio.createParser(format);
 
         // Set a handler that writes the statements to the specified kafka topic.
         parser.setRDFHandler(new RDFHandlerBase() {

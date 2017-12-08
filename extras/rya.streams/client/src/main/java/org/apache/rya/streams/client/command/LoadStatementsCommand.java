@@ -131,6 +131,7 @@ public class LoadStatementsCommand implements RyaStreamsCommand {
             statements.fromFile(statementsPath, params.visibilities);
         } catch (final Exception e) {
             System.err.println("Unable to parse statements file: " + statementsPath.toString());
+            e.printStackTrace();
         }
     }
 

@@ -70,5 +70,5 @@ public class MongoRyaClientFactory {
                 new MongoLoadStatements(connectionDetails, instanceExists),
                 new MongoLoadStatementsFile(connectionDetails, instanceExists),
                 new MongoExecuteSparqlQuery(connectionDetails, instanceExists));
-    }
+   }
 }

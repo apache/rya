@@ -172,7 +172,7 @@ public class KafkaLatencyBenchmark implements AutoCloseable {
                 + "group by ?type";
 
         logger.info("Query: {}", sparql);
-        return client.getCreatePCJ().createPCJ(options.getRyaInstance(), sparql, ImmutableSet.of(ExportStrategy.KAFKA));
+        return client.getCreatePCJ().get().createPCJ(options.getRyaInstance(), sparql, ImmutableSet.of(ExportStrategy.KAFKA));
     }
 
     private String issuePeriodicQuery(final PeriodicQueryCommand periodicOptions) throws InstanceDoesNotExistException, RyaClientException {

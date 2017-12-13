@@ -98,7 +98,7 @@ public class RyaClient {
      * @return An instance of {@link CreatePCJ} that is connected to a Rya storage
      *   if the Rya instance supports PCJ indexing.
      */
-    public CreatePCJ getCreatePCJ() {
+    public Optional<CreatePCJ> getCreatePCJ() {
         return createPcj;
     }
 
@@ -106,7 +106,7 @@ public class RyaClient {
      * @return An instance of {@link DeletePCJ} that is connected to a Rya storage
      *   if the Rya instance supports PCJ indexing.
      */
-    public DeletePCJ getDeletePCJ() {
+    public Optional<DeletePCJ> getDeletePCJ() {
         return deletePcj;
     }
 
@@ -136,7 +136,7 @@ public class RyaClient {
      * @return An instance of {@link BatchUpdatePCJ} that is connect to a Rya storage
      *   if the Rya instance supports PCJ indexing.
      */
-    public BatchUpdatePCJ getBatchUpdatePCJ() {
+    public Optional<BatchUpdatePCJ> getBatchUpdatePCJ() {
         return bactchUpdatePCJ;
     }
 

@@ -22,8 +22,9 @@ package org.apache.rya.mongodb.instance;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static java.util.Objects.requireNonNull;
 
-import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
-import edu.umd.cs.findbugs.annotations.NonNull;
+import org.apache.rya.api.instance.RyaDetails;
+import org.apache.rya.api.instance.RyaDetailsRepository;
+import org.apache.rya.mongodb.instance.MongoDetailsAdapter.MalformedRyaDetailsException;
 
 import com.mongodb.BasicDBObject;
 import com.mongodb.DB;
@@ -32,9 +33,8 @@ import com.mongodb.DBObject;
 import com.mongodb.MongoClient;
 import com.mongodb.WriteResult;
 
-import org.apache.rya.api.instance.RyaDetails;
-import org.apache.rya.api.instance.RyaDetailsRepository;
-import org.apache.rya.mongodb.instance.MongoDetailsAdapter.MalformedRyaDetailsException;
+import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
+import edu.umd.cs.findbugs.annotations.NonNull;
 
 /**
  * An implementation of {@link RyaDetailsRepository} that stores a Rya
@@ -42,7 +42,7 @@ import org.apache.rya.mongodb.instance.MongoDetailsAdapter.MalformedRyaDetailsEx
  */
 @DefaultAnnotation(NonNull.class)
 public class MongoRyaInstanceDetailsRepository implements RyaDetailsRepository {
-    private static final String INSTANCE_DETAILS_COLLECTION_NAME = "instance_details";
+    public static final String INSTANCE_DETAILS_COLLECTION_NAME = "instance_details";
 
     private final DB db;
     private final String instanceName;

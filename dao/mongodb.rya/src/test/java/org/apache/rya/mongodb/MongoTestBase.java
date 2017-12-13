@@ -42,6 +42,8 @@ public class MongoTestBase {
         conf.setBoolean("sc.useMongo", true);
         conf.setTablePrefix("test_");
         conf.setMongoDBName("testDB");
+        conf.setMongoUser("User");
+        conf.setMongoPassword("password");
         mongoClient = EmbeddedMongoSingleton.getInstance();
         conf.setMongoClient(mongoClient);
     }

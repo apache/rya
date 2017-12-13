@@ -74,16 +74,16 @@ public class RyaClient {
         this.createPeriodicPcj = createPeriodicPcj;
         this.deletePeriodicPcj = deletePeriodicPcj;
         this.listIncrementalQueries = listIncrementalQueries;
-        this.bactchUpdatePCJ = requireNonNull(batchUpdatePcj);
+        this.bactchUpdatePCJ = batchUpdatePcj;
         this.getInstanceDetails = requireNonNull(getInstanceDetails);
         this.instanceExists = requireNonNull(instanceExists);
         this.listInstances = requireNonNull(listInstances);
-        this.addUser = requireNonNull(addUser);
-        this.removeUser = requireNonNull(removeUser);
+        this.addUser = addUser;
+        this.removeUser = removeUser;
         this.uninstall = requireNonNull(uninstall);
-        this.loadStatements = requireNonNull(loadStatements);
-        this.loadStatementsFile = requireNonNull(loadStatementsFile);
-        this.executeSparqlQuery = requireNonNull(executeSparqlQuery);
+        this.loadStatements = loadStatements; // FIXME requireNonNull(loadStatements);
+        this.loadStatementsFile = loadStatementsFile; // FIXME requireNonNull(loadStatementsFile);
+        this.executeSparqlQuery = executeSparqlQuery; // FIXME requireNonNull(executeSparqlQuery);
     }
 
     /**

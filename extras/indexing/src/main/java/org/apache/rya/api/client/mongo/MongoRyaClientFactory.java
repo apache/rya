@@ -20,6 +20,8 @@ package org.apache.rya.api.client.mongo;
 
 import static java.util.Objects.requireNonNull;
 
+import java.util.Optional;
+
 import org.apache.rya.api.client.RyaClient;
 
 import com.mongodb.MongoClient;
@@ -38,29 +40,33 @@ public class MongoRyaClientFactory {
      * Initialize a set of {@link RyaClient} that will interact with an instance of
      * Rya that is hosted by a MongoDB server.
      *
-     * @param connectionDetails - Details about the values that were used to create the connector to the cluster. (not null)
-     * @param connector - The MongoDB connector the commands will use. (not null)
+     * @param connectionDetails - Details about the values that were used to connect to Mongo DB. (not null)
+     * @param mongoClient - The MongoDB client the commands will use. (not null)
      * @return The initialized commands.
      */
     public static RyaClient build(
             final MongoConnectionDetails connectionDetails,
-            final MongoClient connector) {
+            final MongoClient mongoClient) {
         requireNonNull(connectionDetails);
-        requireNonNull(connector);
+        requireNonNull(mongoClient);
 
         // Build the RyaCommands option with the initialized commands.
-        return new RyaClient(//
-                        new MongoInstall(connectionDetails, connector), //
-                        new MongoCreatePCJ(connectionDetails, connector), //
-                        new MongoDeletePCJ(connectionDetails, connector), //
-                        null, null, null, null,
-                        new MongoGetInstanceDetails(connectionDetails, connector), //
-                        new MongoInstanceExists(connectionDetails, connector), //
-                        new MongoListInstances(connectionDetails, connector), //
-                        null, null,
-                        new MongoUninstall(connectionDetails, connector), //
-                        new MongoLoadStatements(connectionDetails, connector), //
-                        new MongoLoadStatementsFile(connectionDetails, connector), //
-                        null);// FIXME new MongoExecuteSparqlQuery(connectionDetails, connector));
+        return new RyaClient(
+                new MongoInstall(connectionDetails, mongoClient),
+                Optional.empty(),
+                Optional.empty(),
+                Optional.empty(),
+                Optional.empty(),
+                Optional.empty(),
+                Optional.empty(),
+                new MongoGetInstanceDetails(connectionDetails, mongoClient),
+                new MongoInstanceExists(connectionDetails, mongoClient),
+                new MongoListInstances(connectionDetails, mongoClient),
+                Optional.empty(),
+                Optional.empty(),
+                new MongoUninstall(connectionDetails, mongoClient),
+                new MongoLoadStatements(connectionDetails, mongoClient),
+                new MongoLoadStatementsFile(connectionDetails, mongoClient),
+                new MongoExecuteSparqlQuery(connectionDetails, mongoClient));
     }
 }

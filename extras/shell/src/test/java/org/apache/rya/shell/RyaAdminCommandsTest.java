@@ -33,6 +33,8 @@ import java.util.TimeZone;
 
 import org.apache.rya.api.client.AddUser;
 import org.apache.rya.api.client.CreatePCJ;
+import org.apache.rya.api.client.CreatePCJ.ExportStrategy;
+import org.apache.rya.api.client.CreatePeriodicPCJ;
 import org.apache.rya.api.client.DeletePCJ;
 import org.apache.rya.api.client.DeletePeriodicPCJ;
 import org.apache.rya.api.client.GetInstanceDetails;
@@ -45,8 +47,6 @@ import org.apache.rya.api.client.RemoveUser;
 import org.apache.rya.api.client.RyaClient;
 import org.apache.rya.api.client.RyaClientException;
 import org.apache.rya.api.client.Uninstall;
-import org.apache.rya.api.client.CreatePCJ.ExportStrategy;
-import org.apache.rya.api.client.CreatePeriodicPCJ;
 import org.apache.rya.api.client.accumulo.AccumuloConnectionDetails;
 import org.apache.rya.api.instance.RyaDetails;
 import org.apache.rya.api.instance.RyaDetails.EntityCentricIndexDetails;
@@ -83,7 +83,7 @@ public class RyaAdminCommandsTest {
         when(mockCreatePCJ.createPCJ( eq(instanceName), eq(sparql), eq(strategies) ) ).thenReturn( pcjId );
 
         final RyaClient mockCommands = mock(RyaClient.class);
-        when(mockCommands.getCreatePCJ()).thenReturn( mockCreatePCJ );
+        when(mockCommands.getCreatePCJ()).thenReturn( java.util.Optional.of(mockCreatePCJ) );
 
         final SharedShellState state = new SharedShellState();
         state.connectedToAccumulo(mock(AccumuloConnectionDetails.class), mockCommands);
@@ -152,7 +152,7 @@ public class RyaAdminCommandsTest {
         final DeletePCJ mockDeletePCJ = mock(DeletePCJ.class);
 
         final RyaClient mockCommands = mock(RyaClient.class);
-        when(mockCommands.getDeletePCJ()).thenReturn( mockDeletePCJ );
+        when(mockCommands.getDeletePCJ()).thenReturn( java.util.Optional.of(mockDeletePCJ) );
 
         final SharedShellState state = new SharedShellState();
         state.connectedToAccumulo(mock(AccumuloConnectionDetails.class), mockCommands);
@@ -172,7 +172,7 @@ public class RyaAdminCommandsTest {
         final String expected = "The PCJ has been deleted.";
         assertEquals(expected, message);
     }
-    
+
     @Test
     public void createPeriodicPCJ() throws InstanceDoesNotExistException, RyaClientException, IOException {
         // Mock the object that performs the create operation.
@@ -185,7 +185,7 @@ public class RyaAdminCommandsTest {
         when(mockCreatePCJ.createPeriodicPCJ( eq(instanceName), eq(sparql), eq(topic), eq(brokers) )).thenReturn( pcjId );
 
         final RyaClient mockCommands = mock(RyaClient.class);
-        when(mockCommands.getCreatePeriodicPCJ()).thenReturn( mockCreatePCJ );
+        when(mockCommands.getCreatePeriodicPCJ()).thenReturn( java.util.Optional.of(mockCreatePCJ) );
 
         final SharedShellState state = new SharedShellState();
         state.connectedToAccumulo(mock(AccumuloConnectionDetails.class), mockCommands);
@@ -205,14 +205,14 @@ public class RyaAdminCommandsTest {
         final String expected = "The Periodic PCJ has been created. Its ID is '12341234'.";
         assertEquals(expected, message);
     }
-    
+
     @Test
     public void deletePeriodicPCJ() throws InstanceDoesNotExistException, RyaClientException {
         // Mock the object that performs the delete operation.
         final DeletePeriodicPCJ mockDeletePCJ = mock(DeletePeriodicPCJ.class);
 
         final RyaClient mockCommands = mock(RyaClient.class);
-        when(mockCommands.getDeletePeriodicPCJ()).thenReturn( mockDeletePCJ );
+        when(mockCommands.getDeletePeriodicPCJ()).thenReturn( java.util.Optional.of(mockDeletePCJ) );
 
         final SharedShellState state = new SharedShellState();
         state.connectedToAccumulo(mock(AccumuloConnectionDetails.class), mockCommands);
@@ -234,7 +234,7 @@ public class RyaAdminCommandsTest {
         final String expected = "The Periodic PCJ has been deleted.";
         assertEquals(expected, message);
     }
-    
+
 
     @Test
     public void getInstanceDetails() throws InstanceDoesNotExistException, RyaClientException {
@@ -478,7 +478,7 @@ public class RyaAdminCommandsTest {
         final AddUser mockAddUser = mock(AddUser.class);
 
         final RyaClient mockClient = mock(RyaClient.class);
-        when(mockClient.getAddUser()).thenReturn( mockAddUser );
+        when(mockClient.getAddUser()).thenReturn( java.util.Optional.of(mockAddUser) );
 
         final SharedShellState state = new SharedShellState();
         state.connectedToAccumulo(mock(AccumuloConnectionDetails.class), mockClient);
@@ -498,7 +498,7 @@ public class RyaAdminCommandsTest {
         final RemoveUser mockRemoveUser = mock(RemoveUser.class);
 
         final RyaClient mockClient = mock(RyaClient.class);
-        when(mockClient.getRemoveUser()).thenReturn( mockRemoveUser );
+        when(mockClient.getRemoveUser()).thenReturn( java.util.Optional.of(mockRemoveUser) );
 
         final SharedShellState state = new SharedShellState();
         state.connectedToAccumulo(mock(AccumuloConnectionDetails.class), mockClient);

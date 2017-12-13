@@ -132,7 +132,7 @@ public class CreateDeleteIT extends RyaExportITBase {
         // Register the PCJ with Rya.
         final RyaClient ryaClient = AccumuloRyaClientFactory.build(createConnectionDetails(), getAccumuloConnector());
 
-        final String pcjId = ryaClient.getCreatePCJ().createPCJ(getRyaInstanceName(), sparql, Sets.newHashSet());
+        final String pcjId = ryaClient.getCreatePCJ().get().createPCJ(getRyaInstanceName(), sparql, Sets.newHashSet());
 
         // Write the data to Rya.
         final SailRepositoryConnection ryaConn = getRyaSailRepository().getConnection();

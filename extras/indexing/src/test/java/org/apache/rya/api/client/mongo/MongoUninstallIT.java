@@ -18,6 +18,9 @@
  */
 package org.apache.rya.api.client.mongo;
 
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+
 import org.apache.rya.api.client.Install;
 import org.apache.rya.api.client.Install.InstallConfiguration;
 import org.apache.rya.api.client.InstanceDoesNotExistException;
@@ -25,13 +28,12 @@ import org.apache.rya.api.client.InstanceExists;
 import org.apache.rya.api.client.RyaClientException;
 import org.apache.rya.api.client.Uninstall;
 import org.apache.rya.mongodb.MongoTestBase;
-import org.junit.Assert;
 import org.junit.Test;
 
 import com.mongodb.MongoException;
 
 /**
- * Integration tests the methods of {@link MongoInstall}.
+ * Integration tests the methods of {@link MongoUninstall}.
  */
 public class MongoUninstallIT extends MongoTestBase {
 
@@ -44,13 +46,16 @@ public class MongoUninstallIT extends MongoTestBase {
         final Install install = new MongoInstall(getConnectionDetails(), conf.getMongoClient());
         install.install(instanceName, installConfig);
 
+        // Show that the instance exists.
+        final InstanceExists instanceExists = new MongoInstanceExists(getConnectionDetails(), conf.getMongoClient());
+        assertTrue( instanceExists.exists(instanceName) );
+
         // Uninstall the instance
         final Uninstall uninstall = new MongoUninstall(getConnectionDetails(), conf.getMongoClient());
         uninstall.uninstall(instanceName);
 
         // Check that the instance no longer exists.
-        final InstanceExists instanceExists = new MongoInstanceExists(getConnectionDetails(), conf.getMongoClient());
-        Assert.assertFalse(instanceExists.exists(instanceName));
+        assertFalse(instanceExists.exists(instanceName));
     }
 
     @Test(expected = InstanceDoesNotExistException.class)
@@ -67,12 +72,10 @@ public class MongoUninstallIT extends MongoTestBase {
      * @return copy from conf to MongoConnectionDetails
      */
     private MongoConnectionDetails getConnectionDetails() {
-        final MongoConnectionDetails connectionDetails = new MongoConnectionDetails(conf.getMongoUser(), //
-                        conf.getMongoPassword().toCharArray(), //
-                        conf.getMongoDBName(), // aka instance
-                        conf.getMongoInstance(), // aka hostname
-                        conf.getCollectionName()
-        );
-        return connectionDetails;
+        return new MongoConnectionDetails(
+                conf.getMongoUser(),
+                conf.getMongoPassword().toCharArray(),
+                conf.getMongoInstance(),
+                Integer.parseInt( conf.getMongoPort() ));
     }
 }

@@ -38,13 +38,13 @@ public interface Install {
     /**
      * Install a new instance of Rya.
      *
-     * @param instanceName - Indicates the name of the Rya instance to install. (not null)
+     * @param ryaInstanceName - Indicates the name of the Rya instance to install. (not null)
      * @param installConfig - Configures how the Rya instance will operate. The
      *   instance name that is in this variable must match the {@code instanceName}. (not null)
      * @throws DuplicateInstanceNameException A Rya instance already exists for the provided name.
      * @throws RyaClientException Something caused the command to fail.
      */
-    public void install(final String instanceName, final InstallConfiguration installConfig) throws DuplicateInstanceNameException, RyaClientException;
+    public void install(final String ryaInstanceName, final InstallConfiguration installConfig) throws DuplicateInstanceNameException, RyaClientException;
 
     /**
      * A Rya instance already exists for the provided name.

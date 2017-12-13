@@ -49,14 +49,14 @@ public class AccumuloRemoveUserIT extends AccumuloITBase {
      */
     @Test
     public void removedUserNotInDetails() throws Exception {
-        String adminUser = testInstance.createUniqueUser();
-        String user = testInstance.createUniqueUser();
+        final String adminUser = testInstance.createUniqueUser();
+        final String user = testInstance.createUniqueUser();
         final SecurityOperations secOps = super.getConnector().securityOperations();
 
         // Create the user that will install the instance of Rya.
         secOps.createLocalUser(adminUser, new PasswordToken(adminUser));
         secOps.grantSystemPermission(adminUser, SystemPermission.CREATE_TABLE);
-        
+
 
         final RyaClient userAClient = AccumuloRyaClientFactory.build(
                 new AccumuloConnectionDetails(adminUser, adminUser.toCharArray(), getInstanceName(), getZookeepers()),
@@ -73,10 +73,10 @@ public class AccumuloRemoveUserIT extends AccumuloITBase {
         userAClient.getInstall().install(getRyaInstanceName(), InstallConfiguration.builder().build());
 
         // Add userB.
-        userAClient.getAddUser().addUser(getRyaInstanceName(), user);
+        userAClient.getAddUser().get().addUser(getRyaInstanceName(), user);
 
         // Remove userA.
-        userBClient.getRemoveUser().removeUser(getRyaInstanceName(), adminUser);
+        userBClient.getRemoveUser().get().removeUser(getRyaInstanceName(), adminUser);
 
         // Ensure the Rya instance's details have been updated to include the added user.
         final ImmutableList<String> expectedUsers = ImmutableList.<String>builder()
@@ -92,8 +92,8 @@ public class AccumuloRemoveUserIT extends AccumuloITBase {
      */
     @Test
     public void removedUserCanNotInsert() throws Exception {
-        String adminUser = testInstance.createUniqueUser();
-        String user = testInstance.createUniqueUser();
+        final String adminUser = testInstance.createUniqueUser();
+        final String user = testInstance.createUniqueUser();
         final SecurityOperations secOps = super.getConnector().securityOperations();
 
         // Create the user that will install the instance of Rya.
@@ -115,10 +115,10 @@ public class AccumuloRemoveUserIT extends AccumuloITBase {
         userAClient.getInstall().install(getRyaInstanceName(), InstallConfiguration.builder().build());
 
         // Add userC.
-        userAClient.getAddUser().addUser(getRyaInstanceName(), user);
+        userAClient.getAddUser().get().addUser(getRyaInstanceName(), user);
 
         // Remove userA.
-        userCClient.getRemoveUser().removeUser(getRyaInstanceName(), adminUser);
+        userCClient.getRemoveUser().get().removeUser(getRyaInstanceName(), adminUser);
 
         // Show that userA can not insert anything.
         boolean securityExceptionThrown = false;

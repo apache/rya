@@ -47,11 +47,8 @@ public class MongoGetInstanceDetails extends MongoCommand implements GetInstance
     /**
      * Constructs an instance of {@link MongoGetInstanceDetails}.
      *
-     * @param connectionDetails
-     *            - Details about the values that were used to create the connector to the cluster. (not null)
-     * @param client
-     *            - Provides programatic access to the instance of Mongo
-     *            that hosts Rya instance. (not null)
+     * @param connectionDetails - Details about the values that were used to create the connector to the cluster. (not null)
+     * @param connector - Provides programmatic access to the instance of Mongo that hosts Rya instances. (not null)
      */
     public MongoGetInstanceDetails(final MongoConnectionDetails connectionDetails, final MongoClient client) {
         super(connectionDetails, client);

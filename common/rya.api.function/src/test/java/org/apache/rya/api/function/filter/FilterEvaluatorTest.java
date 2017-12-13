@@ -24,7 +24,7 @@ import static org.junit.Assert.assertTrue;
 
 import java.util.concurrent.atomic.AtomicReference;
 
-import org.apache.rya.api.function.Filter.FilterEvaluator;
+import org.apache.rya.api.function.filter.FilterEvaluator;
 import org.apache.rya.api.model.VisibilityBindingSet;
 import org.junit.Test;
 import org.openrdf.model.ValueFactory;

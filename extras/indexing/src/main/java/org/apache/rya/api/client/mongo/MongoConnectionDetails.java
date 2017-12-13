@@ -20,74 +20,93 @@ package org.apache.rya.api.client.mongo;
 
 import static java.util.Objects.requireNonNull;
 
-import org.apache.rya.accumulo.AccumuloRdfConfiguration;
+import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
+import org.apache.rya.indexing.accumulo.ConfigUtils;
 import org.apache.rya.mongodb.MongoDBRdfConfiguration;
-public class MongoConnectionDetails {
-    private String username;
-    private char[] userPass;
-    private String instance;
-    private String host;
-    private String collectionName;
 
-    public MongoConnectionDetails(String username, char[] userPass, String instance, String host, String ryaInstance) {
-        this.username = username;
-        this.userPass = userPass.clone();
-        this.instance = instance;
-        this.host = host;
-        this.collectionName = requireNonNull(ryaInstance);
+import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
+import edu.umd.cs.findbugs.annotations.NonNull;
+
+/**
+ * The information the shell used to connect to Mongo DB.
+ */
+@DefaultAnnotation(NonNull.class)
+public class MongoConnectionDetails {
+
+    private final String username;
+    private final char[] userPass;
+    private final String hostname;
+    private final int port;
+
+    /**
+     * Constructs an instance of {@link MongoConnectionDetails}.
+     *
+     * @param username - The username that was used to establish the connection. (not null)
+     * @param password - The password that was used to establish the connection. (not null)
+     * @param hostname - The hostname of the Mongo DB that was connected to. (not null)
+     * @param port - The port of the Mongo DB that was connected to. (not null)
+     */
+    public MongoConnectionDetails(
+            final String username,
+            final char[] userPass,
+            final String hostname,
+            final int port) {
+        this.username = requireNonNull(username);
+        this.userPass = requireNonNull(userPass);
+        this.hostname = requireNonNull(hostname);
+        this.port = port;
     }
 
     /**
-     * @return the username
+     * @return The username that was used to establish the connection.
      */
     public String getUsername() {
         return this.username;
     }
 
     /**
-     * @return the password
+     * @return The password that was used to establish the connection.
      */
     public char[] getPassword() {
         return this.userPass;
     }
 
     /**
-     * @return the instance
+     * @return The hostname of the Mongo DB that was connected to.
      */
-    public String getInstance() {
-        return instance;
+    public String getHostname() {
+        return hostname;
     }
 
     /**
-     * @return the host AKA MongoInstance
+     * @return The port of the Mongo DB that was connected to.
      */
-    public String getHost() {
-        return host;
-    }
-    /**
-     * @return The Collection/Rya Prefix/Rya instance that was used to establish the connection.
-     */
-    public String getCollectionName() {
-        return collectionName;
+    public int getPort() {
+        return port;
     }
 
     /**
+     * Create a {@link MongoDBRdfConfiguration} that is using this object's values.
      *
-     * @param ryaInstanceName
-     *            - The Rya instance to connect to.
-     * @return Constructs a new {@link AccumuloRdfConfiguration} object with values from this object.
+     * @param ryaInstanceName - The Rya instance to connect to.
+     * @return Constructs a new {@link MongoDBRdfConfiguration} object with values from this object.
      */
     public MongoDBRdfConfiguration build(final String ryaInstanceName) {
-
         // Note, we don't use the MongoDBRdfConfigurationBuilder here because it explicitly sets
         // authorizations and visibilities to an empty string if they are not set on the builder.
         // If they are null in the MongoRdfConfiguration object, it may do the right thing.
         final MongoDBRdfConfiguration conf = new MongoDBRdfConfiguration();
-        conf.setMongoInstance(host);
-        conf.setCollectionName(ryaInstanceName);
+        conf.setBoolean(ConfigUtils.USE_MONGO, true);
+        conf.setMongoInstance(hostname);
+        conf.setMongoPort("" + port);
         conf.setMongoUser(username);
         conf.setMongoPassword(new String(userPass));
+        conf.setMongoDBName(ryaInstanceName);
+
+        // Both of these are ways to configure the collection prefixes.
+        conf.setCollectionName(ryaInstanceName);
+        conf.set(RdfCloudTripleStoreConfiguration.CONF_TBL_PREFIX, ryaInstanceName);
+
         return conf;
     }
-
 }

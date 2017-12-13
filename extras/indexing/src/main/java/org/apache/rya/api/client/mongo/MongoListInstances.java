@@ -20,7 +20,6 @@ package org.apache.rya.api.client.mongo;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 
 import org.apache.rya.api.client.ListInstances;
 import org.apache.rya.api.client.RyaClientException;
@@ -39,11 +38,8 @@ public class MongoListInstances extends MongoCommand implements ListInstances {
     /**
      * Constructs an instance of {@link MongoListInstances}.
      *
-     * @param connectionDetails
-     *            - Details about the values that were used to create the connector to the cluster. (not null)
-     * @param client
-     *            - Provides programatic access to the instance of Mongo
-     *            that hosts Rya instance. (not null)
+     * @param connectionDetails - Details about the values that were used to create the connector to the cluster. (not null)
+     * @param connector - Provides programmatic access to the instance of Mongo that hosts Rya instances. (not null)
      */
     public MongoListInstances(final MongoConnectionDetails connectionDetails, final MongoClient client) {
         super(connectionDetails, client);
@@ -52,12 +48,12 @@ public class MongoListInstances extends MongoCommand implements ListInstances {
     @Override
     public List<String> listInstances() throws RyaClientException {
         final MongoClient client = super.getClient();
-        final List<String> dbNames = client.getDatabaseNames();
+
+        // Each database that contains an instance details collection is a Rya Instance.
         final List<String> ryaInstances = new ArrayList<>();
-        for (final String db : dbNames) {
-            final Set<String> collNames = client.getDB(db).getCollectionNames();
-            for (final String coll : collNames) {
-                if (coll.equals(MongoRyaInstanceDetailsRepository.INSTANCE_DETAILS_COLLECTION_NAME)) {
+        for (final String db : getClient().listDatabaseNames()) {
+            for(final String collection : client.getDatabase(db).listCollectionNames()) {
+                if (collection.equals(MongoRyaInstanceDetailsRepository.INSTANCE_DETAILS_COLLECTION_NAME)) {
                     ryaInstances.add(db);
                     break;
                 }

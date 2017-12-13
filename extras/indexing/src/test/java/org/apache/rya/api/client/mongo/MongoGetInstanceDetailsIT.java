@@ -40,7 +40,6 @@ import org.apache.rya.mongodb.MongoTestBase;
 import org.junit.Test;
 
 import com.google.common.base.Optional;
-import com.mongodb.BasicDBObject;
 import com.mongodb.MongoException;
 
 /**
@@ -57,8 +56,7 @@ public class MongoGetInstanceDetailsIT extends MongoTestBase {
                 .setEnableEntityCentricIndex(true)
                 .setEnableFreeTextIndex(true)
                 .setEnableTemporalIndex(true)
-                .setEnableGeoIndex(true)
-                .setEnablePcjIndex(false)
+                .setEnablePcjIndex(true)
                 .build();
 
         final Install install = new MongoInstall(getConnectionDetails(), this.getMongoClient());
@@ -74,13 +72,18 @@ public class MongoGetInstanceDetailsIT extends MongoTestBase {
                 // The version depends on how the test is packaged, so just grab whatever was stored.
                 .setRyaVersion( details.get().getRyaVersion() )
 
-                        // FIXME .setGeoIndexDetails( new GeoIndexDetails(true) )
+                // The supported indices are set to true.
                 .setTemporalIndexDetails(new TemporalIndexDetails(true) )
                 .setFreeTextDetails( new FreeTextIndexDetails(true) )
+
+                // Entity Centric Index is not supported, so it flips to false.
                 .setEntityCentricIndexDetails( new EntityCentricIndexDetails(false) )
+
+                // PCJJ Index is not supported, so it flips to false.
                 .setPCJIndexDetails(
                         PCJIndexDetails.builder()
                             .setEnabled(false))
+
                 .setProspectorDetails( new ProspectorDetails(Optional.<Date>absent()) )
                 .setJoinSelectivityDetails( new JoinSelectivityDetails(Optional.<Date>absent()) )
                 .build();
@@ -99,25 +102,22 @@ public class MongoGetInstanceDetailsIT extends MongoTestBase {
         // Mimic a pre-details rya install.
         final String instanceName = "instance_name";
 
-        this.getMongoClient().getDB(instanceName).createCollection("rya_triples", new BasicDBObject());
+        this.getMongoClient().getDatabase(instanceName).createCollection("rya_triples");
 
         // Verify that the operation returns empty.
         final GetInstanceDetails getInstanceDetails = new MongoGetInstanceDetails(getConnectionDetails(), this.getMongoClient());
         final Optional<RyaDetails> details = getInstanceDetails.getDetails(instanceName);
         assertFalse( details.isPresent() );
     }
-    
+
     /**
      * @return copy from conf to MongoConnectionDetails
      */
     private MongoConnectionDetails getConnectionDetails() {
-        final MongoConnectionDetails connectionDetails = new MongoConnectionDetails(
-                        conf.getMongoUser(), //
-                        conf.getMongoPassword().toCharArray(), //
-                        conf.getMongoDBName(), // aka instance
-                        conf.getMongoInstance(), // aka hostname
-                        conf.getCollectionName()
-        );
-        return connectionDetails;
+        return new MongoConnectionDetails(
+                conf.getMongoUser(),
+                conf.getMongoPassword().toCharArray(),
+                conf.getMongoInstance(),
+                Integer.parseInt( conf.getMongoPort() ));
     }
 }

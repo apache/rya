@@ -21,7 +21,6 @@ package org.apache.rya.api.client.mongo;
 import static java.util.Objects.requireNonNull;
 
 import org.apache.rya.api.client.InstanceExists;
-import org.apache.rya.api.client.RyaClientException;
 
 import com.mongodb.MongoClient;
 
@@ -38,8 +37,7 @@ public class MongoInstanceExists extends MongoCommand implements InstanceExists 
      * Constructs an insatnce of {@link MongoInstanceExists}.
      *
      * @param connectionDetails - Details about the values that were used to create the connector to the cluster. (not null)
-     * @param client - Provides programatic access to the instance of Mongo
-     *   that hosts Rya instance. (not null)
+     * @param connector - Provides programmatic access to the instance of Mongo that hosts Rya instances. (not null)
      */
     public MongoInstanceExists(final MongoConnectionDetails connectionDetails, final MongoClient client) {
         super(connectionDetails, client);
@@ -48,6 +46,11 @@ public class MongoInstanceExists extends MongoCommand implements InstanceExists 
     @Override
     public boolean exists(final String instanceName) {
         requireNonNull( instanceName );
-        return super.getClient().getDatabaseNames().contains(instanceName);
+        for(final String dbName : getClient().listDatabaseNames()) {
+            if(dbName.equals(instanceName)) {
+                return true;
+            }
+        }
+        return false;
     }
 }

@@ -22,7 +22,6 @@ import static java.util.Objects.requireNonNull;
 
 import java.util.Date;
 
-import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
 import org.apache.rya.api.client.Install;
 import org.apache.rya.api.client.InstanceExists;
 import org.apache.rya.api.client.RyaClientException;
@@ -42,6 +41,8 @@ import org.apache.rya.indexing.accumulo.ConfigUtils;
 import org.apache.rya.mongodb.MongoDBRdfConfiguration;
 import org.apache.rya.mongodb.MongoDBRyaDAO;
 import org.apache.rya.mongodb.instance.MongoRyaInstanceDetailsRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Optional;
 import com.mongodb.MongoClient;
@@ -55,16 +56,15 @@ import edu.umd.cs.findbugs.annotations.NonNull;
 @DefaultAnnotation(NonNull.class)
 public class MongoInstall extends MongoCommand implements Install {
 
+    private static final Logger log = LoggerFactory.getLogger(MongoInstall.class);
+
     private final InstanceExists instanceExists;
 
     /**
      * Constructs an instance of {@link MongoInstall}.
      *
-     * @param connectionDetails
-     *            - Details about the values that were used to create the connector to the cluster. (not null)
-     * @param client
-     *            - Provides programatic access to the instance of Mongo
-     *            that hosts Rya instance. (not null)
+     * @param connectionDetails - Details about the values that were used to create the connector to the cluster. (not null)
+     * @param connector - Provides programmatic access to the instance of Mongo that hosts Rya instances. (not null)
      */
     public MongoInstall(final MongoConnectionDetails connectionDetails, final MongoClient client) {
         super(connectionDetails, client);
@@ -121,39 +121,40 @@ public class MongoInstall extends MongoCommand implements Install {
     /**
      * Initializes the {@link RyaDetails} and stores them for the new instance.
      *
-     * @param instanceName
-     *            - The name of the instance that is being created. (not null)
-     * @param installConfig
-     *            - The instance's install configuration. (not null)
+     * @param instanceName - The name of the instance that is being created. (not null)
+     * @param installConfig - The instance's install configuration. (not null)
      * @return The {@link RyaDetails} that were stored.
-     * @throws AlreadyInitializedException
-     *             Could not be initialized because
-     *             a table with this instance name has already exists and is holding the details.
-     * @throws RyaDetailsRepositoryException
-     *             Something caused the initialization
-     *             operation to fail.
+     * @throws AlreadyInitializedException Could not be initialized because a table with this instance name has already
+     *   exists and is holding the details.
+     * @throws RyaDetailsRepositoryException Something caused the initialization operation to fail.
      */
-    private RyaDetails initializeRyaDetails(final String instanceName, final InstallConfiguration installConfig) throws AlreadyInitializedException, RyaDetailsRepositoryException {
+    private RyaDetails initializeRyaDetails(
+            final String instanceName,
+            final InstallConfiguration installConfig) throws AlreadyInitializedException, RyaDetailsRepositoryException {
         final RyaDetailsRepository detailsRepo = new MongoRyaInstanceDetailsRepository(getClient(), instanceName);
 
         // Build the PCJ Index details. [not supported in mongo]
         final PCJIndexDetails.Builder pcjDetailsBuilder = PCJIndexDetails.builder().setEnabled(false);
 
         final RyaDetails details = RyaDetails.builder()
-                        // General Metadata
-                        .setRyaInstanceName(instanceName).setRyaVersion(getVersion())
+                // General Metadata
+                .setRyaInstanceName(instanceName).setRyaVersion(getVersion())
 
-                        // Secondary Index Values
-                        // FIXME .setGeoIndexDetails(new GeoIndexDetails(installConfig.isGeoIndexEnabled()))
-                        .setTemporalIndexDetails(new TemporalIndexDetails(installConfig.isTemporalIndexEnabled())) //
-                        .setFreeTextDetails(new FreeTextIndexDetails(installConfig.isFreeTextIndexEnabled()))//
-                        .setEntityCentricIndexDetails(new EntityCentricIndexDetails(false))// not supported in mongo
-                        .setPCJIndexDetails(pcjDetailsBuilder)
+                // FIXME RYA-215 .setGeoIndexDetails(new GeoIndexDetails(installConfig.isGeoIndexEnabled()))
 
-                        // Statistics values.
-                        .setProspectorDetails(new ProspectorDetails(Optional.<Date> absent()))//
-                        .setJoinSelectivityDetails(new JoinSelectivityDetails(Optional.<Date> absent()))//
-                        .build();
+                // Secondary Index Values
+                .setTemporalIndexDetails(new TemporalIndexDetails(installConfig.isTemporalIndexEnabled()))
+                .setFreeTextDetails(new FreeTextIndexDetails(installConfig.isFreeTextIndexEnabled()))//
+
+                // Entity centric indexing is not supported in Mongo Db.
+                .setEntityCentricIndexDetails(new EntityCentricIndexDetails(false))
+
+                .setPCJIndexDetails(pcjDetailsBuilder)
+
+                // Statistics values.
+                .setProspectorDetails(new ProspectorDetails(Optional.<Date> absent()))//
+                .setJoinSelectivityDetails(new JoinSelectivityDetails(Optional.<Date> absent()))//
+                .build();
 
         // Initialize the table.
         detailsRepo.initialize(details);
@@ -165,30 +166,34 @@ public class MongoInstall extends MongoCommand implements Install {
      * Builds a {@link MongoRdfConfiguration} object that will be used by the
      * Rya DAO to initialize all of the tables it will need.
      *
-     * @param connectionDetails
-     *            - Indicates how to connect to Mongo. (not null)
-     * @param details
-     *            - Indicates what needs to be installed. (not null)
+     * @param connectionDetails - Indicates how to connect to Mongo. (not null)
+     * @param ryaDetails - Indicates what needs to be installed. (not null)
      * @return A Rya Configuration object that can be used to perform the install.
      */
-    private static MongoDBRdfConfiguration makeRyaConfig(final MongoConnectionDetails connectionDetails, final RyaDetails details) {
-        final MongoDBRdfConfiguration conf = new MongoDBRdfConfiguration();
-        conf.setBoolean(ConfigUtils.USE_MONGO, true);
-        // The Rya Instance Name is used as a prefix for the index tables in Mongo.
-        conf.set(RdfCloudTripleStoreConfiguration.CONF_TBL_PREFIX, details.getRyaInstanceName());
+    private static MongoDBRdfConfiguration makeRyaConfig(final MongoConnectionDetails connectionDetails, final RyaDetails ryaDetails) {
+        // Start with a configuration that is built using the connection details.
+        final MongoDBRdfConfiguration conf = connectionDetails.build(ryaDetails.getRyaInstanceName());
 
-        // Enable the indexers that the instance is configured to use.
-        conf.set(ConfigUtils.USE_PCJ, "" + details.getPCJIndexDetails().isEnabled());
-        // fixme conf.set(OptionalConfigUtils.USE_GEO, "" + details.getGeoIndexDetails().isEnabled() );
-        conf.set(ConfigUtils.USE_FREETEXT, "" + details.getFreeTextIndexDetails().isEnabled());
-        conf.set(ConfigUtils.USE_TEMPORAL, "" + details.getTemporalIndexDetails().isEnabled());
+        // The Mongo implementation of Rya does not currently support PCJs.
+        if(ryaDetails.getPCJIndexDetails().isEnabled()) {
+            log.warn("The install configuration says to enable PCJ indexing, but Mongo RYA does not support that " +
+                    "feature. Ignoring this configuration.");
+        }
+        conf.set(ConfigUtils.USE_PCJ, "false");
 
         // Mongo does not support entity indexing.
-        conf.set(ConfigUtils.USE_ENTITY, "" + false);
+        if(ryaDetails.getEntityCentricIndexDetails().isEnabled()) {
+            log.warn("The install configuration says to enable Entity Centric indexing, but Mongo RYA does not support " +
+                    "that feature. Ignoring this configuration.");
+        }
+        conf.set(ConfigUtils.USE_ENTITY, "false");
 
-        conf.set(ConfigUtils.CLOUDBASE_USER, connectionDetails.getUsername());
-        conf.set(ConfigUtils.CLOUDBASE_PASSWORD, new String(connectionDetails.getPassword()));
-        conf.set(MongoDBRdfConfiguration.MONGO_DB_NAME, details.getRyaInstanceName());
+        // FIXME RYA-215 We haven't enabled geo indexing in the console yet.
+        //conf.set(OptionalConfigUtils.USE_GEO, "" + details.getGeoIndexDetails().isEnabled() );
+
+        // Enable the supported indexers that the instance is configured to use.
+        conf.set(ConfigUtils.USE_FREETEXT, "" + ryaDetails.getFreeTextIndexDetails().isEnabled());
+        conf.set(ConfigUtils.USE_TEMPORAL, "" + ryaDetails.getTemporalIndexDetails().isEnabled());
 
         // This initializes the living indexers that will be used by the application and
         // caches them within the configuration object so that they may be used later.

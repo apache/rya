@@ -22,17 +22,15 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import org.apache.accumulo.core.client.TableExistsException;
-import org.apache.rya.api.client.accumulo.AccumuloInstanceExists;
 import org.apache.rya.mongodb.MongoTestBase;
 import org.apache.rya.mongodb.instance.MongoRyaInstanceDetailsRepository;
 import org.junit.Test;
 
-import com.mongodb.BasicDBObject;
 import com.mongodb.MongoClient;
 import com.mongodb.MongoException;
 
 /**
- * Integration tests the methods of {@link AccumuloInstanceExists}.
+ * Integration tests the methods of {@link MongoInstanceExistsExists}.
  */
 public class MongoInstanceExistsIT extends MongoTestBase {
 
@@ -42,7 +40,7 @@ public class MongoInstanceExistsIT extends MongoTestBase {
 
         // Create the Rya instance's Rya details collection.
         final String instanceName = "test_instance_";
-        client.getDB(instanceName).createCollection(MongoRyaInstanceDetailsRepository.INSTANCE_DETAILS_COLLECTION_NAME, new BasicDBObject());
+        client.getDatabase(instanceName).createCollection(MongoRyaInstanceDetailsRepository.INSTANCE_DETAILS_COLLECTION_NAME);
 
         // Verify the command reports the instance exists.
         final MongoInstanceExists instanceExists = new MongoInstanceExists(getConnectionDetails(), client);
@@ -55,7 +53,7 @@ public class MongoInstanceExistsIT extends MongoTestBase {
 
         // Create the Rya instance's Rya triples collection.
         final String instanceName = "test_instance_";
-        client.getDB(instanceName).createCollection("rya_triples", new BasicDBObject());
+        client.getDatabase(instanceName).createCollection("rya_triples");
 
         // Verify the command reports the instance exists.
         final MongoInstanceExists instanceExists = new MongoInstanceExists(getConnectionDetails(), client);
@@ -73,14 +71,10 @@ public class MongoInstanceExistsIT extends MongoTestBase {
      * @return copy from conf to MongoConnectionDetails
      */
     private MongoConnectionDetails getConnectionDetails() {
-        final MongoConnectionDetails connectionDetails = new MongoConnectionDetails(conf.getMongoUser(), //
-                        conf.getMongoPassword().toCharArray(), //
-                        conf.getMongoDBName(), // aka instance
-                        conf.getMongoInstance(), // aka hostname
-                        conf.getCollectionName()
-        );
-        return connectionDetails;
+        return new MongoConnectionDetails(
+                conf.getMongoUser(),
+                conf.getMongoPassword().toCharArray(),
+                conf.getMongoInstance(),
+                Integer.parseInt( conf.getMongoPort() ));
     }
-
-
 }

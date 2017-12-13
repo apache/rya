@@ -21,6 +21,7 @@ package org.apache.rya.api.client.mongo;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -29,58 +30,53 @@ import org.apache.rya.api.client.Install.DuplicateInstanceNameException;
 import org.apache.rya.api.client.Install.InstallConfiguration;
 import org.apache.rya.api.client.InstanceExists;
 import org.apache.rya.api.client.RyaClientException;
-import org.apache.rya.api.client.accumulo.AccumuloInstall;
 import org.apache.rya.mongodb.MongoTestBase;
 import org.junit.Test;
 
 /**
- * Integration tests the methods of {@link AccumuloInstall}.
+ * Integration tests the methods of {@link MongoInstall}.
  */
 public class MongoInstallIT extends MongoTestBase {
 
     @Test
     public void install() throws DuplicateInstanceNameException, RyaClientException {
         // Install an instance of Rya.
-        final String instanceName = conf.getCollectionName();
-        final InstallConfiguration installConfig = InstallConfiguration.builder()
-                .setEnableTableHashPrefix(false) //
-                .setEnableEntityCentricIndex(false)//
-                .setEnableFreeTextIndex(false)//
-                .setEnableTemporalIndex(false)//
-                .setEnablePcjIndex(false)//
-                .setEnableGeoIndex(false)//
-                .setFluoPcjAppName("fluo_app_name")//
-                .build();
+        final String ryaInstance = conf.getCollectionName();
 
+        // Setup the connection details that were used for the embedded Mongo DB instance we are testing with.
         final MongoConnectionDetails connectionDetails = new MongoConnectionDetails(
-                        conf.getMongoUser(), //
-                        conf.getMongoPassword().toCharArray(), //
-                        conf.getMongoDBName(), // aka instance
-                        conf.getMongoInstance(), // aka hostname
-                        conf.getCollectionName()
-        );
+                conf.getMongoUser(),
+                conf.getMongoPassword().toCharArray(),
+                conf.getMongoInstance(),
+                Integer.parseInt( conf.getMongoPort() ));
 
         // Check that the instance does not exist.
-        assertFalse("Instance should NOT exist yet.", this.getMongoClient().getDatabaseNames().contains(instanceName));
         final InstanceExists instanceExists = new MongoInstanceExists(connectionDetails, this.getMongoClient());
-        assertFalse("Instance should NOT exist yet.", instanceExists.exists(instanceName));
+        assertFalse(instanceExists.exists(ryaInstance));
+
+        // Install an instance of Rya with all the valid options turned on.
+        final InstallConfiguration installConfig = InstallConfiguration.builder()
+                .setEnableTableHashPrefix(true)
+                .setEnableFreeTextIndex(true)
+                .setEnableTemporalIndex(true)
+                .build();
 
         final Install install = new MongoInstall(connectionDetails, this.getMongoClient());
-        install.install(instanceName, installConfig);
+        install.install(ryaInstance, installConfig);
 
         // Check that the instance exists.
-        assertTrue("Instance should exist.", this.getMongoClient().getDatabaseNames().contains(instanceName));
-        List<String> expected = Arrays.asList("instance_details", instanceName + "_triples");
+        assertTrue(instanceExists.exists(ryaInstance));
+
+        // Show that the expected collections were created within the database.
+        final List<String> expected = Arrays.asList("instance_details", ryaInstance + "_triples");
         int count = 0;
-        String found = "";
-        for (String collection : this.getMongoClient().getDatabase(instanceName).listCollectionNames())
-        {
-            System.out.println("Collection names:" + collection);
+        final List<String> found = new ArrayList<>();
+        for (final String collection : this.getMongoClient().getDatabase(ryaInstance).listCollectionNames()) {
             count += expected.contains(collection) ? 1 : 0;
-            found += ", " + collection;
+            found.add( collection );
         }
         assertTrue("Tables missing from:" + expected + " actual:" + found, expected.size() == count);
-        assertTrue("Instance should exist.", instanceExists.exists(instanceName));
+        assertTrue("Instance should exist.", instanceExists.exists(ryaInstance));
     }
 
     @Test(expected = DuplicateInstanceNameException.class)
@@ -89,12 +85,11 @@ public class MongoInstallIT extends MongoTestBase {
         final String instanceName = conf.getCollectionName();
         final InstallConfiguration installConfig = InstallConfiguration.builder().build();
 
-        final MongoConnectionDetails connectionDetails = new MongoConnectionDetails(conf.getMongoUser(), //
-                        conf.getMongoPassword().toCharArray(), //
-                        conf.getMongoDBName(), // aka instance
-                        conf.getMongoInstance(), // aka hostname
-                        conf.getCollectionName()
-        );
+        final MongoConnectionDetails connectionDetails = new MongoConnectionDetails(
+                conf.getMongoUser(),
+                conf.getMongoPassword().toCharArray(),
+                conf.getMongoInstance(),
+                Integer.parseInt( conf.getMongoPort() ));
 
         final Install install = new MongoInstall(connectionDetails, this.getMongoClient());
         install.install(instanceName, installConfig);

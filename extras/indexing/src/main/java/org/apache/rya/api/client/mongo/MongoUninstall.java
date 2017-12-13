@@ -19,6 +19,7 @@
 package org.apache.rya.api.client.mongo;
 
 import org.apache.rya.api.client.InstanceDoesNotExistException;
+import org.apache.rya.api.client.InstanceExists;
 import org.apache.rya.api.client.RyaClientException;
 import org.apache.rya.api.client.Uninstall;
 
@@ -34,23 +35,23 @@ import edu.umd.cs.findbugs.annotations.NonNull;
 @DefaultAnnotation(NonNull.class)
 public class MongoUninstall extends MongoCommand implements Uninstall {
 
+    private final InstanceExists instanceExists;
+
     /**
      * Constructs an instance of {@link MongoUninstall}.
      *
-     * @param connectionDetails
-     *            - Details about the values that were used to create the connector to the cluster. (not null)
-     * @param connector
-     *            - Provides programatic access to the instance of Mongo
-     *            that hosts Rya instance. (not null)
+     * @param connectionDetails - Details about the values that were used to create the connector to the cluster. (not null)
+     * @param connector - Provides programmatic access to the instance of Mongo that hosts Rya instances. (not null)
      */
     public MongoUninstall(final MongoConnectionDetails connectionDetails, final MongoClient client) {
         super(connectionDetails, client);
+        instanceExists = new MongoInstanceExists(connectionDetails, client);
     }
 
     @Override
     public void uninstall(final String ryaInstanceName) throws InstanceDoesNotExistException, RyaClientException {
         try {
-            if (!getClient().getDatabaseNames().contains(ryaInstanceName)) {
+            if (!instanceExists.exists(ryaInstanceName)) {
                 throw new InstanceDoesNotExistException("The database '" + ryaInstanceName + "' does not exist.");
             }
             getClient().dropDatabase(ryaInstanceName);

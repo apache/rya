@@ -20,6 +20,8 @@ package org.apache.rya.api.client.accumulo;
 
 import static java.util.Objects.requireNonNull;
 
+import java.util.Optional;
+
 import org.apache.accumulo.core.client.Connector;
 import org.apache.rya.api.client.RyaClient;
 
@@ -50,17 +52,17 @@ public class AccumuloRyaClientFactory {
         // Build the RyaCommands option with the initialized commands.
         return new RyaClient(
                 new AccumuloInstall(connectionDetails, connector),
-                new AccumuloCreatePCJ(connectionDetails, connector),
-                new AccumuloDeletePCJ(connectionDetails, connector),
-                new AccumuloCreatePeriodicPCJ(connectionDetails, connector),
-                new AccumuloDeletePeriodicPCJ(connectionDetails, connector),
-                new AccumuloListIncrementalQueries(connectionDetails, connector),
-                new AccumuloBatchUpdatePCJ(connectionDetails, connector),
+                Optional.of(new AccumuloCreatePCJ(connectionDetails, connector)),
+                Optional.of(new AccumuloDeletePCJ(connectionDetails, connector)),
+                Optional.of(new AccumuloCreatePeriodicPCJ(connectionDetails, connector)),
+                Optional.of(new AccumuloDeletePeriodicPCJ(connectionDetails, connector)),
+                Optional.of(new AccumuloListIncrementalQueries(connectionDetails, connector)),
+                Optional.of(new AccumuloBatchUpdatePCJ(connectionDetails, connector)),
                 new AccumuloGetInstanceDetails(connectionDetails, connector),
                 new AccumuloInstanceExists(connectionDetails, connector),
                 new AccumuloListInstances(connectionDetails, connector),
-                new AccumuloAddUser(connectionDetails, connector),
-                new AccumuloRemoveUser(connectionDetails, connector),
+                Optional.of(new AccumuloAddUser(connectionDetails, connector)),
+                Optional.of(new AccumuloRemoveUser(connectionDetails, connector)),
                 new AccumuloUninstall(connectionDetails, connector),
                 new AccumuloLoadStatements(connectionDetails, connector),
                 new AccumuloLoadStatementsFile(connectionDetails, connector),

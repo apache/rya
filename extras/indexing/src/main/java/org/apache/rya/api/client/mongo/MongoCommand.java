@@ -38,11 +38,8 @@ public abstract class MongoCommand {
     /**
      * Constructs an instance of {@link MongoCommand}.
      *
-     * Details about the values that were used to create the client. (not null)
-     * 
-     * @param client
-     *            - Provides programatic access to the instance of Mongo
-     *            that hosts Rya instance. (not null)
+     * @param connectionDetails - Details about the values that were used to create the client. (not null)
+     * @param client - Provides programmatic access to the instance of Mongo that hosts Rya instance. (not null)
      */
     public MongoCommand(final MongoConnectionDetails connectionDetails, final MongoClient client) {
         this.connectionDetails = requireNonNull(connectionDetails);
@@ -50,14 +47,14 @@ public abstract class MongoCommand {
     }
 
     /**
-     * @return Details about the values that were used to create the connector to mongo. (not null)
+     * @return Details about the values that were used to create the connector to mongo.
      */
     public MongoConnectionDetails getMongoConnectionDetails() {
         return connectionDetails;
     }
 
     /**
-     * @return Provides programatic access to the instance of Mongo that hosts Rya instance.
+     * @param client - Provides programmatic access to the instance of Mongo that hosts Rya instance.
      */
     public MongoClient getClient() {
         return client;

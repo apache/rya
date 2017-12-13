@@ -18,9 +18,9 @@
  */
 package org.apache.rya.api.client.mongo;
 
-import java.util.Set;
+import static java.util.Objects.requireNonNull;
 
-import org.apache.rya.api.client.CreatePCJ;
+import org.apache.rya.api.client.ExecuteSparqlQuery;
 import org.apache.rya.api.client.InstanceDoesNotExistException;
 import org.apache.rya.api.client.RyaClientException;
 
@@ -30,29 +30,27 @@ import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
 import edu.umd.cs.findbugs.annotations.NonNull;
 
 /**
- * An Mongo implementation of the {@link CreatePCJ} command.
+ * TODO impl, test, doc
  */
 @DefaultAnnotation(NonNull.class)
-public class MongoCreatePCJ extends MongoCommand implements CreatePCJ {
+public class MongoExecuteSparqlQuery extends MongoCommand implements ExecuteSparqlQuery {
 
     /**
-     * Constructs an instance of {@link MongoCreatePCJ}.
+     * Constructs an instance of {@link }.
      *
-     * @param connectionDetails - Details about the values that were used to create the connector to the cluster. (not null)
-     * @param client - Provides programatic access to the instance of Mongo
-     *   that hosts Rya instance. (not null)
+     * @param connectionDetails - Details about the values that were used to create the client. (not null)
+     * @param connector - Provides programmatic access to the instance of Mongo that hosts Rya instances. (not null)
      */
-    public MongoCreatePCJ(final MongoConnectionDetails connectionDetails, final MongoClient client) {
+    public MongoExecuteSparqlQuery(final MongoConnectionDetails connectionDetails, final MongoClient client) {
         super(connectionDetails, client);
     }
 
     @Override
-    public String createPCJ(final String instanceName, final String sparql) throws InstanceDoesNotExistException {
-        throw new UnsupportedOperationException("Mongo does not support PCJ indexing.");
-    }
+    public String executeSparqlQuery(final String ryaInstanceName, final String sparqlQuery) throws InstanceDoesNotExistException, RyaClientException {
+        requireNonNull(ryaInstanceName);
+        requireNonNull(sparqlQuery);
 
-    @Override
-    public String createPCJ(String instanceName, String sparql, Set<ExportStrategy> strategies) throws InstanceDoesNotExistException, RyaClientException {
-        throw new UnsupportedOperationException("Mongo does not support PCJ indexing.");
+        // TODO Auto-generated method stub
+        return null;
     }
 }

@@ -46,7 +46,7 @@ import com.google.common.collect.ImmutableList;
  */
 public class AccumuloAddUserIT extends AccumuloITBase {
 
-    private String ADMIN_USER = testInstance.createUniqueUser();
+    private final String ADMIN_USER = testInstance.createUniqueUser();
 
     @Before
     public void beforeClass() throws Exception {
@@ -92,7 +92,7 @@ public class AccumuloAddUserIT extends AccumuloITBase {
      */
     @Test
     public void userAddedAlsoAddedToRyaDetails() throws Exception {
-        String user = testInstance.createUniqueUser();
+        final String user = testInstance.createUniqueUser();
         final SecurityOperations secOps = super.getConnector().securityOperations();
 
         final RyaClient userAClient = AccumuloRyaClientFactory.build(
@@ -106,7 +106,7 @@ public class AccumuloAddUserIT extends AccumuloITBase {
         userAClient.getInstall().install(getRyaInstanceName(), InstallConfiguration.builder().build());
 
         // Add the user.
-        userAClient.getAddUser().addUser(getRyaInstanceName(), user);
+        userAClient.getAddUser().get().addUser(getRyaInstanceName(), user);
 
         // Ensure the Rya instance's details have been updated to include the added user.
         final ImmutableList<String> expectedUsers = ImmutableList.<String>builder()
@@ -123,7 +123,7 @@ public class AccumuloAddUserIT extends AccumuloITBase {
      */
     @Test
     public void userNotAddedCanNotInsert() throws Exception {
-        String user = testInstance.createUniqueUser();
+        final String user = testInstance.createUniqueUser();
         final SecurityOperations secOps = super.getConnector().securityOperations();
 
         final RyaClient userAClient = AccumuloRyaClientFactory.build(
@@ -171,7 +171,7 @@ public class AccumuloAddUserIT extends AccumuloITBase {
      */
     @Test
     public void userAddedCanInsert() throws Exception {
-        String user = testInstance.createUniqueUser();
+        final String user = testInstance.createUniqueUser();
         final SecurityOperations secOps = super.getConnector().securityOperations();
 
         final RyaClient userAClient = AccumuloRyaClientFactory.build(
@@ -185,7 +185,7 @@ public class AccumuloAddUserIT extends AccumuloITBase {
         userAClient.getInstall().install(getRyaInstanceName(), InstallConfiguration.builder().build());
 
         // Add the user.
-        userAClient.getAddUser().addUser(getRyaInstanceName(), user);
+        userAClient.getAddUser().get().addUser(getRyaInstanceName(), user);
 
         // Try to add a statement to the Rya instance. This should succeed.
         Sail sail = null;
@@ -216,7 +216,7 @@ public class AccumuloAddUserIT extends AccumuloITBase {
      */
     @Test
     public void addUserTwice() throws Exception {
-        String user = testInstance.createUniqueUser();
+        final String user = testInstance.createUniqueUser();
         final SecurityOperations secOps = super.getConnector().securityOperations();
 
         final RyaClient userAClient = AccumuloRyaClientFactory.build(
@@ -230,8 +230,8 @@ public class AccumuloAddUserIT extends AccumuloITBase {
         userAClient.getInstall().install(getRyaInstanceName(), InstallConfiguration.builder().build());
 
         // Add the user.
-        userAClient.getAddUser().addUser(getRyaInstanceName(), user);
-        userAClient.getAddUser().addUser(getRyaInstanceName(), user);
+        userAClient.getAddUser().get().addUser(getRyaInstanceName(), user);
+        userAClient.getAddUser().get().addUser(getRyaInstanceName(), user);
 
         // Ensure the Rya instance's details only contain the username of the user who installed the instance.
         final ImmutableList<String> expectedUsers = ImmutableList.<String>builder()

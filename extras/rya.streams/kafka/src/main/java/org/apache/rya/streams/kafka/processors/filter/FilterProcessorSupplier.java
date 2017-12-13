@@ -22,7 +22,7 @@ import static java.util.Objects.requireNonNull;
 
 import org.apache.kafka.streams.processor.Processor;
 import org.apache.kafka.streams.processor.ProcessorContext;
-import org.apache.rya.api.function.Filter.FilterEvaluator;
+import org.apache.rya.api.function.filter.FilterEvaluator;
 import org.apache.rya.api.model.VisibilityBindingSet;
 import org.apache.rya.streams.kafka.processors.ProcessorResult;
 import org.apache.rya.streams.kafka.processors.ProcessorResult.ResultType;

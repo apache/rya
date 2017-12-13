@@ -24,7 +24,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 import org.apache.kafka.streams.processor.ProcessorContext;
-import org.apache.rya.api.function.Filter.FilterEvaluator;
+import org.apache.rya.api.function.filter.FilterEvaluator;
 import org.apache.rya.api.model.VisibilityBindingSet;
 import org.apache.rya.streams.kafka.RdfTestUtil;
 import org.apache.rya.streams.kafka.processors.ProcessorResult;

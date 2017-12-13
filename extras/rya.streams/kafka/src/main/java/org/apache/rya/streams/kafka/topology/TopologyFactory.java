@@ -38,7 +38,7 @@ import org.apache.kafka.streams.processor.ProcessorSupplier;
 import org.apache.kafka.streams.processor.StateStoreSupplier;
 import org.apache.kafka.streams.processor.TopologyBuilder;
 import org.apache.kafka.streams.state.Stores;
-import org.apache.rya.api.function.Filter.FilterEvaluator;
+import org.apache.rya.api.function.filter.FilterEvaluator;
 import org.apache.rya.api.function.join.IterativeJoin;
 import org.apache.rya.api.function.join.LeftOuterJoin;
 import org.apache.rya.api.function.join.NaturalJoin;

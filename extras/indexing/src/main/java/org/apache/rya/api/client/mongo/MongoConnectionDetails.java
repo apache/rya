@@ -24,6 +24,8 @@ import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
 import org.apache.rya.indexing.accumulo.ConfigUtils;
 import org.apache.rya.mongodb.MongoDBRdfConfiguration;
 
+import com.mongodb.MongoClient;
+
 import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
 import edu.umd.cs.findbugs.annotations.NonNull;
 
@@ -92,6 +94,10 @@ public class MongoConnectionDetails {
      * @return Constructs a new {@link MongoDBRdfConfiguration} object with values from this object.
      */
     public MongoDBRdfConfiguration build(final String ryaInstanceName) {
+        return build(ryaInstanceName, null);
+    }
+
+    public MongoDBRdfConfiguration build(final String ryaInstanceName, MongoClient mongoClient) {
         // Note, we don't use the MongoDBRdfConfigurationBuilder here because it explicitly sets
         // authorizations and visibilities to an empty string if they are not set on the builder.
         // If they are null in the MongoRdfConfiguration object, it may do the right thing.
@@ -106,7 +112,9 @@ public class MongoConnectionDetails {
         // Both of these are ways to configure the collection prefixes.
         conf.setCollectionName(ryaInstanceName);
         conf.set(RdfCloudTripleStoreConfiguration.CONF_TBL_PREFIX, ryaInstanceName);
-
+        if (mongoClient != null) {
+            conf.setMongoClient(mongoClient);
+        }
         return conf;
     }
 }

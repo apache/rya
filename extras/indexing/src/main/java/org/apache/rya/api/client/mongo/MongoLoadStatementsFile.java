@@ -67,12 +67,12 @@ public class MongoLoadStatementsFile extends MongoCommand implements LoadStateme
         SailRepository sailRepo = null;
         SailRepositoryConnection sailRepoConn = null;
         // Get a Sail object that is connected to the Rya instance.
-        final MongoDBRdfConfiguration ryaConf = getMongoConnectionDetails().build(ryaInstanceName);
+        final MongoDBRdfConfiguration ryaConf = getMongoConnectionDetails().build(ryaInstanceName, getClient());
         // ryaConf.setFlush(false); //Accumulo version said: RYA-327 should address this hardcoded value.
         try {
             sail = RyaSailFactory.getInstance(ryaConf);
-        } catch (SailException | AccumuloException | AccumuloSecurityException | RyaDAOException | InferenceEngineException e) {
-            throw new RyaClientException("While getting an sail instance.", e);
+        } catch (SailException | RyaDAOException | InferenceEngineException | AccumuloException | AccumuloSecurityException e) {
+            throw new RyaClientException("While getting a sail instance.", e);
         }
 
         // Load the file.

@@ -36,6 +36,7 @@ import org.apache.rya.api.client.RyaClientException;
 import org.apache.rya.api.instance.RyaDetails;
 import org.apache.rya.shell.SharedShellState.ConnectionState;
 import org.apache.rya.shell.SharedShellState.ShellState;
+import org.apache.rya.shell.SharedShellState.StorageType;
 import org.apache.rya.shell.util.InstallPrompt;
 import org.apache.rya.shell.util.InstanceNamesFormatter;
 import org.apache.rya.shell.util.RyaDetailsFormatter;
@@ -63,7 +64,8 @@ public class RyaAdminCommands implements CommandMarker {
     public static final String LIST_INCREMENTAL_QUERIES = "list-incremental-queries";
     public static final String PRINT_INSTANCE_DETAILS_CMD = "print-instance-details";
     public static final String INSTALL_CMD = "install";
-    public static final String INSTALL_PARAMETERS_CMD = "install-with-parameters";
+    public static final String INSTALL_ACCUMULO_PARAMETERS_CMD = "install-with-accumulo-parameters";
+    public static final String INSTALL_MONGO_PARAMETERS_CMD = "install-with-mongo-parameters";
     public static final String LIST_INSTANCES_CMD = "list-instances";
     public static final String UNINSTALL_CMD = "uninstall";
     public static final String ADD_USER_CMD = "add-user";
@@ -99,8 +101,7 @@ public class RyaAdminCommands implements CommandMarker {
      */
     @CliAvailabilityIndicator({
         LIST_INSTANCES_CMD,
-        INSTALL_CMD,
-        INSTALL_PARAMETERS_CMD})
+        INSTALL_CMD})
     public boolean areStorageCommandsAvailable() {
         switch(state.getShellState().getConnectionState()) {
             case CONNECTED_TO_STORAGE:
@@ -112,20 +113,52 @@ public class RyaAdminCommands implements CommandMarker {
     }
 
     /**
+     * Enables commands that only become available once the Shell has been connected to an Accumulo Rya Storage.
+     */
+    @CliAvailabilityIndicator({
+        INSTALL_ACCUMULO_PARAMETERS_CMD})
+    public boolean areAccumuloStorageCommandsAvailable() {
+        return isConnectedToStorageType(StorageType.ACCUMULO);
+    }
+
+    /**
+     * Enables commands that only become available once the Shell has been connected to an MongoDB Rya Storage.
+     */
+    @CliAvailabilityIndicator({
+        INSTALL_MONGO_PARAMETERS_CMD})
+    public boolean areMongoStorageCommandsAvailable() {
+        return isConnectedToStorageType(StorageType.MONGO);
+    }
+
+    private boolean isConnectedToStorageType(final StorageType type) {
+        // Enabled if we are connected to the specified storage type.
+        final Optional<StorageType> storageType = state.getShellState().getStorageType();
+        if(storageType.isPresent()) {
+            return areStorageCommandsAvailable() && storageType.get() == type;
+        }
+
+        // Otherwise disabled.
+        return false;
+    }
+
+    /**
      * Enables commands that are always available once the Shell is connected to a Rya Instance.
      */
     @CliAvailabilityIndicator({
         PRINT_INSTANCE_DETAILS_CMD,
-        UNINSTALL_CMD,
+        UNINSTALL_CMD})
+    public boolean areInstanceCommandsAvailable() {
+        return state.getShellState().getConnectionState() == ConnectionState.CONNECTED_TO_INSTANCE;
+    }
+
+    /**
+     * Enables commands that are available when connected to a Rya Instance that supports user management.
+     */
+    @CliAvailabilityIndicator({
         ADD_USER_CMD,
         REMOVE_USER_CMD})
-    public boolean areInstanceCommandsAvailable() {
-        switch(state.getShellState().getConnectionState()) {
-            case CONNECTED_TO_INSTANCE:
-                return true;
-            default:
-                return false;
-        }
+    public boolean areUserCommandAvailable() {
+        return areInstanceCommandsAvailable() && state.getShellState().getStorageType().get() == StorageType.ACCUMULO;
     }
 
     /**
@@ -141,7 +174,8 @@ public class RyaAdminCommands implements CommandMarker {
         // The PCJ commands are only available if the Shell is connected to an instance of Rya
         // that is new enough to use the RyaDetailsRepository and is configured to maintain PCJs.
         final ShellState shellState = state.getShellState();
-        if(shellState.getConnectionState() == ConnectionState.CONNECTED_TO_INSTANCE) {
+        if(shellState.getConnectionState() == ConnectionState.CONNECTED_TO_INSTANCE &&
+                shellState.getStorageType().get() == StorageType.ACCUMULO) {
             final GetInstanceDetails getInstanceDetails = shellState.getConnectedCommands().get().getGetInstanceDetails();
             final String ryaInstanceName = state.getShellState().getRyaInstanceName().get();
             try {
@@ -211,8 +245,8 @@ public class RyaAdminCommands implements CommandMarker {
         }
     }
 
-    @CliCommand(value = INSTALL_PARAMETERS_CMD, help = "Create a new instance of Rya with command line parameters.")
-    public String installWithParameters(
+    @CliCommand(value = INSTALL_ACCUMULO_PARAMETERS_CMD, help = "Create a new Accumulo instance of Rya with command line parameters.")
+    public String installWithAccumuloParameters(
             @CliOption(key = {"instanceName"}, mandatory = true, help = "The name of the Rya instance to create.")
             final String instanceName,
 
@@ -225,8 +259,9 @@ public class RyaAdminCommands implements CommandMarker {
             @CliOption(key = {"enableFreeTextIndex"}, mandatory = false, help = "Use Free Text Indexing.", unspecifiedDefaultValue = "false", specifiedDefaultValue = "true")
             final boolean enableFreeTextIndex,
 
-            @CliOption(key = {"enableGeospatialIndex"}, mandatory = false, help = "Use Geospatial Indexing.", unspecifiedDefaultValue = "false", specifiedDefaultValue = "true")
-            final boolean enableGeospatialIndex,
+            // TODO RYA-215
+//            @CliOption(key = {"enableGeospatialIndex"}, mandatory = false, help = "Use Geospatial Indexing.", unspecifiedDefaultValue = "false", specifiedDefaultValue = "true")
+//            final boolean enableGeospatialIndex,
 
             @CliOption(key = {"enableTemporalIndex"}, mandatory = false, help = "Use Temporal Indexing.", unspecifiedDefaultValue = "false", specifiedDefaultValue = "true")
             final boolean enableTemporalIndex,
@@ -246,10 +281,53 @@ public class RyaAdminCommands implements CommandMarker {
                     .setEnableTableHashPrefix(enableTableHashPrefix)
                     .setEnableEntityCentricIndex(enableEntityCentricIndex)
                     .setEnableFreeTextIndex(enableFreeTextIndex)
-                    .setEnableGeoIndex(enableGeospatialIndex)
+                    // TODO RYA-215
+//                    .setEnableGeoIndex(enableGeospatialIndex)
                     .setEnableTemporalIndex(enableTemporalIndex)
                     .setEnablePcjIndex(enablePcjIndex)
                     .setFluoPcjAppName(fluoPcjAppName)
+                    .build();
+
+            // Verify the configuration is what the user actually wants to do.
+            if (!installPrompt.promptVerified(instanceName, installConfig)) {
+                return "Skipping Installation.";
+            }
+
+            // Execute the command.
+            commands.getInstall().install(instanceName, installConfig);
+            return String.format("The Rya instance named '%s' has been installed.", instanceName);
+
+        } catch(final DuplicateInstanceNameException e) {
+            throw new RuntimeException(String.format("A Rya instance named '%s' already exists. Try again with a different name.", instanceName), e);
+        } catch (final IOException | RyaClientException e) {
+            throw new RuntimeException("Could not install a new instance of Rya. Reason: " + e.getMessage(), e);
+        }
+    }
+
+    @CliCommand(value = INSTALL_MONGO_PARAMETERS_CMD, help = "Create a new MongoDB instance of Rya with command line parameters.")
+    public String installWithMongoParameters(
+            @CliOption(key = {"instanceName"}, mandatory = true, help = "The name of the Rya instance to create.")
+            final String instanceName,
+
+            @CliOption(key = {"enableFreeTextIndex"}, mandatory = false, help = "Use Free Text Indexing.", unspecifiedDefaultValue = "false", specifiedDefaultValue = "true")
+            final boolean enableFreeTextIndex,
+
+            // TODO RYA-215
+//            @CliOption(key = {"enableGeospatialIndex"}, mandatory = false, help = "Use Geospatial Indexing.", unspecifiedDefaultValue = "false", specifiedDefaultValue = "true")
+//            final boolean enableGeospatialIndex,
+
+            @CliOption(key = {"enableTemporalIndex"}, mandatory = false, help = "Use Temporal Indexing.", unspecifiedDefaultValue = "false", specifiedDefaultValue = "true")
+            final boolean enableTemporalIndex) {
+
+        // Fetch the commands that are connected to the store.
+        final RyaClient commands = state.getShellState().getConnectedCommands().get();
+
+        try {
+            final InstallConfiguration installConfig = InstallConfiguration.builder()
+                    .setEnableFreeTextIndex(enableFreeTextIndex)
+                    // TODO RYA-215
+//                    .setEnableGeoIndex(enableGeospatialIndex)
+                    .setEnableTemporalIndex(enableTemporalIndex)
                     .build();
 
             // Verify the configuration is what the user actually wants to do.

@@ -20,13 +20,12 @@ package org.apache.rya.shell;
 
 import static java.util.Objects.requireNonNull;
 
+import org.apache.rya.shell.SharedShellState.ShellState;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.shell.plugin.support.DefaultPromptProvider;
 import org.springframework.stereotype.Component;
-
-import org.apache.rya.shell.SharedShellState.ShellState;
 
 /**
  * Customizes the Rya Shell's prompt.
@@ -50,10 +49,10 @@ public class RyaPromptProvider extends DefaultPromptProvider {
             case DISCONNECTED:
                 return "rya> ";
             case CONNECTED_TO_STORAGE:
-                return String.format("rya/%s> ", state.getConnectionDetails().get().getInstanceName());
+                return String.format("rya/%s> ", state.getAccumuloDetails().get().getInstanceName());
             case CONNECTED_TO_INSTANCE:
                 return String.format("rya/%s:%s> ",
-                        state.getConnectionDetails().get().getInstanceName(),
+                        state.getAccumuloDetails().get().getInstanceName(),
                         state.getRyaInstanceName().get());
             default:
                 return "rya> ";

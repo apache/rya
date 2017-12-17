@@ -31,7 +31,12 @@ import org.apache.rya.api.client.RyaClient;
 import org.apache.rya.api.client.RyaClientException;
 import org.apache.rya.api.client.accumulo.AccumuloConnectionDetails;
 import org.apache.rya.api.client.accumulo.AccumuloRyaClientFactory;
+import org.apache.rya.api.client.mongo.MongoConnectionDetails;
+import org.apache.rya.api.client.mongo.MongoRyaClientFactory;
+import org.apache.rya.mongodb.MongoConnectorFactory;
+import org.apache.rya.mongodb.MongoDBRdfConfiguration;
 import org.apache.rya.shell.SharedShellState.ConnectionState;
+import org.apache.rya.shell.SharedShellState.StorageType;
 import org.apache.rya.shell.util.ConnectorFactory;
 import org.apache.rya.shell.util.PasswordPrompt;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,6 +47,7 @@ import org.springframework.shell.core.annotation.CliOption;
 import org.springframework.stereotype.Component;
 
 import com.google.common.base.Optional;
+import com.mongodb.MongoClient;
 
 /**
  * Spring Shell commands that manage the connection that is used by the shell.
@@ -52,6 +58,7 @@ public class RyaConnectionCommands implements CommandMarker {
     // Command line commands.
     public static final String PRINT_CONNECTION_DETAILS_CMD = "print-connection-details";
     public static final String CONNECT_ACCUMULO_CMD = "connect-accumulo";
+    public static final String CONNECT_MONGO_CMD = "connect-mongo";
     public static final String CONNECT_INSTANCE_CMD = "connect-rya";
     public static final String DISCONNECT_COMMAND_NAME_CMD = "disconnect";
 
@@ -75,7 +82,7 @@ public class RyaConnectionCommands implements CommandMarker {
         return true;
     }
 
-    @CliAvailabilityIndicator({CONNECT_ACCUMULO_CMD})
+    @CliAvailabilityIndicator({CONNECT_ACCUMULO_CMD, CONNECT_MONGO_CMD})
     public boolean areConnectCommandsAvailable() {
         return sharedState.getShellState().getConnectionState() == ConnectionState.DISCONNECTED;
     }
@@ -98,16 +105,30 @@ public class RyaConnectionCommands implements CommandMarker {
 
     @CliCommand(value = PRINT_CONNECTION_DETAILS_CMD, help = "Print information about the Shell's Rya storage connection.")
     public String printConnectionDetails() {
-        final Optional<AccumuloConnectionDetails> detailsHolder = sharedState.getShellState().getConnectionDetails();
-
-        if(detailsHolder.isPresent()) {
-            final AccumuloConnectionDetails details = detailsHolder.get();
-            return "The shell is connected to an instance of Accumulo using the following parameters:\n" +
-                    "    Username: " + details.getUsername() + "\n" +
-                    "    Instance Name: " + details.getInstanceName() + "\n" +
-                    "    Zookeepers: " + details.getZookeepers();
-        } else {
+        // Check to see if the shell is connected to any storages.
+        final Optional<StorageType> storageType = sharedState.getShellState().getStorageType();
+        if(!storageType.isPresent()) {
             return "The shell is not connected to anything.";
+        }
+
+        // Create a print out based on what it is connected to.
+        switch(storageType.get()) {
+            case ACCUMULO:
+                final AccumuloConnectionDetails accDetails = sharedState.getShellState().getAccumuloDetails().get();
+                return "The shell is connected to an instance of Accumulo using the following parameters:\n" +
+                    "    Username: " + accDetails.getUsername() + "\n" +
+                    "    Instance Name: " + accDetails.getInstanceName() + "\n" +
+                    "    Zookeepers: " + accDetails.getZookeepers();
+
+            case MONGO:
+                final MongoConnectionDetails mongoDetails = sharedState.getShellState().getMongoDetails().get();
+                return "The shell is connected to an instance of MongoDB using the following parameters:\n" +
+                    "    Hostname: "  + mongoDetails.getHostname() + "\n" +
+                    "    Port: " + mongoDetails.getPort() + "\n" +
+                    "    Username:" + mongoDetails.getUsername();
+
+            default:
+                throw new RuntimeException("Unrecognized StorageType: " + storageType.get());
         }
     }
 
@@ -133,6 +154,49 @@ public class RyaConnectionCommands implements CommandMarker {
 
         } catch(IOException | AccumuloException | AccumuloSecurityException e) {
             throw new RuntimeException("Could not connect to Accumulo. Reason: " + e.getMessage(), e);
+        }
+
+        return "Connected. You must select a Rya instance to interact with next.";
+    }
+
+    @CliCommand(value = CONNECT_MONGO_CMD, help = "Connect the shell to an instance of MongoDB.")
+    public String connectToMongo(
+            @CliOption(key = {"username"}, mandatory = true, help = "The username that will be used to connect to MongoDB.")
+            final String username,
+            @CliOption(key= {"hostname"}, mandatory = true, help = "The hostname of the MongoDB that will be connected to.")
+            final String hostname,
+            @CliOption(key= {"port"}, mandatory = true, help = "The port of the MongoDB that will be connected to.")
+            final String port) {
+
+        // Prompt the user for their password.
+        try {
+            final char[] password = passwordPrompt.getPassword();
+
+            // Set up a configuration file that connects to the specified Mongo DB.
+            final MongoDBRdfConfiguration conf = new MongoDBRdfConfiguration();
+            conf.setMongoInstance(hostname);
+            conf.setMongoPort(port);
+            conf.setMongoUser(username);
+            conf.setMongoPassword(new String(password));
+
+            // Create the singleton instance of Mongo that will be used through out the application.
+            final MongoClient client = MongoConnectorFactory.getMongoClient(conf);
+
+            // Make sure the client is closed at shutdown.
+            Runtime.getRuntime().addShutdownHook(new Thread() {
+                @Override
+                public void run() {
+                    MongoConnectorFactory.closeMongoClient();
+                }
+            });
+
+            // Initialize the connected to Mongo shared state.
+            final MongoConnectionDetails connectionDetails = new MongoConnectionDetails(username, password, hostname, Integer.parseInt(port));
+            final RyaClient ryaClient = MongoRyaClientFactory.build(connectionDetails, client);
+            sharedState.connectedToMongo(connectionDetails, ryaClient);
+
+        } catch (final IOException e) {
+            throw new RuntimeException("Could not connection to MongoDB. Reason: " + e.getMessage(), e);
         }
 
         return "Connected. You must select a Rya instance to interact with next.";

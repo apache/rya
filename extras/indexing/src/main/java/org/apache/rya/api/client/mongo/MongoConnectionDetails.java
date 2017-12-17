@@ -46,7 +46,7 @@ public class MongoConnectionDetails {
      * @param username - The username that was used to establish the connection. (not null)
      * @param password - The password that was used to establish the connection. (not null)
      * @param hostname - The hostname of the Mongo DB that was connected to. (not null)
-     * @param port - The port of the Mongo DB that was connected to. (not null)
+     * @param port - The port of the Mongo DB that was connected to.
      */
     public MongoConnectionDetails(
             final String username,
@@ -97,7 +97,7 @@ public class MongoConnectionDetails {
         return build(ryaInstanceName, null);
     }
 
-    public MongoDBRdfConfiguration build(final String ryaInstanceName, MongoClient mongoClient) {
+    public MongoDBRdfConfiguration build(final String ryaInstanceName, final MongoClient mongoClient) {
         // Note, we don't use the MongoDBRdfConfigurationBuilder here because it explicitly sets
         // authorizations and visibilities to an empty string if they are not set on the builder.
         // If they are null in the MongoRdfConfiguration object, it may do the right thing.

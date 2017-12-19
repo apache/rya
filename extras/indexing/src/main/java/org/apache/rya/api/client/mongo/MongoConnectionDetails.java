@@ -30,7 +30,7 @@ import edu.umd.cs.findbugs.annotations.DefaultAnnotation;
 import edu.umd.cs.findbugs.annotations.NonNull;
 
 /**
- * The information the shell used to connect to Mongo DB.
+ * The information the shell used to connect to Mongo server, not the DB or collections.
  */
 @DefaultAnnotation(NonNull.class)
 public class MongoConnectionDetails {
@@ -48,30 +48,30 @@ public class MongoConnectionDetails {
      * @param hostname - The hostname of the Mongo DB that was connected to. (not null)
      * @param port - The port of the Mongo DB that was connected to.
      */
-    public MongoConnectionDetails(
-            final String username,
-            final char[] userPass,
-            final String hostname,
-            final int port) {
+    public MongoConnectionDetails( //
+                    final String username, //
+                    final char[] userPass, //
+                    final String hostname, //
+                    final int port) {
         this.username = requireNonNull(username);
         this.userPass = requireNonNull(userPass);
         this.hostname = requireNonNull(hostname);
         this.port = port;
     }
 
-    /**
-     * @return The username that was used to establish the connection.
-     */
-    public String getUsername() {
-        return this.username;
-    }
-
-    /**
-     * @return The password that was used to establish the connection.
-     */
-    public char[] getPassword() {
-        return this.userPass;
-    }
+    // /**
+    // * @return The username that was used to establish the connection.
+    // */
+    // public String getUsername() {
+    // return this.username;
+    // }
+    //
+    // /**
+    // * @return The password that was used to establish the connection.
+    // */
+    // public char[] getPassword() {
+    // return this.userPass;
+    // }
 
     /**
      * @return The hostname of the Mongo DB that was connected to.
@@ -90,7 +90,8 @@ public class MongoConnectionDetails {
     /**
      * Create a {@link MongoDBRdfConfiguration} that is using this object's values.
      *
-     * @param ryaInstanceName - The Rya instance to connect to.
+     * @param ryaInstanceName
+     *            - The Rya instance to connect to.
      * @return Constructs a new {@link MongoDBRdfConfiguration} object with values from this object.
      */
     public MongoDBRdfConfiguration build(final String ryaInstanceName) {
@@ -105,13 +106,13 @@ public class MongoConnectionDetails {
         conf.setBoolean(ConfigUtils.USE_MONGO, true);
         conf.setMongoInstance(hostname);
         conf.setMongoPort("" + port);
-        conf.setMongoUser(username);
-        conf.setMongoPassword(new String(userPass));
+        // conf.setMongoUser(username);
+        // conf.setMongoPassword(new String(userPass));
         conf.setMongoDBName(ryaInstanceName);
 
         // Both of these are ways to configure the collection prefixes.
-        conf.setCollectionName(ryaInstanceName);
-        conf.set(RdfCloudTripleStoreConfiguration.CONF_TBL_PREFIX, ryaInstanceName);
+        conf.setCollectionName("rya");
+        conf.set(RdfCloudTripleStoreConfiguration.CONF_TBL_PREFIX, "rya");
         if (mongoClient != null) {
             conf.setMongoClient(mongoClient);
         }

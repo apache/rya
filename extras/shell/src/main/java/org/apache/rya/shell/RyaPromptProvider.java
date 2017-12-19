@@ -21,6 +21,7 @@ package org.apache.rya.shell;
 import static java.util.Objects.requireNonNull;
 
 import org.apache.rya.shell.SharedShellState.ShellState;
+import org.apache.rya.shell.SharedShellState.StorageType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
@@ -44,16 +45,26 @@ public class RyaPromptProvider extends DefaultPromptProvider {
     @Override
     public String getPrompt() {
         final ShellState state = sharedState.getShellState();
-
+        // figure out the storage name: disconnected, mongo host, or Accumulo instance.
+        String storageName = "unknown";
+        if (state.getStorageType().isPresent()) {
+            if (state.getStorageType().get() == StorageType.ACCUMULO) {
+                storageName = state.getAccumuloDetails().get().getInstanceName();
+            } else if (state.getStorageType().get() == StorageType.MONGO) {
+                storageName = state.getMongoDetails().get().getHostname();
+            } else {
+                throw new java.lang.IllegalStateException("Missing or unknown storage type.");
+            }
+        }
         switch(state.getConnectionState()) {
             case DISCONNECTED:
                 return "rya> ";
             case CONNECTED_TO_STORAGE:
-                return String.format("rya/%s> ", state.getAccumuloDetails().get().getInstanceName());
+            return String.format("rya/%s> ", storageName);
             case CONNECTED_TO_INSTANCE:
                 return String.format("rya/%s:%s> ",
-                        state.getAccumuloDetails().get().getInstanceName(),
-                        state.getRyaInstanceName().get());
+                        storageName,
+                            state.getRyaInstanceName().or("unknown"));
             default:
                 return "rya> ";
         }

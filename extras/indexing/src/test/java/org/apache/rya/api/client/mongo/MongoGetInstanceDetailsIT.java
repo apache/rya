@@ -114,10 +114,9 @@ public class MongoGetInstanceDetailsIT extends MongoTestBase {
      * @return copy from conf to MongoConnectionDetails
      */
     private MongoConnectionDetails getConnectionDetails() {
-        return new MongoConnectionDetails(
-                conf.getMongoUser(),
-                conf.getMongoPassword().toCharArray(),
-                conf.getMongoInstance(),
-                Integer.parseInt( conf.getMongoPort() ));
+        return new MongoConnectionDetails(conf.getMongoUser(), 
+                        conf.getMongoPassword().toCharArray(), 
+                        conf.getMongoInstance(), 
+                        Integer.parseInt(conf.getMongoPort()));
     }
 }

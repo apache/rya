@@ -358,7 +358,9 @@ public class SharedShellState {
              */
             public Builder(final ShellState shellState) {
                 this.connectionState = shellState.getConnectionState();
+                this.storageType = shellState.getStorageType().orNull();
                 this.accumuloDetails = shellState.getAccumuloDetails().orNull();
+                this.mongoDetails = shellState.getMongoDetails().orNull();
                 this.connectedCommands = shellState.getConnectedCommands().orNull();
                 this.instanceName = shellState.getRyaInstanceName().orNull();
             }

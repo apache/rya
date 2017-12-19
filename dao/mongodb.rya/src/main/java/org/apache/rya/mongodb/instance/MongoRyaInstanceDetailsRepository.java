@@ -56,6 +56,7 @@ public class MongoRyaInstanceDetailsRepository implements RyaDetailsRepository {
     public MongoRyaInstanceDetailsRepository(final MongoClient client, final String instanceName) {
         checkNotNull(client);
         this.instanceName = requireNonNull( instanceName );
+        // the rya instance is the Mongo db name. This ignores any collection-prefix.
         db = client.getDB(this.instanceName);
     }
 

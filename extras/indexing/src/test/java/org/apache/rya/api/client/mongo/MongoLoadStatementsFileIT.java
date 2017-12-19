@@ -44,7 +44,7 @@ public class MongoLoadStatementsFileIT extends MongoTestBase {
 
     @Test(expected = InstanceDoesNotExistException.class)
     public void instanceDoesNotExist() throws Exception {
-
+        org.apache.log4j.BasicConfigurator.configure();
         final RyaClient ryaClient = MongoRyaClientFactory.build(getConnectionDetails(), conf.getMongoClient());
         ryaClient.getLoadStatementsFile().loadStatements(getConnectionDetails().getHostname(), Paths.get("src/test/resources/example.ttl"), RDFFormat.TURTLE);
     }
@@ -52,26 +52,23 @@ public class MongoLoadStatementsFileIT extends MongoTestBase {
     @Test
     public void loadTurtleFile() throws Exception {
         // Install an instance of Rya.
-        final InstallConfiguration installConfig = InstallConfiguration.builder()//
-                        .setEnableTableHashPrefix(false)//
-                        .setEnableEntityCentricIndex(false)//
-                        .setEnableFreeTextIndex(false)//
-                        .setEnableTemporalIndex(false)//
-                        .setEnablePcjIndex(false)//
-                        .setEnableGeoIndex(false)//
+        final InstallConfiguration installConfig = InstallConfiguration.builder()
+                        .setEnableTableHashPrefix(false)
+                        .setEnableEntityCentricIndex(false)
+                        .setEnableFreeTextIndex(false)
+                        .setEnableTemporalIndex(false)
+                        .setEnablePcjIndex(false)
+                        .setEnableGeoIndex(false)
                         .build();
         MongoConnectionDetails connectionDetails = getConnectionDetails();
         final RyaClient ryaClient = MongoRyaClientFactory.build(connectionDetails, conf.getMongoClient());
         final Install install = ryaClient.getInstall();
-        install.install(conf.getCollectionName(), installConfig);
+        install.install(conf.getMongoDBName(), installConfig);
 
         // Load the test statement file.
-        ryaClient.getLoadStatementsFile()
-                        // LoadStatementsFile loadStatementsFile = new MongoLoadStatementsFile(connectionDetails, getMongoClient());
-                        // loadStatementsFile
-                        .loadStatements( //
-                        conf.getCollectionName(), //
-                        Paths.get("src/test/resources/example.ttl"), //
+        ryaClient.getLoadStatementsFile().loadStatements(
+                        conf.getMongoDBName(),
+                        Paths.get("src/test/resources/example.ttl"),
                         RDFFormat.TURTLE);
 
         // Verify that the statements were loaded.
@@ -87,31 +84,10 @@ public class MongoLoadStatementsFileIT extends MongoTestBase {
         System.out.println("getRyaCollection().count()=" + getRyaCollection().count());
         while (x.hasNext()) {
             Document y = x.next();
-            System.out.println("getRyaCollection()=" + y);
+            statements.add(vf.createStatement(vf.createURI(y.getString("subject")), vf.createURI(y.getString("predicate")), vf.createURI(y.getString("object"))));
         }
         assertEquals("Expect all rows to be read.", 3, getRyaCollection().count());
-        // final WholeRowTripleResolver tripleResolver = new WholeRowTripleResolver();
-        // final Scanner scanner = getConnector().createScanner(getRyaInstanceName() + "spo", new Authorizations());
-        // final Iterator<Entry<Key, Value>> it = scanner.iterator();
-        // while(it.hasNext()) {
-        // final Entry<Key, Value> next = it.next();
-        //
-        // final Key key = next.getKey();
-        // final byte[] row = key.getRow().getBytes();
-        // final byte[] columnFamily = key.getColumnFamily().getBytes();
-        // final byte[] columnQualifier = key.getColumnQualifier().getBytes();
-        // final TripleRow tripleRow = new TripleRow(row, columnFamily, columnQualifier);
-        //
-        // final RyaStatement ryaStatement = tripleResolver.deserialize(TABLE_LAYOUT.SPO, tripleRow);
-        // final Statement statement = RyaToRdfConversions.convertStatement(ryaStatement);
-        //
-        // // Filter out the rya version statement if it is present.
-        // if(!isRyaMetadataStatement(vf, statement)) {
-        // statements.add( statement );
-        // }
-        // }
-        //
-        // assertEquals(expected, statements);
+        assertEquals("All rows in DB should match expected rows:", expected, statements);
     }
 
     private boolean isRyaMetadataStatement(final ValueFactory vf, final Statement statement) {
@@ -122,10 +98,10 @@ public class MongoLoadStatementsFileIT extends MongoTestBase {
      * @return copy from conf to MongoConnectionDetails
      */
     private MongoConnectionDetails getConnectionDetails() {
-        return new MongoConnectionDetails(//
-                        conf.getMongoUser(), //
-                        conf.getMongoPassword().toCharArray(), //
-                        conf.getMongoInstance(), //
+        return new MongoConnectionDetails(
+                        conf.getMongoUser(),
+                        conf.getMongoPassword().toCharArray(),
+                        conf.getMongoInstance(),
                         Integer.parseInt(conf.getMongoPort()));
     }
 }

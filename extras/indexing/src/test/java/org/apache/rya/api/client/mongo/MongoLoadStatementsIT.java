@@ -26,11 +26,10 @@ import org.apache.rya.mongodb.MongoTestBase;
 public class MongoLoadStatementsIT extends MongoTestBase {
 
     private MongoConnectionDetails getConnectionDetails() {//
-        return new MongoConnectionDetails(//
-                        conf.getMongoUser(), //
-                        conf.getMongoPassword().toCharArray(), //
-                        conf.getMongoInstance(), //
-                        Integer.parseInt(conf.getMongoPort()), //
-                        conf.getMongoDBName());
+        return new MongoConnectionDetails(
+                        conf.getMongoUser(),
+                        conf.getMongoPassword().toCharArray(),
+                        conf.getMongoInstance(),
+                        Integer.parseInt(conf.getMongoPort()));
     }
 }

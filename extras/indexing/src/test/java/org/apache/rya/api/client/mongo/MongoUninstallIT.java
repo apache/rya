@@ -72,11 +72,10 @@ public class MongoUninstallIT extends MongoTestBase {
      * @return copy from conf to MongoConnectionDetails
      */
     private MongoConnectionDetails getConnectionDetails() {//
-        return new MongoConnectionDetails(//
-                        conf.getMongoUser(), //
-                        conf.getMongoPassword().toCharArray(), //
-                        conf.getMongoInstance(), //
-                        Integer.parseInt(conf.getMongoPort()), //
-                        conf.getMongoDBName());
+        return new MongoConnectionDetails(
+                        conf.getMongoUser(),
+                        conf.getMongoPassword().toCharArray(),
+                        conf.getMongoInstance(),
+                        Integer.parseInt(conf.getMongoPort()));
     }
 }

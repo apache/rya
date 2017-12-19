@@ -124,8 +124,8 @@ public class RyaConnectionCommands implements CommandMarker {
                 final MongoConnectionDetails mongoDetails = sharedState.getShellState().getMongoDetails().get();
                 return "The shell is connected to an instance of MongoDB using the following parameters:\n" +
                     "    Hostname: "  + mongoDetails.getHostname() + "\n" +
-                    "    Port: " + mongoDetails.getPort() + "\n" +
-                    "    Username:" + mongoDetails.getUsername();
+                    "    Port: " + mongoDetails.getPort() + "\n"; 
+                    //+"    Username:" + mongoDetails.getUsername();
 
             default:
                 throw new RuntimeException("Unrecognized StorageType: " + storageType.get());

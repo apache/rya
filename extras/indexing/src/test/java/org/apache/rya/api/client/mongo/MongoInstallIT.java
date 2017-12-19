@@ -94,12 +94,11 @@ public class MongoInstallIT extends MongoTestBase {
         install.install(instanceName, installConfig);
     }
 
-    private MongoConnectionDetails getConnectionDetails() {//
-        return new MongoConnectionDetails(//
-                        conf.getMongoUser(), //
-                        conf.getMongoPassword().toCharArray(), //
-                        conf.getMongoInstance(), //
-                        Integer.parseInt(conf.getMongoPort()), //
-                        conf.getMongoDBName());
+    private MongoConnectionDetails getConnectionDetails() {
+        return new MongoConnectionDetails(
+                        conf.getMongoUser(),
+                        conf.getMongoPassword().toCharArray(),
+                        conf.getMongoInstance(),
+                        Integer.parseInt(conf.getMongoPort()));
     }
 }

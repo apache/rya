@@ -44,7 +44,7 @@ public class MongoLoadStatementsFileIT extends MongoTestBase {
 
     @Test(expected = InstanceDoesNotExistException.class)
     public void instanceDoesNotExist() throws Exception {
-
+        org.apache.log4j.BasicConfigurator.configure();
         final RyaClient ryaClient = MongoRyaClientFactory.build(getConnectionDetails(), conf.getMongoClient());
         ryaClient.getLoadStatementsFile().loadStatements(getConnectionDetails().getHostname(), Paths.get("src/test/resources/example.ttl"), RDFFormat.TURTLE);
     }
@@ -126,6 +126,7 @@ public class MongoLoadStatementsFileIT extends MongoTestBase {
                         conf.getMongoUser(), //
                         conf.getMongoPassword().toCharArray(), //
                         conf.getMongoInstance(), //
-                        Integer.parseInt(conf.getMongoPort()));
+                        Integer.parseInt(conf.getMongoPort()), //
+                        conf.getMongoDBName());
     }
 }

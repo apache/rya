@@ -52,6 +52,12 @@ import edu.umd.cs.findbugs.annotations.NonNull;
 
 /**
  * An Mongo implementation of the {@link Install} command.
+ * Note about the scheme:
+ * the Rya instance is used as the mongoDBName.
+ * the Rya triples, instance details, and Rya indexes each get their own collection.
+ * the triples collection name is always constant: "rya_triples" (or? ryaInstance+"_triples")
+ * This means that each Mongo DB can have only one Rya instance.
+ * A Collection corresponds to an Accumulo table.
  */
 @DefaultAnnotation(NonNull.class)
 public class MongoInstall extends MongoCommand implements Install {

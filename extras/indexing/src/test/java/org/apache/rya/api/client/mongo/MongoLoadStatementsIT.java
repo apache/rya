@@ -18,9 +18,19 @@
  */
 package org.apache.rya.api.client.mongo;
 
+import org.apache.rya.mongodb.MongoTestBase;
+
 /**
  * Integration tests the methods of {@link MongoLoadStatements}.
  */
-public class MongoLoadStatementsIT {
+public class MongoLoadStatementsIT extends MongoTestBase {
 
+    private MongoConnectionDetails getConnectionDetails() {//
+        return new MongoConnectionDetails(//
+                        conf.getMongoUser(), //
+                        conf.getMongoPassword().toCharArray(), //
+                        conf.getMongoInstance(), //
+                        Integer.parseInt(conf.getMongoPort()), //
+                        conf.getMongoDBName());
+    }
 }

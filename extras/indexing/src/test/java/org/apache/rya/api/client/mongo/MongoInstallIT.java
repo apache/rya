@@ -18,6 +18,7 @@
  */
 package org.apache.rya.api.client.mongo;
 
+import static org.apache.rya.mongodb.instance.MongoRyaInstanceDetailsRepository.INSTANCE_DETAILS_COLLECTION_NAME;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
@@ -29,6 +30,7 @@ import org.apache.rya.api.client.Install;
 import org.apache.rya.api.client.Install.DuplicateInstanceNameException;
 import org.apache.rya.api.client.Install.InstallConfiguration;
 import org.apache.rya.api.client.InstanceExists;
+import org.apache.rya.api.client.RyaClient;
 import org.apache.rya.api.client.RyaClientException;
 import org.apache.rya.mongodb.MongoTestBase;
 import org.junit.Test;
@@ -44,11 +46,7 @@ public class MongoInstallIT extends MongoTestBase {
         final String ryaInstance = conf.getCollectionName();
 
         // Setup the connection details that were used for the embedded Mongo DB instance we are testing with.
-        final MongoConnectionDetails connectionDetails = new MongoConnectionDetails(
-                conf.getMongoUser(),
-                conf.getMongoPassword().toCharArray(),
-                conf.getMongoInstance(),
-                Integer.parseInt( conf.getMongoPort() ));
+        final MongoConnectionDetails connectionDetails = getConnectionDetails();
 
         // Check that the instance does not exist.
         final InstanceExists instanceExists = new MongoInstanceExists(connectionDetails, this.getMongoClient());
@@ -61,17 +59,19 @@ public class MongoInstallIT extends MongoTestBase {
                 .setEnableTemporalIndex(true)
                 .build();
 
-        final Install install = new MongoInstall(connectionDetails, this.getMongoClient());
+        final RyaClient ryaClient = MongoRyaClientFactory.build(connectionDetails, conf.getMongoClient());
+        final Install install = ryaClient.getInstall();
+        assertTrue("ryaClient should give mongoInstall", install instanceof MongoInstall);
         install.install(ryaInstance, installConfig);
 
         // Check that the instance exists.
         assertTrue(instanceExists.exists(ryaInstance));
 
         // Show that the expected collections were created within the database.
-        final List<String> expected = Arrays.asList("instance_details", ryaInstance + "_triples");
+        final List<String> expected = Arrays.asList(INSTANCE_DETAILS_COLLECTION_NAME, ryaInstance + "_triples");
         int count = 0;
         final List<String> found = new ArrayList<>();
-        for (final String collection : this.getMongoClient().getDatabase(ryaInstance).listCollectionNames()) {
+        for (final String collection : this.getMongoClient().getDatabase(conf.getMongoDBName()).listCollectionNames()) {
             count += expected.contains(collection) ? 1 : 0;
             found.add( collection );
         }
@@ -85,16 +85,21 @@ public class MongoInstallIT extends MongoTestBase {
         final String instanceName = conf.getCollectionName();
         final InstallConfiguration installConfig = InstallConfiguration.builder().build();
 
-        final MongoConnectionDetails connectionDetails = new MongoConnectionDetails(
-                conf.getMongoUser(),
-                conf.getMongoPassword().toCharArray(),
-                conf.getMongoInstance(),
-                Integer.parseInt( conf.getMongoPort() ));
+        final MongoConnectionDetails connectionDetails = getConnectionDetails();
 
         final Install install = new MongoInstall(connectionDetails, this.getMongoClient());
         install.install(instanceName, installConfig);
 
         // Install it again throws expected error.
         install.install(instanceName, installConfig);
+    }
+
+    private MongoConnectionDetails getConnectionDetails() {//
+        return new MongoConnectionDetails(//
+                        conf.getMongoUser(), //
+                        conf.getMongoPassword().toCharArray(), //
+                        conf.getMongoInstance(), //
+                        Integer.parseInt(conf.getMongoPort()), //
+                        conf.getMongoDBName());
     }
 }

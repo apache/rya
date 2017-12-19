@@ -43,8 +43,8 @@ public class MongoTestBase {
         mongoClient = EmbeddedMongoSingleton.getInstance();
         conf.setMongoClient(mongoClient);
         conf.setBoolean("sc.useMongo", true);
-        conf.setTablePrefix("test_");
-        conf.setMongoDBName("testDB");
+        conf.setTablePrefix("test_"); // this may be not used.
+        conf.setMongoDBName("testDB"); // this is the Rya Instance.
         conf.setMongoUser(Objects.firstNonNull(EmbeddedMongoSingleton.getMongodConfig().userName(), ""));
         conf.setMongoPassword(Objects.firstNonNull(EmbeddedMongoSingleton.getMongodConfig().password(), ""));
         conf.setMongoPort(Integer.toString(EmbeddedMongoSingleton.getMongodConfig().net().getPort()));

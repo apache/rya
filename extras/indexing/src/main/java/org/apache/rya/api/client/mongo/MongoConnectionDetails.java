@@ -39,6 +39,7 @@ public class MongoConnectionDetails {
     private final char[] userPass;
     private final String hostname;
     private final int port;
+    private String mongoDBName;
 
     /**
      * Constructs an instance of {@link MongoConnectionDetails}.
@@ -48,15 +49,17 @@ public class MongoConnectionDetails {
      * @param hostname - The hostname of the Mongo DB that was connected to. (not null)
      * @param port - The port of the Mongo DB that was connected to.
      */
-    public MongoConnectionDetails(
-            final String username,
-            final char[] userPass,
-            final String hostname,
-            final int port) {
+    public MongoConnectionDetails( //
+                    final String username, //
+                    final char[] userPass, //
+                    final String hostname, //
+                    final int port, //
+                    String mongoDBName) {
         this.username = requireNonNull(username);
         this.userPass = requireNonNull(userPass);
         this.hostname = requireNonNull(hostname);
         this.port = port;
+        this.mongoDBName = mongoDBName;
     }
 
     /**
@@ -88,9 +91,17 @@ public class MongoConnectionDetails {
     }
 
     /**
+     * @return The hostname of the Mongo DB that was connected to.
+     */
+    public String getDBName() {
+        return mongoDBName;
+    }
+
+    /**
      * Create a {@link MongoDBRdfConfiguration} that is using this object's values.
      *
-     * @param ryaInstanceName - The Rya instance to connect to.
+     * @param ryaInstanceName
+     *            - The Rya instance to connect to.
      * @return Constructs a new {@link MongoDBRdfConfiguration} object with values from this object.
      */
     public MongoDBRdfConfiguration build(final String ryaInstanceName) {
@@ -107,10 +118,10 @@ public class MongoConnectionDetails {
         conf.setMongoPort("" + port);
         conf.setMongoUser(username);
         conf.setMongoPassword(new String(userPass));
-        conf.setMongoDBName(ryaInstanceName);
 
-        // Both of these are ways to configure the collection prefixes.
         conf.setCollectionName(ryaInstanceName);
+        // Both of these are ways to configure the collection prefixes.
+        conf.setMongoDBName(ryaInstanceName);
         conf.set(RdfCloudTripleStoreConfiguration.CONF_TBL_PREFIX, ryaInstanceName);
         if (mongoClient != null) {
             conf.setMongoClient(mongoClient);

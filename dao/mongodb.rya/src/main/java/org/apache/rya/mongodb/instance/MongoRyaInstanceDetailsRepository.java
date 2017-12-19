@@ -54,9 +54,23 @@ public class MongoRyaInstanceDetailsRepository implements RyaDetailsRepository {
      * @param instanceName - The name of the Rya instance this repository represents. (not null)
      */
     public MongoRyaInstanceDetailsRepository(final MongoClient client, final String instanceName) {
+        this(client, instanceName, null);
+    }
+    /**
+     * Constructs an instance of {@link MongoRyaInstanceDetailsRepository}.
+     * @param client - Connects to the instance of Mongo that hosts the Rya instance. (not null)
+     * @param instanceName - The name of the Rya instance this repository represents. (not null)
+     * @param mongoDBName - name of the mongo DB that contains the collection==instance.
+     */
+    public MongoRyaInstanceDetailsRepository(final MongoClient client, final String instanceName, String mongoDBName) {
         checkNotNull(client);
         this.instanceName = requireNonNull( instanceName );
-        db = client.getDB(this.instanceName);
+        if (mongoDBName == null) {
+            // Old behavior uses the db name the same as the collection name.
+            db = client.getDB(this.instanceName);
+        } else {
+            db = client.getDB(mongoDBName);
+        }
     }
 
     @Override

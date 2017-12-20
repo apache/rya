@@ -50,8 +50,10 @@ public class GeoTemporalIndexerFactory {
             index.init();
             return index;
         } else {
-            //TODO: add Accumulo here.
-            return null;
+            final GeoTemporalIndexer index = GeoEnabledFilterFunctionOptimizer.instantiate(GeoTemporalIndexerType.GEOMESA_GEO_TEMPORAL.getGeoTemporalIndexerClassString(), GeoTemporalIndexer.class);
+            index.setConf(conf);
+            index.init();
+            return index;
         }
     }
 }

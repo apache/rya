@@ -64,6 +64,7 @@ public class MongoGeoTemporalIndexIT extends MongoITBase {
     private SailRepositoryConnection conn;
     private MongoClient mongoClient;
     private static final AtomicInteger COUNTER = new AtomicInteger(1);
+    private static boolean isInitialized=false;
 
     @Before
     public void setUp() throws Exception{
@@ -80,7 +81,10 @@ public class MongoGeoTemporalIndexIT extends MongoITBase {
         conn = new SailRepository(sail).getConnection();
         conn.begin();
 
-        addStatements();
+        if ( ! isInitialized) {
+        	addStatements();
+        	isInitialized = true;
+        }
     }
 
     @Test
@@ -174,3 +178,4 @@ public class MongoGeoTemporalIndexIT extends MongoITBase {
         conn.add(VF.createStatement(subject, GeoConstants.GEO_AS_WKT, object));
     }
 }
+

@@ -31,6 +31,7 @@ import java.util.Date;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.rya.api.instance.RyaDetails.EntityCentricIndexDetails;
 import org.apache.rya.api.instance.RyaDetails.FreeTextIndexDetails;
+import org.apache.rya.api.instance.RyaDetails.GeoTemporalIndexDetails;
 import org.apache.rya.api.instance.RyaDetails.JoinSelectivityDetails;
 import org.apache.rya.api.instance.RyaDetails.PCJIndexDetails;
 import org.apache.rya.api.instance.RyaDetails.PCJIndexDetails.FluoDetails;
@@ -51,6 +52,7 @@ public class RyaDetailsToConfigurationTest {
             .setRyaVersion("1.2.3.4")
             .setEntityCentricIndexDetails( new EntityCentricIndexDetails(true) )
           //RYA-215            .setGeoIndexDetails( new GeoIndexDetails(true) )
+            .setGeoTemporalIndexDetails(new GeoTemporalIndexDetails(true))
             .setTemporalIndexDetails( new TemporalIndexDetails(true) )
             .setFreeTextDetails( new FreeTextIndexDetails(false) )
             .setPCJIndexDetails(

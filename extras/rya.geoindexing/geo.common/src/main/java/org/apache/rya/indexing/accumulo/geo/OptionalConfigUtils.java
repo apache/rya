@@ -22,7 +22,6 @@ import java.util.List;
 import java.util.Set;
 
 import org.apache.hadoop.conf.Configuration;
-import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.apache.rya.accumulo.AccumuloRdfConfiguration;
 import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
@@ -32,7 +31,6 @@ import org.apache.rya.indexing.GeoEnabledFilterFunctionOptimizer;
 import org.apache.rya.indexing.GeoIndexerType;
 import org.apache.rya.indexing.GeoTemporalIndexerType;
 import org.apache.rya.indexing.accumulo.ConfigUtils;
-import org.apache.rya.indexing.geotemporal.GeoTemporalOptimizer;
 import org.openrdf.model.URI;
 
 import com.google.common.collect.Lists;
@@ -126,7 +124,7 @@ public class OptionalConfigUtils extends ConfigUtils {
                 indexList.add(GeoTemporalIndexerType.MONGO_GEO_TEMPORAL.getGeoTemporalIndexerClassString());
                 optimizers.add(GeoTemporalIndexerType.MONGO_GEO_TEMPORAL_OPTIMIZER.getGeoTemporalIndexerClassString());
             }
-        } else {
+        } else {  //Accumulo
             if (getUseGeo(conf)) {
                 if (geoIndexerType == GeoIndexerType.UNSPECIFIED) {
                     // Default to GeoMesaGeoIndexer if not specified
@@ -135,6 +133,10 @@ public class OptionalConfigUtils extends ConfigUtils {
                     indexList.add(geoIndexerType.getGeoIndexerClassString());
                 }
                 useFilterIndex = true;
+            }
+            if (getUseGeoTemporal(conf)) {
+            	indexList.add(GeoTemporalIndexerType.GEOMESA_GEO_TEMPORAL.getGeoTemporalIndexerClassString());
+                optimizers.add(GeoTemporalIndexerType.GEOMESA_GEO_TEMPORAL_OPTIMIZER.getGeoTemporalIndexerClassString());
             }
         }
 

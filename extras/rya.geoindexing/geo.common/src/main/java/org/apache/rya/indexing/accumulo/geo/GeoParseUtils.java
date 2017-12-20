@@ -1,11 +1,3 @@
-package org.apache.rya.indexing.accumulo.geo;
-
-import java.io.IOException;
-import java.io.Reader;
-import java.io.StringReader;
-
-import javax.xml.parsers.ParserConfigurationException;
-
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -24,7 +16,13 @@ import javax.xml.parsers.ParserConfigurationException;
  * specific language governing permissions and limitations
  * under the License.
  */
+package org.apache.rya.indexing.accumulo.geo;
 
+import java.io.IOException;
+import java.io.Reader;
+import java.io.StringReader;
+
+import javax.xml.parsers.ParserConfigurationException;
 
 import org.apache.log4j.Logger;
 import org.apache.rya.indexing.GeoConstants;
@@ -88,6 +86,17 @@ public class GeoParseUtils {
     public static Geometry getGeometry(final Statement statement, GmlToGeometryParser gmlToGeometryParser) throws ParseException {
         // handle GML or WKT
         final Literal lit = getLiteral(statement);
+        return getGeometry(lit, gmlToGeometryParser);
+    }
+
+	/**
+	 *  Parse GML/wkt literal to Geometry from a Literal.
+	 *  Note: you can make a literal from a String.
+	 * @param lit a label and datatype, datatype must be xml or GML
+	 * @return
+	 * @throws ParseException
+	 */
+	public static Geometry getGeometry(Literal lit, GmlToGeometryParser gmlToGeometryParser) throws ParseException {
         if (GeoConstants.XMLSCHEMA_OGC_WKT.equals(lit.getDatatype())) {
             final String wkt = lit.getLabel().toString();
             return (new WKTReader()).read(wkt);
@@ -99,7 +108,7 @@ public class GeoParseUtils {
                 throw new ParseException(e);
             }
         } else {
-            throw new ParseException("Literal is unknown geo type, expecting WKT or GML: " + statement.toString());
+            throw new ParseException("Literal is unknown geo type, expecting WKT or GML: " + lit.toString());
         }
     }
     /**

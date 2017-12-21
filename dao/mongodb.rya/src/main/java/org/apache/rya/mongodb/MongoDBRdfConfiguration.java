@@ -20,11 +20,14 @@ package org.apache.rya.mongodb;
 
 import static java.util.Objects.requireNonNull;
 
+import java.util.List;
 import java.util.Properties;
 
 import org.apache.accumulo.core.security.Authorizations;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.rya.api.RdfCloudTripleStoreConfiguration;
+import org.apache.rya.mongodb.aggregation.AggregationPipelineQueryOptimizer;
+import org.openrdf.query.algebra.evaluation.QueryOptimizer;
 
 import edu.umd.cs.findbugs.annotations.Nullable;
 
@@ -50,6 +53,8 @@ public class MongoDBRdfConfiguration extends RdfCloudTripleStoreConfiguration {
     public static final String CONF_FLUSH_EACH_UPDATE = "rya.mongodb.dao.flusheachupdate";
     public static final String CONF_ADDITIONAL_INDEXERS = "ac.additional.indexers";
     public static final String MONGO_GEO_MAXDISTANCE = "mongo.geo.maxdist";
+
+    public static final String USE_AGGREGATION_PIPELINE = "rya.mongodb.query.pipeline";
 
     /**
      * Constructs an empty instance of {@link MongoDBRdfConfiguration}.
@@ -250,5 +255,38 @@ public class MongoDBRdfConfiguration extends RdfCloudTripleStoreConfiguration {
      */
     public void setFlush(final boolean flush){
         setBoolean(CONF_FLUSH_EACH_UPDATE, flush);
+    }
+
+    /**
+     * Whether aggregation pipeline optimization is enabled.
+     * @return true if queries will be evaluated using MongoDB aggregation.
+     */
+    public boolean getUseAggregationPipeline() {
+        return getBoolean(USE_AGGREGATION_PIPELINE, false);
+    }
+
+    /**
+     * Enable or disable an optimization that executes queries, to the extent
+     * possible, using the MongoDB aggregation pipeline. Replaces a query tree
+     * or subtree with a single node representing a series of pipeline steps.
+     * Transformation may not be supported for all query algebra expressions;
+     * these expressions are left unchanged and the optimization is attempted
+     * on their child subtrees.
+     * @param value whether to use aggregation pipeline optimization.
+     */
+    public void setUseAggregationPipeline(boolean value) {
+        setBoolean(USE_AGGREGATION_PIPELINE, value);
+    }
+
+    @Override
+    public List<Class<QueryOptimizer>> getOptimizers() {
+        List<Class<QueryOptimizer>> optimizers = super.getOptimizers();
+        if (getUseAggregationPipeline()) {
+            Class<?> cl = AggregationPipelineQueryOptimizer.class;
+            @SuppressWarnings("unchecked")
+            Class<QueryOptimizer> optCl = (Class<QueryOptimizer>) cl;
+            optimizers.add(optCl);
+        }
+        return optimizers;
     }
 }

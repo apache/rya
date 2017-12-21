@@ -63,6 +63,15 @@ public class SimpleMongoDBStorageStrategy implements MongoDBStorageStrategy<RyaS
     public static final String STATEMENT_METADATA = "statementMetadata";
     public static final String DOCUMENT_VISIBILITY = "documentVisibility";
 
+    /**
+     * Generate the hash that will be used to index and retrieve a given value.
+     * @param value  A value to be stored or accessed (e.g. a URI or literal).
+     * @return the hash associated with that value in MongoDB.
+     */
+    public static String hash(String value) {
+        return DigestUtils.sha256Hex(value);
+    }
+
     protected ValueFactoryImpl factory = new ValueFactoryImpl();
 
     @Override
@@ -91,14 +100,14 @@ public class SimpleMongoDBStorageStrategy implements MongoDBStorageStrategy<RyaS
         final RyaURI context = stmt.getContext();
         final BasicDBObject query = new BasicDBObject();
         if (subject != null){
-            query.append(SUBJECT_HASH, DigestUtils.sha256Hex(subject.getData()));
+            query.append(SUBJECT_HASH, hash(subject.getData()));
         }
         if (object != null){
-            query.append(OBJECT_HASH, DigestUtils.sha256Hex(object.getData()));
+            query.append(OBJECT_HASH, hash(object.getData()));
             query.append(OBJECT_TYPE, object.getDataType().toString());
         }
         if (predicate != null){
-            query.append(PREDICATE_HASH, DigestUtils.sha256Hex(predicate.getData()));
+            query.append(PREDICATE_HASH, hash(predicate.getData()));
         }
         if (context != null){
             query.append(CONTEXT, context.getData());
@@ -179,11 +188,11 @@ public class SimpleMongoDBStorageStrategy implements MongoDBStorageStrategy<RyaS
         final BasicDBObject dvObject = DocumentVisibilityAdapter.toDBObject(statement.getColumnVisibility());
         final BasicDBObject doc = new BasicDBObject(ID, new String(Hex.encodeHex(bytes)))
         .append(SUBJECT, statement.getSubject().getData())
-        .append(SUBJECT_HASH, DigestUtils.sha256Hex(statement.getSubject().getData()))
+        .append(SUBJECT_HASH, hash(statement.getSubject().getData()))
         .append(PREDICATE, statement.getPredicate().getData())
-        .append(PREDICATE_HASH, DigestUtils.sha256Hex(statement.getPredicate().getData()))
+        .append(PREDICATE_HASH, hash(statement.getPredicate().getData()))
         .append(OBJECT, statement.getObject().getData())
-        .append(OBJECT_HASH, DigestUtils.sha256Hex(statement.getObject().getData()))
+        .append(OBJECT_HASH, hash(statement.getObject().getData()))
         .append(OBJECT_TYPE, statement.getObject().getDataType().toString())
         .append(CONTEXT, context)
         .append(STATEMENT_METADATA, statement.getMetadata().toString())

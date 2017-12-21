@@ -43,6 +43,7 @@ public abstract class AbstractMongoDBRdfConfigurationBuilder<B extends AbstractM
     protected static final String DEFAULT_MONGO_PORT = "27017";
     private String mongoCollectionPrefix = "rya_";
     private String mongoDBName = "rya";
+    private boolean usePipeline = false;
 
     protected static final String MONGO_USER = "mongo.user";
     protected static final String MONGO_PASSWORD = "mongo.password";
@@ -142,6 +143,20 @@ public abstract class AbstractMongoDBRdfConfigurationBuilder<B extends AbstractM
     }
 
     /**
+     * Enable or disable an optimization that executes queries, to the extent
+     * possible, using the MongoDB aggregation pipeline. Defaults to false.
+     * If true, replaces a query tree or subtree with a single node representing
+     * a series of pipeline steps. Transformation may not be supported for all
+     * query algebra expressions; these expressions are left unchanged and the
+     * optimization is attempted on their child subtrees.
+     * @param usePipeline whether to use aggregation pipeline optimization.
+     */
+    public B setUseAggregationPipeline(boolean usePipeline) {
+        this.usePipeline = usePipeline;
+        return confBuilder();
+    }
+
+    /**
      * @return extension of {@link MongoDBRdfConfiguration} with specified parameters set
      */
     @Override
@@ -171,6 +186,7 @@ public abstract class AbstractMongoDBRdfConfigurationBuilder<B extends AbstractM
         conf.setTablePrefix(mongoCollectionPrefix);
         conf.setMongoHostname(host);
         conf.setMongoPort(port);
+        conf.setUseAggregationPipeline(usePipeline);
 
         return conf;
     }

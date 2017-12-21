@@ -43,7 +43,7 @@ public class MongoInstallIT extends MongoTestBase {
     @Test
     public void install() throws DuplicateInstanceNameException, RyaClientException {
         // Install an instance of Rya.
-        final String ryaInstance = conf.getCollectionName();
+        final String ryaInstance = conf.getMongoDBName();
 
         // Setup the connection details that were used for the embedded Mongo DB instance we are testing with.
         final MongoConnectionDetails connectionDetails = getConnectionDetails();
@@ -68,7 +68,7 @@ public class MongoInstallIT extends MongoTestBase {
         assertTrue(instanceExists.exists(ryaInstance));
 
         // Show that the expected collections were created within the database.
-        final List<String> expected = Arrays.asList(INSTANCE_DETAILS_COLLECTION_NAME, ryaInstance + "_triples");
+        final List<String> expected = Arrays.asList(INSTANCE_DETAILS_COLLECTION_NAME, "rya_triples");
         int count = 0;
         final List<String> found = new ArrayList<>();
         for (final String collection : this.getMongoClient().getDatabase(conf.getMongoDBName()).listCollectionNames()) {

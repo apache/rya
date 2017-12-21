@@ -42,8 +42,9 @@ public class MongoTestBase {
         conf = new MongoDBRdfConfiguration( new Configuration() );
         mongoClient = EmbeddedMongoSingleton.getInstance();
         conf.setMongoClient(mongoClient);
+        MongoConnectorFactory.getMongoClient(conf); // actually a setter.
         conf.setBoolean("sc.useMongo", true);
-        conf.setTablePrefix("rya"); // this may be not used.
+        conf.setTablePrefix("THISisNOTtheDBNAME"); // this may be not used.
         conf.setMongoDBName("testDbRyaInstance"); // this is the Rya Instance.
         conf.setMongoUser(Objects.firstNonNull(EmbeddedMongoSingleton.getMongodConfig().userName(), ""));
         conf.setMongoPassword(Objects.firstNonNull(EmbeddedMongoSingleton.getMongodConfig().password(), ""));
@@ -62,7 +63,10 @@ public class MongoTestBase {
      * @return A {@link MongoClient} that is connected to the embedded instance of Mongo DB.
      */
     public MongoClient getMongoClient() {
-        return mongoClient;
+        MongoClient client = MongoConnectorFactory.getMongoClient(null);
+        if (client == null)
+            new Error("Connector factory returned no connection.");
+        return client;
     }
 
     /**

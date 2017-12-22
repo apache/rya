@@ -1,0 +1,106 @@
+# Licensed to the Apache Software Foundation (ASF) under one
+# or more contributor license agreements.  See the NOTICE file
+# distributed with this work for additional information
+# regarding copyright ownership.  The ASF licenses this file
+# to you under the Apache License, Version 2.0 (the
+# "License"); you may not use this file except in compliance
+# with the License.  You may obtain a copy of the License at
+#
+#   http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing,
+# software distributed under the License is distributed on an
+# "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+# KIND, either express or implied.  See the License for the
+# specific language governing permissions and limitations
+# under the License.
+
+# Expresses a fragment of OWL RL in SPIN rules
+
+@prefix rdf:     <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix owl:     <http://www.w3.org/2002/07/owl#> .
+@prefix xsd:     <http://www.w3.org/2001/XMLSchema#> .
+@prefix lubm: <http://swat.cse.lehigh.edu/onto/univ-bench.owl#> .
+@prefix spin: <http://spinrdf.org/spin#> .
+@prefix sp: <http://spinrdf.org/sp#> .
+@prefix rl: <http://example.org/OWL/RL/> .
+
+owl:Thing spin:rule rl:cls-svf1 ,
+    rl:cax-sco ,
+    rl:prp-spo1 ,
+    rl:prp-dom ,
+    rl:prp-rng .
+
+owl:Class spin:rule rl:scm-cls .
+
+rl:cls-svf1 a sp:Construct;
+    spin:thisUnbound "true"^^xsd:boolean ;
+    sp:text """
+        CONSTRUCT {
+            ?u a ?x .
+        }
+        WHERE {
+            ?x owl:someValuesFrom ?y .
+            ?x owl:onProperty ?p .
+            ?u ?p ?v .
+            ?v a ?y .
+        } """ .
+
+rl:cax-sco a sp:Construct;
+    spin:thisUnbound "true"^^xsd:boolean ;
+    sp:text """
+        CONSTRUCT {
+            ?this a ?super .
+        }
+        WHERE {
+            ?this a ?sub .
+            ?sub rdfs:subClassOf ?super .
+        } """ .
+
+rl:prp-spo1 a sp:Construct;
+    spin:thisUnbound "true"^^xsd:boolean ;
+    sp:text """
+        CONSTRUCT {
+            ?x ?super ?y .
+        }
+        WHERE {
+            ?sub rdfs:subPropertyOf ?super .
+            ?x ?sub ?y .
+        } """ .
+
+rl:prp-dom a sp:Construct;
+    spin:thisUnbound "true"^^xsd:boolean ;
+    sp:text """
+        CONSTRUCT {
+            ?s a ?c .
+        }
+        WHERE {
+            ?p rdfs:domain ?c .
+            ?s ?p ?o .
+        } """ .
+
+rl:prp-rng a rl:prp-rng-template .
+rl:prp-rng-template a sp:Template;
+    spin:body [
+        a sp:Construct ;
+        sp:text """
+            CONSTRUCT {
+                ?o a ?c .
+            }
+            WHERE {
+                ?p rdfs:range ?c .
+                ?s ?p ?o .
+            } """ ] .
+
+rl:scm-cls a sp:Construct;
+    sp:text """
+        CONSTRUCT {
+            ?this rdfs:subClassOf ?this .
+            ?this owl:equivalentClass ?this .
+            ?this rdfs:subClassOf owl:Thing .
+            owl:Nothing rdfs:subClassOf ?this .
+        }
+        WHERE { } """ .
+rdfs:subClassOf rdfs:domain owl:Class .
+rdfs:subClassOf rdfs:range owl:Class .

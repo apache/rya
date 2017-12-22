@@ -88,33 +88,10 @@ public class RyaSailFactory {
             // Get a reference to a Mongo DB configuration object.
             final MongoDBRdfConfiguration mongoConfig = (config instanceof MongoDBRdfConfiguration) ?
                     (MongoDBRdfConfiguration)config : new MongoDBRdfConfiguration(config);
-
-            // Create the MongoClient that will be used by the Sail object's components.
-            final MongoClient client = createMongoClient(mongoConfig);
-
-            // Add the Indexer and Optimizer names to the configuration object that are configured to be used.
-            ConfigUtils.setIndexers(mongoConfig);
-
-            // Populate the configuration using previously stored Rya Details if this instance uses them.
-            try {
-                final MongoRyaInstanceDetailsRepository ryaDetailsRepo = new MongoRyaInstanceDetailsRepository(client, mongoConfig.getRyaInstanceName());
-                RyaDetailsToConfiguration.addRyaDetailsToConfiguration(ryaDetailsRepo.getRyaInstanceDetails(), mongoConfig);
-            } catch (final RyaDetailsRepositoryException e) {
-               LOG.info("Instance does not have a rya details collection, skipping.");
-            }
-
-            // Set the configuration to the stateful configuration that is used to pass the constructed objects around.
-            final StatefulMongoDBRdfConfiguration statefulConfig = new StatefulMongoDBRdfConfiguration(mongoConfig, client);
-            final List<MongoSecondaryIndex> indexers = statefulConfig.getInstances(AccumuloRdfConfiguration.CONF_ADDITIONAL_INDEXERS, MongoSecondaryIndex.class);
-            statefulConfig.setIndexers(indexers);
-            rdfConfig = statefulConfig;
-
-            // Create the DAO that is able to interact with MongoDB.
-            final MongoDBRyaDAO mongoDao = new MongoDBRyaDAO();
-            mongoDao.setConf(statefulConfig);
-            mongoDao.init();
-            dao = mongoDao;
-
+            // Instantiate a Mongo client and Mongo DAO.
+            dao = getMongoDAO(mongoConfig);
+            // Then use the DAO's newly-created stateful conf in place of the original
+            rdfConfig = dao.getConf();
         } else {
             rdfConfig = new AccumuloRdfConfiguration(config);
             user = rdfConfig.get(ConfigUtils.CLOUDBASE_USER);
@@ -236,5 +213,38 @@ public class RyaSailFactory {
         } catch(final RyaDetailsRepositoryException e) {
             LOG.info("Instance does not have a rya details collection, skipping.");
         }
+    }
+
+    /**
+     * Connects to MongoDB and creates a MongoDBRyaDAO.
+     * @param config - user configuration
+     * @return - MongoDBRyaDAO with Indexers configured according to user's specification
+     * @throws RyaDAOException if the DAO can't be initialized
+     */
+    public static MongoDBRyaDAO getMongoDAO(MongoDBRdfConfiguration mongoConfig) throws RyaDAOException {
+            // Create the MongoClient that will be used by the Sail object's components.
+            final MongoClient client = createMongoClient(mongoConfig);
+
+            // Add the Indexer and Optimizer names to the configuration object that are configured to be used.
+            ConfigUtils.setIndexers(mongoConfig);
+
+            // Populate the configuration using previously stored Rya Details if this instance uses them.
+            try {
+                final MongoRyaInstanceDetailsRepository ryaDetailsRepo = new MongoRyaInstanceDetailsRepository(client, mongoConfig.getRyaInstanceName());
+                RyaDetailsToConfiguration.addRyaDetailsToConfiguration(ryaDetailsRepo.getRyaInstanceDetails(), mongoConfig);
+            } catch (final RyaDetailsRepositoryException e) {
+               LOG.info("Instance does not have a rya details collection, skipping.");
+            }
+
+            // Set the configuration to the stateful configuration that is used to pass the constructed objects around.
+            final StatefulMongoDBRdfConfiguration statefulConfig = new StatefulMongoDBRdfConfiguration(mongoConfig, client);
+            final List<MongoSecondaryIndex> indexers = statefulConfig.getInstances(AccumuloRdfConfiguration.CONF_ADDITIONAL_INDEXERS, MongoSecondaryIndex.class);
+            statefulConfig.setIndexers(indexers);
+
+            // Create the DAO that is able to interact with MongoDB.
+            final MongoDBRyaDAO mongoDao = new MongoDBRyaDAO();
+            mongoDao.setConf(statefulConfig);
+            mongoDao.init();
+            return mongoDao;
     }
 }

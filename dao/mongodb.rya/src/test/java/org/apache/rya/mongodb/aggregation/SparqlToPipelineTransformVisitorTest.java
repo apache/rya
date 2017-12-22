@@ -29,6 +29,7 @@ import org.mockito.Mockito;
 import org.openrdf.model.URI;
 import org.openrdf.model.ValueFactory;
 import org.openrdf.model.impl.ValueFactoryImpl;
+import org.openrdf.model.vocabulary.OWL;
 import org.openrdf.model.vocabulary.RDF;
 import org.openrdf.query.algebra.Extension;
 import org.openrdf.query.algebra.ExtensionElem;
@@ -150,6 +151,19 @@ public class SparqlToPipelineTransformVisitorTest {
         Assert.assertTrue(queryTree.getArg() instanceof AggregationPipelineQueryNode);
         AggregationPipelineQueryNode pipelineNode = (AggregationPipelineQueryNode) queryTree.getArg();
         Assert.assertEquals(Sets.newHashSet("relation", "course"), pipelineNode.getAssuredBindingNames());
+    }
+
+    @Test
+    public void testEmptyProjection() throws Exception {
+        StatementPattern isClass = new StatementPattern(constant(UNDERGRAD), constant(RDF.TYPE), constant(OWL.CLASS));
+        QueryRoot queryTree = new QueryRoot(new Projection(isClass, new ProjectionElemList()));
+        SparqlToPipelineTransformVisitor visitor = new SparqlToPipelineTransformVisitor(collection);
+        queryTree.visit(visitor);
+        Assert.assertTrue(queryTree.getArg() instanceof Projection);
+        Projection projectNode = (Projection) queryTree.getArg();
+        Assert.assertTrue(projectNode.getArg() instanceof AggregationPipelineQueryNode);
+        AggregationPipelineQueryNode pipelineNode = (AggregationPipelineQueryNode) projectNode.getArg();
+        Assert.assertEquals(Sets.newHashSet(), pipelineNode.getAssuredBindingNames());
     }
 
     @Test

@@ -531,7 +531,9 @@ public class AggregationPipelineQueryNode extends ExternalSet {
      * The number of documents produced by the pipeline after this operation
      * will be the number of documents entering this stage (the number of
      * intermediate results) multiplied by the number of
-     * {@link ProjectionElemList}s supplied here.
+     * {@link ProjectionElemList}s supplied here. Empty projections are
+     * unsupported; if one or more projections given binds zero variables, then
+     * the pipeline will be unchanged and the method will return false.
      * @param projections One or more projections, i.e. mappings from the result
      *  at this stage of the query into a set of variables.
      * @return true if the projection(s) were added to the pipeline.
@@ -544,6 +546,10 @@ public class AggregationPipelineQueryNode extends ExternalSet {
         Set<String> bindingNamesUnion = new HashSet<>();
         Set<String> bindingNamesIntersection = null;
         for (ProjectionElemList projection : projections) {
+            if (projection.getElements().isEmpty()) {
+                // Empty projections are unsupported -- fail when seen
+                return false;
+            }
             Document valueDoc = new Document();
             Document hashDoc = new Document();
             Document typeDoc = new Document();

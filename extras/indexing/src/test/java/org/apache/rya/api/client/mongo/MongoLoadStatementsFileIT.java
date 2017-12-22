@@ -52,26 +52,23 @@ public class MongoLoadStatementsFileIT extends MongoTestBase {
     @Test
     public void loadTurtleFile() throws Exception {
         // Install an instance of Rya.
-        final InstallConfiguration installConfig = InstallConfiguration.builder()//
-                        .setEnableTableHashPrefix(false)//
-                        .setEnableEntityCentricIndex(false)//
-                        .setEnableFreeTextIndex(false)//
-                        .setEnableTemporalIndex(false)//
-                        .setEnablePcjIndex(false)//
-                        .setEnableGeoIndex(false)//
+        final InstallConfiguration installConfig = InstallConfiguration.builder()
+                        .setEnableTableHashPrefix(false)
+                        .setEnableEntityCentricIndex(false)
+                        .setEnableFreeTextIndex(false)
+                        .setEnableTemporalIndex(false)
+                        .setEnablePcjIndex(false)
+                        .setEnableGeoIndex(false)
                         .build();
         MongoConnectionDetails connectionDetails = getConnectionDetails();
         final RyaClient ryaClient = MongoRyaClientFactory.build(connectionDetails, conf.getMongoClient());
         final Install install = ryaClient.getInstall();
-        install.install(conf.getCollectionName(), installConfig);
+        install.install(conf.getMongoDBName(), installConfig);
 
         // Load the test statement file.
-        ryaClient.getLoadStatementsFile()
-                        // LoadStatementsFile loadStatementsFile = new MongoLoadStatementsFile(connectionDetails, getMongoClient());
-                        // loadStatementsFile
-                        .loadStatements( //
-                        conf.getCollectionName(), //
-                        Paths.get("src/test/resources/example.ttl"), //
+        ryaClient.getLoadStatementsFile().loadStatements(
+                        conf.getMongoDBName(),
+                        Paths.get("src/test/resources/example.ttl"),
                         RDFFormat.TURTLE);
 
         // Verify that the statements were loaded.

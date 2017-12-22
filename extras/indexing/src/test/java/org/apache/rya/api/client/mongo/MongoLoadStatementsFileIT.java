@@ -84,31 +84,10 @@ public class MongoLoadStatementsFileIT extends MongoTestBase {
         System.out.println("getRyaCollection().count()=" + getRyaCollection().count());
         while (x.hasNext()) {
             Document y = x.next();
-            System.out.println("getRyaCollection()=" + y);
+            statements.add(vf.createStatement(vf.createURI(y.getString("subject")), vf.createURI(y.getString("predicate")), vf.createURI(y.getString("object"))));
         }
         assertEquals("Expect all rows to be read.", 3, getRyaCollection().count());
-        // final WholeRowTripleResolver tripleResolver = new WholeRowTripleResolver();
-        // final Scanner scanner = getConnector().createScanner(getRyaInstanceName() + "spo", new Authorizations());
-        // final Iterator<Entry<Key, Value>> it = scanner.iterator();
-        // while(it.hasNext()) {
-        // final Entry<Key, Value> next = it.next();
-        //
-        // final Key key = next.getKey();
-        // final byte[] row = key.getRow().getBytes();
-        // final byte[] columnFamily = key.getColumnFamily().getBytes();
-        // final byte[] columnQualifier = key.getColumnQualifier().getBytes();
-        // final TripleRow tripleRow = new TripleRow(row, columnFamily, columnQualifier);
-        //
-        // final RyaStatement ryaStatement = tripleResolver.deserialize(TABLE_LAYOUT.SPO, tripleRow);
-        // final Statement statement = RyaToRdfConversions.convertStatement(ryaStatement);
-        //
-        // // Filter out the rya version statement if it is present.
-        // if(!isRyaMetadataStatement(vf, statement)) {
-        // statements.add( statement );
-        // }
-        // }
-        //
-        // assertEquals(expected, statements);
+        assertEquals("All rows in DB should match expected rows:", expected, statements);
     }
 
     private boolean isRyaMetadataStatement(final ValueFactory vf, final Statement statement) {

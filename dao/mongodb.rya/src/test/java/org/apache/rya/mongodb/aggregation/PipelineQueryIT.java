@@ -49,8 +49,10 @@ import org.openrdf.model.vocabulary.RDFS;
 import org.openrdf.model.vocabulary.XMLSchema;
 import org.openrdf.query.BindingSet;
 import org.openrdf.query.QueryEvaluationException;
+import org.openrdf.query.algebra.Projection;
 import org.openrdf.query.algebra.QueryRoot;
 import org.openrdf.query.algebra.evaluation.QueryBindingSet;
+import org.openrdf.query.impl.EmptyBindingSet;
 import org.openrdf.query.impl.ListBindingSet;
 import org.openrdf.query.parser.sparql.SPARQLParser;
 
@@ -132,6 +134,36 @@ public class PipelineQueryIT extends MongoITBase {
         expectedSolutions.add(new ListBindingSet(varNames, VF.createURI("urn:Alice"), FOAF.PERSON));
         // Execute pipeline and verify results
         testPipelineQuery(query, expectedSolutions);
+    }
+
+    @Test
+    public void testNoVariableSP() throws Exception {
+        // Insert data
+        insert(OWL.THING, RDF.TYPE, OWL.CLASS);
+        insert(FOAF.PERSON, RDF.TYPE, OWL.CLASS, 1);
+        insert(FOAF.PERSON, RDFS.SUBCLASSOF, OWL.THING);
+        insert(VF.createURI("urn:Alice"), RDF.TYPE, FOAF.PERSON);
+        dao.flush();
+        // Define query and expected results
+        final String query = "SELECT * WHERE {\n"
+                + "  owl:Thing a owl:Class .\n"
+                + "}";
+        Multiset<BindingSet> expectedSolutions = HashMultiset.create();
+        expectedSolutions.add(new EmptyBindingSet());
+        // Execute pipeline and verify results
+        QueryRoot queryTree = new QueryRoot(PARSER.parseQuery(query, null).getTupleExpr());
+        SparqlToPipelineTransformVisitor visitor = new SparqlToPipelineTransformVisitor(getRyaCollection());
+        queryTree.visit(visitor);
+        Assert.assertTrue(queryTree.getArg() instanceof Projection);
+        Projection projection = (Projection) queryTree.getArg();
+        Assert.assertTrue(projection.getArg() instanceof AggregationPipelineQueryNode);
+        AggregationPipelineQueryNode pipelineNode = (AggregationPipelineQueryNode) projection.getArg();
+        Multiset<BindingSet> solutions = HashMultiset.create();
+        CloseableIteration<BindingSet, QueryEvaluationException> iter = pipelineNode.evaluate(new QueryBindingSet());
+        while (iter.hasNext()) {
+            solutions.add(iter.next());
+        }
+        Assert.assertEquals(expectedSolutions, solutions);
     }
 
     @Test

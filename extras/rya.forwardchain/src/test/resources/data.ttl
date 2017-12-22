@@ -1,0 +1,56 @@
+# Licensed to the Apache Software Foundation (ASF) under one
+# or more contributor license agreements.  See the NOTICE file
+# distributed with this work for additional information
+# regarding copyright ownership.  The ASF licenses this file
+# to you under the Apache License, Version 2.0 (the
+# "License"); you may not use this file except in compliance
+# with the License.  You may obtain a copy of the License at
+#
+#   http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing,
+# software distributed under the License is distributed on an
+# "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+# KIND, either express or implied.  See the License for the
+# specific language governing permissions and limitations
+# under the License.
+
+# Sample data similar to LUBM
+
+@prefix rdf:     <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix owl:     <http://www.w3.org/2002/07/owl#> .
+@prefix xsd:     <http://www.w3.org/2001/XMLSchema#> .
+@prefix lubm: <http://swat.cse.lehigh.edu/onto/univ-bench.owl#> .
+@prefix ex: <http://example.org/> .
+
+ex:Department0 lubm:subOrganizationOf ex:College0 .
+ex:Department1 lubm:subOrganizationOf ex:College1 .
+ex:Department2 lubm:subOrganizationOf ex:College2 .
+ex:Department3 lubm:subOrganizationOf ex:College2 .
+
+ex:College0 a lubm:Organization ; lubm:subOrganizationOf ex:University0 .
+ex:College1 a lubm:Organization ; lubm:subOrganizationOf ex:University0 .
+ex:College2 lubm:subOrganizationOf ex:University1 .
+
+ex:Department0 a lubm:Department .
+ex:Department1 a lubm:Department .
+ex:Department2 a lubm:Department .
+ex:Department3 a lubm:Department .
+
+# Professors -- infer Faculty and therefore Person 
+ex:Alice a lubm:Professor .
+ex:Bob a lubm:Professor .
+ex:Carol a lubm:Professor .
+ex:Dan a lubm:Professor .
+ex:Eve a lubm:Professor .
+
+# Can infer Organization via rdfs:range
+ex:Alice lubm:worksFor ex:Department2 .
+ex:Carol lubm:worksFor ex:Department0 .
+ex:Dan lubm:worksFor ex:Department2 .
+ex:Eve lubm:worksFor ex:Department1 .
+
+ex:Alice lubm:headOf ex:Department1 . # infer Chair and worksFor
+ex:Dan lubm:headOf ex:Department2 . # infer Chair, already have worksFor
+ex:Eve lubm:headOf ex:ResearchGroup3 . # infer worksFor, therefore Organization, but not Chair because not a Department
